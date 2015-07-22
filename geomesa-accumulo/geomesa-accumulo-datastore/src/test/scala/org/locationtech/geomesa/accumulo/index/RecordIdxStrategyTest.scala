@@ -66,8 +66,9 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
       import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, ECQL.toFilter("IN ('2', '3')"))
       query.getHints.put(BIN_TRACK_KEY, "name")
+      query.getHints.put(BIN_BATCH_SIZE_KEY, 1000)
       val queryPlanner = new QueryPlanner(sft, ds.getFeatureEncoding(sft),
-        ds.getIndexSchemaFmt(sftName), ds, ds.strategyHints(sft), ds.getGeomesaVersion(sft))
+        ds.getIndexSchemaFmt(sftName), ds, ds.strategyHints(sft))
       val results = queryPlanner.runQuery(query, Some(StrategyType.RECORD)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))

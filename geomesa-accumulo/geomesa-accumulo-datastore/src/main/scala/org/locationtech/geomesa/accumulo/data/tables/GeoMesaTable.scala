@@ -13,10 +13,9 @@ import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.data.{Range => AccRange}
 import org.apache.commons.codec.binary.Hex
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo
+import org.locationtech.geomesa.accumulo.data.AccumuloConnectorCreator
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter._
-import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index._
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
@@ -42,20 +41,19 @@ trait GeoMesaTable {
   /**
    * Creates a function to write a feature to the table
    */
-  def writer(sft: SimpleFeatureType): Option[FeatureToMutations]
+  def writer(sft: SimpleFeatureType): FeatureToMutations
 
   /**
    * Creates a function to delete a feature to the table
    */
-  def remover(sft: SimpleFeatureType): Option[FeatureToMutations]
+  def remover(sft: SimpleFeatureType): FeatureToMutations
 
   /**
    * Deletes all features from the table
    */
   def deleteFeaturesForType(sft: SimpleFeatureType, bd: BatchDeleter): Unit = {
-    val prefix = getTableSharingPrefix(sft)
-    val range = new AccRange(new Text(prefix), true, AccRange.followingPrefix(new Text(prefix)), false)
-    bd.setRanges(Seq(range))
+    val prefix = new Text(sft.getTableSharingPrefix)
+    bd.setRanges(Seq(new AccRange(prefix, true, AccRange.followingPrefix(prefix), false)))
     bd.delete()
   }
 
@@ -64,22 +62,11 @@ trait GeoMesaTable {
 
 object GeoMesaTable {
 
-  def getTablesAndNames(sft: SimpleFeatureType, acc: AccumuloConnectorCreator): Seq[(GeoMesaTable, String)] = {
-    val version = acc.getGeomesaVersion(sft)
-    val rec  = (RecordTable, acc.getRecordTable(sft))
-    val st   = (SpatioTemporalTable, acc.getSpatioTemporalTable(sft))
-    val attr = (AttributeTable, acc.getAttributeTable(sft))
-    val tables = if (version < 5) {
-      Seq(rec, st, attr)
-    } else {
-      val z3 = (Z3Table, acc.getZ3Table(sft))
-      Seq(rec, z3, st, attr)
-    }
-    tables.filter(_._1.supports(sft))
-  }
+  def getTables(sft: SimpleFeatureType): Seq[GeoMesaTable] =
+    Seq(RecordTable, SpatioTemporalTable, AttributeTableV5, AttributeTable, Z3Table).filter(_.supports(sft))
 
   def getTableNames(sft: SimpleFeatureType, acc: AccumuloConnectorCreator): Seq[String] =
-    getTablesAndNames(sft, acc).map(_._2)
+    getTables(sft).map(acc.getTableName(sft.getTypeName, _))
 
   // only alphanumeric is safe
   private val SAFE_FEATURE_NAME_PATTERN = "^[a-zA-Z0-9]+$"
@@ -92,7 +79,7 @@ object GeoMesaTable {
    * but still human readable.
    */
   protected[tables] def formatTableName(prefix: String, suffix: String, sft: SimpleFeatureType): String =
-    if (accumulo.index.getTableSharing(sft)) {
+    if (sft.isTableSharing) {
       formatSharedTableName(prefix, suffix)
     } else {
       formatSoloTableName(prefix, suffix, sft)

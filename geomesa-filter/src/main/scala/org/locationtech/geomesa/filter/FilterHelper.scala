@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.filter
 
 import java.util.Date
+import java.util.concurrent.TimeUnit
 
 import com.vividsolutions.jts.geom.{Geometry, MultiPolygon, Polygon}
 import org.joda.time.{DateTime, DateTimeZone, Interval}
@@ -149,7 +150,7 @@ object FilterHelper {
   }
 
   // NB: This method assumes that the filters represent a collection of 'and'ed temporal filters.
-  def extractTemporal(dtFieldName: Option[String]): Seq[Filter] => Interval = {
+  def extractInterval(filters: Seq[Filter], dtField: Option[String], offsetDuring: Boolean = false): Interval = {
     import org.locationtech.geomesa.utils.filters.Typeclasses.BinaryFilter
     import org.locationtech.geomesa.utils.filters.Typeclasses.BinaryFilter.ops
 
@@ -177,9 +178,18 @@ object FilterHelper {
     def extractInterval(dtfn: String): Filter => Interval = {
       case during: During =>
         val p = during.getExpression2.evaluate(null, classOf[Period])
-        val start = p.getBeginning.getPosition.getDate
-        val end = p.getEnding.getPosition.getDate
-        new Interval(start.getTime, end.getTime)
+        val start = new DateTime(p.getBeginning.getPosition.getDate)
+        val end = new DateTime(p.getEnding.getPosition.getDate)
+        if (offsetDuring) {
+          // round up/down to the next second
+          val s = start.minusMillis(start.getMillisOfSecond).plusSeconds(1)
+          val endMillis = end.getMillisOfSecond
+          val e = if (endMillis == 0) end.minusSeconds(1) else end.minusMillis(endMillis)
+          new Interval(s, e)
+        } else {
+          new Interval(start, end)
+        }
+
       case between: PropertyIsBetween =>
         val start = between.getLowerBoundary.evaluate(null, classOf[Date])
         val end = between.getUpperBoundary.evaluate(null, classOf[Date])
@@ -198,11 +208,9 @@ object FilterHelper {
         throw new Exception(s"Expected temporal filters.  Received an $a.")
     }
 
-    dtFieldName match {
-      case None =>
-        _ => everywhen
-      case Some(dtfn) =>
-        filters => filters.map(extractInterval(dtfn)).fold(everywhen)( _.overlap(_))
+    dtField match {
+      case None => everywhen
+      case Some(dtfn) => filters.map(extractInterval(dtfn)).fold(everywhen)( _ overlap _)
     }
   }
 

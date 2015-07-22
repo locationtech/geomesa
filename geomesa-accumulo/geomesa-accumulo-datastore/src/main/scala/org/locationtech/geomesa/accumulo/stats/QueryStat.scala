@@ -86,14 +86,6 @@ object QueryStatTransform extends StatTransform[QueryStat] {
     QueryStat(featureName, date, queryFilter, queryHints, planTime, scanTime, hits)
   }
 
-  /**
-   * Converts a filter object to a string for persisting
-   *
-   * @param filter
-   * @return
-   */
-  def filterToString(filter: Filter): String = Try(ECQL.toCQL(filter)).getOrElse(filter.toString)
-
   // list of query hints we want to persist
   val QUERY_HINTS = List[Hints.Key](TRANSFORMS,
                                     TRANSFORM_SCHEMA,

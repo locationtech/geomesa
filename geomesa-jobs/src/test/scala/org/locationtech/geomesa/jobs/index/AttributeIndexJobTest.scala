@@ -23,6 +23,7 @@ import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatu
 import org.locationtech.geomesa.jobs.index.AttributeIndexJob._
 import org.locationtech.geomesa.jobs.scalding.{AccumuloSource, ConnectionParams, GeoMesaSource}
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -36,7 +37,6 @@ import scala.collection.mutable
 class AttributeIndexJobTest extends Specification {
 
   val tableName = "AttributeIndexJobTest"
-
   val params = Map(
     "instanceId"        -> "mycloud",
     "zookeepers"        -> "zoo1,zoo2,zoo3",
@@ -48,8 +48,9 @@ class AttributeIndexJobTest extends Specification {
 
   val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
 
-  def test(sft: SimpleFeatureType, feats: Seq[SimpleFeature]) = {
-    ds.createSchema(sft)
+  def test(schema: SimpleFeatureType, feats: Seq[SimpleFeature]) = {
+    ds.createSchema(schema)
+    val sft = ds.getSchema(schema.getTypeName)
     ds.getFeatureSource(sft.getTypeName).asInstanceOf[AccumuloFeatureStore].addFeatures {
       val collection = new DefaultFeatureCollection(sft.getTypeName, sft)
       collection.addAll(feats)
@@ -76,16 +77,14 @@ class AttributeIndexJobTest extends Specification {
     val job = new AttributeIndexJob(arguments)
     job.run must beTrue
 
-    val descriptor = sft.getDescriptor("name")
-    descriptor.setIndexCoverage(IndexCoverage.JOIN)
-    val attrList = Seq((descriptor, sft.indexOf(descriptor.getName)))
-    val prefix = org.locationtech.geomesa.accumulo.index.getTableSharingPrefix(sft)
-    val indexValueEncoder = IndexValueEncoder(sft, ds.getGeomesaVersion(sft))
+    val indexValueEncoder = IndexValueEncoder(sft)
     val encoder = SimpleFeatureSerializers(sft, ds.getFeatureEncoding(sft))
 
+    sft.getDescriptor("name").setIndexCoverage(IndexCoverage.JOIN)
+    val writer = AttributeTable.writer(sft)
     val expectedMutations = feats.flatMap { sf =>
       val toWrite = new FeatureToWrite(sf, ds.writeVisibilities, encoder, indexValueEncoder)
-      AttributeTable.getAttributeIndexMutations(toWrite, attrList, prefix)
+      writer(toWrite)
     }
 
     val jobMutations = output.map(_.getObject(1).asInstanceOf[Mutation])
@@ -110,13 +109,13 @@ class AttributeIndexJobTest extends Specification {
   "AccumuloIndexJob" should {
     "create the correct mutation for a stand-alone feature" in {
       val sft = SimpleFeatureTypes.createType("1", spec)
-      setTableSharing(sft, false)
+      sft.setTableSharing(false)
       test(sft, getTestFeatures(sft))
     }
 
     "create the correct mutation for a shared-table feature" in {
       val sft = SimpleFeatureTypes.createType("2", spec)
-      setTableSharing(sft, true)
+      sft.setTableSharing(true)
       test(sft, getTestFeatures(sft))
     }
   }

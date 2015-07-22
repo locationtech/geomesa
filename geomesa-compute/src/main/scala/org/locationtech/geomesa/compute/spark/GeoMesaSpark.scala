@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.compute.spark
 
 import java.text.SimpleDateFormat
-import java.util.UUID
 
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.io.{Input, Output}
@@ -23,14 +22,14 @@ import org.apache.hadoop.io.Text
 import org.apache.spark.rdd.RDD
 import org.apache.spark.serializer.KryoRegistrator
 import org.apache.spark.{SparkConf, SparkContext}
-import org.geotools.data.{DataStore, DataStoreFinder, DefaultTransaction, Query}
+import org.geotools.data._
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.index
-import org.locationtech.geomesa.accumulo.stats.QueryStatTransform
+import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.features.SimpleFeatureSerializers
 import org.locationtech.geomesa.features.kryo.serialization.SimpleFeatureSerializer
+import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaInputFormat
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -76,7 +75,7 @@ object GeoMesaSpark extends Logging {
     if (qps.length > 1) {
       logger.error("The query being executed requires multiple scans, which is not currently " +
           "supported by geomesa. Your result set will be partially incomplete. This is most likely due to " +
-          s"an OR clause in your query. Query: ${QueryStatTransform.filterToString(query.getFilter)}")
+          s"an OR clause in your query. Query: ${filterToString(query.getFilter)}")
     }
     val qp = qps.head
 
@@ -115,7 +114,7 @@ object GeoMesaSpark extends Logging {
       GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(query.getFilter))
     }
 
-    index.getTransformSchema(query).foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
+    query.getHints.getTransformSchema.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
 
     sc.newAPIHadoopRDD(conf, classOf[GeoMesaInputFormat], classOf[Text], classOf[SimpleFeature]).map(U => U._2)
 
@@ -134,8 +133,7 @@ object GeoMesaSpark extends Logging {
 
     rdd.foreachPartition { iter =>
       val ds = DataStoreFinder.getDataStore(writeDataStoreParams).asInstanceOf[AccumuloDataStore]
-      val transaction = new DefaultTransaction(UUID.randomUUID().toString)
-      val featureWriter = ds.getFeatureWriterAppend(writeTypeName, transaction)
+      val featureWriter = ds.getFeatureWriterAppend(writeTypeName, Transaction.AUTO_COMMIT)
       val attrNames = featureWriter.getFeatureType.getAttributeDescriptors.map(_.getLocalName)
       try {
         iter.foreach { case rawFeature =>
@@ -143,7 +141,6 @@ object GeoMesaSpark extends Logging {
           attrNames.foreach(an => newFeature.setAttribute(an, rawFeature.getAttribute(an)))
           featureWriter.write()
         }
-        transaction.commit()
       } finally {
         featureWriter.close()
       }

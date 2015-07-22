@@ -17,11 +17,13 @@ import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.joda.time.{DateTime, DateTimeZone}
+import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
+import org.locationtech.geomesa.accumulo.data.AccumuloFeatureStore
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToWrite
-import org.locationtech.geomesa.accumulo.data.{AccumuloFeatureStore, INTERNAL_GEOMESA_VERSION}
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializers}
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -65,9 +67,8 @@ object TestData extends Logging {
   def getFeatureType(typeNameSuffix: String = "", attrNameSuffix: String = "2", tableSharing: Boolean = true) = {
     val fn = s"$featureName$typeNameSuffix"
     val ft: SimpleFeatureType = SimpleFeatureTypes.createType(fn, getTypeSpec(attrNameSuffix))
-    ft.getUserData.put(SF_PROPERTY_START_TIME, "dtg")
-
-    setTableSharing(ft, tableSharing)
+    ft.setDtgField("dtg")
+    ft.setTableSharing(tableSharing)
     ft
   }
 
@@ -98,7 +99,7 @@ object TestData extends Logging {
   lazy val featureType: SimpleFeatureType = getFeatureType()
 
   lazy val featureEncoder = SimpleFeatureSerializers(getFeatureType(), SerializationType.AVRO)
-  lazy val indexValueEncoder = IndexValueEncoder(featureType, INTERNAL_GEOMESA_VERSION)
+  lazy val indexValueEncoder = IndexValueEncoder(featureType)
 
   lazy val indexEncoder = IndexSchema.buildKeyEncoder(featureType, schemaEncoding)
 

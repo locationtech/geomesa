@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.data
 import java.util.concurrent.{Executors, PriorityBlockingQueue, TimeUnit}
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.locationtech.geomesa.accumulo.stats.QueryStatTransform
+import org.locationtech.geomesa.filter.filterToString
 
 /**
  * Singleton for registering and managing running queries.
@@ -37,8 +37,7 @@ object ThreadManagement extends Logging {
         } else if (holder.killAt < time) {
           if (!holder.reader.isClosed) {
             logger.warn(s"Stopping query on schema '${holder.reader.query.getTypeName}' with filter " +
-                s"'${QueryStatTransform.filterToString(holder.reader.query.getFilter)}' " +
-                s"based on timeout of ${holder.timeout}ms")
+                s"'${filterToString(holder.reader.query.getFilter)}' based on timeout of ${holder.timeout}ms")
             holder.reader.close()
             numClosed += 1
           }

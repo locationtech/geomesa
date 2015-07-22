@@ -9,22 +9,21 @@
 package org.locationtech.geomesa.accumulo.index
 
 import java.text.SimpleDateFormat
-import java.util.{Date, TimeZone}
+import java.util.TimeZone
 
-import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.{Range => AccRange}
 import org.apache.accumulo.core.security.Authorizations
+import org.apache.hadoop.io.Text
 import org.geotools.data._
-import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.cql2.CQLException
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.data.tables.AttributeTable
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
-import org.locationtech.geomesa.accumulo.{TestWithDataStore, index}
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -36,48 +35,43 @@ import scala.collection.JavaConverters._
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
 
-  override val spec = "name:String:index=true,age:Integer:index=true,count:Long:index=true," +
+  sequential
+
+  override val spec = "name:String:index=full,age:Integer:index=true,count:Long:index=true," +
       "weight:Double:index=true,height:Float:index=true,admin:Boolean:index=true," +
-      "geom:Geometry:srid=4326,dtg:Date:index=true," +
+      "geom:Geometry:srid=4326,dtg:Date,indexedDtg:Date:index=true," +
       "fingers:List[String]:index=true,toes:List[Double]:index=true"
 
-  val builder = new SimpleFeatureBuilder(sft, new AvroSimpleFeatureFactory)
   val dtFormat = new SimpleDateFormat("yyyyMMdd HH:mm:SS")
   dtFormat.setTimeZone(TimeZone.getTimeZone("UTC"))
 
-  case class TestAttributes(name: String,
-                            age: Integer,
-                            count: Long,
-                            weight: Double,
-                            height: Float,
-                            admin: Boolean,
-                            geom: Geometry,
-                            dtg: Date,
-                            fingers: List[String],
-                            toes: List[Double])
-
   val geom = WKTUtils.read("POINT(45.0 49.0)")
 
-  val features =
-    Seq(TestAttributes("alice",   20,   1, 5.0, 10.0F, admin = true,  geom, dtFormat.parse("20120101 12:00:00"),
-          List("index"), List(1.0)),
-        TestAttributes("bill",    21,   2, 6.0, 11.0F, admin = false, geom, dtFormat.parse("20130101 12:00:00"),
-          List("ring", "middle"), List(1.0, 2.0)),
-        TestAttributes("bob",     30,   3, 6.0, 12.0F, admin = false, geom, dtFormat.parse("20140101 12:00:00"),
-          List("index", "thumb", "pinkie"), List(3.0, 2.0, 5.0)),
-        TestAttributes("charles", null, 4, 7.0, 12.0F, admin = false, geom, dtFormat.parse("20140101 12:30:00"),
-          List("thumb", "ring", "index", "pinkie", "middle"), List()))
-    .map { entry =>
-      val feature = builder.buildFeature(entry.name)
-      feature.setDefaultGeometry(entry.geom)
-      feature.setAttributes(entry.productIterator.toArray.asInstanceOf[Array[AnyRef]])
-      feature
-    }
+  val aliceDate   = dtFormat.parse("20120101 12:00:00")
+  val billDate    = dtFormat.parse("20130101 12:00:00")
+  val bobDate     = dtFormat.parse("20140101 12:00:00")
+  val charlesDate = dtFormat.parse("20140101 12:30:00")
+
+  val aliceFingers   = List("index")
+  val billFingers    = List("ring", "middle")
+  val bobFingers     = List("index", "thumb", "pinkie")
+  val charlesFingers = List("thumb", "ring", "index", "pinkie", "middle")
+
+  val features = Seq(
+    Array("alice",   20,   1, 5.0, 10.0F, true,  geom, aliceDate, aliceDate, aliceFingers, List(1.0)),
+    Array("bill",    21,   2, 6.0, 11.0F, false, geom, billDate, billDate, billFingers, List(1.0, 2.0)),
+    Array("bob",     30,   3, 6.0, 12.0F, false, geom, bobDate, bobDate, bobFingers, List(3.0, 2.0, 5.0)),
+    Array("charles", null, 4, 7.0, 12.0F, false, geom, charlesDate, charlesDate, charlesFingers, List())
+  ).map { entry =>
+    val feature = new ScalaSimpleFeature(entry.head.toString, sft)
+    feature.setAttributes(entry.asInstanceOf[Array[AnyRef]])
+    feature
+  }
 
   addFeatures(features)
 
   val queryPlanner = new QueryPlanner(sft, ds.getFeatureEncoding(sft), ds.getIndexSchemaFmt(sftName), ds,
-    ds.strategyHints(sft), ds.getGeomesaVersion(sft))
+    ds.strategyHints(sft))
 
   def execute(filter: String): List[String] = {
     val query = new Query(sftName, ECQL.toFilter(filter))
@@ -88,10 +82,9 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
   "AttributeIndexStrategy" should {
     "print values" in {
       skipped("used for debugging")
-      val scanner = connector.createScanner(ds.getAttributeTable(sftName), new Authorizations())
-      val prefix = AttributeTable.getAttributeIndexRowPrefix(index.getTableSharingPrefix(sft),
-        sft.getDescriptor("fingers"))
-      scanner.setRange(AccRange.prefix(prefix))
+      val scanner = connector.createScanner(ds.getTableName(sftName, AttributeTable), new Authorizations())
+      val prefix = AttributeTable.getRowPrefix(sft, sft.indexOf("fingers"))
+      scanner.setRange(AccRange.prefix(new Text(prefix)))
       scanner.asScala.foreach(println)
       println()
       success
@@ -106,15 +99,85 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       resultNames must contain ("bill")
     }
 
-    "support bin queries" in {
+    "support bin queries with join queries" in {
       import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, ECQL.toFilter("count>=2"))
       query.getHints.put(BIN_TRACK_KEY, "name")
+      query.getHints.put(BIN_BATCH_SIZE_KEY, 1000)
+      explain(query).split("\n").filter(_.startsWith("Join Table:")) must haveLength(1)
       val results = queryPlanner.runQuery(query, Some(StrategyType.ATTRIBUTE)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
       bins must haveSize(3)
       bins.map(_.trackId) must containAllOf(Seq("bill", "bob", "charles").map(_.hashCode.toString))
+    }
+
+    "support bin queries against index values" in {
+      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      val query = new Query(sftName, ECQL.toFilter("count>=2"))
+      query.getHints.put(BIN_TRACK_KEY, "dtg")
+      query.getHints.put(BIN_BATCH_SIZE_KEY, 1000)
+      explain(query).split("\n").filter(_.startsWith("Join Table:")) must beEmpty
+      val results = queryPlanner.runQuery(query, Some(StrategyType.ATTRIBUTE)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
+      forall(results)(_ must beAnInstanceOf[Array[Byte]])
+      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
+      bins must haveSize(3)
+      bins.map(_.trackId) must containAllOf(Seq(billDate, bobDate, charlesDate).map(_.hashCode.toString))
+    }
+
+    "support bin queries against full values" in {
+      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      val query = new Query(sftName, ECQL.toFilter("name>'amy'"))
+      query.getHints.put(BIN_TRACK_KEY, "count")
+      query.getHints.put(BIN_BATCH_SIZE_KEY, 1000)
+      explain(query).split("\n").filter(_.startsWith("Join Table:")) must beEmpty
+      val results = queryPlanner.runQuery(query, Some(StrategyType.ATTRIBUTE)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
+      forall(results)(_ must beAnInstanceOf[Array[Byte]])
+      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
+      bins must haveSize(3)
+      bins.map(_.trackId) must containAllOf(Seq(2, 3, 4).map(_.hashCode.toString))
+    }
+
+    "correctly query equals with date ranges" in {
+      val features = execute("height = 12.0 AND " +
+          "dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:15:00.000Z")
+      features must haveLength(1)
+      features must contain("bob")
+    }
+
+    "correctly query lt with date ranges" in {
+      val features = execute("height < 12.0 AND " +
+          "dtg DURING 2011-01-01T00:00:00.000Z/2012-01-02T00:00:00.000Z")
+      features must haveLength(1)
+      features must contain("alice")
+    }
+
+    "correctly query lte with date ranges" in {
+      val features = execute("height <= 12.0 AND " +
+          "dtg DURING 2013-01-01T00:00:00.000Z/2014-01-01T12:15:00.000Z")
+      features must haveLength(2)
+      features must contain("bill", "bob")
+    }
+
+    "correctly query gt with date ranges" in {
+      val features = execute("height > 11.0 AND " +
+          "dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:15:00.000Z")
+      features must haveLength(1)
+      features must contain("bob")
+    }
+
+    "correctly query gte with date ranges" in {
+      val features = execute("height >= 11.0 AND " +
+          "dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:15:00.000Z")
+      features must haveLength(1)
+      features must contain("bob")
+    }
+
+    "correctly query between with date ranges" in {
+      val features = execute("height between 11.0 AND 12.0 AND " +
+          "dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:15:00.000Z")
+      features must haveLength(1)
+      features must contain("bob")
     }
   }
 
@@ -169,13 +232,13 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     }
 
     "correctly query on date objects" in {
-      val features = execute("dtg TEQUALS 2014-01-01T12:30:00.000Z")
+      val features = execute("indexedDtg TEQUALS 2014-01-01T12:30:00.000Z")
       features must haveLength(1)
       features must contain("charles")
     }
 
     "correctly query on date strings in standard format" in {
-      val features = execute("dtg = '2014-01-01T12:30:00.000Z'")
+      val features = execute("indexedDtg = '2014-01-01T12:30:00.000Z'")
       features must haveLength(1)
       features must contain("charles")
     }
@@ -402,17 +465,17 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
 
     "correctly query on date objects" >> {
       "before" >> {
-        val features = execute("dtg BEFORE 2014-01-01T12:30:00.000Z")
+        val features = execute("indexedDtg BEFORE 2014-01-01T12:30:00.000Z")
         features must haveLength(3)
         features must contain("alice", "bill", "bob")
       }
       "after" >> {
-        val features = execute("dtg AFTER 2013-01-01T12:30:00.000Z")
+        val features = execute("indexedDtg AFTER 2013-01-01T12:30:00.000Z")
         features must haveLength(2)
         features must contain("bob", "charles")
       }
       "during (exclusive)" >> {
-        val features = execute("dtg DURING 2012-01-01T11:00:00.000Z/2014-01-01T12:15:00.000Z")
+        val features = execute("indexedDtg DURING 2012-01-01T11:00:00.000Z/2014-01-01T12:15:00.000Z")
         features must haveLength(3)
         features must contain("alice", "bill", "bob")
       }
@@ -420,17 +483,17 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
 
     "correctly query on date strings in standard format" >> {
       "lt" >> {
-        val features = execute("dtg < '2014-01-01T12:30:00.000Z'")
+        val features = execute("indexedDtg < '2014-01-01T12:30:00.000Z'")
         features must haveLength(3)
         features must contain("alice", "bill", "bob")
       }
       "gt" >> {
-        val features = execute("dtg > '2013-01-01T12:00:00.000Z'")
+        val features = execute("indexedDtg > '2013-01-01T12:00:00.000Z'")
         features must haveLength(2)
         features must contain("bob", "charles")
       }
       "between (inclusive)" >> {
-        val features = execute("dtg BETWEEN '2012-01-01T12:00:00.000Z' AND '2013-01-01T12:00:00.000Z'")
+        val features = execute("indexedDtg BETWEEN '2012-01-01T12:00:00.000Z' AND '2013-01-01T12:00:00.000Z'")
         features must haveLength(2)
         features must contain("alice", "bill")
       }
@@ -458,10 +521,10 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
         features must contain("bill", "bob", "charles")
       }
       "before" >> {
-        execute("2014-01-01T12:30:00.000Z AFTER dtg") should throwA[CQLException]
+        execute("2014-01-01T12:30:00.000Z AFTER indexedDtg") should throwA[CQLException]
       }
       "after" >> {
-        execute("2013-01-01T12:30:00.000Z BEFORE dtg") should throwA[CQLException]
+        execute("2013-01-01T12:30:00.000Z BEFORE indexedDtg") should throwA[CQLException]
       }
     }
 

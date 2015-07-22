@@ -11,10 +11,13 @@ package org.locationtech.geomesa.jobs.index
 import com.twitter.scalding._
 import org.apache.accumulo.core.data.{Range => AcRange}
 import org.geotools.data.DataStoreFinder
+import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.jobs.GeoMesaBaseJob
 import org.locationtech.geomesa.jobs.scalding.ConnectionParams._
 import org.locationtech.geomesa.jobs.scalding._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 import scala.collection.JavaConverters._
 
@@ -27,27 +30,45 @@ import scala.collection.JavaConverters._
  */
 class SchemaCopyJob(args: Args) extends GeoMesaBaseJob(args) {
 
-  val feature = args(FEATURE_IN)
-  val dsInParams = toDataStoreInParams(args)
+  val featureIn   = args(FEATURE_IN)
+  val featureOut  = args.getOrElse(FEATURE_OUT, featureIn)
+  val dsInParams  = toDataStoreInParams(args)
   val dsOutParams = toDataStoreOutParams(args)
 
-  val input = GeoMesaInputOptions(dsInParams, feature)
+  val input = GeoMesaInputOptions(dsInParams, featureIn)
   val output = GeoMesaOutputOptions(dsOutParams)
 
-  {
-    // validation
-    val dsIn = DataStoreFinder.getDataStore(dsInParams.asJava).asInstanceOf[AccumuloDataStore]
-    assert(dsIn != null, "The specified input data store could not be created - check your job parameters")
-    val dsOut = DataStoreFinder.getDataStore(dsOutParams.asJava).asInstanceOf[AccumuloDataStore]
-    assert(dsOut != null, "The specified output data store could not be created - check your job parameters")
-    val sft = dsIn.getSchema(feature)
-    assert(sft != null, s"The feature '$feature' does not exist in the input data store")
-    // create the schema in the output datastore if it does not exist already
-    dsOut.createSchema(sft)
+  @transient lazy val sftIn = {
+    val dsIn = DataStoreFinder.getDataStore(dsInParams.asJava)
+    require(dsIn != null, "The specified input data store could not be created - check your job parameters")
+    val sft = dsIn.getSchema(featureIn)
+    require(sft != null, s"The feature '$featureIn' does not exist in the input data store")
+    sft
+  }
+  @transient lazy val sftOut = {
+    val dsOut = DataStoreFinder.getDataStore(dsOutParams.asJava)
+    require(dsOut != null, "The specified output data store could not be created - check your job parameters")
+    var sft = dsOut.getSchema(featureOut)
+    if (sft == null) {
+      // update the feature name
+      if (featureOut == featureIn) {
+        sft = sftIn
+      } else {
+        sft = SimpleFeatureTypes.createType(featureOut, SimpleFeatureTypes.encodeType(sftIn))
+      }
+      // create the schema in the output datastore
+      dsOut.createSchema(sft)
+      dsOut.getSchema(featureOut)
+    } else {
+      sft
+    }
   }
 
+  // initialization - ensure the types exist before launching distributed job
+  require(sftOut != null, "Could not create output type - check your job parameters")
+
   // scalding job
-  GeoMesaSource(input).write(GeoMesaSource(output))
+  TypedPipe.from(GeoMesaSource(input)).map {
+    case (t, sf) => (t, new ScalaSimpleFeature(sf.getID, sftOut, sf.getAttributes.toArray))
+  }.write(GeoMesaSource(output))
 }
-
-

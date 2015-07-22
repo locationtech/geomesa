@@ -19,7 +19,6 @@ import org.apache.accumulo.core.data.{Range => aRange, _}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo.index
 import org.locationtech.geomesa.accumulo.index.QueryPlanners._
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
@@ -31,7 +30,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-
+import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import scala.collection.JavaConverters._
 
 /**
@@ -346,6 +345,24 @@ object BinAggregatingIterator extends Logging {
   }
 
   /**
+   * Configure based on query hints
+   */
+  def configureDynamic(sft: SimpleFeatureType,
+                       hints: Hints,
+                       filter: Option[Filter],
+                       priority: Int): IteratorSetting = {
+    val trackId = hints.getBinTrackIdField
+    val geom = hints.getBinGeomField.getOrElse(sft.getGeomField)
+    val dtg = hints.getBinDtgField.orElse(sft.getDtgField)
+        .getOrElse(throw new IllegalStateException("BIN queries require a date field in the schema"))
+    val label = hints.getBinLabelField
+    val batchSize = hints.getBinBatchSize
+    val sort = hints.isBinSorting
+
+    BinAggregatingIterator.configureDynamic(sft, filter, trackId, geom, dtg, label, batchSize, sort, priority)
+  }
+
+  /**
    * Determines if the requested fields match the precomputed bin data
    */
   def canUsePrecomputedBins(sft: SimpleFeatureType,
@@ -390,7 +407,7 @@ object BinAggregatingIterator extends Logging {
     sf.setAttribute(1, zeroPoint)
 
     // don't use return sft from query hints, as it will be bin_sft
-    val returnSft = index.getTransformSchema(hints).getOrElse(sft)
+    val returnSft = hints.getTransformSchema.getOrElse(sft)
     val deserializer = SimpleFeatureDeserializers(returnSft, serializationType)
     val trackIdIndex = returnSft.indexOf(hints.getBinTrackIdField)
     val geomIndex = hints.getBinGeomField.map(returnSft.indexOf).getOrElse(returnSft.getGeomIndex)

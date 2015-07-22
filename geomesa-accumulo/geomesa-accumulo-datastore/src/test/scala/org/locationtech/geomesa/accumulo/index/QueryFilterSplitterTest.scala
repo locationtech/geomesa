@@ -154,7 +154,7 @@ class QueryFilterSplitterTest extends Specification {
         options must haveLength(1)
         options.head.filters must haveLength(1)
         options.head.filters.head.strategy mustEqual StrategyType.Z3
-        options.head.filters.head.primary mustEqual Seq(wholeWorld, dtg).map(f)
+        options.head.filters.head.primary mustEqual Seq(dtg).map(f)
         options.head.filters.head.secondary must beNone
       }
       "non-indexed attributes" >> {
@@ -210,7 +210,7 @@ class QueryFilterSplitterTest extends Specification {
         options must haveLength(1)
         options.head.filters must haveLength(1)
         options.head.filters.head.strategy mustEqual StrategyType.Z3
-        options.head.filters.head.primary mustEqual Seq(wholeWorld, dtg, dtg2).map(f)
+        options.head.filters.head.primary mustEqual Seq(dtg, dtg2).map(f)
         options.head.filters.head.secondary must beNone
       }
       "non-indexed attributes" >> {
@@ -297,7 +297,7 @@ class QueryFilterSplitterTest extends Specification {
         options.head.filters must haveLength(2)
         val z3 = options.head.filters.find(_.strategy == StrategyType.Z3)
         z3 must beSome
-        z3.get.primary mustEqual Seq(wholeWorld, dtg).map(f)
+        z3.get.primary mustEqual Seq(dtg).map(f)
         z3.get.secondary must beNone
         val st = options.head.filters.find(_.strategy == StrategyType.ST)
         st must beSome
@@ -380,7 +380,7 @@ class QueryFilterSplitterTest extends Specification {
         options.head.filters.map(_.strategy) must
             containTheSameElementsAs(Seq(StrategyType.Z3, StrategyType.ST, StrategyType.ATTRIBUTE))
         options.head.filters.map(_.primary) must
-            containTheSameElementsAs(Seq(Seq(f(geom)), Seq(f(wholeWorld), f(dtg)), Seq(f(indexedAttr))))
+            containTheSameElementsAs(Seq(Seq(f(geom)), Seq(f(dtg)), Seq(f(indexedAttr))))
         forall(options.head.filters)(_.secondary must beNone)
       }
       "with ANDs and ORs" >> {
@@ -404,7 +404,7 @@ class QueryFilterSplitterTest extends Specification {
       val z3 = options.find(_.filters.exists(_.strategy == StrategyType.Z3))
       z3 must beSome
       z3.get.filters must haveLength(1)
-      z3.get.filters.head.primary mustEqual Seq(f(wholeWorld), filter)
+      z3.get.filters.head.primary mustEqual Seq(filter)
       z3.get.filters.head.secondary must beNone
       val attr = options.find(_.filters.exists(_.strategy == StrategyType.ATTRIBUTE))
       attr must beSome

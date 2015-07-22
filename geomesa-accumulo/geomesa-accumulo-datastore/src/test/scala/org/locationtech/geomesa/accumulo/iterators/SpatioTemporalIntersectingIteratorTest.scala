@@ -14,8 +14,8 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{Connector, IteratorSetting}
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
 import org.locationtech.geomesa.accumulo.GEOMESA_ITERATORS_VERSION
-import org.locationtech.geomesa.accumulo.data.INTERNAL_GEOMESA_VERSION
 import org.locationtech.geomesa.accumulo.iterators.TestData._
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 import org.specs2.mutable.Specification
@@ -57,7 +57,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
       val c = setupMockAccumuloTable(TestData.shortListOfPoints, table)
       val s = c.createScanner(table, TEST_AUTHORIZATIONS)
       val cfg = new IteratorSetting(1000, "consistency-iter", classOf[ConsistencyCheckingIterator])
-      cfg.addOption(GEOMESA_ITERATORS_VERSION, INTERNAL_GEOMESA_VERSION.toString)
+      cfg.addOption(GEOMESA_ITERATORS_VERSION, CURRENT_SCHEMA_VERSION.toString)
       s.addScanIterator(cfg)
 
       // validate the total number of query-hits
@@ -80,7 +80,7 @@ class SpatioTemporalIntersectingIteratorTest extends Specification with Logging 
 
       val s = c.createScanner(table, TEST_AUTHORIZATIONS)
       val cfg = new IteratorSetting(1000, "consistency-iter", classOf[ConsistencyCheckingIterator])
-      cfg.addOption(GEOMESA_ITERATORS_VERSION, INTERNAL_GEOMESA_VERSION.toString)
+      cfg.addOption(GEOMESA_ITERATORS_VERSION, CURRENT_SCHEMA_VERSION.toString)
       s.addScanIterator(cfg)
 
       // validate the total number of query-hits

@@ -29,6 +29,8 @@ import scala.collection.JavaConverters._
 @RunWith(classOf[JUnitRunner])
 class UniqueProcessTest extends Specification with TestWithDataStore {
 
+  sequential
+
   override val spec = "name:String:index=true,weight:Double:index=true,dtg:Date,*geom:Geometry:srid=4326"
   override val dtgField = "dtg"
 
@@ -126,10 +128,10 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
       val results = process.execute(features, "name", null, true, null, null, pl)
 
       val uniques = SelfClosingIterator(results.features()).toList
-      val names = uniques.map(_.getAttribute("value")).toList
+      val names = uniques.map(_.getAttribute("value"))
       names should contain(exactly[Any]("alice", "bill", "bob", "charles"))
 
-      val counts = uniques.map(_.getAttribute("count")).toList
+      val counts = uniques.map(_.getAttribute("count"))
       counts should contain(exactly[Any](1L, 2L, 2L, 3L))
 
       val alice = uniques.find(_.getAttribute("value") == "alice").map(_.getAttribute("count"))
@@ -149,13 +151,14 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
       val results = process.execute(features, "name", null, true, "DESC", null, pl)
 
       val uniques = SelfClosingIterator(results.features()).toList
-      val names = uniques.map(_.getAttribute("value")).toList
+      val names = uniques.map(_.getAttribute("value"))
+      names must haveLength(4)
       names(0) mustEqual("charles")
       names(1) mustEqual("bob")
       names(2) mustEqual("bill")
       names(3) mustEqual("alice")
 
-      val counts = uniques.map(_.getAttribute("count")).toList
+      val counts = uniques.map(_.getAttribute("count"))
       counts should contain(exactly[Any](1L, 2L, 2L, 3L))
 
       val alice = uniques.find(_.getAttribute("value") == "alice").map(_.getAttribute("count"))
@@ -175,13 +178,14 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
       val results = process.execute(features, "name", null, true, "DESC", true, pl)
 
       val uniques = SelfClosingIterator(results.features()).toList
-      val names = uniques.map(_.getAttribute("value")).toList
+      val names = uniques.map(_.getAttribute("value"))
+      names must haveLength(4)
       names(0) mustEqual("bill")
       names(1) mustEqual("alice")
       names(2) mustEqual("charles")
       names(3) mustEqual("bob")
 
-      val counts = uniques.map(_.getAttribute("count")).toList
+      val counts = uniques.map(_.getAttribute("count"))
       counts should contain(exactly[Any](1L, 2L, 2L, 3L))
 
       val alice = uniques.find(_.getAttribute("value") == "alice").map(_.getAttribute("count"))

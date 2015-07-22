@@ -14,6 +14,7 @@ import org.geotools.data.{FeatureReader, Query}
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.stats._
+import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, NoOpTimings, TimingsImpl}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -40,7 +41,7 @@ class AccumuloFeatureReader(queryPlanner: QueryPlanner, val query: Query, dataSt
     if (writeStats) {
       val stat = QueryStat(queryPlanner.sft.getTypeName,
           System.currentTimeMillis(),
-          QueryStatTransform.filterToString(query.getFilter),
+          filterToString(query.getFilter),
           QueryStatTransform.hintsToString(query.getHints),
           timings.time("planning"),
           timings.time("next") + timings.time("hasNext"),

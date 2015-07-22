@@ -52,6 +52,13 @@
             <version>14.0.1</version>
             <scope>provided</scope>
         </dependency>
+        <!-- spark compatible version of apache curator -->
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+            <version>2.4.0</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>javax.media</groupId>
             <artifactId>jai_core</artifactId>

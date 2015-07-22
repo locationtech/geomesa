@@ -56,8 +56,7 @@ class GeoMesaSparkTest extends Specification with Logging {
     userParam.key       -> "user",
     passwordParam.key   -> "pass",
     tableNameParam.key  -> TEST_TABLE_NAME,
-    mockParam.key       -> "true",
-    featureEncParam.key -> "avro")
+    mockParam.key       -> "true")
 
   lazy val ds: DataStore = {
     val mockInstance = new MockInstance("dummy")

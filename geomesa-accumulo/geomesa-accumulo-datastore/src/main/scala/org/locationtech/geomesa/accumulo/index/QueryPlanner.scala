@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.index
 import java.util.Map.Entry
 
 import com.vividsolutions.jts.geom.Geometry
-import org.apache.accumulo.core.data.{Key, Value}
+import org.apache.accumulo.core.data.{Key, Range => AccRange, Value}
 import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.geotools.feature.AttributeTypeBuilder
@@ -51,14 +51,13 @@ case class QueryPlanner(sft: SimpleFeatureType,
                         featureEncoding: SerializationType,
                         stSchema: String,
                         acc: AccumuloConnectorCreator,
-                        hints: StrategyHints,
-                        version: Int) extends ExplainingLogging with IndexFilterHelpers with MethodProfiling {
+                        hints: StrategyHints) extends ExplainingLogging with MethodProfiling {
 
   import org.locationtech.geomesa.accumulo.index.QueryPlanner._
 
   val featureEncoder = SimpleFeatureSerializers(sft, featureEncoding)
   val featureDecoder = SimpleFeatureDeserializers(sft, featureEncoding)
-  val indexValueEncoder = IndexValueEncoder(sft, version)
+  val indexValueEncoder = IndexValueEncoder(sft)
 
   /**
    * Plan the query, but don't execute it - used for m/r jobs and explain query
@@ -116,10 +115,14 @@ case class QueryPlanner(sft: SimpleFeatureType,
   private def getQueryPlans(query: Query,
                             requested: Option[StrategyType],
                             output: ExplainerOutputType): (Seq[QueryPlan], Int) = {
-    output(s"Planning ${ExplainerOutputType.toString(query)}")
-    requested.foreach(r => output(s"STRATEGY FORCED TO $r"))
 
     configureQuery(query, sft) // configure the query - set hints that we'll need later on
+
+    output(s"Planning '${query.getTypeName}' ${filterToString(query.getFilter)}")
+    output(s"Hints: density ${query.getHints.isDensityQuery}, bin ${query.getHints.isBinQuery}")
+    output(s"Sort: ${Option(query.getSortBy).filter(_.nonEmpty).map(_.mkString(", ")).getOrElse("none")}")
+    output(s"Transforms: ${query.getHints.getTransformDefinition.getOrElse("None")}")
+
     if (query.getHints.isDensityQuery) { // add the bbox from the density query to the filter
       val env = query.getHints.getDensityEnvelope.get.asInstanceOf[ReferencedEnvelope]
       val bbox = ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env)
@@ -134,37 +137,51 @@ case class QueryPlanner(sft: SimpleFeatureType,
 
     implicit val timings = new TimingsImpl
     val (queryPlans, numClauses) = profile({
-      val strategies = QueryStrategyDecider.chooseStrategies(sft, query, hints, requested, version)
-      output(s"Strategy count: ${strategies.length}")
-      output(s"Transforms: ${getTransformDefinition(query).getOrElse("None")}")
+      val strategies = QueryStrategyDecider.chooseStrategies(sft, query, hints, requested, output)
       val plans = strategies.flatMap { strategy =>
-        output(s"Strategy: ${strategy.getClass.getCanonicalName}")
-        output(s"Filter: ${strategy.filter.filterString}")
+        output(s"Strategy: ${strategy.getClass.getSimpleName}")
+        output(s"Filter: ${strategy.filter}")
         val plans = strategy.getQueryPlans(this, query.getHints, output)
         plans.foreach(outputPlan(_, output))
         plans
       }
       (plans, strategies.length)
     }, "plan")
-    output(s"Query planning took ${timings.time("plan")}ms for $numClauses distinct queries.")
+    output(s"Query planning took ${timings.time("plan")}ms for $numClauses " +
+        s"distinct quer${if (numClauses == 1) "y" else "ies"}.")
     (queryPlans, numClauses)
   }
 
   // output the query plan for explain logging
-  private def outputPlan(plan: QueryPlan, output: ExplainerOutputType, joinPrefix: String = ""): Unit = {
-    output(s"${joinPrefix}Table: ${plan.table}")
-    output(s"${joinPrefix}Column Families${if (plan.columnFamilies.isEmpty) ": all"
+  private def outputPlan(plan: QueryPlan, output: ExplainerOutputType, prefix: String = ""): Unit = {
+    output(s"${prefix}Table: ${plan.table}")
+    output(s"${prefix}Column Families${if (plan.columnFamilies.isEmpty) ": all"
       else s" (${plan.columnFamilies.size}): ${plan.columnFamilies.take(20)}"} ")
-    output(s"${joinPrefix}Ranges (${plan.ranges.size}): ${plan.ranges.take(5).mkString(", ")}")
-    output(s"${joinPrefix}Iterators (${plan.iterators.size}): ${plan.iterators.mkString("[", "],[", "]")}")
+    output(s"${prefix}Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(rangeToString).mkString(", ")}")
+    output(s"${prefix}Iterators (${plan.iterators.size}): ${plan.iterators.mkString("[", "],[", "]")}")
     plan.join.foreach(j => outputPlan(j._2, output, "Join "))
   }
 
+  // converts a range to a printable string - only includes the row
+  private def rangeToString(r: AccRange): String = {
+    val a = if (r.isStartKeyInclusive) "[" else "("
+    val z = if (r.isEndKeyInclusive) "]" else ")"
+    val start = if (r.isInfiniteStartKey) "-inf" else keyToString(r.getStartKey)
+    val stop = if (r.isInfiniteStopKey) "+inf" else keyToString(r.getEndKey)
+    s"$a$start::$stop$z"
+  }
+
+  // converts a key to a printable string - only includes the row
+  private def keyToString(k: Key): String =
+    Key.toPrintableString(k.getRow.getBytes, 0, k.getRow.getLength, k.getRow.getLength)
+
   // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures
-  def defaultKVsToFeatures(hints: Hints): FeatureFunction = {
+  def defaultKVsToFeatures(hints: Hints): FeatureFunction = kvsToFeatures(hints.getReturnSft)
+
+  // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures
+  def kvsToFeatures(sft: SimpleFeatureType): FeatureFunction = {
     // Perform a projecting decode of the simple feature
-    val returnSft = hints.getReturnSft
-    val deserializer = SimpleFeatureDeserializers(returnSft, featureEncoding)
+    val deserializer = SimpleFeatureDeserializers(sft, featureEncoding)
     (kv: Entry[Key, Value]) => {
       val sf = deserializer.deserialize(kv.getValue.get)
       applyVisibility(sf, kv.getKey)
@@ -320,7 +337,7 @@ object QueryPlanner {
       val spec = MapAggregatingIterator.projectedSFTDef(mapAggregationAttribute, baseSft)
       SimpleFeatureTypes.createType(baseSft.getTypeName, spec)
     } else {
-      getTransformSchema(query).getOrElse(baseSft)
+      query.getHints.getTransformSchema.getOrElse(baseSft)
     }
     query.getHints.put(RETURN_SFT_KEY, sft)
     sft

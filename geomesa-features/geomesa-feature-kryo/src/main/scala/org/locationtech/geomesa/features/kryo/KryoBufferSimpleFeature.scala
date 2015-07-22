@@ -36,6 +36,7 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
 
   private val input = new Input
   private val offsets = Array.ofDim[Int](sft.getAttributeCount)
+  private var startOfOffsets: Int = -1
   private lazy val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
   private var userData: jMap[AnyRef, AnyRef] = null
   private var userDataOffset: Int = -1
@@ -48,7 +49,8 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
     input.setBuffer(bytes)
     // reset our offsets
     input.setPosition(1) // skip version
-    input.setPosition(input.readInt()) // set to offsets start
+    startOfOffsets = input.readInt()
+    input.setPosition(startOfOffsets) // set to offsets start
     var i = 0
     while (i < offsets.length) {
       offsets(i) = if (input.position < input.limit) input.readInt(true) else -1
@@ -70,18 +72,20 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
         val buf = input.getBuffer
         var length = offsets(0) // space for version, offset block and ID
         val offsetsAndLengths = indices.map { i =>
-            val l = (if (i < offsets.length - 1) offsets(i + 1) else buf.length) - offsets(i)
-            length += l
-            (offsets(i), l)
-          }
+          val l = (if (i < offsets.length - 1) offsets(i + 1) else startOfOffsets) - offsets(i)
+          length += l
+          (offsets(i), l)
+        }
         val dst = Array.ofDim[Byte](length)
         // copy the version, offset block and id
-        System.arraycopy(buf, 0, dst, 0, offsets(0))
         var dstPos = offsets(0)
+        System.arraycopy(buf, 0, dst, 0, dstPos)
         offsetsAndLengths.foreach { case (o, l) =>
           System.arraycopy(buf, o, dst, dstPos, l)
           dstPos += l
         }
+        // note that the offset block is incorrect - we couldn't use this in another lazy feature
+        // but the normal serializer doesn't care
         dst
       }
     } else {

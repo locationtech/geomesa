@@ -11,7 +11,6 @@ package org.locationtech.geomesa.accumulo
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Envelope
 import org.apache.accumulo.core.data.{Key, Range => AccRange, Value}
-import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.geotools.factory.Hints.{ClassKey, IntegerKey}
 import org.geotools.filter.identity.FeatureIdImpl
@@ -31,70 +30,6 @@ package object index {
   // constrain these dates to the range GeoMesa can index (four-digit years)
   val MIN_DATE = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.forID("UTC"))
   val MAX_DATE = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.forID("UTC"))
-
-  val SF_PROPERTY_GEOMETRY   = "geomesa_index_geometry"
-  val SF_PROPERTY_START_TIME = SimpleFeatureTypes.DEFAULT_DATE_FIELD
-  val SF_PROPERTY_END_TIME   = "geomesa_index_end_time"
-  val SFT_INDEX_SCHEMA       = "geomesa_index_schema"
-  val SF_TABLE_SHARING       = "geomesa_table_sharing"
-
-  // wrapping function in option to protect against incorrect values in SF_PROPERTY_START_TIME
-  def getDtgFieldName(sft: SimpleFeatureType) =
-    for {
-      nameFromUserData <- Option(sft.getUserData.get(SF_PROPERTY_START_TIME)).map { _.toString }
-      if Option(sft.getDescriptor(nameFromUserData)).isDefined
-    } yield nameFromUserData
-
-  // wrapping function in option to protect against incorrect values in SF_PROPERTY_START_TIME
-  def getDtgDescriptor(sft: SimpleFeatureType) = getDtgFieldName(sft).flatMap{name => Option(sft.getDescriptor(name))}
-
-  def setDtgDescriptor(sft: SimpleFeatureType, dateFieldName: String) {
-    sft.getUserData.put(SF_PROPERTY_START_TIME, dateFieldName)
-  }
-
-  def getIndexSchema(sft: SimpleFeatureType) = Option(sft.getUserData.get(SFT_INDEX_SCHEMA)).map { _.toString }
-  def setIndexSchema(sft: SimpleFeatureType, indexSchema: String) {
-    sft.getUserData.put(SFT_INDEX_SCHEMA, indexSchema)
-  }
-
-  def getTableSharing(sft: SimpleFeatureType): Boolean = {
-    //  If no data is stored in Accumulo, it means we have an old table, so that means 'false'
-    //  If no user data is specified when creating a new SFT, we should default to 'true'.
-    if (sft.getUserData.containsKey(SF_TABLE_SHARING)) {
-      java.lang.Boolean.valueOf(sft.getUserData.get(SF_TABLE_SHARING).toString).booleanValue()
-    } else {
-      true
-    }
-  }
-
-  def setTableSharing(sft: SimpleFeatureType, sharing: java.lang.Boolean) {
-    sft.getUserData.put(SF_TABLE_SHARING, sharing)
-  }
-
-  def getTableSharingPrefix(sft: SimpleFeatureType): String =
-    if(getTableSharing(sft)) s"${sft.getTypeName}~"
-    else                     ""
-
-  /**
-   * Get the transforms set in the query
-   */
-  def getTransformDefinition(query: Query): Option[String] = getTransformDefinition(query.getHints)
-
-  /**
-   * Get the transforms set in the query
-   */
-  def getTransformDefinition(hints: Hints): Option[String] = Option(hints.get(TRANSFORMS).asInstanceOf[String])
-
-  /**
-   * Get the transform schema set in the query
-   */
-  def getTransformSchema(query: Query): Option[SimpleFeatureType] = getTransformSchema(query.getHints)
-
-  /**
-   * Get the transform schema set in the query hints
-   */
-  def getTransformSchema(hints: Hints): Option[SimpleFeatureType] =
-    Option(hints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType])
 
   val spec = "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date"
   val indexSFT = SimpleFeatureTypes.createType("geomesa-idx", spec)
@@ -144,6 +79,11 @@ package object index {
       def getDensityWeight: Option[String] = Option(hints.get(DENSITY_WEIGHT).asInstanceOf[String])
       def isTemporalDensityQuery: Boolean = hints.containsKey(TEMPORAL_DENSITY_KEY)
       def isMapAggregatingQuery: Boolean = hints.containsKey(MAP_AGGREGATION_KEY)
+      def getTransformDefinition: Option[String] = Option(hints.get(TRANSFORMS).asInstanceOf[String])
+      def getTransformSchema: Option[SimpleFeatureType] =
+        Option(hints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType])
+      def getTransform: Option[(String, SimpleFeatureType)] =
+        hints.getTransformDefinition.flatMap(d => hints.getTransformSchema.map((d, _)))
     }
   }
 
@@ -158,8 +98,6 @@ package object index {
       val end = Option(r.getEndKey).map(_.toStringNoTime).getOrElse("+inf")
       first + start + ", " + end + last
     }
-
-    def toString(q: Query) = q.toString.replaceFirst("\\n\\s*", " ").replaceAll("\\n\\s*", ", ")
   }
 
   object ExplainPrintln extends ExplainerOutputType {

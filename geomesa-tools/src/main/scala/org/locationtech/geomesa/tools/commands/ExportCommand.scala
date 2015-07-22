@@ -15,12 +15,12 @@ import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureStore
-import org.locationtech.geomesa.accumulo.index
 import org.locationtech.geomesa.accumulo.stats.StatWriter
 import org.locationtech.geomesa.tools.Utils.Formats
 import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.commands.ExportCommand.ExportParameters
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.filter.Filter
 
 import scala.util.{Failure, Success, Try}
@@ -67,7 +67,7 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
         getFeatureCollection(Some(schemaString))
       case BIN =>
         val sft = ds.getSchema(params.featureName)
-        index.getDtgFieldName(sft).foreach(BinFileExport.DEFAULT_TIME = _)
+        sft.getDtgField.foreach(BinFileExport.DEFAULT_TIME = _)
         getFeatureCollection(Some(BinFileExport.getAttributeList(params)))
       case _ => getFeatureCollection()
     }

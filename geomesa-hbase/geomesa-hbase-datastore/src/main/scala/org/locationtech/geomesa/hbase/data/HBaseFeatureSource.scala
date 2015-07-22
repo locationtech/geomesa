@@ -67,7 +67,7 @@ class HBaseFeatureSource(entry: ContentEntry,
 
     val dtFieldName = sft.getDescriptor(dtgIndex).getLocalName
     val (i, _) = a.getChildren.partition(isTemporalFilter(_, dtFieldName))
-    val interval = FilterHelper.extractTemporal(Some(dtFieldName))(i)
+    val interval = FilterHelper.extractInterval(i, Some(dtFieldName))
 
     val (b, _) = partitionPrimarySpatials(a.getChildren, sft)
     val geom = FilterHelper.extractGeometry(b.head.asInstanceOf[BinarySpatialOperator]).head

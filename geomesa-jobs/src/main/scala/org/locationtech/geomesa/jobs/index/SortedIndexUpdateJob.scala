@@ -38,7 +38,8 @@ class SortedIndexUpdateJob(args: Args) extends GeoMesaBaseJob(args) {
   @transient lazy val indexSchemaFmt = ds.buildDefaultSpatioTemporalSchema(sft.getTypeName)
   @transient lazy val encoding = ds.getFeatureEncoding(sft)
   @transient lazy val featureEncoder = SimpleFeatureSerializers(sft, encoding)
-  @transient lazy val indexValueEncoder = IndexValueEncoder(sft, UPDATE_TO_VERSION)
+  // this won't use the new schema version, but anything less than version 4 is handled the same way
+  @transient lazy val indexValueEncoder = IndexValueEncoder(sft)
   @transient lazy val encoder = IndexSchema.buildKeyEncoder(sft, indexSchemaFmt)
   @transient lazy val decoder = SimpleFeatureDeserializers(sft, encoding)
 
@@ -55,7 +56,7 @@ class SortedIndexUpdateJob(args: Args) extends GeoMesaBaseJob(args) {
       }
     }
     val ranges = SerializedRange(prefixes.map(p => new AcRange(p, p + "~")))
-    val stTable = ds.getSpatioTemporalTable(feature)
+    val stTable = ds.getTableName(feature, SpatioTemporalTable)
     val instance = dsParams(instanceIdParam.getName)
     val zoos = dsParams(zookeepersParam.getName)
     val user = dsParams(userParam.getName)

@@ -21,7 +21,7 @@ import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
+import org.locationtech.geomesa.accumulo.data.tables.{GeoMesaTable, RecordTable}
 import org.locationtech.geomesa.accumulo.index.{AttributeIdxStrategy, QueryStrategyDecider}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
@@ -160,7 +160,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       val features = fs.getFeatures(Filter.INCLUDE).features().toSeq
       features must beEmpty
 
-      forall(GeoMesaTable.getTablesAndNames(sft, ds).map(_._2)) { name =>
+      forall(GeoMesaTable.getTableNames(sft, ds)) { name =>
         val scanner = connector.createScanner(name, new Authorizations())
         try {
           scanner.iterator().hasNext must beFalse
@@ -364,7 +364,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
 
       val hints = ds.strategyHints(sft)
       val q = new Query(sft.getTypeName, filter)
-      QueryStrategyDecider.chooseStrategies(sft, q, hints, None, INTERNAL_GEOMESA_VERSION).head must beAnInstanceOf[AttributeIdxStrategy]
+      QueryStrategyDecider.chooseStrategies(sft, q, hints, None).head must beAnInstanceOf[AttributeIdxStrategy]
 
       import org.locationtech.geomesa.utils.geotools.Conversions._
 
@@ -421,7 +421,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
         Thread.sleep(2)
       }
 
-      val scanner = ds.connector.createScanner(ds.getRecordTable(sftName), new Authorizations)
+      val scanner = ds.connector.createScanner(ds.getTableName(sftName, RecordTable), new Authorizations)
       val serializer = new KryoFeatureSerializer(sft)
       val rows = scanner.toList
       scanner.close()
@@ -447,7 +447,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
   }
 
   def clearTablesHard(): Unit = {
-    GeoMesaTable.getTablesAndNames(sft, ds).map(_._2).foreach { name =>
+    GeoMesaTable.getTables(sft).map(ds.getTableName(sft.getTypeName, _)).foreach { name =>
       val deleter = connector.createBatchDeleter(name, new Authorizations(), 5, new BatchWriterConfig())
       deleter.setRanges(Seq(new aRange()))
       deleter.delete()

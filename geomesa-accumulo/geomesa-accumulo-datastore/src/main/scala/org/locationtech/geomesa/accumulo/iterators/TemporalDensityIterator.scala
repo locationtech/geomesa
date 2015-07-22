@@ -25,10 +25,10 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanner.SFIter
-import org.locationtech.geomesa.accumulo.index.getDtgFieldName
 import org.locationtech.geomesa.accumulo.iterators.FeatureAggregatingIterator.Result
 import org.locationtech.geomesa.accumulo.iterators.TemporalDensityIterator.TimeSeries
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.buildTypeName
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes, TimeSnap}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -53,7 +53,7 @@ class TemporalDensityIterator(other: TemporalDensityIterator, env: IteratorEnvir
                                                          options: JMap[String, String],
                                                          env: IteratorEnvironment): Unit = {
 
-    dateTimeFieldName = getDtgFieldName(simpleFeatureType).getOrElse ( throw new IllegalArgumentException("dtg field required"))
+    dateTimeFieldName = simpleFeatureType.getDtgField.getOrElse(throw new IllegalArgumentException("dtg field required"))
 
     val buckets = TemporalDensityIterator.getBuckets(options)
     val bounds = TemporalDensityIterator.getTimeBounds(options)

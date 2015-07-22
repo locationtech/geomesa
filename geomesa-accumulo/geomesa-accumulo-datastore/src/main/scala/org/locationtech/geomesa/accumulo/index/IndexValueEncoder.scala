@@ -14,16 +14,15 @@ import java.util.{Date, UUID}
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.identity.FeatureIdImpl
-import org.locationtech.geomesa.accumulo.index
 import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureDeserializer}
 import org.locationtech.geomesa.features.serialization.CacheKeyGenerator
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureDeserializer, SimpleFeatureSerializer}
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 /**
@@ -60,21 +59,21 @@ object IndexValueEncoder {
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
-import scala.collection.JavaConversions._
+  import scala.collection.JavaConversions._
 
   private val cache = new SoftThreadLocalCache[String, (SimpleFeatureType, Seq[String])]()
 
-  def apply(sft: SimpleFeatureType, version: Int): IndexValueEncoder = apply(sft, None, version)
+  def apply(sft: SimpleFeatureType): IndexValueEncoder = apply(sft, None)
 
-  def apply(sft: SimpleFeatureType, transform: SimpleFeatureType, version: Int): IndexValueEncoder =
-    apply(sft, Some(transform), version)
+  def apply(sft: SimpleFeatureType, transform: SimpleFeatureType): IndexValueEncoder =
+    apply(sft, Some(transform))
 
-  def apply(sft: SimpleFeatureType, transform: Option[SimpleFeatureType], version: Int): IndexValueEncoder = {
+  def apply(sft: SimpleFeatureType, transform: Option[SimpleFeatureType]): IndexValueEncoder = {
     val key = CacheKeyGenerator.cacheKeyForSFT(sft)
     val (indexSft, attributes) = cache.getOrElseUpdate(key, (getIndexSft(sft), getIndexValueFields(sft)))
     val copyFunction = getCopyFunction(sft, indexSft)
 
-    if (version < 4) { // kryo encoding introduced in version 4
+    if (sft.getSchemaVersion < 4) { // kryo encoding introduced in version 4
       OldIndexValueEncoder(sft, transform.getOrElse(indexSft))
     } else {
       val encoder = new KryoFeatureSerializer(indexSft)
@@ -92,8 +91,9 @@ import scala.collection.JavaConversions._
    * @param sft
    * @return
    */
-  protected[index] def getIndexSft(sft: SimpleFeatureType) = {
+  def getIndexSft(sft: SimpleFeatureType) = {
     val builder = new SimpleFeatureTypeBuilder()
+    builder.setNamespaceURI(null: String)
     builder.setName(sft.getTypeName + "--index")
     builder.setAttributes(getIndexValueAttributes(sft))
     builder.setDefaultGeometry(sft.getGeometryDescriptor.getLocalName)
@@ -130,7 +130,7 @@ import scala.collection.JavaConversions._
    */
   protected[index] def getIndexValueAttributes(sft: SimpleFeatureType): Seq[AttributeDescriptor] = {
     val geom = sft.getGeometryDescriptor
-    val dtg = index.getDtgFieldName(sft)
+    val dtg = sft.getDtgField
     val attributes = mutable.Buffer.empty[AttributeDescriptor]
     var i = 0
     while (i < sft.getAttributeCount) {
@@ -244,7 +244,7 @@ class OldIndexValueEncoder(sft: SimpleFeatureType, encodedSft: SimpleFeatureType
   }
 
   val geomField = sft.getGeometryDescriptor.getLocalName
-  val dtgField = index.getDtgFieldName(sft)
+  val dtgField = sft.getDtgField
 
   /**
    * Decodes a byte array into a map of attribute name -> attribute value pairs
@@ -295,7 +295,7 @@ object OldIndexValueEncoder {
   // gets the default schema, which includes ID, geom and date (if available)
   // order is important here, as it needs to match the old IndexEntry encoding
   def getDefaultSchema(sft: SimpleFeatureType): Seq[String] =
-    Seq(ID_FIELD, sft.getGeometryDescriptor.getLocalName) ++ index.getDtgFieldName(sft)
+    Seq(ID_FIELD, sft.getGeometryDescriptor.getLocalName) ++ sft.getDtgField
 
   def getSchema(sft: SimpleFeatureType): Seq[String] = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor

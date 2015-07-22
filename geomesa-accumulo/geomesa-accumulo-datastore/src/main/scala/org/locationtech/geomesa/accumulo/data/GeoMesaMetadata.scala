@@ -36,7 +36,7 @@ trait GeoMesaMetadata {
 
   def read(featureName: String, key: String): Option[String]
   def readRequired(featureName: String, key: String): String
-  def readRequiredNoCache(featureName: String, key: String): Option[String]
+  def readNoCache(featureName: String, key: String): Option[String]
 
   def expireCache(featureName: String)
 
@@ -131,7 +131,7 @@ class AccumuloBackedMetadata(connector: Connector,
    */
   override def read(featureName: String, key: String): Option[String] =
     metaDataCache.synchronized {
-      metaDataCache.getOrElseUpdate((featureName, key), readRequiredNoCache(featureName, key))
+      metaDataCache.getOrElseUpdate((featureName, key), readNoCache(featureName, key))
     }
 
   override def readRequired(featureName: String, key: String): String =
@@ -147,7 +147,7 @@ class AccumuloBackedMetadata(connector: Connector,
    * @param key
    * @return
    */
-  override def readRequiredNoCache(featureName: String, key: String): Option[String] = {
+  override def readNoCache(featureName: String, key: String): Option[String] = {
     val scanner = createCatalogScanner
     scanner.setRange(new Range(getMetadataRowKey(featureName)))
     scanner.fetchColumn(new Text(key), EMPTY_COLQ)
@@ -159,7 +159,8 @@ class AccumuloBackedMetadata(connector: Connector,
   /**
    * Create an Accumulo Scanner to the Catalog table to query Metadata for this store
    */
-  private def createCatalogScanner = connector.createScanner(catalogTable, authorizationsProvider.getAuthorizations)
+  private def createCatalogScanner =
+    connector.createScanner(catalogTable, authorizationsProvider.getAuthorizations)
 
   override def expireCache(featureName: String) =
     metaDataCache.synchronized {
@@ -193,20 +194,11 @@ class AccumuloBackedMetadata(connector: Connector,
     scanner.setRange(new Range(METADATA_TAG, METADATA_TAG_END))
     // restrict to just schema cf so we only get 1 hit per feature
     scanner.fetchColumnFamily(new Text(SCHEMA_KEY))
-    val resultItr = new Iterator[String] {
-      val src = scanner.iterator()
-
-      def hasNext = {
-        val next = src.hasNext
-        if (!next) {
-          scanner.close()
-        }
-        next
-      }
-
-      def next() = src.next().getKey.getRow.toString
+    try {
+      scanner.map(kv => getFeatureNameFromMetadataRowKey(kv.getKey.getRow.toString)).toArray
+    } finally {
+      scanner.close()
     }
-    resultItr.toArray.map(getFeatureNameFromMetadataRowKey)
   }
 
   /**

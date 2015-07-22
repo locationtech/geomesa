@@ -20,7 +20,6 @@ import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
 import org.locationtech.geomesa.accumulo.stats.StatWriter
-import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.security
 
 import scala.collection.JavaConversions._
@@ -71,10 +70,6 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
     val authorizationsProvider = security.getAuthorizationsProvider(params, auths)
 
-    val featureEncoding = featureEncParam.lookupOpt[String](params)
-      .map(SerializationType.withName)
-      .getOrElse(DEFAULT_ENCODING)
-
     // stats defaults to true if not specified
     val collectStats = !useMock &&
         Option(statsParam.lookUp(params)).map(_.toString.toBoolean).forall(_ == true)
@@ -91,8 +86,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         queryThreadsParam.lookupOpt(params),
         recordThreadsParam.lookupOpt(params),
         writeThreadsParam.lookupOpt(params),
-        caching,
-        featureEncoding) with StatWriter
+        caching) with StatWriter
     } else {
       new AccumuloDataStore(connector,
         token,
@@ -103,8 +97,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         queryThreadsParam.lookupOpt(params),
         recordThreadsParam.lookupOpt(params),
         writeThreadsParam.lookupOpt(params),
-        caching,
-        featureEncoding)
+        caching)
     }
   }
 
@@ -161,7 +154,6 @@ object AccumuloDataStoreFactory {
     val statsParam          = new Param("collectStats", classOf[java.lang.Boolean], "Toggle collection of statistics", false)
     val cachingParam        = new Param("caching", classOf[java.lang.Boolean], "Toggle caching of results", false)
     val mockParam           = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
-    val featureEncParam     = new Param("featureEncoding", classOf[String], "The feature encoding format (kryo, avro or text). Default is Kryo", false, "kryo")
   }
 
   def buildAccumuloConnector(params: JMap[String,Serializable], useMock: Boolean): (Connector, AuthenticationToken) = {
@@ -200,7 +192,6 @@ object AccumuloDataStoreFactory {
     conf.set(TABLE, tableNameParam.lookUp(params).asInstanceOf[String])
     authsParam.lookupOpt[String](params).foreach(ap => conf.set(AUTHS, ap))
     visibilityParam.lookupOpt[String](params).foreach(vis => conf.set(VISIBILITY, vis))
-    featureEncParam.lookupOpt[String](params).foreach(fep => conf.set(FEATURE_ENCODING, fep))
 
     job
   }
@@ -212,6 +203,5 @@ object AccumuloDataStoreFactory {
       passwordParam.key       -> conf.get(ACCUMULO_PASS),
       tableNameParam.key      -> conf.get(TABLE),
       authsParam.key          -> conf.get(AUTHS),
-      visibilityParam.key     -> conf.get(VISIBILITY),
-      featureEncParam.key     -> conf.get(FEATURE_ENCODING))
+      visibilityParam.key     -> conf.get(VISIBILITY))
 }

@@ -23,11 +23,12 @@ import org.apache.hadoop.mapreduce._
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
+import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.stats.QueryStatTransform
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.SimpleFeatureDeserializers
+import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -91,13 +92,12 @@ object GeoMesaInputFormat extends Logging {
       val featureEncoding = ds.getFeatureEncoding(sft)
       val indexSchema = ds.getIndexSchemaFmt(featureTypeName)
       val hints = ds.strategyHints(sft)
-      val version = ds.getGeomesaVersion(sft)
-      val queryPlanner = new QueryPlanner(sft, featureEncoding, indexSchema, ds, hints, version)
+      val queryPlanner = new QueryPlanner(sft, featureEncoding, indexSchema, ds, hints)
       val qps = queryPlanner.planQuery(query, Some(StrategyType.ST), ExplainNull)
       if (qps.length > 1) {
         logger.error("The query being executed requires multiple scans, which is not currently " +
             "supported by geomesa. Your result set will be partially incomplete. This is most likely due " +
-            s"to an OR clause in your query. Query: ${QueryStatTransform.filterToString(query.getFilter)}")
+            s"to an OR clause in your query. Query: ${filterToString(query.getFilter)}")
       }
       qps.head
     }
@@ -125,7 +125,7 @@ object GeoMesaInputFormat extends Logging {
     if (query.getFilter != Filter.INCLUDE) {
       GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(query.getFilter))
     }
-    getTransformSchema(query).foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
+    query.getHints.getTransformSchema.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
   }
 }
 

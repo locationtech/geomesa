@@ -16,8 +16,8 @@ import org.geotools.data.Query
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.data.INTERNAL_GEOMESA_VERSION
 import org.locationtech.geomesa.accumulo.data.tables.Z3Table
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
@@ -62,13 +62,13 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
 
   implicit val ff = CommonFactoryFinder.getFilterFactory2
   val strategy = StrategyType.Z3
-  val queryPlanner = new QueryPlanner(sft, SerializationType.KRYO, null, ds, NoOpHints, INTERNAL_GEOMESA_VERSION)
+  val queryPlanner = new QueryPlanner(sft, SerializationType.KRYO, null, ds, NoOpHints)
   val output = ExplainNull
 
   "Z3IdxStrategy" should {
     "print values" in {
       skipped("used for debugging")
-      ds.connector.createScanner(ds.getZ3Table(sftName), new Authorizations()).foreach { r =>
+      ds.connector.createScanner(ds.getTableName(sftName, Z3Table), new Authorizations()).foreach { r =>
         val bytes = r.getKey.getRow.getBytes
         val keyZ = Longs.fromByteArray(bytes.drop(2))
         val (x, y, t) = new Z3SFC().invert(Z3(keyZ))
@@ -81,7 +81,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
 
     "return all features for inclusive filter" >> {
       val filter = "bbox(geom, 35, 55, 45, 75)" +
-          " AND dtg during 2010-05-07T00:00:00.000Z/2010-05-08T00:00:00.000Z"
+          " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val features = execute(filter)
       features must haveSize(10)
       features.map(_.getID.toInt) must containTheSameElementsAs(0 to 9)
@@ -89,7 +89,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
 
     "return some features for exclusive geom filter" >> {
       val filter = "bbox(geom, 35, 55, 45, 65)" +
-          " AND dtg during 2010-05-07T00:00:00.000Z/2010-05-08T00:00:00.000Z"
+          " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val features = execute(filter)
       features must haveSize(6)
       features.map(_.getID.toInt) must containTheSameElementsAs(0 to 5)
@@ -97,7 +97,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
 
     "return some features for exclusive date filter" >> {
       val filter = "bbox(geom, 35, 55, 45, 75)" +
-          " AND dtg during 2010-05-07T06:00:00.000Z/2010-05-08T00:00:00.000Z"
+          " AND dtg between '2010-05-07T06:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val features = execute(filter)
       features must haveSize(4)
       features.map(_.getID.toInt) must containTheSameElementsAs(6 to 9)
@@ -105,7 +105,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
 
     "work with whole world filter" >> {
       val filter = "bbox(geom, -180, -90, 180, 90)" +
-          " AND dtg during 2010-05-07T05:00:00.000Z/2010-05-07T08:00:00.000Z"
+          " AND dtg between '2010-05-07T05:00:00.000Z' and '2010-05-07T08:00:00.000Z'"
       val features = execute(filter)
       features must haveSize(4)
       features.map(_.getID.toInt) must containTheSameElementsAs(5 to 8)
@@ -113,7 +113,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
 
     "work across week bounds" >> {
       val filter = "bbox(geom, 35, 65, 45, 75)" +
-          " AND dtg during 2010-05-07T06:00:00.000Z/2010-05-21T00:00:00.000Z"
+          " AND dtg between '2010-05-07T06:00:00.000Z' and '2010-05-21T00:00:00.000Z'"
       val features = execute(filter)
       features must haveSize(9)
       features.map(_.getID.toInt) must containTheSameElementsAs((6 to 9) ++ (15 to 19))
@@ -121,7 +121,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
 
     "work across 2 weeks" >> {
       val filter = "bbox(geom, 35, 64.5, 45, 70)" +
-          " AND dtg DURING 2010-05-10T00:00:00.000Z/2010-05-17T23:59:59.999Z"
+          " AND dtg between '2010-05-10T00:00:00.000Z' and '2010-05-17T23:59:59.999Z'"
       val features = execute(filter)
       features must haveSize(3)
       features.map(_.getID.toInt) must containTheSameElementsAs(15 to 17)
@@ -129,7 +129,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
 
     "work with whole world filter across week bounds" >> {
       val filter = "bbox(geom, -180, -90, 180, 90)" +
-          " AND dtg during 2010-05-07T06:00:00.000Z/2010-05-21T00:00:00.000Z"
+          " AND dtg between '2010-05-07T06:00:00.000Z' and '2010-05-21T00:00:00.000Z'"
       val features = execute(filter)
       features must haveSize(15)
       features.map(_.getID.toInt) must containTheSameElementsAs(6 to 20)
@@ -137,7 +137,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
 
     "work with whole world filter across 3 week periods" >> {
       val filter = "bbox(geom, -180, -90, 180, 90)" +
-        " AND dtg during 2010-05-08T06:00:00.000Z/2010-05-30T00:00:00.000Z"
+        " AND dtg between '2010-05-08T06:00:00.000Z' and '2010-05-30T00:00:00.000Z'"
       val features = execute(filter)
       features must haveSize(20)
       features.map(_.getID.toInt) must containTheSameElementsAs(10 to 29)
@@ -145,7 +145,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
 
     "work with small bboxes and date ranges" >> {
       val filter = "bbox(geom, 39.999, 60.999, 40.001, 61.001)" +
-        " AND dtg during 2010-05-07T00:59:00.000Z/2010-05-07T01:01:00.000Z"
+        " AND dtg between '2010-05-07T00:59:00.000Z' and '2010-05-07T01:01:00.000Z'"
       val features = execute(filter)
       features must haveSize(1)
       features.head.getID.toInt mustEqual 1
@@ -153,7 +153,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
 
     "apply secondary filters" >> {
       val filter = "bbox(geom, 35, 55, 45, 75)" +
-          " AND dtg during 2010-05-07T06:00:00.000Z/2010-05-08T00:00:00.000Z" +
+          " AND dtg between '2010-05-07T06:00:00.000Z' and '2010-05-08T00:00:00.000Z'" +
           " AND name = 'name8'"
       val features = execute(filter)
       features must haveSize(1)
@@ -162,7 +162,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
 
     "apply transforms" >> {
       val filter = "bbox(geom, 35, 55, 45, 75)" +
-          " AND dtg during 2010-05-07T06:00:00.000Z/2010-05-08T00:00:00.000Z"
+          " AND dtg between '2010-05-07T06:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val features = execute(filter, Some(Array("name")))
       features must haveSize(4)
       features.map(_.getID.toInt) must containTheSameElementsAs(6 to 9)
@@ -173,7 +173,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
 
     "apply functional transforms" >> {
       val filter = "bbox(geom, 35, 55, 45, 75)" +
-          " AND dtg during 2010-05-07T06:00:00.000Z/2010-05-08T00:00:00.000Z"
+          " AND dtg between '2010-05-07T06:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val features = execute(filter, Some(Array("derived=strConcat('my', name)")))
       features must haveSize(4)
       features.map(_.getID.toInt) must containTheSameElementsAs(6 to 9)
@@ -184,7 +184,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
 
     "apply transforms using only the row key" >> {
       val filter = "bbox(geom, 35, 55, 45, 75)" +
-          " AND dtg during 2010-05-07T06:00:00.000Z/2010-05-08T00:00:00.000Z"
+          " AND dtg between '2010-05-07T06:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val query = new Query(sftName, ECQL.toFilter(filter), Array("geom", "dtg"))
       val qps = getQueryPlans(query)
       forall(qps)(p => p.columnFamilies must containTheSameElementsAs(Seq(Z3Table.BIN_CF)))
@@ -200,7 +200,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
     "optimize for bin format" >> {
       import org.locationtech.geomesa.accumulo.index.QueryHints._
       val filter = "bbox(geom, -180, -90, 180, 90)" +
-          " AND dtg during 2010-05-07T00:00:00.000Z/2010-05-07T12:00:00.000Z"
+          " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
       val query = new Query(sftName, ECQL.toFilter(filter))
       query.getHints.put(BIN_TRACK_KEY, "name")
       query.getHints.put(BIN_BATCH_SIZE_KEY, 100)
@@ -225,7 +225,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
     "optimize for bin format with sorting" >> {
       import org.locationtech.geomesa.accumulo.index.QueryHints._
       val filter = "bbox(geom, -180, -90, 180, 90)" +
-          " AND dtg during 2010-05-07T00:00:00.000Z/2010-05-07T12:00:00.000Z"
+          " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
       val query = new Query(sftName, ECQL.toFilter(filter))
       query.getHints.put(BIN_TRACK_KEY, "name")
       query.getHints.put(BIN_BATCH_SIZE_KEY, 100)
@@ -255,7 +255,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
     "optimize for bin format with label" >> {
       import org.locationtech.geomesa.accumulo.index.QueryHints._
       val filter = "bbox(geom, -180, -90, 180, 90)" +
-          " AND dtg during 2010-05-07T00:00:00.000Z/2010-05-07T12:00:00.000Z"
+          " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
       val query = new Query(sftName, ECQL.toFilter(filter))
       query.getHints.put(BIN_TRACK_KEY, "name")
       query.getHints.put(BIN_LABEL_KEY, "name")

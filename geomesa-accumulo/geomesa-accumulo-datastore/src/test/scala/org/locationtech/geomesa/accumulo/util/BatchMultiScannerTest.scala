@@ -13,17 +13,19 @@ import java.util.TimeZone
 
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.data.{Key, Range => ARange, Value}
+import org.apache.accumulo.core.data.{Range => ARange}
 import org.apache.accumulo.core.security.Authorizations
-import org.geotools.data.DataStoreFinder
+import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.data.tables.{AttributeTable, RecordTable}
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureDeserializers}
+import org.locationtech.geomesa.accumulo.index.JoinPlan
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.execute.Success
@@ -36,7 +38,7 @@ import scala.collection.JavaConversions._
 class BatchMultiScannerTest extends Specification {
 
   val sftName = "bmstest"
-  val sft = SimpleFeatureTypes.createType(sftName, s"name:String:index=true,age:String:index=true,idStr:String:index=true,dtg:Date,*geom:Geometry:srid=4326")
+  val schema = SimpleFeatureTypes.createType(sftName, s"name:String:index=true,age:String:index=true,idStr:String:index=true,dtg:Date,*geom:Geometry:srid=4326")
 
   val sdf = new SimpleDateFormat("yyyyMMdd")
   sdf.setTimeZone(TimeZone.getTimeZone("Zulu"))
@@ -61,7 +63,8 @@ class BatchMultiScannerTest extends Specification {
     ).asInstanceOf[AccumuloDataStore]
 
   val ds = createStore
-  ds.createSchema(sft)
+  ds.createSchema(schema)
+  val sft = ds.getSchema(sftName)
   val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
   val featureCollection = new DefaultFeatureCollection(sftName, sft)
@@ -82,32 +85,27 @@ class BatchMultiScannerTest extends Specification {
   fs.addFeatures(featureCollection)
 
   def attrIdxEqualQuery(attr: String, value: String, batchSize: Int): Int = {
+    val qps = ds.getQueryPlan(new Query(sftName, ECQL.toFilter(s"$attr = '$value'")))
+    qps must haveLength(1)
+    val qp = qps.head
+    qp must beAnInstanceOf[JoinPlan]
+    qp.ranges must haveLength(1)
+
     val instance = new MockInstance(instanceName)
     val conn = instance.getConnector(user, new PasswordToken(pass))
 
-    val attrIdxTable = AttributeTable.formatTableName(catalogTable, sft)
-    conn.tableOperations.exists(attrIdxTable) must beTrue
-    val attrScanner = conn.createScanner(attrIdxTable, new Authorizations())
+    conn.tableOperations.exists(qp.table) must beTrue
+    val attrScanner = conn.createScanner(qp.table, new Authorizations())
+    attrScanner.setRange(qp.ranges.head)
 
-    val rowIdPrefix = org.locationtech.geomesa.accumulo.index.getTableSharingPrefix(sft)
-    val descriptor = sft.getDescriptor(attr)
-    val range = new ARange(AttributeTable.getAttributeIndexRows(rowIdPrefix, descriptor, value).head)
-    attrScanner.setRange(range)
+    val jp = qp.join.get._2
+    conn.tableOperations().exists(jp.table) must beTrue
+    val recordScanner = conn.createBatchScanner(jp.table, new Authorizations(), 5)
 
-    val recordTable = RecordTable.formatTableName(catalogTable, sft)
-    conn.tableOperations().exists(recordTable) must beTrue
-    val recordScanner = conn.createBatchScanner(recordTable, new Authorizations(), 5)
+    val bms = new BatchMultiScanner(attrScanner, recordScanner, qp.join.get._1, batchSize)
 
-    val prefix = org.locationtech.geomesa.accumulo.index.getTableSharingPrefix(sft)
-    val joinFunction = (kv: java.util.Map.Entry[Key, Value]) => new ARange(prefix + kv.getKey.getColumnQualifier)
-    val bms = new BatchMultiScanner(attrScanner, recordScanner, joinFunction, batchSize)
-
-    val decoder = SimpleFeatureDeserializers(sft, SerializationType.KRYO)
-    val retrieved = bms.iterator.toList
-    retrieved.foreach { e =>
-      val sf = decoder.deserialize(e.getValue.get())
-      sf.getAttribute(attr) mustEqual value
-    }
+    val retrieved = bms.iterator.map(jp.kvsToFeatures).toList
+    forall(retrieved)(_.getAttribute(attr) mustEqual value)
 
     retrieved.size
   }
@@ -119,7 +117,7 @@ class BatchMultiScannerTest extends Specification {
         attrIdxEqualQuery("name", "b", batchSize) mustEqual 4
 
         // test something that doesn't exist!
-        attrIdxEqualQuery("name", "doesn't exist", batchSize) mustEqual 0
+        attrIdxEqualQuery("name", "no exista", batchSize) mustEqual 0
 
         // test size of 1
         attrIdxEqualQuery("idStr", "c1", batchSize) mustEqual 1
