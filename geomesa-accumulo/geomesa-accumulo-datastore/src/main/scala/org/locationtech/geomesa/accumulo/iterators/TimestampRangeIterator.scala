@@ -9,7 +9,6 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import java.util.{Date, Map => JMap, UUID}
 
-import org.apache.accumulo.core.client.mapreduce.InputFormatBase
 import org.apache.accumulo.core.client.{IteratorSetting, ScannerBase}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SkippingIterator, SortedKeyValueIterator}
@@ -38,7 +37,7 @@ object TimestampRangeIterator {
     val cfg = new IteratorSetting(priority, iteratorName, classOf[TimestampRangeIterator])
     cfg.addOptions(Map(startOption -> (startTime.getTime / 1000).toString,
                        endOption   -> (endTime.getTime / 1000).toString).asJava)
-    InputFormatBase.addIterator(job.getConfiguration, cfg)
+    InputFormatBaseAdapter.addIterator(job, cfg)
   }
 
   def setupIterator(job: Job, startTime: Date, endTime: Date) {
