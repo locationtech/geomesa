@@ -54,9 +54,10 @@
 
     <modules>
         <module>geomesa-web-core</module>
-        <module>geomesa-web-csv</module>
-        <module>geomesa-web-data</module>
         <module>geomesa-web-security</module>
+
+        <module>geomesa-web-data</module>
+        <module>geomesa-web-csv</module>
     </modules>
 
 </project>

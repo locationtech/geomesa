@@ -20,22 +20,27 @@
         <module>geomesa-security</module>
         <module>geomesa-features</module>
         <module>geomesa-filter</module>
-        <module>geomesa-distributed-runtime</module>
-        <module>geomesa-jobs</module>
-        <module>geomesa-plugin</module>
         <module>geomesa-kafka</module>
         <module>geomesa-convert</module>
+        <module>geomesa-stream</module>
+
+        <module>geomesa-hbase</module>
+        <module>geomesa-web</module>
+        <module>geomesa-z3</module>
+
+        <module>geomesa-accumulo</module>
+        <module>geomesa-process</module>
+
+        <module>geomesa-jobs</module>
         <module>geomesa-tools</module>
         <module>geomesa-compute</module>
-        <module>geomesa-assemble</module>
+
+        <module>geomesa-plugin</module>
+        <module>geomesa-distributed-runtime</module>
         <module>geomesa-raster</module>
-        <module>geomesa-web</module>
-        <module>geomesa-process</module>
-        <module>geomesa-stream</module>
+
         <module>geomesa-examples</module>
-        <module>geomesa-z3</module>
-        <module>geomesa-accumulo</module>
-        <module>geomesa-hbase</module>
+        <module>geomesa-assemble</module>
     </modules>
 
     <properties>
@@ -49,7 +54,7 @@
         <specs2.version>2.3.13</specs2.version>
         <!-- environment-dependent versions -->
         <zookeeper.version>3.4.5</zookeeper.version>
-        <accumulo.version>1.5.1</accumulo.version>
+
         <hadoop.version>2.2.0</hadoop.version>
         <scalding.version>0.13.1</scalding.version>
 
@@ -75,6 +80,48 @@
     </properties>
 
     <profiles>
+        <profile>
+            <id>Accumulo 1.6</id>
+            <activation>
+                <property><name>!accumulo-1.5</name></property>
+            </activation>
+            <properties>
+                <accumulo.version>1.6.2</accumulo.version>
+            </properties>
+            <dependencyManagement>
+                <dependencies>
+                    <!-- Accumulo 1.6 dependency -->
+                    <dependency>
+                        <groupId>org.apache.accumulo</groupId>
+                        <artifactId>accumulo-server-base</artifactId>
+                        <version>${accumulo.version}</version>
+                        <scope>provided</scope>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+
+        <profile>
+            <id>Accumulo 1.5</id>
+            <activation>
+                <property><name>accumulo-1.5</name></property>
+            </activation>
+            <properties>
+                <accumulo.version>1.5.2</accumulo.version>
+            </properties>
+            <dependencyManagement>
+                <dependencies>
+                    <!-- Accumulo 1.5 dependency -->
+                    <dependency>
+                        <groupId>org.apache.accumulo</groupId>
+                        <artifactId>accumulo-server</artifactId>
+                        <version>${accumulo.version}</version>
+                        <scope>provided</scope>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+
         <profile>
             <id>debug-tests</id>
             <properties>
@@ -679,19 +726,6 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.accumulo</groupId>
-                <artifactId>accumulo-server</artifactId>
-                <version>${accumulo.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.accumulo</groupId>
-                <artifactId>accumulo-server</artifactId>
-                <version>${accumulo.version}</version>
-                <classifier>source</classifier>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.accumulo</groupId>
                 <artifactId>cloudtrace</artifactId>
                 <version>${accumulo.version}</version>
                 <scope>provided</scope>
@@ -756,6 +790,10 @@
                     <exclusion>
                         <groupId>com.sun.jdmk</groupId>
                         <artifactId>jmxtools</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.jboss.netty</groupId>
+                        <artifactId>netty</artifactId>
                     </exclusion>
                 </exclusions>
                 <scope>provided</scope>

@@ -107,9 +107,46 @@
             <groupId>org.specs2</groupId>
             <artifactId>specs2_2.10</artifactId>
         </dependency>
+
     </dependencies>
 
     <profiles>
+        <profile>
+            <id>Accumulo 1.6</id>
+            <activation>
+                <property><name>!accumulo-1.5</name></property>
+            </activation>
+            <properties>
+                <accumulo.version>1.6.2</accumulo.version>
+            </properties>
+            <dependencies>
+                <!-- Accumulo 1.6 dependency -->
+                <dependency>
+                    <groupId>org.locationtech.geomesa</groupId>
+                    <artifactId>geomesa-accumulo-adapter-1.6</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>Accumulo 1.5</id>
+            <activation>
+                <property><name>accumulo-1.5</name></property>
+            </activation>
+            <properties>
+                <accumulo.version>1.5.2</accumulo.version>
+            </properties>
+            <dependencies>
+                <!-- Accumulo 1.5 dependency -->
+                <dependency>
+                    <groupId>org.locationtech.geomesa</groupId>
+                    <artifactId>geomesa-accumulo-adapter-1.5</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
         <profile>
             <id>assemble</id>
             <dependencies>

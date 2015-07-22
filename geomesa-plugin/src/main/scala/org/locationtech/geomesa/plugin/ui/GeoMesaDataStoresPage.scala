@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.plugin.ui
 
-import org.apache.accumulo.core.Constants
 import org.apache.accumulo.core.client.{Connector, IsolatedScanner}
 import org.apache.accumulo.core.data.KeyExtent
 import org.apache.hadoop.io.Text
@@ -17,8 +16,8 @@ import org.apache.wicket.markup.html.list.{ListItem, ListView}
 import org.geoserver.catalog.StoreInfo
 import org.geoserver.web.data.store.{StorePanel, StoreProvider}
 import org.geotools.data.{DataStoreFinder, Query}
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStoreFactory, AccumuloDataStore}
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params._
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
 import org.locationtech.geomesa.plugin.ui.components.DataStoreInfoPanel
 
 import scala.collection.JavaConverters._
@@ -215,9 +214,11 @@ object GeoMesaDataStoresPage {
   def getTableMetadata(connector: Connector, featureName: String, tableName: String, tableId: String, displayName: String): TableMetadata = {
     // TODO move this to core utility class where it can be re-used
 
-    val scanner = new IsolatedScanner(connector.createScanner(Constants.METADATA_TABLE_NAME, Constants.NO_AUTHS))
-    scanner.fetchColumnFamily(Constants.METADATA_DATAFILE_COLUMN_FAMILY)
-    scanner.setRange(new KeyExtent(new Text(tableId), null, null).toMetadataRange())
+    import org.locationtech.geomesa.accumulo.metadata.Metadata._
+
+    val scanner = new IsolatedScanner(connector.createScanner(AccumuloMetadataTableName, EmptyAuths))
+    scanner.fetchColumnFamily(AccumuloMetadataCF)
+    scanner.setRange(new KeyExtent(new Text(tableId), null, null).toMetadataRange)
 
     var fileSize:Long = 0
     var numEntries:Long = 0
@@ -229,8 +230,7 @@ object GeoMesaDataStoresPage {
     scanner.asScala.foreach {
       case entry =>
         //  example cq: /t-0005bta/F0005bum.rf
-        val cq = entry.getKey.getColumnQualifier.toString
-        val tablet = cq.split("/")(1)
+        val tablet = entry.getKey.getColumnQualifier.toString
         if (lastTablet != tablet) {
           numTablets = numTablets + 1
           lastTablet = tablet

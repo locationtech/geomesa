@@ -13,6 +13,7 @@ import java.util.UUID
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.ZooKeeperInstance
+import org.apache.accumulo.server.client.HdfsZooInstance
 import org.apache.commons.compress.compressors.bzip2.BZip2Utils
 import org.apache.commons.compress.compressors.gzip.GzipUtils
 import org.apache.commons.compress.compressors.xz.XZUtils
@@ -153,14 +154,7 @@ trait AccumuloProperties extends GetPassword with Logging {
       .head)
     .getOrElse("/accumulo")
 
-  lazy val instanceIdStr =
-    Try(ZooKeeperInstance.getInstanceIDFromHdfs(new Path(instanceDfsDir, "instance_id"))) match {
-      case Success(value) => value
-      case Failure(ex) =>
-        throw new Exception("Error retrieving /accumulo/instance_id from HDFS. To resolve this, double check that " +
-          "the HADOOP_CONF_DIR environment variable is set. If that does not work, specify your Accumulo Instance " +
-          "Name as an argument with the --instance-name flag.", ex)
-    }
+  def instanceIdStr = HdfsZooInstance.getInstance().getInstanceID
 
-  lazy val instanceName = new ZooKeeperInstance(UUID.fromString(instanceIdStr), zookeepersProp).getInstanceName
+  def instanceName = HdfsZooInstance.getInstance().getInstanceName
 }

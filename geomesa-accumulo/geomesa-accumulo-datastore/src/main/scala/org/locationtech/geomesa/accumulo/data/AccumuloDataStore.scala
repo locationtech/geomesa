@@ -29,7 +29,7 @@ import org.locationtech.geomesa.accumulo.GeomesaSystemProperties
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore._
 import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.util.{ExplainingConnectorCreator, GeoMesaBatchWriterConfig}
+import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializers}
 import org.locationtech.geomesa.security.AuthorizationsProvider
@@ -768,8 +768,7 @@ class AccumuloDataStore(val connector: Connector,
    *
    */
   private def planQuery(featureName: String, query: Query, o: ExplainerOutputType): Seq[QueryPlan] = {
-    val cc = new ExplainingConnectorCreator(this, o)
-    val qp = getQueryPlanner(featureName, cc)
+    val qp = getQueryPlanner(featureName, this)
     qp.planQuery(query, None, o)
   }
 

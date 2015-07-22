@@ -10,7 +10,7 @@ package org.locationtech.geomesa.jobs.scalding
 
 import cascading.tuple._
 import com.twitter.scalding._
-import org.apache.accumulo.core.data.{Key, Mutation, Range => AcRange, Value}
+import org.apache.accumulo.core.data.{Key, Mutation, Value, Range => AcRange}
 import org.apache.accumulo.core.util.{Pair => AcPair}
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.jobs.scalding.taps.{AccumuloLocalScheme, AccumuloLocalTap, AccumuloScheme, AccumuloTap}
