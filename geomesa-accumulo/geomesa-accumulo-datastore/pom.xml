@@ -117,10 +117,6 @@
         </dependency>
         <dependency>
             <groupId>org.apache.accumulo</groupId>
-            <artifactId>accumulo-server</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-start</artifactId>
         </dependency>
         <dependency>
