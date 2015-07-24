@@ -20,6 +20,7 @@ import org.geotools.util.Utilities
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.raster.data.{AccumuloRasterStore, GeoMesaCoverageQueryParams}
+import org.locationtech.geomesa.raster.util.RasterUtils
 import org.opengis.parameter.GeneralParameterValue
 
 import scala.util.Try
@@ -74,13 +75,19 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
     logger.debug(s"READ: $parameters")
     val params = new GeoMesaCoverageQueryParams(parameters)
     val rq = params.toRasterQuery
-    logger.info(s"In rastersToCoverage: width: ${params.width.toInt} height: ${params.height.toInt} resX: ${params.resX} resY: ${params.resY} env: ${params.envelope}")
-    val mosaic = ars.getMosaicedRaster(rq, params)
-    if (mosaic == null) null
-    else {
-      val coverage = coverageFactory.create(coverageName, mosaic, params.envelope)
-      mosaic.flush()
-      coverage
+    if (params.width.toInt == 5 && params.height.toInt == 5){
+      //TODO: https://geomesa.atlassian.net/browse/GEOMESA-867, https://geomesa.atlassian.net/browse/GEOMESA-868
+      logger.warn("In GeoMesaCoverageReader: suspected GeoServer Registration Layer, returning a default image for now until mosaicing fixed")
+      coverageFactory.create(coverageName, RasterUtils.defaultBufferedImage, params.envelope)
+    } else {
+      logger.info(s"In rastersToCoverage: width: ${params.width.toInt} height: ${params.height.toInt} resX: ${params.resX} resY: ${params.resY} env: ${params.envelope}")
+      val mosaic = ars.getMosaicedRaster(rq, params)
+      if (mosaic == null) null
+      else {
+        val coverage = coverageFactory.create(coverageName, mosaic, params.envelope)
+        mosaic.flush()
+        coverage
+      }
     }
   }
 
