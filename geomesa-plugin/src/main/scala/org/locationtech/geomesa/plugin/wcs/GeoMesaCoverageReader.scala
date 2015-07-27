@@ -76,7 +76,7 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
     val params = new GeoMesaCoverageQueryParams(parameters)
     val rq = params.toRasterQuery
     if (params.width.toInt == 5 && params.height.toInt == 5){
-      //TODO: https://geomesa.atlassian.net/browse/GEOMESA-867, https://geomesa.atlassian.net/browse/GEOMESA-868
+      //TODO: https://geomesa.atlassian.net/browse/GEOMESA-868, https://geomesa.atlassian.net/browse/GEOMESA-869
       logger.warn("In GeoMesaCoverageReader: suspected GeoServer Registration Layer, returning a default image for now until mosaicing fixed")
       coverageFactory.create(coverageName, RasterUtils.defaultBufferedImage, params.envelope)
     } else {
