@@ -36,6 +36,7 @@
         <module>geomesa-z3</module>
         <module>geomesa-accumulo</module>
         <module>geomesa-hbase</module>
+        <module>geomesa-dynamodb</module>
     </modules>
 
     <properties>
