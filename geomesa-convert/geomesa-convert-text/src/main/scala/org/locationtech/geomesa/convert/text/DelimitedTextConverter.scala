@@ -70,7 +70,9 @@ class DelimitedTextConverter(format: CSVFormat,
     override def run(): Unit = {
       while (true) {
         val s = q.take()
-        if(s != null) {
+
+        // make sure the input is not null and is nonempty...if it is empty the threads will deadlock
+        if (s != null && s.nonEmpty) {
           writer.write(s)
           writer.write(separator)
           writer.flush()
@@ -82,6 +84,8 @@ class DelimitedTextConverter(format: CSVFormat,
   def fromInputType(string: String): Array[Any] = {
     import spire.syntax.cfor._
 
+    // empty strings cause deadlock
+    if (string == null || string.isEmpty) throw new IllegalArgumentException("Invalid input (empty)")
     q.put(string)
     val rec = parser.next()
     val len = rec.size()
