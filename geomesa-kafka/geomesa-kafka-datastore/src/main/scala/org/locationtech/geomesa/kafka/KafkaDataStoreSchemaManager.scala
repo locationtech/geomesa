@@ -10,8 +10,9 @@ package org.locationtech.geomesa.kafka
 import java.util
 
 import com.google.common.cache.{CacheBuilder, CacheLoader}
+import com.typesafe.scalalogging.slf4j.Logging
 import kafka.admin.AdminUtils
-import kafka.utils.ZKStringSerializer
+import kafka.utils.{ZkUtils, ZKStringSerializer}
 import org.I0Itec.zkclient.ZkClient
 import org.I0Itec.zkclient.exception.ZkNodeExistsException
 import org.geotools.data.DataStore
@@ -28,7 +29,7 @@ import scala.util.control.NonFatal
   *
   * See GEOMESA-818 for additional considerations.
   */
-trait KafkaDataStoreSchemaManager extends DataStore  {
+trait KafkaDataStoreSchemaManager extends DataStore with Logging {
 
   protected def zookeepers: String
   protected def zkPath: String
@@ -61,8 +62,35 @@ trait KafkaDataStoreSchemaManager extends DataStore  {
       AdminUtils.createTopic(zkClient, kfc.topic, partitions, replication)
     }
 
+    // Ensure the topic is ready before adding the new layer to the SFT cache
+    waitUntilTopicReady(zkClient, kfc.topic, partitions)
+
     // put it in the cache
     schemaCache.put(typeName, kfc)
+  }
+
+  // Wait until a topic is ready for writes.
+  // NB: The assumption here is that waiting for the leader to be elected is sufficient.
+  // Further, this function delegates to a function which waits for a leader for each partition.
+  def waitUntilTopicReady(zkClient: ZkClient, topic: String, partitions: Int, timeToWait: Long = 5000L): Unit = {
+    (0 until partitions).foreach { waitUntilTopicReadyForPartition(zkClient, topic, _, timeToWait) }
+  }
+
+  def waitUntilTopicReadyForPartition(zkClient: ZkClient, topic: String, partition: Int, timeToWait: Long) {
+    var leader: Option[Int] = None
+    val start = System.currentTimeMillis
+
+    while(leader.isEmpty && System.currentTimeMillis < start + timeToWait) {
+      leader = ZkUtils.getLeaderForPartition(zkClient, topic, partition)
+      if(leader.isEmpty) {
+        logger.debug(s"Still waiting on a leader for topic: $topic")
+      }
+    }
+
+    leader match {
+      case Some(l) => logger.debug(s"Got a leader for topic: $topic")
+      case _       => throw new Exception(s"Failed to get a leader for topic: $topic")
+    }
   }
 
   def getFeatureConfig(typeName: String) : KafkaFeatureConfig = schemaCache.get(typeName)
