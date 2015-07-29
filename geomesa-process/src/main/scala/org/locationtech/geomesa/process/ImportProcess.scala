@@ -18,12 +18,15 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
 
 import scala.collection.JavaConversions._
+import scala.util.Try
 
 @DescribeProcess(
   title = "Geomesa Bulk Import",
   description = "Bulk Import data into Geomesa from another process with no transformations of data"
 )
 class ImportProcess(val catalog: Catalog) extends GeomesaProcess {
+
+  import ImportProcess._
 
   @DescribeResult(name = "layerName", description = "Name of the new featuretype, with workspace")
   def execute(
@@ -108,6 +111,7 @@ class ImportProcess(val catalog: Catalog) extends GeomesaProcess {
     val sftBuilder = new SimpleFeatureTypeBuilder()
     sftBuilder.init(features.getSchema)
     sftBuilder.setName(name)
+    getFeatureCollectionDefaultGeometryNameOption(features).foreach(sftBuilder.setDefaultGeometry)
     val sft = sftBuilder.buildFeatureType
     accumuloDS.createSchema(sft)
 
@@ -123,6 +127,14 @@ class ImportProcess(val catalog: Catalog) extends GeomesaProcess {
     fs.addFeatures(features, visibility)
     storedSft
   }
+
+}
+
+object ImportProcess {
+  // the name of this function is almost as long as its body,
+  // but it makes the routine amenable to unit testing
+  def getFeatureCollectionDefaultGeometryNameOption(features: SimpleFeatureCollection): Option[String] =
+    Try { features.getSchema.getGeometryDescriptor.getName.toString }.toOption
 
 }
 
