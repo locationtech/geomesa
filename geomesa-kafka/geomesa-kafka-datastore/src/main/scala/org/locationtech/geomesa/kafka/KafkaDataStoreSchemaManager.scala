@@ -84,12 +84,15 @@ trait KafkaDataStoreSchemaManager extends DataStore with Logging {
       leader = ZkUtils.getLeaderForPartition(zkClient, topic, partition)
       if(leader.isEmpty) {
         logger.debug(s"Still waiting on a leader for topic: $topic")
+        Thread.sleep(100)
       }
     }
 
     leader match {
       case Some(l) => logger.debug(s"Got a leader for topic: $topic")
-      case _       => throw new Exception(s"Failed to get a leader for topic: $topic")
+      case _       =>
+        throw new Exception(s"Failed to get a leader for partition $partition of " +
+                            s"topic: $topic within $timeToWait milliseconds.")
     }
   }
 
