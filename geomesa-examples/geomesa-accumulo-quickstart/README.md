@@ -96,4 +96,14 @@ You should see output similar to the following (not including some of Maven's ou
     8.  Bierce|343|Wed Aug 06 04:59:22 EDT 2014|POINT (-76.66826220670282 -37.44503877750368)|null
     9.  Bierce|259|Thu Aug 28 15:59:30 EDT 2014|POINT (-76.90122194030118 -37.148525741002466)|null
     Submitting secondary index query
-    JNH: TODO: Enter results: 
+    Feature ID Observation.859 | Who: Bierce
+    Feature ID Observation.355 | Who: Bierce
+    Feature ID Observation.940 | Who: Bierce
+    Feature ID Observation.631 | Who: Bierce
+    Feature ID Observation.817 | Who: Bierce
+    Submitting secondary index query with sorting (sorted by 'What' descending
+    Feature ID Observation.997 | Who: Bierce | What: 997
+    Feature ID Observation.994 | Who: Bierce | What: 994
+    Feature ID Observation.991 | Who: Bierce | What: 991
+    Feature ID Observation.988 | Who: Bierce | What: 988
+    Feature ID Observation.985 | Who: Bierce | What: 985
