@@ -45,7 +45,7 @@ mvn clean install
 ```
 Otherwise, for Accumulo 1.5, run 
 ```
-mvn clean install
+mvn clean install -Daccumulo-1.5
 ```
 
 NB:  This step is only required, because the GeoMesa artifacts have not yet
@@ -56,9 +56,8 @@ this download-and-build step will become obsolete.
 
 About this tutorial/example
 --------------------------------
-```
 
-The GeoMesa Accumulo Example ``pom.xml``` file contains an explicit list of dependent libraries that will be bundled together into this tutorial.  You should confirm
+The GeoMesa Accumulo Example ```pom.xml``` file contains an explicit list of dependent libraries that will be bundled together into this tutorial.  You should confirm
 that the versions of Hadoop match what you are running; if it does not match, change the value in the POM.  (NB:  The only reason these libraries
 are bundled into the final JAR is that this is easier for most people to do this than it is to set the classpath when running the tutorial.  The version of 
 Accumulo is handled by profile.  Setting the property 'accumulo-1.5' tells the root pom to use Accumulo 1.5; otherwise, Accumulo 1.6 is assumed.
