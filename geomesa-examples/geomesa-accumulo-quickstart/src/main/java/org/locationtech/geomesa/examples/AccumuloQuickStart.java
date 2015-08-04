@@ -6,6 +6,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import org.apache.commons.cli.*;
 import org.geotools.data.*;
 import org.geotools.data.simple.SimpleFeatureStore;
+import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.Hints;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.FeatureCollection;
@@ -23,6 +24,9 @@ import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory2;
+import org.opengis.filter.sort.SortBy;
+import org.opengis.filter.sort.SortOrder;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -254,6 +258,47 @@ public class AccumuloQuickStart {
         featureItr.close();
     }
 
+    static void secondaryIndexExample(String simpleFeatureTypeName,
+                                      DataStore dataStore,
+                                      String[] attributeFields,
+                                      String attributesQuery,
+                                      int maxFeatures,
+                                      String sortByField)
+            throws CQLException, IOException {
+
+        // construct a (E)CQL filter from the search parameters,
+        // and use that as the basis for the query
+        Filter cqlFilter = CQL.toFilter(attributesQuery);
+        Query query = new Query(simpleFeatureTypeName, cqlFilter);
+
+        query.setPropertyNames(attributeFields);
+        query.setMaxFeatures(maxFeatures);
+
+        if (!sortByField.equals("")) {
+            FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
+            SortBy[] sort = new SortBy[]{ff.sort(sortByField, SortOrder.DESCENDING)};
+            query.setSortBy(sort);
+        }
+
+        // submit the query, and get back an iterator over matching features
+        FeatureSource featureSource = dataStore.getFeatureSource(simpleFeatureTypeName);
+        FeatureIterator featureItr = featureSource.getFeatures(query).features();
+
+        // loop through all results
+        int n = 0;
+        while (featureItr.hasNext()) {
+            Feature feature = featureItr.next();
+            StringBuilder sb = new StringBuilder();
+            sb.append("Feature ID ").append(feature.getIdentifier());
+
+            for (String field : attributeFields) {
+                sb.append(" | ").append(field).append(": ").append(feature.getProperty(field).getValue());
+            }
+            System.out.println(sb.toString());
+        }
+        featureItr.close();
+    }
+
     public static void main(String[] args) throws Exception {
         // find out where -- in Accumulo -- the user wants to store data
         CommandLineParser parser = new BasicParser();
@@ -288,5 +333,18 @@ public class AccumuloQuickStart {
                 "Where", -77.5, -37.5, -76.5, -36.5,
                 "When", "2014-07-01T00:00:00.000Z", "2014-09-30T23:59:59.999Z",
                 "(Who = 'Bierce')");
+
+        System.out.println("Submitting secondary index query");
+        secondaryIndexExample(simpleFeatureTypeName, dataStore,
+                new String[]{"Who"},
+                "(Who = 'Bierce')",
+                5,
+                "");
+        System.out.println("Submitting secondary index query with sorting (sorted by 'What' descending)");
+        secondaryIndexExample(simpleFeatureTypeName, dataStore,
+                new String[]{"Who", "What"},
+                "(Who = 'Bierce')",
+                5,
+                "What");
     }
 }
