@@ -63,6 +63,9 @@ are bundled into the final JAR is that this is easier for most people to do this
 Accumulo is handled by profile.  Setting the property 'accumulo-1.5' tells the root pom to use Accumulo 1.5; otherwise, Accumulo 1.6 is assumed.
 If you would rather not bundle these dependencies, mark them as ```provided``` in the POM, and update your classpath as appropriate.)
 
+The QuickStart operates by inserting and then querying 1000 features.  After the insertions are complete, a sequence of queries are run to
+demonstrate different types of queries possible via the GeoTools API.
+
 Run the tutorial
 ----------------
 
