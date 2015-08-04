@@ -102,8 +102,8 @@ You should see output similar to the following (not including some of Maven's ou
     Feature ID Observation.631 | Who: Bierce
     Feature ID Observation.817 | Who: Bierce
     Submitting secondary index query with sorting (sorted by 'What' descending)
-    Feature ID Observation.997 | Who: Bierce | What: 997
-    Feature ID Observation.994 | Who: Bierce | What: 994
-    Feature ID Observation.991 | Who: Bierce | What: 991
-    Feature ID Observation.988 | Who: Bierce | What: 988
-    Feature ID Observation.985 | Who: Bierce | What: 985
+    Feature ID Observation.999 | Who: Addams | What: 999
+    Feature ID Observation.996 | Who: Addams | What: 996
+    Feature ID Observation.993 | Who: Addams | What: 993
+    Feature ID Observation.990 | Who: Addams | What: 990
+    Feature ID Observation.987 | Who: Addams | What: 987

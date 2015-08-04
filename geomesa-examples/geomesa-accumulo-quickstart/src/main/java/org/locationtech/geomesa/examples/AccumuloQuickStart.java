@@ -343,7 +343,7 @@ public class AccumuloQuickStart {
         System.out.println("Submitting secondary index query with sorting (sorted by 'What' descending)");
         secondaryIndexExample(simpleFeatureTypeName, dataStore,
                 new String[]{"Who", "What"},
-                "(Who = 'Bierce')",
+                "(Who = 'Addams')",
                 5,
                 "What");
     }
