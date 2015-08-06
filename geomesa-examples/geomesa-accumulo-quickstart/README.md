@@ -10,7 +10,7 @@ few small things:
 
 1.  establishes a new (static) SimpleFeatureType
 2.  prepares the Accumulo table to store this type of data
-3.  creates a few hundred exmple SimpleFeatures
+3.  creates a few hundred example SimpleFeatures
 4.  writes these SimpleFeatures to the Accumulo table
 5.  queries for a given geographic rectangle, time range, and attribute filter,
     writing out the entries in the result set
