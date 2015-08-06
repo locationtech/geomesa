@@ -1385,5 +1385,34 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       ds.delete()
       connector.tableOperations().list().toSeq must not(containAnyOf(tables))
     }
+
+    "query on bbox and unbounded temporal" >> {
+      val sftName = "unboundedTemporal"
+      val spec = "name:String,dtg:Date,*geom:Point:srid=4326"
+      val sft = createSchema(sftName, spec)
+
+      val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
+      val features = (0 until 6).map { i =>
+        builder.set("geom", WKTUtils.read(s"POINT(45.0 4$i.0)"))
+        builder.set("dtg", s"2012-01-02T05:0$i:07.000Z")
+        builder.set("name", i.toString)
+        val sf = builder.buildFeature(i.toString)
+        sf.getUserData.update(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf
+      }
+
+      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+      fs.addFeatures(new ListFeatureCollection(sft, features))
+
+      val query = new Query(sftName,
+        ECQL.toFilter("BBOX(geom, 40.0, 40.0, 50.0, 44.5) AND dtg after 2012-01-02T05:02:00.000Z"))
+      val reader = ds.getFeatureReader(sftName, query)
+
+      val read = SelfClosingIterator(reader).toList
+
+      // verify that all the attributes came back
+      read must haveSize(3)
+      read.map(_.getID).sorted mustEqual Seq("2", "3", "4")
+    }
   }
 }

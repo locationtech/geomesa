@@ -52,8 +52,9 @@ class RecordIdxStrategy(val filter: QueryFilter) extends Strategy with Logging {
 
     val ranges = if (filter.primary.forall(_ == Filter.INCLUDE)) {
       // allow for full table scans - we use the record index for queries that can't be satisfied elsewhere
-      logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter " +
-          s"${filter.secondary.map(filterToString).getOrElse("INCLUDE")}")
+      filter.secondary.foreach { f =>
+        logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
+      }
       val start = new Text(prefix)
       Seq(new aRange(start, true, aRange.followingPrefix(start), false))
     } else {

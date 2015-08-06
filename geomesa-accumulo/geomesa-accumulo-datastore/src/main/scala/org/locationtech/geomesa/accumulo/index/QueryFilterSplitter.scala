@@ -10,9 +10,11 @@ package org.locationtech.geomesa.accumulo.index
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
 import org.locationtech.geomesa.filter._
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.{And, Filter, Id, Or}
 
@@ -22,7 +24,9 @@ import scala.collection.mutable.ArrayBuffer
 /**
  * Class for splitting queries up based on Boolean clauses and the available query strategies.
  */
-class QueryFilterSplitter(sft: SimpleFeatureType, includeZ3: Boolean) extends Logging {
+class QueryFilterSplitter(sft: SimpleFeatureType) extends Logging {
+
+  val supported = GeoMesaTable.getTables(sft).toSet
 
   /**
    * Splits the query up into different filter plans to be evaluated. Each filter plan will consist of one or
@@ -87,12 +91,12 @@ class QueryFilterSplitter(sft: SimpleFeatureType, includeZ3: Boolean) extends Lo
     val (spatial, temporal, attribute, dateAttribute, others) = partitionFilters(validFilters)
 
     // z3 and spatio-temporal
-    if (includeZ3 && temporal.nonEmpty) {
+    if (supported.contains(Z3Table) && isBounded(temporal)) {
       // z3 works pretty well for temporal only queries - we add a whole world bbox later
       val primary = spatial ++ temporal
       val secondary = andOption(attribute ++ others)
       options.append(FilterPlan(Seq(QueryFilter(StrategyType.Z3, primary, secondary))))
-    } else if (spatial.nonEmpty) {
+    } else if (supported.contains(SpatioTemporalTable) && spatial.nonEmpty) {
       val primary = spatial ++ temporal
       val secondary = andOption(attribute ++ others)
       options.append(FilterPlan(Seq(QueryFilter(StrategyType.ST, primary, secondary))))
@@ -101,7 +105,7 @@ class QueryFilterSplitter(sft: SimpleFeatureType, includeZ3: Boolean) extends Lo
     // ids
     if (others.nonEmpty) {
       val ids = others.collect { case id: Id => id }
-      if (ids.nonEmpty) {
+      if (supported.contains(RecordTable) && ids.nonEmpty) {
         val primary = ids
         val nonIds = others.filterNot(ids.contains) ++ spatial ++ temporal ++ attribute
         val secondary = andOption(nonIds)
@@ -110,7 +114,7 @@ class QueryFilterSplitter(sft: SimpleFeatureType, includeZ3: Boolean) extends Lo
     }
 
     // attributes
-    if (attribute.nonEmpty || dateAttribute.nonEmpty) {
+    if (supported.contains(AttributeTable) && (attribute.nonEmpty || dateAttribute.nonEmpty)) {
       val allAttributes = attribute ++ dateAttribute
       val attributes = allAttributes.groupBy(getAttributeProperty(_).get.name)
       attributes.foreach { case (name, thisAttribute) =>
@@ -218,6 +222,15 @@ class QueryFilterSplitter(sft: SimpleFeatureType, includeZ3: Boolean) extends Lo
       // not sure it's worth it though
       null
     }
+  }
+
+  /**
+   * Returns true if the temporal filters create a range with an upper and lower bound
+   */
+  private def isBounded(temporalFilters: Seq[Filter]): Boolean = {
+    import FilterHelper._
+    val interval = extractInterval(temporalFilters, sft.getDtgField)
+    interval != null && interval.getStart != minDateTime && interval.getEnd != maxDateTime
   }
 
   /**

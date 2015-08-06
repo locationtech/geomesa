@@ -37,7 +37,8 @@ import scala.collection.JavaConversions._
 
 object Z3Table extends GeoMesaTable {
 
-  val EPOCH = new DateTime(0)
+  val EPOCH = new DateTime(0) // min value we handle - 1970-01-01T00:00:00.000
+  val EPOCH_END = EPOCH.plusSeconds(Int.MaxValue) // max value we can calculate - 2038-01-18T22:19:07.000
   val SFC = new Z3SFC
   val FULL_CF = new Text("F")
   val BIN_CF = new Text("B")
