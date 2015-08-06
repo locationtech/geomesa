@@ -19,12 +19,14 @@ import org.locationtech.geomesa.jobs.scalding.taps.{AccumuloScheme, AccumuloTap}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import scala.util.Try
+
 @RunWith(classOf[JUnitRunner])
 class AccumuloSourceTest extends Specification {
 
   val instance = new MockInstance("accumulo-source-test")
   val connector = instance.getConnector("user", new PasswordToken("pwd"))
-  Seq("table_in", "table_out").foreach(t => connector.tableOperations().create(t))
+  Seq("table_in", "table_out").foreach(t => Try(connector.tableOperations().create(t)))
 
   val input = AccumuloInputOptions(instance.getInstanceName,
                                    instance.getZooKeepers,

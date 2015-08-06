@@ -9,7 +9,10 @@
 
 package org.locationtech.geomesa.accumulo.process.temporaldensity
 
+import java.util.concurrent.atomic.AtomicBoolean
+
 import com.vividsolutions.jts.geom.Envelope
+import org.apache.accumulo.core.client.TableExistsException
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.hadoop.io.Text
@@ -46,7 +49,7 @@ class TemporalDensityProcessTest extends Specification {
   def createDataStore(sft: SimpleFeatureType, i: Int = 0): DataStore = {
     val mockInstance = new MockInstance("dummy" + i)
     val c = mockInstance.getConnector("user", new PasswordToken("pass".getBytes))
-    c.tableOperations.create(tableName)
+    try { c.tableOperations.create(tableName) } catch { case e: TableExistsException => }
     val splits = (0 to 99).map {
       s => "%02d".format(s)
     }.map(new Text(_))
