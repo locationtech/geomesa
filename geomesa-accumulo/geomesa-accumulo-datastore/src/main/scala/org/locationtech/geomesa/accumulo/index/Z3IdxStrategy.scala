@@ -69,7 +69,7 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
     // since we don't apply a temporal filter, we pass offsetDuring to
     // make sure we exclude the non-inclusive endpoints of a during filter.
     // note that this isn't completely accurate, as we only index down to the second
-    val interval = extractInterval(temporalFilters, dtgField, offsetDuring = true)
+    val interval = extractInterval(temporalFilters, dtgField, exclusive = true)
     val geometryToCover = netGeom(collectionToCover)
 
     output(s"GeomsToCover: $geometryToCover")

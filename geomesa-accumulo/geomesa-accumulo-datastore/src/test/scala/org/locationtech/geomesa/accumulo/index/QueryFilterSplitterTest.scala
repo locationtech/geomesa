@@ -35,7 +35,7 @@ class QueryFilterSplitterTest extends Specification {
     .build("QueryFilterSplitterTest")
 
   val ff = CommonFactoryFinder.getFilterFactory2
-  val splitter = new QueryFilterSplitter(sft, true)
+  val splitter = new QueryFilterSplitter(sft)
 
   val geom                = "BBOX(geom,40,40,50,50)"
   val geom2               = "BBOX(geom,60,60,70,70)"
@@ -73,6 +73,14 @@ class QueryFilterSplitterTest extends Specification {
       val options = splitter.getQueryOptions(Filter.EXCLUDE)
       options must beEmpty
     }
+    "return none for exclusive anded geoms" >> {
+      val options = splitter.getQueryOptions(and(geom, geom2, dtg))
+      options must beEmpty
+    }.pendingUntilFixed("not implemented")
+    "return none for exclusive anded dates" >> {
+      val options = splitter.getQueryOptions(and(geom, dtg, dtg2))
+      options must beEmpty
+    }.pendingUntilFixed("not implemented")
     "work for spatio-temporal queries" >> {
       "with a simple and" >> {
         val filter = and(geom, dtg)
@@ -93,21 +101,21 @@ class QueryFilterSplitterTest extends Specification {
         options.head.filters.head.secondary must beNone
       }
       "with multiple dates" >> {
-        val filter = and(geom, dtg, dtg2)
+        val filter = and(geom, dtg, dtgOverlap)
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
         options.head.filters must haveLength(1)
         options.head.filters.head.strategy mustEqual StrategyType.Z3
-        options.head.filters.head.primary mustEqual Seq(f(geom), f(dtg), f(dtg2))
+        options.head.filters.head.primary mustEqual Seq(f(geom), f(dtg), f(dtgOverlap))
         options.head.filters.head.secondary must beNone
       }
       "with multiple geometries and dates" >> {
-        val filter = and(geom, geom2, dtg, dtg2)
+        val filter = and(geom, geomOverlap, dtg, dtgOverlap)
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
         options.head.filters must haveLength(1)
         options.head.filters.head.strategy mustEqual StrategyType.Z3
-        options.head.filters.head.primary mustEqual Seq(f(geom), f(geom2), f(dtg), f(dtg2))
+        options.head.filters.head.primary must containTheSameElementsAs(Seq(f(geom), f(geomOverlap), f(dtg), f(dtgOverlap)))
         options.head.filters.head.secondary must beNone
       }
       "with simple ors" >> {
@@ -205,12 +213,12 @@ class QueryFilterSplitterTest extends Specification {
         options.head.filters.head.secondary must beNone
       }
       "temporal" >> {
-        val filter = and(dtg, dtg2)
+        val filter = and(dtg, dtgOverlap)
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
         options.head.filters must haveLength(1)
         options.head.filters.head.strategy mustEqual StrategyType.Z3
-        options.head.filters.head.primary mustEqual Seq(dtg, dtg2).map(f)
+        options.head.filters.head.primary mustEqual Seq(dtg, dtgOverlap).map(f)
         options.head.filters.head.secondary must beNone
       }
       "non-indexed attributes" >> {
@@ -397,7 +405,7 @@ class QueryFilterSplitterTest extends Specification {
     }
     "support indexed date attributes" >> {
       val sft = SimpleFeatureTypes.createType("dtgIndex", "dtg:Date:index=full,*geom:Point:srid=4326")
-      val splitter = new QueryFilterSplitter(sft, true)
+      val splitter = new QueryFilterSplitter(sft)
       val filter = f("dtg TEQUALS 2014-01-01T12:30:00.000Z")
       val options = splitter.getQueryOptions(filter)
       options must haveLength(2)
