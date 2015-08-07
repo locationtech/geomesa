@@ -61,10 +61,10 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedKafka with Loggin
 
     "allow schemas to be created" >> {
       producerDS.createSchema(schema)
-
       "and available in other data stores" >> {
         consumerDS.getTypeNames.toList must contain("test")
       }
+      ok
     }
 
     "allow schemas to be deleted" >> {
@@ -92,8 +92,7 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedKafka with Loggin
       fw.write()
       Thread.sleep(2000)
 
-      // AND READ
-      {
+      "and read" >> {
         val features = consumerFC.getFeatures.features()
         features.hasNext must beTrue
         val readSF = features.next()
@@ -105,8 +104,7 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedKafka with Loggin
         consumerFC.getCount(Query.ALL) must be equalTo 0
       }
 
-      // AND UPDATED
-      {
+      "and updated" >> {
         val updated = sf
         updated.setAttribute("name", "jones")
         updated.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
@@ -122,8 +120,7 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedKafka with Loggin
         res.visibility mustEqual Some("ADMIN")
       }
 
-      // AND CLEARED
-      {
+      "and cleared" >> {
         store.removeFeatures(Filter.INCLUDE)
         Thread.sleep(500)
         consumerFC.getCount(Query.ALL) must be equalTo 0
@@ -137,8 +134,7 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedKafka with Loggin
         consumerFC.getCount(Query.ALL) must be equalTo 1
       }
 
-      // ALLOW CQL QUERIES
-      {
+      "and queried with cql" >> {
         val sf = fw.next()
         sf.setAttributes(Array("jones", 60, DateTime.now().toDate).asInstanceOf[Array[AnyRef]])
         sf.setDefaultGeometry(gf.createPoint(new Coordinate(0.0, 0.0)))
@@ -163,6 +159,7 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedKafka with Loggin
         res.size() must be equalTo 1
         res.features().next().getAttribute("name") must be equalTo "jones"
       }
+      ok
     }
 
     "return correctly from canProcess" >> {

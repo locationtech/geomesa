@@ -41,14 +41,6 @@ class TemporalDensityIteratorTest extends Specification {
   def createDataStore(sft: SimpleFeatureType, i: Int = 0): DataStore = {
     val testTableName = "tdi_test"
 
-    val mockInstance = new MockInstance("dummy" + i)
-    val c = mockInstance.getConnector("user", new PasswordToken("pass".getBytes))
-    c.tableOperations.create(testTableName)
-    val splits = (0 to 99).map {
-      s => "%02d".format(s)
-    }.map(new Text(_))
-    c.tableOperations().addSplits(testTableName, new java.util.TreeSet[Text](splits))
-
     val dsf = new AccumuloDataStoreFactory
 
     import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params._
