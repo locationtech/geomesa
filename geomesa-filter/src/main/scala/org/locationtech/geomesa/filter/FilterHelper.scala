@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.filter
 
 import java.util.Date
-import java.util.concurrent.TimeUnit
 
 import com.vividsolutions.jts.geom.{Geometry, MultiPolygon, Polygon}
 import org.joda.time.{DateTime, DateTimeZone, Interval}
+import org.locationtech.geomesa.utils.filters.Typeclasses.BinaryFilter
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
@@ -21,7 +21,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 import org.opengis.filter.expression.{Expression, Literal, PropertyName}
 import org.opengis.filter.spatial._
-import org.opengis.filter.temporal.{After, Before, During}
+import org.opengis.filter.temporal.{After, Before, During, TEquals}
 import org.opengis.temporal.Period
 
 import scala.collection.JavaConversions._
@@ -150,42 +150,20 @@ object FilterHelper {
   }
 
   // NB: This method assumes that the filters represent a collection of 'and'ed temporal filters.
-  def extractInterval(filters: Seq[Filter], dtField: Option[String], offsetDuring: Boolean = false): Interval = {
-    import org.locationtech.geomesa.utils.filters.Typeclasses.BinaryFilter
-    import org.locationtech.geomesa.utils.filters.Typeclasses.BinaryFilter.ops
-
-    def endpointFromBinaryFilter[B: BinaryFilter](b: B, dtfn: String) = {
-      val exprToDT: Expression => DateTime = ex => new DateTime(ex.evaluate(null, classOf[Date]))
-      if (b.left.toString == dtfn) {
-        Right(exprToDT(b.right))  // the left side is the field name; the right is the endpoint
-      } else {
-        Left(exprToDT(b.left))    // the right side is the field name; the left is the endpoint
-      }
+  def extractInterval(filters: Seq[Filter], dtField: Option[String], exclusive: Boolean = false): Interval =
+    dtField match {
+      case Some(dtf) => filters.map(extractInterval(_, dtf, exclusive)).fold(everywhen)(_ overlap _)
+      case None      => everywhen
     }
 
-    def intervalFromAfterLike[B: BinaryFilter](b: B, dtfn: String) =
-      endpointFromBinaryFilter(b, dtfn) match {
-        case Right(dt) => new Interval(dt, maxDateTime)
-        case Left(dt)  => new Interval(minDateTime, dt)
-      }
-
-    def intervalFromBeforeLike[B: BinaryFilter](b: B, dtfn: String) =
-      endpointFromBinaryFilter(b, dtfn) match {
-        case Right(dt) => new Interval(minDateTime, dt)
-        case Left(dt)  => new Interval(dt, maxDateTime)
-      }
-
-    def extractInterval(dtfn: String): Filter => Interval = {
+  private def extractInterval(filter: Filter, dtField: String, exclusive: Boolean): Interval =
+    filter match {
       case during: During =>
         val p = during.getExpression2.evaluate(null, classOf[Period])
         val start = new DateTime(p.getBeginning.getPosition.getDate)
         val end = new DateTime(p.getEnding.getPosition.getDate)
-        if (offsetDuring) {
-          // round up/down to the next second
-          val s = start.minusMillis(start.getMillisOfSecond).plusSeconds(1)
-          val endMillis = end.getMillisOfSecond
-          val e = if (endMillis == 0) end.minusSeconds(1) else end.minusMillis(endMillis)
-          new Interval(s, e)
+        if (exclusive) {
+          new Interval(roundSecondsUp(start), roundSecondsDown(end))
         } else {
           new Interval(start, end)
         }
@@ -194,24 +172,60 @@ object FilterHelper {
         val start = between.getLowerBoundary.evaluate(null, classOf[Date])
         val end = between.getUpperBoundary.evaluate(null, classOf[Date])
         new Interval(start.getTime, end.getTime)
+
+      case teq: TEquals   => intervalFromEqualsLike(teq, dtField)
+
       // NB: Interval semantics correspond to "at or after"
-      case after: After =>                        intervalFromAfterLike(after, dtfn)
-      case before: Before =>                      intervalFromBeforeLike(before, dtfn)
+      case after: After   => intervalFromAfterLike(after, dtField, exclusive)
+      case before: Before => intervalFromBeforeLike(before, dtField, exclusive)
 
-      case lt: PropertyIsLessThan =>              intervalFromBeforeLike(lt, dtfn)
+      case lt: PropertyIsLessThan             => intervalFromBeforeLike(lt, dtField, exclusive)
       // NB: Interval semantics correspond to <
-      case le: PropertyIsLessThanOrEqualTo =>     intervalFromBeforeLike(le, dtfn)
+      case le: PropertyIsLessThanOrEqualTo    => intervalFromBeforeLike(le, dtField, exclusive = false)
       // NB: Interval semantics correspond to >=
-      case gt: PropertyIsGreaterThan =>           intervalFromAfterLike(gt, dtfn)
-      case ge: PropertyIsGreaterThanOrEqualTo =>  intervalFromAfterLike(ge, dtfn)
-      case a: Any =>
-        throw new Exception(s"Expected temporal filters.  Received an $a.")
+      case gt: PropertyIsGreaterThan          => intervalFromAfterLike(gt, dtField, exclusive)
+      case ge: PropertyIsGreaterThanOrEqualTo => intervalFromAfterLike(ge, dtField, exclusive = false)
+
+      case a: Any => throw new Exception(s"Expected temporal filters, but received $a.")
     }
 
-    dtField match {
-      case None => everywhen
-      case Some(dtfn) => filters.map(extractInterval(dtfn)).fold(everywhen)( _ overlap _)
+  private def intervalFromEqualsLike[B: BinaryFilter](b: B, dtField: String) =
+    endpointFromBinaryFilter(b, dtField) match {
+      case Right(dt) => new Interval(dt, dt)
+      case Left(dt)  => new Interval(dt, dt)
     }
+
+  private def intervalFromAfterLike[B: BinaryFilter](b: B, dtField: String, exclusive: Boolean) =
+    endpointFromBinaryFilter(b, dtField) match {
+      case Right(dt) =>
+        if (exclusive) new Interval(roundSecondsUp(dt), maxDateTime) else new Interval(dt, maxDateTime)
+      case Left(dt)  =>
+        if (exclusive) new Interval(minDateTime, roundSecondsDown(dt)) else new Interval(minDateTime, dt)
+    }
+
+  def intervalFromBeforeLike[B: BinaryFilter](b: B, dtField: String, exclusive: Boolean) =
+    endpointFromBinaryFilter(b, dtField) match {
+      case Right(dt) =>
+        if (exclusive) new Interval(minDateTime, roundSecondsDown(dt)) else new Interval(minDateTime, dt)
+      case Left(dt)  =>
+        if (exclusive) new Interval(roundSecondsUp(dt), maxDateTime) else new Interval(dt, maxDateTime)
+    }
+
+  private def endpointFromBinaryFilter[B: BinaryFilter](b: B, dtField: String) = {
+    import org.locationtech.geomesa.utils.filters.Typeclasses.BinaryFilter.ops
+    val exprToDT: Expression => DateTime = ex => new DateTime(ex.evaluate(null, classOf[Date]))
+    if (b.left.toString == dtField) {
+      Right(exprToDT(b.right))  // the left side is the field name; the right is the endpoint
+    } else {
+      Left(exprToDT(b.left))    // the right side is the field name; the left is the endpoint
+    }
+  }
+
+  private def roundSecondsUp(d: DateTime): DateTime = d.minusMillis(d.getMillisOfSecond).plusSeconds(1)
+
+  private def roundSecondsDown(d: DateTime): DateTime = {
+    val millis = d.getMillisOfSecond
+    if (millis == 0) d.minusSeconds(1) else d.minusMillis(millis)
   }
 
   def filterListAsAnd(filters: Seq[Filter]): Option[Filter] = filters match {

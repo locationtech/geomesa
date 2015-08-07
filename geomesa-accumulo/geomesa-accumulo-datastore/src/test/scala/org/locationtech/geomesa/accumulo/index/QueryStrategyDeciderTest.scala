@@ -295,6 +295,18 @@ class QueryStrategyDeciderTest extends Specification {
       forall(z3Predicates) { getZ3Strategy }
     }
 
+    "get the stidx strategy with non-bounded time intervals" in {
+      val predicates = Seq(
+        "bbox(geom, 35, 59, 45, 70) AND dtg before 2010-05-12T12:00:00.000Z",
+        "bbox(geom, 35, 59, 45, 70) AND dtg after 2010-05-12T12:00:00.000Z",
+        "bbox(geom, 35, 59, 45, 70) AND dtg < '2010-05-12T12:00:00.000Z'",
+        "bbox(geom, 35, 59, 45, 70) AND dtg <= '2010-05-12T12:00:00.000Z'",
+        "bbox(geom, 35, 59, 45, 70) AND dtg > '2010-05-12T12:00:00.000Z'",
+        "bbox(geom, 35, 59, 45, 70) AND dtg >= '2010-05-12T12:00:00.000Z'"
+      )
+      forall(predicates) { getStStrategy }
+    }
+
     "get the attribute strategy with attrIdxStrategyPredicates" in {
       forall(attrIdxStrategyPredicates) { getAttributeIdxStrategy }
     }

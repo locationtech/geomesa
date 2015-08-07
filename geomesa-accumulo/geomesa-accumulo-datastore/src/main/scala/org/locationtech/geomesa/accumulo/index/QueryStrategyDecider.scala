@@ -10,7 +10,6 @@ package org.locationtech.geomesa.accumulo.index
 
 import org.geotools.data.Query
 import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
-import org.locationtech.geomesa.accumulo.data.tables.Z3Table
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
@@ -32,15 +31,8 @@ object QueryStrategyDecider {
   private val strategies: Array[QueryStrategyDecider] =
     Array[QueryStrategyDecider](null) ++ (1 to CURRENT_SCHEMA_VERSION).map(QueryStrategyDecider.apply)
 
-  def apply(version: Int): QueryStrategyDecider = {
-    if (version < 5) {
-      new QueryStrategyDeciderV4
-    } else if (version == 5) {
-      new QueryStrategyDeciderV5
-    } else {
-      new QueryStrategyDeciderV6
-    }
-  }
+  def apply(version: Int): QueryStrategyDecider =
+    if (version < 6) new QueryStrategyDeciderV5 else new QueryStrategyDeciderV6
 
   def chooseStrategies(sft: SimpleFeatureType,
                        query: Query,
@@ -79,7 +71,7 @@ class QueryStrategyDeciderV6 extends QueryStrategyDecider {
                                 output: ExplainerOutputType): Seq[Strategy] = {
 
     // get the various options that we could potentially use
-    val options = new QueryFilterSplitter(sft, supportsZ3(sft)).getQueryOptions(query.getFilter)
+    val options = new QueryFilterSplitter(sft).getQueryOptions(query.getFilter)
 
     if (requested.isDefined) {
       // see if one of the normal plans matches the requested type - if not, force it
@@ -146,8 +138,6 @@ class QueryStrategyDeciderV6 extends QueryStrategyDecider {
       case _ => throw new IllegalStateException(s"Unknown query plan requested: ${filter.strategy}")
     }
   }
-
-  def supportsZ3(sft: SimpleFeatureType): Boolean = Z3Table.supports(sft)
 }
 
 @deprecated
@@ -170,10 +160,4 @@ class QueryStrategyDeciderV5 extends QueryStrategyDeciderV6 {
       super.createStrategy(filter)
     }
   }
-}
-
-@deprecated
-class QueryStrategyDeciderV4 extends QueryStrategyDeciderV5 {
-  // version 4 does not ever support z3
-  override def supportsZ3(sft: SimpleFeatureType): Boolean = false
 }
