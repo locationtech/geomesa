@@ -357,6 +357,7 @@ class AccumuloDataStore(val connector: Connector,
       val deleter = connector.createBatchDeleter(name, auths, numThreads, defaultBWConfig)
       table.deleteFeaturesForType(sft, deleter)
       deleter.close()
+      if (table == Z3Table && tableOps.exists(name)) tableOps.delete(name)
     }
   }
 

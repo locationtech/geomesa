@@ -254,6 +254,53 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithDataStore {
         val results2 = ds.getFeatureSource(sftName2).getFeatures(query2)
         results2.size() should beGreaterThan(0)
       }
+
+      "delete schema and the z3 table on a shared table" in {
+        val sftName = "deleteSchemaOnSharedTableTest"
+        val table = "testing_delete_schema"
+        val ds = DataStoreFinder.getDataStore(Map(
+          "instanceId"        -> "mycloud",
+          "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
+          "user"              -> "myuser",
+          "password"          -> "mypassword",
+          "tableName"         -> table,
+          "useMock"           -> "true")).asInstanceOf[AccumuloDataStore]
+
+        ds must not beNull
+
+        createFeature(sftName, ds, sharedTables = true)
+
+        val c = ds.connector
+
+        // tests that tables exist before being deleted
+        c.tableOperations().exists(s"${table}") must beTrue
+        c.tableOperations().exists(s"${table}_st_idx") must beTrue
+        c.tableOperations().exists(s"${table}_records") must beTrue
+        c.tableOperations().exists(s"${table}_attr_idx") must beTrue
+        c.tableOperations().exists(s"${table}_${sftName}_z3") must beTrue
+
+        val fr = ds.getFeatureReader(sftName)
+        // tests that metadata exists in the catalog before being deleted
+        fr must not beNull
+
+        scanMetadata(ds, sftName) should beSome
+
+        ds.removeSchema(sftName)
+
+        //z3 table must be gone
+        c.tableOperations().exists(s"${table}") must beTrue
+        c.tableOperations().exists(s"${table}_st_idx") must beTrue
+        c.tableOperations().exists(s"${table}_records") must beTrue
+        c.tableOperations().exists(s"${table}_attr_idx") must beTrue
+        c.tableOperations().exists(s"${table}_${sftName}_z3") must beFalse
+
+        //metadata should be deleted from the catalog now
+        scanMetadata(ds, sftName) should beNone
+
+        val query = new Query(sftName, Filter.INCLUDE)
+        ds.getFeatureSource(sftName).getFeatures(query) must throwA[Exception]
+      }
+
     }
 
     "delete all associated tables" >> {
