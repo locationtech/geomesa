@@ -51,14 +51,12 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
       Seq("charles",  40,   dtFormat.parse("20140101 12:30:00"), geom),
       Seq("charles",  null, dtFormat.parse("20140101 12:30:00"), geom)
     ).map { case name :: weight :: dtg :: geom :: Nil =>
-      val feature = builder.buildFeature(null)
+      val feature = builder.buildFeature(s"$name$weight")
       feature.setDefaultGeometry(geom)
       feature.setAttribute("name", name)
       feature.setAttribute("weight", weight)
       feature.setAttribute("dtg", dtg)
       feature.setAttribute("geom", geom)
-      // make sure we ask the system to re-use the provided feature-ID
-      feature.getUserData().asScala(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
       feature
     }
   })

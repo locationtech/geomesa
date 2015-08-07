@@ -157,6 +157,15 @@ class ScalaSimpleFeature(initialId: String, sft: SimpleFeatureType, initialValue
 object ScalaSimpleFeature {
 
   /**
+   * Creates a simple feature, converting the values to the appropriate type
+   */
+  def create(sft: SimpleFeatureType, id: String, values: Any*): SimpleFeature = {
+    val sf = new ScalaSimpleFeature(id, sft)
+    values.zipWithIndex.foreach { case (v, i) => sf.setAttribute(i, v.asInstanceOf[AnyRef]) }
+    sf
+  }
+
+  /**
    * Compares the id and attributes for the simple features - concrete class is not checked
    */
   def equalIdAndAttributes(sf1: SimpleFeature, sf2: SimpleFeature): Boolean =
