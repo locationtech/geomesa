@@ -29,9 +29,8 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.features.SimpleFeatureSerializers
 import org.locationtech.geomesa.features.kryo.serialization.SimpleFeatureSerializer
-import org.locationtech.geomesa.filter.filterToString
-import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaInputFormat
+import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
@@ -70,14 +69,9 @@ object GeoMesaSpark extends Logging {
           numberOfSplits: Option[Int] = None): RDD[SimpleFeature] = {
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
     val typeName = query.getTypeName
-    val qps = ds.getQueryPlan(query)
 
-    if (qps.length > 1) {
-      logger.error("The query being executed requires multiple scans, which is not currently " +
-          "supported by geomesa. Your result set will be partially incomplete. This is most likely due to " +
-          s"an OR clause in your query. Query: ${filterToString(query.getFilter)}")
-    }
-    val qp = qps.head
+    // get the query plan to set up the iterators, ranges, etc
+    val qp = JobUtils.getSingleQueryPlan(ds, query)
 
     ConfiguratorBase.setConnectorInfo(classOf[AccumuloInputFormat], conf, ds.connector.whoami(), ds.authToken)
 

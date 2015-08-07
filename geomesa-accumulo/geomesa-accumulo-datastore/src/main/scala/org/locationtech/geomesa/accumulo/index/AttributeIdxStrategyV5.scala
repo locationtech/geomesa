@@ -47,7 +47,7 @@ class AttributeIdxStrategyV5(val filter: QueryFilter) extends Strategy with Logg
   /**
    * Perform scan against the Attribute Index Table and get an iterator returning records from the Record table
    */
-  override def getQueryPlans(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType) = {
+  override def getQueryPlan(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType) = {
     val propsAndRanges = filter.primary.map(getPropertyAndRange(_, queryPlanner.sft))
     val attributeName = propsAndRanges.head._1
     val ranges = propsAndRanges.map(_._2)
@@ -95,7 +95,7 @@ class AttributeIdxStrategyV5(val filter: QueryFilter) extends Strategy with Logg
 
         // there won't be any non-date/time-filters if the index only iterator has been selected
         val table = acc.getTableName(sft.getTypeName, AttributeTableV5)
-        ranges.map(ScanPlan(table, _, attributeIterators.toSeq, Seq.empty, kvsToFeatures, hasDupes))
+        BatchScanPlan(table, ranges, attributeIterators.toSeq, Seq.empty, kvsToFeatures, 1, hasDupes)
 
       case RecordJoinIterator =>
         val recordIterators = scala.collection.mutable.ArrayBuffer.empty[IteratorSetting]
@@ -125,7 +125,7 @@ class AttributeIdxStrategyV5(val filter: QueryFilter) extends Strategy with Logg
         val attrTable = acc.getTableName(sft.getTypeName, AttributeTableV5)
         val attrThreads = acc.getSuggestedThreads(sft.getTypeName, AttributeTableV5)
         val attrIters = attributeIterators.toSeq
-        Seq(JoinPlan(attrTable, ranges, attrIters, Seq.empty, attrThreads, hasDupes, joinFunction, joinQuery))
+        JoinPlan(attrTable, ranges, attrIters, Seq.empty, attrThreads, hasDupes, joinFunction, joinQuery)
     }
   }
 

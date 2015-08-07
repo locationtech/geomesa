@@ -38,7 +38,7 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with Loggin
   /**
    * Perform scan against the Attribute Index Table and get an iterator returning records from the Record table
    */
-  override def getQueryPlans(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType) = {
+  override def getQueryPlan(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType) = {
     val sft = queryPlanner.sft
     val acc = queryPlanner.acc
 
@@ -84,7 +84,7 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with Loggin
         // can apply the bin aggregating iterator directly to the sft
         val iters = Seq(BinAggregatingIterator.configureDynamic(sft, hints, filter.secondary, priority))
         val kvsToFeatures = BinAggregatingIterator.kvsToFeatures()
-        Seq(BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes))
+        BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
       } else {
         // check to see if we can execute against the index values
         val indexSft = IndexValueEncoder.getIndexSft(sft)
@@ -93,7 +93,7 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with Loggin
             filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
           val iters = Seq(BinAggregatingIterator.configureDynamic(indexSft, hints, filter.secondary, priority))
           val kvsToFeatures = BinAggregatingIterator.kvsToFeatures()
-          Seq(BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes))
+          BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
         } else {
           // have to do a join against the record table
           joinQuery(sft, hints, queryPlanner, hasDupes, singleTableScanPlan)
@@ -101,11 +101,11 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with Loggin
       }
     } else if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
       // we have a fully encoded value - can satisfy any query against it
-      Seq(singleTableScanPlan(sft, filter.secondary, hints.getTransform))
+      singleTableScanPlan(sft, filter.secondary, hints.getTransform)
     } else if (IteratorTrigger.canUseIndexValues(sft, filter.secondary, transform)) {
       // we can use the index value
       // transform has to be non-empty to get here
-      Seq(singleTableScanPlan(IndexValueEncoder.getIndexSft(sft), filter.secondary, hints.getTransform))
+      singleTableScanPlan(IndexValueEncoder.getIndexSft(sft), filter.secondary, hints.getTransform)
     } else {
       // have to do a join against the record table
       joinQuery(sft, hints, queryPlanner, hasDupes, singleTableScanPlan)
@@ -120,7 +120,7 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with Loggin
                 hints: Hints,
                 queryPlanner: QueryPlanner,
                 hasDupes: Boolean,
-                attributePlan: ScanPlanFn): Seq[JoinPlan] = {
+                attributePlan: ScanPlanFn): JoinPlan = {
     // break out the st filter to evaluate against the attribute table
     val (stFilter, ecqlFilter) = filter.secondary.map { f =>
       val (geomFilters, otherFilters) = partitionPrimarySpatials(f, sft)
@@ -157,8 +157,8 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with Loggin
     val joinQuery = BatchScanPlan(recordTable, recordRanges, recordIterators, Seq.empty,
       kvsToFeatures, recordThreads, hasDupes)
 
-    Seq(JoinPlan(attributeScan.table, attributeScan.ranges, attributeScan.iterators,
-      attributeScan.columnFamilies, recordThreads, hasDupes, joinFunction, joinQuery))
+    JoinPlan(attributeScan.table, attributeScan.ranges, attributeScan.iterators,
+      attributeScan.columnFamilies, recordThreads, hasDupes, joinFunction, joinQuery)
   }
 }
 

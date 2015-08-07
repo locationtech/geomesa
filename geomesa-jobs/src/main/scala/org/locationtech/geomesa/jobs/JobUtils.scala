@@ -14,7 +14,12 @@ import java.net.{URLClassLoader, URLDecoder}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.Connector
 import org.apache.hadoop.conf.Configuration
+import org.geotools.data.Query
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
+import org.locationtech.geomesa.accumulo.index.{JoinPlan, QueryPlan}
+import org.locationtech.geomesa.filter._
+import org.locationtech.geomesa.jobs.mapreduce.GeoMesaInputFormat._
 
 import scala.io.Source
 import scala.util.Try
@@ -112,4 +117,29 @@ object JobUtils extends Logging {
 
   def cleanClassPathURL(url: String): String =
     URLDecoder.decode(url, "UTF-8").replace("file:", "").replace("!", "")
+
+  /**
+   * Gets a query plan that can be satisfied via AccumuloInputFormat - e.g. only 1 table and configuration.
+   */
+  def getSingleQueryPlan(ds: AccumuloDataStore, query: Query): QueryPlan = {
+    val queryPlans = ds.getQueryPlan(query)
+
+    // see if the plan is something we can execute from a single table
+    val tryPlan = if (queryPlans.length > 1) None else queryPlans.headOption.filter {
+      case qp: JoinPlan => false
+      case _ => true
+    }
+
+    tryPlan.getOrElse {
+      // this query has a join or requires multiple scans - instead, fall back to the record index
+      logger.warn("Desired query plan requires multiple scans - falling back to full table scan")
+      val qps = ds.getQueryPlan(query, Some(StrategyType.RECORD))
+      if (qps.length > 1) {
+        logger.error("The query being executed requires multiple scans, which is not currently " +
+            "supported by geomesa. Your result set will be partially incomplete. " +
+            s"Query: ${filterToString(query.getFilter)}")
+      }
+      qps.head
+    }
+  }
 }

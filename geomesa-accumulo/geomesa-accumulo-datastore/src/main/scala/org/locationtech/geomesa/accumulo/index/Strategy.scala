@@ -38,7 +38,7 @@ trait Strategy extends Logging {
   /**
    * Plans the query - strategy implementations need to define this
    */
-  def getQueryPlans(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType): Seq[QueryPlan]
+  def getQueryPlan(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType): QueryPlan
 }
 
 
