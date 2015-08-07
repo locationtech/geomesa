@@ -163,6 +163,7 @@ class AccumuloRasterStore(val connector: Connector,
     val bounds = getBounds
     val resolutions = getAvailableResolutions
     // If no resolutions are available, then we have an empty table so assume default value for now
+    // TODO: determine what to do about the resolution, arguably should be resolutions.max: https://geomesa.atlassian.net/browse/GEOMESA-868
     val resolution = if (resolutions.isEmpty) defaultResolution else resolutions.min
     val width  = Math.abs(bounds.getWidth / resolution).toInt
     val height = Math.abs(bounds.getHeight / resolution).toInt

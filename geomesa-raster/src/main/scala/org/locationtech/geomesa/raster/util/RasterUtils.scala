@@ -24,6 +24,8 @@ import scala.reflect.runtime.universe._
 
 object RasterUtils {
 
+  val defaultBufferedImage = new BufferedImage(5, 5, BufferedImage.TYPE_INT_RGB)
+
   object IngestRasterParams {
     val ACCUMULO_INSTANCE   = "geomesa-tools.ingestraster.instance"
     val ZOOKEEPERS          = "geomesa-tools.ingestraster.zookeepers"
@@ -106,6 +108,7 @@ object RasterUtils {
     }
   }
 
+  // TODO: refactor https://geomesa.atlassian.net/browse/GEOMESA-869. Probably move this to a new object also...
   def mosaicChunks(chunks: Iterator[Raster], queryWidth: Int, queryHeight: Int, queryEnv: Envelope): (BufferedImage, Int) = {
     if (chunks.isEmpty) {
       (null, 0)
@@ -147,6 +150,7 @@ object RasterUtils {
       else {
         val result = allocateBufferedImage(newWidth, newHeight, image)
         val resGraphics = result.createGraphics()
+        //TODO scaling can fail with floating points, very small rasters, etc: https://geomesa.atlassian.net/browse/GEOMESA-869
         resGraphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR)
         resGraphics.drawImage(image, 0, 0, newWidth, newHeight, null)
         resGraphics.dispose()
