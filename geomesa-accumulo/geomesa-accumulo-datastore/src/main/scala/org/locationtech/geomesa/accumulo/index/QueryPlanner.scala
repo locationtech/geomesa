@@ -65,16 +65,16 @@ case class QueryPlanner(sft: SimpleFeatureType,
   def planQuery(query: Query,
                 strategy: Option[StrategyType] = None,
                 output: ExplainerOutputType = log): Seq[QueryPlan] = {
-    getQueryPlans(query, strategy, output)._1
+    getQueryPlans(query, strategy, output)
   }
 
   /**
    * Execute a query against geomesa
    */
   def runQuery(query: Query, strategy: Option[StrategyType] = None): SFIter = {
-    val (plans, numClauses) = getQueryPlans(query, strategy, log)
+    val plans = getQueryPlans(query, strategy, log)
     // don't deduplicate density queries, as they don't have dupes but re-use feature ids in the results
-    val dedupe = !query.getHints.isDensityQuery && (numClauses > 1 || plans.exists(_.hasDuplicates))
+    val dedupe = !query.getHints.isDensityQuery && (plans.length > 1 || plans.exists(_.hasDuplicates))
     executePlans(query, plans, dedupe)
   }
 
@@ -114,7 +114,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
    */
   private def getQueryPlans(query: Query,
                             requested: Option[StrategyType],
-                            output: ExplainerOutputType): (Seq[QueryPlan], Int) = {
+                            output: ExplainerOutputType): Seq[QueryPlan] = {
 
     configureQuery(query, sft) // configure the query - set hints that we'll need later on
 
@@ -136,20 +136,19 @@ case class QueryPlanner(sft: SimpleFeatureType,
     }
 
     implicit val timings = new TimingsImpl
-    val (queryPlans, numClauses) = profile({
+    val queryPlans = profile({
       val strategies = QueryStrategyDecider.chooseStrategies(sft, query, hints, requested, output)
-      val plans = strategies.flatMap { strategy =>
+      strategies.map { strategy =>
         output(s"Strategy: ${strategy.getClass.getSimpleName}")
         output(s"Filter: ${strategy.filter}")
-        val plans = strategy.getQueryPlans(this, query.getHints, output)
-        plans.foreach(outputPlan(_, output))
-        plans
+        val plan = strategy.getQueryPlan(this, query.getHints, output)
+        outputPlan(plan, output)
+        plan
       }
-      (plans, strategies.length)
     }, "plan")
-    output(s"Query planning took ${timings.time("plan")}ms for $numClauses " +
-        s"distinct quer${if (numClauses == 1) "y" else "ies"}.")
-    (queryPlans, numClauses)
+    output(s"Query planning took ${timings.time("plan")}ms for ${queryPlans.length} " +
+        s"distinct quer${if (queryPlans.length == 1) "y" else "ies"}.")
+    queryPlans
   }
 
   // output the query plan for explain logging

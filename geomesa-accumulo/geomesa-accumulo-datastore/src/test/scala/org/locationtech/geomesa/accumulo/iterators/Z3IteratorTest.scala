@@ -47,15 +47,15 @@ class Z3IteratorTest extends Specification {
                         map: util.Map[String, String],
                         iteratorEnvironment: IteratorEnvironment): Unit = {}
       override def seek(range: Range, collection: util.Collection[ByteSequence], b: Boolean): Unit = {
-        println("seek called")
         key = null
         staged = null
       }
       override def hasTop: Boolean = staged != null
     }
 
+    val zMap = Map(0.toShort -> (zmin.z, zmax.z))
     val iter = new Z3Iterator
-    iter.init(srcIter, Map("zmin" -> s"${zmin.z}", "zmax" -> s"${zmax.z}"), null)
+    iter.init(srcIter, Map(Z3Iterator.zKey -> Z3Iterator.mapToString(zMap)), null)
 
     "keep in bounds values" >> {
       val test1 = Z3Curve.index(-76.0, 38.5, 500)

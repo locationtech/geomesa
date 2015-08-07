@@ -7,7 +7,7 @@
 *************************************************************************/
 package org.locationtech.geomesa.accumulo.iterators
 
-import com.google.common.primitives.Longs
+import com.google.common.primitives.{Shorts, Longs}
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ByteSequence, Key, Range => AccRange, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
@@ -16,17 +16,13 @@ import org.locationtech.geomesa.curve.Z3
 
 class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
 
-  import org.locationtech.geomesa.accumulo.iterators.Z3Iterator.{zmaxKey, zminKey}
+  import org.locationtech.geomesa.accumulo.iterators.Z3Iterator.{zKey, stringToMap}
 
   var source: SortedKeyValueIterator[Key, Value] = null
 
-  var zlatmin: Long = -1L
-  var zlonmin: Long = -1L
-  var ztmin: Long = -1L
-
-  var zlatmax: Long = -1L
-  var zlonmax: Long = -1L
-  var ztmax: Long = -1L
+  var zMap: String = null
+  var zsByWeek: Array[(Int, Int, Int, Int, Int, Int)] = null
+  var weekOffset: Short = -1
 
   var topKey: Key = null
   var topValue: Value = null
@@ -50,9 +46,11 @@ class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
   private def inBounds(k: Key): Boolean = {
     k.getRow(row)
     val bytes = row.getBytes
+    val week = Shorts.fromBytes(bytes(0), bytes(1))
     val keyZ = Longs.fromBytes(bytes(2), bytes(3), bytes(4), bytes(5), bytes(6), bytes(7), bytes(8), bytes(9))
     val (x, y, t) = Z3(keyZ).decode
-    x >= zlonmin && x <= zlonmax && y >= zlatmin && y <= zlatmax && t >= ztmin && t <= ztmax
+    val (xmin, ymin, tmin, xmax, ymax, tmax) = zsByWeek(week - weekOffset)
+    x >= xmin && x <= xmax && y >= ymin && y <= ymax && t >= tmin && t <= tmax
   }
 
   override def getTopValue: Value = topValue
@@ -65,16 +63,15 @@ class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
     IteratorClassLoader.initClassLoader(getClass)
 
     this.source = source.deepCopy(env)
-    val zmin = options.get(zminKey).toLong
-    val zmax = options.get(zmaxKey).toLong
-    val (x0, y0, t0) = Z3(zmin).decode
-    val (x1, y1, t1) = Z3(zmax).decode
-    zlonmin = x0
-    zlonmax = x1
-    zlatmin = y0
-    zlatmax = y1
-    ztmin = t0
-    ztmax = t1
+    zMap = options.get(zKey)
+    val zs = stringToMap(zMap).toList.sortBy(_._1)
+    weekOffset = zs.head._1
+    // NB: we assume weeks are continuous
+    zsByWeek = zs.map(_._2).toArray.map { case (ll, ur) =>
+      val (x0, y0, t0) = Z3(ll).decode
+      val (x1, y1, t1) = Z3(ur).decode
+      (x0, y0, t0, x1, y1, t1)
+    }
   }
 
   override def seek(range: AccRange, columnFamilies: java.util.Collection[ByteSequence], inclusive: Boolean): Unit = {
@@ -84,24 +81,25 @@ class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
 
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = {
     import scala.collection.JavaConversions._
-
-    val zmin = Z3(zlonmin.toInt, zlatmin.toInt, ztmin.toInt).z.toString
-    val zmax = Z3(zlonmax.toInt, zlatmax.toInt, ztmax.toInt).z.toString
-
     val iter = new Z3Iterator
-    iter.init(source, Map(zminKey -> zmin, zmaxKey -> zmax), env)
+    iter.init(source, Map(zKey -> zMap), env)
     iter
   }
 }
 
 object Z3Iterator {
-  val zminKey = "zmin"
-  val zmaxKey = "zmax"
 
-  def configure(ll: Z3, ur: Z3, priority: Int) = {
-    val is = new IteratorSetting(priority, "z3", classOf[Z3Iterator].getCanonicalName)
-    is.addOption(zminKey, s"${ll.z}")
-    is.addOption(zmaxKey, s"${ur.z}")
+  val zKey = "z"
+
+  def configure(zRangesByWeek: Map[Short, (Long, Long)], priority: Int) = {
+    val is = new IteratorSetting(priority, "z3", classOf[Z3Iterator])
+    is.addOption(zKey, mapToString(zRangesByWeek))
     is
   }
+
+  protected[iterators] def mapToString(ranges: Map[Short, (Long, Long)]): String =
+    ranges.map { case (w, (ll, ur)) => s"$w-$ll-$ur" }.mkString(",")
+
+  protected[iterators] def stringToMap(ranges: String): Map[Short, (Long, Long)] =
+    ranges.split(",").map(_.split("-")).map(r => r.head.toShort -> (r(1).toLong, r(2).toLong)).toMap
 }
