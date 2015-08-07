@@ -32,7 +32,7 @@ import scala.collection.JavaConversions._
 
 class STIdxStrategy(val filter: QueryFilter) extends Strategy with Logging with IndexFilterHelpers {
 
-  override def getQueryPlans(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType) = {
+  override def getQueryPlan(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType) = {
 
     val sft             = queryPlanner.sft
     val acc             = queryPlanner.acc
@@ -128,10 +128,8 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
     val table = acc.getTableName(sft.getTypeName, SpatioTemporalTable)
     val numThreads = acc.getSuggestedThreads(sft.getTypeName, SpatioTemporalTable)
     val hasDupes = STIdxStrategy.mayContainDuplicates(hints, sft)
-    val res = qp.copy(table = table, iterators = iterators, kvsToFeatures = kvsToFeatures,
+    qp.copy(table = table, iterators = iterators, kvsToFeatures = kvsToFeatures,
       numThreads = numThreads, hasDuplicates = hasDupes)
-
-    Seq(res)
   }
 
   private def getSTIIIterCfg(iteratorConfig: IteratorConfig,

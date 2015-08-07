@@ -32,6 +32,7 @@ import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
 import org.locationtech.geomesa.accumulo.GeomesaSystemProperties
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore._
 import org.locationtech.geomesa.accumulo.data.tables._
+import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.features.SerializationType.SerializationType
@@ -698,9 +699,9 @@ class AccumuloDataStore(val connector: Connector,
    * Gets the query plan for a given query. The query plan consists of the tables, ranges, iterators etc
    * required to run a query against accumulo.
    */
-  def getQueryPlan(query: Query): Seq[QueryPlan] = {
+  def getQueryPlan(query: Query, strategy: Option[StrategyType] = None): Seq[QueryPlan] = {
     require(query.getTypeName != null, "Type name is required in the query")
-    planQuery(query.getTypeName, query, ExplainNull)
+    planQuery(query.getTypeName, query, strategy, ExplainNull)
   }
 
   /**
@@ -708,13 +709,16 @@ class AccumuloDataStore(val connector: Connector,
    */
   def explainQuery(query: Query, o: ExplainerOutputType = ExplainPrintln): Unit = {
     require(query.getTypeName != null, "Type name is required in the query")
-    planQuery(query.getTypeName, query, o)
+    planQuery(query.getTypeName, query, None, o)
   }
 
   /**
    * Plan the query, but don't execute it
    */
-  private def planQuery(featureName: String, query: Query, o: ExplainerOutputType): Seq[QueryPlan] =
+  private def planQuery(featureName: String,
+                        query: Query,
+                        strategy: Option[StrategyType],
+                        o: ExplainerOutputType): Seq[QueryPlan] =
     getQueryPlanner(featureName, this).planQuery(query, None, o)
 
   /**

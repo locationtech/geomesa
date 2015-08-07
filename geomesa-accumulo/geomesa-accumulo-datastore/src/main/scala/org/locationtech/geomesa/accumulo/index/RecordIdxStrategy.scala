@@ -43,7 +43,7 @@ object RecordIdxStrategy extends StrategyProvider {
 
 class RecordIdxStrategy(val filter: QueryFilter) extends Strategy with Logging {
 
-  override def getQueryPlans(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType) = {
+  override def getQueryPlan(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType) = {
 
     val sft = queryPlanner.sft
     val acc = queryPlanner.acc
@@ -73,7 +73,7 @@ class RecordIdxStrategy(val filter: QueryFilter) extends Strategy with Logging {
     val table = acc.getTableName(sft.getTypeName, RecordTable)
     val threads = acc.getSuggestedThreads(sft.getTypeName, RecordTable)
 
-    val plan = if (sft.getSchemaVersion > 5) {
+    if (sft.getSchemaVersion > 5) {
       // optimized path when we know we're using kryo serialization
       val priority = 25
       if (hints.isBinQuery) {
@@ -103,7 +103,5 @@ class RecordIdxStrategy(val filter: QueryFilter) extends Strategy with Logging {
       }
       BatchScanPlan(table, ranges, iters, Seq.empty, kvsToFeatures, threads, hasDuplicates = false)
     }
-
-    Seq(plan)
   }
 }

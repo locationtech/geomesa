@@ -30,7 +30,7 @@ import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureDeserializer, SimpleFeatureDeserializers}
 import org.locationtech.geomesa.filter.filterToString
-import org.locationtech.geomesa.jobs.GeoMesaConfigurator
+import org.locationtech.geomesa.jobs.{JobUtils, GeoMesaConfigurator}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -75,34 +75,12 @@ object GeoMesaInputFormat extends Logging {
     val auths = Option(AccumuloDataStoreFactory.params.authsParam.lookUp(dsParams).asInstanceOf[String])
     auths.foreach(a => InputFormatBaseAdapter.setScanAuthorizations(job, new Authorizations(a.split(","): _*)))
 
-    // run an explain query to set up the iterators, ranges, etc
     val featureTypeName = query.getTypeName
-    val queryPlans = ds.getQueryPlan(query)
 
-    // see if the plan is something we can execute from a single table
-    val tryPlan = if (queryPlans.length > 1) None else queryPlans.headOption.filter {
-      case qp: JoinPlan => false
-      case _ => true
-    }
+    // get the query plan to set up the iterators, ranges, etc
+    val queryPlan = JobUtils.getSingleQueryPlan(ds, query)
 
-    val queryPlan = tryPlan.getOrElse {
-      // this query has a join or requires multiple scans - instead, fall back to the ST index
-      logger.warn("Desired query plan requires multiple scans - falling back to spatio-temporal scan")
-      val sft = ds.getSchema(featureTypeName)
-      val featureEncoding = ds.getFeatureEncoding(sft)
-      val indexSchema = ds.getIndexSchemaFmt(featureTypeName)
-      val hints = ds.strategyHints(sft)
-      val queryPlanner = new QueryPlanner(sft, featureEncoding, indexSchema, ds, hints)
-      val qps = queryPlanner.planQuery(query, Some(StrategyType.ST), ExplainNull)
-      if (qps.length > 1) {
-        logger.error("The query being executed requires multiple scans, which is not currently " +
-            "supported by geomesa. Your result set will be partially incomplete. This is most likely due " +
-            s"to an OR clause in your query. Query: ${filterToString(query.getFilter)}")
-      }
-      qps.head
-    }
-
-    // use the explain results to set the accumulo input format options
+    // use the query plan to set the accumulo input format options
     InputFormatBase.setInputTableName(job, queryPlan.table)
     if (queryPlan.ranges.nonEmpty) {
       InputFormatBase.setRanges(job, queryPlan.ranges)

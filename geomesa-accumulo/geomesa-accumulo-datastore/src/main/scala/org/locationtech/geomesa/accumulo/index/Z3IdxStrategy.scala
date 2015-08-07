@@ -34,7 +34,7 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
   /**
    * Plans the query - strategy implementations need to define this
    */
-  override def getQueryPlans(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType) = {
+  override def getQueryPlan(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType) = {
     val sft = queryPlanner.sft
     val acc = queryPlanner.acc
 
@@ -126,57 +126,51 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
     val env = geometryToCover.getEnvelopeInternal
     val (lx, ly, ux, uy) = (env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
 
-    def qp(week: Int, lt: Long, ut: Long, contained: Boolean) =
-      queryPlanForPrefix(week, (lx, ux), (ly, uy), (lt, ut), z3table,
-        kvsToFeatures, iterators, colFamily, numThreads, contained)
-
     val epochWeekStart = Weeks.weeksBetween(Z3Table.EPOCH, interval.getStart)
     val epochWeekEnd = Weeks.weeksBetween(Z3Table.EPOCH, interval.getEnd)
     val weeks = scala.Range.inclusive(epochWeekStart.getWeeks, epochWeekEnd.getWeeks)
     val lt = Z3Table.secondsInCurrentWeek(interval.getStart, epochWeekStart)
     val ut = Z3Table.secondsInCurrentWeek(interval.getEnd, epochWeekEnd)
 
-    // the z3 index breaks time into 1 week chunks, so create a query plan for each week in our range
-    if (weeks.length == 1) {
-      Seq(qp(weeks.head, lt, ut, contained = false))
+    val lz = Z3_CURVE.index(lx, ly, lt).z
+    val uz = Z3_CURVE.index(ux, uy, ut).z
+
+    // the z3 index breaks time into 1 week chunks, so create a range for each week in our range
+    val (ranges, zMap) = if (weeks.length == 1) {
+      val ranges = getRanges(weeks, (lx, ux), (ly, uy), (lt, ut))
+      val map = Map(weeks.head.toShort -> (lz, uz))
+      (ranges, map)
     } else {
-      val head +: xs :+ last = weeks.toList
       // time range for a chunk is 0 to 1 week (in seconds)
-      val timeMax = Weeks.ONE.toStandardSeconds.getSeconds
-      val startQP = qp(head, lt, timeMax, contained = false)
-      val endQP = qp(last, 0, ut, contained = false)
-      val middleQPs = xs.map(w => qp(w, 0, timeMax, contained = true))
-      Seq(startQP, endQP) ++ middleQPs
+      val tMax = Weeks.ONE.toStandardSeconds.getSeconds
+      val head +: middle :+ last = weeks.toList
+      val headRanges = getRanges(Seq(head), (lx, ux), (ly, uy), (lt, tMax))
+      val lastRanges = getRanges(Seq(last), (lx, ux), (ly, uy), (0, ut))
+      val middleRanges = if (middle.isEmpty) Seq.empty else getRanges(middle, (lx, ux), (ly, uy), (0, tMax))
+      val ranges = headRanges ++ middleRanges ++ lastRanges
+      val minz = Z3_CURVE.index(lx, ly, 0).z
+      val maxZ = Z3_CURVE.index(ux, uy, tMax).z
+      val map = Map(head.toShort -> (lz, maxZ), last.toShort -> (minz, uz)) ++
+          middle.map(_.toShort -> (minz, maxZ)).toMap
+      (ranges, map)
     }
+
+    val zIter = Z3Iterator.configure(zMap, Z3_ITER_PRIORITY)
+    val iters = Seq(zIter) ++ iterators
+    BatchScanPlan(z3table, ranges, iters, Seq(colFamily), kvsToFeatures, numThreads, hasDuplicates = false)
   }
 
-  def queryPlanForPrefix(week: Int,
-                         x: (Double, Double),
-                         y: (Double, Double),
-                         t: (Long, Long),
-                         table: String,
-                         kvsToFeatures: FeatureFunction,
-                         is: Seq[IteratorSetting],
-                         colFamily: Text,
-                         numThreads: Int,
-                         contained: Boolean = true) = {
-    val epochWeekStart = Weeks.weeks(week)
-    val prefix = Shorts.toByteArray(epochWeekStart.getWeeks.toShort)
-
-    val accRanges = Z3_CURVE.ranges(x, y, t).map { case (s, e) =>
-      val startRowBytes = Bytes.concat(prefix, Longs.toByteArray(s))
-      val endRowBytes = Bytes.concat(prefix, Longs.toByteArray(e))
-      val start = new Text(startRowBytes)
-      val end = Range.followingPrefix(new Text(endRowBytes))
-      new Range(start, true, end, false)
+  def getRanges(weeks: Seq[Int], x: (Double, Double), y: (Double, Double), t: (Long, Long)): Seq[Range] = {
+    val prefixes = weeks.map(w => Shorts.toByteArray(w.toShort))
+    Z3_CURVE.ranges(x, y, t).flatMap { case (s, e) =>
+      val startBytes = Longs.toByteArray(s)
+      val endBytes = Longs.toByteArray(e)
+      prefixes.map { prefix =>
+        val start = new Text(Bytes.concat(prefix, startBytes))
+        val end = Range.followingPrefix(new Text(Bytes.concat(prefix, endBytes)))
+        new Range(start, true, end, false)
+      }
     }
-
-    val ll = Z3_CURVE.index(x._1, y._1, t._1)
-    val ur = Z3_CURVE.index(x._2, y._2, t._2)
-    val iter = Z3Iterator.configure(ll, ur, Z3_ITER_PRIORITY)
-
-    val iters = Seq(iter) ++ is
-    BatchScanPlan(table, accRanges, iters, Seq(colFamily), kvsToFeatures, numThreads, hasDuplicates = false)
   }
 }
 
