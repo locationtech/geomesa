@@ -131,8 +131,9 @@ geomesa> yarn jar geomesa-jobs/target/geomesa-jobs-1.0.0-shaded.jar \
 
 #### Transitioning Indices
 
-Between rc4 and rc5, incompatible schema changes were made. If you have data in the old format, but would like
-to update to the new version, you may use the SortedIndexUpdateJob.
+Between 1.0.0.rc4 and 1.0.0.rc5, incompatible schema changes were made. If you have data in the old format, but would like
+to update to the new version, you may use the SortedIndexUpdateJob. After running this job, your data in will in the
+1.0.0.rc5 format - to further update to the latest geomesa version, run the SchemaCopyJob as described below.
 
 The job can be invoked through yarn as follows (jar version may vary slightly):
 
@@ -178,7 +179,8 @@ yarn jar geomesa-jobs/target/geomesa-jobs-1.0.0-shaded.jar \
     --geomesa.input.tableName <catalog-table> \
     --geomesa.output.tableName <new-catalog-table> \
     --geomesa.input.feature <feature> \
-    --geomesa.output.feature <feature>
+    --geomesa.output.feature <feature> \
+    --geomesa.input.cql <options cql filter for input features>
 ```
 
 (Note that if you did not build with the 'assemble' profile, you will also need to include an extensive
