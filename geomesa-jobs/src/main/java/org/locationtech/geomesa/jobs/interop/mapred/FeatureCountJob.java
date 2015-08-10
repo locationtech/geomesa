@@ -18,6 +18,7 @@ import org.opengis.feature.simple.SimpleFeature;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Sample job showing how to read features using GeoMesaInputFormat.
@@ -30,7 +31,7 @@ import java.util.HashMap;
  */
 public class FeatureCountJob {
 
-    public static class Map extends MapReduceBase implements Mapper<Text, SimpleFeature, Text, Text> {
+    public static class MyMapper extends MapReduceBase implements Mapper<Text, SimpleFeature, Text, Text> {
 
         static enum CountersEnum { FEATURES }
 
@@ -52,7 +53,7 @@ public class FeatureCountJob {
         conf.setOutputKeyClass(Text.class);
         conf.setOutputValueClass(Text.class);
 
-        conf.setMapperClass(Map.class);
+        conf.setMapperClass(MyMapper.class);
         conf.setNumReduceTasks(0);
 
         conf.setInputFormat(GeoMesaInputFormat.class);
@@ -60,7 +61,7 @@ public class FeatureCountJob {
 
         FileOutputFormat.setOutputPath(conf, new Path("/tmp/myjob"));
 
-        java.util.Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("instanceId", "myinstance");
         params.put("zookeepers", "zoo1,zoo2,zoo3");
         params.put("user", "myuser");
