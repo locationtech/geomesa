@@ -32,26 +32,32 @@ package object data {
   val FEATURE_ENCODING = "geomesa.feature.encoding"
 
   // Metadata keys
-  val ATTRIBUTES_KEY         = "attributes"
-  val SPATIAL_BOUNDS_KEY     = "bounds"
-  val TEMPORAL_BOUNDS_KEY    = "time.bounds"
-  val SCHEMA_KEY             = "schema"
-  val DTGFIELD_KEY           = "dtgfield"
-  val FEATURE_ENCODING_KEY   = "featureEncoding"
-  val VISIBILITIES_KEY       = "visibilities"
-  val VISIBILITIES_CHECK_KEY = "visibilitiesCheck"
-  val ST_IDX_TABLE_KEY       = "tables.idx.st.name"
-  val ATTR_IDX_TABLE_KEY     = "tables.idx.attr.name"
-  val RECORD_TABLE_KEY       = "tables.record.name"
-  val Z3_TABLE_KEY           = "tables.z3.name"
-  val QUERIES_TABLE_KEY      = "tables.queries.name"
-  val SHARED_TABLES_KEY      = "tables.sharing"
-  val SCHEMA_ID_KEY          = "id"
-  val VERSION_KEY            = "version"
+  val ATTRIBUTES_KEY          = "attributes"
+  val SPATIAL_BOUNDS_KEY      = "bounds"
+  val TEMPORAL_BOUNDS_KEY     = "time.bounds"
+  val SCHEMA_KEY              = "schema"
+  val DTGFIELD_KEY            = "dtgfield"
+  val FEATURE_ENCODING_KEY    = "featureEncoding"
+  val VISIBILITIES_KEY        = "visibilities"
+  val VISIBILITIES_CHECK_KEY  = "visibilitiesCheck"
+  val SCHEMA_ID_KEY           = "id"
+  val VERSION_KEY             = "version"
+
+  // Table Specific Metadata
+  val ST_IDX_TABLE_KEY   = "tables.idx.st.name"
+  val ATTR_IDX_TABLE_KEY = "tables.idx.attr.name"
+  val RECORD_TABLE_KEY   = "tables.record.name"
+  val Z3_TABLE_KEY       = "tables.z3.name"
+  val QUERIES_TABLE_KEY  = "tables.queries.name"
+  val SHARED_TABLES_KEY  = "tables.sharing"
+
+  // Global Datastore Metadata
+  val ENABLED_TABLES_KEY = "tables.enabled"
 
   // Storage implementation constants
   val DATA_CQ              = new Text("SimpleFeatureAttribute")
   val SFT_CF               = new Text("SFT")
+  val GLOBAL_METADATA_TAG  = "~DATASTORE"
   val METADATA_TAG         = "~METADATA"
   val METADATA_TAG_END     = s"$METADATA_TAG~~"
   val EMPTY_STRING         = ""

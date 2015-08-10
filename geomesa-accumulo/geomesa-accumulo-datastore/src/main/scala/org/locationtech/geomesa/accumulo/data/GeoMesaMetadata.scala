@@ -42,6 +42,12 @@ trait GeoMesaMetadata {
 
   def getFeatureTypes: Array[String]
   def getTableSize(tableName: String): Long
+
+  def insertGlobal(key: String, value: String)
+
+  def readGlobal(key: String): Option[String]
+  def readRequiredGlobal(key: String): String
+  def readNoCacheGlobal(key: String): Option[String]
 }
 
 class AccumuloBackedMetadata(connector: Connector,
@@ -49,8 +55,9 @@ class AccumuloBackedMetadata(connector: Connector,
                              writeVisibilities: String,
                              authorizationsProvider: AuthorizationsProvider) extends GeoMesaMetadata {
 
-  // warning: only access this map in a synchronized fashion
+  // warning: only access these maps in a synchronized fashion
   private val metaDataCache = new mutable.HashMap[(String, String), Option[String]]()
+  private val globalMetaCache = new mutable.HashMap[String, Option[String]]()
 
   private val metadataBWConfig =
     GeoMesaBatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(1)
@@ -230,6 +237,35 @@ class AccumuloBackedMetadata(connector: Connector,
 
   override def getTableSize(tableName: String): Long = {
     retrieveTableSize(tableName)
+  }
+
+  private def getGlobalMutation = new Mutation(new Text(GLOBAL_METADATA_TAG))
+
+  override def insertGlobal(key: String, value: String): Unit = {
+    val mut = getGlobalMutation
+    mut.put(new Text(key), EMPTY_COLQ, new Value(value.getBytes))
+    // also pre-fetch into the cache
+    if (!value.isEmpty) {
+      globalMetaCache.synchronized { globalMetaCache.put(key, Some(value)) }
+    }
+    writeMutations(mut)
+  }
+
+  override def readGlobal(key: String): Option[String] =
+    globalMetaCache.synchronized {
+      globalMetaCache.getOrElseUpdate(key, readNoCacheGlobal(key))
+    }
+
+  override def readRequiredGlobal(key: String): String =
+    readGlobal(key)
+      .getOrElse(throw new RuntimeException(s"Unable to find required metadata property for key $key"))
+
+  override def readNoCacheGlobal(key: String): Option[String] = {
+    val scanner = createCatalogScanner
+    scanner.setRange(new Range(new Text(GLOBAL_METADATA_TAG)))
+    scanner.fetchColumn(new Text(key), EMPTY_COLQ)
+
+    SelfClosingIterator(scanner).map(_.getValue.toString).toList.headOption
   }
 }
 

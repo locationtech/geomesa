@@ -21,6 +21,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess
 import org.geotools.process.vector.TransformProcess.Definition
 import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.accumulo.data.tables.AvailableTables
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanners.FeatureFunction
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
@@ -65,14 +66,14 @@ case class QueryPlanner(sft: SimpleFeatureType,
   def planQuery(query: Query,
                 strategy: Option[StrategyType] = None,
                 output: ExplainerOutputType = log): Seq[QueryPlan] = {
-    getQueryPlans(query, strategy, output)
+    getQueryPlans(query, acc, strategy, output)
   }
 
   /**
    * Execute a query against geomesa
    */
   def runQuery(query: Query, strategy: Option[StrategyType] = None): SFIter = {
-    val plans = getQueryPlans(query, strategy, log)
+    val plans = getQueryPlans(query, acc, strategy, log)
     // don't deduplicate density queries, as they don't have dupes but re-use feature ids in the results
     val dedupe = !query.getHints.isDensityQuery && (plans.length > 1 || plans.exists(_.hasDuplicates))
     executePlans(query, plans, dedupe)
@@ -113,6 +114,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
    * Returns the strategy plans and the number of distinct OR clauses, needed for determining deduplication
    */
   private def getQueryPlans(query: Query,
+                            availableTables: AvailableTables,
                             requested: Option[StrategyType],
                             output: ExplainerOutputType): Seq[QueryPlan] = {
 
@@ -137,7 +139,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
 
     implicit val timings = new TimingsImpl
     val queryPlans = profile({
-      val strategies = QueryStrategyDecider.chooseStrategies(sft, query, hints, requested, output)
+      val strategies = QueryStrategyDecider.chooseStrategies(sft, availableTables.getAvailableTables, query, hints, requested, output)
       strategies.map { strategy =>
         output(s"Strategy: ${strategy.getClass.getSimpleName}")
         output(s"Filter: ${strategy.filter}")

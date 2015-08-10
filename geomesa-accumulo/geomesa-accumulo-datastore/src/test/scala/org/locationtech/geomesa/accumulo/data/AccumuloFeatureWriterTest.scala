@@ -21,7 +21,7 @@ import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.data.tables.{GeoMesaTable, RecordTable}
+import org.locationtech.geomesa.accumulo.data.tables.{AvailableTables, GeoMesaTable, RecordTable}
 import org.locationtech.geomesa.accumulo.index.{AttributeIdxStrategy, QueryStrategyDecider}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
@@ -364,7 +364,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
 
       val hints = ds.strategyHints(sft)
       val q = new Query(sft.getTypeName, filter)
-      QueryStrategyDecider.chooseStrategies(sft, q, hints, None).head must beAnInstanceOf[AttributeIdxStrategy]
+      QueryStrategyDecider.chooseStrategies(sft, AvailableTables.AllTables, q, hints, None).head must beAnInstanceOf[AttributeIdxStrategy]
 
       import org.locationtech.geomesa.utils.geotools.Conversions._
 
@@ -447,7 +447,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
   }
 
   def clearTablesHard(): Unit = {
-    GeoMesaTable.getTables(sft).map(ds.getTableName(sft.getTypeName, _)).foreach { name =>
+    GeoMesaTable.getTables(sft, ds.getAvailableTables).map(ds.getTableName(sft.getTypeName, _)).foreach { name =>
       val deleter = connector.createBatchDeleter(name, new Authorizations(), 5, new BatchWriterConfig())
       deleter.setRanges(Seq(new aRange()))
       deleter.delete()

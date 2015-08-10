@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.accumulo.data
 
 import org.apache.accumulo.core.client.{BatchScanner, Scanner}
-import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
+import org.locationtech.geomesa.accumulo.data.tables.{AvailableTables, GeoMesaTable}
 
-trait AccumuloConnectorCreator {
+trait AccumuloConnectorCreator extends AvailableTables {
 
   /**
    * Gets the accumulo table name for the given table

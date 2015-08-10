@@ -16,6 +16,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.data.tables.AvailableTables
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -118,7 +119,7 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
     "handle corner case with attr idx, bbox, and no temporal filter" in {
       val filter = ff.and(ECQL.toFilter("name = 'b'"), ECQL.toFilter("BBOX(geom, 30, 30, 50, 50)"))
       val query = new Query(sftName, filter, Array("geom"))
-      QueryStrategyDecider.chooseStrategies(sft, query, hints, None).head must
+      QueryStrategyDecider.chooseStrategies(sft, AvailableTables.AllTables, query, hints, None).head must
           beAnInstanceOf[STIdxStrategy]
 
       val features = fs.getFeatures(query)

@@ -19,6 +19,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
+import org.locationtech.geomesa.accumulo.data.tables.{RecordTable, AvailableTables}
 import org.locationtech.geomesa.accumulo.stats.StatWriter
 import org.locationtech.geomesa.security
 
@@ -76,6 +77,19 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     // caching defaults to false if not specified
     val caching = Option(cachingParam.lookUp(params)).exists(_.toString.toBoolean)
 
+    // Configurable tables
+    val tableList =
+      Option(enabledTablesParam  .lookUp(params))
+        .map(_.toString.split(",").toList.map(_.trim))
+
+    tableList.filterNot(_.contains(RecordTable.suffix)).foreach { tl =>
+      throw new IllegalArgumentException(s"Table list $tl must contain entry ${RecordTable.suffix}")
+    }
+
+    tableList.filterNot(_.forall(AvailableTables.DefaultTablesStr.contains)).foreach { tl =>
+      throw new IllegalArgumentException(s"Invalid table types found in $tl")
+    }
+
     if (collectStats) {
       new AccumuloDataStore(connector,
         token,
@@ -86,7 +100,8 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         queryThreadsParam.lookupOpt(params),
         recordThreadsParam.lookupOpt(params),
         writeThreadsParam.lookupOpt(params),
-        caching) with StatWriter
+        caching,
+        tableList) with StatWriter
     } else {
       new AccumuloDataStore(connector,
         token,
@@ -97,7 +112,8 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
         queryThreadsParam.lookupOpt(params),
         recordThreadsParam.lookupOpt(params),
         writeThreadsParam.lookupOpt(params),
-        caching)
+        caching,
+        tableList)
     }
   }
 
@@ -138,22 +154,23 @@ object AccumuloDataStoreFactory {
   }
 
   object params {
-    val connParam           = new Param("connector", classOf[Connector], "Accumulo connector", false)
-    val instanceIdParam     = new Param("instanceId", classOf[String], "Accumulo Instance ID", true)
-    val zookeepersParam     = new Param("zookeepers", classOf[String], "Zookeepers", true)
-    val userParam           = new Param("user", classOf[String], "Accumulo user", true)
-    val passwordParam       = new Param("password", classOf[String], "Accumulo password", true)
-    val authsParam          = org.locationtech.geomesa.security.authsParam
-    val visibilityParam     = new Param("visibilities", classOf[String], "Accumulo visibilities to apply to all written data", false)
-    val tableNameParam      = new Param("tableName", classOf[String], "Accumulo catalog table name", true)
-    val queryTimeoutParam   = new Param("queryTimeout", classOf[Integer], "The max time a query will be allowed to run before being killed, in seconds", false)
-    val queryThreadsParam   = new Param("queryThreads", classOf[Integer], "The number of threads to use per query", false)
-    val recordThreadsParam  = new Param("recordThreads", classOf[Integer], "The number of threads to use for record retrieval", false)
-    val writeMemoryParam    = new Param("writeMemory", classOf[Integer], "The memory allocation to use for writing records", false)
-    val writeThreadsParam   = new Param("writeThreads", classOf[Integer], "The number of threads to use for writing records", false)
-    val statsParam          = new Param("collectStats", classOf[java.lang.Boolean], "Toggle collection of statistics", false)
-    val cachingParam        = new Param("caching", classOf[java.lang.Boolean], "Toggle caching of results", false)
-    val mockParam           = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
+    val connParam          = new Param("connector", classOf[Connector], "Accumulo connector", false)
+    val instanceIdParam    = new Param("instanceId", classOf[String], "Accumulo Instance ID", true)
+    val zookeepersParam    = new Param("zookeepers", classOf[String], "Zookeepers", true)
+    val userParam          = new Param("user", classOf[String], "Accumulo user", true)
+    val passwordParam      = new Param("password", classOf[String], "Accumulo password", true)
+    val authsParam         = org.locationtech.geomesa.security.authsParam
+    val visibilityParam    = new Param("visibilities", classOf[String], "Accumulo visibilities to apply to all written data", false)
+    val tableNameParam     = new Param("tableName", classOf[String], "Accumulo catalog table name", true)
+    val queryTimeoutParam  = new Param("queryTimeout", classOf[Integer], "The max time a query will be allowed to run before being killed, in seconds", false)
+    val queryThreadsParam  = new Param("queryThreads", classOf[Integer], "The number of threads to use per query", false)
+    val recordThreadsParam = new Param("recordThreads", classOf[Integer], "The number of threads to use for record retrieval", false)
+    val writeMemoryParam   = new Param("writeMemory", classOf[Integer], "The memory allocation to use for writing records", false)
+    val writeThreadsParam  = new Param("writeThreads", classOf[Integer], "The number of threads to use for writing records", false)
+    val statsParam         = new Param("collectStats", classOf[java.lang.Boolean], "Toggle collection of statistics", false)
+    val cachingParam       = new Param("caching", classOf[java.lang.Boolean], "Toggle caching of results", false)
+    val mockParam          = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
+    val enabledTablesParam = new Param("enabledTables", classOf[String], "List of table types to use (suffixes, comma separated)", false)
   }
 
   def buildAccumuloConnector(params: JMap[String,Serializable], useMock: Boolean): (Connector, AuthenticationToken) = {
