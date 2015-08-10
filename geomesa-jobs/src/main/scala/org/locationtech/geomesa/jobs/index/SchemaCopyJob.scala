@@ -34,8 +34,9 @@ class SchemaCopyJob(args: Args) extends GeoMesaBaseJob(args) {
   val featureOut  = args.getOrElse(FEATURE_OUT, featureIn)
   val dsInParams  = toDataStoreInParams(args)
   val dsOutParams = toDataStoreOutParams(args)
+  val filter      = args.optional(CQL_IN)
 
-  val input = GeoMesaInputOptions(dsInParams, featureIn)
+  val input = GeoMesaInputOptions(dsInParams, featureIn, filter)
   val output = GeoMesaOutputOptions(dsOutParams)
 
   @transient lazy val sftIn = {
