@@ -354,12 +354,14 @@ class AccumuloDataStore(val connector: Connector,
 
     GeoMesaTable.getTables(sft).foreach { table =>
       val name = getTableName(sft.getTypeName, table)
-      if (table == Z3Table && tableOps.exists(name)) {
-        tableOps.delete(name)
-      } else {
-        val deleter = connector.createBatchDeleter(name, auths, numThreads, defaultBWConfig)
-        table.deleteFeaturesForType(sft, deleter)
-        deleter.close()
+      if (tableOps.exists(name)) {
+        if (table == Z3Table) {
+          tableOps.delete(name)
+        } else {
+          val deleter = connector.createBatchDeleter(name, auths, numThreads, defaultBWConfig)
+          table.deleteFeaturesForType(sft, deleter)
+          deleter.close()
+        }
       }
     }
   }
