@@ -6,24 +6,28 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.tools.repl
+package com.twitter.scalding
 
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.scalding._
 
 import scala.tools.nsc.interpreter.ILoop
 
-class GeoMesaILoop extends ILoop {
+class ScaldingILoop extends ILoop {
+
+  // register our serializations - we have to put this in the custom config, otherwise scalding drops it
+  ReplImplicits.customConfig += Config.IoSerializationsKey -> GeoMesaConfigurator.serializationString
 
   override def prompt = Console.GREEN + "\ngeomesa> " + Console.RESET
 
-  override def printWelcome(): Unit = echo(GeoMesaILoop.welcome)
+  override def printWelcome(): Unit = echo(ScaldingILoop.welcome)
 
   override def createInterpreter() {
     super.createInterpreter()
     addThunk {
       intp.beQuietDuring {
-        intp.interpret(GeoMesaILoop.imports)
+        intp.interpret(ScaldingILoop.imports)
       }
       intp.beSilentDuring {
         intp.interpret("classOf[scala.tools.jline.console.completer.Completer]") match {
@@ -37,7 +41,7 @@ class GeoMesaILoop extends ILoop {
   }
 }
 
-object GeoMesaILoop {
+object ScaldingILoop {
   val welcome =
     """
      |o                              7777  777777777

@@ -100,7 +100,7 @@ object GeoMesaConfigurator {
   def setSerialization(conf: Configuration): Unit = {
     val existing = conf.get(serializersKey)
     val serializers = if (existing == null) {
-      Seq(writableSerialization, simpleFeatureSerialization).mkString(",")
+      serializationString
     } else if (!existing.contains(simpleFeatureSerialization)) {
       Seq(existing, simpleFeatureSerialization).mkString(",")
     } else {
@@ -108,4 +108,7 @@ object GeoMesaConfigurator {
     }
     conf.set(serializersKey, serializers)
   }
+
+  val serializationString: String = s"$writableSerialization,$simpleFeatureSerialization"
+
 }
