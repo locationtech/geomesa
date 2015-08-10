@@ -1,15 +1,14 @@
 package org.locationtech.geomesa.jobs.mapred
 
 import org.apache.accumulo.core.client.mapred.AccumuloInputFormat
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, PasswordToken}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.mapred.JobConf
-import org.apache.hadoop.mapreduce.Job
 import org.apache.log4j.Level
-import org.locationtech.geomesa.accumulo.AccumuloVersion
-import AccumuloVersion._
+import org.locationtech.geomesa.accumulo.AccumuloVersion._
 
 object InputFormatBaseAdapter {
+
   def setConnectorInfo(job: JobConf, user: String, token: PasswordToken) = accumuloVersion match {
     case V15 => setConnectorInfo15(job, user, token)
     case V16 => setConnectorInfo16(job, user, token)
@@ -17,12 +16,14 @@ object InputFormatBaseAdapter {
   }
 
   def setConnectorInfo15(job: JobConf, user: String, token: PasswordToken) = {
-    val method = classOf[AccumuloInputFormat].getMethod("setConnectorInfo", classOf[Job], classOf[String], classOf[PasswordToken])
+    val method = Class.forName("org.apache.accumulo.core.client.mapred.InputFormatBase")
+        .getMethod("setConnectorInfo", classOf[JobConf], classOf[String], classOf[AuthenticationToken])
     method.invoke(null, job, user, token)
   }
 
   def setConnectorInfo16(job: JobConf, user: String, token: PasswordToken) = {
-    val method = classOf[AccumuloInputFormat].getMethod("setConnectorInfo", classOf[Job], classOf[String], classOf[PasswordToken])
+    val method = classOf[AccumuloInputFormat]
+        .getMethod("setConnectorInfo", classOf[JobConf], classOf[String], classOf[AuthenticationToken])
     method.invoke(null, job, user, token)
   }
 
@@ -33,12 +34,14 @@ object InputFormatBaseAdapter {
   }
 
   def setZooKeeperInstance15(job: JobConf, instance: String, zookeepers: String) = {
-    val method = classOf[AccumuloInputFormat].getMethod("setZooKeeperInstance", classOf[Job], classOf[String], classOf[String])
+    val method = Class.forName("org.apache.accumulo.core.client.mapred.InputFormatBase")
+        .getMethod("setZooKeeperInstance", classOf[JobConf], classOf[String], classOf[String])
     method.invoke(null, job, instance, zookeepers)
   }
 
   def setZooKeeperInstance16(job: JobConf, instance: String, zookeepers: String) = {
-    val method = classOf[AccumuloInputFormat].getMethod("setZooKeeperInstance", classOf[Job], classOf[String], classOf[String])
+    val method = classOf[AccumuloInputFormat]
+        .getMethod("setZooKeeperInstance", classOf[JobConf], classOf[String], classOf[String])
     method.invoke(null, job, instance, zookeepers)
   }
 
@@ -49,12 +52,14 @@ object InputFormatBaseAdapter {
   }
 
   def setScanAuthorizations15(job: JobConf, authorizations: Authorizations): Unit = {
-    val method = classOf[AccumuloInputFormat].getMethod("setScanAuthorizations", classOf[Job], classOf[Authorizations], classOf[String])
+    val method = Class.forName("org.apache.accumulo.core.client.mapred.InputFormatBase")
+        .getMethod("setScanAuthorizations", classOf[JobConf], classOf[Authorizations], classOf[String])
     method.invoke(null, job, authorizations)
   }
 
   def setScanAuthorizations16(job: JobConf, authorizations: Authorizations): Unit = {
-    val method = classOf[AccumuloInputFormat].getMethod("setScanAuthorizations", classOf[Job], classOf[Authorizations], classOf[String])
+    val method = classOf[AccumuloInputFormat]
+        .getMethod("setScanAuthorizations", classOf[JobConf], classOf[Authorizations], classOf[String])
     method.invoke(null, job, authorizations)
   }
 
@@ -65,12 +70,13 @@ object InputFormatBaseAdapter {
   }
 
   def setLogLevel15(job: JobConf, level: Level) = {
-    val method = classOf[AccumuloInputFormat].getMethod("setLogLevel", classOf[Job], classOf[String], classOf[PasswordToken])
+    val method = Class.forName("org.apache.accumulo.core.client.mapred.InputFormatBase")
+        .getMethod("setLogLevel", classOf[JobConf], classOf[Level])
     method.invoke(null, job, level)
   }
 
   def setLogLevel16(job: JobConf, level: Level) = {
-    val method = classOf[AccumuloInputFormat].getMethod("setLogLevel", classOf[Job], classOf[String], classOf[PasswordToken])
+    val method = classOf[AccumuloInputFormat].getMethod("setLogLevel", classOf[JobConf], classOf[Level])
     method.invoke(null, job, level)
   }
 
