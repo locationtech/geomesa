@@ -215,10 +215,10 @@ elif [[ $1 = repl ]]; then
         CLASSPATH="$(echo $GEOMESA_CP | sed s/[^:]*slf4j-log4j[^:]*:*//g):$ACCUMULO_CP"
         export HADOOP_CLASSPATH="$CLASSPATH"
         export LIBJARS="${CLASSPATH//:/,}"
-        hadoop jar $GEOMESA_HOME/lib/geomesa-tools-*.jar org.locationtech.geomesa.tools.repl.GeoMesaShell -libjars "$LIBJARS" -Dmapred.reduce.tasks=20 -Dmapred.min.split.size=2000000000 --hdfs --repl
+        hadoop jar $GEOMESA_HOME/lib/geomesa-tools-*.jar com.twitter.scalding.ScaldingShell -libjars "$LIBJARS" -Dmapred.reduce.tasks=20 -Dmapred.min.split.size=2000000000 --hdfs --repl
     else
         CLASSPATH="$GEOMESA_CP:$ACCUMULO_CP:$HADOOP_CP"
-        java ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.repl.GeoMesaShell --local --repl
+        java ${GEOMESA_OPTS} -cp ${CLASSPATH} com.twitter.scalding.ScaldingShell --local --repl
     fi
     reset # reset the console - the repl can mess up the colors
 else
