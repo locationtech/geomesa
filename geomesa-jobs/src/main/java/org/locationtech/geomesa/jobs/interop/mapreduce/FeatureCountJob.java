@@ -60,7 +60,7 @@ public class FeatureCountJob {
 
         FileOutputFormat.setOutputPath(job, new Path("/tmp/myjob"));
 
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("instanceId", "myinstance");
         params.put("zookeepers", "zoo1,zoo2,zoo3");
         params.put("user", "myuser");
