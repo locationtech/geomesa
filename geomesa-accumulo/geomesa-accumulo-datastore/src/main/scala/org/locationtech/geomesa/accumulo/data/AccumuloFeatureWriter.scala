@@ -146,6 +146,8 @@ abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
   override def remove(): Unit = {}
 
   override def hasNext: Boolean = false
+
+  def flush(): Unit = multiBWWriter.flush()
 }
 
 class AppendAccumuloFeatureWriter(sft: SimpleFeatureType,
