@@ -21,7 +21,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess
 import org.geotools.process.vector.TransformProcess.Definition
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.data.tables.AvailableTables
+import org.locationtech.geomesa.accumulo.data.tables.EnabledTables
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanners.FeatureFunction
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
@@ -114,7 +114,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
    * Returns the strategy plans and the number of distinct OR clauses, needed for determining deduplication
    */
   private def getQueryPlans(query: Query,
-                            availableTables: AvailableTables,
+                            enabledTables: EnabledTables,
                             requested: Option[StrategyType],
                             output: ExplainerOutputType): Seq[QueryPlan] = {
 
@@ -139,7 +139,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
 
     implicit val timings = new TimingsImpl
     val queryPlans = profile({
-      val strategies = QueryStrategyDecider.chooseStrategies(sft, availableTables.getAvailableTables, query, hints, requested, output)
+      val strategies = QueryStrategyDecider.chooseStrategies(sft, enabledTables.getEnabledTables, query, hints, requested, output)
       strategies.map { strategy =>
         output(s"Strategy: ${strategy.getClass.getSimpleName}")
         output(s"Filter: ${strategy.filter}")

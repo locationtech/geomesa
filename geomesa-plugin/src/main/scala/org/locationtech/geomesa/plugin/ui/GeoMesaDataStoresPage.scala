@@ -181,7 +181,7 @@ object GeoMesaDataStoresPage {
   def getFeatureMetadata(dataStore: AccumuloDataStore, featureName: String): List[TableMetadata] = {
     val connector = dataStore.connector
     val sft = dataStore.getSchema(featureName)
-    val tables = GeoMesaTable.getTables(sft, dataStore.getAvailableTables).map { t =>
+    val tables = GeoMesaTable.getTables(sft, dataStore.getEnabledTables).map { t =>
       val name = dataStore.getTableName(featureName, t)
       val title = t match {
         case RecordTable => "Record Index"

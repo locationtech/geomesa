@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.index
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.tables.{GeoMesaTable, AvailableTables}
+import org.locationtech.geomesa.accumulo.data.tables.EnabledTables
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.util.SftBuilder
 import org.locationtech.geomesa.accumulo.util.SftBuilder.Opts
@@ -36,7 +36,7 @@ class QueryFilterSplitterTest extends Specification {
     .build("QueryFilterSplitterTest")
 
   val ff = CommonFactoryFinder.getFilterFactory2
-  val splitter = new QueryFilterSplitter(sft, AvailableTables.AllTables)
+  val splitter = new QueryFilterSplitter(sft, EnabledTables.AllTables)
 
   val geom                = "BBOX(geom,40,40,50,50)"
   val geom2               = "BBOX(geom,60,60,70,70)"
@@ -406,7 +406,7 @@ class QueryFilterSplitterTest extends Specification {
     }
     "support indexed date attributes" >> {
       val sft = SimpleFeatureTypes.createType("dtgIndex", "dtg:Date:index=full,*geom:Point:srid=4326")
-      val splitter = new QueryFilterSplitter(sft, AvailableTables.AllTables)
+      val splitter = new QueryFilterSplitter(sft, EnabledTables.AllTables)
       val filter = f("dtg TEQUALS 2014-01-01T12:30:00.000Z")
       val options = splitter.getQueryOptions(filter)
       options must haveLength(2)

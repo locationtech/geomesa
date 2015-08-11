@@ -8,15 +8,15 @@
 
 package org.locationtech.geomesa.accumulo.data.tables
 
-trait AvailableTables {
+trait EnabledTables {
 
   /**
    * Returns a list of available table storage types
    */
-  def getAvailableTables: List[GeoMesaTable]
+  def getEnabledTables: List[GeoMesaTable]
 }
 
-object AvailableTables {
+object EnabledTables {
   val AllTables: List[GeoMesaTable] = List(AttributeTable, RecordTable, Z3Table, SpatioTemporalTable)
   val DefaultTables: List[GeoMesaTable] = AllTables
   val DefaultTablesStr: List[String] = AllTables.map(_.suffix)

@@ -19,7 +19,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
-import org.locationtech.geomesa.accumulo.data.tables.{RecordTable, AvailableTables}
+import org.locationtech.geomesa.accumulo.data.tables.{EnabledTables, RecordTable}
 import org.locationtech.geomesa.accumulo.stats.StatWriter
 import org.locationtech.geomesa.security
 
@@ -86,7 +86,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       throw new IllegalArgumentException(s"Table list $tl must contain entry ${RecordTable.suffix}")
     }
 
-    tableList.filterNot(_.forall(AvailableTables.DefaultTablesStr.contains)).foreach { tl =>
+    tableList.filterNot(_.forall(EnabledTables.DefaultTablesStr.contains)).foreach { tl =>
       throw new IllegalArgumentException(s"Invalid table types found in $tl")
     }
 

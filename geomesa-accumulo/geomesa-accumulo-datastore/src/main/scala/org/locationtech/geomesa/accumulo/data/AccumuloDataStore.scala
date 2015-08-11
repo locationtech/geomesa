@@ -128,7 +128,7 @@ class AccumuloDataStore(val connector: Connector,
 
   // Persist global metadata after catalog is created
   if (metadata.readGlobal(ENABLED_TABLES_KEY).isEmpty) {
-    metadata.insertGlobal(ENABLED_TABLES_KEY, enabledTables.getOrElse(AvailableTables.DefaultTablesStr).mkString(","))
+    metadata.insertGlobal(ENABLED_TABLES_KEY, enabledTables.getOrElse(EnabledTables.DefaultTablesStr).mkString(","))
   }
 
   /**
@@ -251,7 +251,7 @@ class AccumuloDataStore(val connector: Connector,
   }
 
   def createTablesForType(sft: SimpleFeatureType): Unit = {
-    GeoMesaTable.getTables(sft, getAvailableTables).foreach { table =>
+    GeoMesaTable.getTables(sft, getEnabledTables).foreach { table =>
       val name = table.formatTableName(catalogTable, sft)
       ensureTableExists(name)
       table.configureTable(sft, name, tableOps)
@@ -358,7 +358,7 @@ class AccumuloDataStore(val connector: Connector,
     val numThreads = queryThreadsConfig.getOrElse(Math.min(MAX_QUERY_THREADS,
       Math.max(MIN_QUERY_THREADS, getSpatioTemporalMaxShard(sft))))
 
-    GeoMesaTable.getTables(sft, getAvailableTables).foreach { table =>
+    GeoMesaTable.getTables(sft, getEnabledTables).foreach { table =>
       val name = getTableName(sft.getTypeName, table)
       if (tableOps.exists(name)) {
         if (table == Z3Table) {
@@ -838,9 +838,9 @@ class AccumuloDataStore(val connector: Connector,
     }
   }
 
-  override def getAvailableTables: List[GeoMesaTable] =
+  override def getEnabledTables: List[GeoMesaTable] =
     metadata.readRequiredGlobal(ENABLED_TABLES_KEY).split(",").toSet[String].flatMap { s =>
-      AvailableTables.AllTables.find(_.suffix == s)
+      EnabledTables.AllTables.find(_.suffix == s)
     }.toList
 }
 

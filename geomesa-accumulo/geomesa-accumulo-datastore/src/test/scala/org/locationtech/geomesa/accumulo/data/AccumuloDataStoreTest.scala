@@ -750,7 +750,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
         // note the table needs to be different to prevent testing errors
         "tableName" -> catalog)).asInstanceOf[AccumuloDataStore]
 
-      ds2.getAvailableTables.map(_.suffix) mustEqual List("z3", "records")
+      ds2.getEnabledTables.map(_.suffix) mustEqual List("z3", "records")
       ds1 mustNotEqual ds2
     }
   }

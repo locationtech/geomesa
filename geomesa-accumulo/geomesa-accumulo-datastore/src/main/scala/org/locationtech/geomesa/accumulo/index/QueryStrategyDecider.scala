@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.index
 
 import org.geotools.data.Query
 import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
-import org.locationtech.geomesa.accumulo.data.tables.{GeoMesaTable, AvailableTables}
+import org.locationtech.geomesa.accumulo.data.tables.{GeoMesaTable, EnabledTables$}
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
@@ -20,7 +20,7 @@ import org.opengis.filter.Filter
 
 trait QueryStrategyDecider {
   def chooseStrategies(sft: SimpleFeatureType,
-                       availableTables: List[GeoMesaTable],
+                       enabledTables: List[GeoMesaTable],
                        query: Query,
                        hints: StrategyHints,
                        requested: Option[StrategyType],
@@ -37,12 +37,12 @@ object QueryStrategyDecider {
     if (version < 6) new QueryStrategyDeciderV5 else new QueryStrategyDeciderV6
 
   def chooseStrategies(sft: SimpleFeatureType,
-                       availableTables: List[GeoMesaTable],
+                       enabledTables: List[GeoMesaTable],
                        query: Query,
                        hints: StrategyHints,
                        requested: Option[StrategyType],
                        output: ExplainerOutputType = ExplainNull): Seq[Strategy] = {
-    strategies(sft.getSchemaVersion).chooseStrategies(sft, availableTables, query, hints, requested, output)
+    strategies(sft.getSchemaVersion).chooseStrategies(sft, enabledTables, query, hints, requested, output)
   }
 }
 
@@ -70,14 +70,14 @@ class QueryStrategyDeciderV6 extends QueryStrategyDecider {
    *            --> The ST Index is scanned (likely a full table scan) and the ECQL filters are applied
    */
   override def chooseStrategies(sft: SimpleFeatureType,
-                                availableTables: List[GeoMesaTable],
+                                enabledTables: List[GeoMesaTable],
                                 query: Query,
                                 hints: StrategyHints,
                                 requested: Option[StrategyType],
                                 output: ExplainerOutputType): Seq[Strategy] = {
 
     // get the various options that we could potentially use
-    val options = new QueryFilterSplitter(sft, availableTables).getQueryOptions(query.getFilter)
+    val options = new QueryFilterSplitter(sft, enabledTables).getQueryOptions(query.getFilter)
 
     if (requested.isDefined) {
       // see if one of the normal plans matches the requested type - if not, force it

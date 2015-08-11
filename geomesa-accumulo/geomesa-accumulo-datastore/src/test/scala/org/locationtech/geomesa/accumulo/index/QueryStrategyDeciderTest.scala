@@ -13,7 +13,7 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
-import org.locationtech.geomesa.accumulo.data.tables.AvailableTables
+import org.locationtech.geomesa.accumulo.data.tables.EnabledTables
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.util.SftBuilder
@@ -58,7 +58,7 @@ class QueryStrategyDeciderTest extends Specification {
     val hints = new UserDataStrategyHints()
     val query = new Query(sft.getTypeName)
     query.setFilter(filter)
-    val strats = QueryStrategyDecider.chooseStrategies(sft, AvailableTables.AllTables, query, hints, None)
+    val strats = QueryStrategyDecider.chooseStrategies(sft, EnabledTables.AllTables, query, hints, None)
     strats must haveLength(1)
     strats.head
   }
@@ -173,7 +173,7 @@ class QueryStrategyDeciderTest extends Specification {
         val secondary = ff.and(Seq(heightFilter, weightFilter, ageFilter))
 
         val query = new Query(sft.getTypeName, filter)
-        val strats = QueryStrategyDecider.chooseStrategies(sft, AvailableTables.AllTables, query, hints, None)
+        val strats = QueryStrategyDecider.chooseStrategies(sft, EnabledTables.AllTables, query, hints, None)
 
         strats must haveLength(1)
         strats.head.filter.strategy mustEqual StrategyType.ATTRIBUTE
@@ -187,7 +187,7 @@ class QueryStrategyDeciderTest extends Specification {
         val secondary = ff.and(Seq(heightFilter, weightFilter, ageFilter))
 
         val query = new Query(sft.getTypeName, filter)
-        val strats = QueryStrategyDecider.chooseStrategies(sft, AvailableTables.AllTables, query, hints, None)
+        val strats = QueryStrategyDecider.chooseStrategies(sft, EnabledTables.AllTables, query, hints, None)
 
         strats must haveLength(1)
         strats.head.filter.strategy mustEqual StrategyType.ATTRIBUTE
@@ -201,7 +201,7 @@ class QueryStrategyDeciderTest extends Specification {
         val secondary = ff.and(Seq(heightFilter, weightFilter, ageFilter))
 
         val query = new Query(sft.getTypeName, filter)
-        val strats = QueryStrategyDecider.chooseStrategies(sft, AvailableTables.AllTables, query, hints, None)
+        val strats = QueryStrategyDecider.chooseStrategies(sft, EnabledTables.AllTables, query, hints, None)
 
         strats must haveLength(1)
         strats.head.filter.strategy mustEqual StrategyType.ATTRIBUTE
@@ -213,7 +213,7 @@ class QueryStrategyDeciderTest extends Specification {
         val filter = ECQL.toFilter("name LIKE 'baddy' AND age=21 AND count<5")
         val query = new Query(sft.getTypeName, filter)
 
-        val strats = QueryStrategyDecider.chooseStrategies(sft, AvailableTables.AllTables, query, hints, None)
+        val strats = QueryStrategyDecider.chooseStrategies(sft, EnabledTables.AllTables, query, hints, None)
 
         strats must haveLength(1)
         strats.head.filter.strategy mustEqual StrategyType.ATTRIBUTE

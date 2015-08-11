@@ -241,6 +241,10 @@ class AccumuloBackedMetadata(connector: Connector,
 
   private def getGlobalMutation = new Mutation(new Text(GLOBAL_METADATA_TAG))
 
+  /**
+   * Insert a DataStore global metadata key/value pair. This is
+   * not bound to a specific feature type
+   */
   override def insertGlobal(key: String, value: String): Unit = {
     val mut = getGlobalMutation
     mut.put(new Text(key), EMPTY_COLQ, new Value(value.getBytes))
@@ -251,15 +255,28 @@ class AccumuloBackedMetadata(connector: Connector,
     writeMutations(mut)
   }
 
+  /**
+   * Read a DataStore global metadata key/value pair. This is
+   * not bound to a specific feature type
+   */
   override def readGlobal(key: String): Option[String] =
     globalMetaCache.synchronized {
       globalMetaCache.getOrElseUpdate(key, readNoCacheGlobal(key))
     }
 
+  /**
+   * Read a required DataStore global metadata key/value pair. This is
+   * not bound to a specific feature type
+   */
   override def readRequiredGlobal(key: String): String =
     readGlobal(key)
       .getOrElse(throw new RuntimeException(s"Unable to find required metadata property for key $key"))
 
+
+  /**
+   * Read a DataStore global metadata key/value pair without cache.
+   * This is not bound to a specific feature type
+   */
   override def readNoCacheGlobal(key: String): Option[String] = {
     val scanner = createCatalogScanner
     scanner.setRange(new Range(new Text(GLOBAL_METADATA_TAG)))
