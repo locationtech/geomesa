@@ -72,7 +72,8 @@ class AccumuloDataStore(val connector: Connector,
                         val queryThreadsConfig: Option[Int] = None,
                         val recordThreadsConfig: Option[Int] = None,
                         val writeThreadsConfig: Option[Int] = None,
-                        val cachingConfig: Boolean = false)
+                        val cachingConfig: Boolean = false,
+                        val enabledTables: Option[List[String]] = None)
     extends AbstractDataStore(true) with AccumuloConnectorCreator with StrategyHintsProvider with Logging {
 
   // having at least as many shards as tservers provides optimal parallelism in queries
@@ -124,6 +125,11 @@ class AccumuloDataStore(val connector: Connector,
   private val tableOps = connector.tableOperations()
 
   ensureTableExists(catalogTable)
+
+  // Persist global metadata after catalog is created
+  if (metadata.readGlobal(ENABLED_TABLES_KEY).isEmpty) {
+    metadata.insertGlobal(ENABLED_TABLES_KEY, enabledTables.getOrElse(EnabledTables.DefaultTablesStr).mkString(","))
+  }
 
   /**
    * Computes and writes the metadata for this feature type
@@ -245,7 +251,7 @@ class AccumuloDataStore(val connector: Connector,
   }
 
   def createTablesForType(sft: SimpleFeatureType): Unit = {
-    GeoMesaTable.getTables(sft).foreach { table =>
+    GeoMesaTable.getTables(sft, getEnabledTables).foreach { table =>
       val name = table.formatTableName(catalogTable, sft)
       ensureTableExists(name)
       table.configureTable(sft, name, tableOps)
@@ -352,7 +358,7 @@ class AccumuloDataStore(val connector: Connector,
     val numThreads = queryThreadsConfig.getOrElse(Math.min(MAX_QUERY_THREADS,
       Math.max(MIN_QUERY_THREADS, getSpatioTemporalMaxShard(sft))))
 
-    GeoMesaTable.getTables(sft).foreach { table =>
+    GeoMesaTable.getTables(sft, getEnabledTables).foreach { table =>
       val name = getTableName(sft.getTypeName, table)
       if (tableOps.exists(name)) {
         if (table == Z3Table) {
@@ -831,6 +837,11 @@ class AccumuloDataStore(val connector: Connector,
       }
     }
   }
+
+  override def getEnabledTables: List[GeoMesaTable] =
+    metadata.readRequiredGlobal(ENABLED_TABLES_KEY).split(",").toSet[String].flatMap { s =>
+      EnabledTables.AllTables.find(_.suffix == s)
+    }.toList
 }
 
 object AccumuloDataStore {

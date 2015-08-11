@@ -62,11 +62,16 @@ trait GeoMesaTable {
 
 object GeoMesaTable {
 
-  def getTables(sft: SimpleFeatureType): Seq[GeoMesaTable] =
-    Seq(RecordTable, SpatioTemporalTable, AttributeTableV5, AttributeTable, Z3Table).filter(_.supports(sft))
+  def getTables(sft: SimpleFeatureType, enabledTables: List[GeoMesaTable]): Seq[GeoMesaTable] =
+    Seq(RecordTable, SpatioTemporalTable, AttributeTableV5, AttributeTable, Z3Table)
+      .filter(_.supports(sft))
+      .filter(enabledTables.contains)
+
+  def getTables(sft: SimpleFeatureType, enabledTables: EnabledTables): Seq[GeoMesaTable] =
+    getTables(sft, enabledTables.getEnabledTables)
 
   def getTableNames(sft: SimpleFeatureType, acc: AccumuloConnectorCreator): Seq[String] =
-    getTables(sft).map(acc.getTableName(sft.getTypeName, _))
+    getTables(sft, acc.getEnabledTables).map(acc.getTableName(sft.getTypeName, _))
 
   // only alphanumeric is safe
   private val SAFE_FEATURE_NAME_PATTERN = "^[a-zA-Z0-9]+$"

@@ -25,6 +25,8 @@ import scala.util.{Failure, Success, Try}
 @RunWith(classOf[JUnitRunner])
 class OffsetTest extends Specification with Mockito {
 
+  sequential
+
   import OffsetTest._
 
   "OffsetManager" should {

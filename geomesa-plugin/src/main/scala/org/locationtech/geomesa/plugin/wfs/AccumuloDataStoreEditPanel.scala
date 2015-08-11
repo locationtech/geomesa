@@ -38,6 +38,7 @@ class AccumuloDataStoreEditPanel (componentId: String, storeEditForm: Form[_])
   val queryThreads  = addTextPanel(paramsModel,     queryThreadsParam)
   val recordThreads = addTextPanel(paramsModel,     recordThreadsParam)
   val caching       = addTextPanel(paramsModel,     cachingParam)
+  val enabledTables = addTextPanel(paramsModel,     enabledTablesParam)
 
   val dependentFormComponents = Array[FormComponent[_]](instanceId,
                                                         zookeepers,
@@ -50,7 +51,8 @@ class AccumuloDataStoreEditPanel (componentId: String, storeEditForm: Form[_])
                                                         queryThreads,
                                                         recordThreads,
                                                         collectStats,
-                                                        caching)
+                                                        caching,
+                                                        enabledTables)
   dependentFormComponents.foreach(_.setOutputMarkupId(true))
 
   storeEditForm.add(new IFormValidator() {

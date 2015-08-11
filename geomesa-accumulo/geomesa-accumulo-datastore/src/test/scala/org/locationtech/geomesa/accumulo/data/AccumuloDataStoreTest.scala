@@ -685,5 +685,73 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       read must haveSize(3)
       read.map(_.getID).sorted mustEqual Seq("2", "3", "4")
     }
+
+    "create specific indexes" >> {
+      val catalog = "AccumuloDataStoreTableListCatalog"
+      val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
+      val ds = DataStoreFinder.getDataStore(Map(
+        "connector" -> connector,
+        // note the table needs to be different to prevent testing errors
+        "tableName" -> catalog,
+        "enabledTables" -> List(RecordTable, Z3Table).map(_.suffix).mkString(","))).asInstanceOf[AccumuloDataStore]
+      val sft = SimpleFeatureTypes.createType(catalog, "name:String:index=true,dtg:Date,*geom:Point:srid=4326")
+      ds.createSchema(sft)
+      val tables = GeoMesaTable.getTableNames(sft, ds) ++ Seq(catalog)
+      tables must haveSize(3)
+      connector.tableOperations().list().toSeq must containAllOf(tables)
+      ds.delete()
+      connector.tableOperations().list().toSeq must not(containAnyOf(tables))
+    }
+
+    "throw an exception on invalid table names" >> {
+      val catalog = "AccumuloDataStoreTableListCatalog2"
+      val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
+      DataStoreFinder.getDataStore(Map(
+        "connector" -> connector,
+        // note the table needs to be different to prevent testing errors
+        "tableName" -> catalog,
+        "enabledTables" -> List("records", "z3", "abc").mkString(","))).asInstanceOf[AccumuloDataStore] must throwAn[IllegalArgumentException]
+
+    }
+
+    "handle whitespace" >> {
+      val catalog = "AccumuloDataStoreTableListCatalog3"
+      val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
+      DataStoreFinder.getDataStore(Map(
+        "connector" -> connector,
+        // note the table needs to be different to prevent testing errors
+        "tableName" -> catalog,
+        "enabledTables" -> "z3, records, st_idx,   attr_idx")).asInstanceOf[AccumuloDataStore]
+      success
+    }
+
+    "throw an exception if no record table is providedd" >> {
+      val catalog = "AccumuloDataStoreTableListCatalog4"
+      val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
+      DataStoreFinder.getDataStore(Map(
+        "connector" -> connector,
+        // note the table needs to be different to prevent testing errors
+        "tableName" -> catalog,
+        "enabledTables" -> List("z3", "st_idx", "attr_idx").mkString(","))).asInstanceOf[AccumuloDataStore] must throwAn[IllegalArgumentException]
+
+    }
+
+    "must store metadata for enabled tables across instantiations" >> {
+      val catalog = "AccumuloDataStoreTableListCatalog5"
+      val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
+      val ds1 = DataStoreFinder.getDataStore(Map(
+        "connector" -> connector,
+        // note the table needs to be different to prevent testing errors
+        "tableName" -> catalog,
+        "enabledTables" -> List("z3", "records").mkString(","))).asInstanceOf[AccumuloDataStore]
+
+      val ds2 = DataStoreFinder.getDataStore(Map(
+        "connector" -> connector,
+        // note the table needs to be different to prevent testing errors
+        "tableName" -> catalog)).asInstanceOf[AccumuloDataStore]
+
+      ds2.getEnabledTables.map(_.suffix) mustEqual List("z3", "records")
+      ds1 mustNotEqual ds2
+    }
   }
 }

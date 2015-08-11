@@ -24,9 +24,9 @@ import scala.collection.mutable.ArrayBuffer
 /**
  * Class for splitting queries up based on Boolean clauses and the available query strategies.
  */
-class QueryFilterSplitter(sft: SimpleFeatureType) extends Logging {
+class QueryFilterSplitter(sft: SimpleFeatureType, enabledTables: List[GeoMesaTable]) extends Logging {
 
-  val supported = GeoMesaTable.getTables(sft).toSet
+  val supported = GeoMesaTable.getTables(sft, enabledTables)
 
   /**
    * Splits the query up into different filter plans to be evaluated. Each filter plan will consist of one or
