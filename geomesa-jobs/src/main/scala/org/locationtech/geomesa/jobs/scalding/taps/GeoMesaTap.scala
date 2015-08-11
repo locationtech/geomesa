@@ -121,10 +121,8 @@ case class GeoMesaScheme(options: GeoMesaSourceOptions)
   }
 
   override def source(fp: FlowProcess[JobConf], sc: SourceCall[Array[Any], GMRecordReader]): Boolean = {
-    val context = sc.getContext
-    val k = context(0).asInstanceOf[Text]
-    val v = context(1).asInstanceOf[SimpleFeature]
-
+    val k = sc.getInput.createKey()
+    val v = sc.getInput.createValue()
     val hasNext = sc.getInput.next(k, v)
     if (hasNext) {
       sc.getIncomingEntry.setTuple(new Tuple(k, v))
@@ -138,10 +136,4 @@ case class GeoMesaScheme(options: GeoMesaSourceOptions)
     val sf = entry.getObject(1).asInstanceOf[SimpleFeature]
     sc.getOutput.collect(id, sf)
   }
-
-  override def sourcePrepare(fp: FlowProcess[JobConf], sc: SourceCall[Array[Any], GMRecordReader]): Unit =
-    sc.setContext(Array(sc.getInput.createKey(), sc.getInput.createValue()))
-
-  override def sourceCleanup(fp: FlowProcess[JobConf], sc: SourceCall[Array[Any], GMRecordReader]): Unit =
-    sc.setContext(null)
 }
