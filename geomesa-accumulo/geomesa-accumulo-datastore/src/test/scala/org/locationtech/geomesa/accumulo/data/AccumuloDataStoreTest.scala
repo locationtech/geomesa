@@ -128,7 +128,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
 
     "create a schema with custom record splitting options" in {
       val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=" +
-          s"${classOf[DigitSplitter].getName},table.splitter.options=fmt:%02d,min:0,max:99"
+          s"${classOf[DigitSplitter].getName},table.splitter.options='fmt:%02d,min:0,max:99'"
       val sft = SimpleFeatureTypes.createType("customsplit", spec)
       sft.setTableSharing(false)
       ds.createSchema(sft)

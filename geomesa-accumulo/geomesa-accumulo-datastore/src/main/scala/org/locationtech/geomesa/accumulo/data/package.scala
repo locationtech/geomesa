@@ -15,6 +15,7 @@ import org.geotools.data.FeatureWriter
 import org.geotools.factory.Hints.ClassKey
 import org.joda.time.{DateTime, Interval}
 import org.locationtech.geomesa.features.SerializationType
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 package object data {
@@ -46,6 +47,7 @@ package object data {
   val Z3_TABLE_KEY           = "tables.z3.name"
   val QUERIES_TABLE_KEY      = "tables.queries.name"
   val SHARED_TABLES_KEY      = "tables.sharing"
+  val TABLES_ENABLED_KEY     = SimpleFeatureTypes.ENABLED_INDEXES
   val SCHEMA_ID_KEY          = "id"
   val VERSION_KEY            = "version"
 

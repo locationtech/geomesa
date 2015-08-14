@@ -25,6 +25,7 @@ class SftBuilder {
 
   private val entries = new ListBuffer[String]
   private var splitterOpt: Option[Splitter] = None
+  private var enabledIndexesOpt: Option[EnabledIndexes] = None
   private var dtgFieldOpt: Option[String] = None
 
   // Primitives - back compatible
@@ -117,6 +118,11 @@ class SftBuilder {
     this
   }
 
+  def withIndexes(indexSuffixes: List[String]):SftBuilder = {
+    this.enabledIndexesOpt = Some(EnabledIndexes(indexSuffixes))
+    this
+  }
+
   def withDefaultDtg(field: String): SftBuilder = {
     dtgFieldOpt = Some(field)
     this
@@ -159,16 +165,22 @@ class SftBuilder {
   private def splitPart = splitterOpt.map { s =>
     List(
       SimpleFeatureTypes.TABLE_SPLITTER + "=" + s.splitterClazz,
-      SimpleFeatureTypes.TABLE_SPLITTER_OPTIONS + "=" + encodeMap(s.options, SepPart, SepEntry)
+      SimpleFeatureTypes.TABLE_SPLITTER_OPTIONS + "=" + singleQuote(encodeMap(s.options, SepPart, SepEntry))
     ).mkString(",")
+  }
+
+  private def singleQuote(s: String) = "'" + s + "'"
+
+  private def enabledIndexesPart = enabledIndexesOpt.map { s =>
+    SimpleFeatureTypes.ENABLED_INDEXES + "=" + singleQuote(s.indexes.mkString(","))
   }
 
   // public accessors
   /** Get the type spec string associated with this builder...doesn't include dtg info */
   def getSpec = {
     val entryLst = List(entries.mkString(SepEntry))
-    val splitLst = splitPart.map(List(_)).getOrElse(List())
-    (entryLst ++ splitLst).mkString(";")
+    val options = List(splitPart, enabledIndexesPart).flatten
+    (entryLst ++ options).mkString(";")
   }
 
   /** builds a SimpleFeatureType object from this builder */

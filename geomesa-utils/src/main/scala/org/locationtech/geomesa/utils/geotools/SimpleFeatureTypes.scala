@@ -29,6 +29,7 @@ object SimpleFeatureTypes {
 
   val TABLE_SPLITTER           = "table.splitter.class"
   val TABLE_SPLITTER_OPTIONS   = "table.splitter.options"
+  val ENABLED_INDEXES          = "table.indexes.enabled"
 
   val OPT_DEFAULT              = "default"
   val OPT_SRID                 = "srid"
@@ -374,6 +375,18 @@ object SimpleFeatureTypes {
     }
   }
 
+  case class EnabledIndexes(indexes: List[String]) extends FeatureOption {
+    override def decorateSFT(sft: SimpleFeatureType): Unit = {
+      sft.getUserData.put(ENABLED_INDEXES, indexes.mkString(","))
+    }
+  }
+
+  case class GenericOption(k: String, v: AnyRef) extends FeatureOption {
+    override def decorateSFT(sft: SimpleFeatureType): Unit = {
+      sft.getUserData.put(k, v)
+    }
+  }
+
   case class FeatureSpec(attributes: Seq[AttributeSpec], opts: Seq[FeatureOption])
 
   private val typeEncode: Map[Class[_], String] = Map(
@@ -458,6 +471,38 @@ object SimpleFeatureTypes {
     }
   }
 
+   class KVPairParser(pairSep: String = ",", kvSep: String = ":") extends JavaTokenParsers {
+    def k = "[0-9a-zA-Z\\.]+".r
+    def v = s"[^($pairSep)^($kvSep)]+".r
+
+    def kv = k ~ kvSep ~ v ^^ { case key ~ kvSep ~ value => key -> value }
+    def kvList = repsep(kv, pairSep) ^^ { case x => x.toMap }
+
+    def parse(s: String): Map[String, String] = {
+      parse(kvList, s.trim) match {
+        case Success(t, r)     if r.atEnd => t
+        case NoSuccess(msg, r) if r.atEnd =>
+          throw new IllegalArgumentException(s"Error parsing spec '$s' : $msg")
+        case other =>
+          throw new IllegalArgumentException(s"Error parsing spec '$s' : $other")
+      }
+    }
+  }
+
+  class ListSplitter(sep: String = ",") extends JavaTokenParsers {
+    def v = s"[^($sep)]+".r
+    def lst = repsep(v, sep)
+
+    def parse(s: String): List[String] = {
+      parse(lst, s.trim) match {
+        case Success(t, r)     if r.atEnd => t
+        case NoSuccess(msg, r) if r.atEnd =>
+          throw new IllegalArgumentException(s"Error parsing spec '$s' : $msg")
+        case other =>
+          throw new IllegalArgumentException(s"Error parsing spec '$s' : $other")
+      }
+    }
+  }
   private class SpecParser extends JavaTokenParsers {
     import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.SpecParser._
     /*
@@ -555,18 +600,42 @@ object SimpleFeatureTypes {
     // any attribute
     def attribute             = geometryAttribute | complexAttribute | simpleAttribute
 
-    // "table.splitter=org.locationtech.geomesa.data.DigitSplitter,table.splitter.options=fmt:%02d,"
-    def splitter              = (TABLE_SPLITTER ~ "=") ~> "[^,]*".r
-    def splitterOption        = ("[^,:]*".r <~ ":") ~ "[^,]*".r ^^ { case k ~ v => (k, v) }
-    def splitterOptions       = (TABLE_SPLITTER_OPTIONS ~ "=") ~> repsep(splitterOption, ",") ^^ { opts => opts.toMap }
+    // Feature Option parsing
+    private val EQ = "="
 
-    def featureOptions        = (splitter <~ ",") ~ splitterOptions.? ^^ {
-      case splitter ~ opts => Splitter(splitter, opts.getOrElse(Map.empty[String, String]))
+    def nonGreedyStringLiteral: Parser[String] =
+      ("\""+"""([^"\p{Cntrl}\\]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*?"""+"\"").r
+
+    def nonGreedySingleQuoteLiteral: Parser[String] =
+      ( "\'" +"""([^"\p{Cntrl}\\]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*?""" + "\'").r
+
+    def quotedString = nonGreedyStringLiteral | nonGreedySingleQuoteLiteral ^^ { x => x.drop(1).dropRight(1) }
+    def safeString = "([^,]+)".r
+
+    def optValue = quotedString | safeString
+    def fOptKey = "[a-zA-Z0-9\\.]+".r
+    def fOptKeyValue =  (fOptKey <~ EQ) ~ optValue ^^ {  x => x._1 -> x._2 }
+
+    def fOptList = repsep(fOptKeyValue, ",") ^^ { case optPairs =>
+      val optMap = optPairs.toMap
+
+      val splitterOpt = optMap.get(TABLE_SPLITTER).map { ts =>
+        val tsOpts = optMap.get(TABLE_SPLITTER_OPTIONS).map(new KVPairParser().parse).getOrElse(Map.empty[String, String])
+        Splitter(ts, tsOpts)
+      }
+
+      val enabledOpt = optMap.get(ENABLED_INDEXES).map(new ListSplitter().parse).map(EnabledIndexes)
+
+      // other arbitrary options
+      val known = Seq(TABLE_SPLITTER, TABLE_SPLITTER_OPTIONS, ENABLED_INDEXES)
+      val others = optMap.filterKeys(k => !known.contains(k)).map{ case (k,v) => GenericOption(k, v) }
+
+      (List(splitterOpt, enabledOpt).flatten ++ others).toSeq
     }
 
     // a full SFT spec
-    def spec                  = repsep(attribute, ",") ~ (";" ~> featureOptions).? ^^ {
-      case attrs ~ fOpts => FeatureSpec(attrs, fOpts.toSeq)
+    def spec                  = repsep(attribute, ",") ~ (";" ~> fOptList).? ^^ {
+      case attrs ~ fOpts => FeatureSpec(attrs, fOpts.getOrElse(Seq()))
     }
 
     def strip(s: String) = s.stripMargin('|').replaceAll("\\s*", "")

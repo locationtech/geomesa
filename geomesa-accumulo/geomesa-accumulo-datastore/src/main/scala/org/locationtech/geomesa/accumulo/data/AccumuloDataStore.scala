@@ -145,6 +145,7 @@ class AccumuloDataStore(val connector: Connector,
     val recordTableValue            = RecordTable.formatTableName(catalogTable, sft)
     val queriesTableValue           = formatQueriesTableName(catalogTable)
     val tableSharingValue           = sft.isTableSharing.toString
+    val enabledTablesValue          = sft.getEnabledTables.toString
     val dataStoreVersion            = CURRENT_SCHEMA_VERSION.toString
 
     // store each metadata in the associated key
@@ -160,6 +161,7 @@ class AccumuloDataStore(val connector: Connector,
         RECORD_TABLE_KEY      -> recordTableValue,
         QUERIES_TABLE_KEY     -> queriesTableValue,
         SHARED_TABLES_KEY     -> tableSharingValue,
+        TABLES_ENABLED_KEY    -> enabledTablesValue,
         VERSION_KEY           -> dataStoreVersion
       ) ++ (if (dtgValue.isDefined) Map(DTGFIELD_KEY -> dtgValue.get) else Map.empty)
 
@@ -683,6 +685,11 @@ class AccumuloDataStore(val connector: Connector,
         sft.setTableSharing(false)
         sft.setTableSharingPrefix("")
       }
+
+      metadata.read(featureName, TABLES_ENABLED_KEY).map { enabledTablesStr =>
+        sft.setEnabledTables(enabledTablesStr)
+      }
+
       sft
     }.orNull
   }

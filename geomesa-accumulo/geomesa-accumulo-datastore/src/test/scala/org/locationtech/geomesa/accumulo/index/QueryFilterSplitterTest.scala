@@ -11,6 +11,7 @@ package org.locationtech.geomesa.accumulo.index
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.data.tables.AvailableTables
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.util.SftBuilder
 import org.locationtech.geomesa.accumulo.util.SftBuilder.Opts
@@ -32,6 +33,7 @@ class QueryFilterSplitterTest extends Specification {
     .stringType("low", Opts(index = true, cardinality = Cardinality.LOW))
     .date("dtg", default = true)
     .point("geom", default = true)
+    .withIndexes(AvailableTables.DefaultTablesStr)
     .build("QueryFilterSplitterTest")
 
   val ff = CommonFactoryFinder.getFilterFactory2

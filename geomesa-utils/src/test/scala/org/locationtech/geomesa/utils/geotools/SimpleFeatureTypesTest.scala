@@ -15,6 +15,8 @@ import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import scala.collection.JavaConversions._
+
 @RunWith(classOf[JUnitRunner])
 class SimpleFeatureTypesTest extends Specification {
 
@@ -169,7 +171,7 @@ class SimpleFeatureTypesTest extends Specification {
     }
 
     "handle splitter and splitter options" >> {
-      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options=fmt:%02d,min:0,max:99"
+      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options='fmt:%02d,min:0,max:99'"
       val sft = SimpleFeatureTypes.createType("test", spec)
       sft.getUserData.get(SimpleFeatureTypes.TABLE_SPLITTER) must be equalTo "org.locationtech.geomesa.core.data.DigitSplitter"
       val opts = sft.getUserData.get(SimpleFeatureTypes.TABLE_SPLITTER_OPTIONS).asInstanceOf[Map[String, String]]
@@ -177,6 +179,34 @@ class SimpleFeatureTypesTest extends Specification {
       opts("fmt") must be equalTo "%02d"
       opts("min") must be equalTo "0"
       opts("max") must be equalTo "99"
+    }
+
+    "handle enabled indexes" >> {
+      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.indexes.enabled='st_idx,records,z3'"
+      val sft = SimpleFeatureTypes.createType("test", spec)
+      sft.getUserData.get(SimpleFeatureTypes.ENABLED_INDEXES).toString.split(",").toList must be equalTo List("st_idx", "records", "z3")
+    }
+
+    "handle splitter opts and enabled indexes" >> {
+      val specs = List(
+        "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options='fmt:%02d,min:0,max:99',table.indexes.enabled='st_idx,records,z3'",
+        "name:String,dtg:Date,*geom:Point:srid=4326;table.indexes.enabled='st_idx,records,z3',table.splitter.class=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options='fmt:%02d,min:0,max:99'")
+      specs.forall { spec =>
+        val sft = SimpleFeatureTypes.createType("test", spec)
+        sft.getUserData.get(SimpleFeatureTypes.TABLE_SPLITTER) must be equalTo "org.locationtech.geomesa.core.data.DigitSplitter"
+        val opts = sft.getUserData.get(SimpleFeatureTypes.TABLE_SPLITTER_OPTIONS).asInstanceOf[Map[String, String]]
+        opts.size must be equalTo 3
+        opts("fmt") must be equalTo "%02d"
+        opts("min") must be equalTo "0"
+        opts("max") must be equalTo "99"
+        sft.getUserData.get(SimpleFeatureTypes.ENABLED_INDEXES).toString.split(",").toList must be equalTo List("st_idx", "records", "z3")
+      }
+    }
+
+    "allow arbitrary feature options in user data" >> {
+      val spec = "ame:String,dtg:Date,*geom:Point:srid=4326;a=b,c=d,x=',,,',z=23562356"
+      val sft = SimpleFeatureTypes.createType("foobar", spec)
+      sft.getUserData.toList must containAllOf(Seq("a" -> "b", "c" -> "d", "x" -> ",,,", "z" -> "23562356"))
     }
 
     "allow specification of ST index entry values" >> {
