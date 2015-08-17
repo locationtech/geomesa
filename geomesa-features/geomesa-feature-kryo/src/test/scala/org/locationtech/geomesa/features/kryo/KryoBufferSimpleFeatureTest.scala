@@ -226,6 +226,50 @@ class KryoBufferSimpleFeatureTest extends Specification {
       transformed.getAttribute("attr1") must beNull
     }
 
+    "allow for attributes to be appended to the sft and still transform old and new bytes" in {
+      val sft = SimpleFeatureTypes.createType("mutableType", "name:String,*geom:Point,dtg:Date")
+
+      val oldSerialized = {
+        val sf = new ScalaSimpleFeature("testFeature", sft)
+        sf.setAttribute("name", "foo")
+        sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+        sf.setAttribute("geom", "POINT(45.0 49.0)")
+        new KryoFeatureSerializer(sft).write(sf)
+      }
+
+      val newSft = SimpleFeatureTypes.createType("mutableType", "name:String,*geom:Point,dtg:Date,attr1:String,attr2:Long")
+
+      val newSerialized = {
+        val sf = new ScalaSimpleFeature("testFeature", newSft)
+        sf.setAttribute("name", "foo")
+        sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+        sf.setAttribute("geom", "POINT(45.0 49.0)")
+        sf.setAttribute("attr1", "test1")
+        sf.setAttribute("attr2", "5")
+        new KryoFeatureSerializer(newSft).write(sf)
+      }
+
+      val laz = new KryoFeatureSerializer(newSft).getReusableFeature
+      val projectedSft = SimpleFeatureTypes.createType("projectedType", "*geom:Point,attr1:String")
+      laz.setTransforms("geom=geom;attr1=attr1", projectedSft)
+
+      laz.setBuffer(oldSerialized)
+      val oldTransformed = new KryoFeatureSerializer(projectedSft).deserialize(laz.transform())
+      oldTransformed.getID mustEqual "testFeature"
+      oldTransformed.getDefaultGeometry.toString mustEqual "POINT (45 49)"
+      oldTransformed.getAttributeCount mustEqual 2
+      oldTransformed.getAttribute(1) must beNull
+      oldTransformed.getAttribute("attr1") must beNull
+
+      laz.setBuffer(newSerialized)
+      val newTransformed = new KryoFeatureSerializer(projectedSft).deserialize(laz.transform())
+      newTransformed.getID mustEqual "testFeature"
+      newTransformed.getDefaultGeometry.toString mustEqual "POINT (45 49)"
+      newTransformed.getAttributeCount mustEqual 2
+      newTransformed.getAttribute(1)  mustEqual "test1"
+      newTransformed.getAttribute("attr1") mustEqual "test1"
+    }
+
     "be faster than full deserialization" in {
       skipped("integration")
       val spec = "a:Integer,b:Float,c:Double,d:Long,e:UUID,f:String,g:Boolean,dtg:Date,*geom:Point:srid=4326"
