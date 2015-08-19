@@ -284,5 +284,39 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       reader.isClosed must beFalse
       reader.isClosed must eventually(10, new Duration(1000))(beTrue) // reaper thread runs every 5 seconds
     }
+
+    "allow query strategy to be specified via view params" in {
+      val sft = createNewSchema(s"name:String:index=join,dtg:Date,*geom:Point:srid=4326")
+
+      addFeature(sft, ScalaSimpleFeature.create(sft, "1", "name1", "2010-05-07T00:00:00.000Z", "POINT(45 45)"))
+      addFeature(sft, ScalaSimpleFeature.create(sft, "2", "name2", "2010-05-07T01:00:00.000Z", "POINT(45 45)"))
+
+      val query = new Query(sft.getTypeName, ECQL.toFilter("BBOX(geom,40,40,50,50) and name='name1'"))
+
+      def expectStrategy(strategy: String) = {
+        val explain = new ExplainString
+        ds.explainQuery(query, explain)
+        explain.toString().split("\n").filter(_.startsWith("Strategy:")) mustEqual Array(s"Strategy: $strategy")
+      }
+
+      query.getHints.put(QUERY_STRATEGY_KEY, StrategyType.ATTRIBUTE)
+      expectStrategy("AttributeIdxStrategy")
+
+      query.getHints.put(QUERY_STRATEGY_KEY, StrategyType.ST)
+      expectStrategy("STIdxStrategy")
+
+      val viewParams =  new java.util.HashMap[String, String]
+      query.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, viewParams)
+
+      query.getHints.remove(QUERY_STRATEGY_KEY)
+      viewParams.put("STRATEGY", "attribute")
+      expectStrategy("AttributeIdxStrategy")
+
+      query.getHints.remove(QUERY_STRATEGY_KEY)
+      viewParams.put("STRATEGY", "ST")
+      expectStrategy("STIdxStrategy")
+
+      success
+    }
   }
 }
