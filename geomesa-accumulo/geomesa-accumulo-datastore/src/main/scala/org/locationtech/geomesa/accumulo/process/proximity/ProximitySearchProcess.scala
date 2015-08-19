@@ -19,10 +19,12 @@ import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureCollection
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.geotools.Conversions.{RichGeometry, _}
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
+
+import scala.collection.JavaConversions._
 
 @DescribeProcess(
   title = "Geomesa-enabled Proximity Search",
@@ -100,10 +102,6 @@ class ProximityVisitor(inputFeatures: SimpleFeatureCollection,
   }
 
   def dwithinFilters(requestedUnit: String) = {
-    import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
-
-import scala.collection.JavaConversions._
-
     val geomProperty = ff.property(dataFeatures.getSchema.getGeometryDescriptor.getName)
     val geomFilters = inputFeatures.features().map { sf =>
       val dist: Double = requestedUnit match {

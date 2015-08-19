@@ -10,19 +10,19 @@ package org.locationtech.geomesa.accumulo.index
 import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Geometry, GeometryCollection}
-import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.Range
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
 import org.joda.time.Weeks
 import org.locationtech.geomesa.accumulo.data.tables.Z3Table
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
-import org.locationtech.geomesa.accumulo.index.QueryPlanners.FeatureFunction
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.filter.Filter
+import org.opengis.filter.spatial._
 
 class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with Logging with IndexFilterHelpers  {
 
@@ -49,7 +49,6 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
         (g, t)
       }
     }
-    val ecql = filter.secondary
 
     output(s"Geometry filters: ${filtersToString(geomFilters)}")
     output(s"Temporal filters: ${filtersToString(temporalFilters)}")
@@ -76,6 +75,16 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
     output(s"Interval:  $interval")
 
     val fp = FILTERING_ITER_PRIORITY
+
+    // If we have some sort of complicated geometry predicate,
+    // we need to pass it through to be evaluated
+    val singleTweakedGeomFilter: Option[Filter]  = filterListAsAnd(tweakedGeomFilters).filter(isComplicatedSpatialFilter)
+
+    val ecql: Option[Filter] = (singleTweakedGeomFilter, filter.secondary) match {
+      case (None, fs)           => fs
+      case (gf, None)           => gf
+      case (Some(gf), Some(fs)) => filterListAsAnd(Seq(gf, fs))
+    }
 
     val (iterators, kvsToFeatures, colFamily) = if (hints.isBinQuery) {
       val trackId = hints.getBinTrackIdField
@@ -188,4 +197,17 @@ object Z3IdxStrategy extends StrategyProvider {
    */
   override def getCost(filter: QueryFilter, sft: SimpleFeatureType, hints: StrategyHints) =
     if (filter.primary.length > 1) 200 else 400
+
+  def isComplicatedSpatialFilter(f: Filter): Boolean = {
+    f match {
+      case _: BBOX => false
+      case _: DWithin => true
+      case _: Contains => true
+      case _: Crosses => true
+      case _: Intersects => true
+      case _: Overlaps => true
+      case _: Within => true
+      case _ => false        // Beyond, Disjoint, DWithin, Equals, Touches
+    }
+  }
 }

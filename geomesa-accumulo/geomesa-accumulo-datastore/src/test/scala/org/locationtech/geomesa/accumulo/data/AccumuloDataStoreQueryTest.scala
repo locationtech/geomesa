@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.text.SimpleDateFormat
-
 import com.vividsolutions.jts.geom.Coordinate
 import org.geotools.data._
 import org.geotools.factory.{CommonFactoryFinder, Hints}
@@ -20,6 +18,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.joda.time.{DateTimeZone, DateTime}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.index.QueryHints._
@@ -28,6 +27,7 @@ import org.locationtech.geomesa.accumulo.index.{ExplainString, QueryPlanner}
 import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, TestData}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
+import org.locationtech.geomesa.utils.filters.Filters
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -100,6 +100,47 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         features.hasNext must beTrue
         features.next().getID mustEqual "fid-1"
         features.hasNext must beFalse
+      }
+    }
+
+    "process a DWithin of a Linestring and dtg During query correctly" >> {
+      val lineOfBufferCoords: Array[Coordinate] = Array(new Coordinate(-45, 0), new Coordinate(-90, 45))
+      val geomFactory = JTSFactoryFinder.getGeometryFactory
+
+      // create the data store
+      val sftPoints = createNewSchema("*geom:Point:srid=4326,dtg:Date")
+
+      // add the 150 excluded points
+      TestData.excludedDwithinPoints.zipWithIndex.foreach{ case (p, i) =>
+        addFeature(sftPoints, ScalaSimpleFeature.create(sftPoints, s"exfid$i", p, "2014-06-07T12:00:00.000Z"))
+      }
+
+      // add the 50 included points
+      TestData.includedDwithinPoints.zipWithIndex.foreach{ case (p, i) =>
+        addFeature(sftPoints, ScalaSimpleFeature.create(sftPoints, "infid$i", p, "2014-06-07T12:00:00.000Z"))
+      }
+
+      // compose the query
+      val start   = new DateTime(2014, 6, 7, 11, 0, 0, DateTimeZone.forID("UTC"))
+      val end     = new DateTime(2014, 6, 7, 13, 0, 0, DateTimeZone.forID("UTC"))
+      val during  = ff.during(ff.property("dtg"), Filters.dts2lit(start, end))
+
+      "with correct result when using a dwithin of degrees" >> {
+        val dwithinUsingDegrees = ff.dwithin(ff.property("geom"),
+          ff.literal(geomFactory.createLineString(lineOfBufferCoords)), 1.0, "degrees")
+        val filterUsingDegrees  = ff.and(during, dwithinUsingDegrees)
+        val queryUsingDegrees   = new Query(sftPoints.getTypeName, filterUsingDegrees)
+        val resultsUsingDegrees = ds.getFeatureSource(sftPoints.getTypeName).getFeatures(queryUsingDegrees)
+        resultsUsingDegrees.features.length mustEqual 50
+      }.pendingUntilFixed("Fixed Z3 'During And Dwithin' queries for a buffer created with unit degrees")
+
+      "with correct result when using a dwithin of meters" >> {
+        val dwithinUsingMeters = ff.dwithin(ff.property("geom"),
+          ff.literal(geomFactory.createLineString(lineOfBufferCoords)), 150000, "meters")
+        val filterUsingMeters  = ff.and(during, dwithinUsingMeters)
+        val queryUsingMeters   = new Query(sftPoints.getTypeName, filterUsingMeters)
+        val resultsUsingMeters = ds.getFeatureSource(sftPoints.getTypeName).getFeatures(queryUsingMeters)
+        resultsUsingMeters.features.length mustEqual 50
       }
     }
 
