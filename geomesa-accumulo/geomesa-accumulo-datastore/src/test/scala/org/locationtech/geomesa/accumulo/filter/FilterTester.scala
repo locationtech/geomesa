@@ -92,6 +92,17 @@ class BasicSpatioTemporalPredicateTest extends FilterTester {
   }
 }
 
+
+@RunWith(classOf[JUnitRunner])
+class BasicSpatioTemporalPredicateTestWithNS extends FilterTester {
+  val filters = spatioTemporalPredicatesWithNS
+  "basic spatiotemporal predicates" should {
+    "filter correctly" in {
+      runTest()
+    }
+  }
+}
+
 @RunWith(classOf[JUnitRunner])
 class AttributePredicateTest extends FilterTester {
   val filters = attributePredicates
@@ -105,6 +116,16 @@ class AttributePredicateTest extends FilterTester {
 @RunWith(classOf[JUnitRunner])
 class AttributeGeoPredicateTest extends FilterTester {
   val filters = attributeAndGeometricPredicates
+  "attribute geo predicates" should {
+    "filter correctly" in {
+      runTest()
+    }
+  }
+}
+
+@RunWith(classOf[JUnitRunner])
+class AttributeGeoPredicateTestWithNS extends FilterTester {
+  val filters = attributeAndGeometricPredicatesWithNS
   "attribute geo predicates" should {
     "filter correctly" in {
       runTest()

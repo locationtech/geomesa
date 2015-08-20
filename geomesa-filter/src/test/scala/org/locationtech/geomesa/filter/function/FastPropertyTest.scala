@@ -9,10 +9,14 @@
 
 package org.locationtech.geomesa.filter.function
 
+import com.vividsolutions.jts.geom.Point
+import org.geotools.feature.{NameImpl, AttributeTypeBuilder}
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.spatial.BBOXImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -30,6 +34,23 @@ class FastPropertyTest extends Specification {
       filter.evaluate(sf)
       filter.evaluate(sf)
       success
+    }
+    "support namespaces" >> {
+      val attributeBuilder = new AttributeTypeBuilder()
+      attributeBuilder.setBinding(classOf[String])
+      val nameType = attributeBuilder.buildType()
+      val nameAttribute = attributeBuilder.buildDescriptor(new NameImpl("testns", "name"), nameType)
+      val builder = new SimpleFeatureTypeBuilder()
+      builder.add(nameAttribute)
+      builder.add("geom", classOf[Point], org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
+      builder.setName("FastPropertyNsTest")
+      val sft = builder.buildFeatureType()
+
+      val sf = new ScalaSimpleFeature("id", sft)
+      sf.setAttributes(Array[AnyRef]("myname", "POINT(45 45)"))
+
+      val filter = ECQL.toFilter("testns:name = 'myname'", FastFilterFactory.factory)
+      filter.evaluate(sf) must beTrue
     }
   }
 }

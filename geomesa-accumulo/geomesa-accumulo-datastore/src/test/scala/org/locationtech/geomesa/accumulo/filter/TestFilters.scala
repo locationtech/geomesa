@@ -165,6 +165,16 @@ object TestFilters {
     "attr2 ILIKE '2nd1%' AND WITHIN(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"
   )
 
+  val attributeAndGeometricPredicatesWithNS = Seq(
+    // For mediumData, this next filter will hit and the one after will not.
+    "attr2 = '2nd100001' AND INTERSECTS(ns:geom, POLYGON ((45 20, 48 20, 48 27, 45 27, 45 20)))",
+    "attr2 = '2nd100001' AND INTERSECTS(ns:geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
+    "attr2 ILIKE '2nd1%' AND CROSSES(ns:geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+    "attr2 ILIKE '2nd1%' AND INTERSECTS(ns:geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+    "attr2 ILIKE '2nd1%' AND OVERLAPS(ns:geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
+    "attr2 ILIKE '2nd1%' AND WITHIN(ns:geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"
+  )
+
   val temporalPredicates = Seq(
     "(not dtg after 2010-08-08T23:59:59Z) and (not dtg_end_time before 2010-08-08T00:00:00Z)",
     "(dtg between '2010-08-08T00:00:00.000Z' AND '2010-08-08T23:59:59.000Z')",
@@ -173,6 +183,12 @@ object TestFilters {
 
   val spatioTemporalPredicates = Seq(
     "INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z"
+  )
+
+  val spatioTemporalPredicatesWithNS = Seq(
+    "INTERSECTS(ns:geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z",
+    "INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND ns:dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z",
+    "INTERSECTS(ns:geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND ns:dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z"
   )
 
   val dwithinPolys = for(i <- 1 until 50000 by 10000) yield {s"DWITHIN(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)), $i.0, meters)"}
@@ -199,6 +215,16 @@ object TestFilters {
     // The next query is *not* 'like-eligible'.  As such, we do *not* want to use it with the current attribute inde.
     "attr2 ILIKE '%1' AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
     "dtgNonIdx DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND attr2 = 'val56'"
+  )
+
+  val stIdxStrategyPredicatesWithNS = Seq(
+    "INTERSECTS(ns:geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) AND ns:attr2 = 'val56'",
+    "ns:attr1 = 'dummy' AND INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) AND attr2 = 'dummy'",
+    "attr1 = 'dummy' AND INTERSECTS(ns:geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
+    "INTERSECTS(ns:geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
+    // The next query is *not* 'like-eligible'.  As such, we do *not* want to use it with the current attribute inde.
+    "ns:attr2 ILIKE '%1' AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+    "ns:dtgNonIdx DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND attr2 = 'val56'"
   )
 
   /**
