@@ -17,6 +17,7 @@ import org.locationtech.geomesa.accumulo.filter.TestFilters._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.util.SftBuilder
 import org.locationtech.geomesa.accumulo.util.SftBuilder.Opts
+import org.locationtech.geomesa.filter.visitor.LocalNameVisitor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.Cardinality
@@ -56,7 +57,7 @@ class QueryStrategyDeciderTest extends Specification {
     val filter = ECQL.toFilter(filterString)
     val hints = new UserDataStrategyHints()
     val query = new Query(sft.getTypeName)
-    query.setFilter(filter)
+    query.setFilter(filter.accept(new LocalNameVisitor(sft), null).asInstanceOf[Filter])
     val strats = QueryStrategyDecider.chooseStrategies(sft, query, hints, None)
     strats must haveLength(1)
     strats.head
@@ -85,6 +86,10 @@ class QueryStrategyDeciderTest extends Specification {
       getAttributeIdxStrategy("attr2 = 'val56'")
     }
 
+    "get the attribute equals strategy for namespaced attribute" in {
+      getAttributeIdxStrategy("ns:attr2 = 'val56'")
+    }
+
     "get the record strategy for non indexed attributes" in {
       getRecordStrategy("attr1 = 'val56'")
     }
@@ -94,8 +99,17 @@ class QueryStrategyDeciderTest extends Specification {
       getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
     }
 
+    "get the attribute likes strategy for namespaced attribute" in {
+      val fs = "ns:attr2 ILIKE '2nd1%'"
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
+    }
+
     "get the record strategy if attribute non-indexed" in {
       getRecordStrategy("attr1 ILIKE '2nd1%'")
+    }
+
+    "get the record strategy if attribute non-indexed for a namespaced attribute" in {
+      getRecordStrategy("ns:attr1 ILIKE '2nd1%'")
     }
 
     "get the attribute strategy for lte" in {
@@ -128,6 +142,11 @@ class QueryStrategyDeciderTest extends Specification {
       getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
     }
 
+    "get the attribute strategy for during for a namespaced attributes" in {
+      val fs = "ns:attr2 DURING 2012-01-01T11:00:00.000Z/2014-01-01T12:15:00.000Z"
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
+    }
+
     "get the attribute strategy for after" in {
       val fs = "attr2 AFTER 2013-01-01T12:30:00.000Z"
       getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
@@ -135,6 +154,11 @@ class QueryStrategyDeciderTest extends Specification {
 
     "get the attribute strategy for before" in {
       val fs = "attr2 BEFORE 2014-01-01T12:30:00.000Z"
+      getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
+    }
+
+    "get the attribute strategy for before for a namespaced attributes" in {
+      val fs = "ns:attr2 BEFORE 2014-01-01T12:30:00.000Z"
       getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
     }
 
@@ -273,8 +297,16 @@ class QueryStrategyDeciderTest extends Specification {
       forall(stIdxStrategyPredicates) { getStStrategy }
     }
 
+    "get the STIdx strategy with stIdxStrategyPredicates with namespaces" in {
+      forall(stIdxStrategyPredicates) { getStStrategy }
+    }
+
     "get the stidx strategy with attributeAndGeometricPredicates" in {
       forall(attributeAndGeometricPredicates) { getStStrategy }
+    }
+
+    "get the stidx strategy with attributeAndGeometricPredicates with namespaces" in {
+      forall(attributeAndGeometricPredicatesWithNS) { getStStrategy }
     }
 
     "get the record strategy for non-indexed queries" in {
