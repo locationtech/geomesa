@@ -17,6 +17,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.identity.FeatureId
@@ -40,6 +41,7 @@ package object index {
 
   object QueryHints {
     val RETURN_SFT_KEY       = new ClassKey(classOf[SimpleFeatureType])
+    val QUERY_STRATEGY_KEY   = new ClassKey(classOf[StrategyType])
 
     val DENSITY_BBOX_KEY     = new ClassKey(classOf[ReferencedEnvelope])
     val DENSITY_WEIGHT       = new ClassKey(classOf[java.lang.String])
@@ -64,6 +66,8 @@ package object index {
 
     implicit class RichHints(val hints: Hints) extends AnyRef {
       def getReturnSft: SimpleFeatureType = hints.get(RETURN_SFT_KEY).asInstanceOf[SimpleFeatureType]
+      def getRequestedStrategy: Option[StrategyType] =
+        Option(hints.get(QUERY_STRATEGY_KEY).asInstanceOf[StrategyType])
       def isBinQuery: Boolean = hints.containsKey(BIN_TRACK_KEY)
       def getBinTrackIdField: String = hints.get(BIN_TRACK_KEY).asInstanceOf[String]
       def getBinGeomField: Option[String] = Option(hints.get(BIN_GEOM_KEY).asInstanceOf[String])

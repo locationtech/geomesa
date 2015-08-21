@@ -9,7 +9,9 @@
 package org.locationtech.geomesa.accumulo.index
 
 import java.util.Map.Entry
+import java.util.{Locale, Map => jMap}
 
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.{Key, Range => AccRange, Value}
 import org.geotools.data.Query
@@ -44,6 +46,7 @@ import org.opengis.filter.sort.{SortBy, SortOrder}
 
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
+import scala.util.Try
 
 /**
  * Executes a query against geomesa
@@ -138,7 +141,8 @@ case class QueryPlanner(sft: SimpleFeatureType,
 
     implicit val timings = new TimingsImpl
     val queryPlans = profile({
-      val strategies = QueryStrategyDecider.chooseStrategies(sft, query, hints, requested, output)
+      val requestedStrategy = requested.orElse(query.getHints.getRequestedStrategy)
+      val strategies = QueryStrategyDecider.chooseStrategies(sft, query, hints, requestedStrategy, output)
       strategies.map { strategy =>
         output(s"Strategy: ${strategy.getClass.getSimpleName}")
         output(s"Filter: ${strategy.filter}")
@@ -190,7 +194,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
   }
 }
 
-object QueryPlanner {
+object QueryPlanner extends Logging {
 
   val iteratorPriority_RowRegex                        = 0
   val iteratorPriority_AttributeIndexFilteringIterator = 10
@@ -223,9 +227,41 @@ object QueryPlanner {
     QueryPlanner.setQueryTransforms(query, sft)
     // set return SFT in the query
     QueryPlanner.setReturnSft(query, sft)
+    // handle any params passed in through geoserver
+    QueryPlanner.handleGeoServerParams(query)
     // update the filter to remove namespaces and handle null property names
     if (query.getFilter != null && query.getFilter != Filter.INCLUDE) {
       query.setFilter(query.getFilter.accept(new LocalNameVisitor(sft), null).asInstanceOf[Filter])
+    }
+  }
+
+  /**
+   * Checks the 'view params' passed in through geoserver and converts them to the appropriate query hints.
+   * This kind of a hack, but it's the only way geoserver exposes custom data to the underlying data store.
+   *
+   * Note - keys in the map are always uppercase.
+   */
+  def handleGeoServerParams(query: Query): Unit = {
+    val viewParams = query.getHints.get(Hints.VIRTUAL_TABLE_PARAMETERS).asInstanceOf[jMap[String, String]]
+    if (viewParams != null) {
+      def withName(name: String) = {
+        val value = Try(Strategy.StrategyType.withName(name.toUpperCase(Locale.US)))
+        if (value.isFailure) {
+          logger.error(s"Ignoring invalid strategy name from view params: $name. Valid values " +
+              s"are ${Strategy.StrategyType.values.mkString(", ")}")
+        }
+        value.toOption
+      }
+      Option(viewParams.get("STRATEGY")).flatMap(withName).foreach { strategy =>
+        val old = query.getHints.get(QUERY_STRATEGY_KEY)
+        if (old == null) {
+          logger.debug(s"Using strategy $strategy from view params")
+          query.getHints.put(QUERY_STRATEGY_KEY, strategy)
+        } else if (old != strategy) {
+          logger.warn("Ignoring query hint from geoserver in favor of hint directly set in query. " +
+              s"Using $old and disregarding $strategy")
+        }
+      }
     }
   }
 
