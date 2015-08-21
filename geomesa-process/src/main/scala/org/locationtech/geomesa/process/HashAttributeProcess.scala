@@ -17,6 +17,7 @@ trait HashAttribute {
   val hashFn = Hashing.goodFastHash(64)
 
   def transformHash(hash: Int): AnyRef
+  // note - augmentSft needs to add an attribute called 'hash'
   def augmentSft(sft: SimpleFeatureTypeBuilder): Unit
 
   @throws(classOf[ProcessException])
@@ -33,15 +34,16 @@ trait HashAttribute {
     sftBuilder.init(sft)
     augmentSft(sftBuilder)
     val targetSft = sftBuilder.buildFeatureType()
+    val hashIndex = targetSft.indexOf("hash")
     val featureBuilder = new SimpleFeatureBuilder(targetSft)
 
     val results =
       obsFeatures.features().map { sf =>
         featureBuilder.reset()
         featureBuilder.init(sf)
-        val attr = Option(sf.getAttribute(attribute).asInstanceOf[String]).getOrElse("")
+        val attr = Option(sf.getAttribute(attribute)).map(_.toString).getOrElse("")
         val hash = math.abs(hashFn.hashString(attr).asInt()) % modulo
-        featureBuilder.set("hash", transformHash(hash))
+        featureBuilder.set(hashIndex, transformHash(hash))
         featureBuilder.buildFeature(sf.getID)
       }
     DataUtilities.collection(new DelegateSimpleFeatureIterator(results))
