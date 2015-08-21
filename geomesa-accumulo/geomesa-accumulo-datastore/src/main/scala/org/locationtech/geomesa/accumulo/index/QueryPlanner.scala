@@ -32,6 +32,7 @@ import org.locationtech.geomesa.accumulo.util.{CloseableIterator, SelfClosingIte
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features._
 import org.locationtech.geomesa.filter._
+import org.locationtech.geomesa.filter.visitor.LocalNameVisitor
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -228,6 +229,10 @@ object QueryPlanner extends Logging {
     QueryPlanner.setReturnSft(query, sft)
     // handle any params passed in through geoserver
     QueryPlanner.handleGeoServerParams(query)
+    // update the filter to remove namespaces and handle null property names
+    if (query.getFilter != null && query.getFilter != Filter.INCLUDE) {
+      query.setFilter(query.getFilter.accept(new LocalNameVisitor(sft), null).asInstanceOf[Filter])
+    }
   }
 
   /**

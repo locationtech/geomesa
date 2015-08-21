@@ -63,8 +63,11 @@ trait AccumuloAbstractFeatureSource extends AbstractFeatureSource with Logging w
   //  First, one can set the System property "geomesa.force.count".
   //  Second, there is an EXACT_COUNT query hint.
   override def getCount(query: Query) = {
-    val exactCount = query.getHints.get(EXACT_COUNT).asInstanceOf[Boolean] == java.lang.Boolean.TRUE ||
-        GeomesaSystemProperties.QueryProperties.QUERY_EXACT_COUNT.get.toBoolean
+    val exactCount = if(query.getHints.get(EXACT_COUNT) != null) {
+      query.getHints.get(EXACT_COUNT).asInstanceOf[Boolean]
+    } else {
+      GeomesaSystemProperties.QueryProperties.QUERY_EXACT_COUNT.get.toBoolean
+    }
 
     if (exactCount || longCount == -1) {
       getFeaturesNoCache(query).features().size

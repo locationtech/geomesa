@@ -33,7 +33,12 @@ class FastPropertyName(name: String) extends PropertyName with org.geotools.filt
       case e: Exception => throw new IllegalArgumentException("Only simple features are supported", e)
     }
     if (index == -1) {
-      index = sf.getFeatureType.indexOf(name)
+      val nsIndex = name.indexOf(':')
+      val localName = if (nsIndex == -1) name else name.substring(nsIndex + 1)
+      index = sf.getFeatureType.indexOf(localName)
+      if (index == -1) {
+        throw new RuntimeException(s"Property name $name does not exist in feature type ${sf.getFeatureType}")
+      }
     }
     sf.getAttribute(index)
   }
