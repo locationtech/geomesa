@@ -40,7 +40,10 @@ class Point2PointProcess extends VectorProcess {
                minPoints: Int,
 
                @DescribeParameter(name = "breakOnDay", description = "Break connections on day marks")
-               breakOnDay: Boolean
+               breakOnDay: Boolean,
+
+               @DescribeParameter(name = "filterSingularPoints", description = "Filter on groups that all fall on the same point", defaultValue = "true")
+               filterSingularPoints: Boolean
 
                ): SimpleFeatureCollection = {
 
@@ -78,7 +81,7 @@ class Point2PointProcess extends VectorProcess {
               .filter { case (_, g) => g.size >= 2 }  // need at least two points in a day to create a
               .map { case (_, g) => g }.toArray
 
-        groups.flatMap { sorted =>
+        val results = groups.flatMap { sorted =>
           Try {
             val pts = sorted.map(_.getDefaultGeometry.asInstanceOf[Point].getCoordinate)
             val ls = gf.createLineString(pts.toArray)
@@ -88,6 +91,9 @@ class Point2PointProcess extends VectorProcess {
             sf
           }.toOption
         }
+
+        if(filterSingularPoints) results.filter(_.getAttribute("length").asInstanceOf[Double] > 0.0)
+        else results
       }
 
     DataUtilities.collection(lineFeatures.toArray)
