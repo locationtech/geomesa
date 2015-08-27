@@ -11,19 +11,23 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class XMLConverterTest extends Specification {
 
-  val myXML =
+  val xml =
     """<doc>
-      |  <Track>
-      |    <trackNumber>123</trackNumber>
-      |    <color>red</color>
-      |    <fId squawk="abc123"></fId>
-      |  </Track>
       |  <DataSource>
       |    <name>WhoKnows</name>
       |  </DataSource>
+      |  <Track>
+      |    <trackNumber>123</trackNumber>
+      |    <color>red</color>
+      |    <fId squawk="abc"></fId>
+      |  </Track>
+      |  <Track>
+      |    <trackNumber>456</trackNumber>
+      |    <color>blue</color>
+      |    <fId squawk="xyz"></fId>
+      |  </Track>
       |</doc>
     """.stripMargin
-
 
   val sftConf = ConfigFactory.parseString(
     """{ type-name = "track_sft"
@@ -39,13 +43,14 @@ class XMLConverterTest extends Specification {
   val parserConf = ConfigFactory.parseString(
     """
       | converter = {
-      |   type      = "xml"
-      |   id-field  = "uuid()"
+      |   type         = "xml"
+      |   id-field     = "uuid()"
+      |   feature-path = "Track"
       |   fields = [
-      |     { name = "trackNumber", path = ["Track", "trackNumber"],    transform = "$0::integer" }
-      |     { name = "color",       path = ["Track", "color"],          transform = "trim($0)" }
-      |     { name = "squawk",      path = ["Track", "fId", "@squawk"], transform = "trim($0)" }
-      |     { name = "source",      path = ["DataSource", "name"] }
+      |     { name = "trackNumber", path = "trackNumber", transform = "$0::integer" }
+      |     { name = "color",       path = "color",       transform = "trim($0)" }
+      |     { name = "squawk",      path = "fId/@squawk", transform = "trim($0)" }
+      |     { name = "source",      path = "/doc/DataSource/name/text()" }
       |   ]
       | }
     """.stripMargin)
@@ -53,16 +58,19 @@ class XMLConverterTest extends Specification {
   "XML Converter should" >> {
 
     "parse XML" >> {
-
       val sft = SimpleFeatureTypes.createType(sftConf)
       val converter = SimpleFeatureConverters.build[String](sft, parserConf)
       implicit val ec = new EvaluationContext(null, null)
-      val sf = converter.processSingleInput(myXML).get
-      sf.getAttribute("trackNumber").asInstanceOf[Integer] mustEqual 123
-      sf.getAttribute("color").asInstanceOf[String] mustEqual "red"
-      sf.getAttribute("squawk").asInstanceOf[String] mustEqual "abc123"
-      sf.getAttribute("source").asInstanceOf[String] mustEqual "WhoKnows"
-
+      val sfs = converter.processInput(Iterator(xml)).toList
+      sfs must haveLength(2)
+      sfs.head.getAttribute("trackNumber").asInstanceOf[Integer] mustEqual 123
+      sfs.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
+      sfs.head.getAttribute("squawk").asInstanceOf[String] mustEqual "abc"
+      sfs.head.getAttribute("source").asInstanceOf[String] mustEqual "WhoKnows"
+      sfs(1).getAttribute("trackNumber").asInstanceOf[Integer] mustEqual 456
+      sfs(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
+      sfs(1).getAttribute("squawk").asInstanceOf[String] mustEqual "xyz"
+      sfs(1).getAttribute("source").asInstanceOf[String] mustEqual "WhoKnows"
     }
   }
 }
