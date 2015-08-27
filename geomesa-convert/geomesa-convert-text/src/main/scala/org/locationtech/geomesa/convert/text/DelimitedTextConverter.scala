@@ -81,7 +81,7 @@ class DelimitedTextConverter(format: CSVFormat,
     }
   })
 
-  def fromInputType(string: String): Array[Any] = {
+  override def fromInputType(string: String): Seq[Array[Any]] = {
     import spire.syntax.cfor._
 
     // empty strings cause deadlock
@@ -94,7 +94,7 @@ class DelimitedTextConverter(format: CSVFormat,
     cfor(0)(_ < len, _ + 1) { i =>
       ret(i+1) = rec.get(i)
     }
-    ret
+    Seq(ret)
   }
 
   override def close(): Unit = {

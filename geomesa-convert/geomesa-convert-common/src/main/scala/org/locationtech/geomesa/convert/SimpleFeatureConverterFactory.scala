@@ -19,7 +19,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 trait Field {
   def name: String
@@ -63,7 +63,7 @@ object SimpleFeatureConverters {
 trait SimpleFeatureConverter[I] {
   def targetSFT: SimpleFeatureType
   def processInput(is: Iterator[I], globalParams: Map[String, Any] = Map.empty): Iterator[SimpleFeature]
-  def processSingleInput(i: I, globalParams: Map[String, Any] = Map.empty)(implicit ec: EvaluationContext): Option[SimpleFeature]
+  def processSingleInput(i: I, globalParams: Map[String, Any] = Map.empty)(implicit ec: EvaluationContext): Seq[SimpleFeature]
   def close(): Unit = {}
 }
 
@@ -72,7 +72,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
   def targetSFT: SimpleFeatureType
   def inputFields: IndexedSeq[Field]
   def idBuilder: Expr
-  def fromInputType(i: I): Array[Any]
+  def fromInputType(i: I): Seq[Array[Any]]
   val fieldNameMap = inputFields.map { f => (f.name, f) }.toMap
 
   def dependenciesOf(e: Expr): Seq[String] = e match {
@@ -127,7 +127,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
     sf
   }
 
-  def processSingleInput(i: I, gParams: Map[String, Any])(implicit ec: EvaluationContext): Option[SimpleFeature] = {
+  override def processSingleInput(i: I, gParams: Map[String, Any])(implicit ec: EvaluationContext): Seq[SimpleFeature] = {
     if(reuse == null || ec.fieldNameMap == null) {
       // initialize reuse and ec
       ec.fieldNameMap = inputFieldIndexes
@@ -138,11 +138,21 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
         ec.fieldNameMap(k) = shiftedIdx
       }
     }
-    Try { convert(fromInputType(i), reuse) } match {
-      case Success(s) => Some(s)
-      case Failure(t) =>
-        logger.warn("Failed to parse input", t)
-        None
+    try {
+      val attributeArrays = fromInputType(i)
+      attributeArrays.flatMap { attributes =>
+        try {
+          Some(convert(attributes, reuse))
+        } catch {
+          case e: Exception =>
+            logger.warn("Failed to convert input", e)
+            None
+        }
+      }
+    } catch {
+      case e: Exception =>
+        logger.warn("Failed to parse input", e)
+        Seq.empty
     }
   }
 

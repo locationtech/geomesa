@@ -44,9 +44,9 @@ class AvroSimpleFeatureConverter(avroSchema: Schema,
   var decoder: BinaryDecoder = null
   var recordReuse: GenericRecord = null
 
-  override def fromInputType(bytes: Array[Byte]): Array[Any] = {
+  override def fromInputType(bytes: Array[Byte]): Seq[Array[Any]] = {
     decoder = DecoderFactory.get.binaryDecoder(bytes, decoder)
-    Array(bytes, reader.read(recordReuse, decoder))
+    Seq(Array(bytes, reader.read(recordReuse, decoder)))
   }
 
 }
