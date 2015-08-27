@@ -33,6 +33,7 @@
         <module>geomesa-convert-common</module>
         <module>geomesa-convert-text</module>
         <module>geomesa-convert-fixedwidth</module>
+        <module>geomesa-convert-xml</module>
     </modules>
 
 </project>
