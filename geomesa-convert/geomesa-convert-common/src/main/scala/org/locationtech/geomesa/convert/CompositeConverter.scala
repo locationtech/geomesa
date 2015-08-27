@@ -49,7 +49,7 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType,
   }
 
   // noop
-  override def processSingleInput(i: I, gParams: Map[String, Any] = Map.empty)(implicit ec: EvaluationContext): Option[SimpleFeature] = null
+  override def processSingleInput(i: I, gParams: Map[String, Any] = Map.empty)(implicit ec: EvaluationContext): Seq[SimpleFeature] = null
 
   private val mutableArray = Array.ofDim[Any](1)
 
@@ -62,8 +62,8 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType,
       Try {
         mutableArray(0) = input
         pred.eval(mutableArray)
-      }.toOption
+      }.toOption.toSeq
 
-    opt.flatMap { v => if (v) conv.processSingleInput(input, gParams)(ec) else None }
+    opt.flatMap { v => if (v) conv.processSingleInput(input, gParams)(ec) else Seq.empty }
   }
 }
