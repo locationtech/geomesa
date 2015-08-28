@@ -16,6 +16,7 @@ import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat
 import org.apache.accumulo.core.client.mapreduce.lib.util.{ConfiguratorBase, InputConfigurator}
+import org.apache.accumulo.core.security.Authorizations
 import org.apache.accumulo.core.util.{Pair => AccPair}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
@@ -25,7 +26,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 import org.geotools.data._
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.features.SimpleFeatureSerializers
 import org.locationtech.geomesa.features.kryo.serialization.SimpleFeatureSerializer
@@ -110,8 +111,11 @@ object GeoMesaSpark extends Logging {
 
     query.getHints.getTransformSchema.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
 
-    sc.newAPIHadoopRDD(conf, classOf[GeoMesaInputFormat], classOf[Text], classOf[SimpleFeature]).map(U => U._2)
+    // Configure Auths from DS
+    val auths = Option(AccumuloDataStoreFactory.params.authsParam.lookUp(dsParams).asInstanceOf[String])
+    auths.foreach(a => InputConfigurator.setScanAuthorizations(classOf[AccumuloInputFormat], conf, new Authorizations(a.split(","): _*)))
 
+    sc.newAPIHadoopRDD(conf, classOf[GeoMesaInputFormat], classOf[Text], classOf[SimpleFeature]).map(U => U._2)
   }
 
   /**
