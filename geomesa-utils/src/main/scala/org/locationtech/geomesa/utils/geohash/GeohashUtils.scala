@@ -520,13 +520,11 @@ object GeohashUtils
       }
 
       if (numBoxes==0)
-        throw UnsatisfiedConstraintsException(s"Could not satisfy constraints, resolutions $resolutions, constraints $constraints.")
+        throw new IllegalArgumentException(s"Could not satisfy constraints, resolutions $resolutions, constraints $constraints.")
 
       RecommendedResolution(maxBits, numBoxes)
     }
   }
-
-  case class UnsatisfiedConstraintsException(message: String) extends Exception(message)
 
   // represents a degenerate (empty) geometry
   lazy val emptyGeometry = WKTUtils.read("POLYGON((0 0,0 0,0 0,0 0,0 0))")
