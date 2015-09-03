@@ -17,7 +17,6 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import scala.collection.BitSet
 import scala.collection.immutable.HashSet
 import scala.collection.immutable.Range.Inclusive
-import scala.collection.mutable.{HashSet => MutableHashSet}
 import scala.util.control.Exception.catching
 
 /**
@@ -521,7 +520,7 @@ object GeohashUtils
       }
 
       if (numBoxes==0)
-        throw new Exception("Could not satisfy constraints, resolutions " + resolutions + ", constraints " + constraints + ".")
+        throw new IllegalArgumentException(s"Could not satisfy constraints, resolutions $resolutions, constraints $constraints.")
 
       RecommendedResolution(maxBits, numBoxes)
     }
