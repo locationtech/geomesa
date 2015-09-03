@@ -112,7 +112,7 @@ class AccumuloDataStore(val connector: Connector,
   private val validated = new mutable.HashMap[String, String]()
                               with mutable.SynchronizedMap[String, String]
 
-  private val metadata: GeoMesaMetadata =
+  private[data] val metadata: GeoMesaMetadata =
     new AccumuloBackedMetadata(connector, catalogTable, writeVisibilities, authorizationsProvider)
 
   private val visibilityCheckCache = new mutable.HashMap[(String, String), Boolean]()

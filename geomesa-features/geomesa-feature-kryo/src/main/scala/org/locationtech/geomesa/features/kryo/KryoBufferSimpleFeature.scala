@@ -42,8 +42,9 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
   private var userDataOffset: Int = -1
 
   private var binaryTransform: () => Array[Byte] = input.getBuffer
+  private var reserializeTransform: () => Array[Byte] = input.getBuffer
 
-  def transform(): Array[Byte] = binaryTransform()
+  def transform(): Array[Byte] = if (offsets.contains(-1)) reserializeTransform() else binaryTransform()
 
   def setBuffer(bytes: Array[Byte]) = {
     input.setBuffer(bytes)
@@ -62,11 +63,27 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
 
   def setTransforms(transforms: String, transformSchema: SimpleFeatureType) = {
     val tdefs = TransformProcess.toDefinition(transforms)
-    // if we have new attributes in the sft that weren't serialized, the binary transform becomes complicated,
-    // so just fall back to the normal expression evaluation
-    val isSimpleMapping = tdefs.forall(_.expression.isInstanceOf[PropertyName]) && !offsets.contains(-1)
+
+    // transforms by evaluating the transform expressions and then serializing the resulting feature
+    // we use this for transform expressions and for data that was written using an old schema
+    reserializeTransform = {
+      val serializer = new KryoFeatureSerializer(transformSchema)
+      val sf = new ScalaSimpleFeature("", transformSchema)
+      () => {
+        sf.getIdentifier.setID(getID)
+        var i = 0
+        while (i < tdefs.size) {
+          sf.setAttribute(i, tdefs(i).expression.evaluate(this))
+          i += 1
+        }
+        serializer.serialize(sf)
+      }
+    }
+
+    // if we are just returning a subset of attributes, we can copy the bytes directly and avoid creating
+    // new objects, reserializing, etc
+    val isSimpleMapping = tdefs.forall(_.expression.isInstanceOf[PropertyName])
     binaryTransform = if (isSimpleMapping) {
-      // simple mapping of existing fields - we can array copy the existing data without parsing it
       val indices = transformSchema.getAttributeDescriptors.map(d => sft.indexOf(d.getLocalName))
       () => {
         val buf = input.getBuffer
@@ -89,18 +106,7 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
         dst
       }
     } else {
-      // not just a mapping, but has actual functions/transforms - we have to evaluate the expressions
-      val serializer = new KryoFeatureSerializer(transformSchema)
-      val sf = new ScalaSimpleFeature("reusable", transformSchema)
-      () => {
-        sf.getIdentifier.setID(getID)
-        var i = 0
-        while (i < tdefs.size) {
-          sf.setAttribute(i, tdefs(i).expression.evaluate(this))
-          i += 1
-        }
-        serializer.serialize(sf)
-      }
+      reserializeTransform
     }
   }
 
