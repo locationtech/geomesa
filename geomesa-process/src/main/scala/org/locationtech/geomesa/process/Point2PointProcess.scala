@@ -1,8 +1,15 @@
+/***********************************************************************
+* Copyright (c) 2013-2015 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0 which
+* accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
+
 package org.locationtech.geomesa.process
 
 import java.util.Date
 
-import com.vividsolutions.jts.geom.Point
 import org.geotools.data.DataUtilities
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
@@ -16,12 +23,10 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.GeometryType
 import org.opengis.feature.simple.SimpleFeature
 
-import scala.util.Try
-
-@DescribeProcess(title = "Point2PointProcess", description = "Aggregates a collection of points into a linestring.")
+@DescribeProcess(title = "Point2PointProcess", description = "Aggregates a collection of points into a collection of line segments")
 class Point2PointProcess extends VectorProcess {
 
-  private val baseType = SimpleFeatureTypes.createType("geomesa", "point2point", "length:Double,*ls:LineString:srid=4326")
+  private val baseType = SimpleFeatureTypes.createType("geomesa", "point2point", "*ls:LineString:srid=4326")
   private val gf = JTSFactoryFinder.getGeometryFactory
 
   @DescribeResult(name = "result", description = "Aggregated feature collection")
@@ -42,7 +47,7 @@ class Point2PointProcess extends VectorProcess {
                @DescribeParameter(name = "breakOnDay", description = "Break connections on day marks")
                breakOnDay: Boolean,
 
-               @DescribeParameter(name = "filterSingularPoints", description = "Filter on groups that all fall on the same point", defaultValue = "true")
+               @DescribeParameter(name = "filterSingularPoints", description = "Filter out segments that fall on the same point", defaultValue = "true")
                filterSingularPoints: Boolean
 
                ): SimpleFeatureCollection = {
@@ -54,15 +59,13 @@ class Point2PointProcess extends VectorProcess {
     val queryType = data.getSchema
     val sftBuilder = new SimpleFeatureTypeBuilder()
     sftBuilder.init(baseType)
-    queryType.getAttributeDescriptors
-      .filterNot { _.getType.isInstanceOf[GeometryType] }
-      .foreach { attr => sftBuilder.add(attr) }
+    val groupingFieldIndex = data.getSchema.indexOf(groupingField)
+    sftBuilder.add(queryType.getAttributeDescriptors.get(groupingFieldIndex))
 
     val sft = sftBuilder.buildFeatureType()
 
     val builder = new SimpleFeatureBuilder(sft)
 
-    val groupingFieldIndex = data.getSchema.indexOf(groupingField)
     val sortFieldIndex = data.getSchema.indexOf(sortField)
 
     val lineFeatures =
@@ -74,7 +77,7 @@ class Point2PointProcess extends VectorProcess {
         val globalSorted = coll.sortBy(_.get(sortFieldIndex).asInstanceOf[java.util.Date])
 
         val groups =
-          if(!breakOnDay) Array(globalSorted)
+          if (!breakOnDay) Array(globalSorted)
           else
             globalSorted
               .groupBy { f => getDayOfYear(sortFieldIndex, f) }
@@ -82,18 +85,19 @@ class Point2PointProcess extends VectorProcess {
               .map { case (_, g) => g }.toArray
 
         val results = groups.flatMap { sorted =>
-          Try {
-            val pts = sorted.map(_.getDefaultGeometry.asInstanceOf[Point].getCoordinate)
-            val ls = gf.createLineString(pts.toArray)
-            val length = pts.sliding(2, 1).map { case List(s, e) => JTS.orthodromicDistance(s, e, DefaultGeographicCRS.WGS84) }.sum
-            val sf = builder.buildFeature(group)
-            sf.setAttributes(Array[AnyRef](Double.box(length), ls) ++ sorted.head.getAttributes)
-            sf
-          }.toOption
+          sorted.sliding(2).zipWithIndex.map { case (ptLst, idx) =>
+            import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
+            val pts = ptLst.map(_.point.getCoordinate)
+            val length = JTS.orthodromicDistance(pts.head, pts.last, DefaultGeographicCRS.WGS84)
+
+            val group = ptLst.head.getAttribute(groupingFieldIndex)
+            val sf = builder.buildFeature(s"$group-$idx", Array[AnyRef](gf.createLineString(pts.toArray), group))
+            (length, sf)
+          }
         }
 
-        if(filterSingularPoints) results.filter(_.getAttribute("length").asInstanceOf[Double] > 0.0)
-        else results
+        if (filterSingularPoints) results.filter(_._1 > 0.0).map(_._2)
+        else results.map(_._2)
       }
 
     DataUtilities.collection(lineFeatures.toArray)
