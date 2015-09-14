@@ -60,7 +60,6 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with Loggin
 
     val descriptor = sft.getDescriptor(attributeSftIndex)
     val transform = hints.getTransformSchema
-    val attributeName = descriptor.getLocalName
     val hasDupes = descriptor.isMultiValued
 
     val attrTable = acc.getTableName(sft.getTypeName, AttributeTable)

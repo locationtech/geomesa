@@ -217,6 +217,13 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends Logging {
       // this is a full table scan, we can just append the OR to the secondary filter
       val secondary = orOption(mergeTo.secondary.toSeq ++ andOption(toMerge.primary ++ toMerge.secondary.toSeq))
       mergeTo.copy(secondary = secondary)
+    } else if(toMerge.strategy == StrategyType.ATTRIBUTE && mergeTo.strategy == StrategyType.ATTRIBUTE) {
+      // if we have disjoint attribute queries with the same secondary filter, merge into a multi-range query
+      (toMerge.secondary, mergeTo.secondary) match {
+        case (Some(f1), Some(f2)) if f1.equals(f2) => mergeTo.copy(primary = mergeTo.primary ++ toMerge.primary)
+        case (None, None)                          => mergeTo.copy(primary = mergeTo.primary ++ toMerge.primary)
+        case _                                     => null
+      } 
     } else {
       // TODO we could technically check for overlapping geoms, date ranges, attribute ranges, etc
       // not sure it's worth it though
