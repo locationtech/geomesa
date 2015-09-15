@@ -20,6 +20,7 @@ import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index.{JoinPlan, QueryPlan}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaInputFormat._
+import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 
 import scala.io.Source
 import scala.util.Try
@@ -38,10 +39,10 @@ object JobUtils extends Logging {
 
   // paths are in order of preference for finding a jar
   def defaultSearchPath: Iterator[() => Seq[File]] =
-    Iterator(() => getJarsFromEnvironment("GEOMESA_HOME"),
-             () => getJarsFromEnvironment("ACCUMULO_HOME"),
-             () => getJarsFromClasspath(classOf[AccumuloDataStore]),
-             () => getJarsFromClasspath(classOf[Connector]))
+    Iterator(() => ClassPathUtils.getJarsFromEnvironment("GEOMESA_HOME"),
+             () => ClassPathUtils.getJarsFromEnvironment("ACCUMULO_HOME"),
+             () => ClassPathUtils.getJarsFromClasspath(classOf[AccumuloDataStore]),
+             () => ClassPathUtils.getJarsFromClasspath(classOf[Connector]))
 
   /**
    * Sets the libjars into a Hadoop configuration. Will search the environment first, then the
@@ -53,70 +54,11 @@ object JobUtils extends Logging {
   def setLibJars(conf: Configuration,
                  libJars: Seq[String] = defaultLibJars,
                  searchPath: Iterator[() => Seq[File]] = defaultSearchPath): Unit = {
-    val foundJars = scala.collection.mutable.Set.empty[String]
-    var remaining = libJars
-    // search each path in order until we've found all our jars
-    while (!remaining.isEmpty && searchPath.hasNext) {
-      val urls = searchPath.next()()
-      remaining = remaining.filter { jarPrefix =>
-        val matched = urls.filter(url => url.getName.startsWith(jarPrefix))
-        foundJars ++= matched.map(url => "file:///" + url.getAbsolutePath)
-        matched.isEmpty
-      }
-    }
-
-    if (!remaining.isEmpty) {
-      logger.warn(s"Could not find required jars: $remaining")
-    }
-
+    val paths = ClassPathUtils.findJars(libJars, searchPath).map(f => "file:///" + f.getAbsolutePath)
     // tmpjars is the hadoop config that corresponds to libjars
-    conf.setStrings("tmpjars", foundJars.toSeq: _*)
-
-    logger.debug(s"Job will use the following libjars=${foundJars.mkString("\n", "\n", "")}")
+    conf.setStrings("tmpjars", paths: _*)
+    logger.debug(s"Job will use the following libjars=${paths.mkString("\n", "\n", "")}")
   }
-
-  /**
-   * Finds URLs of jar files based on an environment variable
-   *
-   * @param home
-   * @return
-   */
-  def getJarsFromEnvironment(home: String): Seq[File] =
-    sys.env.get(home)
-      .map(f => new File(new File(f), "lib"))
-      .filter(_.isDirectory)
-      .toSeq
-      .flatMap(loadJarsFromFolder)
-
-  /**
-   * Finds URLs of jar files based on the current classpath
-   *
-   * @param clas
-   * @return
-   */
-  def getJarsFromClasspath(clas: Class[_]): Seq[File] = {
-    val urls = clas.getClassLoader.asInstanceOf[URLClassLoader].getURLs
-    urls.map(u => new File(cleanClassPathURL(u.getFile)))
-  }
-
-  /**
-   * Recursively searches folders for jar files
-   *
-   * @param dir
-   * @return
-   */
-  def loadJarsFromFolder(dir: File): Seq[File] = {
-    val files = Option(dir.listFiles(new FilenameFilter() {
-      override def accept(dir: File, name: String) =
-        name.endsWith(".jar") && !name.endsWith("-sources.jar") && !name.endsWith("-javadoc.jar")
-    })).toSeq.flatten
-    files ++ Option(dir.listFiles(new FileFilter() {
-      override def accept(pathname: File) = pathname.isDirectory
-    })).toSeq.flatten.flatMap(loadJarsFromFolder)
-  }
-
-  def cleanClassPathURL(url: String): String =
-    URLDecoder.decode(url, "UTF-8").replace("file:", "").replace("!", "")
 
   /**
    * Gets a query plan that can be satisfied via AccumuloInputFormat - e.g. only 1 table and configuration.

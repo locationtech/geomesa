@@ -11,6 +11,7 @@ package org.locationtech.geomesa.web.core
 import javax.servlet.ServletContext
 import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse}
 
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory
 import org.scalatra.ScalatraServlet
 import org.scalatra.servlet.RichServletContext
 import org.springframework.context.{ApplicationContext, ApplicationContextAware}
@@ -26,6 +27,9 @@ trait GeoMesaScalatraServlet extends ScalatraServlet {
     case r: HttpServletRequestWrapper => super.handle(r.getRequest.asInstanceOf[HttpServletRequest], res)
     case _ => super.handle(req, res)
   }
+
+  def datastoreParams: Map[String, String] =
+    GeoMesaScalatraServlet.dsKeys.flatMap(k => params.get(k).map(k -> _)).toMap
 }
 
 class SpringScalatraBootstrap
@@ -43,5 +47,28 @@ class SpringScalatraBootstrap
       println(s"Mounting servlet bean '$name' at path '/$rootPath/${servlet.root}'")
       richCtx.mount(servlet, s"/$rootPath/${servlet.root}/*")
     }
+  }
+}
+
+object GeoMesaScalatraServlet {
+
+  val dsKeys = {
+    import AccumuloDataStoreFactory.params._
+    Seq(
+      instanceIdParam,
+      zookeepersParam,
+      userParam,
+      passwordParam,
+      authsParam,
+      visibilityParam,
+      tableNameParam,
+      queryTimeoutParam,
+      queryThreadsParam,
+      recordThreadsParam,
+      writeMemoryParam,
+      writeThreadsParam,
+      statsParam,
+      cachingParam
+    ).map(_.getName)
   }
 }

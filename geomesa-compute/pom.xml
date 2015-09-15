@@ -30,6 +30,18 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-jobs</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.twitter</groupId>
+                    <artifactId>scalding-core_2.10</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.metamodel</groupId>
+            <artifactId>MetaModel-pojo</artifactId>
+            <version>4.3.6</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.accumulo</groupId>
@@ -41,22 +53,40 @@
             <artifactId>accumulo-start</artifactId>
             <scope>compile</scope>
         </dependency>
+        <!-- spark compatible version of apache curator -->
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+            <version>2.4.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>14.0.1</version>
+            <scope>compile</scope>
+        </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_2.10</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>14.0.1</version>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-catalyst_2.10</artifactId>
+            <version>${spark.version}</version>
             <scope>provided</scope>
         </dependency>
-        <!-- spark compatible version of apache curator -->
         <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-recipes</artifactId>
-            <version>2.4.0</version>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql_2.10</artifactId>
+            <version>${spark.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-yarn_2.10</artifactId>
+            <version>${spark.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -68,10 +98,12 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
@@ -80,12 +112,6 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.json4s</groupId>
-            <artifactId>json4s-ast_2.10</artifactId>
-            <version>3.2.10</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
