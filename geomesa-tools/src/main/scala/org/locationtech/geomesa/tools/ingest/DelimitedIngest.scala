@@ -24,6 +24,7 @@ import org.locationtech.geomesa.tools.Utils.{IngestParams, Modes}
 import org.locationtech.geomesa.tools.commands.IngestCommand.IngestParameters
 import org.locationtech.geomesa.tools.ingest.DelimitedIngest._
 import org.locationtech.geomesa.tools.{AccumuloProperties, FeatureCreator}
+import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -80,11 +81,11 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
   }
 
   def ingestJarSearchPath: Iterator[() => Seq[File]] =
-    Iterator(() => JobUtils.getJarsFromEnvironment("GEOMESA_HOME"),
-      () => JobUtils.getJarsFromEnvironment("ACCUMULO_HOME"),
-      () => JobUtils.getJarsFromClasspath(classOf[ScaldingDelimitedIngestJob]),
-      () => JobUtils.getJarsFromClasspath(classOf[AccumuloDataStore]),
-      () => JobUtils.getJarsFromClasspath(classOf[Connector]))
+    Iterator(() => ClassPathUtils.getJarsFromEnvironment("GEOMESA_HOME"),
+      () => ClassPathUtils.getJarsFromEnvironment("ACCUMULO_HOME"),
+      () => ClassPathUtils.getJarsFromClasspath(classOf[ScaldingDelimitedIngestJob]),
+      () => ClassPathUtils.getJarsFromClasspath(classOf[AccumuloDataStore]),
+      () => ClassPathUtils.getJarsFromClasspath(classOf[Connector]))
 
   def getScaldingArgs(): Args = {
     val singleArgs = List(classOf[ScaldingDelimitedIngestJob].getCanonicalName, getModeFlag(params.files(0)))

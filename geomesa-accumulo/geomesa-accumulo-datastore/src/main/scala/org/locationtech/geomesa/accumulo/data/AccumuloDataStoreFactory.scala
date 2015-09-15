@@ -15,8 +15,6 @@ import java.util.{Map => JMap}
 import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, PasswordToken}
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
 import org.locationtech.geomesa.accumulo.stats.StatWriter
@@ -181,27 +179,4 @@ object AccumuloDataStoreFactory {
 
   def canProcess(params: JMap[String,Serializable]): Boolean =
     params.containsKey(instanceIdParam.key) || params.containsKey(connParam.key)
-
-  def configureJob(job: Job, params: JMap[String, Serializable]): Job = {
-    val conf = job.getConfiguration
-
-    conf.set(ZOOKEEPERS, zookeepersParam.lookUp(params).asInstanceOf[String])
-    conf.set(INSTANCE_ID, instanceIdParam.lookUp(params).asInstanceOf[String])
-    conf.set(ACCUMULO_USER, userParam.lookUp(params).asInstanceOf[String])
-    conf.set(ACCUMULO_PASS, passwordParam.lookUp(params).asInstanceOf[String])
-    conf.set(TABLE, tableNameParam.lookUp(params).asInstanceOf[String])
-    authsParam.lookupOpt[String](params).foreach(ap => conf.set(AUTHS, ap))
-    visibilityParam.lookupOpt[String](params).foreach(vis => conf.set(VISIBILITY, vis))
-
-    job
-  }
-
-  def getMRAccumuloConnectionParams(conf: Configuration): JMap[String, AnyRef] =
-    Map(zookeepersParam.key   -> conf.get(ZOOKEEPERS),
-      instanceIdParam.key     -> conf.get(INSTANCE_ID),
-      userParam.key           -> conf.get(ACCUMULO_USER),
-      passwordParam.key       -> conf.get(ACCUMULO_PASS),
-      tableNameParam.key      -> conf.get(TABLE),
-      authsParam.key          -> conf.get(AUTHS),
-      visibilityParam.key     -> conf.get(VISIBILITY))
 }

@@ -53,6 +53,7 @@
         <hadoop.version>2.2.0</hadoop.version>
         <thrift.version>0.9.1</thrift.version>
         <scalding.version>0.13.1</scalding.version>
+        <spark.version>1.5.0</spark.version>
 
         <!-- logging properties
              we expect logging jars to be provided -->
@@ -637,7 +638,7 @@
             <dependency>
                 <groupId>org.apache.spark</groupId>
                 <artifactId>spark-core_2.10</artifactId>
-                <version>1.1.0</version>
+                <version>${spark.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
