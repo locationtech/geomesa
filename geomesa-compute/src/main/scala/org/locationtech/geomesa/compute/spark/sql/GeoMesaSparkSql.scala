@@ -15,12 +15,12 @@ import java.util.{Date, List => jList, Map => jMap, UUID}
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.hadoop.conf.Configuration
-import org.apache.metamodel.{query, DataContext}
 import org.apache.metamodel.query.FilterClause
+import org.apache.metamodel.{DataContext, query}
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Row, _}
 import org.apache.spark.{SparkConf, SparkContext}
-import org.geotools.data.{DataUtilities, DataStoreFinder, Query}
+import org.geotools.data.{DataStoreFinder, DataUtilities, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.DuplicatingFilterVisitor
@@ -45,12 +45,12 @@ object GeoMesaSparkSql extends Logging {
   private val ff = CommonFactoryFinder.getFilterFactory2
 
   // state to keep track of our sfts and data store connection parameters
-  private val sftsByName = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
-  private val paramsBySft = scala.collection.mutable.Map.empty[SimpleFeatureType, Map[String, String]]
+  private val dsParams = scala.collection.mutable.Set.empty[Map[String, String]]
+  private val sfts = scala.collection.mutable.Set.empty[SimpleFeatureType]
 
   // singleton spark context
   private var sc: SparkContext = null
-  private var dataContext: GeoMesaDataContext = null
+  private var sparkSql: GeoMesaSparkSql = null
   private var running = false
   private val executing = new AtomicInteger(0)
 
@@ -62,11 +62,8 @@ object GeoMesaSparkSql extends Logging {
     require(!running, "Can't register a data store in a running instance")
     val ds = DataStoreFinder.getDataStore(params)
     require(ds != null, "No data store found using provided parameters")
-    ds.getTypeNames.foreach { name =>
-      val schema = ds.getSchema(name)
-      sftsByName.put(name, schema)
-      paramsBySft.put(schema, params)
-    }
+    dsParams += params
+    sfts ++= ds.getTypeNames.map(ds.getSchema)
   }
 
   /**
@@ -78,13 +75,13 @@ object GeoMesaSparkSql extends Logging {
       logger.debug("Trying to start an already started instance")
       false
     } else {
-      val conf = GeoMesaSpark.init(new SparkConf(), sftsByName.values.toSeq)
+      val conf = GeoMesaSpark.init(new SparkConf(), sfts.toSeq)
       conf.setAppName("GeoMesaSql")
       conf.setMaster("yarn-client")
       conf.setJars(distributedJars)
       configs.foreach { case (k, v) => conf.set(k, v) }
       sc = new SparkContext(conf)
-      dataContext = new GeoMesaDataContext(sftsByName.toMap)
+      sparkSql = new GeoMesaSparkSql(sc, dsParams.toSeq)
       running = true
       true
     }
@@ -111,7 +108,7 @@ object GeoMesaSparkSql extends Logging {
       }
       sc.stop()
       sc = null
-      dataContext = null
+      sparkSql = null
       running = false
     } else {
       logger.debug("Trying to stop an already stopped instance")
@@ -133,73 +130,7 @@ object GeoMesaSparkSql extends Logging {
     require(canStart, "Can only execute in a running instance")
 
     try {
-      val parsedSql = dataContext.parseQuery(sql)
-
-      // extract the feature types from the from clause
-      val typeNames = parsedSql.getFromClause.getItems.map(_.getTable.getName)
-      val sfts = typeNames.map(sftsByName.apply)
-
-      // extract the cql from the where clause
-      val where = parsedSql.getWhereClause
-      val cql = extractCql(where, dataContext, typeNames)
-      // clear out the cql from the where clause so spark doesn't try to parse it
-      // if it' a sql expression, the expression field will be null
-      // otherwise it has the raw expression, which we assume is cql
-      where.getItems.filter(_.getExpression != null).foreach(where.removeItem)
-      val sqlWithoutCql = parsedSql.toSql
-
-      // restrict the attributes coming back to speed up the query
-      val attributesByType = extractAttributeNames(parsedSql, cql)
-
-      val sqlContext = new SQLContext(sc)
-
-      // for each input sft, set up the sql table with the results from querying geomesa with the cql filter
-      sfts.foreach { case sft =>
-        val typeName = sft.getTypeName
-        val params = paramsBySft(sft)
-        val allAttributes = sft.getAttributeDescriptors.map(_.getLocalName)
-        val attributes = {
-          val extracted = attributesByType(typeName).toList
-          if (extracted.sorted == allAttributes.sorted) {
-            None // if we've got all attributes, we don't need a transform
-          } else {
-            Some(extracted.toArray)
-          }
-        }
-        val filter = cql.getOrElse(typeName, Filter.INCLUDE)
-        val query = new Query(typeName, filter)
-        attributes.foreach(query.setPropertyNames)
-
-        // generate the sql schema based on the sft/query attributes
-        val fields = attributes.getOrElse(allAttributes.toArray).map { field =>
-          StructField(field, types(sft.getDescriptor(field)), nullable = true)
-        }
-        val schema = StructType(fields)
-
-        // create an rdd from the query
-        val features = GeoMesaSpark.rdd(new Configuration(), sc, params, query, splits)
-
-        // convert records to rows - convert the values to sql-compatible ones
-        val rowRdd = features.map { f =>
-          val sqlAttributes = f.getAttributes.map {
-            case g: Geometry => WKTUtils.write(g) // text
-            case d: Date     => new Timestamp(d.getTime) // sql timestamp
-            case u: UUID     => u.toString // text
-            case a           => a // others should map natively without explict conversion
-          }
-          Row(sqlAttributes: _*)
-        }
-
-        // apply the schema to the rdd
-        val featuresDataFrame = sqlContext.createDataFrame(rowRdd, schema)
-
-        // register the data frame as a table, so that it's available to the sql engine
-        featuresDataFrame.registerTempTable(typeName)
-      }
-
-      // run the sql statement against our registered tables
-      val results = sqlContext.sql(sqlWithoutCql)
-
+      val results = sparkSql.query(sql, splits)
       // return the result schema and rows
       (results.schema, results.collect())
     } finally {
@@ -292,6 +223,92 @@ object GeoMesaSparkSql extends Logging {
     } else {
       throw new NotImplementedError(s"Binding $clas is not supported")
     }
+  }
+}
+
+class GeoMesaSparkSql(sc: SparkContext, dsParams: Seq[Map[String, String]]) {
+
+  // load up our sfts
+  val sftsByName = dsParams.flatMap { params =>
+    val ds = DataStoreFinder.getDataStore(params)
+    require(ds != null, "No data store found using provided parameters")
+    ds.getTypeNames.map { name =>
+      val schema = ds.getSchema(name)
+      name -> (schema,  params)
+    }
+  }.foldLeft(Map.empty[String, (SimpleFeatureType, Map[String, String])])(_ + _)
+
+  private val dataContext = new GeoMesaDataContext(sftsByName.mapValues(_._1))
+
+  /**
+   * Execute a sql query against geomesa. Where clause is interpreted as CQL.
+   */
+  def query(sql: String, splits: Option[Int]): DataFrame = {
+    val parsedSql = dataContext.parseQuery(sql)
+
+    // extract the feature types from the from clause
+    val typeNames = parsedSql.getFromClause.getItems.map(_.getTable.getName)
+    val sftsWithParams = typeNames.map(sftsByName.apply)
+
+    // extract the cql from the where clause
+    val where = parsedSql.getWhereClause
+    val cql = GeoMesaSparkSql.extractCql(where, dataContext, typeNames)
+    // clear out the cql from the where clause so spark doesn't try to parse it
+    // if it' a sql expression, the expression field will be null
+    // otherwise it has the raw expression, which we assume is cql
+    where.getItems.filter(_.getExpression != null).foreach(where.removeItem)
+    val sqlWithoutCql = parsedSql.toSql
+
+    // restrict the attributes coming back to speed up the query
+    val attributesByType = GeoMesaSparkSql.extractAttributeNames(parsedSql, cql)
+
+    val sqlContext = new SQLContext(sc)
+
+    // for each input sft, set up the sql table with the results from querying geomesa with the cql filter
+    sftsWithParams.foreach { case (sft, params) =>
+      val typeName = sft.getTypeName
+      val allAttributes = sft.getAttributeDescriptors.map(_.getLocalName)
+      val attributes = {
+        val extracted = attributesByType(typeName).toList
+        if (extracted.sorted == allAttributes.sorted) {
+          None // if we've got all attributes, we don't need a transform
+        } else {
+          Some(extracted.toArray)
+        }
+      }
+      val filter = cql.getOrElse(typeName, Filter.INCLUDE)
+      val query = new Query(typeName, filter)
+      attributes.foreach(query.setPropertyNames)
+
+      // generate the sql schema based on the sft/query attributes
+      val fields = attributes.getOrElse(allAttributes.toArray).map { field =>
+        StructField(field, GeoMesaSparkSql.types(sft.getDescriptor(field)), nullable = true)
+      }
+      val schema = StructType(fields)
+
+      // create an rdd from the query
+      val features = GeoMesaSpark.rdd(new Configuration(), sc, params, query, splits)
+
+      // convert records to rows - convert the values to sql-compatible ones
+      val rowRdd = features.map { f =>
+        val sqlAttributes = f.getAttributes.map {
+          case g: Geometry => WKTUtils.write(g) // text
+          case d: Date     => new Timestamp(d.getTime) // sql timestamp
+          case u: UUID     => u.toString // text
+          case a           => a // others should map natively without explict conversion
+        }
+        Row(sqlAttributes: _*)
+      }
+
+      // apply the schema to the rdd
+      val featuresDataFrame = sqlContext.createDataFrame(rowRdd, schema)
+
+      // register the data frame as a table, so that it's available to the sql engine
+      featuresDataFrame.registerTempTable(typeName)
+    }
+
+    // run the sql statement against our registered tables
+    sqlContext.sql(sqlWithoutCql)
   }
 }
 
