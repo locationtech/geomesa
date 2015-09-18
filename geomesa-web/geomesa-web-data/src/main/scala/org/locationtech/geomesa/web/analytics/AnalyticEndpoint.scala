@@ -52,12 +52,25 @@ class AnalyticEndpoint(persistence: FilePersistence) extends GeoMesaScalatraServ
     val url = Option(getClass.getClassLoader.getResource("spark-jars.list"))
         .getOrElse(getClass.getClassLoader.getResource("spark-jars-default.list"))
     val source = Source.fromURL(url)
-    val jars = try source.getLines().toList finally source.close()
+    val jars = try { source.getLines().toList } finally { source.close() }
     val searchLocations = Iterator(
       () => ClassPathUtils.getJarsFromClasspath(classOf[AnalyticEndpoint]),
-      () => ClassPathUtils.getJarsFromClasspath(classOf[HttpServletRequest])
+      () => ClassPathUtils.getJarsFromClasspath(classOf[HttpServletRequest]),
+      // jboss classloaders don't allow us to get jars out... instead just use the filesystem
+      () => ClassPathUtils.getJarsFromEnvironment("JBOSS_HOME")
     )
     ClassPathUtils.findJars(jars, searchLocations).map(_.getAbsolutePath)
+  }
+
+  // explicit reference to the spark jar - this is needed b/c spark can't find itself with jboss' classloading
+  lazy val jbossSparkJar = {
+    // this will match the default geomesa-assembly - for a custom install you can specify
+    // the jar along with the other configs, which will override this
+    val jbossJars = ClassPathUtils.getJarsFromEnvironment("JBOSS_HOME")
+    val sparkJar = jbossJars.find { jar =>
+      jar.getName.startsWith("spark-") && jar.getName.endsWith("-geomesa-assembly.jar")
+    }
+    sparkJar.map(j => Map("spark.yarn.jar" -> j.getAbsolutePath))
   }
 
   before() {
@@ -271,7 +284,14 @@ class AnalyticEndpoint(persistence: FilePersistence) extends GeoMesaScalatraServ
   /**
    * Gets spark configs
    */
-  private def sparkConfigs: Map[String, String] = getEntriesForPrefix("spark-config.")
+  private def sparkConfigs: Map[String, String] = {
+    val configs = getEntriesForPrefix("spark-config.")
+    // explicitly reference the spark jar - this is needed for jboss
+    jbossSparkJar match {
+      case None    => configs
+      case Some(j) => j ++ configs // allow for configs to override spark jar
+    }
+  }
 
   /**
    * Save spark configs

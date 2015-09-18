@@ -27,10 +27,14 @@ Please note GeoMesa does not bundle Spark by default, and that Spark has not bee
 under the GeoMesa license.
 
 You will need hadoop and slf4j jars that are compatible with your spark install. For a full list of jars
-from a working tomcat 7 instance, refer to [Appendix A](#appendix-a-tomcat-jars). Of note, slf4j needs to be version 1.6.1.
+from a working GeoServer instance, refer to [Appendix A](#appendix-a-geoserver-jars). Of note, slf4j needs to be version 1.6.1.
 
 In addition to installing jars, you will need to ensure that the hadoop configuration files are available
-on the classpath. In tomcat, this can be done by editing ```tomcat/bin/setenv.sh```. The exact line will depend
+on the classpath. See the next sections for details.
+
+#### Tomcat Installation
+
+In Tomcat, this can be done by editing ```tomcat/bin/setenv.sh```. The exact line will depend
 on your environment, but it will likely be one of the following:
 
 ```bash
@@ -39,6 +43,30 @@ CLASSPATH="$HADOOP_HOME/conf"
 or
 ```bash
 CLASSPATH="$HADOOP_CONF_DIR"
+```
+
+#### Jboss Installation
+
+In Jboss, the easiest way to get the hadoop files on the classpath is to copy the contents of HADDOP_HOME/conf
+into the exploded GeoServer war file under WEB-INF/classes.
+
+Alternatively, you can add hadoop as a module, as described here: https://developer.jboss.org/wiki/HowToPutAnExternalFileInTheClasspath
+
+You will need to exclude Jboss' custom slf4j module, as this interferes with Spark. To do so, add the
+following exclusion to your GeoServer jboss-deployment-structure.xml:
+
+```xml
+<jboss-deployment-structure xmlns="urn:jboss:deployment-structure:1.1">
+  <deployment>
+    <dependencies>
+        ...
+    </dependencies>
+    <exclusions>
+      <module name="org.jboss.logging.jul-to-slf4j-stub" />
+    </exclusions>
+  </deployment>
+</jboss-deployment-structure>
+
 ```
 
 #### Advanced Configuration
@@ -175,7 +203,7 @@ Join:
 curl --header 'Accept: text/plain' --get --data-urlencode 'q=select mySft.myAttr, myOtherSft.myAttr from mySft, myOtherSft where bbox(mySft.geom, -115, 45, -110, 50) AND mySft.dtg during 2015-03-02T10:00:00.000Z/2015-03-02T11:00:00.000Z AND  bbox(myOtherSft.geom, -115, 45, -110, 50) AND myOtherSft.dtg during 2015-03-02T10:00:00.000Z/2015-03-02T11:00:00.000Z AND mySft.myJoinField = myOtherSft.myJoinField' http://localhost:8080/geoserver/geomesa/analytics/sql
 ```
 
-### Appendix A: Tomcat Jars
+### Appendix A: GeoServer Jars
 
 | jar | size |
 | --- | ---- |

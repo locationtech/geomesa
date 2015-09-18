@@ -53,7 +53,7 @@ object ClassPathUtils extends Logging {
    * @return
    */
   def getJarsFromEnvironment(home: String): Seq[File] =
-    sys.env.get(home).map(f => new File(f, "lib")).filter(_.isDirectory).toSeq.flatMap(loadJarsFromFolder)
+    sys.env.get(home).map(new File(_)).filter(_.isDirectory).toSeq.flatMap(loadJarsFromFolder)
 
   /**
    * Finds URLs of jar files based on the current classpath
@@ -62,11 +62,15 @@ object ClassPathUtils extends Logging {
    * @return
    */
   def getJarsFromClasspath(clas: Class[_]): Seq[File] = {
-    val urls = clas.getClassLoader.asInstanceOf[URLClassLoader].getURLs
-    urls.map(u => new File(cleanClassPathURL(u.getFile)))
+    clas.getClassLoader match {
+      case cl: URLClassLoader => cl.getURLs.map(u => new File(cleanClassPathURL(u.getFile)))
+      case cl =>
+        logger.warn(s"Can't load jars from classloader of type ${cl.getClass.getCanonicalName}")
+        Seq.empty
+    }
   }
 
-  //noinspection AccessorLikeMethodIsEmptyParen
+  // noinspection AccessorLikeMethodIsEmptyParen
   def getJarsFromSystemClasspath(): Seq[File] = {
     val urls = ClassLoader.getSystemClassLoader.asInstanceOf[URLClassLoader].getURLs
     urls.map(u => new File(cleanClassPathURL(u.getFile)))
