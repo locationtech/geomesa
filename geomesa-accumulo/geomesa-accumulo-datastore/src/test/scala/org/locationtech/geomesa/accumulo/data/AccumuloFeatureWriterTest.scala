@@ -429,7 +429,6 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       // trim off table prefix to get the UUIDs
       val rowKeys = rows.map(_.getKey.getRow.toString).map(r => r.substring(r.length - 36))
       rowKeys must haveLength(5)
-      rowKeys.foreach(println)
 
       // ensure that the z3 range is the same
       rowKeys.map(_.substring(0, 18)).toSet must haveLength(1)

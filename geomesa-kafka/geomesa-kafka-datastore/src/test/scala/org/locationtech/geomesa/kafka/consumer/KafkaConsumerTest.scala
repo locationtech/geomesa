@@ -28,6 +28,9 @@ class KafkaConsumerTest extends Specification with HasEmbeddedKafka {
 
   sequential
 
+  // skip embedded kafka tests unless explicitly enabled, they often fail randomly
+  skipAllUnless(sys.props.get(SYS_PROP_RUN_TESTS).exists(_.toBoolean))
+
   def getConsumerConfig(group: String) = {
     val consumerProps = new Properties
     consumerProps.put("group.id", group)

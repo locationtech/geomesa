@@ -30,127 +30,79 @@ import org.opengis.filter._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-@RunWith(classOf[JUnitRunner])
-class AllPredicateTest extends Specification with FilterTester {
-  val filters = goodSpatialPredicates
-  "all predicates" should {
-    "filter correctly" in {
-      runTest()
-    }
-  }
-}
 
 @RunWith(classOf[JUnitRunner])
-class AndGeomsPredicateTest extends FilterTester {
-  val filters = andedSpatialPredicates
-  "and geom predicates" should {
-    "filter correctly" in {
-      runTest()
+class FilterTester extends Specification with TestWithDataStore with Logging {
+
+  override val spec = SimpleFeatureTypes.encodeType(TestData.featureType)
+
+  val mediumDataFeatures: Seq[SimpleFeature] =
+    TestData.mediumData.map(TestData.createSF).map(f => new ScalaSimpleFeature(f.getID, sft, f.getAttributes.toArray))
+
+  addFeatures(mediumDataFeatures)
+
+  "Filters" should {
+    "filter correctly for all predicates" >> {
+      runTest(goodSpatialPredicates)
+    }
+
+    "filter correctly for AND geom predicates" >> {
+      runTest(andedSpatialPredicates)
+    }
+
+    "filter correctly for OR geom predicates" >> {
+      runTest(oredSpatialPredicates)
+    }
+
+    "filter correctly for OR geom predicates with projections" >> {
+      runTest(oredSpatialPredicates, Array("geom"))
+    }
+
+    "filter correctly for basic temporal predicates" >> {
+      runTest(temporalPredicates)
+    }
+
+    "filter correctly for basic spatiotemporal predicates" >> {
+      runTest(spatioTemporalPredicates)
+    }
+
+    "filter correctly for basic spariotemporal predicates with namespaces" >> {
+      runTest(spatioTemporalPredicatesWithNS)
+    }
+
+    "filter correctly for attribute predicates" >> {
+      runTest(attributePredicates)
+    }
+
+    "filter correctly for attribute and geometric predicates" >> {
+      runTest(attributeAndGeometricPredicates)
+    }
+
+    "filter correctly for attribute and geometric predicates with namespaces" >> {
+      runTest(attributeAndGeometricPredicatesWithNS)
+    }
+
+    "filter correctly for DWITHIN predicates" >> {
+      runTest(dwithinPointPredicates)
+    }
+
+    "filter correctly for ID predicates" >> {
+      runTest(idPredicates)
     }
   }
-}
 
-@RunWith(classOf[JUnitRunner])
-class OrGeomsPredicateTest extends FilterTester {
-  val filters = oredSpatialPredicates
-  "or geom predicates" should {
-    "filter correctly" in {
-      runTest()
-    }
-  }
-}
-
-@RunWith(classOf[JUnitRunner])
-class OrGeomsPredicateWithProjectionTest extends FilterTester {
-  val filters = oredSpatialPredicates
-  "or geom predicates with projection" should {
-    "filter correctly" in {
-      runTest()
-    }
+  def compareFilter(filter: Filter, projection: Array[String]) = {
+    val filterCount = mediumDataFeatures.count(filter.evaluate)
+    val query = new Query(sftName, filter)
+    Option(projection).foreach(query.setPropertyNames)
+    val queryCount = fs.getFeatures(query).size
+    logger.debug(s"\nFilter: ${ECQL.toCQL(filter)}\nFullData size: ${mediumDataFeatures.size}: " +
+        s"filter hits: $filterCount query hits: $queryCount")
+    queryCount mustEqual filterCount
   }
 
-  override def modifyQuery(query: Query): Unit = query.setPropertyNames(Array("geom"))
-}
-
-@RunWith(classOf[JUnitRunner])
-class BasicTemporalPredicateTest extends FilterTester {
-  val filters = temporalPredicates
-  "basic temporal predicates" should {
-    "filter correctly" in {
-      runTest()
-    }
-  }
-}
-
-@RunWith(classOf[JUnitRunner])
-class BasicSpatioTemporalPredicateTest extends FilterTester {
-  val filters = spatioTemporalPredicates
-  "basic spatiotemporal predicates" should {
-    "filter correctly" in {
-      runTest()
-    }
-  }
-}
-
-
-@RunWith(classOf[JUnitRunner])
-class BasicSpatioTemporalPredicateTestWithNS extends FilterTester {
-  val filters = spatioTemporalPredicatesWithNS
-  "basic spatiotemporal predicates" should {
-    "filter correctly" in {
-      runTest()
-    }
-  }
-}
-
-@RunWith(classOf[JUnitRunner])
-class AttributePredicateTest extends FilterTester {
-  val filters = attributePredicates
-  "attribute predicates" should {
-    "filter correctly" in {
-      runTest()
-    }
-  }
-}
-
-@RunWith(classOf[JUnitRunner])
-class AttributeGeoPredicateTest extends FilterTester {
-  val filters = attributeAndGeometricPredicates
-  "attribute geo predicates" should {
-    "filter correctly" in {
-      runTest()
-    }
-  }
-}
-
-@RunWith(classOf[JUnitRunner])
-class AttributeGeoPredicateTestWithNS extends FilterTester {
-  val filters = attributeAndGeometricPredicatesWithNS
-  "attribute geo predicates" should {
-    "filter correctly" in {
-      runTest()
-    }
-  }
-}
-
-//@RunWith(classOf[JUnitRunner])
-class DWithinPredicateTest extends FilterTester {   
-  val filters = dwithinPointPredicates
-  "dwithin predicates" should {
-    "filter correctly" in {
-      runTest()
-    }
-  }
-}
-
-@RunWith(classOf[JUnitRunner])
-class IdPredicateTest extends FilterTester {
-  val filters = idPredicates
-  "id predicates" should {
-    "filter correctly" in {
-      runTest()
-    }
-  }
+  def runTest(filters: Seq[String], projection: Array[String] = null) =
+    forall(filters.map(ECQL.toFilter))(compareFilter(_, projection))
 }
 
 @RunWith(classOf[JUnitRunner])
@@ -201,30 +153,4 @@ class IdQueryTest extends Specification with TestWithDataStore {
       res.length mustEqual 0
     }
   }
-}
-
-trait FilterTester extends Specification with TestWithDataStore with Logging {
-
-  override def spec = SimpleFeatureTypes.encodeType(TestData.featureType)
-
-  val mediumDataFeatures: Seq[SimpleFeature] =
-    TestData.mediumData.map(TestData.createSF).map(f => new ScalaSimpleFeature(f.getID, sft, f.getAttributes.toArray))
-
-  addFeatures(mediumDataFeatures)
-
-  def filters: Seq[String]
-
-  def modifyQuery(query: Query): Unit = {}
-
-  def compareFilter(filter: Filter) = {
-    val filterCount = mediumDataFeatures.count(filter.evaluate)
-    val query = new Query(sftName, filter)
-    modifyQuery(query) // allow for tweaks in subclasses
-    val queryCount = fs.getFeatures(query).size
-    logger.debug(s"\nFilter: ${ECQL.toCQL(filter)}\nFullData size: ${mediumDataFeatures.size}: " +
-      s"filter hits: $filterCount query hits: $queryCount")
-    queryCount mustEqual filterCount
-  }
-
-  def runTest() = forall(filters.map(ECQL.toFilter))(compareFilter)
 }

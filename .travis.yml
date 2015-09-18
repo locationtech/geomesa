@@ -4,6 +4,10 @@ sudo: false
 before_script:
   - export MAVEN_SKIP_RC=true
 
+cache:
+  directories:
+  - $HOME/.m2
+
 script:
-  - export MAVEN_OPTS="-Xmx2469m -XX:MaxPermSize=512m"
-  - build/travis_build.sh
+  - export MAVEN_OPTS="-Xmx1g -XX:MaxPermSize=512m"
+  - ./.travisbuild.sh
