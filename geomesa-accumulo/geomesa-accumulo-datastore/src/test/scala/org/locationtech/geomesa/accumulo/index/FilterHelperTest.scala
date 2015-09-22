@@ -9,8 +9,10 @@
 package org.locationtech.geomesa.accumulo.index
 
 import com.typesafe.scalalogging.slf4j.Logging
+import com.vividsolutions.jts.geom.Coordinate
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.geometry.jts.{JTSFactoryFinder, ReferencedEnvelope}
 import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
@@ -27,6 +29,7 @@ import scala.util.Random
 @RunWith(classOf[JUnitRunner])
 class FilterHelperTest extends Specification with Mockito with Logging {
   val ff = CommonFactoryFinder.getFilterFactory2
+  val gf = JTSFactoryFinder.getGeometryFactory
 
   val min = IndexSchema.minDateTime
   val max = IndexSchema.maxDateTime
@@ -351,6 +354,17 @@ class FilterHelperTest extends Specification with Mockito with Logging {
       result.bestFilter must beSome(b)
       result.otherFilters mustEqual Seq(a, c, d)
       result.asInstanceOf[KnownCost].cost mustEqual 5
+    }
+  }
+
+  "tryMergeGeoms" should {
+    "intersect BBOX geoms" >> {
+      implicit def tupleToCoord(t: (Int, Int)): Coordinate = new Coordinate(t._1, t._2)
+      val one = gf.createPolygon(Seq[Coordinate]((1, 1), (4, 1), (4, 4), (1, 4), (1, 1)).toArray)
+      val two = gf.createPolygon(Seq[Coordinate]((1, 1), (2, 1), (2, 2), (1, 2), (1, 1)).toArray)
+      val f1 = ff.bbox(ff.property("geom"), ReferencedEnvelope.reference(one.getEnvelopeInternal))
+      val f2 = ff.bbox(ff.property("geom"), ReferencedEnvelope.reference(two.getEnvelopeInternal))
+      FilterHelper.tryReduceGeometryFilter(Seq(f1, f2)).head must be equalTo(f2)
     }
   }
 }
