@@ -321,7 +321,7 @@ object FilterHelper {
     }
   }
 
-  def tryMergeGeometryFilters(filts: Seq[Filter]): Seq[Filter] = {
+  def tryReduceGeometryFilter(filts: Seq[Filter]): Seq[Filter] = {
     import org.geotools.data.DataUtilities._
     import scala.collection.JavaConversions._
     val filtFactory = CommonFactoryFinder.getFilterFactory2

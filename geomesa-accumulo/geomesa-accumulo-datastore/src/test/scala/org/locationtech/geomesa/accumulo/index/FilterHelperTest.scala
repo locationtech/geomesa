@@ -364,7 +364,7 @@ class FilterHelperTest extends Specification with Mockito with Logging {
       val two = gf.createPolygon(Seq[Coordinate]((1, 1), (2, 1), (2, 2), (1, 2), (1, 1)).toArray)
       val f1 = ff.bbox(ff.property("geom"), ReferencedEnvelope.reference(one.getEnvelopeInternal))
       val f2 = ff.bbox(ff.property("geom"), ReferencedEnvelope.reference(two.getEnvelopeInternal))
-      FilterHelper.tryMergeGeometryFilters(Seq(f1, f2)).head must be equalTo(f2)
+      FilterHelper.tryReduceGeometryFilter(Seq(f1, f2)).head must be equalTo(f2)
     }
   }
 }
