@@ -201,12 +201,14 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
     }
 
     "deal with multi-valued properties correctly" >> {
-      val features = fs.getFeatures
+      val features = fs.getFeatures()
       val proc = new UniqueProcess
       val results = proc.execute(features, "ml", null, true, "DESC", false, pl)
       val uniques = SelfClosingIterator(results.features()).toList
       val values = uniques.map(_.getAttribute("value"))
-      values must containTheSameElementsAs(Seq("foo", "bar"))
+      "contain 'foo' and 'bar'" >> { values must containTheSameElementsAs(Seq("foo", "bar")) }
+      "'foo' must have count 6" >> { uniques.find(_.getAttribute("value") == "foo").map(_.getAttribute("count")) must beSome(6) }
+      "'bar' must have count 1" >> { uniques.find(_.getAttribute("value") == "bar").map(_.getAttribute("count")) must beSome(1) }
     }
   }
 
