@@ -31,8 +31,11 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
 
   sequential
 
-  override val spec = "name:String:index=true,weight:Double:index=true,dtg:Date,*geom:Geometry:srid=4326"
+  override val spec = "name:String:index=true,weight:Double:index=true,ml:List[String],dtg:Date,*geom:Geometry:srid=4326"
   override val dtgField = "dtg"
+
+  import java.{ util => jl }
+  def toJavaList(s: Seq[String]): java.util.List[String] = s.asJava
 
   addFeatures({
     val geom = WKTUtils.read("POINT(45.0 49.0)")
@@ -42,19 +45,20 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
     dtFormat.setTimeZone(TimeZone.getTimeZone("UTC"))
 
     Seq(
-      Seq("alice",    20,   dtFormat.parse("20120101 12:00:00"), geom),
-      Seq("alice",    25,   dtFormat.parse("20120101 12:00:00"), geom),
-      Seq("bill",     21,   dtFormat.parse("20130101 12:00:00"), geom),
-      Seq("bill",     22,   dtFormat.parse("20130101 12:00:00"), geom),
-      Seq("bill",     23,   dtFormat.parse("20130101 12:00:00"), geom),
-      Seq("bob",      30,   dtFormat.parse("20140101 12:00:00"), geom),
-      Seq("charles",  40,   dtFormat.parse("20140101 12:30:00"), geom),
-      Seq("charles",  null, dtFormat.parse("20140101 12:30:00"), geom)
-    ).map { case name :: weight :: dtg :: geom :: Nil =>
+      Seq("alice",    20,   toJavaList(Seq()),                          dtFormat.parse("20120101 12:00:00"), geom),
+      Seq("alice",    25,   null.asInstanceOf[jl.List[String]],         dtFormat.parse("20120101 12:00:00"), geom),
+      Seq("bill",     21,   toJavaList(Seq("foo", "bar")),               dtFormat.parse("20130101 12:00:00"), geom),
+      Seq("bill",     22,   toJavaList(Seq("foo")),                     dtFormat.parse("20130101 12:00:00"), geom),
+      Seq("bill",     23,   toJavaList(Seq("foo")),                     dtFormat.parse("20130101 12:00:00"), geom),
+      Seq("bob",      30,   toJavaList(Seq("foo")),                     dtFormat.parse("20140101 12:00:00"), geom),
+      Seq("charles",  40,   toJavaList(Seq("foo")),                     dtFormat.parse("20140101 12:30:00"), geom),
+      Seq("charles",  null, toJavaList(Seq("foo")),                     dtFormat.parse("20140101 12:30:00"), geom)
+    ).map { case name :: weight :: l :: dtg :: geom :: Nil =>
       val feature = builder.buildFeature(s"$name$weight")
       feature.setDefaultGeometry(geom)
       feature.setAttribute("name", name)
       feature.setAttribute("weight", weight)
+      feature.setAttribute("ml", l)
       feature.setAttribute("dtg", dtg)
       feature.setAttribute("geom", geom)
       feature
@@ -194,6 +198,15 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
 
       val charles = uniques.find(_.getAttribute("value") == "charles").map(_.getAttribute("count"))
       charles must beSome(2)
+    }
+
+    "deal with multi-valued properties correctly" >> {
+      val features = fs.getFeatures
+      val proc = new UniqueProcess
+      val results = proc.execute(features, "ml", null, true, "DESC", false, pl)
+      val uniques = SelfClosingIterator(results.features()).toList
+      val values = uniques.map(_.getAttribute("value"))
+      values must containTheSameElementsAs(Seq("foo", "bar"))
     }
   }
 

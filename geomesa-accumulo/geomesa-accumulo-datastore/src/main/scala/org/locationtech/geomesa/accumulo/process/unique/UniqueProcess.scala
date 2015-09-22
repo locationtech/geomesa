@@ -22,6 +22,7 @@ import org.locationtech.geomesa.accumulo.data.GEOMESA_UNIQUE
 import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.opengis.feature.Feature
+import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.opengis.util.ProgressListener
@@ -64,7 +65,7 @@ class UniqueProcess extends VectorProcess with Logging {
     val hist = Option(histogram).exists(_.booleanValue)
     val sortBy = Option(sortByCount).exists(_.booleanValue)
 
-    val visitor = new AttributeVisitor(features, attributeDescriptor.getLocalName, Option(filter), hist)
+    val visitor = new AttributeVisitor(features, attributeDescriptor, Option(filter), hist)
     features.accepts(visitor, progressListener)
     val uniqueValues = visitor.uniqueValues.toMap
 
@@ -130,18 +131,39 @@ class UniqueProcess extends VectorProcess with Logging {
  * Visitor that tracks unique attribute values and counts
  *
  * @param features
- * @param attribute
+ * @param attributeDescriptor
  * @param filter
  * @param histogram
  */
 class AttributeVisitor(val features: SimpleFeatureCollection,
-                       val attribute: String,
+                       val attributeDescriptor: AttributeDescriptor,
                        val filter: Option[Filter],
                        histogram: Boolean) extends FeatureCalc with Logging {
 
   import org.locationtech.geomesa.accumulo.process.unique.AttributeVisitor._
+  import org.locationtech.geomesa.utils.geotools.Conversions._
+
+  import scala.collection.JavaConversions._
+
+  val attribute    = attributeDescriptor.getLocalName
+  var attributeIdx: Int = -1
+  private def getAttribute[T](f: SimpleFeature) = {
+    if (attributeIdx == -1) {
+      attributeIdx = f.getType.indexOf(attribute)
+    }
+    f.get[T](attributeIdx)
+  }
+
 
   val uniqueValues = mutable.Map.empty[Any, Long].withDefaultValue(0)
+
+  private val addSingularValue = (f: SimpleFeature) => Option(getAttribute[AnyRef](f)).foreach(uniqueValues(_) += 1)
+  private val addMultiValue = (f: SimpleFeature) =>
+    getAttribute[java.util.Collection[_]](f) match {
+      case c if c != null => c.foreach(uniqueValues(_) += 1)
+      case _ => // do nothing
+    }
+  private val addValue = if(attributeDescriptor.isCollection) addMultiValue else addSingularValue
 
   /**
    * Called for non AccumuloFeatureCollections
@@ -165,12 +187,6 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
   def setValue(features: SimpleFeatureCollection) =
     SelfClosingIterator(features.features()).foreach(addValue)
 
-  /**
-   * Adds an attribute to the result
-   *
-   * @param f
-   */
-  private def addValue(f: SimpleFeature) = Option(f.getAttribute(attribute)).foreach(uniqueValues(_) += 1)
 
   /**
    * Called by AccumuloFeatureSource to optimize the query plan
