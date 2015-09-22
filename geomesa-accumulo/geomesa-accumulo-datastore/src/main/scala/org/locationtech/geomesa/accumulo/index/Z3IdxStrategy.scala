@@ -58,7 +58,7 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
     output(s"Tweaked geom filters are $tweakedGeomFilters")
 
     // standardize the two key query arguments:  polygon and date-range
-    val geomsToCover = tweakedGeomFilters.flatMap(decomposeToGeometry)
+    val geomsToCover = tryMergeGeometryFilters(tweakedGeomFilters).flatMap(decomposeToGeometry)
 
     val collectionToCover: Geometry = geomsToCover match {
       case Nil => null
@@ -210,4 +210,5 @@ object Z3IdxStrategy extends StrategyProvider {
       case _ => false        // Beyond, Disjoint, DWithin, Equals, Touches
     }
   }
+
 }

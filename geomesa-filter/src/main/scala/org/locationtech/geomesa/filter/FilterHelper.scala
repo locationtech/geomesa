@@ -11,6 +11,8 @@ package org.locationtech.geomesa.filter
 import java.util.Date
 
 import com.vividsolutions.jts.geom.{Geometry, MultiPolygon, Polygon}
+import org.geotools.factory.CommonFactoryFinder
+import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.locationtech.geomesa.utils.filters.Typeclasses.BinaryFilter
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
@@ -318,5 +320,27 @@ object FilterHelper {
       case f: Filter => Seq(f)
     }
   }
+
+  def tryMergeGeometryFilters(filts: Seq[Filter]): Seq[Filter] = {
+    import org.geotools.data.DataUtilities._
+    import scala.collection.JavaConversions._
+    val filtFactory = CommonFactoryFinder.getFilterFactory2
+
+    def getAttrName(l: BBOX): String = propertyNames(l).head.getPropertyName
+
+    filts match {
+      // if we have two bbox filters as is common in WMS queries, merge them by intersecting the bounds
+      case Seq(l: BBOX, r: BBOX) if getAttrName(l) == getAttrName(r) =>
+        val prop = propertyNames(l).head
+        val bounds = JTS.toGeometry(l.getBounds).intersection(JTS.toGeometry(r.getBounds)).getEnvelopeInternal
+        val re = ReferencedEnvelope.reference(bounds)
+        val bbox = filtFactory.bbox(prop, re)
+        Seq(bbox)
+
+      case _ =>
+        filts
+    }
+  }
+
 }
 
