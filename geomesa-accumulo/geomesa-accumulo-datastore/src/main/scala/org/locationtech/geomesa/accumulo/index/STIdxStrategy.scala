@@ -53,12 +53,8 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
     output(s"Geometry filters: ${filtersToString(geomFilters)}")
     output(s"Temporal filters: ${filtersToString(temporalFilters)}")
 
-    val tweakedGeomFilters = geomFilters.map(updateTopologicalFilters(_, sft))
-
-    output(s"Tweaked geom filters are $tweakedGeomFilters")
-
     // standardize the two key query arguments:  polygon and date-range
-    val geomsToCover = tweakedGeomFilters.flatMap(decomposeToGeometry)
+    val geomsToCover = geomFilters.flatMap(decomposeToGeometry)
 
     output(s"GeomsToCover: $geomsToCover")
 
@@ -76,7 +72,7 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
     // If given spatial predicates like disjoint.
     val ofilter = if (isWholeWorld(geometryToCover)) {
       filterListAsAnd(temporalFilters)
-    } else filterListAsAnd(tweakedGeomFilters ++ temporalFilters)
+    } else filterListAsAnd(geomFilters ++ temporalFilters)
 
     if (ofilter.isEmpty) {
       logger.warn(s"Querying Accumulo without SpatioTemporal filter.")

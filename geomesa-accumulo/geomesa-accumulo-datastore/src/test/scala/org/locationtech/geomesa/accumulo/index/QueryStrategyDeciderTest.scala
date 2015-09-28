@@ -17,7 +17,7 @@ import org.locationtech.geomesa.accumulo.filter.TestFilters._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.util.SftBuilder
 import org.locationtech.geomesa.accumulo.util.SftBuilder.Opts
-import org.locationtech.geomesa.filter.visitor.LocalNameVisitor
+import org.locationtech.geomesa.filter.visitor.{LocalNameVisitorImpl, LocalNameVisitor}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.Cardinality
@@ -57,7 +57,7 @@ class QueryStrategyDeciderTest extends Specification {
     val filter = ECQL.toFilter(filterString)
     val hints = new UserDataStrategyHints()
     val query = new Query(sft.getTypeName)
-    query.setFilter(filter.accept(new LocalNameVisitor(sft), null).asInstanceOf[Filter])
+    query.setFilter(filter.accept(new LocalNameVisitorImpl(sft), null).asInstanceOf[Filter])
     val strats = QueryStrategyDecider.chooseStrategies(sft, query, hints, None)
     strats must haveLength(1)
     strats.head

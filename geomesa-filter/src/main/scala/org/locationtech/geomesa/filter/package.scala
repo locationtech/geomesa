@@ -10,7 +10,6 @@ package org.locationtech.geomesa
 
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.utils.stats.Cardinality
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 import org.opengis.filter.expression.{Expression, Literal, PropertyName}

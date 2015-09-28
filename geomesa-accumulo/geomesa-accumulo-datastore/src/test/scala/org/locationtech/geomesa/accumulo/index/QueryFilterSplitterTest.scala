@@ -15,9 +15,11 @@ import org.locationtech.geomesa.accumulo.data.tables.AvailableTables
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.util.SftBuilder
 import org.locationtech.geomesa.accumulo.util.SftBuilder.Opts
+import org.locationtech.geomesa.filter
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.Cardinality
-import org.opengis.filter.Filter
+import org.opengis.filter.{Not, Filter}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -56,6 +58,7 @@ class QueryFilterSplitterTest extends Specification {
 
   def and(clauses: String*) = ff.and(clauses.map(ECQL.toFilter))
   def or(clauses: String*)  = ff.or(clauses.map(ECQL.toFilter))
+  def not(clauses: String*)  = filter.andFilters(clauses.map(ECQL.toFilter).map(ff.not))(ff)
   def f(filter: String)     = ECQL.toFilter(filter)
 
   implicit def filterToString(f: Filter): String = ECQL.toCQL(f)
@@ -126,8 +129,10 @@ class QueryFilterSplitterTest extends Specification {
         options must haveLength(1)
         options.head.filters must haveLength(2)
         forall(options.head.filters)(_.strategy mustEqual StrategyType.Z3)
-        options.head.filters.map(_.primary) must containTheSameElementsAs(Seq(Seq(f(geom), f(dtg)), Seq(f(geom2), f(dtg2))))
-        forall(options.head.filters)(_.secondary must beNone)
+        options.head.filters.map(_.primary) must
+            containTheSameElementsAs(Seq(Seq(f(geom), f(dtg)), Seq(f(geom2), f(dtg2))))
+        options.head.filters.map(_.secondary).filter(_.isDefined) must haveLength(1)
+        options.head.filters.map(_.secondary).filter(_.isDefined).head.get must beAnInstanceOf[Not]
       }
       "while ignoring world-covering geoms" >> {
         val filter = f(wholeWorld)
@@ -308,7 +313,7 @@ class QueryFilterSplitterTest extends Specification {
         val z3 = options.head.filters.find(_.strategy == StrategyType.Z3)
         z3 must beSome
         z3.get.primary mustEqual Seq(dtg).map(f)
-        z3.get.secondary must beNone
+        z3.get.secondary must beSome(not(geom))
         val st = options.head.filters.find(_.strategy == StrategyType.ST)
         st must beSome
         st.get.primary mustEqual Seq(f(geom))
@@ -320,8 +325,10 @@ class QueryFilterSplitterTest extends Specification {
         options must haveLength(1)
         options.head.filters must haveLength(2)
         forall(options.head.filters)(_.strategy mustEqual StrategyType.ST)
-        options.head.filters.map(_.primary) must containTheSameElementsAs(Seq(Seq(f(geom)), Seq(f(geom2))))
-        forall(options.head.filters)(_.secondary must beNone)
+        options.head.filters.head.primary mustEqual Seq(f(geom))
+        options.head.filters.head.secondary must beNone
+        options.head.filters.tail.head.primary mustEqual Seq(f(geom2))
+        options.head.filters.tail.head.secondary must beSome(not(geom))
       }
       "with spatiotemporal and indexed attribute clauses" >> {
         val filter = or(geom, indexedAttr)
@@ -330,8 +337,9 @@ class QueryFilterSplitterTest extends Specification {
         options.head.filters must haveLength(2)
         options.head.filters.map(_.strategy) must containTheSameElementsAs(Seq(StrategyType.ST, StrategyType.ATTRIBUTE))
         options.head.filters.find(_.strategy == StrategyType.ST).get.primary mustEqual Seq(f(geom))
+        options.head.filters.find(_.strategy == StrategyType.ST).get.secondary must beNone
         options.head.filters.find(_.strategy == StrategyType.ATTRIBUTE).get.primary mustEqual Seq(f(indexedAttr))
-        forall(options.head.filters)(_.secondary must beNone)
+        options.head.filters.find(_.strategy == StrategyType.ATTRIBUTE).get.secondary must beSome(not(geom))
       }
       "and collapse overlapping query filters" >> {
         "with spatiotemporal and non-indexed attribute clauses" >> {
@@ -391,7 +399,8 @@ class QueryFilterSplitterTest extends Specification {
             containTheSameElementsAs(Seq(StrategyType.Z3, StrategyType.ST, StrategyType.ATTRIBUTE))
         options.head.filters.map(_.primary) must
             containTheSameElementsAs(Seq(Seq(f(geom)), Seq(f(dtg)), Seq(f(indexedAttr))))
-        forall(options.head.filters)(_.secondary must beNone)
+        options.head.filters.map(_.secondary) must
+            containTheSameElementsAs(Seq(None, Some(not(geom)), Some(not(geom, dtg))))
       }
       "with ANDs and ORs" >> {
         "with spatiotemporal clauses and non-indexed attributes" >> {

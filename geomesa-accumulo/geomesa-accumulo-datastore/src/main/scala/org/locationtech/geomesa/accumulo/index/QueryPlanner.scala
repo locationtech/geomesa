@@ -32,7 +32,7 @@ import org.locationtech.geomesa.accumulo.util.{CloseableIterator, SelfClosingIte
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features._
 import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.filter.visitor.LocalNameVisitor
+import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -77,20 +77,17 @@ case class QueryPlanner(sft: SimpleFeatureType,
    */
   def runQuery(query: Query, strategy: Option[StrategyType] = None): SFIter = {
     val plans = getQueryPlans(query, strategy, log)
-    // don't deduplicate density queries, as they don't have dupes but re-use feature ids in the results
-    val dedupe = !query.getHints.isDensityQuery && (plans.length > 1 || plans.exists(_.hasDuplicates))
-    executePlans(query, plans, dedupe)
+    executePlans(query, plans)
   }
 
   /**
    * Execute a sequence of query plans
    */
-  private def executePlans(query: Query, queryPlans: Seq[QueryPlan], deduplicate: Boolean): SFIter = {
+  private def executePlans(query: Query, queryPlans: Seq[QueryPlan]): SFIter = {
     def scan(qps: Seq[QueryPlan]): SFIter = qps.iterator.ciFlatMap { qp =>
-      Strategy.execute(qp, acc, log).map(qp.kvsToFeatures)
+      val iter = Strategy.execute(qp, acc, log).map(qp.kvsToFeatures)
+      if (qp.hasDuplicates) new DeDuplicatingIterator(iter) else iter
     }
-
-    def dedupe(iter: SFIter): SFIter = if (deduplicate) new DeDuplicatingIterator(iter) else iter
 
     // noinspection EmptyCheck
     def sort(iter: SFIter): SFIter = if (query.getSortBy != null && query.getSortBy.length > 0) {
@@ -109,7 +106,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
       iter
     }
 
-    reduce(sort(dedupe(scan(queryPlans))))
+    reduce(sort(scan(queryPlans)))
   }
 
   /**
@@ -126,18 +123,6 @@ case class QueryPlanner(sft: SimpleFeatureType,
     output(s"Hints: density ${query.getHints.isDensityQuery}, bin ${query.getHints.isBinQuery}")
     output(s"Sort: ${Option(query.getSortBy).filter(_.nonEmpty).map(_.mkString(", ")).getOrElse("none")}")
     output(s"Transforms: ${query.getHints.getTransformDefinition.getOrElse("None")}")
-
-    if (query.getHints.isDensityQuery) { // add the bbox from the density query to the filter
-      val env = query.getHints.getDensityEnvelope.get.asInstanceOf[ReferencedEnvelope]
-      val bbox = ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env)
-      if (query.getFilter == Filter.INCLUDE) {
-        query.setFilter(bbox)
-      } else {
-        // add the bbox - try to not duplicate an existing bbox
-        val filter = andFilters((decomposeAnd(query.getFilter) ++ Seq(bbox)).distinct)
-        query.setFilter(filter)
-      }
-    }
 
     implicit val timings = new TimingsImpl
     val queryPlans = profile({
@@ -229,9 +214,23 @@ object QueryPlanner extends Logging {
     QueryPlanner.setReturnSft(query, sft)
     // handle any params passed in through geoserver
     QueryPlanner.handleGeoServerParams(query)
+
+    // add the bbox from the density query to the filter
+    if (query.getHints.isDensityQuery) {
+      val env = query.getHints.getDensityEnvelope.get.asInstanceOf[ReferencedEnvelope]
+      val bbox = ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env)
+      if (query.getFilter == Filter.INCLUDE) {
+        query.setFilter(bbox)
+      } else {
+        // add the bbox - try to not duplicate an existing bbox
+        val filter = andFilters((decomposeAnd(query.getFilter) ++ Seq(bbox)).distinct)
+        query.setFilter(filter)
+      }
+    }
+
     // update the filter to remove namespaces and handle null property names
     if (query.getFilter != null && query.getFilter != Filter.INCLUDE) {
-      query.setFilter(query.getFilter.accept(new LocalNameVisitor(sft), null).asInstanceOf[Filter])
+      query.setFilter(query.getFilter.accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter])
     }
   }
 

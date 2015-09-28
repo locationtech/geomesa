@@ -149,8 +149,15 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends Logging {
     // try to combine query filters in each filter plan if they have the same primary filter
     // this avoids scanning the same ranges twice with different secondary predicates
     def combineSecondaryFilters(options: Seq[FilterPlan]): Seq[FilterPlan] = options.map { r =>
-      val groups = r.filters.distinct.groupBy(d => (d.strategy, d.primary)).map { case (group, secondaries) =>
-        QueryFilter(group._1, group._2, orOption(secondaries.flatMap(_.secondary)))
+      // build up the result array instead of using a group by to preserve filter order
+      val groups = ArrayBuffer.empty[QueryFilter]
+      r.filters.distinct.foreach { f =>
+        val i = groups.indexWhere(g => g.strategy == f.strategy && g.primary == f.primary)
+        if (i == -1) {
+          groups.append(f)
+        } else {
+          groups.update(i, f.copy(secondary = orOption(Seq(groups(i).secondary, f.secondary).flatten)))
+        }
       }
       FilterPlan(groups.toSeq)
     }
@@ -193,7 +200,25 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends Logging {
       }
     }
 
-    mergeOverlappedFilters(combineSecondaryFilters(reduceChildOptions(getChildOptions)))
+    // make our queries disjoint ORs - this way we don't have to deduplicate results
+    def makeDisjoint(options: Seq[FilterPlan]): Seq[FilterPlan] = options.map { filterPlan =>
+      if (filterPlan.filters.length < 2) {
+        filterPlan
+      } else {
+        // A OR B OR C becomes... A OR (B NOT A) OR (C NOT A and NOT B)
+        def extractNot(qp: QueryFilter) = ff.not(andFilters(qp.primary ++ qp.secondary))
+        // keep track of our current disjoint clause
+        val nots = ArrayBuffer[Filter](extractNot(filterPlan.filters.head))
+        val filters = Seq(filterPlan.filters.head) ++ filterPlan.filters.tail.map { filter =>
+          val sec = Some(andFilters(nots ++ filter.secondary))
+          nots.append(extractNot(filter)) // note - side effect
+          filter.copy(secondary = sec)
+        }
+        FilterPlan(filters)
+      }
+    }
+
+    makeDisjoint(mergeOverlappedFilters(combineSecondaryFilters(reduceChildOptions(getChildOptions))))
   }
 
   /**

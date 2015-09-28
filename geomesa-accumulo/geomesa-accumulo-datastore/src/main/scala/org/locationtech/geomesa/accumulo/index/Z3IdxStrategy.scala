@@ -53,12 +53,8 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
     output(s"Geometry filters: ${filtersToString(geomFilters)}")
     output(s"Temporal filters: ${filtersToString(temporalFilters)}")
 
-    val tweakedGeomFilters = geomFilters.map(updateTopologicalFilters(_, sft))
-
-    output(s"Tweaked geom filters are $tweakedGeomFilters")
-
     // standardize the two key query arguments:  polygon and date-range
-    val geomsToCover = tryReduceGeometryFilter(tweakedGeomFilters).flatMap(decomposeToGeometry)
+    val geomsToCover = tryReduceGeometryFilter(geomFilters).flatMap(decomposeToGeometry)
 
     val collectionToCover: Geometry = geomsToCover match {
       case Nil => null
@@ -78,7 +74,7 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
 
     // If we have some sort of complicated geometry predicate,
     // we need to pass it through to be evaluated
-    val singleTweakedGeomFilter: Option[Filter]  = filterListAsAnd(tweakedGeomFilters).filter(isComplicatedSpatialFilter)
+    val singleTweakedGeomFilter: Option[Filter]  = filterListAsAnd(geomFilters).filter(isComplicatedSpatialFilter)
 
     val ecql: Option[Filter] = (singleTweakedGeomFilter, filter.secondary) match {
       case (None, fs)           => fs
