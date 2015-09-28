@@ -30,8 +30,8 @@ class Z3IteratorTest extends Specification {
     val (ux, uy, ut) = (-75.0, 40, 800)
 
     val Z3Curve = new Z3SFC
-    val zmin = Z3Curve.index(lx, ly, lt)
-    val zmax = Z3Curve.index(ux, uy, ut)
+    val (xmin, ymin, tmin) = Z3Curve.index(lx, ly, lt).decode
+    val (xmax, ymax, tmax) = Z3Curve.index(ux, uy, ut).decode
 
     val srcIter = new SortedKeyValueIterator[Key, Value] {
       var key: Key = null
@@ -53,9 +53,8 @@ class Z3IteratorTest extends Specification {
       override def hasTop: Boolean = staged != null
     }
 
-    val zMap = Map(0.toShort -> (zmin.z, zmax.z))
     val iter = new Z3Iterator
-    iter.init(srcIter, Map(Z3Iterator.zKey -> Z3Iterator.mapToString(zMap)), null)
+    iter.init(srcIter, Map(Z3Iterator.zKey -> s"$xmin:$xmax:$ymin:$ymax:$tmin:$tmax:0:0"), null)
 
     "keep in bounds values" >> {
       val test1 = Z3Curve.index(-76.0, 38.5, 500)

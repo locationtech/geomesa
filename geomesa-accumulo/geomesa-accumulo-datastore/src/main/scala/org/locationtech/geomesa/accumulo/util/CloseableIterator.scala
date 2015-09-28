@@ -69,13 +69,17 @@ trait CloseableIterator[+A] extends Iterator[A] {
       @tailrec
       def loopUntilHasNext: Boolean =
         cur.hasNext || self.hasNext && {
-          if (cur != empty) cur.close()
+          if (!cur.eq(empty)) {
+            cur.close()
+          }
           cur = f(self.next())
           loopUntilHasNext
         }
 
       val iterHasNext = loopUntilHasNext
-      if(!iterHasNext) close()
+      if (!iterHasNext) {
+        close()
+      }
       iterHasNext
     }
 
