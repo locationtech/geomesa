@@ -12,20 +12,26 @@ import org.geotools.filter.visitor.DuplicatingFilterVisitor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.PropertyName
 
-class LocalNameVisitor(sft: SimpleFeatureType) extends DuplicatingFilterVisitor {
+trait LocalNameVisitor extends DuplicatingFilterVisitor {
+
+  def sft: SimpleFeatureType
+
   override def visit(expression: PropertyName, extraData: AnyRef): AnyRef = {
     val name = expression.getPropertyName
     if (name == null || name.isEmpty) {
       // use the default geometry name
-      getFactory(extraData).property(sft.getGeometryDescriptor.getLocalName, expression.getNamespaceContext)
+      val geomName = sft.getGeometryDescriptor.getLocalName
+      super.getFactory(extraData).property(geomName, expression.getNamespaceContext)
     } else {
       val index = name.indexOf(':')
       if (index == -1) {
         expression
       } else {
         // strip off the namespace
-        getFactory(extraData).property(name.substring(index + 1), expression.getNamespaceContext)
+        super.getFactory(extraData).property(name.substring(index + 1), expression.getNamespaceContext)
       }
     }
   }
 }
+
+class LocalNameVisitorImpl(val sft: SimpleFeatureType) extends LocalNameVisitor

@@ -22,12 +22,12 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.geotools.util.Converters
-import org.joda.time.{DateTimeZone, DateTime}
+import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
-import org.locationtech.geomesa.accumulo.index.{ExplainString, QueryPlanner}
+import org.locationtech.geomesa.accumulo.index.{ExplainString, JoinPlan, QueryPlanner}
 import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, TestData}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction}
@@ -252,46 +252,23 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       schemaWithNs.getName.getLocalPart mustEqual sft.getTypeName
     }
 
-    "handle IDL correctly" in {
-      val sft = createNewSchema(TestData.getTypeSpec())
+    "avoid deduplication when possible" in {
+      val sft = createNewSchema(s"name:String:index=join:cardinality=high,dtg:Date,*geom:Point:srid=4326")
+      addFeature(sft, ScalaSimpleFeature.create(sft, "1", "bob", "2010-05-07T12:00:00.000Z", "POINT(45 45)"))
 
-      val fs = ds.getFeatureSource(sft.getTypeName).asInstanceOf[AccumuloFeatureStore]
-      val featureCollection = new DefaultFeatureCollection()
-      featureCollection.addAll(TestData.allThePoints.map(TestData.createSF))
-      fs.addFeatures(featureCollection)
+      val filter = "bbox(geom,-180,-90,180,90) AND dtg DURING 2010-05-07T00:00:00.000Z/2010-05-08T00:00:00.000Z" +
+          " AND (name = 'alice' OR name = 'bob' OR name = 'charlie')"
+      val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
 
-      val srs = CRS.toSRS(DefaultGeographicCRS.WGS84)
-      "default layer preview, bigger than earth, multiple IDL-wrapping geoserver BBOX" in {
-        val spatial = ff.bbox("geom", -230, -110, 230, 110, srs)
-        val query = new Query(sft.getTypeName, spatial)
-        val results = fs.getFeatures(query)
-        results.size() mustEqual 361
-      }
+      val plans = ds.getQueryPlan(query)
+      plans must haveLength(1)
+      plans.head.hasDuplicates must beFalse
+      plans.head must beAnInstanceOf[JoinPlan]
+      plans.head.asInstanceOf[JoinPlan].joinQuery.hasDuplicates must beFalse
 
-      "greater than 180 lon diff non-IDL-wrapping geoserver BBOX" in {
-        val spatial = ff.bbox("geom", -100, 1.1, 100, 4.1, srs)
-        val query = new Query(sft.getTypeName, spatial)
-        val results = fs.getFeatures(query)
-        results.size() mustEqual 6
-      }
-
-      "small IDL-wrapping geoserver BBOXes" in {
-        val spatial1 = ff.bbox("geom", -181.1, -90, -175.1, 90, srs)
-        val spatial2 = ff.bbox("geom", 175.1, -90, 181.1, 90, srs)
-        val binarySpatial = ff.or(spatial1, spatial2)
-        val query = new Query(sft.getTypeName, binarySpatial)
-        val results = fs.getFeatures(query)
-        results.size() mustEqual 10
-      }
-
-      "large IDL-wrapping geoserver BBOXes" in {
-        val spatial1 = ff.bbox("geom", -181.1, -90, 40.1, 90, srs)
-        val spatial2 = ff.bbox("geom", 175.1, -90, 181.1, 90, srs)
-        val binarySpatial = ff.or(spatial1, spatial2)
-        val query = new Query(sft.getTypeName, binarySpatial)
-        val results = fs.getFeatures(query)
-        results.size() mustEqual 226
-      }
+      val features = ds.getFeatureSource(sft.getTypeName).getFeatures(query).features().toList
+      features must haveLength(1)
+      features.head.getID mustEqual "1"
     }
 
     "support bin queries" in {

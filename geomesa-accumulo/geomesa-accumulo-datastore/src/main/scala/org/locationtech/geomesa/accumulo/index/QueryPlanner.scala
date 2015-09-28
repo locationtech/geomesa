@@ -27,12 +27,11 @@ import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanners.FeatureFunction
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
 import org.locationtech.geomesa.accumulo.iterators._
-import org.locationtech.geomesa.accumulo.util.CloseableIterator._
 import org.locationtech.geomesa.accumulo.util.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features._
 import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.filter.visitor.LocalNameVisitor
+import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -69,7 +68,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
   def planQuery(query: Query,
                 strategy: Option[StrategyType] = None,
                 output: ExplainerOutputType = log): Seq[QueryPlan] = {
-    getQueryPlans(query, strategy, output)
+    getQueryPlans(query, strategy, output).toList // toList forces evaluation of entire iterator
   }
 
   /**
@@ -77,28 +76,24 @@ case class QueryPlanner(sft: SimpleFeatureType,
    */
   def runQuery(query: Query, strategy: Option[StrategyType] = None): SFIter = {
     val plans = getQueryPlans(query, strategy, log)
-    // don't deduplicate density queries, as they don't have dupes but re-use feature ids in the results
-    val dedupe = !query.getHints.isDensityQuery && (plans.length > 1 || plans.exists(_.hasDuplicates))
-    executePlans(query, plans, dedupe)
+    executePlans(query, plans)
   }
 
   /**
    * Execute a sequence of query plans
    */
-  private def executePlans(query: Query, queryPlans: Seq[QueryPlan], deduplicate: Boolean): SFIter = {
-    def scan(qps: Seq[QueryPlan]): SFIter = qps.iterator.ciFlatMap { qp =>
-      Strategy.execute(qp, acc, log).map(qp.kvsToFeatures)
+  private def executePlans(query: Query, queryPlans: Iterator[QueryPlan]): SFIter = {
+    def scan(qps: Iterator[QueryPlan]): SFIter = SelfClosingIterator(qps).ciFlatMap { qp =>
+      val iter = Strategy.execute(qp, acc, log).map(qp.kvsToFeatures)
+      if (qp.hasDuplicates) new DeDuplicatingIterator(iter) else iter
     }
-
-    def dedupe(iter: SFIter): SFIter = if (deduplicate) new DeDuplicatingIterator(iter) else iter
 
     // noinspection EmptyCheck
     def sort(iter: SFIter): SFIter = if (query.getSortBy != null && query.getSortBy.length > 0) {
       // sort will self-close itself
       new LazySortedIterator(iter, query.getHints.getReturnSft, query.getSortBy)
     } else {
-      // wrap in a self-closing iterator to mitigate clients not calling close
-      SelfClosingIterator(iter)
+      iter
     }
 
     def reduce(iter: SFIter): SFIter = if (query.getHints.isTemporalDensityQuery) {
@@ -109,7 +104,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
       iter
     }
 
-    reduce(sort(dedupe(scan(queryPlans))))
+    reduce(sort(scan(queryPlans)))
   }
 
   /**
@@ -118,7 +113,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
    */
   private def getQueryPlans(query: Query,
                             requested: Option[StrategyType],
-                            output: ExplainerOutputType): Seq[QueryPlan] = {
+                            output: ExplainerOutputType): Iterator[QueryPlan] = {
 
     configureQuery(query, sft) // configure the query - set hints that we'll need later on
 
@@ -127,38 +122,23 @@ case class QueryPlanner(sft: SimpleFeatureType,
     output(s"Sort: ${Option(query.getSortBy).filter(_.nonEmpty).map(_.mkString(", ")).getOrElse("none")}")
     output(s"Transforms: ${query.getHints.getTransformDefinition.getOrElse("None")}")
 
-    if (query.getHints.isDensityQuery) { // add the bbox from the density query to the filter
-      val env = query.getHints.getDensityEnvelope.get.asInstanceOf[ReferencedEnvelope]
-      val bbox = ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env)
-      if (query.getFilter == Filter.INCLUDE) {
-        query.setFilter(bbox)
-      } else {
-        // add the bbox - try to not duplicate an existing bbox
-        val filter = andFilters((decomposeAnd(query.getFilter) ++ Seq(bbox)).distinct)
-        query.setFilter(filter)
-      }
+    val requestedStrategy = requested.orElse(query.getHints.getRequestedStrategy)
+    val strategies = QueryStrategyDecider.chooseStrategies(sft, query, hints, requestedStrategy, output)
+    strategies.iterator.map { strategy =>
+      output(s"Strategy: ${strategy.getClass.getSimpleName}")
+      output(s"Filter: ${strategy.filter}")
+      implicit val timings = new TimingsImpl
+      val plan = profile(strategy.getQueryPlan(this, query.getHints, output), "plan")
+      outputPlan(plan, output)
+      output(s"Query planning took ${timings.time("plan")}ms")
+      plan
     }
-
-    implicit val timings = new TimingsImpl
-    val queryPlans = profile({
-      val requestedStrategy = requested.orElse(query.getHints.getRequestedStrategy)
-      val strategies = QueryStrategyDecider.chooseStrategies(sft, query, hints, requestedStrategy, output)
-      strategies.map { strategy =>
-        output(s"Strategy: ${strategy.getClass.getSimpleName}")
-        output(s"Filter: ${strategy.filter}")
-        val plan = strategy.getQueryPlan(this, query.getHints, output)
-        outputPlan(plan, output)
-        plan
-      }
-    }, "plan")
-    output(s"Query planning took ${timings.time("plan")}ms for ${queryPlans.length} " +
-        s"distinct quer${if (queryPlans.length == 1) "y" else "ies"}.")
-    queryPlans
   }
 
   // output the query plan for explain logging
   private def outputPlan(plan: QueryPlan, output: ExplainerOutputType, prefix: String = ""): Unit = {
     output(s"${prefix}Table: ${plan.table}")
+    output(s"${prefix}Deduplicate: ${plan.hasDuplicates}")
     output(s"${prefix}Column Families${if (plan.columnFamilies.isEmpty) ": all"
       else s" (${plan.columnFamilies.size}): ${plan.columnFamilies.take(20)}"} ")
     output(s"${prefix}Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(rangeToString).mkString(", ")}")
@@ -229,9 +209,23 @@ object QueryPlanner extends Logging {
     QueryPlanner.setReturnSft(query, sft)
     // handle any params passed in through geoserver
     QueryPlanner.handleGeoServerParams(query)
+
+    // add the bbox from the density query to the filter
+    if (query.getHints.isDensityQuery) {
+      val env = query.getHints.getDensityEnvelope.get.asInstanceOf[ReferencedEnvelope]
+      val bbox = ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env)
+      if (query.getFilter == Filter.INCLUDE) {
+        query.setFilter(bbox)
+      } else {
+        // add the bbox - try to not duplicate an existing bbox
+        val filter = andFilters((decomposeAnd(query.getFilter) ++ Seq(bbox)).distinct)
+        query.setFilter(filter)
+      }
+    }
+
     // update the filter to remove namespaces and handle null property names
     if (query.getFilter != null && query.getFilter != Filter.INCLUDE) {
-      query.setFilter(query.getFilter.accept(new LocalNameVisitor(sft), null).asInstanceOf[Filter])
+      query.setFilter(query.getFilter.accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter])
     }
   }
 

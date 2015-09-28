@@ -53,6 +53,8 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with Loggin
       if (interval == everywhen) None else Some((interval.getStartMillis, interval.getEndMillis))
     }
 
+    // for an attribute query, the primary filters are considered an OR
+    // (an AND would never match unless the attribute is a list...)
     val propsAndRanges = filter.primary.map(getPropertyAndRange(queryPlanner.sft, _, dates))
     val attributeSftIndex = propsAndRanges.head._1
     val ranges = propsAndRanges.map(_._2)
@@ -303,14 +305,15 @@ object AttributeIdxStrategy extends StrategyProvider {
 
   def tryMergeDisjointAttrEquals(toMerge: QueryFilter, mergeTo: QueryFilter): QueryFilter = {
     // determine if toMerge.primary and mergeTo.primary are all Equals filters on the same attribute
-    if(isPropertyIsEqualToFilter(toMerge) && isPropertyIsEqualToFilter(mergeTo) && isSameProperty(toMerge, mergeTo)) {
+    // TODO this will be incorrect for multi-valued properties where we have an AND in the primary filter
+    if (isPropertyIsEqualToFilter(toMerge) && isPropertyIsEqualToFilter(mergeTo) && isSameProperty(toMerge, mergeTo)) {
       // if we have disjoint attribute queries with the same secondary filter, merge into a multi-range query
       (toMerge.secondary, mergeTo.secondary) match {
         case (Some(f1), Some(f2)) if f1.equals(f2) =>
-          mergeTo.copy(primary = mergeTo.primary ++ toMerge.primary)
+          mergeTo.copy(primary = mergeTo.primary ++ toMerge.primary, or = true)
 
         case (None, None) =>
-          mergeTo.copy(primary = mergeTo.primary ++ toMerge.primary)
+          mergeTo.copy(primary = mergeTo.primary ++ toMerge.primary, or = true)
 
         case _ =>
           null

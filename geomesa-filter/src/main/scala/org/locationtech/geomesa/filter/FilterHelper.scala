@@ -14,6 +14,7 @@ import com.vividsolutions.jts.geom.{Geometry, MultiPolygon, Polygon}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.joda.time.{DateTime, DateTimeZone, Interval}
+import org.locationtech.geomesa.filter.visitor.SafeTopologicalFilterVisitorImpl
 import org.locationtech.geomesa.utils.filters.Typeclasses.BinaryFilter
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils._
@@ -30,16 +31,8 @@ import scala.collection.JavaConversions._
 
 object FilterHelper {
   // Let's handle special cases with topological filters.
-  def updateTopologicalFilters(filter: Filter, featureType: SimpleFeatureType) = {
-    filter match {
-      case dw: DWithin    => rewriteDwithin(dw)
-      case op: BBOX       => visitBBOX(op, featureType)
-      case op: Within     => visitBinarySpatialOp(op, featureType)
-      case op: Intersects => visitBinarySpatialOp(op, featureType)
-      case op: Overlaps   => visitBinarySpatialOp(op, featureType)
-      case _ => filter
-    }
-  }
+  def updateTopologicalFilters(filter: Filter, sft: SimpleFeatureType): Filter =
+    filter.accept(new SafeTopologicalFilterVisitorImpl(sft), null).asInstanceOf[Filter]
 
   def visitBinarySpatialOp(op: BinarySpatialOperator, featureType: SimpleFeatureType): Filter = {
     val e1 = op.getExpression1.asInstanceOf[PropertyName]
