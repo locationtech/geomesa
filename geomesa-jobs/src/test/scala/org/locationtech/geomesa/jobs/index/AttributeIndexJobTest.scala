@@ -71,7 +71,11 @@ class AttributeIndexJobTest extends Specification {
     val arguments = Mode.putMode(com.twitter.scalding.Test(buffers), scaldingArgs)
 
     // create the output table - in non-mock environments this happens in the output format
-    ds.connector.tableOperations().create(AttributeTable.formatTableName(tableName, sft))
+    val tableOps = ds.connector.tableOperations
+    val formattedTableName = AttributeTable.formatTableName(tableName, sft)
+    if(!tableOps.exists(formattedTableName)) {
+      tableOps.create(formattedTableName)
+    }
 
     // run the job
     val job = new AttributeIndexJob(arguments)

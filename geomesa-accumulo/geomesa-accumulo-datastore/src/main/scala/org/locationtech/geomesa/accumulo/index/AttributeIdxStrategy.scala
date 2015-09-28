@@ -12,6 +12,7 @@ import java.util.Date
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.data.{Range => AccRange}
+import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
 import org.geotools.temporal.`object`.DefaultPeriod
 import org.locationtech.geomesa.accumulo.data.tables.{AttributeTable, RecordTable}
@@ -60,7 +61,6 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with Loggin
 
     val descriptor = sft.getDescriptor(attributeSftIndex)
     val transform = hints.getTransformSchema
-    val attributeName = descriptor.getLocalName
     val hasDupes = descriptor.isMultiValued
 
     val attrTable = acc.getTableName(sft.getTypeName, AttributeTable)
@@ -294,4 +294,40 @@ object AttributeIdxStrategy extends StrategyProvider {
         throw new RuntimeException(msg)
     }
   }
+
+  def tryMergeAttrStrategy(toMerge: QueryFilter, mergeTo: QueryFilter): QueryFilter = {
+    // TODO: check disjoint range queries on an attribute
+    // e.g. 'height < 5 OR height > 6'
+    tryMergeDisjointAttrEquals(toMerge, mergeTo)
+  }
+
+  def tryMergeDisjointAttrEquals(toMerge: QueryFilter, mergeTo: QueryFilter): QueryFilter = {
+    // determine if toMerge.primary and mergeTo.primary are all Equals filters on the same attribute
+    if(isPropertyIsEqualToFilter(toMerge) && isPropertyIsEqualToFilter(mergeTo) && isSameProperty(toMerge, mergeTo)) {
+      // if we have disjoint attribute queries with the same secondary filter, merge into a multi-range query
+      (toMerge.secondary, mergeTo.secondary) match {
+        case (Some(f1), Some(f2)) if f1.equals(f2) =>
+          mergeTo.copy(primary = mergeTo.primary ++ toMerge.primary)
+
+        case (None, None) =>
+          mergeTo.copy(primary = mergeTo.primary ++ toMerge.primary)
+
+        case _ =>
+          null
+      }
+    } else {
+      null
+    }
+  }
+
+  def isPropertyIsEqualToFilter(qf: QueryFilter) = qf.primary.forall(_.isInstanceOf[PropertyIsEqualTo])
+
+  def isSameProperty(l: QueryFilter, r: QueryFilter) = {
+    val lp = distinctProperties(l)
+    val rp = distinctProperties(r)
+    lp.length == 1 && rp.length == 1 && lp.head == rp.head
+  }
+
+  def distinctProperties(qf: QueryFilter) = qf.primary.flatMap { f => DataUtilities.attributeNames(f) }.distinct
+
 }

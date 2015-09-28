@@ -1,5 +1,13 @@
 # See http://about.travis-ci.org/docs/user/build-configuration/
+sudo: false
+
+before_script:
+  - export MAVEN_SKIP_RC=true
+
+cache:
+  directories:
+  - $HOME/.m2
+
 script:
-  - sudo rm /etc/mavenrc
-  - export MAVEN_OPTS="-Xmx2469m -XX:MaxPermSize=512m"
-  - mvn clean install -T2 | grep -v -e 'Downloading:' -e 'Downloaded:'
+  - export MAVEN_OPTS="-Xmx1g -XX:MaxPermSize=512m"
+  - ./.travisbuild.sh

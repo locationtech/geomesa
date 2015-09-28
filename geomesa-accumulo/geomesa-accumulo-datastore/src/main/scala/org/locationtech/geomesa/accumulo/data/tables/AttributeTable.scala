@@ -48,8 +48,7 @@ object AttributeTable extends GeoMesaTable with Logging {
 
   private type TryEncoder = Try[(TypeEncoder[Any, String], TypeEncoder[_, String])]
 
-  override def supports(sft: SimpleFeatureType) =
-    sft.getSchemaVersion > 5 && SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).nonEmpty
+  override def supports(sft: SimpleFeatureType) = sft.getSchemaVersion > 5
 
   override val suffix: String = "attr_idx"
 

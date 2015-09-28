@@ -16,7 +16,7 @@ import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyTyp
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.{And, Filter, Id, Or}
+import org.opengis.filter._
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
@@ -217,12 +217,15 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends Logging {
       // this is a full table scan, we can just append the OR to the secondary filter
       val secondary = orOption(mergeTo.secondary.toSeq ++ andOption(toMerge.primary ++ toMerge.secondary.toSeq))
       mergeTo.copy(secondary = secondary)
+    } else if(toMerge.strategy == StrategyType.ATTRIBUTE && mergeTo.strategy == StrategyType.ATTRIBUTE) {
+      AttributeIdxStrategy.tryMergeAttrStrategy(toMerge, mergeTo)
     } else {
       // TODO we could technically check for overlapping geoms, date ranges, attribute ranges, etc
       // not sure it's worth it though
       null
     }
   }
+
 
   /**
    * Returns true if the temporal filters create a range with an upper and lower bound

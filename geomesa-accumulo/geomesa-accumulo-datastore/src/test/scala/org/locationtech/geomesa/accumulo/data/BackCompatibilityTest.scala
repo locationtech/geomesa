@@ -10,38 +10,30 @@ package org.locationtech.geomesa.accumulo.data
 
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureSource
-import org.geotools.factory.Hints
-import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class BackCompatibilityTest extends Specification with TestWithDataStore {
+class BackCompatibilityTest extends Specification with TestWithMultipleSfts {
 
   sequential
 
-  override def spec =
-    """
-      |name:String:index=true:cardinality=high,
-      |age:Int,
-      |dtg:Date,
-      |*geom:Point:srid=4326
-    """.stripMargin
+  val spec = "name:String:index=true:cardinality=high,age:Int,dtg:Date,geom:Point:srid=4326"
 
-  def getTestFeatures = {
-    (0 until 10).map { i =>
-      val name = s"name$i"
-      val age = java.lang.Integer.valueOf(10 + i)
-      val dtg = s"2014-01-1${i}T00:00:00.000Z"
-      val geom = s"POINT(45 5$i)"
-      ScalaSimpleFeatureFactory.buildFeature(sft, Array(name, age, dtg, geom), s"$i")
-    }
+  def getTestFeatures(sft: SimpleFeatureType) = (0 until 10).map { i =>
+    val name = s"name$i"
+    val age = java.lang.Integer.valueOf(10 + i)
+    val dtg = s"2014-01-1${i}T00:00:00.000Z"
+    val geom = s"POINT(45 5$i)"
+    ScalaSimpleFeatureFactory.buildFeature(sft, Array(name, age, dtg, geom), s"$i")
   }
 
   val queries = Seq(
@@ -64,25 +56,17 @@ class BackCompatibilityTest extends Specification with TestWithDataStore {
     fs.getFeatures(query).features.map(_.getID.toInt).toList
 
   def runVersionTest(version: Int) = {
-    ds.removeSchema(sftName)
-    ds.createSchema(sft)
-    ds.setGeomesaVersion(sftName, version)
+    val sft = createNewSchema(spec)
+    ds.setGeomesaVersion(sft.getTypeName, version)
+    addFeatures(sft, getTestFeatures(sft))
 
-    val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
-
-    val featureCollection = new DefaultFeatureCollection(sftName, sft)
-    getTestFeatures.foreach { f =>
-      f.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-      featureCollection.add(f)
-    }
-    // write the feature to the store
-    fs.addFeatures(featureCollection)
+    val fs = ds.getFeatureSource(sft.getTypeName).asInstanceOf[AccumuloFeatureStore]
 
     queries.foreach { case (q, results) =>
       val filter = ECQL.toFilter(q)
-      doQuery(fs, new Query(sftName, filter)) mustEqual results
+      doQuery(fs, new Query(sft.getTypeName, filter)) mustEqual results
       transforms.foreach { t =>
-        doQuery(fs, new Query(sftName, filter, t)) mustEqual results
+        doQuery(fs, new Query(sft.getTypeName, filter, t)) mustEqual results
       }
     }
   }
@@ -95,5 +79,4 @@ class BackCompatibilityTest extends Specification with TestWithDataStore {
       }
     }
   }
-
 }

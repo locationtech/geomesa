@@ -15,6 +15,7 @@ import org.apache.accumulo.core.data.{Range => AccRange}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
 import org.geotools.data._
+import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.cql2.CQLException
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -598,5 +599,63 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       features must haveLength(2)
       features must contain("bill", "bob")
     }
+  }
+
+  "AttributeIdxStrategy merging" should {
+    val ff = CommonFactoryFinder.getFilterFactory2
+
+    "merge PropertyIsEqualTo primary filters" >> {
+      val q1 = ff.equals(ff.property("prop"), ff.literal("1"))
+      val q2 = ff.equals(ff.property("prop"), ff.literal("2"))
+      val qf1 = new QueryFilter(StrategyType.ATTRIBUTE, Seq(q1), None)
+      val qf2 = new QueryFilter(StrategyType.ATTRIBUTE, Seq(q2), None)
+      val res = AttributeIdxStrategy.tryMergeAttrStrategy(qf1, qf2)
+      "result must not be null" >> { res must not beNull }
+      "result must have two primary filters" >> { res.primary.length must equalTo(2) }
+      "result filters must be on 'prop'" >> { res.primary.flatMap { f => DataUtilities.attributeNames(f) } must contain(exactly("prop", "prop")) }
+    }
+
+    "merge PropertyIsEqualTo on multiple ORs" >> {
+      import AttributeIdxStrategy._
+
+      val q1 = ff.equals(ff.property("prop"), ff.literal("1"))
+      val q2 = ff.equals(ff.property("prop"), ff.literal("2"))
+      val q3 = ff.equals(ff.property("prop"), ff.literal("3"))
+      val qf1 = new QueryFilter(StrategyType.ATTRIBUTE, Seq(q1), None)
+      val qf2 = new QueryFilter(StrategyType.ATTRIBUTE, Seq(q2), None)
+      val qf3 = new QueryFilter(StrategyType.ATTRIBUTE, Seq(q3), None)
+      val res = tryMergeAttrStrategy(tryMergeAttrStrategy(qf1, qf2), qf3)
+      "result must not be null" >> { res must not beNull }
+      "result must have three primary filters" >> { res.primary.length must equalTo(3) }
+      "result filters must be on 'prop'" >> { res.primary.flatMap { f => DataUtilities.attributeNames(f) } must contain(exactly("prop", "prop", "prop")) }
+    }
+
+    "merge PropertyIsEqualTo when secondary matches" >> {
+      import AttributeIdxStrategy._
+      val bbox = ff.bbox("geom", 1, 2, 3, 4, "EPSG:4326")
+      val q1 = ff.equals(ff.property("prop"), ff.literal("1"))
+      val q2 = ff.equals(ff.property("prop"), ff.literal("2"))
+      val q3 = ff.equals(ff.property("prop"), ff.literal("3"))
+      val qf1 = new QueryFilter(StrategyType.ATTRIBUTE, Seq(q1), Some(bbox))
+      val qf2 = new QueryFilter(StrategyType.ATTRIBUTE, Seq(q2), Some(bbox))
+      val qf3 = new QueryFilter(StrategyType.ATTRIBUTE, Seq(q3), Some(bbox))
+      val res = tryMergeAttrStrategy(tryMergeAttrStrategy(qf1, qf2), qf3)
+      "result must not be null" >> { res must not beNull }
+      "result must have three primary filters" >> { res.primary.length must equalTo(3) }
+      "result filters must be on 'prop'" >> { res.primary.flatMap { f => DataUtilities.attributeNames(f) } must contain(exactly("prop", "prop", "prop")) }
+      "result secondary must be bbox" >> { res.secondary.exists(_.equals(bbox)) }
+    }
+
+    "not merge PropertyIsEqualTo when secondary does not match" >> {
+      import AttributeIdxStrategy._
+      val bbox = ff.bbox("geom", 1, 2, 3, 4, "EPSG:4326")
+      val q1 = ff.equals(ff.property("prop"), ff.literal("1"))
+      val q2 = ff.equals(ff.property("prop"), ff.literal("2"))
+      val qf1 = new QueryFilter(StrategyType.ATTRIBUTE, Seq(q1), Some(bbox))
+      val qf2 = new QueryFilter(StrategyType.ATTRIBUTE, Seq(q2), None)
+      val res = tryMergeAttrStrategy(qf1, qf2)
+      "result must be null" >> { res must beNull }
+    }
+
   }
 }
