@@ -8,8 +8,9 @@
 
 package org.locationtech.geomesa.jobs.mapreduce
 
-import java.io.{DataInput, DataOutput}
+import java.io._
 import java.lang.Float._
+import java.net.{URL, URLClassLoader}
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.mapreduce.{AccumuloInputFormat, InputFormatBase, RangeInputSplit}
@@ -24,12 +25,10 @@ import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
-import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.SimpleFeatureDeserializers
-import org.locationtech.geomesa.filter.filterToString
-import org.locationtech.geomesa.jobs.{JobUtils, GeoMesaConfigurator}
+import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -38,6 +37,8 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 
 object GeoMesaInputFormat extends Logging {
+
+  val SYS_PROP_SPARK_LOAD_CP = "org.locationtech.geomesa.spark.load-classpath"
 
   def configure(job: Job,
                 dsParams: Map[String, String],
@@ -49,7 +50,6 @@ object GeoMesaInputFormat extends Logging {
     val query = new Query(featureTypeName, ecql, trans)
     configure(job, dsParams, query)
   }
-
 
   /**
    * Configure the input format.
@@ -104,6 +104,33 @@ object GeoMesaInputFormat extends Logging {
       GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(query.getFilter))
     }
     query.getHints.getTransformSchema.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
+  }
+
+  /**
+   * This takes any jars that have been loaded by spark in the context classloader and makes them
+   * available to the general classloader. This is required as not all classes (even spark ones) check
+   * the context classloader.
+   */
+  def ensureSparkClasspath(): Unit = {
+    val sysLoader = ClassLoader.getSystemClassLoader
+    val ccl = Thread.currentThread().getContextClassLoader
+    if (ccl == null || !ccl.getClass.getCanonicalName.startsWith("org.apache.spark.")) {
+      logger.debug("No spark context classloader found")
+    } else if (!ccl.isInstanceOf[URLClassLoader]) {
+      logger.warn(s"Found context classloader, but can't handle type ${ccl.getClass.getCanonicalName}")
+    } else if (!sysLoader.isInstanceOf[URLClassLoader]) {
+      logger.warn(s"Found context classloader, but can't add to type ${sysLoader.getClass.getCanonicalName}")
+    } else {
+      // hack to get around protected visibility of addURL
+      // this might fail if there is a security manager present
+      val addUrl = classOf[URLClassLoader].getDeclaredMethod("addURL", classOf[URL])
+      addUrl.setAccessible(true)
+      val sysUrls = sysLoader.asInstanceOf[URLClassLoader].getURLs.map(_.toString).toSet
+      val (dupeUrls, newUrls) = ccl.asInstanceOf[URLClassLoader].getURLs.filterNot(_.toString.contains("__app__.jar")).partition(url => sysUrls.contains(url.toString))
+      newUrls.foreach(addUrl.invoke(sysLoader, _))
+      logger.debug(s"Loaded ${newUrls.length} urls from context classloader into system classloader " +
+          s"and ignored ${dupeUrls.length} that are already loaded")
+    }
   }
 }
 
@@ -244,6 +271,12 @@ class GeoMesaRecordReader(readers: Array[RecordReader[Key, Value]], decoder: org
  * mutable state.
  */
 class GroupedSplit extends InputSplit with Writable {
+
+  // if we're running in spark, we need to load the context classpath before anything else,
+  // otherwise we get classloading and serialization issues
+  sys.env.get(GeoMesaInputFormat.SYS_PROP_SPARK_LOAD_CP).filter(_.toBoolean).foreach { _ =>
+    GeoMesaInputFormat.ensureSparkClasspath()
+  }
 
   var location: String = null
   var splits: ArrayBuffer[RangeInputSplit] = ArrayBuffer.empty

@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <parent>
         <artifactId>geomesa</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
         <version>1.1.0-rc.6-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-web</artifactId>
+    <modelVersion>4.0.0</modelVersion>
     <name>GeoMesa Web</name>
+    <artifactId>geomesa-web</artifactId>
+    <packaging>pom</packaging>
+
+    <properties>
+        <scalatra.version>2.3.0</scalatra.version>
+    </properties>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -47,15 +54,12 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-    <properties>
-        <scalatra.version>2.3.0</scalatra.version>
-    </properties>
-    <packaging>pom</packaging>
 
     <modules>
         <module>geomesa-web-core</module>
         <module>geomesa-web-csv</module>
         <module>geomesa-web-data</module>
+        <module>geomesa-web-install</module>
         <module>geomesa-web-security</module>
     </modules>
 

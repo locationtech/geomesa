@@ -40,11 +40,16 @@ import scala.collection.JavaConversions._
 
 object GeoMesaSpark extends Logging {
 
-  def init(conf: SparkConf, ds: DataStore): SparkConf = {
-    val typeOptions = ds.getTypeNames.map { t => (t, SimpleFeatureTypes.encodeType(ds.getSchema(t))) }
+  def init(conf: SparkConf, ds: DataStore): SparkConf = init(conf, ds.getTypeNames.map(ds.getSchema))
+
+  def init(conf: SparkConf, sfts: Seq[SimpleFeatureType]): SparkConf = {
+    import GeoMesaInputFormat.SYS_PROP_SPARK_LOAD_CP
+    val typeOptions = sfts.map { sft => (sft.getTypeName, SimpleFeatureTypes.encodeType(sft)) }
     typeOptions.foreach { case (k,v) => System.setProperty(typeProp(k), v) }
-    val extraOpts = typeOptions.map { case (k,v) => jOpt(k, v) }.mkString(" ")
-    
+    val typeOpts = typeOptions.map { case (k,v) => jOpt(k, v) }
+    val jarOpt = sys.props.get(SYS_PROP_SPARK_LOAD_CP).map(v => s"-D$SYS_PROP_SPARK_LOAD_CP=$v")
+    val extraOpts = (typeOpts ++ jarOpt).mkString(" ")
+
     conf.set("spark.executor.extraJavaOptions", extraOpts)
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     conf.set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)

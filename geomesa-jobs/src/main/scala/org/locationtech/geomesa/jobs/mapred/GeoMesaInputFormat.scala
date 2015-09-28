@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.jobs.mapred
 
-import java.io.{DataInput, DataOutput}
+import java.io._
 import java.lang.Float.isNaN
 
 import com.typesafe.scalalogging.slf4j.Logging
@@ -25,12 +25,10 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
-import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureDeserializer, SimpleFeatureDeserializers}
-import org.locationtech.geomesa.filter.filterToString
-import org.locationtech.geomesa.jobs.{JobUtils, GeoMesaConfigurator}
+import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
