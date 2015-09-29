@@ -144,6 +144,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
   // output the query plan for explain logging
   private def outputPlan(plan: QueryPlan, output: ExplainerOutputType, prefix: String = ""): Unit = {
     output(s"${prefix}Table: ${plan.table}")
+    output(s"${prefix}Deduplicate: ${plan.hasDuplicates}")
     output(s"${prefix}Column Families${if (plan.columnFamilies.isEmpty) ": all"
       else s" (${plan.columnFamilies.size}): ${plan.columnFamilies.take(20)}"} ")
     output(s"${prefix}Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(rangeToString).mkString(", ")}")

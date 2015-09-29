@@ -18,12 +18,12 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.joda.time.{DateTimeZone, DateTime}
+import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
-import org.locationtech.geomesa.accumulo.index.{ExplainString, QueryPlanner}
+import org.locationtech.geomesa.accumulo.index.{ExplainString, JoinPlan, QueryPlanner}
 import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, TestData}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
@@ -288,6 +288,25 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         val results = fs.getFeatures(query)
         results.size() mustEqual 226
       }
+    }
+
+    "avoid deduplication when possible" in {
+      val sft = createNewSchema(s"name:String:index=join:cardinality=high,dtg:Date,*geom:Point:srid=4326")
+      addFeature(sft, ScalaSimpleFeature.create(sft, "1", "bob", "2010-05-07T12:00:00.000Z", "POINT(45 45)"))
+
+      val filter = "bbox(geom,-180,-90,180,90) AND dtg DURING 2010-05-07T00:00:00.000Z/2010-05-08T00:00:00.000Z" +
+          " AND (name = 'alice' OR name = 'bob' OR name = 'charlie')"
+      val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
+
+      val plans = ds.getQueryPlan(query)
+      plans must haveLength(1)
+      plans.head.hasDuplicates must beFalse
+      plans.head must beAnInstanceOf[JoinPlan]
+      plans.head.asInstanceOf[JoinPlan].joinQuery.hasDuplicates must beFalse
+
+      val features = ds.getFeatureSource(sft.getTypeName).getFeatures(query).features().toList
+      features must haveLength(1)
+      features.head.getID mustEqual "1"
     }
 
     "support bin queries" in {

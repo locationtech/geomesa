@@ -156,7 +156,12 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends Logging {
         if (i == -1) {
           groups.append(f)
         } else {
-          groups.update(i, f.copy(secondary = orOption(Seq(groups(i).secondary, f.secondary).flatten)))
+          val current = groups(i).secondary match {
+            case Some(o) if o.isInstanceOf[Or] => o.asInstanceOf[Or].getChildren.toSeq
+            case Some(n) => Seq(n)
+            case None    => Seq.empty
+          }
+          groups.update(i, f.copy(secondary = orOption(current ++ f.secondary)))
         }
       }
       FilterPlan(groups.toSeq)
@@ -206,7 +211,7 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends Logging {
         filterPlan
       } else {
         // A OR B OR C becomes... A OR (B NOT A) OR (C NOT A and NOT B)
-        def extractNot(qp: QueryFilter) = ff.not(andFilters(qp.primary ++ qp.secondary))
+        def extractNot(qp: QueryFilter) = ff.not(qp.filter)
         // keep track of our current disjoint clause
         val nots = ArrayBuffer[Filter](extractNot(filterPlan.filters.head))
         val filters = Seq(filterPlan.filters.head) ++ filterPlan.filters.tail.map { filter =>
@@ -240,9 +245,9 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends Logging {
   private def tryMerge(toMerge: QueryFilter, mergeTo: QueryFilter): QueryFilter = {
     if (mergeTo.primary.forall(_ == Filter.INCLUDE)) {
       // this is a full table scan, we can just append the OR to the secondary filter
-      val secondary = orOption(mergeTo.secondary.toSeq ++ andOption(toMerge.primary ++ toMerge.secondary.toSeq))
+      val secondary = orOption(mergeTo.secondary.toSeq ++ Seq(toMerge.filter))
       mergeTo.copy(secondary = secondary)
-    } else if(toMerge.strategy == StrategyType.ATTRIBUTE && mergeTo.strategy == StrategyType.ATTRIBUTE) {
+    } else if (toMerge.strategy == StrategyType.ATTRIBUTE && mergeTo.strategy == StrategyType.ATTRIBUTE) {
       AttributeIdxStrategy.tryMergeAttrStrategy(toMerge, mergeTo)
     } else {
       // TODO we could technically check for overlapping geoms, date ranges, attribute ranges, etc
@@ -272,9 +277,13 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends Logging {
  * Filters split into a 'primary' that will be used for range planning,
  * and a 'secondary' that will be applied as a final step.
  */
-case class QueryFilter(strategy: StrategyType, primary: Seq[Filter], secondary: Option[Filter] = None) {
-  lazy val filter = andFilters(primary ++ secondary)
-  override lazy val toString: String = s"$strategy[${primary.map(filterToString).mkString(" AND ")}]" +
+case class QueryFilter(strategy: StrategyType,
+                       primary: Seq[Filter],
+                       secondary: Option[Filter] = None,
+                       or: Boolean = false) {
+  lazy val filter = if (or) andFilters(Seq(orFilters(primary)) ++ secondary) else andFilters(primary ++ secondary)
+  override lazy val toString: String =
+    s"$strategy[${primary.map(filterToString).mkString(if (or) " OR " else " AND ")}]" +
       s"[${secondary.map(filterToString).getOrElse("None")}]"
 }
 
