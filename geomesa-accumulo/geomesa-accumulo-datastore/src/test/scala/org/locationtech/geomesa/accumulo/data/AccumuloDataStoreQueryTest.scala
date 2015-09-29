@@ -248,48 +248,6 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       schemaWithNs.getName.getLocalPart mustEqual sft.getTypeName
     }
 
-    "handle IDL correctly" in {
-      val sft = createNewSchema(TestData.getTypeSpec())
-
-      val fs = ds.getFeatureSource(sft.getTypeName).asInstanceOf[AccumuloFeatureStore]
-      val featureCollection = new DefaultFeatureCollection()
-      featureCollection.addAll(TestData.allThePoints.map(TestData.createSF))
-      fs.addFeatures(featureCollection)
-
-      val srs = CRS.toSRS(DefaultGeographicCRS.WGS84)
-      "default layer preview, bigger than earth, multiple IDL-wrapping geoserver BBOX" in {
-        val spatial = ff.bbox("geom", -230, -110, 230, 110, srs)
-        val query = new Query(sft.getTypeName, spatial)
-        val results = fs.getFeatures(query)
-        results.size() mustEqual 361
-      }
-
-      "greater than 180 lon diff non-IDL-wrapping geoserver BBOX" in {
-        val spatial = ff.bbox("geom", -100, 1.1, 100, 4.1, srs)
-        val query = new Query(sft.getTypeName, spatial)
-        val results = fs.getFeatures(query)
-        results.size() mustEqual 6
-      }
-
-      "small IDL-wrapping geoserver BBOXes" in {
-        val spatial1 = ff.bbox("geom", -181.1, -90, -175.1, 90, srs)
-        val spatial2 = ff.bbox("geom", 175.1, -90, 181.1, 90, srs)
-        val binarySpatial = ff.or(spatial1, spatial2)
-        val query = new Query(sft.getTypeName, binarySpatial)
-        val results = fs.getFeatures(query)
-        results.size() mustEqual 10
-      }
-
-      "large IDL-wrapping geoserver BBOXes" in {
-        val spatial1 = ff.bbox("geom", -181.1, -90, 40.1, 90, srs)
-        val spatial2 = ff.bbox("geom", 175.1, -90, 181.1, 90, srs)
-        val binarySpatial = ff.or(spatial1, spatial2)
-        val query = new Query(sft.getTypeName, binarySpatial)
-        val results = fs.getFeatures(query)
-        results.size() mustEqual 226
-      }
-    }
-
     "avoid deduplication when possible" in {
       val sft = createNewSchema(s"name:String:index=join:cardinality=high,dtg:Date,*geom:Point:srid=4326")
       addFeature(sft, ScalaSimpleFeature.create(sft, "1", "bob", "2010-05-07T12:00:00.000Z", "POINT(45 45)"))
