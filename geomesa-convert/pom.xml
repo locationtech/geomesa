@@ -34,6 +34,7 @@
         <module>geomesa-convert-text</module>
         <module>geomesa-convert-fixedwidth</module>
         <module>geomesa-convert-xml</module>
+        <module>geomesa-convert-json</module>
     </modules>
 
 </project>
