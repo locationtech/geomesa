@@ -15,10 +15,10 @@ class JsonConverterTest extends Specification {
   val sftConf = ConfigFactory.parseString(
     """{ type-name = "jsonFeatureType"
       |  attributes = [
-      |    {name = "number", type = "Integer"}
-      |    {name = "color",  type = "String"}
-      |    {name = "weight", type = "Double"}
-      |    {name = "geom",   type = "Point"}
+      |    { name = "number", type = "Integer" }
+      |    { name = "color",  type = "String"  }
+      |    { name = "weight", type = "Double"  }
+      |    { name = "geom",   type = "Point"   }
       |  ]
       |}
     """.stripMargin)
@@ -216,9 +216,6 @@ class JsonConverterTest extends Specification {
           |   ]
           | }
         """.stripMargin)
-
-      val pt1 = new Point(new Coordinate(0, 0), new PrecisionModel(PrecisionModel.FIXED), 4326)
-      val pt2 = new Point(new Coordinate(1, 1), new PrecisionModel(PrecisionModel.FIXED), 4326)
 
       val converter = SimpleFeatureConverters.build[String](sft, parserConf)
       val features = converter.processInput(Iterator(jsonStr)).toList
