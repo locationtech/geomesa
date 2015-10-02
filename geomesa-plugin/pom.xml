@@ -54,12 +54,7 @@
       <dependency>
           <groupId>org.locationtech.geomesa</groupId>
           <artifactId>geomesa-jobs</artifactId>
-          <exclusions>
-              <exclusion>
-                  <groupId>org.geotools</groupId>
-                  <artifactId>*</artifactId>
-              </exclusion>
-          </exclusions>
+          <scope>provided</scope>
       </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>

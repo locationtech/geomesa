@@ -157,6 +157,7 @@ object HistogramJob {
              dsParams: Map[String, String],
              feature: String,
              attribute: String,
+             fileOut: String,
              groupBy: List[String]    = List.empty,
              uniqueBy: List[String]   = List.empty,
              writeToAccumulo: Boolean = false) = {
@@ -164,6 +165,7 @@ object HistogramJob {
                    ATTRIBUTE         -> List(attribute),
                    GROUP_BY          -> groupBy,
                    UNIQUE_BY         -> uniqueBy,
+                   FILE_OUT          -> List(fileOut),
                    WRITE_TO_ACCUMULO -> List(writeToAccumulo.toString)).toMap ++ toInArgs(dsParams)
     val instantiateJob = (args: Args) => new HistogramJob(args)
     GeoMesaBaseJob.runJob(conf, args, instantiateJob)
