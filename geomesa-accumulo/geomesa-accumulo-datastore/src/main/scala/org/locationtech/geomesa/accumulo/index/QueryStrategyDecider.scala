@@ -14,6 +14,7 @@ import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -43,7 +44,7 @@ object QueryStrategyDecider {
   }
 }
 
-class QueryStrategyDeciderV6 extends QueryStrategyDecider {
+class QueryStrategyDeciderV6 extends QueryStrategyDecider with MethodProfiling {
 
   /**
    * Scans the filter and identify the type of predicates present, then picks a strategy based on cost.
@@ -70,47 +71,53 @@ class QueryStrategyDeciderV6 extends QueryStrategyDecider {
                                 requested: Option[StrategyType],
                                 output: ExplainerOutputType): Seq[Strategy] = {
 
+    implicit val timings = new TimingsImpl()
+
     // get the various options that we could potentially use
     val options = new QueryFilterSplitter(sft).getQueryOptions(query.getFilter)
 
-    if (requested.isDefined) {
-      // see if one of the normal plans matches the requested type - if not, force it
-      val strategy = requested.get
-      val forced = options.find(_.filters.forall(_.strategy == strategy)) match {
-        case Some(plan) => plan.filters.map(createStrategy)
-        case None => Seq(createStrategy(QueryFilter(strategy, Seq(Filter.INCLUDE), Some(query.getFilter))))
-      }
-      output(s"Filter plan forced to $forced")
-      forced
-    } else if (options.isEmpty) {
-      output(s"No filter plans found")
-      Seq.empty // corresponds to filter.exclude
-    } else {
-      val filterPlan = if (query.getHints.isDensityQuery) {
-        // TODO GEOMESA-322 use other strategies with density iterator
-        val st = options.find(_.filters.forall(q => q.strategy == StrategyType.Z3 ||
-            q.strategy == StrategyType.ST))
-        val density = st.getOrElse {
-          val fallback = if (query.getFilter == Filter.INCLUDE) None else Some(query.getFilter)
-          FilterPlan(Seq(QueryFilter(StrategyType.ST, Seq(Filter.INCLUDE), fallback)))
+    val selected = profile({
+      if (requested.isDefined) {
+        // see if one of the normal plans matches the requested type - if not, force it
+        val strategy = requested.get
+        val forced = options.find(_.filters.forall(_.strategy == strategy)) match {
+          case Some(plan) => plan.filters.map(createStrategy)
+          case None => Seq(createStrategy(QueryFilter(strategy, Seq(Filter.INCLUDE), Some(query.getFilter))))
         }
-        output(s"Filter plan for density query: $density")
-        density
-      } else if (options.length == 1) {
-        // only a single option, so don't bother with cost
-        output(s"Filter plan: ${options.head}")
-        options.head
+        output(s"Filter plan forced to $forced")
+        forced
+      } else if (options.isEmpty) {
+        output(s"No filter plans found")
+        Seq.empty // corresponds to filter.exclude
       } else {
-        // choose the best option based on cost
-        val costs = options.map(o => (o, o.filters.map(getCost(_, sft, hints)).sum)).sortBy(_._2)
-        val cheapest = costs.head
-        output(s"Filter plan selected: ${cheapest._1} (Cost ${cheapest._2})")
-        output(s"Filter plans not used (${costs.size - 1}): " +
-            s"${costs.drop(1).map(c => s"${c._1} (Cost ${c._2})").mkString(", ")}")
-        cheapest._1
+        val filterPlan = if (query.getHints.isDensityQuery) {
+          // TODO GEOMESA-322 use other strategies with density iterator
+          val st = options.find(_.filters.forall(q => q.strategy == StrategyType.Z3 ||
+              q.strategy == StrategyType.ST))
+          val density = st.getOrElse {
+            val fallback = if (query.getFilter == Filter.INCLUDE) None else Some(query.getFilter)
+            FilterPlan(Seq(QueryFilter(StrategyType.ST, Seq(Filter.INCLUDE), fallback)))
+          }
+          output(s"Filter plan for density query: $density")
+          density
+        } else if (options.length == 1) {
+          // only a single option, so don't bother with cost
+          output(s"Filter plan: ${options.head}")
+          options.head
+        } else {
+          // choose the best option based on cost
+          val costs = options.map(o => (o, o.filters.map(getCost(_, sft, hints)).sum)).sortBy(_._2)
+          val cheapest = costs.head
+          output(s"Filter plan selected: ${cheapest._1} (Cost ${cheapest._2})")
+          output(s"Filter plans not used (${costs.size - 1}): " +
+              s"${costs.drop(1).map(c => s"${c._1} (Cost ${c._2})").mkString(", ")}")
+          cheapest._1
+        }
+        filterPlan.filters.map(createStrategy)
       }
-      filterPlan.filters.map(createStrategy)
-    }
+    }, "cost")
+    output(s"Strategy selection took ${timings.time("cost")}ms for ${options.length} options")
+    selected
   }
 
   /**

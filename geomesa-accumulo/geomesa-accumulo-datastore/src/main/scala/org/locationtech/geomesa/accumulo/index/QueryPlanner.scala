@@ -27,7 +27,6 @@ import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanners.FeatureFunction
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
 import org.locationtech.geomesa.accumulo.iterators._
-import org.locationtech.geomesa.accumulo.util.CloseableIterator._
 import org.locationtech.geomesa.accumulo.util.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features._
@@ -69,7 +68,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
   def planQuery(query: Query,
                 strategy: Option[StrategyType] = None,
                 output: ExplainerOutputType = log): Seq[QueryPlan] = {
-    getQueryPlans(query, strategy, output)
+    getQueryPlans(query, strategy, output).toList // toList forces evaluation of entire iterator
   }
 
   /**
@@ -83,8 +82,8 @@ case class QueryPlanner(sft: SimpleFeatureType,
   /**
    * Execute a sequence of query plans
    */
-  private def executePlans(query: Query, queryPlans: Seq[QueryPlan]): SFIter = {
-    def scan(qps: Seq[QueryPlan]): SFIter = qps.iterator.ciFlatMap { qp =>
+  private def executePlans(query: Query, queryPlans: Iterator[QueryPlan]): SFIter = {
+    def scan(qps: Iterator[QueryPlan]): SFIter = SelfClosingIterator(qps).ciFlatMap { qp =>
       val iter = Strategy.execute(qp, acc, log).map(qp.kvsToFeatures)
       if (qp.hasDuplicates) new DeDuplicatingIterator(iter) else iter
     }
@@ -94,8 +93,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
       // sort will self-close itself
       new LazySortedIterator(iter, query.getHints.getReturnSft, query.getSortBy)
     } else {
-      // wrap in a self-closing iterator to mitigate clients not calling close
-      SelfClosingIterator(iter)
+      iter
     }
 
     def reduce(iter: SFIter): SFIter = if (query.getHints.isTemporalDensityQuery) {
@@ -115,7 +113,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
    */
   private def getQueryPlans(query: Query,
                             requested: Option[StrategyType],
-                            output: ExplainerOutputType): Seq[QueryPlan] = {
+                            output: ExplainerOutputType): Iterator[QueryPlan] = {
 
     configureQuery(query, sft) // configure the query - set hints that we'll need later on
 
@@ -124,21 +122,17 @@ case class QueryPlanner(sft: SimpleFeatureType,
     output(s"Sort: ${Option(query.getSortBy).filter(_.nonEmpty).map(_.mkString(", ")).getOrElse("none")}")
     output(s"Transforms: ${query.getHints.getTransformDefinition.getOrElse("None")}")
 
-    implicit val timings = new TimingsImpl
-    val queryPlans = profile({
-      val requestedStrategy = requested.orElse(query.getHints.getRequestedStrategy)
-      val strategies = QueryStrategyDecider.chooseStrategies(sft, query, hints, requestedStrategy, output)
-      strategies.map { strategy =>
-        output(s"Strategy: ${strategy.getClass.getSimpleName}")
-        output(s"Filter: ${strategy.filter}")
-        val plan = strategy.getQueryPlan(this, query.getHints, output)
-        outputPlan(plan, output)
-        plan
-      }
-    }, "plan")
-    output(s"Query planning took ${timings.time("plan")}ms for ${queryPlans.length} " +
-        s"distinct quer${if (queryPlans.length == 1) "y" else "ies"}.")
-    queryPlans
+    val requestedStrategy = requested.orElse(query.getHints.getRequestedStrategy)
+    val strategies = QueryStrategyDecider.chooseStrategies(sft, query, hints, requestedStrategy, output)
+    strategies.iterator.map { strategy =>
+      output(s"Strategy: ${strategy.getClass.getSimpleName}")
+      output(s"Filter: ${strategy.filter}")
+      implicit val timings = new TimingsImpl
+      val plan = profile(strategy.getQueryPlan(this, query.getHints, output), "plan")
+      outputPlan(plan, output)
+      output(s"Query planning took ${timings.time("plan")}ms")
+      plan
+    }
   }
 
   // output the query plan for explain logging
