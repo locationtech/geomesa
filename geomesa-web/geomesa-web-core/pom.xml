@@ -12,6 +12,16 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-accumulo-datastore</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.accumulo</groupId>
+            <artifactId>accumulo-core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.scalatra</groupId>
             <artifactId>scalatra_2.10</artifactId>
         </dependency>

@@ -224,6 +224,9 @@ object RichSimpleFeatureType {
       userData[String](SCHEMA_VERSION_KEY).map(_.toInt).getOrElse(CURRENT_SCHEMA_VERSION)
     def setSchemaVersion(version: Int): Unit = sft.getUserData.put(SCHEMA_VERSION_KEY, version.toString)
 
+    def isPoints = sft.getGeometryDescriptor.getType.getBinding == classOf[Point]
+    def isLines = sft.getGeometryDescriptor.getType.getBinding == classOf[LineString]
+
     //  If no user data is specified when creating a new SFT, we should default to 'true'.
     def isTableSharing: Boolean = userData[String](TABLE_SHARING_KEY).map(_.toBoolean).getOrElse(true)
     def setTableSharing(sharing: Boolean): Unit = sft.getUserData.put(TABLE_SHARING_KEY, sharing.toString)

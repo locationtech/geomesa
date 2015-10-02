@@ -9,10 +9,7 @@
 package org.locationtech.geomesa.jobs.index
 
 import com.twitter.scalding._
-import org.apache.accumulo.core.data.{Range => AcRange}
 import org.geotools.data.DataStoreFinder
-import org.geotools.feature.NameImpl
-import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.jobs.GeoMesaBaseJob
 import org.locationtech.geomesa.jobs.scalding.ConnectionParams._

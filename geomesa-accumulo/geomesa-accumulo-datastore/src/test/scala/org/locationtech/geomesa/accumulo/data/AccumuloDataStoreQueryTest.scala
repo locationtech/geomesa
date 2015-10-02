@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.accumulo.data
 
+import java.util.Date
+
 import com.vividsolutions.jts.geom.Coordinate
 import org.geotools.data._
 import org.geotools.factory.{CommonFactoryFinder, Hints}
@@ -16,8 +18,7 @@ import org.geotools.feature.{DefaultFeatureCollection, NameImpl}
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.geotools.referencing.CRS
-import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.geotools.util.Converters
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
@@ -26,7 +27,7 @@ import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index.{ExplainString, JoinPlan, QueryPlanner}
 import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, TestData}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
+import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction}
 import org.locationtech.geomesa.utils.filters.Filters
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -283,6 +284,39 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
       bins must haveSize(2)
       bins.map(_.trackId) must containAllOf(Seq("name1", "name2").map(_.hashCode.toString))
+    }
+
+    "support bin queries with linestrings" in {
+      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      val sft = createNewSchema(s"name:String,dtgs:List[Date],dtg:Date,*geom:LineString:srid=4326")
+      val dtgs1 = new java.util.ArrayList[Date]
+      dtgs1.add(Converters.convert("2010-05-07T00:00:00.000Z", classOf[Date]))
+      dtgs1.add(Converters.convert("2010-05-07T00:01:00.000Z", classOf[Date]))
+      dtgs1.add(Converters.convert("2010-05-07T00:02:00.000Z", classOf[Date]))
+      dtgs1.add(Converters.convert("2010-05-07T00:03:00.000Z", classOf[Date]))
+      val dtgs2 = new java.util.ArrayList[Date]
+      dtgs2.add(Converters.convert("2010-05-07T01:00:00.000Z", classOf[Date]))
+      dtgs2.add(Converters.convert("2010-05-07T01:01:00.000Z", classOf[Date]))
+      dtgs2.add(Converters.convert("2010-05-07T01:02:00.000Z", classOf[Date]))
+      addFeature(sft, ScalaSimpleFeature.create(sft, "1", "name1", dtgs1, "2010-05-07T00:00:00.000Z", "LINESTRING(40 41, 42 43, 44 45, 46 47)"))
+      addFeature(sft, ScalaSimpleFeature.create(sft, "2", "name2", dtgs2, "2010-05-07T01:00:00.000Z", "LINESTRING(50 50, 51 51, 52 52)"))
+
+      val query = new Query(sft.getTypeName, ECQL.toFilter("BBOX(geom,40,40,55,55)"))
+      query.getHints.put(BIN_TRACK_KEY, "name")
+      query.getHints.put(BIN_DTG_KEY, "dtgs")
+
+      val bytes = ds.getFeatureSource(sft.getTypeName).getFeatures(query).features().map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
+      forall(bytes)(_ must beAnInstanceOf[Array[Byte]])
+      val bins = bytes.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
+      bins must haveSize(7)
+      val sorted = bins.sortBy(_.dtg)
+      sorted(0) mustEqual BasicValues(41, 40, dtgs1(0).getTime, "name1".hashCode.toString)
+      sorted(1) mustEqual BasicValues(43, 42, dtgs1(1).getTime, "name1".hashCode.toString)
+      sorted(2) mustEqual BasicValues(45, 44, dtgs1(2).getTime, "name1".hashCode.toString)
+      sorted(3) mustEqual BasicValues(47, 46, dtgs1(3).getTime, "name1".hashCode.toString)
+      sorted(4) mustEqual BasicValues(50, 50, dtgs2(0).getTime, "name2".hashCode.toString)
+      sorted(5) mustEqual BasicValues(51, 51, dtgs2(1).getTime, "name2".hashCode.toString)
+      sorted(6) mustEqual BasicValues(52, 52, dtgs2(2).getTime, "name2".hashCode.toString)
     }
 
     "kill queries after a configurable timeout" in {
