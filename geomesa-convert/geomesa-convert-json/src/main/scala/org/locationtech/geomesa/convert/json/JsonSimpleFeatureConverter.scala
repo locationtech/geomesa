@@ -35,7 +35,10 @@ class JsonSimpleFeatureConverterFactory extends SimpleFeatureConverterFactory[St
   import scala.collection.JavaConversions._
 
   private val jsonConfig =
-    Configuration.builder().jsonProvider(new GsonJsonProvider).build()
+    Configuration.builder()
+      .jsonProvider(new GsonJsonProvider)
+      .options(com.jayway.jsonpath.Option.DEFAULT_PATH_LEAF_TO_NULL)
+      .build()
 
   override def canProcess(conf: Config): Boolean = canProcessType(conf, "json")
 
@@ -104,14 +107,14 @@ trait BaseJsonField[T] extends Field {
 }
 
 case class DoubleJsonField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr) extends BaseJsonField[java.lang.Double] {
-  override def getAs(el: JsonElement): java.lang.Double = el.getAsDouble
+  override def getAs(el: JsonElement): java.lang.Double = if (el.isJsonNull) null else el.getAsDouble
 }
 
 case class IntJsonField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr) extends BaseJsonField[java.lang.Integer] {
-  override def getAs(el: JsonElement): java.lang.Integer = el.getAsInt
+  override def getAs(el: JsonElement): java.lang.Integer = if (el.isJsonNull) null else el.getAsInt
 }
 
 case class StringJsonField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr) extends BaseJsonField[java.lang.String] {
-  override def getAs(el: JsonElement): String = el.getAsString
+  override def getAs(el: JsonElement): String = if (el.isJsonNull) null else el.getAsString
 }
 
