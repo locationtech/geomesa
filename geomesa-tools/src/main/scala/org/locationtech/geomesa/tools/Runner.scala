@@ -35,7 +35,8 @@ object Runner extends Logging {
       new RemoveSchemaCommand(jc),
       new TableConfCommand(jc),
       new VersionCommand(jc),
-      new QueryStatsCommand(jc)
+      new QueryStatsCommand(jc),
+      new GetSftCommand(jc)
     )
 
     commands.foreach(_.register)
