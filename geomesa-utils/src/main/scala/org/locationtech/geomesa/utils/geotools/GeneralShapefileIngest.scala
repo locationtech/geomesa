@@ -75,8 +75,13 @@ object GeneralShapefileIngest {
 
     val fs: FeatureStore[SimpleFeatureType, SimpleFeature] =
       ds.getFeatureSource(featureTypeName).asInstanceOf[FeatureStore[SimpleFeatureType, SimpleFeature]]
+    val transaction = new DefaultTransaction("create")
+    fs.setTransaction(transaction)
 
     fs.addFeatures(reTypedSFC)
+    transaction.commit()
+    transaction.close()
+
     ds
   }
 }
