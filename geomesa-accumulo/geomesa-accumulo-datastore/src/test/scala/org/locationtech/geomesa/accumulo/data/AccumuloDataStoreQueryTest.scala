@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.util
 import java.util.Date
 
 import com.vividsolutions.jts.geom.Coordinate
