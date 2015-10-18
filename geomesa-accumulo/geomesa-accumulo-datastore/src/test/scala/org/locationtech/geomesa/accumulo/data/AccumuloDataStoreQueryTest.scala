@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.util
 import java.util.Date
 
 import com.vividsolutions.jts.geom.Coordinate
@@ -19,8 +18,6 @@ import org.geotools.feature.{DefaultFeatureCollection, NameImpl}
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.geotools.referencing.CRS
-import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.geotools.util.Converters
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
