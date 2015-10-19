@@ -336,7 +336,7 @@ class AccumuloDataStore(val connector: Connector,
     val lock = acquireDistributedLock()
     try {
       Option(getSchema(featureName)).foreach { sft =>
-        if (sft.isTableSharing) {
+        if (sft.isTableSharing && getTypeNames.length > 1) {
           deleteSharedTables(sft)
         } else {
           deleteStandAloneTables(sft)
@@ -354,7 +354,7 @@ class AccumuloDataStore(val connector: Connector,
     val numThreads = queryThreadsConfig.getOrElse(Math.min(MAX_QUERY_THREADS,
       Math.max(MIN_QUERY_THREADS, getSpatioTemporalMaxShard(sft))))
 
-    GeoMesaTable.getTables(sft).foreach { table =>
+    GeoMesaTable.getTables(sft).par.foreach { table =>
       val name = getTableName(sft.getTypeName, table)
       if (tableOps.exists(name)) {
         if (table == Z3Table) {

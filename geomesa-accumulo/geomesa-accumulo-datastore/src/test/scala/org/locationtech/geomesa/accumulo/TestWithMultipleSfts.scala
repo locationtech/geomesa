@@ -27,6 +27,7 @@ import org.specs2.specification.{Fragments, Step}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
+import scala.util.Try
 
 /**
  * Trait to simplify tests that require reading and writing features from an AccumuloDataStore
@@ -48,16 +49,20 @@ trait TestWithMultipleSfts extends Specification {
 
   // after all tests, drop the tables we created to free up memory
   override def map(fragments: => Fragments) = fragments ^ Step {
-    sfts.flatMap(GeoMesaTable.getTableNames(_, ds)).toSet.foreach(connector.tableOperations().delete)
-    connector.tableOperations().delete(sftBaseName)
+    val to = connector.tableOperations()
+    val tables = Seq(sftBaseName) ++ sfts.flatMap(sft => Try(GeoMesaTable.getTableNames(sft, ds)).getOrElse(Seq.empty))
+    tables.toSet.filter(to.exists).foreach(to.delete)
   }
 
   def createNewSchema(spec: String,
                       dtgField: Option[String] = Some("dtg"),
-                      features: Seq[SimpleFeature] = Seq.empty): SimpleFeatureType = synchronized {
+                      tableSharing: Boolean = true,
+                      numShards: Option[Int] = None): SimpleFeatureType = synchronized {
     val sftName = sftBaseName + sftCounter.getAndIncrement()
     val sft = SimpleFeatureTypes.createType(sftName, spec)
     dtgField.foreach(sft.setDtgField)
+    sft.setTableSharing(tableSharing)
+    numShards.map(ds.buildDefaultSpatioTemporalSchema(sftName, _)).foreach(sft.setStIndexSchema)
     ds.createSchema(sft)
     sfts += ds.getSchema(sftName) // reload the sft from the ds to ensure all user data is set properly
     sfts.last
