@@ -63,7 +63,7 @@ object SpatioTemporalTable extends GeoMesaTable with Logging {
     val planners = rowf.lf match {
       case Seq(pf: PartitionTextFormatter, i: IndexOrDataTextFormatter, const: ConstantTextFormatter, r@_*) =>
         // Build ranges using pf, ip and const!
-        val rpp = RandomPartitionPlanner(pf.numPartitions)
+        val rpp = RandomPartitionPlanner(pf.numPartitions + 1)
         val ip = IndexOrDataPlanner()
         val csp = ConstStringPlanner(const.constStr)
         Seq(rpp, ip, csp)
