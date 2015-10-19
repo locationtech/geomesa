@@ -50,7 +50,40 @@ Currently supported transformation functions are listed below.
 
  
 ### Geometry functions
+
+Geometry functions can transform WKT strings, lat/lon pairs, and GeoJSON geometry objects:
+    
+    # { name = "lat", json-type="double", path="$.lat" }
+    # { name = "lon", json-type="double", path="$.lon" }
+    # { name = "geom", transform="point($lat, $lon)" }
+    #
+    {
+        "lat": 23.9,
+        "lon": 24.2,
+    }
+        
+    # { name = "geom", transform="point($2, $3)"
+    id,lat,lon,date
+    identity1,23.9,24.2,2015-02-03
+        
+    # { name = "geom", transform="geometry($2)" }
+    ID,wkt,date
+    1,POINT(2 3),2015-01-02
+        
+    # { name = "geom", json-type = "geometry", path = "$.geometry" }
+    {
+        id: 1,
+        number: 123,
+        color: "red",
+        "geometry": {"type": "Point", "coordinates": [55, 56]}
+     },
+    
+Available transforms are:
+
  * ```point```
+ * ```linestring```
+ * ```polygon```
+ * ```geometry```
 
 ### Avro Path functions
  * ```avroPath```

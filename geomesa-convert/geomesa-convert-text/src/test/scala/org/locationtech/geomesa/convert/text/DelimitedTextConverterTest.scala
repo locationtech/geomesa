@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets
 
 import com.google.common.io.Resources
 import com.typesafe.config.ConfigFactory
+import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -234,6 +235,39 @@ class DelimitedTextConverterTest extends Specification {
       converter.close()
 
       res.size must be greaterThan 0
+    }
+
+    "handle wkt" >> {
+      val wktData =
+        """
+          |1,hello,Point(46.0 45.0)
+          |2,world,Point(90.0 90.0)
+        """.stripMargin
+
+      val wktConf = ConfigFactory.parseString(
+        """
+          | converter = {
+          |   type         = "delimited-text",
+          |   format       = "DEFAULT",
+          |   id-field     = "md5(string2bytes($0))",
+          |   fields = [
+          |     { name = "oneup",    transform = "$1" },
+          |     { name = "phrase",   transform = "concat($1, $2)" },
+          |     { name = "geom",     transform = "geometry($3)" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val wktSft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+      val converter = SimpleFeatureConverters.build[String](wktSft, wktConf)
+
+      val res = converter.processInput(wktData.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0)).toList
+      res.length mustEqual 2
+      converter.close()
+
+      val geoFac = new GeometryFactory()
+      res(0).getDefaultGeometry mustEqual geoFac.createPoint(new Coordinate(46, 45))
+      res(1).getDefaultGeometry mustEqual geoFac.createPoint(new Coordinate(90, 90))
     }
   }
 }

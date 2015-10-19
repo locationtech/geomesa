@@ -11,12 +11,13 @@ package org.locationtech.geomesa.convert.common
 import java.util.Date
 
 import com.google.common.hash.Hashing
-import com.vividsolutions.jts.geom.{Coordinate, Point}
+import com.vividsolutions.jts.geom._
 import org.apache.commons.codec.binary.Base64
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.Transformers
 import org.locationtech.geomesa.convert.Transformers.EvaluationContext
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -111,6 +112,50 @@ class TransformersTest extends Specification {
       "handle point geometries" >> {
         val exp = Transformers.parseTransform("point($1, $2)")
         exp.eval(Array("", 45.0, 45.0)).asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(45.0, 45.0)
+
+        val trans = Transformers.parseTransform("point($0)")
+        trans.eval(Array("POINT(50 52)")).asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(50, 52)
+
+        // turn "Geometry" into "Point"
+        val geoFac = new GeometryFactory()
+        val geom = geoFac.createPoint(new Coordinate(55, 56)).asInstanceOf[Geometry]
+        val res = trans.eval(Array(geom))
+        res must beAnInstanceOf[Point]
+        res.asInstanceOf[Point] mustEqual geoFac.createPoint(new Coordinate(55, 56))
+      }
+
+      "handle linestring wkt" >> {
+        val geoFac = new GeometryFactory()
+        val lineStr = geoFac.createLineString(Seq((102, 0), (103, 1), (104, 0), (105, 1)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
+        val trans = Transformers.parseTransform("linestring($0)")
+        trans.eval(Array("Linestring(102 0, 103 1, 104 0, 105 1)")).asInstanceOf[LineString] must be equalTo lineStr
+
+        // type conversion
+        val geom = lineStr.asInstanceOf[Geometry]
+        val res = trans.eval(Array(geom))
+        res must beAnInstanceOf[LineString]
+        res.asInstanceOf[LineString] mustEqual WKTUtils.read("Linestring(102 0, 103 1, 104 0, 105 1)")
+      }
+
+      "handle polygon wkt" >> {
+        val geoFac = new GeometryFactory()
+        val poly = geoFac.createPolygon(Seq((100, 0), (101, 0), (101, 1), (100, 1), (100, 0)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
+        val trans = Transformers.parseTransform("polygon($0)")
+        trans.eval(Array("polygon((100 0, 101 0, 101 1, 100 1, 100 0))")).asInstanceOf[Polygon] must be equalTo poly
+
+        // type conversion
+        val geom = poly.asInstanceOf[Polygon]
+        val res = trans.eval(Array(geom))
+        res must beAnInstanceOf[Polygon]
+        res.asInstanceOf[Polygon] mustEqual WKTUtils.read("polygon((100 0, 101 0, 101 1, 100 1, 100 0))")
+      }
+
+      "handle geometry wkt" >> {
+        val geoFac = new GeometryFactory()
+        val lineStr = geoFac.createLineString(Seq((102, 0), (103, 1), (104, 0), (105, 1)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
+        val trans = Transformers.parseTransform("geometry($0)")
+        trans.eval(Array("Linestring(102 0, 103 1, 104 0, 105 1)")).asInstanceOf[Geometry] must be equalTo lineStr
+
       }
 
       "handle identity functions" >> {

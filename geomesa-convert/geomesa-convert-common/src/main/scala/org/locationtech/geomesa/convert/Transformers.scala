@@ -13,11 +13,12 @@ import java.util.{Date, UUID}
 import javax.imageio.spi.ServiceRegistry
 
 import com.google.common.hash.Hashing
-import com.vividsolutions.jts.geom.Coordinate
+import com.vividsolutions.jts.geom._
 import org.apache.commons.codec.binary.Base64
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter, ISODateTimeFormat}
+import org.locationtech.geomesa.utils.text.WKTUtils
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -267,11 +268,47 @@ class DateFunctionFactory extends TransformerFunctionFactory {
 }
 
 class GeometryFunctionFactory extends TransformerFunctionFactory {
-  override def functions = Seq(pointParserFn)
+  override def functions = Seq(pointParserFn, lineStringParserFn, polygonParserFn, geometryParserFn)
 
   val gf = JTSFactoryFinder.getGeometryFactory
   val pointParserFn = TransformerFn("point") { args =>
-    gf.createPoint(new Coordinate(args(0).asInstanceOf[Double], args(1).asInstanceOf[Double]))
+    args.length match {
+      case 1 =>
+        args(0) match {
+          case g: Geometry => g.asInstanceOf[Point]
+          case s: String   => WKTUtils.read(s).asInstanceOf[Point]
+        }
+      case 2 =>
+        gf.createPoint(new Coordinate(args(0).asInstanceOf[Double], args(1).asInstanceOf[Double]))
+      case _ =>
+        throw new IllegalArgumentException(s"Invalid point conversion argument: ${args.toList}")
+    }
+  }
+
+  val lineStringParserFn = TransformerFn("linestring") { args =>
+    args(0) match {
+      case g: Geometry => g.asInstanceOf[LineString]
+      case s: String   => WKTUtils.read(s).asInstanceOf[LineString]
+      case _ =>
+        throw new IllegalArgumentException(s"Invalid linestring conversion argument: ${args.toList}")
+    }
+  }
+
+  val polygonParserFn = TransformerFn("polygon") { args =>
+    args(0) match {
+      case g: Geometry => g.asInstanceOf[Polygon]
+      case s: String   => WKTUtils.read(s).asInstanceOf[Polygon]
+      case _ =>
+        throw new IllegalArgumentException(s"Invalid polygon conversion argument: ${args.toList}")
+    }
+  }
+
+  val geometryParserFn = TransformerFn("geometry") { args =>
+    args(0) match {
+      case s: String   => WKTUtils.read(s)
+      case _ =>
+        throw new IllegalArgumentException(s"Invalid geometry conversion argument: ${args.toList}")
+    }
   }
 
 }
