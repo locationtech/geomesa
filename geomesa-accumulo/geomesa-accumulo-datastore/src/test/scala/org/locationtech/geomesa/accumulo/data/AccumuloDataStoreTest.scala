@@ -41,6 +41,8 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults {
 
+  sequential
+
   "AccumuloDataStore" should {
     "create a store" in {
       ds must not beNull
