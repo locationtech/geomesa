@@ -12,7 +12,7 @@
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
         <artifactId>geomesa</artifactId>
-        <version>1.1.0-rc.6-SNAPSHOT</version>
+        <version>1.1.0-rc.6</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
