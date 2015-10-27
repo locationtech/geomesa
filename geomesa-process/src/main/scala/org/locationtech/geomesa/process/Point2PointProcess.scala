@@ -19,6 +19,7 @@ import org.geotools.process.vector.VectorProcess
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.DateTime
 import org.joda.time.DateTime.Property
+import org.locationtech.geomesa.accumulo.util.SftBuilder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.GeometryType
 import org.opengis.feature.simple.SimpleFeature
@@ -26,7 +27,8 @@ import org.opengis.feature.simple.SimpleFeature
 @DescribeProcess(title = "Point2PointProcess", description = "Aggregates a collection of points into a collection of line segments")
 class Point2PointProcess extends VectorProcess {
 
-  private val baseType = SimpleFeatureTypes.createType("geomesa", "point2point", "*ls:LineString:srid=4326")
+  private val baseType = new SftBuilder().lineString("geom", default = true).build("point2point")
+
   private val gf = JTSFactoryFinder.getGeometryFactory
 
   @DescribeResult(name = "result", description = "Aggregated feature collection")
@@ -38,7 +40,7 @@ class Point2PointProcess extends VectorProcess {
                @DescribeParameter(name = "groupingField", description = "Field on which to group")
                groupingField: String,
 
-               @DescribeParameter(name = "sortField", description = "Field on which to sort")
+               @DescribeParameter(name = "sortField", description = "Field on which to sort (must be Date type)")
                sortField: String,
 
                @DescribeParameter(name = "minimumNumberOfPoints", description = "Minimum number of points")
@@ -61,12 +63,15 @@ class Point2PointProcess extends VectorProcess {
     sftBuilder.init(baseType)
     val groupingFieldIndex = data.getSchema.indexOf(groupingField)
     sftBuilder.add(queryType.getAttributeDescriptors.get(groupingFieldIndex))
+    val sortFieldIndex = data.getSchema.indexOf(sortField)
+    val sortDesc = queryType.getAttributeDescriptors.get(sortFieldIndex)
+    val sortAttrName = sortDesc.getLocalName
+    val sortType = sortDesc.getType.getBinding
+    sftBuilder.add(s"${sortAttrName}_start", sortType)
+    sftBuilder.add(s"${sortAttrName}_end", sortType)
 
     val sft = sftBuilder.buildFeatureType()
-
     val builder = new SimpleFeatureBuilder(sft)
-
-    val sortFieldIndex = data.getSchema.indexOf(sortField)
 
     val lineFeatures =
       data.features().toList
@@ -74,7 +79,7 @@ class Point2PointProcess extends VectorProcess {
         .filter { case (_, coll) => coll.size > minPoints }
         .flatMap { case (group, coll) =>
 
-        val globalSorted = coll.sortBy(_.get(sortFieldIndex).asInstanceOf[java.util.Date])
+        val globalSorted = coll.sortBy(_.get[java.util.Date](sortFieldIndex))
 
         val groups =
           if (!breakOnDay) Array(globalSorted)
@@ -90,8 +95,11 @@ class Point2PointProcess extends VectorProcess {
             val pts = ptLst.map(_.point.getCoordinate)
             val length = JTS.orthodromicDistance(pts.head, pts.last, DefaultGeographicCRS.WGS84)
 
-            val group = ptLst.head.getAttribute(groupingFieldIndex)
-            val sf = builder.buildFeature(s"$group-$idx", Array[AnyRef](gf.createLineString(pts.toArray), group))
+            val group    = ptLst.head.getAttribute(groupingFieldIndex)
+            val startDtg = ptLst.head.getAttribute(sortAttrName)
+            val endDtg   = ptLst.last.getAttribute(sortAttrName)
+            val attrs    = Array[AnyRef](gf.createLineString(pts.toArray), group, startDtg, endDtg)
+            val sf = builder.buildFeature(s"$group-$idx", attrs)
             (length, sf)
           }
         }
