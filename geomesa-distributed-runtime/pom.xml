@@ -35,6 +35,14 @@
                     <groupId>org.geotools</groupId>
                     <artifactId>gt-epsg-hsql</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.geotools</groupId>
+                    <artifactId>gt-geotiff</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.geotools</groupId>
+                    <artifactId>gt-imageio-ext-gdal</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -42,7 +50,6 @@
             <artifactId>gt-opengis</artifactId>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
