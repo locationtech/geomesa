@@ -277,6 +277,35 @@ class SimpleFeatureTypesTest extends Specification {
       sft.getDescriptor("testCard").getCardinality() mustEqual(Cardinality.HIGH)
       sft.getTypeName must be equalTo "testconf"
     }
+
+    "allow user data in conf" >> {
+      val conf = ConfigFactory.parseString(
+        """
+          |{
+          |  type-name = "testconf"
+          |  fields = [
+          |    { name = "testStr",  type = "string"       , index = true  },
+          |    { name = "testCard", type = "string"       , index = true, cardinality = high },
+          |    { name = "testList", type = "List[String]" , index = false },
+          |    { name = "geom",     type = "Point"        , srid = 4326, default = true }
+          |  ]
+          |  user-data = {
+          |    mydataone = true
+          |    mydatatwo = "two"
+          |  }
+          |}
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType(conf)
+      sft.getAttributeCount must be equalTo 4
+      sft.getGeometryDescriptor.getName.getLocalPart must be equalTo "geom"
+      sft.getDescriptor("testStr").getCardinality() mustEqual(Cardinality.UNKNOWN)
+      sft.getDescriptor("testCard").getCardinality() mustEqual(Cardinality.HIGH)
+      sft.getTypeName must be equalTo "testconf"
+      sft.getUserData.size() mustEqual 2
+      sft.getUserData.get("mydataone") mustEqual true
+      sft.getUserData.get("mydatatwo") mustEqual "two"
+    }
   }
 
 }

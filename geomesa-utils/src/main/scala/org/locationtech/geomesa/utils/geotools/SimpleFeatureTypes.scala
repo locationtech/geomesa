@@ -50,7 +50,13 @@ object SimpleFeatureTypes {
     val specParser = new SpecParser
 
     val fields = getFieldConfig(conf).map(buildField(_, specParser))
-    createType(namespace, name, fields, Seq())
+    val userData = if (conf.hasPath("user-data")) {
+      conf.getConfig("user-data").entrySet().map(e => e.getKey -> e.getValue.unwrapped()).toMap
+    } else {
+      Map.empty[String, AnyRef]
+    }
+    val opts = userData.map { case (k, v) => new GenericOption(k, v) }.toSeq
+    createType(namespace, name, fields, opts)
   }
 
   def getFieldConfig(conf: Config): Seq[Config] =
