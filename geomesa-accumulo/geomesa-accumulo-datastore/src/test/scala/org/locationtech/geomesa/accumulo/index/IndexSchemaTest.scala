@@ -28,8 +28,8 @@ import scala.util.Try
 @RunWith(classOf[JUnitRunner])
 class IndexSchemaTest extends Specification {
 
-  val dummyType = SimpleFeatureTypes.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry,$DEFAULT_DTG_PROPERTY_NAME:Date,$DEFAULT_DTG_END_PROPERTY_NAME:Date")
-  val customType = SimpleFeatureTypes.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,*the_geom:Geometry,dt_start:Date,$DEFAULT_DTG_END_PROPERTY_NAME:Date")
+  val dummyType = SimpleFeatureTypes.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,$DEFAULT_GEOMETRY_PROPERTY_NAME:Geometry,$DEFAULT_DTG_PROPERTY_NAME:Date,dtg_end_time:Date")
+  val customType = SimpleFeatureTypes.createType("DummyType",s"foo:String,bar:Geometry,baz:Date,*the_geom:Geometry,dt_start:Date,dtg_end_time:Date")
   customType.setDtgField("dt_start")
   val dummyEncoder = SimpleFeatureSerializers(dummyType, SerializationType.AVRO)
   val customEncoder = SimpleFeatureSerializers(customType, SerializationType.AVRO)
