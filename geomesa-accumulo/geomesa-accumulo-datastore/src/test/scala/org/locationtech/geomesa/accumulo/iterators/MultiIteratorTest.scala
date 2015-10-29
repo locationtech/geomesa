@@ -202,8 +202,7 @@ class MultiIteratorTest extends Specification with Logging {
 
     "return a partial results-set with a meaningful attribute-filter" in {
       val filterString = "(not " + DEFAULT_DTG_PROPERTY_NAME +
-        " after 2010-08-08T23:59:59Z) and (not " + DEFAULT_DTG_END_PROPERTY_NAME +
-        " before 2010-08-08T00:00:00Z)"
+        " after 2010-08-08T23:59:59Z) and (not dtg_end_time before 2010-08-08T00:00:00Z)"
 
       val q = getQuery(Some(filterString))
       val indexOnlyQuery = getQuery(Some(filterString), indexIterator = true)
