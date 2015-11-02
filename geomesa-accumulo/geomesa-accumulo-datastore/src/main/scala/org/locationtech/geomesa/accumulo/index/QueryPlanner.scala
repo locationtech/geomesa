@@ -124,19 +124,23 @@ case class QueryPlanner(sft: SimpleFeatureType,
 
     val requestedStrategy = requested.orElse(query.getHints.getRequestedStrategy)
     val strategies = QueryStrategyDecider.chooseStrategies(sft, query, hints, requestedStrategy, output)
+    output(s"Total Strategies: ${strategies.length}")
+    val indent = "\t"
     strategies.iterator.map { strategy =>
-      output(s"Strategy: ${strategy.getClass.getSimpleName}")
-      output(s"Filter: ${strategy.filter}")
+      output(s"${indent}Strategy: ${strategy.getClass.getSimpleName}")
+      output(s"${indent}Filter: ${strategy.filter}")
       implicit val timings = new TimingsImpl
       val plan = profile(strategy.getQueryPlan(this, query.getHints, output), "plan")
-      outputPlan(plan, output)
-      output(s"Query planning took ${timings.time("plan")}ms")
+      outputPlan(plan, output, indent + indent)
+      output("")
+      output(s"${indent}Query planning took ${timings.time("plan")}ms")
       plan
     }
   }
 
   // output the query plan for explain logging
   private def outputPlan(plan: QueryPlan, output: ExplainerOutputType, prefix: String = ""): Unit = {
+    output(s"${prefix}Plan: ${plan.getClass.getName}")
     output(s"${prefix}Table: ${plan.table}")
     output(s"${prefix}Deduplicate: ${plan.hasDuplicates}")
     output(s"${prefix}Column Families${if (plan.columnFamilies.isEmpty) ": all"

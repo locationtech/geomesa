@@ -313,7 +313,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       def expectStrategy(strategy: String) = {
         val explain = new ExplainString
         ds.explainQuery(query, explain)
-        explain.toString().split("\n").filter(_.startsWith("Strategy:")) mustEqual Array(s"Strategy: $strategy")
+        explain.toString().split("\n").filter(_.startsWith("\tStrategy:")) mustEqual Array(s"\tStrategy: $strategy")
       }
 
       query.getHints.put(QUERY_STRATEGY_KEY, StrategyType.ATTRIBUTE)
