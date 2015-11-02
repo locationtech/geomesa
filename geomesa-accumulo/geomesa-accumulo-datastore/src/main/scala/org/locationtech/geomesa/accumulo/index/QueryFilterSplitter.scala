@@ -160,7 +160,7 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends Logging {
           val current = groups(i).secondary match {
             case Some(o) if o.isInstanceOf[Or] => o.asInstanceOf[Or].getChildren.toSeq
             case Some(n) => Seq(n)
-            case None    => Seq.empty
+            case None => Seq.empty
           }
           groups.update(i, f.copy(secondary = orOption(current ++ f.secondary)))
         }
@@ -224,24 +224,32 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends Logging {
       }
     }
 
-    // detect the pattern it the pattern (attr in (1,2,3,4,5,6, etc) AND something else)
+    // Detect single attribute OR queries...which are of the form:
+    // (attr in (1,2,3,4,5,6, etc) AND <something else>)
+    // where the attr is of high cardinality and is indexed
+    // These require special handling to avoid a bug with exponential
+    // query planning time.
     def detectSingleAttrOr: Boolean = {
-      // each child is expressed as (attr = x(i) AND expr2 AND expr3 ...)
-      val attrs =
-        filter.getChildren.map {
-          case and: And => and.getChildren.flatMap {
-            case eq: PropertyIsEqualTo => checkOrder(eq.getExpression1, eq.getExpression2).map(_.name)
-            case _ => None
-          }
-          case _ => Seq.empty[String]
-        }
+      filter match {
+        case or: Or =>
+          // each child is expressed as (attr = x(i) AND expr2 AND expr3 ...)
+          val attrs =
+            or.getChildren.map {
+              case and: And => and.getChildren.flatMap {
+                case eq: PropertyIsEqualTo => checkOrder(eq.getExpression1, eq.getExpression2).map(_.name)
+                case _ => None
+              }
+              case _ => Seq.empty[String]
+            }
 
-      // if all have 1 attribute and it's the same attribute and its indexed
-      val isSingleAttrOr = attrs.forall(a => a.length == 1) &&
-        attrs.map(_.head).toSet.size == 1 &&
-        attrIndexed(attrs.head.head, sft)
+          // if all have 1 attribute and it's the same attribute and its indexed
+          val isSingleAttrOr = attrs.forall(a => a.length == 1) &&
+            attrs.map(_.head).toSet.size == 1 &&
+            attrIndexed(attrs.head.head, sft)
 
-      isSingleAttrOr
+          isSingleAttrOr
+        case _ => false
+      }
     }
 
     // Reduce a query filter of OR query of single attr of indexed, high cardinality to
