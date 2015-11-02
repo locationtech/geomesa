@@ -58,8 +58,12 @@ object RecordTable extends GeoMesaTable {
     val splitter = clazz.newInstance().asInstanceOf[TableSplitter]
     val splitterOptions = featureType.getUserData.getOrElse(SimpleFeatureTypes.TABLE_SPLITTER_OPTIONS, Map.empty[String, String]).asInstanceOf[Map[String, String]]
     val splits = splitter.getSplits(splitterOptions)
-    val sortedSplits = ImmutableSortedSet.copyOf(splits.map(_.toString).map(prefixFn).map(new Text(_)))
-    tableOps.addSplits(recordTable, sortedSplits)
+    val sortedSplits = splits.map(_.toString).map(prefixFn).map(new Text(_)).toSet
+    val splitsToAdd = sortedSplits -- tableOps.listSplits(recordTable).toSet
+    if (splitsToAdd.nonEmpty) {
+      tableOps.addSplits(recordTable, ImmutableSortedSet.copyOf(splitsToAdd.toIterable))
+    }
+
     // enable the row functor as the feature ID is stored in the Row ID
     tableOps.setProperty(recordTable, Property.TABLE_BLOOM_KEY_FUNCTOR.getKey, classOf[RowFunctor].getCanonicalName)
     tableOps.setProperty(recordTable, Property.TABLE_BLOOM_ENABLED.getKey, "true")
