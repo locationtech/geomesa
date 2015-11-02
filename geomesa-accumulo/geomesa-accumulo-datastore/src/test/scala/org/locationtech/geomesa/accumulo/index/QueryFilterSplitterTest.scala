@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.accumulo.index
 
 import org.geotools.factory.CommonFactoryFinder
+import org.geotools.filter.AttributeExpression
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.tables.AvailableTables
@@ -16,10 +17,10 @@ import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.util.SftBuilder
 import org.locationtech.geomesa.accumulo.util.SftBuilder.Opts
 import org.locationtech.geomesa.filter
-import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.Cardinality
-import org.opengis.filter.{Not, Filter}
+import org.opengis.filter._
+import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -430,6 +431,38 @@ class QueryFilterSplitterTest extends Specification {
       attr.get.filters must haveLength(1)
       attr.get.filters.head.primary mustEqual Seq(filter)
       attr.get.filters.head.secondary must beNone
+    }
+    "provide only one option on OR queries of high cardinality indexed attributes" >> {
+      def testHighCard(attrPart: String): MatchResult[Any] = {
+        val filterString = s"($attrPart) AND BBOX(geom, 40.0,40.0,50.0,50.0) AND dtg DURING 2014-01-01T00:00:00+00:00/2014-01-01T23:59:59+00:00"
+        val options = splitter.getQueryOptions(f(filterString))
+        options must haveLength(2)
+
+        val attrOpt = options.find(_.filters.exists(_.strategy == StrategyType.ATTRIBUTE)).get
+        attrOpt.filters.length mustEqual 1
+        val attrQueryFilter = attrOpt.filters.head
+        attrQueryFilter.strategy mustEqual StrategyType.ATTRIBUTE
+        attrQueryFilter.primary.length mustEqual 5
+        attrQueryFilter.primary.forall(_ must beAnInstanceOf[PropertyIsEqualTo])
+        val attrProps = attrQueryFilter.primary.map(_.asInstanceOf[PropertyIsEqualTo])
+        foreach(attrProps) {_.getExpression1.asInstanceOf[AttributeExpression].getPropertyName mustEqual "high" }
+        attrQueryFilter.secondary.isDefined mustEqual true
+        attrQueryFilter.secondary.get must beAnInstanceOf[And]
+        attrQueryFilter.secondary.get.asInstanceOf[And].getChildren.length mustEqual 2
+
+        val z3Opt = options.find(_.filters.exists(_.strategy == StrategyType.Z3)).get
+        z3Opt.filters.length mustEqual 1
+        val z3QueryFilters = z3Opt.filters.head
+        z3QueryFilters.strategy mustEqual StrategyType.Z3
+        z3QueryFilters.primary.length mustEqual 2
+        z3QueryFilters.secondary.get must beAnInstanceOf[Or]
+        val z3Props = z3QueryFilters.secondary.get.asInstanceOf[Or].getChildren.map(_.asInstanceOf[PropertyIsEqualTo])
+        foreach (z3Props) { _.getExpression1.asInstanceOf[AttributeExpression].getPropertyName mustEqual "high" }
+      }
+
+      val orQuery = (0 until 5).map( i => s"high = 'h$i'").mkString(" OR ")
+      val inQuery = s"high in (${(0 until 5).map( i => s"'h$i'").mkString(",")})"
+      Seq(orQuery, inQuery).forall(testHighCard)
     }
   }
 }
