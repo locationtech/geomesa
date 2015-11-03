@@ -229,6 +229,11 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends Logging {
     // where the attr is of high cardinality and is indexed
     // These require special handling to avoid a bug with exponential
     // query planning time.
+    //
+    // This query logic is based on the output of the DNF rewrite
+    //
+    // TODO this should really be evaluated before the DNF logic occurs
+    // and should be handled as part of GEOMESA-941
     def detectSingleAttrOr: Boolean = {
       filter match {
         case or: Or =>
