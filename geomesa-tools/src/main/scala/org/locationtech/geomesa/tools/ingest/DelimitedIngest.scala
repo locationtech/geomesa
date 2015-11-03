@@ -25,6 +25,7 @@ import org.locationtech.geomesa.tools.commands.IngestCommand.IngestParameters
 import org.locationtech.geomesa.tools.ingest.DelimitedIngest._
 import org.locationtech.geomesa.tools.{AccumuloProperties, FeatureCreator}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -90,9 +91,11 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
   def getScaldingArgs(): Args = {
     val singleArgs = List(classOf[ScaldingDelimitedIngestJob].getCanonicalName, getModeFlag(params.files(0)))
 
+    import org.locationtech.geomesa.tools.Utils.Speculator.RichCreateFeatureParams
+    val sftString = SimpleFeatureTypes.encodeType(params.getSft)
     val requiredKvArgs: Map[String, List[String]] = Map(
       IngestParams.FILE_PATH         -> encodeFileList(params.files.toList),
-      IngestParams.SFT_SPEC          -> URLEncoder.encode(params.spec, "UTF-8"),
+      IngestParams.SFT_SPEC          -> URLEncoder.encode(sftString, "UTF-8"),
       IngestParams.CATALOG_TABLE     -> params.catalog,
       IngestParams.ZOOKEEPERS        -> Option(params.zookeepers).getOrElse(zookeepersProp),
       IngestParams.ACCUMULO_INSTANCE -> Option(params.instance).getOrElse(instanceName),

@@ -24,6 +24,7 @@ class IngestCommand(parent: JCommander) extends Command(parent) with Logging {
   override val params = new IngestParameters()
 
   override def execute(): Unit = {
+    val sft =
     val fmt = Option(params.format).getOrElse(getFileExtension(params.files(0)))
     fmt match {
       case CSV | TSV => new DelimitedIngest(params).run()
@@ -31,7 +32,7 @@ class IngestCommand(parent: JCommander) extends Command(parent) with Logging {
         val ds = new DataStoreHelper(params).getOrCreateDs
         GeneralShapefileIngest.shpToDataStore(params.files(0), ds, params.featureName)
       case _         =>
-        logger.error("Error: File format not supported for file " + params.files(0) + ". Supported formats" +
+        logger.error("Error: File format not supported for file " + params.files(0) + ". Supported formats " +
           "are csv,tsv,shp")
     }
   }
@@ -41,6 +42,9 @@ class IngestCommand(parent: JCommander) extends Command(parent) with Logging {
 object IngestCommand {
   @Parameters(commandDescription = "Ingest a file of various formats into GeoMesa")
   class IngestParameters extends CreateFeatureParams {
+    @Parameter(names = Array("--convert"), description = "GeoMesa Convert config or file")
+    var convertSpec: String = null
+
     @Parameter(names = Array("-is", "--index-schema"), description = "GeoMesa index schema format string")
     var indexSchema: String = null
 

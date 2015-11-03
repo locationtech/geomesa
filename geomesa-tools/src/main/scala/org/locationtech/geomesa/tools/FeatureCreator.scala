@@ -13,6 +13,8 @@ import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.tools.commands.CreateFeatureParams
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.tools.Utils.Speculator.RichCreateFeatureParams
+import org.opengis.feature.simple.SimpleFeatureType
 
 object FeatureCreator extends Logging {
 
@@ -24,26 +26,25 @@ object FeatureCreator extends Logging {
   def createFeature(ds: AccumuloDataStore, params: CreateFeatureParams): Unit =
     createFeature(
       ds,
-      params.spec,
+      params.getSft,
       params.featureName,
       Option(params.dtgField),
       Option(params.useSharedTables),
       params.catalog)
 
   def createFeature(ds: AccumuloDataStore,
-                    sftspec: String,
+                    sft: SimpleFeatureType,
                     featureName: String,
                     dtField: Option[String],
                     sharedTable: Option[Boolean],
                     catalog: String): Unit = {
+    val sftString = SimpleFeatureTypes.encodeType(sft)
     logger.info(s"Creating '$featureName' on catalog table '$catalog' with spec " +
-      s"'$sftspec'. Just a few moments...")
+      s"'$sftString'. Just a few moments...")
 
     if (ds.getSchema(featureName) == null) {
 
       logger.info("Creating GeoMesa tables...")
-
-      val sft = SimpleFeatureTypes.createType(featureName, sftspec)
       if (dtField.orNull != null) {
         // Todo: fix logic here, it is a bit strange
         sft.setDtgField(dtField.getOrElse(Constants.SF_PROPERTY_START_TIME))
@@ -55,11 +56,11 @@ object FeatureCreator extends Logging {
 
       if (ds.getSchema(featureName) != null) {
         logger.info(s"Feature '$featureName' on catalog table '$catalog' with spec " +
-          s"'$sftspec' successfully created.")
+          s"'$sftString' successfully created.")
         println(s"Created feature $featureName")
       } else {
         logger.error(s"There was an error creating feature '$featureName' on catalog table " +
-          s"'$catalog' with spec '$sftspec'. Please check that all arguments are correct " +
+          s"'$catalog' with spec '$sftString'. Please check that all arguments are correct " +
           "in the previous command.")
       }
     } else {

@@ -8,17 +8,23 @@
 
 package org.locationtech.geomesa.tools
 
-import java.io.{BufferedReader, File, InputStreamReader}
+import java.io.{FileInputStream, BufferedReader, File, InputStreamReader}
 import java.util.UUID
 
+import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.accumulo.server.client.HdfsZooInstance
 import org.apache.commons.compress.compressors.bzip2.BZip2Utils
 import org.apache.commons.compress.compressors.gzip.GzipUtils
 import org.apache.commons.compress.compressors.xz.XZUtils
+import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
+import org.locationtech.geomesa.tools.Utils.Speculator
+import org.locationtech.geomesa.tools.commands.CreateFeatureParams
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.{Failure, Success, Try}
 import scala.xml.XML
@@ -117,6 +123,50 @@ object Utils {
     val fs = FileSystem.get(new Configuration)
     val path = new Path(pathStr)
     fs.delete(path, true)
+  }
+
+  object Speculator extends Logging {
+    type SpecParser = (String, Option[String]) => Option[SimpleFeatureType]
+
+    def getSft(specArg: String, nameOpt: Option[String]): Option[SimpleFeatureType] =
+      Seq(parseSftSpec, parseSftConfig, parseFromFile).view.map(_(specArg, nameOpt)).find(_.nonEmpty).getOrElse(Option.empty)
+
+    private[Speculator] val parseSftSpec: SpecParser = (specArg: String, nameOpt: Option[String]) => {
+      nameOpt.map[Option[SimpleFeatureType]] { featureName =>
+        Try { SimpleFeatureTypes.createType(featureName, specArg) }
+        match {
+          case Success(sft) => Some(sft)
+          case Failure(ex)  =>
+            logger.debug(s"Unable to parse sft spec from string $specArg with error ex.getMessage")
+            None
+        }
+      }.getOrElse(Option.empty)
+    }
+
+    private[Speculator] val parseSftConfig: SpecParser = (specArg: String, nameOpt: Option[String]) =>
+      Try { SimpleFeatureTypes.createType(ConfigFactory.parseString(specArg)) }
+      match {
+        case Success(sft) => Some(sft)
+        case Failure(ex)  =>
+          logger.debug(s"Unable to parse sft conf from string $specArg with error ex.getMessage")
+          Option.empty
+      }
+
+    private[Speculator] val parseFromFile: SpecParser = (specArg: String, nameOpt: Option[String]) => {
+      val f = new File(specArg)
+      if (f.exists && f.canRead) {
+        val reader = new BufferedReader(new InputStreamReader(new FileInputStream(f)))
+        val contents = try { IOUtils.toString(reader) } finally { reader.close() }
+        Seq(parseSftConfig, parseSftSpec).view.map(_(contents, nameOpt)).find(_.nonEmpty).head
+      } else None
+    }
+
+    implicit class RichCreateFeatureParams(params: CreateFeatureParams) extends AnyVal {
+      def getSft = Speculator.getSft(params.spec, Option(params.featureName)).getOrElse {
+        throw new IllegalArgumentException("Could not retrieve feature name from spec and/or featureName arguments")
+      }
+    }
+
   }
 }
 /* get password trait */
