@@ -27,7 +27,7 @@ class IngestCommand(parent: JCommander) extends Command(parent) with Logging {
     val fmt = Option(params.format).getOrElse(getFileExtension(params.files(0)))
     fmt match {
       case CSV | TSV =>
-        if (Option(params.spec).isEmpty) {
+        if (params.spec == null) {
           throw new ParameterException("Parameter -s, --spec is required.")
         }
         new DelimitedIngest(params).run()
