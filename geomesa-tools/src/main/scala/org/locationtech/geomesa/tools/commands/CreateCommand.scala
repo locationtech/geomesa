@@ -15,9 +15,7 @@ import org.locationtech.geomesa.tools.commands.CreateCommand.CreateParameters
 class CreateCommand(parent: JCommander) extends Command(parent) with Logging {
   override val command = "create"
   override val params = new CreateParameters()
-  override def execute() = {
-    FeatureCreator.createFeature(params)
-  }
+  override def execute() = FeatureCreator.createFeature(params)
 }
 
 object CreateCommand {

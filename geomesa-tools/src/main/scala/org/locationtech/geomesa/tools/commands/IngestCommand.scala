@@ -26,8 +26,7 @@ class IngestCommand(parent: JCommander) extends Command(parent) with Logging {
   override def execute(): Unit = {
     val fmt = Option(params.format).getOrElse(getFileExtension(params.files(0)))
     fmt match {
-      case CSV | TSV =>
-        new DelimitedIngest(params).run()
+      case CSV | TSV => new DelimitedIngest(params).run()
       case SHP       =>
         val ds = new DataStoreHelper(params).getOrCreateDs
         GeneralShapefileIngest.shpToDataStore(params.files(0), ds, params.featureName)
