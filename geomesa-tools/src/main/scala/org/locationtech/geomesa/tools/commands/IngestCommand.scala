@@ -9,7 +9,7 @@ package org.locationtech.geomesa.tools.commands
 
 import java.util
 
-import com.beust.jcommander.{JCommander, Parameter, ParameterException, Parameters}
+import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.locationtech.geomesa.tools.DataStoreHelper
 import org.locationtech.geomesa.tools.Utils.Formats._
@@ -27,9 +27,6 @@ class IngestCommand(parent: JCommander) extends Command(parent) with Logging {
     val fmt = Option(params.format).getOrElse(getFileExtension(params.files(0)))
     fmt match {
       case CSV | TSV =>
-        if (params.spec == null) {
-          throw new ParameterException("Parameter -s, --spec is required.")
-        }
         new DelimitedIngest(params).run()
       case SHP       =>
         val ds = new DataStoreHelper(params).getOrCreateDs
