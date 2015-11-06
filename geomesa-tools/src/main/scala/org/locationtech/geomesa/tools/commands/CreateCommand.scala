@@ -7,7 +7,7 @@
 *************************************************************************/
 package org.locationtech.geomesa.tools.commands
 
-import com.beust.jcommander.{ParameterException, JCommander, Parameters}
+import com.beust.jcommander.{JCommander, ParameterException, Parameters}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.locationtech.geomesa.tools.FeatureCreator
 import org.locationtech.geomesa.tools.commands.CreateCommand.CreateParameters
