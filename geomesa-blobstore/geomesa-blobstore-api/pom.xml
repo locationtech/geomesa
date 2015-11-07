@@ -29,6 +29,10 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-blobstore-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-web-core</artifactId>
+        </dependency>
 
         <!-- provided dependencies -->
         <dependency>

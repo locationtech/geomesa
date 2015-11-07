@@ -11,14 +11,14 @@ import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
-import org.opengis.filter.Filter
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, _}
 import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, SelfClosingIterator}
 import org.locationtech.geomesa.blob.core.AccumuloBlobStore._
 import org.locationtech.geomesa.blob.core.handlers.BlobStoreFileHandler
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.locationtech.geomesa.utils.geotools.{Conversions, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
 
