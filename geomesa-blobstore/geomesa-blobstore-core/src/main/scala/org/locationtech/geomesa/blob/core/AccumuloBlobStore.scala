@@ -2,19 +2,25 @@ package org.locationtech.geomesa.blob.core
 
 import java.io.File
 
-import org.apache.accumulo.core.client.TableExistsException
+import com.google.common.io.{ByteStreams, Files}
 import org.apache.accumulo.core.client.admin.TimeType
+import org.apache.accumulo.core.client.{Scanner, TableExistsException}
+import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
+import org.apache.accumulo.core.security.Authorizations
+import org.apache.hadoop.io.Text
+import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.data.{Transaction, DataStore, Query}
 import org.geotools.filter.Filter
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, _}
+import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, SelfClosingIterator}
+import org.locationtech.geomesa.blob.core.AccumuloBlobStore._
 import org.locationtech.geomesa.blob.core.handlers.BlobStoreFileHander
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
-import scala.collection.JavaConversions._
+import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.geotools.{Conversions, SimpleFeatureTypes}
+import org.opengis.feature.simple.SimpleFeatureType
 
-import AccumuloBlobStore._
+import scala.collection.JavaConversions._
 
 class AccumuloBlobStore(ds: AccumuloDataStore) {
 
@@ -26,6 +32,8 @@ class AccumuloBlobStore(ds: AccumuloDataStore) {
 
   ensureTableExists(blobTableName)
   ds.createSchema(sft)
+  val bw = connector.createBatchWriter(blobTableName, GeoMesaBatchWriterConfig())
+  val scanner: Scanner = connector.createScanner(blobTableName, new Authorizations())
 
   val fs = ds.getFeatureSource(blobFeatureTypeName).asInstanceOf[SimpleFeatureStore]
 
@@ -39,17 +47,44 @@ class AccumuloBlobStore(ds: AccumuloDataStore) {
     id
   }
 
-  def getIds(filter: Filter): Seq[String] = ???
-  def getIds(query: Query): Seq[String] = ???
-
-  def get(id: String): File = {
-    ???
+  def getIds(filter: Filter): Iterator[String] = {
+    getIds(new Query(blobFeatureTypeName, filter))
   }
 
 
+  def getIds(query: Query): Iterator[String] = {
+    fs.getFeatures(query).features.map {
+      f => f.getAttribute(idFieldName).asInstanceOf[String]
+    }
+  }
+
+  def get(id: String): (Array[Byte], String) = {
+    scanner.setRange(new Range(new Text(id)))
+
+    val iter = SelfClosingIterator(scanner)
+
+    val ret = buildFile(iter.next)
+    iter.close()
+    ret
+  }
+
+  def buildFile(entry: java.util.Map.Entry[Key, Value]): (Array[Byte], String) = {
+    val key = entry.getKey
+    val value = entry.getValue
+
+    val filename = key.getColumnQualifier.toString
+
+    (value.get, filename)
+  }
+
   def putInternal(file: File, id: String) {
+    val localName = file.getName
+    val bytes =  ByteStreams.toByteArray(Files.newInputStreamSupplier(file))
 
+    val m = new Mutation(id)
 
+    m.put(EMPTY_COLF, new Text(localName), new Value(bytes))
+    bw.addMutation(m)
   }
 
   private def ensureTableExists(table: String) =
@@ -70,5 +105,4 @@ object AccumuloBlobStore {
   val sftSpec = s"filename:String,$idFieldName:String,geom:Geometry,time:Date,thumbnail:String"
 
   val sft: SimpleFeatureType = SimpleFeatureTypes.createType(blobFeatureTypeName, sftSpec)
-
 }

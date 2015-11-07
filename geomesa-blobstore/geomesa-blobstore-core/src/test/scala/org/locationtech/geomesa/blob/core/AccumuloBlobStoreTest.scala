@@ -33,12 +33,12 @@ class AccumuloBlobStoreTest extends Specification {
       val params = Map("wkt" -> "POINT(0 0)")
 
       val storeId = bstore.put(file, params)
-      val returnFile = bstore.get(storeId)
+      val (returnedBytes, filename) = bstore.get(storeId)
 
       val inputStream: Array[Byte] = ByteStreams.toByteArray(Files.newInputStreamSupplier(file))
-      val returnedStream: Array[Byte] = ByteStreams.toByteArray(Files.newInputStreamSupplier(returnFile))
 
-      inputStream mustEqual returnedStream
+
+      inputStream mustEqual returnedBytes
     }
   }
 }
