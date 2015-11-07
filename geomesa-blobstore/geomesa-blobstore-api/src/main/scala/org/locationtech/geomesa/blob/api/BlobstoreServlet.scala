@@ -12,7 +12,10 @@ class BlobstoreServlet extends GeoMesaScalatraServlet {
 
   var abs: AccumuloBlobStore = null
 
-  post("ds/:alias") {
+  post("/ds/:alias") {
+
+    println("In ds registration method")
+
     val dsParams = datastoreParams
     val ds = new AccumuloDataStoreFactory().createDataStore(dsParams).asInstanceOf[AccumuloDataStore]
 
@@ -25,10 +28,13 @@ class BlobstoreServlet extends GeoMesaScalatraServlet {
   }
 
   get("/:id") {
+    val id = params("id")
+    println(s"In ID method, trying to retrieve id $id")
+
     if (abs == null) {
       BadRequest(reason = "AccumuloBlobStore is not initialized.")
     } else {
-      abs.get("id")._1
+      abs.get(id)._1
     }
   }
 }

@@ -59,9 +59,13 @@ class AccumuloBlobStore(ds: AccumuloDataStore) {
     scanner.setRange(new Range(new Text(id)))
 
     val iter = SelfClosingIterator(scanner)
-    val ret = buildReturn(iter.next)
-    iter.close()
-    ret
+    if (iter.hasNext) {
+      val ret = buildReturn(iter.next)
+      iter.close()
+      ret
+    } else {
+      (Array.empty[Byte], "")
+    }
   }
 
   def buildReturn(entry: java.util.Map.Entry[Key, Value]): (Array[Byte], String) = {
