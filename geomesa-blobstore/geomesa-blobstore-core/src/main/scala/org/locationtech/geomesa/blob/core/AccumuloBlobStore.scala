@@ -15,7 +15,7 @@ import org.opengis.filter.Filter
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, _}
 import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, SelfClosingIterator}
 import org.locationtech.geomesa.blob.core.AccumuloBlobStore._
-import org.locationtech.geomesa.blob.core.handlers.BlobStoreFileHander
+import org.locationtech.geomesa.blob.core.handlers.BlobStoreFileHandler
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.{Conversions, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -37,7 +37,7 @@ class AccumuloBlobStore(ds: AccumuloDataStore) {
   val fs = ds.getFeatureSource(blobFeatureTypeName).asInstanceOf[SimpleFeatureStore]
 
   def put(file: File, params: Map[String, String]): Option[String] = {
-    BlobStoreFileHander.buildSF(file, params).map {
+    BlobStoreFileHandler.buildSF(file, params).map {
       sf =>
         val id = sf.getAttribute(idFieldName).asInstanceOf[String]
 
@@ -98,9 +98,11 @@ object AccumuloBlobStore {
 
   val idFieldName = "storeId"
   val geomeFieldName = "geom"
+  val filenameFieldName = "filename"
+  val dateFieldName = "date"
 
   // TODO: Add metadata hashmap?
-  val sftSpec = s"filename:String,$idFieldName:String,$geomeFieldName:Geometry,time:Date,thumbnail:String"
+  val sftSpec = s"$filenameFieldName:String,$idFieldName:String,$geomeFieldName:Geometry,$dateFieldName:Date,thumbnail:String"
 
   val sft: SimpleFeatureType = SimpleFeatureTypes.createType(blobFeatureTypeName, sftSpec)
 }
