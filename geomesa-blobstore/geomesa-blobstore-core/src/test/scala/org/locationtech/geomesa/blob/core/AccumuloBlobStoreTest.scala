@@ -2,6 +2,7 @@ package org.locationtech.geomesa.blob.core
 
 import java.io.File
 
+import com.google.common.io.{Files, ByteStreams}
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
@@ -27,19 +28,17 @@ class AccumuloBlobStoreTest extends Specification {
   "AccumuloBlobStore" should {
     "be able able to store and retrieve a file" in {
 
-      val file = new File(getClass().getClassLoader.getResource("testFile.txt").getFile)
-      val params = Map("wkt" -> "POINT(0,0)")
+      val file = new File(getClass.getClassLoader.getResource("testFile.txt").getFile)
+
+      val params = Map("wkt" -> "POINT(0 0)")
 
       val storeId = bstore.put(file, params)
       val returnFile = bstore.get(storeId)
 
+      val inputStream: Array[Byte] = ByteStreams.toByteArray(Files.newInputStreamSupplier(file))
+      val returnedStream: Array[Byte] = ByteStreams.toByteArray(Files.newInputStreamSupplier(returnFile))
 
-
-
-
+      inputStream mustEqual returnedStream
     }
   }
-
-
-
 }

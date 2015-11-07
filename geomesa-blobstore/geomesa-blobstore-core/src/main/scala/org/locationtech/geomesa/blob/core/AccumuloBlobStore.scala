@@ -10,6 +10,7 @@ import org.geotools.data.{Transaction, DataStore, Query}
 import org.geotools.filter.Filter
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.blob.core.handlers.BlobStoreFileHander
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
 import scala.collection.JavaConversions._
 
@@ -24,13 +25,14 @@ class AccumuloBlobStore(ds: AccumuloDataStore) {
   val blobTableName = s"${ds.catalogTable}_blob"
 
   ensureTableExists(blobTableName)
+  ds.createSchema(sft)
 
   val fs = ds.getFeatureSource(blobFeatureTypeName).asInstanceOf[SimpleFeatureStore]
 
   def put(file: File, params: Map[String, String]): String = {
 
     val sf = BlobStoreFileHander.buildSF(file, params)
-    val id = sf.getAttribute("storeID").asInstanceOf[String]
+    val id = sf.getAttribute(idFieldName).asInstanceOf[String]
 
     fs.addFeatures(new ListFeatureCollection(sft, List(sf)))
     putInternal(file, id)
@@ -62,6 +64,11 @@ class AccumuloBlobStore(ds: AccumuloDataStore) {
 
 object AccumuloBlobStore {
   val blobFeatureTypeName = "blob"
-  val sft: SimpleFeatureType = ???
+  val idFieldName = "storeId"
+
+  // TODO: Add metadata hashmap?
+  val sftSpec = s"filename:String,$idFieldName:String,geom:Geometry,time:Date,thumbnail:String"
+
+  val sft: SimpleFeatureType = SimpleFeatureTypes.createType(blobFeatureTypeName, sftSpec)
 
 }
