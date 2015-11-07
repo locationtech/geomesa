@@ -37,9 +37,9 @@ class AccumuloBlobStoreTest extends Specification {
     "be able able to store and retrieve a file" in {
       val (storeId, file) = ingestFile(testfile1, "POINT(0 0)")
 
-      testFile1Id = storeId
+      testFile1Id = storeId.get
 
-      val (returnedBytes, filename) = bstore.get(storeId)
+      val (returnedBytes, filename) = bstore.get(storeId.get)
 
       val inputStream = ByteStreams.toByteArray(Files.newInputStreamSupplier(file))
 
@@ -66,7 +66,7 @@ class AccumuloBlobStoreTest extends Specification {
       val ids2 = bstore.getIds(Filter.INCLUDE).toList
       ids2.size mustEqual 2
 
-      val (bytes2, returnedFilename2) = bstore.get(storeId2)
+      val (bytes2, returnedFilename2) = bstore.get(storeId2.get)
 
       returnedFilename2 mustEqual testfile2
 
@@ -80,7 +80,7 @@ class AccumuloBlobStoreTest extends Specification {
     }
   }
 
-  def ingestFile(fileName: String, wkt: String): (String, File) = {
+  def ingestFile(fileName: String, wkt: String): (Option[String], File) = {
     val file = new File(getClass.getClassLoader.getResource(fileName).getFile)
     val params = Map("wkt" -> wkt)
     val storeId = bstore.put(file, params)

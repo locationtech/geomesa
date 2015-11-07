@@ -13,7 +13,7 @@
 
     <modules>
         <module>geomesa-blobstore-core</module>
-        <!--<module>geomesa-blobstore-api</module>-->
+        <module>geomesa-blobstore-api</module>
     </modules>
 
     <dependencyManagement>

@@ -36,14 +36,15 @@ class AccumuloBlobStore(ds: AccumuloDataStore) {
 
   val fs = ds.getFeatureSource(blobFeatureTypeName).asInstanceOf[SimpleFeatureStore]
 
-  def put(file: File, params: Map[String, String]): String = {
+  def put(file: File, params: Map[String, String]): Option[String] = {
+    BlobStoreFileHander.buildSF(file, params).map {
+      sf =>
+        val id = sf.getAttribute(idFieldName).asInstanceOf[String]
 
-    val sf = BlobStoreFileHander.buildSF(file, params)
-    val id = sf.getAttribute(idFieldName).asInstanceOf[String]
-
-    fs.addFeatures(new ListFeatureCollection(sft, List(sf)))
-    putInternal(file, id)
-    id
+        fs.addFeatures(new ListFeatureCollection(sft, List(sf)))
+        putInternal(file, id)
+        id
+    }
   }
 
   def getIds(filter: Filter): Iterator[String] = {
@@ -94,10 +95,12 @@ class AccumuloBlobStore(ds: AccumuloDataStore) {
 
 object AccumuloBlobStore {
   val blobFeatureTypeName = "blob"
+
   val idFieldName = "storeId"
+  val geomeFieldName = "geom"
 
   // TODO: Add metadata hashmap?
-  val sftSpec = s"filename:String,$idFieldName:String,geom:Geometry,time:Date,thumbnail:String"
+  val sftSpec = s"filename:String,$idFieldName:String,$geomeFieldName:Geometry,time:Date,thumbnail:String"
 
   val sft: SimpleFeatureType = SimpleFeatureTypes.createType(blobFeatureTypeName, sftSpec)
 }
