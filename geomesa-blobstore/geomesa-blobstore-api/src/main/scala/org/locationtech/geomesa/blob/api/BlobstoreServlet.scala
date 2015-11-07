@@ -34,7 +34,12 @@ class BlobstoreServlet extends GeoMesaScalatraServlet {
     if (abs == null) {
       BadRequest(reason = "AccumuloBlobStore is not initialized.")
     } else {
-      abs.get(id)._1
+      val returnBytes = abs.get(id)._1
+      if (returnBytes == null) {
+        BadRequest(reason = s"Unknown ID $id")
+      } else {
+        returnBytes
+      }
     }
   }
 }
