@@ -4,6 +4,8 @@ import java.io.File
 
 import com.google.common.io.{Files, ByteStreams}
 import org.geotools.data.DataStoreFinder
+import org.geotools.filter.text.ecql.ECQL
+import org.opengis.filter._
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.specs2.mutable.Specification
@@ -25,20 +27,63 @@ class AccumuloBlobStoreTest extends Specification {
 
   val bstore = new AccumuloBlobStore(ds)
 
+  sequential
+
+  val testfile1 = "testFile.txt"
+  val testfile2 = "testFile2.txt"
+  var testFile1Id = ""
+
   "AccumuloBlobStore" should {
     "be able able to store and retrieve a file" in {
+      val (storeId, file) = ingestFile(testfile1, "POINT(0 0)")
 
-      val file = new File(getClass.getClassLoader.getResource("testFile.txt").getFile)
+      testFile1Id = storeId
 
-      val params = Map("wkt" -> "POINT(0 0)")
-
-      val storeId = bstore.put(file, params)
       val (returnedBytes, filename) = bstore.get(storeId)
 
-      val inputStream: Array[Byte] = ByteStreams.toByteArray(Files.newInputStreamSupplier(file))
+      val inputStream = ByteStreams.toByteArray(Files.newInputStreamSupplier(file))
 
-
+      filename mustEqual testfile1
       inputStream mustEqual returnedBytes
     }
+
+    "query for ids and then retrieve a file" in {
+      // Since the test is sequential, the first file should be in the store.
+      val ids = bstore.getIds(Filter.INCLUDE).toList
+
+      ids.size mustEqual 1
+      val id = ids.head
+
+      val (bytes, filename) = bstore.get(id)
+
+      bytes must not be null
+      filename mustEqual testfile1
+    }
+
+    "insert a second file and then be able to query for both" in {
+      val (storeId2, _) = ingestFile(testfile2, "POINT(50 50)")
+
+      val ids2 = bstore.getIds(Filter.INCLUDE).toList
+      ids2.size mustEqual 2
+
+      val (bytes2, returnedFilename2) = bstore.get(storeId2)
+
+      returnedFilename2 mustEqual testfile2
+
+
+      val filter = ECQL.toFilter("BBOX(geom, -10,-10,10,10)")
+
+      val filteredIds = bstore.getIds(filter).toList
+
+      filteredIds.size mustEqual 1
+      filteredIds.head mustEqual testFile1Id
+    }
+  }
+
+  def ingestFile(fileName: String, wkt: String): (String, File) = {
+    val file = new File(getClass.getClassLoader.getResource(fileName).getFile)
+    val params = Map("wkt" -> wkt)
+    val storeId = bstore.put(file, params)
+    (storeId, file)
   }
 }

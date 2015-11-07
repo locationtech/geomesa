@@ -11,7 +11,7 @@ import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.filter.Filter
+import org.opengis.filter.Filter
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, _}
 import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, SelfClosingIterator}
 import org.locationtech.geomesa.blob.core.AccumuloBlobStore._
@@ -24,7 +24,6 @@ import scala.collection.JavaConversions._
 
 class AccumuloBlobStore(ds: AccumuloDataStore) {
 
-  //val ds: DataStore = ???
   private val connector = ds.connector
   private val tableOps = connector.tableOperations()
 
@@ -51,24 +50,20 @@ class AccumuloBlobStore(ds: AccumuloDataStore) {
     getIds(new Query(blobFeatureTypeName, filter))
   }
 
-
   def getIds(query: Query): Iterator[String] = {
-    fs.getFeatures(query).features.map {
-      f => f.getAttribute(idFieldName).asInstanceOf[String]
-    }
+    fs.getFeatures(query).features.map(_.getAttribute(idFieldName).asInstanceOf[String])
   }
 
   def get(id: String): (Array[Byte], String) = {
     scanner.setRange(new Range(new Text(id)))
 
     val iter = SelfClosingIterator(scanner)
-
-    val ret = buildFile(iter.next)
+    val ret = buildReturn(iter.next)
     iter.close()
     ret
   }
 
-  def buildFile(entry: java.util.Map.Entry[Key, Value]): (Array[Byte], String) = {
+  def buildReturn(entry: java.util.Map.Entry[Key, Value]): (Array[Byte], String) = {
     val key = entry.getKey
     val value = entry.getValue
 
