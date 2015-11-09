@@ -7,6 +7,7 @@
 *************************************************************************/
 package org.locationtech.geomesa.tools
 
+import com.beust.jcommander.ParameterException
 import com.typesafe.scalalogging.slf4j.Logging
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index._
@@ -16,7 +17,14 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 object FeatureCreator extends Logging {
 
+  def checkSpec(params: CreateFeatureParams) = {
+    if (params.spec == null) {
+      throw new ParameterException("Parameter -s, --spec is required.")
+    }
+  }
+
   def createFeature(params: CreateFeatureParams): Unit = {
+    checkSpec(params)
     val ds = new DataStoreHelper(params).getOrCreateDs
     createFeature(ds, params)
   }

@@ -60,7 +60,7 @@ class OptionalCqlFilterParameters extends FeatureParams {
 }
 
 class CreateFeatureParams extends FeatureParams {
-  @Parameter(names = Array("-s", "--spec"), description = "SimpleFeatureType specification", required = true)
+  @Parameter(names = Array("-s", "--spec"), description = "SimpleFeatureType specification")
   var spec: String = null
 
   @Parameter(names = Array("-dt", "--dtg"), description = "DateTime field name to use as the default dtg")
