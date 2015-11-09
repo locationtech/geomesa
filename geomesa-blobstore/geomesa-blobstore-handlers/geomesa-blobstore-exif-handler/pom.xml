@@ -11,14 +11,14 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>geomesa-blobstore</artifactId>
+        <artifactId>geomesa-blobstore-handlers</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
         <version>1.1.0-rc.7-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-blobstore-core</artifactId>
-    <name>GeoMesa Blobstore Core</name>
+    <artifactId>geomesa-blobstore-exif-handler</artifactId>
+    <name>GeoMesa Blobstore EXIF Metadata Handler</name>
 
     <dependencies>
         <dependency>
@@ -26,14 +26,16 @@
             <artifactId>geomesa-accumulo-datastore</artifactId>
         </dependency>
 
-        <!-- provided dependencies -->
         <dependency>
-            <groupId>org.apache.accumulo</groupId>
-            <artifactId>accumulo-core</artifactId>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-blobstore-core</artifactId>
+            <version>${project.version}</version>
         </dependency>
+
         <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-client</artifactId>
+            <groupId>com.drewnoakes</groupId>
+            <artifactId>metadata-extractor</artifactId>
+            <version>2.8.1</version>
         </dependency>
 
         <!--test dependencies-->

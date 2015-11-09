@@ -7,14 +7,12 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-blobstore</artifactId>
-    <name>GeoMesa Blobstore Parent</name>
+    <artifactId>geomesa-blobstore-handlers</artifactId>
+    <name>GeoMesa Blobstore Handlers Parent</name>
     <packaging>pom</packaging>
 
     <modules>
-        <module>geomesa-blobstore-core</module>
-        <module>geomesa-blobstore-handlers</module>
-        <module>geomesa-blobstore-api</module>
+        <module>geomesa-blobstore-exif-handler</module>
     </modules>
 
     <dependencyManagement>
