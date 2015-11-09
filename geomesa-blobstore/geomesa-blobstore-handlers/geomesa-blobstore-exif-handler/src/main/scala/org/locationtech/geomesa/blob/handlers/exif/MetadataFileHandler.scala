@@ -1,4 +1,4 @@
-package org.locationtech.geomesa.blob.core.handlers
+package org.locationtech.geomesa.blob.handlers.exif
 
 import java.io.File
 import java.lang.Boolean
@@ -8,6 +8,7 @@ import java.util.Date
 import com.drew.imaging._
 import com.drew.metadata.exif.GpsDirectory
 import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.geomesa.blob.core.handlers.AbstractFileHandler
 import org.locationtech.geomesa.utils.text.WKTUtils
 
 import scala.collection.JavaConversions._

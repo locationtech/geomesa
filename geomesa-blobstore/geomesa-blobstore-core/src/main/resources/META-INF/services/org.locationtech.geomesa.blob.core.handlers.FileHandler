@@ -1,2 +1,1 @@
 org.locationtech.geomesa.blob.core.handlers.WKTFileHandler
-org.locationtech.geomesa.blob.core.handlers.MetadataFileHandler
