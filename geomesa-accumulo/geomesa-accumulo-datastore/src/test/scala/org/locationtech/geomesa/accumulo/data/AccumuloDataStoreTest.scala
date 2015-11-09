@@ -697,6 +697,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       } else {
         val dsWithNs = DataStoreFinder.getDataStore(params)
         ds.connector.tableOperations().exists(table) must beTrue
+        ds.connector.namespaceOperations().exists("test") must beTrue
       }
     }
   }
