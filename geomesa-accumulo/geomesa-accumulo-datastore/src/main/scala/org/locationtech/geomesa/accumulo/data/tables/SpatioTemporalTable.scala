@@ -90,9 +90,7 @@ object SpatioTemporalTable extends GeoMesaTable with Logging {
 
 
   override def configureTable(sft: SimpleFeatureType, tableName: String, tableOps: TableOperations): Unit = {
-    // NOTE: since the ST table is likely going away, I'm not inclined to thread maxShards all the way through
-    // the call chain so I just set a default of 40 here
-    val maxShard = 40
+    val maxShard = IndexSchema.maxShard(sft.getStIndexSchema)
     val splits = (1 to maxShard - 1).map(i => new Text(s"%0${maxShard.toString.length}d".format(i)))
     tableOps.addSplits(tableName, new java.util.TreeSet(splits))
 

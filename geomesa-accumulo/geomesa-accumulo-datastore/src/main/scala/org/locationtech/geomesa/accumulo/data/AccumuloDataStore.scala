@@ -293,10 +293,10 @@ class AccumuloDataStore(val connector: Connector,
           checkSchemaRequirements(sft, spatioTemporalSchema)
           writeMetadata(sft, SerializationType.KRYO, spatioTemporalSchema)
 
-          // reload the SFT...but we need to copy over the splits!!!
+          // reload the SFT then copy over any additional keys that were in the original sft
           val reloadedSft = getSchema(sft.getTypeName)
-          Seq(SimpleFeatureTypes.TABLE_SPLITTER, SimpleFeatureTypes.TABLE_SPLITTER_OPTIONS)
-            .foreach(k => Option(sft.getUserData.get(k)).foreach(v => reloadedSft.getUserData.put(k, v)))
+          (sft.getUserData.keySet -- reloadedSft.getUserData.keySet)
+            .foreach(k => reloadedSft.getUserData.put(k, sft.getUserData.get(k)))
 
           createTablesForType(reloadedSft)
         }
