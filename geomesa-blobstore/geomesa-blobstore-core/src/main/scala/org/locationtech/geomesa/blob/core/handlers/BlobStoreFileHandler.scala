@@ -26,12 +26,12 @@ trait AbstractFileHandler extends FileHandler {
   val featureIdGenerator = new Z3FeatureIdGenerator
 
   override def buildSF(file: File, params: util.Map[String, String]): SimpleFeature = {
-    val wkt = getGeometry(file, params)
+    val geom = getGeometry(file, params)
     val dtg = getDate(file, params)
-    val z3id = Z3UuidGenerator.createUuid(wkt, dtg.getTime)
+    val z3id = Z3UuidGenerator.createUuid(geom, dtg.getTime)
 
     builder.set(filenameFieldName, file.getName)
-    builder.set(geomeFieldName, wkt)
+    builder.set(geomeFieldName, geom)
     builder.set(idFieldName, z3id)
     builder.set(dateFieldName, dtg)
 
@@ -39,14 +39,14 @@ trait AbstractFileHandler extends FileHandler {
   }
 
   def getDate(file: File, params: util.Map[String, String]): Date = {
-    getDateFromFile(file).orElse(getDateFromParams(params)).getOrElse(new Date(System.currentTimeMillis()))
+    getDateFromFile(file).orElse(getDateFromParams(params)).getOrElse(new Date())
   }
 
   def getDateFromFile(file: File): Option[Date] = None
   def getDateFromParams(params: util.Map[String, String]): Option[Date] = None
 
   def getGeometry(file: File, params: util.Map[String, String]): Geometry = {
-    getGeometryFromFile(file).orElse(getGeometryFromParams(params)).getOrElse{
+    getGeometryFromFile(file).orElse(getGeometryFromParams(params)).getOrElse {
       throw new Exception(s"Could not get Geometry for $file with params $params.")
     }
   }
