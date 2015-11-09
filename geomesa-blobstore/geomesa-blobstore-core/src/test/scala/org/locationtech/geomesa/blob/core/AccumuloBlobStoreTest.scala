@@ -21,8 +21,7 @@ class AccumuloBlobStoreTest extends Specification {
     "user"              -> "myuser",
     "password"          -> "mypassword",
     "tableName"         -> "geomesa",
-    "useMock"           -> "true",
-    "featureEncoding"   -> "avro")
+    "useMock"           -> "true")
   val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
 
   val bstore = new AccumuloBlobStore(ds)

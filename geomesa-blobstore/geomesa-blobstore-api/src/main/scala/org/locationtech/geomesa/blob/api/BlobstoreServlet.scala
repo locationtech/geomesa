@@ -1,12 +1,9 @@
 package org.locationtech.geomesa.blob.api
 
-import java.io.{File, FileOutputStream}
-
-import com.google.common.io.Files
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
 import org.locationtech.geomesa.blob.core.AccumuloBlobStore
 import org.locationtech.geomesa.web.core.GeoMesaScalatraServlet
-import org.scalatra.{NotFound, BadRequest, Ok}
+import org.scalatra.{NotFound, Ok}
 
 import scala.collection.JavaConversions._
 

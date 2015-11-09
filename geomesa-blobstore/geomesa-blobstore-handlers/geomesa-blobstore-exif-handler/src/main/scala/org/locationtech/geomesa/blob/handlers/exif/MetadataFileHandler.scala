@@ -21,12 +21,7 @@ class MetadataFileHandler extends AbstractFileHandler {
     Option(WKTUtils.read(s"POINT(${gl.getLongitude} ${gl.getLatitude})"))
   }
 
-  override def canProcess(file: File, params: util.Map[String, String]): Boolean = accept(file)
-
-  // TODO: Implement date extraction
-  override def getDateFromFile(file: File): Option[Date] = super.getDateFromFile(file)
-
-  def accept(file: File): Boolean = {
+  override def canProcess(file: File, params: util.Map[String, String]): Boolean = {
     val gps = ImageMetadataReader.readMetadata(file).getDirectoriesOfType(classOf[GpsDirectory])
     if (gps == null) {
       false
@@ -40,4 +35,7 @@ class MetadataFileHandler extends AbstractFileHandler {
       }
     }
   }
+
+  // TODO: Implement date extraction
+  override def getDateFromFile(file: File): Option[Date] = super.getDateFromFile(file)
 }
