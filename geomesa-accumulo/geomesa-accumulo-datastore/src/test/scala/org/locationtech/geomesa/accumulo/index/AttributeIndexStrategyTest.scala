@@ -599,7 +599,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       }
 
       "int query that returns nothing" >> {
-        val features = execute("indexedDtg BEFORE 2011-01-01T00:00:00.000Z AND indexedDtg AFTER 2012-01-01T00:00:00.000Z")
+        val features = execute("age > 25 AND age < 15")
         features must haveLength(0)
       }
 
@@ -609,8 +609,8 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
         features must contain("alice", "bill", "bob", "charles")
       }
 
-      "int query that returns nothing" >> {
-        val features = execute("indexedDtg BEFORE 2011-01-01T00:00:00.000Z AND indexedDtg AFTER 2012-01-01T00:00:00.000Z")
+      "float query that returns nothing" >> {
+        val features = execute("height >= 6 AND height < 4")
         features must haveLength(0)
       }
 
