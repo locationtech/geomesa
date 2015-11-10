@@ -46,6 +46,16 @@ function ingestChart() {
         .attr("width", width)
         .attr("height", height);
 
+    var suffixTickFormatter = function(n) {
+        var suffixes = ["", "K", "M", "G", "T", "P", "E"];
+        var idx = 0;
+        while (n >= 1000.0) {
+            idx += 1;
+            n = (1.0 * n) / 1000.0;
+        }
+        return ((idx > 0) ? n.toFixed(1) : n) + suffixes[idx];
+    };
+
     var xAxis = graph.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + y(0) + ")")
@@ -53,7 +63,7 @@ function ingestChart() {
 
     var yAxis = graph.append("g")
         .attr("class", "y axis")
-        .call(y.axis = d3.svg.axis().scale(y).orient("left").ticks(ticks));
+        .call(y.axis = d3.svg.axis().scale(y).orient("left").ticks(ticks).tickFormat(suffixTickFormatter));
 
     var line = d3.svg.line()
         .x(function(d,i) { return x(now - (domain - 1 - i) * duration); })

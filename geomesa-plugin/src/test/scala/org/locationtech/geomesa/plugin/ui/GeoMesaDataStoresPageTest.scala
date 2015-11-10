@@ -76,7 +76,7 @@ class GeoMesaDataStoresPageTest extends Specification {
       metadata.numEntries should be equalTo 450
       metadata.numSplits should be equalTo 100
       // exact file size varies slightly between runs... not sure why
-      Math.abs(metadata.fileSize - 0.026) should be lessThan 0.001
+      Math.abs(metadata.fileSize - 0.026*1024*1024) should be lessThan 0.001*1024*1024
     }
 
     step(stopCluster())
