@@ -35,19 +35,41 @@ class FeatureInfoPanel(id: String, featureData: FeatureData) extends Panel(id) {
 
   /*_*/add(new BookmarkablePageLink("featureLink", classOf[GeoMesaFeaturePage], pageParameters))/*_*/
 
-  val numberFormat = new DecimalFormat("#,###")
-  val doubleFormat = new DecimalFormat("#,###.##")
-
   // list view of the tables associated with each feature
   add(new ListView[TableMetadata]("featureRows", featureData.metadata.asJava) {
     override def populateItem(item: ListItem[TableMetadata]) = {
       val metadata = item.getModelObject
       item.add(new Label("tableName", new PropertyModel(item.getModel, "displayName")))
-      item.add(new Label("metadataNumTablets", Model.of(numberFormat.format(metadata.numTablets))))
-      item.add(new Label("metadataNumSplits", Model.of(numberFormat.format(metadata.numSplits))))
-      item.add(new Label("metadataNumEntries", Model.of(numberFormat.format(metadata.numEntries))))
-      item.add(new Label("metadataFileSize", Model.of(doubleFormat.format(metadata.fileSize))))
+      item.add(new Label("metadataNumTablets", Model.of(Formatting.formatLargeNum(metadata.numTablets))))
+      item.add(new Label("metadataNumSplits", Model.of(Formatting.formatLargeNum(metadata.numSplits))))
+      item.add(new Label("metadataNumEntries", Model.of(Formatting.formatLargeNum(metadata.numEntries))))
+      item.add(new Label("metadataFileSize", Model.of(Formatting.formatMem(metadata.fileSize))))
 
     }
   })
+}
+
+object Formatting {
+  private val siSuffix = Array("", "K", "M", "G", "T", "P", "E")
+  private val memSuffix = siSuffix.take(1) ++ siSuffix.drop(1).map(_ + "B")
+
+  private def getSuffixIdx(num: Long, div: Double): (Int, Double) = {
+    var t = num.toDouble
+    var idx = 0
+    while (t >= div) {
+      idx += 1
+      t = t / div
+    }
+    (idx, t)
+  }
+
+  def format(num: Long, suffixArr: Array[String], div: Double) = {
+    val (idx, n) = getSuffixIdx(num, div)
+    if (idx >= suffixArr.length) throw new IllegalArgumentException(s"Value $num too large for suffix array ${suffixArr.toList}")
+    if (idx > 0) f"$n%.2f" + suffixArr(idx) else n.toInt.toString
+  }
+
+  def formatMem(mem: Long): String = format(mem, memSuffix, 1024.0)
+
+  def formatLargeNum(num :Long): String = format(num, siSuffix, 1000.0)
 }

@@ -239,7 +239,7 @@ object GeoMesaDataStoresPage {
         numSplits = numSplits + 1
     }
 
-    TableMetadata(featureName, tableName, displayName, numTablets, numSplits, numEntries, fileSize / 1048576.0)
+    TableMetadata(featureName, tableName, displayName, numTablets, numSplits, numEntries, fileSize)
   }
 }
 
@@ -256,7 +256,7 @@ case class TableMetadata(feature: String,
                          numTablets: Long,
                          numSplits: Long,
                          numEntries: Long,
-                         fileSize: Double)
+                         fileSize: Long)
 
 case class FeatureData(workspace: String,
                        dataStore: String,
