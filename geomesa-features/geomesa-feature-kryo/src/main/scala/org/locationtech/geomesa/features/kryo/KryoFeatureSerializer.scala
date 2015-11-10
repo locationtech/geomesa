@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.features.kryo
 
-import java.util.{Date, List => jList, Map => jMap, HashMap => jHashMap, UUID}
+import java.util.{Date, HashMap => jHashMap, List => jList, Map => jMap, UUID}
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features._
 import org.locationtech.geomesa.features.kryo.serialization.{KryoReader, KryoWriter}
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
@@ -23,7 +23,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 
-class KryoFeatureSerializer(sft: SimpleFeatureType, val options: SerializationOptions = SerializationOptions.none)
+class KryoFeatureSerializer(sft: SimpleFeatureType, val options: Set[SerializationOption] = Set.empty)
     extends SimpleFeatureSerializer with SimpleFeatureDeserializer with LazyLogging {
 
   import KryoFeatureSerializer._
@@ -125,7 +125,7 @@ class KryoFeatureSerializer(sft: SimpleFeatureType, val options: SerializationOp
  */
 class ProjectingKryoFeatureDeserializer(original: SimpleFeatureType,
                                         projected: SimpleFeatureType,
-                                        options: SerializationOptions = SerializationOptions.none)
+                                        options: Set[SerializationOption] = Set.empty)
     extends KryoFeatureSerializer(original, options) {
 
   import KryoFeatureSerializer._

@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.features.kryo.serialization
 
 import com.esotericsoftware.kryo.Serializer
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
@@ -36,10 +36,12 @@ case class KryoFeatureSerializer(serializer: Serializer[SimpleFeature])
 
 object KryoFeatureSerializer {
 
-  def apply(sft: SimpleFeatureType, options: SerializationOptions = SerializationOptions.none): KryoFeatureSerializer =
+  def apply(sft: SimpleFeatureType, options: Set[SerializationOption] = Set.empty): KryoFeatureSerializer =
     apply(new SimpleFeatureSerializer(sft, options))
 
-  def apply(sft: SimpleFeatureType, decodeAs: SimpleFeatureType, options: SerializationOptions): KryoFeatureSerializer = {
+  def apply(sft: SimpleFeatureType,
+            decodeAs: SimpleFeatureType,
+            options: Set[SerializationOption]): KryoFeatureSerializer = {
     if (sft.eq(decodeAs)) {
       apply(sft, options)
     } else {

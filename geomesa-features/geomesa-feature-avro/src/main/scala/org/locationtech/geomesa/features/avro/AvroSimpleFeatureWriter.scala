@@ -15,11 +15,11 @@ import org.apache.avro.Schema
 import org.apache.avro.Schema.Field
 import org.apache.avro.io.{DatumWriter, Encoder}
 import org.geotools.data.DataUtilities
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.avro.serialization.AvroSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-class AvroSimpleFeatureWriter(sft: SimpleFeatureType, opts: SerializationOptions = SerializationOptions.none)
+class AvroSimpleFeatureWriter(sft: SimpleFeatureType, opts: Set[SerializationOption] = Set.empty)
   extends DatumWriter[SimpleFeature] {
 
   import AvroSimpleFeatureUtils._

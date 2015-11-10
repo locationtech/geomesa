@@ -20,7 +20,6 @@ object SerializationOption extends Enumeration {
    */
   val WithUserData = Value
 
-
   implicit class SerializationOptions(val options: Set[SerializationOption]) extends AnyVal {
 
     /**
@@ -38,12 +37,12 @@ object SerializationOption extends Enumeration {
     /**
      * An empty set of encoding options.
      */
-    val none: SerializationOptions = Set.empty[SerializationOption]
+    val none: Set[SerializationOption] = Set.empty[SerializationOption]
 
     /**
      * @return a new [[SerializationOptions]] containing just the ``EncodingOption.WITH_USER_DATA`` option
      */
-    def withUserData: SerializationOptions = Set(SerializationOption.WithUserData)
+    def withUserData: Set[SerializationOption] = Set(SerializationOption.WithUserData)
   }
 }
 

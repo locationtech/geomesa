@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.features
 
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.opengis.feature.simple.SimpleFeature
 
 trait HasEncodingOptions {
-  def options: SerializationOptions
+  def options: Set[SerializationOption]
 }
 
 /**

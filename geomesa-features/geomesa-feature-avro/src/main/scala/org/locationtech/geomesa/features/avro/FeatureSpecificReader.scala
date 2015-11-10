@@ -16,16 +16,16 @@ import org.apache.avro.Schema
 import org.apache.avro.io._
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureUtils._
-import org.locationtech.geomesa.features.avro.serde.{Version2Deserializer, Version1Deserializer, ASFDeserializer}
+import org.locationtech.geomesa.features.avro.serde.{ASFDeserializer, Version1Deserializer, Version2Deserializer}
 import org.locationtech.geomesa.features.avro.serialization.AvroSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 
 class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureType,
-                            opts: SerializationOptions = SerializationOptions.none)
+                            opts: Set[SerializationOption] = Set.empty)
   extends DatumReader[AvroSimpleFeature] {
 
   def this(sft: SimpleFeatureType) = this(sft, sft)
