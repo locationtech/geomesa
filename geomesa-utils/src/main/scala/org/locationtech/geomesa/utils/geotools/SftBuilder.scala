@@ -5,15 +5,12 @@
 * accompanies this distribution and is available at
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
-package org.locationtech.geomesa.accumulo.util
+package org.locationtech.geomesa.utils.geotools
 
 import java.util.{Date, UUID}
 
-import org.locationtech.geomesa.accumulo.data.TableSplitter
-import org.locationtech.geomesa.accumulo.util.SftBuilder._
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{Splitter, _}
+import org.locationtech.geomesa.utils.geotools.SftBuilder._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.locationtech.geomesa.utils.stats.Cardinality.Cardinality
 
@@ -22,10 +19,10 @@ import scala.reflect.runtime.universe.{Type => UType, _}
 
 
 class SftBuilder {
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  private val entries = new ListBuffer[String]
-  private var splitterOpt: Option[Splitter] = None
-  private var enabledIndexesOpt: Option[EnabledIndexes] = None
+  val entries = new ListBuffer[String]
+  var enabledIndexesOpt: Option[EnabledIndexes] = None
   private var dtgFieldOpt: Option[String] = None
 
   // Primitives - back compatible
@@ -108,16 +105,6 @@ class SftBuilder {
   def listType[T: TypeTag](name: String, opts: Opts = Opts()) =
     append(name, opts.copy(stIndex = false), s"List[${resolve(typeOf[T])}]")
 
-  def recordSplitter(clazz: String, splitOptions: Map[String,String]) = {
-    this.splitterOpt = Some(Splitter(clazz, splitOptions))
-    this
-  }
-
-  def recordSplitter(clazz: Class[_ <: TableSplitter], splitOptions: Map[String,String]): SftBuilder = {
-    recordSplitter(clazz.getName, splitOptions)
-    this
-  }
-
   def withIndexes(indexSuffixes: List[String]):SftBuilder = {
     this.enabledIndexesOpt = Some(EnabledIndexes(indexSuffixes))
     this
@@ -161,14 +148,6 @@ class SftBuilder {
     case _ => Seq.empty
   }
 
-  // note that SimpleFeatureTypes requires that splitter and splitter opts be ordered properly
-  private def splitPart = splitterOpt.map { s =>
-    List(
-      SimpleFeatureTypes.TABLE_SPLITTER + "=" + s.splitterClazz,
-      SimpleFeatureTypes.TABLE_SPLITTER_OPTIONS + "=" + singleQuote(encodeMap(s.options, SepPart, SepEntry))
-    ).mkString(",")
-  }
-
   private def singleQuote(s: String) = "'" + s + "'"
 
   private def enabledIndexesPart = enabledIndexesOpt.map { s =>
@@ -179,7 +158,7 @@ class SftBuilder {
   /** Get the type spec string associated with this builder...doesn't include dtg info */
   def getSpec = {
     val entryLst = List(entries.mkString(SepEntry))
-    val options = List(splitPart, enabledIndexesPart).flatten
+    val options = List(enabledIndexesPart).flatten
     (entryLst ++ options).mkString(";")
   }
 

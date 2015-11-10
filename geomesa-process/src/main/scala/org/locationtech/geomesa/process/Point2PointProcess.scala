@@ -19,9 +19,7 @@ import org.geotools.process.vector.VectorProcess
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.DateTime
 import org.joda.time.DateTime.Property
-import org.locationtech.geomesa.accumulo.util.SftBuilder
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.`type`.GeometryType
+import org.locationtech.geomesa.utils.geotools.SftBuilder
 import org.opengis.feature.simple.SimpleFeature
 
 @DescribeProcess(title = "Point2PointProcess", description = "Aggregates a collection of points into a collection of line segments")
@@ -55,8 +53,6 @@ class Point2PointProcess extends VectorProcess {
                ): SimpleFeatureCollection = {
 
     import org.locationtech.geomesa.utils.geotools.Conversions._
-
-    import scala.collection.JavaConversions._
 
     val queryType = data.getSchema
     val sftBuilder = new SimpleFeatureTypeBuilder()
