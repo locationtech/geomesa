@@ -1,6 +1,8 @@
 package org.locationtech.geomesa.accumulo
 
 import org.apache.accumulo.core.Constants
+import org.apache.accumulo.core.client.{TableExistsException, Connector}
+import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
 
@@ -56,7 +58,37 @@ object AccumuloVersion extends Enumeration {
     }
   }
 
-  def getTypeFromClass[T: ClassTag](className: String, field: String): T = {
+  def ensureTableExists(connector: Connector, table: String): Unit = {
+    val tableOps = connector.tableOperations()
+    if (!tableOps.exists(table)) {
+      try {
+        ensureNamespaceExists(connector, table)
+        tableOps.create(table, true, TimeType.LOGICAL)
+      } catch {
+        // this can happen with multiple threads but shouldn't cause any issues
+        case e: TableExistsException =>
+        case e: Exception if e.getClass.getSimpleName == "NamespaceExistsException" =>
+      }
+    }
+  }
+
+  /**
+   * Check for namespaces and create if needed.
+   */
+  private def ensureNamespaceExists(connector: Connector, table: String): Unit = {
+    val dot = table.indexOf('.')
+    if (dot > 0) {
+      require(accumuloVersion != V15, s"Table namespaces are not supported in Accumulo 1.5 - for table '$table'")
+      val ns = table.substring(0, dot)
+      val nsOps = classOf[Connector].getMethod("namespaceOperations").invoke(connector)
+      val nsOpsClass = Class.forName("org.apache.accumulo.core.client.admin.NamespaceOperations")
+      if (!nsOpsClass.getMethod("exists", classOf[String]).invoke(nsOps, ns).asInstanceOf[Boolean]) {
+        nsOpsClass.getMethod("create", classOf[String]).invoke(nsOps, ns)
+      }
+    }
+  }
+
+  private def getTypeFromClass[T: ClassTag](className: String, field: String): T = {
     val clazz = Class.forName(className)
     clazz.getDeclaredField(field).get(null).asInstanceOf[T]
   }

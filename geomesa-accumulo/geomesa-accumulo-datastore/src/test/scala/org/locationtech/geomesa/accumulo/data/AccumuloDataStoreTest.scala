@@ -23,6 +23,7 @@ import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.IndexIterator
@@ -686,6 +687,18 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       // verify that all the attributes came back
       read must haveSize(3)
       read.map(_.getID).sorted mustEqual Seq("2", "3", "4")
+    }
+
+    "create tables with an accumulo namespace" >> {
+      val table = "test.AccumuloDataStoreNamespaceTest"
+      val params = Map("connector" -> ds.connector, "tableName" -> table)
+      if (AccumuloVersion.accumuloVersion == AccumuloVersion.V15) {
+        DataStoreFinder.getDataStore(params) must throwAn[IllegalArgumentException]
+      } else {
+        val dsWithNs = DataStoreFinder.getDataStore(params)
+        ds.connector.tableOperations().exists(table) must beTrue
+        ds.connector.namespaceOperations().exists("test") must beTrue
+      }
     }
   }
 }
