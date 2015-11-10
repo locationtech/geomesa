@@ -241,11 +241,11 @@ class QueryFilterSplitterTest extends Specification {
       "indexed attributes" >> {
         val filter = and(indexedAttr, indexedAttr2)
         val options = splitter.getQueryOptions(filter)
-        options must haveLength(1)
+        options must haveLength(2)
         options.head.filters must haveLength(1)
         options.head.filters.head.strategy mustEqual StrategyType.ATTRIBUTE
-        options.head.filters.head.primary mustEqual Seq(indexedAttr, indexedAttr2).map(f)
-        options.head.filters.head.secondary must beNone
+        options.head.filters.head.primary.head mustEqual f(indexedAttr)
+        options.head.filters.head.secondary.head mustEqual f(indexedAttr2)
       }
       "low-cardinality attributes" >> {
         val filter = and(lowCardinaltiyAttr, nonIndexedAttr)
