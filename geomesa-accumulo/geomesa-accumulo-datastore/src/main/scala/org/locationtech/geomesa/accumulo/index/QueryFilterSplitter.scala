@@ -116,12 +116,12 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends Logging {
     // attributes
     if (supported.contains(AttributeTable) && (attribute.nonEmpty || dateAttribute.nonEmpty)) {
       val allAttributes = attribute ++ dateAttribute
-      val attributes = allAttributes.groupBy(getAttributeProperty(_).get.name)
-      attributes.foreach { case (name, thisAttribute) =>
-        val primary = thisAttribute
-        val nonPrimary = allAttributes.filterNot(thisAttribute.contains) ++
-            temporal.filterNot(thisAttribute.contains) ++ spatial ++ others
+      allAttributes.foreach { attr =>
+        val primary = Seq(attr)
+        val nonPrimary = allAttributes.filterNot(primary.contains) ++
+          temporal.filterNot(primary.contains) ++ spatial ++ others
         val secondary = andOption(nonPrimary)
+
         options.append(FilterPlan(Seq(QueryFilter(StrategyType.ATTRIBUTE, primary, secondary))))
       }
     }
