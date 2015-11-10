@@ -69,7 +69,7 @@ From the root directory, the above will build each sub-project with its addition
 * **geomesa-filter**: This module is a library for manipulating and working with GeoTools Filters.
 * **geomesa-hbase**: This module includes an implementation of GeoMesa on HBase and Google Cloud Bigtable.
 * [**geomesa-jobs**](geomesa-jobs): This module contains map/reduce and scalding jobs for maintaining GeoMesa.
-* [**geomesa-kafka**](geomesa-kafa/geomesa-kafka-datastore): This module contains an implementation of GeoMesa in Kafka for maintaining near-real-time caches of streaming data.
+* [**geomesa-kafka**](geomesa-kafka/geomesa-kafka-datastore): This module contains an implementation of GeoMesa in Kafka for maintaining near-real-time caches of streaming data.
 * [**geomesa-plugin**](geomesa-plugin): This module creates a plugin which provides WFS and WMS support.  The JAR named geomesa-plugin-<Version>-geoserver-plugin.jar is ready to be deployed in GeoServer by copying it into geoserver/WEB-INF/lib/
 * [**geomesa-process**](geomesa-process): This module contains analytic processes optimized on GeoMesa data stores.
 * [**geomesa-raster**](geomesa-raster): This module adds support for ingesting and working with geospatially-referenced raster data in GeoMesa.
