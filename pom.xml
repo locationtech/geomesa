@@ -1141,6 +1141,7 @@
                 </configuration>
             </plugin>
             <plugin>
+                <!-- running `mvn process-resources -N` will generate a new GeoMesa README.md -->
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>2.7</version>
                 <executions>
@@ -1151,7 +1152,8 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${basedir}</outputDirectory>
+                            <outputDirectory>${project.basedir}</outputDirectory>
+                            <overwrite>true</overwrite>
                             <resources>
                                 <resource>
                                     <directory>build</directory>
