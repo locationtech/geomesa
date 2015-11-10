@@ -2,12 +2,12 @@ package org.locationtech.geomesa.blob.core
 
 import java.io.File
 
-import com.google.common.io.{Files, ByteStreams}
+import com.google.common.io.{ByteStreams, Files}
 import org.geotools.data.DataStoreFinder
 import org.geotools.filter.text.ecql.ECQL
-import org.opengis.filter._
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.opengis.filter._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
