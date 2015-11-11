@@ -148,19 +148,18 @@ class SftBuilder {
     case _ => Seq.empty
   }
 
-  private def singleQuote(s: String) = "'" + s + "'"
-
   private def enabledIndexesPart = enabledIndexesOpt.map { s =>
-    SimpleFeatureTypes.ENABLED_INDEXES + "=" + singleQuote(s.indexes.mkString(","))
+    s"${SimpleFeatureTypes.ENABLED_INDEXES}='${s.indexes.mkString(",")}'"
   }
 
   // public accessors
   /** Get the type spec string associated with this builder...doesn't include dtg info */
   def getSpec = {
     val entryLst = List(entries.mkString(SepEntry))
-    val options = List(enabledIndexesPart).flatten
     (entryLst ++ options).mkString(";")
   }
+
+  def options = List(enabledIndexesPart).flatten
 
   /** builds a SimpleFeatureType object from this builder */
   def build(nameSpec: String) = {
