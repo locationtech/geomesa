@@ -125,7 +125,7 @@ abstract class InitBuilder[T <: InitBuilder[T]] {
       case t if tt == typeOf[UUID]          => "UUID"
     }
 
- .  private def append(name: String, opts: Opts, typeStr: String) = {
+  private def append(name: String, opts: Opts, typeStr: String) = {
     val parts = List(name, typeStr) ++ indexPart(opts.index) ++ stIndexPart(opts.stIndex) ++
         cardinalityPart(opts.cardinality)
     entries += parts.mkString(SepPart)
