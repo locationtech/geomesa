@@ -17,8 +17,7 @@ import org.locationtech.geomesa.utils.stats.Cardinality.Cardinality
 import scala.collection.mutable.ListBuffer
 import scala.reflect.runtime.universe.{Type => UType, _}
 
-
-abstract class InitBuilder[T <: InitBuilder[T]] {
+abstract class InitBuilder[T] {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   val entries = new ListBuffer[String]
