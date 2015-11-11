@@ -12,6 +12,6 @@ import org.locationtech.geomesa.features.SerializationOption;
 
 public class SerializationOptions {
     public static SerializationOption.SerializationOptions withUserData() {
-        return SerializationOption.SerializationOptions$.MODULE$.withUserData();
+        return new SerializationOption.SerializationOptions(SerializationOption.SerializationOptions$.MODULE$.withUserData());
     }
 }
