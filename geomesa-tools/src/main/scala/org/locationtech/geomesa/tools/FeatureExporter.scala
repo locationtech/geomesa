@@ -93,6 +93,46 @@ object ShapefileExport {
 
     modifiedAttrs.mkString(",")
   }
+
+  def replaceGeomInAttributesString(attributes: String, sft: SimpleFeatureType): String = {
+     /**
+      * Check that:
+      * 1. The geometry descriptor is not called "the_geom" so we don't replace that.
+      * 2. The geometry descriptor is contained in the attributes
+      * 3. Immediately before AND after the geometry descriptor is undefined (geom query only)
+      *    OR immediately before is undefined AND after is comma (geom first in list)
+      *    OR immediately before is a comma AND after is undefined (geom last in list)
+      *    OR comma before AND after geom (geom in middle of list)
+      * 4. The geometry descriptor isn't being transformed already (even if the transformation is
+      *    incorrect, as we'll take care of that at a later stage in the QueryPlanner)
+      */
+    val trimmedAttributes = attributes.split(",").map(_.trim).mkString(",")
+    val geomDescriptor = sft.getGeometryDescriptor.getLocalName
+    val geomAttrNotNamedTheGeom = geomDescriptor != "the_geom"
+    val attrsContainsGeomAttributeName = trimmedAttributes.contains(geomDescriptor)
+    val nothingBeforeGeomAttribute = trimmedAttributes.indexOf(geomDescriptor) - 1 < 0
+    val nothingAfterGeomAttribute = trimmedAttributes.indexOf(geomDescriptor) + geomDescriptor.length == trimmedAttributes.length
+    val nothingBeforeOrAfterGeomAttribute = nothingBeforeGeomAttribute && nothingAfterGeomAttribute
+    val hasCommaBefore = !nothingBeforeGeomAttribute && trimmedAttributes.charAt(trimmedAttributes.indexOf(geomDescriptor) - 1) == ','
+    val hasCommaAfter = !nothingAfterGeomAttribute && trimmedAttributes.charAt(trimmedAttributes.indexOf(geomDescriptor) + geomDescriptor.length) == ','
+    val hasCommaBeforeAndAfter = hasCommaBefore && hasCommaAfter
+    val geomAttrIsNotBeingTransformed = !trimmedAttributes.contains(s"=$geomDescriptor") && !trimmedAttributes.contains(s"$geomDescriptor=")
+
+    val retAttributes =
+      if (geomAttrNotNamedTheGeom
+        && attrsContainsGeomAttributeName
+        && (nothingBeforeOrAfterGeomAttribute
+           || (nothingBeforeGeomAttribute && hasCommaAfter)
+           || (nothingAfterGeomAttribute && hasCommaBefore)
+           || hasCommaBeforeAndAfter
+           )
+        && geomAttrIsNotBeingTransformed) {
+        trimmedAttributes.replace(geomDescriptor, s"the_geom=$geomDescriptor")
+      } else {
+        trimmedAttributes
+      }
+    retAttributes
+  }
 }
 
 class DelimitedExport(writer: Writer, format: String, attributes: Option[String])
