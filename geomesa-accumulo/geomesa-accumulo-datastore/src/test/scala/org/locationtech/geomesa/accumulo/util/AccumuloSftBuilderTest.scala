@@ -24,9 +24,9 @@ class AccumuloSftBuilderTest extends Specification {
   "SpecBuilder" >> {
     "configure table splitters as strings" >> {
       val sft1 = new AccumuloSftBuilder()
-        .recordSplitter(classOf[DigitSplitter].getName, Map("fmt" ->"%02d", "min" -> "0", "max" -> "99"))
         .intType("i")
         .longType("l")
+        .recordSplitter(classOf[DigitSplitter].getName, Map("fmt" ->"%02d", "min" -> "0", "max" -> "99"))
         .build("test")
 
       // better - uses class directly (or at least less annoying)

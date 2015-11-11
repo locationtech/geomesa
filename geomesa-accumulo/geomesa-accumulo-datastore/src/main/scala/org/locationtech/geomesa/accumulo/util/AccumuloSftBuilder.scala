@@ -10,17 +10,17 @@ package org.locationtech.geomesa.accumulo.util
 import org.locationtech.geomesa.accumulo.data.TableSplitter
 import org.locationtech.geomesa.utils.geotools.SftBuilder._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Splitter
-import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.{InitBuilder, SimpleFeatureTypes}
 
-class AccumuloSftBuilder extends SftBuilder {
+class AccumuloSftBuilder extends InitBuilder[AccumuloSftBuilder] {
   private var splitterOpt: Option[Splitter] = None
 
-  def recordSplitter(clazz: String, splitOptions: Map[String,String]) = {
+  def recordSplitter(clazz: String, splitOptions: Map[String,String]): AccumuloSftBuilder = {
     this.splitterOpt = Some(Splitter(clazz, splitOptions))
     this
   }
 
-  def recordSplitter(clazz: Class[_ <: TableSplitter], splitOptions: Map[String,String]): SftBuilder = {
+  def recordSplitter(clazz: Class[_ <: TableSplitter], splitOptions: Map[String,String]): AccumuloSftBuilder = {
     recordSplitter(clazz.getName, splitOptions)
     this
   }
@@ -28,7 +28,7 @@ class AccumuloSftBuilder extends SftBuilder {
   // note that SimpleFeatureTypes requires that splitter and splitter opts be ordered properly
   private def splitPart = splitterOpt.map { s =>
     List(
-      s"${SimpleFeatureTypes.TABLE_SPLITTER}=s${s.splitterClazz}",
+      s"${SimpleFeatureTypes.TABLE_SPLITTER}=${s.splitterClazz}",
       s"${SimpleFeatureTypes.TABLE_SPLITTER_OPTIONS}='${encodeMap(s.options, SepPart, SepEntry)}'"
     ).mkString(",")
   }
