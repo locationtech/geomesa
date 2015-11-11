@@ -291,10 +291,16 @@ package object filter {
     sft.getDtgField.exists(isTemporalFilter(f, _))
   }
 
-  def isIndexedAttributeFilter(f: Filter, sft: SimpleFeatureType): Boolean = {
+  def attrIndexed(p: PropertyLiteral, sft: SimpleFeatureType): Boolean = attrIndexed(p.name, sft)
+
+  def attrIndexed(name: String, sft: SimpleFeatureType): Boolean = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-    def indexed(p: PropertyLiteral) = Option(sft.getDescriptor(p.name)).exists(_.isIndexed)
-    getAttributeProperty(f).exists(indexed)
+    Option(sft.getDescriptor(name)).exists(_.isIndexed)
+  }
+
+  def isIndexedAttributeFilter(f: Filter, sft: SimpleFeatureType): Boolean = {
+    val attrProp = getAttributeProperty(f)
+    attrProp.exists(attrIndexed(_, sft))
   }
 
   def getAttributeProperty(f: Filter): Option[PropertyLiteral] = {

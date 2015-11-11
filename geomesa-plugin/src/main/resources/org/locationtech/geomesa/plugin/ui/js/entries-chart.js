@@ -17,10 +17,20 @@ function entriesChart() {
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+    var suffixTickFormatter = function(n) {
+        var suffixes = ["", "K", "M", "G", "T", "P", "E"];
+        var idx = 0;
+        while (n >= 1000.0) {
+            idx += 1;
+            n = (1.0 * n) / 1000.0;
+        }
+        return ((idx > 0) ? n.toFixed(1) : n) + suffixes[idx];
+    };
+
     chart.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + height + ")")
-        .call(d3.svg.axis().scale(x).orient("bottom"));
+        .call(d3.svg.axis().scale(x).orient("bottom").tickFormat(suffixTickFormatter));
     chart.append("g")
         .attr("class", "y axis")
         .call(d3.svg.axis().scale(y).orient("left"));

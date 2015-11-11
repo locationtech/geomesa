@@ -60,7 +60,7 @@ class OptionalCqlFilterParameters extends FeatureParams {
 }
 
 class CreateFeatureParams extends FeatureParams {
-  @Parameter(names = Array("-s", "--spec"), description = "SimpleFeatureType specification as a GeoTools spec string, SFT config, or file with either", required = true)
+  @Parameter(names = Array("-s", "--spec"), description = "SimpleFeatureType specification as a GeoTools spec string, SFT config, or file with either")
   var spec: String = null
 
   @Parameter(names = Array("-dt", "--dtg"), description = "DateTime field name to use as the default dtg")

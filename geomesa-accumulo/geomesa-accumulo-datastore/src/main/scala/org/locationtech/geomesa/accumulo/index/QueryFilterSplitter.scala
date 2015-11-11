@@ -116,12 +116,12 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends Logging {
     // attributes
     if (supported.contains(AttributeTable) && (attribute.nonEmpty || dateAttribute.nonEmpty)) {
       val allAttributes = attribute ++ dateAttribute
-      val attributes = allAttributes.groupBy(getAttributeProperty(_).get.name)
-      attributes.foreach { case (name, thisAttribute) =>
-        val primary = thisAttribute
-        val nonPrimary = allAttributes.filterNot(thisAttribute.contains) ++
-            temporal.filterNot(thisAttribute.contains) ++ spatial ++ others
+      allAttributes.foreach { attr =>
+        val primary = Seq(attr)
+        val nonPrimary = allAttributes.filterNot(primary.contains) ++
+          temporal.filterNot(primary.contains) ++ spatial ++ others
         val secondary = andOption(nonPrimary)
+
         options.append(FilterPlan(Seq(QueryFilter(StrategyType.ATTRIBUTE, primary, secondary))))
       }
     }
@@ -141,6 +141,7 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends Logging {
 
     // combine the filter plans so that each plan has multiple query filters
     // use the permutations of the different options for each child
+    // TODO GEOMESA-941 Fix algorithmically dangerous (2^N exponential runtime)
     def reduceChildOptions(childOptions: Seq[Seq[FilterPlan]]): Seq[FilterPlan] =
       childOptions.reduce { (left, right) =>
         left.flatMap(l => right.map(r => FilterPlan(l.filters ++ r.filters)))
@@ -159,7 +160,7 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends Logging {
           val current = groups(i).secondary match {
             case Some(o) if o.isInstanceOf[Or] => o.asInstanceOf[Or].getChildren.toSeq
             case Some(n) => Seq(n)
-            case None    => Seq.empty
+            case None => Seq.empty
           }
           groups.update(i, f.copy(secondary = orOption(current ++ f.secondary)))
         }
@@ -223,7 +224,58 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends Logging {
       }
     }
 
-    makeDisjoint(mergeOverlappedFilters(combineSecondaryFilters(reduceChildOptions(getChildOptions))))
+    // Detect single attribute OR queries...which are of the form:
+    // (attr in (1,2,3,4,5,6, etc) AND <something else>)
+    // where the attr is of high cardinality and is indexed
+    // These require special handling to avoid a bug with exponential
+    // query planning time.
+    //
+    // This query logic is based on the output of the DNF rewrite
+    //
+    // TODO this should really be evaluated before the DNF logic occurs
+    // and should be handled as part of GEOMESA-941
+    def detectSingleAttrOr: Boolean = {
+      filter match {
+        case or: Or =>
+          // each child is expressed as (attr = x(i) AND expr2 AND expr3 ...)
+          val attrs =
+            or.getChildren.map {
+              case and: And => and.getChildren.flatMap {
+                case eq: PropertyIsEqualTo => checkOrder(eq.getExpression1, eq.getExpression2).map(_.name)
+                case _ => None
+              }
+              case _ => Seq.empty[String]
+            }
+
+          // if all have 1 attribute and it's the same attribute and its indexed
+          val isSingleAttrOr = attrs.forall(a => a.length == 1) &&
+            attrs.map(_.head).toSet.size == 1 &&
+            attrIndexed(attrs.head.head, sft)
+
+          isSingleAttrOr
+        case _ => false
+      }
+    }
+
+    // Reduce a query filter of OR query of single attr of indexed, high cardinality to
+    // FilterPlan with single list of the Attribute-type QueryFilters aka decide the
+    // strategy here. This was added as GEOMESA-939 and should be folded into GEOMESA-941
+    def reduceSingleAttrOr(childOptions: Seq[Seq[FilterPlan]]): Seq[FilterPlan] =
+      Seq(StrategyType.ATTRIBUTE, StrategyType.Z3).map { strat =>
+        childOptions.flatMap { c =>
+          c.filter(_.filters.exists(_.strategy == strat)).flatMap(_.filters)
+        }
+      }.map(FilterPlan)
+
+    val start = System.currentTimeMillis()
+    val childOpts   = getChildOptions
+    val reducedOpts = if (detectSingleAttrOr) reduceSingleAttrOr(childOpts) else reduceChildOptions(childOpts)
+    val combinedSec = combineSecondaryFilters(reducedOpts)
+    val merged      = mergeOverlappedFilters(combinedSec)
+    val disjoint    = makeDisjoint(merged)
+    val end = System.currentTimeMillis()
+    logger.debug(s"Query splitting took ${end - start}ms and produced ${disjoint.size} filters}")
+    disjoint
   }
 
   /**

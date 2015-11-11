@@ -590,6 +590,52 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       features must haveLength(3)
       features must contain("alice", "bill", "bob")
     }
+
+    "correctly query on indexed attributes with nonsensical AND queries" >> {
+      "redundant int query" >> {
+        val features = execute("age > 25 AND age > 15")
+        features must haveLength(1)
+        features must contain("bob")
+      }
+
+      "int query that returns nothing" >> {
+        val features = execute("age > 25 AND age < 15")
+        features must haveLength(0)
+      }
+
+      "redundant float query" >> {
+        val features = execute("height >= 6 AND height > 4")
+        features must haveLength(4)
+        features must contain("alice", "bill", "bob", "charles")
+      }
+
+      "float query that returns nothing" >> {
+        val features = execute("height >= 6 AND height < 4")
+        features must haveLength(0)
+      }
+
+      "redundant date query" >> {
+        val features = execute("indexedDtg AFTER 2011-01-01T00:00:00.000Z AND indexedDtg AFTER 2012-02-01T00:00:00.000Z")
+        features must haveLength(3)
+        features must contain("bill", "bob", "charles")
+      }
+
+      "date query that returns nothing" >> {
+        val features = execute("indexedDtg BEFORE 2011-01-01T00:00:00.000Z AND indexedDtg AFTER 2012-01-01T00:00:00.000Z")
+        features must haveLength(0)
+      }
+
+      "redundant date and float query" >> {
+        val features = execute("height >= 6 AND height > 4 AND indexedDtg AFTER 2011-01-01T00:00:00.000Z AND indexedDtg AFTER 2012-02-01T00:00:00.000Z")
+        features must haveLength(3)
+        features must contain("bill", "bob", "charles")
+      }
+
+      "date and float query that returns nothing" >> {
+        val features = execute("height >= 6 AND height > 4 AND indexedDtg BEFORE 2011-01-01T00:00:00.000Z AND indexedDtg AFTER 2012-01-01T00:00:00.000Z")
+        features must haveLength(0)
+      }
+    }
   }
 
   "AttributeIndexLikeStrategy" should {

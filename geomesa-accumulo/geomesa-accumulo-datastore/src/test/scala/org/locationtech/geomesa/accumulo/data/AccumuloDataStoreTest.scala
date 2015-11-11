@@ -10,6 +10,7 @@ package org.locationtech.geomesa.accumulo.data
 
 import java.util.Date
 
+import com.google.common.collect.ImmutableSet
 import com.vividsolutions.jts.geom.Coordinate
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
@@ -23,10 +24,11 @@ import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.IndexIterator
-import org.locationtech.geomesa.accumulo.util.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -128,7 +130,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       "result length should be 1" >> { res must haveLength(1) }
     }
 
-    "create a schema with custom record splitting options" in {
+    "create a schema with custom record splitting options with table sharing off" in {
       val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=" +
           s"${classOf[DigitSplitter].getName},table.splitter.options='fmt:%02d,min:0,max:99'"
       val sft = SimpleFeatureTypes.createType("customsplit", spec)
@@ -139,6 +141,28 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       splits.size() mustEqual 100
       splits.head mustEqual new Text("00")
       splits.last mustEqual new Text("99")
+    }
+
+    "create a schema with custom record splitting options with talbe sharing on" in {
+      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=" +
+        s"${classOf[DigitSplitter].getName},table.splitter.options='fmt:%02d,min:0,max:99'"
+      val sft = SimpleFeatureTypes.createType("customsplit2", spec)
+      sft.setTableSharing(true)
+
+      import scala.collection.JavaConversions._
+      val prevsplits = ImmutableSet.copyOf(ds.connector.tableOperations().listSplits("AccumuloDataStoreTest_records").toIterable)
+      ds.createSchema(sft)
+      val recTable = ds.getTableName(sft.getTypeName, RecordTable)
+      val afterSplits = ds.connector.tableOperations().listSplits(recTable)
+
+      object TextOrdering extends Ordering[Text] {
+        def compare(a: Text, b: Text) = a.compareTo(b)
+      }
+      val newSplits = (afterSplits.toSet -- prevsplits.toSet).toList.sorted(TextOrdering)
+      val prefix = ds.getSchema(sft.getTypeName).getTableSharingPrefix
+      newSplits.length mustEqual 100
+      newSplits.head mustEqual new Text(s"${prefix}00")
+      newSplits.last mustEqual new Text(s"${prefix}99")
     }
 
     "allow for a configurable number of threads in z3 queries" in {
@@ -508,7 +532,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
         o.toString()
       }
       ds.removeSchema(sftName)
-      explain.split("\n").filter(_.startsWith("Filter:")).toSeq mustEqual Seq("Filter: RECORD[INCLUDE][None]")
+      explain.split("\n").filter(_.startsWith("\tFilter:")).toSeq mustEqual Seq("\tFilter: RECORD[INCLUDE][None]")
     }
 
     "create key plan that does not use STII when given something larger than the Whole World bbox" in {
@@ -522,7 +546,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
         o.toString()
       }
       ds.removeSchema(sftName)
-      explain.split("\n").filter(_.startsWith("Filter:")).toSeq mustEqual Seq("Filter: RECORD[INCLUDE][None]")
+      explain.split("\n").filter(_.startsWith("\tFilter:")).toSeq mustEqual Seq("\tFilter: RECORD[INCLUDE][None]")
     }
 
     "create key plan that does not use STII when given an or'd geometry query with redundant bbox" in {
@@ -686,6 +710,18 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       // verify that all the attributes came back
       read must haveSize(3)
       read.map(_.getID).sorted mustEqual Seq("2", "3", "4")
+    }
+
+    "create tables with an accumulo namespace" >> {
+      val table = "test.AccumuloDataStoreNamespaceTest"
+      val params = Map("connector" -> ds.connector, "tableName" -> table)
+      if (AccumuloVersion.accumuloVersion == AccumuloVersion.V15) {
+        DataStoreFinder.getDataStore(params) must throwAn[IllegalArgumentException]
+      } else {
+        val dsWithNs = DataStoreFinder.getDataStore(params)
+        ds.connector.tableOperations().exists(table) must beTrue
+        ds.connector.namespaceOperations().exists("test") must beTrue
+      }
     }
   }
 }

@@ -15,7 +15,6 @@ import java.util.concurrent.TimeUnit
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client._
-import org.apache.accumulo.core.client.admin.TimeType
 import org.apache.accumulo.core.client.mock.MockConnector
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken
 import org.apache.curator.framework.CuratorFrameworkFactory
@@ -29,12 +28,12 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.Interval
 import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
-import org.locationtech.geomesa.accumulo.GeomesaSystemProperties
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore._
 import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
+import org.locationtech.geomesa.accumulo.{AccumuloVersion, GeomesaSystemProperties}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializers}
 import org.locationtech.geomesa.security.AuthorizationsProvider
@@ -123,7 +122,7 @@ class AccumuloDataStore(val connector: Connector,
 
   private val tableOps = connector.tableOperations()
 
-  ensureTableExists(catalogTable)
+  AccumuloVersion.ensureTableExists(connector, catalogTable)
 
   /**
    * Computes and writes the metadata for this feature type
@@ -249,19 +248,10 @@ class AccumuloDataStore(val connector: Connector,
   def createTablesForType(sft: SimpleFeatureType): Unit = {
     GeoMesaTable.getTables(sft).foreach { table =>
       val name = table.formatTableName(catalogTable, sft)
-      ensureTableExists(name)
+      AccumuloVersion.ensureTableExists(connector, name)
       table.configureTable(sft, name, tableOps)
     }
   }
-
-  private def ensureTableExists(table: String) =
-    if (!tableOps.exists(table)) {
-      try {
-        tableOps.create(table, true, TimeType.LOGICAL)
-      } catch {
-        case e: TableExistsException => // this can happen with multiple threads but shouldn't cause any issues
-      }
-    }
 
   // Retrieves or computes the indexSchema
   def computeSpatioTemporalSchema(sft: SimpleFeatureType): String = {
@@ -291,8 +281,14 @@ class AccumuloDataStore(val connector: Connector,
           sft.setSchemaVersion(CURRENT_SCHEMA_VERSION)
           val spatioTemporalSchema = computeSpatioTemporalSchema(sft)
           checkSchemaRequirements(sft, spatioTemporalSchema)
-          createTablesForType(sft)
           writeMetadata(sft, SerializationType.KRYO, spatioTemporalSchema)
+
+          // reload the SFT then copy over any additional keys that were in the original sft
+          val reloadedSft = getSchema(sft.getTypeName)
+          (sft.getUserData.keySet -- reloadedSft.getUserData.keySet)
+            .foreach(k => reloadedSft.getUserData.put(k, sft.getUserData.get(k)))
+
+          createTablesForType(reloadedSft)
         }
       } finally {
         lock.release()

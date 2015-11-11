@@ -21,7 +21,7 @@ import org.locationtech.geomesa.filter.visitor.{LocalNameVisitorImpl, LocalNameV
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.Cardinality
-import org.opengis.filter.Filter
+import org.opengis.filter.{And, Filter}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -379,6 +379,30 @@ class QueryStrategyDeciderTest extends Specification {
       println(filter)
       println(org.locationtech.geomesa.filter.rewriteFilterInDNF(filter))
       success
+    }
+  }
+
+  "Single Attribute, indexed, high cardinality OR queries" should {
+    "select an single attribute index scan with multiple ranges" in {
+
+      "OR query" >> {
+        val orQuery = (0 until 5).map( i => s"high = 'h$i'").mkString(" OR ")
+        val fs = s"($orQuery) AND BBOX(geom, 40.0,40.0,50.0,50.0) AND dtg DURING 2014-01-01T00:00:00+00:00/2014-01-01T23:59:59+00:00"
+        val strat = getStrategy(fs)
+        strat must beAnInstanceOf[AttributeIdxStrategy]
+        strat.filter.or mustEqual true
+        strat.filter.strategy mustEqual StrategyType.ATTRIBUTE
+        strat.filter.primary.length mustEqual 5
+        strat.filter.secondary.isDefined mustEqual true
+        strat.filter.secondary.get must beAnInstanceOf[And]
+        strat.filter.secondary.get.asInstanceOf[And].getChildren.length mustEqual 2
+      }
+
+      "in query" >> {
+        val fs = "(high IN ('a','b','c')) AND BBOX(geom, 40.0,40.0,50.0,50.0) AND dtg DURING 2014-01-01T00:00:00+00:00/2014-01-01T23:59:59+00:00"
+        val strat = getStrategy(fs)
+        strat must beAnInstanceOf[AttributeIdxStrategy]
+      }
     }
   }
 }
