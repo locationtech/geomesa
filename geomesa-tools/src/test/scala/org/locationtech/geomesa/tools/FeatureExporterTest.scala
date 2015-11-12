@@ -31,7 +31,7 @@ class FeatureExporterTest extends Specification {
 
   sequential
 
-  def getFCandDSandSFT(sftName: String) = {
+  def getFeaturesDataStoreAndSFT(sftName: String) = {
     val sft = SimpleFeatureTypes.createType(sftName, "name:String,geom:Geometry:srid=4326,dtg:Date")
 
     val attributes = Array("myname", "POINT(45.0 49.0)", new Date(0))
@@ -51,10 +51,7 @@ class FeatureExporterTest extends Specification {
 
   "DelimitedExport" >> {
     val sftName = "DelimitedExportTest"
-    val delimitedFCAndDS = getFCandDSandSFT(sftName)
-    val featureCollection = delimitedFCAndDS._1
-    val ds = delimitedFCAndDS._2
-    val sft = delimitedFCAndDS._3
+    val (featureCollection, ds, sft) = getFeaturesDataStoreAndSFT(sftName)
 
     "should properly export to CSV" >> {
       val writer = new StringWriter()
@@ -104,8 +101,7 @@ class FeatureExporterTest extends Specification {
 
   "Shapefile Export" >> {
     val sftName = "ShapefileExportTest"
-    val shpFCAndDS = getFCandDSandSFT(sftName)
-    val sft = shpFCAndDS._3
+    val (featureCollection, ds, sft) = getFeaturesDataStoreAndSFT(sftName)
 
     def checkReplacedAttributes(attrString: String, expectedString: String) = {
       ShapefileExport.replaceGeomInAttributesString(attrString, sft) mustEqual expectedString
@@ -115,17 +111,10 @@ class FeatureExporterTest extends Specification {
       checkReplacedAttributes("geom", "the_geom=geom")
     }
 
-    "should transform 'geom' to 'the_geom' when asking for just 'geom' with weird whitespace" >> {
-      checkReplacedAttributes("geom            ", "the_geom=geom")
-    }
-
     "should transform 'geom' in the attributes string when another attribute follows" >> {
       checkReplacedAttributes("geom, name", "the_geom=geom,name")
     }
 
-    "should transform 'geom' in the attributes string when another attribute follows with weird whitespace" >> {
-      checkReplacedAttributes("geom     ,      name", "the_geom=geom,name")
-    }
 
     "should transform 'geom' in the attributes string when it follows another attribute" >> {
       checkReplacedAttributes("name, geom", "name,the_geom=geom")
@@ -133,10 +122,6 @@ class FeatureExporterTest extends Specification {
 
     "should transform 'geom' in the attributes string when it is between two attributes" >> {
       checkReplacedAttributes("name, geom, dtg", "name,the_geom=geom,dtg")
-    }
-
-    "should transform 'geom' in the attributes string when it is between two attributes with weird whitespace" >> {
-      checkReplacedAttributes("   name       ,    geom ,      dtg   ", "name,the_geom=geom,dtg")
     }
 
     "should transform 'geom' in the attributes string when it is between two attributes without spaces" >> {
