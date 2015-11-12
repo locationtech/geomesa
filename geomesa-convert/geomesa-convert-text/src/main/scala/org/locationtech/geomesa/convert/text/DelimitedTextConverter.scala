@@ -29,7 +29,7 @@ class DelimitedTextConverterFactory extends SimpleFeatureConverterFactory[String
   val QUOTED_WITH_QUOTE_ESCAPE  = QUOTE_ESCAPE.withQuoteMode(QuoteMode.ALL)
 
   def buildConverter(targetSFT: SimpleFeatureType, conf: Config): DelimitedTextConverter = {
-    val format    = conf.getString("format") match {
+    val format    = conf.getString("format").toUpperCase match {
       case "CSV" | "DEFAULT"          => CSVFormat.DEFAULT
       case "EXCEL"                    => CSVFormat.EXCEL
       case "MYSQL"                    => CSVFormat.MYSQL

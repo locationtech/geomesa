@@ -423,6 +423,7 @@ class MapListFunctionFactory extends TransformerFunctionFactory {
     case "bool" | "boolean" => classOf[java.lang.Boolean]
     case "bytes"            => classOf[Array[Byte]]
     case "uuid"             => classOf[UUID]
+    case "date"             => classOf[java.util.Date]
   }
 
   import scala.collection.JavaConverters._

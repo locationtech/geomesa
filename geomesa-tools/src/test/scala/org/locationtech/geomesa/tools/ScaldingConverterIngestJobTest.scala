@@ -11,6 +11,7 @@ package org.locationtech.geomesa.tools
 import java.util.{Date, UUID}
 
 import com.twitter.scalding.{Args, Mode}
+import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.commons.io.IOUtils
 import org.geotools.data.DataStoreFinder
@@ -225,70 +226,92 @@ class ScaldingConverterIngestJobTest extends Specification{
       doTest("test_map_custom_delim.tsv", "tsv", "tsvMapFeature2")
       success
     }
-//    "handle all primitives from csv" in {
-//
-//      def doTest(format: String, delim: String, quote: String, featureName: String) = {
-//        val spec = List(
-//          "name:String",
-//          "i:List[Integer]",
-//          "l:List[Long]",
-//          "f:List[Float]",
-//          "d:List[Double]",
-//          "s:List[String]",
-//          "b:List[Boolean]",
-//          "u:List[UUID]",
-//          "dt:List[Date]",
-//          "*geom:Point:srid=4326").mkString(",")
-//        val ingest = new ScaldingConverterIngestJob(Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
-//          new Args(
-//          csvWktParams.updated(IngestParams.SFT_SPEC,
-//            List(spec))
-//            .updated(IngestParams.FORMAT, List(format))
-//            .updated(IngestParams.FEATURE_NAME, List(featureName)))))
-//        val sft = SimpleFeatureTypes.createType(featureName, spec)
-//        val testString = List(
-//          "somename",
-//          "1,2,3,4",
-//          "1,2,3,4",
-//          "1.0, 2.0, 3.0",
-//          "1.0, 2.0, 3.0",
-//          "a,b,c",
-//          "true, false, true",
-//          "12345678-1234-1234-1234-123456789012,00000000-0000-0000-0000-000000000000",
-//          "2014-01-01,2014-01-02, 2014-01-03",
-//          "POINT(1 2)").map(quote + _ + quote).mkString(delim)
-//
-//        val f1 = new AvroSimpleFeature(new FeatureIdImpl(featureName), sft)
-//        ingest.ingestDataToFeature(testString, f1)
-//
-//        type JList[T] = java.util.List[T]
-//        f1.get[String]("name")             mustEqual "somename"
-//        f1.get[JList[Integer]]("i").toList mustEqual List[Int](1, 2, 3, 4)
-//        f1.get[JList[Long]]("l").toList    mustEqual List[Long](1, 2, 3, 4)
-//        f1.get[JList[Float]]("f").toList   mustEqual List[Float](1.0f, 2.0f, 3.0f)
-//        f1.get[JList[Double]]("d").toList  mustEqual List[Double](1.0d, 2.0d, 3.0d)
-//        f1.get[JList[String]]("s").toList  mustEqual List[String]("a", "b", "c")
-//        f1.get[JList[Boolean]]("b").toList mustEqual List[Boolean](true, false, true)
-//        f1.get[JList[UUID]]("u").toList    mustEqual
-//          List("12345678-1234-1234-1234-123456789012",
-//            "00000000-0000-0000-0000-000000000000").map(UUID.fromString)
-//        f1.get[JList[Date]]("dt").toList   mustEqual
-//          List("2014-01-01", "2014-01-02", "2014-01-03").map { dt => new DateTime(dt).toDate}
-//
-//        // FUN with Generics!!!! ... lists of dates as lists of uuids ? yay type erasure + jvm + scala?
-//        val foo = f1.get[JList[UUID]]("dt").toList
-//        val bar = List("2014-01-01", "2014-01-02", "2014-01-03")
-//          .map { dt => new DateTime(dt).withZone(DateTimeZone.UTC).toDate}.toList
-//        val baz = f1.get[JList[Date]]("dt").toList
-//        foo mustEqual bar
-//        bar mustEqual baz
-//        foo(0) must throwA[ClassCastException]
-//        baz(0) must not(throwA[ClassCastException])
-//      }
-//
-//      doTest("csv", ",", "\"", "csvtestfeature")
-//      doTest("tsv", "\t", "", "tsvtestfeature")
-//      success
-//    }
+    "handle all primitives from csv" in {
+
+      def doTest(format: String, delim: String, featureName: String) = {
+        val spec = List(
+          "name:String",
+          "i:List[Integer]",
+          "l:List[Long]",
+          "f:List[Float]",
+          "d:List[Double]",
+          "s:List[String]",
+          "b:List[Boolean]",
+          "u:List[UUID]",
+          "dt:List[Date]",
+          "*geom:Point:srid=4326").mkString(",")
+
+        val conf =
+          """converter = {
+            |   type         = "delimited-text",
+            |   format       = "FORMAT",
+            |   id-field     = "toString($i)",
+            |   fields = [
+            |     { name = "name", transform = "$1" },
+            |     { name = "i",    transform = "parseList('int', $2)"},
+            |     { name = "l",    transform = "parseList('long', $3)"},
+            |     { name = "f",    transform = "parseList('float', $4)"},
+            |     { name = "d",    transform = "parseList('double', $5)"},
+            |     { name = "s",    transform = "parseList('string', $6)"},
+            |     { name = "b",    transform = "parseList('boolean', $7)"},
+            |     { name = "u",    transform = "parseList('uuid', $8)"},
+            |     { name = "dt",   transform = "parseList('date', $9)"},
+            |     { name = "geom", transform = "point($10)" }
+            |   ]
+            | }
+            |""".stripMargin.replaceAllLiterally("FORMAT", format)
+
+        val ingest = new ScaldingConverterIngestJob(Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
+          new Args(
+          csvWktParams.updated(IngestParams.SFT_SPEC,
+            List(spec))
+            .updated(IngestParams.FEATURE_NAME, List(featureName))
+            .updated(IngestParams.CONVERTER_CONFIG, List(conf)))))
+        val sft = SimpleFeatureTypes.createType(featureName, spec)
+        val testString = List(
+          "somename",
+          "1,2,3,4",
+          "1,2,3,4",
+          "1.0, 2.0, 3.0",
+          "1.0, 2.0, 3.0",
+          "a,b,c",
+          "true, false, true",
+          "12345678-1234-1234-1234-123456789012,00000000-0000-0000-0000-000000000000",
+          "2014-01-01,2014-01-02, 2014-01-03",
+          "POINT(1 2)").map("\"" + _ + "\"").mkString(delim)
+
+        ingest.runTestIngest(Seq(testString).iterator)
+
+        val f1 = ds.getFeatureSource(featureName).getFeatures.features().next()
+
+        type JList[T] = java.util.List[T]
+        f1.get[String]("name")             mustEqual "somename"
+        f1.get[JList[Integer]]("i").toList mustEqual List[Int](1, 2, 3, 4)
+        f1.get[JList[Long]]("l").toList    mustEqual List[Long](1, 2, 3, 4)
+        f1.get[JList[Float]]("f").toList   mustEqual List[Float](1.0f, 2.0f, 3.0f)
+        f1.get[JList[Double]]("d").toList  mustEqual List[Double](1.0d, 2.0d, 3.0d)
+        f1.get[JList[String]]("s").toList  mustEqual List[String]("a", "b", "c")
+        f1.get[JList[Boolean]]("b").toList mustEqual List[Boolean](true, false, true)
+        f1.get[JList[UUID]]("u").toList    mustEqual
+          List("12345678-1234-1234-1234-123456789012",
+            "00000000-0000-0000-0000-000000000000").map(UUID.fromString)
+        f1.get[JList[Date]]("dt").toList   mustEqual
+          List("2014-01-01", "2014-01-02", "2014-01-03").map { dt => new DateTime(dt).toDate}
+
+        // FUN with Generics!!!! ... lists of dates as lists of uuids ? yay type erasure + jvm + scala?
+        val foo = f1.get[JList[UUID]]("dt").toList
+        val bar = List("2014-01-01", "2014-01-02", "2014-01-03")
+          .map { dt => new DateTime(dt).withZone(DateTimeZone.UTC).toDate}.toList
+        val baz = f1.get[JList[Date]]("dt").toList
+        foo mustEqual bar
+        bar mustEqual baz
+        foo(0) must throwA[ClassCastException]
+        baz(0) must not(throwA[ClassCastException])
+      }
+
+      doTest("csv", ",",  "csvtestfeature")
+      doTest("tsv", "\t", "tsvtestfeature")
+      success
+    }
   }
 }
