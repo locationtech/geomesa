@@ -30,10 +30,10 @@ class DelimitedTextConverterFactory extends SimpleFeatureConverterFactory[String
 
   def buildConverter(targetSFT: SimpleFeatureType, conf: Config): DelimitedTextConverter = {
     val format    = conf.getString("format") match {
-      case "DEFAULT"                  => CSVFormat.DEFAULT
+      case "CSV" | "DEFAULT"          => CSVFormat.DEFAULT
       case "EXCEL"                    => CSVFormat.EXCEL
       case "MYSQL"                    => CSVFormat.MYSQL
-      case "TDF"                      => CSVFormat.TDF
+      case "TDF" | "TSV" | "TAB"      => CSVFormat.TDF
       case "RFC4180"                  => CSVFormat.RFC4180
       case "QUOTED"                   => QUOTED
       case "QUOTE_ESCAPE"             => QUOTE_ESCAPE

@@ -1,5 +1,6 @@
 package org.locationtech.geomesa.tools
 
+import com.beust.jcommander.ParameterException
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.tools.Utils.Speculator
@@ -47,9 +48,7 @@ class IngestArgumentsTest extends Specification {
 
   "Speculator" should {
     "work with sft and converter configs" >> {
-      val sftOpt = Speculator.getSft(sftSpec, Some(featureName))
-      sftOpt.isDefined mustEqual true
-      val sft = sftOpt.get
+      val sft = Speculator.getSft(sftSpec, Some(featureName))
       sft.getAttributeCount mustEqual 3
       sft.getDescriptor(0).getLocalName mustEqual "name"
       sft.getDescriptor(1).getLocalName mustEqual "age"
@@ -57,14 +56,11 @@ class IngestArgumentsTest extends Specification {
     }
 
     "fail when given spec and no feature name" >> {
-      val sftOpt = Speculator.getSft(sftSpec, Some(null))
-      sftOpt.isDefined mustEqual false
+      Speculator.getSft(sftSpec, Some(null)) must throwA[ParameterException]
     }
 
     "create a spec from sft conf" >> {
-      val sftOpt = Speculator.getSft(sftConfig, Some(null))
-      sftOpt.isDefined mustEqual true
-      val sft = sftOpt.get
+      val sft = Speculator.getSft(sftConfig, Some(null))
       sft.getAttributeCount mustEqual 3
       sft.getDescriptor(0).getLocalName mustEqual "name"
       sft.getDescriptor(1).getLocalName mustEqual "age"

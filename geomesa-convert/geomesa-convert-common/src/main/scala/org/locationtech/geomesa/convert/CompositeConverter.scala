@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.convert
 
 import com.typesafe.config.Config
-import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Predicate}
+import org.locationtech.geomesa.convert.Transformers.{DefaultCounter, Counter, EvaluationContext, Predicate}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -36,13 +36,13 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType,
 
   val evaluationContexts = List.fill(converters.length)(new EvaluationContext(null, null))
 
-  override def processInput(is: Iterator[I],  gParams: Map[String, Any] = Map.empty): Iterator[SimpleFeature] = {
+  override def processInput(is: Iterator[I],  gParams: Map[String, Any] = Map.empty, counter: Counter = new DefaultCounter): Iterator[SimpleFeature] = {
     var count = 0
     is.flatMap { input =>
       count += 1
       converters.view.zipWithIndex.flatMap { case ((pred, conv), i) =>
         implicit val ec = evaluationContexts(i)
-        ec.setCount(count)
+        ec.getCounter.setCount(count)
         processIfValid(input, pred, conv, gParams)
       }.headOption
     }

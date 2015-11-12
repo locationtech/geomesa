@@ -11,7 +11,8 @@ package org.locationtech.geomesa.tools
 import java.io.{FileInputStream, BufferedReader, File, InputStreamReader}
 import java.util.UUID
 
-import com.typesafe.config.ConfigFactory
+import com.beust.jcommander.ParameterException
+import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.accumulo.server.client.HdfsZooInstance
@@ -41,22 +42,12 @@ object Utils {
     val VISIBILITIES        = "geomesa.tools.ingest.visibilities"
     val SHARDS              = "geomesa.tools.ingest.shards"
     val INDEX_SCHEMA_FMT    = "geomesa.tools.ingest.index-schema-format"
-    val SKIP_HEADER         = "geomesa.tools.ingest.skip-header"
-    val DO_HASH             = "geomesa.tools.ingest.do-hash"
-    val DT_FORMAT           = "geomesa.tools.ingest.dt-format"
-    val ID_FIELDS           = "geomesa.tools.ingest.id-fields"
-    val DT_FIELD            = "geomesa.tools.ingest.dt-fields"
     val FILE_PATH           = "geomesa.tools.ingest.path"
-    val FORMAT              = "geomesa.tools.ingest.delimiter"
-    val LON_ATTRIBUTE       = "geomesa.tools.ingest.lon-attribute"
-    val LAT_ATTRIBUTE       = "geomesa.tools.ingest.lat-attribute"
     val FEATURE_NAME        = "geomesa.tools.feature.name"
     val CATALOG_TABLE       = "geomesa.tools.feature.tables.catalog"
     val SFT_SPEC            = "geomesa.tools.feature.sft-spec"
-    val COLS                = "geomesa.tools.ingest.cols"
     val IS_TEST_INGEST      = "geomesa.tools.ingest.is-test-ingest"
-    val LIST_DELIMITER      = "geomesa.tools.ingest.list-delimiter"
-    val MAP_DELIMITERS      = "geomesa.tools.ingest.map-delimiter"
+    val CONVERTER_CONFIG    = "geomesa.tools.ingest.converter-config"
   }
 
   object Formats {
@@ -125,11 +116,44 @@ object Utils {
     fs.delete(path, true)
   }
 
+  object Configurator extends Logging {
+    type ConfigParser = String => Option[Config]
+
+    def getConfig(configArg: String): Config =
+      Seq(parseString, parseFile)
+       .view.map(_(configArg))
+       .find(_.nonEmpty)
+        .getOrElse {
+          throw new IllegalArgumentException(s"Unable to parse Converter config from argument $configArg")
+        }.get
+
+    private[Configurator] val parseString: ConfigParser = (configArg: String) =>
+      Try(ConfigFactory.parseString(configArg)) match {
+        case Success(config) => Some(config)
+        case Failure(ex) =>
+          logger.debug(s"Unable to parse config from string $configArg")
+          None
+      }
+
+    private[Configurator] val parseFile: ConfigParser = (configArg: String) =>
+      Try(ConfigFactory.parseFile(new File(configArg))) match {
+        case Success(config) => Some(config)
+        case Failure(ex) =>
+          logger.debug(s"Unable to parse config from file $configArg")
+          None
+      }
+  }
+
   object Speculator extends Logging {
     type SpecParser = (String, Option[String]) => Option[SimpleFeatureType]
 
-    def getSft(specArg: String, nameOpt: Option[String]): Option[SimpleFeatureType] =
-      Seq(parseSftSpec, parseSftConfig, parseFromFile).view.map(_(specArg, nameOpt)).find(_.nonEmpty).getOrElse(Option.empty)
+    def getSft(specArg: String, nameOpt: Option[String]): SimpleFeatureType =
+      Seq(parseSftSpec, parseSftConfig, parseFromFile)
+        .view.map(_(specArg, nameOpt))
+        .find(_.nonEmpty)
+        .getOrElse {
+          throw new ParameterException("Unable to parse Simple Feature type from sft config or string")
+        }.get
 
     private[Speculator] val parseSftSpec: SpecParser = (specArg: String, nameOpt: Option[String]) => {
       nameOpt.map[Option[SimpleFeatureType]] { featureName =>
@@ -161,11 +185,11 @@ object Utils {
       } else None
     }
 
-    implicit class RichCreateFeatureParams(params: CreateFeatureParams) extends AnyVal {
-      def getSft = Speculator.getSft(params.spec, Option(params.featureName)).getOrElse {
-        throw new IllegalArgumentException("Could not retrieve feature name from spec and/or featureName arguments")
-      }
-    }
+//    implicit class RichCreateFeatureParams(params: CreateFeatureParams) extends AnyVal {
+//      def getSft = Speculator.getSft(params.spec, Option(params.featureName)).getOrElse {
+//        throw new IllegalArgumentException("Could not retrieve feature name from spec and/or featureName arguments")
+//      }
+//    }
 
   }
 }

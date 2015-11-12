@@ -13,7 +13,7 @@ import javax.imageio.spi.ServiceRegistry
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.filter.identity.FeatureIdImpl
-import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr, FieldLookup, FunctionExpr}
+import org.locationtech.geomesa.convert.Transformers._
 import org.locationtech.geomesa.features.avro.AvroSimpleFeature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -62,7 +62,7 @@ object SimpleFeatureConverters {
 
 trait SimpleFeatureConverter[I] {
   def targetSFT: SimpleFeatureType
-  def processInput(is: Iterator[I], globalParams: Map[String, Any] = Map.empty): Iterator[SimpleFeature]
+  def processInput(is: Iterator[I], globalParams: Map[String, Any] = Map.empty, counter: Counter = new DefaultCounter): Iterator[SimpleFeature]
   def processSingleInput(i: I, globalParams: Map[String, Any] = Map.empty)(implicit ec: EvaluationContext): Seq[SimpleFeature]
   def close(): Unit = {}
 }
@@ -126,8 +126,11 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
     }
     sf
   }
+  //implicit val ctx = new EvaluationContext(inputFieldIndexes, null)
 
   override def processSingleInput(i: I, gParams: Map[String, Any])(implicit ec: EvaluationContext): Seq[SimpleFeature] = {
+    val counter = ec.getCounter
+    counter.increment()
     if(reuse == null || ec.fieldNameMap == null) {
       // initialize reuse and ec
       ec.fieldNameMap = inputFieldIndexes
@@ -142,10 +145,13 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
       val attributeArrays = fromInputType(i)
       attributeArrays.flatMap { attributes =>
         try {
-          Some(convert(attributes, reuse))
+          val res = convert(attributes, reuse)
+          counter.success()
+          Some(res)
         } catch {
           case e: Exception =>
             logger.warn("Failed to convert input", e)
+            counter.failure()
             None
         }
       }
@@ -156,10 +162,9 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
     }
   }
 
-  def processInput(is: Iterator[I], gParams: Map[String, Any] = Map.empty): Iterator[SimpleFeature] = {
-    implicit val ctx = new EvaluationContext(inputFieldIndexes, null)
+  def processInput(is: Iterator[I], gParams: Map[String, Any] = Map.empty, counter: Counter = new DefaultCounter): Iterator[SimpleFeature] = {
+    implicit val ctx = new EvaluationContext(inputFieldIndexes, null, counter)
     is.flatMap { s =>
-      ctx.incrementCount()
       processSingleInput(s, gParams)
     }
   }
