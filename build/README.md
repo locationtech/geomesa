@@ -1,9 +1,8 @@
 <p align="center"><a href="http://geomesa.github.io"><img src="https://raw.githubusercontent.com/geomesa/geomesa.github.io/master/img/geomesa-2x.png"></img></a></p>
 
-<a href="https://gitter.im/locationtech/geomesa?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge" target="_blank"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join the chat at https://gitter.im/locationtech/geomesa"></img></a>
-## GeoMesa
-
 ![Splash](http://www.geomesa.org/img/geomesa-overview-848x250.png)
+
+<a href="https://gitter.im/locationtech/geomesa?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge" target="_blank"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join the chat at https://gitter.im/locationtech/geomesa"></img></a>
 
 GeoMesa is an open-source, distributed, spatio-temporal database built on top of the Apache Accumulo column family store. GeoMesa implements standard Geotools interfaces to provide geospatial functionality over very large data sets to application developers.  GeoMesa provides plugins for exposing geospatial data stored in Accumulo via standards-based OGC HTTP services and cluster monitoring and management tools within the GeoServer administrative interface.  
 
@@ -59,26 +58,26 @@ From the root directory, the above will build each sub-project with its addition
 
 ## GeoMesa Project Structure
 
-* [**geomesa-accumulo**](geomesa-accumulo/geomesa-accumulo-datastore): This module contains the implementations of the core Accumulo indexing structures, Accumulo iterators, and the GeoTools interfaces for exposing the functionality as a `DataStore` to both application developers and GeoServer.
-* **geomesa-assemble**: This module packages the GeoMesa distributed runtime, GeoMesa GeoServer plugin, and GeoMesa Tools. You can manually assemble using the `assemble.sh` script contained in the module.
-* [**geomesa-compute**](geomesa-compute): This module contains utilities for working with distributed computing environments.  Currently, there are methods for instantiating an Apache Spark Resilient Distributed Dataset from a CQL query against data stored in GeoMesa.  Eventually, this project will contain bindings for traditional map-reduce processing, Scalding, and other environments.
-* [**geomesa-convert**](geomesa-convert): This module is a configurable and extensible library for converting data into SimpleFeatures.
-* **geomesa-distributed-runtime**: This module assembles a jar with dependencies that must be distributed to Accumulo tablet servers lib/ext directory or to an HDFS directory where Accumulo's VFSClassLoader can pick it up.
-* **geomesa-examples**: This module includes Developer quickstart tutorials and examples for how to work with GeoMesa in Accumulo and Kafka.
-* **geomesa-features**: This module includes code for serializing SimpleFeatures and custom SimpleFeature implementations designed for GeoMesa.
-* **geomesa-filter**: This module is a library for manipulating and working with GeoTools Filters.
-* **geomesa-hbase**: This module includes an implementation of GeoMesa on HBase and Google Cloud Bigtable.
-* [**geomesa-jobs**](geomesa-jobs): This module contains map/reduce and scalding jobs for maintaining GeoMesa.
-* [**geomesa-kafka**](geomesa-kafka/geomesa-kafka-datastore): This module contains an implementation of GeoMesa in Kafka for maintaining near-real-time caches of streaming data.
-* [**geomesa-plugin**](geomesa-plugin): This module creates a plugin which provides WFS and WMS support.  The JAR named geomesa-plugin-<Version>-geoserver-plugin.jar is ready to be deployed in GeoServer by copying it into geoserver/WEB-INF/lib/
-* [**geomesa-process**](geomesa-process): This module contains analytic processes optimized on GeoMesa data stores.
-* [**geomesa-raster**](geomesa-raster): This module adds support for ingesting and working with geospatially-referenced raster data in GeoMesa.
-* **geomesa-security**: This module adds support for managing security and authorization levels for data stored in GeoMesa. 
-* [**geomesa-stream**](geomesa-stream): This module is a GeoMesa library that provides tools to process streams of `SimpleFeatures`.
-* [**geomesa-tools**](geomesa-tools): This module contains a set of command line tools for managing features, ingesting and exporting data, configuring tables, and explaining queries in GeoMesa.
-* [**geomesa-utils**](geomesa-utils): This module stores our GeoHash implementation and other general library functions unrelated to Accumulo. This sub-project contains any helper tools for geomesa.  Some of these tools such as the GeneralShapefileIngest have Map/Reduce components, so the geomesa-utils JAR lives on HDFS.
-* **geomesa-web**: This module contains web services for accessing GeoMesa.
-* **geomesa-z3**: This module contains the implementation of Z3, GeoMesa's space-filling Z-order curve.
+* [**geomesa-accumulo**](geomesa-accumulo/geomesa-accumulo-datastore): the implementations of the core Accumulo indexing structures, Accumulo iterators, and the GeoTools interfaces for exposing the functionality as a `DataStore` to both application developers and GeoServer.
+* **geomesa-assemble**: packages the GeoMesa distributed runtime, GeoMesa GeoServer plugin, and GeoMesa Tools. You can manually assemble using the `assemble.sh` script contained in the module.
+* [**geomesa-compute**](geomesa-compute): utilities for working with distributed computing environments. Currently, there are methods for instantiating an Apache Spark Resilient Distributed Dataset from a CQL query against data stored in GeoMesa. Eventually, this project will contain bindings for traditional map-reduce processing, Scalding, and other environments.
+* [**geomesa-convert**](geomesa-convert): a configurable and extensible library for converting data into SimpleFeatures.
+* **geomesa-distributed-runtime**: assembles a jar with dependencies that must be distributed to Accumulo tablet servers lib/ext directory or to an HDFS directory where Accumulo's VFSClassLoader can pick it up.
+* **geomesa-examples**: includes Developer quickstart tutorials and examples for how to work with GeoMesa in Accumulo and Kafka.
+* **geomesa-features**: includes code for serializing SimpleFeatures and custom SimpleFeature implementations designed for GeoMesa.
+* **geomesa-filter**: a library for manipulating and working with GeoTools Filters.
+* **geomesa-hbase**: an implementation of GeoMesa on HBase and Google Cloud Bigtable.
+* [**geomesa-jobs**](geomesa-jobs): map/reduce and scalding jobs for maintaining GeoMesa.
+* [**geomesa-kafka**](geomesa-kafka/geomesa-kafka-datastore): an implementation of GeoMesa in Kafka for maintaining near-real-time caches of streaming data.
+* [**geomesa-plugin**](geomesa-plugin): creates a plugin which provides WFS and WMS support. The JAR named geomesa-plugin-<Version>-geoserver-plugin.jar is ready to be deployed in GeoServer by copying it into geoserver/WEB-INF/lib/
+* [**geomesa-process**](geomesa-process): analytic processes optimized on GeoMesa data stores.
+* [**geomesa-raster**](geomesa-raster): adds support for ingesting and working with geospatially-referenced raster data in GeoMesa.
+* **geomesa-security**: adds support for managing security and authorization levels for data stored in GeoMesa. 
+* [**geomesa-stream**](geomesa-stream): a GeoMesa library that provides tools to process streams of `SimpleFeatures`.
+* [**geomesa-tools**](geomesa-tools): a set of command line tools for managing features, ingesting and exporting data, configuring tables, and explaining queries in GeoMesa.
+* [**geomesa-utils**](geomesa-utils): stores our GeoHash implementation and other general library functions unrelated to Accumulo. This sub-project contains any helper tools for geomesa. Some of these tools such as the GeneralShapefileIngest have Map/Reduce components, so the geomesa-utils JAR lives on HDFS.
+* **geomesa-web**: web services for accessing GeoMesa.
+* **geomesa-z3**: the implementation of Z3, GeoMesa's space-filling Z-order curve.
 
 ## Scala console via scala-maven-plugin
 
