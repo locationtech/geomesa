@@ -5,25 +5,21 @@
 * accompanies this distribution and is available at
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
-package org.locationtech.geomesa.accumulo.util
+package org.locationtech.geomesa.utils.geotools
 
 import java.util.{Date, UUID}
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.DigitSplitter
-import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.util.SftBuilder.Opts
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SftBuilder.Opts
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
-import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class SftBuilderTest extends Specification {
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   sequential
 
@@ -50,35 +46,6 @@ class SftBuilderTest extends Specification {
         .getSpec
       val expected = "i:Integer,l:Long,f:Float,d:Double,s:String,dt:Date,u:UUID".split(",").map(_+":index=true").mkString(",")
       spec mustEqual expected
-    }
-
-    "configure table splitters as strings" >> {
-      val sft1 = new SftBuilder()
-        .intType("i")
-        .longType("l")
-        .recordSplitter(classOf[DigitSplitter].getName, Map("fmt" ->"%02d", "min" -> "0", "max" -> "99"))
-        .build("test")
-
-      // better - uses class directly (or at least less annoying)
-      val sft2 = new SftBuilder()
-        .intType("i")
-        .longType("l")
-        .recordSplitter(classOf[DigitSplitter], Map("fmt" ->"%02d", "min" -> "0", "max" -> "99"))
-        .build("test")
-
-      def test(sft: SimpleFeatureType) = {
-        sft.getAttributeCount mustEqual 2
-        sft.getAttributeDescriptors.map(_.getLocalName) must containAllOf(List("i", "l"))
-
-        sft.getUserData.get(SimpleFeatureTypes.TABLE_SPLITTER) must be equalTo classOf[DigitSplitter].getName
-        val opts = sft.getUserData.get(SimpleFeatureTypes.TABLE_SPLITTER_OPTIONS).asInstanceOf[Map[String, String]]
-        opts.size must be equalTo 3
-        opts("fmt") must be equalTo "%02d"
-        opts("min") must be equalTo "0"
-        opts("max") must be equalTo "99"
-      }
-
-      List(sft1, sft2) forall test
     }
 
     // Example of fold...also can do more complex things like zipping to automatically build SFTs

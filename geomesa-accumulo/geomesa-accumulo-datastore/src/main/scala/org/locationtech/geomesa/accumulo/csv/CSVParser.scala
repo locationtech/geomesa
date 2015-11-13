@@ -14,7 +14,7 @@ import java.util.Date
 import com.vividsolutions.jts.geom._
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
-import org.locationtech.geomesa.accumulo.util.SftBuilder
+import org.locationtech.geomesa.utils.geotools.SftBuilder
 import org.locationtech.geomesa.utils.text.WKTUtils
 
 import scala.annotation.tailrec
