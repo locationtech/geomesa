@@ -119,15 +119,15 @@ class HBaseFeatureSource(entry: ContentEntry,
     // the z3 index breaks time into 1 week chunks, so create a range for each week in our range
     // TODO: ignoring seconds for now
     if (weeks.length == 1) {
-      val ranges = Z3_CURVE.ranges((lx, ux), (ly, uy), (lt, ut))
+      val ranges = Z3_CURVE.ranges((lx, ux), (ly, uy), (lt, ut)).map(r => (r._1, r._2))
       new HBaseFeatureReader(table, sft, weeks.head, ranges, serializer)
     } else {
       val head +: xs :+ last = weeks.toList
       val oneWeekInSeconds = Weeks.ONE.toStandardSeconds.getSeconds
 
-      val headRanges = Z3_CURVE.ranges((lx, ux), (ly, uy), (lt, tEnd))
-      val middleRanges = Z3_CURVE.ranges((lx, ux), (ly, uy), (0, oneWeekInSeconds))
-      val lastRanges = Z3_CURVE.ranges((lx, ux), (ly, uy), (tStart, ut))
+      val headRanges = Z3_CURVE.ranges((lx, ux), (ly, uy), (lt, tEnd)).map(r => (r._1, r._2))
+      val middleRanges = Z3_CURVE.ranges((lx, ux), (ly, uy), (0, oneWeekInSeconds)).map(r => (r._1, r._2))
+      val lastRanges = Z3_CURVE.ranges((lx, ux), (ly, uy), (tStart, ut)).map(r => (r._1, r._2))
 
       val headReader = new HBaseFeatureReader(table, sft, head, headRanges, serializer)
       val middleReaders = xs.map { w =>
