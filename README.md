@@ -1,6 +1,7 @@
-<p align="center"><a href="http://geomesa.github.io"><img src="https://raw.githubusercontent.com/geomesa/geomesa.github.io/master/img/geomesa-2x.png"></img></a></p>
-
-![Splash](http://www.geomesa.org/img/geomesa-overview-848x250.png)
+<p align="center"><a href="http://geomesa.github.io"><img align="center" width="50%" src="https://raw.githubusercontent.com/geomesa/geomesa.github.io/master/img/geomesa-2x.png"></img></a>
+<br/>
+<img align="center" height="150px" src="http://www.geomesa.org/img/geomesa-overview-848x250.png"></img>
+</p>
 
 <a href="https://gitter.im/locationtech/geomesa?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge" target="_blank"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join the chat at https://gitter.im/locationtech/geomesa"></img></a>
 
