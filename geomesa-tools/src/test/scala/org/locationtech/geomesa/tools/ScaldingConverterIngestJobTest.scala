@@ -20,7 +20,6 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params
-import org.locationtech.geomesa.accumulo.util.SftBuilder
 import org.locationtech.geomesa.features.avro.AvroSimpleFeature
 import org.locationtech.geomesa.tools.Utils.IngestParams
 import org.locationtech.geomesa.tools.ingest.ScaldingConverterIngestJob
