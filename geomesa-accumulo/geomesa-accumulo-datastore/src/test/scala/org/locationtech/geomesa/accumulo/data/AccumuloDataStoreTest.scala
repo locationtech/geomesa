@@ -718,9 +718,9 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       if (AccumuloVersion.accumuloVersion == AccumuloVersion.V15) {
         DataStoreFinder.getDataStore(params) must throwAn[IllegalArgumentException]
       } else {
-        val dsWithNs = DataStoreFinder.getDataStore(params)
-        ds.connector.tableOperations().exists(table) must beTrue
-        ds.connector.namespaceOperations().exists("test") must beTrue
+        val dsWithNs = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+        val (nsOps, nsOpsClass) = AccumuloVersion.getNsOps(dsWithNs.connector)
+        AccumuloVersion.nameSpaceExists(nsOps, nsOpsClass, "test") must beTrue
       }
     }
   }
