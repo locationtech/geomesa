@@ -1,8 +1,8 @@
 package org.locationtech.geomesa.accumulo
 
 import org.apache.accumulo.core.Constants
-import org.apache.accumulo.core.client.{TableExistsException, Connector}
 import org.apache.accumulo.core.client.admin.TimeType
+import org.apache.accumulo.core.client.{Connector, TableExistsException}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
 
@@ -72,6 +72,12 @@ object AccumuloVersion extends Enumeration {
     }
   }
 
+  def nameSpaceExists(nsOps: AnyRef, nsOpsClass: Class[_], ns: String) = {
+    val existsMethod = nsOpsClass.getMethod("exists", classOf[String])
+    existsMethod.setAccessible(true)
+    existsMethod.invoke(nsOps, ns).asInstanceOf[Boolean]
+  }
+
   /**
    * Check for namespaces and create if needed.
    */
@@ -81,9 +87,10 @@ object AccumuloVersion extends Enumeration {
       require(accumuloVersion != V15, s"Table namespaces are not supported in Accumulo 1.5 - for table '$table'")
       val ns = table.substring(0, dot)
       val nsOps = classOf[Connector].getMethod("namespaceOperations").invoke(connector)
-      val nsOpsClass = Class.forName("org.apache.accumulo.core.client.admin.NamespaceOperations")
-      if (!nsOpsClass.getMethod("exists", classOf[String]).invoke(nsOps, ns).asInstanceOf[Boolean]) {
-        nsOpsClass.getMethod("create", classOf[String]).invoke(nsOps, ns)
+      if (!nameSpaceExists(nsOps, nsOps.getClass, ns)) {
+        val createMethod = nsOps.getClass.getMethod("create", classOf[String])
+        createMethod.setAccessible(true)
+        createMethod.invoke(nsOps, ns)
       }
     }
   }
