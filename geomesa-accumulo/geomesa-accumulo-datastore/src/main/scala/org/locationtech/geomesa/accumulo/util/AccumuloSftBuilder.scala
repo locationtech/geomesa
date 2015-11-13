@@ -35,7 +35,3 @@ class AccumuloSftBuilder extends InitBuilder[AccumuloSftBuilder] {
 
   override def options = super.options ++ List(splitPart).flatten
 }
-
-
-
-
