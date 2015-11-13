@@ -14,10 +14,9 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.tables.AvailableTables
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
-import org.locationtech.geomesa.accumulo.util.SftBuilder
-import org.locationtech.geomesa.accumulo.util.SftBuilder.Opts
 import org.locationtech.geomesa.filter
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SftBuilder.Opts
+import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.opengis.filter._
 import org.specs2.matcher.MatchResult

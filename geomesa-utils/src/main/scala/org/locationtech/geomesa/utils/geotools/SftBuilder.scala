@@ -5,53 +5,49 @@
 * accompanies this distribution and is available at
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
-package org.locationtech.geomesa.accumulo.util
+package org.locationtech.geomesa.utils.geotools
 
 import java.util.{Date, UUID}
 
-import org.locationtech.geomesa.accumulo.data.TableSplitter
-import org.locationtech.geomesa.accumulo.util.SftBuilder._
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{Splitter, _}
+import org.locationtech.geomesa.utils.geotools.SftBuilder._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.locationtech.geomesa.utils.stats.Cardinality.Cardinality
 
 import scala.collection.mutable.ListBuffer
 import scala.reflect.runtime.universe.{Type => UType, _}
 
+abstract class InitBuilder[T] {
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-class SftBuilder {
-
-  private val entries = new ListBuffer[String]
-  private var splitterOpt: Option[Splitter] = None
-  private var enabledIndexesOpt: Option[EnabledIndexes] = None
+  val entries = new ListBuffer[String]
+  var enabledIndexesOpt: Option[EnabledIndexes] = None
   private var dtgFieldOpt: Option[String] = None
 
   // Primitives - back compatible
-  def stringType(name: String, index: Boolean): SftBuilder =
+  def stringType(name: String, index: Boolean): T =
     stringType(name, Opts(index = index))
-  def stringType(name: String, index: Boolean, stIndex: Boolean): SftBuilder =
+  def stringType(name: String, index: Boolean, stIndex: Boolean): T =
     stringType(name, Opts(index = index, stIndex = stIndex))
-  def intType(name: String, index: Boolean): SftBuilder =
+  def intType(name: String, index: Boolean): T =
     intType(name, Opts(index = index))
-  def intType(name: String, index: Boolean, stIndex: Boolean): SftBuilder =
+  def intType(name: String, index: Boolean, stIndex: Boolean): T =
     intType(name, Opts(index = index, stIndex = stIndex))
-  def longType(name: String, index: Boolean): SftBuilder =
+  def longType(name: String, index: Boolean): T =
     longType(name, Opts(index = index))
-  def longType(name: String, index: Boolean, stIndex: Boolean): SftBuilder =
+  def longType(name: String, index: Boolean, stIndex: Boolean): T =
     longType(name, Opts(index = index, stIndex = stIndex))
-  def floatType(name: String, index: Boolean): SftBuilder =
+  def floatType(name: String, index: Boolean): T =
     floatType(name, Opts(index = index))
-  def floatType(name: String, index: Boolean, stIndex: Boolean): SftBuilder =
+  def floatType(name: String, index: Boolean, stIndex: Boolean): T =
     floatType(name, Opts(index = index, stIndex = stIndex))
-  def doubleType(name: String, index: Boolean): SftBuilder =
+  def doubleType(name: String, index: Boolean): T =
     doubleType(name, Opts(index = index))
-  def doubleType(name: String, index: Boolean, stIndex: Boolean): SftBuilder =
+  def doubleType(name: String, index: Boolean, stIndex: Boolean): T =
     doubleType(name, Opts(index = index, stIndex = stIndex))
-  def booleanType(name: String, index: Boolean): SftBuilder =
+  def booleanType(name: String, index: Boolean): T =
     booleanType(name, Opts(index = index))
-  def booleanType(name: String, index: Boolean, stIndex: Boolean): SftBuilder =
+  def booleanType(name: String, index: Boolean, stIndex: Boolean): T =
     booleanType(name, Opts(index = index, stIndex = stIndex))
 
   // Primitives
@@ -63,15 +59,15 @@ class SftBuilder {
   def booleanType(name: String, opts: Opts = Opts()) = append(name, opts, "Boolean")
 
   // Helpful Types - back compatible
-  def date(name: String, default: Boolean): SftBuilder =
+  def date(name: String, default: Boolean): T =
     date(name, Opts(default = default))
-  def date(name: String, index: Boolean, default: Boolean): SftBuilder =
+  def date(name: String, index: Boolean, default: Boolean): T =
     date(name, Opts(index = index, default = default))
-  def date(name: String, index: Boolean, stIndex: Boolean, default: Boolean): SftBuilder =
+  def date(name: String, index: Boolean, stIndex: Boolean, default: Boolean): T =
     date(name, Opts(index = index, stIndex = stIndex, default = default))
-  def uuid(name: String, index: Boolean): SftBuilder =
+  def uuid(name: String, index: Boolean): T =
     uuid(name, Opts(index = index))
-  def uuid(name: String, index: Boolean, stIndex: Boolean): SftBuilder =
+  def uuid(name: String, index: Boolean, stIndex: Boolean): T =
     uuid(name, Opts(index = index, stIndex = stIndex))
 
   // Helpful Types
@@ -97,35 +93,25 @@ class SftBuilder {
     appendGeom(name, default, "GeometryCollection")
 
   // List and Map Types - back compatible
-  def mapType[K: TypeTag, V: TypeTag](name: String, index: Boolean): SftBuilder =
+  def mapType[K: TypeTag, V: TypeTag](name: String, index: Boolean): T =
     mapType[K, V](name, Opts(index = index))
-  def listType[T: TypeTag](name: String, index: Boolean): SftBuilder =
-    listType[T](name, Opts(index = index))
+  def listType[Type: TypeTag](name: String, index: Boolean): T =
+    listType[Type](name, Opts(index = index))
 
   // List and Map Types
   def mapType[K: TypeTag, V: TypeTag](name: String, opts: Opts = Opts()) =
     append(name, opts.copy(stIndex = false), s"Map[${resolve(typeOf[K])},${resolve(typeOf[V])}]")
-  def listType[T: TypeTag](name: String, opts: Opts = Opts()) =
-    append(name, opts.copy(stIndex = false), s"List[${resolve(typeOf[T])}]")
+  def listType[Type: TypeTag](name: String, opts: Opts = Opts()) =
+    append(name, opts.copy(stIndex = false), s"List[${resolve(typeOf[Type])}]")
 
-  def recordSplitter(clazz: String, splitOptions: Map[String,String]) = {
-    this.splitterOpt = Some(Splitter(clazz, splitOptions))
-    this
-  }
-
-  def recordSplitter(clazz: Class[_ <: TableSplitter], splitOptions: Map[String,String]): SftBuilder = {
-    recordSplitter(clazz.getName, splitOptions)
-    this
-  }
-
-  def withIndexes(indexSuffixes: List[String]):SftBuilder = {
+  def withIndexes(indexSuffixes: List[String]): T = {
     this.enabledIndexesOpt = Some(EnabledIndexes(indexSuffixes))
-    this
+    this.asInstanceOf[T]
   }
 
-  def withDefaultDtg(field: String): SftBuilder = {
+  def withDefaultDtg(field: String): T = {
     dtgFieldOpt = Some(field)
-    this
+    this.asInstanceOf[T]
   }
 
   def defaultDtg() = withDefaultDtg("dtg")
@@ -142,7 +128,7 @@ class SftBuilder {
     val parts = List(name, typeStr) ++ indexPart(opts.index) ++ stIndexPart(opts.stIndex) ++
         cardinalityPart(opts.cardinality)
     entries += parts.mkString(SepPart)
-    this
+    this.asInstanceOf[T]
   }
 
   private def appendGeom(name: String, default: Boolean, typeStr: String) = {
@@ -151,7 +137,7 @@ class SftBuilder {
         indexPart(default) ++ //force index on default geom
         stIndexPart(default)
     entries += parts.mkString(SepPart)
-    this
+    this.asInstanceOf[T]
   }
 
   private def indexPart(index: Boolean) = if (index) Seq(s"$OPT_INDEX=true") else Seq.empty
@@ -161,27 +147,18 @@ class SftBuilder {
     case _ => Seq.empty
   }
 
-  // note that SimpleFeatureTypes requires that splitter and splitter opts be ordered properly
-  private def splitPart = splitterOpt.map { s =>
-    List(
-      SimpleFeatureTypes.TABLE_SPLITTER + "=" + s.splitterClazz,
-      SimpleFeatureTypes.TABLE_SPLITTER_OPTIONS + "=" + singleQuote(encodeMap(s.options, SepPart, SepEntry))
-    ).mkString(",")
-  }
-
-  private def singleQuote(s: String) = "'" + s + "'"
-
   private def enabledIndexesPart = enabledIndexesOpt.map { s =>
-    SimpleFeatureTypes.ENABLED_INDEXES + "=" + singleQuote(s.indexes.mkString(","))
+    s"${SimpleFeatureTypes.ENABLED_INDEXES}='${s.indexes.mkString(",")}'"
   }
 
   // public accessors
   /** Get the type spec string associated with this builder...doesn't include dtg info */
   def getSpec = {
     val entryLst = List(entries.mkString(SepEntry))
-    val options = List(splitPart, enabledIndexesPart).flatten
     (entryLst ++ options).mkString(";")
   }
+
+  def options = List(enabledIndexesPart).flatten
 
   /** builds a SimpleFeatureType object from this builder */
   def build(nameSpec: String) = {
@@ -191,6 +168,8 @@ class SftBuilder {
   }
 
 }
+
+class SftBuilder extends InitBuilder[SftBuilder] {}
 
 object SftBuilder {
 

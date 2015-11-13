@@ -15,11 +15,10 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
-import org.locationtech.geomesa.accumulo.util.SftBuilder
-import org.locationtech.geomesa.accumulo.util.SftBuilder.Opts
-import org.locationtech.geomesa.filter.visitor.{LocalNameVisitorImpl, LocalNameVisitor}
+import org.locationtech.geomesa.filter.visitor.LocalNameVisitorImpl
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SftBuilder.Opts
+import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.opengis.filter.{And, Filter}
 import org.specs2.mutable.Specification
