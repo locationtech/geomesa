@@ -171,10 +171,10 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
       val s = indexRange.lower
       val e = indexRange.upper
       val startBytes = Longs.toByteArray(s)
-      val endBytes = Longs.toByteArray(e)
+      val endBytes   = Longs.toByteArray(e)
       prefixes.map { prefix =>
         val start = new Text(Bytes.concat(prefix, startBytes))
-        val end = Range.followingPrefix(new Text(Bytes.concat(prefix, endBytes)))
+        val end   = Range.followingPrefix(new Text(Bytes.concat(prefix, endBytes)))
         new Range(start, true, end, false)
       }
     }
