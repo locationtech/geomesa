@@ -69,7 +69,7 @@ class ScaldingConverterIngestJob(args: Args) extends Job(args) with Logging {
   def printStatInfo() {
     Mode.getMode(args) match {
       case Some(Local(_)) =>
-        logger.info(getStatInfo(counter.getSuccess(), counter.getFailure(), "Local ingest completed, total features:"))
+        logger.info(getStatInfo(counter.getSuccess, counter.getFailure, "Local ingest completed, total features:"))
       case Some(Hdfs(_, _)) =>
         logger.info("Ingest completed in HDFS mode")
       case _ =>
@@ -81,7 +81,7 @@ class ScaldingConverterIngestJob(args: Args) extends Job(args) with Logging {
     val successPvsS = if (successes == 1) "feature" else "features"
     val failurePvsS = if (failures == 1) "feature" else "features"
     val failureString = if (failures == 0) "with no failures" else s"and failed to ingest: $failures $failurePvsS"
-    s"$pref ${counter.getLineCount()}, ingested: $successes $successPvsS, $failureString."
+    s"$pref ${counter.getLineCount}, ingested: $successes $successPvsS, $failureString."
   }
 
   // Check to see if this an actual ingest job or just a test.

@@ -18,15 +18,21 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 object FeatureCreator extends Logging {
 
-  def createFeature(params: CreateFeatureParams): Unit = {
-    val ds = new DataStoreHelper(params).getOrCreateDs
-    createFeature(ds, params)
+  def createFeature(params: CreateFeatureParams, convert: String = null): Unit = {
+    val ds = new DataStoreHelper(params).getOrCreateDs()
+    createFeature(
+      ds,
+      Speculator.getSft(params.spec, params.featureName, convert),
+      params.featureName,
+      Option(params.dtgField),
+      Option(params.useSharedTables),
+      params.catalog)
   }
 
   def createFeature(ds: AccumuloDataStore, params: CreateFeatureParams): Unit =
     createFeature(
       ds,
-      Speculator.getSft(params.spec, Option(params.featureName)),
+      Speculator.getSft(params.spec, params.featureName),
       params.featureName,
       Option(params.dtgField),
       Option(params.useSharedTables),

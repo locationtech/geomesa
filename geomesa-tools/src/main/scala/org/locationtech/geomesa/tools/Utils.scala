@@ -145,17 +145,24 @@ object Utils {
   }
 
   object Speculator extends Logging {
-    type SpecParser = (String, Option[String]) => Option[SimpleFeatureType]
+    type SpecParser = () => Option[SimpleFeatureType]
 
-    def getSft(specArg: String, nameOpt: Option[String]): SimpleFeatureType =
-      Seq(parseSftSpec, parseSftConfig, parseFromFile)
-        .view.map(_(specArg, nameOpt))
+    def getSft(specArg: String, featureName: String = null, convertArg: String = null): SimpleFeatureType = {
+      val configParsers =
+        Seq(Option(specArg), Option(convertArg))
+          .flatten
+          .flatMap(s => List(readFile(s),Some(s)).flatten)
+          .map(s => getConfParser(s))
+
+      (configParsers ++ Seq(getSpecParser(specArg, Option(featureName))))
+        .view.map(_())
         .find(_.nonEmpty)
         .getOrElse {
           throw new ParameterException("Unable to parse Simple Feature type from sft config or string")
         }.get
+    }
 
-    private[Speculator] val parseSftSpec: SpecParser = (specArg: String, nameOpt: Option[String]) => {
+    private[Speculator] def getSpecParser (specArg: String, nameOpt: Option[String]) : SpecParser = () => {
       nameOpt.map[Option[SimpleFeatureType]] { featureName =>
         Try { SimpleFeatureTypes.createType(featureName, specArg) }
         match {
@@ -167,29 +174,27 @@ object Utils {
       }.getOrElse(Option.empty)
     }
 
-    private[Speculator] val parseSftConfig: SpecParser = (specArg: String, nameOpt: Option[String]) =>
-      Try { SimpleFeatureTypes.createType(ConfigFactory.parseString(specArg)) }
+    private[Speculator] def getConfParser(str: String): SpecParser = () =>
+      Try { SimpleFeatureTypes.createType(ConfigFactory.parseString(str)) }
       match {
         case Success(sft) => Some(sft)
         case Failure(ex)  =>
-          logger.debug(s"Unable to parse sft conf from string $specArg with error ex.getMessage")
+          logger.debug(s"Unable to parse sft conf from string $str with error ex.getMessage")
           Option.empty
       }
 
-    private[Speculator] val parseFromFile: SpecParser = (specArg: String, nameOpt: Option[String]) => {
-      val f = new File(specArg)
+    def readFile(s: String): Option[String] = {
+      val f = new File(s)
       if (f.exists && f.canRead) {
         val reader = new BufferedReader(new InputStreamReader(new FileInputStream(f)))
-        val contents = try { IOUtils.toString(reader) } finally { reader.close() }
-        Seq(parseSftConfig, parseSftSpec).view.map(_(contents, nameOpt)).find(_.nonEmpty).head
+        val contents = try {
+          IOUtils.toString(reader)
+        } finally {
+          reader.close()
+        }
+        Some(contents)
       } else None
     }
-
-//    implicit class RichCreateFeatureParams(params: CreateFeatureParams) extends AnyVal {
-//      def getSft = Speculator.getSft(params.spec, Option(params.featureName)).getOrElse {
-//        throw new IllegalArgumentException("Could not retrieve feature name from spec and/or featureName arguments")
-//      }
-//    }
 
   }
 }

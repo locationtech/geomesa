@@ -33,14 +33,14 @@ import scala.collection.JavaConverters._
 
 class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
 
-  val sft = Speculator.getSft(params.spec, Option(params.featureName))
+  val sft = Speculator.getSft(params.spec, params.featureName, params.convertSpec)
   val converter = Option(params.convertSpec).map(Configurator.getConfig).map(SimpleFeatureConverters.build(sft, _)).getOrElse {
     throw new IllegalArgumentException(s"Unable to parse converter spec from: ${params.convertSpec}")
   }
 
   def run(): Unit = {
     // create schema for the feature prior to Ingest job
-    FeatureCreator.createFeature(params)
+    FeatureCreator.createFeature(params, params.convertSpec)
 
     val conf = new Configuration()
     JobUtils.setLibJars(conf, libJars = ingestLibJars, searchPath = ingestJarSearchPath)

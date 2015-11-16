@@ -89,9 +89,9 @@ class ScaldingConverterIngestJobTest extends Specification{
         new Args(csvNormParams.updated(IngestParams.CONVERTER_CONFIG, List(conf)))))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
-      ingest.counter.getLineCount() mustEqual 6
-      ingest.counter.getFailure() mustEqual 0
-      ingest.counter.getSuccess() mustEqual 6
+      ingest.counter.getLineCount mustEqual 6
+      ingest.counter.getFailure mustEqual 0
+      ingest.counter.getSuccess mustEqual 6
       success
     }
 
@@ -102,9 +102,9 @@ class ScaldingConverterIngestJobTest extends Specification{
         new Args(csvNormParams.updated(IngestParams.CONVERTER_CONFIG, List(conf)))))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
-      ingest.counter.getLineCount() mustEqual 6
-      ingest.counter.getFailure() mustEqual 0
-      ingest.counter.getSuccess() mustEqual 6
+      ingest.counter.getLineCount mustEqual 6
+      ingest.counter.getFailure mustEqual 0
+      ingest.counter.getSuccess mustEqual 6
       success
     }
 
@@ -115,9 +115,9 @@ class ScaldingConverterIngestJobTest extends Specification{
         new Args(csvNormParams.updated(IngestParams.CONVERTER_CONFIG, List(conf)))))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
-      ingest.counter.getLineCount() mustEqual 5
-      ingest.counter.getFailure() mustEqual 0
-      ingest.counter.getSuccess() mustEqual 5
+      ingest.counter.getLineCount mustEqual 5
+      ingest.counter.getFailure mustEqual 0
+      ingest.counter.getSuccess mustEqual 5
       success
     }
 
@@ -128,9 +128,9 @@ class ScaldingConverterIngestJobTest extends Specification{
         new Args(csvNormParams.updated(IngestParams.CONVERTER_CONFIG, List(conf)))))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
-      ingest.counter.getLineCount() mustEqual 5
-      ingest.counter.getFailure() mustEqual 0
-      ingest.counter.getSuccess() mustEqual 5
+      ingest.counter.getLineCount mustEqual 5
+      ingest.counter.getFailure mustEqual 0
+      ingest.counter.getSuccess mustEqual 5
       success
     }
 
@@ -143,9 +143,9 @@ class ScaldingConverterIngestJobTest extends Specification{
           .updated(IngestParams.CONVERTER_CONFIG, List(conf)))))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
-      ingest.counter.getLineCount() mustEqual 6
-      ingest.counter.getFailure() mustEqual 0
-      ingest.counter.getSuccess() mustEqual 6
+      ingest.counter.getLineCount mustEqual 6
+      ingest.counter.getFailure mustEqual 0
+      ingest.counter.getSuccess mustEqual 6
       success
     }
 
@@ -158,9 +158,9 @@ class ScaldingConverterIngestJobTest extends Specification{
           .updated(IngestParams.CONVERTER_CONFIG, List(conf)))))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
-      ingest.counter.getLineCount() mustEqual 6
-      ingest.counter.getFailure() mustEqual 0
-      ingest.counter.getSuccess() mustEqual 6
+      ingest.counter.getLineCount mustEqual 6
+      ingest.counter.getFailure mustEqual 0
+      ingest.counter.getSuccess mustEqual 6
       success
     }
 

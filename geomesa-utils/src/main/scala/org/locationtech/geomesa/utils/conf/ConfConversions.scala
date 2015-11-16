@@ -2,7 +2,7 @@ package org.locationtech.geomesa.utils.conf
 
 import com.typesafe.config.Config
 
-object Conversions {
+object ConfConversions {
 
   implicit class RichConfig(val base: Config) {
     def getStringOpt(path: String): Option[String] =

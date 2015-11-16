@@ -42,7 +42,7 @@ class DelimitedTextConverterFactory extends SimpleFeatureConverterFactory[String
     }
 
     val opts = {
-      import org.locationtech.geomesa.utils.conf.Conversions._
+      import org.locationtech.geomesa.utils.conf.ConfConversions._
       val o = "options"
       var dOpts = new DelimitedOptions()
       dOpts = conf.getBooleanOpt(s"$o.skip-header").map(s => dOpts.copy(skipHeader = s)).getOrElse(dOpts)
