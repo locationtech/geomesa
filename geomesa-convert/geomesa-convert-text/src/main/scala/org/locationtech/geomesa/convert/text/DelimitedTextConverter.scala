@@ -45,8 +45,8 @@ class DelimitedTextConverterFactory extends SimpleFeatureConverterFactory[String
       import org.locationtech.geomesa.utils.conf.Conversions._
       val o = "options"
       var dOpts = new DelimitedOptions()
-      dOpts = conf.getBooleanOpt(s"$o.skipHeader").map(s => dOpts.copy(skipHeader = s)).getOrElse(dOpts)
-      dOpts = conf.getIntOpt(s"$o.pipeSize").map(p => dOpts.copy(pipeSize = p)).getOrElse(dOpts)
+      dOpts = conf.getBooleanOpt(s"$o.skip-header").map(s => dOpts.copy(skipHeader = s)).getOrElse(dOpts)
+      dOpts = conf.getIntOpt(s"$o.pipe-size").map(p => dOpts.copy(pipeSize = p)).getOrElse(dOpts)
       dOpts
     }
 

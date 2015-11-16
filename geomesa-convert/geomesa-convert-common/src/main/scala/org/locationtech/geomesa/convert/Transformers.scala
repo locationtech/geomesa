@@ -118,13 +118,13 @@ object Transformers extends JavaTokenParsers {
     private var skipped: Int = 0
 
     override def incSuccess(): Unit = s +=1
-    override def getSuccess(): Int = s
+    override def getSuccess: Int = s
 
     override def incFailure(): Unit = f += 1
-    override def getFailure(): Int = f
+    override def getFailure: Int = f
 
     override def incLineCount = c += 1
-    override def getLineCount(): Int = c
+    override def getLineCount: Int = c
     override def setLineCount(i: Int) = c = i
   }
 

@@ -14,6 +14,12 @@ object Conversions {
     def getIntOpt(path: String): Option[Int] =
       if (base.hasPath(path)) Some(base.getInt(path)) else None
 
+    def getLongOpt(path: String): Option[Long] =
+      if (base.hasPath(path)) Some(base.getLong(path)) else None
+
+    def getDoubleOpt(path: String): Option[Double] =
+      if (base.hasPath(path)) Some(base.getDouble(path)) else None
+
     def getConfigOpt(path: String) : Option[Config] =
       if (base.hasPath(path)) Some(base.getConfig(path)) else None
   }

@@ -213,7 +213,9 @@ class DelimitedTextConverterTest extends Specification {
           |   type         = "delimited-text",
           |   format       = "DEFAULT",
           |   id-field     = "md5(string2bytes($0))",
-          |   pipe-size    = 16 // 16 bytes
+          |   options = {
+          |       pipe-size    = 16 // 16 bytes
+          |   },
           |   fields = [
           |     { name = "oneup",  transform = "$1" },
           |     { name = "phrase", transform = "concat($1, $2)" },
@@ -226,6 +228,7 @@ class DelimitedTextConverterTest extends Specification {
         """.stripMargin)
 
       val converter = SimpleFeatureConverters.build[String](sft, sizeConf)
+      converter.asInstanceOf[DelimitedTextConverter]
       val data =
         """
           |1,hello,45.0,45.0
@@ -281,7 +284,7 @@ class DelimitedTextConverterTest extends Specification {
           |   format       = "DEFAULT",
           |   id-field     = "md5(string2bytes($0))",
           |   options = {
-          |       skipHeader   = "SKIP"
+          |       skip-header   = "SKIP"
           |   },
           |   fields = [
           |     { name = "oneup",    transform = "$1" },
@@ -323,9 +326,9 @@ class DelimitedTextConverterTest extends Specification {
         res.length mustEqual 2
         converter.close()
 
-        counter.getLineCount() mustEqual 3
-        counter.getSuccess() mustEqual 2
-        counter.getFailure() mustEqual 0
+        counter.getLineCount mustEqual 3
+        counter.getSuccess mustEqual 2
+        counter.getFailure mustEqual 0
 
         val geoFac = new GeometryFactory()
         res(0).getDefaultGeometry mustEqual geoFac.createPoint(new Coordinate(46, 45))
@@ -346,9 +349,9 @@ class DelimitedTextConverterTest extends Specification {
         res.length mustEqual 2
         converter.close()
 
-        counter.getLineCount() mustEqual 2
-        counter.getSuccess() mustEqual 2
-        counter.getFailure() mustEqual 0
+        counter.getLineCount mustEqual 2
+        counter.getSuccess mustEqual 2
+        counter.getFailure mustEqual 0
 
         val geoFac = new GeometryFactory()
         res(0).getDefaultGeometry mustEqual geoFac.createPoint(new Coordinate(46, 45))
