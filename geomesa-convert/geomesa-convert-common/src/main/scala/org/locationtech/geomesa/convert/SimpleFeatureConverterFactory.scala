@@ -145,12 +145,12 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
       attributeArrays.flatMap { attributes =>
         try {
           val res = convert(attributes, reuse)
-          counter.success()
+          counter.incSuccess()
           Some(res)
         } catch {
           case e: Exception =>
             logger.warn("Failed to convert input", e)
-            counter.failure()
+            counter.incFailure()
             None
         }
       }
@@ -164,7 +164,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
   def processInput(is: Iterator[I], gParams: Map[String, Any] = Map.empty, counter: Counter = new DefaultCounter): Iterator[SimpleFeature] = {
     implicit val ctx = new EvaluationContext(inputFieldIndexes, null, counter)
     is.flatMap { s =>
-      counter.increment()
+      counter.incLineCount()
       processSingleInput(s, gParams)
     }
   }

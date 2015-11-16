@@ -53,10 +53,10 @@ object Transformers extends JavaTokenParsers {
     def regexExpr   = string <~ "::r" ^^ { case LitString(s) => RegexExpr(s) }
     def column      = "$" ~> "[1-9][0-9]*".r ^^ { i => Col(i.toInt) }
 
-    def cast2int     = expr <~ "::int" ^^ { e => Cast2Int(e) }
-    def cast2long    = expr <~ "::long" ^^ { e => Cast2Long(e) }
-    def cast2float   = expr <~ "::float" ^^ { e => Cast2Float(e) }
-    def cast2double  = expr <~ "::double" ^^ { e => Cast2Double(e) }
+    def cast2int     = expr <~ "::int"     ^^ { e => Cast2Int(e)     }
+    def cast2long    = expr <~ "::long"    ^^ { e => Cast2Long(e)    }
+    def cast2float   = expr <~ "::float"   ^^ { e => Cast2Float(e)   }
+    def cast2double  = expr <~ "::double"  ^^ { e => Cast2Double(e)  }
     def cast2boolean = expr <~ "::boolean" ^^ { e => Cast2Boolean(e) }
 
     def fieldLookup = "$" ~> ident ^^ { i => FieldLookup(i) }
@@ -77,11 +77,11 @@ object Transformers extends JavaTokenParsers {
 
     def binaryPred =
       strEq |
-      getBinPreds("int", intBinOps) |
-      getBinPreds("long", longBinOps) |
-      getBinPreds("float", floatBinOps) |
+      getBinPreds("int",    intBinOps)    |
+      getBinPreds("long",   longBinOps)   |
+      getBinPreds("float",  floatBinOps)  |
       getBinPreds("double", doubleBinOps) |
-      getBinPreds("bool", boolBinOps)
+      getBinPreds("bool",   boolBinOps)
 
     def andPred     = ("and" ~ OPEN_PAREN) ~> (pred ~ "," ~ pred) <~ CLOSE_PAREN ^^ {
       case l ~ "," ~ r => And(l, r)
@@ -100,31 +100,32 @@ object Transformers extends JavaTokenParsers {
   }
 
   trait Counter {
-    def success(): Unit
+    def incSuccess(): Unit
     def getSuccess: Int
 
-    def failure(): Unit
+    def incFailure(): Unit
     def getFailure: Int
 
-    def increment(): Unit
-    def getCount: Int
-    def setCount(i: Int)
+    def incLineCount(): Unit
+    def getLineCount: Int
+    def setLineCount(i: Int)
   }
 
   class DefaultCounter extends Counter {
     private var c: Int = 0
     private var s: Int = 0
     private var f: Int = 0
+    private var skipped: Int = 0
 
-    override def success(): Unit = s +=1
+    override def incSuccess(): Unit = s +=1
     override def getSuccess(): Int = s
 
-    override def failure(): Unit = f += 1
+    override def incFailure(): Unit = f += 1
     override def getFailure(): Int = f
 
-    override def increment = c += 1
-    override def getCount(): Int = c
-    override def setCount(i: Int) = c = i
+    override def incLineCount = c += 1
+    override def getLineCount(): Int = c
+    override def setLineCount(i: Int) = c = i
   }
 
   class EvaluationContext(var fieldNameMap: mutable.HashMap[String, Int], var computedFields: Array[Any], val counter: Counter = new DefaultCounter) {
@@ -207,8 +208,8 @@ object Transformers extends JavaTokenParsers {
 
   val intBinOps = Map[String, ExprToBinPred[Int]](
       EQ   -> buildPred[Int](_ == _),
-      LT   -> buildPred[Int](_ < _),
-      GT   -> buildPred[Int](_ > _),
+      LT   -> buildPred[Int](_ < _ ),
+      GT   -> buildPred[Int](_ > _ ),
       LTEQ -> buildPred[Int](_ <= _),
       GTEQ -> buildPred[Int](_ >= _),
       NEQ  -> buildPred[Int](_ != _)
@@ -216,8 +217,8 @@ object Transformers extends JavaTokenParsers {
 
   val longBinOps = Map[String, ExprToBinPred[Long]](
       EQ   -> buildPred[Long](_ == _),
-      LT   -> buildPred[Long](_ < _),
-      GT   -> buildPred[Long](_ > _),
+      LT   -> buildPred[Long](_ < _ ),
+      GT   -> buildPred[Long](_ > _ ),
       LTEQ -> buildPred[Long](_ <= _),
       GTEQ -> buildPred[Long](_ >= _),
       NEQ  -> buildPred[Long](_ != _)
@@ -225,8 +226,8 @@ object Transformers extends JavaTokenParsers {
 
   val floatBinOps = Map[String, ExprToBinPred[Float]](
       EQ   -> buildPred[Float](_ == _),
-      LT   -> buildPred[Float](_ < _),
-      GT   -> buildPred[Float](_ > _),
+      LT   -> buildPred[Float](_ < _ ),
+      GT   -> buildPred[Float](_ > _ ),
       LTEQ -> buildPred[Float](_ <= _),
       GTEQ -> buildPred[Float](_ >= _),
       NEQ  -> buildPred[Float](_ != _)
@@ -234,8 +235,8 @@ object Transformers extends JavaTokenParsers {
 
   val doubleBinOps = Map[String, ExprToBinPred[Double]](
       EQ   -> buildPred[Double](_ == _),
-      LT   -> buildPred[Double](_ < _),
-      GT   -> buildPred[Double](_ > _),
+      LT   -> buildPred[Double](_ < _ ),
+      GT   -> buildPred[Double](_ > _ ),
       LTEQ -> buildPred[Double](_ <= _),
       GTEQ -> buildPred[Double](_ >= _),
       NEQ  -> buildPred[Double](_ != _)
@@ -403,7 +404,7 @@ class LineNumberFunctionFactory extends TransformerFunctionFactory {
   case class LineNumberFn() extends TransformerFn {
     override def getInstance: LineNumberFn = LineNumberFn()
     override def name: String = "lineNo"
-    def eval(args: Array[Any])(implicit ctx: Transformers.EvaluationContext): Any = ctx.getCounter.getCount
+    def eval(args: Array[Any])(implicit ctx: Transformers.EvaluationContext): Any = ctx.getCounter.getLineCount
   }
 
 }
@@ -412,7 +413,7 @@ class MapListFunctionFactory extends TransformerFunctionFactory {
   override def functions = Seq(listFn, listParserFn, mapParserFn)
 
   val defaultListDelim = ","
-  val defaultKVDelim = "->"
+  val defaultKVDelim   = "->"
 
   private def determineClazz(s: String) = s.toLowerCase match {
     case "string" | "str"   => classOf[String]

@@ -42,7 +42,7 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType,
       count += 1
       converters.view.zipWithIndex.flatMap { case ((pred, conv), i) =>
         implicit val ec = evaluationContexts(i)
-        ec.getCounter.setCount(count)
+        ec.getCounter.setLineCount(count)
         processIfValid(input, pred, conv, gParams)
       }.headOption
     }

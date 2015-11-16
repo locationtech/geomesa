@@ -14,9 +14,9 @@ import java.util.concurrent.Executors
 import com.google.common.collect.Queues
 import com.typesafe.config.Config
 import org.apache.commons.csv.{CSVFormat, QuoteMode}
-import org.locationtech.geomesa.convert.Transformers.Expr
+import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, DefaultCounter, Counter, Expr}
 import org.locationtech.geomesa.convert.{Field, SimpleFeatureConverterFactory, ToSimpleFeatureConverter}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 
@@ -29,7 +29,7 @@ class DelimitedTextConverterFactory extends SimpleFeatureConverterFactory[String
   val QUOTED_WITH_QUOTE_ESCAPE  = QUOTE_ESCAPE.withQuoteMode(QuoteMode.ALL)
 
   def buildConverter(targetSFT: SimpleFeatureType, conf: Config): DelimitedTextConverter = {
-    val format    = conf.getString("format").toUpperCase match {
+    val baseFmt = conf.getString("format").toUpperCase match {
       case "CSV" | "DEFAULT"          => CSVFormat.DEFAULT
       case "EXCEL"                    => CSVFormat.EXCEL
       case "MYSQL"                    => CSVFormat.MYSQL
@@ -40,18 +40,30 @@ class DelimitedTextConverterFactory extends SimpleFeatureConverterFactory[String
       case "QUOTED_WITH_QUOTE_ESCAPE" => QUOTED_WITH_QUOTE_ESCAPE
       case _ => throw new IllegalArgumentException("Unknown delimited text format")
     }
+
+    val opts = {
+      import org.locationtech.geomesa.utils.conf.Conversions._
+      val o = "options"
+      var dOpts = new DelimitedOptions()
+      dOpts = conf.getBooleanOpt(s"$o.skipHeader").map(s => dOpts.copy(skipHeader = s)).getOrElse(dOpts)
+      dOpts = conf.getIntOpt(s"$o.pipeSize").map(p => dOpts.copy(pipeSize = p)).getOrElse(dOpts)
+      dOpts
+    }
+
     val fields    = buildFields(conf.getConfigList("fields"))
     val idBuilder = buildIdBuilder(conf.getString("id-field"))
-    val pipeSize  = if(conf.hasPath("pipe-size")) conf.getInt("pipe-size") else 16*1024
-    new DelimitedTextConverter(format, targetSFT, idBuilder, fields, pipeSize)
+    new DelimitedTextConverter(baseFmt, targetSFT, idBuilder, fields, opts)
   }
 }
+
+case class DelimitedOptions(skipHeader: Boolean = false,
+                            pipeSize: Int = 16*1024)
 
 class DelimitedTextConverter(format: CSVFormat,
                              val targetSFT: SimpleFeatureType,
                              val idBuilder: Expr,
                              val inputFields: IndexedSeq[Field],
-                             val inputSize: Int = 16*1024)
+                             val options: DelimitedOptions)
   extends ToSimpleFeatureConverter[String] {
 
   var curString: String = null
@@ -61,7 +73,7 @@ class DelimitedTextConverter(format: CSVFormat,
   // For this reason, we have to separate the reading and writing into two
   // threads
   val writer = new PipedWriter()
-  val reader = new PipedReader(writer, inputSize) // 16k records
+  val reader = new PipedReader(writer, options.pipeSize)  // record size
   val parser = format.parse(reader).iterator()
   val separator = format.getRecordSeparator
 
@@ -97,9 +109,26 @@ class DelimitedTextConverter(format: CSVFormat,
     Seq(ret)
   }
 
+
+  override def processInput(is: Iterator[String], gParams: Map[String, Any] = Map.empty, counter: Counter = new DefaultCounter): Iterator[SimpleFeature] = {
+    implicit val ctx = new EvaluationContext(inputFieldIndexes, null, counter)
+
+    val itr =
+      if (options.skipHeader) {
+        counter.incLineCount()
+        is.drop(1)
+      } else is
+
+    itr.flatMap { s =>
+      counter.incLineCount()
+      processSingleInput(s, gParams)
+    }
+  }
+
   override def close(): Unit = {
     es.shutdownNow()
     writer.close()
     reader.close()
   }
+
 }

@@ -81,7 +81,7 @@ class ScaldingConverterIngestJob(args: Args) extends Job(args) with Logging {
     val successPvsS = if (successes == 1) "feature" else "features"
     val failurePvsS = if (failures == 1) "feature" else "features"
     val failureString = if (failures == 0) "with no failures" else s"and failed to ingest: $failures $failurePvsS"
-    s"$pref ${counter.getCount()}, ingested: $successes $successPvsS, $failureString."
+    s"$pref ${counter.getLineCount()}, ingested: $successes $successPvsS, $failureString."
   }
 
   // Check to see if this an actual ingest job or just a test.
