@@ -12,6 +12,7 @@ import java.util.Date
 
 import com.google.common.collect.ImmutableSet
 import com.vividsolutions.jts.geom.Coordinate
+import org.apache.accumulo.core.client.Connector
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.commons.codec.binary.Hex
@@ -719,8 +720,8 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
         DataStoreFinder.getDataStore(params) must throwAn[IllegalArgumentException]
       } else {
         val dsWithNs = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
-        val (nsOps, nsOpsClass) = AccumuloVersion.getNsOps(dsWithNs.connector)
-        AccumuloVersion.nameSpaceExists(nsOps, nsOpsClass, "test") must beTrue
+        val nsOps = classOf[Connector].getMethod("namespaceOperations").invoke(dsWithNs.connector)
+        AccumuloVersion.nameSpaceExists(nsOps, nsOps.getClass, "test") must beTrue
       }
     }
   }

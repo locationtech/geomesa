@@ -72,14 +72,10 @@ object AccumuloVersion extends Enumeration {
     }
   }
 
-  def getNsOps(connector: Connector) = {
-    val nsOps = classOf[Connector].getMethod("namespaceOperations").invoke(connector)
-    val nsOpsClass = Class.forName("org.apache.accumulo.core.client.admin.NamespaceOperations")
-    (nsOps, nsOpsClass)
-  }
-
   def nameSpaceExists(nsOps: AnyRef, nsOpsClass: Class[_], ns: String) = {
-    nsOpsClass.getMethod("exists", classOf[String]).invoke(nsOps, ns).asInstanceOf[Boolean]
+    val existsMethod = nsOpsClass.getMethod("exists", classOf[String])
+    existsMethod.setAccessible(true)
+    existsMethod.invoke(nsOps, ns).asInstanceOf[Boolean]
   }
 
   /**
@@ -90,9 +86,11 @@ object AccumuloVersion extends Enumeration {
     if (dot > 0) {
       require(accumuloVersion != V15, s"Table namespaces are not supported in Accumulo 1.5 - for table '$table'")
       val ns = table.substring(0, dot)
-      val (nsOps, nsOpsClass) = getNsOps(connector)
-      if (!nameSpaceExists(nsOps, nsOpsClass, ns)) {
-        nsOpsClass.getMethod("create", classOf[String]).invoke(nsOps, ns)
+      val nsOps = classOf[Connector].getMethod("namespaceOperations").invoke(connector)
+      if (!nameSpaceExists(nsOps, nsOps.getClass, ns)) {
+        val createMethod = nsOps.getClass.getMethod("create", classOf[String])
+        createMethod.setAccessible(true)
+        createMethod.invoke(nsOps, ns)
       }
     }
   }
