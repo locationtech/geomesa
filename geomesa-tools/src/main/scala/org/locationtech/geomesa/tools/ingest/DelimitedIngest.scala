@@ -33,8 +33,8 @@ import scala.collection.JavaConverters._
 
 class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
 
-  val sft = Speculator.getSft(params.spec, params.featureName, params.convertSpec)
-  val converterConfig = Configurator.getConfig(params.convertSpec)
+  val sft = Speculator.getSft(params.spec, params.featureName, params.config)
+  val converterConfig = Configurator.getConfig(params.config)
 
   def run(): Unit = {
     // create schema for the feature prior to Ingest job

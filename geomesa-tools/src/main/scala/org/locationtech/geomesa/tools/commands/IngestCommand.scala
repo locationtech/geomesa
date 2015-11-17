@@ -9,7 +9,7 @@ package org.locationtech.geomesa.tools.commands
 
 import java.util
 
-import com.beust.jcommander.{JCommander, Parameter, Parameters}
+import com.beust.jcommander.{ParameterException, JCommander, Parameter, Parameters}
 import com.typesafe.config.{ConfigFactory, Config}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
@@ -28,14 +28,18 @@ class IngestCommand(parent: JCommander) extends Command(parent) with Logging {
 
   override def execute(): Unit = {
     val fmt = Option(params.format).getOrElse(getFileExtension(params.files(0)))
+    if (fmt == SHP) {
+      val ds = new DataStoreHelper(params).getOrCreateDs()
+      GeneralShapefileIngest.shpToDataStore(params.files(0), ds, params.featureName)
+    } else {
+      val config = Configurator.getConfig(params.config)
+      val sft = Speculator.getSft(params.spec, params.featureName, params.config)
 
-    fmt match {
-      case CSV | TSV => new DelimitedIngest(params).run() //TODO converter may define fmt...better figure that out
-      case SHP       =>
-        val ds = new DataStoreHelper(params).getOrCreateDs()
-        GeneralShapefileIngest.shpToDataStore(params.files(0), ds, params.featureName)
-      case _         =>
-        logger.error("Error: Unrecognized file format...define converter config or specify --format shp")
+      if (config != null && sft != null) {
+        new DelimitedIngest(params).run()
+      } else {
+        throw new ParameterException("Unable to parse spec and config from -conf option")
+      }
     }
   }
 
@@ -48,7 +52,7 @@ object IngestCommand {
     var spec: String = null
 
     @Parameter(names = Array("-conf", "--conf"), description = "GeoMesa configuration file for SFT and/or convert")
-    var convertSpec: String = null
+    var config: String = null
 
     @Parameter(names = Array("-is", "--index-schema"), description = "GeoMesa index schema format string")
     var indexSchema: String = null
