@@ -32,9 +32,9 @@ class ScaldingConverterIngestJob(args: Args) extends Job(args) with Logging {
   val counter = new DefaultCounter
 
   lazy val pathList         = DelimitedIngest.decodeFileList(args(IngestParams.FILE_PATH))
-  lazy val sftSpec          = URLDecoder.decode(args(IngestParams.SFT_SPEC), "UTF-8")
+  lazy val sftSpec          = URLDecoder.decode(args(IngestParams.SFT_SPEC), StandardCharsets.UTF_8.displayName)
   lazy val featureName      = args(IngestParams.FEATURE_NAME)
-  lazy val converterConfig  = args(IngestParams.CONVERTER_CONFIG)
+  lazy val converterConfig  = URLDecoder.decode(args(IngestParams.CONVERTER_CONFIG), StandardCharsets.UTF_8.displayName)
   lazy val isTestRun        = args(IngestParams.IS_TEST_INGEST).toBoolean
 
   //Data Store parameters
@@ -60,10 +60,10 @@ class ScaldingConverterIngestJob(args: Args) extends Job(args) with Logging {
 
   // non-serializable resources.
   class Resources {
-    implicit val ec = new EvaluationContext(null, null, counter)
     val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
     lazy val fw = ds.getFeatureWriterAppend(featureName, Transaction.AUTO_COMMIT)
     val converter = SimpleFeatureConverters.build[String](sft, ConfigFactory.parseString(converterConfig))
+    val callback = converter.processWithCallback(counter = counter)
     def release(): Unit = {
       fw.close()
     }
@@ -95,21 +95,15 @@ class ScaldingConverterIngestJob(args: Args) extends Job(args) with Logging {
       }
   }
 
-  private def processLine(resources: Resources, s: String) = {
-    val converter = resources.converter
-    val fw = resources.fw
-    implicit val ec = resources.ec
-    ec.getCounter.incLineCount()
-    converter
-      .processSingleInput(s)
+  private def processLine(resources: Resources, s: String) =
+    resources.callback(s)
       .foreach { sf =>
-        val toWrite = fw.next()
+        val toWrite = resources.fw.next()
         toWrite.setAttributes(sf.getAttributes)
         toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(sf.getID)
         toWrite.getUserData.putAll(sf.getUserData)
-        fw.write()
+        resources.fw.write()
       }
-  }
 
   def runTestIngest(lines: Iterator[String]) = {
     val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]

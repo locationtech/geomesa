@@ -36,17 +36,20 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType,
 
   val evaluationContexts = List.fill(converters.length)(new EvaluationContext(null, null))
 
-  override def processInput(is: Iterator[I],  gParams: Map[String, Any] = Map.empty, counter: Counter = new DefaultCounter): Iterator[SimpleFeature] = {
+  def processWithCallback(gParams: Map[String, Any] = Map.empty, counter: Counter = new DefaultCounter): (I) => Seq[SimpleFeature] = {
     var count = 0
-    is.flatMap { input =>
+    (input: I) => {
       count += 1
       converters.view.zipWithIndex.flatMap { case ((pred, conv), i) =>
         implicit val ec = evaluationContexts(i)
         ec.getCounter.setLineCount(count)
         processIfValid(input, pred, conv, gParams)
       }.headOption
-    }
+    }.toSeq
   }
+
+  override def processInput(is: Iterator[I],  gParams: Map[String, Any] = Map.empty, counter: Counter = new DefaultCounter): Iterator[SimpleFeature] =
+    is.flatMap(processWithCallback(gParams, counter))
 
   // noop
   override def processSingleInput(i: I, gParams: Map[String, Any] = Map.empty)(implicit ec: EvaluationContext): Seq[SimpleFeature] = null

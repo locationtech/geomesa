@@ -123,9 +123,8 @@ object Utils {
       Seq(parseString, parseFile)
        .view.map(_(configArg))
        .find(_.nonEmpty)
-        .getOrElse {
-          throw new IllegalArgumentException(s"Unable to parse Converter config from argument $configArg")
-        }.get
+       .getOrElse(throw new IllegalArgumentException(s"Unable to parse Converter config from argument $configArg"))
+       .get
 
     private[Configurator] val parseString: ConfigParser = (configArg: String) =>
       Try(ConfigFactory.parseString(configArg)) match {
@@ -157,9 +156,8 @@ object Utils {
       (configParsers ++ Seq(getSpecParser(specArg, Option(featureName))))
         .view.map(_())
         .find(_.nonEmpty)
-        .getOrElse {
-          throw new ParameterException("Unable to parse Simple Feature type from sft config or string")
-        }.get
+        .getOrElse(throw new ParameterException("Unable to parse Simple Feature type from sft config or string"))
+        .get
     }
 
     private[Speculator] def getSpecParser (specArg: String, nameOpt: Option[String]) : SpecParser = () => {

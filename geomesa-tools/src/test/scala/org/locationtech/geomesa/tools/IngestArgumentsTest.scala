@@ -1,5 +1,7 @@
 package org.locationtech.geomesa.tools
 
+import java.io.File
+
 import com.beust.jcommander.ParameterException
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
@@ -72,8 +74,6 @@ class IngestArgumentsTest extends Specification {
       | }
       """.stripMargin
 
-
-
   "Speculator" should {
     "work with sft and converter configs" >> {
       val sft = Speculator.getSft(sftSpec, featureName, convertConfig)
@@ -95,6 +95,14 @@ class IngestArgumentsTest extends Specification {
       sft.getDescriptor(2).getLocalName mustEqual "geom"
     }
 
+    "parse a combined config" >> {
+      val sft = Speculator.getSft(combined, null, combined)
+      sft.getAttributeCount mustEqual 3
+      sft.getDescriptor(0).getLocalName mustEqual "name"
+      sft.getDescriptor(1).getLocalName mustEqual "age"
+      sft.getDescriptor(2).getLocalName mustEqual "geom"
+    }
+
     "parse a combined config only" >> {
       val sft = Speculator.getSft(null, null, combined)
       sft.getAttributeCount mustEqual 3
@@ -104,21 +112,19 @@ class IngestArgumentsTest extends Specification {
     }
   }
 
-//  "GeoMesa Ingest Command" should {
-//    "work with sft and converter configs" >> {
-//
-//
-//      val args = s"ingest --mock true -i test -u root -p secret -c IngestAgumentsTest -fn $featureName".split("\\s+") ++
-//        Array("-s", sftConfig, "--convert", convertConfig) ++
-//        Array("/tmp/foobar")
-//
-//
-//      Runner.main(args)
-//
-//      success
-//
-//
-//    }
-//  }
+  "GeoMesa Ingest Command" should {
+    "work with sft and converter configs in files" >> {
+      val confFile = new File(this.getClass.getClassLoader.getResource("examples/example1.conf").getFile)
+      val dataFile = new File(this.getClass.getClassLoader.getResource("examples/example1.csv").getFile)
+
+
+      val args = s"ingest --mock true -i test -u foo -p bar -c IngestAgumentsTest -fn $featureName".split("\\s+") ++
+        Array( "-conf", confFile.getPath, "-fmt", "csv") ++
+        Array(dataFile.getPath)
+
+      Runner.main(args)
+      success
+    }
+  }
 
 }

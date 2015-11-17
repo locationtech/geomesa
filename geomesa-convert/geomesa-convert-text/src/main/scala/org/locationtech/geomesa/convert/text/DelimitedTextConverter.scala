@@ -109,21 +109,12 @@ class DelimitedTextConverter(format: CSVFormat,
     Seq(ret)
   }
 
-
-  override def processInput(is: Iterator[String], gParams: Map[String, Any] = Map.empty, counter: Counter = new DefaultCounter): Iterator[SimpleFeature] = {
-    implicit val ctx = new EvaluationContext(inputFieldIndexes, null, counter)
-
-    val itr =
-      if (options.skipHeader) {
-        counter.incLineCount()
-        is.drop(1)
-      } else is
-
-    itr.flatMap { s =>
-      counter.incLineCount()
-      processSingleInput(s, gParams)
-    }
-  }
+  private var skip = options.skipHeader
+  override def preProcess(i: String)(implicit ec: EvaluationContext): Option[String] =
+    if (skip) {
+      skip = false
+      None
+    } else Some(i)
 
   override def close(): Unit = {
     es.shutdownNow()

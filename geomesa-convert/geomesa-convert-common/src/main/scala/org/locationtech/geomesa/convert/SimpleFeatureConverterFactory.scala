@@ -63,6 +63,7 @@ object SimpleFeatureConverters {
 trait SimpleFeatureConverter[I] {
   def targetSFT: SimpleFeatureType
   def processInput(is: Iterator[I], globalParams: Map[String, Any] = Map.empty, counter: Counter = new DefaultCounter): Iterator[SimpleFeature]
+  def processWithCallback(gParams: Map[String, Any] = Map.empty, counter: Counter = new DefaultCounter): (I) => Seq[SimpleFeature]
   def processSingleInput(i: I, globalParams: Map[String, Any] = Map.empty)(implicit ec: EvaluationContext): Seq[SimpleFeature]
   def close(): Unit = {}
 }
@@ -126,7 +127,8 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
     }
     sf
   }
-  //implicit val ctx = new EvaluationContext(inputFieldIndexes, null)
+
+  protected[this] def preProcess(i: I)(implicit ec: EvaluationContext): Option[I] = Some(i)
 
   override def processSingleInput(i: I, gParams: Map[String, Any])(implicit ec: EvaluationContext): Seq[SimpleFeature] = {
     val counter = ec.getCounter
@@ -161,12 +163,15 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
     }
   }
 
-  def processInput(is: Iterator[I], gParams: Map[String, Any] = Map.empty, counter: Counter = new DefaultCounter): Iterator[SimpleFeature] = {
+  def processWithCallback(gParams: Map[String, Any] = Map.empty, counter: Counter = new DefaultCounter): (I) => Seq[SimpleFeature] = {
     implicit val ctx = new EvaluationContext(inputFieldIndexes, null, counter)
-    is.flatMap { s =>
+    (i: I) => {
       counter.incLineCount()
-      processSingleInput(s, gParams)
+      preProcess(i).map(processSingleInput(_, gParams)).getOrElse(Seq.empty[SimpleFeature])
     }
   }
+
+  def processInput(is: Iterator[I], gParams: Map[String, Any] = Map.empty, counter: Counter = new DefaultCounter): Iterator[SimpleFeature] =
+    is.flatMap(processWithCallback(gParams, counter))
 
 }

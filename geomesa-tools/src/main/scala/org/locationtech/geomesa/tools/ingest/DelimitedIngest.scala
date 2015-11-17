@@ -21,10 +21,10 @@ import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.tools.Utils.Modes._
-import org.locationtech.geomesa.tools.Utils.{Configurator, Speculator, IngestParams, Modes}
+import org.locationtech.geomesa.tools.Utils._
 import org.locationtech.geomesa.tools.commands.IngestCommand.IngestParameters
 import org.locationtech.geomesa.tools.ingest.DelimitedIngest._
-import org.locationtech.geomesa.tools.{AccumuloProperties, FeatureCreator}
+import org.locationtech.geomesa.tools.{DataStoreHelper, AccumuloProperties, FeatureCreator}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
@@ -34,13 +34,12 @@ import scala.collection.JavaConverters._
 class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
 
   val sft = Speculator.getSft(params.spec, params.featureName, params.convertSpec)
-  val converter = Option(params.convertSpec).map(Configurator.getConfig).map(SimpleFeatureConverters.build(sft, _)).getOrElse {
-    throw new IllegalArgumentException(s"Unable to parse converter spec from: ${params.convertSpec}")
-  }
+  val converterConfig = Configurator.getConfig(params.convertSpec)
 
   def run(): Unit = {
     // create schema for the feature prior to Ingest job
-    FeatureCreator.createFeature(params, params.convertSpec)
+//    FeatureCreator.createFeature(params, params.convertSpec)
+    val ds = new DataStoreHelper(params).getOrCreateDs().createSchema(sft)
 
     val conf = new Configuration()
     JobUtils.setLibJars(conf, libJars = ingestLibJars, searchPath = ingestJarSearchPath)
@@ -106,8 +105,10 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
       IngestParams.ACCUMULO_INSTANCE -> Option(params.instance).getOrElse(instanceName),
       IngestParams.ACCUMULO_USER     -> params.user,
       IngestParams.ACCUMULO_PASSWORD -> getPassword(params.password),
-      IngestParams.FEATURE_NAME      -> params.featureName,
-      IngestParams.IS_TEST_INGEST    -> false.toString
+      IngestParams.ACCUMULO_MOCK     -> params.useMock.toString,
+      IngestParams.FEATURE_NAME      -> sft.getTypeName,
+      IngestParams.IS_TEST_INGEST    -> false.toString,
+      IngestParams.CONVERTER_CONFIG  -> URLEncoder.encode(converterConfig.root().render, StandardCharsets.UTF_8.displayName)
     ).mapValues(List(_))
 
     val optionalKvArgs: Map[String, List[String]] = List(
