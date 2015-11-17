@@ -118,17 +118,17 @@ object QueryStatTransform extends StatTransform[QueryStat] {
    */
   private def getString(key: Hints.Key) =
     key match {
-      case TRANSFORMS           => "TRANSFORMS"
-      case TRANSFORM_SCHEMA     => "TRANSFORM_SCHEMA"
-      case BIN_TRACK_KEY        => "BIN_TRACK_KEY"
-      case RANGE_HISTOGRAM_KEY => "RANGE_HISTOGRAM_KEY"
-      case RANGE_HISTOGRAM_INTERVAL_KEY    => "RANGE_HISTOGRAM_INTERVAL_KEY"
-      case RETURN_ENCODED       => "RETURN_ENCODED"
-      case RANGE_HISTOGRAM_BUCKETS_KEY     => "RANGE_HISTOGRAM_BUCKETS_KEY"
-      case RANGE_HISTOGRAM_ATTRIBUTE     => "RANGE_HISTOGRAM_ATTRIBUTE"
-      case DENSITY_BBOX_KEY     => "DENSITY_BBOX_KEY"
-      case WIDTH_KEY            => "WIDTH_KEY"
-      case HEIGHT_KEY           => "HEIGHT_KEY"
-      case _                    => "unknown_hint"
+      case TRANSFORMS                       => "TRANSFORMS"
+      case TRANSFORM_SCHEMA                 => "TRANSFORM_SCHEMA"
+      case BIN_TRACK_KEY                    => "BIN_TRACK_KEY"
+      case RANGE_HISTOGRAM_KEY              => "RANGE_HISTOGRAM_KEY"
+      case RANGE_HISTOGRAM_INTERVAL_KEY     => "RANGE_HISTOGRAM_INTERVAL_KEY"
+      case RETURN_ENCODED                   => "RETURN_ENCODED"
+      case RANGE_HISTOGRAM_BUCKETS_KEY      => "RANGE_HISTOGRAM_BUCKETS_KEY"
+      case RANGE_HISTOGRAM_ATTRIBUTE        => "RANGE_HISTOGRAM_ATTRIBUTE"
+      case DENSITY_BBOX_KEY                 => "DENSITY_BBOX_KEY"
+      case WIDTH_KEY                        => "WIDTH_KEY"
+      case HEIGHT_KEY                       => "HEIGHT_KEY"
+      case _                                => "unknown_hint"
     }
 }
