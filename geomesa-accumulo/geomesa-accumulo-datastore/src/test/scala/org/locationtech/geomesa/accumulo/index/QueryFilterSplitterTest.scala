@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.accumulo.index
 
 import org.geotools.factory.CommonFactoryFinder
-import org.geotools.filter.AttributeExpression
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.tables.AvailableTables
@@ -444,7 +443,7 @@ class QueryFilterSplitterTest extends Specification {
         attrQueryFilter.primary.length mustEqual 5
         attrQueryFilter.primary.forall(_ must beAnInstanceOf[PropertyIsEqualTo])
         val attrProps = attrQueryFilter.primary.map(_.asInstanceOf[PropertyIsEqualTo])
-        foreach(attrProps) {_.getExpression1.asInstanceOf[AttributeExpression].getPropertyName mustEqual "high" }
+        foreach(attrProps) {_.getExpression1.asInstanceOf[org.opengis.filter.expression.PropertyName].getPropertyName mustEqual "high" }
         attrQueryFilter.secondary.isDefined mustEqual true
         attrQueryFilter.secondary.get must beAnInstanceOf[And]
         attrQueryFilter.secondary.get.asInstanceOf[And].getChildren.length mustEqual 2
@@ -456,7 +455,7 @@ class QueryFilterSplitterTest extends Specification {
         z3QueryFilters.primary.length mustEqual 2
         z3QueryFilters.secondary.get must beAnInstanceOf[Or]
         val z3Props = z3QueryFilters.secondary.get.asInstanceOf[Or].getChildren.map(_.asInstanceOf[PropertyIsEqualTo])
-        foreach (z3Props) { _.getExpression1.asInstanceOf[AttributeExpression].getPropertyName mustEqual "high" }
+        foreach (z3Props) { _.getExpression1.asInstanceOf[org.opengis.filter.expression.PropertyName].getPropertyName mustEqual "high" }
       }
 
       val orQuery = (0 until 5).map( i => s"high = 'h$i'").mkString(" OR ")
