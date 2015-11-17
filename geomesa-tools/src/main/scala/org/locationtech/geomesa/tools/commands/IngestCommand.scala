@@ -43,7 +43,7 @@ class IngestCommand(parent: JCommander) extends Command(parent) with Logging {
 object IngestCommand {
   @Parameters(commandDescription = "Ingest a file of various formats into GeoMesa")
   class IngestParameters extends CreateFeatureParams {
-    @Parameter(names = Array("--convert"), description = "GeoMesa Convert config or file")
+    @Parameter(names = Array("-conf", "--conf"), description = "GeoMesa configuration file for SFT and/or convert")
     var convertSpec: String = null
 
     @Parameter(names = Array("-is", "--index-schema"), description = "GeoMesa index schema format string")

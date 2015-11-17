@@ -22,7 +22,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.{params =
 import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, DefaultCounter}
-import org.locationtech.geomesa.jobs.scalding.UsefulFileSource
+import org.locationtech.geomesa.jobs.scalding.{MultipleUsefulTextLineFiles, UsefulFileSource}
 import org.locationtech.geomesa.tools.Utils.IngestParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
@@ -60,10 +60,13 @@ class ScaldingConverterIngestJob(args: Args) extends Job(args) with Logging {
 
   // non-serializable resources.
   class Resources {
+    implicit val ec = new EvaluationContext(null, null, counter)
     val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
-    val fw = ds.getFeatureWriterAppend(featureName, Transaction.AUTO_COMMIT)
+    lazy val fw = ds.getFeatureWriterAppend(featureName, Transaction.AUTO_COMMIT)
     val converter = SimpleFeatureConverters.build[String](sft, ConfigFactory.parseString(converterConfig))
-    def release(): Unit = { fw.close() }
+    def release(): Unit = {
+      fw.close()
+    }
   }
 
   def printStatInfo() {
@@ -86,47 +89,36 @@ class ScaldingConverterIngestJob(args: Args) extends Job(args) with Logging {
 
   // Check to see if this an actual ingest job or just a test.
   if (!isTestRun) {
-    new UsefulFileSource(pathList: _*).using(new Resources)
-      .foreach('file) { (cres: Resources, is: InputStream) =>
-        processInputStream(cres, is)
+    new MultipleUsefulTextLineFiles(pathList: _*).using(new Resources)
+      .foreach('line) { (cres: Resources, s: String) =>
+        processLine(cres, s)
       }
   }
 
-  private def processInputStream(resources: Resources, inputStream: InputStream) = {
+  private def processLine(resources: Resources, s: String) = {
+    val converter = resources.converter
     val fw = resources.fw
-    val converter = SimpleFeatureConverters.build[String](sft, ConfigFactory.parseString(converterConfig))
-    try {
-      converter
-        .processInput(IOUtils.lineIterator(inputStream, StandardCharsets.UTF_8), counter = counter)
-        .foreach { sf =>
-          val toWrite = fw.next()
-          toWrite.setAttributes(sf.getAttributes)
-          toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(sf.getID)
-          toWrite.getUserData.putAll(sf.getUserData)
-          fw.write()
-        }
-    } finally {
-      fw.close()
-    }
+    implicit val ec = resources.ec
+    ec.getCounter.incLineCount()
+    converter
+      .processSingleInput(s)
+      .foreach { sf =>
+        val toWrite = fw.next()
+        toWrite.setAttributes(sf.getAttributes)
+        toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(sf.getID)
+        toWrite.getUserData.putAll(sf.getUserData)
+        fw.write()
+      }
   }
 
   def runTestIngest(lines: Iterator[String]) = {
     val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
     ds.createSchema(sft)
-    val fw = ds.getFeatureWriterAppend(featureName, Transaction.AUTO_COMMIT)
-    val converter = SimpleFeatureConverters.build[String](sft, ConfigFactory.parseString(converterConfig))
+    val res = new Resources
     try {
-      converter
-        .processInput(lines, counter = counter)
-        .foreach { sf =>
-          val toWrite = fw.next()
-          toWrite.setAttributes(sf.getAttributes)
-          toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(sf.getID)
-          toWrite.getUserData.putAll(sf.getUserData)
-          fw.write()
-        }
+      lines.foreach(processLine(res, _))
     } finally {
-      fw.close()
+      res.release()
     }
   }
 
