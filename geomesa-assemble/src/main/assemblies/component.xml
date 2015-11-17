@@ -60,6 +60,16 @@
             </includes>
             <filtered>true</filtered>
         </fileSet>
+        <fileSet>
+            <directory>../geomesa-tools/examples/ingest</directory>
+            <outputDirectory>examples/ingest</outputDirectory>
+            <fileMode>0755</fileMode>
+            <includes>
+                <include>example1.conf</include>
+                <include>example1.csv</include>
+            </includes>
+            <filtered>true</filtered>
+        </fileSet>
     </fileSets>
     <files>
         <file>

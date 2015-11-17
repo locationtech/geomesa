@@ -433,9 +433,11 @@ Attribute expressions are comma-separated expressions with each in the format
         -fmt csv -q "[[ user_name like `John%' ] AND [ bbox(geom, 22.1371589, 44.386463, 40.228581, 52.379581, 'EPSG:4326') ]]"
     
 ### ingest
-Ingests CSV, TSV, and SHP files from the local file system and HDFS. CSV and TSV files can be ingested either with explicit latitude and longitude columns or with a column of WKT geometries.
-For lat/lon column ingest, the sft spec must include an additional geometry attribute in the sft beyond the number of columns in the file such as: `*geom:Point`.
-The file type is inferred from the extension of the file, so ensure that the formatting of the file matches the extension of the file and that the extension is present.
+Ingests line-oriented delimited text (csv, tsv) and SHP files from the local file system and HDFS. CSV and TSV files  
+can be ingested either with explicit latitude and longitude columns or with a column of WKT geometries.
+For lat/lon column ingest, the sft spec must include an additional geometry attribute in the sft beyond the number of 
+columns in the file such as: `*geom:Point`. The file type is inferred from the extension of the file, so ensure that 
+the formatting of the file matches the extension of the file and that the extension is present.
 *Note* the header if present is not parsed by Ingest for information, it is assumed that all lines are valid entries.
 
 ####Usage (required options denoted with star):
@@ -447,49 +449,25 @@ The file type is inferred from the extension of the file, so ensure that the for
            Accumulo authorizations
       * -c, --catalog
            Catalog table name for GeoMesa
-        -cols, --columns
-           the set of column indexes to be ingested, must match the
-           SimpleFeatureType spec (zero-indexed)
-        -dtf, --dt-format
-           format string for the date time field
-        -dt, --dtg
-           DateTime field name to use as the default dtg
-      * -fn, --feature-name
+        -conf, --conf
+           GeoMesa configuration file for SFT and/or convert
+        -fn, --feature-name
            Simple Feature Type name on which to operate
         -fmt, --format
-           format of incoming data (csv | tsv | shp) to override file extension
-           recognition
-        -h, --hash
-           flag to toggle using md5hash as the feature id
-           Default: false
-        -id, --id-fields
-           the set of attributes to combine together to create a unique id for the
-           feature (comma separated)
+           indicate non-converter ingest (shp)
         -is, --index-schema
            GeoMesa index schema format string
         -i, --instance
            Accumulo instance name
-        -lat, --lat-attribute
-           name of the latitude field in the SimpleFeature if latitude is 
-           kept in the SFT spec; otherwise defines the csv field index used to create the
-           default geometry
-        -lon, --lon-attribute
-           name of the longitude field in the SimpleFeature if longitude is 
-           kept in the SFT spec; otherwise defines the csv field index used to create the
-           default geometry
         -mc, --mock
            Run everything with a mock accumulo instance instead of a real one
+           (true/false)
            Default: false
         -p, --password
            Accumulo password (will prompt if not supplied)
-        -sh, --shards
-           Number of shards to use for the storage tables (defaults to number of
-           tservers)
-      * -s, --spec
-           SimpleFeatureType specification
-        -st, --use-shared-tables
-           Use shared tables in Accumulo for feature storage (true/false)
-           Default: true
+        -s, --spec
+           SimpleFeatureType specification as a GeoTools spec string, SFT config, or
+           file with either
       * -u, --user
            Accumulo user name
         -v, --visibilities
@@ -498,55 +476,56 @@ The file type is inferred from the extension of the file, so ensure that the for
            Zookeepers (host[:port], comma separated)
 
 
+
 #### Example commands:
 
 ##### Ingest CSV with single WKT (Well Known Text) geometry
 
-    # file.csv (comma separated)
-    featureId,date,geom
-    1.23623623,01/01/2014 06:30:23,POINT(2 3)
-    290.43234,01/02/2014 08:35:24,POINT(3 3)
-    3.14159,01/03/2014 18:11:56,POINT(4 5)
+    $ cat example1.csv
+    ID,Name,Age,LastSeen,Friends,Lat,Lon
+    23623,Harry,20,2015-05-06,"Will, Mark, Suzan",-100.236523,23
+    26236,Hermoine,25,2015-06-07,"Edward, Bill, Harry",40.232,-53.2356
+    3233,Severus,30,2015-10-23,"Tom, Riddle, Voldemort",3,-62.23
+        
+    # cat example1.conf
+    {
+      sft = {
+        type-name = "renegades"
+        attributes = [
+          {name = "id", type = "Integer", index = false},
+          {name = "name", type = "String", index = true},
+          {name = "age", type = "Integer", index = false},
+          {name = "lastseen", type = "Date", index = true},
+          {name = "friends", type = "List[String]", index = true},
+          {name = "geom", type = "Point", index = true, srid = 4326, default = true}
+        ]
+      },
+      converter = {
+        type = "delimited-text",
+        format = "CSV",
+        options {
+          skip-header: true
+        },
+        id-field = "toString($id)",
+        fields = [
+          {name = "id", transform = "$1::int"},
+          {name = "name", transform = "$2::string"},
+          {name = "age", transform = "$3::int"},
+          {name = "lastseen", transform = "$4::date"},
+          {name = "friends", transform = "parseList('string', $5)"},
+          {name = "lon", transform = "$6::double"},
+          {name = "lat", transform = "$7::double"},
+          {name = "geom", transform = "point($lon, $lat)"}
+        ]
+      }
+    }
 
     # ingest command
-    geomesa ingest -u username -p password -c geomesa_catalog -fn myfeature -s 'fid:Double,dtg:Date,*geom:Geometry' \
-        --dtg dtg -dtf "MM/dd/yyyy HH:mm:ss" hdfs:///some/hdfs/path/to/file.csv
+    geomesa ingest -u username -p password -c geomesa_catalog -i inst -conf example1.conf hdfs:///some/hdfs/path/to/file.csv
 
-##### Ingest lon/lat that are part of the SimpleFeatureType using a feature id made of the hash of two fields
- 
-    # file.tsv (tab separated)
-    2.3623  01/01/2014 06:30:23 38.023 -74.0002
-    23.333  01/01/2014 06:30:23 39.424 -76.02
-    10.021  01/01/2014 06:30:23 40.325 -75.883
-    
-    # ingest command
-    geomesa ingest -u username -p password -c geomesa_catalog -a someAuths -v someVis -sh 42 -fn myfeature
-     -s fid:Double,dtg:Date,lon:Double,lat:Double,*geom:Point -dt dtg -dtf "MM/dd/yyyy HH:mm:ss" 
-     -id fid,dtg -h -lon lon -lat lat /some/local/path/to/file.tsv
+##### Converter Config
 
-##### Create geometry field from the lon/lat but drop the lon/lat from the FeatureType spec - List[Int] is ingested
-
-    # file.csv (comma separated
-    "2014-01-01 22:33:44","38.023","-74.0002","5,6,7"
-    "2014-01-02 22:33:44","39.023","-78.0002",""
-    "2014-01-03 22:33:44","50.023","-73.0002","1, 2, 3"
-    
-    # ingest command
-    geomesa ingest -u username -p password -c geomesa_catalog -fn myfeature
-     -s 'dtg:Date,myList:List[Int],*geom:Point' -cols '0,3' -dt dtg -dtf "MM-dd-yyyy HH:mm:ss" 
-     -lon 1 -lat 2 /some/local/path/to/file.csv
-
-##### Create geometry field from the lon/lat but drop the lon/lat from the FeatureType spec - Map[String,Int] is ingested
-
-    # file.csv (comma separated
-    "2014-01-01 22:33:44","38.023","-74.0002","a,5;b,6;c,7"
-    "2014-01-02 22:33:44","39.023","-78.0002",""
-    "2014-01-03 22:33:44","50.023","-73.0002","a,1;b,2;d,3"
-
-    # ingest command
-    geomesa ingest -u username -p password -c geomesa_catalog -fn myfeature
-     -s 'dtg:Date,myMap:Map[String,Int],*geom:Point' -cols '0,3' -dt dtg -dtf "MM-dd-yyyy HH:mm:ss"
-     -lon 1 -lat 2 -md "," ";" /some/local/path/to/file.csv
+For more documentation on converter configuration, check out the geomesa-convert README
 
 ##### Ingest a shape file
     geomesa ingest -u username -p password -c test_catalog -f shapeFileFeatureName /some/path/to/file.shp
