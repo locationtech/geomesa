@@ -6,9 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.process.temporalDensity
-
-import java.util.Date
+package org.locationtech.geomesa.accumulo.process.rangeHistogram
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data.Query
@@ -18,17 +16,16 @@ import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
-import org.joda.time.Interval
 import org.locationtech.geomesa.accumulo.index.QueryHints
-import org.locationtech.geomesa.accumulo.iterators.TemporalDensityIterator.createFeatureType
+import org.locationtech.geomesa.accumulo.iterators.RangeHistogramIterator.createFeatureType
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 
 @DescribeProcess(
-  title = "Temporal Density Process",
-  description = "Returns a histogram of how many data points fall in different time buckets within an interval."
+  title = "Range Histogram Process",
+  description = "Returns a histogram of how many data points fall in different buckets within an interval."
 )
-class TemporalDensityProcess extends Logging {
+class RangeHistogramProcess extends Logging {
 
   @DescribeResult(description = "Output feature collection")
   def execute(
@@ -38,38 +35,42 @@ class TemporalDensityProcess extends Logging {
                features: SimpleFeatureCollection,
 
                @DescribeParameter(
-                 name = "startDate",
-                 description = "The start of the time interval")
-               startDate: Date,
+                 name = "intervalStart",
+                 description = "The start of the interval")
+               intervalStart: Long,
 
                @DescribeParameter(
-                 name = "endDate",
-                 description = "The end of the time interval")
-               endDate: Date,
+                 name = "intervalEnd",
+                 description = "The end of the interval")
+               intervalEnd: Long,
 
                @DescribeParameter(
                  name = "buckets",
                  min = 1,
-                 description = "How many buckets we want to divide our time interval into.")
-               buckets: Int
+                 description = "How many buckets we want in our histogram")
+               buckets: Int,
+
+               @DescribeParameter(
+                 name = "attribute",
+                 description = "The attribute name to run the histogram against")
+               attribute: String
 
                ): SimpleFeatureCollection = {
 
-    logger.debug("Attempting Geomesa temporal density on type " + features.getClass.getName)
+    logger.debug("Attempting Geomesa range histogram process on type " + features.getClass.getName)
 
     if (features.isInstanceOf[ReTypingFeatureCollection]) {
       logger.warn("WARNING: layer name in geoserver must match feature type name in geomesa")
     }
 
-    val interval = new Interval(startDate.getTime, endDate.getTime)
-
-    val visitor = new TemporalDensityVisitor(features, interval, buckets)
+    val interval: com.google.common.collect.Range[java.lang.Long] = com.google.common.collect.Ranges.closed(intervalStart, intervalEnd)
+    val visitor = new RangeHistogramVisitor(features, interval, buckets, attribute)
     features.accepts(visitor, new NullProgressListener)
-    visitor.getResult.asInstanceOf[TDResult].results
+    visitor.getResult.asInstanceOf[RangeHistogramResult].results
   }
 }
 
-class TemporalDensityVisitor(features: SimpleFeatureCollection, interval: Interval, buckets: Int)
+class RangeHistogramVisitor(features: SimpleFeatureCollection, interval: com.google.common.collect.Range[java.lang.Long], buckets: Int, attribute: String)
   extends FeatureCalc with Logging {
 
   val retType = createFeatureType(features.getSchema())
@@ -81,19 +82,20 @@ class TemporalDensityVisitor(features: SimpleFeatureCollection, interval: Interv
     manualVisitResults.add(sf)
   }
 
-  var resultCalc: TDResult = new TDResult(manualVisitResults)
+  var resultCalc: RangeHistogramResult = new RangeHistogramResult(manualVisitResults)
 
   override def getResult: CalcResult = resultCalc
 
-  def setValue(r: SimpleFeatureCollection) = resultCalc = TDResult(r)
+  def setValue(r: SimpleFeatureCollection) = resultCalc = RangeHistogramResult(r)
 
   def query(source: SimpleFeatureSource, query: Query) = {
-    logger.debug("Running Geomesa temporal density process on source type " + source.getClass.getName)
-    query.getHints.put(QueryHints.TEMPORAL_DENSITY_KEY, java.lang.Boolean.TRUE)
-    query.getHints.put(QueryHints.TIME_INTERVAL_KEY, interval)
-    query.getHints.put(QueryHints.TIME_BUCKETS_KEY, buckets)
+    logger.debug("Running Geomesa range histogram process on source type " + source.getClass.getName)
+    query.getHints.put(QueryHints.RANGE_HISTOGRAM_KEY, java.lang.Boolean.TRUE)
+    query.getHints.put(QueryHints.RANGE_HISTOGRAM_INTERVAL_KEY, interval)
+    query.getHints.put(QueryHints.RANGE_HISTOGRAM_BUCKETS_KEY, buckets)
+    query.getHints.put(QueryHints.RANGE_HISTOGRAM_ATTRIBUTE, attribute)
     source.getFeatures(query)
   }
 }
 
-case class TDResult(results: SimpleFeatureCollection) extends AbstractCalcResult
+case class RangeHistogramResult(results: SimpleFeatureCollection) extends AbstractCalcResult

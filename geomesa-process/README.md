@@ -3,7 +3,7 @@
 The following analytic processes are available and optimized on GeoMesa data stores.
 
 * `DensityProcess` - computes a density heatmap for a CQL query
-* `TemporalDensityProcess` - returns a time series for a CQL query
+* `RangeHistogramProcess` - returns a histogram for a CQL query for a particular attribute
 * `TubeSelectProcess` - performs a correlated search across time/space dimensions
 * `ProximitySearchProcess` - performs a nearest neighbor search
 * `QueryProcess` - optimizes GeoMesa queries in WPS chains

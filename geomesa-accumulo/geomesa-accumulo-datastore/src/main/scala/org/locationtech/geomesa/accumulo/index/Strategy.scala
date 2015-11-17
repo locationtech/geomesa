@@ -191,17 +191,18 @@ object Strategy extends Logging {
                                    schema: String,
                                    featureEncoding: SerializationType,
                                    featureType: SimpleFeatureType) = hints match {
-    case _ if hints.containsKey(TEMPORAL_DENSITY_KEY) =>
-      val clazz = classOf[TemporalDensityIterator]
+    case _ if hints.containsKey(RANGE_HISTOGRAM_KEY) =>
+      val clazz = classOf[RangeHistogramIterator]
 
       val cfg = new IteratorSetting(iteratorPriority_AnalysisIterator,
         "topfilter-" + randomPrintableString(5),
         clazz)
 
-      val interval = hints.get(TIME_INTERVAL_KEY).asInstanceOf[Interval]
-      val buckets = hints.get(TIME_BUCKETS_KEY).asInstanceOf[Int]
+      val interval = hints.get(RANGE_HISTOGRAM_INTERVAL_KEY).asInstanceOf[com.google.common.collect.Range[java.lang.Long]]
+      val buckets = hints.get(RANGE_HISTOGRAM_BUCKETS_KEY).asInstanceOf[Int]
+      val attribute = hints.get(RANGE_HISTOGRAM_ATTRIBUTE).asInstanceOf[java.lang.String]
 
-      TemporalDensityIterator.configure(cfg, interval, buckets)
+      RangeHistogramIterator.configure(cfg, interval, buckets, attribute)
 
       configureFeatureEncoding(cfg, featureEncoding)
       configureFeatureType(cfg, featureType)

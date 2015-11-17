@@ -9,19 +9,16 @@
 package org.locationtech.geomesa.accumulo.iterators
 
 import com.vividsolutions.jts.geom.Envelope
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.hadoop.io.Text
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStore, DataUtilities, Query}
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
-import org.joda.time.{DateTime, DateTimeZone, Interval}
+import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.{Constants, QueryHints}
-import org.locationtech.geomesa.accumulo.iterators.TemporalDensityIterator.{TIME_SERIES, decodeTimeSeries, jsonToTimeSeries}
+import org.locationtech.geomesa.accumulo.iterators.RangeHistogramIterator.{HISTOGRAM_SERIES, decodeHistogramMap, jsonToHistogramMap}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -30,9 +27,8 @@ import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
-
 @RunWith(classOf[JUnitRunner])
-class TemporalDensityIteratorTest extends Specification {
+class RangeHistogramIteratorTest extends Specification {
 
   sequential
 
@@ -77,9 +73,10 @@ class TemporalDensityIteratorTest extends Specification {
   def getQuery(query: String): Query = {
     val q = new Query("test", ECQL.toFilter(query))
     val geom = q.getFilter.accept(ExtractBoundsFilterVisitor.BOUNDS_VISITOR, null).asInstanceOf[Envelope]
-    q.getHints.put(QueryHints.TEMPORAL_DENSITY_KEY, java.lang.Boolean.TRUE)
-    q.getHints.put(QueryHints.TIME_INTERVAL_KEY, new Interval(new DateTime("2012-01-01T0:00:00", DateTimeZone.UTC).getMillis, new DateTime("2012-01-02T0:00:00", DateTimeZone.UTC).getMillis))
-    q.getHints.put(QueryHints.TIME_BUCKETS_KEY, 24)
+    q.getHints.put(QueryHints.RANGE_HISTOGRAM_KEY, java.lang.Boolean.TRUE)
+    q.getHints.put(QueryHints.RANGE_HISTOGRAM_INTERVAL_KEY, com.google.common.collect.Ranges.closed(new java.lang.Long(0L), new java.lang.Long(300L)))
+    q.getHints.put(QueryHints.RANGE_HISTOGRAM_BUCKETS_KEY, 30)
+    q.getHints.put(QueryHints.RANGE_HISTOGRAM_ATTRIBUTE, "attr")
     q.getHints.put(QueryHints.RETURN_ENCODED, java.lang.Boolean.TRUE)
     q
   }
@@ -87,66 +84,75 @@ class TemporalDensityIteratorTest extends Specification {
   def getQueryJSON(query: String): Query = {
     val q = new Query("test", ECQL.toFilter(query))
     val geom = q.getFilter.accept(ExtractBoundsFilterVisitor.BOUNDS_VISITOR, null).asInstanceOf[Envelope]
-    q.getHints.put(QueryHints.TEMPORAL_DENSITY_KEY, java.lang.Boolean.TRUE)
-    q.getHints.put(QueryHints.TIME_INTERVAL_KEY, new Interval(new DateTime("2012-01-01T0:00:00", DateTimeZone.UTC).getMillis, new DateTime("2012-01-02T0:00:00", DateTimeZone.UTC).getMillis))
-    q.getHints.put(QueryHints.TIME_BUCKETS_KEY, 24)
+    q.getHints.put(QueryHints.RANGE_HISTOGRAM_KEY, java.lang.Boolean.TRUE)
+    q.getHints.put(QueryHints.RANGE_HISTOGRAM_INTERVAL_KEY, com.google.common.collect.Ranges.closed(new java.lang.Long(0L), new java.lang.Long(300L)))
+    q.getHints.put(QueryHints.RANGE_HISTOGRAM_ATTRIBUTE, "attr")
+    q.getHints.put(QueryHints.RANGE_HISTOGRAM_BUCKETS_KEY, 30)
     q
   }
 
-  "TemporalDensityIterator" should {
-    val spec = "id:java.lang.Integer,attr:java.lang.Double,dtg:Date,geom:Geometry:srid=4326"
+  "RangeHistogramIterator" should {
+    val spec = "id:java.lang.Integer,attr:java.lang.Long,dtg:Date,geom:Geometry:srid=4326"
     val sft = SimpleFeatureTypes.createType("test", spec)
     val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
     sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
-    val ds = createDataStore(sft,0)
+    val ds = createDataStore(sft, 0)
     val encodedFeatures = (0 until 150).toArray.map{
       i => Array(i.toString, "1.0", new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
     }
     val fs = loadFeatures(ds, sft, encodedFeatures)
 
     "reduce total features returned" in {
-      val q = getQuery("(dtg between '2012-01-01T00:00:00.000Z' AND '2012-01-02T00:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)")
+      val q = getQuery("(attr BETWEEN 0 AND 300) and BBOX(geom, -80, 33, -70, 40)")
+
       val results = fs.getFeatures(q)
       val allFeatures = results.features()
       val iter = allFeatures.toList
-      (iter must not).beNull
 
-      iter.length should be lessThan 150
+      (iter must not).beNull
       iter.length mustEqual 1
     }
 
-    "maintain total weights of time" in {
+    "reduce total features returned - json" in {
+      val q = getQueryJSON("(attr BETWEEN 0 AND 300) and BBOX(geom, -80, 33, -70, 40)")
 
-      val q = getQuery("(dtg between '2012-01-01T00:00:00.000Z' AND '2012-01-02T00:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)")
+      val results = fs.getFeatures(q)
+      val allFeatures = results.features()
+      val iter = allFeatures.toList
+
+      (iter must not).beNull
+      iter.length mustEqual 1
+    }
+
+    "retrieve accurate histogram when all data has same attribute value" in {
+      val q = getQuery("(attr BETWEEN 0 AND 300) and BBOX(geom, -80, 33, -70, 40)")
 
       val results = fs.getFeatures(q)
       val iter = results.features().toList
-      val sf = iter.head.asInstanceOf[SimpleFeature]
+      val sf = iter.head
       iter must not beNull
 
-      val timeSeries = decodeTimeSeries(sf.getAttribute(TIME_SERIES).asInstanceOf[String])
-      val totalCount = timeSeries.map { case (dateTime, count) => count}.sum
+      val histogramMap = decodeHistogramMap(sf.getAttribute(HISTOGRAM_SERIES).asInstanceOf[String])
+      val totalCount = histogramMap.map { case (attributeValue, count) => count}.sum
 
       totalCount mustEqual 150
-      timeSeries.size mustEqual 1
+      histogramMap.size mustEqual 1
     }
 
-    "maintain total weights of time - json" in {
-
-      val q = getQueryJSON("(dtg between '2012-01-01T00:00:00.000Z' AND '2012-01-02T00:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)")
+    "retrieve accurate histogram when all data has same attribute value - json" in {
+      val q = getQueryJSON("(attr BETWEEN 0 AND 300) and BBOX(geom, -80, 33, -70, 40)")
 
       val results = fs.getFeatures(q)
       val iter = results.features().toList
-      val sf = iter.head.asInstanceOf[SimpleFeature]
+      val sf = iter.head
       iter must not beNull
 
-      val timeSeries = jsonToTimeSeries(sf.getAttribute(TIME_SERIES).asInstanceOf[String])
-      val totalCount = timeSeries.map { case (dateTime, count) => count}.sum
+      val histogramMap = jsonToHistogramMap(sf.getAttribute(HISTOGRAM_SERIES).asInstanceOf[String])
+      val totalCount = histogramMap.map { case (attributeValue, count) => count}.sum
 
       totalCount mustEqual 150
-      timeSeries.size mustEqual 1
+      histogramMap.size mustEqual 1
     }
-
 
     "maintain total irrespective of point" in {
       val ds = createDataStore(sft, 1)
@@ -155,18 +161,18 @@ class TemporalDensityIteratorTest extends Specification {
       }
       val fs = loadFeatures(ds, sft, encodedFeatures)
 
-      val q = getQuery("(dtg between '2012-01-01T00:00:00.000Z' AND '2012-01-02T00:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)")
+      val q = getQuery("(attr BETWEEN 0 AND 300) and BBOX(geom, -80, 33, -70, 40)")
 
       val results = fs.getFeatures(q)
       val sfList = results.features().toList
 
-      val sf = sfList.head.asInstanceOf[SimpleFeature]
-      val timeSeries = decodeTimeSeries(sf.getAttribute(TIME_SERIES).asInstanceOf[String])
+      val sf = sfList.head
+      val histogramMap = decodeHistogramMap(sf.getAttribute(HISTOGRAM_SERIES).asInstanceOf[String])
 
-      val total = timeSeries.map { case (dateTime, count) => count}.sum
+      val totalCount = histogramMap.map { case (attributeValue, count) => count}.sum
 
-      total mustEqual 150
-      timeSeries.size mustEqual 1
+      totalCount mustEqual 150
+      histogramMap.size mustEqual 1
     }
 
     "maintain total irrespective of point - json" in {
@@ -176,47 +182,46 @@ class TemporalDensityIteratorTest extends Specification {
       }
       val fs = loadFeatures(ds, sft, encodedFeatures)
 
-      val q = getQueryJSON("(dtg between '2012-01-01T00:00:00.000Z' AND '2012-01-02T00:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)")
+      val q = getQueryJSON("(attr BETWEEN 0 AND 300) and BBOX(geom, -80, 33, -70, 40)")
 
       val results = fs.getFeatures(q)
       val sfList = results.features().toList
 
-      val sf = sfList.head.asInstanceOf[SimpleFeature]
-      val timeSeries = jsonToTimeSeries(sf.getAttribute(TIME_SERIES).asInstanceOf[String])
+      val sf = sfList.head
+      val histogramMap = jsonToHistogramMap(sf.getAttribute(HISTOGRAM_SERIES).asInstanceOf[String])
 
-      val total = timeSeries.map { case (dateTime, count) => count}.sum
+      val totalCount = histogramMap.map { case (attributeValue, count) => count}.sum
 
-      total mustEqual 150
-      timeSeries.size mustEqual 1
+      totalCount mustEqual 150
+      histogramMap.size mustEqual 1
     }
 
-    "correctly bin off of time intervals" in {
+    "correctly bin off of an attribute's interval" in {
       val ds = createDataStore(sft, 3)
-      val encodedFeatures = (0 until 48).toArray.map {
-        i => Array(i.toString, "1.0", new DateTime(s"2012-01-01T${i%24}:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
+      val encodedFeatures = (0 until 150).toArray.map {
+        i => Array(i.toString, i*2, new DateTime(s"2012-01-01T19:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
       }
       val fs = loadFeatures(ds, sft, encodedFeatures)
 
-      val q = getQuery("(dtg between '2012-01-01T00:00:00.000Z' AND '2012-01-02T00:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)")
-
+      val q = getQuery("(attr BETWEEN 0 AND 300) and BBOX(geom, -80, 33, -70, 40)")
 
       val results = fs.getFeatures(q)
-      val sf = results.features().toList.head.asInstanceOf[SimpleFeature]
-      val timeSeries = decodeTimeSeries(sf.getAttribute(TIME_SERIES).asInstanceOf[String])
+      val sf = results.features().toList.head
+      val histogramMap = decodeHistogramMap(sf.getAttribute(HISTOGRAM_SERIES).asInstanceOf[String])
 
-      val total = timeSeries.map {
-        case (dateTime, count) =>
-          count mustEqual 2L
+      val totalCount = histogramMap.map {
+        case (attributeValue, count) =>
+          count mustEqual 5L
           count}.sum
 
-      total mustEqual 48
-      timeSeries.size mustEqual 24
+      totalCount mustEqual 150
+      histogramMap.size mustEqual 30
     }
 
-    "correctly bin off of time intervals - json" in {
+    "correctly bin off of an attributes intervals - json" in {
       val ds = createDataStore(sft, 4)
-      val encodedFeatures = (0 until 48).toArray.map {
-        i => Array(i.toString, "1.0", new DateTime(s"2012-01-01T${i%24}:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
+      val encodedFeatures = (0 until 150).toArray.map {
+        i => Array(i.toString, i*2, new DateTime(s"2012-01-01T19:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
       }
       val fs = loadFeatures(ds, sft, encodedFeatures)
 
@@ -224,44 +229,70 @@ class TemporalDensityIteratorTest extends Specification {
 
 
       val results = fs.getFeatures(q)
-      val sf = results.features().toList.head.asInstanceOf[SimpleFeature]
-      val timeSeries = jsonToTimeSeries(sf.getAttribute(TIME_SERIES).asInstanceOf[String])
+      val sf = results.features().toList.head
+      val histogramMap = jsonToHistogramMap(sf.getAttribute(HISTOGRAM_SERIES).asInstanceOf[String])
 
-      val total = timeSeries.map {
-        case (dateTime, count) =>
-          count mustEqual 2L
+      val totalCount = histogramMap.map {
+        case (attributeValue, count) =>
+          count mustEqual 5L
           count}.sum
 
-      total mustEqual 48
-      timeSeries.size mustEqual 24
+      totalCount mustEqual 150
+      histogramMap.size mustEqual 30
     }
 
     "encode decode feature" in {
-      var timeSeries = new collection.mutable.HashMap[DateTime, Long]()
-      timeSeries.put(new DateTime("2012-01-01T00:00:00", DateTimeZone.UTC), 2)
-      timeSeries.put(new DateTime("2012-01-01T01:00:00", DateTimeZone.UTC), 8)
+      val histogramMap = new collection.mutable.HashMap[Long, Long]()
+      histogramMap.put(1L, 2)
+      histogramMap.put(2L, 8)
 
-      val encoded = TemporalDensityIterator.encodeTimeSeries(timeSeries)
-      val decoded = TemporalDensityIterator.decodeTimeSeries(encoded)
+      val encoded = RangeHistogramIterator.encodeHistogramMap(histogramMap)
+      val decoded = RangeHistogramIterator.decodeHistogramMap(encoded)
 
-      timeSeries mustEqual decoded
-      timeSeries.size mustEqual 2
-      timeSeries.get(new DateTime("2012-01-01T00:00:00", DateTimeZone.UTC)).get mustEqual 2L
-      timeSeries.get(new DateTime("2012-01-01T01:00:00", DateTimeZone.UTC)).get mustEqual 8L
+      histogramMap mustEqual decoded
+      histogramMap.size mustEqual 2
+      histogramMap.get(1L).get mustEqual 2L
+      histogramMap.get(2L).get mustEqual 8L
     }
 
-    "query dtg bounds not in DataStore" in {
+    "query attribute bounds not in DataStore" in {
       val ds = createDataStore(sft, 5)
-      val encodedFeatures = (0 until 48).toArray.map {
-        i => Array(i.toString, "1.0", new DateTime(s"2012-02-01T${i%24}:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
+      val encodedFeatures = (0 until 50).toArray.map {
+        i => Array(i.toString, i*2, new DateTime(s"2012-01-01T00:00:00.000Z", DateTimeZone.UTC).toDate, "POINT(-77 38)")
       }
       val fs = loadFeatures(ds, sft, encodedFeatures)
 
-      val q = getQuery("(dtg between '2012-01-01T00:00:00.000Z' AND '2012-01-02T00:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)")
+      val q = getQuery("(attr BETWEEN -20 AND -10) and BBOX(geom, -80, 33, -70, 40)")
 
       val results = fs.getFeatures(q)
       val sfList = results.features().toList
       sfList.length mustEqual 0
+    }
+
+    "query attribute bounds partially in DataStore" in {
+      val ds = createDataStore(sft, 5)
+      val encodedFeatures = (0 until 150).toArray.map {
+        i => Array(i.toString, i*2, new DateTime(s"2012-01-01T00:00:00.000Z", DateTimeZone.UTC).toDate, "POINT(-77 38)")
+      }
+      val fs = loadFeatures(ds, sft, encodedFeatures)
+
+      val q = getQuery("(attr BETWEEN 0 AND 150) and BBOX(geom, -80, 33, -70, 40)")
+
+      val results = fs.getFeatures(q)
+      val sf = results.features().toList.head
+      val histogramMap = decodeHistogramMap(sf.getAttribute(HISTOGRAM_SERIES).asInstanceOf[String])
+
+      val totalCount = histogramMap.map {
+        case (attributeValue, count) =>
+          if (attributeValue == 150) {
+            count mustEqual 1L
+          } else {
+            count mustEqual 5L
+          }
+          count}.sum
+
+      totalCount mustEqual 76
+      histogramMap.size mustEqual 16
     }
 
     "nothing to query over" in {
@@ -269,7 +300,7 @@ class TemporalDensityIteratorTest extends Specification {
       val encodedFeatures = new Array[Array[_]](0)
       val fs = loadFeatures(ds, sft, encodedFeatures)
 
-      val q = getQuery("(dtg between '2012-01-01T00:00:00.000Z' AND '2012-01-02T00:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)")
+      val q = getQuery("(attr BETWEEN 0 AND 300) and BBOX(geom, -80, 33, -70, 40)")
 
       val results = fs.getFeatures(q)
       val sfList = results.features().toList
@@ -281,7 +312,7 @@ class TemporalDensityIteratorTest extends Specification {
       val encodedFeatures = new Array[Array[_]](0)
       val fs = loadFeatures(ds, sft, encodedFeatures)
 
-      val q = getQueryJSON("(dtg between '2012-01-01T00:00:00.000Z' AND '2012-01-02T00:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)")
+      val q = getQueryJSON("(attr BETWEEN 0 AND 300) and BBOX(geom, -80, 33, -70, 40)")
 
       val results = fs.getFeatures(q)
       val sfList = results.features().toList

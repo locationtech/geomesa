@@ -11,8 +11,8 @@
 * accompanies this distribution and is available at
 * http://www.opensource.org/licenses/apache2.0.php.
 *********************************************************************-->
-<!-- curl -u admin:geoserver -H 'Content-type: xml' -XPOST -d@'temporaldensity.xml' http://localhost:8080/geoserver/wps | json_pp -->
-  <ows:Identifier>geomesa:TemporalDensity</ows:Identifier>
+<!-- curl -u admin:geoserver -H 'Content-type: xml' -XPOST -d@'rangehistogram.xml' http://localhost:8080/geoserver/wps | json_pp -->
+  <ows:Identifier>geomesa:RangeHistogram</ows:Identifier>
   <wps:DataInputs>
     <wps:Input>
       <ows:Identifier>features</ows:Identifier>
@@ -25,21 +25,27 @@
       </wps:Reference>
     </wps:Input>
     <wps:Input>
-      <ows:Identifier>startDate</ows:Identifier>
+      <ows:Identifier>intervalStart</ows:Identifier>
       <wps:Data>
-        <wps:LiteralData>2014-01-01T00:00:00</wps:LiteralData>
+        <wps:LiteralData>100</wps:LiteralData>
       </wps:Data>
     </wps:Input>
     <wps:Input>
-      <ows:Identifier>endDate</ows:Identifier>
+      <ows:Identifier>intervalEnd</ows:Identifier>
       <wps:Data>
-        <wps:LiteralData>2014-12-31T23:59:59</wps:LiteralData>
+        <wps:LiteralData>800</wps:LiteralData>
       </wps:Data>
     </wps:Input>
     <wps:Input>
       <ows:Identifier>buckets</ows:Identifier>
       <wps:Data>
-        <wps:LiteralData>12</wps:LiteralData>
+        <wps:LiteralData>20</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>attribute</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>What</wps:LiteralData>
       </wps:Data>
     </wps:Input>
   </wps:DataInputs>
