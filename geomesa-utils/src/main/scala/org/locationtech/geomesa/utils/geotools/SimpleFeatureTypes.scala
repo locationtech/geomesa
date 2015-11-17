@@ -44,14 +44,17 @@ object SimpleFeatureTypes {
   val USER_DATA_MAP_KEY_TYPE   = "keyclass"
   val USER_DATA_MAP_VALUE_TYPE = "valueclass"
 
-  def createType(conf: Config): SimpleFeatureType = {
-    val nameSpec = conf.getString("type-name")
+  def createType(conf: Config, path: Option[String] = Some("sft")): SimpleFeatureType = {
+    import org.locationtech.geomesa.utils.conf.ConfConversions._
+    val toParse = conf.getConfigOpt(path.get).map(conf.withFallback).getOrElse(conf)
+
+    val nameSpec = toParse.getString("type-name")
     val (namespace, name) = buildTypeName(nameSpec)
     val specParser = new SpecParser
 
-    val fields = getFieldConfig(conf).map(buildField(_, specParser))
-    val userData = if (conf.hasPath("user-data")) {
-      conf.getConfig("user-data").entrySet().map(e => e.getKey -> e.getValue.unwrapped()).toMap
+    val fields = getFieldConfig(toParse).map(buildField(_, specParser))
+    val userData = if (toParse.hasPath("user-data")) {
+      toParse.getConfig("user-data").entrySet().map(e => e.getKey -> e.getValue.unwrapped()).toMap
     } else {
       Map.empty[String, AnyRef]
     }

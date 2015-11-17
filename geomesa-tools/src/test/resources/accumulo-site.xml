@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<!--********************************************************************
+* Copyright (c) 2013-2015 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0 which
+* accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*********************************************************************-->
+
+<configuration>
+    <property>
+        <name>instance.zookeeper.host</name>
+        <value>foo:2181,bar:2181,baz:2181</value>
+    </property>
+
+</configuration>
+
