@@ -7,22 +7,20 @@
 *************************************************************************/
 package org.locationtech.geomesa.tools.ingest
 
-import java.io.InputStream
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
 import com.twitter.scalding.{Args, Hdfs, Job, Local, Mode}
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.commons.io.IOUtils
 import org.geotools.data.{DataStoreFinder, Transaction}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.{params => dsp}
 import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
-import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, DefaultCounter}
-import org.locationtech.geomesa.jobs.scalding.{MultipleUsefulTextLineFiles, UsefulFileSource}
+import org.locationtech.geomesa.convert.Transformers.DefaultCounter
+import org.locationtech.geomesa.jobs.scalding.MultipleUsefulTextLineFiles
 import org.locationtech.geomesa.tools.Utils.IngestParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
@@ -65,6 +63,8 @@ class ScaldingConverterIngestJob(args: Args) extends Job(args) with Logging {
     val converter = SimpleFeatureConverters.build[String](sft, ConfigFactory.parseString(converterConfig))
     val callback = converter.processWithCallback(counter = counter)
     def release(): Unit = {
+      logger.trace("Releasing ingest resources")
+      converter.close()
       fw.close()
     }
   }
@@ -72,7 +72,7 @@ class ScaldingConverterIngestJob(args: Args) extends Job(args) with Logging {
   def printStatInfo() {
     Mode.getMode(args) match {
       case Some(Local(_)) =>
-        logger.info(getStatInfo(counter.getSuccess, counter.getFailure, "Local ingest completed, total features:"))
+        logger.info(getStatInfo(counter.getSuccess, counter.getFailure, "Local ingest completed, total lines:"))
       case Some(Hdfs(_, _)) =>
         logger.info("Ingest completed in HDFS mode")
       case _ =>
@@ -117,5 +117,3 @@ class ScaldingConverterIngestJob(args: Args) extends Job(args) with Logging {
   }
 
 }
-
-

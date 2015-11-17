@@ -51,8 +51,8 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType,
   override def processInput(is: Iterator[I],  gParams: Map[String, Any] = Map.empty, counter: Counter = new DefaultCounter): Iterator[SimpleFeature] =
     is.flatMap(processWithCallback(gParams, counter))
 
-  // noop
-  override def processSingleInput(i: I, gParams: Map[String, Any] = Map.empty)(implicit ec: EvaluationContext): Seq[SimpleFeature] = null
+  override def processSingleInput(i: I, gParams: Map[String, Any] = Map.empty)(implicit ec: EvaluationContext): Seq[SimpleFeature] =
+    throw new UnsupportedOperationException("Single input processing is not enabled with composite converters...yet")
 
   private val mutableArray = Array.ofDim[Any](1)
 

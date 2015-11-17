@@ -28,6 +28,7 @@ class IngestCommand(parent: JCommander) extends Command(parent) with Logging {
 
   override def execute(): Unit = {
     val fmt = Option(params.format).getOrElse(getFileExtension(params.files(0)))
+
     fmt match {
       case CSV | TSV => new DelimitedIngest(params).run() //TODO converter may define fmt...better figure that out
       case SHP       =>
@@ -42,7 +43,10 @@ class IngestCommand(parent: JCommander) extends Command(parent) with Logging {
 
 object IngestCommand {
   @Parameters(commandDescription = "Ingest a file of various formats into GeoMesa")
-  class IngestParameters extends CreateFeatureParams {
+  class IngestParameters extends OptionalFeatureParams {
+    @Parameter(names = Array("-s", "--spec"), description = "SimpleFeatureType specification as a GeoTools spec string, SFT config, or file with either")
+    var spec: String = null
+
     @Parameter(names = Array("-conf", "--conf"), description = "GeoMesa configuration file for SFT and/or convert")
     var convertSpec: String = null
 
