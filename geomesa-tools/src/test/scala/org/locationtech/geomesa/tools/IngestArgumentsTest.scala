@@ -3,12 +3,12 @@ package org.locationtech.geomesa.tools
 import java.io.File
 
 import com.beust.jcommander.ParameterException
-import com.typesafe.config.ConfigFactory
+import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params
 import org.locationtech.geomesa.tools.Utils.Speculator
-import org.locationtech.geomesa.utils.geotools.{Conversions, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.stats.Cardinality
-import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.Conversions
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -113,18 +113,43 @@ class IngestArgumentsTest extends Specification {
   }
 
   "GeoMesa Ingest Command" should {
+    var n = 0
+    def nextId = {
+      n += 1
+      this.getClass.getSimpleName + n.toString
+    }
+
+    def getDS(id: String) = {
+      import scala.collection.JavaConversions._
+      def paramMap = Map[String, String](
+      params.instanceIdParam.getName -> id,
+      params.zookeepersParam.getName -> "zoo1:2181,zoo2:2181,zoo3:2181",
+      params.userParam.getName       -> "foo",
+      params.passwordParam.getName   -> "bar",
+      params.tableNameParam.getName  -> id,
+      params.mockParam.getName       -> "true")
+      DataStoreFinder.getDataStore(paramMap).asInstanceOf[AccumuloDataStore]
+    }
+
     "work with sft and converter configs in files" >> {
+      val id = nextId
       val confFile = new File(this.getClass.getClassLoader.getResource("examples/example1.conf").getFile)
       val dataFile = new File(this.getClass.getClassLoader.getResource("examples/example1.csv").getFile)
-
-
-      val args = s"ingest --mock true -i test -u foo -p bar -c IngestAgumentsTest -fn $featureName".split("\\s+") ++
-        Array( "-conf", confFile.getPath, "-fmt", "csv") ++
-        Array(dataFile.getPath)
+      val args = (s"ingest --mock true -i $id -u foo -p bar -c $id " +
+        s"-conf  ${confFile.getPath} ${dataFile.getPath}").split("\\s+")
+      args.length mustEqual 14
 
       Runner.main(args)
-      success
+
+      val ds = getDS(id)
+      import Conversions._
+      val features = ds.getFeatureSource("renegades").getFeatures.features().toList
+      features.size mustEqual 3
+      features.map(_.get[String]("name")) must containTheSameElementsAs(Seq("Hermoine", "Harry", "Severus"))
     }
+
+    // TODO GEOMESA-529 more testing of explicit commands
+
   }
 
 }
