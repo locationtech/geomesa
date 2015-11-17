@@ -113,6 +113,9 @@ class IngestArgumentsTest extends Specification {
   }
 
   "GeoMesa Ingest Command" should {
+    System.setProperty("geomesa.tools.accumulo.site.xml",
+      this.getClass.getClassLoader.getResource("accumulo-site.xml").getFile)
+
     var n = 0
     def nextId = {
       n += 1

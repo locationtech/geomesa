@@ -215,7 +215,11 @@ trait GetPassword {
  * the system path in ACCUMULO_HOME in the case that command line parameters are not provided
  */
 trait AccumuloProperties extends GetPassword with Logging {
-  lazy val accumuloConf = XML.loadFile(s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml")
+  lazy val accumuloConf = {
+    val conf = Option(System.getProperty("geomesa.tools.accumulo.site.xml"))
+      .getOrElse(s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml")
+    XML.loadFile(conf)
+  }
 
   lazy val zookeepersProp =
     (accumuloConf \\ "property")
