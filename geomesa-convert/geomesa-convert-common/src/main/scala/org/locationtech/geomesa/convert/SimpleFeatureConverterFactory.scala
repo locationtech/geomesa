@@ -51,8 +51,12 @@ trait SimpleFeatureConverterFactory[I] {
 object SimpleFeatureConverters {
   val providers = ServiceRegistry.lookupProviders(classOf[SimpleFeatureConverterFactory[_]]).toList
 
-  def build[I](sft: SimpleFeatureType, conf: Config) = {
-    val converterConfig = conf.getConfig("converter")
+  def build[I](sft: SimpleFeatureType, conf: Config, path: Option[String] = None) = {
+    import org.locationtech.geomesa.utils.conf.ConfConversions._
+    val converterConfig =
+      (path.toSeq ++ Seq("converter", "input-converter"))
+        .foldLeft(conf)( (c, p) => c.getConfigOpt(p).map(c.withFallback).getOrElse(c))
+
     providers
       .find(_.canProcess(converterConfig))
       .map(_.buildConverter(sft, converterConfig).asInstanceOf[SimpleFeatureConverter[I]])

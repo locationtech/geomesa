@@ -113,6 +113,7 @@ class IngestArgumentsTest extends Specification {
   }
 
   "GeoMesa Ingest Command" should {
+    // needed for travis build...
     System.setProperty("geomesa.tools.accumulo.site.xml",
       this.getClass.getClassLoader.getResource("accumulo-site.xml").getFile)
 
