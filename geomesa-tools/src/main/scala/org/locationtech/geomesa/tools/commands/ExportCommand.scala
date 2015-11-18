@@ -59,10 +59,10 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
     fmt match {
       case SHP =>
         val schemaString =
-          if (Option(params.attributes).nonEmpty) {
-            ShapefileExport.replaceGeomInAttributesString(params.attributes, sft)
-          } else {
+          if (params.attributes == null) {
             ShapefileExport.modifySchema(sft)
+          } else {
+            ShapefileExport.replaceGeomInAttributesString(params.attributes, sft)
           }
         getFeatureCollection(Some(schemaString))
       case BIN =>
