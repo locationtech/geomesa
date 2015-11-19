@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.apache.accumulo.core.client.Connector
+import org.apache.accumulo.core.client.{Scanner, Connector}
 import org.apache.accumulo.core.client.impl.{MasterClient, Tables}
 import org.apache.accumulo.core.client.mock.MockConnector
 import org.apache.accumulo.core.data.{Mutation, Range, Value}
@@ -148,7 +148,7 @@ class AccumuloBackedMetadata(connector: Connector,
    * @return
    */
   override def readNoCache(featureName: String, key: String): Option[String] = {
-    val scanner = createCatalogScanner
+    val scanner: Scanner = createCatalogScanner
     scanner.setRange(new Range(getMetadataRowKey(featureName)))
     scanner.fetchColumn(new Text(key), EMPTY_COLQ)
 
