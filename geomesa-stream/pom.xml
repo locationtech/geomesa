@@ -13,6 +13,7 @@
         <module>geomesa-stream-api</module>
         <module>geomesa-stream-generic</module>
         <module>geomesa-stream-datastore</module>
+        <module>geomesa-stream-geoserver-plugin</module>
     </modules>
     <packaging>pom</packaging>
 

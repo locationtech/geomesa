@@ -20,6 +20,7 @@
             <id>bigtable</id>
             <modules>
                 <module>geomesa-bigtable-datastore</module>
+                <module>geomesa-bigtable-geoserver-plugin</module>
             </modules>
         </profile>
     </profiles>
