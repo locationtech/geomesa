@@ -14,15 +14,14 @@ import com.twitter.scalding.{Args, Hdfs, Job, Local, Mode}
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data.{DataStoreFinder, Transaction}
+import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.{params => dsp}
-import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.convert.Transformers.DefaultCounter
 import org.locationtech.geomesa.jobs.scalding.MultipleUsefulTextLineFiles
 import org.locationtech.geomesa.tools.Utils.IngestParams
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 class ScaldingConverterIngestJob(args: Args) extends Job(args) with Logging {
   import scala.collection.JavaConversions._
@@ -30,7 +29,6 @@ class ScaldingConverterIngestJob(args: Args) extends Job(args) with Logging {
   val counter = new DefaultCounter
 
   lazy val pathList         = DelimitedIngest.decodeFileList(args(IngestParams.FILE_PATH))
-  lazy val sftSpec          = URLDecoder.decode(args(IngestParams.SFT_SPEC), StandardCharsets.UTF_8.displayName)
   lazy val featureName      = args(IngestParams.FEATURE_NAME)
   lazy val converterConfig  = URLDecoder.decode(args(IngestParams.CONVERTER_CONFIG), StandardCharsets.UTF_8.displayName)
   lazy val isTestRun        = args(IngestParams.IS_TEST_INGEST).toBoolean
@@ -48,17 +46,10 @@ class ScaldingConverterIngestJob(args: Args) extends Job(args) with Logging {
       dsp.mockParam.getName       -> args.optional(IngestParams.ACCUMULO_MOCK)
     ).collect{ case (key, Some(value)) => (key, value); case (key, value: String) => (key, value) }
 
-  lazy val sft = {
-    val ret = SimpleFeatureTypes.createType(featureName, sftSpec)
-    args.optional(IngestParams.INDEX_SCHEMA_FMT).foreach { indexSchema =>
-      ret.getUserData.put(Constants.SFT_INDEX_SCHEMA, indexSchema)
-    }
-    ret
-  }
-
   // non-serializable resources.
   class Resources {
     val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
+    val sft = ds.getSchema(featureName)
     lazy val fw = ds.getFeatureWriterAppend(featureName, Transaction.AUTO_COMMIT)
     val converter = SimpleFeatureConverters.build[String](sft, ConfigFactory.parseString(converterConfig))
     val callback = converter.processWithCallback(counter = counter)
@@ -107,7 +98,7 @@ class ScaldingConverterIngestJob(args: Args) extends Job(args) with Logging {
 
   def runTestIngest(lines: Iterator[String]) = {
     val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]
-    ds.createSchema(sft)
+    ds.createSchema(ds.getSchema(featureName))
     val res = new Resources
     try {
       lines.foreach(processLine(res, _))

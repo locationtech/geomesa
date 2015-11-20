@@ -85,8 +85,10 @@ class ScaldingConverterIngestJobTest extends Specification{
     "properly write the features from a valid CSV" in {
       val path = Runner.getClass.getResource("/test_valid.csv")
       val conf = IOUtils.toString(this.getClass.getClassLoader.getResourceAsStream("test_valid.csv.convert"))
-      val ingest = new ScaldingConverterIngestJob(Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
-        new Args(csvNormParams.updated(IngestParams.CONVERTER_CONFIG, List(conf)))))
+      val args = Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
+        new Args(csvNormParams.updated(IngestParams.CONVERTER_CONFIG, List(conf))))
+      val ingest = new ScaldingConverterIngestJob(args)
+      ds.createSchema(SimpleFeatureTypes.createType(args(IngestParams.FEATURE_NAME), args(IngestParams.SFT_SPEC) ))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
       ingest.counter.getLineCount mustEqual 6
@@ -98,8 +100,10 @@ class ScaldingConverterIngestJobTest extends Specification{
     "properly write the features from a valid TSV" in {
       val path = Runner.getClass.getResource("/test_valid.tsv")
       val conf = IOUtils.toString(this.getClass.getClassLoader.getResourceAsStream("test_valid.tsv.convert"))
-      val ingest = new ScaldingConverterIngestJob(Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
-        new Args(csvNormParams.updated(IngestParams.CONVERTER_CONFIG, List(conf)))))
+      val args = Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
+        new Args(csvNormParams.updated(IngestParams.CONVERTER_CONFIG, List(conf))))
+      val ingest = new ScaldingConverterIngestJob(args)
+      ds.createSchema(SimpleFeatureTypes.createType(args(IngestParams.FEATURE_NAME), args(IngestParams.SFT_SPEC) ))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
       ingest.counter.getLineCount mustEqual 6
@@ -111,8 +115,10 @@ class ScaldingConverterIngestJobTest extends Specification{
     "properly write the features from a valid CSV containing WKT geometries" in {
       val path = Runner.getClass.getResource("/test_valid_wkt.csv")
       val conf = IOUtils.toString(this.getClass.getClassLoader.getResourceAsStream("test_valid_wkt.csv.convert"))
-      val ingest = new ScaldingConverterIngestJob(Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
-        new Args(csvNormParams.updated(IngestParams.CONVERTER_CONFIG, List(conf)))))
+      val args = Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
+        new Args(csvNormParams.updated(IngestParams.CONVERTER_CONFIG, List(conf))))
+      val ingest = new ScaldingConverterIngestJob(args)
+      ds.createSchema(SimpleFeatureTypes.createType(args(IngestParams.FEATURE_NAME), args(IngestParams.SFT_SPEC) ))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
       ingest.counter.getLineCount mustEqual 5
@@ -124,8 +130,10 @@ class ScaldingConverterIngestJobTest extends Specification{
     "properly write the features from a valid TSV containing WKT geometries" in {
       val path = Runner.getClass.getResource("/test_valid_wkt.tsv")
       val conf = IOUtils.toString(this.getClass.getClassLoader.getResourceAsStream("test_valid_wkt.tsv.convert"))
-      val ingest = new ScaldingConverterIngestJob(Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
-        new Args(csvNormParams.updated(IngestParams.CONVERTER_CONFIG, List(conf)))))
+      val args = Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
+        new Args(csvNormParams.updated(IngestParams.CONVERTER_CONFIG, List(conf))))
+      val ingest = new ScaldingConverterIngestJob(args)
+      ds.createSchema(SimpleFeatureTypes.createType(args(IngestParams.FEATURE_NAME), args(IngestParams.SFT_SPEC) ))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
       ingest.counter.getLineCount mustEqual 5
@@ -137,10 +145,12 @@ class ScaldingConverterIngestJobTest extends Specification{
     "properly write the features from a valid CSV with no date/time" in {
       val path = Runner.getClass.getResource("/test_valid_nd.csv")
       val conf = IOUtils.toString(this.getClass.getClassLoader.getResourceAsStream("test_valid_nd.csv.convert"))
-      val ingest = new ScaldingConverterIngestJob(Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
+      val args = Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
         new Args(csvNormParams
           .updated(IngestParams.SFT_SPEC, List("fid:Double,lon:Double,lat:Double,*geom:Point:srid=4326"))
-          .updated(IngestParams.CONVERTER_CONFIG, List(conf)))))
+          .updated(IngestParams.CONVERTER_CONFIG, List(conf))))
+      val ingest = new ScaldingConverterIngestJob(args)
+      ds.createSchema(SimpleFeatureTypes.createType(args(IngestParams.FEATURE_NAME), args(IngestParams.SFT_SPEC) ))
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
       ingest.counter.getLineCount mustEqual 6
@@ -152,10 +162,13 @@ class ScaldingConverterIngestJobTest extends Specification{
     "properly write the features from a valid TSV with no date/time" in {
       val path = Runner.getClass.getResource("/test_valid_nd.tsv")
       val conf = IOUtils.toString(this.getClass.getClassLoader.getResourceAsStream("test_valid_nd.tsv.convert"))
-      val ingest = new ScaldingConverterIngestJob(Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
+      val args = Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
         new Args(csvNormParams
           .updated(IngestParams.SFT_SPEC, List("fid:Double,lon:Double,lat:Double,*geom:Point:srid=4326"))
-          .updated(IngestParams.CONVERTER_CONFIG, List(conf)))))
+          .updated(IngestParams.CONVERTER_CONFIG, List(conf))))
+      val ingest = new ScaldingConverterIngestJob(args)
+      ds.createSchema(SimpleFeatureTypes.createType(args(IngestParams.FEATURE_NAME), args(IngestParams.SFT_SPEC) ))
+
 
       ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
       ingest.counter.getLineCount mustEqual 6
@@ -169,12 +182,13 @@ class ScaldingConverterIngestJobTest extends Specification{
         val path = Runner.getClass.getResource("/" +testFileName)
         val conf = IOUtils.toString(this.getClass.getClassLoader.getResourceAsStream(s"$testFileName.convert"))
 
-        val ingest = new ScaldingConverterIngestJob(Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
+        val args = Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
           new Args(csvNormParams.updated(IngestParams.SFT_SPEC,
           List("i:Integer,numbers:List[Integer],time:Date,lon:Double,lat:Double,*geom:Point:srid=4326"))
           .updated(IngestParams.FEATURE_NAME, List(featureName))
-          .updated(IngestParams.CONVERTER_CONFIG, List(conf)))))
-
+          .updated(IngestParams.CONVERTER_CONFIG, List(conf))))
+        val ingest = new ScaldingConverterIngestJob(args)
+        ds.createSchema(SimpleFeatureTypes.createType(args(IngestParams.FEATURE_NAME), args(IngestParams.SFT_SPEC) ))
         ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
 
         val values = ds.getFeatureSource(featureName).getFeatures.features().map { sf =>
@@ -199,11 +213,13 @@ class ScaldingConverterIngestJobTest extends Specification{
         val path = Runner.getClass.getResource("/" + testFileName)
         val conf = IOUtils.toString(this.getClass.getClassLoader.getResourceAsStream(s"$testFileName.convert"))
 
-        val ingest = new ScaldingConverterIngestJob(Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
+        val args = Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
           new Args(csvNormParams.updated(IngestParams.SFT_SPEC,
-          List("i:Integer,numbers:Map[Integer,String],time:Date,lon:Double,lat:Double,*geom:Point:srid=4326"))
-          .updated(IngestParams.FEATURE_NAME, List(featureName))
-            .updated(IngestParams.CONVERTER_CONFIG, List(conf)))))
+            List("i:Integer,numbers:Map[Integer,String],time:Date,lon:Double,lat:Double,*geom:Point:srid=4326"))
+            .updated(IngestParams.FEATURE_NAME, List(featureName))
+            .updated(IngestParams.CONVERTER_CONFIG, List(conf))))
+        ds.createSchema(SimpleFeatureTypes.createType(args(IngestParams.FEATURE_NAME), args(IngestParams.SFT_SPEC) ))
+        val ingest = new ScaldingConverterIngestJob(args)
 
         ingest.runTestIngest(Source.fromFile(path.toURI).getLines())
 
@@ -260,12 +276,14 @@ class ScaldingConverterIngestJobTest extends Specification{
             | }
             |""".stripMargin.replaceAllLiterally("FORMAT", format)
 
-        val ingest = new ScaldingConverterIngestJob(Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
+        val args = Mode.putMode(com.twitter.scalding.Test((s) => Some(mutable.Buffer.empty)),
           new Args(
-          csvWktParams.updated(IngestParams.SFT_SPEC,
-            List(spec))
-            .updated(IngestParams.FEATURE_NAME, List(featureName))
-            .updated(IngestParams.CONVERTER_CONFIG, List(conf)))))
+            csvWktParams.updated(IngestParams.SFT_SPEC,
+              List(spec))
+              .updated(IngestParams.FEATURE_NAME, List(featureName))
+              .updated(IngestParams.CONVERTER_CONFIG, List(conf))))
+        ds.createSchema(SimpleFeatureTypes.createType(args(IngestParams.FEATURE_NAME), args(IngestParams.SFT_SPEC) ))
+        val ingest = new ScaldingConverterIngestJob(args)
         val sft = SimpleFeatureTypes.createType(featureName, spec)
         val testString = List(
           "somename",

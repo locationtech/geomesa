@@ -7,7 +7,7 @@ import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params
-import org.locationtech.geomesa.tools.Utils.Speculator
+import org.locationtech.geomesa.tools.Utils.SftArgParser
 import org.locationtech.geomesa.utils.geotools.Conversions
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -76,7 +76,7 @@ class IngestArgumentsTest extends Specification {
 
   "Speculator" should {
     "work with sft and converter configs" >> {
-      val sft = Speculator.getSft(sftSpec, featureName, convertConfig)
+      val sft = SftArgParser.getSft(sftSpec, featureName, convertConfig)
       sft.getAttributeCount mustEqual 3
       sft.getDescriptor(0).getLocalName mustEqual "name"
       sft.getDescriptor(1).getLocalName mustEqual "age"
@@ -84,11 +84,11 @@ class IngestArgumentsTest extends Specification {
     }
 
     "fail when given spec and no feature name" >> {
-      Speculator.getSft(sftSpec, null, convertConfig) must throwA[ParameterException]
+      SftArgParser.getSft(sftSpec, null, convertConfig) must throwA[ParameterException]
     }
 
     "create a spec from sft conf" >> {
-      val sft = Speculator.getSft(sftConfig, null, convertConfig)
+      val sft = SftArgParser.getSft(sftConfig, null, convertConfig)
       sft.getAttributeCount mustEqual 3
       sft.getDescriptor(0).getLocalName mustEqual "name"
       sft.getDescriptor(1).getLocalName mustEqual "age"
@@ -96,7 +96,7 @@ class IngestArgumentsTest extends Specification {
     }
 
     "parse a combined config" >> {
-      val sft = Speculator.getSft(combined, null, combined)
+      val sft = SftArgParser.getSft(combined, null, combined)
       sft.getAttributeCount mustEqual 3
       sft.getDescriptor(0).getLocalName mustEqual "name"
       sft.getDescriptor(1).getLocalName mustEqual "age"
@@ -104,7 +104,7 @@ class IngestArgumentsTest extends Specification {
     }
 
     "parse a combined config only" >> {
-      val sft = Speculator.getSft(null, null, combined)
+      val sft = SftArgParser.getSft(null, null, combined)
       sft.getAttributeCount mustEqual 3
       sft.getDescriptor(0).getLocalName mustEqual "name"
       sft.getDescriptor(1).getLocalName mustEqual "age"
@@ -149,7 +149,7 @@ class IngestArgumentsTest extends Specification {
       import Conversions._
       val features = ds.getFeatureSource("renegades").getFeatures.features().toList
       features.size mustEqual 3
-      features.map(_.get[String]("name")) must containTheSameElementsAs(Seq("Hermoine", "Harry", "Severus"))
+      features.map(_.get[String]("name")) must containTheSameElementsAs(Seq("Hermione", "Harry", "Severus"))
     }
 
     // TODO GEOMESA-529 more testing of explicit commands

@@ -45,7 +45,7 @@ class DelimitedTextConverterFactory extends SimpleFeatureConverterFactory[String
       import org.locationtech.geomesa.utils.conf.ConfConversions._
       val o = "options"
       var dOpts = new DelimitedOptions()
-      dOpts = conf.getBooleanOpt(s"$o.skip-header").map(s => dOpts.copy(skipHeader = s)).getOrElse(dOpts)
+      dOpts = conf.getIntOpt(s"$o.skip-lines").map(s => dOpts.copy(skipLines = s)).getOrElse(dOpts)
       dOpts = conf.getIntOpt(s"$o.pipe-size").map(p => dOpts.copy(pipeSize = p)).getOrElse(dOpts)
       dOpts
     }
@@ -56,7 +56,7 @@ class DelimitedTextConverterFactory extends SimpleFeatureConverterFactory[String
   }
 }
 
-case class DelimitedOptions(skipHeader: Boolean = false,
+case class DelimitedOptions(skipLines: Int = 0,
                             pipeSize: Int = 16*1024)
 
 class DelimitedTextConverter(format: CSVFormat,
@@ -109,10 +109,10 @@ class DelimitedTextConverter(format: CSVFormat,
     Seq(ret)
   }
 
-  private var skip = options.skipHeader
+  private var skipLines = options.skipLines
   override def preProcess(i: String)(implicit ec: EvaluationContext): Option[String] =
-    if (skip) {
-      skip = false
+    if (skipLines > 0) {
+      skipLines -= 1
       None
     } else Some(i)
 

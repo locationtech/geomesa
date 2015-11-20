@@ -15,7 +15,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.tools.DataStoreHelper
 import org.locationtech.geomesa.tools.Utils.Formats._
-import org.locationtech.geomesa.tools.Utils.{Configurator, Speculator}
+import org.locationtech.geomesa.tools.Utils.{ConverterConfigParser, SftArgParser}
 import org.locationtech.geomesa.tools.commands.IngestCommand._
 import org.locationtech.geomesa.tools.ingest.DelimitedIngest
 import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
@@ -32,14 +32,7 @@ class IngestCommand(parent: JCommander) extends Command(parent) with Logging {
       val ds = new DataStoreHelper(params).getOrCreateDs()
       GeneralShapefileIngest.shpToDataStore(params.files(0), ds, params.featureName)
     } else {
-      val config = Configurator.getConfig(params.config)
-      val sft = Speculator.getSft(params.spec, params.featureName, params.config)
-
-      if (config != null && sft != null) {
-        new DelimitedIngest(params).run()
-      } else {
-        throw new ParameterException("Unable to parse spec and config from -conf option")
-      }
+      new DelimitedIngest(params).run()
     }
   }
 

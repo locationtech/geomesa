@@ -276,7 +276,7 @@ class DelimitedTextConverterTest extends Specification {
       res(1).getDefaultGeometry mustEqual geoFac.createPoint(new Coordinate(90, 90))
     }
 
-    "handle skip header" >> {
+    "skip header lines" >> {
        val conf =
         """
           | converter = {
@@ -284,7 +284,7 @@ class DelimitedTextConverterTest extends Specification {
           |   format       = "DEFAULT",
           |   id-field     = "md5(string2bytes($0))",
           |   options = {
-          |       skip-header   = "SKIP"
+          |       skip-lines = SKIP
           |   },
           |   fields = [
           |     { name = "oneup",    transform = "$1" },
@@ -311,8 +311,8 @@ class DelimitedTextConverterTest extends Specification {
         // consume the header record and empty lines as part of our config
         sz mustEqual 4
       }
-      "true" >> {
-        val trueConf = ConfigFactory.parseString(conf.replaceAllLiterally("SKIP", "true"))
+      "with single line header" >> {
+        val trueConf = ConfigFactory.parseString(conf.replaceAllLiterally("SKIP", "1"))
         val trueData =
           """
             |num,msg,geom
@@ -335,8 +335,8 @@ class DelimitedTextConverterTest extends Specification {
         res(1).getDefaultGeometry mustEqual geoFac.createPoint(new Coordinate(90, 90))
       }
 
-      "false" >> {
-        val falseConf = ConfigFactory.parseString(conf.replaceAllLiterally("SKIP", "false"))
+      "with header set to 0" >> {
+        val falseConf = ConfigFactory.parseString(conf.replaceAllLiterally("SKIP", "0"))
         val falseData =
           """
             |1,hello,Point(46.0 45.0)
@@ -350,6 +350,31 @@ class DelimitedTextConverterTest extends Specification {
         converter.close()
 
         counter.getLineCount mustEqual 2
+        counter.getSuccess mustEqual 2
+        counter.getFailure mustEqual 0
+
+        val geoFac = new GeometryFactory()
+        res(0).getDefaultGeometry mustEqual geoFac.createPoint(new Coordinate(46, 45))
+        res(1).getDefaultGeometry mustEqual geoFac.createPoint(new Coordinate(90, 90))
+      }
+      "with header set to 3" >> {
+        val falseConf = ConfigFactory.parseString(conf.replaceAllLiterally("SKIP", "3"))
+        val falseData =
+          """
+            |num,msg,geom
+            |some other garbage
+            |that somebody placed in my file maybe as a comment
+            |1,hello,Point(46.0 45.0)
+            |2,world,Point(90.0 90.0)
+          """.stripMargin
+        val converter = SimpleFeatureConverters.build[String](wktSft, falseConf)
+
+        val counter = new DefaultCounter
+        val res = converter.processInput(falseData.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0), counter = counter).toList
+        res.length mustEqual 2
+        converter.close()
+
+        counter.getLineCount mustEqual 5
         counter.getSuccess mustEqual 2
         counter.getFailure mustEqual 0
 

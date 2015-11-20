@@ -484,7 +484,7 @@ the formatting of the file matches the extension of the file and that the extens
     $ cat example1.csv
     ID,Name,Age,LastSeen,Friends,Lat,Lon
     23623,Harry,20,2015-05-06,"Will, Mark, Suzan",-100.236523,23
-    26236,Hermoine,25,2015-06-07,"Edward, Bill, Harry",40.232,-53.2356
+    26236,Hermione,25,2015-06-07,"Edward, Bill, Harry",40.232,-53.2356
     3233,Severus,30,2015-10-23,"Tom, Riddle, Voldemort",3,-62.23
         
     # cat example1.conf

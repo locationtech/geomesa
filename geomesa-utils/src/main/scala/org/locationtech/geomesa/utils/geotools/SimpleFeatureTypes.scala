@@ -46,7 +46,10 @@ object SimpleFeatureTypes {
 
   def createType(conf: Config, path: Option[String] = Some("sft")): SimpleFeatureType = {
     import org.locationtech.geomesa.utils.conf.ConfConversions._
-    val toParse = conf.getConfigOpt(path.get).map(conf.withFallback).getOrElse(conf)
+    val toParse = path match {
+      case Some(p) => conf.getConfigOpt(p).map(conf.withFallback).getOrElse(conf)
+      case None    => conf
+    }
 
     val nameSpec = toParse.getString("type-name")
     val (namespace, name) = buildTypeName(nameSpec)
