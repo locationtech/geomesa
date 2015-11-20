@@ -93,6 +93,7 @@ class ScaldingConverterIngestJob(args: Args) extends Job(args) with Logging {
         toWrite.setAttributes(sf.getAttributes)
         toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(sf.getID)
         toWrite.getUserData.putAll(sf.getUserData)
+        toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         resources.fw.write()
       }
 
