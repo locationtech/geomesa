@@ -16,7 +16,7 @@ import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, PasswordToken}
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
 import org.geotools.data.DataAccessFactory.Param
-import org.geotools.data.DataStoreFactorySpi
+import org.geotools.data.{Parameter, DataStoreFactorySpi}
 import org.locationtech.geomesa.accumulo.stats.StatWriter
 import org.locationtech.geomesa.security
 
@@ -140,7 +140,7 @@ object AccumuloDataStoreFactory {
     val instanceIdParam     = new Param("instanceId", classOf[String], "Accumulo Instance ID", true)
     val zookeepersParam     = new Param("zookeepers", classOf[String], "Zookeepers", true)
     val userParam           = new Param("user", classOf[String], "Accumulo user", true)
-    val passwordParam       = new Param("password", classOf[String], "Accumulo password", true)
+    val passwordParam       = new Param("password", classOf[String], "Accumulo password", true, null, Map(Parameter.IS_PASSWORD, true))
     val authsParam          = org.locationtech.geomesa.security.authsParam
     val visibilityParam     = new Param("visibilities", classOf[String], "Accumulo visibilities to apply to all written data", false)
     val tableNameParam      = new Param("tableName", classOf[String], "Accumulo catalog table name", true)
