@@ -78,12 +78,7 @@ class QueryStrategyDeciderV6 extends QueryStrategyDecider with MethodProfiling {
 
     val selected = profile({
       if (requested.isDefined) {
-        // see if one of the normal plans matches the requested type - if not, force it
-        val strategy = requested.get
-        val forced = options.find(_.filters.forall(_.strategy == strategy)) match {
-          case Some(plan) => plan.filters.map(createStrategy)
-          case None => Seq(createStrategy(QueryFilter(strategy, Seq(Filter.INCLUDE), Some(query.getFilter))))
-        }
+        val forced = forceStrategy(options, requested.get, query.getFilter)
         output(s"Filter plan forced to $forced")
         forced
       } else if (options.isEmpty) {
@@ -118,6 +113,20 @@ class QueryStrategyDeciderV6 extends QueryStrategyDecider with MethodProfiling {
     }, "cost")
     output(s"Strategy selection took ${timings.time("cost")}ms for ${options.length} options")
     selected
+  }
+
+  // see if one of the normal plans matches the requested type - if not, force it
+  private def forceStrategy(options: Seq[FilterPlan], strategy: StrategyType, allFilter: Filter): Seq[Strategy] = {
+    def checkStrategy(f: QueryFilter) = f.strategy == strategy ||
+        (strategy == StrategyType.ST && f.strategy == StrategyType.Z3)
+
+    val forced = options.map(_.filters).find(_.forall(checkStrategy)).map(_.map {
+      // swap z3 to st if required
+      case filter if filter.strategy != strategy => filter.copy(strategy = strategy)
+      case filter => filter
+    }).getOrElse(Seq(QueryFilter(strategy, Seq(Filter.INCLUDE), Some(allFilter))))
+
+    forced.map(createStrategy)
   }
 
   /**
