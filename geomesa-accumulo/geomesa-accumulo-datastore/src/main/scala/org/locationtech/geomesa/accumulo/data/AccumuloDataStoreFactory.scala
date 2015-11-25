@@ -113,7 +113,12 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       visibilityParam,
       tableNameParam,
       statsParam,
-      cachingParam
+      cachingParam,
+      queryTimeoutParam,
+      queryThreadsParam,
+      recordThreadsParam,
+      writeMemoryParam,
+      writeThreadsParam
     )
 
   def canProcess(params: JMap[String,Serializable]) = AccumuloDataStoreFactory.canProcess(params)
