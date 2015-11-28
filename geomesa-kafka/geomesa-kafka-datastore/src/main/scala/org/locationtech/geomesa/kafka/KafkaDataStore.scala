@@ -51,7 +51,7 @@ class KafkaDataStore(override val zookeepers: String,
 object KafkaDataStoreFactoryParams {
   val KAFKA_BROKER_PARAM = new Param("brokers", classOf[String], "Kafka broker", true)
   val ZOOKEEPERS_PARAM   = new Param("zookeepers", classOf[String], "Zookeepers", true)
-  val ZK_PATH            = new Param("zkPath", classOf[String], "Zookeeper discoverable path", false)
+  val ZK_PATH            = new Param("zkPath", classOf[String], "Zookeeper discoverable path", false,  KafkaDataStoreHelper.DefaultZkPath)
   val TOPIC_PARTITIONS   = new Param("partitions", classOf[Integer], "Number of partitions to use in kafka topics", false)
   val TOPIC_REPLICATION  = new Param("replication", classOf[Integer], "Replication factor to use in kafka topics", false)
   val IS_PRODUCER_PARAM  = new Param("isProducer", classOf[java.lang.Boolean], "Is Producer", false, false)
@@ -101,7 +101,8 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
   override def getDisplayName: String = "Kafka Data Store"
   override def getDescription: String = "Kafka Data Store"
 
-  override def getParametersInfo: Array[Param] = Array(KAFKA_BROKER_PARAM, ZOOKEEPERS_PARAM)
+  override def getParametersInfo: Array[Param] =
+    Array(KAFKA_BROKER_PARAM, ZOOKEEPERS_PARAM, ZK_PATH, EXPIRATION_PERIOD, CLEANUP_LIVE_CACHE, TOPIC_PARTITIONS, TOPIC_REPLICATION)
 
   override def canProcess(params: ju.Map[String, Serializable]): Boolean =
     params.containsKey(KAFKA_BROKER_PARAM.key) && params.containsKey(ZOOKEEPERS_PARAM.key)
