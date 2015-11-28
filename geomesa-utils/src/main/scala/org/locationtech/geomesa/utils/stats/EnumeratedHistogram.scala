@@ -12,12 +12,12 @@ import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.mutable
 
-case class EnumeratedHistogram[T](attribute: String) extends Stat {
+case class EnumeratedHistogram[T](attributeIndex: Int) extends Stat {
 
   val map: scala.collection.mutable.HashMap[T, Long] = mutable.HashMap[T, Long]()
 
   override def observe(sf: SimpleFeature): Unit = {
-    val sfval = sf.getAttribute(attribute)
+    val sfval = sf.getAttribute(attributeIndex)
 
     if (sfval != null) {
       sfval match {

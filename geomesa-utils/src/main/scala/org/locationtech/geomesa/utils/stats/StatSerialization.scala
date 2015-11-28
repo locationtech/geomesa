@@ -26,7 +26,7 @@ object StatSerialization {
   }
 
   protected [stats] def packMinMax[T <: Comparable[T]](mm: MinMax[T]): Array[Byte] = {
-    wrap(MINMAX_BYTE, s"${mm.attribute};${mm.min};${mm.max}".getBytes())
+    wrap(MINMAX_BYTE, s"${mm.attributeIndex};${mm.min};${mm.max}".getBytes())
   }
 
   def packISC(isc: IteratorStackCounter): Array[Byte] = {
@@ -38,7 +38,7 @@ object StatSerialization {
 
     require(split.size == 3)
 
-    val stat = new MinMax[java.lang.Long](split(0))
+    val stat = new MinMax[java.lang.Long](java.lang.Integer.parseInt(split(0)))
     stat.min = java.lang.Long.parseLong(split(1))
     stat.max = java.lang.Long.parseLong(split(2))
     stat

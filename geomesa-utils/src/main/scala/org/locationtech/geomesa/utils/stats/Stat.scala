@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
 
 import scala.util.parsing.combinator.RegexParsers
 
@@ -21,13 +21,13 @@ trait Stat {
 
 object Stat {
 
-  class StatParser extends RegexParsers {
+  class StatParser(sft: SimpleFeatureType) extends RegexParsers {
 
     val attributeName = """\w+""".r
 
     def minMaxParser: Parser[MinMax[_]] = {
       "MinMax(" ~> attributeName <~ ")" ^^ {
-        case attribute: String => new MinMax[java.lang.Long](attribute)
+        case attribute: String => new MinMax[java.lang.Long](sft.indexOf(attribute))
       }
     }
 
@@ -37,7 +37,7 @@ object Stat {
 
     def enumeratedHistogramParser: Parser[EnumeratedHistogram[String]] = {
       "Histogram(" ~> attributeName <~ ")" ^^ {
-        case attribute: String  => new EnumeratedHistogram[String](attribute)
+        case attribute: String  => new EnumeratedHistogram[String](sft.indexOf(attribute))
       }
     }
 
@@ -61,5 +61,5 @@ object Stat {
   }
 
   // Stat's apply method shoul take a SFT and do light validation.
-  def apply(s: String) = new StatParser().parse(s)
+  def apply(sft: SimpleFeatureType, s: String) = new StatParser(sft).parse(s)
 }

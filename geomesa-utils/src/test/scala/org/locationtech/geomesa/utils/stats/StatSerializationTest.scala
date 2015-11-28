@@ -20,8 +20,8 @@ class StatSerializationTest extends Specification {
   "StatsSerlization" should {
     "pack and unpack" >> {
       // Setup MinMax
-      val attribute = "foo"
-      val mm = new MinMax[java.lang.Long](attribute)
+      val attributeIndex = 1
+      val mm = new MinMax[java.lang.Long](attributeIndex)
 
       val min = -235L
       val max = 12345L
@@ -38,7 +38,7 @@ class StatSerializationTest extends Specification {
         val packed   = StatSerialization.pack(mm)
         val unpacked = StatSerialization.unpack(packed).asInstanceOf[MinMax[java.lang.Long]]
 
-        unpacked.attribute must be equalTo attribute
+        unpacked.attributeIndex must be equalTo attributeIndex
         unpacked.min must be equalTo min
         unpacked.max must be equalTo max
       }

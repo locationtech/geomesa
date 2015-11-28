@@ -17,26 +17,28 @@ import org.specs2.runner.JUnitRunner
 class StatTest extends Specification  {
 
   // Stat's apply method shoul take a SFT and do light validation.
-  //val sft = SimpleFeatureTypes.createType()
+  val sft = SimpleFeatureTypes.createType("testType", "foo:Int,geom:Point,bar:Long")
+  val fooIndex = sft.indexOf("foo")
+  val barIndex = sft.indexOf("bar")
 
   "DSL" should {
     "create MinMax stat gather" in {
-      val stats = Stat("MinMax(foo)")
+      val stats = Stat(sft, "MinMax(foo)")
       val stat  = stats.asInstanceOf[SeqStat].stats.head
 
       val mm = stat.asInstanceOf[MinMax[java.lang.Long]]
-      mm.attribute mustEqual "foo"
+      mm.attributeIndex mustEqual fooIndex
     }
 
     "create a Sequence of Stats" in {
-      val stat = Stat("MinMax(foo),MinMax(bar),IteratorCount")
+      val stat = Stat(sft, "MinMax(foo),MinMax(bar),IteratorCount")
 
       val stats = stat.asInstanceOf[SeqStat].stats
 
       stats.size mustEqual 3
 
-      stats(0).asInstanceOf[MinMax[java.lang.Long]].attribute mustEqual "foo"
-      stats(1).asInstanceOf[MinMax[java.lang.Long]].attribute mustEqual "bar"
+      stats(0).asInstanceOf[MinMax[java.lang.Long]].attributeIndex mustEqual fooIndex
+      stats(1).asInstanceOf[MinMax[java.lang.Long]].attributeIndex mustEqual barIndex
 
       stats(2) must beAnInstanceOf[IteratorStackCounter]
     }
