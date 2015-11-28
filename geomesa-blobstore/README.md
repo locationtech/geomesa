@@ -1,7 +1,7 @@
 #GeoMesa Blobstore
 The `AccumuloBlobStore` is a class designed to store and retrieve files which have 
 spatio-temporal data associated with them.  During ingest, a pluggable system of `FileHandler`s 
-examines the files (and associated maps of parameters) and create `SimpleFeature`s which are 
+examines the files (and associated maps of parameters) and creates `SimpleFeature`s which are 
 inserted into a GeoMesa feature store.  
 
 File retrieval is a two-step process.  First a query is made to the GeoMesa `FeatureStore`.  The 
