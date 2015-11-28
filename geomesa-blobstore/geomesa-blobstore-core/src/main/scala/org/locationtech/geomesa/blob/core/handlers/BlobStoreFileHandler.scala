@@ -30,13 +30,18 @@ object BlobStoreFileHandler {
 }
 
 trait AbstractFileHandler extends FileHandler {
-  val builder = new SimpleFeatureBuilder(sft)
+  val builderLocal: ThreadLocal[SimpleFeatureBuilder] = new ThreadLocal[SimpleFeatureBuilder] {
+    override def initialValue(): SimpleFeatureBuilder = new SimpleFeatureBuilder(sft)
+  }
+
   val featureIdGenerator = new Z3FeatureIdGenerator
 
   override def buildSF(file: File, params: util.Map[String, String]): SimpleFeature = {
     val geom = getGeometry(file, params)
     val dtg = getDate(file, params)
     val z3id = Z3UuidGenerator.createUuid(geom, dtg.getTime)
+
+    val builder = builderLocal.get()
 
     builder.set(filenameFieldName, file.getName)
     builder.set(geomeFieldName, geom)

@@ -35,15 +35,11 @@ class MetadataFileHandler extends AbstractFileHandler {
       false
     } else {
       val geo = gps.head.getGeoLocation
-      if (geo == null) {
-        false
-      }
-      else {
-        true
-      }
+      geo != null
     }
   }
 
   // TODO: Implement date extraction
+  // https://geomesa.atlassian.net/browse/GEOMESA-955
   override def getDateFromFile(file: File): Option[Date] = super.getDateFromFile(file)
 }

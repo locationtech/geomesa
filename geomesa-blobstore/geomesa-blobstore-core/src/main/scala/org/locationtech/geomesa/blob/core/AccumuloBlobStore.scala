@@ -19,6 +19,7 @@ import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
+import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, _}
 import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, SelfClosingIterator}
 import org.locationtech.geomesa.blob.core.AccumuloBlobStore._
@@ -37,11 +38,9 @@ class AccumuloBlobStore(ds: AccumuloDataStore) {
 
   val blobTableName = s"${ds.catalogTable}_blob"
 
-  ensureTableExists(blobTableName)
+  AccumuloVersion.ensureTableExists(connector, blobTableName)
   ds.createSchema(sft)
   val bw = connector.createBatchWriter(blobTableName, GeoMesaBatchWriterConfig())
-  val scanner: Scanner = connector.createScanner(blobTableName, new Authorizations())
-
   val fs = ds.getFeatureSource(blobFeatureTypeName).asInstanceOf[SimpleFeatureStore]
 
   def put(file: File, params: Map[String, String]): Option[String] = {
@@ -64,6 +63,9 @@ class AccumuloBlobStore(ds: AccumuloDataStore) {
   }
 
   def get(id: String): (Array[Byte], String) = {
+    // TODO: Get Authorizations using AuthorizationsProvider interface
+    // https://geomesa.atlassian.net/browse/GEOMESA-986
+    val scanner = connector.createScanner(blobTableName, new Authorizations())
     scanner.setRange(new Range(new Text(id)))
 
     val iter = SelfClosingIterator(scanner)
@@ -76,7 +78,7 @@ class AccumuloBlobStore(ds: AccumuloDataStore) {
     }
   }
 
-  def buildReturn(entry: java.util.Map.Entry[Key, Value]): (Array[Byte], String) = {
+  private def buildReturn(entry: java.util.Map.Entry[Key, Value]): (Array[Byte], String) = {
     val key = entry.getKey
     val value = entry.getValue
 
@@ -85,7 +87,7 @@ class AccumuloBlobStore(ds: AccumuloDataStore) {
     (value.get, filename)
   }
 
-  def putInternal(file: File, id: String) {
+  private def putInternal(file: File, id: String) {
     val localName = file.getName
     val bytes =  ByteStreams.toByteArray(Files.newInputStreamSupplier(file))
 
@@ -94,15 +96,6 @@ class AccumuloBlobStore(ds: AccumuloDataStore) {
     m.put(EMPTY_COLF, new Text(localName), new Value(bytes))
     bw.addMutation(m)
   }
-
-  private def ensureTableExists(table: String) =
-    if (!tableOps.exists(table)) {
-      try {
-        tableOps.create(table, true, TimeType.LOGICAL)
-      } catch {
-        case e: TableExistsException => // this can happen with multiple threads but shouldn't cause any issues
-      }
-    }
 }
 
 object AccumuloBlobStore {
