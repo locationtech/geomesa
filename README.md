@@ -60,6 +60,7 @@ From the root directory, the above will build each sub-project with its addition
 
 * [**geomesa-accumulo**](geomesa-accumulo/geomesa-accumulo-datastore): the implementations of the core Accumulo indexing structures, Accumulo iterators, and the GeoTools interfaces for exposing the functionality as a `DataStore` to both application developers and GeoServer.
 * **geomesa-assemble**: packages the GeoMesa distributed runtime, GeoMesa GeoServer plugin, and GeoMesa Tools. You can manually assemble using the `assemble.sh` script contained in the module.
+* [**geomesa-blobstore**](geomesa-blobstore): adds support for ingesting, indexing, and retrieving arbitrary files which have discoverable spatio-temporal data.
 * [**geomesa-compute**](geomesa-compute): utilities for working with distributed computing environments. Currently, there are methods for instantiating an Apache Spark Resilient Distributed Dataset from a CQL query against data stored in GeoMesa. Eventually, this project will contain bindings for traditional map-reduce processing, Scalding, and other environments.
 * [**geomesa-convert**](geomesa-convert): a configurable and extensible library for converting data into SimpleFeatures.
 * **geomesa-distributed-runtime**: assembles a jar with dependencies that must be distributed to Accumulo tablet servers lib/ext directory or to an HDFS directory where Accumulo's VFSClassLoader can pick it up.
