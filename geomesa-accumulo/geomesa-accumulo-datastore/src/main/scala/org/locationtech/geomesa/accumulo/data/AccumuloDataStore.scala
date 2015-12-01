@@ -32,6 +32,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStore._
 import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
 import org.locationtech.geomesa.accumulo.index._
+import org.locationtech.geomesa.accumulo.stats.{StatWriter, QueryStat, Stat}
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.accumulo.{AccumuloVersion, GeomesaSystemProperties}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
@@ -212,6 +213,16 @@ class AccumuloDataStore(val connector: Connector,
     val sft = getSchema(featureName)
     val table = getTableName(featureName, AttributeTable)
     AttributeTable.configureTable(sft, table, tableOps)
+  }
+
+  /**
+   * Implements method from StatWriter
+   */
+  def getStatTable(stat: Stat): String = {
+    stat match {
+      case QueryStat(featureName, _, _, _, _, _, _) => getQueriesTableName(featureName)
+      case _ => throw new NotImplementedError()
+    }
   }
 
   /**
@@ -682,7 +693,7 @@ class AccumuloDataStore(val connector: Connector,
         sft.setTableSharingPrefix("")
       }
 
-      metadata.read(featureName, TABLES_ENABLED_KEY).map { enabledTablesStr =>
+      metadata.read(featureName, TABLES_ENABLED_KEY).foreach { enabledTablesStr =>
         sft.setEnabledTables(enabledTablesStr)
       }
 
@@ -696,8 +707,8 @@ class AccumuloDataStore(val connector: Connector,
 
   // This override is important as it allows us to optimize and plan our search with the Query.
   override def getFeatureReader(featureName: String, query: Query): AccumuloFeatureReader = {
-    val qp = getQueryPlanner(featureName, this)
-    new AccumuloFeatureReader(qp, query, this)
+    val sw = Some(this).collect { case w: StatWriter => w }
+    AccumuloFeatureReader(query, getQueryPlanner(featureName), queryTimeoutMillis, sw)
   }
 
   // override the abstract data store method - we already handle all projections, transformations, etc
@@ -728,18 +739,18 @@ class AccumuloDataStore(val connector: Connector,
                         query: Query,
                         strategy: Option[StrategyType],
                         o: ExplainerOutputType): Seq[QueryPlan] =
-    getQueryPlanner(featureName, this).planQuery(query, None, o)
+    getQueryPlanner(featureName).planQuery(query, None, o)
 
   /**
    * Gets a query planner. Also has side-effect of setting transforms in the query.
    */
-  private def getQueryPlanner(featureName: String, cc: AccumuloConnectorCreator): QueryPlanner = {
+  protected[data] def getQueryPlanner(featureName: String): QueryPlanner = {
     validateMetadata(featureName)
     val sft = getSchema(featureName)
     val indexSchemaFmt = getIndexSchemaFmt(featureName)
     val featureEncoding = getFeatureEncoding(sft)
     val hints = strategyHints(sft)
-    new QueryPlanner(sft, featureEncoding, indexSchemaFmt, cc, hints)
+    new QueryPlanner(sft, featureEncoding, indexSchemaFmt, this, hints)
   }
 
   /* create a general purpose writer that is capable of insert, deletes, and updates */

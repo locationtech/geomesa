@@ -35,6 +35,7 @@ class StatWriterTest extends Specification {
   // mock class we can extend with statwriter
   class MockWriter(c: Connector) {
     val connector = c
+    def getStatTable(stat: Stat) = statsTable
   }
 
   val statReader = new QueryStatReader(connector, (_: String) => statsTable)
@@ -51,24 +52,21 @@ class StatWriterTest extends Specification {
                                  "hint1=true",
                                  101L,
                                  201L,
-                                 11),
-                       statsTable)
+                                 11))
       writer.writeStat(QueryStat(featureName,
                                  df.parseMillis("2014.07.26 14:20:01"),
                                  "query2",
                                  "hint2=true",
                                  102L,
                                  202L,
-                                 12),
-                       statsTable)
+                                 12))
       writer.writeStat(QueryStat(featureName,
                                  df.parseMillis("2014.07.27 13:20:01"),
                                  "query3",
                                  "hint3=true",
                                  102L,
                                  202L,
-                                 12),
-                       statsTable)
+                                 12))
 
       try {
         val unwritten = statReader.query(featureName, new Date(0), new Date(), auths).toList
