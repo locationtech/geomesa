@@ -13,7 +13,7 @@ import java.util.Properties
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 
 import cascading.flow.FlowProcess
-import cascading.scheme.Scheme
+import cascading.scheme.{NullScheme, Scheme}
 import cascading.tap.local.FileTap
 import cascading.tap.{SinkMode, Tap}
 import cascading.tuple.{TupleEntryCollector, TupleEntryIterator}
@@ -21,6 +21,7 @@ import com.twitter.scalding._
 import org.apache.commons.compress.compressors.bzip2.{BZip2CompressorInputStream, BZip2CompressorOutputStream, BZip2Utils}
 import org.apache.commons.compress.compressors.gzip.GzipUtils
 import org.apache.commons.compress.compressors.xz.{XZCompressorInputStream, XZCompressorOutputStream, XZUtils}
+import org.apache.hadoop.mapred.{OutputCollector, RecordReader, JobConf}
 import org.locationtech.geomesa.jobs.scalding.UsefulFileTap._
 
 class UsefulFileSource(path: String*) extends FixedPathSource(path: _*) {

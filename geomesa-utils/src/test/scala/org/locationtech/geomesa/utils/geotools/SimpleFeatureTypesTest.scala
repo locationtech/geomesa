@@ -7,11 +7,12 @@
 *************************************************************************/
 package org.locationtech.geomesa.utils.geotools
 
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
+import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -257,9 +258,93 @@ class SimpleFeatureTypesTest extends Specification {
     }
 
     "build from conf" >> {
+
+      def doTest(sft: SimpleFeatureType) = {
+        sft.getAttributeCount must be equalTo 4
+        sft.getGeometryDescriptor.getName.getLocalPart must be equalTo "geom"
+        sft.getDescriptor("testStr").getCardinality() mustEqual(Cardinality.UNKNOWN)
+        sft.getDescriptor("testCard").getCardinality() mustEqual(Cardinality.HIGH)
+        sft.getTypeName must be equalTo "testconf"
+      }
+
+      "with no path" >> {
+        val regular = ConfigFactory.parseString(
+          """
+            |{
+            |  type-name = "testconf"
+            |  fields = [
+            |    { name = "testStr",  type = "string"       , index = true  },
+            |    { name = "testCard", type = "string"       , index = true, cardinality = high },
+            |    { name = "testList", type = "List[String]" , index = false },
+            |    { name = "geom",     type = "Point"        , srid = 4326, default = true }
+            |  ]
+            |}
+          """.stripMargin)
+        val sftRegular = SimpleFeatureTypes.createType(regular)
+        doTest(sftRegular)
+      }
+
+      "with sft default path" >>{
+        val defaultNesting = ConfigFactory.parseString(
+          """
+            |sft = {
+            |  type-name = "testconf"
+            |  fields = [
+            |    { name = "testStr",  type = "string"       , index = true  },
+            |    { name = "testCard", type = "string"       , index = true, cardinality = high },
+            |    { name = "testList", type = "List[String]" , index = false },
+            |    { name = "geom",     type = "Point"        , srid = 4326, default = true }
+            |  ]
+            |}
+          """.stripMargin)
+        val sftDefault = SimpleFeatureTypes.createType(defaultNesting)
+        doTest(sftDefault)
+      }
+
+      "with some nesting path" >>{
+        val someNesting = ConfigFactory.parseString(
+          """
+            |{
+            |  foobar = {
+            |    type-name = "testconf"
+            |    fields = [
+            |      { name = "testStr",  type = "string"       , index = true  },
+            |      { name = "testCard", type = "string"       , index = true, cardinality = high },
+            |      { name = "testList", type = "List[String]" , index = false },
+            |      { name = "geom",     type = "Point"        , srid = 4326, default = true }
+            |    ]
+            |  }
+            |}
+          """.stripMargin)
+        val someSft = SimpleFeatureTypes.createType(someNesting, Some("foobar"))
+        doTest(someSft)
+      }
+
+      "with multiple nested paths" >> {
+        val customNesting = ConfigFactory.parseString(
+          """
+            |baz = {
+            |  foobar = {
+            |    type-name = "testconf"
+            |    fields = [
+            |      { name = "testStr",  type = "string"       , index = true  },
+            |      { name = "testCard", type = "string"       , index = true, cardinality = high },
+            |      { name = "testList", type = "List[String]" , index = false },
+            |      { name = "geom",     type = "Point"        , srid = 4326, default = true }
+            |    ]
+            |  }
+            |}
+          """.stripMargin)
+
+        val sftCustom = SimpleFeatureTypes.createType(customNesting, Some("baz.foobar"))
+        doTest(sftCustom)
+      }
+    }
+
+    "build from default nested conf" >> {
       val conf = ConfigFactory.parseString(
         """
-          |{
+          |sft = {
           |  type-name = "testconf"
           |  fields = [
           |    { name = "testStr",  type = "string"       , index = true  },
@@ -277,6 +362,7 @@ class SimpleFeatureTypesTest extends Specification {
       sft.getDescriptor("testCard").getCardinality() mustEqual(Cardinality.HIGH)
       sft.getTypeName must be equalTo "testconf"
     }
+
 
     "allow user data in conf" >> {
       val conf = ConfigFactory.parseString(
