@@ -716,7 +716,7 @@ class AccumuloDataStore(val connector: Connector,
   /**
    * Prints the query plan for a given query to the provided output.
    */
-  def explainQuery(query: Query, o: ExplainerOutputType = ExplainPrintln): Unit = {
+  def explainQuery(query: Query, o: ExplainerOutputType = new ExplainPrintln): Unit = {
     require(query.getTypeName != null, "Type name is required in the query")
     planQuery(query.getTypeName, query, None, o)
   }

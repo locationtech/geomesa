@@ -533,7 +533,8 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
         o.toString()
       }
       ds.removeSchema(sftName)
-      explain.split("\n").filter(_.startsWith("\tFilter:")).toSeq mustEqual Seq("\tFilter: RECORD[INCLUDE][None]")
+      explain.split("\n").map(_.trim).filter(_.startsWith("Strategy filter:")).toSeq mustEqual
+          Seq("Strategy filter: RECORD[INCLUDE][None]")
     }
 
     "create key plan that does not use STII when given something larger than the Whole World bbox" in {
@@ -547,7 +548,8 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
         o.toString()
       }
       ds.removeSchema(sftName)
-      explain.split("\n").filter(_.startsWith("\tFilter:")).toSeq mustEqual Seq("\tFilter: RECORD[INCLUDE][None]")
+      explain.split("\n").map(_.trim).filter(_.startsWith("Strategy filter:")).toSeq mustEqual
+          Seq("Strategy filter: RECORD[INCLUDE][None]")
     }
 
     "create key plan that does not use STII when given an or'd geometry query with redundant bbox" in {

@@ -54,7 +54,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
                         featureEncoding: SerializationType,
                         stSchema: String,
                         acc: AccumuloConnectorCreator,
-                        hints: StrategyHints) extends ExplainingLogging with MethodProfiling {
+                        hints: StrategyHints) extends MethodProfiling {
 
   import org.locationtech.geomesa.accumulo.index.QueryPlanner._
 
@@ -67,24 +67,28 @@ case class QueryPlanner(sft: SimpleFeatureType,
    */
   def planQuery(query: Query,
                 strategy: Option[StrategyType] = None,
-                output: ExplainerOutputType = log): Seq[QueryPlan] = {
+                output: ExplainerOutputType = ExplainNull): Seq[QueryPlan] = {
     getQueryPlans(query, strategy, output).toList // toList forces evaluation of entire iterator
   }
 
   /**
    * Execute a query against geomesa
    */
-  def runQuery(query: Query, strategy: Option[StrategyType] = None): SFIter = {
-    val plans = getQueryPlans(query, strategy, log)
-    executePlans(query, plans)
+  def runQuery(query: Query,
+               strategy: Option[StrategyType] = None,
+               output: ExplainerOutputType = ExplainNull): SFIter = {
+    val plans = getQueryPlans(query, strategy, output)
+    executePlans(query, plans, output)
   }
 
   /**
    * Execute a sequence of query plans
    */
-  private def executePlans(query: Query, queryPlans: Iterator[QueryPlan]): SFIter = {
+  private def executePlans(query: Query,
+                           queryPlans: Iterator[QueryPlan],
+                           output: ExplainerOutputType): SFIter = {
     def scan(qps: Iterator[QueryPlan]): SFIter = SelfClosingIterator(qps).ciFlatMap { qp =>
-      val iter = Strategy.execute(qp, acc, log).map(qp.kvsToFeatures)
+      val iter = Strategy.execute(qp, acc).map(qp.kvsToFeatures)
       if (qp.hasDuplicates) new DeDuplicatingIterator(iter) else iter
     }
 
@@ -117,37 +121,39 @@ case class QueryPlanner(sft: SimpleFeatureType,
 
     configureQuery(query, sft) // configure the query - set hints that we'll need later on
 
-    output(s"Planning '${query.getTypeName}' ${filterToString(query.getFilter)}")
+    output.pushLevel(s"Planning '${query.getTypeName}' ${filterToString(query.getFilter)}")
     output(s"Hints: density ${query.getHints.isDensityQuery}, bin ${query.getHints.isBinQuery}")
-    output(s"Sort: ${Option(query.getSortBy).filter(_.nonEmpty).map(_.mkString(", ")).getOrElse("none")}")
     output(s"Transforms: ${query.getHints.getTransformDefinition.getOrElse("None")}")
+    output(s"Sort: ${Option(query.getSortBy).filter(_.nonEmpty).map(_.mkString(", ")).getOrElse("none")}")
 
+    output.pushLevel("Strategy selection:")
     val requestedStrategy = requested.orElse(query.getHints.getRequestedStrategy)
     val strategies = QueryStrategyDecider.chooseStrategies(sft, query, hints, requestedStrategy, output)
-    output(s"Total Strategies: ${strategies.length}")
-    val indent = "\t"
+    output.popLevel()
+    var strategyCount = 1
     strategies.iterator.map { strategy =>
-      output(s"${indent}Strategy: ${strategy.getClass.getSimpleName}")
-      output(s"${indent}Filter: ${strategy.filter}")
+      output.pushLevel(s"Strategy $strategyCount of ${strategies.length}: ${strategy.getClass.getSimpleName}")
+      strategyCount += 1
+      output(s"Strategy filter: ${strategy.filter}")
       implicit val timings = new TimingsImpl
       val plan = profile(strategy.getQueryPlan(this, query.getHints, output), "plan")
-      outputPlan(plan, output, indent + indent)
-      output("")
-      output(s"${indent}Query planning took ${timings.time("plan")}ms")
+      outputPlan(plan, output.popLevel())
+      output(s"Query planning took ${timings.time("plan")}ms")
       plan
     }
   }
 
   // output the query plan for explain logging
-  private def outputPlan(plan: QueryPlan, output: ExplainerOutputType, prefix: String = ""): Unit = {
-    output(s"${prefix}Plan: ${plan.getClass.getName}")
-    output(s"${prefix}Table: ${plan.table}")
-    output(s"${prefix}Deduplicate: ${plan.hasDuplicates}")
-    output(s"${prefix}Column Families${if (plan.columnFamilies.isEmpty) ": all"
+  private def outputPlan(plan: QueryPlan, output: ExplainerOutputType): Unit = {
+    output.pushLevel(s"Plan: ${plan.getClass.getName}")
+    output(s"Table: ${plan.table}")
+    output(s"Deduplicate: ${plan.hasDuplicates}")
+    output(s"Column Families${if (plan.columnFamilies.isEmpty) ": all"
       else s" (${plan.columnFamilies.size}): ${plan.columnFamilies.take(20)}"} ")
-    output(s"${prefix}Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(rangeToString).mkString(", ")}")
-    output(s"${prefix}Iterators (${plan.iterators.size}): ${plan.iterators.mkString("[", "],[", "]")}")
-    plan.join.foreach(j => outputPlan(j._2, output, "Join "))
+    output(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(rangeToString).mkString(", ")}")
+    output(s"Iterators (${plan.iterators.size}): ${plan.iterators.mkString("[", "],[", "]")}")
+    plan.join.foreach { j => output("Join plan:"); outputPlan(j._2, output) }
+    output.popLevel()
   }
 
   // converts a range to a printable string - only includes the row
