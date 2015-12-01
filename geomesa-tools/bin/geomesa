@@ -64,6 +64,25 @@ elif [[ $1 = configure ]]; then
     echo >&2 ""
 fi
 
+if [ -z "$GEOMESA_CONF_DIR" ]; then
+    GEOMESA_CONF_DIR=${GEOMESA_HOME}/conf
+elif [[ $1 = configure ]]; then
+    message="Warning: GEOMESA_CONF_DIR was already set, probably by a prior configuration."
+    message="${message}\n The current value is ${GEOMESA_CONF_DIR}."
+    echo >&2 ""
+    echo -e >&2 "$message"
+    echo >&2 ""
+    read -p "Do you want to reset this to ${GEOMESA_HOME}/conf? Y\n " -n 1 -r
+    if [[  $REPLY =~ ^[Yy]$ ]]; then
+        GEOMESA_CONF_DIR=${GEOMESA_HOME}/conf
+        echo >&2 ""
+        echo "Now set to ${GEOMESA_CONF_DIR}"
+    fi
+    echo >&2 ""
+fi
+
+GEOMESA_OPTS="${GEOMESA_OPTS} -Dlog4j.configuration=file://${GEOMESA_CONF_DIR}/log4j.properties"
+
 
 # ACCUMULO paths, user can hard set these, or rely on this script to find set them via
 if [ -n "$ACCUMULO_HOME" ]; then
@@ -147,7 +166,8 @@ function findJars() {
 
 # Start constructing GEOMESA_CP (classpath)
 # include geomesa first so that the correct log4j.properties is picked up
-GEOMESA_CP="$(findJars $GEOMESA_LIB):${ACCUMULO_CONF_DIR}:${HADOOP_CONF_DIR}"
+GEOMESA_CP="${GEOMESA_CONF_DIR}\log4j.properties:$(findJars $GEOMESA_LIB)"
+GEOMESA_CP="${GEOMESA_CP}:${ACCUMULO_CONF_DIR}:${HADOOP_CONF_DIR}"
 ACCUMULO_CP="$(findJars $ACCUMULO_LIB)"
 
 #Get the hadoop jars, ignoring jars with names containing slf4j and test
