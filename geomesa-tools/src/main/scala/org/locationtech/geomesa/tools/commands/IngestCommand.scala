@@ -9,13 +9,10 @@ package org.locationtech.geomesa.tools.commands
 
 import java.util
 
-import com.beust.jcommander.{ParameterException, JCommander, Parameter, Parameters}
-import com.typesafe.config.{ConfigFactory, Config}
+import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.slf4j.Logging
-import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.tools.DataStoreHelper
 import org.locationtech.geomesa.tools.Utils.Formats._
-import org.locationtech.geomesa.tools.Utils.{ConverterConfigParser, SftArgParser}
 import org.locationtech.geomesa.tools.commands.IngestCommand._
 import org.locationtech.geomesa.tools.ingest.DelimitedIngest
 import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest

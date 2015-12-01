@@ -10,8 +10,7 @@ package org.locationtech.geomesa.tools
 import com.typesafe.scalalogging.slf4j.Logging
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.tools.Utils.SftArgParser
-import org.locationtech.geomesa.tools.commands.{GeoMesaParams, CreateFeatureParams}
+import org.locationtech.geomesa.tools.commands.{CreateFeatureParams, GeoMesaParams}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType

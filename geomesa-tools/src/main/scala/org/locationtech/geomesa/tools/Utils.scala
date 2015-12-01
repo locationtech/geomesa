@@ -8,26 +8,17 @@
 
 package org.locationtech.geomesa.tools
 
-import java.io.{FileInputStream, BufferedReader, File, InputStreamReader}
-import java.util.UUID
+import java.io.{BufferedReader, File, InputStreamReader}
 
-import com.beust.jcommander.ParameterException
-import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.accumulo.server.client.HdfsZooInstance
 import org.apache.commons.compress.compressors.bzip2.BZip2Utils
 import org.apache.commons.compress.compressors.gzip.GzipUtils
 import org.apache.commons.compress.compressors.xz.XZUtils
-import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.locationtech.geomesa.tools.Utils.SftArgParser
-import org.locationtech.geomesa.tools.commands.CreateFeatureParams
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeatureType
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 import scala.xml.XML
 
 object Utils {
@@ -116,84 +107,6 @@ object Utils {
     fs.delete(path, true)
   }
 
-  object ConverterConfigParser extends Logging {
-    type ConfigParser = String => Option[Config]
-
-    def getConfig(configArg: String): Config =
-      Seq(parseString, parseFile)
-        .view.flatMap(_(configArg))
-        .headOption
-        .getOrElse(throw new ParameterException(s"Unable to parse Converter config from argument $configArg"))
-
-    private[ConverterConfigParser] val parseString: ConfigParser = (configArg: String) =>
-      Try(ConfigFactory.parseString(configArg)) match {
-        case Success(config) => Some(config)
-        case Failure(ex) =>
-          logger.debug(s"Unable to parse config from string $configArg")
-          None
-      }
-
-    private[ConverterConfigParser] val parseFile: ConfigParser = (configArg: String) =>
-      Try(ConfigFactory.parseFile(new File(configArg))) match {
-        case Success(config) => Some(config)
-        case Failure(ex) =>
-          logger.debug(s"Unable to parse config from file $configArg")
-          None
-      }
-  }
-
-  object SftArgParser extends Logging {
-    type SpecParser = () => Option[SimpleFeatureType]
-
-    def getSft(specArg: String, featureName: String = null, convertArg: String = null): SimpleFeatureType = {
-      val configParsers =
-        Seq(Option(specArg), Option(convertArg))
-          .flatten
-          .flatMap(s => List(readFile(s),Some(s)).flatten)
-          .map(s => getConfParser(s))
-
-      (configParsers ++ Seq(getSpecParser(specArg, Option(featureName))))
-        .view.map(_())
-        .find(_.nonEmpty)
-        .getOrElse(throw new ParameterException("Unable to parse Simple Feature type from sft config or string"))
-        .get
-    }
-
-    private[SftArgParser] def getSpecParser (specArg: String, nameOpt: Option[String]) : SpecParser = () => {
-      nameOpt.map[Option[SimpleFeatureType]] { featureName =>
-        Try { SimpleFeatureTypes.createType(featureName, specArg) }
-        match {
-          case Success(sft) => Some(sft)
-          case Failure(ex)  =>
-            logger.debug(s"Unable to parse sft spec from string $specArg with error ${ex.getMessage}")
-            None
-        }
-      }.getOrElse(Option.empty)
-    }
-
-    private[SftArgParser] def getConfParser(str: String): SpecParser = () =>
-      Try { SimpleFeatureTypes.createType(ConfigFactory.parseString(str)) }
-      match {
-        case Success(sft) => Some(sft)
-        case Failure(ex)  =>
-          logger.debug(s"Unable to parse sft conf from string $str with error ${ex.getMessage}")
-          Option.empty
-      }
-
-    def readFile(s: String): Option[String] = {
-      val f = new File(s)
-      if (f.exists && f.canRead && f.isFile) {
-        val reader = new BufferedReader(new InputStreamReader(new FileInputStream(f)))
-        val contents = try {
-          IOUtils.toString(reader)
-        } finally {
-          reader.close()
-        }
-        Some(contents)
-      } else None
-    }
-
-  }
 }
 /* get password trait */
 trait GetPassword {

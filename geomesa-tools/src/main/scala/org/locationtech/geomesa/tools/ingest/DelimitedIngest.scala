@@ -23,7 +23,7 @@ import org.locationtech.geomesa.tools.Utils.Modes._
 import org.locationtech.geomesa.tools.Utils._
 import org.locationtech.geomesa.tools.commands.IngestCommand.IngestParameters
 import org.locationtech.geomesa.tools.ingest.DelimitedIngest._
-import org.locationtech.geomesa.tools.{AccumuloProperties, FeatureCreator}
+import org.locationtech.geomesa.tools.{AccumuloProperties, ConverterConfigParser, FeatureCreator, SftArgParser}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
@@ -111,9 +111,9 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
     ).mapValues(List(_))
 
     val optionalKvArgs: Map[String, List[String]] = List(
-      Option(params.auths)        .map(      IngestParams.AUTHORIZATIONS  -> List(_)),
-      Option(params.visibilities) .map(      IngestParams.VISIBILITIES    -> List(_)),
-      Option(params.indexSchema)  .map(      IngestParams.INDEX_SCHEMA_FMT-> List(_))).flatten.toMap
+      Option(params.auths)        .map(IngestParams.AUTHORIZATIONS   -> List(_)),
+      Option(params.visibilities) .map(IngestParams.VISIBILITIES     -> List(_)),
+      Option(params.indexSchema)  .map(IngestParams.INDEX_SCHEMA_FMT -> List(_))).flatten.toMap
 
     val kvArgs = (requiredKvArgs ++ optionalKvArgs).flatMap { case (k,v) => List(s"--$k") ++ v }
     Args(singleArgs ++ kvArgs)

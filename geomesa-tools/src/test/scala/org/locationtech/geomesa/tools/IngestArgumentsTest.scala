@@ -7,7 +7,6 @@ import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params
-import org.locationtech.geomesa.tools.Utils.SftArgParser
 import org.locationtech.geomesa.utils.geotools.Conversions
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
