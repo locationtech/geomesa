@@ -187,7 +187,7 @@ class StreamDataStoreFactory extends DataStoreFactorySpi {
 
   override def createNewDataStore(params: ju.Map[String, java.io.Serializable]): DataStore = ???
   override def getDescription: String = "SimpleFeature Stream Source"
-  override def getParametersInfo: Array[Param] = Array(STREAM_DATASTORE_CONFIG)
+  override def getParametersInfo: Array[Param] = Array(STREAM_DATASTORE_CONFIG, CACHE_TIMEOUT)
   override def getDisplayName: String = "SimpleFeature Stream Source"
   override def canProcess(params: ju.Map[String, java.io.Serializable]): Boolean =
     params.containsKey(STREAM_DATASTORE_CONFIG.key)
