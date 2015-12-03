@@ -39,14 +39,33 @@ This means that the version of the `geomesa-distributed-runtime` JAR installed o
 
 ## Building from Source
 
+Requirements:
+
+* [Java JDK 7](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html)
+* [Apache Maven](http://maven.apache.org/) 2.2.2 or later
+* [git](http://git-scm.com/)
+* [Accumulo](http://accumulo.apache.org) version 1.5.x or 1.6.x and/or [Kafka](http://kafka.apache.org/) version 0.8.2.x.
+
 Navigate to where you would like to download this project.
 
     git clone git@github.com:locationtech/geomesa.git
     cd geomesa
-    build/mvn clean install
 
-This project is managed by Maven, and builds using Maven with [Zinc](https://github.com/typesafehub/zinc).
-From the root directory, the above will build each sub-project with its additional dependencies-included JAR.
+The project is managed by Maven. The version of Accumulo supported is controlled by the `accumulo-1.5` property; to target Accumulo 1.5:   
+
+    mvn clean install -Daccumulo-1.5
+
+If the property is omitted, support for Accumulo 1.6 is assumed:
+
+    mvn clean install
+
+The `build/mvn` script is a wrapper around Maven that builds the project using the [Zinc](https://github.com/typesafehub/zinc) incremental compiler:
+
+    build/mvn clean install -Daccumulo-1.5  # Accumulo 1.5
+    build/mvn clean install                 # Accumulo 1.6
+
+From the root directory, the commands above will build JARs for each sub-project with its additional dependencies bundled.
+
 
 ## Documentation
 
