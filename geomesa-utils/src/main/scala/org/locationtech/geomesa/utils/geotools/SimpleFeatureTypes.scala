@@ -616,15 +616,6 @@ object SimpleFeatureTypes {
     // Feature Option parsing
     private val EQ = "="
 
-//    def nonGreedyStringLiteral: Parser[String] =
-//      ("\""+"""([^"\p{Cntrl}\\]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*?"""+"\"").r
-//
-//    def nonGreedySingleQuoteLiteral: Parser[String] =
-//      ( "\'" +"""([^"\p{Cntrl}\\]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*?""" + "\'").r
-//
-//    def quotedString = nonGreedyStringLiteral | nonGreedySingleQuoteLiteral ^^ { x => x.drop(1).dropRight(1) }
-//    def safeString = "([^,]+)".r
-
     def optValue = quotedString | nonQuotedString
     def fOptKey = "[a-zA-Z0-9\\.]+".r
     def fOptKeyValue =  (fOptKey <~ EQ) ~ optValue ^^ {  x => x._1 -> x._2 }
