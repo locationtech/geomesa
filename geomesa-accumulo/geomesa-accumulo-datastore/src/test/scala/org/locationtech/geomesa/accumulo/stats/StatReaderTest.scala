@@ -38,9 +38,9 @@ class StatReaderTest extends Specification {
   "QueryStatReader" should {
 
     val stats = Seq(
-      QueryStat(featureName, df.parseMillis("2014.07.26 13:20:01"), "query1", "hint1=true", 101L, 201L, 11),
-      QueryStat(featureName, df.parseMillis("2014.07.26 14:20:01"), "query2", "hint2=true", 102L, 202L, 12),
-      QueryStat(featureName, df.parseMillis("2014.07.27 13:20:01"), "query3", "hint3=true", 102L, 202L, 12)
+      QueryStat(featureName, df.parseMillis("2014.07.26 13:20:01"), "user1", "query1", "hint1=true", 101L, 201L, 11),
+      QueryStat(featureName, df.parseMillis("2014.07.26 14:20:01"), "user1", "query2", "hint2=true", 102L, 202L, 12),
+      QueryStat(featureName, df.parseMillis("2014.07.27 13:20:01"), "user1", "query3", "hint3=true", 102L, 202L, 12)
     )
     writeStat(stats, statsTable)
 
@@ -54,9 +54,9 @@ class StatReaderTest extends Specification {
       val list = queries.toList
 
       list.size mustEqual 3
-      list(0).queryFilter mustEqual "query1"
-      list(1).queryFilter mustEqual "query2"
-      list(2).queryFilter mustEqual "query3"
+      list(0).filter mustEqual "query1"
+      list(1).filter mustEqual "query2"
+      list(2).filter mustEqual "query3"
     }
 
     "query by day" in {
@@ -70,8 +70,8 @@ class StatReaderTest extends Specification {
       val list = queries.toList
 
       list.size mustEqual 2
-      list(0).queryFilter mustEqual "query1"
-      list(1).queryFilter mustEqual "query2"
+      list(0).filter mustEqual "query1"
+      list(1).filter mustEqual "query2"
     }
 
     "query by hour" in {
@@ -85,7 +85,7 @@ class StatReaderTest extends Specification {
       val list = queries.toList
 
       list.size mustEqual 1
-      list(0).queryFilter mustEqual "query1"
+      list(0).filter mustEqual "query1"
     }
 
   }

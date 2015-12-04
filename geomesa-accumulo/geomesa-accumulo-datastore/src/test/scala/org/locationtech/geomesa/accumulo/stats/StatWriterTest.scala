@@ -47,6 +47,7 @@ class StatWriterTest extends Specification {
 
       writer.writeStat(QueryStat(featureName,
                                  df.parseMillis("2014.07.26 13:20:01"),
+                                 "user1",
                                  "query1",
                                  "hint1=true",
                                  101L,
@@ -55,6 +56,7 @@ class StatWriterTest extends Specification {
                        statsTable)
       writer.writeStat(QueryStat(featureName,
                                  df.parseMillis("2014.07.26 14:20:01"),
+                                 "user1",
                                  "query2",
                                  "hint2=true",
                                  102L,
@@ -63,6 +65,7 @@ class StatWriterTest extends Specification {
                        statsTable)
       writer.writeStat(QueryStat(featureName,
                                  df.parseMillis("2014.07.27 13:20:01"),
+                                 "user1",
                                  "query3",
                                  "hint3=true",
                                  102L,

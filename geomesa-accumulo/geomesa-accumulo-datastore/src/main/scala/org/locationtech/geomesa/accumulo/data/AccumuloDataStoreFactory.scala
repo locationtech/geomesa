@@ -13,7 +13,7 @@ import java.io.Serializable
 import java.util.{Map => JMap, Collections}
 
 import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
-import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, PasswordToken}
+import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{Parameter, DataStoreFactorySpi}
@@ -42,8 +42,8 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
     val tableName = tableNameParam.lookUp(params).asInstanceOf[String]
     val useMock = java.lang.Boolean.valueOf(mockParam.lookUp(params).asInstanceOf[String])
-    val (connector, token) =
-      if (params.containsKey(connParam.key)) (connParam.lookUp(params).asInstanceOf[Connector], null)
+    val connector =
+      if (params.containsKey(connParam.key)) connParam.lookUp(params).asInstanceOf[Connector]
       else buildAccumuloConnector(params, useMock)
 
     // convert the connector authorizations into a string array - this is the maximum auths this connector can support
@@ -60,42 +60,37 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
     // if no auths are specified we default to the connector auths
     // TODO would it be safer to default to no auths?
-    val auths: List[String] =
-      if (!configuredAuths.isEmpty)
-        configuredAuths.toList
-      else
-        masterAuthsStrings.toList
+    val auths: List[String] = if (!configuredAuths.isEmpty) configuredAuths.toList else masterAuthsStrings.toList
 
     val authorizationsProvider = security.getAuthorizationsProvider(params, auths)
+    val auditProvider = security.getAuditProvider(params)
 
     // stats defaults to true if not specified
-    val collectStats = !useMock &&
-        Option(statsParam.lookUp(params)).map(_.toString.toBoolean).forall(_ == true)
-    // caching defaults to false if not specified
-    val caching = Option(cachingParam.lookUp(params)).exists(_.toString.toBoolean)
+    val collectStats = !useMock && Option(statsParam.lookUp(params)).map(_.toString.toBoolean).forall(_ == true)
+
+    val config = AccumuloDataStoreConfig(
+      queryTimeoutParam.lookupOpt[Int](params).map(i => i * 1000L),
+      queryThreadsParam.lookupOpt(params),
+      recordThreadsParam.lookupOpt(params),
+      writeThreadsParam.lookupOpt(params),
+      // caching defaults to false if not specified
+      Option(cachingParam.lookUp(params)).exists(_.toString.toBoolean)
+    )
 
     if (collectStats) {
       new AccumuloDataStore(connector,
-        token,
         tableName,
         authorizationsProvider,
+        auditProvider,
         visibility,
-        queryTimeoutParam.lookupOpt[Int](params).map(i => i * 1000L),
-        queryThreadsParam.lookupOpt(params),
-        recordThreadsParam.lookupOpt(params),
-        writeThreadsParam.lookupOpt(params),
-        caching) with StatWriter
+        config) with StatWriter
     } else {
       new AccumuloDataStore(connector,
-        token,
         tableName,
         authorizationsProvider,
+        auditProvider,
         visibility,
-        queryTimeoutParam.lookupOpt[Int](params).map(i => i * 1000L),
-        queryThreadsParam.lookupOpt(params),
-        recordThreadsParam.lookupOpt(params),
-        writeThreadsParam.lookupOpt(params),
-        caching)
+        config)
     }
   }
 
@@ -157,17 +152,17 @@ object AccumuloDataStoreFactory {
     val mockParam           = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
   }
 
-  def buildAccumuloConnector(params: JMap[String,Serializable], useMock: Boolean): (Connector, AuthenticationToken) = {
+  def buildAccumuloConnector(params: JMap[String,Serializable], useMock: Boolean): Connector = {
     val zookeepers = zookeepersParam.lookUp(params).asInstanceOf[String]
     val instance = instanceIdParam.lookUp(params).asInstanceOf[String]
     val user = userParam.lookUp(params).asInstanceOf[String]
     val password = passwordParam.lookUp(params).asInstanceOf[String]
 
     val authToken = new PasswordToken(password.getBytes)
-    if(useMock) {
-      (new MockInstance(instance).getConnector(user, authToken), authToken)
+    if (useMock) {
+      new MockInstance(instance).getConnector(user, authToken)
     } else {
-      (new ZooKeeperInstance(instance, zookeepers).getConnector(user, authToken), authToken)
+      new ZooKeeperInstance(instance, zookeepers).getConnector(user, authToken)
     }
   }
 
@@ -176,7 +171,7 @@ object AccumuloDataStoreFactory {
    * already (aka the accumulo table has been created)
    */
   def catalogExists(params: JMap[String,Serializable], useMock: Boolean): Boolean = {
-    val (conn, _) = buildAccumuloConnector(params, useMock)
+    val conn = buildAccumuloConnector(params, useMock)
     conn.tableOperations().exists(tableNameParam.lookUp(params).asInstanceOf[String])
   }
 

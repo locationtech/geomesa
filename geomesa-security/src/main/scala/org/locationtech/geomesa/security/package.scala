@@ -69,11 +69,9 @@ package object security {
           case 1 => providers.head
           case _ =>
             throw new IllegalStateException(
-              s"""
-                 | Found multiple AuthorizationsProvider implementations. Please specify the one
-                 | to use with the system property '${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY}' ::
-                                                                                                                         | ${providers.map(_.getClass.getName).mkString(", ")}
-                """.stripMargin)
+              "Found multiple AuthorizationsProvider implementations. Please specify the one to use with " +
+                  s"the system property '${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY}' :: " +
+                  s"${providers.map(_.getClass.getName).mkString(", ")}")
         }
     }
 
@@ -85,5 +83,31 @@ package object security {
     authorizationsProvider.configure(modifiedParams)
 
     authorizationsProvider
+  }
+
+  def getAuditProvider(params: ju.Map[String, jio.Serializable]): AuditProvider = {
+    import scala.collection.JavaConversions._
+
+    val providers = ServiceRegistry.lookupProviders(classOf[AuditProvider]).toBuffer
+
+    // if the user specifies an auth provider to use, try to use that impl
+    val specified = Option(System.getProperty(AuditProvider.AUDIT_PROVIDER_SYS_PROPERTY)).map { prop =>
+      providers.find(_.getClass.getName == prop).getOrElse {
+        throw new RuntimeException(s"Could not load audit provider $prop")
+      }
+    }
+    val provider = specified.getOrElse {
+      providers.length match {
+        case 0 => NoopAuditProvider
+        case 1 => providers.head
+        case _ =>
+          throw new IllegalStateException(
+            "Found multiple AuditProvider implementations. Please specify the one to use with the system " +
+                s"property '${AuditProvider.AUDIT_PROVIDER_SYS_PROPERTY}' :: " +
+                s"${providers.map(_.getClass.getName).mkString(", ")}")
+      }
+    }
+    provider.configure(params)
+    provider
   }
 }

@@ -41,6 +41,7 @@ class AccumuloFeatureReader(queryPlanner: QueryPlanner, val query: Query, dataSt
     if (writeStats) {
       val stat = QueryStat(queryPlanner.sft.getTypeName,
           System.currentTimeMillis(),
+          dataStore.auditProvider.getCurrentUserId,
           filterToString(query.getFilter),
           QueryStatTransform.hintsToString(query.getHints),
           timings.time("planning"),
