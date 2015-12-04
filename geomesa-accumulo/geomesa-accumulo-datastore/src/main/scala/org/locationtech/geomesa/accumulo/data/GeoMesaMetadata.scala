@@ -8,16 +8,17 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.apache.accumulo.core.client.Connector
 import org.apache.accumulo.core.client.impl.{MasterClient, Tables}
 import org.apache.accumulo.core.client.mock.MockConnector
+import org.apache.accumulo.core.client.{Connector, Scanner}
 import org.apache.accumulo.core.data.{Mutation, Range, Value}
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.accumulo.core.security.thrift.TCredentials
 import org.apache.accumulo.trace.instrument.Tracer
 import org.apache.hadoop.io.Text
+import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.AccumuloBackedMetadata._
-import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, SelfClosingIterator}
+import org.locationtech.geomesa.accumulo.util.{EmptyScanner, GeoMesaBatchWriterConfig, SelfClosingIterator}
 import org.locationtech.geomesa.security.AuthorizationsProvider
 
 import scala.collection.JavaConversions._
@@ -55,6 +56,17 @@ class AccumuloBackedMetadata(connector: Connector,
   private val metadataBWConfig =
     GeoMesaBatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(1)
 
+  // warning: only access in a synchronized fashion
+  private var tableExists = connector.tableOperations().exists(catalogTable)
+  private val tableLock = new AnyRef
+
+  private def ensureTableExists(): Unit = tableLock.synchronized {
+    if (!tableExists) {
+      AccumuloVersion.ensureTableExists(connector, catalogTable)
+      tableExists = true
+    }
+  }
+
   /**
    * Handles creating a mutation for writing metadata
    *
@@ -88,6 +100,7 @@ class AccumuloBackedMetadata(connector: Connector,
    * @param mutations
    */
   private def writeMutations(mutations: Mutation*): Unit = {
+    ensureTableExists()
     val writer = connector.createBatchWriter(catalogTable, metadataBWConfig)
     for (mutation <- mutations) {
       writer.addMutation(mutation)
@@ -103,16 +116,15 @@ class AccumuloBackedMetadata(connector: Connector,
    * @param featureName the name of the table to query and delete from
    * @param numThreads the number of concurrent threads to spawn for querying
    */
-  override def delete(featureName: String, numThreads: Int): Unit = {
-    val range = new Range(getMetadataRowKey(featureName))
-    val deleter = connector.createBatchDeleter(catalogTable,
-                                               authorizationsProvider.getAuthorizations,
-                                               numThreads,
-                                               metadataBWConfig)
-    deleter.setRanges(List(range))
-    deleter.delete()
-    deleter.close()
-  }
+  override def delete(featureName: String, numThreads: Int): Unit =
+    if (tableLock.synchronized(tableExists)) {
+      val range = new Range(getMetadataRowKey(featureName))
+      val auths = authorizationsProvider.getAuthorizations
+      val deleter = connector.createBatchDeleter(catalogTable, auths, numThreads, metadataBWConfig)
+      deleter.setRanges(List(range))
+      deleter.delete()
+      deleter.close()
+    }
 
   /**
    * Creates the row id for a metadata entry
@@ -159,8 +171,12 @@ class AccumuloBackedMetadata(connector: Connector,
   /**
    * Create an Accumulo Scanner to the Catalog table to query Metadata for this store
    */
-  private def createCatalogScanner =
-    connector.createScanner(catalogTable, authorizationsProvider.getAuthorizations)
+  private def createCatalogScanner: Scanner =
+    if (tableLock.synchronized(tableExists)) {
+      connector.createScanner(catalogTable, authorizationsProvider.getAuthorizations)
+    } else {
+      EmptyScanner
+    }
 
   override def expireCache(featureName: String) =
     metaDataCache.synchronized {
