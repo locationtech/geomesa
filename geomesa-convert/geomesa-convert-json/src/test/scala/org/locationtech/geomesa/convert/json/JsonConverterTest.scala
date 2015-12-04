@@ -12,7 +12,7 @@ import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom._
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
-import org.locationtech.geomesa.convert.Transformers.EvaluationContext
+import org.locationtech.geomesa.convert.Transformers.{DefaultCounter, EvaluationContext}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification

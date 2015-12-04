@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.convert
 
 import com.typesafe.config.Config
-import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Predicate}
+import org.locationtech.geomesa.convert.Transformers.{DefaultCounter, Counter, EvaluationContext, Predicate}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -36,20 +36,23 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType,
 
   val evaluationContexts = List.fill(converters.length)(new EvaluationContext(null, null))
 
-  override def processInput(is: Iterator[I],  gParams: Map[String, Any] = Map.empty): Iterator[SimpleFeature] = {
+  def processWithCallback(gParams: Map[String, Any] = Map.empty, counter: Counter = new DefaultCounter): (I) => Seq[SimpleFeature] = {
     var count = 0
-    is.flatMap { input =>
+    (input: I) => {
       count += 1
       converters.view.zipWithIndex.flatMap { case ((pred, conv), i) =>
         implicit val ec = evaluationContexts(i)
-        ec.setCount(count)
+        ec.getCounter.setLineCount(count)
         processIfValid(input, pred, conv, gParams)
       }.headOption
-    }
+    }.toSeq
   }
 
-  // noop
-  override def processSingleInput(i: I, gParams: Map[String, Any] = Map.empty)(implicit ec: EvaluationContext): Seq[SimpleFeature] = null
+  override def processInput(is: Iterator[I],  gParams: Map[String, Any] = Map.empty, counter: Counter = new DefaultCounter): Iterator[SimpleFeature] =
+    is.flatMap(processWithCallback(gParams, counter))
+
+  override def processSingleInput(i: I, gParams: Map[String, Any] = Map.empty)(implicit ec: EvaluationContext): Seq[SimpleFeature] =
+    throw new UnsupportedOperationException("Single input processing is not enabled with composite converters...yet")
 
   private val mutableArray = Array.ofDim[Any](1)
 
