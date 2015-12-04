@@ -16,7 +16,8 @@ import org.locationtech.geomesa.accumulo.index.QueryPlanner.SFIter
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.stats._
 import org.locationtech.geomesa.filter.filterToString
-import org.locationtech.geomesa.utils.stats.{Timings, MethodProfiling, TimingsImpl}
+import org.locationtech.geomesa.security.AuditProvider
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timings, TimingsImpl}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 trait AccumuloFeatureReader extends FeatureReader[SimpleFeatureType, SimpleFeature] {
@@ -35,16 +36,23 @@ trait AccumuloFeatureReader extends FeatureReader[SimpleFeatureType, SimpleFeatu
   override def getFeatureType = query.getHints.getReturnSft
 
   override def close() = if (!closed.getAndSet(true)) {
-    timeout.foreach(t => ThreadManagement.unregister(this, start, t))
-    closeOnce()
+    try {
+      timeout.foreach(t => ThreadManagement.unregister(this, start, t))
+    } finally {
+      closeOnce()
+    }
   }
 }
 
 object AccumuloFeatureReader extends MethodProfiling {
-  def apply(query: Query, qp: QueryPlanner, timeout: Option[Long], writer: Option[StatWriter]) = {
+  def apply(query: Query,
+            qp: QueryPlanner,
+            timeout: Option[Long],
+            writer: Option[StatWriter],
+            auditProvider: AuditProvider) = {
     writer match {
       case None => new AccumuloFeatureReaderImpl(query, qp, timeout)
-      case Some(sw) => new AccumuloFeatureReaderWithStats(query, qp, timeout, sw)
+      case Some(sw) => new AccumuloFeatureReaderWithStats(query, qp, timeout, sw, auditProvider)
     }
   }
 }
@@ -62,7 +70,8 @@ class AccumuloFeatureReaderImpl(val query: Query, qp: QueryPlanner, val timeout:
 class AccumuloFeatureReaderWithStats(val query: Query,
                                      qp: QueryPlanner,
                                      val timeout: Option[Long],
-                                     sw: StatWriter)
+                                     sw: StatWriter,
+                                     auditProvider: AuditProvider)
     extends AccumuloFeatureReader with MethodProfiling {
 
   implicit val timings = new TimingsImpl
@@ -84,6 +93,7 @@ class AccumuloFeatureReaderWithStats(val query: Query,
     val count = delegate.getCount
     val stat = QueryStat(qp.sft.getTypeName,
       System.currentTimeMillis(),
+      auditProvider.getCurrentUserId,
       filterToString(query.getFilter),
       QueryStatTransform.hintsToString(query.getHints),
       timings.time("planning"),

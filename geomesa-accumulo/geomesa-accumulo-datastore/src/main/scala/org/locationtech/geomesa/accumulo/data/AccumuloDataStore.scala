@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.mock.MockConnector
-import org.apache.accumulo.core.client.security.tokens.AuthenticationToken
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.apache.curator.retry.ExponentialBackoffRetry
@@ -32,12 +31,12 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStore._
 import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.stats.{StatWriter, QueryStat, Stat}
+import org.locationtech.geomesa.accumulo.stats.{QueryStat, Stat, StatWriter}
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.accumulo.{AccumuloVersion, GeomesaSystemProperties}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializers}
-import org.locationtech.geomesa.security.AuthorizationsProvider
+import org.locationtech.geomesa.security.{AuditProvider, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{FeatureSpec, NonGeomAttributeSpec}
@@ -64,34 +63,18 @@ import scala.util.{Failure, Success, Try}
  *  contain multiple features addressed by their featureName.
  */
 class AccumuloDataStore(val connector: Connector,
-                        val authToken: AuthenticationToken,
                         val catalogTable: String,
                         val authorizationsProvider: AuthorizationsProvider,
+                        val auditProvider: AuditProvider,
                         val writeVisibilities: String,
-                        val queryTimeoutConfig: Option[Long] = None,
-                        val queryThreadsConfig: Option[Int] = None,
-                        val recordThreadsConfig: Option[Int] = None,
-                        val writeThreadsConfig: Option[Int] = None,
-                        val cachingConfig: Boolean = false)
+                        val config: AccumuloDataStoreConfig)
     extends AbstractDataStore(true) with AccumuloConnectorCreator with StrategyHintsProvider with Logging {
 
   // having at least as many shards as tservers provides optimal parallelism in queries
   val DEFAULT_MAX_SHARD = connector.instanceOperations().getTabletServers.size()
 
-  protected[data] val queryTimeoutMillis: Option[Long] = queryTimeoutConfig
+  protected[data] val queryTimeoutMillis: Option[Long] = config.queryTimeout
       .orElse(GeomesaSystemProperties.QueryProperties.QUERY_TIMEOUT_MILLIS.option.map(_.toLong))
-
-  // record scans are single-row ranges - increasing the threads too much actually causes performance to decrease
-  private val recordScanThreads = recordThreadsConfig.getOrElse(10)
-
-  private val writeThreads = writeThreadsConfig.getOrElse(10)
-
-  // cap on the number of threads for any one query
-  // if we let threads get too high, performance will suffer for simultaneous clients
-  private val MAX_QUERY_THREADS = 15
-
-  // floor on the number of query threads, even if the number of shards is 1
-  private val MIN_QUERY_THREADS = 5
 
   // equivalent to: s"%~#s%$maxShard#r%${name}#cstr%0,3#gh%yyyyMMddHH#d::%~#s%3,2#gh::%~#s%#id"
   def buildDefaultSpatioTemporalSchema(name: String, maxShard: Int = DEFAULT_MAX_SHARD): String =
@@ -118,8 +101,7 @@ class AccumuloDataStore(val connector: Connector,
   private val visibilityCheckCache = new mutable.HashMap[(String, String), Boolean]()
                                          with mutable.SynchronizedMap[(String, String), Boolean]
 
-  private val defaultBWConfig =
-    GeoMesaBatchWriterConfig().setMaxWriteThreads(writeThreads)
+  private val defaultBWConfig = GeoMesaBatchWriterConfig().setMaxWriteThreads(config.writeThreads)
 
   private val tableOps = connector.tableOperations()
 
@@ -218,7 +200,7 @@ class AccumuloDataStore(val connector: Connector,
    */
   def getStatTable(stat: Stat): String = {
     stat match {
-      case QueryStat(featureName, _, _, _, _, _, _) => getQueriesTableName(featureName)
+      case qs: QueryStat => getQueriesTableName(qs.typeName)
       case _ => throw new NotImplementedError()
     }
   }
@@ -356,16 +338,13 @@ class AccumuloDataStore(val connector: Connector,
 
   private def deleteSharedTables(sft: SimpleFeatureType) = {
     val auths = authorizationsProvider.getAuthorizations
-    val numThreads = queryThreadsConfig.getOrElse(Math.min(MAX_QUERY_THREADS,
-      Math.max(MIN_QUERY_THREADS, getSpatioTemporalMaxShard(sft))))
-
     GeoMesaTable.getTables(sft).par.foreach { table =>
       val name = getTableName(sft.getTypeName, table)
       if (tableOps.exists(name)) {
         if (table == Z3Table) {
           tableOps.delete(name)
         } else {
-          val deleter = connector.createBatchDeleter(name, auths, numThreads, defaultBWConfig)
+          val deleter = connector.createBatchDeleter(name, auths, config.queryThreads, defaultBWConfig)
           table.deleteFeaturesForType(sft, deleter)
           deleter.close()
         }
@@ -507,7 +486,7 @@ class AccumuloDataStore(val connector: Connector,
   // a featureStore
   override def getFeatureSource(typeName: Name): SimpleFeatureSource = {
     validateMetadata(typeName.getLocalPart)
-    if (cachingConfig) {
+    if (config.caching) {
       new AccumuloFeatureStore(this, typeName) with CachingFeatureSource
     } else {
       new AccumuloFeatureStore(this, typeName)
@@ -704,7 +683,7 @@ class AccumuloDataStore(val connector: Connector,
   // This override is important as it allows us to optimize and plan our search with the Query.
   override def getFeatureReader(featureName: String, query: Query): AccumuloFeatureReader = {
     val sw = Some(this).collect { case w: StatWriter => w }
-    AccumuloFeatureReader(query, getQueryPlanner(featureName), queryTimeoutMillis, sw)
+    AccumuloFeatureReader(query, getQueryPlanner(featureName), queryTimeoutMillis, sw, auditProvider)
   }
 
   // override the abstract data store method - we already handle all projections, transformations, etc
@@ -792,15 +771,11 @@ class AccumuloDataStore(val connector: Connector,
 
   override def getSuggestedThreads(featureName: String, table: GeoMesaTable): Int = {
     table match {
-      case RecordTable         => recordScanThreads
-      case Z3Table             => queryThreadsConfig.getOrElse(8)
-      case AttributeTable      => queryThreadsConfig.getOrElse(8)
+      case RecordTable         => config.recordThreads
+      case Z3Table             => config.queryThreads
+      case AttributeTable      => config.queryThreads
       case AttributeTableV5    => 1
-      case SpatioTemporalTable =>
-        queryThreadsConfig.getOrElse {
-          val shards = getSpatioTemporalMaxShard(getSchema(featureName))
-          Math.min(MAX_QUERY_THREADS, Math.max(MIN_QUERY_THREADS, shards))
-        }
+      case SpatioTemporalTable => config.queryThreads
       case _ => throw new NotImplementedError("Unknown table")
     }
   }
@@ -861,3 +836,9 @@ object AccumuloDataStore {
     GeoMesaTable.concatenateNameParts(catalogTable, "queries")
 }
 
+// record scans are single-row ranges - increasing the threads too much actually causes performance to decrease
+case class AccumuloDataStoreConfig(queryTimeout: Option[Long],
+                                   queryThreads: Int,
+                                   recordThreads: Int,
+                                   writeThreads: Int,
+                                   caching: Boolean)

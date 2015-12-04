@@ -10,32 +10,25 @@ package org.locationtech.geomesa.web.analytics
 import javax.servlet.http.HttpServletRequest
 
 import org.apache.commons.lang.StringEscapeUtils
-import org.apache.commons.lang3.exception.ExceptionUtils
 import org.apache.spark.sql.types.StructType
-import org.geotools.data.DataStoreFinder
 import org.json4s.{DefaultFormats, Formats}
 import org.locationtech.geomesa.compute.spark.sql.GeoMesaSparkSql
 import org.locationtech.geomesa.utils.cache.FilePersistence
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
-import org.locationtech.geomesa.web.core.GeoMesaScalatraServlet
+import org.locationtech.geomesa.web.core.GeoMesaDataStoreServlet
+import org.scalatra.BadRequest
 import org.scalatra.json.NativeJsonSupport
-import org.scalatra.{BadRequest, InternalServerError, Ok}
-import org.slf4j.LoggerFactory
 
-import scala.collection.JavaConversions._
 import scala.io.Source
 import scala.xml.Elem
 
 /**
  * Rest endpoint to access geomesa analytics
  */
-class AnalyticEndpoint(persistence: FilePersistence) extends GeoMesaScalatraServlet with NativeJsonSupport {
+class AnalyticEndpoint(val persistence: FilePersistence) extends GeoMesaDataStoreServlet with NativeJsonSupport {
 
   import AnalyticEndpoint._
   override protected implicit def jsonFormats: Formats = DefaultFormats
-
-  private val logger = LoggerFactory.getLogger(classOf[AnalyticEndpoint])
-  var debug = true
 
   override val root: String = "analytics"
 
@@ -44,7 +37,7 @@ class AnalyticEndpoint(persistence: FilePersistence) extends GeoMesaScalatraServ
   // TODO ensure hadoop settings are available on the classpath...
 
   // register any persisted data stores with the sql engine
-  allDataStoreParams().values.foreach(GeoMesaSparkSql.registerDataStore)
+  getPersistedDataStores.values.foreach(GeoMesaSparkSql.registerDataStore)
   sys.addShutdownHook(GeoMesaSparkSql.stop(0))
 
   // jars that will be distributed with the spark job
@@ -75,71 +68,6 @@ class AnalyticEndpoint(persistence: FilePersistence) extends GeoMesaScalatraServ
 
   before() {
     contentType = formats(format)
-  }
-
-  /**
-   * Registers a data store, making it available for spark sql queries
-   */
-  post("/ds/:alias") {
-    val dsParams = datastoreParams
-    if (DataStoreFinder.getDataStore(dsParams) == null) {
-      BadRequest(reason = "Could not load data store using the provided parameters.")
-    } else {
-      val alias = params("alias")
-      val prefix = keyFor(alias)
-      val toPersist = dsParams.map { case (k, v) => keyFor(alias, k) -> v }
-      try {
-        persistence.removeAll(persistence.keys().filter(_.startsWith(prefix)).toSeq)
-        persistence.persistAll(toPersist)
-        try {
-          // this will fail if the sql context has already been started
-          GeoMesaSparkSql.registerDataStore(dsParams)
-        } catch {
-          case e: Exception =>
-            logger.warn("Failed to register data store with spark context. " +
-              "It should be available after restarting the context.")
-        }
-        Ok()
-      } catch {
-        case e: Exception => handleError(s"Error persisting data store '$alias':", e)
-      }
-    }
-  }
-
-  /**
-   * Retrieve an existing data store
-   */
-  get("/ds/:alias") {
-    try {
-      dataStoreParams(params("alias"))
-    } catch {
-      case e: Exception => handleError(s"Error reading data store:", e)
-    }
-  }
-
-  /**
-   * Remove the reference to an existing data store
-   */
-  delete("/ds/:alias") {
-    val alias = params("alias")
-    val prefix = keyFor(alias)
-    try {
-      persistence.removeAll(persistence.keys().filter(_.startsWith(prefix)).toSeq)
-      Ok()
-    } catch {
-      case e: Exception => handleError(s"Error removing data store '$alias':", e)
-    }
-  }
-
-  /**
-   * Retrieve all existing data stores
-   */
-  get("/ds/?") {
-    try {
-      allDataStoreParams()
-    } catch {
-      case e: Exception => handleError(s"Error reading data stores:", e)
-    }
   }
 
   /**
@@ -195,7 +123,7 @@ class AnalyticEndpoint(persistence: FilePersistence) extends GeoMesaScalatraServ
   post("/sql/restart") {
     try {
       GeoMesaSparkSql.stop()
-      allDataStoreParams().values.foreach(GeoMesaSparkSql.registerDataStore)
+      getPersistedDataStores.values.foreach(GeoMesaSparkSql.registerDataStore)
       GeoMesaSparkSql.start(sparkConfigs, distributedJars)
     } catch {
       case e: Exception => handleError(s"Error restarting sql context", e)
@@ -218,7 +146,7 @@ class AnalyticEndpoint(persistence: FilePersistence) extends GeoMesaScalatraServ
    */
   post("/sql/start") {
     try {
-      allDataStoreParams().values.foreach(GeoMesaSparkSql.registerDataStore)
+      getPersistedDataStores.values.foreach(GeoMesaSparkSql.registerDataStore)
       GeoMesaSparkSql.start(sparkConfigs, distributedJars)
     } catch {
       case e: Exception => handleError(s"Error restarting sql context", e)
@@ -269,23 +197,10 @@ class AnalyticEndpoint(persistence: FilePersistence) extends GeoMesaScalatraServ
   }
 
   /**
-   * Gets all registered data stores by alias
-   */
-  private def allDataStoreParams(): Map[String, Map[String, String]] = {
-    val aliases = persistence.keys().filter(_.startsWith("ds.")).map(k => k.substring(3, k.indexOf('.', 3)))
-    aliases.map(a => a -> dataStoreParams(a)).toMap
-  }
-
-  /**
-   * Gets the data store associated with the given alias
-   */
-  private def dataStoreParams(alias: String): Map[String, String] = getEntriesForPrefix(keyFor(alias))
-
-  /**
    * Gets spark configs
    */
   private def sparkConfigs: Map[String, String] = {
-    val configs = getEntriesForPrefix("spark-config.")
+    val configs = persistence.entries("spark-config.").map { case (k, v) => (k.substring(13), v) }.toMap
     // explicitly reference the spark jar - this is needed for jboss
     jbossSparkJar match {
       case None    => configs
@@ -298,29 +213,6 @@ class AnalyticEndpoint(persistence: FilePersistence) extends GeoMesaScalatraServ
    */
   private def persistSparkConfigs(config: Map[String, String]): Unit =
     persistence.persistAll(config.map { case (k, v) => (s"spark-config.$k", v) })
-
-  /**
-   * Filters persisted entries based on a prefix and then removes the prefix
-   */
-  private def getEntriesForPrefix(prefix: String): Map[String, String] = {
-    val l = prefix.length
-    persistence.entries().filter(_._1.startsWith(prefix)).map { case (k, v) => (k.substring(l), v) }.toMap
-  }
-  /**
-   * Common error handler that accounts for debug setting
-   */
-  private def handleError(msg: String, e: Exception) = {
-    logger.error(msg, e)
-    if (debug) {
-      InternalServerError(reason = msg, body = e.getMessage + "\n" + ExceptionUtils.getStackTrace(e))
-    } else {
-      InternalServerError()
-    }
-  }
-
-  // spring-style getters and setters - this class is instantiated via spring
-  def setDebug(d: Boolean) = debug = d
-  def isDebug: Boolean = debug
 }
 
 object AnalyticEndpoint {

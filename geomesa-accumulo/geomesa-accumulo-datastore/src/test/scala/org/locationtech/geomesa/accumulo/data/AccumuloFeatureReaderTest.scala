@@ -9,15 +9,16 @@
 package org.locationtech.geomesa.accumulo.data
 
 import org.apache.accumulo.core.client.Connector
-import org.geotools.data.{DataUtilities, Query}
+import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
-import org.locationtech.geomesa.accumulo.stats.{QueryStat, Stat, StatWriter}
+import org.locationtech.geomesa.accumulo.index.QueryHints
+import org.locationtech.geomesa.accumulo.stats.{ParamsAuditProvider, QueryStat, Stat, StatWriter}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.locationtech.geomesa.accumulo.index.QueryHints
+
 import scala.collection.mutable.ArrayBuffer
 
 @RunWith(classOf[JUnitRunner])
@@ -49,7 +50,7 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
         override def writeStat(stat: Stat): Unit = stats.append(stat)
       }
 
-      val reader = AccumuloFeatureReader(query, qp, None, Some(sw))
+      val reader = AccumuloFeatureReader(query, qp, None, Some(sw), new ParamsAuditProvider)
 
       var count = 0
       while (reader.hasNext) { reader.next(); count += 1 }
@@ -58,7 +59,7 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
       count mustEqual 10
       stats must haveLength(1)
       stats.head must beAnInstanceOf[QueryStat]
-      stats.head.asInstanceOf[QueryStat].numResults mustEqual 10
+      stats.head.asInstanceOf[QueryStat].hits mustEqual 10
     }
 
     "be able to count bin results" in {
@@ -74,7 +75,7 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
         override def writeStat(stat: Stat): Unit = stats.append(stat)
       }
 
-      val reader = AccumuloFeatureReader(query, qp, None, Some(sw))
+      val reader = AccumuloFeatureReader(query, qp, None, Some(sw), new ParamsAuditProvider)
 
       var count = 0
       while (reader.hasNext) { reader.next(); count += 1 }
@@ -83,7 +84,7 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
       count must beLessThan(10)
       stats must haveLength(1)
       stats.head must beAnInstanceOf[QueryStat]
-      stats.head.asInstanceOf[QueryStat].numResults mustEqual 10
+      stats.head.asInstanceOf[QueryStat].hits mustEqual 10
     }
   }
 }

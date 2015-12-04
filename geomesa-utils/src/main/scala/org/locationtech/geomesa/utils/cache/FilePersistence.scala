@@ -38,9 +38,11 @@ class FilePersistence(dir: File, file: String) extends Logging {
   }
 
   def keys(): Set[String] = properties.keySet().toSet.asInstanceOf[Set[String]]
+  def keys(prefix: String): Set[String] = keys().filter(_.startsWith(prefix))
 
   def entries(): Set[(String, String)] =
     properties.entrySet().map(e => (e.getKey, e.getValue)).toSet.asInstanceOf[Set[(String, String)]]
+  def entries(prefix: String): Set[(String, String)] = entries().filter(_._1.startsWith(prefix))
 
   /**
    * Returns the specified property
