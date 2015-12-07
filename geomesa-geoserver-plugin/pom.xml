@@ -7,13 +7,23 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-accumulo</artifactId>
-    <name>GeoMesa Accumulo</name>
+    <artifactId>geomesa-geoserver-plugin</artifactId>
+    <name>GeoMesa Geoserver Plugin</name>
     <packaging>pom</packaging>
 
+    <profiles>
+        <profile>
+            <id>bigtable</id>
+            <modules>
+                <module>geomesa-bigtable-geoserver-plugin</module>
+            </modules>
+        </profile>
+    </profiles>
+
     <modules>
-        <module>geomesa-accumulo-datastore</module>
-        <module>geomesa-accumulo-distributed-runtime</module>
+        <module>geomesa-kafka-geoserver-plugin</module>
+        <module>geomesa-accumulo-geoserver-plugin</module>
+        <module>geomesa-stream-geoserver-plugin</module>
     </modules>
 
 </project>

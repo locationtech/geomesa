@@ -11,12 +11,12 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
-        <artifactId>geomesa</artifactId>
+        <artifactId>geomesa-geoserver-plugin</artifactId>
         <version>1.1.0-rc.7-SNAPSHOT</version>
     </parent>
 
-    <artifactId>geomesa-plugin</artifactId>
-    <name>GeoMesa Plugin (WFS/WMS/WPS)</name>
+    <artifactId>geomesa-accumulo-geoserver-plugin</artifactId>
+    <name>GeoMesa Accumulo Geoserver Plugin (WFS/WMS/WPS)</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

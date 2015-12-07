@@ -22,9 +22,8 @@
         <module>geomesa-security</module>
         <module>geomesa-features</module>
         <module>geomesa-filter</module>
-        <module>geomesa-distributed-runtime</module>
+        <module>geomesa-geoserver-plugin</module>
         <module>geomesa-jobs</module>
-        <module>geomesa-plugin</module>
         <module>geomesa-kafka</module>
         <module>geomesa-convert</module>
         <module>geomesa-tools</module>
@@ -531,7 +530,7 @@
             <dependency>
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
-                <version>1.8</version>
+                <version>1.9</version>
             </dependency>
             <dependency>
                 <groupId>commons-net</groupId>
@@ -627,18 +626,18 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-plugin</artifactId>
+                <artifactId>geomesa-accumulo-geoserver-plugin</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-plugin</artifactId>
+                <artifactId>geomesa-accumulo-geoserver-plugin</artifactId>
                 <classifier>geoserver-plugin</classifier>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-distributed-runtime</artifactId>
+                <artifactId>geomesa-accumulo-distributed-runtime</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -715,8 +714,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>11.0.2</version>
-                <!--<version>14.0.1</version>-->
+                <version>17.0</version>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>

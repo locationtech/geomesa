@@ -20,7 +20,7 @@
             <useTransitiveFiltering>true</useTransitiveFiltering>
             <excludes>
                 <exclude>org.locationtech.geomesa:geomesa-plugin*</exclude>
-                <exclude>org.locationtech.geomesa:geomesa-distributed-runtime*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-accumulo-distributed-runtime*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-compute*</exclude>
             </excludes>
         </dependencySet>
@@ -32,7 +32,7 @@
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
                 <include>org.locationtech.geomesa:geomesa-plugin*</include>
-                <include>org.locationtech.geomesa:geomesa-distributed-runtime*</include>
+                <include>org.locationtech.geomesa:geomesa-accumulo-distributed-runtime*</include>
                 <include>org.locationtech.geomesa:geomesa-compute*</include>
             </includes>
         </dependencySet>
@@ -94,7 +94,7 @@
             <outputDirectory>docs/jobs</outputDirectory>
         </file>
         <file>
-            <source>../geomesa-plugin/README.md</source>
+            <source>../geomesa-geoserver-plugin/geomesa-accumulo-geoserver-plugin/README.md</source>
             <outputDirectory>docs/plugin</outputDirectory>
         </file>
         <file>

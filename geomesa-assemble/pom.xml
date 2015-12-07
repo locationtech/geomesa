@@ -54,11 +54,11 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-distributed-runtime</artifactId>
+            <artifactId>geomesa-accumulo-distributed-runtime</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-plugin</artifactId>
+            <artifactId>geomesa-accumulo-geoserver-plugin</artifactId>
             <classifier>geoserver-plugin</classifier>
         </dependency>
         <dependency>

@@ -1,55 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>geomesa-kafka</artifactId>
+        <artifactId>geomesa-geoserver-plugin</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
         <version>1.1.0-rc.7-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-kafka-geoserver-plugin</artifactId>
-    <name>GeoMesa Kafka Geoserver Plugin</name>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${slf4j.version}</version>
-                <scope>provided</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+    <artifactId>geomesa-stream-geoserver-plugin</artifactId>
+    <name>GeoMesa Stream GeoServer Plugin</name>
 
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-kafka-datastore</artifactId>
+            <artifactId>geomesa-stream-datastore</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.geoserver.extension</groupId>
-            <artifactId>gs-wps-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geoserver.web</groupId>
-            <artifactId>gs-web-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.wicket</groupId>
-            <artifactId>wicket</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.specs2</groupId>
-            <artifactId>specs2_2.10</artifactId>
         </dependency>
     </dependencies>
 
@@ -69,6 +34,10 @@
                             <shadedArtifactAttached>true</shadedArtifactAttached>
                             <shadedClassifierName>geoserver-plugin</shadedClassifierName>
                             <relocations>
+                                <relocation>
+                                    <pattern>org.slf4j.impl</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shade.slf4j.impl</shadedPattern>
+                                </relocation>
                                 <relocation>
                                     <pattern>org.apache.commons</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shade.commons</shadedPattern>
