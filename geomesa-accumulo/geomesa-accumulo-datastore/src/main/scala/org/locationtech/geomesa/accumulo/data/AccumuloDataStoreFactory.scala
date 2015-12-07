@@ -10,13 +10,13 @@
 package org.locationtech.geomesa.accumulo.data
 
 import java.io.Serializable
-import java.util.{Map => JMap}
+import java.util.{Map => JMap, Collections}
 
 import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, PasswordToken}
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
 import org.geotools.data.DataAccessFactory.Param
-import org.geotools.data.DataStoreFactorySpi
+import org.geotools.data.{Parameter, DataStoreFactorySpi}
 import org.locationtech.geomesa.accumulo.stats.StatWriter
 import org.locationtech.geomesa.security
 
@@ -113,7 +113,11 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       visibilityParam,
       tableNameParam,
       statsParam,
-      cachingParam
+      cachingParam,
+      queryTimeoutParam,
+      queryThreadsParam,
+      recordThreadsParam,
+      writeThreadsParam
     )
 
   def canProcess(params: JMap[String,Serializable]) = AccumuloDataStoreFactory.canProcess(params)
@@ -140,14 +144,13 @@ object AccumuloDataStoreFactory {
     val instanceIdParam     = new Param("instanceId", classOf[String], "Accumulo Instance ID", true)
     val zookeepersParam     = new Param("zookeepers", classOf[String], "Zookeepers", true)
     val userParam           = new Param("user", classOf[String], "Accumulo user", true)
-    val passwordParam       = new Param("password", classOf[String], "Accumulo password", true)
+    val passwordParam       = new Param("password", classOf[String], "Accumulo password", true, null, Collections.singletonMap(Parameter.IS_PASSWORD, java.lang.Boolean.TRUE))
     val authsParam          = org.locationtech.geomesa.security.authsParam
     val visibilityParam     = new Param("visibilities", classOf[String], "Accumulo visibilities to apply to all written data", false)
     val tableNameParam      = new Param("tableName", classOf[String], "Accumulo catalog table name", true)
     val queryTimeoutParam   = new Param("queryTimeout", classOf[Integer], "The max time a query will be allowed to run before being killed, in seconds", false)
     val queryThreadsParam   = new Param("queryThreads", classOf[Integer], "The number of threads to use per query", false)
     val recordThreadsParam  = new Param("recordThreads", classOf[Integer], "The number of threads to use for record retrieval", false)
-    val writeMemoryParam    = new Param("writeMemory", classOf[Integer], "The memory allocation to use for writing records", false)
     val writeThreadsParam   = new Param("writeThreads", classOf[Integer], "The number of threads to use for writing records", false)
     val statsParam          = new Param("collectStats", classOf[java.lang.Boolean], "Toggle collection of statistics", false)
     val cachingParam        = new Param("caching", classOf[java.lang.Boolean], "Toggle caching of results", false)

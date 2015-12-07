@@ -38,6 +38,15 @@ class TransformersTest extends Specification {
           exp.eval(Array(null)) must be equalTo "hello"
         }
 
+        "allow quoted strings" >> {
+          val exp = Transformers.parseTransform("'he\\'llo'")
+          exp.eval(Array(null)) must be equalTo "he'llo"
+        }
+
+        "not parse non-quoted things (this shouldn't be a string)" >> {
+          val exp = Transformers.parseTransform("5")
+          exp.eval(Array(null)) must be equalTo 5
+        }
         "allow empty literal strings" >> {
           val exp = Transformers.parseTransform("''")
           exp.eval(Array(null)) must be equalTo ""
@@ -85,6 +94,11 @@ class TransformersTest extends Specification {
         "date with custom format" >> {
           val exp = Transformers.parseTransform("date('yyyyMMdd', $1)")
           exp.eval(Array("", "20150101")).asInstanceOf[Date] must be equalTo testDate
+        }
+
+        "date with a realistic custom format" >> {
+          val exp = Transformers.parseTransform("date('YYYY-MM-dd\\'T\\'HH:mm:ss.SSSSSS', $1)")
+          exp.eval(Array("", "2015-01-01T00:00:00.000000")).asInstanceOf[Date] must be equalTo testDate
         }
 
         "datetime" >> {
@@ -155,7 +169,6 @@ class TransformersTest extends Specification {
         val lineStr = geoFac.createLineString(Seq((102, 0), (103, 1), (104, 0), (105, 1)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
         val trans = Transformers.parseTransform("geometry($0)")
         trans.eval(Array("Linestring(102 0, 103 1, 104 0, 105 1)")).asInstanceOf[Geometry] must be equalTo lineStr
-
       }
 
       "handle identity functions" >> {
@@ -233,30 +246,30 @@ class TransformersTest extends Specification {
           exp.eval(Array("", "2", "1")) must beTrue
         }
         "double equals" >> {
-          val exp = Transformers.parsePred("dEq($1::double, $2::double)")
+          val exp = Transformers.parsePred("doubleEq($1::double, $2::double)")
           exp.eval(Array("", "1.0", "2.0")) must beFalse
           exp.eval(Array("", "1.0", "1.0")) must beTrue
         }
 
         "double lteq" >> {
-          val exp = Transformers.parsePred("dLTEq($1::double, $2::double)")
+          val exp = Transformers.parsePred("doubleLTEq($1::double, $2::double)")
           exp.eval(Array("", "1.0", "2.0")) must beTrue
           exp.eval(Array("", "1.0", "1.0")) must beTrue
           exp.eval(Array("", "1.0", "0.0")) must beFalse
         }
         "double lt" >> {
-          val exp = Transformers.parsePred("dLT($1::double, $2::double)")
+          val exp = Transformers.parsePred("doubleLT($1::double, $2::double)")
           exp.eval(Array("", "1.0", "2.0")) must beTrue
           exp.eval(Array("", "1.0", "1.0")) must beFalse
         }
         "double gteq" >> {
-          val exp = Transformers.parsePred("dGTEq($1::double, $2::double)")
+          val exp = Transformers.parsePred("doubleGTEq($1::double, $2::double)")
           exp.eval(Array("", "1.0", "2.0")) must beFalse
           exp.eval(Array("", "1.0", "1.0")) must beTrue
           exp.eval(Array("", "2.0", "1.0")) must beTrue
         }
         "double gt" >> {
-          val exp = Transformers.parsePred("dGT($1::double, $2::double)")
+          val exp = Transformers.parsePred("doubleGT($1::double, $2::double)")
           exp.eval(Array("", "1.0", "2.0")) must beFalse
           exp.eval(Array("", "1.0", "1.0")) must beFalse
           exp.eval(Array("", "2.0", "1.0")) must beTrue
@@ -281,5 +294,43 @@ class TransformersTest extends Specification {
         }
       }
     }
+
+    import scala.collection.JavaConversions._
+    "create lists" >> {
+      val trans = Transformers.parseTransform("list($0, $1, $2)")
+      val res = trans.eval(Array("a", "b", "c")).asInstanceOf[java.util.List[String]]
+      res.size() mustEqual 3
+      res.toList must containTheSameElementsAs(List("a", "b", "c"))
+    }
+
+    "parse lists" >> {
+      "default delimiter" >> {
+        val trans = Transformers.parseTransform("parseList('string', $0)")
+        val res = trans.eval(Array("a,b,c")).asInstanceOf[java.util.List[String]]
+        res.size mustEqual 3
+        res.toList must containTheSameElementsAs(List("a", "b", "c"))
+      }
+      "custom delimiter" >> {
+        val trans = Transformers.parseTransform("parseList('string', $0, '%')")
+        val res = trans.eval(Array("a%b%c")).asInstanceOf[java.util.List[String]]
+        res.size mustEqual 3
+        res.toList must containTheSameElementsAs(List("a", "b", "c"))
+      }
+      "with numbers" >> {
+        val trans = Transformers.parseTransform("parseList('int', $0, '%')")
+        val res = trans.eval(Array("1%2%3")).asInstanceOf[java.util.List[Int]]
+        res.size mustEqual 3
+        res.toList must containTheSameElementsAs(List(1,2,3))
+      }
+      "with numbers" >> {
+        val trans = Transformers.parseTransform("parseList('int', $0, '%')")
+        trans.eval(Array("1%2%a")).asInstanceOf[java.util.List[Int]] must throwAn[IllegalArgumentException]
+      }
+    }
+
+//    "parse maps" >> {
+//
+//    }
+
   }
 }

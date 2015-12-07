@@ -12,28 +12,31 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 import com.twitter.scalding.{Args, Hdfs, Local, Mode}
+import com.typesafe.config.ConfigRenderOptions
 import org.apache.accumulo.core.client.Connector
 import org.apache.commons.codec.binary.Hex
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.jobs.JobUtils
-import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.tools.Utils.Modes._
-import org.locationtech.geomesa.tools.Utils.{IngestParams, Modes}
+import org.locationtech.geomesa.tools.Utils._
 import org.locationtech.geomesa.tools.commands.IngestCommand.IngestParameters
 import org.locationtech.geomesa.tools.ingest.DelimitedIngest._
-import org.locationtech.geomesa.tools.{AccumuloProperties, FeatureCreator}
+import org.locationtech.geomesa.tools.{AccumuloProperties, ConverterConfigParser, FeatureCreator, SftArgParser}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
 
 class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
 
+  val sft = SftArgParser.getSft(params.spec, params.featureName, params.config)
+  val converterConfig = ConverterConfigParser.getConfig(params.config)
+
   def run(): Unit = {
     // create schema for the feature prior to Ingest job
-    FeatureCreator.createFeature(params)
+    FeatureCreator.createFeature(params, sft)
 
     val conf = new Configuration()
     JobUtils.setLibJars(conf, libJars = ingestLibJars, searchPath = ingestJarSearchPath)
@@ -51,7 +54,7 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
     validateFileArgs(mode, params)
 
     val arguments = Mode.putMode(mode, getScaldingArgs())
-    val job = new ScaldingDelimitedIngestJob(arguments)
+    val job = new ScaldingConverterIngestJob(arguments)
     val flow = job.buildFlow
 
     //block until job is completed.
@@ -83,46 +86,34 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
   def ingestJarSearchPath: Iterator[() => Seq[File]] =
     Iterator(() => ClassPathUtils.getJarsFromEnvironment("GEOMESA_HOME"),
       () => ClassPathUtils.getJarsFromEnvironment("ACCUMULO_HOME"),
-      () => ClassPathUtils.getJarsFromClasspath(classOf[ScaldingDelimitedIngestJob]),
+      () => ClassPathUtils.getJarsFromClasspath(classOf[ScaldingConverterIngestJob]),
       () => ClassPathUtils.getJarsFromClasspath(classOf[AccumuloDataStore]),
       () => ClassPathUtils.getJarsFromClasspath(classOf[Connector]))
 
   def getScaldingArgs(): Args = {
-    val singleArgs = List(classOf[ScaldingDelimitedIngestJob].getCanonicalName, getModeFlag(params.files(0)))
+    val singleArgs = List(classOf[ScaldingConverterIngestJob].getCanonicalName, getModeFlag(params.files(0)))
 
+    val sftString = SimpleFeatureTypes.encodeType(sft)
     val requiredKvArgs: Map[String, List[String]] = Map(
       IngestParams.FILE_PATH         -> encodeFileList(params.files.toList),
-      IngestParams.SFT_SPEC          -> URLEncoder.encode(params.spec, "UTF-8"),
+      IngestParams.SFT_SPEC          -> URLEncoder.encode(sftString, StandardCharsets.UTF_8.displayName),
       IngestParams.CATALOG_TABLE     -> params.catalog,
       IngestParams.ZOOKEEPERS        -> Option(params.zookeepers).getOrElse(zookeepersProp),
       IngestParams.ACCUMULO_INSTANCE -> Option(params.instance).getOrElse(instanceName),
       IngestParams.ACCUMULO_USER     -> params.user,
       IngestParams.ACCUMULO_PASSWORD -> getPassword(params.password),
-      IngestParams.DO_HASH           -> params.hash.toString,
-      IngestParams.FORMAT            -> Option(params.format).getOrElse(getFileExtension(params.files(0))),
-      IngestParams.FEATURE_NAME      -> params.featureName,
-      IngestParams.IS_TEST_INGEST    -> false.toString
+      IngestParams.ACCUMULO_MOCK     -> params.useMock.toString,
+      IngestParams.FEATURE_NAME      -> sft.getTypeName,
+      IngestParams.IS_TEST_INGEST    -> false.toString,
+      IngestParams.CONVERTER_CONFIG  -> URLEncoder.encode(
+                                          converterConfig.root().render(ConfigRenderOptions.concise()),
+                                          StandardCharsets.UTF_8.displayName)
     ).mapValues(List(_))
 
     val optionalKvArgs: Map[String, List[String]] = List(
-      Option(params.columns)      .map(      IngestParams.COLS            -> List(_)),
-      Option(params.dtFormat)     .map(      IngestParams.DT_FORMAT       -> List(_)),
-      Option(params.idFields)     .map(      IngestParams.ID_FIELDS       -> List(_)),
-      Option(params.dtgField)     .map(      IngestParams.DT_FIELD        -> List(_)),
-      Option(params.skipHeader)   .map(sh => IngestParams.SKIP_HEADER     -> List(sh.toString)),
-      Option(params.lon)          .map(      IngestParams.LON_ATTRIBUTE   -> List(_)),
-      Option(params.lat)          .map(      IngestParams.LAT_ATTRIBUTE   -> List(_)),
-      Option(params.auths)        .map(      IngestParams.AUTHORIZATIONS  -> List(_)),
-      Option(params.visibilities) .map(      IngestParams.VISIBILITIES    -> List(_)),
-      Option(params.indexSchema)  .map(      IngestParams.INDEX_SCHEMA_FMT-> List(_)),
-      Option(params.listDelimiter).map(      IngestParams.LIST_DELIMITER  -> List(_)),
-      Option(params.mapDelimiters).map(      IngestParams.MAP_DELIMITERS  -> _.asScala.toList)).flatten.toMap
-
-    if (!optionalKvArgs.contains(IngestParams.DT_FIELD)) {
-      // assume user has no date field to use and that there is no column of data signifying it.
-      logger.warn("Warning: no date-time field specified. Assuming that data contains no date column. \n" +
-        s"GeoMesa is defaulting to the system time for ingested features.")
-    }
+      Option(params.auths)        .map(IngestParams.AUTHORIZATIONS   -> List(_)),
+      Option(params.visibilities) .map(IngestParams.VISIBILITIES     -> List(_)),
+      Option(params.indexSchema)  .map(IngestParams.INDEX_SCHEMA_FMT -> List(_))).flatten.toMap
 
     val kvArgs = (requiredKvArgs ++ optionalKvArgs).flatMap { case (k,v) => List(s"--$k") ++ v }
     Args(singleArgs ++ kvArgs)

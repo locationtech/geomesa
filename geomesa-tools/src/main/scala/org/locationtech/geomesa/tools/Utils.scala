@@ -9,10 +9,8 @@
 package org.locationtech.geomesa.tools
 
 import java.io.{BufferedReader, File, InputStreamReader}
-import java.util.UUID
 
 import com.typesafe.scalalogging.slf4j.Logging
-import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.accumulo.server.client.HdfsZooInstance
 import org.apache.commons.compress.compressors.bzip2.BZip2Utils
 import org.apache.commons.compress.compressors.gzip.GzipUtils
@@ -20,7 +18,7 @@ import org.apache.commons.compress.compressors.xz.XZUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 import scala.xml.XML
 
 object Utils {
@@ -35,22 +33,12 @@ object Utils {
     val VISIBILITIES        = "geomesa.tools.ingest.visibilities"
     val SHARDS              = "geomesa.tools.ingest.shards"
     val INDEX_SCHEMA_FMT    = "geomesa.tools.ingest.index-schema-format"
-    val SKIP_HEADER         = "geomesa.tools.ingest.skip-header"
-    val DO_HASH             = "geomesa.tools.ingest.do-hash"
-    val DT_FORMAT           = "geomesa.tools.ingest.dt-format"
-    val ID_FIELDS           = "geomesa.tools.ingest.id-fields"
-    val DT_FIELD            = "geomesa.tools.ingest.dt-fields"
     val FILE_PATH           = "geomesa.tools.ingest.path"
-    val FORMAT              = "geomesa.tools.ingest.delimiter"
-    val LON_ATTRIBUTE       = "geomesa.tools.ingest.lon-attribute"
-    val LAT_ATTRIBUTE       = "geomesa.tools.ingest.lat-attribute"
     val FEATURE_NAME        = "geomesa.tools.feature.name"
     val CATALOG_TABLE       = "geomesa.tools.feature.tables.catalog"
     val SFT_SPEC            = "geomesa.tools.feature.sft-spec"
-    val COLS                = "geomesa.tools.ingest.cols"
     val IS_TEST_INGEST      = "geomesa.tools.ingest.is-test-ingest"
-    val LIST_DELIMITER      = "geomesa.tools.ingest.list-delimiter"
-    val MAP_DELIMITERS      = "geomesa.tools.ingest.map-delimiter"
+    val CONVERTER_CONFIG    = "geomesa.tools.ingest.converter-config"
   }
 
   object Formats {
@@ -118,6 +106,7 @@ object Utils {
     val path = new Path(pathStr)
     fs.delete(path, true)
   }
+
 }
 /* get password trait */
 trait GetPassword {
@@ -138,7 +127,11 @@ trait GetPassword {
  * the system path in ACCUMULO_HOME in the case that command line parameters are not provided
  */
 trait AccumuloProperties extends GetPassword with Logging {
-  lazy val accumuloConf = XML.loadFile(s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml")
+  lazy val accumuloConf = {
+    val conf = Option(System.getProperty("geomesa.tools.accumulo.site.xml"))
+      .getOrElse(s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml")
+    XML.loadFile(conf)
+  }
 
   lazy val zookeepersProp =
     (accumuloConf \\ "property")
