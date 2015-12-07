@@ -3,7 +3,7 @@ package org.locationtech.geomesa.convert.xml
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
-import org.locationtech.geomesa.convert.Transformers.EvaluationContext
+import org.locationtech.geomesa.convert.Transformers.{DefaultCounter, EvaluationContext}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

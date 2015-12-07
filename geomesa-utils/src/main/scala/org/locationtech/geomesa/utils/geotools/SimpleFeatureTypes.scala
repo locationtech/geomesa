@@ -16,6 +16,7 @@ import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.SpecParser.{ListAttributeType, MapAttributeType, SimpleAttributeType}
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
+import org.locationtech.geomesa.utils.text.EnhancedTokenParsers
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -44,14 +45,20 @@ object SimpleFeatureTypes {
   val USER_DATA_MAP_KEY_TYPE   = "keyclass"
   val USER_DATA_MAP_VALUE_TYPE = "valueclass"
 
-  def createType(conf: Config): SimpleFeatureType = {
-    val nameSpec = conf.getString("type-name")
+  def createType(conf: Config, path: Option[String] = Some("sft")): SimpleFeatureType = {
+    import org.locationtech.geomesa.utils.conf.ConfConversions._
+    val toParse = path match {
+      case Some(p) => conf.getConfigOpt(p).map(conf.withFallback).getOrElse(conf)
+      case None    => conf
+    }
+
+    val nameSpec = toParse.getString("type-name")
     val (namespace, name) = buildTypeName(nameSpec)
     val specParser = new SpecParser
 
-    val fields = getFieldConfig(conf).map(buildField(_, specParser))
-    val userData = if (conf.hasPath("user-data")) {
-      conf.getConfig("user-data").entrySet().map(e => e.getKey -> e.getValue.unwrapped()).toMap
+    val fields = getFieldConfig(toParse).map(buildField(_, specParser))
+    val userData = if (toParse.hasPath("user-data")) {
+      toParse.getConfig("user-data").entrySet().map(e => e.getKey -> e.getValue.unwrapped()).toMap
     } else {
       Map.empty[String, AnyRef]
     }
@@ -509,7 +516,7 @@ object SimpleFeatureTypes {
       }
     }
   }
-  private class SpecParser extends JavaTokenParsers {
+  private class SpecParser extends EnhancedTokenParsers {
     import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.SpecParser._
     /*
      Valid specs can have attributes that look like the following:
@@ -609,16 +616,7 @@ object SimpleFeatureTypes {
     // Feature Option parsing
     private val EQ = "="
 
-    def nonGreedyStringLiteral: Parser[String] =
-      ("\""+"""([^"\p{Cntrl}\\]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*?"""+"\"").r
-
-    def nonGreedySingleQuoteLiteral: Parser[String] =
-      ( "\'" +"""([^"\p{Cntrl}\\]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*?""" + "\'").r
-
-    def quotedString = nonGreedyStringLiteral | nonGreedySingleQuoteLiteral ^^ { x => x.drop(1).dropRight(1) }
-    def safeString = "([^,]+)".r
-
-    def optValue = quotedString | safeString
+    def optValue = quotedString | nonQuotedString
     def fOptKey = "[a-zA-Z0-9\\.]+".r
     def fOptKeyValue =  (fOptKey <~ EQ) ~ optValue ^^ {  x => x._1 -> x._2 }
 

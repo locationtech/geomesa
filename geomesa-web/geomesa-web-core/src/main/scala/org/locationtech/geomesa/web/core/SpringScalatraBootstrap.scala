@@ -65,7 +65,6 @@ object GeoMesaScalatraServlet {
       queryTimeoutParam,
       queryThreadsParam,
       recordThreadsParam,
-      writeMemoryParam,
       writeThreadsParam,
       statsParam,
       cachingParam
