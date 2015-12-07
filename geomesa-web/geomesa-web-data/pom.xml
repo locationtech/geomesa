@@ -13,11 +13,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <scope>compile</scope>
-            </dependency>
 
             <!-- provided deps that come from spark -->
             <dependency>
