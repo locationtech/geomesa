@@ -67,7 +67,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
    */
   def planQuery(query: Query,
                 strategy: Option[StrategyType] = None,
-                output: ExplainerOutputType = ExplainNull): Seq[QueryPlan] = {
+                output: ExplainerOutputType = new ExplainLogging): Seq[QueryPlan] = {
     getQueryPlans(query, strategy, output).toList // toList forces evaluation of entire iterator
   }
 
@@ -76,7 +76,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
    */
   def runQuery(query: Query,
                strategy: Option[StrategyType] = None,
-               output: ExplainerOutputType = ExplainNull): SFIter = {
+               output: ExplainerOutputType = new ExplainLogging): SFIter = {
     val plans = getQueryPlans(query, strategy, output)
     executePlans(query, plans, output)
   }
