@@ -36,7 +36,7 @@ class CoveringAttributeIndexTest extends Specification with TestWithDataStore {
     }
   })
 
-  val joinIndicator = "Join plan:"
+  val joinIndicator = "Join Plan:"
 
   "AttributeIndexStrategy" should {
 

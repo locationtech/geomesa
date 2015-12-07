@@ -94,6 +94,11 @@ package object index {
   trait ExplainerOutputType {
     private var indent = ""
     def apply(s: => String): ExplainerOutputType = { output(s"$indent$s"); this }
+    def apply(s: => String, c: => Seq[String]): ExplainerOutputType = {
+      output(s"$indent$s")
+      val ci = c // don't evaluate strings twice
+      if (ci.nonEmpty) { pushLevel(); ci.foreach(s => output(s"$indent$s")); popLevel() } else this
+    }
     def pushLevel(): ExplainerOutputType = { indent += "  "; this }
     def pushLevel(s: => String): ExplainerOutputType = { apply(s); pushLevel(); this }
     def popLevel(): ExplainerOutputType = { indent = indent.substring(2); this }

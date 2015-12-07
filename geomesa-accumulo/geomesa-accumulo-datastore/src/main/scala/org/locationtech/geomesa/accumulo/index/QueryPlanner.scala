@@ -144,15 +144,15 @@ case class QueryPlanner(sft: SimpleFeatureType,
   }
 
   // output the query plan for explain logging
-  private def outputPlan(plan: QueryPlan, output: ExplainerOutputType): Unit = {
-    output.pushLevel(s"Plan: ${plan.getClass.getName}")
+  private def outputPlan(plan: QueryPlan, output: ExplainerOutputType, planPrefix: String = ""): Unit = {
+    output.pushLevel(s"${planPrefix}Plan: ${plan.getClass.getName}")
     output(s"Table: ${plan.table}")
     output(s"Deduplicate: ${plan.hasDuplicates}")
     output(s"Column Families${if (plan.columnFamilies.isEmpty) ": all"
       else s" (${plan.columnFamilies.size}): ${plan.columnFamilies.take(20)}"} ")
     output(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(rangeToString).mkString(", ")}")
-    output(s"Iterators (${plan.iterators.size}): ${plan.iterators.mkString("[", "],[", "]")}")
-    plan.join.foreach { j => output("Join plan:"); outputPlan(j._2, output) }
+    output(s"Iterators (${plan.iterators.size}):", plan.iterators.map(_.toString))
+    plan.join.foreach { j => outputPlan(j._2, output, "Join ") }
     output.popLevel()
   }
 
