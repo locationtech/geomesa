@@ -102,6 +102,17 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
           results.head.getAttribute("name") must beNull
         }
       }
+
+      "with renaming projections" in {
+        val query = new Query(sftName, Filter.INCLUDE, Array("trans=name", "geom"))
+
+        val features = ds.getFeatureSource(sftName).getFeatures(query).features().toList
+
+        features must haveSize(1)
+        features.head.getAttributeCount mustEqual 2
+        features.head.getAttribute("trans") mustEqual name
+        features.head.getAttribute("geom") mustEqual geom
+      }
     }
 
     "handle back compatible transformations" >> {
