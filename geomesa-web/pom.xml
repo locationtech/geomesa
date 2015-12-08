@@ -24,6 +24,12 @@
                 <version>${scalatra.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.scalatra</groupId>
                 <artifactId>scalatra-auth_2.10</artifactId>
                 <version>${scalatra.version}</version>
@@ -62,5 +68,29 @@
         <module>geomesa-web-install</module>
         <module>geomesa-web-security</module>
     </modules>
+
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>create-archive</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>single</goal>
+                            </goals>
+                            <configuration>
+                                <descriptor>../../geomesa-geoserver-plugin/assembly.xml</descriptor>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
 </project>
