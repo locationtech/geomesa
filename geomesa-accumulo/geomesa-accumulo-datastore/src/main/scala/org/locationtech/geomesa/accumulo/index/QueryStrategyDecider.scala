@@ -80,9 +80,9 @@ class QueryStrategyDeciderV6 extends QueryStrategyDecider with MethodProfiling {
       if (requested.isDefined) {
         val forced = forceStrategy(options, requested.get, query.getFilter)
         output(s"Filter plan forced to $forced")
-        forced
+        forced.filters.map(createStrategy)
       } else if (options.isEmpty) {
-        output(s"No filter plans found")
+        output("No filter plans found")
         Seq.empty // corresponds to filter.exclude
       } else {
         val filterPlan = if (query.getHints.isDensityQuery) {
@@ -104,8 +104,7 @@ class QueryStrategyDeciderV6 extends QueryStrategyDecider with MethodProfiling {
           val costs = options.map(o => (o, o.filters.map(getCost(_, sft, hints)).sum)).sortBy(_._2)
           val cheapest = costs.head
           output(s"Filter plan selected: ${cheapest._1} (Cost ${cheapest._2})")
-          output(s"Filter plans not used (${costs.size - 1}): " +
-              s"${costs.drop(1).map(c => s"${c._1} (Cost ${c._2})").mkString(", ")}")
+          output(s"Filter plans not used (${costs.size - 1}):", costs.drop(1).map(c => s"${c._1} (Cost ${c._2})"))
           cheapest._1
         }
         filterPlan.filters.map(createStrategy)
@@ -116,17 +115,20 @@ class QueryStrategyDeciderV6 extends QueryStrategyDecider with MethodProfiling {
   }
 
   // see if one of the normal plans matches the requested type - if not, force it
-  private def forceStrategy(options: Seq[FilterPlan], strategy: StrategyType, allFilter: Filter): Seq[Strategy] = {
+  private def forceStrategy(options: Seq[FilterPlan], strategy: StrategyType, allFilter: Filter): FilterPlan = {
     def checkStrategy(f: QueryFilter) = f.strategy == strategy ||
         (strategy == StrategyType.ST && f.strategy == StrategyType.Z3)
 
-    val forced = options.map(_.filters).find(_.forall(checkStrategy)).map(_.map {
-      // swap z3 to st if required
-      case filter if filter.strategy != strategy => filter.copy(strategy = strategy)
-      case filter => filter
-    }).getOrElse(Seq(QueryFilter(strategy, Seq(Filter.INCLUDE), Some(allFilter))))
-
-    forced.map(createStrategy)
+    options.find(_.filters.forall(checkStrategy)) match {
+      case None => FilterPlan(Seq(QueryFilter(strategy, Seq(Filter.INCLUDE), Some(allFilter))))
+      case Some(fp) =>
+        val filters = fp.filters.map {
+          // swap z3 to st if required
+          case filter if filter.strategy != strategy => filter.copy(strategy = strategy)
+          case filter => filter
+        }
+        fp.copy(filters = filters)
+    }
   }
 
   /**
