@@ -23,9 +23,27 @@
     <constructor-arg index="1" value="geomesa-analytics"/>
   </bean>
 
+  <bean id="servletContext" class="org.springframework.web.context.support.ServletContextFactoryBean"/>
+
+  <bean id="geoserverDataDirStr" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+    <property name="targetClass" value="org.geoserver.platform.GeoServerResourceLoader"/>
+    <property name="targetMethod" value="lookupGeoServerDataDirectory"/>
+      <property name="arguments">
+        <list>
+          <ref bean="servletContext"/>
+        </list>
+      </property>
+  </bean>
+
+  <bean id="geoserverDataDir" class="org.geoserver.config.GeoServerDataDirectory">
+    <constructor-arg index="0" ref="geoserverDataDirStr"/>
+  </bean>
+
   <bean id="configDir" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
-    <property name="targetClass" value="org.vfny.geoserver.global.GeoserverDataDirectory"/>
-    <property name="targetMethod" value="findCreateConfigDir"/>
+    <property name="targetObject">
+      <ref local="geoserverDataDir"/>
+    </property>
+    <property name="targetMethod" value="findOrCreateDir"/>
     <property name="arguments">
       <list>
         <value type="java.lang.String">geomesa-config</value>
