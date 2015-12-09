@@ -201,7 +201,7 @@ trait HasInMemoryDeduplication extends IteratorExtensions {
     super.init(featureType, options)
     // check for dedupe - we don't need to dedupe for density queries
     if (!options.containsKey(GEOMESA_ITERATORS_IS_DENSITY_TYPE)) {
-      deduplicate = IndexSchema.mayContainDuplicates(featureType)
+      deduplicate = featureType.nonPoints
       if (deduplicate) {
         if (options.containsKey(DEFAULT_CACHE_SIZE_NAME)) {
           maxInMemoryIdCacheEntries = options.get(DEFAULT_CACHE_SIZE_NAME).toInt

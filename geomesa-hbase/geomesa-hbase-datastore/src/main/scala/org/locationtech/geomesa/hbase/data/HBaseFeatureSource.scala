@@ -11,7 +11,7 @@ import com.vividsolutions.jts.geom.Envelope
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.data.{FeatureReader, FeatureWriter, Query}
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.joda.time.Weeks
+import org.joda.time.{Interval, Weeks}
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.filter
@@ -35,7 +35,6 @@ class HBaseFeatureSource(entry: ContentEntry,
       .map  { case (_, idx)  => idx }
       .getOrElse(throw new RuntimeException("No date attribute"))
 
-  private val Z3_CURVE = new Z3SFC
   type FR = FeatureReader[SimpleFeatureType, SimpleFeature]
   private val ds = entry.getDataStore.asInstanceOf[HBaseDataStore]
 
@@ -83,32 +82,32 @@ class HBaseFeatureSource(entry: ContentEntry,
 
     val kryoFeatureSerializer = new KryoFeatureSerializer(sft)
     if (weeks.length == 1) {
-      val z3ranges = Z3_CURVE.ranges((lx, ux), (ly, uy), (lt, ut))
+      val z3ranges = Z3SFC.ranges((lx, ux), (ly, uy), (lt, ut))
       // TODO: cache serializers
       new HBaseFeatureReader(
         ds.getZ3Table(sft), sft, weeks.head, z3ranges,
-        Z3_CURVE.normLon(lx), Z3_CURVE.normLat(ly), interval.getStart.getMillis,
-        Z3_CURVE.normLon(ux), Z3_CURVE.normLat(uy), interval.getEnd.getMillis,
+        Z3SFC.lon.normalize(lx), Z3SFC.lat.normalize(ly), interval.getStart.getMillis,
+        Z3SFC.lon.normalize(ux), Z3SFC.lat.normalize(uy), interval.getEnd.getMillis,
         kryoFeatureSerializer)
     } else {
       val oneWeekInSeconds = Weeks.ONE.toStandardSeconds.getSeconds
       val head +: xs :+ last = weeks.toList
       // TODO: ignoring seconds for now
-      val z3ranges = Z3_CURVE.ranges((lx, ux), (ly, uy), (0, oneWeekInSeconds))
+      val z3ranges = Z3SFC.ranges((lx, ux), (ly, uy), (0, oneWeekInSeconds))
       val middleQPs = xs.map { w =>
         new HBaseFeatureReader(ds.getZ3Table(sft), sft, w, z3ranges,
-          Z3_CURVE.normLon(lx), Z3_CURVE.normLat(ly), interval.getStart.getMillis,
-          Z3_CURVE.normLon(ux), Z3_CURVE.normLat(uy), interval.getEnd.getMillis,
+          Z3SFC.lon.normalize(lx), Z3SFC.lat.normalize(ly), interval.getStart.getMillis,
+          Z3SFC.lon.normalize(ux), Z3SFC.lat.normalize(uy), interval.getEnd.getMillis,
           kryoFeatureSerializer)
       }
       val sr = new HBaseFeatureReader(ds.getZ3Table(sft), sft, head, z3ranges,
-        Z3_CURVE.normLon(lx), Z3_CURVE.normLat(ly), interval.getStart.getMillis,
-        Z3_CURVE.normLon(ux), Z3_CURVE.normLat(uy), interval.getEnd.getMillis,
+        Z3SFC.lon.normalize(lx), Z3SFC.lat.normalize(ly), interval.getStart.getMillis,
+        Z3SFC.lon.normalize(ux), Z3SFC.lat.normalize(uy), interval.getEnd.getMillis,
         kryoFeatureSerializer)
 
       val er = new HBaseFeatureReader(ds.getZ3Table(sft), sft, last, z3ranges,
-        Z3_CURVE.normLon(lx), Z3_CURVE.normLat(ly), interval.getStart.getMillis,
-        Z3_CURVE.normLon(ux), Z3_CURVE.normLat(uy), interval.getEnd.getMillis,
+        Z3SFC.lon.normalize(lx), Z3SFC.lat.normalize(ly), interval.getStart.getMillis,
+        Z3SFC.lon.normalize(ux), Z3SFC.lat.normalize(uy), interval.getEnd.getMillis,
         kryoFeatureSerializer)
 
       val readers = Seq(sr) ++ middleQPs ++ Seq(er)

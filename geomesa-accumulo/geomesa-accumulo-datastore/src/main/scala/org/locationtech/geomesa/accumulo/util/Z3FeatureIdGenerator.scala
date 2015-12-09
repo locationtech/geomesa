@@ -10,9 +10,10 @@ package org.locationtech.geomesa.accumulo.util
 
 import java.util.{Date, UUID}
 
-import com.google.common.primitives.Longs
+import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.locationtech.geomesa.accumulo.data.tables.Z3Table
+import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.uuid.{FeatureIdGenerator, RandomLsbUuidGenerator}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -64,7 +65,11 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator {
       case p: Point => p
       case g: Geometry => g.getCentroid
     }
-    val z3 = Z3Table.getRowPrefix(pt.getX, pt.getY, time)
+    val z3 = {
+      val (w, t) = Z3Table.getWeekAndSeconds(time)
+      val z = Z3SFC.index(pt.getX, pt.getY, t).z
+      Bytes.concat(Shorts.toByteArray(w), Longs.toByteArray(z))
+    }
 
     // shard is first 4 bits of our uuid (e.g. 1 hex char) - this allows nice pre-splitting
     val shard = math.abs(MurmurHash3.bytesHash(z3) % 16).toByte

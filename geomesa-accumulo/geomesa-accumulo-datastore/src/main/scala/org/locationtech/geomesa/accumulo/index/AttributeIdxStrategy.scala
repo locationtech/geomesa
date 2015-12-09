@@ -84,7 +84,7 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with Loggin
     if (hints.isBinQuery) {
       if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
         // can apply the bin aggregating iterator directly to the sft
-        val iters = Seq(BinAggregatingIterator.configureDynamic(sft, hints, filter.secondary, priority))
+        val iters = Seq(BinAggregatingIterator.configureDynamic(sft, filter.secondary, hints, hasDupes))
         val kvsToFeatures = BinAggregatingIterator.kvsToFeatures()
         BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
       } else {
@@ -93,7 +93,7 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with Loggin
         if (indexSft.indexOf(hints.getBinTrackIdField) != -1 &&
             hints.getBinLabelField.forall(indexSft.indexOf(_) != -1) &&
             filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
-          val iters = Seq(BinAggregatingIterator.configureDynamic(indexSft, hints, filter.secondary, priority))
+          val iters = Seq(BinAggregatingIterator.configureDynamic(indexSft, filter.secondary, hints, hasDupes))
           val kvsToFeatures = BinAggregatingIterator.kvsToFeatures()
           BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
         } else {

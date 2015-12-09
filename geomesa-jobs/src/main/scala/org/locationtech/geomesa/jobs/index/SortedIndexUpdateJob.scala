@@ -35,11 +35,12 @@ class SortedIndexUpdateJob(args: Args) extends GeoMesaBaseJob(args) {
   // non-serializable resources - need to be lazy and transient so they are available to each mapper
   @transient lazy val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
   @transient lazy val sft = ds.getSchema(feature)
-  @transient lazy val indexSchemaFmt = ds.buildDefaultSpatioTemporalSchema(sft.getTypeName)
+  @transient lazy val indexSchemaFmt = ds.buildDefaultSpatioTemporalSchema(feature)
   @transient lazy val encoding = ds.getFeatureEncoding(sft)
   @transient lazy val featureEncoder = SimpleFeatureSerializers(sft, encoding)
   // this won't use the new schema version, but anything less than version 4 is handled the same way
   @transient lazy val indexValueEncoder = IndexValueEncoder(sft)
+  @transient lazy val binEncoder = BinEncoder(sft)
   @transient lazy val encoder = IndexSchema.buildKeyEncoder(sft, indexSchemaFmt)
   @transient lazy val decoder = SimpleFeatureDeserializers(sft, encoding)
 
@@ -82,7 +83,7 @@ class SortedIndexUpdateJob(args: Args) extends GeoMesaBaseJob(args) {
         val mutations = if (key.getColumnQualifier.toString == "SimpleFeatureAttribute") {
           // data entry, re-calculate the keys for index and data entries
           val sf = decoder.deserialize(value.get())
-          val toWrite = new FeatureToWrite(sf, key.getColumnVisibility.toString, featureEncoder, indexValueEncoder)
+          val toWrite = new FeatureToWrite(sf, key.getColumnVisibility.toString, featureEncoder, indexValueEncoder, binEncoder)
           encoder.encode(toWrite)
         } else {
           // index entry, ignore it (will be handled by associated data entry)

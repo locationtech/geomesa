@@ -17,5 +17,6 @@ package object geomesa {
   // 4 == kryo encoded index values
   // 5 == z3 index
   // 6 == attribute indices with dates
-  val CURRENT_SCHEMA_VERSION = 6
+  // 7 == z3 polygons
+  val CURRENT_SCHEMA_VERSION = 7
 }

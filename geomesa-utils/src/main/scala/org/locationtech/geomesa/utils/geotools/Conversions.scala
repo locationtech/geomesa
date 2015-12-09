@@ -101,9 +101,6 @@ object Conversions {
   }
 }
 
-
-
-
 object RichIterator {
   implicit class RichIterator[T](val iter: Iterator[T]) extends AnyVal {
     def head = iter.next()
@@ -225,6 +222,7 @@ object RichSimpleFeatureType {
     def setSchemaVersion(version: Int): Unit = sft.getUserData.put(SCHEMA_VERSION_KEY, version.toString)
 
     def isPoints = sft.getGeometryDescriptor.getType.getBinding == classOf[Point]
+    def nonPoints = !isPoints
     def isLines = sft.getGeometryDescriptor.getType.getBinding == classOf[LineString]
 
     //  If no user data is specified when creating a new SFT, we should default to 'true'.

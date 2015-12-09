@@ -744,8 +744,7 @@ class AccumuloDataStore(val connector: Connector,
     checkWritePermissions(typeName)
     val sft = getSchema(typeName)
     val fe = SimpleFeatureSerializers(sft, getFeatureEncoding(sft))
-    val ive = IndexValueEncoder(sft)
-    new ModifyAccumuloFeatureWriter(sft, fe, ive, this, writeVisibilities, filter)
+    new ModifyAccumuloFeatureWriter(sft, fe, this, writeVisibilities, filter)
   }
 
   /* optimized for GeoTools API to return writer ONLY for appending (aka don't scan table) */
@@ -755,8 +754,7 @@ class AccumuloDataStore(val connector: Connector,
     checkWritePermissions(typeName)
     val sft = getSchema(typeName)
     val fe = SimpleFeatureSerializers(sft, getFeatureEncoding(sft))
-    val ive = IndexValueEncoder(sft)
-    new AppendAccumuloFeatureWriter(sft, fe, ive, this, writeVisibilities)
+    new AppendAccumuloFeatureWriter(sft, fe, this, writeVisibilities)
   }
 
   override def getUnsupportedFilter(featureName: String, filter: Filter): Filter = Filter.INCLUDE

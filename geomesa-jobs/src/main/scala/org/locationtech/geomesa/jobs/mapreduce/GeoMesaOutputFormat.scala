@@ -19,7 +19,7 @@ import org.apache.hadoop.mapreduce._
 import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloFeatureWriter}
-import org.locationtech.geomesa.accumulo.index.IndexValueEncoder
+import org.locationtech.geomesa.accumulo.index.{BinEncoder, IndexValueEncoder}
 import org.locationtech.geomesa.features.SimpleFeatureSerializers
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -100,6 +100,7 @@ class GeoMesaRecordWriter(params: Map[String, String], delegate: RecordWriter[Te
   val writerCache       = scala.collection.mutable.Map.empty[String, Seq[TableAndMutations]]
   val encoderCache      = scala.collection.mutable.Map.empty[String, org.locationtech.geomesa.features.SimpleFeatureSerializer]
   val indexEncoderCache = scala.collection.mutable.Map.empty[String, IndexValueEncoder]
+  val binEncoderCache   = scala.collection.mutable.Map.empty[String, Option[BinEncoder]]
 
   override def write(key: Text, value: SimpleFeature) = {
     val sftName = value.getFeatureType.getTypeName
@@ -123,7 +124,8 @@ class GeoMesaRecordWriter(params: Map[String, String], delegate: RecordWriter[Te
     val withFid = AccumuloFeatureWriter.featureWithFid(sft, value)
     val encoder = encoderCache.getOrElseUpdate(sftName, SimpleFeatureSerializers(sft, ds.getFeatureEncoding(sft)))
     val ive = indexEncoderCache.getOrElseUpdate(sftName, IndexValueEncoder(sft))
-    val featureToWrite = new FeatureToWrite(withFid, ds.writeVisibilities, encoder, ive)
+    val binEncoder = binEncoderCache.getOrElseUpdate(sftName, BinEncoder(sft))
+    val featureToWrite = new FeatureToWrite(withFid, ds.writeVisibilities, encoder, ive, binEncoder)
 
     writers.foreach { case (table, featureToMutations) =>
       featureToMutations(featureToWrite).foreach(delegate.write(table, _))

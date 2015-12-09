@@ -176,7 +176,9 @@ class FilterHelperTest extends Specification with Mockito with Logging {
         val extractedMixed1Interval = extractDT(mixedFilters1)
         val extractedMixed2Interval = extractDT(mixedFilters2)
 
-        val expectedInterval = interval(t1).overlap(interval(t2))
+        val expectedStart = math.max(t1._1.getMillis, t2._1.getMillis)
+        val expectedEnd = math.min(t1._2.getMillis, t2._2.getMillis)
+        val expectedInterval = if (expectedStart > expectedEnd) null else new Interval(expectedStart, expectedEnd, DateTimeZone.UTC)
         logger.debug(s"Extracted interval $extractedBetweenInterval from filters ${betweenFilters.map(ECQL.toCQL)}")
         extractedBetweenInterval must equalTo(expectedInterval)
         extractedDuringInterval must equalTo(expectedInterval)
@@ -197,20 +199,25 @@ class FilterHelperTest extends Specification with Mockito with Logging {
         val duringFilter = during(dtPair)
         val pairInterval = interval(dtPair)
 
+        def overlap(i1: Interval, i2: Interval) = {
+          val s = math.max(i1.getStart.getMillis, i2.getStart.getMillis)
+          val e = math.min(i1.getEnd.getMillis, i2.getEnd.getMillis)
+          if (s > e) null else new Interval(s, e, DateTimeZone.UTC)
+        }
         val afterAndBetween = extractDT(Seq(afterDtFilter, betweenFilter))
-        val afterAndBetweenInterval = afterDtInterval.overlap(pairInterval)
+        val afterAndBetweenInterval = overlap(afterDtInterval, pairInterval)
         afterAndBetween must equalTo(afterAndBetweenInterval)
 
         val beforeAndBetween = extractDT(Seq(beforeDtFilter, betweenFilter))
-        val beforeAndBetweenInterval = beforeDtInterval.overlap(pairInterval)
+        val beforeAndBetweenInterval = overlap(beforeDtInterval, pairInterval)
         beforeAndBetween must equalTo(beforeAndBetweenInterval)
 
         val afterAndDuring = extractDT(Seq(afterDtFilter, duringFilter))
-        val afterAndDuringInterval = afterDtInterval.overlap(pairInterval)
+        val afterAndDuringInterval = overlap(afterDtInterval, pairInterval)
         afterAndDuring must equalTo(afterAndDuringInterval)
 
         val beforeAndDuring = extractDT(Seq(beforeDtFilter, duringFilter))
-        val beforeAndDuringInterval = beforeDtInterval.overlap(pairInterval)
+        val beforeAndDuringInterval = overlap(beforeDtInterval, pairInterval)
         beforeAndDuring must equalTo(beforeAndDuringInterval)
       }
     }
