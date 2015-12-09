@@ -25,7 +25,7 @@ GeoMesa is an open-source, distributed, spatio-temporal database built on top of
 * [Release tarball](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-assemble-accumulo1.5/1.0.0-rc.7/geomesa-assemble-accumulo1.5-1.0.0-rc.7-bin.tar.gz)  
 
 <b>NOTE:</b> The current recommended version is `${geomesa.release.version}`. The most recent tar.gz assembly can be 
-[downloaded here](http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-assemble/${geomesa.release.version}/geomesa-assemble-${geomesa.release.version}-bin.tar.gz) which contains the [Accumulo distributed runtime jar](geomesa-accumulo-distributed-runtime), [GeoServer plugin](geomesa-geoserver-plugin/geomesa-accumulo-geoserver-plugin), and [command line tools](geomesa-tools).
+[downloaded here](http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-assemble/${geomesa.release.version}/geomesa-assemble-${geomesa.release.version}-bin.tar.gz) which contains the [Accumulo distributed runtime jar](geomesa-accumulo-distributed-runtime), [Accumulo GeoServer plugin](geomesa-geoserver-plugin/geomesa-accumulo-geoserver-plugin), and [command line tools](geomesa-tools).
 
 GeoMesa artifacts can be downloaded from the [LocationTech Maven repository](https://repo.locationtech.org/content/repositories/geomesa-releases/)
 
