@@ -12,28 +12,43 @@
            xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2 http://maven.apache.org/xsd/component-1.1.2.xsd">
     <dependencySets>
         <dependencySet>
-            <outputDirectory>lib</outputDirectory>
-            <directoryMode>0755</directoryMode>
-            <fileMode>0755</fileMode>
-            <useProjectArtifact>false</useProjectArtifact>
-            <useTransitiveDependencies>true</useTransitiveDependencies>
-            <useTransitiveFiltering>true</useTransitiveFiltering>
-            <excludes>
-                <exclude>org.locationtech.geomesa:geomesa-plugin*</exclude>
-                <exclude>org.locationtech.geomesa:geomesa-accumulo-distributed-runtime*</exclude>
-                <exclude>org.locationtech.geomesa:geomesa-compute*</exclude>
-            </excludes>
-        </dependencySet>
-        <dependencySet>
-            <outputDirectory>dist</outputDirectory>
+            <outputDirectory>dist/tools</outputDirectory>
             <directoryMode>0755</directoryMode>
             <fileMode>0755</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
-                <include>org.locationtech.geomesa:geomesa-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-tools*</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>dist/accumulo</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0755</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <includes>
                 <include>org.locationtech.geomesa:geomesa-accumulo-distributed-runtime*</include>
-                <include>org.locationtech.geomesa:geomesa-compute*</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>dist/geoserver-plugins</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0755</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <includes>
+                <include>org.locationtech.geomesa:geomesa-*-geoserver-plugin*</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>dist/webservices</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0755</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <includes>
+                <include>org.locationtech.geomesa:geomesa-web*</include>
             </includes>
         </dependencySet>
     </dependencySets>
@@ -62,7 +77,11 @@
         </file>
         <file>
             <source>../geomesa-geoserver-plugin/geomesa-accumulo-geoserver-plugin/README.md</source>
-            <outputDirectory>docs/plugin</outputDirectory>
+            <outputDirectory>docs/accumulo-geoserver-plugin</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-geoserver-plugin/geomesa-kafka-geoserver-plugin/README.md</source>
+            <outputDirectory>docs/kafka-geoserver-plugin</outputDirectory>
         </file>
         <file>
             <source>../geomesa-tools/README.md</source>
