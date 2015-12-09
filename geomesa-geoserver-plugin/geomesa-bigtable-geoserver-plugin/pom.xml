@@ -16,6 +16,12 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-bigtable-datastore</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
