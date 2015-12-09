@@ -60,4 +60,11 @@
             <filtered>true</filtered>
         </fileSet>
     </fileSets>
+    <files>
+        <file>
+            <source>target/geomesa-tools-${project.version}.jar</source>
+            <outputDirectory>lib</outputDirectory>
+            <fileMode>0755</fileMode>
+        </file>
+    </files>
 </component>
