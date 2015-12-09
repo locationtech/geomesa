@@ -35,6 +35,7 @@
         <module>geomesa-convert-fixedwidth</module>
         <module>geomesa-convert-xml</module>
         <module>geomesa-convert-json</module>
+        <module>geomesa-convert-all</module>
     </modules>
 
 </project>
