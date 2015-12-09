@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--********************************************************************
+* Copyright (c) 2013-2015 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0 which
+* accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*********************************************************************-->
+
+<component xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2 http://maven.apache.org/xsd/component-1.1.2.xsd">
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>lib</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0755</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>true</useTransitiveDependencies>
+            <useTransitiveFiltering>true</useTransitiveFiltering>
+            <excludes>
+                <exclude>org.locationtech.geomesa:geomesa-plugin*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-accumulo-distributed-runtime*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-compute*</exclude>
+            </excludes>
+        </dependencySet>
+    </dependencySets>
+    <fileSets>
+        <fileSet>
+            <directory>../geomesa-tools/bin</directory>
+            <outputDirectory>bin</outputDirectory>
+            <fileMode>0755</fileMode>
+            <includes>
+                <include>geomesa</include>
+                <include>install-jai</include>
+                <include>install-jline</include>
+                <include>install-vecmath</include>
+                <include>install-hadoop-accumulo.sh</include>
+                <include>test-geomesa</include>
+            </includes>
+            <filtered>true</filtered>
+        </fileSet>
+        <fileSet>
+            <directory>../geomesa-tools/conf</directory>
+            <outputDirectory>conf</outputDirectory>
+            <fileMode>0755</fileMode>
+            <includes>
+                <include>log4j.properties</include>
+            </includes>
+            <filtered>true</filtered>
+        </fileSet>
+        <fileSet>
+            <directory>../geomesa-tools/examples/ingest</directory>
+            <outputDirectory>examples/ingest</outputDirectory>
+            <fileMode>0755</fileMode>
+            <includes>
+                <include>example1.conf</include>
+                <include>example1.csv</include>
+            </includes>
+            <filtered>true</filtered>
+        </fileSet>
+    </fileSets>
+</component>

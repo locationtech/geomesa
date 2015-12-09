@@ -28,7 +28,7 @@
         <module>geomesa-convert</module>
         <module>geomesa-tools</module>
         <module>geomesa-compute</module>
-        <module>geomesa-assemble</module>
+        <module>geomesa-dist</module>
         <module>geomesa-raster</module>
         <module>geomesa-web</module>
         <module>geomesa-process</module>
@@ -684,7 +684,7 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-assemble</artifactId>
+                <artifactId>geomesa-dist</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

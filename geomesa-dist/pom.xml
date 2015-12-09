@@ -16,8 +16,8 @@
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
 
-    <artifactId>geomesa-assemble</artifactId>
-    <name>GeoMesa Assemble</name>
+    <artifactId>geomesa-dist</artifactId>
+    <name>GeoMesa Distribution</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
