@@ -84,7 +84,7 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
     // new objects, reserializing, etc
     val isSimpleMapping = tdefs.forall(_.expression.isInstanceOf[PropertyName])
     binaryTransform = if (isSimpleMapping) {
-      val indices = transformSchema.getAttributeDescriptors.map(d => sft.indexOf(d.getLocalName))
+      val indices = tdefs.map(t => sft.indexOf(t.expression.asInstanceOf[PropertyName].getPropertyName))
       () => {
         val buf = input.getBuffer
         var length = offsets(0) // space for version, offset block and ID

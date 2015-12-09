@@ -25,7 +25,7 @@ import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
-import org.apache.accumulo.core.data.{ Range => AccRange }
+
 import scala.collection.JavaConversions._
 import scala.util.Random
 
@@ -54,7 +54,7 @@ object Strategy extends Logging {
   /**
    * Execute a query against this strategy
    */
-  def execute(plan: QueryPlan, acc: AccumuloConnectorCreator, output: ExplainerOutputType): KVIter = {
+  def execute(plan: QueryPlan, acc: AccumuloConnectorCreator): KVIter = {
     try {
       SelfClosingIterator(getScanner(plan, acc))
     } catch {

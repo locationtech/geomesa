@@ -311,7 +311,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       def expectStrategy(strategy: String) = {
         val explain = new ExplainString
         ds.explainQuery(query, explain)
-        explain.toString().split("\n").filter(_.startsWith("\tStrategy:")) mustEqual Array(s"\tStrategy: $strategy")
+        explain.toString().split("\n").map(_.trim).filter(_.startsWith("Strategy 1 of 1:")) mustEqual Array(s"Strategy 1 of 1: $strategy")
         val res = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features().map(_.getID).toList
         res must containTheSameElementsAs(Seq("fid-1"))
       }
