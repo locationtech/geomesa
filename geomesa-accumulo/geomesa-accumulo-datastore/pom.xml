@@ -38,10 +38,12 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-feature-all</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-z3</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
