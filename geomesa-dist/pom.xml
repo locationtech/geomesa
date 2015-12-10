@@ -111,20 +111,6 @@
         </dependency>
     </dependencies>
 
-    <profiles>
-        <profile>
-            <id>assemble</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.locationtech.geomesa</groupId>
-                    <artifactId>geomesa-jobs</artifactId>
-                    <classifier>shaded</classifier>
-                    <version>${project.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
-
     <build>
         <plugins>
             <plugin>

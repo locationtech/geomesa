@@ -38,7 +38,10 @@
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
-                <include>org.locationtech.geomesa:geomesa-*-geoserver-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-accumulo-geoserver-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-kafka-geoserver-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-stream-geoserver-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-utils-geoserver-plugin*</include>
             </includes>
         </dependencySet>
         <dependencySet>
