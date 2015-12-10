@@ -39,6 +39,19 @@
             <artifactId>geomesa-accumulo-distributed-runtime</artifactId>
         </dependency>
 
+        <!-- Spark -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-compute</artifactId>
+            <classifier>shaded</classifier>
+        </dependency>
+
+        <!-- Yarn -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-jobs</artifactId>
+        </dependency>
+
         <!-- GeoServer Plugins -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -97,6 +110,20 @@
             <type>zip</type>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>assemble</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.locationtech.geomesa</groupId>
+                    <artifactId>geomesa-jobs</artifactId>
+                    <classifier>shaded</classifier>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
     <build>
         <plugins>

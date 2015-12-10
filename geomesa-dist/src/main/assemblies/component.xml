@@ -51,6 +51,26 @@
                 <include>org.locationtech.geomesa:geomesa-web*</include>
             </includes>
         </dependencySet>
+        <dependencySet>
+            <outputDirectory>dist/spark</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0755</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <includes>
+                <include>org.locationtech.geomesa:geomesa-compute*</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>dist/yarn</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0755</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <includes>
+                <include>org.locationtech.geomesa:geomesa-jobs*</include>
+            </includes>
+        </dependencySet>
     </dependencySets>
     <fileSets>
         <fileSet>
