@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.data
 
+import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.impl.{MasterClient, Tables}
 import org.apache.accumulo.core.client.mock.MockConnector
 import org.apache.accumulo.core.client.{Connector, Scanner}
@@ -48,7 +49,8 @@ trait GeoMesaMetadata {
 class AccumuloBackedMetadata(connector: Connector,
                              catalogTable: String,
                              writeVisibilities: String,
-                             authorizationsProvider: AuthorizationsProvider) extends GeoMesaMetadata {
+                             authorizationsProvider: AuthorizationsProvider)
+    extends GeoMesaMetadata with Logging {
 
   // warning: only access this map in a synchronized fashion
   private val metaDataCache = new mutable.HashMap[(String, String), Option[String]]()
@@ -124,6 +126,8 @@ class AccumuloBackedMetadata(connector: Connector,
       deleter.setRanges(List(range))
       deleter.delete()
       deleter.close()
+    } else {
+      logger.warn(s"Trying to delete type '$featureName' from '$catalogTable' but table does not exist")
     }
 
   /**
