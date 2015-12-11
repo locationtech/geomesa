@@ -58,7 +58,7 @@ class Z3IteratorTest extends Specification {
       val (xmax, ymax, tmax) = Z3SFC.index(ux, uy, ut).decode
 
       val iter = new Z3Iterator
-      iter.init(srcIter, Map(Z3Iterator.pointsKey -> "true",
+      iter.init(srcIter, Map(Z3Iterator.pointsKey -> "true", Z3Iterator.splitsKey -> "false",
         Z3Iterator.zKey -> s"$xmin:$xmax:$ymin:$ymax:$tmin:$tmax:0:0:0:${Z3SFC.time.max.toLong}"), null)
 
       "keep in bounds values" >> {
@@ -85,7 +85,7 @@ class Z3IteratorTest extends Specification {
       val (xmax, ymax, tmax) = Z3(Z3SFC.index(ux, uy, ut).z & Z3Table.GEOM_Z_MASK).decode
 
       val iter = new Z3Iterator
-      iter.init(srcIter, Map(Z3Iterator.pointsKey -> "false",
+      iter.init(srcIter, Map(Z3Iterator.pointsKey -> "false", Z3Iterator.splitsKey -> "false",
         Z3Iterator.zKey -> s"$xmin:$xmax:$ymin:$ymax:$tmin:$tmax:0:0:0:${Z3SFC.time.max.toLong}"), null)
 
       "keep in bounds values" >> {

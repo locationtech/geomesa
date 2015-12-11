@@ -10,66 +10,29 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Polygon
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.data.{DataUtilities, Query}
+import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory
 import org.locationtech.geomesa.accumulo.index.IndexSchema
 import org.locationtech.geomesa.accumulo.iterators.TestData._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.GenSeq
-import scala.collection.JavaConversions._
-
 @RunWith(classOf[JUnitRunner])
-class MultiIteratorTest extends Specification with LazyLogging {
+class MultiIteratorTest extends Specification with TestWithMultipleSfts with LazyLogging {
 
   sequential
 
-  object IteratorTest {
-    def setupMockFeatureSource(entries: GenSeq[TestData.Entry], tableName: String = "test_table"): SimpleFeatureStore = {
-      val mockInstance = new MockInstance("dummy")
-      val c = mockInstance.getConnector("user", new PasswordToken("pass".getBytes))
+  val spec = SimpleFeatureTypes.encodeType(TestData.featureType)
 
-      // Remember we need to delete all 4 tables now
-      List(
-        tableName,
-        s"${tableName}_${TestData.featureType.getTypeName}_st_idx",
-        s"${tableName}_${TestData.featureType.getTypeName}_records",
-        s"${tableName}_${TestData.featureType.getTypeName}_attr_idx"
-      ).foreach { t => if (c.tableOperations.exists(t)) c.tableOperations.delete(t) }
-
-      val dsf = new AccumuloDataStoreFactory
-
-      import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
-
-      val ds = dsf.createDataStore(Map(
-        zookeepersParam.key -> "dummy",
-        instanceIdParam.key -> "dummy",
-        userParam.key       -> "user",
-        passwordParam.key   -> "pass",
-        authsParam.key      -> "S,USA",
-        tableNameParam.key  -> tableName,
-        mockParam.key       -> "true"))
-
-      ds.createSchema(TestData.featureType)
-      val fs = ds.getFeatureSource(TestData.featureName).asInstanceOf[SimpleFeatureStore]
-      val dataFeatures = entries.par.map(createSF)
-      val featureCollection = DataUtilities.collection(dataFeatures.toArray)
-      fs.addFeatures(featureCollection)
-      fs.getTransaction.commit()
-      fs
-    }
-  }
-
-  def getQuery(ecqlFilter: Option[String] = None,
+  def getQuery(sft: SimpleFeatureType,
+               ecqlFilter: Option[String],
                dtFilter: Interval = null,
                overrideGeometry: Boolean = false,
                indexIterator: Boolean = false): Query = {
@@ -91,28 +54,37 @@ class MultiIteratorTest extends Specification with LazyLogging {
     val tfString = red(red(gf, dt), ecqlFilter)
     val tf = ECQL.toFilter(tfString)
 
+    val query = new Query(sft.getTypeName, tf)
     if (indexIterator) {
       // select a few attributes to trigger the IndexIterator
-      val outputAttributes = Array("geom", "dtg")
-      new Query(TestData.featureType.getTypeName, tf, outputAttributes)
+      query.setPropertyNames(Array("geom", "dtg"))
+    }
+    query
+  }
+
+  def output(f: Filter, filterCount: Int, queryCount: Int, transformCount: Int): Unit = {
+    if (filterCount != queryCount || filterCount != transformCount) {
+      logger.error(s"Filter: $f expected: $filterCount query: $queryCount transform: $transformCount")
     } else {
-      new Query(TestData.featureType.getTypeName, tf)
+      logger.debug(s"Filter: $f expected: $filterCount query: $queryCount transform: $transformCount")
     }
   }
 
   "Mock Accumulo with fullData" should {
-    val fs = IteratorTest.setupMockFeatureSource(TestData.fullData, "mock_full_data")
-    val features = TestData.fullData.map(createSF)
+    val sft = createNewSchema(spec)
+    val features = TestData.fullData.map(createSF(_, sft))
+    addFeatures(sft, features)
+    val fs = ds.getFeatureSource(sft.getTypeName)
 
     "return the same result for our iterators" in {
-      val q = getQuery(None)
-      val indexOnlyQuery = getQuery(indexIterator = true)
+      val q = getQuery(sft, None)
+      val indexOnlyQuery = getQuery(sft, None, indexIterator = true)
 
       val filteredCount = features.count(q.getFilter.evaluate)
       val stQueriedCount = fs.getFeatures(q).size
       val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
 
-      logger.debug(s"Filter: ${q.getFilter} queryCount: $stQueriedCount filteredCount: $filteredCount indexOnlyCount: $indexOnlyCount")
+      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
 
       indexOnlyCount mustEqual filteredCount
       stQueriedCount mustEqual filteredCount
@@ -121,14 +93,14 @@ class MultiIteratorTest extends Specification with LazyLogging {
     "return a full results-set" in {
       val filterString = "true = true"
 
-      val q = getQuery(Some(filterString))
-      val indexOnlyQuery = getQuery(Some(filterString), indexIterator = true)
+      val q = getQuery(sft, Some(filterString))
+      val indexOnlyQuery = getQuery(sft, Some(filterString), indexIterator = true)
 
       val filteredCount = features.count(q.getFilter.evaluate)
       val stQueriedCount = fs.getFeatures(q).size
       val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
 
-      logger.debug(s"Filter: ${q.getFilter} queryCount: $stQueriedCount filteredCount: $filteredCount indexOnlyCount: $indexOnlyCount")
+      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
 
       // validate the total number of query-hits
       indexOnlyCount mustEqual filteredCount
@@ -138,16 +110,14 @@ class MultiIteratorTest extends Specification with LazyLogging {
     "return a partial results-set" in {
       val filterString = """(attr2 like '2nd___')"""
 
-      val fs = IteratorTest.setupMockFeatureSource(TestData.fullData, "mock_attr_filt")
-      val features = TestData.fullData.map(createSF)
-      val q = getQuery(Some(filterString))
-      val indexOnlyQuery = getQuery(Some(filterString), indexIterator = true)
+      val q = getQuery(sft, Some(filterString))
+      val indexOnlyQuery = getQuery(sft, Some(filterString), indexIterator = true)
 
       val filteredCount = features.count(q.getFilter.evaluate)
       val stQueriedCount = fs.getFeatures(q).size
       val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
 
-      logger.debug(s"Filter: ${q.getFilter} queryCount: $stQueriedCount filteredCount: $filteredCount indexOnlyCount: $indexOnlyCount")
+      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
 
       // validate the total number of query-hits
       indexOnlyCount mustEqual filteredCount
@@ -157,17 +127,20 @@ class MultiIteratorTest extends Specification with LazyLogging {
 
 
   "Mock Accumulo with a small table" should {
+    val sft = createNewSchema(spec)
+    val features = TestData.shortListOfPoints.map(createSF(_, sft))
+    addFeatures(sft, features)
+    val fs = ds.getFeatureSource(sft.getTypeName)
+
     "cover corner cases" in {
-      val fs = IteratorTest.setupMockFeatureSource(TestData.shortListOfPoints, "mock_small_corner_cases")
-      val features = TestData.shortListOfPoints.map(createSF)
-      val q = getQuery(None)
-      val indexOnlyQuery = getQuery(None, indexIterator = true)
+      val q = getQuery(sft, None)
+      val indexOnlyQuery = getQuery(sft, None, indexIterator = true)
 
       val filteredCount = features.count(q.getFilter.evaluate)
       val stQueriedCount = fs.getFeatures(q).size
       val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
 
-      logger.debug(s"Filter: ${q.getFilter} queryCount: $stQueriedCount filteredCount: $filteredCount indexOnlyCount: $indexOnlyCount")
+      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
 
       // validate the total number of query-hits
       // Since we are playing with points, we can count **exactly** how many results we should
@@ -178,17 +151,20 @@ class MultiIteratorTest extends Specification with LazyLogging {
   }
 
   "Realistic Mock Accumulo" should {
+    val sft = createNewSchema(spec)
+    val features = (TestData.shortListOfPoints ++ TestData.geohashHitActualNotHit).map(createSF(_, sft))
+    addFeatures(sft, features)
+    val fs = ds.getFeatureSource(sft.getTypeName)
+
     "handle edge intersection false positives" in {
-      val fs = IteratorTest.setupMockFeatureSource(TestData.shortListOfPoints ++ TestData.geohashHitActualNotHit, "mock_small")
-      val features = (TestData.shortListOfPoints ++ TestData.geohashHitActualNotHit).map(createSF)
-      val q = getQuery(None)
-      val indexOnlyQuery = getQuery(None, indexIterator = true)
+      val q = getQuery(sft, None)
+      val indexOnlyQuery = getQuery(sft, None, indexIterator = true)
 
       val filteredCount = features.count(q.getFilter.evaluate)
       val stQueriedCount = fs.getFeatures(q).size
       val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
 
-      logger.debug(s"Filter: ${q.getFilter} queryCount: $stQueriedCount filteredCount: $filteredCount indexOnlyCount: $indexOnlyCount")
+      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
 
       // validate the total number of query-hits
       indexOnlyCount mustEqual filteredCount
@@ -197,21 +173,23 @@ class MultiIteratorTest extends Specification with LazyLogging {
   }
 
   "Large Mock Accumulo" should {
-    val fs = IteratorTest.setupMockFeatureSource(TestData.hugeData, "mock_huge")
-    val features = TestData.hugeData.map(createSF)
+    val sft = createNewSchema(spec)
+    val features = TestData.hugeData.map(createSF(_, sft))
+    addFeatures(sft, features)
+    val fs = ds.getFeatureSource(sft.getTypeName)
 
     "return a partial results-set with a meaningful attribute-filter" in {
       val filterString = "(not " + DEFAULT_DTG_PROPERTY_NAME +
         " after 2010-08-08T23:59:59Z) and (not dtg_end_time before 2010-08-08T00:00:00Z)"
 
-      val q = getQuery(Some(filterString))
-      val indexOnlyQuery = getQuery(Some(filterString), indexIterator = true)
+      val q = getQuery(sft, Some(filterString))
+      val indexOnlyQuery = getQuery(sft, Some(filterString), indexIterator = true)
 
       val filteredCount = features.count(q.getFilter.evaluate)
       val stQueriedCount = fs.getFeatures(q).size
       val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
 
-      logger.debug(s"Filter: ${q.getFilter} queryCount: $stQueriedCount filteredCount: $filteredCount indexOnlyCount: $indexOnlyCount")
+      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
 
       // validate the total number of query-hits
       indexOnlyCount mustEqual filteredCount
@@ -225,16 +203,15 @@ class MultiIteratorTest extends Specification with LazyLogging {
         new DateTime(2010, 8, 8, 0, 0, 0, DateTimeZone.forID("UTC")),
         new DateTime(2010, 8, 8, 23, 59, 59, DateTimeZone.forID("UTC"))
       )
-      val fs = IteratorTest.setupMockFeatureSource(TestData.hugeData, "mock_huge_time")
-      val features = TestData.hugeData.map(createSF)
-      val q = getQuery(Some(filterString), dtFilter)
-      val indexOnlyQuery = getQuery(Some(filterString), dtFilter, indexIterator = true)
+
+      val q = getQuery(sft, Some(filterString), dtFilter)
+      val indexOnlyQuery = getQuery(sft, Some(filterString), dtFilter, indexIterator = true)
 
       val filteredCount = features.count(q.getFilter.evaluate)
       val stQueriedCount = fs.getFeatures(q).size
       val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
 
-      logger.debug(s"Filter: ${q.getFilter} queryCount: $stQueriedCount filteredCount: $filteredCount indexOnlyCount: $indexOnlyCount")
+      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
 
       // validate the total number of query-hits
       indexOnlyCount mustEqual filteredCount
@@ -245,14 +222,14 @@ class MultiIteratorTest extends Specification with LazyLogging {
       val filterString = "true = true"
 
       val dtFilter = IndexSchema.everywhen
-      val q = getQuery(Some(filterString), dtFilter)
-      val indexOnlyQuery = getQuery(Some(filterString), dtFilter, indexIterator = true)
+      val q = getQuery(sft, Some(filterString), dtFilter)
+      val indexOnlyQuery = getQuery(sft, Some(filterString), dtFilter, indexIterator = true)
 
       val filteredCount = features.count(q.getFilter.evaluate)
       val stQueriedCount = fs.getFeatures(q).size
       val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
 
-      logger.debug(s"Filter: ${q.getFilter} queryCount: $stQueriedCount filteredCount: $filteredCount indexOnlyCount: $indexOnlyCount")
+      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
 
       // validate the total number of query-hits
       indexOnlyCount mustEqual filteredCount
@@ -261,14 +238,14 @@ class MultiIteratorTest extends Specification with LazyLogging {
 
     "return an unfiltered results-set with a global request" in {
       val dtFilter = IndexSchema.everywhen
-      val q = getQuery(None, dtFilter, overrideGeometry = true)
-      val indexOnlyQuery = getQuery(None, dtFilter, overrideGeometry = true, indexIterator = true)
+      val q = getQuery(sft, None, dtFilter, overrideGeometry = true)
+      val indexOnlyQuery = getQuery(sft, None, dtFilter, overrideGeometry = true, indexIterator = true)
 
       val filteredCount = features.count(q.getFilter.evaluate)
       val stQueriedCount = fs.getFeatures(q).size
       val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
 
-      logger.debug(s"Filter: ${q.getFilter} queryCount: $stQueriedCount filteredCount: $filteredCount indexOnlyCount: $indexOnlyCount")
+      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
 
       // validate the total number of query-hits
       indexOnlyCount mustEqual filteredCount
