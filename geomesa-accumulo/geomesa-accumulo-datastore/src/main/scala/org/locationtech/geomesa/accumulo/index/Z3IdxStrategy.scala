@@ -138,7 +138,14 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     val getRanges: (Seq[Array[Byte]], (Double, Double), (Double, Double), (Long, Long)) => Seq[Range] =
       if (sft.isPoints) getPointRanges else getGeomRanges
 
-    val prefixes = weeks.map(Shorts.toByteArray).toSeq
+    val hasSplits = Z3Table.hasSplits(sft)
+
+    val prefixes = if (hasSplits) {
+      val wBytes = weeks.map(Shorts.toByteArray)
+      Z3Table.SPLIT_ARRAYS.flatMap(s => wBytes.map(b => Array(s(0), b(0), b(1))))
+    } else {
+      weeks.map(Shorts.toByteArray).toSeq
+    }
 
     // the z3 index breaks time into 1 week chunks, so create a range for each week in our range
     val ranges = if (weeks.length == 1) {
@@ -165,7 +172,7 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     val wmin = weeks.head
     val wmax = weeks.last
 
-    val zIter = Z3Iterator.configure(sft.isPoints, xmin, xmax, ymin, ymax, tmin, tmax, wmin, wmax, tLo, tHi, Z3_ITER_PRIORITY)
+    val zIter = Z3Iterator.configure(sft.isPoints, xmin, xmax, ymin, ymax, tmin, tmax, wmin, wmax, tLo, tHi, hasSplits, Z3_ITER_PRIORITY)
     val iters = Seq(zIter) ++ iterators
     BatchScanPlan(z3table, ranges, iters, Seq(colFamily), kvsToFeatures, numThreads, hasDupes)
   }

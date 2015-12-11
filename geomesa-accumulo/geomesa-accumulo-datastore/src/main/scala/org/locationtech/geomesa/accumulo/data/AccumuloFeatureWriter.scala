@@ -32,6 +32,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
+import scala.util.hashing.MurmurHash3
 
 object AccumuloFeatureWriter extends LazyLogging {
 
@@ -57,6 +58,8 @@ object AccumuloFeatureWriter extends LazyLogging {
     lazy val dataValue = new Value(encoder.serialize(feature))
     // bin formatted value
     lazy val binValue = binEncoder.map(e => new Value(e.encode(feature)))
+    // hash value of the feature id
+    lazy val idHash = Math.abs(MurmurHash3.stringHash(feature.getID))
   }
 
   def featureWriter(writers: Seq[(BatchWriter, FeatureToMutations)]): FeatureWriterFn = feature => {

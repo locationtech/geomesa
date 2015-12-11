@@ -16,7 +16,6 @@ import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
