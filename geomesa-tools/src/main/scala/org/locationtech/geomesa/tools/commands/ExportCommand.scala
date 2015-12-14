@@ -55,18 +55,17 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
   }
 
   def getFeatureCollection(fmt: String): SimpleFeatureCollection = {
+    val sft = ds.getSchema(params.featureName)
     fmt match {
       case SHP =>
         val schemaString =
-          if (Option(params.attributes).nonEmpty) {
-            params.attributes
-          } else {
-            val sft = ds.getSchema(params.featureName)
+          if (params.attributes == null) {
             ShapefileExport.modifySchema(sft)
+          } else {
+            ShapefileExport.replaceGeomInAttributesString(params.attributes, sft)
           }
         getFeatureCollection(Some(schemaString))
       case BIN =>
-        val sft = ds.getSchema(params.featureName)
         sft.getDtgField.foreach(BinFileExport.DEFAULT_TIME = _)
         getFeatureCollection(Some(BinFileExport.getAttributeList(params)))
       case _ => getFeatureCollection()
