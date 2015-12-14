@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.data
 
+import java.io.IOException
 import java.util.Date
 
 import com.google.common.collect.ImmutableSet
@@ -718,13 +719,33 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
     "create tables with an accumulo namespace" >> {
       val table = "test.AccumuloDataStoreNamespaceTest"
       val params = Map("connector" -> ds.connector, "tableName" -> table)
+      val dsWithNs = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+      val sft = SimpleFeatureTypes.createType("test", "*geom:Point:srid=4326")
       if (AccumuloVersion.accumuloVersion == AccumuloVersion.V15) {
-        DataStoreFinder.getDataStore(params) must throwAn[IllegalArgumentException]
+        dsWithNs.createSchema(sft) must throwAn[IllegalArgumentException]
       } else {
-        val dsWithNs = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+        dsWithNs.createSchema(sft)
         val nsOps = classOf[Connector].getMethod("namespaceOperations").invoke(dsWithNs.connector)
         AccumuloVersion.nameSpaceExists(nsOps, nsOps.getClass, "test") must beTrue
       }
+    }
+
+    "only create catalog table when necessary" >> {
+      val table = "AccumuloDataStoreTableTest"
+      val params = Map("connector" -> this.ds.connector, "tableName" -> table)
+      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+      ds must not(beNull)
+      def exists = ds.connector.tableOperations().exists(table)
+      exists must beFalse
+      ds.getTypeNames must beEmpty
+      exists must beFalse
+      ds.getSchema("test") must beNull
+      exists must beFalse
+      ds.getFeatureReader("test") must throwAn[IOException]
+      exists must beFalse
+      ds.createSchema(SimpleFeatureTypes.createType("test", "*geom:Point:srid=4326"))
+      exists must beTrue
+      ds.getSchema("test") must not(beNull)
     }
   }
 }

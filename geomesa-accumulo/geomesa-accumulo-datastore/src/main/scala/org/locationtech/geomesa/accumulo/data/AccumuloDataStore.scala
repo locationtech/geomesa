@@ -122,8 +122,6 @@ class AccumuloDataStore(val connector: Connector,
 
   private val tableOps = connector.tableOperations()
 
-  AccumuloVersion.ensureTableExists(connector, catalogTable)
-
   /**
    * Computes and writes the metadata for this feature type
    *
@@ -492,9 +490,7 @@ class AccumuloDataStore(val connector: Connector,
    *
    * @return
    */
-  override def getTypeNames: Array[String] =
-    if (tableOps.exists(catalogTable)) metadata.getFeatureTypes else Array.empty
-
+  override def getTypeNames: Array[String] = metadata.getFeatureTypes
 
   // NB:  By default, AbstractDataStore is "isWriteable".  This means that createFeatureSource returns
   // a featureStore
