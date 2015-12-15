@@ -30,9 +30,10 @@ class TransformersTest extends Specification {
   "Transformers" should {
 
     implicit val ctx = new EvaluationContext(mutable.HashMap.empty[String, Int], null)
-    "handle transformations" >> {
-      "handle string transformations" >> {
 
+    "handle transformations" >> {
+
+      "handle string transformations" >> {
         "allow literal strings" >> {
           val exp = Transformers.parseTransform("'hello'")
           exp.eval(Array(null)) must be equalTo "hello"
@@ -67,6 +68,11 @@ class TransformersTest extends Specification {
           exp.eval(Array("", "FOO", "bar")) must be equalTo "foo"
         }
 
+        "uppercase" >> {
+          val exp = Transformers.parseTransform("uppercase($1)")
+          exp.eval(Array("", "FoO")) must be equalTo "FOO"
+        }
+
         "regexReplace" >> {
           val exp = Transformers.parseTransform("regexReplace('foo'::r,'bar',$1)")
           exp.eval(Array("", "foobar")) must be equalTo "barbar"
@@ -81,6 +87,22 @@ class TransformersTest extends Specification {
           val exp = Transformers.parseTransform("substr($1, 2, 5)")
           exp.eval(Array("", "foobarbaz")) must be equalTo "foobarbaz".substring(2, 5)
         }
+
+        "strlen" >> {
+          val exp = Transformers.parseTransform("strlen($1)")
+          exp.eval(Array("", "FOO")) must be equalTo 3
+        }
+
+        "toString" >> {
+          val exp = Transformers.parseTransform("toString($1)")
+          exp.eval(Array("", 5)) must be equalTo "5"
+        }
+
+        "concat with tostring" >> {
+          val exp = Transformers.parseTransform("concat(toString($1), toString($2))")
+          exp.eval(Array("", 5, 6)) must be equalTo "56"
+        }
+
       }
 
       "handle numeric literals" >> {
@@ -116,9 +138,20 @@ class TransformersTest extends Specification {
           exp.eval(Array("", "20150101T000000.000Z")).asInstanceOf[Date] must be equalTo testDate
         }
 
+        "basicDateTimeNoMillis" >> {
+          val exp = Transformers.parseTransform("basicDateTimeNoMillis($1)")
+          exp.eval(Array("", "20150101T000000Z")).asInstanceOf[Date] must be equalTo testDate
+        }
+
         "dateHourMinuteSecondMillis" >> {
           val exp = Transformers.parseTransform("dateHourMinuteSecondMillis($1)")
           exp.eval(Array("", "2015-01-01T00:00:00.000")).asInstanceOf[Date] must be equalTo testDate
+        }
+
+        "millisToDate" >> {
+          val millis = testDate.getTime
+          val exp = Transformers.parseTransform("millisToDate($1)")
+          exp.eval(Array("", millis)).asInstanceOf[Date] must be equalTo testDate
         }
 
       }

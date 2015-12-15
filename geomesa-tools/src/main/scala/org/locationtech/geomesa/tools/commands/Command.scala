@@ -25,6 +25,6 @@ abstract class Command(parent: JCommander) {
  */
 abstract class CommandWithCatalog(parent: JCommander) extends Command(parent) with AccumuloProperties {
   override val params: GeoMesaParams
-  lazy val ds = new DataStoreHelper(params).getExistingStore
+  lazy val ds = new DataStoreHelper(params).getDataStore
   lazy val catalog = params.catalog
 }

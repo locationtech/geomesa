@@ -31,8 +31,7 @@ class FeatureExporterTest extends Specification {
 
   sequential
 
-  "DelimitedExport" >> {
-    val sftName = "DelimitedExportTest"
+  def getFeaturesDataStoreAndSFT(sftName: String) = {
     val sft = SimpleFeatureTypes.createType(sftName, "name:String,geom:Geometry:srid=4326,dtg:Date")
 
     val attributes = Array("myname", "POINT(45.0 49.0)", new Date(0))
@@ -44,9 +43,15 @@ class FeatureExporterTest extends Specification {
     val connector = new MockInstance().getConnector("", new PasswordToken(""))
 
     val ds = DataStoreFinder
-        .getDataStore(Map("connector" -> connector, "tableName" -> sftName, "caching"   -> false))
+      .getDataStore(Map("connector" -> connector, "tableName" -> sftName, "caching"   -> false))
     ds.createSchema(sft)
     ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore].addFeatures(featureCollection)
+    (featureCollection, ds, sft)
+  }
+
+  "DelimitedExport" >> {
+    val sftName = "DelimitedExportTest"
+    val (featureCollection, ds, sft) = getFeaturesDataStoreAndSFT(sftName)
 
     "should properly export to CSV" >> {
       val writer = new StringWriter()
@@ -91,6 +96,44 @@ class FeatureExporterTest extends Specification {
 
       header mustEqual "derived,geom,dtg"
       data mustEqual "\"myname,test\",POINT (45 49),1970-01-01 00:00:00"
+    }
+  }
+
+  "Shapefile Export" >> {
+    val sftName = "ShapefileExportTest"
+    val (featureCollection, ds, sft) = getFeaturesDataStoreAndSFT(sftName)
+
+    def checkReplacedAttributes(attrString: String, expectedString: String) = {
+      ShapefileExport.replaceGeomInAttributesString(attrString, sft) mustEqual expectedString
+    }
+
+    "should transform 'geom' to 'the_geom' when asking for just 'geom'" >> {
+      checkReplacedAttributes("geom", "the_geom=geom")
+    }
+
+    "should transform 'geom' in the attributes string when another attribute follows" >> {
+      checkReplacedAttributes("geom, name", "the_geom=geom,name")
+    }
+
+
+    "should transform 'geom' in the attributes string when it follows another attribute" >> {
+      checkReplacedAttributes("name, geom", "name,the_geom=geom")
+    }
+
+    "should transform 'geom' in the attributes string when it is between two attributes" >> {
+      checkReplacedAttributes("name, geom, dtg", "name,the_geom=geom,dtg")
+    }
+
+    "should transform 'geom' in the attributes string when it is between two attributes without spaces" >> {
+      checkReplacedAttributes("name,geom,dtg", "name,the_geom=geom,dtg")
+    }
+
+    "should NOT transform 'the_geom' in the attributes string" >> {
+      checkReplacedAttributes("the_geom", "the_geom")
+    }
+
+    "should NOT transform and incorrect transform in the query" >> {
+      checkReplacedAttributes("name,geom=the_geom,dtg", "name,geom=the_geom,dtg")
     }
   }
 }

@@ -504,7 +504,7 @@ the formatting of the file matches the extension of the file and that the extens
         type = "delimited-text",
         format = "CSV",
         options {
-          skip-header: true
+          skip-lines = 1
         },
         id-field = "toString($id)",
         fields = [

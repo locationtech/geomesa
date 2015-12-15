@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.raster.data
 
 import com.google.common.collect.{ImmutableMap, ImmutableSetMultimap}
+import com.typesafe.scalalogging.slf4j.Logging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.raster.RasterTestsUtils._
 import org.locationtech.geomesa.raster._
@@ -18,7 +19,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloRasterQueryPlannerTest extends Specification {
+class AccumuloRasterQueryPlannerTest extends Specification with Logging {
 
   sequential
 
@@ -53,7 +54,7 @@ class AccumuloRasterQueryPlannerTest extends Specification {
 
     val queryResolution = lexiDecodeStringToDouble(encodedDouble)
 
-    println(s"Query pixel size: $size. Expected query resolution: $expectedResolution.  " +
+    logger.debug(s"Query pixel size: $size. Expected query resolution: $expectedResolution.  " +
       s"Returned query resolution $queryResolution.")
 
     val roundedResolution = BigDecimal(expectedResolution).round(mc).toDouble

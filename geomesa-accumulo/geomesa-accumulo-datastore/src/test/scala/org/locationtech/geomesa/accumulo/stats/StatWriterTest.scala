@@ -8,12 +8,11 @@
 
 package org.locationtech.geomesa.accumulo.stats
 
-import java.util.Date
-
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{Connector, TableNotFoundException}
 import org.apache.accumulo.core.security.Authorizations
+import org.joda.time.Interval
 import org.joda.time.format.DateTimeFormat
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
@@ -35,6 +34,7 @@ class StatWriterTest extends Specification {
   // mock class we can extend with statwriter
   class MockWriter(c: Connector) {
     val connector = c
+    def getStatTable(stat: Stat) = statsTable
   }
 
   val statReader = new QueryStatReader(connector, (_: String) => statsTable)
@@ -47,31 +47,31 @@ class StatWriterTest extends Specification {
 
       writer.writeStat(QueryStat(featureName,
                                  df.parseMillis("2014.07.26 13:20:01"),
+                                 "user1",
                                  "query1",
                                  "hint1=true",
                                  101L,
                                  201L,
-                                 11),
-                       statsTable)
+                                 11))
       writer.writeStat(QueryStat(featureName,
                                  df.parseMillis("2014.07.26 14:20:01"),
+                                 "user1",
                                  "query2",
                                  "hint2=true",
                                  102L,
                                  202L,
-                                 12),
-                       statsTable)
+                                 12))
       writer.writeStat(QueryStat(featureName,
                                  df.parseMillis("2014.07.27 13:20:01"),
+                                 "user1",
                                  "query3",
                                  "hint3=true",
                                  102L,
                                  202L,
-                                 12),
-                       statsTable)
+                                 12))
 
       try {
-        val unwritten = statReader.query(featureName, new Date(0), new Date(), auths).toList
+        val unwritten = statReader.query(featureName, new Interval(0, df.parseMillis("2014.07.29 00:00:00")), auths).toList
         unwritten must not beNull;
         unwritten.size mustEqual 0
       } catch {
@@ -81,7 +81,7 @@ class StatWriterTest extends Specification {
       // this should write the queued stats
       StatWriter.run()
 
-      val written = statReader.query(featureName, new Date(0), new Date(), auths).toList
+      val written = statReader.query(featureName, new Interval(0, df.parseMillis("2014.07.29 00:00:00")), auths).toList
 
       written must not beNull;
       written.size mustEqual 3

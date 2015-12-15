@@ -23,7 +23,7 @@ import org.geotools.coverage.grid.GridEnvelope2D
 import org.joda.time.DateTime
 import org.locationtech.geomesa.accumulo.index.Strategy._
 import org.locationtech.geomesa.accumulo.iterators.BBOXCombiner._
-import org.locationtech.geomesa.accumulo.stats.{RasterQueryStat, RasterQueryStatTransform, StatWriter}
+import org.locationtech.geomesa.accumulo.stats.{Stat, RasterQueryStat, RasterQueryStatTransform, StatWriter}
 import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.index.RasterIndexSchema
@@ -76,7 +76,7 @@ class AccumuloRasterStore(val connector: Connector,
                                  timings.time("scanning") - timings.time("planning"),
                                  timings.time("mosaic"),
                                  numRasters)
-      this.writeStat(stat, profileTable)
+      this.writeStat(stat)
     }
     image
   }
@@ -288,6 +288,7 @@ class AccumuloRasterStore(val connector: Connector,
     }
   }
 
+  def getStatTable(stat: Stat): String = profileTable
 }
 
 object AccumuloRasterStore {

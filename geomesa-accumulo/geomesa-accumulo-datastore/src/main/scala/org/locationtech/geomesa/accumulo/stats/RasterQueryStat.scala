@@ -17,7 +17,7 @@ import org.calrissian.mango.types.encoders.lexi.LongReverseEncoder
 /**
  * Class for capturing query-related stats
  */
-case class RasterQueryStat(featureName:   String,
+case class RasterQueryStat(typeName:   String,
                            date:          Long,
                            rasterQuery:   String,
                            planningTime:  Long,
@@ -40,7 +40,7 @@ object RasterQueryStatTransform extends StatTransform[RasterQueryStat] {
   val NUMBER_OF_CQ_DATA_TYPES = 6
 
   override def createMutation(stat: Stat) = {
-    new Mutation(s"${stat.featureName}~${reverseEncoder.encode(stat.date)}")
+    new Mutation(s"${stat.typeName}~${reverseEncoder.encode(stat.date)}")
   }
 
   override def statToMutation(stat: RasterQueryStat): Mutation = {
