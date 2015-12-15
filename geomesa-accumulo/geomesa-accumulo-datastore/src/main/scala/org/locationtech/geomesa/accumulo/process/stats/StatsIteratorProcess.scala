@@ -17,7 +17,7 @@ import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
 import org.locationtech.geomesa.accumulo.index.QueryHints
-import org.locationtech.geomesa.accumulo.iterators.StatsIterator.createFeatureType
+import org.locationtech.geomesa.accumulo.iterators.KryoLazyTemporalDensityIterator
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 
@@ -56,7 +56,7 @@ class StatsIteratorProcess extends Logging {
 class StatsVisitor(features: SimpleFeatureCollection, statString: String)
   extends FeatureCalc with Logging {
 
-  val retType = createFeatureType(features.getSchema())
+  val retType = KryoLazyTemporalDensityIterator.createFeatureType(features.getSchema)
   val manualVisitResults = new DefaultFeatureCollection(null, retType)
 
   //  Called for non AccumuloFeatureCollections

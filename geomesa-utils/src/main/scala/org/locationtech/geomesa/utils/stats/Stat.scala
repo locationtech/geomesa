@@ -42,6 +42,14 @@ trait Stat {
    * @return stat serialized as a json string
    */
   def toJson(): String
+
+//  /**
+//   * Equals method to simplify testing
+//   *
+//   * @param obj object to compare
+//   * @return true if equal to obj
+//   */
+//  override def equals(obj: Any): Boolean
 }
 
 /**

@@ -13,11 +13,10 @@ import com.vividsolutions.jts.geom.{Geometry, GeometryCollection}
 import org.apache.accumulo.core.data.Range
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
-import org.joda.time.Weeks
 import org.locationtech.geomesa.accumulo.data.tables.Z3Table
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.iterators._
-import org.locationtech.geomesa.curve.Z3SFC
+import org.locationtech.geomesa.curve.{Z3, Z3SFC}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
@@ -28,8 +27,6 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
 
   import FilterHelper._
   import Z3IdxStrategy._
-
-  val Z3_CURVE = new Z3SFC
 
   /**
    * Plans the query - strategy implementations need to define this
@@ -72,17 +69,23 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
 
     val fp = FILTERING_ITER_PRIORITY
 
-    // If we have some sort of complicated geometry predicate,
-    // we need to pass it through to be evaluated
-    val singleTweakedGeomFilter: Option[Filter]  = filterListAsAnd(geomFilters).filter(isComplicatedSpatialFilter)
-
-    val ecql: Option[Filter] = (singleTweakedGeomFilter, filter.secondary) match {
-      case (None, fs)           => fs
-      case (gf, None)           => gf
-      case (Some(gf), Some(fs)) => filterListAsAnd(Seq(gf, fs))
+    val ecql: Option[Filter] = if (sft.isPoints) {
+      // for normal bboxes, the index is fine enough that we don't need to apply the filter on top of it
+      // this may cause some minor errors at extremely fine resolution, but the performance is worth it
+      // TODO GEOMESA-1000 add some kind of 'loose bbox' config, a la postgis
+      // if we have a complicated geometry predicate, we need to pass it through to be evaluated
+      val complexGeomFilter = filterListAsAnd(geomFilters).filter(isComplicatedSpatialFilter)
+      (complexGeomFilter, filter.secondary) match {
+        case (Some(gf), Some(fs)) => filterListAsAnd(Seq(gf, fs))
+        case (None, fs)           => fs
+        case (gf, None)           => gf
+      }
+    } else {
+      // for non-point geoms, the index is coarse-grained, so we always apply the full filter
+      Some(filter.filter)
     }
 
-    val (iterators, kvsToFeatures, colFamily) = if (hints.isBinQuery) {
+    val (iterators, kvsToFeatures, colFamily, hasDupes) = if (hints.isBinQuery) {
       val trackId = hints.getBinTrackIdField
       val geom = hints.getBinGeomField
       val dtg = hints.getBinDtgField
@@ -94,22 +97,22 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
       // if possible, use the pre-computed values
       // can't use if there are non-st filters or if custom fields are requested
       val (iters, cf) =
-        if (ecql.isEmpty && BinAggregatingIterator.canUsePrecomputedBins(sft, trackId, geom, dtg, label)) {
-          (Seq(BinAggregatingIterator.configurePrecomputed(sft, ecql, batchSize, sort, fp)), Z3Table.BIN_CF)
+        if (filter.secondary.isEmpty && BinAggregatingIterator.canUsePrecomputedBins(sft, hints)) {
+          (Seq(BinAggregatingIterator.configurePrecomputed(sft, ecql, hints, sft.nonPoints)), Z3Table.BIN_CF)
         } else {
-          val binDtg = dtg.getOrElse(dtgField.get) // dtgField is always defined if we're using z3
-          val binGeom = geom.getOrElse(sft.getGeomField)
-          val iter = BinAggregatingIterator.configureDynamic(sft, ecql, trackId, binGeom, binDtg, label,
-            batchSize, sort, fp)
+          val iter = BinAggregatingIterator.configureDynamic(sft, ecql, hints, sft.nonPoints)
           (Seq(iter), Z3Table.FULL_CF)
         }
-      (iters, BinAggregatingIterator.kvsToFeatures(), cf)
+      (iters, BinAggregatingIterator.kvsToFeatures(), cf, false)
     } else if (hints.isDensityQuery) {
-      val envelope = hints.getDensityEnvelope.get
-      val (width, height) = hints.getDensityBounds.get
-      val weight = hints.getDensityWeight
-      val iter = Z3DensityIterator.configure(sft, ecql, envelope, width, height, weight, fp)
-      (Seq(iter), Z3DensityIterator.kvsToFeatures(), Z3Table.FULL_CF)
+      val iter = Z3DensityIterator.configure(sft, ecql, hints)
+      (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), Z3Table.FULL_CF, false)
+    } else if (hints.isTemporalDensityQuery) {
+      val iter = KryoLazyTemporalDensityIterator.configure(sft, ecql, hints, sft.nonPoints)
+      (Seq(iter), queryPlanner.defaultKVsToFeatures(hints), Z3Table.FULL_CF, false)
+    } else if (hints.isMapAggregatingQuery) {
+      val iter = KryoLazyMapAggregatingIterator.configure(sft, ecql, hints, sft.nonPoints)
+      (Seq(iter), queryPlanner.defaultKVsToFeatures(hints), Z3Table.FULL_CF, false)
     } else {
       val transforms = for {
         tdef <- hints.getTransformDefinition
@@ -121,7 +124,7 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
         case (None, None) => Seq.empty
         case _ => Seq(KryoLazyFilterTransformIterator.configure(sft, ecql, transforms, fp))
       }
-      (iters, Z3Table.adaptZ3KryoIterator(hints.getReturnSft), Z3Table.FULL_CF)
+      (iters, Z3Table.adaptZ3KryoIterator(hints.getReturnSft), Z3Table.FULL_CF, sft.nonPoints)
     }
 
     val z3table = acc.getTableName(sft.getTypeName, Z3Table)
@@ -131,20 +134,23 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
     val env = geometryToCover.getEnvelopeInternal
     val (lx, ly, ux, uy) = (env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
 
-    val epochWeekStart = Weeks.weeksBetween(Z3Table.EPOCH, interval.getStart)
-    val epochWeekEnd = Weeks.weeksBetween(Z3Table.EPOCH, interval.getEnd)
-    val weeks = scala.Range.inclusive(epochWeekStart.getWeeks, epochWeekEnd.getWeeks)
-    val lt = Z3Table.secondsInCurrentWeek(interval.getStart, epochWeekStart)
-    val ut = Z3Table.secondsInCurrentWeek(interval.getEnd, epochWeekEnd)
+    val (epochWeekStart, lt) = Z3Table.getWeekAndSeconds(interval.getStart)
+    val (epochWeekEnd, ut) = Z3Table.getWeekAndSeconds(interval.getEnd)
+    val weeks = scala.Range.inclusive(epochWeekStart, epochWeekEnd).map(_.toShort)
 
     // time range for a chunk is 0 to 1 week (in seconds)
-    val (tStart, tEnd) = (0, Weeks.ONE.toStandardSeconds.getSeconds)
+    val (tStart, tEnd) = (Z3SFC.time.min.toInt, Z3SFC.time.max.toInt)
+
+    val getRanges: (Seq[Array[Byte]], (Double, Double), (Double, Double), (Long, Long)) => Seq[Range] =
+      if (sft.isPoints) getPointRanges else getGeomRanges
+
+    val prefixes = weeks.map(Shorts.toByteArray).toSeq
 
     // the z3 index breaks time into 1 week chunks, so create a range for each week in our range
     val ranges = if (weeks.length == 1) {
-      getRanges(weeks, (lx, ux), (ly, uy), (lt, ut))
+      getRanges(prefixes, (lx, ux), (ly, uy), (lt, ut))
     } else {
-      val head +: middle :+ last = weeks.toList
+      val head +: middle :+ last = prefixes.toList
       val headRanges = getRanges(Seq(head), (lx, ux), (ly, uy), (lt, tEnd))
       val lastRanges = getRanges(Seq(last), (lx, ux), (ly, uy), (tStart, ut))
       val middleRanges = if (middle.isEmpty) Seq.empty else getRanges(middle, (lx, ux), (ly, uy), (tStart, tEnd))
@@ -152,23 +158,40 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
     }
 
     // index space values for comparing in the iterator
-    val (xmin, ymin, tmin) = Z3_CURVE.index(lx, ly, lt).decode
-    val (xmax, ymax, tmax) = Z3_CURVE.index(ux, uy, ut).decode
-    val (tLo, tHi) = (Z3_CURVE.normT(tStart), Z3_CURVE.normT(tEnd))
+    def decode(x: Double, y: Double, t: Int): (Int, Int, Int) = if (sft.isPoints) {
+      Z3SFC.index(x, y, t).decode
+    } else {
+      Z3(Z3SFC.index(x, y, t).z & Z3Table.GEOM_Z_MASK).decode
+    }
 
-    val wmin = weeks.head.toShort
-    val wmax = weeks.last.toShort
+    val (xmin, ymin, tmin) = decode(lx, ly, lt)
+    val (xmax, ymax, tmax) = decode(ux, uy, ut)
+    val (tLo, tHi) = (Z3SFC.time.normalize(tStart), Z3SFC.time.normalize(tEnd))
 
-    val zIter = Z3Iterator.configure(xmin, xmax, ymin, ymax, tmin, tmax, wmin, wmax, tLo, tHi, Z3_ITER_PRIORITY)
+    val wmin = weeks.head
+    val wmax = weeks.last
+
+    val zIter = Z3Iterator.configure(sft.isPoints, xmin, xmax, ymin, ymax, tmin, tmax, wmin, wmax, tLo, tHi, Z3_ITER_PRIORITY)
     val iters = Seq(zIter) ++ iterators
-    BatchScanPlan(z3table, ranges, iters, Seq(colFamily), kvsToFeatures, numThreads, hasDuplicates = false)
+    BatchScanPlan(z3table, ranges, iters, Seq(colFamily), kvsToFeatures, numThreads, hasDupes)
   }
 
-  def getRanges(weeks: Seq[Int], x: (Double, Double), y: (Double, Double), t: (Long, Long)): Seq[Range] = {
-    val prefixes = weeks.map(w => Shorts.toByteArray(w.toShort))
-    Z3_CURVE.ranges(x, y, t).flatMap { case (s, e) =>
+  def getPointRanges(prefixes: Seq[Array[Byte]], x: (Double, Double), y: (Double, Double), t: (Long, Long)): Seq[Range] = {
+    Z3SFC.ranges(x, y, t).flatMap { case (s, e) =>
       val startBytes = Longs.toByteArray(s)
       val endBytes = Longs.toByteArray(e)
+      prefixes.map { prefix =>
+        val start = new Text(Bytes.concat(prefix, startBytes))
+        val end = Range.followingPrefix(new Text(Bytes.concat(prefix, endBytes)))
+        new Range(start, true, end, false)
+      }
+    }
+  }
+
+  def getGeomRanges(prefixes: Seq[Array[Byte]], x: (Double, Double), y: (Double, Double), t: (Long, Long)): Seq[Range] = {
+    Z3SFC.ranges(x, y, t, 8 * Z3Table.GEOM_Z_NUM_BYTES).flatMap { case (s, e) =>
+      val startBytes = Longs.toByteArray(s).take(Z3Table.GEOM_Z_NUM_BYTES)
+      val endBytes = Longs.toByteArray(e).take(Z3Table.GEOM_Z_NUM_BYTES)
       prefixes.map { prefix =>
         val start = new Text(Bytes.concat(prefix, startBytes))
         val end = Range.followingPrefix(new Text(Bytes.concat(prefix, endBytes)))

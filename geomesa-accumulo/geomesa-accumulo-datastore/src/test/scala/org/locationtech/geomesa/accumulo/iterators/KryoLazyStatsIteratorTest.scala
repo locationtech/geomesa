@@ -18,7 +18,7 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.{Constants, QueryHints}
-import org.locationtech.geomesa.accumulo.iterators.StatsIterator.{STATS, decodeStat}
+import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator.{STATS, decodeStat}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats._
@@ -29,7 +29,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class StatsIteratorTest extends Specification {
+class KryoLazyStatsIteratorTest extends Specification {
 
   sequential
 

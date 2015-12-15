@@ -32,10 +32,10 @@ import org.opengis.feature.simple.SimpleFeatureType
  * @param other
  * @param env
  */
-class StatsIterator(other: StatsIterator, env: IteratorEnvironment)
+class KryoLazyStatsIterator(other: KryoLazyStatsIterator, env: IteratorEnvironment)
   extends FeatureAggregatingIterator[StatsIteratorResult](other, env) {
 
-  import org.locationtech.geomesa.accumulo.iterators.StatsIterator.STATS_ITERATOR_SFT_STRING
+  import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator.STATS_ITERATOR_SFT_STRING
 
   var stat: Stat = null
 
@@ -46,7 +46,7 @@ class StatsIterator(other: StatsIterator, env: IteratorEnvironment)
   override def initProjectedSFTDefClassSpecificVariables(source: SortedKeyValueIterator[Key, Value],
                                                          options: JMap[String, String],
                                                          env: IteratorEnvironment): Unit = {
-    val statString = StatsIterator.getStatsString(options)
+    val statString = KryoLazyStatsIterator.getStatsString(options)
     stat = Stat(simpleFeatureType, statString)
   }
 
@@ -60,7 +60,7 @@ class StatsIterator(other: StatsIterator, env: IteratorEnvironment)
   }
 }
 
-object StatsIterator extends Logging {
+object KryoLazyStatsIterator extends Logging {
   val STATS_STRING_KEY = "geomesa.stats.string"
   val STATS_FEATURE_TYPE_KEY = "geomesa.stats.featuretype"
   val STATS = "stats"
@@ -93,7 +93,7 @@ object StatsIterator extends Logging {
       } else {
         namespace
       }
-    SimpleFeatureTypes.createType(outNamespace, name, StatsIterator.STATS_ITERATOR_SFT_STRING)
+    SimpleFeatureTypes.createType(outNamespace, name, KryoLazyStatsIterator.STATS_ITERATOR_SFT_STRING)
   }
 
   def combineStats(stat1: Stat, stat2: Stat): Stat = {
@@ -140,6 +140,6 @@ object StatsIterator extends Logging {
 
 case class StatsIteratorResult(stat: Stat) extends Result {
   override def addToFeature(featureBuilder: SimpleFeatureBuilder): Unit = {
-    featureBuilder.add(StatsIterator.encodeStat(stat))
+    featureBuilder.add(KryoLazyStatsIterator.encodeStat(stat))
   }
 }

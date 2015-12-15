@@ -31,7 +31,7 @@ case class STIndexEncoder(sft: SimpleFeatureType, rowf: TextFormatter, cff: Text
   val dtgFieldIndex = sft.getDtgIndex
 
   val mutations: (Seq[GeoHash], FeatureToWrite, DateTime, Boolean) => Seq[Mutation] =
-    if (IndexSchema.mayContainDuplicates(sft)) polyMutations else pointMutations
+    if (sft.isPoints) pointMutations else polyMutations
 
   // the resolutions are valid for decomposed objects are all 5-bit boundaries
   // between 5-bits and 35-bits (inclusive)

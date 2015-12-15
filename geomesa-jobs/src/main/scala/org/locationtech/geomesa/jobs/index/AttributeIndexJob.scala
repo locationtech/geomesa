@@ -61,6 +61,7 @@ class AttributeIndexJob(args: Args) extends GeoMesaBaseJob(args) {
   @transient lazy val encoding = ds.getFeatureEncoding(sft)
   @transient lazy val featureEncoder = SimpleFeatureSerializers(sft, encoding)
   @transient lazy val indexValueEncoder = IndexValueEncoder(sft)
+  @transient lazy val binEncoder = BinEncoder(sft)
   @transient lazy val visibilities = ds.writeVisibilities
 
   // validation
@@ -81,7 +82,7 @@ class AttributeIndexJob(args: Args) extends GeoMesaBaseJob(args) {
 
   // scalding job
   TypedPipe.from(GeoMesaSource(input)).flatMap { case (id, sf) =>
-    writer(new FeatureToWrite(sf, visibilities, featureEncoder, indexValueEncoder)).map((null: Text, _))
+    writer(new FeatureToWrite(sf, visibilities, featureEncoder, indexValueEncoder, binEncoder)).map((null: Text, _))
   }.write(AccumuloSource(output))
 
   override def afterJobTasks() = {

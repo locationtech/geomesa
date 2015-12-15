@@ -101,6 +101,7 @@ object TestData extends Logging {
   lazy val indexValueEncoder = IndexValueEncoder(featureType)
 
   lazy val indexEncoder = IndexSchema.buildKeyEncoder(featureType, schemaEncoding)
+  lazy val binEncoder = BinEncoder(featureType)
 
   val defaultDateTime = new DateTime(2011, 6, 1, 0, 0, 0, DateTimeZone.forID("UTC")).toDate
 
@@ -117,7 +118,7 @@ object TestData extends Logging {
     //entry.setAttribute(geomType, id)
     entry.setAttribute("attr2", "2nd" + id)
     indexEncoder.synchronized {
-      val toWrite = new FeatureToWrite(entry, "", featureEncoder, indexValueEncoder)
+      val toWrite = new FeatureToWrite(entry, "", featureEncoder, indexValueEncoder, binEncoder)
       indexEncoder.encode(toWrite)
     }
   }

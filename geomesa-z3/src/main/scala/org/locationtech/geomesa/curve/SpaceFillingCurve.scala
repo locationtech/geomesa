@@ -10,35 +10,36 @@ package org.locationtech.geomesa.curve
 import org.joda.time.Weeks
 
 trait SpaceFillingCurve[T] {
-  def xprec: Long
-  def yprec: Long
-  def tprec: Long
-  def tmax: Double
+  def lat: NormalizedDimension
+  def lon: NormalizedDimension
+  def time: NormalizedDimension
   def index(x: Double, y: Double, t: Long): T
   def invert(i: T): (Double, Double, Long)
-  def ranges(x: (Double, Double), y: (Double, Double), t: (Long, Long)): Seq[(Long, Long)]
-  def normLon(x: Double) = math.ceil((180.0 + x) / 360.0 * xprec).toInt
-  def denormLon(x: Double): Double = (x / xprec) * 360.0 - 180.0
-  def normLat(y: Double) = math.ceil((90.0 + y) / 180.0 * yprec).toInt
-  def denormLat(y: Double): Double = (y / yprec) * 180.0 - 90.0
-  def normT(t: Long) = math.max(0, math.ceil(t / tmax * tprec).toInt)
-  def denormT(t: Long) = t * tmax / tprec
+  def ranges(x: (Double, Double), y: (Double, Double), t: (Long, Long), precision: Int = 64): Seq[(Long, Long)]
 }
 
-class Z3SFC extends SpaceFillingCurve[Z3] {
+object Z3SFC extends SpaceFillingCurve[Z3] {
 
-  override val xprec: Long = math.pow(2, 21).toLong - 1
-  override val yprec: Long = math.pow(2, 21).toLong - 1
-  override val tprec: Long = math.pow(2, 20).toLong - 1
-  override val tmax: Double = Weeks.weeks(1).toStandardSeconds.getSeconds.toDouble
+  private val xprec: Long = math.pow(2, 21).toLong - 1
+  private val yprec: Long = math.pow(2, 21).toLong - 1
+  private val tprec: Long = math.pow(2, 20).toLong - 1
+  private val tmax: Double = Weeks.weeks(1).toStandardSeconds.getSeconds.toDouble
 
-  override def index(x: Double, y: Double, t: Long): Z3 = Z3(normLon(x), normLat(y), normT(t))
+  override val lon  = NormalizedLon(xprec)
+  override val lat  = NormalizedLat(yprec)
+  override val time = NormalizedTime(tprec, tmax)
 
-  override def ranges(x: (Double, Double), y: (Double, Double), t: (Long, Long)): Seq[(Long, Long)] =
-    Z3.zranges(index(x._1, y._1, t._1), index(x._2, y._2, t._2))
+  override def index(x: Double, y: Double, t: Long): Z3 =
+    Z3(lon.normalize(x), lat.normalize(y), time.normalize(t))
+
+  override def ranges(x: (Double, Double),
+                      y: (Double, Double),
+                      t: (Long, Long),
+                      precision: Int = 64): Seq[(Long, Long)] =
+    Z3Range.zranges(index(x._1, y._1, t._1), index(x._2, y._2, t._2), precision)
 
   override def invert(z: Z3): (Double, Double, Long) = {
-    val (x,y,t) = z.decode
-    (denormLon(x), denormLat(y), denormT(t).toLong)
+    val (x, y, t) = z.decode
+    (lon.denormalize(x), lat.denormalize(y), time.denormalize(t).toLong)
   }
 }

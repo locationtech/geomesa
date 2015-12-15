@@ -84,7 +84,7 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
     output(s"Interval:  ${oint.getOrElse("No interval")}")
     output(s"Filter: ${Option(keyPlanningFilter).getOrElse("No Filter")}")
 
-    val (iterators, kvsToFeatures, useIndexEntries) = if (hints.isDensityQuery) {
+    val (iterators, kvsToFeatures, useIndexEntries, hasDupes) = if (hints.isDensityQuery) {
       val (width, height) = hints.getDensityBounds.get
       val envelope = hints.getDensityEnvelope.get
       val weight = hints.getDensityWeight
@@ -98,7 +98,7 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
 
       val iter =
         DensityIterator.configure(sft, featureEncoding, schema, filter, envelope, width, height, weight, p)
-      (Seq(iter), Z3DensityIterator.kvsToFeatures(), false)
+      (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), false, false)
     } else {
       val iteratorConfig = IteratorTrigger.chooseIterator(filter.filter, ecql, hints, sft)
       val stiiIterCfg = getSTIIIterCfg(iteratorConfig, hints, sft, ofilter, ecql, featureEncoding, version)
@@ -115,7 +115,7 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
       } else {
         queryPlanner.defaultKVsToFeatures(hints)
       }
-      (iters, kvs, indexEntries)
+      (iters, kvs, indexEntries, sft.nonPoints)
     }
 
     // set up row ranges and regular expression filter
@@ -123,7 +123,6 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
 
     val table = acc.getTableName(sft.getTypeName, SpatioTemporalTable)
     val numThreads = acc.getSuggestedThreads(sft.getTypeName, SpatioTemporalTable)
-    val hasDupes = STIdxStrategy.mayContainDuplicates(hints, sft)
     qp.copy(table = table, iterators = iterators, kvsToFeatures = kvsToFeatures,
       numThreads = numThreads, hasDuplicates = hasDupes)
   }
@@ -253,8 +252,4 @@ object STIdxStrategy extends StrategyProvider {
    * Eventually cost will be computed based on dynamic metadata and the query.
    */
   override def getCost(filter: QueryFilter, sft: SimpleFeatureType, hints: StrategyHints) = 400
-
-  def mayContainDuplicates(hints: Hints, sft: SimpleFeatureType): Boolean =
-    !hints.isDensityQuery && IndexSchema.mayContainDuplicates(sft)
-
 }
