@@ -387,7 +387,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
         "tableName"         -> sftName,
         "useMock"           -> "true",
         "caching"           -> false,
-        "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore].cachingConfig must beFalse
+        "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore].config.caching must beFalse
 
       DataStoreFinder.getDataStore(Map(
         "instanceId"        -> "mycloud",
@@ -398,7 +398,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
         "tableName"         -> sftName,
         "useMock"           -> "true",
         "caching"           -> true,
-        "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore].cachingConfig must beTrue
+        "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore].config.caching must beTrue
     }
 
     "not use caching by default" in {
@@ -409,11 +409,11 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
         "connector" -> connector,
         "tableName" -> sftName)
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
-      ds.cachingConfig must beFalse
+      ds.config.caching must beFalse
     }
 
     "not use caching by default with mocks" in {
-      ds.cachingConfig must beFalse
+      ds.config.caching must beFalse
     }
 
     "Allow extra attributes in the STIDX entries" in {

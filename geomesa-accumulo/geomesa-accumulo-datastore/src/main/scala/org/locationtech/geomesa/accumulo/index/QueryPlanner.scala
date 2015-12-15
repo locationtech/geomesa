@@ -303,6 +303,9 @@ object QueryPlanner extends Logging {
       val cql  = definition.expression
       cql match {
         case p: PropertyName =>
+          if (!origSFT.getAttributeDescriptors.asScala.exists(_.getLocalName.equals(p.getPropertyName))) {
+            throw new IllegalArgumentException(s"Attribute '${p.getPropertyName}' does not exist in SFT '${origSFT.getTypeName}'.")
+          }
           val origAttr = origSFT.getDescriptor(p.getPropertyName)
           val ab = new AttributeTypeBuilder()
           ab.init(origAttr)

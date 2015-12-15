@@ -349,5 +349,17 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
       success
     }
+
+    "be able to run explainQuery" in {
+      val filter = ECQL.toFilter("INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))")
+      val query = new Query(defaultSft.getTypeName, filter)
+
+      val out = new ExplainString()
+      ds.explainQuery(query, out)
+
+      val explanation = out.toString()
+      explanation must not be null
+      explanation.trim must not beEmpty
+    }
   }
 }

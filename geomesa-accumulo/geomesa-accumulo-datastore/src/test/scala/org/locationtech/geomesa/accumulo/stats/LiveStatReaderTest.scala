@@ -8,11 +8,10 @@
 
 package org.locationtech.geomesa.accumulo.stats
 
-import java.util.Date
-
 import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
+import org.joda.time.Interval
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -36,7 +35,7 @@ class LiveStatReaderTest extends Specification {
 
       val reader = new QueryStatReader(connector, (fName: String) => s"${table}_${fName}_queries")
 
-      val results = reader.query(feature, new Date(0), new Date(), new Authorizations())
+      val results = reader.query(feature, new Interval(0, System.currentTimeMillis()), new Authorizations())
 
       results.foreach(println)
 

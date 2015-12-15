@@ -22,7 +22,7 @@ import scala.util.Random
  * Base trait for all stat types
  */
 trait Stat {
-  def featureName: String
+  def typeName: String
   def date: Long
 }
 
@@ -31,7 +31,7 @@ trait Stat {
  */
 trait StatTransform[S <: Stat] extends Logging {
 
-  protected def createMutation(stat: Stat) = new Mutation(s"${stat.featureName}~${StatTransform.dateFormat.print(stat.date)}")
+  protected def createMutation(stat: Stat) = new Mutation(s"${stat.typeName}~${StatTransform.dateFormat.print(stat.date)}")
 
   protected def createRandomColumnFamily = Random.nextInt(9999).formatted("%1$04d")
 
