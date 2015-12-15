@@ -23,7 +23,7 @@ import org.locationtech.geomesa.accumulo.index.QueryPlanner
 import org.locationtech.geomesa.accumulo.process.knn.KNNVisitor
 import org.locationtech.geomesa.accumulo.process.proximity.ProximityVisitor
 import org.locationtech.geomesa.accumulo.process.query.QueryVisitor
-import org.locationtech.geomesa.accumulo.process.temporalDensity.TemporalDensityVisitor
+import org.locationtech.geomesa.accumulo.process.rangeHistogram.RangeHistogramVisitor
 import org.locationtech.geomesa.accumulo.process.tube.TubeVisitor
 import org.locationtech.geomesa.accumulo.process.unique.AttributeVisitor
 import org.locationtech.geomesa.accumulo.util.TryLoggingFailure
@@ -135,7 +135,7 @@ class AccumuloFeatureCollection(source: AccumuloAbstractFeatureSource, query: Qu
       case v: TubeVisitor            => v.setValue(v.tubeSelect(source, query))
       case v: ProximityVisitor       => v.setValue(v.proximitySearch(source, query))
       case v: QueryVisitor           => v.setValue(v.query(source, query))
-      case v: TemporalDensityVisitor => v.setValue(v.query(source, query))
+      case v: RangeHistogramVisitor  => v.setValue(v.query(source, query))
       case v: KNNVisitor             => v.setValue(v.kNNSearch(source,query))
       case v: AttributeVisitor       => v.setValue(v.unique(source, query))
       case _                         => super.accepts(visitor, progress)
