@@ -12,29 +12,29 @@ import java.util.Map.Entry
 
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.geotools.factory.Hints
-import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.QueryHints._
-import org.opengis.filter.Filter
-
-import scala.util.Try
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.simple.SimpleFeatureType
 
 /**
  * Class for capturing query-related stats
  */
-case class QueryStat(featureName:   String,
-                     date:          Long,
-                     queryFilter:   String,
-                     queryHints:    String,
-                     planningTime:  Long,
-                     scanTime:      Long,
-                     numResults:    Int) extends Stat
+case class QueryStat(typeName: String,
+                     date:     Long,
+                     user:     String,
+                     filter:   String,
+                     hints:    String,
+                     planTime: Long,
+                     scanTime: Long,
+                     hits:     Int) extends Stat
 
 /**
  * Maps query stats to accumulo
  */
 object QueryStatTransform extends StatTransform[QueryStat] {
 
+  private val CQ_USER = "user"
   private val CQ_QUERY_FILTER = "queryFilter"
   private val CQ_QUERY_HINTS = "queryHints"
   private val CQ_PLANTIME = "timePlanning"
@@ -45,12 +45,13 @@ object QueryStatTransform extends StatTransform[QueryStat] {
   override def statToMutation(stat: QueryStat): Mutation = {
     val mutation = createMutation(stat)
     val cf = createRandomColumnFamily
-    mutation.put(cf, CQ_QUERY_FILTER, stat.queryFilter)
-    mutation.put(cf, CQ_QUERY_HINTS, stat.queryHints)
-    mutation.put(cf, CQ_PLANTIME, stat.planningTime + "ms")
+    mutation.put(cf, CQ_USER, stat.user)
+    mutation.put(cf, CQ_QUERY_FILTER, stat.filter)
+    mutation.put(cf, CQ_QUERY_HINTS, stat.hints)
+    mutation.put(cf, CQ_PLANTIME, stat.planTime + "ms")
     mutation.put(cf, CQ_SCANTIME, stat.scanTime + "ms")
-    mutation.put(cf, CQ_TIME, (stat.scanTime + stat.planningTime) + "ms")
-    mutation.put(cf, CQ_HITS, stat.numResults.toString)
+    mutation.put(cf, CQ_TIME, (stat.scanTime + stat.planTime) + "ms")
+    mutation.put(cf, CQ_HITS, stat.hits.toString)
     mutation
   }
 
@@ -67,6 +68,7 @@ object QueryStatTransform extends StatTransform[QueryStat] {
 
     entries.foreach { e =>
       e.getKey.getColumnQualifier.toString match {
+        case CQ_USER => values.put(CQ_USER, e.getValue.toString)
         case CQ_QUERY_FILTER => values.put(CQ_QUERY_FILTER, e.getValue.toString)
         case CQ_QUERY_HINTS => values.put(CQ_QUERY_HINTS, e.getValue.toString)
         case CQ_PLANTIME => values.put(CQ_PLANTIME, e.getValue.toString.stripSuffix("ms").toLong)
@@ -77,13 +79,14 @@ object QueryStatTransform extends StatTransform[QueryStat] {
       }
     }
 
+    val user = values.getOrElse(CQ_USER, "unknown").asInstanceOf[String]
     val queryHints = values.getOrElse(CQ_QUERY_HINTS, "").asInstanceOf[String]
     val queryFilter = values.getOrElse(CQ_QUERY_FILTER, "").asInstanceOf[String]
     val planTime = values.getOrElse(CQ_PLANTIME, 0L).asInstanceOf[Long]
     val scanTime = values.getOrElse(CQ_SCANTIME, 0L).asInstanceOf[Long]
     val hits = values.getOrElse(CQ_HITS, 0).asInstanceOf[Int]
 
-    QueryStat(featureName, date, queryFilter, queryHints, planTime, scanTime, hits)
+    QueryStat(featureName, date, user, queryFilter, queryHints, planTime, scanTime, hits)
   }
 
   // list of query hints we want to persist
@@ -104,9 +107,13 @@ object QueryStatTransform extends StatTransform[QueryStat] {
    * @return
    */
   def hintsToString(hints: Hints): String =
-    QUERY_HINTS.flatMap { key =>
-      Option(hints.get(key)).map(v => s"${getString(key)}=${hints.get(key)}")
-    }.sorted.mkString(",")
+    QUERY_HINTS.flatMap(k => Option(hints.get(k)).map(v => hintToString(k, v))).sorted.mkString(",")
+
+  /**
+   * Converts a single hint to a string
+   */
+  private def hintToString(key: Hints.Key, value: AnyRef): String =
+    s"${keyToString(key)}=${valueToString(value)}"
 
   /**
    * Maps a query hint to a string. We need this since the classes themselves don't really have a
@@ -115,7 +122,7 @@ object QueryStatTransform extends StatTransform[QueryStat] {
    * @param key
    * @return
    */
-  private def getString(key: Hints.Key) =
+  private def keyToString(key: Hints.Key): String =
     key match {
       case TRANSFORMS           => "TRANSFORMS"
       case TRANSFORM_SCHEMA     => "TRANSFORM_SCHEMA"
@@ -129,4 +136,13 @@ object QueryStatTransform extends StatTransform[QueryStat] {
       case HEIGHT_KEY           => "HEIGHT_KEY"
       case _                    => "unknown_hint"
     }
+
+  /**
+   * Encodes a value into a decent readable string
+   */
+  private def valueToString(value: AnyRef): String = value match {
+    case null => "null"
+    case sft: SimpleFeatureType => s"[${sft.getTypeName}]${SimpleFeatureTypes.encodeType(sft)}"
+    case v => v.toString
+  }
 }

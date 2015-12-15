@@ -23,6 +23,7 @@ import org.locationtech.geomesa.filter.function._
 import org.locationtech.geomesa.tools.Utils.Formats
 import org.locationtech.geomesa.tools.commands.ExportCommand.ExportParameters
 import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.ListSplitter
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
@@ -93,6 +94,25 @@ object ShapefileExport {
       }
 
     modifiedAttrs.mkString(",")
+  }
+
+  /**
+   * If the attribute string has the geometry attribute in it, we will replace the name of the
+   * geom descriptor with "the_geom," since that is what Shapefile expect the geom to be named.
+   * @param attributes
+   * @param sft
+   * @return
+   */
+  def replaceGeomInAttributesString(attributes: String, sft: SimpleFeatureType): String = {
+    val trimmedAttributes = scala.collection.mutable.LinkedList(new ListSplitter().parse(attributes):_*)
+    val geomDescriptor = sft.getGeometryDescriptor.getLocalName
+
+    if (trimmedAttributes.contains(geomDescriptor)) {
+      val idx = trimmedAttributes.indexOf(geomDescriptor)
+      trimmedAttributes.set(idx, s"the_geom=$geomDescriptor")
+    }
+
+    trimmedAttributes.mkString(",")
   }
 }
 

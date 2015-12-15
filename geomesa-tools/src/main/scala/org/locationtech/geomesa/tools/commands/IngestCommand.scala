@@ -26,7 +26,7 @@ class IngestCommand(parent: JCommander) extends Command(parent) with Logging {
   override def execute(): Unit = {
     val fmt = Option(params.format).getOrElse(getFileExtension(params.files(0)))
     if (fmt == SHP) {
-      val ds = new DataStoreHelper(params).getOrCreateDs()
+      val ds = new DataStoreHelper(params).getDataStore()
       GeneralShapefileIngest.shpToDataStore(params.files(0), ds, params.featureName)
     } else {
       new DelimitedIngest(params).run()
