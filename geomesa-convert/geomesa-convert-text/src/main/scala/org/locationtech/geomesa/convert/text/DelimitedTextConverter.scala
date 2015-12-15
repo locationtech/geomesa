@@ -14,9 +14,9 @@ import java.util.concurrent.Executors
 import com.google.common.collect.Queues
 import com.typesafe.config.Config
 import org.apache.commons.csv.{CSVFormat, QuoteMode}
-import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, DefaultCounter, Counter, Expr}
+import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
 import org.locationtech.geomesa.convert.{Field, SimpleFeatureConverterFactory, ToSimpleFeatureConverter}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
 
@@ -94,8 +94,6 @@ class DelimitedTextConverter(format: CSVFormat,
   })
 
   override def fromInputType(string: String): Seq[Array[Any]] = {
-    import spire.syntax.cfor._
-
     // empty strings cause deadlock
     if (string == null || string.isEmpty) throw new IllegalArgumentException("Invalid input (empty)")
     q.put(string)
@@ -103,8 +101,10 @@ class DelimitedTextConverter(format: CSVFormat,
     val len = rec.size()
     val ret = Array.ofDim[Any](len + 1)
     ret(0) = string
-    cfor(0)(_ < len, _ + 1) { i =>
+    var i = 0
+    while (i < len) {
       ret(i+1) = rec.get(i)
+      i += 1
     }
     Seq(ret)
   }
