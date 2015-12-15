@@ -487,29 +487,18 @@ class CastFunctionFactory extends TransformerFunctionFactory {
   override def functions = Seq(string2double, string2int, string2float, string2long, string2boolean)
 
   val string2double = TransformerFn("string2double") {
-    args => {
-      if (isEmptyOrNull(args(0))) { args(1) } else args(0).asInstanceOf[String].toDouble
-    }
+    args => { try { args(0).asInstanceOf[String].toDouble } catch { case e: Exception => args(1) } }
   }
   val string2int = TransformerFn("string2int") {
-    args => {
-      if (isEmptyOrNull(args(0))) { args(1) } else args(0).asInstanceOf[String].toInt
-    }
+    args => { try { args(0).asInstanceOf[String].toInt } catch { case e: Exception => args(1) } }
   }
   val string2float = TransformerFn("string2float") {
-    args => {
-      if (isEmptyOrNull(args(0))) { args(1) } else args(0).asInstanceOf[String].toFloat
-    }
+    args => { try { args(0).asInstanceOf[String].toFloat } catch { case e: Exception => args(1) } }
   }
   val string2long = TransformerFn("string2long") {
-    args => {
-      if (isEmptyOrNull(args(0))) { args(1) } else args(0).asInstanceOf[String].toLong
-    }
+    args => { try { args(0).asInstanceOf[String].toLong } catch { case e: Exception => args(1) } }
   }
   val string2boolean = TransformerFn("string2boolean") {
-    args => {
-      if (isEmptyOrNull(args(0))) { args(1) } else args(0).asInstanceOf[String].toBoolean
-    }
+    args => { try { args(0).asInstanceOf[String].toBoolean } catch { case e: Exception => args(1) } }
   }
-  private def isEmptyOrNull(str: Any): Boolean = (str == null) || (str.asInstanceOf[String] == "")
 }

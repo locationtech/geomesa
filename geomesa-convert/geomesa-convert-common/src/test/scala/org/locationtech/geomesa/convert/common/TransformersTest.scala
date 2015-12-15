@@ -279,153 +279,82 @@ class TransformersTest extends Specification {
       "string2 functions" >> {
         "string2double" >> {
           "double string2double zero default" >> {
-            val exp: Predicate = Transformers.parsePred("doubleEq(string2double($1, $3), string2double($2, $3))")
-            exp.eval(Array("", "1.2", "1.0", 0.0)) must beFalse
-            exp.eval(Array("", "0.0", "0.0", 0.0)) must beTrue
-          }
-          "double empty string string2double zero default" >> {
-            val exp: Predicate = Transformers.parsePred("doubleEq(string2double($1, $3), string2double($2, $3))")
-            exp.eval(Array("", "", "1.0", 0.0)) must beFalse
-            exp.eval(Array("", "", "0.0", 0.0)) must beTrue
-          }
-          "double null string string2double zero default" >> {
-            val exp = Transformers.parsePred("doubleEq(string2double($1,$3), string2double($2,$3))")
-            exp.eval(Array("", null, "1.0", 0.0)) must beFalse
-            exp.eval(Array("", null, "0.0", 0.0)) must beTrue
+            val exp = Transformers.parseTransform("string2double($1, '0.0'::double)")
+            exp.eval(Array("", "1.2")) mustEqual 1.2
+            exp.eval(Array("", "")) mustEqual 0.0
+            exp.eval(Array("", null)) mustEqual 0.0
+            exp.eval(Array("", 5L)) mustEqual 0.0
           }
           "double string2double null default" >> {
-            val exp: Predicate = Transformers.parsePred("doubleEq(string2double($1, $3), string2double($2, $3))")
-            exp.eval(Array("", "1.2", "1.0", null)) must beFalse
-            exp.eval(Array("", "0.0", "0.0", null)) must beTrue
-          }
-          "double empty string string2double null default" >> {
-            val exp: Predicate = Transformers.parsePred("doubleEq(string2double($1, $3), string2double($2, $3))")
-            exp.eval(Array("", "", "1.0", null)) must beFalse
-            exp.eval(Array("", "", null, null)) must beTrue
-          }
-          "double null string string2double null default" >> {
-            val exp = Transformers.parsePred("doubleEq(string2double($1,$3), string2double($2,$3))")
-            exp.eval(Array("", null, "1.0", null)) must beFalse
-            exp.eval(Array("", null, null, null)) must beTrue
+            val exp = Transformers.parseTransform("string2double($1, $2)")
+            exp.eval(Array("", "1.2", null)) mustEqual 1.2
+            exp.eval(Array("", "", null)) mustEqual null
+            exp.eval(Array("", null, null)) mustEqual null
+            exp.eval(Array("", 5L, null)) mustEqual null
           }
         }
         "string2int" >> {
           "int string2int zero default" >> {
-            val exp: Predicate = Transformers.parsePred("intEq(string2int($1, $3), string2int($2, $3))")
-            exp.eval(Array("", "2", "1", 0)) must beFalse
-            exp.eval(Array("", "0", "0", 0)) must beTrue
-          }
-          "int empty string string2int zero default" >> {
-            val exp: Predicate = Transformers.parsePred("intEq(string2int($1, $3), string2int($2, $3))")
-            exp.eval(Array("", "", "1", 0)) must beFalse
-            exp.eval(Array("", "", "0", 0)) must beTrue
-          }
-          "int null string string2int zero default" >> {
-            val exp = Transformers.parsePred("intEq(string2int($1,$3), string2int($2,$3))")
-            exp.eval(Array("", null, "1", 0)) must beFalse
-            exp.eval(Array("", null, "0", 0)) must beTrue
+            val exp = Transformers.parseTransform("string2int($1, '0'::int)")
+            exp.eval(Array("", "2")) mustEqual 2
+            exp.eval(Array("", "")) mustEqual 0
+            exp.eval(Array("", null)) mustEqual 0
+            exp.eval(Array("", "1.2")) mustEqual 0
           }
           "int string2int null default" >> {
-            val exp: Predicate = Transformers.parsePred("intEq(string2int($1, $3), string2int($2, $3))")
-            exp.eval(Array("", "2", "1", null)) must beFalse
-            exp.eval(Array("", "0", "0", null)) must beTrue
-          }
-          "int empty string string2int null default" >> {
-            val exp: Predicate = Transformers.parsePred("intEq(string2int($1, $3), string2int($2, $3))")
-            exp.eval(Array("", "", "1", null)) must beFalse
-            exp.eval(Array("", "", null, null)) must beTrue
-          }
-          "int null string string2int null default" >> {
-            val exp = Transformers.parsePred("intEq(string2int($1,$3), string2int($2,$3))")
-            exp.eval(Array("", null, "1", null)) must beFalse
-            exp.eval(Array("", null, null, null)) must beTrue
+            val exp = Transformers.parseTransform("string2int($1, $2)")
+            exp.eval(Array("", "2", null)) mustEqual 2
+            exp.eval(Array("", "", null)) mustEqual null
+            exp.eval(Array("", null, null)) mustEqual null
+            exp.eval(Array("", "1.2", null)) mustEqual null
           }
         }
         "string2long" >> {
           "long string2long zero default" >> {
-            val exp: Predicate = Transformers.parsePred("longEq(string2long($1, $3), string2long($2, $3))")
-            exp.eval(Array("", "22960000000", "12960000000", 0L)) must beFalse
-            exp.eval(Array("", "0", "0", 0L)) must beTrue
-          }
-          "long empty string string2long zero default" >> {
-            val exp: Predicate = Transformers.parsePred("longEq(string2long($1, $3), string2long($2, $3))")
-            exp.eval(Array("", "", "12960000000", 0L)) must beFalse
-            exp.eval(Array("", "", "0", 0L)) must beTrue
-          }
-          "long null string string2long zero default" >> {
-            val exp = Transformers.parsePred("longEq(string2long($1,$3), string2long($2,$3))")
-            exp.eval(Array("", null, "12960000000", 0L)) must beFalse
-            exp.eval(Array("", null, "0", 0L)) must beTrue
+            val exp = Transformers.parseTransform("string2long($1, '0'::long)")
+            exp.eval(Array("", "22960000000")) mustEqual 22960000000L
+            exp.eval(Array("", "")) mustEqual 0L
+            exp.eval(Array("", null)) mustEqual 0L
+            exp.eval(Array("", "1.2")) mustEqual 0L
           }
           "long string2long null default" >> {
-            val exp: Predicate = Transformers.parsePred("longEq(string2long($1, $3), string2long($2, $3))")
-            exp.eval(Array("", "22960000000", "12960000000", null)) must beFalse
-            exp.eval(Array("", "0", "0", null)) must beTrue
-          }
-          "long empty string string2long null default" >> {
-            val exp: Predicate = Transformers.parsePred("longEq(string2long($1, $3), string2long($2, $3))")
-            exp.eval(Array("", "", "12960000000", null)) must beFalse
-            exp.eval(Array("", "", null, null)) must beTrue
-          }
-          "long null string string2long null default" >> {
-            val exp = Transformers.parsePred("longEq(string2long($1,$3), string2long($2,$3))")
-            exp.eval(Array("", null, "12960000000", null)) must beFalse
-            exp.eval(Array("", null, null, null)) must beTrue
+            val exp = Transformers.parseTransform("string2long($1, $2)")
+            exp.eval(Array("", "22960000000", null)) mustEqual 22960000000L
+            exp.eval(Array("", "", null)) mustEqual null
+            exp.eval(Array("", null, null)) mustEqual null
+            exp.eval(Array("", "1.2", null)) mustEqual null
           }
         }
         "string2float" >> {
           "float string2float zero default" >> {
-            val exp: Predicate = Transformers.parsePred("floatEq(string2float($1, $3), string2float($2, $3))")
-            exp.eval(Array("", "1.2", "1.0", 0.0f)) must beFalse
-            exp.eval(Array("", "0.0", "0.0", 0.0f)) must beTrue
+            val exp = Transformers.parseTransform("string2float($1, '0.0'::float)")
+            exp.eval(Array("", "1.2")) mustEqual 1.2f
+            exp.eval(Array("", "")) mustEqual 0.0f
+            exp.eval(Array("", null)) mustEqual 0.0f
+            exp.eval(Array("", 5L)) mustEqual 0.0f
           }
-          "float empty string string2float zero default" >> {
-            val exp: Predicate = Transformers.parsePred("floatEq(string2float($1, $3), string2float($2, $3))")
-            exp.eval(Array("", "", "1.0", 0.0f)) must beFalse
-            exp.eval(Array("", "", "0.0", 0.0f)) must beTrue
-          }
-          "float null string string2float zero default" >> {
-            val exp = Transformers.parsePred("floatEq(string2float($1,$3), string2float($2,$3))")
-            exp.eval(Array("", null, "1.0", 0.0f)) must beFalse
-            exp.eval(Array("", null, "0.0", 0.0f)) must beTrue
-          }
-          "float string2float null default" >> {
-            val exp: Predicate = Transformers.parsePred("floatEq(string2float($1, $3), string2float($2, $3))")
-            exp.eval(Array("", "1.2", "1.0", null)) must beFalse
-            exp.eval(Array("", "0.0", "0.0", null)) must beTrue
-          }
-          "float empty string string2float null default" >> {
-            val exp: Predicate = Transformers.parsePred("floatEq(string2float($1, $3), string2float($2, $3))")
-            exp.eval(Array("", "", "1.0", null)) must beFalse
-            exp.eval(Array("", "", null, null)) must beTrue
-          }
-          "float null string string2float null default" >> {
-            val exp = Transformers.parsePred("floatEq(string2float($1,$3), string2float($2,$3))")
-            exp.eval(Array("", null, "1.0", null)) must beFalse
-            exp.eval(Array("", null, null, null)) must beTrue
+          "float string2float zero default" >> {
+            val exp = Transformers.parseTransform("string2float($1, $2)")
+            exp.eval(Array("", "1.2", null)) mustEqual 1.2f
+            exp.eval(Array("", "", null)) mustEqual null
+            exp.eval(Array("", null, null)) mustEqual null
+            exp.eval(Array("", 5L, null)) mustEqual null
           }
         }
         "string2boolean" >> {
-          "boolean string2boolean true default" >> {
-            val exp = Transformers.parseTransform("string2boolean($1,$2)")
-            exp.eval(Array("", "true", true)) mustEqual true
-            exp.eval(Array("", "false", true)) mustEqual false
-            exp.eval(Array("", "", true)) mustEqual true
-            exp.eval(Array("", null, true)) mustEqual true
-          }
           "boolean string2boolean false default" >> {
-            val exp = Transformers.parseTransform("string2boolean($1,$2)")
-            exp.eval(Array("", "true", false)) mustEqual true
-            exp.eval(Array("", "false", false)) mustEqual false
-            exp.eval(Array("", "", false)) mustEqual false
-            exp.eval(Array("", null, false)) mustEqual false
+            val exp = Transformers.parseTransform("string2boolean($1,'false'::boolean)")
+            exp.eval(Array("", "true")) mustEqual true
+            exp.eval(Array("", "")) mustEqual false
+            exp.eval(Array("", null)) mustEqual false
+            exp.eval(Array("", "18")) mustEqual false
           }
           "boolean string2boolean null default" >> {
             val exp = Transformers.parseTransform("string2boolean($1,$2)")
             exp.eval(Array("", "true", null)) mustEqual true
-            exp.eval(Array("", "false", null)) mustEqual false
             exp.eval(Array("", "", null)) mustEqual null
             exp.eval(Array("", null, null)) mustEqual null
+            exp.eval(Array("", "18", null)) mustEqual null
           }
         }
       }
