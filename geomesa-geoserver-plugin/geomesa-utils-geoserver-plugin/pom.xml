@@ -15,6 +15,13 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-utils</artifactId>
         </dependency>
+        <!-- Necessary version for commons-utils so it is relocated inside this geoserver-plugin uber jar -->
+        <dependency>
+            <groupId>commons-pool</groupId>
+            <artifactId>commons-pool</artifactId>
+            <version>1.6</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
