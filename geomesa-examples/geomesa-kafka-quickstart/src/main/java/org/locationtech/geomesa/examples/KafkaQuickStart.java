@@ -76,6 +76,7 @@ public class KafkaQuickStart {
     // construct connection parameters for the DataStoreFinder
     public static Map<String, String> getKafkaDataStoreConf(CommandLine cmd) {
         Map<String, String> dsConf = new HashMap<>();
+        dsConf.put("namespace",""); //namespace for data store is unused
         for (String param : KAFKA_CONNECTION_PARAMS) {
             dsConf.put(param, cmd.getOptionValue(param));
         }
