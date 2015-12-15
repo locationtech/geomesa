@@ -40,29 +40,27 @@ package object index {
   type KeyValuePair = (Key, Value)
 
   object QueryHints {
-    val RETURN_SFT_KEY       = new ClassKey(classOf[SimpleFeatureType])
-    val QUERY_STRATEGY_KEY   = new ClassKey(classOf[StrategyType])
+    val RETURN_SFT_KEY                = new ClassKey(classOf[SimpleFeatureType])
+    val QUERY_STRATEGY_KEY            = new ClassKey(classOf[StrategyType])
 
-    val DENSITY_BBOX_KEY     = new ClassKey(classOf[ReferencedEnvelope])
-    val DENSITY_WEIGHT       = new ClassKey(classOf[java.lang.String])
-    val WIDTH_KEY            = new IntegerKey(256)
-    val HEIGHT_KEY           = new IntegerKey(256)
+    val DENSITY_BBOX_KEY              = new ClassKey(classOf[ReferencedEnvelope])
+    val DENSITY_WEIGHT                = new ClassKey(classOf[java.lang.String])
+    val WIDTH_KEY                     = new IntegerKey(256)
+    val HEIGHT_KEY                    = new IntegerKey(256)
 
-    val TEMPORAL_DENSITY_KEY = new ClassKey(classOf[java.lang.Boolean])
-    val TIME_INTERVAL_KEY    = new ClassKey(classOf[org.joda.time.Interval])
-    val TIME_BUCKETS_KEY     = new IntegerKey(256)
-    val RETURN_ENCODED       = new ClassKey(classOf[java.lang.Boolean])
+    val STATS_STRING                  = new ClassKey(classOf[java.lang.String])
+    val RETURN_ENCODED                = new ClassKey(classOf[java.lang.Boolean])
 
-    val MAP_AGGREGATION_KEY  = new ClassKey(classOf[java.lang.String])
+    val MAP_AGGREGATION_KEY           = new ClassKey(classOf[java.lang.String])
 
-    val EXACT_COUNT          = new ClassKey(classOf[java.lang.Boolean])
+    val EXACT_COUNT                   = new ClassKey(classOf[java.lang.Boolean])
 
-    val BIN_TRACK_KEY        = new ClassKey(classOf[java.lang.String])
-    val BIN_GEOM_KEY         = new ClassKey(classOf[java.lang.String])
-    val BIN_DTG_KEY          = new ClassKey(classOf[java.lang.String])
-    val BIN_LABEL_KEY        = new ClassKey(classOf[java.lang.String])
-    val BIN_SORT_KEY         = new ClassKey(classOf[java.lang.Boolean])
-    val BIN_BATCH_SIZE_KEY   = new ClassKey(classOf[java.lang.Integer])
+    val BIN_TRACK_KEY                 = new ClassKey(classOf[java.lang.String])
+    val BIN_GEOM_KEY                  = new ClassKey(classOf[java.lang.String])
+    val BIN_DTG_KEY                   = new ClassKey(classOf[java.lang.String])
+    val BIN_LABEL_KEY                 = new ClassKey(classOf[java.lang.String])
+    val BIN_SORT_KEY                  = new ClassKey(classOf[java.lang.Boolean])
+    val BIN_BATCH_SIZE_KEY            = new ClassKey(classOf[java.lang.Integer])
 
     implicit class RichHints(val hints: Hints) extends AnyRef {
       def getReturnSft: SimpleFeatureType = hints.get(RETURN_SFT_KEY).asInstanceOf[SimpleFeatureType]
@@ -81,7 +79,7 @@ package object index {
         for { w <- Option(hints.get(WIDTH_KEY).asInstanceOf[Int])
               h <- Option(hints.get(HEIGHT_KEY).asInstanceOf[Int]) } yield (w, h)
       def getDensityWeight: Option[String] = Option(hints.get(DENSITY_WEIGHT).asInstanceOf[String])
-      def isTemporalDensityQuery: Boolean = hints.containsKey(TEMPORAL_DENSITY_KEY)
+      def isStatsIteratorQuery: Boolean = hints.containsKey(STATS_STRING)
       def isMapAggregatingQuery: Boolean = hints.containsKey(MAP_AGGREGATION_KEY)
       def getTransformDefinition: Option[String] = Option(hints.get(TRANSFORMS).asInstanceOf[String])
       def getTransformSchema: Option[SimpleFeatureType] =

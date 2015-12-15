@@ -96,9 +96,7 @@ object QueryStatTransform extends StatTransform[QueryStat] {
                                     WIDTH_KEY,
                                     HEIGHT_KEY,
                                     BIN_TRACK_KEY,
-                                    TEMPORAL_DENSITY_KEY,
-                                    TIME_INTERVAL_KEY,
-                                    TIME_BUCKETS_KEY)
+                                    STATS_STRING)
 
   /**
    * Converts a query hints object to a string for persisting
@@ -124,17 +122,15 @@ object QueryStatTransform extends StatTransform[QueryStat] {
    */
   private def keyToString(key: Hints.Key): String =
     key match {
-      case TRANSFORMS           => "TRANSFORMS"
-      case TRANSFORM_SCHEMA     => "TRANSFORM_SCHEMA"
-      case BIN_TRACK_KEY        => "BIN_TRACK_KEY"
-      case TEMPORAL_DENSITY_KEY => "TEMPORAL_DENSITY_KEY"
-      case TIME_INTERVAL_KEY    => "TIME_INTERVAL_KEY"
-      case RETURN_ENCODED       => "RETURN_ENCODED"
-      case TIME_BUCKETS_KEY     => "TIME_BUCKETS_KEY"
-      case DENSITY_BBOX_KEY     => "DENSITY_BBOX_KEY"
-      case WIDTH_KEY            => "WIDTH_KEY"
-      case HEIGHT_KEY           => "HEIGHT_KEY"
-      case _                    => "unknown_hint"
+      case TRANSFORMS                       => "TRANSFORMS"
+      case TRANSFORM_SCHEMA                 => "TRANSFORM_SCHEMA"
+      case BIN_TRACK_KEY                    => "BIN_TRACK_KEY"
+      case STATS_STRING                     => "STATS_STRING_KEY"
+      case RETURN_ENCODED                   => "RETURN_ENCODED"
+      case DENSITY_BBOX_KEY                 => "DENSITY_BBOX_KEY"
+      case WIDTH_KEY                        => "WIDTH_KEY"
+      case HEIGHT_KEY                       => "HEIGHT_KEY"
+      case _                                => "unknown_hint"
     }
 
   /**
