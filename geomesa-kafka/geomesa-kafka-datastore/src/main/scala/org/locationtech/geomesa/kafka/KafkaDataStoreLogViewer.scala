@@ -55,7 +55,7 @@ object KafkaDataStoreLogViewer extends Logging {
   }
 
   def run(zookeeper: String, zkPath: String, sftName: String, fromBeginning: Boolean): Unit = {
-    val featureConfig = new KafkaDataStore(zookeeper, zkPath, 1, 1, null).getFeatureConfig(sftName)
+    val featureConfig = new KafkaDataStore(zookeeper, zkPath, 1, 1, null, null).getFeatureConfig(sftName)
 
     val formatter = classOf[KafkaGeoMessageFormatter].getName
     val sftSpec = encodeSFT(featureConfig.sft)

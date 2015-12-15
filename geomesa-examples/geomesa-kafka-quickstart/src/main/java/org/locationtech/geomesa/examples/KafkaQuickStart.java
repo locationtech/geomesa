@@ -171,7 +171,6 @@ public class KafkaQuickStart {
         // only create the schema if it hasn't been created already
         if (!Arrays.asList(producerDS.getTypeNames()).contains(sftName))
             producerDS.createSchema(preppedOutputSft);
-
         System.out.println("Register KafkaDataStore in GeoServer (Press enter to continue)");
         System.in.read();
 
