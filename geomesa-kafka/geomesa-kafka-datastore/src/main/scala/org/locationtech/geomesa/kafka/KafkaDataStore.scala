@@ -27,8 +27,8 @@ class KafkaDataStore(override val zookeepers: String,
                      override val zkPath: String,
                      override val partitions: Int,
                      override val replication: Int,
-                     val namespaceStr: String,
-                     fsFactory: FeatureSourceFactory)
+                     fsFactory: FeatureSourceFactory,
+                     val namespaceStr: String = null)
   extends ContentDataStore
   with KafkaDataStoreSchemaManager
   with Logging {
@@ -56,10 +56,10 @@ class KafkaDataStore(override val zookeepers: String,
 }
 
 object KafkaDataStoreFactoryParams {
-  val NAMESPACE_PARAM    = new Param("namespace", classOf[String], "Namespace", true)
   val KAFKA_BROKER_PARAM = new Param("brokers", classOf[String], "Kafka broker", true)
   val ZOOKEEPERS_PARAM   = new Param("zookeepers", classOf[String], "Zookeepers", true)
   val ZK_PATH            = new Param("zkPath", classOf[String], "Zookeeper discoverable path", false,  KafkaDataStoreHelper.DefaultZkPath)
+  val NAMESPACE_PARAM    = new Param("namespace", classOf[String], "Namespace", false)
   val TOPIC_PARTITIONS   = new Param("partitions", classOf[Integer], "Number of partitions to use in kafka topics", false)
   val TOPIC_REPLICATION  = new Param("replication", classOf[Integer], "Replication factor to use in kafka topics", false)
   val IS_PRODUCER_PARAM  = new Param("isProducer", classOf[java.lang.Boolean], "Is Producer", false, false)
@@ -80,7 +80,7 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
   override def createDataStore(params: ju.Map[String, Serializable]): DataStore = {
     val broker = KAFKA_BROKER_PARAM.lookUp(params).asInstanceOf[String]
     val zkHost = ZOOKEEPERS_PARAM.lookUp(params).asInstanceOf[String]
-    val namespace = NAMESPACE_PARAM.lookUp(params).asInstanceOf[String]
+    val namespace = Option(NAMESPACE_PARAM.lookUp(params)).map(_.asInstanceOf[String]).orNull
     val zkPath = KafkaDataStoreHelper.cleanZkPath(ZK_PATH.lookUp(params).asInstanceOf[String])
 
     val partitions  = Option(TOPIC_PARTITIONS.lookUp(params)).map(_.toString.toInt).getOrElse(1)
@@ -88,7 +88,7 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
 
     val fsFactory = createFeatureSourceFactory(broker, zkHost, params)
 
-    new KafkaDataStore(zkHost, zkPath, partitions, replication, namespace, fsFactory)
+    new KafkaDataStore(zkHost, zkPath, partitions, replication, fsFactory, namespace)
   }
 
   def createFeatureSourceFactory(brokers: String,
@@ -114,7 +114,7 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
     Array(KAFKA_BROKER_PARAM, ZOOKEEPERS_PARAM, ZK_PATH, EXPIRATION_PERIOD, CLEANUP_LIVE_CACHE, TOPIC_PARTITIONS, TOPIC_REPLICATION, NAMESPACE_PARAM)
 
   override def canProcess(params: ju.Map[String, Serializable]): Boolean =
-    params.containsKey(KAFKA_BROKER_PARAM.key) && params.containsKey(ZOOKEEPERS_PARAM.key) && params.containsKey(NAMESPACE_PARAM.key)
+    params.containsKey(KAFKA_BROKER_PARAM.key) && params.containsKey(ZOOKEEPERS_PARAM.key)
 
   override def isAvailable: Boolean = true
   override def getImplementationHints: ju.Map[Key, _] = null
