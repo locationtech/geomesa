@@ -29,6 +29,7 @@ import scala.util.matching.Regex
 object Transformers extends EnhancedTokenParsers with Logging {
 
   val functionMap = mutable.HashMap[String, TransformerFn]()
+
   ServiceRegistry.lookupProviders(classOf[TransformerFunctionFactory]).foreach { factory =>
     factory.functions.foreach(f => f.names.foreach(functionMap.put(_, f)))
   }
@@ -463,9 +464,7 @@ class MapListFunctionFactory extends TransformerFunctionFactory {
 
   import scala.collection.JavaConverters._
 
-  val listFn = TransformerFn("list") { args =>
-    args.toList.asJava
-  }
+  val listFn = TransformerFn("list") { args => args.toList.asJava }
 
   def convert(value: Any, clazz: Class[_]) =
     Option(Converters.convert(value, clazz))
