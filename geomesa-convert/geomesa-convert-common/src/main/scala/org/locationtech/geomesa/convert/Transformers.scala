@@ -45,11 +45,13 @@ object Transformers extends EnhancedTokenParsers with Logging {
     private val OPEN_PAREN  = "("
     private val CLOSE_PAREN = ")"
 
-    def string      = quotedString ^^ { s => LitString(s) } //"'" ~> "[^']*".r <~ "'".r ^^ { s => LitString(s) }
-    def int         = wholeNumber ^^   { i => LitInt(i.toInt) }
+    def string      = quotedString ^^ { s => LitString(s) }
+    def int         = wholeNumber ^^ { i => LitInt(i.toInt) }
     def double      = decimalNumber ^^ { d => LitDouble(d.toDouble) }
-    def long        = wholeNumber ^^   { l => LitLong(l.toLong) }
-    def lit         = string | int | double
+    def long        = wholeNumber <~ "L" ^^   { l => LitLong(l.toLong) }
+    def float       = decimalNumber <~ "f|F".r ^^ { l => LitFloat(l.toFloat) }
+    def boolean     = "false|true".r ^^ { l => LitBoolean(l.toBoolean) }
+    def lit         = string | long | float | int | double | boolean // order is important - most to least specific
     def wholeRecord = "$0" ^^ { _ => WholeRecord }
     def regexExpr   = string <~ "::r" ^^ { case LitString(s) => RegexExpr(s) }
     def column      = "$" ~> "[1-9][0-9]*".r ^^ { i => Col(i.toInt) }

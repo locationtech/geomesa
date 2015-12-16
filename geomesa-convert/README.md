@@ -408,9 +408,9 @@ Description: Converts a string into a integer, with a default value if conversio
 
 Usage; ```stringToInt($1, $2)```
 
-Example: ```stringToInt('1', '0'::int) = 1```
+Example: ```stringToInt('1', 0) = 1```
 
-Example: ```stringToInt('', '0'::int) = 0```
+Example: ```stringToInt('', 0) = 0```
 
 #### stringToLong
 
@@ -418,9 +418,9 @@ Description: Converts a string into a long, with a default value if conversion f
 
 Usage; ```stringToLong($1, $2)```
 
-Example: ```stringToLong('1', '0'::long) = 1L```
+Example: ```stringToLong('1', 0L) = 1L```
 
-Example: ```stringToLong('', '0'::long) = 0L```
+Example: ```stringToLong('', 0L) = 0L```
 
 #### stringToFloat
 
@@ -428,9 +428,9 @@ Description: Converts a string into a float, with a default value if conversion 
 
 Usage; ```stringToFloat($1, $2)```
 
-Example: ```stringToFloat('1.0', '0.0'::float) = 1.0f```
+Example: ```stringToFloat('1.0', 0.0f) = 1.0f```
 
-Example: ```stringToFloat('not a float', '0.0'::float) = 0.0f```
+Example: ```stringToFloat('not a float', 0.0f) = 0.0f```
 
 #### stringToDouble
 
@@ -438,9 +438,9 @@ Description: Converts a string into a double, with a default value if conversion
 
 Usage; ```stringToDouble($1, $2)```
 
-Example: ```stringToDouble('1.0', '0.0'::double) = 1.0d```
+Example: ```stringToDouble('1.0', 0.0) = 1.0d```
 
-Example: ```stringToDouble(null, '0.0'::double) = 0.0d```
+Example: ```stringToDouble(null, 0.0) = 0.0d```
 
 #### stringToBoolean
 
@@ -448,9 +448,9 @@ Description: Converts a string into a boolean, with a default value if conversio
 
 Usage; ```stringToBoolean($1, $2)```
 
-Example: ```stringToBoolean('true', 'false'::boolean) = true```
+Example: ```stringToBoolean('true', false) = true```
 
-Example: ```stringToBoolean('55', 'false'::boolean) = false```
+Example: ```stringToBoolean('55', false) = false```
 
 ### List and Map Parsing
 

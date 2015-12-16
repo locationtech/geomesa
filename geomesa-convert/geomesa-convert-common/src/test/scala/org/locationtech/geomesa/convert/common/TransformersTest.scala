@@ -26,7 +26,7 @@ import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class TransformersTest extends Specification {
-
+sequential
   "Transformers" should {
 
     implicit val ctx = new EvaluationContext(mutable.HashMap.empty[String, Int], null)
@@ -349,7 +349,7 @@ class TransformersTest extends Specification {
         }
         "stringToInt" >> {
           "int stringToInt zero default" >> {
-            val exp = Transformers.parseTransform("stringToInt($1, '0'::int)")
+            val exp = Transformers.parseTransform("stringToInt($1, 0)")
             exp.eval(Array("", "2")) mustEqual 2
             exp.eval(Array("", "")) mustEqual 0
             exp.eval(Array("", null)) mustEqual 0
@@ -365,7 +365,7 @@ class TransformersTest extends Specification {
         }
         "stringToInteger" >> {
           "int stringToInteger zero default" >> {
-            val exp = Transformers.parseTransform("stringToInteger($1, '0'::int)")
+            val exp = Transformers.parseTransform("stringToInteger($1, 0)")
             exp.eval(Array("", "2")) mustEqual 2
             exp.eval(Array("", "")) mustEqual 0
             exp.eval(Array("", null)) mustEqual 0
@@ -381,7 +381,7 @@ class TransformersTest extends Specification {
         }
         "stringToLong" >> {
           "long stringToLong zero default" >> {
-            val exp = Transformers.parseTransform("stringToLong($1, '0'::long)")
+            val exp = Transformers.parseTransform("stringToLong($1, 0L)")
             exp.eval(Array("", "22960000000")) mustEqual 22960000000L
             exp.eval(Array("", "")) mustEqual 0L
             exp.eval(Array("", null)) mustEqual 0L
@@ -397,7 +397,7 @@ class TransformersTest extends Specification {
         }
         "stringToFloat" >> {
           "float stringToFloat zero default" >> {
-            val exp = Transformers.parseTransform("stringToFloat($1, '0.0'::float)")
+            val exp = Transformers.parseTransform("stringToFloat($1, 0.0f)")
             exp.eval(Array("", "1.2")) mustEqual 1.2f
             exp.eval(Array("", "")) mustEqual 0.0f
             exp.eval(Array("", null)) mustEqual 0.0f
@@ -413,7 +413,7 @@ class TransformersTest extends Specification {
         }
         "stringToBoolean" >> {
           "boolean stringToBoolean false default" >> {
-            val exp = Transformers.parseTransform("stringToBoolean($1,'false'::boolean)")
+            val exp = Transformers.parseTransform("stringToBoolean($1, false)")
             exp.eval(Array("", "true")) mustEqual true
             exp.eval(Array("", "")) mustEqual false
             exp.eval(Array("", null)) mustEqual false
