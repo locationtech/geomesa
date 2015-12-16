@@ -28,6 +28,7 @@ class MinMaxTest extends Specification with StatTestHelper {
         minMax.attrType mustEqual "java.util.Date"
         minMax.min mustEqual new Date(java.lang.Long.MAX_VALUE)
         minMax.max mustEqual new Date(java.lang.Long.MIN_VALUE)
+        minMax.isEmpty must beTrue
 
         features.foreach { stat.observe }
 
@@ -56,6 +57,17 @@ class MinMaxTest extends Specification with StatTestHelper {
           minMax.max mustEqual StatHelpers.dateFormat.parseDateTime("2012-01-02T23:00:00.000Z").toDate
           minMax2.min mustEqual StatHelpers.dateFormat.parseDateTime("2012-01-02T00:00:00.000Z").toDate
           minMax2.max mustEqual StatHelpers.dateFormat.parseDateTime("2012-01-02T23:00:00.000Z").toDate
+
+          "clear them" in {
+            minMax.isEmpty must beFalse
+            minMax2.isEmpty must beFalse
+
+            minMax.clear()
+            minMax2.clear()
+
+            minMax.isEmpty must beTrue
+            minMax2.isEmpty must beTrue
+          }
         }
       }
 
@@ -67,6 +79,7 @@ class MinMaxTest extends Specification with StatTestHelper {
         minMax.attrType mustEqual "java.lang.Integer"
         minMax.min mustEqual java.lang.Integer.MAX_VALUE
         minMax.max mustEqual java.lang.Integer.MIN_VALUE
+        minMax.isEmpty must beTrue
 
         features.foreach { stat.observe }
 
@@ -95,6 +108,17 @@ class MinMaxTest extends Specification with StatTestHelper {
           minMax.max mustEqual 199
           minMax2.min mustEqual 100
           minMax2.max mustEqual 199
+
+          "clear them" in {
+            minMax.isEmpty must beFalse
+            minMax2.isEmpty must beFalse
+
+            minMax.clear()
+            minMax2.clear()
+
+            minMax.isEmpty must beTrue
+            minMax2.isEmpty must beTrue
+          }
         }
       }
 
@@ -106,6 +130,7 @@ class MinMaxTest extends Specification with StatTestHelper {
         minMax.attrType mustEqual "java.lang.Long"
         minMax.min mustEqual java.lang.Long.MAX_VALUE
         minMax.max mustEqual java.lang.Long.MIN_VALUE
+        minMax.isEmpty must beTrue
 
         features.foreach { stat.observe }
 
@@ -134,6 +159,17 @@ class MinMaxTest extends Specification with StatTestHelper {
           minMax.max mustEqual 199L
           minMax2.min mustEqual 100L
           minMax2.max mustEqual 199L
+
+          "clear them" in {
+            minMax.isEmpty must beFalse
+            minMax2.isEmpty must beFalse
+
+            minMax.clear()
+            minMax2.clear()
+
+            minMax.isEmpty must beTrue
+            minMax2.isEmpty must beTrue
+          }
         }
       }
 
@@ -145,6 +181,7 @@ class MinMaxTest extends Specification with StatTestHelper {
         minMax.attrType mustEqual "java.lang.Double"
         minMax.min mustEqual java.lang.Double.MAX_VALUE
         minMax.max mustEqual java.lang.Double.MIN_VALUE
+        minMax.isEmpty must beTrue
 
         features.foreach { stat.observe }
 
@@ -173,6 +210,17 @@ class MinMaxTest extends Specification with StatTestHelper {
           minMax.max mustEqual 199
           minMax2.min mustEqual 100
           minMax2.max mustEqual 199
+
+          "clear them" in {
+            minMax.isEmpty must beFalse
+            minMax2.isEmpty must beFalse
+
+            minMax.clear()
+            minMax2.clear()
+
+            minMax.isEmpty must beTrue
+            minMax2.isEmpty must beTrue
+          }
         }
       }
 
@@ -184,6 +232,7 @@ class MinMaxTest extends Specification with StatTestHelper {
         minMax.attrType mustEqual "java.lang.Float"
         minMax.min mustEqual java.lang.Float.MAX_VALUE
         minMax.max mustEqual java.lang.Float.MIN_VALUE
+        minMax.isEmpty must beTrue
 
         features.foreach { stat.observe }
 
@@ -212,6 +261,17 @@ class MinMaxTest extends Specification with StatTestHelper {
           minMax.max mustEqual 199
           minMax2.min mustEqual 100
           minMax2.max mustEqual 199
+
+          "clear them" in {
+            minMax.isEmpty must beFalse
+            minMax2.isEmpty must beFalse
+
+            minMax.clear()
+            minMax2.clear()
+
+            minMax.isEmpty must beTrue
+            minMax2.isEmpty must beTrue
+          }
         }
       }
     }

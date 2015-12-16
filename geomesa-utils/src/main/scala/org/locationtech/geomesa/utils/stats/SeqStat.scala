@@ -18,8 +18,6 @@ import org.opengis.feature.simple.SimpleFeature
 case class SeqStat(stats: Seq[Stat]) extends Stat {
   override def observe(sf: SimpleFeature): Unit = stats.foreach(_.observe(sf))
 
-  override def toJson(): String = "[ " + stats.map(_.toJson()).mkString(", ") + " ]"
-
   override def add(other: Stat): Stat = {
     other match {
       case ss: SeqStat =>
@@ -28,4 +26,10 @@ case class SeqStat(stats: Seq[Stat]) extends Stat {
 
     this
   }
+
+  override def toJson(): String = "[ " + stats.map(_.toJson()).mkString(", ") + " ]"
+
+  override def isEmpty(): Boolean = ???
+
+  override def clear(): Unit = ???
 }

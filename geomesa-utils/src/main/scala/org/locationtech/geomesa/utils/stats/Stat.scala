@@ -11,6 +11,7 @@ package org.locationtech.geomesa.utils.stats
 import java.util.Date
 
 import org.joda.time.format.DateTimeFormat
+import org.locationtech.geomesa.utils.stats.MinMaxHelper._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.util.parsing.combinator.RegexParsers
@@ -25,7 +26,7 @@ trait Stat {
    *
    * @param sf
    */
-  def observe(sf: SimpleFeature)
+  def observe(sf: SimpleFeature): Unit
 
   /**
    * Meant to be used to combine two Stats of the same subtype.
@@ -43,13 +44,27 @@ trait Stat {
    */
   def toJson(): String
 
-//  /**
-//   * Equals method to simplify testing
-//   *
-//   * @param obj object to compare
-//   * @return true if equal to obj
-//   */
-//  override def equals(obj: Any): Boolean
+  /**
+   * If the stat's state is the same as when first initialized, it's considered empty.
+   * Necessary method used by the StatIterator.
+   *
+   * @return boolean value
+   */
+  def isEmpty(): Boolean
+
+  /**
+   * Clears the stat to its original state when first initialized.
+   * Necessary method used by the StatIterator.
+   */
+  def clear(): Unit
+
+  /**
+   * Equals method to simplify testing
+   *
+   * @param obj object to compare
+   * @return true if equal to obj
+   */
+  override def equals(obj: Any): Boolean
 }
 
 /**
@@ -88,15 +103,15 @@ object Stat {
           val attrTypeString = attrType.getName
           attrType match {
             case _ if attrType == classOf[Date] =>
-              new MinMax[Date](attrIndex, attrTypeString, new Date(java.lang.Long.MAX_VALUE), new Date(java.lang.Long.MIN_VALUE))
-            case _ if attrType == classOf[java.lang.Integer] =>
-              new MinMax[java.lang.Integer](attrIndex, attrTypeString, Integer.MAX_VALUE, Integer.MIN_VALUE)
+              new MinMax[Date](attrIndex, attrTypeString, MinMaxDate.min, MinMaxDate.max)
             case _ if attrType == classOf[java.lang.Long] =>
-              new MinMax[java.lang.Long](attrIndex, attrTypeString, java.lang.Long.MAX_VALUE, java.lang.Long.MIN_VALUE)
-            case _ if attrType == classOf[java.lang.Float] =>
-              new MinMax[java.lang.Float](attrIndex, attrTypeString, java.lang.Float.MAX_VALUE, java.lang.Float.MIN_VALUE)
+              new MinMax[java.lang.Long](attrIndex, attrTypeString, MinMaxLong.min, MinMaxLong.max)
+            case _ if attrType == classOf[java.lang.Integer] =>
+              new MinMax[java.lang.Integer](attrIndex, attrTypeString, MinMaxInt.min, MinMaxInt.max)
             case _ if attrType == classOf[java.lang.Double] =>
-              new MinMax[java.lang.Double](attrIndex, attrTypeString, java.lang.Double.MAX_VALUE, java.lang.Double.MIN_VALUE)
+              new MinMax[java.lang.Double](attrIndex, attrTypeString, MinMaxDouble.min, MinMaxDouble.max)
+            case _ if attrType == classOf[java.lang.Float] =>
+              new MinMax[java.lang.Float](attrIndex, attrTypeString, MinMaxFloat.min, MinMaxFloat.max)
             case _ =>
               throw new Exception(s"Cannot create stat for invalid type: $attrType for attribute: $attribute")
           }

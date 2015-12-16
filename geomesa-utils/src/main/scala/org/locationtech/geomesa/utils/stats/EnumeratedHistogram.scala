@@ -34,11 +34,6 @@ case class EnumeratedHistogram[T](attrIndex: Int,
     }
   }
 
-  override def toJson(): String = {
-    val jsonMap = frequencyMap.toMap.map { case (k, v) => k.toString -> v }
-    new JSONObject(jsonMap).toString()
-  }
-
   override def add(other: Stat): Stat = {
     other match {
       case eh: EnumeratedHistogram[T] =>
@@ -49,6 +44,15 @@ case class EnumeratedHistogram[T](attrIndex: Int,
 
   private def combine(other: EnumeratedHistogram[T]): Unit =
     other.frequencyMap.foreach { case (key: T, count: Long) => frequencyMap(key) += count }
+
+  override def toJson(): String = {
+    val jsonMap = frequencyMap.toMap.map { case (k, v) => k.toString -> v }
+    new JSONObject(jsonMap).toString()
+  }
+
+  override def isEmpty(): Boolean = ???
+
+  override def clear(): Unit = ???
 }
 
 

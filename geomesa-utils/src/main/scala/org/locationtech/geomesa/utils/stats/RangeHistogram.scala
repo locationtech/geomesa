@@ -199,11 +199,6 @@ case class RangeHistogram[T : BinAble](attrIndex: Int,
     }
   }
 
-  override def toJson(): String = {
-    val jsonMap = histogram.toMap.map { case (k, v) => k.toString -> v }
-    new JSONObject(jsonMap).toString()
-  }
-
   override def add(other: Stat): Stat = {
     other match {
       case rangeHistogram: RangeHistogram[T] =>
@@ -214,6 +209,15 @@ case class RangeHistogram[T : BinAble](attrIndex: Int,
 
     this
   }
+
+  override def toJson(): String = {
+    val jsonMap = histogram.toMap.map { case (k, v) => k.toString -> v }
+    new JSONObject(jsonMap).toString()
+  }
+
+  override def isEmpty(): Boolean = ???
+
+  override def clear(): Unit = ???
 }
 
 
