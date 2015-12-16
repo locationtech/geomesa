@@ -1,4 +1,4 @@
-A configurable and extensible library for converting data into SimpleFeatures
+A configurable and extensible library for converting data into SimpleFeatures.
 
 ## Overview
 
@@ -106,61 +106,82 @@ See Parsing Json and Parsing Avro sections
 ## Transformation Function Usage
 
 ### String functions
-#### ```stripQuotes``` - Remove double quotes from a string
+
+#### ```stripQuotes```
+
+Description: Remove double quotes from a string.
 
 Usage: ```stripQuotes($1)```
 
 Example: ```stripQuotes('fo"o') = foo```
 
-#### ```length``` - Returns length of a string
+#### ```length```
+
+Returns the length of a string.
 
 Usage: ```length($1)```
 
 Example: ```length('foo') = 3```
 
-#### ```trim``` - Trim whitespace from around a string
+#### ```trim```
+
+Description: Trim whitespace from around a string.
 
 Usage: ```trim($1)```
 
 Example: ```trim('  foo ') = foo```
 
-#### ```capitalize``` - Capitalize a string
+#### ```capitalize```
+
+Description: Capitalize a string.
 
 Usage: ```capitalize($1)```
 
 Example: ```capitalize('foo') = Foo```
 
-#### ```lowercase``` - Lowercase a string
+#### ```lowercase```
+
+Description: Lowercase a string.
 
 Usage: ```lowercase($1)```
 
 Example: ```lowercase('FOO') = foo```
 
-#### ```uppercase``` - Uppercase a string
+#### ```uppercase```
+
+Description: Uppercase a string.
 
 Usage: ```uppercase($1)```
 
 Example: ```uppercase('foo') = FOO```
 
-#### ```regexReplace``` - Replace a given pattern with a target pattern in a string
+#### ```regexReplace```
+
+Description: Replace a given pattern with a target pattern in a string.
 
 Usage: ```regexReplace($regex, $replacement, $1)```
 
 Example: ```regexReplace('foo'::r, 'bar', 'foobar') = barbar```
 
-#### ```concatenate``` - Concatenate two strings
+#### ```concatenate```
+
+Description: Concatenate two strings.
 
 Usage: ```concatenate($0, $1)```
 
 Example: ```concatenate('foo', 'bar') = foobar```
 
-#### ```substring``` - Return the substring of a string
+#### ```substring```
+
+Description: Return the substring of a string.
 
 Usage: ```substring($1, $startIndex, $endIndex)```
 
 Example: ```substring('foobarbaz', 2, 5) = oba```
 
-#### ```toString``` - Convert another datatype to a string
+#### ```toString```
+
+Description: Convert another data type to a string.
 
 Usage: ```toString($0)```
 
@@ -168,49 +189,63 @@ Example: ```concatenate(toString(5), toString(6)) = '56'```
  
 ### Date functions
 
-#### ```now``` - Use the current system time
+#### ```now```
+
+Description: Use the current system time.
 
 Usage: ```now()```
 
+#### ```date```
 
-#### ```date``` - Custom date parser
+Description: Custom date parser.
 
 Usage: ```date($format, $1)```
 
 Example: ```date('YYYY-MM-dd\'T\'HH:mm:ss.SSSSSS', '2015-01-01T00:00:00.000000')```
-  
-  
-#### ```dateTime``` - A strict ISO 8601 Date parser for format yyyy-MM-dd'T'HH:mm:ss.SSSZZ
+
+#### ```dateTime```
+
+Description: A strict ISO 8601 Date parser for format ```yyyy-MM-dd'T'HH:mm:ss.SSSZZ```.
  
 Usage: ```dateTime($1)```
 
 Example: ```dateTime('2015-01-01T00:00:00.000Z')```
 
-#### ```basicDate``` -  A basic date format for yyyyMMdd
+#### ```basicDate```
+
+Description: A basic date format for ```yyyyMMdd```.
 
 Usage: ```basicDate($1)```
 
 Example: ```basicDate('20150101')```
 
-#### ```basicDateTime``` -  A basic format that combines a basic date and time for format yyyyMMdd'T'HHmmss.SSSZ
+#### ```basicDateTime```
+
+Description: A basic format that combines a basic date and time for format ```yyyyMMdd'T'HHmmss.SSSZ```.
 
 Usage: ```basicDateTime($1)```
 
 Example: ```basicDateTime('20150101T000000.000Z')```
 
-#### ```basicDateTimeNoMillis``` - A basic format that combines a basic date and time with no millis for format yyyyMMdd'T'HHmmssZ
+#### ```basicDateTimeNoMillis```
+
+Description: A basic format that combines a basic date and time with no millis for format ```yyyyMMdd'T'HHmmssZ```.
 
 Usage: ```basicDateTimeNoMillis($1)```
 
 Example: ```basicDateTimeNoMillis('20150101T000000Z')```
 
-#### ```dateHourMinuteSecondMillis``` - Formatter for full date, and time keeping the first 3 fractional seconds for format yyyy-MM-dd'T'HH:mm:ss.SSS
+#### ```dateHourMinuteSecondMillis```
+
+Description: Formatter for full date, and time keeping the first 3 fractional seconds for format ```yyyy-MM-dd'T'HH:mm:ss.SSS```.
 
 Usage: ```dateHourMinuteSecondMillis($1)```
 
 Example: ```dateHourMinuteSecondMillis('2015-01-01T00:00:00.000')``` 
 
-#### ```millisToDate``` - Create a new date from as long representing millis since 1970
+#### ```millisToDate```
+
+Description: Create a new date from as long representing millis since 1970.
 
 Usage: ```millisToDate($1)```
 
@@ -218,7 +253,9 @@ Example: ```millisToDate(1449675054462::long)```
 
 ### Geometry functions
 
-#### ```point``` - Parse a Point geometry from lon/lat or WKT
+#### ```point```
+
+Description: Parse a Point geometry from lon/lat or WKT.
 
 Usage: ```point($lon, $lat)``` or ```point($wkt)```
 
@@ -257,19 +294,25 @@ Example: Parsing WKT as a point
     ID,wkt,date
     1,POINT(2 3),2015-01-02
 
-#### ```linestring``` - Parse a linestring from a WKT string
+#### ```linestring```
+
+Description: Parse a linestring from a WKT string.
 
 Usage: ```linestring($0)```
 
 Example: ```linestring('LINESTRING(102 0, 103 1, 104 0, 105 1)')```
 
-#### ```polygon``` - Parse a polygon from a WKT string
+#### ```polygon```
+
+Description: Parse a polygon from a WKT string.
 
 Usage: ```polygon($0)```
 
 Example: ```polygon('polygon((100 0, 101 0, 101 1, 100 1, 100 0))')```
   
-#### ```geometry``` - Parse a geometry from a WKT string or GeoJson
+#### ```geometry```
+
+Description: Parse a geometry from a WKT string or GeoJson.
   
 Example: Parsing WKT as a geometry
 
@@ -295,19 +338,27 @@ Example: Parsing GeoJson geometry
     
 ### ID Functions
 
-#### ```stringToBytes``` - Converts a string to a UTF-8 byte array
+#### ```stringToBytes```
 
-#### ```md5``` - Creates an MD5 hash from a byte array
+Description: Converts a string to a UTF-8 byte array.
+
+#### ```md5```
+
+Description: Creates an MD5 hash from a byte array.
 
 Usage: ```md5($0)```
 
 Example: ```md5(stringToBytes('row,of,data'))```
 
-#### ```uuid``` - Generates a random UUID
+#### ```uuid```
+
+Description: Generates a random UUID.
 
 Usage: ```uuid()```
 
-#### ```base64``` - Encodes a byte array as a base-64 string
+#### ```base64```
+
+Description: Encodes a byte array as a base-64 string.
 
 Usage; ```base64($0)```
 
@@ -315,45 +366,85 @@ Example: ```base64(stringToBytes('foo'))```
  
 ### Type Conversions
 
-#### ```::int``` or ```::integer``` - Converts a string into an integer. Invalid values will cause the record to fail.
-#### ```::long``` - Converts a string into a long. Invalid values will cause the record to fail.
-#### ```::float``` - Converts a string into a float. Invalid values will cause the record to fail.
-#### ```::double``` - Converts a string into a double. Invalid values will cause the record to fail.
-#### ```::boolean``` - Converts a string into a boolean. Invalid values will cause the record to fail.
-#### ```::r``` - Converts a string intto a Regex object
+#### ```::int``` or ```::integer```
 
-#### ```stringToInt``` or ```stringToInteger``` - Converts a string into a double, with a default value if conversion fails
+Description: Converts a string into an integer. Invalid values will cause the record to fail.
+
+#### ```::long```
+
+Description: Converts a string into a long. Invalid values will cause the record to fail.
+
+#### ```::float```
+
+Description: Converts a string into a float. Invalid values will cause the record to fail.
+
+#### ```::double```
+
+Description: Converts a string into a double. Invalid values will cause the record to fail.
+
+#### ```::boolean```
+
+Description: Converts a string into a boolean. Invalid values will cause the record to fail.
+
+#### ```::r```
+
+Description: Converts a string into a Regex object.
+
+#### ```stringToInt``` or ```stringToInteger```
+
+Description: Converts a string into a integer, with a default value if conversion fails.
 
 Usage; ```stringToInt($1, $2)```
 
-Example: ```stringToInt('1', '0'::int)```
+Example: ```stringToInt('1', '0'::int) = 1```
 
-#### ```stringToLong``` - Converts a string into a double, with a default value if conversion fails
+Example: ```stringToInt('', '0'::int) = 0```
+
+#### ```stringToLong```
+
+Description: Converts a string into a long, with a default value if conversion fails.
 
 Usage; ```stringToLong($1, $2)```
 
-Example: ```stringToLong('1', '0'::long)```
+Example: ```stringToLong('1', '0'::long) = 1L```
 
-#### ```stringToFloat``` - Converts a string into a double, with a default value if conversion fails
+Example: ```stringToLong('', '0'::long) = 0L```
+
+#### ```stringToFloat```
+
+Description: Converts a string into a float, with a default value if conversion fails.
 
 Usage; ```stringToFloat($1, $2)```
 
-Example: ```stringToFloat('1.0', '0.0'::float)```
+Example: ```stringToFloat('1.0', '0.0'::float) = 1.0f```
 
-#### ```stringToDouble``` - Converts a string into a double, with a default value if conversion fails
+Example: ```stringToFloat('not a float', '0.0'::float) = 0.0f```
 
-Usage; ```stringToDouble($1, $2)```
+#### ```stringToDouble```
 
-Example: ```stringToDouble('1.0', '0.0'::double)```
-
-#### ```stringToBoolean``` - Converts a string into a double, with a default value if conversion fails
+Description: Converts a string into a double, with a default value if conversion fails.
 
 Usage; ```stringToDouble($1, $2)```
 
-Example: ```stringToDouble('true', 'false'::boolean)```
+Example: ```stringToDouble('1.0', '0.0'::double) = 1.0d```
+
+Example: ```stringToDouble(null, '0.0'::double) = 0.0d```
+
+#### ```stringToBoolean```
+
+Description: Converts a string into a boolean, with a default value if conversion fails.
+
+Usage; ```stringToBoolean($1, $2)```
+
+Example: ```stringToBoolean('true', 'false'::boolean) = true```
+
+Example: ```stringToBoolean('55', 'false'::boolean) = false```
 
 ### List and Map Parsing
-#### ```parseList``` - Parse a List[T] type from a string
+
+#### ```parseList```
+
+Description: Parse a ```List[T]``` type from a string.
  
 If your SimpleFeatureType config contains a list or map you can easily configure a transform function to parse it using
 the ```parseList``` function which takes either 2 or 3 args
@@ -378,6 +469,8 @@ And a transform to parse the quoted CSV field:
     { name = "friends", transform = "parseList('string', $5)" }
 
 #### ```parseMap```
+
+Description: Parse a ```Map[T,V]``` type from a string.
 
 Parsing Maps is similar. Take for example this CSV data with a quoted map field:
 
@@ -557,7 +650,9 @@ We can define a converter config to parse the avro:
 GeoMesa Convert allows users to define "avropaths" to the data similar to a jsonpath or xpath. This AvroPath allows you 
 to extract out fields from avro records into SFT fields.
 
-#### ```avroPath``` - Extract values from nested Avro structures 
+#### ```avroPath```
+
+Description: Extract values from nested Avro structures. 
  
 Usage: ```avroPath($ref, $pathString)```
 
