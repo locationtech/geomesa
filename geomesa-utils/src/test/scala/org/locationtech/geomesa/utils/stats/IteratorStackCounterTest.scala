@@ -22,6 +22,7 @@ class IteratorStackCounterTest extends Specification with StatTestHelper {
       val isc = stat.asInstanceOf[IteratorStackCounter]
 
       isc.count mustEqual 1L
+      isc.isEmpty must beTrue
 
       "serialize and deserialize" in {
         val packed   = StatSerialization.pack(isc)
@@ -39,6 +40,17 @@ class IteratorStackCounterTest extends Specification with StatTestHelper {
 
         isc.count mustEqual 6L
         isc2.count mustEqual 5L
+
+        "clear them" in {
+          isc.isEmpty must beFalse
+          isc2.isEmpty must beFalse
+
+          isc.clear()
+          isc2.clear()
+
+          isc.isEmpty must beTrue
+          isc2.isEmpty must beTrue
+        }
       }
     }
   }

@@ -28,7 +28,7 @@ case class IteratorStackCounter(var count: Long = 1) extends Stat {
 
   override def toJson(): String = s"""{ "count": $count }"""
 
-  override def isEmpty(): Boolean = ???
+  override def isEmpty(): Boolean = count == 1L
 
-  override def clear(): Unit = ???
+  override def clear(): Unit = count = 1L
 }
