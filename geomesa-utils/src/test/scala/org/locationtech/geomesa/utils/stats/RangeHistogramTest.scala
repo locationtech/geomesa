@@ -26,7 +26,10 @@ class RangeHistogramTest extends Specification with StatTestHelper {
         val lowerEndpoint = StatHelpers.dateFormat.parseDateTime("2012-01-01T00:00:00.000Z").toDate
         val midpoint = StatHelpers.dateFormat.parseDateTime("2012-01-02T00:00:00.000Z").toDate
 
+        rh.isEmpty must beTrue
+
         features.foreach { stat.observe }
+
         rh.histogram.size mustEqual 24
         rh.histogram(lowerEndpoint) mustEqual 10
         rh.histogram(midpoint) mustEqual 0
@@ -56,6 +59,24 @@ class RangeHistogramTest extends Specification with StatTestHelper {
           rh2.histogram.size mustEqual 24
           rh2.histogram(lowerEndpoint) mustEqual 0
           rh2.histogram(midpoint) mustEqual 8
+
+          "clear them" in {
+            rh.isEmpty must beFalse
+            rh2.isEmpty must beFalse
+
+            rh.clear()
+            rh2.clear()
+
+            rh.isEmpty must beTrue
+            rh2.isEmpty must beTrue
+
+            rh.histogram.size mustEqual 24
+            rh.histogram(lowerEndpoint) mustEqual 0
+            rh.histogram(midpoint) mustEqual 0
+            rh2.histogram.size mustEqual 24
+            rh2.histogram(lowerEndpoint) mustEqual 0
+            rh2.histogram(midpoint) mustEqual 0
+          }
         }
       }
 
@@ -64,6 +85,8 @@ class RangeHistogramTest extends Specification with StatTestHelper {
         val rh = stat.asInstanceOf[RangeHistogram[java.lang.Integer]]
         val lowerEndpoint = 0
         val midpoint = 100
+
+        rh.isEmpty must beTrue
 
         features.foreach { stat.observe }
 
@@ -96,6 +119,24 @@ class RangeHistogramTest extends Specification with StatTestHelper {
           rh2.histogram.size mustEqual 20
           rh2.histogram(lowerEndpoint) mustEqual 0
           rh2.histogram(midpoint) mustEqual 10
+
+          "clear them" in {
+            rh.isEmpty must beFalse
+            rh2.isEmpty must beFalse
+
+            rh.clear()
+            rh2.clear()
+
+            rh.isEmpty must beTrue
+            rh2.isEmpty must beTrue
+
+            rh.histogram.size mustEqual 20
+            rh.histogram(lowerEndpoint) mustEqual 0
+            rh.histogram(midpoint) mustEqual 0
+            rh2.histogram.size mustEqual 20
+            rh2.histogram(lowerEndpoint) mustEqual 0
+            rh2.histogram(midpoint) mustEqual 0
+          }
         }
       }
 
@@ -105,6 +146,8 @@ class RangeHistogramTest extends Specification with StatTestHelper {
         val lowerEndpoint = 90L
         val midpoint = 96L
         val upperEndpoint = 102L
+
+        rh.isEmpty must beTrue
 
         features.foreach { stat.observe }
 
@@ -141,6 +184,24 @@ class RangeHistogramTest extends Specification with StatTestHelper {
           rh2.histogram(lowerEndpoint) mustEqual 0L
           rh2.histogram(midpoint) mustEqual 0L
           rh2.histogram(upperEndpoint) mustEqual 8L
+
+          "clear them" in {
+            rh.isEmpty must beFalse
+            rh2.isEmpty must beFalse
+
+            rh.clear()
+            rh2.clear()
+
+            rh.isEmpty must beTrue
+            rh2.isEmpty must beTrue
+
+            rh.histogram.size mustEqual 7
+            rh.histogram(lowerEndpoint) mustEqual 0
+            rh.histogram(midpoint) mustEqual 0
+            rh2.histogram.size mustEqual 7
+            rh2.histogram(lowerEndpoint) mustEqual 0
+            rh2.histogram(midpoint) mustEqual 0
+          }
         }
       }
 
@@ -150,6 +211,8 @@ class RangeHistogramTest extends Specification with StatTestHelper {
         val lowerEndpoint = 90.0
         val midpoint = 98.57142857142857
         val upperEndpoint = 107.14285714285714
+
+        rh.isEmpty must beTrue
 
         features.foreach { stat.observe }
 
@@ -186,6 +249,24 @@ class RangeHistogramTest extends Specification with StatTestHelper {
           rh2.histogram(lowerEndpoint) mustEqual 0
           rh2.histogram(midpoint) mustEqual 2
           rh2.histogram(upperEndpoint) mustEqual 2
+
+          "clear them" in {
+            rh.isEmpty must beFalse
+            rh2.isEmpty must beFalse
+
+            rh.clear()
+            rh2.clear()
+
+            rh.isEmpty must beTrue
+            rh2.isEmpty must beTrue
+
+            rh.histogram.size mustEqual 7
+            rh.histogram(lowerEndpoint) mustEqual 0
+            rh.histogram(midpoint) mustEqual 0
+            rh2.histogram.size mustEqual 7
+            rh2.histogram(lowerEndpoint) mustEqual 0
+            rh2.histogram(midpoint) mustEqual 0
+          }
         }
       }
 
@@ -195,6 +276,8 @@ class RangeHistogramTest extends Specification with StatTestHelper {
         val lowerEndpoint = 90.0f
         val midpoint = 98.57143f
         val upperEndpoint = 107.14285f
+
+        rh.isEmpty must beTrue
 
         features.foreach { stat.observe }
 
@@ -231,6 +314,24 @@ class RangeHistogramTest extends Specification with StatTestHelper {
           rh2.histogram(lowerEndpoint) mustEqual 0
           rh2.histogram(midpoint) mustEqual 2
           rh2.histogram(upperEndpoint) mustEqual 2
+
+          "clear them" in {
+            rh.isEmpty must beFalse
+            rh2.isEmpty must beFalse
+
+            rh.clear()
+            rh2.clear()
+
+            rh.isEmpty must beTrue
+            rh2.isEmpty must beTrue
+
+            rh.histogram.size mustEqual 7
+            rh.histogram(lowerEndpoint) mustEqual 0
+            rh.histogram(midpoint) mustEqual 0
+            rh2.histogram.size mustEqual 7
+            rh2.histogram(lowerEndpoint) mustEqual 0
+            rh2.histogram(midpoint) mustEqual 0
+          }
         }
       }
     }

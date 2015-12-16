@@ -183,6 +183,7 @@ case class RangeHistogram[T : BinAble](attrIndex: Int,
                                        histogram: collection.mutable.HashMap[T, Long] = new collection.mutable.HashMap[T, Long]()) extends Stat {
   val binHelper = implicitly[BinAble[T]]
   val binSize = binHelper.getBinSize(numBins, lowerEndpoint, upperEndpoint)
+  private var size = 0
 
   for (i <- 0 until numBins) {
     histogram.put(binHelper.getBinKey(binSize, i, lowerEndpoint), 0)
@@ -195,6 +196,7 @@ case class RangeHistogram[T : BinAble](attrIndex: Int,
       val binIndex = binHelper.getBinIndex(sfval, binSize, numBins, lowerEndpoint, upperEndpoint)
       if (binIndex != null) {
         histogram(binIndex) += 1
+        size += 1
       }
     }
   }
@@ -215,9 +217,15 @@ case class RangeHistogram[T : BinAble](attrIndex: Int,
     new JSONObject(jsonMap).toString()
   }
 
-  override def isEmpty(): Boolean = ???
+  override def isEmpty(): Boolean = size == 0
 
-  override def clear(): Unit = ???
+  override def clear(): Unit = {
+    size = 0
+    histogram.foreach {
+      case (bin, count) =>
+        histogram(bin) = 0
+    }
+  }
 }
 
 
