@@ -117,7 +117,7 @@ Example: ```stripQuotes('fo"o') = foo```
 
 #### ```length```
 
-Returns the length of a string.
+Description: Returns the length of a string.
 
 Usage: ```length($1)```
 
