@@ -309,6 +309,22 @@ class TransformersTest extends Specification {
             exp.eval(Array("", "1.2", null)) mustEqual null
           }
         }
+        "string2integer" >> {
+          "int string2integer zero default" >> {
+            val exp = Transformers.parseTransform("string2integer($1, '0'::int)")
+            exp.eval(Array("", "2")) mustEqual 2
+            exp.eval(Array("", "")) mustEqual 0
+            exp.eval(Array("", null)) mustEqual 0
+            exp.eval(Array("", "1.2")) mustEqual 0
+          }
+          "int string2integer null default" >> {
+            val exp = Transformers.parseTransform("string2integer($1, $2)")
+            exp.eval(Array("", "2", null)) mustEqual 2
+            exp.eval(Array("", "", null)) mustEqual null
+            exp.eval(Array("", null, null)) mustEqual null
+            exp.eval(Array("", "1.2", null)) mustEqual null
+          }
+        }
         "string2long" >> {
           "long string2long zero default" >> {
             val exp = Transformers.parseTransform("string2long($1, '0'::long)")

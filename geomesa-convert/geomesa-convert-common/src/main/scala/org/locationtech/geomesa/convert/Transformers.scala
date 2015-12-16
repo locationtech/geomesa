@@ -56,7 +56,7 @@ object Transformers extends EnhancedTokenParsers with Logging {
     def cast2int     = expr <~ "::int"     ^^ { e => Cast2Int(e)     }
     def cast2long    = expr <~ "::long"    ^^ { e => Cast2Long(e)    }
     def cast2float   = expr <~ "::float"   ^^ { e => Cast2Float(e)   }
-    def cast2double  = expr <~ "::double"  ^^ { e => Cast2Double(e) }
+    def cast2double  = expr <~ "::double"  ^^ { e => Cast2Double(e)  }
     def cast2boolean = expr <~ "::boolean" ^^ { e => Cast2Boolean(e) }
 
     def fieldLookup = "$" ~> ident ^^ { i => FieldLookup(i) }
@@ -484,14 +484,13 @@ class MapListFunctionFactory extends TransformerFunctionFactory {
 }
 
 class CastFunctionFactory extends TransformerFunctionFactory {
-  override def functions = Seq(string2double, string2int, string2float, string2long, string2boolean)
+  override def functions = Seq(string2double, string2int, string2float, string2long, string2boolean, string2integer)
 
   val string2double = TransformerFn("string2double") {
     args => { try { args(0).asInstanceOf[String].toDouble } catch { case e: Exception => args(1) } }
   }
-  val string2int = TransformerFn("string2int") {
-    args => { try { args(0).asInstanceOf[String].toInt } catch { case e: Exception => args(1) } }
-  }
+  val string2int = TransformerFn("string2int") { str2intHelper() }
+  val string2integer = TransformerFn("string2integer") { str2intHelper() }
   val string2float = TransformerFn("string2float") {
     args => { try { args(0).asInstanceOf[String].toFloat } catch { case e: Exception => args(1) } }
   }
@@ -501,4 +500,6 @@ class CastFunctionFactory extends TransformerFunctionFactory {
   val string2boolean = TransformerFn("string2boolean") {
     args => { try { args(0).asInstanceOf[String].toBoolean } catch { case e: Exception => args(1) } }
   }
+
+  def str2intHelper() = (args: Seq[Any]) => { try { args(0).asInstanceOf[String].toInt } catch { case e: Exception => args(1) } }
 }
