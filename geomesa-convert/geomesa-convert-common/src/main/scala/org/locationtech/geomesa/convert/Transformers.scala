@@ -414,7 +414,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 class IdFunctionFactory extends TransformerFunctionFactory {
   override def functions = Seq(string2Bytes, md5, uuidFn, base64)
 
-  val string2Bytes = TransformerFn("string2bytes") {
+  val string2Bytes = TransformerFn("string2bytes", "stringToBytes") {
     args => args(0).asInstanceOf[String].getBytes(StandardCharsets.UTF_8)
   }
   val uuidFn = TransformerFn("uuid")   { args => UUID.randomUUID().toString }
