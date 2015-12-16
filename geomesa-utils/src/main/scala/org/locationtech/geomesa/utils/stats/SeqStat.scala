@@ -15,7 +15,7 @@ import org.opengis.feature.simple.SimpleFeature
  *
  * @param stats a Sequence of individual Stat objects
  */
-case class SeqStat(stats: Seq[Stat]) extends Stat {
+class SeqStat(val stats: Seq[Stat]) extends Stat {
   override def observe(sf: SimpleFeature): Unit = stats.foreach(_.observe(sf))
 
   override def add(other: Stat): Stat = {
@@ -32,4 +32,11 @@ case class SeqStat(stats: Seq[Stat]) extends Stat {
   override def isEmpty(): Boolean = stats.forall(_.isEmpty)
 
   override def clear(): Unit = stats.foreach(_.clear())
+
+  override def equals(obj: Any): Boolean = {
+    obj.isInstanceOf[SeqStat] && {
+      val seqStat = obj.asInstanceOf[SeqStat]
+      stats == seqStat.stats
+    }
+  }
 }

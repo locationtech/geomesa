@@ -18,12 +18,12 @@ import scala.util.parsing.json.JSONObject
  * .
  * @param attrIndex attribute index for the attribute the histogram is being made for
  * @param attrType class type as a string for serialization purposes
- * @param frequencyMap HashMap which backs the EnumeratedHistogram
  * @tparam T some type T (which is restricted by the stat parser upstream of EnumeratedHistogram instantiation)
  */
-case class EnumeratedHistogram[T](attrIndex: Int,
-                                  attrType: String,
-                                  frequencyMap: mutable.Map[T, Long] = new mutable.HashMap[T, Long]().withDefaultValue(0)) extends Stat {
+class EnumeratedHistogram[T](val attrIndex: Int,
+                             val attrType: String) extends Stat {
+  val frequencyMap: mutable.Map[T, Long] = new mutable.HashMap[T, Long]().withDefaultValue(0)
+
   override def observe(sf: SimpleFeature): Unit = {
     val sfval = sf.getAttribute(attrIndex)
     if (sfval != null) {
@@ -53,6 +53,15 @@ case class EnumeratedHistogram[T](attrIndex: Int,
   override def isEmpty(): Boolean = frequencyMap.size == 0
 
   override def clear(): Unit = frequencyMap.clear()
+
+  override def equals(obj: Any): Boolean = {
+    obj.isInstanceOf[EnumeratedHistogram[T]] && {
+      val eh = obj.asInstanceOf[EnumeratedHistogram[T]]
+      attrIndex == eh.attrIndex &&
+      attrType == eh.attrType &&
+      frequencyMap == eh.frequencyMap
+    }
+  }
 }
 
 

@@ -119,7 +119,7 @@ object Stat {
     }
 
     def iteratorStackParser: Parser[IteratorStackCounter] = {
-      "IteratorStackCounter" ^^ { case _ => IteratorStackCounter() }
+      "IteratorStackCounter" ^^ { case _ => new IteratorStackCounter() }
     }
 
     def enumeratedHistogramParser: Parser[EnumeratedHistogram[_]] = {

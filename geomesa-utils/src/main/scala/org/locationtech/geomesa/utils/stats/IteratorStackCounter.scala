@@ -16,7 +16,7 @@ import org.opengis.feature.simple.SimpleFeature
  *
  * @param count number of iterators
  */
-case class IteratorStackCounter(var count: Long = 1) extends Stat {
+class IteratorStackCounter(var count: Long = 1) extends Stat {
   override def observe(sf: SimpleFeature): Unit = { }
 
   override def add(other: Stat): Stat = {
@@ -31,4 +31,11 @@ case class IteratorStackCounter(var count: Long = 1) extends Stat {
   override def isEmpty(): Boolean = count == 1L
 
   override def clear(): Unit = count = 1L
+
+  override def equals(obj: Any): Boolean = {
+    obj.isInstanceOf[IteratorStackCounter] && {
+      val isc = obj.asInstanceOf[IteratorStackCounter]
+      count == isc.count
+    }
+  }
 }

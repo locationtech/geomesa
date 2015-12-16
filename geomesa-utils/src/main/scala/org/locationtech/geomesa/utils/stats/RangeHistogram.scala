@@ -172,18 +172,18 @@ import org.locationtech.geomesa.utils.stats.BinHelper._
  * @param numBins number of bins the histogram has
  * @param lowerEndpoint lower end of histogram
  * @param upperEndpoint upper end of histogram
- * @param histogram the datatype backing the RangeHistogram
  * @tparam T a comparable type which must have a StatHelperFunctions type class
  */
-case class RangeHistogram[T : BinAble](attrIndex: Int,
-                                       attrType: String,
-                                       numBins: Int,
-                                       lowerEndpoint: T,
-                                       upperEndpoint: T,
-                                       histogram: collection.mutable.HashMap[T, Long] = new collection.mutable.HashMap[T, Long]()) extends Stat {
+class RangeHistogram[T : BinAble](val attrIndex: Int,
+                                  val attrType: String,
+                                  val numBins: Int,
+                                  val lowerEndpoint: T,
+                                  val upperEndpoint: T) extends Stat {
+  val histogram: collection.mutable.HashMap[T, Long] = new collection.mutable.HashMap[T, Long]()
+  private var size = 0
+
   val binHelper = implicitly[BinAble[T]]
   val binSize = binHelper.getBinSize(numBins, lowerEndpoint, upperEndpoint)
-  private var size = 0
 
   for (i <- 0 until numBins) {
     histogram.put(binHelper.getBinKey(binSize, i, lowerEndpoint), 0)
@@ -224,6 +224,18 @@ case class RangeHistogram[T : BinAble](attrIndex: Int,
     histogram.foreach {
       case (bin, count) =>
         histogram(bin) = 0
+    }
+  }
+
+  override def equals(obj: Any): Boolean = {
+    obj.isInstanceOf[RangeHistogram[T]] && {
+      val rh = obj.asInstanceOf[RangeHistogram[T]]
+      attrIndex == rh.attrIndex &&
+        attrType == rh.attrType &&
+        numBins == rh.numBins &&
+        lowerEndpoint == rh.lowerEndpoint &&
+        upperEndpoint == rh.upperEndpoint &&
+        histogram == rh.histogram
     }
   }
 }
