@@ -34,7 +34,7 @@ appropriate converter for taking this csv data and transforming it into our ```S
       format       = "CSV",
       id-field     = "md5($0)",
       fields = [
-        { name = "phrase", transform = "concat($1, $2)" },
+        { name = "phrase", transform = "concatenate($1, $2)" },
         { name = "lat",    transform = "$4::double" },
         { name = "lon",    transform = "$5::double" },
         { name = "dtg",    transform = "dateHourMinuteSecondMillis($3)" },
@@ -51,21 +51,21 @@ Provided transformation functions are listed below.
 
 ### String functions
  * ```stripQuotes```
- * ```strlen```
+ * ```length```
  * ```trim```
  * ```capitalize```
  * ```lowercase```
  * ```regexReplace```
- * ```concat```
- * ```substr```
+ * ```concatenate```
+ * ```substring```
  * ```toString```
  
 ### Date functions
  * ```now```
  * ```date```
- * ```datetime```
- * ```isodate``` 
- * ```isodatetime```
+ * ```dateTime```
+ * ```basicDate``` 
+ * ```basicDateTime```
  * ```basicDateTimeNoMillis```
  * ```dateHourMinuteSecondMillis```
  * ```millisToDate```
@@ -77,18 +77,23 @@ Provided transformation functions are listed below.
   * ```geometry```
   
 ### ID Functions
- * ```string2bytes```
+ * ```stringToBytes```
  * ```md5```
  * ```uuid```
  * ```base64```
  
-### Data Casting
- * ```::int```
+### Type Conversions
+ * ```::int``` or ```::integer```
  * ```::long```
  * ```::float```
  * ```::double```
  * ```::boolean```
  * ```::r```
+ * ```stringToInt``` or ```stringToInteger```
+ * ```stringToLong```
+ * ```stringToFloat```
+ * ```stringToDouble```
+ * ```stringToBoolean```
 
 ### List and Map Parsing
  * ```parseList```
@@ -107,11 +112,11 @@ Usage: ```stripQuotes($1)```
 
 Example: ```stripQuotes('fo"o') = foo```
 
-#### ```strlen``` - Returns length of a string
+#### ```length``` - Returns length of a string
 
-Usage: ```strlen($1)```
+Usage: ```length($1)```
 
-Example: ```strlen('foo') = 3```
+Example: ```length('foo') = 3```
 
 #### ```trim``` - Trim whitespace from around a string
 
@@ -143,23 +148,23 @@ Usage: ```regexReplace($regex, $replacement, $1)```
 
 Example: ```regexReplace('foo'::r, 'bar', 'foobar') = barbar```
 
-#### ```concat``` - Concatenate two strings
+#### ```concatenate``` - Concatenate two strings
 
-Usage: ```concat($0, $1)```
+Usage: ```concatenate($0, $1)```
 
-Example: ```concat('foo', 'bar') = foobar```
+Example: ```concatenate('foo', 'bar') = foobar```
 
-#### ```substr``` - Return the substring of a string
+#### ```substring``` - Return the substring of a string
 
-Usage: ```substr($1, $startIndex, $endIndex)```
+Usage: ```substring($1, $startIndex, $endIndex)```
 
-Example: ```substr('foobarbaz', 2, 5) = oba```
+Example: ```substring('foobarbaz', 2, 5) = oba```
 
 #### ```toString``` - Convert another datatype to a string
 
 Usage: ```toString($0)```
 
-Example: ```concat(toString(5), toString(6)) = '56'```
+Example: ```concatenate(toString(5), toString(6)) = '56'```
  
 ### Date functions
 
@@ -175,23 +180,23 @@ Usage: ```date($format, $1)```
 Example: ```date('YYYY-MM-dd\'T\'HH:mm:ss.SSSSSS', '2015-01-01T00:00:00.000000')```
   
   
-#### ```datetime``` - A strict ISO 8601 Date parser for format yyyy-MM-dd'T'HH:mm:ss.SSSZZ
+#### ```dateTime``` - A strict ISO 8601 Date parser for format yyyy-MM-dd'T'HH:mm:ss.SSSZZ
  
-Usage: ```datetime($1)```
+Usage: ```dateTime($1)```
 
-Example: ```datetime('2015-01-01T00:00:00.000Z')```
+Example: ```dateTime('2015-01-01T00:00:00.000Z')```
 
-#### ```isodate``` -  A basic date format for yyyyMMdd
+#### ```basicDate``` -  A basic date format for yyyyMMdd
 
-Usage: ```isodate($1)```
+Usage: ```basicDate($1)```
 
-Example: ```isodate('20150101')```
+Example: ```basicDate('20150101')```
 
-#### ```isodatetime``` -  A basic format that combines a basic date and time for format yyyyMMdd'T'HHmmss.SSSZ
+#### ```basicDateTime``` -  A basic format that combines a basic date and time for format yyyyMMdd'T'HHmmss.SSSZ
 
-Usage: ```isodatetime($1)```
+Usage: ```basicDateTime($1)```
 
-Example: ```isodatetime('20150101T000000.000Z')```
+Example: ```basicDateTime('20150101T000000.000Z')```
 
 #### ```basicDateTimeNoMillis``` - A basic format that combines a basic date and time with no millis for format yyyyMMdd'T'HHmmssZ
 
@@ -290,13 +295,13 @@ Example: Parsing GeoJson geometry
     
 ### ID Functions
 
-#### ```string2bytes``` - Converts a string to a UTF-8 byte array
+#### ```stringToBytes``` - Converts a string to a UTF-8 byte array
 
 #### ```md5``` - Creates an MD5 hash from a byte array
 
 Usage: ```md5($0)```
 
-Example: ```md5(string2bytes('row,of,data'))```
+Example: ```md5(stringToBytes('row,of,data'))```
 
 #### ```uuid``` - Generates a random UUID
 
@@ -306,15 +311,46 @@ Usage: ```uuid()```
 
 Usage; ```base64($0)```
 
-Example: ```base64(string2bytes('foo'))```
+Example: ```base64(stringToBytes('foo'))```
  
-### Data Casting
- * ```::int```
- * ```::long```
- * ```::float```
- * ```::double```
- * ```::boolean```
- * ```::r``` - Converts a string to a Regex object
+### Type Conversions
+
+#### ```::int``` or ```::integer``` - Converts a string into an integer. Invalid values will cause the record to fail.
+#### ```::long``` - Converts a string into a long. Invalid values will cause the record to fail.
+#### ```::float``` - Converts a string into a float. Invalid values will cause the record to fail.
+#### ```::double``` - Converts a string into a double. Invalid values will cause the record to fail.
+#### ```::boolean``` - Converts a string into a boolean. Invalid values will cause the record to fail.
+#### ```::r``` - Converts a string intto a Regex object
+
+#### ```stringToInt``` or ```stringToInteger``` - Converts a string into a double, with a default value if conversion fails
+
+Usage; ```stringToInt($1, $2)```
+
+Example: ```stringToInt('1', '0'::int)```
+
+#### ```stringToLong``` - Converts a string into a double, with a default value if conversion fails
+
+Usage; ```stringToLong($1, $2)```
+
+Example: ```stringToLong('1', '0'::long)```
+
+#### ```stringToFloat``` - Converts a string into a double, with a default value if conversion fails
+
+Usage; ```stringToFloat($1, $2)```
+
+Example: ```stringToFloat('1.0', '0.0'::float)```
+
+#### ```stringToDouble``` - Converts a string into a double, with a default value if conversion fails
+
+Usage; ```stringToDouble($1, $2)```
+
+Example: ```stringToDouble('1.0', '0.0'::double)```
+
+#### ```stringToBoolean``` - Converts a string into a double, with a default value if conversion fails
+
+Usage; ```stringToDouble($1, $2)```
+
+Example: ```stringToDouble('true', 'false'::boolean)```
 
 ### List and Map Parsing
 #### ```parseList``` - Parse a List[T] type from a string
@@ -556,7 +592,7 @@ The ```sha256``` function can then be used in a field as shown.
 
 ```
    fields: [
-      { name = "hash", transform = "sha256(string2bytes($0))" }
+      { name = "hash", transform = "sha256(stringToBytes($0))" }
    ]
 ```
 
