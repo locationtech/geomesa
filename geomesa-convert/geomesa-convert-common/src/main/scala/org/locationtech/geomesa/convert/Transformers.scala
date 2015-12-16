@@ -157,7 +157,6 @@ object Transformers extends EnhancedTokenParsers with Logging {
   case class LitDouble(value: java.lang.Double) extends Lit[java.lang.Double]
   case class LitBoolean(value: java.lang.Boolean) extends Lit[java.lang.Boolean]
 
-  // TODO Better handling of casts including null handling, etc GEOMESA-982
   case class Cast2Int(e: Expr) extends Expr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = e.eval(args).asInstanceOf[String].toInt
   }
@@ -483,5 +482,25 @@ class MapListFunctionFactory extends TransformerFunctionFactory {
         }.toMap.asJava
     }
   }
+}
 
+class CastFunctionFactory extends TransformerFunctionFactory {
+  override def functions = Seq(string2double, string2int, string2float, string2long, string2boolean, string2integer)
+
+  val string2double = TransformerFn("string2double") {
+    args => { try { args(0).asInstanceOf[String].toDouble } catch { case e: Exception => args(1) } }
+  }
+  val string2int = TransformerFn("string2int") { str2intHelper() }
+  val string2integer = TransformerFn("string2integer") { str2intHelper() }
+  val string2float = TransformerFn("string2float") {
+    args => { try { args(0).asInstanceOf[String].toFloat } catch { case e: Exception => args(1) } }
+  }
+  val string2long = TransformerFn("string2long") {
+    args => { try { args(0).asInstanceOf[String].toLong } catch { case e: Exception => args(1) } }
+  }
+  val string2boolean = TransformerFn("string2boolean") {
+    args => { try { args(0).asInstanceOf[String].toBoolean } catch { case e: Exception => args(1) } }
+  }
+
+  def str2intHelper() = (args: Seq[Any]) => { try { args(0).asInstanceOf[String].toInt } catch { case e: Exception => args(1) } }
 }
