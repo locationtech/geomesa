@@ -12,12 +12,12 @@ geomesa> mvn clean install -pl geomesa-web/geomesa-web-data
 
 ### Installation Instructions
 
-To install geomesa-web-data, copy ```geomesa-web/geomesa-web-data/target/geomesa-web-data-<version>-geoserver-plugin.jar```
+To install geomesa-web-data, extract and copy all the jars from ```geomesa-web/geomesa-web-data/target/geomesa-web-data-<version>-geoserver-plugin.zip```
 into your geoserver lib folder. If not already present, you will also need the following jars:
  
 ```
-geomesa-plugin-<version>-geoserver-plugin.jar
-geomesa-web-core-version>.jar
+geomesa-accumulo-geoserver-plugin-<version>.jar
+geomesa-web-core-<version>.jar
 geomesa-jobs-<version>.jar
 spark-<version>-geomesa-assembly.jar
 ```
