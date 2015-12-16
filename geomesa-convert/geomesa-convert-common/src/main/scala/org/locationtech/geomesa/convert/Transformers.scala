@@ -325,7 +325,7 @@ class StringFunctionFactory extends TransformerFunctionFactory {
   val regexReplace = TransformerFn("regexReplace") {
     args => args(0).asInstanceOf[Regex].replaceAllIn(args(2).asInstanceOf[String], args(1).asInstanceOf[String])
   }
-  val substr = TransformerFn("substr", "substring", "subString") {
+  val substr = TransformerFn("substr", "substring") {
     args => args(0).asInstanceOf[String].substring(args(1).asInstanceOf[Int], args(2).asInstanceOf[Int])
   }
   val strLen = TransformerFn("strlen", "stringLength", "length") {
