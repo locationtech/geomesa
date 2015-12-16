@@ -32,6 +32,7 @@ class StatTest extends Specification with StatTestHelper {
       val stats = stat.asInstanceOf[SeqStat].stats
 
       stats.size mustEqual 4
+      stat.isEmpty must beTrue
 
       val minMax = stats(0).asInstanceOf[MinMax[java.lang.Integer]]
       val isc = stats(1).asInstanceOf[IteratorStackCounter]
@@ -121,6 +122,41 @@ class StatTest extends Specification with StatTestHelper {
         rh2.histogram(0.0) mustEqual 0
         rh2.histogram(50.0) mustEqual 0
         rh2.histogram(100.0) mustEqual 10
+
+        "clear them" in {
+          stat.isEmpty must beFalse
+          stat2.isEmpty must beFalse
+
+          stat.clear()
+          stat2.clear()
+
+          stat.isEmpty must beTrue
+          stat2.isEmpty must beTrue
+
+          minMax.min mustEqual java.lang.Integer.MAX_VALUE
+          minMax.max mustEqual java.lang.Integer.MIN_VALUE
+
+          isc.count mustEqual 1
+
+          eh.frequencyMap.size mustEqual 0
+
+          rh.histogram.size mustEqual 20
+          rh.histogram(0.0) mustEqual 0
+          rh.histogram(50.0) mustEqual 0
+          rh.histogram(100.0) mustEqual 0
+
+          minMax2.min mustEqual java.lang.Integer.MAX_VALUE
+          minMax2.max mustEqual java.lang.Integer.MIN_VALUE
+
+          isc2.count mustEqual 1
+
+          eh2.frequencyMap.size mustEqual 0
+
+          rh2.histogram.size mustEqual 20
+          rh2.histogram(0.0) mustEqual 0
+          rh2.histogram(50.0) mustEqual 0
+          rh2.histogram(100.0) mustEqual 0
+        }
       }
     }
   }

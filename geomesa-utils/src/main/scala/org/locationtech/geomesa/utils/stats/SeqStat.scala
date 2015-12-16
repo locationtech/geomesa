@@ -29,7 +29,7 @@ case class SeqStat(stats: Seq[Stat]) extends Stat {
 
   override def toJson(): String = "[ " + stats.map(_.toJson()).mkString(", ") + " ]"
 
-  override def isEmpty(): Boolean = ???
+  override def isEmpty(): Boolean = stats.forall(_.isEmpty)
 
-  override def clear(): Unit = ???
+  override def clear(): Unit = stats.foreach(_.clear())
 }
