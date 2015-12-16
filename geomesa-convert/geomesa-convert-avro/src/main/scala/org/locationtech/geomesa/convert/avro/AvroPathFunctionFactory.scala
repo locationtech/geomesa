@@ -18,7 +18,7 @@ class AvroPathFunctionFactory extends TransformerFunctionFactory {
 
   case class AvroPathFn() extends TransformerFn {
     override def getInstance: AvroPathFn = AvroPathFn()
-    val name = "avroPath"
+    override val names = Seq("avroPath")
 
     var path: AvroPath = null
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {

@@ -84,10 +84,12 @@ class JsonSimpleFeatureConverterFactory extends SimpleFeatureConverterFactory[St
 
 object JsonField {
   def apply(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr, jsonType: String) = jsonType match {
-    case "string"     => StringJsonField(name, expression, jsonConfig, transform)
-    case "double"     => DoubleJsonField(name, expression, jsonConfig, transform)
-    case "integer"    => IntJsonField(name, expression, jsonConfig, transform)
-    case "geometry"   => GeometryJsonField(name, expression, jsonConfig, transform)
+    case "string"           => StringJsonField(name, expression, jsonConfig, transform)
+    case "double"           => DoubleJsonField(name, expression, jsonConfig, transform)
+    case "int" | "integer"  => IntJsonField(name, expression, jsonConfig, transform)
+    case "bool" | "boolean" => BooleanJsonField(name, expression, jsonConfig, transform)
+    case "long"             => LongJsonField(name, expression, jsonConfig, transform)
+    case "geometry"         => GeometryJsonField(name, expression, jsonConfig, transform)
   }
 }
 
@@ -118,16 +120,34 @@ trait BaseJsonField[T] extends Field {
 
 }
 
-case class DoubleJsonField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr) extends BaseJsonField[java.lang.Double] {
-  override def getAs(el: JsonElement): java.lang.Double = if (el.isJsonNull) null else el.getAsDouble
+case class BooleanJsonField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr)
+    extends BaseJsonField[java.lang.Boolean] {
+  override def getAs(el: JsonElement): java.lang.Boolean = if (el.isJsonNull) null else el.getAsBoolean
 }
 
-case class IntJsonField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr) extends BaseJsonField[java.lang.Integer] {
+case class IntJsonField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr)
+    extends BaseJsonField[java.lang.Integer] {
   override def getAs(el: JsonElement): java.lang.Integer = if (el.isJsonNull) null else el.getAsInt
 }
 
-case class StringJsonField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr) extends BaseJsonField[java.lang.String] {
+case class LongJsonField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr)
+    extends BaseJsonField[java.lang.Long] {
+  override def getAs(el: JsonElement): java.lang.Long = if (el.isJsonNull) null else el.getAsBigInteger.longValue()
+}
+
+case class DoubleJsonField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr)
+    extends BaseJsonField[java.lang.Double] {
+  override def getAs(el: JsonElement): java.lang.Double = if (el.isJsonNull) null else el.getAsDouble
+}
+
+case class StringJsonField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr)
+    extends BaseJsonField[java.lang.String] {
   override def getAs(el: JsonElement): String = if (el.isJsonNull) null else el.getAsString
+}
+
+case class GeometryJsonField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr)
+    extends BaseJsonField[Geometry] with GeoJsonParsing {
+  override def getAs(el: JsonElement): Geometry =  parseGeometry(el)
 }
 
 trait GeoJsonParsing {
@@ -165,8 +185,4 @@ trait GeoJsonParsing {
       throw new IllegalArgumentException(s"Unknown geometry type: $el")
     }
   }
-}
-
-case class GeometryJsonField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr) extends BaseJsonField[Geometry] with GeoJsonParsing {
-  override def getAs(el: JsonElement): Geometry =  parseGeometry(el)
 }
