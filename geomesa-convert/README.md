@@ -249,7 +249,7 @@ Description: Create a new date from as long representing millis since 1970.
 
 Usage: ```millisToDate($1)```
 
-Example: ```millisToDate(1449675054462::long)``` 
+Example: ```millisToDate('1449675054462'::long)``` 
 
 ### Geometry functions
 
@@ -370,25 +370,37 @@ Example: ```base64(stringToBytes('foo'))```
 
 Description: Converts a string into an integer. Invalid values will cause the record to fail.
 
+Example: ```'1'::int) = 1```
+
 #### ::long
 
 Description: Converts a string into a long. Invalid values will cause the record to fail.
+
+Example: ```'1'::long) = 1L```
 
 #### ::float
 
 Description: Converts a string into a float. Invalid values will cause the record to fail.
 
+Example: ```'1.0'::float) = 1.0f```
+
 #### ::double
 
 Description: Converts a string into a double. Invalid values will cause the record to fail.
+
+Example: ```'1.0'::double) = 1.0d```
 
 #### ::boolean
 
 Description: Converts a string into a boolean. Invalid values will cause the record to fail.
 
+Example: ```'true'::boolean) = true```
+
 #### ::r
 
 Description: Converts a string into a Regex object.
+
+Example: ```'f.*'::r = f.*: scala.util.matching.Regex```
 
 #### stringToInt or stringToInteger
 
