@@ -12,35 +12,17 @@
           xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
   <id>geomesa-assembly</id>
   <formats>
-    <format>jar</format>
+    <format>zip</format>
   </formats>
-  <includeBaseDirectory>false</includeBaseDirectory>
-
-  <containerDescriptorHandlers>
-    <!-- for aggregating SPI files in META-INF -->
-    <containerDescriptorHandler>
-      <handlerName>metaInf-services</handlerName>
-    </containerDescriptorHandler>
-    <!-- for aggregating spring application context files -->
-    <containerDescriptorHandler>
-      <handlerName>metaInf-spring</handlerName>
-    </containerDescriptorHandler>
-    <!-- for aggregating typesafe config files -->
-    <containerDescriptorHandler>
-      <handlerName>file-aggregator</handlerName>
-      <configuration>
-        <filePattern>reference.conf</filePattern>
-        <outputPath>reference.conf</outputPath>
-      </configuration>
-    </containerDescriptorHandler>
-  </containerDescriptorHandlers>
 
   <dependencySets>
     <dependencySet>
-      <useProjectArtifact>false</useProjectArtifact>
-      <useTransitiveDependencies>true</useTransitiveDependencies>
+      <outputDirectory>/</outputDirectory>
+      <useProjectArtifact>true</useProjectArtifact>
       <scope>provided</scope>
-      <unpack>true</unpack>
+      <excludes>
+        <exclude>org.locationtech.geomesa:geomesa-web-install</exclude>
+      </excludes>
     </dependencySet>
   </dependencySets>
 
