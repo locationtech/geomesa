@@ -16,7 +16,7 @@ import org.apache.commons.codec.binary.Base64
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.Transformers
-import org.locationtech.geomesa.convert.Transformers.EvaluationContext
+import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Predicate}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -307,7 +307,105 @@ class TransformersTest extends Specification {
           exp.eval(Array("", "1.0", "1.0")) must beFalse
           exp.eval(Array("", "2.0", "1.0")) must beTrue
         }
+      }
 
+      "string2 functions" >> {
+        "string2double" >> {
+          "double string2double zero default" >> {
+            val exp = Transformers.parseTransform("string2double($1, '0.0'::double)")
+            exp.eval(Array("", "1.2")) mustEqual 1.2
+            exp.eval(Array("", "")) mustEqual 0.0
+            exp.eval(Array("", null)) mustEqual 0.0
+            exp.eval(Array("", 5L)) mustEqual 0.0
+          }
+          "double string2double null default" >> {
+            val exp = Transformers.parseTransform("string2double($1, $2)")
+            exp.eval(Array("", "1.2", null)) mustEqual 1.2
+            exp.eval(Array("", "", null)) mustEqual null
+            exp.eval(Array("", null, null)) mustEqual null
+            exp.eval(Array("", 5L, null)) mustEqual null
+          }
+        }
+        "string2int" >> {
+          "int string2int zero default" >> {
+            val exp = Transformers.parseTransform("string2int($1, '0'::int)")
+            exp.eval(Array("", "2")) mustEqual 2
+            exp.eval(Array("", "")) mustEqual 0
+            exp.eval(Array("", null)) mustEqual 0
+            exp.eval(Array("", "1.2")) mustEqual 0
+          }
+          "int string2int null default" >> {
+            val exp = Transformers.parseTransform("string2int($1, $2)")
+            exp.eval(Array("", "2", null)) mustEqual 2
+            exp.eval(Array("", "", null)) mustEqual null
+            exp.eval(Array("", null, null)) mustEqual null
+            exp.eval(Array("", "1.2", null)) mustEqual null
+          }
+        }
+        "string2integer" >> {
+          "int string2integer zero default" >> {
+            val exp = Transformers.parseTransform("string2integer($1, '0'::int)")
+            exp.eval(Array("", "2")) mustEqual 2
+            exp.eval(Array("", "")) mustEqual 0
+            exp.eval(Array("", null)) mustEqual 0
+            exp.eval(Array("", "1.2")) mustEqual 0
+          }
+          "int string2integer null default" >> {
+            val exp = Transformers.parseTransform("string2integer($1, $2)")
+            exp.eval(Array("", "2", null)) mustEqual 2
+            exp.eval(Array("", "", null)) mustEqual null
+            exp.eval(Array("", null, null)) mustEqual null
+            exp.eval(Array("", "1.2", null)) mustEqual null
+          }
+        }
+        "string2long" >> {
+          "long string2long zero default" >> {
+            val exp = Transformers.parseTransform("string2long($1, '0'::long)")
+            exp.eval(Array("", "22960000000")) mustEqual 22960000000L
+            exp.eval(Array("", "")) mustEqual 0L
+            exp.eval(Array("", null)) mustEqual 0L
+            exp.eval(Array("", "1.2")) mustEqual 0L
+          }
+          "long string2long null default" >> {
+            val exp = Transformers.parseTransform("string2long($1, $2)")
+            exp.eval(Array("", "22960000000", null)) mustEqual 22960000000L
+            exp.eval(Array("", "", null)) mustEqual null
+            exp.eval(Array("", null, null)) mustEqual null
+            exp.eval(Array("", "1.2", null)) mustEqual null
+          }
+        }
+        "string2float" >> {
+          "float string2float zero default" >> {
+            val exp = Transformers.parseTransform("string2float($1, '0.0'::float)")
+            exp.eval(Array("", "1.2")) mustEqual 1.2f
+            exp.eval(Array("", "")) mustEqual 0.0f
+            exp.eval(Array("", null)) mustEqual 0.0f
+            exp.eval(Array("", 5L)) mustEqual 0.0f
+          }
+          "float string2float zero default" >> {
+            val exp = Transformers.parseTransform("string2float($1, $2)")
+            exp.eval(Array("", "1.2", null)) mustEqual 1.2f
+            exp.eval(Array("", "", null)) mustEqual null
+            exp.eval(Array("", null, null)) mustEqual null
+            exp.eval(Array("", 5L, null)) mustEqual null
+          }
+        }
+        "string2boolean" >> {
+          "boolean string2boolean false default" >> {
+            val exp = Transformers.parseTransform("string2boolean($1,'false'::boolean)")
+            exp.eval(Array("", "true")) mustEqual true
+            exp.eval(Array("", "")) mustEqual false
+            exp.eval(Array("", null)) mustEqual false
+            exp.eval(Array("", "18")) mustEqual false
+          }
+          "boolean string2boolean null default" >> {
+            val exp = Transformers.parseTransform("string2boolean($1,$2)")
+            exp.eval(Array("", "true", null)) mustEqual true
+            exp.eval(Array("", "", null)) mustEqual null
+            exp.eval(Array("", null, null)) mustEqual null
+            exp.eval(Array("", "18", null)) mustEqual null
+          }
+        }
       }
 
       "logic predicates" >> {
@@ -360,10 +458,5 @@ class TransformersTest extends Specification {
         trans.eval(Array("1%2%a")).asInstanceOf[java.util.List[Int]] must throwAn[IllegalArgumentException]
       }
     }
-
-//    "parse maps" >> {
-//
-//    }
-
   }
 }
