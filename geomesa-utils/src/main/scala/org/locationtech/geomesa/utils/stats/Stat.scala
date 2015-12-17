@@ -45,12 +45,13 @@ trait Stat {
   def toJson(): String
 
   /**
-   * If the stat's state is the same as when first initialized, it's considered empty.
    * Necessary method used by the StatIterator.
+   * Leaving the isEmpty as false ensures that we will always get a stat back from the query
+   * (even if the query doesn't hit any rows).
    *
    * @return boolean value
    */
-  def isEmpty(): Boolean
+  def isEmpty: Boolean = false
 
   /**
    * Clears the stat to its original state when first initialized.

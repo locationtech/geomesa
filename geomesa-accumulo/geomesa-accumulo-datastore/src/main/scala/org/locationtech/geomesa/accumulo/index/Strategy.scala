@@ -207,21 +207,6 @@ object Strategy extends Logging {
       configureFeatureType(cfg, featureType)
 
       Some(cfg)
-    case _ if hints.isStatsIteratorQuery =>
-      val clazz = classOf[KryoLazyStatsIterator]
-
-      val cfg = new IteratorSetting(iteratorPriority_AnalysisIterator,
-        "topfilter-" + randomPrintableString(5),
-        clazz)
-
-      val statString = hints.get(STATS_STRING).asInstanceOf[java.lang.String]
-
-      KryoLazyStatsIterator.configure(cfg, statString)
-
-      configureFeatureEncoding(cfg, featureEncoding)
-      configureFeatureType(cfg, featureType)
-
-      Some(cfg)
     case _ if hints.containsKey(MAP_AGGREGATION_KEY) =>
       val clazz = classOf[MapAggregatingIterator]
 

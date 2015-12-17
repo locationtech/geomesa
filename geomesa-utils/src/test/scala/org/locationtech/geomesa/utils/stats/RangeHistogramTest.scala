@@ -26,7 +26,7 @@ class RangeHistogramTest extends Specification with StatTestHelper {
         val lowerEndpoint = StatHelpers.dateFormat.parseDateTime("2012-01-01T00:00:00.000Z").toDate
         val midpoint = StatHelpers.dateFormat.parseDateTime("2012-01-02T00:00:00.000Z").toDate
 
-        rh.isEmpty must beTrue
+        rh.isEmpty must beFalse
 
         features.foreach { stat.observe }
 
@@ -67,9 +67,6 @@ class RangeHistogramTest extends Specification with StatTestHelper {
             rh.clear()
             rh2.clear()
 
-            rh.isEmpty must beTrue
-            rh2.isEmpty must beTrue
-
             rh.histogram.size mustEqual 24
             rh.histogram(lowerEndpoint) mustEqual 0
             rh.histogram(midpoint) mustEqual 0
@@ -86,7 +83,7 @@ class RangeHistogramTest extends Specification with StatTestHelper {
         val lowerEndpoint = 0
         val midpoint = 100
 
-        rh.isEmpty must beTrue
+        rh.isEmpty must beFalse
 
         features.foreach { stat.observe }
 
@@ -127,9 +124,6 @@ class RangeHistogramTest extends Specification with StatTestHelper {
             rh.clear()
             rh2.clear()
 
-            rh.isEmpty must beTrue
-            rh2.isEmpty must beTrue
-
             rh.histogram.size mustEqual 20
             rh.histogram(lowerEndpoint) mustEqual 0
             rh.histogram(midpoint) mustEqual 0
@@ -147,7 +141,7 @@ class RangeHistogramTest extends Specification with StatTestHelper {
         val midpoint = 96L
         val upperEndpoint = 102L
 
-        rh.isEmpty must beTrue
+        rh.isEmpty must beFalse
 
         features.foreach { stat.observe }
 
@@ -192,9 +186,6 @@ class RangeHistogramTest extends Specification with StatTestHelper {
             rh.clear()
             rh2.clear()
 
-            rh.isEmpty must beTrue
-            rh2.isEmpty must beTrue
-
             rh.histogram.size mustEqual 7
             rh.histogram(lowerEndpoint) mustEqual 0
             rh.histogram(midpoint) mustEqual 0
@@ -212,7 +203,7 @@ class RangeHistogramTest extends Specification with StatTestHelper {
         val midpoint = 98.57142857142857
         val upperEndpoint = 107.14285714285714
 
-        rh.isEmpty must beTrue
+        rh.isEmpty must beFalse
 
         features.foreach { stat.observe }
 
@@ -257,9 +248,6 @@ class RangeHistogramTest extends Specification with StatTestHelper {
             rh.clear()
             rh2.clear()
 
-            rh.isEmpty must beTrue
-            rh2.isEmpty must beTrue
-
             rh.histogram.size mustEqual 7
             rh.histogram(lowerEndpoint) mustEqual 0
             rh.histogram(midpoint) mustEqual 0
@@ -277,7 +265,7 @@ class RangeHistogramTest extends Specification with StatTestHelper {
         val midpoint = 98.57143f
         val upperEndpoint = 107.14285f
 
-        rh.isEmpty must beTrue
+        rh.isEmpty must beFalse
 
         features.foreach { stat.observe }
 
@@ -321,9 +309,6 @@ class RangeHistogramTest extends Specification with StatTestHelper {
 
             rh.clear()
             rh2.clear()
-
-            rh.isEmpty must beTrue
-            rh2.isEmpty must beTrue
 
             rh.histogram.size mustEqual 7
             rh.histogram(lowerEndpoint) mustEqual 0

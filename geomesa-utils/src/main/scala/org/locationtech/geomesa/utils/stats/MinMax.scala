@@ -95,10 +95,6 @@ class MinMax[T <: Comparable[T]](val attrIndex: Int, val attrType: String, var m
 
   override def toJson(): String = s"""{ "min": $min, "max": $max }"""
 
-  override def isEmpty(): Boolean = {
-    min == minMaxDefaults.min && max == minMaxDefaults.max
-  }
-
   override def clear(): Unit = {
     min = minMaxDefaults.min
     max = minMaxDefaults.max

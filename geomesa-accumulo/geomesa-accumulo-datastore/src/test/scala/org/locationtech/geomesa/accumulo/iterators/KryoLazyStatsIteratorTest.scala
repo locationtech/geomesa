@@ -95,34 +95,34 @@ class KryoLazyStatsIteratorTest extends Specification {
 
     "handle malformed stat strings" in {
       "query 1" in {
-        val q = getQuery("attr BETWEEN 0 AND 300 AND BBOX(geom, -80, 33, -70, 40)", "")
+        val q = getQuery("dtg = '2012-01-01T19:00:00.000Z'", "")
         fs.getFeatures(q).features() must beEmpty
       }
       "query 2" in {
-        val q = getQuery("attr BETWEEN 0 AND 300 AND BBOX(geom, -80, 33, -70, 40)", "abcd")
+        val q = getQuery("dtg = '2012-01-01T19:00:00.000Z'", "abcd")
         fs.getFeatures(q).features() must beEmpty
       }
       "query 3" in {
-        val q = getQuery("attr BETWEEN 0 AND 300 AND BBOX(geom, -80, 33, -70, 40)", "RangeHistogram()")
+        val q = getQuery("dtg = '2012-01-01T19:00:00.000Z'", "RangeHistogram()")
         fs.getFeatures(q).features() must beEmpty
       }
       "query 4" in {
-        val q = getQuery("attr BETWEEN 0 AND 300 AND BBOX(geom, -80, 33, -70, 40)",
+        val q = getQuery("dtg = '2012-01-01T19:00:00.000Z'",
           "RangeHistogram(foo,10,2012-01-01T00:00:00.000Z,2012-02-01T00:00:00.000Z)")
         fs.getFeatures(q).features() must beEmpty
       }
       "query 5" in {
-        val q = getQuery("attr BETWEEN 0 AND 300 AND BBOX(geom, -80, 33, -70, 40)", "MinMax(geom)")
+        val q = getQuery("dtg = '2012-01-01T19:00:00.000Z'", "MinMax(geom)")
         fs.getFeatures(q).features() must beEmpty
       }
       "query 6" in {
-        val q = getQuery("attr BETWEEN 0 AND 300 AND BBOX(geom, -80, 33, -70, 40)", "MinMax(abcd)")
+        val q = getQuery("dtg = '2012-01-01T19:00:00.000Z'", "MinMax(abcd)")
         fs.getFeatures(q).features() must beEmpty
       }
     }
 
     "work with the MinMax stat" in {
-      val q = getQuery("attr BETWEEN 0 AND 300 AND BBOX(geom, -80, 33, -70, 40)", "MinMax(attr)")
+      val q = getQuery("dtg = '2012-01-01T19:00:00.000Z'", "MinMax(attr)")
       val results = fs.getFeatures(q).features().toList
       val sf = results.head
 
@@ -132,7 +132,7 @@ class KryoLazyStatsIteratorTest extends Specification {
     }
 
     "work with the IteratorStackCounter stat" in {
-      val q = getQuery("attr BETWEEN 0 AND 300 AND BBOX(geom, -80, 33, -70, 40)", "IteratorStackCounter")
+      val q = getQuery("dtg = '2012-01-01T19:00:00.000Z'", "IteratorStackCounter")
       val results = fs.getFeatures(q).features().toList
       val sf = results.head
 
@@ -141,7 +141,7 @@ class KryoLazyStatsIteratorTest extends Specification {
     }
 
     "work with the EnumeratedHistogram stat" in {
-      val q = getQuery("attr BETWEEN 0 AND 300 AND BBOX(geom, -80, 33, -70, 40)", "EnumeratedHistogram(id)")
+      val q = getQuery("dtg = '2012-01-01T19:00:00.000Z'", "EnumeratedHistogram(id)")
       val results = fs.getFeatures(q).features().toList
       val sf = results.head
 
@@ -153,7 +153,7 @@ class KryoLazyStatsIteratorTest extends Specification {
     }
 
     "work with the RangeHistogram stat" in {
-      val q = getQuery("attr BETWEEN 0 AND 300 AND BBOX(geom, -80, 33, -70, 40)", "RangeHistogram(id,5,10,15)")
+      val q = getQuery("dtg = '2012-01-01T19:00:00.000Z'", "RangeHistogram(id,5,10,15)")
       val results = fs.getFeatures(q).features().toList
       val sf = results.head
 
@@ -167,7 +167,7 @@ class KryoLazyStatsIteratorTest extends Specification {
     }
 
     "work with multiple stats at once" in {
-      val q = getQuery("attr BETWEEN 0 AND 300 AND BBOX(geom, -80, 33, -70, 40)",
+      val q = getQuery("dtg = '2012-01-01T19:00:00.000Z'",
         "MinMax(attr);IteratorStackCounter;EnumeratedHistogram(id);RangeHistogram(id,5,10,15)")
       val results = fs.getFeatures(q).features().toList
       val sf = results.head

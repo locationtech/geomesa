@@ -50,8 +50,6 @@ class EnumeratedHistogram[T](val attrIndex: Int,
     new JSONObject(jsonMap).toString()
   }
 
-  override def isEmpty(): Boolean = frequencyMap.size == 0
-
   override def clear(): Unit = frequencyMap.clear()
 
   override def equals(obj: Any): Boolean = {

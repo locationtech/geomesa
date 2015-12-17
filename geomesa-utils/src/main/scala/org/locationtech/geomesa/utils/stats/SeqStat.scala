@@ -29,8 +29,6 @@ class SeqStat(val stats: Seq[Stat]) extends Stat {
 
   override def toJson(): String = "[ " + stats.map(_.toJson()).mkString(", ") + " ]"
 
-  override def isEmpty(): Boolean = stats.forall(_.isEmpty)
-
   override def clear(): Unit = stats.foreach(_.clear())
 
   override def equals(obj: Any): Boolean = {

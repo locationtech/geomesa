@@ -180,7 +180,6 @@ class RangeHistogram[T : BinAble](val attrIndex: Int,
                                   val lowerEndpoint: T,
                                   val upperEndpoint: T) extends Stat {
   val histogram: collection.mutable.HashMap[T, Long] = new collection.mutable.HashMap[T, Long]()
-  private var size = 0
 
   val binHelper = implicitly[BinAble[T]]
   val binSize = binHelper.getBinSize(numBins, lowerEndpoint, upperEndpoint)
@@ -196,7 +195,6 @@ class RangeHistogram[T : BinAble](val attrIndex: Int,
       val binIndex = binHelper.getBinIndex(sfval, binSize, numBins, lowerEndpoint, upperEndpoint)
       if (binIndex != null) {
         histogram(binIndex) += 1
-        size += 1
       }
     }
   }
@@ -217,10 +215,7 @@ class RangeHistogram[T : BinAble](val attrIndex: Int,
     new JSONObject(jsonMap).toString()
   }
 
-  override def isEmpty(): Boolean = size == 0
-
   override def clear(): Unit = {
-    size = 0
     histogram.foreach {
       case (bin, count) =>
         histogram(bin) = 0

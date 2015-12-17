@@ -32,7 +32,7 @@ class StatTest extends Specification with StatTestHelper {
       val stats = stat.asInstanceOf[SeqStat].stats
 
       stats.size mustEqual 4
-      stat.isEmpty must beTrue
+      stat.isEmpty must beFalse
 
       val minMax = stats(0).asInstanceOf[MinMax[java.lang.Integer]]
       val isc = stats(1).asInstanceOf[IteratorStackCounter]
@@ -129,9 +129,6 @@ class StatTest extends Specification with StatTestHelper {
 
           stat.clear()
           stat2.clear()
-
-          stat.isEmpty must beTrue
-          stat2.isEmpty must beTrue
 
           minMax.min mustEqual java.lang.Integer.MAX_VALUE
           minMax.max mustEqual java.lang.Integer.MIN_VALUE

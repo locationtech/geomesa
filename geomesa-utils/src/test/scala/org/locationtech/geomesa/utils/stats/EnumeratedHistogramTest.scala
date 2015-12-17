@@ -28,7 +28,7 @@ class EnumeratedHistogramTest extends Specification with StatTestHelper {
         val date2 = StatHelpers.dateFormat.parseDateTime("2012-01-01T23:00:00.000Z").toDate
 
         eh.frequencyMap.size mustEqual 0
-        eh.isEmpty must beTrue
+        eh.isEmpty must beFalse
 
         features.foreach { stat.observe }
 
@@ -71,8 +71,8 @@ class EnumeratedHistogramTest extends Specification with StatTestHelper {
             eh.clear()
             eh2.clear()
 
-            eh.isEmpty must beTrue
-            eh2.isEmpty must beTrue
+            eh.frequencyMap.size mustEqual 0
+            eh2.frequencyMap.size mustEqual 0
           }
         }
       }
@@ -82,7 +82,7 @@ class EnumeratedHistogramTest extends Specification with StatTestHelper {
         val eh = stat.asInstanceOf[EnumeratedHistogram[java.lang.Integer]]
 
         eh.frequencyMap.size mustEqual 0
-        eh.isEmpty must beTrue
+        eh.isEmpty must beFalse
 
         features.foreach { stat.observe }
 
@@ -121,8 +121,8 @@ class EnumeratedHistogramTest extends Specification with StatTestHelper {
             eh.clear()
             eh2.clear()
 
-            eh.isEmpty must beTrue
-            eh2.isEmpty must beTrue
+            eh.frequencyMap.size mustEqual 0
+            eh2.frequencyMap.size mustEqual 0
           }
         }
       }
@@ -132,7 +132,7 @@ class EnumeratedHistogramTest extends Specification with StatTestHelper {
         val eh = stat.asInstanceOf[EnumeratedHistogram[java.lang.Long]]
 
         eh.frequencyMap.size mustEqual 0
-        eh.isEmpty must beTrue
+        eh.isEmpty must beFalse
 
         features.foreach { stat.observe }
 
@@ -171,8 +171,8 @@ class EnumeratedHistogramTest extends Specification with StatTestHelper {
             eh.clear()
             eh2.clear()
 
-            eh.isEmpty must beTrue
-            eh2.isEmpty must beTrue
+            eh.frequencyMap.size mustEqual 0
+            eh2.frequencyMap.size mustEqual 0
           }
         }
       }
@@ -182,7 +182,7 @@ class EnumeratedHistogramTest extends Specification with StatTestHelper {
         val eh = stat.asInstanceOf[EnumeratedHistogram[java.lang.Double]]
 
         eh.frequencyMap.size mustEqual 0
-        eh.isEmpty must beTrue
+        eh.isEmpty must beFalse
 
         features.foreach { stat.observe }
 
@@ -221,8 +221,8 @@ class EnumeratedHistogramTest extends Specification with StatTestHelper {
             eh.clear()
             eh2.clear()
 
-            eh.isEmpty must beTrue
-            eh2.isEmpty must beTrue
+            eh.frequencyMap.size mustEqual 0
+            eh2.frequencyMap.size mustEqual 0
           }
         }
       }
@@ -232,7 +232,7 @@ class EnumeratedHistogramTest extends Specification with StatTestHelper {
         val eh = stat.asInstanceOf[EnumeratedHistogram[java.lang.Float]]
 
         eh.frequencyMap.size mustEqual 0
-        eh.isEmpty must beTrue
+        eh.isEmpty must beFalse
 
         features.foreach { stat.observe }
 
@@ -271,8 +271,8 @@ class EnumeratedHistogramTest extends Specification with StatTestHelper {
             eh.clear()
             eh2.clear()
 
-            eh.isEmpty must beTrue
-            eh2.isEmpty must beTrue
+            eh.frequencyMap.size mustEqual 0
+            eh2.frequencyMap.size mustEqual 0
           }
         }
       }

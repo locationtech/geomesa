@@ -28,7 +28,7 @@ class MinMaxTest extends Specification with StatTestHelper {
         minMax.attrType mustEqual "java.util.Date"
         minMax.min mustEqual new Date(java.lang.Long.MAX_VALUE)
         minMax.max mustEqual new Date(java.lang.Long.MIN_VALUE)
-        minMax.isEmpty must beTrue
+        minMax.isEmpty must beFalse
 
         features.foreach { stat.observe }
 
@@ -65,8 +65,10 @@ class MinMaxTest extends Specification with StatTestHelper {
             minMax.clear()
             minMax2.clear()
 
-            minMax.isEmpty must beTrue
-            minMax2.isEmpty must beTrue
+            minMax.min mustEqual new Date(java.lang.Long.MAX_VALUE)
+            minMax.max mustEqual new Date(java.lang.Long.MIN_VALUE)
+            minMax2.min mustEqual new Date(java.lang.Long.MAX_VALUE)
+            minMax2.max mustEqual new Date(java.lang.Long.MIN_VALUE)
           }
         }
       }
@@ -79,7 +81,7 @@ class MinMaxTest extends Specification with StatTestHelper {
         minMax.attrType mustEqual "java.lang.Integer"
         minMax.min mustEqual java.lang.Integer.MAX_VALUE
         minMax.max mustEqual java.lang.Integer.MIN_VALUE
-        minMax.isEmpty must beTrue
+        minMax.isEmpty must beFalse
 
         features.foreach { stat.observe }
 
@@ -116,8 +118,10 @@ class MinMaxTest extends Specification with StatTestHelper {
             minMax.clear()
             minMax2.clear()
 
-            minMax.isEmpty must beTrue
-            minMax2.isEmpty must beTrue
+            minMax.min mustEqual java.lang.Integer.MAX_VALUE
+            minMax.max mustEqual java.lang.Integer.MIN_VALUE
+            minMax2.min mustEqual java.lang.Integer.MAX_VALUE
+            minMax2.max mustEqual java.lang.Integer.MIN_VALUE
           }
         }
       }
@@ -130,7 +134,7 @@ class MinMaxTest extends Specification with StatTestHelper {
         minMax.attrType mustEqual "java.lang.Long"
         minMax.min mustEqual java.lang.Long.MAX_VALUE
         minMax.max mustEqual java.lang.Long.MIN_VALUE
-        minMax.isEmpty must beTrue
+        minMax.isEmpty must beFalse
 
         features.foreach { stat.observe }
 
@@ -167,8 +171,10 @@ class MinMaxTest extends Specification with StatTestHelper {
             minMax.clear()
             minMax2.clear()
 
-            minMax.isEmpty must beTrue
-            minMax2.isEmpty must beTrue
+            minMax.min mustEqual java.lang.Long.MAX_VALUE
+            minMax.max mustEqual java.lang.Long.MIN_VALUE
+            minMax2.min mustEqual java.lang.Long.MAX_VALUE
+            minMax2.max mustEqual java.lang.Long.MIN_VALUE
           }
         }
       }
@@ -181,7 +187,7 @@ class MinMaxTest extends Specification with StatTestHelper {
         minMax.attrType mustEqual "java.lang.Double"
         minMax.min mustEqual java.lang.Double.MAX_VALUE
         minMax.max mustEqual java.lang.Double.MIN_VALUE
-        minMax.isEmpty must beTrue
+        minMax.isEmpty must beFalse
 
         features.foreach { stat.observe }
 
@@ -218,8 +224,10 @@ class MinMaxTest extends Specification with StatTestHelper {
             minMax.clear()
             minMax2.clear()
 
-            minMax.isEmpty must beTrue
-            minMax2.isEmpty must beTrue
+            minMax.min mustEqual java.lang.Double.MAX_VALUE
+            minMax.max mustEqual java.lang.Double.MIN_VALUE
+            minMax2.min mustEqual java.lang.Double.MAX_VALUE
+            minMax2.max mustEqual java.lang.Double.MIN_VALUE
           }
         }
       }
@@ -232,7 +240,7 @@ class MinMaxTest extends Specification with StatTestHelper {
         minMax.attrType mustEqual "java.lang.Float"
         minMax.min mustEqual java.lang.Float.MAX_VALUE
         minMax.max mustEqual java.lang.Float.MIN_VALUE
-        minMax.isEmpty must beTrue
+        minMax.isEmpty must beFalse
 
         features.foreach { stat.observe }
 
@@ -269,8 +277,10 @@ class MinMaxTest extends Specification with StatTestHelper {
             minMax.clear()
             minMax2.clear()
 
-            minMax.isEmpty must beTrue
-            minMax2.isEmpty must beTrue
+            minMax.min mustEqual java.lang.Float.MAX_VALUE
+            minMax.max mustEqual java.lang.Float.MIN_VALUE
+            minMax2.min mustEqual java.lang.Float.MAX_VALUE
+            minMax2.max mustEqual java.lang.Float.MIN_VALUE
           }
         }
       }
