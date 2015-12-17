@@ -8,12 +8,10 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import com.vividsolutions.jts.geom.Envelope
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStore, DataUtilities, Query}
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data._
@@ -73,7 +71,6 @@ class KryoLazyStatsIteratorTest extends Specification {
 
   def getQuery(query: String, statString: String): Query = {
     val q = new Query("test", ECQL.toFilter(query))
-    val geom = q.getFilter.accept(ExtractBoundsFilterVisitor.BOUNDS_VISITOR, null).asInstanceOf[Envelope]
     q.getHints.put(QueryHints.STATS_STRING, statString)
     q.getHints.put(QueryHints.RETURN_ENCODED, java.lang.Boolean.TRUE)
     q
@@ -85,7 +82,6 @@ class KryoLazyStatsIteratorTest extends Specification {
   "StatsIterator" should {
     val spec = "id:java.lang.Integer,attr:java.lang.Long,dtg:Date,geom:Geometry:srid=4326"
     val sft = SimpleFeatureTypes.createType("test", spec)
-    val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
     sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
     val ds = createDataStore(sft, 0)
     val encodedFeatures = (0 until 150).toArray.map{

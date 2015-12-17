@@ -9,16 +9,10 @@
 
 package org.locationtech.geomesa.accumulo.process.stats
 
-import com.vividsolutions.jts.geom.Envelope
-import org.apache.accumulo.core.client.TableExistsException
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.hadoop.io.Text
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStore, DataUtilities, Query}
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data._
@@ -37,8 +31,6 @@ import scala.collection.JavaConversions._
 class KryoLazyStatsIteratorProcessTest extends Specification {
 
   sequential
-
-  import org.locationtech.geomesa.utils.geotools.Conversions._
 
   def createDataStore(sft: SimpleFeatureType, i: Int = 0): DataStore = {
     val testTableName = "tdi_test"
@@ -78,7 +70,6 @@ class KryoLazyStatsIteratorProcessTest extends Specification {
 
   def getQuery(query: String): Query = {
     val q = new Query("test", ECQL.toFilter(query))
-    val geom = q.getFilter.accept(ExtractBoundsFilterVisitor.BOUNDS_VISITOR, null).asInstanceOf[Envelope]
     q.getHints.put(QueryHints.RETURN_ENCODED, java.lang.Boolean.TRUE)
     q
   }
@@ -86,7 +77,6 @@ class KryoLazyStatsIteratorProcessTest extends Specification {
   "StatsIteratorProcess" should {
     val spec = "id:java.lang.Integer,attr:java.lang.Long,dtg:Date,geom:Geometry:srid=4326"
     val sft = SimpleFeatureTypes.createType("test", spec)
-    val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
     sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
     val ds = createDataStore(sft, 0)
     val encodedFeatures = (0 until 150).toArray.map{
