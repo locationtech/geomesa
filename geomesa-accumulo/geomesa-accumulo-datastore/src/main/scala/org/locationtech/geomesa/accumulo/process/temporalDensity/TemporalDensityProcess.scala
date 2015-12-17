@@ -20,7 +20,7 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.geotools.util.NullProgressListener
 import org.joda.time.Interval
 import org.locationtech.geomesa.accumulo.index.QueryHints
-import org.locationtech.geomesa.accumulo.iterators.KryoLazyTemporalDensityIterator
+import org.locationtech.geomesa.accumulo.iterators.TemporalDensityIterator
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 
@@ -72,7 +72,7 @@ class TemporalDensityProcess extends Logging {
 class TemporalDensityVisitor(features: SimpleFeatureCollection, interval: Interval, buckets: Int)
   extends FeatureCalc with Logging {
 
-  val retType = KryoLazyTemporalDensityIterator.createFeatureType(features.getSchema)
+  val retType = TemporalDensityIterator.createFeatureType(features.getSchema)
   val manualVisitResults = new DefaultFeatureCollection(null, retType)
 
   //  Called for non AccumuloFeatureCollections

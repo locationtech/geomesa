@@ -110,9 +110,6 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with Logging with 
     } else if (hints.isStatsIteratorQuery) {
       val iter = KryoLazyStatsIterator.configure(sft, ecql, hints, sft.nonPoints)
       (Seq(iter), queryPlanner.defaultKVsToFeatures(hints), Z3Table.FULL_CF, false)
-    } else if (hints.isTemporalDensityQuery) {
-      val iter = KryoLazyTemporalDensityIterator.configure(sft, ecql, hints, sft.nonPoints)
-      (Seq(iter), queryPlanner.defaultKVsToFeatures(hints), Z3Table.FULL_CF, false)
     } else if (hints.isMapAggregatingQuery) {
       val iter = KryoLazyMapAggregatingIterator.configure(sft, ecql, hints, sft.nonPoints)
       (Seq(iter), queryPlanner.defaultKVsToFeatures(hints), Z3Table.FULL_CF, false)

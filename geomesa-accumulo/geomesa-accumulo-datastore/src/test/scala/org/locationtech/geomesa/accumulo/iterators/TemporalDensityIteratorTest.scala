@@ -17,7 +17,7 @@ import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.index.QueryHints
-import org.locationtech.geomesa.accumulo.iterators.KryoLazyTemporalDensityIterator.{decodeTimeSeries, jsonToTimeSeries}
+import org.locationtech.geomesa.accumulo.iterators.TemporalDensityIterator.{decodeTimeSeries, jsonToTimeSeries}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
@@ -45,7 +45,6 @@ class TemporalDensityIteratorTest extends Specification with TestWithMultipleSft
   def getFeatures(sft: SimpleFeatureType, query: String, json: Boolean = false): Iterator[SimpleFeature] = {
     import org.locationtech.geomesa.utils.geotools.Conversions._
     val q = new Query(sft.getTypeName, ECQL.toFilter(query))
-    val geom = q.getFilter.accept(ExtractBoundsFilterVisitor.BOUNDS_VISITOR, null).asInstanceOf[Envelope]
     q.getHints.put(QueryHints.TEMPORAL_DENSITY_KEY, java.lang.Boolean.TRUE)
     q.getHints.put(QueryHints.TIME_INTERVAL_KEY, new Interval(new DateTime("2012-01-01T0:00:00", DateTimeZone.UTC).getMillis, new DateTime("2012-01-02T0:00:00", DateTimeZone.UTC).getMillis))
     q.getHints.put(QueryHints.TIME_BUCKETS_KEY, 24)
@@ -70,13 +69,6 @@ class TemporalDensityIteratorTest extends Specification with TestWithMultipleSft
         val results = getFeatures(sft, filter)
         results.length must beLessThan(144)
       }
-
-      "with z3 index" >> {
-        val filter = "BBOX(geom, -80, 33, -70, 40) AND " +
-            "dtg between '2012-01-01T00:00:00.000Z' AND '2012-01-02T00:00:00.000Z'"
-        val results = getFeatures(sft, filter)
-        results.length must beLessThan(144)
-      }
     }
 
     "maintain total weights of time" >> {
@@ -90,30 +82,8 @@ class TemporalDensityIteratorTest extends Specification with TestWithMultipleSft
         totalCount mustEqual 144
       }
 
-      "with z3 index" >> {
-        val filter = "BBOX(geom, -80, 33, -70, 40) AND " +
-            "dtg between '2012-01-01T00:00:00.000Z' AND '2012-01-02T00:00:00.000Z'"
-        val results = getFeatures(sft, filter)
-
-        val timeSeries = results.flatMap(sf => decodeTimeSeries(sf.getAttribute(0).asInstanceOf[String])).toMap
-        val totalCount = timeSeries.values.sum
-
-        totalCount mustEqual 144
-      }
-
       "with st index - json" >> {
         val filter = "BBOX(geom, -80, 33, -70, 40)"
-        val results = getFeatures(sft, filter, json = true)
-
-        val timeSeries = results.flatMap(sf => jsonToTimeSeries(sf.getAttribute(0).asInstanceOf[String])).toMap
-        val totalCount = timeSeries.values.sum
-
-        totalCount mustEqual 144
-      }
-
-      "with z3 index - json" >> {
-        val filter = "BBOX(geom, -80, 33, -70, 40) AND " +
-            "dtg between '2012-01-01T00:00:00.000Z' AND '2012-01-02T00:00:00.000Z'"
         val results = getFeatures(sft, filter, json = true)
 
         val timeSeries = results.flatMap(sf => jsonToTimeSeries(sf.getAttribute(0).asInstanceOf[String])).toMap
@@ -136,34 +106,8 @@ class TemporalDensityIteratorTest extends Specification with TestWithMultipleSft
         timeSeries.size mustEqual 24
       }
 
-      "with z3 index" >> {
-        val filter = "BBOX(geom, -80, 33, -70, 40) AND " +
-            "dtg between '2012-01-01T00:00:00.000Z' AND '2012-01-02T00:00:00.000Z'"
-        val results = getFeatures(sft, filter)
-
-        val timeSeries = results.flatMap(sf => decodeTimeSeries(sf.getAttribute(0).asInstanceOf[String])).toMap
-        forall(timeSeries.values)(_ mustEqual 6)
-        val totalCount = timeSeries.values.sum
-
-        totalCount mustEqual 144
-        timeSeries.size mustEqual 24
-      }
-
       "with st index - json" >> {
         val filter = "BBOX(geom, -80, 33, -70, 40)"
-        val results = getFeatures(sft, filter, json = true)
-
-        val timeSeries = results.flatMap(sf => jsonToTimeSeries(sf.getAttribute(0).asInstanceOf[String])).toMap
-        forall(timeSeries.values)(_ mustEqual 6)
-        val totalCount = timeSeries.values.sum
-
-        totalCount mustEqual 144
-        timeSeries.size mustEqual 24
-      }
-
-      "with z3 index - json" >> {
-        val filter = "BBOX(geom, -80, 33, -70, 40) AND " +
-            "dtg between '2012-01-01T00:00:00.000Z' AND '2012-01-02T00:00:00.000Z'"
         val results = getFeatures(sft, filter, json = true)
 
         val timeSeries = results.flatMap(sf => jsonToTimeSeries(sf.getAttribute(0).asInstanceOf[String])).toMap
@@ -180,23 +124,13 @@ class TemporalDensityIteratorTest extends Specification with TestWithMultipleSft
       timeSeries.put(new DateTime("2012-01-01T00:00:00", DateTimeZone.UTC), 2)
       timeSeries.put(new DateTime("2012-01-01T01:00:00", DateTimeZone.UTC), 8)
 
-      val encoded = KryoLazyTemporalDensityIterator.encodeTimeSeries(timeSeries)
-      val decoded = KryoLazyTemporalDensityIterator.decodeTimeSeries(encoded)
+      val encoded = TemporalDensityIterator.encodeTimeSeries(timeSeries)
+      val decoded = TemporalDensityIterator.decodeTimeSeries(encoded)
 
       timeSeries mustEqual decoded
       timeSeries.size mustEqual 2
       timeSeries.get(new DateTime("2012-01-01T00:00:00", DateTimeZone.UTC)).get mustEqual 2L
       timeSeries.get(new DateTime("2012-01-01T01:00:00", DateTimeZone.UTC)).get mustEqual 8L
-    }
-
-    "query dtg bounds not >> DataStore" >> {
-      "with z3 index" >> {
-        val filter = "BBOX(geom, -80, 33, -70, 40) AND " +
-            "dtg between '2012-02-01T00:00:00.000Z' AND '2012-02-02T00:00:00.000Z'"
-        val results = getFeatures(sft, filter)
-
-        results must beEmpty
-      }
     }
 
     "return empty iterator when nothing to query over" >> {
@@ -210,22 +144,8 @@ class TemporalDensityIteratorTest extends Specification with TestWithMultipleSft
         results must beEmpty
       }
 
-      "with z3 index" >> {
-        val filter = "BBOX(geom, -80, 33, -70, 40) AND " +
-            "dtg between '2012-01-01T00:00:00.000Z' AND '2012-01-02T00:00:00.000Z'"
-        val results = getFeatures(sft, filter)
-        results must beEmpty
-      }
-
       "with st index - json" >> {
         val filter = "BBOX(geom, -80, 33, -70, 40)"
-        val results = getFeatures(sft, filter, json = true)
-        results must beEmpty
-      }
-
-      "with z3 index - json" >> {
-        val filter = "BBOX(geom, -80, 33, -70, 40) AND " +
-            "dtg between '2012-01-01T00:00:00.000Z' AND '2012-01-02T00:00:00.000Z'"
         val results = getFeatures(sft, filter, json = true)
         results must beEmpty
       }
