@@ -237,16 +237,13 @@ curl --header 'Accept: text/plain' --get --data-urlencode 'q=select mySft.myAttr
 | cascading-hadoop-2.6.1.jar | 251670 |
 | cascading-local-2.6.1.jar | 43050 |
 | cglib-nodep-2.2.jar | 322362 |
-| chill_2.10-0.5.0.jar | 221032 |
 | chill_2.10-0.5.2.jar | 221034 |
 | chill-hadoop-0.5.2.jar | 4441 |
-| chill-java-0.5.0.jar | 46715 |
 | chill-java-0.5.2.jar | 47672 |
 | common-2.6.0.jar | 211652 |
 | commons-beanutils-1.7.0.jar | 188671 |
 | commons-codec-1.9.jar | 263965 |
 | commons-collections-3.1.jar | 559366 |
-| commons-compiler-2.7.5.jar | 30364 |
 | commons-compiler-2.7.8.jar | 30595 |
 | commons-compress-1.4.1.jar | 241367 |
 | commons-configuration-1.6.jar | 298829 |
@@ -424,7 +421,6 @@ curl --header 'Accept: text/plain' --get --data-urlencode 'q=select mySft.myAttr
 | jai_codec-1.1.3.jar | 258160 |
 | jai_core-1.1.3.jar | 1900631 |
 | jai_imageio-1.1.jar | 1140632 |
-| janino-2.7.5.jar | 611410 |
 | janino-2.7.8.jar | 613299 |
 | jasypt-1.8.jar | 178961 |
 | JavaAPIforKml-2.2.0.jar | 619507 |
@@ -518,7 +514,6 @@ curl --header 'Accept: text/plain' --get --data-urlencode 'q=select mySft.myAttr
 | org.simpleframework-3.1.3.jar | 225333 |
 | org.w3.xlink-14.1.jar | 52959 |
 | oro-2.0.8.jar | 65261 |
-| paranamer-2.3.jar | 29555 |
 | paranamer-2.6.jar | 32806 |
 | parquet-column-1.7.0.jar | 917052 |
 | parquet-common-1.7.0.jar | 21575 |
