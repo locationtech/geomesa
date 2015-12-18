@@ -33,6 +33,9 @@ class CompositeConverterFactory[I] extends SimpleFeatureConverterFactory[I] {
 class CompositeConverter[I](val targetSFT: SimpleFeatureType, converters: Seq[(Predicate, SimpleFeatureConverter[I])])
     extends SimpleFeatureConverter[I] {
 
+  val predsWithIndex = converters.map(_._1).zipWithIndex.toIndexedSeq
+  val indexedConverters = converters.map(_._2).toIndexedSeq
+
   override def createEvaluationContext(globalParams: Map[String, Any], counter: Counter): EvaluationContext = {
     val delegates = converters.map(_._2.createEvaluationContext(globalParams, counter)).toIndexedSeq
     new CompositeEvaluationContext(delegates)
@@ -43,10 +46,12 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType, converters: Seq[(P
       case c: CompositeEvaluationContext => (i) => c.setCurrent(i)
       case _ => (_) => Unit
     }
-
-    val predsWithIndex = converters.map(_._1).zipWithIndex.toIndexedSeq
-    val indexedConverters = converters.map(_._2).toIndexedSeq
     val toEval = Array.ofDim[Any](1)
+
+    def evalPred(pi: (Predicate, Int)): Boolean = {
+      setEc(pi._2)
+      Try(pi._1.eval(toEval)(ec)).getOrElse(false)
+    }
 
     new Iterator[SimpleFeature] {
       var iter: Iterator[SimpleFeature] = loadNext()
@@ -63,7 +68,7 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType, converters: Seq[(P
       @tailrec
       def loadNext(): Iterator[SimpleFeature] = {
         toEval(0) = is.next()
-        val i = predsWithIndex.find { case (p, i) => setEc(i); Try(p.eval(toEval)(ec)).getOrElse(false) }.map(_._2).getOrElse(-1)
+        val i = predsWithIndex.find(evalPred).map(_._2).getOrElse(-1)
         val res = if (i == -1) {
           ec.counter.incLineCount()
           ec.counter.incFailure()
@@ -82,6 +87,8 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType, converters: Seq[(P
       }
     }
   }
+
+
 }
 
 case class CompositeEvaluationContext(contexts: IndexedSeq[EvaluationContext]) extends EvaluationContext {
