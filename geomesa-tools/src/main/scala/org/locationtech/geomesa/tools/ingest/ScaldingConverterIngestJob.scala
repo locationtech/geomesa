@@ -98,7 +98,6 @@ class ScaldingConverterIngestJob(args: Args) extends Job(args) with Logging {
       } catch {
         case e: Exception => logger.error(s"Failed to write '${DataUtilities.encodeFeature(toWrite)}'", e)
       }
-
     }
 
   def runTestIngest(lines: Iterator[String]) = {
