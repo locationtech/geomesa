@@ -12,14 +12,10 @@ import java.util.{Map => jMap, UUID}
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.apache.accumulo.core.client.IteratorSetting
-import org.apache.accumulo.core.data.{Key, Value}
-import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.data.Query
 import org.geotools.factory.Hints
-import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanner.SFIter
-import org.locationtech.geomesa.accumulo.iterators.KryoLazyAggregatingIterator._
 import org.locationtech.geomesa.accumulo.sumNumericValueMutableMaps
 import org.locationtech.geomesa.accumulo.util.CloseableIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -41,18 +37,14 @@ class KryoLazyMapAggregatingIterator extends KryoLazyAggregatingIterator[mutable
   var serializer: KryoFeatureSerializer = null
   var featureToSerialize: SimpleFeature = null
 
-  override def init(src: SortedKeyValueIterator[Key, Value],
-                    jOptions: jMap[String, String],
-                    env: IteratorEnvironment): Unit = {
-    super.init(src, jOptions, env)
-    val attributeName = jOptions.get(MAP_ATTRIBUTE)
+  override def init(options: Map[String, String]): mutable.Map[AnyRef, Int] = {
+    val attributeName = options(MAP_ATTRIBUTE)
     mapAttribute = sft.indexOf(attributeName)
     val mapSft = SimpleFeatureTypes.createType("", createMapSft(sft, attributeName))
     serializer = new KryoFeatureSerializer(mapSft)
     featureToSerialize = new ScalaSimpleFeature("", mapSft, Array(null, GeometryUtils.zeroPoint))
+    mutable.Map.empty[AnyRef, Int]
   }
-
-  override def newResult() = mutable.Map.empty[AnyRef, Int]
 
   override def aggregateResult(sf: SimpleFeature, result: mutable.Map[AnyRef, Int]): Unit = {
     val currCounts = sf.getAttribute(mapAttribute).asInstanceOf[jMap[AnyRef, Int]].asScala

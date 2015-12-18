@@ -47,16 +47,12 @@ class KryoLazyTemporalDensityIterator extends KryoLazyAggregatingIterator[TimeSe
   var serializer: KryoFeatureSerializer = null
   var featureToSerialize: SimpleFeature = null
 
-  override def init(src: SortedKeyValueIterator[Key, Value],
-                    jOptions: jMap[String, String],
-                    env: IteratorEnvironment): Unit = {
-    super.init(src, jOptions, env)
-
+  override def init(options: Map[String, String]): TimeSeries = {
     dtgIndex = sft.getDtgField.map(sft.indexOf).getOrElse(throw new IllegalArgumentException("dtg field required"))
 
-    val buckets = jOptions.get(BUCKETS_KEY).toInt
+    val buckets = options(BUCKETS_KEY).toInt
     val bounds = {
-      val Array(s, e) = jOptions.get(INTERVAL_KEY).split(",").map(_.toLong)
+      val Array(s, e) = options(INTERVAL_KEY).split(",").map(_.toLong)
       new Interval(s, e)
     }
     snap = new TimeSnap(bounds, buckets)
@@ -64,9 +60,9 @@ class KryoLazyTemporalDensityIterator extends KryoLazyAggregatingIterator[TimeSe
     val timeSft = SimpleFeatureTypes.createType("", TEMPORAL_DENSITY_SFT_STRING)
     serializer = new KryoFeatureSerializer(timeSft)
     featureToSerialize = new ScalaSimpleFeature("", timeSft, Array(null, GeometryUtils.zeroPoint))
-  }
 
-  override def newResult() = mutable.Map.empty[DateTime, Long]
+    mutable.Map.empty[DateTime, Long]
+  }
 
   override def aggregateResult(sf: SimpleFeature, result: TimeSeries): Unit = {
     val date = new DateTime(sf.getAttribute(dtgIndex))

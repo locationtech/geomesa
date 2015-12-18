@@ -10,8 +10,8 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import java.io.ByteArrayOutputStream
 import java.nio.{ByteBuffer, ByteOrder}
+import java.util.Date
 import java.util.Map.Entry
-import java.util.{Date, Map => jMap}
 
 import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
@@ -32,9 +32,6 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-import scala.collection.JavaConverters._
-import scala.collection._
-
 /**
  * Iterator that computes and aggregates 'bin' entries
  */
@@ -50,16 +47,10 @@ class BinAggregatingIterator extends KryoLazyAggregatingIterator[ByteBufferResul
   var sort: Boolean = false
 
   var batchSize: Int = -1
-  val result: ByteBufferResult = new ByteBufferResult(null)
 
   var writeBin: (KryoBufferSimpleFeature, ByteBuffer) => Unit = null
 
-  override def init(src: SortedKeyValueIterator[Key, Value],
-                    jOptions: jMap[String, String],
-                    env: IteratorEnvironment): Unit = {
-    super.init(src, jOptions, env)
-    val options = jOptions.asScala
-
+  override def init(options: Map[String, String]): ByteBufferResult = {
     geomIndex = options(GEOM_OPT).toInt
     dtgIndex = options(DATE_OPT).toInt
     trackIndex = options(TRACK_OPT).toInt
@@ -67,12 +58,6 @@ class BinAggregatingIterator extends KryoLazyAggregatingIterator[ByteBufferResul
 
     binSize = if (labelIndex == -1) 16 else 24
     sort = options(SORT_OPT).toBoolean
-
-    batchSize = options(BATCH_SIZE_OPT).toInt * binSize
-    // avoid re-allocating the buffer if possible
-    if (result.buffer == null || result.buffer.capacity != batchSize) {
-      result.buffer = ByteBuffer.wrap(Array.ofDim(batchSize)).order(ByteOrder.LITTLE_ENDIAN)
-    }
 
     // derive the bin values from the features
     writeBin = if (sft.isPoints) {
@@ -82,11 +67,13 @@ class BinAggregatingIterator extends KryoLazyAggregatingIterator[ByteBufferResul
     } else {
       if (labelIndex == -1) writeGeometry else writeGeometryWithLabel
     }
+    batchSize = options(BATCH_SIZE_OPT).toInt * binSize
+
+    new ByteBufferResult(ByteBuffer.wrap(Array.ofDim(batchSize)).order(ByteOrder.LITTLE_ENDIAN))
   }
 
   override def notFull(result: ByteBufferResult): Boolean = result.buffer.position < batchSize
 
-  override def newResult() = result
 
   override def aggregateResult(sf: SimpleFeature, result: ByteBufferResult): Unit =
     writeBin(sf.asInstanceOf[KryoBufferSimpleFeature], result.buffer)
@@ -196,12 +183,7 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
 
   var decodeBin: (Array[Byte]) => SimpleFeature = null
 
-  override def init(src: SortedKeyValueIterator[Key, Value],
-                    jOptions: jMap[String, String],
-                    env: IteratorEnvironment): Unit = {
-    super.init(src, jOptions, env)
-    val options = jOptions.asScala
-
+  override def init(options: Map[String, String]): ByteBufferResult = {
     val filt = options.contains(KryoLazyAggregatingIterator.CQL_OPT)
     val dedupe = options.contains(KryoLazyAggregatingIterator.DUPE_OPT)
 
@@ -222,6 +204,7 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
         sf
       }
     }
+    super.init(options)
   }
 
   override def decode(value: Array[Byte]): SimpleFeature = decodeBin(value)
