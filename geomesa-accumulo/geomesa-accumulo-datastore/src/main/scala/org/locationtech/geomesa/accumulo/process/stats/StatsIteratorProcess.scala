@@ -10,6 +10,7 @@ package org.locationtech.geomesa.accumulo.process.stats
 
 import com.typesafe.scalalogging.slf4j.Logging
 import org.geotools.data.Query
+import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.feature.DefaultFeatureCollection
@@ -17,7 +18,10 @@ import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
 import org.locationtech.geomesa.accumulo.index.QueryHints
-import org.locationtech.geomesa.accumulo.iterators.TemporalDensityIterator
+import org.locationtech.geomesa.accumulo.iterators.{KryoLazyStatsIterator, TemporalDensityIterator}
+import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.stats.Stat
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 
@@ -56,18 +60,28 @@ class StatsIteratorProcess extends Logging {
 class StatsVisitor(features: SimpleFeatureCollection, statString: String)
   extends FeatureCalc with Logging {
 
-  val retType = TemporalDensityIterator.createFeatureType(features.getSchema)
-  val manualVisitResults = new DefaultFeatureCollection(null, retType)
+  val origSft = features.getSchema
+  val stat: Stat = Stat(origSft, statString)
+  val returnSft = KryoLazyStatsIterator.createFeatureType(origSft)
+  val manualVisitResults: DefaultFeatureCollection = new DefaultFeatureCollection(null, returnSft)
+  var resultCalc: StatsIteratorResult = null
 
   //  Called for non AccumuloFeatureCollections
   def visit(feature: Feature): Unit = {
     val sf = feature.asInstanceOf[SimpleFeature]
-    manualVisitResults.add(sf)
+    stat.observe(sf)
   }
 
-  var resultCalc: StatsIteratorResult = new StatsIteratorResult(manualVisitResults)
-
-  override def getResult: CalcResult = resultCalc
+  override def getResult: CalcResult = {
+    if (resultCalc == null) {
+      val packedStat = stat.toJson()
+      val sf = new ScalaSimpleFeature("", returnSft, Array(packedStat, GeometryUtils.zeroPoint))
+      manualVisitResults.add(sf)
+      StatsIteratorResult(manualVisitResults)
+    } else {
+      resultCalc
+    }
+  }
 
   def setValue(r: SimpleFeatureCollection) = resultCalc = StatsIteratorResult(r)
 

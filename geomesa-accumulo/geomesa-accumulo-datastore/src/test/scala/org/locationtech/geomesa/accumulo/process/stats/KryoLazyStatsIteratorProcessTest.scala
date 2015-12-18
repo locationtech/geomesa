@@ -88,34 +88,28 @@ class KryoLazyStatsIteratorProcessTest extends Specification {
     "handle malformed stat strings" in {
       "query 1" in {
         val q = getQuery("dtg = '2012-01-01T19:00:00.000Z'")
-        val results = statsIteratorProcess.execute(fs.getFeatures(q), "")
-        results.size mustEqual 0
+        statsIteratorProcess.execute(fs.getFeatures(q), "") must throwAn[Exception]
       }
       "query 2" in {
         val q = getQuery("dtg = '2012-01-01T19:00:00.000Z'")
-        val results = statsIteratorProcess.execute(fs.getFeatures(q), "abcd")
-        results.size mustEqual 0
+        statsIteratorProcess.execute(fs.getFeatures(q), "abcd") must throwAn[Exception]
       }
       "query 3" in {
         val q = getQuery("dtg = '2012-01-01T19:00:00.000Z'")
-        val results = statsIteratorProcess.execute(fs.getFeatures(q), "RangeHistogram()")
-        results.size mustEqual 0
+        statsIteratorProcess.execute(fs.getFeatures(q), "RangeHistogram()") must throwAn[Exception]
       }
       "query 4" in {
         val q = getQuery("dtg = '2012-01-01T19:00:00.000Z'")
-        val results = statsIteratorProcess.execute(fs.getFeatures(q),
-          "RangeHistogram(foo,10,2012-01-01T00:00:00.000Z,2012-02-01T00:00:00.000Z)")
-        results.size mustEqual 0
+        statsIteratorProcess.execute(fs.getFeatures(q),
+          "RangeHistogram(foo,10,2012-01-01T00:00:00.000Z,2012-02-01T00:00:00.000Z)") must throwAn[Exception]
       }
       "query 5" in {
         val q = getQuery("dtg = '2012-01-01T19:00:00.000Z'")
-        val results = statsIteratorProcess.execute(fs.getFeatures(q), "MinMax(geom)")
-        results.size mustEqual 0
+        statsIteratorProcess.execute(fs.getFeatures(q), "MinMax(geom)") must throwAn[Exception]
       }
       "query 6" in {
         val q = getQuery("dtg = '2012-01-01T19:00:00.000Z'")
-        val results = statsIteratorProcess.execute(fs.getFeatures(q), "MinMax(abcd)")
-        results.size mustEqual 0
+        statsIteratorProcess.execute(fs.getFeatures(q), "MinMax(abcd)") must throwAn[Exception]
       }
     }
 
