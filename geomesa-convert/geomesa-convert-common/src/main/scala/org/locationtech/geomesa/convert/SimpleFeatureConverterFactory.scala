@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.convert
 
+import java.io.Closeable
 import javax.imageio.spi.ServiceRegistry
 
 import com.typesafe.config.Config
@@ -63,16 +64,29 @@ object SimpleFeatureConverters {
   }
 }
 
-trait SimpleFeatureConverter[I] {
+trait SimpleFeatureConverter[I] extends Closeable {
+
+  /**
+   * Result feature type
+   */
   def targetSFT: SimpleFeatureType
+
+  /**
+   * Stream process inputs into simple features
+   */
   def processInput(is: Iterator[I], ec: EvaluationContext = createEvaluationContext()): Iterator[SimpleFeature]
+
+  /**
+   * Creates a context used for processing
+   */
   def createEvaluationContext(globalParams: Map[String, Any] = Map.empty,
                               counter: Counter = new DefaultCounter): EvaluationContext = {
     val keys = globalParams.keys.toIndexedSeq
     val values = keys.map(globalParams.apply).toArray
     EvaluationContext(keys, values, counter)
   }
-  def close(): Unit = {}
+
+  override def close(): Unit = {}
 }
 
 /**
