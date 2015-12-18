@@ -12,14 +12,16 @@ package org.locationtech.geomesa.accumulo.process.stats
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStore, DataUtilities, Query}
 import org.geotools.factory.Hints
+import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.{Constants, QueryHints}
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator._
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
@@ -160,7 +162,47 @@ class KryoLazyStatsIteratorProcessTest extends Specification {
 
     "work with multiple stats at once" in {
       val q = getQuery("dtg = '2012-01-01T19:00:00.000Z'")
-      val results = statsIteratorProcess.execute(fs.getFeatures(q), "MinMax(attr);IteratorStackCounter;EnumeratedHistogram(id);RangeHistogram(id,5,10,15)")
+      val results = statsIteratorProcess.execute(fs.getFeatures(q),
+        "MinMax(attr);IteratorStackCounter;EnumeratedHistogram(id);RangeHistogram(id,5,10,15)")
+      val sf = results.features().next
+
+      val seqStat = decodeStat(sf.getAttribute(STATS).asInstanceOf[String]).asInstanceOf[SeqStat]
+      val stats = seqStat.stats
+      stats.size mustEqual 4
+
+      val minMax = stats(0).asInstanceOf[MinMax[java.lang.Long]]
+      val isc = stats(1).asInstanceOf[IteratorStackCounter]
+      val eh = stats(2).asInstanceOf[EnumeratedHistogram[java.lang.Integer]]
+      val rh = stats(3).asInstanceOf[RangeHistogram[java.lang.Integer]]
+
+      minMax.min mustEqual 0
+      minMax.max mustEqual 298
+
+      isc.count mustEqual 1L
+
+      eh.frequencyMap.size mustEqual 150
+      eh.frequencyMap(0) mustEqual 1
+      eh.frequencyMap(149) mustEqual 1
+      eh.frequencyMap(150) mustEqual 0
+
+      rh.histogram.size mustEqual 5
+      rh.histogram(10) mustEqual 1
+      rh.histogram(11) mustEqual 1
+      rh.histogram(12) mustEqual 1
+      rh.histogram(13) mustEqual 1
+      rh.histogram(14) mustEqual 1
+    }
+
+    "work with non AccumuloFeatureCollections" in {
+      val features: DefaultFeatureCollection = new DefaultFeatureCollection(null, sft)
+
+      encodedFeatures.foreach {
+        case sfArray =>
+          features.add(new ScalaSimpleFeature("", sft, sfArray.asInstanceOf[Array[AnyRef]]))
+      }
+
+      val results = statsIteratorProcess.execute(features,
+        "MinMax(attr);IteratorStackCounter;EnumeratedHistogram(id);RangeHistogram(id,5,10,15)")
       val sf = results.features().next
 
       val seqStat = decodeStat(sf.getAttribute(STATS).asInstanceOf[String]).asInstanceOf[SeqStat]
