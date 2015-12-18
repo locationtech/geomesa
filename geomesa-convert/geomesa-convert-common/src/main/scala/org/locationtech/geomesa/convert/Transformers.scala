@@ -107,40 +107,51 @@ object Transformers extends EnhancedTokenParsers with Logging {
   }
 
   trait Counter {
-    def incSuccess(): Unit
+    def incSuccess(i: Int = 1): Unit
     def getSuccess: Int
 
-    def incFailure(): Unit
+    def incFailure(i: Int = 1): Unit
     def getFailure: Int
 
-    def incLineCount(): Unit
+    def incLineCount(i: Int = 1): Unit
     def getLineCount: Int
     def setLineCount(i: Int)
   }
 
   class DefaultCounter extends Counter {
-    private var c: Int = 0
     private var s: Int = 0
     private var f: Int = 0
-    private var skipped: Int = 0
+    private var c: Int = 0
 
-    override def incSuccess(): Unit = s +=1
+    override def incSuccess(i: Int = 1): Unit = s += i
     override def getSuccess: Int = s
 
-    override def incFailure(): Unit = f += 1
+    override def incFailure(i: Int = 1): Unit = f += i
     override def getFailure: Int = f
 
-    override def incLineCount() = c += 1
+    override def incLineCount(i: Int = 1) = c += i
     override def getLineCount: Int = c
     override def setLineCount(i: Int) = c = i
   }
 
-  class EvaluationContext(var fieldNameMap: mutable.HashMap[String, Int],
-                          var computedFields: Array[Any],
-                          val counter: Counter = new DefaultCounter) {
-    def indexOf(n: String): Int = fieldNameMap.getOrElse(n, -1)
-    def lookup(i: Int) = if(i < 0) null else computedFields(i)
-    def getCounter = counter
+  trait EvaluationContext {
+    def get(i: Int): Any
+    def set(i: Int, v: Any): Unit
+    def indexOf(n: String): Int
+    def counter: Counter
+  }
+
+  object EvaluationContext {
+    def empty: EvaluationContext = apply(IndexedSeq.empty, Array.empty, new DefaultCounter)
+    def apply(names: IndexedSeq[String], values: Array[Any], counter: Counter): EvaluationContext =
+      new EvaluationContextImpl(names, values, counter)
+  }
+
+  class EvaluationContextImpl(names: IndexedSeq[String], values: Array[Any], val counter: Counter)
+      extends EvaluationContext {
+    def get(i: Int): Any = values(i)
+    def set(i: Int, v: Any): Unit = values(i) = v
+    def indexOf(n: String): Int = names.indexOf(n)
   }
 
   sealed trait Expr {
@@ -194,7 +205,7 @@ object Transformers extends EnhancedTokenParsers with Logging {
       if (idx == -1) {
         idx = ctx.indexOf(n)
       }
-      ctx.lookup(idx)
+      ctx.get(idx)
     }
   }
 
@@ -442,9 +453,8 @@ class LineNumberFunctionFactory extends TransformerFunctionFactory {
   case class LineNumberFn() extends TransformerFn {
     override def getInstance: LineNumberFn = LineNumberFn()
     override val names = Seq("lineNo", "lineNumber")
-    def eval(args: Array[Any])(implicit ctx: Transformers.EvaluationContext): Any = ctx.getCounter.getLineCount
+    def eval(args: Array[Any])(implicit ctx: Transformers.EvaluationContext): Any = ctx.counter.getLineCount
   }
-
 }
 
 class MapListFunctionFactory extends TransformerFunctionFactory {

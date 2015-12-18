@@ -16,7 +16,7 @@ import com.typesafe.config.Config
 import org.apache.commons.csv.{CSVFormat, QuoteMode}
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
 import org.locationtech.geomesa.convert.{Field, SimpleFeatureConverterFactory, ToSimpleFeatureConverter}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 
@@ -56,8 +56,7 @@ class DelimitedTextConverterFactory extends SimpleFeatureConverterFactory[String
   }
 }
 
-case class DelimitedOptions(skipLines: Int = 0,
-                            pipeSize: Int = 16*1024)
+case class DelimitedOptions(skipLines: Int = 0, pipeSize: Int = 16 * 1024)
 
 class DelimitedTextConverter(format: CSVFormat,
                              val targetSFT: SimpleFeatureType,
@@ -82,7 +81,6 @@ class DelimitedTextConverter(format: CSVFormat,
     override def run(): Unit = {
       while (true) {
         val s = q.take()
-
         // make sure the input is not null and is nonempty...if it is empty the threads will deadlock
         if (s != null && s.nonEmpty) {
           writer.write(s)
@@ -93,9 +91,16 @@ class DelimitedTextConverter(format: CSVFormat,
     }
   })
 
+  override def processInput(is: Iterator[String], ec: EvaluationContext): Iterator[SimpleFeature] = {
+    ec.counter.incLineCount(options.skipLines)
+    super.processInput(is.drop(options.skipLines), ec)
+  }
+
   override def fromInputType(string: String): Seq[Array[Any]] = {
     // empty strings cause deadlock
-    if (string == null || string.isEmpty) throw new IllegalArgumentException("Invalid input (empty)")
+    if (string == null || string.isEmpty) {
+      throw new IllegalArgumentException("Invalid input (empty)")
+    }
     q.put(string)
     val rec = parser.next()
     val len = rec.size()
@@ -108,13 +113,6 @@ class DelimitedTextConverter(format: CSVFormat,
     }
     Seq(ret)
   }
-
-  private var skipLines = options.skipLines
-  override def preProcess(i: String)(implicit ec: EvaluationContext): Option[String] =
-    if (skipLines > 0) {
-      skipLines -= 1
-      None
-    } else Some(i)
 
   override def close(): Unit = {
     es.shutdownNow()

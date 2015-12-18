@@ -9,9 +9,10 @@
 package org.locationtech.geomesa.convert
 
 import com.typesafe.config.Config
-import org.locationtech.geomesa.convert.Transformers.{DefaultCounter, Counter, EvaluationContext, Predicate}
+import org.locationtech.geomesa.convert.Transformers.{Counter, EvaluationContext, Predicate}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 import scala.util.Try
 
@@ -27,46 +28,70 @@ class CompositeConverterFactory[I] extends SimpleFeatureConverterFactory[I] {
       }
     new CompositeConverter[I](sft, converters)
   }
-
 }
 
-class CompositeConverter[I](val targetSFT: SimpleFeatureType,
-                            converters: Seq[(Predicate, SimpleFeatureConverter[I])])
-  extends SimpleFeatureConverter[I] {
+class CompositeConverter[I](val targetSFT: SimpleFeatureType, converters: Seq[(Predicate, SimpleFeatureConverter[I])])
+    extends SimpleFeatureConverter[I] {
 
-  val evaluationContexts = List.fill(converters.length)(new EvaluationContext(null, null))
-
-  def processWithCallback(gParams: Map[String, Any] = Map.empty, counter: Counter = new DefaultCounter): (I) => Seq[SimpleFeature] = {
-    var count = 0
-    (input: I) => {
-      count += 1
-      converters.view.zipWithIndex.flatMap { case ((pred, conv), i) =>
-        implicit val ec = evaluationContexts(i)
-        ec.getCounter.setLineCount(count)
-        processIfValid(input, pred, conv, gParams)
-      }.headOption
-    }.toSeq
+  override def createEvaluationContext(globalParams: Map[String, Any], counter: Counter): EvaluationContext = {
+    val delegates = converters.map(_._2.createEvaluationContext(globalParams, counter)).toIndexedSeq
+    new CompositeEvaluationContext(delegates)
   }
 
-  override def processInput(is: Iterator[I],  gParams: Map[String, Any] = Map.empty, counter: Counter = new DefaultCounter): Iterator[SimpleFeature] =
-    is.flatMap(processWithCallback(gParams, counter))
+  override def processInput(is: Iterator[I], ec: EvaluationContext): Iterator[SimpleFeature] = {
+    val setEc: (Int) => Unit = ec match {
+      case c: CompositeEvaluationContext => (i) => c.setCurrent(i)
+      case _ => (_) => Unit
+    }
 
-  override def processSingleInput(i: I, gParams: Map[String, Any] = Map.empty)(implicit ec: EvaluationContext): Seq[SimpleFeature] =
-    throw new UnsupportedOperationException("Single input processing is not enabled with composite converters...yet")
+    val predsWithIndex = converters.map(_._1).zipWithIndex.toIndexedSeq
+    val indexedConverters = converters.map(_._2).toIndexedSeq
+    val toEval = Array.ofDim[Any](1)
 
-  private val mutableArray = Array.ofDim[Any](1)
+    new Iterator[SimpleFeature] {
+      var iter: Iterator[SimpleFeature] = loadNext()
 
-  def processIfValid(input: I,
-                     pred: Predicate,
-                     conv: SimpleFeatureConverter[I],
-                     gParams: Map[String, Any])
-                    (implicit  ec: EvaluationContext) = {
-    val opt =
-      Try {
-        mutableArray(0) = input
-        pred.eval(mutableArray)
-      }.toOption.toSeq
+      override def hasNext: Boolean = iter.hasNext
+      override def next(): SimpleFeature = {
+        val res = iter.next()
+        if (!iter.hasNext && is.hasNext) {
+          iter = loadNext()
+        }
+        res
+      }
 
-    opt.flatMap { v => if (v) conv.processSingleInput(input, gParams)(ec) else Seq.empty }
+      @tailrec
+      def loadNext(): Iterator[SimpleFeature] = {
+        toEval(0) = is.next()
+        val i = predsWithIndex.find { case (p, i) => setEc(i); Try(p.eval(toEval)(ec)).getOrElse(false) }.map(_._2).getOrElse(-1)
+        val res = if (i == -1) {
+          ec.counter.incLineCount()
+          ec.counter.incFailure()
+          Iterator.empty
+        } else {
+          indexedConverters(i).processInput(Iterator(toEval(0).asInstanceOf[I]), ec)
+        }
+
+        if (res.hasNext) {
+          res
+        } else if (!is.hasNext) {
+          Iterator.empty
+        } else {
+          loadNext()
+        }
+      }
+    }
   }
+}
+
+case class CompositeEvaluationContext(contexts: IndexedSeq[EvaluationContext]) extends EvaluationContext {
+
+  var current: EvaluationContext = contexts.headOption.orNull
+
+  def setCurrent(i: Int): Unit = current = contexts(i)
+
+  override def get(i: Int): Any = current.get(i)
+  override def set(i: Int, v: Any): Unit = current.set(i, v)
+  override def indexOf(n: String): Int = current.indexOf(n)
+  override def counter: Counter = current.counter
 }
