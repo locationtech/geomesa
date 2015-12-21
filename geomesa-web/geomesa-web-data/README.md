@@ -20,7 +20,8 @@ Please note GeoMesa does not bundle Spark by default, and that Spark has not bee
 under the GeoMesa license.
 
 You will need hadoop and slf4j jars that are compatible with your spark install. For a full list of jars
-from a working GeoServer instance, refer to [Appendix A](#appendix-a-geoserver-jars). Of note, slf4j needs to be version 1.6.1.
+from a working GeoServer instance, refer to [Appendix A](#appendix-a-geoserver-jars). Of note, slf4j needs to be version 1.6.1,
+you will need to add the hadoop-yarn jars and commons-cli jar.
 
 In addition to installing jars, you will need to ensure that the hadoop configuration files are available
 on the classpath. See the next sections for details.
@@ -181,7 +182,7 @@ curl -d 'instanceId=myCloud' -d 'zookeepers=zoo1,zoo2,zoo3' -d 'tableName=myCata
 Set the number of executors:
 
 ```
-curl -d 'spark.executor.instances=10' http://localhost:8080/geoserver/geomesa/analytics/spark/conf
+curl -d 'spark.executor.instances=10' http://localhost:8080/geoserver/geomesa/analytics/spark/config
 ```
 
 Group by: 
@@ -242,6 +243,7 @@ curl --header 'Accept: text/plain' --get --data-urlencode 'q=select mySft.myAttr
 | chill-java-0.5.2.jar | 47672 |
 | common-2.6.0.jar | 211652 |
 | commons-beanutils-1.7.0.jar | 188671 |
+| commons-cli-1.2.jar	| 41123 |
 | commons-codec-1.9.jar | 263965 |
 | commons-collections-3.1.jar | 559366 |
 | commons-compiler-2.7.8.jar | 30595 |
@@ -386,6 +388,16 @@ curl --header 'Accept: text/plain' --get --data-urlencode 'q=select mySft.myAttr
 | hadoop-mapreduce-client-core-2.2.0.jar | 1455001 |
 | hadoop-mapreduce-client-jobclient-2.2.0.jar | 35216 |
 | hadoop-mapreduce-client-shuffle-2.2.0.jar | 21537 |
+| hadoop-yarn-api-2.2.0.jar	| 1158936
+| hadoop-yarn-applications-distributedshell-2.2.0.jar | 32481
+| hadoop-yarn-applications-unmanaged-am-launcher-2.2.0.jar | 13300
+| hadoop-yarn-client-2.2.0.jar | 94728
+| hadoop-yarn-common-2.2.0.jar | 1301627
+| hadoop-yarn-server-common-2.2.0.jar | 175554
+| hadoop-yarn-server-nodemanager-2.2.0.jar | 467638
+| hadoop-yarn-server-resourcemanager-2.2.0.jar | 615387
+| hadoop-yarn-server-web-proxy-2.2.0.jar | 25710
+| hadoop-yarn-site-2.2.0.jar | 1935
 | hsqldb-2.3.0.jar | 1466946 |
 | htmlvalidator-1.2.jar | 243854 |
 | imageio-ext-arcgrid-1.1.13.jar | 39860 |
