@@ -38,6 +38,7 @@
         <module>geomesa-z3</module>
         <module>geomesa-accumulo</module>
         <module>geomesa-hbase</module>
+        <module>geomesa-blobstore</module>
     </modules>
 
     <properties>
