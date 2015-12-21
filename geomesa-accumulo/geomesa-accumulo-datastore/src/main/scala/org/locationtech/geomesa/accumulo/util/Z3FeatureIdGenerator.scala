@@ -54,17 +54,22 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator {
    * This provides uniqueness along with locality.
    */
   def createUuid(sft: SimpleFeatureType, sf: SimpleFeature): UUID = {
-
-    // create the random part
-    // this uses the same temp array we use later, so be careful with the order this gets called
-    val leastSigBits = createRandomLsb()
-
     val time = sft.getDtgIndex.flatMap(i => Option(sf.getAttribute(i)).map(_.asInstanceOf[Date].getTime))
         .getOrElse(System.currentTimeMillis())
     val pt = sf.getAttribute(sft.getGeomIndex) match {
       case p: Point => p
       case g: Geometry => g.getCentroid
     }
+    createUuid(pt, time)
+  }
+
+  def createUuid(geom: Geometry, time: Long): UUID = createUuid(geom.getCentroid, time)
+
+  def createUuid(pt: Point, time: Long) = {
+    // create the random part
+    // this uses the same temp array we use later, so be careful with the order this gets called
+    val leastSigBits = createRandomLsb()
+
     val z3 = {
       val (w, t) = Z3Table.getWeekAndSeconds(time)
       val z = Z3SFC.index(pt.getX, pt.getY, t).z

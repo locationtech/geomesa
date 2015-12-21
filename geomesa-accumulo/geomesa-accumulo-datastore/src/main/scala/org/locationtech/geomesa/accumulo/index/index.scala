@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.slf4j.Logger
 import com.vividsolutions.jts.geom.Envelope
 import org.apache.accumulo.core.data.{Key, Range => AccRange, Value}
 import org.geotools.factory.Hints
@@ -21,6 +21,7 @@ import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.identity.FeatureId
+import org.slf4j.LoggerFactory
 
 import scala.languageFeature.implicitConversions
 
@@ -136,8 +137,12 @@ package object index {
     override def toString = string.toString()
   }
 
-  class ExplainLogging extends ExplainerOutputType with Logging {
-    override def output(s: => String): Unit = logger.trace(s)
+  class ExplainLogging extends ExplainerOutputType {
+    override def output(s: => String): Unit = ExplainLogging.logger.trace(s)
+  }
+
+  object ExplainLogging {
+    private val logger = Logger(LoggerFactory.getLogger(classOf[QueryPlanner]))
   }
 }
 
