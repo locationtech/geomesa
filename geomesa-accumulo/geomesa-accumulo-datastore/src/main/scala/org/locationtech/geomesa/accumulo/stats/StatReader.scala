@@ -8,11 +8,10 @@
 
 package org.locationtech.geomesa.accumulo.stats
 
-import java.util.Date
-
 import org.apache.accumulo.core.client.{Connector, Scanner}
 import org.apache.accumulo.core.data.{Range => AccRange}
 import org.apache.accumulo.core.security.Authorizations
+import org.joda.time.Interval
 
 /**
  * Abstract class for querying stats
@@ -30,17 +29,16 @@ abstract class StatReader[S <: Stat](connector: Connector, statTableForFeatureNa
    * attributes, for instance).
    *
    * @param featureName
-   * @param start
-   * @param end
+   * @param dates
    * @param authorizations
    * @return
    */
-  def query(featureName: String, start: Date, end: Date, authorizations: Authorizations): Iterator[S] = {
+  def query(featureName: String, dates: Interval, authorizations: Authorizations): Iterator[S] = {
     val table = statTableForFeatureName(featureName)
 
     val scanner = connector.createScanner(table, authorizations)
-    val rangeStart = s"$featureName~${StatTransform.dateFormat.print(start.getTime)}"
-    val rangeEnd = s"$featureName~${StatTransform.dateFormat.print(end.getTime)}"
+    val rangeStart = s"$featureName~${StatTransform.dateFormat.print(dates.getStart)}"
+    val rangeEnd = s"$featureName~${StatTransform.dateFormat.print(dates.getEnd)}"
     scanner.setRange(new AccRange(rangeStart, rangeEnd))
 
     configureScanner(scanner)

@@ -24,12 +24,17 @@ import scala.collection.JavaConversions._
 
 trait StatWriter {
 
-  def connector: Connector
-
   // start the background thread
   if (!connector.isInstanceOf[MockConnector]) {
     StatWriter.startIfNeeded()
   }
+
+  def connector: Connector
+
+  /**
+   * The table to write a stat to
+   */
+  def getStatTable(stat: Stat): String
 
   /**
    * Writes a stat to accumulo. This implementation adds the stat to a bounded queue, which should
@@ -37,8 +42,7 @@ trait StatWriter {
    *
    * @param stat
    */
-  def writeStat(stat: Stat, statTable: String): Unit =
-    StatWriter.queueStat(stat, TableInstance(connector, statTable))
+  def writeStat(stat: Stat): Unit = StatWriter.queueStat(stat, TableInstance(connector, getStatTable(stat)))
 }
 
 /**

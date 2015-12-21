@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.slf4j.Logger
 import com.vividsolutions.jts.geom.Envelope
 import org.apache.accumulo.core.data.{Key, Range => AccRange, Value}
 import org.geotools.factory.Hints
@@ -21,6 +21,7 @@ import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.identity.FeatureId
+import org.slf4j.LoggerFactory
 
 import scala.languageFeature.implicitConversions
 
@@ -91,10 +92,22 @@ package object index {
     }
   }
 
-  type ExplainerOutputType = ( => String) => Unit
+  trait ExplainerOutputType {
+    private var indent = ""
+    def apply(s: => String): ExplainerOutputType = { output(s"$indent$s"); this }
+    def apply(s: => String, c: => Seq[String]): ExplainerOutputType = {
+      output(s"$indent$s")
+      val ci = c // don't evaluate strings twice
+      if (ci.nonEmpty) { pushLevel(); ci.foreach(s => output(s"$indent$s")); popLevel() } else this
+    }
+    def pushLevel(): ExplainerOutputType = { indent += "  "; this }
+    def pushLevel(s: => String): ExplainerOutputType = { apply(s); pushLevel(); this }
+    def popLevel(): ExplainerOutputType = { indent = indent.substring(2); this }
+    def popLevel(s: => String): ExplainerOutputType = { popLevel(); apply(s); this }
+    protected def output(s: => String)
+  }
 
   object ExplainerOutputType {
-
     def toString(r: AccRange) = {
       val first = if (r.isStartKeyInclusive) "[" else "("
       val last =  if (r.isEndKeyInclusive) "]" else ")"
@@ -104,27 +117,31 @@ package object index {
     }
   }
 
-  object ExplainPrintln extends ExplainerOutputType {
-    override def apply(v1: => String): Unit = println(v1)
+  class ExplainPrintln extends ExplainerOutputType {
+    override def output(s: => String): Unit = println(s)
   }
 
   object ExplainNull extends ExplainerOutputType {
-    override def apply(v1: => String): Unit = {}
+    override def apply(s: => String): ExplainerOutputType = this
+    override def pushLevel(): ExplainerOutputType = this
+    override def pushLevel(s: => String): ExplainerOutputType = this
+    override def popLevel(): ExplainerOutputType = this
+    override def popLevel(s: => String): ExplainerOutputType = this
+    override def output(s: => String): Unit = {}
   }
 
   class ExplainString extends ExplainerOutputType {
     private val string: StringBuilder = new StringBuilder()
-    override def apply(v1: => String) = {
-      string.append(v1).append('\n')
-    }
-    override def toString() = string.toString()
+    override def output(s: => String): Unit = string.append(s).append("\n")
+    override def toString = string.toString()
   }
 
-  trait ExplainingLogging extends Logging {
-    def log(stringFnx: => String) = {
-      lazy val s: String = stringFnx
-      logger.trace(s)
-    }
+  class ExplainLogging extends ExplainerOutputType {
+    override def output(s: => String): Unit = ExplainLogging.logger.trace(s)
+  }
+
+  object ExplainLogging {
+    private val logger = Logger(LoggerFactory.getLogger(classOf[QueryPlanner]))
   }
 }
 

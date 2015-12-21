@@ -153,7 +153,6 @@ object RasterTestsUtils {
                        j <- 0 until act.getHeight) yield actWR.getSampleFloat(i, j, 0)
       val expected = for(i <- (0 until act.getWidth).iterator;
                          j <- 0 until act.getHeight) yield expWR.getSampleFloat(i, j, 0)
-//      val diff = expected.filterNot(actual.exists(_))
       actual.sameElements(expected)
     }
   }

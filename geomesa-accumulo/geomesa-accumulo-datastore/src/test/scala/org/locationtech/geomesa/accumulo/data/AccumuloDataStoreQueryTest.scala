@@ -8,18 +8,15 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.util
 import java.util.Date
 
 import com.vividsolutions.jts.geom.Coordinate
 import org.geotools.data._
 import org.geotools.factory.{CommonFactoryFinder, Hints}
-import org.geotools.feature.{DefaultFeatureCollection, NameImpl}
+import org.geotools.feature.NameImpl
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.geotools.referencing.CRS
-import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.geotools.util.Converters
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
@@ -308,12 +305,15 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     }
 
     "allow query strategy to be specified via view params" in {
-      val query = new Query(defaultSft.getTypeName, ECQL.toFilter("BBOX(geom,40,40,50,50) and name='name1'"))
+      val filter = "BBOX(geom,40,40,50,50) and dtg during 2010-05-07T00:00:00.000Z/2010-05-08T00:00:00.000Z and name='name1'"
+      val query = new Query(defaultSft.getTypeName, ECQL.toFilter(filter))
 
       def expectStrategy(strategy: String) = {
         val explain = new ExplainString
         ds.explainQuery(query, explain)
-        explain.toString().split("\n").filter(_.startsWith("\tStrategy:")) mustEqual Array(s"\tStrategy: $strategy")
+        explain.toString().split("\n").map(_.trim).filter(_.startsWith("Strategy 1 of 1:")) mustEqual Array(s"Strategy 1 of 1: $strategy")
+        val res = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features().map(_.getID).toList
+        res must containTheSameElementsAs(Seq("fid-1"))
       }
 
       query.getHints.put(QUERY_STRATEGY_KEY, StrategyType.ATTRIBUTE)
@@ -321,6 +321,12 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
       query.getHints.put(QUERY_STRATEGY_KEY, StrategyType.ST)
       expectStrategy("STIdxStrategy")
+
+      query.getHints.put(QUERY_STRATEGY_KEY, StrategyType.Z3)
+      expectStrategy("Z3IdxStrategy")
+
+      query.getHints.put(QUERY_STRATEGY_KEY, StrategyType.RECORD)
+      expectStrategy("RecordIdxStrategy")
 
       val viewParams =  new java.util.HashMap[String, String]
       query.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, viewParams)
@@ -333,7 +339,27 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       viewParams.put("STRATEGY", "ST")
       expectStrategy("STIdxStrategy")
 
+      query.getHints.remove(QUERY_STRATEGY_KEY)
+      viewParams.put("STRATEGY", "Z3")
+      expectStrategy("Z3IdxStrategy")
+
+      query.getHints.remove(QUERY_STRATEGY_KEY)
+      viewParams.put("STRATEGY", "RECORD")
+      expectStrategy("RecordIdxStrategy")
+
       success
+    }
+
+    "be able to run explainQuery" in {
+      val filter = ECQL.toFilter("INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))")
+      val query = new Query(defaultSft.getTypeName, filter)
+
+      val out = new ExplainString()
+      ds.explainQuery(query, out)
+
+      val explanation = out.toString()
+      explanation must not be null
+      explanation.trim must not beEmpty
     }
   }
 }

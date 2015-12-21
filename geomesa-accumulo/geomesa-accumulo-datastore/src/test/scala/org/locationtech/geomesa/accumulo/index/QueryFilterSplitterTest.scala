@@ -18,6 +18,7 @@ import org.locationtech.geomesa.utils.geotools.SftBuilder.Opts
 import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.opengis.filter._
+import org.opengis.filter.expression.PropertyName
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -443,7 +444,7 @@ class QueryFilterSplitterTest extends Specification {
         attrQueryFilter.primary.length mustEqual 5
         attrQueryFilter.primary.forall(_ must beAnInstanceOf[PropertyIsEqualTo])
         val attrProps = attrQueryFilter.primary.map(_.asInstanceOf[PropertyIsEqualTo])
-        foreach(attrProps) {_.getExpression1.asInstanceOf[org.opengis.filter.expression.PropertyName].getPropertyName mustEqual "high" }
+        foreach(attrProps) {_.getExpression1.asInstanceOf[PropertyName].getPropertyName mustEqual "high" }
         attrQueryFilter.secondary.isDefined mustEqual true
         attrQueryFilter.secondary.get must beAnInstanceOf[And]
         attrQueryFilter.secondary.get.asInstanceOf[And].getChildren.length mustEqual 2
@@ -455,7 +456,7 @@ class QueryFilterSplitterTest extends Specification {
         z3QueryFilters.primary.length mustEqual 2
         z3QueryFilters.secondary.get must beAnInstanceOf[Or]
         val z3Props = z3QueryFilters.secondary.get.asInstanceOf[Or].getChildren.map(_.asInstanceOf[PropertyIsEqualTo])
-        foreach (z3Props) { _.getExpression1.asInstanceOf[org.opengis.filter.expression.PropertyName].getPropertyName mustEqual "high" }
+        foreach (z3Props) { _.getExpression1.asInstanceOf[PropertyName].getPropertyName mustEqual "high" }
       }
 
       val orQuery = (0 until 5).map( i => s"high = 'h$i'").mkString(" OR ")

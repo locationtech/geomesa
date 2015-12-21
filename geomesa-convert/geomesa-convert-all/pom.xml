@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--********************************************************************
+* Copyright (c) 2013-2015 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0 which
+* accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*********************************************************************-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>geomesa-convert</artifactId>
+        <groupId>org.locationtech.geomesa</groupId>
+        <version>1.1.0-rc.7-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>geomesa-convert-all</artifactId>
+    <name>GeoMesa Convert All</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-convert-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-convert-avro</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-convert-fixedwidth</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-convert-json</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-convert-text</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-convert-xml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.specs2</groupId>
+            <artifactId>specs2_2.10</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

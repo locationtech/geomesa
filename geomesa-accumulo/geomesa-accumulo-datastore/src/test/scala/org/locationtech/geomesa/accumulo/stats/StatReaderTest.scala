@@ -8,11 +8,10 @@
 
 package org.locationtech.geomesa.accumulo.stats
 
-import java.util.Date
-
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
+import org.joda.time.Interval
 import org.joda.time.format.DateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.stats.StatWriter.{StatToWrite, TableInstance}
@@ -38,56 +37,53 @@ class StatReaderTest extends Specification {
   "QueryStatReader" should {
 
     val stats = Seq(
-      QueryStat(featureName, df.parseMillis("2014.07.26 13:20:01"), "query1", "hint1=true", 101L, 201L, 11),
-      QueryStat(featureName, df.parseMillis("2014.07.26 14:20:01"), "query2", "hint2=true", 102L, 202L, 12),
-      QueryStat(featureName, df.parseMillis("2014.07.27 13:20:01"), "query3", "hint3=true", 102L, 202L, 12)
+      QueryStat(featureName, df.parseMillis("2014.07.26 13:20:01"), "user1", "query1", "hint1=true", 101L, 201L, 11),
+      QueryStat(featureName, df.parseMillis("2014.07.26 14:20:01"), "user1", "query2", "hint2=true", 102L, 202L, 12),
+      QueryStat(featureName, df.parseMillis("2014.07.27 13:20:01"), "user1", "query3", "hint3=true", 102L, 202L, 12)
     )
     writeStat(stats, statsTable)
 
     val reader = new QueryStatReader(connector, (_: String) => statsTable)
 
     "query all stats in order" in {
-      val queries = reader.query(featureName, new Date(0), new Date(), auths)
+      val queries = reader.query(featureName, new Interval(0, System.currentTimeMillis()), auths)
 
       queries must not beNull
 
       val list = queries.toList
 
       list.size mustEqual 3
-      list(0).queryFilter mustEqual "query1"
-      list(1).queryFilter mustEqual "query2"
-      list(2).queryFilter mustEqual "query3"
+      list(0).filter mustEqual "query1"
+      list(1).filter mustEqual "query2"
+      list(2).filter mustEqual "query3"
     }
 
     "query by day" in {
-      val queries = reader.query(featureName,
-                                  df.parseDateTime("2014.07.26 00:00:00").toDate,
-                                  df.parseDateTime("2014.07.26 23:59:59").toDate,
-                                  auths)
+      val s = df.parseDateTime("2014.07.26 00:00:00")
+      val e = df.parseDateTime("2014.07.26 23:59:59")
+      val queries = reader.query(featureName, new Interval(s, e), auths)
 
       queries must not beNull
 
       val list = queries.toList
 
       list.size mustEqual 2
-      list(0).queryFilter mustEqual "query1"
-      list(1).queryFilter mustEqual "query2"
+      list(0).filter mustEqual "query1"
+      list(1).filter mustEqual "query2"
     }
 
     "query by hour" in {
-      val queries = reader.query(featureName,
-                                  df.parseDateTime("2014.07.26 13:00:00").toDate,
-                                  df.parseDateTime("2014.07.26 13:59:59").toDate,
-                                  auths)
+      val s = df.parseDateTime("2014.07.26 13:00:00")
+      val e = df.parseDateTime("2014.07.26 13:59:59")
+      val queries = reader.query(featureName, new Interval(s, e), auths)
 
       queries must not beNull
 
       val list = queries.toList
 
       list.size mustEqual 1
-      list(0).queryFilter mustEqual "query1"
+      list(0).filter mustEqual "query1"
     }
-
   }
 
 }

@@ -26,6 +26,7 @@
         <dependency>
             <groupId>commons-pool</groupId>
             <artifactId>commons-pool</artifactId>
+            <version>1.6</version>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
@@ -90,6 +91,11 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
         </dependency>
 
         <!-- test dependencies -->

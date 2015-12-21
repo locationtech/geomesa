@@ -13,12 +13,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>14.0.1</version>
-                <scope>compile</scope>
-            </dependency>
 
             <!-- provided deps that come from spark -->
             <dependency>
@@ -177,13 +171,16 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-web-core</artifactId>
-            <version>${project.parent.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-accumulo-datastore</artifactId>
-            <scope>provided</scope>
+        </dependency>
+        <!-- Use plugin jar instead of geomesa-utils (which is excluded in assembly.xml) -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-utils-geoserver-plugin</artifactId>
+            <classifier>geoserver-plugin</classifier>
         </dependency>
     </dependencies>
 
@@ -191,46 +188,7 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>2.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <shadedArtifactAttached>true</shadedArtifactAttached>
-                            <shadedClassifierName>geoserver-plugin</shadedClassifierName>
-                            <artifactSet>
-                                <includes>
-                                    <include>*:*</include>
-                                </includes>
-                            </artifactSet>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
-                                    <resource>applicationContext.xml</resource>
-                                </transformer>
-                                <!-- for spark configs -->
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                                    <resource>reference.conf</resource>
-                                </transformer>
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
+                <artifactId>maven-assembly-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

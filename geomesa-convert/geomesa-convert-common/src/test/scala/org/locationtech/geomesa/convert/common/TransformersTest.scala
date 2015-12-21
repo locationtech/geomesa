@@ -16,7 +16,7 @@ import org.apache.commons.codec.binary.Base64
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.Transformers
-import org.locationtech.geomesa.convert.Transformers.EvaluationContext
+import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Predicate}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -30,14 +30,24 @@ class TransformersTest extends Specification {
   "Transformers" should {
 
     implicit val ctx = new EvaluationContext(mutable.HashMap.empty[String, Int], null)
-    "handle transformations" >> {
-      "handle string transformations" >> {
 
+    "handle transformations" >> {
+
+      "handle string transformations" >> {
         "allow literal strings" >> {
           val exp = Transformers.parseTransform("'hello'")
           exp.eval(Array(null)) must be equalTo "hello"
         }
 
+        "allow quoted strings" >> {
+          val exp = Transformers.parseTransform("'he\\'llo'")
+          exp.eval(Array(null)) must be equalTo "he'llo"
+        }
+
+        "not parse non-quoted things (this shouldn't be a string)" >> {
+          val exp = Transformers.parseTransform("5")
+          exp.eval(Array(null)) must be equalTo 5
+        }
         "allow empty literal strings" >> {
           val exp = Transformers.parseTransform("''")
           exp.eval(Array(null)) must be equalTo ""
@@ -58,6 +68,11 @@ class TransformersTest extends Specification {
           exp.eval(Array("", "FOO", "bar")) must be equalTo "foo"
         }
 
+        "uppercase" >> {
+          val exp = Transformers.parseTransform("uppercase($1)")
+          exp.eval(Array("", "FoO")) must be equalTo "FOO"
+        }
+
         "regexReplace" >> {
           val exp = Transformers.parseTransform("regexReplace('foo'::r,'bar',$1)")
           exp.eval(Array("", "foobar")) must be equalTo "barbar"
@@ -72,6 +87,22 @@ class TransformersTest extends Specification {
           val exp = Transformers.parseTransform("substr($1, 2, 5)")
           exp.eval(Array("", "foobarbaz")) must be equalTo "foobarbaz".substring(2, 5)
         }
+
+        "strlen" >> {
+          val exp = Transformers.parseTransform("strlen($1)")
+          exp.eval(Array("", "FOO")) must be equalTo 3
+        }
+
+        "toString" >> {
+          val exp = Transformers.parseTransform("toString($1)")
+          exp.eval(Array("", 5)) must be equalTo "5"
+        }
+
+        "concat with tostring" >> {
+          val exp = Transformers.parseTransform("concat(toString($1), toString($2))")
+          exp.eval(Array("", 5, 6)) must be equalTo "56"
+        }
+
       }
 
       "handle numeric literals" >> {
@@ -85,6 +116,11 @@ class TransformersTest extends Specification {
         "date with custom format" >> {
           val exp = Transformers.parseTransform("date('yyyyMMdd', $1)")
           exp.eval(Array("", "20150101")).asInstanceOf[Date] must be equalTo testDate
+        }
+
+        "date with a realistic custom format" >> {
+          val exp = Transformers.parseTransform("date('YYYY-MM-dd\\'T\\'HH:mm:ss.SSSSSS', $1)")
+          exp.eval(Array("", "2015-01-01T00:00:00.000000")).asInstanceOf[Date] must be equalTo testDate
         }
 
         "datetime" >> {
@@ -102,9 +138,20 @@ class TransformersTest extends Specification {
           exp.eval(Array("", "20150101T000000.000Z")).asInstanceOf[Date] must be equalTo testDate
         }
 
+        "basicDateTimeNoMillis" >> {
+          val exp = Transformers.parseTransform("basicDateTimeNoMillis($1)")
+          exp.eval(Array("", "20150101T000000Z")).asInstanceOf[Date] must be equalTo testDate
+        }
+
         "dateHourMinuteSecondMillis" >> {
           val exp = Transformers.parseTransform("dateHourMinuteSecondMillis($1)")
           exp.eval(Array("", "2015-01-01T00:00:00.000")).asInstanceOf[Date] must be equalTo testDate
+        }
+
+        "millisToDate" >> {
+          val millis = testDate.getTime
+          val exp = Transformers.parseTransform("millisToDate($1)")
+          exp.eval(Array("", millis)).asInstanceOf[Date] must be equalTo testDate
         }
 
       }
@@ -155,7 +202,6 @@ class TransformersTest extends Specification {
         val lineStr = geoFac.createLineString(Seq((102, 0), (103, 1), (104, 0), (105, 1)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
         val trans = Transformers.parseTransform("geometry($0)")
         trans.eval(Array("Linestring(102 0, 103 1, 104 0, 105 1)")).asInstanceOf[Geometry] must be equalTo lineStr
-
       }
 
       "handle identity functions" >> {
@@ -233,35 +279,133 @@ class TransformersTest extends Specification {
           exp.eval(Array("", "2", "1")) must beTrue
         }
         "double equals" >> {
-          val exp = Transformers.parsePred("dEq($1::double, $2::double)")
+          val exp = Transformers.parsePred("doubleEq($1::double, $2::double)")
           exp.eval(Array("", "1.0", "2.0")) must beFalse
           exp.eval(Array("", "1.0", "1.0")) must beTrue
         }
 
         "double lteq" >> {
-          val exp = Transformers.parsePred("dLTEq($1::double, $2::double)")
+          val exp = Transformers.parsePred("doubleLTEq($1::double, $2::double)")
           exp.eval(Array("", "1.0", "2.0")) must beTrue
           exp.eval(Array("", "1.0", "1.0")) must beTrue
           exp.eval(Array("", "1.0", "0.0")) must beFalse
         }
         "double lt" >> {
-          val exp = Transformers.parsePred("dLT($1::double, $2::double)")
+          val exp = Transformers.parsePred("doubleLT($1::double, $2::double)")
           exp.eval(Array("", "1.0", "2.0")) must beTrue
           exp.eval(Array("", "1.0", "1.0")) must beFalse
         }
         "double gteq" >> {
-          val exp = Transformers.parsePred("dGTEq($1::double, $2::double)")
+          val exp = Transformers.parsePred("doubleGTEq($1::double, $2::double)")
           exp.eval(Array("", "1.0", "2.0")) must beFalse
           exp.eval(Array("", "1.0", "1.0")) must beTrue
           exp.eval(Array("", "2.0", "1.0")) must beTrue
         }
         "double gt" >> {
-          val exp = Transformers.parsePred("dGT($1::double, $2::double)")
+          val exp = Transformers.parsePred("doubleGT($1::double, $2::double)")
           exp.eval(Array("", "1.0", "2.0")) must beFalse
           exp.eval(Array("", "1.0", "1.0")) must beFalse
           exp.eval(Array("", "2.0", "1.0")) must beTrue
         }
+      }
 
+      "string2 functions" >> {
+        "string2double" >> {
+          "double string2double zero default" >> {
+            val exp = Transformers.parseTransform("string2double($1, '0.0'::double)")
+            exp.eval(Array("", "1.2")) mustEqual 1.2
+            exp.eval(Array("", "")) mustEqual 0.0
+            exp.eval(Array("", null)) mustEqual 0.0
+            exp.eval(Array("", 5L)) mustEqual 0.0
+          }
+          "double string2double null default" >> {
+            val exp = Transformers.parseTransform("string2double($1, $2)")
+            exp.eval(Array("", "1.2", null)) mustEqual 1.2
+            exp.eval(Array("", "", null)) mustEqual null
+            exp.eval(Array("", null, null)) mustEqual null
+            exp.eval(Array("", 5L, null)) mustEqual null
+          }
+        }
+        "string2int" >> {
+          "int string2int zero default" >> {
+            val exp = Transformers.parseTransform("string2int($1, '0'::int)")
+            exp.eval(Array("", "2")) mustEqual 2
+            exp.eval(Array("", "")) mustEqual 0
+            exp.eval(Array("", null)) mustEqual 0
+            exp.eval(Array("", "1.2")) mustEqual 0
+          }
+          "int string2int null default" >> {
+            val exp = Transformers.parseTransform("string2int($1, $2)")
+            exp.eval(Array("", "2", null)) mustEqual 2
+            exp.eval(Array("", "", null)) mustEqual null
+            exp.eval(Array("", null, null)) mustEqual null
+            exp.eval(Array("", "1.2", null)) mustEqual null
+          }
+        }
+        "string2integer" >> {
+          "int string2integer zero default" >> {
+            val exp = Transformers.parseTransform("string2integer($1, '0'::int)")
+            exp.eval(Array("", "2")) mustEqual 2
+            exp.eval(Array("", "")) mustEqual 0
+            exp.eval(Array("", null)) mustEqual 0
+            exp.eval(Array("", "1.2")) mustEqual 0
+          }
+          "int string2integer null default" >> {
+            val exp = Transformers.parseTransform("string2integer($1, $2)")
+            exp.eval(Array("", "2", null)) mustEqual 2
+            exp.eval(Array("", "", null)) mustEqual null
+            exp.eval(Array("", null, null)) mustEqual null
+            exp.eval(Array("", "1.2", null)) mustEqual null
+          }
+        }
+        "string2long" >> {
+          "long string2long zero default" >> {
+            val exp = Transformers.parseTransform("string2long($1, '0'::long)")
+            exp.eval(Array("", "22960000000")) mustEqual 22960000000L
+            exp.eval(Array("", "")) mustEqual 0L
+            exp.eval(Array("", null)) mustEqual 0L
+            exp.eval(Array("", "1.2")) mustEqual 0L
+          }
+          "long string2long null default" >> {
+            val exp = Transformers.parseTransform("string2long($1, $2)")
+            exp.eval(Array("", "22960000000", null)) mustEqual 22960000000L
+            exp.eval(Array("", "", null)) mustEqual null
+            exp.eval(Array("", null, null)) mustEqual null
+            exp.eval(Array("", "1.2", null)) mustEqual null
+          }
+        }
+        "string2float" >> {
+          "float string2float zero default" >> {
+            val exp = Transformers.parseTransform("string2float($1, '0.0'::float)")
+            exp.eval(Array("", "1.2")) mustEqual 1.2f
+            exp.eval(Array("", "")) mustEqual 0.0f
+            exp.eval(Array("", null)) mustEqual 0.0f
+            exp.eval(Array("", 5L)) mustEqual 0.0f
+          }
+          "float string2float zero default" >> {
+            val exp = Transformers.parseTransform("string2float($1, $2)")
+            exp.eval(Array("", "1.2", null)) mustEqual 1.2f
+            exp.eval(Array("", "", null)) mustEqual null
+            exp.eval(Array("", null, null)) mustEqual null
+            exp.eval(Array("", 5L, null)) mustEqual null
+          }
+        }
+        "string2boolean" >> {
+          "boolean string2boolean false default" >> {
+            val exp = Transformers.parseTransform("string2boolean($1,'false'::boolean)")
+            exp.eval(Array("", "true")) mustEqual true
+            exp.eval(Array("", "")) mustEqual false
+            exp.eval(Array("", null)) mustEqual false
+            exp.eval(Array("", "18")) mustEqual false
+          }
+          "boolean string2boolean null default" >> {
+            val exp = Transformers.parseTransform("string2boolean($1,$2)")
+            exp.eval(Array("", "true", null)) mustEqual true
+            exp.eval(Array("", "", null)) mustEqual null
+            exp.eval(Array("", null, null)) mustEqual null
+            exp.eval(Array("", "18", null)) mustEqual null
+          }
+        }
       }
 
       "logic predicates" >> {
@@ -279,6 +423,39 @@ class TransformersTest extends Specification {
           val exp = Transformers.parsePred("or(strEq($1, $2), strEq($3, $1))")
           exp.eval(Array("", "foo", "foo", "f", "oo")) must beTrue
         }
+      }
+    }
+
+    import scala.collection.JavaConversions._
+    "create lists" >> {
+      val trans = Transformers.parseTransform("list($0, $1, $2)")
+      val res = trans.eval(Array("a", "b", "c")).asInstanceOf[java.util.List[String]]
+      res.size() mustEqual 3
+      res.toList must containTheSameElementsAs(List("a", "b", "c"))
+    }
+
+    "parse lists" >> {
+      "default delimiter" >> {
+        val trans = Transformers.parseTransform("parseList('string', $0)")
+        val res = trans.eval(Array("a,b,c")).asInstanceOf[java.util.List[String]]
+        res.size mustEqual 3
+        res.toList must containTheSameElementsAs(List("a", "b", "c"))
+      }
+      "custom delimiter" >> {
+        val trans = Transformers.parseTransform("parseList('string', $0, '%')")
+        val res = trans.eval(Array("a%b%c")).asInstanceOf[java.util.List[String]]
+        res.size mustEqual 3
+        res.toList must containTheSameElementsAs(List("a", "b", "c"))
+      }
+      "with numbers" >> {
+        val trans = Transformers.parseTransform("parseList('int', $0, '%')")
+        val res = trans.eval(Array("1%2%3")).asInstanceOf[java.util.List[Int]]
+        res.size mustEqual 3
+        res.toList must containTheSameElementsAs(List(1,2,3))
+      }
+      "with numbers" >> {
+        val trans = Transformers.parseTransform("parseList('int', $0, '%')")
+        trans.eval(Array("1%2%a")).asInstanceOf[java.util.List[Int]] must throwAn[IllegalArgumentException]
       }
     }
   }

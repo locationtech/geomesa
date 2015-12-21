@@ -11,16 +11,21 @@ package org.locationtech.geomesa.web.core
 import javax.servlet.ServletContext
 import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse}
 
+import com.typesafe.scalalogging.slf4j.Logging
+import org.apache.commons.lang.exception.ExceptionUtils
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory
-import org.scalatra.ScalatraServlet
 import org.scalatra.servlet.RichServletContext
+import org.scalatra.{InternalServerError, ScalatraServlet}
 import org.springframework.context.{ApplicationContext, ApplicationContextAware}
 import org.springframework.web.context.ServletContextAware
 
 import scala.beans.BeanProperty
 import scala.collection.JavaConversions._
 
-trait GeoMesaScalatraServlet extends ScalatraServlet {
+trait GeoMesaScalatraServlet extends ScalatraServlet with Logging {
+
+  @BeanProperty var debug: Boolean = false
+
   def root: String
 
   override def handle(req: HttpServletRequest, res: HttpServletResponse): Unit = req match {
@@ -28,13 +33,30 @@ trait GeoMesaScalatraServlet extends ScalatraServlet {
     case _ => super.handle(req, res)
   }
 
+  /**
+   * Pulls data store relevant values out of the request params
+   */
   def datastoreParams: Map[String, String] =
     GeoMesaScalatraServlet.dsKeys.flatMap(k => params.get(k).map(k -> _)).toMap
+
+  /**
+   * Common error handler that accounts for debug setting
+   */
+  def handleError(msg: String, e: Exception) = {
+    logger.error(msg, e)
+    if (debug) {
+      InternalServerError(reason = msg, body = s"${e.getMessage}\n${ExceptionUtils.getStackTrace(e)}")
+    } else {
+      InternalServerError()
+    }
+  }
 }
 
-class SpringScalatraBootstrap
-  extends ApplicationContextAware
-  with ServletContextAware {
+object GeoMesaScalatraServlet {
+  val dsKeys = new AccumuloDataStoreFactory().getParametersInfo.map(_.getName)
+}
+
+class SpringScalatraBootstrap extends ApplicationContextAware with ServletContextAware with Logging {
 
   @BeanProperty var applicationContext: ApplicationContext = _
   @BeanProperty var servletContext: ServletContext = _
@@ -44,31 +66,9 @@ class SpringScalatraBootstrap
     val richCtx = new RichServletContext(servletContext)
     val servlets = applicationContext.getBeansOfType(classOf[GeoMesaScalatraServlet])
     for ((name, servlet) <- servlets) {
-      println(s"Mounting servlet bean '$name' at path '/$rootPath/${servlet.root}'")
-      richCtx.mount(servlet, s"/$rootPath/${servlet.root}/*")
+      val path = s"/$rootPath/${servlet.root}"
+      logger.info(s"Mounting servlet bean '$name' at path '$path'")
+      richCtx.mount(servlet, s"$path/*")
     }
-  }
-}
-
-object GeoMesaScalatraServlet {
-
-  val dsKeys = {
-    import AccumuloDataStoreFactory.params._
-    Seq(
-      instanceIdParam,
-      zookeepersParam,
-      userParam,
-      passwordParam,
-      authsParam,
-      visibilityParam,
-      tableNameParam,
-      queryTimeoutParam,
-      queryThreadsParam,
-      recordThreadsParam,
-      writeMemoryParam,
-      writeThreadsParam,
-      statsParam,
-      cachingParam
-    ).map(_.getName)
   }
 }

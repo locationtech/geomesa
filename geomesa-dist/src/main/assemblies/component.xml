@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--********************************************************************
+* Copyright (c) 2013-2015 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0 which
+* accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*********************************************************************-->
+
+<component xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2 http://maven.apache.org/xsd/component-1.1.2.xsd">
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>dist/tools</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0755</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <includes>
+                <include>org.locationtech.geomesa:geomesa-tools*</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>dist/accumulo</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0755</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <includes>
+                <include>org.locationtech.geomesa:geomesa-accumulo-distributed-runtime*</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>dist/geoserver-plugins</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0755</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <includes>
+                <include>org.locationtech.geomesa:geomesa-accumulo-geoserver-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-kafka-geoserver-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-stream-geoserver-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-utils-geoserver-plugin*</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>dist/webservices</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0755</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <includes>
+                <include>org.locationtech.geomesa:geomesa-web*</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>dist/spark</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0755</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <includes>
+                <include>org.locationtech.geomesa:geomesa-compute*</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>dist/yarn</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0755</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <includes>
+                <include>org.locationtech.geomesa:geomesa-jobs*</include>
+            </includes>
+        </dependencySet>
+    </dependencySets>
+    <fileSets>
+        <fileSet>
+            <directory>../</directory>
+            <fileMode>0644</fileMode>
+            <includes>
+                <include>LICENSE.txt</include>
+                <include>README.md</include>
+            </includes>
+        </fileSet>
+    </fileSets>
+    <files>
+        <file>
+            <source>../geomesa-compute/README.md</source>
+            <outputDirectory>docs/compute</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-accumulo/geomesa-accumulo-datastore/README.md</source>
+            <outputDirectory>docs/accumulo</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-jobs/README.md</source>
+            <outputDirectory>docs/jobs</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-geoserver-plugin/geomesa-accumulo-geoserver-plugin/README.md</source>
+            <outputDirectory>docs/accumulo-geoserver-plugin</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-geoserver-plugin/geomesa-kafka-geoserver-plugin/README.md</source>
+            <outputDirectory>docs/kafka-geoserver-plugin</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-tools/README.md</source>
+            <outputDirectory>docs/tools</outputDirectory>
+        </file>
+    </files>
+</component>

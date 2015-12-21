@@ -13,30 +13,38 @@ import java.util.{Date, UUID}
 import javax.imageio.spi.ServiceRegistry
 
 import com.google.common.hash.Hashing
+import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom._
 import org.apache.commons.codec.binary.Base64
 import org.geotools.geometry.jts.JTSFactoryFinder
+import org.geotools.util.Converters
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter, ISODateTimeFormat}
-import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.geomesa.utils.text.{EnhancedTokenParsers, WKTUtils}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.util.matching.Regex
-import scala.util.parsing.combinator.JavaTokenParsers
 
-object Transformers extends JavaTokenParsers {
+object Transformers extends EnhancedTokenParsers with Logging {
 
   val functionMap = mutable.HashMap[String, TransformerFn]()
   ServiceRegistry.lookupProviders(classOf[TransformerFunctionFactory]).foreach { factory =>
     factory.functions.foreach { f => functionMap.put(f.name, f) }
   }
 
+  val EQ   = "Eq"
+  val LT   = "LT"
+  val GT   = "GT"
+  val LTEQ = "LTEq"
+  val GTEQ = "GTEq"
+  val NEQ  = "NEq"
+
   object TransformerParser {
     private val OPEN_PAREN  = "("
     private val CLOSE_PAREN = ")"
 
-    def string      = "'" ~> "[^']*".r <~ "'".r ^^ { s => LitString(s) }
+    def string      = quotedString ^^ { s => LitString(s) } //"'" ~> "[^']*".r <~ "'".r ^^ { s => LitString(s) }
     def int         = wholeNumber ^^   { i => LitInt(i.toInt) }
     def double      = decimalNumber ^^ { d => LitDouble(d.toDouble) }
     def long        = wholeNumber ^^   { l => LitLong(l.toLong) }
@@ -44,41 +52,37 @@ object Transformers extends JavaTokenParsers {
     def wholeRecord = "$0" ^^ { _ => WholeRecord }
     def regexExpr   = string <~ "::r" ^^ { case LitString(s) => RegexExpr(s) }
     def column      = "$" ~> "[1-9][0-9]*".r ^^ { i => Col(i.toInt) }
-    def cast2int    = expr <~ "::int" ^^ { e => Cast2Int(e) }
-    def cast2double = expr <~ "::double" ^^ { e => Cast2Double(e) }
+
+    def cast2int     = expr <~ "::int"     ^^ { e => Cast2Int(e)     }
+    def cast2long    = expr <~ "::long"    ^^ { e => Cast2Long(e)    }
+    def cast2float   = expr <~ "::float"   ^^ { e => Cast2Float(e)   }
+    def cast2double  = expr <~ "::double"  ^^ { e => Cast2Double(e)  }
+    def cast2boolean = expr <~ "::boolean" ^^ { e => Cast2Boolean(e) }
+
     def fieldLookup = "$" ~> ident ^^ { i => FieldLookup(i) }
     def fnName      = ident ^^ { n => LitString(n) }
-    def fn          = (fnName <~ OPEN_PAREN) ~ (repsep(transformExpr, ",") <~ CLOSE_PAREN) ^^ {
-      case LitString(name) ~ e => FunctionExpr(functionMap(name).getInstance, e.toArray)
+    def fn          = (fnName <~ OPEN_PAREN) ~ (repsep(argument, ",") <~ CLOSE_PAREN) ^^ {
+      case LitString(name) ~ e =>
+        FunctionExpr(functionMap(name).getInstance, e.toArray)
     }
     def strEq       = ("strEq" ~ OPEN_PAREN) ~> (transformExpr ~ "," ~ transformExpr) <~ CLOSE_PAREN ^^ {
-      case l ~ "," ~ r => StrEQ(l, r)
+      case l ~ "," ~ r => strBinOps(EQ)(l, r)
     }
     def numericPredicate[I](fn: String, predBuilder: (Expr, Expr) => BinaryPredicate[I])       =
       (fn ~ OPEN_PAREN) ~> (transformExpr ~ "," ~ transformExpr) <~ CLOSE_PAREN ^^ {
         case l ~ "," ~ r => predBuilder(l, r)
       }
-    def intEq     = numericPredicate("intEq", IntEQ)
-    def intLTEq   = numericPredicate("intLTEq", IntLTEQ)
-    def intLT     = numericPredicate("intLT", IntLT)
-    def intGTEq   = numericPredicate("intGTEq", IntGTEQ)
-    def intGT     = numericPredicate("intGT", IntGT)
-    def longEq    = numericPredicate("longEq", LonEQ)
-    def longLTEq  = numericPredicate("longLTEq", LonLTEQ)
-    def longLT    = numericPredicate("longLT", LonLT)
-    def longGTEq  = numericPredicate("longGTEq", LonGTEQ)
-    def longGT    = numericPredicate("longGT", LonGT)
-    def dEq       = numericPredicate("dEq", DEQ)
-    def dLTEq     = numericPredicate("dLTEq", DLTEQ)
-    def dLT       = numericPredicate("dLT", DLT)
-    def dGTEq     = numericPredicate("dGTEq", DGTEQ)
-    def dGT       = numericPredicate("dGT", DGT)
 
-    def binaryPred  =
+    def getBinPreds[T](t: String, bops: Map[String, ExprToBinPred[T]]) =
+      bops.map{case (n, op) => numericPredicate(t+n, op) }.reduce(_ | _)
+
+    def binaryPred =
       strEq |
-        intEq  | intLTEq  | intLT  | intGTEq  | intGT  |
-        dEq    | dLTEq    | dLT    | dGTEq    | dGT    |
-        longEq | longLTEq | longLT | longGTEq | longGT
+      getBinPreds("int",    intBinOps)    |
+      getBinPreds("long",   longBinOps)   |
+      getBinPreds("float",  floatBinOps)  |
+      getBinPreds("double", doubleBinOps) |
+      getBinPreds("bool",   boolBinOps)
 
     def andPred     = ("and" ~ OPEN_PAREN) ~> (pred ~ "," ~ pred) <~ CLOSE_PAREN ^^ {
       case l ~ "," ~ r => And(l, r)
@@ -91,18 +95,50 @@ object Transformers extends JavaTokenParsers {
     }
     def logicPred = andPred | orPred | notPred
     def pred: Parser[Predicate] = binaryPred | logicPred
-    def expr = fn | wholeRecord | regexExpr | fieldLookup | column | lit
-    def transformExpr: Parser[Expr] = cast2double | cast2int | expr
+    def expr =
+      fn |
+        wholeRecord |
+        regexExpr |
+        fieldLookup |
+        column |
+        lit
+    def transformExpr: Parser[Expr] = cast2double | cast2int | cast2boolean | cast2float | cast2long | expr
+    def argument = transformExpr | string
   }
 
-  class EvaluationContext(var fieldNameMap: mutable.HashMap[String, Int], var computedFields: Array[Any]) {
-    private var count: Int = 0
+  trait Counter {
+    def incSuccess(): Unit
+    def getSuccess: Int
+
+    def incFailure(): Unit
+    def getFailure: Int
+
+    def incLineCount(): Unit
+    def getLineCount: Int
+    def setLineCount(i: Int)
+  }
+
+  class DefaultCounter extends Counter {
+    private var c: Int = 0
+    private var s: Int = 0
+    private var f: Int = 0
+    private var skipped: Int = 0
+
+    override def incSuccess(): Unit = s +=1
+    override def getSuccess: Int = s
+
+    override def incFailure(): Unit = f += 1
+    override def getFailure: Int = f
+
+    override def incLineCount = c += 1
+    override def getLineCount: Int = c
+    override def setLineCount(i: Int) = c = i
+  }
+
+  class EvaluationContext(var fieldNameMap: mutable.HashMap[String, Int], var computedFields: Array[Any], val counter: Counter = new DefaultCounter) {
     def indexOf(n: String): Int = fieldNameMap.getOrElse(n, -1)
     def lookup(i: Int) = if(i < 0) null else computedFields(i)
-    def getCount(): Int = count
-    def incrementCount(): Unit = count +=1
-    def setCount(i: Int) = count = i
-    def resetCount(): Unit = setCount(0)
+    def getCounter = counter
   }
 
   sealed trait Expr {
@@ -117,16 +153,24 @@ object Transformers extends JavaTokenParsers {
   case class LitString(value: String) extends Lit[String]
   case class LitInt(value: Integer) extends Lit[Integer]
   case class LitLong(value: Long) extends Lit[Long]
+  case class LitFloat(value: java.lang.Float) extends Lit[java.lang.Float]
   case class LitDouble(value: java.lang.Double) extends Lit[java.lang.Double]
+  case class LitBoolean(value: java.lang.Boolean) extends Lit[java.lang.Boolean]
+
   case class Cast2Int(e: Expr) extends Expr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = e.eval(args).asInstanceOf[String].toInt
   }
-
+  case class Cast2Long(e: Expr) extends Expr {
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = e.eval(args).asInstanceOf[String].toLong
+  }
+  case class Cast2Float(e: Expr) extends Expr {
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = e.eval(args).asInstanceOf[String].toFloat
+  }
   case class Cast2Double(e: Expr) extends Expr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = e.eval(args).asInstanceOf[String].toDouble
   }
-  case class Cast2Long(e: Expr) extends Expr {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = e.eval(args).asInstanceOf[String].toLong
+  case class Cast2Boolean(e: Expr) extends Expr {
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = e.eval(args).asInstanceOf[String].toBoolean
   }
 
   case object WholeRecord extends Expr {
@@ -165,25 +209,56 @@ object Transformers extends JavaTokenParsers {
       isEqual(left.eval(args).asInstanceOf[T], right.eval(args).asInstanceOf[T])
   }
 
-  def buildPred[T](f: (T, T) => Boolean): (Expr, Expr) => BinaryPredicate[T] = new BinaryPredicate[T](_, _, f)
+  def buildPred[T](f: (T, T) => Boolean): ExprToBinPred[T] = new BinaryPredicate[T](_, _, f)
 
-  val StrEQ    = buildPred[String](_.equals(_))
-  val IntEQ    = buildPred[Int](_ == _)
-  val IntLTEQ  = buildPred[Int](_ <= _)
-  val IntLT    = buildPred[Int](_ < _)
-  val IntGTEQ  = buildPred[Int](_ >= _)
-  val IntGT    = buildPred[Int](_ > _)
-  val LonEQ    = buildPred[Long](_ == _)
-  val LonLTEQ  = buildPred[Long](_ <= _)
-  val LonLT    = buildPred[Long](_ < _)
-  val LonGTEQ  = buildPred[Long](_ >= _)
-  val LonGT    = buildPred[Long](_ > _)
-  val DEQ      = buildPred[Double](_ == _)
-  val DLTEQ    = buildPred[Double](_ <= _)
-  val DLT      = buildPred[Double](_ < _)
-  val DGTEQ    = buildPred[Double](_ >= _)
-  val DGT      = buildPred[Double](_ > _)
-  
+  type ExprToBinPred[T] = (Expr, Expr) => BinaryPredicate[T]
+
+  val intBinOps = Map[String, ExprToBinPred[Int]](
+      EQ   -> buildPred[Int](_ == _),
+      LT   -> buildPred[Int](_ < _ ),
+      GT   -> buildPred[Int](_ > _ ),
+      LTEQ -> buildPred[Int](_ <= _),
+      GTEQ -> buildPred[Int](_ >= _),
+      NEQ  -> buildPred[Int](_ != _)
+    )
+
+  val longBinOps = Map[String, ExprToBinPred[Long]](
+      EQ   -> buildPred[Long](_ == _),
+      LT   -> buildPred[Long](_ < _ ),
+      GT   -> buildPred[Long](_ > _ ),
+      LTEQ -> buildPred[Long](_ <= _),
+      GTEQ -> buildPred[Long](_ >= _),
+      NEQ  -> buildPred[Long](_ != _)
+    )
+
+  val floatBinOps = Map[String, ExprToBinPred[Float]](
+      EQ   -> buildPred[Float](_ == _),
+      LT   -> buildPred[Float](_ < _ ),
+      GT   -> buildPred[Float](_ > _ ),
+      LTEQ -> buildPred[Float](_ <= _),
+      GTEQ -> buildPred[Float](_ >= _),
+      NEQ  -> buildPred[Float](_ != _)
+    )
+
+  val doubleBinOps = Map[String, ExprToBinPred[Double]](
+      EQ   -> buildPred[Double](_ == _),
+      LT   -> buildPred[Double](_ < _ ),
+      GT   -> buildPred[Double](_ > _ ),
+      LTEQ -> buildPred[Double](_ <= _),
+      GTEQ -> buildPred[Double](_ >= _),
+      NEQ  -> buildPred[Double](_ != _)
+    )
+
+  val boolBinOps = Map[String, ExprToBinPred[Boolean]](
+      EQ  -> buildPred[Boolean](_ == _),
+      NEQ -> buildPred[Boolean](_ != _)
+    )
+
+  val strBinOps = Map[String, ExprToBinPred[String]](
+      EQ  -> buildPred[String](_.equals(_)),
+      NEQ -> buildPred[String]( (a, b) => !(a.equals(b)))
+    )
+
   case class Not(p: Predicate) extends Predicate {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean = !p.eval(args)
   }
@@ -197,8 +272,15 @@ object Transformers extends JavaTokenParsers {
   val And = buildBinaryLogicPredicate(_ && _)
   val Or  = buildBinaryLogicPredicate(_ || _)
 
-  def parseTransform(s: String): Expr = parse(TransformerParser.transformExpr, s).get
-  def parsePred(s: String): Predicate = parse(TransformerParser.pred, s).get
+  def parseTransform(s: String): Expr = {
+    logger.trace(s"Parsing transform $s")
+    parse(TransformerParser.transformExpr, s).get
+  }
+
+  def parsePred(s: String): Predicate = {
+    logger.trace(s"Parsing predicate $s")
+    parse(TransformerParser.pred, s).get
+  }
 
 }
 
@@ -225,13 +307,14 @@ trait TransformerFunctionFactory {
 class StringFunctionFactory extends TransformerFunctionFactory {
 
   override def functions: Seq[TransformerFn] =
-    Seq(stripQuotes, strLen, trim, capitalize, lowercase, regexReplace, concat,  substr, string)
+    Seq(stripQuotes, strLen, trim, capitalize, lowercase, uppercase, regexReplace, concat,  substr, string)
 
   val stripQuotes  = TransformerFn("stripQuotes")  { args => args(0).asInstanceOf[String].replaceAll("\"", "") }
   val strLen       = TransformerFn("strlen")       { args => args(0).asInstanceOf[String].length }
   val trim         = TransformerFn("trim")         { args => args(0).asInstanceOf[String].trim }
   val capitalize   = TransformerFn("capitalize")   { args => args(0).asInstanceOf[String].capitalize }
   val lowercase    = TransformerFn("lowercase")    { args => args(0).asInstanceOf[String].toLowerCase }
+  val uppercase    = TransformerFn("uppercase")    { args => args(0).asInstanceOf[String].toUpperCase }
   val regexReplace = TransformerFn("regexReplace") { args => args(0).asInstanceOf[Regex].replaceAllIn(args(2).asInstanceOf[String], args(1).asInstanceOf[String]) }
   val concat       = TransformerFn("concat")       { args => s"${args(0)}${args(1)}" }
   val substr       = TransformerFn("substr")       { args => args(0).asInstanceOf[String].substring(args(1).asInstanceOf[Int], args(2).asInstanceOf[Int]) }
@@ -243,14 +326,14 @@ class DateFunctionFactory extends TransformerFunctionFactory {
   override def functions: Seq[TransformerFn] =
     Seq(now, customFormatDateParser, datetime, isodate, isodatetime, basicDateTimeNoMillis, dateHourMinuteSecondMillis, millisToDate)
 
-  val now = TransformerFn("now") { args => DateTime.now.toDate }
-  val customFormatDateParser = CustomFormatDateParser()
-  val datetime = StandardDateParser("datetime", ISODateTimeFormat.dateTime().withZoneUTC())
-  val isodate = StandardDateParser("isodate", ISODateTimeFormat.basicDate().withZoneUTC())
-  val isodatetime = StandardDateParser("isodatetime", ISODateTimeFormat.basicDateTime().withZoneUTC())
-  val basicDateTimeNoMillis = StandardDateParser("basicDateTimeNoMillis", ISODateTimeFormat.basicDateTimeNoMillis().withZoneUTC())
-  val dateHourMinuteSecondMillis = StandardDateParser("dateHourMinuteSecondMillis", ISODateTimeFormat.dateHourMinuteSecondMillis().withZoneUTC())
-  val millisToDate = TransformerFn("millisToDate") { args => new Date(args(0).asInstanceOf[Long]) }
+  val now                         = TransformerFn("now") { args => DateTime.now.toDate }
+  val customFormatDateParser      = CustomFormatDateParser()
+  val datetime                    = StandardDateParser("datetime", ISODateTimeFormat.dateTime().withZoneUTC())
+  val isodate                     = StandardDateParser("isodate", ISODateTimeFormat.basicDate().withZoneUTC())
+  val isodatetime                 = StandardDateParser("isodatetime", ISODateTimeFormat.basicDateTime().withZoneUTC())
+  val basicDateTimeNoMillis       = StandardDateParser("basicDateTimeNoMillis", ISODateTimeFormat.basicDateTimeNoMillis().withZoneUTC())
+  val dateHourMinuteSecondMillis  = StandardDateParser("dateHourMinuteSecondMillis", ISODateTimeFormat.dateHourMinuteSecondMillis().withZoneUTC())
+  val millisToDate                = TransformerFn("millisToDate") { args => new Date(args(0).asInstanceOf[Long]) }
 
   case class StandardDateParser(name: String, format: DateTimeFormatter) extends TransformerFn {
     override def eval(args: Array[Any])(implicit ctx: Transformers.EvaluationContext): Any = format.parseDateTime(args(0).toString).toDate
@@ -336,7 +419,88 @@ class LineNumberFunctionFactory extends TransformerFunctionFactory {
   case class LineNumberFn() extends TransformerFn {
     override def getInstance: LineNumberFn = LineNumberFn()
     override def name: String = "lineNo"
-    def eval(args: Array[Any])(implicit ctx: Transformers.EvaluationContext): Any = ctx.getCount()
+    def eval(args: Array[Any])(implicit ctx: Transformers.EvaluationContext): Any = ctx.getCounter.getLineCount
   }
 
+}
+
+class MapListFunctionFactory extends TransformerFunctionFactory {
+  override def functions = Seq(listFn, listParserFn, mapParserFn)
+
+  val defaultListDelim = ","
+  val defaultKVDelim   = "->"
+
+  private def determineClazz(s: String) = s.toLowerCase match {
+    case "string" | "str"   => classOf[String]
+    case "int" | "integer"  => classOf[java.lang.Integer]
+    case "long"             => classOf[java.lang.Long]
+    case "double"           => classOf[java.lang.Double]
+    case "float"            => classOf[java.lang.Float]
+    case "bool" | "boolean" => classOf[java.lang.Boolean]
+    case "bytes"            => classOf[Array[Byte]]
+    case "uuid"             => classOf[UUID]
+    case "date"             => classOf[java.util.Date]
+  }
+
+  import scala.collection.JavaConverters._
+
+  val listFn = TransformerFn("list") { args =>
+    args.toList.asJava
+  }
+
+  def convert(value: Any, clazz: Class[_]) =
+    Option(Converters.convert(value, clazz))
+      .getOrElse(throw new IllegalArgumentException(s"Could not convert value  '$value' to type ${clazz.getName})"))
+
+  val listParserFn = TransformerFn("parseList") { args =>
+    val clazz = determineClazz(args(0).asInstanceOf[String])
+    val s = args(1).asInstanceOf[String]
+    val delim = if (args.length >= 3) args(2).asInstanceOf[String] else defaultListDelim
+
+    if (s.isEmpty) {
+      List().asJava
+    } else {
+      s.split(delim).map(_.trim).map(convert(_, clazz)).toList.asJava
+    }
+  }
+
+  val mapParserFn = TransformerFn("parseMap") { args =>
+    val kv = args(0).asInstanceOf[String].split("->").map(_.trim)
+    val keyClazz = determineClazz(kv(0))
+    val valueClazz = determineClazz(kv(1))
+    val s: String = args(1).toString
+    val kvDelim: String = if (args.length >= 3) args(2).asInstanceOf[String] else defaultKVDelim
+    val pairDelim: String = if (args.length >= 4) args(3).asInstanceOf[String] else defaultListDelim
+
+    if (s.isEmpty) {
+      Map().asJava
+    } else {
+      s.split(pairDelim)
+        .map(_.split(kvDelim).map(_.trim))
+        .map { case Array(key, value) =>
+          (convert(key, keyClazz), convert(value, valueClazz))
+        }.toMap.asJava
+    }
+  }
+}
+
+class CastFunctionFactory extends TransformerFunctionFactory {
+  override def functions = Seq(string2double, string2int, string2float, string2long, string2boolean, string2integer)
+
+  val string2double = TransformerFn("string2double") {
+    args => { try { args(0).asInstanceOf[String].toDouble } catch { case e: Exception => args(1) } }
+  }
+  val string2int = TransformerFn("string2int") { str2intHelper() }
+  val string2integer = TransformerFn("string2integer") { str2intHelper() }
+  val string2float = TransformerFn("string2float") {
+    args => { try { args(0).asInstanceOf[String].toFloat } catch { case e: Exception => args(1) } }
+  }
+  val string2long = TransformerFn("string2long") {
+    args => { try { args(0).asInstanceOf[String].toLong } catch { case e: Exception => args(1) } }
+  }
+  val string2boolean = TransformerFn("string2boolean") {
+    args => { try { args(0).asInstanceOf[String].toBoolean } catch { case e: Exception => args(1) } }
+  }
+
+  def str2intHelper() = (args: Seq[Any]) => { try { args(0).asInstanceOf[String].toInt } catch { case e: Exception => args(1) } }
 }

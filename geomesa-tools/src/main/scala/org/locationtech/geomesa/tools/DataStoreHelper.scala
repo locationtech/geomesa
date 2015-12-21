@@ -8,12 +8,11 @@
 package org.locationtech.geomesa.tools
 
 import org.geotools.data.DataStoreFinder
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.{params => dsParams}
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
 import org.locationtech.geomesa.tools.commands.GeoMesaParams
 
 import scala.collection.JavaConversions._
-import scala.util.{Failure, Success, Try}
 
 class DataStoreHelper(params: GeoMesaParams) extends AccumuloProperties {
   lazy val instance = Option(params.instance).getOrElse(instanceName)
@@ -30,46 +29,11 @@ class DataStoreHelper(params: GeoMesaParams) extends AccumuloProperties {
     dsParams.mockParam.getName       -> params.useMock.toString)
 
   /**
-   * Create a new catalog table in geomesa if one does not already exist
-   * @throws Exception if the catalog already exists
-   */
-  def createNewDataStore(): AccumuloDataStore =
-    if (catalogExists) {
-      throw new Exception(s"Catalog already exists: ${params.catalog}")
-    } else {
-      getDataStore()
-    }
-  
-  private def getDataStore(): AccumuloDataStore =
-    Try({ DataStoreFinder.getDataStore(paramMap).asInstanceOf[AccumuloDataStore] }) match {
-      case Success(value) => value
-      case Failure(ex)    =>
-        val paramMsg = paramMap.map { case (k,v) => s"$k=$v" }.mkString(",")
-        throw new Exception(s"Cannot connect to Accumulo. Please check your configuration: $paramMsg", ex)
-    }
-
-  /**
-   * Test whether or not the catalog already exists
-   * @return
-   */
-  def catalogExists() =
-    AccumuloDataStoreFactory.catalogExists(paramMap, params.useMock.toString.toBoolean)
-
-  /**
-   * Returns a data store for this catalog or creates one if it does not exist
-   * @return
-   */
-  def getOrCreateDs() = if (!catalogExists) createNewDataStore() else getDataStore()
-
-  /**
    * Get a handle to a datastore for a pre-existing catalog table
    * @throws Exception if the catalog table does not exist in accumulo
    */
-  def getExistingStore() =
-    if (catalogExists) {
-      getDataStore()
-    } else {
-      throw new Exception(s"Catalog does not exist: ${params.catalog}")
-    }
-  
+  def getDataStore() = Option(DataStoreFinder.getDataStore(paramMap).asInstanceOf[AccumuloDataStore]).getOrElse {
+    throw new Exception("Could not load a data store with the provided parameters: " +
+        s"${paramMap.map { case (k,v) => s"$k=$v" }.mkString(",")}")
+  }
 }
