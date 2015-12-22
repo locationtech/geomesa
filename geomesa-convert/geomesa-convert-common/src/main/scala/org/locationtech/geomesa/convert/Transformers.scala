@@ -47,17 +47,19 @@ object Transformers extends EnhancedTokenParsers with Logging {
     private val CLOSE_PAREN = ")"
 
     def decimal     = """\d*\.\d+""".r
-    def string      = quotedString ^^ { s => LitString(s) }
-    def int         = wholeNumber ^^ { i => LitInt(i.toInt) }
-    def double      = decimal <~ "[dD]?".r ^^ { d => LitDouble(d.toDouble) }
-    def long        = wholeNumber <~ "L" ^^   { l => LitLong(l.toLong) }
-    def float       = decimal <~ "[fF]".r ^^ { l => LitFloat(l.toFloat) }
-    def boolean     = "false|true".r ^^ { l => LitBoolean(l.toBoolean) }
-    def nulls       = "null" ^^ { _ => LitNull }
+    def string      = quotedString         ^^ { s => LitString(s)            }
+    def int         = wholeNumber          ^^ { i => LitInt(i.toInt)         }
+    def double      = decimal <~ "[dD]?".r ^^ { d => LitDouble(d.toDouble)   }
+    def long        = wholeNumber <~ "L"   ^^ { l => LitLong(l.toLong)       }
+    def float       = decimal <~ "[fF]".r  ^^ { l => LitFloat(l.toFloat)     }
+    def boolean     = "false|true".r       ^^ { l => LitBoolean(l.toBoolean) }
+    def nulls       = "null"               ^^ { _ => LitNull                 }
+
     def lit         = string | float | double | long | int | boolean | nulls // order is important - most to least specific
-    def wholeRecord = "$0" ^^ { _ => WholeRecord }
-    def regexExpr   = string <~ "::r" ^^ { case LitString(s) => RegexExpr(s) }
-    def column      = "$" ~> "[1-9][0-9]*".r ^^ { i => Col(i.toInt) }
+
+    def wholeRecord = "$0"                   ^^ { _ => WholeRecord                  }
+    def regexExpr   = string <~ "::r"        ^^ { case LitString(s) => RegexExpr(s) }
+    def column      = "$" ~> "[1-9][0-9]*".r ^^ { i => Col(i.toInt)                 }
 
     def cast2int     = expr <~ "::int" ~ "(eger)?".r ^^ { e => Cast2Int(e)     }
     def cast2long    = expr <~ "::long"              ^^ { e => Cast2Long(e)    }
@@ -65,8 +67,8 @@ object Transformers extends EnhancedTokenParsers with Logging {
     def cast2double  = expr <~ "::double"            ^^ { e => Cast2Double(e)  }
     def cast2boolean = expr <~ "::bool" ~ "(ean)?".r ^^ { e => Cast2Boolean(e) }
 
-    def fieldLookup = "$" ~> ident ^^ { i => FieldLookup(i) }
-    def fnName      = ident ^^ { n => LitString(n) }
+    def fieldLookup = "$" ~> ident                   ^^ { i => FieldLookup(i)  }
+    def fnName      = ident                          ^^ { n => LitString(n)    }
     def tryFn       = ("try" ~ OPEN_PAREN) ~> (argument ~ "," ~ argument) <~ CLOSE_PAREN ^^ {
       case arg ~ ","  ~ fallback => TryFunctionExpr(arg, fallback)
     }
@@ -160,11 +162,14 @@ object Transformers extends EnhancedTokenParsers with Logging {
 
   sealed trait Expr {
     def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any
+    def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String]
   }
 
   sealed trait Lit[T <: Any] extends Expr {
     def value: T
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = value
+
+    override def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String] = Seq()
   }
 
   case class LitString(value: String) extends Lit[String]
@@ -175,33 +180,41 @@ object Transformers extends EnhancedTokenParsers with Logging {
   case class LitBoolean(value: java.lang.Boolean) extends Lit[java.lang.Boolean]
   case object LitNull extends Lit[AnyRef] { override def value = null }
 
-  case class Cast2Int(e: Expr) extends Expr {
+  sealed trait CastExpr extends Expr {
+    def e: Expr
+    override def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String] = e.dependenciesOf(fieldNameMap)
+  }
+  case class Cast2Int(e: Expr) extends CastExpr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
       e.eval(args).asInstanceOf[String].toInt
   }
-  case class Cast2Long(e: Expr) extends Expr {
+  case class Cast2Long(e: Expr) extends CastExpr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
       e.eval(args).asInstanceOf[String].toLong
   }
-  case class Cast2Float(e: Expr) extends Expr {
+  case class Cast2Float(e: Expr) extends CastExpr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
       e.eval(args).asInstanceOf[String].toFloat
   }
-  case class Cast2Double(e: Expr) extends Expr {
+  case class Cast2Double(e: Expr) extends CastExpr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
       e.eval(args).asInstanceOf[String].toDouble
   }
-  case class Cast2Boolean(e: Expr) extends Expr {
+  case class Cast2Boolean(e: Expr) extends CastExpr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
       e.eval(args).asInstanceOf[String].toBoolean
   }
 
   case object WholeRecord extends Expr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = args(0)
+
+    override def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String] = Seq()
   }
 
   case class Col(i: Int) extends Expr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = args(i)
+
+    override def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String] = Seq()
   }
 
   case class FieldLookup(n: String) extends Expr {
@@ -212,22 +225,33 @@ object Transformers extends EnhancedTokenParsers with Logging {
       }
       ctx.get(idx)
     }
+
+    override def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String] =
+      Seq(n) ++ fieldNameMap.get(n).flatMap { f => Option(f.transform).map(_.dependenciesOf(fieldNameMap)) }.getOrElse(Seq.empty)
   }
 
   case class RegexExpr(s: String) extends Expr {
     val compiled = s.r
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = compiled
+
+    override def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String] = Seq()
   }
 
   case class FunctionExpr(f: TransformerFn, arguments: Array[Expr]) extends Expr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
       f.eval(arguments.map(_.eval(args)))
+
+    override def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String] =
+      arguments.flatMap(_.dependenciesOf(fieldNameMap))
   }
 
   case class TryFunctionExpr(toTry: Expr, fallback: Expr) extends Expr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
       Try(toTry.eval(args)).getOrElse(fallback.eval(args))
     }
+
+    override def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String] =
+      toTry.dependenciesOf(fieldNameMap) ++ fallback.dependenciesOf(fieldNameMap)
   }
 
   sealed trait Predicate {

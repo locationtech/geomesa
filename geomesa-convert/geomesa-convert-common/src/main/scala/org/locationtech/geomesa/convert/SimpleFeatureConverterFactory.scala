@@ -100,26 +100,15 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
   def fromInputType(i: I): Seq[Array[Any]]
   val fieldNameMap = inputFields.map { f => (f.name, f) }.toMap
 
-  def dependenciesOf(e: Expr): Seq[String] = e match {
-    case FieldLookup(field)    => Seq(field) ++ dependenciesOf(fieldNameMap.get(field).map(_.transform).orNull)
-    case FunctionExpr(_, args) => args.flatMap { arg => dependenciesOf(arg) }
-    case Cast2Int(exp)         => dependenciesOf(exp)
-    case Cast2Long(exp)        => dependenciesOf(exp)
-    case Cast2Float(exp)       => dependenciesOf(exp)
-    case Cast2Double(exp)      => dependenciesOf(exp)
-    case Cast2Boolean(exp)     => dependenciesOf(exp)
-    case _                     => Seq()
-  }
-
   // compute only the input fields that we need to deal with to populate the simple feature
   val attrRequiredFieldsNames = targetSFT.getAttributeDescriptors.flatMap { ad =>
     val name = ad.getLocalName
     fieldNameMap.get(name).fold(Seq.empty[String]) { field =>
-      Seq(name) ++ dependenciesOf(field.transform)
+      Seq(name) ++ Option(field.transform).map(_.dependenciesOf(fieldNameMap)).getOrElse(Seq.empty)
     }
   }.toSet
 
-  val idDependencies = dependenciesOf(idBuilder)
+  val idDependencies = idBuilder.dependenciesOf(fieldNameMap)
   val requiredFieldsNames: Set[String] = attrRequiredFieldsNames ++ idDependencies
   val requiredFields = inputFields.filter(f => requiredFieldsNames.contains(f.name))
   val nfields = requiredFields.length
