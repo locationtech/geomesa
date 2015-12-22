@@ -26,6 +26,7 @@ object Runner extends Logging {
       new DeleteCatalogCommand(jc),
       new DeleteRasterCommand(jc),
       new DescribeCommand(jc),
+      new EnvironmentCommand(jc),
       new ExplainCommand(jc),
       new ExportCommand(jc),
       new HelpCommand(jc),
@@ -51,8 +52,7 @@ object Runner extends Logging {
         sys.exit(-1)
     }
 
-    val command: Command =
-      commandMap.get(jc.getParsedCommand).getOrElse(new DefaultCommand(jc))
+    val command: Command = commandMap.getOrElse(jc.getParsedCommand, new DefaultCommand(jc))
 
     try {
       command.execute()
