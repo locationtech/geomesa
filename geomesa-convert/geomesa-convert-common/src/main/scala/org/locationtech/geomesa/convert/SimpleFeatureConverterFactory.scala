@@ -81,16 +81,31 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
   val fieldNameMap = inputFields.map { f => (f.name, f) }.toMap
 
   def dependenciesOf(e: Expr): Seq[String] = e match {
-    case FieldLookup(i)         => Seq(i) ++ dependenciesOf(fieldNameMap.get(i).map(_.transform).orNull)
-    case FunctionExpr(_, args)  => args.flatMap { arg => dependenciesOf(arg) }
-    case _                      => Seq()
+    case FieldLookup(field)    => Seq(field) ++ dependenciesOf(fieldNameMap.get(field).map(_.transform).orNull)
+    case FunctionExpr(_, args) => args.flatMap { arg => dependenciesOf(arg) }
+    case Cast2Int(exp)         => dependenciesOf(exp)
+    case Cast2Long(exp)        => dependenciesOf(exp)
+    case Cast2Float(exp)       => dependenciesOf(exp)
+    case Cast2Double(exp)      => dependenciesOf(exp)
+    case Cast2Boolean(exp)     => dependenciesOf(exp)
+    case _                     => Seq()
   }
 
-  val fields = inputFields.toIndexedSeq // load the input fields once, copy for safety
-  val nfields = fields.length
+  // compute only the input fields that we need to deal with to populate the simple feature
+  val attrRequiredFieldsNames = targetSFT.getAttributeDescriptors.flatMap { ad =>
+    val name = ad.getLocalName
+    fieldNameMap.get(name).fold(Seq.empty[String]) { field =>
+      Seq(name) ++ dependenciesOf(field.transform)
+    }
+  }.toSet
 
-  val sftIndices = fields.map(f => targetSFT.indexOf(f.name))
-  val inputFieldIndexes = mutable.HashMap.empty[String, Int] ++= fields.map(_.name).zipWithIndex.toMap
+  val idDependencies = dependenciesOf(idBuilder)
+  val requiredFieldsNames: Set[String] = attrRequiredFieldsNames ++ idDependencies
+  val requiredFields = inputFields.filter(f => requiredFieldsNames.contains(f.name))
+  val nfields = requiredFields.length
+
+  val sftIndices = requiredFields.map(f => targetSFT.indexOf(f.name))
+  val inputFieldIndexes = mutable.HashMap.empty[String, Int] ++= requiredFields.map(_.name).zipWithIndex.toMap
 
   var reuse: Array[Any] = null
 
@@ -101,7 +116,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging
 
     var i = 0
     while (i < nfields) {
-      reuse(i) = fields(i).eval(t)
+      reuse(i) = requiredFields(i).eval(t)
       val sftIndex = sftIndices(i)
       if (sftIndex != -1) {
         sfValues.update(sftIndex, reuse(i).asInstanceOf[AnyRef])
