@@ -11,7 +11,7 @@ package org.locationtech.geomesa.convert
 import java.io.Closeable
 import javax.imageio.spi.ServiceRegistry
 
-import com.typesafe.config.Config
+import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.slf4j.Logging
 import org.locationtech.geomesa.convert.Transformers._
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -49,10 +49,27 @@ trait SimpleFeatureConverterFactory[I] {
 }
 
 object SimpleFeatureConverters {
+
+  import org.locationtech.geomesa.utils.conf.ConfConversions._
+
+  val ConfigPathProperty = "org.locationtech.geomesa.converter.config.path"
+
   val providers = ServiceRegistry.lookupProviders(classOf[SimpleFeatureConverterFactory[_]]).toList
 
+  lazy val confs: List[(String, Config)] = {
+    val config = ConfigFactory.load()
+    val path = sys.props.getOrElse(ConfigPathProperty, "geomesa.converters")
+    if (!config.hasPath(path)) {
+      List.empty
+    } else {
+      config.getConfigList(path).map { c =>
+        val name = c.getStringOpt("name").orElse(c.getStringOpt("type").map(t => s"unknown[$t]")).getOrElse("unknown")
+        (name, c)
+      }.toList
+    }
+  }
+
   def build[I](sft: SimpleFeatureType, conf: Config, path: Option[String] = None) = {
-    import org.locationtech.geomesa.utils.conf.ConfConversions._
     val converterConfig =
       (path.toSeq ++ Seq("converter", "input-converter"))
         .foldLeft(conf)( (c, p) => c.getConfigOpt(p).map(c.withFallback).getOrElse(c))
