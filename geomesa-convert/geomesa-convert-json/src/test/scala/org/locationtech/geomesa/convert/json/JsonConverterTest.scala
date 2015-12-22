@@ -57,7 +57,6 @@ class JsonConverterTest extends Specification {
     """.stripMargin)
 
   val sft = SimpleFeatureTypes.createType(sftConfPoint)
-  implicit val ec = new EvaluationContext(null, null)
 
   "Json Converter" should {
 

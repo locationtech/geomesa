@@ -28,10 +28,10 @@
     <category name="hsqldb">
         <priority value="warn"/>
     </category>
-
-    <category name="org.locationtech.geomesa.convert.text.DelimitedTextConverter">
+    <category name="org.locationtech.geomesa.convert.xml.XMLConverter">
         <priority value="error"/>
     </category>
+
     <!-- un-comment the following line to enable verbose log messages
          from the index query-planner; this can be helpful in debugging
          query plans -->
@@ -42,7 +42,7 @@
     -->
 
     <root>
-        <priority value="warn"/>
+        <priority value="info"/>
         <appender-ref ref="CONSOLE" />
     </root>
 </log4j:configuration>

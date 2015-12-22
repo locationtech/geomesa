@@ -14,7 +14,6 @@ import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.camel.CamelContext
 import org.apache.camel.impl._
 import org.apache.camel.scala.dsl.builder.RouteBuilder
-import org.locationtech.geomesa.convert.Transformers.EvaluationContext
 import org.locationtech.geomesa.convert.{SimpleFeatureConverter, SimpleFeatureConverters}
 import org.locationtech.geomesa.stream.{SimpleFeatureStreamSource, SimpleFeatureStreamSourceFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -66,7 +65,7 @@ class GenericSimpleFeatureStreamSource(val ctx: CamelContext,
     ctx.addRoutes(route)
     parsers = List.fill(threads)(parserFactory())
     es = Executors.newCachedThreadPool()
-    parsers.foreach { p => es.submit(getQueueProcessor(p))}
+    parsers.foreach { p => es.submit(getQueueProcessor(p)) }
   }
 
   def getProcessingRoute(inQ: LinkedBlockingQueue[String]): RouteBuilder = new RouteBuilder {
@@ -78,26 +77,21 @@ class GenericSimpleFeatureStreamSource(val ctx: CamelContext,
   def getQueueProcessor(p: SimpleFeatureConverter[String]) = {
     new Runnable {
       override def run(): Unit = {
-        implicit val ec = new EvaluationContext(null, null)
         var running = true
-        while (running) {
-          try {
-            val s = inQ.poll(500, TimeUnit.MILLISECONDS)
-            if (s != null) {
-              try {
-                p.processSingleInput(s).foreach { res => outQ.put(res) }
-              } catch {
-                case t: Throwable =>
-                  logger.debug(s"Could not process: '$s'")
-              }
+        val input = new Iterator[String] {
+          override def hasNext: Boolean = running
+          override def next(): String = {
+            var res: String = null
+            while (res == null) {
+              res = inQ.take() // blocks
             }
-          } catch {
-            case t: InterruptedException =>
-              running = false
-
-            case t: Throwable =>
-              logger.debug("Failed", t)
+            res
           }
+        }
+        try {
+          p.processInput(input).foreach(outQ.put)
+        } catch {
+          case t: InterruptedException => running = false
         }
       }
     }
