@@ -79,7 +79,6 @@
             <artifactId>geomesa-utils-geoserver-plugin</artifactId>
             <classifier>geoserver-plugin</classifier>
             <version>${project.version}</version>
-            <type>zip</type>
         </dependency>
 
         <!-- Web Services -->
