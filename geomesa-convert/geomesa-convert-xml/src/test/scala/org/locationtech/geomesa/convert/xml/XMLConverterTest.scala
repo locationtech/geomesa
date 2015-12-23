@@ -23,7 +23,6 @@ class XMLConverterTest extends Specification {
     """.stripMargin)
 
   val sft = SimpleFeatureTypes.createType(sftConf)
-  implicit val ec = new EvaluationContext(null, null)
 
   "XML Converter" should {
 

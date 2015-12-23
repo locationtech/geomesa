@@ -42,8 +42,8 @@ class CompositeTextConverterTest extends Specification {
       |       fields = [
       |         { name = "phrase", transform = "concat($1, $2)" },
       |         { name = "lineNr", transform = "lineNo()" },
-      |         { name = "lat",    transform = "string2double($3, '0.0'::double)" },
-      |         { name = "lon",    transform = "string2double($4, '0.0'::double)" },
+      |         { name = "lat",    transform = "stringToDouble($3, '0.0'::double)" },
+      |         { name = "lon",    transform = "stringToDouble($4, '0.0'::double)" },
       |         { name = "geom",   transform = "point($lat, $lon)" }
       |       ]
       |     }
@@ -56,8 +56,8 @@ class CompositeTextConverterTest extends Specification {
       |       id-field     = "concat('second', trim($1))",
       |       fields = [
       |         { name = "phrase", transform = "concat($1, $2)" },
-      |         { name = "lat",    transform = "string2double($3, '0.0'::double)" },
-      |         { name = "lon",    transform = "string2double($4, '0.0'::double)" },
+      |         { name = "lat",    transform = "stringToDouble($3, '0.0'::double)" },
+      |         { name = "lon",    transform = "stringToDouble($4, '0.0'::double)" },
       |         { name = "geom",   transform = "point($lat, $lon)" }
       |         { name = "lineNr", transform = "lineNo()" }
       |       ]

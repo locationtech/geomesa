@@ -1,4 +1,4 @@
-A configurable and extensible library for converting data into SimpleFeatures
+A configurable and extensible library for converting data into SimpleFeatures.
 
 ## Overview
 
@@ -17,7 +17,7 @@ transformations is very much like ```awk``` syntax.  Fields with names that corr
 attributes in the ```SimpleFeatureType``` are assumed to be intermediate fields used for deriving attributes.  Fields 
 can reference other fields by name for building up complex attributes.
 
-## Example usage
+## Example Usage
 
 Suppose you have a ```SimpleFeatureType``` with the following schema: ```phrase:String,dtg:Date,geom:Point:srid=4326``` 
 and comma-separated data as shown below.
@@ -34,7 +34,7 @@ appropriate converter for taking this csv data and transforming it into our ```S
       format       = "CSV",
       id-field     = "md5($0)",
       fields = [
-        { name = "phrase", transform = "concat($1, $2)" },
+        { name = "phrase", transform = "concatenate($1, $2)" },
         { name = "lat",    transform = "$4::double" },
         { name = "lon",    transform = "$5::double" },
         { name = "dtg",    transform = "dateHourMinuteSecondMillis($3)" },
@@ -45,51 +45,59 @@ appropriate converter for taking this csv data and transforming it into our ```S
 The ```id``` of the ```SimpleFeature``` is formed from an md5 hash of the entire record (```$0``` is the original data) 
 and the other fields are formed from appropriate transforms.
 
-## Transformation functions
+## Transformation Functions
 
 Provided transformation functions are listed below.
 
-### String functions
+### Control Functions
+* ```try```
+
+### String Functions
  * ```stripQuotes```
- * ```strlen```
+ * ```length```
  * ```trim```
  * ```capitalize```
  * ```lowercase```
  * ```regexReplace```
- * ```concat```
- * ```substr```
+ * ```concatenate```
+ * ```substring```
  * ```toString```
  
-### Date functions
+### Date Functions
  * ```now```
  * ```date```
- * ```datetime```
- * ```isodate``` 
- * ```isodatetime```
+ * ```dateTime```
+ * ```basicDate``` 
+ * ```basicDateTime```
  * ```basicDateTimeNoMillis```
  * ```dateHourMinuteSecondMillis```
  * ```millisToDate```
  * ```secsToDate```
 
-### Geometry functions
+### Geometry Functions
   * ```point```
   * ```linestring```
   * ```polygon```
   * ```geometry```
   
 ### ID Functions
- * ```string2bytes```
+ * ```stringToBytes```
  * ```md5```
  * ```uuid```
  * ```base64```
  
-### Data Casting
- * ```::int```
+### Type Conversions
+ * ```::int``` or ```::integer```
  * ```::long```
  * ```::float```
  * ```::double```
  * ```::boolean```
  * ```::r```
+ * ```stringToInt``` or ```stringToInteger```
+ * ```stringToLong```
+ * ```stringToFloat```
+ * ```stringToDouble```
+ * ```stringToBoolean```
 
 ### List and Map Parsing
  * ```parseList```
@@ -98,109 +106,154 @@ Provided transformation functions are listed below.
 ### JSON/Avro Transformations
 
 See Parsing Json and Parsing Avro sections
-  
+
 ## Transformation Function Usage
 
-### String functions
-#### ```stripQuotes``` - Remove double quotes from a string
+### Control Functions
+
+#### try
+
+Description: Execute another function - if it fails, instead use a default value
+
+Usage: ```try($1, $2)```
+
+Example: ```try("1"::int, 0) = 1```
+
+Example: ```try("abcd"::int, 0) = 0```
+
+### String Functions
+
+#### stripQuotes
+
+Description: Remove double quotes from a string.
 
 Usage: ```stripQuotes($1)```
 
 Example: ```stripQuotes('fo"o') = foo```
 
-#### ```strlen``` - Returns length of a string
+#### length
 
-Usage: ```strlen($1)```
+Description: Returns the length of a string.
 
-Example: ```strlen('foo') = 3```
+Usage: ```length($1)```
 
-#### ```trim``` - Trim whitespace from around a string
+Example: ```length('foo') = 3```
+
+#### trim
+
+Description: Trim whitespace from around a string.
 
 Usage: ```trim($1)```
 
 Example: ```trim('  foo ') = foo```
 
-#### ```capitalize``` - Capitalize a string
+#### capitalize
+
+Description: Capitalize a string.
 
 Usage: ```capitalize($1)```
 
 Example: ```capitalize('foo') = Foo```
 
-#### ```lowercase``` - Lowercase a string
+#### lowercase
+
+Description: Lowercase a string.
 
 Usage: ```lowercase($1)```
 
 Example: ```lowercase('FOO') = foo```
 
-#### ```uppercase``` - Uppercase a string
+#### uppercase
+
+Description: Uppercase a string.
 
 Usage: ```uppercase($1)```
 
 Example: ```uppercase('foo') = FOO```
 
-#### ```regexReplace``` - Replace a given pattern with a target pattern in a string
+#### regexReplace
+
+Description: Replace a given pattern with a target pattern in a string.
 
 Usage: ```regexReplace($regex, $replacement, $1)```
 
 Example: ```regexReplace('foo'::r, 'bar', 'foobar') = barbar```
 
-#### ```concat``` - Concatenate two strings
+#### concatenate
 
-Usage: ```concat($0, $1)```
+Description: Concatenate two strings.
 
-Example: ```concat('foo', 'bar') = foobar```
+Usage: ```concatenate($0, $1)```
 
-#### ```substr``` - Return the substring of a string
+Example: ```concatenate('foo', 'bar') = foobar```
 
-Usage: ```substr($1, $startIndex, $endIndex)```
+#### substring
 
-Example: ```substr('foobarbaz', 2, 5) = oba```
+Description: Return the substring of a string.
 
-#### ```toString``` - Convert another datatype to a string
+Usage: ```substring($1, $startIndex, $endIndex)```
+
+Example: ```substring('foobarbaz', 2, 5) = oba```
+
+#### toString
+
+Description: Convert another data type to a string.
 
 Usage: ```toString($0)```
 
-Example: ```concat(toString(5), toString(6)) = '56'```
+Example: ```concatenate(toString(5), toString(6)) = '56'```
  
-### Date functions
+### Date Functions
 
-#### ```now``` - Use the current system time
+#### now
+
+Description: Use the current system time.
 
 Usage: ```now()```
 
+#### date
 
-#### ```date``` - Custom date parser
+Description: Custom date parser.
 
 Usage: ```date($format, $1)```
 
 Example: ```date('YYYY-MM-dd\'T\'HH:mm:ss.SSSSSS', '2015-01-01T00:00:00.000000')```
-  
-  
-#### ```datetime``` - A strict ISO 8601 Date parser for format yyyy-MM-dd'T'HH:mm:ss.SSSZZ
+
+#### dateTime
+
+Description: A strict ISO 8601 Date parser for format ```yyyy-MM-dd'T'HH:mm:ss.SSSZZ```.
  
-Usage: ```datetime($1)```
+Usage: ```dateTime($1)```
 
-Example: ```datetime('2015-01-01T00:00:00.000Z')```
+Example: ```dateTime('2015-01-01T00:00:00.000Z')```
 
-#### ```isodate``` -  A basic date format for yyyyMMdd
+#### basicDate
 
-Usage: ```isodate($1)```
+Description: A basic date format for ```yyyyMMdd```.
 
-Example: ```isodate('20150101')```
+Usage: ```basicDate($1)```
 
-#### ```isodatetime``` -  A basic format that combines a basic date and time for format yyyyMMdd'T'HHmmss.SSSZ
+Example: ```basicDate('20150101')```
 
-Usage: ```isodatetime($1)```
+#### basicDateTime
 
-Example: ```isodatetime('20150101T000000.000Z')```
+Description: A basic format that combines a basic date and time for format ```yyyyMMdd'T'HHmmss.SSSZ```.
 
-#### ```basicDateTimeNoMillis``` - A basic format that combines a basic date and time with no millis for format yyyyMMdd'T'HHmmssZ
+Usage: ```basicDateTime($1)```
+
+Example: ```basicDateTime('20150101T000000.000Z')```
+
+#### basicDateTimeNoMillis
+
+Description: A basic format that combines a basic date and time with no millis for format ```yyyyMMdd'T'HHmmssZ```.
 
 Usage: ```basicDateTimeNoMillis($1)```
 
 Example: ```basicDateTimeNoMillis('20150101T000000Z')```
 
-#### ```dateHourMinuteSecondMillis``` - Formatter for full date, and time keeping the first 3 fractional seconds for format yyyy-MM-dd'T'HH:mm:ss.SSS
+#### dateHourMinuteSecondMillis
+
+Description: Formatter for full date, and time keeping the first 3 fractional seconds for format ```yyyy-MM-dd'T'HH:mm:ss.SSS```.
 
 Usage: ```dateHourMinuteSecondMillis($1)```
 
@@ -222,9 +275,11 @@ Usage: ```secsToDate($1)```
 
 Example: ```secsToDate(1449675054)```
 
-### Geometry functions
+### Geometry Functions
 
-#### ```point``` - Parse a Point geometry from lon/lat or WKT
+#### point
+
+Description: Parse a Point geometry from lon/lat or WKT.
 
 Usage: ```point($lon, $lat)``` or ```point($wkt)```
 
@@ -263,19 +318,25 @@ Example: Parsing WKT as a point
     ID,wkt,date
     1,POINT(2 3),2015-01-02
 
-#### ```linestring``` - Parse a linestring from a WKT string
+#### linestring
+
+Description: Parse a linestring from a WKT string.
 
 Usage: ```linestring($0)```
 
 Example: ```linestring('LINESTRING(102 0, 103 1, 104 0, 105 1)')```
 
-#### ```polygon``` - Parse a polygon from a WKT string
+#### polygon
+
+Description: Parse a polygon from a WKT string.
 
 Usage: ```polygon($0)```
 
 Example: ```polygon('polygon((100 0, 101 0, 101 1, 100 1, 100 0))')```
   
-#### ```geometry``` - Parse a geometry from a WKT string or GeoJson
+#### geometry
+
+Description: Parse a geometry from a WKT string or GeoJson.
   
 Example: Parsing WKT as a geometry
 
@@ -301,34 +362,125 @@ Example: Parsing GeoJson geometry
     
 ### ID Functions
 
-#### ```string2bytes``` - Converts a string to a UTF-8 byte array
+#### stringToBytes
 
-#### ```md5``` - Creates an MD5 hash from a byte array
+Description: Converts a string to a UTF-8 byte array.
+
+#### md5
+
+Description: Creates an MD5 hash from a byte array.
 
 Usage: ```md5($0)```
 
-Example: ```md5(string2bytes('row,of,data'))```
+Example: ```md5(stringToBytes('row,of,data'))```
 
-#### ```uuid``` - Generates a random UUID
+#### uuid
+
+Description: Generates a random UUID.
 
 Usage: ```uuid()```
 
-#### ```base64``` - Encodes a byte array as a base-64 string
+#### base64
+
+Description: Encodes a byte array as a base-64 string.
 
 Usage; ```base64($0)```
 
-Example: ```base64(string2bytes('foo'))```
+Example: ```base64(stringToBytes('foo'))```
  
-### Data Casting
- * ```::int```
- * ```::long```
- * ```::float```
- * ```::double```
- * ```::boolean```
- * ```::r``` - Converts a string to a Regex object
+### Type Conversions
+
+#### ::int or ::integer
+
+Description: Converts a string into an integer. Invalid values will cause the record to fail.
+
+Example: ```'1'::int = 1```
+
+#### ::long
+
+Description: Converts a string into a long. Invalid values will cause the record to fail.
+
+Example: ```'1'::long = 1L```
+
+#### ::float
+
+Description: Converts a string into a float. Invalid values will cause the record to fail.
+
+Example: ```'1.0'::float = 1.0f```
+
+#### ::double
+
+Description: Converts a string into a double. Invalid values will cause the record to fail.
+
+Example: ```'1.0'::double = 1.0d```
+
+#### ::boolean
+
+Description: Converts a string into a boolean. Invalid values will cause the record to fail.
+
+Example: ```'true'::boolean = true```
+
+#### ::r
+
+Description: Converts a string into a Regex object.
+
+Example: ```'f.*'::r = f.*: scala.util.matching.Regex```
+
+#### stringToInt or stringToInteger
+
+Description: Converts a string into a integer, with a default value if conversion fails.
+
+Usage; ```stringToInt($1, $2)```
+
+Example: ```stringToInt('1', 0) = 1```
+
+Example: ```stringToInt('', 0) = 0```
+
+#### stringToLong
+
+Description: Converts a string into a long, with a default value if conversion fails.
+
+Usage; ```stringToLong($1, $2)```
+
+Example: ```stringToLong('1', 0L) = 1L```
+
+Example: ```stringToLong('', 0L) = 0L```
+
+#### stringToFloat
+
+Description: Converts a string into a float, with a default value if conversion fails.
+
+Usage; ```stringToFloat($1, $2)```
+
+Example: ```stringToFloat('1.0', 0.0f) = 1.0f```
+
+Example: ```stringToFloat('not a float', 0.0f) = 0.0f```
+
+#### stringToDouble
+
+Description: Converts a string into a double, with a default value if conversion fails.
+
+Usage; ```stringToDouble($1, $2)```
+
+Example: ```stringToDouble('1.0', 0.0) = 1.0d```
+
+Example: ```stringToDouble(null, 0.0) = 0.0d```
+
+#### stringToBoolean
+
+Description: Converts a string into a boolean, with a default value if conversion fails.
+
+Usage; ```stringToBoolean($1, $2)```
+
+Example: ```stringToBoolean('true', false) = true```
+
+Example: ```stringToBoolean('55', false) = false```
 
 ### List and Map Parsing
-#### ```parseList``` - Parse a List[T] type from a string
+
+#### parseList
+
+Description: Parse a ```List[T]``` type from a string.
  
 If your SimpleFeatureType config contains a list or map you can easily configure a transform function to parse it using
 the ```parseList``` function which takes either 2 or 3 args
@@ -352,7 +504,9 @@ And a transform to parse the quoted CSV field:
 
     { name = "friends", transform = "parseList('string', $5)" }
 
-#### ```parseMap```
+#### parseMap
+
+Description: Parse a ```Map[T,V]``` type from a string.
 
 Parsing Maps is similar. Take for example this CSV data with a quoted map field:
 
@@ -532,7 +686,9 @@ We can define a converter config to parse the avro:
 GeoMesa Convert allows users to define "avropaths" to the data similar to a jsonpath or xpath. This AvroPath allows you 
 to extract out fields from avro records into SFT fields.
 
-#### ```avroPath``` - Extract values from nested Avro structures 
+#### avroPath
+
+Description: Extract values from nested Avro structures. 
  
 Usage: ```avroPath($ref, $pathString)```
 
@@ -541,11 +697,11 @@ Usage: ```avroPath($ref, $pathString)```
   * ```$type=<typename>``` - interpret the field name as an avro schema type
   * ```[$<field>=<value>]``` - select records with a field named "field" and a value equal to "value"
 
-## Extending the converter library
+## Extending the Converter Library
 
 There are two ways to extend the converter library - adding new transformation functions and adding new data formats.
 
-### Adding new transformation functions
+### Adding New Transformation Functions
 
 To add new transformation functions, create a ```TransformationFunctionFactory``` and register it in 
 ```META-INF/services/org.locationtech.geomesa.convert.TransformationFunctionFactory```.  For example, here's how to add 
@@ -567,11 +723,11 @@ The ```sha256``` function can then be used in a field as shown.
 
 ```
    fields: [
-      { name = "hash", transform = "sha256(string2bytes($0))" }
+      { name = "hash", transform = "sha256(stringToBytes($0))" }
    ]
 ```
 
-### Adding new data formats
+### Adding New Data Formats
 
 To add new data formats, implement the ```SimpleFeatureConverterFactory``` and ```SimpleFeatureConverter``` interfaces 
 and register them in ```META-INF/services``` appropriately.  See 

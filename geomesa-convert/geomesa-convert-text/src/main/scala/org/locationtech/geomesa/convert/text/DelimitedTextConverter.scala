@@ -14,7 +14,7 @@ import java.util.concurrent.Executors
 import com.google.common.collect.Queues
 import com.typesafe.config.Config
 import org.apache.commons.csv.{CSVFormat, QuoteMode}
-import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, DefaultCounter, Counter, Expr}
+import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
 import org.locationtech.geomesa.convert.{Field, SimpleFeatureConverterFactory, ToSimpleFeatureConverter}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -44,9 +44,9 @@ class DelimitedTextConverterFactory extends SimpleFeatureConverterFactory[String
     val opts = {
       import org.locationtech.geomesa.utils.conf.ConfConversions._
       val o = "options"
-      var dOpts = new DelimitedOptions()
-      dOpts = conf.getIntOpt(s"$o.skip-lines").map(s => dOpts.copy(skipLines = s)).getOrElse(dOpts)
-      dOpts = conf.getIntOpt(s"$o.pipe-size").map(p => dOpts.copy(pipeSize = p)).getOrElse(dOpts)
+      val dOpts = new DelimitedOptions()
+      conf.getIntOpt(s"$o.skip-lines").foreach(s => dOpts.skipLines = s)
+      conf.getIntOpt(s"$o.pipe-size").foreach(p => dOpts.pipeSize = p)
       dOpts
     }
 
@@ -56,8 +56,7 @@ class DelimitedTextConverterFactory extends SimpleFeatureConverterFactory[String
   }
 }
 
-case class DelimitedOptions(skipLines: Int = 0,
-                            pipeSize: Int = 16*1024)
+class DelimitedOptions(var skipLines: Int = 0, var pipeSize: Int = 16 * 1024)
 
 class DelimitedTextConverter(format: CSVFormat,
                              val targetSFT: SimpleFeatureType,
@@ -82,7 +81,6 @@ class DelimitedTextConverter(format: CSVFormat,
     override def run(): Unit = {
       while (true) {
         val s = q.take()
-
         // make sure the input is not null and is nonempty...if it is empty the threads will deadlock
         if (s != null && s.nonEmpty) {
           writer.write(s)
@@ -93,28 +91,28 @@ class DelimitedTextConverter(format: CSVFormat,
     }
   })
 
-  override def fromInputType(string: String): Seq[Array[Any]] = {
-    import spire.syntax.cfor._
+  override def processInput(is: Iterator[String], ec: EvaluationContext): Iterator[SimpleFeature] = {
+    ec.counter.incLineCount(options.skipLines)
+    super.processInput(is.drop(options.skipLines), ec)
+  }
 
+  override def fromInputType(string: String): Seq[Array[Any]] = {
     // empty strings cause deadlock
-    if (string == null || string.isEmpty) throw new IllegalArgumentException("Invalid input (empty)")
+    if (string == null || string.isEmpty) {
+      throw new IllegalArgumentException("Invalid input (empty)")
+    }
     q.put(string)
     val rec = parser.next()
     val len = rec.size()
     val ret = Array.ofDim[Any](len + 1)
     ret(0) = string
-    cfor(0)(_ < len, _ + 1) { i =>
+    var i = 0
+    while (i < len) {
       ret(i+1) = rec.get(i)
+      i += 1
     }
     Seq(ret)
   }
-
-  private var skipLines = options.skipLines
-  override def preProcess(i: String)(implicit ec: EvaluationContext): Option[String] =
-    if (skipLines > 0) {
-      skipLines -= 1
-      None
-    } else Some(i)
 
   override def close(): Unit = {
     es.shutdownNow()

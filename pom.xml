@@ -15,7 +15,7 @@
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa</artifactId>
     <packaging>pom</packaging>
-    <version>1.1.0-rc.7-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
 
     <modules>
         <module>geomesa-utils</module>
@@ -38,13 +38,14 @@
         <module>geomesa-z3</module>
         <module>geomesa-accumulo</module>
         <module>geomesa-hbase</module>
+        <module>geomesa-blobstore</module>
     </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- bump version when performing releases -->
-        <geomesa.release.version>1.1.0-rc.6</geomesa.release.version>
+        <geomesa.release.version>1.1.0-rc.7</geomesa.release.version>
 
         <scala.version>2.10.5</scala.version>
         <geoserver.version>2.5.2</geoserver.version>
@@ -965,7 +966,7 @@
             <dependency>
                 <groupId>com.beust</groupId>
                 <artifactId>jcommander</artifactId>
-                <version>1.32</version>
+                <version>1.48</version>
             </dependency>
 
             <!-- test dependencies -->

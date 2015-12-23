@@ -53,7 +53,7 @@ object DeleteRasterCommand {
 
   @Parameters(commandDescription = "Delete a GeoMesa Raster Table")
   class DeleteRasterParams extends RasterParams {
-    @Parameter(names = Array("-f", "--force"), description = "Force deletion of feature without prompt", required = false)
+    @Parameter(names = Array("--force"), description = "Force deletion of feature without prompt", required = false)
     var forceDelete: Boolean = false
   }
 }

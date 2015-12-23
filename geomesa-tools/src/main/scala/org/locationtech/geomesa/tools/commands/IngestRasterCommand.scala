@@ -81,7 +81,7 @@ class PathValidator extends IParameterValidator {
 object IngestRasterCommand {
   @Parameters(commandDescription = "Ingest a raster file or raster files in a directory into GeoMesa")
   class IngestRasterParameters extends CreateRasterParams {
-    @Parameter(names = Array("-fmt", "--format"), description = "Format of incoming raster data " +
+    @Parameter(names = Array("-F", "--format"), description = "Format of incoming raster data " +
       "(geotiff | DTED) to override file extension recognition")
     var format: String = null
 
@@ -89,10 +89,10 @@ object IngestRasterCommand {
       "raster files to be ingested", validateWith = classOf[PathValidator], required = true)
     var file: String = null
 
-    @Parameter(names = Array("-tm", "--timestamp"), description = "Ingestion time (default to current time)")
+    @Parameter(names = Array("-T", "--timestamp"), description = "Ingestion time (default to current time)")
     var timeStamp: String = null
 
-    @Parameter(names = Array("-par", "--parallel-level"), description = "Maximum number of local " +
+    @Parameter(names = Array("-P", "--parallel-level"), description = "Maximum number of local " +
       "threads for ingesting multiple raster files (default to 1)")
     var parLevel: Integer = 1
 
