@@ -69,6 +69,7 @@ Provided transformation functions are listed below.
  * ```basicDateTimeNoMillis```
  * ```dateHourMinuteSecondMillis```
  * ```millisToDate```
+ * ```secsToDate```
 
 ### Geometry functions
   * ```point```
@@ -205,11 +206,21 @@ Usage: ```dateHourMinuteSecondMillis($1)```
 
 Example: ```dateHourMinuteSecondMillis('2015-01-01T00:00:00.000')``` 
 
-#### ```millisToDate``` - Create a new date from as long representing millis since 1970
+#### millisToDate
+
+Description: Create a new date from a long representing milliseconds since January 1, 1970.
 
 Usage: ```millisToDate($1)```
 
-Example: ```millisToDate(1449675054462::long)``` 
+Example: ```millisToDate('1449675054462'::long)``` 
+
+#### secsToDate
+
+Description: Create a new date from an integer (NOT long) representing seconds since January 1, 1970.
+
+Usage: ```secsToDate($1)```
+
+Example: ```secsToDate(1449675054)```
 
 ### Geometry functions
 

@@ -154,6 +154,12 @@ class TransformersTest extends Specification {
           exp.eval(Array("", millis)).asInstanceOf[Date] must be equalTo testDate
         }
 
+        "secsToDate" >> {
+          val secs = testDate.getTime / 1000L
+          val exp = Transformers.parseTransform("secsToDate($1)")
+          exp.eval(Array("", secs)).asInstanceOf[Date] must be equalTo testDate
+        }
+
       }
 
       "handle point geometries" >> {
