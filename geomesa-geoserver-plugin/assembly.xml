@@ -3,6 +3,7 @@
     <formats>
         <format>zip</format>
     </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
 
     <dependencySets>
         <dependencySet>
