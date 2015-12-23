@@ -38,6 +38,11 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-security</artifactId>
         </dependency>
+        <!-- Use plugin jar instead of geomesa-utils (which is excluded in assembly.xml) -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-utils-gs-plugin</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-feature-all</artifactId>

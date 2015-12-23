@@ -13,6 +13,7 @@
 
     <modules>
         <module>geomesa-accumulo-datastore</module>
+        <module>geomesa-accumulo-distributed-runtime</module>
     </modules>
 
 </project>
