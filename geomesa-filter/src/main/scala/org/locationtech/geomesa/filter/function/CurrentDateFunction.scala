@@ -17,7 +17,7 @@ class CurrentDateFunction
     new FunctionNameImpl("currentDate", classOf[java.util.Date])
   ) {
 
-  override def evaluate(feature: SimpleFeature): AnyRef = super.evaluate(feature)
+  def evaluate(feature: SimpleFeature): AnyRef = super.evaluate(feature)
 
   override def evaluate(o: java.lang.Object): AnyRef =
     new DateTime().withZone(DateTimeZone.UTC).toDate
