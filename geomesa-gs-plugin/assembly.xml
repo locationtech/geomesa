@@ -1,0 +1,18 @@
+<assembly>
+    <id>install</id>
+    <formats>
+        <format>zip</format>
+    </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
+
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>/</outputDirectory>
+            <useProjectArtifact>true</useProjectArtifact>
+            <scope>runtime</scope>
+            <excludes>
+                <exclude>org.locationtech.geomesa:geomesa-utils</exclude>
+            </excludes>
+        </dependencySet>
+    </dependencySets>
+</assembly>

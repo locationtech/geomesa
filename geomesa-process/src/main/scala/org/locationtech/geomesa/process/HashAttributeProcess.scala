@@ -1,5 +1,6 @@
 package org.locationtech.geomesa.process
 
+import com.google.common.base.Charsets
 import com.google.common.hash.Hashing
 import org.geotools.data.DataUtilities
 import org.geotools.data.simple.SimpleFeatureCollection
@@ -42,7 +43,7 @@ trait HashAttribute {
         featureBuilder.reset()
         featureBuilder.init(sf)
         val attr = Option(sf.getAttribute(attribute)).map(_.toString).getOrElse("")
-        val hash = math.abs(hashFn.hashString(attr).asInt()) % modulo
+        val hash = math.abs(hashFn.hashString(attr, Charsets.UTF_16LE).asInt()) % modulo
         featureBuilder.set(hashIndex, transformHash(hash))
         featureBuilder.buildFeature(sf.getID)
       }
