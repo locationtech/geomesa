@@ -12,7 +12,7 @@
     lat:Double, lon:Double, time:String
 
 ## update the name and type schema
-    > curl -X POST --data "latField=lat&lonField=lon&schema=lat%3ADouble%2C%20lon%3ADouble%2C%20time%3ADate%2C*%20geometry%3APoint%3Asrid%3D4326%3Aindex%3Dtrue" [GEOSERVER_ROOT]/geomesa/csv/types/updates/[CSVID]
+    > curl -X POST --data "latField=lat&lonField=lon&schema=lat%3ADouble%2C%20lon%3ADouble%2C%20time%3ADate%2C*%20geometry%3APoint%3Asrid%3D4326%3Aindex%3Dtrue" [GEOSERVER_ROOT]/geomesa/csv/types/update/[CSVID]
 
     test3772907466880411288
     lat:Double, lon:Double, time:String
