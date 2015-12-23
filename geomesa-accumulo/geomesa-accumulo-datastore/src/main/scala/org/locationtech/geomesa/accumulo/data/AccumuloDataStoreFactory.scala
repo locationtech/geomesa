@@ -108,15 +108,15 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       zookeepersParam,
       userParam,
       passwordParam,
+      tableNameParam,
       authsParam,
       visibilityParam,
-      tableNameParam,
-      statsParam,
-      cachingParam,
       queryTimeoutParam,
       queryThreadsParam,
       recordThreadsParam,
-      writeThreadsParam
+      writeThreadsParam,
+      statsParam,
+      cachingParam
     )
 
   def canProcess(params: JMap[String,Serializable]) = AccumuloDataStoreFactory.canProcess(params)

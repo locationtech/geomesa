@@ -21,7 +21,7 @@ object FeatureCreator extends Logging {
     val ds = new DataStoreHelper(params).getDataStore()
     createFeature(
       ds,
-      SftArgParser.getSft(params.spec, params.featureName, convert),
+      SftArgParser.getSft(params.spec, params.featureName),
       params.featureName,
       Option(params.dtgField),
       Option(params.useSharedTables),

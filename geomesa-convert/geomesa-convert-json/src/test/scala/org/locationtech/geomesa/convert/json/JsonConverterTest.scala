@@ -8,11 +8,13 @@
 
 package org.locationtech.geomesa.convert.json
 
+import java.util.Date
+
 import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom._
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
-import org.locationtech.geomesa.convert.Transformers.{DefaultCounter, EvaluationContext}
+import org.locationtech.geomesa.convert.Transformers.EvaluationContext
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -55,7 +57,6 @@ class JsonConverterTest extends Specification {
     """.stripMargin)
 
   val sft = SimpleFeatureTypes.createType(sftConfPoint)
-  implicit val ec = new EvaluationContext(null, null)
 
   "Json Converter" should {
 
@@ -498,6 +499,36 @@ class JsonConverterTest extends Specification {
         features(2).getAttribute("weight").asInstanceOf[Double] mustEqual 185
         features(2).getDefaultGeometry must be equalTo poly1
         features(2).getDefaultGeometry must beAnInstanceOf[Polygon]
+      }
+
+      "parse time in seconds" >> {
+        val sft = SimpleFeatureTypes.createType("json-seconds", "number:Integer,dtg:Date,*geom:Point:srid=4326")
+        val jsonStr = "{ id: 1, number: 123, secs: 1000, lat: 0, lon: 0 }"
+        val parserConf = ConfigFactory.parseString(
+          """
+            | converter = {
+            |   type         = "json"
+            |   id-field     = "$id"
+            |   fields = [
+            |     { name = "id",     json-type = "integer", path = "$.id", transform = "toString($0)" }
+            |     { name = "number", json-type = "integer", path = "$.number" }
+            |     { name = "secs",   json-type = "integer", path = "$.secs", transform = "toString($0)" }
+            |     { name = "millis", transform = "concat($secs, '000')" }
+            |     { name = "dtg",    transform = "millisToDate($millis::long)" }
+            |     { name = "lat",    json-type = "double",  path = "$.lat",    }
+            |     { name = "lon",    json-type = "double",  path = "$.lon",    }
+            |     { name = "geom",    transform = "point($lon, $lat)" }
+            |   ]
+            | }
+          """.stripMargin)
+
+        val converter = SimpleFeatureConverters.build[String](sft, parserConf)
+        val features = converter.processInput(Iterator(jsonStr)).toList
+        features must haveLength(1)
+        val f = features.head
+        f.getAttribute("number") mustEqual 123
+        f.getAttribute("dtg") mustEqual new Date(1000000)
+        f.getDefaultGeometry.toString mustEqual "POINT (0 0)"
       }
     }
   }

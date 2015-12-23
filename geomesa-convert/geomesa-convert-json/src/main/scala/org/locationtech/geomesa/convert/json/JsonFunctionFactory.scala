@@ -17,7 +17,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
       args(0).asInstanceOf[JsonElement].toString
 
-    override def name: String = "json2string"
+    override val names = Seq("json2string", "jsonToString")
   }
 
   override val functions: Seq[TransformerFn] = Seq(json2string)

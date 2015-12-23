@@ -121,7 +121,8 @@ class DelimitedTextConverterTest extends Specification {
       val converter = SimpleFeatureConverters.build[String](sft, conf)
       converter must not beNull
       val input = data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0).map(_.replaceAll(",", "\t"))
-      val res = converter.processInput(input, Map("filename"-> "/some/file/path/testfile.txt")).toList
+      val ec = converter.createEvaluationContext(Map("filename"-> "/some/file/path/testfile.txt"))
+      val res = converter.processInput(input, ec).toList
       converter.close()
       res.size must be equalTo 2
       res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello"
@@ -154,7 +155,8 @@ class DelimitedTextConverterTest extends Specification {
       val converter = SimpleFeatureConverters.build[String](sft, conf)
       converter must not beNull
       val input = data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0).map(_.replaceAll(",", "\t"))
-      val res = converter.processInput(input, Map("filename"-> "/some/file/path/testfile.txt")).toList
+      val ec = converter.createEvaluationContext(Map("filename"-> "/some/file/path/testfile.txt"))
+      val res = converter.processInput(input, ec).toList
       converter.close()
       res.size must be equalTo 2
       res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello"
@@ -322,7 +324,8 @@ class DelimitedTextConverterTest extends Specification {
         val converter = SimpleFeatureConverters.build[String](wktSft, trueConf)
 
         val counter = new DefaultCounter
-        val res = converter.processInput(trueData.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0), counter = counter).toList
+        val ec = converter.createEvaluationContext(counter = counter)
+        val res = converter.processInput(trueData.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0), ec).toList
         res.length mustEqual 2
         converter.close()
 
@@ -345,7 +348,8 @@ class DelimitedTextConverterTest extends Specification {
         val converter = SimpleFeatureConverters.build[String](wktSft, falseConf)
 
         val counter = new DefaultCounter
-        val res = converter.processInput(falseData.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0), counter = counter).toList
+        val ec = converter.createEvaluationContext(counter = counter)
+        val res = converter.processInput(falseData.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0), ec).toList
         res.length mustEqual 2
         converter.close()
 
@@ -370,7 +374,8 @@ class DelimitedTextConverterTest extends Specification {
         val converter = SimpleFeatureConverters.build[String](wktSft, falseConf)
 
         val counter = new DefaultCounter
-        val res = converter.processInput(falseData.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0), counter = counter).toList
+        val ec = converter.createEvaluationContext(counter = counter)
+        val res = converter.processInput(falseData.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0), ec).toList
         res.length mustEqual 2
         converter.close()
 

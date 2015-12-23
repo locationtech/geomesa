@@ -116,7 +116,7 @@ object TableConfCommand {
 
   @Parameters(commandDescription = "Describe a given configuration parameter for a table")
   class DescribeParams extends ListParams {
-    @Parameter(names = Array("--param"), description = "Accumulo table configuration param name (e.g. table.bloom.enabled)", required = true)
+    @Parameter(names = Array("-P", "--param"), description = "Accumulo table configuration param name (e.g. table.bloom.enabled)", required = true)
     var param: String = null
   }
 
