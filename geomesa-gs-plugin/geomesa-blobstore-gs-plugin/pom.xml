@@ -7,13 +7,13 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-stream-gs-plugin</artifactId>
-    <name>GeoMesa Stream GeoServer Plugin</name>
+    <artifactId>geomesa-blobstore-gs-plugin</artifactId>
+    <name>GeoMesa BlobStore GeoServer Plugin</name>
 
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-stream-datastore</artifactId>
+            <artifactId>geomesa-blobstore-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <!-- Use plugin jar instead of geomesa-utils (which is excluded in assembly.xml) -->

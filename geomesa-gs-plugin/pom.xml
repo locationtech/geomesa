@@ -20,6 +20,14 @@
         </profile>
     </profiles>
 
+    <modules>
+        <module>geomesa-accumulo-gs-plugin</module>
+        <module>geomesa-blobstore-gs-plugin</module>
+        <module>geomesa-kafka-gs-plugin</module>
+        <module>geomesa-stream-gs-plugin</module>
+        <module>geomesa-utils-gs-plugin</module>
+    </modules>
+
     <dependencyManagement>
         <dependencies>
             <!-- Dependencies already in geoserver -->
@@ -216,12 +224,5 @@
             </plugins>
         </pluginManagement>
     </build>
-
-    <modules>
-        <module>geomesa-utils-gs-plugin</module>
-        <module>geomesa-kafka-gs-plugin</module>
-        <module>geomesa-accumulo-gs-plugin</module>
-        <module>geomesa-stream-gs-plugin</module>
-    </modules>
 
 </project>

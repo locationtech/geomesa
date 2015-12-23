@@ -56,29 +56,30 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-accumulo-gs-plugin</artifactId>
-            <classifier>geoserver-plugin</classifier>
+            <classifier>install</classifier>
+            <version>${project.version}</version>
+            <type>zip</type>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-blobstore-gs-plugin</artifactId>
+            <classifier>install</classifier>
             <version>${project.version}</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-kafka-gs-plugin</artifactId>
-            <classifier>geoserver-plugin</classifier>
+            <classifier>install</classifier>
             <version>${project.version}</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-stream-gs-plugin</artifactId>
-            <classifier>geoserver-plugin</classifier>
+            <classifier>install</classifier>
             <version>${project.version}</version>
             <type>zip</type>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-utils-gs-plugin</artifactId>
-            <classifier>geoserver-plugin</classifier>
-            <version>${project.version}</version>
         </dependency>
 
         <!-- Web Services -->
@@ -88,27 +89,38 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-web-install</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-web-security</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-web-csv</artifactId>
+            <classifier>install</classifier>
             <version>${project.version}</version>
-            <classifier>geoserver-plugin</classifier>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-web-data</artifactId>
-            <classifier>geoserver-plugin</classifier>
+            <classifier>install</classifier>
             <version>${project.version}</version>
             <type>zip</type>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>bigtable</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.locationtech.geomesa</groupId>
+                    <artifactId>geomesa-bigtable-gs-plugin</artifactId>
+                    <classifier>install</classifier>
+                    <version>${project.version}</version>
+                    <type>zip</type>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
     <build>
         <plugins>

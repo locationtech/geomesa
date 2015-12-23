@@ -32,16 +32,17 @@
             </includes>
         </dependencySet>
         <dependencySet>
-            <outputDirectory>dist/geoserver-plugins</outputDirectory>
+            <outputDirectory>dist/gs-plugins</outputDirectory>
             <directoryMode>0755</directoryMode>
             <fileMode>0755</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
                 <include>org.locationtech.geomesa:geomesa-accumulo-gs-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-bigtable-gs-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-blobstore-gs-plugin*</include>
                 <include>org.locationtech.geomesa:geomesa-kafka-gs-plugin*</include>
                 <include>org.locationtech.geomesa:geomesa-stream-gs-plugin*</include>
-                <include>org.locationtech.geomesa:geomesa-utils-gs-plugin*</include>
             </includes>
         </dependencySet>
         <dependencySet>
@@ -65,7 +66,7 @@
             </includes>
         </dependencySet>
         <dependencySet>
-            <outputDirectory>dist/yarn</outputDirectory>
+            <outputDirectory>dist/hadoop</outputDirectory>
             <directoryMode>0755</directoryMode>
             <fileMode>0755</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
@@ -82,6 +83,14 @@
             <includes>
                 <include>LICENSE.txt</include>
                 <include>README.md</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>../geomesa-web/geomesa-web-install/target</directory>
+            <outputDirectory>dist/webservices</outputDirectory>
+            <fileMode>0755</fileMode>
+            <includes>
+                <include>spark-*-geomesa-assembly.jar</include>
             </includes>
         </fileSet>
     </fileSets>

@@ -37,9 +37,6 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <shadedArtifactAttached>true</shadedArtifactAttached>
-                            <shadedClassifierName>geoserver-plugin</shadedClassifierName>
-
                             <artifactSet>
                                 <includes>
                                     <include>org.locationtech.geomesa:geomesa-utils</include>
