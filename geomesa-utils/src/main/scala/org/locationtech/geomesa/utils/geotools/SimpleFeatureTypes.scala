@@ -419,6 +419,7 @@ object SimpleFeatureTypes {
     classOf[MultiPolygon]        -> "MultiPolygon",
     classOf[GeometryCollection]  -> "GeometryCollection",
     classOf[Date]                -> "Date",
+    classOf[java.sql.Timestamp]  -> "Timestamp",
     classOf[java.util.List[_]]   -> "List",
     classOf[java.util.Map[_, _]] -> "Map"
   )
@@ -448,7 +449,8 @@ object SimpleFeatureTypes {
     "true"              -> classOf[java.lang.Boolean],
     "false"             -> classOf[java.lang.Boolean],
     "UUID"              -> classOf[UUID],
-    "Date"              -> classOf[Date]
+    "Date"              -> classOf[Date],
+    "Timestamp"         -> classOf[Date]
   )
 
   private val geometryTypeMap = Map(
