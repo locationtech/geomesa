@@ -1,5 +1,5 @@
 <assembly>
-    <id>geoserver-plugin</id>
+    <id>install</id>
     <formats>
         <format>zip</format>
     </formats>

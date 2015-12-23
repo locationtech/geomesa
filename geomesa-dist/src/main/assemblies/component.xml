@@ -38,10 +38,10 @@
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
-                <include>org.locationtech.geomesa:geomesa-accumulo-geoserver-plugin*</include>
-                <include>org.locationtech.geomesa:geomesa-kafka-geoserver-plugin*</include>
-                <include>org.locationtech.geomesa:geomesa-stream-geoserver-plugin*</include>
-                <include>org.locationtech.geomesa:geomesa-utils-geoserver-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-accumulo-gs-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-kafka-gs-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-stream-gs-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-utils-gs-plugin*</include>
             </includes>
         </dependencySet>
         <dependencySet>
@@ -99,12 +99,12 @@
             <outputDirectory>docs/jobs</outputDirectory>
         </file>
         <file>
-            <source>../geomesa-geoserver-plugin/geomesa-accumulo-geoserver-plugin/README.md</source>
-            <outputDirectory>docs/accumulo-geoserver-plugin</outputDirectory>
+            <source>../geomesa-gs-plugin/geomesa-accumulo-gs-plugin/README.md</source>
+            <outputDirectory>docs/accumulo-gs-plugin</outputDirectory>
         </file>
         <file>
-            <source>../geomesa-geoserver-plugin/geomesa-kafka-geoserver-plugin/README.md</source>
-            <outputDirectory>docs/kafka-geoserver-plugin</outputDirectory>
+            <source>../geomesa-gs-plugin/geomesa-kafka-gs-plugin/README.md</source>
+            <outputDirectory>docs/kafka-gs-plugin</outputDirectory>
         </file>
         <file>
             <source>../geomesa-tools/README.md</source>

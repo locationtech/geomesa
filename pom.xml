@@ -22,7 +22,7 @@
         <module>geomesa-security</module>
         <module>geomesa-features</module>
         <module>geomesa-filter</module>
-        <module>geomesa-geoserver-plugin</module>
+        <module>geomesa-gs-plugin</module>
         <module>geomesa-jobs</module>
         <module>geomesa-kafka</module>
         <module>geomesa-convert</module>
@@ -627,7 +627,7 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-utils-geoserver-plugin</artifactId>
+                <artifactId>geomesa-utils-gs-plugin</artifactId>
                 <classifier>geoserver-plugin</classifier>
                 <version>${project.version}</version>
             </dependency>

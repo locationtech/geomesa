@@ -247,7 +247,7 @@
                                 <goal>single</goal>
                             </goals>
                             <configuration>
-                                <descriptor>../../geomesa-geoserver-plugin/assembly.xml</descriptor>
+                                <descriptor>../../geomesa-gs-plugin/assembly.xml</descriptor>
                             </configuration>
                         </execution>
                     </executions>

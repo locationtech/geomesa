@@ -3,13 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>geomesa-geoserver-plugin</artifactId>
+        <artifactId>geomesa-gs-plugin</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
         <version>1.2.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-bigtable-geoserver-plugin</artifactId>
+    <artifactId>geomesa-bigtable-gs-plugin</artifactId>
     <name>GeoMesa Bigtable GeoServer Plugin</name>
     <dependencies>
         <dependency>

@@ -7,7 +7,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-geoserver-plugin</artifactId>
+    <artifactId>geomesa-gs-plugin</artifactId>
     <name>GeoMesa Geoserver Plugin</name>
     <packaging>pom</packaging>
 
@@ -15,7 +15,7 @@
         <profile>
             <id>bigtable</id>
             <modules>
-                <module>geomesa-bigtable-geoserver-plugin</module>
+                <module>geomesa-bigtable-gs-plugin</module>
             </modules>
         </profile>
     </profiles>
@@ -201,7 +201,7 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
                     <configuration>
-                        <descriptor>../assembly.xml</descriptor>
+                        <descriptor>${project.basedir}/../assembly.xml</descriptor>
                     </configuration>
                     <executions>
                         <execution>
@@ -218,10 +218,10 @@
     </build>
 
     <modules>
-        <module>geomesa-utils-geoserver-plugin</module>
-        <module>geomesa-kafka-geoserver-plugin</module>
-        <module>geomesa-accumulo-geoserver-plugin</module>
-        <module>geomesa-stream-geoserver-plugin</module>
+        <module>geomesa-utils-gs-plugin</module>
+        <module>geomesa-kafka-gs-plugin</module>
+        <module>geomesa-accumulo-gs-plugin</module>
+        <module>geomesa-stream-gs-plugin</module>
     </modules>
 
 </project>
