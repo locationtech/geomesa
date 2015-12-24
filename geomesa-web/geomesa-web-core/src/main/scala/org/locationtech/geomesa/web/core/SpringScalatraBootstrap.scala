@@ -11,7 +11,7 @@ package org.locationtech.geomesa.web.core
 import javax.servlet.ServletContext
 import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.lang.exception.ExceptionUtils
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory
 import org.scalatra.servlet.RichServletContext
@@ -22,7 +22,7 @@ import org.springframework.web.context.ServletContextAware
 import scala.beans.BeanProperty
 import scala.collection.JavaConversions._
 
-trait GeoMesaScalatraServlet extends ScalatraServlet with Logging {
+trait GeoMesaScalatraServlet extends ScalatraServlet with LazyLogging {
 
   @BeanProperty var debug: Boolean = false
 
@@ -56,7 +56,7 @@ object GeoMesaScalatraServlet {
   val dsKeys = new AccumuloDataStoreFactory().getParametersInfo.map(_.getName)
 }
 
-class SpringScalatraBootstrap extends ApplicationContextAware with ServletContextAware with Logging {
+class SpringScalatraBootstrap extends ApplicationContextAware with ServletContextAware with LazyLogging {
 
   @BeanProperty var applicationContext: ApplicationContext = _
   @BeanProperty var servletContext: ServletContext = _

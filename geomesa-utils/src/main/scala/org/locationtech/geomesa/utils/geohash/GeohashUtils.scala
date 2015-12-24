@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.utils.geohash
 
 import com.spatial4j.core.context.jts.JtsSpatialContext
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.locationtech.geomesa.utils.CartesianProductIterable
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -28,7 +28,7 @@ import scala.util.control.Exception.catching
  */
 object GeohashUtils
   extends GeomDistance
-  with Logging {
+  with LazyLogging {
 
   // make sure the implicits related to distance are in-scope
   import Distance._

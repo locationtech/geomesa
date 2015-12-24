@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{Connector, IteratorSetting}
@@ -26,7 +26,7 @@ import scala.collection.JavaConversions._
 import scala.util.{Random, Try}
 
 @RunWith(classOf[JUnitRunner])
-class SpatioTemporalIntersectingIteratorTest extends Specification with Logging {
+class SpatioTemporalIntersectingIteratorTest extends Specification with LazyLogging {
 
   def getRandomSuffix: String = {
     val chars = Array[Char]('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F')

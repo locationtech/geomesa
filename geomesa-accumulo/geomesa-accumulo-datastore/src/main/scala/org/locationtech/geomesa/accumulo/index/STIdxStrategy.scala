@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Geometry, GeometryCollection}
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.iterators.user.RegExFilter
@@ -30,7 +30,7 @@ import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
 
-class STIdxStrategy(val filter: QueryFilter) extends Strategy with Logging with IndexFilterHelpers {
+class STIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging with IndexFilterHelpers {
 
   override def getQueryPlan(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType) = {
 

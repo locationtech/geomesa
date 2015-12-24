@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets
 import java.util.Properties
 
 import com.beust.jcommander.{IParameterValidator, JCommander, Parameter, ParameterException}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import kafka.tools.{ConsoleConsumer, MessageFormatter}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
@@ -25,7 +25,7 @@ import org.opengis.feature.simple.SimpleFeatureType
   * classname in the exec command at the end of the script with
   * org.locationtech.geomesa.kafka.KafkaDataStoreLogViewer.
   */
-object KafkaDataStoreLogViewer extends Logging {
+object KafkaDataStoreLogViewer extends LazyLogging {
 
   import KafkaGeoMessageFormatter._
 

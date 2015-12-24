@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.plugin.wcs
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.coverage.CoverageFactoryFinder
 import org.geotools.coverage.grid.io.AbstractGridCoverage2DReader
 import org.geotools.coverage.grid.{GridCoverage2D, GridEnvelope2D}
@@ -33,7 +33,7 @@ object GeoMesaCoverageReader {
 
 import org.locationtech.geomesa.plugin.wcs.GeoMesaCoverageReader._
 
-class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridCoverage2DReader() with Logging {
+class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridCoverage2DReader() with LazyLogging {
   logger.debug(s"""creating coverage reader for url "${url.replaceAll(":.*@", ":********@").replaceAll("#auths=.*","#auths=********")}"""")
   val FORMAT(user, password, instanceId, table, zookeepers, auths, visibilities, collectStats) = url
   logger.debug(s"extracted user $user, password ********, instance id $instanceId, table $table, zookeepers $zookeepers, auths ********")

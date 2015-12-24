@@ -22,8 +22,6 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class VisibilityFilterTest extends Specification {
 
-  import org.locationtech.geomesa.security._
-
   sequential
 
   val testSFT = SimpleFeatureTypes.createType("test", "name:String,*geom:Point:srid=4326")

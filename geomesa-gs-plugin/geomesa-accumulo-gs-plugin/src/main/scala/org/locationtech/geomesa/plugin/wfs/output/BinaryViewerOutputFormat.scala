@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{CountDownLatch, Executors}
 import javax.xml.namespace.QName
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import net.opengis.wfs.{GetFeatureType => GetFeatureTypeV1, QueryType => QueryTypeV1}
 import net.opengis.wfs20.{GetFeatureType => GetFeatureTypeV2, QueryType => QueryTypeV2}
 import org.geoserver.config.GeoServer
@@ -47,7 +47,7 @@ import scala.collection.JavaConversions._
  * @param gs
  */
 class BinaryViewerOutputFormat(gs: GeoServer)
-    extends WFSGetFeatureOutputFormat(gs, Set("bin", BinaryViewerOutputFormat.MIME_TYPE)) with Logging {
+    extends WFSGetFeatureOutputFormat(gs, Set("bin", BinaryViewerOutputFormat.MIME_TYPE)) with LazyLogging {
 
   import org.locationtech.geomesa.plugin.wfs.output.BinaryViewerOutputFormat._
 
@@ -217,7 +217,7 @@ class BinaryViewerOutputFormat(gs: GeoServer)
 
 }
 
-object BinaryViewerOutputFormat extends Logging {
+object BinaryViewerOutputFormat extends LazyLogging {
 
   import org.locationtech.geomesa.filter.function.AxisOrder
   import org.locationtech.geomesa.filter.function.AxisOrder.{LatLon, LonLat}

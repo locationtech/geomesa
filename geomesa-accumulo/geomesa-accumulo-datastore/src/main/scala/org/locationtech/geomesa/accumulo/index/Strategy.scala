@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
 import org.geotools.factory.Hints
@@ -29,7 +29,7 @@ import org.opengis.filter.Filter
 import scala.collection.JavaConversions._
 import scala.util.Random
 
-trait Strategy extends Logging {
+trait Strategy extends LazyLogging {
 
   /**
    * The filter this strategy will execute
@@ -43,7 +43,7 @@ trait Strategy extends Logging {
 }
 
 
-object Strategy extends Logging {
+object Strategy extends LazyLogging {
 
   // enumeration of the various strategies we implement - don't forget to add new impls here
   object StrategyType extends Enumeration {

@@ -20,10 +20,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-convert-common</artifactId>
         </dependency>
@@ -37,7 +33,7 @@
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2_2.10</artifactId>
+            <artifactId>specs2_2.11</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

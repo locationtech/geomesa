@@ -813,18 +813,3 @@ Prints out the version, git branch, and commit ID that the tools were built with
 
 #### Example commands:
     geomesa version
-
-### repl
-To drop into an interactive REPL, use the `repl` command. The REPL is the scala console with GeoMesa-specific
-functionality. In addition to normal GeoMesa usage, the scalding REPL is included. More details on the
-features exposed by scalding can be read here: [Scalding-REPL](https://github.com/twitter/scalding/wiki/Scalding-REPL)
-
-#### Usage:
-    $ geomesa repl
-    # Launches the REPL. Enter commands just as you would at the scala repl.
-    $ geomesa repl hdfs
-    # Launches the REPL in distributed mode, where any jobs will be run on your hadoop cluster. Requires
-    # a local hadoop installation.
-
-#### Example command:
-    geomesa repl

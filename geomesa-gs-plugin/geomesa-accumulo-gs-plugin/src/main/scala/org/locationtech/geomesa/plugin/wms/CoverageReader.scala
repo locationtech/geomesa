@@ -12,7 +12,7 @@ import java.awt.image.BufferedImage
 import java.awt.{AlphaComposite, Color, Graphics2D, Rectangle}
 import java.util.{Date, List => JList}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{IteratorSetting, Scanner, ZooKeeperInstance}
 import org.apache.accumulo.core.iterators.user.VersioningIterator
@@ -46,7 +46,7 @@ object CoverageReader {
 
 import org.locationtech.geomesa.plugin.wms.CoverageReader._
 
-class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() with Logging {
+class CoverageReader(val url: String) extends AbstractGridCoverage2DReader() with LazyLogging {
 
   logger.debug(s"""creating coverage reader for url "${url.replaceAll(":.*@", ":********@").replaceAll("#auths=.*","#auths=********")}"""")
 

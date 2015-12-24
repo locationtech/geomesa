@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.plugin.ui
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.wicket.ajax.AjaxRequestTarget
 import org.apache.wicket.ajax.markup.html.AjaxLink
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink
@@ -31,7 +31,7 @@ import org.locationtech.geomesa.utils.stats.IndexCoverage
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
-class GeoMesaFeaturePage(parameters: PageParameters) extends GeoMesaBasePage with Logging {
+class GeoMesaFeaturePage(parameters: PageParameters) extends GeoMesaBasePage with LazyLogging {
 
   import org.locationtech.geomesa.plugin.ui.GeoMesaFeaturePage._
 

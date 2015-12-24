@@ -10,7 +10,7 @@ package org.locationtech.geomesa.kafka
 import java.util
 
 import com.google.common.cache.{CacheBuilder, CacheLoader}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import kafka.admin.AdminUtils
 import kafka.utils.{ZkUtils, ZKStringSerializer}
 import org.I0Itec.zkclient.ZkClient
@@ -29,7 +29,7 @@ import scala.util.control.NonFatal
   *
   * See GEOMESA-818 for additional considerations.
   */
-trait KafkaDataStoreSchemaManager extends DataStore with Logging {
+trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
 
   protected def zookeepers: String
   protected def zkPath: String

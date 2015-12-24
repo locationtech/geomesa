@@ -14,7 +14,7 @@ import cascading.scheme.{SinkCall, SourceCall}
 import cascading.tap.hadoop.io.HadoopTupleEntrySchemeIterator
 import cascading.tuple.{Tuple, TupleEntryCollector, TupleEntryIterator, TupleEntrySchemeCollector}
 import com.twitter.scalding.AccessMode
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.accumulo.core.client.mapred.{AccumuloInputFormat, AccumuloOutputFormat, InputFormatBase}
 import org.apache.accumulo.core.client.mapreduce.lib.util.ConfiguratorBase
@@ -31,7 +31,7 @@ import scala.util.{Failure, Success, Try}
 /**
  * Cascading Tap to read and write from accumulo
  */
-case class AccumuloTap(readOrWrite: AccessMode, scheme: AccumuloScheme) extends AccTap(scheme) with Logging {
+case class AccumuloTap(readOrWrite: AccessMode, scheme: AccumuloScheme) extends AccTap(scheme) with LazyLogging {
 
   val options = scheme.options
 

@@ -13,7 +13,7 @@ import java.util.{Date, UUID}
 import javax.imageio.spi.ServiceRegistry
 
 import com.google.common.hash.Hashing
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.apache.commons.codec.binary.Base64
 import org.geotools.geometry.jts.JTSFactoryFinder
@@ -27,7 +27,7 @@ import scala.collection.mutable
 import scala.util.Try
 import scala.util.matching.Regex
 
-object Transformers extends EnhancedTokenParsers with Logging {
+object Transformers extends EnhancedTokenParsers with LazyLogging {
 
   val functionMap = mutable.HashMap[String, TransformerFn]()
 

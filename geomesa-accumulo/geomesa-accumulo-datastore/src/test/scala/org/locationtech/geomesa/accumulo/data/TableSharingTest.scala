@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.data
 
 import java.util
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.geotools.data.DataStoreFinder
@@ -27,7 +27,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class TableSharingTest extends Specification with Logging {
+class TableSharingTest extends Specification with LazyLogging {
 
   sequential
 

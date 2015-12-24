@@ -12,7 +12,7 @@ import java.util.concurrent.{ScheduledThreadPoolExecutor, Executors, LinkedBlock
 
 import com.google.common.base.Ticker
 import com.google.common.cache._
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.data.store.ContentEntry
 import org.locationtech.geomesa.kafka.consumer.KafkaConsumerFactory
@@ -33,7 +33,7 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
                                      cleanUpCache: Boolean,
                                      query: Query = null)
                                     (implicit ticker: Ticker = Ticker.systemTicker())
-  extends KafkaConsumerFeatureSource(entry, sft, query) with Runnable with Logging {
+  extends KafkaConsumerFeatureSource(entry, sft, query) with Runnable with LazyLogging {
 
   private[kafka] val featureCache = new LiveFeatureCache(sft, expirationPeriod)
 
@@ -135,7 +135,7 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
   */
 class LiveFeatureCache(override val sft: SimpleFeatureType,
                        expirationPeriod: Option[Long])(implicit ticker: Ticker)
-  extends KafkaConsumerFeatureCache with Logging {
+  extends KafkaConsumerFeatureCache with LazyLogging {
 
   def cleanUp(): Unit = {
     cache.cleanUp()

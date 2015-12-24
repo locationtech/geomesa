@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.index
 
 import java.util.Date
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Range => AccRange}
 import org.apache.hadoop.io.Text
@@ -40,7 +40,7 @@ import org.opengis.filter.temporal.{After, Before, During, TEquals}
 import scala.collection.JavaConverters._
 
 @deprecated
-class AttributeIdxStrategyV5(val filter: QueryFilter) extends Strategy with Logging {
+class AttributeIdxStrategyV5(val filter: QueryFilter) extends Strategy with LazyLogging {
 
   import org.locationtech.geomesa.accumulo.index.AttributeIdxStrategyV5._
 
