@@ -16,6 +16,12 @@
         <scalatra.version>2.3.0</scalatra.version>
     </properties>
 
+    <modules>
+        <module>geomesa-web-core</module>
+        <module>geomesa-web-data</module>
+        <module>geomesa-web-install</module>
+    </modules>
+
     <dependencyManagement>
         <dependencies>
             <!-- Dependencies already in geoserver -->
@@ -223,15 +229,6 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
-    <modules>
-        <module>geomesa-web-core</module>
-        <module>geomesa-web-csv</module>
-        <module>geomesa-web-data</module>
-        <module>geomesa-web-install</module>
-        <module>geomesa-web-security</module>
-    </modules>
-
 
     <build>
         <pluginManagement>
