@@ -1,2 +1,0 @@
-org.locationtech.geomesa.plugin.wms.CoverageFormatFactory
-org.locationtech.geomesa.plugin.wcs.GeoMesaCoverageFormatFactory
