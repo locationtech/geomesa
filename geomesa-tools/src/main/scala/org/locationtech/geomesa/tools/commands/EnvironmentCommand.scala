@@ -9,14 +9,14 @@ package org.locationtech.geomesa.tools.commands
 
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.config.{Config, ConfigRenderOptions}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.tools.commands.EnvironmentCommand.EnvironmentParameters
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypeLoader, SimpleFeatureTypes}
 
 import scala.collection.JavaConversions._
 
-class EnvironmentCommand(parent: JCommander) extends Command(parent) with Logging {
+class EnvironmentCommand(parent: JCommander) extends Command(parent) with LazyLogging {
   override val command = "env"
   override val params = new EnvironmentParameters()
 

@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import java.util.{Collection => JCollection, Map => JMap}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{ByteSequence, Key, Range => ARange, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.feature.simple.SimpleFeatureBuilder
@@ -140,7 +140,7 @@ abstract class FeatureAggregatingIterator[T <: Result](val other: FeatureAggrega
     }
 }
 
-object FeatureAggregatingIterator extends Logging {
+object FeatureAggregatingIterator extends LazyLogging {
   val geomFactory = JTSFactoryFinder.getGeometryFactory
 
   trait Result {

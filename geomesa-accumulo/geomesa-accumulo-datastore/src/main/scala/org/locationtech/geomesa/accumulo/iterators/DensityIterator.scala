@@ -13,7 +13,7 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import java.util.{Map => jMap}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
@@ -33,7 +33,7 @@ import scala.collection.JavaConverters._
  * Iterator that expands the z3 density iterator by adding support for non-kryo serialization types and
  * non-point geoms.
  */
-class DensityIterator extends Z3DensityIterator with Logging {
+class DensityIterator extends Z3DensityIterator with LazyLogging {
 
   override def init(src: SortedKeyValueIterator[Key, Value],
                     jOptions: jMap[String, String],
@@ -118,7 +118,7 @@ class DensityIterator extends Z3DensityIterator with Logging {
   }
 }
 
-object DensityIterator extends Logging {
+object DensityIterator extends LazyLogging {
 
   /**
    * Creates an iterator config that expects entries to be precomputed bin values

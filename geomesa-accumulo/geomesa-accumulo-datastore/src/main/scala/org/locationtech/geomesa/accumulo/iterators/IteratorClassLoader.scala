@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.vfs2.impl.VFSClassLoader
 import org.geotools.factory.GeoTools
 
-object IteratorClassLoader extends Logging {
+object IteratorClassLoader extends LazyLogging {
 
   private var initialized = false
 

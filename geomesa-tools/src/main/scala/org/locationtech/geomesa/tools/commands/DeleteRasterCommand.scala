@@ -9,13 +9,13 @@
 package org.locationtech.geomesa.tools.commands
 
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Range => ARange}
 import org.locationtech.geomesa.raster.data.AccumuloRasterStore
 import org.locationtech.geomesa.tools.AccumuloProperties
 import org.locationtech.geomesa.tools.commands.DeleteRasterCommand._
 
-class DeleteRasterCommand(parent: JCommander) extends Command(parent) with Logging with AccumuloProperties {
+class DeleteRasterCommand(parent: JCommander) extends Command(parent) with LazyLogging with AccumuloProperties {
   override val command = "deleteraster"
   override val params = new DeleteRasterParams()
 

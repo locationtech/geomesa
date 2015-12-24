@@ -10,7 +10,7 @@ package org.locationtech.geomesa.features.serialization
 
 import java.util.{Collections => JCollections, List => JList, Map => JMap, UUID}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -26,7 +26,7 @@ trait AbstractWriter[Writer]
   with CollectionWriter[Writer]
   with GeometryWriter[Writer]
   with HintKeyWriter[Writer]
-  with Logging {
+  with LazyLogging {
 
 
   def writeUUID: DatumWriter[Writer, UUID] = (writer, uuid) => {

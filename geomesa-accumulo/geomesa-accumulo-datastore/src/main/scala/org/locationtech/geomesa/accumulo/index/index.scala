@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo
 
-import com.typesafe.scalalogging.slf4j.Logger
+import com.typesafe.scalalogging.Logger
 import com.vividsolutions.jts.geom.Envelope
 import org.apache.accumulo.core.data.{Key, Range => AccRange, Value}
 import org.geotools.factory.Hints

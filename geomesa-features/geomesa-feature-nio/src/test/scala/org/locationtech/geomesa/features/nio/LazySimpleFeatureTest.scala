@@ -11,7 +11,7 @@ package org.locationtech.geomesa.features.nio
 import java.nio.ByteBuffer
 import java.util
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.nio.AttributeAccessor.ByteBufferSimpleFeatureSerializer
@@ -22,7 +22,7 @@ import org.specs2.runner.JUnitRunner
 import scala.languageFeature.postfixOps
 
 @RunWith(classOf[JUnitRunner])
-class LazySimpleFeatureTest extends Specification with Logging {
+class LazySimpleFeatureTest extends Specification with LazyLogging {
 
   sequential
 

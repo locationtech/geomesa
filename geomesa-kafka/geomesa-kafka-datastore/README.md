@@ -213,7 +213,7 @@ characters must be replaced by `%61`.
 
 A slightly easier to use but slightly less flexible alternative is to use the `KafkaDataStoreLogViewer`
 instead of the `kafka-console-consumer`.  To use the `KafkaDataStoreLogViewer` first copy the
-geomesa-kafka-geoserver-plugin.jar to $KAFKA_HOME/libs.  Then create a copy of
+geomesa-kafka-gs-plugin.jar to $KAFKA_HOME/libs.  Then create a copy of
 $KAFKA_HOME/bin/kafka-console-consumer.sh called "kafka-ds-log-viewer" and in the copy replace the classname
 in the exec command at the end of the script with `org.locationtech.geomesa.kafka.KafkaDataStoreLogViewer`.
 

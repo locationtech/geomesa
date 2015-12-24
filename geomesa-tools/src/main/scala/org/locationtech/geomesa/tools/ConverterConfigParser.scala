@@ -11,7 +11,7 @@ import java.io.File
 
 import com.beust.jcommander.ParameterException
 import com.typesafe.config.{Config, ConfigFactory}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 
 import scala.util.{Failure, Success, Try}
@@ -20,7 +20,7 @@ import scala.util.{Failure, Success, Try}
  * Attempts to parse Converter config from arguments as either a string or
  * as a filename containing the converter config
  */
-object ConverterConfigParser extends Logging {
+object ConverterConfigParser extends LazyLogging {
 
   /**
    * @throws ParameterException if the config cannot be parsed

@@ -12,7 +12,7 @@ import java.io.Closeable
 import javax.imageio.spi.ServiceRegistry
 
 import com.typesafe.config.{Config, ConfigFactory}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.convert.Transformers._
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -109,7 +109,7 @@ trait SimpleFeatureConverter[I] extends Closeable {
 /**
  * Base trait to create a simple feature converter
  */
-trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with Logging {
+trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLogging {
 
   def targetSFT: SimpleFeatureType
   def inputFields: IndexedSeq[Field]

@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.geohash
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Point, PrecisionModel}
 
 import scala.collection.BitSet
@@ -79,7 +79,7 @@ case class Bounds(low: Double,
   lazy val mid = (low+high)/2.0
 }
 
-object GeoHash extends Logging {
+object GeoHash extends LazyLogging {
 
   val MAX_PRECISION = 63 // our bitset operations assume all bits fit in one Long
 

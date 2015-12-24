@@ -10,7 +10,7 @@ package org.locationtech.geomesa.tools.commands
 import java.io._
 
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
@@ -25,7 +25,7 @@ import org.opengis.filter.Filter
 
 import scala.util.{Failure, Success, Try}
 
-class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with Logging {
+class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
   override val command = "export"
   override val params = new ExportParameters
 

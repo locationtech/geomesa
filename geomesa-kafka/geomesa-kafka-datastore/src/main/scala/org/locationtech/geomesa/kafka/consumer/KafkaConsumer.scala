@@ -14,7 +14,7 @@ import java.util.UUID
 import java.util.concurrent._
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import kafka.api._
 import kafka.common.{ErrorMapping, OffsetAndMetadata, TopicAndPartition}
 import kafka.consumer._
@@ -37,7 +37,7 @@ import scala.util.{Failure, Success, Try}
 case class KafkaConsumer[K, V](topic: String,
                                config: ConsumerConfig,
                                keyDecoder: Decoder[K],
-                               valueDecoder: Decoder[V]) extends Logging {
+                               valueDecoder: Decoder[V]) extends LazyLogging {
 
   import KafkaConsumer._
 
@@ -256,7 +256,7 @@ case class KafkaConsumer[K, V](topic: String,
                       tap: TopicAndPartition,
                       var offset: Long,
                       val queue: BlockingQueue[FetchedDataChunk])
-    extends Fetcher with Runnable with Logging {
+    extends Fetcher with Runnable with LazyLogging {
 
     private val topic = tap.topic
     private val partition = tap.partition
@@ -294,7 +294,7 @@ case class KafkaConsumer[K, V](topic: String,
   }
 }
 
-trait Fetcher extends Logging {
+trait Fetcher extends LazyLogging {
 
   /**
    * Fetch messages
@@ -319,7 +319,7 @@ trait Fetcher extends Logging {
   }
 }
 
-object KafkaConsumer extends Logging {
+object KafkaConsumer extends LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichIterator.RichIterator
 

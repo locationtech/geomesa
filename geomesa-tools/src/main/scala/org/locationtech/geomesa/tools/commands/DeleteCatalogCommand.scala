@@ -8,10 +8,10 @@
 package org.locationtech.geomesa.tools.commands
 
 import com.beust.jcommander.{JCommander, Parameters, ParametersDelegate}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.commands.DeleteCatalogCommand._
 
-class DeleteCatalogCommand (parent: JCommander) extends CommandWithCatalog(parent) with Logging {
+class DeleteCatalogCommand (parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
   override val command = "deletecatalog"
   override val params = new DeleteCatalogParams
 

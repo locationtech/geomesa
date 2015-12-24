@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.index
 
 import java.util.Date
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Key, Mutation}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.{DateTime, DateTimeZone}
@@ -23,7 +23,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 import scala.collection.JavaConversions._
 
 case class STIndexEncoder(sft: SimpleFeatureType, rowf: TextFormatter, cff: TextFormatter, cqf: TextFormatter)
-    extends Logging {
+    extends LazyLogging {
 
   import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 

@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.accumulo.util
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 
 trait TryLoggingFailure {
-  self: Logging =>
+  self: LazyLogging =>
 
   def tryLoggingFailures[A](a: => A) = {
     try {

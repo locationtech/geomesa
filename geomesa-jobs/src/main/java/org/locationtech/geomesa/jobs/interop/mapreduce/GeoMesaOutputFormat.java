@@ -48,10 +48,11 @@ public class GeoMesaOutputFormat extends OutputFormat<Text, SimpleFeature> {
         return delegate.getOutputCommitter(context);
     }
 
+    @SuppressWarnings("unchecked")
     public static void configureDataStore(Job job, Map<String, String> dataStoreParams) {
+        Object m = JavaConverters.mapAsScalaMapConverter(dataStoreParams).asScala();
         scala.collection.immutable.Map<String, String> scalaParams =
-                JavaConverters.asScalaMapConverter(dataStoreParams).asScala()
-                              .toMap(Predef.<Tuple2<String, String>>conforms());
+                ((scala.collection.mutable.Map<String, String>) m).toMap(Predef.<Tuple2<String, String>>conforms());
         GeoMesaOutputFormat$.MODULE$.configureDataStore(job, scalaParams);
     }
 

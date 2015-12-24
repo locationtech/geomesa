@@ -210,7 +210,7 @@ object RichSimpleFeatureType {
     def clearDtgField(): Unit = sft.getUserData.remove(DEFAULT_DATE_KEY)
     def setDtgField(dtg: String): Unit = {
       val descriptor = sft.getDescriptor(dtg)
-      require(descriptor != null && descriptor.getType.getBinding == classOf[Date],
+      require(descriptor != null && classOf[Date].isAssignableFrom(descriptor.getType.getBinding),
         s"Invalid date field '$dtg' for schema $sft")
       sft.getUserData.put(DEFAULT_DATE_KEY, dtg)
     }

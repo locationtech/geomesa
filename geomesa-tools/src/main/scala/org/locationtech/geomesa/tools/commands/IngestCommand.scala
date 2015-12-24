@@ -10,7 +10,7 @@ package org.locationtech.geomesa.tools.commands
 import java.util
 
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.DataStoreHelper
 import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.tools.commands.IngestCommand._
@@ -19,7 +19,7 @@ import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
 
 import scala.collection.JavaConversions._
 
-class IngestCommand(parent: JCommander) extends Command(parent) with Logging {
+class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging {
   override val command = "ingest"
   override val params = new IngestParameters()
 

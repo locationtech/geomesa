@@ -12,7 +12,7 @@ import java.sql.Timestamp
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.{Date, List => jList, Map => jMap, UUID}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.hadoop.conf.Configuration
 import org.apache.metamodel.query.FilterClause
@@ -40,7 +40,7 @@ import scala.collection.JavaConversions._
  * There can only be a single spark context running in a given jvm, so it has to be managed using the
  * start/stop/register methods.
  */
-object GeoMesaSparkSql extends Logging {
+object GeoMesaSparkSql extends LazyLogging {
 
   private val ff = CommonFactoryFinder.getFilterFactory2
 
