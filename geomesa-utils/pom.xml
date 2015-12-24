@@ -24,16 +24,17 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.scala-lang.modules</groupId>
+            <artifactId>scala-parser-combinators_2.11</artifactId>
+        </dependency>
+        <dependency>
             <groupId>commons-pool</groupId>
             <artifactId>commons-pool</artifactId>
+            <version>1.6</version>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
         </dependency>
         <dependency>
             <groupId>com.vividsolutions</groupId>
@@ -80,8 +81,8 @@
             <artifactId>spatial4j</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.typesafe</groupId>
-            <artifactId>scalalogging-slf4j_2.10</artifactId>
+            <groupId>com.typesafe.scala-logging</groupId>
+            <artifactId>scala-logging_2.11</artifactId>
         </dependency>
         <dependency>
             <groupId>com.typesafe</groupId>
@@ -112,7 +113,7 @@
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2_2.10</artifactId>
+            <artifactId>specs2_2.11</artifactId>
         </dependency>
     </dependencies>
 </project>

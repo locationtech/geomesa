@@ -33,7 +33,7 @@ class DMSTest extends Specification {
   }
 
   "DMS" should {
-    val dms = DMS(38,04,31.17,North)
+    val dms = DMS(38,4,31.17,North)
 
     "parse DMS strings with colons" >> {
       DMS("38:04:31.17N") mustEqual dms

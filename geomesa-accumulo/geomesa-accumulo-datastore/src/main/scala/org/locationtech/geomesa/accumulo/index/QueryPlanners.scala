@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.index
 
 import java.util.Map.Entry
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Range => AccRange, Value}
@@ -335,7 +335,7 @@ trait ColumnFamilyPlanner {
   def getColumnFamiliesToFetch(filter: KeyPlanningFilter): KeyPlan
 }
 
-trait GeoHashPlanner extends Logging {
+trait GeoHashPlanner extends LazyLogging {
   def geomToGeoHashes(geom: Geometry, offset: Int, bits: Int): Seq[String] =
     GeohashUtils.getUniqueGeohashSubstringsInPolygon(geom, offset, bits, MAX_KEYS_IN_LIST)
 

@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.process.tube
 import java.util.Date
 import java.util.concurrent.atomic.AtomicInteger
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequence
 import org.geotools.data.simple.SimpleFeatureCollection
@@ -29,7 +29,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
  */
 abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
                            val bufferDistance: Double,
-                           val maxBins: Int) extends Logging {
+                           val maxBins: Int) extends LazyLogging {
 
   val calc = new GeodeticCalculator()
   val dtgField = extractDtgField(tubeFeatures.getSchema)
@@ -107,7 +107,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
  */
 class NoGapFill(tubeFeatures: SimpleFeatureCollection,
                 bufferDistance: Double,
-                maxBins: Int) extends TubeBuilder(tubeFeatures, bufferDistance, maxBins) with Logging {
+                maxBins: Int) extends TubeBuilder(tubeFeatures, bufferDistance, maxBins) with LazyLogging {
 
   // Bin ordered features into maxBins that retain order by date then union by geometry
   def timeBinAndUnion(features: Iterable[SimpleFeature], maxBins: Int) = {
@@ -151,7 +151,7 @@ class NoGapFill(tubeFeatures: SimpleFeatureCollection,
  */
 class LineGapFill(tubeFeatures: SimpleFeatureCollection,
                   bufferDistance: Double,
-                  maxBins: Int) extends TubeBuilder(tubeFeatures, bufferDistance, maxBins) with Logging {
+                  maxBins: Int) extends TubeBuilder(tubeFeatures, bufferDistance, maxBins) with LazyLogging {
 
   val id = new AtomicInteger(0)
 

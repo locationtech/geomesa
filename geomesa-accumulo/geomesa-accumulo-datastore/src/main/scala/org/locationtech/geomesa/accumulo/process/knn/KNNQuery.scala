@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.process.knn
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -23,7 +23,7 @@ import scala.annotation.tailrec
  */
 
 
-object KNNQuery extends Logging {
+object KNNQuery extends LazyLogging {
   /**
    * Method to kick off a new KNN query about aFeatureForSearch
    *

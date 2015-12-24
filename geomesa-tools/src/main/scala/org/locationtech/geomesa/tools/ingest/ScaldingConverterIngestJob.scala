@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets
 
 import com.twitter.scalding.{Args, Hdfs, Job, Local, Mode}
 import com.typesafe.config.ConfigFactory
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataUtilities, DataStoreFinder, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
@@ -24,7 +24,7 @@ import org.locationtech.geomesa.convert.text.DelimitedTextConverter
 import org.locationtech.geomesa.jobs.scalding.MultipleUsefulTextLineFiles
 import org.locationtech.geomesa.tools.Utils.IngestParams
 
-class ScaldingConverterIngestJob(args: Args) extends Job(args) with Logging {
+class ScaldingConverterIngestJob(args: Args) extends Job(args) with LazyLogging {
   import scala.collection.JavaConversions._
 
   val counter = new DefaultCounter

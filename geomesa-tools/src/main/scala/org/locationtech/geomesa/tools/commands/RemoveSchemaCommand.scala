@@ -8,12 +8,12 @@
 package org.locationtech.geomesa.tools.commands
 
 import com.beust.jcommander.{JCommander, Parameters, ParametersDelegate}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.commands.RemoveSchemaCommand.RemoveSchemaParams
 
 import scala.util.{Failure, Success, Try}
 
-class RemoveSchemaCommand(parent: JCommander) extends CommandWithCatalog(parent) with Logging {
+class RemoveSchemaCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
   override val command = "removeschema"
   override val params = new RemoveSchemaParams
 

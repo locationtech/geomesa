@@ -11,7 +11,7 @@ package org.locationtech.geomesa.utils.index
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.Lock
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Point
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -21,7 +21,7 @@ import org.specs2.runner.JUnitRunner
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class SynchronizedQuadtreeTest extends Specification with Logging {
+class SynchronizedQuadtreeTest extends Specification with LazyLogging {
 
   "SynchronizedQuadtree" should {
 

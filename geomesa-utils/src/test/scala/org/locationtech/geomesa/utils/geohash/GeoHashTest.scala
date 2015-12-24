@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.geohash
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Point
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -20,7 +20,7 @@ import scala.math._
 
 @RunWith(classOf[JUnitRunner])
 class GeoHashTest extends Specification
-                          with Logging {
+                          with LazyLogging {
 
   // set to true to see test output
   val DEBUG_OUPUT = false
