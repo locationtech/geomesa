@@ -20,7 +20,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 /** An alternative to the kafka-console-consumer providing options specific to viewing the log messages
   * internal to the [[KafkaDataStore]].
   *
-  * To run, first copy the geomesa-kafka-geoserver-plugin.jar to $KAFKA_HOME/libs.  Then create a copy of
+  * To run, first copy the geomesa-kafka-gs-plugin.jar to $KAFKA_HOME/libs.  Then create a copy of
   * $KAFKA_HOME/bin/kafka-console-consumer.sh called "kafka-ds-log-viewer" and in the copy replace the
   * classname in the exec command at the end of the script with
   * org.locationtech.geomesa.kafka.KafkaDataStoreLogViewer.

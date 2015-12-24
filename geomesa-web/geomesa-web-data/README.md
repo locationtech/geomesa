@@ -12,8 +12,8 @@ geomesa> mvn clean install -pl geomesa-web/geomesa-web-data
 
 ### Installation Instructions
 
-To install geomesa-web-data, extract all jars from ```geomesa-web/geomesa-web-data/target/geomesa-web-data-<version>-geoserver-plugin.zip```
-into your geoserver lib folder.  You will need to copy `spark-<version>-geomesa-assembly.jar` into the geoserver lib folder, and if not already installed you will need to install the [**geomesa-accumulo-geoserver-plugin**](../../geomesa-geoserver-plugin/geomesa-accumulo-geoserver-plugin).
+To install geomesa-web-data, extract all jars from ```geomesa-web/geomesa-web-data/target/geomesa-web-data-<version>-install.zip```
+into your geoserver lib folder.  You will need to copy `spark-<version>-geomesa-assembly.jar` into the geoserver lib folder, and if not already installed you will need to install the [**geomesa-accumulo-gs-plugin**](../../geomesa-geoserver-plugin/geomesa-accumulo-geoserver-plugin).
 
 To get the required Spark zip, you may build the geomesa-web-install project using the 'assemble' profile.
 Please note GeoMesa does not bundle Spark by default, and that Spark has not been approved for distribution
@@ -279,7 +279,7 @@ curl --header 'Accept: text/plain' --get --data-urlencode 'q=select mySft.myAttr
 | freemarker-2.3.18.jar | 924269 |
 | GeographicLib-Java-1.44.jar | 31693 |
 | geomesa-accumulo-datastore-1.2.0-SNAPSHOT.jar | 2338358 |
-| geomesa-accumulo-geoserver-plugin-1.2.0-SNAPSHOT.jar | 388747 |
+| geomesa-accumulo-gs-plugin-1.2.0-SNAPSHOT.jar | 388747 |
 | geomesa-compute-1.2.0-SNAPSHOT.jar | 122753 |
 | geomesa-feature-all-1.2.0-SNAPSHOT.jar | 12349 |
 | geomesa-feature-avro-1.2.0-SNAPSHOT.jar | 184531 |
@@ -290,7 +290,7 @@ curl --header 'Accept: text/plain' --get --data-urlencode 'q=select mySft.myAttr
 | geomesa-jobs-1.2.0-SNAPSHOT.jar | 543025 |
 | geomesa-raster-1.2.0-SNAPSHOT.jar | 165265 |
 | geomesa-security-1.2.0-SNAPSHOT.jar | 39567 |
-| geomesa-utils-geoserver-plugin-1.2.0-SNAPSHOT-geoserver-plugin.jar | 979554 |
+| geomesa-utils-gs-plugin-1.2.0-SNAPSHOT.jar | 979554 |
 | geomesa-web-core-1.2.0-SNAPSHOT.jar | 46226 |
 | geomesa-web-data-1.2.0-SNAPSHOT.jar | 76904 |
 | geomesa-z3-1.2.0-SNAPSHOT.jar | 30148 |

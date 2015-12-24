@@ -35,7 +35,7 @@ Snapshots are available in the [LocationTech Snapshots Repository](https://repo.
 
 To upgrade between minor releases of GeoMesa, the versions of all GeoMesa components **must** match. 
 
-This means that the version of the `geomesa-accumulo-distributed-runtime` JAR installed on Accumulo tablet servers **must** match the version of the `geomesa-accumulo-geoserver-plugin` JAR installed in the WEB-INF/lib directory of GeoServer.
+This means that the version of the `geomesa-accumulo-distributed-runtime` JAR installed on Accumulo tablet servers **must** match the version of the `geomesa-accumulo-gs-plugin` JAR installed in the WEB-INF/lib directory of GeoServer.
 
 ## Building from Source
 
@@ -84,7 +84,7 @@ From the root directory, the commands above will build JARs for each sub-project
 * **geomesa-examples**: includes Developer quickstart tutorials and examples for how to work with GeoMesa in Accumulo and Kafka.
 * **geomesa-features**: includes code for serializing SimpleFeatures and custom SimpleFeature implementations designed for GeoMesa.
 * **geomesa-filter**: a library for manipulating and working with GeoTools Filters.
-* **geomesa-geoserver-plugin**: packages plugins which provide WFS and WMS support for various `DataStore` types including [**accumulo**](geomesa-geoserver-plugin/geomesa-accumulo-geoserver-plugin), bigtable, kafka, and stream DataStores. These are packaged as zip files and can be deployed in GeoServer by extracting their contents into geoserver/WEB-INF/lib/
+* **geomesa-gs-plugin**: packages plugins which provide WFS and WMS support for various `DataStore` types including [**accumulo**](geomesa-gs-plugin/geomesa-accumulo-gs-plugin), bigtable, kafka, and stream DataStores. These are packaged as zip files and can be deployed in GeoServer by extracting their contents into geoserver/WEB-INF/lib/
 * **geomesa-hbase**: an implementation of GeoMesa on HBase and Google Cloud Bigtable.
 * [**geomesa-jobs**](geomesa-jobs): map/reduce and scalding jobs for maintaining GeoMesa.
 * [**geomesa-kafka**](geomesa-kafka/geomesa-kafka-datastore): an implementation of GeoMesa in Kafka for maintaining near-real-time caches of streaming data.
