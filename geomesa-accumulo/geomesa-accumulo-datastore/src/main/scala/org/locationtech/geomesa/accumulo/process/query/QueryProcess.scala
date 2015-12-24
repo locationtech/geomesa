@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.process.query
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.ReTypingFeatureCollection
@@ -25,7 +25,7 @@ import org.opengis.filter.Filter
   title = "Geomesa Query",
   description = "Performs a Geomesa optimized query using spatiotemporal indexes"
 )
-class QueryProcess extends Logging {
+class QueryProcess extends LazyLogging {
 
   @DescribeResult(description = "Output feature collection")
   def execute(
@@ -56,7 +56,7 @@ class QueryProcess extends Logging {
 class QueryVisitor(features: SimpleFeatureCollection,
                    filter: Filter)
   extends FeatureCalc
-          with Logging {
+          with LazyLogging {
 
   val manualVisitResults = new DefaultFeatureCollection(null, features.getSchema)
   val ff  = CommonFactoryFinder.getFilterFactory2

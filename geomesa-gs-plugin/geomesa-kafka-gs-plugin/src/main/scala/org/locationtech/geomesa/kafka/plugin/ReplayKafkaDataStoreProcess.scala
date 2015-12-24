@@ -10,7 +10,7 @@ package org.locationtech.geomesa.kafka.plugin
 
 import java.lang.{Long => JLong}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.geoserver.catalog._
 import org.geotools.data.DataStore
 import org.geotools.process.ProcessException
@@ -27,7 +27,7 @@ import scala.language.implicitConversions
   description = "Builds a replay layer from a defined window of time on a KafkaDataStore",
   version = "1.0.0"
 )
-class ReplayKafkaDataStoreProcess(val catalog: Catalog) extends GeomesaKafkaProcess with Logging {
+class ReplayKafkaDataStoreProcess(val catalog: Catalog) extends GeomesaKafkaProcess with LazyLogging {
 
   import org.locationtech.geomesa.kafka.plugin.VolatileLayer._
 

@@ -11,7 +11,7 @@ package org.locationtech.geomesa.jobs.mapred
 import java.io._
 import java.lang.Float.isNaN
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.mapred.{AccumuloInputFormat, InputFormatBase, RangeInputSplit}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.{Key, Value}
@@ -36,7 +36,7 @@ import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 
-object GeoMesaInputFormat extends Logging {
+object GeoMesaInputFormat extends LazyLogging {
 
   def configure(job: JobConf,
                 dsParams: Map[String, String],
@@ -106,7 +106,7 @@ object GeoMesaInputFormat extends Logging {
 /**
  * Input format that allows processing of simple features from GeoMesa based on a CQL query
  */
-class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with Logging {
+class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLogging {
 
   val delegate = new AccumuloInputFormat
 

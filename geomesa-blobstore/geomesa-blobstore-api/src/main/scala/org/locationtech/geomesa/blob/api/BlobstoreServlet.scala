@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.blob.api
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
 import org.locationtech.geomesa.blob.core.AccumuloBlobStore
 import org.locationtech.geomesa.web.core.GeoMesaScalatraServlet
@@ -16,7 +16,7 @@ import org.scalatra.{NotFound, Ok}
 
 import scala.collection.JavaConversions._
 
-class BlobstoreServlet extends GeoMesaScalatraServlet with Logging {
+class BlobstoreServlet extends GeoMesaScalatraServlet with LazyLogging {
   override def root: String = "blob"
 
   var abs: AccumuloBlobStore = null

@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.iterators
 import java.util.Map.Entry
 import java.util.{Collection => jCollection, Map => jMap}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Range => aRange, _}
@@ -35,7 +35,7 @@ import scala.collection.mutable
 /**
  * Density iterator - only works on kryo-encoded point geometries
  */
-class Z3DensityIterator extends SortedKeyValueIterator[Key, Value] with Logging {
+class Z3DensityIterator extends SortedKeyValueIterator[Key, Value] with LazyLogging {
 
   import Z3DensityIterator._
 
@@ -188,7 +188,7 @@ class Z3DensityIterator extends SortedKeyValueIterator[Key, Value] with Logging 
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = ???
 }
 
-object Z3DensityIterator extends Logging {
+object Z3DensityIterator extends LazyLogging {
 
   // need to be lazy to avoid class loading issues before init is called
   lazy val DENSITY_SFT = SimpleFeatureTypes.createType("density", "result:String,*geom:Point:srid=4326")

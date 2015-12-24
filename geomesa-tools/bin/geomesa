@@ -229,18 +229,6 @@ elif [[ $1 = classpath ]]; then
     for element in ${CLASSPATH//:/ } ; do
         echo ${element}
     done
-elif [[ $1 = repl ]]; then
-    if [ "$2" = "hdfs" ]; then
-        # we need to exclude slf4j, as it's already on the hadoop classpath
-        CLASSPATH="$(echo $GEOMESA_CP | sed s/[^:]*slf4j-log4j[^:]*:*//g):$ACCUMULO_CP"
-        export HADOOP_CLASSPATH="$CLASSPATH"
-        export LIBJARS="${CLASSPATH//:/,}"
-        hadoop jar $GEOMESA_HOME/lib/geomesa-tools-*.jar com.twitter.scalding.ScaldingShell -libjars "$LIBJARS" -Dmapred.reduce.tasks=20 -Dmapred.min.split.size=2000000000 --hdfs --repl
-    else
-        CLASSPATH="$GEOMESA_CP:$ACCUMULO_CP:$HADOOP_CP"
-        java ${GEOMESA_OPTS} -cp ${CLASSPATH} com.twitter.scalding.ScaldingShell --local --repl
-    fi
-    reset # reset the console - the repl can mess up the colors
 else
     if [[ $1 = debug ]]; then
         GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"

@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.geohash
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.junit.Ignore
 import org.junit.runner.RunWith
@@ -18,7 +18,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class GeohashUtilsTest extends Specification with Logging {
+class GeohashUtilsTest extends Specification with LazyLogging {
   val NO_VALUE: Int = -1
 
   // Turn this on for debugging purposes
@@ -251,7 +251,7 @@ class GeohashUtilsTest extends Specification with Logging {
 
 @Ignore
 @RunWith(classOf[JUnitRunner])
-class GeohashUtilsTimeTest extends Specification with Logging {
+class GeohashUtilsTimeTest extends Specification with LazyLogging {
 
   "performance test for getUniqueGeohashSubstringsInPolygon" should {
     val poly = wkt2geom("POLYGON((-170 -80, -170 0, -170 80, 0 80, 170 80, 170 0, 170 -80, 0 -80, -170 -80))").asInstanceOf[Polygon]

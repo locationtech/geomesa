@@ -9,7 +9,7 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.Conversions.toRichSimpleFeatureIterator
@@ -17,7 +17,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class GridSnapTest extends Specification with Logging {
+class GridSnapTest extends Specification with LazyLogging {
 
   "GridSnap" should {
     "create a gridsnap around a given bbox" in {

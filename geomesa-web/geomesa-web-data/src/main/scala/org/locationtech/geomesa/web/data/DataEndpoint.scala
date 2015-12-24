@@ -7,14 +7,14 @@
 *************************************************************************/
 package org.locationtech.geomesa.web.data
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.web.core.GeoMesaScalatraServlet
 import org.scalatra.{BadRequest, InternalServerError, Ok}
 
 import scala.collection.JavaConversions._
 
-class DataEndpoint extends GeoMesaScalatraServlet with Logging {
+class DataEndpoint extends GeoMesaScalatraServlet with LazyLogging {
 
   override val root: String = "data"
 

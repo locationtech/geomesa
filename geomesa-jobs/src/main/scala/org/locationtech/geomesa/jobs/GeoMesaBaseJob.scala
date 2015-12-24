@@ -13,12 +13,12 @@ import java.util.{List => JList, Map => JMap}
 import cascading.flow.{Flow, FlowStep, FlowStepStrategy}
 import com.twitter.chill.config.ConfiguredInstantiator
 import com.twitter.scalding._
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapred.JobConf
 import org.locationtech.geomesa.jobs.scalding.serialization.SimpleFeatureKryoHadoop
 
-abstract class GeoMesaBaseJob(args: Args) extends Job(args) with Logging {
+abstract class GeoMesaBaseJob(args: Args) extends Job(args) with LazyLogging {
 
   def jobName: String = s"GeoMesa ${getClass.getSimpleName}"
 

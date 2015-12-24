@@ -15,7 +15,7 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 import com.google.common.cache._
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FilenameUtils
 import org.geotools.GML
 import org.geotools.gml.producer.FeatureTransformer
@@ -37,7 +37,7 @@ import org.scalatra.servlet.{FileUploadSupport, MultipartConfig, SizeConstraintE
 //    the end user can just pass the head of their csv to minimize transfers
 // 2) geomesa:csvimport takes a schema as well as the csv data and converts
 //    csv records to SimpleFeatures on the fly for ingest
-class CSVEndpoint extends GeoMesaScalatraServlet with FileUploadSupport with Logging with PkiAuthenticationSupport {
+class CSVEndpoint extends GeoMesaScalatraServlet with FileUploadSupport with LazyLogging with PkiAuthenticationSupport {
 
   override val root: String = "csv"
 

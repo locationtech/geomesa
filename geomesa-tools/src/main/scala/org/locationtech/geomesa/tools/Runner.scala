@@ -8,13 +8,13 @@
 package org.locationtech.geomesa.tools
 
 import com.beust.jcommander.{JCommander, ParameterException}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.commands._
 import org.locationtech.geomesa.tools.commands.convert.GeoMesaIStringConverterFactory
 
 import scala.collection.JavaConversions._
 
-object Runner extends Logging {
+object Runner extends LazyLogging {
 
   def main(args: Array[String]): Unit = {
     val jc = new JCommander()

@@ -11,7 +11,7 @@ import java.io.{BufferedReader, File, FileInputStream, InputStreamReader}
 
 import com.beust.jcommander.ParameterException
 import com.typesafe.config.ConfigFactory
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
 import org.geotools.data.DataUtilities
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
@@ -25,7 +25,7 @@ import scala.util.{Failure, Success, Try}
  * including sft strings (e.g. name:String,age:Integer,*geom:Point)
  * and typesafe config.
  */
-object SftArgParser extends Logging {
+object SftArgParser extends LazyLogging {
 
   /**
    * @throws ParameterException if the SFT cannot be parsed

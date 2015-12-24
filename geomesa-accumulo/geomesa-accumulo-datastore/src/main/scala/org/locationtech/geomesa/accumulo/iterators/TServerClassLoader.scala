@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import com.typesafe.scalalogging.slf4j.Logger
+import com.typesafe.scalalogging.Logger
 import org.apache.commons.vfs2.impl.VFSClassLoader
 import org.geotools.factory.GeoTools
 

@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.stats
 
 import java.util.Map.Entry
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.Scanner
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.joda.time.format.DateTimeFormat
@@ -29,7 +29,7 @@ trait Stat {
 /**
  * Trait for mapping stats to accumulo and back
  */
-trait StatTransform[S <: Stat] extends Logging {
+trait StatTransform[S <: Stat] extends LazyLogging {
 
   protected def createMutation(stat: Stat) = new Mutation(s"${stat.typeName}~${StatTransform.dateFormat.print(stat.date)}")
 

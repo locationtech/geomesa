@@ -107,16 +107,16 @@
     <dependencies>
         <dependency>
             <groupId>org.scalatra</groupId>
-            <artifactId>scalatra_2.10</artifactId>
+            <artifactId>scalatra_2.11</artifactId>
         </dependency>
         <dependency>
             <groupId>org.scalatra</groupId>
-            <artifactId>scalatra-json_2.10</artifactId>
+            <artifactId>scalatra-json_2.11</artifactId>
             <version>${scalatra.version}</version>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
-            <artifactId>json4s-native_2.10</artifactId>
+            <artifactId>json4s-native_2.11</artifactId>
             <version>3.2.10</version>
         </dependency>
         <dependency>
@@ -141,32 +141,31 @@
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_2.10</artifactId>
+            <artifactId>spark-core_2.11</artifactId>
             <version>${spark.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-yarn_2.10</artifactId>
+            <artifactId>spark-yarn_2.11</artifactId>
             <version>${spark.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql_2.10</artifactId>
+            <artifactId>spark-sql_2.11</artifactId>
             <version>${spark.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-catalyst_2.10</artifactId>
+            <artifactId>spark-catalyst_2.11</artifactId>
             <version>${spark.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.typesafe</groupId>
-            <artifactId>scalalogging-slf4j_2.10</artifactId>
-            <scope>compile</scope>
+            <groupId>com.typesafe.scala-logging</groupId>
+            <artifactId>scala-logging_2.11</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>

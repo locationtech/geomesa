@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.kafka.plugin
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.geoserver.catalog.event._
 import org.geoserver.catalog.{Catalog, LayerInfo}
 import org.geotools.data.DataStore
@@ -26,7 +26,7 @@ import scala.util.control.NonFatal
   version = "1.0.0"
 )
 class ReplayKafkaLayerReaperProcess(val catalog: Catalog, val hours: Int)
-  extends GeomesaKafkaProcess with Logging with Runnable {
+  extends GeomesaKafkaProcess with LazyLogging with Runnable {
 
   // register a listener to remove the schema when a replay layer is deleted
   // this will be triggered by both a user deleting a layer and the reaper process
@@ -68,7 +68,7 @@ class ReplayKafkaLayerReaperProcess(val catalog: Catalog, val hours: Int)
   }
 }
 
-class ReplayKafkaLayerCatalogListener extends CatalogListener with Logging {
+class ReplayKafkaLayerCatalogListener extends CatalogListener with LazyLogging {
 
   override def handleRemoveEvent(event: CatalogRemoveEvent): Unit = event.getSource match {
     case layer: LayerInfo =>

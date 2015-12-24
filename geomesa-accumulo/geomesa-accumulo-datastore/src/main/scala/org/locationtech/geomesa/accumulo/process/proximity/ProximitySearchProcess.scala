@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.process.proximity
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.GeometryFactory
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
@@ -30,7 +30,7 @@ import scala.collection.JavaConversions._
   title = "Geomesa-enabled Proximity Search",
   description = "Performs a proximity search on a Geomesa feature collection using another feature collection as input"
 )
-class ProximitySearchProcess extends Logging {
+class ProximitySearchProcess extends LazyLogging {
 
   @DescribeResult(description = "Output feature collection")
   def execute(
@@ -70,7 +70,7 @@ class ProximityVisitor(inputFeatures: SimpleFeatureCollection,
                        dataFeatures: SimpleFeatureCollection,
                        bufferDistance: java.lang.Double)
   extends FeatureCalc
-          with Logging {
+          with LazyLogging {
 
   val geoFac = new GeometryFactory
   val ff = CommonFactoryFinder.getFilterFactory2

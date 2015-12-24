@@ -7,7 +7,7 @@
 *************************************************************************/
 package org.locationtech.geomesa.web.security
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.geoserver.security.decorators.{DecoratingDataAccess, DecoratingDataStore, DecoratingSimpleFeatureSource}
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
@@ -22,7 +22,7 @@ import org.opengis.filter.Filter
 /** Implementation of [[DataStoreSecurityProvider]] using the spring security context to access the
   * user's authorizations.
   */
-class DataStoreSecurityProviderImpl extends DataStoreSecurityProvider with Logging {
+class DataStoreSecurityProviderImpl extends DataStoreSecurityProvider with LazyLogging {
 
   override def secure(fs: FS): FS = GMSecureFeatureSource(fs)
 
@@ -40,7 +40,7 @@ object DataStoreSecurityProviderImpl {
 
 class GMSecureDataAccess(delegate: DA)
   extends DecoratingDataAccess[SimpleFeatureType, SimpleFeature](delegate)
-  with Logging {
+  with LazyLogging {
 
   logger.info("Secured Data Access '{}'", delegate)
 
@@ -48,7 +48,7 @@ class GMSecureDataAccess(delegate: DA)
     GMSecureFeatureSource(super.getFeatureSource(typeName), this)
 }
 
-class GMSecureDataStore(delegate: DataStore) extends DecoratingDataStore(delegate) with Logging {
+class GMSecureDataStore(delegate: DataStore) extends DecoratingDataStore(delegate) with LazyLogging {
   
   logger.info("Secured Data Store '{}'", delegate)
 
@@ -64,7 +64,7 @@ class GMSecureDataStore(delegate: DataStore) extends DecoratingDataStore(delegat
 
 class GMSecureFeatureSource(delegate: SimpleFeatureSource, secureDataStore: DA)
   extends DecoratingSimpleFeatureSource(delegate)
-  with Logging {
+  with LazyLogging {
 
   logger.info("Secured Feature Source '{}'", delegate)
 
@@ -95,7 +95,7 @@ object GMSecureFeatureSource {
   }
 }
 
-object GMSecureFeatureCollection extends Logging {
+object GMSecureFeatureCollection extends LazyLogging {
 
   def apply(fc: FC): SimpleFeatureCollection = {
     logger.info("Secured Feature Collection '{}'", fc)
@@ -105,7 +105,7 @@ object GMSecureFeatureCollection extends Logging {
   }
 }
 
-object GMSecureFeatureReader extends Logging {
+object GMSecureFeatureReader extends LazyLogging {
 
   def apply(fr: FR): FR = {
     logger.info("Secured Feature Reader '{}'", fr)

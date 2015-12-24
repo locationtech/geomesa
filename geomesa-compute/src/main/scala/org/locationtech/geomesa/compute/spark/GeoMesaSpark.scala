@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.google.common.cache.{CacheBuilder, CacheLoader}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat
 import org.apache.accumulo.core.client.mapreduce.lib.util.{ConfiguratorBase, InputConfigurator}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
@@ -39,7 +39,7 @@ import org.opengis.filter._
 
 import scala.collection.JavaConversions._
 
-object GeoMesaSpark extends Logging {
+object GeoMesaSpark extends LazyLogging {
 
   def init(conf: SparkConf, ds: DataStore): SparkConf = init(conf, ds.getTypeNames.map(ds.getSchema))
 

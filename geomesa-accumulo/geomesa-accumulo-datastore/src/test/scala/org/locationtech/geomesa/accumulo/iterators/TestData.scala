@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Geometry, GeometryFactory}
 import org.apache.accumulo.core.Constants
 import org.apache.accumulo.core.data.{Mutation, Value}
@@ -34,7 +34,7 @@ object UnitTestEntryType  {
   def getTypeSpec = "POINT:String," + "LINESTRING:String," + "POLYGON:String," + "attr2:String," + spec
 }
 
-object TestData extends Logging {
+object TestData extends LazyLogging {
   val TEST_USER = "root"
   val TEST_TABLE = "test_table"
   val TEST_AUTHORIZATIONS = Constants.NO_AUTHS
