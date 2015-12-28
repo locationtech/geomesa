@@ -1952,6 +1952,10 @@
             <id>conjars.org</id>
             <url>http://conjars.org/repo</url>
         </repository>
+        <repository>
+            <id>LocationTech</id>
+            <url>https://repo.locationtech.org/content/groups/releases</url>
+        </repository>
     </repositories>
 
 </project>

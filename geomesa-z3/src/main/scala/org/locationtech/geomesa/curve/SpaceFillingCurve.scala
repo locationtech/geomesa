@@ -9,6 +9,8 @@
 package org.locationtech.geomesa.curve
 
 import org.joda.time.Weeks
+import org.locationtech.sfcurve.IndexRange
+import org.locationtech.sfcurve.zorder.Z3
 
 trait SpaceFillingCurve[T] {
   def xprec: Long
@@ -17,7 +19,7 @@ trait SpaceFillingCurve[T] {
   def tmax: Double
   def index(x: Double, y: Double, t: Long): T
   def invert(i: T): (Double, Double, Long)
-  def ranges(x: (Double, Double), y: (Double, Double), t: (Long, Long)): Seq[(Long, Long)]
+  def ranges(x: (Double, Double), y: (Double, Double), t: (Long, Long)): Seq[IndexRange]
   def normLon(x: Double) = math.ceil((180.0 + x) / 360.0 * xprec).toInt
   def denormLon(x: Double): Double = (x / xprec) * 360.0 - 180.0
   def normLat(y: Double) = math.ceil((90.0 + y) / 180.0 * yprec).toInt
@@ -35,7 +37,7 @@ class Z3SFC extends SpaceFillingCurve[Z3] {
 
   override def index(x: Double, y: Double, t: Long): Z3 = Z3(normLon(x), normLat(y), normT(t))
 
-  override def ranges(x: (Double, Double), y: (Double, Double), t: (Long, Long)): Seq[(Long, Long)] =
+  override def ranges(x: (Double, Double), y: (Double, Double), t: (Long, Long)): Seq[IndexRange] =
     Z3.zranges(index(x._1, y._1, t._1), index(x._2, y._2, t._2))
 
   override def invert(z: Z3): (Double, Double, Long) = {
