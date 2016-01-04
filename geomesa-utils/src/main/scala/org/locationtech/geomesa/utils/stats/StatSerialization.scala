@@ -17,34 +17,34 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 /**
- * Stats are serialized as a byte array where the first byte indicates which type of stat is present.
- * The next four bits contain the size of the serialized information.
- * A SeqStat is serialized the same way, with each individual stat immediately following the previous in the byte array.
- */
+  * Stats are serialized as a byte array where the first byte indicates which type of stat is present.
+  * The next four bits contain the size of the serialized information.
+  * A SeqStat is serialized the same way, with each individual stat immediately following the previous in the byte array.
+  */
 object StatSerialization {
   // bytes indicating the type of stat
-  val MINMAX_BYTE: Byte     = '0'
-  val ISC_BYTE: Byte        = '1'
-  val EH_BYTE: Byte         = '2'
-  val RH_BYTE: Byte         = '3'
+  val MINMAX_BYTE: Byte = '0'
+  val ISC_BYTE: Byte = '1'
+  val EH_BYTE: Byte = '2'
+  val RH_BYTE: Byte = '3'
 
   /**
-   * Fully serializes a stat by formatting the byte array with the "kind" byte
-   *
-   * @param kind byte indicating the type of stat
-   * @param bytes serialized stat
-   * @return fully serialized stat
-   */
+    * Fully serializes a stat by formatting the byte array with the "kind" byte
+    *
+    * @param kind byte indicating the type of stat
+    * @param bytes serialized stat
+    * @return fully serialized stat
+    */
   private def serializeStat(kind: Byte, bytes: Array[Byte]): Array[Byte] = {
     val size = ByteBuffer.allocate(4).putInt(bytes.length).array
     Bytes.concat(Array(kind), size, bytes)
   }
 
-  protected [stats] def packMinMax(mm: MinMax[_]): Array[Byte] = {
+  protected[stats] def packMinMax(mm: MinMax[_]): Array[Byte] = {
     serializeStat(MINMAX_BYTE, s"${mm.attrIndex};${mm.attrType};${mm.min};${mm.max}".getBytes)
   }
 
-  protected [stats] def unpackMinMax(bytes: Array[Byte]): MinMax[_] = {
+  protected[stats] def unpackMinMax(bytes: Array[Byte]): MinMax[_] = {
     val split = new String(bytes).split(";")
     require(split.size == 4)
 
@@ -69,17 +69,17 @@ object StatSerialization {
     }
   }
 
-  protected [stats] def packISC(isc: IteratorStackCounter): Array[Byte] = {
+  protected[stats] def packISC(isc: IteratorStackCounter): Array[Byte] = {
     serializeStat(ISC_BYTE, s"${isc.count}".getBytes)
   }
 
-  protected [stats] def unpackIteratorStackCounter(bytes: Array[Byte]): IteratorStackCounter = {
+  protected[stats] def unpackIteratorStackCounter(bytes: Array[Byte]): IteratorStackCounter = {
     val stat = new IteratorStackCounter()
     stat.count = java.lang.Long.parseLong(new String(bytes))
     stat
   }
 
-  protected [stats] def packEnumeratedHistogram(eh: EnumeratedHistogram[_]): Array[Byte] = {
+  protected[stats] def packEnumeratedHistogram(eh: EnumeratedHistogram[_]): Array[Byte] = {
     val sb = new StringBuilder(s"${eh.attrIndex};${eh.attrType};")
 
     val keyValues = eh.frequencyMap.map { case (key, count) => s"${key.toString}->$count" }.mkString(",")
@@ -88,7 +88,7 @@ object StatSerialization {
     serializeStat(EH_BYTE, sb.toString().getBytes)
   }
 
-  protected [stats] def unpackEnumeratedHistogram(bytes: Array[Byte]): EnumeratedHistogram[_] = {
+  protected[stats] def unpackEnumeratedHistogram(bytes: Array[Byte]): EnumeratedHistogram[_] = {
     val split = new String(bytes).split(";")
     require(split.size == 3)
 
@@ -97,48 +97,52 @@ object StatSerialization {
     val keyValues = split(2).split(",")
 
     val attrType = Class.forName(attrTypeString)
-    attrType match {
-      case _ if attrType == classOf[Date] =>
-        val eh = new EnumeratedHistogram[Date](attrIndex, attrTypeString)
-        keyValues.foreach {
-          case (keyValuePair) =>
-            val splitKeyValuePair = keyValuePair.split("->")
-            eh.frequencyMap.put(StatHelpers.javaDateFormat.parse(splitKeyValuePair(0)), splitKeyValuePair(1).toLong)
-        }
-        eh
-      case _ if attrType == classOf[Integer] =>
-        val eh = new EnumeratedHistogram[Integer](attrIndex, attrTypeString)
-        keyValues.foreach {
-          case (keyValuePair) =>
-            val splitKeyValuePair = keyValuePair.split("->")
-            eh.frequencyMap.put(splitKeyValuePair(0).toInt, splitKeyValuePair(1).toLong)
-        }
-        eh
-      case _ if attrType == classOf[java.lang.Long] =>
-        val eh = new EnumeratedHistogram[java.lang.Long](attrIndex, attrTypeString)
-        keyValues.foreach {
-          case (keyValuePair) =>
-            val splitKeyValuePair = keyValuePair.split("->")
-            eh.frequencyMap.put(splitKeyValuePair(0).toLong, splitKeyValuePair(1).toLong)
-        }
-        eh
-      case _ if attrType == classOf[java.lang.Float] =>
-        val eh = new EnumeratedHistogram[java.lang.Float](attrIndex, attrTypeString)
-        keyValues.foreach {
-          case (keyValuePair) =>
-            val splitKeyValuePair = keyValuePair.split("->")
-            eh.frequencyMap.put(splitKeyValuePair(0).toFloat, splitKeyValuePair(1).toLong)
-        }
-        eh
-      case _ if attrType == classOf[java.lang.Double] =>
-        val eh = new EnumeratedHistogram[java.lang.Double](attrIndex, attrTypeString)
-        keyValues.foreach {
-          case (keyValuePair) =>
-            val splitKeyValuePair = keyValuePair.split("->")
-            eh.frequencyMap.put(splitKeyValuePair(0).toDouble, splitKeyValuePair(1).toLong)
-        }
-        eh
+
+    val eh = new EnumeratedHistogram[_](attrIndex, attrTypeString)
+    if (attrType == classOf[Date]) {
+
+      val eh = new EnumeratedHistogram[Date](attrIndex, attrTypeString)
+      keyValues.foreach {
+        case (keyValuePair) =>
+          val splitKeyValuePair = keyValuePair.split("->")
+          eh.frequencyMap.put(StatHelpers.javaDateFormat.parseDateTime(splitKeyValuePair(0)).toDate, splitKeyValuePair(1).toLong)
+      }
+      eh
+    } else if (attrType == classOf[Integer]) {
+      val eh = new EnumeratedHistogram[Integer](attrIndex, attrTypeString)
+      keyValues.foreach {
+        case (keyValuePair) =>
+          val splitKeyValuePair = keyValuePair.split("->")
+          eh.frequencyMap.put(splitKeyValuePair(0).toInt, splitKeyValuePair(1).toLong)
+      }
+      eh
+    } else if (attrType == classOf[java.lang.Long]) {
+      val eh = new EnumeratedHistogram[java.lang.Long](attrIndex, attrTypeString)
+      keyValues.foreach {
+        case (keyValuePair) =>
+          val splitKeyValuePair = keyValuePair.split("->")
+          eh.frequencyMap.put(splitKeyValuePair(0).toLong, splitKeyValuePair(1).toLong)
+      }
+      eh
+    } else if (attrType == classOf[java.lang.Float]) {
+      val eh = new EnumeratedHistogram[java.lang.Float](attrIndex, attrTypeString)
+      keyValues.foreach {
+        case (keyValuePair) =>
+          val splitKeyValuePair = keyValuePair.split("->")
+          eh.frequencyMap.put(splitKeyValuePair(0).toFloat, splitKeyValuePair(1).toLong)
+      }
+      eh
+    } else if (attrType == classOf[java.lang.Double]) {
+      val eh = new EnumeratedHistogram[java.lang.Double](attrIndex, attrTypeString)
+      keyValues.foreach {
+        case (keyValuePair) =>
+          val splitKeyValuePair = keyValuePair.split("->")
+          eh.frequencyMap.put(splitKeyValuePair(0).toDouble, splitKeyValuePair(1).toLong)
+      }
+      eh
     }
+
+    eh
   }
 
   protected [stats] def packRangeHistogram(rh: RangeHistogram[_]): Array[Byte] = {
@@ -208,11 +212,11 @@ object StatSerialization {
   }
 
   /**
-   * Uses individual stat pack methods to serialize the stat
-   *
-   * @param stat the given stat to serialize
-   * @return serialized stat
-   */
+    * Uses individual stat pack methods to serialize the stat
+    *
+    * @param stat the given stat to serialize
+    * @return serialized stat
+    */
   def pack(stat: Stat): Array[Byte] = {
     stat match {
       case mm: MinMax[_]                => packMinMax(mm)
@@ -224,11 +228,11 @@ object StatSerialization {
   }
 
   /**
-   * Deserializes the stat
-   *
-   * @param bytes the serialized stat
-   * @return deserialized stat
-   */
+    * Deserializes the stat
+    *
+    * @param bytes the serialized stat
+    * @return deserialized stat
+    */
   def unpack(bytes: Array[Byte]): Stat = {
     val returnStats: ArrayBuffer[Stat] = new mutable.ArrayBuffer[Stat]()
     val bb = ByteBuffer.wrap(bytes)

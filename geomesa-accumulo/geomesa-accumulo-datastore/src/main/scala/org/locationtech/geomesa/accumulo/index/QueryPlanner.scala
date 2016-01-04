@@ -384,7 +384,7 @@ object QueryPlanner extends Logging {
       KryoLazyStatsIterator.createFeatureType(baseSft)
     } else if (query.getHints.isTemporalDensityQuery) {
       TemporalDensityIterator.createFeatureType(baseSft)
-    } else if (query.getHints.containsKey(MAP_AGGREGATION_KEY)) {
+    } else if (query.getHints.isMapAggregatingQuery) {
       val spec = KryoLazyMapAggregatingIterator.createMapSft(baseSft, query.getHints.getMapAggregatingAttribute)
       SimpleFeatureTypes.createType(baseSft.getTypeName, spec)
     } else {

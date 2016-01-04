@@ -122,15 +122,15 @@ object QueryStatTransform extends StatTransform[QueryStat] {
    */
   private def keyToString(key: Hints.Key): String =
     key match {
-      case TRANSFORMS                       => "TRANSFORMS"
-      case TRANSFORM_SCHEMA                 => "TRANSFORM_SCHEMA"
-      case BIN_TRACK_KEY                    => "BIN_TRACK_KEY"
-      case STATS_STRING                     => "STATS_STRING_KEY"
-      case RETURN_ENCODED                   => "RETURN_ENCODED"
-      case DENSITY_BBOX_KEY                 => "DENSITY_BBOX_KEY"
-      case WIDTH_KEY                        => "WIDTH_KEY"
-      case HEIGHT_KEY                       => "HEIGHT_KEY"
-      case _                                => "unknown_hint"
+      case TRANSFORMS       => "TRANSFORMS"
+      case TRANSFORM_SCHEMA => "TRANSFORM_SCHEMA"
+      case BIN_TRACK_KEY    => "BIN_TRACK_KEY"
+      case STATS_STRING     => "STATS_STRING_KEY"
+      case RETURN_ENCODED   => "RETURN_ENCODED"
+      case DENSITY_BBOX_KEY => "DENSITY_BBOX_KEY"
+      case WIDTH_KEY        => "WIDTH_KEY"
+      case HEIGHT_KEY       => "HEIGHT_KEY"
+      case _                => "unknown_hint"
     }
 
   /**
