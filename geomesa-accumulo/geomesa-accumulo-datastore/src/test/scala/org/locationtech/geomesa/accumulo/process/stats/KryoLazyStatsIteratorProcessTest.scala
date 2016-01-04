@@ -82,7 +82,7 @@ class KryoLazyStatsIteratorProcessTest extends Specification {
     sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
     val ds = createDataStore(sft, 0)
     val encodedFeatures = (0 until 150).toArray.map{
-      i => Array(i, i*2, new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
+      i => Array(i, i*2L, new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
     }
     val fs = loadFeatures(ds, sft, encodedFeatures)
     val statsIteratorProcess = new StatsIteratorProcess()
@@ -195,11 +195,10 @@ class KryoLazyStatsIteratorProcessTest extends Specification {
 
     "work with non AccumuloFeatureCollections" in {
       val features: DefaultFeatureCollection = new DefaultFeatureCollection(null, sft)
-
-      encodedFeatures.foreach {
-        case sfArray =>
-          features.add(new ScalaSimpleFeature("", sft, sfArray.asInstanceOf[Array[AnyRef]]))
+      val simpleFeatures = encodedFeatures.zipWithIndex.map {
+        case (sfArray, i) => new ScalaSimpleFeature(s"$i", sft, sfArray.asInstanceOf[Array[AnyRef]])
       }
+      simpleFeatures.foreach(features.add)
 
       val results = statsIteratorProcess.execute(features,
         "MinMax(attr);IteratorStackCounter;EnumeratedHistogram(id);RangeHistogram(id,5,10,15)")

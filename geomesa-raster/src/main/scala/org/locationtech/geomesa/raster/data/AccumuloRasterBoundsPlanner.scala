@@ -9,11 +9,11 @@
 
 package org.locationtech.geomesa.raster.data
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.locationtech.geomesa.accumulo.iterators.BBOXCombiner
 
-object AccumuloRasterBoundsPlanner extends Logging {
+object AccumuloRasterBoundsPlanner extends LazyLogging {
 
   def getBoundsScannerCfg(tableName: String): IteratorSetting = {
     logger.debug(s"Raster Bounds Planner for table: $tableName")

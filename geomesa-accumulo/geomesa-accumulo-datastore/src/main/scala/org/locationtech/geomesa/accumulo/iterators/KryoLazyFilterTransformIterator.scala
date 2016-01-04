@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import java.util.{Collection => jCollection, Map => jMap}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
@@ -28,7 +28,7 @@ import org.opengis.filter.Filter
  *
  * Uses lazy evaluation of attributes and binary transforms when possible.
  */
-class KryoLazyFilterTransformIterator extends SortedKeyValueIterator[Key, Value] with Logging {
+class KryoLazyFilterTransformIterator extends SortedKeyValueIterator[Key, Value] with LazyLogging {
 
   import KryoLazyFilterTransformIterator._
 

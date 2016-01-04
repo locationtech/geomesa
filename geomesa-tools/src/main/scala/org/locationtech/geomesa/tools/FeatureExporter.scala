@@ -11,7 +11,7 @@ import java.io._
 import java.text.SimpleDateFormat
 import java.util.{Date, TimeZone}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.lang.StringEscapeUtils
 import org.geotools.GML
 import org.geotools.GML.Version
@@ -49,6 +49,7 @@ class GeoJsonExport(writer: Writer) extends FeatureExporter {
 class GmlExport(os: OutputStream) extends FeatureExporter {
 
   val encode = new GML(Version.WFS1_0)
+  // JNH: "location" is unlikely to be a valid namespace.
   encode.setNamespace("location", "location.xsd")
 
   override def write(features: SimpleFeatureCollection) = encode.encode(os, features)
@@ -116,7 +117,7 @@ object ShapefileExport {
 }
 
 class DelimitedExport(writer: Writer, format: String, attributes: Option[String])
-    extends FeatureExporter with Logging {
+    extends FeatureExporter with LazyLogging {
 
   val delimiter = format match {
    case Formats.CSV => ","

@@ -9,14 +9,14 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.data.tables.SpatioTemporalTable
 import org.locationtech.geomesa.accumulo.data.tables.SpatioTemporalTable.{DATA_CHECK, INDEX_CHECK}
 
-class ConsistencyCheckingIterator extends SortedKeyValueIterator[Key, Value] with Logging {
+class ConsistencyCheckingIterator extends SortedKeyValueIterator[Key, Value] with LazyLogging {
 
   import scala.collection.JavaConversions._
 

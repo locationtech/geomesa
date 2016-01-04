@@ -8,10 +8,10 @@
 package org.locationtech.geomesa.tools.commands
 
 import com.beust.jcommander.{JCommander, Parameters}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.commands.ListCommand._
 
-class ListCommand(parent: JCommander) extends CommandWithCatalog(parent) with Logging {
+class ListCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
   override val command = "list"
   override val params = new ListParameters()
 

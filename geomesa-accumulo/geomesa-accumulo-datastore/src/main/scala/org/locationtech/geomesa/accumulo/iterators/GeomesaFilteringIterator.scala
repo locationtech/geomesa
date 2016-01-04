@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 
 abstract class GeomesaFilteringIterator
-    extends HasIteratorExtensions with SortedKeyValueIterator[Key, Value] with HasSourceIterator with Logging {
+    extends HasIteratorExtensions with SortedKeyValueIterator[Key, Value] with HasSourceIterator with LazyLogging {
 
   var source: SortedKeyValueIterator[Key, Value] = null
 

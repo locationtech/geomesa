@@ -3,6 +3,7 @@ package org.locationtech.geomesa.tools
 import java.io.File
 
 import com.beust.jcommander.ParameterException
+import com.typesafe.config.ConfigFactory
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
@@ -74,8 +75,8 @@ class IngestArgumentsTest extends Specification {
       """.stripMargin
 
   "Speculator" should {
-    "work with sft and converter configs" >> {
-      val sft = SftArgParser.getSft(sftSpec, featureName, convertConfig)
+    "work with " >> {
+      val sft = SftArgParser.getSft(sftSpec, featureName)
       sft.getAttributeCount mustEqual 3
       sft.getDescriptor(0).getLocalName mustEqual "name"
       sft.getDescriptor(1).getLocalName mustEqual "age"
@@ -83,11 +84,11 @@ class IngestArgumentsTest extends Specification {
     }
 
     "fail when given spec and no feature name" >> {
-      SftArgParser.getSft(sftSpec, null, convertConfig) must throwA[ParameterException]
+      SftArgParser.getSft(sftSpec, null) must throwA[ParameterException]
     }
 
     "create a spec from sft conf" >> {
-      val sft = SftArgParser.getSft(sftConfig, null, convertConfig)
+      val sft = SftArgParser.getSft(sftConfig, null)
       sft.getAttributeCount mustEqual 3
       sft.getDescriptor(0).getLocalName mustEqual "name"
       sft.getDescriptor(1).getLocalName mustEqual "age"
@@ -95,15 +96,7 @@ class IngestArgumentsTest extends Specification {
     }
 
     "parse a combined config" >> {
-      val sft = SftArgParser.getSft(combined, null, combined)
-      sft.getAttributeCount mustEqual 3
-      sft.getDescriptor(0).getLocalName mustEqual "name"
-      sft.getDescriptor(1).getLocalName mustEqual "age"
-      sft.getDescriptor(2).getLocalName mustEqual "geom"
-    }
-
-    "parse a combined config only" >> {
-      val sft = SftArgParser.getSft(null, null, combined)
+      val sft = SftArgParser.getSft(combined, null)
       sft.getAttributeCount mustEqual 3
       sft.getDescriptor(0).getLocalName mustEqual "name"
       sft.getDescriptor(1).getLocalName mustEqual "age"
@@ -134,13 +127,15 @@ class IngestArgumentsTest extends Specification {
       DataStoreFinder.getDataStore(paramMap).asInstanceOf[AccumuloDataStore]
     }
 
-    "work with sft and converter configs in files" >> {
+    "work with sft and converter configs as strings" >> {
       val id = nextId
-      val confFile = new File(this.getClass.getClassLoader.getResource("examples/example1.conf").getFile)
+      val conf = ConfigFactory.load("examples/example1.conf")
+      val sft = conf.getConfigList("geomesa.sfts").get(0).root().render()
+      val converter = conf.getConfigList("geomesa.converters").get(0).root().render()
       val dataFile = new File(this.getClass.getClassLoader.getResource("examples/example1.csv").getFile)
-      val args = (s"ingest --mock true -i $id -u foo -p bar -c $id " +
-        s"-conf  ${confFile.getPath} ${dataFile.getPath}").split("\\s+")
-      args.length mustEqual 14
+      val args = Array("ingest", "--mock", "-i", id, "-u", "foo", "-p", "bar", "-c", id,
+        "--converter", converter, "-s", sft, dataFile.getPath)
+      args.length mustEqual 15
 
       Runner.main(args)
 

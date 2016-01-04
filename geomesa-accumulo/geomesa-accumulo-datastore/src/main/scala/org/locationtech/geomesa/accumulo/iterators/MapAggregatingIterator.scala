@@ -1,16 +1,16 @@
 /***********************************************************************
-* Copyright (c) 2013-2015 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0 which
-* accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+  * Copyright (c) 2013-2015 Commonwealth Computer Research, Inc.
+  * All rights reserved. This program and the accompanying materials
+  * are made available under the terms of the Apache License, Version 2.0 which
+  * accompanies this distribution and is available at
+  * http://www.opensource.org/licenses/apache2.0.php.
+  *************************************************************************/
 
 package org.locationtech.geomesa.accumulo.iterators
 
 import java.util.{Map => JMap}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
@@ -59,7 +59,7 @@ class MapAggregatingIterator(other: MapAggregatingIterator, env: IteratorEnviron
 }
 
 @deprecated
-object MapAggregatingIterator extends Logging {
+object MapAggregatingIterator extends LazyLogging {
 
   val MAP_ATTRIBUTE = "map_attribute"
   def projectedSFTDef(mapAttributeName: String, underlyingSFT: SimpleFeatureType) = {
@@ -86,4 +86,3 @@ case class MapAggregatingIteratorResult(mapAttributeName: String,
     sfb.add(GeometryUtils.zeroPoint)
   }
 }
-

@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.filter
 
 import java.util.Date
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Coordinate
 import org.geotools.data.Query
 import org.geotools.factory.{CommonFactoryFinder, Hints}
@@ -32,7 +32,7 @@ import org.specs2.runner.JUnitRunner
 
 
 @RunWith(classOf[JUnitRunner])
-class FilterTester extends Specification with TestWithDataStore with Logging {
+class FilterTester extends Specification with TestWithDataStore with LazyLogging {
 
   override val spec = SimpleFeatureTypes.encodeType(TestData.featureType)
 

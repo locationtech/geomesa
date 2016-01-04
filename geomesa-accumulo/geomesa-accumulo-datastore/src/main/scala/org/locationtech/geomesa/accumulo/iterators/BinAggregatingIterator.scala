@@ -13,7 +13,7 @@ import java.nio.{ByteBuffer, ByteOrder}
 import java.util.Map.Entry
 import java.util.{Date, Map => jMap}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data._
@@ -38,7 +38,7 @@ import scala.collection._
 /**
  * Iterator that computes and aggregates 'bin' entries
  */
-class BinAggregatingIterator extends KryoLazyAggregatingIterator[ByteBufferResult] with Logging {
+class BinAggregatingIterator extends KryoLazyAggregatingIterator[ByteBufferResult] with LazyLogging {
 
   import BinAggregatingIterator._
 
@@ -247,7 +247,7 @@ class ByteBufferResult(var buffer: ByteBuffer) {
   def clear(): Unit = buffer.clear()
 }
 
-object BinAggregatingIterator extends Logging {
+object BinAggregatingIterator extends LazyLogging {
 
   // need to be lazy to avoid class loading issues before init is called
   lazy val BIN_SFT = SimpleFeatureTypes.createType("bin", "bin:String,*geom:Point:srid=4326")
@@ -508,7 +508,7 @@ object BinAggregatingIterator extends Logging {
 /**
  * Sorts aggregated bin arrays
  */
-object BinSorter extends Logging {
+object BinSorter extends LazyLogging {
 
   /**
    * If the length of an array to be sorted is less than this

@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.index
 
 import java.util.Date
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Range => AccRange}
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
@@ -32,7 +32,7 @@ import org.opengis.filter.{Filter, PropertyIsEqualTo, PropertyIsLike, _}
 
 import scala.collection.JavaConversions._
 
-class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with Logging {
+class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging {
 
   import org.locationtech.geomesa.accumulo.index.AttributeIdxStrategy._
 

@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Coordinate
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
@@ -27,7 +27,7 @@ import org.specs2.runner.JUnitRunner
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class FilterHelperTest extends Specification with Mockito with Logging {
+class FilterHelperTest extends Specification with Mockito with LazyLogging {
   val ff = CommonFactoryFinder.getFilterFactory2
   val gf = JTSFactoryFinder.getGeometryFactory
 

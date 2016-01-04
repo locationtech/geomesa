@@ -11,8 +11,7 @@ package org.locationtech.geomesa.accumulo.iterators
 import java.util.{Map => jMap}
 
 import com.google.common.primitives.Longs
-import com.typesafe.scalalogging.slf4j.Logging
-import com.vividsolutions.jts.geom.{Point, Geometry}
+import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
@@ -21,15 +20,12 @@ import org.locationtech.geomesa.accumulo.data.tables.Z3Table
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyDensityIterator.DensityResult
 import org.locationtech.geomesa.curve.{Z3, Z3SFC}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-import scala.collection.mutable
-
 /**
- * Density iterator that weights hits based on z3 schema
- */
+  * Density iterator that weights hits based on z3 schema
+  */
 class Z3DensityIterator extends KryoLazyDensityIterator {
 
   var normalizeWeight: (Double) => Double = null
@@ -57,8 +53,8 @@ class Z3DensityIterator extends KryoLazyDensityIterator {
   }
 
   /**
-   * We write the geometry at the center of the zbox that this row represents
-   */
+    * We write the geometry at the center of the zbox that this row represents
+    */
   override def writeNonPoint(geom: Geometry, weight: Double, result: DensityResult): Unit = geom match {
     case p: Point => writePointToResult(p, weight, result)
     case _ =>
@@ -77,15 +73,15 @@ class Z3DensityIterator extends KryoLazyDensityIterator {
 
 object Z3DensityIterator {
 
-    /**
-     * Creates an iterator config for the z3 density iterator
-     */
-    def configure(sft: SimpleFeatureType,
-                  filter: Option[Filter],
-                  hints: Hints,
-                  priority: Int = KryoLazyDensityIterator.DEFAULT_PRIORITY): IteratorSetting = {
-      val is = KryoLazyDensityIterator.configure(sft, filter, hints, priority)
-      is.setIteratorClass(classOf[Z3DensityIterator].getName)
-      is
-    }
+  /**
+    * Creates an iterator config for the z3 density iterator
+    */
+  def configure(sft: SimpleFeatureType,
+                filter: Option[Filter],
+                hints: Hints,
+                priority: Int = KryoLazyDensityIterator.DEFAULT_PRIORITY): IteratorSetting = {
+    val is = KryoLazyDensityIterator.configure(sft, filter, hints, priority)
+    is.setIteratorClass(classOf[Z3DensityIterator].getName)
+    is
+  }
 }

@@ -11,7 +11,7 @@ import java.io.{File, Serializable}
 import java.util.{Map => JMap}
 
 import com.twitter.scalding.Args
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.coverage.grid.io.AbstractGridCoverage2DReader
 import org.geotools.coverageio.gdal.dted.DTEDReader
 import org.geotools.factory.Hints
@@ -24,7 +24,7 @@ import org.locationtech.geomesa.tools.Utils.Formats._
 
 import scala.collection.JavaConversions._
 
-trait RasterIngest extends Logging {
+trait RasterIngest extends LazyLogging {
   def getAccumuloRasterStoreConf(config: Map[String, Option[String]]): JMap[String, Serializable] =
     mapAsJavaMap(Map(
       dsp.instanceIdParam.getName   -> config(IngestRasterParams.ACCUMULO_INSTANCE).get,

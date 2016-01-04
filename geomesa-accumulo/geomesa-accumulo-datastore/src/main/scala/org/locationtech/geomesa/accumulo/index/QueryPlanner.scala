@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.index
 import java.util.Map.Entry
 import java.util.{Locale, Map => jMap}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.{Key, Range => AccRange, Value}
 import org.geotools.data.Query
@@ -187,7 +187,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
   }
 }
 
-object QueryPlanner extends Logging {
+object QueryPlanner extends LazyLogging {
 
   val iteratorPriority_RowRegex                        = 0
   val iteratorPriority_AttributeIndexFilteringIterator = 10

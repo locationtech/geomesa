@@ -20,10 +20,10 @@ class CompositeTextConverterTest extends Specification {
 
   val data =
     """
-      |1  ,hello,45.0,45.0
+      |1  ,hello,badvalue,45.0
       |asfastofail,f
       |3
-      |2  ,world,90.0,90.0
+      |2  ,world,,90.0
     """.stripMargin
 
   val conf = ConfigFactory.parseString(
@@ -42,8 +42,8 @@ class CompositeTextConverterTest extends Specification {
       |       fields = [
       |         { name = "phrase", transform = "concat($1, $2)" },
       |         { name = "lineNr", transform = "lineNo()" },
-      |         { name = "lat",    transform = "$3::double" },
-      |         { name = "lon",    transform = "$4::double" },
+      |         { name = "lat",    transform = "stringToDouble($3, '0.0'::double)" },
+      |         { name = "lon",    transform = "stringToDouble($4, '0.0'::double)" },
       |         { name = "geom",   transform = "point($lat, $lon)" }
       |       ]
       |     }
@@ -56,8 +56,8 @@ class CompositeTextConverterTest extends Specification {
       |       id-field     = "concat('second', trim($1))",
       |       fields = [
       |         { name = "phrase", transform = "concat($1, $2)" },
-      |         { name = "lat",    transform = "$3::double" },
-      |         { name = "lon",    transform = "$4::double" },
+      |         { name = "lat",    transform = "stringToDouble($3, '0.0'::double)" },
+      |         { name = "lon",    transform = "stringToDouble($4, '0.0'::double)" },
       |         { name = "geom",   transform = "point($lat, $lon)" }
       |         { name = "lineNr", transform = "lineNo()" }
       |       ]
@@ -82,6 +82,11 @@ class CompositeTextConverterTest extends Specification {
     "and get correct line numbers" >> {
       res(0).getAttribute("lineNr").asInstanceOf[Int] must be equalTo 1
       res(1).getAttribute("lineNr").asInstanceOf[Int] must be equalTo 4
+    }
+
+    "testing string2 function defaults" >> {
+      res(0).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
+      res(1).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
     }
   }
 

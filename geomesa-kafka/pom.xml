@@ -3,7 +3,7 @@
     <parent>
         <artifactId>geomesa</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>1.1.0-rc.7-SNAPSHOT</version>
+        <version>1.2.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -12,7 +12,6 @@
     <name>GeoMesa Kafka Parent</name>
     <modules>
         <module>geomesa-kafka-datastore</module>
-        <module>geomesa-kafka-geoserver-plugin</module>
     </modules>
 
     <properties>
@@ -24,7 +23,7 @@
         <dependencies>
             <dependency>
                 <groupId>org.apache.kafka</groupId>
-                <artifactId>kafka_2.10</artifactId>
+                <artifactId>kafka_2.11</artifactId>
                 <version>${kafka.version}</version>
                 <scope>provided</scope>
                 <exclusions>
@@ -50,7 +49,7 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.kafka</groupId>
-                <artifactId>kafka_2.10</artifactId>
+                <artifactId>kafka_2.11</artifactId>
                 <version>${kafka.version}</version>
                 <classifier>test</classifier>
                 <scope>test</scope>

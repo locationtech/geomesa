@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.utils.geohash
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.junit.{Assert, Test}
 
-class BoundingBoxTest extends Logging {
+class BoundingBoxTest extends LazyLogging {
   @Test def boundingBoxTest {
     var bbox = BoundingBox.apply(GeoHash.apply("dqb00").getPoint, GeoHash.apply("dqbxx").getPoint)
     var hashes = BoundingBox.getGeoHashesFromBoundingBox(bbox)

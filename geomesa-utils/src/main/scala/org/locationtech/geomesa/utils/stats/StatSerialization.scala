@@ -57,7 +57,7 @@ object StatSerialization {
     attrType match {
       case _ if attrType == classOf[Date] =>
         new MinMax[Date](attrIndex, attrTypeString,
-          StatHelpers.javaDateFormat.parse(min), StatHelpers.javaDateFormat.parse(max))
+          StatHelpers.javaDateFormat.parseDateTime(min).toDate, StatHelpers.javaDateFormat.parseDateTime(max).toDate)
       case _ if attrType == classOf[java.lang.Integer] =>
         new MinMax[java.lang.Integer](attrIndex, attrTypeString, min.toInt, max.toInt)
       case _ if attrType == classOf[java.lang.Long] =>
@@ -98,9 +98,7 @@ object StatSerialization {
 
     val attrType = Class.forName(attrTypeString)
 
-    val eh = new EnumeratedHistogram[_](attrIndex, attrTypeString)
     if (attrType == classOf[Date]) {
-
       val eh = new EnumeratedHistogram[Date](attrIndex, attrTypeString)
       keyValues.foreach {
         case (keyValuePair) =>
@@ -140,9 +138,9 @@ object StatSerialization {
           eh.frequencyMap.put(splitKeyValuePair(0).toDouble, splitKeyValuePair(1).toLong)
       }
       eh
+    } else {
+      null
     }
-
-    eh
   }
 
   protected [stats] def packRangeHistogram(rh: RangeHistogram[_]): Array[Byte] = {
@@ -169,11 +167,11 @@ object StatSerialization {
     attrType match {
       case _ if attrType == classOf[Date] =>
         val rh = new RangeHistogram[Date](attrIndex, attrTypeString, numBins.toInt,
-          StatHelpers.javaDateFormat.parse(lowerEndpoint), StatHelpers.javaDateFormat.parse(upperEndpoint))
+          StatHelpers.javaDateFormat.parseDateTime(lowerEndpoint).toDate, StatHelpers.javaDateFormat.parseDateTime(upperEndpoint).toDate)
         keyValues.foreach {
           case (keyValuePair) =>
             val splitKeyValuePair = keyValuePair.split("->")
-            rh.histogram.put(StatHelpers.javaDateFormat.parse(splitKeyValuePair(0)), splitKeyValuePair(1).toLong)
+            rh.histogram.put(StatHelpers.javaDateFormat.parseDateTime(splitKeyValuePair(0)).toDate, splitKeyValuePair(1).toLong)
         }
         rh
       case _ if attrType == classOf[Integer] =>

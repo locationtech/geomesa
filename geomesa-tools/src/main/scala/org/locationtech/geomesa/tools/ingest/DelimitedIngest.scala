@@ -31,7 +31,7 @@ import scala.collection.JavaConversions._
 
 class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
 
-  val sft = SftArgParser.getSft(params.spec, params.featureName, params.config)
+  val sft = SftArgParser.getSft(params.spec, params.featureName)
   val converterConfig = ConverterConfigParser.getConfig(params.config)
 
   def run(): Unit = {
@@ -53,7 +53,7 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
 
     validateFileArgs(mode, params)
 
-    val arguments = Mode.putMode(mode, getScaldingArgs())
+    val arguments = Mode.putMode(mode, buildScaldingArgs())
     val job = new ScaldingConverterIngestJob(arguments)
     val flow = job.buildFlow
 
@@ -90,7 +90,7 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
       () => ClassPathUtils.getJarsFromClasspath(classOf[AccumuloDataStore]),
       () => ClassPathUtils.getJarsFromClasspath(classOf[Connector]))
 
-  def getScaldingArgs(): Args = {
+  def buildScaldingArgs(): Args = {
     val singleArgs = List(classOf[ScaldingConverterIngestJob].getCanonicalName, getModeFlag(params.files(0)))
 
     val sftString = SimpleFeatureTypes.encodeType(sft)
@@ -112,8 +112,7 @@ class DelimitedIngest(params: IngestParameters) extends AccumuloProperties {
 
     val optionalKvArgs: Map[String, List[String]] = List(
       Option(params.auths)        .map(IngestParams.AUTHORIZATIONS   -> List(_)),
-      Option(params.visibilities) .map(IngestParams.VISIBILITIES     -> List(_)),
-      Option(params.indexSchema)  .map(IngestParams.INDEX_SCHEMA_FMT -> List(_))).flatten.toMap
+      Option(params.visibilities) .map(IngestParams.VISIBILITIES     -> List(_))).flatten.toMap
 
     val kvArgs = (requiredKvArgs ++ optionalKvArgs).flatMap { case (k,v) => List(s"--$k") ++ v }
     Args(singleArgs ++ kvArgs)

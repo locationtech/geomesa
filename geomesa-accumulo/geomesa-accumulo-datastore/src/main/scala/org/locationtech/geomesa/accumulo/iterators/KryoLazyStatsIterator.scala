@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import java.util.{Map => jMap, UUID}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
@@ -65,7 +65,7 @@ class KryoLazyStatsIterator extends KryoLazyAggregatingIterator[Stat] {
   }
 }
 
-object KryoLazyStatsIterator extends Logging {
+object KryoLazyStatsIterator extends LazyLogging {
   val DEFAULT_PRIORITY = 30
   val STATS_STRING_KEY = "geomesa.stats.string"
   val STATS_FEATURE_TYPE_KEY = "geomesa.stats.featuretype"

@@ -8,9 +8,8 @@
 
 package org.locationtech.geomesa.accumulo.process.stats
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
-import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.feature.DefaultFeatureCollection
@@ -18,9 +17,9 @@ import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
 import org.locationtech.geomesa.accumulo.index.QueryHints
-import org.locationtech.geomesa.accumulo.iterators.{KryoLazyStatsIterator, TemporalDensityIterator}
+import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.stats.Stat
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
@@ -29,7 +28,7 @@ import org.opengis.feature.simple.SimpleFeature
   title = "Stats Iterator Process",
   description = "Returns stats based upon the passed in stats string"
 )
-class StatsIteratorProcess extends Logging {
+class StatsIteratorProcess extends LazyLogging {
 
   @DescribeResult(description = "Output feature collection")
   def execute(
@@ -58,7 +57,7 @@ class StatsIteratorProcess extends Logging {
 }
 
 class StatsVisitor(features: SimpleFeatureCollection, statString: String)
-  extends FeatureCalc with Logging {
+  extends FeatureCalc with LazyLogging {
 
   val origSft = features.getSchema
   val stat: Stat = Stat(origSft, statString)
@@ -74,7 +73,7 @@ class StatsVisitor(features: SimpleFeatureCollection, statString: String)
 
   override def getResult: CalcResult = {
     if (resultCalc == null) {
-      val packedStat = stat.toJson()
+      val packedStat = KryoLazyStatsIterator.encodeStat(stat)
       val sf = new ScalaSimpleFeature("", returnSft, Array(packedStat, GeometryUtils.zeroPoint))
       manualVisitResults.add(sf)
       StatsIteratorResult(manualVisitResults)

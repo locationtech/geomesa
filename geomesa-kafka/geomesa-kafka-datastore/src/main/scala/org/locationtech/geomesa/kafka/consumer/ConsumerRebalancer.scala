@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import java.util.{List => jList}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import kafka.common.{ConsumerRebalanceFailedException, TopicAndPartition}
 import kafka.consumer._
 import kafka.utils.ZkUtils._
@@ -36,7 +36,7 @@ import scala.collection.{Map, mutable}
  * consumers than partitions, some consumers will not receive any data.
  */
 class ConsumerRebalancer[K, V](consumer: KafkaConsumer[K, V], config: ConsumerConfig)
-    extends IZkStateListener with IZkDataListener with IZkChildListener with Logging {
+    extends IZkStateListener with IZkDataListener with IZkChildListener with LazyLogging {
 
   private val zkClient = {
     val sTimeout = config.zkSessionTimeoutMs

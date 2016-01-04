@@ -13,7 +13,7 @@ import java.lang.{Double => jDouble, Integer => jInt}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 import java.util.{Date, Iterator => jIterator}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.apache.commons.csv.{CSVFormat, CSVRecord}
 import org.apache.commons.io.FilenameUtils
@@ -31,7 +31,7 @@ import scala.io.Source
 
 case class TypeSchema(name: String, schema: String, latLonFields: Option[(String, String)])
 
-package object csv extends Logging {
+package object csv extends LazyLogging {
 
   def guessTypes(csvFile: File, hasHeader: Boolean): TypeSchema = {
     val typename = FilenameUtils.getBaseName(csvFile.getName)

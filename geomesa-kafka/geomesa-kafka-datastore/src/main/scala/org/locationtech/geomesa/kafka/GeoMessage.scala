@@ -10,7 +10,7 @@ package org.locationtech.geomesa.kafka
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.Instant
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
@@ -124,7 +124,7 @@ class GeoMessageEncoder(schema: SimpleFeatureType) {
   *
   * @param schema the [[SimpleFeatureType]]; required to deserialize [[CreateOrUpdate]] messages
   */
-class GeoMessageDecoder(schema: SimpleFeatureType) extends Logging {
+class GeoMessageDecoder(schema: SimpleFeatureType) extends LazyLogging {
 
   case class MsgKey(version: Byte, msgType: Byte, ts: Instant)
 

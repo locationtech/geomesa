@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.data
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.google.common.cache.{CacheBuilder, CacheLoader}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator}
 import org.geotools.data.store.DataFeatureCollection
@@ -37,7 +37,7 @@ import org.opengis.filter.expression.{Expression, PropertyName}
 import org.opengis.filter.sort.SortBy
 import org.opengis.util.ProgressListener
 
-trait AccumuloAbstractFeatureSource extends AbstractFeatureSource with Logging with TryLoggingFailure {
+trait AccumuloAbstractFeatureSource extends AbstractFeatureSource with LazyLogging with TryLoggingFailure {
   self =>
 
   import org.locationtech.geomesa.utils.geotools.Conversions._

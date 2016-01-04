@@ -15,7 +15,7 @@ import cascading.flow.FlowProcess
 import cascading.scheme.{SinkCall, SourceCall}
 import cascading.tuple._
 import com.twitter.scalding.AccessMode
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{BatchWriter, MultiTableBatchWriter, ZooKeeperInstance}
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
@@ -30,7 +30,7 @@ import scala.util.{Failure, Success, Try}
  * Cascading Tap to read and write from accumulo in local mode
  */
 case class AccumuloLocalTap(readOrWrite: AccessMode, scheme: AccumuloLocalScheme)
-    extends AccLocalTap(scheme) with Logging {
+    extends AccLocalTap(scheme) with LazyLogging {
 
   val options = scheme.options
 

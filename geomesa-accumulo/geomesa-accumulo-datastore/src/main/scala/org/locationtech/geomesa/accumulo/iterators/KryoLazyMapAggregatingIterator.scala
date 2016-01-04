@@ -10,16 +10,14 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import java.util.{Map => jMap, UUID}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.data.Query
 import org.geotools.factory.Hints
-import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanner.SFIter
-import org.locationtech.geomesa.accumulo.iterators.KryoLazyAggregatingIterator._
 import org.locationtech.geomesa.accumulo.sumNumericValueMutableMaps
 import org.locationtech.geomesa.accumulo.util.CloseableIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -65,7 +63,7 @@ class KryoLazyMapAggregatingIterator extends KryoLazyAggregatingIterator[mutable
   }
 }
 
-object KryoLazyMapAggregatingIterator extends Logging {
+object KryoLazyMapAggregatingIterator extends LazyLogging {
 
   val DEFAULT_PRIORITY = 30
   private val MAP_ATTRIBUTE = "map"

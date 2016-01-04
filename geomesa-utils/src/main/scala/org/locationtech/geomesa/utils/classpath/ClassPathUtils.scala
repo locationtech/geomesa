@@ -11,11 +11,11 @@ package org.locationtech.geomesa.utils.classpath
 import java.io.{File, FileFilter, FilenameFilter}
 import java.net.{URLClassLoader, URLDecoder}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 
 import scala.collection.mutable.ArrayBuffer
 
-object ClassPathUtils extends Logging {
+object ClassPathUtils extends LazyLogging {
 
   private val jarFileFilter = new FilenameFilter() {
     override def accept(dir: File, name: String) =

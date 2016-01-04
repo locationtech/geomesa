@@ -22,7 +22,7 @@ class JPatternConverterTest extends Specification {
       val jc = new JCommander()
       jc.addConverterFactory(new GeoMesaIStringConverterFactory)
       jc.addObject(params)
-      jc.parse(Array("-pt", "foobar\\d+").toArray: _*)
+      jc.parse(Array("--pattern", "foobar\\d+").toArray: _*)
       params.pattern.pattern() mustEqual "foobar\\d+"
       params.pattern.matcher("foobar3").matches mustEqual true
     }

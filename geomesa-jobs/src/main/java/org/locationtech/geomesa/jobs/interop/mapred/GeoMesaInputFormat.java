@@ -41,22 +41,24 @@ public class GeoMesaInputFormat implements InputFormat<Text, SimpleFeature> {
         return delegate.getRecordReader(split, job, reporter);
     }
 
+    @SuppressWarnings("unchecked")
     public static void configure(JobConf job, Map<String, String> dataStoreParams, Query query) {
+        Object m = JavaConverters.mapAsScalaMapConverter(dataStoreParams).asScala();
         scala.collection.immutable.Map<String, String> scalaParams =
-                JavaConverters.asScalaMapConverter(dataStoreParams).asScala()
-                              .toMap(Predef.<Tuple2<String, String>>conforms());
+                ((scala.collection.mutable.Map<String, String>) m).toMap(Predef.<Tuple2<String, String>>conforms());
         GeoMesaInputFormat$.MODULE$.configure(job, scalaParams, query);
     }
 
     @Deprecated
+    @SuppressWarnings("unchecked")
     public static void configure(JobConf job,
                                  Map<String, String> dataStoreParams,
                                  String featureTypeName,
                                  String filter,
                                  String[] transform) {
+        Object m = JavaConverters.mapAsScalaMapConverter(dataStoreParams).asScala();
         scala.collection.immutable.Map<String, String> scalaParams =
-                JavaConverters.asScalaMapConverter(dataStoreParams).asScala()
-                              .toMap(Predef.<Tuple2<String, String>>conforms());
+                ((scala.collection.mutable.Map<String, String>) m).toMap(Predef.<Tuple2<String, String>>conforms());
         Option<String> f = Option.apply(filter);
         Option<String[]> t = Option.apply(transform);
         GeoMesaInputFormat$.MODULE$.configure(job, scalaParams, featureTypeName, f, t);

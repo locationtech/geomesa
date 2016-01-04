@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.iterators
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 import java.util.{Date, HashMap => JHMap, Map => JMap, UUID}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
@@ -78,7 +78,7 @@ class TemporalDensityIterator(other: FeatureAggregatingIterator[TemporalDensityI
 }
 
 @deprecated
-object TemporalDensityIterator extends Logging {
+object TemporalDensityIterator extends LazyLogging {
 
   type TimeSeries = mutable.Map[DateTime, Long]
 

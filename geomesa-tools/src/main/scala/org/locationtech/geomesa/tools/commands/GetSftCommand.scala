@@ -8,11 +8,11 @@
 package org.locationtech.geomesa.tools.commands
 
 import com.beust.jcommander.{JCommander, Parameters}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import GetSftCommand._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
-class GetSftCommand(parent: JCommander) extends CommandWithCatalog(parent) with Logging {
+class GetSftCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
   override val command = "getsft"
   override val params = new GetSftParameters
 
