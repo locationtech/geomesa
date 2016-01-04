@@ -91,7 +91,25 @@ class MinMax[T <: Comparable[T]](val attrIndex: Int, val attrType: String, var m
     }
   }
 
-  override def toJson(): String = s"""{ "min": $min, "max": $max }"""
+  override def toJson(): String = {
+    s"""{ "min": ${stringSerializeMin()}, "max": ${stringSerializeMax()} }"""
+  }
+
+  protected[stats] def stringSerializeMin(): String = {
+    if (min == minMaxDefaults.min) {
+      "null"
+    } else {
+      min.toString
+    }
+  }
+
+  protected[stats] def stringSerializeMax(): String = {
+    if (max == minMaxDefaults.max) {
+      "null"
+    } else {
+      max.toString
+    }
+  }
 
   override def clear(): Unit = {
     min = minMaxDefaults.min

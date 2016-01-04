@@ -41,7 +41,7 @@ object StatSerialization {
   }
 
   protected[stats] def packMinMax(mm: MinMax[_]): Array[Byte] = {
-    serializeStat(MINMAX_BYTE, s"${mm.attrIndex};${mm.attrType};${mm.min};${mm.max}".getBytes)
+    serializeStat(MINMAX_BYTE, s"${mm.attrIndex};${mm.attrType};${mm.stringSerializeMin()};${mm.stringSerializeMax()}".getBytes)
   }
 
   protected[stats] def unpackMinMax(bytes: Array[Byte]): MinMax[_] = {
