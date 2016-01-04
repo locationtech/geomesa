@@ -37,7 +37,7 @@ object BinHelper {
                              numBins: Int,
                              lowerEndpoint: Date,
                              upperEndpoint: Date): Date = {
-      if (attributeValue.getTime >= lowerEndpoint.getTime && attributeValue.getTime < upperEndpoint.getTime) {
+      if (!attributeValue.before(lowerEndpoint) && attributeValue.before(upperEndpoint)) {
         var bucketIndex = (attributeValue.getTime - lowerEndpoint.getTime) / binSize.getTime
         if (bucketIndex >= numBins)
           bucketIndex = numBins - 1
