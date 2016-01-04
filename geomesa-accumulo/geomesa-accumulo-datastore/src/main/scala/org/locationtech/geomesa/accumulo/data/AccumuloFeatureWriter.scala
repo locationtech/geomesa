@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.data
 
 import java.util.concurrent.atomic.AtomicLong
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.BatchWriter
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.apache.accumulo.core.security.ColumnVisibility
@@ -33,7 +33,7 @@ import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
 
-object AccumuloFeatureWriter extends Logging {
+object AccumuloFeatureWriter extends LazyLogging {
 
   type FeatureToMutations = (FeatureToWrite) => Seq[Mutation]
   type FeatureWriterFn    = (FeatureToWrite) => Unit
@@ -59,8 +59,11 @@ object AccumuloFeatureWriter extends Logging {
     lazy val binValue = binEncoder.map(e => new Value(e.encode(feature)))
   }
 
-  def featureWriter(writers: Seq[(BatchWriter, FeatureToMutations)]): FeatureWriterFn =
-    feature => writers.foreach { case (bw, fToM) => bw.addMutations(fToM(feature)) }
+  def featureWriter(writers: Seq[(BatchWriter, FeatureToMutations)]): FeatureWriterFn = feature => {
+    // calculate all the mutations first, so that if something fails we won't have a partially written feature
+    val mutations = writers.map { case (bw, fToM) => (bw, fToM(feature)) }
+    mutations.foreach { case (bw, m) => bw.addMutations(m) }
+  }
 
   /**
    * Gets writers and table names for each table (e.g. index) that supports the sft
@@ -113,7 +116,7 @@ object AccumuloFeatureWriter extends Logging {
 abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
                                      encoder: SimpleFeatureSerializer,
                                      ds: AccumuloDataStore,
-                                     defaultVisibility: String) extends SimpleFeatureWriter with Logging {
+                                     defaultVisibility: String) extends SimpleFeatureWriter with LazyLogging {
 
   protected val multiBWWriter = ds.connector.createMultiTableBatchWriter(GeoMesaBatchWriterConfig())
   protected val binEncoder = BinEncoder(sft)

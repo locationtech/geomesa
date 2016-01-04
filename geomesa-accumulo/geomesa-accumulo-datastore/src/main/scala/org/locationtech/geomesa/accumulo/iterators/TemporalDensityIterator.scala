@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import java.util.{Date, Map => JMap}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
@@ -65,7 +65,7 @@ class TemporalDensityIterator(other: FeatureAggregatingIterator[TemporalDensityI
 }
 
 @deprecated
-object TemporalDensityIterator extends Logging {
+object TemporalDensityIterator extends LazyLogging {
 
   val INTERVAL_KEY = "geomesa.temporal.density.bounds"
   val BUCKETS_KEY = "geomesa.temporal.density.buckets"

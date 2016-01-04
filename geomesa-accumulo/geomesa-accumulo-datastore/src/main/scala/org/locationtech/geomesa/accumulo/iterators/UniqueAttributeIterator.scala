@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import java.util
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, WrappingIterator}
 
@@ -18,7 +18,7 @@ import org.apache.accumulo.core.iterators.{IteratorEnvironment, WrappingIterator
  * This Iterator should wrap the AttributeIndexIterator. It will skip duplicate attributes to optimize
  * unique queries.
  */
-class UniqueAttributeIterator extends WrappingIterator with Logging {
+class UniqueAttributeIterator extends WrappingIterator with LazyLogging {
 
   var seekColFamilies: util.Collection[ByteSequence] = null
   var seekInclusive: Boolean = false

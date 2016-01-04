@@ -12,18 +12,19 @@ import java.nio.charset.StandardCharsets
 
 import com.twitter.scalding.{Args, Hdfs, Job, Local, Mode}
 import com.typesafe.config.ConfigFactory
-import com.typesafe.scalalogging.slf4j.Logging
-import org.geotools.data.{DataStoreFinder, Transaction}
+import com.typesafe.scalalogging.LazyLogging
+import org.geotools.data.{DataUtilities, DataStoreFinder, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.{params => dsp}
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.convert.Transformers.DefaultCounter
+import org.locationtech.geomesa.convert.text.DelimitedTextConverter
 import org.locationtech.geomesa.jobs.scalding.MultipleUsefulTextLineFiles
 import org.locationtech.geomesa.tools.Utils.IngestParams
 
-class ScaldingConverterIngestJob(args: Args) extends Job(args) with Logging {
+class ScaldingConverterIngestJob(args: Args) extends Job(args) with LazyLogging {
   import scala.collection.JavaConversions._
 
   val counter = new DefaultCounter
@@ -52,7 +53,14 @@ class ScaldingConverterIngestJob(args: Args) extends Job(args) with Logging {
     val sft = ds.getSchema(featureName)
     lazy val fw = ds.getFeatureWriterAppend(featureName, Transaction.AUTO_COMMIT)
     val converter = SimpleFeatureConverters.build[String](sft, ConfigFactory.parseString(converterConfig))
-    val callback = converter.processWithCallback(counter = counter)
+    converter match {
+      case d: DelimitedTextConverter if d.options.skipLines > 0 =>
+        logger.warn("SkipLines not supported - setting to 0")
+        d.options.skipLines = 0
+      case _ =>
+    }
+
+    val ec = converter.createEvaluationContext(counter = counter)
     def release(): Unit = {
       logger.trace("Releasing ingest resources")
       converter.close()
@@ -87,15 +95,18 @@ class ScaldingConverterIngestJob(args: Args) extends Job(args) with Logging {
   }
 
   private def processLine(resources: Resources, s: String) =
-    resources.callback(s)
-      .foreach { sf =>
-        val toWrite = resources.fw.next()
-        toWrite.setAttributes(sf.getAttributes)
-        toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(sf.getID)
-        toWrite.getUserData.putAll(sf.getUserData)
-        toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+    resources.converter.processInput(Iterator(s), resources.ec).foreach { sf =>
+      val toWrite = resources.fw.next()
+      toWrite.setAttributes(sf.getAttributes)
+      toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(sf.getID)
+      toWrite.getUserData.putAll(sf.getUserData)
+      toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+      try {
         resources.fw.write()
+      } catch {
+        case e: Exception => logger.error(s"Failed to write '${DataUtilities.encodeFeature(toWrite)}'", e)
       }
+    }
 
   def runTestIngest(lines: Iterator[String]) = {
     val ds = DataStoreFinder.getDataStore(dsConfig).asInstanceOf[AccumuloDataStore]

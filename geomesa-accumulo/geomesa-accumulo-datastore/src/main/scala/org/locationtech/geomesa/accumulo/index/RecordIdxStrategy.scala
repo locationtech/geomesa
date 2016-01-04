@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Range => aRange}
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
@@ -41,7 +41,7 @@ object RecordIdxStrategy extends StrategyProvider {
   }
 }
 
-class RecordIdxStrategy(val filter: QueryFilter) extends Strategy with Logging {
+class RecordIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging {
 
   override def getQueryPlan(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType) = {
 

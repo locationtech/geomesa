@@ -13,7 +13,7 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import java.util.{Map => jMap}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
@@ -33,7 +33,7 @@ import scala.collection.JavaConverters._
 /**
  * Iterator that extends the kryo density iterator with support for non-kryo serialization types.
  */
-class DensityIterator extends KryoLazyDensityIterator with Logging {
+class DensityIterator extends KryoLazyDensityIterator with LazyLogging {
 
   var deserializer: SimpleFeatureDeserializer = null
   var indexDecoder: IndexEntryDecoder = null
@@ -92,7 +92,7 @@ class DensityIterator extends KryoLazyDensityIterator with Logging {
   }
 }
 
-object DensityIterator extends Logging {
+object DensityIterator extends LazyLogging {
 
   /**
    * Creates an iterator config that expects entries to be precomputed bin values

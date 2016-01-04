@@ -11,7 +11,6 @@ package org.locationtech.geomesa.accumulo.iterators
 import java.util.{Map => jMap}
 
 import com.google.common.primitives.Longs
-import com.typesafe.scalalogging.slf4j.Logging
 import com.vividsolutions.jts.geom.{Point, Geometry}
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}

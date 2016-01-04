@@ -26,7 +26,7 @@ class XmlFunctionFactory extends TransformerFunctionFactory {
   val xml2string = new TransformerFn {
     private val transformers = new SoftThreadLocal[Transformer]
 
-    override def name = "xml2string"
+    override val names = Seq("xml2string", "xmlToString")
 
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
       val element = args.head.asInstanceOf[Element]

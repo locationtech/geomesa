@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.process.tube
 
 import java.util.Date
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
@@ -33,7 +33,7 @@ import scala.collection.JavaConversions._
   title = "Tube Select",
   description = "Performs a tube select on a Geomesa feature collection based on another feature collection"
 )
-class TubeSelectProcess extends Logging {
+class TubeSelectProcess extends LazyLogging {
 
   @DescribeResult(description = "Output feature collection")
   def execute(
@@ -127,7 +127,7 @@ class TubeVisitor(val tubeFeatures: SimpleFeatureCollection,
                   val maxBins: Int,
                   val gapFill: GapFill = GapFill.NOFILL)
   extends FeatureCalc
-          with Logging {
+          with LazyLogging {
 
   var resultCalc: TubeResult = new TubeResult(new EmptyFeatureCollection(featureCollection.getSchema))
 

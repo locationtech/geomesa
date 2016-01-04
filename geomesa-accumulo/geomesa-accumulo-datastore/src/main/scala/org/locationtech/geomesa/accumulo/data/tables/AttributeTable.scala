@@ -14,7 +14,7 @@ import java.util.{Collection => JCollection, Date, Locale}
 
 import com.google.common.collect.ImmutableSortedSet
 import com.google.common.primitives.Bytes
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.conf.Property
 import org.apache.accumulo.core.data.{Mutation, Range => AccRange}
@@ -37,7 +37,7 @@ import scala.util.{Failure, Success, Try}
 /**
  * Contains logic for converting between accumulo and geotools for the attribute index
  */
-object AttributeTable extends GeoMesaTable with Logging {
+object AttributeTable extends GeoMesaTable with LazyLogging {
 
   private val UTF8 = Charset.forName("UTF-8")
   private val NULLBYTE = "\u0000".getBytes(UTF8)

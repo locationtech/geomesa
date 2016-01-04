@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import java.util.{Map => JMap}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 
@@ -19,7 +19,7 @@ class IndexedSpatioTemporalFilter
     with HasFeatureType
     with HasIndexValueDecoder
     with HasSpatioTemporalFilter
-    with Logging {
+    with LazyLogging {
 
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: JMap[String, String],

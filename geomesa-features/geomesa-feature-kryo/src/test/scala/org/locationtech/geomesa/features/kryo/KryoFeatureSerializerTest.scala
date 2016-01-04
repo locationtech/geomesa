@@ -10,7 +10,7 @@ package org.locationtech.geomesa.features.kryo
 
 import java.util.{Date, UUID}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.codec.binary.Base64
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -22,7 +22,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class KryoFeatureSerializerTest extends Specification with Logging {
+class KryoFeatureSerializerTest extends Specification with LazyLogging {
 
   "KryoFeatureSerializer" should {
 

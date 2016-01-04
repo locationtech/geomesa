@@ -11,7 +11,7 @@ package org.locationtech.geomesa.filter.function
 import java.io.OutputStream
 import java.util.Date
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Geometry, LineString, Point}
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -21,7 +21,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.JavaConversions._
 
 
-object BinaryOutputEncoder extends Logging {
+object BinaryOutputEncoder extends LazyLogging {
 
   import org.locationtech.geomesa.filter.function.AxisOrder._
   import org.locationtech.geomesa.utils.geotools.Conversions._

@@ -1,1 +1,0 @@
-http://localhost:8080/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typeName=geomesa:twittermini&outputFormat=application/vnd.binary-viewer&sortBy=dtg&format_options=dtg:dtg;trackId:test1;label:test2&propertyName=dtg,geom,tweet_id

@@ -7,7 +7,7 @@
 *************************************************************************/
 package org.locationtech.geomesa.tools
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.tools.commands.{CreateFeatureParams, GeoMesaParams}
@@ -15,13 +15,13 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
-object FeatureCreator extends Logging {
+object FeatureCreator extends LazyLogging {
 
   def createFeature(params: CreateFeatureParams, convert: String = null): Unit = {
     val ds = new DataStoreHelper(params).getDataStore()
     createFeature(
       ds,
-      SftArgParser.getSft(params.spec, params.featureName, convert),
+      SftArgParser.getSft(params.spec, params.featureName),
       params.featureName,
       Option(params.dtgField),
       Option(params.useSharedTables),

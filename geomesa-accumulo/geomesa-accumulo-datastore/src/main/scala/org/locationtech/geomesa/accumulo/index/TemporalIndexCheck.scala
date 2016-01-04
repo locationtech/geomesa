@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.{DEFAULT_DATE_KEY, RichSimpleFeatureType}
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -22,7 +22,7 @@ import scala.collection.JavaConverters._
  *
  * This is useful since the only symptom of this mistake is slower than normal queries on temporal ranges.
  */
-object TemporalIndexCheck extends Logging {
+object TemporalIndexCheck extends LazyLogging {
 
   def validateDtgField(sft: SimpleFeatureType): Unit = {
     val dtgCandidates = scanForTemporalAttributes(sft) // all attributes which may be used

@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.data.tables
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.BatchDeleter
 import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.conf.Property
@@ -23,7 +23,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
 
-object SpatioTemporalTable extends GeoMesaTable with Logging {
+object SpatioTemporalTable extends GeoMesaTable with LazyLogging {
 
   val INDEX_FLAG = "0"
   val DATA_FLAG = "1"
