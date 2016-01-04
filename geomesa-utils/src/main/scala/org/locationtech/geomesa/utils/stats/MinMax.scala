@@ -66,18 +66,16 @@ class MinMax[T <: Comparable[T]](val attrIndex: Int, val attrType: String, var m
     val sfval = sf.getAttribute(attrIndex)
 
     if (sfval != null) {
-      updateMin(sfval.asInstanceOf[T])
-      updateMax(sfval.asInstanceOf[T])
+      val castedSfval = sfval.asInstanceOf[T]
+      updateMin(castedSfval)
+      updateMax(castedSfval)
     }
   }
 
   override def add(other: Stat): Stat = {
-    other match {
-      case mm: MinMax[T] =>
-        updateMin(mm.min)
-        updateMax(mm.max)
-    }
-
+    val mm = other.asInstanceOf[MinMax[T]]
+    updateMin(mm.min)
+    updateMax(mm.max)
     this
   }
 
@@ -101,12 +99,13 @@ class MinMax[T <: Comparable[T]](val attrIndex: Int, val attrType: String, var m
   }
 
   override def equals(obj: Any): Boolean = {
-    obj.isInstanceOf[MinMax[T]] && {
-      val minmax = obj.asInstanceOf[MinMax[T]]
-      attrIndex == minmax.attrIndex &&
-      attrType == minmax.attrType &&
-      min == minmax.min &&
-      max == minmax.max
+    obj match {
+      case minmax: MinMax[T] =>
+        attrIndex == minmax.attrIndex &&
+        attrType == minmax.attrType &&
+        min == minmax.min &&
+        max == minmax.max
+      case _ => false
     }
   }
 }

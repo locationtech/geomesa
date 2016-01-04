@@ -19,9 +19,8 @@ class SeqStat(val stats: Seq[Stat]) extends Stat {
   override def observe(sf: SimpleFeature): Unit = stats.foreach(_.observe(sf))
 
   override def add(other: Stat): Stat = {
-    other match {
-      case ss: SeqStat =>
-        stats.zip(ss.stats).foreach { case (stat1, stat2) => stat1.add(stat2) }
+    stats.zip(other.asInstanceOf[SeqStat].stats).foreach {
+      case (stat1, stat2) => stat1.add(stat2)
     }
 
     this
@@ -32,9 +31,10 @@ class SeqStat(val stats: Seq[Stat]) extends Stat {
   override def clear(): Unit = stats.foreach(_.clear())
 
   override def equals(obj: Any): Boolean = {
-    obj.isInstanceOf[SeqStat] && {
-      val seqStat = obj.asInstanceOf[SeqStat]
-      stats == seqStat.stats
+    obj match {
+      case seqStat: SeqStat =>
+        stats == seqStat.stats
+      case _ => false
     }
   }
 }

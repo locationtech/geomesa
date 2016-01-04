@@ -189,10 +189,10 @@ class RangeHistogram[T : BinAble](val attrIndex: Int,
   }
 
   override def observe(sf: SimpleFeature): Unit = {
-    val sfval = sf.getAttribute(attrIndex).asInstanceOf[T]
+    val sfval = sf.getAttribute(attrIndex)
 
     if (sfval != null) {
-      val binIndex = binHelper.getBinIndex(sfval, binSize, numBins, lowerEndpoint, upperEndpoint)
+      val binIndex = binHelper.getBinIndex(sfval.asInstanceOf[T], binSize, numBins, lowerEndpoint, upperEndpoint)
       if (binIndex != null) {
         histogram(binIndex) += 1
       }
@@ -200,11 +200,9 @@ class RangeHistogram[T : BinAble](val attrIndex: Int,
   }
 
   override def add(other: Stat): Stat = {
-    other match {
-      case rangeHistogram: RangeHistogram[T] =>
-        for (key <- rangeHistogram.histogram.keySet) {
-          histogram(key) += rangeHistogram.histogram.get(key).get
-        }
+    val rh = other.asInstanceOf[RangeHistogram[T]]
+    for (key <- rh.histogram.keySet) {
+      histogram(key) += rh.histogram.get(key).get
     }
 
     this
@@ -223,14 +221,15 @@ class RangeHistogram[T : BinAble](val attrIndex: Int,
   }
 
   override def equals(obj: Any): Boolean = {
-    obj.isInstanceOf[RangeHistogram[T]] && {
-      val rh = obj.asInstanceOf[RangeHistogram[T]]
-      attrIndex == rh.attrIndex &&
+    obj match {
+      case rh: RangeHistogram[T] =>
+        attrIndex == rh.attrIndex &&
         attrType == rh.attrType &&
         numBins == rh.numBins &&
         lowerEndpoint == rh.lowerEndpoint &&
         upperEndpoint == rh.upperEndpoint &&
         histogram == rh.histogram
+      case _ => false
     }
   }
 }

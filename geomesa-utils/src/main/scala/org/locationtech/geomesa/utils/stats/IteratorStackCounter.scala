@@ -20,9 +20,7 @@ class IteratorStackCounter(var count: Long = 1) extends Stat {
   override def observe(sf: SimpleFeature): Unit = { }
 
   override def add(other: Stat): Stat = {
-    other match {
-      case o: IteratorStackCounter => count += o.count
-    }
+    count += other.asInstanceOf[IteratorStackCounter].count
     this
   }
 
@@ -31,9 +29,10 @@ class IteratorStackCounter(var count: Long = 1) extends Stat {
   override def clear(): Unit = count = 1L
 
   override def equals(obj: Any): Boolean = {
-    obj.isInstanceOf[IteratorStackCounter] && {
-      val isc = obj.asInstanceOf[IteratorStackCounter]
-      count == isc.count
+    obj match {
+      case isc: IteratorStackCounter =>
+        count == isc.count
+      case _ => false
     }
   }
 }

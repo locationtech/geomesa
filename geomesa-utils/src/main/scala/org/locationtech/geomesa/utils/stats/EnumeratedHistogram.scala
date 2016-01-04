@@ -27,19 +27,13 @@ class EnumeratedHistogram[T](val attrIndex: Int,
   override def observe(sf: SimpleFeature): Unit = {
     val sfval = sf.getAttribute(attrIndex)
     if (sfval != null) {
-      sfval match {
-        case tval: T =>
-          frequencyMap(tval) += 1
-      }
+      frequencyMap(sfval.asInstanceOf[T]) += 1
     }
   }
 
   override def add(other: Stat): Stat = {
-    other match {
-      case eh: EnumeratedHistogram[T] =>
-        combine(eh)
-        this
-    }
+    combine(other.asInstanceOf[EnumeratedHistogram[T]])
+    this
   }
 
   private def combine(other: EnumeratedHistogram[T]): Unit =
@@ -53,11 +47,12 @@ class EnumeratedHistogram[T](val attrIndex: Int,
   override def clear(): Unit = frequencyMap.clear()
 
   override def equals(obj: Any): Boolean = {
-    obj.isInstanceOf[EnumeratedHistogram[T]] && {
-      val eh = obj.asInstanceOf[EnumeratedHistogram[T]]
-      attrIndex == eh.attrIndex &&
-      attrType == eh.attrType &&
-      frequencyMap == eh.frequencyMap
+    obj match {
+      case eh: EnumeratedHistogram[T] =>
+        attrIndex == eh.attrIndex &&
+        attrType == eh.attrType &&
+        frequencyMap == eh.frequencyMap
+      case _ => false
     }
   }
 }
