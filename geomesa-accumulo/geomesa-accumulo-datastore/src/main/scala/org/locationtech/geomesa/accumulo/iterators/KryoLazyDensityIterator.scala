@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import java.util.Map.Entry
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data._
@@ -33,7 +33,7 @@ import scala.collection.mutable
 /**
  * Density iterator - only works on kryo-encoded features
  */
-class KryoLazyDensityIterator extends KryoLazyAggregatingIterator[DensityResult] with Logging {
+class KryoLazyDensityIterator extends KryoLazyAggregatingIterator[DensityResult] with LazyLogging {
 
   import KryoLazyDensityIterator._
 
@@ -134,7 +134,7 @@ class KryoLazyDensityIterator extends KryoLazyAggregatingIterator[DensityResult]
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = ???
 }
 
-object KryoLazyDensityIterator extends Logging {
+object KryoLazyDensityIterator extends LazyLogging {
 
   type DensityResult = mutable.Map[(Int, Int), Double]
   type GridIterator = (SimpleFeature) => Iterator[(Double, Double, Double)]

@@ -9,12 +9,10 @@
 package org.locationtech.geomesa.accumulo.iterators
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
-import java.util.{HashMap => JHMap, Map => jMap, UUID}
+import java.util.{HashMap => JHMap, UUID}
 
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
-import org.apache.accumulo.core.data.{Key, Value}
-import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.commons.codec.binary.Base64
 import org.codehaus.jackson.`type`.TypeReference
 import org.codehaus.jackson.map.ObjectMapper
@@ -76,7 +74,7 @@ class KryoLazyTemporalDensityIterator extends KryoLazyAggregatingIterator[TimeSe
   }
 }
 
-object KryoLazyTemporalDensityIterator extends Logging {
+object KryoLazyTemporalDensityIterator extends LazyLogging {
 
   type TimeSeries = mutable.Map[DateTime, Long]
 
