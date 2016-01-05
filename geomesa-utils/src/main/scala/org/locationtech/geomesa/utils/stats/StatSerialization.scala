@@ -12,6 +12,7 @@ import java.nio.ByteBuffer
 import java.util.Date
 
 import com.google.common.primitives.Bytes
+import org.locationtech.geomesa.utils.stats.MinMaxHelper._
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -41,7 +42,13 @@ object StatSerialization {
   }
 
   protected[stats] def packMinMax(mm: MinMax[_]): Array[Byte] = {
-    serializeStat(MINMAX_BYTE, s"${mm.attrIndex};${mm.attrType};${mm.stringSerializeMin()};${mm.stringSerializeMax()}".getBytes)
+    val stringifiedMinMax = if (mm.isNull) {
+      s"${mm.attrIndex};${mm.attrType};null;null"
+    } else {
+      s"${mm.attrIndex};${mm.attrType};${mm.min};${mm.max}"
+    }
+
+    serializeStat(MINMAX_BYTE, stringifiedMinMax.getBytes)
   }
 
   protected[stats] def unpackMinMax(bytes: Array[Byte]): MinMax[_] = {
@@ -55,18 +62,38 @@ object StatSerialization {
 
     val attrType = Class.forName(attrTypeString)
     if (attrType == classOf[Date]) {
-      new MinMax[Date](attrIndex, attrTypeString,
-        StatHelpers.javaDateFormat.parseDateTime(min).toDate, StatHelpers.javaDateFormat.parseDateTime(max).toDate)
+      if (min == "null") {
+        new MinMax[Date](attrIndex, attrTypeString, MinMaxDate.min, MinMaxDate.max)
+      } else {
+        new MinMax[Date](attrIndex, attrTypeString,
+          StatHelpers.javaDateFormat.parseDateTime(min).toDate, StatHelpers.javaDateFormat.parseDateTime(max).toDate)
+      }
     } else if (attrType == classOf[java.lang.Integer]) {
-      new MinMax[java.lang.Integer](attrIndex, attrTypeString, min.toInt, max.toInt)
+      if (min == "null") {
+        new MinMax[java.lang.Integer](attrIndex, attrTypeString, MinMaxInt.min, MinMaxInt.max)
+      } else {
+        new MinMax[java.lang.Integer](attrIndex, attrTypeString, min.toInt, max.toInt)
+      }
     } else if (attrType == classOf[java.lang.Long]) {
-      new MinMax[java.lang.Long](attrIndex, attrTypeString, min.toLong, max.toLong)
+      if (min == "null") {
+        new MinMax[java.lang.Long](attrIndex, attrTypeString, MinMaxLong.min, MinMaxLong.max)
+      } else {
+        new MinMax[java.lang.Long](attrIndex, attrTypeString, min.toLong, max.toLong)
+      }
     } else if (attrType == classOf[java.lang.Float]) {
-      new MinMax[java.lang.Float](attrIndex, attrTypeString, min.toFloat, max.toFloat)
+      if (min == "null") {
+        new MinMax[java.lang.Float](attrIndex, attrTypeString, MinMaxFloat.min, MinMaxFloat.max)
+      } else {
+        new MinMax[java.lang.Float](attrIndex, attrTypeString, min.toFloat, max.toFloat)
+      }
     } else if (attrType == classOf[java.lang.Double]) {
-      new MinMax[java.lang.Double](attrIndex, attrTypeString, min.toDouble, max.toDouble)
+      if (min == "null") {
+        new MinMax[java.lang.Double](attrIndex, attrTypeString, MinMaxDouble.min, MinMaxDouble.max)
+      } else {
+        new MinMax[java.lang.Double](attrIndex, attrTypeString, min.toDouble, max.toDouble)
+      }
     } else {
-      null
+      throw new Exception(s"Cannot unpack MinMax due to invalid type: $attrType")
     }
   }
 
@@ -140,7 +167,7 @@ object StatSerialization {
       }
       eh
     } else {
-      null
+      throw new Exception(s"Cannot unpack EnumeratedHistogram due to invalid type: $attrType")
     }
   }
 
@@ -207,7 +234,7 @@ object StatSerialization {
        }
        rh
      } else {
-       null
+       throw new Exception(s"Cannot unpack RangeHistogram due to invalid type: $attrType")
     }
   }
 

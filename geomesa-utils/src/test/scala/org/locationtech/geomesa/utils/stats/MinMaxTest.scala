@@ -39,6 +39,10 @@ class MinMaxTest extends Specification with StatTestHelper {
           val packed   = StatSerialization.pack(minMax)
           val unpacked = StatSerialization.unpack(packed).asInstanceOf[MinMax[Date]]
 
+          val stat2 = Stat(sft, "MinMax(dtg)")
+          val packed2 = StatSerialization.pack(stat2)
+          val unpacked2 = StatSerialization.unpack(packed2).asInstanceOf[MinMax[Date]]
+
           unpacked mustEqual minMax
         }
 
