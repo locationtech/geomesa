@@ -39,9 +39,14 @@ class        MinMaxTest extends Specification with StatTestHelper {
           val packed   = StatSerialization.pack(minMax)
           val unpacked = StatSerialization.unpack(packed).asInstanceOf[MinMax[Date]]
 
-          val stat2 = Stat(sft, "MinMax(dtg)")
-          val packed2 = StatSerialization.pack(stat2)
-          val unpacked2 = StatSerialization.unpack(packed2).asInstanceOf[MinMax[Date]]
+          unpacked mustEqual minMax
+        }
+
+        "serialize and deserialize empty MinMax" in {
+          val stat = Stat(sft, "MinMax(dtg)")
+          val minMax = stat.asInstanceOf[MinMax[Date]]
+          val packed = StatSerialization.pack(minMax)
+          val unpacked = StatSerialization.unpack(packed).asInstanceOf[MinMax[Date]]
 
           unpacked mustEqual minMax
         }
@@ -93,6 +98,15 @@ class        MinMaxTest extends Specification with StatTestHelper {
         minMax.max mustEqual 99
 
         "serialize and deserialize" in {
+          val packed   = StatSerialization.pack(minMax)
+          val unpacked = StatSerialization.unpack(packed).asInstanceOf[MinMax[Integer]]
+
+          unpacked mustEqual minMax
+        }
+
+        "serialize and deserialize empty MinMax" in {
+          val stat = Stat(sft, "MinMax(intAttr)")
+          val minMax = stat.asInstanceOf[MinMax[Integer]]
           val packed   = StatSerialization.pack(minMax)
           val unpacked = StatSerialization.unpack(packed).asInstanceOf[MinMax[Integer]]
 
@@ -152,6 +166,15 @@ class        MinMaxTest extends Specification with StatTestHelper {
           unpacked mustEqual minMax
         }
 
+        "serialize and deserialize empty MinMax" in {
+          val stat = Stat(sft, "MinMax(longAttr)")
+          val minMax = stat.asInstanceOf[MinMax[java.lang.Long]]
+          val packed   = StatSerialization.pack(minMax)
+          val unpacked = StatSerialization.unpack(packed).asInstanceOf[MinMax[java.lang.Long]]
+
+          unpacked mustEqual minMax
+        }
+
         "combine two MinMaxes" in {
           val stat2 = Stat(sft, "MinMax(longAttr)")
           val minMax2 = stat2.asInstanceOf[MinMax[java.lang.Long]]
@@ -205,6 +228,15 @@ class        MinMaxTest extends Specification with StatTestHelper {
           unpacked mustEqual minMax
         }
 
+        "serialize and deserialize empty MinMax" in {
+          val stat = Stat(sft, "MinMax(doubleAttr)")
+          val minMax = stat.asInstanceOf[MinMax[java.lang.Double]]
+          val packed   = StatSerialization.pack(minMax)
+          val unpacked = StatSerialization.unpack(packed).asInstanceOf[MinMax[java.lang.Double]]
+
+          unpacked mustEqual minMax
+        }
+
         "combine two MinMaxes" in {
           val stat2 = Stat(sft, "MinMax(doubleAttr)")
           val minMax2 = stat2.asInstanceOf[MinMax[java.lang.Double]]
@@ -252,6 +284,15 @@ class        MinMaxTest extends Specification with StatTestHelper {
         minMax.max mustEqual 99
 
         "serialize and deserialize" in {
+          val packed   = StatSerialization.pack(minMax)
+          val unpacked = StatSerialization.unpack(packed).asInstanceOf[MinMax[java.lang.Float]]
+
+          unpacked mustEqual minMax
+        }
+
+        "serialize and deserialize empty MinMax" in {
+          val stat = Stat(sft, "MinMax(floatAttr)")
+          val minMax = stat.asInstanceOf[MinMax[java.lang.Float]]
           val packed   = StatSerialization.pack(minMax)
           val unpacked = StatSerialization.unpack(packed).asInstanceOf[MinMax[java.lang.Float]]
 
