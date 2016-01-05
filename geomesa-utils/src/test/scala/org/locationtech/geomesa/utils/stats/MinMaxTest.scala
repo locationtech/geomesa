@@ -15,7 +15,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class MinMaxTest extends Specification with StatTestHelper {
+class        MinMaxTest extends Specification with StatTestHelper {
   sequential
 
   "MinMax stat" should {

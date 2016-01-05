@@ -55,7 +55,7 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator {
     */
   def createUuid(sft: SimpleFeatureType, sf: SimpleFeature): UUID = {
     val time = sft.getDtgIndex.flatMap(i => Option(sf.getAttribute(i)).map(_.asInstanceOf[Date].getTime))
-      .getOrElse(System.currentTimeMillis())
+        .getOrElse(System.currentTimeMillis())
     val pt = sf.getAttribute(sft.getGeomIndex) match {
       case p: Point => p
       case g: Geometry => g.getCentroid

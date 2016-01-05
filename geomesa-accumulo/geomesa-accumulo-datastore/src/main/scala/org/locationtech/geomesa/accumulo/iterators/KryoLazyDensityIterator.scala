@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.accumulo.iterators
 
 import java.util.Map.Entry
-import java.util.{Map => jMap}
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
@@ -29,7 +28,6 @@ import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 /**
@@ -40,18 +38,11 @@ class KryoLazyDensityIterator extends KryoLazyAggregatingIterator[DensityResult]
   import KryoLazyDensityIterator._
 
   var geomIndex: Int = -1
-
   // we snap each point into a pixel and aggregate based on that
   var gridSnap: GridSnap = null
-
   var writeGeom: (SimpleFeature, DensityResult) => Unit = null
 
-  override def init(src: SortedKeyValueIterator[Key, Value],
-                    jOptions: jMap[String, String],
-                    env: IteratorEnvironment): Unit = {
-    super.init(src, jOptions, env)
-    val options = jOptions.asScala
-
+  override def init(options: Map[String, String]): DensityResult = {
     geomIndex = sft.getGeomIndex
     gridSnap = {
       val bounds = options(ENVELOPE_OPT).split(",").map(_.toDouble)
@@ -79,9 +70,9 @@ class KryoLazyDensityIterator extends KryoLazyAggregatingIterator[DensityResult]
     } else {
       (sf, result) => writeNonPoint(sf.getDefaultGeometry.asInstanceOf[Geometry], weightFn(sf), result)
     }
-  }
 
-  override def newResult() = mutable.Map.empty[(Int, Int), Double]
+    mutable.Map.empty[(Int, Int), Double]
+  }
 
   override def aggregateResult(sf: SimpleFeature, result: DensityResult): Unit = writeGeom(sf, result)
 

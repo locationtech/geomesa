@@ -36,26 +36,19 @@ class KryoLazyStatsIterator extends KryoLazyAggregatingIterator[Stat] {
 
   import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator._
 
-  var stat: Stat = null
   var serializer: KryoFeatureSerializer = null
   var featureToSerialize: SimpleFeature = null
-  var result: Stat = null
 
-  override def init(src: SortedKeyValueIterator[Key, Value],
-                    jOptions: jMap[String, String],
-                    env: IteratorEnvironment): Unit = {
-    val statString = jOptions.get(STATS_STRING_KEY)
-    sft = SimpleFeatureTypes.createType("", jOptions.get(KryoLazyAggregatingIterator.SFT_OPT))
-    if (result == null)
-      result = Stat(sft, statString)
-    super.init(src, jOptions, env)
+  override def init(options: Map[String, String]): Stat = {
+    val statString = options(STATS_STRING_KEY)
+    sft = SimpleFeatureTypes.createType("", options(KryoLazyAggregatingIterator.SFT_OPT))
 
     val statsSft = SimpleFeatureTypes.createType("", STATS_ITERATOR_SFT_STRING)
     serializer = new KryoFeatureSerializer(statsSft)
     featureToSerialize = new ScalaSimpleFeature("", statsSft, Array(null, GeometryUtils.zeroPoint))
-  }
 
-  override def newResult() = result
+    Stat(sft, statString)
+  }
 
   override def aggregateResult(sf: SimpleFeature, result: Stat): Unit = result.observe(sf)
 

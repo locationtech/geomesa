@@ -68,9 +68,7 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
       case (_, false)    => filter(filt)
       case (_, true)     => val f = filter(filt)(_); (sf) => f(sf) && deduplicate(sf)
     }
-    if (result == null) {
-      result = newResult()
-    }
+    result = init(options.toMap)
   }
 
   override def hasTop: Boolean = topKey != null
@@ -125,7 +123,7 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
     reusableSf
   }
 
-  def newResult(): T
+  def init(options: Map[String, String]): T
   def aggregateResult(sf: SimpleFeature, result: T): Unit
   def encodeResult(result: T): Array[Byte]
 

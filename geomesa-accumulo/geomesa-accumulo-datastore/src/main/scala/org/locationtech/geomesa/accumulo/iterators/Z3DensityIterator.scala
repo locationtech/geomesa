@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.iterators
 import java.util.{Map => jMap}
 
 import com.google.common.primitives.Longs
-import com.vividsolutions.jts.geom.{Geometry, Point}
+import com.vividsolutions.jts.geom.{Point, Geometry}
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
@@ -24,8 +24,8 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 /**
-  * Density iterator that weights hits based on z3 schema
-  */
+ * Density iterator that weights hits based on z3 schema
+ */
 class Z3DensityIterator extends KryoLazyDensityIterator {
 
   var normalizeWeight: (Double) => Double = null
@@ -53,8 +53,8 @@ class Z3DensityIterator extends KryoLazyDensityIterator {
   }
 
   /**
-    * We write the geometry at the center of the zbox that this row represents
-    */
+   * We write the geometry at the center of the zbox that this row represents
+   */
   override def writeNonPoint(geom: Geometry, weight: Double, result: DensityResult): Unit = geom match {
     case p: Point => writePointToResult(p, weight, result)
     case _ =>
