@@ -54,18 +54,19 @@ object StatSerialization {
     val max = split(3)
 
     val attrType = Class.forName(attrTypeString)
-    attrType match {
-      case _ if attrType == classOf[Date] =>
-        new MinMax[Date](attrIndex, attrTypeString,
-          StatHelpers.javaDateFormat.parseDateTime(min).toDate, StatHelpers.javaDateFormat.parseDateTime(max).toDate)
-      case _ if attrType == classOf[java.lang.Integer] =>
-        new MinMax[java.lang.Integer](attrIndex, attrTypeString, min.toInt, max.toInt)
-      case _ if attrType == classOf[java.lang.Long] =>
-        new MinMax[java.lang.Long](attrIndex, attrTypeString, min.toLong, max.toLong)
-      case _ if attrType == classOf[java.lang.Float] =>
-        new MinMax[java.lang.Float](attrIndex, attrTypeString, min.toFloat, max.toFloat)
-      case _ if attrType == classOf[java.lang.Double] =>
-        new MinMax[java.lang.Double](attrIndex, attrTypeString, min.toDouble, max.toDouble)
+    if (attrType == classOf[Date]) {
+      new MinMax[Date](attrIndex, attrTypeString,
+        StatHelpers.javaDateFormat.parseDateTime(min).toDate, StatHelpers.javaDateFormat.parseDateTime(max).toDate)
+    } else if (attrType == classOf[java.lang.Integer]) {
+      new MinMax[java.lang.Integer](attrIndex, attrTypeString, min.toInt, max.toInt)
+    } else if (attrType == classOf[java.lang.Long]) {
+      new MinMax[java.lang.Long](attrIndex, attrTypeString, min.toLong, max.toLong)
+    } else if (attrType == classOf[java.lang.Float]) {
+      new MinMax[java.lang.Float](attrIndex, attrTypeString, min.toFloat, max.toFloat)
+    } else if (attrType == classOf[java.lang.Double]) {
+      new MinMax[java.lang.Double](attrIndex, attrTypeString, min.toDouble, max.toDouble)
+    } else {
+      null
     }
   }
 
@@ -164,48 +165,49 @@ object StatSerialization {
     val keyValues = split(5).split(",")
 
     val attrType = Class.forName(attrTypeString)
-    attrType match {
-      case _ if attrType == classOf[Date] =>
-        val rh = new RangeHistogram[Date](attrIndex, attrTypeString, numBins.toInt,
-          StatHelpers.javaDateFormat.parseDateTime(lowerEndpoint).toDate, StatHelpers.javaDateFormat.parseDateTime(upperEndpoint).toDate)
-        keyValues.foreach {
-          case (keyValuePair) =>
-            val splitKeyValuePair = keyValuePair.split("->")
-            rh.histogram.put(StatHelpers.javaDateFormat.parseDateTime(splitKeyValuePair(0)).toDate, splitKeyValuePair(1).toLong)
-        }
-        rh
-      case _ if attrType == classOf[Integer] =>
-        val rh = new RangeHistogram[Integer](attrIndex, attrTypeString, numBins.toInt, lowerEndpoint.toInt, upperEndpoint.toInt)
-        keyValues.foreach {
-          case (keyValuePair) =>
-            val splitKeyValuePair = keyValuePair.split("->")
-            rh.histogram.put(splitKeyValuePair(0).toInt, splitKeyValuePair(1).toLong)
-        }
-        rh
-      case _ if attrType == classOf[java.lang.Long] =>
-        val rh = new RangeHistogram[java.lang.Long](attrIndex, attrTypeString, numBins.toInt, lowerEndpoint.toLong, upperEndpoint.toLong)
-        keyValues.foreach {
-          case (keyValuePair) =>
-            val splitKeyValuePair = keyValuePair.split("->")
-            rh.histogram.put(splitKeyValuePair(0).toLong, splitKeyValuePair(1).toLong)
-        }
-        rh
-      case _ if attrType == classOf[java.lang.Float] =>
-        val rh = new RangeHistogram[java.lang.Float](attrIndex, attrTypeString, numBins.toInt, lowerEndpoint.toFloat, upperEndpoint.toFloat)
-        keyValues.foreach {
-          case (keyValuePair) =>
-            val splitKeyValuePair = keyValuePair.split("->")
-            rh.histogram.put(splitKeyValuePair(0).toFloat, splitKeyValuePair(1).toLong)
-        }
-        rh
-      case _ if attrType == classOf[java.lang.Double] =>
-        val rh = new RangeHistogram[java.lang.Double](attrIndex, attrTypeString, numBins.toInt, lowerEndpoint.toDouble, upperEndpoint.toDouble)
-        keyValues.foreach {
-          case (keyValuePair) =>
-            val splitKeyValuePair = keyValuePair.split("->")
-            rh.histogram.put(splitKeyValuePair(0).toDouble, splitKeyValuePair(1).toLong)
-        }
-        rh
+     if (attrType == classOf[Date]) {
+       val rh = new RangeHistogram[Date](attrIndex, attrTypeString, numBins.toInt,
+         StatHelpers.javaDateFormat.parseDateTime(lowerEndpoint).toDate, StatHelpers.javaDateFormat.parseDateTime(upperEndpoint).toDate)
+       keyValues.foreach {
+         case (keyValuePair) =>
+           val splitKeyValuePair = keyValuePair.split("->")
+           rh.histogram.put(StatHelpers.javaDateFormat.parseDateTime(splitKeyValuePair(0)).toDate, splitKeyValuePair(1).toLong)
+       }
+       rh
+     } else if (attrType == classOf[Integer]) {
+       val rh = new RangeHistogram[Integer](attrIndex, attrTypeString, numBins.toInt, lowerEndpoint.toInt, upperEndpoint.toInt)
+       keyValues.foreach {
+         case (keyValuePair) =>
+           val splitKeyValuePair = keyValuePair.split("->")
+           rh.histogram.put(splitKeyValuePair(0).toInt, splitKeyValuePair(1).toLong)
+       }
+       rh
+     } else if (attrType == classOf[java.lang.Long]) {
+       val rh = new RangeHistogram[java.lang.Long](attrIndex, attrTypeString, numBins.toInt, lowerEndpoint.toLong, upperEndpoint.toLong)
+       keyValues.foreach {
+         case (keyValuePair) =>
+           val splitKeyValuePair = keyValuePair.split("->")
+           rh.histogram.put(splitKeyValuePair(0).toLong, splitKeyValuePair(1).toLong)
+       }
+       rh
+     } else if (attrType == classOf[java.lang.Float]) {
+       val rh = new RangeHistogram[java.lang.Float](attrIndex, attrTypeString, numBins.toInt, lowerEndpoint.toFloat, upperEndpoint.toFloat)
+       keyValues.foreach {
+         case (keyValuePair) =>
+           val splitKeyValuePair = keyValuePair.split("->")
+           rh.histogram.put(splitKeyValuePair(0).toFloat, splitKeyValuePair(1).toLong)
+       }
+       rh
+     } else if (attrType == classOf[java.lang.Double]) {
+       val rh = new RangeHistogram[java.lang.Double](attrIndex, attrTypeString, numBins.toInt, lowerEndpoint.toDouble, upperEndpoint.toDouble)
+       keyValues.foreach {
+         case (keyValuePair) =>
+           val splitKeyValuePair = keyValuePair.split("->")
+           rh.histogram.put(splitKeyValuePair(0).toDouble, splitKeyValuePair(1).toLong)
+       }
+       rh
+     } else {
+       null
     }
   }
 
