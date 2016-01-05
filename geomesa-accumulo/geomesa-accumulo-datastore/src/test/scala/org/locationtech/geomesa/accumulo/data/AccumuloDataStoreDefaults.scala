@@ -36,9 +36,6 @@ trait AccumuloDataStoreDefaults {
   val WGS84 = DefaultGeographicCRS.WGS84
   val gf = JTSFactoryFinder.getGeometryFactory
 
-  val df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-  df.setTimeZone(TimeZone.getTimeZone("UTC"))
-
   val defaultSchema = "name:String,geom:Point:srid=4326,dtg:Date"
   val defaultGeom = WKTUtils.read("POINT(45.0 49.0)")
   val defaultDtg = new Date(100000)

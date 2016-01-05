@@ -79,7 +79,7 @@ class RecordIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLoggi
       val priority = 25
       if (hints.isBinQuery) {
         // use the server side aggregation
-        val iters = Seq(BinAggregatingIterator.configureDynamic(sft, hints, filter.secondary, priority))
+        val iters = Seq(BinAggregatingIterator.configureDynamic(sft, filter.secondary, hints, deduplicate = false))
         val kvsToFeatures = BinAggregatingIterator.kvsToFeatures()
         BatchScanPlan(table, ranges, iters, Seq.empty, kvsToFeatures, threads, hasDuplicates = false)
       } else {

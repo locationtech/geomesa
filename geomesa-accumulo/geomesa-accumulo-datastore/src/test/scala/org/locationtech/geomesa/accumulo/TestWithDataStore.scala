@@ -8,13 +8,16 @@
 
 package org.locationtech.geomesa.accumulo
 
+import org.apache.accumulo.core.client.Scanner
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.accumulo.core.data.Key
+import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
+import org.locationtech.geomesa.accumulo.data.tables.{Z3Table, GeoMesaTable}
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -55,8 +58,7 @@ trait TestWithDataStore extends Specification {
 
   // after all tests, drop the tables we created to free up memory
   override def map(fragments: => Fragments) = fragments ^ Step {
-    GeoMesaTable.getTableNames(sft, ds).foreach(connector.tableOperations().delete)
-    connector.tableOperations().delete(sftName)
+    ds.removeSchema(sftName)
   }
 
   /**
@@ -88,4 +90,11 @@ trait TestWithDataStore extends Specification {
   }
 
   def explain(filter: String): String = explain(new Query(sftName, ECQL.toFilter(filter)))
+
+  def scanner(table: GeoMesaTable): Scanner =
+    connector.createScanner(ds.getTableName(sftName, table), new Authorizations())
+
+  def rowToString(key: Key) = bytesToString(key.getRow.copyBytes())
+
+  def bytesToString(bytes: Array[Byte]) = Key.toPrintableString(bytes, 0, bytes.length, bytes.length)
 }

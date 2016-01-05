@@ -54,7 +54,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
                         featureEncoding: SerializationType,
                         stSchema: String,
                         acc: AccumuloConnectorCreator,
-                        hints: StrategyHints) extends MethodProfiling {
+                        strategyHints: StrategyHints) extends MethodProfiling {
 
   import org.locationtech.geomesa.accumulo.index.QueryPlanner._
 
@@ -100,10 +100,12 @@ case class QueryPlanner(sft: SimpleFeatureType,
       iter
     }
 
-    def reduce(iter: SFIter): SFIter = if (query.getHints.isTemporalDensityQuery) {
+    def reduce(iter: SFIter): SFIter = if (query.getHints.isStatsIteratorQuery) {
+      KryoLazyStatsIterator.reduceFeatures(iter, query)
+    } else if (query.getHints.isTemporalDensityQuery) {
       TemporalDensityIterator.reduceTemporalFeatures(iter, query)
     } else if (query.getHints.isMapAggregatingQuery) {
-      MapAggregatingIterator.reduceMapAggregationFeatures(iter, query)
+      KryoLazyMapAggregatingIterator.reduceMapAggregationFeatures(iter, query)
     } else {
       iter
     }
@@ -122,13 +124,14 @@ case class QueryPlanner(sft: SimpleFeatureType,
     configureQuery(query, sft) // configure the query - set hints that we'll need later on
 
     output.pushLevel(s"Planning '${query.getTypeName}' ${filterToString(query.getFilter)}")
-    output(s"Hints: density ${query.getHints.isDensityQuery}, bin ${query.getHints.isBinQuery}")
-    output(s"Transforms: ${query.getHints.getTransformDefinition.getOrElse("None")}")
+    output(s"Hints: density[${query.getHints.isDensityQuery}] bin[${query.getHints.isBinQuery}] " +
+        s"temporal-density[${query.getHints.isTemporalDensityQuery}] map-aggregate[${query.getHints.isMapAggregatingQuery}]")
     output(s"Sort: ${Option(query.getSortBy).filter(_.nonEmpty).map(_.mkString(", ")).getOrElse("none")}")
+    output(s"Transforms: ${query.getHints.getTransformDefinition.getOrElse("None")}")
 
     output.pushLevel("Strategy selection:")
     val requestedStrategy = requested.orElse(query.getHints.getRequestedStrategy)
-    val strategies = QueryStrategyDecider.chooseStrategies(sft, query, hints, requestedStrategy, output)
+    val strategies = QueryStrategyDecider.chooseStrategies(sft, query, strategyHints, requestedStrategy, output)
     output.popLevel()
     var strategyCount = 1
     strategies.iterator.map { strategy =>
@@ -376,12 +379,13 @@ object QueryPlanner extends LazyLogging {
     val sft = if (query.getHints.isBinQuery) {
       BinAggregatingIterator.BIN_SFT
     } else if (query.getHints.isDensityQuery) {
-      Z3DensityIterator.DENSITY_SFT
-    } else if (query.getHints.containsKey(TEMPORAL_DENSITY_KEY)) {
+      KryoLazyDensityIterator.DENSITY_SFT
+    } else if (query.getHints.isStatsIteratorQuery) {
+      KryoLazyStatsIterator.createFeatureType(baseSft)
+    } else if (query.getHints.isTemporalDensityQuery) {
       TemporalDensityIterator.createFeatureType(baseSft)
-    } else if (query.getHints.containsKey(MAP_AGGREGATION_KEY)) {
-      val mapAggregationAttribute = query.getHints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
-      val spec = MapAggregatingIterator.projectedSFTDef(mapAggregationAttribute, baseSft)
+    } else if (query.getHints.isMapAggregatingQuery) {
+      val spec = KryoLazyMapAggregatingIterator.createMapSft(baseSft, query.getHints.getMapAggregatingAttribute)
       SimpleFeatureTypes.createType(baseSft.getTypeName, spec)
     } else {
       query.getHints.getTransformSchema.getOrElse(baseSft)

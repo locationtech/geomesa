@@ -52,6 +52,8 @@ package object index {
     val TEMPORAL_DENSITY_KEY = new ClassKey(classOf[java.lang.Boolean])
     val TIME_INTERVAL_KEY    = new ClassKey(classOf[org.joda.time.Interval])
     val TIME_BUCKETS_KEY     = new IntegerKey(256)
+
+    val STATS_STRING         = new ClassKey(classOf[java.lang.String])
     val RETURN_ENCODED       = new ClassKey(classOf[java.lang.Boolean])
 
     val MAP_AGGREGATION_KEY  = new ClassKey(classOf[java.lang.String])
@@ -82,8 +84,10 @@ package object index {
         for { w <- Option(hints.get(WIDTH_KEY).asInstanceOf[Int])
               h <- Option(hints.get(HEIGHT_KEY).asInstanceOf[Int]) } yield (w, h)
       def getDensityWeight: Option[String] = Option(hints.get(DENSITY_WEIGHT).asInstanceOf[String])
+      def isStatsIteratorQuery: Boolean = hints.containsKey(STATS_STRING)
       def isTemporalDensityQuery: Boolean = hints.containsKey(TEMPORAL_DENSITY_KEY)
       def isMapAggregatingQuery: Boolean = hints.containsKey(MAP_AGGREGATION_KEY)
+      def getMapAggregatingAttribute: String = hints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
       def getTransformDefinition: Option[String] = Option(hints.get(TRANSFORMS).asInstanceOf[String])
       def getTransformSchema: Option[SimpleFeatureType] =
         Option(hints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType])

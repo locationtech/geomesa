@@ -14,7 +14,7 @@ import org.geotools.text.Text
 import org.locationtech.geomesa.accumulo.process.knn.KNearestNeighborSearchProcess
 import org.locationtech.geomesa.accumulo.process.proximity.ProximitySearchProcess
 import org.locationtech.geomesa.accumulo.process.query.QueryProcess
-import org.locationtech.geomesa.accumulo.process.temporalDensity.TemporalDensityProcess
+import org.locationtech.geomesa.accumulo.process.stats.StatsIteratorProcess
 import org.locationtech.geomesa.accumulo.process.tube.TubeSelectProcess
 import org.locationtech.geomesa.accumulo.process.unique.UniqueProcess
 
@@ -24,7 +24,7 @@ class ProcessFactory
     "geomesa",
     classOf[DensityProcess],
     classOf[Point2PointProcess],
-    classOf[TemporalDensityProcess],
+    classOf[StatsIteratorProcess],
     classOf[TubeSelectProcess],
     classOf[ProximitySearchProcess],
     classOf[QueryProcess],

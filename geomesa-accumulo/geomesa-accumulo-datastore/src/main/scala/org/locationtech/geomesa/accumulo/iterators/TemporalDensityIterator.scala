@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.accumulo.iterators
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
-import java.util.{Date, HashMap => JHMap, Map => JMap}
+import java.util.{Date, HashMap => JHMap, Map => JMap, UUID}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
@@ -27,7 +27,7 @@ import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanner.SFIter
 import org.locationtech.geomesa.accumulo.iterators.FeatureAggregatingIterator.Result
 import org.locationtech.geomesa.accumulo.iterators.TemporalDensityIterator.TimeSeries
-import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.buildTypeName
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes, TimeSnap}
@@ -37,15 +37,14 @@ import scala.collection.JavaConversions._
 import scala.collection.{breakOut, mutable}
 import scala.util.parsing.json.JSONObject
 
-class TemporalDensityIterator(other: TemporalDensityIterator, env: IteratorEnvironment)
+@deprecated
+class TemporalDensityIterator(other: FeatureAggregatingIterator[TemporalDensityIteratorResult], env: IteratorEnvironment)
   extends FeatureAggregatingIterator[TemporalDensityIteratorResult](other, env) {
-
-  import org.locationtech.geomesa.accumulo.iterators.TemporalDensityIterator.{TEMPORAL_DENSITY_FEATURE_SFT_STRING, TimeSeries}
 
   var snap: TimeSnap = null
   var dateTimeFieldName: String = null
 
-  projectedSFTDef = TEMPORAL_DENSITY_FEATURE_SFT_STRING
+  projectedSFTDef = TemporalDensityIterator.TEMPORAL_DENSITY_SFT_STRING
 
   def this() = this(null, null)
 
@@ -78,16 +77,19 @@ class TemporalDensityIterator(other: TemporalDensityIterator, env: IteratorEnvir
   }
 }
 
+@deprecated
 object TemporalDensityIterator extends LazyLogging {
+
+  type TimeSeries = mutable.Map[DateTime, Long]
+
+  val TEMPORAL_DENSITY_SFT_STRING = s"timeseries:String,*geom:Point:srid=4326"
+  val DEFAULT_PRIORITY = 30
 
   val INTERVAL_KEY = "geomesa.temporal.density.bounds"
   val BUCKETS_KEY = "geomesa.temporal.density.buckets"
-  val TIME_SERIES: String = "timeseries"
-  val TEMPORAL_DENSITY_FEATURE_SFT_STRING = s"$TIME_SERIES:String,geom:Geometry"
-
-  type TimeSeries = collection.mutable.HashMap[DateTime, Long]
 
   val geomFactory = JTSFactoryFinder.getGeometryFactory
+  private val df = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
 
   def configure(cfg: IteratorSetting, interval : Interval, buckets: Int) = {
     setTimeBounds(cfg, interval)
@@ -111,26 +113,12 @@ object TemporalDensityIterator extends LazyLogging {
     new Interval(s, e)
   }
 
-  def createFeatureType(origFeatureType: SimpleFeatureType) = {
-    //Need a filler namespace, else geoserver throws nullptr exception for xml output
-    val (namespace, name) = buildTypeName(origFeatureType.getTypeName)
-    val outNamespace = if (namespace == null){
-        "NullNamespace"
-      } else {
-        namespace
-      }
-    SimpleFeatureTypes.createType(outNamespace, name, TemporalDensityIterator.TEMPORAL_DENSITY_FEATURE_SFT_STRING)
+  def createFeatureType(baseType: SimpleFeatureType) = {
+    // Need a filler namespace, else geoserver throws nullptr exception for xml output
+    val (namespace, name) = buildTypeName(baseType.getTypeName)
+    val outNamespace = if (namespace == null) "NullNamespace" else namespace
+    SimpleFeatureTypes.createType(outNamespace, name, TEMPORAL_DENSITY_SFT_STRING)
   }
-
-  def combineTimeSeries(ts1: TimeSeries, ts2: TimeSeries) : TimeSeries = {
-    val resultTS = new collection.mutable.HashMap[DateTime, Long]()
-    for (key <- ts1.keySet ++ ts2.keySet) {
-      resultTS.put(key, ts1.getOrElse(key, 0L) + ts2.getOrElse(key,0L))
-    }
-    resultTS
-  }
-
-  private val df = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
 
   def timeSeriesToJSON(ts : TimeSeries): String = {
     val jsonMap = ts.toMap.map { case (k, v) => k.toString(df) -> v }
@@ -166,28 +154,29 @@ object TemporalDensityIterator extends LazyLogging {
     table
   }
 
+  def combineTimeSeries(ts1: TimeSeries, ts2: TimeSeries) : TimeSeries = {
+    val resultTS = new collection.mutable.HashMap[DateTime, Long]()
+    (ts1.keySet ++ ts2.keySet).foreach { key =>
+      resultTS.put(key, ts1.getOrElse(key, 0L) + ts2.getOrElse(key, 0L))
+    }
+    resultTS
+  }
+
   def reduceTemporalFeatures(features: SFIter, query: Query): SFIter = {
     val encode = query.getHints.containsKey(RETURN_ENCODED)
     val sft = query.getHints.getReturnSft
 
-    val timeSeriesStrings = features.map(f => decodeTimeSeries(f.getAttribute(TIME_SERIES).toString))
+    val timeSeriesStrings = features.map(f => decodeTimeSeries(f.getAttribute(0).asInstanceOf[String]))
     val summedTimeSeries = timeSeriesStrings.reduceOption(combineTimeSeries)
 
-    val feature = summedTimeSeries.map { sum =>
-      val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(sft)
-      if (encode) {
-        featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(sum))
-      } else {
-        featureBuilder.add(timeSeriesToJSON(sum))
-      }
-      featureBuilder.add(GeometryUtils.zeroPoint) // Filler value as Feature requires a geometry
-      featureBuilder.buildFeature(null)
+    summedTimeSeries.iterator.map { sum =>
+      val time = if (encode) encodeTimeSeries(sum) else timeSeriesToJSON(sum)
+      new ScalaSimpleFeature(UUID.randomUUID().toString, sft, Array(time, GeometryUtils.zeroPoint))
     }
-
-    feature.iterator
   }
 }
 
+@deprecated
 case class TemporalDensityIteratorResult(timeSeries: TimeSeries = new mutable.HashMap[DateTime, Long]) extends Result {
   override def addToFeature(featureBuilder: SimpleFeatureBuilder): Unit =
     featureBuilder.add(TemporalDensityIterator.encodeTimeSeries(timeSeries))

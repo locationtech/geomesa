@@ -308,14 +308,13 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends LazyLogging {
     }
   }
 
-
   /**
    * Returns true if the temporal filters create a range with an upper and lower bound
    */
   private def isBounded(temporalFilters: Seq[Filter]): Boolean = {
     import FilterHelper._
     val interval = extractInterval(temporalFilters, sft.getDtgField)
-    interval != null && interval.getStart != minDateTime && interval.getEnd != maxDateTime
+    interval != null && interval.getStartMillis != minDateTime && interval.getEndMillis != maxDateTime
   }
 
   /**

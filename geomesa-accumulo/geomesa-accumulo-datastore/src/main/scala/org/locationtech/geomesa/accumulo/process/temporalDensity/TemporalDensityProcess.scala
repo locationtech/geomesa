@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2015 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0 which
-* accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+  * Copyright (c) 2013-2015 Commonwealth Computer Research, Inc.
+  * All rights reserved. This program and the accompanying materials
+  * are made available under the terms of the Apache License, Version 2.0 which
+  * accompanies this distribution and is available at
+  * http://www.opensource.org/licenses/apache2.0.php.
+  *************************************************************************/
 
 package org.locationtech.geomesa.accumulo.process.temporalDensity
 
@@ -20,7 +20,7 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.geotools.util.NullProgressListener
 import org.joda.time.Interval
 import org.locationtech.geomesa.accumulo.index.QueryHints
-import org.locationtech.geomesa.accumulo.iterators.TemporalDensityIterator.createFeatureType
+import org.locationtech.geomesa.accumulo.iterators.TemporalDensityIterator
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 
@@ -72,7 +72,7 @@ class TemporalDensityProcess extends LazyLogging {
 class TemporalDensityVisitor(features: SimpleFeatureCollection, interval: Interval, buckets: Int)
   extends FeatureCalc with LazyLogging {
 
-  val retType = createFeatureType(features.getSchema())
+  val retType = TemporalDensityIterator.createFeatureType(features.getSchema)
   val manualVisitResults = new DefaultFeatureCollection(null, retType)
 
   //  Called for non AccumuloFeatureCollections

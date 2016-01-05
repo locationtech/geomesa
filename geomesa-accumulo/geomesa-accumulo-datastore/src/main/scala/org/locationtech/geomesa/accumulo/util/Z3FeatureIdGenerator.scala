@@ -10,9 +10,10 @@ package org.locationtech.geomesa.accumulo.util
 
 import java.util.{Date, UUID}
 
-import com.google.common.primitives.Longs
+import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.locationtech.geomesa.accumulo.data.tables.Z3Table
+import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.uuid.{FeatureIdGenerator, RandomLsbUuidGenerator}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -20,42 +21,41 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.util.hashing.MurmurHash3
 
 /**
- * Creates feature id based on the z3 index.
- */
+  * Creates feature id based on the z3 index.
+  */
 class Z3FeatureIdGenerator extends FeatureIdGenerator {
   override def createId(sft: SimpleFeatureType, sf: SimpleFeature): String =
     Z3UuidGenerator.createUuid(sft, sf).toString
 }
 
 /**
- * UUID generator that creates UUIDs that sort by z3 index.
- * UUIDs will be prefixed with a shard number, which will ensure some distribution of values as well
- * as allow pre-splitting of tables based on hex values.
- *
- * Uses variant 2 (IETF) and version 4 (for random UUIDs, although it's not totally random).
- * See https://en.wikipedia.org/wiki/Universally_unique_identifier#Variants_and_versions
- *
- * Format is:
- *
- *   4 bits for a shard - enough for a single hex digit
- *   44 bits of the z3 index value
- *   4 bits for the UUID version
- *   12 more bits of the z3 index value
- *   2 bits for the UUID variant
- *   62 bits of randomness
- */
+  * UUID generator that creates UUIDs that sort by z3 index.
+  * UUIDs will be prefixed with a shard number, which will ensure some distribution of values as well
+  * as allow pre-splitting of tables based on hex values.
+  *
+  * Uses variant 2 (IETF) and version 4 (for random UUIDs, although it's not totally random).
+  * See https://en.wikipedia.org/wiki/Universally_unique_identifier#Variants_and_versions
+  *
+  * Format is:
+  *
+  *   4 bits for a shard - enough for a single hex digit
+  *   44 bits of the z3 index value
+  *   4 bits for the UUID version
+  *   12 more bits of the z3 index value
+  *   2 bits for the UUID variant
+  *   62 bits of randomness
+  */
 object Z3UuidGenerator extends RandomLsbUuidGenerator {
 
   /**
-   * Creates a UUID where the first 8 bytes are based on the z3 index of the feature and
-   * the second 8 bytes are based on a random number.
-   *
-   * This provides uniqueness along with locality.
-   */
+    * Creates a UUID where the first 8 bytes are based on the z3 index of the feature and
+    * the second 8 bytes are based on a random number.
+    *
+    * This provides uniqueness along with locality.
+    */
   def createUuid(sft: SimpleFeatureType, sf: SimpleFeature): UUID = {
     val time = sft.getDtgIndex.flatMap(i => Option(sf.getAttribute(i)).map(_.asInstanceOf[Date].getTime))
-      .getOrElse(System.currentTimeMillis())
-
+        .getOrElse(System.currentTimeMillis())
     val pt = sf.getAttribute(sft.getGeomIndex) match {
       case p: Point => p
       case g: Geometry => g.getCentroid
@@ -70,7 +70,11 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator {
     // this uses the same temp array we use later, so be careful with the order this gets called
     val leastSigBits = createRandomLsb()
 
-    val z3 = Z3Table.getRowPrefix(pt.getX, pt.getY, time)
+    val z3 = {
+      val (w, t) = Z3Table.getWeekAndSeconds(time)
+      val z = Z3SFC.index(pt.getX, pt.getY, t).z
+      Bytes.concat(Shorts.toByteArray(w), Longs.toByteArray(z))
+    }
 
     // shard is first 4 bits of our uuid (e.g. 1 hex char) - this allows nice pre-splitting
     val shard = math.abs(MurmurHash3.bytesHash(z3) % 16).toByte
