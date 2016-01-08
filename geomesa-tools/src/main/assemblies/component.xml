@@ -13,8 +13,8 @@
     <dependencySets>
         <dependencySet>
             <outputDirectory>lib</outputDirectory>
-            <directoryMode>0755</directoryMode>
-            <fileMode>0755</fileMode>
+            <directoryMode>755</directoryMode>
+            <fileMode>0644</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>true</useTransitiveDependencies>
             <useTransitiveFiltering>true</useTransitiveFiltering>
@@ -29,6 +29,7 @@
         <fileSet>
             <directory>../geomesa-tools/bin</directory>
             <outputDirectory>bin</outputDirectory>
+            <directoryMode>755</directoryMode>
             <fileMode>0755</fileMode>
             <includes>
                 <include>geomesa</include>
@@ -43,28 +44,24 @@
         <fileSet>
             <directory>../geomesa-tools/conf</directory>
             <outputDirectory>conf</outputDirectory>
-            <fileMode>0755</fileMode>
-            <includes>
-                <include>log4j.properties</include>
-            </includes>
-            <filtered>true</filtered>
+            <fileMode>0644</fileMode>
+            <filtered>false</filtered>
+            <directoryMode>755</directoryMode>
         </fileSet>
         <fileSet>
-            <directory>../geomesa-tools/examples/ingest</directory>
-            <outputDirectory>examples/ingest</outputDirectory>
-            <fileMode>0755</fileMode>
-            <includes>
-                <include>example1.conf</include>
-                <include>example1.csv</include>
-            </includes>
-            <filtered>true</filtered>
+            <directory>../geomesa-tools/examples</directory>
+            <outputDirectory>examples</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>false</filtered>
+            <directoryMode>755</directoryMode>
         </fileSet>
+
     </fileSets>
     <files>
         <file>
             <source>target/geomesa-tools-${project.version}.jar</source>
             <outputDirectory>lib</outputDirectory>
-            <fileMode>0755</fileMode>
+            <fileMode>0644</fileMode>
         </file>
     </files>
 </component>

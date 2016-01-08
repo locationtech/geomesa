@@ -65,6 +65,13 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
         </dependency>
+
+        <!-- needed in the lib dir -->
+        <dependency>
+            <groupId>org.scala-lang.modules</groupId>
+            <artifactId>scala-xml_2.11</artifactId>
+        </dependency>
+
         <!-- provided dependencies -->
         <dependency>
             <groupId>org.apache.accumulo</groupId>
@@ -174,7 +181,7 @@
                         <phase>package</phase>
                         <configuration>
                             <attach>true</attach>
-                            <finalName>geomesa-${project.version}</finalName>
+                            <finalName>geomesa-tools-${project.version}</finalName>
                             <tarLongFileMode>gnu</tarLongFileMode>
                             <descriptors>
                                 <descriptor>src/main/assemblies/binary-release.xml</descriptor>
