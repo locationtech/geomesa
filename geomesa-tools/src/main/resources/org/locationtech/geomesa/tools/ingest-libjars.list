@@ -24,3 +24,5 @@ mango
 minlog
 scala
 scalding
+json
+gson
