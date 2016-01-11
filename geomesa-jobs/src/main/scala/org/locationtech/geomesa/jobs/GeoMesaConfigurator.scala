@@ -35,6 +35,7 @@ object GeoMesaConfigurator {
   private val sftKey           = s"$prefix.sft"
   private val transformsKey    = s"$prefix.transforms.schema"
   private val transformNameKey = s"$prefix.transforms.name"
+  private val sftKeyOut        = s"$prefix.out.sft"
   private val desiredSplits    = s"$prefix.mapreduce.split.count.strongHint"
   private val serializersKey   = "io.serializations"
 
@@ -62,6 +63,12 @@ object GeoMesaConfigurator {
     conf.set(sftKey, featureType)
   def getFeatureType(job: Job): String = getFeatureType(job.getConfiguration)
   def getFeatureType(conf: Configuration): String = conf.get(sftKey)
+
+  // set/get the feature type name
+  def setFeatureTypeOut(conf: Configuration, featureType: String): Unit =
+    conf.set(sftKeyOut, featureType)
+  def getFeatureTypeOut(job: Job): String = getFeatureType(job.getConfiguration)
+  def getFeatureTypeOut(conf: Configuration): String = conf.get(sftKeyOut)
 
   /**
    * Configure the number of desired splits. This should be called with the final intended

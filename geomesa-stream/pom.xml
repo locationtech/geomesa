@@ -9,11 +9,16 @@
 
     <artifactId>geomesa-stream</artifactId>
     <name>GeoMesa Stream</name>
+    <packaging>pom</packaging>
+
+    <properties>
+        <camel.version>2.15.1</camel.version>
+    </properties>
+
     <modules>
         <module>geomesa-stream-api</module>
         <module>geomesa-stream-generic</module>
         <module>geomesa-stream-datastore</module>
     </modules>
-    <packaging>pom</packaging>
 
 </project>

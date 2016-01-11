@@ -24,12 +24,14 @@
         <!-- The ALPN versions dictates a specific java version -->
         <alpn.version>8.1.3.v20150130</alpn.version>
         <bigtable.version>0.1.5</bigtable.version>
+        <bigtable.hadoop.version>2.4.1</bigtable.hadoop.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-hbase-datastore</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mortbay.jetty.alpn</groupId>
@@ -46,12 +48,12 @@
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
-            <version>${hbase.hadoop.version}</version>
+            <version>${bigtable.hadoop.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-mapreduce-client-app</artifactId>
-            <version>${hbase.hadoop.version}</version>
+            <version>${bigtable.hadoop.version}</version>
         </dependency>
     </dependencies>
 

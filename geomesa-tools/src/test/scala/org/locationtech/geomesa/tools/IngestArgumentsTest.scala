@@ -137,7 +137,7 @@ class IngestArgumentsTest extends Specification {
         "--converter", converter, "-s", sft, dataFile.getPath)
       args.length mustEqual 15
 
-      Runner.main(args)
+      Runner.createCommand(args).execute()
 
       val ds = getDS(id)
       import Conversions._

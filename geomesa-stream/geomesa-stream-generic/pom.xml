@@ -10,10 +10,6 @@
     <artifactId>geomesa-stream-generic</artifactId>
     <name>GeoMesa Stream Generic</name>
 
-    <properties>
-        <camel.version>2.14.1</camel.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>

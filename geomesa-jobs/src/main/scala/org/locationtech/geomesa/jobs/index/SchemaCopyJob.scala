@@ -8,15 +8,19 @@
 
 package org.locationtech.geomesa.jobs.index
 
-import com.twitter.scalding._
-import org.geotools.data.DataStoreFinder
-import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.jobs.GeoMesaBaseJob
-import org.locationtech.geomesa.jobs.scalding.ConnectionParams._
-import org.locationtech.geomesa.jobs.scalding._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
-import scala.collection.JavaConverters._
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.io.Text
+import org.apache.hadoop.mapreduce.{Counter, Job, Mapper}
+import org.geotools.data.{DataStoreFinder, Query}
+import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.jobs._
+import org.locationtech.geomesa.jobs.mapreduce.{GeoMesaInputFormat, GeoMesaOutputFormat}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import scala.collection.JavaConversions._
 
 /**
  * Class to copy a schema and all data from one data store to another.
@@ -25,48 +29,94 @@ import scala.collection.JavaConverters._
  * and writing it to a new schema which will use the latest format. This way, improvements in serialization,
  * etc can be leveraged for old data.
  */
-class SchemaCopyJob(args: Args) extends GeoMesaBaseJob(args) {
+object SchemaCopyJob {
 
-  val featureIn   = args(FEATURE_IN)
-  val featureOut  = args.getOrElse(FEATURE_OUT, featureIn)
-  val dsInParams  = toDataStoreInParams(args)
-  val dsOutParams = toDataStoreOutParams(args)
-  val filter      = args.optional(CQL_IN)
+  def main(args: Array[String]): Unit = {
 
-  val input = GeoMesaInputOptions(dsInParams, featureIn, filter)
-  val output = GeoMesaOutputOptions(dsOutParams)
+    val parsedArgs = new GeoMesaArgs(args) with InputFeatureArgs with InputDataStoreArgs with InputCqlArgs
+                         with OutputFeatureOptionalArgs with OutputDataStoreArgs
 
-  @transient lazy val sftIn = {
-    val dsIn = DataStoreFinder.getDataStore(dsInParams.asJava)
-    require(dsIn != null, "The specified input data store could not be created - check your job parameters")
-    val sft = dsIn.getSchema(featureIn)
-    require(sft != null, s"The feature '$featureIn' does not exist in the input data store")
-    sft
-  }
-  @transient lazy val sftOut = {
-    val dsOut = DataStoreFinder.getDataStore(dsOutParams.asJava)
-    require(dsOut != null, "The specified output data store could not be created - check your job parameters")
-    var sft = dsOut.getSchema(featureOut)
-    if (sft == null) {
-      // update the feature name
-      if (featureOut == featureIn) {
-        sft = sftIn
-      } else {
-        sft = SimpleFeatureTypes.createType(featureOut, SimpleFeatureTypes.encodeType(sftIn))
-      }
-      // create the schema in the output datastore
-      dsOut.createSchema(sft)
-      dsOut.getSchema(featureOut)
-    } else {
+    val featureIn   = parsedArgs.inFeature
+    val featureOut  = Option(parsedArgs.outFeature).getOrElse(featureIn)
+
+    val dsInParams  = parsedArgs.inDataStore
+    val dsOutParams = parsedArgs.outDataStore
+    val filter      = Option(parsedArgs.inCql).getOrElse("INCLUDE")
+
+    // validation and initialization - ensure the types exist before launching distributed job
+    val sftIn = {
+      val dsIn = DataStoreFinder.getDataStore(dsInParams)
+      require(dsIn != null, "The specified input data store could not be created - check your job parameters")
+      val sft = dsIn.getSchema(featureIn)
+      require(sft != null, s"The feature '$featureIn' does not exist in the input data store")
       sft
     }
+    val sftOut = {
+      val dsOut = DataStoreFinder.getDataStore(dsOutParams)
+      require(dsOut != null, "The specified output data store could not be created - check your job parameters")
+      var sft = dsOut.getSchema(featureOut)
+      if (sft == null) {
+        // update the feature name
+        if (featureOut == featureIn) {
+          sft = sftIn
+        } else {
+          sft = SimpleFeatureTypes.createType(featureOut, SimpleFeatureTypes.encodeType(sftIn))
+        }
+        // create the schema in the output datastore
+        dsOut.createSchema(sft)
+        dsOut.getSchema(featureOut)
+      } else {
+        sft
+      }
+    }
+
+    require(sftOut != null, "Could not create output type - check your job parameters")
+
+    val conf = new Configuration
+    val job = Job.getInstance(conf, s"GeoMesa Schema Copy '${sftIn.getTypeName}' to '${sftOut.getTypeName}'")
+
+    job.setJarByClass(SchemaCopyJob.getClass)
+    job.setMapperClass(classOf[CopyMapper])
+    job.setInputFormatClass(classOf[GeoMesaInputFormat])
+    job.setOutputFormatClass(classOf[GeoMesaOutputFormat])
+    job.setMapOutputKeyClass(classOf[Text])
+    job.setMapOutputValueClass(classOf[ScalaSimpleFeature])
+    job.setNumReduceTasks(0)
+
+    val query = new Query(sftIn.getTypeName, ECQL.toFilter(filter))
+    GeoMesaInputFormat.configure(job, dsInParams, query)
+
+    GeoMesaOutputFormat.configureDataStore(job, dsOutParams)
+    GeoMesaConfigurator.setFeatureTypeOut(job.getConfiguration, sftOut.getTypeName)
+
+    val result = job.waitForCompletion(true)
+
+    System.exit(if (result) 0 else 1)
+  }
+}
+
+class CopyMapper extends Mapper[Text, SimpleFeature, Text, SimpleFeature] {
+
+  type Context = Mapper[Text, SimpleFeature, Text, SimpleFeature]#Context
+
+  private val text: Text = new Text
+  private var counter: Counter = null
+
+  private var sftOut: SimpleFeatureType = null
+
+  override protected def setup(context: Context): Unit = {
+    counter = context.getCounter("org.locationtech.geomesa", "features-writtern")
+    val dsParams = GeoMesaConfigurator.getDataStoreOutParams(context.getConfiguration)
+    val ds = DataStoreFinder.getDataStore(dsParams)
+    sftOut = ds.getSchema(GeoMesaConfigurator.getFeatureTypeOut(context.getConfiguration))
   }
 
-  // initialization - ensure the types exist before launching distributed job
-  require(sftOut != null, "Could not create output type - check your job parameters")
+  override protected def cleanup(context: Context): Unit = {
 
-  // scalding job
-  TypedPipe.from(GeoMesaSource(input)).map {
-    case (t, sf) => (t, new ScalaSimpleFeature(sf.getID, sftOut, sf.getAttributes.toArray))
-  }.write(GeoMesaSource(output))
+  }
+
+  override def map(key: Text, value: SimpleFeature, context: Context) {
+    context.write(text, new ScalaSimpleFeature(value.getID, sftOut, value.getAttributes.toArray))
+    counter.increment(1)
+  }
 }

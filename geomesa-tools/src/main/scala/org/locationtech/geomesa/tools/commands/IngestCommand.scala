@@ -11,7 +11,8 @@ import java.util
 
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.tools.DataStoreHelper
+import org.geotools.data.DataStoreFinder
+import org.locationtech.geomesa.tools.{ConverterConfigParser, SftArgParser, DataStoreHelper}
 import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.tools.commands.IngestCommand._
 import org.locationtech.geomesa.tools.ingest.DelimitedIngest
@@ -29,7 +30,17 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
       val ds = new DataStoreHelper(params).getDataStore()
       GeneralShapefileIngest.shpToDataStore(params.files(0), ds, params.featureName)
     } else {
-      new DelimitedIngest(params).run()
+      if (params.files.exists(_.toLowerCase.startsWith("hdfs://")) &&
+          !params.files.forall(_.toLowerCase.startsWith("hdfs://"))) {
+        throw new IllegalArgumentException("Files must all be on the same file system - local or distributed")
+      }
+
+      val dsParams = new DataStoreHelper(params).paramMap
+      require(DataStoreFinder.getDataStore(dsParams) != null, "Could not load a data store with the provided parameters")
+      val sft = SftArgParser.getSft(params.spec, params.featureName)
+      val converterConfig = ConverterConfigParser.getConfig(params.config)
+
+      new DelimitedIngest(dsParams, sft, converterConfig, params.files).run()
     }
   }
 }
