@@ -26,7 +26,7 @@ class DataStoreHelper(params: GeoMesaParams) extends AccumuloProperties {
     dsParams.tableNameParam.getName  -> params.catalog,
     dsParams.visibilityParam.getName -> Option(params.visibilities).orNull,
     dsParams.authsParam.getName      -> Option(params.auths).orNull,
-    dsParams.mockParam.getName       -> params.useMock.toString)
+    dsParams.mockParam.getName       -> params.useMock.toString).filter(_._2 != null)
 
   /**
    * Get a handle to a datastore for a pre-existing catalog table

@@ -10,6 +10,11 @@
     <artifactId>geomesa-hbase-datastore</artifactId>
     <name>GeoMesa HBase DataStore</name>
 
+    <properties>
+        <hbase.version>1.0.0</hbase.version>
+        <hbase.hadoop.version>2.5.1</hbase.hadoop.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -47,9 +52,22 @@
             <version>${hbase.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-server</artifactId>
-            <version>${hbase.version}</version>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-auth</artifactId>
+            <version>${hbase.hadoop.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+            <version>${hbase.hadoop.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-core</artifactId>
+            <version>${hbase.hadoop.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

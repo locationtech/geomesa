@@ -17,15 +17,6 @@
 
     <artifactId>geomesa-convert</artifactId>
     <name>GeoMesa Convert</name>
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.typesafe</groupId>
-                <artifactId>config</artifactId>
-                <version>1.2.0</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
     <packaging>pom</packaging>
 
     <modules>

@@ -7,7 +7,9 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *********************************************************************-->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
         <artifactId>geomesa</artifactId>
@@ -22,6 +24,18 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <httpcomponents.version>4.2.5</httpcomponents.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <!-- excluded due to license issues -->
+                <groupId>javax.media</groupId>
+                <artifactId>jai_imageio</artifactId>
+                <version>1.1</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -49,18 +63,9 @@
             <artifactId>gt-geotiff</artifactId>
         </dependency>
         <dependency>
+            <!-- 'works with' due to license issues -->
             <groupId>javax.media</groupId>
             <artifactId>jai_core</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.media</groupId>
-            <artifactId>jai_imageio</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>java3d</groupId>
-            <artifactId>vecmath</artifactId>
             <scope>provided</scope>
         </dependency>
 

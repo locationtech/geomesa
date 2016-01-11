@@ -33,7 +33,6 @@
         <module>geomesa-web</module>
         <module>geomesa-process</module>
         <module>geomesa-stream</module>
-        <module>geomesa-examples</module>
         <module>geomesa-z3</module>
         <module>geomesa-accumulo</module>
         <module>geomesa-hbase</module>
@@ -52,7 +51,6 @@
         <geoserver.version>2.8.1</geoserver.version>
         <gt.version>14.1</gt.version>
         <jts.version>1.13</jts.version>
-        <scalding.version>0.13.1</scalding.version>
         <avro.version>1.7.5</avro.version>
         <jackson.codehaus.version>1.9.3</jackson.codehaus.version>
 
@@ -61,7 +59,6 @@
         <zookeeper.version>3.4.5</zookeeper.version>
         <hadoop.version>2.2.0</hadoop.version>
         <thrift.version>0.9.1</thrift.version>
-        <scalding.version>0.13.1</scalding.version>
         <spark.version>1.5.0</spark.version>
 
         <!-- logging properties - we expect logging jars to be provided -->
@@ -550,7 +547,7 @@
             <dependency>
                 <groupId>commons-pool</groupId>
                 <artifactId>commons-pool</artifactId>
-                <version>1.5.3</version>
+                <version>1.6</version>
             </dependency>
             <dependency>
                 <groupId>commons-codec</groupId>
@@ -590,33 +587,6 @@
                         <artifactId>maven-scm-provider-svnexe</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.twitter</groupId>
-                <artifactId>scalding-core_2.11</artifactId>
-                <version>${scalding.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues - replaced with version 0.9.0 (EPL) -->
-                        <groupId>thirdparty</groupId>
-                        <artifactId>jgrapht-jdk1.6</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- replaced by minlog 1.3 under com.esotericsoftware -->
-                        <groupId>com.esotericsoftware.minlog</groupId>
-                        <artifactId>minlog</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.jgrapht</groupId>
-                <artifactId>jgrapht-core</artifactId>
-                <version>0.9.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jgrapht</groupId>
-                <artifactId>jgrapht-ext</artifactId>
-                <version>0.9.0</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
