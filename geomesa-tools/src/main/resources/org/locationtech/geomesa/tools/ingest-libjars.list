@@ -13,9 +13,13 @@ curator-client
 curator-framework
 curator-recipes
 geomesa
+gson
 gt
 jgrapht
 joda
+json-path
+json-simple
+json-smart
 jsr
 jts
 kryo
