@@ -12,6 +12,7 @@ package org.locationtech.geomesa.jobs.index
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce.{Counter, Job, Mapper}
+import org.apache.hadoop.util.{ToolRunner, Tool}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -30,11 +31,20 @@ import scala.collection.JavaConversions._
  * etc can be leveraged for old data.
  */
 object SchemaCopyJob {
-
   def main(args: Array[String]): Unit = {
+    val result = ToolRunner.run(new SchemaCopyJob, args)
+    System.exit(result)
+  }
+}
 
+class SchemaCopyJob extends Tool {
+
+  private var conf: Configuration = new Configuration
+
+  override def run(args: Array[String]): Int = {
     val parsedArgs = new GeoMesaArgs(args) with InputFeatureArgs with InputDataStoreArgs with InputCqlArgs
                          with OutputFeatureOptionalArgs with OutputDataStoreArgs
+    parsedArgs.parse()
 
     val featureIn   = parsedArgs.inFeature
     val featureOut  = Option(parsedArgs.outFeature).getOrElse(featureIn)
@@ -91,8 +101,12 @@ object SchemaCopyJob {
 
     val result = job.waitForCompletion(true)
 
-    System.exit(if (result) 0 else 1)
+    if (result) 0 else 1
   }
+
+  override def getConf: Configuration = conf
+
+  override def setConf(conf: Configuration): Unit = this.conf = conf
 }
 
 class CopyMapper extends Mapper[Text, SimpleFeature, Text, SimpleFeature] {
