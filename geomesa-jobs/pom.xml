@@ -95,11 +95,6 @@
                     <scope>compile</scope>
                 </dependency>
                 <dependency>
-                    <groupId>org.apache.hadoop</groupId>
-                    <artifactId>hadoop-client</artifactId>
-                    <scope>compile</scope>
-                </dependency>
-                <dependency>
                     <groupId>javax.media</groupId>
                     <artifactId>jai_core</artifactId>
                     <scope>compile</scope>

@@ -11,8 +11,8 @@ package org.locationtech.geomesa.jobs
 import com.beust.jcommander.{JCommander, Parameter}
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory
 
-class GeoMesaArgs(args: Array[String]) {
-  new JCommander(this, args: _*)
+class GeoMesaArgs(val args: Array[String]) {
+  def parse(): Unit = new JCommander(this, args: _*)
 }
 
 trait InputDataStoreArgs {
