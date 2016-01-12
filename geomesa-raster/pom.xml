@@ -66,7 +66,11 @@
             <!-- 'works with' due to license issues -->
             <groupId>javax.media</groupId>
             <artifactId>jai_core</artifactId>
-            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <!-- 'works with' due to license issues -->
+            <groupId>javax.media</groupId>
+            <artifactId>jai_codec</artifactId>
         </dependency>
 
         <!-- test dependencies -->

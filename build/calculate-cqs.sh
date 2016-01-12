@@ -14,7 +14,7 @@ for cq in $(grep ':provided' build/deps-raw | grep '^\[INFO\] +-' | grep -v 'org
   dep="$(echo $cq | sed 's/\(.*\):\(.*\):jar:\(.*\):\(\w*\)/\1:\2\t\3\t\4/')"
   reg=$(echo "${dep%	*}" | sed 's/\s\s*/\\s*/g')
   if [ -z "$(grep $reg build/cqs.tsv)" ]; then
-    echo $dep >> build/cqs.tsv
+    echo "$dep" >> build/cqs.tsv
   fi
 done
 echo "" >> build/cqs.tsv
@@ -22,7 +22,7 @@ for cq in $(grep ':test' build/deps-raw | grep '^\[INFO\] +-' | grep -v 'org.loc
   dep="$(echo $cq | sed 's/\(.*\):\(.*\):jar:\(.*\):\(\w*\)/\1:\2\t\3\t\4/')"
   reg=$(echo "${dep%	*}" | sed 's/\s\s*/\\s*/g')
   if [ -z "$(grep $reg build/cqs.tsv)" ]; then
-    echo $dep >> build/cqs.tsv
+    echo "$dep" >> build/cqs.tsv
   fi
 done
 rm build/deps-raw

@@ -132,6 +132,7 @@
             <artifactId>scala-logging_2.11</artifactId>
         </dependency>
         <dependency>
+            <!-- 'works with' due to license issues -->
             <groupId>javax.media</groupId>
             <artifactId>jai_core</artifactId>
         </dependency>
