@@ -47,18 +47,22 @@ class ConverterIngest(dsParams: Map[String, String],
   }
 
   private def runLocal(): Unit = {
-    class ThreadSafeCounter extends org.locationtech.geomesa.convert.Transformers.Counter {
-      private val (s, f, c) = (new AtomicLong(0), new AtomicLong(0), new AtomicLong(0))
 
-      override def incSuccess(i: Long): Unit   = s.getAndAdd(i)
-      override def incFailure(i: Long): Unit   = f.getAndAdd(i)
-      override def incLineCount(i: Long): Unit = c.getAndAdd(i)
-      override def setLineCount(i: Long): Unit = c.set(i)
-      override def getFailure: Long            = f.get()
-      override def getLineCount: Long          = c.get()
-      override def getSuccess: Long            = s.get()
+    // Global success/failure shared between threads
+    val (success, failure) = (new AtomicLong(0), new AtomicLong(0))
+    class LocalIngestCounter extends org.locationtech.geomesa.convert.Transformers.Counter {
+      override def incSuccess(i: Long): Unit = success.getAndAdd(i)
+      override def getSuccess: Long          = success.get()
+
+      override def incFailure(i: Long): Unit = failure.getAndAdd(i)
+      override def getFailure: Long          = failure.get()
+
+      // Line counts are local to file not global
+      private var c: Long = 0
+      override def incLineCount(i: Long = 1) = c += i
+      override def getLineCount: Long        = c
+      override def setLineCount(i: Long)     = c = i
     }
-    val counter = new ThreadSafeCounter
 
     class LocalIngestWorker(file: File) extends Runnable {
 
@@ -66,7 +70,7 @@ class ConverterIngest(dsParams: Map[String, String],
         try {
           val fw = ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)
           val converter = SimpleFeatureConverters.build(sft, converterConfig)
-          val ec = converter.createEvaluationContext(Map("inputFilePath" -> file.getAbsolutePath), counter)
+          val ec = converter.createEvaluationContext(Map("inputFilePath" -> file.getAbsolutePath), new LocalIngestCounter)
           val is = PathUtils.getInputStream(file)
           try {
             val converted = converter.process(is, ec)
@@ -102,7 +106,7 @@ class ConverterIngest(dsParams: Map[String, String],
     es.shutdown()
     es.awaitTermination(4, TimeUnit.DAYS)
 
-    logger.info(s"Local ingestion complete: ${getStatInfo(counter.getSuccess, counter.getFailure)}")
+    logger.info(s"Local ingestion complete: ${getStatInfo(success.get, failure.get)}")
   }
 
 
