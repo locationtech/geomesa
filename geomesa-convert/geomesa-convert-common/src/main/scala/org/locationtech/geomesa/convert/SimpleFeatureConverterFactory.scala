@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.convert
 
-import java.io.Closeable
+import java.io.{Closeable, InputStream}
 import javax.imageio.spi.ServiceRegistry
 
 import com.typesafe.config.{Config, ConfigFactory}
@@ -29,6 +29,10 @@ trait Field {
 
 case class SimpleField(name: String, transform: Transformers.Expr) extends Field
 
+object StandardOptions {
+  val Validating = "options.validating"
+  val LineMode   = "options.line-mode"
+}
 trait SimpleFeatureConverterFactory[I] {
 
   def canProcess(conf: Config): Boolean
@@ -45,6 +49,13 @@ trait SimpleFeatureConverterFactory[I] {
     }.toIndexedSeq
 
   def buildIdBuilder(t: String) = Transformers.parseTransform(t)
+
+  def isValidating(conf: Config) =
+    if (conf.hasPath(StandardOptions.Validating)) {
+      conf.getBoolean(StandardOptions.Validating)
+    } else {
+      true
+    }
 
 }
 
@@ -93,6 +104,10 @@ trait SimpleFeatureConverter[I] extends Closeable {
    */
   def processInput(is: Iterator[I], ec: EvaluationContext = createEvaluationContext()): Iterator[SimpleFeature]
 
+  def processSingleInput(i: I, ec: EvaluationContext = createEvaluationContext()): Seq[SimpleFeature]
+
+  def process(is: InputStream, ec: EvaluationContext = createEvaluationContext()): Iterator[SimpleFeature] = ???
+
   /**
    * Creates a context used for processing
    */
@@ -115,6 +130,35 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
   def inputFields: IndexedSeq[Field]
   def idBuilder: Expr
   def fromInputType(i: I): Seq[Array[Any]]
+  def validating: Boolean
+
+  val validate: (SimpleFeature, EvaluationContext) => Boolean = {
+    val valid: (SimpleFeature) => Boolean = {
+      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+      val dtgFn: (SimpleFeature) => Boolean = targetSFT.getDtgIndex match {
+        case Some(dtgIdx) => (sf: SimpleFeature) => sf.getDefaultGeometry != null && sf.getAttribute(dtgIdx) != null
+        case None => (_) => true
+      }
+      val geomFn: (SimpleFeature) => Boolean =
+        if (targetSFT.getGeometryDescriptor != null) {
+          (sf: SimpleFeature) => sf.getDefaultGeometry != null
+        } else {
+          (_) => true
+        }
+      (sf: SimpleFeature) => dtgFn(sf) && geomFn(sf)
+      }
+
+    if (validating) {
+      (sf: SimpleFeature, ec: EvaluationContext) => {
+        val v = valid(sf)
+        if (!v) {
+          logger.info(s"Invalid SimpleFeature on line ${ec.counter.getLineCount}")
+        }
+        v
+      }
+    } else (sf: SimpleFeature, ec: EvaluationContext) => true
+  }
+
   val fieldNameMap = inputFields.map { f => (f.name, f) }.toMap
 
   // compute only the input fields that we need to deal with to populate the simple feature
@@ -145,8 +189,10 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
         ec.set(i, requiredFields(i).eval(t)(ec))
       } catch {
         case e: Exception =>
-          logger.warn(s"Failed to evaluate field '${requiredFields(i).name}' using values:\n" +
+          Try{
+            logger.warn(s"Failed to evaluate field '${requiredFields(i).name}' using values:\n" +
               s"${t.headOption.orNull}\n[${t.tail.mkString(", ")}]", e) // head is the whole record
+          }
           return null
       }
       val sftIndex = sftIndices(i)
@@ -157,7 +203,9 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
     }
 
     val id = idBuilder.eval(t)(ec).asInstanceOf[String]
-    new ScalaSimpleFeature(id, targetSFT, sfValues)
+    val sf = new ScalaSimpleFeature(id, targetSFT, sfValues)
+
+    if (validate(sf, ec)) sf else null
   }
 
   /**

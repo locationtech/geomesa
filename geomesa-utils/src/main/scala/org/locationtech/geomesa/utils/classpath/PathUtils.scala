@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.classpath
 
-import java.io.{BufferedInputStream, File, FileInputStream}
+import java.io.{BufferedInputStream, File, FileInputStream, InputStream}
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.zip.GZIPInputStream
@@ -16,6 +16,10 @@ import java.util.zip.GZIPInputStream
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 import scala.io.{BufferedSource, Source}
+
+import org.apache.commons.compress.compressors.bzip2.{BZip2CompressorInputStream, BZip2CompressorOutputStream, BZip2Utils}
+import org.apache.commons.compress.compressors.gzip.GzipUtils
+import org.apache.commons.compress.compressors.xz.{XZCompressorInputStream, XZCompressorOutputStream, XZUtils}
 
 object PathUtils {
 
@@ -51,6 +55,16 @@ object PathUtils {
         result.toList
       }
     }
+  }
+
+  def getInputStream(f: File): InputStream = {
+    val path = f.getPath
+      path match {
+        case _ if GzipUtils.isCompressedFilename(path)  => new GZIPInputStream(new BufferedInputStream(new FileInputStream(f)))
+        case _ if BZip2Utils.isCompressedFilename(path) => new BZip2CompressorInputStream(new BufferedInputStream(new FileInputStream(f)))
+        case _ if XZUtils.isCompressedFilename(path)    => new XZCompressorInputStream(new BufferedInputStream(new FileInputStream(f)))
+        case _ => new BufferedInputStream(new FileInputStream(f))
+      }
   }
 
   def getSource(f: File): BufferedSource = {

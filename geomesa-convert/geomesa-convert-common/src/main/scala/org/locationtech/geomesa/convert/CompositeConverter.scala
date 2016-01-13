@@ -88,7 +88,7 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType, converters: Seq[(P
     }
   }
 
-
+  override def processSingleInput(i: I, ec: EvaluationContext): Seq[SimpleFeature] = ???
 }
 
 case class CompositeEvaluationContext(contexts: IndexedSeq[EvaluationContext]) extends EvaluationContext {

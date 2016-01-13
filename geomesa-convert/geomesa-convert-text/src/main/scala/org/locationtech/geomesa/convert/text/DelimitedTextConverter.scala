@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.convert.text
 
-import java.io.{PipedReader, PipedWriter}
+import java.io._
 import java.util.concurrent.Executors
 
 import com.google.common.collect.Queues
@@ -19,6 +19,7 @@ import org.locationtech.geomesa.convert.{Field, SimpleFeatureConverterFactory, T
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
+import scala.io.Source
 
 class DelimitedTextConverterFactory extends SimpleFeatureConverterFactory[String] {
 
@@ -52,7 +53,7 @@ class DelimitedTextConverterFactory extends SimpleFeatureConverterFactory[String
 
     val fields    = buildFields(conf.getConfigList("fields"))
     val idBuilder = buildIdBuilder(conf.getString("id-field"))
-    new DelimitedTextConverter(baseFmt, targetSFT, idBuilder, fields, opts)
+    new DelimitedTextConverter(baseFmt, targetSFT, idBuilder, fields, opts, isValidating(conf))
   }
 }
 
@@ -62,7 +63,8 @@ class DelimitedTextConverter(format: CSVFormat,
                              val targetSFT: SimpleFeatureType,
                              val idBuilder: Expr,
                              val inputFields: IndexedSeq[Field],
-                             val options: DelimitedOptions)
+                             val options: DelimitedOptions,
+                             val validating: Boolean)
   extends ToSimpleFeatureConverter[String] {
 
   var curString: String = null
@@ -119,5 +121,9 @@ class DelimitedTextConverter(format: CSVFormat,
     writer.close()
     reader.close()
   }
+
+
+  override def process(is: InputStream, ec: EvaluationContext): Iterator[SimpleFeature] =
+    processInput(Source.fromInputStream(is).getLines(), ec)
 
 }

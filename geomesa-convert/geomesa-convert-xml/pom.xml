@@ -32,6 +32,10 @@
             <artifactId>geomesa-convert-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.specs2</groupId>

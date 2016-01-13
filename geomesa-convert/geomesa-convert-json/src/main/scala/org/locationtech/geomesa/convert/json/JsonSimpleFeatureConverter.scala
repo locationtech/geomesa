@@ -8,25 +8,31 @@
 
 package org.locationtech.geomesa.convert.json
 
+import java.io.InputStream
+
 import com.google.gson.{JsonArray, JsonElement}
 import com.jayway.jsonpath.spi.json.GsonJsonProvider
 import com.jayway.jsonpath.{Configuration, JsonPath}
 import com.typesafe.config.Config
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequence
+import org.apache.commons.io.IOUtils
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
+import scala.io.Source
 import scala.util.Try
 
 class JsonSimpleFeatureConverter(jsonConfig: Configuration,
                                  val targetSFT: SimpleFeatureType,
                                  val root: Option[JsonPath],
                                  val inputFields: IndexedSeq[Field],
-                                 val idBuilder: Expr) extends ToSimpleFeatureConverter[String] {
+                                 val idBuilder: Expr,
+                                 val validating: Boolean,
+                                 val lineMode: String) extends ToSimpleFeatureConverter[String] {
 
   import scala.collection.JavaConversions._
 
@@ -39,6 +45,15 @@ class JsonSimpleFeatureConverter(jsonConfig: Configuration,
     r.read[JsonArray](json, jsonConfig).map { o =>
       Array[Any](o)
     }.toSeq
+
+  // TODO - currently a hack to make things work
+  override def process(is: InputStream, ec: EvaluationContext = createEvaluationContext()): Iterator[SimpleFeature] =
+    lineMode match {
+      case LineMode.Single =>
+        processInput(Source.fromInputStream(is).getLines(), ec)
+      case LineMode.Multi =>
+        processInput(Iterator(IOUtils.toString(is)), ec)
+    }
 
 }
 
@@ -55,11 +70,13 @@ class JsonSimpleFeatureConverterFactory extends SimpleFeatureConverterFactory[St
   override def canProcess(conf: Config): Boolean = canProcessType(conf, "json")
 
   override def buildConverter(targetSFT: SimpleFeatureType, conf: Config): SimpleFeatureConverter[String] = {
-    val root = if(conf.hasPath("feature-path")) Some(JsonPath.compile(conf.getString("feature-path"))) else None
-    val fields = buildFields(conf.getConfigList("fields"))
+    val root      = if (conf.hasPath("feature-path")) Some(JsonPath.compile(conf.getString("feature-path"))) else None
+    val fields    = buildFields(conf.getConfigList("fields"))
     val idBuilder = buildIdBuilder(conf.getString("id-field"))
+    val lineMode  = LineMode.getLineMode(conf)
+    val validate  = isValidating(conf)
 
-    new JsonSimpleFeatureConverter(jsonConfig, targetSFT, root, fields, idBuilder)
+    new JsonSimpleFeatureConverter(jsonConfig, targetSFT, root, fields, idBuilder, validate, lineMode)
   }
 
   override def buildFields(fields: Seq[Config]): IndexedSeq[Field] = {
