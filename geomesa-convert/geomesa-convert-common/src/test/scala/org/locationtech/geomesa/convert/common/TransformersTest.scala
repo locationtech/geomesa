@@ -202,6 +202,13 @@ class TransformersTest extends Specification {
           val exp = Transformers.parseTransform("millisToDate($1)")
           exp.eval(Array("", millis)).asInstanceOf[Date] must be equalTo testDate
         }
+
+        "secsToDate" >> {
+          val secs = testDate.getTime / 1000L
+          val exp = Transformers.parseTransform("secsToDate($1)")
+          exp.eval(Array("", secs)).asInstanceOf[Date] must be equalTo testDate
+        }
+
       }
 
       "handle point geometries" >> {
@@ -284,7 +291,7 @@ class TransformersTest extends Specification {
         exp.eval(Array("", "abcd")).asInstanceOf[Int] mustEqual 0
       }
 
-      "handle exceptions to conversions" >> {
+      "handle exceptions to millisecond conversions" >> {
         val exp = Transformers.parseTransform("try(millisToDate($1), now())")
         val millis = 100000L
         exp.eval(Array("", millis)).asInstanceOf[Date] mustEqual new Date(millis)
@@ -292,10 +299,26 @@ class TransformersTest extends Specification {
         exp.eval(Array("", "abcd")).asInstanceOf[Date].getTime must beCloseTo(System.currentTimeMillis(), 100)
       }
 
-      "handle exceptions with null defaults" >> {
+      "handle exceptions to millisecond conversions with null defaults" >> {
         val exp = Transformers.parseTransform("try(millisToDate($1), null)")
         val millis = 100000L
         exp.eval(Array("", millis)).asInstanceOf[Date] mustEqual new Date(millis)
+        exp.eval(Array("", "")).asInstanceOf[Date] must beNull
+        exp.eval(Array("", "abcd")).asInstanceOf[Date] must beNull
+      }
+
+      "handle exceptions to second conversions" >> {
+        val exp = Transformers.parseTransform("try(secsToDate($1), now())")
+        val secs = 100L
+        exp.eval(Array("", secs)).asInstanceOf[Date] mustEqual new Date(secs*1000L)
+        exp.eval(Array("", "")).asInstanceOf[Date].getTime must beCloseTo(System.currentTimeMillis(), 100)
+        exp.eval(Array("", "abcd")).asInstanceOf[Date].getTime must beCloseTo(System.currentTimeMillis(), 100)
+      }
+
+      "handle exceptions to second conversions with null defaults" >> {
+        val exp = Transformers.parseTransform("try(secsToDate($1), null)")
+        val secs = 100L
+        exp.eval(Array("", secs)).asInstanceOf[Date] mustEqual new Date(secs*1000L)
         exp.eval(Array("", "")).asInstanceOf[Date] must beNull
         exp.eval(Array("", "abcd")).asInstanceOf[Date] must beNull
       }
