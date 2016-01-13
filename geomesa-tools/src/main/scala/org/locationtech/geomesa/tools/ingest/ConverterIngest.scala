@@ -69,28 +69,22 @@ class ConverterIngest(dsParams: Map[String, String],
           val ec = converter.createEvaluationContext(Map("inputFilePath" -> file.getAbsolutePath), counter)
           val is = PathUtils.getInputStream(file)
           try {
-            val fw = ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)
-            val converter = SimpleFeatureConverters.build(sft, converterConfig)
-            val ec = converter.createEvaluationContext(Map("inputFilePath" -> file.getAbsolutePath), counter)
-            val is = PathUtils.getInputStream(file)
-            try {
-              val converted = converter.process(is, ec)
-              converted.foreach { sf =>
-                val toWrite = fw.next()
-                toWrite.setAttributes(sf.getAttributes)
-                toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(sf.getID)
-                toWrite.getUserData.putAll(sf.getUserData)
-                toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-                try {
-                  fw.write()
-                } catch {
-                  case e: Exception => logger.error(s"Failed to write '${DataUtilities.encodeFeature(toWrite)}'", e)
-                }
+            val converted = converter.process(is, ec)
+            converted.foreach { sf =>
+              val toWrite = fw.next()
+              toWrite.setAttributes(sf.getAttributes)
+              toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(sf.getID)
+              toWrite.getUserData.putAll(sf.getUserData)
+              toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+              try {
+                fw.write()
+              } catch {
+                case e: Exception => logger.error(s"Failed to write '${DataUtilities.encodeFeature(toWrite)}'", e)
               }
-            } finally {
-              IOUtils.closeQuietly(is)
-              IOUtils.closeQuietly(fw)
             }
+          } finally {
+            IOUtils.closeQuietly(is)
+            IOUtils.closeQuietly(fw)
           }
         } catch {
           case e: Exception =>
