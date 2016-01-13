@@ -70,6 +70,7 @@ class ConverterRecordReader() extends RecordReader[LongWritable, SimpleFeature] 
   private val curKey = new LongWritable(0)
   private var curValue: SimpleFeature = null
 
+  // TODO implement progress with GEOMESA-1040
   override def getProgress: Float = 1.0f
 
   override def nextKeyValue(): Boolean = {

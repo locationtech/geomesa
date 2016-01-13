@@ -1,3 +1,10 @@
+/***********************************************************************
+* Copyright (c) 2013-2015 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0 which
+* accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
 package org.locationtech.geomesa.tools.ingest
 
 import java.io.File
@@ -87,7 +94,7 @@ class ConvertMapper extends Mapper[LongWritable, SimpleFeature, Text, SimpleFeat
   }
 
   override def map(key: LongWritable, sf: SimpleFeature, context: Context): Unit = {
-    logger.info(s"map key ${key.toString}")
+    logger.debug(s"map key ${key.toString}")
     context.write(text, sf)
     written.increment(1)
   }

@@ -52,7 +52,7 @@ class FixedWidthConverter(val targetSFT: SimpleFeatureType,
                           val idBuilder: Transformers.Expr,
                           val inputFields: IndexedSeq[Field],
                           val validating: Boolean)
-  extends ToSimpleFeatureConverter[String] {
+  extends LinesToSimpleFeatureConverter {
 
   override def fromInputType(i: String): Seq[Array[Any]] = Seq(Array(i))
 

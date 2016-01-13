@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.convert.json
 
 import java.io.InputStream
+import java.nio.charset.StandardCharsets
 
 import com.google.gson.{JsonArray, JsonElement}
 import com.jayway.jsonpath.spi.json.GsonJsonProvider
@@ -46,13 +47,13 @@ class JsonSimpleFeatureConverter(jsonConfig: Configuration,
       Array[Any](o)
     }.toSeq
 
-  // TODO - currently a hack to make things work
+  // TODO GEOMESA-1039 more efficient InputStream processing for multi mode
   override def process(is: InputStream, ec: EvaluationContext = createEvaluationContext()): Iterator[SimpleFeature] =
     lineMode match {
       case LineMode.Single =>
-        processInput(Source.fromInputStream(is).getLines(), ec)
+        processInput(Source.fromInputStream(is, StandardCharsets.UTF_8.displayName).getLines(), ec)
       case LineMode.Multi =>
-        processInput(Iterator(IOUtils.toString(is)), ec)
+        processInput(Iterator(IOUtils.toString(is, StandardCharsets.UTF_8.displayName)), ec)
     }
 
 }

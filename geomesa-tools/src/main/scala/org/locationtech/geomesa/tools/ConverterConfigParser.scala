@@ -51,7 +51,7 @@ object ConverterConfigParser extends LazyLogging {
     Try(ConfigFactory.parseString(configArg, parseOpts)) match {
       case Success(config) => Some(config)
       case Failure(ex) =>
-        logger.error(s"Unable to parse config from string $configArg")
+        logger.debug(s"Unable to parse config from string $configArg")
         None
     }
 

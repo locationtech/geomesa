@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.convert
 
 import java.io.{Closeable, InputStream}
+import java.nio.charset.StandardCharsets
 import javax.imageio.spi.ServiceRegistry
 
 import com.typesafe.config.{Config, ConfigFactory}
@@ -19,6 +20,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.io.Source
 import scala.util.Try
 
 trait Field {
@@ -50,7 +52,7 @@ trait SimpleFeatureConverterFactory[I] {
 
   def buildIdBuilder(t: String) = Transformers.parseTransform(t)
 
-  def isValidating(conf: Config) =
+  def isValidating(conf: Config): Boolean =
     if (conf.hasPath(StandardOptions.Validating)) {
       conf.getBoolean(StandardOptions.Validating)
     } else {
@@ -106,7 +108,7 @@ trait SimpleFeatureConverter[I] extends Closeable {
 
   def processSingleInput(i: I, ec: EvaluationContext = createEvaluationContext()): Seq[SimpleFeature]
 
-  def process(is: InputStream, ec: EvaluationContext = createEvaluationContext()): Iterator[SimpleFeature] = ???
+  def process(is: InputStream, ec: EvaluationContext = createEvaluationContext()): Iterator[SimpleFeature]
 
   /**
    * Creates a context used for processing
@@ -136,7 +138,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
     val valid: (SimpleFeature) => Boolean = {
       import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
       val dtgFn: (SimpleFeature) => Boolean = targetSFT.getDtgIndex match {
-        case Some(dtgIdx) => (sf: SimpleFeature) => sf.getDefaultGeometry != null && sf.getAttribute(dtgIdx) != null
+        case Some(dtgIdx) => (sf: SimpleFeature) => sf.getAttribute(dtgIdx) != null
         case None => (_) => true
       }
       val geomFn: (SimpleFeature) => Boolean =
@@ -189,10 +191,9 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
         ec.set(i, requiredFields(i).eval(t)(ec))
       } catch {
         case e: Exception =>
-          Try{
-            logger.warn(s"Failed to evaluate field '${requiredFields(i).name}' using values:\n" +
-              s"${t.headOption.orNull}\n[${t.tail.mkString(", ")}]", e) // head is the whole record
-          }
+          val valuesStr = Option(t.tail).map(_.mkString(", ")).getOrElse("")
+          logger.warn(s"Failed to evaluate field '${requiredFields(i).name}' using values:\n" +
+            s"${t.headOption.orNull}\n[$valuesStr]", e) // head is the whole record
           return null
       }
       val sftIndex = sftIndices(i)
@@ -236,4 +237,11 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
 
   override def processInput(is: Iterator[I], ec: EvaluationContext): Iterator[SimpleFeature] =
     is.flatMap(i =>  processSingleInput(i, ec))
+}
+
+trait LinesToSimpleFeatureConverter extends ToSimpleFeatureConverter[String] {
+
+  override def process(is: InputStream, ec: EvaluationContext): Iterator[SimpleFeature] =
+    processInput(Source.fromInputStream(is, StandardCharsets.UTF_8.displayName).getLines(), ec)
+
 }

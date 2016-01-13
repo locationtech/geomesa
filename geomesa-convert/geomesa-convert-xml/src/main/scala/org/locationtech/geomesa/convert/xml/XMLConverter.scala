@@ -7,7 +7,8 @@
 *************************************************************************/
 package org.locationtech.geomesa.convert.xml
 
-import java.io.{ByteArrayInputStream, InputStream, StringReader}
+import java.io.{InputStream, StringReader}
+import java.nio.charset.StandardCharsets
 import javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.stream.StreamSource
@@ -21,6 +22,7 @@ import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
 import org.locationtech.geomesa.convert._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.w3c.dom.NodeList
+import org.xml.sax.InputSource
 
 import scala.collection.JavaConversions._
 import scala.io.Source
@@ -28,47 +30,42 @@ import scala.io.Source
 class XMLConverter(val targetSFT: SimpleFeatureType,
                    val idBuilder: Expr,
                    val featurePath: Option[XPathExpression],
-                   val xsdPath: Option[String],
+                   val xsd: Option[String],
                    val inputFields: IndexedSeq[Field],
                    val validating: Boolean,
                    val lineMode: String) extends ToSimpleFeatureConverter[String] with LazyLogging {
 
-  private def docBuilder(nsAware: Boolean) = {
+  private val docBuilder = {
     val factory = DocumentBuilderFactory.newInstance()
-    factory.setNamespaceAware(nsAware)
+    factory.setNamespaceAware(false)
     factory.newDocumentBuilder()
   }
-
-  private def getSchema(path: String) = {
+  private val validator = xsd.map { path =>
     val schemaFactory = SchemaFactory.newInstance(W3C_XML_SCHEMA_NS_URI)
     val xsdStream = getClass.getClassLoader.getResourceAsStream(path)
     val schema = schemaFactory.newSchema(new StreamSource(xsdStream))
     xsdStream.close()
-    schema
+    schema.newValidator()
   }
-
-  def validator = xsdPath.map(getSchema).map(_.newValidator())
 
   override def fromInputType(i: String): Seq[Array[Any]] = {
     // if a schema is defined, validate it - this will throw an exception on failure
     validator.foreach(_.validate(new StreamSource(new StringReader(i))))
     // parse the document once, then extract each feature node and operate on it
-    val doc = docBuilder(false).parse(new ByteArrayInputStream(i.getBytes)).getDocumentElement
-
+    val root = docBuilder.parse(new InputSource(new StringReader(i))).getDocumentElement
     featurePath.map { path =>
-      val nodeList = path.evaluate(doc, XPathConstants.NODESET).asInstanceOf[NodeList]
+      val nodeList = path.evaluate(root, XPathConstants.NODESET).asInstanceOf[NodeList]
       (0 until nodeList.getLength).map(i => Array[Any](nodeList.item(i)))
-    }.getOrElse(Seq(Array[Any](null)))
+    }.getOrElse(Seq(Array[Any](root)))
   }
 
-  // TODO - currently a hack to make xml work...had problems with validation and such
-  // using the streaming xml source from the input stream...revisit this.
+  // TODO GEOMESA-1039 more efficient InputStream processing for multi mode
   override def process(is: InputStream, ec: EvaluationContext = createEvaluationContext()): Iterator[SimpleFeature] =
     lineMode match {
       case LineMode.Single =>
-        processInput(Source.fromInputStream(is).getLines(), ec)
+        processInput(Source.fromInputStream(is, StandardCharsets.UTF_8.displayName).getLines(), ec)
       case LineMode.Multi =>
-        processInput(Iterator(IOUtils.toString(is)), ec)
+        processInput(Iterator(IOUtils.toString(is, StandardCharsets.UTF_8.displayName)), ec)
     }
 }
 

@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.convert
 
+import java.io.InputStream
+
 import com.typesafe.config.Config
 import org.locationtech.geomesa.convert.Transformers.{Counter, EvaluationContext, Predicate}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -89,6 +91,8 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType, converters: Seq[(P
   }
 
   override def processSingleInput(i: I, ec: EvaluationContext): Seq[SimpleFeature] = ???
+
+  override def process(is: InputStream, ec: EvaluationContext): Iterator[SimpleFeature] = ???
 }
 
 case class CompositeEvaluationContext(contexts: IndexedSeq[EvaluationContext]) extends EvaluationContext {

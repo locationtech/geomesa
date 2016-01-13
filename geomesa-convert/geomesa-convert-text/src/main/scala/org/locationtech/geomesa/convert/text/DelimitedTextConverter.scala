@@ -15,11 +15,10 @@ import com.google.common.collect.Queues
 import com.typesafe.config.Config
 import org.apache.commons.csv.{CSVFormat, QuoteMode}
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
-import org.locationtech.geomesa.convert.{Field, SimpleFeatureConverterFactory, ToSimpleFeatureConverter}
+import org.locationtech.geomesa.convert.{Field, LinesToSimpleFeatureConverter, SimpleFeatureConverterFactory}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
-import scala.io.Source
 
 class DelimitedTextConverterFactory extends SimpleFeatureConverterFactory[String] {
 
@@ -65,7 +64,7 @@ class DelimitedTextConverter(format: CSVFormat,
                              val inputFields: IndexedSeq[Field],
                              val options: DelimitedOptions,
                              val validating: Boolean)
-  extends ToSimpleFeatureConverter[String] {
+  extends LinesToSimpleFeatureConverter {
 
   var curString: String = null
   val q = Queues.newArrayBlockingQueue[String](32)
@@ -121,9 +120,5 @@ class DelimitedTextConverter(format: CSVFormat,
     writer.close()
     reader.close()
   }
-
-
-  override def process(is: InputStream, ec: EvaluationContext): Iterator[SimpleFeature] =
-    processInput(Source.fromInputStream(is).getLines(), ec)
 
 }
