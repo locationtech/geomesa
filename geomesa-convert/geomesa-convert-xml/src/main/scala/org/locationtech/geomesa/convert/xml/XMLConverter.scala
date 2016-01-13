@@ -18,6 +18,7 @@ import javax.xml.xpath.{XPathConstants, XPathExpression, XPathFactory}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
+import org.locationtech.geomesa.convert.LineMode.LineMode
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
 import org.locationtech.geomesa.convert._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -33,7 +34,7 @@ class XMLConverter(val targetSFT: SimpleFeatureType,
                    val xsd: Option[String],
                    val inputFields: IndexedSeq[Field],
                    val validating: Boolean,
-                   val lineMode: String) extends ToSimpleFeatureConverter[String] with LazyLogging {
+                   val lineMode: LineMode) extends ToSimpleFeatureConverter[String] with LazyLogging {
 
   private val docBuilder = {
     val factory = DocumentBuilderFactory.newInstance()

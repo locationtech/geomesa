@@ -9,23 +9,21 @@ package org.locationtech.geomesa.convert
 
 import com.typesafe.config.Config
 
-object LineMode {
-  val Single  = "single"
-  val Multi   = "multi"
+object LineMode extends Enumeration {
+  type LineMode = Value
+
+  val Single  = Value("single")
+  val Multi   = Value("multi")
+
   val Default = Single
 
-  def getLineMode(conf: Config): String = {
+  def getLineMode(conf: Config): LineMode = {
     if (conf.hasPath(StandardOptions.LineMode)) {
-      val m = conf.getString(StandardOptions.LineMode)
-      LineMode.check(m)
-      m
+      val m = conf.getString(StandardOptions.LineMode).toLowerCase
+      LineMode.withName(m)
     } else {
       LineMode.Default
     }
   }
 
-  def check(s: String) =
-    if (! Seq(Single, Multi).contains(s)) {
-      throw new IllegalArgumentException(s"Invalid line mode: $s valid values are $Single and $Multi")
-    }
 }

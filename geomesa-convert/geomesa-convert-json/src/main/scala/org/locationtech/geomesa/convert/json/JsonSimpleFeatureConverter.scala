@@ -18,6 +18,7 @@ import com.typesafe.config.Config
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequence
 import org.apache.commons.io.IOUtils
+import org.locationtech.geomesa.convert.LineMode.LineMode
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -33,7 +34,7 @@ class JsonSimpleFeatureConverter(jsonConfig: Configuration,
                                  val inputFields: IndexedSeq[Field],
                                  val idBuilder: Expr,
                                  val validating: Boolean,
-                                 val lineMode: String) extends ToSimpleFeatureConverter[String] {
+                                 val lineMode: LineMode) extends ToSimpleFeatureConverter[String] {
 
   import scala.collection.JavaConversions._
 

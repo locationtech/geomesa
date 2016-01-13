@@ -42,7 +42,6 @@ object ConverterInputFormat {
     val Success = "success"
     val Failure = "failure"
     val Written = "written"
-    val LineCount = "lineCount"
   }
 
   val ConverterKey  = "org.locationtech.geomesa.jobs.ingest.converter"
@@ -107,15 +106,19 @@ class ConverterRecordReader() extends RecordReader[LongWritable, SimpleFeature] 
 
     class MapReduceCounter extends org.locationtech.geomesa.convert.Transformers.Counter {
       import ConverterInputFormat.{Counters => C}
+
+      // Global counters for the entire job
       override def incSuccess(i: Long): Unit   = context.getCounter(C.Group, C.Success).increment(i)
       override def getSuccess: Long            = context.getCounter(C.Group, C.Success).getValue
 
       override def incFailure(i: Long): Unit   = context.getCounter(C.Group, C.Failure).increment(i)
       override def getFailure: Long            = context.getCounter(C.Group, C.Failure).getValue
 
-      override def setLineCount(i: Long): Unit = context.getCounter(C.Group, C.LineCount).setValue(i)
-      override def incLineCount(i: Long): Unit = context.getCounter(C.Group, C.LineCount).increment(i)
-      override def getLineCount: Long          = context.getCounter(C.Group, C.LineCount).getValue
+      // Line counts are local to file not global
+      private var c: Long = 0
+      override def incLineCount(i: Long = 1)   = c += i
+      override def getLineCount: Long          = c
+      override def setLineCount(i: Long)       = c = i
     }
 
     ec = converter.createEvaluationContext(Map("inputFilePath" -> split.getPath.toString), new MapReduceCounter)
