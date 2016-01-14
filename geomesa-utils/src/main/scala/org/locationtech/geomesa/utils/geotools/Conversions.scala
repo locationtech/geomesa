@@ -201,8 +201,11 @@ object RichSimpleFeatureType {
   // in general we store everything as strings so that it's easy to pass to accumulo iterators
   implicit class RichSimpleFeatureType(val sft: SimpleFeatureType) extends AnyVal {
 
-    def getGeomField: String = sft.getGeometryDescriptor.getLocalName
-    def getGeomIndex: Int = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
+    def getGeomField: String = {
+      val gd = sft.getGeometryDescriptor
+      if (gd == null) null else gd.getLocalName
+    }
+    def getGeomIndex: Int = sft.indexOf(getGeomField)
 
     def getDtgField: Option[String] = userData[String](DEFAULT_DATE_KEY)
     def getDtgIndex: Option[Int] = getDtgField.map(sft.indexOf).filter(_ != -1)
@@ -224,8 +227,14 @@ object RichSimpleFeatureType {
       userData[String](SCHEMA_VERSION_KEY).map(_.toInt).getOrElse(CURRENT_SCHEMA_VERSION)
     def setSchemaVersion(version: Int): Unit = sft.getUserData.put(SCHEMA_VERSION_KEY, version.toString)
 
-    def isPoints = sft.getGeometryDescriptor.getType.getBinding == classOf[Point]
-    def isLines = sft.getGeometryDescriptor.getType.getBinding == classOf[LineString]
+    def isPoints = {
+      val gd = sft.getGeometryDescriptor
+      gd != null && gd.getType.getBinding == classOf[Point]
+    }
+    def isLines = {
+      val gd = sft.getGeometryDescriptor
+      gd != null && gd.getType.getBinding == classOf[LineString]
+    }
 
     //  If no user data is specified when creating a new SFT, we should default to 'true'.
     def isTableSharing: Boolean = userData[String](TABLE_SHARING_KEY).map(_.toBoolean).getOrElse(true)

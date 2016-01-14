@@ -13,6 +13,7 @@ import java.util.{Date, UUID}
 import com.google.common.primitives.Longs
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.locationtech.geomesa.accumulo.data.tables.Z3Table
+import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.uuid.{FeatureIdGenerator, RandomLsbUuidGenerator}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -54,12 +55,19 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator {
    */
   def createUuid(sft: SimpleFeatureType, sf: SimpleFeature): UUID = {
     val time = sft.getDtgIndex.flatMap(i => Option(sf.getAttribute(i)).map(_.asInstanceOf[Date].getTime))
-      .getOrElse(System.currentTimeMillis())
+        .getOrElse(System.currentTimeMillis())
 
-    val pt = sf.getAttribute(sft.getGeomIndex) match {
-      case p: Point => p
-      case g: Geometry => g.getCentroid
+    val pt = {
+      val i = sft.getGeomIndex
+      if (i == -1) {
+        GeometryUtils.zeroPoint
+      } else if (sft.isPoints) {
+        sf.getAttribute(i).asInstanceOf[Point]
+      } else {
+        sf.getAttribute(i).asInstanceOf[Geometry].getCentroid
+      }
     }
+
     createUuid(pt, time)
   }
 

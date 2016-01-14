@@ -31,7 +31,7 @@ object SpatioTemporalTable extends GeoMesaTable with LazyLogging {
   val INDEX_CHECK = s"~$INDEX_FLAG~"
   val DATA_CHECK = s"~$DATA_FLAG~"
 
-  override def supports(sft: SimpleFeatureType): Boolean = true
+  override def supports(sft: SimpleFeatureType): Boolean = sft.getGeometryDescriptor != null
 
   override val suffix: String = "st_idx"
 

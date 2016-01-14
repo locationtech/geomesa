@@ -22,6 +22,7 @@ import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.factory.Hints
+import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.DateTime
@@ -31,6 +32,7 @@ import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.IndexIterator
 import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -98,6 +100,38 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       retrievedSft mustEqual sft
       retrievedSft.getDtgField must beSome("dtg")
       retrievedSft.getStIndexSchema mustEqual indexSchema
+    }
+    "create and retrieve a schema without a geometry" in {
+      import org.locationtech.geomesa.utils.geotools.Conversions._
+      val sftName = "schematestNoGeom"
+      val sft = SimpleFeatureTypes.createType(sftName, "name:String")
+      ds.createSchema(sft)
+
+      val retrievedSft = ds.getSchema(sftName)
+
+      retrievedSft must not(beNull)
+      retrievedSft.getAttributeCount mustEqual 1
+
+      val f = new ScalaSimpleFeature("fid1", sft, Array("my name"))
+      f.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+      val f2 = new ScalaSimpleFeature("replaceme", sft, Array("my other name"))
+
+      val fs = ds.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
+
+      val fc = new DefaultFeatureCollection()
+      fc.add(f)
+      fc.add(f2)
+      val ids = fs.addFeatures(fc)
+      ids.map(_.getID).find(_ != "fid1").foreach(f2.getIdentifier.setID)
+
+      fs.getFeatures(Filter.INCLUDE).features().toList must containTheSameElementsAs(List(f, f2))
+      fs.getFeatures(ECQL.toFilter("IN('fid1')")).features().toList mustEqual List(f)
+      fs.getFeatures(ECQL.toFilter("name = 'my name'")).features().toList mustEqual List(f)
+      fs.getFeatures(ECQL.toFilter("name = 'my other name'")).features().toList mustEqual List(f2)
+      fs.getFeatures(ECQL.toFilter("name = 'false'")).features().toList must beEmpty
+
+      ds.removeSchema(sftName)
+      ds.getSchema(sftName) must beNull
     }
     "return NULL when a feature name does not exist" in {
       ds.getSchema("testTypeThatDoesNotExist") must beNull

@@ -51,9 +51,7 @@ object Z3Table extends GeoMesaTable {
   def epochWeeks(dtg: DateTime) = Weeks.weeksBetween(EPOCH, new DateTime(dtg))
 
   override def supports(sft: SimpleFeatureType): Boolean =
-    sft.getSchemaVersion > 4 &&
-      sft.getGeometryDescriptor.getType.getBinding == classOf[Point] &&
-      sft.getDtgField.isDefined
+    sft.getSchemaVersion > 4 && sft.isPoints && sft.getDtgField.isDefined
 
   override val suffix: String = "z3"
 
