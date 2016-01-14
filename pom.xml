@@ -7,10 +7,12 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *********************************************************************-->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <name>GeoMesa</name>
     <modelVersion>4.0.0</modelVersion>
+    <inceptionYear>2013</inceptionYear>
 
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa</artifactId>
@@ -1846,6 +1848,31 @@
                     <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
                     <failOnNoGitDirectory>false</failOnNoGitDirectory>
                     <failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>2.10</version>
+                <configuration>
+                    <header>build/ccri-copyright.txt</header>
+                    <properties>
+                        <year>2016</year>
+                        <owner>Commonwealth Computer Research, Inc.</owner>
+                    </properties>
+                    <headerDefinitions>
+                        <definitions>build/geomesa-header.xml</definitions>
+                    </headerDefinitions>
+                    <mapping>
+                        <java>GEOMESA_JAVA</java>
+                        <scala>GEOMESA_JAVA</scala>
+                    </mapping>
+                    <includes>
+                        <include>src/main/java/**</include>
+                        <include>src/main/scala/**</include>
+                        <include>src/test/java/**</include>
+                        <include>src/test/scala/**</include>
+                    </includes>
                 </configuration>
             </plugin>
             <plugin>
