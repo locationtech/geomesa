@@ -50,7 +50,7 @@ class AvroPathTest extends Specification with AvroUtils {
       val result = avroPath.eval(gr1)
       result.isDefined mustEqual true
       val arr = result.get.asInstanceOf[GenericArray[GenericRecord]]
-      arr.length mustEqual 4
+      arr.length mustEqual 5
     }
 
     "filter arrays of records by a field predicate" in {

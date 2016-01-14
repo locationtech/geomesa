@@ -8,7 +8,8 @@
 
 package org.locationtech.geomesa.convert.xml
 
-import java.io.StringReader
+import java.io.{InputStream, StringReader}
+import java.nio.charset.StandardCharsets
 import javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.stream.StreamSource
@@ -16,19 +17,25 @@ import javax.xml.validation.SchemaFactory
 import javax.xml.xpath.{XPathConstants, XPathExpression, XPathFactory}
 
 import com.typesafe.config.Config
+import com.typesafe.scalalogging.LazyLogging
+import org.apache.commons.io.IOUtils
+import org.locationtech.geomesa.convert.LineMode.LineMode
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
 import org.locationtech.geomesa.convert._
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
 
 import scala.collection.JavaConversions._
+import scala.io.Source
 
 class XMLConverter(val targetSFT: SimpleFeatureType,
                    val idBuilder: Expr,
                    val featurePath: Option[XPathExpression],
                    val xsd: Option[String],
-                   val inputFields: IndexedSeq[Field]) extends ToSimpleFeatureConverter[String] {
+                   val inputFields: IndexedSeq[Field],
+                   val validating: Boolean,
+                   val lineMode: LineMode) extends ToSimpleFeatureConverter[String] with LazyLogging {
 
   private val docBuilder = {
     val factory = DocumentBuilderFactory.newInstance()
@@ -53,6 +60,15 @@ class XMLConverter(val targetSFT: SimpleFeatureType,
       (0 until nodeList.getLength).map(i => Array[Any](nodeList.item(i)))
     }.getOrElse(Seq(Array[Any](root)))
   }
+
+  // TODO GEOMESA-1039 more efficient InputStream processing for multi mode
+  override def process(is: InputStream, ec: EvaluationContext = createEvaluationContext()): Iterator[SimpleFeature] =
+    lineMode match {
+      case LineMode.Single =>
+        processInput(Source.fromInputStream(is, StandardCharsets.UTF_8.displayName).getLines(), ec)
+      case LineMode.Multi =>
+        processInput(Iterator(IOUtils.toString(is, StandardCharsets.UTF_8.displayName)), ec)
+    }
 }
 
 class XMLConverterFactory extends SimpleFeatureConverterFactory[String] {
@@ -66,9 +82,11 @@ class XMLConverterFactory extends SimpleFeatureConverterFactory[String] {
     val idBuilder = buildIdBuilder(conf.getString("id-field"))
     // feature path can be any xpath that resolves to a node set (or a single node)
     // it can be absolute, or relative to the root node
-    val featurePath  = if (conf.hasPath("feature-path")) Some(conf.getString("feature-path")) else None
-    val xsd = if (conf.hasPath("xsd")) Some(conf.getString("xsd")) else None
-    new XMLConverter(sft, idBuilder, featurePath.map(xpath.compile), xsd, fields)
+    val featurePath = if (conf.hasPath("feature-path")) Some(conf.getString("feature-path")) else None
+    val xsd         = if (conf.hasPath("xsd")) Some(conf.getString("xsd")) else None
+    val lineMode    = LineMode.getLineMode(conf)
+    val validate    = isValidating(conf)
+    new XMLConverter(sft, idBuilder, featurePath.map(xpath.compile), xsd, fields, validate, lineMode)
   }
 
   override def buildFields(fields: Seq[Config]): IndexedSeq[Field] = {

@@ -8,10 +8,15 @@
 
 package org.locationtech.geomesa.utils.classpath
 
-import java.io.{BufferedInputStream, File, FileInputStream}
+import java.io.{BufferedInputStream, File, FileInputStream, InputStream}
+import java.nio.charset.StandardCharsets
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.zip.GZIPInputStream
+
+import org.apache.commons.compress.compressors.bzip2.{BZip2CompressorInputStream, BZip2Utils}
+import org.apache.commons.compress.compressors.gzip.GzipUtils
+import org.apache.commons.compress.compressors.xz.{XZCompressorInputStream, XZUtils}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
@@ -53,12 +58,21 @@ object PathUtils {
     }
   }
 
-  def getSource(f: File): BufferedSource = {
-    val name = f.getName.toLowerCase
-    if (name.endsWith(".gz")) {
-      Source.fromInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(f))), "UTF-8")
-    } else {
-      Source.fromFile(f, "UTF-8")
+  def getInputStream(f: File): InputStream = {
+    val path = f.getPath
+    path match {
+      case _ if GzipUtils.isCompressedFilename(path)  =>
+        new GZIPInputStream(new BufferedInputStream(new FileInputStream(f)))
+      case _ if BZip2Utils.isCompressedFilename(path) =>
+        new BZip2CompressorInputStream(new BufferedInputStream(new FileInputStream(f)))
+      case _ if XZUtils.isCompressedFilename(path)    =>
+        new XZCompressorInputStream(new BufferedInputStream(new FileInputStream(f)))
+      case _ =>
+        new BufferedInputStream(new FileInputStream(f))
     }
   }
+
+  def getSource(f: File): BufferedSource =
+    Source.fromInputStream(getInputStream(f), StandardCharsets.UTF_8.displayName)
+
 }

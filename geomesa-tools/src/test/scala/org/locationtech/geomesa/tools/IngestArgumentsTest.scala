@@ -11,7 +11,8 @@ package org.locationtech.geomesa.tools
 import java.io.File
 
 import com.beust.jcommander.ParameterException
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{ConfigRenderOptions, ConfigFactory}
+import org.apache.commons.io.{FileUtils, IOUtils}
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
@@ -138,11 +139,40 @@ class IngestArgumentsTest extends Specification {
     "work with sft and converter configs as strings" >> {
       val id = nextId
       val conf = ConfigFactory.load("examples/example1.conf")
-      val sft = conf.getConfigList("geomesa.sfts").get(0).root().render()
-      val converter = conf.getConfigList("geomesa.converters").get(0).root().render()
+      val sft = conf.getConfigList("geomesa.sfts").get(0).root().render(ConfigRenderOptions.concise())
+      val converter = conf.getConfigList("geomesa.converters").get(0).root().render(ConfigRenderOptions.concise())
       val dataFile = new File(this.getClass.getClassLoader.getResource("examples/example1.csv").getFile)
       val args = Array("ingest", "--mock", "-i", id, "-u", "foo", "-p", "bar", "-c", id,
         "--converter", converter, "-s", sft, dataFile.getPath)
+      args.length mustEqual 15
+
+      Runner.createCommand(args).execute()
+
+      val ds = getDS(id)
+      import Conversions._
+      val features = ds.getFeatureSource("renegades").getFeatures.features().toList
+      features.size mustEqual 3
+      features.map(_.get[String]("name")) must containTheSameElementsAs(Seq("Hermione", "Harry", "Severus"))
+    }
+
+    "work with sft and converter configs as files" >> {
+      val id = nextId
+      val conf = ConfigFactory.load("examples/example1.conf")
+      val sft = conf.getConfigList("geomesa.sfts").get(0).root().render(ConfigRenderOptions.concise())
+      val sftFile = File.createTempFile("geomesa", "sft")
+      sftFile.createNewFile()
+      sftFile.deleteOnExit()
+      FileUtils.write(sftFile, sft)
+
+      val converter = conf.getConfigList("geomesa.converters").get(0).root().render(ConfigRenderOptions.concise())
+      val convertFile = File.createTempFile("geomesa", "convert")
+      convertFile.createNewFile()
+      convertFile.deleteOnExit()
+      FileUtils.write(convertFile, converter)
+
+      val dataFile = new File(this.getClass.getClassLoader.getResource("examples/example1.csv").getFile)
+      val args = Array("ingest", "--mock", "-i", id, "-u", "foo", "-p", "bar", "-c", id,
+        "--converter", convertFile.getPath, "-s", sftFile.getPath, dataFile.getPath)
       args.length mustEqual 15
 
       Runner.createCommand(args).execute()

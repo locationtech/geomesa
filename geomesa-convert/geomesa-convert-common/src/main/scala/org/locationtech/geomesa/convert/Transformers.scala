@@ -113,31 +113,32 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
   }
 
   trait Counter {
-    def incSuccess(i: Int = 1): Unit
-    def getSuccess: Int
+    def incSuccess(i: Long = 1): Unit
+    def getSuccess: Long
 
-    def incFailure(i: Int = 1): Unit
-    def getFailure: Int
+    def incFailure(i: Long = 1): Unit
+    def getFailure: Long
 
-    def incLineCount(i: Int = 1): Unit
-    def getLineCount: Int
-    def setLineCount(i: Int)
+    // For things like Avro think of this as a recordCount as well
+    def incLineCount(i: Long = 1): Unit
+    def getLineCount: Long
+    def setLineCount(i: Long)
   }
 
   class DefaultCounter extends Counter {
-    private var s: Int = 0
-    private var f: Int = 0
-    private var c: Int = 0
+    private var s: Long = 0
+    private var f: Long = 0
+    private var c: Long = 0
 
-    override def incSuccess(i: Int = 1): Unit = s += i
-    override def getSuccess: Int = s
+    override def incSuccess(i: Long = 1): Unit = s += i
+    override def getSuccess: Long = s
 
-    override def incFailure(i: Int = 1): Unit = f += i
-    override def getFailure: Int = f
+    override def incFailure(i: Long = 1): Unit = f += i
+    override def getFailure: Long = f
 
-    override def incLineCount(i: Int = 1) = c += i
-    override def getLineCount: Int = c
-    override def setLineCount(i: Int) = c = i
+    override def incLineCount(i: Long = 1) = c += i
+    override def getLineCount: Long = c
+    override def setLineCount(i: Long) = c = i
   }
 
   trait EvaluationContext {

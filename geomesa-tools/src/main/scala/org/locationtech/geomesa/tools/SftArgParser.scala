@@ -8,13 +8,12 @@
 
 package org.locationtech.geomesa.tools
 
-import java.io.{BufferedReader, File, FileInputStream, InputStreamReader}
+import java.io.File
 
 import com.beust.jcommander.ParameterException
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{ConfigParseOptions, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.io.IOUtils
-import org.geotools.data.DataUtilities
+import org.apache.commons.io.FileUtils
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypeLoader, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -28,6 +27,14 @@ import scala.util.{Failure, Success, Try}
  */
 object SftArgParser extends LazyLogging {
 
+  // Important to setAllowMissing to false bc else you'll get a config but it will be empty
+  val parseOpts =
+    ConfigParseOptions.defaults()
+      .setAllowMissing(false)
+      .setClassLoader(null)
+      .setIncluder(null)
+      .setOriginDescription(null)
+      .setSyntax(null)
   /**
    * @throws ParameterException if the SFT cannot be parsed
    * @return the SFT parsed from the Args
@@ -37,6 +44,8 @@ object SftArgParser extends LazyLogging {
     getLoadedSft(specArg, featureName)
         .orElse(parseSpecString(specArg, featureName))
         .orElse(parseSpecConf(specArg, featureName))
+        .orElse(parseSpecStringFile(specArg, featureName))
+        .orElse(parseSpecConfFile(specArg, featureName))
         .getOrElse {
           throw new ParameterException("Unable to parse Simple Feature type from sft config or string")
         }
@@ -51,7 +60,18 @@ object SftArgParser extends LazyLogging {
   // gets an sft based on a spec string
   private[SftArgParser] def parseSpecString(specArg: String, name: String): Option[SimpleFeatureType] =
     Option(name).flatMap { featureName =>
-      Try(SimpleFeatureTypes.createType (featureName, specArg)) match {
+      Try(SimpleFeatureTypes.createType(featureName, specArg)) match {
+        case Success(sft) => Some(sft)
+        case Failure(e) =>
+          logger.debug(s"Unable to parse sft spec from string $specArg with error ${e.getMessage}")
+          None
+      }
+    }
+
+  // gets an sft based on a spec string
+  private[SftArgParser] def parseSpecStringFile(specArg: String, name: String): Option[SimpleFeatureType] =
+    Option(specArg).map(new File(_)).flatMap { file =>
+      Try(SimpleFeatureTypes.createType (name, FileUtils.readFileToString(file))) match {
         case Success(sft) => Some(sft)
         case Failure(e) =>
           logger.debug(s"Unable to parse sft spec from string $specArg with error ${e.getMessage}")
@@ -61,11 +81,22 @@ object SftArgParser extends LazyLogging {
 
   // gets an sft based on a spec conf string
   private[SftArgParser] def parseSpecConf(specArg: String, name: String): Option[SimpleFeatureType] = {
-    Try(SimpleFeatureTypes.createType(ConfigFactory.parseString(specArg))) match {
+    Try(SimpleFeatureTypes.createType(ConfigFactory.parseString(specArg, parseOpts))) match {
       case Success(sft) if name == null || name == sft.getTypeName => Some(sft)
       case Success(sft) => Some(renameSft(sft, name))
       case Failure(e) =>
         logger.debug(s"Unable to parse sft spec from string $specArg as conf with error ${e.getMessage}")
+        None
+    }
+  }
+
+  // parse spec conf file
+  private[SftArgParser] def parseSpecConfFile(specArg: String, name: String): Option[SimpleFeatureType] = {
+    Try(SimpleFeatureTypes.createType(ConfigFactory.parseFile(new File(specArg)))) match {
+      case Success(sft) if name == null || name == sft.getTypeName => Some(sft)
+      case Success(sft) => Some(renameSft(sft, name))
+      case Failure(e) =>
+        logger.debug(s"Unable to parse sft spec from file $specArg as conf with error ${e.getMessage}")
         None
     }
   }

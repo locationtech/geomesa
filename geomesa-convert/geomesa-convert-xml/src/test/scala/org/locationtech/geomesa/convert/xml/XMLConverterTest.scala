@@ -8,16 +8,19 @@
 
 package org.locationtech.geomesa.convert.xml
 
+import java.io.ByteArrayInputStream
+
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
-import org.locationtech.geomesa.convert.Transformers.{DefaultCounter, EvaluationContext}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class XMLConverterTest extends Specification {
+
+  sequential
 
   val sftConf = ConfigFactory.parseString(
     """{ type-name = "xmlFeatureType"
@@ -225,7 +228,8 @@ class XMLConverterTest extends Specification {
 
     "validate with an xsd" >> {
       val xml =
-        """<f:doc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:f="http://geomesa.org/test-feature">
+        """<?xml version="1.0" encoding="UTF-8" ?>
+          |<f:doc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:f="http://geomesa.org/test-feature">
           |  <f:DataSource>
           |    <f:name>myxml</f:name>
           |  </f:DataSource>
@@ -255,12 +259,122 @@ class XMLConverterTest extends Specification {
         """.stripMargin)
 
       val converter = SimpleFeatureConverters.build[String](sft, parserConf)
-      val features = converter.processInput(Iterator(xml)).toList
+
+      "parse as itr" >> {
+        val features = converter.processInput(Iterator(xml)).toList
+        features must haveLength(1)
+        features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+        features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+      }
+
+      "parse as stream" >> {
+        val features = converter.process(new ByteArrayInputStream(xml.replaceAllLiterally("\n", " ").getBytes)).toList
+        features must haveLength(1)
+        features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+        features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+      }
+    }
+
+    "parse xml im multi line mode" >> {
+      val xml =
+        """<?xml version="1.0" encoding="UTF-8" ?>
+          |<f:doc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:f="http://geomesa.org/test-feature">
+          |  <f:DataSource>
+          |    <f:name>myxml</f:name>
+          |  </f:DataSource>
+          |  <f:Feature>
+          |    <f:number>123</f:number>
+          |    <f:color>red</f:color>
+          |    <f:physical weight="127.5" height="5'11"/>
+          |  </f:Feature>
+          |</f:doc>
+        """.stripMargin
+
+      val parserConf = ConfigFactory.parseString(
+        """
+          | converter = {
+          |   type         = "xml"
+          |   id-field     = "uuid()"
+          |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
+          |   xsd          = "xml-feature.xsd" // looked up by class.getResource
+          |   options {
+          |     line-mode  = "multi"
+          |   }
+          |   fields = [
+          |     // paths can be any xpath - relative to the feature-path, or absolute
+          |     { name = "number", path = "number",           transform = "$0::integer" }
+          |     { name = "color",  path = "color",            transform = "trim($0)" }
+          |     { name = "weight", path = "physical/@weight", transform = "$0::double" }
+          |     { name = "source", path = "/doc/DataSource/name/text()" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
+
+      val features = converter.process(new ByteArrayInputStream(xml.getBytes)).toList
       features must haveLength(1)
       features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
       features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
       features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
       features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+    }
+
+    "parse xml in single line mode" >> {
+      val origXml =
+        """<?xml version="1.0" encoding="UTF-8" ?>
+          |<f:doc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:f="http://geomesa.org/test-feature">
+          |  <f:DataSource>
+          |    <f:name>myxml</f:name>
+          |  </f:DataSource>
+          |  <f:Feature>
+          |    <f:number>123</f:number>
+          |    <f:color>red</f:color>
+          |    <f:physical weight="127.5" height="5'11"/>
+          |  </f:Feature>
+          |</f:doc>
+        """.stripMargin
+
+      val xml = origXml.replaceAllLiterally("\n", " ") + "\n" + origXml.replaceAllLiterally("\n", " ")
+
+      val parserConf = ConfigFactory.parseString(
+        """
+          | converter = {
+          |   type         = "xml"
+          |   id-field     = "uuid()"
+          |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
+          |   xsd          = "xml-feature.xsd" // looked up by class.getResource
+          |   options {
+          |     line-mode  = "single"
+          |   }
+          |   fields = [
+          |     // paths can be any xpath - relative to the feature-path, or absolute
+          |     { name = "number", path = "number",           transform = "$0::integer" }
+          |     { name = "color",  path = "color",            transform = "trim($0)" }
+          |     { name = "weight", path = "physical/@weight", transform = "$0::double" }
+          |     { name = "source", path = "/doc/DataSource/name/text()" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
+
+      val features = converter.process(new ByteArrayInputStream(xml.getBytes)).toList
+      features must haveLength(2)
+
+      features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+      features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
+      features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+      features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+
+      features.last.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+      features.last.getAttribute("color").asInstanceOf[String] mustEqual "red"
+      features.last.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+      features.last.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
     }
 
     "invalidate with an xsd" >> {

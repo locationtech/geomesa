@@ -669,10 +669,10 @@ Let's say we want to convert our avro array of kvpairs into a simple feature. We
 We can define a converter config to parse the avro:
 
     converter = {
-      type   = "avro"
-      schema = "/tmp/schema.avsc"
-      sft    = "testsft"
-      id-field = "uuid()"
+      type        = "avro"
+      schema-file = "/tmp/schema.avsc"
+      sft         = "testsft"
+      id-field    = "uuid()"
       fields = [
         { name = "tobj", transform = "avroPath($1, '/content$type=DataObj')" },
         { name = "lat",  transform = "avroPath($tobj, '/kvmap[$k=lat]/v')" },

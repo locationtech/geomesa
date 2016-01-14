@@ -16,7 +16,7 @@ import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.tools.{ConverterConfigParser, SftArgParser, DataStoreHelper}
 import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.tools.commands.IngestCommand._
-import org.locationtech.geomesa.tools.ingest.DelimitedIngest
+import org.locationtech.geomesa.tools.ingest.ConverterIngest
 import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
 
 import scala.collection.JavaConversions._
@@ -41,7 +41,7 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
       val sft = SftArgParser.getSft(params.spec, params.featureName)
       val converterConfig = ConverterConfigParser.getConfig(params.config)
 
-      new DelimitedIngest(dsParams, sft, converterConfig, params.files).run()
+      new ConverterIngest(dsParams, sft, converterConfig, params.files, params.threads).run()
     }
   }
 }
@@ -52,11 +52,14 @@ object IngestCommand {
     @Parameter(names = Array("-s", "--spec"), description = "SimpleFeatureType specification as a GeoTools spec, SFT config, or name of an available type")
     var spec: String = null
 
-    @Parameter(names = Array("-C", "--converter"), description = "GeoMesa converter specification as a config string or name of an available converter")
+    @Parameter(names = Array("-C", "--converter"), description = "GeoMesa converter specification as a config string, file name, or name of an available converter")
     var config: String = null
 
     @Parameter(names = Array("-F", "--format"), description = "indicate non-converter ingest (shp)")
     var format: String = null
+
+    @Parameter(names = Array("-t", "--threads"), description = "Number of threads if using local ingest")
+    var threads: Integer = 1
 
     @Parameter(description = "<file>...", required = true)
     var files: java.util.List[String] = new util.ArrayList[String]()

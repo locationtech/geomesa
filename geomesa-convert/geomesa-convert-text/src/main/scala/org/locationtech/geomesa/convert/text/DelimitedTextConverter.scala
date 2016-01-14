@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.convert.text
 
-import java.io.{PipedReader, PipedWriter}
+import java.io._
 import java.util.concurrent.Executors
 
 import com.google.common.collect.Queues
 import com.typesafe.config.Config
 import org.apache.commons.csv.{CSVFormat, QuoteMode}
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
-import org.locationtech.geomesa.convert.{Field, SimpleFeatureConverterFactory, ToSimpleFeatureConverter}
+import org.locationtech.geomesa.convert.{Field, LinesToSimpleFeatureConverter, SimpleFeatureConverterFactory}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -52,7 +52,7 @@ class DelimitedTextConverterFactory extends SimpleFeatureConverterFactory[String
 
     val fields    = buildFields(conf.getConfigList("fields"))
     val idBuilder = buildIdBuilder(conf.getString("id-field"))
-    new DelimitedTextConverter(baseFmt, targetSFT, idBuilder, fields, opts)
+    new DelimitedTextConverter(baseFmt, targetSFT, idBuilder, fields, opts, isValidating(conf))
   }
 }
 
@@ -62,8 +62,9 @@ class DelimitedTextConverter(format: CSVFormat,
                              val targetSFT: SimpleFeatureType,
                              val idBuilder: Expr,
                              val inputFields: IndexedSeq[Field],
-                             val options: DelimitedOptions)
-  extends ToSimpleFeatureConverter[String] {
+                             val options: DelimitedOptions,
+                             val validating: Boolean)
+  extends LinesToSimpleFeatureConverter {
 
   var curString: String = null
   val q = Queues.newArrayBlockingQueue[String](32)

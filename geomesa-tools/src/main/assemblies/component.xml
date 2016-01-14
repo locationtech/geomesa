@@ -14,6 +14,7 @@
                 <exclude>org.locationtech.geomesa:geomesa-plugin*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-accumulo-distributed-runtime*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-compute*</exclude>
+                <exclude>com.google.guava:guava</exclude> <!-- Guava conflicts with Hadoop 2.x which provides guava 11.0.2-->
             </excludes>
         </dependencySet>
     </dependencySets>
