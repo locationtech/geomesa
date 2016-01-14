@@ -23,8 +23,14 @@ import scala.util.hashing.MurmurHash3
  * Creates feature id based on the z3 index.
  */
 class Z3FeatureIdGenerator extends FeatureIdGenerator {
-  override def createId(sft: SimpleFeatureType, sf: SimpleFeature): String =
-    Z3UuidGenerator.createUuid(sft, sf).toString
+  override def createId(sft: SimpleFeatureType, sf: SimpleFeature): String = {
+    if (sft.getGeometryDescriptor == null) {
+      // no geometry in this feature type - just use a random UUID
+      UUID.randomUUID().toString
+    } else {
+      Z3UuidGenerator.createUuid(sft, sf).toString
+    }
+  }
 }
 
 /**
@@ -53,16 +59,10 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator {
    * This provides uniqueness along with locality.
    */
   def createUuid(sft: SimpleFeatureType, sf: SimpleFeature): UUID = {
-    val i = sft.getGeomIndex
-    if (i == -1) {
-      // no geometry in this feature type - just use a random UUID
-      return UUID.randomUUID()
-    }
-
     val time = sft.getDtgIndex.flatMap(i => Option(sf.getAttribute(i)).map(_.asInstanceOf[Date].getTime))
         .getOrElse(System.currentTimeMillis())
 
-    val pt = sf.getAttribute(i)
+    val pt = sf.getAttribute(sft.getGeomIndex)
     if (sft.isPoints) {
       createUuid(pt.asInstanceOf[Point], time)
     } else {
