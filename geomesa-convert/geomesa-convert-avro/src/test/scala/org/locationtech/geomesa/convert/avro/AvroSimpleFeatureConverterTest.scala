@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.convert.avro
 
+import java.io.ByteArrayInputStream
+
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
@@ -18,17 +20,20 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class AvroSimpleFeatureConverterTest extends Specification with AvroUtils {
 
+  sequential
+
   "Avro2SimpleFeature should" should {
 
     val conf = ConfigFactory.parseString(
       """
         | converter = {
-        |   type   = "avro"
-        |   schema = "/schema.avsc"
-        |   sft    = "testsft"
-        |   id-field = "uuid()"
+        |   type        = "avro"
+        |   schema-file = "/schema.avsc"
+        |   sft         = "testsft"
+        |   id-field    = "uuid()"
         |   fields = [
         |     { name = "tobj", transform = "avroPath($1, '/content$type=TObj')" },
+        |     { name = "dtg",  transform = "date('YYYY-MM-dd', avroPath($tobj, '/kvmap[$k=dtg]/v'))" },
         |     { name = "lat",  transform = "avroPath($tobj, '/kvmap[$k=lat]/v')" },
         |     { name = "lon",  transform = "avroPath($tobj, '/kvmap[$k=lon]/v')" },
         |     { name = "geom", transform = "point($lon, $lat)" }
@@ -39,8 +44,27 @@ class AvroSimpleFeatureConverterTest extends Specification with AvroUtils {
     "properly convert a GenericRecord to a SimpleFeature" >> {
       val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
       val converter = SimpleFeatureConverters.build[Array[Byte]](sft, conf)
-      val sf = converter.processInput(Iterator.apply[Array[Byte]](bytes)).next()
-      sf.getAttributeCount must be equalTo 1
+      val ec = converter.createEvaluationContext()
+      val sf = converter.processInput(Iterator.apply[Array[Byte]](bytes), ec).next()
+      sf.getAttributeCount must be equalTo 2
+      sf.getAttribute("dtg") must not beNull
+
+      ec.counter.getFailure mustEqual 0L
+      ec.counter.getSuccess mustEqual 1L
+      ec.counter.getLineCount mustEqual 1L  // only 1 record passed in itr
+    }
+
+    "properly convert an input stream" >> {
+      val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+      val converter = SimpleFeatureConverters.build[Array[Byte]](sft, conf)
+      val ec = converter.createEvaluationContext()
+      val sf = converter.process(new ByteArrayInputStream(bytes), ec).next()
+      sf.getAttributeCount must be equalTo 2
+      sf.getAttribute("dtg") must not beNull
+
+      ec.counter.getFailure mustEqual 0L
+      ec.counter.getSuccess mustEqual 1L
+      ec.counter.getLineCount mustEqual 1L  // zero indexed so this is 2 records
     }
   }
 }

@@ -80,8 +80,8 @@ class CompositeTextConverterTest extends Specification {
     }
 
     "and get correct line numbers" >> {
-      res(0).getAttribute("lineNr").asInstanceOf[Int] must be equalTo 1
-      res(1).getAttribute("lineNr").asInstanceOf[Int] must be equalTo 4
+      res(0).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 1
+      res(1).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 4
     }
 
     "testing string2 function defaults" >> {

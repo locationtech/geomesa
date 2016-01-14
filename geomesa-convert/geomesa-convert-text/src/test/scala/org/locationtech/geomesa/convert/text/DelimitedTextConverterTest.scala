@@ -126,10 +126,10 @@ class DelimitedTextConverterTest extends Specification {
       converter.close()
       res.size must be equalTo 2
       res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello"
-      res(0).getAttribute("lineNr").asInstanceOf[Int] must be equalTo 1
+      res(0).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 1
       res(0).getAttribute("fn").asInstanceOf[String] must be equalTo "/some/file/path/testfile.txt"
       res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2world"
-      res(1).getAttribute("lineNr").asInstanceOf[Int] must be equalTo 2
+      res(1).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 2
       res(1).getAttribute("fn").asInstanceOf[String] must be equalTo "/some/file/path/testfile.txt"
     }
 
@@ -160,10 +160,10 @@ class DelimitedTextConverterTest extends Specification {
       converter.close()
       res.size must be equalTo 2
       res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello"
-      res(0).getAttribute("lineNr").asInstanceOf[Int] must be equalTo 1
+      res(0).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 1
       res(0).getAttribute("fn").asInstanceOf[String] must be equalTo "/some/file/path/testfile.txt"
       res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2world"
-      res(1).getAttribute("lineNr").asInstanceOf[Int] must be equalTo 2
+      res(1).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 2
       res(1).getAttribute("fn").asInstanceOf[String] must be equalTo "/some/file/path/testfile.txt"
     }
 
