@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.blob.api
 
-import java.io.{IOException, File}
+import java.io.{File, IOException}
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission._
 import java.nio.file.attribute.PosixFilePermissions
@@ -20,21 +20,28 @@ import org.scalatra._
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig, SizeConstraintExceededException}
 
 import scala.collection.JavaConversions._
+import scala.util.Try
 import scala.util.control.NonFatal
 
 class BlobstoreServlet extends GeoMesaScalatraServlet with FileUploadSupport with GZipSupport {
   override def root: String = "blob"
 
-  // caps blob size at 10MB
+  val maxFileSize: Int = Try(System.getProperty(BlobstoreServlet.maxFileSizeSysProp, "50").toInt).getOrElse(50)
+  val maxRequestSize: Int = Try(System.getProperty(BlobstoreServlet.maxRequestSizeSysProp, "100").toInt).getOrElse(100)
+  // caps blob size
   configureMultipartHandling(
     MultipartConfig(
-      maxFileSize = Some(50*1024*1024),
-      maxRequestSize = Some(100*1024*1024)
+      maxFileSize = Some(maxFileSize * 1024 * 1024),
+      maxRequestSize = Some(maxRequestSize * 1024 * 1024)
     )
   )
   error {
-    case e: SizeConstraintExceededException => RequestEntityTooLarge("Uploaded file too large!")
-    case e: IOException => halt(500, "IO Exception on server")
+    case e: SizeConstraintExceededException =>
+      logger.error("IO Exception in BlobstoreServlet, Error message: {} \n Stacktrace: {}", e.getMessage, e.getStackTrace)
+      RequestEntityTooLarge("Uploaded file too large!")
+    case e: IOException =>
+      logger.error("IO Exception in BlobstoreServlet, Error message: {} \n Stacktrace: {}", e.getMessage, e.getStackTrace)
+      halt(500, s"IO Exception on server: ${e.getMessage}")
   }
 
   var abs: AccumuloBlobStore = null
@@ -125,4 +132,6 @@ class BlobstoreServlet extends GeoMesaScalatraServlet with FileUploadSupport wit
 
 object BlobstoreServlet {
   val permissions  = PosixFilePermissions.asFileAttribute(Set(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE, GROUP_READ, GROUP_WRITE))
+  val maxFileSizeSysProp = "org.locationtech.geomesa.blob.api.maxFileSizeMB"
+  val maxRequestSizeSysProp = "org.locationtech.geomesa.blob.api.maxRequestSizeMB"
 }

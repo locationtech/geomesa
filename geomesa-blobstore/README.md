@@ -54,3 +54,16 @@ To DELETE a file from the blobstore, you must do so by id:
 ```bash
 curl -X "DELETE" http://localhost:8080/geoserver/geomesa/blob/some-id   
 ```
+
+## Servlet Configuration Options
+
+File upload constraints for the BlobstoreServlet can be configured with the following system properties:
+
+```bash
+org.locationtech.geomesa.blob.api.maxFileSizeMB    (defaults to 50MB)
+```   
+```bash
+org.locationtech.geomesa.blob.api.maxRequestSizeMB (defaults to 100MB)  
+```
+
+The expected unit for these properties is in MB, so setting `org.locationtech.geomesa.blob.api.maxFileSizeMB=10` will result in a 10MB maxFileSize.
