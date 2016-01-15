@@ -16,9 +16,9 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
+import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.data.{DefaultTransaction, Query}
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, _}
 import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, SelfClosingIterator}
@@ -91,18 +91,12 @@ class AccumuloBlobStore(ds: AccumuloDataStore) extends LazyLogging with BlobStor
   }
 
   private def deleteFeature(id: String): Unit = {
-    val transaction = new DefaultTransaction("removeBlobFeature")
-    fs.setTransaction(transaction)
     val removalFilter = Filters.ff.id(Filters.ff.featureId(id))
     try {
       fs.removeFeatures(removalFilter)
-      transaction.commit()
     } catch {
       case e: Exception =>
         logger.error(e.getMessage)
-        transaction.rollback()
-    } finally {
-      transaction.close()
     }
   }
 
