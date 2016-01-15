@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.blob.core
 
 import java.io.File
+import java.util
 
 import com.google.common.io.{ByteStreams, Files}
 import com.typesafe.scalalogging.LazyLogging
@@ -31,7 +32,7 @@ import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
 
-class AccumuloBlobStore(ds: AccumuloDataStore) extends LazyLogging {
+class AccumuloBlobStore(ds: AccumuloDataStore) extends LazyLogging with BlobStoreFileName {
 
   private val connector = ds.connector
   private val tableOps = connector.tableOperations()
@@ -50,7 +51,7 @@ class AccumuloBlobStore(ds: AccumuloDataStore) extends LazyLogging {
         val id = sf.getAttribute(idFieldName).asInstanceOf[String]
 
         fs.addFeatures(new ListFeatureCollection(sft, List(sf)))
-        putInternal(file, id)
+        putInternal(file, id, params)
         id
     }
   }
@@ -114,8 +115,8 @@ class AccumuloBlobStore(ds: AccumuloDataStore) extends LazyLogging {
     (value.get, filename)
   }
 
-  private def putInternal(file: File, id: String) {
-    val localName = file.getName
+  private def putInternal(file: File, id: String, params: Map[String, String]) {
+    val localName = getFileName(file, params)
     val bytes = ByteStreams.toByteArray(Files.asByteSource(file).openBufferedStream())
 
     val m = new Mutation(id)
@@ -137,4 +138,16 @@ object AccumuloBlobStore {
   val sftSpec = s"$filenameFieldName:String,$idFieldName:String,$geomeFieldName:Geometry,$dateFieldName:Date,thumbnail:String"
 
   val sft: SimpleFeatureType = SimpleFeatureTypes.createType(blobFeatureTypeName, sftSpec)
+}
+
+trait BlobStoreFileName {
+
+  def getFileNameFromParams(params: util.Map[String, String]): Option[String] = {
+    Option(params.get(filenameFieldName))
+  }
+
+  def getFileName(file: File, params: util.Map[String, String]): String = {
+    getFileNameFromParams(params).getOrElse(file.getName)
+  }
+
 }

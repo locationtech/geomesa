@@ -9,15 +9,18 @@
 package org.locationtech.geomesa.blob.api
 
 import java.io.{File, IOException}
-import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission._
 import java.nio.file.attribute.PosixFilePermissions
+import java.util.UUID
 
+import org.apache.commons.io.FilenameUtils
+import org.locationtech.geomesa.blob.core.AccumuloBlobStore._
 import org.locationtech.geomesa.utils.cache.FilePersistence
 import org.scalatra._
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig, SizeConstraintExceededException}
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 import scala.util.Try
 
 class BlobstoreServlet(val persistence: FilePersistence) extends GeoMesaPersistentBlobStoreServlet with FileUploadSupport with GZipSupport {
@@ -38,8 +41,6 @@ class BlobstoreServlet(val persistence: FilePersistence) extends GeoMesaPersiste
     case e: IOException =>
       handleError("IO exception in BlobstoreServlet", e)
   }
-
-  val tempDir = Files.createTempDirectory("blobs", BlobstoreServlet.permissions)
 
   delete("/:id/?") {
     val id = params("id")
@@ -81,10 +82,15 @@ class BlobstoreServlet(val persistence: FilePersistence) extends GeoMesaPersiste
           case None =>
             handleError("no file parameter in request", null)
           case Some(file) =>
-            val otherParams = multiParams.toMap.map { case (s, p) => s -> p.head }
-            val tempFile = new File(tempDir.toString + '/' + file.getName)
+            val otherParams: mutable.Map[String, String] = mutable.Map()
+            multiParams.foreach{case (s, p) => otherParams.add(s, p.head)}
+            if (!otherParams.contains(filenameFieldName)) {
+              // we put the true filename in here so that we can preserve it in the blob table
+              otherParams.put(filenameFieldName, file.getName)
+            }
+            val tempFile = File.createTempFile(UUID.randomUUID().toString, FilenameUtils.getExtension(file.getName))
             file.write(tempFile)
-            val actRes: ActionResult = abs.put(tempFile, otherParams) match {
+            val actRes: ActionResult = abs.put(tempFile, otherParams.toMap) match {
               case Some(id) =>
                 Created(body = id, headers = Map("Location" -> request.getRequestURL.append(id).toString))
               case None =>

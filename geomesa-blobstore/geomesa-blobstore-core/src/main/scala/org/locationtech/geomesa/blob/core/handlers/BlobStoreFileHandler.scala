@@ -17,6 +17,7 @@ import com.vividsolutions.jts.geom.Geometry
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.locationtech.geomesa.accumulo.util.{Z3FeatureIdGenerator, Z3UuidGenerator}
 import org.locationtech.geomesa.blob.core.AccumuloBlobStore._
+import org.locationtech.geomesa.blob.core.BlobStoreFileName
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
@@ -29,7 +30,7 @@ object BlobStoreFileHandler {
   }
 }
 
-trait AbstractFileHandler extends FileHandler {
+trait AbstractFileHandler extends FileHandler with BlobStoreFileName {
   val builderLocal: ThreadLocal[SimpleFeatureBuilder] = new ThreadLocal[SimpleFeatureBuilder] {
     override def initialValue(): SimpleFeatureBuilder = new SimpleFeatureBuilder(sft)
   }
@@ -39,11 +40,12 @@ trait AbstractFileHandler extends FileHandler {
   override def buildSF(file: File, params: util.Map[String, String]): SimpleFeature = {
     val geom = getGeometry(file, params)
     val dtg = getDate(file, params)
+    val fileName = getFileName(file, params)
     val z3id = Z3UuidGenerator.createUuid(geom, dtg.getTime)
 
     val builder = builderLocal.get()
 
-    builder.set(filenameFieldName, file.getName)
+    builder.set(filenameFieldName, fileName)
     builder.set(geomeFieldName, geom)
     builder.set(idFieldName, z3id)
     builder.set(dateFieldName, dtg)
