@@ -17,7 +17,7 @@ import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.{LongWritable, Text}
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
-import org.apache.hadoop.mapreduce.{Counter, Job, Mapper}
+import org.apache.hadoop.mapreduce.{JobStatus, Counter, Job, Mapper}
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
@@ -34,7 +34,8 @@ object ConverterIngestJob extends LazyLogging {
   def run(dsParams: Map[String, String],
           sft: SimpleFeatureType,
           converterConfig: Config,
-          paths: Seq[String]): (Long, Long) = {
+          paths: Seq[String],
+          statusCallback: (Float, Boolean) => Unit = (_, _) => Unit): (Long, Long) = {
     val job = Job.getInstance(new Configuration, "GeoMesa Converter Ingest")
 
     JobUtils.setLibJars(job.getConfiguration, libJars = ingestLibJars, searchPath = ingestJarSearchPath)
@@ -54,9 +55,20 @@ object ConverterIngestJob extends LazyLogging {
     GeoMesaConfigurator.setFeatureTypeOut(job.getConfiguration, sft.getTypeName)
     GeoMesaOutputFormat.configureDataStore(job, dsParams)
 
-    logger.info("Submitting geomesa convert job")
     job.submit()
-    job.waitForCompletion(true)
+    logger.info(s"Tracking available at ${job.getStatus.getTrackingUrl}")
+
+    while (!job.isComplete) {
+      if (job.getStatus.getState != JobStatus.State.PREP) {
+        statusCallback(job.mapProgress(), false) // we don't have any reducers, just track mapper progress
+      }
+      Thread.sleep(1000)
+    }
+    statusCallback(job.mapProgress(), true)
+
+    if (!job.isSuccessful) {
+      logger.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
+    }
 
     val success = job.getCounters.findCounter(C.Group, C.Success).getValue
     val failed = job.getCounters.findCounter(C.Group, C.Failure).getValue

@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.tools.ingest
 
-import java.io.File
+import java.io.{File, FileInputStream, PrintStream}
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.{Executors, TimeUnit}
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
@@ -18,8 +18,12 @@ import org.apache.commons.io.IOUtils
 import org.geotools.data.{DataStoreFinder, DataUtilities, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
+import org.joda.time.Period
+import org.joda.time.format.PeriodFormatterBuilder
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.utils.classpath.PathUtils
+import org.locationtech.geomesa.utils.stats.CountingInputStream
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
@@ -31,7 +35,22 @@ class ConverterIngest(dsParams: Map[String, String],
                       numLocalThreads: Int)
     extends Runnable with LazyLogging {
 
+  import org.locationtech.geomesa.tools.ingest.ConverterIngest._
+
   val ds = DataStoreFinder.getDataStore(dsParams)
+
+  // (progress, start time, done)
+  val statusCallback: (Float, Long, Boolean) => Unit =
+    if (dsParams.get(AccumuloDataStoreFactory.params.mockParam.getName).exists(_.toBoolean)) {
+      val progress = printProgress(System.err, buildString('\u26AC', 60), ' ', _)
+      var state = false
+      (f, l, b) => {
+        state = !state
+        if (state) progress('\u15e7')(f, l, b) else progress('\u2b58')(f, l, b)
+      }
+    } else {
+      printProgress(System.err, buildString(' ', 60), '\u003d', '\u003e')
+    }
 
   override def run(): Unit = {
     // create schema for the feature prior to Ingest job
@@ -65,17 +84,19 @@ class ConverterIngest(dsParams: Map[String, String],
       override def setLineCount(i: Long)     = c = i
     }
 
-    class LocalIngestWorker(file: File) extends Runnable {
+    val bytesRead = new AtomicLong(0L)
 
+    class LocalIngestWorker(file: File) extends Runnable {
       override def run(): Unit = {
         try {
           val fw = ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)
           val converter = SimpleFeatureConverters.build(sft, converterConfig)
           val ec = converter.createEvaluationContext(Map("inputFilePath" -> file.getAbsolutePath), new LocalIngestCounter)
-          val is = PathUtils.getInputStream(file)
+          // count the raw bytes read from the file, as that's what we based our total on
+          val countingStream = new CountingInputStream(new FileInputStream(file))
+          val is = PathUtils.handleCompression(countingStream, file.getPath)
           try {
-            val converted = converter.process(is, ec)
-            converted.foreach { sf =>
+            converter.process(is, ec).foreach { sf =>
               val toWrite = fw.next()
               toWrite.setAttributes(sf.getAttributes)
               toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(sf.getID)
@@ -86,6 +107,8 @@ class ConverterIngest(dsParams: Map[String, String],
               } catch {
                 case e: Exception => logger.error(s"Failed to write '${DataUtilities.encodeFeature(toWrite)}'", e)
               }
+              bytesRead.addAndGet(countingStream.getCount)
+              countingStream.resetCount()
             }
           } finally {
             IOUtils.closeQuietly(is)
@@ -100,26 +123,90 @@ class ConverterIngest(dsParams: Map[String, String],
     }
 
     val files = inputs.flatMap(PathUtils.interpretPath)
+    val numFiles = files.length
+    val totalLength = files.map(_.length).sum.toFloat
 
-    logger.info(s"Ingesting with $numLocalThreads thread${if (numLocalThreads > 1) "s" else "" }")
+    def progress(): Float = bytesRead.get() / totalLength
+
+    logger.info(s"Ingesting ${getPlural(numFiles, "file")} with ${getPlural(numLocalThreads, "thread")}")
+
+    val start = System.currentTimeMillis()
     val es = Executors.newFixedThreadPool(numLocalThreads)
     files.foreach(f => es.submit(new LocalIngestWorker(f)))
     es.shutdown()
-    es.awaitTermination(4, TimeUnit.DAYS)
 
-    logger.info(s"Local ingestion complete: ${getStatInfo(success.get, failure.get)}")
+    while (!es.isTerminated) {
+      Thread.sleep(1000)
+      statusCallback(progress(), start, false)
+    }
+    statusCallback(progress(), start, true)
+
+    logger.info(s"Local ingestion complete in ${getTime(start)}")
+    logger.info(getStatInfo(success.get, failure.get))
   }
-
 
   private def runDistributed(): Unit = {
-    val (success, failed) = ConverterIngestJob.run(dsParams, sft, converterConfig, inputs)
-    logger.info(s"Distributed ingestion complete: ${getStatInfo(success, failed)}")
+    val start = System.currentTimeMillis()
+    val status = statusCallback(_: Float, start, _: Boolean)
+    val (success, failed) = ConverterIngestJob.run(dsParams, sft, converterConfig, inputs, status)
+    logger.info(s"Distributed ingestion complete in ${getTime(start)}")
+    logger.info(getStatInfo(success, failed))
+  }
+}
+
+object ConverterIngest {
+
+  val PeriodFormatter =
+    new PeriodFormatterBuilder().minimumPrintedDigits(2).printZeroAlways()
+      .appendHours().appendSeparator(":").appendMinutes().appendSeparator(":").appendSeconds().toFormatter
+
+  /**
+   * Prints progress using the provided output stream. Progress will be overwritten using '\r', and will only
+   * include a line feed if done == true
+   */
+  def printProgress(out: PrintStream,
+                    emptyBar: String,
+                    replacement: Char,
+                    indicator: Char)(progress: Float, start: Long, done: Boolean): Unit = {
+    val numFilled = (emptyBar.length * progress).toInt
+    val bar = if (numFilled < 1) {
+      emptyBar
+    } else if (numFilled >= emptyBar.length) {
+      buildString(replacement, numFilled)
+    } else {
+      s"${buildString(replacement, numFilled - 1)}$indicator${emptyBar.substring(numFilled)}"
+    }
+    val percent = f"${(progress * 100).toInt}%3d"
+    // use \r to replace current line
+    // trailing space separates cursor
+    out.print(s"\r[$bar] $percent% ${getTime(start)} ")
+    if (done) {
+      out.println()
+    }
   }
 
-  def getStatInfo(successes: Long, failures: Long): String = {
-    val successPvsS   = if (successes == 1) "feature" else "features"
-    val failurePvsS   = if (failures == 1) "feature" else "features"
-    val failureString = if (failures == 0) "with no failures" else s"and failed to ingest: $failures $failurePvsS"
-    s"ingested: $successes $successPvsS $failureString."
+  private def buildString(c: Char, length: Int) = {
+    val sb = new StringBuilder(length)
+    (0 until length).foreach(_ => sb.append(c))
+    sb.toString()
   }
+
+  /**
+   * Gets elapsed time as a string
+   */
+  def getTime(start: Long): String = PeriodFormatter.print(new Period(System.currentTimeMillis() - start))
+
+  /**
+   * Gets status as a string
+   */
+  def getStatInfo(successes: Long, failures: Long): String = {
+    val failureString = if (failures == 0) {
+      "with no failures"
+    } else {
+      s"and failed to ingest ${getPlural(failures, "feature")}"
+    }
+    s"Ingested ${getPlural(successes, "feature")} $failureString."
+  }
+
+  private def getPlural(i: Long, base: String): String = if (i == 1) s"$i $base" else s"$i ${base}s"
 }
