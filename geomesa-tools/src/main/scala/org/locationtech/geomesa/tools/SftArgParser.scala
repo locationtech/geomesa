@@ -105,6 +105,8 @@ object SftArgParser extends LazyLogging {
     val builder = new SimpleFeatureTypeBuilder()
     builder.init(sft)
     builder.setName(name)
-    builder.buildFeatureType()
+    val renamed = builder.buildFeatureType()
+    renamed.getUserData.putAll(sft.getUserData)
+    renamed
   }
 }
