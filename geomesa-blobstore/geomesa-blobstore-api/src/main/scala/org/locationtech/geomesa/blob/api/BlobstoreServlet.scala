@@ -21,7 +21,6 @@ import org.scalatra.servlet.{FileUploadSupport, MultipartConfig, SizeConstraintE
 
 import scala.collection.JavaConversions._
 import scala.util.Try
-import scala.util.control.NonFatal
 
 class BlobstoreServlet extends GeoMesaScalatraServlet with FileUploadSupport with GZipSupport {
   override def root: String = "blob"
@@ -37,14 +36,12 @@ class BlobstoreServlet extends GeoMesaScalatraServlet with FileUploadSupport wit
   )
   error {
     case e: SizeConstraintExceededException =>
-      logger.error("IO Exception in BlobstoreServlet, Error message: {} \n Stacktrace: {}", e.getMessage, e.getStackTrace)
-      RequestEntityTooLarge("Uploaded file too large!")
+      handleError("Uploaded file too large!", e)
     case e: IOException =>
-      logger.error("IO Exception in BlobstoreServlet, Error message: {} \n Stacktrace: {}", e.getMessage, e.getStackTrace)
-      halt(500, s"IO Exception on server: ${e.getMessage}")
+      handleError("IO exception in BlobstoreServlet", e)
   }
 
-  var abs: AccumuloBlobStore = null
+  @volatile var abs: AccumuloBlobStore = null
 
   val tempDir = Files.createTempDirectory("blobs", BlobstoreServlet.permissions)
 
@@ -89,9 +86,7 @@ class BlobstoreServlet extends GeoMesaScalatraServlet with FileUploadSupport wit
     if (ds == null) {
       NotFound(reason = "Could not load data store using the provided parameters.")
     } else {
-      this.synchronized {
-        abs = new AccumuloBlobStore(ds)
-      }
+      abs = new AccumuloBlobStore(ds)
       //see https://httpstatuses.com/204
       NoContent()
     }
@@ -102,29 +97,27 @@ class BlobstoreServlet extends GeoMesaScalatraServlet with FileUploadSupport wit
     try {
       logger.debug("In file upload post method")
       if (abs == null) {
-        NotFound(reason = "AccumuloBlobStore is not initialized.")
+        handleError("AccumuloBlobStore is not initialized.", null)
       } else {
         fileParams.get("file") match {
           case None =>
-            halt(400, reason = "no file parameter in request")
+            handleError("no file parameter in request", null)
           case Some(file) =>
             val otherParams = multiParams.toMap.map { case (s, p) => s -> p.head }
             val tempFile = new File(tempDir.toString + '/' + file.getName)
             file.write(tempFile)
             val actRes: ActionResult = abs.put(tempFile, otherParams) match {
               case Some(id) =>
-                Created(body = id, headers = Map("Location" -> s"${request.getRequestURL append id}"))
+                Created(body = id, headers = Map("Location" -> request.getRequestURL.append(id).toString))
               case None =>
-                UnprocessableEntity(reason = s"Unable to process file: ${file.name}")
+                UnprocessableEntity(reason = "Unable to process file")
             }
             tempFile.delete()
             actRes
         }
       }
     } catch {
-      case NonFatal(ex) =>
-        logger.error("Error uploading file", ex)
-        UnprocessableEntity(reason = ex.getMessage)
+      case e: Exception => handleError("Error uploading file", e)
     }
   }
 
