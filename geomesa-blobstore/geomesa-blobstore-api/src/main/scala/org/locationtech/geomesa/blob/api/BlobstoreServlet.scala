@@ -45,10 +45,10 @@ class BlobstoreServlet(val persistence: FilePersistence) extends GeoMesaPersiste
     val id = params("id")
     logger.debug("In DELETE method for blobstore, attempting to delete: {}", id)
     if (abs == null) {
-      NotFound(reason = "AccumuloBlobStore is not initialized.")
+      BadRequest(reason = "AccumuloBlobStore is not initialized.")
     } else {
       abs.delete(id)
-      NoContent(reason = s"deleted feature: $id")
+      Ok(reason = s"deleted feature: $id")
     }
   }
 
@@ -56,7 +56,7 @@ class BlobstoreServlet(val persistence: FilePersistence) extends GeoMesaPersiste
     val id = params("id")
     logger.debug("In ID method, trying to retrieve id {}", id)
     if (abs == null) {
-      NotFound(reason = "AccumuloBlobStore is not initialized.")
+      BadRequest(reason = "AccumuloBlobStore is not initialized.")
     } else {
       val (returnBytes, filename) = abs.get(id)
       if (returnBytes == null) {
@@ -88,7 +88,7 @@ class BlobstoreServlet(val persistence: FilePersistence) extends GeoMesaPersiste
               case Some(id) =>
                 Created(body = id, headers = Map("Location" -> request.getRequestURL.append(id).toString))
               case None =>
-                UnprocessableEntity(reason = "Unable to process file")
+                BadRequest(reason = "Unable to process file")
             }
             tempFile.delete()
             actRes
