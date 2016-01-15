@@ -13,16 +13,14 @@ import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission._
 import java.nio.file.attribute.PosixFilePermissions
 
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
-import org.locationtech.geomesa.blob.core.AccumuloBlobStore
-import org.locationtech.geomesa.web.core.GeoMesaScalatraServlet
+import org.locationtech.geomesa.utils.cache.FilePersistence
 import org.scalatra._
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig, SizeConstraintExceededException}
 
 import scala.collection.JavaConversions._
 import scala.util.Try
 
-class BlobstoreServlet extends GeoMesaScalatraServlet with FileUploadSupport with GZipSupport {
+class BlobstoreServlet(val persistence: FilePersistence) extends GeoMesaPersistentBlobStoreServlet with FileUploadSupport with GZipSupport {
   override def root: String = "blob"
 
   val maxFileSize: Int = Try(System.getProperty(BlobstoreServlet.maxFileSizeSysProp, "50").toInt).getOrElse(50)
@@ -40,8 +38,6 @@ class BlobstoreServlet extends GeoMesaScalatraServlet with FileUploadSupport wit
     case e: IOException =>
       handleError("IO exception in BlobstoreServlet", e)
   }
-
-  @volatile var abs: AccumuloBlobStore = null
 
   val tempDir = Files.createTempDirectory("blobs", BlobstoreServlet.permissions)
 
@@ -71,24 +67,6 @@ class BlobstoreServlet extends GeoMesaScalatraServlet with FileUploadSupport wit
 
         Ok(returnBytes)
       }
-    }
-  }
-
-  // TODO: Revisit configuration and persistence of configuration.
-  // https://geomesa.atlassian.net/browse/GEOMESA-958
-  // https://geomesa.atlassian.net/browse/GEOMESA-984
-  post("/ds/?") {
-    logger.debug("In ds registration method")
-
-    val dsParams = datastoreParams
-    val ds = new AccumuloDataStoreFactory().createDataStore(dsParams).asInstanceOf[AccumuloDataStore]
-
-    if (ds == null) {
-      NotFound(reason = "Could not load data store using the provided parameters.")
-    } else {
-      abs = new AccumuloBlobStore(ds)
-      //see https://httpstatuses.com/204
-      NoContent()
     }
   }
 

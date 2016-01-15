@@ -25,11 +25,17 @@ The RESTful api for the Blobstore can be easily utilized via cURL as so:
 Before we can do anything we must first register a blob store. This typically only needs to be run once in the lifetime
 of the webserver, so if the server is shutdown or restarted the registration call will need to be repeated.
  
-To Register a blob store: 
+To Register a GeoMesa Blob Store: 
 
 ```bash
-curl -d 'instanceId=myCloud' -d 'zookeepers=zoo1,zoo2,zoo3' -d 'tableName=myBlobStore' -d 'user=user' -d 'password=password' http://localhost:8080/geoserver/geomesa/blob/ds
+curl -d 'instanceId=myCloud' -d 'zookeepers=zoo1,zoo2,zoo3' -d 'tableName=myBlobStore' -d 'user=user' -d 'password=password' http://localhost:8080/geoserver/geomesa/blob/ds/myBlobStore
 ```
+
+Other Blob Store Commands:   
+
+* DELETE /ds/:alias - Delete a previously registered GeoMesa data store  
+
+* GET /ds/:alias - Display a registered GeoMesa data store  
 
 To ingest a file:
 
