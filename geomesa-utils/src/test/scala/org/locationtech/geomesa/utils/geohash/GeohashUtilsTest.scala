@@ -129,6 +129,7 @@ class GeohashUtilsTest extends Specification with LazyLogging {
   def validateGeohashSubstrings(geom: Geometry, offset: Int, bits: Int, subs: Seq[String]) {
     import java.io._
     val file = File.createTempFile("subhashes_", ".txt")
+    file.deleteOnExit()
     val pw = new PrintWriter(new BufferedWriter(new FileWriter(file)))
     pw.println(s"wkt\tweight")
 
