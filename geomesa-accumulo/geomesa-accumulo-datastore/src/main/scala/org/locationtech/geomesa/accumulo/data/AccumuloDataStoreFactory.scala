@@ -164,7 +164,7 @@ object AccumuloDataStoreFactory {
     val user = userParam.lookup[String](params)
     val password = passwordParam.lookup[String](params)
 
-    val authToken = new PasswordToken(password.getBytes)
+    val authToken = new PasswordToken(password.getBytes("UTF-8"))
     if (useMock) {
       new MockInstance(instance).getConnector(user, authToken)
     } else {

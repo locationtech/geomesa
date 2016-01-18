@@ -154,7 +154,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
       (sf: SimpleFeature, ec: EvaluationContext) => {
         val v = valid(sf)
         if (!v) {
-          logger.info(s"Invalid SimpleFeature on line ${ec.counter.getLineCount}")
+          logger.debug(s"Invalid SimpleFeature on line ${ec.counter.getLineCount}")
         }
         v
       }
