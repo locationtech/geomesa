@@ -8,10 +8,12 @@
 
 package org.locationtech.geomesa.tools.ingest
 
+import java.io.InputStream
+
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
-import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.hadoop.fs.{Seekable, FileSystem, Path}
 import org.apache.hadoop.io.LongWritable
 import org.apache.hadoop.io.compress.{CodecPool, Decompressor, CompressionCodecFactory}
 import org.apache.hadoop.mapreduce._
@@ -66,12 +68,19 @@ class ConverterRecordReader() extends RecordReader[LongWritable, SimpleFeature] 
   private var ec:  EvaluationContext = null
   private var converter: SimpleFeatureConverter[String] = null
   private var itr: Iterator[SimpleFeature] = null
+  private var stream: InputStream with Seekable = null
+  private var length: Float = 0
 
   private val curKey = new LongWritable(0)
   private var curValue: SimpleFeature = null
 
-  // TODO implement progress with GEOMESA-1040
-  override def getProgress: Float = 1.0f
+  override def getProgress: Float = {
+    if (length == 0) {
+      0.0f
+    } else {
+      math.min(1.0f, stream.getPos / length)
+    }
+  }
 
   override def nextKeyValue(): Boolean = {
     if (itr.hasNext) {
@@ -97,7 +106,8 @@ class ConverterRecordReader() extends RecordReader[LongWritable, SimpleFeature] 
     val file = split.getPath
     val codec = new CompressionCodecFactory(job).getCodec(file)
     val fs: FileSystem = file.getFileSystem(job)
-    val stream =
+    length = split.getLength.toFloat
+    stream =
       if (codec != null) {
         dec = CodecPool.getDecompressor(codec)
         codec.createInputStream(fs.open(file), dec)
@@ -132,6 +142,9 @@ class ConverterRecordReader() extends RecordReader[LongWritable, SimpleFeature] 
 
   override def close(): Unit = {
     IOUtils.closeQuietly(converter)
-    if (dec != null) CodecPool.returnDecompressor(dec)
+    IOUtils.closeQuietly(stream)
+    if (dec != null) {
+      CodecPool.returnDecompressor(dec)
+    }
   }
 }
