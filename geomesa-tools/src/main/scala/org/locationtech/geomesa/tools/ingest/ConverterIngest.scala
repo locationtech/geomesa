@@ -42,7 +42,7 @@ class ConverterIngest(dsParams: Map[String, String],
   // (progress, start time, done)
   val statusCallback: (Float, Long, Boolean) => Unit =
     if (dsParams.get(AccumuloDataStoreFactory.params.mockParam.getName).exists(_.toBoolean)) {
-      val progress = printProgress(System.err, buildString('\u26AC', 60), ' ', _)
+      val progress = printProgress(System.err, buildString('\u26AC', 60), ' ', _: Char) _
       var state = false
       (f, l, b) => {
         state = !state
