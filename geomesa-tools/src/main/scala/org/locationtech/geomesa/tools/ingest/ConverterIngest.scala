@@ -39,14 +39,14 @@ class ConverterIngest(dsParams: Map[String, String],
 
   val ds = DataStoreFinder.getDataStore(dsParams)
 
-  // (progress, start time, done)
-  val statusCallback: (Float, Long, Boolean) => Unit =
+  // (progress, start time, pass, fail, done)
+  val statusCallback: (Float, Long, Long, Long, Boolean) => Unit =
     if (dsParams.get(AccumuloDataStoreFactory.params.mockParam.getName).exists(_.toBoolean)) {
       val progress = printProgress(System.err, buildString('\u26AC', 60), ' ', _: Char) _
       var state = false
-      (f, l, b) => {
+      (p, s, pass, fail, d) => {
         state = !state
-        if (state) progress('\u15e7')(f, l, b) else progress('\u2b58')(f, l, b)
+        if (state) progress('\u15e7')(p, s, pass, fail, d) else progress('\u2b58')(p, s, pass, fail, d)
       }
     } else {
       printProgress(System.err, buildString(' ', 60), '\u003d', '\u003e')
@@ -137,9 +137,9 @@ class ConverterIngest(dsParams: Map[String, String],
 
     while (!es.isTerminated) {
       Thread.sleep(1000)
-      statusCallback(progress(), start, false)
+      statusCallback(progress(), start, success.get(), failure.get(), false)
     }
-    statusCallback(progress(), start, true)
+    statusCallback(progress(), start, success.get(), failure.get(), true)
 
     logger.info(s"Local ingestion complete in ${getTime(start)}")
     logger.info(getStatInfo(success.get, failure.get))
@@ -147,7 +147,7 @@ class ConverterIngest(dsParams: Map[String, String],
 
   private def runDistributed(): Unit = {
     val start = System.currentTimeMillis()
-    val status = statusCallback(_: Float, start, _: Boolean)
+    val status = statusCallback(_: Float, start, _: Long, _: Long, _: Boolean)
     val (success, failed) = ConverterIngestJob.run(dsParams, sft, converterConfig, inputs, status)
     logger.info(s"Distributed ingestion complete in ${getTime(start)}")
     logger.info(getStatInfo(success, failed))
@@ -167,7 +167,7 @@ object ConverterIngest {
   def printProgress(out: PrintStream,
                     emptyBar: String,
                     replacement: Char,
-                    indicator: Char)(progress: Float, start: Long, done: Boolean): Unit = {
+                    indicator: Char)(progress: Float, start: Long, pass: Long, fail: Long, done: Boolean): Unit = {
     val numFilled = (emptyBar.length * progress).toInt
     val bar = if (numFilled < 1) {
       emptyBar
@@ -179,7 +179,7 @@ object ConverterIngest {
     val percent = f"${(progress * 100).toInt}%3d"
     // use \r to replace current line
     // trailing space separates cursor
-    out.print(s"\r[$bar] $percent% ${getTime(start)} ")
+    out.print(s"\r[$bar] $percent% complete $pass ingested $fail failed in ${getTime(start)} ")
     if (done) {
       out.println()
     }

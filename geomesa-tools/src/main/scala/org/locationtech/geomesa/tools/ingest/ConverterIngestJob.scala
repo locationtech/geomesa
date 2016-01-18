@@ -35,7 +35,7 @@ object ConverterIngestJob extends LazyLogging {
           sft: SimpleFeatureType,
           converterConfig: Config,
           paths: Seq[String],
-          statusCallback: (Float, Boolean) => Unit = (_, _) => Unit): (Long, Long) = {
+          statusCallback: (Float, Long, Long, Boolean) => Unit = (_, _, _, _) => Unit): (Long, Long) = {
     val job = Job.getInstance(new Configuration, "GeoMesa Converter Ingest")
 
     JobUtils.setLibJars(job.getConfiguration, libJars = ingestLibJars, searchPath = ingestJarSearchPath)
@@ -58,21 +58,22 @@ object ConverterIngestJob extends LazyLogging {
     job.submit()
     logger.info(s"Tracking available at ${job.getStatus.getTrackingUrl}")
 
+    def pass: Long = job.getCounters.findCounter(C.Group, C.Success).getValue
+    def fail: Long = job.getCounters.findCounter(C.Group, C.Failure).getValue
+
     while (!job.isComplete) {
       if (job.getStatus.getState != JobStatus.State.PREP) {
-        statusCallback(job.mapProgress(), false) // we don't have any reducers, just track mapper progress
+        statusCallback(job.mapProgress(), pass, fail, false) // we don't have any reducers, just track mapper progress
       }
       Thread.sleep(1000)
     }
-    statusCallback(job.mapProgress(), true)
+    statusCallback(job.mapProgress(), pass, fail, true)
 
     if (!job.isSuccessful) {
       logger.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
     }
 
-    val success = job.getCounters.findCounter(C.Group, C.Success).getValue
-    val failed = job.getCounters.findCounter(C.Group, C.Failure).getValue
-    (success, failed)
+    (pass, fail)
   }
 
   def ingestLibJars = {
