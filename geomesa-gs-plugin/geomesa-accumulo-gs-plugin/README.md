@@ -18,6 +18,7 @@ depending on your environment. Some common configurations:
 | accumulo-fate-1.5.2.jar | 99782 |
 | accumulo-start-1.5.2.jar | 53902 |
 | accumulo-trace-1.5.2.jar | 116904 |
+| commons-configuration-1.6.jar | 298829 |
 | libthrift-0.9.0.jar | 347531 |
 | zookeeper-3.3.6.jar | 608239 |
 
