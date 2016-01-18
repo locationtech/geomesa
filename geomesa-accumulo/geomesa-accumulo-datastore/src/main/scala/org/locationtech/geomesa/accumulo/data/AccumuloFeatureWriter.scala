@@ -130,15 +130,8 @@ abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
   protected def nextFeatureId = AccumuloFeatureWriter.tempFeatureIds.getAndIncrement().toString
 
   protected def writeToAccumulo(feature: SimpleFeature): Unit = {
-    // require non-null geometry to write to geomesa (can't index null geo, yo)
-    if (feature.getDefaultGeometry == null) {
-      logger.warn(s"Invalid feature to write (no default geometry): ${DataUtilities.encodeFeature(feature)}")
-      return
-    }
-
     // see if there's a suggested ID to use for this feature, else create one based on the feature
     val featureWithFid = AccumuloFeatureWriter.featureWithFid(sft, feature)
-
     writer(new FeatureToWrite(featureWithFid, defaultVisibility, encoder, indexValueEncoder))
   }
 

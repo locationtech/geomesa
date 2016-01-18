@@ -23,8 +23,14 @@ import scala.util.hashing.MurmurHash3
  * Creates feature id based on the z3 index.
  */
 class Z3FeatureIdGenerator extends FeatureIdGenerator {
-  override def createId(sft: SimpleFeatureType, sf: SimpleFeature): String =
-    Z3UuidGenerator.createUuid(sft, sf).toString
+  override def createId(sft: SimpleFeatureType, sf: SimpleFeature): String = {
+    if (sft.getGeometryDescriptor == null) {
+      // no geometry in this feature type - just use a random UUID
+      UUID.randomUUID().toString
+    } else {
+      Z3UuidGenerator.createUuid(sft, sf).toString
+    }
+  }
 }
 
 /**
@@ -54,13 +60,14 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator {
    */
   def createUuid(sft: SimpleFeatureType, sf: SimpleFeature): UUID = {
     val time = sft.getDtgIndex.flatMap(i => Option(sf.getAttribute(i)).map(_.asInstanceOf[Date].getTime))
-      .getOrElse(System.currentTimeMillis())
+        .getOrElse(System.currentTimeMillis())
 
-    val pt = sf.getAttribute(sft.getGeomIndex) match {
-      case p: Point => p
-      case g: Geometry => g.getCentroid
+    val pt = sf.getAttribute(sft.getGeomIndex)
+    if (sft.isPoints) {
+      createUuid(pt.asInstanceOf[Point], time)
+    } else {
+      createUuid(pt.asInstanceOf[Geometry].getCentroid, time)
     }
-    createUuid(pt, time)
   }
 
   def createUuid(geom: Geometry, time: Long): UUID = createUuid(geom.getCentroid, time)

@@ -96,7 +96,9 @@ object IndexValueEncoder {
     builder.setNamespaceURI(null: String)
     builder.setName(sft.getTypeName + "--index")
     builder.setAttributes(getIndexValueAttributes(sft))
-    builder.setDefaultGeometry(sft.getGeometryDescriptor.getLocalName)
+    if (sft.getGeometryDescriptor != null) {
+      builder.setDefaultGeometry(sft.getGeometryDescriptor.getLocalName)
+    }
     builder.setCRS(sft.getCoordinateReferenceSystem)
     val indexSft = builder.buildFeatureType()
     indexSft.getUserData.putAll(sft.getUserData)
