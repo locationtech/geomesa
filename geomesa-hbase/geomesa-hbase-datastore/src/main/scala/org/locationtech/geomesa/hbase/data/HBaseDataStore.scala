@@ -92,6 +92,8 @@ class HBaseDataStoreFactory extends AbstractDataStoreFactory {
     new HBaseDataStore(conn, catalog)
   }
 
+  override def getDisplayName: String = "HBase (GeoMesa)"
+
   override def getDescription: String = "GeoMesa HBase DataStore"
 
   override def getParametersInfo: Array[Param] = Array(BIGTABLENAMEPARAM)
