@@ -43,7 +43,7 @@ class AccumuloBlobStoreTest extends Specification {
 
   "AccumuloBlobStore" should {
 
-    "be able to store and delete a file" in pending("Deleting from accumulodatastore may not be working in blobstore") {
+    "be able to store and delete a file" in {
       val (storeId, file) = ingestFile(testfile3, "POINT(10 10)")
 
       val testFile3Id = storeId.get

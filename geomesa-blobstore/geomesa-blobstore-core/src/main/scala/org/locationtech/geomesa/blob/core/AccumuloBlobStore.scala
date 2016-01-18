@@ -16,9 +16,9 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
-import org.geotools.data.{Transaction, Query}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
+import org.geotools.data.{Query, Transaction}
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, _}
 import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, SelfClosingIterator}
@@ -26,8 +26,7 @@ import org.locationtech.geomesa.blob.core.AccumuloBlobStore._
 import org.locationtech.geomesa.blob.core.handlers.BlobStoreFileHandler
 import org.locationtech.geomesa.utils.filters.Filters
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.SftBuilder
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
@@ -94,7 +93,10 @@ class AccumuloBlobStore(ds: AccumuloDataStore) extends LazyLogging with BlobStor
     val removalFilter = Filters.ff.id(Filters.ff.featureId(id))
     val fd = ds.getFeatureWriter(blobFeatureTypeName, removalFilter, Transaction.AUTO_COMMIT)
     try {
-      fd.remove()
+      while (fd.hasNext) {
+        fd.next()
+        fd.remove()
+      }
     } catch {
       case e: Exception =>
         logger.error("Couldn't remove feature from blobstore", e)
@@ -133,16 +135,15 @@ object AccumuloBlobStore {
   val thumbnailFieldName = "thumbnail"
 
   // TODO: Add metadata hashmap?
-  val sftSpec = new SftBuilder()
+  val sft = new SftBuilder()
     .stringType(filenameFieldName)
     .stringType(idFieldName, true)
     .geometry(geomeFieldName, true)
     .date(dateFieldName)
     .withDefaultDtg(dateFieldName)
     .stringType(thumbnailFieldName)
-    .getSpec
-
-  val sft: SimpleFeatureType = SimpleFeatureTypes.createType(blobFeatureTypeName, sftSpec)
+    .build(blobFeatureTypeName)
+  
 }
 
 trait BlobStoreFileName {
