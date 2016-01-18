@@ -72,6 +72,18 @@ object PathUtils {
     }
   }
 
+  def handleCompression(is: InputStream, filename: String): InputStream = {
+    if (GzipUtils.isCompressedFilename(filename)) {
+      new GZIPInputStream(new BufferedInputStream(is))
+    } else if (BZip2Utils.isCompressedFilename(filename)) {
+      new BZip2CompressorInputStream(new BufferedInputStream(is))
+    } else if (XZUtils.isCompressedFilename(filename)) {
+      new XZCompressorInputStream(new BufferedInputStream(is))
+    } else {
+      new BufferedInputStream(is)
+    }
+  }
+
   def getSource(f: File): BufferedSource =
     Source.fromInputStream(getInputStream(f), StandardCharsets.UTF_8.displayName)
 
