@@ -260,7 +260,8 @@ package object filter {
   def isIdFilter(f: Filter): Boolean = f.isInstanceOf[Id]
 
   def isPrimarySpatialFilter(filter: Filter, sft: SimpleFeatureType): Boolean = {
-    val geom = sft.getGeometryDescriptor.getLocalName
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    val geom = sft.getGeomField
     val primary = filter match {
       case f: BinarySpatialOperator =>
         checkOrder(f.getExpression1, f.getExpression2)
