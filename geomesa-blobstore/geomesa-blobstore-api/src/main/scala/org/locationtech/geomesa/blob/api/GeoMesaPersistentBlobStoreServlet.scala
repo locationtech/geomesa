@@ -25,7 +25,7 @@ trait GeoMesaPersistentBlobStoreServlet extends GeoMesaBaseDataStoreServlet {
     * Registers a data store, making it available for later use
     */
   post("/ds/:alias") {
-    logger.debug("In ds registration method")
+    logger.debug("Attempting to register accumulo connection in Blob Store")
     val dsParams = datastoreParams
     val ds = new AccumuloDataStoreFactory().createDataStore(dsParams).asInstanceOf[AccumuloDataStore]
     if (ds == null) {

@@ -44,7 +44,7 @@ class BlobstoreServlet(val persistence: FilePersistence) extends GeoMesaPersiste
 
   delete("/:id/?") {
     val id = params("id")
-    logger.debug("In DELETE method for blobstore, attempting to delete: {}", id)
+    logger.debug("Attempting to delete: {}", id)
     if (abs == null) {
       BadRequest(reason = "AccumuloBlobStore is not initialized.")
     } else {
@@ -55,7 +55,7 @@ class BlobstoreServlet(val persistence: FilePersistence) extends GeoMesaPersiste
 
   get("/:id/?") {
     val id = params("id")
-    logger.debug("In ID method, trying to retrieve id {}", id)
+    logger.debug("Attempting to get blob for id {}", id)
     if (abs == null) {
       BadRequest(reason = "AccumuloBlobStore is not initialized.")
     } else {
@@ -74,13 +74,15 @@ class BlobstoreServlet(val persistence: FilePersistence) extends GeoMesaPersiste
   // scalatra routes bottom up, so we want the ds post to be checked first
   post("/") {
     try {
-      logger.debug("In file upload post method")
+      logger.debug("Attempting to ingest file to BlobStore")
       if (abs == null) {
-        handleError("AccumuloBlobStore is not initialized.", null)
+        logger.error("AccumuloBlobStore is not initialized in BlobStore.")
+        BadRequest()
       } else {
         fileParams.get("file") match {
           case None =>
-            handleError("no file parameter in request", null)
+            logger.error("no file parameter in request")
+            BadRequest()
           case Some(file) =>
             val otherParams: mutable.Map[String, String] = mutable.Map()
             multiParams.foreach{case (s, p) => otherParams.add(s, p.head)}
@@ -89,14 +91,19 @@ class BlobstoreServlet(val persistence: FilePersistence) extends GeoMesaPersiste
               otherParams.put(filenameFieldName, file.getName)
             }
             val tempFile = File.createTempFile(UUID.randomUUID().toString, FilenameUtils.getExtension(file.getName))
-            file.write(tempFile)
-            val actRes: ActionResult = abs.put(tempFile, otherParams.toMap) match {
-              case Some(id) =>
-                Created(body = id, headers = Map("Location" -> request.getRequestURL.append(id).toString))
-              case None =>
-                BadRequest(reason = "Unable to process file")
+            val actRes = try {
+              file.write(tempFile)
+              abs.put(tempFile, otherParams.toMap) match {
+                case Some(id) =>
+                  Created(body = id, headers = Map("Location" -> request.getRequestURL.append(id).toString))
+                case None =>
+                  BadRequest(reason = "Unable to process file")
+              }
+            } catch {
+              case e: Exception => handleError("", e)
+            } finally {
+              tempFile.delete()
             }
-            tempFile.delete()
             actRes
         }
       }

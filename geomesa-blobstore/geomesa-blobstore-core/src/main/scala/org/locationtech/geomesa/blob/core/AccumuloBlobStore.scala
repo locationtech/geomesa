@@ -26,7 +26,7 @@ import org.locationtech.geomesa.blob.core.AccumuloBlobStore._
 import org.locationtech.geomesa.blob.core.handlers.BlobStoreFileHandler
 import org.locationtech.geomesa.utils.filters.Filters
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -97,7 +97,7 @@ class AccumuloBlobStore(ds: AccumuloDataStore) extends LazyLogging with BlobStor
       fd.remove()
     } catch {
       case e: Exception =>
-        logger.error(e.getMessage)
+        logger.error("Couldn't remove feature from blobstore", e)
     } finally {
       fd.close()
     }
@@ -130,9 +130,17 @@ object AccumuloBlobStore {
   val geomeFieldName = "geom"
   val filenameFieldName = "filename"
   val dateFieldName = "date"
+  val thumbnailFieldName = "thumbnail"
 
   // TODO: Add metadata hashmap?
-  val sftSpec = s"$filenameFieldName:String,$idFieldName:String,$geomeFieldName:Geometry,$dateFieldName:Date,thumbnail:String"
+  val sftSpec = new SftBuilder()
+    .stringType(filenameFieldName)
+    .stringType(idFieldName, true)
+    .geometry(geomeFieldName, true)
+    .date(dateFieldName)
+    .withDefaultDtg(dateFieldName)
+    .stringType(thumbnailFieldName)
+    .getSpec
 
   val sft: SimpleFeatureType = SimpleFeatureTypes.createType(blobFeatureTypeName, sftSpec)
 }

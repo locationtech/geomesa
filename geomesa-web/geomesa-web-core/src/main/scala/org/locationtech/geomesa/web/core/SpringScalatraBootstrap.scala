@@ -15,7 +15,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.lang.exception.ExceptionUtils
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory
 import org.scalatra.servlet.RichServletContext
-import org.scalatra.{InternalServerError, ScalatraServlet}
+import org.scalatra.{ActionResult, InternalServerError, ScalatraServlet}
 import org.springframework.context.{ApplicationContext, ApplicationContextAware}
 import org.springframework.web.context.ServletContextAware
 
@@ -42,7 +42,7 @@ trait GeoMesaScalatraServlet extends ScalatraServlet with LazyLogging {
   /**
    * Common error handler that accounts for debug setting
    */
-  def handleError(msg: String, e: Exception) = {
+  def handleError(msg: String, e: Exception): ActionResult = {
     logger.error(msg, e)
     if (debug) {
       InternalServerError(reason = msg, body = s"${e.getMessage}\n${ExceptionUtils.getStackTrace(e)}")
