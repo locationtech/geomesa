@@ -187,6 +187,12 @@ if [ -n "$JAVA_LIBRARY_PATH" ]; then
   export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$JAVA_LIBRARY_PATH"
 fi
 
+# Configure geomesa logging directory
+if [[ -z "${GEOMESA_LOG_DIR}" ]]; then
+  export GEOMESA_LOG_DIR="${GEOMESA_HOME}/logs"
+  export GEOMESA_OPTS="-Dgeomesa.log.dir=${GEOMESA_LOG_DIR} $GEOMESA_OPTS"
+fi
+
 # Geomesa tools setup completed, below we parse user arguments
 #
 # configure runs the geomesa configuration, sets both the GEOMESA_HOME and PATH vars
