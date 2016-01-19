@@ -11,7 +11,7 @@ package org.locationtech.geomesa.features.avro
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 
 import org.apache.avro.io.{BinaryDecoder, DecoderFactory, DirectBinaryEncoder, EncoderFactory}
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.{SimpleFeatureDeserializer, SimpleFeatureSerializer}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -20,7 +20,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
  * @param sft the simple feature type to encode
  * @param options the options to apply when encoding
  */
-class AvroFeatureSerializer(sft: SimpleFeatureType, val options: SerializationOptions = SerializationOptions.none)
+class AvroFeatureSerializer(sft: SimpleFeatureType, val options: Set[SerializationOption] = Set.empty)
     extends SimpleFeatureSerializer {
 
   private val writer = new AvroSimpleFeatureWriter(sft, options)
@@ -45,7 +45,7 @@ class AvroFeatureSerializer(sft: SimpleFeatureType, val options: SerializationOp
  * @param options the options what were applied when encoding
  */
 class ProjectingAvroFeatureDeserializer(original: SimpleFeatureType, projected: SimpleFeatureType,
-                                   val options: SerializationOptions = SerializationOptions.none)
+                                        val options: Set[SerializationOption] = Set.empty)
     extends SimpleFeatureDeserializer {
 
   private val reader = new FeatureSpecificReader(original, projected, options)
@@ -64,6 +64,6 @@ class ProjectingAvroFeatureDeserializer(original: SimpleFeatureType, projected: 
  * @param sft the simple feature type to decode
  * @param options the options what were applied when encoding
  */
-class AvroFeatureDeserializer(sft: SimpleFeatureType, options: SerializationOptions = SerializationOptions.none)
+class AvroFeatureDeserializer(sft: SimpleFeatureType, options: Set[SerializationOption] = Set.empty)
     extends ProjectingAvroFeatureDeserializer(sft, sft, options)
 

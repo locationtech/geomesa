@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.features
 
 import org.geotools.feature.simple.SimpleFeatureImpl
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.avro._
 import org.locationtech.geomesa.features.kryo._
@@ -27,7 +27,7 @@ object SimpleFeatureDeserializers {
    * @param options any options that were used to encode
    * @return a new [[SimpleFeatureDeserializer]]
    */
-  def apply(sft: SimpleFeatureType, typ: SerializationType, options: SerializationOptions = SerializationOptions.none) =
+  def apply(sft: SimpleFeatureType, typ: SerializationType, options: Set[SerializationOption] = Set.empty) =
     typ match {
       case SerializationType.KRYO => new KryoFeatureSerializer(sft, options)
       case SerializationType.AVRO => new AvroFeatureDeserializer(sft, options)
@@ -48,7 +48,7 @@ object ProjectingSimpleFeatureDeserializers {
   def apply(originalSft: SimpleFeatureType,
             projectedSft: SimpleFeatureType,
             typ: SerializationType,
-            options: SerializationOptions = SerializationOptions.none) =
+            options: Set[SerializationOption] = Set.empty) =
     typ match {
       case SerializationType.KRYO => new ProjectingKryoFeatureDeserializer(originalSft, projectedSft, options)
       case SerializationType.AVRO => new ProjectingAvroFeatureDeserializer(originalSft, projectedSft, options)
@@ -72,7 +72,7 @@ object SimpleFeatureSerializers {
    */
   def apply(sft: SimpleFeatureType,
             typ: SerializationType,
-            options: SerializationOptions = SerializationOptions.none): SimpleFeatureSerializer =
+            options: Set[SerializationOption] = Set.empty): SimpleFeatureSerializer =
     typ match {
       case SerializationType.KRYO => new KryoFeatureSerializer(sft, options)
       case SerializationType.AVRO => new AvroFeatureSerializer(sft, options)
