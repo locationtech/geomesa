@@ -24,20 +24,39 @@ See below for some common configurations:
 
 | jar | size |
 | --- | ---- |
-| accumulo-core-1.5.2.jar | 3748459 |
-| accumulo-fate-1.5.2.jar | 99782 |
-| accumulo-start-1.5.2.jar | 53902 |
-| accumulo-trace-1.5.2.jar | 116904 |
+| accumulo-core-1.5.3.jar | 3748223 |
+| accumulo-fate-1.5.3.jar | 99254 |
+| accumulo-start-1.5.3.jar | 53912 |
+| accumulo-trace-1.5.3.jar | 116912 |
 | libthrift-0.9.0.jar | 347531 |
 | zookeeper-3.3.6.jar | 608239 |
+
+#### Accumulo 1.6
+
+| jar | size |
+| --- | ---- |
+| accumulo-core-1.6.4.jar | 4649190 |
+| accumulo-fate-1.6.4.jar | 108830 |
+| accumulo-server-base-1.6.4.jar | 547323 |
+| accumulo-trace-1.6.4.jar | 124572 |
+| libthrift-0.9.1.jar | 217053 |
+| zookeeper-3.4.5.jar | 1315806 |
+
 
 #### Hadoop 2.2
 
 | jar | size |
 | --- | ---- |
 | commons-configuration-1.6.jar | 298829 |
-| hadoop-annotations-2.2.0.jar | 16778 |
 | hadoop-auth-2.2.0.jar | 49750 |
-| hadoop-client-2.2.0.jar | 2559 |
 | hadoop-common-2.2.0.jar | 2735584 |
 | hadoop-hdfs-2.2.0.jar | 5242252 |
+
+#### Hadoop 2.4
+
+| jar | size |
+| --- | ---- |
+| commons-configuration-1.6.jar | 298829 |
+| hadoop-auth-2.4.0.jar | 50522 |
+| hadoop-common-2.4.0.jar | 2850660 |
+| hadoop-hdfs-2.4.0.jar | 6825535 |
