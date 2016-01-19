@@ -8,23 +8,24 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import com.vividsolutions.jts.geom.Envelope
+import com.vividsolutions.jts.geom.{Envelope, GeometryCollection}
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
-import org.geotools.data.{FeatureReader, FeatureWriter, Query}
+import org.geotools.data.{FeatureReader, FeatureWriter, Query, QueryCapabilities}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.joda.time.Weeks
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.filter
+import org.locationtech.geomesa.filter.FilterHelper._
 import org.locationtech.geomesa.utils.geotools
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.And
-import org.opengis.filter.spatial.BinarySpatialOperator
+import org.opengis.filter.{And, Filter}
 
 class HBaseFeatureSource(entry: ContentEntry,
                          query: Query,
                          sft: SimpleFeatureType)
-  extends ContentFeatureStore(entry, query) {
+    extends ContentFeatureStore(entry, query) {
   import geotools._
 
   import scala.collection.JavaConversions._
@@ -48,30 +49,60 @@ class HBaseFeatureSource(entry: ContentEntry,
 
   override def getCountInternal(query: Query): Int = Int.MaxValue
 
-  override def getWriterInternal(query: Query, flags: Int): FeatureWriter[SimpleFeatureType, SimpleFeature] =
-    new HBaseFeatureWriter(sft, ds.getZ3Table(sft))
-
-  import filter._
-  override def getReaderInternal(query: Query): FR =
-    rewriteFilterInCNF(query.getFilter) match {
-      case a: And            => and(a)
-      case _                 => throw new RuntimeException("Not yet supported")
+  override def getWriterInternal(query: Query, flags: Int): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
+    if (query.getFilter == null || query.getFilter == Filter.INCLUDE) {
+      new HBaseFeatureWriterAppend(sft, ds.getZ3Table(sft))
+    } else {
+      throw new NotImplementedError("Updating features not supported")
     }
+  }
 
+  override def getReaderInternal(query: Query): FR = {
+    if (query.getFilter == null || query.getFilter == Filter.INCLUDE) {
+      include()
+    } else {
+      filter.rewriteFilterInCNF(query.getFilter)(filter.ff) match {
+        case a: And => and(a)
+        case _      => throw new NotImplementedError("Queries must include a geometry and date filter")
+      }
+    }
+  }
 
-  override def canFilter: Boolean = true
-  override def canSort: Boolean = true
+  override protected def canFilter: Boolean = true
+  override protected def canSort: Boolean = true
+  override protected def canReproject: Boolean = true
+  override protected def buildQueryCapabilities: QueryCapabilities = {
+    new QueryCapabilities {
+      override def isUseProvidedFIDSupported: Boolean = true
+    }
+  }
+
+  private def include(): FR = {
+    new HBaseFeatureReader(ds.getZ3Table(sft), sft, 0, Seq.empty, new KryoFeatureSerializer(sft))
+  }
 
   private def and(a: And): FR = {
-    // TODO: currently assumes BBOX then DURING
+    // TODO: currently assumes geom + dtg
     import filter._
+    import HBaseFeatureSource.AllGeom
+
+    // TODO: cache serializers
+    val serializer = new KryoFeatureSerializer(sft)
+    val table = ds.getZ3Table(sft)
 
     val dtFieldName = sft.getDescriptor(dtgIndex).getLocalName
     val (i, _) = a.getChildren.partition(isTemporalFilter(_, dtFieldName))
     val interval = FilterHelper.extractInterval(i, Some(dtFieldName))
 
     val (b, _) = partitionPrimarySpatials(a.getChildren, sft)
-    val geom = FilterHelper.extractGeometry(b.head.asInstanceOf[BinarySpatialOperator]).head
+    val geomsToCover = tryReduceGeometryFilter(b).flatMap(decomposeToGeometry)
+    val geom = if (geomsToCover.isEmpty) {
+      AllGeom
+    } else if (geomsToCover.length == 1) {
+      geomsToCover.head.intersection(AllGeom)
+    } else {
+      new GeometryCollection(geomsToCover.toArray, geomsToCover.head.getFactory).intersection(AllGeom)
+    }
 
     val env = geom.getEnvelopeInternal
     val (lx, ly, ux, uy) = (env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
@@ -80,39 +111,31 @@ class HBaseFeatureSource(entry: ContentEntry,
     val epochWeekEnd = Weeks.weeksBetween(EPOCH, interval.getEnd)
     val weeks = scala.Range.inclusive(epochWeekStart.getWeeks, epochWeekEnd.getWeeks)
     val lt = secondsInCurrentWeek(interval.getStart, epochWeekStart)
-    val ut = secondsInCurrentWeek(interval.getEnd, epochWeekStart)
+    val ut = secondsInCurrentWeek(interval.getEnd, epochWeekEnd)
 
-    val kryoFeatureSerializer = new KryoFeatureSerializer(sft)
+    // time range for a chunk is 0 to 1 week (in seconds)
+    val (tStart, tEnd) = (0, Weeks.ONE.toStandardSeconds.getSeconds)
+
+    // the z3 index breaks time into 1 week chunks, so create a range for each week in our range
+    // TODO: ignoring seconds for now
     if (weeks.length == 1) {
-      val z3ranges = Z3_CURVE.ranges((lx, ux), (ly, uy), (lt, ut))
-      // TODO: cache serializers
-      new HBaseFeatureReader(
-        ds.getZ3Table(sft), sft, weeks.head, z3ranges,
-        Z3_CURVE.normLon(lx), Z3_CURVE.normLat(ly), interval.getStart.getMillis,
-        Z3_CURVE.normLon(ux), Z3_CURVE.normLat(uy), interval.getEnd.getMillis,
-        kryoFeatureSerializer)
+      val ranges = Z3_CURVE.ranges((lx, ux), (ly, uy), (lt, ut))
+      new HBaseFeatureReader(table, sft, weeks.head, ranges, serializer)
     } else {
-      val oneWeekInSeconds = Weeks.ONE.toStandardSeconds.getSeconds
       val head +: xs :+ last = weeks.toList
-      // TODO: ignoring seconds for now
-      val z3ranges = Z3_CURVE.ranges((lx, ux), (ly, uy), (0, oneWeekInSeconds))
-      val middleQPs = xs.map { w =>
-        new HBaseFeatureReader(ds.getZ3Table(sft), sft, w, z3ranges,
-          Z3_CURVE.normLon(lx), Z3_CURVE.normLat(ly), interval.getStart.getMillis,
-          Z3_CURVE.normLon(ux), Z3_CURVE.normLat(uy), interval.getEnd.getMillis,
-          kryoFeatureSerializer)
+      val oneWeekInSeconds = Weeks.ONE.toStandardSeconds.getSeconds
+
+      val headRanges = Z3_CURVE.ranges((lx, ux), (ly, uy), (lt, tEnd))
+      val middleRanges = Z3_CURVE.ranges((lx, ux), (ly, uy), (0, oneWeekInSeconds))
+      val lastRanges = Z3_CURVE.ranges((lx, ux), (ly, uy), (tStart, ut))
+
+      val headReader = new HBaseFeatureReader(table, sft, head, headRanges, serializer)
+      val middleReaders = xs.map { w =>
+        new HBaseFeatureReader(table, sft, w, middleRanges, serializer)
       }
-      val sr = new HBaseFeatureReader(ds.getZ3Table(sft), sft, head, z3ranges,
-        Z3_CURVE.normLon(lx), Z3_CURVE.normLat(ly), interval.getStart.getMillis,
-        Z3_CURVE.normLon(ux), Z3_CURVE.normLat(uy), interval.getEnd.getMillis,
-        kryoFeatureSerializer)
+      val lastReader = new HBaseFeatureReader(table, sft, head, lastRanges, serializer)
 
-      val er = new HBaseFeatureReader(ds.getZ3Table(sft), sft, last, z3ranges,
-        Z3_CURVE.normLon(lx), Z3_CURVE.normLat(ly), interval.getStart.getMillis,
-        Z3_CURVE.normLon(ux), Z3_CURVE.normLat(uy), interval.getEnd.getMillis,
-        kryoFeatureSerializer)
-
-      val readers = Seq(sr) ++ middleQPs ++ Seq(er)
+      val readers = Seq(headReader) ++ middleReaders ++ Seq(lastReader)
 
       new FeatureReader[SimpleFeatureType, SimpleFeature] {
         val readerIter = readers.iterator
@@ -123,25 +146,28 @@ class HBaseFeatureSource(entry: ContentEntry,
         }
 
         override def hasNext: Boolean =
-          if(curReader.hasNext) true
-          else {
-            if(readerIter.hasNext) {
+          if (curReader.hasNext) {
+            true
+          } else {
+            curReader.close()
+            if (readerIter.hasNext) {
               curReader = readerIter.next()
-              curReader.hasNext
-            } else false
+              hasNext
+            } else {
+              false
+            }
           }
 
         override def getFeatureType: SimpleFeatureType = sft
 
-        override def close(): Unit = {}
+        override def close(): Unit = {
+          readers.foreach(_.close())
+        }
       }
     }
-
   }
 }
 
-
-
-
-
-
+object HBaseFeatureSource {
+  val AllGeom = WKTUtils.read("POLYGON((-180 -90, 0 -90, 180 -90, 180 90, 0 90, -180 90, -180 -90))")
+}

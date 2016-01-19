@@ -17,6 +17,7 @@ import org.apache.hadoop.hbase.{HBaseConfiguration, HColumnDescriptor, HTableDes
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.data.{AbstractDataStoreFactory, DataStore, Transaction}
+import org.geotools.factory.Hints
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.Name
@@ -25,13 +26,16 @@ import org.opengis.feature.simple.SimpleFeatureType
 import scala.collection.JavaConversions._
 
 class HBaseDataStore(conn: Connection,
-                     catalog: String) extends ContentDataStore {
+                     catalog: String,
+                     namespace: String = null) extends ContentDataStore {
 
   import HBaseDataStore._
 
   private val CATALOG_TABLE = TableName.valueOf(catalog)
   private val catalogTable = getOrCreateCatalogTable(conn, CATALOG_TABLE)
   private val schemaCQ = Bytes.toBytes("schema")
+
+  setNamespaceURI(namespace)
 
   override def createSchema(featureType: SimpleFeatureType): Unit = {
     val name = featureType.getTypeName
@@ -69,7 +73,7 @@ class HBaseDataStore(conn: Connection,
     // read types from catalog
     val scan = new Scan().addColumn(META_FAMILY_NAME, schemaCQ)
     val scanner = catalogTable.getScanner(scan)
-    scanner.iterator().map { r => Bytes.toString(r.getRow) }.map { n => new NameImpl(n) }.toList
+    scanner.iterator().map { r => Bytes.toString(r.getRow) }.map { n => new NameImpl(getNamespaceURI, n) }.toList
   }
 }
 
@@ -77,31 +81,37 @@ class HBaseDataStoreFactory extends AbstractDataStoreFactory {
 
   import HBaseDataStore._
 
+  Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, java.lang.Boolean.TRUE)
+
   override def createDataStore(map: util.Map[String, Serializable]): DataStore = {
     val conf = HBaseConfiguration.create()
     val conn = ConnectionFactory.createConnection(conf)
     val catalog = BIGTABLENAMEPARAM.lookUp(map).asInstanceOf[String]
-    new HBaseDataStore(conn, catalog)
+    val namespace =  NAMESPACE_PARAM.lookUp(map).asInstanceOf[String]
+    new HBaseDataStore(conn, catalog, namespace)
   }
 
   override def createNewDataStore(map: util.Map[String, Serializable]): DataStore = {
     val conf = HBaseConfiguration.create()
     val conn = ConnectionFactory.createConnection(conf)
     val catalog = BIGTABLENAMEPARAM.lookUp(map).asInstanceOf[String]
+    val namespace =  NAMESPACE_PARAM.lookUp(map).asInstanceOf[String]
     getOrCreateCatalogTable(conn, TableName.valueOf(catalog))
-    new HBaseDataStore(conn, catalog)
+    new HBaseDataStore(conn, catalog, namespace)
   }
 
   override def getDisplayName: String = "HBase (GeoMesa)"
 
   override def getDescription: String = "GeoMesa HBase DataStore"
 
-  override def getParametersInfo: Array[Param] = Array(BIGTABLENAMEPARAM)
+  override def getParametersInfo: Array[Param] = Array(BIGTABLENAMEPARAM, NAMESPACE_PARAM)
 }
 
 object HBaseDataStore {
 
   val BIGTABLENAMEPARAM = new Param("bigtable.table.name", classOf[String], "Table name", true)
+  val NAMESPACE_PARAM    = new Param("namespace", classOf[String], "Namespace", false)
+
   val META_FAMILY_NAME = Bytes.toBytes("M")
   val META_FAMILY = new HColumnDescriptor(META_FAMILY_NAME)
   val DATA_FAMILY_NAME = Bytes.toBytes("D")
