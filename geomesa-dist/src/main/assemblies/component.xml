@@ -74,7 +74,6 @@
             <fileMode>0644</fileMode>
             <includes>
                 <include>LICENSE.txt</include>
-                <include>README.md</include>
             </includes>
         </fileSet>
         <fileSet>
@@ -88,28 +87,88 @@
     </fileSets>
     <files>
         <file>
-            <source>../geomesa-compute/README.md</source>
-            <outputDirectory>docs/compute</outputDirectory>
+            <source>../README.md</source>
+            <outputDirectory>docs</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-accumulo/README.md</source>
+            <destName>README-accumulo.md</destName>
+            <outputDirectory>docs</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-gs-plugin/README.md</source>
+            <destName>README-gs-plugin.md</destName>
+            <outputDirectory>docs</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-utils/README.md</source>
+            <destName>README-utils.md</destName>
+            <outputDirectory>docs</outputDirectory>
         </file>
         <file>
             <source>../geomesa-accumulo/geomesa-accumulo-datastore/README.md</source>
-            <outputDirectory>docs/accumulo</outputDirectory>
+            <destName>README-accumulo-datastore.md</destName>
+            <outputDirectory>docs</outputDirectory>
         </file>
         <file>
-            <source>../geomesa-jobs/README.md</source>
-            <outputDirectory>docs/jobs</outputDirectory>
+            <source>../geomesa-raster/README.md</source>
+            <destName>README-raster.md</destName>
+            <outputDirectory>docs</outputDirectory>
         </file>
         <file>
             <source>../geomesa-gs-plugin/geomesa-accumulo-gs-plugin/README.md</source>
-            <outputDirectory>docs/accumulo-gs-plugin</outputDirectory>
+            <destName>README-accumulo-gs-plugin.md</destName>
+            <outputDirectory>docs</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-blobstore/README.md</source>
+            <destName>README-blobstore.md</destName>
+            <outputDirectory>docs</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-kafka/geomesa-kafka-datastore/README.md</source>
+            <destName>README-kafka-datastore.md</destName>
+            <outputDirectory>docs</outputDirectory>
         </file>
         <file>
             <source>../geomesa-gs-plugin/geomesa-kafka-gs-plugin/README.md</source>
-            <outputDirectory>docs/kafka-gs-plugin</outputDirectory>
+            <destName>README-kafka-gs-plugin.md</destName>
+            <outputDirectory>docs</outputDirectory>
         </file>
         <file>
-            <source>../geomesa-tools/README.md</source>
-            <outputDirectory>docs/tools</outputDirectory>
+            <source>../geomesa-stream/README.md</source>
+            <destName>README-stream.md</destName>
+            <outputDirectory>docs</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-convert/README.md</source>
+            <destName>README-convert.md</destName>
+            <outputDirectory>docs</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-jobs/README.md</source>
+            <destName>README-jobs.md</destName>
+            <outputDirectory>docs</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-compute/README.md</source>
+            <destName>README-compute.md</destName>
+            <outputDirectory>docs</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-accumulo/geomesa-accumulo-distributed-runtime/README.md</source>
+            <destName>README-accumulo-distributed-runtime.md</destName>
+            <outputDirectory>docs</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-web/geomesa-web-data/README.md</source>
+            <destName>README-web-data.md</destName>
+            <outputDirectory>docs</outputDirectory>
+        </file>
+        <file>
+            <source>../geomesa-process/README.md</source>
+            <destName>README-process.md</destName>
+            <outputDirectory>docs</outputDirectory>
         </file>
     </files>
 </component>
