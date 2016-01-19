@@ -5,7 +5,7 @@ you would need to update the pom and re-build this module.
 
 ### Installation Instructions
 
-After building, unzip the `target/geomesa-hbase-gs-plugin-<version>-install.zip` file into GeoServer's
+After building, extract `target/geomesa-hbase-gs-plugin-<version>-install.tar.gz` into GeoServer's
 WEB-INF/lib directory.
 
 ### Additional Resources
