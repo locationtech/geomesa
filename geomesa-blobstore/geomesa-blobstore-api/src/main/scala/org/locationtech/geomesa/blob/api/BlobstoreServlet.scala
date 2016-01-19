@@ -21,13 +21,13 @@ import org.scalatra.servlet.{FileUploadSupport, MultipartConfig, SizeConstraintE
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
-import scala.util.Try
 
 class BlobstoreServlet(val persistence: FilePersistence) extends GeoMesaPersistentBlobStoreServlet with FileUploadSupport with GZipSupport {
   override def root: String = "blob"
 
-  val maxFileSize: Int = Try(System.getProperty(BlobstoreServlet.maxFileSizeSysProp, "50").toInt).getOrElse(50)
-  val maxRequestSize: Int = Try(System.getProperty(BlobstoreServlet.maxRequestSizeSysProp, "100").toInt).getOrElse(100)
+  val maxFileSize: Int = System.getProperty(BlobstoreServlet.maxFileSizeSysProp, "50").toInt
+  val maxRequestSize: Int = System.getProperty(BlobstoreServlet.maxRequestSizeSysProp, "100").toInt
+
   // caps blob size
   configureMultipartHandling(
     MultipartConfig(

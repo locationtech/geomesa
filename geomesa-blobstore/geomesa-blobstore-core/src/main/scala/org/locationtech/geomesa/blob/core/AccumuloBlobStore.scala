@@ -11,7 +11,7 @@ package org.locationtech.geomesa.blob.core
 import java.io.File
 import java.util
 
-import com.google.common.io.{ByteStreams, Files}
+import com.google.common.io.Files
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
 import org.apache.accumulo.core.security.Authorizations
@@ -116,12 +116,13 @@ class AccumuloBlobStore(ds: AccumuloDataStore) extends LazyLogging with BlobStor
 
   private def putInternal(file: File, id: String, params: Map[String, String]) {
     val localName = getFileName(file, params)
-    val bytes = ByteStreams.toByteArray(Files.asByteSource(file).openBufferedStream())
+    val bytes = Files.toByteArray(file)
 
     val m = new Mutation(id)
 
     m.put(EMPTY_COLF, new Text(localName), new Value(bytes))
     bw.addMutation(m)
+    bw.flush()
   }
 }
 
