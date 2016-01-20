@@ -41,10 +41,9 @@ class ConverterInputFormat extends FileInputFormat[LongWritable, SimpleFeature] 
 object ConverterInputFormat {
 
   object Counters {
-    val Group  = "org.locationtech.geomesa.jobs.convert"
-    val Success = "success"
-    val Failure = "failure"
-    val Written = "written"
+    val Group     = "org.locationtech.geomesa.jobs.convert"
+    val Converted = "converted"
+    val Failed    = "failed"
   }
 
   val ConverterKey  = "org.locationtech.geomesa.jobs.ingest.converter"
@@ -59,7 +58,6 @@ object ConverterInputFormat {
     job.getConfiguration.set(SftKey, SimpleFeatureTypes.encodeType(sft))
     job.getConfiguration.set(TypeNameKey, sft.getTypeName)
   }
-
 }
 
 class ConverterRecordReader() extends RecordReader[LongWritable, SimpleFeature] with LazyLogging {
@@ -119,11 +117,11 @@ class ConverterRecordReader() extends RecordReader[LongWritable, SimpleFeature] 
       import ConverterInputFormat.{Counters => C}
 
       // Global counters for the entire job
-      override def incSuccess(i: Long): Unit   = context.getCounter(C.Group, C.Success).increment(i)
-      override def getSuccess: Long            = context.getCounter(C.Group, C.Success).getValue
+      override def incSuccess(i: Long): Unit   = context.getCounter(C.Group, C.Converted).increment(i)
+      override def getSuccess: Long            = context.getCounter(C.Group, C.Converted).getValue
 
-      override def incFailure(i: Long): Unit   = context.getCounter(C.Group, C.Failure).increment(i)
-      override def getFailure: Long            = context.getCounter(C.Group, C.Failure).getValue
+      override def incFailure(i: Long): Unit   = context.getCounter(C.Group, C.Failed).increment(i)
+      override def getFailure: Long            = context.getCounter(C.Group, C.Failed).getValue
 
       // Line counts are local to file not global
       private var c: Long = 0
