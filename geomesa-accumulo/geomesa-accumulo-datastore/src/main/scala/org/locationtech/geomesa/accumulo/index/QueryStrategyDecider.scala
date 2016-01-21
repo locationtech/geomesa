@@ -47,23 +47,23 @@ object QueryStrategyDecider {
 class QueryStrategyDeciderV6 extends QueryStrategyDecider with MethodProfiling {
 
   /**
-   * Scans the filter and identify the type of predicates present, then picks a strategy based on cost.
+   * Selects a strategy for executing a given query.
+   *
+   * If a particular strategy has been requested, that strategy will be used (note - this is only
+   * partially supported, and should be used with care.)
+   *
+   * Otherwise, the query will be examined for strategies that could be used to execute it. The cost of
+   * executing each available strategy will be calculated, and the least expensive strategy will be used.
+   *
    * Currently, the costs are hard-coded to conform to the following priority:
    *
-   *   * If an ID predicate is present, it is assumed that only a small number of IDs are requested
-   *            --> The Record Index is scanned, and the other ECQL filters, if any, are then applied
+   *  * If an ID predicate is present, then use the record index strategy
+   *  * If high cardinality attribute filters are present, then use the attribute index strategy
+   *  * If a date filter is present, then use the Z3 index strategy
+   *  * If a spatial filter is present, then use the ST index strategy
+   *  * If other attribute filters are present, then use the attribute index strategy
+   *  * If none of the above, use the record index strategy (likely a full table scan)
    *
-   *   * If high cardinality attribute filters are present, then use the attribute strategy
-   *            --> The Attribute Indices are scanned, and the other ECQL filters, if any, are then applied
-   *
-   *   * If ST filters are present, use the STIdxStrategy
-   *            --> The ST Index is scanned, and the other ECQL filters, if any are then applied
-   *
-   *   * If other attribute filters are present, then use the Attribute strategy
-   *            --> The Attribute Indices are scanned, and the other ECQL filters, if any, are then applied
-   *
-   *   * If filters are not identified, use the STIdxStrategy
-   *            --> The ST Index is scanned (likely a full table scan) and the ECQL filters are applied
    */
   override def chooseStrategies(sft: SimpleFeatureType,
                                 query: Query,
