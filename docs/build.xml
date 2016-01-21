@@ -1,0 +1,70 @@
+<project name="docs" default="html">
+	<target name="init">
+		<property environment="env"></property>
+        <property name="sphinx.binary" value="sphinx-build"/>
+
+		<condition property="sphinx.available">
+            <or>
+                <available file="${sphinx.binary}" filepath="${env.PATH}"/>
+            </or>
+        </condition>
+
+		<condition property="build.directory" value="${build.directory}" else="${basedir}/target">
+			<isset property="build.directory" />
+		</condition>
+
+		<echo message="Build directory: ${build.directory}" />
+	</target>
+
+	<target name="clean" depends="init">
+		<delete includeemptydirs="true">
+			<fileset dir="${build.directory}" defaultexcludes="false">
+				<include name="**/"></include>
+			</fileset>
+		</delete>
+	</target>
+	
+	<target name="html" depends="init,all-html">
+	</target>
+
+	<target name="latex" depends="init,user-latex,developer-latex,tutorials-latex">
+	</target>
+
+	<target name="all-html" depends="init">
+		<antcall target="sphinx">
+			<param name="id" value="." />
+			<param name="build" value="html" />
+		</antcall>
+	</target>
+
+	<target name="user-latex" depends="init">
+		<antcall target="sphinx-latex">
+			<param name="id" value="user" />
+		</antcall>
+	</target>
+
+	<target name="developer-latex" depends="init">
+		<antcall target="sphinx-latex">
+			<param name="id" value="developer" />
+		</antcall>
+	</target>
+
+	<target name="tutorials-latex" depends="init">
+		<antcall target="sphinx-latex">
+			<param name="id" value="tutorials" />
+		</antcall>
+	</target>
+
+	<target name="sphinx" if="sphinx.available">
+		<exec executable="${sphinx.binary}" failonerror="true" dir="${basedir}/${id}">
+			<arg line="-b ${build} -d &quot;${build.directory}/${id}/doctrees&quot; . &quot;${build.directory}/${id}/${build}&quot;" />
+		</exec>
+	</target>
+	
+	<target name="sphinx-latex" if="sphinx.available">
+		<exec executable="${sphinx.binary}" failonerror="true" dir="${basedir}/${id}">
+			<arg line="-b latex -d &quot;${build.directory}/${id}/doctrees&quot; . &quot;${build.directory}/${id}/latex&quot;" />
+		</exec>
+	</target>
+
+</project>
