@@ -2,11 +2,14 @@ build/zinc*
 build/scala*
 build/*.jar
 build/build.out
+docs/_build
+docs/common.pyc
 *.iws
 *.ipr
 *.iml
 *.idea/
 *.log
+.*.swp
 .idea/**
 **/.classpath
 **/.project
