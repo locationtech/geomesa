@@ -21,7 +21,7 @@ import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 
-class HBaseFeatureWriter(sft: SimpleFeatureType, table: Table) extends FeatureWriter[SimpleFeatureType, SimpleFeature] {
+class HBaseFeatureWriterAppend(sft: SimpleFeatureType, table: Table) extends FeatureWriter[SimpleFeatureType, SimpleFeature] {
 
   import org.locationtech.geomesa.utils.geotools.Conversions._
 
@@ -43,9 +43,9 @@ class HBaseFeatureWriter(sft: SimpleFeatureType, table: Table) extends FeatureWr
     curFeature
   }
 
-  override def remove(): Unit = ???
+  override def remove(): Unit = throw new NotImplementedError("HBase feature writer is append only")
 
-  override def hasNext: Boolean = true
+  override def hasNext: Boolean = false // false indicates we are not updating existing features
 
   override def write(): Unit = {
     // write

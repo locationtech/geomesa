@@ -9,46 +9,45 @@
 package org.locationtech.geomesa.hbase.data
 
 import com.google.common.primitives.{Bytes, Longs, Shorts}
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.client.{Scan, Table}
 import org.geotools.data.FeatureReader
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
-import scala.util.Try
 
 class HBaseFeatureReader(table: Table,
                          sft: SimpleFeatureType,
                          week: Int,
                          ranges: Seq[(Long, Long)],
-                         lx: Long, ly: Long, lt: Long,
-                         ux: Long, uy: Long, ut: Long,
                          serde: KryoFeatureSerializer)
-  extends FeatureReader[SimpleFeatureType, SimpleFeature] {
+  extends FeatureReader[SimpleFeatureType, SimpleFeature] with LazyLogging {
 
-  val weekPrefix = Shorts.toByteArray(week.toShort)
-
-  val scans =
+  val scans = if (ranges.isEmpty) {
+    Seq(new Scan().addFamily(HBaseDataStore.DATA_FAMILY_NAME))
+  } else {
+    val weekPrefix = Shorts.toByteArray(week.toShort)
     ranges.map { case (s, e) =>
       val startRow = Bytes.concat(weekPrefix, Longs.toByteArray(s))
       val endRow   = Bytes.concat(weekPrefix, Longs.toByteArray(e))
-      new Scan(startRow, endRow)
-        .addFamily(HBaseDataStore.DATA_FAMILY_NAME)
+      new Scan(startRow, endRow).addFamily(HBaseDataStore.DATA_FAMILY_NAME)
     }
+  }
 
-  val scanners =
-    scans
-      .map { s => table.getScanner(s) }
+  val scanners = scans.map(table.getScanner)
 
   val results =
-    Try {
+    try {
       scanners
-        .flatMap(_.toList)
-        .flatMap { r => r.getFamilyMap(HBaseDataStore.DATA_FAMILY_NAME).values().map(serde.deserialize) }
-        .iterator
-    }.getOrElse {
-      closeScanners()
-      Iterator.empty
+          .flatMap(_.toList)
+          .flatMap { r => r.getFamilyMap(HBaseDataStore.DATA_FAMILY_NAME).values().map(serde.deserialize) }
+          .iterator
+    } catch {
+      case e: Exception =>
+        logger.error("Error creating scan", e)
+        closeScanners()
+        Iterator.empty
     }
 
   override def next(): SimpleFeature = results.next()
