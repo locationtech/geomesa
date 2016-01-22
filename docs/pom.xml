@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<!--********************************************************************
+* Copyright (c) 2013-2015 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0 which
+* accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*********************************************************************-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <parent>
+        <groupId>org.locationtech.geomesa</groupId>
+        <artifactId>geomesa</artifactId>
+        <version>1.2.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>geomesa-docs</artifactId>
+    <name>GeoMesa Documentation</name>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <ant.version>1.6.5</ant.version>
+        <target>html</target>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <dependencies>
+                    <dependency>
+                        <groupId>ant</groupId>
+                        <artifactId>ant</artifactId>
+                        <version>${ant.version}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <phase>compile</phase>
+                        <configuration>
+                            <tasks>
+                                <ant antfile="build.xml" dir="${basedir}" target="${target}">
+                                    <property name="build.directory" value="${project.build.directory}"/>
+                                </ant>
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>html</id>
+            <properties>
+                <target>html</target>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>user-latex</id>
+            <properties>
+                <target>user-latex</target>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>developer-latex</id>
+            <properties>
+                <target>developer-latex</target>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>tutorials-latex</id>
+            <properties>
+                <target>tutorials-latex</target>
+            </properties>
+        </profile>
+    </profiles>
+</project>
