@@ -1,14 +1,14 @@
 # GeoMesa GeoServer 2.8.x Plugins
 
 GeoMesa provides an easy way to integrate with GeoServer 2.8.x. When built, the various GeoServer
-modules will all produce a zip file containing all the artifacts needed for GeoServer.
+modules will all produce a tar.gz file containing all the artifacts needed for GeoServer.
 
 Note: if you can't use GeoServer 2.8.x, older versions of GeoMesa are compatible with GeoServer 2.5.x.
 See [geomesa-1.1.0-rc.7](tree/geomesa-1.1.0-rc.7) for the last compatible version.
 
 ### Installation
 
-To install, simply unzip `<module>/target/geomesa-<mdodule>-gs-plugin-<version>-install.zip`
+To install, simply extract `<module>/target/geomesa-<mdodule>-gs-plugin-<version>-install.tar.gz`
 into GeoServer's WEB-INF/lib directory.
 
 ### Environment Specific Jars

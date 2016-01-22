@@ -58,28 +58,28 @@
             <artifactId>geomesa-accumulo-gs-plugin</artifactId>
             <classifier>install</classifier>
             <version>${project.version}</version>
-            <type>zip</type>
+            <type>tar.gz</type>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-blobstore-gs-plugin</artifactId>
             <classifier>install</classifier>
             <version>${project.version}</version>
-            <type>zip</type>
+            <type>tar.gz</type>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-kafka-gs-plugin</artifactId>
             <classifier>install</classifier>
             <version>${project.version}</version>
-            <type>zip</type>
+            <type>tar.gz</type>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-stream-gs-plugin</artifactId>
             <classifier>install</classifier>
             <version>${project.version}</version>
-            <type>zip</type>
+            <type>tar.gz</type>
         </dependency>
 
         <!-- Web Services -->
@@ -92,7 +92,7 @@
             <artifactId>geomesa-web-data</artifactId>
             <classifier>install</classifier>
             <version>${project.version}</version>
-            <type>zip</type>
+            <type>tar.gz</type>
         </dependency>
     </dependencies>
 
@@ -105,7 +105,7 @@
                     <artifactId>geomesa-bigtable-gs-plugin</artifactId>
                     <classifier>install</classifier>
                     <version>${project.version}</version>
-                    <type>zip</type>
+                    <type>tar.gz</type>
                 </dependency>
             </dependencies>
         </profile>
