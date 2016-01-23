@@ -16,6 +16,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.convert.Transformers._
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -81,6 +82,25 @@ object SimpleFeatureConverters {
       }.toList
     }
   }
+
+  case class TypeAndConverter(sft: SimpleFeatureType, simpleFeatureConverter: SimpleFeatureConverter[_])
+  lazy val sftMap: Map[String, TypeAndConverter] = {
+    val configs = ConfigFactory.load("geomesa-data")
+    if(configs.hasPath("geomesa.converters")) {
+      val defs = configs.getConfig("geomesa.converters")
+      defs.root().keySet().flatMap { k =>
+        Try {
+          val sft = SimpleFeatureTypes.createType(defs.getConfig(k))
+          val conv = build(sft, defs.getConfig(s"$k.converter"))
+          (k, TypeAndConverter(sft, conv))
+        }.toOption
+      }.toMap
+    } else Map.empty[String, TypeAndConverter]
+  }
+
+  def listTypes = sftMap.keys
+  def sftForName (n: String) = sftMap.get(n).map(_.sft)
+  def convForName(n: String) = sftMap.get(n).map(_.simpleFeatureConverter)
 
   def build[I](sft: SimpleFeatureType, conf: Config, path: Option[String] = None) = {
     val converterConfig =
