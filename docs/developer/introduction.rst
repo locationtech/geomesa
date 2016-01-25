@@ -6,6 +6,8 @@ Using Maven
 
 The GeoMesa project uses `Apache Maven <https://maven.apache.org/>`_ as a build tool. The Maven project's `Maven in 5 Minutes <https://maven.apache.org/guides/getting-started/maven-in-five-minutes.html>`_ provides a quick introduction to getting started with its `mvn` executable.
 
+.. _building_from_source:
+
 Building from Source
 --------------------
 

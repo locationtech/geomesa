@@ -67,20 +67,17 @@ and untar it somewhere convenient.
     $ ls
     dist/  docs/  LICENSE.txt  README.md
 
-.. _building_source:
-
 Building from Source
 --------------------
 
-GeoMesa may also be built from source. For more information refer to the
-**GeoMesa Developer Manual**, or to the ``README.md`` file in the the
+GeoMesa may also be built from source. For more information refer to :ref:`building_from_source`
+in the :doc:`/developer/index`, or to the ``README.md`` file in the the
 source distribution. The remainder of the instructions in this chapter assume
 the use of the binary GeoMesa distribution. If you have built from source, the
 distribution is created in the ``geomesa-dist/target`` directory as a part of
 the build process.
 
-More information about developing with GeoMesa may be found in the 
-**GeoMesa Developer Manual**. 
+More information about developing with GeoMesa may be found in :doc:`/developer/index`.
 
 .. _setting_up_commandline:
 
@@ -158,6 +155,7 @@ Test the GeoMesa Tools:
         deletecatalog    Delete a GeoMesa catalog completely (and all features in it)
         deleteraster     Delete a GeoMesa Raster Table
         describe         Describe the attributes of a given feature in GeoMesa
+        env              Examine the current GeoMesa environment
         explain          Explain how a GeoMesa query will be executed
         export           Export a GeoMesa feature
         getsft           Get the SimpleFeatureType of a feature
@@ -165,7 +163,7 @@ Test the GeoMesa Tools:
         ingest           Ingest a file of various formats into GeoMesa
         ingestraster     Ingest a raster file or raster files in a directory into GeoMesa
         list             List GeoMesa features for a given catalog
-        querystats       Export queries and statistics about the last X number of queries to a CSV file.
+        queryrasterstats Export queries and statistics about the last X number of queries to a CSV file.
         removeschema     Remove a schema and associated features from a GeoMesa catalog
         tableconf        Perform table configuration operations
         version          GeoMesa Version
@@ -193,14 +191,58 @@ Installing the Accumulo distributed runtime library
 ---------------------------------------------------
 
 The ``geomesa-$VERSION/dist/accumulo`` directory contains the distributed
-runtime jar that should be copied into the ``$ACCUMULO_HOME/lib/ext`` folder on
-each tablet server. This jar contains the GeoMesa Accumulo iterators that are
-necessary to query GeoMesa.
+runtime JAR that contains server-side code for Accumulo that must be made
+available on each of the Accumulo tablet servers in the cluster. This JAR
+contains GeoMesa code and the Accumulo iterator required for querying 
+GeoMesa data.
+
+The version of the distributed runtime JAR must match the version of the GeoMesa
+data store client JAR (usually installed in GeoServer, see below). If not,
+queries might not work correctly (or at all).
+
+For Accumulo 1.5
+^^^^^^^^^^^^^^^^
+
+The runtime JAR should be copied into the ``$ACCUMULO_HOME/lib/ext`` folder on
+each tablet server. 
 
 .. code-block:: bash
 
     # something like this for each tablet server
     $ scp geomesa-$VERSION/dist/accumulo/geomesa-accumulo-distributed-runtime-$VERSION.jar tserver1:$ACCUMULO_HOME/lib/ext
+
+.. note::
+
+    You do not need the JAR on the Accumulo master server, and including
+    it there may cause classpath issues later.
+
+For Accumulo 1.6+
+^^^^^^^^^^^^^^^^^
+
+Copying the runtime JAR to each tablet server as for Accumulo 1.5 above will
+still work, but in Accumulo 1.6, we can leverage namespaces to isolate the
+GeoMesa classpath from the rest of Accumulo. First, you have to create the
+namespace in the Accumulo shell:
+
+.. code::
+
+    $ accumulo shell -u root
+    > createnamespace myNamespace
+    > grant NameSpace.CREATE_TABLE -ns myNamespace -u myUser
+    > config -s general.vfs.context.classpath.myNamespace=hdfs://NAME_NODE_FDQN:8020/accumulo/classpath/myNamespace/[^.]
+    > config -ns myNamespace -s table.classpath.context=myNamespace
+
+Then copy the distributed runtime jar into HDFS under the path you specified.
+The path above is just an example; you can included nested folders with project
+names, version numbers, etc. in order to have different versions of GeoMesa on
+the same Accumulo instance. You should remove any GeoMesa JARs under
+``$ACCUMULO_HOME/lib/ext`` to prevent any classpath conflicts.
+
+.. note::
+
+    When connecting to a data store using Accumulo namespaces, you must prefix
+    the ``tableName`` parameter with the namespace. For example, refer to the 
+    ``my_catalog`` table as ``myNamespace.my_catalog``.
 
 .. _install_geoserver_plugins:
 
@@ -229,24 +271,24 @@ For Accumulo
 ^^^^^^^^^^^^
 
 To install the GeoMesa Accumulo GeoServer plugin, unpack the contents of the
-``geomesa-accumulo-gs-plugin-$VERSION.zip`` file in ``geomesa-$VERSION/dist/gs-plugins`` 
+``geomesa-accumulo-gs-plugin-$VERSION.tar.gz`` file in ``geomesa-$VERSION/dist/gs-plugins`` 
 into your GeoServer's ``lib`` directory (``$VERSION`` = |release|):
 
 If you are using Tomcat:
 
 .. code-block:: bash
 
-    $ unzip \
-      geomesa-$VERSION/dist/gs-plugins/geomesa-accumulo-gs-plugin-$VERSION-install.zip \
-      -d /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
+    $ tar -xzvf \
+      geomesa-$VERSION/dist/gs-plugins/geomesa-accumulo-gs-plugin-$VERSION-install.tar.gz \
+      -C /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
 
 If you are using GeoServer's built in Jetty web server:
 
 .. code-block:: bash
 
-    $ unzip \
-      geomesa-$VERSION/dist/gs-plugins/geomesa-accumulo-gs-plugin-$VERSION-install.zip \
-      -d /path/to/geoserver/webapps/geoserver/WEB-INF/lib/
+    $ tar -xzvf \
+      geomesa-$VERSION/dist/gs-plugins/geomesa-accumulo-gs-plugin-$VERSION-install.tar.gz \
+      -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib/
 
 There are additional JARs for Accumulo, Zookeeper, Hadoop, and Thrift that will
 be specific to your installation that you will also need to copy to GeoServer's
@@ -297,35 +339,28 @@ Zookeeper 3.4.5, Hadoop 2.2.0 and Thrift 0.9.1):
 * Thrift
     * libthrift-0.9.1.jar
     
-There are also GeoServer JARs that may need to be updated for Accumulo (also in the ``lib`` directory):
-    
-* **commons-configuration**: Accumulo requires commons-configuration 1.6 and previous versions should be replaced [`commons-configuration-1.6.jar <https://search.maven.org/remotecontent?filepath=commons-configuration/commons-configuration/1.6/commons-configuration-1.6.jar>`_]
-* **commons-lang**: GeoServer ships with commons-lang 2.1, but Accumulo requires replacing that with version 2.4 [`commons-lang-2.4.jar <https://search.maven.org/remotecontent?filepath=commons-lang/commons-lang/2.4/commons-lang-2.4.jar>`_]
-
-After placing the dependencies in the correct folder, be sure to restart GeoServer for changes to take place.
-
 For Kafka
 ^^^^^^^^^
 
 To install the GeoMesa Kafka GeoServer plugin, unpack the contents of the
-``geomesa-kafka-gs-plugin-$VERSION.zip`` file in ``geomesa-$VERSION/dist/gs-plugins`` 
+``geomesa-kafka-gs-plugin-$VERSION.tar.gz`` file in ``geomesa-$VERSION/dist/gs-plugins`` 
 into your GeoServer's ``lib`` directory (``$VERSION`` = |release|):
 
 If you are using Tomcat:
 
 .. code-block:: bash
 
-    $ unzip \
+    $ tar -xzvf \
       geomesa-$VERSION/dist/gs-plugins/geomesa-kafka-gs-plugin-$VERSION-install.zip \
-      -d /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
+      -C /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
 
 If you are using GeoServer's built in Jetty web server:
 
 .. code-block:: bash
 
-    $ unzip \
+    $ tar -xzvf \
       geomesa-$VERSION/dist/gs-plugins/geomesa-kafka-gs-plugin-$VERSION-install.zip \
-      -d /path/to/geoserver/webapps/geoserver/WEB-INF/lib/
+      -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib/
 
 Then copy these dependencies (or the equivalents for your Kafka installation) to
 your ``WEB-INF/lib`` directory.

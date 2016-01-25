@@ -29,7 +29,7 @@ There are many reasons that GeoMesa can provide the best solution to your spatio
 * Your analytics operate in the cloud—perhaps your analytics run in Spark and you want to enable spatial analytics.
 * You are looking for a supported open-source alternative to expensive proprietary solutions.
 * You are looking for a Platform as a Service (PaaS) Database where you can store Big Spatial Data.
-* Filter data using the rich Common Query Language defined by the OGC.
+* You want to filter data using the rich Common Query Language (CQL) defined by the OGC.
 
 Community and Support
 ---------------------
@@ -45,7 +45,7 @@ The GeoMesa website may be found at http://www.geomesa.org/. For additional info
 
 |locationtech-icon|
 
-GeoMesa is a member of the `LocationTech <http://www.locationtech.org>`_ working group of the Eclipse Foundation.
+GeoMesa is a member of the `LocationTech <http://www.locationtech.org/projects/technology.geomesa>`_ working group of the Eclipse Foundation.
 
 License
 -------

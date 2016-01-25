@@ -68,7 +68,7 @@ rst_epilog = """
 
 .. |release_source_tarball| replace:: https://github.com/locationtech/geomesa/archive/%(release)s.tar.gz
 
-.. |development| replace:: 1.2.0-SNAPSHOT
+.. |development| replace:: 1.3.0-SNAPSHOT
 
 .. |release_1_1| replace:: %(release_1_1)s
 

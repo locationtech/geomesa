@@ -1,0 +1,83 @@
+<style>
+table {
+    border-collapse: collapse;
+}
+td {
+    text-align: center;
+    border: solid 1px;
+    padding: 0.5em;
+    margin: 0px;
+}
+td.label {
+    font-weight: bold;
+}
+td.label-key {
+    background: #99bb55
+}
+td.label-row {
+    background: #99cc77
+}
+td.value-row {
+    background: #ccffaa
+}
+td.label-column {
+    background: #77aaaa
+}
+td.label-column-family, td.label-column-qual {
+    background: #99ccee
+}
+td.value-column-family, td.value-column-qual {
+    background: #bbeeff
+}
+td.label-timestamp {
+    background: #ffffff
+}
+td.label-viz {
+    background: #ee9999
+}
+td.value-viz {
+    background: #ffaaaa
+}
+td.label-value, td.value-value {
+    background: #ffcc99
+}
+td.value-value {
+    background: #ffddaa
+}
+td.value {
+    border: solid 4px;
+}
+span.bytes {
+    font-style: italic;
+}
+span.classname {
+    font-weight: bold;
+}
+</style>
+
+<table>
+    <tr>
+        <td colspan="7" class="label label-key">KEY</td>
+        <td colspan="1" class="label label-value">VALUE</td>
+    </tr>
+    <tr>
+        <td colspan="3" rowspan="2" class="label label-row">ROW</td>
+        <td colspan="2" rowspan="1" class="label label-column">COLUMN</td>
+        <td colspan="1" rowspan="2" class="label label-timestamp">TIMESTAMP</td>
+        <td colspan="1" rowspan="2" class="label label-viz">VIZ</td>
+        <td colspan="1" rowspan="3" class="value value-value">Byte-encoded<br /><span class="classname">SimpleFeature</span></td>
+    </tr>
+    <tr>
+        <td class="label label-column-family">COLUMN<br />FAMILY</td>
+        <td class="label label-column-qual">COLUMN<br />QUALIFIER</td>
+    </tr>
+    <tr>
+        <td class="value value-row">Epoch Week<br /><span class="bytes">2 bytes</span></td>
+        <td class="value value-row"><span class="classname">Z3(x,y,t)</span><br /><span class="bytes">8 bytes</span></td>
+        <td class="value value-row">Unique ID<br />(such as UUID)</td>
+        <td class="value value-column-family">"F"</td>
+        <td class="value value-column-qual">-</td>
+        <td class="value value-timestamp">-</td>
+        <td class="value value-viz">Security tags</td>
+    </tr>
+</table>

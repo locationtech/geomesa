@@ -1,7 +1,7 @@
 Architecture Overview
 =====================
 
-For scalability, GeoMesa is built on technologies that can use Apache Hadoop. This includes data stores such as Accumulo, HBase, and Google Cloud Bigtable, as well as the Apache Kafka message broker for streaming data. Apache Storm lets you define information sources and manipulations to allow batch distributed processing of streaming data with GeoMesa, and a GeoMesa environment can also take advantage of Apache Spark to do large-scale analytics of stored and streaming data.
+GeoMesa supports several scalable, cloud-based data storage technologies, including Apache Accumulo, Apache HBase, and Google Cloud Bigtable, as well as the Apache Kafka message broker for streaming data. Apache Storm lets you define information sources and manipulations to allow batch distributed processing of streaming data with GeoMesa, and a GeoMesa environment can also take advantage of Apache Spark to do large-scale analytics of stored and streaming data.
 
 .. image:: _static/img/GMHadoopInfrastructure.png
    :align: center
@@ -32,7 +32,7 @@ GeoMesa implements `GeoTools <http://geotools.org/>`_ interfaces to provide HTTP
 * `Web Processing Service (WPS) <http://www.opengeospatial.org/standards/wps>`_
 * `Web Coverage Service (WCS) <http://www.opengeospatial.org/standards/wcs>`_
 
-For ingest, we recommend using Apache Storm. The following diagram shows one possible ingest architecture:
+Multiple frameworks may be used for streaming and batch ingestion of data. These include the GeoMesa command line tools, map-reduce jobs with Apache Hadoop, and real-time topologies running on Apache Storm. The following diagram shows one possible ingest architecture:
 
 .. image:: _static/img/sampleIngestArch.png
    :scale: 75%
@@ -75,9 +75,8 @@ The basic principle of GeoMesa’s index is to represent the three dimensions of
 
 The actual key structure is more complex than a simple key-value pair. Below is a more detailed representation of GeoMesa's index in Accumulo: 
 
-.. image:: _static/img/GM_Index.png
-   :scale: 50%
-   :align: center
+.. raw:: html
+   :file: _static/accumulo-key.html
 
 Note the  Z3 encoding in the Key section and the `Simple Feature <https://en.wikipedia.org/wiki/Simple_Features>`_ (a spatial record) in the Value section. The structure of this key can be adjusted depending on the data, but this is the default. 
 
