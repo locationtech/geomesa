@@ -20,10 +20,7 @@ implementations should have their classname registered in `META-INF/services/org
 
 ## REST api
 
-The RESTful api for the Blobstore can be easily utilized via cURL as so:
-
-Before we can do anything we must first register a blob store. This typically only needs to be run once in the lifetime
-of the webserver, so if the server is shutdown or restarted the registration call will need to be repeated.
+The RESTful api for the Blobstore can be easily utilized via cURL.
  
 To Register a GeoMesa Blob Store: 
 
