@@ -334,14 +334,21 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
 
   def parseTransform(s: String): Expr = {
     logger.trace(s"Parsing transform $s")
-    parse(TransformerParser.transformExpr, s).get
+    parse(TransformerParser.transformExpr, s) match {
+      case Success(r, _) => r
+      case Failure(e, _) => throw new IllegalArgumentException(s"Error parsing expression '$s': $e")
+      case Error(e, _)   => throw new RuntimeException(s"Error parsing expression '$s': $e")
+    }
   }
 
   def parsePred(s: String): Predicate = {
     logger.trace(s"Parsing predicate $s")
-    parse(TransformerParser.pred, s).get
+    parse(TransformerParser.pred, s) match {
+      case Success(p, _) => p
+      case Failure(e, _) => throw new IllegalArgumentException(s"Error parsing predicate '$s': $e")
+      case Error(e, _)   => throw new RuntimeException(s"Error parsing predicate '$s': $e")
+    }
   }
-
 }
 
 object TransformerFn {
@@ -578,13 +585,5 @@ class CastFunctionFactory extends TransformerFunctionFactory {
       return default
     }
     try { conversion(s) } catch { case e: Exception => default }
-  }
-}
-
-class OpFunctionFactory extends TransformerFunctionFactory {
-  override def functions = Seq(tri)
-
-  val tri = TransformerFn("try", "Try") {
-    args =>
   }
 }

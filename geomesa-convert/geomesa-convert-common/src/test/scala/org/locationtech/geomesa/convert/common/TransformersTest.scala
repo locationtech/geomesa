@@ -513,6 +513,18 @@ class TransformersTest extends Specification {
           exp.eval(Array("", "foo", "foo", "f", "oo")) must beTrue
         }
       }
+
+      "support cql functions" >> {
+        "buffer" >> {
+          val exp = Transformers.parseTransform("cql:buffer($1, $2)")
+          val buf = exp.eval(Array(null, "POINT(1 1)", 2.0))
+          buf must beAnInstanceOf[Polygon]
+          buf.asInstanceOf[Polygon].getCentroid.getX must beCloseTo(1, 0.0001)
+          buf.asInstanceOf[Polygon].getCentroid.getY must beCloseTo(1, 0.0001)
+          // note: area is not particularly close as there aren't very many points in the polygon
+          buf.asInstanceOf[Polygon].getArea must beCloseTo(math.Pi * 4.0, 0.2)
+        }
+      }
     }
 
     import scala.collection.JavaConversions._
