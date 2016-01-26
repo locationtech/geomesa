@@ -2,7 +2,7 @@ geomesa-raster
 ==============
 
 About
------
+~~~~~
 
 The Raster support in GeoMesa is currently limited in scope and has a
 few important caveats that are noted here.
@@ -14,13 +14,13 @@ have disjoint extents. Currently only single band images are supported.
 Sharding is not currently used to spread the table across the cluster.
 
 Ingest
-------
+~~~~~~
 
 Currently ingest is accomplished by using the ``ingestraster`` command
 in the GeoMesa command line tools. See the tools README for usage.
 
 GeoServer
----------
+~~~~~~~~~
 
 The GeoMesa-GeoServer plugin contains the GeoMesaCoverageFormat which is
 used via the GeoServer UI to create a store for GeoMesa Raster table.
@@ -29,7 +29,7 @@ Currently the Plugin is biased to grab tiles at a finer spatial
 resolution than the wms query window, and will down-sample the mosaic.
 
 Building Instructions
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 If you wish to build this project separately, you can with mvn clean
 install

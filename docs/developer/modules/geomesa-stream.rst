@@ -18,7 +18,7 @@ Modules
 -  ``geomesa-stream-api`` - the stream source and processing APIs
 -  ``geomesa-stream-generic`` - definition of the Camel generic source
 -  ``geomesa-stream-datastore`` - ``DataStore`` implementation
--  ``geomesa-geoserver-plugin`` - GeoServer hooks for stream sources
+-  ``geomesa-gs-plugin`` - GeoServer hooks for stream sources
 
 Usage
 -----
@@ -79,7 +79,7 @@ on new ``SimpleFeatures``, use a ``StreamListener``:
     ds.asInstanceOf[org.locationtech.geomesa.stream.datastore.StreamDataStore].registerListener(listener)
 
 UDP
----
+~~~
 
 The generic source can be used with UDP as well, although there are some
 caveats:

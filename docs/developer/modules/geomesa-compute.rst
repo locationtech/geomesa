@@ -8,14 +8,14 @@ data using Apache Spark. To instantiate a ``RDD[SimpleFeature]``, call
 ``GeoMesaSpark.init(sparkConf, ds)`` on one of your data stores. Then,
 request a ``RDD`` using a CQL filter as follows:
 
-.. code-block:: scala
+.. code:: scala
 
     geomesa.compute.spark.GeoMesaSpark.rdd(hadoopConf, sparkContext, ds, query)
 
 The following example demonstrates computing a time series across
 geospatial data within the constraints of a CQL query.
 
-.. code-block:: scala
+.. code:: scala
 
     object CountByDay {
       def main(args: Array[String]) {
@@ -66,15 +66,15 @@ geospatial data within the constraints of a CQL query.
 
 To run the example, execute the following command:
 
-.. code-block:: shell
+.. code:: shell
 
     $ /opt/spark/bin/spark-submit --master yarn-client --num-executors 40 --executor-cores 4  countbyday.jar --deploy-mode client --class com.mycompany.example.CountByDay
 
 Spark Shell Execution
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 To run the spark shell (for spark version 1.1.0) compile and run:
 
-.. code-block:: shell
+::
 
-    $ bin/spark-shell --driver-class-path /path/to/geomesa-compute-accumulo1.5-1.0.0-rc.3-SNAPSHOT-shaded.jar
+    bin/spark-shell --driver-class-path /path/to/geomesa-compute-accumulo1.5-1.0.0-rc.3-SNAPSHOT-shaded.jar

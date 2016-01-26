@@ -4,7 +4,7 @@ geomesa-jobs
 ============
 
 Building Instructions
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 This project contains map/reduce and scalding jobs for maintaining
 GeoMesa.
@@ -16,7 +16,7 @@ If you wish to build this project separately, you can with maven:
     geomesa> mvn clean install -pl geomesa-jobs
 
 GeoMesa Input and Output Formats
---------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 GeoMesa provides input and output formats that can be used in Hadoop
 map/reduce jobs. The input/output formats can be used directly in Scala,
@@ -70,7 +70,7 @@ exist in GeoMesa, it will be created for you. You may write different
 catalog table.
 
 Map/Reduce Jobs
----------------
+~~~~~~~~~~~~~~~
 
 To facilitate running jobs, you may wish to build a shaded jar that
 contains all the required dependencies. Ensure that the pom references
@@ -85,51 +85,8 @@ The following instructions assume you have built a shaded jar; if not
 you will need to use the 'libjars' argument to ensure the correct jars
 are available on the distributed classpath.
 
-Analytic Histograms
--------------------
-
-GeoMesa provides the ability to analyze your data through histograms.
-
-The job can be invoked through yarn as follows (jar version may vary
-slightly):
-
-.. code:: shell
-
-    geomesa> yarn jar geomesa-jobs/target/geomesa-jobs-1.0.0-shaded.jar \
-        com.twitter.scalding.Tool \
-        org.locationtech.geomesa.jobs.analytics.HistogramJob \
-        --hdfs \
-        --geomesa.input.instanceId <instance> \
-        --geomesa.input.zookeepers <zookeepers> \
-        --geomesa.input.user <user> \
-        --geomesa.input.password <pwd> \
-        --geomesa.input.tableName <catalog-table> \
-        --geomesa.input.feature <feature> \
-        --geomesa.input.transform <attribute transforms - space separated> \ # optional
-        --geomesa.hist.write.to.accumulo <true/false> \ #optional
-        --geomesa.hist.attribute <attribute to histogram> \
-        --geomesa.hist.file.out <hdfs path to write results> \
-        --geomesa.hist.group.attributes <additional attributes that will be used to group the results - space separated> \ # optional
-        --geomesa.hist.unique.attributes <additional attributes that will be used to filter the results - space separated> \ # optional
-        --geomesa.input.cql <cql filter>
-
-(Note that if you did not build with the 'assemble' profile, you will
-also need to include an extensive -libjars argument with all dependent
-jars)
-
-For more advanced use-cases, you can transform the attributes before
-grouping or histogramming:
-
-.. code:: shell
-
-        --geomesa.input.transform "name=strSubstring(name, 0, 2)" "age"
-
-This example will histogram the first two characters of the 'name'
-attribute. Note that you will need to include every attribute that you
-are histogramming or grouping by in the transform list.
-
 Attribute Indexing
-------------------
+^^^^^^^^^^^^^^^^^^
 
 GeoMesa provides indexing on attributes to improve certain queries. You
 can indicate attributes that should be indexed when you create your
@@ -143,9 +100,7 @@ slightly):
 .. code:: shell
 
     geomesa> yarn jar geomesa-jobs/target/geomesa-jobs-1.0.0-shaded.jar \
-        com.twitter.scalding.Tool \
         org.locationtech.geomesa.jobs.index.AttributeIndexJob \
-        --hdfs \
         --geomesa.input.instanceId <instance> \
         --geomesa.input.zookeepers <zookeepers> \
         --geomesa.input.user <user> \
@@ -159,40 +114,11 @@ slightly):
 also need to include an extensive -libjars argument with all dependent
 jars)
 
-Transitioning Indices
-^^^^^^^^^^^^^^^^^^^^^
-
-Between 1.0.0.rc4 and 1.0.0.rc5, incompatible schema changes were made.
-If you have data in the old format, but would like to update to the new
-version, you may use the SortedIndexUpdateJob. After running this job,
-your data in will in the 1.0.0.rc5 format - to further update to the
-latest geomesa version, run the SchemaCopyJob as described below.
-
-The job can be invoked through yarn as follows (jar version may vary
-slightly):
-
-.. code:: shell
-
-    yarn jar geomesa-jobs/target/geomesa-jobs-1.0.0-shaded.jar \
-        com.twitter.scalding.Tool \
-        org.locationtech.geomesa.jobs.index.SortedIndexUpdateJob \
-        --hdfs \
-        --geomesa.input.instanceId <instance> \
-        --geomesa.input.zookeepers <zookeepers> \
-        --geomesa.input.user <user> \
-        --geomesa.input.password <pwd> \
-        --geomesa.input.tableName <catalog-table> \
-        --geomesa.input.feature <feature>
-
-(Note that if you did not build with the 'assemble' profile, you will
-also need to include an extensive -libjars argument with all dependent
-jars)
-
 Updating Existing Data to the Latest Index Format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 GeoMesa is constantly improving our indexing. We strive to maintain
-backwards compatibility, but old data can't always take advantage of the
+backwards comaptiblity, but old data can't always take advantage of the
 improvements we make. However, old data can be updated through the
 SchemaCopyJob. This will copy it to a new table (or feature name),
 rewriting all the data using the latest codebase. Once the data is
@@ -205,9 +131,7 @@ slightly):
 .. code:: shell
 
     yarn jar geomesa-jobs/target/geomesa-jobs-1.0.0-shaded.jar \
-        com.twitter.scalding.Tool \
         org.locationtech.geomesa.jobs.index.SchemaCopyJob \
-        --hdfs \
         --geomesa.input.instanceId <instance> \
         --geomesa.output.instanceId <instance> \
         --geomesa.input.zookeepers <zookeepers> \
