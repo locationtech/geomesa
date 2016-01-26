@@ -22,7 +22,7 @@ implementations should have their classname registered in `META-INF/services/org
 
 The RESTful api for the Blobstore can be easily utilized via cURL.
  
-To Register a GeoMesa Blob Store: 
+To Register a GeoMesa Blob Store to an alias (in this case myBlobStore): 
 
 ```bash
 curl -d 'instanceId=myCloud' -d 'zookeepers=zoo1,zoo2,zoo3' -d 'tableName=myBlobStore' -d 'user=user' -d 'password=password' http://localhost:8080/geoserver/geomesa/blobstore/ds/myBlobStore
@@ -39,25 +39,25 @@ Other Blob Store Commands:
 To ingest a file:
 
 ```bash
-curl -X POST -F file=@filename.whatever http://localhost:8080/geoserver/geomesa/blobstore/blob
+curl -X POST -F file=@filename.whatever http://localhost:8080/geoserver/geomesa/blobstore/blob/:alias
 ```
 
 To GET a file with the original filename preserved via id, run:  
 
 ```bash  
-curl -JO http://localhost:8080/geoserver/geomesa/blobstore/blob/some-id
+curl -JO http://localhost:8080/geoserver/geomesa/blobstore/blob/:alias/some-id/
 ```  
 
 The Blobstore servlet also has optional GZip support which can be used by adding the `--compressed` cURL parameter.  
 
 ```bash  
-curl --compressed -JO http://localhost:8080/geoserver/geomesa/blobstore/blob/some-id
+curl --compressed -JO http://localhost:8080/geoserver/geomesa/blobstore/blob/:alias/some-id
 ```  
 
 To DELETE a file from the blobstore, you must do so by id:
 
 ```bash
-curl -X "DELETE" http://localhost:8080/geoserver/geomesa/blobstore/blob/some-id   
+curl -X "DELETE" http://localhost:8080/geoserver/geomesa/blobstore/blob/:alias/some-id   
 ```
 
 ## Servlet Configuration Options

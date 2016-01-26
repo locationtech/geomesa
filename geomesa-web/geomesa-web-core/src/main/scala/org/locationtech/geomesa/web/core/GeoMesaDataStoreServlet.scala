@@ -13,7 +13,7 @@ import org.scalatra.{BadRequest, Ok}
 
 import scala.collection.JavaConversions._
 
-trait GeoMesaDataStoreServlet extends GeoMesaBaseDataStoreServlet {
+trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
 
   /**
    * Registers a data store, making it available for later use

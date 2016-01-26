@@ -33,7 +33,7 @@ object BlobStoreFileHandler {
 
 trait AbstractFileHandler extends FileHandler with BlobStoreFileName {
   val builderLocal: ThreadLocal[SimpleFeatureBuilder] = new ThreadLocal[SimpleFeatureBuilder] {
-    override def initialValue(): SimpleFeatureBuilder = new SimpleFeatureBuilder(sft).featureUserData(Hints.USE_PROVIDED_FID, java.lang.Boolean.valueOf("true"))
+    override def initialValue(): SimpleFeatureBuilder = new SimpleFeatureBuilder(sft).featureUserData(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
   }
 
   val featureIdGenerator = new Z3FeatureIdGenerator

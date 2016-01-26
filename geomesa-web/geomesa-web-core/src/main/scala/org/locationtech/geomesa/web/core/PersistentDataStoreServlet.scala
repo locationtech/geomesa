@@ -10,7 +10,7 @@ package org.locationtech.geomesa.web.core
 
 import org.locationtech.geomesa.utils.cache.FilePersistence
 
-trait GeoMesaBaseDataStoreServlet extends GeoMesaScalatraServlet {
+trait PersistentDataStoreServlet extends GeoMesaScalatraServlet {
   def persistence: FilePersistence
 
   override def datastoreParams: Map[String, String] = {
