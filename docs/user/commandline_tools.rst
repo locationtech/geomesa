@@ -1,12 +1,9 @@
 Command Line Tools
 ==================
 
-Overview
---------
-
-GeoMesa Tools is a set of command line tools to add feature management
-functions, query planning and explanation, ingest, and export abilities from
-the command line.  
+This chapter describes GeoMesa Tools, a set of command line tools for feature
+management, query planning and explanation, ingest, and export from
+the command line.
 
 Installation
 ------------
@@ -66,9 +63,9 @@ run ``geomesa help <command-name>``, which for example will give you something l
            Zookeepers (host[:port], comma separated)
 
 The Accumulo username and password is required for each command. Specify the
-username and password in each command by using `-u`/`--username` and `-p`/
-`--password`, respectively. One can also only specify the username on the
-command line using `-u` or `--username` and type the password in an additional
+username and password in each command by using ``-u`` (or ``--username``) and ``-p`` (or
+``--password``), respectively. One can also only specify the username on the
+command line using ``-u`` or ``--username`` and type the password in an additional
 prompt, where the password will be hidden from the shell history.
 
 A test script is included under ``geomesa-tools-$VERSION/bin/test-geomesa`` that runs each
@@ -77,8 +74,8 @@ username, password, test catalog table, test feature name, and test SFT
 specification. Default values are already included in the script. Then, run the
 script from the command line to ensure there are no errors in the output text. 
 
-In nearly all commands below, one can add `--instance-name`, `--zookeepers`,
-`--auths`, and `--visibilities` (or in short form `-i`, `-z`, `-a`, and `-v`) arguments
+In nearly all commands below, one can add ``--instance-name``, ``--zookeepers``,
+``--auths``, and ``--visibilities`` (or in short form ``-i``, ``-z``, ``-a``, and ``-v``) arguments
 to properly configure the Accumulo data store connector. The Accumulo instance
 name and Zookeepers string can usually be automatically assigned as long as
 Accumulo is configured correctly. The Auths and Visibilities strings will have
@@ -238,7 +235,7 @@ The following commands can ingest the file::
       -c geomesa_catalog -i instance \
       -s renegades -C renegades-csv hdfs:///some/hdfs/path/to/example1.csv
 
-For more documentation on converter configuration, refer to the the ``geomesa-$VERSION/docs/convert/README.md`` file
+For more documentation on converter configuration, refer to the the ``geomesa-$VERSION/docs/README-convert.md`` file
 in the binary distribution.
 
 Shape files may also be ingested::

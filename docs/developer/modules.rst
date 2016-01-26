@@ -1,6 +1,9 @@
 Modules
 -------
 
+This chapter describes particular modules of the GeoMesa source
+distribution in more detail.
+
 .. toctree::
 
    modules/geomesa-compute

@@ -1,8 +1,12 @@
 Examples
 ========
 
-Feature Management
-------------------
+This chapter provides hands-on examples of some
+common tasks in GeoMesa, including managing registered feature types
+in a data store, ingesting data, and exporting data in a variety of formats.
+
+Feature Type Management
+-----------------------
 
 Creating a feature type
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -29,7 +33,7 @@ Run the command:
     $ geomesa create -u <username> -p <password> \
     -c cmd_tutorial \
     -f feature \
-    -s id:String:index=true,dtg:Date,geom:Point:srid=4326 \
+    -s fid:String:index=true,dtg:Date,geom:Point:srid=4326 \
     -dtg dtg
 
 This will create a new feature type, named "feature", on the GeoMesa
@@ -42,8 +46,8 @@ the following:
 
 .. code:: bash
 
-    Creating 'cmd_tutorial_feature' with spec 'id:String:index=true,dtg:Date,geom:Point:srid=4326'. Just a few moments...
-    Feature 'cmd_tutorial_feature' with spec 'id:String:index=true,dtg:Date,geom:Point:srid=4326' successfully created.
+    Creating 'cmd_tutorial_feature' with spec 'fid:String:index=true,dtg:Date,geom:Point:srid=4326'. Just a few moments...
+    Feature 'cmd_tutorial_feature' with spec 'fid:String:index=true,dtg:Date,geom:Point:srid=4326' successfully created.
 
 Now that you've seen how to create feature types, create another feature
 type on catalog table "cmd\_tutorial" using your own first name for the
@@ -71,6 +75,7 @@ The output text should be something like:
     Listing features on 'cmd_tutorial'. Just a few moments...
     2 features exist on 'cmd_tutorial'. They are:
     feature
+    gdelt
 
 Finding the attributes of a feature type
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -93,7 +98,7 @@ The output should look like:
 .. code:: bash
 
     Describing attributes of feature 'cmd_tutorial_feature'. Just a few moments...
-    id: String (Indexed)
+    fid: String (Indexed)
     dtg: Date (Time-index)
     geom: Point (Geo-index)
 

@@ -1,76 +1,105 @@
 GeoMesa GeoServer Plugins
 =========================
 
-Background
-----------
-
-When you install the GeoMesa plugins for GeoServer, you get access to the
-GeoMesa User Interface. The GeoMesa UI shows the status of your GeoMesa
-data stores and will eventually provide additional features such as the
-ability to build indices on your data and calculate statistics on your common
-queries.
+A straightforward way to render, manipulate, and manage data stored
+in GeoMesa data stores is to use `GeoServer <http://www.geoserver.org/>`_,
+an open source server for sharing geospatial data. This chapter describes
+how to work with the GeoMesa GeoServer plugins.
 
 Instructions for installing the GeoMesa plugins in GeoServer are
 available at :ref:`install_geoserver_plugins`.
 
-Access to the User Interface
-----------------------------
+Go to your GeoServer installation at ``http://<hostname>:8080/geoserver``.
+For new installations of GeoServer, the default username is ``admin`` and
+password is ``geoserver``, but these may be different at your own installation.
 
-You can reach the GeoServer main screen by sending a browser to
-``http://127.0.0.1:8080/geoserver`` and logging in with a username of ``admin``
-and a password of  ``geoserver``. (This URL and password are default values and
-may be different at your own installation.) 
+Register a New Accumulo Data Store
+----------------------------------
 
-Once you have installed the GeoMesa plugin, the GeoServer administration interface will include a GeoMesa menu on the sidebar:
+From the main GeoServer page, create a new store by either clicking
+"Add stores" in the middle of the **Welcome** page, or anywhere in the
+interface by clicking "Data > Stores" in the left-hand menu and then
+clicking "Add new Store".
 
-.. figure:: _static/img/geoserver-menu.png
-   :alt: "GeoMesa Menu"
+The list of data store types GeoServer knows should be listed. If you
+have properly installed the GeoMesa Accumulo GeoServer plugin as described
+in :ref:`install_geoserver_plugins`, "Accumulo (GeoMesa)"
+should be included in the list under **Vector Data Sources**. If you do not
+see this, ensure the plugin is in the right directory and restart GeoServer.
 
-Data Store Summary
-------------------
+.. image:: _static/img/geoserver-geomesa-accumulo-data-source.png
+   :scale: 75%
+   :align: center
 
-Any GeoMesa data stores that you have added to GeoServer can be examined
-on the Data Stores page. The top of that page has a table listing
-all of your GeoMesa data stores. Underneath that are two charts.
-The first shows the number of records in your different
-features, and the second displays the progress of any ingestion currently in progress.
+When you click on "Accumulo (GeoMesa)", several configuration
+parameters are available, as listed in the table below:
 
-.. note::
+==================== =======================================================================================
+Parameter            Description
+==================== =======================================================================================
+Workspace *          The GeoServer workspace in which the data store will be placed
+Data Source Name *   The name of the data source (should not contain spaces)
+Description          A human readable version of the data
+instanceId *         The instance ID of the Accumulo installation
+zookeepers *         A comma separated list of zookeeper servers (e.g. "zoo1,zoo2,zoo3" or "localhost:2181")
+user *               Accumulo username
+Password *           Accumulo password
+tableName *          The name of the GeoMesa catalog table
+auths                Comma-delimited superset of authorizations that will be used for queries via Accumulo.
+visibilities         Accumulo visibilities to apply to all written data
+queryTimeout         The max time (in sec) a query will be allowed to run before being killed
+queryThreads         The number of threads to use per query
+recordThreads        The number of threads to use for record retrieval
+writeThreads         The number of threads to use for writing records
+collectStats         Toggle collection of statistics
+caching              Toggle caching of results
+==================== =======================================================================================
 
-    In order for the ingest chart to display, the Accumulo monitor must be running and the
-    configuration page must have the correct address for the monitor (see below).
+The required parameters are marked with an asterisk.
 
-Further down the page, GeoServer displays statistics on each feature. This
-shows the different tables used to store the feature in Accumulo, the number
-of tablets per table, and the total number of entries. Clicking the 'Feature
-Attributes' link displays a list of all the attributes for the feature shows
-whether they are indexed for querying.
+Click "Save", and GeoServer will search your Accumulo table for any
+GeoMesa-managed feature types.
 
-.. figure:: _static/img/geoserver-datastores.png
-   :alt: "Hadoop Status"
+.. Sections for Kafka, HBase, Bigtable plugins
 
-Configuration
--------------
+Publish a GeoMesa Layer
+-----------------------
 
-To use certain UI features you'll need to first set the appropriate
-properties on the configuration page. Most of these properties
-correspond to Hadoop properties, and they can be copied from your hadoop
-configuration files. You can enter them by hand, or you can upload your
-hadoop configuration files directly to the page. To do this, use the
-'Load from XML' button.
+After a GeoMesa data store is successfully created, GeoServer will present a list
+of feature types registered in that data store. Click "Publish" next to the
+name of a feature type to create a layer of the data in GeoMesa of that type.
 
-.. figure:: _static/img/geoserver-config.png
-   :alt: "GeoMesa Configuration"
+You will be taken to the **Edit Layer** screen. To render your layer, you need
+to set values for the bounding boxes. In the "Data" pane, enter values for the
+bounding boxes. In many cases, you can click on the "Compute from native bounds"
+link to computer these values from the data.
 
-Hadoop Status
--------------
+.. image:: _static/img/geoserver-layer-bounding-box.png
+   :align: center
 
-Once the configuration is done, you can monitor the Hadoop cluster
-status on the Hadoop Status page. Here you can see the load on your
-cluster and any currently running jobs.
+Click on the "Save" button when you are done.
 
-.. figure:: _static/img/geoserver-hadoop-status.png
-   :alt: "Hadoop Status"
+Preview a Layer
+---------------
+
+Click on the "Layer Preview" link in the left-hand menu. Once you see your layer,
+click on the "OpenLayers" link, which will open a new tab. If you have ingested
+data into GeoMesa, it will be displayed here.
+
+If the data you have ingested is a set of latitude/longitude points, click on
+one of the points in the display (rendered by default as red squares), and GeoServer
+will report detailed records stored in the GeoMesa store in the region underneath
+the map area.
+
+Click on the "Toggle options toolbar" icon in the upper-left corner
+of the preview window. The right-hand side of the screen will include
+a "Filter" text box. Enter a search query on the attributes of the feature type
+of the data you have ingested, and press on the "play" icon. The display will now
+show only those points matching your filter criterion.
+
+This is a CQL filter, which can be constructed in various ways to query data. You can
+find more information about CQL from `GeoServer's CQL
+tutorial <http://docs.geoserver.org/latest/en/user/tutorials/cql/cql_tutorial.html>`__.
 
 Analysis with WPS
 -----------------

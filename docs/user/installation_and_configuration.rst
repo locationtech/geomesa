@@ -1,6 +1,11 @@
 Installation and Configuration
 ==============================
 
+This chapter describes how to install and configure GeoMesa.
+This includes installation of the Accumulo and Kafka data
+stores, and installation and configuration of the GeoServer
+plugins.
+
 Prerequisites and Platform
 --------------------------
 
@@ -267,6 +272,17 @@ instance. The GeoServer WPS Plugin (available at
 http://docs.geoserver.org/stable/en/user/extensions/wps/install.html) must match the version of
 GeoServer instance. This is needed for both the Accumulo and Kafka variants of the plugin.
 
+.. note::
+
+    If using Tomcat as a web server, it will most likely be necessary to
+    pass some custom options:
+
+    ``export CATALINA_OPTS="-Xmx8g -XX:MaxPermSize=512M -Duser.timezone=UTC -server -Djava.awt.headless=true"``
+
+    The value of ``-Xmx`` should be as large as your system will permit; this
+    is especially important for the Kafka plugin. You
+    should also consider passing ``-DGEOWEBCACHE_CACHE_DIR=/tmp/$USER-gwc -DEPSG-HSQL.directory=/tmp/$USER-hsql`` to the server. Be sure to restart Tomcat for changes to take place.
+
 For Accumulo
 ^^^^^^^^^^^^
 
@@ -299,8 +315,12 @@ that match the version of Hadoop you are running.
 There is a script in the ``geomesa-tools-$VERSION`` directory
 (``$GEOMESA_HOME/bin/install-hadoop-accumulo.sh``) which will install these
 dependencies to a target directory using ``wget`` (requires an internet
-connection). You may have to edit this file to set the versions of Accumulo,
-Zookeeper, Hadoop, and Thrift you are running.
+connection).
+
+.. note::
+
+    You may have to edit the ``install-hadoop-accumulo.sh`` script to set the
+    versions of Accumulo, Zookeeper, Hadoop, and Thrift you are running.
 
 .. code-block:: bash
 
@@ -317,28 +337,40 @@ Zookeeper, Hadoop, and Thrift you are running.
     ...
 
 If you do no have an internet connection you can download the JARs manually via http://search.maven.org/.
-These may include the JARs below; the specific JARs are included only for reference (assuming Accumulo 1.6.2,
-Zookeeper 3.4.5, Hadoop 2.2.0 and Thrift 0.9.1):
+These may include the JARs below; the specific JARs needed for some common configurations are listed below:
 
-* Accumulo
-    * accumulo-core-1.6.2.jar
-    * accumulo-fate-1.6.2.jar
-    * accumulo-trace-1.6.2.jar
-* Zookeeper
-    * zookeeper-3.4.5.jar
-* Hadoop
-    * hadoop-auth-2.2.0.jar
-    * hadoop-client-2.2.0.jar
-    * hadoop-common-2.2.0.jar
-    * hadoop-hdfs-2.2.0.jar
-    * hadoop-mapreduce-client-app-2.2.0.jar
-    * hadoop-mapreduce-client-common-2.2.0.jar
-    * hadoop-mapreduce-client-core-2.2.0.jar
-    * hadoop-mapreduce-client-jobclient-2.2.0.jar
-    * hadoop-mapreduce-client-shuffle-2.2.0.jar
-* Thrift
-    * libthrift-0.9.1.jar
-    
+Accumulo 1.5
+
+* accumulo-core-1.5.3.jar
+* accumulo-fate-1.5.3.jar
+* accumulo-start-1.5.3.jar
+* accumulo-trace-1.5.3.jar
+* libthrift-0.9.0.jar
+* zookeeper-3.3.6.jar
+
+Accumulo 1.6
+
+* accumulo-core-1.6.4.jar
+* accumulo-fate-1.6.4.jar
+* accumulo-server-base-1.6.4.jar
+* accumulo-trace.1.6.4.jar
+* libthrift-0.9.1.jar
+* zookeeper-3.4.6.jar
+
+Hadoop 2.2
+
+* commons-configuration-1.6.jar
+* hadoop-auth-2.2.0.jar
+* hadoop-common-2.2.0.jar
+* hadoop-hdfs-2.2.0.jar
+
+Hadoop 2.4
+
+* commons-configuration-1.6.jar
+* hadoop-auth-2.4.0.jar
+* hadoop-common-2.4.0.jar
+* hadoop-hdfs-2.4.0.jar
+
 For Kafka
 ^^^^^^^^^
 
@@ -371,15 +403,7 @@ your ``WEB-INF/lib`` directory.
     * metrics-core-2.2.0.jar
     * zkclient-0.3.jar
 * Zookeeper
-    * zookeeper-3.4.5.jar
-
-Note: when using the Kafka Data Store with GeoServer in Tomcat it will most likely be necessary to increase the memory settings for Tomcat:
-
-.. code-block:: bash
-
-    export CATALINA_OPTS="-Xms512M -Xmx1024M -XX:PermSize=256m -XX:MaxPermSize=256m"
-
-After placing the dependencies in the correct folder, be sure to restart GeoServer for changes to take place.
+    * zookeeper-3.4.6.jar
 
 Upgrading
 ---------

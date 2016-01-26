@@ -31,31 +31,11 @@ enables us to express these transformations easily and succinctly.
 Prerequisites
 -------------
 
-.. raw:: html
+.. warning::
 
-   <div class="callout callout-warning">
+    You will need access to a Hadoop |hadoop_version| installation as well as an Accumulo |accumulo_version| database.
 
-::
-
-    <span class="glyphicon glyphicon-exclamation-sign"></span>
-    You will need access to a Hadoop 2.2 installation as well as an Accumulo |accumulo_version| database.
-
-.. raw:: html
-
-   </div>
-
-.. raw:: html
-
-   <div class="callout callout-warning">
-
-::
-
-    <span class="glyphicon glyphicon-exclamation-sign"></span>
-    You will need to have ingested GDELT data using GeoMesa. Instructions are available <a href="/geomesa-gdelt-analysis/">here</a>.
-
-.. raw:: html
-
-   </div>
+    You will need to have ingested GDELT data using GeoMesa. Instructions are available in :doc:`geomesa-gdelt-analysis`.
 
 You will also need:
 
@@ -77,8 +57,7 @@ Clone the geomesa project and build it, if you haven't already:
     $ mvn clean install
 
 This is needed to install the GeoMesa JAR files in your local Maven
-repository. For more information see the `GeoMesa Accumulo Quick
-Start </geomesa-quickstart/>`__ tutorial.
+repository. For more information see the :doc:`../developer/index`.
 
 The code in this tutorial is written in
 `Scala <http://scala-lang.org/>`__, as is much of GeoMesa itself. Many
@@ -95,8 +74,7 @@ Count Events by Day of Year
 ---------------------------
 
 You will need to have ingested some
-`GDELT <http://www.gdeltproject.org/>`__ data as described in the `GDELT
-Map-Reduce tutorial <http://www.geomesa.org/geomesa-gdelt-analysis/>`__.
+`GDELT <http://www.gdeltproject.org/>`__ data as described in :doc:`geomesa-gdelt-analysis`.
 First, we get a handle to a GeoMesa data store and construct a CQL query
 for our bounding box.
 
@@ -189,6 +167,3 @@ Then, group by grid cell and count the number of features per cell.
 The resulting density plot is visualized below.
 
 .. figure:: _static/img/tutorials/2014-08-05-spark/gdelt-global-density.png
-   :alt: "Registering new Data Store"
-
-   "Registering new Data Store"

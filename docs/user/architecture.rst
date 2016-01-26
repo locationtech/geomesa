@@ -16,7 +16,7 @@ GeoMesa's GeoServer plugins let GeoServer work with data stored using GeoMesa ta
 
 If an application already uses GeoServer, integration with GeoMesa is simply a matter of adding a new datastore to GeoServer and updating the application’s configuration.
 
-.. image:: _static/img/GeoServer-Integration.png
+.. image:: _static/img/geoserver-geomesa-accumulo-data-source.png
    :scale: 75%
    :align: center
 

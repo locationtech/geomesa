@@ -1,6 +1,9 @@
 GeoMesa Development
 ===================
 
+This chapter describes how to build GeoMesa from source, and provides an
+overview for writing your own Java or Scala software that makes use of GeoMesa.
+
 Using Maven
 -----------
 
@@ -74,7 +77,9 @@ Using the Scala Console
 -----------------------
 
 To test and interact with core functionality, the Scala console can be invoked in a couple of ways. For example, by
-running this command in the root source directory:  
+running this command in the root source directory:
+
+.. code-block:: bash
 
     $ cd geomesa-accumulo
     $ mvn -pl geomesa-accumulo-datastore scala:console

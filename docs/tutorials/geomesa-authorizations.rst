@@ -445,7 +445,7 @@ use PKI login, we need to install it in Tomcat instead.
 .. code-block:: bash
 
     cd $CATALINA_HOME/bin
-    echo 'CATALINA_OPTS="-Xmx2g -XX:MaxPermSize=128m"' >> setenv.sh
+    echo 'CATALINA_OPTS="-Xmx6g -XX:MaxPermSize=512m -Djava.awt.headless=true"' >> setenv.sh
 
 6. Start Tomcat, either as a service or through the startup scripts, and
    ensure that GeoServer is available at http://localhost:8080/geoserver/web/.
