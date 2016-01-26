@@ -10,9 +10,8 @@ package org.locationtech.geomesa.convert
 
 import java.io.{Closeable, InputStream}
 import java.nio.charset.StandardCharsets
-import javax.imageio.spi.ServiceRegistry
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.convert.Transformers._
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -35,6 +34,7 @@ object StandardOptions {
   val Validating = "options.validating"
   val LineMode   = "options.line-mode"
 }
+
 trait SimpleFeatureConverterFactory[I] {
 
   def canProcess(conf: Config): Boolean
@@ -59,39 +59,6 @@ trait SimpleFeatureConverterFactory[I] {
       true
     }
 
-}
-
-object SimpleFeatureConverters {
-
-  import org.locationtech.geomesa.utils.conf.ConfConversions._
-
-  val ConfigPathProperty = "org.locationtech.geomesa.converter.config.path"
-
-  val providers = ServiceRegistry.lookupProviders(classOf[SimpleFeatureConverterFactory[_]]).toList
-
-  lazy val confs: List[(String, Config)] = {
-    val config = ConfigFactory.load()
-    val path = sys.props.getOrElse(ConfigPathProperty, "geomesa.converters")
-    if (!config.hasPath(path)) {
-      List.empty
-    } else {
-      config.getConfigList(path).map { c =>
-        val name = c.getStringOpt("name").orElse(c.getStringOpt("type").map(t => s"unknown[$t]")).getOrElse("unknown")
-        (name, c)
-      }.toList
-    }
-  }
-
-  def build[I](sft: SimpleFeatureType, conf: Config, path: Option[String] = None) = {
-    val converterConfig =
-      (path.toSeq ++ Seq("converter", "input-converter"))
-        .foldLeft(conf)( (c, p) => c.getConfigOpt(p).map(c.withFallback).getOrElse(c))
-
-    providers
-      .find(_.canProcess(converterConfig))
-      .map(_.buildConverter(sft, converterConfig).asInstanceOf[SimpleFeatureConverter[I]])
-      .getOrElse(throw new IllegalArgumentException(s"Cannot find factory for ${sft.getTypeName}"))
-  }
 }
 
 trait SimpleFeatureConverter[I] extends Closeable {

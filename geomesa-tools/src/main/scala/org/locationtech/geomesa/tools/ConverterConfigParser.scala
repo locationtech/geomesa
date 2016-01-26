@@ -13,7 +13,7 @@ import java.io.File
 import com.beust.jcommander.ParameterException
 import com.typesafe.config.{Config, ConfigFactory, ConfigParseOptions}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.convert.SimpleFeatureConverters
+import org.locationtech.geomesa.convert.ConverterConfigLoader
 
 import scala.util.{Failure, Success, Try}
 
@@ -44,7 +44,7 @@ object ConverterConfigParser extends LazyLogging {
       .getOrElse(throw new ParameterException(s"Unable to parse Converter config from argument $configArg"))
 
   private[ConverterConfigParser] def getLoadedConf(configArg: String): Option[Config] = {
-    val ret = SimpleFeatureConverters.confs.find(_._1 == configArg).map(_._2)
+    val ret = ConverterConfigLoader.confs.find(_._1 == configArg).map(_._2)
     ret
   }
 
