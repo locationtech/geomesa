@@ -5,6 +5,7 @@
 * which accompanies this distribution and is available at
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
+
 package org.locationtech.geomesa.convert
 
 import java.net.URL
