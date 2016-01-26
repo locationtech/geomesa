@@ -12,15 +12,15 @@ Prerequisites
 
 .. warning::
 
-    You will need access to a Hadoop 2.2 installation as well as an Accumulo |accumulo_version| database.
+    You will need access to a Hadoop |hadoop_version| installation as well as an Accumulo |accumulo_version| database.
 
 You will also need:
 
 -  access to an Accumulo user that has both create-table and write
    permissions,
--  an instance of GeoServer 2.5.2 with the GeoMesa plugin installed,
+-  an instance of GeoServer |geoserver_version| with the GeoMesa plugin installed,
 -  Java JDK 7,
--  `Apache Maven <http://maven.apache.org/>`__ 3.2.2 or better, and
+-  `Apache Maven <http://maven.apache.org/>`__ |maven_version|, and
 -  a `git <http://git-scm.com/>`__ client.
 
 Ingest
