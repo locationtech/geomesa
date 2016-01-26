@@ -10,10 +10,10 @@ package org.locationtech.geomesa.convert
 
 import java.net.URL
 import java.util
-import javax.imageio.spi.ServiceRegistry
 import java.util.{List => JList}
+import javax.imageio.spi.ServiceRegistry
 
-import com.typesafe.config.{ConfigRenderOptions, Config, ConfigFactory, ConfigParseOptions}
+import com.typesafe.config.{Config, ConfigFactory, ConfigParseOptions, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
 
 import scala.collection.JavaConversions._
@@ -96,8 +96,8 @@ class URLConfigProvider extends ConverterConfigProvider with GeoMesaConvertParse
   // Will also pick things up from the SystemProperties
   def configURLs: Seq[URL] = {
     val config = ConfigFactory.load(parseOpts)
-    if (config.hasPath(ConfigURLProp)) {
-      config.getAnyRef(ConfigURLProp) match {
+    if (config.hasPath(ConverterConfigURLs)) {
+      config.getAnyRef(ConverterConfigURLs) match {
         case s: String          => s.split(',').map(_.trim).map(new URL(_))
         case lst: JList[String] => lst.map(new URL(_))
       }
@@ -109,5 +109,5 @@ class URLConfigProvider extends ConverterConfigProvider with GeoMesaConvertParse
 }
 
 object URLConfigProvider {
-  val ConfigURLProp = "geomesa.convert.config.urls"
+  val ConverterConfigURLs = "geomesa.convert.config.urls"
 }

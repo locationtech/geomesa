@@ -76,7 +76,7 @@ class URLConfigProviderTest extends Specification {
       try {
         jetty.start()
         val port = jetty.getConnectors()(0).getLocalPort
-        System.setProperty(URLConfigProvider.ConfigURLProp, s"http://localhost:$port/")
+        System.setProperty(URLConfigProvider.ConverterConfigURLs, s"http://localhost:$port/")
         System.setProperty(URLSftProvider.SftConfigURLs, s"http://localhost:$port/")
 
         val configOpt = ConverterConfigLoader.configForName("example-csv-fromtesturl")

@@ -10,6 +10,7 @@ package org.locationtech.geomesa.utils.geotools
 
 import java.net.URL
 import java.util
+import java.util.{List => JList}
 import javax.imageio.spi.ServiceRegistry
 
 import com.typesafe.config.{Config, ConfigFactory, ConfigParseOptions, ConfigRenderOptions}
@@ -52,13 +53,15 @@ trait ConfigSftParsing extends LazyLogging {
     if (!config.hasPath(ConfigSftParsing.path)) {
       return List.empty[SimpleFeatureType]
     }
-    config.getConfigList(ConfigSftParsing.path).flatMap { sft =>
+    config.getConfigList(ConfigSftParsing.path).flatMap { sftConf =>
       try {
-        Some(SimpleFeatureTypes.createType(sft, None))
+        val sft = SimpleFeatureTypes.createType(sftConf, None)
+        logger.info(s"Loaded SimpleFeatureType ${sft.getTypeName} from config")
+        Some(sft)
       } catch {
         case e: Exception =>
           logger.error("Error loading simple feature type from config " +
-            s"${sft.root().render(ConfigRenderOptions.concise())}", e)
+            s"${sftConf.root().render(ConfigRenderOptions.concise())}", e)
           None
       }
     }.asJava
@@ -77,6 +80,7 @@ class ClassPathSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsi
 }
 
 class URLSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {
+  import URLSftProvider._
   override def loadTypes(): util.List[SimpleFeatureType] = {
     configURLs
       .map(ConfigFactory.parseURL)
@@ -88,11 +92,10 @@ class URLSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {
   // Will also pick things up from the SystemProperties
   def configURLs: Seq[URL] = {
     val config = ConfigFactory.load(parseOpts)
-    if (config.hasPath(URLSftProvider.SftConfigURLs)) {
-      config.getAnyRef(URLSftProvider.SftConfigURLs) match {
-        case s:String => s.split(',').map(s => s.trim).toList.map(new URL(_))
-        case strList if classOf[java.util.List[String]].isAssignableFrom(strList.getClass) =>
-          strList.asInstanceOf[java.util.List[String]].map(new URL(_))
+    if (config.hasPath(SftConfigURLs)) {
+      config.getAnyRef(SftConfigURLs) match {
+        case s: String          => s.split(',').map(s => s.trim).toList.map(new URL(_))
+        case lst: JList[String] => lst.map(new URL(_))
       }
     } else {
       Seq.empty[URL]
