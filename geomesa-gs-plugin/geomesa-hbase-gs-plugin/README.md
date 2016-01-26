@@ -3,6 +3,14 @@
 The HBase GeoServer plugin is a shaded jar that contains HBase 1.0. To change HBase versions,
 you would need to update the pom and re-build this module.
 
+### Build Instructions
+
+To build this module, use the `hbase` maven profile:
+
+```bash
+$ mvn clean install -Phbase
+```
+
 ### Installation Instructions
 
 After building, extract `target/geomesa-hbase-gs-plugin-<version>-install.tar.gz` into GeoServer's
