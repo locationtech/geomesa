@@ -11,8 +11,10 @@ package org.locationtech.geomesa.convert
 import java.net.URL
 import java.util
 import javax.imageio.spi.ServiceRegistry
+import java.util.{List => JList}
 
-import com.typesafe.config.{Config, ConfigFactory, ConfigParseOptions}
+import com.typesafe.config.{ConfigRenderOptions, Config, ConfigFactory, ConfigParseOptions}
+import com.typesafe.scalalogging.LazyLogging
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -20,13 +22,13 @@ import scala.collection.JavaConverters._
 
 object ConverterConfigLoader {
 
-  val ConfigPathProperty = "org.locationtech.geomesa.converter.config.path"
-  val path = sys.props.getOrElse(ConfigPathProperty, "geomesa.converters")
-
+  val ConfigPathProperty: String = "org.locationtech.geomesa.converter.config.path"
   private val configProviders = ServiceRegistry.lookupProviders(classOf[ConverterConfigProvider]).toList
 
+  def path: String = sys.props.getOrElse(ConfigPathProperty, "geomesa.converters")
+
   // this is intentionally a method to allow reloading by the providers
-  def confs = configProviders.map(_.loadConfigs).reduce( _ ++ _).toMap
+  def confs: Map[String, Config] = configProviders.map(_.loadConfigs).reduce( _ ++ _).toMap
 
   // Public API
   def listConverterNames: List[String] = confs.keys.toList
@@ -36,7 +38,7 @@ object ConverterConfigLoader {
   // Rebase a config to to the converter root...allows standalone
   // configurations to start with "converter", "input-converter"
   // or optional other prefix string
-  def rebaseConfig(conf: Config, path: Option[String] = None) = {
+  def rebaseConfig(conf: Config, path: Option[String] = None): Config = {
     import org.locationtech.geomesa.utils.conf.ConfConversions._
     (path.toSeq ++ Seq("converter", "input-converter"))
       .foldLeft(conf)( (c, p) => c.getConfigOpt(p).map(c.withFallback).getOrElse(c))
@@ -44,10 +46,9 @@ object ConverterConfigLoader {
 
 }
 
-trait GeoMesaConvertParser {
-  import org.locationtech.geomesa.utils.conf.ConfConversions._
+trait GeoMesaConvertParser extends LazyLogging {
   // Important to setAllowMissing to false bc else you'll get a config but it will be empty
-  val parseOpts =
+  protected val parseOpts =
     ConfigParseOptions.defaults()
       .setAllowMissing(false)
       .setClassLoader(null)
@@ -55,13 +56,19 @@ trait GeoMesaConvertParser {
       .setOriginDescription(null)
       .setSyntax(null)
 
-  def parseConf(config: Config) = {
+  def parseConf(config: Config): Map[String, Config] = {
     if (!config.hasPath(ConverterConfigLoader.path)) {
       Map.empty[String, Config]
     } else {
-      config.getConfigList(ConverterConfigLoader.path).map { c =>
-        val name = c.getStringOpt("name").orElse(c.getStringOpt("type").map(t => s"unknown[$t]")).getOrElse("unknown")
-        name -> c
+      config.getConfigList(ConverterConfigLoader.path).flatMap { c =>
+        if (c.hasPath("name")) {
+          val name = c.getString("name")
+          logger.info(s"Found converter config '$name'")
+          Some(name -> c)
+        } else {
+          logger.error(s"Converter config has no name...skipping ${c.root().render(ConfigRenderOptions.concise())}")
+          None
+        }
       }.toMap[String, Config]
     }
   }
@@ -77,6 +84,8 @@ class ClassPathConfigProvider extends ConverterConfigProvider with GeoMesaConver
 
 /** Load Config from URLs */
 class URLConfigProvider extends ConverterConfigProvider with GeoMesaConvertParser {
+  import URLConfigProvider._
+
   override def loadConfigs(): util.Map[String, Config] =
     configURLs
       .map(ConfigFactory.parseURL)
@@ -87,11 +96,10 @@ class URLConfigProvider extends ConverterConfigProvider with GeoMesaConvertParse
   // Will also pick things up from the SystemProperties
   def configURLs: Seq[URL] = {
     val config = ConfigFactory.load(parseOpts)
-    if (config.hasPath(URLConfigProvider.ConfigURLProp)) {
-      config.getAnyRef(URLConfigProvider.ConfigURLProp) match {
-        case s:String => s.split(',').map(s => s.trim).toList.map(new URL(_))
-        case strList if classOf[java.util.List[String]].isAssignableFrom(strList.getClass) =>
-          strList.asInstanceOf[java.util.List[String]].map(new URL(_))
+    if (config.hasPath(ConfigURLProp)) {
+      config.getAnyRef(ConfigURLProp) match {
+        case s: String          => s.split(',').map(_.trim).map(new URL(_))
+        case lst: JList[String] => lst.map(new URL(_))
       }
     } else {
       Seq.empty[URL]
