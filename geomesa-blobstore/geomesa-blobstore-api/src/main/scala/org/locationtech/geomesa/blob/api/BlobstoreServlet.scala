@@ -142,9 +142,13 @@ class BlobstoreServlet(val persistence: FilePersistence)
     val alias = params("alias")
     val prefix = keyFor(alias)
     try {
-      blobStores.get(alias).foreach(_.delete())
       persistence.removeAll(persistence.keys(prefix).toSeq)
-      Ok()
+      blobStores.remove(alias) match {
+        case None      =>
+          handleBadRequest(s"Error removing data store '$alias'")
+        case Some(abs) =>
+          Ok()
+      }
     } catch {
       case e: Exception => handleError(s"Error removing data store '$alias':", e)
     }
