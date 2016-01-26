@@ -30,6 +30,7 @@ import org.locationtech.geomesa.utils.geotools.SftBuilder
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
+import scala.util.control.NonFatal
 
 class AccumuloBlobStore(ds: AccumuloDataStore) extends LazyLogging with BlobStoreFileName {
 
@@ -76,6 +77,15 @@ class AccumuloBlobStore(ds: AccumuloDataStore) extends LazyLogging with BlobStor
       ret
     } else {
       (Array.empty[Byte], "")
+    }
+  }
+
+  def delete(): Unit = {
+    try {
+      tableOps.delete(blobTableName)
+      ds.delete()
+    } catch {
+      case NonFatal(e) => logger.error("Error when deleting BlobStore", e)
     }
   }
 

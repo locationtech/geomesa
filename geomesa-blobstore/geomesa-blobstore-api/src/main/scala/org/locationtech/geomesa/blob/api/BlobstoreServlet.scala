@@ -136,12 +136,13 @@ class BlobstoreServlet(val persistence: FilePersistence)
   }
 
   /**
-    * Remove the reference to an existing data store
+    * Remove the reference to an existing data store and removes tables
     */
   delete("/ds/:alias/?") {
     val alias = params("alias")
     val prefix = keyFor(alias)
     try {
+      blobStores.get(alias).foreach(_.delete())
       persistence.removeAll(persistence.keys(prefix).toSeq)
       Ok()
     } catch {
