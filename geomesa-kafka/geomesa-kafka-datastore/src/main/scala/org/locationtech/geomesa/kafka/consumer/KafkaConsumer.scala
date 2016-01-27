@@ -261,10 +261,11 @@ case class KafkaConsumer[K, V](topic: String,
     private val topic = tap.topic
     private val partition = tap.partition
     private val stopped = new AtomicBoolean(false)
+    private def scheduleRun(): Unit = executor.schedule(this, fetchBackoff, TimeUnit.MILLISECONDS)
 
     def stop(): Unit = stopped.set(true)
 
-    override def run(): Unit = {
+    override def run(): Unit = try {
       if (stopped.get()) {
         return
       }
@@ -273,7 +274,7 @@ case class KafkaConsumer[K, V](topic: String,
       response match {
         case Success(messages) =>
           if (messages.isEmpty) {
-            executor.schedule(this, fetchBackoff, TimeUnit.MILLISECONDS)
+            scheduleRun()
           } else {
             val consumed = new AtomicLong(-1)
             val fetched = new AtomicLong(messages.last.offset)
@@ -288,8 +289,15 @@ case class KafkaConsumer[K, V](topic: String,
         case Failure(e) =>
           logger.warn("Fetching thread received error", e)
           consumer.disconnect()
-          executor.schedule(this, fetchBackoff, TimeUnit.MILLISECONDS)
+          scheduleRun()
       }
+    } catch {
+      case e: Exception =>
+        logger.warn("Fetching thread threw exception", e)
+        try { consumer.disconnect() } catch {
+          case e: Exception => logger.warn("Fetching thread threw exception trying to disconnect from consumer", e)
+        }
+        scheduleRun()
     }
   }
 }
@@ -411,14 +419,17 @@ object KafkaConsumer extends LazyLogging {
  */
 case class WrappedConsumer(var consumer: SimpleConsumer, tap: TopicAndPartition, config: ConsumerConfig) {
 
+  private var isConnected = false
+
   def connect(): Unit =
-    if (consumer == null) {
+    if (!isConnected) {
       consumer = KafkaConsumer.reCreateConsumer(consumer, tap, config)
+      isConnected = true
     }
 
   def disconnect(): Unit =
-    if (consumer != null) {
+    if (isConnected) {
       consumer.close()
-      consumer = null
+      isConnected = false
     }
 }

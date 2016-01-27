@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.utils.conf
 
+import java.util
+
 import com.typesafe.config.Config
 
 object ConfConversions {
@@ -28,7 +30,10 @@ object ConfConversions {
     def getDoubleOpt(path: String): Option[Double] =
       if (base.hasPath(path)) Some(base.getDouble(path)) else None
 
-    def getConfigOpt(path: String) : Option[Config] =
+    def getConfigOpt(path: String): Option[Config] =
       if (base.hasPath(path)) Some(base.getConfig(path)) else None
+
+    def getStringListOpt(path: String): Option[java.util.List[String]] =
+      if (base.hasPath(path)) Some(base.getStringList(path)) else None
   }
 }

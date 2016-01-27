@@ -111,15 +111,16 @@ class DensityProcess extends VectorProcess {
     val pixelSize = if (argOutputEnv.getWidth <= 0) 0 else  argOutputWidth / argOutputEnv.getWidth
     val queryBuffer: Double = radiusPixels / pixelSize
     val filter = targetQuery.getFilter.accept(new BBOXExpandingFilterVisitor(queryBuffer), null).asInstanceOf[Filter]
-    targetQuery.setFilter(filter)
-    targetQuery.setProperties(null)
-    targetQuery.getHints.put(QueryHints.DENSITY_BBOX_KEY, argOutputEnv)
-    targetQuery.getHints.put(QueryHints.WIDTH_KEY, argOutputWidth)
-    targetQuery.getHints.put(QueryHints.HEIGHT_KEY, argOutputHeight)
+    val invertedQuery = new Query(targetQuery)
+    invertedQuery.setFilter(filter)
+    invertedQuery.setProperties(null)
+    invertedQuery.getHints.put(QueryHints.DENSITY_BBOX_KEY, argOutputEnv)
+    invertedQuery.getHints.put(QueryHints.WIDTH_KEY, argOutputWidth)
+    invertedQuery.getHints.put(QueryHints.HEIGHT_KEY, argOutputHeight)
     if (argWeightAttr != null) {
-      targetQuery.getHints.put(QueryHints.DENSITY_WEIGHT, argWeightAttr)
+      invertedQuery.getHints.put(QueryHints.DENSITY_WEIGHT, argWeightAttr)
     }
-    targetQuery
+    invertedQuery
   }
 }
 

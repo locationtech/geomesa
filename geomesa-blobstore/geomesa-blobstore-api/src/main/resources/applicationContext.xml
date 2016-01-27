@@ -3,5 +3,40 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="blobStoreServlet" class="org.locationtech.geomesa.blob.api.BlobstoreServlet"/>
+    <bean id="blobStoreServlet" class="org.locationtech.geomesa.blob.api.BlobstoreServlet">
+        <constructor-arg index="0" ref="blobStoreDataPersistence"/>
+    </bean>
+
+    <bean name="blobStoreDataPersistence" class="org.locationtech.geomesa.utils.cache.FilePersistence">
+        <constructor-arg index="0" ref="blobStoreConfigDir"/>
+        <constructor-arg index="1" value="geomesa-blobstore"/>
+    </bean>
+
+    <bean id="blobStoreServletContext" class="org.springframework.web.context.support.ServletContextFactoryBean"/>
+
+    <bean id="blobStoreGeoserverDataDirStr" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetClass" value="org.geoserver.platform.GeoServerResourceLoader"/>
+        <property name="targetMethod" value="lookupGeoServerDataDirectory"/>
+        <property name="arguments">
+            <list>
+                <ref bean="blobStoreServletContext"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="blobStoreGeoserverDataDir" class="org.geoserver.config.GeoServerDataDirectory">
+        <constructor-arg index="0" ref="blobStoreGeoserverDataDirStr"/>
+    </bean>
+
+    <bean id="blobStoreConfigDir" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetObject">
+            <ref local="blobStoreGeoserverDataDir"/>
+        </property>
+        <property name="targetMethod" value="findOrCreateDir"/>
+        <property name="arguments">
+            <list>
+                <value type="java.lang.String">geomesa-blobstore-config</value>
+            </list>
+        </property>
+    </bean>
 </beans>

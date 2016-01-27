@@ -22,6 +22,7 @@ import org.joda.time.Period
 import org.joda.time.format.PeriodFormatterBuilder
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
+import org.locationtech.geomesa.convert.Transformers.DefaultCounter
 import org.locationtech.geomesa.utils.classpath.PathUtils
 import org.locationtech.geomesa.utils.stats.CountingInputStream
 import org.opengis.feature.simple.SimpleFeatureType
@@ -68,20 +69,13 @@ class ConverterIngest(dsParams: Map[String, String],
 
   private def runLocal(): Unit = {
 
-    // Global success/failure shared between threads
-    val (success, failure) = (new AtomicLong(0), new AtomicLong(0))
-    class LocalIngestCounter extends org.locationtech.geomesa.convert.Transformers.Counter {
-      override def incSuccess(i: Long): Unit = success.getAndAdd(i)
-      override def getSuccess: Long          = success.get()
+    // Global failure shared between threads
+    val (written, failed) = (new AtomicLong(0), new AtomicLong(0))
 
-      override def incFailure(i: Long): Unit = failure.getAndAdd(i)
-      override def getFailure: Long          = failure.get()
-
-      // Line counts are local to file not global
-      private var c: Long = 0
-      override def incLineCount(i: Long = 1) = c += i
-      override def getLineCount: Long        = c
-      override def setLineCount(i: Long)     = c = i
+    class LocalIngestCounter extends DefaultCounter {
+      // keep track of failure at a global level, keep line counts and success local
+      override def incFailure(i: Long): Unit = failed.getAndAdd(i)
+      override def getFailure: Long          = failed.get()
     }
 
     val bytesRead = new AtomicLong(0L)
@@ -104,8 +98,11 @@ class ConverterIngest(dsParams: Map[String, String],
               toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
               try {
                 fw.write()
+                written.incrementAndGet()
               } catch {
-                case e: Exception => logger.error(s"Failed to write '${DataUtilities.encodeFeature(toWrite)}'", e)
+                case e: Exception =>
+                  logger.error(s"Failed to write '${DataUtilities.encodeFeature(toWrite)}'", e)
+                  failed.incrementAndGet()
               }
               bytesRead.addAndGet(countingStream.getCount)
               countingStream.resetCount()
@@ -137,12 +134,12 @@ class ConverterIngest(dsParams: Map[String, String],
 
     while (!es.isTerminated) {
       Thread.sleep(1000)
-      statusCallback(progress(), start, success.get(), failure.get(), false)
+      statusCallback(progress(), start, written.get(), failed.get(), false)
     }
-    statusCallback(progress(), start, success.get(), failure.get(), true)
+    statusCallback(progress(), start, written.get(), failed.get(), true)
 
     logger.info(s"Local ingestion complete in ${getTime(start)}")
-    logger.info(getStatInfo(success.get, failure.get))
+    logger.info(getStatInfo(written.get, failed.get))
   }
 
   private def runDistributed(): Unit = {

@@ -12,10 +12,10 @@ geomesa> mvn clean install -pl geomesa-web/geomesa-web-data
 
 ### Installation Instructions
 
-To install geomesa-web-data, extract all jars from ```geomesa-web/geomesa-web-data/target/geomesa-web-data-<version>-install.zip```
+To install geomesa-web-data, extract all jars from ```geomesa-web/geomesa-web-data/target/geomesa-web-data-<version>-install.tar.gz```
 into your geoserver lib folder.  You will need to copy `spark-<version>-geomesa-assembly.jar` into the geoserver lib folder, and if not already installed you will need to install the [**geomesa-accumulo-gs-plugin**](../../geomesa-gs-plugin/geomesa-accumulo-geoserver-plugin).
 
-To get the required Spark zip, you may build the geomesa-web-install project using the 'assemble' profile.
+To get the required Spark jar, you may build the geomesa-web-install project using the 'assemble' profile.
 Please note GeoMesa does not bundle Spark by default, and that Spark has not been approved for distribution
 under the GeoMesa license.
 

@@ -1,1 +1,2 @@
-org.locationtech.geomesa.utils.geotools.ConfigSftProvider
+org.locationtech.geomesa.utils.geotools.ClassPathSftProvider
+org.locationtech.geomesa.utils.geotools.URLSftProvider

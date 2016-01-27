@@ -2,7 +2,7 @@
 
 ### Installation Instructions
 
-After building, unzip `target/geomesa-accumulo-gs-plugin-<version>-install.zip` into GeoServer's
+After building, extract `target/geomesa-accumulo-gs-plugin-<version>-install.tar.gz` into GeoServer's
 WEB-INF/lib directory.
 
 ### Additional Jars

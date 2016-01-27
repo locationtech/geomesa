@@ -42,6 +42,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.PropertyName
 import org.opengis.filter.sort.{SortBy, SortOrder}
+import org.opengis.filter.spatial.BBOX
+import org.opengis.geometry.BoundingBox
 
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
@@ -221,15 +223,25 @@ object QueryPlanner extends LazyLogging {
     QueryPlanner.handleGeoServerParams(query)
 
     // add the bbox from the density query to the filter
-    if (query.getHints.isDensityQuery) {
+    // if configure has been called already, don't re-add - sometimes the bbox is split by
+    // IDL handling, causing us to not detect it as a duplicate
+    if (query.getHints.isDensityQuery && !query.getHints.isConfigured) {
       val env = query.getHints.getDensityEnvelope.get.asInstanceOf[ReferencedEnvelope]
       val bbox = ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env)
       if (query.getFilter == Filter.INCLUDE) {
         query.setFilter(bbox)
       } else {
         // add the bbox - try to not duplicate an existing bbox
-        val filter = andFilters((decomposeAnd(query.getFilter) ++ Seq(bbox)).distinct)
-        query.setFilter(filter)
+        def compareDbls(d1: Double, d2: Double): Boolean = math.abs(d1 - d2) < 0.0001 // our precision
+        def compare(b1: BoundingBox, b2: BoundingBox): Boolean = {
+          compareDbls(b1.getMinX, b2.getMinX) && compareDbls(b1.getMaxX, b2.getMaxX) &&
+              compareDbls(b1.getMinY, b2.getMinY) && compareDbls(b1.getMaxY, b2.getMaxY)
+        }
+        val filters = decomposeAnd(query.getFilter).filter {
+          case b: BBOX if compare(b.getBounds, bbox.getBounds) => false
+          case _ => true
+        }
+        query.setFilter(andFilters(filters ++ Seq(bbox)))
       }
     }
 
@@ -237,6 +249,8 @@ object QueryPlanner extends LazyLogging {
     if (query.getFilter != null && query.getFilter != Filter.INCLUDE) {
       query.setFilter(query.getFilter.accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter])
     }
+
+    query.getHints.setConfigured(true)
   }
 
   /**

@@ -10,6 +10,7 @@ com.googlecode.efficient-java-matrix-library:core	0.26	compile
 com.google.code.gson:gson	2.3.1	compile
 com.googlecode.json-simple:json-simple	1.1	compile
 com.googlecode.juniversalchardet:juniversalchardet	1.0.3	compile
+com.google.guava:guava	12.0	compile
 com.google.guava:guava	14.0.1	compile
 com.google.guava:guava	17.0	compile
 com.google.guava:guava	18.0	compile
@@ -190,11 +191,8 @@ xml-apis:xml-apis	1.4.01	compile
 javax.media:jai_codec	1.1.3	provided
 javax.media:jai_core	1.1.3	provided
 org.apache.accumulo:accumulo-server-base	1.6.2	provided
-org.apache.hadoop:hadoop-auth	2.5.1	provided
 org.apache.hadoop:hadoop-client	2.2.0	provided
 org.apache.hadoop:hadoop-common	2.2.0	provided
-org.apache.hadoop:hadoop-hdfs	2.5.1	provided
-org.apache.hadoop:hadoop-mapreduce-client-core	2.5.1	provided
 org.apache.kafka:kafka_2.11	0.8.2.1	provided
 org.apache.spark:spark-catalyst_2.11	1.5.0	provided
 org.apache.spark:spark-core_2.11	1.5.0	provided
@@ -211,5 +209,8 @@ org.apache.accumulo:accumulo-test	1.6.2	test
 org.apache.camel:camel-netty4	2.15.1	test
 org.apache.curator:curator-test	2.7.1	test
 org.apache.kafka:kafka_2.11	test:0.8.2.1	test
+org.codehaus.groovy:groovy-jsr223	2.4.5	test
 org.geotools:gt-geometry	14.1	test
+org.jruby:jruby	9.0.4.0	test
+org.mortbay.jetty:jetty	6.1.26	test
 org.specs2:specs2_2.11	2.3.13	test
