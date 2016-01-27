@@ -1,115 +1,94 @@
-GeoMesa Accumulo Quick Start
+GeoMesa Accumulo Quick-Start
 ============================
 
-This tutorial will show you how to:
+This tutorial is the fastest and easiest way to get started with
+GeoMesa. It is a good stepping-stone on the path to the other tutorials
+that present increasingly involved examples of how to use GeoMesa.
 
-1. Write custom Java code using GeoMesa to do the following:
+In the spirit of keeping things simple, the code in this tutorial only
+does a few small things:
 
-   1. create a custom (static) ``SimpleFeatureType``,
-   2. prepare a GeoMesa-managed table backed by Accumulo to accept your
-      new type,
-   3. create a collection of a few hundred example records,
-   4. write these new ``SimpleFeature``\ s to the GeoMesa-managed table,
-      and
-   5. query your data.
-
-2. Visualize data within GeoServer.
+1. establishes a new (static) SimpleFeatureType
+2. prepares the Accumulo table to store this type of data
+3. creates a few hundred example SimpleFeatures
+4. writes these SimpleFeatures to the Accumulo table
+5. queries for a given geographic rectangle, time range, and attribute
+   filter, writing out the entries in the result set
 
 The only dynamic element in the tutorial is the Accumulo destination;
-that is a property that you provide on the command line when running the
+that is a property that you provide on the command-line when running the
 code.
 
 Prerequisites
 -------------
 
-You should work through the  :doc:`../user/installation_and_configuration` section of the GeoMesa User Manual first, completing the tasks relevant
-to Accumulo. Afterwards, it may be necessary to change the versions of
-Accumulo and Hadoop that the quickstart tutorial uses. After completing
-the deployment tutorial, you should have:
+Before you begin, you must have the following:
 
--  an instance of Accumulo |accumulo_version| running on Hadoop
-   2.2,
--  access to an Accumulo user that has both create-table and write
-   permissions, and
--  an instance of GeoServer 2.5.2 with the GeoMesa plugin installed.
+-  an instance of Accumulo 1.5 or 1.6 running on Hadoop 2.2.x
+-  an Accumulo user that has both create-table and write permissions
+-  a local copy of the `Java <http://java.oracle.com/>`__ Development
+   Kit 1.7.x
+-  Apache `Maven <http://maven.apache.org/>`__ installed
+-  a GitHub client installed
 
-Because this tutorial requires building custom Java code, development
-tools should also be installed and configured:
+Download and Build the Tutorial
+-------------------------------
 
--  `Java JDK
-   7 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
--  `Apache Maven <http://maven.apache.org/>`__ 3.2.2 or better, and
--  a `git <http://git-scm.com/>`__ client.
-
-Downloading And Building the Example Code
------------------------------------------
-
-The example code is found in the GeoMesa tutorials distribution, which may
-be cloned from GitHub:
+Pick a reasonable directory on your machine, and run:
 
 .. code-block:: bash
 
-    $ git clone https://github.com/geomesa/geomesa-tutorials.git
+    $ git clone git@github.com:geomesa/geomesa-tutorials.git
+    $ cd geomesa-tutorials
 
-The Accumulo QuickStart tutorial is in the ``geomesa-quickstart-accumulo``
-directory:
-
-.. code-block:: bash
-
-    $ cd geomesa-tutorials/geomesa-quickstart-accumulo
-
-The Maven ``pom.xml`` file in this directory of the tutorial source
-distribution contains an explicit list of dependent libraries that will
-be bundled together into the final tutorial. You should confirm that the
-versions of Accumulo and Hadoop match what you are running; if it does
-not match, change the value in the POM.
-
-Navigate to the directory where the source was unpacked and run:
+To build, run
 
 .. code-block:: bash
 
-    $ mvn clean install
-
-When this is complete, it should have built a JAR file in
-``./target`` that contains all of the code you need to run the
-tutorial with the correct dependencies.
+    $ mvn clean install -pl geomesa-quickstart-accumulo
 
 .. note::
 
-    The only reason dependent libraries are bundled into the final JAR
-    is that this is easier for most people to do this than it is to set the
-    classpath when running the tutorial. If you would rather not bundle
-    these dependencies, mark them as provided in the POM, and update your
-    classpath as appropriate.
+    Ensure that the version of Accumulo, Hadoop, etc in
+    the root ``pom.xml`` match your environment.
+
+    Depending on the version, you may also need to build
+    GeoMesa locally. Instructions can be found in
+    :doc:`/user/installation_and_configuration`.
+
+About this Tutorial
+-------------------
+
+The QuickStart operates by inserting and then querying 1000 features.
+After the insertions are complete, a sequence of queries are run to
+demonstrate different types of queries possible via the GeoTools API.
 
 Run the Tutorial
 ----------------
 
-On the command-line, run the following:
+On the command-line, run:
 
 .. code-block:: bash
 
-    java -cp ./target/geomesa-quickstart-accumulo-$VERSION.jar com.example.geomesa.accumulo.AccumuloQuickStart -instanceId somecloud -zookeepers "zoo1:2181,zoo2:2181,zoo3:2181" -user someuser -password somepwd -tableName sometable
+    $ java -cp geomesa-quickstart-accumulo/target/geomesa-quickstart-accumulo-${geomesa.version}.jar com.example.geomesa.accumulo.AccumuloQuickStart -instanceId <instance> -zookeepers <zookeepers> -user <user> -password <password> -tableName <table>
 
-where you provide your own values for the following place-holder
-arguments:
+where you provide the following arguments:
 
--  ``somecloud``: the name of your Accumulo instance
--  ``"zoo1:2181,zoo2:2181,zoo3:2181"``: your Zookeeper nodes, separated
-   by commas
--  ``someuser``: the name of an Accumulo user that has permissions to
-   create, and write to, tables
--  ``somepwd``: the password for the previously-mentioned Accumulo user
--  ``sometable``: the name of the destination table that will accept
-   these test records; this table should either not exist or should be
-   empty
+-  ``<instance>`` the name of your Accumulo instance
+-  ``<zookeepers>`` your Zookeeper nodes, separated by commas
+-  ``<user>`` the name of an Accumulo user that has permissions to
+   create, read and write tables
+-  ``<password>`` the password for the previously-mentioned Accumulo
+   user
+-  ``<table>`` the name of the destination table that will accept these
+   test records; this table should either not exist or should be empty
 
 You should see output similar to the following (not including some of
 Maven's output and log4j's warnings):
 
-.. code-block:: bash
+::
 
-    Creating feature-type (schema):  AccumuloQuickStart
+    Creating feature-type (schema):  QuickStart
     Creating new features
     Inserting new features
     Submitting query
@@ -236,10 +215,8 @@ documentation <http://docs.geoserver.org/latest/en/user/services/wms/time.html>`
 Once you press <Enter>, the display will update, and you should see a
 collection of red dots similar to the following image.
 
-.. figure:: _static/img/tutorials/2014-04-10-geomesa-quickstart/geoserver-layer-preview.png
+.. image:: _static/geomesa-quickstart-accumulo/geoserver-layer-preview.png
    :alt: "Visualizing quick-start data"
-
-   Visualizing quick-start data
 
 Tweaking the display
 ~~~~~~~~~~~~~~~~~~~~
@@ -266,8 +243,7 @@ Generating Heatmaps
 ~~~~~~~~~~~~~~~~~~~
 
 -  To try out the DensityIterator, you can install the Heatmap SLD from
-   the `GDELT
-   tutorial <http://www.geomesa.org/geomesa-gdelt-analysis/#heatmaps>`__.
+   the :doc:`geomesa-examples-gdelt` tutorial.
 -  After configuring the SLD, in the URL, change ``styles=`` to be
    ``styles=heatmap&density=true``. Once you press <Enter>, the display
    will change to a density heat-map. (NB: For this to work, you will

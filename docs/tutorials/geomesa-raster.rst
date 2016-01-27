@@ -10,18 +10,9 @@ This tutorial will show you how to:
 Prerequisites
 -------------
 
-.. raw:: html
+.. warning::
 
-   <div class="callout callout-warning">
-
-::
-
-    <span class="glyphicon glyphicon-exclamation-sign"></span>
     For Accumulo deployment, you will need access to a Hadoop 2.2 installation as well as an Accumulo |accumulo_version| database.
-
-.. raw:: html
-
-   </div>
 
 Before you begin, you should have these:
 
@@ -33,8 +24,8 @@ Before you begin, you should have these:
 -  the `Geospatial Data Abstraction Library
    (GDAL) <http://www.gdal.org/>`__ installed.
 
-Before you begin, you should have also completed the :ref:`geomesa_deployment`
-tutorial. 
+Before you begin, you should have also set up GeoMesa, using the
+instructions in :doc:`/user/installation_and_configuration`.
 
 Introduction
 ------------
@@ -62,9 +53,8 @@ documentation <http://www.gdal.org/gdal_retile.html>`__.
 
 Once the image pyramid has been prepared, ingest the tiles using the
 GeoMesa command line tools. To do this you will first need to follow the
-tools deployment instructions in the :ref:`geomesa_deployment`
-Tutorial. Once the GeoMesa tools have been
-deployed you will be able to ingest the prepared pyramid:
+tools deployment instructions in :doc:`/user/installation_and_configuration`.
+Once the GeoMesa tools have been deployed you will be able to ingest the prepared pyramid:
 
 .. code-block:: bash
 

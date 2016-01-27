@@ -35,7 +35,7 @@ You will also need:
 -  `Apache Maven <http://maven.apache.org/>`__ 3.2.2 or better, and
 -  a `git <http://git-scm.com/>`__ client.
 
-If you haven't already read both the :doc:`../user/installation_and_configuration` section of the GeoMesa User Manual and the  :doc:`geomesa-quickstart`, you should do so now, and make sure you have gone through the initial setup of GeoMesa.
+If you haven't already read both the :doc:`../user/installation_and_configuration` section of the GeoMesa User Manual and the  :doc:`geomesa-quickstart-accumulo`, you should do so now, and make sure you have gone through the initial setup of GeoMesa.
 
 Additionally, you should be familiar with `Accumulo's Security Label
 Expression

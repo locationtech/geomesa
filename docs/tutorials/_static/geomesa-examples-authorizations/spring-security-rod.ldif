@@ -1,0 +1,16 @@
+dn: ou=Spring Security,o=Spring Framework
+objectClass: top
+objectClass: organizationalUnit
+ou: Spring Security
+
+dn: cn=rod,ou=Spring Security,o=Spring Framework
+objectclass: inetOrgPerson
+objectclass: organizationalPerson
+objectclass: person
+objectclass: top
+cn: rod
+sn: rod
+description: Spring security sample person
+mail: rod@test.org
+userpassword: secret
+employeeType: user,admin

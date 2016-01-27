@@ -7,7 +7,7 @@ overview for writing your own Java or Scala software that makes use of GeoMesa.
 Using Maven
 -----------
 
-The GeoMesa project uses `Apache Maven <https://maven.apache.org/>`_ as a build tool. The Maven project's `Maven in 5 Minutes <https://maven.apache.org/guides/getting-started/maven-in-five-minutes.html>`_ provides a quick introduction to getting started with its `mvn` executable.
+The GeoMesa project uses `Apache Maven <https://maven.apache.org/>`__ as a build tool. The Maven project's `Maven in 5 Minutes <https://maven.apache.org/guides/getting-started/maven-in-five-minutes.html>`__ provides a quick introduction to getting started with its `mvn` executable.
 
 .. _building_from_source:
 
@@ -16,9 +16,9 @@ Building from Source
 
 These development tools are required:
 
-* `Java JDK 7 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`_,
-* `Apache Maven <http://maven.apache.org/>`_ 3.2.2 or better, and
-* `Git <https://git-scm.com/>`_.
+* `Java JDK 7 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
+* `Apache Maven <http://maven.apache.org/>`__ 3.2.2 or better, and
+* `Git <https://git-scm.com/>`__.
 
 The GeoMesa source distribution may be cloned from GitHub:
 

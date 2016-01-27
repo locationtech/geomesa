@@ -35,7 +35,7 @@ Prerequisites
 
     You will need access to a Hadoop |hadoop_version| installation as well as an Accumulo |accumulo_version| database.
 
-    You will need to have ingested GDELT data using GeoMesa. Instructions are available in :doc:`geomesa-gdelt-analysis`.
+    You will need to have ingested GDELT data using GeoMesa. Instructions are available in :doc:`geomesa-examples-gdelt`.
 
 You will also need:
 
@@ -74,7 +74,7 @@ Count Events by Day of Year
 ---------------------------
 
 You will need to have ingested some
-`GDELT <http://www.gdeltproject.org/>`__ data as described in :doc:`geomesa-gdelt-analysis`.
+`GDELT <http://www.gdeltproject.org/>`__ data as described in :doc:`geomesa-examples-gdelt`.
 First, we get a handle to a GeoMesa data store and construct a CQL query
 for our bounding box.
 
