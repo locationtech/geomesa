@@ -9,13 +9,13 @@
 package org.locationtech.geomesa.web.core
 
 import javax.servlet.ServletContext
-import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse}
+import javax.servlet.http.{HttpServletRequestWrapper, HttpServletResponse, HttpServletRequest}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.lang.exception.ExceptionUtils
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory
 import org.scalatra.servlet.RichServletContext
-import org.scalatra.{InternalServerError, ScalatraServlet}
+import org.scalatra.{ActionResult, InternalServerError, ScalatraServlet}
 import org.springframework.context.{ApplicationContext, ApplicationContextAware}
 import org.springframework.web.context.ServletContextAware
 
@@ -28,6 +28,8 @@ trait GeoMesaScalatraServlet extends ScalatraServlet with LazyLogging {
 
   def root: String
 
+  // This may be causing issues within scalatra, to paraphrase a comment: "Wrapped requests are probably wrapped for a reason."
+  // https://geomesa.atlassian.net/browse/GEOMESA-1062
   override def handle(req: HttpServletRequest, res: HttpServletResponse): Unit = req match {
     case r: HttpServletRequestWrapper => super.handle(r.getRequest.asInstanceOf[HttpServletRequest], res)
     case _ => super.handle(req, res)
@@ -42,7 +44,7 @@ trait GeoMesaScalatraServlet extends ScalatraServlet with LazyLogging {
   /**
    * Common error handler that accounts for debug setting
    */
-  def handleError(msg: String, e: Exception) = {
+  def handleError(msg: String, e: Exception): ActionResult = {
     logger.error(msg, e)
     if (debug) {
       InternalServerError(reason = msg, body = s"${e.getMessage}\n${ExceptionUtils.getStackTrace(e)}")

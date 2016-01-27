@@ -38,10 +38,29 @@ class AccumuloBlobStoreTest extends Specification {
 
   val testfile1 = "testFile.txt"
   val testfile2 = "testFile2.txt"
+  val testfile3 = "testFile3.txt"
   var testFile1Id = ""
 
   "AccumuloBlobStore" should {
-    "be able able to store and retrieve a file" in {
+
+    "be able to store and delete a file" in {
+      val (storeId, file) = ingestFile(testfile3, "POINT(10 10)")
+
+      val testFile3Id = storeId.get
+
+      bstore.delete(testFile3Id)
+
+      // test if blobstore get is failing to return anything
+      val (bytes, filename) = bstore.get(testFile3Id)
+      filename mustEqual ""
+      bytes must beEmpty
+
+      // test if geomesa feature table is empty
+      val ids = bstore.getIds(Filter.INCLUDE).toList
+      ids must beEmpty
+    }
+
+    "be able to store and retrieve a file" in {
       val (storeId, file) = ingestFile(testfile1, "POINT(0 0)")
 
       testFile1Id = storeId.get
