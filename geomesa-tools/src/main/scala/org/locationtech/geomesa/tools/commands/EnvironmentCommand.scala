@@ -11,7 +11,7 @@ package org.locationtech.geomesa.tools.commands
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.config.{Config, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.convert.SimpleFeatureConverters
+import org.locationtech.geomesa.convert.ConverterConfigLoader
 import org.locationtech.geomesa.tools.commands.EnvironmentCommand.EnvironmentParameters
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypeLoader, SimpleFeatureTypes}
 
@@ -52,7 +52,7 @@ class EnvironmentCommand(parent: JCommander) extends Command(parent) with LazyLo
   }
 
   def listConverters(names: List[String] = List.empty): Unit = {
-    val all = SimpleFeatureConverters.confs
+    val all = ConverterConfigLoader.confs
     val filtered = if (names.isEmpty) all else names.flatMap(n => all.find(_._1 == n))
     println("Simple Feature Type Converters:")
     if (filtered.isEmpty) {

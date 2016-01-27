@@ -212,4 +212,5 @@ org.apache.kafka:kafka_2.11	test:0.8.2.1	test
 org.codehaus.groovy:groovy-jsr223	2.4.5	test
 org.geotools:gt-geometry	14.1	test
 org.jruby:jruby	9.0.4.0	test
+org.mortbay.jetty:jetty	6.1.26	test
 org.specs2:specs2_2.11	2.3.13	test
