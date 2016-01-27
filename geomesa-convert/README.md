@@ -134,7 +134,7 @@ cql:buffer($1, 2.0)
 ```
 
 For more information on the various CQL functions, see the GeoServer
-[filter function reference](http://docs.geoserver.org/stable/en/user/filter/function_reference.html#filter-function-reference)
+[filter function reference](http://docs.geoserver.org/stable/en/user/filter/function_reference.html#filter-function-reference).
 
 ### JSON/Avro Transformations
 
