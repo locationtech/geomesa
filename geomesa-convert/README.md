@@ -102,6 +102,26 @@ Provided transformation functions are listed below.
 ### List and Map Parsing
  * ```parseList```
  * ```parseMap```
+
+### Functions defined using scripting languages
+
+You can define functions using scripting languages that support 
+JSR-223.  This is currently tested with Javascript only as it is
+natively supported in all JREs via the Nashorn extension.  To define
+a javascript function for use in the converter framework, either put
+the file in ```geomesa-convert-scripts``` on the classpath or set the
+system property ```geomesa.convert.scripts.path``` to be a comma-separated
+list of paths to load functions from.  Then, any function you define in a
+file in one of those paths will be available in a convert definition with
+a namespace prefix.  For instance, if you have defined a function such as
+
+```javascript
+function hello(s) {
+   return "hello: " + s;
+}
+```
+
+you can reference that function in a transform expression as ```js:hello($2)```
  
 ### JSON/Avro Transformations
 

@@ -11,10 +11,9 @@ package org.locationtech.geomesa.tools
 import java.io.File
 
 import com.beust.jcommander.ParameterException
-import com.typesafe.config.{ConfigParseOptions, ConfigFactory}
+import com.typesafe.config.{ConfigFactory, ConfigParseOptions}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypeLoader, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -53,7 +52,7 @@ object SftArgParser extends LazyLogging {
   // gets an sft from simple feature type providers on the classpath
   private[SftArgParser] def getLoadedSft(specArg: String, name: String): Option[SimpleFeatureType] = {
     SimpleFeatureTypeLoader.sfts.find(_.getTypeName == specArg).map { sft =>
-      if (name == null || name == sft.getTypeName) sft else renameSft(sft, name)
+      if (name == null || name == sft.getTypeName) sft else SimpleFeatureTypes.renameSft(sft, name)
     }
   }
 
@@ -83,7 +82,7 @@ object SftArgParser extends LazyLogging {
   private[SftArgParser] def parseSpecConf(specArg: String, name: String): Option[SimpleFeatureType] = {
     Try(SimpleFeatureTypes.createType(ConfigFactory.parseString(specArg, parseOpts))) match {
       case Success(sft) if name == null || name == sft.getTypeName => Some(sft)
-      case Success(sft) => Some(renameSft(sft, name))
+      case Success(sft) => Some(SimpleFeatureTypes.renameSft(sft, name))
       case Failure(e) =>
         logger.debug(s"Unable to parse sft spec from string $specArg as conf with error ${e.getMessage}")
         None
@@ -94,19 +93,11 @@ object SftArgParser extends LazyLogging {
   private[SftArgParser] def parseSpecConfFile(specArg: String, name: String): Option[SimpleFeatureType] = {
     Try(SimpleFeatureTypes.createType(ConfigFactory.parseFile(new File(specArg)))) match {
       case Success(sft) if name == null || name == sft.getTypeName => Some(sft)
-      case Success(sft) => Some(renameSft(sft, name))
+      case Success(sft) => Some(SimpleFeatureTypes.renameSft(sft, name))
       case Failure(e) =>
         logger.debug(s"Unable to parse sft spec from file $specArg as conf with error ${e.getMessage}")
         None
     }
   }
 
-  private[SftArgParser] def renameSft(sft: SimpleFeatureType, name: String) = {
-    val builder = new SimpleFeatureTypeBuilder()
-    builder.init(sft)
-    builder.setName(name)
-    val renamed = builder.buildFeatureType()
-    renamed.getUserData.putAll(sft.getUserData)
-    renamed
-  }
 }

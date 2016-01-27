@@ -65,6 +65,8 @@ package object index {
     val BIN_SORT_KEY         = new ClassKey(classOf[java.lang.Boolean])
     val BIN_BATCH_SIZE_KEY   = new ClassKey(classOf[java.lang.Integer])
 
+    val CONFIGURED_KEY       = new ClassKey(classOf[java.lang.Boolean])
+
     implicit class RichHints(val hints: Hints) extends AnyRef {
       def getReturnSft: SimpleFeatureType = hints.get(RETURN_SFT_KEY).asInstanceOf[SimpleFeatureType]
       def getRequestedStrategy: Option[StrategyType] =
@@ -89,6 +91,8 @@ package object index {
         Option(hints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType])
       def getTransform: Option[(String, SimpleFeatureType)] =
         hints.getTransformDefinition.flatMap(d => hints.getTransformSchema.map((d, _)))
+      def isConfigured: Boolean = Option(hints.get(CONFIGURED_KEY).asInstanceOf[Boolean]).getOrElse(false)
+      def setConfigured(configured: Boolean): Unit = hints.put(CONFIGURED_KEY, configured)
     }
   }
 

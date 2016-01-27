@@ -68,7 +68,9 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
     def cast2boolean = expr <~ "::bool" ~ "(ean)?".r ^^ { e => Cast2Boolean(e) }
 
     def fieldLookup = "$" ~> ident                   ^^ { i => FieldLookup(i)  }
-    def fnName      = ident                          ^^ { n => LitString(n)    }
+    def noNsfnName  = ident                          ^^ { n => LitString(n)    }
+    def nsFnName    = ident ~ ":" ~ ident            ^^ { case ns ~ ":" ~ n => LitString(s"$ns:$n") }
+    def fnName      = nsFnName | noNsfnName
     def tryFn       = ("try" ~ OPEN_PAREN) ~> (argument ~ "," ~ argument) <~ CLOSE_PAREN ^^ {
       case arg ~ ","  ~ fallback => TryFunctionExpr(arg, fallback)
     }

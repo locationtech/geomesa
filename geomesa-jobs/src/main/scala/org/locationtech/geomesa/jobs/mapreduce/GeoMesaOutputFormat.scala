@@ -10,13 +10,14 @@ package org.locationtech.geomesa.jobs.mapreduce
 
 import java.io.IOException
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.BatchWriterConfig
 import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
-import org.geotools.data.DataStoreFinder
+import org.geotools.data.{DataUtilities, DataStoreFinder}
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloFeatureWriter}
 import org.locationtech.geomesa.accumulo.index.IndexValueEncoder
@@ -27,6 +28,12 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.JavaConversions._
 
 object GeoMesaOutputFormat {
+
+  object Counters {
+    val Group   = "org.locationtech.geomesa.jobs.output"
+    val Written = "written"
+    val Failed  = "failed"
+  }
 
   /**
    * Configure the data store you will be writing to.
@@ -70,7 +77,7 @@ class GeoMesaOutputFormat extends OutputFormat[Text, SimpleFeature] {
 
   override def getRecordWriter(context: TaskAttemptContext) = {
     val params = GeoMesaConfigurator.getDataStoreOutParams(context.getConfiguration)
-    new GeoMesaRecordWriter(params, delegate.getRecordWriter(context))
+    new GeoMesaRecordWriter(params, context, delegate.getRecordWriter(context))
   }
 
   override def checkOutputSpecs(context: JobContext) = {
@@ -89,8 +96,10 @@ class GeoMesaOutputFormat extends OutputFormat[Text, SimpleFeature] {
  *
  * Key is ignored. If the feature type for the given feature does not exist yet, it will be created.
  */
-class GeoMesaRecordWriter(params: Map[String, String], delegate: RecordWriter[Text, Mutation])
-    extends RecordWriter[Text, SimpleFeature] {
+class GeoMesaRecordWriter(params: Map[String, String],
+                          context: TaskAttemptContext,
+                          delegate: RecordWriter[Text, Mutation])
+    extends RecordWriter[Text, SimpleFeature] with LazyLogging {
 
   type TableAndMutations = (Text, FeatureToMutations)
 
@@ -100,6 +109,9 @@ class GeoMesaRecordWriter(params: Map[String, String], delegate: RecordWriter[Te
   val writerCache       = scala.collection.mutable.Map.empty[String, Seq[TableAndMutations]]
   val encoderCache      = scala.collection.mutable.Map.empty[String, org.locationtech.geomesa.features.SimpleFeatureSerializer]
   val indexEncoderCache = scala.collection.mutable.Map.empty[String, IndexValueEncoder]
+
+  val written = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written)
+  val failed  = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Failed)
 
   override def write(key: Text, value: SimpleFeature) = {
     val sftName = value.getFeatureType.getTypeName
@@ -127,8 +139,15 @@ class GeoMesaRecordWriter(params: Map[String, String], delegate: RecordWriter[Te
     val ive = indexEncoderCache.getOrElseUpdate(sftName, IndexValueEncoder(sft))
     val featureToWrite = new FeatureToWrite(withFid, ds.writeVisibilities, encoder, ive)
 
-    writers.foreach { case (table, featureToMutations) =>
-      featureToMutations(featureToWrite).foreach(delegate.write(table, _))
+    // calculate all the mutations first, so that if something fails we won't have a partially written feature
+    try {
+      val mutations = writers.map { case (table, featToMuts) => (table, featToMuts(featureToWrite)) }
+      mutations.foreach { case (table, muts) => muts.foreach(delegate.write(table, _)) }
+      written.increment(1)
+    } catch {
+      case e: Exception =>
+        logger.error(s"Error creating mutations from feature '${DataUtilities.encodeFeature(withFid)}'", e)
+        failed.increment(1)
     }
   }
 

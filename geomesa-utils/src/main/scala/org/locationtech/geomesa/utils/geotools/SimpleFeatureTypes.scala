@@ -124,6 +124,15 @@ object SimpleFeatureTypes {
     sft
   }
 
+  def renameSft(sft: SimpleFeatureType, newName: String) = {
+    val builder = new SimpleFeatureTypeBuilder()
+    builder.init(sft)
+    builder.setName(newName)
+    val renamed = builder.buildFeatureType()
+    renamed.getUserData.putAll(sft.getUserData)
+    renamed
+  }
+
   def encodeType(sft: SimpleFeatureType): String =
     sft.getAttributeDescriptors.map { ad => AttributeSpecFactory.fromAttributeDescriptor(sft, ad).toSpec }.mkString(",")
 
