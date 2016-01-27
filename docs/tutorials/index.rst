@@ -7,8 +7,8 @@ Getting Started
 .. toctree::
     :maxdepth: 1
 
-    geomesa-quickstart
-    geomesa-kafka-quickstart
+    geomesa-quickstart-accumulo
+    geomesa-quickstart-kafka
 
 Data In/Out
 -----------
@@ -16,10 +16,10 @@ Data In/Out
 .. toctree::
     :maxdepth: 1
 
-    geomesa-osm-analysis
-    geomesa-gdelt-analysis
+    geomesa-quickstart-storm
+    geomesa-examples-gdelt
     geomesa-raster
-    geomesa-transformations
+    geomesa-examples-transformations
 
 Data Analysis
 -------------
@@ -36,7 +36,7 @@ Security
 .. toctree::
     :maxdepth: 1
 
-    geomesa-authorizations
+    geomesa-examples-authorizations
     geomesa-feature-level-visibility
 
 Indexing and Queries
