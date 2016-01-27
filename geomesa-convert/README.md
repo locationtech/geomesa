@@ -122,7 +122,20 @@ function hello(s) {
 ```
 
 you can reference that function in a transform expression as ```js:hello($2)```
- 
+
+### CQL Functions
+
+Most of the basic CQL functions are available as transformations. To use one,
+invoke it like a regular function, prefixed with the `cql` namespace. For example,
+you can use the CQL buffer function to turn a point into a polygon:
+
+```
+cql:buffer($1, 2.0)
+```
+
+For more information on the various CQL functions, see the GeoServer
+[filter function reference](http://docs.geoserver.org/stable/en/user/filter/function_reference.html#filter-function-reference)
+
 ### JSON/Avro Transformations
 
 See Parsing Json and Parsing Avro sections
