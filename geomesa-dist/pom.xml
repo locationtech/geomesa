@@ -1,161 +1,140 @@
 <?xml version="1.0"?>
-<!--
-  ~ Copyright 2013 Commonwealth Computer Research, Inc.
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~ http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  -->
+<!--********************************************************************
+* Copyright (c) 2013-2015 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0 which
+* accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*********************************************************************-->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
-        <groupId>geomesa</groupId>
-        <artifactId>geomesa-accumulo1.5</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <groupId>org.locationtech.geomesa</groupId>
+        <artifactId>geomesa</artifactId>
+        <version>1.2.0-SNAPSHOT</version>
     </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>pom</packaging>
 
-    <artifactId>geomesa-dist-accumulo1.5</artifactId>
-    <name>GeoMesa Distribution tar.gz - [Accumulo 1.5.x]</name>
+    <artifactId>geomesa-dist</artifactId>
+    <name>GeoMesa Distribution</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
+        <!-- Tools -->
         <dependency>
-            <groupId>geomesa</groupId>
-            <artifactId>geomesa-distributed-runtime-accumulo1.5</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>geomesa</groupId>
-            <artifactId>geomesa-utils-accumulo1.5</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>geomesa</groupId>
-            <artifactId>geomesa-plugin-accumulo1.5</artifactId>
-            <classifier>geoserver-plugin</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-shapefile</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.ehcache</groupId>
-            <artifactId>ehcache-core</artifactId>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-tools</artifactId>
+            <classifier>bin</classifier>
+            <version>${project.version}</version>
+            <type>tar.gz</type>
         </dependency>
 
-        <!-- dist.dev dependencies -->
+        <!-- Accumulo -->
         <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-epsg-hsql</artifactId>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-accumulo-distributed-runtime</artifactId>
+        </dependency>
+
+        <!-- Spark -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-compute</artifactId>
+            <classifier>shaded</classifier>
+        </dependency>
+
+        <!-- Yarn -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-jobs</artifactId>
+        </dependency>
+
+        <!-- GeoServer Plugins -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-accumulo-gs-plugin</artifactId>
+            <classifier>install</classifier>
+            <version>${project.version}</version>
+            <type>tar.gz</type>
         </dependency>
         <dependency>
-            <groupId>org.apache.accumulo</groupId>
-            <artifactId>accumulo-core</artifactId>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-blobstore-gs-plugin</artifactId>
+            <classifier>install</classifier>
+            <version>${project.version}</version>
+            <type>tar.gz</type>
         </dependency>
         <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-client</artifactId>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-kafka-gs-plugin</artifactId>
+            <classifier>install</classifier>
+            <version>${project.version}</version>
+            <type>tar.gz</type>
         </dependency>
         <dependency>
-            <groupId>org.apache.zookeeper</groupId>
-            <artifactId>zookeeper</artifactId>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-stream-gs-plugin</artifactId>
+            <classifier>install</classifier>
+            <version>${project.version}</version>
+            <type>tar.gz</type>
+        </dependency>
+
+        <!-- Web Services -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-web-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-reflect</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-compiler</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>jline</artifactId>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-web-data</artifactId>
+            <classifier>install</classifier>
+            <version>${project.version}</version>
+            <type>tar.gz</type>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>bigtable</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.locationtech.geomesa</groupId>
+                    <artifactId>geomesa-bigtable-gs-plugin</artifactId>
+                    <classifier>install</classifier>
+                    <version>${project.version}</version>
+                    <type>tar.gz</type>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.4</version>
-                <configuration>
-                    <descriptors>
-                        <descriptor>src/main/assembly/assembly.xml</descriptor>
-                    </descriptors>
-                </configuration>
                 <executions>
                     <execution>
-                        <phase>package</phase>
+                        <id>binary-assembly</id>
                         <goals>
                             <goal>single</goal>
                         </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.agilejava.docbkx</groupId>
-                <artifactId>docbkx-maven-plugin</artifactId>
-                <version>2.0.14</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>net.sf.docbook</groupId>
-                        <artifactId>docbook-xml</artifactId>
-                        <version>5.0-all</version>
-                        <classifier>resources</classifier>
-                        <type>zip</type>
-                        <scope>runtime</scope>
-                    </dependency>
-                    <dependency>
-                        <groupId>net.sf.xslthl</groupId>
-                        <artifactId>xslthl</artifactId>
-                        <version>2.0.1</version>
-                        <scope>runtime</scope>
-                    </dependency>
-                    <dependency>
-                        <groupId>net.sf.offo</groupId>
-                        <artifactId>fop-hyph</artifactId>
-                        <version>1.2</version>
-                        <scope>runtime</scope>
-                    </dependency>
-                </dependencies>
-                <configuration>
-                    <generateToc>nop</generateToc>
-                    <highlightSource>1</highlightSource>
-                    <foCustomization>${project.basedir}/src/docbkx/docbook-fo.xsl</foCustomization>
-                    <sectionAutolabel>true</sectionAutolabel>
-                    <sectionLabelIncludesComponentLabel>true</sectionLabelIncludesComponentLabel>
-                    <entities>
-                        <entity>
-                            <name>version - [Accumulo 1.5.x]</name>
-                            <value>${project.version}</value>
-                        </entity>
-                    </entities>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>generate-pdf</goal>
-                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <attach>true</attach>
+                            <finalName>geomesa-${project.version}</finalName>
+                            <tarLongFileMode>gnu</tarLongFileMode>
+                            <descriptors>
+                                <descriptor>src/main/assemblies/binary-release.xml</descriptor>
+                            </descriptors>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
+
 </project>
-
-

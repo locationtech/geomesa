@@ -1,7 +1,17 @@
+build/zinc*
+build/scala*
+build/*.jar
+build/build.out
 *.iws
 *.ipr
 *.iml
 *.idea/
+*.log
 .idea/**
+**/.classpath
+**/.project
+**/.settings
 target
 atlassian*
+geomesa-*.*.*-*
+**/src/main/resources/git.properties

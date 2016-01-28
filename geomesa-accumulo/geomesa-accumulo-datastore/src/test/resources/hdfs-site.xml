@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!-- Put site-specific property overrides in this file. -->
+<configuration>
+    <property>
+        <name>dfs.name.dir</name>
+        <value>/data/1/dfs/nn,/data/2/dfs/nn</value>
+    </property>
+    
+    <property>
+        <name>dfs.data.dir</name>
+        <value>/data/1/dfs/dn,/data/2/dfs/dn,/data/3/dfs/dn,/data/4/dfs/dn</value>
+    </property>
+</configuration>
+

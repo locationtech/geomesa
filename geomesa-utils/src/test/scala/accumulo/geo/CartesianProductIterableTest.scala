@@ -1,20 +1,12 @@
-/*
- * Copyright 2013 Commonwealth Computer Research, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/***********************************************************************
+* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0
+* which accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
 
-package geomesa.utils
+package org.locationtech.geomesa.utils
 
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
@@ -35,16 +27,16 @@ class CartesianProductIterableTest extends Specification {
       val itr = combinator.iterator
       itr.foldLeft(0)((i,combinationSeq) => {
         i match {
-          case 0 => combinationSeq must be equalTo(Seq('A', '0', 'x'))
-          case 1 => combinationSeq must be equalTo(Seq('B', '0', 'x'))
-          case 42 => combinationSeq must be equalTo(Seq('A', '1', 'y'))
-          case 107 => combinationSeq must be equalTo(Seq('F', '5', 'z'))
+          case 0 => combinationSeq mustEqual Seq('A', '0', 'x')
+          case 1 => combinationSeq mustEqual Seq('B', '0', 'x')
+          case 42 => combinationSeq mustEqual Seq('A', '1', 'y')
+          case 107 => combinationSeq mustEqual Seq('F', '5', 'z')
           case _ => // don't know; don't care
         }
         i + 1
       })
 
-      combinator.expectedSize must be equalTo(108)
+      combinator.expectedSize mustEqual 108
     }
   }
 }

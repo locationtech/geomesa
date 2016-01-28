@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+    <property>
+        <name>instance.zookeeper.host</name>
+        <value>foo:2181,bar:2181,baz:2181</value>
+    </property>
+</configuration>
+

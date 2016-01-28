@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- do a standard gs:import -->
+<!-- run with command: -->
+<!-- curl -u admin:geoserver -H 'Content-type: xml' -XPOST -d@'query2.xml' http://localhost:8080/geoserver/wps | json_pp -->
+<wps:Execute version="1.0.0" service="WPS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns="http://www.opengis.net/wps/1.0.0" xmlns:wfs="http://www.opengis.net/wfs"
+             xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1"
+             xmlns:xlink="http://www.w3.org/1999/xlink"
+             xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+    <ows:Identifier>gs:Import</ows:Identifier>
+    <wps:DataInputs>
+        <wps:Input>
+            <ows:Identifier>features</ows:Identifier>
+            <wps:Reference mimeType="text/xml subtype=wfs-collection/1.0" xlink:href="http://geoserver/wps"
+                           method="POST">
+                <wps:Body>
+
+                    <wps:Execute version="1.0.0" service="WPS">
+                        <ows:Identifier>geomesa:Query</ows:Identifier>
+                        <wps:DataInputs>
+                            <wps:Input>
+                                <ows:Identifier>features</ows:Identifier>
+                                <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs"
+                                               method="POST">
+                                    <wps:Body>
+                                        <wfs:GetFeature service="WFS" version="1.0.0"
+                                                        outputFormat="GML2"
+                                                        xmlns:accumulo="http://locationtech.org/geomesa">
+                                            <!-- type name set up in geoserver named "testType" -->
+                                            <wfs:Query typeName="accumulo:nj_tp_line_selected120_2"/>
+                                        </wfs:GetFeature>
+                                    </wps:Body>
+                                </wps:Reference>
+                            </wps:Input>
+                        </wps:DataInputs>
+                        <wps:ResponseForm>
+                            <wps:RawDataOutput mimeType="application/json">
+                                <ows:Identifier>result</ows:Identifier>
+                            </wps:RawDataOutput>
+                        </wps:ResponseForm>
+                    </wps:Execute>
+                 </wps:Body>
+            </wps:Reference>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>workspace</ows:Identifier>
+            <wps:Data>
+                <!-- must already exist -->
+                <wps:LiteralData>WORKSPACE_NAME_HERE</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>store</ows:Identifier>
+            <wps:Data>
+                <!-- must already exist -->
+                <wps:LiteralData>STORE_NAME_HERE</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>name</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>LAYER_OR_FEATURE_NAME_HERE</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+    </wps:DataInputs>
+    <wps:ResponseForm>
+        <wps:RawDataOutput>
+            <ows:Identifier>layerName</ows:Identifier>
+        </wps:RawDataOutput>
+    </wps:ResponseForm>
+</wps:Execute>
+
+
+
+

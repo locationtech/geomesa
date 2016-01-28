@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<additionalHeaders>
+    <geomesa_java>
+        <firstLine>/***********************************************************************</firstLine>
+        <beforeEachLine>* </beforeEachLine>
+        <endLine>*************************************************************************/&#xA;</endLine>
+        <firstLineDetectionPattern>^/\*\**</firstLineDetectionPattern>
+        <lastLineDetectionPattern> *\**\*/$</lastLineDetectionPattern>
+        <isMultiline>true</isMultiline>
+        <allowBlankLines>false</allowBlankLines>
+    </geomesa_java>
+</additionalHeaders>

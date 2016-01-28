@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+    <property>
+        <!-- where map-reduce jobs will look for geomesa library JARs -->
+        <name>instance.geo.dfs.dir</name>
+        <value>/geomesa/lib</value>
+    </property>
+</configuration>

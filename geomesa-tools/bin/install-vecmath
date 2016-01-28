@@ -1,0 +1,28 @@
+#! /usr/bin/env bash
+#
+# Copyright (c) 2013-2015 Commonwealth Computer Research, Inc.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0 which
+# accompanies this distribution and is available at
+# http://www.opensource.org/licenses/apache2.0.php.
+#
+
+# Check environment variables before running anything, warn user on issues:
+if [[ (-z "$GEOMESA_HOME") ]]; then
+    echo "Error: GEOMESA_HOME environmental variable not found...install geomesa or define GEOMESA_HOME and try again"
+    exit
+else
+    url='http://download.osgeo.org/webdav/geotools/java3d/vecmath/1.3.2/vecmath-1.3.2.jar'
+    read -r -p "Vecmath is GPL licensed and is not distributed with GeoMesa...are you sure you want to install it from $url ? [Y/n]" confirm
+    confirm=${confirm,,} #lowercasing
+    if [[ $confirm =~ ^(yes|y) ]]; then
+        echo "Trying to install Java Advanced Imaging (jai) from $url to $GEOMESA_HOME"
+        wget -O /tmp/vecmath-1.3.2.jar $url \
+            && cp /tmp/vecmath-1.3.2.jar $GEOMESA_HOME/lib/ \
+            && rm /tmp/vecmath-1.3.2.jar -f \
+            && chmod 0755 $GEOMESA_HOME/lib/vecmath-1.3.2.jar \
+            && echo "Successfully installed Vecmath to $GEOMESA_HOME"
+    else
+        echo "Cancelled installation of Vecmath 1.3.2"
+    fi
+fi

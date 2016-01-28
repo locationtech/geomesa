@@ -1,0 +1,51 @@
+#! /usr/bin/env bash
+#
+# Copyright (c) 2013-2015 Commonwealth Computer Research, Inc.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0 which
+# accompanies this distribution and is available at
+# http://www.opensource.org/licenses/apache2.0.php.
+#
+#
+#
+# This script allows testing of the geomesa command line tools to ensure that
+# all commands are working properly. Change the variables at the top to suit
+# your testing needs and run from the command line.
+
+USER=USER_HERE
+PASS=PASSWORD_HERE
+CREATE_CATALOG=test_catalog
+CREATE_FEATURENAME=test_feature
+SPEC=fid:String:index=true,dtg:Date,geom:Point:srid=4326
+CATALOG=geomesa_catalog
+FEATURENAME=FEATURE_HERE
+MAXFEATURES=100
+
+# Helper opts for accumulo. These can optionally be supplied from the 
+# ACCUMULO_HOME configuration by excluding the arguments from the geomesa command
+INST=INSTANCE
+ZOO=zoo1,zoo2,zoo3
+ACC_OPTS="-u $USER -p $PASS -i $INST -z $ZOO"
+
+geomesa create $ACC_OPTS -c ${CREATE_CATALOG} -f ${CREATE_FEATURENAME} -s ${SPEC} --dtg dtg
+geomesa list $ACC_OPTS -c ${CATALOG}
+geomesa describe $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME}
+geomesa explain $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME} -q include
+
+# export to std out in various formats
+geomesa export $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME} --format csv ---max-features ${MAXFEATURES}
+geomesa export $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME} --format tsv --max-features ${MAXFEATURES}
+geomesa export $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME} --format json --max-features ${MAXFEATURES}
+geomesa export $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME} --format gml --max-features ${MAXFEATURES}
+
+# export to files (includes shape file)
+geomesa export $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME} --format csv --max-features ${MAXFEATURES} -o /tmp/csv.out
+geomesa export $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME} --format tsv --max-features ${MAXFEATURES} -o /tmp/tsv.out
+geomesa export $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME} --format json --max-features ${MAXFEATURES} -o /tmp/json.out
+geomesa export $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME} --format gml --max-features ${MAXFEATURES} -o /tmp/gml.out
+geomesa export $ACC_OPTS -c ${CATALOG} -f ${FEATURENAME} --format shp --max-features ${MAXFEATURES} -o /tmp/out.shp
+
+# clean up previous temp feature
+geomesa delete $ACC_OPTS --force -c ${CREATE_CATALOG} -f ${CREATE_FEATURENAME}
+geomesa list $ACC_OPTS -c ${CREATE_CATALOG}
+

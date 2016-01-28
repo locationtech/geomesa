@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2 http://maven.apache.org/xsd/component-1.1.2.xsd">
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>lib</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0644</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>true</useTransitiveDependencies>
+            <useTransitiveFiltering>true</useTransitiveFiltering>
+            <excludes>
+                <exclude>org.locationtech.geomesa:geomesa-plugin*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-accumulo-distributed-runtime*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-compute*</exclude>
+                <exclude>com.google.guava:guava</exclude> <!-- Guava conflicts with Hadoop 2.x which provides guava 11.0.2-->
+            </excludes>
+        </dependencySet>
+    </dependencySets>
+    <fileSets>
+        <fileSet>
+            <directory>../geomesa-tools/bin</directory>
+            <outputDirectory>bin</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0755</fileMode>
+            <includes>
+                <include>geomesa</include>
+                <include>install-jai</include>
+                <include>install-jline</include>
+                <include>install-vecmath</include>
+                <include>install-hadoop-accumulo.sh</include>
+                <include>test-geomesa</include>
+            </includes>
+            <filtered>true</filtered>
+        </fileSet>
+        <fileSet>
+            <directory>../geomesa-tools/conf</directory>
+            <outputDirectory>conf</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>false</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
+        <fileSet>
+            <directory>../geomesa-tools/examples</directory>
+            <outputDirectory>examples</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>false</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
+
+    </fileSets>
+    <files>
+        <file>
+            <source>target/geomesa-tools-${project.version}.jar</source>
+            <outputDirectory>lib</outputDirectory>
+            <fileMode>0644</fileMode>
+        </file>
+    </files>
+</component>

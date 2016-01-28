@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<doc>
+    <DataSource>
+        <name>myxml</name>
+    </DataSource>
+    <Feature>
+        <number>123</number>
+        <geom>
+            <lat>12.23</lat>
+            <lon>44.3</lon>
+        </geom>
+        <color>red</color>
+        <physical height="5'11" weight="127.5"/>
+    </Feature>
+    <Feature>
+        <number>456</number>
+        <geom>
+            <lat>20.3</lat>
+            <lon>33.2</lon>
+        </geom>
+        <color>blue</color>
+        <physical height="h2" weight="150"/>
+    </Feature>
+</doc>

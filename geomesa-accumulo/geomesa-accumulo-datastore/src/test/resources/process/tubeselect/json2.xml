@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- execute a tube select -->
+<!-- run with command: -->
+<!-- curl -u admin:geoserver -H 'Content-type: xml' -XPOST -d@'json2.xml' http://localhost:8080/geoserver/wps | json_pp -->
+<wps:Execute version="1.0.0" service="WPS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns="http://www.opengis.net/wps/1.0.0" xmlns:wfs="http://www.opengis.net/wfs"
+             xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1"
+             xmlns:xlink="http://www.w3.org/1999/xlink"
+             xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+    <ows:Identifier>geomesa:TubeSelect</ows:Identifier>
+    <wps:DataInputs>
+        <wps:Input>
+            <ows:Identifier>tubeFeatures</ows:Identifier>
+            <wps:Reference mimeType="text/xml; subtype=gml/3.1.1"
+                           xlink:href="http://geoserver/wps" method="POST">
+                <wps:Body>
+
+                    <!-- query features with a filter -->
+                    <wps:Execute version="1.0.0" service="WPS">
+                        <ows:Identifier>vec:Query</ows:Identifier>
+                        <wps:DataInputs>
+                            <wps:Input>
+                                <ows:Identifier>features</ows:Identifier>
+                                <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs"
+                                               method="POST">
+                                    <wps:Body>
+                                        <wfs:GetFeature service="WFS" version="1.0.0"
+                                                        outputFormat="GML2"
+                                                        xmlns:accumulo="http://locationtech.org/geomesa">
+                                            <!-- type name set up in geoserver named "testType" -->
+                                            <wfs:Query typeName="accumulo:testType"/>
+                                        </wfs:GetFeature>
+                                    </wps:Body>
+                                </wps:Reference>
+                            </wps:Input>
+                            <wps:Input>
+                                <ows:Identifier>filter</ows:Identifier>
+                                <wps:Data>
+                                    <wps:ComplexData mimeType="text/plain; subtype=cql">
+                                        <![CDATA[BBOX(geom, 40.0, 40.0, 40.0, 50.0) AND type='a']]></wps:ComplexData>
+                                </wps:Data>
+                            </wps:Input>
+                        </wps:DataInputs>
+                        <wps:ResponseForm>
+                            <wps:RawDataOutput mimeType="text/xml; subtype=wfs-collection/1.0">
+                                <ows:Identifier>result</ows:Identifier>
+                            </wps:RawDataOutput>
+                        </wps:ResponseForm>
+                    </wps:Execute>
+                    <!-- END filter features -->
+
+                </wps:Body>
+            </wps:Reference>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>featureCollection</ows:Identifier>
+            <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">
+                <wps:Body>
+                    <wfs:GetFeature service="WFS" version="1.0.0" outputFormat="GML2"
+                                    xmlns:accumulo="http://locationtech.org/geomesa">
+                        <wfs:Query typeName="accumulo:testType"/>
+                    </wfs:GetFeature>
+                </wps:Body>
+            </wps:Reference>
+        </wps:Input>
+
+        <wps:Input>
+            <ows:Identifier>filter</ows:Identifier>
+            <wps:Data>
+                <!-- filter based on some attribute 'type' being equal to 'b' -->
+                <wps:ComplexData mimeType="text/plain; subtype=cql"><![CDATA[type <>'a']]></wps:ComplexData>
+            </wps:Data>
+        </wps:Input>
+
+        <wps:Input>
+            <ows:Identifier>bufferSize</ows:Identifier>
+            <wps:Data>
+                <!-- 112km is slightly larger than 111034km which is approx 1 degree -->
+                <!--<wps:LiteralData>112000</wps:LiteralData>-->
+                <wps:LiteralData>0</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+
+        <wps:Input>
+            <ows:Identifier>maxSpeed</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>112000</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+
+        <wps:Input>
+            <ows:Identifier>maxTime</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>1</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+
+        <wps:Input>
+            <ows:Identifier>maxBins</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>5</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+
+    </wps:DataInputs>
+    <wps:ResponseForm>
+        <wps:RawDataOutput mimeType="application/json">
+            <ows:Identifier>result</ows:Identifier>
+        </wps:RawDataOutput>
+    </wps:ResponseForm>
+</wps:Execute>
+        <!-- end tube select -->
+
+
+

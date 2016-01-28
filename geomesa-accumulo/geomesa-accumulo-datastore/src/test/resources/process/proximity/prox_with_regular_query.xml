@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- execute a proximity search -->
+<!-- run with command: -->
+<!-- curl -u admin:geoserver -H 'Content-type: xml' -XPOST -d@'prox_with_regular_query.xml' http://localhost:8080/geoserver/wps | json_pp -->
+<wps:Execute version="1.0.0" service="WPS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns="http://www.opengis.net/wps/1.0.0" xmlns:wfs="http://www.opengis.net/wfs"
+             xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1"
+             xmlns:xlink="http://www.w3.org/1999/xlink"
+             xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+    <ows:Identifier>geomesa:ProximitySearch</ows:Identifier>
+    <wps:DataInputs>
+        <wps:Input>
+            <ows:Identifier>inputFeatures</ows:Identifier>
+            <wps:Reference mimeType="text/xml; subtype=gml/3.1.1"
+                           xlink:href="http://geoserver/wps" method="POST">
+                <wps:Body>
+
+                    <!-- query features with a filter -->
+                    <wps:Execute version="1.0.0" service="WPS">
+                        <ows:Identifier>vec:Query</ows:Identifier>
+                        <wps:DataInputs>
+                            <wps:Input>
+                                <ows:Identifier>features</ows:Identifier>
+                                <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs"
+                                               method="POST">
+                                    <wps:Body>
+                                        <wfs:GetFeature service="WFS" version="1.0.0"
+                                                        outputFormat="GML2"
+                                                >
+                                            <!-- type name set up in geoserver named "testType" -->
+                                            <wfs:Query typeName="acc:twitter"/>
+                                        </wfs:GetFeature>
+                                    </wps:Body>
+                                </wps:Reference>
+                            </wps:Input>
+                            <wps:Input>
+                                <ows:Identifier>filter</ows:Identifier>
+                                <wps:Data>
+                                    <wps:ComplexData mimeType="text/plain; subtype=cql">
+                                        <![CDATA[tweet_id = 429663124233650176]]></wps:ComplexData>
+                                </wps:Data>
+                            </wps:Input>
+                        </wps:DataInputs>
+                        <wps:ResponseForm>
+                            <wps:RawDataOutput mimeType="text/xml; subtype=wfs-collection/1.0">
+                                <ows:Identifier>result</ows:Identifier>
+                            </wps:RawDataOutput>
+                        </wps:ResponseForm>
+                    </wps:Execute>
+                    <!-- END filter features -->
+
+                </wps:Body>
+            </wps:Reference>
+        </wps:Input>
+        <wps:Input>
+            <ows:Identifier>dataFeatures</ows:Identifier>
+             <wps:Reference mimeType="text/xml; subtype=gml/3.1.1"
+                           xlink:href="http://geoserver/wps" method="POST">
+                <wps:Body>
+
+                    <!-- query features with a filter -->
+                    <wps:Execute version="1.0.0" service="WPS">
+                        <ows:Identifier>vec:Query</ows:Identifier>
+                        <wps:DataInputs>
+                            <wps:Input>
+                                <ows:Identifier>features</ows:Identifier>
+                                <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs"
+                                               method="POST">
+                                    <wps:Body>
+                                        <wfs:GetFeature service="WFS" version="1.0.0"
+                                                        outputFormat="GML2"
+                                                >
+                                            <!-- type name set up in geoserver named "testType" -->
+                                            <wfs:Query typeName="acc:twitter"/>
+                                        </wfs:GetFeature>
+                                    </wps:Body>
+                                </wps:Reference>
+                            </wps:Input>
+                           <!-- <wps:Input>
+                                <ows:Identifier>filter</ows:Identifier>
+                                <wps:Data>
+                                    <wps:ComplexData mimeType="text/plain; subtype=cql">
+                                        <![CDATA[type <>'a']]></wps:ComplexData>
+                                </wps:Data>
+                            </wps:Input>-->
+                        </wps:DataInputs>
+                        <wps:ResponseForm>
+                            <wps:RawDataOutput mimeType="text/xml; subtype=wfs-collection/1.0">
+                                <ows:Identifier>result</ows:Identifier>
+                            </wps:RawDataOutput>
+                        </wps:ResponseForm>
+                    </wps:Execute>
+                    <!-- END filter features -->
+
+                </wps:Body>
+            </wps:Reference>
+        </wps:Input>
+
+        <wps:Input>
+            <ows:Identifier>bufferDistance</ows:Identifier>
+            <wps:Data>
+                <wps:LiteralData>10000</wps:LiteralData>
+            </wps:Data>
+        </wps:Input>
+
+    </wps:DataInputs>
+    <wps:ResponseForm>
+        <wps:RawDataOutput mimeType="application/json">
+            <ows:Identifier>result</ows:Identifier>
+        </wps:RawDataOutput>
+    </wps:ResponseForm>
+</wps:Execute>
+
+
+
+
