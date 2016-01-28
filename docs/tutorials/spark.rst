@@ -49,8 +49,8 @@ Spark Distribution
 ------------------
 
 Spark does not provide a Scala 2.11 (required for GeoMesa) distribution directly. Instead, you have to
-build Spark from source. You can follow the instructions :here:`http://spark.apache.org/docs/latest/building-spark.html`,
-with Scala 2.11 details :here:`http://spark.apache.org/docs/latest/building-spark.html#building-for-scala-211`.
+build Spark from source. You can follow the instructions `here <http://spark.apache.org/docs/latest/building-spark.html>`__,
+with Scala 2.11 details `here <http://spark.apache.org/docs/latest/building-spark.html#building-for-scala-211>`__.
 
 .. warning::
 
@@ -148,8 +148,9 @@ Now, we can submit the job to our Yarn cluster using ``spark-submit``:
 
 .. code-block:: bash
 
-    $ /path/to/spark/bin/spark-submit --master yarn-client --num-executors 40 --executor-cores 4 \
-        --deploy-mode client --class org.locationtech.geomesa.compute.spark.analytics.CountByDay \
+    $ /path/to/spark/bin/spark-submit --master yarn-client                  \
+        --num-executors 40 --executor-cores 4 --deploy-mode client          \
+        --class org.locationtech.geomesa.compute.spark.analytics.CountByDay \
         geomesa-compute/target/geomesa-compute-<version>-shaded.jar
 
 You should see a lot of Spark logging, and then the counts:
