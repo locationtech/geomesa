@@ -33,17 +33,31 @@ Prerequisites
 
 .. warning::
 
-    You will need access to a Hadoop |hadoop_version| installation as well as an Accumulo |accumulo_version| database.
+    You will need access to a Hadoop |hadoop_version| installation with Yarn as well as an Accumulo |accumulo_version| database.
 
     You will need to have ingested GDELT data using GeoMesa. Instructions are available in :doc:`geomesa-examples-gdelt`.
 
 You will also need:
 
--  access to a `Spark <http://spark.apache.org/>`__ cluster,
--  an Accumulo user that has appropriate permissions to query your data,
--  Java JDK 7,
--  `Apache Maven <http://maven.apache.org/>`__ 3.2.2 or better, and
--  a `git <http://git-scm.com/>`__ client.
+-  a `Spark <http://spark.apache.org/>`__ 1.5.0 or later distribution (see below)
+-  an Accumulo user that has appropriate permissions to query your data
+-  Java JDK 7
+-  `Apache Maven <http://maven.apache.org/>`__ 3.2.2 or better
+-  a `git <http://git-scm.com/>`__ client
+
+Spark Distribution
+------------------
+
+Spark does not provide a Scala 2.11 (required for GeoMesa) distribution directly. Instead, you have to
+build Spark from source. You can follow the instructions :here:`http://spark.apache.org/docs/latest/building-spark.html`,
+with Scala 2.11 details :here:`http://spark.apache.org/docs/latest/building-spark.html#building-for-scala-211`.
+
+.. warning::
+
+    Ensure that you are using Spark 1.5.0 or later
+
+GeoMesa works best with Spark running on Yarn - as such, you need to have an available Hadoop with Yarn
+installation alongside your Spark distribution. We will use ``spark-submit`` to run our jobs on the cluster.
 
 Set Up Tutorial Code
 --------------------
@@ -60,21 +74,18 @@ This is needed to install the GeoMesa JAR files in your local Maven
 repository. For more information see the :doc:`../developer/index`.
 
 The code in this tutorial is written in
-`Scala <http://scala-lang.org/>`__, as is much of GeoMesa itself. Many
-of the commands listed below may be run using the Scala read-eval-print
-loop (REPL). The Scala REPL may be invoked in the GeoMesa source
-distribution, which will automatically add the GeoMesa JARs to the
-classpath, by running:
-
-.. code-block:: bash
-
-    $ mvn scala:console
+`Scala <http://scala-lang.org/>`__, as is much of GeoMesa itself.
 
 Count Events by Day of Year
 ---------------------------
 
 You will need to have ingested some
 `GDELT <http://www.gdeltproject.org/>`__ data as described in :doc:`geomesa-examples-gdelt`.
+We have an example analysis in the class
+``geomesa-compute/src/main/scala/org/locationtech/geomesa/compute/spark/analytics/CountByDay.scala``.
+
+The code goes as follows.
+
 First, we get a handle to a GeoMesa data store and construct a CQL query
 for our bounding box.
 
@@ -89,20 +100,14 @@ for our bounding box.
       "tableName"  -> "geomesa_catalog")
 
     val ds = DataStoreFinder.getDataStore(params)
-
-    val ff = CommonFactoryFinder.getFilterFactory2
-    val f = ff.bbox("geom", -80, 35, -70, 40, "EPSG:4326")
-    val q = new Query("GDELT", f)
+    val q = new Query("event", ECQL.toFilter(filter))
 
 Next, initialize an ``RDD[SimpleFeature]`` using ``GeoMesaSpark``.
 
 .. code-block:: scala
 
-    val conf = new Configuration
-    val sconf = init(new SparkConf(true), ds)
-    val sc = new SparkContext(sconf)
-
-    val queryRDD = geomesa.compute.spark.GeoMesaSpark.rdd(conf, sconf, ds, query)
+    val sc = new SparkContext(GeoMesaSpark.init(new SparkConf(true), ds))
+    val queryRDD = GeoMesaSpark.rdd(new Configuration, sc, params, q, None)
 
 Finally, we construct our computation which consists of extracting the
 ``SQLDATE`` from each ``SimpleFeature`` and truncating it to the day
@@ -124,7 +129,37 @@ group.
 
     val groupedByDay = dayAndFeature.groupBy { case (date, _) => date }
     val countByDay = groupedByDay.map { case (date, iter) => (date, iter.size) }
-    countByDay.collect.foreach(println)
+    countByDay.collect().foreach(println)
+
+Run the Tutorial Code
+^^^^^^^^^^^^^^^^^^^^^
+
+Edit the file ``geomesa-compute/src/main/scala/org/locationtech/geomesa/compute/spark/analytics/CountByDay.scala``
+so that the parameter map points to your cloud instance. Ensure that the ``filter`` covers
+a valid range of your GDELT data.
+
+Re-build the GeoMesa Spark jar to pick up the changes:
+
+.. code-block:: bash
+
+    $ mvn clean install -pl geomesa-compute
+
+Now, we can submit the job to our Yarn cluster using ``spark-submit``:
+
+.. code-block:: bash
+
+    $ /path/to/spark/bin/spark-submit --master yarn-client --num-executors 40 --executor-cores 4 \
+        --deploy-mode client --class org.locationtech.geomesa.compute.spark.analytics.CountByDay \
+        geomesa-compute/target/geomesa-compute-<version>-shaded.jar
+
+You should see a lot of Spark logging, and then the counts:
+
+.. code-block:: bash
+
+    (20140126,3)
+    (20140127,33)
+    (20140128,34)
+    ...
 
 Parallel Computation of Spatial Event Densities
 -----------------------------------------------
@@ -135,15 +170,17 @@ in each grid cell. We use `GeoHashes <http://geohash.org>`__ as our
 discretization of the world so that we can configure the resolution of
 our density by setting the number of bits in the GeoHash.
 
+This code is does not exist in GeoMesa; it's left as an exercise for the reader.
+
 First, start with a similar ``RDD[SimpleFeature]`` as before but expand
 the bounding box.
 
 .. code-block:: scala
 
     val f = ff.bbox("geom", -180, -90, 180, 90, "EPSG:4326")
-    val q = new Query("GDELT", f)
+    val q = new Query("event", f)
 
-    val queryRDD = geomesa.compute.spark.GeoMesaSpark.rdd(conf, sconf, ds, query)
+    val queryRDD = GeoMesaSpark.rdd(new Configuration, sc, params, q, None)
 
 Project (in the relational sense) the ``SimpleFeature`` to a 2-tuple of
 ``(GeoHash, 1)``.
