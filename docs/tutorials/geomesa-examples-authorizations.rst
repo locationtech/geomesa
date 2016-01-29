@@ -347,6 +347,8 @@ There is a more useful implementation of ``AuthorizationsProvider`` that
 will be explored in more detail in the next section, the
 ``LdapAuthorizationsProvider``.
 
+.. _authorizations-gs-pki-ldap:
+
 Applying Authorizations and Visibilities to GeoServer Using PKIS and LDAP
 -------------------------------------------------------------------------
 
