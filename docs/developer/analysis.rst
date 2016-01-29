@@ -1,7 +1,7 @@
 Analysis
 ========
 
-This chapter describes various frameworks for writing code to use GeoMesa
+This chapter describes frameworks for writing code to use GeoMesa
 data stores for analysis.
 
 Apache Spark with GeoMesa Compute

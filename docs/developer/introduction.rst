@@ -1,7 +1,7 @@
 GeoMesa Development
 ===================
 
-This chapter describes how to build GeoMesa from source, and provides an
+This chapter describes how to build GeoMesa from source and provides an
 overview for writing your own Java or Scala software that makes use of GeoMesa.
 
 Using Maven

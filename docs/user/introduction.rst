@@ -4,10 +4,11 @@ Introduction
 What is GeoMesa?
 ----------------
 
-GeoMesa is an open-source, distributed, spatio-temporal database and suite of tools built on top
-of the Apache Accumulo (http://accumulo.apache.org/) column family store. It lets users quickly store, index, and query both stored and streaming geospatial data at scale. 
+GeoMesa is an Apache licensed open source suite of tools that enables large-scale geospatial analytics on cloud and distributed computing systems, letting you manage and analyze the huge spatio-temporal datasets that IoT, social media, tracking, and mobile phone applications seek to take advantage of today. 
 
-GeoMesa is specifically built to manage large spatio-temporal datasets such as tracks, social media, IoT data, and other location data from major mobile applications. Through standards-based interfaces, it can drive map user interfaces and also serve up data for analytics such as queries, histograms, heat maps, and time series analysis.
+GeoMesa does this by providing spatio-temporal data persistence on top of the Accumulo, HBase, and Cassandra distributed column-oriented databases for massive storage of point, line, and polygon data. It allows rapid access to this data via queries that take full advantage of geographical properties to specify distance and area.  GeoMesa also provides support for near real time stream processing of spatio-temporal data by layering spatial semantics on top of the Apache Kafka messaging system. 
+
+Through a geographical information server such as GeoServer, GeoMesa facilitates integration with a wide range of existing mapping clients by enabling access to its databases and streaming capabilities over standard OGC (Open Geospatial Consortium) APIs and protocols such as WFS and WMS. These interfaces also let GeoMesa drive map user interfaces and serve up data for analytics such as queries, histograms, heat maps, and time series analyses.
 
 GeoMesa features include the ability to:
 
@@ -18,17 +19,13 @@ GeoMesa features include the ability to:
 * Support Spark analytics
 * Drive a map through GeoServer or other OGC Clients
 
-In addition to Accumulo, GeoMesa can also use Apache HBase and Google Cloud Bigtable for storage.
-
-.. according to https://en.wikipedia.org/wiki/GeoMesa
-
 There are many reasons that GeoMesa can provide the best solution to your spatio-temporal database needs:
 
-* You have Big Spatial Data sets and you are reaching performance limitations of relational database systems. Perhaps you are looking at sharding strategies and wondering if now is the time to look for a new storage solution.
-* You have very high velocity data and need high read and write speeds.
-* Your analytics operate in the cloud—perhaps your analytics run in Spark and you want to enable spatial analytics.
-* You are looking for a supported open-source alternative to expensive proprietary solutions.
-* You are looking for a Platform as a Service (PaaS) Database where you can store Big Spatial Data.
+* You have Big Spatial Data sets and are reaching performance limitations of relational database systems. Perhaps you are looking at sharding strategies and wondering if now is the time to look for a new storage solution.
+* You have very high-velocity data and need high read and write speeds.
+* Your analytics operate in the cloud, perhaps using Spark, and you want to enable spatial analytics.
+* You are looking for a supported, open-source alternative to expensive proprietary solutions.
+* You are looking for a Platform as a Service (PaaS) database where you can store Big Spatial Data.
 * You want to filter data using the rich Common Query Language (CQL) defined by the OGC.
 
 Community and Support

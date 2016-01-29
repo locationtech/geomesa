@@ -5,7 +5,7 @@ Visibilities and Authorizations
 -------------------------------
 
 One of the most powerful features of Accumulo is the implementation of
-cell-level security, using ***visibilities*** and ***authorizations***.
+cell-level security, using **visibilities** and **authorizations**.
 Data that is protected by visibilities can only be seen by users that
 have the corresponding authorizations. This allows for the fine-grained
 protection of data, based on arbitrary labels.

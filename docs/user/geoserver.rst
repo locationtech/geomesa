@@ -25,14 +25,14 @@ The list of data store types GeoServer knows should be listed. If you
 have properly installed the GeoMesa Accumulo GeoServer plugin as described
 in :ref:`install_geoserver_plugins`, "Accumulo (GeoMesa)"
 should be included in the list under **Vector Data Sources**. If you do not
-see this, ensure the plugin is in the right directory and restart GeoServer.
+see this, check that the plugin is in the right directory and restart GeoServer.
 
 .. image:: _static/img/geoserver-geomesa-accumulo-data-source.png
    :scale: 75%
    :align: center
 
 When you click on "Accumulo (GeoMesa)", several configuration
-parameters are available, as listed in the table below:
+parameters are available:
 
 ==================== =======================================================================================
 Parameter            Description
@@ -69,10 +69,10 @@ After a GeoMesa data store is successfully created, GeoServer will present a lis
 of feature types registered in that data store. Click "Publish" next to the
 name of a feature type to create a layer of the data in GeoMesa of that type.
 
-You will be taken to the **Edit Layer** screen. To render your layer, you need
-to set values for the bounding boxes. In the "Data" pane, enter values for the
-bounding boxes. In many cases, you can click on the "Compute from native bounds"
-link to computer these values from the data.
+You will be taken to the **Edit Layer** screen. To render your layer, you must
+first set values for the bounding boxes in the "Data" pane. In many cases, you
+can click on the "Compute from native bounds" link to compute these values
+from the data.
 
 .. image:: _static/img/geoserver-layer-bounding-box.png
    :align: center
@@ -104,7 +104,7 @@ tutorial <http://docs.geoserver.org/latest/en/user/tutorials/cql/cql_tutorial.ht
 Analysis with WPS
 -----------------
 
-As described by the Open Geospatial Consortium's page on WPS, 
+As described by the Open Geospatial Consortium's `Web Map Service <http://www.opengeospatial.org/standards/wms>`_ page,
 
     The OpenGIS® Web Map Service Interface Standard (WMS) provides a simple HTTP
     interface for requesting geo-registered map images from one or more

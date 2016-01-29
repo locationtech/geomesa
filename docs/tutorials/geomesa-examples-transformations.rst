@@ -18,7 +18,7 @@ The transformations are applied in parallel across the cluster thus
 making them very fast. They are analogous to the map tasks in a
 map-reduce job. Transformations are also extensible; developers can
 implement new functions and plug them into the system using standard
-mechanisms from `Geotools <http://www.geotools.org/>`__.
+mechanisms from `GeoTools <http://www.geotools.org/>`__.
 
 .. note::
 

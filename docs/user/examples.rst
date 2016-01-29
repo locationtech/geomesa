@@ -2,8 +2,8 @@ Examples
 ========
 
 This chapter provides hands-on examples of some
-common tasks in GeoMesa, including managing registered feature types
-in a data store, ingesting data, and exporting data in a variety of formats.
+common tasks in GeoMesa, including the management of registered feature types
+in a data store, ingest of data, and export of data in a variety of formats.
 
 Feature Type Management
 -----------------------

@@ -319,7 +319,7 @@ location or high volume of data in general. Add the SLD file
 GeoServer.
 
 In the request below, the heatmap is before the points layer so that the
-points will be overlayed and not hidden. Notice the
+points will be overlaid and not hidden. Notice the
 "&env=radiusPixels:30" in the URL; this is SLD variable substitution,
 and will replace the default value assigned in the SLD.
 

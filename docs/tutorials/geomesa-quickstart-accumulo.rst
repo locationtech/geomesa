@@ -1,4 +1,4 @@
-GeoMesa Accumulo Quick-Start
+GeoMesa Accumulo Quick Start
 ============================
 
 This tutorial is the fastest and easiest way to get started with

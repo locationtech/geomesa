@@ -1,7 +1,7 @@
 The GeoMesa API
 ===============
 
-This chapter describes various aspects of the GeoMesa API.
+This chapter describes the data structures and usage of the GeoMesa API.
 
 GeoTools DataStore
 ------------------

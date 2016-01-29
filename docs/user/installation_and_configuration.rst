@@ -1,21 +1,20 @@
 Installation and Configuration
 ==============================
 
-This chapter describes how to install and configure GeoMesa.
-This includes installation of the Accumulo and Kafka data
-stores, and installation and configuration of the GeoServer
-plugins.
+This chapter describes how to install and configure GeoMesa on a Linux system.
+This includes installation of the Accumulo and Kafka data stores and
+installation and configuration of the GeoServer plugins.
 
 Prerequisites and Platform
 --------------------------
 
 .. warning::
 
-    GeoMesa requires Accumulo (http://accumulo.apache.org/) |accumulo_version|, which in turn
-    requires Hadoop (http://hadoop.apache.org/) |hadoop_version| and ZooKeeper (http://zookeeper.apache.org) 
+    GeoMesa requires `Accumulo <http://accumulo.apache.org/>`_ |accumulo_version|, which in turn
+    requires `Hadoop <http://hadoop.apache.org/>`_ |hadoop_version| and `ZooKeeper <http://zookeeper.apache.org>`_
     |zookeeper_version|. Installing and configuring Accumulo is beyond the scope of this manual.
 
-    Using the Kafka (http://kafka.apache.org/) module requires Kafka |kafka_version| and ZooKeeper |zookeeper_version|.  
+    Using the `Kafka <http://kafka.apache.org/>`_ module requires Kafka |kafka_version| and ZooKeeper |zookeeper_version|.  
 
 To install the binary distribution:
 
@@ -32,7 +31,7 @@ Versions and Downloads
 
 .. note::
 
-    The current recommended version is |release|.
+    The current recommended version of GeoMesa to install is |release|.
 
 **Latest release**: |release|
 
@@ -82,7 +81,7 @@ the use of the binary GeoMesa distribution. If you have built from source, the
 distribution is created in the ``geomesa-dist/target`` directory as a part of
 the build process.
 
-More information about developing with GeoMesa may be found in :doc:`/developer/index`.
+More information about developing with GeoMesa may be found in the :doc:`/developer/index`.
 
 .. _setting_up_commandline:
 
@@ -90,7 +89,7 @@ Setting up the Command Line Tools
 ---------------------------------
 
 GeoMesa comes with a set of command line tools for managing features. To complete the setup 
-of the tools, cd into the ``dist/tools`` directory of the binary distribution and unpack the
+of the tools, `cd` into the ``dist/tools`` directory of the binary distribution and unpack the
 ``geomesa-tools-$VERSION-bin.tar.gz`` file (``$VERSION`` = |release|).
 
 .. code-block:: bash
@@ -132,8 +131,7 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_HOME`` an
     directory, not the main geomesa binary distribution directory!
 
 Due to licensing restrictions, dependencies for shape file support and raster 
-ingest must be separately installed. These may be installed by invoking the
-following commands: 
+ingest must be separately installed. Do this with the following commands: 
 
 .. code-block:: bash
 
@@ -148,7 +146,7 @@ data specific to your setup and running it:
 
     $ bin/test-geomesa
 
-Test the GeoMesa Tools:
+Test the command that invokes the GeoMesa Tools:
 
 .. code-block:: bash
 
@@ -189,7 +187,7 @@ Note that if no slf4j implementation is installed you will see this error:
 
 In this case you may download SLF4J from http://www.slf4j.org/download.html. Extract 
 ``slf4j-log4j12-1.7.7.jar`` and place it in the ``lib`` directory of the binary distribution. 
-If this conflicts with another SLF4J implementation, it may need to be removed from the lib directory.
+If this conflicts with another SLF4J implementation, you may need to remove it from the ``lib`` directory.
 
 
 Installing the Accumulo distributed runtime library
@@ -202,8 +200,8 @@ contains GeoMesa code and the Accumulo iterator required for querying
 GeoMesa data.
 
 The version of the distributed runtime JAR must match the version of the GeoMesa
-data store client JAR (usually installed in GeoServer, see below). If not,
-queries might not work correctly (or at all).
+data store client JAR (usually installed in GeoServer; see below). If not,
+queries might not work correctly or at all.
 
 For Accumulo 1.5
 ^^^^^^^^^^^^^^^^
@@ -239,7 +237,7 @@ namespace in the Accumulo shell:
 
 Then copy the distributed runtime jar into HDFS under the path you specified.
 The path above is just an example; you can included nested folders with project
-names, version numbers, etc. in order to have different versions of GeoMesa on
+names, version numbers, and other information in order to have different versions of GeoMesa on
 the same Accumulo instance. You should remove any GeoMesa JARs under
 ``$ACCUMULO_HOME/lib/ext`` to prevent any classpath conflicts.
 
@@ -260,17 +258,16 @@ Installing the GeoMesa GeoServer plugins
     |geoserver_version| and GeoTools |geotools_version|.
 
 
-As described in section :ref:`geomesa_and_geoserver` , GeoMesa implements a
-GeoTools-compatible (http://geotools.org/) data store. This makes it possible
-to use GeoMesa as a data store in GeoServer (http://geoserver.org/). The documentation
+As described in section :ref:`geomesa_and_geoserver`, GeoMesa implements a 
+`GeoTools <http://geotools.org/>`_-compatible data store. This makes it possible
+to use GeoMesa as a data store in `GeoServer <http://geoserver.org>`_. The documentation
 below describes how to configure GeoServer to connect to GeoMesa Accumulo and Kafka data stores.
-The installation and setup of GeoServer is beyond the scope of this document, but
-instructions may be found here: http://docs.geoserver.org/latest/en/user/installation/index.html
+GeoServer's web site includes `installation instructions for GeoServer <http://docs.geoserver.org/latest/en/user/installation/index.html>`_.
 
-After GeoServer is running, you will also need to install the WPS plugin to your GeoServer
-instance. The GeoServer WPS Plugin (available at 
-http://docs.geoserver.org/stable/en/user/extensions/wps/install.html) must match the version of
-GeoServer instance. This is needed for both the Accumulo and Kafka variants of the plugin.
+After GeoServer is running, you will also need to install the WPS plugin to
+your GeoServer instance. The GeoServer WPS Plugin must match the version of
+GeoServer instance. This is needed for both the Accumulo and Kafka variants of
+the plugin. The GeoServer website includes `instructions for downloading and installing <http://docs.geoserver.org/stable/en/user/extensions/wps/install.html>`_ the WPS plugin.
 
 .. note::
 

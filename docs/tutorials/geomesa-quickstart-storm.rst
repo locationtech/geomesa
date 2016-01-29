@@ -3,7 +3,7 @@ GeoMesa Storm Quick Start
 
 Apache Storm is "a free and open source distributed realtime computation system."
 
-Storm can be leveraged to analyze and ingest data into GeoMesa in near
+You can leverage Storm to analyze and ingest data into GeoMesa in near
 real time. In this tutorial, we will:
 
 1. Use Apache Kakfa to send messages to a Storm topology.
