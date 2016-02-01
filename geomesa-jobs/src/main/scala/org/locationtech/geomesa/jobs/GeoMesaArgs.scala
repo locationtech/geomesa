@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.jobs
 
 import com.beust.jcommander.{JCommander, Parameter}
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 
 class GeoMesaArgs(val args: Array[String]) {
   def parse(): Unit = new JCommander(this, args: _*)
@@ -32,11 +32,11 @@ trait InputDataStoreArgs {
   var inTableName: String = null
 
   def inDataStore: Map[String, String] = Map(
-    AccumuloDataStoreFactory.params.userParam.getName       -> inUser,
-    AccumuloDataStoreFactory.params.passwordParam.getName   -> inPassword,
-    AccumuloDataStoreFactory.params.instanceIdParam.getName -> inInstanceId,
-    AccumuloDataStoreFactory.params.zookeepersParam.getName -> inZookeepers,
-    AccumuloDataStoreFactory.params.tableNameParam.getName  -> inTableName
+    AccumuloDataStoreParams.userParam.getName       -> inUser,
+    AccumuloDataStoreParams.passwordParam.getName   -> inPassword,
+    AccumuloDataStoreParams.instanceIdParam.getName -> inInstanceId,
+    AccumuloDataStoreParams.zookeepersParam.getName -> inZookeepers,
+    AccumuloDataStoreParams.tableNameParam.getName  -> inTableName
   )
 }
 
@@ -62,11 +62,11 @@ trait OutputDataStoreArgs {
   var outTableName: String = null
 
   def outDataStore: Map[String, String] = Map(
-    AccumuloDataStoreFactory.params.userParam.getName       -> outUser,
-    AccumuloDataStoreFactory.params.passwordParam.getName   -> outPassword,
-    AccumuloDataStoreFactory.params.instanceIdParam.getName -> outInstanceId,
-    AccumuloDataStoreFactory.params.zookeepersParam.getName -> outZookeepers,
-    AccumuloDataStoreFactory.params.tableNameParam.getName  -> outTableName
+    AccumuloDataStoreParams.userParam.getName       -> outUser,
+    AccumuloDataStoreParams.passwordParam.getName   -> outPassword,
+    AccumuloDataStoreParams.instanceIdParam.getName -> outInstanceId,
+    AccumuloDataStoreParams.zookeepersParam.getName -> outZookeepers,
+    AccumuloDataStoreParams.tableNameParam.getName  -> outTableName
   )
 }
 

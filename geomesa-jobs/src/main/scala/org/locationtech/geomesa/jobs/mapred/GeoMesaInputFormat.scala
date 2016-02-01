@@ -23,7 +23,7 @@ import org.apache.hadoop.mapred._
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.features.SerializationType.SerializationType
@@ -62,15 +62,15 @@ object GeoMesaInputFormat extends LazyLogging {
     assert(ds != null, "Invalid data store parameters")
 
     // set up the underlying accumulo input format
-    val user = AccumuloDataStoreFactory.params.userParam.lookUp(dsParams).asInstanceOf[String]
-    val password = AccumuloDataStoreFactory.params.passwordParam.lookUp(dsParams).asInstanceOf[String]
+    val user = AccumuloDataStoreParams.userParam.lookUp(dsParams).asInstanceOf[String]
+    val password = AccumuloDataStoreParams.passwordParam.lookUp(dsParams).asInstanceOf[String]
     InputFormatBaseAdapter.setConnectorInfo(job, user, new PasswordToken(password.getBytes))
 
-    val instance = AccumuloDataStoreFactory.params.instanceIdParam.lookUp(dsParams).asInstanceOf[String]
-    val zookeepers = AccumuloDataStoreFactory.params.zookeepersParam.lookUp(dsParams).asInstanceOf[String]
+    val instance = AccumuloDataStoreParams.instanceIdParam.lookUp(dsParams).asInstanceOf[String]
+    val zookeepers = AccumuloDataStoreParams.zookeepersParam.lookUp(dsParams).asInstanceOf[String]
     InputFormatBaseAdapter.setZooKeeperInstance(job, instance, zookeepers)
 
-    val auths = Option(AccumuloDataStoreFactory.params.authsParam.lookUp(dsParams).asInstanceOf[String])
+    val auths = Option(AccumuloDataStoreParams.authsParam.lookUp(dsParams).asInstanceOf[String])
     auths.foreach(a => InputFormatBaseAdapter.setScanAuthorizations(job, new Authorizations(a.split(","): _*)))
 
     val featureTypeName = query.getTypeName

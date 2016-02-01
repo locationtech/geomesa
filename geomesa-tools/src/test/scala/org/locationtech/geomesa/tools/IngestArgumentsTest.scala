@@ -11,12 +11,11 @@ package org.locationtech.geomesa.tools
 import java.io.File
 
 import com.beust.jcommander.ParameterException
-import com.typesafe.config.{ConfigRenderOptions, ConfigFactory}
-import org.apache.commons.io.{FileUtils, IOUtils}
+import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
+import org.apache.commons.io.FileUtils
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.utils.geotools.Conversions
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -127,12 +126,12 @@ class IngestArgumentsTest extends Specification {
     def getDS(id: String) = {
       import scala.collection.JavaConversions._
       def paramMap = Map[String, String](
-      params.instanceIdParam.getName -> id,
-      params.zookeepersParam.getName -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      params.userParam.getName       -> "foo",
-      params.passwordParam.getName   -> "bar",
-      params.tableNameParam.getName  -> id,
-      params.mockParam.getName       -> "true")
+        AccumuloDataStoreParams.instanceIdParam.getName -> id,
+        AccumuloDataStoreParams.zookeepersParam.getName -> "zoo1:2181,zoo2:2181,zoo3:2181",
+        AccumuloDataStoreParams.userParam.getName       -> "foo",
+        AccumuloDataStoreParams.passwordParam.getName   -> "bar",
+        AccumuloDataStoreParams.tableNameParam.getName  -> id,
+        AccumuloDataStoreParams.mockParam.getName       -> "true")
       DataStoreFinder.getDataStore(paramMap).asInstanceOf[AccumuloDataStore]
     }
 

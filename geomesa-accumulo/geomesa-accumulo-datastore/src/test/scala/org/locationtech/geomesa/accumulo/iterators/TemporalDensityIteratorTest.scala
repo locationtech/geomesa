@@ -43,7 +43,7 @@ class TemporalDensityIteratorTest extends Specification {
 
     val dsf = new AccumuloDataStoreFactory
 
-    import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params._
+    import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
 
     val ds = dsf.createDataStore(Map(
       zookeepersParam.key -> "dummy",

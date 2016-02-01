@@ -23,7 +23,7 @@ import scala.collection.JavaConversions._
 // GEOMESA-570
 object AccumuloStoreHelper {
   import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory._
-  import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params._
+  import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
 
   def getVisibility(params: JMap[String,Serializable]): String = {
     val visStr = visibilityParam.lookUp(params).asInstanceOf[String]

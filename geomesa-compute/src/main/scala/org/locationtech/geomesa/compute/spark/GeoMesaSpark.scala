@@ -27,7 +27,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 import org.geotools.data._
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.features.SimpleFeatureSerializers
 import org.locationtech.geomesa.features.kryo.serialization.SimpleFeatureSerializer
@@ -76,8 +76,8 @@ object GeoMesaSpark extends LazyLogging {
           numberOfSplits: Option[Int] = None): RDD[SimpleFeature] = {
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
     val typeName = query.getTypeName
-    val username = AccumuloDataStoreFactory.params.userParam.lookUp(dsParams).toString
-    val password = new PasswordToken(AccumuloDataStoreFactory.params.passwordParam.lookUp(dsParams).toString.getBytes)
+    val username = AccumuloDataStoreParams.userParam.lookUp(dsParams).toString
+    val password = new PasswordToken(AccumuloDataStoreParams.passwordParam.lookUp(dsParams).toString.getBytes)
 
     // get the query plan to set up the iterators, ranges, etc
     val qp = JobUtils.getSingleQueryPlan(ds, query)
@@ -120,7 +120,7 @@ object GeoMesaSpark extends LazyLogging {
     query.getHints.getTransformSchema.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
 
     // Configure Auths from DS
-    val auths = Option(AccumuloDataStoreFactory.params.authsParam.lookUp(dsParams).asInstanceOf[String])
+    val auths = Option(AccumuloDataStoreParams.authsParam.lookUp(dsParams).asInstanceOf[String])
     auths.foreach(a => InputConfigurator.setScanAuthorizations(classOf[AccumuloInputFormat], conf, new Authorizations(a.split(","): _*)))
 
     sc.newAPIHadoopRDD(conf, classOf[GeoMesaInputFormat], classOf[Text], classOf[SimpleFeature]).map(U => U._2)

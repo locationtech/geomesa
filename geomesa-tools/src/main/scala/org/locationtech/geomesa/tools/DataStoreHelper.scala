@@ -9,8 +9,7 @@
 package org.locationtech.geomesa.tools
 
 import org.geotools.data.DataStoreFinder
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.{params => dsParams}
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams => dsParams}
 import org.locationtech.geomesa.tools.commands.GeoMesaParams
 
 import scala.collection.JavaConversions._

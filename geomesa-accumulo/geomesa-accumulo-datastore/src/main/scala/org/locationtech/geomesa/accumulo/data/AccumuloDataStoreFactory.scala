@@ -26,7 +26,7 @@ import scala.collection.JavaConversions._
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
   import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory._
-  import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params._
+  import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
 
   // this is a pass-through required of the ancestor interface
   def createNewDataStore(params: JMap[String, Serializable]) = createDataStore(params)
@@ -128,7 +128,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
 object AccumuloDataStoreFactory {
 
-  import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params._
+  import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
 
   val DISPLAY_NAME = "Accumulo (GeoMesa)"
   val DESCRIPTION = "Apache Accumulo\u2122 distributed key/value store"
@@ -138,24 +138,6 @@ object AccumuloDataStoreFactory {
     def lookupOpt[T](params: JMap[String, Serializable]): Option[T] = Option(p.lookup[T](params))
     def lookupWithDefault[T](params: JMap[String, Serializable]): T =
       p.lookupOpt[T](params).getOrElse(p.getDefaultValue.asInstanceOf[T])
-  }
-
-  object params {
-    val connParam           = new Param("connector", classOf[Connector], "Accumulo connector", false)
-    val instanceIdParam     = new Param("instanceId", classOf[String], "Accumulo Instance ID", true)
-    val zookeepersParam     = new Param("zookeepers", classOf[String], "Zookeepers", true)
-    val userParam           = new Param("user", classOf[String], "Accumulo user", true)
-    val passwordParam       = new Param("password", classOf[String], "Accumulo password", true, null, Collections.singletonMap(Parameter.IS_PASSWORD, java.lang.Boolean.TRUE))
-    val authsParam          = org.locationtech.geomesa.security.authsParam
-    val visibilityParam     = new Param("visibilities", classOf[String], "Accumulo visibilities to apply to all written data", false)
-    val tableNameParam      = new Param("tableName", classOf[String], "Accumulo catalog table name", true)
-    val queryTimeoutParam   = new Param("queryTimeout", classOf[Integer], "The max time a query will be allowed to run before being killed, in seconds", false)
-    val queryThreadsParam   = new Param("queryThreads", classOf[Integer], "The number of threads to use per query", false, 8)
-    val recordThreadsParam  = new Param("recordThreads", classOf[Integer], "The number of threads to use for record retrieval", false, 10)
-    val writeThreadsParam   = new Param("writeThreads", classOf[Integer], "The number of threads to use for writing records", false, 10)
-    val statsParam          = new Param("collectStats", classOf[java.lang.Boolean], "Toggle collection of statistics", false, true)
-    val cachingParam        = new Param("caching", classOf[java.lang.Boolean], "Toggle caching of results", false, false)
-    val mockParam           = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
   }
 
   def buildAccumuloConnector(params: JMap[String,Serializable], useMock: Boolean): Connector = {
@@ -174,4 +156,23 @@ object AccumuloDataStoreFactory {
 
   def canProcess(params: JMap[String,Serializable]): Boolean =
     params.containsKey(instanceIdParam.key) || params.containsKey(connParam.key)
+}
+
+// keep params in a separate object so we don't require accumulo classes on the build path to access it
+object AccumuloDataStoreParams {
+  val connParam           = new Param("connector", classOf[Connector], "Accumulo connector", false)
+  val instanceIdParam     = new Param("instanceId", classOf[String], "Accumulo Instance ID", true)
+  val zookeepersParam     = new Param("zookeepers", classOf[String], "Zookeepers", true)
+  val userParam           = new Param("user", classOf[String], "Accumulo user", true)
+  val passwordParam       = new Param("password", classOf[String], "Accumulo password", true, null, Collections.singletonMap(Parameter.IS_PASSWORD, java.lang.Boolean.TRUE))
+  val authsParam          = org.locationtech.geomesa.security.authsParam
+  val visibilityParam     = new Param("visibilities", classOf[String], "Accumulo visibilities to apply to all written data", false)
+  val tableNameParam      = new Param("tableName", classOf[String], "Accumulo catalog table name", true)
+  val queryTimeoutParam   = new Param("queryTimeout", classOf[Integer], "The max time a query will be allowed to run before being killed, in seconds", false)
+  val queryThreadsParam   = new Param("queryThreads", classOf[Integer], "The number of threads to use per query", false, 8)
+  val recordThreadsParam  = new Param("recordThreads", classOf[Integer], "The number of threads to use for record retrieval", false, 10)
+  val writeThreadsParam   = new Param("writeThreads", classOf[Integer], "The number of threads to use for writing records", false, 10)
+  val statsParam          = new Param("collectStats", classOf[java.lang.Boolean], "Toggle collection of statistics", false, true)
+  val cachingParam        = new Param("caching", classOf[java.lang.Boolean], "Toggle caching of results", false, false)
+  val mockParam           = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
 }

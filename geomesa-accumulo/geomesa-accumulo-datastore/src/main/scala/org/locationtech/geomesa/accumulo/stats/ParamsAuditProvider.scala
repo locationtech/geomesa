@@ -12,7 +12,7 @@ import java.io.Serializable
 import java.util.{Map => jMap}
 
 import org.apache.accumulo.core.client.Connector
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.security.AuditProvider
 
 import scala.collection.JavaConversions._
@@ -26,7 +26,7 @@ class ParamsAuditProvider extends AuditProvider {
   override val getCurrentUserDetails: jMap[AnyRef, AnyRef] = Map.empty[AnyRef, AnyRef]
 
   override def configure(params: jMap[String, Serializable]): Unit = {
-    import AccumuloDataStoreFactory.params._
+    import AccumuloDataStoreParams._
     val user = if (params.containsKey(connParam.key)) {
       connParam.lookUp(params).asInstanceOf[Connector].whoami()
     } else if (params.containsKey(userParam)) {

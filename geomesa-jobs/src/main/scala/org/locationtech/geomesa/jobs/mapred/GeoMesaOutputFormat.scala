@@ -19,9 +19,9 @@ import org.apache.hadoop.fs.FileSystem
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapred._
 import org.apache.hadoop.util.Progressable
-import org.geotools.data.{DataUtilities, DataStoreFinder}
+import org.geotools.data.{DataStoreFinder, DataUtilities}
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloFeatureWriter}
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloDataStoreParams, AccumuloFeatureWriter}
 import org.locationtech.geomesa.accumulo.index.IndexValueEncoder
 import org.locationtech.geomesa.features.{SimpleFeatureSerializer, SimpleFeatureSerializers}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
@@ -41,12 +41,12 @@ object GeoMesaOutputFormat {
     assert(ds != null, "Invalid data store parameters")
 
     // set up the underlying accumulo input format
-    val user = AccumuloDataStoreFactory.params.userParam.lookUp(dsParams).asInstanceOf[String]
-    val password = AccumuloDataStoreFactory.params.passwordParam.lookUp(dsParams).asInstanceOf[String]
+    val user = AccumuloDataStoreParams.userParam.lookUp(dsParams).asInstanceOf[String]
+    val password = AccumuloDataStoreParams.passwordParam.lookUp(dsParams).asInstanceOf[String]
     AccumuloOutputFormat.setConnectorInfo(job, user, new PasswordToken(password.getBytes))
 
-    val instance = AccumuloDataStoreFactory.params.instanceIdParam.lookUp(dsParams).asInstanceOf[String]
-    val zookeepers = AccumuloDataStoreFactory.params.zookeepersParam.lookUp(dsParams).asInstanceOf[String]
+    val instance = AccumuloDataStoreParams.instanceIdParam.lookUp(dsParams).asInstanceOf[String]
+    val zookeepers = AccumuloDataStoreParams.zookeepersParam.lookUp(dsParams).asInstanceOf[String]
     AccumuloOutputFormat.setZooKeeperInstance(job, instance, zookeepers)
 
     AccumuloOutputFormat.setCreateTables(job, false)
