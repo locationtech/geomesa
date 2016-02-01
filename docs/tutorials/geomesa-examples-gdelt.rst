@@ -18,11 +18,11 @@ Prerequisites
 You will also need:
 
 -  access to an Accumulo user that has both create-table and write
-   permissions,
+   permissions
 -  an instance of GeoServer |geoserver_version| with the GeoMesa plugin installed,
--  Java JDK 7,
--  `Apache Maven <http://maven.apache.org>`__ |maven_version|, and
--  a `git <http://git-scm.com>`__ client.
+-  Java JDK 7
+-  `Apache Maven <http://maven.apache.org>`__ |maven_version|
+-  a `git <http://git-scm.com>`__ client
 
 Obtaining GDELT data
 --------------------
@@ -68,58 +68,55 @@ hence the ``*.tsv`` extension. See the `GDELT raw data file
 documentation <http://www.gdeltproject.org/data.html#rawdatafiles>`__
 for more information on the format of these files.
 
-Building the tutorial code
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Download and Build the Tutorial
+-------------------------------
 
-Clone the geomesa project and build it, if you haven't already:
-
-.. code-block:: bash
-
-    $ git clone https://github.com/locationtech/geomesa.git
-    $ cd geomesa
-    $ mvn clean install
-
-This is needed to install the GeoMesa JAR files in your local Maven
-repository. For more information see the :doc:`./geomesa-quickstart-accumulo` tutorial.
-
-Clone the geomesa-tutorials project and build it:
+Pick a reasonable directory on your machine, and run:
 
 .. code-block:: bash
 
-    $ git clone https://github.com/geomesa/geomesa-tutorials.git
+    $ git clone git@github.com:geomesa/geomesa-tutorials.git
+    $ cd geomesa-tutorials
 
-The example code is in ``geomesa-examples-gdelt``:
+To build, run
 
 .. code-block:: bash
 
-    $ cd geomesa-tutorials/geomesa-examples-gdelt
-    $ mvn clean install
+    $ mvn clean install -pl geomesa-examples-gdelt
 
-After building, the built JAR file bundled with all dependencies will be
-in the ``target`` subdirectory.
+.. note::
 
-Running the ingest
-~~~~~~~~~~~~~~~~~~
+    Ensure that the version of Accumulo, Hadoop, etc in
+    the root ``pom.xml`` match your environment.
+
+.. note::
+
+    Depending on the version, you may also need to build
+    GeoMesa locally. Instructions can be found under
+    :doc:`/user/installation_and_configuration`.
+
+Running the Ingest
+------------------
 
 Use ``hadoop jar`` to launch the Map/Reduce ingest job:
 
 .. code-block:: bash
 
-    $ hadoop jar ./target/geomesa-examples-$VERSION.jar \
-       com.example.geomesa.gdelt.GDELTIngest           \
-       -instanceId <accumulo-instance-id>              \
-       -zookeepers <zookeeper-hosts-string>            \
-       -user <username> -password <password>           \
-       -auths <comma-separated-authorization-string>   \
-       -tableName gdelt -featureName event             \
-       -ingestFile hdfs:///gdelt/uncompressed/gdelt.tsv
+    $ hadoop jar geomesa-examples-gdelt/target/geomesa-examples-gdelt-<version>.jar \
+        com.example.geomesa.gdelt.GDELTIngest            \
+        -instanceId <accumulo-instance-id>               \
+        -zookeepers <zookeeper-hosts-string>             \
+        -user <username> -password <password>            \
+        -auths <comma-separated-authorization-string>    \
+        -tableName gdelt -featureName event              \
+        -ingestFile hdfs:///gdelt/uncompressed/gdelt.tsv
 
 Note that authorizations are optional. Unless you know that your table
 already exists with explicit authorizations, or that it will be created
 with default authorizations, you probably want to omit this parameter.
 
 DataStore Initialization
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 `GeoTools <http://www.geotools.org>`__ uses a ``SimpleFeatureType`` to
 represent the schema for individual ``SimpleFeatures`` created from the
@@ -167,17 +164,17 @@ Finally, we create the new feature type in GeoMesa as follows.
     ds.createSchema(featureType);
 
 Mapper
-------
+~~~~~~
 
-In the ``setup`` method of the Mapper class, we grab the connection
-params from the ``JobContext`` and get a handle on a ``FeatureWriter``.
+In the ``setup`` method of the Mapper class, we create a
+``FeatureBuilder`` for the GDELT ``SimpleFeatureType`` we created in the
+initialization.
 
 .. code-block:: java
 
-    DataStore ds = DataStoreFinder.getDataStore(connectionParams);
-    featureType = ds.getSchema(featureName);
+    String featureName = context.getConfiguration().get(GDELTIngest.FEATURE_NAME);
+    SimpleFeatureType featureType = GDELTIngest.buildGDELTFeatureType(featureName);
     featureBuilder = new SimpleFeatureBuilder(featureType);
-    featureWriter = ds.getFeatureWriter(featureName, Transaction.AUTO_COMMIT);
 
 The input to the map method is a single line of the GDELT TSV file. We
 split the line on tabs and extract the attributes of the data. We parse
@@ -201,11 +198,13 @@ automatically into the specified class need to be explicitly set on the
     simpleFeature.setAttribute("SQLDATE", formatter.parse(attributes[DATE_COL_IDX]));
     simpleFeature.setDefaultGeometry(geom);
 
-    try { SimpleFeature next = featureWriter.next();
-        next.setAttributes(simpleFeature.getAttributes());
-        ((FeatureIdImpl)next.getIdentifier()).setID(simpleFeature.getID());
-        featureWriter.write();
-    }
+We leverage the ``GeoMesaOutputFormat`` in order to write
+``SimpleFeature``\ s to Accumulo. Once we have created the
+``SimpleFeature``, all we have to do is write it to the output context:
+
+.. code-block:: java
+
+    context.write(new Text(), simpleFeature);
 
 Analyze
 -------
@@ -226,8 +225,6 @@ is in the right directory and restart GeoServer.
 .. figure:: _static/geomesa-examples-gdelt/Accumulo_Feature_Data_Store.png
    :alt: Registering new Data Store
 
-   Registering a new Data Store
-
 Register the newly created Accumulo table using the same parameters
 specified in the command line above. (If you use a workspace:layer name
 other than "geomesa:gdelt", you will need to change the WMS requests
@@ -235,8 +232,6 @@ that follow.)
 
 .. figure:: _static/geomesa-examples-gdelt/Geoserver_Accumulo_Store_Registration.png
    :alt: Registering new Accumulo Feature Data Store
-
-   Registering a new Accumulo Feature Data Store
 
 Publish layer
 ~~~~~~~~~~~~~
@@ -249,8 +244,6 @@ need to specify a presentation for time - use List as a default.
 
 .. figure:: _static/geomesa-examples-gdelt/Edit_Layer_Enable_Time.png
    :alt: Enable Time for the Layer
-
-   Enable Time for the Layer
 
 Query
 ~~~~~
@@ -265,8 +258,6 @@ data.
 
 .. figure:: _static/geomesa-examples-gdelt/Ukraine_Unfiltered.png
    :alt: Showing all GDELT events from Jan 1, 2013 to April 30, 2014
-
-   Showing all GDELT events from Jan 1, 2013 to April 30, 2014
 
 The above map is using the `Stamen
 Toner <http://maps.stamen.com/toner>`__ layer as a base layer. For more
@@ -287,12 +278,8 @@ OpenLayers preview.
 .. figure:: _static/geomesa-examples-gdelt/Geoserver_Toggle_Options_Toolbar.png
    :alt: Open GeoServer Toggle Options Toolbar
 
-   Open GeoServer Toggle Options Toolbar
-
 .. figure:: _static/geomesa-examples-gdelt/Geoserver_Layer_Preview_Drop_Down.png
    :alt: Enter CQL Filter into Toolbar
-
-   Enter CQL Filter into Toolbar
 
 Let's use a custom icon to display THREATEN events, by adding an `SLD
 style <http://docs.geoserver.org/latest/en/user/styling/index.html>`__
@@ -309,6 +296,7 @@ specified location in your GeoServer installation.
     http://localhost:8080/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=geomesa:gdelt&CQL_FILTER=EventRootCode=13&styles=threat&bbox=31.6,44,37.4,47.75&width=1200&height=600&srs=EPSG:4326&format=application/openlayers&TIME=2013-01-01T00:00:00.000Z/2014-04-30T23:00:00.000Z
 
 .. image:: _static/geomesa-examples-gdelt/Ukraine_Event_RootCode_Threaten.png
+   :alt: Showing GDELT events with CAMEO root code THREATEN from Jan 1, 2013 to April 30, 2014
 
 Heatmaps
 ~~~~~~~~
@@ -328,3 +316,4 @@ and will replace the default value assigned in the SLD.
     http://localhost:8080/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=geomesa:gdelt,geomesa:gdelt&CQL_FILTER=include;EventRootCode=13&styles=heatmap,threat&bbox=31.6,44,37.4,47.75&width=1200&height=600&srs=EPSG:4326&format=application/openlayers&TIME=2013-01-01T00:00:00.000Z/2014-04-30T23:00:00.000Z&env=radiusPixels:30
 
 .. image:: _static/geomesa-examples-gdelt/Heatmap_Ukraine_EventRootCode_Threaten.png
+   :alt: Showing heatmap with event overlay of GDELT events with CAMEO root code THREATEN from Jan 1, 2013 to April 30, 2014

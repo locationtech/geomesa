@@ -65,6 +65,8 @@ To build, run
     Ensure that the version of Kafka and Zookeeper in
     the root ``pom.xml`` match your environment.
 
+.. note::
+
     Depending on the version, you may also need to build
     GeoMesa locally. Instructions can be found in
     :doc:`/user/installation_and_configuration`.

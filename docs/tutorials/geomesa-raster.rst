@@ -24,8 +24,11 @@ Before you begin, you should have these:
    (GDAL) <http://www.gdal.org/>`__ installed
 
 Before you begin, you should have also set up GeoMesa, using the
-instructions in :doc:`/user/installation_and_configuration`. Make sure you
-follow the instruction on installing the GeoServer community module.
+instructions in :doc:`/user/installation_and_configuration`.
+
+.. note::
+
+    Make sure you follow the instruction on installing the GeoServer community module.
 
 Introduction
 ------------

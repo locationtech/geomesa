@@ -37,7 +37,7 @@ Security
     :maxdepth: 1
 
     geomesa-examples-authorizations
-    geomesa-feature-level-visibility
+    geomesa-examples-featurelevelvis
 
 Indexing and Queries
 --------------------

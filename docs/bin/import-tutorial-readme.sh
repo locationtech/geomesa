@@ -13,6 +13,7 @@ GEOMESA_PATH=/opt/devel/src/geomesa
 TUTORIAL_PATH=/opt/devel/src/geomesa-tutorials
 TUTORIALS="
 geomesa-examples-authorizations
+geomesa-examples-featurelevelvis
 geomesa-examples-gdelt
 geomesa-examples-transformations
 geomesa-quickstart-accumulo

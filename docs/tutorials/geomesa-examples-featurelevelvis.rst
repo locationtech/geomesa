@@ -1,9 +1,10 @@
-Feature Level Visibility & Security
+Feature Level Visibility and Security
 ===================================
 
-GeoMesa supports security on a per-feature level, leveraging Accumulo's support
-for built-in cell-level visibility. This allows data to be filtered on a granular
-level for different users. From the Accumulo user guide:
+GeoMesa supports security on a per-feature level, leveraging Accumulo's
+support for built-in cell-level visibility. This allows data to be
+filtered on a granular level for different users. From the Accumulo user
+guide:
 
     Accumulo extends the BigTable data model to implement a security
     mechanism known as cell-level security. Every key-value pair has its
@@ -14,8 +15,8 @@ level for different users. From the Accumulo user guide:
     of varying degrees of access to query the same table, while
     preserving data confidentiality.
 
-In this tutorial, we'll go through ingesting data with varying
-levels of visibility and querying that data as different users through GeoServer.
+In this tutorial, we'll go through ingesting data with varying levels of
+visibility and querying that data as different users through GeoServer.
 
 Prerequisites
 -------------
@@ -23,7 +24,8 @@ Prerequisites
 You will need:
 
 -  an Accumulo |accumulo_version| instance
--  an Accumulo user that has appropriate permissions to manage authorizations and query data
+-  an Accumulo user that has appropriate permissions to manage
+   authorizations and query data
 -  Java JDK 7
 -  `Apache Maven <http://maven.apache.org/>`__ 3.2.2 or better
 -  a `git <http://git-scm.com/>`__ client
@@ -52,14 +54,14 @@ To build, run
 
     $ mvn clean install -pl geomesa-examples-featurelevelvis
 
-.. warning::
+.. note::
 
-    Note: ensure that the version of Accumulo, Hadoop, etc in the root ``pom.xml`` match your environment.
+    Ensure that the version of Accumulo, Hadoop, etc in the root ``pom.xml`` match your environment.
 
-.. warning::
+.. note::
 
-    Note: depending on the version, you may also need to build GeoMesa locally.
-    Instructions can be found `here <https://github.com/locationtech/geomesa/>`__.
+    Depending on the version, you may also need to build GeoMesa locally.
+    Instructions can be found under :doc:`../user/installation_and_configuration`.
 
 Run the Tutorial
 ----------------
@@ -68,7 +70,13 @@ On the command-line, run:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-examples-featurelevelvis/target/geomesa-examples-featurelevelvis-${geomesa.version}.jar com.example.geomesa.accumulo.FeatureLevelVisibility -instanceId <instance> -zookeepers <zookeepers> -user <user> -password <password> -tableName <table>
+    $ java -cp geomesa-examples-featurelevelvis/target/geomesa-examples-featurelevelvis-${geomesa.version}.jar \
+        com.example.geomesa.accumulo.FeatureLevelVisibility \
+        -instanceId <instance>                              \
+        -zookeepers <zookeepers>                            \
+        -user <user>                                        \
+        -password <password>                                \
+        -tableName <table>
 
 where you provide the following arguments:
 
@@ -97,13 +105,13 @@ see:
 
 .. code-block:: java
 
-      if (i % 2 == 0) {
-          simpleFeature.setAttribute("Visibility", "admin");
-          SecurityUtils.setFeatureVisibility(simpleFeature, "admin");
-      } else {
-          simpleFeature.setAttribute("Visibility", "user|admin");
-          SecurityUtils.setFeatureVisibility(simpleFeature, "user|admin");
-      }
+    if (i % 2 == 0) {
+        simpleFeature.setAttribute("Visibility", "admin");
+        SecurityUtils.setFeatureVisibility(simpleFeature, "admin");
+    } else {
+        simpleFeature.setAttribute("Visibility", "user|admin");
+        SecurityUtils.setFeatureVisibility(simpleFeature, "user|admin");
+    }
 
 This is where visibilities are being set in Accumulo. The line
 
@@ -112,17 +120,18 @@ This is where visibilities are being set in Accumulo. The line
     SecurityUtils.setFeatureVisibility(simpleFeature, "admin");
 
 is adding storing the visibility in the ``SimpleFeature``'s user data.
-When writing to Accumulo, GeoMesa will use that user data to apply
-the appropriate Accumulo visibility string to the record.
+When writing to Accumulo, GeoMesa will use that user data to apply the
+appropriate Accumulo visibility string to the record.
 
-Because the feature has a visibility of ``admin``, only users
-with the ``admin`` authorization will be able to see the feature.
+Because the feature has a visibility of ``admin``, only users with the
+``admin`` authorization will be able to see the feature.
 
 In the Quickstart example, 500 features are written with the visibility
 ``admin`` and 500 are written with ``user|admin``. However, unless users
 are explicitly granted permissions to read these tables and read
 features with that level of authorization, we cannot visualize the data
-in a meaningful way. Next we will add new Accumulo users to do just that.
+in a meaningful way. Next we will add new Accumulo users to do just
+that.
 
 Adding New Accumulo Users
 -------------------------
@@ -134,7 +143,8 @@ shell. First, login to Accumulo with:
 
     $ accumulo shell -u <username>
 
-Accumulo will prompt you for your password. You should then see something similar to this:
+Accumulo will prompt you for your password. You should then see
+something similar to this:
 
 .. code-block:: bash
 
@@ -181,27 +191,27 @@ Let's move on to GeoServer to visualize feature level visibility.
 GeoServer Visualization
 -----------------------
 
-Assuming you have already set up GeoServer  as described in the :doc:`../user/installation_and_configuration`
-section of the GeoMesa User Manual, we're going to add a new ``DataStore`` to GeoServer.
-First, login to GeoServer, and then click "Add stores" from the homepage.
+Assuming you have already set up GeoServer as described in the :doc:`../user/installation_and_configuration`
+section of the GeoMesa
+User Manual, we're going to add a new ``DataStore`` to GeoServer. First,
+login to GeoServer, and then click "Add stores" from the homepage.
 
-Next, click the link to add a new "Accumulo (GeoMesa)" store and name
-it ``feature-level-visibility-admin``. Fill in the correct
-connection parameters to make contact with GeoMesa/Accumulo, but be sure
-to use ``admin`` for the "user" parameter.
+Next, click the link to add a new "Accumulo (GeoMesa)" store and name it
+``feature-level-visibility-admin``. Fill in the correct connection
+parameters to make contact with GeoMesa/Accumulo, but be sure to use
+``admin`` for the "user" parameter.
 
 .. figure:: _static/geomesa-examples-featurelevelvis/gs-admin-datastore.png
-   :alt: "GeoMesa DataStore configuration with "admin" user"
-
-   "GeoMesa DataStore configuration with "admin" user"
+   :alt: GeoMesa DataStore configuration with "admin" user
 
 Then, publish your layer when prompted by GeoServer. Remember to click
 the "Compute from data" and "Compute from native bounds" links on the
 "Add Layer" page, and click "Save".
 
 Repeat the above steps one more time to add an additional ``DataStore``
-with the same parameters, but this time, name it ``feature-level-visibility-user``
-and use ``user`` for the "user" parameter.
+with the same parameters, but this time, name it
+``feature-level-visibility-user`` and use ``user`` for the "user"
+parameter.
 
 With your layers added in GeoServer, we're nearly ready to visualize the
 data. One final step is adding our custom SLD that will style your
@@ -253,7 +263,3 @@ data. Finally, you visualized the data and saw how, despite both
 ``DataStore`` connecting to the same features in GeoMesa, ``user`` could
 only have a subset of those features returned because of the lower
 security authorization.
-
-If you found this tutorial helpful, have additional questions, or run
-into an error at any step of the way, feel free to `reach out on our
-listserv <mailto:geomesa-users@locationtech.org>`__.

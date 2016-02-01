@@ -5,9 +5,9 @@ Visibilities and Authorizations
 -------------------------------
 
 One of the most powerful features of Accumulo is the implementation of
-cell-level security, using **visibilities** and **authorizations**.
-Data that is protected by visibilities can only be seen by users that
-have the corresponding authorizations. This allows for the fine-grained
+cell-level security, using **visibilities** and **authorizations**. Data
+that is protected by visibilities can only be seen by users that have
+the corresponding authorizations. This allows for the fine-grained
 protection of data, based on arbitrary labels.
 
 .. note::
@@ -22,7 +22,7 @@ with more examples
 `here <http://accumulo.apache.org/1.6/examples/visibility.html>`__.
 
 Public Key Infrastructure (PKI)
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Public key infrastructure can be used to securely authenticate end
 users. In PKI, a ***certificate authority*** (CA) will issue digital
@@ -40,7 +40,7 @@ PKI solves the issue of ***authentication*** (*who* a user is) but not
 authorization is provided by an LDAP server.
 
 This tutorial will show you how to:
------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 1. Set visibilities on your data during ingestion through GeoMesa
 2. Apply authorizations to your queries through GeoMesa
@@ -235,7 +235,7 @@ the Accumulo shell:
 .. code-block:: bash
 
     myuser@mycloud> scan -t gdelt_auths_records
-    \x01169881494 SFT: [user]    \x02\x12169881494\x00\xAC\xBE...
+    \x0100700230-fdfe-422e-b4d1-8072db6f3dda SFT: [user]    \x02\x00\x00\x01b00700230...
 
 Download and Build the Tutorial
 -------------------------------
@@ -257,6 +257,8 @@ To build, run
 
     Ensure that the version of Accumulo, Hadoop, etc in
     the root ``pom.xml`` match your environment.
+
+.. note::
 
     Depending on the version, you may also need to build
     GeoMesa locally. Instructions can be found
@@ -374,7 +376,7 @@ implementation.
     tutorial.
 
 Run GeoServer in Tomcat
-^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note::
 
@@ -421,7 +423,7 @@ use PKI login, we need to install it in Tomcat instead.
    http://localhost:8080/geoserver/web/.
 
 Create the Accumulo Data Store and Layer in GeoServer
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you haven't already, create an AccumuloDataStore and associated Layer
 pointing to the data with visibilities, as described in the `GDELT
@@ -432,7 +434,7 @@ set the ***visibilities*** field to what you used when ingesting data
 above.
 
 Configure GeoServer for PKI Login
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Follow the instructions located
 `here <http://docs.geoserver.org/stable/en/user/security/tutorials/cert/index.html>`__
@@ -455,10 +457,8 @@ that the 'web' filter chain has the 'cert' filter selected:
 .. figure:: _static/geomesa-examples-authorizations/filter-chain-cert.jpg
    :alt: Web Filter Panel
 
-   Web Filter Panel
-
 Install an LDAP Server for Storing Authorizations
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note::
 
@@ -475,7 +475,7 @@ Install an LDAP Server for Storing Authorizations
     $ ./apacheds.sh 
 
 Configure LDAP for Storing Authorizations
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We want to configure LDAP with a user to match the Spring Security PKIs
 we are testing with. The end result we want is to create the following
@@ -520,7 +520,7 @@ In order to do that, we will use Apache Directory Studio.
       'Import->LDIF import...'
 
 Test LDAP Connection Using Tutorial Code
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The tutorial code includes an ``AuthorizationsProvider`` implementation
 that will connect to LDAP to retrieve authorizations, in the class
@@ -583,7 +583,7 @@ authorizations for. You should get the following output:
     Retrieved auths: user,admin
 
 Installing the LDAP AuthorizationProvider in GeoServer
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In order to use the ``LdapAuthorizationsProvider``, we need to install
 it as a service provider into GeoServer, where it will automatically be
@@ -618,7 +618,7 @@ specified as the ``EmptyAuthorizationsProvider``.
 At this point you should have everything configured and in-place.
 
 Verifying the LDAP Authorizations in GeoServer
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In order to verify that the authorizations are working correctly,
 execute a query against GeoMesa by calling the WMS provider over HTTPS
@@ -636,8 +636,6 @@ indicating the data:
 .. figure:: _static/geomesa-examples-authorizations/Ukraine_Unfiltered.png
    :alt: Authorized Results
 
-   Authorized Results
-
 Now try the same query, but use the 'scott' certificate. This time,
 there should be no data returned, as the 'scott' user does not have any
 authorizations set up in LDAP.
@@ -648,7 +646,7 @@ authorizations set up in LDAP.
     multiple 'incognito' or 'private' browser windows.
 
 Querying GeoServer through a Web Feature Service (WFS) with a Java Client
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------------------------------------
 
 GeoServer provides the ability to query data through a Web Feature
 Service (WFS). Using GeoTools, we can create a client in Java through a
@@ -690,9 +688,13 @@ where you provide the following arguments:
 
     Ensure that the URL for GeoServer is using HTTPS.
 
+.. note::
+
     The feature store needs to be namespaced with the
     GeoServer workspace. The workspace and store name are separated with
     a colon.
+
+.. note::
 
     If you happen to have two GeoServer data stores with
     the same name but different workspaces, you will need to delete or
