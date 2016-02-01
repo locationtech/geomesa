@@ -62,7 +62,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
 
     val TEST_TABLE_NAME = "geomesa_spark_test"
 
-    import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params._
+    import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
     lazy val dsParams = Map[String, String](
       zookeepersParam.key -> "dummy",
       instanceIdParam.key -> "dummy",

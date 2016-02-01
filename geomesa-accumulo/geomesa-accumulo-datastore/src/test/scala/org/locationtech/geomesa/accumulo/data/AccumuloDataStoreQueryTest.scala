@@ -295,7 +295,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val params = Map(
         "connector" -> ds.connector,
         "tableName" -> ds.catalogTable,
-        AccumuloDataStoreFactory.params.queryTimeoutParam.getName -> "1"
+        AccumuloDataStoreParams.queryTimeoutParam.getName -> "1"
       )
 
       val dsWithTimeout = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]

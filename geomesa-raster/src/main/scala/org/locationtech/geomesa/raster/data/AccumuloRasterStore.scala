@@ -293,7 +293,7 @@ class AccumuloRasterStore(val connector: Connector,
 
 object AccumuloRasterStore {
   import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory._
-  import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.params._
+  import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
 
   def apply(username: String,
             password: String,

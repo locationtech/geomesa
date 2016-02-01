@@ -16,7 +16,7 @@ import org.geotools.coverage.grid.io.AbstractGridCoverage2DReader
 import org.geotools.coverageio.gdal.dted.DTEDReader
 import org.geotools.factory.Hints
 import org.geotools.gce.geotiff.GeoTiffReader
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.{params => dsp}
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStoreParams => dsp}
 import org.locationtech.geomesa.raster.data.AccumuloRasterStore
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
 import org.locationtech.geomesa.raster.{RasterParams => rsp}

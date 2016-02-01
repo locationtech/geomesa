@@ -20,7 +20,7 @@ import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.joda.time.Period
 import org.joda.time.format.PeriodFormatterBuilder
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.convert.Transformers.DefaultCounter
 import org.locationtech.geomesa.utils.classpath.PathUtils
@@ -42,7 +42,7 @@ class ConverterIngest(dsParams: Map[String, String],
 
   // (progress, start time, pass, fail, done)
   val statusCallback: (Float, Long, Long, Long, Boolean) => Unit =
-    if (dsParams.get(AccumuloDataStoreFactory.params.mockParam.getName).exists(_.toBoolean)) {
+    if (dsParams.get(AccumuloDataStoreParams.mockParam.getName).exists(_.toBoolean)) {
       val progress = printProgress(System.err, buildString('\u26AC', 60), ' ', _: Char) _
       var state = false
       (p, s, pass, fail, d) => {
