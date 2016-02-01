@@ -72,7 +72,13 @@ On the command-line, run:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-quickstart-accumulo/target/geomesa-quickstart-accumulo-${geomesa.version}.jar com.example.geomesa.accumulo.AccumuloQuickStart -instanceId <instance> -zookeepers <zookeepers> -user <user> -password <password> -tableName <table>
+    $ java -cp geomesa-quickstart-accumulo/target/geomesa-quickstart-accumulo-${geomesa.version}.jar \
+      com.example.geomesa.accumulo.AccumuloQuickStart \
+      -instanceId <instance>                          \
+      -zookeepers <zookeepers>                        \
+      -user <user>                                    \
+      -password <password>                            \
+      -tableName <table>
 
 where you provide the following arguments:
 
@@ -123,26 +129,26 @@ The source code is meant to be accessible for this tutorial, but here is
 a high-level breakdown of the methods in the ``AccumuloQuickStart``
 class that are relevant:
 
--  ``getCommonRequiredOptions``: helper code to establish the
+-  ``getCommonRequiredOptions`` helper code to establish the
    command-line parser for Accumulo options
--  ``getAccumuloDataStoreConf``: create a ``HashMap`` of Accumulo
+-  ``getAccumuloDataStoreConf`` create a ``HashMap`` of Accumulo
    parameters that will be used to fetch a ``DataStore``
--  ``createSimpleFeatureType``: defines the custom ``FeatureType`` used
+-  ``createSimpleFeatureType`` defines the custom ``FeatureType`` used
    in the tutorial. There are five fields: Who, What, When, Where, and
    Why.
--  ``createNewFeatures``: creates a collection of new features, each of
+-  ``createNewFeatures`` creates a collection of new features, each of
    which is initialized to some randomized set of values
--  ``insertFeatures``: instructs the ``DataStore`` to write the
+-  ``insertFeatures`` instructs the ``DataStore`` to write the
    collection of new features to the GeoMesa-managed Accumulo table
--  ``createFilter``: given a set of geometric bounds, temporal bounds,
+-  ``createFilter`` given a set of geometric bounds, temporal bounds,
    and an optional attribute-only expression, construct a common query
    language (CQL) filter that embodies these constraints. This filter
    will be used to query data.
--  ``queryFeatures``: query for records; for each, print out the five
+-  ``queryFeatures`` query for records; for each, print out the five
    field (attribute) values
--  ``secondaryIndexExample``: additional examples that build other CQL
+-  ``secondaryIndexExample`` additional examples that build other CQL
    queries
--  ``main``: this is the main entry point; it collects command-line
+-  ``main`` this is the main entry point; it collects command-line
    parameters, builds the ``DataStore``, creates and inserts new
    records, and then kicks off a single query
 
@@ -160,17 +166,17 @@ right directory and restart GeoServer.
 Select the ``Accumulo Feature Data Store`` vector data source, and enter
 the following parameters:
 
--  basic store info
+* basic store info
 
-   -  ``workspace``: this is dependent upon your GeoServer installation
-   -  ``data source name``: pick a sensible name, such as,
-      ``geomesa_quick_start``
-   -  ``description``: this is strictly decorative;
-      ``GeoMesa quick start``
+  * ``workspace`` this is dependent upon your GeoServer installation
+  * ``data source name`` pick a sensible name, such as, ``geomesa_quick_start``
+  * ``description`` this is strictly decorative; ``GeoMesa quick start``
 
--  connection parameters: these are the same parameter values that you
-   supplied on the command-line when you ran the tutorial; they describe
-   how to connect to the Accumulo instance where your data reside
+* connection parameters
+
+  * these are the same parameter values that you supplied on the
+    command-line when you ran the tutorial; they describe how to connect
+    to the Accumulo instance where your data reside
 
 Click "Save", and GeoServer will search your Accumulo table for any
 GeoMesa-managed feature types.
@@ -217,8 +223,8 @@ documentation <http://docs.geoserver.org/latest/en/user/services/wms/time.html>`
 Once you press <Enter>, the display will update, and you should see a
 collection of red dots similar to the following image.
 
-.. image:: _static/geomesa-quickstart-accumulo/geoserver-layer-preview.png
-   :alt: "Visualizing quick-start data"
+.. figure:: _static/geomesa-quickstart-accumulo/geoserver-layer-preview.png
+   :alt: Visualizing quick-start data
 
 Tweaking the display
 ~~~~~~~~~~~~~~~~~~~~
@@ -247,8 +253,8 @@ Generating Heatmaps
 -  To try out the DensityIterator, you can install the Heatmap SLD from
    the :doc:`geomesa-examples-gdelt` tutorial.
 -  After configuring the SLD, in the URL, change ``styles=`` to be
-   ``styles=heatmap&density=true``. Once you press <Enter>, the display
-   will change to a density heat-map. (NB: For this to work, you will
-   have to first install the WPS module for GeoServer. See the official
-   web site for a download.)
+   ``styles=heatmap&density=true``. Once you press <Enter>, the display will
+   change to a density heat-map. (NB: For this to work, you will have to
+   first install the WPS module for GeoServer. See the official web site
+   for a download.)
 
