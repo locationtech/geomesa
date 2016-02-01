@@ -37,7 +37,7 @@ Syntax <https://accumulo.apache.org/1.5/accumulo_user_manual.html#_security_labe
 which we make use of when securing features in GeoMesa.
 
 Download and Build the Tutorial
---------------------------
+-------------------------------
 
 Pick a reasonable directory on your machine, and run:
 
