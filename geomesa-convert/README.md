@@ -755,45 +755,61 @@ and register them in ```META-INF/services``` appropriately.  See
 
 ## Example Using GeoMesa Tools
 
-The following example can be used with geomesa tools:
+The following example can be used with GeoMesa Tools:
 
-    geomesa ingest -u <user> -p <pass> -i <instance> -z <zookeepers> -conf example.conf example.csv 
+    geomesa ingest -u <user> -p <pass> -i <instance> -z <zookeepers> -s renegades -C renegades-csv  example.csv
 
-Sample csv file: ```example.csv```
+Sample csv file: ``example.csv``:
 
     ID,Name,Age,LastSeen,Friends,Lat,Lon
     23623,Harry,20,2015-05-06,"Will, Mark, Suzan",-100.236523,23
     26236,Hermione,25,2015-06-07,"Edward, Bill, Harry",40.232,-53.2356
     3233,Severus,30,2015-10-23,"Tom, Riddle, Voldemort",3,-62.23
-    
-A config file: ```example.conf```
 
-    sft = {
-      type-name = "renegades"
-      attributes = [
-        { name = "id", type = "Integer", index = false },
-        { name = "name", type = "String", index = true },
-        { name = "age", type = "Integer", index = false },
-        { name = "lastseen", type = "Date", index = true },
-        { name = "friends", type = "List[String]", index = true },
-        { name = "geom", type = "Point", index = true, srid = 4326, default = true }
+The "renegades" SFT and "renegades-csv" converter should be specified in 
+the GeoMesa Tools configuration file (``$GEOMESA_HOME/conf/application.conf``).
+Use ``geomesa env`` to confirm that ``geomesa ingest`` can properly read the
+updated file.
+
+``$GEOMESA_HOME/conf/application.conf``:
+
+    geomesa = {
+      sfts = [
+        # other sfts
+        # ...
+        {
+          type-name = "renegades",
+          attributes = [
+            { name = "id", type = "Integer", index = false },
+            { name = "name", type = "String", index = true },
+            { name = "age", type = "Integer", index = false },
+            { name = "lastseen", type = "Date", index = true },
+            { name = "friends", type = "List[String]", index = true },
+            { name = "geom", type = "Point", index = true, srid = 4326, default = true }
+          ]
+        },
       ]
-    },
-    converter = {
-      type = "delimited-text",
-      format = "CSV",
-      options {
-        skip-lines = 1
-      },
-      id-field = "toString($id)",
-      fields = [
-        { name = "id", transform = "$1::int" },
-        { name = "name", transform = "$2::string" },
-        { name = "age", transform = "$3::int" },
-        { name = "lastseen", transform = "$4::date" },
-        { name = "friends", transform = "parseList('string', $5)" },
-        { name = "lon", transform = "$6::double" },
-        { name = "lat", transform = "$7::double" },
-        { name = "geom", transform = "point($lon, $lat)" }
+      converters = [
+        # other converters
+        # ...
+        {
+          name = "renegades-csv",
+          type = "delimited-text",
+          format = "CSV",
+          options {
+            skip-lines = 1
+          },
+          id-field = "toString($id)",
+          fields = [
+            { name = "id", transform = "$1::int" },
+            { name = "name", transform = "$2::string" },
+            { name = "age", transform = "$3::int" },
+            { name = "lastseen", transform = "$4::date" },
+            { name = "friends", transform = "parseList('string', $5)" },
+            { name = "lon", transform = "$6::double" },
+            { name = "lat", transform = "$7::double" },
+            { name = "geom", transform = "point($lon, $lat)" }
+          ]
+        }
       ]
     }
