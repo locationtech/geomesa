@@ -396,7 +396,7 @@ your ``WEB-INF/lib`` directory.
 
 * Kafka
     * kafka-clients-0.8.2.1.jar
-    * kafka_2.10-0.8.2.1.jar
+    * kafka_2.11-0.8.2.1.jar
     * metrics-core-2.2.0.jar
     * zkclient-0.3.jar
 * Zookeeper
