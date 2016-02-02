@@ -103,7 +103,7 @@ the following WCS query on the Natural Earth test data table by first
 modifying and running the following url as needed for your GeoServer
 configuration.
 
-.. code-block::
+.. code::
 
     http://localhost:8080/geoserver/workspace/wcs?service=WCS&version=1.0.0&request=GetCoverage&coverage=workspace:natearth&bbox=-180.0,-90.0,180.0,90.0&width=660&height=330&crs=EPSG:4326&format=geotiff
 

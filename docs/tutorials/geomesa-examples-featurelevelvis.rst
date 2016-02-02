@@ -1,5 +1,5 @@
 Feature Level Visibility and Security
-===================================
+=====================================
 
 GeoMesa supports security on a per-feature level, leveraging Accumulo's
 support for built-in cell-level visibility. This allows data to be
