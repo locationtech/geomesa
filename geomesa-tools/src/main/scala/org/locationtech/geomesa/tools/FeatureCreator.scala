@@ -22,7 +22,7 @@ object FeatureCreator extends LazyLogging {
     val ds = new DataStoreHelper(params).getDataStore()
     createFeature(
       ds,
-      SftArgParser.getSft(params.spec, params.featureName),
+      CommandLineArgHelper.getSft(params.spec, params.featureName),
       params.featureName,
       Option(params.dtgField),
       Option(params.useSharedTables),

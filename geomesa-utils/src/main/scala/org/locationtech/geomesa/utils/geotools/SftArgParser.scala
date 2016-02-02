@@ -6,16 +6,14 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.tools
+package org.locationtech.geomesa.utils.geotools
 
 import java.io.File
 
-import com.beust.jcommander.ParameterException
 import com.typesafe.config.{ConfigFactory, ConfigParseOptions}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.io.FileUtils
-import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypeLoader, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeatureType
+import org.apache.commons.io.FileUtils
 
 import scala.util.{Failure, Success, Try}
 
@@ -35,19 +33,14 @@ object SftArgParser extends LazyLogging {
       .setOriginDescription(null)
       .setSyntax(null)
   /**
-   * @throws ParameterException if the SFT cannot be parsed
    * @return the SFT parsed from the Args
    */
-  @throws[ParameterException]
-  def getSft(specArg: String, featureName: String = null): SimpleFeatureType =
+  def getSft(specArg: String, featureName: String = null): Option[SimpleFeatureType] =
     getLoadedSft(specArg, featureName)
         .orElse(parseSpecString(specArg, featureName))
         .orElse(parseSpecConf(specArg, featureName))
         .orElse(parseSpecStringFile(specArg, featureName))
         .orElse(parseSpecConfFile(specArg, featureName))
-        .getOrElse {
-          throw new ParameterException("Unable to parse Simple Feature type from sft config or string")
-        }
 
   // gets an sft from simple feature type providers on the classpath
   private[SftArgParser] def getLoadedSft(specArg: String, name: String): Option[SimpleFeatureType] = {

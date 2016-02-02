@@ -6,14 +6,12 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.tools
+package org.locationtech.geomesa.convert
 
 import java.io.File
 
-import com.beust.jcommander.ParameterException
 import com.typesafe.config.{Config, ConfigFactory, ConfigParseOptions}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.convert.ConverterConfigLoader
 
 import scala.util.{Failure, Success, Try}
 
@@ -33,15 +31,12 @@ object ConverterConfigParser extends LazyLogging {
       .setSyntax(null)
 
   /**
-   * @throws ParameterException if the config cannot be parsed
    * @return the converter config parsed from the args
    */
-  @throws[ParameterException]
-  def getConfig(configArg: String): Config =
+  def getConfig(configArg: String): Option[Config] =
     getLoadedConf(configArg)
       .orElse(parseFile(configArg))
       .orElse(parseString(configArg))
-      .getOrElse(throw new ParameterException(s"Unable to parse Converter config from argument $configArg"))
 
   private[ConverterConfigParser] def getLoadedConf(configArg: String): Option[Config] = {
     val ret = ConverterConfigLoader.confs.find(_._1 == configArg).map(_._2)

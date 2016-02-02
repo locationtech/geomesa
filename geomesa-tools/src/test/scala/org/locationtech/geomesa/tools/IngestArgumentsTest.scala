@@ -11,8 +11,8 @@ package org.locationtech.geomesa.tools
 import java.io.File
 
 import com.beust.jcommander.ParameterException
-import com.typesafe.config.{ConfigRenderOptions, ConfigFactory}
-import org.apache.commons.io.{FileUtils, IOUtils}
+import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
+import org.apache.commons.io.FileUtils
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
@@ -85,7 +85,7 @@ class IngestArgumentsTest extends Specification {
 
   "Speculator" should {
     "work with " >> {
-      val sft = SftArgParser.getSft(sftSpec, featureName)
+      val sft = CommandLineArgHelper.getSft(sftSpec, featureName)
       sft.getAttributeCount mustEqual 3
       sft.getDescriptor(0).getLocalName mustEqual "name"
       sft.getDescriptor(1).getLocalName mustEqual "age"
@@ -93,11 +93,11 @@ class IngestArgumentsTest extends Specification {
     }
 
     "fail when given spec and no feature name" >> {
-      SftArgParser.getSft(sftSpec, null) must throwA[ParameterException]
+      CommandLineArgHelper.getSft(sftSpec, null) must throwA[ParameterException]
     }
 
     "create a spec from sft conf" >> {
-      val sft = SftArgParser.getSft(sftConfig, null)
+      val sft = CommandLineArgHelper.getSft(sftConfig, null)
       sft.getAttributeCount mustEqual 3
       sft.getDescriptor(0).getLocalName mustEqual "name"
       sft.getDescriptor(1).getLocalName mustEqual "age"
@@ -105,7 +105,7 @@ class IngestArgumentsTest extends Specification {
     }
 
     "parse a combined config" >> {
-      val sft = SftArgParser.getSft(combined, null)
+      val sft = CommandLineArgHelper.getSft(combined, null)
       sft.getAttributeCount mustEqual 3
       sft.getDescriptor(0).getLocalName mustEqual "name"
       sft.getDescriptor(1).getLocalName mustEqual "age"
