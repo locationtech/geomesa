@@ -41,12 +41,6 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-jobs</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.twitter</groupId>
-                    <artifactId>scalding-core_2.11</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.metamodel</groupId>

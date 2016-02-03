@@ -59,10 +59,9 @@
         <jackson.codehaus.version>1.9.3</jackson.codehaus.version>
 
         <!-- environment-dependent versions -->
-        <thrift.version>0.9.1</thrift.version>
         <zookeeper.version>3.4.5</zookeeper.version>
-        <hadoop.version>2.2.0</hadoop.version>
         <thrift.version>0.9.1</thrift.version>
+        <hadoop.version>2.2.0</hadoop.version>
         <spark.version>1.5.0</spark.version>
 
         <!-- logging properties - we expect logging jars to be provided -->
@@ -1474,6 +1473,11 @@
                 <artifactId>accumulo-start</artifactId>
                 <version>${accumulo.version}</version>
                 <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.thrift</groupId>
+                <artifactId>libthrift</artifactId>
+                <version>${thrift.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.hadoop</groupId>
