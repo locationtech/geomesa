@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.security
 
-
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
@@ -21,7 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class VisibilityFilterTest extends Specification {
+class VisibilityFilterFunctionTest extends Specification {
 
   sequential
 
@@ -40,8 +39,7 @@ class VisibilityFilterTest extends Specification {
       ctx.setAuthentication(new TestingAuthenticationToken(null, null, "ADMIN", "USER"))
       SecurityContextHolder.setContext(ctx)
 
-      val vizFilter = VisibilityFilter()
-      vizFilter.evaluate(f) must beTrue
+      VisibilityFilterFunction.filter.evaluate(f) must beTrue
     }
 
     "work with no viz on the feature" in {
@@ -51,8 +49,7 @@ class VisibilityFilterTest extends Specification {
       ctx.setAuthentication(new TestingAuthenticationToken(null, null, "ADMIN", "USER"))
       SecurityContextHolder.setContext(ctx)
 
-      val vizFilter = VisibilityFilter()
-      vizFilter.evaluate(f) must beFalse
+      VisibilityFilterFunction.filter.evaluate(f) must beFalse
     }
 
     "return false when user does not have the right auths" in {
@@ -63,8 +60,7 @@ class VisibilityFilterTest extends Specification {
       ctx.setAuthentication(new TestingAuthenticationToken(null, null, "ADMIN"))
       SecurityContextHolder.setContext(ctx)
 
-      val vizFilter = VisibilityFilter()
-      vizFilter.evaluate(f) must beFalse
+      VisibilityFilterFunction.filter.evaluate(f) must beFalse
     }
 
     "return true when dealing with expressions" in {
@@ -75,8 +71,7 @@ class VisibilityFilterTest extends Specification {
       ctx.setAuthentication(new TestingAuthenticationToken(null, null, "USER"))
       SecurityContextHolder.setContext(ctx)
 
-      val vizFilter = VisibilityFilter()
-      vizFilter.evaluate(f) must beTrue
+      VisibilityFilterFunction.filter.evaluate(f) must beTrue
     }
 
   }
