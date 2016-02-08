@@ -10,14 +10,14 @@ package org.locationtech.geomesa.tools
 
 import com.beust.jcommander.ParameterException
 import com.typesafe.config.Config
-import org.locationtech.geomesa.convert.ConverterConfigParser
-import org.locationtech.geomesa.utils.geotools.SftArgParser
+import org.locationtech.geomesa.convert.ConverterConfigResolver
+import org.locationtech.geomesa.utils.geotools.SftArgResolver
 import org.opengis.feature.simple.SimpleFeatureType
 
 /**
  * Wrapper for SFT and Config parsing that throws ParameterExceptions for JCommander
  */
-object CommandLineArgHelper {
+object CLArgResolver {
 
   /**
    * @throws ParameterException if the SFT cannot be parsed
@@ -25,7 +25,7 @@ object CommandLineArgHelper {
    */
   @throws[ParameterException]
   def getSft(specArg: String, featureName: String = null): SimpleFeatureType =
-    SftArgParser.getSft(specArg, featureName).getOrElse {
+    SftArgResolver.getSft(specArg, featureName).getOrElse {
       throw new ParameterException("Unable to parse Simple Feature type from sft config or string")
     }
 
@@ -35,6 +35,6 @@ object CommandLineArgHelper {
    */
   @throws[ParameterException]
   def getConfig(configArg: String): Config =
-    ConverterConfigParser.getConfig(configArg)
+    ConverterConfigResolver.getConfig(configArg)
       .getOrElse(throw new ParameterException(s"Unable to parse Converter config from argument $configArg"))
 }

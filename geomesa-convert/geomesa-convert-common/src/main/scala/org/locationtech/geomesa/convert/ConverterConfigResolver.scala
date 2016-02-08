@@ -16,10 +16,10 @@ import com.typesafe.scalalogging.LazyLogging
 import scala.util.{Failure, Success, Try}
 
 /**
- * Attempts to parse Converter config from arguments as either a string or
+ * Attempts to resolve Converter config from arguments as either a string or
  * as a filename containing the converter config
  */
-object ConverterConfigParser extends LazyLogging {
+object ConverterConfigResolver extends LazyLogging {
 
   // Important to setAllowMissing to false bc else you'll get a config but it will be empty
   val parseOpts =
@@ -38,12 +38,12 @@ object ConverterConfigParser extends LazyLogging {
       .orElse(parseFile(configArg))
       .orElse(parseString(configArg))
 
-  private[ConverterConfigParser] def getLoadedConf(configArg: String): Option[Config] = {
+  private[ConverterConfigResolver] def getLoadedConf(configArg: String): Option[Config] = {
     val ret = ConverterConfigLoader.confs.find(_._1 == configArg).map(_._2)
     ret
   }
 
-  private[ConverterConfigParser] def parseString(configArg: String): Option[Config] =
+  private[ConverterConfigResolver] def parseString(configArg: String): Option[Config] =
     Try(ConfigFactory.parseString(configArg, parseOpts)) match {
       case Success(config) => Some(config)
       case Failure(ex) =>
@@ -51,7 +51,7 @@ object ConverterConfigParser extends LazyLogging {
         None
     }
 
-  private[ConverterConfigParser] def parseFile(configArg: String): Option[Config] =
+  private[ConverterConfigResolver] def parseFile(configArg: String): Option[Config] =
     Try(ConfigFactory.parseFile(new File(configArg), parseOpts)) match {
       case Success(config) => Some(config)
       case Failure(ex) =>
