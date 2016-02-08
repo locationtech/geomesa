@@ -13,10 +13,10 @@ import java.util
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataStoreFinder
-import org.locationtech.geomesa.tools.{ConverterConfigParser, SftArgParser, DataStoreHelper}
 import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.tools.commands.IngestCommand._
 import org.locationtech.geomesa.tools.ingest.ConverterIngest
+import org.locationtech.geomesa.tools.{CLArgResolver, DataStoreHelper}
 import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
 
 import scala.collection.JavaConversions._
@@ -38,8 +38,8 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
 
       val dsParams = new DataStoreHelper(params).paramMap
       require(DataStoreFinder.getDataStore(dsParams) != null, "Could not load a data store with the provided parameters")
-      val sft = SftArgParser.getSft(params.spec, params.featureName)
-      val converterConfig = ConverterConfigParser.getConfig(params.config)
+      val sft = CLArgResolver.getSft(params.spec, params.featureName)
+      val converterConfig = CLArgResolver.getConfig(params.config)
 
       new ConverterIngest(dsParams, sft, converterConfig, params.files, params.threads).run()
     }

@@ -84,7 +84,7 @@ class IngestArgumentsTest extends Specification {
 
   "Speculator" should {
     "work with " >> {
-      val sft = SftArgParser.getSft(sftSpec, featureName)
+      val sft = CLArgResolver.getSft(sftSpec, featureName)
       sft.getAttributeCount mustEqual 3
       sft.getDescriptor(0).getLocalName mustEqual "name"
       sft.getDescriptor(1).getLocalName mustEqual "age"
@@ -92,11 +92,11 @@ class IngestArgumentsTest extends Specification {
     }
 
     "fail when given spec and no feature name" >> {
-      SftArgParser.getSft(sftSpec, null) must throwA[ParameterException]
+      CLArgResolver.getSft(sftSpec, null) must throwA[ParameterException]
     }
 
     "create a spec from sft conf" >> {
-      val sft = SftArgParser.getSft(sftConfig, null)
+      val sft = CLArgResolver.getSft(sftConfig, null)
       sft.getAttributeCount mustEqual 3
       sft.getDescriptor(0).getLocalName mustEqual "name"
       sft.getDescriptor(1).getLocalName mustEqual "age"
@@ -104,7 +104,7 @@ class IngestArgumentsTest extends Specification {
     }
 
     "parse a combined config" >> {
-      val sft = SftArgParser.getSft(combined, null)
+      val sft = CLArgResolver.getSft(combined, null)
       sft.getAttributeCount mustEqual 3
       sft.getDescriptor(0).getLocalName mustEqual "name"
       sft.getDescriptor(1).getLocalName mustEqual "age"
