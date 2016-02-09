@@ -29,7 +29,7 @@ The first two fields should be concatenated together to form the phrase, the thi
 the last two fields should be formed into a ```Point``` geometry.  The following configuration file defines an 
 appropriate converter for taking this csv data and transforming it into our ```SimpleFeatureType```.  
 
-     converter = { 
+     { 
       type         = "delimited-text",
       format       = "CSV",
       id-field     = "md5($0)",
@@ -557,13 +557,13 @@ Then we specify a transform:
 
 Optionally we can also provide custom list/record and key-value delimiters for a map:
 
-      { name = "numbers", transform = "parseMap('int -> string', $2, ',', '->')" }
+    { name = "numbers", transform = "parseMap('int -> string', $2, ',', '->')" }
 
 ## Parsing JSON
 
 The JSON converter defines the path to a list of features as well as json-types of each field:
 
-    converter = {
+    {
       type         = "json"
       id-field     = "$id"
       feature-path = "$.Features[*]"
@@ -701,7 +701,7 @@ Let's say we want to convert our avro array of kvpairs into a simple feature. We
  
 We can define a converter config to parse the avro:
 
-    converter = {
+    {
       type        = "avro"
       schema-file = "/tmp/schema.avsc"
       sft         = "testsft"
@@ -781,17 +781,21 @@ Sample csv file: ``example.csv``:
 
 The "renegades" SFT and "renegades-csv" converter should be specified in 
 the GeoMesa Tools configuration file (``$GEOMESA_HOME/conf/application.conf``).
+By default, SimpleFeatureTypes (sfts) should be loaded at the path ``geomesa.sfts``
+and conveters should be loaded at the path ``geomesa.converters``. Each converter
+and sft definition is keyed by the name that can be referenced in the converter
+and SFT loaders.
+
 Use ``geomesa env`` to confirm that ``geomesa ingest`` can properly read the
 updated file.
 
 ``$GEOMESA_HOME/conf/application.conf``:
 
     geomesa = {
-      sfts = [
+      sfts = {
         # other sfts
         # ...
-        {
-          type-name = "renegades",
+        "renegades" = {
           attributes = [
             { name = "id", type = "Integer", index = false },
             { name = "name", type = "String", index = true },
@@ -800,13 +804,12 @@ updated file.
             { name = "friends", type = "List[String]", index = true },
             { name = "geom", type = "Point", index = true, srid = 4326, default = true }
           ]
-        },
-      ]
-      converters = [
+        }
+      }
+      converters = {
         # other converters
         # ...
-        {
-          name = "renegades-csv",
+        "renegades-csv" = {
           type = "delimited-text",
           format = "CSV",
           options {
@@ -824,5 +827,29 @@ updated file.
             { name = "geom", transform = "point($lon, $lat)" }
           ]
         }
-      ]
+      }
     }
+
+## Loading Converters and SFTs at Runtime
+
+If you have defined converters or SFTs in typesafe config you can place them on the classpath or load them with a 
+ConverterConfigProvider or SimpleFeatureTypeProvider via Java SPI loading. By default, classpath and URL providers are 
+provided. Placing a typesafe config file named ``reference.conf`` containing properly formatted converters and SFTs 
+(see example application.conf above) in a jar file on the classpath will enable the reference of the converters and SFTs
+using the public loader API:
+
+```scala
+// ConverterConfigLoader.scala
+// Public API
+def listConverterNames: List[String] = confs.keys.toList
+def getAllConfigs: Map[String, Config] = confs
+def configForName(name: String) = confs.get(name)
+
+// SimpleFeatureTypeLoader.scala
+// Public API
+def listTypeNames: List[String] = sfts.map(_.getTypeName)
+def sftForName(n: String): Option[SimpleFeatureType] = sfts.find(_.getTypeName == n)
+```
+    
+The [GeoMesa gm-data project](https://github.com/geomesa/gm-data) contains common data formats packaged in jar files
+that can be placed on the classpath of your project.

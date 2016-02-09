@@ -29,10 +29,10 @@ import scala.collection.JavaConverters._
  */
 object SimpleFeatureTypeLoader {
 
-  private val providers = ServiceRegistry.lookupProviders(classOf[SimpleFeatureTypeProvider])
+  private val providers = ServiceRegistry.lookupProviders(classOf[SimpleFeatureTypeProvider]).toList
 
   // keep as a method so we can dynamically reload
-  def sfts: List[SimpleFeatureType] = providers.flatMap(_.loadTypes()).toList
+  def sfts: List[SimpleFeatureType] = providers.flatMap(_.loadTypes())
 
   // Public API
   def listTypeNames: List[String] = sfts.map(_.getTypeName)
@@ -50,21 +50,24 @@ trait ConfigSftParsing extends LazyLogging {
       .setSyntax(null)
 
   def parseConf(config: Config): java.util.List[SimpleFeatureType] = {
+    import scala.collection.JavaConversions._
     if (!config.hasPath(ConfigSftParsing.path)) {
-      return List.empty[SimpleFeatureType]
+      List.empty[SimpleFeatureType]
+    } else {
+      val confs = config.getConfig(ConfigSftParsing.path)
+      confs.root.keySet.flatMap { name =>
+        val sftConf = confs.getConfig(name)
+        try {
+          val sft = SimpleFeatureTypes.createType(sftConf, Some(name))
+          Some(sft)
+        } catch {
+          case e: Exception =>
+            logger.error("Error loading simple feature type from config " +
+              s"${sftConf.root().render(ConfigRenderOptions.concise())}", e)
+            None
+        }
+      }.toList.asJava
     }
-    config.getConfigList(ConfigSftParsing.path).flatMap { sftConf =>
-      try {
-        val sft = SimpleFeatureTypes.createType(sftConf, None)
-        logger.info(s"Loaded SimpleFeatureType ${sft.getTypeName} from config")
-        Some(sft)
-      } catch {
-        case e: Exception =>
-          logger.error("Error loading simple feature type from config " +
-            s"${sftConf.root().render(ConfigRenderOptions.concise())}", e)
-          None
-      }
-    }.asJava
   }
 }
 

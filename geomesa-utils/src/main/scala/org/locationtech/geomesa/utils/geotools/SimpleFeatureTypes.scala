@@ -45,14 +45,23 @@ object SimpleFeatureTypes {
   val USER_DATA_MAP_KEY_TYPE   = "keyclass"
   val USER_DATA_MAP_VALUE_TYPE = "valueclass"
 
-  def createType(conf: Config, path: Option[String] = Some("sft")): SimpleFeatureType = {
+  /**
+   * Create a SimpleFeatureType from a typesafe Config
+   * @param conf
+   * @param typeName optional typename to use for the SFT...will be overridden if the config contains a type-name key
+   * @param path
+   * @return
+   */
+  def createType(conf: Config, typeName: Option[String] = None, path: Option[String] = Some("sft")): SimpleFeatureType = {
     import org.locationtech.geomesa.utils.conf.ConfConversions._
     val toParse = path match {
       case Some(p) => conf.getConfigOpt(p).map(conf.withFallback).getOrElse(conf)
       case None    => conf
     }
 
-    val nameSpec = toParse.getString("type-name")
+    val nameSpec = toParse.getStringOpt("type-name").orElse(typeName).getOrElse(
+      throw new IllegalArgumentException("Unable to parse type name from provided argument or config")
+    )
     val (namespace, name) = buildTypeName(nameSpec)
     val specParser = new SpecParser
 
@@ -83,7 +92,7 @@ object SimpleFeatureTypes {
     createType(namespace, name, attributeSpecs, opts)
   }
 
-  def createType(namespace: String, name: String,spec: String): SimpleFeatureType = {
+  def createType(namespace: String, name: String, spec: String): SimpleFeatureType = {
     createType(namespace + ":" + name, spec)
   }
 

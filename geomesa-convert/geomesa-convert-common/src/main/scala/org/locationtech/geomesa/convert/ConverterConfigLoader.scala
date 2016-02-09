@@ -13,7 +13,7 @@ import java.util
 import java.util.{List => JList}
 import javax.imageio.spi.ServiceRegistry
 
-import com.typesafe.config.{Config, ConfigFactory, ConfigParseOptions, ConfigRenderOptions}
+import com.typesafe.config.{Config, ConfigFactory, ConfigParseOptions}
 import com.typesafe.scalalogging.LazyLogging
 
 import scala.collection.JavaConversions._
@@ -57,18 +57,16 @@ trait GeoMesaConvertParser extends LazyLogging {
       .setSyntax(null)
 
   def parseConf(config: Config): Map[String, Config] = {
+    import scala.collection.JavaConversions._
+    logger.trace(s"Attempting to load Converters from path ${ConverterConfigLoader.path}")
+
     if (!config.hasPath(ConverterConfigLoader.path)) {
       Map.empty[String, Config]
     } else {
-      config.getConfigList(ConverterConfigLoader.path).flatMap { c =>
-        if (c.hasPath("name")) {
-          val name = c.getString("name")
-          logger.info(s"Found converter config '$name'")
-          Some(name -> c)
-        } else {
-          logger.error(s"Converter config has no name...skipping ${c.root().render(ConfigRenderOptions.concise())}")
-          None
-        }
+      val confs = config.getConfig(ConverterConfigLoader.path)
+      confs.root.keySet.map { k =>
+        logger.trace(s"Found conf block $k")
+        k -> confs.getConfig(k)
       }.toMap[String, Config]
     }
   }
