@@ -199,9 +199,8 @@ configuration file, to add the ``gdelt`` SimpleFeatureType and a converter
 .. code::
 
     geomesa {
-      sfts = [
-        {
-          type-name = gdelt
+      sfts {
+        gdelt = {
           fields = [
             { name = globalEventId, type = String, index = false}
             { name = eventCode, type = String }
@@ -211,10 +210,9 @@ configuration file, to add the ``gdelt`` SimpleFeatureType and a converter
             { name = geom, type = Point, srid = 4326 }
           ]
         }
-      ],
-      converters = [
-        {
-          name = gdelt_tsv
+      }
+      converters {
+        gdelt_tsv = {
           type = delimited-text
           format = TDF
           id-field = "$1" // global event id
@@ -227,7 +225,7 @@ configuration file, to add the ``gdelt`` SimpleFeatureType and a converter
             { name = geom,          transform = "point(stringToDouble($41, 0.0), $40::double)" }
           ]
         }
-      ]
+      }
     }
 
 The config file needs to have a ``SimpleFeatureType`` defined along with a

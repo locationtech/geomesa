@@ -170,22 +170,26 @@ ingest
 
 Used to convert and ingest data from various file formats as GeoMesa features.
 
-CSV and TSV files   can be ingested either with explicit latitude and longitude columns or with a column of WKT geometries.
-For lat/lon column ingest, the ``SimpleFeatureType`` spec must include an additional geometry attribute beyond the number of 
-columns in the file such as: `*geom:Point`. The file type is inferred from the extension of the file, so ensure that 
-the formatting of the file matches the extension of the file and that the extension is present.
+GeoMesa defines several common converter factories for formats such as delimited text
+(TSV, CSV), fixed width files, json, xml, and avro. New converter factories (e.g. for custom binary formats) can be
+registered on the classpath using Java SPI. Shapefile ingest is also supported.
 
+To define new converters for the tools users can package a ``reference.conf`` file inside a jar on the classpath
+or add converter definitions to the ``$GEOMESA_TOOLS/conf/application.conf`` file which includes some examples.
+
+Files can be either local or in HDFS. You cannot mix target files (e.g. local and HDFS).
 .. note::
 
     The header, if present, is not parsed by ``ingest`` for information. It is assumed that all lines are valid entries.
 
-Converters are specified in HOCON format (https://github.com/typesafehub/config/blob/master/HOCON.md) in the ``geomesa-tools-$VERSION/conf/application.conf`` file. For example::
+Converters are specified in HOCON format (https://github.com/typesafehub/config/blob/master/HOCON.md) and can be
+registered by packaging a ``reference.conf`` file inside a jar on the classpath or by adding a new converter definition
+to the ``geomesa-tools-$VERSION/conf/application.conf`` file. For example::
 
     # cat $GEOMESA_HOME/conf/application.conf
     geomesa {
-      sfts = [
-        {
-          type-name = "renegades"
+      sfts {
+        renegages = {
           attributes = [
             {name = "id", type = "Integer", index = false},
             {name = "name", type = "String", index = true},
@@ -195,10 +199,9 @@ Converters are specified in HOCON format (https://github.com/typesafehub/config/
             {name = "geom", type = "Point", index = true, srid = 4326, default = true}
           ]
         }
-      ],
-      converters = [
-        {
-          name = "renegades-csv"
+      }
+      converters {
+        renegades-csv = {
           type = "delimited-text",
           format = "CSV",
           options {
@@ -216,7 +219,8 @@ Converters are specified in HOCON format (https://github.com/typesafehub/config/
             {name = "geom", transform = "point($lon, $lat)"}
           ]
         }
-      ]
+      }
+    }
 
 Given this converter configuration, and a file called ``example1.csv`` with the following contents::
 

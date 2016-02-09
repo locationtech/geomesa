@@ -486,12 +486,15 @@ Gets an existing simple feature type as an encoded string.
     geomesa getsft -u username -p password -c test_catalog -f test_feature -i instance
 
 ### ingest
-Ingests line-oriented delimited text (csv, tsv) and SHP files from the local file system and HDFS. CSV and TSV files  
-can be ingested either with explicit latitude and longitude columns or with a column of WKT geometries.
-For lat/lon column ingest, the sft spec must include an additional geometry attribute in the sft beyond the number of 
-columns in the file such as: `*geom:Point`. The file type is inferred from the extension of the file, so ensure that 
-the formatting of the file matches the extension of the file and that the extension is present.
-*Note* the header if present is not parsed by Ingest for information, it is assumed that all lines are valid entries.
+Ingests various file formats into GeoMesa using the GeoMesa Converter Framework. CConverters are specified in HOCON 
+format (https://github.com/typesafehub/config/blob/master/HOCON.md). GeoMesa defines several common converter factories 
+for formats such as delimited text (TSV, CSV), fixed width files, json, xml, and avro. New converter factories (e.g. 
+for custom binary formats) can be registered on the classpath using Java SPI. Shapefile ingest is also supported.
+
+To define new converters for the tools users can package a ``reference.conf`` file inside a jar on the classpath
+or add converter definitions to the ``$GEOMESA_TOOLS/conf/application.conf`` file which includes some examples.
+
+Files can be either local or in HDFS. You cannot mix target files (e.g. local and HDFS).
 
 #### Usage (required options denoted with star):
     $ geomesa help ingest
@@ -539,9 +542,8 @@ the formatting of the file matches the extension of the file and that the extens
         
     # cat $GEOMESA_HOME/conf/application.conf
     geomesa {
-      sfts = [
-        {
-          type-name = "renegades"
+      sfts {
+        renegages = {
           attributes = [
             {name = "id", type = "Integer", index = false},
             {name = "name", type = "String", index = true},
@@ -551,10 +553,9 @@ the formatting of the file matches the extension of the file and that the extens
             {name = "geom", type = "Point", index = true, srid = 4326, default = true}
           ]
         }
-      ],
-      converters = [
-        {
-          name = "renegades-csv"
+      }
+      converters {
+        renegades-csv = {
           type = "delimited-text",
           format = "CSV",
           options {
@@ -572,7 +573,7 @@ the formatting of the file matches the extension of the file and that the extens
             {name = "geom", transform = "point($lon, $lat)"}
           ]
         }
-      ]
+      }
     }
 
     # ingest command
