@@ -167,7 +167,9 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
 
   def getRanges(weeks: Seq[Int], x: (Double, Double), y: (Double, Double), t: (Long, Long)): Seq[Range] = {
     val prefixes = weeks.map(w => Shorts.toByteArray(w.toShort))
-    Z3_CURVE.ranges(x, y, t).flatMap { case (s, e) =>
+    Z3_CURVE.ranges(x, y, t).flatMap { case indexRange =>
+      val s = indexRange.lower
+      val e = indexRange.upper
       val startBytes = Longs.toByteArray(s)
       val endBytes = Longs.toByteArray(e)
       prefixes.map { prefix =>
