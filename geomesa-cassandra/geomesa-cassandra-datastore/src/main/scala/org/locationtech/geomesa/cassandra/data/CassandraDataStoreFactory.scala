@@ -39,6 +39,8 @@ class CassandraDataStoreFactory extends AbstractDataStoreFactory {
 
   override def createNewDataStore(map: util.Map[String, Serializable]): DataStore = ???
 
+  override def getDisplayName: String = "Cassandra (GeoMesa)"
+
   override def getDescription: String = "GeoMesa Cassandra Data Store"
 
   override def getParametersInfo: Array[Param] = Array(CONTACT_POINT, KEYSPACE, NAMESPACEP)
