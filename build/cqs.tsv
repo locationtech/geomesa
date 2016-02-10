@@ -168,6 +168,8 @@ org.jruby.joni:joni	2.1.2	compile
 org.json4s:json4s-ast_2.11	3.2.10	compile
 org.json4s:json4s-core_2.11	3.2.10	compile
 org.json4s:json4s-native_2.11	3.2.10	compile
+org.locationtech.sfcurve:sfcurve-api_2.11	0.1.0	compile
+org.locationtech.sfcurve:sfcurve-zorder_2.11	0.1.0	compile
 org.mortbay.jetty:jetty-util	6.1.26	compile
 org.objenesis:objenesis	1.0	compile
 org.ow2.asm:asm	4.0	compile

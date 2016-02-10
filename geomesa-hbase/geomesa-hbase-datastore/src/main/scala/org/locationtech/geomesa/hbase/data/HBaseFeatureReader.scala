@@ -13,6 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.client.{Scan, Table}
 import org.geotools.data.FeatureReader
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -20,7 +21,7 @@ import scala.collection.JavaConversions._
 class HBaseFeatureReader(table: Table,
                          sft: SimpleFeatureType,
                          week: Int,
-                         ranges: Seq[(Long, Long)],
+                         ranges: Seq[IndexRange],
                          serde: KryoFeatureSerializer)
   extends FeatureReader[SimpleFeatureType, SimpleFeature] with LazyLogging {
 
@@ -28,7 +29,9 @@ class HBaseFeatureReader(table: Table,
     Seq(new Scan().addFamily(HBaseDataStore.DATA_FAMILY_NAME))
   } else {
     val weekPrefix = Shorts.toByteArray(week.toShort)
-    ranges.map { case (s, e) =>
+    ranges.map { case indexRange =>
+      val s = indexRange.lower
+      val e = indexRange.upper
       val startRow = Bytes.concat(weekPrefix, Longs.toByteArray(s))
       val endRow   = Bytes.concat(weekPrefix, Longs.toByteArray(e))
       new Scan(startRow, endRow).addFamily(HBaseDataStore.DATA_FAMILY_NAME)
