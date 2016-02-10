@@ -21,7 +21,7 @@ the following structure.
  
     |Bytes 31...16|Byte 15...0|
     |-------------|-----------|
-    |Epoch Week   |5 bit Z2   |
+    |Epoch Week   |10 bit Z2 packed into 16 bits |
  
  * Clustering Key (z31)
  
