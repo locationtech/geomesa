@@ -31,8 +31,8 @@ the following structure.
 
 The week number since the epoch is encoded in the upper 16 bits of the primary key and a 10 bit Z2 index is encoded
 in the lower 16 bits of the primary key.  This results in 1024 (10 bit Z2) primary partition keys per week.  For example,
-a spatio-temporal point with lon/lat '-75.0,35.0' and dtg '2016-01-01T00:00:00.000Z' would have a primary key of 
-157286595. In addition to the primary key, the Cassandra DataStore encodes a Z3 index into the secondary sort index.  The Z3 index interleaves the latitude, longitude, and seconds in the current week into a 64 bit long.  See the TODO section for an
+a spatio-temporal point with lon/lat `-75.0,35.0` and dtg `2016-01-01T00:00:00.000Z` would have a primary key of 
+`157286595`. In addition to the primary key, the Cassandra DataStore encodes a Z3 index into the secondary sort index.  The Z3 index interleaves the latitude, longitude, and seconds in the current week into a 64 bit long.  See the TODO section for an
 item regarding parameterizing the periodicity (Epoch Week).
 
 ### Query planning
