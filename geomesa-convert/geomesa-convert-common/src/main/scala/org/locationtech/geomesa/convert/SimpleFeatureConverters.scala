@@ -29,7 +29,7 @@ object SimpleFeatureConverters {
     build[I](sft, converterName)
   }
 
-  def build[I](sft: SimpleFeatureType, converterName :String): SimpleFeatureConverter[I] =
+  def build[I](sft: SimpleFeatureType, converterName: String): SimpleFeatureConverter[I] =
     ConverterConfigLoader.configForName(converterName).map(build[I](sft, _))
       .getOrElse(throw new IllegalArgumentException(s"Unable to find converter config for converterName $converterName"))
 
