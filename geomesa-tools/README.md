@@ -543,7 +543,7 @@ Files can be either local or in HDFS. You cannot mix target files (e.g. local an
     # cat $GEOMESA_HOME/conf/application.conf
     geomesa {
       sfts {
-        renegages = {
+        renegades = {
           attributes = [
             {name = "id", type = "Integer", index = false},
             {name = "name", type = "String", index = true},

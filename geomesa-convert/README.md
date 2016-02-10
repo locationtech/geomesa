@@ -781,9 +781,9 @@ Sample csv file: ``example.csv``:
 
 The "renegades" SFT and "renegades-csv" converter should be specified in 
 the GeoMesa Tools configuration file (``$GEOMESA_HOME/conf/application.conf``).
-By default, SimpleFeatureTypes (sfts) should be loaded at the path ``geomesa.sfts``
-and conveters should be loaded at the path ``geomesa.converters``. Each converter
-and sft definition is keyed by the name that can be referenced in the converter
+By default, SimpleFeatureTypes (SFTs) should be loaded at the path ``geomesa.sfts``
+and converters should be loaded at the path ``geomesa.converters``. Each converter
+and SFT definition is keyed by the name that can be referenced in the converter
 and SFT loaders.
 
 Use ``geomesa env`` to confirm that ``geomesa ingest`` can properly read the

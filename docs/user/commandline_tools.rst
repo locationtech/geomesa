@@ -171,7 +171,7 @@ ingest
 Used to convert and ingest data from various file formats as GeoMesa features.
 
 GeoMesa defines several common converter factories for formats such as delimited text
-(TSV, CSV), fixed width files, json, xml, and avro. New converter factories (e.g. for custom binary formats) can be
+(TSV, CSV), fixed width files, JSON, XML, and Avro. New converter factories (e.g. for custom binary formats) can be
 registered on the classpath using Java SPI. Shapefile ingest is also supported.
 
 To define new converters for the tools users can package a ``reference.conf`` file inside a jar on the classpath
@@ -189,7 +189,7 @@ to the ``geomesa-tools-$VERSION/conf/application.conf`` file. For example::
     # cat $GEOMESA_HOME/conf/application.conf
     geomesa {
       sfts {
-        renegages = {
+        renegades = {
           attributes = [
             {name = "id", type = "Integer", index = false},
             {name = "name", type = "String", index = true},
