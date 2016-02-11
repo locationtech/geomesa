@@ -12,15 +12,12 @@ import java.io.{File, Serializable}
 import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.coverage.grid.io.AbstractGridCoverage2DReader
-import org.geotools.coverageio.gdal.dted.DTEDReader
+import org.geotools.coverage.grid.io.{AbstractGridCoverage2DReader, GridFormatFinder}
 import org.geotools.factory.Hints
-import org.geotools.gce.geotiff.GeoTiffReader
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStoreParams => dsp}
 import org.locationtech.geomesa.raster.data.AccumuloRasterStore
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
 import org.locationtech.geomesa.raster.{RasterParams => rsp}
-import org.locationtech.geomesa.tools.Utils.Formats._
 
 import scala.collection.JavaConversions._
 
@@ -57,11 +54,15 @@ trait RasterIngest extends LazyLogging {
   }
 
   def getReader(imageFile: File, imageType: String): AbstractGridCoverage2DReader = {
-    imageType match {
-      case TIFF => new GeoTiffReader(imageFile, defaultHints)
-      case DTED => new DTEDReader(imageFile, defaultHints)
-      case _    => throw new Exception("Image type is not supported.")
+    val format = GridFormatFinder.findFormat(imageFile)
+    if (format == null) {
+      throw new Exception(s"Image format for file: ${imageFile.getName} is not supported.")
     }
+    val reader = format.getReader(imageFile)
+    if (reader == null) {
+      throw new Exception("Could not instantiate reader for format of file: ${imageFile.getName}")
+    }
+    reader
   }
 
   val defaultHints = new Hints(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)

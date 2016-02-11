@@ -378,6 +378,28 @@
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
+                <artifactId>gt-epsg-hsql</artifactId>
+                <version>${gt.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>javax.media</groupId>
+                        <artifactId>jai_core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>jgridshift</groupId>
+                        <artifactId>jgridshift</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>java3d</groupId>
+                        <artifactId>vecmath</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.geotools</groupId>
                 <artifactId>gt-coverage</artifactId>
                 <version>${gt.version}</version>
                 <exclusions>
@@ -424,6 +446,7 @@
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-imageio-ext-gdal</artifactId>
                 <version>${gt.version}</version>
+                <scope>provided</scope>
                 <exclusions>
                     <exclusion>
                         <!-- excluded due to license issues -->
@@ -446,6 +469,10 @@
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
                         <artifactId>jai_core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>imageio-ext-tiff</artifactId>
+                        <groupId>it.geosolutions.imageio-ext</groupId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -775,6 +802,7 @@
                 <groupId>it.geosolutions.imageio-ext</groupId>
                 <artifactId>imageio-ext-tiff</artifactId>
                 <version>${imageio-ext.version}</version>
+                <scope>provided</scope>
                 <exclusions>
                     <exclusion>
                         <!-- excluded due to license issues -->
