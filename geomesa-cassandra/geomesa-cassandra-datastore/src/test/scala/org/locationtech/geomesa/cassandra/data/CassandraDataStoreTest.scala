@@ -167,7 +167,7 @@ class CassandraDataStoreTest  {
     import scala.collection.JavaConversions._
     DataStoreFinder.getDataStore(
       Map(
-        CassandraDataStoreParams.CONTACT_POINT.getName -> "127.0.0.1:9142",
+        CassandraDataStoreParams.CONTACT_POINT.getName -> CassandraDataStoreTest.CP,
         CassandraDataStoreParams.KEYSPACE.getName -> "geomesa_cassandra",
         CassandraDataStoreParams.NAMESPACEP.getName -> "http://geomesa.org"
       )
@@ -177,6 +177,10 @@ class CassandraDataStoreTest  {
 }
 
 object CassandraDataStoreTest {
+  val HOST = "127.0.0.1"
+  val PORT = 19142
+  val CP   = s"$HOST:$PORT"
+
   @BeforeClass
   def startServer() = {
     val storagedir = File.createTempFile("cassandra","sd")
@@ -185,8 +189,8 @@ object CassandraDataStoreTest {
 
     System.setProperty("cassandra.storagedir", storagedir.getPath)
 
-    EmbeddedCassandraServerHelper.startEmbeddedCassandra(30000L)
-    val cluster = new Cluster.Builder().addContactPoints("127.0.0.1").withPort(9142).build()
+    EmbeddedCassandraServerHelper.startEmbeddedCassandra("cassandra-config.yaml", 30000L)
+    val cluster = new Cluster.Builder().addContactPoints(HOST).withPort(PORT).build()
     val session = cluster.connect()
     val cqlDataLoader = new CQLDataLoader(session)
     cqlDataLoader.load(new ClassPathCQLDataSet("init.cql", false, false))

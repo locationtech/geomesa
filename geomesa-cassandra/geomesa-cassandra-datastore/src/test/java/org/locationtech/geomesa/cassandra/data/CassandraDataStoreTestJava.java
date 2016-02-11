@@ -32,7 +32,7 @@ public class CassandraDataStoreTestJava {
     @Test
     public void testDataAccess() throws IOException {
         Map<String, ?> params = ImmutableMap.of(
-                CassandraDataStoreParams.CONTACT_POINT().getName() , "127.0.0.1:9142",
+                CassandraDataStoreParams.CONTACT_POINT().getName() , CassandraDataStoreTest.CP(),
                 CassandraDataStoreParams.KEYSPACE().getName()      , "geomesa_cassandra");
         DataStore ds = DataStoreFinder.getDataStore(params);
         Assert.assertNotNull("DataStore must not be null", ds);
