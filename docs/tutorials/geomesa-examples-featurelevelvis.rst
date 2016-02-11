@@ -26,7 +26,7 @@ You will need:
 -  an Accumulo |accumulo_version| instance
 -  an Accumulo user that has appropriate permissions to manage
    authorizations and query data
--  Java JDK 7
+-  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
 -  `Apache Maven <http://maven.apache.org/>`__ 3.2.2 or better
 -  a `git <http://git-scm.com/>`__ client
 

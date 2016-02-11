@@ -42,7 +42,7 @@ This means that the version of the `geomesa-accumulo-distributed-runtime` JAR in
 
 Requirements:
 
-* [Java JDK 7](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html)
+* [Java JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 * [Apache Maven](http://maven.apache.org/) 3.2.2 or later
 * [git](http://git-scm.com/)
 * [Accumulo](http://accumulo.apache.org) version 1.5.x or 1.6.x and/or [Kafka](http://kafka.apache.org/) version 0.8.2.x.

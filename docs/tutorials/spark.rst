@@ -41,7 +41,7 @@ You will also need:
 
 -  a `Spark <http://spark.apache.org/>`__ 1.5.0 or later distribution (see below)
 -  an Accumulo user that has appropriate permissions to query your data
--  Java JDK 7
+-  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
 -  `Apache Maven <http://maven.apache.org/>`__ 3.2.2 or better
 -  a `git <http://git-scm.com/>`__ client
 
