@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.utils.geotools
 
 import java.net.URL
-import java.util
 import java.util.{List => JList}
 import javax.imageio.spi.ServiceRegistry
 
@@ -79,16 +78,16 @@ object ConfigSftParsing {
 }
 
 class ClassPathSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {
-  override def loadTypes(): java.util.List[SimpleFeatureType] = parseConf(ConfigFactory.load())
+  override def loadTypes(): JList[SimpleFeatureType] = parseConf(ConfigFactory.load())
 }
 
 class URLSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {
   import URLSftProvider._
-  override def loadTypes(): util.List[SimpleFeatureType] = {
+  override def loadTypes(): JList[SimpleFeatureType] = {
     configURLs
       .map(ConfigFactory.parseURL)
       .reduceLeftOption(_.withFallback(_))
-      .map(parseConf)
+      .map(parseConf(_))
       .getOrElse(List.empty[SimpleFeatureType])
   }
   
@@ -109,3 +108,5 @@ class URLSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {
 object URLSftProvider {
   val SftConfigURLs = "geomesa.sft.config.urls"
 }
+
+object SimpleSftParser extends ConfigSftParsing {}

@@ -49,7 +49,6 @@ object SimpleFeatureTypes {
    * Create a SimpleFeatureType from a typesafe Config
    * @param conf
    * @param typeName optional typename to use for the SFT...will be overridden if the config contains a type-name key
-   * @param path
    * @return
    */
   def createType(conf: Config, typeName: Option[String] = None, path: Option[String] = Some("sft")): SimpleFeatureType = {

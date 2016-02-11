@@ -28,40 +28,36 @@ class CompositeTextConverterTest extends Specification {
 
   val conf = ConfigFactory.parseString(
     """
-      | converter = {
+      | {
       |   type         = "composite-converter",
       |   converters = [
       |     { converter = "first",   predicate = "strEq('1', trim(substr($0, 0, 2)))" },
       |     { converter = "second",  predicate = "strEq('2', trim(substr($0, 0, 2)))" }
       |   ]
       |   first = {
-      |     converter = {
-      |       type         = "delimited-text",
-      |       format       = "DEFAULT",
-      |       id-field     = "concat('first', trim($1))",
-      |       fields = [
-      |         { name = "phrase", transform = "concat($1, $2)" },
-      |         { name = "lineNr", transform = "lineNo()" },
-      |         { name = "lat",    transform = "stringToDouble($3, '0.0'::double)" },
-      |         { name = "lon",    transform = "stringToDouble($4, '0.0'::double)" },
-      |         { name = "geom",   transform = "point($lat, $lon)" }
-      |       ]
-      |     }
+      |     type         = "delimited-text",
+      |     format       = "DEFAULT",
+      |     id-field     = "concat('first', trim($1))",
+      |     fields = [
+      |       { name = "phrase", transform = "concat($1, $2)"                    }
+      |       { name = "lineNr", transform = "lineNo()"                          }
+      |       { name = "lat",    transform = "stringToDouble($3, '0.0'::double)" }
+      |       { name = "lon",    transform = "stringToDouble($4, '0.0'::double)" }
+      |       { name = "geom",   transform = "point($lat, $lon)"                 }
+      |     ]
       |   }
       |
       |   second = {
-      |     converter = {
-      |       type         = "delimited-text",
-      |       format       = "DEFAULT",
-      |       id-field     = "concat('second', trim($1))",
-      |       fields = [
-      |         { name = "phrase", transform = "concat($1, $2)" },
-      |         { name = "lat",    transform = "stringToDouble($3, '0.0'::double)" },
-      |         { name = "lon",    transform = "stringToDouble($4, '0.0'::double)" },
-      |         { name = "geom",   transform = "point($lat, $lon)" }
-      |         { name = "lineNr", transform = "lineNo()" }
-      |       ]
-      |     }
+      |     type         = "delimited-text",
+      |     format       = "DEFAULT",
+      |     id-field     = "concat('second', trim($1))",
+      |     fields = [
+      |       { name = "phrase", transform = "concat($1, $2)"                    }
+      |       { name = "lat",    transform = "stringToDouble($3, '0.0'::double)" }
+      |       { name = "lon",    transform = "stringToDouble($4, '0.0'::double)" }
+      |       { name = "geom",   transform = "point($lat, $lon)"                 }
+      |       { name = "lineNr", transform = "lineNo()"                          }
+      |     ]
       |   }
       | }
     """.stripMargin)

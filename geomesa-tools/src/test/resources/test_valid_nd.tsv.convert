@@ -1,4 +1,4 @@
-converter = {
+{
    type         = "delimited-text",
    format       = "TSV",
    id-field     = "toString($fid)",

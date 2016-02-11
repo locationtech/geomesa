@@ -38,9 +38,9 @@ object ConverterConfigLoader {
   // Rebase a config to to the converter root...allows standalone
   // configurations to start with "converter", "input-converter"
   // or optional other prefix string
-  def rebaseConfig(conf: Config, path: Option[String] = None): Config = {
+  def rebaseConfig(conf: Config, pathOverride: Option[String] = None): Config = {
     import org.locationtech.geomesa.utils.conf.ConfConversions._
-    (path.toSeq ++ Seq("converter", "input-converter"))
+    (pathOverride.toSeq ++ Seq(path, "converter", "input-converter"))
       .foldLeft(conf)( (c, p) => c.getConfigOpt(p).map(c.withFallback).getOrElse(c))
   }
 
@@ -72,6 +72,11 @@ trait GeoMesaConvertParser extends LazyLogging {
   }
 }
 
+object GeoMesaConvertParser {
+  def isConvertConfig(conf: Config) = {
+    conf.hasPath("type")
+  }
+}
 /**
   * Provides access converter configs on the classpath
   */
@@ -109,3 +114,5 @@ class URLConfigProvider extends ConverterConfigProvider with GeoMesaConvertParse
 object URLConfigProvider {
   val ConverterConfigURLs = "geomesa.convert.config.urls"
 }
+
+object SimpleConverterConfigParser extends GeoMesaConvertParser

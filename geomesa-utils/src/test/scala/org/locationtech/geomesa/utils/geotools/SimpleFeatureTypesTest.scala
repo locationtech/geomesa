@@ -285,23 +285,6 @@ class SimpleFeatureTypesTest extends Specification {
         doTest(sftRegular)
       }
 
-      "with sft default path" >>{
-        val defaultNesting = ConfigFactory.parseString(
-          """
-            |sft = {
-            |  type-name = "testconf"
-            |  fields = [
-            |    { name = "testStr",  type = "string"       , index = true  },
-            |    { name = "testCard", type = "string"       , index = true, cardinality = high },
-            |    { name = "testList", type = "List[String]" , index = false },
-            |    { name = "geom",     type = "Point"        , srid = 4326, default = true }
-            |  ]
-            |}
-          """.stripMargin)
-        val sftDefault = SimpleFeatureTypes.createType(defaultNesting)
-        doTest(sftDefault)
-      }
-
       "with some nesting path" >>{
         val someNesting = ConfigFactory.parseString(
           """

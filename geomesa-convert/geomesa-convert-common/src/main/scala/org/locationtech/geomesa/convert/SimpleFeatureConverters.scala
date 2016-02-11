@@ -34,10 +34,9 @@ object SimpleFeatureConverters {
       .getOrElse(throw new IllegalArgumentException(s"Unable to find converter config for converterName $converterName"))
 
   def build[I](sft: SimpleFeatureType, converterConf: Config): SimpleFeatureConverter[I] = {
-    val rebased = ConverterConfigLoader.rebaseConfig(converterConf)
     providers
-      .find(_.canProcess(rebased))
-      .map(_.buildConverter(sft, rebased).asInstanceOf[SimpleFeatureConverter[I]])
+      .find(_.canProcess(converterConf))
+      .map(_.buildConverter(sft, converterConf).asInstanceOf[SimpleFeatureConverter[I]])
       .getOrElse(throw new IllegalArgumentException(s"Cannot find factory for ${sft.getTypeName}"))
   }
 }

@@ -93,7 +93,7 @@ class JsonConverterTest extends Specification {
 
       val parserConf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type         = "json"
           |   id-field     = "$id"
           |   feature-path = "$.Features[*]"
@@ -169,7 +169,7 @@ class JsonConverterTest extends Specification {
 
       val parserConf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type         = "json"
           |   id-field     = "$id"
           |   feature-path = "$.Features[*]"
@@ -238,7 +238,7 @@ class JsonConverterTest extends Specification {
 
       val parserConf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type         = "json"
           |   id-field     = "$id"
           |   feature-path = "$.Features[*]"
@@ -310,7 +310,7 @@ class JsonConverterTest extends Specification {
 
       val parserConf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type         = "json"
           |   id-field     = "$id"
           |   feature-path = "$.Features[*].Feature"
@@ -379,7 +379,7 @@ class JsonConverterTest extends Specification {
 
       val parserConf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type         = "json"
           |   id-field     = "md5(string2bytes(json2string($0)))"
           |   feature-path = "$.Features[*].Feature"
@@ -427,7 +427,7 @@ class JsonConverterTest extends Specification {
 
         val parserConf = ConfigFactory.parseString(
           """
-            | converter = {
+            | {
             |   type         = "json"
             |   id-field     = "$id"
             |   feature-path = "$.Features[*]"
@@ -478,7 +478,7 @@ class JsonConverterTest extends Specification {
 
         val parserConf = ConfigFactory.parseString(
           """
-            | converter = {
+            | {
             |   type         = "json"
             |   id-field     = "$id"
             |   feature-path = "$.Features[*]"
@@ -527,7 +527,7 @@ class JsonConverterTest extends Specification {
 
         val parserConf = ConfigFactory.parseString(
           """
-            | converter = {
+            | {
             |   type         = "json"
             |   id-field     = "$id"
             |   feature-path = "$.Features[*]"
@@ -607,7 +607,7 @@ class JsonConverterTest extends Specification {
 
         val parserConf = ConfigFactory.parseString(
           """
-            | converter = {
+            | {
             |   type         = "json"
             |   id-field     = "$id"
             |   feature-path = "$.Features[*]"
@@ -653,7 +653,7 @@ class JsonConverterTest extends Specification {
         val jsonStr = "{ id: 1, number: 123, secs: 1000, lat: 0, lon: 0 }"
         val parserConf = ConfigFactory.parseString(
           """
-            | converter = {
+            | {
             |   type         = "json"
             |   id-field     = "$id"
             |   fields = [
@@ -696,7 +696,7 @@ class JsonConverterTest extends Specification {
 
       val parserConf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type         = "json"
           |   id-field     = "$id"
           |   feature-path = "$.Features[*]"

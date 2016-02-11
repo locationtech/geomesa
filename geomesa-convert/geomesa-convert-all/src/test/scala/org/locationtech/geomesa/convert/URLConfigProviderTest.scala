@@ -32,70 +32,70 @@ class URLConfigProviderTest extends Specification {
           req.asInstanceOf[Request].setHandled(true)
           resp.getWriter.write(
             """
-              |geomesa = {
-              |  sfts = {
+              |geomesa {
+              |  sfts {
               |    "example-csv-url" = {
               |      attributes = [
-              |        {name = "id", type = "Integer", index = false},
-              |        {name = "name", type = "String", index = true},
-              |        {name = "age", type = "Integer", index = false},
-              |        {name = "lastseen", type = "Date", index = true},
-              |        {name = "friends", type = "List[String]", index = true},
-              |        {name = "geom", type = "Point", index = true, srid = 4326, default = true}
+              |        { name = "id",       type = "Integer",      index = false                             }
+              |        { name = "name",     type = "String",       index = true                              }
+              |        { name = "age",      type = "Integer",      index = false                             }
+              |        { name = "lastseen", type = "Date",         index = true                              }
+              |        { name = "friends",  type = "List[String]", index = true                              }
+              |        { name = "geom",     type = "Point",        index = true, srid = 4326, default = true }
               |      ]
               |    }
               |  }
-              |  converters = {
+              |  converters {
               |    "example-csv-url" = {
-              |      type = "delimited-text",
+              |      type   = "delimited-text",
               |      format = "CSV",
               |      options {
               |        skip-lines = 1
               |      },
               |      id-field = "toString($id)",
               |      fields = [
-              |        {name = "id", transform = "$1::int"},
-              |        {name = "name", transform = "$2::string"},
-              |        {name = "age", transform = "$3::int"},
-              |        {name = "lastseen", transform = "date('YYYY-MM-dd', $4)"},
-              |        {name = "friends", transform = "parseList('string', $5)"},
-              |        {name = "lon", transform = "$6::double"},
-              |        {name = "lat", transform = "$7::double"},
-              |        {name = "geom", transform = "point($lon, $lat)"}
+              |        { name = "id",       transform = "$1::int"                 }
+              |        { name = "name",     transform = "$2::string"              }
+              |        { name = "age",      transform = "$3::int"                 }
+              |        { name = "lastseen", transform = "date('YYYY-MM-dd', $4)"  }
+              |        { name = "friends",  transform = "parseList('string', $5)" }
+              |        { name = "lon",      transform = "$6::double"              }
+              |        { name = "lat",      transform = "$7::double"              }
+              |        { name = "geom",     transform = "point($lon, $lat)"       }
               |      ]
               |    }
               |  }
               |}
-              |geomesa = {
-              |  sfts =  {
+              |geomesa {
+              |  sfts {
               |    "example-csv-url2" = {
               |      attributes = [
-              |        {name = "id", type = "Integer", index = false},
-              |        {name = "name", type = "String", index = true},
-              |        {name = "age", type = "Integer", index = false},
-              |        {name = "lastseen", type = "Date", index = true},
-              |        {name = "friends", type = "List[String]", index = true},
-              |        {name = "geom", type = "Point", index = true, srid = 4326, default = true}
+              |        { name = "id",       type = "Integer",      index = false                             }
+              |        { name = "name",     type = "String",       index = true                              }
+              |        { name = "age",      type = "Integer",      index = false                             }
+              |        { name = "lastseen", type = "Date",         index = true                              }
+              |        { name = "friends",  type = "List[String]", index = true                              }
+              |        { name = "geom",     type = "Point",        index = true, srid = 4326, default = true }
               |      ]
               |    }
               |  }
-              |  converters = {
+              |  converters {
               |   "example-csv-url2" = {
-              |      type = "delimited-text",
+              |      type   = "delimited-text",
               |      format = "CSV",
               |      options {
               |        skip-lines = 5
               |      },
               |      id-field = "toString($id)",
               |      fields = [
-              |        {name = "id", transform = "$1::int"},
-              |        {name = "name", transform = "$2::string"},
-              |        {name = "age", transform = "$3::int"},
-              |        {name = "lastseen", transform = "date('YYYY-MM-dd', $4)"},
-              |        {name = "friends", transform = "parseList('string', $5)"},
-              |        {name = "lon", transform = "$6::double"},
-              |        {name = "lat", transform = "$7::double"},
-              |        {name = "geom", transform = "point($lon, $lat)"}
+              |        { name = "id",       transform = "$1::int"                 }
+              |        { name = "name",     transform = "$2::string"              }
+              |        { name = "age",      transform = "$3::int"                 }
+              |        { name = "lastseen", transform = "date('YYYY-MM-dd', $4)"  }
+              |        { name = "friends",  transform = "parseList('string', $5)" }
+              |        { name = "lon",      transform = "$6::double"              }
+              |        { name = "lat",      transform = "$7::double"              }
+              |        { name = "geom",     transform = "point($lon, $lat)"       }
               |      ]
               |    }
               |  }
