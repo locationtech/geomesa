@@ -177,7 +177,7 @@ class CassandraDataStoreTest  {
 }
 
 object CassandraDataStoreTest {
-  val HOST = "localhost"
+  val HOST = "127.0.0.1"
   val PORT = 19142
   val CP   = s"$HOST:$PORT"
 
