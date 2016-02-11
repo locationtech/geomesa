@@ -8,6 +8,9 @@ cache:
   directories:
   - $HOME/.m2
 
+jdk:
+  - oraclejdk8
+
 script:
   - export MAVEN_OPTS="-Xmx1g -XX:MaxPermSize=512m"
   - ./.travisbuild.sh
