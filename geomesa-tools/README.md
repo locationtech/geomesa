@@ -488,13 +488,9 @@ Gets an existing simple feature type as an encoded string.
 ### ingest
 Ingests various file formats into GeoMesa using the GeoMesa Converter Framework. CConverters are specified in HOCON 
 format (https://github.com/typesafehub/config/blob/master/HOCON.md). GeoMesa defines several common converter factories 
-for formats such as delimited text (TSV, CSV), fixed width files, json, xml, and avro. New converter factories (e.g. 
-for custom binary formats) can be registered on the classpath using Java SPI. Shapefile ingest is also supported.
-
-To define new converters for the tools users can package a ``reference.conf`` file inside a jar on the classpath
-or add converter definitions to the ``$GEOMESA_TOOLS/conf/application.conf`` file which includes some examples.
-
-Files can be either local or in HDFS. You cannot mix target files (e.g. local and HDFS).
+for formats such as delimited text (TSV, CSV), fixed width files, JSON, XML, and Avro. New converter factories (e.g. 
+for custom binary formats) can be registered on the classpath using Java SPI. Shapefile ingest is also supported. Files 
+can be either local or in HDFS. You cannot mix target files (e.g. local and HDFS).
 
 #### Usage (required options denoted with star):
     $ geomesa help ingest
@@ -529,17 +525,28 @@ Files can be either local or in HDFS. You cannot mix target files (e.g. local an
         -z, --zookeepers
            Zookeepers (host[:port], comma separated)
 
+#### Defining Converters and SFTs
 
-#### Example commands:
+Converters and SFTs are specified in HOCON format (https://github.com/typesafehub/config/blob/master/HOCON.md) and 
+loaded using TypeSafe config. They can be referenced by name using the ``-s`` and ``-C`` args.
 
-##### Ingest CSV with single WKT (Well Known Text) geometry
+To define new converters for the users can package a ``reference.conf`` file inside a jar and drop it in the 
+``$GEOMESA_HOME/lib`` directory or add config definitions to the ``$GEOMESA_TOOLS/conf/application.conf`` file which 
+includes some examples. SFT and Converter specifications should use the path prefixes 
+``geomesa.converters.<convertername>`` and ``geomesa.sfts.<typename>``
+
+##### Ingest with Converters and SFTs specified by name
+
+For example...Here's a simple CSV file to ingest:
 
     $ cat example1.csv
     ID,Name,Age,LastSeen,Friends,Lat,Lon
     23623,Harry,20,2015-05-06,"Will, Mark, Suzan",-100.236523,23
     26236,Hermione,25,2015-06-07,"Edward, Bill, Harry",40.232,-53.2356
     3233,Severus,30,2015-10-23,"Tom, Riddle, Voldemort",3,-62.23
-        
+
+A SimpleFeatureType named ``renegades`` and a converter named ``renegades-csv`` can be placed in the application.conf:
+
     # cat $GEOMESA_HOME/conf/application.conf
     geomesa {
       sfts {
@@ -559,7 +566,7 @@ Files can be either local or in HDFS. You cannot mix target files (e.g. local an
           type   = "delimited-text"
           format = "CSV"
           options {
-            skip-lines = 0 // don't skip lines in distributed ingest
+            skip-lines = 1 // skip the header
           }
           id-field = "toString($id)"
           fields = [
@@ -576,14 +583,103 @@ Files can be either local or in HDFS. You cannot mix target files (e.g. local an
       }
     }
 
+The csv file can then be ingested by referencing the SFT and Converter by name:
+  
     # ingest command
-    geomesa ingest -u username -p password -c geomesa_catalog -i instance -s renegades -C renegades-csv hdfs:///some/hdfs/path/to/file.csv
+    geomesa ingest -u username -p password -c geomesa_catalog -i instance -s renegades -C renegades-csv hdfs:///some/hdfs/path/to/example.csv
 
-##### Converter Config
+##### Providing SFT and Converter configs as arguments
 
-For more documentation on converter configuration, check out the geomesa-convert README
+SFT and Converter configs can also be provided as strings or filenames to the ``-s`` and ``-C`` arguments. The syntax is
+very similar to the ``application.conf`` and ``reference.conf`` format. Config specifications can be nested using the 
+paths ``geomesa.converters.<convertername>`` and ``geomesa.sfts.<typename>`` or non-nested. If you provide a non nested
+sft config you must provide the field ``type-name``. For example:
 
-##### Ingest a shape file
+    # A nested SFT config provided as a string or file to the -s argument specifying
+    # a type named "renegades"
+    #
+    # cat /tmp/renegades.sft
+    geomesa.sfts.renegades = {
+        attributes = [
+          { name = "id",       type = "Integer",      index = false                             }
+          { name = "name",     type = "String",       index = true                              }
+          { name = "age",      type = "Integer",      index = false                             }
+          { name = "lastseen", type = "Date",         index = true                              }
+          { name = "friends",  type = "List[String]", index = true                              }
+          { name = "geom",     type = "Point",        index = true, srid = 4326, default = true }
+        ]
+      }
+    }
+    
+    # cat /tmp/renegades.sft
+    # a non-nested config for the -s argument that specifying a type named "renegades" 
+    {
+      type-name  = "renegades"
+      attributes = [
+        { name = "id",       type = "Integer",      index = false                             }
+        { name = "name",     type = "String",       index = true                              }
+        { name = "age",      type = "Integer",      index = false                             }
+        { name = "lastseen", type = "Date",         index = true                              }
+        { name = "friends",  type = "List[String]", index = true                              }
+        { name = "geom",     type = "Point",        index = true, srid = 4326, default = true }
+      ]
+    }
+   
+Similarly, converter configurations can be nested or not when passing them directly to the ``-C`` argument:
+
+    # a nested converter definition
+    # cat /tmp/renegades.convert    
+    geomesa.converters.renegades-csv = {
+      type   = "delimited-text"
+      format = "CSV"
+      options {
+        skip-lines = 0 // don't skip lines in distributed ingest
+      }
+      id-field = "toString($id)"
+      fields = [
+        { name = "id",       transform = "$1::int"                 }
+        { name = "name",     transform = "$2::string"              }
+        { name = "age",      transform = "$3::int"                 }
+        { name = "lastseen", transform = "$4::date"                }
+        { name = "friends",  transform = "parseList('string', $5)" }
+        { name = "lon",      transform = "$6::double"              }
+        { name = "lat",      transform = "$7::double"              }
+        { name = "geom",     transform = "point($lon, $lat)"       }
+      ]
+    }    
+    
+    # a non-nested converter definition
+    # cat /tmp/renegades.convert
+    {
+      type   = "delimited-text"
+      format = "CSV"
+      options {
+        skip-lines = 0 // don't skip lines in distributed ingest
+      }
+      id-field = "toString($id)"
+      fields = [
+        { name = "id",       transform = "$1::int"                 }
+        { name = "name",     transform = "$2::string"              }
+        { name = "age",      transform = "$3::int"                 }
+        { name = "lastseen", transform = "$4::date"                }
+        { name = "friends",  transform = "parseList('string', $5)" }
+        { name = "lon",      transform = "$6::double"              }
+        { name = "lat",      transform = "$7::double"              }
+        { name = "geom",     transform = "point($lon, $lat)"       }
+      ]
+    }
+    
+Using the SFT and Converter config files we can then ingest our csv file with this command:
+
+    # ingest command
+    geomesa ingest -u username -p password -c geomesa_catalog -i instance -s /tmp/renegades.sft -C /tmp/renegades.convert hdfs:///some/hdfs/path/to/example.csv
+
+##### More info on Converters
+
+For more documentation on converter configuration, check out the [geomesa-convert README](http://github.com/locationtech/geomesa/geomesa-convert/README.md)
+
+#### Ingest a shape file
+
     geomesa ingest -u username -p password -c test_catalog -f shapeFileFeatureName /some/path/to/file.shp
 
 ### ingestraster
