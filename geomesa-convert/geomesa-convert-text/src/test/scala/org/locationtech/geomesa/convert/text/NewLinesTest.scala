@@ -24,7 +24,7 @@ class NewLinesTest extends Specification {
 
     val conf = ConfigFactory.parseString(
       """
-        | converter = {
+        | {
         |   type         = "delimited-text",
         |   format       = "DEFAULT",
         |   id-field     = "uuid()",

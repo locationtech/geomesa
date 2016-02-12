@@ -11,7 +11,7 @@ package org.locationtech.geomesa.stream.generic
 import java.util.concurrent.{ExecutorService, Executors, LinkedBlockingQueue, TimeUnit}
 
 import com.google.common.collect.Queues
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.Config
 import org.apache.camel.CamelContext
 import org.apache.camel.impl._
 import org.apache.camel.scala.dsl.builder.RouteBuilder
@@ -39,7 +39,7 @@ class GenericSimpleFeatureStreamSourceFactory extends SimpleFeatureStreamSourceF
     val sourceRoute = conf.getString("source-route")
     val sft = SimpleFeatureTypes.createType(conf.getConfig("sft"))
     val threads = Try(conf.getInt("threads")).getOrElse(1)
-    val converterConf = ConfigFactory.empty().withValue("converter", conf.getValue("converter"))
+    val converterConf = conf.getConfig("converter")
     val fac = () => SimpleFeatureConverters.build[String](sft, converterConf)
     new GenericSimpleFeatureStreamSource(ctx, sourceRoute, sft, threads, fac)
   }
