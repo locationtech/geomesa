@@ -12,7 +12,7 @@ import java.net.URL
 import java.util.{List => JList}
 import javax.imageio.spi.ServiceRegistry
 
-import com.typesafe.config.{Config, ConfigFactory, ConfigParseOptions, ConfigRenderOptions}
+import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -39,14 +39,6 @@ object SimpleFeatureTypeLoader {
 }
 
 trait ConfigSftParsing extends LazyLogging {
-  // Important to setAllowMissing to false bc else you'll get a config but it will be empty
-  val parseOpts =
-    ConfigParseOptions.defaults()
-      .setAllowMissing(false)
-      .setClassLoader(null)
-      .setIncluder(null)
-      .setOriginDescription(null)
-      .setSyntax(null)
 
   def parseConf(config: Config): java.util.List[SimpleFeatureType] = {
     import scala.collection.JavaConversions._
@@ -84,7 +76,9 @@ class ClassPathSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsi
 class URLSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {
   import URLSftProvider._
   override def loadTypes(): JList[SimpleFeatureType] = {
-    configURLs
+    val urls = configURLs.toList
+    logger.info(s"Loading config from urls: $urls")
+    urls
       .map(ConfigFactory.parseURL)
       .reduceLeftOption(_.withFallback(_))
       .map(parseConf(_))
@@ -93,7 +87,7 @@ class URLSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {
   
   // Will also pick things up from the SystemProperties
   def configURLs: Seq[URL] = {
-    val config = ConfigFactory.load(parseOpts)
+    val config = ConfigFactory.load()
     if (config.hasPath(SftConfigURLs)) {
       config.getAnyRef(SftConfigURLs) match {
         case s: String          => s.split(',').map(s => s.trim).toList.map(new URL(_))

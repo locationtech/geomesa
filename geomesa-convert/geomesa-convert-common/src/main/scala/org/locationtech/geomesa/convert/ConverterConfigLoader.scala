@@ -13,7 +13,7 @@ import java.util
 import java.util.{List => JList}
 import javax.imageio.spi.ServiceRegistry
 
-import com.typesafe.config.{Config, ConfigFactory, ConfigParseOptions}
+import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 
 import scala.collection.JavaConversions._
@@ -47,14 +47,6 @@ object ConverterConfigLoader {
 }
 
 trait GeoMesaConvertParser extends LazyLogging {
-  // Important to setAllowMissing to false bc else you'll get a config but it will be empty
-  protected val parseOpts =
-    ConfigParseOptions.defaults()
-      .setAllowMissing(false)
-      .setClassLoader(null)
-      .setIncluder(null)
-      .setOriginDescription(null)
-      .setSyntax(null)
 
   def parseConf(config: Config): Map[String, Config] = {
     import scala.collection.JavaConversions._
@@ -98,7 +90,7 @@ class URLConfigProvider extends ConverterConfigProvider with GeoMesaConvertParse
 
   // Will also pick things up from the SystemProperties
   def configURLs: Seq[URL] = {
-    val config = ConfigFactory.load(parseOpts)
+    val config = ConfigFactory.load()
     if (config.hasPath(ConverterConfigURLs)) {
       config.getAnyRef(ConverterConfigURLs) match {
         case s: String          => s.split(',').map(_.trim).map(new URL(_))
