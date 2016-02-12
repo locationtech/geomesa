@@ -168,8 +168,8 @@ org.jruby.joni:joni	2.1.2	compile
 org.json4s:json4s-ast_2.11	3.2.10	compile
 org.json4s:json4s-core_2.11	3.2.10	compile
 org.json4s:json4s-native_2.11	3.2.10	compile
-org.locationtech.sfcurve:sfcurve-api_2.11	0.1.0	compile
-org.locationtech.sfcurve:sfcurve-zorder_2.11	0.1.0	compile
+org.locationtech.sfcurve:sfcurve-api_2.11	0.1.1	compile
+org.locationtech.sfcurve:sfcurve-zorder_2.11	0.1.1	compile
 org.mortbay.jetty:jetty-util	6.1.26	compile
 org.objenesis:objenesis	1.0	compile
 org.ow2.asm:asm	4.0	compile
@@ -190,6 +190,8 @@ org.tukaani:xz	1.0	compile
 picocontainer:picocontainer	1.2	compile
 xml-apis:xml-apis	1.4.01	compile
 
+com.datastax.cassandra:cassandra-driver-core	3.0.0	provided
+com.datastax.cassandra:cassandra-driver-mapping	3.0.0	provided
 javax.media:jai_codec	1.1.3	provided
 javax.media:jai_core	1.1.3	provided
 org.apache.accumulo:accumulo-server-base	1.6.2	provided
@@ -206,11 +208,13 @@ org.springframework.security:spring-security-web	3.1.0.RELEASE	provided
 org.springframework:spring-web	3.1.4.RELEASE	provided
 
 java3d:vecmath	1.3.2	test
-junit:junit	4.5	test
+junit:junit	4.12	test
 org.apache.accumulo:accumulo-test	1.6.2	test
 org.apache.camel:camel-netty4	2.15.1	test
+org.apache.cassandra:cassandra-all	3.0.0	test
 org.apache.curator:curator-test	2.7.1	test
 org.apache.kafka:kafka_2.11	test:0.8.2.1	test
+org.cassandraunit:cassandra-unit	2.2.2.1	test
 org.codehaus.groovy:groovy-jsr223	2.4.5	test
 org.geotools:gt-geometry	14.1	test
 org.jruby:jruby	9.0.4.0	test
