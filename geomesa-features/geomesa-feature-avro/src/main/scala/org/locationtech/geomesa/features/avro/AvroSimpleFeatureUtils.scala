@@ -29,6 +29,7 @@ object AvroSimpleFeatureUtils {
 
   val FEATURE_ID_AVRO_FIELD_NAME: String = "__fid__"
   val AVRO_SIMPLE_FEATURE_VERSION: String = "__version__"
+  val AVRO_SIMPLE_FEATURE_USERDATA: String = "__userdata__"
 
   // Increment whenever encoding changes and handle in reader and writer
   val VERSION: Int = 2
@@ -44,7 +45,7 @@ object AvroSimpleFeatureUtils {
 
   def decodeAttributeName(s: String): String = attributeNameLookUp.getOrElseUpdate(s, decode(s))
 
-  def generateSchema(sft: SimpleFeatureType): Schema = {
+  def generateSchema(sft: SimpleFeatureType, withUserData: Boolean): Schema = {
     val initialAssembler: SchemaBuilder.FieldAssembler[Schema] =
       SchemaBuilder.record(encodeAttributeName(sft.getTypeName))
         .namespace(AVRO_NAMESPACE)
@@ -52,12 +53,21 @@ object AvroSimpleFeatureUtils {
         .name(AVRO_SIMPLE_FEATURE_VERSION).`type`.intType.noDefault
         .name(FEATURE_ID_AVRO_FIELD_NAME).`type`.stringType.noDefault
 
-    val result =
+    val withFields =
       sft.getAttributeDescriptors.foldLeft(initialAssembler) { case (assembler, ad) =>
         addField(assembler, encodeAttributeName(ad.getLocalName), ad.getType.getBinding, ad.isNillable)
       }
 
-    result.endRecord
+    val fullSchema = if (withUserData) {
+      withFields.name(AVRO_SIMPLE_FEATURE_USERDATA).`type`.array().items().record("userDataItem").fields()
+        .name("class").`type`.stringType().noDefault()
+        .name("key").`type`.stringType().noDefault()
+        .name("value").`type`.stringType().noDefault().endRecord().noDefault()
+    } else {
+      withFields
+    }
+
+    fullSchema.endRecord
   }
 
   def addField(assembler: SchemaBuilder.FieldAssembler[Schema],

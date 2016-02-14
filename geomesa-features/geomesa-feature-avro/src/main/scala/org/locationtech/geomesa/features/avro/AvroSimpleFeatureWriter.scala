@@ -24,11 +24,17 @@ class AvroSimpleFeatureWriter(sft: SimpleFeatureType, opts: Set[SerializationOpt
 
   import AvroSimpleFeatureUtils._
 
-  private var schema: Schema = generateSchema(sft)
+  private var schema: Schema = generateSchema(sft, opts.withUserData)
   private val typeMap = createTypeMap(sft, new WKBWriter())
   private val names = DataUtilities.attributeNames(sft).map(encodeAttributeName)
+  private var lastDataIdx = getLastDataIdx
 
-  override def setSchema(s: Schema): Unit = schema = s
+  private def getLastDataIdx = schema.getFields.size() - (if (opts.withUserData) 1 else 0)
+
+  override def setSchema(s: Schema): Unit = {
+    schema = s
+    lastDataIdx = getLastDataIdx
+  }
 
   def defaultWrite(datum: SimpleFeature, out: Encoder) = {
 
@@ -66,7 +72,7 @@ class AvroSimpleFeatureWriter(sft: SimpleFeatureType, opts: Set[SerializationOpt
 
     // Write out fields from Simple Feature
     var i = 2
-    while(i < schema.getFields.size()) {
+    while (i < lastDataIdx) {
       val f = schema.getFields.get(i)
       write(f.schema, f)
       i += 1
@@ -75,9 +81,7 @@ class AvroSimpleFeatureWriter(sft: SimpleFeatureType, opts: Set[SerializationOpt
 
   def writeWithUserData(datum: SimpleFeature, out: Encoder) = {
     defaultWrite(datum, out)
-
-    val aw = AvroSerialization.writer
-    aw.writeGenericMap(out, datum.getUserData)
+    AvroSerialization.writer.writeGenericMap(out, datum.getUserData)
   }
 
   private val writer: (SimpleFeature, Encoder) => Unit = if (opts.withUserData) writeWithUserData else defaultWrite

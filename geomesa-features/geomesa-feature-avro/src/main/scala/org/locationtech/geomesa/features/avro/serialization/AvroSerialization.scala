@@ -61,6 +61,7 @@ class AvroWriter extends AbstractWriter[Encoder] {
 
   override val startItem: (Encoder) => Unit = (encoder) => encoder.startItem()
   override val endArray: (Encoder) => Unit = (encoder) => encoder.writeArrayEnd()
+
 }
 
 /** Implemenation of [[AbstractReader]] for Avro. */
@@ -106,6 +107,24 @@ class AvroReader extends AbstractReader[Decoder] {
   override val readArrayStart: (Decoder) => Int = (decoder) => {
     // always writing an Int so this cast should be safe
     decoder.readArrayStart.asInstanceOf[Int]
+  }
+
+  // Avro specific reading method...see Decoder javadoc
+  override def readGenericMap(version: Version): DatumReader[Decoder, java.util.Map[AnyRef, AnyRef]] = (reader) => {
+    var toRead = reader.readArrayStart()
+    val map = new java.util.HashMap[AnyRef, AnyRef](toRead.toInt)
+
+    while (toRead != 0) {
+      var j = 0
+      while (j < toRead) {
+        val key = readGeneric(version).apply(reader)
+        val value = readGeneric(version).apply(reader)
+        map.put(key, value)
+        j += 1
+      }
+      toRead = reader.arrayNext() //must call
+    }
+    map
   }
 
   override def selectGeometryReader(version: Version): DatumReader[Decoder, Geometry] = readGeometryAsWKB
