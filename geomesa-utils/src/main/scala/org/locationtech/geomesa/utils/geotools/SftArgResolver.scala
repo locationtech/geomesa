@@ -12,8 +12,8 @@ import java.io.File
 
 import com.typesafe.config.{ConfigFactory, ConfigParseOptions}
 import com.typesafe.scalalogging.LazyLogging
-import org.opengis.feature.simple.SimpleFeatureType
 import org.apache.commons.io.FileUtils
+import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.{Failure, Success, Try}
 
@@ -37,10 +37,10 @@ object SftArgResolver extends LazyLogging {
    */
   def getSft(specArg: String, featureName: String = null): Option[SimpleFeatureType] =
     getLoadedSft(specArg, featureName)
-        .orElse(parseSpecString(specArg, featureName))
-        .orElse(parseSpecConf(specArg, featureName))
-        .orElse(parseSpecStringFile(specArg, featureName))
-        .orElse(parseSpecConfFile(specArg, featureName))
+      .orElse(parseSpecString(specArg, featureName))
+      .orElse(parseConfStr(specArg, featureName))
+      .orElse(parseSpecStringFile(specArg, featureName))
+      .orElse(parseConfFile(specArg, featureName))
 
   // gets an sft from simple feature type providers on the classpath
   private[SftArgResolver] def getLoadedSft(specArg: String, name: String): Option[SimpleFeatureType] = {
@@ -71,22 +71,30 @@ object SftArgResolver extends LazyLogging {
       }
     }
 
-  // gets an sft based on a spec conf string
-  private[SftArgResolver] def parseSpecConf(specArg: String, name: String): Option[SimpleFeatureType] = {
-    Try(SimpleFeatureTypes.createType(ConfigFactory.parseString(specArg, parseOpts))) match {
+  private[SftArgResolver] def parseConf(configStr: String, name: String): Option[SimpleFeatureType] =
+    Try {
+      val sfts = SimpleSftParser.parseConf(ConfigFactory.parseString(configStr, parseOpts))
+      if (sfts.size > 1) logger.warn(s"Found more than one SFT conf in arg '$configStr'")
+      sfts.get(0)
+    } match {
       case Success(sft) if name == null || name == sft.getTypeName => Some(sft)
       case Success(sft) => Some(SimpleFeatureTypes.renameSft(sft, name))
+      case Failure(e) => throw e
+    }
+
+  // gets an sft based on a spec conf string
+  private[SftArgResolver] def parseConfStr(specArg: String, name: String): Option[SimpleFeatureType] =
+    Try(parseConf(specArg, name)) match {
+      case Success(sftOpt) => sftOpt
       case Failure(e) =>
         logger.debug(s"Unable to parse sft spec from string $specArg as conf with error ${e.getMessage}")
         None
     }
-  }
 
   // parse spec conf file
-  private[SftArgResolver] def parseSpecConfFile(specArg: String, name: String): Option[SimpleFeatureType] = {
-    Try(SimpleFeatureTypes.createType(ConfigFactory.parseFile(new File(specArg)))) match {
-      case Success(sft) if name == null || name == sft.getTypeName => Some(sft)
-      case Success(sft) => Some(SimpleFeatureTypes.renameSft(sft, name))
+  private[SftArgResolver] def parseConfFile(specArg: String, name: String): Option[SimpleFeatureType] = {
+    Try(parseConf(FileUtils.readFileToString(new File(specArg)), name)) match {
+      case Success(sftOpt) => sftOpt
       case Failure(e) =>
         logger.debug(s"Unable to parse sft spec from file $specArg as conf with error ${e.getMessage}")
         None

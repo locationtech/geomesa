@@ -29,15 +29,14 @@ object SimpleFeatureConverters {
     build[I](sft, converterName)
   }
 
-  def build[I](sft: SimpleFeatureType, converterName :String): SimpleFeatureConverter[I] =
+  def build[I](sft: SimpleFeatureType, converterName: String): SimpleFeatureConverter[I] =
     ConverterConfigLoader.configForName(converterName).map(build[I](sft, _))
       .getOrElse(throw new IllegalArgumentException(s"Unable to find converter config for converterName $converterName"))
 
   def build[I](sft: SimpleFeatureType, converterConf: Config): SimpleFeatureConverter[I] = {
-    val rebased = ConverterConfigLoader.rebaseConfig(converterConf)
     providers
-      .find(_.canProcess(rebased))
-      .map(_.buildConverter(sft, rebased).asInstanceOf[SimpleFeatureConverter[I]])
+      .find(_.canProcess(converterConf))
+      .map(_.buildConverter(sft, converterConf).asInstanceOf[SimpleFeatureConverter[I]])
       .getOrElse(throw new IllegalArgumentException(s"Cannot find factory for ${sft.getTypeName}"))
   }
 }

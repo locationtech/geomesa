@@ -54,7 +54,7 @@ class ScriptingFunctionFactoryTest extends Specification {
 
       val conf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type         = "delimited-text",
           |   format       = "DEFAULT",
           |   id-field     = "md5(string2bytes($0))",

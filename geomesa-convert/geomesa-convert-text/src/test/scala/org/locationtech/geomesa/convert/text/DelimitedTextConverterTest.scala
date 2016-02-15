@@ -38,7 +38,7 @@ class DelimitedTextConverterTest extends Specification {
 
     val conf = ConfigFactory.parseString(
       """
-        | converter = {
+        | {
         |   type         = "delimited-text",
         |   format       = "DEFAULT",
         |   id-field     = "md5(string2bytes($0))",
@@ -78,7 +78,7 @@ class DelimitedTextConverterTest extends Specification {
     "handle tab delimited files" >> {
       val conf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type         = "delimited-text",
           |   format       = "TDF",
           |   id-field     = "md5(string2bytes($0))",
@@ -103,7 +103,7 @@ class DelimitedTextConverterTest extends Specification {
     "handle line number transform and filename global parameter correctly " >> {
       val conf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type         = "delimited-text",
           |   format       = "TDF",
           |   id-field     = "md5(string2bytes($0))",
@@ -136,7 +136,7 @@ class DelimitedTextConverterTest extends Specification {
     "handle line number transform and filename global in id-field " >> {
       val conf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type         = "delimited-text",
           |   format       = "TDF",
           |   id-field     = "concat($filename, lineNo())",
@@ -180,7 +180,7 @@ class DelimitedTextConverterTest extends Specification {
     "handle horrible quoting and nested separators" >> {
       val conf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type         = "delimited-text",
           |   format       = "EXCEL",
           |   id-field     = "md5(string2bytes($0))",
@@ -211,7 +211,7 @@ class DelimitedTextConverterTest extends Specification {
 
       val sizeConf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type         = "delimited-text",
           |   format       = "DEFAULT",
           |   id-field     = "md5(string2bytes($0))",
@@ -254,7 +254,7 @@ class DelimitedTextConverterTest extends Specification {
 
       val wktConf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type         = "delimited-text",
           |   format       = "DEFAULT",
           |   id-field     = "md5(string2bytes($0))",
@@ -281,7 +281,7 @@ class DelimitedTextConverterTest extends Specification {
     "skip header lines" >> {
        val conf =
         """
-          | converter = {
+          | {
           |   type         = "delimited-text",
           |   format       = "DEFAULT",
           |   id-field     = "md5(string2bytes($0))",

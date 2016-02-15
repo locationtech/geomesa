@@ -30,7 +30,7 @@ class FixedWidthConverterTest extends Specification {
     "process fixed with data without validating" >> {
       val conf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type      = "fixed-width"
           |   id-field  = "uuid()"
           |   options {
@@ -57,7 +57,7 @@ class FixedWidthConverterTest extends Specification {
     "process with validation on" >> {
       val conf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type      = "fixed-width"
           |   id-field  = "uuid()"
           |   fields = [

@@ -58,7 +58,7 @@ class XMLConverterTest extends Specification {
 
       val parserConf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type         = "xml"
           |   id-field     = "uuid()"
           |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
@@ -110,7 +110,7 @@ class XMLConverterTest extends Specification {
 
       val parserConf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type         = "xml"
           |   id-field     = "uuid()"
           |   feature-path = "/doc/IgnoreMe/Feature" // can be any xpath - relative to the root, or absolute
@@ -153,7 +153,7 @@ class XMLConverterTest extends Specification {
 
       val parserConf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type         = "xml"
           |   id-field     = "uuid()"
           |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
@@ -197,7 +197,7 @@ class XMLConverterTest extends Specification {
 
       val parserConf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type         = "xml"
           |   id-field     = "md5(string2bytes(xml2string($0)))"
           |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
@@ -243,7 +243,7 @@ class XMLConverterTest extends Specification {
 
       val parserConf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type         = "xml"
           |   id-field     = "uuid()"
           |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
@@ -296,7 +296,7 @@ class XMLConverterTest extends Specification {
 
       val parserConf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type         = "xml"
           |   id-field     = "uuid()"
           |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
@@ -343,7 +343,7 @@ class XMLConverterTest extends Specification {
 
       val parserConf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type         = "xml"
           |   id-field     = "uuid()"
           |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
@@ -393,7 +393,7 @@ class XMLConverterTest extends Specification {
 
       val parserConf = ConfigFactory.parseString(
         """
-          | converter = {
+          | {
           |   type         = "xml"
           |   id-field     = "uuid()"
           |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
