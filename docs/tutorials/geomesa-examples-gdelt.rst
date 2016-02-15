@@ -20,7 +20,7 @@ You will also need:
 -  access to an Accumulo user that has both create-table and write
    permissions
 -  an instance of GeoServer |geoserver_version| with the GeoMesa plugin installed,
--  Java JDK 7
+-  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
 -  `Apache Maven <http://maven.apache.org>`__ |maven_version|
 -  a `git <http://git-scm.com>`__ client
 
