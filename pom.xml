@@ -39,6 +39,7 @@
         <module>geomesa-accumulo</module>
         <module>geomesa-hbase</module>
         <module>geomesa-blobstore</module>
+        <module>geomesa-cassandra</module>
     </modules>
 
     <properties>
@@ -70,7 +71,7 @@
         <scalalogging.version>3.1.0</scalalogging.version>
         <log4j.version>1.2.17</log4j.version>
 
-        <junit.version>4.5</junit.version>
+        <junit.version>4.12</junit.version>
         <specs2.version>2.3.13</specs2.version>
 
         <!-- distribution properties -->
@@ -80,7 +81,7 @@
         <dist.dev>dev</dist.dev>
 
         <!-- testing properties -->
-        <maven.test.jvmargs>-Duser.timezone=UTC -Xms1g -Xmx8g -XX:MaxPermSize=1024m -XX:-UseGCOverheadLimit</maven.test.jvmargs>
+        <maven.test.jvmargs>-Duser.timezone=UTC -Xms1g -Xmx8g -XX:MaxPermSize=1024m -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true</maven.test.jvmargs>
         <test.fork.count>1</test.fork.count>
         <test.fork.reuse>true</test.fork.reuse>
     </properties>
@@ -148,14 +149,14 @@
         <profile>
             <id>debug-tests</id>
             <properties>
-                <maven.test.jvmargs>-Duser.timezone=UTC -Xms1g -Xmx8g -XX:MaxPermSize=1024m -XX:-UseGCOverheadLimit -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</maven.test.jvmargs>
+                <maven.test.jvmargs>-Duser.timezone=UTC -Xms1g -Xmx8g -XX:MaxPermSize=1024m -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</maven.test.jvmargs>
             </properties>
         </profile>
 
         <profile>
             <id>travis-ci</id>
             <properties>
-                <maven.test.jvmargs>-Duser.timezone=UTC -Xms512m -Xmx3g -XX:MaxPermSize=1g -XX:-UseGCOverheadLimit</maven.test.jvmargs>
+                <maven.test.jvmargs>-Duser.timezone=UTC -Xms512m -Xmx3g -XX:MaxPermSize=1g -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true</maven.test.jvmargs>
                 <test.fork.count>1</test.fork.count>
                 <test.fork.reuse>false</test.fork.reuse>
             </properties>
