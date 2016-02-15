@@ -118,6 +118,7 @@ org.geotools:gt-geojson	14.1	compile
 org.geotools:gt-geotiff	14.1	compile
 org.geotools:gt-graph	14.1	compile
 org.geotools:gt-grid	14.1	compile
+org.geotools:gt-imageio-ext-gdal	14.1	compile
 org.geotools:gt-main	14.1	compile
 org.geotools:gt-metadata	14.1	compile
 org.geotools:gt-opengis	14.1	compile
@@ -180,7 +181,6 @@ org.apache.spark:spark-core_2.11	1.5.0	provided
 org.apache.spark:spark-sql_2.11	1.5.0	provided
 org.apache.spark:spark-yarn_2.11	1.5.0	provided
 org.apache.zookeeper:zookeeper	3.4.5	provided
-org.geotools:gt-imageio-ext-gdal	14.1	provided
 org.springframework.security:spring-security-core	3.1.0.RELEASE	provided
 org.springframework.security:spring-security-web	3.1.0.RELEASE	provided
 org.springframework:spring-web	3.1.4.RELEASE	provided

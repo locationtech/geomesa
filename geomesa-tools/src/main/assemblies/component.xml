@@ -31,7 +31,6 @@
                 <include>install-vecmath</include>
                 <include>install-imageio-ext</include>
                 <include>install-hadoop-accumulo.sh</include>
-                <include>install-gt-imageio-ext-gdal</include>
                 <include>test-geomesa</include>
             </includes>
             <filtered>true</filtered>
