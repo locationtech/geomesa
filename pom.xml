@@ -444,6 +444,7 @@
                 </exclusions>
             </dependency>
             <dependency>
+                <!-- gt-imageio-ext-gdal is 'works with' so it must stay in provided scope -->
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-imageio-ext-gdal</artifactId>
                 <version>${gt.version}</version>
