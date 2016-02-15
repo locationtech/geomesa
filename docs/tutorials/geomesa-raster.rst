@@ -74,6 +74,19 @@ Coverage Format".
 When attempting to ingest your own rasters, tiles should be on the order
 of 128x128 to 1024x1024 pixels.
 
+GeoServer Deployment
+____________________
+The GeoMesa GeoServer community module is required to enable registering GeoMesa Raster layers
+in GeoServer. If you have not allready, please follow the Installation and Configuration 
+instructions in the user manual.
+
+If you have not deployed the community module yet, it can be downloaded from 
+`OpenGeo <http://ares.opengeo.org/geoserver/>`, or can be built from 
+`source <https://github.com/geoserver/geoserver/tree/master/src/community/geomesa>`.
+
+Once obtained, the community module can be installed by copying ``geomesa-gs-<version>.jar`` into
+the GeoServer ``lib`` directory.
+
 Registering in GeoServer
 ------------------------
 

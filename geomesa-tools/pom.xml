@@ -125,6 +125,10 @@
             <artifactId>jcommander</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-epsg-hsql</artifactId>
+        </dependency>
+        <dependency>
             <!-- 'works with' due to license issues -->
             <groupId>javax.media</groupId>
             <artifactId>jai_core</artifactId>

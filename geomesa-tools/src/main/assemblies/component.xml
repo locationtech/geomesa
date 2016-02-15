@@ -29,6 +29,7 @@
                 <include>install-jai</include>
                 <include>install-jline</include>
                 <include>install-vecmath</include>
+                <include>install-imageio-ext</include>
                 <include>install-hadoop-accumulo.sh</include>
                 <include>test-geomesa</include>
             </includes>
