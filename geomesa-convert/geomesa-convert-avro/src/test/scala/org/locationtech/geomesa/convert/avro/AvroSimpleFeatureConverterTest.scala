@@ -26,7 +26,7 @@ class AvroSimpleFeatureConverterTest extends Specification with AvroUtils {
 
     val conf = ConfigFactory.parseString(
       """
-        | converter = {
+        | {
         |   type        = "avro"
         |   schema-file = "/schema.avsc"
         |   sft         = "testsft"

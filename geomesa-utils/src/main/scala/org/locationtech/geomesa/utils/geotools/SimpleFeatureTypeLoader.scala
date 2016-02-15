@@ -9,11 +9,10 @@
 package org.locationtech.geomesa.utils.geotools
 
 import java.net.URL
-import java.util
 import java.util.{List => JList}
 import javax.imageio.spi.ServiceRegistry
 
-import com.typesafe.config.{Config, ConfigFactory, ConfigParseOptions, ConfigRenderOptions}
+import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -29,10 +28,10 @@ import scala.collection.JavaConverters._
  */
 object SimpleFeatureTypeLoader {
 
-  private val providers = ServiceRegistry.lookupProviders(classOf[SimpleFeatureTypeProvider])
+  private val providers = ServiceRegistry.lookupProviders(classOf[SimpleFeatureTypeProvider]).toList
 
   // keep as a method so we can dynamically reload
-  def sfts: List[SimpleFeatureType] = providers.flatMap(_.loadTypes()).toList
+  def sfts: List[SimpleFeatureType] = providers.flatMap(_.loadTypes())
 
   // Public API
   def listTypeNames: List[String] = sfts.map(_.getTypeName)
@@ -40,31 +39,26 @@ object SimpleFeatureTypeLoader {
 }
 
 trait ConfigSftParsing extends LazyLogging {
-  // Important to setAllowMissing to false bc else you'll get a config but it will be empty
-  val parseOpts =
-    ConfigParseOptions.defaults()
-      .setAllowMissing(false)
-      .setClassLoader(null)
-      .setIncluder(null)
-      .setOriginDescription(null)
-      .setSyntax(null)
 
   def parseConf(config: Config): java.util.List[SimpleFeatureType] = {
+    import scala.collection.JavaConversions._
     if (!config.hasPath(ConfigSftParsing.path)) {
-      return List.empty[SimpleFeatureType]
+      List.empty[SimpleFeatureType]
+    } else {
+      val confs = config.getConfig(ConfigSftParsing.path)
+      confs.root.keySet.flatMap { name =>
+        val sftConf = confs.getConfig(name)
+        try {
+          val sft = SimpleFeatureTypes.createType(sftConf, Some(name))
+          Some(sft)
+        } catch {
+          case e: Exception =>
+            logger.error("Error loading simple feature type from config " +
+              s"${sftConf.root().render(ConfigRenderOptions.concise())}", e)
+            None
+        }
+      }.toList.asJava
     }
-    config.getConfigList(ConfigSftParsing.path).flatMap { sftConf =>
-      try {
-        val sft = SimpleFeatureTypes.createType(sftConf, None)
-        logger.info(s"Loaded SimpleFeatureType ${sft.getTypeName} from config")
-        Some(sft)
-      } catch {
-        case e: Exception =>
-          logger.error("Error loading simple feature type from config " +
-            s"${sftConf.root().render(ConfigRenderOptions.concise())}", e)
-          None
-      }
-    }.asJava
   }
 }
 
@@ -76,22 +70,24 @@ object ConfigSftParsing {
 }
 
 class ClassPathSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {
-  override def loadTypes(): java.util.List[SimpleFeatureType] = parseConf(ConfigFactory.load())
+  override def loadTypes(): JList[SimpleFeatureType] = parseConf(ConfigFactory.load())
 }
 
 class URLSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {
   import URLSftProvider._
-  override def loadTypes(): util.List[SimpleFeatureType] = {
-    configURLs
+  override def loadTypes(): JList[SimpleFeatureType] = {
+    val urls = configURLs.toList
+    logger.info(s"Loading config from urls: $urls")
+    urls
       .map(ConfigFactory.parseURL)
       .reduceLeftOption(_.withFallback(_))
-      .map(parseConf)
+      .map(parseConf(_))
       .getOrElse(List.empty[SimpleFeatureType])
   }
   
   // Will also pick things up from the SystemProperties
   def configURLs: Seq[URL] = {
-    val config = ConfigFactory.load(parseOpts)
+    val config = ConfigFactory.load()
     if (config.hasPath(SftConfigURLs)) {
       config.getAnyRef(SftConfigURLs) match {
         case s: String          => s.split(',').map(s => s.trim).toList.map(new URL(_))
@@ -106,3 +102,5 @@ class URLSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {
 object URLSftProvider {
   val SftConfigURLs = "geomesa.sft.config.urls"
 }
+
+object SimpleSftParser extends ConfigSftParsing {}

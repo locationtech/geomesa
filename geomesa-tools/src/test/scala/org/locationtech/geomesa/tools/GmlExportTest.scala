@@ -51,7 +51,7 @@ class GmlExportTest extends Specification {
       gml.close()
 
       val xml = XML.loadString(new String(out.toByteArray))
-      xml.toString() must not(contain("null:GmlExportTest"))
+      xml.toString must not(contain("null:GmlExportTest"))
       val feat = xml \ "featureMember" \ "GmlExportTest"
       feat must not beNull
       val xmlFid = feat \ "@fid"

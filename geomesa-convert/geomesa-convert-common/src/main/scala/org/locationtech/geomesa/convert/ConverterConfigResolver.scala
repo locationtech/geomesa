@@ -44,7 +44,11 @@ object ConverterConfigResolver extends LazyLogging {
   }
 
   private[ConverterConfigResolver] def parseString(configArg: String): Option[Config] =
-    Try(ConfigFactory.parseString(configArg, parseOpts)) match {
+    Try {
+      val confs = SimpleConverterConfigParser.parseConf(ConfigFactory.parseString(configArg, parseOpts))
+      if (confs.size > 1) logger.warn(s"Found more than one SFT conf in arg '$configArg'")
+      confs.values.head
+    } match {
       case Success(config) => Some(config)
       case Failure(ex) =>
         logger.debug(s"Unable to parse config from string $configArg")
@@ -52,7 +56,11 @@ object ConverterConfigResolver extends LazyLogging {
     }
 
   private[ConverterConfigResolver] def parseFile(configArg: String): Option[Config] =
-    Try(ConfigFactory.parseFile(new File(configArg), parseOpts)) match {
+    Try {
+      val confs = SimpleConverterConfigParser.parseConf(ConfigFactory.parseFile(new File(configArg), parseOpts))
+      if (confs.size > 1) logger.warn(s"Found more than one SFT conf in arg '$configArg'")
+      confs.values.head
+    } match {
       case Success(config) => Some(config)
       case Failure(ex) =>
         logger.debug(s"Unable to parse config from file $configArg")

@@ -12,7 +12,6 @@ import java.io.File
 
 import com.beust.jcommander.ParameterException
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
-import org.apache.commons.io.FileUtils
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
@@ -29,8 +28,7 @@ class IngestArgumentsTest extends Specification {
   val featureName = "specTest"
   val sftConfig =
     """
-      |{
-      |  type-name = "specTest"
+      | geomesa.sfts.specTest = {
       |  attributes = [
       |    { name = "name", type = "String", index = false },
       |    { name = "age",  type = "Integer", index = false },
@@ -48,7 +46,7 @@ class IngestArgumentsTest extends Specification {
 
   val convertConfig =
     """
-      | converter = {
+      | geomesa.converters.foobarConverter = {
       |   type         = "delimited-text",
       |   format       = "DEFAULT",
       |   id-field     = "md5(string2bytes($0))",
@@ -62,15 +60,14 @@ class IngestArgumentsTest extends Specification {
 
   val combined =
     """
-      | sft = {
-      |   type-name = "specTest"
+      | geomesa.sfts.specTest = {
       |   attributes = [
       |     { name = "name", type = "String", index = false },
       |     { name = "age",  type = "Integer", index = false },
       |     { name = "geom", type = "Point",  index = true, srid = 4326, default = true }
       |   ]
       | },
-      | converter = {
+      | geomesa.converters.foobar = {
       |   type         = "delimited-text",
       |   format       = "DEFAULT",
       |   id-field     = "md5(string2bytes($0))",
@@ -82,7 +79,7 @@ class IngestArgumentsTest extends Specification {
       | }
       """.stripMargin
 
-  "Speculator" should {
+  "CLArgResolver" should {
     "work with " >> {
       val sft = CLArgResolver.getSft(sftSpec, featureName)
       sft.getAttributeCount mustEqual 3
@@ -135,11 +132,30 @@ class IngestArgumentsTest extends Specification {
       DataStoreFinder.getDataStore(paramMap).asInstanceOf[AccumuloDataStore]
     }
 
-    "work with sft and converter configs as strings" >> {
+    "work with sft and converter configs as strings using geomesa.sfts.<name> and geomesa.converters.<name>" >> {
       val id = nextId
       val conf = ConfigFactory.load("examples/example1.conf")
-      val sft = conf.getConfigList("geomesa.sfts").get(0).root().render(ConfigRenderOptions.concise())
-      val converter = conf.getConfigList("geomesa.converters").get(0).root().render(ConfigRenderOptions.concise())
+      val sft = conf.root().render(ConfigRenderOptions.concise())
+      val converter = conf.root().render(ConfigRenderOptions.concise())
+      val dataFile = new File(this.getClass.getClassLoader.getResource("examples/example1.csv").getFile)
+      val args = Array("ingest", "--mock", "-i", id, "-u", "foo", "-p", "bar", "-c", id,
+        "--converter", converter, "-s", sft, dataFile.getPath)
+      args.length mustEqual 15
+
+      Runner.createCommand(args).execute()
+
+      val ds = getDS(id)
+      import Conversions._
+      val features = ds.getFeatureSource("renegades").getFeatures.features().toList
+      features.size mustEqual 3
+      features.map(_.get[String]("name")) must containTheSameElementsAs(Seq("Hermione", "Harry", "Severus"))
+    }
+
+    "work with sft and converter configs as strings using geomesa.sfts.<name> and geomesa.converters.<name>" >> {
+      val id = nextId
+      val conf = ConfigFactory.load("examples/example1.conf")
+      val sft = conf.root().render(ConfigRenderOptions.concise())
+      val converter = conf.root().render(ConfigRenderOptions.concise())
       val dataFile = new File(this.getClass.getClassLoader.getResource("examples/example1.csv").getFile)
       val args = Array("ingest", "--mock", "-i", id, "-u", "foo", "-p", "bar", "-c", id,
         "--converter", converter, "-s", sft, dataFile.getPath)
@@ -156,22 +172,11 @@ class IngestArgumentsTest extends Specification {
 
     "work with sft and converter configs as files" >> {
       val id = nextId
-      val conf = ConfigFactory.load("examples/example1.conf")
-      val sft = conf.getConfigList("geomesa.sfts").get(0).root().render(ConfigRenderOptions.concise())
-      val sftFile = File.createTempFile("geomesa", "sft")
-      sftFile.createNewFile()
-      sftFile.deleteOnExit()
-      FileUtils.write(sftFile, sft)
 
-      val converter = conf.getConfigList("geomesa.converters").get(0).root().render(ConfigRenderOptions.concise())
-      val convertFile = File.createTempFile("geomesa", "convert")
-      convertFile.createNewFile()
-      convertFile.deleteOnExit()
-      FileUtils.write(convertFile, converter)
-
+      val confFile = new File(this.getClass.getClassLoader.getResource("examples/example1.conf").getFile)
       val dataFile = new File(this.getClass.getClassLoader.getResource("examples/example1.csv").getFile)
       val args = Array("ingest", "--mock", "-i", id, "-u", "foo", "-p", "bar", "-c", id,
-        "--converter", convertFile.getPath, "-s", sftFile.getPath, dataFile.getPath)
+        "--converter", confFile.getPath, "-s", confFile.getPath, dataFile.getPath)
       args.length mustEqual 15
 
       Runner.createCommand(args).execute()

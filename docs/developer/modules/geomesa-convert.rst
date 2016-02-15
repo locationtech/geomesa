@@ -48,17 +48,17 @@ transforming it into our ``SimpleFeatureType``.
 
 ::
 
-     converter = { 
-      type         = "delimited-text",
-      format       = "CSV",
-      id-field     = "md5($0)",
-      fields = [
-        { name = "phrase", transform = "concatenate($1, $2)" },
-        { name = "lat",    transform = "$4::double" },
-        { name = "lon",    transform = "$5::double" },
-        { name = "dtg",    transform = "dateHourMinuteSecondMillis($3)" },
-        { name = "geom",   transform = "point($lon, $lat)" }
-      ]
+     {
+       type         = "delimited-text",
+       format       = "CSV",
+       id-field     = "md5($0)",
+       fields = [
+         { name = "phrase", transform = "concatenate($1, $2)" },
+         { name = "lat",    transform = "$4::double" },
+         { name = "lon",    transform = "$5::double" },
+         { name = "dtg",    transform = "dateHourMinuteSecondMillis($3)" },
+         { name = "geom",   transform = "point($lon, $lat)" }
+       ]
      }
 
 The ``id`` of the ``SimpleFeature`` is formed from an md5 hash of the
@@ -687,7 +687,7 @@ json-types of each field:
 
 ::
 
-    converter = {
+    {
       type         = "json"
       id-field     = "$id"
       feature-path = "$.Features[*]"
@@ -845,7 +845,7 @@ We can define a converter config to parse the avro:
 
 ::
 
-    converter = {
+    {
       type        = "avro"
       schema-file = "/tmp/schema.avsc"
       sft         = "testsft"
