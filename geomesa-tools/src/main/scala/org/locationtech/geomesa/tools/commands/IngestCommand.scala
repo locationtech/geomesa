@@ -31,10 +31,7 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
       val ds = new DataStoreHelper(params).getDataStore()
       GeneralShapefileIngest.shpToDataStore(params.files(0), ds, params.featureName)
     } else {
-      if (params.files.exists(_.toLowerCase.startsWith("hdfs://")) &&
-          !params.files.forall(_.toLowerCase.startsWith("hdfs://"))) {
-        throw new IllegalArgumentException("Files must all be on the same file system - local or distributed")
-      }
+      ensureSameFs(Seq("hdfs", "s3n"))
 
       val dsParams = new DataStoreHelper(params).paramMap
       require(DataStoreFinder.getDataStore(dsParams) != null, "Could not load a data store with the provided parameters")
@@ -44,6 +41,15 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
       new ConverterIngest(dsParams, sft, converterConfig, params.files, params.threads).run()
     }
   }
+
+  def ensureSameFs(prefixes: Seq[String]): Unit =
+    prefixes.foreach { pre =>
+      if (params.files.exists(_.toLowerCase.startsWith(s"$pre://")) &&
+        !params.files.forall(_.toLowerCase.startsWith(s"$pre://"))) {
+        throw new IllegalArgumentException(s"Files must all be on the same file system: ($pre) or all be local")
+      }
+    }
+
 }
 
 object IngestCommand {

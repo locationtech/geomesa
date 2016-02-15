@@ -114,8 +114,11 @@ if [ -n "$HADOOP_HOME" ]; then
     if [ -z "$HADOOP_YARN" -a -d "${HADOOP_SHARE_DIR}/yarn" ]; then
         HADOOP_YARN=${HADOOP_SHARE_DIR}/yarn
     fi
-    if [ -z "$HADOOP_CONF_DIR" -a -d "${HADOOP_HOME}/conf" ]; then
-        HADOOP_CONF_DIR=${HADOOP_HOME}/conf
+    if [ -z "$HADOOP_CONF_DIR" -a -d "${HADOOP_HOME}/etc/hadoop" ]; then
+        HADOOP_CONF_DIR=${HADOOP_HOME}/etc/hadoop
+    fi
+    if [ -z "$HADOOP_MAPRED_HOME" -a -d "${HADOOP_HOME}" ]; then
+        HADOOP_MAPRED_HOME=${HADOOP_HOME}
     fi
 fi
 
@@ -171,7 +174,7 @@ GEOMESA_CP="${GEOMESA_CP}:${ACCUMULO_CONF_DIR}:${HADOOP_CONF_DIR}"
 ACCUMULO_CP="$(findJars $ACCUMULO_LIB)"
 
 #Get the hadoop jars, ignoring jars with names containing slf4j and test
-hadoopDirs=("$HADOOP_LIB" "$HADOOP_COMMON" "$HADOOP_MAPREDUCE" "$HADOOP_YARN" "$HADOOP_HDFS")
+hadoopDirs=("$HADOOP_LIB" "$HADOOP_COMMON" "$HADOOP_MAPREDUCE" "$HADOOP_YARN" "$HADOOP_HDFS" "$HADOOP_HOME/share/hadoop/tools/lib/")
 for home in ${hadoopDirs[*]}; do
   tmp="$(findJars $home true)"
   if [ -n "$tmp" ]; then
