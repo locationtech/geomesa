@@ -18,11 +18,11 @@ Prerequisites and Platform
 
 To install the binary distribution:
 
-* Java JRE or JDK 7
+* `Java JRE or JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
 
 To build and install the source distribution:
 
-* Java JDK 7
+* `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
 * Apache Maven (http://maven.apache.org/) |maven_version|
 * A ``git`` client (http://git-scm.com/)
 

@@ -29,10 +29,10 @@ instructions
 
 You will also need:
 
--  The `xz <http://tukanni.org/xz/>`__ data compression tool,
--  Java JDK 7,
--  `Apache Maven <http://maven.apache.org>`__ |maven_version| or better, and
--  a `git <http://git-scm.com/>`__ client.
+-  The `xz <http://tukanni.org/xz/>`__ data compression tool
+-  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
+-  `Apache Maven <http://maven.apache.org>`__ |maven_version| or better
+-  a `git <http://git-scm.com/>`__ client
 
 Download and Build the Tutorial
 -------------------------------
