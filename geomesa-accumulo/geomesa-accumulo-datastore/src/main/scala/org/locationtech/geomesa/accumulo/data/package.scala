@@ -10,7 +10,6 @@ package org.locationtech.geomesa.accumulo
 
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.io.Text
-import org.apache.hadoop.mapreduce.TaskInputOutputContext
 import org.geotools.data.FeatureWriter
 import org.geotools.factory.Hints.ClassKey
 import org.joda.time.{DateTime, Interval}
@@ -71,6 +70,5 @@ package object data {
   val TRANSFORM_SCHEMA     = new ClassKey(classOf[SimpleFeatureType])
   val GEOMESA_UNIQUE       = new ClassKey(classOf[String])
 
-  type TASKIOCTX = TaskInputOutputContext[_, _, Key, Value]
   type SFFeatureWriter = FeatureWriter[SimpleFeatureType, SimpleFeature]
 }

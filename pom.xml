@@ -62,7 +62,7 @@
         <!-- environment-dependent versions -->
         <zookeeper.version>3.4.5</zookeeper.version>
         <thrift.version>0.9.1</thrift.version>
-        <hadoop.version>2.2.0</hadoop.version>
+        <hadoop.version>2.5.2</hadoop.version>
         <spark.version>1.5.0</spark.version>
 
         <!-- logging properties - we expect logging jars to be provided -->
@@ -132,34 +132,90 @@
         <profile>
             <id>zinc</id>
             <build>
-                <plugins>
-                    <plugin>
-                        <groupId>net.alchim31.maven</groupId>
-                        <artifactId>scala-maven-plugin</artifactId>
-                        <version>3.2.0</version>
-                        <configuration>
-                            <recompileMode>incremental</recompileMode>
-                            <useZincServer>true</useZincServer>
-                        </configuration>
-                    </plugin>
-                </plugins>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>net.alchim31.maven</groupId>
+                            <artifactId>scala-maven-plugin</artifactId>
+                            <configuration>
+                                <recompileMode>incremental</recompileMode>
+                                <useZincServer>true</useZincServer>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
             </build>
         </profile>
 
         <profile>
             <id>debug-tests</id>
             <properties>
-                <maven.test.jvmargs>-Duser.timezone=UTC -Xms1g -Xmx8g -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</maven.test.jvmargs>
+                <maven.test.jvmargs>-Duser.timezone=UTC -Xms1g -Xmx8g -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</maven.test.jvmargs>
             </properties>
         </profile>
 
         <profile>
             <id>travis-ci</id>
             <properties>
-                <maven.test.jvmargs>-Duser.timezone=UTC -Xms512m -Xmx3g -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true</maven.test.jvmargs>
+                <maven.test.jvmargs>-Duser.timezone=UTC -Xms512m -Xmx3g -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true</maven.test.jvmargs>
                 <test.fork.count>1</test.fork.count>
                 <test.fork.reuse>false</test.fork.reuse>
             </properties>
+        </profile>
+
+        <profile>
+            <!-- disables all non-LT repositories for a build with only CQ'd jars -->
+            <id>locationtech</id>
+            <repositories>
+                <repository>
+                    <id>locationtech-thirdparty</id>
+                    <name>Locationtech Repository - Third party</name>
+                    <url>https://repo.locationtech.org/content/repositories/thirdparty/</url>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+                <repository>
+                    <id>central</id>
+                    <url>http://repo.maven.apache.org/maven2</url>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+                <repository>
+                    <id>boundlessgeo</id>
+                    <url>http://repo.boundlessgeo.com/main</url>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+                <repository>
+                    <id>osgeo</id>
+                    <url>http://download.osgeo.org/webdav/geotools</url>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+                <repository>
+                    <id>conjars.org</id>
+                    <url>http://conjars.org/repo</url>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
         </profile>
     </profiles>
 
@@ -1851,18 +1907,9 @@
                 <filtering>false</filtering>
             </testResource>
         </testResources>
+
         <pluginManagement>
             <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-release-plugin</artifactId>
-                    <version>2.4</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-assembly-plugin</artifactId>
-                    <version>2.6</version>
-                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
@@ -1874,13 +1921,122 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>2.7</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>2.4</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>2.6</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
                     <version>2.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>net.alchim31.maven</groupId>
+                    <artifactId>scala-maven-plugin</artifactId>
+                    <version>3.2.1</version>
+                    <configuration>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.scala-lang</groupId>
+                                <artifactId>scala-reflect</artifactId>
+                                <version>${scala.version}</version>
+                            </dependency>
+                        </dependencies>
+                        <jvmArgs>
+                            <jvmArg>-Xms1024m</jvmArg>
+                            <jvmArg>-Xmx8G</jvmArg>
+                            <jvmArg>-Duser.timezone=UTC</jvmArg>
+                            <jvmArg>-Djava.awt.headless=true</jvmArg>
+                        </jvmArgs>
+                        <args>
+                            <arg>-nowarn</arg>
+                            <arg>-unchecked</arg>
+                            <arg>-deprecation</arg>
+                        </args>
+                        <source>1.7</source>
+                        <target>1.7</target>
+                        <scalaVersion>${scala.version}</scalaVersion>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.18.1</version>
+                    <configuration>
+                        <forkCount>${test.fork.count}</forkCount>
+                        <reuseForks>${test.fork.reuse}</reuseForks>
+                        <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
+                        <includes>
+                            <include>**/*Test.java</include>
+                        </includes>
+                        <argLine>${maven.test.jvmargs}</argLine>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>2.8.1</version>
+                    <configuration>
+                        <deployAtEnd>true</deployAtEnd>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.4</version>
+                    <configuration>
+                        <preparationGoals>clean install</preparationGoals>
+                        <autoVersionSubmodules>true</autoVersionSubmodules>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>pl.project13.maven</groupId>
+                    <artifactId>git-commit-id-plugin</artifactId>
+                    <version>2.1.13</version>
+                    <configuration>
+                        <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+                        <runOnlyOnce>false</runOnlyOnce>
+                        <verbose>false</verbose>
+                        <dateFormat>yyyy-MM-dd'T'HH:mm:ssZ</dateFormat>
+                        <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                        <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+                        <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                        <failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>com.mycila</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>2.10</version>
+                    <configuration>
+                        <header>build/ccri-copyright.txt</header>
+                        <properties>
+                            <year>2016</year>
+                            <owner>Commonwealth Computer Research, Inc.</owner>
+                        </properties>
+                        <headerDefinitions>
+                            <definitions>build/geomesa-header.xml</definitions>
+                        </headerDefinitions>
+                        <mapping>
+                            <java>GEOMESA_JAVA</java>
+                            <scala>GEOMESA_JAVA</scala>
+                        </mapping>
+                        <includes>
+                            <include>src/main/java/**</include>
+                            <include>src/main/scala/**</include>
+                            <include>src/test/java/**</include>
+                            <include>src/test/scala/**</include>
+                        </includes>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -1889,7 +2045,6 @@
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>3.2.0</version>
                 <executions>
                     <execution>
                         <id>scala-compile-first</id>
@@ -1907,50 +2062,10 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <jvmArgs>
-                        <jvmArg>-Xms1024m</jvmArg>
-                        <jvmArg>-Xmx8G</jvmArg>
-                        <jvmArg>-Duser.timezone=UTC</jvmArg>
-                        <jvmArg>-Djava.awt.headless=true</jvmArg>
-                    </jvmArgs>
-                    <args>
-                        <arg>-nowarn</arg>
-                        <arg>-unchecked</arg>
-                        <arg>-deprecation</arg>
-                    </args>
-                    <source>1.7</source>
-                    <target>1.7</target>
-                    <scalaVersion>${scala.version}</scalaVersion>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.18.1</version>
-                <configuration>
-                    <forkCount>${test.fork.count}</forkCount>
-                    <reuseForks>${test.fork.reuse}</reuseForks>
-                    <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
-                    <includes>
-                        <include>**/*Test.java</include>
-                    </includes>
-                    <argLine>${maven.test.jvmargs}</argLine>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.4</version>
-                <configuration>
-                    <preparationGoals>clean install</preparationGoals>
-                    <autoVersionSubmodules>true</autoVersionSubmodules>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
-                <version>2.1.13</version>
                 <executions>
                     <execution>
                         <goals>
@@ -1958,46 +2073,15 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
-                    <runOnlyOnce>false</runOnlyOnce>
-                    <verbose>false</verbose>
-                    <dateFormat>yyyy-MM-dd'T'HH:mm:ssZ</dateFormat>
-                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                    <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
-                    <failOnNoGitDirectory>false</failOnNoGitDirectory>
-                    <failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>2.10</version>
-                <configuration>
-                    <header>build/ccri-copyright.txt</header>
-                    <properties>
-                        <year>2016</year>
-                        <owner>Commonwealth Computer Research, Inc.</owner>
-                    </properties>
-                    <headerDefinitions>
-                        <definitions>build/geomesa-header.xml</definitions>
-                    </headerDefinitions>
-                    <mapping>
-                        <java>GEOMESA_JAVA</java>
-                        <scala>GEOMESA_JAVA</scala>
-                    </mapping>
-                    <includes>
-                        <include>src/main/java/**</include>
-                        <include>src/main/scala/**</include>
-                        <include>src/test/java/**</include>
-                        <include>src/test/scala/**</include>
-                    </includes>
-                </configuration>
             </plugin>
             <plugin>
                 <!-- running `mvn process-resources -N` will generate a new GeoMesa README.md -->
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>2.7</version>
                 <executions>
                     <execution>
                         <id>copy-resources</id>
@@ -2033,28 +2117,33 @@
 
     <repositories>
         <repository>
-            <id>central</id>
-            <layout>default</layout>
-            <url>http://repo1.maven.org/maven2</url>
+            <id>locationtech-releases</id>
+            <url>https://repo.locationtech.org/content/groups/releases</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
         </repository>
         <repository>
-            <id>geotools</id>
-            <url>http://download.osgeo.org/webdav/geotools</url>
+            <id>geomesa-snapshots</id>
+            <url>https://repo.locationtech.org/content/repositories/geomesa-snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
         <repository>
             <id>boundlessgeo</id>
             <url>http://repo.boundlessgeo.com/main</url>
         </repository>
         <repository>
-            <id>conjars.org</id>
-            <url>http://conjars.org/repo</url>
+            <id>osgeo</id>
+            <url>http://download.osgeo.org/webdav/geotools</url>
         </repository>
         <repository>
-            <id>LocationTech</id>
-            <url>https://repo.locationtech.org/content/groups/releases</url>
+            <id>conjars.org</id>
+            <url>http://conjars.org/repo</url>
         </repository>
     </repositories>
 
