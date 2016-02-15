@@ -97,23 +97,23 @@ class CassandraDataStoreTest extends Specification {
       ok
     }
 
-    "run extra-large bbox between queries" >> {
-      val (ds, fs) = initializeDataStore("testextralargebboxbetweenquery")
-
-      val ff = CommonFactoryFinder.getFilterFactory2
-      val filt =
-        ff.and(ff.bbox("geom", -200.0, -100.0, 200.0, 100.0, "EPSG:4326"),
-          ff.between(
-            ff.property("dtg"),
-            ff.literal(new DateTime("2016-01-01T00:00:00.000Z").toDate),
-            ff.literal(new DateTime("2016-01-01T00:15:00.000Z").toDate)))
-
-      val features = fs.getFeatures(filt).features()
-      features.toList must haveLength(1)
-      features.close()
-      ds.dispose()
-      ok
-    }
+//    "run extra-large bbox between queries" >> {
+//      val (ds, fs) = initializeDataStore("testextralargebboxbetweenquery")
+//
+//      val ff = CommonFactoryFinder.getFilterFactory2
+//      val filt =
+//        ff.and(ff.bbox("geom", -200.0, -100.0, 200.0, 100.0, "EPSG:4326"),
+//          ff.between(
+//            ff.property("dtg"),
+//            ff.literal(new DateTime("2016-01-01T00:00:00.000Z").toDate),
+//            ff.literal(new DateTime("2016-01-01T00:15:00.000Z").toDate)))
+//
+//      val features = fs.getFeatures(filt).features()
+//      features.toList must haveLength(1)
+//      features.close()
+//      ds.dispose()
+//      ok
+//    }
 
     "run bbox between and attribute queries" >> {
       import scala.collection.JavaConversions._
