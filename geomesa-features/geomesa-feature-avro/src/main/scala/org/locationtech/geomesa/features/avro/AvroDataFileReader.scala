@@ -20,7 +20,7 @@ class AvroDataFileReader(is: InputStream) extends Iterator[SimpleFeature] with C
   private val dfs = new DataFileStream[AvroSimpleFeature](is, datumReader)
 
   if (!AvroDataFile.canParse(dfs)) {
-    throw new IllegalArgumentException("Only version 1 data files supported")
+    throw new IllegalArgumentException(s"Only version ${AvroDataFile.Version} data files supported")
   }
 
   private val sft = AvroDataFile.getSft(dfs)

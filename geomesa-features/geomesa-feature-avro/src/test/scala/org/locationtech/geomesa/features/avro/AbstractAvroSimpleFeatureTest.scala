@@ -31,8 +31,7 @@ trait AbstractAvroSimpleFeatureTest {
   val complexSft = SimpleFeatureTypes.createType("test", complexSchema)
 
   def createComplicatedFeatures(numFeatures : Int) : List[Version2ASF] = {
-    val r = new Random()
-    r.setSeed(0)
+    val r = new Random(0)
 
     val list = new ListBuffer[Version2ASF]
     for(i <- 0 until numFeatures){
@@ -83,6 +82,9 @@ trait AbstractAvroSimpleFeatureTest {
     }
   }
 
+  /**
+    * Client should delete file
+    */
   def getTmpFile = {
     val tmpFile = File.createTempFile("geomesa", "avro")
     tmpFile.deleteOnExit()

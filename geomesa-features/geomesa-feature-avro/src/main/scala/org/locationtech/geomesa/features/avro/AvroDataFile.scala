@@ -12,11 +12,22 @@ import org.apache.avro.file.{DataFileStream, DataFileWriter}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+/**
+  * AvroDataFiles are binary Avro files (see https://avro.apache.org/) that encode
+  * SimpleFeatures using a custom avro schema per SimpleFeatureType. AvroDataFiles
+  * are meant to:
+  * 1. Provide binary longer-term storage in filesystems for SimpleFeatures
+  * 2. Carry the SimpleFeatureType and feature name along with the data
+  *    using avro metadata
+  * 3. Be self-describing outside of Geotools as much as possible
+  *
+  * You may want to consider gzipping your avro data file for better compression
+  */
 object AvroDataFile {
   val SftNameKey = "sft.name"
   val SftSpecKey = "sft.spec"
   val VersionKey = "version"
-  val Version: Long = 1L
+  private[avro] val Version: Long = 1L
 
   def setMetaData(dfw: DataFileWriter[SimpleFeature], sft: SimpleFeatureType): Unit = {
     dfw.setMeta(VersionKey, Version)
@@ -25,7 +36,10 @@ object AvroDataFile {
   }
 
   def canParse(dfs: DataFileStream[_ <: SimpleFeature]): Boolean = {
-    dfs.getMetaKeys.contains(VersionKey) && dfs.getMetaLong(VersionKey) == Version
+    dfs.getMetaKeys.contains(VersionKey) &&
+      dfs.getMetaLong(VersionKey) == Version &&
+      dfs.getMetaString(SftNameKey) != null &&
+      dfs.getMetaString(SftSpecKey) != null
   }
 
   def getSft(dfs: DataFileStream[_ <: SimpleFeature]): SimpleFeatureType = {

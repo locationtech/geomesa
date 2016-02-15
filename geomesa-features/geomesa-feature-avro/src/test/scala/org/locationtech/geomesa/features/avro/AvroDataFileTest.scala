@@ -34,6 +34,7 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
       }
 
       val readFeatures = getFeatures(tmpFile)
+      tmpFile.delete()
       readFeatures.size mustEqual 50
       readFeatures.map(_.getID) must containTheSameElementsAs(features.map(_.getID))
     }
@@ -60,6 +61,7 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
       }
 
       val readFeatures = getFeatures(tmpFile)
+      tmpFile.delete()
       readFeatures.size mustEqual 2
       val read1 = readFeatures.find(_.getID == "fid1").head
       val read2 = readFeatures.find(_.getID == "fid2").head
@@ -87,6 +89,7 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
       }
 
       val readFeatures = getFeatures(tmpFile)
+      tmpFile.delete()
       readFeatures.size mustEqual 50
       readFeatures.map(_.getID) must containTheSameElementsAs(features.map(_.getID))
       readFeatures.forall { sf =>
@@ -113,6 +116,8 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
       dfs.getMetaString(AvroDataFile.SftNameKey) mustEqual simpleSft.getTypeName
       dfs.getMetaString(AvroDataFile.SftSpecKey) mustEqual SimpleFeatureTypes.encodeType(simpleSft)
       dfs.getMetaLong(AvroDataFile.VersionKey) mustEqual 1L
+      tmpFile.delete()
+      success
     }
   }
 }
