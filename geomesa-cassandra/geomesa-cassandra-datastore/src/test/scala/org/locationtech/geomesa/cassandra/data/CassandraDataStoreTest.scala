@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.cassandra.data
 
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 
 import com.datastax.driver.core.Cluster
 import com.vividsolutions.jts.geom.Coordinate
@@ -40,6 +41,8 @@ class CassandraDataStoreTest extends Specification {
     "allow access" >> {
       val ds = getDataStore
       ds must not(beNull)
+      ds.dispose()
+      ok
     }
 
     "create a schema" >> {
@@ -47,27 +50,37 @@ class CassandraDataStoreTest extends Specification {
       ds must not(beNull)
       ds.createSchema(SimpleFeatureTypes.createType("test:test", "name:String,age:Int,*geom:Point:srid=4326,dtg:Date"))
       ds.getTypeNames.toSeq must contain("test")
+      ds.dispose()
+      ok
     }
 
     "fail if no dtg in schema" >> {
       val ds = getDataStore
       val sft = SimpleFeatureTypes.createType("test:nodtg", "name:String,age:Int,*geom:Point:srid=4326")
       ds.createSchema(sft) must throwA[IllegalArgumentException]
+      ds.dispose()
+      ok
     }
 
     "fail if non-point geom in schema" >> {
       val ds = getDataStore
       val sft = SimpleFeatureTypes.createType("test:nodtg", "name:String,age:Int,*geom:Polygon:srid=4326,dtg:Date")
       ds.createSchema(sft) must throwA[IllegalArgumentException]
+      ds.dispose()
+      ok
     }
 
     "write features" >> {
-      val fs = initializeDataStore("testwrite")
-      fs.getFeatures.features().toList must haveLength(2)
+      val (ds, fs) = initializeDataStore("testwrite")
+      val features = fs.getFeatures().features()
+      features.toList must haveLength(2)
+      features.close()
+      ds.dispose()
+      ok
     }
 
     "run bbox between queries" >> {
-      val fs = initializeDataStore("testbboxbetweenquery")
+      val (ds, fs) = initializeDataStore("testbboxbetweenquery")
 
       val ff = CommonFactoryFinder.getFilterFactory2
       val filt =
@@ -77,11 +90,15 @@ class CassandraDataStoreTest extends Specification {
             ff.literal(new DateTime("2016-01-01T00:00:00.000Z").toDate),
             ff.literal(new DateTime("2016-01-08T00:00:00.000Z").toDate)))
 
-      fs.getFeatures(filt).features().toList must haveLength(1)
+      val features = fs.getFeatures(filt).features()
+      features.toList must haveLength(1)
+      features.close()
+      ds.dispose()
+      ok
     }
 
     "run extra-large bbox between queries" >> {
-      val fs = initializeDataStore("testextralargebboxbetweenquery")
+      val (ds, fs) = initializeDataStore("testextralargebboxbetweenquery")
 
       val ff = CommonFactoryFinder.getFilterFactory2
       val filt =
@@ -91,13 +108,17 @@ class CassandraDataStoreTest extends Specification {
             ff.literal(new DateTime("2016-01-01T00:00:00.000Z").toDate),
             ff.literal(new DateTime("2016-01-01T00:15:00.000Z").toDate)))
 
-      fs.getFeatures(filt).features().toList must haveLength(1)
+      val features = fs.getFeatures(filt).features()
+      features.toList must haveLength(1)
+      features.close()
+      ds.dispose()
+      ok
     }
 
     "run bbox between and attribute queries" >> {
       import scala.collection.JavaConversions._
 
-      val fs = initializeDataStore("testbboxbetweenandattributequery")
+      val (ds, fs) = initializeDataStore("testbboxbetweenandattributequery")
       val ff = CommonFactoryFinder.getFilterFactory2
       val filt =
         ff.and(
@@ -110,11 +131,15 @@ class CassandraDataStoreTest extends Specification {
             ff.equals(ff.property("name"), ff.literal("jane"))
           )
         )
-      fs.getFeatures(filt).features().toList must haveLength(1)
+      val features = fs.getFeatures(filt).features()
+      features.toList must haveLength(1)
+      features.close()
+      ds.dispose()
+      ok
     }
 
     "run poly within and date between queries" >> {
-      val fs = initializeDataStore("testpolywithinanddtgbetween")
+      val (ds, fs) = initializeDataStore("testpolywithinanddtgbetween")
 
       val gf = JTSFactoryFinder.getGeometryFactory
       val buf = gf.createPoint(new Coordinate(new Coordinate(-75.0, 35.0))).buffer(0.01)
@@ -126,11 +151,15 @@ class CassandraDataStoreTest extends Specification {
             ff.literal(new DateTime("2016-01-01T00:00:00.000Z").toDate),
             ff.literal(new DateTime("2016-01-08T00:00:00.000Z").toDate)))
 
-      fs.getFeatures(filt).features().toList must haveLength(1)
+      val features = fs.getFeatures(filt).features()
+      features.toList must haveLength(1)
+      features.close()
+      ds.dispose()
+      ok
     }
 
     "return correct counts" >> {
-      val fs = initializeDataStore("testcount")
+      val (ds, fs) = initializeDataStore("testcount")
 
       val gf = JTSFactoryFinder.getGeometryFactory
       val buf = gf.createPoint(new Coordinate(new Coordinate(-75.0, 35.0))).buffer(0.001)
@@ -143,10 +172,12 @@ class CassandraDataStoreTest extends Specification {
             ff.literal(new DateTime("2016-01-02T00:00:00.000Z").toDate)))
 
       fs.getCount(new Query("testcount", filt)) mustEqual 1
+      ds.dispose()
+      ok
     }
   }
 
-  def initializeDataStore(tableName: String): SimpleFeatureStore = {
+  def initializeDataStore(tableName: String): (DataStore, SimpleFeatureStore) = {
 
     val ds = getDataStore
     val sft = SimpleFeatureTypes.createType(s"test:$tableName", "name:String,age:Int,*geom:Point:srid=4326,dtg:Date")
@@ -161,7 +192,7 @@ class CassandraDataStoreTest extends Specification {
         SimpleFeatureBuilder.build(sft, Array("jane", 20, gf.createPoint(new Coordinate(-75.0, 38.0)), new DateTime("2016-01-07T00:00:00.000Z").toDate).asInstanceOf[Array[AnyRef]], "2")
       ))
     )
-    fs
+    (ds, fs)
   }
 
   def getDataStore: DataStore = {
@@ -182,17 +213,21 @@ object CassandraDataStoreTest {
   def port = EmbeddedCassandraServerHelper.getNativeTransportPort
   def CP   = s"$host:$port"
 
+  private val started = new AtomicBoolean(false)
+
   def startServer() = {
-    val storagedir = File.createTempFile("cassandra","sd")
-    storagedir.delete()
-    storagedir.mkdir()
+    if (started.compareAndSet(false, true)) {
+      val storagedir = File.createTempFile("cassandra","sd")
+      storagedir.delete()
+      storagedir.mkdir()
 
-    System.setProperty("cassandra.storagedir", storagedir.getPath)
+      System.setProperty("cassandra.storagedir", storagedir.getPath)
 
-    EmbeddedCassandraServerHelper.startEmbeddedCassandra("cassandra-config.yaml", 30000L)
-    val cluster = new Cluster.Builder().addContactPoints(host).withPort(port).build()
-    val session = cluster.connect()
-    val cqlDataLoader = new CQLDataLoader(session)
-    cqlDataLoader.load(new ClassPathCQLDataSet("init.cql", false, false))
+      EmbeddedCassandraServerHelper.startEmbeddedCassandra("cassandra-config.yaml", 30000L)
+      val cluster = new Cluster.Builder().addContactPoints(host).withPort(port).build()
+      val session = cluster.connect()
+      val cqlDataLoader = new CQLDataLoader(session)
+      cqlDataLoader.load(new ClassPathCQLDataSet("init.cql", false, false))
+    }
   }
 }
