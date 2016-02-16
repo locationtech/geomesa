@@ -44,6 +44,7 @@
                             <tasks>
                                 <ant antfile="build.xml" dir="${basedir}" target="${target}">
                                     <property name="build.directory" value="${project.build.directory}"/>
+                                    <property name="project.version" value="${project.version}"/>
                                 </ant>
                             </tasks>
                         </configuration>
