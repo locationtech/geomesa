@@ -134,10 +134,12 @@ class IngestArgumentsTest extends Specification {
 
     "work with sft and converter configs as strings using geomesa.sfts.<name> and geomesa.converters.<name>" >> {
       val id = nextId
+
       val conf = ConfigFactory.load("examples/example1.conf")
       val sft = conf.root().render(ConfigRenderOptions.concise())
       val converter = conf.root().render(ConfigRenderOptions.concise())
       val dataFile = new File(this.getClass.getClassLoader.getResource("examples/example1.csv").getFile)
+
       val args = Array("ingest", "--mock", "-i", id, "-u", "foo", "-p", "bar", "-c", id,
         "--converter", converter, "-s", sft, dataFile.getPath)
       args.length mustEqual 15
@@ -151,30 +153,12 @@ class IngestArgumentsTest extends Specification {
       features.map(_.get[String]("name")) must containTheSameElementsAs(Seq("Hermione", "Harry", "Severus"))
     }
 
-    "work with sft and converter configs as strings using geomesa.sfts.<name> and geomesa.converters.<name>" >> {
-      val id = nextId
-      val conf = ConfigFactory.load("examples/example1.conf")
-      val sft = conf.root().render(ConfigRenderOptions.concise())
-      val converter = conf.root().render(ConfigRenderOptions.concise())
-      val dataFile = new File(this.getClass.getClassLoader.getResource("examples/example1.csv").getFile)
-      val args = Array("ingest", "--mock", "-i", id, "-u", "foo", "-p", "bar", "-c", id,
-        "--converter", converter, "-s", sft, dataFile.getPath)
-      args.length mustEqual 15
-
-      Runner.createCommand(args).execute()
-
-      val ds = getDS(id)
-      import Conversions._
-      val features = ds.getFeatureSource("renegades").getFeatures.features().toList
-      features.size mustEqual 3
-      features.map(_.get[String]("name")) must containTheSameElementsAs(Seq("Hermione", "Harry", "Severus"))
-    }
-
-    "work with sft and converter configs as files" >> {
+    "work with nested sft and converter configs as files" >> {
       val id = nextId
 
       val confFile = new File(this.getClass.getClassLoader.getResource("examples/example1.conf").getFile)
       val dataFile = new File(this.getClass.getClassLoader.getResource("examples/example1.csv").getFile)
+
       val args = Array("ingest", "--mock", "-i", id, "-u", "foo", "-p", "bar", "-c", id,
         "--converter", confFile.getPath, "-s", confFile.getPath, dataFile.getPath)
       args.length mustEqual 15

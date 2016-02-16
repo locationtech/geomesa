@@ -32,6 +32,7 @@ object SftArgResolver extends LazyLogging {
       .setIncluder(null)
       .setOriginDescription(null)
       .setSyntax(null)
+
   /**
    * @return the SFT parsed from the Args
    */

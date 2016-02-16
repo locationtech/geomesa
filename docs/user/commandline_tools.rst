@@ -223,7 +223,7 @@ the application.conf file::
             { name = "id",       transform = "$1::int"                 }
             { name = "name",     transform = "$2::string"              }
             { name = "age",      transform = "$3::int"                 }
-            { name = "lastseen", transform = "$4::date"                }
+            { name = "lastseen", transform = "date('YYYY-MM-dd', $4)"  }
             { name = "friends",  transform = "parseList('string', $5)" }
             { name = "lon",      transform = "$6::double"              }
             { name = "lat",      transform = "$7::double"              }
@@ -245,9 +245,8 @@ The SFT and Converter can be referenced by name and the following commands can i
       -s renegades -C renegades-csv hdfs:///some/hdfs/path/to/example1.csv
 
 SFT and Converter configs can also be provided as strings or filenames to the ``-s`` and ``-C`` arguments. The syntax is
-very similar to the ``application.conf`` and ``reference.conf`` format. Config specifications can be nested using the
-paths ``geomesa.converters.<convertername>`` and ``geomesa.sfts.<typename>`` or non-nested. If you provide a non nested
-sft config you must provide the field ``type-name``. For example::
+very similar to the ``application.conf`` and ``reference.conf`` format. Config specifications must be nested using the
+paths ``geomesa.converters.<convertername>`` and ``geomesa.sfts.<typename>`` as shown below::
 
     # A nested SFT config provided as a string or file to the -s argument specifying
     # a type named "renegades"
@@ -264,21 +263,7 @@ sft config you must provide the field ``type-name``. For example::
       ]
     }
 
-    # cat /tmp/renegades.sft
-    # a non-nested config for the -s argument that specifying a type named "renegades"
-    {
-      type-name  = "renegades"
-      attributes = [
-        { name = "id",       type = "Integer",      index = false                             }
-        { name = "name",     type = "String",       index = true                              }
-        { name = "age",      type = "Integer",      index = false                             }
-        { name = "lastseen", type = "Date",         index = true                              }
-        { name = "friends",  type = "List[String]", index = true                              }
-        { name = "geom",     type = "Point",        index = true, srid = 4326, default = true }
-      ]
-    }
-
-Similarly, converter configurations can be nested or not when passing them directly to the ``-C`` argument::
+Similarly, converter configurations must be nested when passing them directly to the ``-C`` argument::
 
     # a nested converter definition
     # cat /tmp/renegades.convert
@@ -293,28 +278,7 @@ Similarly, converter configurations can be nested or not when passing them direc
         { name = "id",       transform = "$1::int"                 }
         { name = "name",     transform = "$2::string"              }
         { name = "age",      transform = "$3::int"                 }
-        { name = "lastseen", transform = "$4::date"                }
-        { name = "friends",  transform = "parseList('string', $5)" }
-        { name = "lon",      transform = "$6::double"              }
-        { name = "lat",      transform = "$7::double"              }
-        { name = "geom",     transform = "point($lon, $lat)"       }
-      ]
-    }
-
-    # a non-nested converter definition
-    # cat /tmp/renegades.convert
-    {
-      type   = "delimited-text"
-      format = "CSV"
-      options {
-        skip-lines = 0 // don't skip lines in distributed ingest
-      }
-      id-field = "toString($id)"
-      fields = [
-        { name = "id",       transform = "$1::int"                 }
-        { name = "name",     transform = "$2::string"              }
-        { name = "age",      transform = "$3::int"                 }
-        { name = "lastseen", transform = "$4::date"                }
+        { name = "lastseen", transform = "date('YYYY-MM-dd', $4)"  }
         { name = "friends",  transform = "parseList('string', $5)" }
         { name = "lon",      transform = "$6::double"              }
         { name = "lat",      transform = "$7::double"              }
