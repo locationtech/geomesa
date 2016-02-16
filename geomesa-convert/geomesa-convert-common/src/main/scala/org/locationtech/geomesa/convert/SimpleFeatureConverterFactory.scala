@@ -13,13 +13,13 @@ import java.nio.charset.StandardCharsets
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.commons.io.IOUtils
 import org.locationtech.geomesa.convert.Transformers._
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
-import scala.io.Source
 import scala.util.Try
 
 trait Field {
@@ -209,6 +209,6 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
 trait LinesToSimpleFeatureConverter extends ToSimpleFeatureConverter[String] {
 
   override def process(is: InputStream, ec: EvaluationContext): Iterator[SimpleFeature] =
-    processInput(Source.fromInputStream(is, StandardCharsets.UTF_8.displayName).getLines(), ec)
+    processInput(IOUtils.lineIterator(is, StandardCharsets.UTF_8.displayName), ec)
 
 }
