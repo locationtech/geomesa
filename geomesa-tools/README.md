@@ -600,15 +600,14 @@ sft config you must provide the field ``type-name``. For example:
     #
     # cat /tmp/renegades.sft
     geomesa.sfts.renegades = {
-        attributes = [
-          { name = "id",       type = "Integer",      index = false                             }
-          { name = "name",     type = "String",       index = true                              }
-          { name = "age",      type = "Integer",      index = false                             }
-          { name = "lastseen", type = "Date",         index = true                              }
-          { name = "friends",  type = "List[String]", index = true                              }
-          { name = "geom",     type = "Point",        index = true, srid = 4326, default = true }
-        ]
-      }
+      attributes = [
+        { name = "id",       type = "Integer",      index = false                             }
+        { name = "name",     type = "String",       index = true                              }
+        { name = "age",      type = "Integer",      index = false                             }
+        { name = "lastseen", type = "Date",         index = true                              }
+        { name = "friends",  type = "List[String]", index = true                              }
+        { name = "geom",     type = "Point",        index = true, srid = 4326, default = true }
+      ]
     }
     
     # cat /tmp/renegades.sft
