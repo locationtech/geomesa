@@ -62,8 +62,8 @@ author = u''
 #
 # The value of release and version are not set here, because they're set in the
 # Maven/Ant process that calls sphinx-build.
-release = 'UNSPECIFIED'
-version = release
+release = ''
+version = ''
 
 # RST appended to every file. Used for global substitions.
 # (the "%(release)s" substitutions are done by the Python format() method
