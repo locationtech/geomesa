@@ -16,7 +16,7 @@ import org.apache.avro.Schema
 import org.apache.avro.io._
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
-import org.locationtech.geomesa.features.SerializationOption.SerializationOption
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureUtils._
 import org.locationtech.geomesa.features.avro.serde.{ASFDeserializer, Version1Deserializer, Version2Deserializer}
 import org.locationtech.geomesa.features.avro.serialization.AvroSerialization
@@ -24,28 +24,39 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 
-class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureType,
-                            opts: Set[SerializationOption] = Set.empty)
+class FeatureSpecificReader(var oldType: SimpleFeatureType, var newType: SimpleFeatureType,
+                            opts: SerializationOptions = SerializationOptions.none)
   extends DatumReader[AvroSimpleFeature] {
 
   def this(sft: SimpleFeatureType) = this(sft, sft)
 
-  var oldSchema = generateSchema(oldType)
-  val fieldsDesired = DataUtilities.attributeNames(newType).map(encodeAttributeName)
+  // DataFileStreams or DataFileReaders may set this after construction of the object
+  // so all instance variables need to be be lazy
+  var oldSchema = Option(oldType).map(generateSchema(_, opts.withUserData)).orNull
+
+  lazy val fieldsDesired = DataUtilities.attributeNames(newType).map(encodeAttributeName)
+
+  lazy val dataFields = oldSchema.getFields.filter { isDataField }
+
+  lazy val typeMap: Map[String, Class[_]] =
+    oldType.getAttributeDescriptors.map { ad => encodeAttributeName(ad.getLocalName) -> ad.getType.getBinding }.toMap
+
+  lazy val nillableAttrs: Set[String] = oldType.getAttributeDescriptors.filter(_.isNillable).map {
+    ad => encodeAttributeName(ad.getLocalName)
+  }.toSet
 
   def isDataField(f: Schema.Field) =
-    !f.name.equals(FEATURE_ID_AVRO_FIELD_NAME) && !f.name.equals(AVRO_SIMPLE_FEATURE_VERSION)
+    !f.name.equals(FEATURE_ID_AVRO_FIELD_NAME) &&
+      !f.name.equals(AVRO_SIMPLE_FEATURE_VERSION) &&
+      !f.name.equals(AVRO_SIMPLE_FEATURE_USERDATA)
 
   override def setSchema(schema: Schema): Unit = oldSchema = schema
 
-  val dataFields = oldSchema.getFields.filter { isDataField }
-
-  val typeMap: Map[String, Class[_]] =
-    oldType.getAttributeDescriptors.map { ad => encodeAttributeName(ad.getLocalName) -> ad.getType.getBinding }.toMap
-
-  val nillableAttrs: Set[String] = oldType.getAttributeDescriptors.filter(_.isNillable).map {
-      ad => encodeAttributeName(ad.getLocalName)
-    }.toSet
+  def setTypes(oldType: SimpleFeatureType, newType: SimpleFeatureType): Unit = {
+    this.oldType = oldType
+    this.newType = newType
+    oldSchema = generateSchema(oldType, opts.withUserData)
+  }
 
   def buildFieldReaders(deserializer: ASFDeserializer) =
     oldType.getAttributeDescriptors.map { ad =>
@@ -64,7 +75,7 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
     else
       f
   }
-          
+
   def buildSet(clazz: Class[_], name: String, deserializer: ASFDeserializer): (AvroSimpleFeature, Decoder) => Unit = {
     val decoded = decodeAttributeName(name)
     clazz match {
@@ -124,7 +135,7 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
     sf
   }
 
-  private val reader: (AvroSimpleFeature, Decoder) => AvroSimpleFeature =
+  private lazy val reader: (AvroSimpleFeature, Decoder) => AvroSimpleFeature =
     if (opts.withUserData)
       readWithUserData
     else
@@ -134,9 +145,6 @@ class FeatureSpecificReader(oldType: SimpleFeatureType, newType: SimpleFeatureTy
 }
 
 object FeatureSpecificReader {
-
-  // use when you want the entire feature back, not a subset
-  def apply(sftType: SimpleFeatureType) = new FeatureSpecificReader(sftType)
 
   // first field is serialization version, 2nd field is ID of simple feature
   def extractId(is: InputStream, reuse: BinaryDecoder = null): String = {
