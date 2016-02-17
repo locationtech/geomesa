@@ -13,6 +13,11 @@
 			<isset property="build.directory" />
 		</condition>
 
+		<condition property="project.version" value="${project.version}" else="">
+			<isset property="project.version" />
+		</condition>
+
+		<echo message="Build version: ${project.version}" />
 		<echo message="Build directory: ${build.directory}" />
 	</target>
 
@@ -57,13 +62,13 @@
 
 	<target name="sphinx" if="sphinx.available">
 		<exec executable="${sphinx.binary}" failonerror="true" dir="${basedir}/${id}">
-			<arg line="-b ${build} -d &quot;${build.directory}/${id}/doctrees&quot; . &quot;${build.directory}/${id}/${build}&quot;" />
+			<arg line="-D release=${project.version} -D version=${project.version} -b ${build} -d &quot;${build.directory}/${id}/doctrees&quot; . &quot;${build.directory}/${id}/${build}&quot;" />
 		</exec>
 	</target>
 	
 	<target name="sphinx-latex" if="sphinx.available">
 		<exec executable="${sphinx.binary}" failonerror="true" dir="${basedir}/${id}">
-			<arg line="-b latex -d &quot;${build.directory}/${id}/doctrees&quot; . &quot;${build.directory}/${id}/latex&quot;" />
+			<arg line="-D release=${project.version} -D version=${project.version} -b latex -d &quot;${build.directory}/${id}/doctrees&quot; . &quot;${build.directory}/${id}/latex&quot;" />
 		</exec>
 	</target>
 

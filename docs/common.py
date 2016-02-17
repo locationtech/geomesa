@@ -57,10 +57,13 @@ author = u''
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-# The short X.Y version.
-version = '1.2.0'
-# The full version, including alpha/beta/rc tags.
-release = '1.2.0'
+# version: The short X.Y version.
+# release: The full version, including alpha/beta/rc tags.
+#
+# The value of release and version are not set here, because they're set in the
+# Maven/Ant process that calls sphinx-build.
+release = ''
+version = ''
 
 # RST appended to every file. Used for global substitions.
 # (the "%(release)s" substitutions are done by the Python format() method
@@ -153,6 +156,9 @@ html_theme = 'sphinx_rtd_theme'
 
 # Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+
+# Customized CSS file
+html_style = 'css/theme_custom.css'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
