@@ -96,29 +96,8 @@ fi
 
 # HADOOP paths, user can hard set these, or rely on this script to find set them via HADOOP_HOME
 if [ -n "$HADOOP_HOME" ]; then
-    if [ -z "$HADOOP_LIB" -a -d "${HADOOP_HOME}/lib" ]; then
-        HADOOP_LIB=${HADOOP_HOME}/lib
-    fi
-    if [ -z "$HADOOP_SHARE_DIR" -a -d "${HADOOP_HOME}/share/hadoop" ]; then
-        HADOOP_SHARE_DIR=${HADOOP_HOME}/share/hadoop
-    fi
-    if [ -z "$HADOOP_COMMON" -a -d "${HADOOP_SHARE_DIR}/common" ]; then
-        HADOOP_COMMON=${HADOOP_SHARE_DIR}/common
-    fi
-    if [ -z "$HADOOP_HDFS" -a -d "${HADOOP_SHARE_DIR}/hdfs" ]; then
-        HADOOP_HDFS=${HADOOP_SHARE_DIR}/hdfs
-    fi
-    if [ -z "$HADOOP_MAPREDUCE" -a -d "${HADOOP_SHARE_DIR}/mapreduce" ]; then
-        HADOOP_MAPREDUCE=${HADOOP_SHARE_DIR}/mapreduce
-    fi
-    if [ -z "$HADOOP_YARN" -a -d "${HADOOP_SHARE_DIR}/yarn" ]; then
-        HADOOP_YARN=${HADOOP_SHARE_DIR}/yarn
-    fi
     if [ -z "$HADOOP_CONF_DIR" -a -d "${HADOOP_HOME}/etc/hadoop" ]; then
         HADOOP_CONF_DIR=${HADOOP_HOME}/etc/hadoop
-    fi
-    if [ -z "$HADOOP_MAPRED_HOME" -a -d "${HADOOP_HOME}" ]; then
-        HADOOP_MAPRED_HOME=${HADOOP_HOME}
     fi
 fi
 
@@ -147,7 +126,9 @@ function findJars() {
     if [ -n "$home" -a -d "$home" ]; then
         for jar in $(find ${home} -name "*.jar"); do
             if [[ ("$2" != "true") || (("$jar" != *"test"*) && ("$jar" != *"slf4j"*)) ]]; then
-                CP="$CP:$jar"
+                if [ "$jar" = "${jar%-sources.jar}" -a "$jar" = "${jar%-test.jar}" ]; then
+                  CP="$CP:$jar"
+                fi
             fi
         done
         if [ -d "$home/native" ]; then
@@ -157,9 +138,6 @@ function findJars() {
                 JAVA_LIBRARY_PATH="$home/native:$JAVA_LIBRARY_PATH"
             fi
         fi
-    else
-        echo >&2  "Could not find directory $home. Please check to see that this directory exists, or edit
-            this script directly to specify an alternate location."
     fi
     if [ "${CP:0:1}" = ":" ]; then
         CP="${CP:1}"
@@ -173,8 +151,32 @@ GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB)"
 GEOMESA_CP="${GEOMESA_CP}:${ACCUMULO_CONF_DIR}:${HADOOP_CONF_DIR}"
 ACCUMULO_CP="$(findJars $ACCUMULO_LIB)"
 
-#Get the hadoop jars, ignoring jars with names containing slf4j and test
-hadoopDirs=("$HADOOP_LIB" "$HADOOP_COMMON" "$HADOOP_MAPREDUCE" "$HADOOP_YARN" "$HADOOP_HDFS" "$HADOOP_HOME/share/hadoop/tools/lib/")
+# Get the hadoop jars, ignoring jars with names containing slf4j and test
+# Copied from accumulo classpath
+hadoopDirs=(
+  $ZOOKEEPER_HOME
+  # Hadoop 2 requirements
+  $HADOOP_HOME/share/hadoop/common
+  $HADOOP_HOME/share/hadoop/hdfs/
+  $HADOOP_HOME/share/hadoop/mapreduce/
+  $HADOOP_HOME/share/hadoop/yarn/
+  # HDP 2.0 requirements
+  /usr/lib/hadoop/
+  /usr/lib/hadoop-hdfs/
+  /usr/lib/hadoop-mapreduce/
+  /usr/lib/hadoop-yarn/
+  # HDP 2.2 requirements
+  /usr/hdp/current/hadoop-client/
+  /usr/hdp/current/hadoop-hdfs-client/
+  /usr/hdp/current/hadoop-mapreduce-client/
+  /usr/hdp/current/hadoop-yarn-client/
+  # IOP 4.1 requirements
+  /usr/iop/current/hadoop-client/
+  /usr/iop/current/hadoop-hdfs-client/
+  /usr/iop/current/hadoop-mapreduce-client/
+  /usr/iop/current/hadoop-yarn-client/
+)
+
 for home in ${hadoopDirs[*]}; do
   tmp="$(findJars $home true)"
   if [ -n "$tmp" ]; then
