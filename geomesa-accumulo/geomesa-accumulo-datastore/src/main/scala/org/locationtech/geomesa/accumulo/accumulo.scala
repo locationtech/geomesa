@@ -56,10 +56,10 @@ package object accumulo {
     }
 
     object BatchWriterProperties {
-      // Measured in millis, default 10 seconds
-      val WRITER_LATENCY_MILLIS  = PropAndDefault("geomesa.batchwriter.latency.millis", "10000")
-      // Measured in bytes, default 1 megabyte
-      val WRITER_MEMORY_BYTES    = PropAndDefault("geomesa.batchwriter.memory", "1000000")
+      // Measured in millis, default 60 seconds
+      val WRITER_LATENCY_MILLIS  = PropAndDefault("geomesa.batchwriter.latency.millis", (60 * 1000L).toString)
+      // Measured in bytes, default 50mb (see Accumulo BatchWriterConfig)
+      val WRITER_MEMORY_BYTES    = PropAndDefault("geomesa.batchwriter.memory", (50 * 1024 * 1024L).toString)
       val WRITER_THREADS         = PropAndDefault("geomesa.batchwriter.maxthreads", "10")
       // Timeout measured in seconds.  Likely unnecessary.
       val WRITE_TIMEOUT_MILLIS   = PropAndDefault("geomesa.batchwriter.timeout.millis", null)
