@@ -693,7 +693,7 @@
                         <groupId>javax.media</groupId>
                         <artifactId>jai_imageio</artifactId>
                     </exclusion>
-	            </exclusions>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
@@ -1836,10 +1836,10 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-              <groupId>org.apache.accumulo</groupId>
-              <artifactId>accumulo-test</artifactId>
-              <version>${accumulo.version}</version>
-              <scope>test</scope>
+                <groupId>org.apache.accumulo</groupId>
+                <artifactId>accumulo-test</artifactId>
+                <version>${accumulo.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>com.typesafe</groupId>
@@ -1990,6 +1990,11 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>3.0.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
                     <version>2.4</version>
                     <configuration>
@@ -2100,6 +2105,20 @@
                                 </resource>
                             </resources>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                            <goal>test-jar-no-fork</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
