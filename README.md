@@ -15,7 +15,7 @@ GeoMesa is an open-source, distributed, spatio-temporal database built on top of
 * [Release tarball](http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-assemble/1.1.0-rc.7/geomesa-assemble-1.1.0-rc.7-bin.tar.gz)
 * [Source](https://github.com/locationtech/geomesa/archive/geomesa-1.1.0-rc.7.tar.gz)
 
-**Development version (source only)**: 1.2.0-SNAPSHOT
+**Development version (source only)**: 1.2.1-SNAPSHOT
 * [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=master)](https://travis-ci.org/locationtech/geomesa)
 * [Source](https://github.com/locationtech/geomesa/archive/master.tar.gz)
 

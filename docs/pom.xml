@@ -12,50 +12,19 @@
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
         <artifactId>geomesa</artifactId>
-        <version>1.2.0-SNAPSHOT</version>
+        <version>1.2.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-docs</artifactId>
+    <artifactId>docs</artifactId>
     <name>GeoMesa Documentation</name>
+    <packaging>pom</packaging>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <ant.version>1.6.5</ant.version>
         <target>html</target>
     </properties>
-
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <dependencies>
-                    <dependency>
-                        <groupId>ant</groupId>
-                        <artifactId>ant</artifactId>
-                        <version>${ant.version}</version>
-                    </dependency>
-                </dependencies>
-                <executions>
-                    <execution>
-                        <id>compile</id>
-                        <phase>compile</phase>
-                        <configuration>
-                            <tasks>
-                                <ant antfile="build.xml" dir="${basedir}" target="${target}">
-                                    <property name="build.directory" value="${project.build.directory}"/>
-                                    <property name="project.version" value="${project.version}"/>
-                                </ant>
-                            </tasks>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 
     <profiles>
         <profile>
@@ -64,26 +33,58 @@
                 <target>html</target>
             </properties>
         </profile>
-
         <profile>
             <id>user-latex</id>
             <properties>
                 <target>user-latex</target>
             </properties>
         </profile>
-
         <profile>
             <id>developer-latex</id>
             <properties>
                 <target>developer-latex</target>
             </properties>
         </profile>
-
         <profile>
             <id>tutorials-latex</id>
             <properties>
                 <target>tutorials-latex</target>
             </properties>
         </profile>
+        <profile>
+            <id>docs</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <dependencies>
+                            <dependency>
+                                <groupId>ant</groupId>
+                                <artifactId>ant</artifactId>
+                                <version>${ant.version}</version>
+                            </dependency>
+                        </dependencies>
+                        <executions>
+                            <execution>
+                                <id>compile</id>
+                                <phase>compile</phase>
+                                <configuration>
+                                    <tasks>
+                                        <ant antfile="build.xml" dir="${basedir}" target="${target}">
+                                            <property name="build.directory" value="${project.build.directory}"/>
+                                            <property name="project.version" value="${project.version}"/>
+                                        </ant>
+                                    </tasks>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
+
 </project>

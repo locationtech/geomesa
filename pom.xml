@@ -39,6 +39,7 @@
         <module>geomesa-hbase</module>
         <module>geomesa-blobstore</module>
         <module>geomesa-cassandra</module>
+        <module>docs</module>
     </modules>
 
     <properties>
