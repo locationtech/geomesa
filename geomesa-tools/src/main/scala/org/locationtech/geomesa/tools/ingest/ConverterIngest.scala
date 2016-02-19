@@ -58,7 +58,7 @@ class ConverterIngest(dsParams: Map[String, String],
     logger.info(s"Creating schema ${sft.getTypeName}")
     ds.createSchema(sft)
 
-    val distPrefixes = Seq("hdfs://", "s3n://")
+    val distPrefixes = Seq("hdfs://", "s3n://", "s3a://")
     if (distPrefixes.exists(inputs.head.toLowerCase.startsWith)) {
       logger.info("Running ingestion in distributed mode")
       runDistributed()

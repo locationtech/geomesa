@@ -31,7 +31,7 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
       val ds = new DataStoreHelper(params).getDataStore()
       GeneralShapefileIngest.shpToDataStore(params.files(0), ds, params.featureName)
     } else {
-      ensureSameFs(Seq("hdfs", "s3n"))
+      ensureSameFs(Seq("hdfs", "s3n", "s3a"))
 
       val dsParams = new DataStoreHelper(params).paramMap
       require(DataStoreFinder.getDataStore(dsParams) != null, "Could not load a data store with the provided parameters")
