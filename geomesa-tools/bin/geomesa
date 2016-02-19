@@ -159,6 +159,7 @@ hadoopDirs=(
   $HADOOP_HOME/share/hadoop/common
   $HADOOP_HOME/share/hadoop/hdfs/
   $HADOOP_HOME/share/hadoop/mapreduce/
+  $HADOOP_HOME/share/hadoop/tools/lib
   $HADOOP_HOME/share/hadoop/yarn/
   # HDP 2.0 requirements
   /usr/lib/hadoop/
