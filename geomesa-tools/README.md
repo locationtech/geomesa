@@ -661,30 +661,16 @@ Warning: AWS credentials are valueable. They pay for services and control read a
     </property>
 
     <!-- OMIT these keys if running on AWS EC2; use IAM roles instead -->
-
-    <!-- These are Hadoop 2.7 style properties -->
-    <property>
-        <name>fs.s3a.awsAccessKeyId</name>
-        <value>XXXX YOURS HERE</value>
-    </property>
-
-    <property>
-        <name>fs.s3a.awsSecretAccessKey</name>
-        <value>XXXX YOURS HERE</value>
-    </property>
-
-    <!-- These are Hadoop 2.6 style properties -->
     <property>
         <name>fs.s3a.access.key</name>
         <value>XXXX YOURS HERE</value>
     </property>
-
     <property>
         <name>fs.s3a.secret.key</name>
         <value>XXXX YOURS HERE</value>
+        <description>Valueable credential - do not commit to CM</description>
     </property>
  
-
 
 After you have enabled S3 in your Hadoop configuration you can ingest with GeoMesa tools. Note that you can still use the Kleene star (*) with S3.
 

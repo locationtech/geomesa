@@ -303,11 +303,13 @@ Shape files may also be ingested::
 
 Hadoop ships with an implementation of a S3 filesystems that can be enabled in the Hadoop configuration used with GeoMesa Tools. GeoMesa Tools can perform ingest using both the second-generation (`s3n`) and third-generation (`s3a`) filesystems. Edit the `$HADOOP_CONF_DIR/core-site.xml` file in your Hadoop installation, as shown below. These instructions apply to Hadoop 2.5.0 and higher. Note that you must have the environment variable ``HADOOP_MAPRED_HOME`` set properly in your environment. Some configurations can substitute ``HADOOP_PREFIX`` in the classpath values below.
 
-Warning: AWS credentials are valueable. They pay for services and control read and write protection for data. If you are running GeoMesa on AWS EC2 instances, it is recommended to use s3a. With s3a, you can omit the Access Key Id and Secret Access keys from `core-site.xml` and rely on IAM roles.:
+.. note:: 
+
+    Warning: AWS credentials are valueable. They pay for services and control read and write protection for data. If you are running GeoMesa on AWS EC2 instances, it is recommended to use s3a. With s3a, you can omit the Access Key Id and Secret Access keys from `core-site.xml` and rely on IAM roles.:
 
 s3a::
 
-  <!-- core-site.xml -->
+    <!-- core-site.xml -->
     <property>
         <name>mapreduce.application.classpath</name>
         <value>$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*:$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*:$HADOOP_MAPRED_HOME/share/hadoop/tools/lib/*</value>
@@ -315,16 +317,6 @@ s3a::
     </property>
 
     <!-- OMIT these keys if running on AWS EC2; use IAM roles instead -->
-    <!-- These are Hadoop 2.7 style properties -->
-    <property>
-        <name>fs.s3a.awsAccessKeyId</name>
-        <value>XXXX YOURS HERE</value>
-    </property>
-    <property>
-        <name>fs.s3a.awsSecretAccessKey</name>
-        <value>XXXX YOURS HERE</value>
-    </property>
-    <!-- These are Hadoop 2.6 style properties -->
     <property>
         <name>fs.s3a.access.key</name>
         <value>XXXX YOURS HERE</value>
@@ -332,6 +324,7 @@ s3a::
     <property>
         <name>fs.s3a.secret.key</name>
         <value>XXXX YOURS HERE</value>
+        <description>Valueable credential - do not commit to CM</description>
     </property>
  
 
