@@ -37,7 +37,7 @@ class HBaseFeatureSource(entry: ContentEntry,
       .map  { case (_, idx)  => idx }
       .getOrElse(throw new RuntimeException("No date attribute"))
 
-  private val Z3_CURVE = new Z3SFC
+  private val Z3_CURVE = Z3SFC
   type FR = FeatureReader[SimpleFeatureType, SimpleFeature]
   private val ds = entry.getDataStore.asInstanceOf[HBaseDataStore]
 

@@ -15,7 +15,6 @@ import org.locationtech.geomesa.accumulo.data.DEFAULT_ENCODING
 import org.locationtech.geomesa.accumulo.data.tables.AttributeTable
 import org.locationtech.geomesa.features.SimpleFeatureSerializers
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -37,8 +36,9 @@ class AttributeTableTest extends Specification with TestWithDataStore {
 
       val indexValueEncoder = IndexValueEncoder(sft)
       val featureEncoder = SimpleFeatureSerializers(sft, DEFAULT_ENCODING)
+      val binEncoder = BinEncoder(sft)
 
-      val toWrite = new FeatureToWrite(feature, "", featureEncoder, indexValueEncoder)
+      val toWrite = new FeatureToWrite(feature, "", featureEncoder, indexValueEncoder, binEncoder)
       val mutations = AttributeTable.writer(sft)(toWrite)
       mutations.size mustEqual 2 // for null date
       mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
@@ -54,7 +54,7 @@ class AttributeTableTest extends Specification with TestWithDataStore {
       feature.setAttribute("name","fred")
       feature.setAttribute("age",50.asInstanceOf[Any])
 
-      val toWrite = new FeatureToWrite(feature, "", null, null)
+      val toWrite = new FeatureToWrite(feature, "", null, null, null)
       val mutations = AttributeTable.remover(sft)(toWrite)
       mutations.size mustEqual 2 // for null date
       mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach

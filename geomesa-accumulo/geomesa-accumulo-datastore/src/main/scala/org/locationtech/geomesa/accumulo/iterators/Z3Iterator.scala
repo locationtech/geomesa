@@ -13,11 +13,12 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ByteSequence, Key, Range => AccRange, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
+import org.locationtech.geomesa.accumulo.data.tables.Z3Table
 import org.locationtech.sfcurve.zorder.Z3
 
 class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
 
-  import org.locationtech.geomesa.accumulo.iterators.Z3Iterator.zKey
+  import org.locationtech.geomesa.accumulo.iterators.Z3Iterator.{pointsKey, zKey}
 
   var source: SortedKeyValueIterator[Key, Value] = null
   var zNums: Array[Int] = null
@@ -34,6 +35,9 @@ class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
   var tLo: Int = -1
   var tHi: Int = -1
 
+  var isPoints: Boolean = false
+  var rowToLong: Array[Byte] => Long = null
+
   var topKey: Key = null
   var topValue: Value = null
   val row = new Text()
@@ -46,18 +50,18 @@ class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
   def findTop(): Unit = {
     topKey = null
     topValue = null
-    while (source.hasTop && !inBounds(source.getTopKey)) { source.next() }
+    while (source.hasTop && !inBounds(source.getTopKey, rowToLong)) { source.next() }
     if (source.hasTop) {
       topKey = source.getTopKey
       topValue = source.getTopValue
     }
   }
 
-  private def inBounds(k: Key): Boolean = {
+  private def inBounds(k: Key, getZ: (Array[Byte] => Long)): Boolean = {
     k.getRow(row)
     val bytes = row.getBytes
     val week = Shorts.fromBytes(bytes(0), bytes(1))
-    val keyZ = Longs.fromBytes(bytes(2), bytes(3), bytes(4), bytes(5), bytes(6), bytes(7), bytes(8), bytes(9))
+    val keyZ = getZ(bytes)
     val (x, y, t) = Z3(keyZ).decode
     x >= xmin && x <= xmax && y >= ymin && y <= ymax && {
       if (week == wmin) {
@@ -70,6 +74,12 @@ class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
     }
   }
 
+  private def rowToLong(count: Int): (Array[Byte]) => Long = count match {
+    case 3 => (bytes) => Longs.fromBytes(bytes(2), bytes(3), bytes(4), 0, 0, 0, 0, 0)
+    case 4 => (bytes) => Longs.fromBytes(bytes(2), bytes(3), bytes(4), bytes(5), 0, 0, 0, 0)
+    case 8 => (bytes) => Longs.fromBytes(bytes(2), bytes(3), bytes(4), bytes(5), bytes(6), bytes(7), bytes(8), bytes(9))
+  }
+
   override def getTopValue: Value = topValue
   override def getTopKey: Key = topKey
   override def hasTop: Boolean = topKey != null
@@ -80,6 +90,9 @@ class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
     IteratorClassLoader.initClassLoader(getClass)
 
     this.source = source.deepCopy(env)
+
+    isPoints = options.get(pointsKey).toBoolean
+
     zNums = options.get(zKey).split(":").map(_.toInt)
     xmin = zNums(0)
     xmax = zNums(1)
@@ -91,6 +104,8 @@ class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
     wmax = zNums(7).toShort
     tLo = if (wmin == wmax) tmin else zNums(8)
     tHi = if (wmin == wmax) tmax else zNums(9)
+
+    rowToLong = if (isPoints) rowToLong(8) else rowToLong(Z3Table.GEOM_Z_NUM_BYTES)
   }
 
   override def seek(range: AccRange, columnFamilies: java.util.Collection[ByteSequence], inclusive: Boolean): Unit = {
@@ -101,7 +116,7 @@ class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = {
     import scala.collection.JavaConversions._
     val iter = new Z3Iterator
-    iter.init(source, Map(zKey -> zNums.mkString(":")), env)
+    iter.init(source, Map(pointsKey -> isPoints.toString, zKey -> zNums.mkString(":")), env)
     iter
   }
 }
@@ -109,8 +124,10 @@ class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
 object Z3Iterator {
 
   val zKey = "z"
+  val pointsKey = "p"
 
-  def configure(xmin: Int,
+  def configure(isPoints: Boolean,
+                xmin: Int,
                 xmax: Int,
                 ymin: Int,
                 ymax: Int,
@@ -122,6 +139,7 @@ object Z3Iterator {
                 tHi: Int,
                 priority: Int) = {
     val is = new IteratorSetting(priority, "z3", classOf[Z3Iterator])
+    is.addOption(pointsKey, isPoints.toString)
     is.addOption(zKey, s"$xmin:$xmax:$ymin:$ymax:$tmin:$tmax:$wmin:$wmax:$tLo:$tHi")
     is
   }

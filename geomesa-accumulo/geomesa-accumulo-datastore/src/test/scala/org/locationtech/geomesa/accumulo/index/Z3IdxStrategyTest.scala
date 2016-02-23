@@ -71,7 +71,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       ds.connector.createScanner(ds.getTableName(sftName, Z3Table), new Authorizations()).foreach { r =>
         val bytes = r.getKey.getRow.getBytes
         val keyZ = Longs.fromByteArray(bytes.drop(2))
-        val (x, y, t) = new Z3SFC().invert(Z3(keyZ))
+        val (x, y, t) = Z3SFC.invert(Z3(keyZ))
         val weeks = Shorts.fromBytes(bytes.head, bytes(1))
         println(s"row: $weeks $x $y $t")
       }

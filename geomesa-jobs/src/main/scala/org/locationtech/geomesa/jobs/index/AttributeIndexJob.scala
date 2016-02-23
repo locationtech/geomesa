@@ -131,6 +131,7 @@ class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
   private var visibilities: String = null
   private var featureEncoder: SimpleFeatureSerializer = null
   private var indexValueEncoder: IndexValueEncoder = null
+  private var binEncoder: Option[BinEncoder] = null
 
   override protected def setup(context: Context): Unit = {
     counter = context.getCounter("org.locationtech.geomesa", "attributes-written")
@@ -148,6 +149,7 @@ class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
     val encoding = ds.getFeatureEncoding(sft)
     featureEncoder = SimpleFeatureSerializers(sft, encoding)
     indexValueEncoder = IndexValueEncoder(sft)
+    binEncoder = BinEncoder(sft)
     writer = if (sft.getSchemaVersion < 6) AttributeTableV5.writer(sft) else AttributeTable.writer(sft)
   }
 
@@ -156,7 +158,7 @@ class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
   }
 
   override def map(key: Text, value: SimpleFeature, context: Context) {
-    val mutations = writer(new FeatureToWrite(value, visibilities, featureEncoder, indexValueEncoder))
+    val mutations = writer(new FeatureToWrite(value, visibilities, featureEncoder, indexValueEncoder, binEncoder))
     mutations.foreach(context.write(null: Text, _)) // default table name is set already
     counter.increment(mutations.length)
   }

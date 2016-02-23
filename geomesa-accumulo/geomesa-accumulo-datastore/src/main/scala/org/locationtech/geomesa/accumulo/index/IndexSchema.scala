@@ -295,17 +295,6 @@ object IndexSchema extends RegexParsers with LazyLogging {
     case fail: NoSuccess => throw new Exception(fail.msg)
   }
 
-  // only those geometries known to contain only point data can guarantee that
-  // they do not contain duplicates
-  def mayContainDuplicates(featureType: SimpleFeatureType): Boolean =
-    try {
-      featureType == null || featureType.getGeometryDescriptor.getType.getBinding != classOf[Point]
-    } catch {
-      case e: Exception =>
-        logger.warn(s"Error comparing default geometry for feature type ${featureType.getName}")
-        true
-    }
-
   // utility method to ask for the maximum allowable shard number
   def maxShard(schema: String): Int = {
     val (rowf, _, _) = parse(formatter, schema).get
