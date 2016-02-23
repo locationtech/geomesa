@@ -27,7 +27,6 @@ class HBaseFeatureWriterAppend(sft: SimpleFeatureType, table: Table) extends Fea
 
   import scala.collection.JavaConversions._
 
-  private val SFC = new Z3SFC
   private var curFeature: SimpleFeature = null
   private val dtgIndex =
     sft.getAttributeDescriptors
@@ -57,7 +56,7 @@ class HBaseFeatureWriterAppend(sft: SimpleFeatureType, table: Table) extends Fea
     val prefix = Shorts.toByteArray(weeks.getWeeks.toShort)
 
     val secondsInWeek = secondsInCurrentWeek(dtg, weeks)
-    val z3 = SFC.index(x, y, secondsInWeek)
+    val z3 = Z3SFC.index(x, y, secondsInWeek)
     val z3idx = Longs.toByteArray(z3.z)
 
     val idBytes = curFeature.getID.getBytes(StandardCharsets.UTF_8)

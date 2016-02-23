@@ -101,9 +101,6 @@ object Conversions {
   }
 }
 
-
-
-
 object RichIterator {
   implicit class RichIterator[T](val iter: Iterator[T]) extends AnyVal {
     def head = iter.next()
@@ -231,6 +228,7 @@ object RichSimpleFeatureType {
       val gd = sft.getGeometryDescriptor
       gd != null && gd.getType.getBinding == classOf[Point]
     }
+    def nonPoints = !isPoints
     def isLines = {
       val gd = sft.getGeometryDescriptor
       gd != null && gd.getType.getBinding == classOf[LineString]

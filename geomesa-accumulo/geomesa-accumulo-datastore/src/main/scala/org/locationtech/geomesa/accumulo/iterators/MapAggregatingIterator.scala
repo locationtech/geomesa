@@ -29,6 +29,7 @@ import scala.collection.mutable
 import scala.languageFeature.implicitConversions
 import scala.collection.JavaConverters._
 
+@deprecated
 class MapAggregatingIterator(other: MapAggregatingIterator, env: IteratorEnvironment)
   extends FeatureAggregatingIterator[MapAggregatingIteratorResult](other, env) {
 
@@ -57,6 +58,7 @@ class MapAggregatingIterator(other: MapAggregatingIterator, env: IteratorEnviron
   }
 }
 
+@deprecated
 object MapAggregatingIterator extends LazyLogging {
 
   val MAP_ATTRIBUTE = "map_attribute"
@@ -74,30 +76,9 @@ object MapAggregatingIterator extends LazyLogging {
 
   def setMapAttribute(iterSettings: IteratorSetting, mapAttribute: String): Unit =
     iterSettings.addOption(MAP_ATTRIBUTE, mapAttribute)
-
-
-  def reduceMapAggregationFeatures(features: SFIter, query: Query): SFIter = {
-    val sft = query.getHints.getReturnSft
-    val aggregateKeyName = query.getHints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
-
-    val maps = features.map(_.getAttribute(aggregateKeyName).asInstanceOf[JMap[AnyRef, Int]].asScala)
-
-    if (maps.nonEmpty) {
-      val reducedMap = sumNumericValueMutableMaps(maps.toIterable).toMap // to immutable map
-
-      val featureBuilder = ScalaSimpleFeatureFactory.featureBuilder(sft)
-      featureBuilder.reset()
-      featureBuilder.add(reducedMap)
-      featureBuilder.add(GeometryUtils.zeroPoint) // Filler value as Feature requires a geometry
-      val result = featureBuilder.buildFeature(null)
-
-      Iterator(result)
-    } else {
-      CloseableIterator.empty
-    }
-  }
 }
 
+@deprecated
 case class MapAggregatingIteratorResult(mapAttributeName: String,
                                         countMap: mutable.Map[AnyRef, Int] = mutable.Map()) extends Result {
   override def addToFeature(sfb: SimpleFeatureBuilder): Unit =  {

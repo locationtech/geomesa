@@ -20,7 +20,7 @@ import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.process.vector.{HeatmapSurface, VectorProcess}
 import org.locationtech.geomesa.accumulo.index.QueryHints
-import org.locationtech.geomesa.accumulo.iterators.Z3DensityIterator
+import org.locationtech.geomesa.accumulo.iterators.KryoLazyDensityIterator
 import org.opengis.coverage.grid.GridGeometry
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression
@@ -57,7 +57,7 @@ class DensityProcess extends VectorProcess {
     val radiusCells: Int = if (argRadiusPixels == null) 10 else argRadiusPixels
 
     val heatMap = new HeatmapSurface(radiusCells, argOutputEnv, gridWidth, gridHeight)
-    val decode = Z3DensityIterator.decodeResult(argOutputEnv, gridWidth, gridHeight)
+    val decode = KryoLazyDensityIterator.decodeResult(argOutputEnv, gridWidth, gridHeight)
 
     try {
       val features = obsFeatures.features()
