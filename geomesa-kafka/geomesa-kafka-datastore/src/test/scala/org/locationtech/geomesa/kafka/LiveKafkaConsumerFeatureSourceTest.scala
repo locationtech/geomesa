@@ -8,9 +8,13 @@
 
 package org.locationtech.geomesa.kafka
 
+import java.util.concurrent.CountDownLatch
+
+import com.google.common.util.concurrent.AtomicLongMap
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Coordinate
+import com.vividsolutions.jts.geom.{Coordinate, Point}
 import org.geotools.data._
+import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
@@ -104,6 +108,60 @@ class LiveKafkaConsumerFeatureSourceTest extends Specification with HasEmbeddedK
         val features = consumerFC.getFeatures(bbox).features()
         features.hasNext must beFalse
       }
+    }
+
+    "support listeners" >> {
+      val m = AtomicLongMap.create[String]()
+
+      val id = "testlistener"
+      val numUpdates = 100
+      val maxLon = 80.0
+      var latestLon = -1.0
+
+      val sft = {
+        val sft = SimpleFeatureTypes.createType("listeners", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+        KafkaDataStoreHelper.createStreamingSFT(sft, zkPath)
+      }
+      val producerDS = DataStoreFinder.getDataStore(producerParams)
+      producerDS.createSchema(sft)
+
+      val listenerConsumerDS = DataStoreFinder.getDataStore(consumerParams)
+      val consumerFC = listenerConsumerDS.getFeatureSource("listeners")
+
+      val latch = new CountDownLatch(numUpdates)
+
+      val featureListener = new TestLambdaFeatureListener((fe: KafkaFeatureEvent) => {
+        val f = fe.feature
+        val geom: Point = f.getDefaultGeometry.asInstanceOf[Point]
+        latestLon = geom.getX
+        m.incrementAndGet(f.getID)
+        latch.countDown()
+      })
+
+      consumerFC.addFeatureListener(featureListener)
+
+      val fw = producerDS.getFeatureWriter("listeners", null, Transaction.AUTO_COMMIT)
+
+      (numUpdates to 1 by -1).foreach { writeUpdate }
+
+      def writeUpdate(i: Int) = {
+        val ll = maxLon - maxLon/i
+
+        val sf = fw.next()
+        sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID("testlistener")
+        sf.setAttributes(Array("smith", 30, DateTime.now().toDate).asInstanceOf[Array[AnyRef]])
+        sf.setDefaultGeometry(gf.createPoint(new Coordinate(ll, ll)))
+        fw.write()
+      }
+
+      logger.debug("Wrote feature")
+      while(latch.getCount > 0) {
+        Thread.sleep(100)
+      }
+
+      logger.debug("getting id")
+      m.get(id) must be equalTo numUpdates
+      latestLon must be equalTo 0.0
     }
   }
 
