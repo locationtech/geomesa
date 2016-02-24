@@ -8,20 +8,26 @@
 
 package org.locationtech.geomesa.kafka
 
+import java.util
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{ScheduledThreadPoolExecutor, Executors, LinkedBlockingQueue, TimeUnit}
+import java.util.concurrent.{Executors, LinkedBlockingQueue, ScheduledThreadPoolExecutor, TimeUnit}
 
 import com.google.common.base.Ticker
 import com.google.common.cache._
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.Query
+import org.geotools.data.FeatureEvent.Type
 import org.geotools.data.store.ContentEntry
+import org.geotools.data.{FeatureEvent, Query}
+import org.geotools.factory.CommonFactoryFinder
+import org.geotools.filter.identity.FeatureIdImpl
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.kafka.consumer.KafkaConsumerFactory
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.FR
 import org.locationtech.geomesa.utils.index.{BucketIndex, SpatialIndex}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+import org.opengis.filter.identity.FeatureId
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -37,6 +43,8 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
   extends KafkaConsumerFeatureSource(entry, sft, query) with Runnable with LazyLogging {
 
   private[kafka] val featureCache = new LiveFeatureCache(sft, expirationPeriod)
+
+  private val contentState = entry.getState(getTransaction)
 
   private val msgDecoder = new KafkaGeoMessageDecoder(sft)
   private val queue = new LinkedBlockingQueue[GeoMessage]()
@@ -114,19 +122,43 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
     }, 0, 1, TimeUnit.SECONDS)
   }
 
-  override def run(): Unit = while (running.get) {
-    queue.take() match {
-      case update: CreateOrUpdate => featureCache.createOrUpdateFeature(update)
-      case del: Delete            => featureCache.removeFeature(del)
-      case clr: Clear             => featureCache.clear()
-      case m                      => throw new IllegalArgumentException(s"Unknown message: $m")
+  override def run(): Unit =
+    while (running.get) {
+      queue.take() match {
+        case update: CreateOrUpdate =>
+          featureCache.createOrUpdateFeature(update)
+          contentState.fireFeatureEvent(new KafkaFeatureEvent(this, Type.CHANGED, null, update.feature))
+        case del: Delete            => featureCache.removeFeature(del)
+          contentState.fireFeatureEvent(new FeatureEvent(this, Type.REMOVED, null, KafkaFeatureEvent.buildId(del.id)))
+        case clr: Clear             => featureCache.clear()
+        case m                      => throw new IllegalArgumentException(s"Unknown message: $m")
+      }
     }
-  }
 
   // optimized for filter.include
   override def getCountInternal(query: Query): Int = featureCache.size(query.getFilter)
 
   override def getReaderForFilter(f: Filter): FR = featureCache.getReaderForFilter(f)
+}
+
+import org.locationtech.geomesa.kafka.KafkaFeatureEvent._
+
+class KafkaFeatureEvent(source: AnyRef,
+                        eventType: FeatureEvent.Type,
+                        bounds: ReferencedEnvelope,
+                        val feature: SimpleFeature)
+  extends FeatureEvent(source, eventType, bounds, buildId(feature.getID)) { }
+
+object KafkaFeatureEvent {
+  val ff = CommonFactoryFinder.getFilterFactory2
+
+  def buildId(id: String): Filter = {
+    val fid = new FeatureIdImpl(id)
+    val set = new util.HashSet[FeatureId]
+    set.add(fid)
+
+    ff.id(set)
+  }
 }
 
 /** @param sft the [[SimpleFeatureType]]
