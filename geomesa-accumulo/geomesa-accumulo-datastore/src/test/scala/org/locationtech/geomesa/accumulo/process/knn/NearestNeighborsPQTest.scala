@@ -15,7 +15,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
-import org.locationtech.geomesa.accumulo.index.Constants
+import org.locationtech.geomesa.accumulo.index.{Constants, IndexEntryDecoder}
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -28,7 +28,7 @@ import scala.collection.JavaConversions._
 class NearestNeighborsPQTest extends Specification {
 
   val sftName = "geomesaKNNTestQueryFeature"
-  val sft = SimpleFeatureTypes.createType(sftName, index.spec)
+  val sft = SimpleFeatureTypes.createType(sftName, IndexEntryDecoder.spec)
 
   val equatorSF = SimpleFeatureBuilder.build(sft, List(), "equator")
   equatorSF.setDefaultGeometry(WKTUtils.read(f"POINT(0.1 0.2)"))
@@ -52,7 +52,7 @@ class NearestNeighborsPQTest extends Specification {
 
   def diagonalFeatureCollection: DefaultFeatureCollection = {
     val sftName = "geomesaKNNTestDiagonalFeature"
-    val sft = SimpleFeatureTypes.createType(sftName, index.spec)
+    val sft = SimpleFeatureTypes.createType(sftName, IndexEntryDecoder.spec)
     sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = DEFAULT_DTG_PROPERTY_NAME
 
     val featureCollection = new DefaultFeatureCollection(sftName, sft)
@@ -70,7 +70,7 @@ class NearestNeighborsPQTest extends Specification {
 
   def polarFeatureCollection: DefaultFeatureCollection = {
     val sftName = "geomesaKNNTestPolarFeature"
-    val sft = SimpleFeatureTypes.createType(sftName, index.spec)
+    val sft = SimpleFeatureTypes.createType(sftName, IndexEntryDecoder.spec)
     sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = DEFAULT_DTG_PROPERTY_NAME
 
     val featureCollection = new DefaultFeatureCollection(sftName, sft)

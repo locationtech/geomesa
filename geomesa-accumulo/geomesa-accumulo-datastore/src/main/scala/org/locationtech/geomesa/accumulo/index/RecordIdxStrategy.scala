@@ -15,7 +15,7 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data.tables.RecordTable
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.Strategy._
-import org.locationtech.geomesa.accumulo.iterators.{KryoLazyFilterTransformIterator, BinAggregatingIterator}
+import org.locationtech.geomesa.accumulo.iterators.{KryoLazyStatsIterator, KryoLazyFilterTransformIterator, BinAggregatingIterator}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
@@ -81,6 +81,10 @@ class RecordIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLoggi
         // use the server side aggregation
         val iters = Seq(BinAggregatingIterator.configureDynamic(sft, filter.secondary, hints, deduplicate = false))
         val kvsToFeatures = BinAggregatingIterator.kvsToFeatures()
+        BatchScanPlan(table, ranges, iters, Seq.empty, kvsToFeatures, threads, hasDuplicates = false)
+      } else if (hints.isStatsIteratorQuery) {
+        val iters = Seq(KryoLazyStatsIterator.configure(sft, filter.secondary, hints, deduplicate = false))
+        val kvsToFeatures = queryPlanner.defaultKVsToFeatures(hints)
         BatchScanPlan(table, ranges, iters, Seq.empty, kvsToFeatures, threads, hasDuplicates = false)
       } else {
         val iterators = if (filter.secondary.isDefined || hints.getTransform.isDefined) {

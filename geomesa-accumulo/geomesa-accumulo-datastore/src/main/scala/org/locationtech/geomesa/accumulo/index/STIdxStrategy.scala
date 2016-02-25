@@ -21,6 +21,8 @@ import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanner._
 import org.locationtech.geomesa.accumulo.index.Strategy._
 import org.locationtech.geomesa.accumulo.iterators._
+import org.locationtech.geomesa.features.SerializationType
+import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.filter.FilterHelper._
 import org.locationtech.geomesa.filter._
@@ -89,18 +91,17 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
       val envelope = hints.getDensityEnvelope.get
       val weight = hints.getDensityWeight
       val p = iteratorPriority_AnalysisIterator
-      val filterSeq = (ecql ++ ofilter).toSeq
-      val filter = if (filterSeq.length > 1) {
-        Some(ff.and(filterSeq))
-      } else {
-        filterSeq.headOption
-      }
-
       val iter =
-        DensityIterator.configure(sft, featureEncoding, schema, filter, envelope, width, height, weight, p)
+        DensityIterator.configure(sft, featureEncoding, schema, filter.filter, envelope, width, height, weight, p)
       (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), false, false)
+    } else if (hints.isStatsIteratorQuery) {
+      if (featureEncoding != SerializationType.KRYO) {
+        throw new IllegalArgumentException("The stats iterator is not supported for non-kryo serialization")
+      }
+      val iter = KryoLazyStatsIterator.configure(sft, filter.filter, hints, sft.nonPoints)
+      (Seq(iter), queryPlanner.defaultKVsToFeatures(hints), false, false)
     } else {
-      val iteratorConfig = IteratorTrigger.chooseIterator(filter.filter, ecql, hints, sft)
+      val iteratorConfig = IteratorTrigger.chooseIterator(filter.filter.getOrElse(Filter.INCLUDE), ecql, hints, sft)
       val stiiIterCfg = getSTIIIterCfg(iteratorConfig, hints, sft, ofilter, ecql, featureEncoding, version)
       val aggIterCfg = configureAggregatingIterator(hints, geometryToCover, schema, featureEncoding, sft)
 
