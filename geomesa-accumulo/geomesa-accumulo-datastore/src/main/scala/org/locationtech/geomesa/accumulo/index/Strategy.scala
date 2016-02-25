@@ -191,22 +191,6 @@ object Strategy extends LazyLogging {
                                    schema: String,
                                    featureEncoding: SerializationType,
                                    featureType: SimpleFeatureType) = hints match {
-    case _ if hints.containsKey(TEMPORAL_DENSITY_KEY) =>
-      val clazz = classOf[TemporalDensityIterator]
-
-      val cfg = new IteratorSetting(iteratorPriority_AnalysisIterator,
-        "topfilter-" + randomPrintableString(5),
-        clazz)
-
-      val interval = hints.get(TIME_INTERVAL_KEY).asInstanceOf[Interval]
-      val buckets = hints.get(TIME_BUCKETS_KEY).asInstanceOf[Int]
-
-      TemporalDensityIterator.configure(cfg, interval, buckets)
-
-      configureFeatureEncoding(cfg, featureEncoding)
-      configureFeatureType(cfg, featureType)
-
-      Some(cfg)
     case _ if hints.containsKey(MAP_AGGREGATION_KEY) =>
       val clazz = classOf[MapAggregatingIterator]
 

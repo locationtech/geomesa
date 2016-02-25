@@ -4,8 +4,8 @@
              xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1"
              xmlns:xlink="http://www.w3.org/1999/xlink"
              xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
-<!-- curl -u admin:geoserver -H 'Content-type: xml' -XPOST -d@'temporaldensity.xml' http://localhost:8080/geoserver/wps | json_pp -->
-  <ows:Identifier>geomesa:TemporalDensity</ows:Identifier>
+<!-- curl -u admin:geoserver -H 'Content-type: xml' -XPOST -d@'stats.xml' http://localhost:8080/geoserver/wps | json_pp -->
+  <ows:Identifier>geomesa:StatsIteratorProcess</ows:Identifier>
   <wps:DataInputs>
     <wps:Input>
       <ows:Identifier>features</ows:Identifier>
@@ -18,21 +18,9 @@
       </wps:Reference>
     </wps:Input>
     <wps:Input>
-      <ows:Identifier>startDate</ows:Identifier>
+      <ows:Identifier>statString</ows:Identifier>
       <wps:Data>
-        <wps:LiteralData>2014-01-01T00:00:00</wps:LiteralData>
-      </wps:Data>
-    </wps:Input>
-    <wps:Input>
-      <ows:Identifier>endDate</ows:Identifier>
-      <wps:Data>
-        <wps:LiteralData>2014-12-31T23:59:59</wps:LiteralData>
-      </wps:Data>
-    </wps:Input>
-    <wps:Input>
-      <ows:Identifier>buckets</ows:Identifier>
-      <wps:Data>
-        <wps:LiteralData>12</wps:LiteralData>
+        <wps:LiteralData>MinMax(foo);MinMax(bar);IteratorCount</wps:LiteralData>
       </wps:Data>
     </wps:Input>
   </wps:DataInputs>

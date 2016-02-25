@@ -32,7 +32,7 @@ class IteratorTriggerTest extends Specification {
     val schemaEncoding = "%~#s%" + featureName + "#cstr%10#r%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%4,3#gh%ddHH#d%10#id"
 
     val testFeatureTypeSpec: String = {
-      s"POINT:String,LINESTRING:String,POLYGON:String,attr1:String:$OPT_INDEX_VALUE=true,attr2:String," + spec
+      s"POINT:String,LINESTRING:String,POLYGON:String,attr1:String:$OPT_INDEX_VALUE=true,attr2:String," + IndexEntryDecoder.spec
     }
 
     val testFeatureType: SimpleFeatureType = {

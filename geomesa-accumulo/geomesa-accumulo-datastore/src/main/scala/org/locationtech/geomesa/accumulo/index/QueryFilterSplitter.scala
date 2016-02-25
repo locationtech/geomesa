@@ -212,12 +212,13 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends LazyLogging {
         filterPlan
       } else {
         // A OR B OR C becomes... A OR (B NOT A) OR (C NOT A and NOT B)
-        def extractNot(qp: QueryFilter) = ff.not(qp.filter)
+        def extractNot(qp: QueryFilter) = qp.filter.map(ff.not)
         // keep track of our current disjoint clause
-        val nots = ArrayBuffer[Filter](extractNot(filterPlan.filters.head))
+        val nots = ArrayBuffer[Filter]()
+        extractNot(filterPlan.filters.head).foreach(nots.append(_))
         val filters = Seq(filterPlan.filters.head) ++ filterPlan.filters.tail.map { filter =>
           val sec = Some(andFilters(nots ++ filter.secondary))
-          nots.append(extractNot(filter)) // note - side effect
+          extractNot(filter).foreach(nots.append(_)) // note - side effect
           filter.copy(secondary = sec)
         }
         FilterPlan(filters)
@@ -297,7 +298,7 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends LazyLogging {
   private def tryMerge(toMerge: QueryFilter, mergeTo: QueryFilter): QueryFilter = {
     if (mergeTo.primary.forall(_ == Filter.INCLUDE)) {
       // this is a full table scan, we can just append the OR to the secondary filter
-      val secondary = orOption(mergeTo.secondary.toSeq ++ Seq(toMerge.filter))
+      val secondary = orOption(mergeTo.secondary.toSeq ++ toMerge.filter)
       mergeTo.copy(secondary = secondary)
     } else if (toMerge.strategy == StrategyType.ATTRIBUTE && mergeTo.strategy == StrategyType.ATTRIBUTE) {
       AttributeIdxStrategy.tryMergeAttrStrategy(toMerge, mergeTo)
@@ -332,7 +333,10 @@ case class QueryFilter(strategy: StrategyType,
                        primary: Seq[Filter],
                        secondary: Option[Filter] = None,
                        or: Boolean = false) {
-  lazy val filter = if (or) andFilters(Seq(orFilters(primary)) ++ secondary) else andFilters(primary ++ secondary)
+  lazy val filter: Option[Filter] = {
+    val incl = if (or) andOption(orOption(primary).toSeq ++ secondary) else andOption(primary ++ secondary)
+    incl.filter(_ != Filter.INCLUDE)
+  }
   override lazy val toString: String =
     s"$strategy[${primary.map(filterToString).mkString(if (or) " OR " else " AND ")}]" +
       s"[${secondary.map(filterToString).getOrElse("None")}]"

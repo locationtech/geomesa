@@ -84,7 +84,7 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
       }
     } else {
       // for non-point geoms, the index is coarse-grained, so we always apply the full filter
-      Some(filter.filter)
+      filter.filter
     }
 
     val (iterators, kvsToFeatures, colFamily, hasDupes) = if (hints.isBinQuery) {
@@ -101,8 +101,8 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     } else if (hints.isDensityQuery) {
       val iter = Z3DensityIterator.configure(sft, ecql, hints)
       (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), Z3Table.FULL_CF, false)
-    } else if (hints.isTemporalDensityQuery) {
-      val iter = KryoLazyTemporalDensityIterator.configure(sft, ecql, hints, sft.nonPoints)
+    } else if (hints.isStatsIteratorQuery) {
+      val iter = KryoLazyStatsIterator.configure(sft, ecql, hints, sft.nonPoints)
       (Seq(iter), queryPlanner.defaultKVsToFeatures(hints), Z3Table.FULL_CF, false)
     } else if (hints.isMapAggregatingQuery) {
       val iter = KryoLazyMapAggregatingIterator.configure(sft, ecql, hints, sft.nonPoints)

@@ -24,13 +24,14 @@ import org.locationtech.geomesa.filter.FilterHelper._
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
+import org.locationtech.geomesa.utils.stats.{Stat, Cardinality, IndexCoverage}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
 import org.opengis.filter.{Filter, PropertyIsEqualTo, PropertyIsLike, _}
 
 import scala.collection.JavaConversions._
+import scala.util.Try
 
 class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging {
 
@@ -101,6 +102,23 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
           joinQuery(sft, hints, queryPlanner, hasDupes, singleTableScanPlan)
         }
       }
+    } else if (hints.isStatsIteratorQuery) {
+      val kvsToFeatures = queryPlanner.defaultKVsToFeatures(hints)
+      if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
+        val iters = Seq(KryoLazyStatsIterator.configure(sft, filter.secondary, hints, hasDupes))
+        BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDuplicates = false)
+      } else {
+        // check to see if we can execute against the index values
+        val indexSft = IndexValueEncoder.getIndexSft(sft)
+        if (Try(Stat(indexSft, hints.getStatsIteratorQuery)).isSuccess &&
+            filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
+          val iters = Seq(KryoLazyStatsIterator.configure(indexSft, filter.secondary, hints, hasDupes))
+          BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDuplicates = false)
+        } else {
+          // have to do a join against the record table
+          joinQuery(sft, hints, queryPlanner, hasDupes, singleTableScanPlan)
+        }
+      }
     } else if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
       // we have a fully encoded value - can satisfy any query against it
       singleTableScanPlan(sft, filter.secondary, hints.getTransform)
@@ -134,7 +152,9 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
     val attributeScan = attributePlan(IndexValueEncoder.getIndexSft(sft), stFilter, None)
 
     // apply any secondary filters or transforms against the record table
-    val recordIterators = if (ecqlFilter.isDefined || hints.getTransformSchema.isDefined) {
+    val recordIterators = if (hints.isStatsIteratorQuery) {
+      Seq(KryoLazyStatsIterator.configure(sft, ecqlFilter, hints, deduplicate = false))
+    } else if (ecqlFilter.isDefined || hints.getTransformSchema.isDefined) {
       Seq(configureRecordTableIterator(sft, queryPlanner.featureEncoding, ecqlFilter, hints))
     } else {
       Seq.empty

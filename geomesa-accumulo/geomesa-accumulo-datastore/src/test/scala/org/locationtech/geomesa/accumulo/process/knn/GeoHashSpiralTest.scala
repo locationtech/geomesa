@@ -12,6 +12,7 @@ import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
+import org.locationtech.geomesa.accumulo.index.IndexEntryDecoder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -25,7 +26,7 @@ class GeoHashSpiralTest extends Specification {
   def generateCvilleSF = {
     val sftName = "geomesaKNNTestQueryFeature"
 
-    val sft = SimpleFeatureTypes.createType(sftName, index.spec)
+    val sft = SimpleFeatureTypes.createType(sftName, IndexEntryDecoder.spec)
 
     val cvilleSF = SimpleFeatureBuilder.build(sft, List(), "charlottesville")
     cvilleSF.setDefaultGeometry(WKTUtils.read(f"POINT(-78.4953560 38.0752150 )"))
@@ -36,7 +37,7 @@ class GeoHashSpiralTest extends Specification {
   def generateLineSF = {
     val sftName = "geomesaKNNTestQueryFeature"
 
-    val sft = SimpleFeatureTypes.createType(sftName, index.spec)
+    val sft = SimpleFeatureTypes.createType(sftName, IndexEntryDecoder.spec)
 
     val lineSF = SimpleFeatureBuilder.build(sft, List(), "route 29")
     lineSF.setDefaultGeometry(WKTUtils.read(f"LINESTRING(-78.491 38.062, -78.474 38.082)"))
