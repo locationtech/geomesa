@@ -16,7 +16,7 @@ import org.apache.commons.codec.binary.Base64
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.Transformers
-import org.locationtech.geomesa.convert.Transformers.EvaluationContext
+import org.locationtech.geomesa.convert.Transformers.{EvaluationContextImpl, EvaluationContext}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -525,6 +525,12 @@ class TransformersTest extends Specification {
           buf.asInstanceOf[Polygon].getArea must beCloseTo(math.Pi * 4.0, 0.2)
         }
       }
+    }
+
+    "return null for non-existing fields" >> {
+      val fieldsCtx = new EvaluationContextImpl(IndexedSeq("foo", "bar"), Array("5", "10"), null)
+      Transformers.parseTransform("$b").eval(Array())(fieldsCtx) mustEqual null
+      Transformers.parseTransform("$bar").eval(Array())(fieldsCtx) mustEqual "10"
     }
 
     import scala.collection.JavaConversions._

@@ -226,7 +226,7 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
       if (idx == -1) {
         idx = ctx.indexOf(n)
       }
-      ctx.get(idx)
+      if (idx < 0) null else ctx.get(idx)
     }
 
     override def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String] =
