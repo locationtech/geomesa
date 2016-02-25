@@ -15,6 +15,7 @@ import java.util.concurrent.{Executors, LinkedBlockingQueue, ScheduledThreadPool
 import com.google.common.base.Ticker
 import com.google.common.cache._
 import com.typesafe.scalalogging.LazyLogging
+import com.vividsolutions.jts.geom.{Point, Envelope}
 import org.geotools.data.FeatureEvent.Type
 import org.geotools.data.store.ContentEntry
 import org.geotools.data.{FeatureEvent, Query}
@@ -23,7 +24,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.kafka.consumer.KafkaConsumerFactory
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.locationtech.geomesa.utils.geotools.FR
+import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.index.{BucketIndex, SpatialIndex}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -44,7 +45,7 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
 
   private[kafka] val featureCache = new LiveFeatureCache(sft, expirationPeriod)
 
-  private val contentState = entry.getState(getTransaction)
+  private lazy val contentState = entry.getState(getTransaction)
 
   private val msgDecoder = new KafkaGeoMessageDecoder(sft)
   private val queue = new LinkedBlockingQueue[GeoMessage]()
@@ -127,10 +128,24 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
       queue.take() match {
         case update: CreateOrUpdate =>
           featureCache.createOrUpdateFeature(update)
-          contentState.fireFeatureEvent(new KafkaFeatureEvent(this, Type.CHANGED, null, update.feature))
-        case del: Delete            => featureCache.removeFeature(del)
-          contentState.fireFeatureEvent(new FeatureEvent(this, Type.REMOVED, null, KafkaFeatureEvent.buildId(del.id)))
-        case clr: Clear             => featureCache.clear()
+          fireEvent(new KafkaFeatureEvent(this,
+                                          Type.CHANGED,
+                                          KafkaFeatureEvent.buildBounds(update.feature),
+                                          update.feature))
+
+        case del: Delete            =>
+          featureCache.removeFeature(del)
+          fireEvent(new FeatureEvent(this,
+                                     Type.REMOVED,
+                                     KafkaFeatureEvent.buildBounds(featureCache.features(del.id).sf),
+                                     KafkaFeatureEvent.buildId(del.id)))
+
+        case clr: Clear             =>
+          featureCache.clear()
+          fireEvent(new FeatureEvent(this,
+                                     Type.REMOVED,
+                                     KafkaConsumerFeatureSource.wholeWorldBounds,
+                                     Filter.INCLUDE))
         case m                      => throw new IllegalArgumentException(s"Unknown message: $m")
       }
     }
@@ -139,6 +154,15 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
   override def getCountInternal(query: Query): Int = featureCache.size(query.getFilter)
 
   override def getReaderForFilter(f: Filter): FR = featureCache.getReaderForFilter(f)
+
+  override def canEvent: Boolean = true
+
+  // Lazily fires events.
+  def fireEvent(event: => FeatureEvent) = {
+    if (contentState.hasListener) {
+      contentState.fireFeatureEvent(event)
+    }
+  }
 }
 
 import org.locationtech.geomesa.kafka.KafkaFeatureEvent._
@@ -158,6 +182,19 @@ object KafkaFeatureEvent {
     set.add(fid)
 
     ff.id(set)
+  }
+
+  def buildBounds(feature: SimpleFeature): ReferencedEnvelope = {
+    try {
+      val geom = feature.getDefaultGeometry.asInstanceOf[Point]
+      val lon = geom.getX
+      val lat = geom.getY
+
+      ReferencedEnvelope.create(new Envelope(lon, lon, lat, lat), CRS_EPSG_4326)
+    } catch {
+      case t: Throwable =>
+        KafkaConsumerFeatureSource.wholeWorldBounds
+    }
   }
 }
 

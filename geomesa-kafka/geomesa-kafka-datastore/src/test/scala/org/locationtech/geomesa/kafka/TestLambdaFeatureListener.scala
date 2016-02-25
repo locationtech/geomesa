@@ -8,15 +8,16 @@
 
 package org.locationtech.geomesa.kafka
 
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{FeatureEvent, FeatureListener}
 
-class TestLambdaFeatureListener(lambda: KafkaFeatureEvent => Unit) extends FeatureListener {
+class TestLambdaFeatureListener(lambda: KafkaFeatureEvent => Unit) extends FeatureListener with LazyLogging {
   override def changed(featureEvent: FeatureEvent): Unit = {
     featureEvent match {
       case kfe: KafkaFeatureEvent =>
         lambda(kfe)
       case _ =>
-        println(s"Received event ${featureEvent.getType}: ${featureEvent.toString}.")
+        logger.debug(s"Received event ${featureEvent.getType}: ${featureEvent.toString}.")
     }
   }
 }

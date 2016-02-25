@@ -154,12 +154,12 @@ class LiveKafkaConsumerFeatureSourceTest extends Specification with HasEmbeddedK
         fw.write()
       }
 
-      logger.info("Wrote feature")
+      logger.debug("Wrote feature")
       while(latch.getCount > 0) {
         Thread.sleep(100)
       }
 
-      logger.info("getting id")
+      logger.debug("getting id")
       m.get(id) must be equalTo numUpdates
       latestLon must be equalTo 0.0
     }

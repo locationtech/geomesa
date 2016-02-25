@@ -37,8 +37,7 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
   with ContentFeatureSourceSecuritySupport
   with ContentFeatureSourceReTypingSupport {
 
-  override def getBoundsInternal(query: Query) =
-    ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), CRS_EPSG_4326)
+  override def getBoundsInternal(query: Query) = KafkaConsumerFeatureSource.wholeWorldBounds
 
   override def buildFeatureType(): SimpleFeatureType = schema
 
@@ -49,6 +48,10 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
   override def getReaderInternal(query: Query): FR = addSupport(query, getReaderForFilter(query.getFilter))
 
   def getReaderForFilter(f: Filter): FR
+}
+
+object KafkaConsumerFeatureSource {
+  lazy val wholeWorldBounds = ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), CRS_EPSG_4326)
 }
 
 case class FeatureHolder(sf: SimpleFeature, env: Envelope) {
