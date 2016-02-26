@@ -130,7 +130,7 @@ class LiveKafkaConsumerFeatureSourceTest extends Specification with HasEmbeddedK
 
       val latch = new CountDownLatch(numUpdates)
 
-      val fl = new TestLambdaFeatureListener((fe: KafkaFeatureEvent) => {
+      val featureListener = new TestLambdaFeatureListener((fe: KafkaFeatureEvent) => {
         val f = fe.feature
         val geom: Point = f.getDefaultGeometry.asInstanceOf[Point]
         latestLon = geom.getX
@@ -138,7 +138,7 @@ class LiveKafkaConsumerFeatureSourceTest extends Specification with HasEmbeddedK
         latch.countDown()
       })
 
-      consumerFC.addFeatureListener(fl)
+      consumerFC.addFeatureListener(featureListener)
 
       val fw = producerDS.getFeatureWriter("listeners", null, Transaction.AUTO_COMMIT)
 

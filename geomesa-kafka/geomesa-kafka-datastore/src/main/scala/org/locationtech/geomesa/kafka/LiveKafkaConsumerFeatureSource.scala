@@ -18,7 +18,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Point, Envelope}
 import org.geotools.data.FeatureEvent.Type
 import org.geotools.data.store.ContentEntry
-import org.geotools.data.{FeatureEvent, Query}
+import org.geotools.data.{FeatureSource, FeatureEvent, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -128,24 +128,13 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
       queue.take() match {
         case update: CreateOrUpdate =>
           featureCache.createOrUpdateFeature(update)
-          fireEvent(new KafkaFeatureEvent(this,
-                                          Type.CHANGED,
-                                          KafkaFeatureEvent.buildBounds(update.feature),
-                                          update.feature))
-
+          fireEvent(KafkaFeatureEvent.changed(this, update.feature))
         case del: Delete            =>
           featureCache.removeFeature(del)
-          fireEvent(new FeatureEvent(this,
-                                     Type.REMOVED,
-                                     KafkaFeatureEvent.buildBounds(featureCache.features(del.id).sf),
-                                     KafkaFeatureEvent.buildId(del.id)))
-
+          fireEvent(KafkaFeatureEvent.removed(this, featureCache.features(del.id).sf))
         case clr: Clear             =>
           featureCache.clear()
-          fireEvent(new FeatureEvent(this,
-                                     Type.REMOVED,
-                                     KafkaConsumerFeatureSource.wholeWorldBounds,
-                                     Filter.INCLUDE))
+          fireEvent(KafkaFeatureEvent.cleared(this))
         case m                      => throw new IllegalArgumentException(s"Unknown message: $m")
       }
     }
@@ -196,6 +185,24 @@ object KafkaFeatureEvent {
         KafkaConsumerFeatureSource.wholeWorldBounds
     }
   }
+
+  def changed(src: FeatureSource, feature: SimpleFeature): FeatureEvent =
+    new KafkaFeatureEvent(this,
+      Type.CHANGED,
+      KafkaFeatureEvent.buildBounds(feature),
+      feature)
+
+  def removed(src: FeatureSource, feature: SimpleFeature): FeatureEvent =
+    new FeatureEvent(this,
+      Type.REMOVED,
+      KafkaFeatureEvent.buildBounds(feature),
+      KafkaFeatureEvent.buildId(feature.getID))
+
+  def cleared(src: FeatureSource): FeatureEvent =
+    new FeatureEvent(this,
+      Type.REMOVED,
+      KafkaConsumerFeatureSource.wholeWorldBounds,
+      Filter.INCLUDE)
 }
 
 /** @param sft the [[SimpleFeatureType]]
