@@ -15,10 +15,11 @@ import java.util.concurrent.{Executors, LinkedBlockingQueue, ScheduledThreadPool
 import com.google.common.base.Ticker
 import com.google.common.cache._
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Point, Envelope}
+import com.vividsolutions.jts.geom.{Envelope, Point}
 import org.geotools.data.FeatureEvent.Type
+import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.data.store.ContentEntry
-import org.geotools.data.{FeatureSource, FeatureEvent, Query}
+import org.geotools.data.{FeatureEvent, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -186,19 +187,19 @@ object KafkaFeatureEvent {
     }
   }
 
-  def changed(src: FeatureSource, feature: SimpleFeature): FeatureEvent =
+  def changed(src: SimpleFeatureSource, feature: SimpleFeature): FeatureEvent =
     new KafkaFeatureEvent(this,
       Type.CHANGED,
       KafkaFeatureEvent.buildBounds(feature),
       feature)
 
-  def removed(src: FeatureSource, feature: SimpleFeature): FeatureEvent =
+  def removed(src: SimpleFeatureSource, feature: SimpleFeature): FeatureEvent =
     new FeatureEvent(this,
       Type.REMOVED,
       KafkaFeatureEvent.buildBounds(feature),
       KafkaFeatureEvent.buildId(feature.getID))
 
-  def cleared(src: FeatureSource): FeatureEvent =
+  def cleared(src: SimpleFeatureSource): FeatureEvent =
     new FeatureEvent(this,
       Type.REMOVED,
       KafkaConsumerFeatureSource.wholeWorldBounds,
