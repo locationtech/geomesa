@@ -128,14 +128,14 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
     while (running.get) {
       queue.take() match {
         case update: CreateOrUpdate =>
-          featureCache.createOrUpdateFeature(update)
           fireEvent(KafkaFeatureEvent.changed(this, update.feature))
+          featureCache.createOrUpdateFeature(update)
         case del: Delete            =>
-          featureCache.removeFeature(del)
           fireEvent(KafkaFeatureEvent.removed(this, featureCache.features(del.id).sf))
+          featureCache.removeFeature(del)
         case clr: Clear             =>
-          featureCache.clear()
           fireEvent(KafkaFeatureEvent.cleared(this))
+          featureCache.clear()
         case m                      => throw new IllegalArgumentException(s"Unknown message: $m")
       }
     }
