@@ -221,13 +221,14 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
   }
 
   case class FieldLookup(n: String) extends Expr {
-    var idx = -1
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
-      if (idx == -1) {
-        idx = ctx.indexOf(n)
-      }
-      if (idx < 0) null else ctx.get(idx)
+    var doEval: EvaluationContext => Any = { ctx =>
+      val idx = ctx.indexOf(n)
+      doEval =
+        if(idx < 0)  _  => null
+        else         ec => ec.get(idx)
+      doEval(ctx)
     }
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = doEval(ctx)
 
     override def dependenciesOf(fieldNameMap: Map[String, Field]): Seq[String] =
       Seq(n) ++ fieldNameMap.get(n).flatMap { f => Option(f.transform).map(_.dependenciesOf(fieldNameMap)) }.getOrElse(Seq.empty)
