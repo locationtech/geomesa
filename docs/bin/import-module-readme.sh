@@ -6,11 +6,12 @@
 # IMPORTANT: update these to match your system!
 # (I had two copies of the geomesa repo because they were checked out on different branches)
 GM_DOCS=/opt/devel/src/geomesa
-GM_MASTER=/opt/devel/src/geomesa2
+GM_MASTER=/opt/devel/src/geomesa
 MODULES="
 geomesa-compute
 geomesa-convert
 geomesa-jobs
+geomesa-metrics
 geomesa-process
 geomesa-raster
 geomesa-stream
