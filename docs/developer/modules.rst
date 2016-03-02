@@ -10,9 +10,9 @@ distribution in more detail.
    modules/geomesa-compute
    modules/geomesa-convert
    modules/geomesa-jobs
+   modules/geomesa-metrics
    modules/geomesa-process
    modules/geomesa-raster
    modules/geomesa-stream
    modules/geomesa-utils
    modules/geomesa-web-data
-
