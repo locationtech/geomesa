@@ -19,7 +19,6 @@
             <scope>runtime</scope>
             <includes>
                 <include>org.locationtech.geomesa:geomesa-hbase-gs-plugin</include>
-                <include>org.locationtech.geomesa:geomesa-utils-gs-plugin</include>
             </includes>
         </dependencySet>
     </dependencySets>

@@ -9,9 +9,6 @@
             <outputDirectory>/</outputDirectory>
             <useProjectArtifact>true</useProjectArtifact>
             <scope>runtime</scope>
-            <excludes>
-                <exclude>org.locationtech.geomesa:geomesa-utils</exclude>
-            </excludes>
         </dependencySet>
     </dependencySets>
 </assembly>

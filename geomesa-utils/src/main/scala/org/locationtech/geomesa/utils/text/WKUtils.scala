@@ -10,8 +10,8 @@ package org.locationtech.geomesa.utils.text
 
 import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io.{WKBReader, WKBWriter, WKTReader, WKTWriter}
-import org.apache.commons.pool.BasePoolableObjectFactory
-import org.apache.commons.pool.impl.GenericObjectPool
+import org.apache.commons.pool2.BasePooledObjectFactory
+import org.apache.commons.pool2.impl.{GenericObjectPoolConfig, DefaultPooledObject, GenericObjectPool}
 
 trait ObjectPoolUtils[A] {
   val pool: GenericObjectPool[A]
@@ -28,9 +28,12 @@ trait ObjectPoolUtils[A] {
 
 object ObjectPoolFactory {
   def apply[A](f: => A, size:Int=10): ObjectPoolUtils[A] = new ObjectPoolUtils[A] {
-    val pool = new GenericObjectPool[A](new BasePoolableObjectFactory[A] {
-      def makeObject() = f
-    }, size)
+    val conf = new GenericObjectPoolConfig
+    conf.setMaxTotal(size)
+    val pool = new GenericObjectPool[A](new BasePooledObjectFactory[A] {
+      def create() = f
+      def wrap(a: A) = new DefaultPooledObject[A](a)
+    }, conf)
   }
 }
 

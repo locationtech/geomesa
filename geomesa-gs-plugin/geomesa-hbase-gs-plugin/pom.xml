@@ -44,12 +44,6 @@
             </exclusions>
         </dependency>
 
-        <!-- Use plugin jar instead of geomesa-utils (which is excluded in assembly.xml) -->
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-utils-gs-plugin</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-annotations</artifactId>
@@ -121,7 +115,6 @@
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <artifactSet>
                                 <excludes>
-                                    <exclude>org.locationtech.geomesa:geomesa-utils</exclude>
                                     <exclude>javax.servlet:servlet-api</exclude>
                                     <exclude>javax.servlet.jsp:jsp-api</exclude>
                                 </excludes>
