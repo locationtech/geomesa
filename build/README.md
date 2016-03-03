@@ -12,20 +12,20 @@ GeoMesa is an open-source, distributed, spatio-temporal database built on top of
 
 **Latest release**: ${geomesa.release.version} 
 * [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=geomesa-${geomesa.release.version})](https://travis-ci.org/locationtech/geomesa) 
-* [Release tarball](http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-assemble/${geomesa.release.version}/geomesa-assemble-${geomesa.release.version}-bin.tar.gz)
+* [Release tarball](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-dist/${geomesa.release.version}/geomesa-dist-${geomesa.release.version}-bin.tar.gz)
 * [Source](https://github.com/locationtech/geomesa/archive/geomesa-${geomesa.release.version}.tar.gz)
 
 **Development version (source only)**: ${project.version}
 * [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=master)](https://travis-ci.org/locationtech/geomesa)
 * [Source](https://github.com/locationtech/geomesa/archive/master.tar.gz)
 
-**1.0.x release**: geomesa-accumulo1.5-1.0.0-rc.7 
-* [![Build Status](https://travis-ci.org/locationtech/geomesa.svg?branch=accumulo1.5.x%2F1.x)](https://travis-ci.org/locationtech/geomesa) 
-* [Source](https://github.com/locationtech/geomesa/releases/tag/geomesa-accumulo1.5-1.0.0-rc.7)
-* [Release tarball](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-assemble-accumulo1.5/1.0.0-rc.7/geomesa-assemble-accumulo1.5-1.0.0-rc.7-bin.tar.gz)  
+**1.1.x release**: geomesa-1.1.0-rc.7 
+* [![Build Status](https://travis-ci.org/locationtech/geomesa.svg?branch=geomesa-1.1.0-rc.7)](https://travis-ci.org/locationtech/geomesa)
+* [Release tarball](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-assemble/1.1.0-rc.7/geomesa-assemble-1.1.0-rc.7-bin.tar.gz)
+* [Source](https://github.com/locationtech/geomesa/archive/geomesa-1.1.0-rc.7.tar.gz)
 
 <b>NOTE:</b> The current recommended version is `${geomesa.release.version}`. The most recent tar.gz assembly can be 
-[downloaded here](http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-assemble/${geomesa.release.version}/geomesa-assemble-${geomesa.release.version}-bin.tar.gz) 
+[downloaded here](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-dist/${geomesa.release.version}/geomesa-dist-${geomesa.release.version}-bin.tar.gz) 
 which contains the [Accumulo distributed runtime jar](geomesa-accumulo/geomesa-accumulo-distributed-runtime), [Accumulo GeoServer plugin](geomesa-gs-plugin/geomesa-accumulo-gs-plugin), and [command line tools](geomesa-tools).
 
 GeoMesa artifacts can be downloaded from the [LocationTech Maven repository](https://repo.locationtech.org/content/repositories/geomesa-releases/)
@@ -37,6 +37,45 @@ Snapshots are available in the [LocationTech Snapshots Repository](https://repo.
 To upgrade between minor releases of GeoMesa, the versions of all GeoMesa components **must** match. 
 
 This means that the version of the `geomesa-accumulo-distributed-runtime` JAR installed on Accumulo tablet servers **must** match the version of the `geomesa-accumulo-gs-plugin` JAR installed in the WEB-INF/lib directory of GeoServer.
+
+## Maven Integration
+
+GeoMesa artifacts are published to the LocationTech Maven repository. To include GeoMesa in your project,
+add the following repositories to your pom:
+
+```xml
+<repositories>
+  <repository>
+    <id>locationtech-releases</id>
+    <url>https://repo.locationtech.org/content/groups/releases</url>
+    <snapshots>
+      <enabled>false</enabled>
+    </snapshots>
+  </repository>
+  <repository>
+    <id>geomesa-snapshots</id>
+    <url>https://repo.locationtech.org/content/repositories/geomesa-snapshots</url>
+    <releases>
+      <enabled>false</enabled>
+    </releases>
+    <snapshots>
+      <enabled>true</enabled>
+    </snapshots>
+  </repository>
+  <repository>
+    <id>boundlessgeo</id>
+    <url>http://repo.boundlessgeo.com/main</url>
+  </repository>
+  <repository>
+    <id>osgeo</id>
+    <url>http://download.osgeo.org/webdav/geotools</url>
+  </repository>
+  <repository>
+    <id>conjars.org</id>
+    <url>http://conjars.org/repo</url>
+  </repository>
+</repositories>
+```
 
 ## Building from Source
 
