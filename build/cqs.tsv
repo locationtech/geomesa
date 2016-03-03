@@ -28,7 +28,7 @@ commons-lang:commons-lang	2.6	compile
 commons-logging:commons-logging	1.1.1	compile
 commons-logging:commons-logging	1.2	compile
 commons-net:commons-net	3.3	compile
-commons-pool:commons-pool	1.6	compile
+commons-pool:commons-pool	1.5.3	compile
 com.spatial4j:spatial4j	0.4.1	compile
 com.sun.xml.bind:jaxb-core	2.2.11	compile
 com.sun.xml.bind:jaxb-impl	2.2.11	compile
@@ -86,6 +86,7 @@ org.apache.commons:commons-compress	1.4.1	compile
 org.apache.commons:commons-csv	1.0	compile
 org.apache.commons:commons-lang3	3.3.2	compile
 org.apache.commons:commons-math	2.1	compile
+org.apache.commons:commons-pool2	2.2	compile
 org.apache.commons:commons-vfs2	2.0	compile
 org.apache.curator:curator-client	2.4.0	compile
 org.apache.curator:curator-client	2.7.1	compile
