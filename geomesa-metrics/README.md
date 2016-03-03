@@ -75,7 +75,8 @@ To configure instrumentation, add the metrics filter to GeoServer's `WEB-INF/web
       reporters = {
         console = {
           type = "console"
-          units = "MINUTES"
+          rate-units = "MINUTES"
+          duration-units = "MILLISECONDS"
           interval = 10
         }
       }
@@ -88,6 +89,56 @@ To configure instrumentation, add the metrics filter to GeoServer's `WEB-INF/web
   <filter-name>metricsFilter</filter-name>
   <url-pattern>/*</url-pattern>
 </filter-mapping>
+
+```
+
+#### Session Tracking
+
+The metrics servlet doesn't track active user sessions by default. GeoServer mostly doesn't create
+sessions for OWS requests, and blatantly warns you against doing so. However, if you are willing to
+incur the cost of session management, you may enable session tracking in the metrics servlet.
+
+Update the configuration for the metrics servlet (either in `application.conf` or `web.xml`) with
+the following attribute:
+
+```json
+// how often to update metrics for expired sessions, in seconds
+// if set to &lt; 1, sessions will not be tracked
+// use in conjunction with the session listener defined below
+session-removal-interval = 60
+```
+
+Add the following listener to GeoServer's `WEB-INF/web.xml`:
+
+> :warning: Failure to add this listener when session tracking is enabled will cause incorrect
+  metrics reports and eventually lead to out-of-memory errors
+
+```xml
+<!-- listener for sessions events
+     if you enable session tracking and this is not defined, sessions will never
+     be expired from the metrics cache and you will eventually run out of memory -->
+<listener>
+  <listener-class>org.locationtech.geomesa.metrics.servlet.SessionMetricsListener</listenerclass>
+</listener>
+```
+
+In order to suppress GeoServer's warnings about session creation, comment out the following filter
+in GeoServer's `WEB-INF/web.xml`:
+
+```xml
+<!--
+<filter>
+  <filter-name>SessionDebugger</filter-name>
+  <filter-class>org.geoserver.filters.SessionDebugFilter</filter-class>
+</filter>
+-->
+...
+<!--
+<filter-mapping>
+  <filter-name>SessionDebugger</filter-name>
+  <url-pattern>/*</url-pattern>
+</filter-mapping>
+-->
 ```
 
 ## Configuration of Reporters
