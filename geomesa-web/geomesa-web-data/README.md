@@ -290,7 +290,7 @@ curl --header 'Accept: text/plain' --get --data-urlencode 'q=select mySft.myAttr
 | geomesa-jobs-1.2.0-SNAPSHOT.jar | 543025 |
 | geomesa-raster-1.2.0-SNAPSHOT.jar | 165265 |
 | geomesa-security-1.2.0-SNAPSHOT.jar | 39567 |
-| geomesa-utils-gs-plugin-1.2.0-SNAPSHOT.jar | 979554 |
+| geomesa-utils-1.2.0-SNAPSHOT.jar | 921600 |
 | geomesa-web-core-1.2.0-SNAPSHOT.jar | 46226 |
 | geomesa-web-data-1.2.0-SNAPSHOT.jar | 76904 |
 | geomesa-z3-1.2.0-SNAPSHOT.jar | 30148 |

@@ -25,7 +25,7 @@ geomesa-feature-nio
 geomesa-filter
 geomesa-jobs
 geomesa-security
-geomesa-utils-gs-plugin
+geomesa-utils
 geomesa-web-data
 geomesa-z3
 gt-api

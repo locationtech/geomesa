@@ -16,11 +16,6 @@
             <artifactId>geomesa-blobstore-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!-- Use plugin jar instead of geomesa-utils (which is excluded in assembly.xml) -->
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-utils-gs-plugin</artifactId>
-        </dependency>
     </dependencies>
 
     <build>
