@@ -376,6 +376,26 @@ class SimpleFeatureTypesTest extends Specification {
       sft.getUserData.get("mydataone") mustEqual true
       sft.getUserData.get("mydatatwo") mustEqual "two"
     }
+
+    "untyped lists and maps as a type" >> {
+      val conf = ConfigFactory.parseString(
+        """
+          |{
+          |  type-name = "testconf"
+          |  fields = [
+          |    { name = "testList", type = "List"  , index = false },
+          |    { name = "testMap",  type = "Map"   , index = false },
+          |    { name = "geom",     type = "Point" , srid = 4326, default = true }
+          |  ]
+          |}
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType(conf)
+      sft.getAttributeCount must be equalTo 3
+      sft.getGeometryDescriptor.getName.getLocalPart must be equalTo "geom"
+      sft.getAttributeDescriptors.get(0).getType.getBinding must beAssignableFrom[java.util.List[_]]
+      sft.getAttributeDescriptors.get(1).getType.getBinding must beAssignableFrom[java.util.Map[_,_]]
+    }
   }
 
 }
