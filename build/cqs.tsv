@@ -28,7 +28,7 @@ commons-lang:commons-lang	2.6	compile
 commons-logging:commons-logging	1.1.1	compile
 commons-logging:commons-logging	1.2	compile
 commons-net:commons-net	3.3	compile
-commons-pool:commons-pool	1.5.3	compile
+commons-pool:commons-pool	1.6	compile
 com.spatial4j:spatial4j	0.4.1	compile
 com.sun.xml.bind:jaxb-core	2.2.11	compile
 com.sun.xml.bind:jaxb-impl	2.2.11	compile
