@@ -20,12 +20,13 @@ import scala.math.abs
 
 class GridSnap(env: Envelope, xSize: Int, ySize: Int) {
 
-  val dx = env.getWidth / (xSize - 1)
-  val dy = env.getHeight / (ySize - 1)
+  val dx = BigDecimal.apply(env.getWidth)  / xSize
+  val dy = BigDecimal.apply(env.getHeight) / ySize
 
   /**
    * Computes the X ordinate of the i'th grid column.
-   * @param i the index of a grid column
+    *
+    * @param i the index of a grid column
    * @return the X ordinate of the column
    */
   def x(i: Int): Double =
@@ -34,12 +35,13 @@ class GridSnap(env: Envelope, xSize: Int, ySize: Int) {
     } else if (i >= xSize - 1) {
       env.getMaxX
     } else {
-      env.getMinX + i * dx
+      (env.getMinX + i * dx).toDouble
     }
 
   /**
    * Computes the Y ordinate of the i'th grid row.
-   * @param j the index of a grid row
+    *
+    * @param j the index of a grid row
    * @return the Y ordinate of the row
    */
   def y(j: Int): Double =
@@ -48,37 +50,36 @@ class GridSnap(env: Envelope, xSize: Int, ySize: Int) {
     } else if (j >= ySize - 1) {
       env.getMaxY
     } else {
-      env.getMinY + j * dy
+      (env.getMinY + j * dy).toDouble
     }
 
   /**
    * Computes the column index of an X ordinate.
-   * @param x the X ordinate
+    *
+    * @param x the X ordinate
    * @return the column index
    */
   def i(x: Double): Int =
-    if (x > env.getMaxX) {
+    if (x >= env.getMaxX) {
       xSize - 1
-    } else if (x < env.getMinX) {
+    } else if (x <= env.getMinX) {
       0
     } else {
-      val ret = (x - env.getMinX) / dx
-      if (ret >= xSize) xSize - 1 else ret.toInt
+      math.min(((x - env.getMinX) / dx).toInt, xSize-1)
     }
 
   /**
    * Computes the column index of an Y ordinate.
-   * @param y the Y ordinate
-   * @return the column index
+    *
+    * @param y the Y ordinate * @return the column index
    */
   def j(y: Double): Int =
-    if (y > env.getMaxY) {
+    if (y >= env.getMaxY)  {
       ySize - 1
-    } else if (y < env.getMinY) {
+    } else if (y <= env.getMinY)  {
       0
     } else {
-      val ret = (y - env.getMinY) / dy
-      if (ret >= ySize) ySize - 1 else ret.toInt
+      math.min(((y - env.getMinY) / dy).toInt, ySize-1)
     }
 
   def snap(x: Double, y: Double): (Double, Double) = (this.x(i(x)), this.y(j(y)))
