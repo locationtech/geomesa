@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.utils.index
 
-import java.util.ConcurrentModificationException
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.typesafe.scalalogging.slf4j.Logging
@@ -19,7 +18,7 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.util.{Random, Try}
+import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class BucketIndexTest extends Specification with Logging {
@@ -103,7 +102,7 @@ class BucketIndexTest extends Specification with Logging {
       val results2 = index.query(bbox).toSeq
       // fine grain filtering is not applied - we want everything that *might* intersect
       results2 must haveLength(9)
-      results2 must containTheSameElementsAs(for (x <- -10 to -8; y <- 8 to 10) yield s"POINT($x $y)")
+      results2 must containTheSameElementsAs(for (x <- -11 to -9; y <- 8 to 10) yield s"POINT($x $y)")
 
       val results3 = index.query(bbox, (s) => {
         val x = s.substring(6, s.indexOf(" ")).toInt

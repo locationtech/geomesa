@@ -24,7 +24,57 @@ class GridSnapTest extends Specification with Logging {
       val bbox = new Envelope(0.0, 10.0, 0.0, 10.0)
       val gridSnap = new GridSnap(bbox, 100, 100)
 
-      gridSnap must not beNull
+      gridSnap must not(beNull)
+    }
+
+    "snap to the middle of a grid cell" in {
+      val bbox = new Envelope(0.0, 4.0, -4.0, 0.0)
+      val gridSnap = new GridSnap(bbox, 4, 4)
+
+      gridSnap.x(0) mustEqual 0.5
+      gridSnap.x(1) mustEqual 1.5
+      gridSnap.x(2) mustEqual 2.5
+      gridSnap.x(3) mustEqual 3.5
+
+      gridSnap.y(0) mustEqual -3.5
+      gridSnap.y(1) mustEqual -2.5
+      gridSnap.y(2) mustEqual -1.5
+      gridSnap.y(3) mustEqual -0.5
+
+      gridSnap.snap(0, -4.0)   mustEqual (0.5, -3.5)
+      gridSnap.snap(0.1, -3.9) mustEqual (0.5, -3.5)
+      gridSnap.snap(0.9, -3.1) mustEqual (0.5, -3.5)
+
+      gridSnap.snap(1.0, -3.0) mustEqual (1.5, -2.5)
+      gridSnap.snap(1.1, -2.9) mustEqual (1.5, -2.5)
+      gridSnap.snap(1.9, -2.1) mustEqual (1.5, -2.5)
+
+      gridSnap.snap(3.0, -1.0) mustEqual (3.5, -0.5)
+      gridSnap.snap(3.1, -0.9) mustEqual (3.5, -0.5)
+      gridSnap.snap(3.9, -0.1) mustEqual (3.5, -0.5)
+      gridSnap.snap(4.0, 0.0)  mustEqual (3.5, -0.5)
+    }
+
+    "handle min/max" >> {
+      val bbox = new Envelope(0.0, 10.0, 0.0, 10.0)
+      val gridSnap = new GridSnap(bbox, 100, 10)
+
+      gridSnap.i(0.0) mustEqual 0
+      gridSnap.j(0.0) mustEqual 0
+
+      gridSnap.i(10.0) mustEqual 99
+      gridSnap.j(10.0) mustEqual 9
+    }
+
+    "handle out of bounds points" >> {
+      val bbox = new Envelope(0.0, 10.0, 0.0, 10.0)
+      val gridSnap = new GridSnap(bbox, 100, 10)
+
+      gridSnap.i(-1.0) mustEqual 0
+      gridSnap.j(-1.0) mustEqual 0
+
+      gridSnap.i(11.0) mustEqual 99
+      gridSnap.j(11.0) mustEqual 9
     }
 
     "compute a SimpleFeatureSource Grid over the bbox" in {
@@ -33,14 +83,10 @@ class GridSnapTest extends Specification with Logging {
 
       val grid = gridSnap.generateCoverageGrid
 
-      grid must not beNull
+      grid must not(beNull)
 
-      val featureIterator = grid.getFeatures.features
-
-      val gridLength = featureIterator.length
-
-      gridLength should be equalTo 100
-
+      val featureIterator = grid.getFeatures.features.toList
+      featureIterator must haveLength(100)
     }
 
     "compute a sequence of points between various sets of coordinates" in {
@@ -48,36 +94,39 @@ class GridSnapTest extends Specification with Logging {
       val gridSnap = new GridSnap(bbox, 10, 10)
 
       val resultDiagonal = gridSnap.genBresenhamCoordSet(0, 0, 9, 9).toList
-      resultDiagonal must not beNull
-      val diagonalLength = resultDiagonal.length
-      diagonalLength should be equalTo 9
+      resultDiagonal must haveLength(9)
 
-      val resultVeritcal = gridSnap.genBresenhamCoordSet(0, 0, 0, 9).toList
-      resultVeritcal must not beNull
-      val verticalLength = resultVeritcal.length
-      verticalLength should be equalTo 9
+      val resultVertical = gridSnap.genBresenhamCoordSet(0, 0, 0, 9).toList
+      resultVertical must haveLength(9)
 
       val resultHorizontal = gridSnap.genBresenhamCoordSet(0, 0, 9, 0).toList
-      resultHorizontal must not beNull
-      val horizontalLength = resultHorizontal.length
-      horizontalLength should be equalTo 9
+      resultHorizontal must haveLength(9)
 
       val resultSamePoint = gridSnap.genBresenhamCoordSet(0, 0, 0, 0).toList
-      resultSamePoint must not beNull
-      val samePointLength = resultSamePoint.length
-      samePointLength should be equalTo 1
+      resultSamePoint must haveLength(1)
+
+      val resultInverse = gridSnap.genBresenhamCoordSet(9, 9, 0, 0).toList
+      resultInverse must haveLength(9)
     }
 
-    "check corner cases where GridSnap is given below minimum coordinates of the grid" in {
+    "not have floating point errors" >> {
       val bbox = new Envelope(0.0, 10.0, 0.0, 10.0)
-      val gridSnap = new GridSnap(bbox, 100, 100)
+      val cols = 100
+      val rows = 100
+      val gridSnap = new GridSnap(bbox, cols, rows)
 
-      val iReturn = gridSnap.i(bbox.getMinX - 1)
-      val jReturn = gridSnap.j(bbox.getMinY - 1)
-      iReturn should be equalTo 0
-      jReturn should be equalTo 0
-      gridSnap.x(iReturn) should be equalTo bbox.getMinX
-      gridSnap.y(jReturn) should be equalTo bbox.getMinY
+      "columns" >> {
+        forall(0 until cols) { i =>
+          gridSnap.x(gridSnap.i(gridSnap.x(i))) mustEqual gridSnap.x(i)
+        }
+      }
+
+      "rows" >> {
+        forall(0 until rows) { j =>
+          gridSnap.y(gridSnap.j(gridSnap.y(j))) mustEqual gridSnap.y(j)
+        }
+      }
+
     }
   }
 
