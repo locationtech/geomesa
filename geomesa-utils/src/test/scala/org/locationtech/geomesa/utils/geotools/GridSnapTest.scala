@@ -27,6 +27,14 @@ class GridSnapTest extends Specification with Logging {
       gridSnap must not beNull
     }
 
+    "properly walk the columns and rows" >> {
+      val bbox = new Envelope(0.0, 10.0, 0.0, 10.0)
+      val gridSnap = new GridSnap(bbox, 100, 100)
+
+      "column" >> { gridSnap.i(10.0) must be equalTo 99 }
+      "rows"   >> { gridSnap.j(10.0) must be equalTo 99 }
+    }
+
     "compute a SimpleFeatureSource Grid over the bbox" in {
       val bbox = new Envelope(0.0, 10.0, 0.0, 10.0)
       val gridSnap = new GridSnap(bbox, 10, 10)
@@ -74,10 +82,30 @@ class GridSnapTest extends Specification with Logging {
 
       val iReturn = gridSnap.i(bbox.getMinX - 1)
       val jReturn = gridSnap.j(bbox.getMinY - 1)
-      iReturn should be equalTo 0
-      jReturn should be equalTo 0
-      gridSnap.x(iReturn) should be equalTo bbox.getMinX
-      gridSnap.y(jReturn) should be equalTo bbox.getMinY
+      "column" >> { iReturn should be equalTo 0 }
+      "row"    >> { jReturn should be equalTo 0 }
+      "column corner" >> { gridSnap.x(iReturn) should be equalTo bbox.getMinX }
+      "row corner"    >> { gridSnap.y(jReturn) should be equalTo bbox.getMinY }
+    }
+
+    "not have floating point errors" >> {
+      val bbox = new Envelope(0.0, 10.0, 0.0, 10.0)
+      val cols = 100
+      val rows = 100
+      val gridSnap = new GridSnap(bbox, cols, rows)
+
+      "columns" >> {
+        (0 until cols).map {   i =>
+          gridSnap.x(gridSnap.i(gridSnap.x(i))) shouldEqual gridSnap.x(i)
+        }
+      }
+
+      "rows" >> {
+        (0 until rows).map {   j =>
+          gridSnap.y(gridSnap.j(gridSnap.y(j))) shouldEqual gridSnap.y(j)
+        }
+      }
+
     }
   }
 
