@@ -154,7 +154,7 @@ class DelimitedExport(writer: Writer, format: String, attributes: Option[String]
     // write out a header line
     writer.write(names.mkString("", delimiter, "\n"))
 
-    var count = 0
+    var count = 0L
     features.features.foreach { sf =>
       val values = indices.map(i => escape(stringify(sf.getAttribute(i))))
       writer.write(values.mkString("", delimiter, "\n"))
