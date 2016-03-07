@@ -10,7 +10,13 @@ package org.locationtech.geomesa.accumulo;
 
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
-import org.geotools.data.*;
+import org.geotools.data.DataStore;
+import org.geotools.data.DataStoreFinder;
+import org.geotools.data.DataUtilities;
+import org.geotools.data.FeatureSource;
+import org.geotools.data.Query;
+import org.geotools.data.simple.SimpleFeatureSource;
+import org.geotools.data.simple.SimpleFeatureStore;
 import org.geotools.factory.Hints;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.SchemaException;
@@ -32,7 +38,7 @@ import java.util.Map;
 public class DocumentationTest {
   public DataStore createDataStore() throws IOException {
     // build the map of parameters
-    Map<String,Serializable> params = new HashMap<String,Serializable>();
+    Map<String,Serializable> params = new HashMap<>();
     params.put("instanceId", "yourcloud");
     params.put("zookeepers" , "zoo1:2181,zoo2:2181,zoo3:2181");
     params.put("user","youruser");
@@ -122,10 +128,10 @@ public class DocumentationTest {
     throws Exception {
 
     // get a feature store
-    FeatureSource featureSource = dataStore.getFeatureSource(featureName);
-    if (!(featureSource instanceof FeatureStore))
+    SimpleFeatureSource featureSource = dataStore.getFeatureSource(featureName);
+    if (!(featureSource instanceof SimpleFeatureStore))
       throw new Exception("Could not retrieve feature store");
-    FeatureStore featureStore = (FeatureStore)featureSource;
+    SimpleFeatureStore featureStore = (SimpleFeatureStore)featureSource;
 
     // preserve the ID that we created for this feature
     feature.getUserData().put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE);

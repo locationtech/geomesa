@@ -32,6 +32,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
+import scala.util.hashing.MurmurHash3
 
 object AccumuloFeatureWriter extends LazyLogging {
 
@@ -46,7 +47,8 @@ object AccumuloFeatureWriter extends LazyLogging {
   class FeatureToWrite(val feature: SimpleFeature,
                        defaultVisibility: String,
                        encoder: SimpleFeatureSerializer,
-                       indexValueEncoder: IndexValueEncoder) {
+                       indexValueEncoder: IndexValueEncoder,
+                       binEncoder: Option[BinEncoder]) {
     val visibility =
       new Text(feature.getUserData.getOrElse(FEATURE_VISIBILITY, defaultVisibility).asInstanceOf[String])
     lazy val columnVisibility = new ColumnVisibility(visibility)
@@ -54,6 +56,10 @@ object AccumuloFeatureWriter extends LazyLogging {
     lazy val indexValue = new Value(indexValueEncoder.encode(feature))
     // the data value is the encoded SimpleFeature
     lazy val dataValue = new Value(encoder.serialize(feature))
+    // bin formatted value
+    lazy val binValue = binEncoder.map(e => new Value(e.encode(feature)))
+    // hash value of the feature id
+    lazy val idHash = Math.abs(MurmurHash3.stringHash(feature.getID))
   }
 
   def featureWriter(writers: Seq[(BatchWriter, FeatureToMutations)]): FeatureWriterFn = feature => {
@@ -112,11 +118,12 @@ object AccumuloFeatureWriter extends LazyLogging {
 
 abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
                                      encoder: SimpleFeatureSerializer,
-                                     indexValueEncoder: IndexValueEncoder,
                                      ds: AccumuloDataStore,
                                      defaultVisibility: String) extends SimpleFeatureWriter with LazyLogging {
 
   protected val multiBWWriter = ds.connector.createMultiTableBatchWriter(GeoMesaBatchWriterConfig())
+  protected val binEncoder = BinEncoder(sft)
+  protected val indexValueEncoder = IndexValueEncoder(sft)
 
   // A "writer" is a function that takes a simple feature and writes it to an index or table
   protected val writer: FeatureWriterFn = {
@@ -132,7 +139,7 @@ abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
   protected def writeToAccumulo(feature: SimpleFeature): Unit = {
     // see if there's a suggested ID to use for this feature, else create one based on the feature
     val featureWithFid = AccumuloFeatureWriter.featureWithFid(sft, feature)
-    writer(new FeatureToWrite(featureWithFid, defaultVisibility, encoder, indexValueEncoder))
+    writer(new FeatureToWrite(featureWithFid, defaultVisibility, encoder, indexValueEncoder, binEncoder))
   }
 
   override def getFeatureType: SimpleFeatureType = sft
@@ -148,10 +155,9 @@ abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
 
 class AppendAccumuloFeatureWriter(sft: SimpleFeatureType,
                                   encoder: SimpleFeatureSerializer,
-                                  indexValueEncoder: IndexValueEncoder,
                                   ds: AccumuloDataStore,
                                   defaultVisibility: String)
-  extends AccumuloFeatureWriter(sft, encoder, indexValueEncoder, ds, defaultVisibility) {
+  extends AccumuloFeatureWriter(sft, encoder, ds, defaultVisibility) {
 
   var currentFeature: SimpleFeature = null
 
@@ -169,11 +175,10 @@ class AppendAccumuloFeatureWriter(sft: SimpleFeatureType,
 
 class ModifyAccumuloFeatureWriter(sft: SimpleFeatureType,
                                   encoder: SimpleFeatureSerializer,
-                                  indexValueEncoder: IndexValueEncoder,
                                   ds: AccumuloDataStore,
                                   defaultVisibility: String,
                                   filter: Filter)
-  extends AccumuloFeatureWriter(sft, encoder, indexValueEncoder, ds, defaultVisibility) {
+  extends AccumuloFeatureWriter(sft, encoder, ds, defaultVisibility) {
 
   val reader = ds.getFeatureReader(sft.getTypeName, new Query(sft.getTypeName, filter))
 
@@ -192,7 +197,7 @@ class ModifyAccumuloFeatureWriter(sft: SimpleFeatureType,
   }
 
   override def remove() = if (original != null) {
-    remover(new FeatureToWrite(original, defaultVisibility, encoder, indexValueEncoder))
+    remover(new FeatureToWrite(original, defaultVisibility, encoder, indexValueEncoder, binEncoder))
   }
 
   override def hasNext = reader.hasNext

@@ -153,7 +153,7 @@ object CassandraPrimaryKey {
     Seconds.secondsBetween(EPOCH, dtg).getSeconds - epochWeeks(dtg).getWeeks*ONE_WEEK_IN_SECONDS
 
   val SFC2D = new ZCurve2D(math.pow(2,5).toInt)
-  val SFC3D = new Z3SFC
+  val SFC3D = Z3SFC
 }
 
 

@@ -26,6 +26,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.Random
 
+@deprecated
 abstract class FeatureAggregatingIterator[T <: Result](val other: FeatureAggregatingIterator[T],
                                                        val env: IteratorEnvironment)
   extends SortedKeyValueIterator[Key, Value] {
@@ -140,6 +141,7 @@ abstract class FeatureAggregatingIterator[T <: Result](val other: FeatureAggrega
     }
 }
 
+@deprecated
 object FeatureAggregatingIterator extends LazyLogging {
   val geomFactory = JTSFactoryFinder.getGeometryFactory
 

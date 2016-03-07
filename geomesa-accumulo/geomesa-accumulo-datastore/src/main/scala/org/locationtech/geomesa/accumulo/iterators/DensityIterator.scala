@@ -20,20 +20,23 @@ import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.{IndexSchema, Strategy}
+import org.locationtech.geomesa.accumulo.index.{IndexEntryDecoder, IndexSchema, Strategy}
+import org.locationtech.geomesa.accumulo.iterators.KryoLazyDensityIterator.DensityResult
 import org.locationtech.geomesa.features.SerializationType.SerializationType
-import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureDeserializers}
+import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureDeserializer, SimpleFeatureDeserializers}
 import org.locationtech.geomesa.utils.geotools.Conversions.{RichSimpleFeature, toRichSimpleFeatureIterator}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConverters._
 
 /**
- * Iterator that expands the z3 density iterator by adding support for non-kryo serialization types and
- * non-point geoms.
+ * Iterator that extends the kryo density iterator with support for non-kryo serialization types.
  */
-class DensityIterator extends Z3DensityIterator with LazyLogging {
+class DensityIterator extends KryoLazyDensityIterator with LazyLogging {
+
+  var deserializer: SimpleFeatureDeserializer = null
+  var indexDecoder: IndexEntryDecoder = null
 
   override def init(src: SortedKeyValueIterator[Key, Value],
                     jOptions: jMap[String, String],
@@ -42,78 +45,49 @@ class DensityIterator extends Z3DensityIterator with LazyLogging {
     val options = jOptions.asScala
 
     val encodingOpt = options.get(FEATURE_ENCODING).map(SerializationType.withName).getOrElse(DEFAULT_ENCODING)
-    val deserializer = SimpleFeatureDeserializers(sft, encodingOpt)
+    deserializer = SimpleFeatureDeserializers(sft, encodingOpt)
 
-    handleValue = if (sft.getGeometryDescriptor.getType.getBinding == classOf[Point]) {
-      // optimized point method without a match for each feature
-      () => {
-        val feature = deserializer.deserialize(source.getTopValue.get)
-        if (filter == null || filter.evaluate(feature)) {
-          topKey = source.getTopKey
-          writePointToResult(feature.getDefaultGeometry.asInstanceOf[Point], weightFn(feature))
-        }
-      }
-    } else {
-      // only required for non-point geoms
-      val schemaEncoding = options(DEFAULT_SCHEMA_NAME)
-      val indexDecoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
+    // only required for non-point geoms
+    val schemaEncoding = options(DEFAULT_SCHEMA_NAME)
+    indexDecoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
+  }
 
-      () => {
-        val feature = deserializer.deserialize(source.getTopValue.get)
-        if (filter == null || filter.evaluate(feature)) {
-          topKey = source.getTopKey
-          val weight = weightFn(feature)
-          lazy val geohash = indexDecoder.decode(source.getTopKey).getDefaultGeometry.asInstanceOf[Geometry]
-          feature.getDefaultGeometry match {
-            case g: Point           => writePointToResult(g, weight)
-            case g: MultiPoint      => writeMultiPoint(g, geohash, weight)
-            case g: LineString      => writeLineString(g, geohash, weight)
-            case g: MultiLineString => writeMultiLineString(g, geohash, weight)
-            case g: Polygon         => writePolygon(g, geohash, weight)
-            case g: MultiPolygon    => writeMultiPolygon(g, geohash, weight)
-            case g: Geometry        => writePointToResult(g.getCentroid, weight)
-          }
-        }
-      }
+  override def decode(value: Array[Byte]): SimpleFeature = deserializer.deserialize(value)
+
+  override def writeNonPoint(geom: Geometry, weight: Double, result: DensityResult): Unit = {
+    geom match {
+      case g: MultiPoint => writeMultiPoint(g, weight, result)
+      case g: LineString => writeLineString(g, weight, result)
+      case g: Polygon    => writePolygon(g, weight, result)
+      case _             => super.writeNonPoint(geom, weight, result)
     }
   }
 
-  def writeMultiPoint(geom: MultiPoint, geohash: Geometry, weight: Double): Unit = {
+  def writeMultiPoint(geom: MultiPoint, weight: Double, result: DensityResult): Unit = {
+    val geohash = indexDecoder.decode(source.getTopKey).getDefaultGeometry.asInstanceOf[Geometry]
     (0 until geom.getNumGeometries).foreach { i =>
       val pt = geom.getGeometryN(i).intersection(geohash).asInstanceOf[Point]
-      writePointToResult(pt, weight)
+      writePointToResult(pt, weight, result)
     }
   }
 
   /** take in a line string and seed in points between each window of two points
     * take the set of the resulting points to remove duplicate endpoints */
-  def writeLineString(geom: LineString, geohash: Geometry, weight: Double): Unit = {
+  def writeLineString(geom: LineString, weight: Double, result: DensityResult): Unit = {
+    val geohash = indexDecoder.decode(source.getTopKey).getDefaultGeometry.asInstanceOf[Geometry]
     geom.intersection(geohash).asInstanceOf[LineString].getCoordinates.sliding(2).flatMap {
       case Array(p0, p1) => gridSnap.generateLineCoordSet(p0, p1)
-    }.toSet[Coordinate].foreach(c => writePointToResult(c, weight))
+    }.toSet[Coordinate].foreach(c => writePointToResult(c, weight, result))
   }
 
-  def writeMultiLineString(geom: MultiLineString, geohash: Geometry, weight: Double): Unit = {
-    (0 until geom.getNumGeometries).foreach { i =>
-      writeLineString(geom.getGeometryN(i).asInstanceOf[LineString], geohash, weight)
-    }
-  }
-
-  /** for a given polygon, take the centroid of each polygon from the BBOX coverage grid
-    * if the given polygon contains the centroid then it is passed on to addResultPoint */
-  def writePolygon(geom: Polygon, geohash: Geometry, weight: Double): Unit = {
+  def writePolygon(geom: Polygon, weight: Double, result: DensityResult): Unit = {
+    val geohash = indexDecoder.decode(source.getTopKey).getDefaultGeometry.asInstanceOf[Geometry]
     val poly = geom.intersection(geohash).asInstanceOf[Polygon]
     val grid = gridSnap.generateCoverageGrid
     grid.getFeatures.features.foreach { f =>
       if (poly.intersects(f.polygon)) {
-        writePointToResult(f.polygon.getCentroid, weight)
+        writePointToResult(f.polygon.getCentroid, weight, result)
       }
-    }
-  }
-
-  def writeMultiPolygon(geom: MultiPolygon, geohash: Geometry, weight: Double): Unit = {
-    (0 until geom.getNumGeometries).foreach { i =>
-      writePolygon(geom.getGeometryN(i).asInstanceOf[Polygon], geohash, weight)
     }
   }
 }
@@ -135,6 +109,6 @@ object DensityIterator extends LazyLogging {
     val is = new IteratorSetting(priority, "density-iter", classOf[DensityIterator])
     Strategy.configureFeatureEncoding(is, serializationType)
     is.addOption(DEFAULT_SCHEMA_NAME, schema)
-    Z3DensityIterator.configure(is, sft, filter, envelope, gridWidth, gridHeight, weightAttribute)
+    KryoLazyDensityIterator.configure(is, sft, filter, envelope, gridWidth, gridHeight, weightAttribute)
   }
 }

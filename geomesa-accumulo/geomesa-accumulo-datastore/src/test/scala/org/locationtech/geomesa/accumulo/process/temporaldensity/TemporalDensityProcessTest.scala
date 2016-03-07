@@ -9,8 +9,6 @@
 
 package org.locationtech.geomesa.accumulo.process.temporaldensity
 
-import java.util.concurrent.atomic.AtomicBoolean
-
 import com.vividsolutions.jts.geom.Envelope
 import org.apache.accumulo.core.client.TableExistsException
 import org.apache.accumulo.core.client.mock.MockInstance
@@ -25,7 +23,7 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.{Constants, QueryHints}
-import org.locationtech.geomesa.accumulo.iterators.TemporalDensityIterator.{TIME_SERIES, decodeTimeSeries, jsonToTimeSeries}
+import org.locationtech.geomesa.accumulo.iterators.KryoLazyTemporalDensityIterator.{decodeTimeSeries, jsonToTimeSeries}
 import org.locationtech.geomesa.accumulo.process.temporalDensity.TemporalDensityProcess
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -153,7 +151,7 @@ class TemporalDensityProcessTest extends Specification {
       val sf = iter.head.asInstanceOf[SimpleFeature]
       iter must not beNull
 
-      val timeSeries = decodeTimeSeries(sf.getAttribute(TIME_SERIES).asInstanceOf[String])
+      val timeSeries = decodeTimeSeries(sf.getAttribute(0).asInstanceOf[String])
       val totalCount = timeSeries.map { case (dateTime, count) => count}.sum
 
       totalCount should be equalTo 150
@@ -169,7 +167,7 @@ class TemporalDensityProcessTest extends Specification {
       val sf = iter.head.asInstanceOf[SimpleFeature]
       iter must not beNull
 
-      val timeSeries = jsonToTimeSeries(sf.getAttribute(TIME_SERIES).asInstanceOf[String])
+      val timeSeries = jsonToTimeSeries(sf.getAttribute(0).asInstanceOf[String])
       val totalCount = timeSeries.map { case (dateTime, count) => count}.sum
 
       totalCount should be equalTo 150
@@ -193,7 +191,7 @@ class TemporalDensityProcessTest extends Specification {
       val sfList = results.features().toList
 
       val sf = sfList.head.asInstanceOf[SimpleFeature]
-      val timeSeries = decodeTimeSeries(sf.getAttribute(TIME_SERIES).asInstanceOf[String])
+      val timeSeries = decodeTimeSeries(sf.getAttribute(0).asInstanceOf[String])
 
       val total = timeSeries.map { case (dateTime, count) => count}.sum
 
@@ -216,7 +214,7 @@ class TemporalDensityProcessTest extends Specification {
       val sfList = results.features().toList
 
       val sf = sfList.head.asInstanceOf[SimpleFeature]
-      val timeSeries = jsonToTimeSeries(sf.getAttribute(TIME_SERIES).asInstanceOf[String])
+      val timeSeries = jsonToTimeSeries(sf.getAttribute(0).asInstanceOf[String])
 
       val total = timeSeries.map { case (dateTime, count) => count}.sum
 
@@ -239,7 +237,7 @@ class TemporalDensityProcessTest extends Specification {
       val geomesaTDP = new TemporalDensityProcess
       val results = geomesaTDP.execute(fs.getFeatures(q), startTime, endTime, TDNumBuckets)
       val sf = results.features().toList.head.asInstanceOf[SimpleFeature]
-      val timeSeries = decodeTimeSeries(sf.getAttribute(TIME_SERIES).asInstanceOf[String])
+      val timeSeries = decodeTimeSeries(sf.getAttribute(0).asInstanceOf[String])
 
       val total = timeSeries.map {
         case (dateTime, count) =>
@@ -262,7 +260,7 @@ class TemporalDensityProcessTest extends Specification {
       val geomesaTDP = new TemporalDensityProcess
       val results = geomesaTDP.execute(fs.getFeatures(q), startTime, endTime, TDNumBuckets)
       val sf = results.features().toList.head.asInstanceOf[SimpleFeature] //is this the time series??? im pretty sure it is
-      val timeSeries = jsonToTimeSeries(sf.getAttribute(TIME_SERIES).asInstanceOf[String])
+      val timeSeries = jsonToTimeSeries(sf.getAttribute(0).asInstanceOf[String])
 
       val total = timeSeries.map {
         case (dateTime, count) =>

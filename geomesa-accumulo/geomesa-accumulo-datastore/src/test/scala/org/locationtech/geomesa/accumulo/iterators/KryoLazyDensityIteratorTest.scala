@@ -29,7 +29,7 @@ import org.specs2.runner.JUnitRunner
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class Z3DensityIteratorTest extends Specification with TestWithDataStore {
+class KryoLazyDensityIteratorTest extends Specification with TestWithDataStore {
 
   sequential
 
@@ -42,7 +42,7 @@ class Z3DensityIteratorTest extends Specification with TestWithDataStore {
     q.getHints.put(QueryHints.DENSITY_BBOX_KEY, new ReferencedEnvelope(geom, DefaultGeographicCRS.WGS84))
     q.getHints.put(QueryHints.WIDTH_KEY, 500)
     q.getHints.put(QueryHints.HEIGHT_KEY, 500)
-    val decode = Z3DensityIterator.decodeResult(geom, 500, 500)
+    val decode = KryoLazyDensityIterator.decodeResult(geom, 500, 500)
     fs.getFeatures(q).features().flatMap(decode).toList
   }
 

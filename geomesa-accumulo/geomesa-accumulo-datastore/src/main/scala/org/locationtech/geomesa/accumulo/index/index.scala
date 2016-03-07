@@ -86,6 +86,7 @@ package object index {
       def getDensityWeight: Option[String] = Option(hints.get(DENSITY_WEIGHT).asInstanceOf[String])
       def isTemporalDensityQuery: Boolean = hints.containsKey(TEMPORAL_DENSITY_KEY)
       def isMapAggregatingQuery: Boolean = hints.containsKey(MAP_AGGREGATION_KEY)
+      def getMapAggregatingAttribute: String = hints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
       def getTransformDefinition: Option[String] = Option(hints.get(TRANSFORMS).asInstanceOf[String])
       def getTransformSchema: Option[SimpleFeatureType] =
         Option(hints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType])
