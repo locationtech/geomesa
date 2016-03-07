@@ -32,6 +32,7 @@
         <module>geomesa-kafka-gs-plugin</module>
         <module>geomesa-stream-gs-plugin</module>
         <module>geomesa-cassandra-gs-plugin</module>
+        <module>geomesa-dynamodb-gs-plugin</module>
     </modules>
 
     <dependencyManagement>
