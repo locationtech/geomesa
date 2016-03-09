@@ -49,8 +49,8 @@ To configure instrumentation, add the metrics filter to GeoServer's `WEB-INF/web
     <param-name>name-prefix</param-name>
     <param-value>geoserver</param-value>
   </init-param>
-  <! -- can embed configuration directly, otherwise will load default
-        configurations and look under 'geomesa.metrics.servlet' -->
+  <!-- can embed configuration directly, otherwise will load default
+       configurations and look under 'geomesa.metrics.servlet' -->
   <init-param>
     <param-name>config</param-name>
     <param-value>
@@ -58,7 +58,7 @@ To configure instrumentation, add the metrics filter to GeoServer's `WEB-INF/web
       // name used for registering metrics - init-param takes precedence
       name-prefix = "geoserver"
       // will only instrument matching urls
-      // example string matched against: '/geoserver/<workspace>/ows'
+      // example string matched against: '/geoserver/&lt;workspace&gt;/ows'
       url-patterns = [ "(?i).*/(ows|wfs|wms)" ]
       // match request mappings based on just the workspace:layer name, or the whole url
       // if you are instrumenting non-wfs/wms requests, layer names will never match
@@ -118,7 +118,7 @@ Add the following listener to GeoServer's `WEB-INF/web.xml`:
      if you enable session tracking and this is not defined, sessions will never
      be expired from the metrics cache and you will eventually run out of memory -->
 <listener>
-  <listener-class>org.locationtech.geomesa.metrics.servlet.SessionMetricsListener</listenerclass>
+  <listener-class>org.locationtech.geomesa.metrics.servlet.SessionMetricsListener</listener-class>
 </listener>
 ```
 
