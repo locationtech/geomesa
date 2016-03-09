@@ -2142,8 +2142,8 @@
             </snapshots>
         </repository>
         <repository>
-            <id>geomesa-snapshots</id>
-            <url>https://repo.locationtech.org/content/repositories/geomesa-snapshots</url>
+            <id>locationtech-snapshots</id>
+            <url>https://repo.locationtech.org/content/groups/snapshots</url>
             <releases>
                 <enabled>false</enabled>
             </releases>
