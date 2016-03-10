@@ -102,9 +102,18 @@ object FilterHelper {
 
   // Rewrites a Dwithin (assumed to express distance in meters) in degrees.
   def rewriteDwithin(op: DWithin): Filter = {
-    val e2 = op.getExpression2.asInstanceOf[Literal]
-    val geom = e2.getValue.asInstanceOf[Geometry]
-    val distanceDegrees = GeometryUtils.distanceDegrees(geom, op.getDistance)
+    val geom = op.getExpression2.asInstanceOf[Literal].getValue.asInstanceOf[Geometry]
+    val units = Option(op.getDistanceUnits).map(_.trim).filter(_.nonEmpty).map(_.toLowerCase).getOrElse("meters")
+    val multiplier = units match {
+      case "meters"         => 1.0
+      case "kilometers"     => 1000.0
+      case "feet"           => 0.3048
+      case "statute miles"  => 1609.347
+      case "nautical miles" => 1852.0
+      case _                => 1.0 // not part of ECQL spec...
+    }
+    val distanceMeters = op.getDistance * multiplier
+    val distanceDegrees = GeometryUtils.distanceDegrees(geom, distanceMeters)
 
     // NB: The ECQL spec doesn't allow for us to put the measurement in "degrees",
     //  but that's how this filter will be used.
