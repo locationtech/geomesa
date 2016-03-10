@@ -139,13 +139,6 @@ ingest must be separately installed. Do this with the following commands:
     $ bin/install-jline
     $ bin/install-vecmath
 
-Finally, test your installation by editing the ``bin/test-geomesa`` file with configuration
-data specific to your setup and running it: 
-
-.. code-block:: bash
-
-    $ bin/test-geomesa
-
 Test the command that invokes the GeoMesa Tools:
 
 .. code-block:: bash
@@ -391,8 +384,21 @@ If you are using GeoServer's built in Jetty web server:
       geomesa-$VERSION/dist/gs-plugins/geomesa-kafka-gs-plugin-$VERSION-install.zip \
       -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib/
 
-Then copy these dependencies (or the equivalents for your Kafka installation) to
-your ``WEB-INF/lib`` directory.
+This will install the JARs for the Kafka GeoServer plugin and most of its dependencies.
+However, you will also need additional JARs for Kafka and Zookeeper that will
+be specific to your installation that you will also need to copy to GeoServer's
+``WEB-INF/lib`` directory. For example, GeoMesa only requires Kafka |kafka_version|,
+but if you are using Kafka 0.9.0 you should use the JARs that match the version of
+Kafka you are running.
+
+.. warning::
+
+    GeoMesa |release| depends on Scala 2.11, so you should make sure you use the
+    Kafka version built with Scala 2.11 as well (``kafka_2.11_*``) to avoid
+    compatibility issues.
+
+Copy these additional dependencies (or the equivalents for your Kafka installation) to
+your GeoServer ``WEB-INF/lib`` directory.
 
 * Kafka
     * kafka-clients-0.8.2.1.jar
