@@ -68,12 +68,6 @@ username and password in each command by using ``-u`` (or ``--username``) and ``
 command line using ``-u`` or ``--username`` and type the password in an additional
 prompt, where the password will be hidden from the shell history.
 
-A test script is included under ``geomesa-tools-$VERSION/bin/test-geomesa`` that runs each
-command provided by geomesa-tools. Edit this script by including your Accumulo
-username, password, test catalog table, test feature name, and test SFT
-specification. Default values are already included in the script. Then, run the
-script from the command line to ensure there are no errors in the output text. 
-
 In nearly all commands below, one can add ``--instance-name``, ``--zookeepers``,
 ``--auths``, and ``--visibilities`` (or in short form ``-i``, ``-z``, ``-a``, and ``-v``) arguments
 to properly configure the Accumulo data store connector. The Accumulo instance

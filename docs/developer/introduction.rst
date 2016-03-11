@@ -94,7 +94,7 @@ GeoMesa Project Structure
 * **geomesa-blobstore**: an Accumulo-based store  designed to store and retrieve files which have spatio-temporal data associated with them. 
 * **geomesa-compute**: utilities for working with distributed computing environments. Currently, there are methods for instantiating an Apache Spark Resilient Distributed Dataset from a CQL query against data stored in GeoMesa. Eventually, this project will contain bindings for traditional map-reduce processing, Scalding, and other environments.
 * **geomesa-convert**: a configurable and extensible library for converting data into SimpleFeatures.
-* **geomesa-dist**: packages the GeoMesa distributed runtime, GeoMesa GeoServer plugin, and GeoMesa Tools. You can manually assemble using the ``assemble.sh`` script contained in the module.
+* **geomesa-dist**: packages the GeoMesa distributed runtimes, GeoMesa GeoServer plugins, and GeoMesa Tools.
 * **geomesa-examples**: includes Developer quickstart tutorials and examples for how to work with GeoMesa in Accumulo and Kafka.
 * **geomesa-features**: includes code for serializing SimpleFeatures and custom SimpleFeature implementations designed for GeoMesa.
 * **geomesa-filter**: a library for manipulating and working with GeoTools Filters.
