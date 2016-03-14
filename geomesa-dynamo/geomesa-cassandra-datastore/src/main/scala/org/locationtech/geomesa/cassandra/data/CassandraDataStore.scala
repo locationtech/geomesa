@@ -20,7 +20,7 @@ import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.geotools.data.store._
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.feature.{AttributeTypeBuilder, NameImpl}
-import org.locationtech.geomesa.dynamo.core.{SchemaValidation, DynamoPrimaryKey}
+import org.locationtech.geomesa.dynamo.core.SchemaValidation
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.`type`.{AttributeDescriptor, Name}
@@ -117,5 +117,3 @@ class CassandraDataStore(session: Session, keyspaceMetadata: KeyspaceMetadata, n
 
   override def dispose(): Unit = if (session != null) session.close()
 }
-
-object CassandraPrimaryKey extends DynamoPrimaryKey

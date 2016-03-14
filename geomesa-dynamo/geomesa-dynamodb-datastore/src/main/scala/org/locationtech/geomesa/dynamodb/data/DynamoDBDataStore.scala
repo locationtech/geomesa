@@ -15,7 +15,7 @@ import com.amazonaws.services.dynamodbv2.model._
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource, ContentState}
 import org.geotools.feature.NameImpl
-import org.locationtech.geomesa.dynamo.core.{DynamoPrimaryKey, SchemaValidation}
+import org.locationtech.geomesa.dynamo.core.SchemaValidation
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.Name
@@ -144,5 +144,3 @@ object DynamoDBDataStore {
   }
 
 }
-
-object DynamoDBPrimaryKey extends DynamoPrimaryKey

@@ -22,21 +22,10 @@ import scala.collection.JavaConversions._
 
 class DynamoDBFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entry, Query.ALL) with DynamoGeoQuery {
 
-  override protected[this] val primaryKey = DynamoDBPrimaryKey
-
   private lazy val contentState: DynamoDBContentState = entry.getState(getTransaction).asInstanceOf[DynamoDBContentState]
 
-  override def buildFeatureType(): SimpleFeatureType = contentState.sft
-
-  override def getBoundsInternal(query: Query): ReferencedEnvelope = WHOLE_WORLD
-
-  // TODO: getItemCount returns a Long, may need to do something safer
-  override def getCountOfAllDynamo: Int = contentState.getCountOfAll.toInt
-
-  override def getCountInternal(query: Query): Int = getCountInternalDynamo(query)
-
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
-    getReaderInternalDynamo(query, contentState)
+    getReaderInternalDynamo(query, contentState.sft)
   }
 
   override def getWriterInternal(query: Query, flags: Int): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
@@ -44,40 +33,24 @@ class DynamoDBFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entr
     else                                   new DynamoDBUpdatingFeatureWriter(contentState.sft, contentState.table)
   }
 
-  override def planQuery(query: Query): GenTraversable[HashAndRangeQueryPlan] = {
-    import org.locationtech.geomesa.filter._
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+  override def buildFeatureType(): SimpleFeatureType = contentState.sft
 
-    val (lx, ly, ux, uy) = planQuerySpatialBounds(query)
-    val (dtgFilters, _) = partitionPrimaryTemporals(decomposeAnd(query.getFilter), contentState.sft)
-    val interval = FilterHelper.extractInterval(dtgFilters, contentState.sft.getDtgField)
-    val startWeeks: Int = DynamoDBPrimaryKey.epochWeeks(interval.getStart).getWeeks
-    val endWeeks:   Int = DynamoDBPrimaryKey.epochWeeks(interval.getEnd).getWeeks
+  override def getBoundsInternal(query: Query): ReferencedEnvelope = WHOLE_WORLD
 
-    val zRanges = DynamoDBPrimaryKey.SFC2D.toRanges(lx, ly, ux, uy).toList
+  // TODO: might overflow
+  override def getCountOfAllDynamo: Int = contentState.getCountOfAll.toInt
 
-    val rows = (startWeeks to endWeeks).map { dt => getRowKeys(zRanges, interval, startWeeks, endWeeks, dt)}
+  override def getCountInternal(query: Query): Int = getCountInternalDynamo(query, contentState.sft)
 
-    val plans =
-      rows.flatMap { case ((s, e), rowRanges) =>
-        planQueryForContiguousRowRange(s, e, rowRanges)
-      }
-    plans
-  }
-
-  def getRowKeys(zRanges: Seq[IndexRange], interval: Interval, sew: Int, eew: Int, dt: Int): ((Int, Int), Seq[Int]) = {
-    getRowKeysDynamo(zRanges, interval, sew, eew, dt)
-  }
-
-  override def planQueryForContiguousRowRange(s: Int, e: Int, rowRanges: Seq[Int]): Seq[HashAndRangeQueryPlan] = {
-    rowRanges.map { r =>
-      val DynamoDBPrimaryKey.Key(_, _, _, _, z) = DynamoDBPrimaryKey.unapply(r)
-      val (minx, miny, maxx, maxy) = DynamoDBPrimaryKey.SFC2D.bound(z)
-      val min = DynamoDBPrimaryKey.SFC3D.index(minx, miny, s).z
-      val max = DynamoDBPrimaryKey.SFC3D.index(maxx, maxy, e).z
-      HashAndRangeQueryPlan(r, min, max, contained = false)
+  override def executeGeoTimeCountQuery(query: Query, plans: GenTraversable[HashAndRangeQueryPlan]): Long = {
+    if (plans.size > 10) {
+      -1L
+    } else {
+      plans.map{ case HashAndRangeQueryPlan(r, l, u, c) =>
+        val q = contentState.geoTimeCountQuery(r, l, u)
+        val res = contentState.table.query(q)
+        res.getTotalCount}.sum.toLong
     }
-
   }
 
   def executeGeoTimeQuery(query: Query, plans: GenTraversable[HashAndRangeQueryPlan]): GenTraversable[SimpleFeature] = {
@@ -91,15 +64,14 @@ class DynamoDBFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entr
     }
   }
 
-  override def executeGeoTimeCountQuery(query: Query, plans: GenTraversable[HashAndRangeQueryPlan]): Long = {
-    if (plans.size > 10) {
-      -1L
-    } else {
-      plans.map{ case HashAndRangeQueryPlan(r, l, u, c) =>
-        val q = contentState.geoTimeCountQuery(r, l, u)
-        val res = contentState.table.query(q)
-        res.getTotalCount}.sum.toLong
-      }
+  override def getAllFeatures: Iterator[SimpleFeature] = contentState.table.scan(contentState.ALL_QUERY).iterator().map(convertItemToSF)
+
+  def planQuery(query: Query): GenTraversable[HashAndRangeQueryPlan] = {
+    planQuery(query, contentState.sft)
+  }
+
+  def getRowKeys(zRanges: Seq[IndexRange], interval: Interval, sew: Int, eew: Int, dt: Int): ((Int, Int), Seq[Int]) = {
+    getRowKeysDynamo(zRanges, interval, sew, eew, dt)
   }
 
   def postProcessResults(query: Query, contains: Boolean, fut: ItemCollection[QueryOutcome]): Iterator[SimpleFeature] = {
@@ -109,8 +81,6 @@ class DynamoDBFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entr
   private def convertItemToSF(i: Item): SimpleFeature = {
     contentState.serializer.deserialize(i.getBinary(DynamoDBDataStore.serId))
   }
-
-  override def getAllFeatures: Iterator[SimpleFeature] = contentState.table.scan(contentState.ALL_QUERY).iterator().map(convertItemToSF)
 
 }
 

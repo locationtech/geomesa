@@ -31,6 +31,8 @@ class CassandraContentState(entry: ContentEntry, val session: Session, val table
   val GEO_TIME_COUNT_QUERY = session.prepare(s"select count(*) from $table where (pkz = ?) and (z31 >= ?) and (z31 <= ?)")
   val builderPool = ObjectPoolFactory(getBuilder, 10)
 
+  def getCountOfAll: Long = session.execute(ALL_COUNT_QUERY.bind()).iterator().next().getLong(0)
+
   private def getBuilder = {
     val builder = new SimpleFeatureBuilder(sft)
     builder.setValidating(java.lang.Boolean.FALSE)

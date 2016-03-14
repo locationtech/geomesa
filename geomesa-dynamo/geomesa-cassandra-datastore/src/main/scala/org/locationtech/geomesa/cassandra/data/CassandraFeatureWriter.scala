@@ -13,6 +13,7 @@ import java.util.UUID
 import com.datastax.driver.core._
 import org.geotools.data.{FeatureWriter => FW}
 import org.joda.time.DateTime
+import org.locationtech.geomesa.dynamo.core.DynamoPrimaryKey
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -54,9 +55,9 @@ trait CassandraFeatureWriter extends FW[SimpleFeatureType, SimpleFeature] {
     val y = geom.getY
     val dtg = new DateTime(curFeature.getAttribute(dtgIdx).asInstanceOf[java.util.Date])
 
-    val secondsInWeek = CassandraPrimaryKey.secondsInCurrentWeek(dtg)
-    val pk = CassandraPrimaryKey(dtg, x, y)
-    val z3 = CassandraPrimaryKey.SFC3D.index(x, y, secondsInWeek)
+    val secondsInWeek = DynamoPrimaryKey.secondsInCurrentWeek(dtg)
+    val pk = DynamoPrimaryKey(dtg, x, y)
+    val z3 = DynamoPrimaryKey.SFC3D.index(x, y, secondsInWeek)
     val z31 = z3.z
 
     val bindings = Array(Int.box(pk.idx), Long.box(z31): java.lang.Long, curFeature.getID) ++

@@ -25,9 +25,11 @@ import scala.collection.JavaConversions._
 
 class CassandraFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entry, Query.ALL) with DynamoGeoQuery {
 
-  override protected[this] val primaryKey = CassandraPrimaryKey
-
   private lazy val contentState = entry.getState(getTransaction).asInstanceOf[CassandraContentState]
+
+  override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
+    getReaderInternalDynamo(query, contentState.sft)
+  }
 
   override def getWriterInternal(query: Query, flags: Int): FW[SimpleFeatureType, SimpleFeature] = {
     if((flags | WRITER_ADD) == WRITER_ADD) new AppendFW(contentState.sft, contentState.session)
@@ -39,9 +41,9 @@ class CassandraFeatureStore(entry: ContentEntry) extends ContentFeatureStore(ent
   override def getBoundsInternal(query: Query): ReferencedEnvelope = WHOLE_WORLD
 
   // TODO: might overflow
-  override def getCountOfAllDynamo: Int = contentState.session.execute(contentState.ALL_COUNT_QUERY.bind()).iterator().next().getLong(0).toInt
+  override def getCountOfAllDynamo: Int = contentState.getCountOfAll.toInt
 
-  override def getCountInternal(query: Query): Int = getCountInternalDynamo(query)
+  override def getCountInternal(query: Query): Int = getCountInternalDynamo(query, contentState.sft)
 
   override def executeGeoTimeCountQuery(query: Query, plans: GenTraversable[HashAndRangeQueryPlan]): Long = {
     // TODO: currently overestimates the count in order to increase performance
@@ -54,10 +56,6 @@ class CassandraFeatureStore(entry: ContentEntry) extends ContentFeatureStore(ent
       futures.flatMap { f => f.get().iterator().toList }.map(_.getLong(0)).sum
     }
     features
-  }
-
-  override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
-    getReaderInternalDynamo(query, contentState)
   }
 
   override def executeGeoTimeQuery(query: Query, plans: GenTraversable[HashAndRangeQueryPlan]): GenTraversable[SimpleFeature] = {
@@ -73,52 +71,18 @@ class CassandraFeatureStore(entry: ContentEntry) extends ContentFeatureStore(ent
     features
   }
 
-  override def planQuery(query: Query): GenTraversable[HashAndRangeQueryPlan] = {
-    import org.locationtech.geomesa.filter._
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
-
-    // TODO: currently we assume that the query has a dtg between predicate and a bbox
-    val (lx, ly, ux, uy) = planQuerySpatialBounds(query)
-    val (dtgFilters, _) = partitionPrimaryTemporals(decomposeAnd(query.getFilter), contentState.sft)
-    val interval = FilterHelper.extractInterval(dtgFilters, contentState.sft.getDtgField)
-    val startWeeks: Int = CassandraPrimaryKey.epochWeeks(interval.getStart).getWeeks
-    val endWeeks:   Int = CassandraPrimaryKey.epochWeeks(interval.getEnd).getWeeks
-
-    val zRanges = CassandraPrimaryKey.SFC2D.toRanges(lx, ly, ux, uy).toList
-
-    val rows = (startWeeks to endWeeks).map { dt => getRowKeys(zRanges, interval, startWeeks, endWeeks, dt) }
-
-    val plans =
-      rows.flatMap { case ((s, e), rowRanges) =>
-        planQueryForContiguousRowRange(s, e, rowRanges)
-      }
-    plans
+  override def getAllFeatures: Iterator[SimpleFeature] = {
+    contentState.builderPool.withResource { builder =>
+      contentState.session.execute(contentState.ALL_QUERY.bind()).iterator().map { r => convertRowToSF(r, builder) }
+    }
   }
 
-  override def planQueryForContiguousRowRange(s: Int, e: Int, rowRanges: Seq[Int]): Seq[HashAndRangeQueryPlan] = {
-    rowRanges.map { r =>
-      val CassandraPrimaryKey.Key(_, _, _, _, z) = CassandraPrimaryKey.unapply(r)
-      val (minx, miny, maxx, maxy) = CassandraPrimaryKey.SFC2D.bound(z)
-      val min = CassandraPrimaryKey.SFC3D.index(minx, miny, s).z
-      val max = CassandraPrimaryKey.SFC3D.index(maxx, maxy, e).z
-      HashAndRangeQueryPlan(r, min, max, contained = false)
-//      val z3ranges = CassandraPrimaryKey.SFC3D.ranges((minx, maxx), (miny, maxy), (s, e))
-//
-//      z3ranges.map { ir =>
-//        val (l, u, contains) = ir.tuple
-//        HashAndRangeQueryPlan(r, l, u, contains)
-//      }
-    }
+  def planQuery(query: Query): GenTraversable[HashAndRangeQueryPlan] = {
+    planQuery(query, contentState.sft)
   }
 
   def getRowKeys(zRanges: Seq[IndexRange], interval: Interval, sew: Int, eew: Int, dt: Int): ((Int, Int), Seq[Int]) = {
     getRowKeysDynamo(zRanges, interval, sew, eew, dt)
-  }
-
-  def getAllFeatures: Iterator[SimpleFeature] = {
-    contentState.builderPool.withResource { builder =>
-      contentState.session.execute(contentState.ALL_QUERY.bind()).iterator().map { r => convertRowToSF(r, builder) }
-    }
   }
 
   def postProcessResults(query: Query, builder: SimpleFeatureBuilder, contains: Boolean, fut: ResultSetFuture): Iterator[SimpleFeature] = {

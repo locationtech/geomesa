@@ -17,6 +17,7 @@ import com.google.common.primitives.{Bytes, Ints, Longs}
 import com.vividsolutions.jts.geom.Point
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.joda.time.DateTime
+import org.locationtech.geomesa.dynamo.core.DynamoPrimaryKey
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.text.WKBUtils
@@ -87,12 +88,12 @@ trait DynamoDBFeatureWriter extends SimpleFeatureWriter with DynamoDBPutter {
     val dtg = new DateTime(curFeature.getAttribute(dtgIndex).asInstanceOf[Date])
 
     // hash key
-    val pk = DynamoDBPrimaryKey(dtg, x, y)
+    val pk = DynamoPrimaryKey(dtg, x, y)
     val hash = Ints.toByteArray(pk.idx)
 
     // range key
-    val secondsInWeek = DynamoDBPrimaryKey.secondsInCurrentWeek(dtg)
-    val z3 = DynamoDBPrimaryKey.SFC3D.index(x, y, secondsInWeek)
+    val secondsInWeek = DynamoPrimaryKey.secondsInCurrentWeek(dtg)
+    val z3 = DynamoPrimaryKey.SFC3D.index(x, y, secondsInWeek)
     val z3idx = Longs.toByteArray(z3.z)
 
     val range = Bytes.concat(z3idx, curFeature.getID.getBytes(StandardCharsets.UTF_8))

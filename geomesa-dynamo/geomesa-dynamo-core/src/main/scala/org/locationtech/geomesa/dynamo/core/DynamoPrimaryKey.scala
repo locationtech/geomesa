@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.dynamo.core
 
-import org.joda.time.{Seconds, Weeks, DateTime}
+import org.joda.time.{DateTime, Seconds, Weeks}
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.sfcurve.zorder.ZCurve2D
 
-trait DynamoPrimaryKey {
+object DynamoPrimaryKey {
 
   case class Key(idx: Int, x: Double, y: Double, dk: Int, z: Int)
 
