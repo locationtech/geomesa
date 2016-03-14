@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.tools.commands
 
 import java.io.File
+import java.util.Locale
 
 import com.beust.jcommander.{IParameterValidator, JCommander, Parameter, Parameters}
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
@@ -24,17 +25,16 @@ class IngestRasterCommand(parent: JCommander) extends Command(parent) with Accum
   override val params = new IngestRasterParameters()
 
   override def execute() {
-    val fmt = Option(params.format).getOrElse(getFileExtension(params.file))
-    fmt match {
-      case TIFF | DTED =>
-        val localIngester =
-          new LocalRasterIngest(getRasterIngestParams + (IngestRasterParams.FILE_PATH  -> Some(params.file)))
-        localIngester.runIngestTask match {
-          case Success(info) => logger.info("Local ingestion is done.")
-          case Failure(e) => throw new RuntimeException(e)
-        }
-      case _         =>
-        logger.error("Error: File format not supported for file " + params.file + ". Supported formats " +
+    val ext = Option(params.format).getOrElse(getFileExtension(params.file)).toLowerCase(Locale.US)
+    if (Seq("tif", "tiff", "geotiff", "dt0", "dt1", "dt2").contains(ext)) {
+      val localIngester =
+        new LocalRasterIngest(getRasterIngestParams + (IngestRasterParams.FILE_PATH  -> Some(params.file)))
+      localIngester.runIngestTask() match {
+        case Success(info) => logger.info("Local ingestion is done.")
+        case Failure(e) => throw new RuntimeException(e)
+      }
+    } else {
+      logger.error("Error: File format not supported for file " + params.file + ". Supported formats " +
           "are geotiff and DTED")
     }
   }

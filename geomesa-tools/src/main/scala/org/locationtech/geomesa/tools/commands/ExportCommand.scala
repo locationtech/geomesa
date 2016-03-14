@@ -31,17 +31,17 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
   override val params = new ExportParameters
 
   override def execute() = {
-
-    val fmt = params.format.toLowerCase
+    val fmt = Formats.fromString(params.format)
     val features = getFeatureCollection(fmt)
     val exporter: FeatureExporter = fmt match {
-      case CSV | TSV       => DelimitedExport(getWriter(), params)
-      case SHP             => new ShapefileExport(getFile())
-      case GeoJson | JSON  => new GeoJsonExport(getWriter())
-      case GML             => new GmlExport(getOutputStream())
-      case BIN             => BinFileExport(getOutputStream(), params)
-      case _ =>
-        throw new IllegalArgumentException(s"Unsupported export format. Supported formats are: ${Formats.All.mkString(",")}.")
+      case CSV | TSV      => new DelimitedExport(getWriter(), fmt, Option(params.attributes))
+      case SHP            => new ShapefileExport(getFile())
+      case GeoJson | JSON => new GeoJsonExport(getWriter())
+      case GML            => new GmlExport(getOutputStream())
+      case BIN            => BinFileExport(getOutputStream(), params)
+      case AVRO           => new AvroExport(getOutputStream(), features.getSchema)
+      // shouldn't happen unless someone adds a new format and doesn't implement it here
+      case _              => throw new UnsupportedOperationException(s"Format $fmt can't be exported")
     }
     try {
       exporter.write(features)
@@ -55,7 +55,7 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
     StatWriter.flush()
   }
 
-  def getFeatureCollection(fmt: String): SimpleFeatureCollection = {
+  def getFeatureCollection(fmt: Formats): SimpleFeatureCollection = {
     val sft = ds.getSchema(params.featureName)
     fmt match {
       case SHP =>
@@ -120,11 +120,11 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
 object ExportCommand {
   @Parameters(commandDescription = "Export a GeoMesa feature")
   class ExportParameters extends OptionalCqlFilterParameters {
-    @Parameter(names = Array("-F", "--format"), description = "Format to export (csv|tsv|gml|json|shp|bin)")
+    @Parameter(names = Array("-F", "--format"), description = "Format to export (csv|tsv|gml|json|shp|bin|avro)")
     var format: String = "csv"
 
-    @Parameter(names = Array("-m", "--max-features"), description = "Maximum number of features to return. default: Long.MaxValue")
-    var maxFeatures: Integer = Int.MaxValue
+    @Parameter(names = Array("-m", "--max-features"), description = "Maximum number of features to return. default: Unlimited")
+    var maxFeatures: Integer = null
 
     @Parameter(names = Array("-a", "--attributes"), description = "Attributes from feature to export " +
       "(comma-separated)...Comma-separated expressions with each in the format " +
