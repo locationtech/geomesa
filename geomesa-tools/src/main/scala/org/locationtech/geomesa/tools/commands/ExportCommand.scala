@@ -34,7 +34,7 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
     val fmt = Formats.fromString(params.format)
     val features = getFeatureCollection(fmt)
     val exporter: FeatureExporter = fmt match {
-      case CSV | TSV      => new DelimitedExport(getWriter(), fmt, Option(params.attributes))
+      case CSV | TSV      => new DelimitedExport(getWriter(), fmt)
       case SHP            => new ShapefileExport(getFile())
       case GeoJson | JSON => new GeoJsonExport(getWriter())
       case GML            => new GmlExport(getOutputStream())
@@ -56,7 +56,7 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
   }
 
   def getFeatureCollection(fmt: Formats): SimpleFeatureCollection = {
-    val sft = ds.getSchema(params.featureName)
+    lazy val sft = ds.getSchema(params.featureName)
     fmt match {
       case SHP =>
         val schemaString =

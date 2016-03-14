@@ -10,13 +10,13 @@ package org.locationtech.geomesa.tools.commands
 
 import java.util
 
-import com.beust.jcommander.{JCommander, Parameter, Parameters}
+import com.beust.jcommander.{ParameterException, JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.tools.Utils.Formats
 import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.tools.commands.IngestCommand._
-import org.locationtech.geomesa.tools.ingest.ConverterIngest
+import org.locationtech.geomesa.tools.ingest.{AutoIngest, ConverterIngest, AbstractIngest$}
 import org.locationtech.geomesa.tools.{CLArgResolver, DataStoreHelper}
 import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
 
@@ -27,19 +27,32 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
   override val params = new IngestParameters()
 
   override def execute(): Unit = {
-    val fmt = Formats.fromString(Option(params.format).getOrElse(getFileExtension(params.files(0))))
+    val extensions = params.files.map(getFileExtension)
+    require(extensions.tail.forall(_ == extensions.head), "Input files must all be of the same file type")
+    ensureSameFs(Seq("hdfs", "s3n", "s3a"))
+
+    val fmt = Formats.fromString(Option(params.format).getOrElse(extensions.head))
     if (fmt == SHP) {
       val ds = new DataStoreHelper(params).getDataStore()
-      GeneralShapefileIngest.shpToDataStore(params.files(0), ds, params.featureName)
+      params.files.foreach(GeneralShapefileIngest.shpToDataStore(_, ds, params.featureName))
     } else {
-      ensureSameFs(Seq("hdfs", "s3n", "s3a"))
-
       val dsParams = new DataStoreHelper(params).paramMap
-      require(DataStoreFinder.getDataStore(dsParams) != null, "Could not load a data store with the provided parameters")
-      val sft = CLArgResolver.getSft(params.spec, params.featureName)
-      val converterConfig = CLArgResolver.getConfig(params.config)
+      val tryDs = DataStoreFinder.getDataStore(dsParams)
+      require(tryDs != null, "Could not load a data store with the provided parameters")
+      tryDs.dispose()
 
-      new ConverterIngest(dsParams, sft, converterConfig, params.files, params.threads).run()
+      if (params.spec == null && params.config == null && Seq(TSV, CSV, AVRO).contains(fmt)) {
+        if (params.featureName == null) {
+          throw new ParameterException("Feature name is required when a schema is not specified")
+        }
+        // auto-detect the import schema
+        logger.info("No schema or converter defined - will attempt to detect schema from input files")
+        new AutoIngest(dsParams, params.featureName, params.files, params.threads, fmt).run()
+      } else {
+        val sft = CLArgResolver.getSft(params.spec, params.featureName)
+        val converterConfig = CLArgResolver.getConfig(params.config)
+        new ConverterIngest(dsParams, params.files, params.threads, sft, converterConfig).run()
+      }
     }
   }
 

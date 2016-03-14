@@ -805,7 +805,7 @@ class AccumuloDataStore(val connector: Connector,
       // unique path per catalog table - must start with a forward slash
       val lockPath =  s"/org.locationtech.geomesa/accumulo/ds/$catalogTable"
       val lock = new InterProcessSemaphoreMutex(client, lockPath)
-      if (!lock.acquire(10000, TimeUnit.MILLISECONDS)) {
+      if (!lock.acquire(120, TimeUnit.SECONDS)) {
         throw new RuntimeException(s"Could not acquire distributed lock at '$lockPath'")
       }
       // delegate lock that will close the curator client upon release
