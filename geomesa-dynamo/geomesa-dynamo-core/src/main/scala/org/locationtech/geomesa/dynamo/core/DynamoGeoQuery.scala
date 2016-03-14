@@ -47,7 +47,7 @@ trait DynamoGeoQuery {
 
     val zRanges = DynamoPrimaryKey.SFC2D.toRanges(lx, ly, ux, uy).toList
 
-    val rows = (startWeeks to endWeeks).map { dt => getRowKeysDynamo(zRanges, interval, startWeeks, endWeeks, dt)}
+    val rows = (startWeeks to endWeeks).map { dt => getRowKeys(zRanges, interval, startWeeks, endWeeks, dt)}
 
     val plans =
       rows.flatMap { case ((s, e), rowRanges) =>
@@ -59,9 +59,9 @@ trait DynamoGeoQuery {
   def executeGeoTimeQuery(query: Query, plans: GenTraversable[HashAndRangeQueryPlan]): GenTraversable[SimpleFeature]
   def executeGeoTimeCountQuery(query: Query, plans: GenTraversable[HashAndRangeQueryPlan]): Long
 
-  def getCountOfAllDynamo: Int
+  def getCountOfAll: Int
 
-  def getReaderInternalDynamo(query: Query, sft: SimpleFeatureType): FeatureReader[SimpleFeatureType, SimpleFeature] = {
+  def getReaderInternal(query: Query, sft: SimpleFeatureType): FeatureReader[SimpleFeatureType, SimpleFeature] = {
     val (spatial, other) = partitionPrimarySpatials(query.getFilter, sft)
     val iter: Iterator[SimpleFeature] =
       if(query.equals(Query.ALL) || spatial.exists(FilterHelper.isFilterWholeWorld)) {
@@ -73,9 +73,9 @@ trait DynamoGeoQuery {
     new DelegateSimpleFeatureReader(sft, new DelegateSimpleFeatureIterator(iter.asJava))
   }
 
-  def getCountInternalDynamo(query: Query, sft: SimpleFeatureType): Int = {
+  def getCountInternal(query: Query, sft: SimpleFeatureType): Int = {
     if (query.equals(Query.ALL) || FilterHelper.isFilterWholeWorld(query.getFilter)) {
-      getCountOfAllDynamo
+      getCountOfAll
     } else {
       val plans = planQuery(query, sft)
       executeGeoTimeCountQuery(query, plans).toInt
@@ -93,7 +93,7 @@ trait DynamoGeoQuery {
     }
   }
 
-  def getRowKeysDynamo(zRanges: Seq[IndexRange], interval: Interval, sew: Int, eew: Int, dt: Int) = {
+  def getRowKeys(zRanges: Seq[IndexRange], interval: Interval, sew: Int, eew: Int, dt: Int): ((Int, Int), Seq[Int]) = {
     val dtshift = dt << 16
     val seconds: (Int, Int) =
       if (dt != sew && dt != eew) {
@@ -126,6 +126,5 @@ trait DynamoGeoQuery {
       simpleFeatures
     }
   }
-
 
 }

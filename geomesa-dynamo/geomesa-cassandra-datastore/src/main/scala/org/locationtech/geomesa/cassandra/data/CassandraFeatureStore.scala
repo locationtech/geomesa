@@ -15,9 +15,7 @@ import org.geotools.data.store._
 import org.geotools.data.{FeatureWriter => FW, _}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.joda.time.Interval
 import org.locationtech.geomesa.dynamo.core.DynamoGeoQuery
-import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.GenTraversable
@@ -28,7 +26,7 @@ class CassandraFeatureStore(entry: ContentEntry) extends ContentFeatureStore(ent
   private lazy val contentState = entry.getState(getTransaction).asInstanceOf[CassandraContentState]
 
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
-    getReaderInternalDynamo(query, contentState.sft)
+    getReaderInternal(query, contentState.sft)
   }
 
   override def getWriterInternal(query: Query, flags: Int): FW[SimpleFeatureType, SimpleFeature] = {
@@ -41,9 +39,9 @@ class CassandraFeatureStore(entry: ContentEntry) extends ContentFeatureStore(ent
   override def getBoundsInternal(query: Query): ReferencedEnvelope = WHOLE_WORLD
 
   // TODO: might overflow
-  override def getCountOfAllDynamo: Int = contentState.getCountOfAll.toInt
+  override def getCountOfAll: Int = contentState.getCountOfAll.toInt
 
-  override def getCountInternal(query: Query): Int = getCountInternalDynamo(query, contentState.sft)
+  override def getCountInternal(query: Query): Int = getCountInternal(query, contentState.sft)
 
   override def executeGeoTimeCountQuery(query: Query, plans: GenTraversable[HashAndRangeQueryPlan]): Long = {
     // TODO: currently overestimates the count in order to increase performance
@@ -79,10 +77,6 @@ class CassandraFeatureStore(entry: ContentEntry) extends ContentFeatureStore(ent
 
   def planQuery(query: Query): GenTraversable[HashAndRangeQueryPlan] = {
     planQuery(query, contentState.sft)
-  }
-
-  def getRowKeys(zRanges: Seq[IndexRange], interval: Interval, sew: Int, eew: Int, dt: Int): ((Int, Int), Seq[Int]) = {
-    getRowKeysDynamo(zRanges, interval, sew, eew, dt)
   }
 
   def postProcessResults(query: Query, builder: SimpleFeatureBuilder, contains: Boolean, fut: ResultSetFuture): Iterator[SimpleFeature] = {

@@ -12,9 +12,7 @@ import com.amazonaws.services.dynamodbv2.document.{Item, ItemCollection, QueryOu
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.data.{FeatureReader, FeatureWriter, Query}
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.joda.time.Interval
 import org.locationtech.geomesa.dynamo.core.DynamoGeoQuery
-import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.GenTraversable
@@ -25,7 +23,7 @@ class DynamoDBFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entr
   private lazy val contentState: DynamoDBContentState = entry.getState(getTransaction).asInstanceOf[DynamoDBContentState]
 
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
-    getReaderInternalDynamo(query, contentState.sft)
+    getReaderInternal(query, contentState.sft)
   }
 
   override def getWriterInternal(query: Query, flags: Int): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
@@ -38,9 +36,9 @@ class DynamoDBFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entr
   override def getBoundsInternal(query: Query): ReferencedEnvelope = WHOLE_WORLD
 
   // TODO: might overflow
-  override def getCountOfAllDynamo: Int = contentState.getCountOfAll.toInt
+  override def getCountOfAll: Int = contentState.getCountOfAll.toInt
 
-  override def getCountInternal(query: Query): Int = getCountInternalDynamo(query, contentState.sft)
+  override def getCountInternal(query: Query): Int = getCountInternal(query, contentState.sft)
 
   override def executeGeoTimeCountQuery(query: Query, plans: GenTraversable[HashAndRangeQueryPlan]): Long = {
     if (plans.size > 10) {
@@ -49,7 +47,8 @@ class DynamoDBFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entr
       plans.map{ case HashAndRangeQueryPlan(r, l, u, c) =>
         val q = contentState.geoTimeCountQuery(r, l, u)
         val res = contentState.table.query(q)
-        res.getTotalCount}.sum.toLong
+        res.getTotalCount
+      }.sum.toLong
     }
   }
 
@@ -68,10 +67,6 @@ class DynamoDBFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entr
 
   def planQuery(query: Query): GenTraversable[HashAndRangeQueryPlan] = {
     planQuery(query, contentState.sft)
-  }
-
-  def getRowKeys(zRanges: Seq[IndexRange], interval: Interval, sew: Int, eew: Int, dt: Int): ((Int, Int), Seq[Int]) = {
-    getRowKeysDynamo(zRanges, interval, sew, eew, dt)
   }
 
   def postProcessResults(query: Query, contains: Boolean, fut: ItemCollection[QueryOutcome]): Iterator[SimpleFeature] = {
