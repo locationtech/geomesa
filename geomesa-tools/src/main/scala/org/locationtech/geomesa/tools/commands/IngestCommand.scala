@@ -13,6 +13,7 @@ import java.util
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataStoreFinder
+import org.locationtech.geomesa.tools.Utils.Formats
 import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.tools.commands.IngestCommand._
 import org.locationtech.geomesa.tools.ingest.ConverterIngest
@@ -26,7 +27,7 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
   override val params = new IngestParameters()
 
   override def execute(): Unit = {
-    val fmt = Option(params.format).getOrElse(getFileExtension(params.files(0)))
+    val fmt = Formats.fromString(Option(params.format).getOrElse(getFileExtension(params.files(0))))
     if (fmt == SHP) {
       val ds = new DataStoreHelper(params).getDataStore()
       GeneralShapefileIngest.shpToDataStore(params.files(0), ds, params.featureName)

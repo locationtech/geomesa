@@ -9,12 +9,14 @@
 package org.locationtech.geomesa.tools
 
 import java.io.{BufferedReader, File, InputStreamReader}
+import java.util.Locale
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.server.client.HdfsZooInstance
 import org.apache.commons.compress.compressors.bzip2.BZip2Utils
 import org.apache.commons.compress.compressors.gzip.GzipUtils
 import org.apache.commons.compress.compressors.xz.XZUtils
+import org.apache.commons.io.{FileUtils, FilenameUtils}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 
@@ -41,42 +43,28 @@ object Utils {
     val CONVERTER_CONFIG    = "geomesa.tools.ingest.converter-config"
   }
 
-  object Formats {
-    val CSV     = "csv"
-    val TSV     = "tsv"
-    val TIFF    = "geotiff"
-    val DTED    = "DTED"
-    val SHP     = "shp"
-    val JSON    = "json"
-    val GeoJson = "geojson"
-    val GML     = "gml"
-    val BIN     = "bin"
+  object Formats extends Enumeration {
+    type Formats = Value
+    val CSV, TSV, SHP, JSON, GeoJson, GML, BIN, AVRO = Value
 
-    def getFileExtension(name: String) = {
-      val fileExtension = name match {
+    def getFileExtension(name: String): String = {
+      val filename = name match {
         case _ if GzipUtils.isCompressedFilename(name)  => GzipUtils.getUncompressedFilename(name)
         case _ if BZip2Utils.isCompressedFilename(name) => BZip2Utils.getUncompressedFilename(name)
         case _ if XZUtils.isCompressedFilename(name)    => XZUtils.getUncompressedFilename(name)
         case _ => name
       }
 
-      fileExtension match {
-        case _ if fileExtension.toLowerCase.endsWith(CSV)      => CSV
-        case _ if fileExtension.toLowerCase.endsWith(TSV)      => TSV
-        case _ if fileExtension.toLowerCase.endsWith("tif") ||
-                  fileExtension.toLowerCase.endsWith("tiff")   => TIFF
-        case _ if fileExtension.toLowerCase.endsWith("dt0") ||
-                  fileExtension.toLowerCase.endsWith("dt1") ||
-                  fileExtension.toLowerCase.endsWith("dt2")    => DTED
-        case _ if fileExtension.toLowerCase.endsWith(SHP)      => SHP
-        case _ if fileExtension.toLowerCase.endsWith(JSON)     => JSON
-        case _ if fileExtension.toLowerCase.endsWith(GML)      => GML
-        case _ if fileExtension.toLowerCase.endsWith(BIN)      => BIN
-        case _                                                 => "unknown"
-      }
+      val ext = FilenameUtils.getExtension(filename).toLowerCase(Locale.US)
+      Formats.values.map(_.toString.toLowerCase(Locale.US)).find(_ == ext).getOrElse("unknown")
     }
 
-    val All = List(CSV, TSV, SHP, JSON, GeoJson, GML, BIN)
+    def fromString(format: String): Formats = {
+      val lc = format.toLowerCase(Locale.US)
+      values.find(_.toString.toLowerCase(Locale.US) == lc).getOrElse {
+        throw new RuntimeException(s"Illegal format '$format'. Valid values are: ${values.mkString(", ")}")
+      }
+    }
   }
 
   object Modes {
@@ -87,20 +75,10 @@ object Utils {
     def getModeFlag(filename: String) = "--" + getJobMode(filename)
   }
 
-  //Recursively delete a local directory and its children
-  def deleteLocalDirectory(pathStr: String) {
-    val path = new File(pathStr)
-    if (path.exists) {
-      val files = path.listFiles
-      files.foreach { _ match {
-        case p if p.isDirectory => deleteLocalDirectory(p.getAbsolutePath)
-        case f => f.delete
-      }}
-      path.delete
-    }
-  }
+  // Recursively delete a local directory and its children
+  def deleteLocalDirectory(pathStr: String): Unit = FileUtils.deleteDirectory(new File(pathStr))
 
-  //Recursively delete a HDFS directory and its children
+  // Recursively delete a HDFS directory and its children
   def deleteHdfsDirectory(pathStr: String) {
     val fs = FileSystem.get(new Configuration)
     val path = new Path(pathStr)

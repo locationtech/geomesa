@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.tools
 
-import java.io.StringWriter
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, StringWriter}
 import java.util.Date
 
 import org.apache.accumulo.core.client.mock.MockInstance
@@ -18,8 +18,10 @@ import org.geotools.feature.DefaultFeatureCollection
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureStore
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
+import org.locationtech.geomesa.features.avro.AvroDataFileReader
 import org.locationtech.geomesa.tools.Utils.Formats
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -134,6 +136,46 @@ class FeatureExporterTest extends Specification {
 
     "should NOT transform and incorrect transform in the query" >> {
       checkReplacedAttributes("name,geom=the_geom,dtg", "name,geom=the_geom,dtg")
+    }
+  }
+
+  "Avro Export" >> {
+    val sftName = "AvroExportTest"
+    val (featureCollection, ds, sft) = getFeaturesDataStoreAndSFT(sftName)
+
+    "should properly export to avro" >> {
+      val os = new ByteArrayOutputStream()
+      val export = new AvroExport(os, sft)
+      export.write(featureCollection)
+      export.close()
+
+      val result = new AvroDataFileReader(new ByteArrayInputStream(os.toByteArray))
+      SimpleFeatureTypes.encodeType(result.getSft) mustEqual SimpleFeatureTypes.encodeType(sft)
+
+      val features = result.toList
+      features must haveLength(1)
+      features.head.getAttribute(0) mustEqual "myname"
+      features.head.getAttribute(1) mustEqual WKTUtils.read("POINT(45 49)")
+      features.head.getAttribute(2) mustEqual new Date(0)
+    }
+
+    "should handle transforms" >> {
+      val query = new Query(sftName, Filter.INCLUDE, Array("derived=strConcat(name, '-test')", "geom", "dtg"))
+      val featureCollection = ds.getFeatureSource(sftName).getFeatures(query)
+
+      val os = new ByteArrayOutputStream()
+      val export = new AvroExport(os, featureCollection.getSchema)
+      export.write(featureCollection)
+      export.close()
+
+      val result = new AvroDataFileReader(new ByteArrayInputStream(os.toByteArray))
+      SimpleFeatureTypes.encodeType(result.getSft) mustEqual SimpleFeatureTypes.encodeType(featureCollection.getSchema)
+
+      val features = result.toList
+      features must haveLength(1)
+      features.head.getAttribute(0) mustEqual WKTUtils.read("POINT(45 49)")
+      features.head.getAttribute(1) mustEqual new Date(0)
+      features.head.getAttribute(2) mustEqual "myname-test" // derived variable gets bumped to the end
     }
   }
 }

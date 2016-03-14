@@ -20,8 +20,10 @@ import org.geotools.data.DataUtilities
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureStore}
 import org.geotools.geojson.feature.FeatureJSON
+import org.locationtech.geomesa.features.avro.AvroDataFileWriter
 import org.locationtech.geomesa.filter.function._
 import org.locationtech.geomesa.tools.Utils.Formats
+import org.locationtech.geomesa.tools.Utils.Formats.Formats
 import org.locationtech.geomesa.tools.commands.ExportCommand.ExportParameters
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.ListSplitter
@@ -100,6 +102,7 @@ object ShapefileExport {
   /**
    * If the attribute string has the geometry attribute in it, we will replace the name of the
    * geom descriptor with "the_geom," since that is what Shapefile expect the geom to be named.
+   *
    * @param attributes
    * @param sft
    * @return
@@ -117,7 +120,7 @@ object ShapefileExport {
   }
 }
 
-class DelimitedExport(writer: Writer, format: String, attributes: Option[String])
+class DelimitedExport(writer: Writer, format: Formats, attributes: Option[String])
     extends FeatureExporter with LazyLogging {
 
   val delimiter = format match {
@@ -183,11 +186,6 @@ class DelimitedExport(writer: Writer, format: String, attributes: Option[String]
 
 }
 
-object DelimitedExport {
-  def apply(writer: Writer, params: ExportParameters) =
-    new DelimitedExport(writer, params.format.toLowerCase, Option(params.attributes))
-}
-
 object BinFileExport {
 
   var DEFAULT_TIME = "dtg"
@@ -226,4 +224,20 @@ class BinFileExport(os: OutputStream,
   override def flush() = os.flush()
 
   override def close() = os.close()
+}
+
+class AvroExport(os: OutputStream, sft: SimpleFeatureType) extends FeatureExporter {
+  val writer = new AvroDataFileWriter(os, sft)
+
+  override def write(fc: SimpleFeatureCollection): Unit = writer.append(fc)
+
+  override def flush() = {
+    writer.flush()
+    os.flush()
+  }
+
+  override def close() = {
+    writer.close()
+    os.close()
+  }
 }
