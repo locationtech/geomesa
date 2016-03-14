@@ -59,7 +59,9 @@ class KafkaDataStore(override val zookeepers: String,
 
   override def createFeatureSource(entry: ContentEntry) = createFeatureSource(entry, Query.ALL)
   private def createFeatureSource(entry: ContentEntry, query: Query) = {
-    if(query.getStartIndex == null) query.setStartIndex(0)
+    // Query has an issue when start index is not set - hashCode throws an exception
+    // However, Query.ALL has an overridden hashCode that ignores startIndex
+    if(query.getStartIndex == null && !query.equals(Query.ALL)) query.setStartIndex(0)
     featureSourceCache.get(FeatureSourceCacheKey(entry, query))
   }
 
