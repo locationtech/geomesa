@@ -16,10 +16,11 @@ import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
-import org.geotools.data.{DataStore, DataStoreFactorySpi}
+import org.geotools.data.{DataStore, DataStoreFactorySpi, Query}
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.kafka.KafkaDataStore.FeatureSourceFactory
 import org.opengis.feature.`type`.Name
+import org.opengis.filter.Filter
 
 import scala.collection.JavaConverters._
 
@@ -39,15 +40,30 @@ class KafkaDataStore(override val zookeepers: String,
 
   override def createTypeNames() = getNames.asScala.map(name => new NameImpl(getNamespaceURI, name.getLocalPart) : Name).asJava
 
+  case class FeatureSourceCacheKey(entry: ContentEntry, query: Query)
   private val featureSourceCache =
-    CacheBuilder.newBuilder().build[ContentEntry, ContentFeatureSource](
-      new CacheLoader[ContentEntry, ContentFeatureSource] {
-        override def load(entry: ContentEntry) = {
-          fsFactory(entry, kds)
+    CacheBuilder.newBuilder().build[FeatureSourceCacheKey, ContentFeatureSource](
+      new CacheLoader[FeatureSourceCacheKey, ContentFeatureSource] {
+        override def load(key: FeatureSourceCacheKey) = {
+          fsFactory(key.entry, kds)
         }
       })
 
-  override def createFeatureSource(entry: ContentEntry) = featureSourceCache.get(entry)
+
+  def getFeatureSource(typeName: String, filt: Filter): ContentFeatureSource = {
+    val entry = ensureEntry(new NameImpl(typeName))
+    val query = new Query(typeName, filt)
+    query.setStartIndex(0)
+    createFeatureSource(entry, query)
+  }
+
+  override def createFeatureSource(entry: ContentEntry) = createFeatureSource(entry, Query.ALL)
+  private def createFeatureSource(entry: ContentEntry, query: Query) = {
+    // Query has an issue when start index is not set - hashCode throws an exception
+    // However, Query.ALL has an overridden hashCode that ignores startIndex
+    if(query.getStartIndex == null && !query.equals(Query.ALL)) query.setStartIndex(0)
+    featureSourceCache.get(FeatureSourceCacheKey(entry, query))
+  }
 
   override def dispose(): Unit = {
     super[ContentDataStore].dispose()

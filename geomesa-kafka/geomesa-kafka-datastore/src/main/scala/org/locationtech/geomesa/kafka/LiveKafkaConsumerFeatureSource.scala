@@ -40,7 +40,7 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
                                      kf: KafkaConsumerFactory,
                                      expirationPeriod: Option[Long] = None,
                                      cleanUpCache: Boolean,
-                                     query: Query = null)
+                                     query: Query = Query.ALL)
                                     (implicit ticker: Ticker = Ticker.systemTicker())
   extends KafkaConsumerFeatureSource(entry, sft, query) with Runnable with LazyLogging {
 
@@ -128,8 +128,10 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
     while (running.get) {
       queue.take() match {
         case update: CreateOrUpdate =>
-          fireEvent(KafkaFeatureEvent.changed(this, update.feature))
-          featureCache.createOrUpdateFeature(update)
+          if(query.getFilter.evaluate(update.feature)) {
+            fireEvent(KafkaFeatureEvent.changed(this, update.feature))
+            featureCache.createOrUpdateFeature(update)
+          }
         case del: Delete            =>
           fireEvent(KafkaFeatureEvent.removed(this, featureCache.features(del.id).sf))
           featureCache.removeFeature(del)

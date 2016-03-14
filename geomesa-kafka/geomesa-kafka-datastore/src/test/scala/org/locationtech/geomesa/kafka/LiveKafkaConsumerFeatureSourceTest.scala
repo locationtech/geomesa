@@ -14,6 +14,7 @@ import com.google.common.util.concurrent.AtomicLongMap
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Coordinate, Point}
 import org.geotools.data._
+import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
@@ -36,22 +37,22 @@ class LiveKafkaConsumerFeatureSourceTest extends Specification with HasEmbeddedK
 
   val gf = JTSFactoryFinder.getGeometryFactory
 
-  val zkPath = "/geomesa/kafka/testexpiry"
-
-  val producerParams = Map(
-    "brokers"    -> brokerConnect,
-    "zookeepers" -> zkConnect,
-    "zkPath"     -> zkPath,
-    "isProducer" -> true)
-
-  val consumerParams = Map(
-    "brokers"    -> brokerConnect,
-    "zookeepers" -> zkConnect,
-    "zkPath"     -> zkPath,
-    "isProducer" -> false)
-
   "LiveKafkaConsumerFeatureSource" should {
     "allow for configurable expiration" >> {
+      val zkPath = "/geomesa/kafka/testexpiry"
+
+      val producerParams = Map(
+        "brokers"    -> brokerConnect,
+        "zookeepers" -> zkConnect,
+        "zkPath"     -> zkPath,
+        "isProducer" -> true)
+
+      val consumerParams = Map(
+        "brokers"    -> brokerConnect,
+        "zookeepers" -> zkConnect,
+        "zkPath"     -> zkPath,
+        "isProducer" -> false)
+
       val sft = {
         val sft = SimpleFeatureTypes.createType("expiry", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
         KafkaDataStoreHelper.createStreamingSFT(sft, zkPath)
@@ -111,6 +112,20 @@ class LiveKafkaConsumerFeatureSourceTest extends Specification with HasEmbeddedK
     }
 
     "support listeners" >> {
+      val zkPath = "/geomesa/kafka/testlisteners"
+
+      val producerParams = Map(
+        "brokers"    -> brokerConnect,
+        "zookeepers" -> zkConnect,
+        "zkPath"     -> zkPath,
+        "isProducer" -> true)
+
+      val consumerParams = Map(
+        "brokers"    -> brokerConnect,
+        "zookeepers" -> zkConnect,
+        "zkPath"     -> zkPath,
+        "isProducer" -> false)
+
       val m = AtomicLongMap.create[String]()
 
       val id = "testlistener"
@@ -162,6 +177,54 @@ class LiveKafkaConsumerFeatureSourceTest extends Specification with HasEmbeddedK
       logger.debug("getting id")
       m.get(id) must be equalTo numUpdates
       latestLon must be equalTo 0.0
+    }
+
+    "handle filters" >> {
+      val zkPath = "/geomesa/kafka/testfilters"
+
+      val producerParams = Map(
+        "brokers"    -> brokerConnect,
+        "zookeepers" -> zkConnect,
+        "zkPath"     -> zkPath,
+        "isProducer" -> true)
+
+      val consumerParams = Map(
+        "brokers"    -> brokerConnect,
+        "zookeepers" -> zkConnect,
+        "zkPath"     -> zkPath,
+        "isProducer" -> false)
+
+      val sft = {
+        val sft = SimpleFeatureTypes.createType("filts", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+        KafkaDataStoreHelper.createStreamingSFT(sft, zkPath)
+      }
+      val producerDS = DataStoreFinder.getDataStore(producerParams)
+      producerDS.createSchema(sft)
+
+      val ff = CommonFactoryFinder.getFilterFactory2
+      val filt = ff.bbox("geom", -80, 35, -75, 40, "EPSG:4326")
+      val listenerConsumerDS = DataStoreFinder.getDataStore(consumerParams).asInstanceOf[KafkaDataStore]
+      val consumerFC = listenerConsumerDS.getFeatureSource("filts", filt)
+
+      val fw = producerDS.getFeatureWriter("filts", null, Transaction.AUTO_COMMIT)
+
+      var sf = fw.next()
+      sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID("testfilt-1")
+      sf.setAttributes(Array("smith", 30, DateTime.now().toDate).asInstanceOf[Array[AnyRef]])
+      sf.setDefaultGeometry(gf.createPoint(new Coordinate(-77, 38)))
+      fw.write()
+      logger.debug("Wrote feature")
+
+      sf = fw.next()
+      sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID("testfilt-2")
+      sf.setAttributes(Array("smith", 30, DateTime.now().toDate).asInstanceOf[Array[AnyRef]])
+      sf.setDefaultGeometry(gf.createPoint(new Coordinate(-88, 38)))
+      fw.write()
+
+      import org.locationtech.geomesa.utils.geotools.Conversions._
+      val features = consumerFC.getFeatures.features().toList
+      features.size must be equalTo 1
+      features.head.getID must be equalTo "testfilt-1"
     }
   }
 
