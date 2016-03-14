@@ -88,5 +88,14 @@ trait DynamoGeoQuery {
     (re.getMinX, re.getMinY, re.getMaxX, re.getMaxY)
   }
 
+  def applyFilter(query: Query, contains: Boolean, simpleFeatures: Iterator[SimpleFeature]): Iterator[SimpleFeature] = {
+    if (!contains) {
+      val filter = query.getFilter
+      simpleFeatures.filter(filter.evaluate(_))
+    } else {
+      simpleFeatures
+    }
+  }
+
 
 }

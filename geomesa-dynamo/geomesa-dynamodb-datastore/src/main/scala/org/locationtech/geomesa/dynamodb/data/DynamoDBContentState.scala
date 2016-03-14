@@ -29,6 +29,8 @@ class DynamoDBContentState(entry: ContentEntry, catalogTable: Table, sftTable: T
 
   val ALL_QUERY = new ScanSpec().withAttributesToGet(DynamoDBDataStore.serId)
 
+  def getCountOfAll: Long = sftTable.getDescription.getItemCount
+
   //TODO: do I need a Select or a Projection?
   def geoTimeQuery(pkz: Int, z3min: Long, z3max: Long): QuerySpec = new QuerySpec()
     .withHashKey(DynamoDBDataStore.geomesaKeyHash, Ints.toByteArray(pkz))

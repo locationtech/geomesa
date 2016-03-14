@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.dynamodb.data
 
-import com.amazonaws.services.dynamodbv2.document.{Item, ItemCollection, QueryOutcome, Table}
+import com.amazonaws.services.dynamodbv2.document.{Item, ItemCollection, QueryOutcome}
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.data.{FeatureReader, FeatureWriter, Query}
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -20,10 +20,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.GenTraversable
 import scala.collection.JavaConversions._
 
-class DynamoDBFeatureStore(entry: ContentEntry,
-                           sft: SimpleFeatureType,
-                           table: Table)
-  extends ContentFeatureStore(entry, Query.ALL) with DynamoGeoQuery {
+class DynamoDBFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entry, Query.ALL) with DynamoGeoQuery {
 
   override protected[this] val primaryKey = DynamoDBPrimaryKey
 
@@ -34,7 +31,7 @@ class DynamoDBFeatureStore(entry: ContentEntry,
   override def getBoundsInternal(query: Query): ReferencedEnvelope = WHOLE_WORLD
 
   // TODO: getItemCount returns a Long, may need to do something safer
-  override def getCountOfAllDynamo: Int = table.getDescription.getItemCount.toInt
+  override def getCountOfAllDynamo: Int = contentState.getCountOfAll.toInt
 
   override def getCountInternal(query: Query): Int = getCountInternalDynamo(query)
 
@@ -106,13 +103,7 @@ class DynamoDBFeatureStore(entry: ContentEntry,
   }
 
   def postProcessResults(query: Query, contains: Boolean, fut: ItemCollection[QueryOutcome]): Iterator[SimpleFeature] = {
-    val sfts = fut.view.toIterator.map(convertItemToSF)
-    if (!contains) {
-      val filter = query.getFilter
-      sfts.filter(filter.evaluate(_))
-    } else {
-      sfts
-    }
+    applyFilter(query, contains, fut.view.toIterator.map(convertItemToSF))
   }
 
   private def convertItemToSF(i: Item): SimpleFeature = {

@@ -13,7 +13,6 @@ import java.util
 import com.amazonaws.services.dynamodbv2.document.{DynamoDB, Item, Table}
 import com.amazonaws.services.dynamodbv2.model._
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.Transaction
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource, ContentState}
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.dynamo.core.{DynamoPrimaryKey, SchemaValidation}
@@ -33,9 +32,7 @@ class DynamoDBDataStore(val catalog: String, dynamoDB: DynamoDB, catalogPt: Prov
   private val catalogTable: Table = getOrCreateCatalogTable(dynamoDB, CATALOG_TABLE, catalogPt.getReadCapacityUnits, catalogPt.getWriteCapacityUnits)
 
   override def createFeatureSource(entry: ContentEntry): ContentFeatureSource = {
-    val sft = Option(entry.getState(Transaction.AUTO_COMMIT).getFeatureType).getOrElse { DynamoDBDataStore.getSchema(entry, catalogTable) }
-    val table = dynamoDB.getTable(makeTableName(catalog, sft.getTypeName))
-    new DynamoDBFeatureStore(entry, sft, table)
+    new DynamoDBFeatureStore(entry)
   }
 
   override def createSchema(featureType: SimpleFeatureType): Unit = {

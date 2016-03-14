@@ -95,25 +95,19 @@ class CassandraFeatureStore(entry: ContentEntry) extends ContentFeatureStore(ent
     plans
   }
 
-  def postProcessResults(query: Query, builder: SimpleFeatureBuilder, contains: Boolean, fut: ResultSetFuture): List[SimpleFeature] = {
-    val featureIterator = fut.get().iterator().map { r => convertRowToSF(r, builder) }
-    val filt = query.getFilter
-    val iter =
-      if (!contains) featureIterator.filter(f => filt.evaluate(f)).toList
-      else featureIterator.toList
-    iter
-  }
-
   override def planQueryForContiguousRowRange(s: Int, e: Int, rowRanges: Seq[Int]): Seq[HashAndRangeQueryPlan] = {
-    rowRanges.flatMap { r =>
+    rowRanges.map { r =>
       val CassandraPrimaryKey.Key(_, _, _, _, z) = CassandraPrimaryKey.unapply(r)
       val (minx, miny, maxx, maxy) = CassandraPrimaryKey.SFC2D.bound(z)
-      val z3ranges = CassandraPrimaryKey.SFC3D.ranges((minx, maxx), (miny, maxy), (s, e))
-
-      z3ranges.map { ir =>
-        val (l, u, contains) = ir.tuple
-        HashAndRangeQueryPlan(r, l, u, contains)
-      }
+      val min = CassandraPrimaryKey.SFC3D.index(minx, miny, s).z
+      val max = CassandraPrimaryKey.SFC3D.index(maxx, maxy, e).z
+      HashAndRangeQueryPlan(r, min, max, contained = false)
+//      val z3ranges = CassandraPrimaryKey.SFC3D.ranges((minx, maxx), (miny, maxy), (s, e))
+//
+//      z3ranges.map { ir =>
+//        val (l, u, contains) = ir.tuple
+//        HashAndRangeQueryPlan(r, l, u, contains)
+//      }
     }
   }
 
@@ -125,6 +119,10 @@ class CassandraFeatureStore(entry: ContentEntry) extends ContentFeatureStore(ent
     contentState.builderPool.withResource { builder =>
       contentState.session.execute(contentState.ALL_QUERY.bind()).iterator().map { r => convertRowToSF(r, builder) }
     }
+  }
+
+  def postProcessResults(query: Query, builder: SimpleFeatureBuilder, contains: Boolean, fut: ResultSetFuture): Iterator[SimpleFeature] = {
+    applyFilter(query, contains, fut.get().iterator().map { r => convertRowToSF(r, builder) })
   }
 
   def convertRowToSF(r: Row, builder: SimpleFeatureBuilder): SimpleFeature = {

@@ -16,7 +16,7 @@ trait DynamoPrimaryKey {
 
   case class Key(idx: Int, x: Double, y: Double, dk: Int, z: Int)
 
-  val SFC3D = new Z3SFC
+  val SFC3D = Z3SFC
   val SFC2D = new ZCurve2D(math.pow(2,5).toInt)
 
   val EPOCH = new DateTime(0)

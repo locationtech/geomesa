@@ -117,3 +117,5 @@ class CassandraDataStore(session: Session, keyspaceMetadata: KeyspaceMetadata, n
 
   override def dispose(): Unit = if (session != null) session.close()
 }
+
+object CassandraPrimaryKey extends DynamoPrimaryKey
