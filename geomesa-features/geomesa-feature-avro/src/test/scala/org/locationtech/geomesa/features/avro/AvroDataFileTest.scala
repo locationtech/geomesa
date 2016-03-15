@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.features.avro
 
 import java.io.{FileInputStream, FileOutputStream}
+import java.util.zip.Deflater
 
 import org.apache.avro.file.DataFileStream
 import org.geotools.factory.Hints
@@ -34,7 +35,6 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
       }
 
       val readFeatures = getFeatures(tmpFile)
-      tmpFile.delete()
       readFeatures.size mustEqual 50
       readFeatures.map(_.getID) must containTheSameElementsAs(features.map(_.getID))
     }
@@ -61,7 +61,6 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
       }
 
       val readFeatures = getFeatures(tmpFile)
-      tmpFile.delete()
       readFeatures.size mustEqual 2
       val read1 = readFeatures.find(_.getID == "fid1").head
       val read2 = readFeatures.find(_.getID == "fid2").head
@@ -89,7 +88,6 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
       }
 
       val readFeatures = getFeatures(tmpFile)
-      tmpFile.delete()
       readFeatures.size mustEqual 50
       readFeatures.map(_.getID) must containTheSameElementsAs(features.map(_.getID))
       readFeatures.forall { sf =>
@@ -116,9 +114,35 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
       dfs.getMetaString(AvroDataFile.SftNameKey) mustEqual simpleSft.getTypeName
       dfs.getMetaString(AvroDataFile.SftSpecKey) mustEqual SimpleFeatureTypes.encodeType(simpleSft)
       dfs.getMetaLong(AvroDataFile.VersionKey) mustEqual 1L
-      tmpFile.delete()
-      success
     }
+
+    "support compression" >> {
+      import Deflater._
+      val features = createComplicatedFeatures(50)
+      val uncompressed = getTmpFile
+      val compressed = getTmpFile
+
+      Seq((uncompressed, NO_COMPRESSION), (compressed, DEFAULT_COMPRESSION)).foreach { case (file, compression) =>
+        val dfw = new AvroDataFileWriter(new FileOutputStream(file), complexSft, compression)
+        try {
+          features.foreach(dfw.append)
+        } finally {
+          dfw.close()
+        }
+      }
+
+      compressed.length() must beLessThan(uncompressed.length())
+
+      forall(Seq(uncompressed, compressed)) { file =>
+        val readFeatures = getFeatures(file)
+        readFeatures.size mustEqual 50
+        readFeatures.map(_.getID) must containTheSameElementsAs(features.map(_.getID))
+      }
+    }
+  }
+
+  step {
+    filesCreated.foreach(_.delete)
   }
 }
 
