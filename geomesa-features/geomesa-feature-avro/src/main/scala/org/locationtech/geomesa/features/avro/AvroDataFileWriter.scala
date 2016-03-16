@@ -27,7 +27,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
  */
 class AvroDataFileWriter(os: OutputStream,
                          sft: SimpleFeatureType,
-                         compression: Int = Deflater.NO_COMPRESSION) extends Closeable with Flushable {
+                         compression: Int = Deflater.DEFAULT_COMPRESSION) extends Closeable with Flushable {
 
   private val schema = AvroSimpleFeatureUtils.generateSchema(sft, withUserData = true)
   private val writer = new AvroSimpleFeatureWriter(sft, SerializationOptions.withUserData)

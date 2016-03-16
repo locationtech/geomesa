@@ -35,14 +35,14 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
   override def execute() = {
     val fmt = Formats.fromString(params.format)
     val features = getFeatureCollection(fmt)
-    lazy val compression = Option(params.gzip).map(_.toInt).getOrElse(Deflater.NO_COMPRESSION)
+    lazy val avroCompression = Option(params.gzip).map(_.toInt).getOrElse(Deflater.DEFAULT_COMPRESSION)
     val exporter: FeatureExporter = fmt match {
       case CSV | TSV      => new DelimitedExport(getWriter(), fmt)
       case SHP            => new ShapefileExport(checkShpFile())
       case GeoJson | JSON => new GeoJsonExport(getWriter())
       case GML            => new GmlExport(createOutputStream())
       case BIN            => BinFileExport(createOutputStream(), params)
-      case AVRO           => new AvroExport(createOutputStream(true), features.getSchema, compression)
+      case AVRO           => new AvroExport(createOutputStream(true), features.getSchema, avroCompression)
       // shouldn't happen unless someone adds a new format and doesn't implement it here
       case _              => throw new UnsupportedOperationException(s"Format $fmt can't be exported")
     }
