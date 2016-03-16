@@ -85,6 +85,8 @@ The following instructions assume you have built a shaded jar; if not
 you will need to use the 'libjars' argument to ensure the correct jars
 are available on the distributed classpath.
 
+.. _attribute_indexing_job:
+
 Attribute Indexing
 ^^^^^^^^^^^^^^^^^^
 
