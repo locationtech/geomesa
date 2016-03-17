@@ -85,7 +85,7 @@ To index an attribute, add an ``index`` hint to the attribute descriptor with a 
 ``full``. The string ``true`` is also allowed for legacy reasons, and is equivalent to join. To set
 the cardinality of an attribute, use the hint ``cardinality`` with a value of ``high`` or ``low``.
 
-Setting the hint can be done in three ways. If you are using a string to indicate your simple feature type
+Setting the hint can be done in multiple ways. If you are using a string to indicate your simple feature type
 (e.g. through the command line tools, or when using ``SimpleFeatureTypes.createType``), you can append
 the hint to the attribute to be indexed, like so:
 
@@ -124,6 +124,21 @@ the attribute field:
       }
     }
 
+If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribute methods:
+
+.. code-block:: scala
+
+    // scala example
+    import org.locationtech.geomesa.utils.geotools.SftBuilder.SftBuilder
+    import org.locationtech.geomesa.utils.stats.Cardinality
+
+    val sft = new SftBuilder()
+        .stringType("name", Opts(index = true, cardinality = Cardinality.HIGH))
+        .intType("age", Opts(index = true))
+        .date("dtg")
+        .geometry("geom", default = true)
+        .build("mySft")
+
 
 Customizing Index Creation
 --------------------------
@@ -150,8 +165,8 @@ To enable only certain indices, you may set a hint in your simple feature type. 
 - ``attr`` - corresponds to the attribute index
 
 
-Setting the hint can be done in three ways. If you are using a string to indicate your simple feature type
-(e.g. through the command line tools, or when using ``SimpleFeatureTypes.createType``), you append
+Setting the hint can be done in multiple ways. If you are using a string to indicate your simple feature type
+(e.g. through the command line tools, or when using ``SimpleFeatureTypes.createType``), you can append
 the hint to the end of the string, like so:
 
 .. code-block:: java
@@ -169,7 +184,7 @@ you may set the hint directly in the feature type:
     SimpleFeatureType sft = ...
     sft.getUserData().put("table.indexes.enabled", "records,z3");
 
-If you are using the TypeSafe configuration files to define your simple feature type, you may include
+If you are using TypeSafe configuration files to define your simple feature type, you may include
 a 'user-data' key:
 
 .. code-block:: json
@@ -188,6 +203,20 @@ a 'user-data' key:
         }
       }
     }
+
+If you are using the GeoMesa ``SftBuilder``, you may call the ``withIndexes`` methods:
+
+.. code-block:: scala
+
+    // scala example
+    import org.locationtech.geomesa.utils.geotools.SftBuilder.SftBuilder
+
+    val sft = new SftBuilder()
+        .stringType("name")
+        .date("dtg")
+        .geometry("geom", default = true)
+        .withIndexes(List("records", "z3", "attr_idx"))
+        .build("mySft")
 
 
 Splitting the Record Index
@@ -242,7 +271,7 @@ you may set the hint directly in the feature type:
         "org.locationtech.geomesa.accumulo.data.DigitSplitter");
     sft.getUserData().put("table.splitter.options", "fmt:%02d,min:0,max:99");
 
-If you are using the TypeSafe configuration files to define your simple feature type, you may include
+If you are using TypeSafe configuration files to define your simple feature type, you may include
 a 'user-data' key:
 
 .. code-block:: json
