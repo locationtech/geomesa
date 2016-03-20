@@ -41,6 +41,7 @@
         <module>geomesa-cassandra</module>
         <module>geomesa-metrics</module>
         <module>docs</module>
+        <module>geomesa-native-api</module>
     </modules>
 
     <properties>

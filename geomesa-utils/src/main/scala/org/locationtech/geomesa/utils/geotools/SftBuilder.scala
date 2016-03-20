@@ -58,6 +58,7 @@ abstract class InitBuilder[T] {
   def floatType  (name: String, opts: Opts = Opts()) = append(name, opts, "Float")
   def doubleType (name: String, opts: Opts = Opts()) = append(name, opts, "Double")
   def booleanType(name: String, opts: Opts = Opts()) = append(name, opts, "Boolean")
+  def binaryType (name: String, opts: Opts = Opts()) = append(name, opts, "Array[Byte]")
 
   // Helpful Types - back compatible
   def date(name: String, default: Boolean): T =
