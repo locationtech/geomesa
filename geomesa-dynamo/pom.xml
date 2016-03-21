@@ -20,7 +20,7 @@
     </modules>
 
     <properties>
-        <aws-sdk.version>1.10.52</aws-sdk.version>
+        <aws-sdk.version>1.10.62</aws-sdk.version>
         <cassandra.version>3.0.0</cassandra.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
