@@ -13,7 +13,7 @@ import java.io.{Closeable, InputStream}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileSystem, Path, Seekable}
+import org.apache.hadoop.fs.{Path, Seekable}
 import org.apache.hadoop.io.LongWritable
 import org.apache.hadoop.io.compress.{CodecPool, CompressionCodecFactory, Decompressor}
 import org.apache.hadoop.mapreduce._

@@ -45,7 +45,15 @@ object Utils {
 
   object Formats extends Enumeration {
     type Formats = Value
-    val CSV, TSV, SHP, JSON, GeoJson, GML, BIN, AVRO = Value
+    val CSV     = Value("csv")
+    val TSV     = Value("tsv")
+    val SHP     = Value("shp")
+    val JSON    = Value("json")
+    val GeoJson = Value("geojson")
+    val GML     = Value("gml")
+    val BIN     = Value("bin")
+    val AVRO    = Value("avro")
+    val XML     = Value("xml")
 
     def getFileExtension(name: String): String = {
       val filename = name match {
@@ -55,15 +63,7 @@ object Utils {
         case _ => name
       }
 
-      val ext = FilenameUtils.getExtension(filename).toLowerCase(Locale.US)
-      Formats.values.map(_.toString.toLowerCase(Locale.US)).find(_ == ext).getOrElse("unknown")
-    }
-
-    def fromString(format: String): Formats = {
-      val lc = format.toLowerCase(Locale.US)
-      values.find(_.toString.toLowerCase(Locale.US) == lc).getOrElse {
-        throw new RuntimeException(s"Illegal format '$format'. Valid values are: ${values.mkString(", ")}")
-      }
+      FilenameUtils.getExtension(filename).toLowerCase(Locale.US)
     }
   }
 

@@ -9,30 +9,44 @@
 package org.locationtech.geomesa.tools.commands
 
 import java.util
+import java.util.Locale
 
-import com.beust.jcommander.{ParameterException, JCommander, Parameter, Parameters}
+import com.beust.jcommander.{JCommander, Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.tools.Utils.Formats
 import org.locationtech.geomesa.tools.Utils.Formats._
 import org.locationtech.geomesa.tools.commands.IngestCommand._
-import org.locationtech.geomesa.tools.ingest.{AutoIngest, ConverterIngest, AbstractIngest$}
+import org.locationtech.geomesa.tools.ingest.{AutoIngest, ConverterIngest}
 import org.locationtech.geomesa.tools.{CLArgResolver, DataStoreHelper}
 import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
 
 import scala.collection.JavaConversions._
+import scala.util.{Failure, Success, Try}
 
 class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging {
   override val command = "ingest"
   override val params = new IngestParameters()
 
   override def execute(): Unit = {
-    val extensions = params.files.map(getFileExtension)
-    require(extensions.tail.forall(_ == extensions.head), "Input files must all be of the same file type")
     ensureSameFs(Seq("hdfs", "s3n", "s3a"))
 
-    val fmt = Formats.fromString(Option(params.format).getOrElse(extensions.head))
-    if (fmt == SHP) {
+    val fmtParam = Option(params.format).flatMap(f => Try(Formats.withName(f.toLowerCase(Locale.US))).toOption)
+    val fmt = fmtParam.orElse {
+      // try to get the format from the file extensions
+      val extensions = params.files.map(getFileExtension)
+      Try(Formats.withName(extensions.head)) match {
+        case Failure(e) => None
+        case Success(f) =>
+          // if we use the extension, ensure that all files match our expectation
+          if(!extensions.tail.forall(_ == extensions.head)) {
+            throw new ParameterException("Please either specify an input format, or use files that are all the same type")
+          }
+          Some(f)
+      }
+    }
+
+    if (fmt.contains(SHP)) {
       val ds = new DataStoreHelper(params).getDataStore()
       params.files.foreach(GeneralShapefileIngest.shpToDataStore(_, ds, params.featureName))
     } else {
@@ -41,13 +55,15 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
       require(tryDs != null, "Could not load a data store with the provided parameters")
       tryDs.dispose()
 
-      if (params.spec == null && params.config == null && Seq(TSV, CSV, AVRO).contains(fmt)) {
+      // if there is no sft and no converter passed in, try to use the auto ingest which will
+      // pick up the schema from the input files themselves
+      if (params.spec == null && params.config == null && fmt.exists(Seq(TSV, CSV, AVRO).contains)) {
         if (params.featureName == null) {
           throw new ParameterException("Feature name is required when a schema is not specified")
         }
         // auto-detect the import schema
         logger.info("No schema or converter defined - will attempt to detect schema from input files")
-        new AutoIngest(dsParams, params.featureName, params.files, params.threads, fmt).run()
+        new AutoIngest(dsParams, params.featureName, params.files, params.threads, fmt.get).run()
       } else {
         val sft = CLArgResolver.getSft(params.spec, params.featureName)
         val converterConfig = CLArgResolver.getConfig(params.config)

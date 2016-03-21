@@ -18,6 +18,7 @@ import org.apache.hadoop.io.{LongWritable, Text}
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.apache.hadoop.mapreduce.{Job, JobStatus, Mapper}
 import org.geotools.data.DataUtilities
+import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.jobs.mapreduce.{ConverterInputFormat, GeoMesaOutputFormat}
@@ -117,6 +118,7 @@ class IngestMapper extends Mapper[LongWritable, SimpleFeature, Text, SimpleFeatu
 
   override def map(key: LongWritable, sf: SimpleFeature, context: Context): Unit = {
     logger.debug(s"map key ${key.toString}, map value ${DataUtilities.encodeFeature(sf)}")
+    sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     context.write(text, sf)
   }
 }
