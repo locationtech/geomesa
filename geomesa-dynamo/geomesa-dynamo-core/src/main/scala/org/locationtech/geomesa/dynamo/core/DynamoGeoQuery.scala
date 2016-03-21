@@ -37,25 +37,6 @@ trait DynamoGeoQuery {
     getAllFeatures.filter(f => filter.forall(_.evaluate(f)))
   }
 
-  // Query Specific defs
-  def planQuery(query: Query, sft: SimpleFeatureType): GenTraversable[HashAndRangeQueryPlan] = {
-    val (lx, ly, ux, uy) = planQuerySpatialBounds(query)
-    val (dtgFilters, _) = partitionPrimaryTemporals(decomposeAnd(query.getFilter), sft)
-    val interval = FilterHelper.extractInterval(dtgFilters, sft.getDtgField)
-    val startWeeks: Int = DynamoPrimaryKey.epochWeeks(interval.getStart).getWeeks
-    val endWeeks:   Int = DynamoPrimaryKey.epochWeeks(interval.getEnd).getWeeks
-
-    val zRanges = DynamoPrimaryKey.SFC2D.toRanges(lx, ly, ux, uy).toList
-
-    val rows = (startWeeks to endWeeks).map { dt => getRowKeys(zRanges, interval, startWeeks, endWeeks, dt)}
-
-    val plans =
-      rows.flatMap { case ((s, e), rowRanges) =>
-        planQueryForContiguousRowRange(s, e, rowRanges)
-      }
-    plans
-  }
-
   def executeGeoTimeQuery(query: Query, plans: GenTraversable[HashAndRangeQueryPlan]): GenTraversable[SimpleFeature]
   def executeGeoTimeCountQuery(query: Query, plans: GenTraversable[HashAndRangeQueryPlan]): Long
 
@@ -82,15 +63,30 @@ trait DynamoGeoQuery {
     }
   }
 
+  // Query Specific defs
+  def planQuery(query: Query, sft: SimpleFeatureType): GenTraversable[HashAndRangeQueryPlan] = {
+    val (lx, ly, ux, uy) = planQuerySpatialBounds(query)
+    val (dtgFilters, _) = partitionPrimaryTemporals(decomposeAnd(query.getFilter), sft)
+    val interval = FilterHelper.extractInterval(dtgFilters, sft.getDtgField)
+    val startWeeks: Int = DynamoPrimaryKey.epochWeeks(interval.getStart).getWeeks
+    val endWeeks:   Int = DynamoPrimaryKey.epochWeeks(interval.getEnd).getWeeks
 
-  def planQueryForContiguousRowRange(s: Int, e: Int, rowRanges: Seq[Int]): Seq[HashAndRangeQueryPlan] = {
-    rowRanges.map { r =>
-      val DynamoPrimaryKey.Key(_, _, _, _, z) = DynamoPrimaryKey.unapply(r)
-      val (minx, miny, maxx, maxy) = DynamoPrimaryKey.SFC2D.bound(z)
-      val min = DynamoPrimaryKey.SFC3D.index(minx, miny, s).z
-      val max = DynamoPrimaryKey.SFC3D.index(maxx, maxy, e).z
-      HashAndRangeQueryPlan(r, min, max, contained = false)
+    val zRanges = DynamoPrimaryKey.SFC2D.toRanges(lx, ly, ux, uy).toList
+
+    val rows = (startWeeks to endWeeks).map { dt => getRowKeys(zRanges, interval, startWeeks, endWeeks, dt)}
+
+    val plans = rows.flatMap { case ((s, e), rowRanges) =>
+      rowRanges.map(row => planQueryForContiguousRowRange(s, e, row))
     }
+    plans
+  }
+
+  def planQueryForContiguousRowRange(s: Int, e: Int, row: Int): HashAndRangeQueryPlan = {
+    val DynamoPrimaryKey.Key(_, _, _, _, z) = DynamoPrimaryKey.unapply(row)
+    val (minx, miny, maxx, maxy) = DynamoPrimaryKey.SFC2D.bound(z)
+    val min = DynamoPrimaryKey.SFC3D.index(minx, miny, s).z
+    val max = DynamoPrimaryKey.SFC3D.index(maxx, maxy, e).z
+    HashAndRangeQueryPlan(row, min, max, contained = false)
   }
 
   def getRowKeys(zRanges: Seq[IndexRange], interval: Interval, sew: Int, eew: Int, dt: Int): ((Int, Int), Seq[Int]) = {
