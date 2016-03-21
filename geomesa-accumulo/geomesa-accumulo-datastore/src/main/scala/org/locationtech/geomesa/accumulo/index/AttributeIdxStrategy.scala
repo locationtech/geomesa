@@ -71,12 +71,21 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
     val priority = FILTERING_ITER_PRIORITY
 
     // query against the attribute table
-    val singleTableScanPlan: ScanPlanFn = (schema, filter, transform) => {
+    val singleAttrValueOnlyPlan: ScanPlanFn = (schema, filter, transform) => {
       val iterators = if (filter.isDefined || transform.isDefined) {
         Seq(KryoLazyFilterTransformIterator.configure(schema, filter, transform, priority))
       } else {
         Seq.empty
       }
+      // need to use transform to convert key/values if it's defined
+      val kvsToFeatures = queryPlanner.kvsToFeatures(transform.map(_._2).getOrElse(schema))
+      BatchScanPlan(attrTable, ranges, iterators, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
+    }
+
+    // query against the attribute table
+    val singleAttrPlusValuePlan: ScanPlanFn = (schema, filter, transform) => {
+      val iterators = Seq(AttrKeyPlusValueIterator.configure(sft, schema, attributeSftIndex, filter, transform, priority))
+
       // need to use transform to convert key/values if it's defined
       val kvsToFeatures = queryPlanner.kvsToFeatures(transform.map(_._2).getOrElse(schema))
       BatchScanPlan(attrTable, ranges, iterators, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
@@ -99,7 +108,7 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
           BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
         } else {
           // have to do a join against the record table
-          joinQuery(sft, hints, queryPlanner, hasDupes, singleTableScanPlan)
+          joinQuery(sft, hints, queryPlanner, hasDupes, singleAttrValueOnlyPlan)
         }
       }
     } else if (hints.isStatsIteratorQuery) {
@@ -116,19 +125,22 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
           BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDuplicates = false)
         } else {
           // have to do a join against the record table
-          joinQuery(sft, hints, queryPlanner, hasDupes, singleTableScanPlan)
+          joinQuery(sft, hints, queryPlanner, hasDupes, singleAttrValueOnlyPlan)
         }
       }
     } else if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
       // we have a fully encoded value - can satisfy any query against it
-      singleTableScanPlan(sft, filter.secondary, hints.getTransform)
-    } else if (IteratorTrigger.canUseIndexValues(sft, filter.secondary, transform)) {
-      // we can use the index value
+      singleAttrValueOnlyPlan(sft, filter.secondary, hints.getTransform)
+    } else if (IteratorTrigger.canUseAttrIdxValues(sft, filter.secondary, transform)) {
+      // we can use the index value. Transform can only include
       // transform has to be non-empty to get here
-      singleTableScanPlan(IndexValueEncoder.getIndexSft(sft), filter.secondary, hints.getTransform)
+      singleAttrValueOnlyPlan(IndexValueEncoder.getIndexSft(sft), filter.secondary, hints.getTransform)
+    } else if (IteratorTrigger.canUseAttrKeysPlusValues(descriptor.getLocalName, sft, filter.secondary, transform)) {
+      // we can use the index PLUS the value
+      singleAttrPlusValuePlan(IndexValueEncoder.getIndexSft(sft), filter.secondary, hints.getTransform)
     } else {
       // have to do a join against the record table
-      joinQuery(sft, hints, queryPlanner, hasDupes, singleTableScanPlan)
+      joinQuery(sft, hints, queryPlanner, hasDupes, singleAttrValueOnlyPlan)
     }
   }
 

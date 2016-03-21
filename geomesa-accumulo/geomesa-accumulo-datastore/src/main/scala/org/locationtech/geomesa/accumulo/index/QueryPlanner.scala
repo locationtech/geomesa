@@ -36,7 +36,6 @@ import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
-import org.opengis.feature.GeometryAttribute
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -313,7 +312,7 @@ object QueryPlanner extends LazyLogging {
     }
 
   private def computeSchema(origSFT: SimpleFeatureType, transforms: Seq[Definition]): SimpleFeatureType = {
-    val attributes: Seq[AttributeDescriptor] = transforms.map { definition =>
+    val descriptors: Seq[AttributeDescriptor] = transforms.map { definition =>
       val name = definition.name
       val cql  = definition.expression
       cql match {
@@ -343,10 +342,10 @@ object QueryPlanner extends LazyLogging {
       }
     }
 
-    val geomAttributes = attributes.filter(_.isInstanceOf[GeometryAttribute]).map(_.getLocalName)
+    val geomAttributes = descriptors.filter(_.isInstanceOf[GeometryDescriptor]).map(_.getLocalName)
     val sftBuilder = new SimpleFeatureTypeBuilder()
     sftBuilder.setName(origSFT.getName)
-    sftBuilder.addAll(attributes.toArray)
+    sftBuilder.addAll(descriptors.toArray)
     if (geomAttributes.nonEmpty) {
       val defaultGeom = if (geomAttributes.size == 1) { geomAttributes.head } else {
         // try to find a geom with the same name as the original default geom
