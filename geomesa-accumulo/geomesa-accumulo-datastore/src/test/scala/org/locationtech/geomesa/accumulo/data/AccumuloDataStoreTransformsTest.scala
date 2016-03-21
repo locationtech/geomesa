@@ -79,6 +79,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
         val query = new Query(sftName, Filter.INCLUDE, List("dtg", "geom").toArray)
         val results = SelfClosingIterator(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())).toList
         results must haveSize(1)
+        results.head.getID mustEqual "fid-1"
         results.head.getAttribute("dtg") mustEqual date
         results.head.getAttribute("geom") mustEqual geom
         results.head.getAttribute("name") must beNull
@@ -97,6 +98,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
           results.size  must equalTo(1)
         }
         "with correct fields" >> {
+          results.head.getID mustEqual "fid-1"
           results.head.getAttribute("geom") mustEqual geom
           results.head.getAttribute("dtg") must beNull
           results.head.getAttribute("name") must beNull
@@ -109,6 +111,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
         val features = ds.getFeatureSource(sftName).getFeatures(query).features().toList
 
         features must haveSize(1)
+        features.head.getID mustEqual "fid-1"
         features.head.getAttributeCount mustEqual 2
         features.head.getAttribute("trans") mustEqual name
         features.head.getAttribute("geom") mustEqual geom

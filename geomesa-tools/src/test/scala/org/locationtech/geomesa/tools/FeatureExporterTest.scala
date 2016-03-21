@@ -10,10 +10,12 @@ package org.locationtech.geomesa.tools
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, StringWriter}
 import java.util.Date
+import java.util.zip.Deflater
 
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.geotools.data.{DataStoreFinder, Query}
+import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureStore
@@ -33,14 +35,17 @@ class FeatureExporterTest extends Specification {
 
   sequential
 
-  def getFeaturesDataStoreAndSFT(sftName: String) = {
+  def getDataStoreAndSft(sftName: String, numFeatures: Int = 1) = {
     val sft = SimpleFeatureTypes.createType(sftName, "name:String,geom:Geometry:srid=4326,dtg:Date")
 
-    val attributes = Array("myname", "POINT(45.0 49.0)", new Date(0))
-    val feature = ScalaSimpleFeatureFactory.buildFeature(sft, attributes, "fid-1")
-
     val featureCollection = new DefaultFeatureCollection(sft.getTypeName, sft)
-    featureCollection.add(feature)
+
+    val attributes = Array("myname", "POINT(45.0 49.0)", new Date(0))
+    (1 to numFeatures).foreach { i =>
+      val feature = ScalaSimpleFeatureFactory.buildFeature(sft, attributes, s"fid-$i")
+      feature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+      featureCollection.add(feature)
+    }
 
     val connector = new MockInstance().getConnector("", new PasswordToken(""))
 
@@ -48,24 +53,43 @@ class FeatureExporterTest extends Specification {
       .getDataStore(Map("connector" -> connector, "tableName" -> sftName, "caching"   -> false))
     ds.createSchema(sft)
     ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore].addFeatures(featureCollection)
-    (featureCollection, ds, sft)
+    (ds, sft)
   }
 
   "DelimitedExport" >> {
     val sftName = "DelimitedExportTest"
-    val (featureCollection, ds, sft) = getFeaturesDataStoreAndSFT(sftName)
+    val (ds, sft) = getDataStoreAndSft(sftName)
 
     "should properly export to CSV" >> {
+      val query = new Query(sftName, Filter.INCLUDE)
+      val features = ds.getFeatureSource(sftName).getFeatures(query)
+
       val writer = new StringWriter()
-      val export = new DelimitedExport(writer, Formats.CSV, Some("name,geom,dtg"))
-      export.write(featureCollection)
+      val export = new DelimitedExport(writer, Formats.CSV)
+      export.write(features)
       export.close()
 
-      val result = writer.toString.split("\n")
+      val result = writer.toString.split("\r\n")
       val (header, data) = (result(0), result(1))
 
-      header mustEqual "name,geom,dtg"
-      data mustEqual "myname,POINT (45 49),1970-01-01 00:00:00"
+      header mustEqual "id,name:String,geom:Geometry,dtg:Date"
+      data mustEqual "fid-1,myname,POINT (45 49),1970-01-01T00:00:00.000Z"
+    }
+
+    "should handle projections" >> {
+      val query = new Query(sftName, Filter.INCLUDE, Array("geom", "dtg"))
+      val features = ds.getFeatureSource(sftName).getFeatures(query)
+
+      val writer = new StringWriter()
+      val export = new DelimitedExport(writer, Formats.CSV)
+      export.write(features)
+      export.close()
+
+      val result = writer.toString.split("\r\n")
+      val (header, data) = (result(0), result(1))
+
+      header mustEqual "id,geom:Geometry,dtg:Date"
+      data mustEqual "fid-1,POINT (45 49),1970-01-01T00:00:00.000Z"
     }
 
     "should handle transforms" >> {
@@ -73,15 +97,15 @@ class FeatureExporterTest extends Specification {
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
       val writer = new StringWriter()
-      val export = new DelimitedExport(writer, Formats.CSV, Some("derived=strConcat(name\\, '-test'),geom,dtg"))
+      val export = new DelimitedExport(writer, Formats.CSV)
       export.write(features)
       export.close()
 
-      val result = writer.toString.split("\n")
+      val result = writer.toString.split("\r\n")
       val (header, data) = (result(0), result(1))
 
-      header mustEqual "derived,geom,dtg"
-      data mustEqual "myname-test,POINT (45 49),1970-01-01 00:00:00"
+      header mustEqual "id,geom:Geometry,dtg:Date,derived:String"
+      data mustEqual "fid-1,POINT (45 49),1970-01-01T00:00:00.000Z,myname-test"
     }
 
     "should handle escapes" >> {
@@ -89,21 +113,21 @@ class FeatureExporterTest extends Specification {
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
       val writer = new StringWriter()
-      val export = new DelimitedExport(writer, Formats.CSV, Some("derived=strConcat(name\\, '\\,test'),geom,dtg"))
+      val export = new DelimitedExport(writer, Formats.CSV)
       export.write(features)
       export.close()
 
-      val result = writer.toString.split("\n")
+      val result = writer.toString.split("\r\n")
       val (header, data) = (result(0), result(1))
 
-      header mustEqual "derived,geom,dtg"
-      data mustEqual "\"myname,test\",POINT (45 49),1970-01-01 00:00:00"
+      header mustEqual "id,geom:Geometry,dtg:Date,derived:String"
+      data mustEqual "fid-1,POINT (45 49),1970-01-01T00:00:00.000Z,\"myname,test\""
     }
   }
 
   "Shapefile Export" >> {
     val sftName = "ShapefileExportTest"
-    val (featureCollection, ds, sft) = getFeaturesDataStoreAndSFT(sftName)
+    val (ds, sft) = getDataStoreAndSft(sftName)
 
     def checkReplacedAttributes(attrString: String, expectedString: String) = {
       ShapefileExport.replaceGeomInAttributesString(attrString, sft) mustEqual expectedString
@@ -141,11 +165,14 @@ class FeatureExporterTest extends Specification {
 
   "Avro Export" >> {
     val sftName = "AvroExportTest"
-    val (featureCollection, ds, sft) = getFeaturesDataStoreAndSFT(sftName)
+    val (ds, sft) = getDataStoreAndSft(sftName, 10)
 
     "should properly export to avro" >> {
+      val query = new Query(sftName, Filter.INCLUDE)
+      val featureCollection = ds.getFeatureSource(sftName).getFeatures(query)
+
       val os = new ByteArrayOutputStream()
-      val export = new AvroExport(os, sft)
+      val export = new AvroExport(os, sft, Deflater.NO_COMPRESSION)
       export.write(featureCollection)
       export.close()
 
@@ -153,10 +180,42 @@ class FeatureExporterTest extends Specification {
       SimpleFeatureTypes.encodeType(result.getSft) mustEqual SimpleFeatureTypes.encodeType(sft)
 
       val features = result.toList
-      features must haveLength(1)
-      features.head.getAttribute(0) mustEqual "myname"
-      features.head.getAttribute(1) mustEqual WKTUtils.read("POINT(45 49)")
-      features.head.getAttribute(2) mustEqual new Date(0)
+      features must haveLength(10)
+      features.map(_.getID) must containTheSameElementsAs((1 to 10).map("fid-" + _))
+      forall(features) { feature =>
+        feature.getAttribute(0) mustEqual "myname"
+        feature.getAttribute(1) mustEqual WKTUtils.read("POINT(45 49)")
+        feature.getAttribute(2) mustEqual new Date(0)
+      }
+    }
+
+    "should compress output" >> {
+      val query = new Query(sftName, Filter.INCLUDE)
+      val featureCollection = ds.getFeatureSource(sftName).getFeatures(query)
+
+      val uncompressed :: compressed :: Nil = List(Deflater.NO_COMPRESSION, Deflater.DEFAULT_COMPRESSION).map { c =>
+        val os = new ByteArrayOutputStream()
+        val export = new AvroExport(os, sft, c)
+        export.write(featureCollection)
+        export.close()
+        os.toByteArray
+      }
+
+      forall(Seq(uncompressed, compressed)) { bytes =>
+        val result = new AvroDataFileReader(new ByteArrayInputStream(bytes))
+        SimpleFeatureTypes.encodeType(result.getSft) mustEqual SimpleFeatureTypes.encodeType(sft)
+
+        val features = result.toList
+        features must haveLength(10)
+        features.map(_.getID) must containTheSameElementsAs((1 to 10).map("fid-" + _))
+        forall(features) { feature =>
+          feature.getAttribute(0) mustEqual "myname"
+          feature.getAttribute(1) mustEqual WKTUtils.read("POINT(45 49)")
+          feature.getAttribute(2) mustEqual new Date(0)
+        }
+      }
+
+      compressed.length must beLessThan(uncompressed.length)
     }
 
     "should handle transforms" >> {
@@ -164,7 +223,7 @@ class FeatureExporterTest extends Specification {
       val featureCollection = ds.getFeatureSource(sftName).getFeatures(query)
 
       val os = new ByteArrayOutputStream()
-      val export = new AvroExport(os, featureCollection.getSchema)
+      val export = new AvroExport(os, featureCollection.getSchema, Deflater.NO_COMPRESSION)
       export.write(featureCollection)
       export.close()
 
@@ -172,10 +231,13 @@ class FeatureExporterTest extends Specification {
       SimpleFeatureTypes.encodeType(result.getSft) mustEqual SimpleFeatureTypes.encodeType(featureCollection.getSchema)
 
       val features = result.toList
-      features must haveLength(1)
-      features.head.getAttribute(0) mustEqual WKTUtils.read("POINT(45 49)")
-      features.head.getAttribute(1) mustEqual new Date(0)
-      features.head.getAttribute(2) mustEqual "myname-test" // derived variable gets bumped to the end
+      features must haveLength(10)
+      features.map(_.getID) must containTheSameElementsAs((1 to 10).map("fid-" + _))
+      forall(features) { feature =>
+        features.head.getAttribute(0) mustEqual WKTUtils.read("POINT(45 49)")
+        features.head.getAttribute(1) mustEqual new Date(0)
+        features.head.getAttribute(2) mustEqual "myname-test" // derived variable gets bumped to the end
+      }
     }
   }
 }
