@@ -232,12 +232,15 @@ object QueryPlanner extends LazyLogging {
   }
 
   /**
-   * Return a new query with updated filters, ready to execute
-   *
-   * @param base query to update
-   * @param sft simple feature type to be queried
-   * @return new query with filters updated
-   */
+    * Return a new query with updated filters, ready to execute.
+    *
+    * Note: don't call this method multiple times - the filters should only be processed once, or
+    * you might end up with bad results.
+    *
+    * @param base query to update
+    * @param sft simple feature type to be queried
+    * @return new query with filters updated
+    */
   def updateFilter(base: Query, sft: SimpleFeatureType): Query = {
     val query = new Query(base)
     // add the bbox from the density query to the filter
