@@ -19,7 +19,7 @@ import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 import org.opengis.feature.simple.SimpleFeatureType
 
-class DynamoDBContentState(entry: ContentEntry, catalogTable: Table, sftTable: Table) extends ContentState(entry) with DynamoContentState {
+class DynamoDBContentState(ent: ContentEntry, catalogTable: Table, sftTable: Table) extends ContentState(ent) with DynamoContentState {
 
   val sft: SimpleFeatureType = DynamoDBDataStore.getSchema(entry, catalogTable)
   val table: Table = sftTable

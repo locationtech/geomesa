@@ -16,7 +16,7 @@ import org.locationtech.geomesa.dynamo.core.DynamoContentState
 import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 import org.opengis.feature.simple.SimpleFeatureType
 
-class CassandraContentState(entry: ContentEntry, val session: Session, val tableMetadata: TableMetadata) extends ContentState(entry) with DynamoContentState {
+class CassandraContentState(ent: ContentEntry, val session: Session, val tableMetadata: TableMetadata) extends ContentState(ent) with DynamoContentState {
 
   import scala.collection.JavaConversions._
 

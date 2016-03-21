@@ -18,7 +18,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.GenTraversable
 import scala.collection.JavaConversions._
 
-class DynamoDBFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entry, Query.ALL) with DynamoGeoQuery {
+class DynamoDBFeatureStore(ent: ContentEntry) extends ContentFeatureStore(ent, Query.ALL) with DynamoGeoQuery {
 
   private lazy val contentState: DynamoDBContentState = entry.getState(getTransaction).asInstanceOf[DynamoDBContentState]
 
