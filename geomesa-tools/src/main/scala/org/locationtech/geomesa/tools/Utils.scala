@@ -54,6 +54,7 @@ object Utils {
     val BIN     = Value("bin")
     val AVRO    = Value("avro")
     val XML     = Value("xml")
+    val Other   = Value("other")
 
     def getFileExtension(name: String): String = {
       val filename = name match {

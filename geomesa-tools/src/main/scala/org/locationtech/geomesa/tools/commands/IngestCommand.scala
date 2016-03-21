@@ -22,7 +22,7 @@ import org.locationtech.geomesa.tools.{CLArgResolver, DataStoreHelper}
 import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
 
 import scala.collection.JavaConversions._
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging {
   override val command = "ingest"
@@ -32,38 +32,29 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
     ensureSameFs(Seq("hdfs", "s3n", "s3a"))
 
     val fmtParam = Option(params.format).flatMap(f => Try(Formats.withName(f.toLowerCase(Locale.US))).toOption)
-    val fmt = fmtParam.orElse {
-      // try to get the format from the file extensions
-      val extensions = params.files.map(getFileExtension)
-      Try(Formats.withName(extensions.head)) match {
-        case Failure(e) => None
-        case Success(f) =>
-          // if we use the extension, ensure that all files match our expectation
-          if(!extensions.tail.forall(_ == extensions.head)) {
-            throw new ParameterException("Please either specify an input format, or use files that are all the same type")
-          }
-          Some(f)
-      }
-    }
+    lazy val fmtFile = params.files.flatMap(f => Try(Formats.withName(getFileExtension(f))).toOption).headOption
+    val fmt = fmtParam.orElse(fmtFile).getOrElse(Other)
 
-    if (fmt.contains(SHP)) {
+    if (fmt == SHP) {
       val ds = new DataStoreHelper(params).getDataStore()
       params.files.foreach(GeneralShapefileIngest.shpToDataStore(_, ds, params.featureName))
     } else {
       val dsParams = new DataStoreHelper(params).paramMap
       val tryDs = DataStoreFinder.getDataStore(dsParams)
-      require(tryDs != null, "Could not load a data store with the provided parameters")
+      if (tryDs == null) {
+        throw new ParameterException("Could not load a data store with the provided parameters")
+      }
       tryDs.dispose()
 
       // if there is no sft and no converter passed in, try to use the auto ingest which will
       // pick up the schema from the input files themselves
-      if (params.spec == null && params.config == null && fmt.exists(Seq(TSV, CSV, AVRO).contains)) {
+      if (params.spec == null && params.config == null && Seq(TSV, CSV, AVRO).contains(fmt)) {
         if (params.featureName == null) {
           throw new ParameterException("Feature name is required when a schema is not specified")
         }
         // auto-detect the import schema
         logger.info("No schema or converter defined - will attempt to detect schema from input files")
-        new AutoIngest(dsParams, params.featureName, params.files, params.threads, fmt.get).run()
+        new AutoIngest(dsParams, params.featureName, params.files, params.threads, fmt).run()
       } else {
         val sft = CLArgResolver.getSft(params.spec, params.featureName)
         val converterConfig = CLArgResolver.getConfig(params.config)
@@ -76,10 +67,9 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
     prefixes.foreach { pre =>
       if (params.files.exists(_.toLowerCase.startsWith(s"$pre://")) &&
         !params.files.forall(_.toLowerCase.startsWith(s"$pre://"))) {
-        throw new IllegalArgumentException(s"Files must all be on the same file system: ($pre) or all be local")
+        throw new ParameterException(s"Files must all be on the same file system: ($pre) or all be local")
       }
     }
-
 }
 
 object IngestCommand {
@@ -91,7 +81,7 @@ object IngestCommand {
     @Parameter(names = Array("-C", "--converter"), description = "GeoMesa converter specification as a config string, file name, or name of an available converter")
     var config: String = null
 
-    @Parameter(names = Array("-F", "--format"), description = "indicate non-converter ingest (shp)")
+    @Parameter(names = Array("-F", "--format"), description = "File format of input files (shp, csv, tsv, avro, etc)")
     var format: String = null
 
     @Parameter(names = Array("-t", "--threads"), description = "Number of threads if using local ingest")
