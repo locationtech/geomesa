@@ -21,7 +21,7 @@ import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.jobs.mapreduce.{ConverterInputFormat, GeoMesaOutputFormat}
+import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat
 import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.opengis.feature.simple.SimpleFeature
@@ -62,15 +62,9 @@ abstract class AbstractIngestJob extends LazyLogging {
     GeoMesaConfigurator.setFeatureTypeOut(job.getConfiguration, typeName)
     GeoMesaOutputFormat.configureDataStore(job, dsParams)
 
-    logger.info("Submitting job... please wait")
+    logger.info("Submitting job... please wait for tracking information")
     job.submit()
     logger.info(s"Tracking available at ${job.getStatus.getTrackingUrl}")
-
-    import ConverterInputFormat.{Counters => ConvertCounters}
-    import GeoMesaOutputFormat.{Counters => OutCounters}
-
-    val failCounters =
-      Seq((ConvertCounters.Group, ConvertCounters.Failed), (OutCounters.Group, OutCounters.Failed))
 
     while (!job.isComplete) {
       if (job.getStatus.getState != JobStatus.State.PREP) {

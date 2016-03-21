@@ -54,7 +54,7 @@ class ConverterIngest(dsParams: Map[String, String],
       val converter = SimpleFeatureConverters.build(sft, converterConfig)
       val ec = converter.createEvaluationContext(Map("inputFilePath" -> file.getAbsolutePath), new LocalIngestCounter)
 
-      override def convert(is: InputStream): Iterator[SimpleFeature] = converter.process(is, ec)
+      override def convert(is: InputStream): (SimpleFeatureType, Iterator[SimpleFeature]) = (sft, converter.process(is, ec))
       override def close(): Unit = {}
     }
 

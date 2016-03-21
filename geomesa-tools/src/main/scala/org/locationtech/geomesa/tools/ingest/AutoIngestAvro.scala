@@ -17,7 +17,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroDataFileReader
 import org.locationtech.geomesa.jobs.mapreduce.AvroFileInputFormat
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
  * These classes operate on files in the specific avro format used by
@@ -31,16 +31,17 @@ class AvroIngestConverter(ds: DataStore, typeName: String) extends LocalIngestCo
 
   var reader: AvroDataFileReader = null
 
-  override def convert(is: InputStream): Iterator[SimpleFeature] = {
+  override def convert(is: InputStream): (SimpleFeatureType, Iterator[SimpleFeature]) = {
     reader = new AvroDataFileReader(is)
     val dataSft = reader.getSft
     val sft = if (typeName == dataSft.getTypeName) dataSft else SimpleFeatureTypes.renameSft(dataSft, typeName)
     ds.createSchema(sft)
-    if (dataSft == sft) {
+    val features = if (dataSft == sft) {
       reader
     } else {
       reader.map(sf => new ScalaSimpleFeature(sf.getID, sft, sf.getAttributes.toArray))
     }
+    (sft, features)
   }
 
   override def close(): Unit = if (reader != null) { reader.close() }

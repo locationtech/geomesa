@@ -20,7 +20,7 @@ import org.locationtech.geomesa.jobs.mapreduce.{FileStreamInputFormat, FileStrea
 import org.locationtech.geomesa.tools.Utils.Formats
 import org.locationtech.geomesa.tools.Utils.Formats.Formats
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 
@@ -66,20 +66,18 @@ class DelimitedIngestConverter(ds: DataStore, typeName: String, format: Formats)
   var reader: CSVParser = null
   val csvFormat = AutoIngestDelimited.getCsvFormat(format)
 
-  override def convert(is: InputStream): Iterator[SimpleFeature] = {
+  override def convert(is: InputStream): (SimpleFeatureType, Iterator[SimpleFeature]) = {
     reader = csvFormat.parse(new InputStreamReader(is, "UTF-8"))
     val iter = reader.iterator()
     if (!iter.hasNext) {
-      Iterator.empty
+      (null, Iterator.empty)
     } else {
       val header = iter.next()
       require(header.get(0) == "id", "Badly formatted file detected - expected header row with attributes")
       // drop the 'id' field, at index 0
       val sftString = (1 until header.size()).map(header.get).mkString(",")
       val sft = SimpleFeatureTypes.createType(typeName, sftString)
-      ds.createSchema(sft)
-
-      iter.map { record =>
+      val features = iter.map { record =>
         val sf = new ScalaSimpleFeature(record.get(0), sft)
         var i = 1
         while (i < record.size()) {
@@ -89,6 +87,7 @@ class DelimitedIngestConverter(ds: DataStore, typeName: String, format: Formats)
         }
         sf
       }
+      (sft, features)
     }
   }
 

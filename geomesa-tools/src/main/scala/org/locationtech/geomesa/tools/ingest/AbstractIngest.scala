@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
-import org.geotools.data.{DataStoreFinder, DataUtilities, Transaction}
+import org.geotools.data.{DataStoreFinder, DataUtilities, FeatureWriter, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.joda.time.Period
@@ -22,7 +22,7 @@ import org.joda.time.format.PeriodFormatterBuilder
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.utils.classpath.PathUtils
 import org.locationtech.geomesa.utils.stats.CountingInputStream
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 
@@ -104,14 +104,20 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
     class LocalIngestWorker(file: File) extends Runnable {
       override def run(): Unit = {
         try {
-          // make feature writer lazy so that we can create the schema based off the input file
-          lazy val fw = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
+          // only create the feature writer after the converter runs
+          // so that we can create the schema based off the input file
+          var fw: FeatureWriter[SimpleFeatureType, SimpleFeature] = null
           val converter = createLocalConverter(file, failed)
           // count the raw bytes read from the file, as that's what we based our total on
           val countingStream = new CountingInputStream(new FileInputStream(file))
           val is = PathUtils.handleCompression(countingStream, file.getPath)
           try {
-            converter.convert(is).foreach { sf =>
+            val (sft, features) = converter.convert(is)
+            if (features.hasNext) {
+              ds.createSchema(sft)
+              fw = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
+            }
+            features.foreach { sf =>
               val toWrite = fw.next()
               toWrite.setAttributes(sf.getAttributes)
               toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(sf.getID)
@@ -231,5 +237,5 @@ object AbstractIngest {
 }
 
 trait LocalIngestConverter extends Closeable {
-  def convert(is: InputStream): Iterator[SimpleFeature]
+  def convert(is: InputStream): (SimpleFeatureType, Iterator[SimpleFeature])
 }
