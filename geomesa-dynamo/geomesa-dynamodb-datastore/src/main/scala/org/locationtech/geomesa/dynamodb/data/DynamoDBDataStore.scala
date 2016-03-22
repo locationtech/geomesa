@@ -1,10 +1,10 @@
-/***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+/** *********************************************************************
+  * Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+  * All rights reserved. This program and the accompanying materials
+  * are made available under the terms of the Apache License, Version 2.0
+  * which accompanies this distribution and is available at
+  * http://www.opensource.org/licenses/apache2.0.php.
+  * ************************************************************************/
 
 package org.locationtech.geomesa.dynamodb.data
 
@@ -26,10 +26,17 @@ import scala.util.control.NonFatal
 
 class DynamoDBDataStore(val catalog: String, dynamoDB: DynamoDB, catalogPt: ProvisionedThroughput)
   extends ContentDataStore with SchemaValidation with LazyLogging {
+
   import DynamoDBDataStore._
 
   private val CATALOG_TABLE = catalog
-  private val catalogTable: Table = getOrCreateCatalogTable(dynamoDB, CATALOG_TABLE, catalogPt.getReadCapacityUnits, catalogPt.getWriteCapacityUnits)
+  private val catalogTable: Table = {
+    getOrCreateCatalogTable(
+      dynamoDB,
+      CATALOG_TABLE,
+      catalogPt.getReadCapacityUnits,
+      catalogPt.getWriteCapacityUnits)
+  }
 
   override def createFeatureSource(entry: ContentEntry): ContentFeatureSource = {
     new DynamoDBFeatureStore(entry)
@@ -56,7 +63,7 @@ class DynamoDBDataStore(val catalog: String, dynamoDB: DynamoDB, catalogPt: Prov
     res.waitForActive()
 
     // write the meta-data
-    val metaEntry = createDDMMetaDataItem(name, featureType)
+    val metaEntry = createMetaDataItem(name, featureType)
     catalogTable.putItem(metaEntry)
   }
 
@@ -90,18 +97,18 @@ object DynamoDBDataStore {
   val rcuKey = "geomesa.dynamodb.rcu"
   val wcuKey = "geomesa.dynamodb.wcu"
 
-  val serId  = "ser"
+  val serId = "ser"
 
-  val geomesaKeyHash  = "dtgandz2"
+  val geomesaKeyHash = "dtgandz2"
   val geomesaKeyRange = "z3andID"
 
   val featureKeySchema = List(
-      new KeySchemaElement().withAttributeName(geomesaKeyHash).withKeyType(KeyType.HASH),
-      new KeySchemaElement().withAttributeName(geomesaKeyRange).withKeyType(KeyType.RANGE)
-    )
+    new KeySchemaElement().withAttributeName(geomesaKeyHash).withKeyType(KeyType.HASH),
+    new KeySchemaElement().withAttributeName(geomesaKeyRange).withKeyType(KeyType.RANGE)
+  )
 
   val featureAttributeDescriptions = List(
-    new AttributeDefinition(geomesaKeyHash,  ScalarAttributeType.B),
+    new AttributeDefinition(geomesaKeyHash, ScalarAttributeType.B),
     new AttributeDefinition(geomesaKeyRange, ScalarAttributeType.B)
   )
 
@@ -109,13 +116,18 @@ object DynamoDBDataStore {
   val catalogSftAttributeName = "sft"
 
   val catalogKeySchema = List(new KeySchemaElement(catalogKeyHash, KeyType.HASH))
-  val catalogAttributeDescriptions =  List(new AttributeDefinition(catalogKeyHash, ScalarAttributeType.S))
+  val catalogAttributeDescriptions = List(new AttributeDefinition(catalogKeyHash, ScalarAttributeType.S))
 
   def makeTableName(catalog: String, name: String): String = s"${catalog}_${name}_z3"
 
-  def getSchema(entry: ContentEntry, catalogTable: Table): SimpleFeatureType  = {
+  def getSchema(entry: ContentEntry, catalogTable: Table): SimpleFeatureType = {
     val item = catalogTable.getItem("feature", entry.getTypeName)
     SimpleFeatureTypes.createType(entry.getTypeName, item.getString("sft"))
+  }
+
+  def apply(catalog: String, dynamoDB: DynamoDB, rcus: Long, wcus: Long): DynamoDBDataStore = {
+    val pt = new ProvisionedThroughput(rcus, wcus)
+    new DynamoDBDataStore(catalog, dynamoDB, pt)
   }
 
   private def getOrCreateCatalogTable(dynamoDB: DynamoDB, table: String, rcus: Long = 1L, wcus: Long = 1L) = {
@@ -134,13 +146,10 @@ object DynamoDBDataStore {
     ret
   }
 
-  private def createDDMMetaDataItem(name: String, featureType: SimpleFeatureType): Item = {
-    new Item().withPrimaryKey(catalogKeyHash, name).withString(catalogSftAttributeName, SimpleFeatureTypes.encodeType(featureType))
-  }
-
-  def apply(catalog: String, dynamoDB: DynamoDB, rcus: Long, wcus: Long): DynamoDBDataStore = {
-    val pt = new ProvisionedThroughput(rcus, wcus)
-    new DynamoDBDataStore(catalog, dynamoDB, pt)
+  private def createMetaDataItem(name: String, featureType: SimpleFeatureType): Item = {
+    new Item()
+      .withPrimaryKey(catalogKeyHash, name)
+      .withString(catalogSftAttributeName, SimpleFeatureTypes.encodeType(featureType))
   }
 
 }

@@ -1,10 +1,10 @@
-/***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+/** *********************************************************************
+  * Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+  * All rights reserved. This program and the accompanying materials
+  * are made available under the terms of the Apache License, Version 2.0
+  * which accompanies this distribution and is available at
+  * http://www.opensource.org/licenses/apache2.0.php.
+  * ************************************************************************/
 
 package org.locationtech.geomesa.cassandra.data
 
@@ -27,6 +27,7 @@ import org.opengis.feature.`type`.{AttributeDescriptor, Name}
 import org.opengis.feature.simple.SimpleFeatureType
 
 object CassandraDataStore {
+
   import scala.collection.JavaConversions._
 
   val typeMap = HashBiMap.create[Class[_], DataType]
@@ -45,7 +46,9 @@ object CassandraDataStore {
   ))
 
   def getSchema(name: Name, table: TableMetadata): SimpleFeatureType = {
-    val cols = table.getColumns.filterNot { c => c.getName == "pkz" || c.getName == "z31" || c.getName == "fid" }
+    val cols = table.getColumns.filterNot {
+      c => c.getName == "pkz" || c.getName == "z31" || c.getName == "fid"
+    }
     val attrTypeBuilder = new AttributeTypeBuilder()
     val attributes = cols.map { c =>
       val it = typeMap.inverse().get(c.getType)
@@ -65,6 +68,7 @@ object CassandraDataStore {
     def serialize(o: java.lang.Object): java.lang.Object
     def deserialize(o: java.lang.Object): java.lang.Object
   }
+
   case object GeomSerializer extends FieldSerializer {
     override def serialize(o: Object): AnyRef = {
       val geom = o.asInstanceOf[Point]
@@ -81,14 +85,16 @@ object CassandraDataStore {
 
   object FieldSerializer {
     def apply(attrDescriptor: AttributeDescriptor): FieldSerializer = {
-      if(classOf[Geometry].isAssignableFrom(attrDescriptor.getType.getBinding)) GeomSerializer
+      if (classOf[Geometry].isAssignableFrom(attrDescriptor.getType.getBinding)) GeomSerializer
       else DefaultSerializer
     }
   }
+
 }
 
 class CassandraDataStore(session: Session, keyspaceMetadata: KeyspaceMetadata, ns: URI) extends
   ContentDataStore with SchemaValidation {
+
   import scala.collection.JavaConversions._
 
   override def createFeatureSource(contentEntry: ContentEntry): ContentFeatureSource =

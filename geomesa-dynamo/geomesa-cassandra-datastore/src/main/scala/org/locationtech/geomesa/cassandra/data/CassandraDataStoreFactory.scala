@@ -1,10 +1,10 @@
-/***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+/** *********************************************************************
+  * Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+  * All rights reserved. This program and the accompanying materials
+  * are made available under the terms of the Apache License, Version 2.0
+  * which accompanies this distribution and is available at
+  * http://www.opensource.org/licenses/apache2.0.php.
+  * ************************************************************************/
 
 package org.locationtech.geomesa.cassandra.data
 
@@ -21,7 +21,10 @@ import org.geotools.data.{DataStore, DataStoreFactorySpi, Parameter}
 import org.geotools.util.KVP
 
 class CassandraDataStoreFactory extends DataStoreFactorySpi {
+
   import CassandraDataStoreParams._
+
+  override def createNewDataStore(map: util.Map[String, Serializable]): DataStore = createDataStore(map)
 
   override def createDataStore(map: util.Map[String, Serializable]): DataStore = {
     val Array(cp, port) = CONTACT_POINT.lookUp(map).asInstanceOf[String].split(":")
@@ -39,8 +42,6 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
     new CassandraDataStore(session, cluster.getMetadata.getKeyspace(ks), ns)
   }
 
-  override def createNewDataStore(map: util.Map[String, Serializable]): DataStore = createDataStore(map)
-
   override def getDisplayName: String = "Cassandra (GeoMesa)"
 
   override def getDescription: String = "GeoMesa Cassandra Data Store"
@@ -56,11 +57,20 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
 
 object CassandraDataStoreParams {
 
-  val CONTACT_POINT = new Param("geomesa.cassandra.contact.point"  , classOf[String], "HOST:PORT to Cassandra",   true)
-  val KEYSPACE      = new Param("geomesa.cassandra.keyspace"       , classOf[String], "Cassandra Keyspace", true)
-  val NAMESPACE     = new Param("namespace", classOf[URI], "uri to a the namespace", false, null, new KVP(Parameter.LEVEL, "advanced"))
+  val CONTACT_POINT =
+    new Param("geomesa.cassandra.contact.point", classOf[String], "HOST:PORT to Cassandra", true)
+  val KEYSPACE =
+    new Param("geomesa.cassandra.keyspace", classOf[String], "Cassandra Keyspace", true)
+  val NAMESPACE =
+    new Param(
+      "namespace",
+      classOf[URI],
+      "uri to a the namespace",
+      false,
+      null,
+      new KVP(Parameter.LEVEL, "advanced"))
 
-  val PARAMS  = Array(CONTACT_POINT, KEYSPACE, NAMESPACE)
+  val PARAMS = Array(CONTACT_POINT, KEYSPACE, NAMESPACE)
 
   def canProcessCassandra(params: util.Map[String, Serializable]): Boolean = {
     params.containsKey(CONTACT_POINT.key) && params.containsKey(KEYSPACE.key)

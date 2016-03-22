@@ -1966,10 +1966,6 @@
                         <includes>
                             <include>**/*Test.java</include>
                         </includes>
-                        <excludes>
-                            <exclude>**/*IT.java</exclude>
-                            <exclude>**/*IT.scala</exclude>
-                        </excludes>
                         <argLine>${maven.test.jvmargs}</argLine>
                     </configuration>
                 </plugin>
@@ -2032,9 +2028,6 @@
                             <include>src/test/java/**</include>
                             <include>src/test/scala/**</include>
                         </includes>
-                        <excludes>
-                            <exclude>**/*.txt</exclude>
-                        </excludes>
                     </configuration>
                 </plugin>
             </plugins>

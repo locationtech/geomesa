@@ -99,7 +99,7 @@
                 <version>1.10</version>
                 <executions>
                     <execution>
-                        <id>reserver-dynamodb-port</id>
+                        <id>reserve-dynamodb-port</id>
                         <goals>
                             <goal>reserve-network-port</goal>
                         </goals>
@@ -138,8 +138,6 @@
                 <version>2.19.1</version>
                 <configuration>
                     <includes>
-                        <include>**/*IT.java</include>
-                        <include>**/*IT.scala</include>
                         <include>**/*IT.class</include>
                     </includes>
                     <failIfNoTests>true</failIfNoTests>

@@ -1,10 +1,10 @@
-/***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+/** *********************************************************************
+  * Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+  * All rights reserved. This program and the accompanying materials
+  * are made available under the terms of the Apache License, Version 2.0
+  * which accompanies this distribution and is available at
+  * http://www.opensource.org/licenses/apache2.0.php.
+  * ************************************************************************/
 
 package org.locationtech.geomesa.cassandra.data
 
@@ -18,23 +18,26 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 trait CassandraFeatureWriter extends FW[SimpleFeatureType, SimpleFeature] {
+
   import CassandraDataStore._
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 
   import scala.collection.JavaConversions._
 
-  def sft: SimpleFeatureType
-  def session: Session
-
   val cols = sft.getAttributeDescriptors.map { ad => ad.getLocalName }
   val serializers = sft.getAttributeDescriptors.map { ad => FieldSerializer(ad) }
   val geomField = sft.getGeomField
-  val geomIdx   = sft.getGeomIndex
-  val dtgField  = sft.getDtgField.get
-  val dtgIdx    = sft.getDtgIndex.get
-  val insert = session.prepare(s"INSERT INTO ${sft.getTypeName} (pkz, z31, fid, ${cols.mkString(",")}) values (${Seq.fill(3+cols.length)("?").mkString(",")})")
-
+  val geomIdx = sft.getGeomIndex
+  val dtgField = sft.getDtgField.get
+  val dtgIdx = sft.getDtgIndex.get
+  val format = s"(pkz, z31, fid, ${cols.mkString(",")})"
+  val values = s"(${Seq.fill(3 + cols.length)("?").mkString(",")})"
+  val insert = session.prepare(s"INSERT INTO ${sft.getTypeName} $format values $values")
   private var curFeature: SimpleFeature = new ScalaSimpleFeature(UUID.randomUUID().toString, sft)
+
+  def sft: SimpleFeatureType
+
+  def session: Session
 
   override def next(): SimpleFeature = {
     curFeature = new ScalaSimpleFeature(UUID.randomUUID().toString, sft)

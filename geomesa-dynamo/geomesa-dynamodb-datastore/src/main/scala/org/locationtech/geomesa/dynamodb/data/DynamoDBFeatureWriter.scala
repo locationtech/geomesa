@@ -1,13 +1,14 @@
-/***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+/** *********************************************************************
+  * Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+  * All rights reserved. This program and the accompanying materials
+  * are made available under the terms of the Apache License, Version 2.0
+  * which accompanies this distribution and is available at
+  * http://www.opensource.org/licenses/apache2.0.php.
+  * ************************************************************************/
 
 package org.locationtech.geomesa.dynamodb.data
 
+import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
 
@@ -32,38 +33,17 @@ trait DynamoDBPutter {
 }
 
 trait DynamoDBFeatureWriter extends SimpleFeatureWriter with DynamoDBPutter {
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
-  def sft: SimpleFeatureType
-  def table: Table
 
-  private[this] var curFeature: SimpleFeature = null
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 
   val dtgIndex = sft.getDtgIndex.get
+  private[this] val attributeDescriptors = sft.getAttributeDescriptors.toList
+  private[this] val encoder = new KryoFeatureSerializer(sft)
+  private[this] var curFeature: SimpleFeature = null
 
-  private val encoder = new KryoFeatureSerializer(sft)
+  def sft: SimpleFeatureType
 
-  private def serialize(item: Item, attr: AnyRef, desc: AttributeDescriptor) = {
-    import java.{lang => jl}
-    desc.getType.getBinding match {
-      case c if c.equals(classOf[jl.Boolean]) =>
-        item.withBoolean(desc.getLocalName, attr.asInstanceOf[jl.Boolean])
-
-      case c if c.equals(classOf[jl.Integer]) =>
-        item.withInt(desc.getLocalName, attr.asInstanceOf[jl.Integer])
-
-      case c if c.equals(classOf[jl.Double]) =>
-        item.withDouble(desc.getLocalName, attr.asInstanceOf[jl.Double])
-
-      case c if c.equals(classOf[String]) =>
-        item.withString(desc.getLocalName, attr.asInstanceOf[String])
-
-      case c if c.equals(classOf[java.util.Date]) =>
-        item.withLong(desc.getLocalName, attr.asInstanceOf[java.util.Date].getTime)
-
-      case c if classOf[Point].isAssignableFrom(c) =>
-        item.withBinary(desc.getLocalName, WKBUtils.write(attr.asInstanceOf[Point]))
-    }
-  }
+  def table: Table
 
   override def hasNext: Boolean = true
 
@@ -81,8 +61,7 @@ trait DynamoDBFeatureWriter extends SimpleFeatureWriter with DynamoDBPutter {
   override def write(): Unit = {
     import org.locationtech.geomesa.utils.geotools.Conversions._
 
-    // TODO: is getting the centroid here smart?
-    val geom = curFeature.geometry.getCentroid
+    val geom = curFeature.point
     val x = geom.getX
     val y = geom.getY
     val dtg = new DateTime(curFeature.getAttribute(dtgIndex).asInstanceOf[Date])
@@ -98,7 +77,6 @@ trait DynamoDBFeatureWriter extends SimpleFeatureWriter with DynamoDBPutter {
 
     val range = Bytes.concat(z3idx, curFeature.getID.getBytes(StandardCharsets.UTF_8))
 
-    //
     val primaryKey = new PrimaryKey(
       DynamoDBDataStore.geomesaKeyHash, hash,
       DynamoDBDataStore.geomesaKeyRange, range
@@ -106,16 +84,65 @@ trait DynamoDBFeatureWriter extends SimpleFeatureWriter with DynamoDBPutter {
 
     val item = new Item().withPrimaryKey(primaryKey)
 
-    curFeature.getAttributes.zip(sft.getAttributeDescriptors).foreach { case (attr, desc) => serialize(item, attr, desc) }
+    val attributes = curFeature.getAttributes.iterator()
+    val descriptors = attributeDescriptors.iterator
+    while (attributes.hasNext && descriptors.hasNext) {
+      serialize(item, attributes.next(), descriptors.next())
+    }
+
     item.withBinary(DynamoDBDataStore.serId, encoder.serialize(curFeature))
 
     this.dynamoDBPut(table, item)
     curFeature = null
   }
 
+  private def serialize(item: Item, attr: AnyRef, desc: AttributeDescriptor) = {
+    import java.{lang => jl}
+    desc.getType.getBinding match {
+      case c if c.equals(classOf[jl.Boolean]) =>
+        item.withBoolean(desc.getLocalName, attr.asInstanceOf[jl.Boolean])
+
+      case c if c.equals(classOf[jl.Integer]) =>
+        item.withInt(desc.getLocalName, attr.asInstanceOf[jl.Integer])
+
+      case c if c.equals(classOf[jl.Long]) =>
+        item.withLong(desc.getLocalName, attr.asInstanceOf[jl.Long])
+
+      case c if c.equals(classOf[jl.Float]) =>
+        item.withFloat(desc.getLocalName, attr.asInstanceOf[jl.Float])
+
+      case c if c.equals(classOf[jl.Double]) =>
+        item.withDouble(desc.getLocalName, attr.asInstanceOf[jl.Double])
+
+      case c if c.equals(classOf[String]) =>
+        item.withString(desc.getLocalName, attr.asInstanceOf[String])
+
+      case c if c.equals(classOf[UUID]) =>
+        item.withBinary(desc.getLocalName, encodeUUID(attr.asInstanceOf[UUID]))
+
+      case c if c.equals(classOf[java.util.Date]) =>
+        item.withLong(desc.getLocalName, attr.asInstanceOf[java.util.Date].getTime)
+
+      case c if classOf[Point].isAssignableFrom(c) =>
+        item.withBinary(desc.getLocalName, WKBUtils.write(attr.asInstanceOf[Point]))
+
+      case _ =>
+        throw new Exception(s"Could not serialize feature attribute: ${desc.getLocalName} " +
+          s"of type: ${desc.getType.getName.toString}")
+    }
+  }
+
+  private def encodeUUID(uuid: UUID): ByteBuffer = {
+    ByteBuffer.allocate(16)
+      .putLong(uuid.getMostSignificantBits)
+      .putLong(uuid.getLeastSignificantBits)
+      .flip.asInstanceOf[ByteBuffer]
+  }
+
 }
 
-class DynamoDBAppendingFeatureWriter(val sft: SimpleFeatureType, val table: Table) extends DynamoDBFeatureWriter {
+class DynamoDBAppendingFeatureWriter(val sft: SimpleFeatureType, val table: Table)
+  extends DynamoDBFeatureWriter {
   override def hasNext: Boolean = false
 
   override def dynamoDBPut(t: Table, i: Item): Unit = {
@@ -126,7 +153,8 @@ class DynamoDBAppendingFeatureWriter(val sft: SimpleFeatureType, val table: Tabl
   }
 }
 
-class DynamoDBUpdatingFeatureWriter(val sft: SimpleFeatureType, val table: Table) extends DynamoDBFeatureWriter {
+class DynamoDBUpdatingFeatureWriter(val sft: SimpleFeatureType, val table: Table)
+  extends DynamoDBFeatureWriter {
   override def hasNext: Boolean = false
 
   override def dynamoDBPut(t: Table, i: Item): Unit = {

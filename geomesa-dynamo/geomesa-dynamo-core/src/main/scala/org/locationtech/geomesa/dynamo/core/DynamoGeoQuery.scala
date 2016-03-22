@@ -14,42 +14,49 @@ import org.geotools.data.{FeatureReader, Query}
 import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.Interval
 import org.locationtech.geomesa.filter._
+import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-import scala.collection.GenTraversable
 import scala.collection.JavaConverters.asJavaIteratorConverter
 
 trait DynamoGeoQuery {
 
   case class HashAndRangeQueryPlan(row: Int, lz3: Long, uz3: Long, contained: Boolean)
 
-  protected val WHOLE_WORLD = new ReferencedEnvelope(-180.0, 180.0, -90.0, 90.0, DefaultGeographicCRS.WGS84)
+  protected val WHOLE_WORLD = new ReferencedEnvelope(-180.0, 180.0, -90.0, 90.0, CRS_EPSG_4326)
 
-  def getAllFeatures: Iterator[SimpleFeature]
+  def getFeaturesInternal: Iterator[SimpleFeature]
 
-  def getAllFeatures(filter: Seq[Filter]): Iterator[SimpleFeature] = {
-    getAllFeatures.filter(f => filter.forall(_.evaluate(f)))
+  def getFeaturesInternal(filter: Seq[Filter]): Iterator[SimpleFeature] = {
+    getFeaturesInternal.filter(f => filter.forall(_.evaluate(f)))
   }
 
-  def executeGeoTimeQuery(query: Query, plans: GenTraversable[HashAndRangeQueryPlan]): GenTraversable[SimpleFeature]
-  def executeGeoTimeCountQuery(query: Query, plans: GenTraversable[HashAndRangeQueryPlan]): Long
+  def executeGeoTimeQuery(query: Query, plans: Iterator[HashAndRangeQueryPlan]): Iterator[SimpleFeature]
+  def executeGeoTimeCountQuery(query: Query, plans: Iterator[HashAndRangeQueryPlan]): Long
 
   def getCountOfAll: Int
 
-  def getReaderInternal(query: Query, sft: SimpleFeatureType): FeatureReader[SimpleFeatureType, SimpleFeature] = {
-    val (spatial, other) = partitionPrimarySpatials(query.getFilter, sft)
+  def checkLongToInt(l: Long): Int = {
+    if (l >= Int.MaxValue) {
+      Int.MaxValue
+    } else {
+      l.toInt
+    }
+  }
+
+  def getReaderInternal(q: Query, sft: SimpleFeatureType): FeatureReader[SimpleFeatureType, SimpleFeature] = {
+    val (spatial, other) = partitionPrimarySpatials(q.getFilter, sft)
     val iter: Iterator[SimpleFeature] =
-      if(query.equals(Query.ALL) || spatial.exists(FilterHelper.isFilterWholeWorld)) {
-        getAllFeatures(other)
+      if(q.equals(Query.ALL) || spatial.exists(FilterHelper.isFilterWholeWorld)) {
+        getFeaturesInternal(other)
       } else {
-        val plans = planQuery(query, sft)
-        executeGeoTimeQuery(query, plans).toIterator
+        val plans = planQuery(q, sft)
+        executeGeoTimeQuery(q, plans)
       }
     new DelegateSimpleFeatureReader(sft, new DelegateSimpleFeatureIterator(iter.asJava))
   }
@@ -59,12 +66,11 @@ trait DynamoGeoQuery {
       getCountOfAll
     } else {
       val plans = planQuery(query, sft)
-      executeGeoTimeCountQuery(query, plans).toInt
+      checkLongToInt(executeGeoTimeCountQuery(query, plans))
     }
   }
 
-  // Query Specific defs
-  def planQuery(query: Query, sft: SimpleFeatureType): GenTraversable[HashAndRangeQueryPlan] = {
+  def planQuery(query: Query, sft: SimpleFeatureType): Iterator[HashAndRangeQueryPlan] = {
     val (lx, ly, ux, uy) = planQuerySpatialBounds(query)
     val (dtgFilters, _) = partitionPrimaryTemporals(decomposeAnd(query.getFilter), sft)
     val interval = FilterHelper.extractInterval(dtgFilters, sft.getDtgField)
@@ -78,7 +84,7 @@ trait DynamoGeoQuery {
     val plans = rows.flatMap { case ((s, e), rowRanges) =>
       rowRanges.map(row => planQueryForContiguousRowRange(s, e, row))
     }
-    plans
+    plans.toIterator
   }
 
   def planQueryForContiguousRowRange(s: Int, e: Int, row: Int): HashAndRangeQueryPlan = {
@@ -89,14 +95,26 @@ trait DynamoGeoQuery {
     HashAndRangeQueryPlan(row, min, max, contained = false)
   }
 
-  def getRowKeys(zRanges: Seq[IndexRange], interval: Interval, sew: Int, eew: Int, dt: Int): ((Int, Int), Seq[Int]) = {
+  def getRowKeys(zRanges: Seq[IndexRange],
+                 interval: Interval,
+                 startWeek: Int,
+                 endWeek: Int,
+                 dt: Int): ((Int, Int), Seq[Int]) = {
     val dtshift = dt << 16
     val seconds: (Int, Int) =
-      if (dt != sew && dt != eew) {
+      if (dt != startWeek && dt != endWeek) {
         (0, DynamoPrimaryKey.ONE_WEEK_IN_SECONDS)
       } else {
-        val starts = if (dt == sew) DynamoPrimaryKey.secondsInCurrentWeek(interval.getStart) else 0
-        val ends   = if (dt == eew) DynamoPrimaryKey.secondsInCurrentWeek(interval.getEnd)   else DynamoPrimaryKey.ONE_WEEK_IN_SECONDS
+        val starts = if (dt == startWeek) {
+          DynamoPrimaryKey.secondsInCurrentWeek(interval.getStart)
+        } else {
+          0
+        }
+        val ends   = if (dt == endWeek)   {
+          DynamoPrimaryKey.secondsInCurrentWeek(interval.getEnd)
+        } else {
+          DynamoPrimaryKey.ONE_WEEK_IN_SECONDS
+        }
         (starts, ends)
       }
 
@@ -109,17 +127,18 @@ trait DynamoGeoQuery {
   }
 
   def planQuerySpatialBounds(query: Query): (Double, Double, Double, Double) = {
-    val origBounds = query.getFilter.accept(ExtractBoundsFilterVisitor.BOUNDS_VISITOR, DefaultGeographicCRS.WGS84).asInstanceOf[Envelope]
-    val re = WHOLE_WORLD.intersection(new ReferencedEnvelope(origBounds, DefaultGeographicCRS.WGS84))
+    val origBounds = query.getFilter.accept(
+      ExtractBoundsFilterVisitor.BOUNDS_VISITOR, CRS_EPSG_4326).asInstanceOf[Envelope]
+    val re = WHOLE_WORLD.intersection(new ReferencedEnvelope(origBounds, CRS_EPSG_4326))
     (re.getMinX, re.getMinY, re.getMaxX, re.getMaxY)
   }
 
-  def applyFilter(query: Query, contains: Boolean, simpleFeatures: Iterator[SimpleFeature]): Iterator[SimpleFeature] = {
+  def applyFilter(q: Query, contains: Boolean, features: Iterator[SimpleFeature]): Iterator[SimpleFeature] = {
     if (!contains) {
-      val filter = query.getFilter
-      simpleFeatures.filter(filter.evaluate(_))
+      val filter = q.getFilter
+      features.filter(filter.evaluate(_))
     } else {
-      simpleFeatures
+      features
     }
   }
 

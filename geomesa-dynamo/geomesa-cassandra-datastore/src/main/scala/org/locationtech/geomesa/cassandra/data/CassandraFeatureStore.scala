@@ -18,10 +18,10 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.dynamo.core.DynamoGeoQuery
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.GenTraversable
 import scala.collection.JavaConversions._
 
-class CassandraFeatureStore(ent: ContentEntry) extends ContentFeatureStore(ent, Query.ALL) with DynamoGeoQuery {
+class CassandraFeatureStore(ent: ContentEntry)
+  extends ContentFeatureStore(ent, Query.ALL) with DynamoGeoQuery {
 
   private lazy val contentState = entry.getState(getTransaction).asInstanceOf[CassandraContentState]
 
@@ -38,12 +38,11 @@ class CassandraFeatureStore(ent: ContentEntry) extends ContentFeatureStore(ent, 
 
   override def getBoundsInternal(query: Query): ReferencedEnvelope = WHOLE_WORLD
 
-  // TODO: might overflow
-  override def getCountOfAll: Int = contentState.getCountOfAll.toInt
+  override def getCountOfAll: Int = checkLongToInt(contentState.getCountOfAll)
 
   override def getCountInternal(query: Query): Int = getCountInternal(query, contentState.sft)
 
-  override def executeGeoTimeCountQuery(query: Query, plans: GenTraversable[HashAndRangeQueryPlan]): Long = {
+  override def executeGeoTimeCountQuery(query: Query, plans: Iterator[HashAndRangeQueryPlan]): Long = {
     // TODO: currently overestimates the count in order to increase performance
     // Fix overestimation by pushing geo etc predicates down into the database
     val features = contentState.builderPool.withResource { builder =>
@@ -56,31 +55,37 @@ class CassandraFeatureStore(ent: ContentEntry) extends ContentFeatureStore(ent, 
     features
   }
 
-  override def executeGeoTimeQuery(query: Query, plans: GenTraversable[HashAndRangeQueryPlan]): GenTraversable[SimpleFeature] = {
+  override def executeGeoTimeQuery(q: Query,
+                                   plans: Iterator[HashAndRangeQueryPlan]): Iterator[SimpleFeature] = {
     val features = contentState.builderPool.withResource { builder =>
       val futures = plans.map { case HashAndRangeQueryPlan(r, l, u, contained) =>
-        val q = contentState.GEO_TIME_QUERY.bind(r: Integer, l: lang.Long, u: lang.Long)
-        (contained, contentState.session.executeAsync(q))
+        val cq = contentState.GEO_TIME_QUERY.bind(r: Integer, l: lang.Long, u: lang.Long)
+        (contained, contentState.session.executeAsync(cq))
       }
       futures.flatMap { case (contains, fut) =>
-        postProcessResults(query, builder, contains, fut)
+        postProcess(q, builder, contains, fut)
       }
     }
     features
   }
 
-  override def getAllFeatures: Iterator[SimpleFeature] = {
+  override def getFeaturesInternal: Iterator[SimpleFeature] = {
     contentState.builderPool.withResource { builder =>
-      contentState.session.execute(contentState.ALL_QUERY.bind()).iterator().map { r => convertRowToSF(r, builder) }
+      contentState.session.execute(contentState.ALL_QUERY.bind()).iterator().map {
+        r => convertRowToSF(r, builder)
+      }
     }
   }
 
-  def planQuery(query: Query): GenTraversable[HashAndRangeQueryPlan] = {
-    planQuery(query, contentState.sft)
+  def planQuery(q: Query): Iterator[HashAndRangeQueryPlan] = {
+    planQuery(q, contentState.sft)
   }
 
-  def postProcessResults(query: Query, builder: SimpleFeatureBuilder, contains: Boolean, fut: ResultSetFuture): Iterator[SimpleFeature] = {
-    applyFilter(query, contains, fut.get().iterator().map { r => convertRowToSF(r, builder) })
+  def postProcess(q: Query,
+                  builder: SimpleFeatureBuilder,
+                  contains: Boolean,
+                  fut: ResultSetFuture): Iterator[SimpleFeature] = {
+    applyFilter(q, contains, fut.get().iterator().map { r => convertRowToSF(r, builder) })
   }
 
   def convertRowToSF(r: Row, builder: SimpleFeatureBuilder): SimpleFeature = {
