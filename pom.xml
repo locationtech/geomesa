@@ -61,6 +61,8 @@
         <jackson.codehaus.version>1.9.3</jackson.codehaus.version>
 
         <!-- environment-dependent versions -->
+        <accumulo.version>1.6.2</accumulo.version>
+        <accumulo.server.artifact>accumulo-server-base</accumulo.server.artifact>
         <zookeeper.version>3.4.5</zookeeper.version>
         <thrift.version>0.9.1</thrift.version>
         <hadoop.version>2.5.2</hadoop.version>
@@ -89,45 +91,14 @@
 
     <profiles>
         <profile>
-            <id>Accumulo 1.6</id>
-            <activation>
-                <property><name>!accumulo-1.5</name></property>
-            </activation>
-            <properties>
-                <accumulo.version>1.6.2</accumulo.version>
-            </properties>
-            <dependencyManagement>
-                <dependencies>
-                    <!-- Accumulo 1.6 dependency -->
-                    <dependency>
-                        <groupId>org.apache.accumulo</groupId>
-                        <artifactId>accumulo-server-base</artifactId>
-                        <version>${accumulo.version}</version>
-                        <scope>provided</scope>
-                    </dependency>
-                </dependencies>
-            </dependencyManagement>
-        </profile>
-
-        <profile>
             <id>Accumulo 1.5</id>
             <activation>
                 <property><name>accumulo-1.5</name></property>
             </activation>
             <properties>
                 <accumulo.version>1.5.2</accumulo.version>
+                <accumulo.server.artifact>accumulo-server</accumulo.server.artifact>
             </properties>
-            <dependencyManagement>
-                <dependencies>
-                    <!-- Accumulo 1.5 dependency -->
-                    <dependency>
-                        <groupId>org.apache.accumulo</groupId>
-                        <artifactId>accumulo-server</artifactId>
-                        <version>${accumulo.version}</version>
-                        <scope>provided</scope>
-                    </dependency>
-                </dependencies>
-            </dependencyManagement>
         </profile>
 
         <profile>
@@ -158,7 +129,7 @@
         <profile>
             <id>travis-ci</id>
             <properties>
-                <maven.test.jvmargs>-Duser.timezone=UTC -Xms512m -Xmx3g -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true</maven.test.jvmargs>
+                <maven.test.jvmargs>-Duser.timezone=UTC -Xms512m -Xmx3g -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true -Dgeomesa.scan.ranges.batch=2000</maven.test.jvmargs>
                 <test.fork.count>1</test.fork.count>
                 <test.fork.reuse>false</test.fork.reuse>
             </properties>
@@ -1619,6 +1590,12 @@
             <dependency>
                 <groupId>org.apache.accumulo</groupId>
                 <artifactId>accumulo-core</artifactId>
+                <version>${accumulo.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.accumulo</groupId>
+                <artifactId>${accumulo.server.artifact}</artifactId>
                 <version>${accumulo.version}</version>
                 <scope>provided</scope>
             </dependency>

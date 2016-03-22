@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.features.interop;
 
 import com.vividsolutions.jts.geom.Point;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.junit.Test;
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer;

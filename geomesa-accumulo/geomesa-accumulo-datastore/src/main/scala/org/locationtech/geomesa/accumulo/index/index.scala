@@ -13,14 +13,11 @@ import com.vividsolutions.jts.geom.Envelope
 import org.apache.accumulo.core.data.{Key, Range => AccRange, Value}
 import org.geotools.factory.Hints
 import org.geotools.factory.Hints.{ClassKey, IntegerKey}
-import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.identity.FeatureId
 import org.slf4j.LoggerFactory
 
 import scala.languageFeature.implicitConversions
@@ -33,11 +30,6 @@ package object index {
   val MIN_DATE = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.forID("UTC"))
   val MAX_DATE = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.forID("UTC"))
 
-  val spec = "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date"
-  val indexSFT = SimpleFeatureTypes.createType("geomesa-idx", spec)
-
-  implicit def string2id(s: String): FeatureId = new FeatureIdImpl(s)
-
   type KeyValuePair = (Key, Value)
 
   object QueryHints {
@@ -49,11 +41,8 @@ package object index {
     val WIDTH_KEY            = new IntegerKey(256)
     val HEIGHT_KEY           = new IntegerKey(256)
 
-    val TEMPORAL_DENSITY_KEY = new ClassKey(classOf[java.lang.Boolean])
-    val TIME_INTERVAL_KEY    = new ClassKey(classOf[org.joda.time.Interval])
-    val TIME_BUCKETS_KEY     = new IntegerKey(256)
-    val RETURN_ENCODED       = new ClassKey(classOf[java.lang.Boolean])
-
+    val STATS_KEY            = new ClassKey(classOf[java.lang.String])
+    val RETURN_ENCODED_KEY   = new ClassKey(classOf[java.lang.Boolean])
     val MAP_AGGREGATION_KEY  = new ClassKey(classOf[java.lang.String])
 
     val EXACT_COUNT          = new ClassKey(classOf[java.lang.Boolean])
@@ -84,7 +73,8 @@ package object index {
         for { w <- Option(hints.get(WIDTH_KEY).asInstanceOf[Int])
               h <- Option(hints.get(HEIGHT_KEY).asInstanceOf[Int]) } yield (w, h)
       def getDensityWeight: Option[String] = Option(hints.get(DENSITY_WEIGHT).asInstanceOf[String])
-      def isTemporalDensityQuery: Boolean = hints.containsKey(TEMPORAL_DENSITY_KEY)
+      def isStatsIteratorQuery: Boolean = hints.containsKey(STATS_KEY)
+      def getStatsIteratorQuery: String = hints.get(STATS_KEY).asInstanceOf[String]
       def isMapAggregatingQuery: Boolean = hints.containsKey(MAP_AGGREGATION_KEY)
       def getMapAggregatingAttribute: String = hints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
       def getTransformDefinition: Option[String] = Option(hints.get(TRANSFORMS).asInstanceOf[String])

@@ -31,7 +31,7 @@ import scala.collection.JavaConverters._
 import scala.util.Random
 
 object UnitTestEntryType  {
-  def getTypeSpec = "POINT:String," + "LINESTRING:String," + "POLYGON:String," + "attr2:String," + spec
+  def getTypeSpec = "POINT:String," + "LINESTRING:String," + "POLYGON:String," + "attr2:String," + IndexEntryDecoder.spec
 }
 
 object TestData extends LazyLogging {
@@ -60,7 +60,7 @@ object TestData extends LazyLogging {
       .build()
 
   def getTypeSpec(suffix: String = "2") = {
-    s"POINT:String,LINESTRING:String,POLYGON:String,attr$suffix:String:index=true," + spec
+    s"POINT:String,LINESTRING:String,POLYGON:String,attr$suffix:String:index=true," + IndexEntryDecoder.spec
   }
 
   def getFeatureType(typeNameSuffix: String = "", attrNameSuffix: String = "2", tableSharing: Boolean = true) = {

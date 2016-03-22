@@ -8,21 +8,17 @@
 
 package org.locationtech.geomesa.accumulo.process.knn
 
-import com.vividsolutions.jts.geom.{GeometryCollection, Geometry}
+import com.vividsolutions.jts.geom.{Geometry, GeometryCollection}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index
-import org.locationtech.geomesa.accumulo.index.Constants
-import org.locationtech.geomesa.filter.FilterHelper._
+import org.locationtech.geomesa.accumulo.index.{Constants, IndexEntryDecoder}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.filter.expression.Literal
-import org.opengis.filter.spatial.BBOX
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -45,7 +41,7 @@ class GenerateKNNQueryTest extends Specification {
       "featureEncoding" -> "avro").asJava).asInstanceOf[AccumuloDataStore]
 
   val sftName = "test"
-  val sft = SimpleFeatureTypes.createType(sftName, index.spec)
+  val sft = SimpleFeatureTypes.createType(sftName, IndexEntryDecoder.spec)
   sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
 
   val ds = createStore

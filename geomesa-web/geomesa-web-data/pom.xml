@@ -30,30 +30,6 @@
 
             <!-- provided deps that are already in our geoserver instance -->
             <dependency>
-                <groupId>org.apache.accumulo</groupId>
-                <artifactId>accumulo-core</artifactId>
-                <version>${accumulo.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.accumulo</groupId>
-                <artifactId>accumulo-start</artifactId>
-                <version>${accumulo.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.thrift</groupId>
-                <artifactId>libthrift</artifactId>
-                <version>${thrift.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.zookeeper</groupId>
-                <artifactId>zookeeper</artifactId>
-                <version>${zookeeper.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
                 <groupId>commons-logging</groupId>
                 <artifactId>commons-logging</artifactId>
                 <version>1.1.1</version>

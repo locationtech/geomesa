@@ -16,7 +16,7 @@ import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.simple.SimpleFeatureBuilder
-import org.locationtech.geomesa.accumulo.index._
+import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -179,7 +179,7 @@ class VisibilitiesTest extends Specification {
       "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
 
     "priv should be able to delete a feature" in {
-      fs.removeFeatures(ff.id("1"))
+      fs.removeFeatures(ff.id(new FeatureIdImpl("1")))
       fs.flush()
 
       "using ALL queries" in {
@@ -202,7 +202,7 @@ class VisibilitiesTest extends Specification {
 
     "nonpriv should not be able to delete a priv feature" in {
       val unprivFS = unprivDS.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
-      unprivFS.removeFeatures(ff.id("2"))
+      unprivFS.removeFeatures(ff.id(new FeatureIdImpl("2")))
       unprivFS.flush()
 
       "priv should still see the feature that was attempted to be deleted" in {

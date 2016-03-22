@@ -514,8 +514,7 @@ In order to do that, we will use Apache Directory Studio.
 5. Load the following LDIF file, which will create the Spring Security
    OU and the 'rod' user:
 
-   -  `Spring Security
-      LDIF <_static/geomesa-examples-authorizations/spring-security-rod.ldif>`__.
+   -  :download:`spring-security-rod.ldif <_static/geomesa-examples-authorizations/spring-security-rod.ldif>`
    -  Right-click the 'Root DSE' node in the LDAP browser, and select
       'Import->LDIF import...'
 

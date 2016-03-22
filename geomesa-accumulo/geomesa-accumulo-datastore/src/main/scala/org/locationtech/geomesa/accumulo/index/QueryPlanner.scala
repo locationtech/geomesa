@@ -102,8 +102,8 @@ case class QueryPlanner(sft: SimpleFeatureType,
       iter
     }
 
-    def reduce(iter: SFIter): SFIter = if (query.getHints.isTemporalDensityQuery) {
-      KryoLazyTemporalDensityIterator.reduceTemporalFeatures(iter, query)
+    def reduce(iter: SFIter): SFIter = if (query.getHints.isStatsIteratorQuery) {
+      KryoLazyStatsIterator.reduceFeatures(iter, query)
     } else if (query.getHints.isMapAggregatingQuery) {
       KryoLazyMapAggregatingIterator.reduceMapAggregationFeatures(iter, query)
     } else {
@@ -126,7 +126,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
 
     output.pushLevel(s"Planning '${q.getTypeName}' ${filterToString(q.getFilter)}")
     output(s"Hints: density[${q.getHints.isDensityQuery}] bin[${q.getHints.isBinQuery}] " +
-        s"temporal-density[${q.getHints.isTemporalDensityQuery}] map-aggregate[${q.getHints.isMapAggregatingQuery}]")
+        s"stats[${q.getHints.isStatsIteratorQuery}] map-aggregate[${q.getHints.isMapAggregatingQuery}]")
     output(s"Sort: ${Option(q.getSortBy).filter(_.nonEmpty).map(_.mkString(", ")).getOrElse("none")}")
     output(s"Transforms: ${q.getHints.getTransformDefinition.getOrElse("None")}")
 
@@ -410,8 +410,8 @@ object QueryPlanner extends LazyLogging {
       BinAggregatingIterator.BIN_SFT
     } else if (query.getHints.isDensityQuery) {
       KryoLazyDensityIterator.DENSITY_SFT
-    } else if (query.getHints.isTemporalDensityQuery) {
-      KryoLazyTemporalDensityIterator.createFeatureType(baseSft)
+    } else if (query.getHints.isStatsIteratorQuery) {
+      KryoLazyStatsIterator.createFeatureType(baseSft)
     } else if (query.getHints.isMapAggregatingQuery) {
       val spec = KryoLazyMapAggregatingIterator.createMapSft(baseSft, query.getHints.getMapAggregatingAttribute)
       SimpleFeatureTypes.createType(baseSft.getTypeName, spec)

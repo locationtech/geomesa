@@ -9,22 +9,25 @@
 package org.locationtech.geomesa.tools
 
 import java.io._
-import java.text.SimpleDateFormat
-import java.util.{Date, TimeZone}
+import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.lang.StringEscapeUtils
+import com.vividsolutions.jts.geom.Geometry
+import org.apache.commons.csv.{CSVFormat, QuoteMode}
 import org.geotools.GML
 import org.geotools.GML.Version
 import org.geotools.data.DataUtilities
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureStore}
 import org.geotools.geojson.feature.FeatureJSON
+import org.locationtech.geomesa.features.avro.AvroDataFileWriter
 import org.locationtech.geomesa.filter.function._
 import org.locationtech.geomesa.tools.Utils.Formats
+import org.locationtech.geomesa.tools.Utils.Formats.Formats
 import org.locationtech.geomesa.tools.commands.ExportCommand.ExportParameters
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.ListSplitter
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
@@ -100,6 +103,7 @@ object ShapefileExport {
   /**
    * If the attribute string has the geometry attribute in it, we will replace the name of the
    * geom descriptor with "the_geom," since that is what Shapefile expect the geom to be named.
+   *
    * @param attributes
    * @param sft
    * @return
@@ -117,49 +121,32 @@ object ShapefileExport {
   }
 }
 
-class DelimitedExport(writer: Writer, format: String, attributes: Option[String])
-    extends FeatureExporter with LazyLogging {
+class DelimitedExport(writer: Writer, format: Formats) extends FeatureExporter with LazyLogging {
 
-  val delimiter = format match {
-   case Formats.CSV => ","
-   case Formats.TSV => "\t"
-  }
+  import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 
-  lazy val dateFormat = {
-    val df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-    df.setTimeZone(TimeZone.getTimeZone("UTC"))
-    df
-  }
-
-  val escape: String => String = format match {
-    case Formats.CSV => StringEscapeUtils.escapeCsv
-    case _           => (s: String) => s
+  val printer = format match {
+   case Formats.CSV => CSVFormat.DEFAULT.withQuoteMode(QuoteMode.MINIMAL).print(writer)
+   case Formats.TSV => CSVFormat.TDF.withQuoteMode(QuoteMode.MINIMAL).print(writer)
   }
 
   override def write(features: SimpleFeatureCollection): Unit = {
 
     val sft = features.getSchema
 
-    // split apart the optional attributes and then split any derived values to just get the names
-    val names = attributes.map(_.split("""(?<!\\),""").toSeq.map(_.split(":")(0).split("=").head.trim))
-        .getOrElse(sft.getAttributeDescriptors.map(_.getLocalName))
-
+    val names = sft.getAttributeDescriptors.map(_.getLocalName)
     val indices = names.map(sft.indexOf)
 
-    def findMessage(i: Int) = {
-      val index = indices.indexOf(i)
-      s"Attribute ${names(index)} does not exist in the feature type."
-    }
-
-    indices.foreach(i => assert(i != -1, findMessage(i)))
+    val headers = indices.map(sft.getDescriptor).map(d => s"${d.getLocalName}:${d.getType.getBinding.getSimpleName}")
 
     // write out a header line
-    writer.write(names.mkString("", delimiter, "\n"))
+    printer.print("id")
+    printer.printRecord(headers: _*)
 
     var count = 0L
     features.features.foreach { sf =>
-      val values = indices.map(i => escape(stringify(sf.getAttribute(i))))
-      writer.write(values.mkString("", delimiter, "\n"))
+      printer.print(sf.getID)
+      printer.printRecord(sf.getAttributes.map(stringify): _*)
       count += 1
       if (count % 10000 == 0) {
         logger.debug(s"wrote $count features")
@@ -168,24 +155,18 @@ class DelimitedExport(writer: Writer, format: String, attributes: Option[String]
     logger.info(s"Exported $count features")
   }
 
-  def stringify(o: Object): String = o match {
-    case null    => ""
-    case d: Date => dateFormat.format(d)
-    case _       => o.toString
+  def stringify(o: Object): Object = o match {
+    case g: Geometry => WKTUtils.write(g)
+    case d: Date     => GeoToolsDateFormat.print(d.getTime)
+    case _           => o
   }
 
-  override def flush() = writer.flush()
+  override def flush() = printer.flush()
 
   override def close() = {
-    writer.flush()
-    writer.close()
+    printer.flush()
+    printer.close()
   }
-
-}
-
-object DelimitedExport {
-  def apply(writer: Writer, params: ExportParameters) =
-    new DelimitedExport(writer, params.format.toLowerCase, Option(params.attributes))
 }
 
 object BinFileExport {
@@ -226,4 +207,21 @@ class BinFileExport(os: OutputStream,
   override def flush() = os.flush()
 
   override def close() = os.close()
+}
+
+class AvroExport(os: OutputStream, sft: SimpleFeatureType, compression: Int) extends FeatureExporter {
+
+  val writer = new AvroDataFileWriter(os, sft, compression)
+
+  override def write(fc: SimpleFeatureCollection): Unit = writer.append(fc)
+
+  override def flush() = {
+    writer.flush()
+    os.flush()
+  }
+
+  override def close() = {
+    writer.close()
+    os.close()
+  }
 }

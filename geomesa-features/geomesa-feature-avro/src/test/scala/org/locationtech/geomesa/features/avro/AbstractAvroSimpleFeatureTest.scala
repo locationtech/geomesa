@@ -21,7 +21,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.util.Random
 
 trait AbstractAvroSimpleFeatureTest {
@@ -29,6 +29,8 @@ trait AbstractAvroSimpleFeatureTest {
   val complexSchema = "f0:String,f1:Integer,f2:Double,f3:Float,f4:Boolean,f5:UUID,f6:Date,f7:Point:srid=4326,"+
     "f8:Polygon:srid=4326,f9:Long,f10:String,f11:Integer,f12:Date,f13:Geometry,f14:UUID"
   val complexSft = SimpleFeatureTypes.createType("test", complexSchema)
+
+  val filesCreated = ArrayBuffer.empty[File]
 
   def createComplicatedFeatures(numFeatures : Int) : List[Version2ASF] = {
     val r = new Random(0)
@@ -89,6 +91,7 @@ trait AbstractAvroSimpleFeatureTest {
     val tmpFile = File.createTempFile("geomesa", "avro")
     tmpFile.deleteOnExit()
     tmpFile.createNewFile()
+    filesCreated.append(tmpFile)
     tmpFile
   }
 

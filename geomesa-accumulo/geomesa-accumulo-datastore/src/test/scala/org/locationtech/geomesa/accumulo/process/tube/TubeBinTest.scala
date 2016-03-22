@@ -16,6 +16,7 @@ import org.geotools.feature.DefaultFeatureCollection
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
+import org.locationtech.geomesa.accumulo.index.IndexEntryDecoder
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -32,7 +33,7 @@ class TubeBinTest extends Specification {
 
   private val log = Logger.getLogger(classOf[TubeBinTest])
 
-  val geotimeAttributes = org.locationtech.geomesa.accumulo.index.spec
+  val geotimeAttributes = IndexEntryDecoder.spec
 
   "NoGapFilll" should {
 
