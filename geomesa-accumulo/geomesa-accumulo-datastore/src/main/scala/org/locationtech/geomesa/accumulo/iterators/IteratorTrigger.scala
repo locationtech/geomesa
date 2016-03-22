@@ -16,7 +16,6 @@ import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.stats.IndexCoverage
-import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.{Function, PropertyName}
@@ -201,11 +200,11 @@ object IteratorTrigger extends LazyLogging {
   /**
    * Determines if the given filter and transform can operate on index encoded values.
    */
-  def canUseIndexValues(sft: SimpleFeatureType,
-                        filter: Option[Filter],
-                        transform: Option[SimpleFeatureType]): Boolean = {
+  def canUseAttrIdxValues(sft: SimpleFeatureType,
+                          filter: Option[Filter],
+                          transform: Option[SimpleFeatureType]): Boolean = {
     lazy val indexSft = IndexValueEncoder.getIndexSft(sft)
-    // verify that transform *does* exists and only contains fields in the index sft,
+    // verify that transform *does* exist and only contains fields in the index sft,
     // and that filter *does not* exist or can be fulfilled by the index sft
     transform.exists(_.getAttributeDescriptors.map(_.getLocalName).forall(indexSft.indexOf(_) != -1)) &&
       filter.forall(supportsFilter(indexSft, _))
@@ -217,5 +216,24 @@ object IteratorTrigger extends LazyLogging {
   def supportsFilter(sft: SimpleFeatureType, filter: Filter): Boolean =
     DataUtilities.attributeNames(filter).forall(sft.indexOf(_) != -1)
 
+  /**
+    * Determines if the given filter and transform can operate on index encoded values
+    * in addition to the values actually encoded in the attribute index keys
+    */
+  def canUseAttrKeysPlusValues(idxName: String,
+                               sft: SimpleFeatureType,
+                               filter: Option[Filter],
+                               transform: Option[SimpleFeatureType]): Boolean = {
+    lazy val indexSft = IndexValueEncoder.getIndexSft(sft)
+
+    // TODO this query can cover case where original sft == attr + index SFT
+
+    // 1. Transform has Index Attr
+    // 2. Transform has only remaining attrs that are in the index sft
+    // 3. filter does not exist or can be fulfilled by index sft
+    transform.exists(_.getAttributeDescriptors.exists(_.getLocalName == idxName)) &&
+      transform.exists(_.getAttributeDescriptors.map(_.getLocalName).filterNot(_ == idxName).forall(indexSft.indexOf(_) != -1)) &&
+      filter.forall(supportsFilter(indexSft, _))
+  }
 }
 
