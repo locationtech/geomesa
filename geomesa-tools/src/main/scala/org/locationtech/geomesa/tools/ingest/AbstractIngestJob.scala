@@ -62,7 +62,7 @@ abstract class AbstractIngestJob extends LazyLogging {
     GeoMesaConfigurator.setFeatureTypeOut(job.getConfiguration, typeName)
     GeoMesaOutputFormat.configureDataStore(job, dsParams)
 
-    logger.info("Submitting job... please wait for tracking information")
+    logger.info("Submitting job - please wait...")
     job.submit()
     logger.info(s"Tracking available at ${job.getStatus.getTrackingUrl}")
 

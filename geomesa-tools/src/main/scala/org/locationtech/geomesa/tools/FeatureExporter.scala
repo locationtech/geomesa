@@ -209,8 +209,9 @@ class BinFileExport(os: OutputStream,
   override def close() = os.close()
 }
 
-class AvroExport(os: OutputStream, sft: SimpleFeatureType) extends FeatureExporter {
-  val writer = new AvroDataFileWriter(os, sft)
+class AvroExport(os: OutputStream, sft: SimpleFeatureType, compression: Int) extends FeatureExporter {
+
+  val writer = new AvroDataFileWriter(os, sft, compression)
 
   override def write(fc: SimpleFeatureCollection): Unit = writer.append(fc)
 

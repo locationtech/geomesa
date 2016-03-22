@@ -9,7 +9,7 @@ GeoMesa |release| User Manual
    introduction
    architecture
    installation_and_configuration
-   commandline_tools
    geoserver
+   commandline_tools
+   data_management
    examples
-

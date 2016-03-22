@@ -412,6 +412,8 @@ To export features, use the `export` command.
         -F, --format
            Format to export (csv|tsv|gml|json|shp|bin)
            Default: csv
+        --gzip
+           level of gzip compression to apply to output, from 1-9
         --id-attribute
            name of the id attribute to export
         -i, --instance
