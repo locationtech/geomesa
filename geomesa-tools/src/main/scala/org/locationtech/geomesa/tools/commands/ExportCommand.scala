@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.tools.commands
 
 import java.io._
+import java.util.Locale
 
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
@@ -31,10 +32,10 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
   override val params = new ExportParameters
 
   override def execute() = {
-    val fmt = Formats.fromString(params.format)
+    val fmt = Formats.withName(params.format.toLowerCase(Locale.US))
     val features = getFeatureCollection(fmt)
     val exporter: FeatureExporter = fmt match {
-      case CSV | TSV      => new DelimitedExport(getWriter(), fmt, Option(params.attributes))
+      case CSV | TSV      => new DelimitedExport(getWriter(), fmt)
       case SHP            => new ShapefileExport(getFile())
       case GeoJson | JSON => new GeoJsonExport(getWriter())
       case GML            => new GmlExport(getOutputStream())
@@ -56,7 +57,7 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
   }
 
   def getFeatureCollection(fmt: Formats): SimpleFeatureCollection = {
-    val sft = ds.getSchema(params.featureName)
+    lazy val sft = ds.getSchema(params.featureName)
     fmt match {
       case SHP =>
         val schemaString =

@@ -10,7 +10,6 @@ package org.locationtech.geomesa.tools.ingest
 
 import java.io.File
 
-import com.typesafe.config.{Config, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.Connector
 import org.apache.commons.io.IOUtils
@@ -19,29 +18,38 @@ import org.apache.hadoop.io.{LongWritable, Text}
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.apache.hadoop.mapreduce.{Job, JobStatus, Mapper}
 import org.geotools.data.DataUtilities
+import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat
 import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
 
-object ConverterIngestJob extends LazyLogging {
+/**
+ * Abstract class that handles configuration and tracking of the remote job
+ */
+abstract class AbstractIngestJob extends LazyLogging {
+
+  def inputFormatClass: Class[_ <: FileInputFormat[_, SimpleFeature]]
+  def configureJob(job: Job): Unit
+  def written(job: Job): Long
+  def failed(job: Job): Long
 
   def run(dsParams: Map[String, String],
-          sft: SimpleFeatureType,
-          converterConfig: Config,
+          typeName: String,
           paths: Seq[String],
           statusCallback: (Float, Long, Long, Boolean) => Unit = (_, _, _, _) => Unit): (Long, Long) = {
-    val job = Job.getInstance(new Configuration, "GeoMesa Converter Ingest")
+
+    val job = Job.getInstance(new Configuration, "GeoMesa Tools Ingest")
 
     JobUtils.setLibJars(job.getConfiguration, libJars = ingestLibJars, searchPath = ingestJarSearchPath)
 
-    job.setJarByClass(ConverterIngestJob.getClass)
-    job.setMapperClass(classOf[ConvertMapper])
-    job.setInputFormatClass(classOf[ConverterInputFormat])
+    job.setJarByClass(getClass)
+    job.setMapperClass(classOf[IngestMapper])
+    job.setInputFormatClass(inputFormatClass)
     job.setOutputFormatClass(classOf[GeoMesaOutputFormat])
     job.setMapOutputKeyClass(classOf[Text])
     job.setOutputValueClass(classOf[ScalaSimpleFeature])
@@ -49,36 +57,28 @@ object ConverterIngestJob extends LazyLogging {
     job.getConfiguration.set("mapred.reduce.tasks.speculative.execution", "false")
 
     FileInputFormat.setInputPaths(job, paths.mkString(","))
-    ConverterInputFormat.setConverterConfig(job, converterConfig.root().render(ConfigRenderOptions.concise()))
-    ConverterInputFormat.setSft(job, sft)
-    GeoMesaConfigurator.setFeatureTypeOut(job.getConfiguration, sft.getTypeName)
+    configureJob(job)
+
+    GeoMesaConfigurator.setFeatureTypeOut(job.getConfiguration, typeName)
     GeoMesaOutputFormat.configureDataStore(job, dsParams)
 
+    logger.info("Submitting job... please wait for tracking information")
     job.submit()
     logger.info(s"Tracking available at ${job.getStatus.getTrackingUrl}")
 
-    import ConverterInputFormat.{Counters => ConvertCounters}
-    import GeoMesaOutputFormat.{Counters => OutCounters}
-
-    val failCounters =
-      Seq((ConvertCounters.Group, ConvertCounters.Failed), (OutCounters.Group, OutCounters.Failed))
-
-    def written: Long = job.getCounters.findCounter(OutCounters.Group, OutCounters.Written).getValue
-    def failed: Long = failCounters.map(c => job.getCounters.findCounter(c._1, c._2).getValue).sum
-
     while (!job.isComplete) {
       if (job.getStatus.getState != JobStatus.State.PREP) {
-        statusCallback(job.mapProgress(), written, failed, false) // we don't have any reducers, just track mapper progress
+        statusCallback(job.mapProgress(), written(job), failed(job), false) // we don't have any reducers, just track mapper progress
       }
       Thread.sleep(1000)
     }
-    statusCallback(job.mapProgress(), written, failed, true)
+    statusCallback(job.mapProgress(), written(job), failed(job), true)
 
     if (!job.isSuccessful) {
       logger.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
     }
 
-    (written, failed)
+    (written(job), failed(job))
   }
 
   def ingestLibJars = {
@@ -101,7 +101,10 @@ object ConverterIngestJob extends LazyLogging {
 
 }
 
-class ConvertMapper extends Mapper[LongWritable, SimpleFeature, Text, SimpleFeature] with LazyLogging {
+/**
+ * Takes the input and writes it to the output - all our main work is done in the input format
+ */
+class IngestMapper extends Mapper[LongWritable, SimpleFeature, Text, SimpleFeature] with LazyLogging {
 
   type Context = Mapper[LongWritable, SimpleFeature, Text, SimpleFeature]#Context
 
@@ -109,6 +112,7 @@ class ConvertMapper extends Mapper[LongWritable, SimpleFeature, Text, SimpleFeat
 
   override def map(key: LongWritable, sf: SimpleFeature, context: Context): Unit = {
     logger.debug(s"map key ${key.toString}, map value ${DataUtilities.encodeFeature(sf)}")
+    sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     context.write(text, sf)
   }
 }

@@ -14,6 +14,7 @@ import java.util.Date
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.geotools.data.{DataStoreFinder, Query}
+import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureStore
@@ -33,11 +34,12 @@ class FeatureExporterTest extends Specification {
 
   sequential
 
-  def getFeaturesDataStoreAndSFT(sftName: String) = {
+  def getDataStoreAndSft(sftName: String) = {
     val sft = SimpleFeatureTypes.createType(sftName, "name:String,geom:Geometry:srid=4326,dtg:Date")
 
     val attributes = Array("myname", "POINT(45.0 49.0)", new Date(0))
     val feature = ScalaSimpleFeatureFactory.buildFeature(sft, attributes, "fid-1")
+    feature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
 
     val featureCollection = new DefaultFeatureCollection(sft.getTypeName, sft)
     featureCollection.add(feature)
@@ -48,24 +50,43 @@ class FeatureExporterTest extends Specification {
       .getDataStore(Map("connector" -> connector, "tableName" -> sftName, "caching"   -> false))
     ds.createSchema(sft)
     ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore].addFeatures(featureCollection)
-    (featureCollection, ds, sft)
+    (ds, sft)
   }
 
   "DelimitedExport" >> {
     val sftName = "DelimitedExportTest"
-    val (featureCollection, ds, sft) = getFeaturesDataStoreAndSFT(sftName)
+    val (ds, sft) = getDataStoreAndSft(sftName)
 
     "should properly export to CSV" >> {
+      val query = new Query(sftName, Filter.INCLUDE)
+      val features = ds.getFeatureSource(sftName).getFeatures(query)
+
       val writer = new StringWriter()
-      val export = new DelimitedExport(writer, Formats.CSV, Some("name,geom,dtg"))
-      export.write(featureCollection)
+      val export = new DelimitedExport(writer, Formats.CSV)
+      export.write(features)
       export.close()
 
-      val result = writer.toString.split("\n")
+      val result = writer.toString.split("\r\n")
       val (header, data) = (result(0), result(1))
 
-      header mustEqual "name,geom,dtg"
-      data mustEqual "myname,POINT (45 49),1970-01-01 00:00:00"
+      header mustEqual "id,name:String,geom:Geometry,dtg:Date"
+      data mustEqual "fid-1,myname,POINT (45 49),1970-01-01T00:00:00.000Z"
+    }
+
+    "should handle projections" >> {
+      val query = new Query(sftName, Filter.INCLUDE, Array("geom", "dtg"))
+      val features = ds.getFeatureSource(sftName).getFeatures(query)
+
+      val writer = new StringWriter()
+      val export = new DelimitedExport(writer, Formats.CSV)
+      export.write(features)
+      export.close()
+
+      val result = writer.toString.split("\r\n")
+      val (header, data) = (result(0), result(1))
+
+      header mustEqual "id,geom:Geometry,dtg:Date"
+      data mustEqual "fid-1,POINT (45 49),1970-01-01T00:00:00.000Z"
     }
 
     "should handle transforms" >> {
@@ -73,15 +94,15 @@ class FeatureExporterTest extends Specification {
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
       val writer = new StringWriter()
-      val export = new DelimitedExport(writer, Formats.CSV, Some("derived=strConcat(name\\, '-test'),geom,dtg"))
+      val export = new DelimitedExport(writer, Formats.CSV)
       export.write(features)
       export.close()
 
-      val result = writer.toString.split("\n")
+      val result = writer.toString.split("\r\n")
       val (header, data) = (result(0), result(1))
 
-      header mustEqual "derived,geom,dtg"
-      data mustEqual "myname-test,POINT (45 49),1970-01-01 00:00:00"
+      header mustEqual "id,geom:Geometry,dtg:Date,derived:String"
+      data mustEqual "fid-1,POINT (45 49),1970-01-01T00:00:00.000Z,myname-test"
     }
 
     "should handle escapes" >> {
@@ -89,21 +110,21 @@ class FeatureExporterTest extends Specification {
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
       val writer = new StringWriter()
-      val export = new DelimitedExport(writer, Formats.CSV, Some("derived=strConcat(name\\, '\\,test'),geom,dtg"))
+      val export = new DelimitedExport(writer, Formats.CSV)
       export.write(features)
       export.close()
 
-      val result = writer.toString.split("\n")
+      val result = writer.toString.split("\r\n")
       val (header, data) = (result(0), result(1))
 
-      header mustEqual "derived,geom,dtg"
-      data mustEqual "\"myname,test\",POINT (45 49),1970-01-01 00:00:00"
+      header mustEqual "id,geom:Geometry,dtg:Date,derived:String"
+      data mustEqual "fid-1,POINT (45 49),1970-01-01T00:00:00.000Z,\"myname,test\""
     }
   }
 
   "Shapefile Export" >> {
     val sftName = "ShapefileExportTest"
-    val (featureCollection, ds, sft) = getFeaturesDataStoreAndSFT(sftName)
+    val (ds, sft) = getDataStoreAndSft(sftName)
 
     def checkReplacedAttributes(attrString: String, expectedString: String) = {
       ShapefileExport.replaceGeomInAttributesString(attrString, sft) mustEqual expectedString
@@ -141,9 +162,12 @@ class FeatureExporterTest extends Specification {
 
   "Avro Export" >> {
     val sftName = "AvroExportTest"
-    val (featureCollection, ds, sft) = getFeaturesDataStoreAndSFT(sftName)
+    val (ds, sft) = getDataStoreAndSft(sftName)
 
     "should properly export to avro" >> {
+      val query = new Query(sftName, Filter.INCLUDE)
+      val featureCollection = ds.getFeatureSource(sftName).getFeatures(query)
+
       val os = new ByteArrayOutputStream()
       val export = new AvroExport(os, sft)
       export.write(featureCollection)
@@ -154,6 +178,7 @@ class FeatureExporterTest extends Specification {
 
       val features = result.toList
       features must haveLength(1)
+      features.head.getID mustEqual "fid-1"
       features.head.getAttribute(0) mustEqual "myname"
       features.head.getAttribute(1) mustEqual WKTUtils.read("POINT(45 49)")
       features.head.getAttribute(2) mustEqual new Date(0)
@@ -173,6 +198,7 @@ class FeatureExporterTest extends Specification {
 
       val features = result.toList
       features must haveLength(1)
+      features.head.getID mustEqual "fid-1"
       features.head.getAttribute(0) mustEqual WKTUtils.read("POINT(45 49)")
       features.head.getAttribute(1) mustEqual new Date(0)
       features.head.getAttribute(2) mustEqual "myname-test" // derived variable gets bumped to the end
