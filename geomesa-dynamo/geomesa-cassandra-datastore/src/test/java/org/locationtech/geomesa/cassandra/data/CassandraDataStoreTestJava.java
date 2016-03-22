@@ -37,7 +37,14 @@ public class CassandraDataStoreTestJava {
                 CassandraDataStoreParams.NAMESPACE().getName()     , "CassandraDataStoreTestJava");
         DataStore ds = DataStoreFinder.getDataStore(params);
         Assert.assertNotNull("DataStore must not be null", ds);
-        ds.createSchema(SimpleFeatureTypes.createType("test", "testjavaaccess", "foo:Int,dtg:Date,*geom:Point:srid=4326"));
-        Assert.assertTrue("Types should contain testjavaaccess", Collections2.filter(Arrays.asList(ds.getTypeNames()), Predicates.equalTo("testjavaaccess")).size() == 1);
+        ds.createSchema(
+                SimpleFeatureTypes.createType(
+                        "test",
+                        "testjavaaccess",
+                        "foo:Int,dtg:Date,*geom:Point:srid=4326")
+        );
+        Assert.assertTrue("Types should contain testjavaaccess",
+                Collections2.filter(Arrays.asList(ds.getTypeNames()),
+                        Predicates.equalTo("testjavaaccess")).size() == 1);
     }
 }

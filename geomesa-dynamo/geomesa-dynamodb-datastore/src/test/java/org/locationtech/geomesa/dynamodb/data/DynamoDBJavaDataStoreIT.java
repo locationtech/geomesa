@@ -31,13 +31,20 @@ public class DynamoDBJavaDataStoreIT {
     public void testDataAccess() throws IOException {
         DataStore db = getDataStore();
         assert db != null;
-        db.createSchema(SimpleFeatureTypes.createType("test", "testjavaaccess", "foo:Int,dtg:Date,*geom:Point:srid=4326"));
-        Assert.assertTrue("Types should contain testjavaaccess", Collections2.filter(Arrays.asList(db.getTypeNames()), Predicates.equalTo("testjavaaccess")).size() == 1);
+        db.createSchema(SimpleFeatureTypes.createType("test",
+                "testjavaaccess",
+                "foo:Int,dtg:Date,*geom:Point:srid=4326"));
+        Assert.assertTrue(
+                "Types should contain testjavaaccess",
+                Collections2.filter(Arrays.asList(db.getTypeNames()),
+                        Predicates.equalTo("testjavaaccess")).size() == 1
+        );
     }
 
     public DataStore getDataStore() throws IOException {
         Map<String, ?> params = ImmutableMap.of(
-                DynamoDBDataStoreFactory.CATALOG().getName(), String.format("ddbtest%s", UUID.randomUUID().toString()),
+                DynamoDBDataStoreFactory.CATALOG().getName(),
+                String.format("ddbtest%s", UUID.randomUUID().toString()),
                 DynamoDBDataStoreFactory.DYNAMODBAPI().getName(), getNewDynamoDB()
         );
         return DataStoreFinder.getDataStore(params);

@@ -156,8 +156,18 @@ class DynamoDBDataStoreIT {
     val fs = ds.getFeatureSource(s"$tableName").asInstanceOf[SimpleFeatureStore]
     fs.addFeatures(
       DataUtilities.collection(Array(
-        SimpleFeatureBuilder.build(sft, Array("john", 10, gf.createPoint(new Coordinate(-75.0, 35.0)), new DateTime("2016-01-01T00:00:00.000Z").toDate).asInstanceOf[Array[AnyRef]], "1"),
-        SimpleFeatureBuilder.build(sft, Array("jane", 20, gf.createPoint(new Coordinate(-75.0, 38.0)), new DateTime("2016-01-07T00:00:00.000Z").toDate).asInstanceOf[Array[AnyRef]], "2")
+        SimpleFeatureBuilder.build(sft,
+          Array(
+            "john",
+            10,
+            gf.createPoint(new Coordinate(-75.0, 35.0)),
+            new DateTime("2016-01-01T00:00:00.000Z").toDate).asInstanceOf[Array[AnyRef]], "1"),
+        SimpleFeatureBuilder.build(sft,
+          Array(
+            "jane",
+            20,
+            gf.createPoint(new Coordinate(-75.0, 38.0)),
+            new DateTime("2016-01-07T00:00:00.000Z").toDate).asInstanceOf[Array[AnyRef]], "2")
       ))
     )
     (ds, fs)
