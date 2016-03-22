@@ -132,8 +132,9 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
       // we have a fully encoded value - can satisfy any query against it
       singleAttrValueOnlyPlan(sft, filter.secondary, hints.getTransform)
     } else if (IteratorTrigger.canUseAttrIdxValues(sft, filter.secondary, transform)) {
-      // we can use the index value. Transform can only include
-      // transform has to be non-empty to get here
+      // we can use the index value.
+      // transform has to be non-empty to get here and can only include items
+      // in the index value (not the index keys aka the attribute indexed)
       singleAttrValueOnlyPlan(IndexValueEncoder.getIndexSft(sft), filter.secondary, hints.getTransform)
     } else if (IteratorTrigger.canUseAttrKeysPlusValues(descriptor.getLocalName, sft, filter.secondary, transform)) {
       // we can use the index PLUS the value
