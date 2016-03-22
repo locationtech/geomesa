@@ -27,8 +27,8 @@ object AttributeDetails {
 
   def apply(ad: AttributeDescriptor, sft: SimpleFeatureType): AttributeDetails = {
     val majorBinding = classToString(Some(ad.getType.getBinding))
-    val binding = if (ad.isCollection) {
-      val subtype = classToString(ad.getCollectionType())
+    val binding = if (ad.isList) {
+      val subtype = classToString(ad.getListType())
       s"$majorBinding[$subtype]"
     } else if (ad.isMap) {
       val keyType = classToString(Option(ad.getUserData.get("keyclass").asInstanceOf[Class[_]]))

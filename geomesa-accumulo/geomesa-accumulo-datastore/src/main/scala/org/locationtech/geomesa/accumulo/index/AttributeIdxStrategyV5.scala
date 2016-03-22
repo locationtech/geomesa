@@ -240,9 +240,9 @@ object AttributeIdxStrategyV5 extends StrategyProvider {
     val typedValue =
       if (expectedBinding == actualBinding) {
         value
-      } else if (descriptor.isCollection) {
+      } else if (descriptor.isList) {
         // we need to encode with the collection type
-        descriptor.getCollectionType() match {
+        descriptor.getListType() match {
           case Some(collectionType) if collectionType == actualBinding => Seq(value).asJava
           case Some(collectionType) if collectionType != actualBinding =>
             Seq(AttributeTable.convertType(value, actualBinding, collectionType)).asJava

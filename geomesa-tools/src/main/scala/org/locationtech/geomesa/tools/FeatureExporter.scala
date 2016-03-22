@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.tools
 
 import java.io._
-import java.util.Date
+import java.util.{Date, List => jList, Map => jMap}
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
@@ -26,6 +26,7 @@ import org.locationtech.geomesa.tools.Utils.Formats
 import org.locationtech.geomesa.tools.Utils.Formats.Formats
 import org.locationtech.geomesa.tools.commands.ExportCommand.ExportParameters
 import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.ListSplitter
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
@@ -137,7 +138,7 @@ class DelimitedExport(writer: Writer, format: Formats) extends FeatureExporter w
     val names = sft.getAttributeDescriptors.map(_.getLocalName)
     val indices = names.map(sft.indexOf)
 
-    val headers = indices.map(sft.getDescriptor).map(d => s"${d.getLocalName}:${d.getType.getBinding.getSimpleName}")
+    val headers = indices.map(sft.getDescriptor).map(SimpleFeatureTypes.encodeDescriptor(sft, _))
 
     // write out a header line
     printer.print("id")
@@ -155,10 +156,13 @@ class DelimitedExport(writer: Writer, format: Formats) extends FeatureExporter w
     logger.info(s"Exported $count features")
   }
 
-  def stringify(o: Object): Object = o match {
-    case g: Geometry => WKTUtils.write(g)
-    case d: Date     => GeoToolsDateFormat.print(d.getTime)
-    case _           => o
+  def stringify(o: Any): String = o match {
+    case null          => ""
+    case g: Geometry   => WKTUtils.write(g)
+    case d: Date       => GeoToolsDateFormat.print(d.getTime)
+    case l: jList[_]   => l.map(stringify).mkString(",")
+    case m: jMap[_, _] => m.map { case (k, v) => s"${stringify(k)}->${stringify(v)}"}.mkString(",")
+    case _             => o.toString
   }
 
   override def flush() = printer.flush()

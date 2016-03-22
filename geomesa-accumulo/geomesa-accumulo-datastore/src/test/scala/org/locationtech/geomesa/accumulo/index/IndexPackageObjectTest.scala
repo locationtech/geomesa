@@ -13,7 +13,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -33,8 +32,7 @@ class IndexPackageObjectTest extends Specification {
 
       val transform = query.getHints.getTransformSchema
       transform must beSome
-      SimpleFeatureTypes.encodeType(transform.get) mustEqual
-          s"name:String,*geom:Point:srid=4326:$OPT_INDEX=full:index-value=true,helloName:String"
+      SimpleFeatureTypes.encodeType(transform.get) mustEqual "name:String,*geom:Point:srid=4326,helloName:String"
     }
   }
 }
