@@ -122,17 +122,17 @@ case class QueryPlanner(sft: SimpleFeatureType,
                             output: ExplainerOutputType): Iterator[QueryPlan] = {
 
     configureQuery(query, sft) // configure the query - set hints that we'll need later on
+    val q = updateFilter(query, sft) // tweak the filter so it meets our expectations going forward
 
-    output.pushLevel(s"Planning '${query.getTypeName}' ${filterToString(query.getFilter)}")
-    output(s"Hints: density[${query.getHints.isDensityQuery}] bin[${query.getHints.isBinQuery}] " +
-        s"stats[${query.getHints.isStatsIteratorQuery}] " +
-        s"map-aggregate[${query.getHints.isMapAggregatingQuery}]")
-    output(s"Sort: ${Option(query.getSortBy).filter(_.nonEmpty).map(_.mkString(", ")).getOrElse("none")}")
-    output(s"Transforms: ${query.getHints.getTransformDefinition.getOrElse("None")}")
+    output.pushLevel(s"Planning '${q.getTypeName}' ${filterToString(q.getFilter)}")
+    output(s"Hints: density[${q.getHints.isDensityQuery}] bin[${q.getHints.isBinQuery}] " +
+        s"stats[${q.getHints.isStatsIteratorQuery}] map-aggregate[${q.getHints.isMapAggregatingQuery}]")
+    output(s"Sort: ${Option(q.getSortBy).filter(_.nonEmpty).map(_.mkString(", ")).getOrElse("none")}")
+    output(s"Transforms: ${q.getHints.getTransformDefinition.getOrElse("None")}")
 
     output.pushLevel("Strategy selection:")
-    val requestedStrategy = requested.orElse(query.getHints.getRequestedStrategy)
-    val strategies = QueryStrategyDecider.chooseStrategies(sft, query, strategyHints, requestedStrategy, output)
+    val requestedStrategy = requested.orElse(q.getHints.getRequestedStrategy)
+    val strategies = QueryStrategyDecider.chooseStrategies(sft, q, strategyHints, requestedStrategy, output)
     output.popLevel()
     var strategyCount = 1
     strategies.iterator.map { strategy =>
@@ -140,7 +140,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
       strategyCount += 1
       output(s"Strategy filter: ${strategy.filter}")
       implicit val timings = new TimingsImpl
-      val plan = profile(strategy.getQueryPlan(this, query.getHints, output), "plan")
+      val plan = profile(strategy.getQueryPlan(this, q.getHints, output), "plan")
       outputPlan(plan, output.popLevel())
       output(s"Query planning took ${timings.time("plan")}ms")
       plan
@@ -207,6 +207,12 @@ object QueryPlanner extends LazyLogging {
   def setPerThreadQueryHints(hints: Map[AnyRef, AnyRef]): Unit = threadedHints.put(hints)
   def clearPerThreadQueryHints() = threadedHints.clear()
 
+  /**
+   * Configure the query - set hints, transforms, etc.
+   *
+   * @param query query to configure
+   * @param sft simple feature type associated with the query
+   */
   def configureQuery(query: Query, sft: SimpleFeatureType): Unit = {
     // Query.ALL does not support setting query hints, which we need for our workflow
     require(query != Query.ALL, "Query.ALL is not supported - please use 'new Query(schemaName)' instead")
@@ -217,17 +223,28 @@ object QueryPlanner extends LazyLogging {
       // clear any configured hints so we don't process them again
       threadedHints.clear()
     }
+    // handle any params passed in through geoserver
+    QueryPlanner.handleGeoServerParams(query)
     // set transformations in the query
     QueryPlanner.setQueryTransforms(query, sft)
     // set return SFT in the query
     QueryPlanner.setReturnSft(query, sft)
-    // handle any params passed in through geoserver
-    QueryPlanner.handleGeoServerParams(query)
+  }
 
+  /**
+    * Return a new query with updated filters, ready to execute.
+    *
+    * Note: don't call this method multiple times - the filters should only be processed once, or
+    * you might end up with bad results.
+    *
+    * @param base query to update
+    * @param sft simple feature type to be queried
+    * @return new query with filters updated
+    */
+  def updateFilter(base: Query, sft: SimpleFeatureType): Query = {
+    val query = new Query(base)
     // add the bbox from the density query to the filter
-    // if configure has been called already, don't re-add - sometimes the bbox is split by
-    // IDL handling, causing us to not detect it as a duplicate
-    if (query.getHints.isDensityQuery && !query.getHints.isConfigured) {
+    if (query.getHints.isDensityQuery) {
       val env = query.getHints.getDensityEnvelope.get.asInstanceOf[ReferencedEnvelope]
       val bbox = ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env)
       if (query.getFilter == Filter.INCLUDE) {
@@ -247,12 +264,12 @@ object QueryPlanner extends LazyLogging {
       }
     }
 
-    // update the filter to remove namespaces and handle null property names
+    // update the filter to remove namespaces, handle null property names, and tweak topological filters
     if (query.getFilter != null && query.getFilter != Filter.INCLUDE) {
       query.setFilter(query.getFilter.accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter])
     }
 
-    query.getHints.setConfigured(true)
+    query
   }
 
   /**
