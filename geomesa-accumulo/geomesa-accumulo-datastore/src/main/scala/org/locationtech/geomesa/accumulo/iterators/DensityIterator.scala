@@ -80,6 +80,7 @@ class DensityIterator extends KryoLazyDensityIterator with LazyLogging {
             case Array(p0, p1) => gridSnap.generateLineCoordSet(p0, p1)
           }.toSet[Coordinate].foreach(c => writePointToResult(c, weight, result))
       case geom1: MultiLineString       => writeMultiLineString(geom1, weight, result)
+      case geom1: Point                 => writePointToResult(geom1, weight, result)
       case geom1: Geometry              => writeNonPoint(geom1, weight, result)
     }
   }
@@ -89,6 +90,7 @@ class DensityIterator extends KryoLazyDensityIterator with LazyLogging {
   private def writeMultiLineString(geom: MultiLineString, weight: Double, result: DensityResult): Unit = {
       (0 until geom.getNumGeometries).foreach{ i => geom.getGeometryN(i) match {
         case g: LineString => writeLineString(g, weight, result)
+        case g: Point      => writePointToResult(g, weight, result)
         case g: Geometry   => writeNonPoint(g, weight, result)
       }
     }
