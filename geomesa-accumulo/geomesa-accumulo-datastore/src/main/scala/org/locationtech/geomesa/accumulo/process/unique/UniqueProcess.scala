@@ -163,7 +163,7 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
       case c if c != null => c.foreach(uniqueValues(_) += 1)
       case _ => // do nothing
     }
-  private val addValue = if(attributeDescriptor.isCollection) addMultiValue else addSingularValue
+  private val addValue = if(attributeDescriptor.isList) addMultiValue else addSingularValue
 
   /**
    * Called for non AccumuloFeatureCollections

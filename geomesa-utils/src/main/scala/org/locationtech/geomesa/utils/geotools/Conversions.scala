@@ -13,13 +13,10 @@ import java.util.Date
 import com.vividsolutions.jts.geom._
 import org.geotools.data.FeatureReader
 import org.geotools.data.simple.SimpleFeatureIterator
-import org.geotools.factory.Hints
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.geometry.DirectPosition2D
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
-import org.geotools.util.{Converter, ConverterFactory}
 import org.joda.time.DateTime
-import org.joda.time.format.ISODateTimeFormat
 import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
 import org.locationtech.geomesa.utils.stats.Cardinality._
 import org.locationtech.geomesa.utils.stats.IndexCoverage._
@@ -124,9 +121,7 @@ object RichAttributeDescriptors {
       Option(ad.getUserData.get(OPT_INDEX).asInstanceOf[String])
           .flatMap(c => Try(IndexCoverage.withName(c)).toOption).getOrElse(IndexCoverage.NONE)
 
-    def setIndexValue(indexValue: Boolean): Unit = ad.getUserData.put(OPT_INDEX_VALUE, indexValue.toString)
-
-    def isIndexValue(): Boolean = Option(ad.getUserData.get(OPT_INDEX_VALUE)).exists(_ == "true")
+    def isIndexValue(): Boolean = Option(ad.getUserData.get(OPT_INDEX_VALUE)).contains("true")
 
     def setCardinality(cardinality: Cardinality): Unit =
       ad.getUserData.put(OPT_CARDINALITY, cardinality.toString)
@@ -137,11 +132,11 @@ object RichAttributeDescriptors {
 
     def setBinTrackId(opt: Boolean): Unit = ad.getUserData.put(OPT_BIN_TRACK_ID, opt.toString)
 
-    def isBinTrackId: Boolean = Option(ad.getUserData.get(OPT_BIN_TRACK_ID)).exists(_ == "true")
+    def isBinTrackId: Boolean = Option(ad.getUserData.get(OPT_BIN_TRACK_ID)).contains("true")
 
     def setCollectionType(typ: Class[_]): Unit = ad.getUserData.put(USER_DATA_LIST_TYPE, typ)
 
-    def getCollectionType(): Option[Class[_]] =
+    def getListType(): Option[Class[_]] =
       Option(ad.getUserData.get(USER_DATA_LIST_TYPE)).map(_.asInstanceOf[Class[_]])
 
     def setMapTypes(keyType: Class[_], valueType: Class[_]): Unit = {
@@ -161,11 +156,11 @@ object RichAttributeDescriptors {
       case IndexCoverage.NONE => false
     }
 
-    def isCollection = getCollectionType().isDefined
+    def isList = getListType().isDefined
 
     def isMap = getMapTypes().isDefined
 
-    def isMultiValued = isCollection || isMap
+    def isMultiValued = isList || isMap
   }
 
   implicit class RichAttributeTypeBuilder(val builder: AttributeTypeBuilder) extends AnyVal {
@@ -246,77 +241,4 @@ object RichSimpleFeatureType {
 
     def userData[T](key: AnyRef): Option[T] = Option(sft.getUserData.get(key).asInstanceOf[T])
   }
-}
-
-class JodaConverterFactory extends ConverterFactory {
-  private val df = ISODateTimeFormat.dateTime().withZoneUTC()
-  def createConverter(source: Class[_], target: Class[_], hints: Hints) =
-    if(classOf[java.util.Date].isAssignableFrom(source) && classOf[String].isAssignableFrom(target)) {
-      // Date => String
-      new Converter {
-        def convert[T](source: scala.Any, target: Class[T]): T =
-          df.print(new DateTime(source.asInstanceOf[java.util.Date])).asInstanceOf[T]
-      }
-    } else if(classOf[java.util.Date].isAssignableFrom(target) && classOf[String].isAssignableFrom(source)) {
-      // String => Date
-      new Converter {
-        def convert[T](source: scala.Any, target: Class[T]): T =
-          df.parseDateTime(source.asInstanceOf[String]).toDate.asInstanceOf[T]
-      }
-    } else null.asInstanceOf[Converter]
-}
-
-class ScalaCollectionsConverterFactory extends ConverterFactory {
-
-  def createConverter(source: Class[_], target: Class[_], hints: Hints): Converter =
-    if (classOf[Seq[_]].isAssignableFrom(source)
-        && classOf[java.util.List[_]].isAssignableFrom(target)) {
-      new ListToListConverter(true)
-    } else if (classOf[java.util.List[_]].isAssignableFrom(source)
-        && classOf[Seq[_]].isAssignableFrom(target)) {
-      new ListToListConverter(false)
-    } else if (classOf[Map[_, _]].isAssignableFrom(source)
-        && classOf[java.util.Map[_, _]].isAssignableFrom(target)) {
-      new MapToMapConverter(true)
-    } else if (classOf[java.util.Map[_, _]].isAssignableFrom(source)
-        && classOf[Map[_, _]].isAssignableFrom(target)) {
-      new MapToMapConverter(false)
-    } else {
-      null
-    }
-}
-
-/**
- * Convert between scala and java lists
- *
- * @param scalaToJava
- */
-class ListToListConverter(scalaToJava: Boolean) extends Converter {
-
-  import scala.collection.JavaConverters._
-
-  override def convert[T](source: scala.Any, target: Class[T]): T =
-    if (scalaToJava) {
-      source.asInstanceOf[Seq[_]].asJava.asInstanceOf[T]
-    } else {
-      source.asInstanceOf[java.util.List[_]].asScala.asInstanceOf[T]
-    }
-
-}
-
-/**
- * Convert between scala and java maps
- *
- * @param scalaToJava
- */
-class MapToMapConverter(scalaToJava: Boolean) extends Converter {
-
-  import scala.collection.JavaConverters._
-
-  override def convert[T](source: scala.Any, target: Class[T]): T =
-    if (scalaToJava) {
-      source.asInstanceOf[Map[_, _]].asJava.asInstanceOf[T]
-    } else {
-      source.asInstanceOf[java.util.Map[_, _]].asScala.asInstanceOf[T]
-    }
 }

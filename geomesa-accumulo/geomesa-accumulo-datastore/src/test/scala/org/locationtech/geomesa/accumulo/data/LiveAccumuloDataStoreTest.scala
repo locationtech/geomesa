@@ -9,15 +9,9 @@
 package org.locationtech.geomesa.accumulo.data
 
 import org.geotools.data._
-import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.data.simple.SimpleFeatureIterator
-import org.geotools.factory.Hints
 import org.geotools.filter.text.cql2.CQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.accumulo.util.CloseableIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -28,84 +22,22 @@ class LiveAccumuloDataStoreTest extends Specification {
 
   sequential
 
-  /**
-   * WARNING: this test runs against a live accumulo instance and drops the table you run against
-   */
+  val sftName = "mysft"
 
   val params = Map(
     "instanceId"        -> "mycloud",
     "zookeepers"        -> "zoo1,zoo2,zoo3",
     "user"              -> "user",
     "password"          -> "password",
-    "auths"             -> "user,admin",
-    "visibilities"      -> "user&admin",
-    "tableName"         -> "test_auths",
-    "useMock"           -> "false",
-    "featureEncoding"   -> "avro")
-
-  val sftName = "authwritetest"
-
-  def getDataStore: AccumuloDataStore = {
-    DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
-  }
-
-  def createSimpleFeatureType: SimpleFeatureType = {
-    SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
-  }
-
-  def initializeDataStore(ds: AccumuloDataStore): Unit = {
-    // truncate the table, if it exists
-    if (ds.connector.tableOperations.exists(params("tableName"))) {
-      ds.connector.tableOperations.deleteRows(params("tableName"), null, null)
-    }
-
-    // create the schema
-    ds.createSchema(createSimpleFeatureType)
-  }
-
-  def writeSampleData(ds: AccumuloDataStore): Unit = {
-    // write some data
-    val sft = createSimpleFeatureType
-    val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
-    val written = fs.addFeatures(new ListFeatureCollection(sft, getFeatures(sft).toList))
-  }
-
-  def getFeatures(sft: SimpleFeatureType) = {
-    val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
-    (0 until 6).map { i =>
-      builder.reset()
-      builder.set("geom", WKTUtils.read("POINT(45.0 45.0)"))
-      builder.set("dtg", "2012-01-02T05:06:07.000Z")
-      builder.set("name",i.toString)
-      val sf = builder.buildFeature(i.toString)
-      sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-      sf
-    }
-  }
-
-  def printFeatures(features: SimpleFeatureIterator): Unit = {
-    val resultItr = new Iterator[String] {
-      def hasNext = {
-        val next = features.hasNext
-        if (!next)
-          features.close
-        next
-      }
-
-      def next = features.next.getProperty("name").getValue.toString
-    }
-    println(resultItr.toList + "\n")
-  }
+    "tableName"         -> "geomesa.data")
 
   "AccumuloDataStore" should {
 
-    "restrict users with insufficient auths from writing data" in {
+    "run live tests" in {
 
       skipped("Meant for integration testing")
 
-      val ds = getDataStore
-//      initializeDataStore(ds)
-//      writeSampleData(ds)
+      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
 
       val query = new Query(sftName, CQL.toFilter("INCLUDE"))
 
@@ -113,10 +45,13 @@ class LiveAccumuloDataStoreTest extends Specification {
       val featureStore = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
 
       // execute the query
-      val results = featureStore.getFeatures(query)
+      val results = featureStore.getFeatures(query).features
 
-      // loop through all results
-      printFeatures(results.features)
+      try {
+        CloseableIterator(results).foreach(sf => println(DataUtilities.encodeFeature(sf)))
+      } finally {
+        results.close()
+      }
 
       success
     }

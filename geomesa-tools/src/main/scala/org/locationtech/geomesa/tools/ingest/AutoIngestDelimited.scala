@@ -10,16 +10,19 @@ package org.locationtech.geomesa.tools.ingest
 
 import java.io.{Closeable, InputStream, InputStreamReader}
 
-import org.apache.commons.csv.{CSVFormat, CSVParser, QuoteMode}
+import org.apache.commons.csv.{CSVFormat, CSVParser, CSVRecord, QuoteMode}
 import org.apache.hadoop.fs.{Path, Seekable}
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.apache.hadoop.mapreduce.{Job, TaskAttemptContext}
 import org.geotools.data.DataStore
+import org.geotools.factory.GeoTools
+import org.geotools.util.Converters
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.jobs.mapreduce.{FileStreamInputFormat, FileStreamRecordReader}
 import org.locationtech.geomesa.tools.Utils.Formats
 import org.locationtech.geomesa.tools.Utils.Formats.Formats
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+import org.locationtech.geomesa.utils.geotools.{ConverterFactories, SimpleFeatureTypes}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -51,6 +54,48 @@ object AutoIngestDelimited {
     case Formats.CSV => CSVFormat.DEFAULT.withQuoteMode(QuoteMode.MINIMAL)
     case Formats.TSV => CSVFormat.TDF.withQuoteMode(QuoteMode.MINIMAL)
   }
+
+  /**
+    * Convert delimited records into simple features. Assumes a non-empty iterator.
+    *
+    * First line is expected to contain sft definition.
+    *
+    * @param iter iterator of records (non-empty)
+    * @return simple feature type, iterator of simple features
+    */
+  def createSimpleFeatures(typeName: String, iter: Iterator[CSVRecord]): (SimpleFeatureType, Iterator[SimpleFeature]) = {
+    val header = iter.next()
+    require(header.get(0) == "id", "Badly formatted file detected - expected header row with attributes")
+    // drop the 'id' field, at index 0
+    val sftString = (1 until header.size()).map(header.get).mkString(",")
+    val sft = SimpleFeatureTypes.createType(typeName, sftString)
+
+    val converters = sft.getAttributeDescriptors.zipWithIndex.map { case (ad, i) =>
+      val hints = GeoTools.getDefaultHints
+      // for maps/lists, we have to pass along the subtype info during type conversion
+      ad.getListType().foreach(l => hints.put(ConverterFactories.ListTypeKey, l))
+      ad.getMapTypes().foreach { case (k, v) =>
+        hints.put(ConverterFactories.MapKeyTypeKey, k)
+        hints.put(ConverterFactories.MapValueTypeKey, v)
+      }
+      (ad.getType.getBinding, hints)
+    }.toArray
+
+    val features = iter.map { record =>
+      val attributes = Array.ofDim[AnyRef](sft.getAttributeCount)
+      var i = 1 // skip id field
+      while (i < record.size()) {
+        // convert the attributes directly so we can pass the collection hints
+        val (clas, hints) = converters(i - 1)
+        attributes(i - 1) = Converters.convert(record.get(i), clas, hints).asInstanceOf[AnyRef]
+        i += 1
+      }
+      // we can use the no-convert constructor since we've already converted everything
+      new ScalaSimpleFeature(record.get(0), sft, attributes)
+    }
+
+    (sft, features)
+  }
 }
 
 /**
@@ -72,22 +117,7 @@ class DelimitedIngestConverter(ds: DataStore, typeName: String, format: Formats)
     if (!iter.hasNext) {
       (null, Iterator.empty)
     } else {
-      val header = iter.next()
-      require(header.get(0) == "id", "Badly formatted file detected - expected header row with attributes")
-      // drop the 'id' field, at index 0
-      val sftString = (1 until header.size()).map(header.get).mkString(",")
-      val sft = SimpleFeatureTypes.createType(typeName, sftString)
-      val features = iter.map { record =>
-        val sf = new ScalaSimpleFeature(record.get(0), sft)
-        var i = 1
-        while (i < record.size()) {
-          // set the attributes individually so that it type converts
-          sf.setAttribute(i - 1, record.get(i))
-          i += 1
-        }
-        sf
-      }
-      (sft, features)
+      AutoIngestDelimited.createSimpleFeatures(typeName, iter)
     }
   }
 
@@ -139,23 +169,7 @@ class DelimitedIngestRecordReader extends FileStreamRecordReader {
         override def close(): Unit = {}
       }
     } else {
-      val header = iter.next()
-      require(header.get(0) == "id", "Badly formatted file detected - expected header row with attributes")
-
-      // drop the 'id' field, at index 0
-      val sftString = (1 until header.size()).map(header.get).mkString(",")
-      val sft = SimpleFeatureTypes.createType(typeName, sftString)
-
-      val features = iter.map { record =>
-        val sf = new ScalaSimpleFeature(record.get(0), sft)
-        var i = 1
-        while (i < record.size()) {
-          // set the attributes individually so that it type converts
-          sf.setAttribute(i - 1, record.get(i))
-          i += 1
-        }
-        sf
-      }
+      val (_, features) = AutoIngestDelimited.createSimpleFeatures(typeName, iter)
       val counter = context.getCounter(Counters.Group, Counters.Read)
       new Iterator[SimpleFeature] with Closeable {
         override def hasNext: Boolean = features.hasNext

@@ -23,6 +23,8 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest {
 
+   sequential //because of file delete step
+
   "AvroDataFile" should {
     "read and write a data file with simple features in it" >> {
       val features = createComplicatedFeatures(50)

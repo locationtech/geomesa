@@ -121,7 +121,7 @@ object AvroSimpleFeatureUtils {
         case t if classOf[Geometry].isAssignableFrom(t) =>
           (v: AnyRef) => ByteBuffer.wrap(wkbWriter.write(v.asInstanceOf[Geometry]))
 
-        case t if ad.isCollection => (v: AnyRef) =>
+        case t if ad.isList => (v: AnyRef) =>
           encodeList(v.asInstanceOf[java.util.List[_]],
             ad.getUserData.get(USER_DATA_LIST_TYPE).asInstanceOf[Class[_]])
 

@@ -142,7 +142,10 @@ object SimpleFeatureTypes {
   }
 
   def encodeType(sft: SimpleFeatureType): String =
-    sft.getAttributeDescriptors.map { ad => AttributeSpecFactory.fromAttributeDescriptor(sft, ad).toSpec }.mkString(",")
+    sft.getAttributeDescriptors.map(encodeDescriptor(sft, _)).mkString(",")
+
+  def encodeDescriptor(sft: SimpleFeatureType, descriptor: AttributeDescriptor): String =
+    AttributeSpecFactory.fromAttributeDescriptor(sft, descriptor).toSpec
 
   def getSecondaryIndexedAttributes(sft: SimpleFeatureType): Seq[AttributeDescriptor] =
     sft.getAttributeDescriptors.filter(ad => ad.isIndexed && !ad.isInstanceOf[GeometryDescriptor])
@@ -176,14 +179,10 @@ object SimpleFeatureTypes {
               .getOrElse(4326)
           options.put(OPT_SRID, srid.toString)
           val default = sft.getGeometryDescriptor.equals(ad)
-          if (default) {
-            options.put(OPT_INDEX, IndexCoverage.FULL.toString)
-            options.put(OPT_INDEX_VALUE, "true")
-          }
           GeomAttributeSpec(ad.getLocalName, ad.getType.getBinding, default, options.toMap)
 
         case t if t.getBinding.equals(classOf[java.util.List[_]]) =>
-          ListAttributeSpec(ad.getLocalName, ad.getCollectionType().get, options.toMap)
+          ListAttributeSpec(ad.getLocalName, ad.getListType().get, options.toMap)
 
         case t if t.getBinding.equals(classOf[java.util.Map[_, _]]) =>
           val Some((keyType, valueType)) = ad.getMapTypes()
@@ -270,7 +269,7 @@ object SimpleFeatureTypes {
 
     def standardizeOptions(options: Map[String, String], defaultGeom: Boolean = false): Map[String, String] = {
       val withIndex = if (defaultGeom) {
-        options ++ Map(OPT_DEFAULT -> "true", OPT_INDEX -> IndexCoverage.FULL.toString, OPT_INDEX_VALUE -> "true")
+        options ++ Map(OPT_DEFAULT -> "true")
       } else {
         options.get(OPT_INDEX) match {
           case None => options
@@ -359,13 +358,10 @@ object SimpleFeatureTypes {
       val name     = conf.getString("name")
       val attrType = conf.getString("type")
       val default  = conf.getBoolean("default")
-      val index    = if (default) IndexCoverage.FULL.toString else IndexCoverage.NONE.toString
 
       val options = Map(
         OPT_SRID    -> conf.getInt("srid").toString,
-        OPT_DEFAULT -> default.toString,
-        OPT_INDEX   -> index,
-        OPT_INDEX_VALUE -> default.toString
+        OPT_DEFAULT -> default.toString
       )
 
       GeomAttributeSpec(name, geometryTypeMap(attrType), default, options)
