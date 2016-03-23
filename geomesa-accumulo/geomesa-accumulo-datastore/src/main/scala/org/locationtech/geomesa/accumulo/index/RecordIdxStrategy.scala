@@ -76,7 +76,6 @@ class RecordIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLoggi
 
     if (sft.getSchemaVersion > 5) {
       // optimized path when we know we're using kryo serialization
-      val priority = 25
       if (hints.isBinQuery) {
         // use the server side aggregation
         val iters = Seq(BinAggregatingIterator.configureDynamic(sft, filter.secondary, hints, deduplicate = false))
@@ -87,13 +86,9 @@ class RecordIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLoggi
         val kvsToFeatures = queryPlanner.defaultKVsToFeatures(hints)
         BatchScanPlan(table, ranges, iters, Seq.empty, kvsToFeatures, threads, hasDuplicates = false)
       } else {
-        val iterators = if (filter.secondary.isDefined || hints.getTransform.isDefined) {
-          Seq(KryoLazyFilterTransformIterator.configure(sft, filter.secondary, hints.getTransform, priority))
-        } else {
-          Seq.empty
-        }
+        val iters = KryoLazyFilterTransformIterator.configure(sft, filter.secondary, hints).toSeq
         val kvsToFeatures = queryPlanner.defaultKVsToFeatures(hints)
-        BatchScanPlan(table, ranges, iterators, Seq.empty, kvsToFeatures, threads, hasDuplicates = false)
+        BatchScanPlan(table, ranges, iters, Seq.empty, kvsToFeatures, threads, hasDuplicates = false)
       }
     } else {
       val iters = if (filter.secondary.isDefined || hints.getTransformSchema.isDefined) {

@@ -56,7 +56,8 @@ object Z3Table extends GeoMesaTable {
     java.lang.Long.decode("0x" + Array.fill(GEOM_Z_NUM_BYTES)("ff").mkString) << (8 - GEOM_Z_NUM_BYTES) * 8
 
   override def supports(sft: SimpleFeatureType): Boolean =
-    sft.getDtgField.isDefined && (sft.getSchemaVersion > 6 || (sft.getSchemaVersion > 4 && sft.isPoints))
+    sft.getDtgField.isDefined && ((sft.getSchemaVersion > 6 && sft.getGeometryDescriptor != null) ||
+        (sft.getSchemaVersion > 4 && sft.isPoints))
 
   override val suffix: String = "z3"
 
