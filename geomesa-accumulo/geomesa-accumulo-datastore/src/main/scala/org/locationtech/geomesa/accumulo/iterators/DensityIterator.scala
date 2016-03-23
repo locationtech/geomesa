@@ -77,7 +77,8 @@ class DensityIterator extends KryoLazyDensityIterator with LazyLogging {
     val geohash = indexDecoder.decode(source.getTopKey).getDefaultGeometry.asInstanceOf[Geometry]
     geom.intersection(geohash) match {
       case geom1: LineString            => writeLinePoints(geom, weight, result)
-      case geom1: MultiLineString       => writeMultiLineString(geom1, weight, result)
+      case geom1: MultiLineString       =>
+        (0 until geom1.getNumGeometries).foreach ( i => writeLinePoints(geom1.getGeometryN(i), weight, result))
       case geom1: Point                 => writePointToResult(geom1, weight, result)
       case geom1: Geometry              => writeNonPoint(geom1, weight, result)
     }
@@ -87,17 +88,6 @@ class DensityIterator extends KryoLazyDensityIterator with LazyLogging {
     geom.getCoordinates.sliding(2).flatMap {
       case Array(p0, p1) => gridSnap.generateLineCoordSet(p0, p1)
     }.toSet[Coordinate].foreach(c => writePointToResult(c, weight, result))
-  }
-
-  /**
-    * Intersection of line and geoHash can form a multiLineString */
-  private def writeMultiLineString(geom: MultiLineString, weight: Double, result: DensityResult): Unit = {
-      (0 until geom.getNumGeometries).foreach{ i => geom.getGeometryN(i) match {
-        case g: LineString => writeLinePoints(g, weight, result)
-        case g: Point      => writePointToResult(g, weight, result)
-        case g: Geometry   => writeNonPoint(g, weight, result)
-      }
-    }
   }
 
   def writePolygon(geom: Polygon, weight: Double, result: DensityResult): Unit = {
