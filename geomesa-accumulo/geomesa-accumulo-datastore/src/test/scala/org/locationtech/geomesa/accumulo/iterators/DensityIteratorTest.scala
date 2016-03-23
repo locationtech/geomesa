@@ -174,6 +174,31 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
       }
     }
 
+    "do density calc on a linestring with multiLine intersect" >> {
+      val sft = createNewSchema(spec)
+      addFeatures(sft, (0 until 15).toArray.map { i =>
+        val sf = new ScalaSimpleFeature(i.toString, sft)
+        sf.setAttribute(0, i.toString)
+        sf.setAttribute(1, "1.0")
+        sf.setAttribute(2, new Date(date + i * 60000))
+        sf.setAttribute(3, testData("[LINE] Line to MultiLine segment"))
+        sf
+      })
+
+      "with st index" >> {
+        val q = "BBOX(geom, -78.541236, 38.019947, -78.485830, 38.060265)"
+        val density = getDensity(sft.getTypeName, q)
+        density.map(_._3).sum must beGreaterThan(0.0)
+      }
+
+      "with z3 index" >> {
+        val q = "BBOX(geom, -78.511236, 38.019947, -78.485830, 38.030265) AND " +
+          "dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z'"
+        val density = getDensity(sft.getTypeName, q)
+        density.map(_._3).sum must beCloseTo(15.0, 0.1)
+      }
+    }
+
     "do density calc on a simplistic multi polygon" >> {
       val sft = createNewSchema(spec)
       addFeatures(sft, (0 until 15).toArray.map { i =>
