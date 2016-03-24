@@ -20,6 +20,7 @@ import org.locationtech.geomesa.accumulo.transform.TransformCreator
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -56,6 +57,7 @@ class AttrKeyPlusValueIterator extends SortedKeyValueIterator[Key, Value] with L
     IteratorClassLoader.initClassLoader(getClass)
     this.source = src.deepCopy(env)
     origSft = SimpleFeatureTypes.createType("o", options.get(ORIG_SFT_OPT))
+    origSft.setTableSharing(options.get(ORIG_SFT_TABLE_SHARING).toBoolean)
     idxSft  = SimpleFeatureTypes.createType("i", options.get(IDX_SFT_OPT))
     indexFilter  = Option(options.get(CQL_OPT)).map(FastFilterFactory.toFilter).orNull
 
@@ -134,12 +136,13 @@ class AttrKeyPlusValueIterator extends SortedKeyValueIterator[Key, Value] with L
 
 object AttrKeyPlusValueIterator {
 
-  val ORIG_SFT_OPT              = "orig_sft"  // Original SFT for the feature
-  val IDX_SFT_OPT               = "idx_sft"   // SFT of the Attribute Index
+  val ORIG_SFT_OPT              = "orig_sft"                // Original SFT for the feature
+  val ORIG_SFT_TABLE_SHARING    = "orig_sft_table_sharing"  // Original SFT table sharing
+  val IDX_SFT_OPT               = "idx_sft"                 // SFT of the Attribute Index
   val CQL_OPT                   = "cql"
-  val TRANSFORM_SCHEMA_OPT      = "tsft"      // Transform Schema (target schema)
+  val TRANSFORM_SCHEMA_OPT      = "tsft"                    // Transform Schema (target schema)
   val TRANSFORM_DEFINITIONS_OPT = "tdefs"
-  val ATTR_IDX                  = "attrIdx"   // Index of the Attr in original SFT
+  val ATTR_IDX                  = "attrIdx"                 // Index of the Attr in original SFT
 
   def configure(origSft: SimpleFeatureType,
                 dataSft: SimpleFeatureType,
@@ -150,6 +153,7 @@ object AttrKeyPlusValueIterator {
     require(transform.isDefined, "No options configured")
     val is = new IteratorSetting(priority, "attr-key-plus-value-iter", classOf[AttrKeyPlusValueIterator])
     is.addOption(ORIG_SFT_OPT, SimpleFeatureTypes.encodeType(origSft))
+    is.addOption(ORIG_SFT_TABLE_SHARING, origSft.isTableSharing.toString)
     is.addOption(IDX_SFT_OPT, SimpleFeatureTypes.encodeType(dataSft))
     indexFilter.foreach(f => is.addOption(CQL_OPT, ECQL.toCQL(f)))
     transform.foreach { case (tdef, tsft) =>

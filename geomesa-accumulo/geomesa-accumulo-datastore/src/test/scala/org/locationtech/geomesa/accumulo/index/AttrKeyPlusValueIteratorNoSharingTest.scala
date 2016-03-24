@@ -20,7 +20,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AttrKeyPlusValueIteratorTest extends Specification with TestWithDataStore {
+class AttrKeyPlusValueIteratorNoSharingTest extends Specification with TestWithDataStore {
 
   override val spec =
     "name:String:index=true:cardinality=high," +
@@ -28,6 +28,8 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithDataStore 
     "count:Long:index=false," +
     "dtg:Date:default=true," +
     "*geom:Point:srid=4326"
+
+  override val tableSharing = false
 
   val dtf = ISODateTimeFormat.dateTime().withZoneUTC()
 
@@ -49,10 +51,10 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithDataStore 
 
   "Query planning" should {
 
-    "be using shared tables" >> {
+    "be using un-shared tables" >> {
       // TODO GEOMESA-1146 refactor to allow running of tests with table sharing on and off...
       import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-      sft.isTableSharing must beTrue
+      sft.isTableSharing must beFalse
     }
 
     "do a single scan for attribute idx queries" >> {
