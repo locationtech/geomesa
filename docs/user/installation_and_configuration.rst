@@ -408,14 +408,14 @@ your GeoServer ``WEB-INF/lib`` directory.
 * Zookeeper
     * zookeeper-3.4.6.jar
 
-GeoMesas GeoServer Community Module
------------------------------------
+GeoMesa's GeoServer Community Module
+------------------------------------
 
 The GeoMesa community module adds support for raster imagery to GeoServer. The community module
 requires the Accumulo GeoServer plugin to be installed first.
 
-The community module can be downloaded from `OpenGeo <http://ares.opengeo.org/geoserver/>`, or can
-be built from `source <https://github.com/geoserver/geoserver/tree/master/src/community/geomesa>`.
+The community module can be downloaded from `OpenGeo <http://ares.opengeo.org/geoserver/>`__, or can
+be built from `source <https://github.com/geoserver/geoserver/tree/master/src/community/geomesa>`__.
 
 Once obtained, the community module can be installed by copying ``geomesa-gs-<version>.jar`` into
 the GeoServer ``lib`` directory.
