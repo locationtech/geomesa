@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.dynamodb.data
 
+import java.lang.{Long => JLong}
 import java.util
 
 import com.amazonaws.services.dynamodbv2.document.{DynamoDB, Item, Table}
@@ -46,13 +47,14 @@ class DynamoDBDataStore(val catalog: String, dynamoDB: DynamoDB, catalogPt: Prov
   }
 
   private def createSchemaImpl(featureType: SimpleFeatureType): Unit = {
-    val name = featureType.getTypeName
-    val rcu: Long = featureType.userData[Long](rcuKey).getOrElse(1L)
-    val wcu: Long = featureType.userData[Long](wcuKey).getOrElse(1L)
+    val name = featureType.getName
+    val tableName = name.getLocalPart
+    val rcu: Long = featureType.userData[JLong](RCU_Key).getOrElse(Long.box(1)).toLong
+    val wcu: Long = featureType.userData[JLong](WCU_Key).getOrElse(Long.box(1)).toLong
 
     val tableDesc =
       new CreateTableRequest()
-        .withTableName(makeSFTTableName(catalog, name))
+        .withTableName(makeSFTTableName(catalog, tableName))
         .withKeySchema(featureKeySchema)
         .withAttributeDefinitions(featureAttributeDescriptions)
         .withProvisionedThroughput(new ProvisionedThroughput(rcu, wcu))
@@ -62,16 +64,16 @@ class DynamoDBDataStore(val catalog: String, dynamoDB: DynamoDB, catalogPt: Prov
     res.waitForActive()
 
     // write the meta-data
-    val metaEntry = createMetaDataItem(name, featureType)
+    val metaEntry = createMetaDataItem(tableName, name.getNamespaceURI, featureType)
     catalogTable.putItem(metaEntry)
   }
 
   override def createTypeNames(): util.List[Name] = {
-    getTypes.map(new NameImpl(_))
+    catalogTable.scan().iterator().map(metaDataItemToSFTName).toList
   }
 
   private def getTypes: List[String] = {
-    catalogTable.scan().iterator().map(_.getString(catalogKeyHash)).toList
+    createTypeNames().map(_.toString).toList
   }
 
   override def createContentState(entry: ContentEntry): ContentState = {
@@ -162,8 +164,8 @@ class DynamoDBDataStore(val catalog: String, dynamoDB: DynamoDB, catalogPt: Prov
 }
 
 object DynamoDBDataStore {
-  val rcuKey = "geomesa.dynamodb.rcu"
-  val wcuKey = "geomesa.dynamodb.wcu"
+  val RCU_Key = "geomesa.dynamodb.sft.rcu"
+  val WCU_Key = "geomesa.dynamodb.sft.wcu"
 
   val serId = "ser"
 
@@ -182,6 +184,7 @@ object DynamoDBDataStore {
 
   val catalogKeyHash = "feature"
   val catalogSftAttributeName = "sft"
+  val catalogNameSpaceAttributeName = "ns"
 
   val catalogKeySchema = List(new KeySchemaElement(catalogKeyHash, KeyType.HASH))
   val catalogAttributeDescriptions = List(new AttributeDefinition(catalogKeyHash, ScalarAttributeType.S))
@@ -193,9 +196,13 @@ object DynamoDBDataStore {
     SimpleFeatureTypes.createType(entry.getTypeName, item.getString("sft"))
   }
 
-  def apply(catalog: String, dynamoDB: DynamoDB, rcus: Long, wcus: Long): DynamoDBDataStore = {
-    val pt = new ProvisionedThroughput(rcus, wcus)
-    new DynamoDBDataStore(catalog, dynamoDB, pt)
+  def apply(catalog: String, dynamoDB: DynamoDB, catalog_rcus: Long, catalog_wcus: Long): DynamoDBDataStore = {
+    val catalog_pt = new ProvisionedThroughput(catalog_rcus, catalog_wcus)
+    new DynamoDBDataStore(catalog, dynamoDB, catalog_pt)
+  }
+
+  def apply(catalog: String, dynamoDB: DynamoDB, catalog_pt: ProvisionedThroughput): DynamoDBDataStore = {
+    new DynamoDBDataStore(catalog, dynamoDB, catalog_pt)
   }
 
   private def getOrCreateCatalogTable(dynamoDB: DynamoDB, table: String, rcus: Long = 1L, wcus: Long = 1L) = {
@@ -214,10 +221,14 @@ object DynamoDBDataStore {
     ret
   }
 
-  private def createMetaDataItem(name: String, featureType: SimpleFeatureType): Item = {
+  private def createMetaDataItem(name: String, namespace: String, featureType: SimpleFeatureType): Item = {
     new Item()
-      .withPrimaryKey(catalogKeyHash, name)
+      .withPrimaryKey(catalogKeyHash, name, catalogNameSpaceAttributeName, namespace)
       .withString(catalogSftAttributeName, SimpleFeatureTypes.encodeType(featureType))
+  }
+
+  private def metaDataItemToSFTName(i: Item): NameImpl = {
+    new NameImpl(i.getString(catalogNameSpaceAttributeName), i.getString(catalogKeyHash))
   }
 
 }

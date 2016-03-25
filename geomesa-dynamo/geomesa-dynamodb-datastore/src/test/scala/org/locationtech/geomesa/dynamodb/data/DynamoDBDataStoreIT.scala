@@ -30,19 +30,33 @@ import scala.util.Try
 class DynamoDBDataStoreIT {
 
   @Test
-  def allowAccess {
+  def allowAccess() {
     val ds = getDataStore
     assert(ds != null)
     ds.dispose()
   }
 
   @Test
-  def testCreateSchema {
+  def testCreateSchema() {
     val ds = getDataStore
     assert(ds != null)
     ds.createSchema(SimpleFeatureTypes.createType("test:test", "name:String,age:Int,*geom:Point:srid=4326,dtg:Date"))
     assert(ds.getTypeNames.toSeq.contains("test"))
     ds.dispose()
+  }
+
+  @Test
+  def testCreateSchemaWithCUS(): Unit = {
+    val ds = getDataStore.asInstanceOf[DynamoDBDataStore]
+    assert(ds != null)
+    val sft = SimpleFeatureTypes.createType("test:testCUS", "name:String,age:Int,*geom:Point:srid=4326,dtg:Date")
+    sft.getUserData.put(DynamoDBDataStore.RCU_Key, Long.box(10))
+    sft.getUserData.put(DynamoDBDataStore.WCU_Key, Long.box(10))
+
+    ds.createSchema(sft)
+    val pt = ds.getProvisionedThroughputSFT("test:testCUS")
+    assert(pt.getReadCapacityUnits == 10)
+    assert(pt.getWriteCapacityUnits == 10)
   }
 
   @Test

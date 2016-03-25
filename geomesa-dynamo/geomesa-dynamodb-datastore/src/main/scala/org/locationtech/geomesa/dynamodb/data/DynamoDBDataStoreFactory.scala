@@ -29,8 +29,8 @@ class DynamoDBDataStoreFactory extends DataStoreFactorySpi {
   override def createDataStore(params: util.Map[String, Serializable]): DataStore = {
     val catalog: String = CATALOG.lookUp(params).asInstanceOf[String]
     val ddb: DynamoDB = DYNAMODBAPI.lookUp(params).asInstanceOf[DynamoDB]
-    val rcus: Long = Option(RCUS.lookUp(params)).getOrElse(1L).asInstanceOf[JLong]
-    val wcus: Long = Option(WCUS.lookUp(params)).getOrElse(1L).asInstanceOf[JLong]
+    val rcus: Long = Option(CATALOG_RCUS.lookUp(params)).getOrElse(1L).asInstanceOf[JLong]
+    val wcus: Long = Option(CATALOG_WCUS.lookUp(params)).getOrElse(1L).asInstanceOf[JLong]
 
     DynamoDBDataStore(catalog, ddb, rcus, wcus)
   }
@@ -51,10 +51,20 @@ class DynamoDBDataStoreFactory extends DataStoreFactorySpi {
 object DynamoDBDataStoreFactory {
   val CATALOG = new Param("geomesa.dynamodb.catalog", classOf[String], "DynamoDB table name", true)
   val DYNAMODBAPI = new Param("geomesa.dynamodb.api", classOf[DynamoDB], "DynamoDB api instance", true)
-  val RCUS = new Param(DynamoDBDataStore.rcuKey, classOf[JLong], "DynamoDB read capacity units", false)
-  val WCUS = new Param(DynamoDBDataStore.wcuKey, classOf[JLong], "DynamoDB write capacity units", false)
+  val CATALOG_RCUS =
+    new Param(
+      DynamoDBDataStore.RCU_Key,
+      classOf[JLong],
+      "DynamoDB read capacity units for catalog table",
+      false)
+  val CATALOG_WCUS =
+    new Param(
+      DynamoDBDataStore.WCU_Key,
+      classOf[JLong],
+      "DynamoDB write capacity units for catalog table",
+      false)
 
-  val PARAMS = Array(CATALOG, DYNAMODBAPI, RCUS, WCUS)
+  val PARAMS = Array(CATALOG, DYNAMODBAPI, CATALOG_RCUS, CATALOG_WCUS)
 
   def canProcessDynamo(params: util.Map[String, Serializable]): Boolean = {
     params.containsKey(CATALOG.key) && params.containsKey(DYNAMODBAPI.key)
