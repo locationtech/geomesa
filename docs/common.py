@@ -59,14 +59,11 @@ author = u''
 #
 # version: The short X.Y version.
 # release: The full version, including alpha/beta/rc tags.
-#
-# The value of release and version are not set here, because they're set in the
-# Maven/Ant process that calls sphinx-build.
-release = '1.2.0'
-version = '1.2.0'
+release = '1.2.1'
+version = '1.2.1'
 
 release_1_1 = '1.1.0-rc.7'
-version_devel = '1.2.1-SNAPSHOT'
+version_devel = '1.2.2-SNAPSHOT'
 
 # RST appended to every file. Used for global substitions.
 # (the "%(release)s" substitutions are done by the Python format() method

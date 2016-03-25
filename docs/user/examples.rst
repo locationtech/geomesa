@@ -23,7 +23,7 @@ optional flag:
 
 **Optional**
 
--  ``-dtg``: the default date attribute of the
+-  ``--dtg``: the default date attribute of the
    ``SimpleFeatureType``
 
 Run the command:
