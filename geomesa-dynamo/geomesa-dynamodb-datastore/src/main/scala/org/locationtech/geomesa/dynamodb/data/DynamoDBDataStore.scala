@@ -22,7 +22,6 @@ import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
-import scala.util.control.NonFatal
 
 class DynamoDBDataStore(val catalog: String, dynamoDB: DynamoDB, catalogPt: ProvisionedThroughput)
   extends ContentDataStore with SchemaValidation with LazyLogging {
@@ -53,7 +52,7 @@ class DynamoDBDataStore(val catalog: String, dynamoDB: DynamoDB, catalogPt: Prov
 
     val tableDesc =
       new CreateTableRequest()
-        .withTableName(makeTableName(catalog, name))
+        .withTableName(makeSFTTableName(catalog, name))
         .withKeySchema(featureKeySchema)
         .withAttributeDefinitions(featureAttributeDescriptions)
         .withProvisionedThroughput(new ProvisionedThroughput(rcu, wcu))
@@ -68,27 +67,96 @@ class DynamoDBDataStore(val catalog: String, dynamoDB: DynamoDB, catalogPt: Prov
   }
 
   override def createTypeNames(): util.List[Name] = {
-    catalogTable.scan().iterator().map { i => new NameImpl(i.getString(catalogKeyHash)) }.toList
+    getTypes.map(new NameImpl(_))
+  }
+
+  private def getTypes: List[String] = {
+    catalogTable.scan().iterator().map(_.getString(catalogKeyHash)).toList
   }
 
   override def createContentState(entry: ContentEntry): ContentState = {
-    val sftTable = dynamoDB.getTable(makeTableName(catalog, entry.getTypeName))
+    val sftTable = dynamoDB.getTable(makeSFTTableName(catalog, entry.getTypeName))
     new DynamoDBContentState(entry, catalogTable, sftTable)
   }
 
   override def dispose(): Unit = if (dynamoDB != null) dynamoDB.shutdown()
 
-  def updateProvisionedThroughput(name: String, pt: ProvisionedThroughput): Unit = {
-    val tableName = makeTableName(catalog, name)
-    logger.info("Attempting to Modify provisioned throughput for {}", tableName)
-    try {
-      val table = dynamoDB.getTable(tableName)
-      table.updateTable(pt)
-      table.waitForActive()
-      logger.info(s"Updated table: $tableName to have ProvisionedThroughput: ${pt.toString}")
-    } catch {
-      case NonFatal(e) => logger.error(s"Unable to update table: $tableName", e)
+  private def applyToSFTTableSafely[T](nameSFT: String)(func: => T) = {
+    if (getTypes.contains(nameSFT)) {
+      func
+    } else {
+      throw new Exception(s"No such SimpleFeatureType: $nameSFT in GeoMesa Catalog: $catalog")
     }
+  }
+
+  def getProvisionedThroughputSFT(nameSFT: String): ProvisionedThroughputDescription = {
+    applyToSFTTableSafely(nameSFT){
+      val tableName = makeSFTTableName(catalog, nameSFT)
+      dynamoDB.getTable(tableName).getDescription.getProvisionedThroughput
+    }
+  }
+
+  def setProvisionedThroughputSFT(nameSFT: String, pt: ProvisionedThroughput): Unit = {
+    applyToSFTTableSafely(nameSFT){
+      val tableName = makeSFTTableName(catalog, nameSFT)
+      val table = dynamoDB.getTable(tableName)
+      setPTforSFT(table, pt)
+    }
+  }
+
+  private def setPTforSFT(table: Table, pt: ProvisionedThroughput): Unit = {
+    table.updateTable(pt)
+  }
+
+  private def setPTforSFT(table: Table, rcus: Long, wcus: Long): Unit = {
+    setPTforSFT(table, new ProvisionedThroughput(rcus, wcus))
+  }
+
+  private def setPTforSFT(nameSFT: String, rcus: Option[Long], wcus: Option[Long]): Unit = {
+    val tableName = makeSFTTableName(catalog, nameSFT)
+    val table = dynamoDB.getTable(tableName)
+    val currentPT = table.getDescription.getProvisionedThroughput
+    val r: Long = rcus.getOrElse(currentPT.getReadCapacityUnits)
+    val w: Long = wcus.getOrElse(currentPT.getWriteCapacityUnits)
+    setPTforSFT(table, r, w)
+  }
+
+  def setReadsSFT(nameSFT: String, rcus: Long): Unit = {
+    applyToSFTTableSafely(nameSFT){
+      setPTforSFT(nameSFT, Some(rcus), None)
+    }
+  }
+
+  def setWritesSFT(nameSFT: String, wcus: Long): Unit = {
+    applyToSFTTableSafely(nameSFT){
+      setPTforSFT(nameSFT, None, Some(wcus))
+    }
+  }
+
+  def setCatalogProvisionedThroughput(pt: ProvisionedThroughput): Unit = {
+    catalogTable.updateTable(pt)
+  }
+
+  def setCatalogProvisionedThroughput(rcus: Long, wcus: Long): Unit = {
+    setCatalogProvisionedThroughput(new ProvisionedThroughput(rcus, wcus))
+  }
+
+  def setCatalogReads(rcus: Long): Unit = {
+    val currentPT = catalogTable.getDescription.getProvisionedThroughput
+    setCatalogProvisionedThroughput(rcus, currentPT.getWriteCapacityUnits)
+  }
+
+  def setCatalogWrites(wcus: Long): Unit = {
+    val currentPT = catalogTable.getDescription.getProvisionedThroughput
+    setCatalogProvisionedThroughput(currentPT.getReadCapacityUnits, wcus)
+  }
+
+  def getCatalogProvisionedThroughput: ProvisionedThroughputDescription = {
+    getCatalogDescription.getProvisionedThroughput
+  }
+
+  def getCatalogDescription: TableDescription = {
+    catalogTable.getDescription
   }
 
 }
@@ -118,7 +186,7 @@ object DynamoDBDataStore {
   val catalogKeySchema = List(new KeySchemaElement(catalogKeyHash, KeyType.HASH))
   val catalogAttributeDescriptions = List(new AttributeDefinition(catalogKeyHash, ScalarAttributeType.S))
 
-  def makeTableName(catalog: String, name: String): String = s"${catalog}_${name}_z3"
+  def makeSFTTableName(catalog: String, name: String): String = s"${catalog}_${name}_z3"
 
   def getSchema(entry: ContentEntry, catalogTable: Table): SimpleFeatureType = {
     val item = catalogTable.getItem("feature", entry.getTypeName)
