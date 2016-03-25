@@ -265,13 +265,15 @@ the plugin. The GeoServer website includes `instructions for downloading and ins
 .. note::
 
     If using Tomcat as a web server, it will most likely be necessary to
-    pass some custom options:
+    pass some custom options::
 
-    ``export CATALINA_OPTS="-Xmx8g -XX:MaxPermSize=512M -Duser.timezone=UTC -server -Djava.awt.headless=true"``
+        export CATALINA_OPTS="-Xmx8g -XX:MaxPermSize=512M -Duser.timezone=UTC -server -Djava.awt.headless=true"
 
     The value of ``-Xmx`` should be as large as your system will permit; this
     is especially important for the Kafka plugin. You
-    should also consider passing ``-DGEOWEBCACHE_CACHE_DIR=/tmp/$USER-gwc -DEPSG-HSQL.directory=/tmp/$USER-hsql`` to the server. Be sure to restart Tomcat for changes to take place.
+    should also consider passing ``-DGEOWEBCACHE_CACHE_DIR=/tmp/$USER-gwc``
+    and ``-DEPSG-HSQL.directory=/tmp/$USER-hsql``
+    as well. Be sure to restart Tomcat for changes to take place.
 
 For Accumulo
 ^^^^^^^^^^^^
@@ -408,8 +410,8 @@ your GeoServer ``WEB-INF/lib`` directory.
 * Zookeeper
     * zookeeper-3.4.6.jar
 
-GeoMesa's GeoServer Community Module
-------------------------------------
+GeoMesa GeoServer Community Module
+----------------------------------
 
 The GeoMesa community module adds support for raster imagery to GeoServer. The community module
 requires the Accumulo GeoServer plugin to be installed first.
