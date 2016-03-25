@@ -47,14 +47,13 @@ class DynamoDBDataStore(val catalog: String, dynamoDB: DynamoDB, catalogPt: Prov
   }
 
   private def createSchemaImpl(featureType: SimpleFeatureType): Unit = {
-    val name = featureType.getName
-    val tableName = name.getLocalPart
+    val tableName = featureType.getName
     val rcu: Long = featureType.userData[JLong](RCU_Key).getOrElse(Long.box(1)).toLong
     val wcu: Long = featureType.userData[JLong](WCU_Key).getOrElse(Long.box(1)).toLong
 
     val tableDesc =
       new CreateTableRequest()
-        .withTableName(makeSFTTableName(catalog, tableName))
+        .withTableName(makeSFTTableName(catalog, tableName.toString))
         .withKeySchema(featureKeySchema)
         .withAttributeDefinitions(featureAttributeDescriptions)
         .withProvisionedThroughput(new ProvisionedThroughput(rcu, wcu))
@@ -64,7 +63,7 @@ class DynamoDBDataStore(val catalog: String, dynamoDB: DynamoDB, catalogPt: Prov
     res.waitForActive()
 
     // write the meta-data
-    val metaEntry = createMetaDataItem(tableName, name.getNamespaceURI, featureType)
+    val metaEntry = createMetaDataItem(tableName.getLocalPart, tableName.getNamespaceURI, featureType)
     catalogTable.putItem(metaEntry)
   }
 
@@ -77,7 +76,7 @@ class DynamoDBDataStore(val catalog: String, dynamoDB: DynamoDB, catalogPt: Prov
   }
 
   override def createContentState(entry: ContentEntry): ContentState = {
-    val sftTable = dynamoDB.getTable(makeSFTTableName(catalog, entry.getTypeName))
+    val sftTable = dynamoDB.getTable(makeSFTTableName(catalog, entry.getName.toString))
     new DynamoDBContentState(entry, catalogTable, sftTable)
   }
 
@@ -94,7 +93,7 @@ class DynamoDBDataStore(val catalog: String, dynamoDB: DynamoDB, catalogPt: Prov
   def getProvisionedThroughputSFT(nameSFT: String): ProvisionedThroughputDescription = {
     applyToSFTTableSafely(nameSFT){
       val tableName = makeSFTTableName(catalog, nameSFT)
-      dynamoDB.getTable(tableName).getDescription.getProvisionedThroughput
+      dynamoDB.getTable(tableName).describe().getProvisionedThroughput
     }
   }
 
@@ -135,35 +134,37 @@ class DynamoDBDataStore(val catalog: String, dynamoDB: DynamoDB, catalogPt: Prov
     }
   }
 
-  def setCatalogProvisionedThroughput(pt: ProvisionedThroughput): Unit = {
+  def setProvisionedThroughputCatalog(pt: ProvisionedThroughput): Unit = {
     catalogTable.updateTable(pt)
   }
 
-  def setCatalogProvisionedThroughput(rcus: Long, wcus: Long): Unit = {
-    setCatalogProvisionedThroughput(new ProvisionedThroughput(rcus, wcus))
+  def setProvisionedThroughputCatalog(rcus: Long, wcus: Long): Unit = {
+    setProvisionedThroughputCatalog(new ProvisionedThroughput(rcus, wcus))
   }
 
-  def setCatalogReads(rcus: Long): Unit = {
+  def setReadsCatalog(rcus: Long): Unit = {
     val currentPT = catalogTable.getDescription.getProvisionedThroughput
-    setCatalogProvisionedThroughput(rcus, currentPT.getWriteCapacityUnits)
+    setProvisionedThroughputCatalog(rcus, currentPT.getWriteCapacityUnits)
   }
 
-  def setCatalogWrites(wcus: Long): Unit = {
+  def setWritesCatalog(wcus: Long): Unit = {
     val currentPT = catalogTable.getDescription.getProvisionedThroughput
-    setCatalogProvisionedThroughput(currentPT.getReadCapacityUnits, wcus)
+    setProvisionedThroughputCatalog(currentPT.getReadCapacityUnits, wcus)
   }
 
-  def getCatalogProvisionedThroughput: ProvisionedThroughputDescription = {
-    getCatalogDescription.getProvisionedThroughput
+  def getProvisionedThroughputCatalog: ProvisionedThroughputDescription = {
+    getDescriptionCatalog.getProvisionedThroughput
   }
 
-  def getCatalogDescription: TableDescription = {
-    catalogTable.getDescription
+  def getDescriptionCatalog: TableDescription = {
+    catalogTable.describe()
   }
 
 }
 
 object DynamoDBDataStore {
+  val namespaceGlobal = "global"
+
   val RCU_Key = "geomesa.dynamodb.sft.rcu"
   val WCU_Key = "geomesa.dynamodb.sft.wcu"
 
@@ -189,7 +190,11 @@ object DynamoDBDataStore {
   val catalogKeySchema = List(new KeySchemaElement(catalogKeyHash, KeyType.HASH))
   val catalogAttributeDescriptions = List(new AttributeDefinition(catalogKeyHash, ScalarAttributeType.S))
 
-  def makeSFTTableName(catalog: String, name: String): String = s"${catalog}_${name}_z3"
+  def makeSFTTableName(catalog: String, nameSFT: String): String = {
+    val (ns, name) = SimpleFeatureTypes.buildTypeName(nameSFT)
+    val namespace = Option(ns).getOrElse(namespaceGlobal)
+    s"${catalog}_${namespace}_${name}_z3"
+  }
 
   def getSchema(entry: ContentEntry, catalogTable: Table): SimpleFeatureType = {
     val item = catalogTable.getItem("feature", entry.getTypeName)

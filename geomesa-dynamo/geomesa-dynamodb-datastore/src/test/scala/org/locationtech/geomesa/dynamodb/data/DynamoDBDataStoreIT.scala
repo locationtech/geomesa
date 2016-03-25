@@ -46,8 +46,8 @@ class DynamoDBDataStoreIT {
   }
 
   @Test
-  def testCreateSchemaWithCUS(): Unit = {
-    val ds = getDataStore.asInstanceOf[DynamoDBDataStore]
+  def testCreateSchemaWithCUSAndCatalogCUS(): Unit = {
+    val ds = getDataStoreOtherCUS.asInstanceOf[DynamoDBDataStore]
     assert(ds != null)
     val sft = SimpleFeatureTypes.createType("test:testCUS", "name:String,age:Int,*geom:Point:srid=4326,dtg:Date")
     sft.getUserData.put(DynamoDBDataStore.RCU_Key, Long.box(10))
@@ -57,6 +57,17 @@ class DynamoDBDataStoreIT {
     val pt = ds.getProvisionedThroughputSFT("test:testCUS")
     assert(pt.getReadCapacityUnits == 10)
     assert(pt.getWriteCapacityUnits == 10)
+
+    val cpt = ds.getProvisionedThroughputCatalog
+    assert(cpt.getReadCapacityUnits == 2)
+    assert(cpt.getWriteCapacityUnits == 2)
+
+    ds.setReadsCatalog(5)
+    ds.setWritesCatalog(5)
+
+    val newcpt = ds.getProvisionedThroughputCatalog
+    assert(newcpt.getReadCapacityUnits == 5)
+    assert(newcpt.getWriteCapacityUnits == 5)
   }
 
   @Test
@@ -193,6 +204,18 @@ class DynamoDBDataStoreIT {
       Map(
         DynamoDBDataStoreFactory.CATALOG.getName -> s"ddbTest_${UUID.randomUUID().toString}",
         DynamoDBDataStoreFactory.DYNAMODBAPI.getName -> DynamoDBDataStoreIT.getNewDynamoDB
+      )
+    )
+  }
+
+  def getDataStoreOtherCUS: DataStore = {
+    import scala.collection.JavaConversions._
+    DataStoreFinder.getDataStore(
+      Map(
+        DynamoDBDataStoreFactory.CATALOG.getName -> s"ddbTest_${UUID.randomUUID().toString}",
+        DynamoDBDataStoreFactory.DYNAMODBAPI.getName -> DynamoDBDataStoreIT.getNewDynamoDB,
+        DynamoDBDataStoreFactory.CATALOG_RCUS.getName -> 2l,
+        DynamoDBDataStoreFactory.CATALOG_WCUS.getName -> 2l
       )
     )
   }
