@@ -442,3 +442,15 @@ For massive queries, the standard 60 second timeout may be too short.
 |"Disable limits"|
 
 .. |"Disable limits"| image:: _static/img/wms_limits.png
+
+To enable explain query logging in GeoServer, add the following to the
+``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties`` file::
+
+    log4j.category.org.locationtech.geomesa.accumulo.index.QueryPlanner=TRACE
+
+If you are not sure of the location of your GeoServer data directory, it
+is printed out when you start GeoServer::
+
+    ----------------------------------
+    - GEOSERVER_DATA_DIR: /opt/devel/install/geoserver-data-dir
+    ----------------------------------
