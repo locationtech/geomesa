@@ -92,12 +92,11 @@ class DynamoDBDataStoreIT {
   @Test
   def globalNameSpaceSchemaTest() = {
     val ds = getDataStore
-    val sftname = "aGlobalType"
-    val tableName = "aGlobalTable"
+    val sftname = "aGlobalTable"
     val sft = SimpleFeatureTypes.createType(sftname, "name:String,age:Int,*geom:Point:srid=4326,dtg:Date")
     ds.createSchema(sft)
 
-    val fs = ds.getFeatureSource(s"$tableName").asInstanceOf[SimpleFeatureStore]
+    val fs = ds.getFeatureSource(sftname).asInstanceOf[SimpleFeatureStore]
     fs.addFeatures(
       DataUtilities.collection(DynamoDBDataStoreIT.createFeatures(sft))
     )
@@ -199,14 +198,14 @@ class DynamoDBDataStoreIT {
     assert(count == 1)
   }
 
-  def initializeDataStore(tableName: String): (DataStore, SimpleFeatureStore) = {
+  def initializeDataStore(typeName: String): (DataStore, SimpleFeatureStore) = {
     val ds = getDataStore
-    val sft = SimpleFeatureTypes.createType(s"test:$tableName", "name:String,age:Int,*geom:Point:srid=4326,dtg:Date")
+    val sft = SimpleFeatureTypes.createType(s"test:$typeName", "name:String,age:Int,*geom:Point:srid=4326,dtg:Date")
     ds.createSchema(sft)
 
     val gf = JTSFactoryFinder.getGeometryFactory
 
-    val fs = ds.getFeatureSource(s"$tableName").asInstanceOf[SimpleFeatureStore]
+    val fs = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
     fs.addFeatures(
       DataUtilities.collection(DynamoDBDataStoreIT.createFeatures(sft))
     )
