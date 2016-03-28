@@ -657,7 +657,7 @@ class AccumuloDataStore(val connector: Connector,
       metadata.read(featureName, DTGFIELD_KEY).foreach(sft.setDtgField)
       val version = metadata.readRequired(featureName, VERSION_KEY).toInt
       if (version > CURRENT_SCHEMA_VERSION) {
-        logger.error(s"Trying to access schema ${sft.getTypeName} with version $version" +
+        logger.error(s"Trying to access schema ${sft.getTypeName} with version $version " +
             s"but client can only handle up to version $CURRENT_SCHEMA_VERSION.")
         throw new IllegalStateException(s"The schema ${sft.getTypeName} was written with a newer " +
             "version of GeoMesa than this client can handle. Please ensure that you are using the " +
