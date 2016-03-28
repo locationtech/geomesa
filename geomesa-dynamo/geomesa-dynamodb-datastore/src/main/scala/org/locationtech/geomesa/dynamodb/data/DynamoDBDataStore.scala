@@ -184,11 +184,17 @@ object DynamoDBDataStore {
   )
 
   val catalogKeyHash = "feature"
-  val catalogSftAttributeName = "sft"
   val catalogNameSpaceAttributeName = "ns"
+  val catalogSftAttributeName = "sft"
 
-  val catalogKeySchema = List(new KeySchemaElement(catalogKeyHash, KeyType.HASH))
-  val catalogAttributeDescriptions = List(new AttributeDefinition(catalogKeyHash, ScalarAttributeType.S))
+  val catalogKeySchema = List(
+    new KeySchemaElement(catalogKeyHash, KeyType.HASH),
+    new KeySchemaElement(catalogNameSpaceAttributeName, KeyType.RANGE)
+  )
+  val catalogAttributeDescriptions = List(
+    new AttributeDefinition(catalogKeyHash, ScalarAttributeType.S),
+    new AttributeDefinition(catalogNameSpaceAttributeName, ScalarAttributeType.S)
+  )
 
   def makeSFTTableName(catalog: String, nameSFT: String): String = {
     val (ns, name) = SimpleFeatureTypes.buildTypeName(nameSFT)
@@ -197,8 +203,13 @@ object DynamoDBDataStore {
   }
 
   def getSchema(entry: ContentEntry, catalogTable: Table): SimpleFeatureType = {
-    val item = catalogTable.getItem("feature", entry.getTypeName)
-    SimpleFeatureTypes.createType(entry.getTypeName, item.getString("sft"))
+    val name = entry.getName
+    val item: Item = catalogTable.getItem(
+      catalogKeyHash, name.getLocalPart,
+      catalogNameSpaceAttributeName, name.getNamespaceURI
+    )
+    val sft: String = item.getString(catalogSftAttributeName)
+    SimpleFeatureTypes.createType(name.toString, sft)
   }
 
   def apply(catalog: String, dynamoDB: DynamoDB, catalog_rcus: Long, catalog_wcus: Long): DynamoDBDataStore = {
