@@ -23,6 +23,7 @@ import org.joda.time.DateTime
 import org.junit._
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.Try
 
@@ -89,6 +90,34 @@ class DynamoDBDataStoreIT {
   }
 
   @Test
+  def globalNameSpaceSchemaTest() = {
+    val ds = getDataStore
+    val sftname = "aGlobalType"
+    val tableName = "aGlobalTable"
+    val sft = SimpleFeatureTypes.createType(sftname, "name:String,age:Int,*geom:Point:srid=4326,dtg:Date")
+    ds.createSchema(sft)
+
+    val fs = ds.getFeatureSource(s"$tableName").asInstanceOf[SimpleFeatureStore]
+    fs.addFeatures(
+      DataUtilities.collection(DynamoDBDataStoreIT.createFeatures(sft))
+    )
+
+    val ff = CommonFactoryFinder.getFilterFactory2
+    val filter =
+      ff.and(ff.bbox("geom", -76.0, 34.0, -74.0, 36.0, "EPSG:4326"),
+        ff.between(
+          ff.property("dtg"),
+          ff.literal(new DateTime("2016-01-01T00:00:00.000Z").toDate),
+          ff.literal(new DateTime("2016-01-08T00:00:00.000Z").toDate)))
+
+    val features = fs.getFeatures(filter).features()
+    assert(features.toList.length == 1)
+    features.close()
+    ds.dispose()
+
+  }
+
+  @Test
   def writeFeaturesTest() = {
     val (ds, fs) = initializeDataStore("testwrite")
     val features = fs.getFeatures().features()
@@ -118,6 +147,7 @@ class DynamoDBDataStoreIT {
   @Test
   def runLargeBBOXBetweenQueryTest() = {
     val (ds, fs) = initializeDataStore("testextralargebboxbetweenquery")
+
     val ff = CommonFactoryFinder.getFilterFactory2
     val filt =
       ff.and(ff.bbox("geom", -200.0, -100.0, 200.0, 100.0, "EPSG:4326"),
@@ -136,8 +166,7 @@ class DynamoDBDataStoreIT {
   def runPolyWithinDataBetweenQueries() {
     val (ds, fs) = initializeDataStore("testpolywithinanddtgbetween")
 
-    val gf = JTSFactoryFinder.getGeometryFactory
-    val buf = gf.createPoint(new Coordinate(new Coordinate(-75.0, 35.0))).buffer(0.01)
+    val buf = DynamoDBDataStoreIT.gf.createPoint(new Coordinate(new Coordinate(-75.0, 35.0))).buffer(0.01)
     val ff = CommonFactoryFinder.getFilterFactory2
     val filt =
       ff.and(ff.within(ff.property("geom"), ff.literal(buf)),
@@ -156,8 +185,7 @@ class DynamoDBDataStoreIT {
   def returnCorrectCountsTest() {
     val (ds, fs) = initializeDataStore("testcount")
 
-    val gf = JTSFactoryFinder.getGeometryFactory
-    val buf = gf.createPoint(new Coordinate(new Coordinate(-75.0, 35.0))).buffer(0.001)
+    val buf = DynamoDBDataStoreIT.gf.createPoint(new Coordinate(new Coordinate(-75.0, 35.0))).buffer(0.001)
     val ff = CommonFactoryFinder.getFilterFactory2
     val filt =
       ff.and(ff.within(ff.property("geom"), ff.literal(buf)),
@@ -180,20 +208,7 @@ class DynamoDBDataStoreIT {
 
     val fs = ds.getFeatureSource(s"$tableName").asInstanceOf[SimpleFeatureStore]
     fs.addFeatures(
-      DataUtilities.collection(Array(
-        SimpleFeatureBuilder.build(sft,
-          Array(
-            "john",
-            10,
-            gf.createPoint(new Coordinate(-75.0, 35.0)),
-            new DateTime("2016-01-01T00:00:00.000Z").toDate).asInstanceOf[Array[AnyRef]], "1"),
-        SimpleFeatureBuilder.build(sft,
-          Array(
-            "jane",
-            20,
-            gf.createPoint(new Coordinate(-75.0, 38.0)),
-            new DateTime("2016-01-07T00:00:00.000Z").toDate).asInstanceOf[Array[AnyRef]], "2")
-      ))
+      DataUtilities.collection(DynamoDBDataStoreIT.createFeatures(sft))
     )
     (ds, fs)
   }
@@ -223,11 +238,29 @@ class DynamoDBDataStoreIT {
 }
 
 object DynamoDBDataStoreIT {
+  val gf = JTSFactoryFinder.getGeometryFactory
 
   def getNewDynamoDB: DynamoDB = {
     val d = new AmazonDynamoDBAsyncClient(new BasicAWSCredentials("", ""))
     d.setEndpoint(s"http://localhost:${System.getProperty("dynamodb.port")}")
     new DynamoDB(d)
+  }
+
+  def createFeatures(sft: SimpleFeatureType) = {
+    Array(
+      SimpleFeatureBuilder.build(sft,
+        Array(
+          "john",
+          10,
+          gf.createPoint(new Coordinate(-75.0, 35.0)),
+          new DateTime("2016-01-01T00:00:00.000Z").toDate).asInstanceOf[Array[AnyRef]], "1"),
+      SimpleFeatureBuilder.build(sft,
+        Array(
+          "jane",
+          20,
+          gf.createPoint(new Coordinate(-75.0, 38.0)),
+          new DateTime("2016-01-07T00:00:00.000Z").toDate).asInstanceOf[Array[AnyRef]], "2")
+    )
   }
 
 

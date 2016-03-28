@@ -47,13 +47,12 @@ class DynamoDBDataStore(val catalog: String, dynamoDB: DynamoDB, catalogPt: Prov
   }
 
   private def createSchemaImpl(featureType: SimpleFeatureType): Unit = {
-    val tableName = featureType.getName
     val rcu: Long = featureType.userData[JLong](RCU_Key).getOrElse(Long.box(1)).toLong
     val wcu: Long = featureType.userData[JLong](WCU_Key).getOrElse(Long.box(1)).toLong
 
     val tableDesc =
       new CreateTableRequest()
-        .withTableName(makeSFTTableName(catalog, tableName.toString))
+        .withTableName(makeSFTTableName(catalog, featureType.getName.toString))
         .withKeySchema(featureKeySchema)
         .withAttributeDefinitions(featureAttributeDescriptions)
         .withProvisionedThroughput(new ProvisionedThroughput(rcu, wcu))
@@ -63,7 +62,7 @@ class DynamoDBDataStore(val catalog: String, dynamoDB: DynamoDB, catalogPt: Prov
     res.waitForActive()
 
     // write the meta-data
-    val metaEntry = createMetaDataItem(tableName.getLocalPart, tableName.getNamespaceURI, featureType)
+    val metaEntry = createMetaDataItem(featureType)
     catalogTable.putItem(metaEntry)
   }
 
@@ -183,17 +182,18 @@ object DynamoDBDataStore {
     new AttributeDefinition(geomesaKeyRange, ScalarAttributeType.B)
   )
 
-  val catalogKeyHash = "feature"
-  val catalogNameSpaceAttributeName = "ns"
-  val catalogSftAttributeName = "sft"
+  val catalogPrimeKeyNameSpace = "ns"
+  val catalogRangeKeySTypeName = "feature"
+  val catalogSftAttributeName  = "sft"
 
   val catalogKeySchema = List(
-    new KeySchemaElement(catalogKeyHash, KeyType.HASH),
-    new KeySchemaElement(catalogNameSpaceAttributeName, KeyType.RANGE)
+    new KeySchemaElement(catalogPrimeKeyNameSpace, KeyType.HASH),
+    new KeySchemaElement(catalogRangeKeySTypeName, KeyType.RANGE)
   )
+
   val catalogAttributeDescriptions = List(
-    new AttributeDefinition(catalogKeyHash, ScalarAttributeType.S),
-    new AttributeDefinition(catalogNameSpaceAttributeName, ScalarAttributeType.S)
+    new AttributeDefinition(catalogPrimeKeyNameSpace, ScalarAttributeType.S),
+    new AttributeDefinition(catalogRangeKeySTypeName, ScalarAttributeType.S)
   )
 
   def makeSFTTableName(catalog: String, nameSFT: String): String = {
@@ -205,20 +205,11 @@ object DynamoDBDataStore {
   def getSchema(entry: ContentEntry, catalogTable: Table): SimpleFeatureType = {
     val name = entry.getName
     val item: Item = catalogTable.getItem(
-      catalogKeyHash, name.getLocalPart,
-      catalogNameSpaceAttributeName, name.getNamespaceURI
+      catalogPrimeKeyNameSpace, name.getNamespaceURI,
+      catalogRangeKeySTypeName, name.getLocalPart
     )
     val sft: String = item.getString(catalogSftAttributeName)
     SimpleFeatureTypes.createType(name.toString, sft)
-  }
-
-  def apply(catalog: String, dynamoDB: DynamoDB, catalog_rcus: Long, catalog_wcus: Long): DynamoDBDataStore = {
-    val catalog_pt = new ProvisionedThroughput(catalog_rcus, catalog_wcus)
-    new DynamoDBDataStore(catalog, dynamoDB, catalog_pt)
-  }
-
-  def apply(catalog: String, dynamoDB: DynamoDB, catalog_pt: ProvisionedThroughput): DynamoDBDataStore = {
-    new DynamoDBDataStore(catalog, dynamoDB, catalog_pt)
   }
 
   private def getOrCreateCatalogTable(dynamoDB: DynamoDB, table: String, rcus: Long = 1L, wcus: Long = 1L) = {
@@ -237,14 +228,26 @@ object DynamoDBDataStore {
     ret
   }
 
-  private def createMetaDataItem(name: String, namespace: String, featureType: SimpleFeatureType): Item = {
+  private def createMetaDataItem(featureType: SimpleFeatureType): Item = {
+    val name = featureType.getName
+    val namespace = Option(name.getNamespaceURI).getOrElse(namespaceGlobal)
+    val typeName = name.getLocalPart
     new Item()
-      .withPrimaryKey(catalogKeyHash, name, catalogNameSpaceAttributeName, namespace)
+      .withPrimaryKey(catalogPrimeKeyNameSpace, namespace, catalogRangeKeySTypeName, typeName)
       .withString(catalogSftAttributeName, SimpleFeatureTypes.encodeType(featureType))
   }
 
   private def metaDataItemToSFTName(i: Item): NameImpl = {
-    new NameImpl(i.getString(catalogNameSpaceAttributeName), i.getString(catalogKeyHash))
+    new NameImpl(i.getString(catalogPrimeKeyNameSpace), i.getString(catalogRangeKeySTypeName))
+  }
+
+  def apply(catalog: String, dynamoDB: DynamoDB, catalog_rcus: Long, catalog_wcus: Long): DynamoDBDataStore = {
+    val catalog_pt = new ProvisionedThroughput(catalog_rcus, catalog_wcus)
+    new DynamoDBDataStore(catalog, dynamoDB, catalog_pt)
+  }
+
+  def apply(catalog: String, dynamoDB: DynamoDB, catalog_pt: ProvisionedThroughput): DynamoDBDataStore = {
+    new DynamoDBDataStore(catalog, dynamoDB, catalog_pt)
   }
 
 }
