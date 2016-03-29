@@ -110,7 +110,7 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
         }
       }
     } else if (hints.isStatsIteratorQuery) {
-      val kvsToFeatures = queryPlanner.defaultKVsToFeatures(hints)
+      val kvsToFeatures = KryoLazyStatsIterator.kvsToFeatures(sft)
       if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
         val iters = Seq(KryoLazyStatsIterator.configure(sft, filter.secondary, hints, hasDupes))
         BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDuplicates = false)
@@ -173,6 +173,8 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
     val kvsToFeatures = if (hints.isBinQuery) {
       // TODO GEOMESA-822 we can use the aggregating iterator if the features are kryo encoded
       BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, hints, queryPlanner.featureEncoding)
+    } else if (hints.isStatsIteratorQuery) {
+      KryoLazyStatsIterator.kvsToFeatures(sft)
     } else {
       queryPlanner.defaultKVsToFeatures(hints)
     }

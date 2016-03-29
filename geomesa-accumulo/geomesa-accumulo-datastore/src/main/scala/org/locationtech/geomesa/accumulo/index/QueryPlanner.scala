@@ -98,7 +98,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
     }
 
     def reduce(iter: SFIter): SFIter = if (query.getHints.isStatsIteratorQuery) {
-      KryoLazyStatsIterator.reduceFeatures(iter, query)
+      KryoLazyStatsIterator.reduceFeatures(iter, query, sft)
     } else if (query.getHints.isMapAggregatingQuery) {
       KryoLazyMapAggregatingIterator.reduceMapAggregationFeatures(iter, query)
     } else {
@@ -415,7 +415,7 @@ object QueryPlanner extends LazyLogging {
     } else if (query.getHints.isDensityQuery) {
       KryoLazyDensityIterator.DENSITY_SFT
     } else if (query.getHints.isStatsIteratorQuery) {
-      KryoLazyStatsIterator.createFeatureType(baseSft)
+      KryoLazyStatsIterator.StatsSft
     } else if (query.getHints.isMapAggregatingQuery) {
       val spec = KryoLazyMapAggregatingIterator.createMapSft(baseSft, query.getHints.getMapAggregatingAttribute)
       SimpleFeatureTypes.createType(baseSft.getTypeName, spec)

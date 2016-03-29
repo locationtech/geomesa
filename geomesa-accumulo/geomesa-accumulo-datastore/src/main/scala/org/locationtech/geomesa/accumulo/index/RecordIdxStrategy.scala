@@ -83,7 +83,7 @@ class RecordIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLoggi
         BatchScanPlan(table, ranges, iters, Seq.empty, kvsToFeatures, threads, hasDuplicates = false)
       } else if (hints.isStatsIteratorQuery) {
         val iters = Seq(KryoLazyStatsIterator.configure(sft, filter.secondary, hints, deduplicate = false))
-        val kvsToFeatures = queryPlanner.defaultKVsToFeatures(hints)
+        val kvsToFeatures = KryoLazyStatsIterator.kvsToFeatures(sft)
         BatchScanPlan(table, ranges, iters, Seq.empty, kvsToFeatures, threads, hasDuplicates = false)
       } else {
         val iters = KryoLazyFilterTransformIterator.configure(sft, filter.secondary, hints).toSeq

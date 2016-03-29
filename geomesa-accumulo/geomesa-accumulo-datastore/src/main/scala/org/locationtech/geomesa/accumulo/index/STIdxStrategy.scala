@@ -101,7 +101,7 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
         (Seq(iter), BinAggregatingIterator.kvsToFeatures(), false, false)
       } else if (hints.isStatsIteratorQuery) {
         val iter = KryoLazyStatsIterator.configure(sft, filter.filter, hints, sft.nonPoints)
-        (Seq(iter), queryPlanner.defaultKVsToFeatures(hints), false, false)
+        (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(sft), false, false)
       } else {
         val iters = KryoLazyFilterTransformIterator.configure(sft, filter.filter, hints).toSeq
         (iters, queryPlanner.defaultKVsToFeatures(hints), false, sft.nonPoints)

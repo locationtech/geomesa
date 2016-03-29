@@ -13,33 +13,33 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class IteratorStackCounterTest extends Specification with StatTestHelper {
+class IteratorStackCountTest extends Specification with StatTestHelper {
   sequential
 
-  "IteratorStackCounter stat" should {
-    "create an IteratorStackCounter" in {
-      val stat = Stat(sft, "IteratorStackCounter")
-      val isc = stat.asInstanceOf[IteratorStackCounter]
+  "IteratorStackCount stat" should {
+    "create an IteratorStackCount" in {
+      val stat = Stat(sft, "IteratorStackCount()")
+      val isc = stat.asInstanceOf[IteratorStackCount]
 
-      isc.count mustEqual 1L
+      isc.counter mustEqual 1L
       isc.isEmpty must beFalse
 
       "serialize and deserialize" in {
-        val packed   = StatSerialization.pack(isc)
-        val unpacked = StatSerialization.unpack(packed).asInstanceOf[IteratorStackCounter]
+        val packed   = StatSerializer(sft).serialize(isc)
+        val unpacked = StatSerializer(sft).deserialize(packed).asInstanceOf[IteratorStackCount]
 
-        unpacked mustEqual isc
+        unpacked.toJson mustEqual isc.toJson
       }
 
-      "combine two IteratorStackCounters" in {
-        val stat2 = Stat(sft, "IteratorStackCounter")
-        val isc2 = stat2.asInstanceOf[IteratorStackCounter]
-        isc2.count = 5L
+      "combine two IteratorStackCounts" in {
+        val stat2 = Stat(sft, "IteratorStackCount()")
+        val isc2 = stat2.asInstanceOf[IteratorStackCount]
+        isc2.counter = 5L
 
         isc += isc2
 
-        isc.count mustEqual 6L
-        isc2.count mustEqual 5L
+        isc.counter mustEqual 6L
+        isc2.counter mustEqual 5L
 
         "clear them" in {
           isc.isEmpty must beFalse
@@ -48,8 +48,8 @@ class IteratorStackCounterTest extends Specification with StatTestHelper {
           isc.clear()
           isc2.clear()
 
-          isc.count mustEqual 1L
-          isc2.count mustEqual 1L
+          isc.counter mustEqual 1L
+          isc2.counter mustEqual 1L
         }
       }
     }
