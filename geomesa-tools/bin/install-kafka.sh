@@ -18,11 +18,11 @@ else
     if [[ $confirm =~ ^(yes|y) ]]; then
         # get stuff
         declare -a urls=(
-            "https://search.maven.org/remotecontent?filepath=org/apache/kafka/kafka-clients/0.8.2.1/kafka-clients-0.8.2.1.jar"
-            "https://search.maven.org/remotecontent?filepath=org/apache/kafka/kafka_2.11/0.8.2.1/kafka_2.11-0.8.2.1.jar"
+            "https://search.maven.org/remotecontent?filepath=org/apache/kafka/kafka-clients/${kafka.version}/kafka-clients-${kafka.version}.jar"
+            "https://search.maven.org/remotecontent?filepath=org/apache/kafka/kafka_2.11/${kafka.version}/kafka_2.11-${kafka.version}.jar"
             "https://search.maven.org/remotecontent?filepath=com/yammer/metrics/metrics-core/2.2.0/metrics-core-2.2.0.jar"
             "https://search.maven.org/remotecontent?filepath=com/101tec/zkclient/0.3/zkclient-0.3.jar"
-            "https://search.maven.org/remotecontent?filepath=org/apache/zookeeper/zookeeper/3.4.5/zookeeper-3.4.5.jar"
+            "https://search.maven.org/remotecontent?filepath=org/apache/zookeeper/zookeeper/${zookeeper.version}/zookeeper-${zookeeper.version}.jar"
             )
 
         for x in "${urls[@]}"; do
