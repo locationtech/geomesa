@@ -31,6 +31,7 @@
                 <include>install-vecmath</include>
                 <include>install-imageio-ext</include>
                 <include>install-hadoop-accumulo.sh</include>
+                <include>install-kafka.sh</include>
             </includes>
             <filtered>true</filtered>
         </fileSet>
