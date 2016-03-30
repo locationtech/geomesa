@@ -10,7 +10,6 @@ package org.locationtech.geomesa.accumulo
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import com.typesafe.config.Config
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
@@ -31,8 +30,8 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 
 /**
- * Trait to simplify tests that require reading and writing features from an AccumuloDataStore
- */
+  * Trait to simplify tests that require reading and writing features from an AccumuloDataStore
+  */
 trait TestWithMultipleSfts extends Specification {
 
   // we use class name to prevent spillage between unit tests in the mock connector
@@ -58,28 +57,22 @@ trait TestWithMultipleSfts extends Specification {
   def createNewSchema(spec: String,
                       dtgField: Option[String] = Some("dtg"),
                       tableSharing: Boolean = true,
-                      numShards: Option[Int] = None): SimpleFeatureType =
-    createNewSchema(SimpleFeatureTypes.createType(getNewSftName, spec), dtgField, tableSharing, numShards)
-
-  def createNewSchema(sft: SimpleFeatureType,
-                      dtgField: Option[String],
-                      tableSharing: Boolean,
-                      numShards: Option[Int]) : SimpleFeatureType = synchronized {
+                      numShards: Option[Int] = None): SimpleFeatureType = synchronized {
+    val sftName = sftBaseName + sftCounter.getAndIncrement()
+    val sft = SimpleFeatureTypes.createType(sftName, spec)
     dtgField.foreach(sft.setDtgField)
     sft.setTableSharing(tableSharing)
-    numShards.map(ds.buildDefaultSpatioTemporalSchema(sft.getTypeName, _)).foreach(sft.setStIndexSchema)
+    numShards.map(ds.buildDefaultSpatioTemporalSchema(sftName, _)).foreach(sft.setStIndexSchema)
     ds.createSchema(sft)
-    sfts += ds.getSchema(sft.getTypeName) // reload the sft from the ds to ensure all user data is set properly
+    sfts += ds.getSchema(sftName) // reload the sft from the ds to ensure all user data is set properly
     sfts.last
   }
-
-  def getNewSftName: String = synchronized(sftBaseName + sftCounter.getAndIncrement())
 
   def addFeature(sft: SimpleFeatureType, feature: SimpleFeature): Unit = addFeatures(sft, Seq(feature))
 
   /**
-   * Call to load the test features into the data store
-   */
+    * Call to load the test features into the data store
+    */
   def addFeatures(sft: SimpleFeatureType, features: Seq[SimpleFeature]): Unit = {
     val featureCollection = new DefaultFeatureCollection(sft.getTypeName, sft)
     features.foreach { f =>
