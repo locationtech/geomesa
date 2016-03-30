@@ -71,8 +71,8 @@ trait TestWithMultipleSfts extends Specification {
   def addFeature(sft: SimpleFeatureType, feature: SimpleFeature): Unit = addFeatures(sft, Seq(feature))
 
   /**
-    * Call to load the test features into the data store
-    */
+   * Call to load the test features into the data store
+   */
   def addFeatures(sft: SimpleFeatureType, features: Seq[SimpleFeature]): Unit = {
     val featureCollection = new DefaultFeatureCollection(sft.getTypeName, sft)
     features.foreach { f =>
