@@ -266,7 +266,7 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends LazyLogging {
         childOptions.flatMap { c =>
           c.filter(_.filters.exists(_.strategy == strat)).flatMap(_.filters)
         }
-      }.map(FilterPlan)
+      }.map(FilterPlan).filterNot(_.filters.isEmpty)
 
     val start = System.currentTimeMillis()
     val childOpts   = getChildOptions
