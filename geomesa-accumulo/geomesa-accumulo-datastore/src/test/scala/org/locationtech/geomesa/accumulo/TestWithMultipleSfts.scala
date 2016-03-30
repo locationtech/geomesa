@@ -30,8 +30,8 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 
 /**
-  * Trait to simplify tests that require reading and writing features from an AccumuloDataStore
-  */
+ * Trait to simplify tests that require reading and writing features from an AccumuloDataStore
+ */
 trait TestWithMultipleSfts extends Specification {
 
   // we use class name to prevent spillage between unit tests in the mock connector
