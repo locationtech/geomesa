@@ -10,6 +10,7 @@ package org.locationtech.geomesa.accumulo.data
 
 import java.util.Date
 
+import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.Coordinate
 import org.geotools.data._
 import org.geotools.factory.{CommonFactoryFinder, Hints}
@@ -289,6 +290,40 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       sorted(4) mustEqual BasicValues(50, 50, dtgs2(0).getTime, "name2".hashCode.toString)
       sorted(5) mustEqual BasicValues(51, 51, dtgs2(1).getTime, "name2".hashCode.toString)
       sorted(6) mustEqual BasicValues(52, 52, dtgs2(2).getTime, "name2".hashCode.toString)
+    }
+
+    "support IN queries without dtg on non-indexed string attributes" in {
+      val sft = createNewSchema(s"name:String,dtg:Date,*geom:Point:srid=4326")
+
+      addFeature(sft, ScalaSimpleFeature.create(sft, "1", "name1", "2010-05-07T00:00:00.000Z", "POINT(45 45)"))
+      addFeature(sft, ScalaSimpleFeature.create(sft, "2", "name2", "2010-05-07T01:00:00.000Z", "POINT(45 46)"))
+
+      val filter = ECQL.toFilter("name IN('name1','name2') AND BBOX(geom, -180.0,-90.0,180.0,90.0)")
+      val query = new Query(sft.getTypeName, filter)
+      val features = ds.getFeatureSource(sft.getTypeName).getFeatures(query).features.toList
+      features.map(DataUtilities.encodeFeature) mustEqual List("1=name1|2010-05-07T00:00:00.000Z|POINT (45 45)", "2=name2|2010-05-07T01:00:00.000Z|POINT (45 46)")
+    }
+
+    "support IN queries without dtg on indexed string attributes" in {
+      val sft = createNewSchema(SimpleFeatureTypes.createType(ConfigFactory.parseString(
+        s"""
+          |{
+          |  type-name = "$getNewSftName"
+          |  attributes = [
+          |    { name = "name", type = "String", index = "true" }
+          |    { name = "dtg", type = "Date",  index = "true", default = true  }
+          |    { name = "geom", type = "Point",  index = "true", srid = 4326, default = true  }
+          |  ]
+          |}
+        """.stripMargin)), Some("dtg"), true, None)
+
+      addFeature(sft, ScalaSimpleFeature.create(sft, "1", "name1", "2010-05-07T00:00:00.000Z", "POINT(45 45)"))
+      addFeature(sft, ScalaSimpleFeature.create(sft, "2", "name2", "2010-05-07T01:00:00.000Z", "POINT(45 46)"))
+
+      val filter = ECQL.toFilter("name IN('name1','name2') AND BBOX(geom, -180.0,-90.0,180.0,90.0)")
+      val query = new Query(sft.getTypeName, filter)
+      val features = ds.getFeatureSource(sft.getTypeName).getFeatures(query).features.toList
+      features.map(DataUtilities.encodeFeature).sorted mustEqual List("1=name1|2010-05-07T00:00:00.000Z|POINT (45 45)", "2=name2|2010-05-07T01:00:00.000Z|POINT (45 46)").sorted
     }
 
     "kill queries after a configurable timeout" in {
