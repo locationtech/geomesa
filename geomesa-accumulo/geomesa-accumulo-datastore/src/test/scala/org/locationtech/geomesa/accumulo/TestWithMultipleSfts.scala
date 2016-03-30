@@ -10,6 +10,7 @@ package org.locationtech.geomesa.accumulo
 
 import java.util.concurrent.atomic.AtomicInteger
 
+import com.typesafe.config.Config
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
@@ -57,16 +58,22 @@ trait TestWithMultipleSfts extends Specification {
   def createNewSchema(spec: String,
                       dtgField: Option[String] = Some("dtg"),
                       tableSharing: Boolean = true,
-                      numShards: Option[Int] = None): SimpleFeatureType = synchronized {
-    val sftName = sftBaseName + sftCounter.getAndIncrement()
-    val sft = SimpleFeatureTypes.createType(sftName, spec)
+                      numShards: Option[Int] = None): SimpleFeatureType =
+    createNewSchema(SimpleFeatureTypes.createType(getNewSftName, spec), dtgField, tableSharing, numShards)
+
+  def createNewSchema(sft: SimpleFeatureType,
+                      dtgField: Option[String],
+                      tableSharing: Boolean,
+                      numShards: Option[Int]) : SimpleFeatureType = synchronized {
     dtgField.foreach(sft.setDtgField)
     sft.setTableSharing(tableSharing)
-    numShards.map(ds.buildDefaultSpatioTemporalSchema(sftName, _)).foreach(sft.setStIndexSchema)
+    numShards.map(ds.buildDefaultSpatioTemporalSchema(sft.getTypeName, _)).foreach(sft.setStIndexSchema)
     ds.createSchema(sft)
-    sfts += ds.getSchema(sftName) // reload the sft from the ds to ensure all user data is set properly
+    sfts += ds.getSchema(sft.getTypeName) // reload the sft from the ds to ensure all user data is set properly
     sfts.last
   }
+
+  def getNewSftName: String = synchronized(sftBaseName + sftCounter.getAndIncrement())
 
   def addFeature(sft: SimpleFeatureType, feature: SimpleFeature): Unit = addFeatures(sft, Seq(feature))
 
