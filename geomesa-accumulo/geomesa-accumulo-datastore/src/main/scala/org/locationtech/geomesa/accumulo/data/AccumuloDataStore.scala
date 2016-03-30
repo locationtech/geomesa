@@ -655,7 +655,18 @@ class AccumuloDataStore(val connector: Connector,
       val sft = SimpleFeatureTypes.createType(name.getURI, attributes)
       // IMPORTANT: set data that we want to pass around with the sft
       metadata.read(featureName, DTGFIELD_KEY).foreach(sft.setDtgField)
-      sft.setSchemaVersion(metadata.readRequired(featureName, VERSION_KEY).toInt)
+      val version = metadata.readRequired(featureName, VERSION_KEY).toInt
+      if (version > CURRENT_SCHEMA_VERSION) {
+        logger.error(s"Trying to access schema ${sft.getTypeName} with version $version " +
+            s"but client can only handle up to version $CURRENT_SCHEMA_VERSION.")
+        throw new IllegalStateException(s"The schema ${sft.getTypeName} was written with a newer " +
+            "version of GeoMesa than this client can handle. Please ensure that you are using the " +
+            "same GeoMesa jar versions across your entire workflow. For more information, see " +
+            "http://www.geomesa.org/documentation/user/installation_and_configuration.html#upgrading")
+      } else {
+        sft.setSchemaVersion(version)
+      }
+
       sft.setStIndexSchema(metadata.read(featureName, SCHEMA_KEY).orNull)
       // If no data is written, we default to 'false' in order to support old tables.
       if (metadata.read(featureName, SHARED_TABLES_KEY).exists(_.toBoolean)) {

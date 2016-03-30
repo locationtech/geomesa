@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.accumulo.index
 
 import org.geotools.data.Query
-import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
@@ -23,28 +22,12 @@ trait QueryStrategyDecider {
                        query: Query,
                        hints: StrategyHints,
                        requested: Option[StrategyType],
-                       ouptput: ExplainerOutputType): Seq[Strategy]
+                       output: ExplainerOutputType = ExplainNull): Seq[Strategy]
 }
 
-object QueryStrategyDecider {
+object QueryStrategyDecider extends QueryStrategyDecider with MethodProfiling {
 
-  // first element is null so that the array index aligns with the version
-  private val strategies: Array[QueryStrategyDecider] =
-    Array[QueryStrategyDecider](null) ++ (1 to CURRENT_SCHEMA_VERSION).map(QueryStrategyDecider.apply)
-
-  def apply(version: Int): QueryStrategyDecider =
-    if (version < 6) new QueryStrategyDeciderV5 else new QueryStrategyDeciderV6
-
-  def chooseStrategies(sft: SimpleFeatureType,
-                       query: Query,
-                       hints: StrategyHints,
-                       requested: Option[StrategyType],
-                       output: ExplainerOutputType = ExplainNull): Seq[Strategy] = {
-    strategies(sft.getSchemaVersion).chooseStrategies(sft, query, hints, requested, output)
-  }
-}
-
-class QueryStrategyDeciderV6 extends QueryStrategyDecider with MethodProfiling {
+  private val ImplVersionChange = 6 // schema version that we changed decider implementations
 
   /**
    * Selects a strategy for executing a given query.
@@ -80,7 +63,7 @@ class QueryStrategyDeciderV6 extends QueryStrategyDecider with MethodProfiling {
       if (requested.isDefined) {
         val forced = forceStrategy(options, requested.get, query.getFilter)
         output(s"Filter plan forced to $forced")
-        forced.filters.map(createStrategy)
+        forced.filters.map(createStrategy(_, sft))
       } else if (options.isEmpty) {
         output("No filter plans found")
         Seq.empty // corresponds to filter.exclude
@@ -107,7 +90,7 @@ class QueryStrategyDeciderV6 extends QueryStrategyDecider with MethodProfiling {
           output(s"Filter plans not used (${costs.size - 1}):", costs.drop(1).map(c => s"${c._1} (Cost ${c._2})"))
           cheapest._1
         }
-        filterPlan.filters.map(createStrategy)
+        filterPlan.filters.map(createStrategy(_, sft))
       }
     }, "cost")
     output(s"Strategy selection took ${timings.time("cost")}ms for ${options.length} options")
@@ -134,11 +117,14 @@ class QueryStrategyDeciderV6 extends QueryStrategyDecider with MethodProfiling {
   /**
    * Gets the estimated cost of running a particular strategy
    */
-  def getCost(filter: QueryFilter, sft: SimpleFeatureType, hints: StrategyHints): Int = {
+  // noinspection ScalaDeprecation
+  private def getCost(filter: QueryFilter, sft: SimpleFeatureType, hints: StrategyHints): Int = {
     filter.strategy match {
       case StrategyType.Z3        => Z3IdxStrategy.getCost(filter, sft, hints)
       case StrategyType.ST        => STIdxStrategy.getCost(filter, sft, hints)
       case StrategyType.RECORD    => RecordIdxStrategy.getCost(filter, sft, hints)
+      case StrategyType.ATTRIBUTE if sft.getSchemaVersion < ImplVersionChange =>
+        AttributeIdxStrategyV5.getCost(filter, sft, hints)
       case StrategyType.ATTRIBUTE => AttributeIdxStrategy.getCost(filter, sft, hints)
       case _ => throw new IllegalStateException(s"Unknown query plan requested: ${filter.strategy}")
     }
@@ -147,35 +133,16 @@ class QueryStrategyDeciderV6 extends QueryStrategyDecider with MethodProfiling {
   /**
    * Mapping from strategy type enum to concrete implementation class
    */
-  def createStrategy(filter: QueryFilter): Strategy = {
+  // noinspection ScalaDeprecation
+  private def createStrategy(filter: QueryFilter, sft: SimpleFeatureType): Strategy = {
     filter.strategy match {
       case StrategyType.Z3        => new Z3IdxStrategy(filter)
       case StrategyType.ST        => new STIdxStrategy(filter)
       case StrategyType.RECORD    => new RecordIdxStrategy(filter)
+      case StrategyType.ATTRIBUTE if sft.getSchemaVersion < ImplVersionChange =>
+        new AttributeIdxStrategyV5(filter)
       case StrategyType.ATTRIBUTE => new AttributeIdxStrategy(filter)
       case _ => throw new IllegalStateException(s"Unknown query plan requested: ${filter.strategy}")
-    }
-  }
-}
-
-@deprecated
-class QueryStrategyDeciderV5 extends QueryStrategyDeciderV6 {
-
-  // override to handle old attribute strategy
-  override def getCost(filter: QueryFilter, sft: SimpleFeatureType, hints: StrategyHints): Int = {
-    if (filter.strategy == StrategyType.ATTRIBUTE) {
-      AttributeIdxStrategyV5.getCost(filter, sft, hints)
-    } else {
-      super.getCost(filter, sft, hints)
-    }
-  }
-
-  // override to handle old attribute strategy
-  override def createStrategy(filter: QueryFilter): Strategy = {
-    if (filter.strategy == StrategyType.ATTRIBUTE) {
-      new AttributeIdxStrategyV5(filter)
-    } else {
-      super.createStrategy(filter)
     }
   }
 }
