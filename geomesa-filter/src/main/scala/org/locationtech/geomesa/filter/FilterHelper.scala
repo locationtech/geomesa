@@ -68,6 +68,7 @@ object FilterHelper {
   }
 
   // TODO:  We assume "BINOP(property, geom)"...  This need not be the case.
+  //        https://geomesa.atlassian.net/browse/GEOMESA-1155
   def updateToIDLSafeFilter(op: BinarySpatialOperator, geom: Geometry, featureType: SimpleFeatureType): Filter = geom match {
     case pt: Point => op
     case p: Polygon =>
