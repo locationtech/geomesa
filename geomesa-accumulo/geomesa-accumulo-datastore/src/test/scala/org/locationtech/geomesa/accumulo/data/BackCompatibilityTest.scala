@@ -56,7 +56,8 @@ class BackCompatibilityTest extends Specification with TestWithMultipleSfts {
 
   def runVersionTest(version: Int) = {
     val sft = createNewSchema(spec)
-    ds.setGeomesaVersion(sft.getTypeName, version)
+    ds.metadata.insert(sft.getTypeName, VERSION_KEY, version.toString)
+    ds.metadata.expireCache(sft.getTypeName)
     addFeatures(sft, getTestFeatures(sft))
 
     val fs = ds.getFeatureSource(sft.getTypeName).asInstanceOf[AccumuloFeatureStore]

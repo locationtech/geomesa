@@ -31,8 +31,8 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
 
   lazy val tableOps = ds.connector.tableOperations()
 
-  def createFeature(tableSharing: Boolean, numShards: Option[Int] = None) = {
-    val sft = createNewSchema("name:String:index=true,*geom:Point:srid=4326,dtg:Date", Some("dtg"), tableSharing, numShards)
+  def createFeature(tableSharing: Boolean) = {
+    val sft = createNewSchema("name:String:index=true,*geom:Point:srid=4326,dtg:Date", Some("dtg"), tableSharing)
 
     // create a feature
     val builder = new SimpleFeatureBuilder(sft)
@@ -56,7 +56,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       forall(tableNames)(tableOps.exists(_) must beTrue)
 
       // tests that metadata exists in the catalog before being deleted
-      ds.getFeatureReader(typeName) must not(beNull)
+      ds.getFeatureReader(new Query(typeName), Transaction.AUTO_COMMIT) must not(beNull)
       ds.metadata.getFeatureTypes.toSeq must contain(typeName)
 
       // delete the schema
@@ -89,8 +89,8 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       forall(tableNames2)(tableOps.exists(_) must beTrue)
 
       // tests that metadata exists in the catalog before being deleted
-      ds.getFeatureReader(typeName1) should not(beNull)
-      ds.getFeatureReader(typeName2) should not(beNull)
+      ds.getFeatureReader(new Query(typeName1), Transaction.AUTO_COMMIT) should not(beNull)
+      ds.getFeatureReader(new Query(typeName2), Transaction.AUTO_COMMIT) should not(beNull)
       ds.metadata.getFeatureTypes.toSeq must contain(typeName1)
       ds.metadata.getFeatureTypes.toSeq must contain(typeName2)
 
@@ -135,8 +135,8 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
     }
 
     "delete entries on a shared table" in {
-      val sft1 = createFeature(tableSharing = true, Some(10))
-      val sft2 = createFeature(tableSharing = true, Some(10))
+      val sft1 = createFeature(tableSharing = true)
+      val sft2 = createFeature(tableSharing = true)
 
       val builder1 = new SimpleFeatureBuilder(sft1)
       val builder2 = new SimpleFeatureBuilder(sft2)
@@ -165,8 +165,8 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       forall(tableNames2)(tableOps.exists(_) must beTrue)
 
       // tests that metadata exists in the catalog before being deleted
-      ds.getFeatureReader(typeName1) should not(beNull)
-      ds.getFeatureReader(typeName2) should not(beNull)
+      ds.getFeatureReader(new Query(typeName1), Transaction.AUTO_COMMIT) should not(beNull)
+      ds.getFeatureReader(new Query(typeName2), Transaction.AUTO_COMMIT) should not(beNull)
       ds.metadata.getFeatureTypes.toSeq must contain(typeName1)
       ds.metadata.getFeatureTypes.toSeq must contain(typeName2)
 

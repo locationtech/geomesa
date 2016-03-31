@@ -82,7 +82,7 @@ class VisibilitiesTest extends Specification {
     "nonpriv should only be able to read a subset of features" in {
 
       "using ALL queries" in {
-        val reader = unprivDS.getFeatureReader(sftName, Query.ALL)
+        val reader = unprivDS.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)
         val readFeatures = reader.getIterator.toList
 
         readFeatures.size must be equalTo 3
@@ -108,7 +108,7 @@ class VisibilitiesTest extends Specification {
     "priv should be able to read all 6 features" in {
 
       "using ALL queries" in {
-        val reader = ds.getFeatureReader(sftName, Query.ALL)
+        val reader = ds.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)
         val readFeatures = reader.getIterator.toList
         readFeatures.size must be equalTo 6
       }

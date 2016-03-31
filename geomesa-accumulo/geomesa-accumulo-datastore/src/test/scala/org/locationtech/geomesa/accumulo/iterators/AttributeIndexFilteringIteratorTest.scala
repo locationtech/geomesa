@@ -50,7 +50,7 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
 
   def checkStrategies[T](query: Query, clas: Class[T]) = {
     val out = new ExplainString
-    ds.explainQuery(query, out)
+    ds.getQueryPlan(query, explainer = out)
     val lines = out.toString().split("\n").map(_.trim).filter(_.startsWith("Strategy 1 of 1:"))
     lines must haveLength(1)
     lines.head must contain(clas.getSimpleName)

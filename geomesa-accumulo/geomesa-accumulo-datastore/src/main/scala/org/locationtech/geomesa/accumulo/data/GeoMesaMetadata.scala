@@ -46,9 +46,12 @@ trait GeoMesaMetadata {
   def getTableSize(tableName: String): Long
 }
 
+trait HasGeoMesaMetadata {
+  def metadata: GeoMesaMetadata
+}
+
 class AccumuloBackedMetadata(connector: Connector,
                              catalogTable: String,
-                             writeVisibilities: String,
                              authorizationsProvider: AuthorizationsProvider)
     extends GeoMesaMetadata with LazyLogging {
 

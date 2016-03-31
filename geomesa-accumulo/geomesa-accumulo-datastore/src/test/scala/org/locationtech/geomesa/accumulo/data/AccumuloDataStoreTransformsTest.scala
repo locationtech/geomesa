@@ -121,7 +121,8 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
       val sft = createNewSchema(spec)
       val sftName = sft.getTypeName
 
-      ds.setGeomesaVersion(sftName, 2)
+      ds.metadata.insert(sftName, VERSION_KEY, "2")
+      ds.metadata.expireCache(sftName)
 
       addFeatures(sft, createFeature(sft))
 

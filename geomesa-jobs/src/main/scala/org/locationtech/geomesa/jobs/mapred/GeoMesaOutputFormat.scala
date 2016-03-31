@@ -127,7 +127,7 @@ class GeoMesaRecordWriter(params: Map[String, String], delegate: RecordWriter[Te
     val encoder = encoderCache.getOrElseUpdate(sftName, SimpleFeatureSerializers(sft, ds.getFeatureEncoding(sft)))
     val ive = indexEncoderCache.getOrElseUpdate(sftName, IndexValueEncoder(sft))
     val binEncoder = binEncoderCache.getOrElseUpdate(sftName, BinEncoder(sft))
-    val featureToWrite = new FeatureToWrite(withFid, ds.writeVisibilities, encoder, ive, binEncoder)
+    val featureToWrite = new FeatureToWrite(withFid, ds.defaultVisibilities, encoder, ive, binEncoder)
 
     // calculate all the mutations first, so that if something fails we won't have a partially written feature
     try {
