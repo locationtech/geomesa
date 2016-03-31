@@ -271,7 +271,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
     val fs = ds.getFeatureSource(sft.getTypeName)
 
     def doesQueryRun(filterString: String, optExpectedCount: Option[Int] = None): Boolean = {
-      logger.info(s"Odd-point query filter:  $filterString")
+      logger.debug(s"Odd-point query filter:  $filterString")
 
       val outcome = Try {
         val q = getQuery(sft, Some(filterString), overrideGeometry = true)
@@ -285,7 +285,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
 
         val expectedCount = optExpectedCount.getOrElse(filteredCount)
 
-        logger.info(s"Query:\n  $filterString\n  Expected count:  $optExpectedCount -> $expectedCount" +
+        logger.debug(s"Query:\n  $filterString\n  Expected count:  $optExpectedCount -> $expectedCount" +
           s"\n  Filtered count:  $filteredCount\n  Index-only count:  $indexOnlyCount" +
           s"\n  ST-queried count:  $stQueriedCount")
 

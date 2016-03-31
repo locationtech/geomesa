@@ -262,11 +262,11 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends LazyLogging {
     // FilterPlan with single list of the Attribute-type QueryFilters aka decide the
     // strategy here. This was added as GEOMESA-939 and should be folded into GEOMESA-941
     def reduceSingleAttrOr(childOptions: Seq[Seq[FilterPlan]]): Seq[FilterPlan] =
-      Seq(StrategyType.ATTRIBUTE, StrategyType.Z3).map { strat =>
+      Seq(StrategyType.ATTRIBUTE, StrategyType.Z3, StrategyType.ST).map { strat =>
         childOptions.flatMap { c =>
           c.filter(_.filters.exists(_.strategy == strat)).flatMap(_.filters)
         }
-      }.map(FilterPlan)
+      }.map(FilterPlan).filterNot(_.filters.isEmpty)
 
     val start = System.currentTimeMillis()
     val childOpts   = getChildOptions
