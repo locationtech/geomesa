@@ -10,7 +10,7 @@ package org.locationtech.geomesa.filter
 
 import java.util.Date
 
-import com.vividsolutions.jts.geom.{Geometry, MultiPolygon, Polygon}
+import com.vividsolutions.jts.geom.{Geometry, MultiPolygon, Point, Polygon}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.joda.time.{DateTime, DateTimeZone, Interval}
@@ -34,10 +34,27 @@ object FilterHelper {
   def updateTopologicalFilters(filter: Filter, sft: SimpleFeatureType): Filter =
     filter.accept(new SafeTopologicalFilterVisitorImpl(sft), null).asInstanceOf[Filter]
 
+  def getFirstBinarySpatialOpPropertyName(op: BinarySpatialOperator): PropertyName = op.getExpression1 match {
+    case pn: PropertyName => pn
+    case _                => op.getExpression2 match {
+      case pn: PropertyName => pn
+      case _                =>
+        throw new Exception(s"Neither child of a binary spatial operator was a property name:  $op")
+    }
+  }
+
+  def getFirstBinarySpatialOpPropertyGeometry(op: BinarySpatialOperator): Geometry = op.getExpression1 match {
+    case lit: Literal => lit.evaluate(null, classOf[Geometry])
+    case _            => op.getExpression2 match {
+      case lit: Literal => lit.evaluate(null, classOf[Geometry])
+      case _            =>
+        throw new Exception(s"Neither child of a binary spatial operator was a literal geometry:  $op")
+    }
+  }
+
   def visitBinarySpatialOp(op: BinarySpatialOperator, featureType: SimpleFeatureType): Filter = {
-    val e1 = op.getExpression1.asInstanceOf[PropertyName]
-    val e2 = op.getExpression2.asInstanceOf[Literal]
-    val geom = e2.evaluate(null, classOf[Geometry])
+    val e1 = getFirstBinarySpatialOpPropertyName(op)
+    val geom = getFirstBinarySpatialOpPropertyGeometry(op)
     val safeGeometry = getInternationalDateLineSafeGeometry(geom)
     updateToIDLSafeFilter(op, safeGeometry, featureType)
   }
@@ -50,7 +67,9 @@ object FilterHelper {
     updateToIDLSafeFilter(op, safeGeometry, featureType)
   }
 
+  // TODO:  We assume "BINOP(property, geom)"...  This need not be the case.
   def updateToIDLSafeFilter(op: BinarySpatialOperator, geom: Geometry, featureType: SimpleFeatureType): Filter = geom match {
+    case pt: Point => op
     case p: Polygon =>
       dispatchOnSpatialType(op, featureType.getGeometryDescriptor.getLocalName, p)
     case mp: MultiPolygon =>
