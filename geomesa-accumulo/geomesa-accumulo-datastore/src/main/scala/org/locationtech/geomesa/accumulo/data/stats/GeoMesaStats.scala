@@ -149,8 +149,7 @@ object GeoMesaStats {
 
   def decodeTimeBounds(value: String): Interval = {
     val longs = value.split(":").map(java.lang.Long.parseLong)
-    require(longs(0) <= longs(1))
-    require(longs.length == 2)
+    require(longs.length == 2 && longs(0) <= longs(1), s"Unexpected time bounds value found: $value")
     new Interval(longs(0), longs(1), DateTimeZone.UTC)
   }
 

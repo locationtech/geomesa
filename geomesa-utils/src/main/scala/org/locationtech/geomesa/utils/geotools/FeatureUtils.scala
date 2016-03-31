@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import org.geotools.data.{FeatureWriter, DataUtilities}
-import org.geotools.data.simple.SimpleFeatureWriter
+import java.lang.{Boolean => jBoolean}
+
+import org.geotools.data.{DataUtilities, FeatureWriter}
 import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.identity.FeatureIdImpl
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import java.lang.{Boolean => jBoolean}
 
 /** Utilities for re-typing and re-building [[SimpleFeatureType]]s and [[SimpleFeature]]s while
   * preserving user data which the standard Geo Tools utilities do not do.
