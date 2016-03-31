@@ -864,6 +864,18 @@ object GeohashUtils
     } yield newStr).take(maxSize + 1)
   }
 
+  def promoteToRegion(geom: Geometry): Geometry = geom match {
+    case g: Point   =>
+      g.buffer(1e-6)
+    case g: Polygon =>
+      if (g.getArea > 0.0) g
+      else g.getCentroid.buffer(1e-6)
+    case g          =>
+      val env = g.getEnvelope
+      if (env.getArea > 0.0) env
+      else env.getCentroid.buffer(1e-6)
+  }
+
   /**
    * Given an index-schema format such as "%1,3#gh", it becomes necessary to
    * identify which unique 3-character GeoHash sub-strings intersect the
@@ -917,7 +929,9 @@ object GeohashUtils
                                           MAX_KEYS_IN_LIST: Int = Int.MaxValue - 1,
                                           includeDots: Boolean = true): Seq[String] = {
 
-    val cover: Geometry = geom.buffer(0)
+    val cover = promoteToRegion(geom)
+
+    //val cover: Geometry = geom.buffer(0)
     val maxBits = (offset + bits) * 5
     val minBits = offset * 5
     val usedBits = bits * 5
