@@ -72,188 +72,188 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
     }
   }
 
-//  "Mock Accumulo with fullData" should {
-//    val sft = createNewSchema(spec)
-//    val features = TestData.fullData.map(createSF(_, sft))
-//    addFeatures(sft, features)
-//    val fs = ds.getFeatureSource(sft.getTypeName)
-//
-//    "return the same result for our iterators" in {
-//      val q = getQuery(sft, None)
-//      val indexOnlyQuery = getQuery(sft, None, indexIterator = true)
-//
-//      val filteredCount = features.count(q.getFilter.evaluate)
-//      val stQueriedCount = fs.getFeatures(q).size
-//      val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
-//
-//      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
-//
-//      indexOnlyCount mustEqual filteredCount
-//      stQueriedCount mustEqual filteredCount
-//    }
-//
-//    "return a full results-set" in {
-//      val filterString = "true = true"
-//
-//      val q = getQuery(sft, Some(filterString))
-//      val indexOnlyQuery = getQuery(sft, Some(filterString), indexIterator = true)
-//
-//      val filteredCount = features.count(q.getFilter.evaluate)
-//      val stQueriedCount = fs.getFeatures(q).size
-//      val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
-//
-//      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
-//
-//      // validate the total number of query-hits
-//      indexOnlyCount mustEqual filteredCount
-//      stQueriedCount mustEqual filteredCount
-//    }
-//
-//    "return a partial results-set" in {
-//      val filterString = """(attr2 like '2nd___')"""
-//
-//      val q = getQuery(sft, Some(filterString))
-//      val indexOnlyQuery = getQuery(sft, Some(filterString), indexIterator = true)
-//
-//      val filteredCount = features.count(q.getFilter.evaluate)
-//      val stQueriedCount = fs.getFeatures(q).size
-//      val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
-//
-//      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
-//
-//      // validate the total number of query-hits
-//      indexOnlyCount mustEqual filteredCount
-//      stQueriedCount mustEqual filteredCount
-//    }
-//  }
-//
-//
-//  "Mock Accumulo with a small table" should {
-//    val sft = createNewSchema(spec)
-//    val features = TestData.shortListOfPoints.map(createSF(_, sft))
-//    addFeatures(sft, features)
-//    val fs = ds.getFeatureSource(sft.getTypeName)
-//
-//    "cover corner cases" in {
-//      val q = getQuery(sft, None)
-//      val indexOnlyQuery = getQuery(sft, None, indexIterator = true)
-//
-//      val filteredCount = features.count(q.getFilter.evaluate)
-//      val stQueriedCount = fs.getFeatures(q).size
-//      val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
-//
-//      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
-//
-//      // validate the total number of query-hits
-//      // Since we are playing with points, we can count **exactly** how many results we should
-//      //  get back.  This is important to check corner cases.
-//      indexOnlyCount mustEqual filteredCount
-//      stQueriedCount mustEqual filteredCount
-//    }
-//  }
-//
-//  "Realistic Mock Accumulo" should {
-//    val sft = createNewSchema(spec)
-//    val features = (TestData.shortListOfPoints ++ TestData.geohashHitActualNotHit).map(createSF(_, sft))
-//    addFeatures(sft, features)
-//    val fs = ds.getFeatureSource(sft.getTypeName)
-//
-//    "handle edge intersection false positives" in {
-//      val q = getQuery(sft, None)
-//      val indexOnlyQuery = getQuery(sft, None, indexIterator = true)
-//
-//      val filteredCount = features.count(q.getFilter.evaluate)
-//      val stQueriedCount = fs.getFeatures(q).size
-//      val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
-//
-//      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
-//
-//      // validate the total number of query-hits
-//      indexOnlyCount mustEqual filteredCount
-//      stQueriedCount mustEqual filteredCount
-//    }
-//  }
-//
-//  "Large Mock Accumulo" should {
-//    val sft = createNewSchema(spec)
-//    val features = TestData.hugeData.map(createSF(_, sft))
-//    addFeatures(sft, features)
-//    val fs = ds.getFeatureSource(sft.getTypeName)
-//
-//    "return a partial results-set with a meaningful attribute-filter" in {
-//      val filterString = "(not " + DEFAULT_DTG_PROPERTY_NAME +
-//        " after 2010-08-08T23:59:59Z) and (not dtg_end_time before 2010-08-08T00:00:00Z)"
-//
-//      val q = getQuery(sft, Some(filterString))
-//      val indexOnlyQuery = getQuery(sft, Some(filterString), indexIterator = true)
-//
-//      val filteredCount = features.count(q.getFilter.evaluate)
-//      val stQueriedCount = fs.getFeatures(q).size
-//      val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
-//
-//      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
-//
-//      // validate the total number of query-hits
-//      indexOnlyCount mustEqual filteredCount
-//      stQueriedCount mustEqual filteredCount
-//    }
-//
-//    "return a filtered results-set with a meaningful time-range" in {
-//      val filterString = "true = true"
-//
-//      val dtFilter = new Interval(
-//        new DateTime(2010, 8, 8, 0, 0, 0, DateTimeZone.forID("UTC")),
-//        new DateTime(2010, 8, 8, 23, 59, 59, DateTimeZone.forID("UTC"))
-//      )
-//
-//      val q = getQuery(sft, Some(filterString), dtFilter)
-//      val indexOnlyQuery = getQuery(sft, Some(filterString), dtFilter, indexIterator = true)
-//
-//      val filteredCount = features.count(q.getFilter.evaluate)
-//      val stQueriedCount = fs.getFeatures(q).size
-//      val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
-//
-//      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
-//
-//      // validate the total number of query-hits
-//      indexOnlyCount mustEqual filteredCount
-//      stQueriedCount mustEqual filteredCount
-//    }
-//
-//    "return a filtered results-set with a degenerate time-range" in {
-//      val filterString = "true = true"
-//
-//      val dtFilter = IndexSchema.everywhen
-//      val q = getQuery(sft, Some(filterString), dtFilter)
-//      val indexOnlyQuery = getQuery(sft, Some(filterString), dtFilter, indexIterator = true)
-//
-//      val filteredCount = features.count(q.getFilter.evaluate)
-//      val stQueriedCount = fs.getFeatures(q).size
-//      val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
-//
-//      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
-//
-//      // validate the total number of query-hits
-//      indexOnlyCount mustEqual filteredCount
-//      stQueriedCount mustEqual filteredCount
-//    }
-//
-//    "return an unfiltered results-set with a global request" in {
-//      val dtFilter = IndexSchema.everywhen
-//      val q = getQuery(sft, None, dtFilter, overrideGeometry = true)
-//      val indexOnlyQuery = getQuery(sft, None, dtFilter, overrideGeometry = true, indexIterator = true)
-//
-//      val filteredCount = features.count(q.getFilter.evaluate)
-//      val stQueriedCount = fs.getFeatures(q).size
-//      val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
-//
-//      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
-//
-//      // validate the total number of query-hits
-//      indexOnlyCount mustEqual filteredCount
-//      stQueriedCount mustEqual filteredCount
-//    }
-//  }
+  "Mock Accumulo with fullData" should {
+    val sft = createNewSchema(spec)
+    val features = TestData.fullData.map(createSF(_, sft))
+    addFeatures(sft, features)
+    val fs = ds.getFeatureSource(sft.getTypeName)
+
+    "return the same result for our iterators" in {
+      val q = getQuery(sft, None)
+      val indexOnlyQuery = getQuery(sft, None, indexIterator = true)
+
+      val filteredCount = features.count(q.getFilter.evaluate)
+      val stQueriedCount = fs.getFeatures(q).size
+      val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
+
+      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
+
+      indexOnlyCount mustEqual filteredCount
+      stQueriedCount mustEqual filteredCount
+    }
+
+    "return a full results-set" in {
+      val filterString = "true = true"
+
+      val q = getQuery(sft, Some(filterString))
+      val indexOnlyQuery = getQuery(sft, Some(filterString), indexIterator = true)
+
+      val filteredCount = features.count(q.getFilter.evaluate)
+      val stQueriedCount = fs.getFeatures(q).size
+      val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
+
+      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
+
+      // validate the total number of query-hits
+      indexOnlyCount mustEqual filteredCount
+      stQueriedCount mustEqual filteredCount
+    }
+
+    "return a partial results-set" in {
+      val filterString = """(attr2 like '2nd___')"""
+
+      val q = getQuery(sft, Some(filterString))
+      val indexOnlyQuery = getQuery(sft, Some(filterString), indexIterator = true)
+
+      val filteredCount = features.count(q.getFilter.evaluate)
+      val stQueriedCount = fs.getFeatures(q).size
+      val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
+
+      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
+
+      // validate the total number of query-hits
+      indexOnlyCount mustEqual filteredCount
+      stQueriedCount mustEqual filteredCount
+    }
+  }
+
+
+  "Mock Accumulo with a small table" should {
+    val sft = createNewSchema(spec)
+    val features = TestData.shortListOfPoints.map(createSF(_, sft))
+    addFeatures(sft, features)
+    val fs = ds.getFeatureSource(sft.getTypeName)
+
+    "cover corner cases" in {
+      val q = getQuery(sft, None)
+      val indexOnlyQuery = getQuery(sft, None, indexIterator = true)
+
+      val filteredCount = features.count(q.getFilter.evaluate)
+      val stQueriedCount = fs.getFeatures(q).size
+      val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
+
+      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
+
+      // validate the total number of query-hits
+      // Since we are playing with points, we can count **exactly** how many results we should
+      //  get back.  This is important to check corner cases.
+      indexOnlyCount mustEqual filteredCount
+      stQueriedCount mustEqual filteredCount
+    }
+  }
+
+  "Realistic Mock Accumulo" should {
+    val sft = createNewSchema(spec)
+    val features = (TestData.shortListOfPoints ++ TestData.geohashHitActualNotHit).map(createSF(_, sft))
+    addFeatures(sft, features)
+    val fs = ds.getFeatureSource(sft.getTypeName)
+
+    "handle edge intersection false positives" in {
+      val q = getQuery(sft, None)
+      val indexOnlyQuery = getQuery(sft, None, indexIterator = true)
+
+      val filteredCount = features.count(q.getFilter.evaluate)
+      val stQueriedCount = fs.getFeatures(q).size
+      val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
+
+      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
+
+      // validate the total number of query-hits
+      indexOnlyCount mustEqual filteredCount
+      stQueriedCount mustEqual filteredCount
+    }
+  }
+
+  "Large Mock Accumulo" should {
+    val sft = createNewSchema(spec)
+    val features = TestData.hugeData.map(createSF(_, sft))
+    addFeatures(sft, features)
+    val fs = ds.getFeatureSource(sft.getTypeName)
+
+    "return a partial results-set with a meaningful attribute-filter" in {
+      val filterString = "(not " + DEFAULT_DTG_PROPERTY_NAME +
+        " after 2010-08-08T23:59:59Z) and (not dtg_end_time before 2010-08-08T00:00:00Z)"
+
+      val q = getQuery(sft, Some(filterString))
+      val indexOnlyQuery = getQuery(sft, Some(filterString), indexIterator = true)
+
+      val filteredCount = features.count(q.getFilter.evaluate)
+      val stQueriedCount = fs.getFeatures(q).size
+      val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
+
+      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
+
+      // validate the total number of query-hits
+      indexOnlyCount mustEqual filteredCount
+      stQueriedCount mustEqual filteredCount
+    }
+
+    "return a filtered results-set with a meaningful time-range" in {
+      val filterString = "true = true"
+
+      val dtFilter = new Interval(
+        new DateTime(2010, 8, 8, 0, 0, 0, DateTimeZone.forID("UTC")),
+        new DateTime(2010, 8, 8, 23, 59, 59, DateTimeZone.forID("UTC"))
+      )
+
+      val q = getQuery(sft, Some(filterString), dtFilter)
+      val indexOnlyQuery = getQuery(sft, Some(filterString), dtFilter, indexIterator = true)
+
+      val filteredCount = features.count(q.getFilter.evaluate)
+      val stQueriedCount = fs.getFeatures(q).size
+      val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
+
+      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
+
+      // validate the total number of query-hits
+      indexOnlyCount mustEqual filteredCount
+      stQueriedCount mustEqual filteredCount
+    }
+
+    "return a filtered results-set with a degenerate time-range" in {
+      val filterString = "true = true"
+
+      val dtFilter = IndexSchema.everywhen
+      val q = getQuery(sft, Some(filterString), dtFilter)
+      val indexOnlyQuery = getQuery(sft, Some(filterString), dtFilter, indexIterator = true)
+
+      val filteredCount = features.count(q.getFilter.evaluate)
+      val stQueriedCount = fs.getFeatures(q).size
+      val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
+
+      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
+
+      // validate the total number of query-hits
+      indexOnlyCount mustEqual filteredCount
+      stQueriedCount mustEqual filteredCount
+    }
+
+    "return an unfiltered results-set with a global request" in {
+      val dtFilter = IndexSchema.everywhen
+      val q = getQuery(sft, None, dtFilter, overrideGeometry = true)
+      val indexOnlyQuery = getQuery(sft, None, dtFilter, overrideGeometry = true, indexIterator = true)
+
+      val filteredCount = features.count(q.getFilter.evaluate)
+      val stQueriedCount = fs.getFeatures(q).size
+      val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
+
+      output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
+
+      // validate the total number of query-hits
+      indexOnlyCount mustEqual filteredCount
+      stQueriedCount mustEqual filteredCount
+    }
+  }
 
   "non-point geometries" should {
     val sft = createNewSchema(spec)
@@ -285,8 +285,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
 
         val expectedCount = optExpectedCount.getOrElse(filteredCount)
 
-        //TODO cne1x debug!
-        println(s"Query:\n  $filterString\n  Expected count:  $optExpectedCount -> $expectedCount" +
+        logger.info(s"Query:\n  $filterString\n  Expected count:  $optExpectedCount -> $expectedCount" +
           s"\n  Filtered count:  $filteredCount\n  Index-only count:  $indexOnlyCount" +
           s"\n  ST-queried count:  $stQueriedCount")
 
