@@ -195,7 +195,7 @@ class BinnedArrayTest extends Specification with StatTestHelper {
       array.bounds(9) mustEqual (toDate(9, 0), new Date(toDate(10, 0).getTime - 1))
     }
 
-    "bin string" >> {
+    "bin strings" >> {
       val array = new BinnedStringArray(36, ("aa0", "aaz"))
       forall(0 until 10)(i => array.indexOf("aa" + ('0' + i).toChar + ('0' + 12).toChar) mustEqual i)
       forall(0 until 25)(i => array.indexOf("aa" + ('a' + i).toChar + ('0' + 12).toChar) mustEqual i + 10)

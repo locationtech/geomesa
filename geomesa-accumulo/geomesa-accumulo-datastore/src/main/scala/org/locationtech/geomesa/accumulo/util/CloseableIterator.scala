@@ -13,7 +13,7 @@ import java.util.Map.Entry
 import org.apache.accumulo.core.client.ScannerBase
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.data.FeatureReader
-import org.geotools.data.simple.SimpleFeatureIterator
+import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator}
 import org.opengis.feature.Feature
 import org.opengis.feature.`type`.FeatureType
 import org.opengis.feature.simple.SimpleFeature
@@ -26,6 +26,7 @@ import scala.collection.JavaConversions._
 object CloseableIterator {
 
   // In order to use 'map' and 'flatMap', we provide an implicit promoting wrapper.
+  // noinspection LanguageFeature
   implicit def iteratorToCloseable[A](iter: Iterator[A]) = apply(iter)
 
   // This apply method provides us with a simple interface for creating new CloseableIterators.
@@ -112,4 +113,6 @@ object SelfClosingIterator {
     apply(CloseableIterator(fr))
 
   def apply(iter: SimpleFeatureIterator): SelfClosingIterator[SimpleFeature] = apply(CloseableIterator(iter))
+
+  def apply(c: SimpleFeatureCollection): SelfClosingIterator[SimpleFeature] = apply(c.features)
 }

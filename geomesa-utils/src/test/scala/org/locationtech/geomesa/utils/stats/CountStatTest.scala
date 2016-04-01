@@ -36,6 +36,13 @@ class CountStatTest extends Specification with StatTestHelper {
       stat.counter mustEqual 100L
     }
 
+    "unobserve correct values" >> {
+      val stat = newStat()
+      stat.counter mustEqual 100L
+      features.take(10).foreach(stat.unobserve)
+      stat.counter mustEqual 90L
+    }
+
     "serialize to json" >> {
       val stat = newStat()
       stat.toJson mustEqual """{ "count": 100 }"""

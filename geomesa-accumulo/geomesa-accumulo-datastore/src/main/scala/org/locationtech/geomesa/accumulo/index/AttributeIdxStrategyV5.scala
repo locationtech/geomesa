@@ -19,10 +19,12 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.temporal.`object`.DefaultPeriod
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.accumulo.data.stats.GeoMesaStats
 import org.locationtech.geomesa.accumulo.data.tables.{AttributeTable, AttributeTableV5, RecordTable}
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.QueryPlanner._
 import org.locationtech.geomesa.accumulo.index.QueryPlanners.JoinFunction
+import org.locationtech.geomesa.accumulo.index.Strategy.CostEvaluation._
 import org.locationtech.geomesa.accumulo.index.Strategy._
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.features.SerializationType.SerializationType
@@ -95,7 +97,7 @@ class AttributeIdxStrategyV5(val filter: QueryFilter) extends Strategy with Lazy
 
         // there won't be any non-date/time-filters if the index only iterator has been selected
         val table = acc.getTableName(sft.getTypeName, AttributeTableV5)
-        BatchScanPlan(table, ranges, attributeIterators.toSeq, Seq.empty, kvsToFeatures, 1, hasDupes)
+        BatchScanPlan(filter, table, ranges, attributeIterators.toSeq, Seq.empty, kvsToFeatures, 1, hasDupes)
 
       case RecordJoinIterator =>
         val recordIterators = scala.collection.mutable.ArrayBuffer.empty[IteratorSetting]
@@ -119,13 +121,13 @@ class AttributeIdxStrategyV5(val filter: QueryFilter) extends Strategy with Lazy
         val recordTable = acc.getTableName(sft.getTypeName, RecordTable)
         val recordThreads = acc.getSuggestedThreads(sft.getTypeName, RecordTable)
         val recordRanges = Seq(new AccRange()) // this will get overwritten in the join method
-        val joinQuery = BatchScanPlan(recordTable, recordRanges, recordIterators.toSeq, Seq.empty,
+        val joinQuery = BatchScanPlan(filter, recordTable, recordRanges, recordIterators.toSeq, Seq.empty,
           kvsToFeatures, recordThreads, hasDupes)
 
         val attrTable = acc.getTableName(sft.getTypeName, AttributeTableV5)
         val attrThreads = acc.getSuggestedThreads(sft.getTypeName, AttributeTableV5)
         val attrIters = attributeIterators.toSeq
-        JoinPlan(attrTable, ranges, attrIters, Seq.empty, attrThreads, hasDupes, joinFunction, joinQuery)
+        JoinPlan(filter, attrTable, ranges, attrIters, Seq.empty, attrThreads, hasDupes, joinFunction, joinQuery)
     }
   }
 
@@ -208,18 +210,14 @@ class AttributeIdxStrategyV5(val filter: QueryFilter) extends Strategy with Lazy
 @deprecated
 object AttributeIdxStrategyV5 extends StrategyProvider {
 
-  override def getCost(filter: QueryFilter, sft: SimpleFeatureType, hints: StrategyHints) = {
-    val cost = filter.primary.flatMap(getAttributeProperty).map { p =>
-      val descriptor = sft.getDescriptor(p.name)
-      val multiplier = if (descriptor.getIndexCoverage() == IndexCoverage.JOIN) 2 else 1
-      hints.cardinality(descriptor) match {
-        case Cardinality.HIGH    => 1 * multiplier
-        case Cardinality.UNKNOWN => 999 * multiplier
-        case Cardinality.LOW     => Int.MaxValue
-      }
-    }.sum
-    if (cost == 0) Int.MaxValue else cost // cost == 0 if somehow the filters don't match anything
-  }
+  override def getCost(filter: QueryFilter, sft: SimpleFeatureType, stats: GeoMesaStats, evaluation: CostEvaluation) =
+    AttributeIdxStrategy.getCost(filter, sft, stats, evaluation)
+
+  // note: won't get called as we override getCost method, above
+  override protected def statsBasedCost(filter: QueryFilter, sft: SimpleFeatureType, stats: GeoMesaStats): Option[Long] = ???
+
+  // note: won't get called as we override getCost method, above
+  override protected def indexBasedCost(filter: QueryFilter, sft: SimpleFeatureType): Long = ???
 
   /**
    * Gets a row key that can used as a range for an attribute query.

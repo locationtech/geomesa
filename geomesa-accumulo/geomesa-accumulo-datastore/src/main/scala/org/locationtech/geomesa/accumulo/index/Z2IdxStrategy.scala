@@ -12,10 +12,10 @@ import java.nio.charset.StandardCharsets
 
 import com.google.common.primitives.{Bytes, Longs}
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Geometry, GeometryCollection}
 import org.apache.accumulo.core.data.{Range => aRange}
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
+import org.locationtech.geomesa.accumulo.data.stats.GeoMesaStats
 import org.locationtech.geomesa.accumulo.data.tables.Z2Table
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.curve.Z2SFC
@@ -51,19 +51,7 @@ class Z2IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     }
 
     val geometryToCover = if (isInclude) { WholeWorldPolygon } else {
-      filter.primary.foreach(f => require(isSpatialFilter(f), s"Expected spatial filters but got ${filterToString(f)}"))
-
-      output(s"Geometry filters: ${filtersToString(filter.primary)}")
-
-      // standardize the two key query arguments:  polygon and date-range
-      val geomsToCover = tryReduceGeometryFilter(filter.primary).flatMap(decomposeToGeometry)
-
-      val collectionToCover: Geometry = geomsToCover match {
-        case Nil => null
-        case seq: Seq[Geometry] => new GeometryCollection(geomsToCover.toArray, geomsToCover.head.getFactory)
-      }
-
-      netGeom(collectionToCover)
+      extractSingleGeometry(tryReduceGeometryFilter(filter.primary))
     }
 
     output(s"GeomsToCover: $geometryToCover")
@@ -151,7 +139,7 @@ class Z2IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     }
 
     val iters = iterators ++ z2Iter
-    BatchScanPlan(z2table, ranges, iters, Seq(colFamily), kvsToFeatures, numThreads, hasDupes)
+    BatchScanPlan(filter, z2table, ranges, iters, Seq(colFamily), kvsToFeatures, numThreads, hasDupes)
   }
 
   def getPointRanges(prefixes: Seq[Array[Byte]], x: (Double, Double), y: (Double, Double)): Seq[aRange] = {
@@ -184,16 +172,21 @@ object Z2IdxStrategy extends StrategyProvider {
   val Z2_ITER_PRIORITY = 21
   val FILTERING_ITER_PRIORITY = 25
 
+  override protected def statsBasedCost(filter: QueryFilter,
+                                        sft: SimpleFeatureType,
+                                        stats: GeoMesaStats): Option[Long] = {
+    filter.singlePrimary match {
+      case None => Some(Long.MaxValue)
+      // add one so that we prefer the z3 index even if geometry is the limiting factor, resulting in the same count
+      case Some(f) => stats.getCount(sft, f, exact = false).map(c => if (c == 0L) 0L else c + 1L)
+    }
+  }
+
   /**
-    * TODO update description
-    * Gets the estimated cost of running the query. Currently, cost is hard-coded to sort between
-    * strategies the way we want. Z2 should be more than id lookups (at 1), high-cardinality attributes (at 1)
-    * and less than STidx (at 400) and unknown cardinality attributes (at 999).
-    *
-    * Eventually cost will be computed based on dynamic metadata and the query.
+    * More than id lookups (at 1), high-cardinality attributes (at 1), z3 (at 200).
+    * Less than spatial-only z3 (at 401), unknown cardinality attributes (at 999).
     */
-  override def getCost(filter: QueryFilter, sft: SimpleFeatureType, hints: StrategyHints) =
-    if (QueryFilterSplitter.isFullTableScan(filter)) Int.MaxValue else 400
+  override protected def indexBasedCost(filter: QueryFilter, sft: SimpleFeatureType): Long = 400L
 
   def isComplicatedSpatialFilter(f: Filter): Boolean = {
     f match {

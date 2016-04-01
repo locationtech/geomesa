@@ -9,13 +9,13 @@
 package org.locationtech.geomesa.accumulo.index
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Geometry, GeometryCollection}
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.GEOMESA_ITERATORS_IS_DENSITY_TYPE
+import org.locationtech.geomesa.accumulo.data.stats.GeoMesaStats
 import org.locationtech.geomesa.accumulo.data.tables.SpatioTemporalTable
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanner._
@@ -54,17 +54,8 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     output(s"Temporal filters: ${filtersToString(temporalFilters)}")
 
     // standardize the two key query arguments:  polygon and date-range
-    val geomsToCover = geomFilters.flatMap(decomposeToGeometry)
-
-    output(s"GeomsToCover: $geomsToCover")
-
-    val collectionToCover: Geometry = geomsToCover match {
-      case Nil => null
-      case seq: Seq[Geometry] => new GeometryCollection(geomsToCover.toArray, geomsToCover.head.getFactory)
-    }
-
+    val geometryToCover = extractSingleGeometry(tryReduceGeometryFilter(geomFilters))
     val interval = extractInterval(temporalFilters, dtgField)
-    val geometryToCover = netGeom(collectionToCover)
 
     val keyPlanningFilter = buildFilter(geometryToCover, interval)
     // This catches the case when a whole world query slips through DNF/CNF
@@ -127,7 +118,7 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     }
 
     // set up row ranges and regular expression filter
-    val qp = planQuery(keyPlanningFilter, useIndexEntries, output, keyPlanner, cfPlanner)
+    val qp = planQuery(filter, keyPlanningFilter, useIndexEntries, output, keyPlanner, cfPlanner)
 
     val table = acc.getTableName(sft.getTypeName, SpatioTemporalTable)
     val numThreads = acc.getSuggestedThreads(sft.getTypeName, SpatioTemporalTable)
@@ -222,7 +213,8 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     cfg
   }
 
-  def planQuery(filter: KeyPlanningFilter,
+  def planQuery(qf: QueryFilter,
+                filter: KeyPlanningFilter,
                 useIndexEntries: Boolean,
                 output: ExplainerOutputType,
                 keyPlanner: KeyPlanner,
@@ -246,19 +238,22 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     }
 
     // partially fill in, rest will be filled in later
-    BatchScanPlan(null, accRanges, null, cf, null, -1, hasDuplicates = false)
+    BatchScanPlan(qf, null, accRanges, null, cf, null, -1, hasDuplicates = false)
   }
 }
 
 @deprecated("z2")
 object STIdxStrategy extends StrategyProvider {
 
-  /**
-   * Gets the estimated cost of running the query. Currently, cost is hard-coded to sort between
-   * strategies the way we want. STIdx should be more than id lookups (at 1), high-cardinality attributes
-   * (at 1) and z3 queries (at 200) but less than unknown cardinality attributes (at 999).
-   *
-   * Eventually cost will be computed based on dynamic metadata and the query.
-   */
-  override def getCost(filter: QueryFilter, sft: SimpleFeatureType, hints: StrategyHints) = 400
+  override protected def statsBasedCost(filter: QueryFilter,
+                                        sft: SimpleFeatureType,
+                                        stats: GeoMesaStats): Option[Long] = {
+    filter.singlePrimary match {
+      case Some(f) => stats.getCount(sft, f, exact = false)
+      case None    => Some(Long.MaxValue)
+    }
+  }
+
+  // slots in between high- and low-cardinality attributes
+  override protected def indexBasedCost(filter: QueryFilter, sft: SimpleFeatureType): Long = 400L
 }

@@ -9,22 +9,15 @@
 package org.locationtech.geomesa.accumulo.process.query
 
 import com.vividsolutions.jts.geom.Geometry
-import org.geotools.data.DataStoreFinder
-import org.geotools.factory.Hints
-import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
-import org.locationtech.geomesa.accumulo.index.Constants
+import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class QueryProcessTest extends Specification with TestWithDataStore {
@@ -53,13 +46,9 @@ class QueryProcessTest extends Specification with TestWithDataStore {
       val geomesaQuery = new QueryProcess
       val results = geomesaQuery.execute(features, null)
 
-      val f = results.features()
-      while (f.hasNext) {
-        val sf = f.next
-        sf.getAttribute("type") should beOneOf("a", "b")
-      }
-
-      results.size mustEqual 8
+      val f = SelfClosingIterator(results).toList
+      forall(f)(_.getAttribute("type") must beOneOf("a", "b"))
+      f.length mustEqual 8
     }
 
     "respect a parent filter" in {
@@ -68,13 +57,9 @@ class QueryProcessTest extends Specification with TestWithDataStore {
       val geomesaQuery = new QueryProcess
       val results = geomesaQuery.execute(features, null)
 
-      val f = results.features()
-      while (f.hasNext) {
-        val sf = f.next
-        sf.getAttribute("type") mustEqual "b"
-      }
-
-      results.size mustEqual 4
+      val f = SelfClosingIterator(results).toList
+      forall(f)(_.getAttribute("type") mustEqual "b")
+      f.length mustEqual 4
     }
 
     "be able to use its own filter" in {
@@ -83,13 +68,9 @@ class QueryProcessTest extends Specification with TestWithDataStore {
       val geomesaQuery = new QueryProcess
       val results = geomesaQuery.execute(features, CQL.toFilter("type = 'a'"))
 
-      val f = results.features()
-      while (f.hasNext) {
-        val sf = f.next
-        sf.getAttribute("type") mustEqual "a"
-      }
-
-      results.size mustEqual 4
+      val f = SelfClosingIterator(results).toList
+      forall(f)(_.getAttribute("type") mustEqual "a")
+      f.length mustEqual 4
     }
 
     "properly query geometry" in {
@@ -100,15 +81,9 @@ class QueryProcessTest extends Specification with TestWithDataStore {
 
       val poly = WKTUtils.read("POLYGON((45 45, 46 45, 46 46, 45 46, 45 45))")
 
-      val f = results.features()
-      while (f.hasNext) {
-        val sf = f.next
-        poly.intersects(sf.getDefaultGeometry.asInstanceOf[Geometry]) must beTrue
-      }
-
-      results.size mustEqual 4
+      val f = SelfClosingIterator(results).toList
+      forall(f)(_.getDefaultGeometry.asInstanceOf[Geometry].intersects(poly) must beTrue)
+      f.length mustEqual 4
     }
   }
-
-
 }

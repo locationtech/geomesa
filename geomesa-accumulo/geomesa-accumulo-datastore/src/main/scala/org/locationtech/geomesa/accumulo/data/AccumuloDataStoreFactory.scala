@@ -10,13 +10,13 @@
 package org.locationtech.geomesa.accumulo.data
 
 import java.io.Serializable
-import java.util.{Map => JMap, Collections}
+import java.util.{Collections, Map => JMap}
 
 import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
 import org.geotools.data.DataAccessFactory.Param
-import org.geotools.data.{Parameter, DataStoreFactorySpi}
+import org.geotools.data.{DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.accumulo.GeomesaSystemProperties
 import org.locationtech.geomesa.accumulo.stats.{ParamsAuditProvider, StatWriter}
 import org.locationtech.geomesa.security

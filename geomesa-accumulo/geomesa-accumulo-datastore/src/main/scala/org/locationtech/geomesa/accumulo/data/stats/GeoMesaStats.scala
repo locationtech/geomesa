@@ -8,13 +8,12 @@
 
 package org.locationtech.geomesa.accumulo.data.stats
 
-import com.vividsolutions.jts.geom.Envelope
-import org.geotools.data.Query
+import java.io.{Closeable, Flushable}
+
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.joda.time.{DateTimeZone, Interval}
-import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.data.tables.RecordTable
-import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, wholeWorldEnvelope}
+import org.locationtech.geomesa.utils.stats.{RangeHistogram, Stat}
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
 
 /**
  * Tracks stats for a schema - spatial/temporal bounds, number of records, etc. Persistence of
@@ -23,144 +22,86 @@ import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, wholeWorldEnvelop
 trait GeoMesaStats {
 
   /**
-   * Get rough bounds for a query
-   *
-   * @param query query
-   * @return bounds
-   */
-  def estimateBounds(query: Query): ReferencedEnvelope
+    * Gets the number of features that will be returned for a query. May return -1 if exact is false
+    * and estimate is unavailable.
+    *
+    * @param sft simple feature type
+    * @param filter cql filter
+    * @param exact rough estimate, or precise count. note: precise count will likely be expensive.
+    * @return count of features, if available - will always be Some if exact == true
+    */
+  def getCount(sft: SimpleFeatureType, filter: Filter = Filter.INCLUDE, exact: Boolean = false): Option[Long]
 
   /**
-   * Get rough time bounds for a query
-   *
-   * @param query query
-   * @return time bounds
-   */
-  def estimateTimeBounds(query: Query): Interval
+    * Gets the bounds for data that will be returned for a query
+    *
+    * @param sft simple feature type
+    * @param filter cql filter
+    * @param exact rough estimate, or precise bounds. note: precise bounds will likely be expensive.
+    * @return bounds
+    */
+  def getBounds(sft: SimpleFeatureType, filter: Filter = Filter.INCLUDE, exact: Boolean = false): ReferencedEnvelope
 
   /**
-   * Rough estimate of number of features
-   *
-   * @param query query
-   * @return count of features
-   */
-  def estimateCount(query: Query): Long
+    * Gets the minimum and maximum values for the given attribute
+    *
+    * @param sft simple feature type
+    * @param attribute attribute name to examine
+    * @param filter cql filter
+    * @param exact rough estimate, or precise values. note: precise values will likely be expensive.
+    * @tparam T attribute type - must correspond to attribute binding
+    * @return mix/max values. types will be consistent with the binding of the attribute
+    */
+  def getMinMax[T](sft: SimpleFeatureType,
+                   attribute: String,
+                   filter: Filter = Filter.INCLUDE,
+                   exact: Boolean = false): Option[(T, T)]
+
+  /**
+    * Get a histogram of values for the given attribute, if available
+    *
+    * @param sft simple feature type
+    * @param attribute attribute name to examine
+    * @tparam T attribute type - must correspond to attribute binding
+    * @return histogram of values. types will be consistent with the binding the attribute
+    */
+  def getHistogram[T](sft: SimpleFeatureType, attribute: String): Option[RangeHistogram[T]]
+
+  /**
+    * Executes a query against live data to calculate a given stat
+    *
+    * @param sft simple feature type
+    * @param stats stat string
+    * @param filter cql filter
+    * @tparam T stat type - must correspond to stat string
+    * @return stat
+    */
+  def runStatQuery[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter = Filter.INCLUDE): T
+
+  /**
+    * Updates the cached stats for the given schema
+    *
+    * @param sft simple feature type
+    */
+  def runStats(sft: SimpleFeatureType): Stat
+
+  /**
+    * Gets an object to track stats as they are written
+    *
+    * @param sft simple feature type
+    * @return updater
+    */
+  def statUpdater(sft: SimpleFeatureType): StatUpdater
+}
+
+trait HasGeoMesaStats {
+  def stats: GeoMesaStats
 }
 
 /**
- * Tracks stats via entries stored in metadata
- */
-trait GeoMesaMetadataStats extends GeoMesaStats {
-
-  this: AccumuloConnectorCreator with HasGeoMesaMetadata =>
-
-  import GeoMesaStats.{allTimeBounds, decodeSpatialBounds, decodeTimeBounds, encode}
-
-  /**
-   * Get rough bounds for a query
-   * Note: we don't currently filter by the cql
-   *
-   * @param query query
-   * @return bounds
-   */
-  override def estimateBounds(query: Query): ReferencedEnvelope =
-    readSpatialBounds(query.getTypeName)
-        .map(new ReferencedEnvelope(_, CRS_EPSG_4326))
-        .getOrElse(wholeWorldEnvelope)
-
-  /**
-   * Get rough time bounds for a query
-   * Note: we don't currently filter by the cql
-   *
-   * @param query query
-   * @return time bounds
-   */
-  override def estimateTimeBounds(query: Query): Interval =
-    readTimeBounds(query.getTypeName).getOrElse(allTimeBounds)
-
-  /**
-   * Rough estimate of number of features
-   * Note: we don't currently filter by the cql
-   *
-   * @param query query
-   * @return count of features
-   */
-  override def estimateCount(query: Query): Long =
-    metadata.getTableSize(getTableName(query.getTypeName, RecordTable))
-
-  /**
-   * Clears any existing spatial bounds
-   *
-   * @param typeName simple feature type
-   */
-  def clearSpatialBounds(typeName: String): Unit = metadata.insert(typeName, SPATIAL_BOUNDS_KEY, "")
-
-  /**
-   * Clears any existing temporal bounds
-   *
-   * @param typeName simple feature type
-   */
-  def clearTemporalBounds(typeName: String): Unit = metadata.insert(typeName, TEMPORAL_BOUNDS_KEY, "")
-
-  /**
-   * Writes spatial bounds for this feature
-   *
-   * @param typeName simple feature type
-   * @param bounds partial bounds - existing bounds will be expanded to include this
-   */
-  def writeSpatialBounds(typeName: String, bounds: Envelope): Unit = {
-    val toWrite = readSpatialBounds(typeName) match {
-      case None => Some(bounds)
-      case Some(current) =>
-        val expanded = new Envelope(current)
-        expanded.expandToInclude(bounds)
-        if (current == expanded) None else Some(expanded)
-    }
-    toWrite.foreach(b => metadata.insert(typeName, SPATIAL_BOUNDS_KEY, encode(b)))
-  }
-
-  /**
-   * Writes temporal bounds for this feature
-   *
-   * @param typeName simple feature type
-   * @param bounds partial bounds - existing bounds will be expanded to include this
-   */
-  def writeTemporalBounds(typeName: String, bounds: Interval): Unit = {
-    import org.locationtech.geomesa.utils.time.Time.RichInterval
-    val toWrite = readTimeBounds(typeName) match {
-      case None => Some(bounds)
-      case Some(current) =>
-        val expanded = current.expandByInterval(bounds)
-        if (current == expanded) None else Some(expanded)
-    }
-    toWrite.foreach(b => metadata.insert(typeName, TEMPORAL_BOUNDS_KEY, encode(b)))
-  }
-
-  private def readTimeBounds(typeName: String): Option[Interval] =
-    metadata.readNoCache(typeName, TEMPORAL_BOUNDS_KEY).filterNot(_.isEmpty).map(decodeTimeBounds)
-
-  private def readSpatialBounds(typeName: String): Option[Envelope] =
-    metadata.readNoCache(typeName, SPATIAL_BOUNDS_KEY).filterNot(_.isEmpty).map(decodeSpatialBounds)
-}
-
-object GeoMesaStats {
-
-  def allTimeBounds = new Interval(0L, System.currentTimeMillis(), DateTimeZone.UTC) // Epoch till now
-
-  def decodeTimeBounds(value: String): Interval = {
-    val longs = value.split(":").map(java.lang.Long.parseLong)
-    require(longs.length == 2 && longs(0) <= longs(1), s"Unexpected time bounds value found: $value")
-    new Interval(longs(0), longs(1), DateTimeZone.UTC)
-  }
-
-  def decodeSpatialBounds(string: String): Envelope = {
-    val minMaxXY = string.split(":")
-    require(minMaxXY.size == 4)
-    new Envelope(minMaxXY(0).toDouble, minMaxXY(1).toDouble, minMaxXY(2).toDouble, minMaxXY(3).toDouble)
-  }
-
-  def encode(bounds: Interval): String = s"${bounds.getStartMillis}:${bounds.getEndMillis}"
-
-  def encode(bounds: Envelope): String =
-    Seq(bounds.getMinX, bounds.getMaxX, bounds.getMinY, bounds.getMaxY).mkString(":")
+  * Trait for tracking stats based on simple features
+  */
+trait StatUpdater extends Closeable with Flushable {
+  def add(sf: SimpleFeature): Unit
+  def remove(sf: SimpleFeature): Unit
 }

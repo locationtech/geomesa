@@ -17,6 +17,7 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.index._
+import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -46,8 +47,6 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
 
   val ff = CommonFactoryFinder.getFilterFactory2
 
-  val hints = new UserDataStrategyHints()
-
   def checkStrategies[T](query: Query, clas: Class[T]) = {
     val out = new ExplainString
     ds.getQueryPlan(query, explainer = out)
@@ -66,23 +65,23 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
       // % should return all features
       val wildCardQuery = new Query(sftName, ff.like(ff.property("name"),"%"))
       checkStrategies(wildCardQuery, classOf[AttributeIdxStrategy])
-      fs.getFeatures().features.size mustEqual 16
+      SelfClosingIterator(fs.getFeatures()) must haveLength(16)
 
       forall(List("a", "b", "c", "d")) { letter =>
         // 4 features for this letter
         val leftWildCard = new Query(sftName, ff.like(ff.property("name"),s"%$letter"))
         checkStrategies(leftWildCard, classOf[Z2IdxStrategy])
-        fs.getFeatures(leftWildCard).features.size mustEqual 4
+        SelfClosingIterator(fs.getFeatures(leftWildCard)) must haveLength(4)
 
         // Double wildcards should be full table scan
         val doubleWildCard = new Query(sftName, ff.like(ff.property("name"),s"%$letter%"))
         checkStrategies(doubleWildCard, classOf[Z2IdxStrategy])
-        fs.getFeatures(doubleWildCard).features.size mustEqual 4
+        SelfClosingIterator(fs.getFeatures(doubleWildCard)) must haveLength(4)
 
         // should return the 4 features for this letter
         val rightWildcard = new Query(sftName, ff.like(ff.property("name"),s"$letter%"))
         checkStrategies(rightWildcard, classOf[AttributeIdxStrategy])
-        fs.getFeatures(rightWildcard).features.size mustEqual 4
+        SelfClosingIterator(fs.getFeatures(rightWildcard)) must haveLength(4)
       }
     }
 
@@ -103,36 +102,24 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
       checkStrategies(rightWildcard, classOf[AttributeIdxStrategy])
 
       forall(List(query, leftWildCard, doubleWildCard, rightWildcard)) { query =>
-        val features = fs.getFeatures(query)
-
-        features.size mustEqual 4
-        forall(features.features) { sf =>
-          sf.getAttribute(0) must beAnInstanceOf[Geometry]
-        }
-
-        forall(features.features) { sf =>
-          sf.getAttributeCount mustEqual 1
-        }
-        success
+        val features = SelfClosingIterator(fs.getFeatures(query)).toList
+        features must haveLength(4)
+        forall(features)(_.getAttribute(0) must beAnInstanceOf[Geometry])
+        forall(features)(_.getAttributeCount mustEqual 1)
       }
     }
 
     "handle corner case with attr idx, bbox, and no temporal filter" in {
       val filter = ff.and(ECQL.toFilter("name = 'b'"), ECQL.toFilter("BBOX(geom, 30, 30, 50, 50)"))
       val query = new Query(sftName, filter, Array("geom"))
-      QueryStrategyDecider.chooseStrategies(sft, query, hints, None).head must
+      QueryStrategyDecider.chooseStrategies(sft, query, ds.stats, None).head must
           beAnInstanceOf[Z2IdxStrategy]
 
-      val features = fs.getFeatures(query)
+      val features = SelfClosingIterator(fs.getFeatures(query)).toList
 
-      features.size mustEqual 4
-      forall(features.features) { sf =>
-        sf.getAttribute(0) must beAnInstanceOf[Geometry]
-      }
-
-      forall(features.features) { sf =>
-        sf.getAttributeCount mustEqual 1
-      }
+      features must haveLength(4)
+      forall(features)(_.getAttribute(0) must beAnInstanceOf[Geometry])
+      forall(features)(_.getAttributeCount mustEqual 1)
     }
   }
 

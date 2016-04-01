@@ -34,13 +34,12 @@ class MinMaxTest extends Specification with StatTestHelper {
       "be empty initiallly" >> {
         val minMax = newStat[String]("strAttr", observe = false)
         minMax.attribute mustEqual stringIndex
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
       }
 
       "observe correct values" >> {
         val minMax = newStat[String]("strAttr")
-        minMax.bounds must beSome(("abc000", "abc099"))
+        minMax.bounds mustEqual ("abc000", "abc099")
       }
 
       "serialize to json" >> {
@@ -73,12 +72,12 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         features2.foreach { minMax2.observe }
 
-        minMax2.bounds must beSome(("abc100", "abc199"))
+        minMax2.bounds mustEqual ("abc100", "abc199")
 
         minMax += minMax2
 
-        minMax.bounds must beSome(("abc000", "abc199"))
-        minMax2.bounds must beSome(("abc100", "abc199"))
+        minMax.bounds mustEqual ("abc000", "abc199")
+        minMax2.bounds mustEqual ("abc100", "abc199")
       }
 
       "clear" >> {
@@ -87,7 +86,6 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         minMax.clear()
 
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
       }
     }
@@ -96,13 +94,12 @@ class MinMaxTest extends Specification with StatTestHelper {
       "be empty initiallly" >> {
         val minMax = newStat[java.lang.Integer]("intAttr", observe = false)
         minMax.attribute mustEqual intIndex
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
       }
 
       "observe correct values" >> {
         val minMax = newStat[java.lang.Integer]("intAttr")
-        minMax.bounds must beSome((0, 99))
+        minMax.bounds mustEqual (0, 99)
       }
 
       "serialize to json" >> {
@@ -135,12 +132,12 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         features2.foreach { minMax2.observe }
 
-        minMax2.bounds must beSome((100, 199))
+        minMax2.bounds mustEqual (100, 199)
 
         minMax += minMax2
 
-        minMax.bounds must beSome((0, 199))
-        minMax2.bounds must beSome((100, 199))
+        minMax.bounds mustEqual (0, 199)
+        minMax2.bounds mustEqual (100, 199)
       }
 
       "clear" >> {
@@ -149,7 +146,6 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         minMax.clear()
 
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
       }
     }
@@ -158,13 +154,12 @@ class MinMaxTest extends Specification with StatTestHelper {
       "be empty initiallly" >> {
         val minMax = newStat[java.lang.Long]("longAttr", observe = false)
         minMax.attribute mustEqual longIndex
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
       }
 
       "observe correct values" >> {
         val minMax = newStat[java.lang.Long]("longAttr")
-        minMax.bounds must beSome((0L, 99L))
+        minMax.bounds mustEqual (0L, 99L)
       }
 
       "serialize to json" >> {
@@ -197,12 +192,12 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         features2.foreach { minMax2.observe }
 
-        minMax2.bounds must beSome((100L, 199L))
+        minMax2.bounds mustEqual (100L, 199L)
 
         minMax += minMax2
 
-        minMax.bounds must beSome((0L, 199L))
-        minMax2.bounds must beSome((100L, 199L))
+        minMax.bounds mustEqual (0L, 199L)
+        minMax2.bounds mustEqual (100L, 199L)
       }
 
       "clear" >> {
@@ -211,7 +206,6 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         minMax.clear()
 
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
       }
     }
@@ -220,13 +214,12 @@ class MinMaxTest extends Specification with StatTestHelper {
       "be empty initiallly" >> {
         val minMax = newStat[java.lang.Float]("floatAttr", observe = false)
         minMax.attribute mustEqual floatIndex
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
       }
 
       "observe correct values" >> {
         val minMax = newStat[java.lang.Float]("floatAttr")
-        minMax.bounds must beSome((0f, 99f))
+        minMax.bounds mustEqual (0f, 99f)
       }
 
       "serialize to json" >> {
@@ -259,12 +252,12 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         features2.foreach { minMax2.observe }
 
-        minMax2.bounds must beSome((100f, 199f))
+        minMax2.bounds mustEqual (100f, 199f)
 
         minMax += minMax2
 
-        minMax.bounds must beSome((0f, 199f))
-        minMax2.bounds must beSome((100f, 199f))
+        minMax.bounds mustEqual (0f, 199f)
+        minMax2.bounds mustEqual (100f, 199f)
       }
 
       "clear" >> {
@@ -273,7 +266,6 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         minMax.clear()
 
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
       }
     }
@@ -282,13 +274,12 @@ class MinMaxTest extends Specification with StatTestHelper {
       "be empty initiallly" >> {
         val minMax = newStat[java.lang.Double]("doubleAttr", observe = false)
         minMax.attribute mustEqual doubleIndex
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
       }
 
       "observe correct values" >> {
         val minMax = newStat[java.lang.Double]("doubleAttr")
-        minMax.bounds must beSome((0d, 99d))
+        minMax.bounds mustEqual (0d, 99d)
       }
 
       "serialize to json" >> {
@@ -321,12 +312,12 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         features2.foreach { minMax2.observe }
 
-        minMax2.bounds must beSome((100d, 199d))
+        minMax2.bounds mustEqual (100d, 199d)
 
         minMax += minMax2
 
-        minMax.bounds must beSome((0d, 199d))
-        minMax2.bounds must beSome((100d, 199d))
+        minMax.bounds mustEqual (0d, 199d)
+        minMax2.bounds mustEqual (100d, 199d)
       }
 
       "clear" >> {
@@ -335,7 +326,6 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         minMax.clear()
 
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
       }
     }
@@ -344,16 +334,15 @@ class MinMaxTest extends Specification with StatTestHelper {
       "be empty initiallly" >> {
         val minMax = newStat[Date]("dtg", observe = false)
         minMax.attribute mustEqual dateIndex
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
       }
 
       "observe correct values" >> {
         val minMax = newStat[Date]("dtg")
-        minMax.bounds must beSome {(
+        minMax.bounds mustEqual (
           GeoToolsDateFormat.parseDateTime("2012-01-01T00:00:00.000Z").toDate,
           GeoToolsDateFormat.parseDateTime("2012-01-01T23:00:00.000Z").toDate
-        )}
+        )
       }
 
       "serialize to json" >> {
@@ -386,21 +375,21 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         features2.foreach { minMax2.observe }
 
-        minMax2.bounds must beSome {(
+        minMax2.bounds mustEqual (
           GeoToolsDateFormat.parseDateTime("2012-01-02T00:00:00.000Z").toDate,
           GeoToolsDateFormat.parseDateTime("2012-01-02T23:00:00.000Z").toDate
-        )}
+        )
 
         minMax += minMax2
 
-        minMax.bounds must beSome {(
+        minMax.bounds mustEqual (
           GeoToolsDateFormat.parseDateTime("2012-01-01T00:00:00.000Z").toDate,
           GeoToolsDateFormat.parseDateTime("2012-01-02T23:00:00.000Z").toDate
-        )}
-        minMax2.bounds must beSome {(
+        )
+        minMax2.bounds mustEqual (
           GeoToolsDateFormat.parseDateTime("2012-01-02T00:00:00.000Z").toDate,
-            GeoToolsDateFormat.parseDateTime("2012-01-02T23:00:00.000Z").toDate
-        )}
+          GeoToolsDateFormat.parseDateTime("2012-01-02T23:00:00.000Z").toDate
+        )
       }
 
       "clear" >> {
@@ -409,7 +398,6 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         minMax.clear()
 
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
       }
     }
@@ -418,13 +406,12 @@ class MinMaxTest extends Specification with StatTestHelper {
       "be empty initiallly" >> {
         val minMax = newStat[Geometry]("geom", observe = false)
         minMax.attribute mustEqual geomIndex
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
       }
 
       "observe correct values" >> {
         val minMax = newStat[Geometry]("geom")
-        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
+        minMax.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)"))
       }
 
       "serialize to json" >> {
@@ -457,57 +444,51 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         features2.foreach { minMax2.observe }
 
-        minMax2.bounds must beSome((WKTUtils.read("POINT (80 30)"), WKTUtils.read("POINT (179 79)")))
+        minMax2.bounds mustEqual (WKTUtils.read("POINT (80 30)"), WKTUtils.read("POINT (179 79)"))
 
         minMax += minMax2
 
-        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (179 79)")))
-        minMax2.bounds must beSome((WKTUtils.read("POINT (80 30)"), WKTUtils.read("POINT (179 79)")))
+        minMax.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (179 79)"))
+        minMax2.bounds mustEqual (WKTUtils.read("POINT (80 30)"), WKTUtils.read("POINT (179 79)"))
       }
 
       "combine two MinMaxes2" >> {
         val minMax = newStat[Geometry]("geom")
         val minMax2 = newStat[Geometry]("geom", observe = false)
 
-        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
-        minMax2.bounds must beNone
+        minMax.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)"))
 
         minMax += minMax2
 
-        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
-        minMax2.bounds must beNone
+        minMax.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)"))
       }
 
       "combine two MinMaxes3" >> {
         val minMax = newStat[Geometry]("geom")
         val minMax2 = newStat[Geometry]("geom", observe = false)
 
-        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
-        minMax2.bounds must beNone
+        minMax.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)"))
 
         minMax2 += minMax
 
-        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
-        minMax2.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
+        minMax.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)"))
+        minMax2.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)"))
       }
 
       "combine empty MinMaxes" >> {
         val minMax = newStat[Geometry]("geom")
         val minMax2 = newStat[Geometry]("geom", observe = false)
 
-        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
+        minMax.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)"))
 
-        minMax2.bounds must beNone
 
         val addRight = minMax2 + minMax
-        addRight.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
+        addRight.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)"))
 
         val addLeft = minMax + minMax2
-        addLeft.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
+        addLeft.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)"))
 
-        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
-
-        minMax2.bounds must beNone
+        minMax.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)"))
       }
 
       "clear" >> {
@@ -516,7 +497,6 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         minMax.clear()
 
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
       }
     }

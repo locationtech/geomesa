@@ -18,6 +18,7 @@ import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureStore
 import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.accumulo.iterators.TestData
+import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.filters.Filters
@@ -84,11 +85,15 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
       dataFeatures.size should be equalTo 8
 
       val prox = new ProximitySearchProcess
-      prox.execute(inputFeatures, dataFeatures, 50.0).size should be equalTo 0
-      prox.execute(inputFeatures, dataFeatures, 90.0).size should be equalTo 0
-      prox.execute(inputFeatures, dataFeatures, 99.1).size should be equalTo 6
-      prox.execute(inputFeatures, dataFeatures, 100.0).size should be equalTo 6
-      prox.execute(inputFeatures, dataFeatures, 101.0).size should be equalTo 6
+
+      // note: size returns an estimated amount, instead we need to actually count the features
+      def ex(p: Double) = SelfClosingIterator(prox.execute(inputFeatures, dataFeatures, p))
+
+      ex(50.0)  must haveLength(0)
+      ex(90.0)  must haveLength(0)
+      ex(99.1)  must haveLength(6)
+      ex(100.0) must haveLength(6)
+      ex(101.0) must haveLength(6)
     }
 
     "work for a complex case with dates" in {
@@ -119,7 +124,8 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
       val dataFeatures = fs.getFeatures(ff.during(ff.property("dtg"), Filters.dts2lit(start, end)))
 
       val prox = new ProximitySearchProcess
-      prox.execute(queryLine, dataFeatures, 150000.0).size should be equalTo 50
+      // note: size returns an estimated amount, instead we need to actually count the features
+      SelfClosingIterator(prox.execute(queryLine, dataFeatures, 150000.0)) must haveLength(50)
     }
   }
 

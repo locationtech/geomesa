@@ -51,16 +51,9 @@ abstract class BinnedArray[T](val length: Int, val bounds: (T, T)) {
     * Increment the count for the bin corresponding to this value
     *
     * @param value value
-    */
-  def add(value: T): Unit = add(value, 1)
-
-  /**
-    * Increment the count for the bin corresponding to this value
-    *
-    * @param value value
     * @param count how much to increment
     */
-  def add(value: T, count: Long): Unit = {
+  def add(value: T, count: Long = 1): Unit = {
     val i = indexOf(value)
     if (i != -1) {
       counts(i) += count
@@ -91,12 +84,19 @@ abstract class BinnedArray[T](val length: Int, val bounds: (T, T)) {
     */
   def bounds(index: Int): (T, T)
 
-  override def equals(other: Any): Boolean = other match {
-    case that: BinnedArray[_] => bounds == that.bounds && java.util.Arrays.equals(counts, that.counts)
-    case _ => false
-  }
+  /**
+    * Min bounds convenience method
+    *
+    * @return min bounds
+    */
+  def min: T = bounds._1
 
-  override def hashCode(): Int = Seq(bounds, counts).map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  /**
+    * Max bounds convenience method
+    *
+    * @return max bounds
+    */
+  def max: T = bounds._2
 }
 
 object BinnedArray {
@@ -128,7 +128,7 @@ class BinnedIntegerArray(length: Int, bounds: (Integer, Integer)) extends Binned
   require(bounds._1 < bounds._2,
     s"Upper bound must be greater than lower bound: lower=${bounds._1} upper=${bounds._2}")
 
-  private val binSize = math.max(1, (bounds._2 - bounds._1).toFloat / length)
+  private val binSize = (bounds._2 - bounds._1).toFloat / length
 
   override def indexOf(value: Integer): Int = {
     if (value < bounds._1 || value > bounds._2) { -1 } else {
@@ -142,14 +142,17 @@ class BinnedIntegerArray(length: Int, bounds: (Integer, Integer)) extends Binned
     if (index < 0 || index > length) {
       throw new ArrayIndexOutOfBoundsException(index)
     }
-    bounds._1 + math.round(binSize / 2 + binSize * index)
+    val i = bounds._1 + math.round(binSize / 2 + binSize * index)
+    if (i > bounds._2) bounds._2 else i
   }
 
   override def bounds(index: Int): (Integer, Integer) = {
     if (index < 0 || index > length) {
       throw new ArrayIndexOutOfBoundsException(index)
     }
-    (bounds._1 + math.ceil(binSize * index).toInt, bounds._1 + math.floor(binSize * (index + 1)).toInt)
+    val lo = bounds._1 + math.ceil(binSize * index).toInt
+    val hi = math.max(lo, bounds._1 + math.floor(binSize * (index + 1)).toInt)
+    (if (lo > bounds._2) bounds._2 else lo, if (hi > bounds._2) bounds._2 else hi)
   }
 }
 
@@ -158,7 +161,7 @@ class BinnedLongArray(length: Int, bounds: (jLong, jLong)) extends BinnedArray[j
   require(bounds._1 < bounds._2,
     s"Upper bound must be greater than lower bound: lower=${bounds._1} upper=${bounds._2}")
 
-  private val binSize = math.max(1, (bounds._2 - bounds._1).toFloat / length)
+  private val binSize = (bounds._2 - bounds._1).toDouble / length
 
   override def indexOf(value: jLong): Int = {
     if (value < bounds._1 || value > bounds._2) { -1 } else {
@@ -172,14 +175,17 @@ class BinnedLongArray(length: Int, bounds: (jLong, jLong)) extends BinnedArray[j
     if (index < 0 || index > length) {
       throw new ArrayIndexOutOfBoundsException(index)
     }
-    bounds._1 + math.round(binSize / 2 + binSize * index)
+    val i = bounds._1 + math.round(binSize / 2 + binSize * index)
+    if (i > bounds._2) bounds._2 else i
   }
 
   override def bounds(index: Int): (jLong, jLong) = {
     if (index < 0 || index > length) {
       throw new ArrayIndexOutOfBoundsException(index)
     }
-    (bounds._1 + math.ceil(binSize * index).toLong, bounds._1 + math.floor(binSize * (index + 1)).toLong)
+    val lo = bounds._1 + math.ceil(binSize * index).toLong
+    val hi = math.max(lo, bounds._1 + math.floor(binSize * (index + 1)).toLong)
+    (if (lo > bounds._2) bounds._2 else lo, if (hi > bounds._2) bounds._2 else hi)
   }
 }
 
@@ -254,47 +260,45 @@ class BinnedDoubleArray(length: Int, bounds: (jDouble, jDouble)) extends BinnedA
 class BinnedStringArray(length: Int, bounds: (String, String)) extends BinnedArray[String](length, bounds) {
 
   private val (start, end) = {
-    val lower = bounds._1.toLowerCase(Locale.US).replaceAll("[^0-9a-z]", "0")
-    val upper = bounds._2.toLowerCase(Locale.US).replaceAll("[^0-9a-z]", "0")
+    val lower = normalize(bounds._1)
+    val upper = normalize(bounds._2)
     if (lower.length == upper.length) {
       (lower, upper)
     } else if (lower.length < upper.length) {
       (lower.padTo(upper.length, '0'), upper)
     } else {
-      (lower, upper.padTo(upper.length, 'z'))
+      (lower, upper.padTo(lower.length, 'z'))
     }
   }
 
   require(start < end, s"Upper bound must be greater than lower bound: lower=${bounds._1} upper=${bounds._2}")
 
-  private val firstDiff = start.zip(end).indexWhere { case (l, r) => l != r }
-  private val zeroInt = '0'.toInt
-  private val nineInt = '9'.toInt - zeroInt
-  private val alphaOffset = 'a'.toInt - 10
+  // # of base 36 numbers we can consider
+  private val sigDigits = math.max(1, math.round(math.log(length) / math.log(36)).toInt)
+  private val prefixLength = start.zip(end).indexWhere { case (l, r) => l != r }
 
-  def stringToLong(s: String): Long = {
-    val base36 = s.slice(firstDiff, start.length).replaceAll("[^0-9a-z]", "0")
-    if (base36.length > 12) {
-      // won't fit in a long...
-      jLong.parseLong(base36.substring(0, 12), 36)
+  private val minLong = stringToLong(start)
+  private val maxLong = stringToLong(end, 'z')
+
+  private val binSize = (maxLong - minLong).toDouble / length
+
+  private def normalize(s: String) = s.toLowerCase(Locale.US).replaceAll("[^0-9a-z]", "0")
+
+  def stringToLong(s: String, padding: Char = '0'): Long = {
+    val normalized = if (s.length >= prefixLength + sigDigits) {
+      s.substring(prefixLength, prefixLength + sigDigits)
     } else {
-      jLong.parseLong(base36, 36)
+      s.substring(prefixLength).padTo(sigDigits, padding)
     }
-
+    jLong.parseLong(normalized, 36)
   }
-
-  def longToString(l: Long): String =
-    start.substring(0, firstDiff) + jLong.toString(l, 36)
-
-  private val min = stringToLong(start)
-  private val max = stringToLong(end)
-
-  private val binSize = math.max(1, (max - min).toFloat / length)
+  def longToString(l: Long, padding: Char = '0'): String =
+    start.substring(0, prefixLength) + jLong.toString(l, 36).padTo(sigDigits, padding)
 
   override def indexOf(value: String): Int = {
-    val lowerCaseValue = value.toLowerCase(Locale.US)
-    if (lowerCaseValue < start || lowerCaseValue > end) { -1 } else {
-      val i = math.floor((stringToLong(lowerCaseValue) - min) / binSize).toInt
+    val normalized = normalize(value)
+    if (normalized < start || normalized > end) { -1 } else {
+      val i = math.floor((stringToLong(normalized) - minLong) / binSize).toInt
       // i == length check catches the upper bound
       if (i < 0 || i > length) -1 else if (i == length) length - 1 else i
     }
@@ -304,32 +308,35 @@ class BinnedStringArray(length: Int, bounds: (String, String)) extends BinnedArr
     if (index < 0 || index > length) {
       throw new ArrayIndexOutOfBoundsException(index)
     }
-    longToString(min + math.round(binSize / 2 + binSize * index) - 1)
+    val i = minLong + math.round(binSize / 2 + binSize * index)
+    longToString(if (i > maxLong) maxLong else i)
   }
 
   override def bounds(index: Int): (String, String) = {
     if (index < 0 || index > length) {
       throw new ArrayIndexOutOfBoundsException(index)
     }
-    val loLong = min + math.ceil(binSize * index).toLong
-    val hiLong = min + math.floor(binSize * (index + 1)).toLong
-    (longToString(loLong), longToString(hiLong))
+    val loLong = minLong + math.ceil(binSize * index).toLong
+    val hiLong = math.max(loLong, minLong + math.floor(binSize * (index + 1)).toLong)
+    val lo = longToString(if (loLong > maxLong) maxLong else loLong)
+    val hi = longToString(if (hiLong > maxLong) maxLong else hiLong, 'z')
+    (lo, hi)
   }
 }
 
 class BinnedDateArray(length: Int, bounds: (Date, Date)) extends BinnedArray[Date](length, bounds) {
 
-  private val min = bounds._1.getTime
-  private val max = bounds._2.getTime
-  private val binSize = math.max(1, (max - min).toFloat / length)
+  private val minLong = bounds._1.getTime
+  private val maxLong = bounds._2.getTime
+  private val binSize = math.max(1, (maxLong - minLong).toDouble / length)
 
-  require(min < bounds._2.getTime,
+  require(minLong < bounds._2.getTime,
     s"Upper bound must be after lower bound: lower=${bounds._1} upper=${bounds._2}")
 
   override def indexOf(value: Date): Int = {
     val time = value.getTime
-    if (time < min || time > max) { -1 } else {
-      val i = math.floor((time - min) / binSize).toInt
+    if (time < minLong || time > maxLong) { -1 } else {
+      val i = math.floor((time - minLong) / binSize).toInt
       // i == length check catches the upper bound
       if (i < 0 || i > length) -1 else if (i == length) length - 1 else i
     }
@@ -339,16 +346,17 @@ class BinnedDateArray(length: Int, bounds: (Date, Date)) extends BinnedArray[Dat
     if (index < 0 || index > length) {
       throw new ArrayIndexOutOfBoundsException(index)
     }
-    new Date(min + math.round(binSize / 2 + binSize * index))
+    val i = minLong + math.round(binSize / 2 + binSize * index)
+    new Date(if (i > maxLong) maxLong else i)
   }
 
   override def bounds(index: Int): (Date, Date) = {
     if (index < 0 || index > length) {
       throw new ArrayIndexOutOfBoundsException(index)
     }
-    val loLong = min + math.ceil(binSize * index).toLong
-    val hiLong = min + math.floor(binSize * (index + 1)).toLong - 1
-    (new Date(loLong), new Date(hiLong))
+    val loLong = minLong + math.ceil(binSize * index).toLong
+    val hiLong = minLong + math.floor(binSize * (index + 1)).toLong - 1
+    (new Date(if (loLong > maxLong) maxLong else loLong), new Date(if (hiLong > maxLong) maxLong else hiLong))
   }
 }
 
@@ -360,24 +368,37 @@ class BinnedDateArray(length: Int, bounds: (Date, Date)) extends BinnedArray[Dat
   */
 class BinnedGeometryArray(length: Int, bounds: (Geometry, Geometry)) extends BinnedArray[Geometry](length, bounds) {
 
-  val min = Stat.getGeoHash(bounds._1)
-  val max  = Stat.getGeoHash(bounds._2)
+  private val minInt = geomToInt(bounds._1)
+  private val maxInt = geomToInt(bounds._2)
 
-  require(min < max,
-    s"GeoHashes aren't ordered: lower=${WKTUtils.write(bounds._1)}:$min upper=${WKTUtils.write(bounds._2)}:$max")
+  require(minInt < maxInt,
+    s"GeoHashes aren't ordered: lower=${WKTUtils.write(bounds._1)}:$minInt upper=${WKTUtils.write(bounds._2)}:$maxInt")
 
-  private val binSize = math.max(1, (max - min).toFloat / length)
+  private val binSize = math.max(1, (maxInt - minInt).toFloat / length)
 
-  private def intToGeom(i: Int) = {
+  private def intToGeoHash(i: Int): GeoHash = {
     val asBinaryString = Integer.toBinaryString(i)
     val asPaddedString = f"$asBinaryString%10s".replaceAll(" ", "0")
-    GeoHash.fromBinaryString(asPaddedString).getPoint
+    GeoHash.fromBinaryString(asPaddedString)
   }
 
+  /**
+    * Gets a geohash as an int value
+    *
+    * @param value geometry to evaluate (will use the centroid)
+    * @param length length of geohash, in 5-bit digits (base 32)
+    * @return
+    */
+  private def geomToInt(value: Geometry, length: Int = 2): Int = {
+    val centroid = value.getCentroid
+    GeoHash(centroid.getX, centroid.getY, 5 * length).toInt
+  }
+
+
   override def indexOf(value: Geometry): Int = {
-    val gh = Stat.getGeoHash(value)
-    if (gh < min || gh > max) { -1 } else {
-      val i = math.floor((gh - min) / binSize).toInt
+    val gh = geomToInt(value)
+    if (gh < minInt || gh > maxInt) { -1 } else {
+      val i = math.floor((gh - minInt) / binSize).toInt
       // i == length check catches the upper bound
       if (i < 0 || i > length) -1 else if (i == length) length - 1 else i
     }
@@ -387,16 +408,16 @@ class BinnedGeometryArray(length: Int, bounds: (Geometry, Geometry)) extends Bin
     if (index < 0 || index > length) {
       throw new ArrayIndexOutOfBoundsException(index)
     }
-    intToGeom(min + math.round(binSize / 2 + binSize * index))
+    // the way geohashes work, we want to use floor instead of round otherwise we can jump around
+    intToGeoHash(minInt + math.floor(binSize / 2 + binSize * index).toInt).getPoint
   }
 
   override def bounds(index: Int): (Geometry, Geometry) = {
     if (index < 0 || index > length) {
       throw new ArrayIndexOutOfBoundsException(index)
     }
-    val loInt = min + math.ceil(binSize * index).toInt
-    val hiInt = min + math.floor(binSize * (index + 1)).toInt - 1
-
-    (intToGeom(loInt), intToGeom(hiInt))
+    // the way geohashes work, we want to use floor instead of round otherwise we can jump around
+    val bbox = intToGeoHash(minInt + math.floor(binSize / 2 + binSize * index).toInt).bbox
+    (bbox.ll, bbox.ur)
   }
 }

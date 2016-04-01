@@ -16,7 +16,6 @@ Running the command line tools
 Run the ``geomesa`` without any arguments to produce the following usage text::
 
     $ geomesa
-    Warning: GEOMESA_HOME is not set, using /opt/devel/src/geomesa/geomesa-dist/target/geomesa-1.2.0-SNAPSHOT/dist/tools/geomesa-tools-1.2.0-SNAPSHOT
     Usage: geomesa [command] [command options]
       Commands:
         create              Create a feature definition in a GeoMesa catalog
@@ -32,6 +31,8 @@ Run the ``geomesa`` without any arguments to produce the following usage text::
         ingestraster        Ingest a raster file or raster files in a directory into GeoMesa
         list                List GeoMesa features for a given catalog
         queryrasterstats    Export queries and statistics about the last X number of queries to a CSV file.
+        stats-analyze       Analyze statistics on a GeoMesa feature type
+        stats-list          View statistics on a GeoMesa feature type
         removeschema        Remove a schema and associated features from a GeoMesa catalog
         tableconf           Perform table configuration operations
         version             GeoMesa Version
@@ -40,7 +41,6 @@ This usage text lists the available commands. To see help for an individual comm
 run ``geomesa help <command-name>``, which for example will give you something like this::
 
     $ geomesa help list
-    Warning: GEOMESA_HOME is not set, using /opt/devel/src/geomesa/geomesa-dist/target/geomesa-1.2.0-SNAPSHOT/dist/tools/geomesa-tools-1.2.0-SNAPSHOT
     List GeoMesa features for a given catalog
     Usage: list [options]
       Options:
@@ -420,6 +420,26 @@ Explain how a given GeoMesa query will be executed::
     $ geomesa explain -u username -p password \
       -c test_catalog -f test_feature \
       -q "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
+
+stats-analyze
+~~~~~~~~~~~~~
+
+Analyze statistics for your data set. This may improve query planning.
+
+Example usage::
+
+    $ geomesa stats-analyze -u username -p password -c test_catalog -f test_feature
+
+stats-list
+~~~~~~~~~~
+
+Displays current statistics for your data, or can calculate new statistics for fine-grained data analysis.
+
+Example usage::
+
+    $ geomesa stats-list -u username -p password -c test_catalog -f test_feature \
+      --bins 10 --exact --attibutes geom,dtg \
+      -q "dtg DURING 2015-01-01T00:00:00.000Z/2015-01-31T12:59:59.999Z"
 
 tableconf
 ~~~~~~~~~

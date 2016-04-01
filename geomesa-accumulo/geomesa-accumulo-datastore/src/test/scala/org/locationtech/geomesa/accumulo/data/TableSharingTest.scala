@@ -20,6 +20,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.tables.{RecordTable, Z2Table}
 import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.accumulo.iterators.TestData._
+import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.opengis.filter._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -73,7 +74,8 @@ class TableSharingTest extends Specification with LazyLogging {
 
   // At least three queries: st, attr, id.
   def filterCount(f: Filter) = mediumData1.count(f.evaluate)
-  def queryCount(f: Filter, fs: SimpleFeatureSource) = fs.getFeatures(f).size
+  // note: size returns an estimated amount, instead we need to actually count the features
+  def queryCount(f: Filter, fs: SimpleFeatureSource) = SelfClosingIterator(fs.getFeatures(f)).length
 
   val id = "IN(100001, 100011)"
   val st = "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"

@@ -38,10 +38,10 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
 
   val filter = ECQL.toFilter("bbox(geom, -10, -10, 10, 10) and dtg during 2010-05-07T00:00:00.000Z/2010-05-08T00:00:00.000Z")
 
-  def dataStoreWithStats(stats: ArrayBuffer[Stat]) =
-    new AccumuloDataStore(ds.connector, ds.catalogTable, ds.authProvider, ds.auditProvider, ds.defaultVisibilities, ds.config)
-        with StatWriter {
-    override def writeStat(stat: Stat): Unit = stats.append(stat)
+  def dataStoreWithStats(statArray: ArrayBuffer[Stat]) =
+    new AccumuloDataStore(ds.connector, ds.catalogTable, ds.authProvider,
+      ds.auditProvider, ds.defaultVisibilities, ds.config) with StatWriter {
+    override def writeStat(stat: Stat): Unit = statArray.append(stat)
   }
 
   "AccumuloFeatureReader" should {

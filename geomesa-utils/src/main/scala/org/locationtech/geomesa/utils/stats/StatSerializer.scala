@@ -14,6 +14,7 @@ import java.util.Date
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
+import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.mutable.ArrayBuffer
@@ -107,44 +108,248 @@ object KryoStatSerializer {
   }
 
   private [stats] def writeMinMax(output: Output, sft: SimpleFeatureType, stat: MinMax[_]): Unit = {
-    val stringify = Stat.stringifier(sft.getDescriptor(stat.attribute).getType.getBinding)
     output.writeInt(stat.attribute, true)
-    val (min, max) = stat.bounds.getOrElse((null, null))
-    output.writeString(stringify(min))
-    output.writeString(stringify(max))
+    val binding = sft.getDescriptor(stat.attribute).getType.getBinding
+    if (binding == classOf[String]) {
+      output.writeString(stat.minValue.asInstanceOf[String])
+      output.writeString(stat.maxValue.asInstanceOf[String])
+    } else if (binding == classOf[Integer]) {
+      output.writeInt(stat.minValue.asInstanceOf[Integer], true)
+      output.writeInt(stat.maxValue.asInstanceOf[Integer], true)
+    } else if (binding == classOf[jLong]) {
+      output.writeLong(stat.minValue.asInstanceOf[jLong], true)
+      output.writeLong(stat.maxValue.asInstanceOf[jLong], true)
+    } else if (binding == classOf[jFloat]) {
+      output.writeFloat(stat.minValue.asInstanceOf[jFloat])
+      output.writeFloat(stat.maxValue.asInstanceOf[jFloat])
+    } else if (binding == classOf[jDouble]) {
+      output.writeDouble(stat.minValue.asInstanceOf[jDouble])
+      output.writeDouble(stat.maxValue.asInstanceOf[jDouble])
+    } else if (binding == classOf[Date]) {
+      output.writeLong(stat.minValue.asInstanceOf[Date].getTime, true)
+      output.writeLong(stat.maxValue.asInstanceOf[Date].getTime, true)
+    } else if (classOf[Geometry].isAssignableFrom(binding)) {
+      val b1 = WKBUtils.write(stat.minValue.asInstanceOf[Geometry])
+      val b2 = WKBUtils.write(stat.maxValue.asInstanceOf[Geometry])
+      output.writeInt(b1.length, true)
+      output.write(b1)
+      output.writeInt(b2.length, true)
+      output.write(b2)
+    } else {
+      throw new Exception(s"Cannot serialize MinMax due to invalid type: $binding")
+    }
   }
 
   private [stats] def readMinMax(input: Input, sft: SimpleFeatureType): MinMax[_] = {
     val attribute = input.readInt(true)
-    val minString = input.readString
-    val maxString = input.readString
 
-    val attributeType = sft.getDescriptor(attribute).getType.getBinding
-    val destringify = Stat.destringifier(attributeType)
-    val min = destringify(minString)
-    val max = destringify(maxString)
-
-    val stat = if (attributeType == classOf[String]) {
-      new MinMax[String](attribute)
-    } else if (attributeType == classOf[Integer]) {
-      new MinMax[Integer](attribute)
-    } else if (attributeType == classOf[jLong]) {
-      new MinMax[jLong](attribute)
-    } else if (attributeType == classOf[jFloat]) {
-      new MinMax[jFloat](attribute)
-    } else if (attributeType == classOf[jDouble]) {
-      new MinMax[jDouble](attribute)
-    } else if (attributeType == classOf[Date]) {
-      new MinMax[Date](attribute)
-    } else if (classOf[Geometry].isAssignableFrom(attributeType)) {
-      new MinMax[Geometry](attribute)
+    val binding = sft.getDescriptor(attribute).getType.getBinding
+    if (binding == classOf[String]) {
+      val stat = new MinMax[String](attribute)
+      stat.minValue = input.readString()
+      stat.maxValue = input.readString()
+      stat
+    } else if (binding == classOf[Integer]) {
+      val stat = new MinMax[Integer](attribute)
+      stat.minValue = input.readInt(true)
+      stat.maxValue = input.readInt(true)
+      stat
+    } else if (binding == classOf[jLong]) {
+      val stat = new MinMax[jLong](attribute)
+      stat.minValue = input.readLong(true)
+      stat.maxValue = input.readLong(true)
+      stat
+    } else if (binding == classOf[jFloat]) {
+      val stat = new MinMax[jFloat](attribute)
+      stat.minValue = input.readFloat()
+      stat.maxValue = input.readFloat()
+      stat
+    } else if (binding == classOf[jDouble]) {
+      val stat = new MinMax[jDouble](attribute)
+      stat.minValue = input.readDouble()
+      stat.maxValue = input.readDouble()
+      stat
+    } else if (binding == classOf[Date]) {
+      val stat = new MinMax[Date](attribute)
+      stat.minValue = new Date(input.readLong(true))
+      stat.maxValue = new Date(input.readLong(true))
+      stat
+    } else if (classOf[Geometry].isAssignableFrom(binding)) {
+      val stat = new MinMax[Geometry](attribute)
+      val b1 = Array.ofDim[Byte](input.readInt(true))
+      input.read(b1)
+      val b2 = Array.ofDim[Byte](input.readInt(true))
+      input.read(b2)
+      stat.minValue = WKBUtils.read(b1)
+      stat.maxValue = WKBUtils.read(b2)
+      stat
     } else {
-      throw new Exception(s"Cannot deserialize MinMax due to invalid type: $attributeType")
+      throw new Exception(s"Cannot deserialize MinMax due to invalid type: $binding")
+    }
+  }
+
+  private [stats] def writeHistogram(output: Output, sft: SimpleFeatureType, stat: Histogram[_]): Unit = {
+    output.writeInt(stat.attribute, true)
+    output.writeInt(stat.histogram.size, true)
+
+    val binding = sft.getDescriptor(stat.attribute).getType.getBinding
+    val write: (Any) => Unit = if (binding == classOf[String]) {
+      (key) => output.writeString(key.asInstanceOf[String])
+    } else if (binding == classOf[Integer]) {
+      (key) => output.writeInt(key.asInstanceOf[Integer], true)
+    } else if (binding == classOf[jLong]) {
+      (key) => output.writeLong(key.asInstanceOf[jLong], true)
+    } else if (binding == classOf[jFloat]) {
+      (key) => output.writeFloat(key.asInstanceOf[jFloat])
+    } else if (binding == classOf[jDouble]) {
+      (key) => output.writeDouble(key.asInstanceOf[jDouble])
+    } else if (binding == classOf[Date]) {
+      (key) => output.writeLong(key.asInstanceOf[Date].getTime, true)
+    } else if (classOf[Geometry].isAssignableFrom(binding)) {
+      (key) => {
+        val b = WKBUtils.write(key.asInstanceOf[Geometry])
+        output.writeInt(b.length, true)
+        output.write(b)
+      }
+    } else {
+      throw new Exception(s"Cannot serialize Histogram due to invalid type: $binding")
     }
 
-    if (min != null) {
-      stat.asInstanceOf[MinMax[Any]].min = min
-      stat.asInstanceOf[MinMax[Any]].max = max
+    stat.histogram.foreach { case (key, count) => write(key); output.writeLong(count, true) }
+  }
+
+  private [stats] def readHistogram(input: Input, sft: SimpleFeatureType): Histogram[_] = {
+    val attribute = input.readInt(true)
+
+    val binding = sft.getDescriptor(attribute).getType.getBinding
+
+    var stat: Histogram[Any] = null
+    var read: () => Any = null
+    if (binding == classOf[String]) {
+      stat = new Histogram[String](attribute).asInstanceOf[Histogram[Any]]
+      read = () => input.readString
+    } else if (binding == classOf[Integer]) {
+      stat = new Histogram[Integer](attribute).asInstanceOf[Histogram[Any]]
+      read = () => input.readInt(true)
+    } else if (binding == classOf[jLong]) {
+      stat = new Histogram[jLong](attribute).asInstanceOf[Histogram[Any]]
+      read = () => input.readLong(true)
+    } else if (binding == classOf[jFloat]) {
+      stat = new Histogram[jFloat](attribute).asInstanceOf[Histogram[Any]]
+      read = () => input.readFloat
+    } else if (binding == classOf[jDouble]) {
+      stat = new Histogram[jDouble](attribute).asInstanceOf[Histogram[Any]]
+      read = () => input.readDouble
+    } else if (binding == classOf[Date]) {
+      stat = new Histogram[Date](attribute).asInstanceOf[Histogram[Any]]
+      read = () => new Date(input.readLong(true))
+    } else if (classOf[Geometry].isAssignableFrom(binding)) {
+      stat = new Histogram[Geometry](attribute).asInstanceOf[Histogram[Any]]
+      read = () => {
+        val b = Array.ofDim[Byte](input.readInt(true))
+        input.read(b)
+        WKBUtils.read(b)
+      }
+    } else {
+      throw new Exception(s"Cannot deserialize Histogram due to invalid type: $binding")
+    }
+
+    val size = input.readInt(true)
+
+    var i = 0
+    while (i < size) {
+      stat.histogram(read()) = input.readLong(true)
+      i += 1
+    }
+
+    stat
+  }
+
+  private [stats] def writeRangeHistogram(output: Output, sft: SimpleFeatureType, stat: RangeHistogram[_]): Unit = {
+    output.writeInt(stat.attribute, true)
+    output.writeInt(stat.length, true)
+
+    val binding = sft.getDescriptor(stat.attribute).getType.getBinding
+    if (binding == classOf[String]) {
+      output.writeString(stat.bounds._1.asInstanceOf[String])
+      output.writeString(stat.bounds._2.asInstanceOf[String])
+    } else if (binding == classOf[Integer]) {
+      output.writeInt(stat.bounds._1.asInstanceOf[Integer], true)
+      output.writeInt(stat.bounds._2.asInstanceOf[Integer], true)
+    } else if (binding == classOf[jLong]) {
+      output.writeLong(stat.bounds._1.asInstanceOf[jLong], true)
+      output.writeLong(stat.bounds._2.asInstanceOf[jLong], true)
+    } else if (binding == classOf[jFloat]) {
+      output.writeFloat(stat.bounds._1.asInstanceOf[jFloat])
+      output.writeFloat(stat.bounds._2.asInstanceOf[jFloat])
+    } else if (binding == classOf[jDouble]) {
+      output.writeDouble(stat.bounds._1.asInstanceOf[jDouble])
+      output.writeDouble(stat.bounds._2.asInstanceOf[jDouble])
+    } else if (binding == classOf[Date]) {
+      output.writeLong(stat.bounds._1.asInstanceOf[Date].getTime, true)
+      output.writeLong(stat.bounds._2.asInstanceOf[Date].getTime, true)
+    } else if (classOf[Geometry].isAssignableFrom(binding)) {
+      val b1 = WKBUtils.write(stat.bounds._1.asInstanceOf[Geometry])
+      val b2 = WKBUtils.write(stat.bounds._2.asInstanceOf[Geometry])
+      output.writeInt(b1.length, true)
+      output.write(b1)
+      output.writeInt(b2.length, true)
+      output.write(b2)
+    } else {
+      throw new Exception(s"Cannot serialize RangeHistogram due to invalid type: $binding")
+    }
+    var i = 0
+    while (i < stat.length) {
+      output.writeLong(stat.count(i), true)
+      i += 1
+    }
+  }
+
+  private [stats] def readRangeHistogram(input: Input, sft: SimpleFeatureType): RangeHistogram[_] = {
+    val attribute = input.readInt(true)
+    val length = input.readInt(true)
+
+    val binding = sft.getDescriptor(attribute).getType.getBinding
+    val stat = if (binding == classOf[String]) {
+      val s = input.readString()
+      val e = input.readString()
+      new RangeHistogram[String](attribute, length, (s, e))
+    } else if (binding == classOf[Integer]) {
+      val s = input.readInt(true)
+      val e = input.readInt(true)
+      new RangeHistogram[Integer](attribute, length, (s, e))
+    } else if (binding == classOf[jLong]) {
+      val s = input.readLong(true)
+      val e = input.readLong(true)
+      new RangeHistogram[jLong](attribute, length, (s, e))
+    } else if (binding == classOf[jFloat]) {
+      val s = input.readFloat()
+      val e = input.readFloat()
+      new RangeHistogram[jFloat](attribute, length, (s, e))
+    } else if (binding == classOf[jDouble]) {
+      val s = input.readDouble()
+      val e = input.readDouble()
+      new RangeHistogram[jDouble](attribute, length, (s, e))
+    } else if (binding == classOf[Date]) {
+      val s = new Date(input.readLong(true))
+      val e = new Date(input.readLong(true))
+      new RangeHistogram[Date](attribute, length, (s, e))
+    } else if (classOf[Geometry].isAssignableFrom(binding)) {
+      val b1 = Array.ofDim[Byte](input.readInt(true))
+      input.read(b1)
+      val b2 = Array.ofDim[Byte](input.readInt(true))
+      input.read(b2)
+      val s = WKBUtils.read(b1)
+      val e = WKBUtils.read(b2)
+      new RangeHistogram[Geometry](attribute, length, (s, e))
+    } else {
+      throw new Exception(s"Cannot deserialize RangeHistogram due to invalid type: $binding")
+    }
+
+    var i = 0
+    while (i < length) {
+      stat.bins.counts(i) = input.readLong(true)
+      i += 1
     }
 
     stat
@@ -156,105 +361,6 @@ object KryoStatSerializer {
   private [stats] def readIteratorStackCount(input: Input): IteratorStackCount = {
     val stat = new IteratorStackCount()
     stat.counter = input.readLong(true)
-    stat
-  }
-
-  private [stats] def writeHistogram(output: Output, sft: SimpleFeatureType, stat: Histogram[_]): Unit = {
-    val stringify = Stat.stringifier(sft.getDescriptor(stat.attribute).getType.getBinding)
-    output.writeInt(stat.attribute, true)
-    output.writeInt(stat.histogram.size, true)
-    stat.histogram.foreach { case (key, count) => output.writeString(stringify(key)); output.writeLong(count, true) }
-  }
-
-  private [stats] def readHistogram(input: Input, sft: SimpleFeatureType): Histogram[_] = {
-    val attribute = input.readInt(true)
-    val attributeType = sft.getDescriptor(attribute).getType.getBinding
-
-    val stat: Histogram[Any] = if (attributeType == classOf[String]) {
-      new Histogram[String](attribute).asInstanceOf[Histogram[Any]]
-    } else if (attributeType == classOf[Integer]) {
-      new Histogram[Integer](attribute).asInstanceOf[Histogram[Any]]
-    } else if (attributeType == classOf[jLong]) {
-      new Histogram[jLong](attribute).asInstanceOf[Histogram[Any]]
-    } else if (attributeType == classOf[jFloat]) {
-      new Histogram[jFloat](attribute).asInstanceOf[Histogram[Any]]
-    } else if (attributeType == classOf[jDouble]) {
-      new Histogram[jDouble](attribute).asInstanceOf[Histogram[Any]]
-    } else if (attributeType == classOf[Date]) {
-      new Histogram[Date](attribute).asInstanceOf[Histogram[Any]]
-    } else if (classOf[Geometry].isAssignableFrom(attributeType)) {
-      new Histogram[Geometry](attribute).asInstanceOf[Histogram[Any]]
-    } else {
-      throw new Exception(s"Cannot unpack EnumeratedHistogram due to invalid type: $attributeType")
-    }
-
-    val size = input.readInt(true)
-    if (size > 0) {
-      val destringify = Stat.destringifier(attributeType)
-      var i = 0
-      while (i < size) {
-        stat.histogram(destringify(input.readString)) = input.readLong(true)
-        i += 1
-      }
-    }
-
-    stat
-  }
-
-  private [stats] def writeRangeHistogram(output: Output, sft: SimpleFeatureType, stat: RangeHistogram[_]): Unit = {
-    val stringify = Stat.stringifier(sft.getDescriptor(stat.attribute).getType.getBinding)
-    output.writeInt(stat.attribute, true)
-    output.writeInt(stat.length, true)
-    output.writeString(stringify(stat.endpoints._1))
-    output.writeString(stringify(stat.endpoints._2))
-    if (stat.isEmpty) {
-      output.writeBoolean(false)
-    } else {
-      output.writeBoolean(true)
-      var i = 0
-      while (i < stat.length) {
-        output.writeLong(stat.count(i), true)
-        i += 1
-      }
-    }
-  }
-
-  private [stats] def readRangeHistogram(input: Input, sft: SimpleFeatureType): RangeHistogram[_] = {
-    val attribute = input.readInt(true)
-    val numBins = input.readInt(true)
-    val lowerEndpoint = input.readString
-    val upperEndpoint = input.readString
-
-    val attributeType = sft.getDescriptor(attribute).getType.getBinding
-    val destringify = Stat.destringifier(attributeType)
-    val bounds = (destringify(lowerEndpoint), destringify(upperEndpoint))
-
-    val stat = if (attributeType == classOf[String]) {
-      new RangeHistogram[String](attribute, numBins, bounds.asInstanceOf[(String, String)])
-    } else if (attributeType == classOf[Integer]) {
-      new RangeHistogram[Integer](attribute, numBins, bounds.asInstanceOf[(Integer, Integer)])
-    } else if (attributeType == classOf[jLong]) {
-      new RangeHistogram[jLong](attribute, numBins, bounds.asInstanceOf[(jLong, jLong)])
-    } else if (attributeType == classOf[jFloat]) {
-      new RangeHistogram[jFloat](attribute, numBins, bounds.asInstanceOf[(jFloat, jFloat)])
-    } else if (attributeType == classOf[jDouble]) {
-      new RangeHistogram[jDouble](attribute, numBins, bounds.asInstanceOf[(jDouble, jDouble)])
-    } else if (attributeType == classOf[Date]) {
-      new RangeHistogram[Date](attribute, numBins, bounds.asInstanceOf[(Date, Date)])
-    } else if (classOf[Geometry].isAssignableFrom(attributeType)) {
-      new RangeHistogram[Geometry](attribute, numBins, bounds.asInstanceOf[(Geometry, Geometry)])
-    } else {
-      throw new Exception(s"Cannot unpack RangeHistogram due to invalid type: $attributeType")
-    }
-
-    if (input.readBoolean()) {
-      var i = 0
-      while (i < numBins) {
-        stat.bins.counts(i) = input.readLong(true)
-        i += 1
-      }
-    }
-
     stat
   }
 }

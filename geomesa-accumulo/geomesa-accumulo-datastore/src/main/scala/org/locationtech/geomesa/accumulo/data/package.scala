@@ -30,29 +30,9 @@ package object data {
   val FEATURE_NAME     = "geomesa.feature.name"
   val FEATURE_ENCODING = "geomesa.feature.encoding"
 
-  // Metadata keys
-  val ATTRIBUTES_KEY         = "attributes"
-  val SPATIAL_BOUNDS_KEY     = "bounds"
-  val TEMPORAL_BOUNDS_KEY    = "time.bounds"
-  val SCHEMA_KEY             = "schema"
-  val DTGFIELD_KEY           = "dtgfield"
-  val FEATURE_ENCODING_KEY   = "featureEncoding"
-  val ST_IDX_TABLE_KEY       = "tables.idx.st.name"
-  val ATTR_IDX_TABLE_KEY     = "tables.idx.attr.name"
-  val RECORD_TABLE_KEY       = "tables.record.name"
-  val Z2_TABLE_KEY           = "tables.z2.name"
-  val Z3_TABLE_KEY           = "tables.z3.name"
-  val QUERIES_TABLE_KEY      = "tables.queries.name"
-  val SHARED_TABLES_KEY      = "tables.sharing"
-  val TABLES_ENABLED_KEY     = SimpleFeatureTypes.ENABLED_INDEXES
-  val SCHEMA_ID_KEY          = "id"
-  val VERSION_KEY            = "version"
-
   // Storage implementation constants
   val DATA_CQ              = new Text("SimpleFeatureAttribute")
   val SFT_CF               = new Text("SFT")
-  val METADATA_TAG         = "~METADATA"
-  val METADATA_TAG_END     = s"$METADATA_TAG~~"
   val EMPTY_STRING         = ""
   val EMPTY_VALUE          = new Value(Array[Byte]())
   val EMPTY_COLF           = new Text(EMPTY_STRING)
