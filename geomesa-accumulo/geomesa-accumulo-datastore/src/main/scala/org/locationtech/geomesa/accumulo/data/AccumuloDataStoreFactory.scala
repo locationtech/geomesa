@@ -60,7 +60,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     // TODO would it be safer to default to no auths?
     val auths: List[String] = if (configuredAuths.nonEmpty) configuredAuths.toList else masterAuthsStrings.toList
 
-    val authorizationsProvider = security.getAuthorizationsProvider(params, auths)
+    val authProvider = security.getAuthorizationsProvider(params, auths)
     val auditProvider = security.getAuditProvider(params).getOrElse {
       val provider = new ParamsAuditProvider
       provider.configure(params)
@@ -82,19 +82,9 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     val collectStats = !useMock && statsParam.lookupWithDefault[Boolean](params)
 
     if (collectStats) {
-      new AccumuloDataStore(connector,
-        tableName,
-        authorizationsProvider,
-        auditProvider,
-        visibility,
-        config) with StatWriter
+      new AccumuloDataStore(connector, tableName, authProvider, auditProvider, visibility, config) with StatWriter
     } else {
-      new AccumuloDataStore(connector,
-        tableName,
-        authorizationsProvider,
-        auditProvider,
-        visibility,
-        config)
+      new AccumuloDataStore(connector, tableName, authProvider, auditProvider, visibility, config)
     }
   }
 

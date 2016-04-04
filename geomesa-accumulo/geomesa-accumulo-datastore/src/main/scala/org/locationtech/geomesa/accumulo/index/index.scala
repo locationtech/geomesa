@@ -82,6 +82,7 @@ package object index {
         Option(hints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType])
       def getTransform: Option[(String, SimpleFeatureType)] =
         hints.getTransformDefinition.flatMap(d => hints.getTransformSchema.map((d, _)))
+      def isExactCount: Option[Boolean] = Option(hints.get(EXACT_COUNT).asInstanceOf[Boolean])
     }
   }
 

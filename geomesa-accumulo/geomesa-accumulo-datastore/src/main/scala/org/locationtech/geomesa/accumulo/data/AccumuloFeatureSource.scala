@@ -8,17 +8,22 @@
 
 package org.locationtech.geomesa.accumulo.data
 
+import java.awt.RenderingHints.Key
+import java.net.URI
+import java.util
+import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
-import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator}
+import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator, SimpleFeatureSource}
 import org.geotools.data.store.DataFeatureCollection
 import org.geotools.feature.collection.SortedSimpleFeatureCollection
 import org.geotools.feature.visitor.{BoundsVisitor, MaxVisitor, MinVisitor}
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.accumulo.GeomesaSystemProperties
-import org.locationtech.geomesa.accumulo.index.QueryHints.{RichHints, _}
+import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.QueryPlanner
 import org.locationtech.geomesa.accumulo.process.knn.KNNVisitor
 import org.locationtech.geomesa.accumulo.process.proximity.ProximityVisitor
@@ -26,7 +31,6 @@ import org.locationtech.geomesa.accumulo.process.query.QueryVisitor
 import org.locationtech.geomesa.accumulo.process.stats.StatsVisitor
 import org.locationtech.geomesa.accumulo.process.tube.TubeVisitor
 import org.locationtech.geomesa.accumulo.process.unique.AttributeVisitor
-import org.locationtech.geomesa.accumulo.util.TryLoggingFailure
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.`type`.Name
@@ -34,25 +38,20 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.{Expression, PropertyName}
 import org.opengis.filter.sort.SortBy
+import org.opengis.referencing.crs.CoordinateReferenceSystem
 import org.opengis.util.ProgressListener
 
-trait AccumuloAbstractFeatureSource extends AbstractFeatureSource with LazyLogging with TryLoggingFailure {
-  self =>
+import scala.util.Try
+import scala.collection.JavaConversions._
+
+abstract class AccumuloFeatureSource(val dataStore: AccumuloDataStore, val featureName: Name)
+    extends SimpleFeatureSource with LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.Conversions._
 
-  val dataStore: AccumuloDataStore
-  val featureName: Name
+  private[data] val typeName = featureName.getLocalPart
 
-  def addFeatureListener(listener: FeatureListener) {}
-
-  def removeFeatureListener(listener: FeatureListener) {}
-
-  def getSchema: SimpleFeatureType = getDataStore.getSchema(featureName)
-
-  def getDataStore: AccumuloDataStore = dataStore
-
-  def longCount = dataStore.getRecordTableSize(featureName.getLocalPart)
+  lazy private val hints = Collections.unmodifiableSet(Set.empty[Key])
 
   // The default behavior for getCount is to use Accumulo to look up the number of entries in
   //  the record table for a feature.
@@ -62,47 +61,63 @@ trait AccumuloAbstractFeatureSource extends AbstractFeatureSource with LazyLoggi
   // Since users may want *actual* counts, there are two ways to force exact counts.
   //  First, one can set the System property "geomesa.force.count".
   //  Second, there is an EXACT_COUNT query hint.
-  override def getCount(query: Query) = {
-    val exactCount = if(query.getHints.get(EXACT_COUNT) != null) {
-      query.getHints.get(EXACT_COUNT).asInstanceOf[Boolean]
-    } else {
-      GeomesaSystemProperties.QueryProperties.QUERY_EXACT_COUNT.get.toBoolean
-    }
+  override def getCount(query: Query): Int = {
+    import GeomesaSystemProperties.QueryProperties.QUERY_EXACT_COUNT
 
-    if (exactCount || longCount == -1) {
+    val useExactCount = query.getHints.isExactCount.getOrElse(QUERY_EXACT_COUNT.get.toBoolean)
+    lazy val estimatedCount = dataStore.estimateCount(query)
+
+    if (useExactCount || estimatedCount == -1) {
       getFeaturesNoCache(query).features().size
+    } else if (estimatedCount > Int.MaxValue.toLong) {
+      Int.MaxValue
     } else {
-      longCount match {
-        case _ if longCount > Int.MaxValue      => Int.MaxValue
-        case _                                  => longCount.toInt
-      }
+      estimatedCount.toInt
     }
   }
 
-  override def getQueryCapabilities = new QueryCapabilities() {
+  override def getBounds: ReferencedEnvelope = getBounds(new Query(typeName, Filter.INCLUDE))
+
+  override def getBounds(query: Query): ReferencedEnvelope = dataStore.estimateBounds(query)
+
+  override def getQueryCapabilities = AccumuloQueryCapabilities
+
+  override def getFeatures(query: Query): SimpleFeatureCollection = getFeaturesNoCache(query)
+
+  override def getFeatures(filter: Filter): SimpleFeatureCollection =
+    getFeatures(new Query(typeName, filter))
+
+  override def getFeatures: SimpleFeatureCollection = getFeatures(Filter.INCLUDE)
+
+  override def getName: Name = featureName
+
+  override def getDataStore: AccumuloDataStore = dataStore
+
+  override def getSchema: SimpleFeatureType = dataStore.getSchema(featureName)
+
+  override def getSupportedHints: java.util.Set[Key] = hints
+
+  override def getInfo: ResourceInfo = new DelegatingResourceInfo(this)
+
+  override def addFeatureListener(listener: FeatureListener): Unit = {}
+
+  override def removeFeatureListener(listener: FeatureListener): Unit = {}
+
+  private def getFeaturesNoCache(query: Query): SimpleFeatureCollection =
+    new AccumuloFeatureCollection(this, query)
+
+  object AccumuloQueryCapabilities extends QueryCapabilities {
     override def isOffsetSupported = false
     override def isReliableFIDSupported = true
     override def isUseProvidedFIDSupported = true
     override def supportsSorting(sortAttributes: Array[SortBy]) = true
   }
-
-  protected def getFeaturesNoCache(query: Query): SimpleFeatureCollection =
-    new AccumuloFeatureCollection(self, query)
-
-  override def getFeatures(query: Query): SimpleFeatureCollection =
-    tryLoggingFailures(getFeaturesNoCache(query))
-
-  override def getFeatures(filter: Filter): SimpleFeatureCollection =
-    getFeatures(new Query(getSchema().getTypeName, filter))
 }
-
-class AccumuloFeatureSource(val dataStore: AccumuloDataStore, val featureName: Name)
-  extends AccumuloAbstractFeatureSource
 
 /**
  * Feature collection implementation
  */
-class AccumuloFeatureCollection(source: AccumuloAbstractFeatureSource, query: Query)
+class AccumuloFeatureCollection(source: AccumuloFeatureSource, query: Query)
   extends DataFeatureCollection {
 
   private val ds = source.getDataStore
@@ -126,12 +141,9 @@ class AccumuloFeatureCollection(source: AccumuloAbstractFeatureSource, query: Qu
   override def accepts(visitor: FeatureVisitor, progress: ProgressListener): Unit =
     visitor match {
       // TODO GEOMESA-421 implement min/max iterators
-      case v: MinVisitor if isTime(v.getExpression) =>
-        v.setValue(ds.getTimeBounds(query.getTypeName).getStart.toDate)
-      case v: MaxVisitor if isTime(v.getExpression) =>
-        v.setValue(ds.getTimeBounds(query.getTypeName).getEnd.toDate)
-
-      case v: BoundsVisitor          => v.reset(ds.getBounds(query))
+      case v: MinVisitor if isTime(v.getExpression) => v.setValue(ds.estimateTimeBounds(query).getStart.toDate)
+      case v: MaxVisitor if isTime(v.getExpression) => v.setValue(ds.estimateTimeBounds(query).getEnd.toDate)
+      case v: BoundsVisitor          => v.reset(ds.estimateBounds(query))
       case v: TubeVisitor            => v.setValue(v.tubeSelect(source, query))
       case v: ProximityVisitor       => v.setValue(v.proximitySearch(source, query))
       case v: QueryVisitor           => v.setValue(v.query(source, query))
@@ -142,12 +154,12 @@ class AccumuloFeatureCollection(source: AccumuloAbstractFeatureSource, query: Qu
     }
 
   private def isTime(e: Expression) = e match {
-    case p: PropertyName => getSchema.getDtgField.exists(_ == p.getPropertyName)
+    case p: PropertyName => getSchema.getDtgField.contains(p.getPropertyName)
     case _ => false
   }
 
   override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] = {
-    val reader = ds.getFeatureReader(query.getTypeName, query)
+    val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
     val maxFeatures = query.getMaxFeatures
     if (maxFeatures != Integer.MAX_VALUE) {
       new MaxFeatureReader[SimpleFeatureType, SimpleFeature](reader, maxFeatures)
@@ -161,7 +173,7 @@ class AccumuloFeatureCollection(source: AccumuloAbstractFeatureSource, query: Qu
   override def getBounds = source.getBounds(query)
 }
 
-class CachingAccumuloFeatureCollection(source: AccumuloAbstractFeatureSource, query: Query)
+class CachingAccumuloFeatureCollection(source: AccumuloFeatureSource, query: Query)
     extends AccumuloFeatureCollection(source, query) {
 
   lazy val featureList = {
@@ -186,17 +198,16 @@ class CachingAccumuloFeatureCollection(source: AccumuloAbstractFeatureSource, qu
   override def size = featureList.length
 }
 
-trait CachingFeatureSource extends AccumuloAbstractFeatureSource {
-  self: AccumuloAbstractFeatureSource =>
+trait CachingFeatureSource extends AccumuloFeatureSource {
 
   private val featureCache =
     CacheBuilder.newBuilder().build(
       new CacheLoader[Query, SimpleFeatureCollection] {
         override def load(query: Query): SimpleFeatureCollection =
-          new CachingAccumuloFeatureCollection(self, query)
+          new CachingAccumuloFeatureCollection(CachingFeatureSource.this, query)
       })
 
-  override def getFeatures(query: Query): SimpleFeatureCollection = {
+  abstract override def getFeatures(query: Query): SimpleFeatureCollection = {
     // geotools bug in Query.hashCode
     if (query.getStartIndex == null) {
       query.setStartIndex(0)
@@ -208,5 +219,26 @@ trait CachingFeatureSource extends AccumuloAbstractFeatureSource {
       new SortedSimpleFeatureCollection(featureCache.get(query), query.getSortBy)
   }
 
-  override def getCount(query: Query): Int = getFeatures(query).size()
+  abstract override def getCount(query: Query): Int = getFeatures(query).size()
+}
+
+class DelegatingResourceInfo(source: SimpleFeatureSource) extends ResourceInfo {
+
+  import scala.collection.JavaConversions._
+
+  private val keywords = Collections.unmodifiableSet(Set("features", getName))
+
+  override def getName: String = source.getSchema.getTypeName
+
+  override def getTitle: String = source.getSchema.getName.getLocalPart
+
+  override def getDescription: String = null
+
+  override def getKeywords: util.Set[String] = keywords
+
+  override def getSchema: URI = Try(new URI(source.getSchema.getName.getNamespaceURI)).getOrElse(null)
+
+  override def getCRS: CoordinateReferenceSystem = source.getSchema.getCoordinateReferenceSystem
+
+  override def getBounds: ReferencedEnvelope = source.getBounds
 }

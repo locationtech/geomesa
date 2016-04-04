@@ -145,7 +145,7 @@ class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
       d.setIndexCoverage(if (attributes.contains(d.getLocalName)) coverage else IndexCoverage.NONE)
     }
 
-    visibilities = ds.writeVisibilities
+    visibilities = ds.defaultVisibilities
     val encoding = ds.getFeatureEncoding(sft)
     featureEncoder = SimpleFeatureSerializers(sft, encoding)
     indexValueEncoder = IndexValueEncoder(sft)

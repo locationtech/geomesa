@@ -13,7 +13,7 @@ import org.joda.time.Interval
 import org.joda.time.format.ISODateTimeFormat
 import org.json4s.{DefaultFormats, Formats}
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.stats.QueryStatReader
+import org.locationtech.geomesa.accumulo.stats.{QueryStat, QueryStatReader}
 import org.locationtech.geomesa.utils.cache.FilePersistence
 import org.locationtech.geomesa.web.core.GeoMesaDataStoreServlet
 import org.scalatra.BadRequest
@@ -62,10 +62,13 @@ class StatsEndpoint(val persistence: FilePersistence) extends GeoMesaDataStoreSe
         }
         BadRequest(reason = reason.toString())
       } else {
-        val reader = new QueryStatReader(ds.connector, ds.getQueriesTableName(_: String))
+        val getTable = (typeName: String) => {
+          ds.getStatTable(new QueryStat(typeName, 0L, "", "", "", 0L, 0L, 0))
+        }
+        val reader = new QueryStatReader(ds.connector, getTable)
         val interval = new Interval(dates(0), dates(1))
         // json response doesn't seem to handle iterators directly, have to convert to iterable
-        val iter = reader.query(sft, interval, ds.authorizationsProvider.getAuthorizations).toIterable
+        val iter = reader.query(sft, interval, ds.authProvider.getAuthorizations).toIterable
         // we do the user filtering here, instead of in the tservers - revisit if performance becomes an issue
         // 'user' appears to be reserved by scalatra
         params.get("who") match {

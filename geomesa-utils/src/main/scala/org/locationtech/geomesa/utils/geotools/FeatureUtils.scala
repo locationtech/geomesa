@@ -8,8 +8,12 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import org.geotools.data.DataUtilities
+import java.lang.{Boolean => jBoolean}
+
+import org.geotools.data.{DataUtilities, FeatureWriter}
+import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.geotools.filter.identity.FeatureIdImpl
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /** Utilities for re-typing and re-building [[SimpleFeatureType]]s and [[SimpleFeature]]s while
@@ -59,5 +63,18 @@ object FeatureUtils {
 
     builder.init(orig)
     builder
+  }
+
+  def copyToWriter(writer: FeatureWriter[SimpleFeatureType, SimpleFeature],
+                   sf: SimpleFeature,
+                   overrideFid: Boolean = false): SimpleFeature = {
+    val toWrite = writer.next()
+    toWrite.setAttributes(sf.getAttributes)
+    toWrite.getUserData.putAll(sf.getUserData)
+    if (overrideFid || jBoolean.TRUE == sf.getUserData.get(Hints.USE_PROVIDED_FID).asInstanceOf[jBoolean]) {
+      toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(sf.getID)
+      toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+    }
+    toWrite
   }
 }

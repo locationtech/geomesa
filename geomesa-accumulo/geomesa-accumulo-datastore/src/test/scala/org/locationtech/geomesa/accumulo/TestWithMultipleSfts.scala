@@ -56,13 +56,11 @@ trait TestWithMultipleSfts extends Specification {
 
   def createNewSchema(spec: String,
                       dtgField: Option[String] = Some("dtg"),
-                      tableSharing: Boolean = true,
-                      numShards: Option[Int] = None): SimpleFeatureType = synchronized {
+                      tableSharing: Boolean = true): SimpleFeatureType = synchronized {
     val sftName = sftBaseName + sftCounter.getAndIncrement()
     val sft = SimpleFeatureTypes.createType(sftName, spec)
     dtgField.foreach(sft.setDtgField)
     sft.setTableSharing(tableSharing)
-    numShards.map(ds.buildDefaultSpatioTemporalSchema(sftName, _)).foreach(sft.setStIndexSchema)
     ds.createSchema(sft)
     sfts += ds.getSchema(sftName) // reload the sft from the ds to ensure all user data is set properly
     sfts.last
@@ -94,7 +92,7 @@ trait TestWithMultipleSfts extends Specification {
 
   def explain(query: Query): String = {
     val o = new ExplainString
-    ds.explainQuery(query, o)
+    ds.getQueryPlan(query, explainer = o)
     o.toString()
   }
 }
