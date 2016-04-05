@@ -116,6 +116,8 @@ trait AbstractWriter[Writer]
         val valueWriter = selectWriter(valueClass, isNullable = isNullable)
         writeMap(keyWriter, valueWriter).asInstanceOf[DatumWriter[Writer, T]]
 
+      case cls if classOf[Array[Byte]].isAssignableFrom(cls) => writeBytes.asInstanceOf[DatumWriter[Writer, T]]
+
       case _ => throw new IllegalArgumentException("Unsupported class: " + clazz)
     }
 

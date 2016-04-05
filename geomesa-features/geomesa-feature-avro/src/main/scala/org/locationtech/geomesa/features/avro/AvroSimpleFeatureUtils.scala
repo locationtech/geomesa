@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.features.avro
 
 import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 import java.util.{Date, Locale, UUID}
 
 import com.google.common.collect.Maps
@@ -32,7 +33,9 @@ object AvroSimpleFeatureUtils {
   val AVRO_SIMPLE_FEATURE_USERDATA: String = "__userdata__"
 
   // Increment whenever encoding changes and handle in reader and writer
-  val VERSION: Int = 2
+  // Version 2 changed the WKT geom to a binary geom
+  // Version 3 adds byte array types to the schema...and is backwards compatible with V2
+  val VERSION: Int = 3
   val AVRO_NAMESPACE: String = "org.geomesa"
 
   val attributeNameLookUp = Maps.newConcurrentMap[String, String]()
@@ -87,6 +90,7 @@ object AvroSimpleFeatureUtils {
       case c if classOf[Geometry].isAssignableFrom(c)            => baseType.bytesType.noDefault
       case c if classOf[java.util.List[_]].isAssignableFrom(c)   => baseType.bytesType.noDefault
       case c if classOf[java.util.Map[_, _]].isAssignableFrom(c) => baseType.bytesType.noDefault
+      case c if classOf[Array[Byte]].isAssignableFrom(c)         => baseType.bytesType.noDefault
     }
   }
 
@@ -129,6 +133,9 @@ object AvroSimpleFeatureUtils {
           val keyclass   = ad.getUserData.get(USER_DATA_MAP_KEY_TYPE).asInstanceOf[Class[_]]
           val valueclass = ad.getUserData.get(USER_DATA_MAP_VALUE_TYPE).asInstanceOf[Class[_]]
           encodeMap(v.asInstanceOf[java.util.Map[_, _]], keyclass, valueclass)
+
+        case t if classOf[Array[Byte]].isAssignableFrom(t) =>
+          (v: AnyRef) => ByteBuffer.wrap(v.asInstanceOf[Array[Byte]])
 
         case _ =>
           (v: AnyRef) =>
@@ -246,7 +253,7 @@ object AvroSimpleFeatureUtils {
     // get the appropriate write method for the list type
     val (bytesPerItem, putMethod): (Int, (ByteBuffer, Any) => Unit) = getWriteMethod(label)
     // calculate the total size needed to encode the list
-    val totalBytes = getTotalBytes(bytesPerItem, size, list.iterator())
+    val totalBytes = getTotalBytes(bytesPerItem, size, list.iterator(), binding.getSimpleName)
 
     val labelBytes = label.getBytes("UTF-8")
     // 4 bytes for list size + 4 bytes for label bytes size + label bytes + item bytes
@@ -254,7 +261,7 @@ object AvroSimpleFeatureUtils {
     // first put the size of the list
     bb.putInt(size)
     // put the type of the list
-    AvroSimpleFeatureUtils.putString(bb, labelBytes)
+    AvroSimpleFeatureUtils.putString(bb, label)
     // put each item
     list.foreach(v => putMethod(bb, v))
     // flip (reset) the buffer so that it's ready for reading
@@ -282,8 +289,8 @@ object AvroSimpleFeatureUtils {
     val (bytesPerValueItem, valuePutMethod) = getWriteMethod(valueLabel)
 
     // get the exact size in bytes for keys and values
-    val totalKeyBytes   = getTotalBytes(bytesPerKeyItem, size, map.keysIterator)
-    val totalValueBytes = getTotalBytes(bytesPerValueItem, size, map.valuesIterator)
+    val totalKeyBytes   = getTotalBytes(bytesPerKeyItem, size, map.keysIterator, keyLabel)
+    val totalValueBytes = getTotalBytes(bytesPerValueItem, size, map.valuesIterator, valueLabel)
 
     val keyLabelBytes = keyLabel.getBytes("UTF-8")
     val valueLabelBytes = valueLabel.getBytes("UTF-8")
@@ -293,8 +300,8 @@ object AvroSimpleFeatureUtils {
     // first put the size of the map
     bb.putInt(size)
     // put the types of the keys and values
-    AvroSimpleFeatureUtils.putString(bb, keyLabelBytes)
-    AvroSimpleFeatureUtils.putString(bb, valueLabelBytes)
+    AvroSimpleFeatureUtils.putString(bb, keyLabel)
+    AvroSimpleFeatureUtils.putString(bb, valueLabel)
     // put each key value pair
     map.foreach { case (k, v) =>
       keyPutMethod(bb, k)
@@ -313,7 +320,7 @@ object AvroSimpleFeatureUtils {
    */
   private def getWriteMethod(label: String): (Int, (ByteBuffer, Any) => Unit) =
     label.toLowerCase(Locale.US) match {
-      case "string"  => (-1, (bb, v) => putString(bb, v.asInstanceOf[String].getBytes("UTF-8")))
+      case "string"  => (-1, (bb, v) => putString(bb, v.asInstanceOf[String]))
       case "int" |
            "integer" => (4, (bb, v) => bb.putInt(v.asInstanceOf[Int]))
       case "double"  => (8, (bb, v) => bb.putDouble(v.asInstanceOf[Double]))
@@ -321,6 +328,8 @@ object AvroSimpleFeatureUtils {
       case "float"   => (4, (bb, v) => bb.putFloat(v.asInstanceOf[Float]))
       case "date"    => (8, (bb, v) => bb.putLong(v.asInstanceOf[Date].getTime))
       case "boolean" => (1, (bb, v) => if (v.asInstanceOf[Boolean]) bb.put(1.toByte) else bb.put(0.toByte))
+      case "uuid"    => (16, (bb, v) => putUUID(bb, v.asInstanceOf[UUID]))
+      case "byte[]"  => (-1, (bb, v) => putBytes(bb, v.asInstanceOf[Array[Byte]]))
       case _         =>
         val msg = s"Invalid collection type: '$label'. Only primitives and Dates are supported."
         throw new IllegalArgumentException(msg)
@@ -343,6 +352,8 @@ object AvroSimpleFeatureUtils {
       case "float"   => () => bb.getFloat.asInstanceOf[Object]
       case "boolean" => () => java.lang.Boolean.valueOf(bb.get > 0)
       case "date"    => () => new Date(bb.getLong())
+      case "uuid"    => () => getUUID(bb)
+      case "byte[]"   => () => getBytes(bb)
       case _         =>
         val msg = s"Invalid collection type: '$label'. Only primitives and Dates are supported."
         throw new IllegalArgumentException(msg)
@@ -350,19 +361,23 @@ object AvroSimpleFeatureUtils {
 
   /**
    * Gets the total bytes needed to encode the given values. For most types, the size is fixed, but
-   * Strings are encoded with a dynamic length.
+   * Strings and bytes are encoded with a dynamic length.
    *
    * @param bytesPerItem
    * @param size
    * @param values
    * @return
    */
-  private def getTotalBytes(bytesPerItem: Int, size: Int, values: Iterator[_]): Int =
+  private def getTotalBytes(bytesPerItem: Int, size: Int, values: Iterator[_], label: String): Int =
     if (bytesPerItem == -1) {
       // bytes are variable, we need to calculate them based on content
       // this only happens with strings
       // add 4 to each to use for length encoding
-      values.map(_.asInstanceOf[String].getBytes("UTF-8").size + 4).sum
+      label.toLowerCase match {
+        case "string" => values.map(_.asInstanceOf[String].getBytes("UTF-8").length + 4).sum
+        case "byte[]" => values.map(_.asInstanceOf[Array[Byte]].length + 4).sum
+        case _ => throw new IllegalArgumentException("invalid type")
+      }
     } else {
       bytesPerItem * size
     }
@@ -387,6 +402,32 @@ object AvroSimpleFeatureUtils {
    * @param s
    * @return
    */
-  private def putString(bb: ByteBuffer, s: Array[Byte]): ByteBuffer = bb.putInt(s.size).put(s)
+  private def putString(bb: ByteBuffer, s: String): ByteBuffer = putBytes(bb, s.getBytes(StandardCharsets.UTF_8))
 
+  /**
+    * Writes a byte array to a byte buffer by encoding the length first, then the bytes
+    *
+    * @param bb
+    * @param arr
+    * @return
+    */
+  private def putBytes(bb: ByteBuffer, arr: Array[Byte]): ByteBuffer = bb.putInt(arr.length).put(arr)
+
+  /**
+    * Reads a byte array from a byte buffer that has been written using @see putBytes
+    *
+    * @param bb
+    * @return
+    */
+  private def getBytes(bb: ByteBuffer): Array[Byte] = {
+    val sz = bb.getInt
+    val bytes = new Array[Byte](sz)
+    bb.get(bytes, 0, sz)
+    bytes
+  }
+
+  private def putUUID(bb: ByteBuffer, uuid: UUID): ByteBuffer =
+    bb.putLong(uuid.getMostSignificantBits).putLong(uuid.getLeastSignificantBits)
+
+  private def getUUID(bb: ByteBuffer): UUID = new UUID(bb.getLong, bb.getLong)
 }

@@ -22,6 +22,7 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class SimpleFeatureTypesTest extends Specification {
 
+  sequential
   args(color = true)
 
   "SimpleFeatureTypes" should {
@@ -154,6 +155,17 @@ class SimpleFeatureTypesTest extends Specification {
 
         val spec = SimpleFeatureTypes.encodeType(sft)
         spec mustEqual s"id:Integer,metadata:Map[Double,String],dtg:Date,*geom:Point:srid=4326"
+      }
+
+      "with a byte array as a value" >> {
+        val sft = SimpleFeatureTypes.createType("testing", "byteMap:Map[String,Bytes]")
+        sft.getAttributeCount mustEqual(1)
+        sft.getDescriptor("byteMap") must not beNull
+
+        sft.getDescriptor("byteMap").getType.getBinding mustEqual classOf[java.util.Map[_, _]]
+
+        val spec = SimpleFeatureTypes.encodeType(sft)
+        spec mustEqual s"byteMap:Map[String,Bytes]"
       }
 
       "fail for illegal value format" >> {
@@ -384,6 +396,29 @@ class SimpleFeatureTypesTest extends Specification {
       sft.getGeometryDescriptor.getName.getLocalPart must be equalTo "geom"
       sft.getAttributeDescriptors.get(0).getType.getBinding must beAssignableFrom[java.util.List[_]]
       sft.getAttributeDescriptors.get(1).getType.getBinding must beAssignableFrom[java.util.Map[_,_]]
+    }
+
+    "bytes as a type to work" >> {
+      val conf = ConfigFactory.parseString(
+        """
+          |{
+          |  type-name = "byteconf"
+          |  fields = [
+          |    { name = "blob",     type = "Bytes",              index = false }
+          |    { name = "blobList", type = "List[Bytes]",        index = false }
+          |    { name = "blobMap",  type = "Map[String, Bytes]", index = false }
+          |  ]
+          |}
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType(conf)
+      sft.getAttributeCount must be equalTo 3
+      sft.getAttributeDescriptors.get(0).getType.getBinding must beAssignableFrom[Array[Byte]]
+      sft.getAttributeDescriptors.get(1).getType.getBinding must beAssignableFrom[java.util.List[_]]
+      sft.getAttributeDescriptors.get(1).getUserData.get(USER_DATA_LIST_TYPE) mustEqual classOf[Array[Byte]]
+      sft.getAttributeDescriptors.get(2).getType.getBinding must beAssignableFrom[java.util.Map[_,_]]
+      sft.getAttributeDescriptors.get(2).getUserData.get(USER_DATA_MAP_KEY_TYPE) mustEqual classOf[String]
+      sft.getAttributeDescriptors.get(2).getUserData.get(USER_DATA_MAP_VALUE_TYPE) mustEqual classOf[Array[Byte]]
     }
   }
 

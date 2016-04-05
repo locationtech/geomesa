@@ -18,7 +18,7 @@ object ObjectType extends Enumeration {
 
   type ObjectType = Value
 
-  val STRING, INT, LONG, FLOAT, DOUBLE, BOOLEAN, DATE, UUID, GEOMETRY, HINTS, LIST, MAP = Value
+  val STRING, INT, LONG, FLOAT, DOUBLE, BOOLEAN, DATE, UUID, GEOMETRY, HINTS, LIST, MAP, BYTES = Value
 
   def selectType(clazz: Class[_], metadata: jMap[_, _] = jCollections.emptyMap()): (ObjectType, Seq[ObjectType]) = {
     clazz match {
@@ -38,6 +38,7 @@ object ObjectType extends Enumeration {
         val keyClass   = metadata.get(USER_DATA_MAP_KEY_TYPE).asInstanceOf[Class[_]]
         val valueClass = metadata.get(USER_DATA_MAP_VALUE_TYPE).asInstanceOf[Class[_]]
         (MAP, Seq(keyClass, valueClass).map(selectType(_)._1))
+      case c if classOf[Array[Byte]].isAssignableFrom(c) => (BYTES, Seq.empty)
       case _ => throw new IllegalArgumentException(s"Class $clazz can't be serialized")
     }
   }

@@ -317,7 +317,7 @@ object SimpleFeatureTypes {
 
     val clazz = classOf[java.util.List[_]]
 
-    override def getClassSpec = s"List[${subClass.getSimpleName}]"
+    override def getClassSpec = s"List[${typeEncode(subClass)}]"
 
     override def addOptions(builder: AttributeTypeBuilder) = {
       builder.collectionType(subClass)
@@ -344,7 +344,7 @@ object SimpleFeatureTypes {
 
     // TODO with lists too currently we only allow simple types in the ST IDX for simplicity - revisit if it becomes a use-case
 
-    override def getClassSpec = s"Map[${keyClass.getSimpleName},${valueClass.getSimpleName}]"
+    override def getClassSpec = s"Map[${typeEncode(keyClass)},${typeEncode(valueClass)}]"
 
     override def addOptions(builder: AttributeTypeBuilder) = {
       builder.mapTypes(keyClass, valueClass)
@@ -434,7 +434,8 @@ object SimpleFeatureTypes {
     classOf[Date]                -> "Date",
     classOf[java.sql.Timestamp]  -> "Timestamp",
     classOf[java.util.List[_]]   -> "List",
-    classOf[java.util.Map[_, _]] -> "Map"
+    classOf[java.util.Map[_, _]] -> "Map",
+    classOf[Array[Byte]]         -> "Bytes"
   )
 
   private val simpleTypeMap = Map(
@@ -463,7 +464,9 @@ object SimpleFeatureTypes {
     "false"             -> classOf[java.lang.Boolean],
     "UUID"              -> classOf[UUID],
     "Date"              -> classOf[Date],
-    "Timestamp"         -> classOf[Date]
+    "Timestamp"         -> classOf[Date],
+    "byte[]"            -> classOf[Array[Byte]],
+    "Bytes"             -> classOf[Array[Byte]]
   )
 
   private val geometryTypeMap = Map(
