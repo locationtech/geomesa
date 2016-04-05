@@ -347,7 +347,7 @@ Accumulo 1.6
 * accumulo-server-base-1.6.4.jar
 * accumulo-trace.1.6.4.jar
 * libthrift-0.9.1.jar
-* zookeeper-3.4.6.jar
+* zookeeper-3.4.5.jar
 
 Hadoop 2.2
 
@@ -408,7 +408,12 @@ your GeoServer ``WEB-INF/lib`` directory.
     * metrics-core-2.2.0.jar
     * zkclient-0.3.jar
 * Zookeeper
-    * zookeeper-3.4.6.jar
+    * zookeeper-3.4.5.jar
+
+There is a script in the ``geomesa-tools-$VERSION`` directory
+(``$GEOMESA_HOME/bin/install-kafka.sh``) which will install these
+dependencies to a target directory using ``wget`` (requires an internet
+connection).
 
 GeoMesa GeoServer Community Module
 ----------------------------------
