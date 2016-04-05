@@ -108,6 +108,8 @@ trait FeatureCounting extends AccumuloFeatureReader {
   // because the query planner configures the query hints, we can't check for bin hints
   // until after setting up the iterator
   protected val sfCount: (SimpleFeature) => Int = if (query.getHints.isBinQuery) {
+    // bin queries pack multiple records into each feature
+    // to count the records, we have to count the total bytes coming back, instead of the number of features
     val bytesPerHit = if (query.getHints.getBinLabelField.isDefined) 24 else 16
     (sf) => sf.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]].length / bytesPerHit
   } else {
