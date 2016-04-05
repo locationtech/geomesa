@@ -255,7 +255,7 @@ object AvroSimpleFeatureUtils {
     // calculate the total size needed to encode the list
     val totalBytes = getTotalBytes(bytesPerItem, size, list.iterator(), binding.getSimpleName)
 
-    val labelBytes = label.getBytes("UTF-8")
+    val labelBytes = label.getBytes(StandardCharsets.UTF_8)
     // 4 bytes for list size + 4 bytes for label bytes size + label bytes + item bytes
     val bb = ByteBuffer.allocate(4 + 4 + labelBytes.size + totalBytes)
     // first put the size of the list
@@ -292,8 +292,8 @@ object AvroSimpleFeatureUtils {
     val totalKeyBytes   = getTotalBytes(bytesPerKeyItem, size, map.keysIterator, keyLabel)
     val totalValueBytes = getTotalBytes(bytesPerValueItem, size, map.valuesIterator, valueLabel)
 
-    val keyLabelBytes = keyLabel.getBytes("UTF-8")
-    val valueLabelBytes = valueLabel.getBytes("UTF-8")
+    val keyLabelBytes = keyLabel.getBytes(StandardCharsets.UTF_8)
+    val valueLabelBytes = valueLabel.getBytes(StandardCharsets.UTF_8)
     // 4 bytes for map size + 8 bytes for label bytes size + label bytes + key bytes + value bytes
     val totalBytes = 4 + 8 + keyLabelBytes.size + valueLabelBytes.size + totalKeyBytes + totalValueBytes
     val bb = ByteBuffer.allocate(totalBytes)
@@ -353,7 +353,7 @@ object AvroSimpleFeatureUtils {
       case "boolean" => () => java.lang.Boolean.valueOf(bb.get > 0)
       case "date"    => () => new Date(bb.getLong())
       case "uuid"    => () => getUUID(bb)
-      case "byte[]"   => () => getBytes(bb)
+      case "byte[]"  => () => getBytes(bb)
       case _         =>
         val msg = s"Invalid collection type: '$label'. Only primitives and Dates are supported."
         throw new IllegalArgumentException(msg)
@@ -374,7 +374,7 @@ object AvroSimpleFeatureUtils {
       // this only happens with strings
       // add 4 to each to use for length encoding
       label.toLowerCase match {
-        case "string" => values.map(_.asInstanceOf[String].getBytes("UTF-8").length + 4).sum
+        case "string" => values.map(_.asInstanceOf[String].getBytes(StandardCharsets.UTF_8).length + 4).sum
         case "byte[]" => values.map(_.asInstanceOf[Array[Byte]].length + 4).sum
         case _ => throw new IllegalArgumentException("invalid type")
       }
@@ -392,7 +392,7 @@ object AvroSimpleFeatureUtils {
     val size = bb.getInt
     val buf = new Array[Byte](size)
     bb.get(buf)
-    new String(buf, "UTF-8")
+    new String(buf, StandardCharsets.UTF_8)
   }
 
   /**
