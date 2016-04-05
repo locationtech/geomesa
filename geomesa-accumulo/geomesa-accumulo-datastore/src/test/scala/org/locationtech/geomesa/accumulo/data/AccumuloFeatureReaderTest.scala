@@ -245,7 +245,18 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
       while (reader.hasNext) { reader.next(); count += 1 }
       reader.close()
 
+      // the features that get returned depend on the ranges that get set up in accumulo,
+      // as each range will create a new bin iterator and return aggregated features for that range.
+      // Since each feature can have 0-10 bin records (based on the bin batch size hint), we
+      // don't know exactly how many features will get returned before the bin limit of 10
+      // (based on maxFeatures) is hit. But conservatively, if there is at least one feature
+      // that contains 2+ bin records, there will be less than 10 features.
+
       count must beLessThan(10)
+
+      // in the stat tracking, the max bin records that can be returned is 19. This would be if
+      // the first feature had 9 records and then the second feature had 10 records, triggering the limit.
+
       stats must haveLength(1)
       stats.head must beAnInstanceOf[QueryStat]
       stats.head.asInstanceOf[QueryStat].hits must beLessThan(20L)
