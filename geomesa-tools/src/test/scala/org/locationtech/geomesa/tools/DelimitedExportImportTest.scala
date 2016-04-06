@@ -15,9 +15,10 @@ import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.tools.Utils.Formats
-import org.locationtech.geomesa.tools.Utils.Formats.Formats
-import org.locationtech.geomesa.tools.ingest.AutoIngestDelimited
+import org.locationtech.geomesa.tools.accumulo.{DelimitedExport, Utils}
+import Utils.Formats
+import Utils.Formats.Formats
+import org.locationtech.geomesa.tools.accumulo.ingest.AutoIngestDelimited
 import org.locationtech.geomesa.utils.geotools.{GeoToolsDateFormat, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification

@@ -21,7 +21,8 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureStore
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.features.avro.AvroDataFileReader
-import org.locationtech.geomesa.tools.Utils.Formats
+import org.locationtech.geomesa.tools.accumulo.{AvroExport, DelimitedExport, ShapefileExport, Utils}
+import Utils.Formats
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter

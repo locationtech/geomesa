@@ -15,6 +15,7 @@ import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
+import org.locationtech.geomesa.tools.accumulo.{Runner, CLArgResolver}
 import org.locationtech.geomesa.utils.geotools.Conversions
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
