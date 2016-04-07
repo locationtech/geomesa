@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.tools.accumulo.commands.convert
+package org.locationtech.geomesa.tools.common.commands.convert
 
 import java.util.regex.Pattern
 

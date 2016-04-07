@@ -13,6 +13,7 @@ import com.typesafe.config.{Config, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.convert.ConverterConfigLoader
 import org.locationtech.geomesa.tools.accumulo.commands.EnvironmentCommand.EnvironmentParameters
+import org.locationtech.geomesa.tools.common.commands.Command
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypeLoader, SimpleFeatureTypes}
 
 import scala.collection.JavaConversions._

@@ -6,14 +6,14 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.tools.accumulo.commands.convert
+package org.locationtech.geomesa.tools.common.commands.convert
 
 import java.util.regex.Pattern
 
 import com.beust.jcommander.{IStringConverter, IStringConverterFactory}
 
 class GeoMesaIStringConverterFactory extends IStringConverterFactory {
-  import org.locationtech.geomesa.tools.accumulo.commands.convert.GeoMesaIStringConverterFactory.ConverterMap
+  import org.locationtech.geomesa.tools.common.commands.convert.GeoMesaIStringConverterFactory.ConverterMap
 
   override def getConverter[T](forType: Class[T]): Class[_ <: IStringConverter[T]] =
     ConverterMap.get(forType).getOrElse(null).asInstanceOf[Class[IStringConverter[T]]]

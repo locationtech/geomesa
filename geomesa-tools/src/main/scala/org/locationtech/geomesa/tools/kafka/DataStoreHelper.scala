@@ -23,10 +23,9 @@ class DataStoreHelper(params: CreateFeatureParams) {
     dsParams.TOPIC_REPLICATION.getName  -> Option(params.replication).orNull).filter(_._2 != null)
 
   /**
-   * Get a handle to a datastore for a pre-existing catalog table
-    *
-    * @throws Exception if the catalog table does not exist in accumulo
-   */
+    * Gets a KDS
+    * @throws Exception if the KDS cannot be created with the given parameters
+    */
   def getDataStore() = {
     val kdsFactory = new KafkaDataStoreFactory()
     Option(kdsFactory.createDataStore(paramMap)).getOrElse {

@@ -6,12 +6,12 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.tools.accumulo.commands
+package org.locationtech.geomesa.tools.common.commands
 
 import java.util.Properties
 
 import com.beust.jcommander.{JCommander, Parameters}
-import org.locationtech.geomesa.tools.accumulo.commands.VersionCommand._
+import org.locationtech.geomesa.tools.common.commands.VersionCommand._
 
 class VersionCommand(parent: JCommander) extends Command(parent) {
 

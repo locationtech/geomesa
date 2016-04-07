@@ -14,6 +14,7 @@ import org.apache.accumulo.core.data.{Range => ARange}
 import org.locationtech.geomesa.raster.data.AccumuloRasterStore
 import org.locationtech.geomesa.tools.accumulo.AccumuloProperties
 import org.locationtech.geomesa.tools.accumulo.commands.DeleteRasterCommand._
+import org.locationtech.geomesa.tools.common.commands.Command
 
 class DeleteRasterCommand(parent: JCommander) extends Command(parent) with LazyLogging with AccumuloProperties {
   override val command = "deleteraster"

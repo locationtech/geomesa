@@ -247,5 +247,5 @@ else
         shift 1
     fi
     CLASSPATH="$GEOMESA_CP:$ACCUMULO_CP:$HADOOP_CP"
-    java ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.kafka.Runner "$@"
+    java ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.kafka.KafkaRunner "$@"
 fi

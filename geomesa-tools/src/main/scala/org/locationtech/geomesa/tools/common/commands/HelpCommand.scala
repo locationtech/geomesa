@@ -6,14 +6,13 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.tools.kafka.commands
+package org.locationtech.geomesa.tools.common.commands
 
 import java.util
 
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
-import org.locationtech.geomesa.tools.accumulo.Runner
-import org.locationtech.geomesa.tools.accumulo.Runner.commandUsage
-import org.locationtech.geomesa.tools.accumulo.commands.HelpCommand.HelpParameters
+import org.locationtech.geomesa.tools.accumulo.AccumuloRunner.commandUsage
+import org.locationtech.geomesa.tools.common.commands.HelpCommand.HelpParameters
 
 import scala.collection.JavaConversions._
 

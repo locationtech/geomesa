@@ -1,35 +1,21 @@
-package org.locationtech.geomesa.tools.kafka
+package org.locationtech.geomesa.tools.common
 
 import com.beust.jcommander.{JCommander, ParameterException}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.tools.accumulo.commands.convert.GeoMesaIStringConverterFactory
-import org.locationtech.geomesa.tools.kafka.commands.{Command, CreateCommand, HelpCommand}
+import org.locationtech.geomesa.tools.common.commands.convert.GeoMesaIStringConverterFactory
+import org.locationtech.geomesa.tools.common.commands.{Command, HelpCommand, VersionCommand}
+import org.locationtech.geomesa.tools.kafka.commands.CreateCommand
 
 import scala.collection.JavaConversions._
 
-object Runner extends LazyLogging {
-
-  def main(args: Array[String]): Unit = {
-    val command = createCommand(args)
-    try {
-      command.execute()
-    } catch {
-      case e: Exception =>
-        logger.error(e.getMessage, e)
-        sys.exit(-1)
-    }
-    sys.exit(0)
-  }
+trait Runner extends LazyLogging {
+  val jc = new JCommander()
+  val scriptName: String
+  val commands: List[Command]
 
   def createCommand(args: Array[String]): Command = {
-    val jc = new JCommander()
-    jc.setProgramName("geomesa-kafka")
+    jc.setProgramName(scriptName)
     jc.addConverterFactory(new GeoMesaIStringConverterFactory)
-
-    val commands = List(
-      new CreateCommand(jc),
-      new HelpCommand(jc)
-    )
 
     commands.foreach(_.register)
     val commandMap = commands.map(c => c.command -> c).toMap
@@ -60,7 +46,7 @@ object Runner extends LazyLogging {
 
   def commandUsage(jc: JCommander) = {
     val out = new StringBuilder()
-    out.append("Usage: geomesa-kafka [command] [command options]\n")
+    out.append(s"Usage: $scriptName [command] [command options]\n")
     out.append("  Commands:\n")
     val maxLen = jc.getCommands.map(_._1).map(_.length).max + 4
     jc.getCommands.map(_._1).toSeq.sorted.foreach { command =>

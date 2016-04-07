@@ -15,7 +15,8 @@ import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
-import org.locationtech.geomesa.tools.accumulo.{Runner, CLArgResolver}
+import org.locationtech.geomesa.tools.accumulo.AccumuloRunner
+import org.locationtech.geomesa.tools.common.CLArgResolver
 import org.locationtech.geomesa.utils.geotools.Conversions
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -145,7 +146,7 @@ class IngestArgumentsTest extends Specification {
         "--converter", converter, "-s", sft, dataFile.getPath)
       args.length mustEqual 15
 
-      Runner.createCommand(args).execute()
+      AccumuloRunner.createCommand(args).execute()
 
       val ds = getDS(id)
       import Conversions._
@@ -164,7 +165,7 @@ class IngestArgumentsTest extends Specification {
         "--converter", confFile.getPath, "-s", confFile.getPath, dataFile.getPath)
       args.length mustEqual 15
 
-      Runner.createCommand(args).execute()
+      AccumuloRunner.createCommand(args).execute()
 
       val ds = getDS(id)
       import Conversions._

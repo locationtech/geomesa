@@ -13,8 +13,8 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.TableNotFoundException
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable, Z3Table}
-import org.locationtech.geomesa.tools.accumulo.{DataStoreHelper, Runner}
-import org.locationtech.geomesa.tools.accumulo.Runner.mkSubCommand
+import org.locationtech.geomesa.tools.accumulo.{DataStoreHelper, AccumuloRunner}
+import org.locationtech.geomesa.tools.accumulo.AccumuloRunner.mkSubCommand
 import org.locationtech.geomesa.tools.accumulo.commands.TableConfCommand._
 
 import scala.collection.JavaConversions._
