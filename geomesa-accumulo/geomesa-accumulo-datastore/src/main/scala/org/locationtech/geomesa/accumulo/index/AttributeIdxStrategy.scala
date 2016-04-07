@@ -81,11 +81,12 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
 
     // query against the attribute table
     val singleAttrPlusValuePlan: ScanPlanFn = (schema, filter, transform) => {
-      val iterators = Seq(AttrKeyPlusValueIterator.configure(sft, schema, attributeSftIndex, filter, transform, priority))
+      val iters =
+        AttrKeyPlusValueIterator.configure(sft, schema, attributeSftIndex, filter, transform, sampling, priority)
 
       // need to use transform to convert key/values if it's defined
       val kvsToFeatures = queryPlanner.kvsToFeatures(transform.map(_._2).getOrElse(schema))
-      BatchScanPlan(attrTable, ranges, iterators, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
+      BatchScanPlan(attrTable, ranges, Seq(iters), Seq.empty, kvsToFeatures, attrThreads, hasDupes)
     }
 
     if (hints.isBinQuery) {

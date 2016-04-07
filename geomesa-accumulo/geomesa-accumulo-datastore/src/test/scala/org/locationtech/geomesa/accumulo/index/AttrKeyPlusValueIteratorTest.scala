@@ -13,8 +13,10 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.index.QueryHints.SAMPLING_KEY
 import org.locationtech.geomesa.accumulo.iterators.AttrKeyPlusValueIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -57,7 +59,9 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithDataStore 
 
     "do a single scan for attribute idx queries" >> {
       val filterName = "(((name = 'alice') or name = 'bill') or name = 'bob')"
-      val filter = ECQL.toFilter(s"$filterName AND BBOX(geom, 40, 40, 60, 60) and dtg during 2014-01-01T00:00:00.000Z/2014-01-05T00:00:00.000Z ")
+      val filter = ECQL.toFilter(s"$filterName AND BBOX(geom, 40, 40, 60, 60) and " +
+          s"dtg during 2014-01-01T00:00:00.000Z/2014-01-05T00:00:00.000Z ")
+
       val query = new Query(sftName, filter, Array[String]("dtg", "geom", "name"))
       val plans = ds.getQueryPlan(query)
       plans.size mustEqual 1
@@ -66,7 +70,6 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithDataStore 
       bsp.iterators.size mustEqual 1
       bsp.iterators.head.getIteratorClass mustEqual classOf[AttrKeyPlusValueIterator].getName
 
-      import org.locationtech.geomesa.utils.geotools.Conversions._
       val rws = fs.getFeatures(query).features().toList
       rws.size mustEqual 3
       val alice = rws.filter(_.get[String]("name") == "alice").head
@@ -76,7 +79,8 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithDataStore 
 
     "work with 150 attrs" >> {
       val filterName = "(" + (0 to 150).map(i => i.toString).map(i => s"name = '$i'").mkString(" or ") + " )"
-      val filter = ECQL.toFilter(s"$filterName AND BBOX(geom, 40, 40, 60, 60) and dtg during 2014-01-01T00:00:00.000Z/2014-01-05T00:00:00.000Z ")
+      val filter = ECQL.toFilter(s"$filterName AND BBOX(geom, 40, 40, 60, 60) and " +
+          s"dtg during 2014-01-01T00:00:00.000Z/2014-01-05T00:00:00.000Z ")
 
       val query = new Query(sftName, filter, Array[String]("dtg", "geom", "name"))
       val plans = ds.getQueryPlan(query)
@@ -85,6 +89,27 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithDataStore 
       val bsp = plans.head.asInstanceOf[BatchScanPlan]
       bsp.iterators.size mustEqual 1
       bsp.iterators.head.getIteratorClass mustEqual classOf[AttrKeyPlusValueIterator].getName
+    }
+
+    "support sampling" >> {
+      // note: sampling is per-iterator, so an 'OR =' query usually won't reduce the results
+      val filterName = "name > 'alice'"
+      val filter = ECQL.toFilter(s"$filterName AND BBOX(geom, 40, 40, 60, 60) and " +
+          s"dtg during 2014-01-01T00:00:00.000Z/2014-01-05T00:00:00.000Z ")
+
+      val query = new Query(sftName, filter, Array[String]("dtg", "geom", "name"))
+      query.getHints.put(SAMPLING_KEY, new java.lang.Float(.5f))
+
+      val plans = ds.getQueryPlan(query)
+      plans.size mustEqual 1
+      plans.head must beAnInstanceOf[BatchScanPlan]
+      val bsp = plans.head.asInstanceOf[BatchScanPlan]
+      bsp.iterators.size mustEqual 1
+      bsp.iterators.head.getIteratorClass mustEqual classOf[AttrKeyPlusValueIterator].getName
+
+      val rws = fs.getFeatures(query).features().toList
+      rws must haveSize(2)
+      rws.head.getAttributeCount mustEqual 3
     }
   }
 }
