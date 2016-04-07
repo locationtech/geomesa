@@ -19,10 +19,11 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureStore
 import org.locationtech.geomesa.accumulo.stats.StatWriter
-import org.locationtech.geomesa.tools.accumulo._
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats._
+import org.locationtech.geomesa.tools.accumulo._
 import org.locationtech.geomesa.tools.accumulo.commands.ExportCommand.ExportParameters
+import org.locationtech.geomesa.tools.common.commands.{FeatureTypeNameParam, OptionalCQLFilterParam}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -126,7 +127,10 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
 
 object ExportCommand {
   @Parameters(commandDescription = "Export a GeoMesa feature")
-  class ExportParameters extends OptionalCqlFilterParameters {
+  class ExportParameters extends GeoMesaConnectionParams
+    with FeatureTypeNameParam
+    with OptionalCQLFilterParam {
+
     @Parameter(names = Array("-F", "--format"), description = "Format to export (csv|tsv|gml|json|shp|bin|avro)")
     var format: String = "csv"
 

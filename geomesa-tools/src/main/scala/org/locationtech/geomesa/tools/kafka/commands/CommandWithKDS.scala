@@ -16,7 +16,7 @@ import org.locationtech.geomesa.tools.kafka.DataStoreHelper
   * Abstract class for commands that require a KafkaDataStore
   */
 abstract class CommandWithKDS(parent: JCommander) extends Command(parent) {
-  override val params: CreateFeatureParams
+  override val params: ProducerKDSConnectionParams
   lazy val ds = new DataStoreHelper(params).getDataStore
   lazy val zkPath = params.zkPath
 }

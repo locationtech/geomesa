@@ -82,7 +82,18 @@ class PathValidator extends IParameterValidator {
 
 object IngestRasterCommand {
   @Parameters(commandDescription = "Ingest a raster file or raster files in a directory into GeoMesa")
-  class IngestRasterParameters extends CreateRasterParams {
+  class IngestRasterParameters extends AccumuloConnectionParams
+    with AccumuloRasterTableParam {
+
+    @Parameter(names = Array("--write-memory"), description = "Memory allocation for ingestion operation")
+    var writeMemory: String = null
+
+    @Parameter(names = Array("--write-threads"), description = "Threads for writing raster data")
+    var writeThreads: Integer = null
+
+    @Parameter(names = Array("--query-threads"), description = "Threads for quering raster data")
+    var queryThreads: Integer = null
+
     @Parameter(names = Array("-F", "--format"), description = "Format of incoming raster data " +
       "(geotiff | DTED) to override file extension recognition")
     var format: String = null
@@ -97,6 +108,5 @@ object IngestRasterCommand {
     @Parameter(names = Array("-P", "--parallel-level"), description = "Maximum number of local " +
       "threads for ingesting multiple raster files (default to 1)")
     var parLevel: Integer = 1
-
   }
 }

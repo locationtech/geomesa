@@ -8,9 +8,12 @@
 
 package org.locationtech.geomesa.tools.accumulo.commands
 
-import com.beust.jcommander.{JCommander, Parameters, ParametersDelegate}
+import java.util.regex.Pattern
+
+import com.beust.jcommander.{Parameter, JCommander, Parameters, ParametersDelegate}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.accumulo.commands.RemoveSchemaCommand.RemoveSchemaParams
+import org.locationtech.geomesa.tools.common.commands.OptionalFeatureTypeNameParam
 
 import scala.util.{Failure, Success, Try}
 
@@ -78,16 +81,9 @@ class RemoveSchemaCommand(parent: JCommander) extends CommandWithCatalog(parent)
 }
 
 object RemoveSchemaCommand {
-
   @Parameters(commandDescription = "Remove a schema and associated features from a GeoMesa catalog")
-  class RemoveSchemaParams extends OptionalFeatureParams {
-    @ParametersDelegate
-    val forceParams = new ForceParams
-    def force = forceParams.force
-
-    @ParametersDelegate
-    val patternParams = new PatternParams
-    def pattern = patternParams.pattern
-  }
-
+  class RemoveSchemaParams extends GeoMesaConnectionParams
+    with OptionalFeatureTypeNameParam
+    with OptionalAccumuloForceParam
+    with OptionalAccumuloPatternParam {}
 }

@@ -35,5 +35,4 @@ object HelpCommand {
     @Parameter(description = "commandName", required = false)
     val commandName: util.List[String] = new util.ArrayList[String]()
   }
-
 }

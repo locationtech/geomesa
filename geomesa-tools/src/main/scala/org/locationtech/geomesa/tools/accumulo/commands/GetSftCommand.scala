@@ -10,7 +10,8 @@ package org.locationtech.geomesa.tools.accumulo.commands
 
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import GetSftCommand._
+import org.locationtech.geomesa.tools.accumulo.commands.GetSftCommand._
+import org.locationtech.geomesa.tools.common.commands.FeatureTypeNameParam
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 class GetSftCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
@@ -33,6 +34,7 @@ class GetSftCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
 
 object GetSftCommand {
   @Parameters(commandDescription = "Get the SimpleFeatureType of a feature")
-  class GetSftParameters extends FeatureParams {}
+  class GetSftParameters extends GeoMesaConnectionParams
+    with FeatureTypeNameParam {}
 }
 

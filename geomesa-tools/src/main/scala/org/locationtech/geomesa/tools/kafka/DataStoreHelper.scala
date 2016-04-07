@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.tools.kafka
 
 import org.locationtech.geomesa.kafka.{KafkaDataStoreFactory, KafkaDataStoreFactoryParams => dsParams}
-import org.locationtech.geomesa.tools.kafka.commands.CreateFeatureParams
+import org.locationtech.geomesa.tools.kafka.commands.KafkaConnectionParams
 
 import scala.collection.JavaConversions._
 
-class DataStoreHelper(params: CreateFeatureParams) {
+class DataStoreHelper(params: KafkaConnectionParams) {
   lazy val paramMap = Map[String, String](
     dsParams.KAFKA_BROKER_PARAM.getName -> params.brokers,
     dsParams.ZOOKEEPERS_PARAM.getName   -> params.zookeepers,
@@ -24,6 +24,7 @@ class DataStoreHelper(params: CreateFeatureParams) {
 
   /**
     * Gets a KDS
+    *
     * @throws Exception if the KDS cannot be created with the given parameters
     */
   def getDataStore() = {

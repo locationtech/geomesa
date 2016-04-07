@@ -17,7 +17,7 @@ class ListCommand(parent: JCommander) extends CommandWithCatalog(parent) with La
   override val params = new ListParameters()
 
   override def execute() = {
-    logger.info("Running List Features on catalog "+params.catalog)
+    logger.info("Running List Features on catalog " + params.catalog)
     ds.getTypeNames.foreach(println)
   }
 
@@ -25,5 +25,5 @@ class ListCommand(parent: JCommander) extends CommandWithCatalog(parent) with La
 
 object ListCommand {
   @Parameters(commandDescription = "List GeoMesa features for a given catalog")
-  class ListParameters extends GeoMesaParams {}
+  class ListParameters extends GeoMesaConnectionParams {}
 }

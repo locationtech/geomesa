@@ -10,11 +10,11 @@ package org.locationtech.geomesa.tools.accumulo
 
 import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams => dsParams}
-import org.locationtech.geomesa.tools.accumulo.commands.GeoMesaParams
+import org.locationtech.geomesa.tools.accumulo.commands.GeoMesaConnectionParams
 
 import scala.collection.JavaConversions._
 
-class DataStoreHelper(params: GeoMesaParams) extends AccumuloProperties {
+class DataStoreHelper(params: GeoMesaConnectionParams) extends AccumuloProperties {
   lazy val instance = Option(params.instance).getOrElse(instanceName)
   lazy val zookeepersString = Option(params.zookeepers).getOrElse(zookeepersProp)
 

@@ -11,6 +11,7 @@ package org.locationtech.geomesa.tools.accumulo.commands
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.accumulo.commands.DescribeCommand._
+import org.locationtech.geomesa.tools.common.commands.FeatureTypeNameParam
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -54,6 +55,7 @@ class DescribeCommand(parent: JCommander) extends CommandWithCatalog(parent) wit
 
 object DescribeCommand {
   @Parameters(commandDescription = "Describe the attributes of a given feature in GeoMesa")
-  class DescribeParameters extends FeatureParams {}
+  class DescribeParameters extends GeoMesaConnectionParams
+    with FeatureTypeNameParam {}
 }
 

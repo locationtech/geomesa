@@ -13,9 +13,10 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.TableNotFoundException
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable, Z3Table}
-import org.locationtech.geomesa.tools.accumulo.{DataStoreHelper, AccumuloRunner}
 import org.locationtech.geomesa.tools.accumulo.AccumuloRunner.mkSubCommand
+import org.locationtech.geomesa.tools.accumulo.DataStoreHelper
 import org.locationtech.geomesa.tools.accumulo.commands.TableConfCommand._
+import org.locationtech.geomesa.tools.common.commands.FeatureTypeNameParam
 
 import scala.collection.JavaConversions._
 
@@ -107,7 +108,8 @@ object TableConfCommand {
   class TableConfParams {}
 
   @Parameters(commandDescription = "List the configuration parameters for a geomesa table")
-  class ListParams extends FeatureParams {
+  class ListParams extends GeoMesaConnectionParams
+    with FeatureTypeNameParam {
     @Parameter(names = Array("-t", "--table-suffix"), description = "Table suffix to operate on (attr_idx, st_idx, or records)", required = true)
     var tableSuffix: String = null
 

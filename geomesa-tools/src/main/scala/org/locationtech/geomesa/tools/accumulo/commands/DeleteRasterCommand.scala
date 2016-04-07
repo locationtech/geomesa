@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.tools.accumulo.commands
 
-import com.beust.jcommander.{JCommander, Parameter, Parameters}
+import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Range => ARange}
 import org.locationtech.geomesa.raster.data.AccumuloRasterStore
@@ -33,7 +33,7 @@ class DeleteRasterCommand(parent: JCommander) extends Command(parent) with LazyL
     lazy val RasterStore =
       AccumuloRasterStore(user, pass, instance, zookeepers, table, authsParam, visibilities, useMock)
 
-    if (params.forceDelete || promptConfirm(table)) {
+    if (params.force || promptConfirm(table)) {
       RasterStore.deleteRasterTable()
     } else {
       logger.info(s"Cancelled deletion of GeoMesa Raster Table: '$table'")
@@ -53,8 +53,7 @@ object DeleteRasterCommand {
     }
 
   @Parameters(commandDescription = "Delete a GeoMesa Raster Table")
-  class DeleteRasterParams extends RasterParams {
-    @Parameter(names = Array("--force"), description = "Force deletion of feature without prompt", required = false)
-    var forceDelete: Boolean = false
-  }
+  class DeleteRasterParams extends AccumuloConnectionParams
+    with AccumuloRasterTableParam
+    with OptionalAccumuloForceParam {}
 }

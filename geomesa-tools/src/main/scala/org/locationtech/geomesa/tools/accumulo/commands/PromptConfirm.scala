@@ -17,6 +17,6 @@ object PromptConfirm {
     } else {
       throw new IllegalStateException("Unable to confirm deletion via console..." +
         "Please ensure stdout is not redirected or --force flag is set")
-    }  
+    }
 
 }

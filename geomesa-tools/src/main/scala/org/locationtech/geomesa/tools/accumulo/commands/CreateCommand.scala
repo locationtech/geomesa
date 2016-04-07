@@ -13,6 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.tools.accumulo.commands.CreateCommand.CreateParameters
 import org.locationtech.geomesa.tools.common.CLArgResolver
+import org.locationtech.geomesa.tools.common.commands.{OptionalDTGParam, FeatureTypeNameParam, FeatureTypeSpecParam, OptionalZookeepersParam}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
@@ -34,7 +35,6 @@ class CreateCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
 
       logger.info("Creating GeoMesa tables...")
       if (dtField.orNull != null) {
-        // Todo: fix logic here, it is a bit strange
         sft.setDtgField(dtField.getOrElse(Constants.SF_PROPERTY_START_TIME))
       }
 
@@ -60,5 +60,9 @@ class CreateCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
 
 object CreateCommand {
   @Parameters(commandDescription = "Create a feature definition in a GeoMesa catalog")
-  class CreateParameters extends CreateFeatureParams {}
+  class CreateParameters extends GeoMesaConnectionParams
+    with FeatureTypeSpecParam
+    with FeatureTypeNameParam
+    with OptionalDTGParam
+    with OptionalAccumuloSharedTablesParam {}
 }

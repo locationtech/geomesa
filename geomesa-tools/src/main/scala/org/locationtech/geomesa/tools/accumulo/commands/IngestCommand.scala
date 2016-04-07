@@ -20,7 +20,7 @@ import org.locationtech.geomesa.tools.accumulo.commands.IngestCommand._
 import org.locationtech.geomesa.tools.accumulo.ingest.{AutoIngest, ConverterIngest}
 import org.locationtech.geomesa.tools.accumulo.DataStoreHelper
 import org.locationtech.geomesa.tools.common.CLArgResolver
-import org.locationtech.geomesa.tools.common.commands.Command
+import org.locationtech.geomesa.tools.common.commands._
 import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
 
 import scala.collection.JavaConversions._
@@ -76,9 +76,9 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
 
 object IngestCommand {
   @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
-  class IngestParameters extends OptionalFeatureParams {
-    @Parameter(names = Array("-s", "--spec"), description = "SimpleFeatureType specification as a GeoTools spec, SFT config, or name of an available type")
-    var spec: String = null
+  class IngestParameters extends GeoMesaConnectionParams
+    with OptionalFeatureTypeNameParam
+    with OptionalFeatureTypeSpecParam {
 
     @Parameter(names = Array("-C", "--converter"), description = "GeoMesa converter specification as a config string, file name, or name of an available converter")
     var config: String = null

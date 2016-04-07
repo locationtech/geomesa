@@ -56,7 +56,9 @@ class QueryStatsCommand(parent: JCommander) extends Command(parent) with Accumul
 
 object QueryStatsCommand {
   @Parameters(commandDescription = "Export queries and statistics about the last X number of queries to a CSV file.")
-  class QueryStatsParameters extends RasterParams {
+  class QueryStatsParameters extends AccumuloConnectionParams
+    with AccumuloRasterTableParam {
+
     @Parameter(names = Array("-n", "--number-of-records"), description = "Number of query records to export from Accumulo")
     var numRecords: Int = 1000
 

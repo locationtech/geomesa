@@ -12,7 +12,30 @@ import java.util.regex.Pattern
 
 import com.beust.jcommander.Parameter
 
-class AccumuloParams {
+/**
+  * Shared Accumulo-specific command line parameters
+  */
+trait OptionalAccumuloSharedTablesParam {
+  @Parameter(names = Array("--use-shared-tables"), description = "Use shared tables in Accumulo for feature storage (true/false)", arity = 1)
+  var useSharedTables: Boolean = true //default to true in line with datastore
+}
+
+trait OptionalAccumuloForceParam {
+  @Parameter(names = Array("--force"), description = "Force deletion without prompt")
+  var force: Boolean = false
+}
+
+trait OptionalAccumuloPatternParam {
+  @Parameter(names = Array("--pattern"), description = "Regular expression to select items to delete")
+  var pattern: Pattern = null
+}
+
+trait AccumuloRasterTableParam {
+  @Parameter(names = Array("-t", "--raster-table"), description = "Accumulo table for storing raster data", required = true)
+  var table: String = null
+}
+
+trait AccumuloConnectionParams {
   @Parameter(names = Array("-u", "--user"), description = "Accumulo user name", required = true)
   var user: String = null
 
@@ -35,64 +58,7 @@ class AccumuloParams {
   var useMock: Boolean = false
 }
 
-class GeoMesaParams extends AccumuloParams {
+trait GeoMesaConnectionParams extends AccumuloConnectionParams {
   @Parameter(names = Array("-c", "--catalog"), description = "Catalog table name for GeoMesa", required = true)
   var catalog: String = null
-}
-
-class FeatureParams extends GeoMesaParams {
-  @Parameter(names = Array("-f", "--feature-name"), description = "Simple Feature Type name on which to operate", required = true)
-  var featureName: String = null
-}
-
-class OptionalFeatureParams extends GeoMesaParams {
-  @Parameter(names = Array("-f", "--feature-name"), description = "Simple Feature Type name on which to operate", required = false)
-  var featureName: String = null
-}
-
-class RequiredCqlFilterParameters extends FeatureParams {
-  @Parameter(names = Array("-q", "--cql"), description = "CQL predicate", required = true)
-  var cqlFilter: String = null
-}
-
-class OptionalCqlFilterParameters extends FeatureParams {
-  @Parameter(names = Array("-q", "--cql"), description = "CQL predicate")
-  var cqlFilter: String = null
-}
-
-class CreateFeatureParams extends FeatureParams {
-  @Parameter(names = Array("-s", "--spec"), description = "SimpleFeatureType specification as a GeoTools spec string, SFT config, or file with either")
-  var spec: String = null
-
-  @Parameter(names = Array("--dtg"), description = "DateTime field name to use as the default dtg")
-  var dtgField: String = null
-
-  @Parameter(names = Array("--use-shared-tables"), description = "Use shared tables in Accumulo for feature storage (true/false)", arity = 1)
-  var useSharedTables: Boolean = true //default to true in line with datastore
-}
-
-class ForceParams {
-  @Parameter(names = Array("--force"), description = "Force deletion without prompt", required = false)
-  var force: Boolean = false
-}
-
-class PatternParams {
-  @Parameter(names = Array("--pattern"), description = "Regular expression to select items to delete", required = false)
-  var pattern: Pattern = null
-}
-
-class RasterParams extends AccumuloParams {
-  @Parameter(names = Array("-t", "--raster-table"), description = "Accumulo table for storing raster data", required = true)
-  var table: String = null
-}
-
-class CreateRasterParams extends RasterParams {
-  @Parameter(names = Array("--write-memory"), description = "Memory allocation for ingestion operation")
-  var writeMemory: String = null
-
-  @Parameter(names = Array("--write-threads"), description = "Threads for writing raster data")
-  var writeThreads: Integer = null
-
-  @Parameter(names = Array("--query-threads"), description = "Threads for quering raster data")
-  var queryThreads: Integer = null
 }

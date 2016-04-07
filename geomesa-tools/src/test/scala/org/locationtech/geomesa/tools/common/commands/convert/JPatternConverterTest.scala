@@ -10,16 +10,18 @@ package org.locationtech.geomesa.tools.common.commands.convert
 
 import com.beust.jcommander.JCommander
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.tools.accumulo.commands.PatternParams
+import org.locationtech.geomesa.tools.accumulo.commands.OptionalAccumuloPatternParam
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+class PatternParam extends OptionalAccumuloPatternParam {}
 
 @RunWith(classOf[JUnitRunner])
 class JPatternConverterTest extends Specification {
 
   "JPatternConverter" should {
     "convert strings into patterns" in {
-      val params = new PatternParams()
+      val params = new PatternParam()
       val jc = new JCommander()
       jc.addConverterFactory(new GeoMesaIStringConverterFactory)
       jc.addObject(params)
@@ -29,7 +31,7 @@ class JPatternConverterTest extends Specification {
     }
 
     "allow nulls" in {
-      val params = new PatternParams()
+      val params = new PatternParam()
       val jc = new JCommander()
       jc.addConverterFactory(new GeoMesaIStringConverterFactory)
       jc.addObject(params)

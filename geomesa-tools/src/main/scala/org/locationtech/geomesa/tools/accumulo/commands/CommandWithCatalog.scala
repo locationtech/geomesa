@@ -16,7 +16,7 @@ import org.locationtech.geomesa.tools.common.commands.Command
  * Abstract class for commands that have a pre-existing catlaog
  */
 abstract class CommandWithCatalog(parent: JCommander) extends Command(parent) with AccumuloProperties {
-  override val params: GeoMesaParams
+  override val params: GeoMesaConnectionParams
   lazy val ds = new DataStoreHelper(params).getDataStore
   lazy val catalog = params.catalog
 }
