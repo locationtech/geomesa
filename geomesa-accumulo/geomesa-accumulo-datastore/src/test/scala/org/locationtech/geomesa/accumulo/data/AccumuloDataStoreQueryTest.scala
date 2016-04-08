@@ -249,6 +249,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
       val query = new Query(sft.getTypeName, ECQL.toFilter("BBOX(geom,40,40,50,50)"))
       query.getHints.put(BIN_TRACK_KEY, "name")
+      query.getHints.put(BIN_BATCH_SIZE_KEY, 1000)
       val queryPlanner = new QueryPlanner(sft, ds.getFeatureEncoding(sft),
         ds.getIndexSchemaFmt(sft.getTypeName), ds, ds.strategyHints(sft))
       val results = queryPlanner.runQuery(query, Some(StrategyType.ST)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
@@ -275,6 +276,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
       val query = new Query(sft.getTypeName, ECQL.toFilter("BBOX(geom,40,40,55,55)"))
       query.getHints.put(BIN_TRACK_KEY, "name")
+      query.getHints.put(BIN_BATCH_SIZE_KEY, 1000)
       query.getHints.put(BIN_DTG_KEY, "dtgs")
 
       val bytes = ds.getFeatureSource(sft.getTypeName).getFeatures(query).features().map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList

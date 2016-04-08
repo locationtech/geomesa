@@ -36,3 +36,7 @@ class AlphaNumericSplitter extends TableSplitter {
   override def getSplits(options: util.Map[String, String]): Array[Text] =
     (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')).map(c => new Text("" + c)).toArray
 }
+
+class NoSplitter extends TableSplitter {
+  override def getSplits(options: util.Map[String, String]): Array[Text] = Array.empty
+}

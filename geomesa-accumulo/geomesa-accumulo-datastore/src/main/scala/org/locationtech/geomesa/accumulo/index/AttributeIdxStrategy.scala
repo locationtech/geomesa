@@ -24,7 +24,7 @@ import org.locationtech.geomesa.filter.FilterHelper._
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.stats.{Stat, Cardinality, IndexCoverage}
+import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
@@ -64,6 +64,7 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
 
     val descriptor = sft.getDescriptor(attributeSftIndex)
     val transform = hints.getTransformSchema
+    val sampling = hints.getSampling
     val hasDupes = descriptor.isMultiValued
 
     val attrTable = acc.getTableName(sft.getTypeName, AttributeTable)
@@ -72,23 +73,20 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
 
     // query against the attribute table
     val singleAttrValueOnlyPlan: ScanPlanFn = (schema, filter, transform) => {
-      val iterators = if (filter.isDefined || transform.isDefined) {
-        Seq(KryoLazyFilterTransformIterator.configure(schema, filter, transform, priority))
-      } else {
-        Seq.empty
-      }
+      val iters = KryoLazyFilterTransformIterator.configure(schema, filter, transform, sampling).toSeq
       // need to use transform to convert key/values if it's defined
       val kvsToFeatures = queryPlanner.kvsToFeatures(transform.map(_._2).getOrElse(schema))
-      BatchScanPlan(attrTable, ranges, iterators, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
+      BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
     }
 
     // query against the attribute table
     val singleAttrPlusValuePlan: ScanPlanFn = (schema, filter, transform) => {
-      val iterators = Seq(AttrKeyPlusValueIterator.configure(sft, schema, attributeSftIndex, filter, transform, priority))
+      val iters =
+        AttrKeyPlusValueIterator.configure(sft, schema, attributeSftIndex, filter, transform, sampling, priority)
 
       // need to use transform to convert key/values if it's defined
       val kvsToFeatures = queryPlanner.kvsToFeatures(transform.map(_._2).getOrElse(schema))
-      BatchScanPlan(attrTable, ranges, iterators, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
+      BatchScanPlan(attrTable, ranges, Seq(iters), Seq.empty, kvsToFeatures, attrThreads, hasDupes)
     }
 
     if (hints.isBinQuery) {
