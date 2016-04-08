@@ -6,16 +6,16 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.tools.accumulo.commands
+package org.locationtech.geomesa.tools.kafka.commands
 
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.tools.accumulo.commands.RemoveSchemaCommand.RemoveSchemaParams
-import org.locationtech.geomesa.tools.common.commands.{OptionalFeatureTypeNameParam, OptionalForceParam, OptionalPatternParam, PromptConfirm}
+import org.locationtech.geomesa.tools.common.commands.{OptionalPatternParam, OptionalForceParam, OptionalFeatureTypeNameParam, PromptConfirm}
+import org.locationtech.geomesa.tools.kafka.commands.RemoveSchemaCommand.RemoveSchemaParams
 
 import scala.util.{Failure, Success, Try}
 
-class RemoveSchemaCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
+class RemoveSchemaCommand(parent: JCommander) extends CommandWithKDS(parent) with LazyLogging {
   override val command = "removeschema"
   override val params = new RemoveSchemaParams
 
@@ -43,7 +43,7 @@ class RemoveSchemaCommand(parent: JCommander) extends CommandWithCatalog(parent)
       Try {
         ds.removeSchema(tname)
         if (ds.getNames.contains(tname)) {
-          throw new Exception(s"Error removing feature type '$catalog:$tname'.")
+          throw new Exception(s"Error removing feature type '$zkPath:$tname'.")
         }
       } match {
         case Success(_) =>
@@ -68,19 +68,18 @@ class RemoveSchemaCommand(parent: JCommander) extends CommandWithCatalog(parent)
     val validFeatures = ds.getTypeNames
     typeNames.foreach { f =>
       if (!validFeatures.contains(f)) {
-        throw new IllegalArgumentException(s"Feature type name $f does not exist in catalog $catalog.")
+        throw new IllegalArgumentException(s"Feature type name $f does not exist at zkPath $zkPath")
       }
     }
   }
 
   protected def promptConfirm(featureNames: List[String]) =
-    PromptConfirm.confirm(s"Remove schema ${featureNames.mkString(",")} from catalog $catalog? (yes/no): ")
-
+    PromptConfirm.confirm(s"Remove schema ${featureNames.mkString(",")} at zkPath $zkPath? (yes/no): ")
 }
 
 object RemoveSchemaCommand {
-  @Parameters(commandDescription = "Remove a schema and associated features from a GeoMesa catalog")
-  class RemoveSchemaParams extends GeoMesaConnectionParams
+  @Parameters(commandDescription = "Remove a schema and associated features from Kafka")
+  class RemoveSchemaParams extends SimpleProducerKDSConnectionParams
     with OptionalFeatureTypeNameParam
     with OptionalForceParam
     with OptionalPatternParam {}

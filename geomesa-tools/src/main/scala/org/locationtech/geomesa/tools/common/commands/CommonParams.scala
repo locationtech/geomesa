@@ -8,11 +8,14 @@
 
 package org.locationtech.geomesa.tools.common.commands
 
+import java.util.regex.Pattern
+
 import com.beust.jcommander.Parameter
 
 /**
   * Shared parameters as individual traits
   */
+
 trait FeatureTypeNameParam {
   @Parameter(names = Array("-f", "--feature-name"), description = "Simple Feature Type name on which to operate", required = true)
   var featureName: String = null
@@ -21,6 +24,16 @@ trait FeatureTypeNameParam {
 trait OptionalFeatureTypeNameParam {
   @Parameter(names = Array("-f", "--feature-name"), description = "Simple Feature Type name on which to operate")
   var featureName: String = null
+}
+
+trait OptionalPatternParam {
+  @Parameter(names = Array("--pattern"), description = "Regular expression to select items to delete")
+  var pattern: Pattern = null
+}
+
+trait OptionalForceParam {
+  @Parameter(names = Array("--force"), description = "Force deletion without prompt")
+  var force: Boolean = false
 }
 
 trait FeatureTypeSpecParam {

@@ -59,7 +59,7 @@ class CreateCommand(parent: JCommander) extends CommandWithKDS(parent) with Lazy
 }
 
 object CreateCommand {
-  @Parameters(commandDescription = "Create a feature definition Kafka")
+  @Parameters(commandDescription = "Create a feature type definition in Kafka")
   class CreateParameters extends ProducerKDSConnectionParams
     with FeatureTypeSpecParam
     with OptionalDTGParam

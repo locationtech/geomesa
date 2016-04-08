@@ -8,26 +8,15 @@
 
 package org.locationtech.geomesa.tools.accumulo.commands
 
-import java.util.regex.Pattern
-
 import com.beust.jcommander.Parameter
 
 /**
   * Shared Accumulo-specific command line parameters
   */
+
 trait OptionalAccumuloSharedTablesParam {
   @Parameter(names = Array("--use-shared-tables"), description = "Use shared tables in Accumulo for feature storage (true/false)", arity = 1)
   var useSharedTables: Boolean = true //default to true in line with datastore
-}
-
-trait OptionalAccumuloForceParam {
-  @Parameter(names = Array("--force"), description = "Force deletion without prompt")
-  var force: Boolean = false
-}
-
-trait OptionalAccumuloPatternParam {
-  @Parameter(names = Array("--pattern"), description = "Regular expression to select items to delete")
-  var pattern: Pattern = null
 }
 
 trait AccumuloRasterTableParam {

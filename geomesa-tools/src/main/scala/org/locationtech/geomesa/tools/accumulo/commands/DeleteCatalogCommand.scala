@@ -11,6 +11,7 @@ package org.locationtech.geomesa.tools.accumulo.commands
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.accumulo.commands.DeleteCatalogCommand._
+import org.locationtech.geomesa.tools.common.commands.{OptionalForceParam, PromptConfirm}
 
 class DeleteCatalogCommand (parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
   override val command = "deletecatalog"
@@ -30,5 +31,5 @@ class DeleteCatalogCommand (parent: JCommander) extends CommandWithCatalog(paren
 object DeleteCatalogCommand {
   @Parameters(commandDescription = "Delete a GeoMesa catalog completely (and all features in it)")
   class DeleteCatalogParams extends GeoMesaConnectionParams
-    with OptionalAccumuloForceParam {}
+    with OptionalForceParam {}
 }

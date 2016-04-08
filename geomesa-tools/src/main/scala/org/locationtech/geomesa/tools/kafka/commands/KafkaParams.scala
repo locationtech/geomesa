@@ -39,6 +39,17 @@ trait ProducerKDSConnectionParams extends KafkaConnectionParams {
   override val isProducer: Boolean = true
 }
 
+/**
+  * For a producer KDS without exposing the replication/partitions settings to the user
+  */
+trait SimpleProducerKDSConnectionParams extends KafkaConnectionParams {
+  override var replication: String = null
+  override var partitions: String = null
+  override val isProducer: Boolean = true
+}
+
 trait ConsumerKDSConnectionParams extends KafkaConnectionParams {
+  override var replication: String = null
+  override var partitions: String = null
   override val isProducer: Boolean = false
 }
