@@ -262,9 +262,9 @@ class AccumuloDataStore(val connector: Connector,
    * @return feature reader
    */
   override def getFeatureReader(query: Query, transaction: Transaction): AccumuloFeatureReader = {
-    val sw = Some(this).collect { case w: StatWriter => w }
+    val stats = Some(this).collect { case w: StatWriter => w }.map((_, auditProvider))
     val qp = getQueryPlanner(query.getTypeName)
-    AccumuloFeatureReader(query, qp, queryTimeoutMillis, sw, auditProvider)
+    AccumuloFeatureReader(query, qp, queryTimeoutMillis, stats)
   }
 
   /**
