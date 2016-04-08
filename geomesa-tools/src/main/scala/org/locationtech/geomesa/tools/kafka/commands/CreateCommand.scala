@@ -25,16 +25,12 @@ class CreateCommand(parent: JCommander) extends CommandWithKDS(parent) with Lazy
   override def execute() = {
     val sft = CLArgResolver.getSft(params.spec, params.featureName)
     val featureName = params.featureName
-    val dtField = Option(params.dtgField)
 
     val sftString = SimpleFeatureTypes.encodeType(sft)
     logger.info(s"Creating '$featureName' using a KafkaDataStore with spec " +
       s"'$sftString'. Just a few moments...")
 
     val streamingSFT = KafkaDataStoreHelper.createStreamingSFT(sft, zkPath)
-    if (dtField.orNull != null) {
-      sft.setDtgField(dtField.getOrElse(Constants.SF_PROPERTY_START_TIME))
-    }
 
     try {
       logger.info("Creating GeoMesa Kafka schema...")
@@ -62,6 +58,5 @@ object CreateCommand {
   @Parameters(commandDescription = "Create a feature type definition in Kafka")
   class CreateParameters extends ProducerKDSConnectionParams
     with FeatureTypeSpecParam
-    with OptionalDTGParam
     with FeatureTypeNameParam {}
 }
