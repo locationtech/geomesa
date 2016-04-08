@@ -10,7 +10,7 @@ package org.locationtech.geomesa.tools.common.commands.convert
 
 import com.beust.jcommander.JCommander
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.tools.common.commands.OptionalPatternParam
+import org.locationtech.geomesa.tools.common.OptionalPatternParam
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

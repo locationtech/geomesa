@@ -10,7 +10,7 @@ package org.locationtech.geomesa.tools.kafka.commands
 
 import com.beust.jcommander.JCommander
 import org.locationtech.geomesa.tools.common.commands.Command
-import org.locationtech.geomesa.tools.kafka.DataStoreHelper
+import org.locationtech.geomesa.tools.kafka.{KafkaConnectionParams, DataStoreHelper}
 
 /**
   * Abstract class for commands that require a KafkaDataStore

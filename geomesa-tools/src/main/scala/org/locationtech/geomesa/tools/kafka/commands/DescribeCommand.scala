@@ -13,8 +13,9 @@ import com.typesafe.scalalogging.LazyLogging
 import kafka.admin.AdminUtils
 import kafka.utils.ZKStringSerializer
 import org.I0Itec.zkclient.ZkClient
-import org.locationtech.geomesa.kafka.{KafkaDataStore, KafkaDataStoreSchemaManager}
-import org.locationtech.geomesa.tools.common.commands.FeatureTypeNameParam
+import org.locationtech.geomesa.kafka.KafkaDataStore
+import org.locationtech.geomesa.tools.common.FeatureTypeNameParam
+import org.locationtech.geomesa.tools.kafka.ConsumerKDSConnectionParams
 import org.locationtech.geomesa.tools.kafka.commands.DescribeCommand._
 
 import scala.collection.JavaConversions._

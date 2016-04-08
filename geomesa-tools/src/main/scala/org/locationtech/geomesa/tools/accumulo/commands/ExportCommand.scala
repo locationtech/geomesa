@@ -23,7 +23,8 @@ import org.locationtech.geomesa.tools.accumulo.Utils.Formats
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats._
 import org.locationtech.geomesa.tools.accumulo._
 import org.locationtech.geomesa.tools.accumulo.commands.ExportCommand.ExportParameters
-import org.locationtech.geomesa.tools.common.commands.{FeatureTypeNameParam, OptionalCQLFilterParam}
+import org.locationtech.geomesa.tools.common.{OptionalCQLFilterParam, FeatureTypeNameParam}
+import org.locationtech.geomesa.tools.common.commands.OptionalCQLFilterParam
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.filter.Filter
 

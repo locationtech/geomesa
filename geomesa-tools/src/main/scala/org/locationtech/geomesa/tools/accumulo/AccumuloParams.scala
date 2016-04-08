@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.tools.accumulo.commands
+package org.locationtech.geomesa.tools.accumulo
 
 import com.beust.jcommander.Parameter
 

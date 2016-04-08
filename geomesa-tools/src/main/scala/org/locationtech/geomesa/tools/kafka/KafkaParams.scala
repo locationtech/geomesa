@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.tools.kafka.commands
+package org.locationtech.geomesa.tools.kafka
 
 import com.beust.jcommander.Parameter
 
@@ -21,15 +21,23 @@ trait KafkaConnectionParams {
   @Parameter(names = Array("-z", "--zookeepers"), description = "Zookeepers (host[:port], comma separated)", required = true)
   var zookeepers: String = null
 
-  @Parameter(names = Array("-p", "--zkpath"), description = "Zookeeper path where SFT info is saved)", required = true)
-  var zkPath: String = null
-
+  var zkPath: String
   val isProducer: Boolean
   var replication: String
   var partitions: String
 }
 
-trait ProducerKDSConnectionParams extends KafkaConnectionParams {
+trait OptionalZkPathParams extends KafkaConnectionParams {
+  @Parameter(names = Array("-p", "--zkpath"), description = "Zookeeper path where feature schemas are saved")
+  var zkPath: String = null
+}
+
+trait RequireZkPathParams extends KafkaConnectionParams {
+  @Parameter(names = Array("-p", "--zkpath"), description = "Zookeeper path where feature schemas are saved", required = true)
+  override var zkPath: String = null
+}
+
+trait ProducerKDSConnectionParams extends RequireZkPathParams {
   @Parameter(names = Array("--replication"), description = "Replication factor for Kafka topic")
   override var replication: String = null
 
@@ -42,13 +50,13 @@ trait ProducerKDSConnectionParams extends KafkaConnectionParams {
 /**
   * For a producer KDS without exposing the replication/partitions settings to the user
   */
-trait SimpleProducerKDSConnectionParams extends KafkaConnectionParams {
+trait SimpleProducerKDSConnectionParams extends RequireZkPathParams {
   override var replication: String = null
   override var partitions: String = null
   override val isProducer: Boolean = true
 }
 
-trait ConsumerKDSConnectionParams extends KafkaConnectionParams {
+trait ConsumerKDSConnectionParams extends RequireZkPathParams {
   override var replication: String = null
   override var partitions: String = null
   override val isProducer: Boolean = false

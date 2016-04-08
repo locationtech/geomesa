@@ -10,7 +10,9 @@ package org.locationtech.geomesa.tools.kafka.commands
 
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.tools.common.commands.{OptionalPatternParam, OptionalForceParam, OptionalFeatureTypeNameParam, PromptConfirm}
+import org.locationtech.geomesa.tools.common.{OptionalForceParam, OptionalPatternParam, OptionalFeatureTypeNameParam, PromptConfirm}
+import org.locationtech.geomesa.tools.common.commands.OptionalForceParam
+import org.locationtech.geomesa.tools.kafka.SimpleProducerKDSConnectionParams
 import org.locationtech.geomesa.tools.kafka.commands.RemoveSchemaCommand.RemoveSchemaParams
 
 import scala.util.{Failure, Success, Try}
@@ -78,7 +80,7 @@ class RemoveSchemaCommand(parent: JCommander) extends CommandWithKDS(parent) wit
 }
 
 object RemoveSchemaCommand {
-  @Parameters(commandDescription = "Remove a schema and associated features from Kafka")
+  @Parameters(commandDescription = "Remove a schema and associated features from GeoMesa")
   class RemoveSchemaParams extends SimpleProducerKDSConnectionParams
     with OptionalFeatureTypeNameParam
     with OptionalForceParam

@@ -10,6 +10,7 @@ package org.locationtech.geomesa.tools.accumulo.commands
 
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
+import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.ListCommand._
 
 class ListCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {

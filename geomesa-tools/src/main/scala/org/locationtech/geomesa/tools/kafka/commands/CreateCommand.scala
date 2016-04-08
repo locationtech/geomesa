@@ -12,8 +12,9 @@ import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.kafka.KafkaDataStoreHelper
-import org.locationtech.geomesa.tools.common.CLArgResolver
-import org.locationtech.geomesa.tools.common.commands.{FeatureTypeNameParam, FeatureTypeSpecParam, OptionalDTGParam}
+import org.locationtech.geomesa.tools.common.{FeatureTypeSpecParam, FeatureTypeNameParam, CLArgResolver}
+import org.locationtech.geomesa.tools.common.commands.OptionalDTGParam
+import org.locationtech.geomesa.tools.kafka.ProducerKDSConnectionParams
 import org.locationtech.geomesa.tools.kafka.commands.CreateCommand.CreateParameters
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -55,7 +56,7 @@ class CreateCommand(parent: JCommander) extends CommandWithKDS(parent) with Lazy
 }
 
 object CreateCommand {
-  @Parameters(commandDescription = "Create a feature type definition in Kafka")
+  @Parameters(commandDescription = "Create a feature definition in GeoMesa")
   class CreateParameters extends ProducerKDSConnectionParams
     with FeatureTypeSpecParam
     with FeatureTypeNameParam {}
