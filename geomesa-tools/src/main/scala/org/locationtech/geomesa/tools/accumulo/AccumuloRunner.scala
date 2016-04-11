@@ -13,7 +13,7 @@ import org.locationtech.geomesa.tools.common.Runner
 import org.locationtech.geomesa.tools.common.commands.{Command, HelpCommand, VersionCommand}
 
 object AccumuloRunner extends Runner {
-  override val scriptName: String = "geomesa-accumulo"
+  override val scriptName: String = "geomesa"
   override val commands: List[Command] = List(
     new CreateCommand(jc),
     new DeleteCatalogCommand(jc),

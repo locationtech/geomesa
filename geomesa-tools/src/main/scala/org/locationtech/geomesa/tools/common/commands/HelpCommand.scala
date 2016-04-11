@@ -24,7 +24,7 @@ class HelpCommand(parent: JCommander) extends Command(parent) {
     params.commandName.headOption match {
       case Some(command) => parent.usage(command)
       case None          =>
-        println(commandUsage(parent) + "\nTo see help for a specific command type: geomesa-accumulo help <command-name>\n")
+        println(commandUsage(parent) + "\nTo see help for a specific command type: geomesa help <command-name>\n")
     }
 
 }

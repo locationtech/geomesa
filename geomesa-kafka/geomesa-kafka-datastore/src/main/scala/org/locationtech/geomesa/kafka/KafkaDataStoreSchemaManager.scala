@@ -45,7 +45,7 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
     val typeName = featureType.getTypeName
     val schemaPath: String = getSchemaPath(typeName)
     if (zkClient.exists(schemaPath)) {
-      throw new IllegalArgumentException(s"Type $typeName already exists at $zkPath")
+      throw new IllegalArgumentException(s"Type $typeName already exists at $zkPath.")
     }
 
     val data = SimpleFeatureTypes.encodeType(featureType)

@@ -19,9 +19,8 @@ import org.geotools.factory.GeoTools
 import org.geotools.util.Converters
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.jobs.mapreduce.{FileStreamInputFormat, FileStreamRecordReader}
-import org.locationtech.geomesa.tools.accumulo.Utils
-import Utils.Formats
-import Utils.Formats.Formats
+import org.locationtech.geomesa.tools.accumulo.Utils.Formats
+import org.locationtech.geomesa.tools.accumulo.Utils.Formats.Formats
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.{ConverterFactories, SimpleFeatureTypes}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}

@@ -62,7 +62,7 @@ class TableConfCommand(parent: JCommander) extends CommandWithCatalog(parent) wi
         }
 
       case _ =>
-        println("Error: no tableconf command listed...run as: geomesa-accumulo tableconf <tableconf-command>")
+        println("Error: no tableconf command listed...run as: geomesa tableconf <tableconf-command>")
         parent.usage(command)
     }
   }

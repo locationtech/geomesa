@@ -25,7 +25,7 @@
             <directoryMode>755</directoryMode>
             <fileMode>0755</fileMode>
             <includes>
-                <include>geomesa-accumulo</include>
+                <include>geomesa</include>
                 <include>geomesa-kafka</include>
                 <include>install-jai</include>
                 <include>install-jline</include>
