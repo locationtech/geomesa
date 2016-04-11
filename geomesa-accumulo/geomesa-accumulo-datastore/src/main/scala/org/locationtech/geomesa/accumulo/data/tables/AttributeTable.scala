@@ -48,7 +48,8 @@ object AttributeTable extends GeoMesaTable with LazyLogging {
 
   private type TryEncoder = Try[(TypeEncoder[Any, String], TypeEncoder[_, String])]
 
-  override def supports(sft: SimpleFeatureType) = sft.getSchemaVersion > 5
+  override def supports(sft: SimpleFeatureType) =
+    sft.getSchemaVersion > 5 && sft.getAttributeDescriptors.exists(_.isIndexed)
 
   override val suffix: String = "attr_idx"
 

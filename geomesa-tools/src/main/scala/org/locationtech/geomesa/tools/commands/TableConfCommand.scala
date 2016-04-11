@@ -12,7 +12,7 @@ import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.TableNotFoundException
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable, Z3Table}
+import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.tools.DataStoreHelper
 import org.locationtech.geomesa.tools.Runner.mkSubCommand
 import org.locationtech.geomesa.tools.commands.TableConfCommand._
@@ -99,6 +99,7 @@ object TableConfCommand {
       case SpatioTemporalTable.suffix => params.ds.getTableName(params.featureName, SpatioTemporalTable)
       case AttributeTable.suffix      => params.ds.getTableName(params.featureName, AttributeTable)
       case RecordTable.suffix         => params.ds.getTableName(params.featureName, RecordTable)
+      case Z2Table.suffix             => params.ds.getTableName(params.featureName, Z2Table)
       case Z3Table.suffix             => params.ds.getTableName(params.featureName, Z3Table)
       case _                          => throw new Exception(s"Invalid table suffix: ${params.tableSuffix}")
     }

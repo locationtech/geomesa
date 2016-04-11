@@ -11,4 +11,4 @@ package org.locationtech.geomesa.filter.visitor
 import org.opengis.feature.simple.SimpleFeatureType
 
 class QueryPlanFilterVisitor(val sft: SimpleFeatureType)
-    extends LocalNameVisitor with SafeTopologicalFilterVisitor
+    extends SafeTopologicalFilterVisitor with LocalNameVisitor

@@ -18,5 +18,6 @@ package object geomesa {
   // 5 == z3 index
   // 6 == attribute indices with dates
   // 7 == z3 polygons
-  val CURRENT_SCHEMA_VERSION = 7
+  // 8 == z2 index, deprecating stidx
+  val CURRENT_SCHEMA_VERSION = 8
 }

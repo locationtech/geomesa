@@ -9,11 +9,12 @@
 package org.locationtech.geomesa.accumulo.data.tables
 
 object AvailableTables {
-  val AllTables: List[GeoMesaTable] = List(AttributeTable, RecordTable, Z3Table, SpatioTemporalTable)
-  val AllTablesStr: List[String] = List(AttributeTable, RecordTable, Z3Table, SpatioTemporalTable).map(_.suffix)
+  val AllTables: List[GeoMesaTable] = List(Z2Table, Z3Table, RecordTable, AttributeTable, SpatioTemporalTable)
+  val AllTablesStr: List[String] = AllTables.map(_.suffix)
   val DefaultTables: List[GeoMesaTable] = AllTables
-  val DefaultTablesStr: List[String] = AllTables.map(_.suffix)
+  val DefaultTablesStr: List[String] = AllTablesStr
   val Z3TableSchemeStr: List[String] = List(AttributeTable, RecordTable, Z3Table).map(_.suffix)
+  val Z2TableSchemeStr: List[String] = List(AttributeTable, RecordTable, Z2Table).map(_.suffix)
   
   def toTables(sList: List[String]) = sList.flatMap( s => AvailableTables.AllTables.find(_.suffix == s))
   

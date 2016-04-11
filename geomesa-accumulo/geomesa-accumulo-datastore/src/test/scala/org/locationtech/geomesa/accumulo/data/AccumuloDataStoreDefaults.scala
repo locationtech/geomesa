@@ -51,8 +51,7 @@ trait AccumuloDataStoreDefaults {
     "user"              -> "myuser",
     "password"          -> "mypassword",
     "tableName"         -> defaultTable,
-    "useMock"           -> "true",
-    "featureEncoding"   -> "avro")
+    "useMock"           -> "true")
   val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
 
   /**

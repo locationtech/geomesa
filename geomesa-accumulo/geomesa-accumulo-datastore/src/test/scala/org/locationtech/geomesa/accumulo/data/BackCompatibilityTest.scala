@@ -55,18 +55,16 @@ class BackCompatibilityTest extends Specification with TestWithMultipleSfts {
     fs.getFeatures(query).features.map(_.getID.toInt).toList
 
   def runVersionTest(version: Int) = {
-    val sft = createNewSchema(spec)
-    ds.metadata.insert(sft.getTypeName, VERSION_KEY, version.toString)
-    ds.metadata.expireCache(sft.getTypeName)
+    val sft = createNewSchema(spec, schemaVersion = Some(version))
     addFeatures(sft, getTestFeatures(sft))
 
-    val fs = ds.getFeatureSource(sft.getTypeName).asInstanceOf[AccumuloFeatureStore]
+    val fs = ds.getFeatureSource(sft.getTypeName)
 
     queries.foreach { case (q, results) =>
       val filter = ECQL.toFilter(q)
-      doQuery(fs, new Query(sft.getTypeName, filter)) mustEqual results
+      doQuery(fs, new Query(sft.getTypeName, filter)) must containTheSameElementsAs(results)
       transforms.foreach { t =>
-        doQuery(fs, new Query(sft.getTypeName, filter, t)) mustEqual results
+        doQuery(fs, new Query(sft.getTypeName, filter, t)) must containTheSameElementsAs(results)
       }
     }
   }

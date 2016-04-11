@@ -116,15 +116,13 @@ case class QueryPlanner(sft: SimpleFeatureType,
                             requested: Option[StrategyType],
                             output: ExplainerOutputType): Iterator[QueryPlan] = {
 
-    val originalFilter = query.getFilter
-
     configureQuery(query, sft) // configure the query - set hints that we'll need later on
     val q = updateFilter(query, sft) // tweak the filter so it meets our expectations going forward
 
     val hints = q.getHints
 
     output.pushLevel(s"Planning '${q.getTypeName}' ${filterToString(q.getFilter)}")
-    output(s"Original filter: ${filterToString(originalFilter)}")
+    output(s"Original filter: ${filterToString(query.getFilter)}")
     output(s"Hints: density[${hints.isDensityQuery}] bin[${hints.isBinQuery}] " +
         s"stats[${hints.isStatsIteratorQuery}] map-aggregate[${hints.isMapAggregatingQuery}] " +
         s"sampling[${hints.getSampling.map { case (s, f) => s"$s${f.map(":" + _).getOrElse("")}"}.getOrElse("none")}]")

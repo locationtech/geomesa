@@ -13,7 +13,6 @@ import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.{BatchScanner, IteratorSetting, Scanner}
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.Interval
 import org.locationtech.geomesa.accumulo.GeomesaSystemProperties.QueryProperties
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.data._
@@ -48,7 +47,9 @@ object Strategy extends LazyLogging {
   // enumeration of the various strategies we implement - don't forget to add new impls here
   object StrategyType extends Enumeration {
     type StrategyType = Value
-    val Z3, ST, RECORD, ATTRIBUTE = Value
+    val Z2, Z3, RECORD, ATTRIBUTE = Value
+    @deprecated("z2")
+    val ST = Value
   }
 
   /**

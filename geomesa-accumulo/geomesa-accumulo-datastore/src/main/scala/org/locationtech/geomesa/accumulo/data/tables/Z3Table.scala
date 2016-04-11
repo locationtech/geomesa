@@ -221,14 +221,6 @@ object Z3Table extends GeoMesaTable {
     (row: Array[Byte]) => new String(row, offset, row.length - offset, Charsets.UTF_8)
   }
 
-  def adaptZ3KryoIterator(sft: SimpleFeatureType): FeatureFunction = {
-    val kryo = new KryoFeatureSerializer(sft)
-    (e: Entry[Key, Value]) => {
-      // TODO lazy features if we know it's read-only?
-      kryo.deserialize(e.getValue.get())
-    }
-  }
-
   override def configureTable(sft: SimpleFeatureType, table: String, tableOps: TableOperations): Unit = {
     tableOps.setProperty(table, Property.TABLE_SPLIT_THRESHOLD.getKey, "128M")
     tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
