@@ -35,7 +35,8 @@ import org.opengis.filter.Filter
 /**
  * Iterator that computes and aggregates 'bin' entries
  */
-class BinAggregatingIterator extends KryoLazyAggregatingIterator[ByteBufferResult] with LazyLogging {
+class BinAggregatingIterator extends
+    KryoLazyAggregatingIterator[ByteBufferResult] with SamplingIterator with LazyLogging {
 
   import BinAggregatingIterator._
 
@@ -48,6 +49,8 @@ class BinAggregatingIterator extends KryoLazyAggregatingIterator[ByteBufferResul
 
   var batchSize: Int = -1
 
+  var sampling: Option[(SimpleFeature) => Boolean] = null
+
   var writeBin: (KryoBufferSimpleFeature, ByteBuffer) => Unit = null
 
   override def init(options: Map[String, String]): ByteBufferResult = {
@@ -59,21 +62,28 @@ class BinAggregatingIterator extends KryoLazyAggregatingIterator[ByteBufferResul
     binSize = if (labelIndex == -1) 16 else 24
     sort = options(SORT_OPT).toBoolean
 
+    sampling = sample(options)
+
     // derive the bin values from the features
-    writeBin = if (sft.isPoints) {
+    val writeGeom: (KryoBufferSimpleFeature, ByteBuffer) => Unit = if (sft.isPoints) {
       if (labelIndex == -1) writePoint else writePointWithLabel
     } else if (sft.isLines) {
       if (labelIndex == -1) writeLineString else writeLineStringWithLabel
     } else {
       if (labelIndex == -1) writeGeometry else writeGeometryWithLabel
     }
+
+    writeBin = sampling match {
+      case None => writeGeom
+      case Some(samp) => (sf, bb) => if (samp(sf)) { writeGeom(sf, bb) }
+    }
+
     batchSize = options(BATCH_SIZE_OPT).toInt * binSize
 
     new ByteBufferResult(ByteBuffer.wrap(Array.ofDim(batchSize)).order(ByteOrder.LITTLE_ENDIAN))
   }
 
   override def notFull(result: ByteBufferResult): Boolean = result.buffer.position < batchSize
-
 
   override def aggregateResult(sf: SimpleFeature, result: ByteBufferResult): Unit =
     writeBin(sf.asInstanceOf[KryoBufferSimpleFeature], result.buffer)
@@ -173,7 +183,8 @@ class BinAggregatingIterator extends KryoLazyAggregatingIterator[ByteBufferResul
     writeLabelToBuffer(sf, byteBuffer)
   }
 
-  override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = ???
+  override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] =
+    throw new NotImplementedError()
 }
 
 /**
@@ -182,46 +193,77 @@ class BinAggregatingIterator extends KryoLazyAggregatingIterator[ByteBufferResul
 class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
 
   var decodeBin: (Array[Byte]) => SimpleFeature = null
+  var writePrecomputedBin: (SimpleFeature, ByteBufferResult) => Unit = null
 
   override def init(options: Map[String, String]): ByteBufferResult = {
-    val filt = options.contains(KryoLazyAggregatingIterator.CQL_OPT)
+    val result = super.init(options)
+
+    val filter   = options.contains(KryoLazyAggregatingIterator.CQL_OPT)
     val dedupe = options.contains(KryoLazyAggregatingIterator.DUPE_OPT)
+    val sample = options.contains(SamplingIterator.SAMPLE_BY_OPT)
 
     val sf = new ScalaSimpleFeature("", sft)
     val gf = new GeometryFactory
     val getId = Z3Table.getIdFromRow(sft) // NOTE: Z3 is the only table we use precomputed values for
 
-    // we only need to decode the parts required for the filter/dedupe check
-    decodeBin = (filt, dedupe) match {
-      case (false, false) => (_) => null
-      case (false, true)  => (_) => {
-        sf.getIdentifier.setID(getId(source.getTopKey.getRow.getBytes))
-        sf
-      }
-      case (true, _) => (_) => {
+    // we only need to decode the parts required for the filter/dedupe/sampling check
+    // note: we wouldn't be using precomputed if sample by field wasn't the track id
+    decodeBin = if (filter) {
+      (_) => {
         sf.getIdentifier.setID(getId(source.getTopKey.getRow.getBytes))
         setValuesFromBin(sf, gf)
         sf
       }
+    } else if (sample && dedupe) {
+      (_) => {
+        sf.getIdentifier.setID(getId(source.getTopKey.getRow.getBytes))
+        setTrackIdFromBin(sf)
+        sf
+      }
+    } else if (sample) {
+      (_) => {
+        setTrackIdFromBin(sf)
+        sf
+      }
+    } else if (dedupe) {
+      (_) => {
+        sf.getIdentifier.setID(getId(source.getTopKey.getRow.getBytes))
+        sf
+      }
+    } else {
+      (_) => null
     }
-    super.init(options)
+
+    // we are using the pre-computed bin values - we can copy the value directly into our buffer
+    writePrecomputedBin = sampling match {
+      case None => (_, result) => result.buffer.put(source.getTopValue.get)
+      case Some(samp) => (sf, result) => if (samp(sf)) { result.buffer.put(source.getTopValue.get) }
+    }
+
+    result
   }
 
   override def decode(value: Array[Byte]): SimpleFeature = decodeBin(value)
 
-  // we are using the pre-computed bin values - we can copy the value directly into our buffer
   override def aggregateResult(sf: SimpleFeature, result: ByteBufferResult): Unit =
-    result.buffer.put(source.getTopValue.get)
+    writePrecomputedBin(sf, result)
 
   /**
    * Writes a bin record into a simple feature for filtering
    */
-  def setValuesFromBin(sf: ScalaSimpleFeature, gf: GeometryFactory): Unit = {
+  private def setValuesFromBin(sf: SimpleFeature, gf: GeometryFactory): Unit = {
     val values = Convert2ViewerFunction.decode(source.getTopValue.get)
     sf.setAttribute(geomIndex, gf.createPoint(new Coordinate(values.lat, values.lon)))
     sf.setAttribute(trackIndex, values.trackId)
     sf.setAttribute(dtgIndex, new Date(values.dtg))
   }
+
+  /**
+   * Sets only the track id - used for sampling
+   */
+  private def setTrackIdFromBin(sf: SimpleFeature): Unit =
+    sf.setAttribute(trackIndex, Convert2ViewerFunction.decode(source.getTopValue.get).trackId)
+
 }
 
 // wrapper for java's byte buffer that adds scala methods for the aggregating iterator
@@ -262,8 +304,9 @@ object BinAggregatingIterator extends LazyLogging {
         val dtg = sft.getDtgField
         val batch = hints.getBinBatchSize
         val sort = hints.isBinSorting
+        val sampling = hints.getSampling
         val is = configure(classOf[PrecomputedBinAggregatingIterator], sft, filter, trackId,
-          geom, dtg, None, batch , sort, deduplicate, priority)
+          geom, dtg, None, batch , sort, deduplicate, sampling, priority)
         is
       case None => throw new RuntimeException(s"No default trackId field found in SFT $sft")
     }
@@ -283,9 +326,10 @@ object BinAggregatingIterator extends LazyLogging {
     val label = hints.getBinLabelField
     val batchSize = hints.getBinBatchSize
     val sort = hints.isBinSorting
+    val sampling = hints.getSampling
 
     configure(classOf[BinAggregatingIterator], sft, filter, trackId, geom, dtg,
-      label, batchSize, sort, deduplicate, priority)
+      label, batchSize, sort, deduplicate, sampling, priority)
   }
 
   /**
@@ -301,6 +345,7 @@ object BinAggregatingIterator extends LazyLogging {
                         batchSize: Int,
                         sort: Boolean,
                         deduplicate: Boolean,
+                        sampling: Option[(Float, Option[String])],
                         priority: Int): IteratorSetting = {
     val is = new IteratorSetting(priority, "bin-iter", clas)
     KryoLazyAggregatingIterator.configure(is, sft, filter, deduplicate, None)
@@ -310,6 +355,7 @@ object BinAggregatingIterator extends LazyLogging {
     is.addOption(DATE_OPT, dtg.map(sft.indexOf).getOrElse(-1).toString)
     label.foreach(l => is.addOption(LABEL_OPT, sft.indexOf(l).toString))
     is.addOption(SORT_OPT, sort.toString)
+    sampling.foreach(SamplingIterator.configure(is, sft, _))
     is
   }
 
@@ -317,10 +363,11 @@ object BinAggregatingIterator extends LazyLogging {
    * Determines if the requested fields match the precomputed bin data
    */
   def canUsePrecomputedBins(sft: SimpleFeatureType, hints: Hints): Boolean = {
-    sft.getBinTrackId.exists(_ == hints.getBinTrackIdField) &&
+    sft.getBinTrackId.contains(hints.getBinTrackIdField) &&
         hints.getBinGeomField.forall(_ == sft.getGeomField) &&
         hints.getBinDtgField == sft.getDtgField &&
-        hints.getBinLabelField.isEmpty
+        hints.getBinLabelField.isEmpty &&
+        hints.getSampleByField.forall(_ == hints.getBinTrackIdField)
   }
 
   /**

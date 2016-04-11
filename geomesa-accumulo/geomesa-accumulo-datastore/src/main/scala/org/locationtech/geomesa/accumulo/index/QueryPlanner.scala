@@ -59,10 +59,6 @@ case class QueryPlanner(sft: SimpleFeatureType,
 
   import org.locationtech.geomesa.accumulo.index.QueryPlanner._
 
-  val featureEncoder = SimpleFeatureSerializers(sft, featureEncoding)
-  val featureDecoder = SimpleFeatureDeserializers(sft, featureEncoding)
-  val indexValueEncoder = IndexValueEncoder(sft)
-
   /**
    * Plan the query, but don't execute it - used for m/r jobs and explain query
    */
@@ -102,7 +98,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
     }
 
     def reduce(iter: SFIter): SFIter = if (query.getHints.isStatsIteratorQuery) {
-      KryoLazyStatsIterator.reduceFeatures(iter, query)
+      KryoLazyStatsIterator.reduceFeatures(iter, query, sft)
     } else if (query.getHints.isMapAggregatingQuery) {
       KryoLazyMapAggregatingIterator.reduceMapAggregationFeatures(iter, query)
     } else {
@@ -120,17 +116,23 @@ case class QueryPlanner(sft: SimpleFeatureType,
                             requested: Option[StrategyType],
                             output: ExplainerOutputType): Iterator[QueryPlan] = {
 
+    val originalFilter = query.getFilter
+
     configureQuery(query, sft) // configure the query - set hints that we'll need later on
     val q = updateFilter(query, sft) // tweak the filter so it meets our expectations going forward
 
+    val hints = q.getHints
+
     output.pushLevel(s"Planning '${q.getTypeName}' ${filterToString(q.getFilter)}")
-    output(s"Hints: density[${q.getHints.isDensityQuery}] bin[${q.getHints.isBinQuery}] " +
-        s"stats[${q.getHints.isStatsIteratorQuery}] map-aggregate[${q.getHints.isMapAggregatingQuery}]")
+    output(s"Original filter: ${filterToString(originalFilter)}")
+    output(s"Hints: density[${hints.isDensityQuery}] bin[${hints.isBinQuery}] " +
+        s"stats[${hints.isStatsIteratorQuery}] map-aggregate[${hints.isMapAggregatingQuery}] " +
+        s"sampling[${hints.getSampling.map { case (s, f) => s"$s${f.map(":" + _).getOrElse("")}"}.getOrElse("none")}]")
     output(s"Sort: ${Option(q.getSortBy).filter(_.nonEmpty).map(_.mkString(", ")).getOrElse("none")}")
     output(s"Transforms: ${q.getHints.getTransformDefinition.getOrElse("None")}")
 
     output.pushLevel("Strategy selection:")
-    val requestedStrategy = requested.orElse(q.getHints.getRequestedStrategy)
+    val requestedStrategy = requested.orElse(hints.getRequestedStrategy)
     val strategies = QueryStrategyDecider.chooseStrategies(sft, q, strategyHints, requestedStrategy, output)
     output.popLevel()
     var strategyCount = 1
@@ -139,7 +141,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
       strategyCount += 1
       output(s"Strategy filter: ${strategy.filter}")
       implicit val timings = new TimingsImpl
-      val plan = profile(strategy.getQueryPlan(this, q.getHints, output), "plan")
+      val plan = profile(strategy.getQueryPlan(this, hints, output), "plan")
       outputPlan(plan, output.popLevel())
       output(s"Query planning took ${timings.time("plan")}ms")
       plan
@@ -202,6 +204,9 @@ object QueryPlanner extends LazyLogging {
   type SFIter = CloseableIterator[SimpleFeature]
 
   private val threadedHints = new SoftThreadLocal[Map[AnyRef, AnyRef]]
+
+  def apply(sft: SimpleFeatureType, ds: AccumuloDataStore): QueryPlanner =
+    new QueryPlanner(sft, ds.getFeatureEncoding(sft), ds.getIndexSchemaFmt(sft.getTypeName), ds, ds.strategyHints(sft))
 
   def setPerThreadQueryHints(hints: Map[AnyRef, AnyRef]): Unit = threadedHints.put(hints)
   def clearPerThreadQueryHints() = threadedHints.clear()
@@ -410,7 +415,7 @@ object QueryPlanner extends LazyLogging {
     } else if (query.getHints.isDensityQuery) {
       KryoLazyDensityIterator.DENSITY_SFT
     } else if (query.getHints.isStatsIteratorQuery) {
-      KryoLazyStatsIterator.createFeatureType(baseSft)
+      KryoLazyStatsIterator.StatsSft
     } else if (query.getHints.isMapAggregatingQuery) {
       val spec = KryoLazyMapAggregatingIterator.createMapSft(baseSft, query.getHints.getMapAggregatingAttribute)
       SimpleFeatureTypes.createType(baseSft.getTypeName, spec)

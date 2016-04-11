@@ -25,6 +25,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.accumulo.GeomesaSystemProperties
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.QueryPlanner
+import org.locationtech.geomesa.accumulo.process.SamplingVisitor
 import org.locationtech.geomesa.accumulo.process.knn.KNNVisitor
 import org.locationtech.geomesa.accumulo.process.proximity.ProximityVisitor
 import org.locationtech.geomesa.accumulo.process.query.QueryVisitor
@@ -143,14 +144,15 @@ class AccumuloFeatureCollection(source: AccumuloFeatureSource, query: Query)
       // TODO GEOMESA-421 implement min/max iterators
       case v: MinVisitor if isTime(v.getExpression) => v.setValue(ds.estimateTimeBounds(query).getStart.toDate)
       case v: MaxVisitor if isTime(v.getExpression) => v.setValue(ds.estimateTimeBounds(query).getEnd.toDate)
-      case v: BoundsVisitor          => v.reset(ds.estimateBounds(query))
-      case v: TubeVisitor            => v.setValue(v.tubeSelect(source, query))
-      case v: ProximityVisitor       => v.setValue(v.proximitySearch(source, query))
-      case v: QueryVisitor           => v.setValue(v.query(source, query))
-      case v: StatsVisitor           => v.setValue(v.query(source, query))
-      case v: KNNVisitor             => v.setValue(v.kNNSearch(source,query))
-      case v: AttributeVisitor       => v.setValue(v.unique(source, query))
-      case _                         => super.accepts(visitor, progress)
+      case v: BoundsVisitor    => v.reset(ds.estimateBounds(query))
+      case v: TubeVisitor      => v.setValue(v.tubeSelect(source, query))
+      case v: ProximityVisitor => v.setValue(v.proximitySearch(source, query))
+      case v: QueryVisitor     => v.setValue(v.query(source, query))
+      case v: StatsVisitor     => v.setValue(v.query(source, query))
+      case v: SamplingVisitor  => v.setValue(v.sample(source, query))
+      case v: KNNVisitor       => v.setValue(v.kNNSearch(source,query))
+      case v: AttributeVisitor => v.setValue(v.unique(source, query))
+      case _                   => super.accepts(visitor, progress)
     }
 
   private def isTime(e: Expression) = e match {

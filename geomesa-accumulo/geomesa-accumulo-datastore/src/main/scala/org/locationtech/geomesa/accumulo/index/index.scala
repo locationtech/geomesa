@@ -47,6 +47,9 @@ package object index {
 
     val EXACT_COUNT          = new ClassKey(classOf[java.lang.Boolean])
 
+    val SAMPLING_KEY         = new ClassKey(classOf[java.lang.Float])
+    val SAMPLE_BY_KEY        = new ClassKey(classOf[String])
+
     val BIN_TRACK_KEY        = new ClassKey(classOf[java.lang.String])
     val BIN_GEOM_KEY         = new ClassKey(classOf[java.lang.String])
     val BIN_DTG_KEY          = new ClassKey(classOf[java.lang.String])
@@ -67,6 +70,9 @@ package object index {
       def getBinLabelField: Option[String] = Option(hints.get(BIN_LABEL_KEY).asInstanceOf[String])
       def getBinBatchSize: Int = hints.get(BIN_BATCH_SIZE_KEY).asInstanceOf[Int]
       def isBinSorting: Boolean = hints.get(BIN_SORT_KEY).asInstanceOf[Boolean]
+      def getSamplePercent: Option[Float] = Option(hints.get(SAMPLING_KEY)).map(_.asInstanceOf[Float])
+      def getSampleByField: Option[String] = Option(hints.get(SAMPLE_BY_KEY).asInstanceOf[String])
+      def getSampling: Option[(Float, Option[String])] = getSamplePercent.map((_, getSampleByField))
       def isDensityQuery: Boolean = hints.containsKey(DENSITY_BBOX_KEY)
       def getDensityEnvelope: Option[Envelope] = Option(hints.get(DENSITY_BBOX_KEY).asInstanceOf[Envelope])
       def getDensityBounds: Option[(Int, Int)] =

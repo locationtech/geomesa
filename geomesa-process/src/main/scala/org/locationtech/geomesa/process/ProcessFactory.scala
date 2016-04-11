@@ -11,6 +11,7 @@ package org.locationtech.geomesa.process
 
 import org.geotools.process.factory.AnnotatedBeanProcessFactory
 import org.geotools.text.Text
+import org.locationtech.geomesa.accumulo.process.SamplingProcess
 import org.locationtech.geomesa.accumulo.process.knn.KNearestNeighborSearchProcess
 import org.locationtech.geomesa.accumulo.process.proximity.ProximitySearchProcess
 import org.locationtech.geomesa.accumulo.process.query.QueryProcess
@@ -31,5 +32,6 @@ class ProcessFactory
     classOf[KNearestNeighborSearchProcess],
     classOf[UniqueProcess],
     classOf[HashAttributeProcess],
-    classOf[HashAttributeColorProcess]
+    classOf[HashAttributeColorProcess],
+    classOf[SamplingProcess]
   )

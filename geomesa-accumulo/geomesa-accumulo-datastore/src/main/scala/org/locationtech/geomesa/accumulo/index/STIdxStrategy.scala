@@ -23,14 +23,11 @@ import org.locationtech.geomesa.accumulo.index.Strategy._
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.features.SerializationType.SerializationType
-import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.filter.FilterHelper._
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
-
-import scala.collection.JavaConversions._
 
 class STIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging with IndexFilterHelpers {
 
@@ -49,7 +46,7 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
 
     val dtgField = sft.getDtgField
 
-    val (geomFilters, temporalFilters) = filter.primary.partition(isSpatialFilter)
+    val (geomFilters, temporalFilters) = filter.primary.filter(_ != Filter.INCLUDE).partition(isSpatialFilter)
     val ecql = filter.secondary
 
     output(s"Geometry filters: ${filtersToString(geomFilters)}")
@@ -94,13 +91,23 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
       val iter =
         DensityIterator.configure(sft, featureEncoding, schema, filter.filter, envelope, width, height, weight, p)
       (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), false, false)
-    } else if (hints.isStatsIteratorQuery) {
-      if (featureEncoding != SerializationType.KRYO) {
-        throw new IllegalArgumentException("The stats iterator is not supported for non-kryo serialization")
+    } else if (featureEncoding == SerializationType.KRYO &&
+        // we have some special handling for bin line dates not implemented in the bin iter yet
+        !(sft.isLines && hints.isBinQuery)) {
+      // TODO GEOMESA-822 add bin line dates to distributed bin aggregation
+      if (hints.isBinQuery) {
+        // use the server side aggregation
+        val iter = BinAggregatingIterator.configureDynamic(sft, filter.filter, hints, sft.nonPoints)
+        (Seq(iter), BinAggregatingIterator.kvsToFeatures(), false, false)
+      } else if (hints.isStatsIteratorQuery) {
+        val iter = KryoLazyStatsIterator.configure(sft, filter.filter, hints, sft.nonPoints)
+        (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(sft), false, false)
+      } else {
+        val iters = KryoLazyFilterTransformIterator.configure(sft, filter.filter, hints).toSeq
+        (iters, queryPlanner.defaultKVsToFeatures(hints), false, sft.nonPoints)
       }
-      val iter = KryoLazyStatsIterator.configure(sft, filter.filter, hints, sft.nonPoints)
-      (Seq(iter), queryPlanner.defaultKVsToFeatures(hints), false, false)
     } else {
+      // legacy iterators
       val iteratorConfig = IteratorTrigger.chooseIterator(filter.filter.getOrElse(Filter.INCLUDE), ecql, hints, sft)
       val stiiIterCfg = getSTIIIterCfg(iteratorConfig, hints, sft, ofilter, ecql, featureEncoding, version)
       val aggIterCfg = configureAggregatingIterator(hints, geometryToCover, schema, featureEncoding, sft)
@@ -111,7 +118,6 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
       }
       val iters = Seq(stiiIterCfg) ++ aggIterCfg
       val kvs = if (hints.isBinQuery) {
-        // TODO GEOMESA-822 we can use the aggregating iterator if the features are kryo encoded
         BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, hints, featureEncoding)
       } else {
         queryPlanner.defaultKVsToFeatures(hints)

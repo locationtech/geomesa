@@ -48,73 +48,71 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
       val results = statsIteratorProcess.execute(fs.getFeatures(query), "MinMax(attr)", encode = true)
       val sf = results.features().next
 
-      val minMaxStat = decodeStat(sf.getAttribute(STATS).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
-      minMaxStat.min mustEqual 0
-      minMaxStat.max mustEqual 298
+      val minMaxStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[java.lang.Long]]
+      minMaxStat.bounds must beSome((0, 298))
     }
 
-    "work with the IteratorStackCounter stat" in {
-      val results = statsIteratorProcess.execute(fs.getFeatures(query), "IteratorStackCounter", encode = true)
+    "work with the IteratotStackCount stat" in {
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "IteratorStackCount()", encode = true)
       val sf = results.features().next
 
-      val isc = decodeStat(sf.getAttribute(STATS).asInstanceOf[String]).asInstanceOf[IteratorStackCounter]
+      val isc = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[IteratorStackCount]
       isc.count must beGreaterThanOrEqualTo(1L)
     }
 
-    "work with the EnumeratedHistogram stat" in {
-      val results = statsIteratorProcess.execute(fs.getFeatures(query), "EnumeratedHistogram(id)", encode = true)
+    "work with the Histogram stat" in {
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "Histogram(id)", encode = true)
       val sf = results.features().next
 
-      val eh = decodeStat(sf.getAttribute(STATS).asInstanceOf[String]).asInstanceOf[EnumeratedHistogram[java.lang.Integer]]
-      eh.frequencyMap.size mustEqual 150
-      eh.frequencyMap(0) mustEqual 1
-      eh.frequencyMap(149) mustEqual 1
-      eh.frequencyMap(150) mustEqual 0
+      val eh = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[Histogram[java.lang.Integer]]
+      eh.histogram.size mustEqual 150
+      eh.histogram(0) mustEqual 1
+      eh.histogram(149) mustEqual 1
+      eh.histogram(150) mustEqual 0
     }
 
     "work with the RangeHistogram stat" in {
-      val results = statsIteratorProcess.execute(fs.getFeatures(query), "RangeHistogram(id,5,10,15)", encode = true)
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "RangeHistogram(id,5,10,14)", encode = true)
       val sf = results.features().next
 
-      val rh = decodeStat(sf.getAttribute(STATS).asInstanceOf[String]).asInstanceOf[RangeHistogram[java.lang.Integer]]
-      rh.histogram.size mustEqual 5
-      rh.histogram(10) mustEqual 1
-      rh.histogram(11) mustEqual 1
-      rh.histogram(12) mustEqual 1
-      rh.histogram(13) mustEqual 1
-      rh.histogram(14) mustEqual 1
+      val rh = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[RangeHistogram[java.lang.Integer]]
+      rh.length mustEqual 5
+      rh.count(rh.indexOf(10)) mustEqual 1
+      rh.count(rh.indexOf(11)) mustEqual 1
+      rh.count(rh.indexOf(12)) mustEqual 1
+      rh.count(rh.indexOf(13)) mustEqual 1
+      rh.count(rh.indexOf(14)) mustEqual 1
     }
 
     "work with multiple stats at once" in {
       val results = statsIteratorProcess.execute(fs.getFeatures(query),
-        "MinMax(attr);IteratorStackCounter;EnumeratedHistogram(id);RangeHistogram(id,5,10,15)", encode = true)
+        "MinMax(attr);IteratorStackCount();Histogram(id);RangeHistogram(id,5,10,14)", encode = true)
       val sf = results.features().next
 
-      val seqStat = decodeStat(sf.getAttribute(STATS).asInstanceOf[String]).asInstanceOf[SeqStat]
+      val seqStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[SeqStat]
       val stats = seqStat.stats
       stats.size mustEqual 4
 
       val minMax = stats(0).asInstanceOf[MinMax[java.lang.Long]]
-      val isc = stats(1).asInstanceOf[IteratorStackCounter]
-      val eh = stats(2).asInstanceOf[EnumeratedHistogram[java.lang.Integer]]
+      val isc = stats(1).asInstanceOf[IteratorStackCount]
+      val eh = stats(2).asInstanceOf[Histogram[java.lang.Integer]]
       val rh = stats(3).asInstanceOf[RangeHistogram[java.lang.Integer]]
 
-      minMax.min mustEqual 0
-      minMax.max mustEqual 298
+      minMax.bounds must beSome((0, 298))
 
       isc.count must beGreaterThanOrEqualTo(1L)
 
-      eh.frequencyMap.size mustEqual 150
-      eh.frequencyMap(0) mustEqual 1
-      eh.frequencyMap(149) mustEqual 1
-      eh.frequencyMap(150) mustEqual 0
+      eh.histogram.size mustEqual 150
+      eh.histogram(0) mustEqual 1
+      eh.histogram(149) mustEqual 1
+      eh.histogram(150) mustEqual 0
 
-      rh.histogram.size mustEqual 5
-      rh.histogram(10) mustEqual 1
-      rh.histogram(11) mustEqual 1
-      rh.histogram(12) mustEqual 1
-      rh.histogram(13) mustEqual 1
-      rh.histogram(14) mustEqual 1
+      rh.length mustEqual 5
+      rh.count(rh.indexOf(10)) mustEqual 1
+      rh.count(rh.indexOf(11)) mustEqual 1
+      rh.count(rh.indexOf(12)) mustEqual 1
+      rh.count(rh.indexOf(13)) mustEqual 1
+      rh.count(rh.indexOf(14)) mustEqual 1
     }
 
     "work with non AccumuloFeatureCollections" in {
@@ -122,34 +120,33 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
       fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features().foreach(features.add)
 
       val results = statsIteratorProcess.execute(features,
-        "MinMax(attr);IteratorStackCounter;EnumeratedHistogram(id);RangeHistogram(id,5,10,15)", encode = true)
+        "MinMax(attr);IteratorStackCount();Histogram(id);RangeHistogram(id,5,10,14)", encode = true)
       val sf = results.features().next
 
-      val seqStat = decodeStat(sf.getAttribute(STATS).asInstanceOf[String]).asInstanceOf[SeqStat]
+      val seqStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[SeqStat]
       val stats = seqStat.stats
       stats.size mustEqual 4
 
       val minMax = stats(0).asInstanceOf[MinMax[java.lang.Long]]
-      val isc = stats(1).asInstanceOf[IteratorStackCounter]
-      val eh = stats(2).asInstanceOf[EnumeratedHistogram[java.lang.Integer]]
+      val isc = stats(1).asInstanceOf[IteratorStackCount]
+      val eh = stats(2).asInstanceOf[Histogram[java.lang.Integer]]
       val rh = stats(3).asInstanceOf[RangeHistogram[java.lang.Integer]]
 
-      minMax.min mustEqual 0
-      minMax.max mustEqual 298
+      minMax.bounds must beSome((0, 298))
 
       isc.count mustEqual 1L
 
-      eh.frequencyMap.size mustEqual 150
-      eh.frequencyMap(0) mustEqual 1
-      eh.frequencyMap(149) mustEqual 1
-      eh.frequencyMap(150) mustEqual 0
+      eh.histogram.size mustEqual 150
+      eh.histogram(0) mustEqual 1
+      eh.histogram(149) mustEqual 1
+      eh.histogram(150) mustEqual 0
 
-      rh.histogram.size mustEqual 5
-      rh.histogram(10) mustEqual 1
-      rh.histogram(11) mustEqual 1
-      rh.histogram(12) mustEqual 1
-      rh.histogram(13) mustEqual 1
-      rh.histogram(14) mustEqual 1
+      rh.length mustEqual 5
+      rh.count(rh.indexOf(10)) mustEqual 1
+      rh.count(rh.indexOf(11)) mustEqual 1
+      rh.count(rh.indexOf(12)) mustEqual 1
+      rh.count(rh.indexOf(13)) mustEqual 1
+      rh.count(rh.indexOf(14)) mustEqual 1
     }
   }
 }

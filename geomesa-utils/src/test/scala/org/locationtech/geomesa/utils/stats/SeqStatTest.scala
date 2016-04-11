@@ -1,0 +1,179 @@
+/***********************************************************************
+* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0
+* which accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
+
+package org.locationtech.geomesa.utils.stats
+
+import org.junit.runner.RunWith
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
+
+@RunWith(classOf[JUnitRunner])
+class SeqStatTest extends Specification with StatTestHelper {
+
+  def newStat[T](observe: Boolean = true): SeqStat = {
+    val stat = Stat(sft, "MinMax(intAttr);IteratorStackCount();Histogram(longAttr);RangeHistogram(doubleAttr,20,0,200)")
+    if (observe) {
+      features.foreach { stat.observe }
+    }
+    stat.asInstanceOf[SeqStat]
+  }
+
+  "Seq stat" should {
+
+    "be empty initiallly" >> {
+      val stat = newStat(observe = false)
+
+      stat.stats must haveSize(4)
+      stat.isEmpty must beFalse
+
+      val mm = stat.stats(0).asInstanceOf[MinMax[java.lang.Integer]]
+      val ic = stat.stats(1).asInstanceOf[IteratorStackCount]
+      val eh = stat.stats(2).asInstanceOf[Histogram[java.lang.Long]]
+      val rh = stat.stats(3).asInstanceOf[RangeHistogram[java.lang.Double]]
+
+      mm.attribute mustEqual intIndex
+      mm.bounds must beNone
+
+      ic.counter mustEqual 1
+
+      eh.attribute mustEqual longIndex
+      eh.histogram must beEmpty
+
+      rh.attribute mustEqual doubleIndex
+      forall(0 until rh.length)(rh.count(_) mustEqual 0)
+    }
+
+    "observe correct values" >> {
+      val stat = newStat()
+
+      val stats = stat.stats
+
+      stats must haveSize(4)
+      stat.isEmpty must beFalse
+
+      val mm = stat.stats(0).asInstanceOf[MinMax[java.lang.Integer]]
+      val ic = stat.stats(1).asInstanceOf[IteratorStackCount]
+      val eh = stat.stats(2).asInstanceOf[Histogram[java.lang.Long]]
+      val rh = stat.stats(3).asInstanceOf[RangeHistogram[java.lang.Double]]
+
+      mm.bounds must beSome((0, 99))
+
+      ic.counter mustEqual 1
+
+      eh.histogram.size mustEqual 100
+      eh.histogram(0L) mustEqual 1
+      eh.histogram(100L) mustEqual 0
+
+      rh.length mustEqual 20
+      rh.count(rh.indexOf(0.0)) mustEqual 10
+      rh.count(rh.indexOf(50.0)) mustEqual 10
+      rh.count(rh.indexOf(100.0)) mustEqual 0
+    }
+
+    "serialize to json" >> {
+      val stat = newStat()
+      stat.toJson must not(beEmpty)
+    }
+
+    "serialize empty to json" >> {
+      val stat = newStat(observe = false)
+      stat.toJson must not(beEmpty)
+    }
+
+    "serialize and deserialize" >> {
+      val stat = newStat()
+      val packed = StatSerializer(sft).serialize(stat)
+      val unpacked = StatSerializer(sft).deserialize(packed)
+      unpacked.toJson mustEqual stat.toJson
+    }
+
+    "serialize and deserialize empty SeqStat" >> {
+      val minMax = newStat(observe = false)
+      val packed = StatSerializer(sft).serialize(minMax)
+      val unpacked = StatSerializer(sft).deserialize(packed)
+      unpacked.toJson mustEqual minMax.toJson
+    }
+
+    "combine two SeqStats" >> {
+      val stat = newStat()
+      val stat2 = newStat(observe = false)
+
+      val mm = stat.stats(0).asInstanceOf[MinMax[java.lang.Integer]]
+      val ic = stat.stats(1).asInstanceOf[IteratorStackCount]
+      val eh = stat.stats(2).asInstanceOf[Histogram[java.lang.Long]]
+      val rh = stat.stats(3).asInstanceOf[RangeHistogram[java.lang.Double]]
+
+      val mm2 = stat2.stats(0).asInstanceOf[MinMax[java.lang.Integer]]
+      val ic2 = stat2.stats(1).asInstanceOf[IteratorStackCount]
+      val eh2 = stat2.stats(2).asInstanceOf[Histogram[java.lang.Long]]
+      val rh2 = stat2.stats(3).asInstanceOf[RangeHistogram[java.lang.Double]]
+
+      mm2.bounds must beNone
+
+      ic2.counter mustEqual 1
+
+      eh2.histogram must beEmpty
+
+      rh2.length mustEqual 20
+      forall(0 until 20)(rh2.count(_) mustEqual 0)
+
+      features2.foreach { stat2.observe }
+
+      stat += stat2
+
+      mm.bounds must beSome((0, 199))
+
+      ic.counter mustEqual 2
+
+      eh.histogram.size mustEqual 200
+      eh.histogram(0L) mustEqual 1
+      eh.histogram(100L) mustEqual 1
+
+      rh.length mustEqual 20
+      rh.count(rh.indexOf(0.0)) mustEqual 10
+      rh.count(rh.indexOf(50.0)) mustEqual 10
+      rh.count(rh.indexOf(100.0)) mustEqual 10
+
+      mm2.bounds must beSome((100, 199))
+
+      ic2.counter mustEqual 1
+
+      eh2.histogram.size mustEqual 100
+      eh2.histogram(0L) mustEqual 0
+      eh2.histogram(100L) mustEqual 1
+
+      rh2.length mustEqual 20
+      rh2.count(rh2.indexOf(0.0)) mustEqual 0
+      rh2.count(rh2.indexOf(50.0)) mustEqual 0
+      rh2.count(rh2.indexOf(100.0)) mustEqual 10
+    }
+
+    "clear" >> {
+      val stat = newStat()
+      stat.isEmpty must beFalse
+
+      stat.clear()
+
+      val mm = stat.stats(0).asInstanceOf[MinMax[java.lang.Integer]]
+      val ic = stat.stats(1).asInstanceOf[IteratorStackCount]
+      val eh = stat.stats(2).asInstanceOf[Histogram[java.lang.Long]]
+      val rh = stat.stats(3).asInstanceOf[RangeHistogram[java.lang.Double]]
+
+      mm.attribute mustEqual intIndex
+      mm.bounds must beNone
+
+      ic.counter mustEqual 1
+
+      eh.attribute mustEqual longIndex
+      eh.histogram must beEmpty
+
+      rh.attribute mustEqual doubleIndex
+      forall(0 until rh.length)(rh.count(_) mustEqual 0)
+    }
+  }
+}

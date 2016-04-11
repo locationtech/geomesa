@@ -69,8 +69,6 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     output(s"GeomsToCover: $geometryToCover")
     output(s"Interval:  $interval")
 
-    val fp = FILTERING_ITER_PRIORITY
-
     val ecql: Option[Filter] = if (sft.isPoints) {
       // for normal bboxes, the index is fine enough that we don't need to apply the filter on top of it
       // this may cause some minor errors at extremely fine resolution, but the performance is worth it
@@ -103,21 +101,12 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
       (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), Z3Table.FULL_CF, false)
     } else if (hints.isStatsIteratorQuery) {
       val iter = KryoLazyStatsIterator.configure(sft, ecql, hints, sft.nonPoints)
-      (Seq(iter), queryPlanner.defaultKVsToFeatures(hints), Z3Table.FULL_CF, false)
+      (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(sft), Z3Table.FULL_CF, false)
     } else if (hints.isMapAggregatingQuery) {
       val iter = KryoLazyMapAggregatingIterator.configure(sft, ecql, hints, sft.nonPoints)
       (Seq(iter), queryPlanner.defaultKVsToFeatures(hints), Z3Table.FULL_CF, false)
     } else {
-      val transforms = for {
-        tdef <- hints.getTransformDefinition
-        tsft <- hints.getTransformSchema
-      } yield { (tdef, tsft) }
-      output(s"Transforms: $transforms")
-
-      val iters = (ecql, transforms) match {
-        case (None, None) => Seq.empty
-        case _ => Seq(KryoLazyFilterTransformIterator.configure(sft, ecql, transforms, fp))
-      }
+      val iters = KryoLazyFilterTransformIterator.configure(sft, ecql, hints).toSeq
       (iters, Z3Table.adaptZ3KryoIterator(hints.getReturnSft), Z3Table.FULL_CF, sft.nonPoints)
     }
 
@@ -144,7 +133,7 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
       val wBytes = weeks.map(Shorts.toByteArray)
       Z3Table.SPLIT_ARRAYS.flatMap(s => wBytes.map(b => Array(s(0), b(0), b(1))))
     } else {
-      weeks.map(Shorts.toByteArray).toSeq
+      weeks.map(Shorts.toByteArray)
     }
 
     // the z3 index breaks time into 1 week chunks, so create a range for each week in our range

@@ -14,11 +14,12 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
+import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 /**
@@ -28,14 +29,15 @@ import org.opengis.filter.Filter
  *
  * Uses lazy evaluation of attributes and binary transforms when possible.
  */
-class KryoLazyFilterTransformIterator extends SortedKeyValueIterator[Key, Value] with LazyLogging {
+class KryoLazyFilterTransformIterator extends
+    SortedKeyValueIterator[Key, Value] with SamplingIterator with LazyLogging {
 
   import KryoLazyFilterTransformIterator._
 
   var source: SortedKeyValueIterator[Key, Value] = null
 
   var sft: SimpleFeatureType = null
-  var filter: Filter = null
+  var filter: (SimpleFeature) => Boolean = null
   var topValue: Value = new Value()
 
   var kryo: KryoFeatureSerializer = null
@@ -48,7 +50,6 @@ class KryoLazyFilterTransformIterator extends SortedKeyValueIterator[Key, Value]
     IteratorClassLoader.initClassLoader(getClass)
     this.source = src.deepCopy(env)
     sft = SimpleFeatureTypes.createType("test", options.get(SFT_OPT))
-    filter = Option(options.get(CQL_OPT)).map(FastFilterFactory.toFilter).orNull
 
     kryo = new KryoFeatureSerializer(sft)
     reusablesf = kryo.getReusableFeature
@@ -59,6 +60,16 @@ class KryoLazyFilterTransformIterator extends SortedKeyValueIterator[Key, Value]
       reusablesf.setTransforms(t, SimpleFeatureTypes.createType("", ts))
     }
     hasTransform = transform.isDefined
+
+    val cql = Option(options.get(CQL_OPT)).map(FastFilterFactory.toFilter)
+    val sampling = sample(options)
+
+    filter = (cql, sampling) match {
+      case (None, None)       => (_) => true
+      case (Some(c), None)    => c.evaluate
+      case (None, Some(s))    => s
+      case (Some(c), Some(s)) => (sf) => c.evaluate(sf) && s(sf)
+    }
   }
 
   override def seek(range: Range, columnFamilies: jCollection[ByteSequence], inclusive: Boolean): Unit = {
@@ -85,7 +96,7 @@ class KryoLazyFilterTransformIterator extends SortedKeyValueIterator[Key, Value]
     var found = false
     while (!found && source.hasTop) {
       reusablesf.setBuffer(source.getTopValue.get())
-      if (filter == null || filter.evaluate(reusablesf)) {
+      if (filter(reusablesf)) {
         found = true
       } else {
         source.next()
@@ -93,28 +104,42 @@ class KryoLazyFilterTransformIterator extends SortedKeyValueIterator[Key, Value]
     }
   }
 
-  override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = ???
+  override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] =
+    throw new NotImplementedError
 }
 
 object KryoLazyFilterTransformIterator {
+
+  import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 
   val SFT_OPT                   = "sft"
   val CQL_OPT                   = "cql"
   val TRANSFORM_SCHEMA_OPT      = "tsft"
   val TRANSFORM_DEFINITIONS_OPT = "tdefs"
 
+  val DefaultPriority = 25
+
+  def configure(sft: SimpleFeatureType, filter: Option[Filter], hints: Hints): Option[IteratorSetting] =
+    configure(sft, filter, hints.getTransform, hints.getSampling)
+
   def configure(sft: SimpleFeatureType,
                 filter: Option[Filter],
                 transform: Option[(String, SimpleFeatureType)],
-                priority: Int) = {
-    require(filter.isDefined || transform.isDefined, "No options configured")
-    val is = new IteratorSetting(priority, "filter-transform-iter", classOf[KryoLazyFilterTransformIterator])
-    is.addOption(SFT_OPT, SimpleFeatureTypes.encodeType(sft))
-    filter.foreach(f => is.addOption(CQL_OPT, ECQL.toCQL(f)))
-    transform.foreach { case (tdef, tsft) =>
-      is.addOption(TRANSFORM_DEFINITIONS_OPT, tdef)
-      is.addOption(TRANSFORM_SCHEMA_OPT, SimpleFeatureTypes.encodeType(tsft))
+                sampling: Option[(Float, Option[String])],
+                priority: Int = DefaultPriority): Option[IteratorSetting] = {
+    if (filter.isDefined || transform.isDefined || sampling.isDefined) {
+      val is = new IteratorSetting(priority, "filter-transform-iter", classOf[KryoLazyFilterTransformIterator])
+      is.addOption(SFT_OPT, SimpleFeatureTypes.encodeType(sft))
+      filter.foreach(f => is.addOption(CQL_OPT, ECQL.toCQL(f)))
+      transform.foreach { case (tdef, tsft) =>
+        is.addOption(TRANSFORM_DEFINITIONS_OPT, tdef)
+        is.addOption(TRANSFORM_SCHEMA_OPT, SimpleFeatureTypes.encodeType(tsft))
+      }
+      sampling.foreach(SamplingIterator.configure(is, sft, _))
+      Some(is)
+    } else {
+      None
     }
-    is
   }
+
 }

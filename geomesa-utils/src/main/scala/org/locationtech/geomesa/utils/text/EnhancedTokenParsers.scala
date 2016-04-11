@@ -20,10 +20,17 @@ trait EnhancedTokenParsers extends JavaTokenParsers {
   def nonGreedySingleQuoteLiteral: Parser[String] =
     ( "\'" +"""([^"\p{Cntrl}\\]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*?""" + "\'").r
 
-  def quotedString = nonGreedyStringLiteral | nonGreedySingleQuoteLiteral ^^ { x =>
+  def quotedString = (nonGreedyStringLiteral | nonGreedySingleQuoteLiteral) ^^ { x =>
     StringEscapeUtils.unescapeJava(x.drop(1).dropRight(1))
   }
 
   def nonQuotedString = "([^'\",]+)".r
 
+  // JavaTokenParsers.stringLiteral but single quotes
+  def singleQuoteStringLiteral: Parser[String] =
+    ("'"+"""([^'\p{Cntrl}\\]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*+"""+"'").r
+
+  def dequotedString = (singleQuoteStringLiteral | stringLiteral) ^^ { x =>
+    StringEscapeUtils.unescapeJava(x.substring(1, x.length - 1))
+  }
 }

@@ -8,224 +8,144 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import java.lang
-import java.util.Date
-
 import org.opengis.feature.simple.SimpleFeature
 
-import scala.util.parsing.json.JSONObject
+import scala.reflect.ClassTag
 
 /**
- * This object provides the type classes used by the RangeHistogram.
- * BinAble provides methods which help bin a type's range of values into
- * equal-sized (or close to equal-sized in many cases) smaller ranges.
- */
-object BinHelper {
-  trait BinAble[T] {
-    def getBinSize(numBins: Int, lowerEndpoint: T, upperEndpoint: T): T
-    def getBinIndex(attributeValue: T, binSize: T, numBins: Int, lowerEndpoint: T, upperEndpoint: T): T
-    def getBinKey(binSize: T, bucketIndex: Int, lowerEndpoint: T): T
-  }
-
-  implicit object BinAbleDate extends BinAble[Date] {
-    override def getBinSize(numBins: Int, lowerEndpoint: Date, upperEndpoint: Date): Date = {
-      new Date((upperEndpoint.getTime - lowerEndpoint.getTime) / numBins)
-    }
-
-    override def getBinIndex(attributeValue: Date,
-                             binSize: Date,
-                             numBins: Int,
-                             lowerEndpoint: Date,
-                             upperEndpoint: Date): Date = {
-      if (!attributeValue.before(lowerEndpoint) && attributeValue.before(upperEndpoint)) {
-        var bucketIndex = (attributeValue.getTime - lowerEndpoint.getTime) / binSize.getTime
-        if (bucketIndex >= numBins)
-          bucketIndex = numBins - 1
-
-        getBinKey(binSize, bucketIndex.toInt, lowerEndpoint)
-      } else {
-        null
-      }
-    }
-
-    override def getBinKey(binSize: Date, bucketIndex: Int, lowerEndpoint: Date): Date = {
-      new Date(lowerEndpoint.getTime + (binSize.getTime * bucketIndex))
-    }
-  }
-
-  implicit object BinAbleLong extends BinAble[lang.Long] {
-    override def getBinSize(numBins: Int, lowerEndpoint: lang.Long, upperEndpoint: lang.Long): lang.Long = {
-      (upperEndpoint - lowerEndpoint) / numBins
-    }
-
-    override def getBinIndex(attributeValue: lang.Long,
-                             binSize: lang.Long,
-                             numBins: Int,
-                             lowerEndpoint: lang.Long,
-                             upperEndpoint: lang.Long): lang.Long = {
-      if (attributeValue >= lowerEndpoint && attributeValue < upperEndpoint) {
-        var bucketIndex = (attributeValue - lowerEndpoint) / binSize
-        if (bucketIndex >= numBins)
-          bucketIndex = numBins - 1
-
-        getBinKey(binSize, bucketIndex.toInt, lowerEndpoint)
-      } else {
-        null
-      }
-    }
-
-    override def getBinKey(binSize: lang.Long, bucketIndex: Int, lowerEndpoint: lang.Long): lang.Long = {
-      lowerEndpoint + (binSize * bucketIndex)
-    }
-  }
-
-  implicit object BinAbleInteger extends BinAble[java.lang.Integer] {
-    override def getBinSize(numBins: Int, lowerEndpoint: java.lang.Integer, upperEndpoint: java.lang.Integer): java.lang.Integer = {
-      (upperEndpoint - lowerEndpoint) / numBins
-    }
-
-    override def getBinIndex(attributeValue: Integer,
-                             binSize: java.lang.Integer,
-                             numBins: Int,
-                             lowerEndpoint: Integer,
-                             upperEndpoint: Integer): Integer = {
-      if (attributeValue >= lowerEndpoint && attributeValue < upperEndpoint) {
-        var bucketIndex = (attributeValue - lowerEndpoint) / binSize
-        if (bucketIndex >= numBins)
-          bucketIndex = numBins - 1
-
-        getBinKey(binSize, bucketIndex, lowerEndpoint)
-      } else {
-        null
-      }
-    }
-
-    override def getBinKey(binSize: java.lang.Integer, bucketIndex: Int, lowerEndpoint: lang.Integer): lang.Integer = {
-      lowerEndpoint + (binSize * bucketIndex)
-    }
-  }
-
-  implicit object BinAbleDouble extends BinAble[java.lang.Double] {
-    override def getBinSize(numBins: Int, lowerEndpoint: java.lang.Double, upperEndpoint: java.lang.Double): java.lang.Double = {
-      (upperEndpoint - lowerEndpoint) / numBins
-    }
-
-    override def getBinIndex(attributeValue: lang.Double,
-                             binSize: java.lang.Double,
-                             numBins: Int,
-                             lowerEndpoint: lang.Double,
-                             upperEndpoint: lang.Double): lang.Double = {
-      if (attributeValue >= lowerEndpoint && attributeValue < upperEndpoint) {
-        var bucketIndex = (attributeValue - lowerEndpoint) / binSize
-        if (bucketIndex >= numBins)
-          bucketIndex = numBins - 1
-
-        getBinKey(binSize, bucketIndex.toInt, lowerEndpoint)
-      } else {
-        null
-      }
-    }
-
-    override def getBinKey(binSize: java.lang.Double, bucketIndex: Int, lowerEndpoint: lang.Double): lang.Double = {
-      lowerEndpoint + (binSize * bucketIndex)
-    }
-  }
-
-  implicit object BinAbleFloat extends BinAble[java.lang.Float] {
-    override def getBinSize(numBins: Int, lowerEndpoint: java.lang.Float, upperEndpoint: java.lang.Float): java.lang.Float = {
-      (upperEndpoint - lowerEndpoint) / numBins
-    }
-
-    override def getBinIndex(attributeValue: lang.Float,
-                             binSize: java.lang.Float,
-                             numBins: Int,
-                             lowerEndpoint: lang.Float,
-                             upperEndpoint: lang.Float): lang.Float = {
-      if (attributeValue >= lowerEndpoint && attributeValue < upperEndpoint) {
-        var bucketIndex = (attributeValue - lowerEndpoint) / binSize
-        if (bucketIndex >= numBins)
-          bucketIndex = numBins - 1
-
-        getBinKey(binSize, bucketIndex.toInt, lowerEndpoint)
-      } else {
-        null
-      }
-    }
-
-    override def getBinKey(binSize: java.lang.Float, bucketIndex: Int, lowerEndpoint: lang.Float): lang.Float = {
-      lowerEndpoint + (binSize * bucketIndex)
-    }
-  }
-}
-
-import org.locationtech.geomesa.utils.stats.BinHelper._
-
-/**
- * The range histogram's state is stored in a hashmap, where the keys are the bins and the values are the counts.
- * A bin is a range of values but is treated as the lower endpoint of the bin to persist in the hashmap.
- * A value is in a particular bin if it is equal to the bin value or less than the subsequent bin value.
+ * The range histogram's state is stored in an indexed array, where the index is the bin number
+ * and the values are the counts.
  *
- * e.g. a range of 0 to 3 with 3 bins will result in these bins: [0, 1), [1, 2), [2, 3) and the hashmap will contain
- * keys 0, 1, and 2.
+ * e.g. a range of 0 to 3 with 3 bins will result in these bins: [0, 1), [1, 2), [2, 3) and the
+ * array will contain three entries.
  *
- * @param attrIndex attribute index for the attribute the histogram is being made for
- * @param numBins number of bins the histogram has
- * @param lowerEndpoint lower end of histogram
- * @param upperEndpoint upper end of histogram
+ * @param attribute attribute index for the attribute the histogram is being made for
+ * @param initialBins number of bins the histogram has
+ * @param initialEndpoints lower/upper end of histogram
  * @tparam T a comparable type which must have a StatHelperFunctions type class
  */
-class RangeHistogram[T: BinAble](val attrIndex: Int,
-                                  val attrType: String,
-                                  val numBins: Int,
-                                  val lowerEndpoint: T,
-                                  val upperEndpoint: T) extends Stat {
+class RangeHistogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T))
+                       (implicit defaults: MinMax.MinMaxDefaults[T], ct: ClassTag[T]) extends Stat {
 
   override type S = RangeHistogram[T]
 
-  val binHelper = implicitly[BinAble[T]]
-  val binSize = binHelper.getBinSize(numBins, lowerEndpoint, upperEndpoint)
+  private [stats] var bins: BinnedArray[T] = BinnedArray[T](initialBins, initialEndpoints)
+  lazy private val stringify = Stat.stringifier(ct.runtimeClass, json = true)
 
-  val histogram = {
-    val initial = new collection.mutable.HashMap[T, Long]()
-    var i = 0
-    while (i < numBins) {
-      initial.put(binHelper.getBinKey(binSize, i, lowerEndpoint), 0)
-      i +=1
-    }
-    initial
-  }
+  def length: Int = bins.length
+  def indexOf(value: T): Int = bins.indexOf(value)
+  def count(i: Int): Long = bins.counts(i)
+  def endpoints: (T, T) = bins.bounds
+  def medianValue(i: Int): T = bins.medianValue(i)
 
   override def observe(sf: SimpleFeature): Unit = {
-    val sfval = sf.getAttribute(attrIndex)
-    if (sfval != null) {
-      val binIndex = binHelper.getBinIndex(sfval.asInstanceOf[T], binSize, numBins, lowerEndpoint, upperEndpoint)
-      if (binIndex != null) {
-        histogram(binIndex) += 1
-      }
+    val value = sf.getAttribute(attribute)
+    if (value != null) {
+      bins.add(value.asInstanceOf[T])
     }
   }
 
-  override def +=(other: RangeHistogram[T]): RangeHistogram[T] = {
-    other.histogram.foreach { case (k, v) => histogram(k) += v }; this
+  override def +(other: RangeHistogram[T]): RangeHistogram[T] = {
+    if (length == other.length && endpoints == other.endpoints) {
+      // hists match - we can just copy counts in directly
+      val plus = new RangeHistogram(attribute, length, endpoints)
+      var i = 0
+      while (i < plus.bins.length) {
+        plus.bins.counts(i) += (bins.counts(i) + other.bins.counts(i))
+        i += 1
+      }
+      plus
+    } else {
+      // create the bin array at it's most expansive up front so that
+      // we don't have to re-create it in plus-equals
+      val maxEndpoints = RangeHistogram.expandEndpoints(endpoints, other.endpoints)
+      val maxLength = math.max(length, other.length)
+      val plus = new RangeHistogram(attribute, maxLength, maxEndpoints)
+      plus += this
+      plus += other
+      plus
+    }
   }
 
-  override def toJson(): String = {
-    val jsonMap = histogram.toMap.map { case (k, v) => k.toString -> v }
-    new JSONObject(jsonMap).toString()
+  override def +=(other: RangeHistogram[T]): Unit = {
+    if (length == other.length && endpoints == other.endpoints) {
+      // hists match - we can just copy counts in directly
+      var i = 0
+      while (i < bins.length) {
+        bins.counts(i) += other.bins.counts(i)
+        i += 1
+      }
+    } else {
+      // figure out the new bounds and size - expand to use the widest option
+      val newEndpoints = RangeHistogram.expandEndpoints(endpoints, other.endpoints)
+      val newLength = math.max(length, other.length)
+      if (newEndpoints != endpoints || newLength != length) {
+        // if the other hist was not 'contained' in this one, we have to re-create the bins
+        val newBins = BinnedArray(newLength, newEndpoints)
+        RangeHistogram.copyInto(newBins, bins)
+        bins = newBins
+      }
+      // now copy over the other bins
+      RangeHistogram.copyInto(bins, other.bins)
+    }
   }
 
-  override def clear(): Unit = histogram.keys.foreach(bin => histogram(bin) = 0)
+  override def toJson: String =
+    s"""{ "lower-bound" : ${stringify(endpoints._1)}, "upper-bound" : ${stringify(endpoints._2)},""" +
+        s""""bins" : [ ${bins.counts.mkString(", ")} ] }"""
 
-  override def equals(obj: Any): Boolean = {
-    obj match {
-      case rh: RangeHistogram[T] =>
-        attrIndex == rh.attrIndex &&
-            attrType == rh.attrType &&
-            numBins == rh.numBins &&
-            lowerEndpoint == rh.lowerEndpoint &&
-            upperEndpoint == rh.upperEndpoint &&
-            histogram == rh.histogram
-      case _ => false
+  override def isEmpty: Boolean = bins.counts.forall(_ == 0)
+
+  override def clear(): Unit = bins.clear()
+
+  override def equals(other: Any): Boolean = other match {
+    case that: RangeHistogram[T] => attribute == that.attribute && bins == that.bins // bins compares endpoints and length
+    case _ => false
+  }
+
+  override def hashCode(): Int = Seq(attribute, bins).map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+}
+
+object RangeHistogram {
+
+  /**
+    * Creates expanded endpoints that cover both input endpoints
+    */
+  def expandEndpoints[T](one: (T, T), two: (T, T))(implicit defaults: MinMax.MinMaxDefaults[T]): (T, T) = {
+    val leftExpand = defaults.minmax(two._1, one._1, one._2)
+    defaults.minmax(two._2, leftExpand._1, leftExpand._2)
+  }
+
+  /**
+    * Copies data from one binned array into the other. Arrays are assumed to have different
+    * sizes and/or endpoints. If arrays have the same characteristics, this method is
+    * needlessly expensive/complicated/inexact.
+    */
+  def copyInto[T](to: BinnedArray[T], from: BinnedArray[T]): Unit = {
+    var i = 0
+    while (i < from.length) {
+      val count = from.counts(i)
+      if (count > 0) {
+        val (min, max) = from.bounds(i)
+        val (lo, hi) = (to.indexOf(min), to.indexOf(max))
+        if (lo == hi) {
+          to.counts(lo) += count
+        } else {
+          val size = hi - lo + 1
+          val avgCount = count / size
+          val remainingCount = count % size
+          val mid = lo + (size / 2)
+          var j = lo
+          while (j <= hi) {
+            to.counts(j) += avgCount
+            if (j == mid) {
+              to.counts(j) += remainingCount
+            }
+            j += 1
+          }
+        }
+      }
+      i += 1
     }
   }
 }

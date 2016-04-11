@@ -21,21 +21,21 @@ class SeqStat(val stats: Seq[Stat]) extends Stat {
 
   override def observe(sf: SimpleFeature): Unit = stats.foreach(_.observe(sf))
 
-  override def +=(other: SeqStat): SeqStat = {
-    stats.zip(other.stats).foreach { case (stat1, stat2) =>
-      stat1 += stat2.asInstanceOf[stat1.S]
-    }
-    this
-  }
+  override def +(other: SeqStat): SeqStat =
+    new SeqStat(stats.zip(other.stats).map { case (l, r) => l + r })
 
-  override def toJson(): String = stats.map(_.toJson()).mkString("[ ", ", ", " ]")
+  override def +=(other: SeqStat): Unit = stats.zip(other.stats).foreach { case (l, r) => l += r }
+
+  override def toJson: String = stats.map(_.toJson).mkString("[ ", ", ", " ]")
+
+  override def isEmpty: Boolean = stats.forall(_.isEmpty)
 
   override def clear(): Unit = stats.foreach(_.clear())
 
-  override def equals(obj: Any): Boolean = {
-    obj match {
-      case seqStat: SeqStat => stats == seqStat.stats
-      case _ => false
-    }
+  override def equals(other: Any): Boolean = other match {
+    case that: SeqStat => stats == that.stats
+    case _ => false
   }
+
+  override def hashCode(): Int = stats.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
 }

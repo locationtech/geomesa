@@ -29,7 +29,8 @@ import org.opengis.filter.Filter
   * Iterator that takes an attribute query that needs only the attribute + (dtg and/or geom)
   * and fulfills the attribute part of the filter from the attr idx.
   */
-class AttrKeyPlusValueIterator extends SortedKeyValueIterator[Key, Value] with LazyLogging {
+class AttrKeyPlusValueIterator extends SortedKeyValueIterator[Key, Value] with SamplingIterator with LazyLogging {
+
   import AttrKeyPlusValueIterator._
 
   var source: SortedKeyValueIterator[Key, Value] = null
@@ -40,6 +41,7 @@ class AttrKeyPlusValueIterator extends SortedKeyValueIterator[Key, Value] with L
   var transSft: SimpleFeatureType = null
 
   var indexFilter: Filter = null
+  var sampling: (SimpleFeature) => Boolean = null
 
   var idxkryo: KryoFeatureSerializer = null
   var idxReuse: KryoBufferSimpleFeature = null
@@ -97,6 +99,8 @@ class AttrKeyPlusValueIterator extends SortedKeyValueIterator[Key, Value] with L
       sf.setAttribute(transAttrIdx, o)
       sf
     }
+
+    sampling = sample(options).getOrElse((_) => true)
   }
 
   override def seek(range: Range, columnFamilies: jCollection[ByteSequence], inclusive: Boolean): Unit = {
@@ -121,7 +125,7 @@ class AttrKeyPlusValueIterator extends SortedKeyValueIterator[Key, Value] with L
     var found = false
     while (!found && source.hasTop) {
       idxReuse.setBuffer(source.getTopValue.get())
-      if (indexFilter == null || indexFilter.evaluate(idxReuse)) {
+      if ((indexFilter == null || indexFilter.evaluate(idxReuse)) && sampling(idxReuse)) {
         val decoded = AttributeTable.decodeRow(origSft, origAttrIdx, source.getTopKey.getRow().getBytes).get
         nextScalaSf = createAttrFeature(decoded.asInstanceOf[Object])
         found = true
@@ -131,7 +135,8 @@ class AttrKeyPlusValueIterator extends SortedKeyValueIterator[Key, Value] with L
     }
   }
 
-  override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = ???
+  override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] =
+    throw new NotImplementedError
 }
 
 object AttrKeyPlusValueIterator {
@@ -145,22 +150,24 @@ object AttrKeyPlusValueIterator {
   val ATTR_IDX                  = "attrIdx"                 // Index of the Attr in original SFT
 
   def configure(origSft: SimpleFeatureType,
-                dataSft: SimpleFeatureType,
+                indexSft: SimpleFeatureType,
                 attrIdx: Int,
                 indexFilter: Option[Filter], // filter only works on the index value not the index itself
                 transform: Option[(String, SimpleFeatureType)],
+                sampling: Option[(Float, Option[String])],
                 priority: Int) = {
     require(transform.isDefined, "No options configured")
     val is = new IteratorSetting(priority, "attr-key-plus-value-iter", classOf[AttrKeyPlusValueIterator])
     is.addOption(ORIG_SFT_OPT, SimpleFeatureTypes.encodeType(origSft))
     is.addOption(ORIG_SFT_TABLE_SHARING, origSft.isTableSharing.toString)
-    is.addOption(IDX_SFT_OPT, SimpleFeatureTypes.encodeType(dataSft))
+    is.addOption(IDX_SFT_OPT, SimpleFeatureTypes.encodeType(indexSft))
     indexFilter.foreach(f => is.addOption(CQL_OPT, ECQL.toCQL(f)))
     transform.foreach { case (tdef, tsft) =>
       is.addOption(TRANSFORM_DEFINITIONS_OPT, tdef)
       is.addOption(TRANSFORM_SCHEMA_OPT, SimpleFeatureTypes.encodeType(tsft))
     }
     is.addOption(ATTR_IDX, attrIdx.toString)
+    sampling.foreach(SamplingIterator.configure(is, indexSft, _))
     is
   }
 }
