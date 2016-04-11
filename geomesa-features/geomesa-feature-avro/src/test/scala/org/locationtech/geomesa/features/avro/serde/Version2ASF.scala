@@ -226,6 +226,9 @@ object Version2ASF {
             case t if classOf[Geometry].isAssignableFrom(t) =>
               (v: AnyRef) => ByteBuffer.wrap(WKBUtils.write(v.asInstanceOf[Geometry]))
 
+            case t if classOf[Array[Byte]].isAssignableFrom(t) =>
+              (v: AnyRef) => ByteBuffer.wrap(v.asInstanceOf[Array[Byte]])
+
             case _ =>
               (v: AnyRef) =>
                 Option(Converters.convert(v, classOf[String])).getOrElse { a: AnyRef => a.toString }
@@ -297,6 +300,7 @@ object Version2ASF {
       case c if classOf[UUID].isAssignableFrom(c)               => baseType.bytesType.noDefault
       case c if classOf[Date].isAssignableFrom(c)               => baseType.longType.noDefault
       case c if classOf[Geometry].isAssignableFrom(c)           => baseType.bytesType.noDefault
+      case c if classOf[Array[Byte]].isAssignableFrom(c)        => baseType.bytesType.noDefault
     }
   }
 

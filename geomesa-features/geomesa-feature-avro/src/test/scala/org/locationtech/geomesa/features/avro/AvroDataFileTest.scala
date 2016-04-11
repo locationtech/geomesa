@@ -9,6 +9,8 @@
 package org.locationtech.geomesa.features.avro
 
 import java.io.{FileInputStream, FileOutputStream}
+import java.nio.charset.StandardCharsets
+import java.util
 import java.util.zip.Deflater
 
 import org.apache.avro.file.DataFileStream
@@ -17,6 +19,8 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.WKTUtils
+import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -115,7 +119,7 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
       val dfs = new DataFileStream[AvroSimpleFeature](new FileInputStream(tmpFile), datumReader)
       dfs.getMetaString(AvroDataFile.SftNameKey) mustEqual simpleSft.getTypeName
       dfs.getMetaString(AvroDataFile.SftSpecKey) mustEqual SimpleFeatureTypes.encodeType(simpleSft)
-      dfs.getMetaLong(AvroDataFile.VersionKey) mustEqual 1L
+      dfs.getMetaLong(AvroDataFile.VersionKey) mustEqual 3L
     }
 
     "support compression" >> {
@@ -140,6 +144,63 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
         readFeatures.size mustEqual 50
         readFeatures.map(_.getID) must containTheSameElementsAs(features.map(_.getID))
       }
+    }
+
+    "serialize byte arrays" >> {
+      val features = createComplicatedFeatures(3)
+      val tmpFile = getTmpFile
+      val dfw = new AvroDataFileWriter(new FileOutputStream(tmpFile), complexSft)
+      try {
+        features.foreach(dfw.append)
+      } finally {
+        dfw.close()
+      }
+
+      val readFeatures = getFeatures(tmpFile)
+      readFeatures.size mustEqual 3
+      val origBytes = "FOOBARBAZ+12354+\u0000\u0001\u0002\u3434".getBytes(StandardCharsets.UTF_8)
+      forall (readFeatures.map(_.getAttribute("f15").asInstanceOf[Array[Byte]])) { arr =>
+        arr mustEqual origBytes
+      }
+    }
+
+    "serialize lists and maps of byte arrays and null stuff everywhere" >> {
+      val sft = SimpleFeatureTypes.createType("bytesTest",
+        "b1:Bytes,b2:Bytes,m1:Map[String,Bytes],bl:List[Bytes],*geom:Point,dtg:Date")
+
+      val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
+      builder.reset()
+      builder.set("b1", "testencoding$^@#$\u0000\u0023".getBytes(StandardCharsets.ISO_8859_1))
+      builder.set("b2", null)
+      builder.set("m1", Map("a" -> Array(0.toByte, 1.toByte), "b" -> Array(235.toByte)))
+      builder.set("bl", List(Array(3.toByte, 4.toByte), Array(10.toByte, 4.toByte)))
+      builder.set("geom", WKTUtils.read("POINT(-110 30)"))
+      builder.set("dtg", "2012-01-02T05:06:07.000Z")
+
+      val sf = builder.buildFeature("fid")
+      sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+      sf
+      val tmpFile = getTmpFile
+      val dfw = new AvroDataFileWriter(new FileOutputStream(tmpFile), sft)
+      try {
+        dfw.append(sf)
+      } finally {
+        dfw.close()
+      }
+      val readFeatures = getFeatures(tmpFile)
+      readFeatures.size mustEqual 1
+      val rf = readFeatures.head
+
+      def arrayEquals(a: Any, b: Any): MatchResult[Boolean] = {
+        val aBytes = a.asInstanceOf[Array[Byte]]
+        val bBytes = b.asInstanceOf[Array[Byte]]
+        util.Arrays.equals(aBytes, bBytes) must beTrue
+      }
+      arrayEquals(rf.getAttribute("b1"), sf.getAttribute("b1"))
+
+      val map1 = rf.getAttribute("m1").asInstanceOf[java.util.Map[String, Array[Byte]]]
+      arrayEquals(map1.get("a"), Array(0.toByte, 1.toByte))
+      arrayEquals(map1.get("b"), Array(235.toByte))
     }
   }
 

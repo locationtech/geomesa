@@ -8,8 +8,9 @@
 
 package org.locationtech.geomesa.features.avro
 
-import java.lang
-import java.util.Date
+import java.{util, lang}
+import java.nio.charset.StandardCharsets
+import java.util.{UUID, Date}
 
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
@@ -131,6 +132,12 @@ class AvroSimpleFeatureUtilsTest extends Specification {
       "of dates" >> {
         val orig = List(new Date(0), new Date(), new Date(99999))
         val encoded = AvroSimpleFeatureUtils.encodeList(orig.asJava, classOf[Date])
+        val decoded = AvroSimpleFeatureUtils.decodeList(encoded)
+        decoded.asScala mustEqual orig
+      }
+      "of UUIDs" >> {
+        val orig = List(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID())
+        val encoded = AvroSimpleFeatureUtils.encodeList(orig.asJava, classOf[UUID])
         val decoded = AvroSimpleFeatureUtils.decodeList(encoded)
         decoded.asScala mustEqual orig
       }
@@ -283,6 +290,28 @@ class AvroSimpleFeatureUtilsTest extends Specification {
         val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
         decoded.asScala mustEqual orig
       }
+
+      "of UUIDs" >> {
+        val orig = Map(
+          UUID.randomUUID() -> UUID.randomUUID(),
+          UUID.fromString("12345678-1234-1234-1234-123456781234") -> UUID.fromString("00000000-0000-0000-0000-000000000000"),
+          UUID.randomUUID() -> UUID.randomUUID()
+        )
+        val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava, classOf[UUID], classOf[UUID])
+        val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
+        decoded.asScala mustEqual orig
+      }
+
+      "of strings to bytes" >> {
+        val one = "235236523\u0000\u0002\u4545!!!!".getBytes(StandardCharsets.UTF_16BE)
+        val two = Array(1.toByte, 244.toByte, 55.toByte)
+        val orig = Map("1" -> one, "2" -> two)
+        val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava, classOf[String], classOf[Array[Byte]])
+        val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
+        util.Arrays.equals(decoded.get("1").asInstanceOf[Array[Byte]], one) must beTrue
+        util.Arrays.equals(decoded.get("2").asInstanceOf[Array[Byte]], two) must beTrue
+      }
+
       "of mixed keys and values" >> {
         val orig = Map("key1" -> new Date(0), "key2" -> new Date(), "key3" -> new Date(99999))
         val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava, classOf[String], classOf[Date])

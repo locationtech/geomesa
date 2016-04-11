@@ -291,6 +291,16 @@ object KryoFeatureSerializer {
             }
           }
         }
+      case ObjectType.BYTES =>
+        (o: Output, v: AnyRef) => {
+          val arr = v.asInstanceOf[Array[Byte]]
+          if (arr == null) {
+            o.writeInt(-1, true)
+          } else {
+            o.writeInt(arr.length, true)
+            o.writeBytes(arr)
+          }
+        }
     }
   }
 
@@ -360,6 +370,17 @@ object KryoFeatureSerializer {
               index += 1
             }
             map
+          }
+        }
+      case ObjectType.BYTES =>
+        (i: Input) => {
+          val size = i.readInt(true)
+          if (size == -1) {
+            null
+          } else {
+            val arr = new Array[Byte](size)
+            i.read(arr)
+            arr
           }
         }
     }
