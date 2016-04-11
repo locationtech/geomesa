@@ -11,10 +11,9 @@ package org.locationtech.geomesa.tools.accumulo.commands
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.accumulo.index.Constants
-import org.locationtech.geomesa.tools.accumulo.{GeoMesaConnectionParams, OptionalAccumuloSharedTablesParam}
 import org.locationtech.geomesa.tools.accumulo.commands.CreateCommand.CreateParameters
-import org.locationtech.geomesa.tools.common.{OptionalDTGParam, FeatureTypeSpecParam, FeatureTypeNameParam, CLArgResolver}
-import org.locationtech.geomesa.tools.common.commands.OptionalZookeepersParam
+import org.locationtech.geomesa.tools.accumulo.{GeoMesaConnectionParams, OptionalAccumuloSharedTablesParam}
+import org.locationtech.geomesa.tools.common.{CLArgResolver, FeatureTypeNameParam, FeatureTypeSpecParam, OptionalDTGParam}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 

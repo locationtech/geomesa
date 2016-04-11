@@ -14,8 +14,8 @@ import org.apache.accumulo.core.client.TableNotFoundException
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.data.tables.{AttributeTable, RecordTable, SpatioTemporalTable, Z3Table}
 import org.locationtech.geomesa.tools.accumulo.AccumuloRunner.mkSubCommand
-import org.locationtech.geomesa.tools.accumulo.{GeoMesaConnectionParams, DataStoreHelper}
 import org.locationtech.geomesa.tools.accumulo.commands.TableConfCommand._
+import org.locationtech.geomesa.tools.accumulo.{DataStoreHelper, GeoMesaConnectionParams}
 import org.locationtech.geomesa.tools.common.FeatureTypeNameParam
 
 import scala.collection.JavaConversions._

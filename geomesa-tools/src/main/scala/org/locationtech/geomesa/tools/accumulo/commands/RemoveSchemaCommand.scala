@@ -12,8 +12,7 @@ import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.RemoveSchemaCommand.RemoveSchemaParams
-import org.locationtech.geomesa.tools.common.{OptionalForceParam, OptionalPatternParam, OptionalFeatureTypeNameParam, PromptConfirm}
-import org.locationtech.geomesa.tools.common.commands.OptionalForceParam
+import org.locationtech.geomesa.tools.common.{OptionalFeatureTypeNameParam, OptionalForceParam, OptionalPatternParam, PromptConfirm}
 
 import scala.util.{Failure, Success, Try}
 

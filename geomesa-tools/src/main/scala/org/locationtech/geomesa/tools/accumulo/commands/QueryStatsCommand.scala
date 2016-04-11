@@ -14,8 +14,8 @@ import java.util.Date
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import org.locationtech.geomesa.accumulo.stats.RasterQueryStatTransform
 import org.locationtech.geomesa.raster.data.AccumuloRasterStore
-import org.locationtech.geomesa.tools.accumulo.{AccumuloConnectionParams, AccumuloRasterTableParam, AccumuloProperties}
 import org.locationtech.geomesa.tools.accumulo.commands.QueryStatsCommand.QueryStatsParameters
+import org.locationtech.geomesa.tools.accumulo.{AccumuloConnectionParams, AccumuloProperties, AccumuloRasterTableParam}
 import org.locationtech.geomesa.tools.common.commands.Command
 
 class QueryStatsCommand(parent: JCommander) extends Command(parent) with AccumuloProperties {

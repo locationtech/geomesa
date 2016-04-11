@@ -16,7 +16,6 @@ import org.locationtech.geomesa.accumulo.index.ExplainPrintln
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.ExplainCommand.ExplainParameters
 import org.locationtech.geomesa.tools.common.{CQLFilterParam, FeatureTypeNameParam}
-import org.locationtech.geomesa.tools.common.commands.CQLFilterParam
 
 class ExplainCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
   override val command = "explain"

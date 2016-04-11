@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.tools.accumulo.commands
 
 import com.beust.jcommander.JCommander
-import org.locationtech.geomesa.tools.accumulo.{GeoMesaConnectionParams, AccumuloProperties, DataStoreHelper}
+import org.locationtech.geomesa.tools.accumulo.{AccumuloProperties, DataStoreHelper, GeoMesaConnectionParams}
 import org.locationtech.geomesa.tools.common.commands.Command
 
 /**

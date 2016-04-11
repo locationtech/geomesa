@@ -10,8 +10,7 @@ package org.locationtech.geomesa.tools.kafka.commands
 
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.tools.common.{OptionalForceParam, OptionalPatternParam, OptionalFeatureTypeNameParam, PromptConfirm}
-import org.locationtech.geomesa.tools.common.commands.OptionalForceParam
+import org.locationtech.geomesa.tools.common.{OptionalFeatureTypeNameParam, OptionalForceParam, OptionalPatternParam, PromptConfirm}
 import org.locationtech.geomesa.tools.kafka.SimpleProducerKDSConnectionParams
 import org.locationtech.geomesa.tools.kafka.commands.RemoveSchemaCommand.RemoveSchemaParams
 

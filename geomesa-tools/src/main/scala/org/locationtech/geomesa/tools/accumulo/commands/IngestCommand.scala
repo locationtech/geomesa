@@ -18,9 +18,9 @@ import org.locationtech.geomesa.tools.accumulo.Utils.Formats
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats._
 import org.locationtech.geomesa.tools.accumulo.commands.IngestCommand._
 import org.locationtech.geomesa.tools.accumulo.ingest.{AutoIngest, ConverterIngest}
-import org.locationtech.geomesa.tools.accumulo.{GeoMesaConnectionParams, DataStoreHelper}
-import org.locationtech.geomesa.tools.common.{OptionalFeatureTypeSpecParam, OptionalFeatureTypeNameParam, CLArgResolver}
+import org.locationtech.geomesa.tools.accumulo.{DataStoreHelper, GeoMesaConnectionParams}
 import org.locationtech.geomesa.tools.common.commands._
+import org.locationtech.geomesa.tools.common.{CLArgResolver, OptionalFeatureTypeNameParam, OptionalFeatureTypeSpecParam}
 import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
 
 import scala.collection.JavaConversions._
