@@ -10,20 +10,17 @@ package org.locationtech.geomesa.tools.kafka.commands
 
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import kafka.utils.{ZKStringSerializer, ZkUtils}
-import org.I0Itec.zkclient.ZkClient
+import kafka.utils.ZkUtils
 import org.I0Itec.zkclient.exception.ZkNoNodeException
-import org.locationtech.geomesa.tools.common.commands.Command
+import org.locationtech.geomesa.tools.kafka.OptionalZkPathParams
 import org.locationtech.geomesa.tools.kafka.commands.ListCommand._
-import org.locationtech.geomesa.tools.kafka.{DataStoreHelper, OptionalZkPathParams}
 
-class ListCommand(parent: JCommander) extends Command(parent) with LazyLogging {
+class ListCommand(parent: JCommander) extends CommandWithKDS(parent) with LazyLogging {
   override val command = "list"
   override val params = new ListParameters()
-  lazy val zkClient = new ZkClient(params.zookeepers, Int.MaxValue, Int.MaxValue, ZKStringSerializer)
 
   override def execute() = {
-    if (params.zkPath == null) {
+    if (zkPath == null) {
       logger.info(s"Running List Features without zkPath...")
       logger.info(s"zkPath - schema")
       ZkUtils.getAllTopics(zkClient).filter(_.contains('-')).foreach {
@@ -31,7 +28,6 @@ class ListCommand(parent: JCommander) extends Command(parent) with LazyLogging {
       }
     } else {
       logger.info(s"Running List Features using zkPath ${params.zkPath}...")
-      val ds = new DataStoreHelper(params).getDataStore
       ds.getTypeNames.foreach(println)
     }
   }

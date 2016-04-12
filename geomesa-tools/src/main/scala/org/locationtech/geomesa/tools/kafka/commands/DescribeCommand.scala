@@ -46,7 +46,6 @@ class DescribeCommand(parent: JCommander) extends CommandWithKDS(parent) with La
         println(sb.toString())
       }
 
-      val zkClient = new ZkClient(params.zookeepers, Int.MaxValue, Int.MaxValue, ZKStringSerializer)
       val topicName = zkClient.readData[String](ds.asInstanceOf[KafkaDataStore].getTopicPath(params.featureName))
       val topicMetadata = AdminUtils.fetchTopicMetadataFromZk(topicName, zkClient)
 
