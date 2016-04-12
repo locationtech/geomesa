@@ -37,7 +37,6 @@ class RemoveSchemaCommand(parent: JCommander) extends CommandWithKDS(parent) wit
         }
       case Failure(ex) =>
         println(s"Feature validation failed on error: ${ex.getMessage}.")
-        logger.error(ex.getMessage)
     }
   }
 
@@ -53,7 +52,6 @@ class RemoveSchemaCommand(parent: JCommander) extends CommandWithKDS(parent) wit
           println(s"Removed $tname")
         case Failure(ex) =>
           println(s"Failure removing type $tname")
-          logger.error(s"Failure removing type $tname.", ex)
       }
     }
   }
