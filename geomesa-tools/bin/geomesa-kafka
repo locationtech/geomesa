@@ -29,8 +29,6 @@ GEOMESA_DEBUG_OPTS="-Xmx8192m -XX:MaxPermSize=512m -XX:-UseGCOverheadLimit -Xdeb
 GEOMESA_CP=""
 JAVA_LIBRARY_PATH=""
 
-
-
 # Define GEOMESA_HOME and update the PATH if necessary.
 if [ -z "$GEOMESA_HOME" ]; then
 setGeoHome
@@ -83,43 +81,6 @@ fi
 
 GEOMESA_OPTS="${GEOMESA_OPTS} -Dlog4j.configuration=file://${GEOMESA_CONF_DIR}/log4j.properties"
 
-
-# ACCUMULO paths, user can hard set these, or rely on this script to find set them via ACCUMULO_HOME
-if [ -n "$ACCUMULO_HOME" ]; then
-    if [ -z "$ACCUMULO_LIB" -a -d "${ACCUMULO_HOME}/lib" ]; then
-        ACCUMULO_LIB=${ACCUMULO_HOME}/lib
-    fi
-    if [ -z "$ACCUMULO_CONF_DIR" -a -d "${ACCUMULO_HOME}/conf" ]; then
-        ACCUMULO_CONF_DIR=${ACCUMULO_HOME}/conf
-    fi
-fi
-
-# HADOOP paths, user can hard set these, or rely on this script to find set them via HADOOP_HOME
-if [ -n "$HADOOP_HOME" ]; then
-    if [ -z "$HADOOP_CONF_DIR" -a -d "${HADOOP_HOME}/etc/hadoop" ]; then
-        HADOOP_CONF_DIR=${HADOOP_HOME}/etc/hadoop
-    fi
-fi
-
-# Warn user about missing environment variables
-if [[ (-z "$ACCUMULO_HOME") || (-z "$HADOOP_HOME") ]]; then
-    message="Warning: you have not set ACCUMULO_HOME and/or HADOOP_HOME as environment variables."
-    message="${message}\nGeoMesa tools will not run without the appropriate Accumulo and Hadoop jars in the tools classpath."
-    message="${message}\nPlease ensure that those jars are present in the classpath by running 'geomesa classpath' ."
-    message="${message}\nTo take corrective action, please place the necessary jar files in the lib directory of geomesa-tools."
-    echo >&2 ""
-    echo -e >&2 "$message"
-    echo >&2 ""
-elif [[ (-z "$ACCUMULO_CONF_DIR") || (-z "$HADOOP_CONF_DIR")]]; then
-    message="Warning: you have not set ACCUMULO_CONF_DIR and/or HADOOP_CONF_DIR as environment variables."
-    message="${message}\nGeoMesa tools looks for these folders relative to the paths of the ACCUMULO_HOME and HADOOP_HOME environment variables."
-    message="${message}\nGeoMesa tools can run without these variables set, however the user will be required to provide the additional instanceId and zookeepers parameters."
-    message="${message}\nTo take corrective action, please set these environment variable to the appropriate locations"
-    echo >&2 ""
-    echo -e >&2 "$message"
-    echo >&2 ""
-fi
-
 function findJars() {
     home="$1"
     CP=""
@@ -147,46 +108,7 @@ function findJars() {
 
 # Start constructing GEOMESA_CP (classpath)
 # include geomesa first so that the correct log4j.properties is picked up
-GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB)"
-GEOMESA_CP="${GEOMESA_CP}:${ACCUMULO_CONF_DIR}:${HADOOP_CONF_DIR}"
-ACCUMULO_CP="$(findJars $ACCUMULO_LIB)"
-
-# Get the hadoop jars, ignoring jars with names containing slf4j and test
-# Copied from accumulo classpath
-hadoopDirs=(
-  $ZOOKEEPER_HOME
-  # Hadoop 2 requirements
-  $HADOOP_HOME/share/hadoop/common
-  $HADOOP_HOME/share/hadoop/hdfs/
-  $HADOOP_HOME/share/hadoop/mapreduce/
-  $HADOOP_HOME/share/hadoop/tools/lib
-  $HADOOP_HOME/share/hadoop/yarn/
-  # HDP 2.0 requirements
-  /usr/lib/hadoop/
-  /usr/lib/hadoop-hdfs/
-  /usr/lib/hadoop-mapreduce/
-  /usr/lib/hadoop-yarn/
-  # HDP 2.2 requirements
-  /usr/hdp/current/hadoop-client/
-  /usr/hdp/current/hadoop-hdfs-client/
-  /usr/hdp/current/hadoop-mapreduce-client/
-  /usr/hdp/current/hadoop-yarn-client/
-  # IOP 4.1 requirements
-  /usr/iop/current/hadoop-client/
-  /usr/iop/current/hadoop-hdfs-client/
-  /usr/iop/current/hadoop-mapreduce-client/
-  /usr/iop/current/hadoop-yarn-client/
-)
-
-for home in ${hadoopDirs[*]}; do
-  tmp="$(findJars $home true)"
-  if [ -n "$tmp" ]; then
-    HADOOP_CP="$HADOOP_CP:$tmp"
-  fi
-  if [ "${HADOOP_CP:0:1}" = ":" ]; then
-    HADOOP_CP="${HADOOP_CP:1}"
-  fi
-done
+GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB):$(findJars $GEOMESA_HOME/kafka-lib)"
 
 if [ -n "$JAVA_LIBRARY_PATH" ]; then
   GEOMESA_OPTS="$GEOMESA_OPTS,java.library.path=$JAVA_LIBRARY_PATH"
@@ -237,7 +159,7 @@ if  [[ $1 = configure ]]; then
     echo "export GEOMESA_HOME="$GEOMESA_HOME""
     echo "export PATH=\${GEOMESA_HOME}/bin:\$PATH"
 elif [[ $1 = classpath ]]; then
-    CLASSPATH="$GEOMESA_CP:$ACCUMULO_CP:$HADOOP_CP"
+    CLASSPATH="$GEOMESA_CP"
     for element in ${CLASSPATH//:/ } ; do
         echo ${element}
     done
@@ -246,6 +168,6 @@ else
         GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
         shift 1
     fi
-    CLASSPATH="$GEOMESA_CP:$ACCUMULO_CP:$HADOOP_CP"
+    CLASSPATH="$GEOMESA_CP"
     java ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.kafka.KafkaRunner "$@"
 fi
