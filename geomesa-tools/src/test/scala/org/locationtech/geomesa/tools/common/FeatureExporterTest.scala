@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.tools
+package org.locationtech.geomesa.tools.common
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, StringWriter}
 import java.util.Date
@@ -21,8 +21,8 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureStore
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.features.avro.AvroDataFileReader
+import org.locationtech.geomesa.tools.accumulo.Utils.Formats
 import org.locationtech.geomesa.tools.accumulo.{AvroExport, DelimitedExport, ShapefileExport, Utils}
-import Utils.Formats
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter

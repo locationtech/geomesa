@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.tools
+package org.locationtech.geomesa.tools.common
 
 import java.io.{StringReader, StringWriter}
 
@@ -15,10 +15,10 @@ import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.tools.accumulo.{DelimitedExport, Utils}
-import Utils.Formats
-import Utils.Formats.Formats
+import org.locationtech.geomesa.tools.accumulo.Utils.Formats
+import org.locationtech.geomesa.tools.accumulo.Utils.Formats.Formats
 import org.locationtech.geomesa.tools.accumulo.ingest.AutoIngestDelimited
+import org.locationtech.geomesa.tools.accumulo.{DelimitedExport, Utils}
 import org.locationtech.geomesa.utils.geotools.{GeoToolsDateFormat, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification

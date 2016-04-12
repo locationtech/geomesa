@@ -13,7 +13,7 @@ import org.locationtech.geomesa.tools.accumulo.{AccumuloProperties, DataStoreHel
 import org.locationtech.geomesa.tools.common.commands.Command
 
 /**
- * Abstract class for commands that have a pre-existing catlaog
+ * Abstract class for commands that have a pre-existing catalog
  */
 abstract class CommandWithCatalog(parent: JCommander) extends Command(parent) with AccumuloProperties {
   override val params: GeoMesaConnectionParams

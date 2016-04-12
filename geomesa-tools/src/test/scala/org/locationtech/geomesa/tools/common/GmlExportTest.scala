@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.tools
+package org.locationtech.geomesa.tools.common
 
 import java.io.ByteArrayOutputStream
 
