@@ -10,6 +10,7 @@
 package org.locationtech.geomesa.accumulo.data
 
 import java.io.IOException
+import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.{Lock, ReentrantLock}
 import java.util.{List => jList}
@@ -569,12 +570,12 @@ class AccumuloDataStore(val connector: Connector,
     // IMPORTANT: this method needs to stay inside a zookeeper distributed locking block
     var schemaId = 1
     val existingSchemaIds =
-      getTypeNames.flatMap(metadata.readNoCache(_, SCHEMA_ID_KEY).map(_.getBytes("UTF-8").head.toInt))
+      getTypeNames.flatMap(metadata.readNoCache(_, SCHEMA_ID_KEY).map(_.getBytes(StandardCharsets.UTF_8).head.toInt))
     while (existingSchemaIds.contains(schemaId)) { schemaId += 1 }
     // We use a single byte for the row prefix to save space - if we exceed the single byte limit then
     // our ranges would start to overlap and we'd get errors
     require(schemaId <= Byte.MaxValue, s"No more than ${Byte.MaxValue} schemas may share a single catalog table")
-    val schemaIdString = new String(Array(schemaId.asInstanceOf[Byte]), "UTF-8")
+    val schemaIdString = new String(Array(schemaId.asInstanceOf[Byte]), StandardCharsets.UTF_8)
 
     // store each metadata in the associated key
     val metadataMap = Map(

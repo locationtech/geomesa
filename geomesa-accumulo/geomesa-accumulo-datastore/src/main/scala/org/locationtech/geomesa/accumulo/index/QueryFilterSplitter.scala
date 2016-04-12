@@ -191,7 +191,8 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends MethodProfiling with L
       val singleOr = Some(orFilters).collect {case Seq(o: Or) => o.getChildren }
       // make sure that the ORs are on a single attribute, and not a spatio-temporal one
       val singleAttributeOr = singleOr.filter { ors =>
-        // TODO this won't take into accound indexed dates... but our getSameAttributeOption doesn't either
+        // TODO https://geomesa.atlassian.net/browse/GEOMESA-1168
+        // TODO this won't take into account indexed dates... but our getSameAttributeOption doesn't either
         val attributes = ors.flatMap(getAttributeProperty).map(_.name)
         attributes.length == ors.length && attributes.forall(_ == attributes.head) &&
             attributes.head != sft.getGeomField && !sft.getDtgField.contains(attributes.head)

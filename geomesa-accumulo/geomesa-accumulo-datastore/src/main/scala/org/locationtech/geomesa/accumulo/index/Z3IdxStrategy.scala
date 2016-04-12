@@ -204,6 +204,7 @@ object Z3IdxStrategy extends StrategyProvider {
    * Eventually cost will be computed based on dynamic metadata and the query.
    */
   override def getCost(filter: QueryFilter, sft: SimpleFeatureType, hints: StrategyHints) =
+  // https://geomesa.atlassian.net/browse/GEOMESA-1166
   // TODO check date range and use z2 instead if too big
   // TODO also if very small bbox, z2 has ~10 more bits of lat/lon info
     if (filter.primary.exists(isSpatialFilter)) 200 else 401
