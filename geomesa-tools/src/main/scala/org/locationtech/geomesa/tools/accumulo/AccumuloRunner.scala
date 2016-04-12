@@ -29,7 +29,7 @@ object AccumuloRunner extends Runner {
     new RemoveSchemaCommand(jc),
     new TableConfCommand(jc),
     new VersionCommand(jc),
-    new QueryStatsCommand(jc),
+    new QueryRasterStatsCommmand(jc),
     new GetSftCommand(jc)
   )
 }
