@@ -220,7 +220,6 @@ object Z3Table extends GeoMesaTable {
   }
 
   override def configureTable(sft: SimpleFeatureType, table: String, tableOps: TableOperations): Unit = {
-    tableOps.setProperty(table, Property.TABLE_SPLIT_THRESHOLD.getKey, "128M")
     tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
 
     val localityGroups = Seq(BIN_CF, FULL_CF).map(cf => (cf.toString, ImmutableSet.of(cf))).toMap

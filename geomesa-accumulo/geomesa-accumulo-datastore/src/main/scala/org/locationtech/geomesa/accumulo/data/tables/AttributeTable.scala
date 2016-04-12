@@ -348,7 +348,6 @@ object AttributeTable extends GeoMesaTable with LazyLogging {
 
   override def configureTable(featureType: SimpleFeatureType, table: String, tableOps: TableOperations): Unit = {
     tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
-    tableOps.setProperty(table, Property.TABLE_SPLIT_THRESHOLD.getKey, "128M")
     val indexedAttrs = SimpleFeatureTypes.getSecondaryIndexedAttributes(featureType)
     if (indexedAttrs.nonEmpty) {
       val indices = indexedAttrs.map(d => featureType.indexOf(d.getLocalName))
