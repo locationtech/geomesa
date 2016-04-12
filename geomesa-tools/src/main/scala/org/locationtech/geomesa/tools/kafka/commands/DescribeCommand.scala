@@ -19,6 +19,7 @@ import org.locationtech.geomesa.tools.kafka.ConsumerKDSConnectionParams
 import org.locationtech.geomesa.tools.kafka.commands.DescribeCommand._
 
 import scala.collection.JavaConversions._
+import scala.util.control.NonFatal
 
 class DescribeCommand(parent: JCommander) extends CommandWithKDS(parent) with LazyLogging {
   override val command = "describe"
@@ -39,7 +40,7 @@ class DescribeCommand(parent: JCommander) extends CommandWithKDS(parent) with La
         sb.append(": ")
         sb.append(attr.getType.getBinding.getSimpleName)
 
-        if (sft.getGeometryDescriptor == attr) sb.append(" (ST-Geo-index)")
+        if (sft.getGeometryDescriptor == attr) sb.append(" (Default geometry)")
         if (attr.getDefaultValue != null)      sb.append("- Default Value: ", attr.getDefaultValue)
 
         println(sb.toString())
@@ -57,6 +58,8 @@ class DescribeCommand(parent: JCommander) extends CommandWithKDS(parent) with La
         logger.error(s"Error: feature '${params.featureName}' not found. Check arguments...", npe)
       case e: Exception =>
         logger.error(s"Error describing feature '${params.featureName}': " + e.getMessage, e)
+      case NonFatal(e) =>
+        logger.warn(s"Non fatal error encountered describing feature '${params.featureName}': ", e)
     }
   }
 }

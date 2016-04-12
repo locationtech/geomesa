@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.tools.accumulo
 
 import com.beust.jcommander.Parameter
+import org.locationtech.geomesa.tools.common.ZookeepersParam
 
 /**
   * Shared Accumulo-specific command line parameters
@@ -24,7 +25,7 @@ trait AccumuloRasterTableParam {
   var table: String = null
 }
 
-trait AccumuloConnectionParams {
+trait AccumuloConnectionParams extends ZookeepersParam {
   @Parameter(names = Array("-u", "--user"), description = "Accumulo user name", required = true)
   var user: String = null
 
@@ -33,9 +34,6 @@ trait AccumuloConnectionParams {
 
   @Parameter(names = Array("-i", "--instance"), description = "Accumulo instance name")
   var instance: String = null
-
-  @Parameter(names = Array("-z", "--zookeepers"), description = "Zookeepers (host[:port], comma separated)")
-  var zookeepers: String = null
 
   @Parameter(names = Array("--auths"), description = "Accumulo authorizations")
   var auths: String = null

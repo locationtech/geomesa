@@ -45,8 +45,9 @@ class CreateCommand(parent: JCommander) extends CommandWithKDS(parent) with Lazy
       }
     } catch {
       // if the schema already exists at the specified zkPath
+      // error message will be s"Type $typeName already exists at $zkPath."
       case e: IllegalArgumentException => {
-        logger.warn(e.getMessage)
+        logger.error(e.getMessage)
       }
     }
   }

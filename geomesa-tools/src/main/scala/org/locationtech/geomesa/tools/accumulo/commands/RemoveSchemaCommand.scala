@@ -23,6 +23,8 @@ class RemoveSchemaCommand(parent: JCommander) extends CommandWithCatalog(parent)
   override def execute() = {
     if (Option(params.pattern).isEmpty && Option(params.featureName).isEmpty) {
       throw new IllegalArgumentException("Please provide either featureName or pattern to removing.")
+    } else if (Option(params.pattern).isDefined && Option(params.featureName).isDefined) {
+      throw new IllegalArgumentException("Cannot specify both the featureName and pattern parameter to remove schemas.")
     }
 
     val typeNamesToRemove = getTypeNamesFromParams()
@@ -75,7 +77,7 @@ class RemoveSchemaCommand(parent: JCommander) extends CommandWithCatalog(parent)
   }
 
   protected def promptConfirm(featureNames: List[String]) =
-    PromptConfirm.confirm(s"Remove schema ${featureNames.mkString(",")} from catalog $catalog? (yes/no): ")
+    PromptConfirm.confirm(s"Remove schema(s) ${featureNames.mkString(",")} from catalog $catalog? (yes/no): ")
 
 }
 

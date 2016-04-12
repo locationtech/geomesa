@@ -31,7 +31,7 @@ class DataStoreHelper(params: KafkaConnectionParams) {
     val kdsFactory = new KafkaDataStoreFactory()
     Option(kdsFactory.createDataStore(paramMap)).getOrElse {
       throw new Exception("Could not load a data store with the provided parameters: " +
-        s"${paramMap.map { case (k,v) => s"$k=$v" }.mkString(",")}")
+        paramMap.map { case (k,v) => s"$k=$v" }.mkString(","))
     }
   }
 }

@@ -30,11 +30,11 @@ class DataStoreHelper(params: GeoMesaConnectionParams) extends AccumuloPropertie
 
   /**
    * Get a handle to a datastore for a pre-existing catalog table
-    *
-    * @throws Exception if the catalog table does not exist in accumulo
+   *
+   * @throws Exception if the catalog table does not exist in accumulo
    */
   def getDataStore() = Option(DataStoreFinder.getDataStore(paramMap).asInstanceOf[AccumuloDataStore]).getOrElse {
     throw new Exception("Could not load a data store with the provided parameters: " +
-        s"${paramMap.map { case (k,v) => s"$k=$v" }.mkString(",")}")
+        paramMap.map { case (k,v) => s"$k=$v" }.mkString(","))
   }
 }

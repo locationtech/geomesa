@@ -17,6 +17,7 @@ import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttr
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
 import scala.collection.JavaConversions._
+import scala.util.control.NonFatal
 
 class DescribeCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
   override val command = "describe"
@@ -49,6 +50,8 @@ class DescribeCommand(parent: JCommander) extends CommandWithCatalog(parent) wit
         logger.error(s"Error: feature '${params.featureName}' not found. Check arguments...", npe)
       case e: Exception =>
         logger.error(s"Error describing feature '${params.featureName}': " + e.getMessage, e)
+      case NonFatal(e) =>
+        logger.warn(s"Non fatal error encountered describing feature '${params.featureName}': ", e)
     }
   }
 

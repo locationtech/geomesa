@@ -22,7 +22,9 @@ class RemoveSchemaCommand(parent: JCommander) extends CommandWithKDS(parent) wit
 
   override def execute() = {
     if (Option(params.pattern).isEmpty && Option(params.featureName).isEmpty) {
-      throw new IllegalArgumentException("Please provide either featureName or pattern to removing.")
+      throw new IllegalArgumentException("Please provide either the featureName or pattern parameter to remove schemas.")
+    } else if (Option(params.pattern).isDefined && Option(params.featureName).isDefined) {
+      throw new IllegalArgumentException("Cannot specify both the featureName and pattern parameter to remove schemas.")
     }
 
     val typeNamesToRemove = getTypeNamesFromParams()
@@ -75,7 +77,7 @@ class RemoveSchemaCommand(parent: JCommander) extends CommandWithKDS(parent) wit
   }
 
   protected def promptConfirm(featureNames: List[String]) =
-    PromptConfirm.confirm(s"Remove schema ${featureNames.mkString(",")} at zkPath $zkPath? (yes/no): ")
+    PromptConfirm.confirm(s"Remove schema(s) ${featureNames.mkString(",")} at zkPath $zkPath? (yes/no): ")
 }
 
 object RemoveSchemaCommand {

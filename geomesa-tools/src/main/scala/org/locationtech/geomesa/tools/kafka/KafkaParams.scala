@@ -9,17 +9,15 @@
 package org.locationtech.geomesa.tools.kafka
 
 import com.beust.jcommander.Parameter
+import org.locationtech.geomesa.tools.common.ZookeepersParam
 
 /**
   * Shared Kafka-specific command line parameters
   */
 
-trait KafkaConnectionParams {
+trait KafkaConnectionParams extends ZookeepersParam {
   @Parameter(names = Array("-b", "--brokers"), description = "Brokers (host[:port], comma separated)", required = true)
   var brokers: String = null
-
-  @Parameter(names = Array("-z", "--zookeepers"), description = "Zookeepers (host[:port], comma separated)", required = true)
-  var zookeepers: String = null
 
   var zkPath: String
   val isProducer: Boolean

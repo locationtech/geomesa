@@ -71,7 +71,7 @@ class ListCommand(parent: JCommander) extends Command(parent) with LazyLogging {
 }
 
 object ListCommand {
-  @Parameters(commandDescription = "List GeoMesa features for a given catalog")
+  @Parameters(commandDescription = "List GeoMesa features for a given zkPath")
   class ListParameters extends OptionalZkPathParams {
     override val isProducer: Boolean = false
     override var partitions: String = null
