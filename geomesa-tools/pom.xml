@@ -66,6 +66,30 @@
             <artifactId>commons-csv</artifactId>
         </dependency>
 
+        <!-- Kafka CLI dependencies -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-kafka-datastore</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka_2.11</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j:*</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.xerial.snappy</groupId>
+                    <artifactId>snappy-java</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+
         <!-- needed in the lib dir -->
         <dependency>
             <groupId>org.scala-lang.modules</groupId>
@@ -108,17 +132,13 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-start</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.beust</groupId>

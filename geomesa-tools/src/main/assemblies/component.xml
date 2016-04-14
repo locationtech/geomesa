@@ -15,7 +15,22 @@
                 <exclude>org.locationtech.geomesa:geomesa-accumulo-distributed-runtime*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-compute*</exclude>
                 <exclude>com.google.guava:guava</exclude> <!-- Guava conflicts with Hadoop 2.x which provides guava 11.0.2-->
+                <exclude>org.apache.zookeeper:zookeeper</exclude>
             </excludes>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>kafka-lib</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0644</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>true</useTransitiveDependencies>
+            <useTransitiveFiltering>true</useTransitiveFiltering>
+            <includes>
+                <include>com.google.guava:guava</include>
+                <include>org.apache.kafka:kafka_2.11</include>
+                <include>org.locationtech.geomesa:geomesa-kafka-datastore</include>
+                <include>org.apache.zookeeper:zookeeper</include>
+            </includes>
         </dependencySet>
     </dependencySets>
     <fileSets>
@@ -26,6 +41,7 @@
             <fileMode>0755</fileMode>
             <includes>
                 <include>geomesa</include>
+                <include>geomesa-kafka</include>
                 <include>install-jai</include>
                 <include>install-jline</include>
                 <include>install-vecmath</include>
