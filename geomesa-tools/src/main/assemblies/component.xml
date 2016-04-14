@@ -24,7 +24,7 @@
             <outputDirectory>bin</outputDirectory>
             <directoryMode>755</directoryMode>
             <fileMode>0755</fileMode>
-            <filtered>false</filtered>
+            <filtered>true</filtered>
         </fileSet>
         <fileSet>
             <directory>../geomesa-tools/conf</directory>
