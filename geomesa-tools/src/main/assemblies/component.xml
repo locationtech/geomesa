@@ -24,16 +24,7 @@
             <outputDirectory>bin</outputDirectory>
             <directoryMode>755</directoryMode>
             <fileMode>0755</fileMode>
-            <includes>
-                <include>geomesa</include>
-                <include>install-jai</include>
-                <include>install-jline</include>
-                <include>install-vecmath</include>
-                <include>install-imageio-ext</include>
-                <include>install-hadoop-accumulo.sh</include>
-                <include>install-kafka.sh</include>
-            </includes>
-            <filtered>true</filtered>
+            <filtered>false</filtered>
         </fileSet>
         <fileSet>
             <directory>../geomesa-tools/conf</directory>
