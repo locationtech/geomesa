@@ -72,9 +72,9 @@ class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
           "tableName" -> sftName,
           "auths"     -> "user")).asInstanceOf[AccumuloDataStore]
         ds must not beNull;
-        ds.authorizationsProvider must beAnInstanceOf[FilteringAuthorizationsProvider]
-        ds.authorizationsProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider must beAnInstanceOf[DefaultAuthorizationsProvider]
-        ds.authorizationsProvider.asInstanceOf[AuthorizationsProvider].getAuthorizations mustEqual new Authorizations("user")
+        ds.authProvider must beAnInstanceOf[FilteringAuthorizationsProvider]
+        ds.authProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider must beAnInstanceOf[DefaultAuthorizationsProvider]
+        ds.authProvider.asInstanceOf[AuthorizationsProvider].getAuthorizations mustEqual new Authorizations("user")
       }
 
       "by comma-delimited static auths" >> {
@@ -84,9 +84,9 @@ class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
           "tableName" -> sftName,
           "auths"     -> "user,admin,test")).asInstanceOf[AccumuloDataStore]
         ds must not beNull;
-        ds.authorizationsProvider must beAnInstanceOf[FilteringAuthorizationsProvider]
-        ds.authorizationsProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider must beAnInstanceOf[DefaultAuthorizationsProvider]
-        ds.authorizationsProvider.asInstanceOf[AuthorizationsProvider].getAuthorizations mustEqual new Authorizations("user", "admin", "test")
+        ds.authProvider must beAnInstanceOf[FilteringAuthorizationsProvider]
+        ds.authProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider must beAnInstanceOf[DefaultAuthorizationsProvider]
+        ds.authProvider.asInstanceOf[AuthorizationsProvider].getAuthorizations mustEqual new Authorizations("user", "admin", "test")
       }
 
       "fail when auth provider system property does not match an actual class" >> {
@@ -123,25 +123,6 @@ class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
 
       written must not beNull;
       written.length mustEqual 1
-    }
-
-    "restrict users with insufficient auths from writing data" >> {
-      // create the data store
-      val ds = DataStoreFinder.getDataStore(Map(
-        "connector"    -> connector,
-        "tableName"    -> sftName,
-        "auths"        -> "user",
-        "visibilities" -> "user&admin")).asInstanceOf[AccumuloDataStore]
-      ds must not beNull
-
-      val sft = SimpleFeatureTypes.createType("cantwrite", spec)
-      ds.createSchema(sft)
-
-      // write some data
-      val fs = ds.getFeatureSource("cantwrite").asInstanceOf[AccumuloFeatureStore]
-      val feat = new ScalaSimpleFeature("1", sft)
-      feat.setAttribute("geom", "POINT(45 55)")
-      fs.addFeatures(new ListFeatureCollection(sft, List(feat))) must throwA[RuntimeException]
     }
   }
 }

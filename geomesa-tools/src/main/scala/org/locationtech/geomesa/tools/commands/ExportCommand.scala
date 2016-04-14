@@ -9,8 +9,10 @@
 package org.locationtech.geomesa.tools.commands
 
 import java.io._
+import java.util.Locale
+import java.util.zip.{Deflater, GZIPOutputStream}
 
-import com.beust.jcommander.{JCommander, Parameter, Parameters}
+import com.beust.jcommander.{JCommander, Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureCollection
@@ -27,25 +29,27 @@ import org.opengis.filter.Filter
 import scala.util.{Failure, Success, Try}
 
 class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
+
   override val command = "export"
   override val params = new ExportParameters
 
   override def execute() = {
-    val fmt = Formats.fromString(params.format)
+    val fmt = Formats.withName(params.format.toLowerCase(Locale.US))
     val features = getFeatureCollection(fmt)
+    lazy val avroCompression = Option(params.gzip).map(_.toInt).getOrElse(Deflater.DEFAULT_COMPRESSION)
     val exporter: FeatureExporter = fmt match {
-      case CSV | TSV      => new DelimitedExport(getWriter(), fmt, Option(params.attributes))
-      case SHP            => new ShapefileExport(getFile())
+      case CSV | TSV      => new DelimitedExport(getWriter(), fmt)
+      case SHP            => new ShapefileExport(checkShpFile())
       case GeoJson | JSON => new GeoJsonExport(getWriter())
-      case GML            => new GmlExport(getOutputStream())
-      case BIN            => BinFileExport(getOutputStream(), params)
-      case AVRO           => new AvroExport(getOutputStream(), features.getSchema)
+      case GML            => new GmlExport(createOutputStream())
+      case BIN            => BinFileExport(createOutputStream(), params)
+      case AVRO           => new AvroExport(createOutputStream(true), features.getSchema, avroCompression)
       // shouldn't happen unless someone adds a new format and doesn't implement it here
       case _              => throw new UnsupportedOperationException(s"Format $fmt can't be exported")
     }
     try {
       exporter.write(features)
-      logger.info("Feature export complete to " + (if (usefile) params.file.getPath else "standard out"))
+      logger.info(s"Feature export complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")}")
     } finally {
       exporter.flush()
       exporter.close()
@@ -56,7 +60,7 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
   }
 
   def getFeatureCollection(fmt: Formats): SimpleFeatureCollection = {
-    val sft = ds.getSchema(params.featureName)
+    lazy val sft = ds.getSchema(params.featureName)
     fmt match {
       case SHP =>
         val schemaString =
@@ -99,22 +103,25 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
     }
   }
 
-  def getOutputStream(): OutputStream = {
-    val out = Option(params.file) match {
-      case Some(file) => new FileOutputStream(file)
-      case None       => System.out
+  def createOutputStream(skipCompression: Boolean = false): OutputStream = {
+    val out = if (params.file == null) System.out else new FileOutputStream(params.file)
+    val compressed = if (skipCompression || params.gzip == null) out else new GZIPOutputStream(out) {
+      `def`.setLevel(params.gzip) // hack to access the protected deflate level
     }
-    new BufferedOutputStream(out)
-  }
-  
-  def getWriter(): Writer = new OutputStreamWriter(getOutputStream())
-  
-  def getFile(): File = Option(params.file) match {
-    case Some(file) => file
-    case None       => throw new Exception("Error: -o or --output for file-based output is required for shapefile export (stdout not supported for shape files)")
+    new BufferedOutputStream(compressed)
   }
 
-  def usefile = Option(params.file).nonEmpty
+  // noinspection AccessorLikeMethodIsEmptyParen
+  def getWriter(): Writer = new OutputStreamWriter(createOutputStream())
+  
+  def checkShpFile(): File = {
+    if (params.file != null) {
+      params.file
+    } else {
+      throw new ParameterException("Error: -o or --output for file-based output is required for " +
+          "shapefile export (stdout not supported for shape files)")
+    }
+  }
 }
 
 object ExportCommand {
@@ -132,6 +139,9 @@ object ExportCommand {
       "filter_function_expression is an expression of filter function applied to attributes, literals " +
       "and filter functions, i.e. can be nested")
     var attributes: String = null
+
+    @Parameter(names = Array("--gzip"), description = "level of gzip compression to apply to output, from 1-9")
+    var gzip: Integer = null
 
     @Parameter(names = Array("--id-attribute"), description = "name of the id attribute to export")
     var idAttribute: String = null

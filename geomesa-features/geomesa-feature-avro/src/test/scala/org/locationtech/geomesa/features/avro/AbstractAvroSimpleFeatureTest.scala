@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.features.avro
 
 import java.io.{File, FileInputStream}
+import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.UUID
 
@@ -21,14 +22,16 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.util.Random
 
 trait AbstractAvroSimpleFeatureTest {
 
   val complexSchema = "f0:String,f1:Integer,f2:Double,f3:Float,f4:Boolean,f5:UUID,f6:Date,f7:Point:srid=4326,"+
-    "f8:Polygon:srid=4326,f9:Long,f10:String,f11:Integer,f12:Date,f13:Geometry,f14:UUID"
+    "f8:Polygon:srid=4326,f9:Long,f10:String,f11:Integer,f12:Date,f13:Geometry,f14:UUID,f15:Bytes"
   val complexSft = SimpleFeatureTypes.createType("test", complexSchema)
+
+  val filesCreated = ArrayBuffer.empty[File]
 
   def createComplicatedFeatures(numFeatures : Int) : List[Version2ASF] = {
     val r = new Random(0)
@@ -53,6 +56,9 @@ trait AbstractAvroSimpleFeatureTest {
       "f10,f11,f12,f13,f14".split(",").foreach { id =>
         sf.setAttribute(id, null.asInstanceOf[Object])
       }
+
+      val bytes = "FOOBARBAZ+12354+\u0000\u0001\u0002\u3434".getBytes(StandardCharsets.UTF_8)
+      sf.setAttribute("f15", bytes.asInstanceOf[Object])
 
       list += sf
     }
@@ -89,6 +95,7 @@ trait AbstractAvroSimpleFeatureTest {
     val tmpFile = File.createTempFile("geomesa", "avro")
     tmpFile.deleteOnExit()
     tmpFile.createNewFile()
+    filesCreated.append(tmpFile)
     tmpFile
   }
 

@@ -9,15 +9,14 @@
 package org.locationtech.geomesa.features.avro
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.util
 
 import org.apache.avro.io.{BinaryDecoder, DecoderFactory, Encoder, EncoderFactory}
 import org.geotools.factory.Hints
-import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.avro.serde.Version2ASF
 import org.locationtech.geomesa.features.serialization.{AbstractWriter, HintKeySerialization}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -27,28 +26,6 @@ import org.specs2.runner.JUnitRunner
 class AvroSimpleFeatureWriterTest extends Specification with Mockito with AbstractAvroSimpleFeatureTest {
 
   "AvroSimpleFeatureWriter2" should {
-
-    "correctly serialize features compared to old integrated AvroSimpleFeature write() method" in {
-      val sft = SimpleFeatureTypes.createType("testType", "a:Integer,b:Date,*geom:Point:srid=4326")
-
-      val f = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
-      f.setAttribute(0,"1")
-      f.setAttribute(1,"2013-01-02T00:00:00.000Z")
-      f.setAttribute(2,"POINT(45.0 49.0)")
-
-      val oldBaos = new ByteArrayOutputStream()
-      Version2ASF(f).write(oldBaos)
-      val oldBytes = oldBaos.toByteArray
-
-      val afw = new AvroSimpleFeatureWriter(sft)
-      val newBaos = new ByteArrayOutputStream()
-      val encoder = EncoderFactory.get().directBinaryEncoder(newBaos, null)
-      afw.write(f, encoder)
-      encoder.flush()
-      val newBytes = newBaos.toByteArray
-
-      newBytes mustEqual oldBytes
-    }
 
     "correctly serialize all the datatypes provided in AvroSimpleFeature" in {
       val features = createComplicatedFeatures(10)
@@ -81,18 +58,21 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
       val oldFeatures = features.map(serializeOld).map(convert)
       val newFeatures = features.map(serializeNew).map(convert)
 
+      import scala.collection.JavaConversions._
       newFeatures.zip(oldFeatures).foreach { case (n, o) =>
         n.getID mustEqual o.getID
         n.getAttributeCount mustEqual o.getAttributeCount
-        n.getAttributeCount mustEqual 15
-        n.getAttributes mustEqual o.getAttributes
+        n.getAttributeCount mustEqual 16
+        n.getAttributes.dropRight(1) mustEqual o.getAttributes.dropRight(1)
+        util.Arrays.equals(n.getAttributes.last.asInstanceOf[Array[Byte]], o.getAttributes.last.asInstanceOf[Array[Byte]]) must beTrue
       }
 
       newFeatures.zip(features).foreach { case (n, o) =>
         n.getID mustEqual o.getID
         n.getAttributeCount mustEqual o.getAttributeCount
-        n.getAttributeCount mustEqual 15
-        n.getAttributes mustEqual o.getAttributes
+        n.getAttributeCount mustEqual 16
+        n.getAttributes.dropRight(1) mustEqual o.getAttributes.dropRight(1)
+        util.Arrays.equals(n.getAttributes.last.asInstanceOf[Array[Byte]], o.getAttributes.last.asInstanceOf[Array[Byte]]) must beTrue
       }
 
       success

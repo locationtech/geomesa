@@ -27,7 +27,7 @@ case class QueryStat(typeName: String,
                      hints:    String,
                      planTime: Long,
                      scanTime: Long,
-                     hits:     Int) extends Stat
+                     hits:     Long) extends Stat
 
 /**
  * Maps query stats to accumulo

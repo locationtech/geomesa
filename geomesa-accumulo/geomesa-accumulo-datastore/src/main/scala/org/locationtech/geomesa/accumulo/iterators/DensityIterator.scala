@@ -75,7 +75,16 @@ class DensityIterator extends KryoLazyDensityIterator with LazyLogging {
     * take the set of the resulting points to remove duplicate endpoints */
   def writeLineString(geom: LineString, weight: Double, result: DensityResult): Unit = {
     val geohash = indexDecoder.decode(source.getTopKey).getDefaultGeometry.asInstanceOf[Geometry]
-    geom.intersection(geohash).asInstanceOf[LineString].getCoordinates.sliding(2).flatMap {
+    geom.intersection(geohash) match {
+      case g: LineString      => writeLinePoints(g, weight, result)
+      case g: MultiLineString => (0 until g.getNumGeometries).foreach(i => writeLinePoints(g.getGeometryN(i), weight, result))
+      case g: Point           => writePointToResult(g, weight, result)
+      case g: Geometry        => super.writeNonPoint(g, weight, result)
+    }
+  }
+
+  private def writeLinePoints(geom: Geometry, weight:Double, result: DensityResult): Unit = {
+    geom.getCoordinates.sliding(2).flatMap {
       case Array(p0, p1) => gridSnap.generateLineCoordSet(p0, p1)
     }.toSet[Coordinate].foreach(c => writePointToResult(c, weight, result))
   }

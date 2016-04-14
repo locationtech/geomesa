@@ -9,6 +9,8 @@
 package org.locationtech.geomesa.features.kryo.serialization
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.nio.charset.StandardCharsets
+import java.util
 import java.util.{Date, UUID}
 
 import org.apache.commons.codec.binary.Base64
@@ -17,6 +19,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -28,8 +31,14 @@ class KryoFeatureSerializerTest extends Specification {
 
   "KryoFeatureSerializer" should {
 
+    def arrayEquals(a: Any, b: Any): MatchResult[Boolean] = {
+      val aBytes = a.asInstanceOf[Array[Byte]]
+      val bBytes = b.asInstanceOf[Array[Byte]]
+      util.Arrays.equals(aBytes, bBytes) must beTrue
+    }
+
     "correctly serialize and deserialize basic features" in {
-      val spec = "a:Integer,b:Float,c:Double,d:Long,e:UUID,f:String,g:Boolean,dtg:Date,*geom:Point:srid=4326"
+      val spec = "a:Integer,b:Float,c:Double,d:Long,e:UUID,f:String,g:Boolean,dtg:Date,*geom:Point:srid=4326,bytes:Bytes"
       val sft = SimpleFeatureTypes.createType("testType", spec)
       val sf = new ScalaSimpleFeature("fakeid", sft)
 
@@ -42,6 +51,7 @@ class KryoFeatureSerializerTest extends Specification {
       sf.setAttribute("g", java.lang.Boolean.FALSE)
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(45.0 49.0)")
+      sf.setAttribute("bytes", "\u0000FOOBARBAZ\u0000\u4444123".getBytes(StandardCharsets.UTF_16BE))
 
       "using byte arrays" >> {
         val serializer = KryoFeatureSerializer(sft)
@@ -51,7 +61,12 @@ class KryoFeatureSerializerTest extends Specification {
 
         deserialized must not beNull;
         deserialized.getType mustEqual sf.getType
-        deserialized.getAttributes mustEqual sf.getAttributes
+        deserialized.getAttributes.dropRight(1) mustEqual sf.getAttributes.dropRight(1)
+        val dBytes = deserialized.getAttributes.last.asInstanceOf[Array[Byte]]
+        val oBytes = "\u0000FOOBARBAZ\u0000\u4444123".getBytes(StandardCharsets.UTF_16BE)
+        val sBytes = sf.getAttributes.last.asInstanceOf[Array[Byte]]
+        util.Arrays.equals(dBytes, oBytes) must beTrue
+        util.Arrays.equals(dBytes, sBytes) must beTrue
       }
       "using streams" >> {
         val serializer = KryoFeatureSerializer(sft)
@@ -63,7 +78,12 @@ class KryoFeatureSerializerTest extends Specification {
 
         deserialized must not beNull;
         deserialized.getType mustEqual sf.getType
-        deserialized.getAttributes mustEqual sf.getAttributes
+        deserialized.getAttributes.dropRight(1) mustEqual sf.getAttributes.dropRight(1)
+        val dBytes = deserialized.getAttributes.last.asInstanceOf[Array[Byte]]
+        val oBytes = "\u0000FOOBARBAZ\u0000\u4444123".getBytes(StandardCharsets.UTF_16BE)
+        val sBytes = sf.getAttributes.last.asInstanceOf[Array[Byte]]
+        util.Arrays.equals(dBytes, oBytes) must beTrue
+        util.Arrays.equals(dBytes, sBytes) must beTrue
       }
 
       "without user data" >> {
@@ -144,7 +164,7 @@ class KryoFeatureSerializerTest extends Specification {
     }
 
     "correctly serialize and deserialize collection types" in {
-      val spec = "a:Integer,m:Map[String,Double],l:List[Date],dtg:Date,*geom:Point:srid=4326"
+      val spec = "a:Integer,m:Map[String,Double],l:List[Date],dtg:Date,*geom:Point:srid=4326,byteMap:Map[String,Bytes]"
       val sft = SimpleFeatureTypes.createType("testType", spec)
       val sf = new ScalaSimpleFeature("fakeid", sft)
 
@@ -153,6 +173,10 @@ class KryoFeatureSerializerTest extends Specification {
       sf.setAttribute("l", List(new Date(100), new Date(200)))
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(45.0 49.0)")
+      sf.setAttribute("byteMap", Map("a" -> Array(1.toByte), "b" -> Array(0.toByte, 10.toByte)))
+
+      import org.locationtech.geomesa.utils.geotools.Conversions._
+      import java.util.{Map => JMap}
 
       "using byte arrays" >> {
         val serializer = KryoFeatureSerializer(sft)
@@ -162,7 +186,10 @@ class KryoFeatureSerializerTest extends Specification {
 
         deserialized must not beNull;
         deserialized.getType mustEqual sf.getType
-        deserialized.getAttributes mustEqual sf.getAttributes
+        deserialized.getAttributes.dropRight(1) mustEqual sf.getAttributes.dropRight(1)
+
+        arrayEquals(deserialized.get[JMap[String, _]]("byteMap").get("a"), sf.get[JMap[String, _]]("byteMap").get("a"))
+        arrayEquals(deserialized.get[JMap[String, _]]("byteMap").get("b"), sf.get[JMap[String, _]]("byteMap").get("b"))
       }
       "using streams" >> {
         val serializer = KryoFeatureSerializer(sft)
@@ -174,7 +201,9 @@ class KryoFeatureSerializerTest extends Specification {
 
         deserialized must not beNull;
         deserialized.getType mustEqual sf.getType
-        deserialized.getAttributes mustEqual sf.getAttributes
+        deserialized.getAttributes.dropRight(1) mustEqual sf.getAttributes.dropRight(1)
+        arrayEquals(deserialized.get[JMap[String, _]]("byteMap").get("a"), sf.get[JMap[String, _]]("byteMap").get("a"))
+        arrayEquals(deserialized.get[JMap[String, _]]("byteMap").get("b"), sf.get[JMap[String, _]]("byteMap").get("b"))
       }
     }
 
@@ -218,7 +247,7 @@ class KryoFeatureSerializerTest extends Specification {
 
     "correctly serialize and deserialize null values" in {
       val spec = "a:Integer,b:Float,c:Double,d:Long,e:UUID,f:String,g:Boolean,l:List,m:Map," +
-        "dtg:Date,*geom:Point:srid=4326"
+        "dtg:Date,*geom:Point:srid=4326,bytes:Bytes"
       val sft = SimpleFeatureTypes.createType("testType", spec)
       val sf = new ScalaSimpleFeature("fakeid", sft)
       "using byte arrays" >> {

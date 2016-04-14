@@ -24,7 +24,7 @@ import org.locationtech.geomesa.filter.FilterHelper._
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.stats.{Stat, Cardinality, IndexCoverage}
+import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.{Literal, PropertyName}
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
@@ -64,6 +64,7 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
 
     val descriptor = sft.getDescriptor(attributeSftIndex)
     val transform = hints.getTransformSchema
+    val sampling = hints.getSampling
     val hasDupes = descriptor.isMultiValued
 
     val attrTable = acc.getTableName(sft.getTypeName, AttributeTable)
@@ -71,15 +72,21 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
     val priority = FILTERING_ITER_PRIORITY
 
     // query against the attribute table
-    val singleTableScanPlan: ScanPlanFn = (schema, filter, transform) => {
-      val iterators = if (filter.isDefined || transform.isDefined) {
-        Seq(KryoLazyFilterTransformIterator.configure(schema, filter, transform, priority))
-      } else {
-        Seq.empty
-      }
+    val singleAttrValueOnlyPlan: ScanPlanFn = (schema, filter, transform) => {
+      val iters = KryoLazyFilterTransformIterator.configure(schema, filter, transform, sampling).toSeq
       // need to use transform to convert key/values if it's defined
       val kvsToFeatures = queryPlanner.kvsToFeatures(transform.map(_._2).getOrElse(schema))
-      BatchScanPlan(attrTable, ranges, iterators, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
+      BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
+    }
+
+    // query against the attribute table
+    val singleAttrPlusValuePlan: ScanPlanFn = (schema, filter, transform) => {
+      val iters =
+        AttrKeyPlusValueIterator.configure(sft, schema, attributeSftIndex, filter, transform, sampling, priority)
+
+      // need to use transform to convert key/values if it's defined
+      val kvsToFeatures = queryPlanner.kvsToFeatures(transform.map(_._2).getOrElse(schema))
+      BatchScanPlan(attrTable, ranges, Seq(iters), Seq.empty, kvsToFeatures, attrThreads, hasDupes)
     }
 
     if (hints.isBinQuery) {
@@ -99,11 +106,11 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
           BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
         } else {
           // have to do a join against the record table
-          joinQuery(sft, hints, queryPlanner, hasDupes, singleTableScanPlan)
+          joinQuery(sft, hints, queryPlanner, hasDupes, singleAttrValueOnlyPlan)
         }
       }
     } else if (hints.isStatsIteratorQuery) {
-      val kvsToFeatures = queryPlanner.defaultKVsToFeatures(hints)
+      val kvsToFeatures = KryoLazyStatsIterator.kvsToFeatures(sft)
       if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
         val iters = Seq(KryoLazyStatsIterator.configure(sft, filter.secondary, hints, hasDupes))
         BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDuplicates = false)
@@ -116,19 +123,23 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
           BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDuplicates = false)
         } else {
           // have to do a join against the record table
-          joinQuery(sft, hints, queryPlanner, hasDupes, singleTableScanPlan)
+          joinQuery(sft, hints, queryPlanner, hasDupes, singleAttrValueOnlyPlan)
         }
       }
     } else if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
       // we have a fully encoded value - can satisfy any query against it
-      singleTableScanPlan(sft, filter.secondary, hints.getTransform)
-    } else if (IteratorTrigger.canUseIndexValues(sft, filter.secondary, transform)) {
-      // we can use the index value
-      // transform has to be non-empty to get here
-      singleTableScanPlan(IndexValueEncoder.getIndexSft(sft), filter.secondary, hints.getTransform)
+      singleAttrValueOnlyPlan(sft, filter.secondary, hints.getTransform)
+    } else if (IteratorTrigger.canUseAttrIdxValues(sft, filter.secondary, transform)) {
+      // we can use the index value.
+      // transform has to be non-empty to get here and can only include items
+      // in the index value (not the index keys aka the attribute indexed)
+      singleAttrValueOnlyPlan(IndexValueEncoder.getIndexSft(sft), filter.secondary, hints.getTransform)
+    } else if (IteratorTrigger.canUseAttrKeysPlusValues(descriptor.getLocalName, sft, filter.secondary, transform)) {
+      // we can use the index PLUS the value
+      singleAttrPlusValuePlan(IndexValueEncoder.getIndexSft(sft), filter.secondary, hints.getTransform)
     } else {
       // have to do a join against the record table
-      joinQuery(sft, hints, queryPlanner, hasDupes, singleTableScanPlan)
+      joinQuery(sft, hints, queryPlanner, hasDupes, singleAttrValueOnlyPlan)
     }
   }
 
@@ -162,6 +173,8 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
     val kvsToFeatures = if (hints.isBinQuery) {
       // TODO GEOMESA-822 we can use the aggregating iterator if the features are kryo encoded
       BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, hints, queryPlanner.featureEncoding)
+    } else if (hints.isStatsIteratorQuery) {
+      KryoLazyStatsIterator.kvsToFeatures(sft)
     } else {
       queryPlanner.defaultKVsToFeatures(hints)
     }

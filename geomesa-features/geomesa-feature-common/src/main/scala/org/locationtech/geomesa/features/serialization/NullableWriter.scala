@@ -26,6 +26,7 @@ trait NullableWriter[Writer] extends PrimitiveWriter[Writer] with NullableCheck 
   val writeNullableDouble: DatumWriter[Writer, Double] = writeNullable(writeDouble)
   val writeNullableBoolean: DatumWriter[Writer, Boolean] = writeNullable(writeBoolean)
   val writeNullableDate: DatumWriter[Writer, Date] = writeNullable(writeDate)
+  val writeNullableBytes: DatumWriter[Writer, Array[Byte]] = writeNullable(writeBytes)
 }
 
 trait NullableCheck {
@@ -46,6 +47,7 @@ trait NullableCheck {
     case c if classOf[java.lang.Boolean].isAssignableFrom(c) => true
     case c if classOf[Date].isAssignableFrom(c) => true
     case c if classOf[UUID].isAssignableFrom(c) => true
+    case c if classOf[Array[Byte]].isAssignableFrom(c) => true
     case _ => false
   }
 }

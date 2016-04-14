@@ -10,7 +10,7 @@ package org.locationtech.geomesa.filter
 
 import java.util.Date
 
-import com.vividsolutions.jts.geom.{Geometry, MultiPolygon, Polygon}
+import com.vividsolutions.jts.geom.{Geometry, MultiPolygon, Point, Polygon}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.joda.time.{DateTime, DateTimeZone, Interval}
@@ -34,10 +34,27 @@ object FilterHelper {
   def updateTopologicalFilters(filter: Filter, sft: SimpleFeatureType): Filter =
     filter.accept(new SafeTopologicalFilterVisitorImpl(sft), null).asInstanceOf[Filter]
 
+  def getFirstBinarySpatialOpPropertyName(op: BinarySpatialOperator): PropertyName = op.getExpression1 match {
+    case pn: PropertyName => pn
+    case _                => op.getExpression2 match {
+      case pn: PropertyName => pn
+      case _                =>
+        throw new Exception(s"Neither child of a binary spatial operator was a property name:  $op")
+    }
+  }
+
+  def getFirstBinarySpatialOpPropertyGeometry(op: BinarySpatialOperator): Geometry = op.getExpression1 match {
+    case lit: Literal => lit.evaluate(null, classOf[Geometry])
+    case _            => op.getExpression2 match {
+      case lit: Literal => lit.evaluate(null, classOf[Geometry])
+      case _            =>
+        throw new Exception(s"Neither child of a binary spatial operator was a literal geometry:  $op")
+    }
+  }
+
   def visitBinarySpatialOp(op: BinarySpatialOperator, featureType: SimpleFeatureType): Filter = {
-    val e1 = op.getExpression1.asInstanceOf[PropertyName]
-    val e2 = op.getExpression2.asInstanceOf[Literal]
-    val geom = e2.evaluate(null, classOf[Geometry])
+    val e1 = getFirstBinarySpatialOpPropertyName(op)
+    val geom = getFirstBinarySpatialOpPropertyGeometry(op)
     val safeGeometry = getInternationalDateLineSafeGeometry(geom)
     updateToIDLSafeFilter(op, safeGeometry, featureType)
   }
@@ -50,7 +67,10 @@ object FilterHelper {
     updateToIDLSafeFilter(op, safeGeometry, featureType)
   }
 
+  // TODO:  We assume "BINOP(property, geom)"...  This need not be the case.
+  //        https://geomesa.atlassian.net/browse/GEOMESA-1155
   def updateToIDLSafeFilter(op: BinarySpatialOperator, geom: Geometry, featureType: SimpleFeatureType): Filter = geom match {
+    case pt: Point => op
     case p: Polygon =>
       dispatchOnSpatialType(op, featureType.getGeometryDescriptor.getLocalName, p)
     case mp: MultiPolygon =>
@@ -102,9 +122,18 @@ object FilterHelper {
 
   // Rewrites a Dwithin (assumed to express distance in meters) in degrees.
   def rewriteDwithin(op: DWithin): Filter = {
-    val e2 = op.getExpression2.asInstanceOf[Literal]
-    val geom = e2.getValue.asInstanceOf[Geometry]
-    val distanceDegrees = GeometryUtils.distanceDegrees(geom, op.getDistance)
+    val geom = op.getExpression2.asInstanceOf[Literal].getValue.asInstanceOf[Geometry]
+    val units = Option(op.getDistanceUnits).map(_.trim).filter(_.nonEmpty).map(_.toLowerCase).getOrElse("meters")
+    val multiplier = units match {
+      case "meters"         => 1.0
+      case "kilometers"     => 1000.0
+      case "feet"           => 0.3048
+      case "statute miles"  => 1609.347
+      case "nautical miles" => 1852.0
+      case _                => 1.0 // not part of ECQL spec...
+    }
+    val distanceMeters = op.getDistance * multiplier
+    val distanceDegrees = GeometryUtils.distanceDegrees(geom, distanceMeters)
 
     // NB: The ECQL spec doesn't allow for us to put the measurement in "degrees",
     //  but that's how this filter will be used.

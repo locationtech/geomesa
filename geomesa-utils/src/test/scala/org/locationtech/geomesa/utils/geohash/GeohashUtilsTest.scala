@@ -17,6 +17,8 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import scala.util.Try
+
 @RunWith(classOf[JUnitRunner])
 class GeohashUtilsTest extends Specification with LazyLogging {
   val NO_VALUE: Int = -1
@@ -193,6 +195,28 @@ class GeohashUtilsTest extends Specification with LazyLogging {
     "not die when Geohash strings of more than 5 characters are requested" in {
       testGeohashSubstringsInCharlottesville(0, 6) mustEqual 83
       testGeohashSubstringsInCharlottesville(0, 7) mustEqual 1762
+    }
+
+    "not die when a point is provided" in {
+      val result = Try {
+        val point = "POINT(0.0 0.0)"
+        getUniqueGeohashSubstringsInPolygon(point, 0, 3)
+        getUniqueGeohashSubstringsInPolygon(point, 3, 2)
+        getUniqueGeohashSubstringsInPolygon(point, 5, 2)
+        getUniqueGeohashSubstringsInPolygon(point, 0, 7)
+      }
+      result.isSuccess must beTrue
+    }
+
+    "not die when a single-point collection is provided" in {
+      val result = Try {
+        val pointCollection = "GEOMETRYCOLLECTION( POINT(0.0 0.0) )"
+        getUniqueGeohashSubstringsInPolygon(pointCollection, 0, 3)
+        getUniqueGeohashSubstringsInPolygon(pointCollection, 3, 2)
+        getUniqueGeohashSubstringsInPolygon(pointCollection, 5, 2)
+        getUniqueGeohashSubstringsInPolygon(pointCollection, 0, 7)
+      }
+      result.isSuccess must beTrue
     }
   }
 

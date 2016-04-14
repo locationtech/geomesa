@@ -99,6 +99,8 @@ trait AbstractReader[Reader]
         readMap(keyDecoding, valueDecoding)
       }
 
+      else if (classOf[Array[Byte]].isAssignableFrom(cls)) readBytes
+
       else throw new IllegalArgumentException("Unsupported class: " + cls)
     }.asInstanceOf[DatumReader[Reader, AnyRef]]
 

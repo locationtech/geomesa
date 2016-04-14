@@ -10,324 +10,514 @@ package org.locationtech.geomesa.utils.stats
 
 import java.util.Date
 
+import com.vividsolutions.jts.geom.Geometry
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class        MinMaxTest extends Specification with StatTestHelper {
-  sequential
+class MinMaxTest extends Specification with StatTestHelper {
+
+  def newStat[T](attribute: String, observe: Boolean = true): MinMax[T] = {
+    val stat = Stat(sft, s"MinMax($attribute)")
+    if (observe) {
+      features.foreach { stat.observe }
+    }
+    stat.asInstanceOf[MinMax[T]]
+  }
 
   "MinMax stat" should {
-    "work with" in {
-      "dates" in {
-        val stat = Stat(sft, "MinMax(dtg)")
-        val minMax = stat.asInstanceOf[MinMax[Date]]
 
-        minMax.attrIndex mustEqual dateIndex
-        minMax.attrType mustEqual "java.util.Date"
-        minMax.min mustEqual new Date(java.lang.Long.MAX_VALUE)
-        minMax.max mustEqual new Date(java.lang.Long.MIN_VALUE)
-        minMax.isEmpty must beFalse
-
-        features.foreach { stat.observe }
-
-        minMax.min mustEqual Stat.dateFormat.parseDateTime("2012-01-01T00:00:00.000Z").toDate
-        minMax.max mustEqual Stat.dateFormat.parseDateTime("2012-01-01T23:00:00.000Z").toDate
-
-        "serialize and deserialize" in {
-          val packed   = StatSerialization.pack(minMax)
-          val unpacked = StatSerialization.unpack(packed).asInstanceOf[MinMax[Date]]
-
-          unpacked mustEqual minMax
-        }
-
-        "serialize and deserialize empty MinMax" in {
-          val stat = Stat(sft, "MinMax(dtg)")
-          val minMax = stat.asInstanceOf[MinMax[Date]]
-          val packed = StatSerialization.pack(minMax)
-          val unpacked = StatSerialization.unpack(packed).asInstanceOf[MinMax[Date]]
-
-          unpacked mustEqual minMax
-        }
-
-        "combine two MinMaxes" in {
-          val stat2 = Stat(sft, "MinMax(dtg)")
-          val minMax2 = stat2.asInstanceOf[MinMax[Date]]
-
-          features2.foreach { stat2.observe }
-
-          minMax2.min mustEqual Stat.dateFormat.parseDateTime("2012-01-02T00:00:00.000Z").toDate
-          minMax2.max mustEqual Stat.dateFormat.parseDateTime("2012-01-02T23:00:00.000Z").toDate
-
-          stat += stat2
-
-          minMax.min mustEqual Stat.dateFormat.parseDateTime("2012-01-01T00:00:00.000Z").toDate
-          minMax.max mustEqual Stat.dateFormat.parseDateTime("2012-01-02T23:00:00.000Z").toDate
-          minMax2.min mustEqual Stat.dateFormat.parseDateTime("2012-01-02T00:00:00.000Z").toDate
-          minMax2.max mustEqual Stat.dateFormat.parseDateTime("2012-01-02T23:00:00.000Z").toDate
-
-          "clear them" in {
-            minMax.isEmpty must beFalse
-            minMax2.isEmpty must beFalse
-
-            minMax.clear()
-            minMax2.clear()
-
-            minMax.min mustEqual new Date(java.lang.Long.MAX_VALUE)
-            minMax.max mustEqual new Date(java.lang.Long.MIN_VALUE)
-            minMax2.min mustEqual new Date(java.lang.Long.MAX_VALUE)
-            minMax2.max mustEqual new Date(java.lang.Long.MIN_VALUE)
-          }
-        }
+    "work with strings" >> {
+      "be empty initiallly" >> {
+        val minMax = newStat[String]("strAttr", observe = false)
+        minMax.attribute mustEqual stringIndex
+        minMax.bounds must beNone
+        minMax.isEmpty must beTrue
       }
 
-      "integers" in {
-        val stat = Stat(sft, "MinMax(intAttr)")
-        val minMax = stat.asInstanceOf[MinMax[java.lang.Integer]]
-
-        minMax.attrIndex mustEqual intIndex
-        minMax.attrType mustEqual "java.lang.Integer"
-        minMax.min mustEqual java.lang.Integer.MAX_VALUE
-        minMax.max mustEqual java.lang.Integer.MIN_VALUE
-        minMax.isEmpty must beFalse
-
-        features.foreach { stat.observe }
-
-        minMax.min mustEqual 0
-        minMax.max mustEqual 99
-
-        "serialize and deserialize" in {
-          val packed   = StatSerialization.pack(minMax)
-          val unpacked = StatSerialization.unpack(packed).asInstanceOf[MinMax[Integer]]
-
-          unpacked mustEqual minMax
-        }
-
-        "serialize and deserialize empty MinMax" in {
-          val stat = Stat(sft, "MinMax(intAttr)")
-          val minMax = stat.asInstanceOf[MinMax[Integer]]
-          val packed   = StatSerialization.pack(minMax)
-          val unpacked = StatSerialization.unpack(packed).asInstanceOf[MinMax[Integer]]
-
-          unpacked mustEqual minMax
-        }
-
-        "combine two MinMaxes" in {
-          val stat2 = Stat(sft, "MinMax(intAttr)")
-          val minMax2 = stat2.asInstanceOf[MinMax[Integer]]
-
-          features2.foreach { stat2.observe }
-
-          minMax2.min mustEqual 100
-          minMax2.max mustEqual 199
-
-          stat += stat2
-
-          minMax.min mustEqual 0
-          minMax.max mustEqual 199
-          minMax2.min mustEqual 100
-          minMax2.max mustEqual 199
-
-          "clear them" in {
-            minMax.isEmpty must beFalse
-            minMax2.isEmpty must beFalse
-
-            minMax.clear()
-            minMax2.clear()
-
-            minMax.min mustEqual java.lang.Integer.MAX_VALUE
-            minMax.max mustEqual java.lang.Integer.MIN_VALUE
-            minMax2.min mustEqual java.lang.Integer.MAX_VALUE
-            minMax2.max mustEqual java.lang.Integer.MIN_VALUE
-          }
-        }
+      "observe correct values" >> {
+        val minMax = newStat[String]("strAttr")
+        minMax.bounds must beSome(("abc000", "abc099"))
       }
 
-      "longs" in {
-        val stat = Stat(sft, "MinMax(longAttr)")
-        val minMax = stat.asInstanceOf[MinMax[java.lang.Long]]
-
-        minMax.attrIndex mustEqual longIndex
-        minMax.attrType mustEqual "java.lang.Long"
-        minMax.min mustEqual java.lang.Long.MAX_VALUE
-        minMax.max mustEqual java.lang.Long.MIN_VALUE
-        minMax.isEmpty must beFalse
-
-        features.foreach { stat.observe }
-
-        minMax.min mustEqual 0L
-        minMax.max mustEqual 99L
-
-        "serialize and deserialize" in {
-          val packed   = StatSerialization.pack(minMax)
-          val unpacked = StatSerialization.unpack(packed).asInstanceOf[MinMax[java.lang.Long]]
-
-          unpacked mustEqual minMax
-        }
-
-        "serialize and deserialize empty MinMax" in {
-          val stat = Stat(sft, "MinMax(longAttr)")
-          val minMax = stat.asInstanceOf[MinMax[java.lang.Long]]
-          val packed   = StatSerialization.pack(minMax)
-          val unpacked = StatSerialization.unpack(packed).asInstanceOf[MinMax[java.lang.Long]]
-
-          unpacked mustEqual minMax
-        }
-
-        "combine two MinMaxes" in {
-          val stat2 = Stat(sft, "MinMax(longAttr)")
-          val minMax2 = stat2.asInstanceOf[MinMax[java.lang.Long]]
-
-          features2.foreach { stat2.observe }
-
-          minMax2.min mustEqual 100L
-          minMax2.max mustEqual 199L
-
-          stat += stat2
-
-          minMax.min mustEqual 0L
-          minMax.max mustEqual 199L
-          minMax2.min mustEqual 100L
-          minMax2.max mustEqual 199L
-
-          "clear them" in {
-            minMax.isEmpty must beFalse
-            minMax2.isEmpty must beFalse
-
-            minMax.clear()
-            minMax2.clear()
-
-            minMax.min mustEqual java.lang.Long.MAX_VALUE
-            minMax.max mustEqual java.lang.Long.MIN_VALUE
-            minMax2.min mustEqual java.lang.Long.MAX_VALUE
-            minMax2.max mustEqual java.lang.Long.MIN_VALUE
-          }
-        }
+      "serialize to json" >> {
+        val minMax = newStat[String]("strAttr")
+        minMax.toJson mustEqual """{ "min": "abc000", "max": "abc099" }"""
       }
 
-      "doubles" in {
-        val stat = Stat(sft, "MinMax(doubleAttr)")
-        val minMax = stat.asInstanceOf[MinMax[java.lang.Double]]
-
-        minMax.attrIndex mustEqual doubleIndex
-        minMax.attrType mustEqual "java.lang.Double"
-        minMax.min mustEqual java.lang.Double.MAX_VALUE
-        minMax.max mustEqual java.lang.Double.MIN_VALUE
-        minMax.isEmpty must beFalse
-
-        features.foreach { stat.observe }
-
-        minMax.min mustEqual 0
-        minMax.max mustEqual 99
-
-        "serialize and deserialize" in {
-          val packed   = StatSerialization.pack(minMax)
-          val unpacked = StatSerialization.unpack(packed).asInstanceOf[MinMax[java.lang.Double]]
-
-          unpacked mustEqual minMax
-        }
-
-        "serialize and deserialize empty MinMax" in {
-          val stat = Stat(sft, "MinMax(doubleAttr)")
-          val minMax = stat.asInstanceOf[MinMax[java.lang.Double]]
-          val packed   = StatSerialization.pack(minMax)
-          val unpacked = StatSerialization.unpack(packed).asInstanceOf[MinMax[java.lang.Double]]
-
-          unpacked mustEqual minMax
-        }
-
-        "combine two MinMaxes" in {
-          val stat2 = Stat(sft, "MinMax(doubleAttr)")
-          val minMax2 = stat2.asInstanceOf[MinMax[java.lang.Double]]
-
-          features2.foreach { stat2.observe }
-
-          minMax2.min mustEqual 100
-          minMax2.max mustEqual 199
-
-          stat += stat2
-
-          minMax.min mustEqual 0
-          minMax.max mustEqual 199
-          minMax2.min mustEqual 100
-          minMax2.max mustEqual 199
-
-          "clear them" in {
-            minMax.isEmpty must beFalse
-            minMax2.isEmpty must beFalse
-
-            minMax.clear()
-            minMax2.clear()
-
-            minMax.min mustEqual java.lang.Double.MAX_VALUE
-            minMax.max mustEqual java.lang.Double.MIN_VALUE
-            minMax2.min mustEqual java.lang.Double.MAX_VALUE
-            minMax2.max mustEqual java.lang.Double.MIN_VALUE
-          }
-        }
+      "serialize empty to json" >> {
+        val minMax = newStat[String]("strAttr", observe = false)
+        minMax.toJson mustEqual """{ "min": null, "max": null }"""
       }
 
-      "floats" in {
-        val stat = Stat(sft, "MinMax(floatAttr)")
-        val minMax = stat.asInstanceOf[MinMax[java.lang.Float]]
+      "serialize and deserialize" >> {
+        val minMax = newStat[String]("strAttr")
+        val packed = StatSerializer(sft).serialize(minMax)
+        val unpacked = StatSerializer(sft).deserialize(packed)
+        unpacked.toJson mustEqual minMax.toJson
+      }
 
-        minMax.attrIndex mustEqual floatIndex
-        minMax.attrType mustEqual "java.lang.Float"
-        minMax.min mustEqual java.lang.Float.MAX_VALUE
-        minMax.max mustEqual java.lang.Float.MIN_VALUE
+      "serialize and deserialize empty MinMax" >> {
+        val minMax = newStat[String]("strAttr", observe = false)
+        val packed = StatSerializer(sft).serialize(minMax)
+        val unpacked = StatSerializer(sft).deserialize(packed)
+        unpacked.toJson mustEqual minMax.toJson
+      }
+
+      "combine two MinMaxes" >> {
+        val minMax = newStat[String]("strAttr")
+        val minMax2 = newStat[String]("strAttr", observe = false)
+
+        features2.foreach { minMax2.observe }
+
+        minMax2.bounds must beSome(("abc100", "abc199"))
+
+        minMax += minMax2
+
+        minMax.bounds must beSome(("abc000", "abc199"))
+        minMax2.bounds must beSome(("abc100", "abc199"))
+      }
+
+      "clear" >> {
+        val minMax = newStat[String]("strAttr")
         minMax.isEmpty must beFalse
 
-        features.foreach { stat.observe }
+        minMax.clear()
 
-        minMax.min mustEqual 0
-        minMax.max mustEqual 99
+        minMax.bounds must beNone
+        minMax.isEmpty must beTrue
+      }
+    }
 
-        "serialize and deserialize" in {
-          val packed   = StatSerialization.pack(minMax)
-          val unpacked = StatSerialization.unpack(packed).asInstanceOf[MinMax[java.lang.Float]]
+    "work with ints" >> {
+      "be empty initiallly" >> {
+        val minMax = newStat[java.lang.Integer]("intAttr", observe = false)
+        minMax.attribute mustEqual intIndex
+        minMax.bounds must beNone
+        minMax.isEmpty must beTrue
+      }
 
-          unpacked mustEqual minMax
-        }
+      "observe correct values" >> {
+        val minMax = newStat[java.lang.Integer]("intAttr")
+        minMax.bounds must beSome((0, 99))
+      }
 
-        "serialize and deserialize empty MinMax" in {
-          val stat = Stat(sft, "MinMax(floatAttr)")
-          val minMax = stat.asInstanceOf[MinMax[java.lang.Float]]
-          val packed   = StatSerialization.pack(minMax)
-          val unpacked = StatSerialization.unpack(packed).asInstanceOf[MinMax[java.lang.Float]]
+      "serialize to json" >> {
+        val minMax = newStat[java.lang.Integer]("intAttr")
+        minMax.toJson mustEqual """{ "min": 0, "max": 99 }"""
+      }
 
-          unpacked mustEqual minMax
-        }
+      "serialize empty to json" >> {
+        val minMax = newStat[java.lang.Integer]("intAttr", observe = false)
+        minMax.toJson mustEqual """{ "min": null, "max": null }"""
+      }
 
-        "combine two MinMaxes" in {
-          val stat2 = Stat(sft, "MinMax(floatAttr)")
-          val minMax2 = stat2.asInstanceOf[MinMax[java.lang.Float]]
+      "serialize and deserialize" >> {
+        val minMax = newStat[java.lang.Integer]("intAttr")
+        val packed = StatSerializer(sft).serialize(minMax)
+        val unpacked = StatSerializer(sft).deserialize(packed)
+        unpacked.toJson mustEqual minMax.toJson
+      }
 
-          features2.foreach { stat2.observe }
+      "serialize and deserialize empty MinMax" >> {
+        val minMax = newStat[java.lang.Integer]("intAttr", observe = false)
+        val packed = StatSerializer(sft).serialize(minMax)
+        val unpacked = StatSerializer(sft).deserialize(packed)
+        unpacked.toJson mustEqual minMax.toJson
+      }
 
-          minMax2.min mustEqual 100
-          minMax2.max mustEqual 199
+      "combine two MinMaxes" >> {
+        val minMax = newStat[java.lang.Integer]("intAttr")
+        val minMax2 = newStat[java.lang.Integer]("intAttr", observe = false)
 
-          stat += stat2
+        features2.foreach { minMax2.observe }
 
-          minMax.min mustEqual 0
-          minMax.max mustEqual 199
-          minMax2.min mustEqual 100
-          minMax2.max mustEqual 199
+        minMax2.bounds must beSome((100, 199))
 
-          "clear them" in {
-            minMax.isEmpty must beFalse
-            minMax2.isEmpty must beFalse
+        minMax += minMax2
 
-            minMax.clear()
-            minMax2.clear()
+        minMax.bounds must beSome((0, 199))
+        minMax2.bounds must beSome((100, 199))
+      }
 
-            minMax.min mustEqual java.lang.Float.MAX_VALUE
-            minMax.max mustEqual java.lang.Float.MIN_VALUE
-            minMax2.min mustEqual java.lang.Float.MAX_VALUE
-            minMax2.max mustEqual java.lang.Float.MIN_VALUE
-          }
-        }
+      "clear" >> {
+        val minMax = newStat[java.lang.Integer]("intAttr")
+        minMax.isEmpty must beFalse
+
+        minMax.clear()
+
+        minMax.bounds must beNone
+        minMax.isEmpty must beTrue
+      }
+    }
+
+    "work with longs" >> {
+      "be empty initiallly" >> {
+        val minMax = newStat[java.lang.Long]("longAttr", observe = false)
+        minMax.attribute mustEqual longIndex
+        minMax.bounds must beNone
+        minMax.isEmpty must beTrue
+      }
+
+      "observe correct values" >> {
+        val minMax = newStat[java.lang.Long]("longAttr")
+        minMax.bounds must beSome((0L, 99L))
+      }
+
+      "serialize to json" >> {
+        val minMax = newStat[java.lang.Long]("longAttr")
+        minMax.toJson mustEqual """{ "min": 0, "max": 99 }"""
+      }
+
+      "serialize empty to json" >> {
+        val minMax = newStat[java.lang.Long]("longAttr", observe = false)
+        minMax.toJson mustEqual """{ "min": null, "max": null }"""
+      }
+
+      "serialize and deserialize" >> {
+        val minMax = newStat[java.lang.Long]("longAttr")
+        val packed = StatSerializer(sft).serialize(minMax)
+        val unpacked = StatSerializer(sft).deserialize(packed)
+        unpacked.toJson mustEqual minMax.toJson
+      }
+
+      "serialize and deserialize empty MinMax" >> {
+        val minMax = newStat[java.lang.Long]("longAttr", observe = false)
+        val packed = StatSerializer(sft).serialize(minMax)
+        val unpacked = StatSerializer(sft).deserialize(packed)
+        unpacked.toJson mustEqual minMax.toJson
+      }
+
+      "combine two MinMaxes" >> {
+        val minMax = newStat[java.lang.Long]("longAttr")
+        val minMax2 = newStat[java.lang.Long]("longAttr", observe = false)
+
+        features2.foreach { minMax2.observe }
+
+        minMax2.bounds must beSome((100L, 199L))
+
+        minMax += minMax2
+
+        minMax.bounds must beSome((0L, 199L))
+        minMax2.bounds must beSome((100L, 199L))
+      }
+
+      "clear" >> {
+        val minMax = newStat[java.lang.Long]("longAttr")
+        minMax.isEmpty must beFalse
+
+        minMax.clear()
+
+        minMax.bounds must beNone
+        minMax.isEmpty must beTrue
+      }
+    }
+
+    "work with floats" >> {
+      "be empty initiallly" >> {
+        val minMax = newStat[java.lang.Float]("floatAttr", observe = false)
+        minMax.attribute mustEqual floatIndex
+        minMax.bounds must beNone
+        minMax.isEmpty must beTrue
+      }
+
+      "observe correct values" >> {
+        val minMax = newStat[java.lang.Float]("floatAttr")
+        minMax.bounds must beSome((0f, 99f))
+      }
+
+      "serialize to json" >> {
+        val minMax = newStat[java.lang.Float]("floatAttr")
+        minMax.toJson mustEqual """{ "min": 0.0, "max": 99.0 }"""
+      }
+
+      "serialize empty to json" >> {
+        val minMax = newStat[java.lang.Float]("floatAttr", observe = false)
+        minMax.toJson mustEqual """{ "min": null, "max": null }"""
+      }
+
+      "serialize and deserialize" >> {
+        val minMax = newStat[java.lang.Float]("floatAttr")
+        val packed = StatSerializer(sft).serialize(minMax)
+        val unpacked = StatSerializer(sft).deserialize(packed)
+        unpacked.toJson mustEqual minMax.toJson
+      }
+
+      "serialize and deserialize empty MinMax" >> {
+        val minMax = newStat[java.lang.Float]("floatAttr", observe = false)
+        val packed = StatSerializer(sft).serialize(minMax)
+        val unpacked = StatSerializer(sft).deserialize(packed)
+        unpacked.toJson mustEqual minMax.toJson
+      }
+
+      "combine two MinMaxes" >> {
+        val minMax = newStat[java.lang.Float]("floatAttr")
+        val minMax2 = newStat[java.lang.Float]("floatAttr", observe = false)
+
+        features2.foreach { minMax2.observe }
+
+        minMax2.bounds must beSome((100f, 199f))
+
+        minMax += minMax2
+
+        minMax.bounds must beSome((0f, 199f))
+        minMax2.bounds must beSome((100f, 199f))
+      }
+
+      "clear" >> {
+        val minMax = newStat[java.lang.Float]("floatAttr")
+        minMax.isEmpty must beFalse
+
+        minMax.clear()
+
+        minMax.bounds must beNone
+        minMax.isEmpty must beTrue
+      }
+    }
+
+    "work with doubles" >> {
+      "be empty initiallly" >> {
+        val minMax = newStat[java.lang.Double]("doubleAttr", observe = false)
+        minMax.attribute mustEqual doubleIndex
+        minMax.bounds must beNone
+        minMax.isEmpty must beTrue
+      }
+
+      "observe correct values" >> {
+        val minMax = newStat[java.lang.Double]("doubleAttr")
+        minMax.bounds must beSome((0d, 99d))
+      }
+
+      "serialize to json" >> {
+        val minMax = newStat[java.lang.Double]("doubleAttr")
+        minMax.toJson mustEqual """{ "min": 0.0, "max": 99.0 }"""
+      }
+
+      "serialize empty to json" >> {
+        val minMax = newStat[java.lang.Double]("doubleAttr", observe = false)
+        minMax.toJson mustEqual """{ "min": null, "max": null }"""
+      }
+
+      "serialize and deserialize" >> {
+        val minMax = newStat[java.lang.Double]("doubleAttr")
+        val packed = StatSerializer(sft).serialize(minMax)
+        val unpacked = StatSerializer(sft).deserialize(packed)
+        unpacked.toJson mustEqual minMax.toJson
+      }
+
+      "serialize and deserialize empty MinMax" >> {
+        val minMax = newStat[java.lang.Double]("doubleAttr", observe = false)
+        val packed = StatSerializer(sft).serialize(minMax)
+        val unpacked = StatSerializer(sft).deserialize(packed)
+        unpacked.toJson mustEqual minMax.toJson
+      }
+
+      "combine two MinMaxes" >> {
+        val minMax = newStat[java.lang.Double]("doubleAttr")
+        val minMax2 = newStat[java.lang.Double]("doubleAttr", observe = false)
+
+        features2.foreach { minMax2.observe }
+
+        minMax2.bounds must beSome((100d, 199d))
+
+        minMax += minMax2
+
+        minMax.bounds must beSome((0d, 199d))
+        minMax2.bounds must beSome((100d, 199d))
+      }
+
+      "clear" >> {
+        val minMax = newStat[java.lang.Double]("doubleAttr")
+        minMax.isEmpty must beFalse
+
+        minMax.clear()
+
+        minMax.bounds must beNone
+        minMax.isEmpty must beTrue
+      }
+    }
+
+    "work with dates" >> {
+      "be empty initiallly" >> {
+        val minMax = newStat[Date]("dtg", observe = false)
+        minMax.attribute mustEqual dateIndex
+        minMax.bounds must beNone
+        minMax.isEmpty must beTrue
+      }
+
+      "observe correct values" >> {
+        val minMax = newStat[Date]("dtg")
+        minMax.bounds must beSome {(
+          GeoToolsDateFormat.parseDateTime("2012-01-01T00:00:00.000Z").toDate,
+          GeoToolsDateFormat.parseDateTime("2012-01-01T23:00:00.000Z").toDate
+        )}
+      }
+
+      "serialize to json" >> {
+        val minMax = newStat[Date]("dtg")
+        minMax.toJson mustEqual """{ "min": "2012-01-01T00:00:00.000Z", "max": "2012-01-01T23:00:00.000Z" }"""
+      }
+
+      "serialize empty to json" >> {
+        val minMax = newStat[Date]("dtg", observe = false)
+        minMax.toJson mustEqual """{ "min": null, "max": null }"""
+      }
+
+      "serialize and deserialize" >> {
+        val minMax = newStat[Date]("dtg")
+        val packed = StatSerializer(sft).serialize(minMax)
+        val unpacked = StatSerializer(sft).deserialize(packed)
+        unpacked.toJson mustEqual minMax.toJson
+      }
+
+      "serialize and deserialize empty MinMax" >> {
+        val minMax = newStat[Date]("dtg", observe = false)
+        val packed = StatSerializer(sft).serialize(minMax)
+        val unpacked = StatSerializer(sft).deserialize(packed)
+        unpacked.toJson mustEqual minMax.toJson
+      }
+
+      "combine two MinMaxes" >> {
+        val minMax = newStat[Date]("dtg")
+        val minMax2 = newStat[Date]("dtg", observe = false)
+
+        features2.foreach { minMax2.observe }
+
+        minMax2.bounds must beSome {(
+          GeoToolsDateFormat.parseDateTime("2012-01-02T00:00:00.000Z").toDate,
+          GeoToolsDateFormat.parseDateTime("2012-01-02T23:00:00.000Z").toDate
+        )}
+
+        minMax += minMax2
+
+        minMax.bounds must beSome {(
+          GeoToolsDateFormat.parseDateTime("2012-01-01T00:00:00.000Z").toDate,
+          GeoToolsDateFormat.parseDateTime("2012-01-02T23:00:00.000Z").toDate
+        )}
+        minMax2.bounds must beSome {(
+          GeoToolsDateFormat.parseDateTime("2012-01-02T00:00:00.000Z").toDate,
+            GeoToolsDateFormat.parseDateTime("2012-01-02T23:00:00.000Z").toDate
+        )}
+      }
+
+      "clear" >> {
+        val minMax = newStat[Date]("dtg")
+        minMax.isEmpty must beFalse
+
+        minMax.clear()
+
+        minMax.bounds must beNone
+        minMax.isEmpty must beTrue
+      }
+    }
+
+    "work with geometries" >> {
+      "be empty initiallly" >> {
+        val minMax = newStat[Geometry]("geom", observe = false)
+        minMax.attribute mustEqual geomIndex
+        minMax.bounds must beNone
+        minMax.isEmpty must beTrue
+      }
+
+      "observe correct values" >> {
+        val minMax = newStat[Geometry]("geom")
+        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
+      }
+
+      "serialize to json" >> {
+        val minMax = newStat[Geometry]("geom")
+        minMax.toJson mustEqual """{ "min": "POINT (-99 0)", "max": "POINT (-0 49)" }"""
+      }
+
+      "serialize empty to json" >> {
+        val minMax = newStat[Geometry]("geom", observe = false)
+        minMax.toJson mustEqual """{ "min": null, "max": null }"""
+      }
+
+      "serialize and deserialize" >> {
+        val minMax = newStat[Geometry]("geom")
+        val packed = StatSerializer(sft).serialize(minMax)
+        val unpacked = StatSerializer(sft).deserialize(packed)
+        unpacked.toJson mustEqual minMax.toJson
+      }
+
+      "serialize and deserialize empty MinMax" >> {
+        val minMax = newStat[Geometry]("geom", observe = false)
+        val packed = StatSerializer(sft).serialize(minMax)
+        val unpacked = StatSerializer(sft).deserialize(packed)
+        unpacked.toJson mustEqual minMax.toJson
+      }
+
+      "combine two MinMaxes" >> {
+        val minMax = newStat[Geometry]("geom")
+        val minMax2 = newStat[Geometry]("geom", observe = false)
+
+        features2.foreach { minMax2.observe }
+
+        minMax2.bounds must beSome((WKTUtils.read("POINT (80 30)"), WKTUtils.read("POINT (179 79)")))
+
+        minMax += minMax2
+
+        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (179 79)")))
+        minMax2.bounds must beSome((WKTUtils.read("POINT (80 30)"), WKTUtils.read("POINT (179 79)")))
+      }
+
+      "combine two MinMaxes2" >> {
+        val minMax = newStat[Geometry]("geom")
+        val minMax2 = newStat[Geometry]("geom", observe = false)
+
+        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
+        minMax2.bounds must beNone
+
+        minMax += minMax2
+
+        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
+        minMax2.bounds must beNone
+      }
+
+      "combine two MinMaxes3" >> {
+        val minMax = newStat[Geometry]("geom")
+        val minMax2 = newStat[Geometry]("geom", observe = false)
+
+        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
+        minMax2.bounds must beNone
+
+        minMax2 += minMax
+
+        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
+        minMax2.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
+      }
+
+      "combine empty MinMaxes" >> {
+        val minMax = newStat[Geometry]("geom")
+        val minMax2 = newStat[Geometry]("geom", observe = false)
+
+        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
+
+        minMax2.bounds must beNone
+
+        val addRight = minMax2 + minMax
+        addRight.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
+
+        val addLeft = minMax + minMax2
+        addLeft.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
+
+        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
+
+        minMax2.bounds must beNone
+      }
+
+      "clear" >> {
+        val minMax = newStat[Geometry]("geom")
+        minMax.isEmpty must beFalse
+
+        minMax.clear()
+
+        minMax.bounds must beNone
+        minMax.isEmpty must beTrue
       }
     }
   }

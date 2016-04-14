@@ -258,7 +258,7 @@ object AttributeTable extends GeoMesaTable with LazyLogging {
   def encodeForIndex(value: Any, descriptor: AttributeDescriptor): Seq[String] =
     if (value == null) {
       Seq.empty
-    } else if (descriptor.isCollection) {
+    } else if (descriptor.isList) {
       // encode each value into a separate row
       value.asInstanceOf[JCollection[_]].toSeq.filter(_ != null).map(typeEncode)
     } else if (descriptor.isMap) {
@@ -275,7 +275,7 @@ object AttributeTable extends GeoMesaTable with LazyLogging {
     if (value == null) {
       Array.empty
     } else {
-      val binding = descriptor.getCollectionType().getOrElse(descriptor.getType.getBinding)
+      val binding = descriptor.getListType().getOrElse(descriptor.getType.getBinding)
       val converted = convertType(value, value.getClass, binding)
       val encoded = typeEncode(converted)
       if (encoded == null || encoded.isEmpty) {
@@ -297,9 +297,9 @@ object AttributeTable extends GeoMesaTable with LazyLogging {
    * @return
    */
   def decode(encoded: String, descriptor: AttributeDescriptor): Any = {
-    if (descriptor.isCollection) {
+    if (descriptor.isList) {
       // get the alias from the type of values in the collection
-      val alias = descriptor.getCollectionType().map(_.getSimpleName.toLowerCase(Locale.US)).head
+      val alias = descriptor.getListType().map(_.getSimpleName.toLowerCase(Locale.US)).head
       Seq(typeRegistry.decode(alias, encoded)).asJava
     } else if (descriptor.isMap) {
       // TODO GEOMESA-454 - support querying against map attributes

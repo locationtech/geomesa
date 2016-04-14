@@ -55,7 +55,26 @@ case class GeoHash private(x: Double,
    * characters is directly readable.
    */
   def toBinaryString: String =
-    (0 until prec).map((bitIndex) => boolMap(bitset(bitIndex))).mkString
+    (0 until prec).map(bitIndex => boolMap(bitset(bitIndex))).mkString
+
+  /**
+    * Converts the geohash into an int.
+    *
+    * Note: geohashes with more than 6 base32 digits will not fit in an int
+    *
+    * @return the geohash as an int
+    */
+  def toInt: Int = {
+    var i = 0
+    var asInt = 0
+    while (i < prec) {
+      if (bitset(i)) {
+        asInt += 1 << prec - 1 - i
+      }
+      i += 1
+    }
+    asInt
+  }
 
   def getPoint = GeoHash.factory.createPoint(new Coordinate(x,y))
 

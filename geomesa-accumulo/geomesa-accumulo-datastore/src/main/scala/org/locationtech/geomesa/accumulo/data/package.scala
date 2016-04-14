@@ -38,8 +38,6 @@ package object data {
   val SCHEMA_KEY             = "schema"
   val DTGFIELD_KEY           = "dtgfield"
   val FEATURE_ENCODING_KEY   = "featureEncoding"
-  val VISIBILITIES_KEY       = "visibilities"
-  val VISIBILITIES_CHECK_KEY = "visibilitiesCheck"
   val ST_IDX_TABLE_KEY       = "tables.idx.st.name"
   val ATTR_IDX_TABLE_KEY     = "tables.idx.attr.name"
   val RECORD_TABLE_KEY       = "tables.record.name"
@@ -61,8 +59,6 @@ package object data {
   val EMPTY_COLQ           = new Text(EMPTY_STRING)
   val EMPTY_VIZ            = new Text(EMPTY_STRING)
   val EMPTY_TEXT           = new Text()
-  val WHOLE_WORLD_BOUNDS   = "-180.0:180.0:-90.0:90.0"
-  val ALL_TIME_BOUNDS      = new Interval(new DateTime(0l), new DateTime())  // Epoch till now
   val DEFAULT_ENCODING     = SerializationType.KRYO
 
   // SimpleFeature Hints

@@ -17,7 +17,7 @@ import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo.data.tables.{Z3Table, GeoMesaTable}
+import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -37,6 +37,9 @@ trait TestWithDataStore extends Specification {
   def spec: String
   def dtgField: String = "dtg"
 
+  // TODO GEOMESA-1146 refactor to allow running of tests with table sharing on and off...
+  def tableSharing: Boolean = true
+
   // we use class name to prevent spillage between unit tests in the mock connector
   val sftName = getClass.getSimpleName
 
@@ -44,6 +47,7 @@ trait TestWithDataStore extends Specification {
 
   lazy val (ds, sft) = {
     val sft = SimpleFeatureTypes.createType(sftName, spec)
+    sft.setTableSharing(tableSharing)
     sft.setDtgField(dtgField)
     val ds = DataStoreFinder.getDataStore(Map(
       "connector" -> connector,
@@ -85,7 +89,7 @@ trait TestWithDataStore extends Specification {
 
   def explain(query: Query): String = {
     val o = new ExplainString
-    ds.explainQuery(query, o)
+    ds.getQueryPlan(query, explainer = o)
     o.toString()
   }
 

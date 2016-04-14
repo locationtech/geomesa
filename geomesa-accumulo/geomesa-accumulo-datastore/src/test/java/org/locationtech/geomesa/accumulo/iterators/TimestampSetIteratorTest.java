@@ -8,7 +8,8 @@
 
 package org.locationtech.geomesa.accumulo.iterators;
 
-import junit.framework.Assert;
+
+import org.junit.Assert;
 import org.junit.Test;
 
 public class TimestampSetIteratorTest {

@@ -16,7 +16,7 @@
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa</artifactId>
     <packaging>pom</packaging>
-    <version>1.2.1-SNAPSHOT</version>
+    <version>1.2.2-SNAPSHOT</version>
 
     <modules>
         <module>geomesa-utils</module>
@@ -68,6 +68,8 @@
         <thrift.version>0.9.1</thrift.version>
         <hadoop.version>2.5.2</hadoop.version>
         <spark.version>1.5.0</spark.version>
+
+        <kafka.version>0.8.2.1</kafka.version>
 
         <!-- logging properties - we expect logging jars to be provided -->
         <!-- 1.7.x is for hadoop 2 and accumulo 1.5.x -->

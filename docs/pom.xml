@@ -12,7 +12,7 @@
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
         <artifactId>geomesa</artifactId>
-        <version>1.2.1-SNAPSHOT</version>
+        <version>1.2.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -71,8 +71,8 @@
                                 <configuration>
                                     <tasks>
                                         <ant antfile="build.xml" dir="${basedir}" target="${target}">
-                                            <property name="build.directory" value="${project.build.directory}"/>
-                                            <property name="project.version" value="${project.version}"/>
+                                            <property name="build.directory" value="${project.build.directory}" />
+                                            <property name="project.version" value="${project.version}" />
                                         </ant>
                                     </tasks>
                                 </configuration>

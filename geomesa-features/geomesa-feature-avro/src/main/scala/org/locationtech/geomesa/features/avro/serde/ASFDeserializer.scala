@@ -56,6 +56,13 @@ trait ASFDeserializer {
     sf.setAttributeNoConvert(field, AvroSimpleFeatureUtils.decodeMap(bb))
   }
 
+  def setBytes(sf: AvroSimpleFeature, field: String, in:Decoder): Unit = {
+    val bb = in.readBytes(null)
+    val bytes = new Array[Byte](bb.remaining)
+    bb.get(bytes)
+    sf.setAttributeNoConvert(field, bytes)
+  }
+
   def setGeometry(sf: AvroSimpleFeature, field: String, in:Decoder): Unit
 
   def consumeGeometry(in: Decoder): Unit
@@ -72,6 +79,7 @@ trait ASFDeserializer {
     case c if classOf[Geometry].isAssignableFrom(cls)            => (in: Decoder) => consumeGeometry(in)
     case c if classOf[java.util.List[_]].isAssignableFrom(cls)   => (in: Decoder) => in.skipBytes()
     case c if classOf[java.util.Map[_, _]].isAssignableFrom(cls) => (in: Decoder) => in.skipBytes()
+    case c if classOf[Array[Byte]].isAssignableFrom(cls)         => (in: Decoder) => in.skipBytes()
   }
 
 }

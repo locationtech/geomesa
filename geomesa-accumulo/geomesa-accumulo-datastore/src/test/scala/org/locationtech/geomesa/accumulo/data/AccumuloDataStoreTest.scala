@@ -85,23 +85,6 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       retrievedSft.getStIndexSchema mustEqual indexSchema
       retrievedSft.getStIndexSchema mustEqual indexSchema
     }
-    "create and retrieve a schema without a custom IndexSchema" in {
-      val sftName = "schematestDefaultSchema"
-      val sft = SimpleFeatureTypes.createType(sftName, defaultSchema)
-      sft.setDtgField("dtg")
-
-      val mockMaxShards = ds.DEFAULT_MAX_SHARD
-      val indexSchema = ds.computeSpatioTemporalSchema(sft)
-
-      ds.createSchema(sft)
-
-      val retrievedSft = ds.getSchema(sftName)
-
-      mockMaxShards mustEqual 0
-      retrievedSft mustEqual sft
-      retrievedSft.getDtgField must beSome("dtg")
-      retrievedSft.getStIndexSchema mustEqual indexSchema
-    }
     "create and retrieve a schema without a geometry" in {
       import org.locationtech.geomesa.utils.geotools.Conversions._
       val sftName = "schematestNoGeom"
@@ -230,10 +213,10 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       val sftName = "explainQueryTest"
       createSchema(sftName)
       val query = new Query(sftName, Filter.INCLUDE)
-      val fr = ds.getFeatureReader(sftName)
+      val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
       fr must not beNull
       val out = new ExplainString
-      ds.explainQuery(new Query(sftName, Filter.INCLUDE), out)
+      ds.getQueryPlan(new Query(sftName, Filter.INCLUDE), explainer = out)
       val explain = out.toString()
       explain must startWith(s"Planning '$sftName'")
     }
@@ -260,14 +243,14 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
 
       // indexed attribute
       val q1 = ff.equals(ff.property("name"), ff.literal("one"))
-      val fr = ds.getFeatureReader(sftName, new Query(sftName, q1))
+      val fr = ds.getFeatureReader(new Query(sftName, q1), Transaction.AUTO_COMMIT)
       val results = SelfClosingIterator(fr).toList
       results must haveLength(1)
       results.head.getAttribute("name") mustEqual "one"
 
       // non-indexed attributes
       val q2 = ff.equals(ff.property("numattr"), ff.literal(2))
-      val fr2 = ds.getFeatureReader(sftName, new Query(sftName, q2))
+      val fr2 = ds.getFeatureReader(new Query(sftName, q2), Transaction.AUTO_COMMIT)
       val results2 = SelfClosingIterator(fr2).toList
       results2 must haveLength(1)
       results2.head.getAttribute("numattr") mustEqual 2
@@ -450,100 +433,6 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       ds.config.caching must beFalse
     }
 
-    "Allow extra attributes in the STIDX entries" in {
-      val sftName = "StidxExtraAttributeTest"
-      val spec =
-        s"name:String:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,*geom:Point:srid=4326,attr2:String"
-      val sft = createSchema(sftName, spec)
-
-      val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
-      val features = (0 until 6).map { i =>
-        builder.set("geom", WKTUtils.read(s"POINT(45.0 4$i.0)"))
-        builder.set("dtg", s"2012-01-02T05:0$i:07.000Z")
-        builder.set("name", i.toString)
-        builder.set("attr2", "2-" + i.toString)
-        val sf = builder.buildFeature(i.toString)
-        sf.getUserData.update(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-        sf
-      }
-
-      val baseTime = features(0).getAttribute("dtg").asInstanceOf[Date].getTime
-
-      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
-      fs.addFeatures(new ListFeatureCollection(sft, features))
-
-      val query = new Query(sftName, ECQL.toFilter("BBOX(geom, 40.0, 40.0, 50.0, 50.0)"),
-        Array("geom", "dtg", "name"))
-      val reader = ds.getFeatureReader(sftName, query)
-
-      // verify that the IndexIterator is getting used with the extra field
-      val explain = {
-        val out = new ExplainString
-        ds.explainQuery(query, out)
-        out.toString()
-      }
-      explain must contain(classOf[IndexIterator].getName)
-
-      val read = SelfClosingIterator(reader).toList
-
-      // verify that all the attributes came back
-      read must haveSize(6)
-      read.sortBy(_.getAttribute("name").asInstanceOf[String]).zipWithIndex.foreach { case (sf, i) =>
-        sf.getAttributeCount mustEqual 3
-        sf.getAttribute("name") mustEqual i.toString
-        sf.getAttribute("geom") mustEqual WKTUtils.read(s"POINT(45.0 4$i.0)")
-        sf.getAttribute("dtg").asInstanceOf[Date].getTime mustEqual baseTime + i * 60000
-      }
-      success
-    }
-
-    "Use IndexIterator when projecting to date/geom" in {
-      val sftName = "StidxExtraAttributeTest2"
-      val spec =
-        s"name:String:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,*geom:Point:srid=4326,attr2:String"
-      val sft = createSchema(sftName, spec)
-
-      val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
-      val features = (0 until 6).map { i =>
-        builder.set("geom", WKTUtils.read(s"POINT(45.0 4$i.0)"))
-        builder.set("dtg", s"2012-01-02T05:0$i:07.000Z")
-        builder.set("name", i.toString)
-        builder.set("attr2", "2-" + i.toString)
-        val sf = builder.buildFeature(i.toString)
-        sf.getUserData.update(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-        sf
-      }
-
-      val baseTime = features(0).getAttribute("dtg").asInstanceOf[Date].getTime
-
-      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
-      fs.addFeatures(new ListFeatureCollection(sft, features))
-
-      val query = new Query(sftName, ECQL.toFilter("BBOX(geom, 40.0, 40.0, 50.0, 50.0)"),
-        Array("geom", "dtg"))
-      val reader = ds.getFeatureReader(sftName, query)
-
-      // verify that the IndexIterator is getting used
-      val explain = {
-        val out = new ExplainString
-        ds.explainQuery(query, out)
-        out.toString()
-      }
-      explain must contain(classOf[IndexIterator].getName)
-
-      val read = SelfClosingIterator(reader).toList
-
-      // verify that all the attributes came back
-      read must haveSize(6)
-      read.sortBy(_.getAttribute("dtg").toString).zipWithIndex.foreach { case (sf, i) =>
-        sf.getAttributeCount mustEqual 2
-        sf.getAttribute("name") must beNull
-        sf.getAttribute("geom") mustEqual WKTUtils.read(s"POINT(45.0 4$i.0)")
-        sf.getAttribute("dtg").asInstanceOf[Date].getTime mustEqual baseTime + i * 60000
-      }
-      success
-    }
-
     "create key plan that uses STII Filter with bbox" in {
       val sftName = "explainLargeBBOXTest1"
       val sft1 = createSchema(sftName)
@@ -551,7 +440,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       val query = new Query(sftName, filter, Array("geom"))
       val explain = {
         val o = new ExplainString
-        ds.explainQuery(query, o)
+        ds.getQueryPlan(query, explainer = o)
         o.toString()
       }
       ds.removeSchema(sftName)
@@ -565,7 +454,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       val query = new Query(sftName, filter, Array("geom"))
       val explain = {
         val o = new ExplainString
-        ds.explainQuery(query, o)
+        ds.getQueryPlan(query, explainer = o)
         o.toString()
       }
       ds.removeSchema(sftName)
@@ -580,7 +469,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       val query = new Query(sftName, filter, Array("geom"))
       val explain = {
         val o = new ExplainString
-        ds.explainQuery(query, o)
+        ds.getQueryPlan(query, explainer = o)
         o.toString()
       }
       ds.removeSchema(sftName)
@@ -596,7 +485,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       val query = new Query(sftName, filter, Array("geom"))
       val explain = {
         val o = new ExplainString
-        ds.explainQuery(query, o)
+        ds.getQueryPlan(query, explainer = o)
         o.toString()
       }
       ds.removeSchema(sftName)
@@ -611,7 +500,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       val query = new Query(sftName, filter, Array("geom"))
       val explain = {
         val o = new ExplainString
-        ds.explainQuery(query, o)
+        ds.getQueryPlan(query, explainer = o)
         o.toString()
       }
       ds.removeSchema(sftName)
@@ -641,7 +530,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
 
       val explain = {
         val o = new ExplainString
-        ds.explainQuery(query, o)
+        ds.getQueryPlan(query, explainer = o)
         o.toString()
       }
       explain must not contain "GeoHashKeyPlanner: KeyInvalid"
@@ -745,7 +634,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
 
       val query = new Query(sftName,
         ECQL.toFilter("BBOX(geom, 40.0, 40.0, 50.0, 44.5) AND dtg after 2012-01-02T05:02:00.000Z"))
-      val reader = ds.getFeatureReader(sftName, query)
+      val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
 
       val read = SelfClosingIterator(reader).toList
 
@@ -779,7 +668,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       exists must beFalse
       ds.getSchema("test") must beNull
       exists must beFalse
-      ds.getFeatureReader("test") must throwAn[IOException]
+      ds.getFeatureReader(new Query("test"), Transaction.AUTO_COMMIT) must throwAn[IOException]
       exists must beFalse
       ds.createSchema(SimpleFeatureTypes.createType("test", "*geom:Point:srid=4326"))
       exists must beTrue

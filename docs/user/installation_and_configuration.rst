@@ -265,13 +265,15 @@ the plugin. The GeoServer website includes `instructions for downloading and ins
 .. note::
 
     If using Tomcat as a web server, it will most likely be necessary to
-    pass some custom options:
+    pass some custom options::
 
-    ``export CATALINA_OPTS="-Xmx8g -XX:MaxPermSize=512M -Duser.timezone=UTC -server -Djava.awt.headless=true"``
+        export CATALINA_OPTS="-Xmx8g -XX:MaxPermSize=512M -Duser.timezone=UTC -server -Djava.awt.headless=true"
 
     The value of ``-Xmx`` should be as large as your system will permit; this
     is especially important for the Kafka plugin. You
-    should also consider passing ``-DGEOWEBCACHE_CACHE_DIR=/tmp/$USER-gwc -DEPSG-HSQL.directory=/tmp/$USER-hsql`` to the server. Be sure to restart Tomcat for changes to take place.
+    should also consider passing ``-DGEOWEBCACHE_CACHE_DIR=/tmp/$USER-gwc``
+    and ``-DEPSG-HSQL.directory=/tmp/$USER-hsql``
+    as well. Be sure to restart Tomcat for changes to take place.
 
 For Accumulo
 ^^^^^^^^^^^^
@@ -345,7 +347,7 @@ Accumulo 1.6
 * accumulo-server-base-1.6.4.jar
 * accumulo-trace.1.6.4.jar
 * libthrift-0.9.1.jar
-* zookeeper-3.4.6.jar
+* zookeeper-3.4.5.jar
 
 Hadoop 2.2
 
@@ -406,16 +408,21 @@ your GeoServer ``WEB-INF/lib`` directory.
     * metrics-core-2.2.0.jar
     * zkclient-0.3.jar
 * Zookeeper
-    * zookeeper-3.4.6.jar
+    * zookeeper-3.4.5.jar
 
-GeoMesas GeoServer Community Module
------------------------------------
+There is a script in the ``geomesa-tools-$VERSION`` directory
+(``$GEOMESA_HOME/bin/install-kafka.sh``) which will install these
+dependencies to a target directory using ``wget`` (requires an internet
+connection).
+
+GeoMesa GeoServer Community Module
+----------------------------------
 
 The GeoMesa community module adds support for raster imagery to GeoServer. The community module
 requires the Accumulo GeoServer plugin to be installed first.
 
-The community module can be downloaded from `OpenGeo <http://ares.opengeo.org/geoserver/>`, or can
-be built from `source <https://github.com/geoserver/geoserver/tree/master/src/community/geomesa>`.
+The community module can be downloaded from `OpenGeo <http://ares.opengeo.org/geoserver/>`__, or can
+be built from `source <https://github.com/geoserver/geoserver/tree/master/src/community/geomesa>`__.
 
 Once obtained, the community module can be installed by copying ``geomesa-gs-<version>.jar`` into
 the GeoServer ``lib`` directory.
@@ -440,3 +447,15 @@ For massive queries, the standard 60 second timeout may be too short.
 |"Disable limits"|
 
 .. |"Disable limits"| image:: _static/img/wms_limits.png
+
+To enable explain query logging in GeoServer, add the following to the
+``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties`` file::
+
+    log4j.category.org.locationtech.geomesa.accumulo.index.QueryPlanner=TRACE
+
+If you are not sure of the location of your GeoServer data directory, it
+is printed out when you start GeoServer::
+
+    ----------------------------------
+    - GEOSERVER_DATA_DIR: /opt/devel/install/geoserver-data-dir
+    ----------------------------------

@@ -90,6 +90,7 @@ class FeatureSpecificReader(var oldType: SimpleFeatureType, var newType: SimpleF
       case cls if classOf[Geometry].isAssignableFrom(cls)            => deserializer.setGeometry(_, decoded, _)
       case cls if classOf[java.util.List[_]].isAssignableFrom(cls)   => deserializer.setList(_, decoded, _)
       case cls if classOf[java.util.Map[_, _]].isAssignableFrom(cls) => deserializer.setMap(_, decoded, _)
+      case cls if classOf[Array[Byte]].isAssignableFrom(cls)         => deserializer.setBytes(_, decoded, _)
     }
   }
 
@@ -108,6 +109,8 @@ class FeatureSpecificReader(var oldType: SimpleFeatureType, var newType: SimpleF
 
   def readWithUserData(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = {
     val serializationVersion = in.readInt()
+
+    FeatureSpecificReader.checkVersion(serializationVersion)
     val sf = readAttributes(in, serializationVersion)
 
     val ar = AvroSerialization.reader
@@ -122,8 +125,8 @@ class FeatureSpecificReader(var oldType: SimpleFeatureType, var newType: SimpleF
 
     // choose the proper deserializer
     val deserializer = serializationVersion match {
-      case 1 => v1fieldreaders
-      case 2 => v2fieldreaders
+      case 1     => v1fieldreaders
+      case 2 | 3 => v2fieldreaders
     }
 
     // Read the id
@@ -151,6 +154,11 @@ object FeatureSpecificReader {
     val decoder = DecoderFactory.get().directBinaryDecoder(is, reuse)
     decoder.readInt()
     decoder.readString()
+  }
+
+  def checkVersion(version: Int) = {
+    if (version > VERSION) throw new IllegalArgumentException(s"AvroSimpleFeature version $version is unsupported. " +
+      s"You may need to upgrade to a new version")
   }
 
 }

@@ -19,10 +19,12 @@ import org.locationtech.geomesa.accumulo.index.IndexSchema
 import org.locationtech.geomesa.accumulo.iterators.TestData._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import scala.util.{Failure, Success, Try}
 
 @RunWith(classOf[JUnitRunner])
 class MultiIteratorTest extends Specification with TestWithMultipleSfts with LazyLogging {
@@ -250,6 +252,61 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
       // validate the total number of query-hits
       indexOnlyCount mustEqual filteredCount
       stQueriedCount mustEqual filteredCount
+    }
+  }
+
+  "non-point geometries" should {
+    val sft = createNewSchema(spec)
+    val wkts = Seq[String](
+      "POLYGON((-10 -10, -10 10, 10 10, 10 -10, -10 -10))",
+      "POLYGON((-10 -10, -10 0, 0 0, 0 -10, -10 -10))",
+      "POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))",
+      "POLYGON((-10 0, -10 10, 0 10, 0 0, -10 0))",
+      "POLYGON((0 0, 10 0, 10 -10, 0 -10, 0 0))"
+    )
+    val features: Seq[SimpleFeature] = wkts.zipWithIndex.map {
+      case (wkt, i) => createSF(Entry(wkt, s"fid_$i"), sft)
+    }
+    addFeatures(sft, features)
+    val fs = ds.getFeatureSource(sft.getTypeName)
+
+    def doesQueryRun(filterString: String, optExpectedCount: Option[Int] = None): Boolean = {
+      logger.debug(s"Odd-point query filter:  $filterString")
+
+      val outcome = Try {
+        val q = getQuery(sft, Some(filterString), overrideGeometry = true)
+        val indexOnlyQuery = getQuery(sft, Some(filterString), overrideGeometry = true, indexIterator = true)
+
+        val filteredCount = features.count(q.getFilter.evaluate)
+        val stQueriedCount = fs.getFeatures(q).size
+        val indexOnlyCount = fs.getFeatures(indexOnlyQuery).size
+
+        output(q.getFilter, filteredCount, stQueriedCount, indexOnlyCount)
+
+        val expectedCount = optExpectedCount.getOrElse(filteredCount)
+
+        logger.debug(s"Query:\n  $filterString\n  Expected count:  $optExpectedCount -> $expectedCount" +
+          s"\n  Filtered count:  $filteredCount\n  Index-only count:  $indexOnlyCount" +
+          s"\n  ST-queried count:  $stQueriedCount")
+
+        // validate the total number of query-hits
+        filteredCount == expectedCount &&
+          indexOnlyCount == expectedCount &&
+          stQueriedCount == expectedCount
+      }
+
+      outcome match {
+        case Success(result) => result
+        case Failure(ex)     =>
+          logger.error(ex.getStackTrace.mkString("\n"))
+          false
+      }
+    }
+
+    "perform query variants that include correctly" in {
+      doesQueryRun("CONTAINS(geom, POINT(0.0 0.0))", Option(1)) must beTrue
+      doesQueryRun("INTERSECTS(geom, POINT(0.0 0.0))") must beTrue
+      doesQueryRun("INTERSECTS(POINT(0.0 0.0), geom)") must beTrue
     }
   }
 }

@@ -81,10 +81,6 @@ in each command by using `-u` or `--username `and `-p` or `--password`, respecti
 on the command line using `-u` or `--username` and type the password in an additional prompt, where the password will be
 hidden from the shell history.
 
-A test script is included under `geomesa\bin\test-geomesa` that runs each command provided by geomesa-tools. Edit this script
-by including your Accumulo username, password, test catalog table, test feature name, and test SFT specification. Default values
-are already included in the script. Then, run the script from the command line to ensure there are no errors in the output text. 
-
 In all commands below, one can add `--instance-name`, `--zookeepers`, `--auths`, and `--visibilities` (or in short form `-i, -z`) arguments
 to properly configure the Accumulo data store connector. The Accumulo instance name and Zookeepers string can usually
 be automatically assigned as long as Accumulo is configured correctly. The Auths and Visibilities strings will have to
@@ -412,6 +408,8 @@ To export features, use the `export` command.
         -F, --format
            Format to export (csv|tsv|gml|json|shp|bin)
            Default: csv
+        --gzip
+           level of gzip compression to apply to output, from 1-9
         --id-attribute
            name of the id attribute to export
         -i, --instance

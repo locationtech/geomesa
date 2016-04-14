@@ -33,15 +33,15 @@ object AvroSerialization
 /** Implemenation of [[AbstractWriter]] for Avro. */
 class AvroWriter extends AbstractWriter[Encoder] {
 
-  override val writeString: DatumWriter[Encoder, String] = (encoder, str) => encoder.writeString(str)
-  override val writeInt: DatumWriter[Encoder, Int] = (encoder, int) => encoder.writeInt(int)
-  override val writePositiveInt: DatumWriter[Encoder, Int] = writeInt // no optimization
-  override val writeLong: DatumWriter[Encoder, Long] = (encoder, long) => encoder.writeLong(long)
-  override val writeFloat: DatumWriter[Encoder, Float] = (encoder, float) => encoder.writeFloat(float)
-  override val writeDouble: DatumWriter[Encoder, Double] = (encoder, double) => encoder.writeDouble(double)
-  override val writeBoolean: DatumWriter[Encoder, Boolean] = (encoder, bool) => encoder.writeBoolean(bool)
-  override val writeDate: DatumWriter[Encoder, Date] = (encoder, date) => encoder.writeLong(date.getTime)
-  override val writeBytes: DatumWriter[Encoder, Array[Byte]] = (encoder, bytes) => encoder.writeBytes(bytes)
+  override val writeString: DatumWriter[Encoder, String]     = (encoder, str)    => encoder.writeString(str)
+  override val writeInt: DatumWriter[Encoder, Int]           = (encoder, int)    => encoder.writeInt(int)
+  override val writePositiveInt: DatumWriter[Encoder, Int]   = writeInt // no optimization
+  override val writeLong: DatumWriter[Encoder, Long]         = (encoder, long)   => encoder.writeLong(long)
+  override val writeFloat: DatumWriter[Encoder, Float]       = (encoder, float)  => encoder.writeFloat(float)
+  override val writeDouble: DatumWriter[Encoder, Double]     = (encoder, double) => encoder.writeDouble(double)
+  override val writeBoolean: DatumWriter[Encoder, Boolean]   = (encoder, bool)   => encoder.writeBoolean(bool)
+  override val writeDate: DatumWriter[Encoder, Date]         = (encoder, date)   => encoder.writeLong(date.getTime)
+  override val writeBytes: DatumWriter[Encoder, Array[Byte]] = (encoder, bytes)  => encoder.writeBytes(bytes)
 
   override def writeNullable[T](writeRaw: DatumWriter[Encoder, T]): DatumWriter[Encoder, T] =
     (encoder, raw) => {
@@ -67,14 +67,14 @@ class AvroWriter extends AbstractWriter[Encoder] {
 /** Implemenation of [[AbstractReader]] for Avro. */
 class AvroReader extends AbstractReader[Decoder] {
 
-  override val readString: DatumReader[Decoder, String] = (decoder) => decoder.readString
-  override val readInt: DatumReader[Decoder, Int] = (decoder) => decoder.readInt
+  override val readString: DatumReader[Decoder, String]   = (decoder) => decoder.readString
+  override val readInt: DatumReader[Decoder, Int]         = (decoder) => decoder.readInt
   override val readPositiveInt: DatumReader[Decoder, Int] = readInt // no optimization
-  override val readLong: DatumReader[Decoder, Long] = (decoder) => decoder.readLong
-  override val readFloat: DatumReader[Decoder, Float] = (decoder) => decoder.readFloat
-  override val readDouble: DatumReader[Decoder, Double] = (decoder) => decoder.readDouble
+  override val readLong: DatumReader[Decoder, Long]       = (decoder) => decoder.readLong
+  override val readFloat: DatumReader[Decoder, Float]     = (decoder) => decoder.readFloat
+  override val readDouble: DatumReader[Decoder, Double]   = (decoder) => decoder.readDouble
   override val readBoolean: DatumReader[Decoder, Boolean] = (decoder) => decoder.readBoolean
-  override val readDate: DatumReader[Decoder, Date] = (decoder) => new Date(decoder.readLong())
+  override val readDate: DatumReader[Decoder, Date]       = (decoder) => new Date(decoder.readLong())
 
   override val readBytes: DatumReader[Decoder, Array[Byte]] = (decoder) => {
     val buffer: ByteBuffer = decoder.readBytes(null)

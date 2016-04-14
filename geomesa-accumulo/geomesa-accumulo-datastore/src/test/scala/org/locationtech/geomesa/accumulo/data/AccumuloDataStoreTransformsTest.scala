@@ -23,7 +23,6 @@ import org.locationtech.geomesa.accumulo.util.{CloseableIterator, SelfClosingIte
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -65,7 +64,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
 
         "with the correct schema" >> {
           val schema = SimpleFeatureTypes.encodeType(results.getSchema)
-          schema mustEqual s"name:String,*geom:Point:srid=4326:$OPT_INDEX=full:$OPT_INDEX_VALUE=true,derived:String"
+          schema mustEqual "name:String,*geom:Point:srid=4326,derived:String"
         }
         "with the correct results" >> {
           val features = results.features
@@ -79,6 +78,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
         val query = new Query(sftName, Filter.INCLUDE, List("dtg", "geom").toArray)
         val results = SelfClosingIterator(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())).toList
         results must haveSize(1)
+        results.head.getID mustEqual "fid-1"
         results.head.getAttribute("dtg") mustEqual date
         results.head.getAttribute("geom") mustEqual geom
         results.head.getAttribute("name") must beNull
@@ -97,6 +97,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
           results.size  must equalTo(1)
         }
         "with correct fields" >> {
+          results.head.getID mustEqual "fid-1"
           results.head.getAttribute("geom") mustEqual geom
           results.head.getAttribute("dtg") must beNull
           results.head.getAttribute("name") must beNull
@@ -109,6 +110,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
         val features = ds.getFeatureSource(sftName).getFeatures(query).features().toList
 
         features must haveSize(1)
+        features.head.getID mustEqual "fid-1"
         features.head.getAttributeCount mustEqual 2
         features.head.getAttribute("trans") mustEqual name
         features.head.getAttribute("geom") mustEqual geom
@@ -119,7 +121,8 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
       val sft = createNewSchema(spec)
       val sftName = sft.getTypeName
 
-      ds.setGeomesaVersion(sftName, 2)
+      ds.metadata.insert(sftName, VERSION_KEY, "2")
+      ds.metadata.expireCache(sftName)
 
       addFeatures(sft, createFeature(sft))
 
@@ -144,8 +147,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
         val results = ds.getFeatureSource(sftName).getFeatures(query)
 
         "with the correct schema" >> {
-          SimpleFeatureTypes.encodeType(results.getSchema) mustEqual
-              s"name:String,*geom:Point:srid=4326:$OPT_INDEX=full:$OPT_INDEX_VALUE=true,derived:String"
+          SimpleFeatureTypes.encodeType(results.getSchema) mustEqual "name:String,*geom:Point:srid=4326,derived:String"
         }
         "with the correct results" >> {
           val features = results.features
@@ -162,8 +164,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
         val results = ds.getFeatureSource(sftName).getFeatures(query)
 
         "with the correct schema" >> {
-          SimpleFeatureTypes.encodeType(results.getSchema) mustEqual
-              s"name:String,*geom:Point:srid=4326:$OPT_INDEX=full:$OPT_INDEX_VALUE=true"
+          SimpleFeatureTypes.encodeType(results.getSchema) mustEqual "name:String,*geom:Point:srid=4326"
         }
         "with the correct results" >> {
           val features = results.features
@@ -175,7 +176,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
 
       "with filters on other attributes" >> {
         val filter = CQL.toFilter("bbox(geom,45,45,55,55) AND " +
-            "dtg BETWEEN '2011-01-01T00:00:00.000Z' AND '2013-01-02T00:00:00.000Z'")
+            "dtg BETWEEN '2011-12-31T00:00:00.000Z' AND '2012-01-02T00:00:00.000Z'")
         val query = new Query(sftName, filter, Array("geom"))
 
         // Let's read out what we wrote.

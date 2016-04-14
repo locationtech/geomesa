@@ -22,12 +22,14 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   * 3. Be self-describing outside of Geotools as much as possible
   *
   * You may want to consider gzipping your avro data file for better compression
+  *
+  * Version 3 supports Bytes as a type in the SFT
   */
 object AvroDataFile {
   val SftNameKey = "sft.name"
   val SftSpecKey = "sft.spec"
   val VersionKey = "version"
-  private[avro] val Version: Long = 1L
+  private[avro] val Version: Long = 3L
 
   def setMetaData(dfw: DataFileWriter[SimpleFeature], sft: SimpleFeatureType): Unit = {
     dfw.setMeta(VersionKey, Version)
@@ -35,9 +37,14 @@ object AvroDataFile {
     dfw.setMeta(SftSpecKey, SimpleFeatureTypes.encodeType(sft))
   }
 
+  /**
+    * Backwards compatible...Version 2 can parse v1
+    * @param dfs
+    * @return
+    */
   def canParse(dfs: DataFileStream[_ <: SimpleFeature]): Boolean = {
     dfs.getMetaKeys.contains(VersionKey) &&
-      dfs.getMetaLong(VersionKey) == Version &&
+      dfs.getMetaLong(VersionKey) <= Version &&
       dfs.getMetaString(SftNameKey) != null &&
       dfs.getMetaString(SftSpecKey) != null
   }

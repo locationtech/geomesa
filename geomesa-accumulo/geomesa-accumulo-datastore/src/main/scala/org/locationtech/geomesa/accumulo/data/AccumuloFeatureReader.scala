@@ -12,24 +12,24 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import org.geotools.data.{FeatureReader, Query}
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
-import org.locationtech.geomesa.accumulo.index.QueryPlanner.SFIter
 import org.locationtech.geomesa.accumulo.index._
+import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.accumulo.stats._
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.security.AuditProvider
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timings, TimingsImpl}
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-trait AccumuloFeatureReader extends FeatureReader[SimpleFeatureType, SimpleFeature] {
+abstract class AccumuloFeatureReader(val query: Query, val timeout: Option[Long], val maxFeatures: Long)
+    extends FeatureReader[SimpleFeatureType, SimpleFeature] {
 
   private val closed = new AtomicBoolean(false)
   private lazy val start = System.currentTimeMillis()
 
   timeout.foreach(t => ThreadManagement.register(this, start, t))
 
-  def query: Query
-  def timeout: Option[Long]
   def isClosed: Boolean = closed.get()
+  def count: Long = -1L
 
   protected def closeOnce(): Unit
 
@@ -44,53 +44,51 @@ trait AccumuloFeatureReader extends FeatureReader[SimpleFeatureType, SimpleFeatu
   }
 }
 
-object AccumuloFeatureReader extends MethodProfiling {
-  def apply(query: Query,
-            qp: QueryPlanner,
-            timeout: Option[Long],
-            writer: Option[StatWriter],
-            auditProvider: AuditProvider) = {
-    writer match {
-      case None => new AccumuloFeatureReaderImpl(query, qp, timeout)
-      case Some(sw) => new AccumuloFeatureReaderWithStats(query, qp, timeout, sw, auditProvider)
+object AccumuloFeatureReader {
+  def apply(query: Query, qp: QueryPlanner, timeout: Option[Long], stats: Option[(StatWriter, AuditProvider)]) = {
+    val maxFeatures = if (query.isMaxFeaturesUnlimited) None else Some(query.getMaxFeatures)
+
+    (stats, maxFeatures) match {
+      case (None, None)                => new AccumuloFeatureReaderImpl(query, qp, timeout)
+      case (None, Some(max))           => new AccumuloFeatureReaderImpl(query, qp, timeout, max) with FeatureLimiting
+      case (Some((sw, ap)), None)      => new AccumuloFeatureReaderWithStats(query, qp, timeout, sw, ap) with FeatureCounting
+      case (Some((sw, ap)), Some(max)) => new AccumuloFeatureReaderWithStats(query, qp, timeout, sw, ap, max) with FeatureLimiting
     }
   }
 }
 
-class AccumuloFeatureReaderImpl(val query: Query, qp: QueryPlanner, val timeout: Option[Long])
-    extends AccumuloFeatureReader {
+/**
+ * Basic feature reader that wraps the underlying iterator of simple features.
+ */
+class AccumuloFeatureReaderImpl(query: Query, qp: QueryPlanner, timeout: Option[Long], maxFeatures: Long = 0L)
+    extends AccumuloFeatureReader(query, timeout, maxFeatures) {
 
   private val iter = qp.runQuery(query)
 
-  override def next(): SimpleFeature = iter.next()
   override def hasNext: Boolean = iter.hasNext
+  override def next(): SimpleFeature = iter.next()
   override protected def closeOnce(): Unit = iter.close()
 }
 
-class AccumuloFeatureReaderWithStats(val query: Query,
+/**
+ * Basic feature reader with method profiling for stat gathering.
+ */
+class AccumuloFeatureReaderWithStats(query: Query,
                                      qp: QueryPlanner,
-                                     val timeout: Option[Long],
+                                     timeout: Option[Long],
                                      sw: StatWriter,
-                                     auditProvider: AuditProvider)
-    extends AccumuloFeatureReader with MethodProfiling {
+                                     auditProvider: AuditProvider,
+                                     maxFeatures: Long = 0L)
+    extends AccumuloFeatureReader(query, timeout, maxFeatures) with MethodProfiling {
 
   implicit val timings = new TimingsImpl
   private val iter = profile(qp.runQuery(query), "planning")
 
-  // because the query planner configures the query hints, we can't check for bin hints
-  // until after setting up the iterator
-  private val delegate = if (query.getHints.isBinQuery) {
-    new AccumuloFeatureReaderBinDelegate(iter, query, qp)
-  } else {
-    new AccumuloFeatureReaderDelegate(iter, query, qp)
-  }
-
-  override def next(): SimpleFeature = delegate.next()
-  override def hasNext: Boolean = delegate.hasNext
+  override def next(): SimpleFeature = profile(iter.next(), "next")
+  override def hasNext: Boolean = profile(iter.hasNext, "hasNext")
 
   override protected def closeOnce(): Unit = {
-    delegate.close()
-    val count = delegate.getCount
+    iter.close()
     val stat = QueryStat(qp.sft.getTypeName,
       System.currentTimeMillis(),
       auditProvider.getCurrentUserId,
@@ -104,30 +102,29 @@ class AccumuloFeatureReaderWithStats(val query: Query,
   }
 }
 
-private class AccumuloFeatureReaderDelegate(iter: SFIter, query: Query, qp: QueryPlanner)(implicit timings: Timings)
-    extends FeatureReader[SimpleFeatureType, SimpleFeature] with MethodProfiling {
+trait FeatureCounting extends AccumuloFeatureReader {
 
-  override def getFeatureType: SimpleFeatureType = query.getHints.getReturnSft
-  override def next(): SimpleFeature = profile(iter.next(), "next")
-  override def hasNext: Boolean = profile(iter.hasNext, "hasNext")
-  override def close(): Unit = iter.close()
+  protected var counter = 0L
+  // because the query planner configures the query hints, we can't check for bin hints
+  // until after setting up the iterator
+  protected val sfCount: (SimpleFeature) => Int = if (query.getHints.isBinQuery) {
+    // bin queries pack multiple records into each feature
+    // to count the records, we have to count the total bytes coming back, instead of the number of features
+    val bytesPerHit = if (query.getHints.getBinLabelField.isDefined) 24 else 16
+    (sf) => sf.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]].length / bytesPerHit
+  } else {
+    (_) => 1
+  }
 
-  def getCount: Int = timings.occurrences("next").toInt
-}
-
-private class AccumuloFeatureReaderBinDelegate(iter: SFIter, query: Query, qp: QueryPlanner)(implicit timings: Timings)
-    extends AccumuloFeatureReaderDelegate(iter, query, qp)(timings) {
-
-  import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
-
-  private var count = 0
-  private val bytesPerHit = if (query.getHints.getBinLabelField.isDefined) 24 else 16
-
-  override def next(): SimpleFeature = {
+  abstract override def next(): SimpleFeature = {
     val sf = super.next()
-    count += (sf.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]].length / bytesPerHit)
+    counter += sfCount(sf)
     sf
   }
 
-  override def getCount: Int = count
+  abstract override def count = counter
+}
+
+trait FeatureLimiting extends FeatureCounting {
+  abstract override def hasNext: Boolean = counter < maxFeatures && super.hasNext
 }
