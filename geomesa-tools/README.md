@@ -1095,4 +1095,10 @@ Prints out the version, git branch, and commit ID that the tools were built with
 
 #### Usage: 
    
+    $ geomesa-kafka help version
+    GeoMesa Version
+    Usage: version [options]
+    
+#### Example command:
+
     $ geomesa-kafka version
