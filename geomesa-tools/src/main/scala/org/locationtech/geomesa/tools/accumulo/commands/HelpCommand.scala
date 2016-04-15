@@ -6,33 +6,20 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.tools.common.commands
+package org.locationtech.geomesa.tools.accumulo.commands
 
-import java.util
-
-import com.beust.jcommander.{JCommander, Parameter, Parameters}
+import com.beust.jcommander.JCommander
+import org.locationtech.geomesa.tools.common.commands.AbstractHelpCommand
 import org.locationtech.geomesa.tools.accumulo.AccumuloRunner.commandUsage
-import org.locationtech.geomesa.tools.common.commands.HelpCommand.HelpParameters
 
 import scala.collection.JavaConversions._
 
-class HelpCommand(parent: JCommander) extends Command(parent) {
-  override val command = "help"
-  override val params = new HelpParameters
-
+class HelpCommand(parent: JCommander) extends AbstractHelpCommand(parent) {
   override def execute(): Unit =
     params.commandName.headOption match {
       case Some(command) => parent.usage(command)
       case None          =>
         println(commandUsage(parent) + "\nTo see help for a specific command type: geomesa help <command-name>\n")
     }
-
 }
 
-object HelpCommand {
-  @Parameters(commandDescription = "Show help")
-  class HelpParameters {
-    @Parameter(description = "commandName", required = false)
-    val commandName: util.List[String] = new util.ArrayList[String]()
-  }
-}

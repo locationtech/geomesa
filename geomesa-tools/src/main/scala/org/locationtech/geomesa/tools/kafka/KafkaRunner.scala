@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.tools.kafka
 
 import org.locationtech.geomesa.tools.common.Runner
-import org.locationtech.geomesa.tools.common.commands.{Command, HelpCommand, VersionCommand}
+import org.locationtech.geomesa.tools.common.commands.{Command, VersionCommand}
 import org.locationtech.geomesa.tools.kafka.commands._
 
 object KafkaRunner extends Runner {

@@ -76,8 +76,8 @@
             <artifactId>kafka_2.11</artifactId>
             <exclusions>
                 <exclusion>
-                    <groupId>org.slf4j:*</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>*</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>org.xerial.snappy</groupId>

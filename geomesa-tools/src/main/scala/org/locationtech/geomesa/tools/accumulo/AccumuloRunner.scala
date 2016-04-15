@@ -10,7 +10,7 @@ package org.locationtech.geomesa.tools.accumulo
 
 import org.locationtech.geomesa.tools.accumulo.commands._
 import org.locationtech.geomesa.tools.common.Runner
-import org.locationtech.geomesa.tools.common.commands.{Command, HelpCommand, VersionCommand}
+import org.locationtech.geomesa.tools.common.commands.{Command, VersionCommand}
 
 object AccumuloRunner extends Runner {
   override val scriptName: String = "geomesa"
