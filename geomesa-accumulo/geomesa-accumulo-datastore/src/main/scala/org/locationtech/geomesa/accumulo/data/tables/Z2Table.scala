@@ -40,8 +40,7 @@ object Z2Table extends GeoMesaTable {
   // roughly equivalent to 4 digits of geohash (32^4 == 2^20) and ~20km resolution
   val GEOM_Z_NUM_BYTES = 3
   // mask for zeroing the last (8 - GEOM_Z_NUM_BYTES) bytes
-  val GEOM_Z_MASK: Long =
-    java.lang.Long.decode("0x" + Array.fill(GEOM_Z_NUM_BYTES)("ff").mkString) << (8 - GEOM_Z_NUM_BYTES) * 8
+  val GEOM_Z_MASK: Long = Long.MaxValue << (64 - 8 * GEOM_Z_NUM_BYTES)
 
   override def supports(sft: SimpleFeatureType): Boolean =
     sft.getGeometryDescriptor != null && sft.getSchemaVersion > 7

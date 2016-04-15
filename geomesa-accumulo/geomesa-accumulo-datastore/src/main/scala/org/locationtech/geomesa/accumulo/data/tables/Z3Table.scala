@@ -50,8 +50,7 @@ object Z3Table extends GeoMesaTable {
   // note: we also lose time resolution
   val GEOM_Z_NUM_BYTES = 3
   // mask for zeroing the last (8 - GEOM_Z_NUM_BYTES) bytes
-  val GEOM_Z_MASK: Long =
-    java.lang.Long.decode("0x" + Array.fill(GEOM_Z_NUM_BYTES)("ff").mkString) << (8 - GEOM_Z_NUM_BYTES) * 8
+  val GEOM_Z_MASK: Long = Long.MaxValue << (64 - 8 * GEOM_Z_NUM_BYTES)
 
   override def supports(sft: SimpleFeatureType): Boolean =
     sft.getDtgField.isDefined && ((sft.getSchemaVersion > 6 && sft.getGeometryDescriptor != null) ||
