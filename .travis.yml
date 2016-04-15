@@ -12,5 +12,5 @@ jdk:
   - oraclejdk8
 
 script:
-  - export MAVEN_OPTS="-Xmx1g -XX:MaxPermSize=512m -Djava.net.preferIPv4Stack=true"
+  - export MAVEN_OPTS="-Xmx1g -Djava.net.preferIPv4Stack=true"
   - ./.travisbuild.sh
