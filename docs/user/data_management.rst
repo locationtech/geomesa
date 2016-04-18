@@ -10,13 +10,12 @@ Index Structure
 
 By default, GeoMesa creates three indices:
 
+- Z2 - the Z2 index uses a z-order curve to index latitude and longitude. This is the primary index used
+  to answer queries with a spatial component but no temporal component.
 - Z3 - the Z3 index uses a z-order curve to index latitude, longitude and time. This is the primary index
   used to answer queries with both a spatial and temporal component.
 - Record - the record index stores features by feature ID. It is used for any query by ID. Additionally,
   certain attribute queries may end up retrieving data from the record index. This is explained below.
-- GeoHash - the geohash index is the original GeoMesa index. The main index key is created using
-  the geohash of the feature geometry. This index is used to answer queries with a spatial component,
-  but no temporal component. Due to indexing optimizations, the Z3 index is preferred over this one.
 
 If specified, GeoMesa will also create the following indices:
 
@@ -144,8 +143,8 @@ Customizing Index Creation
 --------------------------
 
 To speed up ingestion, or because you are only using certain query patterns, you may disable some indices.
-The indices are created when calling ``createSchema``. If nothing is specified, the Z3, record and
-geohash indices will all be created, as well as any attribute indices you have defined.
+The indices are created when calling ``createSchema``. If nothing is specified, the Z2, Z3 and record
+indices will all be created, as well as any attribute indices you have defined.
 
 .. warning::
 
@@ -159,10 +158,10 @@ geohash indices will all be created, as well as any attribute indices you have d
 To enable only certain indices, you may set a hint in your simple feature type. The hint key is
 ``table.indexes.enabled``, and it should contain a comma-delimited list containing a subset of:
 
+- ``z2`` - corresponds to the Z2 index
 - ``z3`` - corresponds to the Z3 index
 - ``records`` - corresponds to the record index
-- ``st_idx`` - corresponds to the geohash index
-- ``attr`` - corresponds to the attribute index
+- ``attr_idx`` - corresponds to the attribute index
 
 
 Setting the hint can be done in multiple ways. If you are using a string to indicate your simple feature type
