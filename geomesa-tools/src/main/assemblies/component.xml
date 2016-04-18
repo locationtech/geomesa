@@ -4,7 +4,7 @@
            xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2 http://maven.apache.org/xsd/component-1.1.2.xsd">
     <dependencySets>
         <dependencySet>
-            <outputDirectory>lib</outputDirectory>
+            <outputDirectory>lib/common</outputDirectory>
             <directoryMode>755</directoryMode>
             <fileMode>0644</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
@@ -20,7 +20,7 @@
             </excludes>
         </dependencySet>
         <dependencySet>
-            <outputDirectory>kafka-lib</outputDirectory>
+            <outputDirectory>lib/kafka</outputDirectory>
             <directoryMode>755</directoryMode>
             <fileMode>0644</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
@@ -71,7 +71,7 @@
     <files>
         <file>
             <source>target/geomesa-tools-${project.version}.jar</source>
-            <outputDirectory>lib</outputDirectory>
+            <outputDirectory>lib/common</outputDirectory>
             <fileMode>0644</fileMode>
         </file>
     </files>

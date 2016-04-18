@@ -108,7 +108,7 @@ function findJars() {
 
 # Start constructing GEOMESA_CP (classpath)
 # include geomesa first so that the correct log4j.properties is picked up
-GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB):$(findJars $GEOMESA_HOME/kafka-lib)"
+GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB/common):$(findJars $GEOMESA_LIB/kafka)"
 
 if [ -n "$JAVA_LIBRARY_PATH" ]; then
   GEOMESA_OPTS="$GEOMESA_OPTS,java.library.path=$JAVA_LIBRARY_PATH"
