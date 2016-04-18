@@ -11,8 +11,6 @@ package org.locationtech.geomesa.blob.core.interop;
 
 import org.geotools.data.Query;
 import org.opengis.filter.Filter;
-import scala.Option;
-import scala.Tuple2;
 
 import java.io.File;
 import java.util.Iterator;
@@ -27,13 +25,15 @@ public interface GeoMesaBlobStore {
      * Add a File to the blobstore, relying on available FileHandlers to determine ingest
      * @param file File to ingest
      * @param params Map String to String, see AccumuloBlobStore for keys
+     * @return Blob id as a string or null if put failed
      */
-    Option<String> put(File file, Map<String, String> params);
+    String put(File file, Map<String, String> params);
 
     /**
-     *
+     * Adds a byte array to the blobstore, relying on user provided params for geo-indexing
      * @param bytes to ingest, bypass FileHandlers to rely on client to set params
      * @param params Map String to String, see AccumuloBlobStore for keys
+     * @return Blob id as a string or null if put failed
      */
     String put(byte[] bytes, Map<String, String> params);
 
@@ -56,7 +56,7 @@ public interface GeoMesaBlobStore {
      * @param id String feature Id of the Blob, from getIds functions
      * @return Tuple2 of (blob, filename)
      */
-    Tuple2<byte[], String> get(String id);
+    Map.Entry<String, byte[]> get(String id);
 
     /**
      * Deletes a blob from the blobstore by id

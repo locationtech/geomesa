@@ -12,11 +12,10 @@ package org.locationtech.geomesa.blob.core.impl;
 import org.geotools.data.Query;
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore;
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory;
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams;
 import org.locationtech.geomesa.blob.core.AccumuloBlobStore;
 import org.locationtech.geomesa.blob.core.interop.GeoMesaBlobStore;
 import org.opengis.filter.Filter;
-import scala.Option;
-import scala.Tuple2;
 
 import java.io.File;
 import java.io.Serializable;
@@ -26,7 +25,7 @@ import java.util.Map;
 
 public class AccumuloGeoMesaBlobStore implements GeoMesaBlobStore {
 
-    public AccumuloBlobStore accumuloBlobStore;
+    protected AccumuloBlobStore accumuloBlobStore;
 
     public AccumuloGeoMesaBlobStore(Map<String, Serializable> dataStoreParams) throws Exception {
         AccumuloDataStoreFactory accumuloDataStoreFactory = new AccumuloDataStoreFactory();
@@ -38,13 +37,19 @@ public class AccumuloGeoMesaBlobStore implements GeoMesaBlobStore {
         }
     }
 
-    public AccumuloGeoMesaBlobStore(String instanceId, String tableName, String zookeepers, String user, String password) throws Exception {
+    public AccumuloGeoMesaBlobStore(String instanceId,
+                                    String tableName,
+                                    String zookeepers,
+                                    String user,
+                                    String password,
+                                    String auths) throws Exception {
         Map<String, Serializable> dataStoreParams = new HashMap<>();
-        dataStoreParams.put("instanceId", instanceId);
-        dataStoreParams.put("tableName", tableName);
-        dataStoreParams.put("zookeepers", zookeepers);
-        dataStoreParams.put("user", user);
-        dataStoreParams.put("password", password);
+        dataStoreParams.put(AccumuloDataStoreParams.instanceIdParam().key, instanceId);
+        dataStoreParams.put(AccumuloDataStoreParams.tableNameParam().key, tableName);
+        dataStoreParams.put(AccumuloDataStoreParams.zookeepersParam().key, zookeepers);
+        dataStoreParams.put(AccumuloDataStoreParams.userParam().key, user);
+        dataStoreParams.put(AccumuloDataStoreParams.passwordParam().key, password);
+        dataStoreParams.put(AccumuloDataStoreParams.authsParam().key, auths);
         new AccumuloGeoMesaBlobStore(dataStoreParams);
     }
 
@@ -52,15 +57,17 @@ public class AccumuloGeoMesaBlobStore implements GeoMesaBlobStore {
      * Add a File to the blobstore, relying on available FileHandlers to determine ingest
      * @param file   File to ingest
      * @param params Map String to String, see AccumuloBlobStore for keys
+     * @return Blob id as a string or null if put failed
      */
     @Override
-    public Option<String> put(File file, Map<String, String> params) {
+    public String put(File file, Map<String, String> params) {
         return accumuloBlobStore.put(file, params);
     }
 
     /**
      * @param bytes  to ingest, bypass FileHandlers to rely on client to set params
      * @param params Map String to String, see AccumuloBlobStore for keys
+     * @return Blob id as a string or null if put failed
      */
     @Override
     public String put(byte[] bytes, Map<String, String> params) {
@@ -96,7 +103,7 @@ public class AccumuloGeoMesaBlobStore implements GeoMesaBlobStore {
      * @return Tuple2 of (blob, filename)
      */
     @Override
-    public Tuple2<byte[], String> get(String id) {
+    public Map.Entry<String, byte[]> get(String id) {
         return accumuloBlobStore.get(id);
     }
 

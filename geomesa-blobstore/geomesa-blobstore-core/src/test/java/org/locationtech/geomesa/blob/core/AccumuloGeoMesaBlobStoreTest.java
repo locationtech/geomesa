@@ -14,8 +14,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.locationtech.geomesa.blob.core.impl.AccumuloGeoMesaBlobStore;
 import org.opengis.filter.Filter;
-import scala.Option;
-import scala.Tuple2;
 
 import java.io.File;
 import java.io.Serializable;
@@ -59,8 +57,8 @@ public class AccumuloGeoMesaBlobStoreTest {
             Map<String, String> wkt = new HashMap<>();
             wkt.put("wkt", "POINT (0 0)");
 
-            Option<String> id = agbs.put(test1, wkt);
-            assertTrue(id.isDefined());
+            String id = agbs.put(test1, wkt);
+            assertNotNull(id);
 
             Iterator<String> ids = agbs.getIds(Filter.INCLUDE);
             int idCount = 0;
@@ -70,10 +68,10 @@ public class AccumuloGeoMesaBlobStoreTest {
             }
             assertTrue(idCount >= 1);
 
-            Tuple2<byte[], String> result = agbs.get(id.get());
-            assertEquals(result._2, "testFile.txt");
+            Map.Entry<String, byte[]> result = agbs.get(id);
+            assertEquals(result.getKey(), "testFile.txt");
 
-            agbs.delete(id.get());
+            agbs.delete(id);
 
             try {
                 TimeUnit.SECONDS.sleep(1);
@@ -99,8 +97,8 @@ public class AccumuloGeoMesaBlobStoreTest {
         String id = agbs.put(randomArray, params);
         assertFalse(id.isEmpty());
 
-        Tuple2<byte[], String> result = agbs.get(id);
-        assertEquals(result._2, "testrandomarray.txt");
+        Map.Entry<String, byte[]> result = agbs.get(id);
+        assertEquals(result.getKey(), "testrandomarray.txt");
     }
 
 }

@@ -184,13 +184,14 @@ class BlobstoreServlet(val persistence: FilePersistence)
         val id = params("id")
         logger.debug("Attempting to get blob for id: {} from store: {}", id, alias)
         try {
-          val (returnBytes, filename) = abs.get(id)
-          if (returnBytes == null) {
+          val ret = abs.get(id)
+          val bytes = ret.getValue
+          if (bytes == null) {
             BadRequest(reason = s"Unknown ID $id")
           } else {
             contentType = "application/octet-stream"
-            response.setHeader("Content-Disposition", "attachment;filename=" + filename)
-            Ok(returnBytes)
+            response.setHeader("Content-Disposition", "attachment;filename=" + ret.getKey)
+            Ok(bytes)
           }
         } catch {
           case e: Exception => handleError("Error retrieving blob", e)
@@ -225,11 +226,11 @@ class BlobstoreServlet(val persistence: FilePersistence)
     val tempFile = File.createTempFile(UUID.randomUUID().toString, FilenameUtils.getExtension(file.getName))
     try {
       file.write(tempFile)
-      abs.put(tempFile, otherParams) match {
-        case None =>
-          BadRequest(reason = "Unable to ingest file to blobstore")
-        case Some(id) =>
-          Created(body = id, headers = Map("Location" -> request.getRequestURL.append(id).toString))
+      val ret = abs.put(tempFile, otherParams)
+      if (ret == null) {
+        BadRequest(reason = "Unable to ingest file to blobstore")
+      } else {
+        Created(body = ret, headers = Map("Location" -> request.getRequestURL.append(ret).toString))
       }
     } finally {
       tempFile.delete()

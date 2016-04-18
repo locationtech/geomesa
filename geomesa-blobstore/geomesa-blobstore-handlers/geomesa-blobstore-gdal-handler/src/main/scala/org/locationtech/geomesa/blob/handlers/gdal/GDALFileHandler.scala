@@ -43,10 +43,14 @@ class GDALFileHandler extends AbstractFileHandler with LazyLogging {
     if (!initialized) {
       None
     } else {
-      val nitfFile = gdal.Open(file.getAbsolutePath, gdalconstConstants.GA_ReadOnly)
-      val geom = getImageBoundsGeometry(nitfFile)
-      nitfFile.delete()
-      geom
+      val gdalFile = gdal.Open(file.getAbsolutePath, gdalconstConstants.GA_ReadOnly)
+      if (gdalFile == null) {
+        None
+      } else {
+        val geom = getImageBoundsGeometry(gdalFile)
+        gdalFile.delete()
+        geom
+      }
     }
   }
 
