@@ -47,8 +47,12 @@ class GDALFileHandler extends AbstractFileHandler with LazyLogging {
       if (gdalFile == null) {
         None
       } else {
-        val geom = getImageBoundsGeometry(gdalFile)
-        gdalFile.delete()
+        var geom: Option[Geometry] = None
+        try {
+          geom = getImageBoundsGeometry(gdalFile)
+        } finally {
+          gdalFile.delete()
+        }
         geom
       }
     }
