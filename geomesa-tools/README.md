@@ -100,7 +100,7 @@ This library can be downloaded from your local nexus repo or `http://download.ja
 To install, copy the jai_core.jar and jai_codec.jar into `$GEOMESA_HOME/lib/`
 
 Optionally there is a script bundled as `$GEOMESA_HOME/bin/install-jai` that will attempt to wget and install 
-the jai libraries
+the jai libraries.
 
 
 ### Enabling Raster Ingest
@@ -126,19 +126,12 @@ Due to licensing restrictions, a number of necessary dependencies required for r
         <artifactId>jai_imageio</artifactId>
         <version>1.1</version>
     </dependency>
-    <dependency>
-        <groupId>java3d</groupId>
-        <artifactId>vecmath</artifactId>
-        <version>1.3.2</version>
-    </dependency>
 
 
-To install, you can either locate the jar files or run the two following included scripts which will attempt to wget and install the jars.
+To install, you can either locate the jar files or run the following included script which will attempt to wget and install the jars.
 
 `$GEOMESA_HOME/bin/install-jai`
  
-`$GEOMESA_HOME/bin/install-vecmath`
-
 ###Logging configuration
 GeoMesa tools comes bundled by default with an slf4j implementation that is installed to the $GEOMESA_HOME/lib directory
  named `slf4j-log4j12-1.7.5.jar` If you already have an slf4j implementation installed on your Java Classpath you may
@@ -484,7 +477,7 @@ Gets an existing simple feature type as an encoded string.
     geomesa getsft -u username -p password -c test_catalog -f test_feature -i instance
 
 ### ingest
-Ingests various file formats into GeoMesa using the GeoMesa Converter Framework. CConverters are specified in HOCON 
+Ingests various file formats into GeoMesa using the GeoMesa Converter Framework. Converters are specified in HOCON 
 format (https://github.com/typesafehub/config/blob/master/HOCON.md). GeoMesa defines several common converter factories 
 for formats such as delimited text (TSV, CSV), fixed width files, JSON, XML, and Avro. New converter factories (e.g. 
 for custom binary formats) can be registered on the classpath using Java SPI. Shapefile ingest is also supported. Files 

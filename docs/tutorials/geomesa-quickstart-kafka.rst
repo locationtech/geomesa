@@ -218,6 +218,88 @@ querying for when ``KafkaLogTime`` equals *x*.
 For a deeper understanding of what's going on, we recommend exploring
 the source code.
 
+(Optional) Listening for FeatureEvents
+--------------------------------------
+
+The GeoTools API also includes a mechanism to fire off a
+```FeatureEvent`` <http://docs.geotools.org/stable/javadocs/index.html?org/geotools/data/FeatureEvent.Type.html>`__
+each time there is an event (typically when the data are changed) in a
+``DataStore``. A client may implement a
+```FeatureListener`` <http://docs.geotools.org/stable/javadocs/index.html?org/geotools/data/FeatureEvent.Type.html>`__,
+which has a single method called ``changed()`` that is invoked as each
+``FeatureEvent`` is fired.
+
+The code in ``com.example.geomesa.kafa.KafkaListener`` implements a
+simple ``FeatureListener`` that simply prints the messages received.
+Open up a second terminal window and run:
+
+.. code-block:: bash
+
+    $ java -cp geomesa-quickstart-kafka/target/geomesa-quickstart-kafka-${geomesa.version}.jar com.example.geomesa.kafka.KafkaListener -brokers <brokers> -zookeepers <zookeepers>
+
+and use the same settings for ``<brokers>`` and ``<zookeepers>``. Then
+in the first terminal window, re-run the ``KafkaQuickStart`` code as
+before. The ``KafkaListener`` terminal should produce messages like the
+following:
+
+::
+
+    Received FeatureEvent of Type: CHANGED
+    fid:1 | name:Hannah | age:53 | dtg:Sun Dec 13 11:04:40 EST 2015 | geom:POINT (-66 -33)
+    Received FeatureEvent of Type: CHANGED
+    fid:2 | name:Claire | age:77 | dtg:Thu Feb 26 02:06:41 EST 2015 | geom:POINT (-66 33)
+
+The ``KafkaListener`` code will run until interrupted.
+
+The portion of ``KafkaListener`` that creates and implements the
+``FeatureListener`` is:
+
+.. code-block:: java
+
+    // the live consumer must be created before the producer writes features
+    // in order to read streaming data.
+    // i.e. the live consumer will only read data written after its instantiation
+    SimpleFeatureSource consumerFS = consumerDS.getFeatureSource(sftName);
+
+    consumerFS.addFeatureListener(new FeatureListener() {
+        @Override
+        public void changed(FeatureEvent featureEvent) {
+            System.out.println("Received FeatureEvent of Type: " + featureEvent.getType());
+
+            if (featureEvent.getType() == FeatureEvent.Type.CHANGED && 
+                    featureEvent instanceof KafkaFeatureEvent) {
+                printFeature(((KafkaFeatureEvent) featureEvent).feature());
+            }
+
+            if (featureEvent.getType() == FeatureEvent.Type.REMOVED) {
+                System.out.println("Received Delete for filter: " + featureEvent.getFilter());
+            }
+        }
+    });
+
+Additionally, the ``KafkaQuickStart`` class run above can generate a
+'clear' control message at the end of the run if you specify
+"-Dclear=true" on the commandline. This will generate a Feature removed
+``FeatureEvent`` with a ``Filter.INCLUDE``.
+
+.. code-block:: bash
+
+    $ java -Dclear=true -cp geomesa-quickstart-kafka/target/geomesa-quickstart-kafka-${geomesa.version}.jar com.example.geomesa.kafka.KafkaQuickStart -brokers <brokers> -zookeepers <zookeepers> 
+
+KafkaDataStore Load Test
+------------------------
+
+For those interested in load testing the KafkaDataStore, there is a
+simple utility with constructs any number of SimpleFeatures, rolls a
+random latitude, and then have them step left or right.
+
+.. code-block:: bash
+
+    $ java -cp target/geomesa-quickstart-kafka-${geomesa.version}.jar com.example.geomesa.kafka.KafkaLoadTester -brokers <brokers> -zookeepers <zookeepers> -count <count>
+
+The 'count' parameter is optional. Without it, the tool defaults to 1000
+SimpleFeatures.
+
 Conclusion
 ----------
 

@@ -59,11 +59,11 @@ author = u''
 #
 # version: The short X.Y version.
 # release: The full version, including alpha/beta/rc tags.
-release = '1.2.1'
-version = '1.2.1'
+release = '1.2.2'
+version = '1.2.2'
 
 release_1_1 = '1.1.0-rc.7'
-version_devel = '1.2.2-SNAPSHOT'
+version_devel = '1.2.3-SNAPSHOT'
 
 # RST appended to every file. Used for global substitions.
 # (the "%(release)s" substitutions are done by the Python format() method

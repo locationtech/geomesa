@@ -137,7 +137,6 @@ ingest must be separately installed. Do this with the following commands:
 
     $ bin/install-jai
     $ bin/install-jline
-    $ bin/install-vecmath
 
 Test the command that invokes the GeoMesa Tools:
 
