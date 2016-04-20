@@ -225,7 +225,7 @@ against the current state. For example:
 ::
 
     String typeName = ...
-    SimpleFeatureSource liveFeatureSource = consumerDs.getFeaturproducerFSeSource(typeName);
+    SimpleFeatureSource liveFeatureSource = consumerDs.getFeatureSource(typeName);
 
     Filter filter = ...
     liveFeatureSource.getFeatures(filter);
