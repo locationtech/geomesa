@@ -12,6 +12,7 @@
     <name>GeoMesa Kafka Parent</name>
     <modules>
         <module>geomesa-kafka-datastore</module>
+        <module>geomesa-kafka-09-datastore</module>
     </modules>
 
     <properties>
