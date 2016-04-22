@@ -44,10 +44,9 @@ object RecordIdxStrategy extends StrategyProvider {
 class RecordIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging {
 
   override def getQueryPlan(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType) = {
-
+    val ds = queryPlanner.ds
     val sft = queryPlanner.sft
-    val acc = queryPlanner.acc
-    val featureEncoding = queryPlanner.featureEncoding
+    val featureEncoding = queryPlanner.ds.getFeatureEncoding(sft)
     val prefix = sft.getTableSharingPrefix
 
     val ranges = if (filter.primary.forall(_ == Filter.INCLUDE)) {
@@ -71,8 +70,8 @@ class RecordIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLoggi
       }
     }
 
-    val table = acc.getTableName(sft.getTypeName, RecordTable)
-    val threads = acc.getSuggestedThreads(sft.getTypeName, RecordTable)
+    val table = ds.getTableName(sft.getTypeName, RecordTable)
+    val threads = ds.getSuggestedThreads(sft.getTypeName, RecordTable)
 
     if (sft.getSchemaVersion > 5) {
       // optimized path when we know we're using kryo serialization

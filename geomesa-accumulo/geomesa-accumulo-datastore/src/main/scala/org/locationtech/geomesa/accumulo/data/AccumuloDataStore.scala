@@ -518,10 +518,7 @@ class AccumuloDataStore(val connector: Connector,
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    val indexSchemaFmt = getIndexSchemaFmt(typeName)
-    val featureEncoding = getFeatureEncoding(sft)
-    val hints = strategyHints(sft)
-    new QueryPlanner(sft, featureEncoding, indexSchemaFmt, this, hints)
+    new QueryPlanner(sft, this)
   }
 
   // end public methods
@@ -674,4 +671,5 @@ case class AccumuloDataStoreConfig(queryTimeout: Option[Long],
                                    queryThreads: Int,
                                    recordThreads: Int,
                                    writeThreads: Int,
-                                   caching: Boolean)
+                                   caching: Boolean,
+                                   looseBBox: Boolean)

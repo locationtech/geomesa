@@ -55,8 +55,8 @@ class AttributeIdxStrategyV5(val filter: QueryFilter) extends Strategy with Lazy
     assert(propsAndRanges.forall(_._1 == attributeName))
 
     val sft = queryPlanner.sft
-    val acc = queryPlanner.acc
-    val encoding = queryPlanner.featureEncoding
+    val acc = queryPlanner.ds
+    val encoding = queryPlanner.ds.getFeatureEncoding(sft)
     val version = sft.getSchemaVersion
     val hasDupes = sft.getDescriptor(attributeName).isMultiValued
 
