@@ -59,9 +59,13 @@ Next, create the schema.  Each data store can have one or many schemas.  For exa
 The call to `KafkaDataStoreHelper.createSchema` creates a copy of the `sft` with the required hint added.  In
 this case the hint is the name of the Kafka topic.  The `zkPath` parameter is uses to make the Kafka topic
 name unique to the `zkPath` used by the `KafkaDataStore` so that the same `SimpleFeatureType` can be used by
-multiple `KafkaDataStore`s where each data store has a different `zkPath`.  The `createSchema` method will
-throw an exception if the given `SimpleFeatureType` does not contain the required hint, i.e., if it was not
-created by the `KafkaDataStoreHelper`.
+multiple `KafkaDataStore`s where each data store has a different `zkPath`.  Specifically, the resulting Kafka topic's
+name will be zkPath-sftName where the forward slashes in the `zkPath` are replaced by `-`.  e.g. creating a schema 
+with a `zkPath` of /geomesa/ds/kafka with an `sft` called example_sft will create a Kafka topic 
+called geomesa-ds-kafka-example_sft.
+ 
+The `createSchema` method will throw an exception if the given `SimpleFeatureType` does not contain the required hint, 
+i.e., if it was not created by the `KafkaDataStoreHelper`.
 
 Now, you can create or update simple features:
 
@@ -137,6 +141,12 @@ against the current state.  For example:
     Filter filter = ...
     liveFeatureSource.getFeatures(filter);
 
+It is also possible to provide a CQL filter to the getFeatureSource method call which will ensure
+the resulting `FeatureSource` only contains certain records. Providing a filter to reduce the number of
+returned records will provide a performance boost when using the featureSource.
+
+    String typeName = ...
+    SimpleFeatureSource liveFeatureSource = consumerDs.getFeatureSource(typeName, filter);
 
 #### Replay Mode
     
