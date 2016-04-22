@@ -27,19 +27,19 @@ import org.opengis.filter.spatial._
 
 class Z2IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging with IndexFilterHelpers {
 
-  import org.locationtech.geomesa.filter._
-  import FilterHelper._
-  import QueryHints._
-  import Z2IdxStrategy._
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
-
   /**
     * Plans the query - strategy implementations need to define this
     */
   override def getQueryPlan(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType): QueryPlan = {
 
+    import QueryHints.{LOOSE_BBOX, RichHints}
+    import Z2IdxStrategy._
+    import org.locationtech.geomesa.filter.FilterHelper._
+    import org.locationtech.geomesa.filter._
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+
+    val ds  = queryPlanner.ds
     val sft = queryPlanner.sft
-    val acc = queryPlanner.acc
 
     val isInclude = QueryFilterSplitter.isFullTableScan(filter)
 
@@ -68,13 +68,16 @@ class Z2IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
 
     output(s"GeomsToCover: $geometryToCover")
 
-    val ecql: Option[Filter] = if (isInclude || sft.nonPoints) {
-      // for non-point geoms, the index is coarse-grained, so we always apply the full filter
+    val looseBBox = if (hints.containsKey(LOOSE_BBOX)) Boolean.unbox(hints.get(LOOSE_BBOX)) else ds.config.looseBBox
+
+    val ecql: Option[Filter] = if (isInclude || !looseBBox || sft.nonPoints) {
+      // if this is a full table scan, we can just use the filter option to get the secondary ecql
+      // if the user has requested strict bounding boxes, we apply the full filter
+      // if this is a non-point geometry, the index is coarse-grained, so we apply the full filter
       filter.filter
     } else {
       // for normal bboxes, the index is fine enough that we don't need to apply the filter on top of it
       // this may cause some minor errors at extremely fine resolution, but the performance is worth it
-      // TODO GEOMESA-1000 add some kind of 'loose bbox' config, a la postgis
       // if we have a complicated geometry predicate, we need to pass it through to be evaluated
       val complexGeomFilter = filterListAsAnd(filter.primary.filter(isComplicatedSpatialFilter))
       (complexGeomFilter, filter.secondary) match {
@@ -109,8 +112,8 @@ class Z2IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
       (iters, queryPlanner.defaultKVsToFeatures(hints), Z2Table.FULL_CF, sft.nonPoints)
     }
 
-    val z2table = acc.getTableName(sft.getTypeName, Z2Table)
-    val numThreads = acc.getSuggestedThreads(sft.getTypeName, Z2Table)
+    val z2table = ds.getTableName(sft.getTypeName, Z2Table)
+    val numThreads = ds.getSuggestedThreads(sft.getTypeName, Z2Table)
 
     val (ranges, z2Iter) = if (isInclude) {
       val range = if (sft.isTableSharing) {

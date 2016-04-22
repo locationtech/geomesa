@@ -23,7 +23,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
-import org.locationtech.geomesa.accumulo.index.{ExplainString, JoinPlan, QueryPlanner}
+import org.locationtech.geomesa.accumulo.index.{ExplainString, JoinPlan, QueryHints, QueryPlanner}
 import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, TestData}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction}
@@ -250,8 +250,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val query = new Query(sft.getTypeName, ECQL.toFilter("BBOX(geom,40,40,50,50)"))
       query.getHints.put(BIN_TRACK_KEY, "name")
       query.getHints.put(BIN_BATCH_SIZE_KEY, 1000)
-      val queryPlanner = new QueryPlanner(sft, ds.getFeatureEncoding(sft),
-        ds.getIndexSchemaFmt(sft.getTypeName), ds, ds.strategyHints(sft))
+      val queryPlanner = new QueryPlanner(sft, ds)
       val results = queryPlanner.runQuery(query, Some(StrategyType.Z2)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
@@ -376,6 +375,109 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       expectStrategy("RecordIdxStrategy")
 
       success
+    }
+
+    "allow for loose bounding box config" >> {
+
+      val bbox = "bbox(geom,45.000000001,49.000000001,46,50)"
+      val z2Query = new Query(defaultSft.getTypeName, ECQL.toFilter(bbox))
+      val z3Query = new Query(defaultSft.getTypeName,
+        ECQL.toFilter(s"$bbox AND dtg DURING 2010-05-07T12:25:00.000Z/2010-05-07T12:35:00.000Z"))
+
+      val params = Map(
+        "connector" -> ds.connector,
+        "tableName" -> ds.catalogTable,
+        AccumuloDataStoreParams.looseBBoxParam.getName -> "false"
+      )
+
+      val strictDs = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+
+      "with loose bbox as default" >> {
+        "for z2 index" >> {
+          val looseReader = ds.getFeatureReader(z2Query, Transaction.AUTO_COMMIT)
+          try {
+            looseReader.hasNext must beTrue
+          } finally {
+            looseReader.close()
+          }
+        }
+        "for z3 index" >> {
+          val looseReader = ds.getFeatureReader(z3Query, Transaction.AUTO_COMMIT)
+          try {
+            looseReader.hasNext must beTrue
+          } finally {
+            looseReader.close()
+          }
+        }
+      }
+
+      "with strict configuration through data store params" >> {
+        "for z2 index" >> {
+          val strictReader = strictDs.getFeatureReader(z2Query, Transaction.AUTO_COMMIT)
+          try {
+            strictReader.hasNext must beFalse
+          } finally {
+            strictReader.close()
+          }
+        }
+        "for z3 index" >> {
+          val strictReader = strictDs.getFeatureReader(z3Query, Transaction.AUTO_COMMIT)
+          try {
+            strictReader.hasNext must beFalse
+          } finally {
+            strictReader.close()
+          }
+        }
+      }
+
+      "with query hints" >> {
+        "overriding loose config" >> {
+          "for z2 index" >> {
+            val strictZ2Query = new Query(z2Query)
+            strictZ2Query.getHints.put(QueryHints.LOOSE_BBOX, java.lang.Boolean.FALSE)
+            val strictReader = ds.getFeatureReader(strictZ2Query, Transaction.AUTO_COMMIT)
+            try {
+              strictReader.hasNext must beFalse
+            } finally {
+              strictReader.close()
+            }
+          }
+          "for z3 index" >> {
+            val strictZ3Query = new Query(z3Query)
+            strictZ3Query.getHints.put(QueryHints.LOOSE_BBOX, java.lang.Boolean.FALSE)
+            val strictReader = ds.getFeatureReader(strictZ3Query, Transaction.AUTO_COMMIT)
+            try {
+              strictReader.hasNext must beFalse
+            } finally {
+              strictReader.close()
+            }
+          }
+        }
+
+        "overriding strict config" >> {
+          "for z2 index" >> {
+            val looseZ2Query = new Query(z2Query)
+            looseZ2Query.getHints.put(QueryHints.LOOSE_BBOX, java.lang.Boolean.TRUE)
+            val looseReader = strictDs.getFeatureReader(looseZ2Query, Transaction.AUTO_COMMIT)
+            try {
+              looseReader.hasNext must beTrue
+            } finally {
+              looseReader.close()
+            }
+          }
+
+          "for z3 index" >> {
+            val looseZ3Query = new Query(z3Query)
+            looseZ3Query.getHints.put(QueryHints.LOOSE_BBOX, java.lang.Boolean.TRUE)
+            val looseReader = strictDs.getFeatureReader(looseZ3Query, Transaction.AUTO_COMMIT)
+            try {
+              looseReader.hasNext must beTrue
+            } finally {
+              looseReader.close()
+            }
+          }
+        }
+      }
     }
 
     "be able to run explainQuery" in {

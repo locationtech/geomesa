@@ -46,6 +46,7 @@ package object index {
     val MAP_AGGREGATION_KEY  = new ClassKey(classOf[java.lang.String])
 
     val EXACT_COUNT          = new ClassKey(classOf[java.lang.Boolean])
+    val LOOSE_BBOX           = new ClassKey(classOf[java.lang.Boolean])
 
     val SAMPLING_KEY         = new ClassKey(classOf[java.lang.Float])
     val SAMPLE_BY_KEY        = new ClassKey(classOf[String])

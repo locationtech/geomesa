@@ -41,8 +41,8 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
    * Perform scan against the Attribute Index Table and get an iterator returning records from the Record table
    */
   override def getQueryPlan(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType) = {
+    val ds = queryPlanner.ds
     val sft = queryPlanner.sft
-    val acc = queryPlanner.acc
 
     // pull out any dates from the filter to help narrow down the attribute ranges
     val dates = {
@@ -67,8 +67,8 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
     val sampling = hints.getSampling
     val hasDupes = descriptor.isMultiValued
 
-    val attrTable = acc.getTableName(sft.getTypeName, AttributeTable)
-    val attrThreads = acc.getSuggestedThreads(sft.getTypeName, AttributeTable)
+    val attrTable = ds.getTableName(sft.getTypeName, AttributeTable)
+    val attrThreads = ds.getSuggestedThreads(sft.getTypeName, AttributeTable)
     val priority = FILTERING_ITER_PRIORITY
 
     // query against the attribute table
@@ -166,13 +166,13 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
     val recordIterators = if (hints.isStatsIteratorQuery) {
       Seq(KryoLazyStatsIterator.configure(sft, ecqlFilter, hints, deduplicate = false))
     } else if (ecqlFilter.isDefined || hints.getTransformSchema.isDefined) {
-      Seq(configureRecordTableIterator(sft, queryPlanner.featureEncoding, ecqlFilter, hints))
+      Seq(configureRecordTableIterator(sft, queryPlanner.ds.getFeatureEncoding(sft), ecqlFilter, hints))
     } else {
       Seq.empty
     }
     val kvsToFeatures = if (hints.isBinQuery) {
       // TODO GEOMESA-822 we can use the aggregating iterator if the features are kryo encoded
-      BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, hints, queryPlanner.featureEncoding)
+      BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, hints, queryPlanner.ds.getFeatureEncoding(sft))
     } else if (hints.isStatsIteratorQuery) {
       KryoLazyStatsIterator.kvsToFeatures(sft)
     } else {
@@ -186,8 +186,8 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
     val joinFunction: JoinFunction =
       (kv) => new AccRange(RecordTable.getRowKey(prefix, getIdFromRow(kv.getKey.getRow.getBytes)))
 
-    val recordTable = queryPlanner.acc.getTableName(sft.getTypeName, RecordTable)
-    val recordThreads = queryPlanner.acc.getSuggestedThreads(sft.getTypeName, RecordTable)
+    val recordTable = queryPlanner.ds.getTableName(sft.getTypeName, RecordTable)
+    val recordThreads = queryPlanner.ds.getSuggestedThreads(sft.getTypeName, RecordTable)
     val recordRanges = Seq(new AccRange()) // this will get overwritten in the join method
     val joinQuery = BatchScanPlan(recordTable, recordRanges, recordIterators, Seq.empty,
       kvsToFeatures, recordThreads, hasDupes)
