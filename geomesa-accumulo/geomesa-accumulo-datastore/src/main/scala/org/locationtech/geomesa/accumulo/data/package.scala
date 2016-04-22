@@ -8,11 +8,10 @@
 
 package org.locationtech.geomesa.accumulo
 
-import org.apache.accumulo.core.data.{Key, Value}
+import org.apache.accumulo.core.data.Value
 import org.apache.hadoop.io.Text
 import org.geotools.data.FeatureWriter
 import org.geotools.factory.Hints.ClassKey
-import org.joda.time.{DateTime, Interval}
 import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -41,6 +40,7 @@ package object data {
   val ST_IDX_TABLE_KEY       = "tables.idx.st.name"
   val ATTR_IDX_TABLE_KEY     = "tables.idx.attr.name"
   val RECORD_TABLE_KEY       = "tables.record.name"
+  val Z2_TABLE_KEY           = "tables.z2.name"
   val Z3_TABLE_KEY           = "tables.z3.name"
   val QUERIES_TABLE_KEY      = "tables.queries.name"
   val SHARED_TABLES_KEY      = "tables.sharing"

@@ -37,12 +37,11 @@ class BackCompatibilityTest extends Specification with TestWithMultipleSfts {
 
   val queries = Seq(
     ("bbox(geom, 40, 54.5, 50, 60)", Seq(5, 6, 7, 8, 9)),
-    ("bbox(geom, 40, 54.5, 50, 60) AND dtg DURING 2014-01-10T00:00:00.000Z/2014-01-17T23:59:59.999Z", Seq(5, 6, 7)),
-    ("name = 'name5' AND bbox(geom, 40, 54.5, 50, 60) AND dtg DURING 2014-01-10T00:00:00.000Z/2014-01-17T23:59:59.999Z", Seq(5)),
-    ("name = 'name5' AND dtg DURING 2014-01-10T00:00:00.000Z/2014-01-17T23:59:59.999Z", Seq(5)),
+    ("bbox(geom, 40, 54.5, 50, 60) AND dtg DURING 2014-01-14T00:00:00.000Z/2014-01-17T23:59:59.999Z", Seq(5, 6, 7)),
+    ("name = 'name5' AND bbox(geom, 40, 54.5, 50, 60) AND dtg DURING 2014-01-14T00:00:00.000Z/2014-01-15T23:59:59.999Z", Seq(5)),
+    ("name = 'name5' AND dtg DURING 2014-01-14T00:00:00.000Z/2014-01-15T23:59:59.999Z", Seq(5)),
     ("name = 'name5' AND bbox(geom, 40, 54.5, 50, 60)", Seq(5)),
-    ("age > '16' AND bbox(geom, 40, 54.5, 50, 60)", Seq(7, 8, 9)),
-    ("dtg DURING 2014-01-10T00:00:00.000Z/2014-01-17T23:59:59.999Z", Seq(1, 2, 3, 4, 5, 6, 7))
+    ("age > '16' AND bbox(geom, 40, 54.5, 50, 60)", Seq(7, 8, 9))
   )
 
   val transforms = Seq(
@@ -55,24 +54,24 @@ class BackCompatibilityTest extends Specification with TestWithMultipleSfts {
     fs.getFeatures(query).features.map(_.getID.toInt).toList
 
   def runVersionTest(version: Int) = {
-    val sft = createNewSchema(spec)
-    ds.metadata.insert(sft.getTypeName, VERSION_KEY, version.toString)
-    ds.metadata.expireCache(sft.getTypeName)
+    val sft = createNewSchema(spec, schemaVersion = Some(version))
+
     addFeatures(sft, getTestFeatures(sft))
 
-    val fs = ds.getFeatureSource(sft.getTypeName).asInstanceOf[AccumuloFeatureStore]
+    val fs = ds.getFeatureSource(sft.getTypeName)
 
     queries.foreach { case (q, results) =>
       val filter = ECQL.toFilter(q)
-      doQuery(fs, new Query(sft.getTypeName, filter)) mustEqual results
+      doQuery(fs, new Query(sft.getTypeName, filter)) must containTheSameElementsAs(results)
       transforms.foreach { t =>
-        doQuery(fs, new Query(sft.getTypeName, filter, t)) mustEqual results
+        doQuery(fs, new Query(sft.getTypeName, filter, t)) must containTheSameElementsAs(results)
       }
     }
   }
 
   "GeoMesa" should {
-    (2 until CURRENT_SCHEMA_VERSION).foreach { version =>
+    // note: version number 3 was skipped
+    (2 until CURRENT_SCHEMA_VERSION).filter(_ != 3).foreach { version =>
       s"support back compatibility to version $version" >> {
         runVersionTest(version)
         success

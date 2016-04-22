@@ -216,7 +216,7 @@ class AccumuloBackedMetadata(connector: Connector,
     val scanner = createCatalogScanner
     scanner.setRange(new Range(METADATA_TAG, METADATA_TAG_END))
     // restrict to just schema cf so we only get 1 hit per feature
-    scanner.fetchColumnFamily(new Text(SCHEMA_KEY))
+    scanner.fetchColumnFamily(new Text(VERSION_KEY))
     try {
       scanner.map(kv => getFeatureNameFromMetadataRowKey(kv.getKey.getRow.toString)).toArray
     } finally {

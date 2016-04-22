@@ -35,7 +35,7 @@ import scala.collection.JavaConverters._
 trait TestWithDataStore extends Specification {
 
   def spec: String
-  def dtgField: String = "dtg"
+  def dtgField: Option[String] = Some("dtg")
 
   // TODO GEOMESA-1146 refactor to allow running of tests with table sharing on and off...
   def tableSharing: Boolean = true
@@ -48,7 +48,7 @@ trait TestWithDataStore extends Specification {
   lazy val (ds, sft) = {
     val sft = SimpleFeatureTypes.createType(sftName, spec)
     sft.setTableSharing(tableSharing)
-    sft.setDtgField(dtgField)
+    dtgField.foreach(sft.setDtgField)
     val ds = DataStoreFinder.getDataStore(Map(
       "connector" -> connector,
       "caching"   -> false,

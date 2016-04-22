@@ -29,6 +29,7 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+@deprecated("z2")
 class STIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging with IndexFilterHelpers {
 
   override def getQueryPlan(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType) = {
@@ -249,6 +250,7 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
   }
 }
 
+@deprecated("z2")
 object STIdxStrategy extends StrategyProvider {
 
   /**

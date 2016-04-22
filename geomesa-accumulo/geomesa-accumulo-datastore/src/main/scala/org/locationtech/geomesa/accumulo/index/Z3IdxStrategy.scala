@@ -107,7 +107,7 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
       (Seq(iter), queryPlanner.defaultKVsToFeatures(hints), Z3Table.FULL_CF, false)
     } else {
       val iters = KryoLazyFilterTransformIterator.configure(sft, ecql, hints).toSeq
-      (iters, Z3Table.adaptZ3KryoIterator(hints.getReturnSft), Z3Table.FULL_CF, sft.nonPoints)
+      (iters, queryPlanner.defaultKVsToFeatures(hints), Z3Table.FULL_CF, sft.nonPoints)
     }
 
     val z3table = acc.getTableName(sft.getTypeName, Z3Table)
@@ -204,7 +204,10 @@ object Z3IdxStrategy extends StrategyProvider {
    * Eventually cost will be computed based on dynamic metadata and the query.
    */
   override def getCost(filter: QueryFilter, sft: SimpleFeatureType, hints: StrategyHints) =
-    if (filter.primary.length > 1) 200 else 400
+  // https://geomesa.atlassian.net/browse/GEOMESA-1166
+  // TODO check date range and use z2 instead if too big
+  // TODO also if very small bbox, z2 has ~10 more bits of lat/lon info
+    if (filter.primary.exists(isSpatialFilter)) 200 else 401
 
   def isComplicatedSpatialFilter(f: Filter): Boolean = {
     f match {
