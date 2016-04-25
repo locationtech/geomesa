@@ -15,9 +15,9 @@ import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import org.locationtech.geomesa.accumulo.stats.RasterQueryStatTransform
 import org.locationtech.geomesa.raster.data.AccumuloRasterStore
 import org.locationtech.geomesa.tools.AccumuloProperties
-import org.locationtech.geomesa.tools.commands.QueryStatsCommand.QueryStatsParameters
+import org.locationtech.geomesa.tools.commands.QueryRasterStatsCommand.QueryStatsParameters
 
-class QueryStatsCommand(parent: JCommander) extends Command(parent) with AccumuloProperties {
+class QueryRasterStatsCommand(parent: JCommander) extends Command(parent) with AccumuloProperties {
   override val command: String = "queryrasterstats"
   override val params = new QueryStatsParameters()
 
@@ -53,7 +53,7 @@ class QueryStatsCommand(parent: JCommander) extends Command(parent) with Accumul
   }
 }
 
-object QueryStatsCommand {
+object QueryRasterStatsCommand {
   @Parameters(commandDescription = "Export queries and statistics about the last X number of queries to a CSV file.")
   class QueryStatsParameters extends RasterParams {
     @Parameter(names = Array("-n", "--number-of-records"), description = "Number of query records to export from Accumulo")

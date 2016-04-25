@@ -17,8 +17,10 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.{Constants, IndexEntryDecoder}
 import org.locationtech.geomesa.filter._
+import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -100,7 +102,9 @@ class GenerateKNNQueryTest extends Specification {
       val (geomFilters, otherFilters) = partitionPrimarySpatials(newFilter, sft)
 
       // rewrite the geometry filter
-      val tweakedGeomFilters = geomFilters.map ( FilterHelper.updateTopologicalFilters(_, sft) )
+      val tweakedGeomFilters = geomFilters.map { filter =>
+        filter.accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter]
+      }
 
       val geomsToCover = tweakedGeomFilters.flatMap(FilterHelper.decomposeToGeometry)
 

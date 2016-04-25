@@ -23,6 +23,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess
 import org.geotools.process.vector.TransformProcess.Definition
 import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.accumulo.data.stats.GeoMesaStats
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanners.FeatureFunction
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
@@ -55,7 +56,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
                         featureEncoding: SerializationType,
                         stSchema: String,
                         acc: AccumuloConnectorCreator,
-                        strategyHints: StrategyHints) extends MethodProfiling {
+                        stats: GeoMesaStats) extends MethodProfiling {
 
   import org.locationtech.geomesa.accumulo.index.QueryPlanner._
 
@@ -131,7 +132,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
 
     output.pushLevel("Strategy selection:")
     val requestedStrategy = requested.orElse(hints.getRequestedStrategy)
-    val strategies = QueryStrategyDecider.chooseStrategies(sft, q, strategyHints, requestedStrategy, output)
+    val strategies = QueryStrategyDecider.chooseStrategies(sft, q, stats, requestedStrategy, output)
     output.popLevel()
     var strategyCount = 1
     strategies.iterator.map { strategy =>
@@ -152,7 +153,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
     output(s"Table: ${plan.table}")
     output(s"Deduplicate: ${plan.hasDuplicates}")
     output(s"Column Families${if (plan.columnFamilies.isEmpty) ": all"
-      else s" (${plan.columnFamilies.size}): ${plan.columnFamilies.take(20)}"} ")
+      else s" (${plan.columnFamilies.size}): ${plan.columnFamilies.take(20)}"}")
     output(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(rangeToString).mkString(", ")}")
     output(s"Iterators (${plan.iterators.size}):", plan.iterators.map(_.toString))
     plan.join.foreach { j => outputPlan(j._2, output, "Join ") }
@@ -204,7 +205,7 @@ object QueryPlanner extends LazyLogging {
   private val threadedHints = new SoftThreadLocal[Map[AnyRef, AnyRef]]
 
   def apply(sft: SimpleFeatureType, ds: AccumuloDataStore): QueryPlanner =
-    new QueryPlanner(sft, ds.getFeatureEncoding(sft), ds.getIndexSchemaFmt(sft.getTypeName), ds, ds.strategyHints(sft))
+    new QueryPlanner(sft, ds.getFeatureEncoding(sft), ds.getIndexSchemaFmt(sft.getTypeName), ds, ds.stats)
 
   def setPerThreadQueryHints(hints: Map[AnyRef, AnyRef]): Unit = threadedHints.put(hints)
   def clearPerThreadQueryHints() = threadedHints.clear()

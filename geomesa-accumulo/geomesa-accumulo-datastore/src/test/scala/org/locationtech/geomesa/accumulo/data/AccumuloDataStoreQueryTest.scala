@@ -139,8 +139,9 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         o.toString()
       }
 
-      explainNull must contain("Geometry filters: BBOX(geom, 40.0,44.0,50.0,54.0)")
-      explainEmpty must contain("Geometry filters: BBOX(geom, 40.0,44.0,50.0,54.0)")
+
+      explainNull must contain("Strategy filter: Z2[BBOX(geom, 40.0,44.0,50.0,54.0)][None]")
+      explainEmpty must contain("Strategy filter: Z2[BBOX(geom, 40.0,44.0,50.0,54.0)][None]")
 
       val featuresNull = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(queryNull).features.toSeq
       val featuresEmpty = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(queryEmpty).features.toSeq
@@ -251,7 +252,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       query.getHints.put(BIN_TRACK_KEY, "name")
       query.getHints.put(BIN_BATCH_SIZE_KEY, 1000)
       val queryPlanner = new QueryPlanner(sft, ds.getFeatureEncoding(sft),
-        ds.getIndexSchemaFmt(sft.getTypeName), ds, ds.strategyHints(sft))
+        ds.getIndexSchemaFmt(sft.getTypeName), ds, ds.stats)
       val results = queryPlanner.runQuery(query, Some(StrategyType.Z2)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))

@@ -33,6 +33,18 @@ class Histogram[T](val attribute: Int)(implicit ct: ClassTag[T]) extends Stat {
     }
   }
 
+  override def unobserve(sf: SimpleFeature): Unit = {
+    val value = sf.getAttribute(attribute).asInstanceOf[T]
+    if (value != null) {
+      val current = histogram(value)
+      if (current == 1) {
+        histogram.remove(value)
+      } else {
+        histogram(value) = current - 1
+      }
+    }
+  }
+
   override def +(other: Histogram[T]): Histogram[T] = {
     val plus = new Histogram[T](attribute)
     plus += this
@@ -53,10 +65,8 @@ class Histogram[T](val attribute: Int)(implicit ct: ClassTag[T]) extends Stat {
 
   override def clear(): Unit = histogram.clear()
 
-  override def equals(other: Any): Boolean = other match {
+  override def isEquivalent(other: Stat): Boolean = other match {
     case that: Histogram[_] => attribute == that.attribute && histogram == that.histogram
     case _ => false
   }
-
-  override def hashCode(): Int = Seq(attribute, histogram).map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
 }

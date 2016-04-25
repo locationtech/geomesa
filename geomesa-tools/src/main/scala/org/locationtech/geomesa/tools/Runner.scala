@@ -49,8 +49,10 @@ object Runner extends LazyLogging {
       new RemoveSchemaCommand(jc),
       new TableConfCommand(jc),
       new VersionCommand(jc),
-      new QueryStatsCommand(jc),
-      new GetSftCommand(jc)
+      new QueryRasterStatsCommand(jc),
+      new GetSftCommand(jc),
+      new StatsListCommand(jc),
+      new StatsAnalyzeCommand(jc)
     )
 
     commands.foreach(_.register)

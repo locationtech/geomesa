@@ -38,6 +38,15 @@ trait Stat {
   def observe(sf: SimpleFeature): Unit
 
   /**
+    * Tries to remove the given simple feature from the compiled statistics.
+    * Note: may not be possible to un-observe a feature, in which case this method will
+    * have no effect.
+    *
+    * @param sf feature to un-evaluate
+    */
+  def unobserve(sf: SimpleFeature): Unit
+
+  /**
    * Add another stat to this stat. Avoids allocating another object.
    *
    * @param other the other stat to add
@@ -78,6 +87,15 @@ trait Stat {
    * @return true if stat contains values
    */
   def isEmpty: Boolean
+
+  /**
+    * Compares the two stats for equivalence. We don't use standard 'equals' as it gets messy with
+    * mutable state and hash codes
+    *
+    * @param other other stat to compare
+    * @return true if equals
+    */
+  def isEquivalent(other: Stat): Boolean
 
   /**
    * Clears the stat to its original state when first initialized.
@@ -153,18 +171,6 @@ object Stat {
 
   // note: adds quotes around the string
   private def safeString(s: String): String = s""""${StringEscapeUtils.escapeJava(s)}""""
-
-  /**
-    * Gets a geohash as an int value
-    *
-    * @param value geometry to evaluate (will use the centroid)
-    * @param length length of geohash, in 5-bit digits (base 32)
-    * @return
-    */
-  def getGeoHash(value: Geometry, length: Int = 2): Int = {
-    val centroid = value.getCentroid
-    GeoHash(centroid.getX, centroid.getY, 5 * length).toInt
-  }
 
   /**
     * Converts a value to a string

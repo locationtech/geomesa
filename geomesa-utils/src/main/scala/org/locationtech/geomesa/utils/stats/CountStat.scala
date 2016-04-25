@@ -23,6 +23,8 @@ class CountStat() extends Stat {
 
   override def observe(sf: SimpleFeature): Unit = counter += 1
 
+  override def unobserve(sf: SimpleFeature): Unit = counter -= 1
+
   override def +(other: CountStat): CountStat = {
     val plus = new CountStat()
     plus.counter = this.counter + other.counter
@@ -37,10 +39,8 @@ class CountStat() extends Stat {
 
   override def clear(): Unit = counter = 0
 
-  override def equals(other: Any): Boolean = other match {
+  override def isEquivalent(other: Stat): Boolean = other match {
     case that: CountStat => counter == that.counter
     case _ => false
   }
-
-  override def hashCode(): Int = counter.hashCode
 }

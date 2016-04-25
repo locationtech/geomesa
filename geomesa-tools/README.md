@@ -47,6 +47,8 @@ This should print out the following usage text:
         list             List GeoMesa features for a given catalog
         querystats       Export queries and statistics about the last X number of queries to a CSV file.
         removeschema     Remove a schema and associated features from a GeoMesa catalog
+        stats-analyze    Analyze statistics on a GeoMesa feature type
+        stats-list       View statistics on a GeoMesa feature type
         tableconf        Perform table configuration operations
         version          GeoMesa Version
 
@@ -230,8 +232,81 @@ To remove a feature type and it's associated data from a catalog table, use the 
 ####Example:
     geomesa removeschema -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog -f testfeature1
     geomesa removeschema -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog --pattern 'testfeatures\d+'
-    
-    
+
+
+### stats-analyze
+Use the `stats-analyze` command to update the statistics associated with your data. This can improve query planning.
+
+#### Usage (required options denoted with star):
+    $ geomesa help stats-analyze
+    Analyze statistics on a GeoMesa feature type
+    Usage: analyze-stats [options]
+      Options:
+        --auths
+           Accumulo authorizations
+      * -c, --catalog
+           Catalog table name for GeoMesa
+      * -f, --feature-name
+           Simple Feature Type name on which to operate
+        -i, --instance
+           Accumulo instance name
+        --mock
+           Run everything with a mock accumulo instance instead of a real one
+           Default: false
+        -p, --password
+           Accumulo password (will prompt if not supplied)
+      * -u, --user
+           Accumulo user name
+        --visibilities
+           Accumulo scan visibilities
+        -z, --zookeepers
+           Zookeepers (host[:port], comma separated)
+
+####Example:
+    geomesa stats-analyze -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog -f testfeature
+
+### stats-list
+Use the `stats-list` command to view statistics on your data. You can view existing statistics on the entire data set
+or calculate statistics based on a CQL filter.
+
+#### Usage (required options denoted with star):
+    $ geomesa help stats-list
+    View statistics on a GeoMesa feature type
+    Usage: list-stats [options]
+      Options:
+        -a, --attributes
+           Comma-separated list of attribute names
+        --auths
+           Accumulo authorizations
+        -b, --bins
+           How many buckets the data will be divided into
+      * -c, --catalog
+           Catalog table name for GeoMesa
+        -q, --cql
+           CQL predicate
+        -e, --exact
+           Calculate exact statistics (may be slow)
+           Default: false
+      * -f, --feature-name
+           Simple Feature Type name on which to operate
+        -i, --instance
+           Accumulo instance name
+        --mock
+           Run everything with a mock accumulo instance instead of a real one
+           Default: false
+        -p, --password
+           Accumulo password (will prompt if not supplied)
+      * -u, --user
+           Accumulo user name
+        --visibilities
+           Accumulo scan visibilities
+        -z, --zookeepers
+           Zookeepers (host[:port], comma separated)
+
+####Example:
+    geomesa stats-list -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog -f testfeature -b 10
+    geomesa stats-list -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog -f testfeature -e -a geom,dtg -q "dtg DURING 2015-01-01T00:00:00.000Z/2015-01-31T12:59:59.999Z"
+
 ### deleteraster
 To delete a specific raster table use the `deleteraster` command.
 

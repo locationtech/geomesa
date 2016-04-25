@@ -89,18 +89,11 @@ object GeoMesaTable {
     if (sft.isTableSharing) {
       formatSharedTableName(prefix, suffix)
     } else {
-      formatSoloTableName(prefix, suffix, sft)
+      formatSoloTableName(prefix, suffix, sft.getTypeName)
     }
 
-  protected[tables] def formatSoloTableName(prefix: String, suffix: String, sft: SimpleFeatureType): String = {
-    val typeName = sft.getTypeName
-    val safeTypeName = if (typeName.matches(SAFE_FEATURE_NAME_PATTERN)) {
-      typeName
-    } else {
-      hexEncodeNonAlphaNumeric(typeName)
-    }
-    concatenateNameParts(prefix, safeTypeName, suffix)
-  }
+  protected[tables] def formatSoloTableName(prefix: String, suffix: String, typeName: String): String =
+    concatenateNameParts(prefix, hexEncodeNonAlphaNumeric(typeName), suffix)
 
   protected[tables] def formatSharedTableName(prefix: String, suffix: String): String =
     concatenateNameParts(prefix, suffix)
@@ -117,17 +110,21 @@ object GeoMesaTable {
    * underscores and bytes...e.g. _8a_2f_3b
    */
   protected[data] def hexEncodeNonAlphaNumeric(input: String): String = {
-    val sb = new StringBuilder
-    input.toCharArray.foreach { c =>
-      if (alphaNumeric.contains(c)) {
-        sb.append(c)
-      } else {
-        val encoded =
-          Hex.encodeHex(c.toString.getBytes("UTF8")).grouped(2)
-              .map{ arr => "_" + arr(0) + arr(1) }.mkString.toLowerCase
-        sb.append(encoded)
+    if (input.matches(SAFE_FEATURE_NAME_PATTERN)) {
+      input
+    } else {
+      val sb = new StringBuilder
+      input.toCharArray.foreach { c =>
+        if (alphaNumeric.contains(c)) {
+          sb.append(c)
+        } else {
+          val encoded =
+            Hex.encodeHex(c.toString.getBytes("UTF8")).grouped(2)
+                .map{ arr => "_" + arr(0) + arr(1) }.mkString.toLowerCase
+          sb.append(encoded)
+        }
       }
+      sb.toString()
     }
-    sb.toString()
   }
 }

@@ -46,6 +46,16 @@ class HistogramTest extends Specification with StatTestHelper {
         forall(0 until 100)(i => stat.histogram(f"abc$i%03d") mustEqual 1L)
       }
 
+      "unobserve correct values" >> {
+        val stat = newStat[String]("strAttr")
+        stat.histogram must haveSize(100)
+        forall(0 until 100)(i => stat.histogram(f"abc$i%03d") mustEqual 1L)
+        features.take(10).foreach(stat.unobserve)
+        stat.histogram must haveSize(90)
+        forall(0 until 10)(i => stat.histogram(f"abc$i%03d") mustEqual 0L)
+        forall(10 until 100)(i => stat.histogram(f"abc$i%03d") mustEqual 1L)
+      }
+
       "serialize to json" >> {
         val stat = newStat[String]("strAttr")
         JSON.parseFull(stat.toJson) must beSome(stat.histogram)

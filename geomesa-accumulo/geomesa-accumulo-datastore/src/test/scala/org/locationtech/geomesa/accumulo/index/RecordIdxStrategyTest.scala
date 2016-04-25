@@ -44,7 +44,7 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
     // process the string sequences for the test
     val filterSeq=stringSeqToTest.map ( ECQL.toFilter )
     val combinedIDFilter = RecordIdxStrategy.intersectIdFilters(filterSeq)
-    val computedIntersectionIds = combinedIDFilter.map {_.getIDs.asScala.toSet.map { a:AnyRef =>a.toString } }
+    val computedIntersectionIds = if (combinedIDFilter.isEmpty) None else Some(combinedIDFilter)
 
     IntersectionResult(computedIntersectionIds, trueIntersectionIds)
   }

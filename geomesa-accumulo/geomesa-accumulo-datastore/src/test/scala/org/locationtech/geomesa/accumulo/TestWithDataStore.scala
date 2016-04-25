@@ -17,15 +17,14 @@ import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
-import org.specs2.specification.{Fragments, Step}
 
 import scala.collection.JavaConverters._
 
@@ -58,12 +57,7 @@ trait TestWithDataStore extends Specification {
     (ds, ds.getSchema(sftName)) // reload the sft from the ds to ensure all user data is set properly
   }
 
-  lazy val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
-
-  // after all tests, drop the tables we created to free up memory
-  override def map(fragments: => Fragments) = fragments ^ Step {
-    ds.removeSchema(sftName)
-  }
+  lazy val fs = ds.getFeatureSource(sftName)
 
   /**
    * Call to load the test features into the data store

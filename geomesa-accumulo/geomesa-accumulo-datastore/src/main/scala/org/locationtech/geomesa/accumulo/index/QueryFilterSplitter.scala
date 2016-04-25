@@ -432,6 +432,10 @@ case class QueryFilter(strategy: StrategyType,
     val incl = if (or) andOption(orOption(primary).toSeq ++ secondary) else andOption(primary ++ secondary)
     incl.filter(_ != Filter.INCLUDE)
   }
+  lazy val singlePrimary: Option[Filter] = {
+    val combined = if (or) orOption(primary) else andOption(primary)
+    combined.filter(_ != Filter.INCLUDE)
+  }
   override lazy val toString: String =
     s"$strategy[${primary.map(filterToString).mkString(if (or) " OR " else " AND ")}]" +
       s"[${secondary.map(filterToString).getOrElse("None")}]"

@@ -60,6 +60,11 @@ class OptionalCqlFilterParameters extends FeatureParams {
   var cqlFilter: String = null
 }
 
+trait HasAttributesParam {
+  @Parameter(names = Array("-a", "--attributes"), description = "Comma-separated list of attribute names")
+  var attributes: String = null
+}
+
 class CreateFeatureParams extends FeatureParams {
   @Parameter(names = Array("-s", "--spec"), description = "SimpleFeatureType specification as a GeoTools spec string, SFT config, or file with either")
   var spec: String = null

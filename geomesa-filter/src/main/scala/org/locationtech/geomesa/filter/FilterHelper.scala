@@ -10,19 +10,20 @@ package org.locationtech.geomesa.filter
 
 import java.util.Date
 
-import com.vividsolutions.jts.geom.{Geometry, MultiPolygon, Point, Polygon}
+import com.vividsolutions.jts.geom._
 import org.geotools.factory.CommonFactoryFinder
+import org.geotools.filter.spatial.BBOXImpl
 import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.joda.time.{DateTime, DateTimeZone, Interval}
-import org.locationtech.geomesa.filter.visitor.SafeTopologicalFilterVisitorImpl
 import org.locationtech.geomesa.utils.filters.Typeclasses.BinaryFilter
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
-import org.opengis.filter.expression.{Expression, Literal, PropertyName}
+import org.opengis.filter.expression.{Expression, Literal}
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
 import org.opengis.temporal.Period
@@ -30,55 +31,126 @@ import org.opengis.temporal.Period
 import scala.collection.JavaConversions._
 
 object FilterHelper {
-  // Let's handle special cases with topological filters.
-  def updateTopologicalFilters(filter: Filter, sft: SimpleFeatureType): Filter =
-    filter.accept(new SafeTopologicalFilterVisitorImpl(sft), null).asInstanceOf[Filter]
 
-  def getFirstBinarySpatialOpPropertyName(op: BinarySpatialOperator): PropertyName = op.getExpression1 match {
-    case pn: PropertyName => pn
-    case _                => op.getExpression2 match {
-      case pn: PropertyName => pn
-      case _                =>
-        throw new Exception(s"Neither child of a binary spatial operator was a property name:  $op")
+  private val gf = new GeometryFactory()
+  private val SafeGeomString = "gm-safe"
+
+  /**
+    * Creates a new bbox with valid bounds and attribute
+    *
+    * @param op bbox
+    * @param sft simple feature type
+    * @return valid bbox
+    */
+  def visitBBOX(op: BBOX, sft: SimpleFeatureType): Filter = {
+    val prop = org.locationtech.geomesa.filter.checkOrderUnsafe(op.getExpression1, op.getExpression2)
+    val geom = prop.literal.evaluate(null, classOf[Geometry])
+    if (geom.getUserData == SafeGeomString) {
+      op // we've already visited this geom once
+    } else {
+      // check for null or empty attribute and replace with default geometry name
+      val attribute = Option(prop.name).filterNot(_.isEmpty).getOrElse(sft.getGeomField)
+      // copy the geometry so we don't modify the original
+      val geomCopy = gf.createGeometry(geom)
+      val safeGeometry = getInternationalDateLineSafeGeometry(addWayPointsToBBOX(geomCopy))
+      // mark it as being visited
+      safeGeometry.setUserData(SafeGeomString)
+      recreateAsIdlSafeFilter(op, attribute, safeGeometry, prop.flipped)
     }
   }
 
-  def getFirstBinarySpatialOpPropertyGeometry(op: BinarySpatialOperator): Geometry = op.getExpression1 match {
-    case lit: Literal => lit.evaluate(null, classOf[Geometry])
-    case _            => op.getExpression2 match {
-      case lit: Literal => lit.evaluate(null, classOf[Geometry])
-      case _            =>
-        throw new Exception(s"Neither child of a binary spatial operator was a literal geometry:  $op")
+  /**
+    * Creates a new filter with valid bounds and attribute
+    *
+    * @param op spatial op
+    * @param sft simple feature type
+    * @return valid op
+    */
+  def visitBinarySpatialOp(op: BinarySpatialOperator, sft: SimpleFeatureType): Filter = {
+    val prop = org.locationtech.geomesa.filter.checkOrderUnsafe(op.getExpression1, op.getExpression2)
+    val geom = prop.literal.evaluate(null, classOf[Geometry])
+    if (geom.getUserData == SafeGeomString) {
+      op // we've already visited this geom once
+    } else {
+      // check for null or empty attribute and replace with default geometry name
+      val attribute = Option(prop.name).filterNot(_.isEmpty).getOrElse(sft.getGeomField)
+      // copy the geometry so we don't modify the original
+      val geomCopy = gf.createGeometry(geom)
+      val safeGeometry = getInternationalDateLineSafeGeometry(geomCopy)
+      // mark it as being visited
+      safeGeometry.setUserData(SafeGeomString)
+      recreateAsIdlSafeFilter(op, attribute, safeGeometry, prop.flipped)
     }
   }
 
-  def visitBinarySpatialOp(op: BinarySpatialOperator, featureType: SimpleFeatureType): Filter = {
-    val e1 = getFirstBinarySpatialOpPropertyName(op)
-    val geom = getFirstBinarySpatialOpPropertyGeometry(op)
-    val safeGeometry = getInternationalDateLineSafeGeometry(geom)
-    updateToIDLSafeFilter(op, safeGeometry, featureType)
-  }
-
-  def visitBBOX(op: BBOX, featureType: SimpleFeatureType): Filter = {
-    val e1 = op.getExpression1.asInstanceOf[PropertyName]
-    val e2 = op.getExpression2.asInstanceOf[Literal]
-    val geom = addWayPointsToBBOX( e2.evaluate(null, classOf[Geometry]) )
-    val safeGeometry = getInternationalDateLineSafeGeometry(geom)
-    updateToIDLSafeFilter(op, safeGeometry, featureType)
-  }
-
-  // TODO:  We assume "BINOP(property, geom)"...  This need not be the case.
-  //        https://geomesa.atlassian.net/browse/GEOMESA-1155
-  def updateToIDLSafeFilter(op: BinarySpatialOperator, geom: Geometry, featureType: SimpleFeatureType): Filter = geom match {
-    case pt: Point => op
-    case p: Polygon =>
-      dispatchOnSpatialType(op, featureType.getGeometryDescriptor.getLocalName, p)
-    case mp: MultiPolygon =>
-      val polygonList = getGeometryListOf(geom)
-      val filterList = polygonList.map {
-        p => dispatchOnSpatialType(op, featureType.getGeometryDescriptor.getLocalName, p)
+  /**
+    * Creates a new filter with valid bounds and attributes. Distance will be converted into degrees.
+    * Note: units will still refer to 'meters', but that is due to ECQL issues
+    *
+    * @param op dwithin
+    * @param sft simple feature type
+    * @return valid dwithin
+    */
+  def visitDwithin(op: DWithin, sft: SimpleFeatureType): Filter = {
+    val prop = org.locationtech.geomesa.filter.checkOrderUnsafe(op.getExpression1, op.getExpression2)
+    val geom = prop.literal.evaluate(null, classOf[Geometry])
+    if (geom.getUserData == SafeGeomString) {
+      op // we've already visited this geom once
+    } else {
+      val units = Option(op.getDistanceUnits).map(_.trim).filter(_.nonEmpty).map(_.toLowerCase).getOrElse("meters")
+      val multiplier = units match {
+        case "meters"         => 1.0
+        case "kilometers"     => 1000.0
+        case "feet"           => 0.3048
+        case "statute miles"  => 1609.347
+        case "nautical miles" => 1852.0
+        case _                => 1.0 // not part of ECQL spec...
       }
-      ff.or(filterList)
+      val distanceMeters = op.getDistance * multiplier
+      val distanceDegrees = GeometryUtils.distanceDegrees(geom, distanceMeters)
+
+      // check for null or empty attribute and replace with default geometry name
+      val attribute = Option(prop.name).filterNot(_.isEmpty).getOrElse(sft.getGeomField)
+      // copy the geometry so we don't modify the original
+      val geomCopy = gf.createGeometry(geom)
+      val safeGeometry = getInternationalDateLineSafeGeometry(geomCopy)
+      // mark it as being visited
+      safeGeometry.setUserData(SafeGeomString)
+      recreateAsIdlSafeFilter(op, attribute, safeGeometry, prop.flipped, distanceDegrees)
+    }
+  }
+
+  private def recreateAsIdlSafeFilter(op: BinarySpatialOperator,
+                                      property: String,
+                                      geom: Geometry,
+                                      flipped: Boolean,
+                                      args: Any = null): Filter = {
+    geom match {
+      case g: GeometryCollection =>
+        // geometry collections are OR'd together
+        val asList = getGeometryListOf(g)
+        asList.foreach(_.setUserData(geom.getUserData))
+        ff.or(asList.map(recreateFilter(op, property, _, flipped, args)))
+      case _ => recreateFilter(op, property, geom, flipped, args)
+    }
+  }
+
+  private def recreateFilter(op: BinarySpatialOperator,
+                             property: String,
+                             geom: Geometry,
+                             flipped: Boolean,
+                             args: Any): Filter = {
+    val (e1, e2) = if (flipped) (ff.literal(geom), ff.property(property)) else (ff.property(property), ff.literal(geom))
+    op match {
+      case op: Within     => ff.within(e1, e2)
+      case op: Intersects => ff.intersects(e1, e2)
+      case op: Overlaps   => ff.overlaps(e1, e2)
+      // note: The ECQL spec doesn't allow for us to put the measurement
+      // in "degrees", but that's how this filter will be used.
+      case op: DWithin    => ff.dwithin(e1, e2, args.asInstanceOf[Double], "meters")
+      // use the direct constructor so that we preserve our geom user data
+      case op: BBOX       => new BBOXImpl(e1, e2)
+    }
   }
 
   def isFilterWholeWorld(f: Filter): Boolean = f match {
@@ -104,44 +176,11 @@ object FilterHelper {
   def getGeometryListOf(inMP: Geometry): Seq[Geometry] =
     for( i <- 0 until inMP.getNumGeometries ) yield inMP.getGeometryN(i)
 
-  def dispatchOnSpatialType(op: BinarySpatialOperator, property: String, geom: Geometry): Filter = op match {
-    case op: Within     => ff.within( ff.property(property), ff.literal(geom) )
-    case op: Intersects => ff.intersects( ff.property(property), ff.literal(geom) )
-    case op: Overlaps   => ff.overlaps( ff.property(property), ff.literal(geom) )
-    case op: BBOX       => val envelope = geom.getEnvelopeInternal
-      ff.bbox( ff.property(property), envelope.getMinX, envelope.getMinY,
-        envelope.getMaxX, envelope.getMaxY, op.getSRS )
-  }
-
   def addWayPointsToBBOX(g: Geometry): Geometry = {
     val gf = g.getFactory
     val geomArray = g.getCoordinates
     val correctedGeom = GeometryUtils.addWayPoints(geomArray).toArray
-    gf.createPolygon(correctedGeom)
-  }
-
-  // Rewrites a Dwithin (assumed to express distance in meters) in degrees.
-  def rewriteDwithin(op: DWithin): Filter = {
-    val geom = op.getExpression2.asInstanceOf[Literal].getValue.asInstanceOf[Geometry]
-    val units = Option(op.getDistanceUnits).map(_.trim).filter(_.nonEmpty).map(_.toLowerCase).getOrElse("meters")
-    val multiplier = units match {
-      case "meters"         => 1.0
-      case "kilometers"     => 1000.0
-      case "feet"           => 0.3048
-      case "statute miles"  => 1609.347
-      case "nautical miles" => 1852.0
-      case _                => 1.0 // not part of ECQL spec...
-    }
-    val distanceMeters = op.getDistance * multiplier
-    val distanceDegrees = GeometryUtils.distanceDegrees(geom, distanceMeters)
-
-    // NB: The ECQL spec doesn't allow for us to put the measurement in "degrees",
-    //  but that's how this filter will be used.
-    ff.dwithin(
-      op.getExpression1,
-      op.getExpression2,
-      distanceDegrees,
-      "meters")
+    if (geomArray.length == correctedGeom.length) g else gf.createPolygon(correctedGeom)
   }
 
   def decomposeToGeometry(f: Filter): Seq[Geometry] = f match {
@@ -151,6 +190,16 @@ object FilterHelper {
     case gf: BinarySpatialOperator =>
       extractGeometry(gf)
     case _ => Seq()
+  }
+
+  def extractSingleGeometry(filters: Seq[Filter]): Geometry = {
+    import org.locationtech.geomesa.utils.geotools.WholeWorldPolygon
+    val geomsToCover = filters.flatMap(decomposeToGeometry)
+    if (geomsToCover.isEmpty) {
+      WholeWorldPolygon
+    } else {
+      new GeometryCollection(geomsToCover.toArray, geomsToCover.head.getFactory).intersection(WholeWorldPolygon)
+    }
   }
 
   def extractGeometry(bso: BinarySpatialOperator): Seq[Geometry] = {
@@ -352,6 +401,7 @@ object FilterHelper {
 
   def tryReduceGeometryFilter(filts: Seq[Filter]): Seq[Filter] = {
     import org.geotools.data.DataUtilities._
+
     import scala.collection.JavaConversions._
 
     val filtFactory = CommonFactoryFinder.getFilterFactory2
