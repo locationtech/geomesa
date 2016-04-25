@@ -220,9 +220,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(BIN_BATCH_SIZE_KEY, 100)
 
       val qps = planQuery(query)
-      qps must haveSize(1)
-      qps.head.iterators.map(_.getIteratorClass) must
-          contain(classOf[BinAggregatingIterator].getCanonicalName)
+      forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
 
       val returnedFeatures = runQuery(query)
       // the same simple feature gets reused - so make sure you access >> serial order
@@ -247,9 +245,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(BIN_SORT_KEY, true)
 
       val qps = planQuery(query)
-      qps must haveSize(1)
-      qps.head.iterators.map(_.getIteratorClass) must
-          contain(classOf[BinAggregatingIterator].getCanonicalName)
+      forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
 
       val returnedFeatures = runQuery(query)
       // the same simple feature gets reused - so make sure you access >> serial order
@@ -278,9 +274,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(BIN_BATCH_SIZE_KEY, 100)
 
       val qps = planQuery(query)
-      qps must haveSize(1)
-      qps.head.iterators.map(_.getIteratorClass) must
-          contain(classOf[BinAggregatingIterator].getCanonicalName)
+      forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
 
       val returnedFeatures = runQuery(query)
       // the same simple feature gets reused - so make sure you access >> serial order

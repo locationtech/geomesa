@@ -196,10 +196,10 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
       val query = new Query(sftName, ECQL.toFilter(filter))
       query.getHints.put(BIN_TRACK_KEY, "name")
       query.getHints.put(BIN_BATCH_SIZE_KEY, 100)
+
       val qps = getQueryPlans(query)
-      qps must haveSize(1)
-      qps.head.iterators.map(_.getIteratorClass) must
-          contain(classOf[BinAggregatingIterator].getCanonicalName)
+      forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
+
       val returnedFeatures = queryPlanner.runQuery(query, Some(strategy))
       // the same simple feature gets reused - so make sure you access in serial order
       val aggregates = returnedFeatures.map(f =>
@@ -221,10 +221,10 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(BIN_TRACK_KEY, "name")
       query.getHints.put(BIN_BATCH_SIZE_KEY, 100)
       query.getHints.put(BIN_SORT_KEY, true)
+
       val qps = getQueryPlans(query)
-      qps must haveSize(1)
-      qps.head.iterators.map(_.getIteratorClass) must
-          contain(classOf[BinAggregatingIterator].getCanonicalName)
+      forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
+
       val returnedFeatures = queryPlanner.runQuery(query, Some(strategy))
       // the same simple feature gets reused - so make sure you access in serial order
       val aggregates = returnedFeatures.map(f =>
@@ -250,10 +250,10 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(BIN_TRACK_KEY, "name")
       query.getHints.put(BIN_LABEL_KEY, "name")
       query.getHints.put(BIN_BATCH_SIZE_KEY, 100)
+
       val qps = getQueryPlans(query)
-      qps must haveSize(1)
-      qps.head.iterators.map(_.getIteratorClass) must
-          contain(classOf[BinAggregatingIterator].getCanonicalName)
+      forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
+
       val returnedFeatures = queryPlanner.runQuery(query, Some(strategy))
       // the same simple feature gets reused - so make sure you access in serial order
       val aggregates = returnedFeatures.map(f =>
