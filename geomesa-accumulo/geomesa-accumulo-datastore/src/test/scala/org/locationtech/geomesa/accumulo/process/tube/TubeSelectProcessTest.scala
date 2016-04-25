@@ -33,7 +33,7 @@ class TubeSelectProcessTest extends Specification {
   sequential
 
   val dtgField = org.locationtech.geomesa.accumulo.process.tube.DEFAULT_DTG_FIELD
-  val geotimeAttributes = s"*geom:Geometry:srid=4326,$dtgField:Date"
+  val geotimeAttributes = s"*geom:Point:srid=4326,$dtgField:Date"
 
   def createStore: AccumuloDataStore =
   // the specific parameter values should not matter, as we
@@ -227,7 +227,7 @@ class TubeSelectProcessTest extends Specification {
   "TubeSelect" should {
     "should handle all geometries" in {
       val sftName = "tubeline"
-      val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
+      val sft = SimpleFeatureTypes.createType(sftName, s"type:String,*geom:Geometry:srid=4326,$dtgField:Date;geomesa.mixed.geometries=true")
       sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = dtgField
 
       val ds = createStore

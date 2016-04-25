@@ -29,7 +29,7 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
 
   sequential
 
-  override val spec = s"name:String:index=true,age:Integer:index=true,dtg:Date,*geom:Geometry:srid=4326"
+  override val spec = s"name:String:index=true,age:Integer:index=true,dtg:Date,*geom:Point:srid=4326"
 
   val features = List("a", "b", "c", "d").flatMap { name =>
     List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).map { case (i, lat) =>

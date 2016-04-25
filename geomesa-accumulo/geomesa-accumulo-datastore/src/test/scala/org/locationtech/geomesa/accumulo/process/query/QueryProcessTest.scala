@@ -32,7 +32,7 @@ class QueryProcessTest extends Specification with TestWithDataStore {
   sequential
 
   val dtg = org.locationtech.geomesa.accumulo.process.tube.DEFAULT_DTG_FIELD
-  override val spec = s"type:String,*geom:Geometry:srid=4326,$dtg:Date"
+  override val spec = s"type:String,*geom:Point:srid=4326,$dtg:Date"
 
   val features = List("a", "b").flatMap { name =>
     List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).map { case (i, lat) =>

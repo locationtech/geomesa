@@ -31,6 +31,7 @@ object SimpleFeatureTypes {
   val TABLE_SPLITTER           = "table.splitter.class"
   val TABLE_SPLITTER_OPTIONS   = "table.splitter.options"
   val ENABLED_INDEXES          = "table.indexes.enabled"
+  val MIXED_GEOMETRIES         = "geomesa.mixed.geometries"
 
   val OPT_DEFAULT              = "default"
   val OPT_SRID                 = "srid"
@@ -47,7 +48,8 @@ object SimpleFeatureTypes {
 
   /**
    * Create a SimpleFeatureType from a typesafe Config
-   * @param conf
+   *
+   * @param conf config
    * @param typeName optional typename to use for the SFT...will be overridden if the config contains a type-name key
    * @return
    */
@@ -141,8 +143,13 @@ object SimpleFeatureTypes {
     renamed
   }
 
-  def encodeType(sft: SimpleFeatureType): String =
-    sft.getAttributeDescriptors.map(encodeDescriptor(sft, _)).mkString(",")
+  def encodeType(sft: SimpleFeatureType, includeUserData: Boolean = false): String = {
+    val suffix = if (!includeUserData || sft.getUserData.isEmpty) { "" } else {
+      sft.getUserData.entrySet.map(e => s"${e.getKey}='${e.getValue}'").mkString(";", ",", "")
+    }
+    sft.getAttributeDescriptors.map(encodeDescriptor(sft, _)).mkString("", ",", suffix)
+  }
+
 
   def encodeDescriptor(sft: SimpleFeatureType, descriptor: AttributeDescriptor): String =
     AttributeSpecFactory.fromAttributeDescriptor(sft, descriptor).toSpec

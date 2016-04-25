@@ -31,7 +31,7 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
 
   sequential
 
-  override val spec = "name:String:index=true,weight:Double:index=true,ml:List[String],dtg:Date,*geom:Geometry:srid=4326"
+  override val spec = "name:String:index=true,weight:Double:index=true,ml:List[String],dtg:Date,*geom:Point:srid=4326"
 
   import java.{ util => jl }
   def toJavaList(s: Seq[String]): java.util.List[String] = s.asJava
@@ -46,7 +46,7 @@ class UniqueProcessTest extends Specification with TestWithDataStore {
     Seq(
       Seq("alice",    20,   toJavaList(Seq()),                          dtFormat.parse("20120101 12:00:00"), geom),
       Seq("alice",    25,   null.asInstanceOf[jl.List[String]],         dtFormat.parse("20120101 12:00:00"), geom),
-      Seq("bill",     21,   toJavaList(Seq("foo", "bar")),               dtFormat.parse("20130101 12:00:00"), geom),
+      Seq("bill",     21,   toJavaList(Seq("foo", "bar")),              dtFormat.parse("20130101 12:00:00"), geom),
       Seq("bill",     22,   toJavaList(Seq("foo")),                     dtFormat.parse("20130101 12:00:00"), geom),
       Seq("bill",     23,   toJavaList(Seq("foo")),                     dtFormat.parse("20130101 12:00:00"), geom),
       Seq("bob",      30,   toJavaList(Seq("foo")),                     dtFormat.parse("20140101 12:00:00"), geom),

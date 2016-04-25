@@ -18,7 +18,6 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType$;
 public class Constants {
   public final static String SF_PROPERTY_START_TIME = RichSimpleFeatureType$.MODULE$.DEFAULT_DATE_KEY();
   public final static String SFT_INDEX_SCHEMA       = RichSimpleFeatureType$.MODULE$.ST_INDEX_SCHEMA_KEY();
-  public final static String TYPE_SPEC              = IndexEntryDecoder$.MODULE$.spec();
 
   @Deprecated
   public final static String SF_PROPERTY_GEOMETRY   = "geomesa_index_geometry";

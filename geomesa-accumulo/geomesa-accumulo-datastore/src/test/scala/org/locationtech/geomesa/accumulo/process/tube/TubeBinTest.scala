@@ -33,7 +33,7 @@ class TubeBinTest extends Specification {
 
   private val log = Logger.getLogger(classOf[TubeBinTest])
 
-  val geotimeAttributes = IndexEntryDecoder.spec
+  val geotimeAttributes = "geom:Point:srid=4326,dtg:Date,dtg_end_time:Date"
 
   "NoGapFilll" should {
 

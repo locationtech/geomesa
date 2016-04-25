@@ -41,7 +41,7 @@ class GenerateKNNQueryTest extends Specification {
       "featureEncoding" -> "avro").asJava).asInstanceOf[AccumuloDataStore]
 
   val sftName = "test"
-  val sft = SimpleFeatureTypes.createType(sftName, IndexEntryDecoder.spec)
+  val sft = SimpleFeatureTypes.createType(sftName, "geom:Point:srid=4326,dtg:Date,dtg_end_time:Date")
   sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
 
   val ds = createStore

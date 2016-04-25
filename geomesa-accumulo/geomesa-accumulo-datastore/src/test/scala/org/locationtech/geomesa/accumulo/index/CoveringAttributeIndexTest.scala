@@ -24,7 +24,7 @@ class CoveringAttributeIndexTest extends Specification with TestWithDataStore {
   sequential
 
   override val spec = "name:String:index=full,age:Integer:index=join,weight:Double:index=true," +
-      "height:Double,dtg:Date,*geom:Geometry:srid=4326"
+      "height:Double,dtg:Date,*geom:Point:srid=4326"
 
   val geom = WKTUtils.read("POINT(45.0 49.0)")
 

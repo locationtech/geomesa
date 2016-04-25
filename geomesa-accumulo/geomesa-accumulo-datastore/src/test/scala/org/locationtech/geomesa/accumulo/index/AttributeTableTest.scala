@@ -23,7 +23,7 @@ import org.specs2.runner.JUnitRunner
 class AttributeTableTest extends Specification with TestWithDataStore {
 
   override val spec =
-    "name:String:index=true,age:Integer:index=true,*geom:Geometry:srid=4326,dtg:Date:index=true"
+    "name:String:index=true,age:Integer:index=true,*geom:Point:srid=4326,dtg:Date:index=true"
 
   "AttributeTable" should {
 

@@ -27,7 +27,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
 
   import org.locationtech.geomesa.utils.geotools.Conversions._
 
-  override val spec = "idt:java.lang.Integer:index=full,attr:java.lang.Long:index=join,dtg:Date,*geom:Geometry:srid=4326"
+  override val spec = "idt:java.lang.Integer:index=full,attr:java.lang.Long:index=join,dtg:Date,*geom:Point:srid=4326"
 
   addFeatures((0 until 150).toArray.map { i =>
     val attrs = Array(i.asInstanceOf[AnyRef], (i * 2).asInstanceOf[AnyRef],

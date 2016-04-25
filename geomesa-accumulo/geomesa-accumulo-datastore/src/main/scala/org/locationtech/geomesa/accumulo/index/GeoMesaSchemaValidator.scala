@@ -9,10 +9,19 @@
 package org.locationtech.geomesa.accumulo.index
 
 import com.typesafe.scalalogging.LazyLogging
+import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.{DEFAULT_DATE_KEY, RichSimpleFeatureType}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConverters._
+
+object GeoMesaSchemaValidator {
+  def validate(sft: SimpleFeatureType): Unit = {
+    MixedGeometryCheck.validateGeometryType(sft)
+    TemporalIndexCheck.validateDtgField(sft)
+  }
+}
 
 /**
  * Utility object for emitting a warning to the user if a SimpleFeatureType contains a temporal attribute, but
@@ -47,4 +56,30 @@ object TemporalIndexCheck extends LazyLogging {
   def scanForTemporalAttributes(sft: SimpleFeatureType) =
     sft.getAttributeDescriptors.asScala.toList
       .withFilter { classOf[java.util.Date] isAssignableFrom _.getType.getBinding } .map { _.getLocalName }
+}
+
+object MixedGeometryCheck extends LazyLogging {
+
+  import java.lang.{Boolean => jBoolean}
+  import SimpleFeatureTypes.MIXED_GEOMETRIES
+
+  def validateGeometryType(sft: SimpleFeatureType): Unit = {
+    val gd = sft.getGeometryDescriptor
+    if (gd != null && gd.getType.getBinding == classOf[Geometry]) {
+      val declared = sft.getUserData.get(MIXED_GEOMETRIES) match {
+        case null => false
+        case mixed: jBoolean if mixed => true
+        case mixed: String if jBoolean.valueOf(mixed) => true
+        case mixed if jBoolean.valueOf(mixed.toString) => true
+        case _ => false
+      }
+      if (!declared) {
+        throw new IllegalArgumentException("Trying to create a schema with mixed geometry type " +
+            s"'${gd.getLocalName}:Geometry'. Queries may be slower when using mixed geometries. " +
+            "If this is intentional, you may override this message by putting Boolean.TRUE into the " +
+            s"SimpleFeatureType user data under the key '$MIXED_GEOMETRIES' before calling createSchema. " +
+            "Otherwise, please specify a single geometry type (e.g. Point, LineString, Polygon, etc).")
+      }
+    }
+  }
 }

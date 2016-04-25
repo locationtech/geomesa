@@ -32,7 +32,7 @@ class IteratorTriggerTest extends Specification {
     val schemaEncoding = "%~#s%" + featureName + "#cstr%10#r%0,1#gh%yyyyMM#d::%~#s%1,3#gh::%~#s%4,3#gh%ddHH#d%10#id"
 
     val testFeatureTypeSpec: String = {
-      s"POINT:String,LINESTRING:String,POLYGON:String,attr1:String:$OPT_INDEX_VALUE=true,attr2:String," + IndexEntryDecoder.spec
+      s"POINT:String,LINESTRING:String,POLYGON:String,attr1:String:$OPT_INDEX_VALUE=true,attr2:String,geom:Point:srid=4326,dtg:Date,dtg_end_time:Date"
     }
 
     val testFeatureType: SimpleFeatureType = {
@@ -291,7 +291,7 @@ class IteratorTriggerTest extends Specification {
   "AttributeIndexIterator" should {
     "be run when requesting simple attributes" in {
       val sftName = "AttributeIndexIteratorTriggerTest"
-      val spec = "name:String:index=true,age:Integer:index=true,dtg:Date:index=true,*geom:Geometry:srid=4326"
+      val spec = "name:String:index=true,age:Integer:index=true,dtg:Date:index=true,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType(sftName, spec)
       val query = new Query(sftName, Filter.INCLUDE, Array("geom", "dtg", "name"))
       QueryPlanner.setQueryTransforms(query, sft) // normally called by data store when getting feature reader
@@ -300,7 +300,7 @@ class IteratorTriggerTest extends Specification {
     }
     "be run when requesting extra index-encoded attributes" in {
       val sftName = "AttributeIndexIteratorTriggerTest"
-      val spec = "name:String:index=true,age:Integer:index-value=true,dtg:Date:index=true,*geom:Geometry:srid=4326"
+      val spec = "name:String:index=true,age:Integer:index-value=true,dtg:Date:index=true,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType(sftName, spec)
       val query = new Query(sftName, ECQL.toFilter("name='bob'"), Array("geom", "dtg", "name", "age"))
       QueryPlanner.setQueryTransforms(query, sft) // normally called by data store when getting feature reader

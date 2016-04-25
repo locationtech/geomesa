@@ -26,7 +26,7 @@ import org.locationtech.geomesa.blob.core.AccumuloBlobStore._
 import org.locationtech.geomesa.blob.core.handlers.BlobStoreFileHandler
 import org.locationtech.geomesa.utils.filters.Filters
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.locationtech.geomesa.utils.geotools.SftBuilder
+import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
@@ -146,13 +146,14 @@ object AccumuloBlobStore {
   val thumbnailFieldName = "thumbnail"
 
   // TODO: Add metadata hashmap?
+  // TODO GEOMESA-1186 allow for configurable geometry types
   val sft = new SftBuilder()
     .stringType(filenameFieldName)
-    .stringType(idFieldName, true)
-    .geometry(geomeFieldName, true)
-    .date(dateFieldName)
-    .withDefaultDtg(dateFieldName)
+    .stringType(idFieldName, index = true)
+    .geometry(geomeFieldName, default = true)
+    .date(dateFieldName, default = true)
     .stringType(thumbnailFieldName)
+    .userData(SimpleFeatureTypes.MIXED_GEOMETRIES, "true")
     .build(blobFeatureTypeName)
   
 }

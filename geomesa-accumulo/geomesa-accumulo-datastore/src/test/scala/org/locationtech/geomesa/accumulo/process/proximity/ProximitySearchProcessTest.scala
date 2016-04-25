@@ -41,7 +41,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
 
   "GeomesaProximityQuery" should {
     "find things close by" in {
-      val sft = createNewSchema("*geom:Geometry:srid=4326,type:String,dtg:Date")
+      val sft = createNewSchema("*geom:Point:srid=4326,type:String,dtg:Date")
       sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = "dtg"
       val sftName = sft.getTypeName
       val featureCollection = new DefaultFeatureCollection(sftName, sft)
@@ -127,7 +127,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
     "work on non-accumulo feature sources" in {
       import org.locationtech.geomesa.utils.geotools.Conversions._
       val sftName = "geomesaProximityTestType"
-      val sft = SimpleFeatureTypes.createType(sftName, "*geom:Geometry:srid=4326,type:String,dtg:Date")
+      val sft = SimpleFeatureTypes.createType(sftName, "*geom:Point:srid=4326,type:String,dtg:Date")
       sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = "dtg"
 
       val p1 = getPoint(45, 45, 99)

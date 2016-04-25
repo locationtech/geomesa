@@ -16,7 +16,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
-import org.locationtech.geomesa.accumulo.index.{Constants, IndexEntryDecoder, IndexSchemaBuilder}
+import org.locationtech.geomesa.accumulo.index.{Constants, IndexSchemaBuilder}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geohash.VincentyModel
 import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -36,7 +36,7 @@ class KNearestNeighborSearchProcessTest extends Specification {
   sequential
 
   val sftName = "geomesaKNNTestType"
-  val sft = SimpleFeatureTypes.createType(sftName, IndexEntryDecoder.spec)
+  val sft = SimpleFeatureTypes.createType(sftName, "geom:Point:srid=4326,dtg:Date,dtg_end_time:Date")
   sft.getUserData.put(Constants.SF_PROPERTY_START_TIME,"dtg")
 
   val ds = createStore
@@ -169,16 +169,16 @@ class KNearestNeighborSearchProcessTest extends Specification {
       knn.execute(inputFeatures, dataFeatures, 100, 500.0, 5000.0).size must equalTo(0)
     }
     "handle non-point geometries in inputFeatures by ignoring them" in {
-      val inputFeatures = new DefaultFeatureCollection(sftName, sft)
+      val sft = SimpleFeatureTypes.createType("lineStringKnn", "geom:LineString:srid=4326")
+      val inputFeatures = new DefaultFeatureCollection("lineStringKnn", sft)
       val lineSF = SimpleFeatureBuilder.build(sft, List(), "route 29")
       lineSF.setDefaultGeometry(WKTUtils.read(f"LINESTRING(-78.491 38.062, -78.474 38.082)"))
-      lineSF.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-      lineSF
       inputFeatures.add(lineSF)
 
       val dataFeatures = fs.getFeatures()
       val knn = new KNearestNeighborSearchProcess
-      knn.execute(inputFeatures, dataFeatures, 100, 500.0, 5000.0).size must equalTo(0)
+      val res = knn.execute(inputFeatures, dataFeatures, 100, 500.0, 5000.0)
+      res.size mustEqual 0
     }
   }
 
