@@ -77,7 +77,6 @@ to be added as arguments to each command, if needed.
 
 Command overview
 ----------------
-the
 Creating and deleting feature types
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
