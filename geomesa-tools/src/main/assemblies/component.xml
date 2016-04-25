@@ -4,7 +4,7 @@
            xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2 http://maven.apache.org/xsd/component-1.1.2.xsd">
     <dependencySets>
         <dependencySet>
-            <outputDirectory>lib</outputDirectory>
+            <outputDirectory>lib/common</outputDirectory>
             <directoryMode>755</directoryMode>
             <fileMode>0644</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
@@ -15,7 +15,24 @@
                 <exclude>org.locationtech.geomesa:geomesa-accumulo-distributed-runtime*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-compute*</exclude>
                 <exclude>com.google.guava:guava</exclude> <!-- Guava conflicts with Hadoop 2.x which provides guava 11.0.2-->
+                <exclude>org.apache.zookeeper:zookeeper</exclude>
+                <exclude>org.apache.kafka:kafka_2.11</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-kafka-datastore</exclude>
             </excludes>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>lib/kafka</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0644</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>true</useTransitiveDependencies>
+            <useTransitiveFiltering>true</useTransitiveFiltering>
+            <includes>
+                <include>com.google.guava:guava</include>
+                <include>org.apache.kafka:kafka_2.11</include>
+                <include>org.locationtech.geomesa:geomesa-kafka-datastore</include>
+                <include>org.apache.zookeeper:zookeeper</include>
+            </includes>
         </dependencySet>
     </dependencySets>
     <fileSets>
@@ -45,7 +62,7 @@
     <files>
         <file>
             <source>target/geomesa-tools-${project.version}.jar</source>
-            <outputDirectory>lib</outputDirectory>
+            <outputDirectory>lib/common</outputDirectory>
             <fileMode>0644</fileMode>
         </file>
     </files>

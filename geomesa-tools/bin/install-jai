@@ -25,23 +25,23 @@ else
     confirm=${confirm,,} #lowercasing
     if [[ $confirm =~ ^(yes|y) ]]; then
         echo "Trying to install JAI tools from $url_jttools to $GEOMESA_HOME"
-        wget -O $GEOMESA_HOME/lib/jt-utils-1.3.1.jar $url_jttools \
-            && chmod 0755 $GEOMESA_HOME/lib/jt-utils-1.3.1.jar \
+        wget -O $GEOMESA_HOME/lib/common/jt-utils-1.3.1.jar $url_jttools \
+            && chmod 0755 $GEOMESA_HOME/lib/common/jt-utils-1.3.1.jar \
             && echo "Successfully installed JAI tools"
 
         echo "Trying to install JAI ImageIO from $url_imageio to $GEOMESA_HOME"
-        wget -O $GEOMESA_HOME/lib/jai_imageio-1.1.jar $url_imageio \
-            && chmod 0755 $GEOMESA_HOME/lib/jai_imageio-1.1.jar \
+        wget -O $GEOMESA_HOME/lib/common/jai_imageio-1.1.jar $url_imageio \
+            && chmod 0755 $GEOMESA_HOME/lib/common/jai_imageio-1.1.jar \
             && echo "Successfully installed JAI imageio"
 
         echo "Trying to install JAI Codec from $url_codec to $GEOMESA_HOME"
-        wget -O "${GEOMESA_HOME}/lib/jai_codec-1.1.3.jar" $url_codec \
-            && chmod 0755 "${GEOMESA_HOME}/lib/jai_codec-1.1.3.jar" \
+        wget -O "${GEOMESA_HOME}/lib/common/jai_codec-1.1.3.jar" $url_codec \
+            && chmod 0755 "${GEOMESA_HOME}/lib/common/jai_codec-1.1.3.jar" \
             && echo "Successfully installed JAI codec to $GEOMESA_HOME"
 
         echo "Trying to install JAI Core from $url_core to $GEOMESA_HOME"
-        wget -O "${GEOMESA_HOME}/lib/jai_core-1.1.3.jar" $url_core \
-            && chmod 0755 "${GEOMESA_HOME}/lib/jai_core-1.1.3.jar" \
+        wget -O "${GEOMESA_HOME}/lib/common/jai_core-1.1.3.jar" $url_core \
+            && chmod 0755 "${GEOMESA_HOME}/lib/common/jai_core-1.1.3.jar" \
             && echo "Successfully installed JAI core to $GEOMESA_HOME"
     else
         echo "Cancelled installation of Java Advanced Imaging (jai)"
