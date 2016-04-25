@@ -47,7 +47,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- bump version when performing releases -->
-        <geomesa.release.version>1.2.0</geomesa.release.version>
+        <geomesa.release.version>1.2.1</geomesa.release.version>
 
         <scala.version>2.11.7</scala.version>
         <scala.xml.version>1.0.5</scala.xml.version>
