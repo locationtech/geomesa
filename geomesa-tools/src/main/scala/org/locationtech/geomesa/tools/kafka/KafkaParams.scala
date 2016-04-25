@@ -16,7 +16,7 @@ import org.locationtech.geomesa.tools.common.ZookeepersParam
   */
 
 trait KafkaConnectionParams extends ZookeepersParam {
-  @Parameter(names = Array("-b", "--brokers"), description = "Brokers (host[:port], comma separated)", required = true)
+  @Parameter(names = Array("-b", "--brokers"), description = "Brokers (host:port, comma separated)", required = true)
   var brokers: String = null
 
   var zkPath: String

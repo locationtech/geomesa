@@ -960,7 +960,7 @@ Used to create a feature type `SimpleFeatureType` at the specified zkpath.
     Usage: create [options]
       Options:
       * -b, --brokers
-           Brokers (host[:port], comma separated)
+           Brokers (host:port, comma separated)
       * -f, --feature-name
            Simple Feature Type name on which to operate
         --partitions
@@ -993,7 +993,7 @@ Display details about the attributes of a specified feature type.
     Usage: describe [options]
       Options:
       * -b, --brokers
-           Brokers (host[:port], comma separated)
+           Brokers (host:port, comma separated)
       * -f, --feature-name
            Simple Feature Type name on which to operate
       * -p, --zkpath
@@ -1015,7 +1015,7 @@ List all known feature types in Kafka. If no zkpath parameter is specified, the 
     Usage: list [options]
       Options:
       * -b, --brokers
-           Brokers (host[:port], comma separated)
+           Brokers (host:port, comma separated)
         -p, --zkpath
            Zookeeper path where feature schemas are saved
       * -z, --zookeepers
@@ -1036,7 +1036,7 @@ Logs out the messages written to a topic corresponding to the passed in feature 
     Usage: listen [options]
       Options:
       * -b, --brokers
-           Brokers (host[:port], comma separated)
+           Brokers (host:port, comma separated)
       * -f, --feature-name
            Simple Feature Type name on which to operate
         --from-beginning
@@ -1065,7 +1065,7 @@ Used to remove a feature type `SimpleFeatureType` in a GeoMesa catalog. This wil
     Usage: removeschema [options]
       Options:
       * -b, --brokers
-           Brokers (host[:port], comma separated)
+           Brokers (host:port, comma separated)
         -f, --feature-name
            Simple Feature Type name on which to operate
         --force

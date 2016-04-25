@@ -473,7 +473,7 @@ run ``geomesa-kafka help <command-name>``, which for example will give you somet
       Usage: list [options]
         Options:
         * -b, --brokers
-             Brokers (host[:port], comma separated)
+             Brokers (host:port, comma separated)
           -p, --zkpath
              Zookeeper path where feature schemas are saved
         * -z, --zookeepers
