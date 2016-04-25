@@ -89,7 +89,8 @@ class Z2IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
       // can't use if there are non-st filters or if custom fields are requested
       val (iters, cf) =
         if (filter.secondary.isEmpty && BinAggregatingIterator.canUsePrecomputedBins(sft, hints)) {
-          (Seq(BinAggregatingIterator.configurePrecomputed(sft, ecql, hints, sft.nonPoints)), Z2Table.BIN_CF)
+          val idOffset = Z2Table.getIdRowOffset(sft)
+          (Seq(BinAggregatingIterator.configurePrecomputed(sft, ecql, hints, idOffset, sft.nonPoints)), Z2Table.BIN_CF)
         } else {
           val iter = BinAggregatingIterator.configureDynamic(sft, ecql, hints, sft.nonPoints)
           (Seq(iter), Z2Table.FULL_CF)

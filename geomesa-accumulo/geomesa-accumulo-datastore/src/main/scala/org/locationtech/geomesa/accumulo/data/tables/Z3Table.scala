@@ -212,9 +212,16 @@ object Z3Table extends GeoMesaTable {
     out.toSet
   }
 
+  // gets the offset into the row for the id bytes
+  def getIdRowOffset(sft: SimpleFeatureType): Int = {
+    val length = if (sft.isPoints) 10 else 2 + GEOM_Z_NUM_BYTES // week + z bytes
+    val prefix = if (hasSplits(sft)) 1 else 0 // shard
+    prefix + length
+  }
+
   // reads the feature ID from the row key
   def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = {
-    val offset = if (sft.isPoints) { if (hasSplits(sft)) 11 else 10 } else 3 + GEOM_Z_NUM_BYTES
+    val offset = getIdRowOffset(sft)
     (row: Array[Byte]) => new String(row, offset, row.length - offset, Charsets.UTF_8)
   }
 
