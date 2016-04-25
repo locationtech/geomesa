@@ -13,7 +13,7 @@ See :ref:`setting_up_commandline`.
 Running the command line tools
 ------------------------------
 
-Run the ``geomesa`` without any arguments to produce the following usage text::
+Run ``geomesa`` without any arguments to produce the following usage text::
 
     $ geomesa
     Warning: GEOMESA_HOME is not set, using /opt/devel/src/geomesa/geomesa-dist/target/geomesa-1.2.0-SNAPSHOT/dist/tools/geomesa-tools-1.2.0-SNAPSHOT
@@ -77,7 +77,7 @@ to be added as arguments to each command, if needed.
 
 Command overview
 ----------------
-
+the
 Creating and deleting feature types
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -452,10 +452,9 @@ Prints out the version, git branch, and commit ID that the tools were built with
 Kafka command line tools
 ------------------------
 
-Run the ``geomesa-kafka`` without any arguments to produce the following usage text::
+Run ``geomesa-kafka`` without any arguments to produce the following usage text::
 
     $ geomesa-kafka
-      Using GEOMESA_HOME = /opt/devel/src/geomesa/geomesa-tools/target/geomesa-tools-1.2.2-SNAPSHOT
       Usage: geomesa-kafka [command] [command options]
         Commands:
           create          Create a feature definition in GeoMesa
@@ -470,7 +469,6 @@ This usage text lists the available commands. To see help for an individual comm
 run ``geomesa-kafka help <command-name>``, which for example will give you something like this::
 
     $ geomesa-kafka help list
-      Using GEOMESA_HOME = /opt/devel/src/geomesa/geomesa-tools/target/geomesa-tools-1.2.2-SNAPSHOT
       List GeoMesa features for a given zkPath
       Usage: list [options]
         Options:

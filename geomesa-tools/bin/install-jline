@@ -18,7 +18,7 @@ else
     if [[ $confirm =~ ^(yes|y) ]]; then
         echo "Trying to install JLine from $url to $GEOMESA_HOME"
         wget -O /tmp/jline-2.12.1.jar $url \
-            && mv /tmp/jline-2.12.1.jar $GEOMESA_HOME/lib/ \
+            && mv /tmp/jline-2.12.1.jar $GEOMESA_HOME/lib/common/ \
             && echo "Successfully installed JLine to $GEOMESA_HOME"
     else
         echo "Cancelled installation of JLine"

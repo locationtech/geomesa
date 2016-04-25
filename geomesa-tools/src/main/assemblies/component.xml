@@ -17,6 +17,7 @@
                 <exclude>com.google.guava:guava</exclude> <!-- Guava conflicts with Hadoop 2.x which provides guava 11.0.2-->
                 <exclude>org.apache.zookeeper:zookeeper</exclude>
                 <exclude>org.apache.kafka:kafka_2.11</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-kafka-datastore</exclude>
             </excludes>
         </dependencySet>
         <dependencySet>
