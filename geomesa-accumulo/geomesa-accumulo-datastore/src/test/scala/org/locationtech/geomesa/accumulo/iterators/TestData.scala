@@ -29,10 +29,6 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.JavaConverters._
 import scala.util.Random
 
-object UnitTestEntryType  {
-  def getTypeSpec = "POINT:String," + "LINESTRING:String," + "POLYGON:String," + "attr2:String," + IndexEntryDecoder.spec
-}
-
 object TestData extends LazyLogging {
   val TEST_USER = "root"
   val TEST_TABLE = "test_table"
@@ -59,7 +55,8 @@ object TestData extends LazyLogging {
       .build()
 
   def getTypeSpec(suffix: String = "2") = {
-    s"POINT:String,LINESTRING:String,POLYGON:String,attr$suffix:String:index=true," + IndexEntryDecoder.spec
+    s"POINT:String,LINESTRING:String,POLYGON:String,attr$suffix:String:index=true," +
+        s"geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date;geomesa.mixed.geometries=true"
   }
 
   def getFeatureType(typeNameSuffix: String = "", attrNameSuffix: String = "2", tableSharing: Boolean = true) = {

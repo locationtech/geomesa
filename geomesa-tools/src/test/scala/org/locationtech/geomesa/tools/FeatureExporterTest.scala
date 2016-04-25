@@ -36,7 +36,7 @@ class FeatureExporterTest extends Specification {
   sequential
 
   def getDataStoreAndSft(sftName: String, numFeatures: Int = 1) = {
-    val sft = SimpleFeatureTypes.createType(sftName, "name:String,geom:Geometry:srid=4326,dtg:Date")
+    val sft = SimpleFeatureTypes.createType(sftName, "name:String,geom:Point:srid=4326,dtg:Date")
 
     val featureCollection = new DefaultFeatureCollection(sft.getTypeName, sft)
 
@@ -72,7 +72,7 @@ class FeatureExporterTest extends Specification {
       val result = writer.toString.split("\r\n")
       val (header, data) = (result(0), result(1))
 
-      header mustEqual "id,name:String,*geom:Geometry:srid=4326,dtg:Date"
+      header mustEqual "id,name:String,*geom:Point:srid=4326,dtg:Date"
       data mustEqual "fid-1,myname,POINT (45 49),1970-01-01T00:00:00.000Z"
     }
 
@@ -88,7 +88,7 @@ class FeatureExporterTest extends Specification {
       val result = writer.toString.split("\r\n")
       val (header, data) = (result(0), result(1))
 
-      header mustEqual "id,*geom:Geometry:srid=4326,dtg:Date"
+      header mustEqual "id,*geom:Point:srid=4326,dtg:Date"
       data mustEqual "fid-1,POINT (45 49),1970-01-01T00:00:00.000Z"
     }
 
@@ -104,7 +104,7 @@ class FeatureExporterTest extends Specification {
       val result = writer.toString.split("\r\n")
       val (header, data) = (result(0), result(1))
 
-      header mustEqual "id,*geom:Geometry:srid=4326,dtg:Date,derived:String"
+      header mustEqual "id,*geom:Point:srid=4326,dtg:Date,derived:String"
       data mustEqual "fid-1,POINT (45 49),1970-01-01T00:00:00.000Z,myname-test"
     }
 
@@ -120,7 +120,7 @@ class FeatureExporterTest extends Specification {
       val result = writer.toString.split("\r\n")
       val (header, data) = (result(0), result(1))
 
-      header mustEqual "id,*geom:Geometry:srid=4326,dtg:Date,derived:String"
+      header mustEqual "id,*geom:Point:srid=4326,dtg:Date,derived:String"
       data mustEqual "fid-1,POINT (45 49),1970-01-01T00:00:00.000Z,\"myname,test\""
     }
   }

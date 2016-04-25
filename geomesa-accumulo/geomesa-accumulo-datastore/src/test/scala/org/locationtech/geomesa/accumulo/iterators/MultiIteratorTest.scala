@@ -31,7 +31,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
 
   sequential
 
-  val spec = SimpleFeatureTypes.encodeType(TestData.featureType)
+  val spec = SimpleFeatureTypes.encodeType(TestData.featureType, includeUserData = true)
 
   def getQuery(sft: SimpleFeatureType,
                ecqlFilter: Option[String],

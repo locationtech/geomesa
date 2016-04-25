@@ -90,8 +90,7 @@ public class DocumentationTest {
 
     // create the feature-type (a "schema" in GeoTools parlance)
     String featureSchema =
-      "NAME:String,SKU:Long,COST:Double,SELL_BY:Date," +
-      Constants.TYPE_SPEC;  // built-in geomesa attributes
+      "NAME:String,SKU:Long,COST:Double,SELL_BY:Date,geom:Point:srid=4326,dtg:Date,dtg_end_time:Date";
     SimpleFeatureType featureType = DataUtilities.createType(featureName, featureSchema);
     featureType.getUserData().put(Constants.SF_PROPERTY_START_TIME, "dtg");
     dataStore.createSchema(featureType);

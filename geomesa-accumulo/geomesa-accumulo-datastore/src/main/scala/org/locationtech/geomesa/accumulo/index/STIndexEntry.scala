@@ -106,19 +106,17 @@ case class STIndexEncoder(sft: SimpleFeatureType, rowf: TextFormatter, cff: Text
 
 object IndexEntryDecoder {
 
-  val spec = "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date"
-  val indexSFT = SimpleFeatureTypes.createType("geomesa-idx", spec)
+  private val spec = "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date"
+  private val indexSFT = SimpleFeatureTypes.createType("geomesa-idx", spec)
 
-  val localBuilder = new ThreadLocal[SimpleFeatureBuilder] {
+  private val localBuilder = new ThreadLocal[SimpleFeatureBuilder] {
     override def initialValue(): SimpleFeatureBuilder = new SimpleFeatureBuilder(indexSFT)
   }
 }
 
-import org.locationtech.geomesa.accumulo.index.IndexEntryDecoder._
-
 case class IndexEntryDecoder(ghDecoder: GeohashDecoder, dtDecoder: Option[DateDecoder]) {
   def decode(key: Key) = {
-    val builder = localBuilder.get
+    val builder = IndexEntryDecoder.localBuilder.get
     builder.reset()
     builder.addAll(List(ghDecoder.decode(key).geom, dtDecoder.map(_.decode(key))))
     builder.buildFeature("")

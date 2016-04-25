@@ -28,7 +28,7 @@ import scala.collection.JavaConversions._
 class NearestNeighborsPQTest extends Specification {
 
   val sftName = "geomesaKNNTestQueryFeature"
-  val sft = SimpleFeatureTypes.createType(sftName, IndexEntryDecoder.spec)
+  val sft = SimpleFeatureTypes.createType(sftName, "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date;geomesa.mixed.geometries=true")
 
   val equatorSF = SimpleFeatureBuilder.build(sft, List(), "equator")
   equatorSF.setDefaultGeometry(WKTUtils.read(f"POINT(0.1 0.2)"))
@@ -52,7 +52,7 @@ class NearestNeighborsPQTest extends Specification {
 
   def diagonalFeatureCollection: DefaultFeatureCollection = {
     val sftName = "geomesaKNNTestDiagonalFeature"
-    val sft = SimpleFeatureTypes.createType(sftName, IndexEntryDecoder.spec)
+    val sft = SimpleFeatureTypes.createType(sftName, "geom:Point:srid=4326,dtg:Date,dtg_end_time:Date")
     sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = DEFAULT_DTG_PROPERTY_NAME
 
     val featureCollection = new DefaultFeatureCollection(sftName, sft)
@@ -70,7 +70,7 @@ class NearestNeighborsPQTest extends Specification {
 
   def polarFeatureCollection: DefaultFeatureCollection = {
     val sftName = "geomesaKNNTestPolarFeature"
-    val sft = SimpleFeatureTypes.createType(sftName, IndexEntryDecoder.spec)
+    val sft = SimpleFeatureTypes.createType(sftName, "geom:Point:srid=4326,dtg:Date,dtg_end_time:Date")
     sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = DEFAULT_DTG_PROPERTY_NAME
 
     val featureCollection = new DefaultFeatureCollection(sftName, sft)

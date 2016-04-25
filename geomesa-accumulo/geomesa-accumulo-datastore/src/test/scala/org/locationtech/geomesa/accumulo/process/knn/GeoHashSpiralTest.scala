@@ -26,7 +26,7 @@ class GeoHashSpiralTest extends Specification {
   def generateCvilleSF = {
     val sftName = "geomesaKNNTestQueryFeature"
 
-    val sft = SimpleFeatureTypes.createType(sftName, IndexEntryDecoder.spec)
+    val sft = SimpleFeatureTypes.createType(sftName, "geom:Point:srid=4326,dtg:Date,dtg_end_time:Date")
 
     val cvilleSF = SimpleFeatureBuilder.build(sft, List(), "charlottesville")
     cvilleSF.setDefaultGeometry(WKTUtils.read(f"POINT(-78.4953560 38.0752150 )"))
@@ -37,7 +37,7 @@ class GeoHashSpiralTest extends Specification {
   def generateLineSF = {
     val sftName = "geomesaKNNTestQueryFeature"
 
-    val sft = SimpleFeatureTypes.createType(sftName, IndexEntryDecoder.spec)
+    val sft = SimpleFeatureTypes.createType(sftName, "geom:LineString:srid=4326,dtg:Date,dtg_end_time:Date")
 
     val lineSF = SimpleFeatureBuilder.build(sft, List(), "route 29")
     lineSF.setDefaultGeometry(WKTUtils.read(f"LINESTRING(-78.491 38.062, -78.474 38.082)"))

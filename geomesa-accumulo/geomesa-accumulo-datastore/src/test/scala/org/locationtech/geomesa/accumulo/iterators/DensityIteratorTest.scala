@@ -23,6 +23,7 @@ import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.index.QueryHints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -41,7 +42,7 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
   }
   val date = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate.getTime
 
-  val spec = "id:java.lang.Integer,attr:java.lang.Double,dtg:Date,*geom:Geometry:srid=4326"
+  def spec(binding: String) = s"id:java.lang.Integer,attr:java.lang.Double,dtg:Date,*geom:$binding:srid=4326"
 
   def getDensity(sftName: String, query: String): List[(Double, Double, Double)] = {
     val q = new Query(sftName, ECQL.toFilter(query))
@@ -55,31 +56,35 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
 
   "DensityIterator" should {
     "do density calc on points" >> {
-      val sft = createNewSchema(spec)
-      addFeatures(sft, (0 until 150).toArray.map { i =>
-        // space out the points very slightly around 5 primary longitudes 1 degree apart
-        val lon = (i / 30) + 1 + (Random.nextDouble() - 0.5) / 1000.0
-        val sf = new ScalaSimpleFeature(i.toString, sft)
-        sf.setAttribute(0, i.toString)
-        sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, new Date(date + i * 60000))
-        sf.setAttribute(3, s"POINT($lon 37)")
-        sf
-      })
+
+      var sft: SimpleFeatureType = null
+
+      "add features" >> {
+        sft = createNewSchema(spec("Point"))
+        val features =
+        addFeatures(sft, (0 until 150).map { i =>
+          // space out the points very slightly around 5 primary longitudes 1 degree apart
+          val lon = (i / 30) + 1 + (Random.nextDouble() - 0.5) / 1000.0
+          val sf = new ScalaSimpleFeature(i.toString, sft)
+          sf.setAttribute(0, i.toString)
+          sf.setAttribute(1, "1.0")
+          sf.setAttribute(2, new Date(date + i * 60000))
+          sf.setAttribute(3, s"POINT($lon 37)")
+          sf
+        })
+        ok
+      }
 
       "with st index" >> {
         val q = "BBOX(geom, -1, 33, 6, 40)"
         val density = getDensity(sft.getTypeName, q)
 
-        "reduce total features returned" >> { density.length must beLessThan(150) }
-        "maintain total weight of points" >> { density.map(_._3).sum mustEqual 150 }
-        "correctly bin points" >> {
-          val compiled = density.groupBy(d => (d._1, d._2)).map { case (pt, group) => group.map(_._3).sum }
-
-          // should be 5 bins of 30
-          compiled must haveLength(5)
-          forall(compiled)(_ mustEqual 30)
-        }
+        density.length must beLessThan(150)
+        density.map(_._3).sum mustEqual 150
+        val compiled = density.groupBy(d => (d._1, d._2)).map { case (pt, group) => group.map(_._3).sum }
+        // should be 5 bins of 30
+        compiled must haveLength(5)
+        forall(compiled)(_ mustEqual 30)
       }
 
       "with z3 index" >> {
@@ -87,28 +92,31 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
             "dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z'"
         val density = getDensity(sft.getTypeName, q)
 
-        "reduce total features returned" >> { density.length must beLessThan(150) }
-        "maintain total weight of points" >> { density.map(_._3).sum mustEqual 150 }
-        "correctly bin points" >> {
-          val compiled = density.groupBy(d => (d._1, d._2)).map { case (pt, group) => group.map(_._3).sum }
-
-          // should be 5 bins of 30
-          compiled must haveLength(5)
-          forall(compiled)(_ mustEqual 30)
-        }
+        density.length must beLessThan(150)
+        density.map(_._3).sum mustEqual 150
+        val compiled = density.groupBy(d => (d._1, d._2)).map { case (pt, group) => group.map(_._3).sum }
+        // should be 5 bins of 30
+        compiled must haveLength(5)
+        forall(compiled)(_ mustEqual 30)
       }
     }
 
     "do density calc on a realistic polygon" >> {
-      val sft = createNewSchema(spec)
-      addFeatures(sft, (0 until 15).toArray.map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
-        sf.setAttribute(0, i.toString)
-        sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, new Date(date + i * 60000))
-        sf.setAttribute(3, testData("[POLYGON] Charlottesville"))
-        sf
-      })
+
+      var sft: SimpleFeatureType = null
+
+      "add features" >> {
+        sft = createNewSchema(spec("Polygon"))
+        addFeatures(sft, (0 until 15).toArray.map { i =>
+          val sf = new ScalaSimpleFeature(i.toString, sft)
+          sf.setAttribute(0, i.toString)
+          sf.setAttribute(1, "1.0")
+          sf.setAttribute(2, new Date(date + i * 60000))
+          sf.setAttribute(3, testData("[POLYGON] Charlottesville"))
+          sf
+        })
+        ok
+      }
 
       "with st index" >> {
         val q = "BBOX(geom, -78.598118, 37.992204, -78.337364, 38.091238)"
@@ -125,15 +133,21 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
     }
 
     "do density calc on a realistic multilinestring" >> {
-      val sft = createNewSchema(spec)
-      addFeatures(sft, (0 until 15).toArray.map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
-        sf.setAttribute(0, i.toString)
-        sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, new Date(date + i * 60000))
-        sf.setAttribute(3, testData("[MULTILINE] Cherry Avenue entirety"))
-        sf
-      })
+
+      var sft: SimpleFeatureType = null
+
+      "add features" >> {
+        sft = createNewSchema(spec("MultiLineString"))
+        addFeatures(sft, (0 until 15).toArray.map { i =>
+          val sf = new ScalaSimpleFeature(i.toString, sft)
+          sf.setAttribute(0, i.toString)
+          sf.setAttribute(1, "1.0")
+          sf.setAttribute(2, new Date(date + i * 60000))
+          sf.setAttribute(3, testData("[MULTILINE] Cherry Avenue entirety"))
+          sf
+        })
+        ok
+      }
 
       "with st index" >> {
         val q = "BBOX(geom, -78.511236, 38.019947, -78.485830, 38.030265)"
@@ -150,15 +164,21 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
     }
 
     "do density calc on a realistic linestring" >> {
-      val sft = createNewSchema(spec)
-      addFeatures(sft, (0 until 15).toArray.map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
-        sf.setAttribute(0, i.toString)
-        sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, new Date(date + i * 60000))
-        sf.setAttribute(3, testData("[LINE] Cherry Avenue segment"))
-        sf
-      })
+
+      var sft: SimpleFeatureType = null
+
+      "add features" >> {
+        sft = createNewSchema(spec("LineString"))
+        addFeatures(sft, (0 until 15).toArray.map { i =>
+          val sf = new ScalaSimpleFeature(i.toString, sft)
+          sf.setAttribute(0, i.toString)
+          sf.setAttribute(1, "1.0")
+          sf.setAttribute(2, new Date(date + i * 60000))
+          sf.setAttribute(3, testData("[LINE] Cherry Avenue segment"))
+          sf
+        })
+        ok
+      }
 
       "with st index" >> {
         val q = "BBOX(geom, -78.511236, 38.019947, -78.485830, 38.030265)"
@@ -175,15 +195,21 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
     }
 
     "do density calc on a linestring with multiLine intersect" >> {
-      val sft = createNewSchema(spec)
-      addFeatures(sft, (0 until 15).toArray.map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
-        sf.setAttribute(0, i.toString)
-        sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, new Date(date + i * 60000))
-        sf.setAttribute(3, testData("[LINE] Line to MultiLine segment"))
-        sf
-      })
+
+      var sft: SimpleFeatureType = null
+
+      "add features" >> {
+        sft = createNewSchema(spec("LineString"))
+        addFeatures(sft, (0 until 15).toArray.map { i =>
+          val sf = new ScalaSimpleFeature(i.toString, sft)
+          sf.setAttribute(0, i.toString)
+          sf.setAttribute(1, "1.0")
+          sf.setAttribute(2, new Date(date + i * 60000))
+          sf.setAttribute(3, testData("[LINE] Line to MultiLine segment"))
+          sf
+        })
+        ok
+      }
 
       "with st index" >> {
         val q = "BBOX(geom, -78.541236, 38.019947, -78.485830, 38.060265)"
@@ -200,15 +226,21 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
     }
 
     "do density calc on a simplistic multi polygon" >> {
-      val sft = createNewSchema(spec)
-      addFeatures(sft, (0 until 15).toArray.map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
-        sf.setAttribute(0, i.toString)
-        sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, new Date(date + i * 60000))
-        sf.setAttribute(3, testData("[MULTIPOLYGON] test box"))
-        sf
-      })
+
+      var sft: SimpleFeatureType = null
+
+      "add features" >> {
+        sft = createNewSchema(spec("MultiPolygon"))
+        addFeatures(sft, (0 until 15).toArray.map { i =>
+          val sf = new ScalaSimpleFeature(i.toString, sft)
+          sf.setAttribute(0, i.toString)
+          sf.setAttribute(1, "1.0")
+          sf.setAttribute(2, new Date(date + i * 60000))
+          sf.setAttribute(3, testData("[MULTIPOLYGON] test box"))
+          sf
+        })
+        ok
+      }
 
       "with st index" >> {
         val q = "BBOX(geom, 0.0, 0.0, 10.0, 10.0)"
@@ -225,15 +257,21 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
     }
 
     "do density calc on a simplistic linestring" >> {
-      val sft = createNewSchema(spec)
-      addFeatures(sft, (0 until 15).toArray.map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
-        sf.setAttribute(0, i.toString)
-        sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, new Date(date + i * 60000))
-        sf.setAttribute(3, testData("[LINE] test line"))
-        sf
-      })
+
+      var sft: SimpleFeatureType = null
+
+      "add features" >> {
+        sft = createNewSchema(spec("LineString"))
+        addFeatures(sft, (0 until 15).toArray.map { i =>
+          val sf = new ScalaSimpleFeature(i.toString, sft)
+          sf.setAttribute(0, i.toString)
+          sf.setAttribute(1, "1.0")
+          sf.setAttribute(2, new Date(date + i * 60000))
+          sf.setAttribute(3, testData("[LINE] test line"))
+          sf
+        })
+        ok
+      }
 
       "with st index" >> {
         val q = "BBOX(geom, 0.0, 0.0, 10.0, 10.0)"
