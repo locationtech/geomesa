@@ -35,7 +35,9 @@ class GDALFileHandler extends AbstractFileHandler with LazyLogging {
       logger.info("Successfully loaded GDAL native interface bindings")
       true
     case Failure(e) =>
-      logger.error("Failed to load GDAL native libraries in GeoMesa GDAL FileHandler, Ensure that the path of the native GDAL libraries and JNI libraries are in the LD_LIBRARY_PATH environment variable", e)
+      logger.error("Failed to load GDAL native libraries in GeoMesa GDAL FileHandler, " +
+        "ensure that the path of the native GDAL libraries and JNI libraries are in the " +
+        "LD_LIBRARY_PATH environment variable", e)
       false
   }
 
@@ -47,13 +49,11 @@ class GDALFileHandler extends AbstractFileHandler with LazyLogging {
       if (gdalFile == null) {
         None
       } else {
-        var geom: Option[Geometry] = None
         try {
-          geom = getImageBoundsGeometry(gdalFile)
+           getImageBoundsGeometry(gdalFile)
         } finally {
           gdalFile.delete()
         }
-        geom
       }
     }
   }

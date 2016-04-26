@@ -9,9 +9,11 @@
 
 package org.locationtech.geomesa.blob.core;
 
+import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.locationtech.geomesa.blob.core.impl.AccumuloGeoMesaBlobStore;
 import org.opengis.filter.Filter;
 
@@ -31,6 +33,8 @@ public class AccumuloGeoMesaBlobStoreTest {
     AccumuloGeoMesaBlobStore agbs;
     Random rand = new Random();
 
+    public static final Logger logger = Logger.getLogger("AccumuloGeoMesaBlobStoreTest");
+
     @Before
     public void before() {
         Map<String, Serializable> testParams = new HashMap<>();
@@ -43,7 +47,8 @@ public class AccumuloGeoMesaBlobStoreTest {
         try {
             agbs = new AccumuloGeoMesaBlobStore(testParams);
         } catch(Exception e) {
-            System.out.println("Error initializing test geomesa blob store in AccumuloGeoMesaBlobStoreTest.java");
+            logger.error("Error initializing test geomesa blob " +
+                    "store in AccumuloGeoMesaBlobStoreTest.java", e);
         }
     }
 

@@ -54,7 +54,7 @@ public interface GeoMesaBlobStore {
     /**
      * Fetches Blob by id
      * @param id String feature Id of the Blob, from getIds functions
-     * @return Tuple2 of (blob, filename)
+     * @return Map.Entry<String, byte[]> map entry of filename to file bytes
      */
     Map.Entry<String, byte[]> get(String id);
 
