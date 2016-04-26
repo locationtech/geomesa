@@ -38,7 +38,8 @@ import scala.collection.JavaConversions._
 class BatchMultiScannerTest extends Specification {
 
   val sftName = "bmstest"
-  val schema = SimpleFeatureTypes.createType(sftName, s"name:String:index=true,age:String:index=true,idStr:String:index=true,dtg:Date,*geom:Geometry:srid=4326")
+  val schema = SimpleFeatureTypes.createType(sftName,
+    s"name:String:index=true,age:String:index=true,idStr:String:index=true,dtg:Date,*geom:Point:srid=4326")
 
   val sdf = new SimpleDateFormat("yyyyMMdd")
   sdf.setTimeZone(TimeZone.getTimeZone("Zulu"))

@@ -15,7 +15,6 @@ import org.apache.accumulo.core.data.Range
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data.tables.Z3Table
-import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.filter._
@@ -27,15 +26,17 @@ import org.opengis.filter.spatial._
 
 class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging with IndexFilterHelpers  {
 
-  import FilterHelper._
-  import Z3IdxStrategy._
-
   /**
    * Plans the query - strategy implementations need to define this
    */
   override def getQueryPlan(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType) = {
+
+    import QueryHints.{LOOSE_BBOX, RichHints}
+    import Z3IdxStrategy._
+    import org.locationtech.geomesa.filter.FilterHelper._
+
+    val ds  = queryPlanner.ds
     val sft = queryPlanner.sft
-    val acc = queryPlanner.acc
 
     val dtgField = sft.getDtgField
 
@@ -69,20 +70,22 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     output(s"GeomsToCover: $geometryToCover")
     output(s"Interval:  $interval")
 
-    val ecql: Option[Filter] = if (sft.isPoints) {
+    val looseBBox = if (hints.containsKey(LOOSE_BBOX)) Boolean.unbox(hints.get(LOOSE_BBOX)) else ds.config.looseBBox
+
+    val ecql: Option[Filter] = if (!looseBBox || sft.nonPoints) {
+      // if the user has requested strict bounding boxes, we apply the full filter
+      // if this is a non-point geometry, the index is coarse-grained, so we apply the full filter
+      filter.filter
+    } else {
       // for normal bboxes, the index is fine enough that we don't need to apply the filter on top of it
       // this may cause some minor errors at extremely fine resolution, but the performance is worth it
-      // TODO GEOMESA-1000 add some kind of 'loose bbox' config, a la postgis
       // if we have a complicated geometry predicate, we need to pass it through to be evaluated
-      val complexGeomFilter = filterListAsAnd(geomFilters).filter(isComplicatedSpatialFilter)
+      val complexGeomFilter = filterListAsAnd(geomFilters.filter(isComplicatedSpatialFilter))
       (complexGeomFilter, filter.secondary) match {
         case (Some(gf), Some(fs)) => filterListAsAnd(Seq(gf, fs))
         case (None, fs)           => fs
         case (gf, None)           => gf
       }
-    } else {
-      // for non-point geoms, the index is coarse-grained, so we always apply the full filter
-      filter.filter
     }
 
     val (iterators, kvsToFeatures, colFamily, hasDupes) = if (hints.isBinQuery) {
@@ -110,8 +113,8 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
       (iters, queryPlanner.defaultKVsToFeatures(hints), Z3Table.FULL_CF, sft.nonPoints)
     }
 
-    val z3table = acc.getTableName(sft.getTypeName, Z3Table)
-    val numThreads = acc.getSuggestedThreads(sft.getTypeName, Z3Table)
+    val z3table = ds.getTableName(sft.getTypeName, Z3Table)
+    val numThreads = ds.getSuggestedThreads(sft.getTypeName, Z3Table)
 
     // setup Z3 iterator
     val env = geometryToCover.getEnvelopeInternal

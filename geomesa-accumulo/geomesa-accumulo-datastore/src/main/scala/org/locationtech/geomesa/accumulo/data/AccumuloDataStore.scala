@@ -109,12 +109,15 @@ class AccumuloDataStore(val connector: Connector,
       try {
         // check a second time now that we have the lock
         if (getSchema(sft.getTypeName) == null) {
-          // inspect, warn and set SF_PROPERTY_START_TIME if appropriate
-          // do this before anything else so appropriate tables will be created
-          TemporalIndexCheck.validateDtgField(sft)
+          // inspect and update the simple feature type for various components
+          // do this before anything else so that any modifications will be in place
+          GeoMesaSchemaValidator.validate(sft)
+
+          // write out the metadata to the catalog table
           writeMetadata(sft)
 
-          // reload the SFT then copy over any additional keys that were in the original sft
+          // reload the sft so that we have any default metadata,
+          // then copy over any additional keys that were in the original sft
           val reloadedSft = getSchema(sft.getTypeName)
           (sft.getUserData.keySet -- reloadedSft.getUserData.keySet)
               .foreach(k => reloadedSft.getUserData.put(k, sft.getUserData.get(k)))
@@ -518,10 +521,7 @@ class AccumuloDataStore(val connector: Connector,
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    val indexSchemaFmt = getIndexSchemaFmt(typeName)
-    val featureEncoding = getFeatureEncoding(sft)
-    val hints = strategyHints(sft)
-    new QueryPlanner(sft, featureEncoding, indexSchemaFmt, this, hints)
+    new QueryPlanner(sft, this)
   }
 
   // end public methods
@@ -674,4 +674,5 @@ case class AccumuloDataStoreConfig(queryTimeout: Option[Long],
                                    queryThreads: Int,
                                    recordThreads: Int,
                                    writeThreads: Int,
-                                   caching: Boolean)
+                                   caching: Boolean,
+                                   looseBBox: Boolean)

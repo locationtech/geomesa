@@ -48,8 +48,7 @@ class AttrKeyPlusValueIteratorNoSharingTest extends Specification with TestWithD
 
   addFeatures(features)
 
-  val queryPlanner = new QueryPlanner(sft, ds.getFeatureEncoding(sft), ds.getIndexSchemaFmt(sftName), ds,
-    ds.strategyHints(sft))
+  val queryPlanner = new QueryPlanner(sft, ds)
 
   "Query planning" should {
 

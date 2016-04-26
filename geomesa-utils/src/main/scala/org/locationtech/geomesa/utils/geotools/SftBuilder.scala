@@ -21,8 +21,8 @@ import scala.reflect.runtime.universe.{Type => UType, _}
 abstract class InitBuilder[T] {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  val entries = new ListBuffer[String]
-  var enabledIndexesOpt: Option[EnabledIndexes] = None
+  private val entries = new ListBuffer[String]
+  private val options = new ListBuffer[String]
   private var dtgFieldOpt: Option[String] = None
 
   // Primitives - back compatible
@@ -105,8 +105,10 @@ abstract class InitBuilder[T] {
   def listType[Type: TypeTag](name: String, opts: Opts = Opts()) =
     append(name, opts.copy(stIndex = false), s"List[${resolve(typeOf[Type])}]")
 
-  def withIndexes(indexSuffixes: List[String]): T = {
-    this.enabledIndexesOpt = Some(EnabledIndexes(indexSuffixes))
+  def withIndexes(indexSuffixes: List[String]): T = userData(ENABLED_INDEXES, indexSuffixes.mkString(","))
+
+  def userData(key: String, value: String): T = {
+    options.append(s"$key='$value'")
     this.asInstanceOf[T]
   }
 
@@ -148,18 +150,15 @@ abstract class InitBuilder[T] {
     case _ => Seq.empty
   }
 
-  private def enabledIndexesPart = enabledIndexesOpt.map { s =>
-    s"${SimpleFeatureTypes.ENABLED_INDEXES}='${s.indexes.mkString(",")}'"
-  }
-
   // public accessors
   /** Get the type spec string associated with this builder...doesn't include dtg info */
   def getSpec = {
-    val entryLst = List(entries.mkString(SepEntry))
-    (entryLst ++ options).mkString(";")
+    if (options.isEmpty) {
+      entries.mkString(SepEntry)
+    } else {
+      s"${entries.mkString(SepEntry)};${options.mkString(SepEntry)}"
+    }
   }
-
-  def options = List(enabledIndexesPart).flatten
 
   /** builds a SimpleFeatureType object from this builder */
   def build(nameSpec: String) = {

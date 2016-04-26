@@ -10,7 +10,7 @@
 package org.locationtech.geomesa.compute.spark
 
 import java.io.{Serializable => JSerializable}
-import java.util.{Properties, UUID}
+import java.util.UUID
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.mock.MockInstance
@@ -54,12 +54,6 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
   }
 
   "GeoMesaSpark" should {
-    val testData: Map[String, String] = {
-      val dataFile = new Properties
-      dataFile.load(getClass.getClassLoader.getResourceAsStream("polygons.properties"))
-      dataFile.toMap
-    }
-
     val TEST_TABLE_NAME = "geomesa_spark_test"
 
     import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
@@ -84,7 +78,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
       ds
     }
 
-    lazy val spec = "id:Integer,map:Map[String,Integer],dtg:Date,geom:Geometry:srid=4326"
+    lazy val spec = "id:Integer,map:Map[String,Integer],dtg:Date,geom:Point:srid=4326"
 
     def createFeatures(ds: DataStore, sft: SimpleFeatureType, encodedFeatures: Array[_ <: Array[_]]): Seq[SimpleFeature] = {
       val builder = ScalaSimpleFeatureFactory.featureBuilder(sft)

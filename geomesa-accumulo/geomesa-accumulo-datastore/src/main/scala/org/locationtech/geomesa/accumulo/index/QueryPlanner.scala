@@ -29,7 +29,6 @@ import org.locationtech.geomesa.accumulo.index.QueryPlanners.FeatureFunction
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.accumulo.util.{CloseableIterator, SelfClosingIterator}
-import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features._
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
@@ -52,13 +51,12 @@ import scala.util.Try
 /**
  * Executes a query against geomesa
  */
-case class QueryPlanner(sft: SimpleFeatureType,
-                        featureEncoding: SerializationType,
-                        stSchema: String,
-                        acc: AccumuloConnectorCreator,
-                        strategyHints: StrategyHints) extends MethodProfiling {
+case class QueryPlanner(sft: SimpleFeatureType, ds: AccumuloDataStore) extends MethodProfiling {
 
   import org.locationtech.geomesa.accumulo.index.QueryPlanner._
+
+  private lazy val serializationType = ds.getFeatureEncoding(sft)
+  private val strategyHints = ds.strategyHints(sft)
 
   /**
    * Plan the query, but don't execute it - used for m/r jobs and explain query
@@ -86,7 +84,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
                            queryPlans: Iterator[QueryPlan],
                            output: ExplainerOutputType): SFIter = {
     def scan(qps: Iterator[QueryPlan]): SFIter = SelfClosingIterator(qps).ciFlatMap { qp =>
-      val iter = Strategy.execute(qp, acc).map(qp.kvsToFeatures)
+      val iter = Strategy.execute(qp, ds).map(qp.kvsToFeatures)
       if (qp.hasDuplicates) new DeDuplicatingIterator(iter) else iter
     }
 
@@ -194,7 +192,7 @@ case class QueryPlanner(sft: SimpleFeatureType,
   // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures
   def kvsToFeatures(sft: SimpleFeatureType): FeatureFunction = {
     // Perform a projecting decode of the simple feature
-    val deserializer = SimpleFeatureDeserializers(sft, featureEncoding)
+    val deserializer = SimpleFeatureDeserializers(sft, serializationType)
     (kv: Entry[Key, Value]) => {
       val sf = deserializer.deserialize(kv.getValue.get)
       applyVisibility(sf, kv.getKey)
@@ -218,9 +216,6 @@ object QueryPlanner extends LazyLogging {
   type SFIter = CloseableIterator[SimpleFeature]
 
   private val threadedHints = new SoftThreadLocal[Map[AnyRef, AnyRef]]
-
-  def apply(sft: SimpleFeatureType, ds: AccumuloDataStore): QueryPlanner =
-    new QueryPlanner(sft, ds.getFeatureEncoding(sft), ds.getIndexSchemaFmt(sft.getTypeName), ds, ds.strategyHints(sft))
 
   def setPerThreadQueryHints(hints: Map[AnyRef, AnyRef]): Unit = threadedHints.put(hints)
   def clearPerThreadQueryHints() = threadedHints.clear()
@@ -323,8 +318,8 @@ object QueryPlanner extends LazyLogging {
   /**
    * Checks for attribute transforms in the query and sets them as hints if found
    *
-   * @param query
-   * @param sft
+   * @param query query
+   * @param sft simple feature type
    * @return
    */
   def setQueryTransforms(query: Query, sft: SimpleFeatureType) =
@@ -353,7 +348,7 @@ object QueryPlanner extends LazyLogging {
       val cql  = definition.expression
       cql match {
         case p: PropertyName =>
-          if (!origSFT.getAttributeDescriptors.asScala.exists(_.getLocalName.equals(p.getPropertyName))) {
+          if (!origSFT.getAttributeDescriptors.asScala.exists(_.getLocalName == p.getPropertyName)) {
             throw new IllegalArgumentException(s"Attribute '${p.getPropertyName}' does not exist in SFT '${origSFT.getTypeName}'.")
           }
           val origAttr = origSFT.getDescriptor(p.getPropertyName)

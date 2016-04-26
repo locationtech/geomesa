@@ -28,7 +28,7 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
 
   import org.locationtech.geomesa.utils.geotools.Conversions._
 
-  override val spec = "id:java.lang.Integer,attr:java.lang.Long,dtg:Date,*geom:Geometry:srid=4326"
+  override val spec = "id:java.lang.Integer,attr:java.lang.Long,dtg:Date,*geom:Point:srid=4326"
 
   addFeatures((0 until 150).toArray.map { i =>
     val attrs = Array(i.asInstanceOf[AnyRef], (i * 2).asInstanceOf[AnyRef],

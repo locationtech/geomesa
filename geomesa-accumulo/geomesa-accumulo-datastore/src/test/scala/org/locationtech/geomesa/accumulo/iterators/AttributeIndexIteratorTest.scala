@@ -31,7 +31,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
 
   sequential
 
-  val spec = "name:String:index=true,age:Integer:index=true,scars:List[String]:index=true,dtg:Date:index=true,*geom:Geometry:srid=4326"
+  val spec = "name:String:index=true,age:Integer:index=true,scars:List[String]:index=true,dtg:Date:index=true,*geom:Point:srid=4326"
 
   val dateToIndex = {
     val sdf = new SimpleDateFormat("yyyyMMdd")
@@ -56,7 +56,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
 
   val ff = CommonFactoryFinder.getFilterFactory2
 
-  val queryPlanner = new QueryPlanner(sft, SerializationType.KRYO, null, ds, NoOpHints)
+  val queryPlanner = new QueryPlanner(sft, ds)
 
   def query(filter: String, attributes: Array[String] = Array.empty) = {
     val query = new Query(sftName, ECQL.toFilter(filter), if (attributes.length == 0) null else attributes)

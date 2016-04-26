@@ -49,12 +49,12 @@ else
         for x in "${imageio_jars[@]}"; do
             thisJar="${x}-${imageio_version}.jar"
             thisURL="${osgeo_url}/webdav/geotools/it/geosolutions/imageio-ext/${x}/${imageio_version}/${thisJar}"
-            thisDownloadPath="$GEOMESA_HOME/lib/$thisJar"
+            thisDownloadPath="$GEOMESA_HOME/lib/common/$thisJar"
             wget -O ${thisDownloadPath} ${thisURL} \
                 && chmod 0644 "${thisDownloadPath}" \
                 && echo "Successfully installed ${thisJar} to ${GEOMESA_HOME}";
         done
-        imageio_gdal_bindings_downloadpath="$GEOMESA_HOME/lib/$imageio_gdal_bindings_jarname"
+        imageio_gdal_bindings_downloadpath="$GEOMESA_HOME/lib/common/$imageio_gdal_bindings_jarname"
         wget -O ${imageio_gdal_bindings_downloadpath} ${imageio_gdal_bindings_url} \
             && chmod 0644 "${imageio_gdal_bindings_downloadpath}" \
             && echo "Successfully installed ${imageio_gdal_bindings_jarname} to ${GEOMESA_HOME}"
