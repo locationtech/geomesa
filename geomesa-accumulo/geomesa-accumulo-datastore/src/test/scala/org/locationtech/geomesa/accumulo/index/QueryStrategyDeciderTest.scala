@@ -67,16 +67,17 @@ class QueryStrategyDeciderTest extends Specification {
 
   def getRecordStrategy(filterString: String) =
     getStrategyT(filterString, ClassTag(classOf[RecordIdxStrategy]))
-  def getStStrategy(filterString: String) =
-    getStrategyT(filterString, ClassTag(classOf[STIdxStrategy]))
   def getAttributeIdxStrategy(filterString: String) =
     getStrategyT(filterString, ClassTag(classOf[AttributeIdxStrategy]))
+  def getZ2Strategy(filterString: String) =
+    getStrategyT(filterString, ClassTag(classOf[Z2IdxStrategy]))
   def getZ3Strategy(filterString: String) =
     getStrategyT(filterString, ClassTag(classOf[Z3IdxStrategy]))
+  def getFullTableStrategy(filterString: String) = getZ2Strategy(filterString)
 
   "Good spatial predicates" should {
     "get the stidx strategy" in {
-      forall(goodSpatialPredicates){ getStStrategy }
+      forall(goodSpatialPredicates){ getZ2Strategy }
     }
   }
 
@@ -89,8 +90,8 @@ class QueryStrategyDeciderTest extends Specification {
       getAttributeIdxStrategy("ns:attr2 = 'val56'")
     }
 
-    "get the record strategy for non indexed attributes" in {
-      getRecordStrategy("attr1 = 'val56'")
+    "get full table strategy for non indexed attributes" in {
+      getFullTableStrategy("attr1 = 'val56'")
     }
 
     "get the attribute likes strategy" in {
@@ -103,12 +104,12 @@ class QueryStrategyDeciderTest extends Specification {
       getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
     }
 
-    "get the record strategy if attribute non-indexed" in {
-      getRecordStrategy("attr1 ILIKE '2nd1%'")
+    "get full table strategy if attribute non-indexed" in {
+      getFullTableStrategy("attr1 ILIKE '2nd1%'")
     }
 
     "get the record strategy if attribute non-indexed for a namespaced attribute" in {
-      getRecordStrategy("ns:attr1 ILIKE '2nd1%'")
+      getFullTableStrategy("ns:attr1 ILIKE '2nd1%'")
     }
 
     "get the attribute strategy for lte" in {
@@ -246,8 +247,8 @@ class QueryStrategyDeciderTest extends Specification {
   }
 
   "Attribute filters" should {
-    "get the record strategy if not catalog" in {
-      getRecordStrategy("attr1 ILIKE '2nd1%'")
+    "get full table strategy if not catalog" in {
+      getZ2Strategy("attr1 ILIKE '2nd1%'")
     }
   }
 
@@ -286,30 +287,34 @@ class QueryStrategyDeciderTest extends Specification {
       val fs = "attr2 IS NOT NULL"
       getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
     }
-    "get the stidx strategy if attribute is not indexed" in {
-      getRecordStrategy("attr1 IS NOT NULL")
+    "get full table strategy if attribute is not indexed" in {
+      getFullTableStrategy("attr1 IS NOT NULL")
     }
   }
 
   "Anded Attribute filters" should {
     "get the STIdx strategy with stIdxStrategyPredicates" in {
-      forall(stIdxStrategyPredicates) { getStStrategy }
+      forall(stIdxStrategyPredicates) { getZ2Strategy }
     }
 
     "get the STIdx strategy with stIdxStrategyPredicates with namespaces" in {
-      forall(stIdxStrategyPredicatesWithNS) { getStStrategy }
+      forall(stIdxStrategyPredicatesWithNS) { getZ2Strategy }
     }
 
     "get the stidx strategy with attributeAndGeometricPredicates" in {
-      forall(attributeAndGeometricPredicates) { getStStrategy }
+      forall(attributeAndGeometricPredicates) { getZ2Strategy }
     }
 
     "get the stidx strategy with attributeAndGeometricPredicates with namespaces" in {
-      forall(attributeAndGeometricPredicatesWithNS) { getStStrategy }
+      forall(attributeAndGeometricPredicatesWithNS) { getZ2Strategy }
     }
 
-    "get the record strategy for non-indexed queries" in {
-      forall(idPredicates ++ nonIndexedPredicates) { getRecordStrategy }
+    "get the record table strategy for id queries" in {
+      forall(idPredicates) { getRecordStrategy }
+    }
+
+    "get full table strategy for non-indexed queries" in {
+      forall(nonIndexedPredicates) { getFullTableStrategy }
     }
 
     "get the z3 strategy with spatio-temporal queries" in {
@@ -335,7 +340,7 @@ class QueryStrategyDeciderTest extends Specification {
         "bbox(geom, 35, 59, 45, 70) AND dtg > '2010-05-12T12:00:00.000Z'",
         "bbox(geom, 35, 59, 45, 70) AND dtg >= '2010-05-12T12:00:00.000Z'"
       )
-      forall(predicates) { getStStrategy }
+      forall(predicates) { getZ2Strategy }
     }
 
     "get the attribute strategy with attrIdxStrategyPredicates" in {
@@ -352,8 +357,8 @@ class QueryStrategyDeciderTest extends Specification {
     "respect low cardinality attributes regardless of order" in {
       val attr = "low = 'test'"
       val geom = "BBOX(geom, -10,-10,10,10)"
-      getStrategy(s"$attr AND $geom") must beAnInstanceOf[STIdxStrategy]
-      getStrategy(s"$geom AND $attr") must beAnInstanceOf[STIdxStrategy]
+      getStrategy(s"$attr AND $geom") must beAnInstanceOf[Z2IdxStrategy]
+      getStrategy(s"$geom AND $attr") must beAnInstanceOf[Z2IdxStrategy]
     }
 
     "respect cardinality with multiple attributes" in {

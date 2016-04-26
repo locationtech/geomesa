@@ -29,15 +29,15 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+@deprecated("z2")
 class STIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging with IndexFilterHelpers {
 
   override def getQueryPlan(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType) = {
-
+    val acc             = queryPlanner.ds
     val sft             = queryPlanner.sft
-    val acc             = queryPlanner.acc
     val version         = sft.getSchemaVersion
-    val schema          = queryPlanner.stSchema
-    val featureEncoding = queryPlanner.featureEncoding
+    val schema          = queryPlanner.ds.getIndexSchemaFmt(sft.getTypeName)
+    val featureEncoding = queryPlanner.ds.getFeatureEncoding(sft)
     val keyPlanner      = IndexSchema.buildKeyPlanner(schema)
     val cfPlanner       = IndexSchema.buildColumnFamilyPlanner(schema)
 
@@ -249,6 +249,7 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
   }
 }
 
+@deprecated("z2")
 object STIdxStrategy extends StrategyProvider {
 
   /**

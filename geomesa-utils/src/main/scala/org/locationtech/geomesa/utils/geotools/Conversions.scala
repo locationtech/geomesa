@@ -230,7 +230,7 @@ object RichSimpleFeatureType {
     }
 
     //  If no user data is specified when creating a new SFT, we should default to 'true'.
-    def isTableSharing: Boolean = userData[String](TABLE_SHARING_KEY).map(_.toBoolean).getOrElse(true)
+    def isTableSharing: Boolean = userData[String](TABLE_SHARING_KEY).forall(_.toBoolean)
     def setTableSharing(sharing: Boolean): Unit = sft.getUserData.put(TABLE_SHARING_KEY, sharing.toString)
 
     def getTableSharingPrefix: String = userData[String](SHARING_PREFIX_KEY).getOrElse("")

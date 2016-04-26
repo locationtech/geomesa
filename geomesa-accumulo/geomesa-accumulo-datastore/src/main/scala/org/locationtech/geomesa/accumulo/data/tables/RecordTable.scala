@@ -68,6 +68,5 @@ object RecordTable extends GeoMesaTable {
     tableOps.setProperty(recordTable, Property.TABLE_BLOOM_KEY_FUNCTOR.getKey, classOf[RowFunctor].getCanonicalName)
     tableOps.setProperty(recordTable, Property.TABLE_BLOOM_ENABLED.getKey, "true")
     tableOps.setProperty(recordTable, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
-    tableOps.setProperty(recordTable, Property.TABLE_SPLIT_THRESHOLD.getKey, "128M")
   }
 }

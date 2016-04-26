@@ -60,7 +60,7 @@ class Z3DensityIterator extends KryoLazyDensityIterator {
     case p: Point => writePointToResult(p, weight, result)
     case _ =>
       val row = topKey.getRowData
-      val zOffset = row.offset() + 2
+      val zOffset = row.offset() + 3 // two for week and 1 for split
       var i = 0
       while (i < Z3Table.GEOM_Z_NUM_BYTES) {
         zBytes(i) = row.byteAt(zOffset + i)

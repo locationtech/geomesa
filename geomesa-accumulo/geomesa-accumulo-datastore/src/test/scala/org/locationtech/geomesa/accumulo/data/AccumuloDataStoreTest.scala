@@ -9,18 +9,14 @@
 package org.locationtech.geomesa.accumulo.data
 
 import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.{TimeZone, Date}
+import java.util.Date
 
 import com.google.common.collect.ImmutableSet
-import com.vividsolutions.jts.geom.Coordinate
+import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.Connector
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.commons.codec.binary.Hex
 import org.apache.hadoop.io.Text
 import org.geotools.data._
-import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
@@ -28,17 +24,17 @@ import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.iterators.IndexIterator
+import org.locationtech.geomesa.accumulo.iterators.Z2Iterator
 import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
+import org.locationtech.geomesa.accumulo.{AccumuloVersion, TestWithMultipleSfts}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -46,52 +42,42 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults {
+class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
   sequential
 
+  val defaultSpec = "name:String,geom:Point:srid=4326,dtg:Date"
+
+  val defaultSft = createNewSchema(defaultSpec)
+  val defaultTypeName = defaultSft.getTypeName
+
+  addFeature(defaultSft, defaultPoint(defaultSft))
+  addFeature(defaultSft, defaultPoint(defaultSft, id = "f2"))
+
+  val defaultGeom = WKTUtils.read("POINT(45.0 49.0)")
+
+  def defaultPoint(sft: SimpleFeatureType,
+                   id: String = "f1",
+                   name: String = "testType",
+                   point: String = "POINT(45.0 49.0)"): SimpleFeature = {
+    new ScalaSimpleFeature(id, sft, Array(name, WKTUtils.read(point), new Date(100000)))
+  }
+
   "AccumuloDataStore" should {
     "create a store" in {
-      ds must not beNull
+      ds must not(beNull)
     }
+
     "create a schema" in {
-      val sftName = "createSchemaTest"
-      val sft = createSchema(sftName)
-      ds.getSchema(sftName) mustEqual sft
+      ds.getSchema(defaultSft.getTypeName) mustEqual defaultSft
     }
-    "create and retrieve a schema with a custom IndexSchema" in {
-      val sftName = "schematestCustomSchema"
-      val indexSchema =
-        new IndexSchemaBuilder("~")
-          .randomNumber(3)
-          .indexOrDataFlag()
-          .constant(sftName)
-          .geoHash(0, 3)
-          .date("yyyyMMdd")
-          .nextPart()
-          .geoHash(3, 2)
-          .nextPart()
-          .id()
-          .build()
-      val sft = SimpleFeatureTypes.createType(sftName, defaultSchema)
-      sft.setDtgField("dtg")
-      sft.setStIndexSchema(indexSchema)
-      ds.createSchema(sft)
 
-      val retrievedSft = ds.getSchema(sftName)
-
-      retrievedSft must equalTo(sft)
-      retrievedSft.getDtgField must beSome("dtg")
-      retrievedSft.getStIndexSchema mustEqual indexSchema
-      retrievedSft.getStIndexSchema mustEqual indexSchema
-    }
     "create and retrieve a schema without a geometry" in {
       import org.locationtech.geomesa.utils.geotools.Conversions._
-      val sftName = "schematestNoGeom"
-      val sft = SimpleFeatureTypes.createType(sftName, "name:String")
-      ds.createSchema(sft)
 
-      val retrievedSft = ds.getSchema(sftName)
+      val sft = createNewSchema("name:String", dtgField = None)
+
+      val retrievedSft = ds.getSchema(sft.getTypeName)
 
       retrievedSft must not(beNull)
       retrievedSft.getAttributeCount mustEqual 1
@@ -100,7 +86,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       f.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
       val f2 = new ScalaSimpleFeature("replaceme", sft, Array("my other name"))
 
-      val fs = ds.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
+      val fs = ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
 
       val fc = new DefaultFeatureCollection()
       fc.add(f)
@@ -114,40 +100,32 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       fs.getFeatures(ECQL.toFilter("name = 'my other name'")).features().toList mustEqual List(f2)
       fs.getFeatures(ECQL.toFilter("name = 'false'")).features().toList must beEmpty
 
-      ds.removeSchema(sftName)
-      ds.getSchema(sftName) must beNull
+      ds.removeSchema(sft.getTypeName)
+      ds.getSchema(sft.getTypeName) must beNull
     }
+
     "return NULL when a feature name does not exist" in {
       ds.getSchema("testTypeThatDoesNotExist") must beNull
     }
+
     "return type names" in {
-      val sftName = "typeNameTest"
-      val sft = createSchema(sftName)
-      ds.getTypeNames.toSeq must contain(sftName)
+      ds.getTypeNames.toSeq must contain(defaultSft.getTypeName)
     }
 
     "provide ability to write using the feature source and read what it wrote" in {
-      val sftName = "featureSourceTest"
-      val sft = createSchema(sftName)
-
-      val res = addDefaultPoint(sft)
+      import org.locationtech.geomesa.utils.geotools.Conversions._
 
       // compose a CQL query that uses a reasonably-sized polygon for searching
       val cqlFilter = CQL.toFilter(s"BBOX(geom, 44.9,48.9,45.1,49.1)")
-      val query = new Query(sftName, cqlFilter)
+      val query = new Query(defaultTypeName, cqlFilter)
 
       // Let's read out what we wrote.
-      val results = ds.getFeatureSource(sftName).getFeatures(query)
-      val features = results.features
-      var containsGeometry = false
+      val results = ds.getFeatureSource(defaultTypeName).getFeatures(query)
+      val features = results.features.toList
 
-      while (features.hasNext) {
-        containsGeometry = containsGeometry | features.next.getDefaultGeometry.equals(defaultGeom)
-      }
-
-      "results schema should match" >> { results.getSchema mustEqual sft }
-      "geometry should be set" >> { containsGeometry must beTrue }
-      "result length should be 1" >> { res must haveLength(1) }
+      "results schema should match" >> { results.getSchema mustEqual defaultSft }
+      "geometry should be set" >> { forall(features)(_.getDefaultGeometry mustEqual defaultGeom) }
+      "result length should be 1" >> { features must haveLength(2) }
     }
 
     "create a schema with custom record splitting options with table sharing off" in {
@@ -185,18 +163,26 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       newSplits.last mustEqual new Text(s"${prefix}99")
     }
 
+    "Prevent mixed geometries in spec" in {
+      "throw an exception if geometry is specified" >> {
+        createNewSchema("name:String,dtg:Date,*geom:Geometry:srid=4326") must throwA[IllegalArgumentException]
+      }
+      "allow for override" >> {
+        val sft = createNewSchema("name:String,dtg:Date,*geom:Geometry:srid=4326;geomesa.mixed.geometries=true")
+        sft.getGeometryDescriptor.getType.getBinding mustEqual classOf[Geometry]
+      }
+    }
+
     "allow for a configurable number of threads in z3 queries" in {
-      val sftName = "z3threads"
-      val sft = createSchema(sftName)
       val param = AccumuloDataStoreParams.queryThreadsParam.getName
-      val query = new Query(sftName, ECQL.toFilter("bbox(geom,-75,-75,-60,-60) AND " +
+      val query = new Query(defaultTypeName, ECQL.toFilter("bbox(geom,-75,-75,-60,-60) AND " +
           "dtg DURING 2010-05-07T00:00:00.000Z/2010-05-08T00:00:00.000Z"))
       def testThreads(numThreads: Int) = {
         val params = dsParams ++ Map(param -> numThreads)
         val dst = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
         val qpt = dst.getQueryPlan(query)
         qpt must haveSize(1)
-        qpt.head.table mustEqual dst.getTableName(sftName, Z3Table)
+        qpt.head.table mustEqual dst.getTableName(defaultTypeName, Z3Table)
         qpt.head.numThreads mustEqual numThreads
       }
 
@@ -205,36 +191,30 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       // check default
       val qpt = ds.getQueryPlan(query)
       qpt must haveSize(1)
-      qpt.head.table mustEqual ds.getTableName(sftName, Z3Table)
+      qpt.head.table mustEqual ds.getTableName(defaultTypeName, Z3Table)
       qpt.head.numThreads mustEqual 8
     }
 
     "allow users to call explainQuery" in {
-      val sftName = "explainQueryTest"
-      createSchema(sftName)
-      val query = new Query(sftName, Filter.INCLUDE)
-      val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
-      fr must not beNull
+      val query = new Query(defaultTypeName, Filter.INCLUDE)
       val out = new ExplainString
-      ds.getQueryPlan(new Query(sftName, Filter.INCLUDE), explainer = out)
+      ds.getQueryPlan(new Query(defaultTypeName, Filter.INCLUDE), explainer = out)
       val explain = out.toString()
-      explain must startWith(s"Planning '$sftName'")
+      explain must startWith(s"Planning '$defaultTypeName'")
     }
 
     "allow secondary attribute indexes" >> {
-      val sftName = "AttributeIndexTest"
-      val sft = createSchema(sftName, "name:String:index=true,numattr:Integer,dtg:Date,*geom:Point:srid=4326")
-
-      val c = ds.connector
+      val sft = createNewSchema("name:String:index=true,numattr:Integer,dtg:Date,*geom:Point:srid=4326")
+      val sftName = sft.getTypeName
 
       "create all appropriate tables" >> {
-        "catalog table" >> { c.tableOperations().exists(defaultTable) must beTrue }
-        "st idx table" >> { c.tableOperations().exists(s"${defaultTable}_st_idx") must beTrue }
-        "records table" >> { c.tableOperations().exists(s"${defaultTable}_records") must beTrue }
-        "attr idx table" >> { c.tableOperations().exists(s"${defaultTable}_attr_idx") must beTrue }
+        val tables = GeoMesaTable.getTableNames(sft, ds)
+        tables must haveLength(4)
+        forall(Seq(Z2Table, Z3Table, AttributeTable, AttributeTable))(t => tables must contain(endWith(t.suffix)))
+        forall(tables)(t => ds.connector.tableOperations.exists(t) must beTrue)
       }
 
-      val pt = gf.createPoint(new Coordinate(0, 0))
+      val pt = WKTUtils.read("POINT (0 0)")
       val one = AvroSimpleFeatureFactory.buildAvroFeature(sft, Seq("one", new Integer(1), new DateTime(), pt), "1")
       val two = AvroSimpleFeatureFactory.buildAvroFeature(sft, Seq("two", new Integer(2), new DateTime(), pt), "2")
 
@@ -242,50 +222,18 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       fs.addFeatures(DataUtilities.collection(List(one, two)))
 
       // indexed attribute
-      val q1 = ff.equals(ff.property("name"), ff.literal("one"))
+      val q1 = ECQL.toFilter("name = 'one'")
       val fr = ds.getFeatureReader(new Query(sftName, q1), Transaction.AUTO_COMMIT)
       val results = SelfClosingIterator(fr).toList
       results must haveLength(1)
       results.head.getAttribute("name") mustEqual "one"
 
       // non-indexed attributes
-      val q2 = ff.equals(ff.property("numattr"), ff.literal(2))
+      val q2 = ECQL.toFilter("numattr = 2")
       val fr2 = ds.getFeatureReader(new Query(sftName, q2), Transaction.AUTO_COMMIT)
       val results2 = SelfClosingIterator(fr2).toList
       results2 must haveLength(1)
       results2.head.getAttribute("numattr") mustEqual 2
-    }
-
-    "support caching for improved WFS performance due to count/getFeatures" in {
-      val sftName = "testingCaching"
-      val ds = DataStoreFinder.getDataStore(Map(
-        "instanceId"        -> "mycloud",
-        "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
-        "user"              -> "myuser",
-        "password"          -> "mypassword",
-        "tableName"         -> defaultTable,
-        "caching"           -> true,
-        "useMock"           -> "true",
-        "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
-
-      val sft = createSchema(sftName, dataStore = ds)
-      addDefaultPoint(sft, dataStore = ds, fid = "f1")
-      addDefaultPoint(sft, dataStore = ds, fid = "f2")
-
-      "typeOf feature source must be CachingAccumuloFeatureCollection" >> {
-        val fc = ds.getFeatureSource(sftName).getFeatures(Filter.INCLUDE)
-        fc must haveClass[CachingAccumuloFeatureCollection]
-      }
-
-      "suport getCount" >> {
-        val query = new Query(sftName, Filter.INCLUDE)
-        val fs = ds.getFeatureSource(sftName)
-        val count = fs.getCount(query)
-        count mustEqual 2
-        val features = SelfClosingIterator(fs.getFeatures(query).features()).toList
-        features must haveSize(2)
-        features.map(_.getID) must containAllOf(Seq("f1", "f2"))
-      }
     }
 
     "hex encode multibyte chars as multiple underscore + hex" in {
@@ -307,36 +255,32 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       val encodedSFT = "nihao" + enc("你") + enc("好")
       encodedSFT mustEqual GeoMesaTable.hexEncodeNonAlphaNumeric(sftName)
 
-      SpatioTemporalTable.formatTableName(defaultTable, sft) mustEqual
-          s"${defaultTable}_${encodedSFT}_st_idx"
-      RecordTable.formatTableName(defaultTable, sft) mustEqual
-          s"${defaultTable}_${encodedSFT}_records"
-      AttributeTable.formatTableName(defaultTable, sft) mustEqual
-          s"${defaultTable}_${encodedSFT}_attr_idx"
+      forall(GeoMesaTable.getTables(sft)) { table =>
+        table.formatTableName(ds.catalogTable, sft) mustEqual s"${ds.catalogTable}_${encodedSFT}_${table.suffix}"
+      }
 
       val c = ds.connector
 
-      c.tableOperations().exists(defaultTable) must beTrue
-      c.tableOperations().exists(s"${defaultTable}_${encodedSFT}_st_idx") must beTrue
-      c.tableOperations().exists(s"${defaultTable}_${encodedSFT}_records") must beTrue
-      c.tableOperations().exists(s"${defaultTable}_${encodedSFT}_attr_idx") must beTrue
+      c.tableOperations().exists(ds.catalogTable) must beTrue
+      forall(GeoMesaTable.getTables(sft)) { table =>
+        c.tableOperations().exists(s"${ds.catalogTable}_${encodedSFT}_${table.suffix}") must beTrue
+      }
     }
 
     "update metadata for indexed attributes" in {
-      val sftName = "updateMetadataTest"
-      val originalSchema = s"name:String,dtg:Date,*geom:Point:srid=4326:$OPT_INDEX=full:$OPT_INDEX_VALUE=true"
-      val updatedSchema = s"name:String:$OPT_INDEX=join,dtg:Date,*geom:Point:srid=4326:$OPT_INDEX=full:$OPT_INDEX_VALUE=true"
+      val originalSchema = "name:String,dtg:Date,*geom:Point:srid=4326:index=full:index-value=true"
+      val updatedSchema = "name:String:index=join,dtg:Date,*geom:Point:srid=4326:index=full:index-value=true"
 
-      val sft = createSchema(sftName, originalSchema)
-      ds.updateIndexedAttributes(sftName, updatedSchema)
-      val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema(sftName))
+      val sft = createNewSchema(originalSchema)
+      ds.updateIndexedAttributes(sft.getTypeName, updatedSchema)
+      val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema(sft.getTypeName))
       retrievedSchema mustEqual updatedSchema
     }
 
     "prevent changing schema types" in {
-      val sftName = "preventSchemaChangeTest"
-      val originalSchema = s"name:String,dtg:Date,*geom:Point:srid=4326:$OPT_INDEX=full:$OPT_INDEX_VALUE=true"
-      val sft = createSchema(sftName, originalSchema)
+      val originalSchema = "name:String,dtg:Date,*geom:Point:srid=4326"
+      val sft = createNewSchema(originalSchema)
+      val sftName = sft.getTypeName
 
       "prevent changing default geometry" in {
         val updatedSchema = "name:String,dtg:Date,geom:Point:srid=4326"
@@ -365,14 +309,16 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
     }
 
     "Provide a feature update implementation" in {
-      val sftName = "featureUpdateTest"
-      val sft = createSchema(sftName, "name:String,dtg:Date,*geom:Point:srid=4326")
+      val sft = createNewSchema("name:String,dtg:Date,*geom:Point:srid=4326")
+      val sftName = sft.getTypeName
 
-      val features = createTestFeatures(sft)
-      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
-      fs.addFeatures(new ListFeatureCollection(sft, features))
+      addFeatures(sft, (0 until 6).map { i =>
+        val sf = new ScalaSimpleFeature(i.toString, sft)
+        sf.setAttributes(Array[AnyRef](i.toString, "2012-01-02T05:06:07.000Z", "POINT(45.0 45.0)"))
+        sf
+      })
 
-      val filter = ff.id(ff.featureId("2"))
+      val filter = ECQL.toFilter("IN ('2')")
       val writer = ds.getFeatureWriter(sftName, filter, Transaction.AUTO_COMMIT)
       writer.hasNext must beTrue
       val feat = writer.next
@@ -388,167 +334,122 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
       val updated = reader.next()
       reader.hasNext must beFalse
       reader.close()
-      updated.getID mustEqual("2")
+      updated.getID mustEqual "2"
       updated.getAttribute("name") mustEqual "2-updated"
     }
 
     "allow caching to be configured" in {
-      val sftName = "cachingTest"
-
-      DataStoreFinder.getDataStore(Map(
-        "instanceId"        -> "mycloud",
-        "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
-        "user"              -> "myuser",
-        "password"          -> "mypassword",
-        "auths"             -> "A,B,C",
-        "tableName"         -> sftName,
-        "useMock"           -> "true",
-        "caching"           -> false,
-        "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore].config.caching must beFalse
-
-      DataStoreFinder.getDataStore(Map(
-        "instanceId"        -> "mycloud",
-        "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
-        "user"              -> "myuser",
-        "password"          -> "mypassword",
-        "auths"             -> "A,B,C",
-        "tableName"         -> sftName,
-        "useMock"           -> "true",
-        "caching"           -> true,
-        "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore].config.caching must beTrue
-    }
-
-    "not use caching by default" in {
-      val sftName = "cachingTest"
-      val instance = new MockInstance
-      val connector = instance.getConnector("user", new PasswordToken("pass".getBytes()))
-      val params = Map(
-        "connector" -> connector,
-        "tableName" -> sftName)
-      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
-      ds.config.caching must beFalse
+      DataStoreFinder.getDataStore(dsParams ++ Map("caching" -> false))
+          .asInstanceOf[AccumuloDataStore].config.caching must beFalse
+      DataStoreFinder.getDataStore(dsParams ++ Map("caching" -> true))
+          .asInstanceOf[AccumuloDataStore].config.caching must beTrue
     }
 
     "not use caching by default with mocks" in {
       ds.config.caching must beFalse
     }
 
-    "create key plan that uses STII Filter with bbox" in {
-      val sftName = "explainLargeBBOXTest1"
-      val sft1 = createSchema(sftName)
-      val filter = CQL.toFilter("bbox(geom, -100, -45, 100, 45)")
-      val query = new Query(sftName, filter, Array("geom"))
-      val explain = {
-        val o = new ExplainString
-        ds.getQueryPlan(query, explainer = o)
-        o.toString()
+    "support caching for improved WFS performance due to count/getFeatures" in {
+      val ds = DataStoreFinder.getDataStore(dsParams ++ Map("caching" -> true)).asInstanceOf[AccumuloDataStore]
+
+      "typeOf feature source must be CachingAccumuloFeatureCollection" >> {
+        val fc = ds.getFeatureSource(defaultTypeName).getFeatures(Filter.INCLUDE)
+        fc must haveClass[CachingAccumuloFeatureCollection]
       }
-      ds.removeSchema(sftName)
-      explain must contain("STII Filter: [ geom bbox POLYGON ((-100 -45, -100 45, 100 45, 100 -45, -100 -45)) ]")
+
+      "suport getCount" >> {
+        val query = new Query(defaultTypeName, Filter.INCLUDE)
+        val fs = ds.getFeatureSource(defaultTypeName)
+        val count = fs.getCount(query)
+        count mustEqual 2
+        val features = SelfClosingIterator(fs.getFeatures(query).features()).toList
+        features must haveSize(2)
+        features.map(_.getID) must containAllOf(Seq("f1", "f2"))
+      }
     }
 
-    "create key plan that does not use STII when given the Whole World bbox" in {
-      val sftName = "explainLargeBBOXTest2"
-      val sft2 = createSchema(sftName)
-      val filter = CQL.toFilter("bbox(geom, -180, -90, 180, 90)")
-      val query = new Query(sftName, filter, Array("geom"))
-      val explain = {
-        val o = new ExplainString
-        ds.getQueryPlan(query, explainer = o)
-        o.toString()
+    "Project to date/geom" in {
+      val sft = createNewSchema("name:String,dtg:Date,*geom:Point:srid=4326,attr2:String")
+      val sftName = sft.getTypeName
+
+      val features = (0 until 6).map { i =>
+        val sf = new ScalaSimpleFeature(i.toString, sft)
+        sf.setAttributes(Array[AnyRef](i.toString, s"2012-01-02T05:0$i:07.000Z", s"POINT(45.0 4$i.0)", s"2-$i"))
+        sf
       }
-      ds.removeSchema(sftName)
-      explain.split("\n").map(_.trim).filter(_.startsWith("Strategy filter:")).toSeq mustEqual
-          Seq("Strategy filter: RECORD[INCLUDE][None]")
+      addFeatures(sft, features)
+
+      val baseTime = features(0).getAttribute("dtg").asInstanceOf[Date].getTime
+
+      val query = new Query(sftName, ECQL.toFilter("BBOX(geom, 40.0, 40.0, 50.0, 50.0)"), Array("geom", "dtg"))
+      val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
+
+      val read = SelfClosingIterator(reader).toList
+
+      // verify that all the attributes came back
+      read must haveSize(6)
+      read.sortBy(_.getAttribute("dtg").toString).zipWithIndex.foreach { case (sf, i) =>
+        sf.getAttributeCount mustEqual 2
+        sf.getAttribute("name") must beNull
+        sf.getAttribute("geom") mustEqual WKTUtils.read(s"POINT(45.0 4$i.0)")
+        sf.getAttribute("dtg").asInstanceOf[Date].getTime mustEqual baseTime + i * 60000
+      }
+      success
+    }
+
+    "create query plan that uses the Z2 iterator with simple bbox" in {
+      val query = new Query(defaultTypeName, ECQL.toFilter("bbox(geom, -100, -45, 100, 45)"))
+      val plans = ds.getQueryPlan(query)
+      plans must haveLength(1)
+      plans.head.iterators must haveLength(1)
+      plans.head.iterators.head.getIteratorClass mustEqual classOf[Z2Iterator].getName
+    }
+
+    "create key plan that does not use any iterators when given the Whole World bbox" in {
+      val query = new Query(defaultTypeName, ECQL.toFilter("bbox(geom, -180, -90, 180, 90)"))
+      val plans = ds.getQueryPlan(query)
+      plans must haveLength(1)
+      plans.head.iterators must beEmpty
     }
 
     "create key plan that does not use STII when given something larger than the Whole World bbox" in {
-      val sftName = "explainLargeBBOXTest3"
-      val sft3 = createSchema(sftName)
-      val filter = CQL.toFilter("bbox(geom, -190, -100, 190, 100)")
-      val query = new Query(sftName, filter, Array("geom"))
+      val query = new Query(defaultTypeName, ECQL.toFilter("bbox(geom, -190, -100, 190, 100)"), Array("geom"))
       val explain = {
         val o = new ExplainString
         ds.getQueryPlan(query, explainer = o)
         o.toString()
       }
-      ds.removeSchema(sftName)
       explain.split("\n").map(_.trim).filter(_.startsWith("Strategy filter:")).toSeq mustEqual
-          Seq("Strategy filter: RECORD[INCLUDE][None]")
+          Seq("Strategy filter: Z2[INCLUDE][None]")
     }
 
     "create key plan that does not use STII when given an or'd geometry query with redundant bbox" in {
-      // Todo: https://geomesa.atlassian.net/browse/GEOMESA-785
-      val sftName = "explainLargeBBOXTest4"
-      val sft3 = createSchema(sftName)
-      val filter = CQL.toFilter("bbox(geom, -180, -90, 180, 90) OR bbox(geom, -10, -10, 10, 10)")
-      val query = new Query(sftName, filter, Array("geom"))
-      val explain = {
-        val o = new ExplainString
-        ds.getQueryPlan(query, explainer = o)
-        o.toString()
-      }
-      ds.removeSchema(sftName)
-      explain.split("\n").filter(_.startsWith("Filter:")) mustEqual Seq("Filter: primary filter: INCLUDE, secondary filter: None")
-    }.pendingUntilFixed("Fixed query planner to deal with OR'd redundant geom with whole world")
+      val query = new Query(defaultTypeName, ECQL.toFilter("bbox(geom, -180, -90, 180, 90) OR bbox(geom, -10, -10, 10, 10)"))
+      val plans = ds.getQueryPlan(query)
+      plans must haveLength(1)
+      plans.head.iterators must beEmpty
+    }
 
     "create key plan that does not use STII when given two bboxes that when unioned are the whole world" in {
       // Todo: https://geomesa.atlassian.net/browse/GEOMESA-785
-      val sftName = "explainWhatIsLogicallyTheWholeWorldTest1"
-      val sft4 = createSchema(sftName)
-      val filter = CQL.toFilter("bbox(geom, -180, -90, 0, 90) OR bbox(geom, 0, -90, 180, 90)")
-      val query = new Query(sftName, filter, Array("geom"))
-      val explain = {
-        val o = new ExplainString
-        ds.getQueryPlan(query, explainer = o)
-        o.toString()
-      }
-      ds.removeSchema(sftName)
-      explain must not contain("STII Filter: [ geom bbox ")
-      explain must contain("No STII Filter")
-      explain must contain("Filter: AcceptEverythingFilter")
+      val query = new Query(defaultTypeName, ECQL.toFilter("bbox(geom, -180, -90, 0, 90) OR bbox(geom, 0, -90, 180, 90)"))
+      val plans = ds.getQueryPlan(query)
+      plans must haveLength(1)
+      plans.head.iterators must beEmpty
     }.pendingUntilFixed("Fixed query planner to deal with OR'd whole world geometry")
 
-    "create key plan correctly with a large bbox and a date range" in {
-      val sftName1 = "keyPlanTest1"
-      val sftName2 = "keyPlanTest2"
-
-      val sft1 = createSchema(sftName1)
-      val sft2 = createSchema(sftName2)
-
-      addDefaultPoint(sft1, fid = "fid-sft1")
-      addDefaultPoint(sft2, fid = "fid-sft2")
-
-      val filter =
-        CQL.toFilter("bbox(geom,-180,-90,180,90) AND dtg BETWEEN '1969-12-31T00:00:00.000Z' AND '1970-01-02T00:00:00.000Z'")
-      val query = new Query(sftName1, filter, Array("geom", "dtg"))
-
-      // Let's read out what we wrote.
-      val features = SelfClosingIterator(ds.getFeatureSource(sftName1).getFeatures(query).features).toList
-      features.size mustEqual 1
-      features.head.getID mustEqual "fid-sft1"
-
-      val explain = {
-        val o = new ExplainString
-        ds.getQueryPlan(query, explainer = o)
-        o.toString()
-      }
-      explain must not contain "GeoHashKeyPlanner: KeyInvalid"
-    }
-
     "transform index value data correctly" in {
-      val sftName = "indexValueTransform"
-      val sft = createSchema(sftName, "trackId:String:index-value=true,label:String:index-value=true," +
+      import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
+
+      val sft = createNewSchema("trackId:String:index-value=true,label:String:index-value=true," +
           "extraValue:String,score:Double:index-value=true,dtg:Date,geom:Point:srid=4326")
+      val sftName = sft.getTypeName
 
-      val df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-      df.setTimeZone(TimeZone.getTimeZone("UTC"))
-
-      (0 until 5).foreach { i =>
-        val attrs = List(s"trk$i", s"label$i", "extra", new java.lang.Double(i),
-          df.synchronized(df.parse(s"2014-01-01 0$i:00:00")), WKTUtils.read(s"POINT(5$i 50)"))
-        addDefaultPoint(sft, fid = s"f$i", attributes = attrs)
-      }
+      addFeatures(sft, (0 until 5).map { i =>
+        val sf = new ScalaSimpleFeature(s"f$i", sft)
+        sf.setAttributes(Array[AnyRef](s"trk$i", s"label$i", "extra", s"$i", s"2014-01-01T0$i:00:00.000Z", s"POINT(5$i 50)"))
+        sf
+      })
 
       "with out of order attributes" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"), Array("geom", "dtg", "label"))
@@ -556,10 +457,10 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
           SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
         features must haveSize(5)
         (0 until 5).foreach { i =>
-          features(i).getID mustEqual(s"f$i")
+          features(i).getID mustEqual s"f$i"
           features(i).getAttributeCount mustEqual 3
           features(i).getAttribute("label") mustEqual s"label$i"
-          features(i).getAttribute("dtg") mustEqual df.synchronized(df.parse(s"2014-01-01 0$i:00:00"))
+          features(i).getAttribute("dtg") mustEqual GeoToolsDateFormat.parseDateTime(s"2014-01-01T0$i:00:00.000Z").toDate
           features(i).getAttribute("geom") mustEqual WKTUtils.read(s"POINT(5$i 50)")
         }
         success
@@ -571,9 +472,9 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
           SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
         features must haveSize(5)
         (0 until 5).foreach { i =>
-          features(i).getID mustEqual(s"f$i")
+          features(i).getID mustEqual s"f$i"
           features(i).getAttributeCount mustEqual 2
-          features(i).getAttribute("dtg") mustEqual df.synchronized(df.parse(s"2014-01-01 0$i:00:00"))
+          features(i).getAttribute("dtg") mustEqual GeoToolsDateFormat.parseDateTime(s"2014-01-01T0$i:00:00.000Z").toDate
           features(i).getAttribute("geom") mustEqual WKTUtils.read(s"POINT(5$i 50)")
         }
         success
@@ -586,12 +487,12 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
           SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
         features must haveSize(5)
         (0 until 5).foreach { i =>
-          features(i).getID mustEqual(s"f$i")
+          features(i).getID mustEqual s"f$i"
           features(i).getAttributeCount mustEqual 5
           features(i).getAttribute("label") mustEqual s"label$i"
           features(i).getAttribute("trackId") mustEqual s"trk$i"
           features(i).getAttribute("score") mustEqual i.toDouble
-          features(i).getAttribute("dtg") mustEqual df.synchronized(df.parse(s"2014-01-01 0$i:00:00"))
+          features(i).getAttribute("dtg") mustEqual GeoToolsDateFormat.parseDateTime(s"2014-01-01T0$i:00:00.000Z").toDate
           features(i).getAttribute("geom") mustEqual WKTUtils.read(s"POINT(5$i 50)")
         }
         success
@@ -600,11 +501,8 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
 
     "delete all associated tables" >> {
       val catalog = "AccumuloDataStoreDeleteTest"
-      val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
-      val ds = DataStoreFinder.getDataStore(Map(
-        "connector" -> connector,
-        // note the table needs to be different to prevent testing errors
-        "tableName" -> catalog)).asInstanceOf[AccumuloDataStore]
+      // note the table needs to be different to prevent testing errors
+      val ds = DataStoreFinder.getDataStore(dsParams ++ Map("tableName" -> catalog)).asInstanceOf[AccumuloDataStore]
       val sft = SimpleFeatureTypes.createType(catalog, "name:String:index=true,dtg:Date,*geom:Point:srid=4326")
       ds.createSchema(sft)
       val tables = GeoMesaTable.getTableNames(sft, ds) ++ Seq(catalog)
@@ -615,24 +513,15 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
     }
 
     "query on bbox and unbounded temporal" >> {
-      val sftName = "unboundedTemporal"
-      val spec = "name:String,dtg:Date,*geom:Point:srid=4326"
-      val sft = createSchema(sftName, spec)
+      val sft = createNewSchema("name:String,dtg:Date,*geom:Point:srid=4326")
 
-      val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
-      val features = (0 until 6).map { i =>
-        builder.set("geom", WKTUtils.read(s"POINT(45.0 4$i.0)"))
-        builder.set("dtg", s"2012-01-02T05:0$i:07.000Z")
-        builder.set("name", i.toString)
-        val sf = builder.buildFeature(i.toString)
-        sf.getUserData.update(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+      addFeatures(sft, (0 until 6).map { i =>
+        val sf = new ScalaSimpleFeature(i.toString, sft)
+        sf.setAttributes(Array[AnyRef](i.toString, s"2012-01-02T05:0$i:07.000Z", s"POINT(45.0 4$i.0)"))
         sf
-      }
+      })
 
-      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
-      fs.addFeatures(new ListFeatureCollection(sft, features))
-
-      val query = new Query(sftName,
+      val query = new Query(sft.getTypeName,
         ECQL.toFilter("BBOX(geom, 40.0, 40.0, 50.0, 44.5) AND dtg after 2012-01-02T05:02:00.000Z"))
       val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
 
@@ -640,7 +529,7 @@ class AccumuloDataStoreTest extends Specification with AccumuloDataStoreDefaults
 
       // verify that all the attributes came back
       read must haveSize(3)
-      read.map(_.getID).sorted mustEqual Seq("2", "3", "4")
+      read.map(_.getID) must containAllOf(Seq("2", "3", "4"))
     }
 
     "create tables with an accumulo namespace" >> {

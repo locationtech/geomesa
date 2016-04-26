@@ -10,15 +10,14 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Geometry, GeometryFactory}
-import org.apache.accumulo.core.Constants
-import org.apache.accumulo.core.data.{Mutation, Value}
+import org.apache.accumulo.core.data.Value
+import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.DataStore
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureStore
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializers}
@@ -30,14 +29,10 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.JavaConverters._
 import scala.util.Random
 
-object UnitTestEntryType  {
-  def getTypeSpec = "POINT:String," + "LINESTRING:String," + "POLYGON:String," + "attr2:String," + IndexEntryDecoder.spec
-}
-
 object TestData extends LazyLogging {
   val TEST_USER = "root"
   val TEST_TABLE = "test_table"
-  val TEST_AUTHORIZATIONS = Constants.NO_AUTHS
+  val TEST_AUTHORIZATIONS = new Authorizations()
   val emptyBytes = new Value(Array[Byte]())
 
   case class Entry(wkt: String, id: String, dt: DateTime = new DateTime(defaultDateTime))
@@ -60,7 +55,8 @@ object TestData extends LazyLogging {
       .build()
 
   def getTypeSpec(suffix: String = "2") = {
-    s"POINT:String,LINESTRING:String,POLYGON:String,attr$suffix:String:index=true," + IndexEntryDecoder.spec
+    s"POINT:String,LINESTRING:String,POLYGON:String,attr$suffix:String:index=true," +
+        s"geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date;geomesa.mixed.geometries=true"
   }
 
   def getFeatureType(typeNameSuffix: String = "", attrNameSuffix: String = "2", tableSharing: Boolean = true) = {
@@ -104,24 +100,6 @@ object TestData extends LazyLogging {
   lazy val binEncoder = BinEncoder(featureType)
 
   val defaultDateTime = new DateTime(2011, 6, 1, 0, 0, 0, DateTimeZone.forID("UTC")).toDate
-
-  // utility function that can encode multiple types of geometry
-  def createObject(id: String, wkt: String, dt: DateTime = new DateTime(defaultDateTime)): Seq[Mutation] = {
-    val geomType: String = wkt.split( """\(""").head
-    val geometry: Geometry = WKTUtils.read(wkt)
-    val entry =
-      AvroSimpleFeatureFactory.buildAvroFeature(
-        featureType,
-        List(null, null, null, id, geometry, dt.toDate, dt.toDate),
-        s"|data|$id")
-
-    //entry.setAttribute(geomType, id)
-    entry.setAttribute("attr2", "2nd" + id)
-    indexEncoder.synchronized {
-      val toWrite = new FeatureToWrite(entry, "", featureEncoder, indexValueEncoder, binEncoder)
-      indexEncoder.encode(toWrite)
-    }
-  }
 
   def createSF(e: Entry): SimpleFeature = createSF(e, featureType)
 

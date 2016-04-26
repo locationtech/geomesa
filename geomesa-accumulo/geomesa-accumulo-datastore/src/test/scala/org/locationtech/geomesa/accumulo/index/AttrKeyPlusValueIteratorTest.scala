@@ -46,8 +46,7 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithDataStore 
 
   addFeatures(features)
 
-  val queryPlanner = new QueryPlanner(sft, ds.getFeatureEncoding(sft), ds.getIndexSchemaFmt(sftName), ds,
-    ds.strategyHints(sft))
+  val queryPlanner = new QueryPlanner(sft, ds)
 
   "Query planning" should {
 

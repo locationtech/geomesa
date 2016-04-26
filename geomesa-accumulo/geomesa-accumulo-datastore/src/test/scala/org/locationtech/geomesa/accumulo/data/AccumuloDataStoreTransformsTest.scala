@@ -118,11 +118,8 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
     }
 
     "handle back compatible transformations" >> {
-      val sft = createNewSchema(spec)
+      val sft = createNewSchema(spec, schemaVersion = Some(2))
       val sftName = sft.getTypeName
-
-      ds.metadata.insert(sftName, VERSION_KEY, "2")
-      ds.metadata.expireCache(sftName)
 
       addFeatures(sft, createFeature(sft))
 

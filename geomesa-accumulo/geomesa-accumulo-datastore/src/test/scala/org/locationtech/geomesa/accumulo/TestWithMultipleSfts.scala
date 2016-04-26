@@ -15,13 +15,14 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+import org.opengis.filter.identity.FeatureId
 import org.specs2.mutable.Specification
 import org.specs2.specification.{Fragments, Step}
 
@@ -41,11 +42,13 @@ trait TestWithMultipleSfts extends Specification {
 
   val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
 
-  val ds = DataStoreFinder.getDataStore(Map(
+  val dsParams = Map(
     "connector" -> connector,
     "caching"   -> false,
     // note the table needs to be different to prevent testing errors
-    "tableName" -> sftBaseName).asJava).asInstanceOf[AccumuloDataStore]
+    "tableName" -> sftBaseName)
+
+  val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
 
   // after all tests, drop the tables we created to free up memory
   override def map(fragments: => Fragments) = fragments ^ Step {
@@ -56,29 +59,32 @@ trait TestWithMultipleSfts extends Specification {
 
   def createNewSchema(spec: String,
                       dtgField: Option[String] = Some("dtg"),
-                      tableSharing: Boolean = true): SimpleFeatureType = synchronized {
+                      tableSharing: Boolean = true,
+                      schemaVersion: Option[Int] = None): SimpleFeatureType = synchronized {
     val sftName = sftBaseName + sftCounter.getAndIncrement()
     val sft = SimpleFeatureTypes.createType(sftName, spec)
     dtgField.foreach(sft.setDtgField)
     sft.setTableSharing(tableSharing)
+    schemaVersion.foreach(sft.setSchemaVersion)
     ds.createSchema(sft)
     sfts += ds.getSchema(sftName) // reload the sft from the ds to ensure all user data is set properly
     sfts.last
   }
 
-  def addFeature(sft: SimpleFeatureType, feature: SimpleFeature): Unit = addFeatures(sft, Seq(feature))
+  def addFeature(sft: SimpleFeatureType, feature: SimpleFeature): java.util.List[FeatureId] =
+    addFeatures(sft, Seq(feature))
 
   /**
    * Call to load the test features into the data store
    */
-  def addFeatures(sft: SimpleFeatureType, features: Seq[SimpleFeature]): Unit = {
+  def addFeatures(sft: SimpleFeatureType, features: Seq[SimpleFeature]): java.util.List[FeatureId] = {
     val featureCollection = new DefaultFeatureCollection(sft.getTypeName, sft)
     features.foreach { f =>
       f.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
       featureCollection.add(f)
     }
     // write the feature to the store
-    ds.getFeatureSource(sft.getTypeName).asInstanceOf[AccumuloFeatureStore].addFeatures(featureCollection)
+    ds.getFeatureSource(sft.getTypeName).addFeatures(featureCollection)
   }
 
   def clearFeatures(sft: SimpleFeatureType): Unit = {

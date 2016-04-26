@@ -62,14 +62,14 @@ trait GeoMesaTable {
 
 object GeoMesaTable {
 
+  val AllTables = Seq(RecordTable, SpatioTemporalTable, AttributeTableV5, AttributeTable, Z2Table, Z3Table)
+
   def getTables(sft: SimpleFeatureType): Seq[GeoMesaTable] = {
     val enabled = {
       val s = sft.getEnabledTables.toString
       if (s.nonEmpty) AvailableTables.toTables(s.split(",").toList) else AvailableTables.AllTables
     }
-    Seq(RecordTable, SpatioTemporalTable, AttributeTableV5, AttributeTable, Z3Table)
-      .filter(_.supports(sft))
-      .filter(enabled.contains)
+    AllTables.filter(t => t.supports(sft) && enabled.contains(t))
   }
 
   def getTableNames(sft: SimpleFeatureType, acc: AccumuloConnectorCreator): Seq[String] =

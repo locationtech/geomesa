@@ -17,7 +17,7 @@ import org.geotools.data.DataStoreFinder
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.tables.{RecordTable, SpatioTemporalTable}
+import org.locationtech.geomesa.accumulo.data.tables.{RecordTable, Z2Table}
 import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.accumulo.iterators.TestData._
 import org.opengis.filter._
@@ -116,7 +116,7 @@ class TableSharingTest extends Specification with LazyLogging {
 
   // Delete one shared table feature to ensure that deleteSchema works.
   s"Removing ${sft2.getTypeName}" should {
-    val sft2Scanner = ds.getScanner(ds.getTableName(sft2.getTypeName, SpatioTemporalTable))
+    val sft2Scanner = ds.getScanner(ds.getTableName(sft2.getTypeName, Z2Table))
     val sft2RecordScanner = ds.getScanner(ds.getTableName(sft2.getTypeName, RecordTable))
 
     ds.removeSchema(sft2.getTypeName)

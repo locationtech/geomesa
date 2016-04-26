@@ -51,7 +51,7 @@ class ConfigurableIndexesTest extends Specification {
     "fall back to records for ST queries" >> {
       "spatial" >> {
         val filter = f(geom)
-        val options = splitter.getQueryOptions(filter)
+        val options = splitter.getQueryOptions(filter, ExplainNull)
         options must haveLength(1)
         options.head.filters must haveLength(1)
         options.head.filters.head.strategy mustEqual StrategyType.RECORD
@@ -63,7 +63,7 @@ class ConfigurableIndexesTest extends Specification {
     "fall back to records table on simple ands" >> {
       "spatial" >> {
         val filter = and(geom, geom2)
-        val options = splitter.getQueryOptions(filter)
+        val options = splitter.getQueryOptions(filter, ExplainNull)
         options must haveLength(1)
         options.head.filters must haveLength(1)
         options.head.filters.head.strategy mustEqual StrategyType.RECORD
@@ -72,7 +72,7 @@ class ConfigurableIndexesTest extends Specification {
       }
       "with multiple spatial clauses" >> {
         val filter = or(geom, geom2)
-        val options = splitter.getQueryOptions(filter)
+        val options = splitter.getQueryOptions(filter, ExplainNull)
         options must haveLength(1)
         options.head.filters must haveLength(1)
         forall(options.head.filters)(_.strategy mustEqual StrategyType.RECORD)
@@ -81,7 +81,7 @@ class ConfigurableIndexesTest extends Specification {
       }
       "with spatiotemporal and indexed attribute clauses" >> {
         val filter = or(geom, indexedAttr)
-        val options = splitter.getQueryOptions(filter)
+        val options = splitter.getQueryOptions(filter, ExplainNull)
         options must haveLength(1)
         options.head.filters must haveLength(1)
         options.head.filters.map(_.strategy) must containTheSameElementsAs(Seq(StrategyType.RECORD))
@@ -90,14 +90,12 @@ class ConfigurableIndexesTest extends Specification {
       }
       "with ORs" >> {
         val filter = or(geom, or(dtg, indexedAttr))
-        val options = splitter.getQueryOptions(filter)
+        val options = splitter.getQueryOptions(filter, ExplainNull)
         options must haveLength(1)
         options.head.filters must haveLength(1)
-        options.head.filters.map(_.strategy) must
-          containTheSameElementsAs(Seq(StrategyType.RECORD))
-        options.head.filters.map(_.primary) must
-          containTheSameElementsAs(Seq(Seq(Filter.INCLUDE)))
-        forall(options.head.filters)(_.secondary mustEqual Some(or(or(geom, indexedAttr), dtg)))
+        options.head.filters.head.strategy mustEqual StrategyType.RECORD
+        options.head.filters.head.primary mustEqual Seq(Filter.INCLUDE)
+        options.head.filters.head.secondary must beSome(or(geom, or(dtg, indexedAttr)))
       }
     }
   }

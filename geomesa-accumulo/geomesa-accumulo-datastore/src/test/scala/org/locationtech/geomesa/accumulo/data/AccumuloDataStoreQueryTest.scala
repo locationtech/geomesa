@@ -23,7 +23,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
-import org.locationtech.geomesa.accumulo.index.{ExplainString, JoinPlan, QueryPlanner}
+import org.locationtech.geomesa.accumulo.index.{ExplainString, JoinPlan, QueryHints, QueryPlanner}
 import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, TestData}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction}
@@ -49,7 +49,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
   "AccumuloDataStore" should {
     "return an empty iterator correctly" in {
-      val fs = ds.getFeatureSource(defaultSft.getTypeName).asInstanceOf[AccumuloFeatureStore]
+      val fs = ds.getFeatureSource(defaultSft.getTypeName)
 
       // compose a CQL query that uses a polygon that is disjoint with the feature bounds
       val cqlFilter = CQL.toFilter(s"BBOX(geom, 64.9,68.9,65.1,69.1)")
@@ -165,7 +165,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       }
       addFeatures(sft, features)
 
-      val fs = ds.getFeatureSource(sft.getTypeName).asInstanceOf[AccumuloFeatureStore]
+      val fs = ds.getFeatureSource(sft.getTypeName)
 
       val geomFactory = JTSFactoryFinder.getGeometryFactory
       val urq = ff.dwithin(ff.property("geom"),
@@ -250,9 +250,8 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val query = new Query(sft.getTypeName, ECQL.toFilter("BBOX(geom,40,40,50,50)"))
       query.getHints.put(BIN_TRACK_KEY, "name")
       query.getHints.put(BIN_BATCH_SIZE_KEY, 1000)
-      val queryPlanner = new QueryPlanner(sft, ds.getFeatureEncoding(sft),
-        ds.getIndexSchemaFmt(sft.getTypeName), ds, ds.strategyHints(sft))
-      val results = queryPlanner.runQuery(query, Some(StrategyType.ST)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
+      val queryPlanner = new QueryPlanner(sft, ds)
+      val results = queryPlanner.runQuery(query, Some(StrategyType.Z2)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
       bins must haveSize(2)
@@ -291,7 +290,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       sorted(4) mustEqual BasicValues(50, 50, dtgs2(0).getTime, "name2".hashCode.toString)
       sorted(5) mustEqual BasicValues(51, 51, dtgs2(1).getTime, "name2".hashCode.toString)
       sorted(6) mustEqual BasicValues(52, 52, dtgs2(2).getTime, "name2".hashCode.toString)
-    }
+    }.pendingUntilFixed("GEOMESA-1162 - not supported yet with z-indices")
 
     "support IN queries without dtg on non-indexed string attributes" in {
       val sft = createNewSchema(s"name:String,dtg:Date,*geom:Point:srid=4326")
@@ -299,10 +298,12 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       addFeature(sft, ScalaSimpleFeature.create(sft, "1", "name1", "2010-05-07T00:00:00.000Z", "POINT(45 45)"))
       addFeature(sft, ScalaSimpleFeature.create(sft, "2", "name2", "2010-05-07T01:00:00.000Z", "POINT(45 46)"))
 
-      val filter = ECQL.toFilter("name IN('name1','name2') AND BBOX(geom, -180.0,-90.0,180.0,90.0)")
+      val filter = ECQL.toFilter("name IN('name1','name2') AND BBOX(geom, 40.0,40.0,50.0,50.0)")
       val query = new Query(sft.getTypeName, filter)
       val features = ds.getFeatureSource(sft.getTypeName).getFeatures(query).features.toList
-      features.map(DataUtilities.encodeFeature) mustEqual List("1=name1|2010-05-07T00:00:00.000Z|POINT (45 45)", "2=name2|2010-05-07T01:00:00.000Z|POINT (45 46)")
+      features.map(DataUtilities.encodeFeature) must containTheSameElementsAs {
+        List("1=name1|2010-05-07T00:00:00.000Z|POINT (45 45)", "2=name2|2010-05-07T01:00:00.000Z|POINT (45 46)")
+      }
     }
 
     "support IN queries without dtg on indexed string attributes" in {
@@ -345,8 +346,8 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       query.getHints.put(QUERY_STRATEGY_KEY, StrategyType.ATTRIBUTE)
       expectStrategy("AttributeIdxStrategy")
 
-      query.getHints.put(QUERY_STRATEGY_KEY, StrategyType.ST)
-      expectStrategy("STIdxStrategy")
+      query.getHints.put(QUERY_STRATEGY_KEY, StrategyType.Z2)
+      expectStrategy("Z2IdxStrategy")
 
       query.getHints.put(QUERY_STRATEGY_KEY, StrategyType.Z3)
       expectStrategy("Z3IdxStrategy")
@@ -362,8 +363,8 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       expectStrategy("AttributeIdxStrategy")
 
       query.getHints.remove(QUERY_STRATEGY_KEY)
-      viewParams.put("STRATEGY", "ST")
-      expectStrategy("STIdxStrategy")
+      viewParams.put("STRATEGY", "Z2")
+      expectStrategy("Z2IdxStrategy")
 
       query.getHints.remove(QUERY_STRATEGY_KEY)
       viewParams.put("STRATEGY", "Z3")
@@ -376,6 +377,109 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       success
     }
 
+    "allow for loose bounding box config" >> {
+
+      val bbox = "bbox(geom,45.000000001,49.000000001,46,50)"
+      val z2Query = new Query(defaultSft.getTypeName, ECQL.toFilter(bbox))
+      val z3Query = new Query(defaultSft.getTypeName,
+        ECQL.toFilter(s"$bbox AND dtg DURING 2010-05-07T12:25:00.000Z/2010-05-07T12:35:00.000Z"))
+
+      val params = Map(
+        "connector" -> ds.connector,
+        "tableName" -> ds.catalogTable,
+        AccumuloDataStoreParams.looseBBoxParam.getName -> "false"
+      )
+
+      val strictDs = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+
+      "with loose bbox as default" >> {
+        "for z2 index" >> {
+          val looseReader = ds.getFeatureReader(z2Query, Transaction.AUTO_COMMIT)
+          try {
+            looseReader.hasNext must beTrue
+          } finally {
+            looseReader.close()
+          }
+        }
+        "for z3 index" >> {
+          val looseReader = ds.getFeatureReader(z3Query, Transaction.AUTO_COMMIT)
+          try {
+            looseReader.hasNext must beTrue
+          } finally {
+            looseReader.close()
+          }
+        }
+      }
+
+      "with strict configuration through data store params" >> {
+        "for z2 index" >> {
+          val strictReader = strictDs.getFeatureReader(z2Query, Transaction.AUTO_COMMIT)
+          try {
+            strictReader.hasNext must beFalse
+          } finally {
+            strictReader.close()
+          }
+        }
+        "for z3 index" >> {
+          val strictReader = strictDs.getFeatureReader(z3Query, Transaction.AUTO_COMMIT)
+          try {
+            strictReader.hasNext must beFalse
+          } finally {
+            strictReader.close()
+          }
+        }
+      }
+
+      "with query hints" >> {
+        "overriding loose config" >> {
+          "for z2 index" >> {
+            val strictZ2Query = new Query(z2Query)
+            strictZ2Query.getHints.put(QueryHints.LOOSE_BBOX, java.lang.Boolean.FALSE)
+            val strictReader = ds.getFeatureReader(strictZ2Query, Transaction.AUTO_COMMIT)
+            try {
+              strictReader.hasNext must beFalse
+            } finally {
+              strictReader.close()
+            }
+          }
+          "for z3 index" >> {
+            val strictZ3Query = new Query(z3Query)
+            strictZ3Query.getHints.put(QueryHints.LOOSE_BBOX, java.lang.Boolean.FALSE)
+            val strictReader = ds.getFeatureReader(strictZ3Query, Transaction.AUTO_COMMIT)
+            try {
+              strictReader.hasNext must beFalse
+            } finally {
+              strictReader.close()
+            }
+          }
+        }
+
+        "overriding strict config" >> {
+          "for z2 index" >> {
+            val looseZ2Query = new Query(z2Query)
+            looseZ2Query.getHints.put(QueryHints.LOOSE_BBOX, java.lang.Boolean.TRUE)
+            val looseReader = strictDs.getFeatureReader(looseZ2Query, Transaction.AUTO_COMMIT)
+            try {
+              looseReader.hasNext must beTrue
+            } finally {
+              looseReader.close()
+            }
+          }
+
+          "for z3 index" >> {
+            val looseZ3Query = new Query(z3Query)
+            looseZ3Query.getHints.put(QueryHints.LOOSE_BBOX, java.lang.Boolean.TRUE)
+            val looseReader = strictDs.getFeatureReader(looseZ3Query, Transaction.AUTO_COMMIT)
+            try {
+              looseReader.hasNext must beTrue
+            } finally {
+              looseReader.close()
+            }
+          }
+        }
+      }
+    }
+
     "be able to run explainQuery" in {
       val filter = ECQL.toFilter("INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))")
       val query = new Query(defaultSft.getTypeName, filter)
@@ -385,7 +489,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
       val explanation = out.toString()
       explanation must not be null
-      explanation.trim must not beEmpty
+      explanation.trim must not(beEmpty)
     }
   }
 }

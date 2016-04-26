@@ -25,7 +25,6 @@ import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
-import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.SimpleFeatureDeserializers
 import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
@@ -143,7 +142,6 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLoggi
 
   var sft: SimpleFeatureType = null
   var encoding: SerializationType = null
-  var numShards: Int = -1
   var desiredSplitCount: Int = -1
 
   private def init(conf: Configuration) = if (sft == null) {
@@ -151,7 +149,6 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLoggi
     val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
     sft = ds.getSchema(GeoMesaConfigurator.getFeatureType(conf))
     encoding = ds.getFeatureEncoding(sft)
-    numShards = Math.max(IndexSchema.maxShard(ds.getIndexSchemaFmt(sft.getTypeName)), 1)
     desiredSplitCount = GeoMesaConfigurator.getDesiredSplits(conf)
   }
 
@@ -167,14 +164,14 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLoggi
     val accumuloSplits = delegate.getSplits(context)
     // fallback on creating 2 mappers per node if desiredSplits is unset.
     // Account for case where there are less splits than shards
-    val groupSize =  if (desiredSplitCount > 0) {
-      Math.max(1, accumuloSplits.length / desiredSplitCount)
+    val groupSize = if (desiredSplitCount > 0) {
+      Some(Math.max(1, accumuloSplits.length / desiredSplitCount))
     } else {
-      Math.max(numShards * 2, accumuloSplits.length / (numShards * 2))
+      None
     }
-
     val splitsSet = accumuloSplits.groupBy(_.getLocations()(0)).flatMap { case (location, splits) =>
-      splits.grouped(groupSize).map { group =>
+      val size = groupSize.getOrElse(Math.max(1, splits.length / 2))
+      splits.grouped(size).map { group =>
         val split = new GroupedSplit()
         split.location = location
         split.splits.append(group.map(_.asInstanceOf[RangeInputSplit]): _*)

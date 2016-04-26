@@ -202,6 +202,19 @@ class SftBuilderTest extends Specification {
       sft.getGeometryDescriptor.getLocalName mustEqual "foobar"
     }
 
+    "handle Bytes type" >> {
+      val spec = new SftBuilder().stringType("a").bytes("b").getSpec
+      spec mustEqual "a:String,b:Bytes"
+
+      val lSpec = new SftBuilder().listType[Array[Byte]]("lst").getSpec
+      lSpec mustEqual "lst:List[Bytes]"
+
+      val mSpec = new SftBuilder().mapType[String,Array[Byte]]("m").getSpec
+      mSpec mustEqual "m:Map[String,Bytes]"
+
+      val m2Spec = new SftBuilder().mapType[Array[Byte],Array[Byte]]("m2").getSpec
+      m2Spec mustEqual "m2:Map[Bytes,Bytes]"
+    }
 
   }
 }

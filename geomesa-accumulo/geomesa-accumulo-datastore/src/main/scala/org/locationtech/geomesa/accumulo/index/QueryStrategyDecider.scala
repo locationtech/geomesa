@@ -9,11 +9,10 @@
 package org.locationtech.geomesa.accumulo.index
 
 import org.geotools.data.Query
-import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -54,12 +53,12 @@ object QueryStrategyDecider extends QueryStrategyDecider with MethodProfiling {
                                 requested: Option[StrategyType],
                                 output: ExplainerOutputType): Seq[Strategy] = {
 
-    implicit val timings = new TimingsImpl()
+    implicit val timings = new Timing()
 
     // get the various options that we could potentially use
-    val options = new QueryFilterSplitter(sft).getQueryOptions(query.getFilter)
+    val options = new QueryFilterSplitter(sft).getQueryOptions(query.getFilter, output)
 
-    val selected = profile({
+    val selected = profile {
       if (requested.isDefined) {
         val forced = forceStrategy(options, requested.get, query.getFilter)
         output(s"Filter plan forced to $forced")
@@ -68,17 +67,7 @@ object QueryStrategyDecider extends QueryStrategyDecider with MethodProfiling {
         output("No filter plans found")
         Seq.empty // corresponds to filter.exclude
       } else {
-        val filterPlan = if (query.getHints.isDensityQuery) {
-          // TODO GEOMESA-322 use other strategies with density iterator
-          val st = options.find(_.filters.forall(q => q.strategy == StrategyType.Z3 ||
-              q.strategy == StrategyType.ST))
-          val density = st.getOrElse {
-            val fallback = if (query.getFilter == Filter.INCLUDE) None else Some(query.getFilter)
-            FilterPlan(Seq(QueryFilter(StrategyType.ST, Seq(Filter.INCLUDE), fallback)))
-          }
-          output(s"Filter plan for density query: $density")
-          density
-        } else if (options.length == 1) {
+        val filterPlan = if (options.length == 1) {
           // only a single option, so don't bother with cost
           output(s"Filter plan: ${options.head}")
           options.head
@@ -92,25 +81,16 @@ object QueryStrategyDecider extends QueryStrategyDecider with MethodProfiling {
         }
         filterPlan.filters.map(createStrategy(_, sft))
       }
-    }, "cost")
-    output(s"Strategy selection took ${timings.time("cost")}ms for ${options.length} options")
+    }
+    output(s"Strategy selection took ${timings.time}ms for ${options.length} options")
     selected
   }
 
   // see if one of the normal plans matches the requested type - if not, force it
   private def forceStrategy(options: Seq[FilterPlan], strategy: StrategyType, allFilter: Filter): FilterPlan = {
-    def checkStrategy(f: QueryFilter) = f.strategy == strategy ||
-        (strategy == StrategyType.ST && f.strategy == StrategyType.Z3)
-
-    options.find(_.filters.forall(checkStrategy)) match {
-      case None => FilterPlan(Seq(QueryFilter(strategy, Seq(Filter.INCLUDE), Some(allFilter))))
-      case Some(fp) =>
-        val filters = fp.filters.map {
-          // swap z3 to st if required
-          case filter if filter.strategy != strategy => filter.copy(strategy = strategy)
-          case filter => filter
-        }
-        fp.copy(filters = filters)
+    def checkStrategy(f: QueryFilter) = f.strategy == strategy
+    options.find(_.filters.forall(checkStrategy)).getOrElse {
+      FilterPlan(Seq(QueryFilter(strategy, Seq(Filter.INCLUDE), Some(allFilter))))
     }
   }
 
@@ -120,12 +100,12 @@ object QueryStrategyDecider extends QueryStrategyDecider with MethodProfiling {
   // noinspection ScalaDeprecation
   private def getCost(filter: QueryFilter, sft: SimpleFeatureType, hints: StrategyHints): Int = {
     filter.strategy match {
+      case StrategyType.Z2        => Z2IdxStrategy.getCost(filter, sft, hints)
       case StrategyType.Z3        => Z3IdxStrategy.getCost(filter, sft, hints)
-      case StrategyType.ST        => STIdxStrategy.getCost(filter, sft, hints)
       case StrategyType.RECORD    => RecordIdxStrategy.getCost(filter, sft, hints)
-      case StrategyType.ATTRIBUTE if sft.getSchemaVersion < ImplVersionChange =>
-        AttributeIdxStrategyV5.getCost(filter, sft, hints)
-      case StrategyType.ATTRIBUTE => AttributeIdxStrategy.getCost(filter, sft, hints)
+      case StrategyType.ATTRIBUTE if sft.getSchemaVersion >= ImplVersionChange => AttributeIdxStrategy.getCost(filter, sft, hints)
+      case StrategyType.ST        => STIdxStrategy.getCost(filter, sft, hints)
+      case StrategyType.ATTRIBUTE => AttributeIdxStrategyV5.getCost(filter, sft, hints)
       case _ => throw new IllegalStateException(s"Unknown query plan requested: ${filter.strategy}")
     }
   }
@@ -136,12 +116,12 @@ object QueryStrategyDecider extends QueryStrategyDecider with MethodProfiling {
   // noinspection ScalaDeprecation
   private def createStrategy(filter: QueryFilter, sft: SimpleFeatureType): Strategy = {
     filter.strategy match {
+      case StrategyType.Z2        => new Z2IdxStrategy(filter)
       case StrategyType.Z3        => new Z3IdxStrategy(filter)
-      case StrategyType.ST        => new STIdxStrategy(filter)
       case StrategyType.RECORD    => new RecordIdxStrategy(filter)
-      case StrategyType.ATTRIBUTE if sft.getSchemaVersion < ImplVersionChange =>
-        new AttributeIdxStrategyV5(filter)
-      case StrategyType.ATTRIBUTE => new AttributeIdxStrategy(filter)
+      case StrategyType.ATTRIBUTE if sft.getSchemaVersion >= ImplVersionChange => new AttributeIdxStrategy(filter)
+      case StrategyType.ST        => new STIdxStrategy(filter)
+      case StrategyType.ATTRIBUTE => new AttributeIdxStrategyV5(filter)
       case _ => throw new IllegalStateException(s"Unknown query plan requested: ${filter.strategy}")
     }
   }

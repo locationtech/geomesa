@@ -52,7 +52,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       // tests that tables exist before being deleted
       val tables = GeoMesaTable.getTables(sft)
       val tableNames = tables.map(ds.getTableName(typeName, _))
-      tables must containTheSameElementsAs(Seq(AttributeTable, RecordTable, SpatioTemporalTable, Z3Table))
+      tables must containTheSameElementsAs(Seq(AttributeTable, RecordTable, Z2Table, Z3Table))
       forall(tableNames)(tableOps.exists(_) must beTrue)
 
       // tests that metadata exists in the catalog before being deleted
@@ -80,12 +80,12 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       // tests that tables exist before being deleted
       val tables1 = GeoMesaTable.getTables(sft1)
       val tableNames1 = tables1.map(ds.getTableName(typeName1, _))
-      tables1 must containTheSameElementsAs(Seq(AttributeTable, RecordTable, SpatioTemporalTable, Z3Table))
+      tables1 must containTheSameElementsAs(Seq(AttributeTable, RecordTable, Z2Table, Z3Table))
       forall(tableNames1)(tableOps.exists(_) must beTrue)
 
       val tables2 = GeoMesaTable.getTables(sft2)
       val tableNames2 = tables2.map(ds.getTableName(typeName2, _))
-      tables2 must containTheSameElementsAs(Seq(AttributeTable, RecordTable, SpatioTemporalTable, Z3Table))
+      tables2 must containTheSameElementsAs(Seq(AttributeTable, RecordTable, Z2Table, Z3Table))
       forall(tableNames2)(tableOps.exists(_) must beTrue)
 
       // tests that metadata exists in the catalog before being deleted
@@ -117,7 +117,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       // tests that tables exist before being deleted
       val tables = GeoMesaTable.getTables(sft)
       val tableNames = tables.map(ds.getTableName(typeName, _))
-      tables must containTheSameElementsAs(Seq(AttributeTable, RecordTable, SpatioTemporalTable, Z3Table))
+      tables must containTheSameElementsAs(Seq(AttributeTable, RecordTable, Z2Table, Z3Table))
       forall(tableNames)(tableOps.exists(_) must beTrue)
 
       ds.metadata.getFeatureTypes.toSeq must contain(typeName)
@@ -156,12 +156,12 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       // tests that tables exist before being deleted
       val tables1 = GeoMesaTable.getTables(sft1)
       val tableNames1 = tables1.map(ds.getTableName(typeName1, _))
-      tables1 must containTheSameElementsAs(Seq(AttributeTable, RecordTable, SpatioTemporalTable, Z3Table))
+      tables1 must containTheSameElementsAs(Seq(AttributeTable, RecordTable, Z2Table, Z3Table))
       forall(tableNames1)(tableOps.exists(_) must beTrue)
 
       val tables2 = GeoMesaTable.getTables(sft2)
       val tableNames2 = tables2.map(ds.getTableName(typeName2, _))
-      tables2 must containTheSameElementsAs(Seq(AttributeTable, RecordTable, SpatioTemporalTable, Z3Table))
+      tables2 must containTheSameElementsAs(Seq(AttributeTable, RecordTable, Z2Table, Z3Table))
       forall(tableNames2)(tableOps.exists(_) must beTrue)
 
       // tests that metadata exists in the catalog before being deleted
@@ -183,11 +183,11 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       // metadata should still exist for sftName2
       ds.metadata.getFeatureTypes.toSeq must contain(typeName2)
 
-      // ensure st entries are deleted
-      val stTableOpt = tableNames2.find(_.contains("st_idx"))
-      stTableOpt must beSome
-      val stTable = stTableOpt.get
-      ds.connector.createScanner(stTable, new Authorizations()).toSeq must haveSize(202)
+      // ensure z2 entries are deleted
+      val z2TableOpt = tableNames2.find(_.contains("z2"))
+      z2TableOpt must beSome
+      val z2Table = z2TableOpt.get
+      ds.connector.createScanner(z2Table, new Authorizations()).toSeq must haveSize(101)
     }
 
     "delete all associated tables" >> {

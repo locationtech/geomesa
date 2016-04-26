@@ -85,7 +85,7 @@ fi
 GEOMESA_OPTS="${GEOMESA_OPTS} -Dlog4j.configuration=file://${GEOMESA_CONF_DIR}/log4j.properties"
 
 
-# ACCUMULO paths, user can hard set these, or rely on this script to find set them via
+# ACCUMULO paths, user can hard set these, or rely on this script to find set them via ACCUMULO_HOME
 if [ -n "$ACCUMULO_HOME" ]; then
     if [ -z "$ACCUMULO_LIB" -a -d "${ACCUMULO_HOME}/lib" ]; then
         ACCUMULO_LIB=${ACCUMULO_HOME}/lib
@@ -148,7 +148,7 @@ function findJars() {
 
 # Start constructing GEOMESA_CP (classpath)
 # include geomesa first so that the correct log4j.properties is picked up
-GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB)"
+GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB/common)"
 GEOMESA_CP="${GEOMESA_CP}:${ACCUMULO_CONF_DIR}:${HADOOP_CONF_DIR}"
 ACCUMULO_CP="$(findJars $ACCUMULO_LIB)"
 
@@ -248,5 +248,5 @@ else
         shift 1
     fi
     CLASSPATH="$GEOMESA_CP:$ACCUMULO_CP:$HADOOP_CP"
-    java ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.Runner "$@"
+    java ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.accumulo.AccumuloRunner "$@"
 fi

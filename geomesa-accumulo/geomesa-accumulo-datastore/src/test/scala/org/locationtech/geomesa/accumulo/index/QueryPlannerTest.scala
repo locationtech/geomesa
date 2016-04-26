@@ -15,7 +15,6 @@ import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType, SimpleFeatureSerializers}
 import org.locationtech.geomesa.security._
@@ -29,7 +28,7 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class QueryPlannerTest extends Specification with Mockito with TestWithDataStore {
 
-  override val spec = "*geom:Geometry,dtg:Date,s:String"
+  override val spec = "*geom:Point,dtg:Date,s:String"
   val schema = ds.getIndexSchemaFmt(sftName)
   val sf = new ScalaSimpleFeature("id", sft)
   sf.setAttributes(Array[AnyRef]("POINT(45 45)", "2014/10/10T00:00:00Z", "string"))
@@ -43,7 +42,7 @@ class QueryPlannerTest extends Specification with Mockito with TestWithDataStore
       val query = new Query(sft.getTypeName)
       query.setSortBy(Array(SortBy.NATURAL_ORDER))
 
-      val planner = new QueryPlanner(sft, SerializationType.KRYO, schema, ds, NoOpHints)
+      val planner = new QueryPlanner(sft, ds)
       val result = planner.runQuery(query)
 
       result must beAnInstanceOf[LazySortedIterator]
@@ -53,7 +52,7 @@ class QueryPlannerTest extends Specification with Mockito with TestWithDataStore
       val query = new Query(sft.getTypeName)
       query.setSortBy(null)
 
-      val planner = new QueryPlanner(sft, SerializationType.KRYO, schema, ds, NoOpHints)
+      val planner = new QueryPlanner(sft, ds)
       val result = planner.runQuery(query)
 
       result must not (beAnInstanceOf[LazySortedIterator])
@@ -61,7 +60,7 @@ class QueryPlannerTest extends Specification with Mockito with TestWithDataStore
 
     "decode and set visibility properly" >> {
       val query = new Query(sft.getTypeName)
-      val planner = new QueryPlanner(sft, SerializationType.KRYO, schema, ds, NoOpHints)
+      val planner = new QueryPlanner(sft, ds)
       QueryPlanner.configureQuery(query, sft) // have to do manually
 
       val visibilities = Array("", "USER", "ADMIN")
@@ -87,7 +86,7 @@ class QueryPlannerTest extends Specification with Mockito with TestWithDataStore
       query.setSortBy(Array(SortBy.NATURAL_ORDER))
       query.setProperties(List(ff.property("s")))
 
-      val planner = new QueryPlanner(sft, SerializationType.KRYO, schema, ds, NoOpHints)
+      val planner = new QueryPlanner(sft, ds)
       val result = planner.runQuery(query).toList
 
       result.map(_.getID) mustEqual Seq("id", "id2")
