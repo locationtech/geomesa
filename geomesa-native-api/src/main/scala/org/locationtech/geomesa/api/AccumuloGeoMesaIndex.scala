@@ -7,13 +7,18 @@ import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.data.{DataStoreFinder, Transaction}
-import org.locationtech.geomesa.accumulo.data.tables.Z3Table
+import org.geotools.factory.CommonFactoryFinder
+import org.geotools.filter.identity.FeatureIdImpl
+import org.geotools.filter.text.cql2.CQL
+import org.locationtech.geomesa.accumulo.data.tables.{RecordTable, Z3Table}
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
+import org.locationtech.geomesa.accumulo.util.Z3UuidGenerator
 import org.locationtech.geomesa.utils.geotools.{Conversions, SftBuilder}
 
 class AccumuloGeoMesaIndex[T](ds: AccumuloDataStore,
                               fname: String,
                               serde: ValueSerializer[T]) extends GeoMesaIndex[T] {
+  private val ff = CommonFactoryFinder.getFilterFactory2
 
   if(!ds.getTypeNames.contains(fname)) {
     val sft =
@@ -21,7 +26,8 @@ class AccumuloGeoMesaIndex[T](ds: AccumuloDataStore,
         .date("dtg", default = true, index = true)
         .bytes("payload")
         .geometry("geom", default = true)
-        .withIndexes(List(Z3Table.suffix))
+        .withIndexes(List(Z3Table.suffix, RecordTable.suffix))
+        .userData("geomesa.mixed.geometries","true")
         .build(fname)
     ds.createSchema(sft)
   }
@@ -47,17 +53,36 @@ class AccumuloGeoMesaIndex[T](ds: AccumuloDataStore,
       .toIterable.asJava
   }
 
-  override def put(t: T, geom: Geometry, dtg: Date): Unit = {
-    val bytes = serde.toBytes(t)
+  override def insert(value: T, geom: Geometry, dtg: Date): String = {
+    val bytes = serde.toBytes(value)
     val fw = writers.get(fname)
     val sf = fw.next()
+    val id = Z3UuidGenerator.createUuid(geom, dtg.getTime).toString
     sf.setDefaultGeometry(geom)
     sf.setAttribute(0, dtg)
     sf.setAttribute(1, bytes)
+    sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
+    fw.write()
+    id
+  }
+
+  override def supportedIndexes(): Array[IndexType] = Array(IndexType.SPATIOTEMPORAL, IndexType.RECORD)
+
+  override def update(id: String, newValue: T, geometry: Geometry, dtg: Date): Unit = ???
+
+  override def insert(id: String, value: T, geometry: Geometry, dtg: Date): Unit = {
+    val bytes = serde.toBytes(value)
+    val fw = writers.get(fname)
+    val sf = fw.next()
+    sf.setDefaultGeometry(geometry)
+    sf.setAttribute(0, dtg)
+    sf.setAttribute(1, bytes)
+    sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
     fw.write()
   }
 
-  override def delete(t: T): Unit = ???
+  // prob wrong
+  override def delete(id: String): Unit = fs.removeFeatures(CQL.toFilter(s"id = $id"))
 }
 
 object AccumuloGeoMesaIndex {

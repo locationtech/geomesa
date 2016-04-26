@@ -51,11 +51,11 @@ public class GeoMesaIndexTest {
 
         final GeometryFactory gf = JTSFactoryFinder.getGeometryFactory();
 
-        index.put(
+        index.insert(
                 one,
                 gf.createPoint(new Coordinate(-78.0, 38.0)),
                 date("2016-01-01T12:15:00.000Z"));
-        index.put(
+        index.insert(
                 two,
                 gf.createPoint(new Coordinate(-78.0, 40.0)),
                 date("2016-02-01T12:15:00.000Z"));
