@@ -11,10 +11,10 @@ import java.util.Date;
  */
 public class GeoMesaQuery {
 
-    private Filter filt = Filter.INCLUDE;
+    private Filter filter = Filter.INCLUDE;
 
     public static class GeoMesaQueryBuilder {
-        private static FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
+        private static final FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
         private Double minx, miny, maxx, maxy;
         private Date start;
         private Date end;
@@ -38,14 +38,14 @@ public class GeoMesaQuery {
 
         public GeoMesaQuery build() {
             GeoMesaQuery query = new GeoMesaQuery();
-            query.filt = ff.and(
+            query.filter = ff.and(
                     ff.bbox("geom", minx, maxx, miny, maxy, "EPSG:4326"),
                     ff.between(ff.property("dtg"), ff.literal(start), ff.literal(end)));
             return query;
         }
     }
 
-    public Filter getFilt() {
-        return filt;
+    public Filter getFilter() {
+        return filter;
     }
 }

@@ -4,7 +4,6 @@ import java.lang.Iterable
 import java.util.Date
 
 import com.google.common.cache.{CacheBuilder, CacheLoader}
-import com.google.common.io.BaseEncoding
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.data.{DataStoreFinder, Transaction}
@@ -16,14 +15,11 @@ class AccumuloGeoMesaIndex[T](ds: AccumuloDataStore,
                               fname: String,
                               serde: ValueSerializer[T]) extends GeoMesaIndex[T] {
 
-  // TODO: figure out how to use Array[Byte] for payload
-  val base32Encoder = BaseEncoding.base32()
-
   if(!ds.getTypeNames.contains(fname)) {
     val sft =
       new SftBuilder()
         .date("dtg", default = true, index = true)
-        .stringType("payload")
+        .bytes("payload")
         .geometry("geom", default = true)
         .withIndexes(List(Z3Table.suffix))
         .build(fname)
@@ -45,14 +41,14 @@ class AccumuloGeoMesaIndex[T](ds: AccumuloDataStore,
 
     import scala.collection.JavaConverters._
 
-    fs.getFeatures(query.getFilt)
+    fs.getFeatures(query.getFilter)
       .features()
-      .map { f => serde.fromBytes(base32Encoder.decode(f.getAttribute(1).asInstanceOf[String])) }
+      .map { f => serde.fromBytes(f.getAttribute(1).asInstanceOf[Array[Byte]]) }
       .toIterable.asJava
   }
 
   override def put(t: T, geom: Geometry, dtg: Date): Unit = {
-    val bytes = base32Encoder.encode(serde.toBytes(t))
+    val bytes = serde.toBytes(t)
     val fw = writers.get(fname)
     val sf = fw.next()
     sf.setDefaultGeometry(geom)

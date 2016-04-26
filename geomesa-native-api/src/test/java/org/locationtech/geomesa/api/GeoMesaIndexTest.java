@@ -16,9 +16,9 @@ import java.util.Date;
 public class GeoMesaIndexTest {
 
     public static class DomainObject {
-        public String id;
-        public int intValue = 0;
-        public double doubleValue = 0.0;
+        public final String id;
+        public final int intValue;
+        public final double doubleValue;
 
         public DomainObject(String id, int intValue, double doubleValue) {
             this.id = id;
@@ -28,7 +28,7 @@ public class GeoMesaIndexTest {
     }
 
     public static class DomainObjectValueSerializer implements ValueSerializer<DomainObject> {
-        public static Gson gson = new Gson();
+        public static final Gson gson = new Gson();
         @Override
         public byte[] toBytes(DomainObject o) {
             return gson.toJson(o).getBytes();
@@ -42,12 +42,14 @@ public class GeoMesaIndexTest {
 
     @Test
     public void testNativeAPI() {
-        DomainObject one = new DomainObject("1", 1, 1.0);
-        DomainObject two = new DomainObject("2", 2, 2.0);
+        final DomainObject one = new DomainObject("1", 1, 1.0);
+        final DomainObject two = new DomainObject("2", 2, 2.0);
 
-        GeoMesaIndex<DomainObject> index = AccumuloGeoMesaIndex.build("hello", "zoo1:2181", "mycloud", "myuser", "mypass", true, new DomainObjectValueSerializer());
+        final GeoMesaIndex<DomainObject> index =
+                AccumuloGeoMesaIndex.build("hello", "zoo1:2181", "mycloud", "myuser", "mypass",
+                        true, new DomainObjectValueSerializer());
 
-        GeometryFactory gf = JTSFactoryFinder.getGeometryFactory();
+        final GeometryFactory gf = JTSFactoryFinder.getGeometryFactory();
 
         index.put(
                 one,
@@ -58,14 +60,14 @@ public class GeoMesaIndexTest {
                 gf.createPoint(new Coordinate(-78.0, 40.0)),
                 date("2016-02-01T12:15:00.000Z"));
 
-        GeoMesaQuery q =
+        final GeoMesaQuery q =
                 GeoMesaQuery.GeoMesaQueryBuilder.builder()
                         .within(-79.0, 37.0, -77.0, 39.0)
                         .during(date("2016-01-01T00:00:00.000Z"), date("2016-03-01T00:00:00.000Z"))
                         .build();
-        Iterable<DomainObject> results = index.query(q);
+        final Iterable<DomainObject> results = index.query(q);
 
-        Iterable<String> ids = Iterables.transform(results, new Function<DomainObject, String>() {
+        final Iterable<String> ids = Iterables.transform(results, new Function<DomainObject, String>() {
             @Nullable
             @Override
             public String apply(@Nullable DomainObject domainObject) {
