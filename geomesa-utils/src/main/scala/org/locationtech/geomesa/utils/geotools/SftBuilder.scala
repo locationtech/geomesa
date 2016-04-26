@@ -79,6 +79,7 @@ abstract class InitBuilder[T] {
     append(name, opts, "Date")
   }
   def uuid(name: String, opts: Opts = Opts()) = append(name, opts, "UUID")
+  def bytes(name: String, opts: Opts = Opts()) = append(name, opts, "Bytes")
 
   // Single Geometries
   def point     (name: String, default: Boolean = false) = appendGeom(name, default, "Point")
@@ -125,6 +126,7 @@ abstract class InitBuilder[T] {
       case t if primitiveTypes.contains(tt) => simpleClassName(tt.toString)
       case t if tt == typeOf[Date]          => "Date"
       case t if tt == typeOf[UUID]          => "UUID"
+      case t if tt == typeOf[Array[Byte]]   => "Bytes"
     }
 
   private def append(name: String, opts: Opts, typeStr: String) = {
