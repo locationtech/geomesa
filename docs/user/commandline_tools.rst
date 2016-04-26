@@ -13,7 +13,7 @@ See :ref:`setting_up_commandline`.
 Running the command line tools
 ------------------------------
 
-Run the ``geomesa`` without any arguments to produce the following usage text::
+Run ``geomesa`` without any arguments to produce the following usage text::
 
     $ geomesa
     Warning: GEOMESA_HOME is not set, using /opt/devel/src/geomesa/geomesa-dist/target/geomesa-1.2.0-SNAPSHOT/dist/tools/geomesa-tools-1.2.0-SNAPSHOT
@@ -77,7 +77,6 @@ to be added as arguments to each command, if needed.
 
 Command overview
 ----------------
-
 Creating and deleting feature types
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -440,6 +439,99 @@ Example commands::
     $ geomesa tableconf update -u username -p password \
       -c test_catalog -f test_feature -t records \
       --param table.bloom.enabled -n true
+
+version
+~~~~~~~
+
+Prints out the version, git branch, and commit ID that the tools were built with::
+
+    $ geomesa version
+
+
+Kafka command line tools
+------------------------
+
+Run ``geomesa-kafka`` without any arguments to produce the following usage text::
+
+    $ geomesa-kafka
+      Usage: geomesa-kafka [command] [command options]
+        Commands:
+          create          Create a feature definition in GeoMesa
+          describe        Describe the attributes of a given feature in GeoMesa
+          help            Show help
+          list            List GeoMesa features for a given zkPath
+          listen          Listen to a GeoMesa Kafka topic
+          removeschema    Remove a schema and associated features from GeoMesa
+          version         GeoMesa Version
+
+This usage text lists the available commands. To see help for an individual command,
+run ``geomesa-kafka help <command-name>``, which for example will give you something like this::
+
+    $ geomesa-kafka help list
+      List GeoMesa features for a given zkPath
+      Usage: list [options]
+        Options:
+        * -b, --brokers
+             Brokers (host:port, comma separated)
+          -p, --zkpath
+             Zookeeper path where feature schemas are saved
+        * -z, --zookeepers
+             Zookeepers (host[:port], comma separated)
+
+Command overview
+^^^^^^^^^^^^^^^^
+
+create
+~~~~~~
+
+Used to create a feature type (``SimpleFeatureType``) at the specified zkpath::
+
+    $ geomesa-kafka create -f testfeature \
+      -z zoo1,zoo2,zoo3 \
+      -b broker1:9092,broker2:9092 \
+      -s fid:String:index=true,dtg:Date,geom:Point:srid=4326 \
+      -p /geomesa/ds/kafka
+
+describe
+~~~~~~~~
+
+Display details about the attributes of a specified feature type::
+
+    $ geomesa-kafka describe -f testfeature -z zoo1,zoo2,zoo3 -b broker1:9092,broker2:9092 -p /geomesa/ds/kafka
+
+list
+~~~~
+
+List all known feature types in Kafka::
+
+    $ geomesa-kafka list -z zoo1,zoo2,zoo3 -b broker1:9092,broker2:9092
+
+If no zkpath parameter is specified, the list command will search all of zookeeper for potential feature types.
+
+listen
+~~~~~~
+
+Logs out the messages written to a topic corresponding to the passed in feature type.
+
+    $ geomesa-kafka listen -f testfeature \
+      -z zoo1,zoo2,zoo3 \
+      -b broker1:9092,broker2:9092 \
+      -p /geomesa/ds/kafka \
+      --from-beginning
+
+removeschema
+~~~~~~~~~~~~
+
+Used to remove a feature type (``SimpleFeatureType``) in a GeoMesa catalog. This will also delete any feature of that type in the data store::
+
+    $ geomesa-kafka removeschema -f testfeature \
+      -z zoo1,zoo2,zoo3 \
+      -b broker1:9092,broker2:9092 \
+      -p /geomesa/ds/kafka
+    $ geomesa-kafka removeschema --pattern 'testfeature\d+' \
+      -z zoo1,zoo2,zoo3 \
+      -b broker1:9092,broker2:9092 \
+      -p /geomesa/ds/kafka
 
 version
 ~~~~~~~
