@@ -22,20 +22,21 @@ object ConverterFactories {
 
 class JodaConverterFactory extends ConverterFactory {
 
-  private val df = ISODateTimeFormat.dateTime().withZoneUTC()
+  private val printer = ISODateTimeFormat.dateTime().withZoneUTC()
+  private val parser  = ISODateTimeFormat.dateTimeParser().withZoneUTC()
 
   def createConverter(source: Class[_], target: Class[_], hints: Hints) =
     if(classOf[java.util.Date].isAssignableFrom(source) && classOf[String].isAssignableFrom(target)) {
       // Date => String
       new Converter {
         def convert[T](source: scala.Any, target: Class[T]): T =
-          df.print(new DateTime(source.asInstanceOf[java.util.Date])).asInstanceOf[T]
+          printer.print(new DateTime(source.asInstanceOf[java.util.Date])).asInstanceOf[T]
       }
     } else if(classOf[java.util.Date].isAssignableFrom(target) && classOf[String].isAssignableFrom(source)) {
       // String => Date
       new Converter {
         def convert[T](source: scala.Any, target: Class[T]): T =
-          df.parseDateTime(source.asInstanceOf[String]).toDate.asInstanceOf[T]
+          parser.parseDateTime(source.asInstanceOf[String]).toDate.asInstanceOf[T]
       }
     } else null.asInstanceOf[Converter]
 }

@@ -9,22 +9,14 @@
 package org.locationtech.geomesa.accumulo.process.query
 
 import com.vividsolutions.jts.geom.Geometry
-import org.geotools.data.DataStoreFinder
-import org.geotools.factory.Hints
-import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
-import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class QueryProcessTest extends Specification with TestWithDataStore {
@@ -38,7 +30,7 @@ class QueryProcessTest extends Specification with TestWithDataStore {
     List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).map { case (i, lat) =>
       val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
       sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
-      sf.setAttribute(org.locationtech.geomesa.accumulo.process.tube.DEFAULT_DTG_FIELD, new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+      sf.setAttribute(org.locationtech.geomesa.accumulo.process.tube.DEFAULT_DTG_FIELD, new DateTime(s"2011-01-0${i}T00:00:00Z", DateTimeZone.UTC).toDate)
       sf.setAttribute("type", name)
       sf
     }
@@ -90,6 +82,33 @@ class QueryProcessTest extends Specification with TestWithDataStore {
       }
 
       results.size mustEqual 4
+    }
+
+    "query wtih short dates (using joda conversion factory)" in {
+      val features = fs.getFeatures()
+
+      val geomesaQuery = new QueryProcess
+      val results = geomesaQuery.execute(features, CQL.toFilter("dtg between '2011-01-01' AND '2011-01-02'"))
+
+      val f = results.features()
+
+      results.size mustEqual 4
+    }
+
+    "query with a variety of date formats (using joda conversion factory)" in {
+      val features = fs.getFeatures()
+
+      val geomesaQuery = new QueryProcess
+      geomesaQuery.execute(features, CQL.toFilter("dtg between '2011-01-01T00:00:00.000Z' AND '2011-01-02T00:00:00.000Z'")).size() mustEqual 4
+      geomesaQuery.execute(features, CQL.toFilter("dtg between '2011-01-01T00:00:00.000' AND '2011-01-02T00:00:00.000'")).size() mustEqual 4
+
+      geomesaQuery.execute(features, CQL.toFilter("dtg between '2011-01-01T00:00:00Z' AND '2011-01-02T00:00:00Z'")).size() mustEqual 4
+      geomesaQuery.execute(features, CQL.toFilter("dtg between '2011-01-01T00:00:00' AND '2011-01-02T00:00:00'")).size() mustEqual 4
+
+      geomesaQuery.execute(features, CQL.toFilter("dtg between '2011-01-01T00:00Z' AND '2011-01-02T00:00Z'")).size() mustEqual 4
+      geomesaQuery.execute(features, CQL.toFilter("dtg between '2011-01-01T00:00' AND '2011-01-02T00:00'")).size() mustEqual 4
+
+      geomesaQuery.execute(features, CQL.toFilter("dtg between '2011-01-01' AND '2011-01-02'")).size() mustEqual 4
     }
 
     "properly query geometry" in {

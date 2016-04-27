@@ -8,9 +8,10 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.util.UUID
+import java.util.{Date, UUID}
 
 import org.geotools.factory.GeoTools
+import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -212,5 +213,30 @@ class ConverterFactoriesTest extends Specification {
       val converted = converter.convert("foobar", classOf[java.util.Map[String, Int]])
       converted must beNull
     }
+  }
+
+  "Joda Date Conversions" should {
+    val factory = new JodaConverterFactory
+
+    val dtf  = ISODateTimeFormat.dateTime().withZoneUTC()
+    val dStr = "2015-01-01T00:00:00.000Z"
+    val date = dtf.parseDateTime(dStr).toDate
+
+    "convert a range of ISO8601 strings to dates" >> {
+      val converter = factory.createConverter(classOf[String], classOf[java.util.Date], null)
+      converter.convert("2015-01-01T00:00:00.000Z", classOf[java.util.Date]) mustEqual date
+      converter.convert("2015-01-01T00:00:00.000", classOf[java.util.Date]) mustEqual date
+      converter.convert("2015-01-01T00:00:00Z", classOf[java.util.Date]) mustEqual date
+      converter.convert("2015-01-01T00:00:00", classOf[java.util.Date]) mustEqual date
+      converter.convert("2015-01-01T00:00Z", classOf[java.util.Date]) mustEqual date
+      converter.convert("2015-01-01T00:00", classOf[java.util.Date]) mustEqual date
+      converter.convert("2015-01-01", classOf[java.util.Date]) mustEqual date
+    }
+
+    "convert a date to a full ISO8601 string" >> {
+      val converter = factory.createConverter(classOf[Date], classOf[String], null)
+      converter.convert(date, classOf[String]) mustEqual "2015-01-01T00:00:00.000Z"
+    }
+
   }
 }
