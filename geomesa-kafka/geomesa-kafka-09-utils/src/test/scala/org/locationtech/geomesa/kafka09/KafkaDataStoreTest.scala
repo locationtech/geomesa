@@ -1,4 +1,3 @@
-package org.locationtech.geomesa.kafka09
 /***********************************************************************
   * Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
   * All rights reserved. This program and the accompanying materials
@@ -7,6 +6,7 @@ package org.locationtech.geomesa.kafka09
   * http://www.opensource.org/licenses/apache2.0.php.
   *************************************************************************/
 
+package org.locationtech.geomesa.kafka09
 
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.kafka
