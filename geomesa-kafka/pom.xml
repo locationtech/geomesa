@@ -12,6 +12,7 @@
     <name>GeoMesa Kafka Parent</name>
     <modules>
         <module>geomesa-kafka-datastore</module>
+        <module>geomesa-kafka-09-utils</module>
     </modules>
 
     <properties>
@@ -20,6 +21,11 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-kafka-datastore</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka_2.11</artifactId>
@@ -45,6 +51,13 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-kafka-datastore</artifactId>
+                <type>test-jar</type>
+                <version>${project.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.kafka</groupId>

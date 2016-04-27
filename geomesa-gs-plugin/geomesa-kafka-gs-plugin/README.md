@@ -9,3 +9,11 @@ You will also need to install the the following jars into geoserver/WEB-INF/lib 
 * metrics-core-2.2.0.jar
 * zkclient-0.3.jar
 * zookeeper-3.4.5.jar
+
+For kafka 0.9.0.1 you will need these instead:
+* geomesa-kafka-09-utils-<version>.jar
+* kafka-clients-0.9.0.1.jar
+* kafka_2.11-0.9.0.1.jar
+* metrics-core-2.2.0.jar
+* zkclient-0.7.jar
+* zookeeper-3.4.5.jar

@@ -12,9 +12,6 @@ import java.util
 
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.typesafe.scalalogging.LazyLogging
-import kafka.admin.AdminUtils
-import kafka.utils.{ZkUtils, ZKStringSerializer}
-import org.I0Itec.zkclient.ZkClient
 import org.I0Itec.zkclient.exception.ZkNodeExistsException
 import org.geotools.data.DataStore
 import org.geotools.feature.NameImpl
@@ -44,7 +41,7 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
     // build the schema node
     val typeName = featureType.getTypeName
     val schemaPath: String = getSchemaPath(typeName)
-    if (zkClient.exists(schemaPath)) {
+    if (zkUtils.zkClient.exists(schemaPath)) {
       throw new IllegalArgumentException(s"Type $typeName already exists at $zkPath.")
     }
 
@@ -59,12 +56,12 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
     kfc.replayConfig.foreach(r => createZkNode(getReplayConfigPath(typeName), ReplayConfig.encode(r)))
 
     //create the Kafka topic
-    if(!AdminUtils.topicExists(zkClient, kfc.topic)) {
-      AdminUtils.createTopic(zkClient, kfc.topic, partitions, replication)
+    if (!zkUtils.topicExists(kfc.topic)) {
+      zkUtils.createTopic(kfc.topic, partitions, replication)
     }
 
     // Ensure the topic is ready before adding the new layer to the SFT cache
-    waitUntilTopicReady(zkClient, kfc.topic, partitions)
+    waitUntilTopicReady(zkUtils, kfc.topic, partitions)
 
     // put it in the cache
     schemaCache.put(typeName, kfc)
@@ -73,16 +70,16 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
   // Wait until a topic is ready for writes.
   // NB: The assumption here is that waiting for the leader to be elected is sufficient.
   // Further, this function delegates to a function which waits for a leader for each partition.
-  def waitUntilTopicReady(zkClient: ZkClient, topic: String, partitions: Int, timeToWait: Long = 5000L): Unit = {
-    (0 until partitions).foreach { waitUntilTopicReadyForPartition(zkClient, topic, _, timeToWait) }
+  def waitUntilTopicReady(zkUtils: ZkUtils, topic: String, partitions: Int, timeToWait: Long = 5000L): Unit = {
+    (0 until partitions).foreach { waitUntilTopicReadyForPartition(zkUtils, topic, _, timeToWait) }
   }
 
-  def waitUntilTopicReadyForPartition(zkClient: ZkClient, topic: String, partition: Int, timeToWait: Long) {
+  def waitUntilTopicReadyForPartition(zkUtils: ZkUtils, topic: String, partition: Int, timeToWait: Long) {
     var leader: Option[Int] = None
     val start = System.currentTimeMillis
 
     while(leader.isEmpty && System.currentTimeMillis < start + timeToWait) {
-      leader = ZkUtils.getLeaderForPartition(zkClient, topic, partition)
+      leader = zkUtils.getLeaderForPartition(topic, partition)
       if(leader.isEmpty) {
         logger.debug(s"Still waiting on a leader for topic: $topic")
         Thread.sleep(100)
@@ -109,7 +106,7 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
   }
 
   override def getNames: util.List[Name] =
-    zkClient.getChildren(zkPath).asScala.map(name => new NameImpl(name) : Name).asJava
+    zkUtils.zkClient.getChildren(zkPath).asScala.map(name => new NameImpl(name) : Name).asJava
 
 
   override def removeSchema(typeName: Name): Unit = removeSchema(typeName.getLocalPart)
@@ -121,27 +118,27 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
 
     // clean up cache and zookeeper resources
     schemaCache.invalidate(typeName)
-    zkClient.deleteRecursive(getSchemaPath(typeName))
+    zkUtils.zkClient.deleteRecursive(getSchemaPath(typeName))
 
     // delete topic for "Streaming SFTs" but not for "Replay SFTs"
     fct.foreach { fc =>
-      if (KafkaDataStoreHelper.isStreamingSFT(fc.sft) && AdminUtils.topicExists(zkClient, fc.topic)) {
-        AdminUtils.deleteTopic(zkClient, fc.topic)
+      if (KafkaDataStoreHelper.isStreamingSFT(fc.sft) && zkUtils.topicExists(fc.topic)) {
+        zkUtils.deleteTopic(fc.topic)
       }
     }
   }
 
   override def dispose(): Unit = {
-    zkClient.close()
+    zkUtils.close()
   }
 
   private def resolveTopicSchema(typeName: String): KafkaFeatureConfig = {
 
-    val schema = zkClient.readData[String](getSchemaPath(typeName)) //throws ZkNoNodeException if not found
-    val topic = zkClient.readData[String](getTopicPath(typeName)) // throws Zk...
+    val schema = zkUtils.zkClient.readData[String](getSchemaPath(typeName)) //throws ZkNoNodeException if not found
+    val topic = zkUtils.zkClient.readData[String](getTopicPath(typeName)) // throws Zk...
     val sft = SimpleFeatureTypes.createType(typeName, schema)
     KafkaDataStoreHelper.insertTopic(sft, topic)
-    val replay = Option(zkClient.readData[String](getReplayConfigPath(typeName), true))
+    val replay = Option(zkUtils.zkClient.readData[String](getReplayConfigPath(typeName), true))
     replay.foreach(KafkaDataStoreHelper.insertReplayConfig(sft, _))
 
     KafkaFeatureConfig(sft)
@@ -157,14 +154,13 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
     s"$zkPath/$typeName/ReplayConfig"
   }
 
-  private val zkClient = {
-    // zkStringSerializer is required - otherwise topics won't be created correctly
-    val ret = new ZkClient(zookeepers, Int.MaxValue, Int.MaxValue, ZKStringSerializer)
+  private val zkUtils = {
+    val ret = KafkaUtilsLoader.kafkaUtils.createZkUtils(zookeepers, Int.MaxValue, Int.MaxValue)
 
     // build the top level zookeeper node
-    if (!ret.exists(zkPath)) {
+    if (!ret.zkClient.exists(zkPath)) {
       try {
-        ret.createPersistent(zkPath, true)
+        ret.zkClient.createPersistent(zkPath, true)
       } catch {
         case e: ZkNodeExistsException => // it's ok, something else created before we could
         case e: Exception => throw new RuntimeException(s"Could not create path in zookeeper at $zkPath", e)
@@ -175,7 +171,7 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
 
   private def createZkNode(path: String, data: String) {
     try {
-      zkClient.createPersistent(path, data)
+      zkUtils.zkClient.createPersistent(path, data)
     } catch {
       case e: ZkNodeExistsException =>
         throw new IllegalArgumentException(s"Node $path already exists", e)

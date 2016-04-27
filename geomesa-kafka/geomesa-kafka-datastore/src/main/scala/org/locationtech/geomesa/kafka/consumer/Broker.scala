@@ -18,8 +18,6 @@ object Broker {
 
   val defaultPort = 9092
 
-  def apply(broker: kafka.cluster.Broker): Broker = Broker(broker.host, broker.port)
-
   def apply(broker: String): Broker = {
     val colon = broker.lastIndexOf(':')
     if (colon == -1) {
