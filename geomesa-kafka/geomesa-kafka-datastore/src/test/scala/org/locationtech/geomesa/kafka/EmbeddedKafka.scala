@@ -20,8 +20,8 @@ trait HasEmbeddedZookeeper {
 }
 
 trait HasEmbeddedKafka {
-  val SYS_PROP_RUN_TESTS = "org.locationtech.geomesa.test-kafka"
-  val (brokerConnect, zkConnect) = EmbeddedKafka.connect()
+  lazy val SYS_PROP_RUN_TESTS = "org.locationtech.geomesa.test-kafka"
+  lazy val (brokerConnect, zkConnect) = EmbeddedKafka.connect()
   def shutdown(): Unit = EmbeddedKafka.shutdown()
 }
 

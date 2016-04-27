@@ -18,18 +18,18 @@ import kafka.network.BlockingChannel
 import org.apache.kafka.common.security.JaasUtils
 import org.apache.kafka.common.utils.Utils
 import org.locationtech.geomesa.kafka.consumer.Broker
-import org.locationtech.geomesa.kafka.{AbstractZkUtils, AbstractKafkaUtils}
+import org.locationtech.geomesa.kafka.{ZkUtils, KafkaUtils}
 
 import scala.collection.immutable
 
-class KafkaUtils extends AbstractKafkaUtils {
-  def channelToPayload: (BlockingChannel) => ByteBuffer = _.receive().payload()
-  def channelSend(bc: BlockingChannel, requestOrResponse: RequestOrResponse): Long = bc.send(requestOrResponse)
-  def leaderBrokerForPartition: PartitionMetadata => Option[Broker] = _.leader.map(l => Broker(l.host, l.port))
-  def assign(partitionAssignor: PartitionAssignor, ac: AssignmentContext) = partitionAssignor.assign(ac).get(ac.consumerId)
-  def createZkUtils(zkConnect: String, sessionTimeout: Int, connectTimeout: Int): AbstractZkUtils =
-    ZkUtils(kafka.utils.ZkUtils(zkConnect, sessionTimeout, connectTimeout, JaasUtils.isZkSecurityEnabled))
-  def tryFindNewLeader(tap: TopicAndPartition,
+class KafkaUtils09 extends KafkaUtils {
+  override def channelToPayload: (BlockingChannel) => ByteBuffer = _.receive().payload()
+  override def channelSend(bc: BlockingChannel, requestOrResponse: RequestOrResponse): Long = bc.send(requestOrResponse)
+  override def leaderBrokerForPartition: PartitionMetadata => Option[Broker] = _.leader.map(l => Broker(l.host, l.port))
+  override def assign(partitionAssignor: PartitionAssignor, ac: AssignmentContext) = partitionAssignor.assign(ac).get(ac.consumerId)
+  override def createZkUtils(zkConnect: String, sessionTimeout: Int, connectTimeout: Int): ZkUtils =
+    ZkUtils09(kafka.utils.ZkUtils(zkConnect, sessionTimeout, connectTimeout, JaasUtils.isZkSecurityEnabled))
+  override def tryFindNewLeader(tap: TopicAndPartition,
                        partitions: Option[Seq[PartitionMetadata]],
                        oldLeader: Option[Broker],
                        tries: Int): Option[Broker] = {
@@ -43,9 +43,9 @@ class KafkaUtils extends AbstractKafkaUtils {
 
     leader.map(l => Broker(l.host, l.port))
   }
-  def rm(file: File): Unit = Utils.delete(file)
-  def createOffsetAndMetadata(offset: Long, time: Long) = OffsetAndMetadata(offset, OffsetMetadata.NoMetadata, timestamp = time)
-  def createOffsetCommitRequest(groupId: String,
+  override def rm(file: File): Unit = Utils.delete(file)
+  override def createOffsetAndMetadata(offset: Long, time: Long) = OffsetAndMetadata(offset, OffsetMetadata.NoMetadata, timestamp = time)
+  override def createOffsetCommitRequest(groupId: String,
                                 requestInfo: immutable.Map[TopicAndPartition, OffsetAndMetadata],
                                 versionId: Short,
                                 correlationId: Int,

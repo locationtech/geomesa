@@ -17,7 +17,7 @@ import kafka.common.{OffsetAndMetadata, TopicAndPartition}
 import kafka.consumer.ConsumerConfig
 import kafka.message.{ByteBufferMessageSet, MessageAndOffset}
 import kafka.network.BlockingChannel
-import org.locationtech.geomesa.kafka.{AbstractZkUtils, KafkaUtilsLoader}
+import org.locationtech.geomesa.kafka.{ZkUtils, KafkaUtilsLoader}
 import org.locationtech.geomesa.kafka.consumer.KafkaConsumer._
 import org.locationtech.geomesa.kafka.consumer._
 import org.locationtech.geomesa.kafka.consumer.offsets.FindOffset.MessagePredicate
@@ -297,7 +297,7 @@ object OffsetManager extends LazyLogging {
 /**
  * Container for passing around a channel so that it can be rebuilt without losing the reference to it
  */
-case class WrappedChannel(zkUtils: AbstractZkUtils, config: ConsumerConfig) {
+case class WrappedChannel(zkUtils: ZkUtils, config: ConsumerConfig) {
 
   private var reusableChannel: BlockingChannel = null
   private val timeout = config.offsetsChannelSocketTimeoutMs

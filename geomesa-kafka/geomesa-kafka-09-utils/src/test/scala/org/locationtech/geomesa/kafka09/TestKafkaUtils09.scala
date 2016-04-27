@@ -12,10 +12,10 @@ import java.util.Properties
 
 import kafka.server.{KafkaServer, KafkaConfig}
 import kafka.utils.TestUtils
-import org.locationtech.geomesa.kafka.AbstractTestKafkaUtils
+import org.locationtech.geomesa.kafka.TestKafkaUtils
 
-class TestKafkaUtils extends AbstractTestKafkaUtils {
-  def createBrokerConfig(nodeId: Int, zkConnect: String): Properties = TestUtils.createBrokerConfig(nodeId, zkConnect)
-  def choosePort: Int = TestUtils.RandomPort
-  def createServer(props: Properties): KafkaServer = TestUtils.createServer(new KafkaConfig(props))
+class TestKafkaUtils09 extends TestKafkaUtils {
+  override def createBrokerConfig(nodeId: Int, zkConnect: String): Properties = TestUtils.createBrokerConfig(nodeId, zkConnect)
+  override def choosePort: Int = TestUtils.RandomPort
+  override def createServer(props: Properties): KafkaServer = TestUtils.createServer(new KafkaConfig(props))
 }

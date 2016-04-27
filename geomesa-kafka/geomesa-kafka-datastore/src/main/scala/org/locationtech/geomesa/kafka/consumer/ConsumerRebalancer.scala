@@ -21,7 +21,7 @@ import kafka.utils._
 import org.I0Itec.zkclient.exception.{ZkInterruptedException, ZkNodeExistsException}
 import org.I0Itec.zkclient.{IZkChildListener, IZkDataListener, IZkStateListener}
 import org.apache.zookeeper.Watcher.Event.KeeperState
-import org.locationtech.geomesa.kafka.{AbstractZkUtils, KafkaUtilsLoader}
+import org.locationtech.geomesa.kafka.{ZkUtils => GmZkUtils, KafkaUtilsLoader}
 import org.locationtech.geomesa.kafka.consumer.offsets.RequestedOffset
 
 import scala.annotation.tailrec
@@ -329,7 +329,7 @@ object ConsumerRebalancer {
   /**
    * See kafka.utils.ZkUtils$#getCluster(org.I0Itec.zkclient.ZkClient)
    */
-  def getCluster(zkUtils: AbstractZkUtils) : Seq[Broker] =
+  def getCluster(zkUtils: GmZkUtils) : Seq[Broker] =
     zkUtils.getChildrenParentMayNotExist(BrokerIdsPath).map { node =>
       val brokerZKString = zkUtils.readData(s"$BrokerIdsPath/$node")._1
       Broker(brokerZKString, node.toInt)

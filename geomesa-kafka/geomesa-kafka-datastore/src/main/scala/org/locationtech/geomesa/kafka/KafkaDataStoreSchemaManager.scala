@@ -12,9 +12,6 @@ import java.util
 
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.typesafe.scalalogging.LazyLogging
-import kafka.admin.AdminUtils
-import kafka.utils.{ZkUtils, ZKStringSerializer}
-import org.I0Itec.zkclient.ZkClient
 import org.I0Itec.zkclient.exception.ZkNodeExistsException
 import org.geotools.data.DataStore
 import org.geotools.feature.NameImpl
@@ -73,11 +70,11 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
   // Wait until a topic is ready for writes.
   // NB: The assumption here is that waiting for the leader to be elected is sufficient.
   // Further, this function delegates to a function which waits for a leader for each partition.
-  def waitUntilTopicReady(zkUtils: AbstractZkUtils, topic: String, partitions: Int, timeToWait: Long = 5000L): Unit = {
+  def waitUntilTopicReady(zkUtils: ZkUtils, topic: String, partitions: Int, timeToWait: Long = 5000L): Unit = {
     (0 until partitions).foreach { waitUntilTopicReadyForPartition(zkUtils, topic, _, timeToWait) }
   }
 
-  def waitUntilTopicReadyForPartition(zkUtils: AbstractZkUtils, topic: String, partition: Int, timeToWait: Long) {
+  def waitUntilTopicReadyForPartition(zkUtils: ZkUtils, topic: String, partition: Int, timeToWait: Long) {
     var leader: Option[Int] = None
     val start = System.currentTimeMillis
 
