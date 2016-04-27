@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 
 import com.typesafe.scalalogging.LazyLogging
 import kafka.api._
-import kafka.common.{ErrorMapping, OffsetAndMetadata, TopicAndPartition}
+import kafka.common.{ErrorMapping, TopicAndPartition}
 import kafka.consumer._
 import kafka.message.ByteBufferMessageSet
 import kafka.serializer.Decoder

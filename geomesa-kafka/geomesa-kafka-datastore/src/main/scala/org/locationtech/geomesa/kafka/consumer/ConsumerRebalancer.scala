@@ -97,7 +97,6 @@ class ConsumerRebalancer[K, V](consumer: KafkaConsumer[K, V], config: ConsumerCo
     syncedRebalance()
   }
 
-  @throws(classOf[Exception])
   def handleSessionEstablishmentError(throwable: Throwable): Unit = {
     logger.error("Could not establish session with zookeeper", throwable)
   }
