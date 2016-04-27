@@ -177,22 +177,25 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val param = AccumuloDataStoreParams.queryThreadsParam.getName
       val query = new Query(defaultTypeName, ECQL.toFilter("bbox(geom,-75,-75,-60,-60) AND " +
           "dtg DURING 2010-05-07T00:00:00.000Z/2010-05-08T00:00:00.000Z"))
+
       def testThreads(numThreads: Int) = {
         val params = dsParams ++ Map(param -> numThreads)
         val dst = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
-        val qpt = dst.getQueryPlan(query)
-        qpt must haveSize(1)
-        qpt.head.table mustEqual dst.getTableName(defaultTypeName, Z3Table)
-        qpt.head.numThreads mustEqual numThreads
+        val qpts = dst.getQueryPlan(query)
+        forall(qpts) { qpt =>
+          qpt.table mustEqual dst.getTableName(defaultTypeName, Z3Table)
+          qpt.numThreads mustEqual numThreads
+        }
       }
 
       forall(Seq(1, 5, 8, 20, 100))(testThreads)
 
       // check default
-      val qpt = ds.getQueryPlan(query)
-      qpt must haveSize(1)
-      qpt.head.table mustEqual ds.getTableName(defaultTypeName, Z3Table)
-      qpt.head.numThreads mustEqual 8
+      val qpts = ds.getQueryPlan(query)
+      forall(qpts) { qpt =>
+        qpt.table mustEqual ds.getTableName(defaultTypeName, Z3Table)
+        qpt.numThreads mustEqual 8
+      }
     }
 
     "allow users to call explainQuery" in {
@@ -400,9 +403,9 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     "create query plan that uses the Z2 iterator with simple bbox" in {
       val query = new Query(defaultTypeName, ECQL.toFilter("bbox(geom, -100, -45, 100, 45)"))
       val plans = ds.getQueryPlan(query)
-      plans must haveLength(1)
-      plans.head.iterators must haveLength(1)
-      plans.head.iterators.head.getIteratorClass mustEqual classOf[Z2Iterator].getName
+      forall(plans) { plan =>
+        plan.iterators.map(_.getIteratorClass) must containTheSameElementsAs(Seq(classOf[Z2Iterator].getName))
+      }
     }
 
     "create key plan that does not use any iterators when given the Whole World bbox" in {

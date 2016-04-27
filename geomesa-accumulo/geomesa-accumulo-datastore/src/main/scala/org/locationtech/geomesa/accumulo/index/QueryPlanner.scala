@@ -22,6 +22,7 @@ import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess
 import org.geotools.process.vector.TransformProcess.Definition
+import org.locationtech.geomesa.accumulo.GeomesaSystemProperties.QueryProperties
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanners.FeatureFunction
@@ -34,7 +35,7 @@ import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing}
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -118,6 +119,7 @@ case class QueryPlanner(sft: SimpleFeatureType, ds: AccumuloDataStore) extends M
     val q = updateFilter(query, sft) // tweak the filter so it meets our expectations going forward
 
     val hints = q.getHints
+    val batchRanges = QueryProperties.SCAN_BATCH_RANGES.option.map(_.toInt).getOrElse(Int.MaxValue)
 
     output.pushLevel(s"Planning '${q.getTypeName}' ${filterToString(q.getFilter)}")
     output(s"Original filter: ${filterToString(query.getFilter)}")
@@ -131,16 +133,30 @@ case class QueryPlanner(sft: SimpleFeatureType, ds: AccumuloDataStore) extends M
     val requestedStrategy = requested.orElse(hints.getRequestedStrategy)
     val strategies = QueryStrategyDecider.chooseStrategies(sft, q, strategyHints, requestedStrategy, output)
     output.popLevel()
+
     var strategyCount = 1
-    strategies.iterator.map { strategy =>
+    strategies.iterator.flatMap { strategy =>
       output.pushLevel(s"Strategy $strategyCount of ${strategies.length}: ${strategy.getClass.getSimpleName}")
       strategyCount += 1
       output(s"Strategy filter: ${strategy.filter}")
-      implicit val timings = new TimingsImpl
-      val plan = profile(strategy.getQueryPlan(this, hints, output), "plan")
+
+      implicit val timing = new Timing
+      val plan = profile(strategy.getQueryPlan(this, hints, output))
       outputPlan(plan, output.popLevel())
-      output(s"Query planning took ${timings.time("plan")}ms")
-      plan
+      output(s"Query planning took ${timing.time}ms")
+
+      if (batchRanges < plan.ranges.length) {
+        // break up the ranges into groups that are manageable in memory
+        def copy(group: Seq[AccRange]) = plan match {
+          case p: BatchScanPlan => p.copy(ranges = group)
+          case p: JoinPlan      => p.copy(ranges = group)
+        }
+        val grouped = plan.ranges.grouped(batchRanges).map(copy).toSeq
+        output.pushLevel(s"Note: Ranges batched into ${grouped.length} separate queries").popLevel()
+        grouped
+      } else {
+        Seq(plan)
+      }
     }
   }
 

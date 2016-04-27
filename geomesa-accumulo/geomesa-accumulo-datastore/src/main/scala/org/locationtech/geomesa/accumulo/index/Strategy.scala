@@ -81,21 +81,9 @@ object Strategy extends LazyLogging {
           logger.warn("Query plan resulted in no valid ranges - nothing will be returned.")
           CloseableIterator(Iterator.empty)
         } else {
-          QueryProperties.SCAN_BATCH_RANGES.option.map(_.toInt) match {
-            case Some(size) if size < qp.ranges.length =>
-              // break up the ranges into groups that are manageable in memory
-              val groups = qp.ranges.grouped(size)
-              SelfClosingIterator(groups).ciFlatMap { group =>
-                val batchScanner = acc.getBatchScanner(qp.table, qp.numThreads)
-                configureBatchScanner(batchScanner, qp.copy(ranges = group))
-                SelfClosingIterator(batchScanner)
-              }
-
-            case _ =>
-              val batchScanner = acc.getBatchScanner(qp.table, qp.numThreads)
-              configureBatchScanner(batchScanner, qp)
-              SelfClosingIterator(batchScanner)
-          }
+          val batchScanner = acc.getBatchScanner(qp.table, qp.numThreads)
+          configureBatchScanner(batchScanner, qp)
+          SelfClosingIterator(batchScanner)
         }
       case qp: JoinPlan =>
         val primary = if (qp.ranges.length == 1) {
