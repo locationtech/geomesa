@@ -50,7 +50,7 @@ class GDALFileHandler extends AbstractFileHandler with LazyLogging {
         None
       } else {
         try {
-           getImageBoundsGeometry(gdalFile)
+          getImageBoundsGeometry(gdalFile)
         } finally {
           gdalFile.delete()
         }

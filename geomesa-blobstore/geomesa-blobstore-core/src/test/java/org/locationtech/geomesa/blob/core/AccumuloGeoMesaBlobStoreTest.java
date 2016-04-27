@@ -1,11 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
-
+ * Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ *************************************************************************/
 
 package org.locationtech.geomesa.blob.core;
 
@@ -13,7 +12,6 @@ import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.locationtech.geomesa.blob.core.impl.AccumuloGeoMesaBlobStore;
 import org.opengis.filter.Filter;
 
@@ -30,10 +28,9 @@ import static org.junit.Assert.*;
 
 public class AccumuloGeoMesaBlobStoreTest {
 
+    private static final Logger logger = Logger.getLogger("AccumuloGeoMesaBlobStoreTest");
     AccumuloGeoMesaBlobStore agbs;
     Random rand = new Random();
-
-    public static final Logger logger = Logger.getLogger("AccumuloGeoMesaBlobStoreTest");
 
     @Before
     public void before() {
@@ -46,7 +43,7 @@ public class AccumuloGeoMesaBlobStoreTest {
         testParams.put("useMock", "true");
         try {
             agbs = new AccumuloGeoMesaBlobStore(testParams);
-        } catch(Exception e) {
+        } catch (Exception e) {
             logger.error("Error initializing test geomesa blob " +
                     "store in AccumuloGeoMesaBlobStoreTest.java", e);
         }
