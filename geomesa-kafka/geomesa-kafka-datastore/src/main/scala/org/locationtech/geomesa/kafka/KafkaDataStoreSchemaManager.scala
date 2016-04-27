@@ -56,7 +56,7 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
     kfc.replayConfig.foreach(r => createZkNode(getReplayConfigPath(typeName), ReplayConfig.encode(r)))
 
     //create the Kafka topic
-    if(!zkUtils.topicExists(kfc.topic)) {
+    if (!zkUtils.topicExists(kfc.topic)) {
       zkUtils.createTopic(kfc.topic, partitions, replication)
     }
 
