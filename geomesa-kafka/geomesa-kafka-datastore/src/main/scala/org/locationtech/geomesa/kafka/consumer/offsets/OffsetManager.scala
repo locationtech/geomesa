@@ -12,14 +12,13 @@ import java.io.{Closeable, IOException}
 
 import com.typesafe.scalalogging.LazyLogging
 import kafka.api._
-import kafka.client.ClientUtils
 import kafka.common.ErrorMapping._
 import kafka.common.{OffsetAndMetadata, TopicAndPartition}
 import kafka.consumer.ConsumerConfig
 import kafka.message.{ByteBufferMessageSet, MessageAndOffset}
 import kafka.network.BlockingChannel
-import kafka.utils.ZKStringSerializer
-import org.I0Itec.zkclient.ZkClient
+import org.locationtech.geomesa.kafka.KafkaUtilsLoader
+import org.locationtech.geomesa.kafka.common.ZkUtils
 import org.locationtech.geomesa.kafka.consumer.KafkaConsumer._
 import org.locationtech.geomesa.kafka.consumer._
 import org.locationtech.geomesa.kafka.consumer.offsets.FindOffset.MessagePredicate
@@ -35,12 +34,8 @@ class OffsetManager(val config: ConsumerConfig)
 
   import OffsetManager._
 
-  lazy private val channel = WrappedChannel(zkClient, config)
-  lazy private val zkClient = {
-    val sTimeout = config.zkSessionTimeoutMs
-    val cTimeout = config.zkConnectionTimeoutMs
-    new ZkClient(config.zkConnect, sTimeout, cTimeout, ZKStringSerializer)
-  }
+  lazy private val channel = WrappedChannel(zkUtils, config)
+  lazy private val zkUtils = KafkaUtilsLoader.kafkaUtils.createZkUtils(config)
 
   /**
    * Get a saved offset.
@@ -97,7 +92,7 @@ class OffsetManager(val config: ConsumerConfig)
                   config: ConsumerConfig): Offsets = {
     partitions.flatMap { partition =>
       val tap = TopicAndPartition(topic, partition.partitionId)
-      val leader = partition.leader.map(Broker.apply).getOrElse(findNewLeader(tap, None, config))
+      val leader = partition.leader.map(l => Broker(l.host, l.port)).getOrElse(findNewLeader(tap, None, config))
       val consumer = WrappedConsumer(createConsumer(leader.host, leader.port, config, "offsetLookup"), tap, config)
       try {
         val consumerId = Request.OrdinaryConsumerId
@@ -214,11 +209,12 @@ class OffsetManager(val config: ConsumerConfig)
   @tailrec
   private def commitOffsets(offsets: Map[TopicAndPartition, OffsetAndMetadata], tries: Int): Unit = {
     val version = OffsetCommitRequest.CurrentVersion
+
     val request = new OffsetCommitRequest(config.groupId, offsets, version, 0, clientId)
 
     try {
       channel.channel().send(request)
-      val response = OffsetCommitResponse.readFrom(channel.channel().receive().buffer)
+      val response = OffsetCommitResponse.readFrom(KafkaUtilsLoader.kafkaUtils.channelToPayload(channel.channel()))
       val errors = response.commitStatus.filter { case (_, code) => code != NoError }
       errors.foreach { case (topicAndPartition, code) =>
         if (code == OffsetMetadataTooLargeCode) {
@@ -245,7 +241,7 @@ class OffsetManager(val config: ConsumerConfig)
 
   override def close(): Unit = {
     channel.disconnect()
-    zkClient.close()
+    zkUtils.close()
   }
 }
 
@@ -264,7 +260,7 @@ object OffsetManager extends LazyLogging {
     val version = OffsetFetchRequest.CurrentVersion
     val request = new OffsetFetchRequest(config.groupId, partitions, version, 0, clientId)
     channel.send(request)
-    val response = OffsetFetchResponse.readFrom(channel.receive().buffer)
+    val response = OffsetFetchResponse.readFrom(KafkaUtilsLoader.kafkaUtils.channelToPayload(channel))
     handleOffsetErrors(response.requestInfo.values.map(_.error))
     response.requestInfo.map { case (topicAndPartion, metadata) => (topicAndPartion, metadata.offset) }
   }
@@ -304,7 +300,7 @@ object OffsetManager extends LazyLogging {
 /**
  * Container for passing around a channel so that it can be rebuilt without losing the reference to it
  */
-case class WrappedChannel(zkClient: ZkClient, config: ConsumerConfig) {
+case class WrappedChannel(zkUtils: ZkUtils, config: ConsumerConfig) {
 
   private var reusableChannel: BlockingChannel = null
   private val timeout = config.offsetsChannelSocketTimeoutMs
@@ -325,7 +321,7 @@ case class WrappedChannel(zkClient: ZkClient, config: ConsumerConfig) {
    */
   def reconnect(): Unit = synchronized {
     disconnect()
-    reusableChannel = ClientUtils.channelToOffsetManager(config.groupId, zkClient, timeout, backoff)
+    reusableChannel = zkUtils.channelToOffsetManager(config.groupId, timeout, backoff)
   }
 
   /**

@@ -26,6 +26,17 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-kafka-datastore</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <!-- These are included in the datastore jar -->
+                <exclusion>
+                    <groupId>org.locationtech.geomesa</groupId>
+                    <artifactId>geomesa-kafka-08-utils</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.locationtech.geomesa</groupId>
+                    <artifactId>geomesa-kafka-utils-common</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

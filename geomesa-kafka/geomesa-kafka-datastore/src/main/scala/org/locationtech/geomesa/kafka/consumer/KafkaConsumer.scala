@@ -127,7 +127,7 @@ case class KafkaConsumer[K, V](topic: String,
           s"[${offsets.map(o => s"${o._1.partition}->${o._2}").mkString(",")}]")
 
       val time = System.currentTimeMillis()
-      val commits = offsets.map { case (tap, o) => (tap, OffsetAndMetadata(o, timestamp = time)) }
+      val commits = offsets.map { case (tap, o) => (tap, OffsetAndMetadata(o, metadata = "", timestamp = time)) }
       offsetManager.commitOffsets(commits, isAutoCommit = false)
       commits.foreach { case (tap, o) => consumeCheck.put(tap, o.offset) }
     } catch {
@@ -178,7 +178,7 @@ case class KafkaConsumer[K, V](topic: String,
       partitionsForQueue.foreach { partition =>
         val tap = TopicAndPartition(topic, partition.partitionId)
         val clientId = config.clientId
-        val leader = partition.leader.map(Broker.apply).getOrElse(findNewLeader(tap, None, config))
+        val leader = partition.leader.map(l => Broker(l.host, l.port)).getOrElse(findNewLeader(tap, None, config))
 
         val connection = createConsumer(leader.host, leader.port, config, clientId)
         val consumer = WrappedConsumer(connection, tap, config)
@@ -218,7 +218,7 @@ case class KafkaConsumer[K, V](topic: String,
         maxToConsume = Math.max(nextToConsume, maxToConsume)
       }
       if (maxToConsume > consumeCheck.get(tap)) {
-        Some(tap -> OffsetAndMetadata(maxToConsume, timestamp = System.currentTimeMillis()))
+        Some(tap -> OffsetAndMetadata(maxToConsume, metadata = "", timestamp = System.currentTimeMillis()))
       } else {
         None
       }
@@ -401,7 +401,7 @@ object KafkaConsumer extends LazyLogging {
       case None      => maybeLeader
     }
 
-    leader.map(Broker.apply) match {
+    leader.map(l => Broker(l.host, l.port)) match {
       case Some(l) => l
       case None =>
         if (tries < config.rebalanceMaxRetries) {
