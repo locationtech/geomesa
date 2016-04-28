@@ -17,12 +17,16 @@
     <artifactId>geomesa-kafka-09-datastore</artifactId>
     <name>GeoMesa Kafka 09 Data Store</name>
 
+    <properties>
+        <kafka.09.version>0.9.0.1</kafka.09.version>
+    </properties>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka_2.11</artifactId>
-                <version>0.9.0.1</version>
+                <version>${kafka.09.version}</version>
                 <scope>provided</scope>
                 <exclusions>
                     <exclusion>
@@ -107,7 +111,7 @@
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_2.11</artifactId>
-            <version>0.9.0.1</version>
+            <version>${kafka.09.version}</version>
             <classifier>test</classifier>
             <scope>test</scope>
             <exclusions>

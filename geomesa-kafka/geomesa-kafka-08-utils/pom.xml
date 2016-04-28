@@ -19,12 +19,16 @@
     <artifactId>geomesa-kafka-08-utils</artifactId>
     <name>GeoMesa Kafka 08 Utils</name>
 
+    <properties>
+        <kafka.08.version>0.8.2.1</kafka.08.version>
+    </properties>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka_2.11</artifactId>
-                <version>0.8.2.1</version>
+                <version>${kafka.08.version}</version>
                 <scope>provided</scope>
                 <exclusions>
                     <exclusion>
@@ -52,7 +56,7 @@
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_2.11</artifactId>
-            <version>0.8.2.1</version>
+            <version>${kafka.08.version}</version>
             <classifier>test</classifier>
             <scope>test</scope>
             <exclusions>
