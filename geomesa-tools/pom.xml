@@ -72,10 +72,6 @@
             <artifactId>geomesa-kafka-datastore</artifactId>
             <exclusions>
                 <exclusion>
-                    <groupId>org.apache.commons</groupId>
-                    <artifactId>commons-lang3</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>org.locationtech.geomesa</groupId>
                     <artifactId>geomesa-feature-kryo</artifactId>
                 </exclusion>

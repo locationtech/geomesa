@@ -10,7 +10,6 @@ package org.locationtech.geomesa.tools.kafka.commands
 
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import kafka.admin.AdminUtils
 import org.locationtech.geomesa.kafka.KafkaDataStore
 import org.locationtech.geomesa.tools.common.FeatureTypeNameParam
 import org.locationtech.geomesa.tools.kafka.ConsumerKDSConnectionParams
@@ -45,7 +44,7 @@ class DescribeCommand(parent: JCommander) extends CommandWithKDS(parent) with La
       }
 
       val topicName = zkClient.readData[String](ds.asInstanceOf[KafkaDataStore].getTopicPath(params.featureName))
-      val topicMetadata = AdminUtils.fetchTopicMetadataFromZk(topicName, zkClient)
+      val topicMetadata = zkUtils.fetchTopicMetadataFromZk(topicName)
 
       println("\nFetching Kafka topic metadata...")
       println(s"Number of partitions: ${topicMetadata.partitionsMetadata.size}")

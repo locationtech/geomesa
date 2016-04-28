@@ -311,7 +311,7 @@ class TransformersTest extends Specification {
         val exp = Transformers.parseTransform("try(secsToDate($1), now())")
         val secs = 100L
         exp.eval(Array("", secs)).asInstanceOf[Date] mustEqual new Date(secs*1000L)
-        exp.eval(Array("", "")).asInstanceOf[Date].getTime must beCloseTo(System.currentTimeMillis(), 100)
+        exp.eval(Array("", "")).asInstanceOf[Date].getTime must beCloseTo(System.currentTimeMillis(), 1000)
         exp.eval(Array("", "abcd")).asInstanceOf[Date].getTime must beCloseTo(System.currentTimeMillis(), 100)
       }
 
