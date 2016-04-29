@@ -18,6 +18,7 @@
                 <exclude>org.apache.zookeeper:zookeeper</exclude>
                 <exclude>org.apache.kafka:kafka_2.11</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-kafka-datastore</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-kafka-09-datastore</exclude>
             </excludes>
         </dependencySet>
         <dependencySet>
@@ -31,6 +32,20 @@
                 <include>com.google.guava:guava</include>
                 <include>org.apache.kafka:kafka_2.11</include>
                 <include>org.locationtech.geomesa:geomesa-kafka-datastore</include>
+                <include>org.apache.zookeeper:zookeeper</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>lib/kafka09</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0644</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>true</useTransitiveDependencies>
+            <useTransitiveFiltering>true</useTransitiveFiltering>
+            <includes>
+                <include>com.google.guava:guava</include>
+                <include>org.apache.kafka:kafka_2.11</include>
+                <include>org.locationtech.geomesa:geomesa-kafka-09-datastore</include>
                 <include>org.apache.zookeeper:zookeeper</include>
             </includes>
         </dependencySet>

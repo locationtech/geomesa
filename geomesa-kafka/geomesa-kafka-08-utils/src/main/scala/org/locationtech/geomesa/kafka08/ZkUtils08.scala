@@ -22,6 +22,7 @@ case class ZkUtils08(zkClient: ZkClient) extends ZkUtils {
     ClientUtils.channelToOffsetManager(groupId, zkClient, socketTimeoutMs, retryBackOffMs)
   override def deleteTopic(topic: String): Unit = AdminUtils.deleteTopic(zkClient, topic)
   override def topicExists(topic: String): Boolean = AdminUtils.topicExists(zkClient, topic)
+  override def getAllTopics: Seq[String] = kafka.utils.ZkUtils.getAllTopics(zkClient)
   override def createTopic(topic: String, partitions: Int, replication: Int) = AdminUtils.createTopic(zkClient, topic, partitions, replication)
   override def getLeaderForPartition(topic: String, partition: Int): Option[Int] = kafka.utils.ZkUtils.getLeaderForPartition(zkClient, topic, partition)
   override def createEphemeralPathExpectConflict(path: String, data: String): Unit = kafka.utils.ZkUtils.createEphemeralPathExpectConflict(zkClient, path, data)
@@ -39,5 +40,6 @@ case class ZkUtils08(zkClient: ZkClient) extends ZkUtils {
   override def createAssignmentContext(group: String, consumerId: String, excludeInternalTopics: Boolean): AssignmentContext =
     new AssignmentContext(group, consumerId, excludeInternalTopics, zkClient)
   override def readData(path: String): (String, Stat) = kafka.utils.ZkUtils.readData(zkClient, path)
+  override def fetchTopicMetadataFromZk(topic: String) = AdminUtils.fetchTopicMetadataFromZk(topic, zkClient)
   override def close(): Unit = zkClient.close()
 }

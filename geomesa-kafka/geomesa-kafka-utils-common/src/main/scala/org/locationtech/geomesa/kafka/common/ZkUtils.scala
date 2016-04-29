@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.kafka.common
 
+import kafka.api.TopicMetadata
 import kafka.consumer.AssignmentContext
 import kafka.network.BlockingChannel
 import org.I0Itec.zkclient.ZkClient
@@ -18,6 +19,7 @@ trait ZkUtils {
   def channelToOffsetManager(groupId: String, socketTimeoutMs: Int, retryBackOffMs: Int): BlockingChannel
   def deleteTopic(topic: String): Unit
   def topicExists(topic: String): Boolean
+  def getAllTopics: Seq[String]
   def createTopic(topic: String, partitions: Int, replication: Int): Unit
   def getLeaderForPartition(topic: String, partition: Int): Option[Int]
   def createEphemeralPathExpectConflict(path: String, data: String): Unit
@@ -32,5 +34,6 @@ trait ZkUtils {
   def getAllBrokersInCluster: Seq[kafka.cluster.Broker]
   def createAssignmentContext(group: String, consumerId: String, excludeInternalTopics: Boolean): AssignmentContext
   def readData(path: String): (String, Stat)
+  def fetchTopicMetadataFromZk(topic: String): TopicMetadata
   def close(): Unit
 }

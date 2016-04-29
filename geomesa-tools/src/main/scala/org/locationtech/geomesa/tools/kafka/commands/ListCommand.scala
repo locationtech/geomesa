@@ -10,7 +10,6 @@ package org.locationtech.geomesa.tools.kafka.commands
 
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import kafka.utils.ZkUtils
 import org.I0Itec.zkclient.exception.ZkNoNodeException
 import org.locationtech.geomesa.tools.kafka.OptionalZkPathParams
 import org.locationtech.geomesa.tools.kafka.commands.ListCommand._
@@ -23,7 +22,7 @@ class ListCommand(parent: JCommander) extends CommandWithKDS(parent) with LazyLo
     if (zkPath == null) {
       logger.info(s"Running List Features without zkPath...")
       logger.info(s"zkPath - schema")
-      ZkUtils.getAllTopics(zkClient).filter(_.contains('-')).foreach {
+      zkUtils.getAllTopics.filter(_.contains('-')).foreach {
         printZkPathAndTopicString
       }
     } else {
