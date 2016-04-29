@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.convert.json
 
 import java.io.ByteArrayInputStream
-import java.util.Date
+import java.util.{Date, UUID}
 
 import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom._
@@ -715,6 +715,127 @@ class JsonConverterTest extends Specification {
       features must haveLength(0)
       ec.counter.getSuccess mustEqual 0
       ec.counter.getFailure mustEqual 1
+    }
+
+    "parse and convert json arrays into lists" >> {
+
+      val adv = ConfigFactory.parseString(
+        """{
+          |  type-name = "adv"
+          |  attributes = [
+          |    { name = "id",    type = "Integer"       }
+          |    { name = "sList", type = "List[String]"  }
+          |    { name = "iList", type = "List[Integer]" }
+          |    { name = "dList", type = "List[Double]"  }
+          |    { name = "uList", type = "List[UUID]"    }
+          |    { name = "geom",  type = "Point"         }
+          |  ]
+          |}
+        """.stripMargin)
+
+      val advSft = SimpleFeatureTypes.createType(adv)
+
+      val nestedJson =
+        """ {
+          |    DataSource: { name: "myjson" },
+          |    Features: [
+          |      {
+          |        "id": 1,
+          |        "geometry": {"type": "Point", "coordinates": [55, 56]},
+          |        "things": [
+          |          {
+          |            "s": "s1",
+          |            "i": 1,
+          |            "d": 1.1,
+          |            "u": "12345678-1234-1234-1234-123456781234"
+          |          },
+                     {
+          |            "s": "s2",
+          |            "i": 2,
+          |            "d": 2.2,
+          |            "u": "00000000-0000-0000-0000-000000000000"
+          |          },
+          |        ]
+          |      }
+          |    ]
+          | }
+        """.stripMargin
+
+      val simpleJson =
+        """ {
+          |    DataSource: { name: "myjson" },
+          |    Features: [
+          |      {
+          |        "id": 1,
+          |        "geometry": {"type": "Point", "coordinates": [55, 56]},
+          |        "i": [1, 2],
+          |        "d": [1.1, 2.2],
+          |        "s": ["s1", "s2"],
+          |        "u": ["12345678-1234-1234-1234-123456781234", "00000000-0000-0000-0000-000000000000"]
+          |      }
+          |    ]
+          | }
+        """.stripMargin
+
+      val nestedConf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "json"
+          |   id-field     = "$id"
+          |   feature-path = "$.Features[*]"
+          |   fields = [
+          |     { name = "id",    json-type = "integer",  path = "$.id",          transform = "toString($0)"            }
+          |     { name = "sList", json-type = "array",    path = "$.things[*].s", transform = "jsonList('string', $0)"  }
+          |     { name = "iList", json-type = "array",    path = "$.things[*].i", transform = "jsonList('integer', $0)" }
+          |     { name = "dList", json-type = "array",    path = "$.things[*].d", transform = "jsonList('double', $0)"  }
+          |     { name = "uList", json-type = "array",    path = "$.things[*].u", transform = "jsonList('UUID', $0)"    }
+          |     { name = "geom",  json-type = "geometry", path = "$.geometry",    transform = "point($0)"               }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val simpleConf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "json"
+          |   id-field     = "$id"
+          |   feature-path = "$.Features[*]"
+          |   fields = [
+          |     { name = "id",    json-type = "integer",  path = "$.id",       transform = "toString($0)"            }
+          |     { name = "sList", json-type = "array",    path = "$.s",        transform = "jsonList('string', $0)"  }
+          |     { name = "iList", json-type = "array",    path = "$.i",        transform = "jsonList('integer', $0)" }
+          |     { name = "dList", json-type = "array",    path = "$.d",        transform = "jsonList('double', $0)"  }
+          |     { name = "uList", json-type = "array",    path = "$.u",        transform = "jsonList('UUID', $0)"    }
+          |     { name = "geom",  json-type = "geometry", path = "$.geometry", transform = "point($0)"               }
+          |   ]
+          | }
+        """.stripMargin)
+
+      forall(List((nestedJson, nestedConf),(simpleJson, simpleConf))) { case (json, conf) =>
+        val converter = SimpleFeatureConverters.build[String](advSft, conf)
+        val ec = converter.createEvaluationContext()
+        val features = converter.processInput(Iterator(json), ec).toList
+        features must haveLength(1)
+        ec.counter.getSuccess mustEqual 1
+        ec.counter.getFailure mustEqual 0
+
+        import scala.collection.JavaConversions._
+        val f = features.head
+
+        f.getAttribute("sList") must beAnInstanceOf[java.util.List[String]]
+        f.getAttribute("sList").asInstanceOf[java.util.List[String]].toSeq must containTheSameElementsAs(Seq("s1", "s2"))
+
+        f.getAttribute("iList") must beAnInstanceOf[java.util.List[Integer]]
+        f.getAttribute("iList").asInstanceOf[java.util.List[Integer]].toSeq must containTheSameElementsAs(Seq(1, 2))
+
+        f.getAttribute("dList") must beAnInstanceOf[java.util.List[Double]]
+        f.getAttribute("dList").asInstanceOf[java.util.List[Double]].toSeq must containTheSameElementsAs(Seq(1.1, 2.2))
+
+        f.getAttribute("uList") must beAnInstanceOf[java.util.List[UUID]]
+        f.getAttribute("uList").asInstanceOf[java.util.List[UUID]].toSeq must containTheSameElementsAs(
+          Seq(UUID.fromString("12345678-1234-1234-1234-123456781234"),
+            UUID.fromString("00000000-0000-0000-0000-000000000000")))
+      }
     }
   }
 }

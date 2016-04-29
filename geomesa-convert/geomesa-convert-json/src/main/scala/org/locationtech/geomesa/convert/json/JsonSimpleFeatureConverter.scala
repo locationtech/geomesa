@@ -11,7 +11,7 @@ package org.locationtech.geomesa.convert.json
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 
-import com.google.gson.{JsonArray, JsonElement}
+import com.google.gson.{JsonObject, JsonArray, JsonElement}
 import com.jayway.jsonpath.spi.json.GsonJsonProvider
 import com.jayway.jsonpath.{Configuration, JsonPath}
 import com.typesafe.config.Config
@@ -109,6 +109,8 @@ object JsonField {
     case "bool" | "boolean" => BooleanJsonField(name, expression, jsonConfig, transform)
     case "long"             => LongJsonField(name, expression, jsonConfig, transform)
     case "geometry"         => GeometryJsonField(name, expression, jsonConfig, transform)
+    case "list" | "array"   => JsonArrayField(name, expression, jsonConfig, transform)
+    case "map" |"object"    => JsonObjectField(name, expression, jsonConfig, transform)
   }
 }
 
@@ -167,6 +169,17 @@ case class StringJsonField(name: String, expression: JsonPath, jsonConfig: Confi
 case class GeometryJsonField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr)
     extends BaseJsonField[Geometry] with GeoJsonParsing {
   override def getAs(el: JsonElement): Geometry =  parseGeometry(el)
+}
+
+case class JsonArrayField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr)
+  extends BaseJsonField[JsonArray] {
+  override def getAs(el: JsonElement): JsonArray = if (el.isJsonNull) null else el.getAsJsonArray
+}
+
+case class JsonObjectField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr)
+  extends BaseJsonField[JsonObject] {
+  override def getAs(el: JsonElement): JsonObject = if (el.isJsonNull) null else el.getAsJsonObject
+
 }
 
 trait GeoJsonParsing {
