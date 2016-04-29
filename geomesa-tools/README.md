@@ -933,7 +933,15 @@ Prints out the version, git branch, and commit ID that the tools were built with
     geomesa version
 
 ## GeoMesa Kafka Command Line Tools
-GeoMesa also comes with Kafka command line tools which you can run with:
+GeoMesa also comes with Kafka command line tools.  The tools use kafka 0.8 jars by default, so when using kafka 0.9
+ you will need to make the following replacements lib/kafka directory:
+
+    geomesa-kafka-datastore-<version>.jar -> geomesa-kafka-09-datastore-<version>.jar
+    kafka_2.11-0.8.2.1.jar -> kafka_2.11-0.9.0.1.jar
+    kafka-clients-0.8.2.1.jar -> kafka-clients-0.9.0.1.jar
+    zkclient-0.3.jar -> zkclient-0.7.jar
+
+You can run the tools with:
 
     geomesa-kafka
     
