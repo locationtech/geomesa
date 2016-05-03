@@ -41,7 +41,9 @@ Given a data store and a query, you can ask GeoMesa to explain its plan for how 
 
 .. code-block:: java
 
-    dataStore.explainQuery(query)
+    dataStore.getQueryPlan(query, explainer = new ExplainPrintln);
+
+Instead of ``ExplainPrintln``, you can also use ``ExplainString`` or ``ExplainLogging`` to redirect the explainer output elsewhere.  (For the ``ExplainLogging``, it may be helpful to refer to GeoServer's `Advanced log configuration <http://docs.geoserver.org/2.8.x/en/user/advanced/logging.html>`_ documentation for the specifics of how and where to manage the GeoServer logs.)
 
 Knowing the plan -- including information such as the indexing strategy -- can be useful when you need to debug slow queries.  It can suggest when indexes should be added as well as when query-hints may expedite execution times.
 
