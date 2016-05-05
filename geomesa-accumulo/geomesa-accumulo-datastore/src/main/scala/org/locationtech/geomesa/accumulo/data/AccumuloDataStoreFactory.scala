@@ -56,9 +56,8 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       }
     }
 
-    // if no auths are specified we default to the connector auths
-    // TODO would it be safer to default to no auths?
-    val auths: List[String] = if (configuredAuths.nonEmpty) configuredAuths.toList else masterAuthsStrings.toList
+    // if no auths are specified, only data without visibilities can be returned
+    val auths: List[String] = configuredAuths.toList
 
     val authProvider = security.getAuthorizationsProvider(params, auths)
     val auditProvider = security.getAuditProvider(params).getOrElse {
