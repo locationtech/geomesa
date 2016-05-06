@@ -45,7 +45,8 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     val masterAuthsStrings = masterAuths.map(b => new String(b))
 
     // get the auth params passed in as a comma-delimited string
-    val configuredAuths = authsParam.lookupOpt[String](params).getOrElse("").split(",").filter(s => !s.isEmpty)
+    val rawConfiguredAuths = authsParam.lookupOpt[String](params)
+    val configuredAuths = rawConfiguredAuths.getOrElse("").split(",").filter(s => !s.isEmpty)
 
     // verify that the configured auths are valid for the connector we are using (fail-fast)
     if (!connector.isInstanceOf[MockConnector]) {
@@ -56,8 +57,11 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       }
     }
 
-    // if no auths are specified, only data without visibilities can be returned
-    val auths: List[String] = configuredAuths.toList
+    // if the caller provided any non-null string for authorizations, use it;
+    // otherwise, grab all authorizations to which the Accumulo user is entitled
+    val auths: List[String] =
+      if (rawConfiguredAuths.isDefined) configuredAuths.toList  // may be empty!
+      else masterAuthsStrings.toList
 
     val authProvider = security.getAuthorizationsProvider(params, auths)
     val auditProvider = security.getAuditProvider(params).getOrElse {
