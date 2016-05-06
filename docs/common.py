@@ -74,6 +74,12 @@ rst_epilog = """
 
 .. |release_source_tarball| replace:: https://github.com/locationtech/geomesa/archive/geomesa-%(release)s.tar.gz
 
+.. |eclipse_release| replace:: 1.2.0 
+
+.. |eclipse_release_tarball| replace:: http://download.locationtech.org/geomesa/1.2.0/geomesa-dist-1.2.0-bin.tar.gz
+
+.. |eclipse_release_source_tarball| replace:: http://download.locationtech.org/geomesa/1.2.0/geomesa-source-1.2.0.tar.gz 
+
 .. |development| replace:: %(version_devel)s
 
 .. |release_1_1| replace:: %(release_1_1)s

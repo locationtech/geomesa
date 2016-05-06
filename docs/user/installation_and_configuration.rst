@@ -44,6 +44,11 @@ Versions and Downloads
 
 * Source: https://github.com/locationtech/geomesa/archive/master.tar.gz
 
+**Latest Eclipse IP Reviewed release**: |eclipse_release|
+
+* Release distribution: |eclipse_release_tarball|
+* Source: |eclipse_release_source_tarball|
+
 **1.1.x release**: |release_1_1|
 
 * Release tarball: |release_1_1_tarball|
