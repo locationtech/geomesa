@@ -12,7 +12,9 @@ import java.{util, lang}
 import java.nio.charset.StandardCharsets
 import java.util.{UUID, Date}
 
+import org.apache.avro.Schema
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.geotools.SftBuilder
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -351,6 +353,19 @@ class AvroSimpleFeatureUtilsTest extends Specification {
         val orig = Map(2 -> new Object(), 1 -> new Object())
         AvroSimpleFeatureUtils.encodeMap(orig.asJava,
           classOf[Int], classOf[Object]) must throwAn[IllegalArgumentException]
+      }
+    }
+
+    "generate Avro schemas" >> {
+      "with non-mangled attributes and custom namespaces" >> {
+        val sft = new SftBuilder()
+          .point("geom", default = true)
+          .intType("age")
+          .build("toavro")
+
+        val expectedSchema = new Schema.Parser().parse("""{"type":"record","name":"toavro","namespace":"test.avro","fields":[{"name":"__version__","type":"int"},{"name":"__fid__","type":"string"},{"name":"geom","type":["bytes","null"]},{"name":"age","type":["int","null"]},{"name":"__userdata__","type":{"type":"array","items":{"type":"record","name":"userDataItem","fields":[{"name":"class","type":"string"},{"name":"key","type":"string"},{"name":"value","type":"string"}]}}}]}""")
+        val schema = AvroSimpleFeatureUtils.generateSchema(sft, withUserData = true, "test.avro", mangleNames = false)
+        expectedSchema must be equalTo schema
       }
     }
   }

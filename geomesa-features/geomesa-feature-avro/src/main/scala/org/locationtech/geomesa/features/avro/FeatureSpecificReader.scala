@@ -34,15 +34,18 @@ class FeatureSpecificReader(var oldType: SimpleFeatureType, var newType: SimpleF
   // so all instance variables need to be be lazy
   var oldSchema = Option(oldType).map(generateSchema(_, opts.withUserData)).orNull
 
-  lazy val fieldsDesired = DataUtilities.attributeNames(newType).map(encodeAttributeName)
+  lazy val nameEncoder = AvroSimpleFeatureUtils.getNameEncoder(!opts.withUnmangledNames)
+
+  lazy val fieldsDesired = DataUtilities.attributeNames(newType).map(nameEncoder)
 
   lazy val dataFields = oldSchema.getFields.filter { isDataField }
 
+
   lazy val typeMap: Map[String, Class[_]] =
-    oldType.getAttributeDescriptors.map { ad => encodeAttributeName(ad.getLocalName) -> ad.getType.getBinding }.toMap
+    oldType.getAttributeDescriptors.map { ad => nameEncoder(ad.getLocalName) -> ad.getType.getBinding }.toMap
 
   lazy val nillableAttrs: Set[String] = oldType.getAttributeDescriptors.filter(_.isNillable).map {
-    ad => encodeAttributeName(ad.getLocalName)
+    ad => nameEncoder(ad.getLocalName)
   }.toSet
 
   def isDataField(f: Schema.Field) =
@@ -60,8 +63,9 @@ class FeatureSpecificReader(var oldType: SimpleFeatureType, var newType: SimpleF
 
   def buildFieldReaders(deserializer: ASFDeserializer) =
     oldType.getAttributeDescriptors.map { ad =>
-      val name = encodeAttributeName(ad.getLocalName)
-      buildSetOrConsume(name, typeMap(name), deserializer) }
+      val name = nameEncoder(ad.getLocalName)
+      buildSetOrConsume(name, typeMap(name), deserializer)
+    }
 
   def buildSetOrConsume(name: String, cls: Class[_], deserializer: ASFDeserializer) = {
     val f =
@@ -77,7 +81,7 @@ class FeatureSpecificReader(var oldType: SimpleFeatureType, var newType: SimpleF
   }
 
   def buildSet(clazz: Class[_], name: String, deserializer: ASFDeserializer): (AvroSimpleFeature, Decoder) => Unit = {
-    val decoded = decodeAttributeName(name)
+    val decoded = if(opts.withUnmangledNames) name else decodeAttributeName(name)
     clazz match {
       case cls if classOf[java.lang.String].isAssignableFrom(cls)    => deserializer.setString(_, decoded, _)
       case cls if classOf[java.lang.Integer].isAssignableFrom(cls)   => deserializer.setInt(_, decoded, _)

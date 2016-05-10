@@ -17,6 +17,7 @@ import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io.WKBWriter
 import org.apache.avro.{Schema, SchemaBuilder}
 import org.apache.commons.codec.binary.Hex
+import org.apache.commons.lang.StringUtils
 import org.geotools.util.Converters
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
@@ -48,17 +49,26 @@ object AvroSimpleFeatureUtils {
 
   def decodeAttributeName(s: String): String = attributeNameLookUp.getOrElseUpdate(s, decode(s))
 
-  def generateSchema(sft: SimpleFeatureType, withUserData: Boolean): Schema = {
+  def getNameEncoder(mangleNames: Boolean) =
+    if(mangleNames) encodeAttributeName _
+    else            (s: String) => StringUtils.replaceChars(s, "-", "_")
+
+  def generateSchema(sft: SimpleFeatureType,
+                     withUserData: Boolean,
+                     namespace: String = AVRO_NAMESPACE,
+                     mangleNames: Boolean = true): Schema = {
+    val nameEncoder = getNameEncoder(mangleNames)
+
     val initialAssembler: SchemaBuilder.FieldAssembler[Schema] =
-      SchemaBuilder.record(encodeAttributeName(sft.getTypeName))
-        .namespace(AVRO_NAMESPACE)
+      SchemaBuilder.record(nameEncoder(sft.getTypeName))
+        .namespace(namespace)
         .fields
         .name(AVRO_SIMPLE_FEATURE_VERSION).`type`.intType.noDefault
         .name(FEATURE_ID_AVRO_FIELD_NAME).`type`.stringType.noDefault
 
     val withFields =
       sft.getAttributeDescriptors.foldLeft(initialAssembler) { case (assembler, ad) =>
-        addField(assembler, encodeAttributeName(ad.getLocalName), ad.getType.getBinding, ad.isNillable)
+        addField(assembler, nameEncoder(ad.getLocalName), ad.getType.getBinding, ad.isNillable)
       }
 
     val fullSchema = if (withUserData) {
@@ -113,7 +123,8 @@ object AvroSimpleFeatureUtils {
 
   // Resulting functions in map are not thread-safe...use only as
   // member variable, not in a static context
-  def createTypeMap(sft: SimpleFeatureType, wkbWriter: WKBWriter): Map[String, Binding] = {
+  def createTypeMap(sft: SimpleFeatureType, wkbWriter: WKBWriter, mangleNames: Boolean = true): Map[String, Binding] = {
+    val nameEncoder = getNameEncoder(mangleNames)
     sft.getAttributeDescriptors.map { ad =>
       val conv = ad.getType.getBinding match {
         case t if primitiveTypes.contains(t) => (v: AnyRef) => v
@@ -142,7 +153,7 @@ object AvroSimpleFeatureUtils {
             Option(Converters.convert(v, classOf[String])).getOrElse { a: AnyRef => a.toString }
       }
 
-      (encodeAttributeName(ad.getLocalName), Binding(ad.getType.getBinding, conv))
+      (nameEncoder(ad.getLocalName), Binding(ad.getType.getBinding, conv))
     }.toMap
   }
 

@@ -13,6 +13,7 @@ import java.util.zip.Deflater
 
 import org.apache.avro.file.{CodecFactory, DataFileWriter}
 import org.geotools.data.simple.SimpleFeatureCollection
+import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.utils.geotools.Conversions
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -29,8 +30,8 @@ class AvroDataFileWriter(os: OutputStream,
                          sft: SimpleFeatureType,
                          compression: Int = Deflater.DEFAULT_COMPRESSION) extends Closeable with Flushable {
 
-  private val schema = AvroSimpleFeatureUtils.generateSchema(sft, withUserData = true)
-  private val writer = new AvroSimpleFeatureWriter(sft, SerializationOptions.withUserData)
+  private val schema = AvroSimpleFeatureUtils.generateSchema(sft, namespace = sft.getName.getNamespaceURI, withUserData = true, mangleNames = false)
+  private val writer = new AvroSimpleFeatureWriter(sft, SerializationOptions.withUserData + SerializationOption.WithUnmangledNames)
   private val dfw = new DataFileWriter[SimpleFeature](writer)
 
   if (compression != Deflater.NO_COMPRESSION) {
