@@ -34,7 +34,7 @@ class VisibilityFilterFunction
   private val provider = security.getAuthorizationsProvider(Map.empty[String, java.io.Serializable].asJava, Seq())
   private val auths = provider.getAuthorizations
   private val vizEvaluator = new VisibilityEvaluator(auths)
-  private val vizCache = collection.mutable.HashMap.empty[String, Boolean]
+  private val vizCache = collection.concurrent.TrieMap.empty[String, Boolean]
 
   def evaluateSF(feature: SimpleFeature): java.lang.Boolean = {
     feature.visibility.exists(v => vizCache.getOrElseUpdate(v, vizEvaluator.evaluate(new ColumnVisibility(v))))
