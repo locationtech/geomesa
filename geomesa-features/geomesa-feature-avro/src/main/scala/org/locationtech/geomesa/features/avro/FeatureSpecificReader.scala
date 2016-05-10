@@ -32,23 +32,22 @@ class FeatureSpecificReader(var oldType: SimpleFeatureType, var newType: SimpleF
 
   // DataFileStreams or DataFileReaders may set this after construction of the object
   // so all instance variables need to be be lazy
-  var oldSchema = Option(oldType).map(generateSchema(_, opts.withUserData)).orNull
+  protected var oldSchema = Option(oldType).map(generateSchema(_, opts.withUserData)).orNull
 
-  lazy val nameEncoder = AvroSimpleFeatureUtils.getNameEncoder(!opts.withUnmangledNames)
+  protected var nameEncoder: FieldNameEncoder = null
 
-  lazy val fieldsDesired = DataUtilities.attributeNames(newType).map(nameEncoder)
+  protected lazy val fieldsDesired = DataUtilities.attributeNames(newType).map(nameEncoder.decode)
 
-  lazy val dataFields = oldSchema.getFields.filter { isDataField }
-
+  protected lazy val dataFields = oldSchema.getFields.filter { isDataField }
 
   lazy val typeMap: Map[String, Class[_]] =
-    oldType.getAttributeDescriptors.map { ad => nameEncoder(ad.getLocalName) -> ad.getType.getBinding }.toMap
+    oldType.getAttributeDescriptors.map { ad => nameEncoder.encode(ad.getLocalName) -> ad.getType.getBinding }.toMap
 
   lazy val nillableAttrs: Set[String] = oldType.getAttributeDescriptors.filter(_.isNillable).map {
-    ad => nameEncoder(ad.getLocalName)
+    ad => nameEncoder.encode(ad.getLocalName)
   }.toSet
 
-  def isDataField(f: Schema.Field) =
+  protected def isDataField(f: Schema.Field) =
     !f.name.equals(FEATURE_ID_AVRO_FIELD_NAME) &&
       !f.name.equals(AVRO_SIMPLE_FEATURE_VERSION) &&
       !f.name.equals(AVRO_SIMPLE_FEATURE_USERDATA)
@@ -61,13 +60,13 @@ class FeatureSpecificReader(var oldType: SimpleFeatureType, var newType: SimpleF
     oldSchema = generateSchema(oldType, opts.withUserData)
   }
 
-  def buildFieldReaders(deserializer: ASFDeserializer) =
+  protected def buildFieldReaders(deserializer: ASFDeserializer) =
     oldType.getAttributeDescriptors.map { ad =>
-      val name = nameEncoder(ad.getLocalName)
+      val name = nameEncoder.encode(ad.getLocalName)
       buildSetOrConsume(name, typeMap(name), deserializer)
     }
 
-  def buildSetOrConsume(name: String, cls: Class[_], deserializer: ASFDeserializer) = {
+  protected def buildSetOrConsume(name: String, cls: Class[_], deserializer: ASFDeserializer) = {
     val f =
       if (!fieldsDesired.contains(name)) buildConsume(cls, name, deserializer)
       else buildSet(cls, name, deserializer)
@@ -80,8 +79,8 @@ class FeatureSpecificReader(var oldType: SimpleFeatureType, var newType: SimpleF
       f
   }
 
-  def buildSet(clazz: Class[_], name: String, deserializer: ASFDeserializer): (AvroSimpleFeature, Decoder) => Unit = {
-    val decoded = if(opts.withUnmangledNames) name else decodeAttributeName(name)
+  protected def buildSet(clazz: Class[_], name: String, deserializer: ASFDeserializer): (AvroSimpleFeature, Decoder) => Unit = {
+    val decoded = nameEncoder.decode(name)
     clazz match {
       case cls if classOf[java.lang.String].isAssignableFrom(cls)    => deserializer.setString(_, decoded, _)
       case cls if classOf[java.lang.Integer].isAssignableFrom(cls)   => deserializer.setInt(_, decoded, _)
@@ -98,20 +97,20 @@ class FeatureSpecificReader(var oldType: SimpleFeatureType, var newType: SimpleF
     }
   }
 
-  def buildConsume(clazz: Class[_], name: String, deserializer: ASFDeserializer) = {
+  protected def buildConsume(clazz: Class[_], name: String, deserializer: ASFDeserializer) = {
     val f = deserializer.buildConsumeFunction(clazz)
     (sf: SimpleFeature, in: Decoder) => f(in)
   }
 
-  lazy val v1fieldreaders = buildFieldReaders(Version1Deserializer)
-  lazy val v2fieldreaders = buildFieldReaders(Version2Deserializer)
+  protected lazy val v1fieldreaders = buildFieldReaders(Version1Deserializer)
+  protected lazy val v2fieldreaders = buildFieldReaders(Version2Deserializer)
 
-  def defaultRead(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = {
+  protected def defaultRead(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = {
     val serializationVersion = in.readInt()
     readAttributes(in, serializationVersion)
   }
 
-  def readWithUserData(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = {
+  protected def readWithUserData(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = {
     val serializationVersion = in.readInt()
 
     FeatureSpecificReader.checkVersion(serializationVersion)
@@ -125,12 +124,14 @@ class FeatureSpecificReader(var oldType: SimpleFeatureType, var newType: SimpleF
     sf
   }
 
-  def readAttributes(in: Decoder, serializationVersion: Int): AvroSimpleFeature = {
+  protected def readAttributes(in: Decoder, serializationVersion: Int): AvroSimpleFeature = {
+
+    nameEncoder = new FieldNameEncoder(serializationVersion)
 
     // choose the proper deserializer
     val deserializer = serializationVersion match {
-      case 1     => v1fieldreaders
-      case 2 | 3 => v2fieldreaders
+      case 1                              => v1fieldreaders
+      case _ if serializationVersion >= 2 => v2fieldreaders
     }
 
     // Read the id

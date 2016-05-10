@@ -10,7 +10,7 @@ package org.locationtech.geomesa.tools.accumulo
 
 import org.locationtech.geomesa.tools.accumulo.commands._
 import org.locationtech.geomesa.tools.common.Runner
-import org.locationtech.geomesa.tools.common.commands.{Command, SFT2AvroSchemaCommand, VersionCommand}
+import org.locationtech.geomesa.tools.common.commands.{Command, GenerateAvroSchemaCommand, VersionCommand}
 
 object AccumuloRunner extends Runner {
   override val scriptName: String = "geomesa"
@@ -31,6 +31,6 @@ object AccumuloRunner extends Runner {
     new VersionCommand(jc),
     new QueryRasterStatsCommmand(jc),
     new GetSftCommand(jc),
-    new SFT2AvroSchemaCommand(jc)
+    new GenerateAvroSchemaCommand(jc)
   )
 }

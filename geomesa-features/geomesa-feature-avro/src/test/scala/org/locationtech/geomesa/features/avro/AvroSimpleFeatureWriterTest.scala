@@ -14,7 +14,6 @@ import java.util
 import org.apache.avro.io.{BinaryDecoder, DecoderFactory, Encoder, EncoderFactory}
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.avro.serde.Version2ASF
 import org.locationtech.geomesa.features.serialization.{AbstractWriter, HintKeySerialization}
@@ -25,6 +24,8 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class AvroSimpleFeatureWriterTest extends Specification with Mockito with AbstractAvroSimpleFeatureTest {
+
+  sequential
 
   "AvroSimpleFeatureWriter2" should {
 
@@ -83,7 +84,7 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
       import org.locationtech.geomesa.security._
       val sf = createSimpleFeature
 
-      val vis = "test&usa"
+      val vis = "private&groupA"
       sf.visibility = vis
 
       val userData = sf.getUserData
@@ -137,7 +138,7 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
       import org.locationtech.geomesa.security._
       val sf = createSimpleFeature
 
-      val vis = "test&usa"
+      val vis = "private&groupA"
       sf.visibility = vis
 
       val userData = sf.getUserData
@@ -145,7 +146,7 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
       userData.put(java.lang.Integer.valueOf(5), null)
       userData.put(null, "null key")
 
-      val afw = new AvroSimpleFeatureWriter(sf.getType, SerializationOptions.withUserData + SerializationOption.WithUnmangledNames)
+      val afw = new AvroSimpleFeatureWriter(sf.getType, SerializationOptions.withUserData)
       val encoder = mock[Encoder]
 
       afw.write(sf, encoder)

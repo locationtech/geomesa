@@ -20,12 +20,6 @@ object SerializationOption extends Enumeration {
    */
   val WithUserData = Value
 
-  /**
-    * If this [[SerializationOption]] is specified, then names will not be mangled when computing
-    * the underlying serialization format.  Currently for Avro only.
-    */
-  val WithUnmangledNames = Value
-
   implicit class SerializationOptions(val options: Set[SerializationOption]) extends AnyVal {
 
     /**
@@ -36,8 +30,6 @@ object SerializationOption extends Enumeration {
 
     /** @return true iff ``this`` contains ``EncodingOption.WITH_USER_DATA`` */
     def withUserData: Boolean = options.contains(SerializationOption.WithUserData)
-
-    def withUnmangledNames: Boolean = options.contains(SerializationOption.WithUnmangledNames)
   }
 
   object SerializationOptions {
