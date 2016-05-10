@@ -17,6 +17,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.index.IndexSchema
 import org.locationtech.geomesa.accumulo.iterators.TestData._
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -31,7 +32,9 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
 
   sequential
 
-  val spec = SimpleFeatureTypes.encodeType(TestData.featureType, includeUserData = true)
+  val sftWithUserData = TestData.featureType
+  sftWithUserData.setAllUserData(true)
+  lazy val spec = SimpleFeatureTypes.encodeType(sftWithUserData)
 
   def getQuery(sft: SimpleFeatureType,
                ecqlFilter: Option[String],
