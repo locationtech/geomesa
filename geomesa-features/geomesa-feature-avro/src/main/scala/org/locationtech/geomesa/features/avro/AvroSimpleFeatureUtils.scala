@@ -12,11 +12,9 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.util.{Date, Locale, UUID}
 
-import com.google.common.collect.Maps
 import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io.WKBWriter
 import org.apache.avro.{Schema, SchemaBuilder}
-import org.apache.commons.codec.binary.Hex
 import org.geotools.util.Converters
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
@@ -35,30 +33,25 @@ object AvroSimpleFeatureUtils {
   // Increment whenever encoding changes and handle in reader and writer
   // Version 2 changed the WKT geom to a binary geom
   // Version 3 adds byte array types to the schema...and is backwards compatible with V2
-  val VERSION: Int = 3
+  // Version 4 adds a custom name encoder function for the avro schema
+  //           v4 can read version 2 and 3 files but version 3 cannot read version 4
+  val VERSION: Int = 4
   val AVRO_NAMESPACE: String = "org.geomesa"
 
-  val attributeNameLookUp = Maps.newConcurrentMap[String, String]()
-
-  def encode(s: String): String = "_" + Hex.encodeHexString(s.getBytes("UTF8"))
-
-  def decode(s: String): String = new String(Hex.decodeHex(s.substring(1).toCharArray), "UTF8")
-
-  def encodeAttributeName(s: String): String = attributeNameLookUp.getOrElseUpdate(s, encode(s))
-
-  def decodeAttributeName(s: String): String = attributeNameLookUp.getOrElseUpdate(s, decode(s))
-
-  def generateSchema(sft: SimpleFeatureType, withUserData: Boolean): Schema = {
+  def generateSchema(sft: SimpleFeatureType,
+                     withUserData: Boolean,
+                     namespace: String = AVRO_NAMESPACE): Schema = {
+    val nameEncoder = new FieldNameEncoder(VERSION)
     val initialAssembler: SchemaBuilder.FieldAssembler[Schema] =
-      SchemaBuilder.record(encodeAttributeName(sft.getTypeName))
-        .namespace(AVRO_NAMESPACE)
+      SchemaBuilder.record(nameEncoder.encode(sft.getTypeName))
+        .namespace(namespace)
         .fields
         .name(AVRO_SIMPLE_FEATURE_VERSION).`type`.intType.noDefault
         .name(FEATURE_ID_AVRO_FIELD_NAME).`type`.stringType.noDefault
 
     val withFields =
       sft.getAttributeDescriptors.foldLeft(initialAssembler) { case (assembler, ad) =>
-        addField(assembler, encodeAttributeName(ad.getLocalName), ad.getType.getBinding, ad.isNillable)
+        addField(assembler, nameEncoder.encode(ad.getLocalName), ad.getType.getBinding, ad.isNillable)
       }
 
     val fullSchema = if (withUserData) {
@@ -113,7 +106,7 @@ object AvroSimpleFeatureUtils {
 
   // Resulting functions in map are not thread-safe...use only as
   // member variable, not in a static context
-  def createTypeMap(sft: SimpleFeatureType, wkbWriter: WKBWriter): Map[String, Binding] = {
+  def createTypeMap(sft: SimpleFeatureType, wkbWriter: WKBWriter, nameEncoder: FieldNameEncoder): Map[String, Binding] = {
     sft.getAttributeDescriptors.map { ad =>
       val conv = ad.getType.getBinding match {
         case t if primitiveTypes.contains(t) => (v: AnyRef) => v
@@ -142,7 +135,7 @@ object AvroSimpleFeatureUtils {
             Option(Converters.convert(v, classOf[String])).getOrElse { a: AnyRef => a.toString }
       }
 
-      (encodeAttributeName(ad.getLocalName), Binding(ad.getType.getBinding, conv))
+      (nameEncoder.encode(ad.getLocalName), Binding(ad.getType.getBinding, conv))
     }.toMap
   }
 

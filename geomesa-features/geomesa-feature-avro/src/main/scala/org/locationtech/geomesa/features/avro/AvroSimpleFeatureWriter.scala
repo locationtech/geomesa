@@ -24,9 +24,14 @@ class AvroSimpleFeatureWriter(sft: SimpleFeatureType, opts: Set[SerializationOpt
 
   import AvroSimpleFeatureUtils._
 
-  private var schema: Schema = generateSchema(sft, opts.withUserData)
-  private val typeMap = createTypeMap(sft, new WKBWriter())
-  private val names = DataUtilities.attributeNames(sft).map(encodeAttributeName)
+  private var schema: Schema =
+    generateSchema(sft,
+      withUserData = opts.withUserData,
+      namespace = sft.getName.getNamespaceURI)
+
+  private val nameEncoder = new FieldNameEncoder(VERSION)
+  private val typeMap = createTypeMap(sft, new WKBWriter(), nameEncoder)
+  private val names = DataUtilities.attributeNames(sft).map(nameEncoder.encode)
   private var lastDataIdx = getLastDataIdx
 
   private def getLastDataIdx = schema.getFields.size() - (if (opts.withUserData) 1 else 0)
