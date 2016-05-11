@@ -9,22 +9,26 @@ To begin using the command line tools, first build the full GeoMesa project from
 
     mvn clean install
     
-You can also make the build process significantly faster by adding `-DskipTests`. This will create a file "geomesa-{version}-bin.tar.gz"
-in the geomesa-assemble/target directory. Untar this file with
+You can also make the build process significantly faster by adding `-DskipTests`. This will create a file called ``geomesa-tools-{version}-bin.tar.gz``
+in the ``geomesa-tools/target`` directory. Untar this file with
 
-    tar xvfz geomesa-assemble/target/geomesa-${version}-bin.tar.gz
+    tar xvfz geomesa-tools/target/geomesa-tools-${version}-bin.tar.gz
     
 Next, `cd` into the newly created directory with
     
-    cd geomesa-${version}
+    cd geomesa-tools-${version}
 
 GeoMesa Tools relies on a GEOMESA_HOME environment variable. Running
     
     . bin/geomesa configure
 
-with the `. ` prefix will set this for you, add $GEOMESA_HOME/bin to your PATH, and source your new environment variables in your current shell session.
+with the `. ` prefix will set this for you, add $GEOMESA_HOME/bin to your PATH, and source your new environment variables in your current shell session. Now you should be able to use GeoMesa from any directory on your computer.
 
-Now, you should be able to use GeoMesa from any directory on your computer. To test, `cd` to a different directory and run:
+Note: the tools will read the ACCUMULO_HOME and HADOOP_HOME environment variables to load the appropriate JAR files for Hadoop, Accumulo, Zookeeper, and Thrift. If possible, we recommend installing the tools on the Accumulo master server, as you may also need various configuration files from Hadoop/Accumulo in order to run certain commands. Use the ``geomesa classpath`` command in order to see what JARs are being used.
+
+If you are running the tools on a system without Accumulo installed and configured, the ``install-hadoop-accumulo.sh`` script in the ``bin`` directory may be used to download the needed Hadoop/Accumulo JARs into the ``lib`` directory. You should edit this script to match the versions used by your installation. 
+
+To test, `cd` to a different directory and run:
 
     geomesa
 

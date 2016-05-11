@@ -124,13 +124,26 @@ In the ``geomesa-tools-$VERSION`` directory, run ``bin/geomesa configure`` to se
 
 Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_HOME`` and ``$PATH`` updates.
 
-
 .. warning::
 
     Please note that the ``$GEOMESA_HOME`` variable points to the location of the ``geomesa-tools-$VERSION``
     directory, not the main geomesa binary distribution directory!
 
-Due to licensing restrictions, dependencies for shape file support and raster 
+.. note::
+
+    ``geomesa`` will read the ``$ACCUMULO_HOME`` and ``$HADOOP_HOME`` environment variables to load the
+    appropriate JAR files for Hadoop, Accumulo, Zookeeper, and Thrift. If possible, we recommend
+    installing the tools on the Accumulo master server, as you may also need various configuration
+    files from Hadoop/Accumulo in order to run certain commands. Use the ``geomesa classpath``
+    command in order to see what JARs are being used.
+
+    If you are running the tools on a system without
+    Accumulo installed and configured, the ``install-hadoop-accumulo.sh`` script
+    in the ``bin`` directory may be used to download the needed Hadoop/Accumulo JARs into
+    the ``lib`` directory. You should edit this script to match the versions used by your
+    installation.
+
+Due to licensing restrictions, dependencies for shape file support and raster
 ingest must be separately installed. Do this with the following commands: 
 
 .. code-block:: bash
