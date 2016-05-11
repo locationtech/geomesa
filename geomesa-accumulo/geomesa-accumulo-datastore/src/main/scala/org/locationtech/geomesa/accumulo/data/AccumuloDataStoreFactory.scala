@@ -39,14 +39,16 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     val useMock = java.lang.Boolean.valueOf(mockParam.lookUp(params).asInstanceOf[String])
     val connector = connParam.lookupOpt[Connector](params).getOrElse(buildAccumuloConnector(params, useMock))
 
+    val forceOpt: Option[java.lang.Boolean] = forceAuthsParam.lookupOpt[java.lang.Boolean](params)
+    val forceAuths = (forceOpt.getOrElse(java.lang.Boolean.FALSE)).asInstanceOf[Boolean]
+
     // convert the connector authorizations into a string array - this is the maximum auths this connector can support
     val securityOps = connector.securityOperations
     val masterAuths = securityOps.getUserAuthorizations(connector.whoami)
     val masterAuthsStrings = masterAuths.map(b => new String(b))
 
     // get the auth params passed in as a comma-delimited string
-    val rawConfiguredAuths = authsParam.lookupOpt[String](params)
-    val configuredAuths = rawConfiguredAuths.getOrElse("").split(",").filter(s => !s.isEmpty)
+    val configuredAuths = authsParam.lookupOpt[String](params).getOrElse("").split(",").filter(s => !s.isEmpty)
 
     // verify that the configured auths are valid for the connector we are using (fail-fast)
     if (!connector.isInstanceOf[MockConnector]) {
@@ -59,9 +61,10 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
     // if the caller provided any non-null string for authorizations, use it;
     // otherwise, grab all authorizations to which the Accumulo user is entitled
-    val auths: List[String] =
-      if (rawConfiguredAuths.isDefined) configuredAuths.toList  // may be empty!
-      else masterAuthsStrings.toList
+    if (configuredAuths.size != 0 && !forceAuths) {
+      throw new IllegalArgumentException("Forcing provided auths is un-checked, but expclicit auths are provided")
+    }
+    val auths: List[String] = if (forceAuths) configuredAuths.toList else masterAuthsStrings.toList
 
     val authProvider = security.getAuthorizationsProvider(params, auths)
     val auditProvider = security.getAuditProvider(params).getOrElse {
@@ -111,7 +114,8 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       writeThreadsParam,
       looseBBoxParam,
       statsParam,
-      cachingParam
+      cachingParam,
+      forceAuthsParam
     )
 
   def canProcess(params: JMap[String,Serializable]) = AccumuloDataStoreFactory.canProcess(params)
@@ -171,4 +175,5 @@ object AccumuloDataStoreParams {
   val statsParam          = new Param("collectStats", classOf[java.lang.Boolean], "Toggle collection of statistics", false, true)
   val cachingParam        = new Param("caching", classOf[java.lang.Boolean], "Toggle caching of results", false, false)
   val mockParam           = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
+  val forceAuthsParam     = new Param("forceAuths", classOf[java.lang.Boolean], "When checked, force the data store to use exactly the Accumulo authorizations provided", false, false)
 }

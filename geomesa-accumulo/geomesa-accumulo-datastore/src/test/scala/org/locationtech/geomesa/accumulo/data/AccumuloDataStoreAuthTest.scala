@@ -70,7 +70,8 @@ class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
         val ds = DataStoreFinder.getDataStore(Map(
           "connector" -> connector,
           "tableName" -> sftName,
-          "auths"     -> "user")).asInstanceOf[AccumuloDataStore]
+          "auths"     -> "user",
+          "forceAuths" -> java.lang.Boolean.TRUE)).asInstanceOf[AccumuloDataStore]
         ds must not beNull;
         ds.authProvider must beAnInstanceOf[FilteringAuthorizationsProvider]
         ds.authProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider must beAnInstanceOf[DefaultAuthorizationsProvider]
@@ -82,7 +83,8 @@ class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
         val ds = DataStoreFinder.getDataStore(Map(
           "connector" -> connector,
           "tableName" -> sftName,
-          "auths"     -> "user,admin,test")).asInstanceOf[AccumuloDataStore]
+          "auths"     -> "user,admin,test",
+          "forceAuths" -> java.lang.Boolean.TRUE)).asInstanceOf[AccumuloDataStore]
         ds must not beNull;
         ds.authProvider must beAnInstanceOf[FilteringAuthorizationsProvider]
         ds.authProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider must beAnInstanceOf[DefaultAuthorizationsProvider]
@@ -90,6 +92,19 @@ class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
       }
 
       "fail when auth provider system property does not match an actual class" >> {
+        System.setProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY, "my.fake.Clas")
+        try {
+          // create the data store
+          DataStoreFinder.getDataStore(Map(
+            "connector" -> connector,
+            "tableName" -> sftName,
+            "auths"     -> "user,admin,test")) should throwAn[IllegalArgumentException]
+        } finally {
+          System.clearProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY)
+        }
+      }
+
+      "fail when authorizations are explicitly provided, but the flag to force using authorizations is not set" >> {
         System.setProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY, "my.fake.Clas")
         try {
           // create the data store
