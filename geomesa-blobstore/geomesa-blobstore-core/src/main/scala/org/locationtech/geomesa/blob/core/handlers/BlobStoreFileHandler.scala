@@ -18,6 +18,7 @@ import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.locationtech.geomesa.accumulo.util.{Z3FeatureIdGenerator, Z3UuidGenerator}
 import org.locationtech.geomesa.blob.core.AccumuloBlobStore._
+import org.locationtech.geomesa.blob.core.FileHandler
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 
@@ -45,17 +46,17 @@ object BlobStoreByteArrayHandler extends BlobStoreSimpleFeatureBuilder {
   }
 
   def getDateFromParams(params: util.Map[String, String]): Option[Date] = {
-    Try { new Date(params.get(dateFieldName).toLong) }.toOption
+    Try { new Date(params.get(DtgFieldName).toLong) }.toOption
   }
 
   def getGeometry(params: util.Map[String, String]): Geometry = {
     WKTUtils.read(
-      params.getOrElse(geomeFieldName, throw new Exception(s"Missing Geometry Information from $params"))
+      params.getOrElse(GeomFieldName, throw new Exception(s"Missing Geometry Information from $params"))
     )
   }
 
   def getFileName(params: util.Map[String, String]): String = {
-    params.getOrElse(filenameFieldName, UUID.randomUUID().toString)
+    params.getOrElse(FilenameFieldName, UUID.randomUUID().toString)
   }
 }
 
@@ -90,7 +91,7 @@ trait AbstractFileHandler extends BlobStoreSimpleFeatureBuilder with FileHandler
 trait BlobStoreFileName {
 
   def getFileNameFromParams(params: util.Map[String, String]): Option[String] = {
-    Option(params.get(filenameFieldName))
+    Option(params.get(FilenameFieldName))
   }
 
   def getFileName(file: File, params: util.Map[String, String]): String = {
@@ -110,10 +111,10 @@ trait BlobStoreSimpleFeatureBuilder {
     val z3id = Z3UuidGenerator.createUuid(geom, dtg.getTime)
 
     val builder = builderLocal.get()
-    builder.set(filenameFieldName, fileName)
-    builder.set(geomeFieldName, geom)
-    builder.set(idFieldName, z3id)
-    builder.set(dateFieldName, dtg)
+    builder.set(FilenameFieldName, fileName)
+    builder.set(GeomFieldName, geom)
+    builder.set(IdFieldName, z3id)
+    builder.set(DtgFieldName, dtg)
 
     builder.buildFeature(z3id.toString)
   }

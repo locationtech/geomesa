@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.blob.api
+package org.locationtech.geomesa.blob.web
 
 import java.io.{File, IOException}
 import java.nio.file.attribute.PosixFilePermission._
@@ -213,7 +213,7 @@ class BlobstoreServlet(val persistence: FilePersistence)
             case None =>
               BadRequest(reason = "no file parameter in request")
             case Some(file) =>
-              val params = multiParams.map{case (k, v) => k -> v.toString}.updated(filenameFieldName, file.getName)
+              val params = multiParams.map{case (k, v) => k -> v.toString}.updated(FilenameFieldName, file.getName)
               attemptBlobWriting(abs, file, params)
           }
         } catch {

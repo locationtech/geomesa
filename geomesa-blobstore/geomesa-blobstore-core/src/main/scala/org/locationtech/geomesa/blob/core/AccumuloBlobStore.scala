@@ -14,7 +14,7 @@ import java.util.{Iterator => JIterator, Map => JMap}
 import com.google.common.collect.Maps
 import com.google.common.io.Files
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
+import org.apache.accumulo.core.data.{Mutation, Range, Value}
 import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
@@ -25,9 +25,8 @@ import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, _}
 import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, SelfClosingIterator}
 import org.locationtech.geomesa.blob.core.AccumuloBlobStore._
 import org.locationtech.geomesa.blob.core.handlers.{BlobStoreFileHandler, _}
-import org.locationtech.geomesa.blob.core.interop.GeoMesaBlobStore
 import org.locationtech.geomesa.utils.filters.Filters
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.geotools.Conversions.{RichSimpleFeature, _}
 import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
@@ -38,17 +37,15 @@ import scala.util.control.NonFatal
 class AccumuloBlobStore(ds: AccumuloDataStore) extends GeoMesaBlobStore
   with BlobStoreFileName with LazyLogging {
 
-  private val connector = ds.connector
-  private val tableOps = connector.tableOperations()
-
-  val blobTableName = s"${ds.catalogTable}_blob"
+  protected val connector = ds.connector
+  protected val tableOps = connector.tableOperations()
+  protected val blobTableName = s"${ds.catalogTable}_blob"
 
   AccumuloVersion.ensureTableExists(connector, blobTableName)
   ds.createSchema(sft)
-  val bwc = GeoMesaBatchWriterConfig()
-  // TODO: https://geomesa.atlassian.net/browse/GEOMESA-1177
-  val bw = connector.createBatchWriter(blobTableName, bwc)
-  val fs = ds.getFeatureSource(blobFeatureTypeName).asInstanceOf[SimpleFeatureStore]
+  protected val bwConf = GeoMesaBatchWriterConfig()
+  protected val bw     = connector.createBatchWriter(blobTableName, bwConf)
+  protected val fs     = ds.getFeatureSource(BlobFeatureTypeName).asInstanceOf[SimpleFeatureStore]
 
   override def put(file: File, params: JMap[String, String]): String = {
     BlobStoreFileHandler.buildSF(file, params.toMap).map { sf =>
@@ -62,11 +59,11 @@ class AccumuloBlobStore(ds: AccumuloDataStore) extends GeoMesaBlobStore
   }
 
   override def getIds(filter: Filter): JIterator[String] = {
-    getIds(new Query(blobFeatureTypeName, filter))
+    getIds(new Query(BlobFeatureTypeName, filter))
   }
 
   override def getIds(query: Query): JIterator[String] = {
-    fs.getFeatures(query).features.map(_.getAttribute(idFieldName).asInstanceOf[String])
+    fs.getFeatures(query).features.map(_.get[String](IdFieldName))
   }
 
   override def get(id: String): JMap.Entry[String, Array[Byte]] = {
@@ -93,21 +90,26 @@ class AccumuloBlobStore(ds: AccumuloDataStore) extends GeoMesaBlobStore
       blobTableName,
       ds.authProvider.getAuthorizations
     )
-    scanner.setRange(new Range(new Text(id)))
+    try {
+      scanner.setRange(new Range(new Text(id)))
 
-    val iter = SelfClosingIterator(scanner)
-    if (iter.hasNext) {
-      val ret = buildReturn(iter.next)
-      iter.close()
-      ret
-    } else {
-      ("", Array.empty[Byte])
+      val iter = SelfClosingIterator(scanner)
+      if (iter.hasNext) {
+        val next = iter.next()
+        val ret = (next.getKey.getColumnQualifier.toString, next.getValue.get)
+        iter.close()
+        ret
+      } else {
+        ("", Array.empty[Byte])
+      }
+    } finally {
+      scanner.close()
     }
   }
 
   private def putInternalSF(sf: SimpleFeature, bytes: Array[Byte]): String = {
-    val id = sf.getAttribute(idFieldName).asInstanceOf[String]
-    val localName = sf.getAttribute(filenameFieldName).asInstanceOf[String]
+    val id = sf.get[String](IdFieldName)
+    val localName = sf.get[String](FilenameFieldName)
     fs.addFeatures(new ListFeatureCollection(sft, List(sf)))
     putInternalBlob(id, localName, bytes)
     id
@@ -120,15 +122,6 @@ class AccumuloBlobStore(ds: AccumuloDataStore) extends GeoMesaBlobStore
     bw.flush()
   }
 
-  private def buildReturn(entry: JMap.Entry[Key, Value]): (String, Array[Byte]) = {
-    val key = entry.getKey
-    val value = entry.getValue
-
-    val filename = key.getColumnQualifier.toString
-
-    (filename, value.get)
-  }
-
   private def deleteFeature(id: String): Unit = {
     val removalFilter = Filters.ff.id(new FeatureIdImpl(id))
     fs.removeFeatures(removalFilter)
@@ -138,33 +131,38 @@ class AccumuloBlobStore(ds: AccumuloDataStore) extends GeoMesaBlobStore
     val bd = connector.createBatchDeleter(
       blobTableName,
       ds.authProvider.getAuthorizations,
-      bwc.getMaxWriteThreads,
-      bwc)
-    bd.setRanges(List(new Range(new Text(id))))
-    bd.delete()
-    bd.close()
+      bwConf.getMaxWriteThreads,
+      bwConf)
+    try {
+      bd.setRanges(List(new Range(new Text(id))))
+      bd.delete()
+    } finally {
+      bd.close()
+    }
   }
 
+  override def close(): Unit = {
+    bw.close()
+  }
 }
 
 object AccumuloBlobStore {
-  val blobFeatureTypeName = "blob"
-
-  val idFieldName = "storeId"
-  val geomeFieldName = "geom"
-  val filenameFieldName = "filename"
-  val dateFieldName = "date"
-  val thumbnailFieldName = "thumbnail"
+  val BlobFeatureTypeName = "blob"
+  val IdFieldName         = "storeId"
+  val GeomFieldName       = "geom"
+  val FilenameFieldName   = "filename"
+  val DtgFieldName        = "dtg"
+  val ThumbnailFieldName  = "thumbnail"
 
   // TODO: Add metadata hashmap?
   // TODO GEOMESA-1186 allow for configurable geometry types
   val sft = new SftBuilder()
-    .stringType(filenameFieldName)
-    .stringType(idFieldName, index = true)
-    .geometry(geomeFieldName, default = true)
-    .date(dateFieldName, default = true)
-    .stringType(thumbnailFieldName)
+    .stringType(FilenameFieldName)
+    .stringType(IdFieldName, index = true)
+    .geometry(GeomFieldName, default = true)
+    .date(DtgFieldName, default = true)
+    .stringType(ThumbnailFieldName)
     .userData(SimpleFeatureTypes.MIXED_GEOMETRIES, "true")
-    .build(blobFeatureTypeName)
+    .build(BlobFeatureTypeName)
   
 }

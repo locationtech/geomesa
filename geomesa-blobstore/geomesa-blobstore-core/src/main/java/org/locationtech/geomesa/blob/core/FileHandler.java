@@ -6,8 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-
-package org.locationtech.geomesa.blob.core.handlers;
+package org.locationtech.geomesa.blob.core;
 
 import org.opengis.feature.simple.SimpleFeature;
 

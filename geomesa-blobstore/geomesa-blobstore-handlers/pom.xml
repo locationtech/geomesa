@@ -24,14 +24,4 @@
         <module>geomesa-blobstore-gdal-handler</module>
     </modules>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-blobstore-core</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
 </project>
