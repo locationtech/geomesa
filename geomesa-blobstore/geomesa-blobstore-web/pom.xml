@@ -15,7 +15,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-blobstore-api</artifactId>
+    <artifactId>geomesa-blobstore-web</artifactId>
     <name>GeoMesa Blobstore Rest Api</name>
 
     <dependencies>

@@ -6,7 +6,6 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-
 package org.locationtech.geomesa.blob.core.impl;
 
 import org.geotools.data.Query;
@@ -14,7 +13,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStore;
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory;
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams;
 import org.locationtech.geomesa.blob.core.AccumuloBlobStore;
-import org.locationtech.geomesa.blob.core.interop.GeoMesaBlobStore;
+import org.locationtech.geomesa.blob.core.GeoMesaBlobStore;
 import org.opengis.filter.Filter;
 
 import java.io.File;
@@ -28,8 +27,8 @@ public class AccumuloGeoMesaBlobStore implements GeoMesaBlobStore {
 
     protected final AccumuloBlobStore accumuloBlobStore;
 
-    public AccumuloGeoMesaBlobStore(Map<String, Serializable> dataStoreParams) throws IOException {
-        AccumuloDataStore ds = genNewADS(dataStoreParams);
+    public AccumuloGeoMesaBlobStore(final Map<String, Serializable> dataStoreParams) throws IOException {
+        final AccumuloDataStore ds = genNewADS(dataStoreParams);
         if (ds == null) {
             throw new IOException("Error initializing AccumuloGeoMesaBlobStore");
         } else {
@@ -37,25 +36,22 @@ public class AccumuloGeoMesaBlobStore implements GeoMesaBlobStore {
         }
     }
 
-    public AccumuloGeoMesaBlobStore(String instanceId,
-                                    String tableName,
-                                    String zookeepers,
-                                    String user,
-                                    String password,
-                                    String auths) throws IOException {
-        Map<String, Serializable> dataStoreParams = new HashMap<>();
-        dataStoreParams.put(AccumuloDataStoreParams.instanceIdParam().key, instanceId);
-        dataStoreParams.put(AccumuloDataStoreParams.tableNameParam().key, tableName);
-        dataStoreParams.put(AccumuloDataStoreParams.zookeepersParam().key, zookeepers);
-        dataStoreParams.put(AccumuloDataStoreParams.userParam().key, user);
-        dataStoreParams.put(AccumuloDataStoreParams.passwordParam().key, password);
-        dataStoreParams.put(AccumuloDataStoreParams.authsParam().key, auths);
-        AccumuloDataStore ds = genNewADS(dataStoreParams);
-        if (ds == null) {
-            throw new IOException("Error initializing AccumuloGeoMesaBlobStore");
-        } else {
-            accumuloBlobStore = new AccumuloBlobStore(ds);
-        }
+    public AccumuloGeoMesaBlobStore(final String instanceId,
+                                    final String tableName,
+                                    final String zookeepers,
+                                    final String user,
+                                    final String password,
+                                    final String auths,
+                                    final Boolean useMock) throws IOException {
+        this(new HashMap<String, Serializable>() {{
+            put(AccumuloDataStoreParams.instanceIdParam().key, instanceId);
+            put(AccumuloDataStoreParams.tableNameParam().key, tableName);
+            put(AccumuloDataStoreParams.zookeepersParam().key, zookeepers);
+            put(AccumuloDataStoreParams.userParam().key, user);
+            put(AccumuloDataStoreParams.passwordParam().key, password);
+            put(AccumuloDataStoreParams.authsParam().key, auths);
+            put(AccumuloDataStoreParams.mockParam().key, useMock.toString());
+        }});
     }
 
     private AccumuloDataStore genNewADS(Map<String, Serializable> dataStoreParams) throws IllegalArgumentException {
@@ -136,5 +132,10 @@ public class AccumuloGeoMesaBlobStore implements GeoMesaBlobStore {
     @Override
     public void deleteBlobStore() {
         accumuloBlobStore.deleteBlobStore();
+    }
+
+    @Override
+    public void close() throws IOException {
+        accumuloBlobStore.close();
     }
 }

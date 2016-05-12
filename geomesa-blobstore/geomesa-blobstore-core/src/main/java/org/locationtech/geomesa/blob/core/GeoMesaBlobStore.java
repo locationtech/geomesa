@@ -6,12 +6,12 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-
-package org.locationtech.geomesa.blob.core.interop;
+package org.locationtech.geomesa.blob.core;
 
 import org.geotools.data.Query;
 import org.opengis.filter.Filter;
 
+import java.io.Closeable;
 import java.io.File;
 import java.util.Iterator;
 import java.util.Map;
@@ -19,12 +19,12 @@ import java.util.Map;
 /**
  * An interface to define how users may ingest and query a GeoMesa BlobStore
  */
-public interface GeoMesaBlobStore {
+public interface GeoMesaBlobStore extends Closeable {
 
     /**
      * Add a File to the blobstore, relying on available FileHandlers to determine ingest
      * @param file File to ingest
-     * @param params Map String to String, see AccumuloBlobStore for keys
+     * @param params Map of parameters - see implementation for details
      * @return Blob id as a string or null if put failed
      */
     String put(File file, Map<String, String> params);
@@ -32,7 +32,7 @@ public interface GeoMesaBlobStore {
     /**
      * Adds a byte array to the blobstore, relying on user provided params for geo-indexing
      * @param bytes to ingest, bypass FileHandlers to rely on client to set params
-     * @param params Map String to String, see AccumuloBlobStore for keys
+     * @param params Map of parameters - see implementation for details
      * @return Blob id as a string or null if put failed
      */
     String put(byte[] bytes, Map<String, String> params);

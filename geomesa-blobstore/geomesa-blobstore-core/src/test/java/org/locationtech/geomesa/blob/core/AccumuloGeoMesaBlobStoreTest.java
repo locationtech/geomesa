@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.blob.core;
 
-import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,12 +27,10 @@ import static org.junit.Assert.*;
 
 public class AccumuloGeoMesaBlobStoreTest {
 
-    private static final Logger logger = Logger.getLogger("AccumuloGeoMesaBlobStoreTest");
-    AccumuloGeoMesaBlobStore agbs;
-    Random rand = new Random();
+    private AccumuloGeoMesaBlobStore agbs;
 
     @Before
-    public void before() {
+    public void before()  throws Exception {
         Map<String, Serializable> testParams = new HashMap<>();
         testParams.put("instanceId", "mycloud");
         testParams.put("zookeepers", "zoo1:2181,zoo2:2181,zoo3:2181");
@@ -41,12 +38,7 @@ public class AccumuloGeoMesaBlobStoreTest {
         testParams.put("password", "mypassword");
         testParams.put("tableName", "geomesaJava");
         testParams.put("useMock", "true");
-        try {
-            agbs = new AccumuloGeoMesaBlobStore(testParams);
-        } catch (Exception e) {
-            logger.error("Error initializing test geomesa blob " +
-                    "store in AccumuloGeoMesaBlobStoreTest.java", e);
-        }
+        agbs = new AccumuloGeoMesaBlobStore(testParams);
     }
 
     @Test
@@ -94,13 +86,36 @@ public class AccumuloGeoMesaBlobStoreTest {
         params.put("filename", "testrandomarray.txt");
 
         byte[] randomArray = new byte[64];
-        rand.nextBytes(randomArray);
+        new Random().nextBytes(randomArray);
 
         String id = agbs.put(randomArray, params);
         assertFalse(id.isEmpty());
 
         Map.Entry<String, byte[]> result = agbs.get(id);
         assertEquals(result.getKey(), "testrandomarray.txt");
+        assertArrayEquals(randomArray, result.getValue());
+    }
+
+    @Test
+    public void testOtherConstructor() throws Exception {
+        final String instance = "mycloud2";
+        final String zoo = "zoo1";
+        final String user = "myuser";
+        final String pass = "mypassword";
+        final String table = "geomesatest2";
+        final String auths = "";
+        final Boolean mock = Boolean.TRUE;
+        final AccumuloGeoMesaBlobStore bs = new AccumuloGeoMesaBlobStore(instance, table, zoo, user, pass, auths, mock);
+
+        final Map<String, String> params = new HashMap<>();
+        params.put("geom", "POINT (5 5)");
+        params.put("filename", "testrandomarray.txt");
+
+        final String id = bs.put("testBytes".getBytes(), params);
+
+        final Map.Entry<String, byte[]> result = bs.get(id);
+        assertEquals(result.getKey(), "testrandomarray.txt");
+        assertArrayEquals("testBytes".getBytes(), result.getValue());
     }
 
 }

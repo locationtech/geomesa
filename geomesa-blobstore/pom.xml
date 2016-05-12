@@ -22,17 +22,7 @@
     <modules>
         <module>geomesa-blobstore-core</module>
         <module>geomesa-blobstore-handlers</module>
-        <module>geomesa-blobstore-api</module>
+        <module>geomesa-blobstore-web</module>
     </modules>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-blobstore-core</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
 </project>

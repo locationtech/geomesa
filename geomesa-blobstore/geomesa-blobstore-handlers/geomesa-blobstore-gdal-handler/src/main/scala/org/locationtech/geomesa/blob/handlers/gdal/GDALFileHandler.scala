@@ -43,6 +43,7 @@ class GDALFileHandler extends AbstractFileHandler with LazyLogging {
 
   override def getGeometryFromFile(file: File): Option[Geometry] = {
     if (!initialized) {
+      logger.warn(s"Unable to proceed - ${this.getClass} was not properly initialized")
       None
     } else {
       val gdalFile = gdal.Open(file.getAbsolutePath, gdalconstConstants.GA_ReadOnly)
@@ -60,6 +61,7 @@ class GDALFileHandler extends AbstractFileHandler with LazyLogging {
 
   override def canProcess(file: File, map: util.Map[String, String]): Boolean = {
     if (!initialized) {
+      logger.warn(s"Unable to proceed - ${this.getClass} was not properly initialized")
       false
     } else {
       val potentialGdalDataSet = gdal.Open(file.getAbsolutePath, gdalconstConstants.GA_ReadOnly)
