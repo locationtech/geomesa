@@ -504,13 +504,8 @@ class LineNumberFunctionFactory extends TransformerFunctionFactory {
   }
 }
 
-class MapListFunctionFactory extends TransformerFunctionFactory {
-  override def functions = Seq(listFn, listParserFn, mapParserFn)
-
-  val defaultListDelim = ","
-  val defaultKVDelim   = "->"
-
-  private def determineClazz(s: String) = s.toLowerCase match {
+trait MapListParsing {
+  protected def determineClazz(s: String) = s.toLowerCase match {
     case "string" | "str"   => classOf[String]
     case "int" | "integer"  => classOf[java.lang.Integer]
     case "long"             => classOf[java.lang.Long]
@@ -521,10 +516,21 @@ class MapListFunctionFactory extends TransformerFunctionFactory {
     case "uuid"             => classOf[UUID]
     case "date"             => classOf[java.util.Date]
   }
+}
+
+class BasicListFunction extends TransformerFunctionFactory {
+  override def functions = Seq(listFn)
+  import scala.collection.JavaConverters._
+  val listFn = TransformerFn("list") { args => args.toList.asJava }
+}
+
+class StringMapListFunctionFactory extends TransformerFunctionFactory with MapListParsing {
+  override def functions = Seq(listParserFn, mapParserFn)
+
+  val defaultListDelim = ","
+  val defaultKVDelim   = "->"
 
   import scala.collection.JavaConverters._
-
-  val listFn = TransformerFn("list") { args => args.toList.asJava }
 
   def convert(value: Any, clazz: Class[_]) =
     Option(Converters.convert(value, clazz))

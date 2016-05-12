@@ -33,22 +33,24 @@ This should print out the following usage text:
     $ geomesa
     Usage: geomesa [command] [command options]
       Commands:
-        create           Create a feature definition in a GeoMesa catalog
-        deletecatalog    Delete a GeoMesa catalog completely (and all features in it)
-        deleteraster     Delete a GeoMesa Raster Table
-        describe         Describe the attributes of a given feature in GeoMesa
-        env              Examine the current GeoMesa environment
-        explain          Explain how a GeoMesa query will be executed
-        export           Export a GeoMesa feature
-        getsft           Get the SimpleFeatureType of a feature
-        help             Show help
-        ingest           Ingest/convert various file formats into GeoMesa
-        ingestraster     Ingest a raster file or raster files in a directory into GeoMesa
-        list             List GeoMesa features for a given catalog
-        querystats       Export queries and statistics about the last X number of queries to a CSV file.
-        removeschema     Remove a schema and associated features from a GeoMesa catalog
-        tableconf        Perform table configuration operations
-        version          GeoMesa Version
+        create              Create a feature definition in a GeoMesa catalog
+        deletecatalog       Delete a GeoMesa catalog completely (and all features in it)
+        deleteraster        Delete a GeoMesa Raster Table
+        describe            Describe the attributes of a given feature in GeoMesa
+        env                 Examine the current GeoMesa environment
+        explain             Explain how a GeoMesa query will be executed
+        export              Export a GeoMesa feature
+        getsft              Get the SimpleFeatureType of a feature
+        help                Show help
+        ingest              Ingest/convert various file formats into GeoMesa
+        ingestraster        Ingest a raster file or raster files in a directory into GeoMesa
+        list                List GeoMesa features for a given catalog
+        queryrasterstats    Export queries and statistics about the last X number of queries to a CSV file.
+        removeschema        Remove a schema and associated features from a GeoMesa catalog
+        genavroschema       Convert SimpleFeatureTypes to Avro schemas
+        tableconf           Perform table configuration operations
+        version             GeoMesa Version
+
 
 
 This usage text lists the available commands. To see help for an individual command run `geomesa help <command-name>` which for example
@@ -825,6 +827,27 @@ Export queries and statistics logged for raster tables by using the `querystats`
 
 #### Example command:
     geomesa queryrasterstats -u username -p password -t somerastertable -num 10
+
+### genavroschema 
+Generate an Avro schema from a SimpleFeatureType
+
+#### Usage (required options denoted with star):
+    $ geomesa help genavroschema
+    Convert SimpleFeatureTypes to Avro schemas
+    Usage: genavroschema [options]
+      Options:
+        -f, --feature-name
+           Simple Feature Type name on which to operate
+      * -s, --spec
+           SimpleFeatureType specification as a GeoTools spec string, SFT config, or
+           file with either
+
+#### Example commands:
+    # Convert an SFT loaded from config
+    geomesa genavroschema -s example-csv
+    
+    # convert an SFT passed in as an argument
+    geomesa genavroschema -s "name:String,dtg:Date,geom:Point" -f myfeature
     
 ### tableconf
 To list, describe, and update the configuration parameters on a specified table, use the `tableconf` command. 
@@ -933,7 +956,15 @@ Prints out the version, git branch, and commit ID that the tools were built with
     geomesa version
 
 ## GeoMesa Kafka Command Line Tools
-GeoMesa also comes with Kafka command line tools which you can run with:
+GeoMesa also comes with Kafka command line tools.  The tools use kafka 0.8 jars by default, so when using kafka 0.9
+ you will need to make the following replacements in the lib/kafka directory:
+
+    geomesa-kafka-datastore-<version>.jar   replace with     geomesa-kafka-09-datastore-<version>.jar
+    kafka_2.11-0.8.2.1.jar                  replace with     kafka_2.11-0.9.0.1.jar
+    kafka-clients-0.8.2.1.jar               replace with     kafka-clients-0.9.0.1.jar
+    zkclient-0.3.jar                        replace with     zkclient-0.7.jar
+
+You can run the tools with:
 
     geomesa-kafka
     

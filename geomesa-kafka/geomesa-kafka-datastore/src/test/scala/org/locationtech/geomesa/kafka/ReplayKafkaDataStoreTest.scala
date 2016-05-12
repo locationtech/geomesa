@@ -60,11 +60,11 @@ class ReplayKafkaDataStoreTest
       val topic = KafkaDataStoreHelper.extractTopic(liveSFT)
       topic must beSome(contain(liveSFT.getTypeName))
 
-      val zkClient = new ZkClient(zkConnect)
+      val zkUtils = KafkaUtilsLoader.kafkaUtils.createZkUtils(zkConnect, Int.MaxValue, Int.MaxValue)
       try {
-        AdminUtils.topicExists(zkClient, topic.get) must beTrue
+        zkUtils.topicExists(topic.get) must beTrue
       } finally {
-        zkClient.close()
+        zkUtils.close()
       }
 
       sendMessages(liveSFT)

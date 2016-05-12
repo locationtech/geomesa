@@ -11,8 +11,7 @@ package org.locationtech.geomesa.kafka
 import java.util.UUID
 
 import com.typesafe.scalalogging.LazyLogging
-import kafka.admin.AdminUtils
-import kafka.utils.{ZKStringSerializer, ZkUtils}
+import kafka.utils.ZkUtils
 import org.I0Itec.zkclient.ZkClient
 import org.geotools.data.store.{ContentDataStore, ContentEntry}
 import org.geotools.feature.NameImpl
@@ -72,7 +71,7 @@ class KafkaDataStoreSchemaManagerTest
         sChildren.get(0) mustEqual "Topic"
 
         val topic = zkClient.readData[String](datastore.getTopicPath(typename))
-        AdminUtils.topicExists(zkClient, topic) must beTrue
+        zkUtils.topicExists(topic) must beTrue
       }
     }
 
@@ -102,7 +101,7 @@ class KafkaDataStoreSchemaManagerTest
         sChildren must contain("Topic", "ReplayConfig")
 
         val topic = zkClient.readData[String](datastore.getTopicPath(replayTypename))
-        AdminUtils.topicExists(zkClient, topic) must beTrue
+        zkUtils.topicExists(topic) must beTrue
 
         val encodeReplayConfig = zkClient.readData[String](datastore.getReplayConfigPath(replayTypename))
         ReplayConfig.decode(encodeReplayConfig) must beSome(replayConfig)
@@ -246,7 +245,7 @@ class KafkaDataStoreSchemaManagerTest
         zkClient.exists(datastore.getSchemaPath(liveSFT.getTypeName)) must beTrue
 
         val topic = KafkaDataStoreHelper.extractTopic(liveSFT).get
-        AdminUtils.topicExists(zkClient, topic) must beTrue and (
+        zkUtils.topicExists(topic) must beTrue and (
           zkClient.exists(ZkUtils.getDeleteTopicPath(topic)) must beFalse)
       }
 
@@ -277,7 +276,7 @@ class KafkaDataStoreSchemaManagerTest
         zkClient.exists(datastore.getSchemaPath(liveSFT.getTypeName)) must beTrue
 
         val topic = KafkaDataStoreHelper.extractTopic(liveSFT).get
-        AdminUtils.topicExists(zkClient, topic) must beTrue and (
+        zkUtils.topicExists(topic) must beTrue and (
           zkClient.exists(ZkUtils.getDeleteTopicPath(topic)) must beFalse)
       }
 
@@ -300,7 +299,7 @@ class KafkaDataStoreSchemaManagerTest
 
         // the topic should no longer exist or at a minimum be marked for deletion
         val topic = KafkaDataStoreHelper.extractTopic(liveSFT).get
-        AdminUtils.topicExists(zkClient, topic) must beFalse or (
+        zkUtils.topicExists(topic) must beFalse or (
           zkClient.exists(ZkUtils.getDeleteTopicPath(topic)) must beTrue)
       }
     }
@@ -380,7 +379,8 @@ class ZkContext(val zkConnect: String) extends After with LazyLogging {
   val schema = "name:String,age:Int,dtg:Date,*geom:Point:srid=4326"
   lazy val replayConfig = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
 
-  val zkClient = new ZkClient(zkConnect, Int.MaxValue, Int.MaxValue, ZKStringSerializer)
+  val zkUtils = KafkaUtilsLoader.kafkaUtils.createZkUtils(zkConnect, Int.MaxValue, Int.MaxValue)
+  val zkClient = zkUtils.zkClient
   val zkPath = createRandomZkNode(zkClient)
   logger.trace(s"created $zkPath")
 

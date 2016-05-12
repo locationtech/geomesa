@@ -69,7 +69,8 @@ package object index {
       def getBinGeomField: Option[String] = Option(hints.get(BIN_GEOM_KEY).asInstanceOf[String])
       def getBinDtgField: Option[String] = Option(hints.get(BIN_DTG_KEY).asInstanceOf[String])
       def getBinLabelField: Option[String] = Option(hints.get(BIN_LABEL_KEY).asInstanceOf[String])
-      def getBinBatchSize: Int = hints.get(BIN_BATCH_SIZE_KEY).asInstanceOf[Int]
+      def getBinBatchSize: Int =
+        Option(hints.get(BIN_BATCH_SIZE_KEY).asInstanceOf[Integer]).map(_.intValue).getOrElse(1000)
       def isBinSorting: Boolean = hints.get(BIN_SORT_KEY).asInstanceOf[Boolean]
       def getSamplePercent: Option[Float] = Option(hints.get(SAMPLING_KEY)).map(_.asInstanceOf[Float])
       def getSampleByField: Option[String] = Option(hints.get(SAMPLE_BY_KEY).asInstanceOf[String])

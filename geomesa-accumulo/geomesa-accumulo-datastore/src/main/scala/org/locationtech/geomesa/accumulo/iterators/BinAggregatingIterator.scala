@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.accumulo.iterators
 
 import java.io.ByteArrayOutputStream
+import java.nio.charset.StandardCharsets
 import java.nio.{ByteBuffer, ByteOrder}
 import java.util.Date
 import java.util.Map.Entry
@@ -19,7 +20,6 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.accumulo.data.tables.Z3Table
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.QueryPlanners._
 import org.locationtech.geomesa.features.SerializationType.SerializationType
@@ -35,8 +35,8 @@ import org.opengis.filter.Filter
 /**
  * Iterator that computes and aggregates 'bin' entries
  */
-class BinAggregatingIterator extends
-    KryoLazyAggregatingIterator[ByteBufferResult] with SamplingIterator with LazyLogging {
+class BinAggregatingIterator
+    extends KryoLazyAggregatingIterator[ByteBufferResult] with SamplingIterator with LazyLogging {
 
   import BinAggregatingIterator._
 
@@ -44,10 +44,14 @@ class BinAggregatingIterator extends
   var geomIndex: Int = -1
   var dtgIndex: Int = -1
   var labelIndex: Int = -1
-  var binSize: Int = 16
-  var sort: Boolean = false
+
+  var isDtgArray: Boolean = false
+  var getDtg: (KryoBufferSimpleFeature) => Long = null
+  var linePointIndex: Int = -1
 
   var batchSize: Int = -1
+  var binSize: Int = 16
+  var sort: Boolean = false
 
   var sampling: Option[(SimpleFeature) => Boolean] = null
 
@@ -55,9 +59,24 @@ class BinAggregatingIterator extends
 
   override def init(options: Map[String, String]): ByteBufferResult = {
     geomIndex = options(GEOM_OPT).toInt
-    dtgIndex = options(DATE_OPT).toInt
     trackIndex = options(TRACK_OPT).toInt
     labelIndex = options.get(LABEL_OPT).map(_.toInt).getOrElse(-1)
+
+    dtgIndex = options(DATE_OPT).toInt
+    isDtgArray = options.get(DATE_ARRAY_OPT).exists(_.toBoolean)
+    getDtg = if (dtgIndex == -1) {
+      (_) => 0L
+    } else if (isDtgArray) {
+      (sf) => {
+        try {
+          sf.getAttribute(dtgIndex).asInstanceOf[java.util.List[Date]].get(linePointIndex).getTime
+        } catch {
+          case e: IndexOutOfBoundsException => 0L
+        }
+      }
+    } else {
+      (sf) => sf.getDateAsLong(dtgIndex)
+    }
 
     binSize = if (labelIndex == -1) 16 else 24
     sort = options(SORT_OPT).toBoolean
@@ -114,8 +133,7 @@ class BinAggregatingIterator extends
     } else {
       byteBuffer.putInt(track.hashCode())
     }
-    val dtg = if (dtgIndex == -1) 0L else sf.getDateAsLong(dtgIndex)
-    byteBuffer.putInt((dtg / 1000).toInt)
+    byteBuffer.putInt((getDtg(sf) / 1000).toInt)
     byteBuffer.putFloat(pt.getY.toFloat) // y is lat
     byteBuffer.putFloat(pt.getX.toFloat) // x is lon
   }
@@ -148,10 +166,10 @@ class BinAggregatingIterator extends
    */
   def writeLineString(sf: KryoBufferSimpleFeature, byteBuffer: ByteBuffer): Unit = {
     val geom = sf.getAttribute(geomIndex).asInstanceOf[LineString]
-    var i = 0
-    while (i < geom.getNumPoints) {
-      writeBinToBuffer(sf, geom.getPointN(i), byteBuffer)
-      i += 1
+    linePointIndex = 0
+    while (linePointIndex < geom.getNumPoints) {
+      writeBinToBuffer(sf, geom.getPointN(linePointIndex), byteBuffer)
+      linePointIndex += 1
     }
   }
 
@@ -160,11 +178,11 @@ class BinAggregatingIterator extends
    */
   def writeLineStringWithLabel(sf: KryoBufferSimpleFeature, byteBuffer: ByteBuffer): Unit = {
     val geom = sf.getAttribute(geomIndex).asInstanceOf[LineString]
-    var i = 0
-    while (i < geom.getNumPoints) {
-      writeBinToBuffer(sf, geom.getPointN(i), byteBuffer)
+    linePointIndex = 0
+    while (linePointIndex < geom.getNumPoints) {
+      writeBinToBuffer(sf, geom.getPointN(linePointIndex), byteBuffer)
       writeLabelToBuffer(sf, byteBuffer)
-      i += 1
+      linePointIndex += 1
     }
   }
 
@@ -193,22 +211,34 @@ class BinAggregatingIterator extends
 class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
 
   var decodeBin: (Array[Byte]) => SimpleFeature = null
+  var setDate: (SimpleFeature, Long) => Unit = null
   var writePrecomputedBin: (SimpleFeature, ByteBufferResult) => Unit = null
 
   override def init(options: Map[String, String]): ByteBufferResult = {
     val result = super.init(options)
 
-    val filter   = options.contains(KryoLazyAggregatingIterator.CQL_OPT)
+    val filter = options.contains(KryoLazyAggregatingIterator.CQL_OPT)
     val dedupe = options.contains(KryoLazyAggregatingIterator.DUPE_OPT)
     val sample = options.contains(SamplingIterator.SAMPLE_BY_OPT)
 
     val sf = new ScalaSimpleFeature("", sft)
     val gf = new GeometryFactory
-    val getId = Z3Table.getIdFromRow(sft) // NOTE: Z3 is the only table we use precomputed values for
+
+    val idOffset = options(BinAggregatingIterator.ID_OFFSET_OPT).toInt
+    val getId = (row: Array[Byte]) => new String(row, idOffset, row.length - idOffset, StandardCharsets.UTF_8)
 
     // we only need to decode the parts required for the filter/dedupe/sampling check
     // note: we wouldn't be using precomputed if sample by field wasn't the track id
     decodeBin = if (filter) {
+      setDate = if (isDtgArray) {
+        (sf, long) => {
+          val list = new java.util.ArrayList[Date](1)
+          list.add(new Date(long))
+          sf.setAttribute(dtgIndex, list)
+        }
+      } else {
+        (sf, long) => sf.setAttribute(dtgIndex, new Date(long))
+      }
       (_) => {
         sf.getIdentifier.setID(getId(source.getTopKey.getRow.getBytes))
         setValuesFromBin(sf, gf)
@@ -255,7 +285,7 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
     val values = Convert2ViewerFunction.decode(source.getTopValue.get)
     sf.setAttribute(geomIndex, gf.createPoint(new Coordinate(values.lat, values.lon)))
     sf.setAttribute(trackIndex, values.trackId)
-    sf.setAttribute(dtgIndex, new Date(values.dtg))
+    setDate(sf, values.dtg)
   }
 
   /**
@@ -275,9 +305,9 @@ class ByteBufferResult(var buffer: ByteBuffer) {
 object BinAggregatingIterator extends LazyLogging {
 
   // need to be lazy to avoid class loading issues before init is called
-  lazy val BIN_SFT = SimpleFeatureTypes.createType("bin", "bin:String,*geom:Point:srid=4326")
+  lazy val BIN_SFT = SimpleFeatureTypes.createType("bin", "bin:Bytes,*geom:Point:srid=4326")
   val BIN_ATTRIBUTE_INDEX = 0 // index of 'bin' attribute in BIN_SFT
-  private lazy val zeroPoint = WKTUtils.read("POINT(0 0)")
+  private val zeroPoint = WKTUtils.read("POINT(0 0)")
 
   val DEFAULT_PRIORITY = 25
 
@@ -290,12 +320,17 @@ object BinAggregatingIterator extends LazyLogging {
   private val DATE_OPT       = "dtg"
   private val LABEL_OPT      = "label"
 
+  private val DATE_ARRAY_OPT = "dtg-array"
+
+  private [iterators] val ID_OFFSET_OPT  = "id-offset"
+
   /**
    * Creates an iterator config that expects entries to be precomputed bin values
    */
   def configurePrecomputed(sft: SimpleFeatureType,
                            filter: Option[Filter],
                            hints: Hints,
+                           idOffset: Int,
                            deduplicate: Boolean,
                            priority: Int = DEFAULT_PRIORITY): IteratorSetting = {
     sft.getBinTrackId match {
@@ -306,7 +341,7 @@ object BinAggregatingIterator extends LazyLogging {
         val sort = hints.isBinSorting
         val sampling = hints.getSampling
         val is = configure(classOf[PrecomputedBinAggregatingIterator], sft, filter, trackId,
-          geom, dtg, None, batch , sort, deduplicate, sampling, priority)
+          geom, dtg, None, batch, sort, deduplicate, sampling, Some(idOffset), priority)
         is
       case None => throw new RuntimeException(s"No default trackId field found in SFT $sft")
     }
@@ -329,7 +364,7 @@ object BinAggregatingIterator extends LazyLogging {
     val sampling = hints.getSampling
 
     configure(classOf[BinAggregatingIterator], sft, filter, trackId, geom, dtg,
-      label, batchSize, sort, deduplicate, sampling, priority)
+      label, batchSize, sort, deduplicate, sampling, None, priority)
   }
 
   /**
@@ -346,16 +381,24 @@ object BinAggregatingIterator extends LazyLogging {
                         sort: Boolean,
                         deduplicate: Boolean,
                         sampling: Option[(Float, Option[String])],
+                        idOffset: Option[Int],
                         priority: Int): IteratorSetting = {
+    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
     val is = new IteratorSetting(priority, "bin-iter", clas)
     KryoLazyAggregatingIterator.configure(is, sft, filter, deduplicate, None)
     is.addOption(BATCH_SIZE_OPT, batchSize.toString)
     is.addOption(TRACK_OPT, sft.indexOf(trackId).toString)
     is.addOption(GEOM_OPT, sft.indexOf(geom).toString)
-    is.addOption(DATE_OPT, dtg.map(sft.indexOf).getOrElse(-1).toString)
+    val dtgIndex = dtg.map(sft.indexOf).getOrElse(-1)
+    is.addOption(DATE_OPT, dtgIndex.toString)
+    if (sft.isLines && dtgIndex != -1 && sft.getDescriptor(dtgIndex).getListType().contains(classOf[Date])) {
+      is.addOption(DATE_ARRAY_OPT, "true")
+    }
     label.foreach(l => is.addOption(LABEL_OPT, sft.indexOf(l).toString))
     is.addOption(SORT_OPT, sort.toString)
     sampling.foreach(SamplingIterator.configure(is, sft, _))
+    idOffset.foreach(o => is.addOption(ID_OFFSET_OPT, o.toString))
     is
   }
 
@@ -378,9 +421,7 @@ object BinAggregatingIterator extends LazyLogging {
     val sf = new ScalaSimpleFeature("", BIN_SFT)
     sf.setAttribute(1, zeroPoint)
     (e: Entry[Key, Value]) => {
-      // set the value directly in the array, as we don't support byte arrays as properties
-      // TODO GEOMESA-823 support byte arrays natively
-      sf.values(BIN_ATTRIBUTE_INDEX) = e.getValue.get()
+      sf.setAttribute(BIN_ATTRIBUTE_INDEX, e.getValue.get())
       sf
     }
   }

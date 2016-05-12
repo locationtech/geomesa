@@ -34,6 +34,19 @@ Indexing Strategies
 
 GeoMesa uses several different strategies to index simple features. In the code, these strategies are abstracted as 'tables'. For details on how GeoMesa encodes and indexes data, see tables. For details on how GeoMesa chooses and executes queries, see the ``org.locationtech.geomesa.accumulo.index.QueryPlanner`` and ``org.locationtech.geomesa.accumulo.index.QueryStrategyDecider`` classes.
 
+Explaining:  Query Plans
+++++++++++++++++++++++++
+
+Given a data store and a query, you can ask GeoMesa to explain its plan for how to execute the query:
+
+.. code-block:: java
+
+    dataStore.getQueryPlan(query, explainer = new ExplainPrintln);
+
+Instead of ``ExplainPrintln``, you can also use ``ExplainString`` or ``ExplainLogging`` to redirect the explainer output elsewhere.  (For the ``ExplainLogging``, it may be helpful to refer to GeoServer's `Advanced log configuration <http://docs.geoserver.org/2.8.x/en/user/advanced/logging.html>`_ documentation for the specifics of how and where to manage the GeoServer logs.)
+
+Knowing the plan -- including information such as the indexing strategy -- can be useful when you need to debug slow queries.  It can suggest when indexes should be added as well as when query-hints may expedite execution times.
+
 Iterator Stack
 ~~~~~~~~~~~~~~
 

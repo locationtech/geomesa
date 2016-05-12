@@ -19,8 +19,10 @@ import kafka.consumer._
 import kafka.utils.ZkUtils._
 import kafka.utils._
 import org.I0Itec.zkclient.exception.{ZkInterruptedException, ZkNodeExistsException}
-import org.I0Itec.zkclient.{IZkChildListener, IZkDataListener, IZkStateListener, ZkClient}
+import org.I0Itec.zkclient.{IZkChildListener, IZkDataListener, IZkStateListener}
 import org.apache.zookeeper.Watcher.Event.KeeperState
+import org.locationtech.geomesa.kafka.KafkaUtilsLoader
+import org.locationtech.geomesa.kafka.common.ZkUtils
 import org.locationtech.geomesa.kafka.consumer.offsets.RequestedOffset
 
 import scala.annotation.tailrec
@@ -38,11 +40,7 @@ import scala.collection.{Map, mutable}
 class ConsumerRebalancer[K, V](consumer: KafkaConsumer[K, V], config: ConsumerConfig)
     extends IZkStateListener with IZkDataListener with IZkChildListener with LazyLogging {
 
-  private val zkClient = {
-    val sTimeout = config.zkSessionTimeoutMs
-    val cTimeout = config.zkConnectionTimeoutMs
-    new ZkClient(config.zkConnect, sTimeout, cTimeout, ZKStringSerializer)
-  }
+  private val zkUtils = KafkaUtilsLoader.kafkaUtils.createZkUtils(config)
   private val partitionAssignor = PartitionAssignor.createInstance(config.partitionAssignmentStrategy)
 
   private val topicStreamCount = mutable.Map.empty[String, Int] // used to register the consumer in zk
@@ -100,6 +98,10 @@ class ConsumerRebalancer[K, V](consumer: KafkaConsumer[K, V], config: ConsumerCo
     syncedRebalance()
   }
 
+  def handleSessionEstablishmentError(throwable: Throwable): Unit = {
+    logger.error("Could not establish session with zookeeper", throwable)
+  }
+
   @throws(classOf[Exception])
   override def handleStateChanged(state: KeeperState): Unit = {
     // do nothing, since zkclient will do reconnect for us
@@ -138,7 +140,7 @@ class ConsumerRebalancer[K, V](consumer: KafkaConsumer[K, V], config: ConsumerCo
     }
     topicStreamCount.put(topic, numStreams)
     registerConsumerInZK()
-    consumer.initializeOffsets(zkClient, dirs, offset)
+    consumer.initializeOffsets(zkUtils.zkClient, dirs, offset)
     registerZKListeners()
 
     // explicitly trigger load balancing for this consumer
@@ -150,16 +152,16 @@ class ConsumerRebalancer[K, V](consumer: KafkaConsumer[K, V], config: ConsumerCo
   def shutdown(): Unit = {
     isShutdown.set(true)
     watcherExecutorThread.interrupt()
-    zkClient.close()
+    zkUtils.close()
   }
 
   private def registerZKListeners(): Unit = {
     // listener to consumer and partition changes
-    zkClient.subscribeStateChanges(this)
-    zkClient.subscribeChildChanges(dirs.consumerRegistryDir, this)
+    zkUtils.zkClient.subscribeStateChanges(this)
+    zkUtils.zkClient.subscribeChildChanges(dirs.consumerRegistryDir, this)
     // register on broker partition path changes
     val topicPath = s"$BrokerTopicsPath/$topic"
-    zkClient.subscribeDataChanges(topicPath, this)
+    zkUtils.zkClient.subscribeDataChanges(topicPath, this)
   }
 
   /**
@@ -174,7 +176,7 @@ class ConsumerRebalancer[K, V](consumer: KafkaConsumer[K, V], config: ConsumerCo
     val consumerInfo = Json.encode {
       Map("version" -> 1, "subscription" -> topicStreamCount, "pattern" -> "static", "timestamp" -> timestamp)
     }
-    createEphemeralPathExpectConflictHandleZKBug(zkClient, path, consumerInfo, null, (_, _) => true, timeout)
+    zkUtils.createEphemeralPathExpectConflictHandleZKBug(path, consumerInfo, null, (_, _) => true, timeout)
 
     logger.debug(s"End registering consumer $consumerId in ZK")
   }
@@ -194,8 +196,8 @@ class ConsumerRebalancer[K, V](consumer: KafkaConsumer[K, V], config: ConsumerCo
    * See kafka.consumer.ZookeeperConsumerConnector.ZKRebalancerListener#deletePartitionOwnershipFromZK
    */
   private def deletePartitionOwnershipFromZK(topic: String, partition: Int): Unit = {
-    val znode = getConsumerPartitionOwnerPath(config.groupId, topic, partition)
-    deletePath(zkClient, znode)
+    val znode = zkUtils.getConsumerPartitionOwnerPath(config.groupId, topic, partition)
+    zkUtils.deletePath(znode)
     logger.debug(s"Consumer $consumerId releasing $znode")
   }
 
@@ -224,7 +226,7 @@ class ConsumerRebalancer[K, V](consumer: KafkaConsumer[K, V], config: ConsumerCo
     }
     logger.debug(s"Begin rebalancing consumer $consumerId try $numTries")
     val done = try {
-      rebalance(ConsumerRebalancer.getCluster(zkClient))
+      rebalance(ConsumerRebalancer.getCluster(zkUtils))
     } catch {
       case _: ZkInterruptedException | _: InterruptedException =>
         false
@@ -257,13 +259,13 @@ class ConsumerRebalancer[K, V](consumer: KafkaConsumer[K, V], config: ConsumerCo
    * See kafka.consumer.ZookeeperConsumerConnector.ZKRebalancerListener#rebalance
    */
   private def rebalance(cluster: Seq[Broker]): Boolean = {
-    val brokers = getAllBrokersInCluster(zkClient)
+    val brokers = zkUtils.getAllBrokersInCluster
     if (brokers.size == 0) {
       // This can happen in a rare case when there are no brokers available in the cluster when the consumer
       // is started. We log an warning and register for child changes on brokers/id so that rebalance can
       // be triggered when the brokers are up.
       logger.warn("No brokers found when trying to rebalance.")
-      zkClient.subscribeChildChanges(ZkUtils.BrokerIdsPath, this)
+      zkUtils.zkClient.subscribeChildChanges(ZkUtils.BrokerIdsPath, this)
       true
     } else {
       // fetchers must be stopped to avoid data duplication, since if the current
@@ -273,8 +275,8 @@ class ConsumerRebalancer[K, V](consumer: KafkaConsumer[K, V], config: ConsumerCo
       consumer.closeFetchers()
       releasePartitionOwnership()
 
-      val assignmentContext = new AssignmentContext(config.groupId, consumerId, config.excludeInternalTopics, zkClient)
-      val partitionOwnershipDecision = partitionAssignor.assign(assignmentContext)
+      val assignmentContext = zkUtils.createAssignmentContext(config.groupId, consumerId, config.excludeInternalTopics)
+      val partitionOwnershipDecision = KafkaUtilsLoader.kafkaUtils.assign(partitionAssignor, assignmentContext)
 
       // move the partition ownership here, since that can be used to indicate a truly successful rebalancing
       // attempt. A rebalancing attempt is completed successfully only after the fetchers have been
@@ -299,9 +301,9 @@ class ConsumerRebalancer[K, V](consumer: KafkaConsumer[K, V], config: ConsumerCo
     val successfullyOwnedPartitions = partitionOwnershipDecision.flatMap { partitionOwner =>
       val tap = partitionOwner._1
       val consumerThreadId = partitionOwner._2
-      val partitionOwnerPath = getConsumerPartitionOwnerPath(config.groupId, tap.topic, tap.partition)
+      val partitionOwnerPath = zkUtils.getConsumerPartitionOwnerPath(config.groupId, tap.topic, tap.partition)
       try {
-        createEphemeralPathExpectConflict(zkClient, partitionOwnerPath, consumerThreadId.toString())
+        zkUtils.createEphemeralPathExpectConflict(partitionOwnerPath, consumerThreadId.toString())
         logger.debug(s"$consumerThreadId successfully owned topic and partition $tap")
         Some(tap)
       } catch {
@@ -327,9 +329,9 @@ object ConsumerRebalancer {
   /**
    * See kafka.utils.ZkUtils$#getCluster(org.I0Itec.zkclient.ZkClient)
    */
-  def getCluster(zkClient: ZkClient) : Seq[Broker] =
-    getChildrenParentMayNotExist(zkClient, BrokerIdsPath).map { node =>
-      val brokerZKString = readData(zkClient, s"$BrokerIdsPath/$node")._1
+  def getCluster(zkUtils: ZkUtils) : Seq[Broker] =
+    zkUtils.getChildrenParentMayNotExist(BrokerIdsPath).map { node =>
+      val brokerZKString = zkUtils.readData(s"$BrokerIdsPath/$node")._1
       Broker(brokerZKString, node.toInt)
     }
 }
