@@ -62,7 +62,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     // if the caller provided any non-null string for authorizations, use it;
     // otherwise, grab all authorizations to which the Accumulo user is entitled
     if (configuredAuths.length != 0 && forceEmptyAuths) {
-      throw new IllegalArgumentException("Forcing empty auths is checked, but expclicit auths are provided")
+      throw new IllegalArgumentException("Forcing empty auths is checked, but explicit auths are provided")
     }
     val auths: List[String] =
       if (forceEmptyAuths || configuredAuths.length > 0) configuredAuths.toList

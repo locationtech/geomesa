@@ -103,16 +103,35 @@ class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
       }
 
       "fail when authorizations are explicitly provided, but the flag to force using authorizations is not set" >> {
-        try {
-          // create the data store
-          DataStoreFinder.getDataStore(Map(
-            "connector" -> connector,
-            "tableName" -> sftName,
-            "auths"     -> "user,admin,test",
-            "forceEmptyAuths" -> java.lang.Boolean.TRUE)) should throwAn[IllegalArgumentException]
-        } finally {
-          // do nothing; just a trap
-        }
+        // create the data store
+        DataStoreFinder.getDataStore(Map(
+          "connector" -> connector,
+          "tableName" -> sftName,
+          "auths"     -> "user,admin,test",
+          "forceEmptyAuths" -> java.lang.Boolean.TRUE)) should throwAn[IllegalArgumentException]
+      }
+
+      "replace empty authorizations with the Accumulo user's full authorizations (without the override)" >> {
+        val ds = DataStoreFinder.getDataStore(Map(
+          "connector" -> connector,
+          "tableName" -> sftName,
+          "auths"     -> "")).asInstanceOf[AccumuloDataStore]
+        ds must not beNull;
+        ds.authProvider must beAnInstanceOf[FilteringAuthorizationsProvider]
+        ds.authProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider must beAnInstanceOf[DefaultAuthorizationsProvider]
+        ds.authProvider.asInstanceOf[AuthorizationsProvider].getAuthorizations mustEqual MockUserAuthorizations
+      }
+
+      "use empty authorizations (with the override)" >> {
+        val ds = DataStoreFinder.getDataStore(Map(
+          "connector" -> connector,
+          "tableName" -> sftName,
+          "auths"     -> "",
+          "forceEmptyAuths" -> java.lang.Boolean.TRUE)).asInstanceOf[AccumuloDataStore]
+        ds must not beNull;
+        ds.authProvider must beAnInstanceOf[FilteringAuthorizationsProvider]
+        ds.authProvider.asInstanceOf[FilteringAuthorizationsProvider].wrappedProvider must beAnInstanceOf[DefaultAuthorizationsProvider]
+        ds.authProvider.asInstanceOf[AuthorizationsProvider].getAuthorizations mustEqual EmptyUserAuthorizations
       }
     }
 
