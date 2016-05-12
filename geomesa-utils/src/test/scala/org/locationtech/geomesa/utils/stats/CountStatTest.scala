@@ -36,6 +36,13 @@ class CountStatTest extends Specification with StatTestHelper {
       stat.counter mustEqual 100L
     }
 
+    "unobserve correct values" >> {
+      val stat = newStat()
+      stat.counter mustEqual 100L
+      features.take(10).foreach(stat.unobserve)
+      stat.counter mustEqual 90L
+    }
+
     "serialize to json" >> {
       val stat = newStat()
       stat.toJson mustEqual """{ "count": 100 }"""
@@ -58,6 +65,18 @@ class CountStatTest extends Specification with StatTestHelper {
       val packed = StatSerializer(sft).serialize(stat)
       val unpacked = StatSerializer(sft).deserialize(packed)
       unpacked.toJson mustEqual stat.toJson
+    }
+
+    "deserialize as immutable value" >> {
+      val stat = newStat()
+      val packed = StatSerializer(sft).serialize(stat)
+      val unpacked = StatSerializer(sft).deserialize(packed, immutable = true)
+      unpacked.toJson mustEqual stat.toJson
+
+      unpacked.clear must throwAn[Exception]
+      unpacked.+=(stat) must throwAn[Exception]
+      unpacked.observe(features.head) must throwAn[Exception]
+      unpacked.unobserve(features.head) must throwAn[Exception]
     }
 
     "combine two states" >> {

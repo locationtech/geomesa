@@ -24,6 +24,8 @@ class IteratorStackCount extends Stat {
 
   override def observe(sf: SimpleFeature): Unit = {}
 
+  override def unobserve(sf: SimpleFeature): Unit = {}
+
   override def +(other: IteratorStackCount): IteratorStackCount = {
     val plus = new IteratorStackCount()
     plus.counter += this.counter
@@ -39,10 +41,8 @@ class IteratorStackCount extends Stat {
 
   override def clear(): Unit = counter = 1L
 
-  override def equals(other: Any): Boolean = other match {
+  override def isEquivalent(other: Stat): Boolean = other match {
     case that: IteratorStackCount => counter == that.counter
     case _ => false
   }
-
-  override def hashCode(): Int = counter.hashCode
 }

@@ -31,6 +31,19 @@ class IteratorStackCountTest extends Specification with StatTestHelper {
         unpacked.toJson mustEqual isc.toJson
       }
 
+
+      "deserialize as immutable value" >> {
+        val packed   = StatSerializer(sft).serialize(isc)
+        val unpacked = StatSerializer(sft).deserialize(packed, immutable = true).asInstanceOf[IteratorStackCount]
+
+        unpacked.toJson mustEqual isc.toJson
+
+        unpacked.clear must throwAn[Exception]
+        unpacked.+=(stat) must throwAn[Exception]
+        unpacked.observe(features.head) must throwAn[Exception]
+        unpacked.unobserve(features.head) must throwAn[Exception]
+      }
+
       "combine two IteratorStackCounts" in {
         val stat2 = Stat(sft, "IteratorStackCount()")
         val isc2 = stat2.asInstanceOf[IteratorStackCount]

@@ -21,6 +21,8 @@ class SeqStat(val stats: Seq[Stat]) extends Stat {
 
   override def observe(sf: SimpleFeature): Unit = stats.foreach(_.observe(sf))
 
+  override def unobserve(sf: SimpleFeature): Unit = stats.foreach(_.unobserve(sf))
+
   override def +(other: SeqStat): SeqStat =
     new SeqStat(stats.zip(other.stats).map { case (l, r) => l + r })
 
@@ -32,10 +34,8 @@ class SeqStat(val stats: Seq[Stat]) extends Stat {
 
   override def clear(): Unit = stats.foreach(_.clear())
 
-  override def equals(other: Any): Boolean = other match {
+  override def isEquivalent(other: Stat): Boolean = other match {
     case that: SeqStat => stats == that.stats
     case _ => false
   }
-
-  override def hashCode(): Int = stats.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
 }

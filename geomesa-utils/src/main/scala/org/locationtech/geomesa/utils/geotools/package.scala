@@ -19,11 +19,11 @@ import org.joda.time.format.DateTimeFormat
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.util.Try
-
 package object geotools {
+
   // use the epsg jar if it's available (e.g. in geoserver), otherwise use the less-rich constant
   val CRS_EPSG_4326 = try { CRS.decode("EPSG:4326") } catch { case t: Throwable => DefaultGeographicCRS.WGS84 }
+
   // we make this a function, as envelopes are mutable
   def wholeWorldEnvelope = new ReferencedEnvelope(-180, 180, -90, 90, CRS_EPSG_4326)
   val WholeWorldPolygon = WKTUtils.read("POLYGON((-180 -90, 0 -90, 180 -90, 180 90, 0 90, -180 90, -180 -90))").asInstanceOf[Polygon]

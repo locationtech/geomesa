@@ -768,8 +768,13 @@ object GeohashUtils
       else
         targetGeom
 
-    val shape = JtsSpatialContext.GEO.makeShape(withinBoundsGeom, true, true)
-    shape.getGeom
+    try {
+      JtsSpatialContext.GEO.makeShape(withinBoundsGeom, true, true).getGeom
+    } catch {
+      case e: Exception =>
+        logger.warn(s"Error splitting geometry on IDL for $withinBoundsGeom", e)
+        withinBoundsGeom
+    }
   }
 
   /**
@@ -915,7 +920,7 @@ object GeohashUtils
    *
    * @param geom the query-polygon that must intersect candidate GeoHashes
    * @param offset how many of the left-most GeoHash characters to skip
-   * @param bits how many of the (remaining) GeoHash characters to use
+   * @param length how many of the (remaining) GeoHash characters to use
    * @param MAX_KEYS_IN_LIST the maximum allowable number of unique GeoHash
    *                         sub-strings; when exceeded, the function returns
    *                         an empty list
@@ -925,16 +930,16 @@ object GeohashUtils
    */
   def getUniqueGeohashSubstringsInPolygon(geom: Geometry,
                                           offset: Int,
-                                          bits: Int,
+                                          length: Int,
                                           MAX_KEYS_IN_LIST: Int = Int.MaxValue - 1,
                                           includeDots: Boolean = true): Seq[String] = {
 
     val cover = promoteToRegion(geom)
 
     //val cover: Geometry = geom.buffer(0)
-    val maxBits = (offset + bits) * 5
+    val maxBits = (offset + length) * 5
     val minBits = offset * 5
-    val usedBits = bits * 5
+    val usedBits = length * 5
     val allResolutions = ResolutionRange(0, Math.min(35, maxBits), 1)
     val maxKeys = Math.min(2 << Math.min(usedBits, 29), MAX_KEYS_IN_LIST)
     val polyCentroid = cover.getCentroid
@@ -978,8 +983,8 @@ object GeohashUtils
       // the desired length
       def generateAll(prefix: String): Seq[String] = {
         val prefixHash = GeoHash.fromBinaryString(prefix).hash
-        if (prefixHash.length < bits) {
-          val charSeqs = Base32Padding(bits - prefixHash.length)
+        if (prefixHash.length < length) {
+          val charSeqs = Base32Padding(length - prefixHash.length)
           CartesianProductIterable(charSeqs).toList.map(prefixHash + _.mkString)
         } else Seq(prefixHash)
       }

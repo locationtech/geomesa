@@ -37,9 +37,9 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
     sf
   })
 
-  def getQuery(statString: String): Query = {
+  def getQuery(statString: String, ecql: Option[String] = None): Query = {
     val query = new Query(sftName, ECQL.toFilter("dtg DURING 2012-01-01T18:30:00.000Z/2012-01-01T19:30:00.000Z " +
-        "AND bbox(geom,-80,35,-75,40)"))
+        "AND bbox(geom,-80,35,-75,40)" + ecql.map(" AND " + _).getOrElse("")))
     query.getHints.put(QueryHints.STATS_KEY, statString)
     query.getHints.put(QueryHints.RETURN_ENCODED_KEY, java.lang.Boolean.TRUE)
     query
@@ -56,7 +56,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
       val sf = results.head
 
       val minMaxStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[java.lang.Long]]
-      minMaxStat.bounds must beSome((0, 298))
+      minMaxStat.bounds mustEqual (0, 298)
     }
 
     "work with the IteratorStackCount stat" in {
@@ -75,14 +75,14 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
       val sf = results.head
 
       val eh = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[Histogram[java.lang.Integer]]
-      eh.histogram.size mustEqual 150
-      eh.histogram(0) mustEqual 1
-      eh.histogram(149) mustEqual 1
-      eh.histogram(150) mustEqual 0
+      eh.size mustEqual 150
+      eh.frequency(0) mustEqual 1
+      eh.frequency(149) mustEqual 1
+      eh.frequency(150) mustEqual 0
     }
 
     "work with the RangeHistogram stat" in {
-      val q = getQuery("RangeHistogram(idt,5,10,14)")
+      val q = getQuery("RangeHistogram(idt,5,10,14)", Some("idt between 10 and 14"))
       val results = fs.getFeatures(q).features().toList
       val sf = results.head
 
@@ -109,21 +109,18 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
       val eh = stats(2).asInstanceOf[Histogram[java.lang.Integer]]
       val rh = stats(3).asInstanceOf[RangeHistogram[java.lang.Integer]]
 
-      minMax.bounds must beSome((0, 298))
+      minMax.bounds mustEqual (0, 298)
 
       isc.count must beGreaterThanOrEqualTo(1L)
 
-      eh.histogram.size mustEqual 150
-      eh.histogram(0) mustEqual 1
-      eh.histogram(149) mustEqual 1
-      eh.histogram(150) mustEqual 0
+      eh.size mustEqual 150
+      eh.frequency(0) mustEqual 1
+      eh.frequency(149) mustEqual 1
+      eh.frequency(150) mustEqual 0
 
       rh.length mustEqual 5
-      rh.count(rh.indexOf(10)) mustEqual 1
-      rh.count(rh.indexOf(11)) mustEqual 1
-      rh.count(rh.indexOf(12)) mustEqual 1
-      rh.count(rh.indexOf(13)) mustEqual 1
-      rh.count(rh.indexOf(14)) mustEqual 1
+      rh.bounds mustEqual (0, 149)
+      (0 until 5).map(rh.count).sum mustEqual 150
     }
 
     "work with the stidx index" in {
@@ -133,7 +130,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
       val sf = results.head
 
       val minMaxStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[java.lang.Long]]
-      minMaxStat.bounds must beSome((0, 298))
+      minMaxStat.bounds mustEqual (0, 298)
     }
 
     "work with the record index" in {
@@ -143,7 +140,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
       val sf = results.head
 
       val minMaxStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[java.lang.Long]]
-      minMaxStat.bounds must beSome((0, 0))
+      minMaxStat.bounds mustEqual (0, 0)
     }
 
     "work with the attribute partial index" in {
@@ -153,7 +150,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
       val sf = results.head
 
       val minMaxStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[java.lang.Long]]
-      minMaxStat.bounds must beSome((12, 298))
+      minMaxStat.bounds mustEqual (12, 298)
     }
 
     "work with the attribute join index" in {
@@ -163,7 +160,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
       val sf = results.head
 
       val minMaxStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[java.lang.Integer]]
-      minMaxStat.bounds must beSome((6, 149))
+      minMaxStat.bounds mustEqual (6, 149)
     }
 
     "work with the attribute full index" in {
@@ -173,7 +170,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
       val sf = results.head
 
       val minMaxStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[java.lang.Long]]
-      minMaxStat.bounds must beSome((22, 298))
+      minMaxStat.bounds mustEqual (22, 298)
     }
 
   }
