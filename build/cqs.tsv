@@ -121,6 +121,7 @@ org.codehaus.jackson:jackson-mapper-asl	1.9.3	compile
 org.eclipse.emf:common	2.6.0	compile
 org.eclipse.emf:ecore	2.6.1	compile
 org.eclipse.xsd:xsd	2.6.0	compile
+org.gdal:gdal	2.0.0	compile
 org.geotools:gt-api	14.1	compile
 org.geotools:gt-coverage	14.1	compile
 org.geotools:gt-cql	14.1	compile

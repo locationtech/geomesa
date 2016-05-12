@@ -21,6 +21,7 @@
 
     <modules>
         <module>geomesa-blobstore-exif-handler</module>
+        <module>geomesa-blobstore-gdal-handler</module>
     </modules>
 
     <dependencyManagement>

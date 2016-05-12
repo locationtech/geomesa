@@ -9,30 +9,34 @@
 package org.locationtech.geomesa.blob.core
 
 import java.io.File
-import java.util
+import java.util.{Iterator => JIterator, Map => JMap}
 
+import com.google.common.collect.Maps
 import com.google.common.io.Files
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
-import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
+import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.data.{Query, Transaction}
+import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, _}
 import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, SelfClosingIterator}
 import org.locationtech.geomesa.blob.core.AccumuloBlobStore._
-import org.locationtech.geomesa.blob.core.handlers.BlobStoreFileHandler
+import org.locationtech.geomesa.blob.core.handlers.{BlobStoreFileHandler, _}
+import org.locationtech.geomesa.blob.core.interop.GeoMesaBlobStore
 import org.locationtech.geomesa.utils.filters.Filters
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
+import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
 
-class AccumuloBlobStore(ds: AccumuloDataStore) extends LazyLogging with BlobStoreFileName {
+class AccumuloBlobStore(ds: AccumuloDataStore) extends GeoMesaBlobStore
+  with BlobStoreFileName with LazyLogging {
 
   private val connector = ds.connector
   private val tableOps = connector.tableOperations()
@@ -42,45 +46,40 @@ class AccumuloBlobStore(ds: AccumuloDataStore) extends LazyLogging with BlobStor
   AccumuloVersion.ensureTableExists(connector, blobTableName)
   ds.createSchema(sft)
   val bwc = GeoMesaBatchWriterConfig()
+  // TODO: https://geomesa.atlassian.net/browse/GEOMESA-1177
   val bw = connector.createBatchWriter(blobTableName, bwc)
   val fs = ds.getFeatureSource(blobFeatureTypeName).asInstanceOf[SimpleFeatureStore]
 
-  def put(file: File, params: Map[String, String]): Option[String] = {
-    BlobStoreFileHandler.buildSF(file, params).map {
-      sf =>
-        val id = sf.getAttribute(idFieldName).asInstanceOf[String]
-
-        fs.addFeatures(new ListFeatureCollection(sft, List(sf)))
-        putInternal(file, id, params)
-        id
-    }
+  override def put(file: File, params: JMap[String, String]): String = {
+    BlobStoreFileHandler.buildSF(file, params.toMap).map { sf =>
+      putInternalSF(sf, Files.toByteArray(file))
+    }.orNull
   }
 
-  def getIds(filter: Filter): Iterator[String] = {
+  override def put(bytes: Array[Byte], params: JMap[String, String]): String = {
+    val sf = BlobStoreByteArrayHandler.buildSF(params)
+    putInternalSF(sf, bytes)
+  }
+
+  override def getIds(filter: Filter): JIterator[String] = {
     getIds(new Query(blobFeatureTypeName, filter))
   }
 
-  def getIds(query: Query): Iterator[String] = {
+  override def getIds(query: Query): JIterator[String] = {
     fs.getFeatures(query).features.map(_.getAttribute(idFieldName).asInstanceOf[String])
   }
 
-  def get(id: String): (Array[Byte], String) = {
-    // TODO: Get Authorizations using AuthorizationsProvider interface
-    // https://geomesa.atlassian.net/browse/GEOMESA-986
-    val scanner = connector.createScanner(blobTableName, new Authorizations())
-    scanner.setRange(new Range(new Text(id)))
-
-    val iter = SelfClosingIterator(scanner)
-    if (iter.hasNext) {
-      val ret = buildReturn(iter.next)
-      iter.close()
-      ret
-    } else {
-      (Array.empty[Byte], "")
-    }
+  override def get(id: String): JMap.Entry[String, Array[Byte]] = {
+    val ret = getInternal(id)
+    Maps.immutableEntry(ret._1, ret._2)
   }
 
-  def delete(): Unit = {
+  override def delete(id: String): Unit = {
+    deleteBlob(id)
+    deleteFeature(id)
+  }
+
+  override def deleteBlobStore(): Unit = {
     try {
       tableOps.delete(blobTableName)
       ds.delete()
@@ -89,51 +88,63 @@ class AccumuloBlobStore(ds: AccumuloDataStore) extends LazyLogging with BlobStor
     }
   }
 
-  def delete(id: String): Unit = {
-    // TODO: Get Authorizations using AuthorizationsProvider interface
-    // https://geomesa.atlassian.net/browse/GEOMESA-986
-    val bd = connector.createBatchDeleter(blobTableName, new Authorizations(), bwc.getMaxWriteThreads, bwc)
-    bd.setRanges(List(new Range(new Text(id))))
-    bd.delete()
-    bd.close()
-    deleteFeature(id)
-  }
+  private def getInternal(id: String): (String, Array[Byte]) = {
+    val scanner = connector.createScanner(
+      blobTableName,
+      ds.authProvider.getAuthorizations
+    )
+    scanner.setRange(new Range(new Text(id)))
 
-  private def deleteFeature(id: String): Unit = {
-    val removalFilter = Filters.ff.id(Filters.ff.featureId(id))
-    val fd = ds.getFeatureWriter(blobFeatureTypeName, removalFilter, Transaction.AUTO_COMMIT)
-    try {
-      while (fd.hasNext) {
-        fd.next()
-        fd.remove()
-      }
-    } catch {
-      case e: Exception =>
-        logger.error("Couldn't remove feature from blobstore", e)
-    } finally {
-      fd.close()
+    val iter = SelfClosingIterator(scanner)
+    if (iter.hasNext) {
+      val ret = buildReturn(iter.next)
+      iter.close()
+      ret
+    } else {
+      ("", Array.empty[Byte])
     }
   }
 
-  private def buildReturn(entry: java.util.Map.Entry[Key, Value]): (Array[Byte], String) = {
+  private def putInternalSF(sf: SimpleFeature, bytes: Array[Byte]): String = {
+    val id = sf.getAttribute(idFieldName).asInstanceOf[String]
+    val localName = sf.getAttribute(filenameFieldName).asInstanceOf[String]
+    fs.addFeatures(new ListFeatureCollection(sft, List(sf)))
+    putInternalBlob(id, localName, bytes)
+    id
+  }
+
+  private def putInternalBlob(id: String, localName: String, bytes: Array[Byte]): Unit = {
+    val m = new Mutation(id)
+    m.put(EMPTY_COLF, new Text(localName), new Value(bytes))
+    bw.addMutation(m)
+    bw.flush()
+  }
+
+  private def buildReturn(entry: JMap.Entry[Key, Value]): (String, Array[Byte]) = {
     val key = entry.getKey
     val value = entry.getValue
 
     val filename = key.getColumnQualifier.toString
 
-    (value.get, filename)
+    (filename, value.get)
   }
 
-  private def putInternal(file: File, id: String, params: Map[String, String]) {
-    val localName = getFileName(file, params)
-    val bytes = Files.toByteArray(file)
-
-    val m = new Mutation(id)
-
-    m.put(EMPTY_COLF, new Text(localName), new Value(bytes))
-    bw.addMutation(m)
-    bw.flush()
+  private def deleteFeature(id: String): Unit = {
+    val removalFilter = Filters.ff.id(new FeatureIdImpl(id))
+    fs.removeFeatures(removalFilter)
   }
+
+  private def deleteBlob(id: String): Unit = {
+    val bd = connector.createBatchDeleter(
+      blobTableName,
+      ds.authProvider.getAuthorizations,
+      bwc.getMaxWriteThreads,
+      bwc)
+    bd.setRanges(List(new Range(new Text(id))))
+    bd.delete()
+    bd.close()
+  }
+
 }
 
 object AccumuloBlobStore {
@@ -156,16 +167,4 @@ object AccumuloBlobStore {
     .userData(SimpleFeatureTypes.MIXED_GEOMETRIES, "true")
     .build(blobFeatureTypeName)
   
-}
-
-trait BlobStoreFileName {
-
-  def getFileNameFromParams(params: util.Map[String, String]): Option[String] = {
-    Option(params.get(filenameFieldName))
-  }
-
-  def getFileName(file: File, params: util.Map[String, String]): String = {
-    getFileNameFromParams(params).getOrElse(file.getName)
-  }
-
 }
