@@ -44,6 +44,17 @@ Versions and Downloads
 
 * Source: https://github.com/locationtech/geomesa/archive/master.tar.gz
 
+**Latest release which has been fully reviewed by Eclipse Legal**: |eclipse_release|
+
+GeoMesa is part of the Locationtech working group at Eclipse. The Eclipse legal team fully reviews each major release for IP concerns.
+
+.. warning::
+
+    Eclipse releases may not contain all the bug fixes and improvements from the latest release.
+
+* Release distribution: |eclipse_release_tarball|
+* Source: |eclipse_release_source_tarball|
+
 **1.1.x release**: |release_1_1|
 
 * Release tarball: |release_1_1_tarball|
