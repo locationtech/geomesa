@@ -43,7 +43,20 @@ trait TestWithDataStore extends Specification {
   // we use class name to prevent spillage between unit tests in the mock connector
   val sftName = getClass.getSimpleName
 
-  lazy val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
+  val EmptyUserAuthorizations = new Authorizations()
+
+  val MockUserAuthorizationsString = "A,B,C"
+  val MockUserAuthorizations = new Authorizations(
+    MockUserAuthorizationsString.split(",").map(_.getBytes()).toList.asJava
+  )
+
+  // assign some default authorizations to this mock user
+  lazy val connector = {
+    val mockInstance = new MockInstance("mycloud")
+    val mockConnector = mockInstance.getConnector("user", new PasswordToken("password"))
+    mockConnector.securityOperations().changeUserAuthorizations("user", MockUserAuthorizations)
+    mockConnector
+  }
 
   lazy val (ds, sft) = {
     val sft = SimpleFeatureTypes.createType(sftName, spec)
