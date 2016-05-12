@@ -147,13 +147,13 @@ object SimpleFeatureTypes {
   def encodeType(sft: SimpleFeatureType): String = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    val suffix = if (sft.isGeomesaUserData && !sft.getUserData.isEmpty) {
-      sft.getUserData.entrySet.filter(e => e.getKey.asInstanceOf[String].startsWith("geomesa")).map(e => {
+    val suffix = if (!sft.getUserData.isEmpty && sft.isOnlyGeomesaUserData) {
+      sft.getUserData.entrySet.filter(e => e.getKey.toString.startsWith("geomesa")).map(e => {
         val value = if (e.getValue == null) null else e.getValue.toString
         s"${e.getKey}='${StringEscapeUtils.escapeJava(value)}'"
       }).mkString(";", ",", "")
     }
-    else if (sft.isAllUserData && !sft.getUserData.isEmpty) {
+    else if (!sft.getUserData.isEmpty && sft.isAllUserData) {
       sft.getUserData.entrySet.map(e => {
         val value = if (e.getValue == null) null else e.getValue.toString
         s"${e.getKey}='${StringEscapeUtils.escapeJava(value)}'"

@@ -184,13 +184,13 @@ object RichSimpleFeatureType {
 
   import scala.collection.JavaConversions._
 
-  val SCHEMA_VERSION_KEY    = "geomesa.version"
-  val TABLE_SHARING_KEY     = "geomesa.table.sharing"
-  val SHARING_PREFIX_KEY    = "geomesa.table.sharing.prefix"
-  val DEFAULT_DATE_KEY      = "geomesa.index.dtg"
-  val ST_INDEX_SCHEMA_KEY   = "geomesa.index.st.schema"
-  val GEOMESA_USER_DATA_KEY = "geomesa.user.data"
-  val ALL_USER_DATA_KEY     = "geomesa.all.user.data"
+  val SCHEMA_VERSION_KEY         = "geomesa.version"
+  val TABLE_SHARING_KEY          = "geomesa.table.sharing"
+  val SHARING_PREFIX_KEY         = "geomesa.table.sharing.prefix"
+  val DEFAULT_DATE_KEY           = "geomesa.index.dtg"
+  val ST_INDEX_SCHEMA_KEY        = "geomesa.index.st.schema"
+  val ONLY_GEOMESA_USER_DATA_KEY = "geomesa.user.data"
+  val ALL_USER_DATA_KEY          = "geomesa.all.user.data"
 
   // in general we store everything as strings so that it's easy to pass to accumulo iterators
   implicit class RichSimpleFeatureType(val sft: SimpleFeatureType) extends AnyVal {
@@ -241,11 +241,11 @@ object RichSimpleFeatureType {
     def getEnabledTables: String = userData[String](SimpleFeatureTypes.ENABLED_INDEXES).getOrElse("")
     def setEnabledTables(tables: String): Unit = sft.getUserData.put(SimpleFeatureTypes.ENABLED_INDEXES, tables)
 
-    def isGeomesaUserData: Boolean = userData[String](GEOMESA_USER_DATA_KEY).getOrElse("false").toBoolean
-    def setGeomesaUserData(geomesaUserData: Boolean): Unit = sft.getUserData.put(GEOMESA_USER_DATA_KEY, geomesaUserData.toString)
+    def isOnlyGeomesaUserData: Boolean = userData[String](ONLY_GEOMESA_USER_DATA_KEY).getOrElse("false").toBoolean
+    def persistOnlyGeomesaUserData(geomesaUserData: Boolean): Unit = sft.getUserData.put(ONLY_GEOMESA_USER_DATA_KEY, geomesaUserData.toString)
 
     def isAllUserData: Boolean = userData[String](ALL_USER_DATA_KEY).getOrElse("false").toBoolean
-    def setAllUserData(allUserData: Boolean): Unit = sft.getUserData.put(ALL_USER_DATA_KEY, allUserData.toString)
+    def persistAllUserData(allUserData: Boolean): Unit = sft.getUserData.put(ALL_USER_DATA_KEY, allUserData.toString)
 
     def userData[T](key: AnyRef): Option[T] = Option(sft.getUserData.get(key).asInstanceOf[T])
   }

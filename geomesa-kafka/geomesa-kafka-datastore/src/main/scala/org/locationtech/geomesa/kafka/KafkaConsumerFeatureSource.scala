@@ -47,9 +47,9 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
     builder.init(schema)
     builder.setNamespaceURI(getDataStore.getNamespaceURI)
     val sft = builder.buildFeatureType()
-    schema.getUserData.keySet.foreach (
+    schema.getUserData.keySet.foreach {
       key => sft.getUserData.put(key, schema.getUserData.get(key))
-    )
+    }
     sft
   }
 
