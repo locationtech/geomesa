@@ -46,14 +46,12 @@ class AccumuloBlobStoreTest extends Specification {
     "be able to store and delete a file" in {
       val (storeId, file) = ingestFile(testfile3, "POINT(10 10)")
 
-      val testFile3Id = storeId.get
-
-      bstore.delete(testFile3Id)
+      bstore.delete(storeId)
 
       // test if blobstore get is failing to return anything
-      val (bytes, filename) = bstore.get(testFile3Id)
-      filename mustEqual ""
-      bytes must beEmpty
+      val ret = bstore.get(storeId)
+      ret.getKey mustEqual ""
+      ret.getValue must beEmpty
 
       // test if geomesa feature table is empty
       val ids = bstore.getIds(Filter.INCLUDE).toList
@@ -63,14 +61,12 @@ class AccumuloBlobStoreTest extends Specification {
     "be able to store and retrieve a file" in {
       val (storeId, file) = ingestFile(testfile1, "POINT(0 0)")
 
-      testFile1Id = storeId.get
-
-      val (returnedBytes, filename) = bstore.get(storeId.get)
+      val ret = bstore.get(storeId)
 
       val inputStream = ByteStreams.toByteArray(Files.newInputStreamSupplier(file))
 
-      filename mustEqual testfile1
-      inputStream mustEqual returnedBytes
+      ret.getKey mustEqual testfile1
+      inputStream mustEqual ret.getValue
     }
 
     "query for ids and then retrieve a file" in {
@@ -80,10 +76,10 @@ class AccumuloBlobStoreTest extends Specification {
       ids.size mustEqual 1
       val id = ids.head
 
-      val (bytes, filename) = bstore.get(id)
+      val ret = bstore.get(id)
 
-      bytes must not be null
-      filename mustEqual testfile1
+      ret.getValue must not be null
+      ret.getKey mustEqual testfile1
     }
 
     "insert a second file and then be able to query for both" in {
@@ -92,21 +88,19 @@ class AccumuloBlobStoreTest extends Specification {
       val ids2 = bstore.getIds(Filter.INCLUDE).toList
       ids2.size mustEqual 2
 
-      val (bytes2, returnedFilename2) = bstore.get(storeId2.get)
+      val ret = bstore.get(storeId2)
 
-      returnedFilename2 mustEqual testfile2
-
+      ret.getKey mustEqual testfile2
 
       val filter = ECQL.toFilter("BBOX(geom, -10,-10,10,10)")
 
       val filteredIds = bstore.getIds(filter).toList
 
       filteredIds.size mustEqual 1
-      filteredIds.head mustEqual testFile1Id
     }
   }
 
-  def ingestFile(fileName: String, wkt: String): (Option[String], File) = {
+  def ingestFile(fileName: String, wkt: String): (String, File) = {
     val file = new File(getClass.getClassLoader.getResource(fileName).getFile)
     val params = Map("wkt" -> wkt)
     val storeId = bstore.put(file, params)

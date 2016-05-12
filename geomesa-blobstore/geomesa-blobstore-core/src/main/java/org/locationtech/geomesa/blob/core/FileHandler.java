@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.blob.core.handlers;
+package org.locationtech.geomesa.blob.core;
 
 import org.opengis.feature.simple.SimpleFeature;
 
@@ -23,7 +23,7 @@ public interface FileHandler {
      * @param params Map of parameters indicating or hinting how to processing should work.
      * @return       Whether or not the class can handle the given input
      */
-    public Boolean canProcess(File file, Map<String, String> params);
+    Boolean canProcess(File file, Map<String, String> params);
 
     /**
      * This method builds the SimpleFeature indexing the input file.
@@ -31,5 +31,5 @@ public interface FileHandler {
      * @param params Map of parameters indicating or hinting how to processing should work.
      * @return       SimpleFeature indexing the file.  Must contain a unique ID.
      */
-    public SimpleFeature buildSF(File file, Map<String, String> params);
+    SimpleFeature buildSF(File file, Map<String, String> params);
 }

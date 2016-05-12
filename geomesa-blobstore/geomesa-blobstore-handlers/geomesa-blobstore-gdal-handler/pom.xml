@@ -9,37 +9,30 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>geomesa-blobstore</artifactId>
+        <artifactId>geomesa-blobstore-handlers</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
         <version>1.2.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-blobstore-api</artifactId>
-    <name>GeoMesa Blobstore Rest Api</name>
+    <artifactId>geomesa-blobstore-gdal-handler</artifactId>
+    <name>GeoMesa Blobstore EXIF Metadata Handler</name>
 
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-accumulo-datastore</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-blobstore-core</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-web-core</artifactId>
-        </dependency>
 
-        <!-- provided dependencies -->
         <dependency>
-            <groupId>org.apache.accumulo</groupId>
-            <artifactId>accumulo-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-client</artifactId>
+            <groupId>org.gdal</groupId>
+            <artifactId>gdal</artifactId>
+            <version>${gdal.version}</version>
         </dependency>
 
         <!--test dependencies-->
