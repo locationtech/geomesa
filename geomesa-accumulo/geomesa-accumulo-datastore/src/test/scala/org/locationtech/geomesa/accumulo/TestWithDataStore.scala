@@ -28,7 +28,6 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.{Fragments, Step}
 
 import scala.collection.JavaConverters._
-import scala.collection.JavaConverters._
 
 /**
  * Trait to simplify tests that require reading and writing features from an AccumuloDataStore
