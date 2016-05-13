@@ -237,8 +237,12 @@ namespace in the Accumulo shell:
     $ accumulo shell -u root
     > createnamespace myNamespace
     > grant NameSpace.CREATE_TABLE -ns myNamespace -u myUser
-    > config -s general.vfs.context.classpath.myNamespace=hdfs://NAME_NODE_FDQN:8020/accumulo/classpath/myNamespace/[^.]
+    > config -s general.vfs.context.classpath.myNamespace=hdfs://NAME_NODE_FDQN:54310/accumulo/classpath/myNamespace/[^.].*.jar
     > config -ns myNamespace -s table.classpath.context=myNamespace
+
+.. note::
+
+    Depending on Hadoop version, you may need to use ``hdfs://NAME_NODE_FDQN:8020``.
 
 Then copy the distributed runtime jar into HDFS under the path you specified.
 The path above is just an example; you can included nested folders with project
