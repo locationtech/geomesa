@@ -46,7 +46,11 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
     val builder = new SimpleFeatureTypeBuilder()
     builder.init(schema)
     builder.setNamespaceURI(getDataStore.getNamespaceURI)
-    builder.buildFeatureType()
+    val sft = builder.buildFeatureType()
+    schema.getUserData.keySet.foreach {
+      key => sft.getUserData.put(key, schema.getUserData.get(key))
+    }
+    sft
   }
 
   override def getCountInternal(query: Query): Int = getReaderInternal(query).getIterator.length

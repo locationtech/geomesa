@@ -12,6 +12,7 @@ import java.util.{Date, Locale, UUID}
 
 import com.typesafe.config.{Config, ConfigFactory}
 import com.vividsolutions.jts.geom._
+import org.apache.commons.lang.StringEscapeUtils
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.SpecParser.{ListAttributeType, MapAttributeType, SimpleAttributeType}
@@ -143,10 +144,23 @@ object SimpleFeatureTypes {
     renamed
   }
 
-  def encodeType(sft: SimpleFeatureType, includeUserData: Boolean = false): String = {
-    val suffix = if (!includeUserData || sft.getUserData.isEmpty) { "" } else {
-      sft.getUserData.entrySet.map(e => s"${e.getKey}='${e.getValue}'").mkString(";", ",", "")
+  def encodeType(sft: SimpleFeatureType): String = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+    val suffix = if (!sft.getUserData.isEmpty && sft.isOnlyGeomesaUserData) {
+      sft.getUserData.entrySet.filter(e => e.getKey.toString.startsWith("geomesa")).map(e => {
+        val value = if (e.getValue == null) null else e.getValue.toString
+        s"${e.getKey}='${StringEscapeUtils.escapeJava(value)}'"
+      }).mkString(";", ",", "")
     }
+    else if (!sft.getUserData.isEmpty && sft.isAllUserData) {
+      sft.getUserData.entrySet.map(e => {
+        val value = if (e.getValue == null) null else e.getValue.toString
+        s"${e.getKey}='${StringEscapeUtils.escapeJava(value)}'"
+      }).mkString(";", ",", "")
+    }
+    else { "" }
+
     sft.getAttributeDescriptors.map(encodeDescriptor(sft, _)).mkString("", ",", suffix)
   }
 
