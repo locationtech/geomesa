@@ -20,10 +20,15 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
 
-object ConverterConfigLoader {
+object ConverterConfigLoader extends LazyLogging {
 
   val ConfigPathProperty: String = "org.locationtech.geomesa.converter.config.path"
-  private val configProviders = ServiceRegistry.lookupProviders(classOf[ConverterConfigProvider]).toList
+  private val configProviders = {
+    val pList = ServiceRegistry.lookupProviders(classOf[ConverterConfigProvider]).toList
+    logger.debug(s"Found ${pList.size} SPI providers for ${classOf[ConverterConfigProvider].getName}" +
+      s": ${pList.map(_.getClass.getName).mkString(", ")}")
+    pList
+  }
 
   def path: String = sys.props.getOrElse(ConfigPathProperty, "geomesa.converters")
 
