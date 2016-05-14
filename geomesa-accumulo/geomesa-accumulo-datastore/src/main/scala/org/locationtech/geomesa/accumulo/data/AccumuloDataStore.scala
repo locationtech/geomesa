@@ -148,37 +148,42 @@ class AccumuloDataStore(val connector: Connector,
    * @return feature type, or null if it does not exist
    */
   override def getSchema(name: Name): SimpleFeatureType = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.SCHEMA_VERSION_KEY
+
     val typeName = name.getLocalPart
     metadata.read(typeName, ATTRIBUTES_KEY).map { attributes =>
       val sft = SimpleFeatureTypes.createType(name.getURI, attributes)
 
-      // IMPORTANT: set data that we want to pass around with the sft
-      metadata.read(typeName, DTGFIELD_KEY).foreach(sft.setDtgField)
-      val version = metadata.readRequired(typeName, VERSION_KEY).toInt
-      if (version > CURRENT_SCHEMA_VERSION) {
-        logger.error(s"Trying to access schema ${sft.getTypeName} with version $version " +
+      // back compatible check if user data wasn't encoded with the sft
+      // noinspection ScalaDeprecation
+      if (!sft.getUserData.containsKey(SCHEMA_VERSION_KEY)) {
+        metadata.read(typeName, DTGFIELD_KEY).foreach(sft.setDtgField)
+        sft.setSchemaVersion(metadata.readRequired(typeName, VERSION_KEY).toInt)
+
+        // If no data is written, we default to 'false' in order to support old tables.
+        if (metadata.read(typeName, SHARED_TABLES_KEY).exists(_.toBoolean)) {
+          sft.setTableSharing(true)
+          // use schema id if available or fall back to old type name for backwards compatibility
+          val prefix = metadata.read(typeName, SCHEMA_ID_KEY).getOrElse(s"${sft.getTypeName}~")
+          sft.setTableSharingPrefix(prefix)
+        } else {
+          sft.setTableSharing(false)
+          sft.setTableSharingPrefix("")
+        }
+        metadata.read(typeName, SimpleFeatureTypes.ENABLED_INDEXES_OLD).foreach(sft.setEnabledTables)
+        // old st_idx schema, kept around for back-compatibility
+        metadata.read(typeName, SCHEMA_KEY).foreach(sft.setStIndexSchema)
+      }
+
+      if (sft.getSchemaVersion > CURRENT_SCHEMA_VERSION) {
+        logger.error(s"Trying to access schema ${sft.getTypeName} with version ${sft.getSchemaVersion} " +
             s"but client can only handle up to version $CURRENT_SCHEMA_VERSION.")
         throw new IllegalStateException(s"The schema ${sft.getTypeName} was written with a newer " +
             "version of GeoMesa than this client can handle. Please ensure that you are using the " +
             "same GeoMesa jar versions across your entire workflow. For more information, see " +
             "http://www.geomesa.org/documentation/user/installation_and_configuration.html#upgrading")
-      } else {
-        sft.setSchemaVersion(version)
       }
-      // If no data is written, we default to 'false' in order to support old tables.
-      if (metadata.read(typeName, SHARED_TABLES_KEY).exists(_.toBoolean)) {
-        sft.setTableSharing(true)
-        // use schema id if available or fall back to old type name for backwards compatibility
-        val prefix = metadata.read(typeName, SCHEMA_ID_KEY).getOrElse(s"${sft.getTypeName}~")
-        sft.setTableSharingPrefix(prefix)
-      } else {
-        sft.setTableSharing(false)
-        sft.setTableSharingPrefix("")
-      }
-      metadata.read(typeName, TABLES_ENABLED_KEY).foreach(sft.setEnabledTables)
 
-      // old st_idx schema, kept around for back-compatibility
-      metadata.read(typeName, SCHEMA_KEY).foreach(sft.setStIndexSchema)
       sft
     }.orNull
   }
@@ -377,6 +382,7 @@ class AccumuloDataStore(val connector: Connector,
       case AttributeTable      => ATTR_IDX_TABLE_KEY
       // noinspection ScalaDeprecation
       case AttributeTableV5    => ATTR_IDX_TABLE_KEY
+      // noinspection ScalaDeprecation
       case SpatioTemporalTable => ST_IDX_TABLE_KEY
       case _ => throw new NotImplementedError("Unknown table")
     }
@@ -457,6 +463,7 @@ class AccumuloDataStore(val connector: Connector,
    */
   @throws[RuntimeException]
   def getFeatureEncoding(sft: SimpleFeatureType): SerializationType =
+    // noinspection ScalaDeprecation
     metadata.read(sft.getTypeName, FEATURE_ENCODING_KEY)
         .map(SerializationType.withName)
         .getOrElse(SerializationType.KRYO)
@@ -464,11 +471,12 @@ class AccumuloDataStore(val connector: Connector,
   /**
    * Reads the index schema format out of the metadata
    *
-   * @param typeName simple feature type name
+   * @param sft simple feature type
    * @return index schema format string
    */
-  def getIndexSchemaFmt(typeName: String): String =
-    metadata.read(typeName, SCHEMA_KEY).getOrElse(EMPTY_STRING)
+  def getIndexSchemaFmt(sft: SimpleFeatureType): String =
+    // noinspection ScalaDeprecation
+    metadata.read(sft.getTypeName, SCHEMA_KEY).orElse(Option(sft.getStIndexSchema)).getOrElse(EMPTY_STRING)
 
   /**
    * Used to update the attributes that are marked as indexed - partial implementation of updateSchema.
@@ -544,28 +552,6 @@ class AccumuloDataStore(val connector: Connector,
    * Computes and writes the metadata for this feature type
    */
   private def writeMetadata(sft: SimpleFeatureType) {
-    // compute the metadata values
-    val attributesValue             = SimpleFeatureTypes.encodeType(sft)
-    val dtgValue: Option[String]    = sft.getDtgField // this will have already been checked and set
-    val z2TableValue                = Z2Table.formatTableName(catalogTable, sft)
-    val z3TableValue                = Z3Table.formatTableName(catalogTable, sft)
-    val attrIdxTableValue           = AttributeTable.formatTableName(catalogTable, sft)
-    val recordTableValue            = RecordTable.formatTableName(catalogTable, sft)
-    val queriesTableValue           = formatQueriesTableName(catalogTable)
-    val tableSharingValue           = sft.isTableSharing.toString
-    val enabledTablesValue          = sft.getEnabledTables.toString
-    val dataStoreVersion            = sft.getSchemaVersion.toString
-
-    // only set spatio-temporal fields if z2 isn't supported
-    val (stSchema, stTable) = if (sft.getSchemaVersion < 8) {
-      // get the requested index schema or build the default
-      val schema = Option(sft.getStIndexSchema).orElse(Some(buildDefaultSpatioTemporalSchema(sft.getTypeName)))
-      val table = Some(SpatioTemporalTable.formatTableName(catalogTable, sft))
-      (schema, table)
-    } else {
-      (None, None)
-    }
-
     // determine the schema ID - ensure that it is unique in this catalog
     // IMPORTANT: this method needs to stay inside a zookeeper distributed locking block
     var schemaId = 1
@@ -577,6 +563,39 @@ class AccumuloDataStore(val connector: Connector,
     require(schemaId <= Byte.MaxValue, s"No more than ${Byte.MaxValue} schemas may share a single catalog table")
     val schemaIdString = new String(Array(schemaId.asInstanceOf[Byte]), StandardCharsets.UTF_8)
 
+    // set user data so that it gets persisted
+    if (sft.getSchemaVersion == CURRENT_SCHEMA_VERSION) {
+      // explicitly set it in case this was just the default
+      sft.setSchemaVersion(CURRENT_SCHEMA_VERSION)
+    }
+    if (sft.isTableSharing) {
+      sft.setTableSharing(true) // explicitly set it in case this was just the default
+      sft.setTableSharingPrefix(schemaIdString)
+    }
+    // handle renaming of enabled indices key so that it gets persisted
+    // noinspection ScalaDeprecation
+    Option(sft.getUserData.get(SimpleFeatureTypes.ENABLED_INDEXES_OLD)).foreach { old =>
+      sft.getUserData.put(SimpleFeatureTypes.ENABLED_INDEXES, old)
+    }
+
+    // only set spatio-temporal fields if z2 isn't supported
+    val stTable = if (sft.getSchemaVersion > 7) { None } else {
+      // get the requested index schema or build the default
+      if (sft.getStIndexSchema == null) {
+        sft.setStIndexSchema(buildDefaultSpatioTemporalSchema(sft.getTypeName))
+      }
+      Some(SpatioTemporalTable.formatTableName(catalogTable, sft))
+    }
+
+    // compute the metadata values - IMPORTANT: encode type has to be called after all user data is set
+    val attributesValue   = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
+    val z2TableValue      = Z2Table.formatTableName(catalogTable, sft)
+    val z3TableValue      = Z3Table.formatTableName(catalogTable, sft)
+    val attrIdxTableValue = AttributeTable.formatTableName(catalogTable, sft)
+    val recordTableValue  = RecordTable.formatTableName(catalogTable, sft)
+    val queriesTableValue = formatQueriesTableName(catalogTable)
+    val dataStoreVersion  = sft.getSchemaVersion.toString
+
     // store each metadata in the associated key
     val metadataMap = Map(
       ATTRIBUTES_KEY        -> attributesValue,
@@ -585,13 +604,10 @@ class AccumuloDataStore(val connector: Connector,
       ATTR_IDX_TABLE_KEY    -> attrIdxTableValue,
       RECORD_TABLE_KEY      -> recordTableValue,
       QUERIES_TABLE_KEY     -> queriesTableValue,
-      SHARED_TABLES_KEY     -> tableSharingValue,
-      TABLES_ENABLED_KEY    -> enabledTablesValue,
       VERSION_KEY           -> dataStoreVersion,
       SCHEMA_ID_KEY         -> schemaIdString,
-      DTGFIELD_KEY          -> dtgValue,
-      ST_IDX_TABLE_KEY      -> stTable,
-      SCHEMA_KEY            -> stSchema
+      // noinspection ScalaDeprecation
+      ST_IDX_TABLE_KEY      -> stTable
     ).collect {
       case (k: String, v: String) => (k, v)
       case (k: String, v: Some[String]) => (k, v.get)

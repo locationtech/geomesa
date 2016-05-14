@@ -16,7 +16,6 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
-import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.util.{CloseableIterator, SelfClosingIterator}
@@ -253,74 +252,6 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
           features(i).getAttribute("geom") mustEqual WKTUtils.read(s"POINT(5$i 50)")
         }
         success
-      }
-    }
-
-    "handle transformations to updated types" >> {
-      var sft = createNewSchema("dtg:Date,geom:Point:srid=4326")
-      val sftName = sft.getTypeName
-      addFeatures(sft, {
-        (0 until 10).filter(_ % 2 == 0).map { i =>
-          val sf = new ScalaSimpleFeature(s"f$i", sft)
-          sf.setAttribute(0, s"2014-01-01T0$i:00:00.000Z")
-          sf.setAttribute(1, s"POINT(5$i 50)")
-          sf
-        }
-      })
-      sft = SimpleFeatureTypes.createType(sftName, "dtg:Date,geom:Point:srid=4326,attr1:String")
-      ds.metadata.insert(sftName, org.locationtech.geomesa.accumulo.data.ATTRIBUTES_KEY, SimpleFeatureTypes.encodeType(sft))
-      ds.metadata.expireCache(sftName)
-      addFeatures(sft, {
-        (0 until 10).filter(_ % 2 == 1).map { i =>
-          val sf = new ScalaSimpleFeature(s"f$i", sft)
-          sf.setAttribute(0, s"2014-01-01T0$i:00:00.000Z")
-          sf.setAttribute(1, s"POINT(5$i 50)")
-          sf.setAttribute(2, s"$i")
-          sf
-        }
-      })
-      ok
-      "for old attributes with new and old features" >> {
-        val query = new Query(sftName, ECQL.toFilter("IN ('f1', 'f2')"), Array("geom", "dtg"))
-        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
-        features.map(_.getID) must containTheSameElementsAs(Seq("f1", "f2"))
-        features.sortBy(_.getID).map(_.getAttribute("geom").toString) mustEqual Seq("POINT (51 50)", "POINT (52 50)")
-        features.sortBy(_.getID).map(_.getAttribute("dtg")).map(new DateTime(_).withZone(DateTimeZone.UTC).getHourOfDay) mustEqual Seq(1, 2)
-      }
-      "for old attributes with new features" >> {
-        val query = new Query(sftName, ECQL.toFilter("IN ('f1')"), Array("geom", "dtg"))
-        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
-        features.map(_.getID) must containTheSameElementsAs(Seq("f1"))
-        features.head.getAttribute("geom").toString mustEqual "POINT (51 50)"
-        new DateTime(features.head.getAttribute("dtg")).withZone(DateTimeZone.UTC).getHourOfDay mustEqual 1
-      }
-      "for old attributes with old features" >> {
-        val query = new Query(sftName, ECQL.toFilter("IN ('f2')"), Array("geom", "dtg"))
-        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
-        features.map(_.getID) must containTheSameElementsAs(Seq("f2"))
-        features.head.getAttribute("geom").toString mustEqual "POINT (52 50)"
-        new DateTime(features.head.getAttribute("dtg")).withZone(DateTimeZone.UTC).getHourOfDay mustEqual 2
-      }
-      "for new attributes with new and old features" >> {
-        val query = new Query(sftName, ECQL.toFilter("IN ('f1', 'f2')"), Array("geom", "attr1"))
-        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
-        features.map(_.getID) must containTheSameElementsAs(Seq("f1", "f2"))
-        features.sortBy(_.getID).map(_.getAttribute("geom").toString) mustEqual Seq("POINT (51 50)", "POINT (52 50)")
-        features.sortBy(_.getID).map(_.getAttribute("attr1")) mustEqual Seq("1", null)
-      }
-      "for new attributes with new features" >> {
-        val query = new Query(sftName, ECQL.toFilter("IN ('f1')"), Array("geom", "attr1"))
-        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
-        features.map(_.getID) must containTheSameElementsAs(Seq("f1"))
-        features.head.getAttribute("geom").toString mustEqual "POINT (51 50)"
-        features.head.getAttribute("attr1") mustEqual "1"
-      }
-      "for new attributes with old features" >> {
-        val query = new Query(sftName, ECQL.toFilter("IN ('f2')"), Array("geom", "attr1"))
-        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
-        features.map(_.getID) must containTheSameElementsAs(Seq("f2"))
-        features.head.getAttribute("geom").toString mustEqual "POINT (52 50)"
-        features.head.getAttribute("attr1") must beNull
       }
     }
   }

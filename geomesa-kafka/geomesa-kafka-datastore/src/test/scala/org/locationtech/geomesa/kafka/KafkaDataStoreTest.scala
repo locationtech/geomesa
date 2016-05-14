@@ -70,6 +70,21 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedKafka with LazyLo
       ok
     }
 
+    "allow schemas to be created with user-data" >> {
+      val schemaWithMetadata = {
+        val sft = SimpleFeatureTypes.createType("user-data",
+          "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.foo='bar'")
+        KafkaDataStoreHelper.createStreamingSFT(sft, zkPath)
+      }
+      producerDS.createSchema(schemaWithMetadata)
+      "and available in other data stores" >> {
+        val retrieved = consumerDS.getSchema("user-data")
+        retrieved must not(beNull)
+        retrieved.getUserData.get("geomesa.foo") mustEqual "bar"
+      }
+      ok
+    }
+
     "allow schemas to be deleted" >> {
       val replaySFT = KafkaDataStoreHelper.createReplaySFT(schema, ReplayConfig(10000L, 20000L, 1000L))
       val name = replaySFT.getTypeName

@@ -67,8 +67,9 @@ trait TestWithMultipleSfts extends Specification {
     sft.setTableSharing(tableSharing)
     schemaVersion.foreach(sft.setSchemaVersion)
     ds.createSchema(sft)
-    sfts += ds.getSchema(sftName) // reload the sft from the ds to ensure all user data is set properly
-    sfts.last
+    val reloaded = ds.getSchema(sftName) // reload the sft from the ds to ensure all user data is set properly
+    sfts += reloaded
+    reloaded
   }
 
   def addFeature(sft: SimpleFeatureType, feature: SimpleFeature): java.util.List[FeatureId] =

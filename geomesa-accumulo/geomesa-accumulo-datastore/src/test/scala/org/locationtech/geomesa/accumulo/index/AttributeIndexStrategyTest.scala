@@ -39,7 +39,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
   override val spec = "name:String:index=full,age:Integer:index=true,count:Long:index=true," +
       "weight:Double:index=true,height:Float:index=true,admin:Boolean:index=true," +
       "geom:Point:srid=4326,dtg:Date,indexedDtg:Date:index=true,fingers:List[String]:index=true," +
-      "toes:List[Double]:index=true,track:String;table.indexes.enabled='attr_idx,records'"
+      "toes:List[Double]:index=true,track:String;geomesa.indexes.enabled='attr_idx,records'"
 
   val geom = WKTUtils.read("POINT(45.0 49.0)")
 

@@ -42,6 +42,28 @@ class SimpleFeatureTypesTest extends Specification {
       "encode an sft properly" >> {
         SimpleFeatureTypes.encodeType(sft) must be equalTo s"id:Integer,dtg:Date,*geom:Point:srid=4326"
       }
+      "encode an sft properly without user data" >> {
+        sft.getUserData.put("geomesa.table.sharing", "true")
+        sft.getUserData.put("hello", "goodbye")
+        SimpleFeatureTypes.encodeType(sft) must be equalTo s"id:Integer,dtg:Date,*geom:Point:srid=4326"
+      }
+      "encode an sft properly with geomesa user data" >> {
+        val encoded = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
+        encoded must startWith("id:Integer,dtg:Date,*geom:Point:srid=4326;")
+        encoded must contain("geomesa.index.dtg='dtg'")
+        encoded must contain("geomesa.table.sharing='true'")
+        encoded must not(contain("hello="))
+      }
+      "encode an sft properly with specified user data" >> {
+        import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+        sft.setUserDataPrefixes(Seq("hello"))
+        val encoded = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
+        encoded must startWith("id:Integer,dtg:Date,*geom:Point:srid=4326;")
+        encoded must contain("geomesa.user-data.prefix='hello'")
+        encoded must contain("geomesa.index.dtg='dtg'")
+        encoded must contain("geomesa.table.sharing='true'")
+        encoded must contain("hello='goodbye'")
+      }
     }
 
     "handle namespaces" >> {
@@ -191,15 +213,15 @@ class SimpleFeatureTypesTest extends Specification {
     }
 
     "handle enabled indexes" >> {
-      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.indexes.enabled='st_idx,records,z3'"
+      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.indexes.enabled='st_idx,records,z3'"
       val sft = SimpleFeatureTypes.createType("test", spec)
       sft.getUserData.get(SimpleFeatureTypes.ENABLED_INDEXES).toString.split(",").toList must be equalTo List("st_idx", "records", "z3")
     }
 
     "handle splitter opts and enabled indexes" >> {
       val specs = List(
-        "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options='fmt:%02d,min:0,max:99',table.indexes.enabled='st_idx,records,z3'",
-        "name:String,dtg:Date,*geom:Point:srid=4326;table.indexes.enabled='st_idx,records,z3',table.splitter.class=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options='fmt:%02d,min:0,max:99'")
+        "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options='fmt:%02d,min:0,max:99',geomesa.indexes.enabled='st_idx,records,z3'",
+        "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.indexes.enabled='st_idx,records,z3',table.splitter.class=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options='fmt:%02d,min:0,max:99'")
       specs.forall { spec =>
         val sft = SimpleFeatureTypes.createType("test", spec)
         sft.getUserData.get(SimpleFeatureTypes.TABLE_SPLITTER) must be equalTo "org.locationtech.geomesa.core.data.DigitSplitter"
@@ -213,9 +235,15 @@ class SimpleFeatureTypesTest extends Specification {
     }
 
     "allow arbitrary feature options in user data" >> {
-      val spec = "ame:String,dtg:Date,*geom:Point:srid=4326;a=b,c=d,x=',,,',z=23562356"
+      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;a='',c=d,x=',,,',z=23562356"
       val sft = SimpleFeatureTypes.createType("foobar", spec)
-      sft.getUserData.toList must containAllOf(Seq("a" -> "b", "c" -> "d", "x" -> ",,,", "z" -> "23562356"))
+      sft.getUserData.toList must containAllOf(Seq("a" -> "", "c" -> "d", "x" -> ",,,", "z" -> "23562356"))
+    }
+
+    "allow user data with a unicode character" >> {
+      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.table.sharing.prefix='\\u0001',geomesa.mixed.geometries='true',table.indexes.enabled='',geomesa.table.sharing='true',geomesa.all.user.data='true'"
+      val sft = SimpleFeatureTypes.createType("foobar", spec)
+      sft.getUserData.toList must containAllOf(Seq("geomesa.table.sharing.prefix" -> "\u0001", "geomesa.mixed.geometries" -> "true", "geomesa.table.sharing" -> "true"))
     }
 
     "allow specification of ST index entry values" >> {

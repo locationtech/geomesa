@@ -49,7 +49,7 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
     IntersectionResult(computedIntersectionIds, trueIntersectionIds)
   }
 
-  override val spec = "name:String,track:String,dtg:Date,*geom:Point:srid=4326;table.indexes.enabled='records'"
+  override val spec = "name:String,track:String,dtg:Date,*geom:Point:srid=4326;geomesa.indexes.enabled='records'"
 
   val features = (0 until 20).map { i =>
     val name = s"name$i"
