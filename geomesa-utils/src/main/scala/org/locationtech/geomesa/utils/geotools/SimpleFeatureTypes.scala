@@ -12,6 +12,7 @@ import java.util.{Date, Locale, UUID}
 
 import com.typesafe.config.{Config, ConfigFactory}
 import com.vividsolutions.jts.geom._
+import org.apache.commons.lang.StringEscapeUtils
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.SpecParser.{ListAttributeType, MapAttributeType, SimpleAttributeType}
@@ -30,8 +31,11 @@ object SimpleFeatureTypes {
 
   val TABLE_SPLITTER           = "table.splitter.class"
   val TABLE_SPLITTER_OPTIONS   = "table.splitter.options"
-  val ENABLED_INDEXES          = "table.indexes.enabled"
+  val ENABLED_INDEXES          = "geomesa.indexes.enabled"
   val MIXED_GEOMETRIES         = "geomesa.mixed.geometries"
+
+  @deprecated
+  val ENABLED_INDEXES_OLD      = "table.indexes.enabled"
 
   val OPT_DEFAULT              = "default"
   val OPT_SRID                 = "srid"
@@ -144,9 +148,16 @@ object SimpleFeatureTypes {
   }
 
   def encodeType(sft: SimpleFeatureType, includeUserData: Boolean = false): String = {
-    val suffix = if (!includeUserData || sft.getUserData.isEmpty) { "" } else {
-      sft.getUserData.entrySet.map(e => s"${e.getKey}='${e.getValue}'").mkString(";", ",", "")
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+    lazy val userData = {
+      val prefixes = sft.getUserDataPrefixes
+      sft.getUserData.filter { case (k, v) => v != null && prefixes.exists(k.toString.startsWith) }
     }
+    val suffix = if (!includeUserData || userData.isEmpty) { "" } else {
+      userData.map { case (k, v) => s"$k='${StringEscapeUtils.escapeJava(v.toString)}'" }.mkString(";", ",", "")
+    }
+
     sft.getAttributeDescriptors.map(encodeDescriptor(sft, _)).mkString("", ",", suffix)
   }
 

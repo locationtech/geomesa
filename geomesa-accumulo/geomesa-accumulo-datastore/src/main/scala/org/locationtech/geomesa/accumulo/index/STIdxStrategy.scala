@@ -36,7 +36,7 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     val acc             = queryPlanner.ds
     val sft             = queryPlanner.sft
     val version         = sft.getSchemaVersion
-    val schema          = queryPlanner.ds.getIndexSchemaFmt(sft.getTypeName)
+    val schema          = queryPlanner.ds.getIndexSchemaFmt(sft)
     val featureEncoding = queryPlanner.ds.getFeatureEncoding(sft)
     val keyPlanner      = IndexSchema.buildKeyPlanner(schema)
     val cfPlanner       = IndexSchema.buildColumnFamilyPlanner(schema)

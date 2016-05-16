@@ -184,11 +184,13 @@ object RichSimpleFeatureType {
 
   import scala.collection.JavaConversions._
 
+  val GEOMESA_PREFIX      = "geomesa."
   val SCHEMA_VERSION_KEY  = "geomesa.version"
   val TABLE_SHARING_KEY   = "geomesa.table.sharing"
   val SHARING_PREFIX_KEY  = "geomesa.table.sharing.prefix"
   val DEFAULT_DATE_KEY    = "geomesa.index.dtg"
   val ST_INDEX_SCHEMA_KEY = "geomesa.index.st.schema"
+  val USER_DATA_PREFIX    = "geomesa.user-data.prefix"
 
   // in general we store everything as strings so that it's easy to pass to accumulo iterators
   implicit class RichSimpleFeatureType(val sft: SimpleFeatureType) extends AnyVal {
@@ -238,6 +240,10 @@ object RichSimpleFeatureType {
 
     def getEnabledTables: String = userData[String](SimpleFeatureTypes.ENABLED_INDEXES).getOrElse("")
     def setEnabledTables(tables: String): Unit = sft.getUserData.put(SimpleFeatureTypes.ENABLED_INDEXES, tables)
+
+    def setUserDataPrefixes(prefixes: Seq[String]): Unit = sft.getUserData.put(USER_DATA_PREFIX, prefixes.mkString(","))
+    def getUserDataPrefixes: Seq[String] =
+      Seq(GEOMESA_PREFIX) ++ userData[String](USER_DATA_PREFIX).map(_.split(",")).getOrElse(Array.empty)
 
     def userData[T](key: AnyRef): Option[T] = Option(sft.getUserData.get(key).asInstanceOf[T])
   }
