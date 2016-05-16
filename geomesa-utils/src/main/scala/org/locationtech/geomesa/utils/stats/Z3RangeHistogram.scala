@@ -40,9 +40,11 @@ class Z3RangeHistogram(val geomIndex: Int, val dtgIndex: Int, val length: Int) e
   def weeks: Seq[Short] = binMap.keys.toSeq.sorted
   def count(week: Short, i: Int): Long = binMap(week).counts(i)
 
+  def directIndex(week: Short, value: Long): Int = binMap.get(week).map(_.indexOf(value)).getOrElse(-1)
+
   def indexOf(value: (Geometry, Date)): (Short, Int) = {
     val (week, z) = toKey(value._1, value._2)
-    (week, binMap.get(week).map(_.indexOf(z)).getOrElse(-1))
+    (week, directIndex(week, z))
   }
 
   def medianValue(week: Short, i: Int): (Geometry, Date) = fromKey(week, binMap(week).medianValue(i))
@@ -152,4 +154,21 @@ object Z3RangeHistogram {
   val maxDate = Z3SFC.time.max.toLong
   val minZ = Z3SFC.index(minGeom.getX, minGeom.getY, minDate).z
   val maxZ = Z3SFC.index(maxGeom.getX, maxGeom.getY, maxDate).z
+
+  /**
+    * Combines a sequence of split histograms. This will not modify any of the inputs.
+    *
+    * @param histograms histograms to combine
+    * @return
+    */
+  def combine(histograms: Seq[Z3RangeHistogram]): Option[Z3RangeHistogram] = {
+    if (histograms.length < 2) {
+      histograms.headOption
+    } else {
+      // create a new stat so that we don't modify the existing ones
+      val summed = histograms.head + histograms.tail.head
+      histograms.drop(2).foreach(summed += _)
+      Some(summed)
+    }
+  }
 }

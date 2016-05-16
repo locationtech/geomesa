@@ -8,6 +8,10 @@
 
 package org.locationtech.geomesa.utils.stats
 
+import java.util.Date
+
+import com.vividsolutions.jts.geom.{Coordinate, Geometry}
+import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.reflect.ClassTag
@@ -34,10 +38,11 @@ class RangeHistogram[T](val attribute: Int, initialBins: Int, initialEndpoints: 
   private lazy val jsonStringify = Stat.stringifier(ct.runtimeClass, json = true)
 
   def length: Int = bins.length
+  def directIndex(value: Long): Int = bins.directIndex(value)
   def indexOf(value: T): Int = bins.indexOf(value)
   def count(i: Int): Long = bins.counts(i)
-  def min: T = bins.min
-  def max: T = bins.max
+  def min: T = bins.bounds._1
+  def max: T = bins.bounds._2
   def bounds: (T, T) = bins.bounds
   def bounds(i: Int): (T, T) = bins.bounds(i)
   def medianValue(i: Int): T = bins.medianValue(i)
@@ -148,17 +153,31 @@ class RangeHistogram[T](val attribute: Int, initialBins: Int, initialEndpoints: 
 
 object RangeHistogram {
 
+  def buffer[T](value: T): (T, T) = {
+    val buf = value match {
+      case v: String => (v, v + "z")
+      case v: Int    => (v - 1, v + 1)
+      case v: Long   => (v - 1, v + 1)
+      case v: Float  => (v - 1, v + 1)
+      case v: Double => (v - 1, v + 1)
+      case v: Date   => (v, new Date(v.getTime + 60000))
+      case v: Geometry =>
+        val env = v.getCentroid.buffer(1.0).getEnvelopeInternal
+        val min = GeometryUtils.geoFactory.createPoint(new Coordinate(env.getMinX, env.getMinY))
+        val max = GeometryUtils.geoFactory.createPoint(new Coordinate(env.getMaxX, env.getMaxY))
+        (min, max)
+    }
+    buf.asInstanceOf[(T, T)]
+  }
   /**
     * Creates a new binned array that encompasses the new value.
     *
     * Assumes that the value is not already within the bounds for the existing binned array.
     */
   def expandBins[T](value: T, old: BinnedArray[T])(implicit defaults: MinMax.MinMaxDefaults[T],ct: ClassTag[T]): BinnedArray[T] = {
-    val bins = if (defaults.min(value, old.bounds._1) == value) {
-      BinnedArray[T](old.length, (value, old.bounds._2))
-    } else {
-      BinnedArray[T](old.length, (old.bounds._1, value))
-    }
+    val min = defaults.min(value, old.bounds._1)
+    val max = defaults.max(value, old.bounds._2)
+    val bins = BinnedArray[T](old.length, (min, max))
     copyInto(bins, old)
     bins
   }
