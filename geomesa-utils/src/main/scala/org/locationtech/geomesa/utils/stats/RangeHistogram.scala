@@ -169,6 +169,7 @@ object RangeHistogram {
     }
     buf.asInstanceOf[(T, T)]
   }
+
   /**
     * Creates a new binned array that encompasses the new value.
     *
