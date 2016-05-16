@@ -12,9 +12,10 @@ package org.locationtech.geomesa.accumulo.data
 import java.io.Serializable
 import java.util.{Collections, Map => JMap}
 
+import org.apache.accumulo.core.client.ClientConfiguration.ClientProperty
 import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
+import org.apache.accumulo.core.client.{ClientConfiguration, Connector, ZooKeeperInstance}
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.accumulo.GeomesaSystemProperties
@@ -40,7 +41,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     val connector = connParam.lookupOpt[Connector](params).getOrElse(buildAccumuloConnector(params, useMock))
 
     val forceEmptyOpt: Option[java.lang.Boolean] = forceEmptyAuthsParam.lookupOpt[java.lang.Boolean](params)
-    val forceEmptyAuths = (forceEmptyOpt.getOrElse(java.lang.Boolean.FALSE)).asInstanceOf[Boolean]
+    val forceEmptyAuths = forceEmptyOpt.getOrElse(java.lang.Boolean.FALSE).asInstanceOf[Boolean]
 
     // convert the connector authorizations into a string array - this is the maximum auths this connector can support
     val securityOps = connector.securityOperations
@@ -151,7 +152,17 @@ object AccumuloDataStoreFactory {
     if (useMock) {
       new MockInstance(instance).getConnector(user, authToken)
     } else {
-      new ZooKeeperInstance(instance, zookeepers).getConnector(user, authToken)
+      // NB: For those wanting to set this via JAVA_OPTS, this key is "instance.zookeeper.timeout" in Accumulo 1.6.x.
+      val clientConfiguration = if (System.getProperty(ClientProperty.INSTANCE_ZK_TIMEOUT.getKey) != null) {
+        new ClientConfiguration()
+          .withInstance(instance)
+          .withZkHosts(zookeepers)
+          .`with`(ClientProperty.INSTANCE_ZK_TIMEOUT, System.getProperty(ClientProperty.INSTANCE_ZK_TIMEOUT.getKey))
+      } else {
+        new ClientConfiguration().withInstance(instance).withZkHosts(zookeepers)
+      }
+
+      new ZooKeeperInstance(clientConfiguration).getConnector(user, authToken)
     }
   }
 
