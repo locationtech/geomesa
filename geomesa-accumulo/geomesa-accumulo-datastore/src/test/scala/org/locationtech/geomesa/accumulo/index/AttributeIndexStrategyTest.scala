@@ -22,10 +22,12 @@ import org.locationtech.geomesa.accumulo.data.tables.AttributeTable
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
+import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -68,17 +70,17 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
 
   addFeatures(features)
 
-  val queryPlanner = QueryPlanner(sft, ds)
-
-  // noinspection LanguageFeature
-  implicit def stringToQuery(filter: String): Query = new Query(sftName, ECQL.toFilter(filter))
-
-  def execute(query: Query): List[String] = {
-    val results = queryPlanner.runQuery(query, Some(StrategyType.ATTRIBUTE))
+  def execute(filter: String): List[String] = {
+    val query = new Query(sftName, ECQL.toFilter(filter))
+    forall(ds.getQueryPlan(query))(_.table must endWith(AttributeTable.suffix))
+    val results = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features())
     results.map(_.getAttribute("name").toString).toList
   }
 
-  def runQuery(query: Query) = queryPlanner.runQuery(query, Some(StrategyType.ATTRIBUTE))
+  def runQuery(query: Query): Iterator[SimpleFeature] = {
+    forall(ds.getQueryPlan(query))(_.table must endWith(AttributeTable.suffix))
+    SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features())
+  }
 
   "AttributeIndexStrategy" should {
     "print values" in {
@@ -93,11 +95,9 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
 
     "all attribute filters should be applied to SFFI" in {
       val filter = andFilters(Seq(ECQL.toFilter("name LIKE 'b%'"), ECQL.toFilter("count<27"), ECQL.toFilter("age<29")))
-      val query = new Query(sftName, filter)
-      val results = queryPlanner.runQuery(query, Some(StrategyType.ATTRIBUTE))
-      val resultNames = results.map(_.getAttribute("name").toString).toList
-      resultNames must haveLength(1)
-      resultNames must contain ("bill")
+      val results = execute(ECQL.toCQL(filter))
+      results must haveLength(1)
+      results must contain ("bill")
     }
 
     "support bin queries with join queries" in {
@@ -184,14 +184,14 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     "support sampling" in {
       val query = new Query(sftName, ECQL.toFilter("name > 'a'"))
       query.getHints.put(SAMPLING_KEY, new java.lang.Float(.5f))
-      val results = execute(query)
+      val results = runQuery(query).toList
       results must haveLength(2)
     }
 
     "support sampling with cql" in {
       val query = new Query(sftName, ECQL.toFilter("name > 'a' AND track > 'track'"))
       query.getHints.put(SAMPLING_KEY, new java.lang.Float(.5f))
-      val results = execute(query)
+      val results = runQuery(query).toList
       results must haveLength(2)
     }
 
@@ -283,6 +283,36 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       val features = execute("name='bill'")
       features must haveLength(1)
       features must contain("bill")
+    }
+
+    "correctly query on OR'd strings" in {
+      val features = execute("name = 'bill' OR name = 'charles'")
+      features must haveLength(2)
+      features must contain("bill", "charles")
+    }
+
+    "correctly query on IN strings" in {
+      val features = execute("name IN ('bill', 'charles')")
+      features must haveLength(2)
+      features must contain("bill", "charles")
+    }
+
+    "correctly query on OR'd strings with bboxes" in {
+      val features = execute("(name = 'bill' OR name = 'charles') AND bbox(geom,40,45,50,55)")
+      features must haveLength(2)
+      features must contain("bill", "charles")
+    }
+
+    "correctly query on IN strings with bboxes" in {
+      val features = execute("name IN ('bill', 'charles') AND bbox(geom,40,45,50,55)")
+      features must haveLength(2)
+      features must contain("bill", "charles")
+    }
+
+    "correctly query on redundant OR'd strings" in {
+      val features = execute("(name = 'bill' OR name = 'charles') AND name = 'charles'")
+      features must haveLength(1)
+      features must contain("charles")
     }
 
     "correctly query on date objects" in {

@@ -27,7 +27,8 @@ import scala.collection.JavaConversions._
 object RecordIdxStrategy extends StrategyProvider {
 
   // record searches are the least expensive as they are single row lookups (per id)
-  override def getCost(filter: QueryFilter, sft: SimpleFeatureType, hints: StrategyHints) = 1
+  override def getCost(filter: QueryFilter, sft: SimpleFeatureType, hints: StrategyHints) =
+    if (QueryFilterSplitter.isFullTableScan(filter)) Int.MaxValue else 1
 
   def intersectIdFilters(filters: Seq[Filter]): Option[Id] = {
     if (filters.length < 2) {
