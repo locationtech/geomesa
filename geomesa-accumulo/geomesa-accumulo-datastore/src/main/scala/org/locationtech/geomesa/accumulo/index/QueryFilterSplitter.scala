@@ -200,15 +200,16 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends MethodProfiling with L
       singleAttributeOr.map { ors =>
         // we can create one plan for the single attribute filter, then AND the other filters to that,
         // and also AND the attribute ORs to the other options
-        val attributeOption = Some(getSameAttributeOption(ors)).collect {
+        val attributePlan = Some(getSameAttributeOption(ors)).collect {
           // only consider the attribute option if it results in a real plan (e.g. attribute is indexed)
           // secondary part of attribute option should be empty so we can overwrite it
           case qf if !isFullTableScan(qf) => FilterPlan(Seq(qf.copy(secondary = andOption(nonOrs))))
         }
-        val nonAttributeOptions = getAndQueryOptions(nonOrs).map { fp =>
+        val nonAttributeOptions = getAndQueryOptions(nonOrs).filterNot(_.filters.forall(isFullTableScan))
+        val nonAttributePlan = nonAttributeOptions.map { fp =>
           FilterPlan(fp.filters.map(qf => qf.copy(secondary = andOption(orOption(ors).toSeq ++ qf.secondary))))
         }
-        nonAttributeOptions ++ attributeOption
+        nonAttributePlan ++ attributePlan
       }
     }
 
@@ -232,7 +233,11 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends MethodProfiling with L
       expandReduceOrOptions(dnf)
     }
 
-    options.map(makeDisjoint)
+    if (options.nonEmpty) {
+      options.map(makeDisjoint)
+    } else {
+      Seq(fullTableScanOption(Some(filter)))
+    }
   }
 
   /**
