@@ -296,7 +296,7 @@ class BinnedStringArray(length: Int, bounds: (String, String)) extends BinnedArr
     }
   }
 
-  require(start <= end, s"Upper bound must be greater than lower bound: lower=${bounds._1} upper=${bounds._2}")
+  require(start < end, s"Upper bound must be greater than lower bound: lower=${bounds._1} upper=${bounds._2}")
 
   // # of base 36 numbers we can consider
   private val sigDigits = math.max(1, math.round(math.log(length) / math.log(36)).toInt)
