@@ -199,8 +199,8 @@ object RangeHistogram {
   private def getActualBounds[T](bins: BinnedArray[T])(implicit defaults: MinMax.MinMaxDefaults[T]): (T, T) = {
     val minIndex = bins.counts.indexWhere(_ != 0)
     val maxIndex = bins.counts.length - bins.counts.reverse.indexWhere(_ != 0) - 1
-    val min = if (minIndex == 0) bins.bounds._1 else bins.bounds(minIndex)._1
-    val max = if (maxIndex == bins.counts.length -1) bins.bounds._2 else bins.bounds(maxIndex)._2
+    val min = if (minIndex <= 0) bins.bounds._1 else bins.bounds(minIndex)._1
+    val max = if (maxIndex >= bins.counts.length -1) bins.bounds._2 else bins.bounds(maxIndex)._2
     (min, max)
   }
 
