@@ -37,7 +37,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
 
   sequential
 
-  val spec = "name:String,track:String,dtg:Date,*geom:Point:srid=4326;table.indexes.enabled='z3'"
+  val spec = "name:String,track:String,dtg:Date,*geom:Point:srid=4326;geomesa.indexes.enabled='z3'"
 
   val features =
     (0 until 10).map { i =>

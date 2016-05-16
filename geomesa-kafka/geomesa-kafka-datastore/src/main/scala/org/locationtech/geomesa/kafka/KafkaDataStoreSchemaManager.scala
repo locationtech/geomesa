@@ -46,7 +46,7 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
       throw new IllegalArgumentException(s"Type $typeName already exists at $zkPath.")
     }
 
-    val data = SimpleFeatureTypes.encodeType(featureType)
+    val data = SimpleFeatureTypes.encodeType(featureType, includeUserData = true)
     createZkNode(schemaPath, data)
 
     // build the topic node

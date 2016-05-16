@@ -156,7 +156,7 @@ indices will all be created, as well as any attribute indices you have defined.
     indices may be added at any time through map/reduce jobs - see :ref:`attribute_indexing_job`.
 
 To enable only certain indices, you may set a hint in your simple feature type. The hint key is
-``table.indexes.enabled``, and it should contain a comma-delimited list containing a subset of:
+``geomesa.indexes.enabled``, and it should contain a comma-delimited list containing a subset of:
 
 - ``z2`` - corresponds to the Z2 index
 - ``z3`` - corresponds to the Z3 index
@@ -171,7 +171,7 @@ the hint to the end of the string, like so:
 .. code-block:: java
 
     // append the hints to the end of the string, separated by a semi-colon
-    String spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.indexes.enabled='records,z3'";
+    String spec = "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.indexes.enabled='records,z3'";
     SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
 
 If you have an existing simple feature type, or you are not using ``SimpleFeatureTypes.createType``,
@@ -181,7 +181,7 @@ you may set the hint directly in the feature type:
 
     // set the hint directly
     SimpleFeatureType sft = ...
-    sft.getUserData().put("table.indexes.enabled", "records,z3");
+    sft.getUserData().put("geomesa.indexes.enabled", "records,z3");
 
 If you are using TypeSafe configuration files to define your simple feature type, you may include
 a 'user-data' key:
@@ -197,7 +197,7 @@ a 'user-data' key:
             { name = geom, type = Point, srid = 4326 }
           ]
           user-data = {
-            table.indexes.enabled = "records,z3,attr_idx"
+            geomesa.indexes.enabled = "records,z3,attr_idx"
           }
         }
       }
