@@ -83,10 +83,13 @@ class HistogramTest extends Specification with StatTestHelper {
       "deserialize as immutable value" >> {
         val stat = newStat[String]("strAttr")
         val packed = StatSerializer(sft).serialize(stat)
-        val unpacked = StatSerializer(sft).deserialize(packed)
+        val unpacked = StatSerializer(sft).deserialize(packed, immutable = true)
         unpacked.toJson mustEqual stat.toJson
 
-
+        unpacked.clear must throwAn[Exception]
+        unpacked.+=(stat) must throwAn[Exception]
+        unpacked.observe(features.head) must throwAn[Exception]
+        unpacked.unobserve(features.head) must throwAn[Exception]
       }
 
       "combine two states" >> {
