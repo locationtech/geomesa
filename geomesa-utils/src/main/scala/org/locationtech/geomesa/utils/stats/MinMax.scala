@@ -154,7 +154,7 @@ object MinMax {
 
   implicit object MinMaxString extends ComparableMinMax[String] {
     override val min: String = ""
-    override val max: String = "~~~"
+    override val max: String = "\uFFFF\uFFFF\uFFFF"
   }
 
   implicit object MinMaxInt extends ComparableMinMax[Integer] {

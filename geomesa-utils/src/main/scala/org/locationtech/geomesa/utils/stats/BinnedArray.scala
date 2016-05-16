@@ -302,7 +302,7 @@ class BinnedStringArray(length: Int, bounds: (String, String)) extends BinnedArr
 
   // # of base 36 numbers we can consider
   private val sigDigits = math.max(1, math.round(math.log(length) / math.log(36)).toInt)
-  private val prefixLength = if (start == end) start.length else start.zip(end).indexWhere { case (l, r) => l != r }
+  private val prefixLength = start.zip(end).indexWhere { case (l, r) => l != r }
 
   private val minLong = stringToLong(start)
   private val maxLong = stringToLong(end, 'z')
