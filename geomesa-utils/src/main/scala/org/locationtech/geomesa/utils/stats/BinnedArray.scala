@@ -123,7 +123,8 @@ abstract class WholeNumberBinnedArray[T](length: Int, bounds: (T, T)) extends Bi
   private val min = convertToLong(bounds._1)
   private val max = convertToLong(bounds._2)
 
-  require(min < max, s"Upper bound must be greater than lower bound: lower=${bounds._1} upper=${bounds._2}")
+  require(min < max,
+    s"Upper bound must be greater than lower bound: lower='${bounds._1}'($min) upper='${bounds._2}'($max)")
 
   private val binSize = (max - min).toDouble / length
 
@@ -214,7 +215,7 @@ class BinnedGeometryArray(length: Int, bounds: (Geometry, Geometry))
 class BinnedFloatArray(length: Int, bounds: (jFloat, jFloat)) extends BinnedArray[jFloat](length, bounds) {
 
   require(bounds._1 < bounds._2,
-    s"Upper bound must be greater than lower bound: lower=${bounds._1} upper=${bounds._2}")
+    s"Upper bound must be greater than lower bound: lower='${bounds._1}' upper='${bounds._2}'")
 
   private val binSize = (bounds._2 - bounds._1) / length
 
@@ -246,7 +247,7 @@ class BinnedFloatArray(length: Int, bounds: (jFloat, jFloat)) extends BinnedArra
 class BinnedDoubleArray(length: Int, bounds: (jDouble, jDouble)) extends BinnedArray[jDouble](length, bounds) {
 
   require(bounds._1 < bounds._2,
-    s"Upper bound must be greater than lower bound: lower=${bounds._1} upper=${bounds._2}")
+    s"Upper bound must be greater than lower bound: lower='${bounds._1}' upper='${bounds._2}'")
 
   private val binSize = (bounds._2 - bounds._1) / length
 
@@ -296,7 +297,8 @@ class BinnedStringArray(length: Int, bounds: (String, String)) extends BinnedArr
     }
   }
 
-  require(start < end, s"Upper bound must be greater than lower bound: lower=${bounds._1} upper=${bounds._2}")
+  require(start < end,
+    s"Upper bound must be greater than lower bound: lower='${bounds._1}'($start) upper='${bounds._2}'($end)")
 
   // # of base 36 numbers we can consider
   private val sigDigits = math.max(1, math.round(math.log(length) / math.log(36)).toInt)
@@ -317,8 +319,8 @@ class BinnedStringArray(length: Int, bounds: (String, String)) extends BinnedArr
     }
     jLong.parseLong(normalized, 36)
   }
-  def longToString(l: Long, padding: Char = '0'): String =
-    start.substring(0, prefixLength) + jLong.toString(l, 36).padTo(sigDigits, padding)
+  def longToString(long: Long, padding: Char = '0'): String =
+    start.substring(0, prefixLength) + jLong.toString(long, 36).padTo(sigDigits, padding)
 
   override def directIndex(value: Long): Int = {
     val i = math.floor((value - minLong) / binSize).toInt
