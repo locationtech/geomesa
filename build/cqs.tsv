@@ -3,6 +3,7 @@ asm:asm	3.3.1	compile
 com.101tec:zkclient	0.3	compile
 com.adobe.xmp:xmpcore	5.1.2	compile
 com.beust:jcommander	1.48	compile
+com.clearspring.analytics:stream	2.9.2	compile
 com.drewnoakes:metadata-extractor	2.8.1	compile
 com.esotericsoftware.kryo:kryo	2.21	compile
 com.esotericsoftware.minlog:minlog	1.2	compile
@@ -74,6 +75,7 @@ it.geosolutions.jaiext.utilities:jt-utilities	1.0.8	compile
 it.geosolutions.jaiext.vectorbin:jt-vectorbin	1.0.8	compile
 it.geosolutions.jaiext.warp:jt-warp	1.0.8	compile
 it.geosolutions.jaiext.zonal:jt-zonal	1.0.8	compile
+it.unimi.dsi:fastutil	7.0.6	compile
 joda-time:joda-time	2.3	compile
 log4j:log4j	1.2.17	compile
 net.iharder:base64	2.3.8	compile

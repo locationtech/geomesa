@@ -37,7 +37,7 @@ class SeqStatTest extends Specification with StatTestHelper {
       val rh = stat.stats(3).asInstanceOf[RangeHistogram[java.lang.Double]]
 
       mm.attribute mustEqual intIndex
-      mm.bounds must beNone
+      mm.isEmpty must beTrue
 
       ic.counter mustEqual 1
 
@@ -61,7 +61,7 @@ class SeqStatTest extends Specification with StatTestHelper {
       val eh = stat.stats(2).asInstanceOf[Histogram[java.lang.Long]]
       val rh = stat.stats(3).asInstanceOf[RangeHistogram[java.lang.Double]]
 
-      mm.bounds must beSome((0, 99))
+      mm.bounds mustEqual (0, 99)
 
       ic.counter mustEqual 1
 
@@ -93,10 +93,22 @@ class SeqStatTest extends Specification with StatTestHelper {
     }
 
     "serialize and deserialize empty SeqStat" >> {
-      val minMax = newStat(observe = false)
-      val packed = StatSerializer(sft).serialize(minMax)
+      val stat = newStat(observe = false)
+      val packed = StatSerializer(sft).serialize(stat)
       val unpacked = StatSerializer(sft).deserialize(packed)
-      unpacked.toJson mustEqual minMax.toJson
+      unpacked.toJson mustEqual stat.toJson
+    }
+
+    "deserialize as immutable value" >> {
+      val stat = newStat()
+      val packed = StatSerializer(sft).serialize(stat)
+      val unpacked = StatSerializer(sft).deserialize(packed, immutable = true)
+      unpacked.toJson mustEqual stat.toJson
+
+      unpacked.clear must throwAn[Exception]
+      unpacked.+=(stat) must throwAn[Exception]
+      unpacked.observe(features.head) must throwAn[Exception]
+      unpacked.unobserve(features.head) must throwAn[Exception]
     }
 
     "combine two SeqStats" >> {
@@ -113,10 +125,8 @@ class SeqStatTest extends Specification with StatTestHelper {
       val eh2 = stat2.stats(2).asInstanceOf[Histogram[java.lang.Long]]
       val rh2 = stat2.stats(3).asInstanceOf[RangeHistogram[java.lang.Double]]
 
-      mm2.bounds must beNone
-
       ic2.counter mustEqual 1
-
+      mm2.isEmpty must beTrue
       eh2.histogram must beEmpty
 
       rh2.length mustEqual 20
@@ -126,7 +136,7 @@ class SeqStatTest extends Specification with StatTestHelper {
 
       stat += stat2
 
-      mm.bounds must beSome((0, 199))
+      mm.bounds mustEqual (0, 199)
 
       ic.counter mustEqual 2
 
@@ -139,7 +149,7 @@ class SeqStatTest extends Specification with StatTestHelper {
       rh.count(rh.indexOf(50.0)) mustEqual 10
       rh.count(rh.indexOf(100.0)) mustEqual 10
 
-      mm2.bounds must beSome((100, 199))
+      mm2.bounds mustEqual (100, 199)
 
       ic2.counter mustEqual 1
 
@@ -165,7 +175,7 @@ class SeqStatTest extends Specification with StatTestHelper {
       val rh = stat.stats(3).asInstanceOf[RangeHistogram[java.lang.Double]]
 
       mm.attribute mustEqual intIndex
-      mm.bounds must beNone
+      mm.isEmpty must beTrue
 
       ic.counter mustEqual 1
 

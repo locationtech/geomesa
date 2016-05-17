@@ -49,7 +49,7 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
       val sf = results.features().next
 
       val minMaxStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[java.lang.Long]]
-      minMaxStat.bounds must beSome((0, 298))
+      minMaxStat.bounds mustEqual (0, 298)
     }
 
     "work with the IteratotStackCount stat" in {
@@ -65,23 +65,19 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
       val sf = results.features().next
 
       val eh = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[Histogram[java.lang.Integer]]
-      eh.histogram.size mustEqual 150
-      eh.histogram(0) mustEqual 1
-      eh.histogram(149) mustEqual 1
-      eh.histogram(150) mustEqual 0
+      eh.size mustEqual 150
+      eh.frequency(0) mustEqual 1
+      eh.frequency(149) mustEqual 1
+      eh.frequency(150) mustEqual 0
     }
 
     "work with the RangeHistogram stat" in {
-      val results = statsIteratorProcess.execute(fs.getFeatures(query), "RangeHistogram(id,5,10,14)", encode = true)
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "RangeHistogram(id,5,0,149)", encode = true)
       val sf = results.features().next
 
       val rh = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[RangeHistogram[java.lang.Integer]]
       rh.length mustEqual 5
-      rh.count(rh.indexOf(10)) mustEqual 1
-      rh.count(rh.indexOf(11)) mustEqual 1
-      rh.count(rh.indexOf(12)) mustEqual 1
-      rh.count(rh.indexOf(13)) mustEqual 1
-      rh.count(rh.indexOf(14)) mustEqual 1
+      forall(0 until 5)(rh.count(_) mustEqual 30)
     }
 
     "work with multiple stats at once" in {
@@ -98,21 +94,18 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
       val eh = stats(2).asInstanceOf[Histogram[java.lang.Integer]]
       val rh = stats(3).asInstanceOf[RangeHistogram[java.lang.Integer]]
 
-      minMax.bounds must beSome((0, 298))
+      minMax.bounds mustEqual (0, 298)
 
       isc.count must beGreaterThanOrEqualTo(1L)
 
-      eh.histogram.size mustEqual 150
-      eh.histogram(0) mustEqual 1
-      eh.histogram(149) mustEqual 1
-      eh.histogram(150) mustEqual 0
+      eh.size mustEqual 150
+      eh.frequency(0) mustEqual 1
+      eh.frequency(149) mustEqual 1
+      eh.frequency(150) mustEqual 0
 
       rh.length mustEqual 5
-      rh.count(rh.indexOf(10)) mustEqual 1
-      rh.count(rh.indexOf(11)) mustEqual 1
-      rh.count(rh.indexOf(12)) mustEqual 1
-      rh.count(rh.indexOf(13)) mustEqual 1
-      rh.count(rh.indexOf(14)) mustEqual 1
+      rh.bounds mustEqual (0, 149)
+      (0 until 5).map(rh.count).sum mustEqual 150
     }
 
     "work with non AccumuloFeatureCollections" in {
@@ -132,21 +125,18 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
       val eh = stats(2).asInstanceOf[Histogram[java.lang.Integer]]
       val rh = stats(3).asInstanceOf[RangeHistogram[java.lang.Integer]]
 
-      minMax.bounds must beSome((0, 298))
+      minMax.bounds mustEqual (0, 298)
 
       isc.count mustEqual 1L
 
-      eh.histogram.size mustEqual 150
-      eh.histogram(0) mustEqual 1
-      eh.histogram(149) mustEqual 1
-      eh.histogram(150) mustEqual 0
+      eh.size mustEqual 150
+      eh.frequency(0) mustEqual 1
+      eh.frequency(149) mustEqual 1
+      eh.frequency(150) mustEqual 0
 
       rh.length mustEqual 5
-      rh.count(rh.indexOf(10)) mustEqual 1
-      rh.count(rh.indexOf(11)) mustEqual 1
-      rh.count(rh.indexOf(12)) mustEqual 1
-      rh.count(rh.indexOf(13)) mustEqual 1
-      rh.count(rh.indexOf(14)) mustEqual 1
+      rh.bounds mustEqual (0, 149)
+      (0 until 5).map(rh.count).sum mustEqual 150
     }
   }
 }

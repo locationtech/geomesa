@@ -34,23 +34,24 @@ class MinMaxTest extends Specification with StatTestHelper {
       "be empty initiallly" >> {
         val minMax = newStat[String]("strAttr", observe = false)
         minMax.attribute mustEqual stringIndex
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
+        minMax.cardinality mustEqual 0
       }
 
       "observe correct values" >> {
         val minMax = newStat[String]("strAttr")
-        minMax.bounds must beSome(("abc000", "abc099"))
+        minMax.bounds mustEqual ("abc000", "abc099")
+        minMax.cardinality must beCloseTo(100L, 5)
       }
 
       "serialize to json" >> {
         val minMax = newStat[String]("strAttr")
-        minMax.toJson mustEqual """{ "min": "abc000", "max": "abc099" }"""
+        minMax.toJson must beMatching("""\{ "min": "abc000", "max": "abc099", "cardinality": \d+ \}""")
       }
 
       "serialize empty to json" >> {
         val minMax = newStat[String]("strAttr", observe = false)
-        minMax.toJson mustEqual """{ "min": null, "max": null }"""
+        minMax.toJson mustEqual """{ "min": null, "max": null, "cardinality": 0 }"""
       }
 
       "serialize and deserialize" >> {
@@ -67,18 +68,32 @@ class MinMaxTest extends Specification with StatTestHelper {
         unpacked.toJson mustEqual minMax.toJson
       }
 
+      "deserialize as immutable value" >> {
+        val stat = newStat[String]("strAttr")
+        val packed = StatSerializer(sft).serialize(stat)
+        val unpacked = StatSerializer(sft).deserialize(packed, immutable = true)
+        unpacked.toJson mustEqual stat.toJson
+
+        unpacked.clear must throwAn[Exception]
+        unpacked.+=(stat) must throwAn[Exception]
+        unpacked.observe(features.head) must throwAn[Exception]
+        unpacked.unobserve(features.head) must throwAn[Exception]
+      }
+
       "combine two MinMaxes" >> {
         val minMax = newStat[String]("strAttr")
         val minMax2 = newStat[String]("strAttr", observe = false)
 
         features2.foreach { minMax2.observe }
 
-        minMax2.bounds must beSome(("abc100", "abc199"))
+        minMax2.bounds mustEqual ("abc100", "abc199")
+        minMax2.cardinality must beCloseTo(100L, 5)
 
         minMax += minMax2
 
-        minMax.bounds must beSome(("abc000", "abc199"))
-        minMax2.bounds must beSome(("abc100", "abc199"))
+        minMax.bounds mustEqual ("abc000", "abc199")
+        minMax.cardinality must beCloseTo(200L, 5)
+        minMax2.bounds mustEqual ("abc100", "abc199")
       }
 
       "clear" >> {
@@ -87,8 +102,8 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         minMax.clear()
 
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
+        minMax.cardinality mustEqual 0
       }
     }
 
@@ -96,23 +111,24 @@ class MinMaxTest extends Specification with StatTestHelper {
       "be empty initiallly" >> {
         val minMax = newStat[java.lang.Integer]("intAttr", observe = false)
         minMax.attribute mustEqual intIndex
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
+        minMax.cardinality mustEqual 0
       }
 
       "observe correct values" >> {
         val minMax = newStat[java.lang.Integer]("intAttr")
-        minMax.bounds must beSome((0, 99))
+        minMax.bounds mustEqual (0, 99)
+        minMax.cardinality must beCloseTo(100L, 5)
       }
 
       "serialize to json" >> {
         val minMax = newStat[java.lang.Integer]("intAttr")
-        minMax.toJson mustEqual """{ "min": 0, "max": 99 }"""
+        minMax.toJson must beMatching("""\{ "min": 0, "max": 99, "cardinality": [0-9]+ \}""")
       }
 
       "serialize empty to json" >> {
         val minMax = newStat[java.lang.Integer]("intAttr", observe = false)
-        minMax.toJson mustEqual """{ "min": null, "max": null }"""
+        minMax.toJson mustEqual """{ "min": null, "max": null, "cardinality": 0 }"""
       }
 
       "serialize and deserialize" >> {
@@ -135,12 +151,14 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         features2.foreach { minMax2.observe }
 
-        minMax2.bounds must beSome((100, 199))
+        minMax2.bounds mustEqual (100, 199)
+        minMax2.cardinality must beCloseTo(100L, 5)
 
         minMax += minMax2
 
-        minMax.bounds must beSome((0, 199))
-        minMax2.bounds must beSome((100, 199))
+        minMax.bounds mustEqual (0, 199)
+        minMax.cardinality must beCloseTo(200L, 5)
+        minMax2.bounds mustEqual (100, 199)
       }
 
       "clear" >> {
@@ -149,8 +167,8 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         minMax.clear()
 
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
+        minMax.cardinality mustEqual 0
       }
     }
 
@@ -158,23 +176,24 @@ class MinMaxTest extends Specification with StatTestHelper {
       "be empty initiallly" >> {
         val minMax = newStat[java.lang.Long]("longAttr", observe = false)
         minMax.attribute mustEqual longIndex
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
+        minMax.cardinality mustEqual 0
       }
 
       "observe correct values" >> {
         val minMax = newStat[java.lang.Long]("longAttr")
-        minMax.bounds must beSome((0L, 99L))
+        minMax.bounds mustEqual (0L, 99L)
+        minMax.cardinality must beCloseTo(100L, 5)
       }
 
       "serialize to json" >> {
         val minMax = newStat[java.lang.Long]("longAttr")
-        minMax.toJson mustEqual """{ "min": 0, "max": 99 }"""
+        minMax.toJson must beMatching("""\{ "min": 0, "max": 99, "cardinality": \d+ \}""")
       }
 
       "serialize empty to json" >> {
         val minMax = newStat[java.lang.Long]("longAttr", observe = false)
-        minMax.toJson mustEqual """{ "min": null, "max": null }"""
+        minMax.toJson mustEqual """{ "min": null, "max": null, "cardinality": 0 }"""
       }
 
       "serialize and deserialize" >> {
@@ -197,12 +216,14 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         features2.foreach { minMax2.observe }
 
-        minMax2.bounds must beSome((100L, 199L))
+        minMax2.bounds mustEqual (100L, 199L)
+        minMax2.cardinality must beCloseTo(100L, 5)
 
         minMax += minMax2
 
-        minMax.bounds must beSome((0L, 199L))
-        minMax2.bounds must beSome((100L, 199L))
+        minMax.bounds mustEqual (0L, 199L)
+        minMax.cardinality must beCloseTo(200L, 5)
+        minMax2.bounds mustEqual (100L, 199L)
       }
 
       "clear" >> {
@@ -211,8 +232,8 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         minMax.clear()
 
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
+        minMax.cardinality mustEqual 0
       }
     }
 
@@ -220,23 +241,24 @@ class MinMaxTest extends Specification with StatTestHelper {
       "be empty initiallly" >> {
         val minMax = newStat[java.lang.Float]("floatAttr", observe = false)
         minMax.attribute mustEqual floatIndex
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
+        minMax.cardinality mustEqual 0
       }
 
       "observe correct values" >> {
         val minMax = newStat[java.lang.Float]("floatAttr")
-        minMax.bounds must beSome((0f, 99f))
+        minMax.bounds mustEqual (0f, 99f)
+        minMax.cardinality must beCloseTo(100L, 5)
       }
 
       "serialize to json" >> {
         val minMax = newStat[java.lang.Float]("floatAttr")
-        minMax.toJson mustEqual """{ "min": 0.0, "max": 99.0 }"""
+        minMax.toJson must beMatching("""\{ "min": 0.0, "max": 99.0, "cardinality": \d+ \}""")
       }
 
       "serialize empty to json" >> {
         val minMax = newStat[java.lang.Float]("floatAttr", observe = false)
-        minMax.toJson mustEqual """{ "min": null, "max": null }"""
+        minMax.toJson mustEqual """{ "min": null, "max": null, "cardinality": 0 }"""
       }
 
       "serialize and deserialize" >> {
@@ -259,12 +281,14 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         features2.foreach { minMax2.observe }
 
-        minMax2.bounds must beSome((100f, 199f))
+        minMax2.bounds mustEqual (100f, 199f)
+        minMax2.cardinality must beCloseTo(100L, 5)
 
         minMax += minMax2
 
-        minMax.bounds must beSome((0f, 199f))
-        minMax2.bounds must beSome((100f, 199f))
+        minMax.bounds mustEqual (0f, 199f)
+        minMax.cardinality must beCloseTo(200L, 5)
+        minMax2.bounds mustEqual (100f, 199f)
       }
 
       "clear" >> {
@@ -273,8 +297,8 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         minMax.clear()
 
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
+        minMax.cardinality mustEqual 0
       }
     }
 
@@ -282,23 +306,24 @@ class MinMaxTest extends Specification with StatTestHelper {
       "be empty initiallly" >> {
         val minMax = newStat[java.lang.Double]("doubleAttr", observe = false)
         minMax.attribute mustEqual doubleIndex
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
+        minMax.cardinality mustEqual 0
       }
 
       "observe correct values" >> {
         val minMax = newStat[java.lang.Double]("doubleAttr")
-        minMax.bounds must beSome((0d, 99d))
+        minMax.bounds mustEqual (0d, 99d)
+        minMax.cardinality must beCloseTo(100L, 5)
       }
 
       "serialize to json" >> {
         val minMax = newStat[java.lang.Double]("doubleAttr")
-        minMax.toJson mustEqual """{ "min": 0.0, "max": 99.0 }"""
+        minMax.toJson must beMatching("""\{ "min": 0.0, "max": 99.0, "cardinality": \d+ \}""")
       }
 
       "serialize empty to json" >> {
         val minMax = newStat[java.lang.Double]("doubleAttr", observe = false)
-        minMax.toJson mustEqual """{ "min": null, "max": null }"""
+        minMax.toJson mustEqual """{ "min": null, "max": null, "cardinality": 0 }"""
       }
 
       "serialize and deserialize" >> {
@@ -321,12 +346,14 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         features2.foreach { minMax2.observe }
 
-        minMax2.bounds must beSome((100d, 199d))
+        minMax2.bounds mustEqual (100d, 199d)
+        minMax2.cardinality must beCloseTo(100L, 5)
 
         minMax += minMax2
 
-        minMax.bounds must beSome((0d, 199d))
-        minMax2.bounds must beSome((100d, 199d))
+        minMax.bounds mustEqual (0d, 199d)
+        minMax.cardinality must beCloseTo(200L, 10)
+        minMax2.bounds mustEqual (100d, 199d)
       }
 
       "clear" >> {
@@ -335,8 +362,8 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         minMax.clear()
 
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
+        minMax.cardinality mustEqual 0
       }
     }
 
@@ -344,26 +371,27 @@ class MinMaxTest extends Specification with StatTestHelper {
       "be empty initiallly" >> {
         val minMax = newStat[Date]("dtg", observe = false)
         minMax.attribute mustEqual dateIndex
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
+        minMax.cardinality mustEqual 0
       }
 
       "observe correct values" >> {
         val minMax = newStat[Date]("dtg")
-        minMax.bounds must beSome {(
+        minMax.bounds mustEqual (
           GeoToolsDateFormat.parseDateTime("2012-01-01T00:00:00.000Z").toDate,
           GeoToolsDateFormat.parseDateTime("2012-01-01T23:00:00.000Z").toDate
-        )}
+        )
+        minMax.cardinality must beCloseTo(24L, 5)
       }
 
       "serialize to json" >> {
         val minMax = newStat[Date]("dtg")
-        minMax.toJson mustEqual """{ "min": "2012-01-01T00:00:00.000Z", "max": "2012-01-01T23:00:00.000Z" }"""
+        minMax.toJson must beMatching("""\{ "min": "2012-01-01T00:00:00.000Z", "max": "2012-01-01T23:00:00.000Z", "cardinality": \d+ \}""")
       }
 
       "serialize empty to json" >> {
         val minMax = newStat[Date]("dtg", observe = false)
-        minMax.toJson mustEqual """{ "min": null, "max": null }"""
+        minMax.toJson mustEqual """{ "min": null, "max": null, "cardinality": 0 }"""
       }
 
       "serialize and deserialize" >> {
@@ -386,21 +414,23 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         features2.foreach { minMax2.observe }
 
-        minMax2.bounds must beSome {(
+        minMax2.bounds mustEqual (
           GeoToolsDateFormat.parseDateTime("2012-01-02T00:00:00.000Z").toDate,
           GeoToolsDateFormat.parseDateTime("2012-01-02T23:00:00.000Z").toDate
-        )}
+        )
+        minMax2.cardinality must beCloseTo(24L, 5)
 
         minMax += minMax2
 
-        minMax.bounds must beSome {(
+        minMax.bounds mustEqual (
           GeoToolsDateFormat.parseDateTime("2012-01-01T00:00:00.000Z").toDate,
           GeoToolsDateFormat.parseDateTime("2012-01-02T23:00:00.000Z").toDate
-        )}
-        minMax2.bounds must beSome {(
+        )
+        minMax.cardinality must beCloseTo(48L, 5)
+        minMax2.bounds mustEqual (
           GeoToolsDateFormat.parseDateTime("2012-01-02T00:00:00.000Z").toDate,
-            GeoToolsDateFormat.parseDateTime("2012-01-02T23:00:00.000Z").toDate
-        )}
+          GeoToolsDateFormat.parseDateTime("2012-01-02T23:00:00.000Z").toDate
+        )
       }
 
       "clear" >> {
@@ -409,8 +439,8 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         minMax.clear()
 
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
+        minMax.cardinality mustEqual 0
       }
     }
 
@@ -418,23 +448,24 @@ class MinMaxTest extends Specification with StatTestHelper {
       "be empty initiallly" >> {
         val minMax = newStat[Geometry]("geom", observe = false)
         minMax.attribute mustEqual geomIndex
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
+        minMax.cardinality mustEqual 0
       }
 
       "observe correct values" >> {
         val minMax = newStat[Geometry]("geom")
-        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
+        minMax.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)"))
+        minMax.cardinality must beCloseTo(100L, 5)
       }
 
       "serialize to json" >> {
         val minMax = newStat[Geometry]("geom")
-        minMax.toJson mustEqual """{ "min": "POINT (-99 0)", "max": "POINT (-0 49)" }"""
+        minMax.toJson must beMatching("""\{ "min": "POINT \(-99 0\)", "max": "POINT \(-0 49\)", "cardinality": \d+ \}""")
       }
 
       "serialize empty to json" >> {
         val minMax = newStat[Geometry]("geom", observe = false)
-        minMax.toJson mustEqual """{ "min": null, "max": null }"""
+        minMax.toJson mustEqual """{ "min": null, "max": null, "cardinality": 0 }"""
       }
 
       "serialize and deserialize" >> {
@@ -457,57 +488,60 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         features2.foreach { minMax2.observe }
 
-        minMax2.bounds must beSome((WKTUtils.read("POINT (80 30)"), WKTUtils.read("POINT (179 79)")))
+        minMax2.bounds mustEqual (WKTUtils.read("POINT (80 30)"), WKTUtils.read("POINT (179 79)"))
+        minMax2.cardinality must beCloseTo(100L, 5)
 
         minMax += minMax2
 
-        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (179 79)")))
-        minMax2.bounds must beSome((WKTUtils.read("POINT (80 30)"), WKTUtils.read("POINT (179 79)")))
+        minMax.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (179 79)"))
+        minMax.cardinality must beCloseTo(200L, 5)
+        minMax2.bounds mustEqual (WKTUtils.read("POINT (80 30)"), WKTUtils.read("POINT (179 79)"))
       }
 
       "combine two MinMaxes2" >> {
         val minMax = newStat[Geometry]("geom")
         val minMax2 = newStat[Geometry]("geom", observe = false)
 
-        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
-        minMax2.bounds must beNone
+        minMax.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)"))
+        minMax.cardinality must beCloseTo(100L, 5)
 
         minMax += minMax2
 
-        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
-        minMax2.bounds must beNone
+        minMax.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)"))
+        minMax.cardinality must beCloseTo(100L, 5)
       }
 
       "combine two MinMaxes3" >> {
         val minMax = newStat[Geometry]("geom")
         val minMax2 = newStat[Geometry]("geom", observe = false)
 
-        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
-        minMax2.bounds must beNone
+        minMax.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)"))
+        minMax.cardinality must beCloseTo(100L, 5)
 
         minMax2 += minMax
 
-        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
-        minMax2.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
+        minMax.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)"))
+        minMax2.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)"))
+        minMax2.cardinality must beCloseTo(100L, 5)
       }
 
       "combine empty MinMaxes" >> {
         val minMax = newStat[Geometry]("geom")
         val minMax2 = newStat[Geometry]("geom", observe = false)
 
-        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
-
-        minMax2.bounds must beNone
+        minMax.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)"))
+        minMax.cardinality must beCloseTo(100L, 5)
 
         val addRight = minMax2 + minMax
-        addRight.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
+        addRight.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)"))
+        addRight.cardinality must beCloseTo(100L, 5)
 
         val addLeft = minMax + minMax2
-        addLeft.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
+        addLeft.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)"))
+        addLeft.cardinality must beCloseTo(100L, 5)
 
-        minMax.bounds must beSome((WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)")))
-
-        minMax2.bounds must beNone
+        minMax.bounds mustEqual (WKTUtils.read("POINT (-99 0)"), WKTUtils.read("POINT (0 49)"))
+        minMax.cardinality must beCloseTo(100L, 5)
       }
 
       "clear" >> {
@@ -516,8 +550,8 @@ class MinMaxTest extends Specification with StatTestHelper {
 
         minMax.clear()
 
-        minMax.bounds must beNone
         minMax.isEmpty must beTrue
+        minMax.cardinality mustEqual 0
       }
     }
   }

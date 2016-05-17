@@ -12,6 +12,7 @@ import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
 import java.util.Date
 
 import com.vividsolutions.jts.geom.Geometry
+import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -60,18 +61,16 @@ class RangeHistogramTest extends Specification with StatTestHelper {
         val stat = stringStat(20, "abc000", "abc200", observe = false)
         stat.isEmpty must beTrue
         stat.length mustEqual 20
-        stat.endpoints mustEqual ("abc000", "abc200")
+        stat.bounds mustEqual ("abc000", "abc200")
         forall(0 until 20)(stat.count(_) mustEqual 0)
       }
 
       "correctly bin values"  >> {
-        val stat = stringStat(20, "abc000", "abc200")
+        val stat = stringStat(36, "abc000", "abc099")
         stat.isEmpty must beFalse
-        stat.length mustEqual 20
-        stat.count(0) mustEqual 40
-        stat.count(1) mustEqual 38
-        stat.count(2) mustEqual 22
-        forall(3 until 20)(stat.count(_) mustEqual 0)
+        stat.length mustEqual 36
+        forall(Seq(0, 4, 8, 12, 16, 20, 24, 28, 32, 35))(stat.count(_) mustEqual 10)
+        forall((0 until 36).filterNot(Seq(0, 4, 8, 12, 16, 20, 24, 28, 32, 35).contains))(stat.count(_) mustEqual 0)
       }
 
       "serialize and deserialize" >> {
@@ -96,34 +95,56 @@ class RangeHistogramTest extends Specification with StatTestHelper {
         unpacked.asInstanceOf[RangeHistogram[String]].toJson mustEqual stat.toJson
       }
 
-      "combine two RangeHistograms" >> {
+      "deserialize as immutable value" >> {
         val stat = stringStat(20, "abc000", "abc200")
-        val stat2 = stringStat(20, "abc000", "abc200", observe = false)
+        val packed   = StatSerializer(sft).serialize(stat)
+        val unpacked = StatSerializer(sft).deserialize(packed, immutable = true)
+
+        unpacked must beAnInstanceOf[RangeHistogram[String]]
+        unpacked.asInstanceOf[RangeHistogram[String]].length mustEqual stat.length
+        unpacked.asInstanceOf[RangeHistogram[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[RangeHistogram[String]].toJson mustEqual stat.toJson
+
+        unpacked.clear must throwAn[Exception]
+        unpacked.+=(stat) must throwAn[Exception]
+        unpacked.observe(features.head) must throwAn[Exception]
+        unpacked.unobserve(features.head) must throwAn[Exception]
+      }
+
+      "combine two RangeHistograms" >> {
+        val stat = stringStat(36, "abc000", "abc099")
+        val stat2 = stringStat(36, "abc100", "abc199", observe = false)
 
         features2.foreach { stat2.observe }
 
-        stat2.length mustEqual 20
-        stat2.count(10) mustEqual 40
-        stat2.count(11) mustEqual 38
-        stat2.count(12) mustEqual 22
-        forall((0 until 10) ++ (13 until 20))(stat2.count(_) mustEqual 0)
+        stat2.length mustEqual 36
+        forall(Seq(0, 4, 8, 12, 16, 20, 24, 28, 32, 35))(stat2.count(_) mustEqual 10)
+        forall((0 until 36).filterNot(Seq(0, 4, 8, 12, 16, 20, 24, 28, 32, 35).contains))(stat2.count(_) mustEqual 0)
 
         stat += stat2
 
-        stat.length mustEqual 20
-        stat.count(0) mustEqual 40
-        stat.count(1) mustEqual 38
-        stat.count(2) mustEqual 22
-        stat.count(10) mustEqual 40
-        stat.count(11) mustEqual 38
-        stat.count(12) mustEqual 22
-        forall((3 until 10) ++ (13 until 20))(stat.count(_) mustEqual 0)
+        stat.length mustEqual 36
+        forall(Seq(0, 35))(stat.count(_) mustEqual 100)
+        forall(1 until 35)(stat.count(_) mustEqual 0)
 
-        stat2.length mustEqual 20
-        stat2.count(10) mustEqual 40
-        stat2.count(11) mustEqual 38
-        stat2.count(12) mustEqual 22
-        forall((0 until 10) ++ (13 until 20))(stat2.count(_) mustEqual 0)
+        stat2.length mustEqual 36
+        forall(Seq(0, 4, 8, 12, 16, 20, 24, 28, 32, 35))(stat2.count(_) mustEqual 10)
+        forall((0 until 36).filterNot(Seq(0, 4, 8, 12, 16, 20, 24, 28, 32, 35).contains))(stat2.count(_) mustEqual 0)
+      }
+
+      "combine two RangeHistograms with empty values" >> {
+        val stat = stringStat(100, "0", "z", observe = false)
+        val stat2 = stringStat(100, "alpha", "gamma", observe = false)
+
+        stat.bins.add("0")
+        stat2.bins.add("alpha")
+        stat2.bins.add("beta")
+        stat2.bins.add("gamma")
+        stat2.bins.add("cappa")
+
+        stat2 += stat
+
+        stat2.bounds mustEqual ("0", "gamma")
       }
 
       "clear" >> {
@@ -141,7 +162,7 @@ class RangeHistogramTest extends Specification with StatTestHelper {
         val stat = intStat(20, 0, 199, observe = false)
         stat.isEmpty must beTrue
         stat.length mustEqual 20
-        stat.endpoints mustEqual (0, 199)
+        stat.bounds mustEqual (0, 199)
         forall(0 until 20)(stat.count(_) mustEqual 0)
       }
 
@@ -151,6 +172,17 @@ class RangeHistogramTest extends Specification with StatTestHelper {
         stat.length mustEqual 20
         forall(0 until 10)(stat.count(_) mustEqual 10)
         forall(10 until 20)(stat.count(_) mustEqual 0)
+      }
+
+      "correctly remove values"  >> {
+        val stat = intStat(20, 0, 199)
+        stat.isEmpty must beFalse
+        stat.length mustEqual 20
+        forall(0 until 10)(stat.count(_) mustEqual 10)
+        forall(10 until 20)(stat.count(_) mustEqual 0)
+        features.take(50).foreach(stat.unobserve)
+        forall(5 until 10)(stat.count(_) mustEqual 10)
+        forall((0 until 5) ++ (10 until 20))(stat.count(_) mustEqual 0)
       }
 
       "serialize and deserialize" >> {
@@ -209,7 +241,7 @@ class RangeHistogramTest extends Specification with StatTestHelper {
         stat += stat2
 
         stat.length mustEqual 20
-        stat.endpoints mustEqual (0, 199)
+        stat.bounds mustEqual (0, 199)
         forall(0 until 20)(stat.count(_) mustEqual 10)
       }
 
@@ -230,33 +262,30 @@ class RangeHistogramTest extends Specification with StatTestHelper {
         stat += stat2
 
         stat.length mustEqual 20
-        stat.endpoints mustEqual (0, 199)
+        stat.bounds mustEqual (0, 199)
         forall(0 until 20)(stat.count(_) mustEqual 10)
       }
 
-      "combine two RangeHistograms with different bounds and lengths" >> {
-        val stat = intStat(20, 0, 99)
-        val stat2 = intStat(10, 50, 149, observe = false)
+      "combine two RangeHistograms with empty values" >> {
+        val stat = intStat(20, -100, 300)
+        val stat2 = intStat(20, 50, 249, observe = false)
 
         features2.foreach { stat2.observe }
 
         stat.length mustEqual 20
-        forall(0 until 20)(stat.count(_) mustEqual 5)
+        forall((0 until 5) ++ (10 until 20))(stat.count(_) mustEqual 0)
+        forall(5 until 10)(stat.count(_) mustEqual 20)
 
-        stat2.length mustEqual 10
-        forall(0 until 5)(stat2.count(_) mustEqual 0)
-        forall(5 until 10)(stat2.count(_) mustEqual 10)
-        Seq(stat, stat2).flatMap(s => (0 until s.length).map(s.count)).sum mustEqual 150
+        stat2.length mustEqual 20
+        forall((0 until 5) ++ (15 until 20))(stat2.count(_) mustEqual 0)
+        forall(5 until 15)(stat2.count(_) mustEqual 10)
 
         stat += stat2
 
         stat.length mustEqual 20
-        stat.endpoints mustEqual (0, 149)
-        forall(Seq(0, 2, 4, 6, 8, 10, 12))(stat.count(_) mustEqual 7)
-        forall(Seq(1, 3, 5, 7, 9, 11, 13))(stat.count(_) mustEqual 8)
-        forall(Seq(14, 17, 18))(stat.count(_) mustEqual 10)
-        forall(Seq(15, 16, 19))(stat.count(_) mustEqual 5)
-        (0 until stat.length).map(stat.count).sum mustEqual 150
+        stat.bounds mustEqual (0, 199)
+        stat.bins.counts mustEqual Array(6, 8, 12, 8, 12, 8, 12, 8, 12, 8, 16, 10, 10, 10, 10, 10, 10, 10, 10, 10)
+        (0 until stat.length).map(stat.count).sum mustEqual 200
       }
 
       "clear" >> {
@@ -271,22 +300,20 @@ class RangeHistogramTest extends Specification with StatTestHelper {
 
     "work with longs" >> {
       "be empty initially" >> {
-        val stat = longStat(7, 90, 110, observe = false)
+        val stat = longStat(10, 0, 99, observe = false)
         stat.isEmpty must beTrue
-        stat.length mustEqual 7
-        stat.endpoints mustEqual (90, 110)
-        forall(0 until 7)(stat.count(_) mustEqual 0)
+        stat.length mustEqual 10
+        stat.bounds mustEqual (0, 99)
+        forall(0 until 10)(stat.count(_) mustEqual 0)
       }
 
       "correctly bin values" >> {
-        val stat = longStat(7, 90, 110)
+        val stat = longStat(10, 0, 99)
 
         stat.isEmpty must beFalse
-        stat.length mustEqual 7
-        stat.endpoints mustEqual (90, 110)
-        forall(0 until 3)(stat.count(_) mustEqual 3)
-        stat.count(3) mustEqual 1
-        forall(4 until 7)(stat.count(_) mustEqual 0)
+        stat.length mustEqual 10
+        stat.bounds mustEqual (0, 99)
+        forall(0 until 10)(stat.count(_) mustEqual 10)
       }
 
       "serialize and deserialize" >> {
@@ -312,24 +339,22 @@ class RangeHistogramTest extends Specification with StatTestHelper {
       }
 
       "combine two RangeHistograms" >> {
-        val stat = longStat(7, 90, 110)
-        val stat2 = longStat(7, 90, 110, observe = false)
+        val stat = longStat(10, 0, 99)
+        val stat2 = longStat(10, 100, 199, observe = false)
 
         features2.foreach { stat2.observe }
 
-        stat2.length mustEqual 7
-        forall(0 until 3)(stat2.count(_) mustEqual 0)
-        stat2.count(3) mustEqual 2
-        forall(4 until 7)(stat2.count(_) mustEqual 3)
+        stat2.length mustEqual 10
+        forall(0 until 10)(stat2.count(_) mustEqual 10)
 
         stat += stat2
 
-        stat.length mustEqual 7
-        forall(0 until 7)(stat.count(_) mustEqual 3)
-        stat2.length mustEqual 7
-        forall(0 until 3)(stat2.count(_) mustEqual 0)
-        stat2.count(3) mustEqual 2
-        forall(4 until 7)(stat2.count(_) mustEqual 3)
+        stat.length mustEqual 10
+        stat.bounds mustEqual (0, 199)
+        forall(0 until 10)(stat.count(_) mustEqual 20)
+
+        stat2.length mustEqual 10
+        forall(0 until 10)(stat2.count(_) mustEqual 10)
       }
 
       "clear" >> {
@@ -348,19 +373,18 @@ class RangeHistogramTest extends Specification with StatTestHelper {
 
         stat.isEmpty must beTrue
         stat.length mustEqual 7
-        stat.endpoints mustEqual (90f, 110f)
+        stat.bounds mustEqual (90f, 110f)
         forall(0 until 7)(stat.count(_) mustEqual 0)
       }
 
       "correctly bin values" >> {
-        val stat = floatStat(7, 90, 110)
+        val stat = floatStat(10, 0, 100)
 
         stat.isEmpty must beFalse
-        stat.length mustEqual 7
-        stat.endpoints mustEqual (90f, 110f)
-        forall(0 until 3)(stat.count(_) mustEqual 3)
-        stat.count(3) mustEqual 1
-        forall(4 until 7)(stat.count(_) mustEqual 0)
+        stat.length mustEqual 10
+        stat.bounds mustEqual (0f, 100f)
+
+        forall(0 until 10)(stat.count(_) mustEqual 10)
       }
 
       "serialize and deserialize" >> {
@@ -387,24 +411,25 @@ class RangeHistogramTest extends Specification with StatTestHelper {
       }
 
       "combine two RangeHistograms" >> {
-        val stat = floatStat(7, 90, 110)
-        val stat2 = floatStat(7, 90, 110, observe = false)
+        val stat = floatStat(10, 0, 100)
+        val stat2 = floatStat(10, 100, 200, observe = false)
 
         features2.foreach { stat2.observe }
 
-        stat2.length mustEqual 7
-        forall(0 until 3)(stat2.count(_) mustEqual 0)
-        stat2.count(3) mustEqual 2
-        forall(4 until 7)(stat2.count(_) mustEqual 3)
+        stat2.length mustEqual 10
+        stat2.bounds mustEqual (100f, 200f)
+        forall(0 until 10)(stat2.count(_) mustEqual 10)
 
         stat += stat2
 
-        stat.length mustEqual 7
-        forall(0 until 7)(stat.count(_) mustEqual 3)
-        stat2.length mustEqual 7
-        forall(0 until 3)(stat2.count(_) mustEqual 0)
-        stat2.count(3) mustEqual 2
-        forall(4 until 7)(stat2.count(_) mustEqual 3)
+        stat.length mustEqual 10
+        stat.count(0) mustEqual 15
+        forall(1 until 9)(stat.count(_) mustEqual 20)
+        stat.count(9) mustEqual 25
+
+        stat2.length mustEqual 10
+        stat2.bounds mustEqual (100f, 200f)
+        forall(0 until 10)(stat2.count(_) mustEqual 10)
       }
 
       "clear" >> {
@@ -423,19 +448,17 @@ class RangeHistogramTest extends Specification with StatTestHelper {
 
         stat.isEmpty must beTrue
         stat.length mustEqual 7
-        stat.endpoints mustEqual (90.0, 110.0)
+        stat.bounds mustEqual (90.0, 110.0)
         forall(0 until 7)(stat.count(_) mustEqual 0)
       }
 
       "correctly bin values" >> {
-        val stat = doubleStat(7, 90, 110)
+        val stat = doubleStat(10, 0, 99)
 
         stat.isEmpty must beFalse
-        stat.length mustEqual 7
-        stat.endpoints mustEqual (90.0, 110.0)
-        forall(0 until 3)(stat.count(_) mustEqual 3)
-        stat.count(3) mustEqual 1
-        forall(4 until 7)(stat.count(_) mustEqual 0)
+        stat.length mustEqual 10
+        stat.bounds mustEqual (0.0, 99.0)
+        forall(0 until 10)(stat.count(_) mustEqual 10)
       }
 
       "serialize and deserialize" >> {
@@ -462,24 +485,26 @@ class RangeHistogramTest extends Specification with StatTestHelper {
       }
 
       "combine two RangeHistograms" >> {
-        val stat = doubleStat(7, 90, 110)
-        val stat2 = doubleStat(7, 90, 110, observe = false)
+        val stat = doubleStat(10, 0, 100)
+        val stat2 = doubleStat(10, 100, 200, observe = false)
 
         features2.foreach { stat2.observe }
 
-        stat2.length mustEqual 7
-        forall(0 until 3)(stat2.count(_) mustEqual 0)
-        stat2.count(3) mustEqual 2
-        forall(4 until 7)(stat2.count(_) mustEqual 3)
+        stat2.length mustEqual 10
+        forall(0 until 10)(stat2.count(_) mustEqual 10)
 
         stat += stat2
 
-        stat.length mustEqual 7
-        forall(0 until 7)(stat.count(_) mustEqual 3)
-        stat2.length mustEqual 7
-        forall(0 until 3)(stat2.count(_) mustEqual 0)
-        stat2.count(3) mustEqual 2
-        forall(4 until 7)(stat2.count(_) mustEqual 3)
+        stat.length mustEqual 10
+        stat.bounds mustEqual (0.0, 200.0)
+
+        stat.count(0) mustEqual 15
+        forall(1 until 9)(stat.count(_) mustEqual 20)
+        stat.count(9) mustEqual 25
+        (0 until 10).map(stat.count).sum mustEqual 200
+
+        stat2.length mustEqual 10
+        forall(0 until 10)(stat2.count(_) mustEqual 10)
       }
 
       "clear" >> {
@@ -498,7 +523,7 @@ class RangeHistogramTest extends Specification with StatTestHelper {
 
         stat.isEmpty must beTrue
         stat.length mustEqual 24
-        stat.endpoints mustEqual (toDate("2012-01-01T00:00:00.000Z"), toDate("2012-01-03T00:00:00.000Z"))
+        stat.bounds mustEqual (toDate("2012-01-01T00:00:00.000Z"), toDate("2012-01-03T00:00:00.000Z"))
         forall(0 until 24)(stat.count(_) mustEqual 0)
       }
 
@@ -507,7 +532,7 @@ class RangeHistogramTest extends Specification with StatTestHelper {
 
         stat.isEmpty must beFalse
         stat.length mustEqual 24
-        stat.endpoints mustEqual (toDate("2012-01-01T00:00:00.000Z"), toDate("2012-01-03T00:00:00.000Z"))
+        stat.bounds mustEqual (toDate("2012-01-01T00:00:00.000Z"), toDate("2012-01-03T00:00:00.000Z"))
         forall(0 until 2)(stat.count(_) mustEqual 10)
         forall(2 until 12)(stat.count(_) mustEqual 8)
         forall(12 until 24)(stat.count(_) mustEqual 0)
@@ -559,6 +584,42 @@ class RangeHistogramTest extends Specification with StatTestHelper {
         forall(15 until 16)(stat2.count(_) mustEqual 10)
       }
 
+      "combine two RangeHistograms with weekly splits" >> {
+        // simulates the way date histograms will be gathered as we track stats dynamically
+        val stat = dateStat(4, "2012-01-01T00:00:00.000Z", "2012-01-29T00:00:00.000Z", observe = false)
+        val stat2 = dateStat(5, "2012-01-01T00:00:00.000Z", "2012-02-05T00:00:00.000Z", observe = false)
+
+        val attributes = Array.ofDim[AnyRef](7)
+        (1 to 28).foreach { i =>
+          attributes(6) = f"2012-01-$i%02dT12:00:00.000Z"
+          stat.observe(SimpleFeatureBuilder.build(sft, attributes, ""))
+        }
+        (29 to 31).foreach { i =>
+          attributes(6) = f"2012-01-$i%02dT12:00:00.000Z"
+          stat2.observe(SimpleFeatureBuilder.build(sft, attributes, ""))
+        }
+        (1 to 4).foreach { i =>
+          attributes(6) = f"2012-02-$i%02dT12:00:00.000Z"
+          stat2.observe(SimpleFeatureBuilder.build(sft, attributes, ""))
+        }
+
+        stat.length mustEqual 4
+        forall(0 until 4)(stat.count(_) mustEqual 7)
+
+        stat2.length mustEqual 5
+        forall(0 until 4)(stat2.count(_) mustEqual 0)
+        stat2.count(4) mustEqual 7
+
+        stat += stat2
+
+        stat.length mustEqual 5
+        forall(0 until 5)(stat.count(_) mustEqual 7)
+
+        stat2.length mustEqual 5
+        forall(0 until 4)(stat2.count(_) mustEqual 0)
+        stat2.count(4) mustEqual 7
+      }
+
       "clear" >> {
         val stat = dateStat(24, "2012-01-01T00:00:00.000Z", "2012-01-03T00:00:00.000Z")
         stat.clear()
@@ -575,7 +636,7 @@ class RangeHistogramTest extends Specification with StatTestHelper {
 
         stat.isEmpty must beTrue
         stat.length mustEqual 32
-        stat.endpoints mustEqual (toGeom("POINT(-180 -90)"), toGeom("POINT(180 90)"))
+        stat.bounds mustEqual (toGeom("POINT(-180 -90)"), toGeom("POINT(180 90)"))
         forall(0 until 32)(stat.count(_) mustEqual 0)
       }
 
@@ -584,13 +645,14 @@ class RangeHistogramTest extends Specification with StatTestHelper {
 
         stat.isEmpty must beFalse
         stat.length mustEqual 32
-        stat.endpoints mustEqual (toGeom("POINT(-180 -90)"), toGeom("POINT(180 90)"))
-        stat.count(11) mustEqual 9
-        stat.count(12) mustEqual 44
-        stat.count(13) mustEqual 45
-        stat.count(14) mustEqual 1
+        stat.bounds mustEqual (toGeom("POINT(-180 -90)"), toGeom("POINT(180 90)"))
+
+        stat.count(18) mustEqual 45
+        stat.count(19) mustEqual 44
+        stat.count(20) mustEqual 9
+        stat.count(22) mustEqual 1
         stat.count(24) mustEqual 1
-        forall((0 until 11) ++ (15 until 24) ++ (25 until 32))(stat.count(_) mustEqual 0)
+        forall((0 until 18) ++ Seq(21, 23) ++ (25 until 32))(stat.count(_) mustEqual 0)
       }
 
       "serialize and deserialize" >> {
@@ -624,30 +686,30 @@ class RangeHistogramTest extends Specification with StatTestHelper {
 
         stat2.length mustEqual 32
         stat2.count(25) mustEqual 10
-        stat2.count(28) mustEqual 20
-        stat2.count(30) mustEqual 25
-        stat2.count(31) mustEqual 45
-        forall((0 until 25) ++ (26 until 28) ++ Seq(29))(stat2.count(_) mustEqual 0)
+        stat2.count(27) mustEqual 20
+        stat2.count(30) mustEqual 46
+        stat2.count(31) mustEqual 24
+        forall((0 until 25) ++ Seq(26, 28, 29))(stat2.count(_) mustEqual 0)
 
         stat += stat2
 
-        stat.count(11) mustEqual 9
-        stat.count(12) mustEqual 44
-        stat.count(13) mustEqual 45
-        stat.count(14) mustEqual 1
+        stat.count(18) mustEqual 45
+        stat.count(19) mustEqual 44
+        stat.count(20) mustEqual 9
+        stat.count(22) mustEqual 1
         stat.count(24) mustEqual 1
-        stat2.count(25) mustEqual 10
-        stat2.count(28) mustEqual 20
-        stat2.count(30) mustEqual 25
-        stat2.count(31) mustEqual 45
-        forall((0 until 11) ++ (15 until 24) ++ (26 until 28) ++ Seq(29))(stat.count(_) mustEqual 0)
+        stat.count(25) mustEqual 10
+        stat.count(27) mustEqual 20
+        stat.count(30) mustEqual 46
+        stat.count(31) mustEqual 24
+        forall((0 until 18) ++ Seq(21, 23, 26, 28, 29))(stat.count(_) mustEqual 0)
 
         stat2.length mustEqual 32
         stat2.count(25) mustEqual 10
-        stat2.count(28) mustEqual 20
-        stat2.count(30) mustEqual 25
-        stat2.count(31) mustEqual 45
-        forall((0 until 25) ++ (26 until 28) ++ Seq(29))(stat2.count(_) mustEqual 0)
+        stat2.count(27) mustEqual 20
+        stat2.count(30) mustEqual 46
+        stat2.count(31) mustEqual 24
+        forall((0 until 25) ++ Seq(26, 28, 29))(stat2.count(_) mustEqual 0)
       }
 
       "clear" >> {

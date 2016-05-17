@@ -46,6 +46,16 @@ class HistogramTest extends Specification with StatTestHelper {
         forall(0 until 100)(i => stat.histogram(f"abc$i%03d") mustEqual 1L)
       }
 
+      "unobserve correct values" >> {
+        val stat = newStat[String]("strAttr")
+        stat.histogram must haveSize(100)
+        forall(0 until 100)(i => stat.histogram(f"abc$i%03d") mustEqual 1L)
+        features.take(10).foreach(stat.unobserve)
+        stat.histogram must haveSize(90)
+        forall(0 until 10)(i => stat.histogram(f"abc$i%03d") mustEqual 0L)
+        forall(10 until 100)(i => stat.histogram(f"abc$i%03d") mustEqual 1L)
+      }
+
       "serialize to json" >> {
         val stat = newStat[String]("strAttr")
         JSON.parseFull(stat.toJson) must beSome(stat.histogram)
@@ -68,6 +78,18 @@ class HistogramTest extends Specification with StatTestHelper {
         val packed = StatSerializer(sft).serialize(stat)
         val unpacked = StatSerializer(sft).deserialize(packed)
         unpacked.toJson mustEqual stat.toJson
+      }
+
+      "deserialize as immutable value" >> {
+        val stat = newStat[String]("strAttr")
+        val packed = StatSerializer(sft).serialize(stat)
+        val unpacked = StatSerializer(sft).deserialize(packed, immutable = true)
+        unpacked.toJson mustEqual stat.toJson
+
+        unpacked.clear must throwAn[Exception]
+        unpacked.+=(stat) must throwAn[Exception]
+        unpacked.observe(features.head) must throwAn[Exception]
+        unpacked.unobserve(features.head) must throwAn[Exception]
       }
 
       "combine two states" >> {

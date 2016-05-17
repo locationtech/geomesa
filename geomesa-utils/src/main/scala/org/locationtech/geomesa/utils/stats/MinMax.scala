@@ -10,6 +10,7 @@ package org.locationtech.geomesa.utils.stats
 
 import java.util.Date
 
+import com.clearspring.analytics.stream.cardinality.HyperLogLog
 import com.vividsolutions.jts.geom.{Coordinate, Geometry}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.opengis.feature.simple.SimpleFeature
@@ -23,68 +24,96 @@ import scala.reflect.ClassTag
  * @param attribute attribute index for the attribute the histogram is being made for
  * @tparam T the type of the attribute the stat is targeting (needs to be comparable)
  */
-class MinMax[T](val attribute: Int)(implicit val defaults: MinMax.MinMaxDefaults[T], ct: ClassTag[T]) extends Stat {
+class MinMax[T] private (val attribute: Int, private [stats] var hpp: HyperLogLog)
+                        (implicit val defaults: MinMax.MinMaxDefaults[T], ct: ClassTag[T]) extends Stat {
 
   override type S = MinMax[T]
 
-  private [stats] var min: T = defaults.min
-  private [stats] var max: T = defaults.max
+  def this(attribute: Int)(implicit defaults: MinMax.MinMaxDefaults[T], ct: ClassTag[T]) {
+    this(attribute, new HyperLogLog(10))
+    this.minValue = defaults.max
+    this.maxValue = defaults.min
+  }
 
-  private lazy val stringify = Stat.stringifier(ct.runtimeClass, json = true)
+  private [stats] def this(attribute: Int, minValue: T, maxValue: T, hpp: HyperLogLog)
+                          (implicit defaults: MinMax.MinMaxDefaults[T], ct: ClassTag[T]) {
+    this(attribute, hpp)
+    this.minValue = minValue
+    this.maxValue = maxValue
+  }
+
+  private [stats] var minValue: T = _
+  private [stats] var maxValue: T = _
+
+  lazy val stringify = Stat.stringifier(ct.runtimeClass)
+  private lazy val jsonStringify = Stat.stringifier(ct.runtimeClass, json = true)
+
+
+  def min: T = if (isEmpty) maxValue else minValue
+  def max: T = if (isEmpty) minValue else maxValue
+  def bounds: (T, T) = (min, max)
+  def cardinality: Long = hpp.cardinality()
 
   override def observe(sf: SimpleFeature): Unit = {
     val value = sf.getAttribute(attribute).asInstanceOf[T]
     if (value != null) {
-      val (mn, mx) = defaults.minmax(value, min, max)
-      min = mn
-      max = mx
+      minValue = defaults.min(value, minValue)
+      maxValue = defaults.max(value, maxValue)
+      hpp.offer(value)
     }
   }
 
+  // note: can't unobserve min/max without storing a lot more data
+  override def unobserve(sf: SimpleFeature): Unit = {}
+
   override def +(other: MinMax[T]): MinMax[T] = {
-    val plus = new MinMax(attribute)
-    plus.min = this.min
-    plus.max = this.max
-    plus += other
-    plus
+    if (other.isEmpty) {
+      new MinMax(attribute, minValue, maxValue, hpp.merge().asInstanceOf[HyperLogLog])
+    } else if (this.isEmpty) {
+      new MinMax(attribute, other.minValue, other.maxValue, other.hpp.merge().asInstanceOf[HyperLogLog])
+    } else {
+      val plus = new MinMax(attribute, minValue, maxValue, hpp.merge().asInstanceOf[HyperLogLog])
+      plus += other
+      plus
+    }
   }
 
   override def +=(other: MinMax[T]): Unit = {
-    if (!other.isEmpty) {
-      if (isEmpty) {
-        min = other.min
-        max = other.max
-      } else {
-        Seq(other.min, other.max).foreach { value =>
-          val (mn, mx) = defaults.minmax(value, min, max)
-          min = mn
-          max = mx
-        }
-      }
+    if (other.isEmpty) {
+      // no-op
+    } else if (isEmpty) {
+      minValue = other.minValue
+      maxValue = other.maxValue
+      hpp.addAll(other.hpp)
+    } else {
+      minValue = defaults.min(minValue, other.minValue)
+      maxValue = defaults.max(maxValue, other.maxValue)
+      hpp.addAll(other.hpp)
     }
   }
 
-  def bounds: Option[(T, T)] = if (isEmpty) None else Some((min, max))
-
   override def toJson: String = {
-    val (minValue, maxValue) = bounds.getOrElse((null, null))
-    s"""{ "min": ${stringify(minValue)}, "max": ${stringify(maxValue)} }"""
+    if (isEmpty) {
+      """{ "min": null, "max": null, "cardinality": 0 }"""
+    } else {
+      s"""{ "min": ${jsonStringify(minValue)}, "max": ${jsonStringify(maxValue)}, "cardinality": $cardinality }"""
+    }
   }
 
-  override def isEmpty: Boolean = min == defaults.min
+  override def isEmpty: Boolean = minValue == defaults.max
 
   override def clear(): Unit = {
-    min = defaults.min
-    max = defaults.max
+    minValue = defaults.max
+    maxValue = defaults.min
+    hpp = new HyperLogLog(10)
   }
 
-  override def equals(other: Any): Boolean = other match {
-    case that: MinMax[T] => attribute == that.attribute && min == that.min && max == that.max
+  override def isEquivalent(other: Stat): Boolean = other match {
+    case that: MinMax[T] =>
+      attribute == that.attribute && minValue == that.minValue &&
+          maxValue == that.maxValue && cardinality == that.cardinality
     case _ => false
   }
-
-  override def hashCode(): Int =
-    Seq(attribute, min, max).map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
 }
 
 object MinMax {
@@ -92,45 +121,65 @@ object MinMax {
   trait MinMaxDefaults[T] {
     def min: T
     def max: T
-    def minmax(value: T, min: T, max: T): (T, T)
+    def min(left: T, right: T): T
+    def max(left: T, right: T): T
   }
 
-  abstract class ComparableMinMax[T <: Comparable[T]] extends MinMaxDefaults[T] {
-    override def minmax(value: T, min: T, max: T): (T, T) = {
-      val mn = if (value.compareTo(min) > 0) min else value
-      val mx = if (value.compareTo(max) < 0) max else value
-      (mn, mx)
+  object MinMaxDefaults {
+    def apply[T](binding: Class[_]): MinMaxDefaults[T] = {
+      if (binding == classOf[String]) {
+        MinMaxString.asInstanceOf[MinMaxDefaults[T]]
+      } else if (binding == classOf[Integer]) {
+        MinMaxInt.asInstanceOf[MinMaxDefaults[T]]
+      } else if (binding == classOf[java.lang.Long]) {
+        MinMaxLong.asInstanceOf[MinMaxDefaults[T]]
+      } else if (binding == classOf[java.lang.Float]) {
+        MinMaxFloat.asInstanceOf[MinMaxDefaults[T]]
+      } else if (binding == classOf[java.lang.Double]) {
+        MinMaxDouble.asInstanceOf[MinMaxDefaults[T]]
+      } else if (classOf[Date].isAssignableFrom(binding)) {
+        MinMaxDate.asInstanceOf[MinMaxDefaults[T]]
+      } else if (classOf[Geometry].isAssignableFrom(binding)) {
+        MinMaxGeometry.asInstanceOf[MinMaxDefaults[T]]
+      } else {
+        throw new IllegalArgumentException(s"No implicit default available for type: $binding")
+      }
     }
   }
 
-  implicit object MinMaxString extends ComparableMinMax[String] {
-    override val min: String = "~~~"
-    override val max: String = ""
+  abstract class ComparableMinMax[T <: Comparable[T]] extends MinMaxDefaults[T] {
+    override def min(left: T, right: T): T = if (left.compareTo(right) > 0) right else left
+    override def max(left: T, right: T): T = if (left.compareTo(right) < 0) right else left
   }
 
-  implicit object MinMaxInt extends ComparableMinMax[java.lang.Integer] {
-    override val min: java.lang.Integer = java.lang.Integer.MAX_VALUE
-    override val max: java.lang.Integer = java.lang.Integer.MIN_VALUE
+  implicit object MinMaxString extends ComparableMinMax[String] {
+    override val min: String = ""
+    override val max: String = "\uFFFF\uFFFF\uFFFF"
+  }
+
+  implicit object MinMaxInt extends ComparableMinMax[Integer] {
+    override val min: Integer = Integer.MIN_VALUE
+    override val max: Integer = Integer.MAX_VALUE
   }
 
   implicit object MinMaxLong extends ComparableMinMax[java.lang.Long] {
-    override val min: java.lang.Long = java.lang.Long.MAX_VALUE
-    override val max: java.lang.Long = java.lang.Long.MIN_VALUE
+    override val min: java.lang.Long = java.lang.Long.MIN_VALUE
+    override val max: java.lang.Long = java.lang.Long.MAX_VALUE
   }
 
   implicit object MinMaxFloat extends ComparableMinMax[java.lang.Float] {
-    override val min: java.lang.Float = java.lang.Float.MAX_VALUE
-    override val max: java.lang.Float = java.lang.Float.MIN_VALUE
+    override val min: java.lang.Float = java.lang.Float.MIN_VALUE
+    override val max: java.lang.Float = java.lang.Float.MAX_VALUE
   }
 
   implicit object MinMaxDouble extends ComparableMinMax[java.lang.Double] {
-    override val min: java.lang.Double = java.lang.Double.MAX_VALUE
-    override val max: java.lang.Double = java.lang.Double.MIN_VALUE
+    override val min: java.lang.Double = java.lang.Double.MIN_VALUE
+    override val max: java.lang.Double = java.lang.Double.MAX_VALUE
   }
 
   implicit object MinMaxDate extends ComparableMinMax[Date] {
-    override val min: Date = new Date(java.lang.Long.MAX_VALUE)
-    override val max: Date = new Date(java.lang.Long.MIN_VALUE)
+    override val min: Date = new Date(java.lang.Long.MIN_VALUE)
+    override val max: Date = new Date(java.lang.Long.MAX_VALUE)
   }
 
   /**
@@ -140,36 +189,39 @@ object MinMax {
 
     private val gf = JTSFactoryFinder.getGeometryFactory
 
-    override val min: Geometry = gf.createPoint(new Coordinate(180.0, 90.0))
-    override val max: Geometry = gf.createPoint(new Coordinate(-180.0, -90.0))
+    override val min: Geometry = gf.createPoint(new Coordinate(-180.0, -90.0))
+    override val max: Geometry = gf.createPoint(new Coordinate(180.0, 90.0))
 
-    override def minmax(value: Geometry, min: Geometry, max: Geometry): (Geometry, Geometry) = {
+    override def min(left: Geometry, right: Geometry): Geometry = {
+      val (lx, ly) = { val e = left.getEnvelopeInternal; (e.getMinX, e.getMinY) }
+      val (rx, ry) = { val e = right.getEnvelopeInternal; (e.getMinX, e.getMinY) }
 
-      val (xmin, ymin) = { val e = min.getEnvelopeInternal; (e.getMinX, e.getMinY) }
-      val (xmax, ymax) = { val e = max.getEnvelopeInternal; (e.getMaxX, e.getMaxY) }
+      val x = math.min(lx, rx)
+      val y = math.min(ly, ry)
 
-      val (vxmin, vymin, vxmax, vymax) = {
-        val e = value.getEnvelopeInternal
-        (e.getMinX, e.getMinY, e.getMaxX, e.getMaxY)
-      }
-
-      val mn = if (vxmin < xmin || vymin < ymin) {
-        val x = if (vxmin < xmin) vxmin else xmin
-        val y = if (vymin < ymin) vymin else ymin
-        gf.createPoint(new Coordinate(x, y))
+      if (x == lx && y == ly) {
+        left
+      } else if (x == rx && y == ry) {
+        right
       } else {
-        min
-      }
-
-      val mx = if (vxmax > xmax || vymax > ymax) {
-        val x = if (vxmax > xmax) vxmax else xmax
-        val y = if (vymax > ymax) vymax else ymax
         gf.createPoint(new Coordinate(x, y))
-      } else {
-        max
       }
+    }
 
-      (mn, mx)
+    override def max(left: Geometry, right: Geometry): Geometry = {
+      val (lx, ly) = { val e = left.getEnvelopeInternal; (e.getMaxX, e.getMaxY) }
+      val (rx, ry) = { val e = right.getEnvelopeInternal; (e.getMaxX, e.getMaxY) }
+
+      val x = math.max(lx, rx)
+      val y = math.max(ly, ry)
+
+      if (x == lx && y == ly) {
+        left
+      } else if (x == rx && y == ry) {
+        right
+      } else {
+        gf.createPoint(new Coordinate(x, y))
+      }
     }
   }
 }

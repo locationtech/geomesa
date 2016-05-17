@@ -14,7 +14,6 @@ import java.util.Date
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.commons.lang.StringEscapeUtils
 import org.geotools.data.DataUtilities
-import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.text.{EnhancedTokenParsers, WKTUtils}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -36,6 +35,15 @@ trait Stat {
    * @param sf feature to evaluate
    */
   def observe(sf: SimpleFeature): Unit
+
+  /**
+    * Tries to remove the given simple feature from the compiled statistics.
+    * Note: may not be possible to un-observe a feature, in which case this method will
+    * have no effect.
+    *
+    * @param sf feature to un-evaluate
+    */
+  def unobserve(sf: SimpleFeature): Unit
 
   /**
    * Add another stat to this stat. Avoids allocating another object.
@@ -80,6 +88,15 @@ trait Stat {
   def isEmpty: Boolean
 
   /**
+    * Compares the two stats for equivalence. We don't use standard 'equals' as it gets messy with
+    * mutable state and hash codes
+    *
+    * @param other other stat to compare
+    * @return true if equals
+    */
+  def isEquivalent(other: Stat): Boolean
+
+  /**
    * Clears the stat to its original state when first initialized.
    * Necessary method used by the StatIterator.
    */
@@ -122,6 +139,26 @@ object Stat {
   def Histogram(attribute: String): String = s"Histogram(${safeString(attribute)})"
 
   /**
+    * String that will be parsed into a count min sketch stat
+    *
+    * @param attribute attribute to sketch
+    * @param precision precision of the sketch - @see Frequency
+    * @return
+    */
+  def Frequency(attribute: String, precision: Int): String = s"Frequency(${safeString(attribute)},$precision)"
+
+  /**
+    * String that will be parsed into a z3 count min sketch stat
+    *
+    * @param geom geometry attribute
+    * @param dtg date attribute
+    * @param precision precision of the z value - @see FrequencyZ3
+    * @return
+    */
+  def Z3Frequency(geom: String, dtg: String, precision: Int): String =
+    s"Z3Frequency(${safeString(geom)},${safeString(dtg)},$precision)"
+
+  /**
     * String that will be parsed to a binned histogram stat
     *
     * @param attribute attribute name to histogram
@@ -135,6 +172,17 @@ object Stat {
     val stringify = stringifier(ct.runtimeClass)
     s"RangeHistogram(${safeString(attribute)},$bins,${safeString(stringify(min))},${safeString(stringify(max))})"
   }
+
+  /**
+    * String that will be parsed into a z3 range histogram stat
+    *
+    * @param geom geometry attribute
+    * @param dtg date attribute
+    * @param length number of the bins per week - @see RangeHistogramZ3
+    * @return
+    */
+  def Z3RangeHistogram(geom: String, dtg: String, length: Int): String =
+    s"Z3RangeHistogram(${safeString(geom)},${safeString(dtg)},$length)"
 
   /**
     * String that will be parsed to a iterator stack counter
@@ -153,18 +201,6 @@ object Stat {
 
   // note: adds quotes around the string
   private def safeString(s: String): String = s""""${StringEscapeUtils.escapeJava(s)}""""
-
-  /**
-    * Gets a geohash as an int value
-    *
-    * @param value geometry to evaluate (will use the centroid)
-    * @param length length of geohash, in 5-bit digits (base 32)
-    * @return
-    */
-  def getGeoHash(value: Geometry, length: Int = 2): Int = {
-    val centroid = value.getCentroid
-    GeoHash(centroid.getX, centroid.getY, 5 * length).toInt
-  }
 
   /**
     * Converts a value to a string
@@ -236,7 +272,7 @@ object Stat {
       i
     }
 
-    val numBinRegex = """[1-9][0-9]*""".r // any non-zero positive int
+    val positiveInt = """[1-9][0-9]*""".r // any non-zero positive int
     val argument = dequotedString | "[a-zA-Z0-9_]+".r
 
     def countParser: Parser[CountStat] = {
@@ -247,7 +283,7 @@ object Stat {
       "MinMax(" ~> argument <~ ")" ^^ {
         case attribute =>
           val attrIndex = getAttrIndex(attribute)
-          val attrType = sft.getType(attribute).getBinding
+          val attrType = sft.getDescriptor(attribute).getType.getBinding
 
           if (attrType == classOf[String]) {
             new MinMax[String](attrIndex)
@@ -278,7 +314,7 @@ object Stat {
       "Histogram(" ~> argument <~ ")" ^^ {
         case attribute =>
           val attrIndex = getAttrIndex(attribute)
-          val attrType = sft.getType(attribute).getBinding
+          val attrType = sft.getDescriptor(attribute).getType.getBinding
 
           if (attrType == classOf[String]) {
             new Histogram[String](attrIndex)
@@ -301,10 +337,10 @@ object Stat {
     }
 
     def rangeHistogramParser: Parser[RangeHistogram[_]] = {
-      "RangeHistogram(" ~> argument ~ "," ~ numBinRegex ~ "," ~ argument ~ "," ~ argument <~ ")" ^^ {
+      "RangeHistogram(" ~> argument ~ "," ~ positiveInt ~ "," ~ argument ~ "," ~ argument <~ ")" ^^ {
         case attribute ~ "," ~ numBins ~ "," ~ lower ~ "," ~ upper =>
           val attrIndex = getAttrIndex(attribute)
-          val attrType = sft.getType(attribute).getBinding
+          val attrType = sft.getDescriptor(attribute).getType.getBinding
 
           if (attrType == classOf[String]) {
             new RangeHistogram(attrIndex, numBins.toInt, (lower, upper))
@@ -328,8 +364,48 @@ object Stat {
       }
     }
 
-    def statParser: Parser[Stat] =
-      countParser | minMaxParser | iteratorStackParser | histogramParser | rangeHistogramParser
+    def z3RangeHistogramParser: Parser[Z3RangeHistogram] = {
+      "Z3RangeHistogram(" ~> argument ~ "," ~ argument ~ "," ~ positiveInt <~ ")" ^^ {
+        case geom ~ "," ~ dtg ~ "," ~ length =>
+          new Z3RangeHistogram(getAttrIndex(geom), getAttrIndex(dtg), length.toInt)
+      }
+    }
+
+    def frequencyParser: Parser[Frequency[_]] = {
+      "Frequency(" ~> argument ~ "," ~ positiveInt <~ ")" ^^ {
+        case attribute ~ "," ~ precision =>
+          val attrIndex = getAttrIndex(attribute)
+          val attrType = sft.getDescriptor(attribute).getType.getBinding
+
+          if (attrType == classOf[String]) {
+            new Frequency[String](attrIndex, precision.toInt)
+          } else if (attrType == classOf[Date]) {
+            new Frequency[Date](attrIndex, precision.toInt)
+          } else if (attrType == classOf[Integer]) {
+            new Frequency[Integer](attrIndex, precision.toInt)
+          } else if (attrType == classOf[jLong]) {
+            new Frequency[jLong](attrIndex, precision.toInt)
+          } else if (attrType == classOf[jDouble]) {
+            new Frequency[jDouble](attrIndex, precision.toInt)
+          } else if (attrType == classOf[jFloat]) {
+            new Frequency[jFloat](attrIndex, precision.toInt)
+          } else if (classOf[Geometry].isAssignableFrom(attrType )) {
+            new Frequency[Geometry](attrIndex, precision.toInt)
+          } else {
+            throw new Exception(s"Cannot create stat for invalid type: $attrType for attribute: $attribute")
+          }
+      }
+    }
+
+    def z3FrequencyParser: Parser[Z3Frequency] = {
+      "Z3Frequency(" ~> argument ~ "," ~ argument ~ "," ~ positiveInt <~ ")" ^^ {
+        case geom ~ "," ~ dtg ~ "," ~ precision =>
+          new Z3Frequency(getAttrIndex(geom), getAttrIndex(dtg), precision.toInt)
+      }
+    }
+
+    def statParser: Parser[Stat] = countParser | minMaxParser | iteratorStackParser | histogramParser |
+        rangeHistogramParser | frequencyParser | z3RangeHistogramParser | z3FrequencyParser
 
     def statsParser: Parser[Stat] = {
       rep1sep(statParser, ";") ^^ {
@@ -345,4 +421,17 @@ object Stat {
       }
     }
   }
+}
+
+trait ImmutableStat extends Stat {
+
+  override def observe(sf: SimpleFeature): Unit = fail()
+
+  override def unobserve(sf: SimpleFeature): Unit = fail()
+
+  override def +=(other: S): Unit = fail()
+
+  override def clear(): Unit = fail()
+
+  private def fail(): Unit = throw new RuntimeException("This stat is immutable")
 }
