@@ -29,6 +29,7 @@
     <modules>
         <module>geomesa-accumulo-gs-plugin</module>
         <module>geomesa-blobstore-gs-plugin</module>
+        <module>geomesa-hbase-gs-plugin</module>
         <module>geomesa-kafka-gs-plugin</module>
         <module>geomesa-kafka-09-gs-plugin</module>
         <module>geomesa-stream-gs-plugin</module>
