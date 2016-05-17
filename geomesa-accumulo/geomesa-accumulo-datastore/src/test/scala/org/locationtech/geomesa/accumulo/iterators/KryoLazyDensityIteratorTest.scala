@@ -34,7 +34,7 @@ class KryoLazyDensityIteratorTest extends Specification with TestWithDataStore {
   sequential
 
   // to ensure the z3 index is used, the geom must be a point and the queries must include geom + time
-  override val spec = "id:java.lang.Integer,attr:java.lang.Double,dtg:Date,geom:Point:srid=4326"
+  override val spec = "an_id:java.lang.Integer,attr:java.lang.Double,dtg:Date,geom:Point:srid=4326"
 
   def getDensity(query: String): List[(Double, Double, Double)] = {
     val q = new Query(sftName, ECQL.toFilter(query))

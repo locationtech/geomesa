@@ -28,7 +28,7 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
 
   import org.locationtech.geomesa.utils.geotools.Conversions._
 
-  override val spec = "id:java.lang.Integer,attr:java.lang.Long,dtg:Date,*geom:Point:srid=4326"
+  override val spec = "an_id:java.lang.Integer,attr:java.lang.Long,dtg:Date,*geom:Point:srid=4326"
 
   addFeatures((0 until 150).toArray.map { i =>
     val attrs = Array(i.asInstanceOf[AnyRef], (i * 2).asInstanceOf[AnyRef],
@@ -61,7 +61,7 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
     }
 
     "work with the Histogram stat" in {
-      val results = statsIteratorProcess.execute(fs.getFeatures(query), "Histogram(id)", encode = true)
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "Histogram(an_id)", encode = true)
       val sf = results.features().next
 
       val eh = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[Histogram[java.lang.Integer]]
@@ -72,7 +72,7 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
     }
 
     "work with the RangeHistogram stat" in {
-      val results = statsIteratorProcess.execute(fs.getFeatures(query), "RangeHistogram(id,5,0,149)", encode = true)
+      val results = statsIteratorProcess.execute(fs.getFeatures(query), "RangeHistogram(an_id,5,0,149)", encode = true)
       val sf = results.features().next
 
       val rh = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[RangeHistogram[java.lang.Integer]]
@@ -82,7 +82,7 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
 
     "work with multiple stats at once" in {
       val results = statsIteratorProcess.execute(fs.getFeatures(query),
-        "MinMax(attr);IteratorStackCount();Histogram(id);RangeHistogram(id,5,10,14)", encode = true)
+        "MinMax(attr);IteratorStackCount();Histogram(an_id);RangeHistogram(an_id,5,10,14)", encode = true)
       val sf = results.features().next
 
       val seqStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[SeqStat]
@@ -113,7 +113,7 @@ class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataSt
       fs.getFeatures(new Query(sftName, Filter.INCLUDE)).features().foreach(features.add)
 
       val results = statsIteratorProcess.execute(features,
-        "MinMax(attr);IteratorStackCount();Histogram(id);RangeHistogram(id,5,10,14)", encode = true)
+        "MinMax(attr);IteratorStackCount();Histogram(an_id);RangeHistogram(an_id,5,10,14)", encode = true)
       val sf = results.features().next
 
       val seqStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[SeqStat]

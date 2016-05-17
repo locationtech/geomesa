@@ -78,7 +78,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
       ds
     }
 
-    lazy val spec = "id:Integer,map:Map[String,Integer],dtg:Date,geom:Point:srid=4326"
+    lazy val spec = "an_id:Integer,map:Map[String,Integer],dtg:Date,geom:Point:srid=4326"
 
     def createFeatures(ds: DataStore, sft: SimpleFeatureType, encodedFeatures: Array[_ <: Array[_]]): Seq[SimpleFeature] = {
       val builder = ScalaSimpleFeatureFactory.featureBuilder(sft)
@@ -128,7 +128,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
       val rdd = GeoMesaSpark.rdd(new Configuration(), sc, dsParams, new Query(typeName), useMock = true)
 
       rdd.count() should equalTo(feats.length)
-      feats.map(_.getAttribute("id")) should contain(rdd.take(1).head.getAttribute("id"))
+      feats.map(_.getAttribute("an_id")) should contain(rdd.take(1).head.getAttribute("an_id"))
     }
 
     "Write data" in {
@@ -148,7 +148,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
 
       val coll = ds.getFeatureSource(typeName).getFeatures
       coll.size() should equalTo(encodedFeatures.length)
-      feats.map(_.getAttribute("id")) should contain(coll.features().next().getAttribute("id"))
+      feats.map(_.getAttribute("an_id")) should contain(coll.features().next().getAttribute("an_id"))
     }
   }
 
@@ -209,7 +209,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
 
         val rdd = GeoMesaSpark.rdd(new Configuration(), sc, privParams, new Query(sftName), useMock = true)
         rdd.count() mustEqual 6
-        features.map(_.getAttribute("id")) should contain(rdd.take(1).head.getAttribute("id"))
+        features.map(_.getAttribute("an_id")) should contain(rdd.take(1).head.getAttribute("an_id"))
       }
 
       "user should get 3" >> {

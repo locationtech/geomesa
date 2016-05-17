@@ -6,12 +6,12 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.index
+package org.locationtech.geomesa.utils.index
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.{DEFAULT_DATE_KEY, RichSimpleFeatureType}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConverters._
@@ -20,7 +20,28 @@ object GeoMesaSchemaValidator {
   def validate(sft: SimpleFeatureType): Unit = {
     MixedGeometryCheck.validateGeometryType(sft)
     TemporalIndexCheck.validateDtgField(sft)
+    ReservedWordCheck.validateAttributeNames(sft)
   }
+}
+
+/**
+  * Utility object that ensures that none of the (local portion of the) property
+  * names is a reserved word in ECQL.  Using those reserved words in a simple
+  * feature type will cause queries to fail.
+  */
+object ReservedWordCheck extends LazyLogging {
+
+  // ensure that no attribute names are reserved words within GeoTools that will cause query problems
+  def validateAttributeNames(sft: SimpleFeatureType): Unit = {
+    val reservedWords = FeatureUtils.sftReservedWords(sft)
+    if (reservedWords.nonEmpty) {
+      // TODO:  Make this an exception after GeoMesa 1.2.2
+      logger.warn(
+        "The simple feature type contains one or more attributes whose names are reserved words:  " +
+          reservedWords.mkString(", "))
+    }
+  }
+
 }
 
 /**
@@ -61,6 +82,7 @@ object TemporalIndexCheck extends LazyLogging {
 object MixedGeometryCheck extends LazyLogging {
 
   import java.lang.{Boolean => jBoolean}
+
   import SimpleFeatureTypes.MIXED_GEOMETRIES
 
   def validateGeometryType(sft: SimpleFeatureType): Unit = {
