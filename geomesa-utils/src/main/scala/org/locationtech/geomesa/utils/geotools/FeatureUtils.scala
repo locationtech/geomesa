@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.utils.geotools
 
 import java.lang.{Boolean => jBoolean}
+import java.util.Locale
 
 import org.geotools.data.{DataUtilities, FeatureWriter}
 import org.geotools.factory.Hints
@@ -16,10 +17,54 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.identity.FeatureIdImpl
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import scala.collection.JavaConverters._
+import scala.collection.immutable.HashSet
+
 /** Utilities for re-typing and re-building [[SimpleFeatureType]]s and [[SimpleFeature]]s while
   * preserving user data which the standard Geo Tools utilities do not do.
   */
 object FeatureUtils {
+
+  // sourced from the following:
+  //   https://github.com/geotools/geotools/blob/master/modules/library/cql/src/main/jjtree/ECQLGrammar.jjt
+  //   http://docs.geotools.org/latest/userguide/library/cql/internal.html
+  val ReservedWords = HashSet(
+    "AFTER",
+    "AND",
+    "BEFORE",
+    "BEYOND",
+    "CONTAINS",
+    "CROSSES",
+    "DISJOINT",
+    "DOES-NOT-EXIST",
+    "DURING",
+    "DWITHIN",
+    "EQUALS",
+    "EXCLUDE",
+    "EXISTS",
+    "FALSE",
+    "GEOMETRYCOLLECTION",
+    "ID",
+    "INCLUDE",
+    "INTERSECTS",
+    "IS",
+    "LIKE",
+    "LINESTRING",
+    "LOCATION",
+    "MULTILINESTRING",
+    "MULTIPOINT",
+    "MULTIPOLYGON",
+    "NOT",
+    "NULL",
+    "OR",
+    "OVERLAPS",
+    "POINT",
+    "POLYGON",
+    "RELATE",
+    "TOUCHES",
+    "TRUE",
+    "WITHIN"
+  )
 
   /** Retypes a [[SimpleFeatureType]], preserving the user data.
    *
@@ -77,4 +122,13 @@ object FeatureUtils {
     }
     toWrite
   }
+
+
+  /**
+    *
+    * @param sft
+    * @return
+    */
+  def sftReservedWords(sft: SimpleFeatureType): Seq[String] =
+    sft.getDescriptors.asScala.map(_.getName.getLocalPart.toUpperCase(Locale.US)).filter(ReservedWords.contains).toList
 }

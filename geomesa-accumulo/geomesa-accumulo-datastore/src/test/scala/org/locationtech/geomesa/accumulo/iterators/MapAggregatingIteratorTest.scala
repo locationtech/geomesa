@@ -33,7 +33,7 @@ class MapAggregatingIteratorTest extends Specification with TestWithDataStore {
 
   sequential
 
-  override def spec = "id:Integer,map:Map[String,Integer],dtg:Date,geom:Geometry:srid=4326;geomesa.mixed.geometries=true"
+  override def spec = "an_id:Integer,map:Map[String,Integer],dtg:Date,geom:Geometry:srid=4326;geomesa.mixed.geometries=true"
 
   val testData : Map[String,String] = {
     val source = Source.fromInputStream(getClass.getResourceAsStream("/test-lines.tsv"))
@@ -191,7 +191,7 @@ class MapAggregatingIteratorTest extends Specification with TestWithDataStore {
 @RunWith(classOf[JUnitRunner])
 class MapAggregatingIteratorDoubleTest extends Specification with TestWithDataStore {
 
-  override val spec = "id:Integer,map:Map[Double,Integer],dtg:Date,geom:Geometry:srid=4326;geomesa.mixed.geometries=true"
+  override val spec = "an_id:Integer,map:Map[Double,Integer],dtg:Date,geom:Geometry:srid=4326;geomesa.mixed.geometries=true"
 
   val randomSeed = 62
   val random = new Random(randomSeed)

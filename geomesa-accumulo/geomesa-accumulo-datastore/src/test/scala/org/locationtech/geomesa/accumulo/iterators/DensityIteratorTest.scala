@@ -42,7 +42,7 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
   }
   val date = new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate.getTime
 
-  def spec(binding: String) = s"id:java.lang.Integer,attr:java.lang.Double,dtg:Date,*geom:$binding:srid=4326"
+  def spec(binding: String) = s"an_id:java.lang.Integer,attr:java.lang.Double,dtg:Date,*geom:$binding:srid=4326"
 
   def getDensity(sftName: String, query: String): List[(Double, Double, Double)] = {
     val q = new Query(sftName, ECQL.toFilter(query))

@@ -75,5 +75,45 @@ class FeatureUtilsTest extends Specification {
       result.getDescriptor(3).getType.getBinding mustEqual classOf[Int]
       result.getUserData mustEqual sft.getUserData
     }
+
+    "correctly fail to identify reserved words in a valid simple feature type" >> {
+      val sft = SimpleFeatureTypes.createType("test", "name:String,*geom:Point,dtg:Date")
+      val result = FeatureUtils.sftReservedWords(sft)
+      result must beEmpty
+    }
+
+    "correctly fail to identify reserved words in a valid simple feature type with user data" >> {
+      val sft = SimpleFeatureTypes.createType(
+        "test", "an_id:Integer,map:Map[String,Integer],dtg:Date,geom:Geometry:srid=4326;geomesa.mixed.geometries=true")
+      val result = FeatureUtils.sftReservedWords(sft)
+      result must beEmpty
+    }
+
+    "correctly fail to identify reserved words in a valid, multi-line simple feature type" >> {
+      val sft = SimpleFeatureTypes.createType(
+        "test",
+        """
+          |names:List[String],
+          |fingers:List[String],
+          |skills:Map[String,Integer],
+          |metadata:Map[Double,String],
+          |dtg:Date,
+          |*geom:Point:srid=4326
+        """.stripMargin)
+      val result = FeatureUtils.sftReservedWords(sft)
+      result must beEmpty
+    }
+
+    "correctly identify a single reserved word in an invalid simple feature type" >> {
+      val sft = SimpleFeatureTypes.createType("test", "name:String,id:String,*geom:Point,dtg:Date")
+      val result = FeatureUtils.sftReservedWords(sft)
+      result must containTheSameElementsAs(Seq("ID"))
+    }
+
+    "correctly identify multiple reserved words in an invalid simple feature type" >> {
+      val sft = SimpleFeatureTypes.createType("test", "id:String,name:String,*point:Point,dtg:Date")
+      val result = FeatureUtils.sftReservedWords(sft)
+      result must containTheSameElementsAs(Seq("ID", "POINT"))
+    }
   }
 }
