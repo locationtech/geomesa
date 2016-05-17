@@ -476,8 +476,8 @@ is printed out when you start GeoServer::
     - GEOSERVER_DATA_DIR: /opt/devel/install/geoserver-data-dir
     ----------------------------------
 
-Note about Apache Commons Collections
--------------------------------------
+Apache Commons Collections
+--------------------------
 
 Version 3.2.1 and earlier of the Apache Commons Collections library have a CVSS 10.0 vulnerability.  Read more `here
 https://commons.apache.org/proper/commons-collections/security-reports.html`__.

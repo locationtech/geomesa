@@ -20,11 +20,11 @@ Next, `cd` into the newly created directory with
 
 GeoMesa Tools relies on a GEOMESA_HOME environment variable. Running
     
-    . bin/geomesa configure
+    source bin/geomesa configure
 
-with the `. ` prefix will set this for you, add $GEOMESA_HOME/bin to your PATH, and source your new environment variables in your current shell session. Now you should be able to use GeoMesa from any directory on your computer.
+with the `source` shell function will set this for you, add $GEOMESA_HOME/bin to your PATH, and set your new environment variables in your current shell session. Now you should be able to use GeoMesa from any directory on your computer.
 
-Note: the tools will read the ACCUMULO_HOME and HADOOP_HOME environment variables to load the appropriate JAR files for Hadoop, Accumulo, Zookeeper, and Thrift. If possible, we recommend installing the tools on the Accumulo master server, as you may also need various configuration files from Hadoop/Accumulo in order to run certain commands. Use the ``geomesa classpath`` command in order to see what JARs are being used.
+Note: The tools will read the ACCUMULO_HOME and HADOOP_HOME environment variables to load the appropriate JAR files for Hadoop, Accumulo, Zookeeper, and Thrift. If possible, we recommend installing the tools on the Accumulo master server, as you may also need various configuration files from Hadoop/Accumulo in order to run certain commands. Use the ``geomesa classpath`` command in order to see what JARs are being used.
 
 If you are running the tools on a system without Accumulo installed and configured, the ``install-hadoop-accumulo.sh`` script in the ``bin`` directory may be used to download the needed Hadoop/Accumulo JARs into the ``lib`` directory. You should edit this script to match the versions used by your installation. 
 
@@ -132,14 +132,14 @@ Due to licensing restrictions, a number of necessary dependencies required for r
     </dependency>
 
 
-To install, you can either locate the jar files or run the following included script which will attempt to wget and install the jars.
+To install, you can either locate the JAR files or run the following included script which will attempt to wget and install the JARs.
 
 `$GEOMESA_HOME/bin/install-jai`
  
 ###Logging configuration
 GeoMesa tools comes bundled by default with an slf4j implementation that is installed to the $GEOMESA_HOME/lib directory
  named `slf4j-log4j12-1.7.5.jar` If you already have an slf4j implementation installed on your Java Classpath you may
- see errors at runtime and will have to exclude one of the jars. This can be done by simply renaming the bundled
+ see errors at runtime and will have to exclude one of the JARs. This can be done by simply renaming the bundled
  `slf4j-log4j12-1.7.5.jar` file to `slf4j-log4j12-1.7.5.jar.exclude`
  
 Note that if no slf4j implementation is installed you will see this error:
@@ -525,7 +525,7 @@ can be either local or in HDFS. You cannot mix target files (e.g. local and HDFS
 Converters and SFTs are specified in HOCON format (https://github.com/typesafehub/config/blob/master/HOCON.md) and 
 loaded using TypeSafe config. They can be referenced by name using the ``-s`` and ``-C`` args.
 
-To define new converters for the users can package a ``reference.conf`` file inside a jar and drop it in the 
+To define new converters for the users can package a ``reference.conf`` file inside a JAR and drop it in the 
 ``$GEOMESA_HOME/lib`` directory or add config definitions to the ``$GEOMESA_TOOLS/conf/application.conf`` file which 
 includes some examples. SFT and Converter specifications should use the path prefixes 
 ``geomesa.converters.<convertername>`` and ``geomesa.sfts.<typename>``
