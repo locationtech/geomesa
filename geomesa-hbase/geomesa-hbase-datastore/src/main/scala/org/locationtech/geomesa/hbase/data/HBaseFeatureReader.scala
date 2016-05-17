@@ -15,6 +15,7 @@ import org.geotools.data.FeatureReader
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
 
@@ -22,7 +23,8 @@ class HBaseFeatureReader(table: Table,
                          sft: SimpleFeatureType,
                          week: Int,
                          ranges: Seq[IndexRange],
-                         serde: KryoFeatureSerializer)
+                         serde: KryoFeatureSerializer,
+                         filter: Option[Filter] = None)
   extends FeatureReader[SimpleFeatureType, SimpleFeature] with LazyLogging {
 
   val scans = if (ranges.isEmpty) {
@@ -40,18 +42,23 @@ class HBaseFeatureReader(table: Table,
 
   val scanners = scans.map(table.getScanner)
 
-  val results =
-    try {
-      scanners
-          .flatMap(_.toList)
-          .flatMap { r => r.getFamilyMap(HBaseDataStore.DATA_FAMILY_NAME).values().map(serde.deserialize) }
-          .iterator
-    } catch {
-      case e: Exception =>
-        logger.error("Error creating scan", e)
-        closeScanners()
-        Iterator.empty
-    }
+  val unfilterResults =  try {
+    scanners
+      .flatMap(_.toList)
+      .flatMap { r => r.getFamilyMap(HBaseDataStore.DATA_FAMILY_NAME).values().map(serde.deserialize) }
+      .iterator
+  } catch {
+    case e: Exception =>
+      logger.error("Error creating scan", e)
+      closeScanners()
+      Iterator.empty
+  }
+
+  val results = filter match {
+    case None => unfilterResults
+    case Some(postFilter) => unfilterResults.filter(postFilter.evaluate)
+  }
+
 
   override def next(): SimpleFeature = results.next()
 

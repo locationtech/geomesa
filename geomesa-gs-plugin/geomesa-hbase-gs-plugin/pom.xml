@@ -13,16 +13,12 @@
     <parent>
         <artifactId>geomesa-gs-plugin</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>1.2.0-SNAPSHOT</version>
+        <version>1.2.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>geomesa-hbase-gs-plugin</artifactId>
     <name>GeoMesa HBase GeoServer Plugin</name>
-
-    <properties>
-        <hbase.hadoop.version>2.5.1</hbase.hadoop.version>
-    </properties>
 
     <!-- Because geoserver includes guava 17, and hbase requires guava 12, we have to create a shaded jar
          and include that in our assembly instead of individual jars -->
@@ -47,31 +43,31 @@
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-annotations</artifactId>
-            <version>${hbase.hadoop.version}</version>
+            <version>${hadoop.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
-            <version>${hbase.hadoop.version}</version>
+            <version>${hadoop.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-mapreduce-client-core</artifactId>
-            <version>${hbase.hadoop.version}</version>
+            <version>${hadoop.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-yarn-common</artifactId>
-            <version>${hbase.hadoop.version}</version>
+            <version>${hadoop.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-yarn-api</artifactId>
-            <version>${hbase.hadoop.version}</version>
+            <version>${hadoop.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -82,7 +78,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>12.0.1</version>
+            <version>${hbase.guava.version}</version>
             <scope>compile</scope>
         </dependency>
 

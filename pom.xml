@@ -68,6 +68,8 @@
         <thrift.version>0.9.1</thrift.version>
         <hadoop.version>2.5.2</hadoop.version>
         <spark.version>1.5.0</spark.version>
+        <hbase.version>1.1.5</hbase.version>
+        <hbase.guava.version>12.0.1</hbase.guava.version>
 
         <kafka.version>0.8.2.1</kafka.version>
 
