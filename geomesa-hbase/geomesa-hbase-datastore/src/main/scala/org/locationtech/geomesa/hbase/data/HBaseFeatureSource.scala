@@ -68,8 +68,7 @@ class HBaseFeatureSource(entry: ContentEntry,
           if (temporalFilter.isEmpty || !isBounded(temporalFilter)) {
             logger.warn(s"Temporal filter missing or not fully bounded; falling back to full-table scan for $query")
             include(Some(query.getFilter))
-          }
-          else {
+          } else {
             and(a)
           }
         }

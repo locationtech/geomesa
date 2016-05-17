@@ -4,7 +4,7 @@ The data store module contains all of the HBase-related code for GeoMesa.
  
 ## HBase Data Store
 
-An instance of an HBase data store can be obtained through the normal GeoTools discovery methods, assuming that the GeoMesa code is on the classpath. The HBase data store also requires that an `hbase-site.xml` be located in the classpath root; the connection parameters for the HBase data store, including `hbase.zookeeper.quorum` and `hbase.zookeeper.property.clientPort`, are obtained from this file.
+An instance of an HBase data store can be obtained through the normal GeoTools discovery methods, assuming that the GeoMesa code is on the classpath. The HBase data store also requires that an `hbase-site.xml` be located on the classpath; the connection parameters for the HBase data store, including `hbase.zookeeper.quorum` and `hbase.zookeeper.property.clientPort`, are obtained from this file.
 
 ```java
 Map<String, Serializable> parameters = new HashMap<>;

@@ -17,4 +17,10 @@ HBase data store in GeoServer.
 
 ### [BigTable Data Store](geomesa-bigtable-datastore)
 
+This module contains a stub POM for building a Google BigTable-backed GeoTools
+data store.
+
 ### [BigTable GeoServer Plugin](../geomesa-gs-plugin/geomesa-bigtable-gs-plugin)
+
+The plugin module contains a stub POM for building a bundle containing
+all of the JARs to use the Google BigTable data store in GeoServer.
