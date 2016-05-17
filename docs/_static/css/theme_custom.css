@@ -1,3 +1,234 @@
 @import url("theme.css");
 
 /* Add overrides of theme.css rules below */
+body {
+   color: #bbb;
+}
+
+.wy-alert.wy-alert-neutral a,.rst-content .wy-alert-neutral.note a,.rst-content .wy-alert-neutral.attention a,.rst-content .wy-alert-neutral.caution a,.rst-content .wy-alert-neutral.danger a,.rst-content .wy-alert-neutral.error a,.rst-content .wy-alert-neutral.hint a,.rst-content .wy-alert-neutral.important a,.rst-content .wy-alert-neutral.tip a,.rst-content .wy-alert-neutral.warning a,.rst-content .wy-alert-neutral.seealso a,.rst-content .wy-alert-neutral.admonition-todo a {
+   color: #E6A150
+}
+
+.wy-tray-container li.wy-tray-item-info {
+   background: #E6A150
+}
+
+.wy-tray-container li.wy-tray-item-danger {
+   background: #E6A160
+}
+
+.btn-info {
+   background-color: #E6A150 !important
+}
+
+.btn-danger {
+   background-color: #E6A160 !important
+}
+
+.btn-link {
+   color: #E6A150;
+}
+
+.wy-dropdown-menu {
+   background: #333;
+}
+
+.wy-dropdown-menu>dd>a:hover {
+   background: #E6A150;
+}
+
+.wy-dropdown-menu>dd>a:hover {
+   background: #E6A150;
+}
+
+.wy-dropdown.wy-dropdown-bubble .wy-dropdown-menu {
+   background: #333;
+}
+
+.wy-dropdown.wy-dropdown-bubble .wy-dropdown-menu a:hover {
+   background: #E6A150;
+}
+
+.wy-control-group.wy-control-group-required>label:after {
+   color: #E6A160
+}
+
+input:focus:invalid,textarea:focus:invalid,select:focus:invalid {
+   color: #E6A160;
+   border: 1px solid #E6A160
+}
+
+input:focus:invalid:focus,textarea:focus:invalid:focus,select:focus:invalid:focus {
+   border-color: #E6A160
+}
+
+input[type="file"]:focus:invalid:focus,input[type="radio"]:focus:invalid:focus,input[type="checkbox"]:focus:invalid:focus {
+   outline-color: #E6A160
+}
+
+.wy-control-group.wy-control-group-error .wy-form-message,.wy-control-group.wy-control-group-error>label {
+   color: #E6A160
+}
+
+.wy-control-group.wy-control-group-error input[type="text"],.wy-control-group.wy-control-group-error input[type="password"],.wy-control-group.wy-control-group-error input[type="email"],.wy-control-group.wy-control-group-error input[type="url"],.wy-control-group.wy-control-group-error input[type="date"],.wy-control-group.wy-control-group-error input[type="month"],.wy-control-group.wy-control-group-error input[type="time"],.wy-control-group.wy-control-group-error input[type="datetime"],.wy-control-group.wy-control-group-error input[type="datetime-local"],.wy-control-group.wy-control-group-error input[type="week"],.wy-control-group.wy-control-group-error input[type="number"],.wy-control-group.wy-control-group-error input[type="search"],.wy-control-group.wy-control-group-error input[type="tel"],.wy-control-group.wy-control-group-error input[type="color"] {
+   border: solid 1px #E6A160
+}
+
+.wy-control-group.wy-control-group-error textarea {
+   border: solid 1px #E6A160
+}
+
+.wy-inline-validate.wy-inline-validate-danger .wy-input-context {
+   color: #E6A160
+}
+
+.wy-inline-validate.wy-inline-validate-info .wy-input-context {
+   color: #E6A150
+}
+
+.wy-text-info {
+   color: #E6A150 !important
+}
+
+.wy-text-danger {
+   color: #E6A160 !important
+}
+
+code,.rst-content tt,.rst-content code {
+   color: #E6A160;
+}
+
+.wy-menu-vertical li.on a,.wy-menu-vertical li.current>a {
+   background: #333;
+}
+
+.wy-menu-vertical li.on a:hover,.wy-menu-vertical li.current>a:hover {
+   background: #333
+}
+
+.wy-menu-vertical a:active {
+   background-color: #E6A150;
+}
+
+.wy-side-nav-search {
+   background-color: #E6A150;
+   color: #333;
+}
+
+.wy-side-nav-search img {
+   background-color: #E6A150;
+}
+
+.wy-side-nav-search>a,.wy-side-nav-search .wy-dropdown>a {
+   color: #333;
+}
+
+.wy-side-nav-search>div.version {
+   color: #666;
+}
+
+.wy-nav .wy-menu-vertical header {
+   color: #E6A150
+}
+
+.wy-nav .wy-menu-vertical a:hover {
+   background-color: #E6A150;
+}
+
+.wy-body-for-nav {
+   background: left repeat-y #333;
+}
+
+.wy-nav-top {
+   background: #E6A150;
+}
+
+.wy-nav-top img {
+   background-color: #E6A150;
+}
+
+.wy-nav-content {
+   background: #333;
+}
+
+.wy-nav-content-wrap {
+   background: #333;
+}
+
+@media screen and (max-width: 768px) {
+    .wy-body-for-nav {
+        background: #333
+    }
+    .wy-nav-content {
+        background: #333
+    }
+}
+
+.rst-versions {
+   color: #333;
+}
+
+.rst-versions a {
+   color: #E6A150;
+}
+
+.rst-versions .rst-current-version .fa,.rst-versions .rst-current-version .wy-menu-vertical li span.toctree-expand,.wy-menu-vertical li .rst-versions .rst-current-version span.toctree-expand,.rst-versions .rst-current-version .rst-content .admonition-title,.rst-content .rst-versions .rst-current-version .admonition-title,.rst-versions .rst-current-version .rst-content h1 .headerlink,.rst-content h1 .rst-versions .rst-current-version .headerlink,.rst-versions .rst-current-version .rst-content h2 .headerlink,.rst-content h2 .rst-versions .rst-current-version .headerlink,.rst-versions .rst-current-version .rst-content h3 .headerlink,.rst-content h3 .rst-versions .rst-current-version .headerlink,.rst-versions .rst-current-version .rst-content h4 .headerlink,.rst-content h4 .rst-versions .rst-current-version .headerlink,.rst-versions .rst-current-version .rst-content h5 .headerlink,.rst-content h5 .rst-versions .rst-current-version .headerlink,.rst-versions .rst-current-version .rst-content h6 .headerlink,.rst-content h6 .rst-versions .rst-current-version .headerlink,.rst-versions .rst-current-version .rst-content dl dt .headerlink,.rst-content dl dt .rst-versions .rst-current-version .headerlink,.rst-versions .rst-current-version .rst-content p.caption .headerlink,.rst-content p.caption .rst-versions .rst-current-version .headerlink,.rst-versions .rst-current-version .rst-content tt.download span:first-child,.rst-content tt.download .rst-versions .rst-current-version span:first-child,.rst-versions .rst-current-version .rst-content code.download span:first-child,.rst-content code.download .rst-versions .rst-current-version span:first-child,.rst-versions .rst-current-version .icon {
+   color: #333
+}
+
+.rst-versions .rst-current-version.rst-out-of-date {
+   background-color: #E6A160;
+}
+
+.rst-versions .rst-other-versions dd a {
+   color: #333
+}
+
+.rst-content tt.literal,.rst-content tt.literal,.rst-content code.literal {
+   color: #E6A160
+}
+.rst-content a tt,.rst-content a tt,.rst-content a code {
+   color: #E6A150
+}
+
+.rst-content dl:not(.docutils) dt {
+   color: #E6A150;
+}
+
+a {
+   color: #e6a150;
+}
+
+a:visited {
+   color: #e6a150;
+}
+
+a:hover {
+   color: #e6a150;
+}
+
+a.icon-home {
+   color: #333;
+}
+
+a.icon-home:hover {
+   color: #333; /* i.e. for the house icon and "GeoMesa" in the top, don't change color when visited */
+}
+
+a.icon-home:visited {
+   color: #333; /* i.e. for the house icon and "GeoMesa" in the top, don't change color when visited */
+}
+
+.pre {
+   background: #444;
+}
+
+code.docutils {
+   background: #444;
+}
+
+code.literal {
+   background: #444;
+}
+
+.wy-menu-vertical li.current > a { color: #777; } 

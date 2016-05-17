@@ -9,22 +9,26 @@ To begin using the command line tools, first build the full GeoMesa project from
 
     mvn clean install
     
-You can also make the build process significantly faster by adding `-DskipTests`. This will create a file "geomesa-{version}-bin.tar.gz"
-in the geomesa-assemble/target directory. Untar this file with
+You can also make the build process significantly faster by adding `-DskipTests`. This will create a file called ``geomesa-tools-{version}-bin.tar.gz``
+in the ``geomesa-tools/target`` directory. Untar this file with
 
-    tar xvfz geomesa-assemble/target/geomesa-${version}-bin.tar.gz
+    tar xvfz geomesa-tools/target/geomesa-tools-${version}-bin.tar.gz
     
 Next, `cd` into the newly created directory with
     
-    cd geomesa-${version}
+    cd geomesa-tools-${version}
 
 GeoMesa Tools relies on a GEOMESA_HOME environment variable. Running
     
-    . bin/geomesa configure
+    source bin/geomesa configure
 
-with the `. ` prefix will set this for you, add $GEOMESA_HOME/bin to your PATH, and source your new environment variables in your current shell session.
+with the `source` shell function will set this for you, add $GEOMESA_HOME/bin to your PATH, and set your new environment variables in your current shell session. Now you should be able to use GeoMesa from any directory on your computer.
 
-Now, you should be able to use GeoMesa from any directory on your computer. To test, `cd` to a different directory and run:
+Note: The tools will read the ACCUMULO_HOME and HADOOP_HOME environment variables to load the appropriate JAR files for Hadoop, Accumulo, Zookeeper, and Thrift. If possible, we recommend installing the tools on the Accumulo master server, as you may also need various configuration files from Hadoop/Accumulo in order to run certain commands. Use the ``geomesa classpath`` command in order to see what JARs are being used.
+
+If you are running the tools on a system without Accumulo installed and configured, the ``install-hadoop-accumulo.sh`` script in the ``bin`` directory may be used to download the needed Hadoop/Accumulo JARs into the ``lib`` directory. You should edit this script to match the versions used by your installation. 
+
+To test, `cd` to a different directory and run:
 
     geomesa
 
@@ -102,7 +106,7 @@ This library can be downloaded from your local nexus repo or `http://download.ja
 To install, copy the jai_core.jar and jai_codec.jar into `$GEOMESA_HOME/lib/`
 
 Optionally there is a script bundled as `$GEOMESA_HOME/bin/install-jai` that will attempt to wget and install 
-the jai libraries
+the jai libraries.
 
 
 ### Enabling Raster Ingest
@@ -128,23 +132,16 @@ Due to licensing restrictions, a number of necessary dependencies required for r
         <artifactId>jai_imageio</artifactId>
         <version>1.1</version>
     </dependency>
-    <dependency>
-        <groupId>java3d</groupId>
-        <artifactId>vecmath</artifactId>
-        <version>1.3.2</version>
-    </dependency>
 
 
-To install, you can either locate the jar files or run the two following included scripts which will attempt to wget and install the jars.
+To install, you can either locate the JAR files or run the following included script which will attempt to wget and install the JARs.
 
 `$GEOMESA_HOME/bin/install-jai`
  
-`$GEOMESA_HOME/bin/install-vecmath`
-
 ###Logging configuration
 GeoMesa tools comes bundled by default with an slf4j implementation that is installed to the $GEOMESA_HOME/lib directory
  named `slf4j-log4j12-1.7.5.jar` If you already have an slf4j implementation installed on your Java Classpath you may
- see errors at runtime and will have to exclude one of the jars. This can be done by simply renaming the bundled
+ see errors at runtime and will have to exclude one of the JARs. This can be done by simply renaming the bundled
  `slf4j-log4j12-1.7.5.jar` file to `slf4j-log4j12-1.7.5.jar.exclude`
  
 Note that if no slf4j implementation is installed you will see this error:
@@ -486,7 +483,7 @@ Gets an existing simple feature type as an encoded string.
     geomesa getsft -u username -p password -c test_catalog -f test_feature -i instance
 
 ### ingest
-Ingests various file formats into GeoMesa using the GeoMesa Converter Framework. CConverters are specified in HOCON 
+Ingests various file formats into GeoMesa using the GeoMesa Converter Framework. Converters are specified in HOCON 
 format (https://github.com/typesafehub/config/blob/master/HOCON.md). GeoMesa defines several common converter factories 
 for formats such as delimited text (TSV, CSV), fixed width files, JSON, XML, and Avro. New converter factories (e.g. 
 for custom binary formats) can be registered on the classpath using Java SPI. Shapefile ingest is also supported. Files 
@@ -530,7 +527,7 @@ can be either local or in HDFS. You cannot mix target files (e.g. local and HDFS
 Converters and SFTs are specified in HOCON format (https://github.com/typesafehub/config/blob/master/HOCON.md) and 
 loaded using TypeSafe config. They can be referenced by name using the ``-s`` and ``-C`` args.
 
-To define new converters for the users can package a ``reference.conf`` file inside a jar and drop it in the 
+To define new converters for the users can package a ``reference.conf`` file inside a JAR and drop it in the 
 ``$GEOMESA_HOME/lib`` directory or add config definitions to the ``$GEOMESA_TOOLS/conf/application.conf`` file which 
 includes some examples. SFT and Converter specifications should use the path prefixes 
 ``geomesa.converters.<convertername>`` and ``geomesa.sfts.<typename>``

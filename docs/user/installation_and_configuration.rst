@@ -135,20 +135,32 @@ In the ``geomesa-tools-$VERSION`` directory, run ``bin/geomesa configure`` to se
 
 Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_HOME`` and ``$PATH`` updates.
 
-
 .. warning::
 
     Please note that the ``$GEOMESA_HOME`` variable points to the location of the ``geomesa-tools-$VERSION``
     directory, not the main geomesa binary distribution directory!
 
-Due to licensing restrictions, dependencies for shape file support and raster 
+.. note::
+
+    ``geomesa`` will read the ``$ACCUMULO_HOME`` and ``$HADOOP_HOME`` environment variables to load the
+    appropriate JAR files for Hadoop, Accumulo, Zookeeper, and Thrift. If possible, we recommend
+    installing the tools on the Accumulo master server, as you may also need various configuration
+    files from Hadoop/Accumulo in order to run certain commands. Use the ``geomesa classpath``
+    command in order to see what JARs are being used.
+
+    If you are running the tools on a system without
+    Accumulo installed and configured, the ``install-hadoop-accumulo.sh`` script
+    in the ``bin`` directory may be used to download the needed Hadoop/Accumulo JARs into
+    the ``lib`` directory. You should edit this script to match the versions used by your
+    installation.
+
+Due to licensing restrictions, dependencies for shape file support and raster
 ingest must be separately installed. Do this with the following commands: 
 
 .. code-block:: bash
 
     $ bin/install-jai
     $ bin/install-jline
-    $ bin/install-vecmath
 
 Test the command that invokes the GeoMesa Tools:
 
@@ -236,8 +248,12 @@ namespace in the Accumulo shell:
     $ accumulo shell -u root
     > createnamespace myNamespace
     > grant NameSpace.CREATE_TABLE -ns myNamespace -u myUser
-    > config -s general.vfs.context.classpath.myNamespace=hdfs://NAME_NODE_FDQN:8020/accumulo/classpath/myNamespace/[^.]
+    > config -s general.vfs.context.classpath.myNamespace=hdfs://NAME_NODE_FDQN:54310/accumulo/classpath/myNamespace/[^.].*.jar
     > config -ns myNamespace -s table.classpath.context=myNamespace
+
+.. note::
+
+    Depending on Hadoop version, you may need to use ``hdfs://NAME_NODE_FDQN:8020``.
 
 Then copy the distributed runtime jar into HDFS under the path you specified.
 The path above is just an example; you can included nested folders with project
@@ -470,3 +486,12 @@ is printed out when you start GeoServer::
     ----------------------------------
     - GEOSERVER_DATA_DIR: /opt/devel/install/geoserver-data-dir
     ----------------------------------
+
+Apache Commons Collections
+--------------------------
+
+Version 3.2.1 and earlier of the Apache Commons Collections library have a CVSS 10.0 vulnerability.  Read more `here
+https://commons.apache.org/proper/commons-collections/security-reports.html`__.
+
+Note that Accumulo 1.6.5 is the first version of Accumulo which addresses this security concern.
+Fixes for the GeoServer project will be available in versions 2.8.3+ and 2.9.0+.
