@@ -3,7 +3,7 @@ asm:asm	3.3.1	compile
 com.101tec:zkclient	0.3	compile
 com.adobe.xmp:xmpcore	5.1.2	compile
 com.beust:jcommander	1.48	compile
-com.clearspring.analytics:stream	2.9.1	compile
+com.clearspring.analytics:stream	2.9.2	compile
 com.drewnoakes:metadata-extractor	2.8.1	compile
 com.esotericsoftware.kryo:kryo	2.21	compile
 com.esotericsoftware.minlog:minlog	1.2	compile
