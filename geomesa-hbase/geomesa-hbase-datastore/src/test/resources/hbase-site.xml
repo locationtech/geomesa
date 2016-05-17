@@ -23,10 +23,10 @@
 <configuration>
   <property>
     <name>hbase.rootdir</name>
-    <value>file:///home/${user.name}/devel/install/hbase-1.0.0/standalone-data/hbase</value>
+    <value>file:///home/${user.name}/devel/install/hbase-${hbase.version}/standalone-data/hbase</value>
   </property>
   <property>
     <name>hbase.zookeeper.property.dataDir</name>
-    <value>/home/${user.name}/devel/install/hbase-1.0.0/standalone-data/zookeeper</value>
+    <value>/home/${user.name}/devel/install/hbase-${hbase.version}/standalone-data/zookeeper</value>
   </property>
 </configuration>

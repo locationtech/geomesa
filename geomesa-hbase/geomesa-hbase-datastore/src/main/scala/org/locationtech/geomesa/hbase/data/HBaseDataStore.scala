@@ -41,9 +41,12 @@ class HBaseDataStore(conn: Connection,
     val name = featureType.getTypeName
 
     // create the z3 index
-    val desc = new HTableDescriptor(TableName.valueOf(getZ3TableName(featureType)))
-    Seq(DATA_FAMILY_NAME).foreach { f => desc.addFamily(new HColumnDescriptor(f)) }
-    conn.getAdmin.createTable(desc)
+    val z3TableName = getZ3TableName(featureType)
+    if (!conn.getAdmin.tableExists(z3TableName)) {
+      val desc = new HTableDescriptor(z3TableName)
+      Seq(DATA_FAMILY_NAME).foreach { f => desc.addFamily(new HColumnDescriptor(f)) }
+      conn.getAdmin.createTable(desc)
+    }
 
     // write the meta-data
     val row = Bytes.toBytes(name)
@@ -53,8 +56,8 @@ class HBaseDataStore(conn: Connection,
     catalogTable.put(schema)
   }
 
-  def getZ3TableName(sft: SimpleFeatureType) = s"${sft.getTypeName}_z3"
-  def getZ3Table(sft: SimpleFeatureType) = conn.getTable(TableName.valueOf(getZ3TableName(sft)))
+  def getZ3TableName(sft: SimpleFeatureType) = TableName.valueOf(s"${sft.getTypeName}_z3")
+  def getZ3Table(sft: SimpleFeatureType) = conn.getTable(getZ3TableName(sft))
 
   override def createFeatureSource(entry: ContentEntry): ContentFeatureSource = {
     val sft =

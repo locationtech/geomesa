@@ -10,38 +10,33 @@
     <artifactId>geomesa-hbase-datastore</artifactId>
     <name>GeoMesa HBase DataStore</name>
 
-    <properties>
-        <hbase.version>1.0.0</hbase.version>
-        <hbase.hadoop.version>2.5.1</hbase.hadoop.version>
-    </properties>
-
-    <dependencyManagement>
+    <!--<dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-auth</artifactId>
-                <version>${hbase.hadoop.version}</version>
+                <version>${hadoop.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-common</artifactId>
-                <version>${hbase.hadoop.version}</version>
+                <version>${hadoop.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-mapreduce-client-core</artifactId>
-                <version>${hbase.hadoop.version}</version>
+                <version>${hadoop.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>12.0</version>
+                <version>${hbase.guava.version}</version>
             </dependency>
         </dependencies>
-    </dependencyManagement>
+    </dependencyManagement>-->
 
     <dependencies>
         <dependency>
