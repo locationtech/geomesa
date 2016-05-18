@@ -6,12 +6,13 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.features.interop;
+package org.locationtech.geomesa.features.kyro.interop;
 
 import com.vividsolutions.jts.geom.Point;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.junit.Assert;
 import org.junit.Test;
+import org.locationtech.geomesa.features.interop.SerializationOptions;
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer;
 import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
 import org.locationtech.geomesa.utils.interop.WKTUtils;
