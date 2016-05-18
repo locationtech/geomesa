@@ -728,6 +728,12 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       features must haveLength(2)
       features must contain("bill", "bob")
     }
+
+    "correctly query on non-strings" in {
+      val features = execute("age LIKE '2%'")
+      features must haveLength(2)
+      features must contain("alice", "bill")
+    }.pendingUntilFixed("Lexicoding does not allow us to prefix search non-strings")
   }
 
   "AttributeIdxStrategy merging" should {

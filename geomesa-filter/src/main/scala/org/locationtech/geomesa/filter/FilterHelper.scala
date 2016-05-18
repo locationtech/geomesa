@@ -10,75 +10,128 @@ package org.locationtech.geomesa.filter
 
 import java.util.Date
 
-import com.vividsolutions.jts.geom.{Geometry, MultiPolygon, Point, Polygon}
-import org.geotools.factory.CommonFactoryFinder
-import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
-import org.joda.time.{DateTime, DateTimeZone, Interval}
-import org.locationtech.geomesa.filter.visitor.SafeTopologicalFilterVisitorImpl
-import org.locationtech.geomesa.utils.filters.Typeclasses.BinaryFilter
+import com.typesafe.scalalogging.LazyLogging
+import com.vividsolutions.jts.geom._
+import org.geotools.data.DataUtilities
+import org.geotools.filter.spatial.BBOXImpl
+import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
-import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
-import org.opengis.filter.expression.{Expression, Literal, PropertyName}
+import org.opengis.filter.expression.PropertyName
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
 import org.opengis.temporal.Period
 
 import scala.collection.JavaConversions._
 
-object FilterHelper {
-  // Let's handle special cases with topological filters.
-  def updateTopologicalFilters(filter: Filter, sft: SimpleFeatureType): Filter =
-    filter.accept(new SafeTopologicalFilterVisitorImpl(sft), null).asInstanceOf[Filter]
+object FilterHelper extends LazyLogging {
 
-  def getFirstBinarySpatialOpPropertyName(op: BinarySpatialOperator): PropertyName = op.getExpression1 match {
-    case pn: PropertyName => pn
-    case _                => op.getExpression2 match {
-      case pn: PropertyName => pn
-      case _                =>
-        throw new Exception(s"Neither child of a binary spatial operator was a property name:  $op")
+  import org.locationtech.geomesa.utils.geotools.GeometryUtils.{geoFactory => gf}
+  import org.locationtech.geomesa.utils.geotools.WholeWorldPolygon
+
+  val MinDateTime = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.UTC)
+  val MaxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.UTC)
+
+  private val SafeGeomString = "gm-safe"
+
+  /**
+    * Creates a new filter with valid bounds and attribute
+    *
+    * @param op spatial op
+    * @param sft simple feature type
+    * @return valid op
+    */
+  def visitBinarySpatialOp(op: BinarySpatialOperator, sft: SimpleFeatureType): Filter = {
+    val prop = org.locationtech.geomesa.filter.checkOrderUnsafe(op.getExpression1, op.getExpression2)
+    val geom = prop.literal.evaluate(null, classOf[Geometry])
+    if (geom.getUserData == SafeGeomString) {
+      op // we've already visited this geom once
+    } else {
+      // check for null or empty attribute and replace with default geometry name
+      val attribute = Option(prop.name).filterNot(_.isEmpty).getOrElse(sft.getGeomField)
+      // copy the geometry so we don't modify the original
+      val geomCopy = gf.createGeometry(geom)
+      // add waypoints if needed so that IDL is handled correctly
+      val geomWithWayPoints = if (op.isInstanceOf[BBOX]) addWayPointsToBBOX(geomCopy) else geomCopy
+      val safeGeometry = getInternationalDateLineSafeGeometry(geomWithWayPoints)
+      // mark it as being visited
+      safeGeometry.setUserData(SafeGeomString)
+      recreateAsIdlSafeFilter(op, attribute, safeGeometry, prop.flipped)
     }
   }
 
-  def getFirstBinarySpatialOpPropertyGeometry(op: BinarySpatialOperator): Geometry = op.getExpression1 match {
-    case lit: Literal => lit.evaluate(null, classOf[Geometry])
-    case _            => op.getExpression2 match {
-      case lit: Literal => lit.evaluate(null, classOf[Geometry])
-      case _            =>
-        throw new Exception(s"Neither child of a binary spatial operator was a literal geometry:  $op")
-    }
-  }
-
-  def visitBinarySpatialOp(op: BinarySpatialOperator, featureType: SimpleFeatureType): Filter = {
-    val e1 = getFirstBinarySpatialOpPropertyName(op)
-    val geom = getFirstBinarySpatialOpPropertyGeometry(op)
-    val safeGeometry = getInternationalDateLineSafeGeometry(geom)
-    updateToIDLSafeFilter(op, safeGeometry, featureType)
-  }
-
-  def visitBBOX(op: BBOX, featureType: SimpleFeatureType): Filter = {
-    val e1 = op.getExpression1.asInstanceOf[PropertyName]
-    val e2 = op.getExpression2.asInstanceOf[Literal]
-    val geom = addWayPointsToBBOX( e2.evaluate(null, classOf[Geometry]) )
-    val safeGeometry = getInternationalDateLineSafeGeometry(geom)
-    updateToIDLSafeFilter(op, safeGeometry, featureType)
-  }
-
-  // TODO:  We assume "BINOP(property, geom)"...  This need not be the case.
-  //        https://geomesa.atlassian.net/browse/GEOMESA-1155
-  def updateToIDLSafeFilter(op: BinarySpatialOperator, geom: Geometry, featureType: SimpleFeatureType): Filter = geom match {
-    case pt: Point => op
-    case p: Polygon =>
-      dispatchOnSpatialType(op, featureType.getGeometryDescriptor.getLocalName, p)
-    case mp: MultiPolygon =>
-      val polygonList = getGeometryListOf(geom)
-      val filterList = polygonList.map {
-        p => dispatchOnSpatialType(op, featureType.getGeometryDescriptor.getLocalName, p)
+  /**
+    * Creates a new filter with valid bounds and attributes. Distance will be converted into degrees.
+    * Note: units will still refer to 'meters', but that is due to ECQL issues
+    *
+    * @param op dwithin
+    * @param sft simple feature type
+    * @return valid dwithin
+    */
+  def visitDwithin(op: DWithin, sft: SimpleFeatureType): Filter = {
+    val prop = org.locationtech.geomesa.filter.checkOrderUnsafe(op.getExpression1, op.getExpression2)
+    val geom = prop.literal.evaluate(null, classOf[Geometry])
+    if (geom.getUserData == SafeGeomString) {
+      op // we've already visited this geom once
+    } else {
+      val units = Option(op.getDistanceUnits).map(_.trim).filter(_.nonEmpty).map(_.toLowerCase).getOrElse("meters")
+      val multiplier = units match {
+        case "meters"         => 1.0
+        case "kilometers"     => 1000.0
+        case "feet"           => 0.3048
+        case "statute miles"  => 1609.347
+        case "nautical miles" => 1852.0
+        case _                => 1.0 // not part of ECQL spec...
       }
-      ff.or(filterList)
+      val distanceMeters = op.getDistance * multiplier
+      val distanceDegrees = GeometryUtils.distanceDegrees(geom, distanceMeters)
+
+      // check for null or empty attribute and replace with default geometry name
+      val attribute = Option(prop.name).filterNot(_.isEmpty).getOrElse(sft.getGeomField)
+      // copy the geometry so we don't modify the original
+      val geomCopy = gf.createGeometry(geom)
+      val safeGeometry = getInternationalDateLineSafeGeometry(geomCopy)
+      // mark it as being visited
+      safeGeometry.setUserData(SafeGeomString)
+      recreateAsIdlSafeFilter(op, attribute, safeGeometry, prop.flipped, distanceDegrees)
+    }
+  }
+
+  private def recreateAsIdlSafeFilter(op: BinarySpatialOperator,
+                                      property: String,
+                                      geom: Geometry,
+                                      flipped: Boolean,
+                                      args: Any = null): Filter = {
+    geom match {
+      case g: GeometryCollection =>
+        // geometry collections are OR'd together
+        val asList = getGeometryListOf(g)
+        asList.foreach(_.setUserData(geom.getUserData))
+        ff.or(asList.map(recreateFilter(op, property, _, flipped, args)))
+      case _ => recreateFilter(op, property, geom, flipped, args)
+    }
+  }
+
+  private def recreateFilter(op: BinarySpatialOperator,
+                             property: String,
+                             geom: Geometry,
+                             flipped: Boolean,
+                             args: Any): Filter = {
+    val (e1, e2) = if (flipped) (ff.literal(geom), ff.property(property)) else (ff.property(property), ff.literal(geom))
+    op match {
+      case op: Within     => ff.within(e1, e2)
+      case op: Intersects => ff.intersects(e1, e2)
+      case op: Overlaps   => ff.overlaps(e1, e2)
+      // note: The ECQL spec doesn't allow for us to put the measurement
+      // in "degrees", but that's how this filter will be used.
+      case op: DWithin    => ff.dwithin(e1, e2, args.asInstanceOf[Double], "meters")
+      // use the direct constructor so that we preserve our geom user data
+      case op: BBOX       => new BBOXImpl(e1, e2)
+    }
   }
 
   def isFilterWholeWorld(f: Filter): Boolean = f match {
@@ -94,283 +147,262 @@ object FilterHelper {
     prop.map(_.literal.evaluate(null, classOf[Geometry])).exists(isWholeWorld)
   }
 
-  val minDateTime = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.UTC).getMillis
-  val maxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.UTC).getMillis
-  val everywhen = new Interval(minDateTime, maxDateTime, DateTimeZone.UTC)
-  val everywhere = WKTUtils.read("POLYGON((-180 -90, 0 -90, 180 -90, 180 90, 0 90, -180 90, -180 -90))").asInstanceOf[Polygon]
-
-  def isWholeWorld[G <: Geometry](g: G): Boolean = g != null && g.union.covers(everywhere)
+  def isWholeWorld[G <: Geometry](g: G): Boolean = g != null && g.union.covers(WholeWorldPolygon)
 
   def getGeometryListOf(inMP: Geometry): Seq[Geometry] =
     for( i <- 0 until inMP.getNumGeometries ) yield inMP.getGeometryN(i)
-
-  def dispatchOnSpatialType(op: BinarySpatialOperator, property: String, geom: Geometry): Filter = op match {
-    case op: Within     => ff.within( ff.property(property), ff.literal(geom) )
-    case op: Intersects => ff.intersects( ff.property(property), ff.literal(geom) )
-    case op: Overlaps   => ff.overlaps( ff.property(property), ff.literal(geom) )
-    case op: BBOX       => val envelope = geom.getEnvelopeInternal
-      ff.bbox( ff.property(property), envelope.getMinX, envelope.getMinY,
-        envelope.getMaxX, envelope.getMaxY, op.getSRS )
-  }
 
   def addWayPointsToBBOX(g: Geometry): Geometry = {
     val gf = g.getFactory
     val geomArray = g.getCoordinates
     val correctedGeom = GeometryUtils.addWayPoints(geomArray).toArray
-    gf.createPolygon(correctedGeom)
-  }
-
-  // Rewrites a Dwithin (assumed to express distance in meters) in degrees.
-  def rewriteDwithin(op: DWithin): Filter = {
-    val geom = op.getExpression2.asInstanceOf[Literal].getValue.asInstanceOf[Geometry]
-    val units = Option(op.getDistanceUnits).map(_.trim).filter(_.nonEmpty).map(_.toLowerCase).getOrElse("meters")
-    val multiplier = units match {
-      case "meters"         => 1.0
-      case "kilometers"     => 1000.0
-      case "feet"           => 0.3048
-      case "statute miles"  => 1609.347
-      case "nautical miles" => 1852.0
-      case _                => 1.0 // not part of ECQL spec...
-    }
-    val distanceMeters = op.getDistance * multiplier
-    val distanceDegrees = GeometryUtils.distanceDegrees(geom, distanceMeters)
-
-    // NB: The ECQL spec doesn't allow for us to put the measurement in "degrees",
-    //  but that's how this filter will be used.
-    ff.dwithin(
-      op.getExpression1,
-      op.getExpression2,
-      distanceDegrees,
-      "meters")
-  }
-
-  def decomposeToGeometry(f: Filter): Seq[Geometry] = f match {
-    case bbox: BBOX =>
-      val bboxPoly = bbox.getExpression2.asInstanceOf[Literal].evaluate(null, classOf[Geometry])
-      Seq(bboxPoly)
-    case gf: BinarySpatialOperator =>
-      extractGeometry(gf)
-    case _ => Seq()
-  }
-
-  def extractGeometry(bso: BinarySpatialOperator): Seq[Geometry] = {
-    bso match {
-      // The Dwithin has already between rewritten.
-      case dwithin: DWithin =>
-        val e2 = dwithin.getExpression2.asInstanceOf[Literal]
-        val geom = e2.getValue.asInstanceOf[Geometry]
-        val buffer = dwithin.getDistance
-        val bufferedGeom = geom.buffer(buffer)
-        Seq(GeohashUtils.getInternationalDateLineSafeGeometry(bufferedGeom))
-      case bs =>
-        bs.getExpression1.evaluate(null, classOf[Geometry]) match {
-          case g: Geometry => Seq(GeohashUtils.getInternationalDateLineSafeGeometry(g))
-          case _           =>
-            bso.getExpression2.evaluate(null, classOf[Geometry]) match {
-              case g: Geometry => Seq(GeohashUtils.getInternationalDateLineSafeGeometry(g))
-            }
-        }
-    }
-  }
-
-  // NB: This method assumes that the filters represent a collection of 'and'ed temporal filters.
-  def extractInterval(filters: Seq[Filter], dtField: Option[String], exclusive: Boolean = false): Interval =
-    dtField match {
-      case None      => everywhen
-      case Some(dtf) =>
-        val intervals = filters.map(extractInterval(_, dtf, exclusive))
-        val (s, e) = intervals.fold((minDateTime, maxDateTime))(overlap)
-        if (s > e) null else new Interval(s, e, DateTimeZone.UTC)
-    }
-
-  private def overlap(dt1: (Long, Long), dt2: (Long, Long)): (Long, Long) =
-    (math.max(dt1._1, dt2._1), math.min(dt1._2, dt2._2))
-
-  private def extractInterval(filter: Filter, dtField: String, exclusive: Boolean): (Long, Long) =
-    filter match {
-      case during: During =>
-        val p = during.getExpression2.evaluate(null, classOf[Period])
-        val start = new DateTime(p.getBeginning.getPosition.getDate, DateTimeZone.UTC).getMillis
-        val end = new DateTime(p.getEnding.getPosition.getDate, DateTimeZone.UTC).getMillis
-        if (exclusive) {
-          (roundSecondsUp(start), roundSecondsDown(end))
-        } else {
-          (start, end)
-        }
-
-      case between: PropertyIsBetween =>
-        val start = between.getLowerBoundary.evaluate(null, classOf[Date])
-        val end = between.getUpperBoundary.evaluate(null, classOf[Date])
-        (start.getTime, end.getTime)
-
-      case eq: PropertyIsEqualTo => intervalFromEqualsLike(eq, dtField)
-      case teq: TEquals          => intervalFromEqualsLike(teq, dtField)
-
-      // NB: Interval semantics correspond to "at or after"
-      case after: After   => intervalFromAfterLike(after, dtField, exclusive)
-      case before: Before => intervalFromBeforeLike(before, dtField, exclusive)
-
-      case lt: PropertyIsLessThan             => intervalFromBeforeLike(lt, dtField, exclusive)
-      // NB: Interval semantics correspond to <
-      case le: PropertyIsLessThanOrEqualTo    => intervalFromBeforeLike(le, dtField, exclusive = false)
-      // NB: Interval semantics correspond to >=
-      case gt: PropertyIsGreaterThan          => intervalFromAfterLike(gt, dtField, exclusive)
-      case ge: PropertyIsGreaterThanOrEqualTo => intervalFromAfterLike(ge, dtField, exclusive = false)
-
-      case a: Any => throw new Exception(s"Expected temporal filters, but received $a.")
-    }
-
-  private def intervalFromEqualsLike[B: BinaryFilter](b: B, dtField: String) =
-    endpointFromBinaryFilter(b, dtField) match {
-      case Right(dt) => (dt, dt)
-      case Left(dt)  => (dt, dt)
-    }
-
-  private def intervalFromAfterLike[B: BinaryFilter](b: B, dtField: String, exclusive: Boolean) =
-    endpointFromBinaryFilter(b, dtField) match {
-      case Right(dt) =>
-        if (exclusive) (roundSecondsUp(dt), maxDateTime) else (dt, maxDateTime)
-      case Left(dt)  =>
-        if (exclusive) (minDateTime, roundSecondsDown(dt)) else (minDateTime, dt)
-    }
-
-  def intervalFromBeforeLike[B: BinaryFilter](b: B, dtField: String, exclusive: Boolean) =
-    endpointFromBinaryFilter(b, dtField) match {
-      case Right(dt) =>
-        if (exclusive) (minDateTime, roundSecondsDown(dt)) else (minDateTime, dt)
-      case Left(dt)  =>
-        if (exclusive) (roundSecondsUp(dt), maxDateTime) else (dt, maxDateTime)
-    }
-
-  private def endpointFromBinaryFilter[B: BinaryFilter](b: B, dtField: String) = {
-    import org.locationtech.geomesa.utils.filters.Typeclasses.BinaryFilter.ops
-    val exprToDT: Expression => Long = ex => ex.evaluate(null, classOf[Date]).getTime
-    if (b.left.toString == dtField) {
-      Right(exprToDT(b.right))  // the left side is the field name; the right is the endpoint
-    } else {
-      Left(exprToDT(b.left))    // the right side is the field name; the left is the endpoint
-    }
-  }
-
-  private def roundSecondsUp(t: Long): Long = t - new DateTime(t).getMillisOfSecond + 1000
-
-  private def roundSecondsDown(t: Long): Long = {
-    val millis = new DateTime(t).getMillisOfSecond
-    if (millis == 0) t - 1000 else t - millis
-  }
-
-  def filterListAsAnd(filters: Seq[Filter]): Option[Filter] = filters match {
-    case Nil => None
-    case _ => Some(recomposeAnd(filters))
-  }
-
-  def recomposeAnd(s: Seq[Filter]): Filter = if (s.tail.isEmpty) s.head else ff.and(s)
-
-  /**
-   * Finds the first filter satisfying the condition and returns the rest in the same order they were in
-   */
-  def findFirst(pred: Filter => Boolean)(s: Seq[Filter]): (Option[Filter], Seq[Filter]) =
-    if (s.isEmpty) (None, s) else {
-      val h = s.head
-      val t = s.tail
-      if (pred(h)) (Some(h), t) else {
-        val (x, xs) = findFirst(pred)(t)
-        (x, h +: xs)
-      }
-    }
-
-  /**
-   * Finds the filter with the lowest known cost and returns the rest in the same order they were in.  If
-   * there are multiple filters with the same lowest cost then the first will be selected.  If no filters
-   * have a known cost or if ``s`` is empty then (None, s) will be returned.
-   */
-  def findBest(cost: Filter => Option[Long])(s: Seq[Filter]): CostAnalysis = {
-    if (s.isEmpty) {
-      CostAnalysis.unknown(s)
-    } else {
-      val head = s.head
-      val tail = s.tail
-
-      val headAnalysis = cost(head).map(c => new KnownCost(head, tail, c)).getOrElse(CostAnalysis.unknown(s))
-      val tailAnalysis = findBest(cost)(tail)
-
-      if (headAnalysis <= tailAnalysis) {
-        headAnalysis
-      } else {
-        // tailAnaysis must have a known cost
-        val ta = tailAnalysis.asInstanceOf[KnownCost]
-        new KnownCost(ta.best, head +: ta.otherFilters, ta.cost)
-      }
-    }
+    if (geomArray.length == correctedGeom.length) g else gf.createPolygon(correctedGeom)
   }
 
   /**
-    * @param bestFilter the [[Filter]] with the lowest cost
-    * @param otherFilters all other [[Filter]]s
+    * Extracts geometries from a filter into a single geometry.
+    *
+    * @param filter filter to evaluate
+    * @param attribute attribute to consider
+    * @return a single geometry (may be a geometry collection)
     */
-  sealed abstract case class CostAnalysis(bestFilter: Option[Filter], otherFilters: Seq[Filter]) {
+  def extractSingleGeometry(filter: Filter, attribute: String): Option[Geometry] =
+    extractGeometry(filter, attribute).map(WholeWorldPolygon.intersection)
 
-    /**
-      * @param rhs the [[CostAnalysis]] to compare to
-      * @return ``true`` if ``this`` has a lower or the same cost as ``rhs``
-      */
-    def <=(rhs: CostAnalysis): Boolean
+  /**
+    * Extract geometries from a filter without validating boundaries.
+    *
+    * @param filter filter to evaluate
+    * @param attribute attribute to consider
+    * @return single geometry, if any relevant spatial predicates are present
+    */
+  private def extractGeometry(filter: Filter, attribute: String): Option[Geometry] = filter match {
+    case a: And =>
+      val all = a.getChildren.flatMap(extractGeometry(_, attribute))
+      all.reduceOption[Geometry] { case (g1, g2) => g1.intersection(g2) }
 
-    def extract: (Option[Filter], Seq[Filter]) = (bestFilter, otherFilters)
+    case o: Or  =>
+      val all = o.getChildren.flatMap(extractGeometry(_, attribute))
+      if (all.length < 2) all.headOption else Some(new GeometryCollection(all.toArray, all.head.getFactory))
+
+    // Note: although not technically required, all known spatial predicates are also binary spatial operators
+    case f: BinarySpatialOperator =>
+      val propertyLiteral = checkOrder(f.getExpression1, f.getExpression2)
+      val withAttribute = propertyLiteral.filter(pl =>  pl.name == null || pl.name == attribute)
+      val geometry = withAttribute.map(_.literal.evaluate(null, classOf[Geometry]))
+      val processedGeometry = geometry.map { geom =>
+        f match {
+          // note: the dwithin should have already between rewritten
+          case dwithin: DWithin => geom.buffer(dwithin.getDistance)
+          case _ => geom
+        }
+      }
+      processedGeometry.map(GeohashUtils.getInternationalDateLineSafeGeometry)
+
+    case _ => None
   }
 
-  class KnownCost(val best: Filter, others: Seq[Filter], val cost: Long) extends CostAnalysis(Some(best), others) {
+  /**
+    * Extracts intervals from a filter. Intervals will be merged where possible - the resulting sequence
+    * is considered to be a union (i.e. OR)
+    *
+    * @param filter filter to evaluate
+    * @param attribute attribute to consider
+    * @return a sequence of intervals, if any
+    */
+  def extractIntervals(filter: Filter,
+                       attribute: String,
+                       handleExclusiveBounds: Boolean = false): Seq[(DateTime, DateTime)] = {
 
-    def <=(rhs: CostAnalysis): Boolean = rhs match {
-      case knownRhs: KnownCost =>
-        this.cost <= knownRhs.cost
-      case _ =>
-        // always less than an unknown cost
-        true
+    def roundSecondsUp(dt: DateTime): DateTime = dt.plusSeconds(1).withMillisOfSecond(0)
+    def roundSecondsDown(dt: DateTime): DateTime = {
+      val millis = dt.getMillisOfSecond
+      if (millis == 0) dt.minusSeconds(1) else dt.withMillisOfSecond(0)
+    }
+
+    extractAttributeBounds(filter, attribute, classOf[Date]).toSeq.flatMap(_.bounds).map { bounds =>
+      def roundLo(dt: DateTime) = if (handleExclusiveBounds && !bounds.inclusive) roundSecondsUp(dt) else dt
+      def roundUp(dt: DateTime) = if (handleExclusiveBounds && !bounds.inclusive) roundSecondsDown(dt) else dt
+
+      val lower = bounds.lower.map(new DateTime(_, DateTimeZone.UTC)).map(roundLo).getOrElse(MinDateTime)
+      val upper = bounds.upper.map(new DateTime(_, DateTimeZone.UTC)).map(roundUp).getOrElse(MaxDateTime)
+
+      (lower, upper)
     }
   }
 
-  class UnknownCost(filters: Seq[Filter]) extends CostAnalysis(None, filters) {
-    override def <=(rhs: CostAnalysis): Boolean = rhs.isInstanceOf[UnknownCost]
-  }
+  /**
+    * Extracts bounds from filters that pertain to a given attribute. Bounds will be merged where
+    * possible.
+    *
+    * @param filter filter to evaluate
+    * @param attribute attribute name to consider
+    * @return a sequence of bounds, if any
+    */
+  def extractAttributeBounds[T](filter: Filter, attribute: String, binding: Class[T]): Option[FilterBounds[T]] = {
+    filter match {
+      case a: And =>
+        val all = a.getChildren.flatMap(extractAttributeBounds(_, attribute, binding))
+        all.reduceLeftOption[FilterBounds[T]] { case (left, right) => left.and(right) }
 
-  object CostAnalysis {
+      case o: Or =>
+        val all = o.getChildren.flatMap(extractAttributeBounds(_, attribute, binding))
+        all.reduceLeftOption[FilterBounds[T]] { case (left, right) => left.or(right) }
 
-    /**
-      * @param filters the filters, none of which have a known cost
-      * @return an [[UnknownCost]] containing ``filters``
-      */
-    def unknown(filters: Seq[Filter]): CostAnalysis = new UnknownCost(filters)
-  }
+      case f: PropertyIsEqualTo =>
+        checkOrder(f.getExpression1, f.getExpression2).flatMap { prop =>
+          Option(prop.literal.evaluate(null, binding)).map { lit =>
+            val bounds = Bounds(Some(lit), Some(lit), inclusive = true)
+            FilterBounds(prop.name, Seq(bounds))
+          }
+        }
 
-  def decomposeAnd(f: Filter): Seq[Filter] = {
-    f match {
-      case b: And => b.getChildren.toSeq.flatMap(decomposeAnd)
-      case f: Filter => Seq(f)
+      case f: PropertyIsBetween =>
+        try {
+          val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
+          val lower = f.getLowerBoundary.evaluate(null, binding)
+          val upper = f.getUpperBoundary.evaluate(null, binding)
+          // note that between is inclusive
+          val bounds = Bounds(Option(lower), Option(upper), inclusive = true)
+          Some(FilterBounds(prop, Seq(bounds)))
+        } catch {
+          case e: Exception =>
+            logger.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
+            None
+        }
+
+      case f: During if classOf[Date].isAssignableFrom(binding) =>
+        checkOrder(f.getExpression1, f.getExpression2).flatMap { prop =>
+          Option(prop.literal.evaluate(null, classOf[Period])).map { p =>
+            val lower = p.getBeginning.getPosition.getDate.asInstanceOf[T]
+            val upper = p.getEnding.getPosition.getDate.asInstanceOf[T]
+            // note that during is exclusive
+            val bounds = Bounds(Option(lower), Option(upper), inclusive = false)
+            FilterBounds(prop.name, Seq(bounds))
+          }
+        }
+
+      case f: PropertyIsGreaterThan =>
+        checkOrder(f.getExpression1, f.getExpression2).flatMap { prop =>
+          Option(prop.literal.evaluate(null, binding)).map { lit =>
+            val (lower, upper) = if (prop.flipped) (None, Some(lit)) else (Some(lit), None)
+            val bounds = Bounds(lower, upper, inclusive = false)
+            FilterBounds(prop.name, Seq(bounds))
+          }
+        }
+
+      case f: PropertyIsGreaterThanOrEqualTo =>
+        checkOrder(f.getExpression1, f.getExpression2).flatMap { prop =>
+          Option(prop.literal.evaluate(null, binding)).map { lit =>
+            val (lower, upper) = if (prop.flipped) (None, Some(lit)) else (Some(lit), None)
+            val bounds = Bounds(lower, upper, inclusive = true)
+            FilterBounds(prop.name, Seq(bounds))
+          }
+        }
+
+      case f: PropertyIsLessThan =>
+        checkOrder(f.getExpression1, f.getExpression2).flatMap { prop =>
+          Option(prop.literal.evaluate(null, binding)).map { lit =>
+            val (lower, upper) = if (prop.flipped) (Some(lit), None) else (None, Some(lit))
+            val bounds = Bounds(lower, upper, inclusive = false)
+            FilterBounds(prop.name, Seq(bounds))
+          }
+        }
+
+      case f: PropertyIsLessThanOrEqualTo =>
+        checkOrder(f.getExpression1, f.getExpression2).flatMap { prop =>
+          Option(prop.literal.evaluate(null, binding)).map { lit =>
+            val (lower, upper) = if (prop.flipped) (Some(lit), None) else (None, Some(lit))
+            val bounds = Bounds(lower, upper, inclusive = true)
+            FilterBounds(prop.name, Seq(bounds))
+          }
+        }
+
+      case f: Before =>
+        checkOrder(f.getExpression1, f.getExpression2).flatMap { prop =>
+          Option(prop.literal.evaluate(null, binding)).map { lit =>
+            val (lower, upper) = if (prop.flipped) (Option(lit), None) else (None, Option(lit))
+            // note that before is exclusive
+            val bounds = Bounds(lower, upper, inclusive = false)
+            FilterBounds(prop.name, Seq(bounds))
+          }
+        }
+
+      case f: After =>
+        checkOrder(f.getExpression1, f.getExpression2).flatMap { prop =>
+          Option(prop.literal.evaluate(null, binding)).map { lit =>
+            val (lower, upper) = if (prop.flipped) (None, Option(lit)) else (Option(lit), None)
+            // note that after is exclusive
+            val bounds = Bounds(lower, upper, inclusive = false)
+            FilterBounds(prop.name, Seq(bounds))
+          }
+        }
+
+      case f: PropertyIsLike if binding == classOf[String] =>
+        try {
+          val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
+          // Remove the trailing wildcard and create a range prefix
+          val literal = f.getLiteral
+          val lower = if (literal.endsWith(MULTICHAR_WILDCARD)) {
+            literal.substring(0, literal.length - MULTICHAR_WILDCARD.length)
+          } else {
+            literal
+          }
+          val upper = Some(lower + WILDCARD_SUFFIX).asInstanceOf[Some[T]]
+          val bounds = Bounds(Some(lower.asInstanceOf[T]), upper, inclusive = true)
+          Some(FilterBounds(prop, Seq(bounds)))
+        } catch {
+          case e: Exception =>
+            logger.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
+            None
+        }
+
+      case f: Not if f.getFilter.isInstanceOf[PropertyIsNull] =>
+        try {
+          val isNull = f.getFilter.asInstanceOf[PropertyIsNull]
+          val prop = isNull.getExpression.asInstanceOf[PropertyName].getPropertyName
+          val bounds = Bounds[T](None, None, inclusive = true)
+          Some(FilterBounds(prop, Seq(bounds)))
+        } catch {
+          case e: Exception =>
+            logger.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
+            None
+        }
+
+      case f: Not =>
+        // we extract the sub-filter bounds, then invert them
+        extractAttributeBounds(f.getFilter, attribute, binding).flatMap { inverted =>
+          // NOT(A OR B) turns into NOT(A) AND NOT(B)
+          val uninverted = inverted.bounds.map { bound =>
+            // NOT the single bound
+            val not = bound.bounds match {
+              case (None, None) => Seq.empty
+              case (Some(lo), None) => Seq(Bounds(None, Some(lo), !bound.inclusive))
+              case (None, Some(hi)) => Seq(Bounds(Some(hi), None, !bound.inclusive))
+              case (Some(lo), Some(hi)) =>
+                Seq(Bounds(None, Some(lo), !bound.inclusive), Bounds(Some(hi), None, !bound.inclusive))
+            }
+            FilterBounds(attribute, not)
+          }
+          // AND together
+          uninverted.reduceLeftOption[FilterBounds[T]] { case (left, right) => left.and(right) }
+        }
+
+      case f: TEquals =>
+        checkOrder(f.getExpression1, f.getExpression2).flatMap { prop =>
+          Option(prop.literal.evaluate(null, binding)).map { lit =>
+            val bounds = Bounds(Some(lit), Some(lit), inclusive = true)
+            FilterBounds(prop.name, Seq(bounds))
+          }
+        }
+
+      case _ => None
     }
   }
 
-  def tryReduceGeometryFilter(filts: Seq[Filter]): Seq[Filter] = {
-    import org.geotools.data.DataUtilities._
-    import scala.collection.JavaConversions._
+  def propertyNames(filter: Filter, sft: SimpleFeatureType): Seq[String] =
+    DataUtilities.propertyNames(filter, sft).map(_.getPropertyName).toSeq
 
-    val filtFactory = CommonFactoryFinder.getFilterFactory2
-
-    def getAttrName(l: BBOX): String = propertyNames(l).head.getPropertyName
-
-    filts match {
-      // if we have two bbox filters as is common in WMS queries, merge them by intersecting the bounds
-      case Seq(l: BBOX, r: BBOX) if getAttrName(l) == getAttrName(r) =>
-        val prop = propertyNames(l).head
-        val bounds = JTS.toGeometry(l.getBounds).intersection(JTS.toGeometry(r.getBounds)).getEnvelopeInternal
-        val re = ReferencedEnvelope.reference(bounds)
-        val bbox = filtFactory.bbox(prop, re)
-        Seq(bbox)
-
-      case _ =>
-        filts
-    }
-  }
-
+  def filterListAsAnd(filters: Seq[Filter]): Option[Filter] = andOption(filters)
 }
 

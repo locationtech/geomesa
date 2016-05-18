@@ -9,17 +9,15 @@
 package org.locationtech.geomesa.accumulo.index
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Coordinate
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.geometry.jts.{JTSFactoryFinder, ReferencedEnvelope}
-import org.joda.time.{DateTime, DateTimeZone, Interval}
+import org.geotools.geometry.jts.JTSFactoryFinder
+import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
-import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.FilterHelper._
 import org.locationtech.geomesa.utils.filters.Filters._
-import org.opengis.filter.Filter
+import org.opengis.filter.{And, Filter}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -65,13 +63,24 @@ class FilterHelperTest extends Specification with Mockito with LazyLogging {
   def between(dt1: DateTime, dt2: DateTime): Filter = ff.between(dtp, dt2lit(dt1), dt2lit(dt2))
   def between(dtTuple: (DateTime, DateTime)): Filter = between(dtTuple._1, dtTuple._2)
 
-  def interval(dtTuple: (DateTime, DateTime)) = new Interval(dtTuple._1, dtTuple._2)
-  def afterInterval(dt: DateTime): Interval   = new Interval(dt, max)
-  def beforeInterval(dt: DateTime): Interval  = new Interval(min, dt)
+  def interval(dtTuple: (DateTime, DateTime)) = (dtTuple._1, dtTuple._2)
+  def afterInterval(dt: DateTime): (DateTime, DateTime)  = (dt, max)
+  def beforeInterval(dt: DateTime): (DateTime, DateTime) = (min, dt)
 
-  val extractDT: (Seq[Filter]) => Interval = extractInterval(_, Some(dtFieldName))
+  val extractDT: (Seq[Filter]) => (DateTime, DateTime) = {
+    import scala.collection.JavaConversions._
+    (f) => extractIntervals(ff.and(f), dtFieldName).headOption.getOrElse(null, null)
+  }
 
-  def extractDateTime(fs: String): Interval = {
+  def decomposeAnd(f: Filter): Seq[Filter] = {
+    import scala.collection.JavaConversions._
+    f match {
+      case b: And => b.getChildren.toSeq.flatMap(decomposeAnd)
+      case f: Filter => Seq(f)
+    }
+  }
+
+  def extractDateTime(fs: String): (DateTime, DateTime) = {
     val filter = ECQL.toFilter(fs)
     val filters = decomposeAnd(filter)
     extractDT(filters)
@@ -123,7 +132,7 @@ class FilterHelperTest extends Specification with Mockito with LazyLogging {
         val filter = during(start, end)
 
         val extractedInterval = extractDT(Seq(filter))
-        val expectedInterval = new Interval(start, end)
+        val expectedInterval = (start, end)
         logger.debug(s"Extracted interval $extractedInterval from filter ${ECQL.toCQL(filter)}")
         extractedInterval must equalTo(expectedInterval)
       }
@@ -132,8 +141,8 @@ class FilterHelperTest extends Specification with Mockito with LazyLogging {
     "offset dates for during filters" in {
       forall(dts.combinations(2).map(sortDates)) { case (start, end) =>
         val filter = during(start, end)
-        val extractedInterval = extractInterval(Seq(filter), Some(dtFieldName), exclusive = true)
-        val expectedInterval = new Interval(start.plusSeconds(1), end.minusSeconds(1))
+        val extractedInterval = extractIntervals(filter, dtFieldName, handleExclusiveBounds = true).head
+        val expectedInterval = (start.plusSeconds(1), end.minusSeconds(1))
         logger.debug(s"Extracted interval $extractedInterval from filter ${ECQL.toCQL(filter)}")
         extractedInterval must equalTo(expectedInterval)
       }
@@ -142,8 +151,8 @@ class FilterHelperTest extends Specification with Mockito with LazyLogging {
         val start = s.plusMillis(r.nextInt(998) + 1)
         val end = e.plusMillis(r.nextInt(998) + 1)
         val filter = during(start, end)
-        val extractedInterval = extractInterval(Seq(filter), Some(dtFieldName), exclusive = true)
-        val expectedInterval = new Interval(s.plusSeconds(1), e)
+        val extractedInterval = extractIntervals(filter, dtFieldName, handleExclusiveBounds = true).head
+        val expectedInterval = (s.plusSeconds(1), e)
         logger.debug(s"Extracted interval $extractedInterval from filter ${ECQL.toCQL(filter)}")
         extractedInterval must equalTo(expectedInterval)
       }
@@ -155,7 +164,7 @@ class FilterHelperTest extends Specification with Mockito with LazyLogging {
         val filter = between(start, end)
 
         val extractedInterval = extractDT(Seq(filter))
-        val expectedInterval = new Interval(start, end)
+        val expectedInterval = (start, end)
         logger.debug(s"Extracted interval $extractedInterval from filter ${ECQL.toCQL(filter)}")
         extractedInterval must equalTo(expectedInterval)
       }
@@ -178,7 +187,8 @@ class FilterHelperTest extends Specification with Mockito with LazyLogging {
 
         val expectedStart = math.max(t1._1.getMillis, t2._1.getMillis)
         val expectedEnd = math.min(t1._2.getMillis, t2._2.getMillis)
-        val expectedInterval = if (expectedStart > expectedEnd) null else new Interval(expectedStart, expectedEnd, DateTimeZone.UTC)
+        val expectedInterval = if (expectedStart > expectedEnd) (null, null) else
+          (new DateTime(expectedStart, DateTimeZone.UTC), new DateTime(expectedEnd, DateTimeZone.UTC))
         logger.debug(s"Extracted interval $extractedBetweenInterval from filters ${betweenFilters.map(ECQL.toCQL)}")
         extractedBetweenInterval must equalTo(expectedInterval)
         extractedDuringInterval must equalTo(expectedInterval)
@@ -199,10 +209,10 @@ class FilterHelperTest extends Specification with Mockito with LazyLogging {
         val duringFilter = during(dtPair)
         val pairInterval = interval(dtPair)
 
-        def overlap(i1: Interval, i2: Interval) = {
-          val s = math.max(i1.getStart.getMillis, i2.getStart.getMillis)
-          val e = math.min(i1.getEnd.getMillis, i2.getEnd.getMillis)
-          if (s > e) null else new Interval(s, e, DateTimeZone.UTC)
+        def overlap(i1: (DateTime, DateTime), i2: (DateTime, DateTime)) = {
+          val s = math.max(i1._1.getMillis, i2._1.getMillis)
+          val e = math.min(i1._2.getMillis, i2._2.getMillis)
+          if (s > e) (null, null) else (new DateTime(s, DateTimeZone.UTC), new DateTime(e, DateTimeZone.UTC))
         }
         val afterAndBetween = extractDT(Seq(afterDtFilter, betweenFilter))
         val afterAndBetweenInterval = overlap(afterDtInterval, pairInterval)
@@ -236,142 +246,6 @@ class FilterHelperTest extends Specification with Mockito with LazyLogging {
       val difference = processed diff baseFilters
 
       difference.isEmpty must beTrue
-    }
-  }
-
-  "findBest" should {
-
-    val a = mockAs[Filter]("a")
-    val b = mockAs[Filter]("b")
-    val c = mockAs[Filter]("c")
-    val d = mockAs[Filter]("d")
-
-    "return none when the sequence is empty" >> {
-      val cost = (f: Filter) => Some(0L)
-      val filters = Seq.empty[Filter]
-
-      val result = FilterHelper.findBest(cost)(filters)
-
-      result.isInstanceOf[UnknownCost] must beTrue
-      result.bestFilter must beNone
-      result.otherFilters mustEqual filters
-    }
-
-    "return none when no costs are known" >> {
-      val cost = (f: Filter) => None : Option[Long]
-      val filters = Seq(a, b, c)
-
-      val result = FilterHelper.findBest(cost)(filters)
-
-      result.isInstanceOf[UnknownCost] must beTrue
-      result.bestFilter must beNone
-      result.otherFilters mustEqual filters
-    }
-
-    "return best if first" >> {
-      val lookup = Seq(
-        (a, Some(1L)),
-        (b, Some(2L)),
-        (c, None),
-        (d, Some(3L))
-      )
-
-      val filters = lookup.map(_._1)
-      val cost: (Filter) => Option[Long] = lookup.toMap
-
-      val result = FilterHelper.findBest(cost)(filters)
-
-      result.isInstanceOf[KnownCost] must beTrue
-      result.bestFilter must beSome(a)
-      result.otherFilters mustEqual Seq(b, c, d)
-      result.asInstanceOf[KnownCost].cost mustEqual 1
-    }
-
-    "return best if after unknown" >> {
-      val lookup = Seq(
-        (a, None),
-        (b, Some(2L)),
-        (c, Some(6L)),
-        (d, Some(4L))
-      )
-
-      val filters = lookup.map(_._1)
-      val cost: (Filter) => Option[Long] = lookup.toMap
-
-      val result = FilterHelper.findBest(cost)(filters)
-
-      result.isInstanceOf[KnownCost] must beTrue
-      result.bestFilter must beSome(b)
-      result.otherFilters mustEqual Seq(a, c, d)
-      result.asInstanceOf[KnownCost].cost mustEqual 2
-    }
-
-    "return best if after worse" >> {
-      val lookup = Seq(
-        (a, Some(5L)),
-        (b, None),
-        (c, Some(3L)),
-        (d, Some(5L))
-      )
-
-      val filters = lookup.map(_._1)
-      val cost: (Filter) => Option[Long] = lookup.toMap
-
-      val result = FilterHelper.findBest(cost)(filters)
-
-      result.isInstanceOf[KnownCost] must beTrue
-      result.bestFilter must beSome(c)
-      result.otherFilters mustEqual Seq(a, b, d)
-      result.asInstanceOf[KnownCost].cost mustEqual 3
-    }
-
-    "return best if last" >> {
-      val lookup = Seq(
-        (a, Some(30L)),
-        (b, None),
-        (c, Some(20L)),
-        (d, Some(10L))
-      )
-
-      val filters = lookup.map(_._1)
-      val cost: (Filter) => Option[Long] = lookup.toMap
-
-      val result = FilterHelper.findBest(cost)(filters)
-
-      result.isInstanceOf[KnownCost] must beTrue
-      result.bestFilter must beSome(d)
-      result.otherFilters mustEqual Seq(a, b, c)
-      result.asInstanceOf[KnownCost].cost mustEqual 10
-    }
-
-    "return first best if multiple" >> {
-      val lookup = Seq(
-        (a, Some(200L)),
-        (b, Some(5L)),
-        (c, None),
-        (d, Some(5L))
-      )
-
-      val filters = lookup.map(_._1)
-      val cost: (Filter) => Option[Long] = lookup.toMap
-
-      val result = FilterHelper.findBest(cost)(filters)
-
-      result.isInstanceOf[KnownCost] must beTrue
-      result.bestFilter must beSome(b)
-      result.otherFilters mustEqual Seq(a, c, d)
-      result.asInstanceOf[KnownCost].cost mustEqual 5
-    }
-  }
-
-  "tryMergeGeoms" should {
-    "intersect BBOX geoms" >> {
-      implicit def tupleToCoord(t: (Int, Int)): Coordinate = new Coordinate(t._1, t._2)
-      val one = gf.createPolygon(Seq[Coordinate]((1, 1), (4, 1), (4, 4), (1, 4), (1, 1)).toArray)
-      val two = gf.createPolygon(Seq[Coordinate]((1, 1), (2, 1), (2, 2), (1, 2), (1, 1)).toArray)
-      val f1 = ff.bbox(ff.property("geom"), ReferencedEnvelope.reference(one.getEnvelopeInternal))
-      val f2 = ff.bbox(ff.property("geom"), ReferencedEnvelope.reference(two.getEnvelopeInternal))
-      FilterHelper.tryReduceGeometryFilter(Seq(f1, f2)).head must be equalTo(f2)
     }
   }
 }

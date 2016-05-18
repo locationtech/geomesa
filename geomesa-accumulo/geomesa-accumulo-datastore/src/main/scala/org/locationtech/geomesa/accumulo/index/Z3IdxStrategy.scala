@@ -10,7 +10,6 @@ package org.locationtech.geomesa.accumulo.index
 
 import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Geometry, GeometryCollection}
 import org.apache.accumulo.core.data.Range
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
@@ -19,6 +18,7 @@ import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.sfcurve.zorder.Z3
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -54,18 +54,23 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     output(s"Temporal filters: ${filtersToString(temporalFilters)}")
 
     // standardize the two key query arguments:  polygon and date-range
-    val geomsToCover = tryReduceGeometryFilter(geomFilters).flatMap(decomposeToGeometry)
+    // TODO GEOMESA-1215 this can handle OR'd geoms, but the query splitter won't currently send them
+    val geometryToCover =
+      filter.singlePrimary.flatMap(extractSingleGeometry(_, sft.getGeomField)).getOrElse(WholeWorldPolygon)
 
-    val collectionToCover: Geometry = geomsToCover match {
-      case Nil => null
-      case seq: Seq[Geometry] => new GeometryCollection(geomsToCover.toArray, geomsToCover.head.getFactory)
-    }
-
-    // since we don't apply a temporal filter, we pass offsetDuring to
+    // since we don't apply a temporal filter, we pass handleExclusiveBounds to
     // make sure we exclude the non-inclusive endpoints of a during filter.
     // note that this isn't completely accurate, as we only index down to the second
-    val interval = extractInterval(temporalFilters, dtgField, exclusive = true)
-    val geometryToCover = netGeom(collectionToCover)
+    val interval = {
+      // TODO GEOMESA-1215 this can handle OR'd intervals, but the query splitter won't currently send them
+      val intervals = for { dtg <- dtgField; filter <- andOption(temporalFilters) } yield {
+        extractIntervals(filter, dtg)
+      }
+      // note: because our filters were and'ed, there will be at most one interval
+      intervals.flatMap(_.headOption).getOrElse {
+        throw new RuntimeException(s"Couldn't extract interval from filters '${filtersToString(temporalFilters)}'")
+      }
+    }
 
     output(s"GeomsToCover: $geometryToCover")
     output(s"Interval:  $interval")
@@ -121,8 +126,8 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     val env = geometryToCover.getEnvelopeInternal
     val (lx, ly, ux, uy) = (env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
 
-    val (epochWeekStart, lt) = Z3Table.getWeekAndSeconds(interval.getStart)
-    val (epochWeekEnd, ut) = Z3Table.getWeekAndSeconds(interval.getEnd)
+    val (epochWeekStart, lt) = Z3Table.getWeekAndSeconds(interval._1)
+    val (epochWeekEnd, ut) = Z3Table.getWeekAndSeconds(interval._2)
     val weeks = scala.Range.inclusive(epochWeekStart, epochWeekEnd).map(_.toShort)
 
     // time range for a chunk is 0 to 1 week (in seconds)
@@ -176,7 +181,7 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
       val endBytes = Longs.toByteArray(indexRange.upper)
       prefixes.map { prefix =>
         val start = new Text(Bytes.concat(prefix, startBytes))
-        val end   = Range.followingPrefix(new Text(Bytes.concat(prefix, endBytes)))
+        val end = Range.followingPrefix(new Text(Bytes.concat(prefix, endBytes)))
         new Range(start, true, end, false)
       }
     }

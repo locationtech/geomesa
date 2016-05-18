@@ -297,7 +297,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       all.map(_.getAttribute("name")) must containTheSameElementsAs(Seq("will", "george", "sue", "bob", "karen"))
 
       // Verify other date range returns nothing
-      val none = fs.getFeatures(ECQL.toFilter("dtg DURING 2013-01-01T00:00:00Z/2013-12-31T00:00:00Z")).features().toSeq
+      val none = fs.getFeatures(ECQL.toFilter("dtg DURING 2013-12-01T00:00:00Z/2013-12-31T00:00:00Z")).features().toSeq
       none must beEmpty
     }
 

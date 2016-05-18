@@ -12,6 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Geometry, GeometryCollection, Point, Polygon}
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone, Interval}
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -55,8 +56,9 @@ import scala.util.parsing.combinator.RegexParsers
 // %~#s%999#r%0,4#gh%HHmm#d::%~#s%4,2#gh::%~#s%6,1#gh%yyyyMMdd#d
 
 object IndexSchema extends RegexParsers with LazyLogging {
-  val minDateTime = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.forID("UTC"))
-  val maxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.forID("UTC"))
+  val minDateTime = FilterHelper.MinDateTime
+  val maxDateTime = FilterHelper.MaxDateTime
+
   val everywhen = new Interval(minDateTime, maxDateTime)
   val everywhere = WKTUtils.read("POLYGON((-180 -90, 0 -90, 180 -90, 180 90, 0 90, -180 90, -180 -90))").asInstanceOf[Polygon]
 
