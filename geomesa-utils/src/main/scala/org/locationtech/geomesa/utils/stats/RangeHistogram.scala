@@ -155,14 +155,14 @@ object RangeHistogram {
 
   def buffer[T](value: T): (T, T) = {
     val buf = value match {
-      case v: String => (v, v + "z")
-      case v: Int    => (v - 1, v + 1)
-      case v: Long   => (v - 1, v + 1)
-      case v: Float  => (v - 1, v + 1)
-      case v: Double => (v - 1, v + 1)
-      case v: Date   => (v, new Date(v.getTime + 60000))
+      case v: String => (v + "0", v + "z")
+      case v: Int    => (v - 100, v + 100)
+      case v: Long   => (v - 100, v + 100)
+      case v: Float  => (v - 100, v + 100)
+      case v: Double => (v - 100, v + 100)
+      case v: Date   => (new Date(v.getTime - 60000), new Date(v.getTime + 60000))
       case v: Geometry =>
-        val env = v.getCentroid.buffer(1.0).getEnvelopeInternal
+        val env = v.getCentroid.buffer(10.0).getEnvelopeInternal
         val min = GeometryUtils.geoFactory.createPoint(new Coordinate(env.getMinX, env.getMinY))
         val max = GeometryUtils.geoFactory.createPoint(new Coordinate(env.getMaxX, env.getMaxY))
         (min, max)
@@ -196,7 +196,7 @@ object RangeHistogram {
   /**
     * Gets the bounds of the array that actually contain values.
     */
-  private def getActualBounds[T](bins: BinnedArray[T])(implicit defaults: MinMax.MinMaxDefaults[T]): (T, T) = {
+  private def getActualBounds[T](bins: BinnedArray[T]): (T, T) = {
     val minIndex = bins.counts.indexWhere(_ != 0)
     val maxIndex = bins.counts.length - bins.counts.reverse.indexWhere(_ != 0) - 1
     val min = if (minIndex <= 0) bins.bounds._1 else bins.bounds(minIndex)._1
@@ -209,10 +209,10 @@ object RangeHistogram {
     * sizes and/or endpoints. If arrays have the same characteristics, this method is
     * needlessly expensive/complicated/inexact.
     */
-  def copyInto[T](to: BinnedArray[T], from: BinnedArray[T])(implicit defaults: MinMax.MinMaxDefaults[T]): Unit = {
+  def copyInto[T](to: BinnedArray[T], from: BinnedArray[T]): Unit = {
     def toIndex(value: T): Int = {
       val i = to.indexOf(value)
-      if (i != -1) i else if (defaults.min(value, to.bounds._1) == value) 0 else to.length - 1
+      if (i != -1) i else if (to.isBelow(value)) 0 else to.length - 1
     }
 
     var i = 0
@@ -226,6 +226,8 @@ object RangeHistogram {
           to.counts(lo) += count
         } else {
           val size = hi - lo + 1
+          require(size > 0,
+            s"Error calculating bounds for ${min.getClass.getSimpleName} from ${from.bounds} to ${to.bounds}")
           val avgCount = count / size
           val remainingCount = count % size
           val mid = lo + (size / 2)
