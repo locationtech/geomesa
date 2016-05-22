@@ -376,6 +376,16 @@ Accumulo 1.6
 * libthrift-0.9.1.jar
 * zookeeper-3.4.5.jar
 
+Accumulo 1.7+ (note the addition of htrace)
+
+* accumulo-core-1.7.1.jar
+* accumulo-fate-1.7.1.jar
+* accumulo-server-base-1.7.1.jar
+* accumulo-trace.1.7.1.jar
+* libthrift-0.9.1.jar
+* zookeeper-3.4.5.jar
+* htrace-core-3.1.0-incubating.jar
+
 Hadoop 2.2
 
 * commons-configuration-1.6.jar
