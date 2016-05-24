@@ -304,33 +304,39 @@ class BinnedDoubleArray(length: Int, bounds: (jDouble, jDouble)) extends BinnedA
 class BinnedStringArray(length: Int, rawBounds: (String, String))
     extends WholeNumberBinnedArray[String](length, BinnedStringArray.normalizeBounds(rawBounds)) {
 
+  import BinnedStringArray._
+
   private lazy val (start, end): (String, String) = bounds
   private lazy val prefixLength = start.zip(end).indexWhere { case (l, r) => l != r }
   private lazy val prefix = start.substring(0, prefixLength)
 
   override protected def convertToLong(value: String): Long = {
-    val normalized = BinnedStringArray.normalize(value)
+    val normalized = normalize(value)
     if (normalized < start) { 0L } else if (normalized > end) { Long.MaxValue } else {
       // note: 12 is the most base-36 numbers we can fit in Long.MaxValue
-      val sigDigits = normalized.substring(prefixLength).padTo(12, '0').substring(0, 12)
+      val sigDigits = normalized.substring(prefixLength).padTo(12, Base36Lowest).substring(0, 12)
       jLong.parseLong(sigDigits, 36)
     }
   }
 
   override protected def convertFromLong(value: Long): String =
-    prefix + jLong.toString(value, 36).reverse.padTo(12, '0').reverse.replaceFirst("0+$", "")
+    prefix + jLong.toString(value, 36).reverse.padTo(12, Base36Lowest).reverse.replaceFirst("0+$", "")
 }
 
 object BinnedStringArray {
 
-  def normalize(s: String) = s.toLowerCase(Locale.US).replaceAll("[^0-9a-z]", "0")
+  val Base36Chars   = (0 until 36).map(Integer.toString(_, 36).toLowerCase(Locale.US).charAt(0)).toArray
+  val Base36Lowest  = Base36Chars.head
+  val Base36Highest = Base36Chars.last
+
+  def normalize(s: String) = s.toLowerCase(Locale.US).replaceAll("[^0-9a-z]", Base36Lowest.toString)
 
   def normalizeBounds(bounds: (String, String)): (String, String) = {
     val lower = normalize(bounds._1)
     val upper = normalize(bounds._2)
     val length = math.max(lower.length, upper.length)
-    val pLower = lower.padTo(length, '0')
-    val pUpper = upper.padTo(length, 'z')
+    val pLower = lower.padTo(length, Base36Lowest)
+    val pUpper = upper.padTo(length, Base36Highest)
     val prefixLength = pLower.zip(pUpper).indexWhere { case (l, r) => l != r }
     require(prefixLength != -1, s"Normalized strings must not match: $lower, $upper")
     // check to make sure they fit in a long (12 chars)

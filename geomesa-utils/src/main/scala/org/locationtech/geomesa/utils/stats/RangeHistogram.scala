@@ -154,12 +154,13 @@ class RangeHistogram[T](val attribute: Int, initialBins: Int, initialEndpoints: 
 object RangeHistogram {
 
   def buffer[T](value: T): (T, T) = {
+    import BinnedStringArray.{Base36Lowest, Base36Highest}
     val buf = value match {
-      case v: String => (v + "0", v + "z")
       case v: Int    => (v - 100, v + 100)
       case v: Long   => (v - 100, v + 100)
       case v: Float  => (v - 100, v + 100)
       case v: Double => (v - 100, v + 100)
+      case v: String => (s"$v$Base36Lowest", s"$v$Base36Highest")
       case v: Date   => (new Date(v.getTime - 60000), new Date(v.getTime + 60000))
       case v: Geometry =>
         val env = v.getCentroid.buffer(10.0).getEnvelopeInternal
