@@ -223,6 +223,10 @@ a.icon-home:visited {
    background: #444;
 }
 
+div.highlight pre {
+   background: #d6d6d6;
+}
+
 code.docutils {
    background: #444;
 }
@@ -231,4 +235,16 @@ code.literal {
    background: #444;
 }
 
-.wy-menu-vertical li.current > a { color: #777; } 
+.wy-menu-vertical li.current > a { color: #777; }
+
+div.admonition.warning, div.admonition.note {
+   background: #555;
+}
+
+.wy-table-responsive th.head {
+   background-color: #c9c9c9 !important;
+}
+
+.wy-table-responsive tr.row-even td {
+   background-color: #555 !important;
+}
