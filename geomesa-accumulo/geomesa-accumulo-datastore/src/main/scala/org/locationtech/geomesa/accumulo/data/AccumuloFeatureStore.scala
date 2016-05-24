@@ -48,8 +48,6 @@ class AccumuloFeatureStore(dataStore: AccumuloDataStore, featureName: Name)
       writer.close()
     }
 
-    dataStore.writeSpatialBounds(typeName, collection.getBounds)
-
     fids
   }
 

@@ -184,6 +184,10 @@ Test the command that invokes the GeoMesa Tools:
         list             List GeoMesa features for a given catalog
         queryrasterstats Export queries and statistics about the last X number of queries to a CSV file.
         removeschema     Remove a schema and associated features from a GeoMesa catalog
+        stats-analyze    Analyze statistics on a GeoMesa feature type
+        stats-bounds     View bounds on attributes in a GeoMesa schema
+        stats-count      View feature counts in a GeoMesa schema
+        stats-histogram  View statistics on a GeoMesa feature type
         tableconf        Perform table configuration operations
         version          GeoMesa Version
 

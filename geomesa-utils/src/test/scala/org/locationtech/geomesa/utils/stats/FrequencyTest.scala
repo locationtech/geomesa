@@ -12,6 +12,7 @@ import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
 import java.util.Date
 
 import com.vividsolutions.jts.geom.Geometry
+import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
@@ -65,6 +66,43 @@ class FrequencyTest extends Specification with StatTestHelper {
       indices must containTheSameElementsAs(Seq(12, 13, 14, 15, 36, 37, 38, 39, 44, 45))
     }
 
+    "support weekly binning" >> {
+      val stat = Stat(sft, Stat.Frequency("longAttr", "dtg", 1)).asInstanceOf[Frequency[Long]]
+      val weekStart = 45 * 52 // approximately jan 2015
+      val weeks = Set(weekStart, weekStart + 1, weekStart + 2, weekStart + 3)
+      val dayStart = Z3Frequency.Epoch.plusWeeks(weekStart).plusHours(1)
+      (0 until 28 * 4).foreach { i =>
+        val a = Array(null, null, i, null, null, "POINT(-75 45)", dayStart.plusDays(i % 28).toDate)
+        val f = SimpleFeatureBuilder.build(sft, a.asInstanceOf[Array[AnyRef]], i.toString)
+        stat.observe(f)
+      }
+      val serializer = StatSerializer(sft)
+
+      stat.sketchMap must haveSize(4)
+      stat.sketchMap.keySet mustEqual weeks
+
+      val offsets = (0 until 4).map(_ * 28)
+      forall(offsets.flatMap(o => o +  0 until o +  7))(stat.count(weekStart.toShort, _) mustEqual 1)
+      forall(offsets.flatMap(o => o +  7 until o + 14))(stat.count((weekStart + 1).toShort, _) mustEqual 1)
+      forall(offsets.flatMap(o => o + 14 until o + 21))(stat.count((weekStart + 2).toShort, _) mustEqual 1)
+      forall(offsets.flatMap(o => o + 21 until o + 28))(stat.count((weekStart + 3).toShort, _) mustEqual 1)
+
+      val serialized = serializer.serialize(stat)
+      val deserialized = serializer.deserialize(serialized)
+      stat.isEquivalent(deserialized) must beTrue
+
+      val splits = stat.splitByWeek.toMap
+      splits must haveSize(4)
+      splits.keySet mustEqual weeks
+      forall(offsets.flatMap(o => o +  0 until o +  7))(d => splits(weekStart.toShort).count(d) mustEqual 1)
+      forall(offsets.flatMap(o => o +  7 until o + 14))(d => splits((weekStart + 1).toShort).count(d) mustEqual 1)
+      forall(offsets.flatMap(o => o + 14 until o + 21))(d => splits((weekStart + 2).toShort).count(d) mustEqual 1)
+      forall(offsets.flatMap(o => o + 21 until o + 28))(d => splits((weekStart + 3).toShort).count(d) mustEqual 1)
+
+      // the splits still have to serialize the attribute, eps, etc, hence the extra 21 bytes per (split - 1)
+      splits.values.map(serializer.serialize).map(_.length).sum mustEqual serialized.length + 3 * 21
+    }
+
     "work with strings" >> {
       "be empty initially" >> {
         val stat = stringStat(6, observe = false)
@@ -88,6 +126,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         unpacked must beAnInstanceOf[Frequency[String]]
         unpacked.asInstanceOf[Frequency[String]].attribute mustEqual stat.attribute
         unpacked.asInstanceOf[Frequency[String]].precision mustEqual stat.precision
+        unpacked.asInstanceOf[Frequency[String]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[String]].toJson mustEqual stat.toJson
       }
 
@@ -99,6 +138,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         unpacked must beAnInstanceOf[Frequency[String]]
         unpacked.asInstanceOf[Frequency[String]].attribute mustEqual stat.attribute
         unpacked.asInstanceOf[Frequency[String]].precision mustEqual stat.precision
+        unpacked.asInstanceOf[Frequency[String]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[String]].toJson mustEqual stat.toJson
       }
 
@@ -110,6 +150,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         unpacked must beAnInstanceOf[Frequency[String]]
         unpacked.asInstanceOf[Frequency[String]].attribute mustEqual stat.attribute
         unpacked.asInstanceOf[Frequency[String]].precision mustEqual stat.precision
+        unpacked.asInstanceOf[Frequency[String]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[String]].toJson mustEqual stat.toJson
 
         unpacked.clear must throwAn[Exception]
@@ -172,6 +213,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         unpacked must beAnInstanceOf[Frequency[Integer]]
         unpacked.asInstanceOf[Frequency[Integer]].attribute mustEqual stat.attribute
         unpacked.asInstanceOf[Frequency[Integer]].precision mustEqual stat.precision
+        unpacked.asInstanceOf[Frequency[Integer]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[Integer]].toJson mustEqual stat.toJson
       }
 
@@ -183,6 +225,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         unpacked must beAnInstanceOf[Frequency[Integer]]
         unpacked.asInstanceOf[Frequency[Integer]].attribute mustEqual stat.attribute
         unpacked.asInstanceOf[Frequency[Integer]].precision mustEqual stat.precision
+        unpacked.asInstanceOf[Frequency[Integer]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[Integer]].toJson mustEqual stat.toJson
       }
 
@@ -240,6 +283,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         unpacked must beAnInstanceOf[Frequency[jLong]]
         unpacked.asInstanceOf[Frequency[jLong]].attribute mustEqual stat.attribute
         unpacked.asInstanceOf[Frequency[jLong]].precision mustEqual stat.precision
+        unpacked.asInstanceOf[Frequency[jLong]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[jLong]].toJson mustEqual stat.toJson
       }
 
@@ -251,6 +295,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         unpacked must beAnInstanceOf[Frequency[jLong]]
         unpacked.asInstanceOf[Frequency[jLong]].attribute mustEqual stat.attribute
         unpacked.asInstanceOf[Frequency[jLong]].precision mustEqual stat.precision
+        unpacked.asInstanceOf[Frequency[jLong]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[jLong]].toJson mustEqual stat.toJson
       }
 
@@ -308,6 +353,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         unpacked must beAnInstanceOf[Frequency[jFloat]]
         unpacked.asInstanceOf[Frequency[jFloat]].attribute mustEqual stat.attribute
         unpacked.asInstanceOf[Frequency[jFloat]].precision mustEqual stat.precision
+        unpacked.asInstanceOf[Frequency[jFloat]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[jFloat]].toJson mustEqual stat.toJson
       }
 
@@ -319,6 +365,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         unpacked must beAnInstanceOf[Frequency[jFloat]]
         unpacked.asInstanceOf[Frequency[jFloat]].attribute mustEqual stat.attribute
         unpacked.asInstanceOf[Frequency[jFloat]].precision mustEqual stat.precision
+        unpacked.asInstanceOf[Frequency[jFloat]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[jFloat]].toJson mustEqual stat.toJson
       }
 
@@ -376,6 +423,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         unpacked must beAnInstanceOf[Frequency[jDouble]]
         unpacked.asInstanceOf[Frequency[jDouble]].attribute mustEqual stat.attribute
         unpacked.asInstanceOf[Frequency[jDouble]].precision mustEqual stat.precision
+        unpacked.asInstanceOf[Frequency[jDouble]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[jDouble]].toJson mustEqual stat.toJson
       }
 
@@ -387,6 +435,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         unpacked must beAnInstanceOf[Frequency[jDouble]]
         unpacked.asInstanceOf[Frequency[jDouble]].attribute mustEqual stat.attribute
         unpacked.asInstanceOf[Frequency[jDouble]].precision mustEqual stat.precision
+        unpacked.asInstanceOf[Frequency[jDouble]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[jDouble]].toJson mustEqual stat.toJson
       }
 
@@ -444,6 +493,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         unpacked must beAnInstanceOf[Frequency[Date]]
         unpacked.asInstanceOf[Frequency[Date]].attribute mustEqual stat.attribute
         unpacked.asInstanceOf[Frequency[Date]].precision mustEqual stat.precision
+        unpacked.asInstanceOf[Frequency[Date]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[Date]].toJson mustEqual stat.toJson
       }
 
@@ -455,6 +505,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         unpacked must beAnInstanceOf[Frequency[Date]]
         unpacked.asInstanceOf[Frequency[Date]].attribute mustEqual stat.attribute
         unpacked.asInstanceOf[Frequency[Date]].precision mustEqual stat.precision
+        unpacked.asInstanceOf[Frequency[Date]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[Date]].toJson mustEqual stat.toJson
       }
 
@@ -513,6 +564,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         unpacked must beAnInstanceOf[Frequency[Geometry]]
         unpacked.asInstanceOf[Frequency[Geometry]].attribute mustEqual stat.attribute
         unpacked.asInstanceOf[Frequency[Geometry]].precision mustEqual stat.precision
+        unpacked.asInstanceOf[Frequency[Geometry]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[Geometry]].toJson mustEqual stat.toJson
       }
 
@@ -524,6 +576,7 @@ class FrequencyTest extends Specification with StatTestHelper {
         unpacked must beAnInstanceOf[Frequency[Geometry]]
         unpacked.asInstanceOf[Frequency[Geometry]].attribute mustEqual stat.attribute
         unpacked.asInstanceOf[Frequency[Geometry]].precision mustEqual stat.precision
+        unpacked.asInstanceOf[Frequency[Geometry]].size mustEqual stat.size
         unpacked.asInstanceOf[Frequency[Geometry]].toJson mustEqual stat.toJson
       }
 

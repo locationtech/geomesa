@@ -17,9 +17,8 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
+import org.locationtech.geomesa.accumulo.index.QueryPlanner
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
-import org.locationtech.geomesa.accumulo.index.{NoOpHints, QueryPlanner}
-import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

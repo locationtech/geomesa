@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.tools.accumulo
 
 import org.locationtech.geomesa.tools.accumulo.commands._
+import org.locationtech.geomesa.tools.accumulo.commands.stats._
 import org.locationtech.geomesa.tools.common.Runner
 import org.locationtech.geomesa.tools.common.commands.{Command, GenerateAvroSchemaCommand, VersionCommand}
 
@@ -31,6 +32,10 @@ object AccumuloRunner extends Runner {
     new VersionCommand(jc),
     new QueryRasterStatsCommmand(jc),
     new GetSftCommand(jc),
-    new GenerateAvroSchemaCommand(jc)
+    new GenerateAvroSchemaCommand(jc),
+    new StatsAnalyzeCommand(jc),
+    new StatsBoundsCommand(jc),
+    new StatsCountCommand(jc),
+    new StatsHistogramCommand(jc)
   )
 }

@@ -13,7 +13,7 @@ import java.util.Map.Entry
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.IteratorSetting
-import org.apache.accumulo.core.data.{Key, Range => AccRange, Value}
+import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 import org.apache.hadoop.io.Text
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.{DateTime, DateTimeZone}
@@ -30,6 +30,7 @@ object QueryPlanners {
 }
 
 sealed trait QueryPlan {
+  def filter: QueryFilter
   def table: String
   def ranges: Seq[AccRange]
   def iterators: Seq[IteratorSetting]
@@ -42,7 +43,8 @@ sealed trait QueryPlan {
 }
 
 // single scan plan
-case class ScanPlan(table: String,
+case class ScanPlan(filter: QueryFilter,
+                    table: String,
                     range: AccRange,
                     iterators: Seq[IteratorSetting],
                     columnFamilies: Seq[Text],
@@ -53,7 +55,8 @@ case class ScanPlan(table: String,
 }
 
 // batch scan plan
-case class BatchScanPlan(table: String,
+case class BatchScanPlan(filter: QueryFilter,
+                         table: String,
                          ranges: Seq[AccRange],
                          iterators: Seq[IteratorSetting],
                          columnFamilies: Seq[Text],
@@ -62,7 +65,8 @@ case class BatchScanPlan(table: String,
                          hasDuplicates: Boolean) extends QueryPlan
 
 // join on multiple tables - requires multiple scans
-case class JoinPlan(table: String,
+case class JoinPlan(filter: QueryFilter,
+                    table: String,
                     ranges: Seq[AccRange],
                     iterators: Seq[IteratorSetting],
                     columnFamilies: Seq[Text],

@@ -263,6 +263,127 @@ object KryoStatSerializer {
     stat
   }
 
+  private [stats] def writeFrequency(output: Output, sft: SimpleFeatureType, stat: Frequency[_]): Unit = {
+    output.writeInt(stat.attribute, true)
+    output.writeInt(stat.dtgIndex, true)
+    output.writeInt(stat.precision, true)
+    output.writeDouble(stat.eps)
+    output.writeDouble(stat.confidence)
+
+    val sketches = stat.sketchMap.filter(_._2.size > 0)
+    output.writeInt(sketches.size, true)
+
+    sketches.foreach { case (w, sketch) =>
+      output.writeShort(w)
+      val table = new RichCountMinSketch(sketch).table
+      var i = 0
+      while (i < table.length) {
+        writeCountArray(output, table(i))
+        i += 1
+      }
+      output.writeLong(sketch.size, true)
+    }
+  }
+
+  private [stats] def readFrequency(input: Input, sft: SimpleFeatureType, immutable: Boolean): Frequency[_] = {
+    val attribute = input.readInt(true)
+    val dtgIndex = input.readInt(true)
+    val precision = input.readInt(true)
+    val eps = input.readDouble()
+    val confidence = input.readDouble()
+
+    val binding = sft.getDescriptor(attribute).getType.getBinding
+    val stat = if (immutable) {
+      new Frequency[Any](attribute, dtgIndex, precision, eps, confidence)(ClassTag[Any](binding)) with ImmutableStat
+    } else {
+      new Frequency[Any](attribute, dtgIndex, precision, eps, confidence)(ClassTag[Any](binding))
+    }
+
+    val sketchCount = input.readInt(true)
+    var c = 0
+    while (c < sketchCount) {
+      val week = input.readShort
+      val sketch = stat.newSketch
+      stat.sketchMap.put(week, sketch)
+      val table = new RichCountMinSketch(sketch).table
+      var i = 0
+      while (i < table.length) {
+        readCountArray(input, table(i))
+        i += 1
+      }
+      new RichCountMinSketch(sketch).setSize(input.readLong(true))
+      c += 1
+    }
+
+    stat
+  }
+
+  private [stats] def writeZ3Frequency(output: Output, sft: SimpleFeatureType, stat: Z3Frequency): Unit = {
+    output.writeInt(stat.geomIndex, true)
+    output.writeInt(stat.dtgIndex, true)
+    output.writeInt(stat.precision, true)
+    output.writeDouble(stat.eps)
+    output.writeDouble(stat.confidence)
+
+    val sketches = stat.sketches.filter(_._2.size > 0)
+    output.writeInt(sketches.size, true)
+
+    sketches.foreach { case (w, sketch) =>
+      output.writeShort(w)
+      val table = new RichCountMinSketch(sketch).table
+      var i = 0
+      while (i < table.length) {
+        writeCountArray(output, table(i))
+        i += 1
+      }
+
+      output.writeLong(sketch.size, true)
+    }
+  }
+
+  private [stats] def readZ3Frequency(input: Input, sft: SimpleFeatureType, immutable: Boolean): Z3Frequency = {
+    val geomIndex = input.readInt(true)
+    val dtgIndex  = input.readInt(true)
+    val precision = input.readInt(true)
+    val eps = input.readDouble()
+    val confidence = input.readDouble()
+
+    val stat = if (immutable) {
+      new Z3Frequency(geomIndex, dtgIndex, precision, eps, confidence) with ImmutableStat
+    } else {
+      new Z3Frequency(geomIndex, dtgIndex, precision, eps, confidence)
+    }
+
+    val numSketches = input.readInt(true)
+    var sketchCount = 0
+
+    while (sketchCount < numSketches) {
+      val sketch = stat.newSketch
+      stat.sketches.put(input.readShort, sketch)
+      val table = new RichCountMinSketch(sketch).table
+      var i = 0
+      while (i < table.length) {
+        readCountArray(input, table(i))
+        i += 1
+      }
+
+      new RichCountMinSketch(sketch).setSize(input.readLong(true))
+
+      sketchCount += 1
+    }
+
+    stat
+  }
+
+  private [stats] def writeIteratorStackCount(output: Output, stat: IteratorStackCount): Unit =
+    output.writeLong(stat.counter, true)
+
+  private [stats] def readIteratorStackCount(input: Input, immutable: Boolean): IteratorStackCount = {
+    val stat = if (immutable) new IteratorStackCount() with ImmutableStat else new IteratorStackCount()
+    stat.counter = input.readLong(true)
+    stat
+  }
+
   private def writeCountArray(output: Output, counts: Array[Long]): Unit = {
     var i = 0
     while (i < counts.length) {
@@ -299,133 +420,6 @@ object KryoStatSerializer {
         i += 1
       }
     }
-  }
-
-  private [stats] def writeFrequency(output: Output, sft: SimpleFeatureType, stat: Frequency[_]): Unit = {
-    output.writeInt(stat.attribute, true)
-    output.writeInt(stat.precision, true)
-    output.writeDouble(stat.eps)
-    output.writeDouble(stat.confidence)
-
-    val table = new RichCountMinSketch(stat.sketch).table
-    var i = 0
-    while (i < table.length) {
-      val row = table(i)
-      var j = 0
-      while (j < row.length) {
-        output.writeLong(row(j), true)
-        j += 1
-      }
-      i += 1
-    }
-
-    output.writeLong(stat.sketch.size, true)
-  }
-
-  private [stats] def readFrequency(input: Input, sft: SimpleFeatureType, immutable: Boolean): Frequency[_] = {
-    val attribute = input.readInt(true)
-    val precision = input.readInt(true)
-    val eps = input.readDouble()
-    val confidence = input.readDouble()
-
-    val binding = sft.getDescriptor(attribute).getType.getBinding
-    val stat = if (immutable) {
-      new Frequency[Any](attribute, precision, eps, confidence)(ClassTag[Any](binding)) with ImmutableStat
-    } else {
-      new Frequency[Any](attribute, precision, eps, confidence)(ClassTag[Any](binding))
-    }
-
-    val table = new RichCountMinSketch(stat.sketch).table
-    var i = 0
-    while (i < table.length) {
-      val row = table(i)
-      var j = 0
-      while (j < row.length) {
-        row(j) = input.readLong(true)
-        j += 1
-      }
-      i += 1
-    }
-
-    new RichCountMinSketch(stat.sketch).setSize(input.readLong(true))
-
-    stat
-  }
-
-  private [stats] def writeZ3Frequency(output: Output, sft: SimpleFeatureType, stat: Z3Frequency): Unit = {
-    output.writeInt(stat.geomIndex, true)
-    output.writeInt(stat.dtgIndex, true)
-    output.writeInt(stat.precision, true)
-    output.writeDouble(stat.eps)
-    output.writeDouble(stat.confidence)
-
-    val sketches = stat.sketches.filter(_._2.size > 0)
-    output.writeInt(sketches.size, true)
-
-    sketches.foreach { case (w, sketch) =>
-      output.writeShort(w)
-      val table = new RichCountMinSketch(sketch).table
-      var i = 0
-      while (i < table.length) {
-        val row = table(i)
-        var j = 0
-        while (j < row.length) {
-          output.writeLong(row(j), true)
-          j += 1
-        }
-        i += 1
-      }
-
-      output.writeLong(sketch.size, true)
-    }
-  }
-
-  private [stats] def readZ3Frequency(input: Input, sft: SimpleFeatureType, immutable: Boolean): Z3Frequency = {
-    val geomIndex = input.readInt(true)
-    val dtgIndex  = input.readInt(true)
-    val precision = input.readInt(true)
-    val eps = input.readDouble()
-    val confidence = input.readDouble()
-
-    val stat = if (immutable) {
-      new Z3Frequency(geomIndex, dtgIndex, precision, eps, confidence) with ImmutableStat
-    } else {
-      new Z3Frequency(geomIndex, dtgIndex, precision, eps, confidence)
-    }
-
-    val numSketches = input.readInt(true)
-    var sketchCount = 0
-
-    while (sketchCount < numSketches) {
-      val sketch = stat.newSketch
-      stat.sketches.put(input.readShort, sketch)
-      val table = new RichCountMinSketch(sketch).table
-      var i = 0
-      while (i < table.length) {
-        val row = table(i)
-        var j = 0
-        while (j < row.length) {
-          row(j) = input.readLong(true)
-          j += 1
-        }
-        i += 1
-      }
-
-      new RichCountMinSketch(sketch).setSize(input.readLong(true))
-
-      sketchCount += 1
-    }
-
-    stat
-  }
-
-  private [stats] def writeIteratorStackCount(output: Output, stat: IteratorStackCount): Unit =
-    output.writeLong(stat.counter, true)
-
-  private [stats] def readIteratorStackCount(input: Input, immutable: Boolean): IteratorStackCount = {
-    val stat = if (immutable) new IteratorStackCount() with ImmutableStat else new IteratorStackCount()
-    stat.counter = input.readLong(true)
-    stat
   }
 
   private def writer(output: Output, binding: Class[_]): (Any) => Unit = {

@@ -13,6 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.Range
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
+import org.locationtech.geomesa.accumulo.data.stats.GeoMesaStats
 import org.locationtech.geomesa.accumulo.data.tables.Z3Table
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.curve.Z3SFC
@@ -172,7 +173,7 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
 
     val zIter = Z3Iterator.configure(sft.isPoints, xmin, xmax, ymin, ymax, tmin, tmax, wmin, wmax, tLo, tHi, hasSplits, Z3_ITER_PRIORITY)
     val iters = Seq(zIter) ++ iterators
-    BatchScanPlan(z3table, ranges, iters, Seq(colFamily), kvsToFeatures, numThreads, hasDupes)
+    BatchScanPlan(filter, z3table, ranges, iters, Seq(colFamily), kvsToFeatures, numThreads, hasDupes)
   }
 
   def getPointRanges(prefixes: Seq[Array[Byte]], x: (Double, Double), y: (Double, Double), t: (Long, Long)): Seq[Range] = {
@@ -205,18 +206,29 @@ object Z3IdxStrategy extends StrategyProvider {
   val Z3_ITER_PRIORITY = 21
   val FILTERING_ITER_PRIORITY = 25
 
+  override protected def statsBasedCost(sft: SimpleFeatureType,
+                                        filter: QueryFilter,
+                                        transform: Option[SimpleFeatureType],
+                                        stats: GeoMesaStats): Option[Long] = {
+    // https://geomesa.atlassian.net/browse/GEOMESA-1166
+    // TODO check date range and use z2 instead if too big
+    // TODO also if very small bbox, z2 has ~10 more bits of lat/lon info
+    filter.singlePrimary match {
+      case Some(f) => stats.getCount(sft, f, exact = false)
+      case None    => Some(Long.MaxValue)
+    }
+  }
+
   /**
-   * Gets the estimated cost of running the query. Currently, cost is hard-coded to sort between
-   * strategies the way we want. Z3 should be more than id lookups (at 1), high-cardinality attributes (at 1)
-   * and less than STidx (at 400) and unknown cardinality attributes (at 999).
-   *
-   * Eventually cost will be computed based on dynamic metadata and the query.
-   */
-  override def getCost(filter: QueryFilter, sft: SimpleFeatureType, hints: StrategyHints) =
-  // https://geomesa.atlassian.net/browse/GEOMESA-1166
-  // TODO check date range and use z2 instead if too big
-  // TODO also if very small bbox, z2 has ~10 more bits of lat/lon info
-    if (filter.primary.exists(isSpatialFilter)) 200 else 401
+    * More than id lookups (at 1), high-cardinality attributes (at 1).
+    * Less than unknown cardinality attributes (at 999).
+    * With a spatial component, less than z2, otherwise more than z2 (at 400)
+    */
+  override protected def indexBasedCost(sft: SimpleFeatureType,
+                                        filter: QueryFilter,
+                                        transform: Option[SimpleFeatureType]): Long = {
+    if (filter.primary.exists(isSpatialFilter)) 200L else 401L
+  }
 
   def isComplicatedSpatialFilter(f: Filter): Boolean = {
     f match {

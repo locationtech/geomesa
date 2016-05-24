@@ -148,6 +148,17 @@ object Stat {
   def Frequency(attribute: String, precision: Int): String = s"Frequency(${safeString(attribute)},$precision)"
 
   /**
+    * String that will be parsed into a count min sketch stat
+    *
+    * @param attribute attribute to sketch
+    * @param dtg date attribute to use for binning
+    * @param precision precision of the sketch - @see Frequency
+    * @return
+    */
+  def Frequency(attribute: String, dtg: String, precision: Int): String =
+    s"Frequency(${safeString(attribute)},${safeString(dtg)},$precision)"
+
+  /**
     * String that will be parsed into a z3 count min sketch stat
     *
     * @param geom geometry attribute
@@ -372,25 +383,26 @@ object Stat {
     }
 
     def frequencyParser: Parser[Frequency[_]] = {
-      "Frequency(" ~> argument ~ "," ~ positiveInt <~ ")" ^^ {
-        case attribute ~ "," ~ precision =>
+      "Frequency(" ~> argument ~ "," ~ (argument <~ ",").? ~ positiveInt <~ ")" ^^ {
+        case attribute ~ "," ~ dtg ~ precision =>
           val attrIndex = getAttrIndex(attribute)
+          val dtgIndex = dtg.map(getAttrIndex).getOrElse(-1)
           val attrType = sft.getDescriptor(attribute).getType.getBinding
 
           if (attrType == classOf[String]) {
-            new Frequency[String](attrIndex, precision.toInt)
+            new Frequency[String](attrIndex, dtgIndex, precision.toInt)
           } else if (attrType == classOf[Date]) {
-            new Frequency[Date](attrIndex, precision.toInt)
+            new Frequency[Date](attrIndex, dtgIndex, precision.toInt)
           } else if (attrType == classOf[Integer]) {
-            new Frequency[Integer](attrIndex, precision.toInt)
+            new Frequency[Integer](attrIndex, dtgIndex, precision.toInt)
           } else if (attrType == classOf[jLong]) {
-            new Frequency[jLong](attrIndex, precision.toInt)
+            new Frequency[jLong](attrIndex, dtgIndex, precision.toInt)
           } else if (attrType == classOf[jDouble]) {
-            new Frequency[jDouble](attrIndex, precision.toInt)
+            new Frequency[jDouble](attrIndex, dtgIndex, precision.toInt)
           } else if (attrType == classOf[jFloat]) {
-            new Frequency[jFloat](attrIndex, precision.toInt)
+            new Frequency[jFloat](attrIndex, dtgIndex, precision.toInt)
           } else if (classOf[Geometry].isAssignableFrom(attrType )) {
-            new Frequency[Geometry](attrIndex, precision.toInt)
+            new Frequency[Geometry](attrIndex, dtgIndex, precision.toInt)
           } else {
             throw new Exception(s"Cannot create stat for invalid type: $attrType for attribute: $attribute")
           }

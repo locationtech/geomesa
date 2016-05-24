@@ -59,11 +59,10 @@ class AccumuloDataStoreAlterSchemaTest extends Specification {
   }
 
   val updatedSpec = {
-    val old = ds.metadata.readRequired(sftName, ATTRIBUTES_KEY)
+    val old = ds.metadata.readRequired(sftName, GeoMesaMetadata.ATTRIBUTES_KEY)
     spec + ",attr1:String" + old.substring(old.indexOf(";"))
   }
-  ds.metadata.insert(sftName, ATTRIBUTES_KEY, updatedSpec)
-  ds.metadata.expireCache(sftName)
+  ds.metadata.insert(sftName, GeoMesaMetadata.ATTRIBUTES_KEY, updatedSpec)
   sft = ds.getSchema(sftName)
 
   ds.getFeatureSource(sftName).addFeatures {

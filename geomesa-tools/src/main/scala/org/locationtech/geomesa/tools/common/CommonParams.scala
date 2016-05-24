@@ -62,6 +62,11 @@ trait OptionalDTGParam {
   var dtgField: String = null
 }
 
+trait AttributesParam {
+  @Parameter(names = Array("-a", "--attributes"), description = "Attributes to evaluate (comma-separated)")
+  var attributes: String = null
+}
+
 trait ZookeepersParam {
   @Parameter(names = Array("-z", "--zookeepers"), description = "Zookeepers (host[:port], comma separated)", required = true)
   var zookeepers: String = null

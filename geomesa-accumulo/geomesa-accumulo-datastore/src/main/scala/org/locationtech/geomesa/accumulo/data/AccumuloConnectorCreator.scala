@@ -8,10 +8,17 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.apache.accumulo.core.client.{BatchScanner, Scanner}
+import org.apache.accumulo.core.client.{Connector, BatchScanner, Scanner}
 import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 
 trait AccumuloConnectorCreator {
+
+  /**
+   * Handle to connector
+   *
+   * @return connector
+   */
+  def connector: Connector
 
   /**
    * Gets the accumulo table name for the given table

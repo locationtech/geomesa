@@ -196,6 +196,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     }
 
     "handle large ranges" in {
+      skipped("takes ~10 seconds")
       val filter = ECQL.toFilter("contains(POLYGON ((40 40, 50 40, 50 50, 40 50, 40 40)), geom) AND " +
           "dtg BETWEEN '2010-01-01T00:00:00.000Z' AND '2010-12-31T23:59:59.000Z'")
       val query = new Query(defaultSft.getTypeName, filter)

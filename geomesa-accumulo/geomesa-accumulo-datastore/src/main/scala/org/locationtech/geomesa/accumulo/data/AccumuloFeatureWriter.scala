@@ -135,6 +135,8 @@ abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
     AccumuloFeatureWriter.featureWriter(writers)
   }
 
+  protected val statUpdater = ds.stats.statUpdater(sft)
+
   // returns a temporary id - we will replace it just before write
   protected def nextFeatureId = AccumuloFeatureWriter.tempFeatureIds.getAndIncrement().toString
 
@@ -142,15 +144,22 @@ abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
     // see if there's a suggested ID to use for this feature, else create one based on the feature
     val featureWithFid = AccumuloFeatureWriter.featureWithFid(sft, feature)
     writer(new FeatureToWrite(featureWithFid, defaultVisibility, encoder, indexValueEncoder, binEncoder))
+    statUpdater.add(featureWithFid)
   }
 
   override def getFeatureType: SimpleFeatureType = sft
 
   override def hasNext: Boolean = false
 
-  override def flush(): Unit = multiBWWriter.flush()
+  override def flush(): Unit = {
+    multiBWWriter.flush()
+    statUpdater.flush()
+  }
 
-  override def close(): Unit = multiBWWriter.close()
+  override def close(): Unit = {
+    multiBWWriter.close()
+    statUpdater.close()
+  }
 }
 
 /**
@@ -207,6 +216,7 @@ class ModifyAccumuloFeatureWriter(sft: SimpleFeatureType,
 
   override def remove() = if (original != null) {
     remover(new FeatureToWrite(original, defaultVisibility, encoder, indexValueEncoder, binEncoder))
+    statUpdater.remove(original)
   }
 
   override def hasNext = reader.hasNext
@@ -216,9 +226,7 @@ class ModifyAccumuloFeatureWriter(sft: SimpleFeatureType,
   override def write() =
     // comparison of feature ID and attributes - doesn't consider concrete class used
     if (!ScalaSimpleFeature.equalIdAndAttributes(live, original)) {
-      if (original != null) {
-        remove()
-      }
+      remove()
       writeToAccumulo(live)
     }
 

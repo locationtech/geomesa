@@ -114,12 +114,15 @@ class Z3RangeHistogram(val geomIndex: Int, val dtgIndex: Int, val length: Int) e
     if (length != other.length) {
       throw new NotImplementedError("Can only add z3 histograms with the same length")
     }
-    other.binMap.foreach { case (w, obins) =>
-      val bins = binMap.getOrElseUpdate(w, newBins)
-      var i = 0
-      while (i < bins.length) {
-        bins.counts(i) += obins.counts(i)
-        i += 1
+    other.binMap.foreach { case (w, bins) =>
+      binMap.get(w) match {
+        case None => binMap.put(w, bins) // note: sharing a reference now
+        case Some(b) =>
+          var i = 0
+          while (i < b.length) {
+            b.counts(i) += bins.counts(i)
+            i += 1
+          }
       }
     }
   }
