@@ -49,8 +49,16 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
 
     // for an attribute query, the primary filters are considered an OR
     // (an AND would never match unless the attribute is a list...)
-    val propsAndRanges = getBounds(sft, filter.singlePrimary.get, dates)
-    val attribute = propsAndRanges.head.attribute
+    val propsAndRanges = {
+      val primary = filter.singlePrimary.getOrElse {
+        throw new IllegalStateException("Attribute index does not support Filter.INCLUDE")
+      }
+      getBounds(sft, primary, dates)
+    }
+    val attribute = propsAndRanges.headOption.map(_.attribute).getOrElse {
+      throw new IllegalStateException(s"No ranges found for query filter $filter. " +
+          "This should have been checked during query planning")
+    }
     val ranges = propsAndRanges.map(_.range)
     // ensure we only have 1 prop we're working on
     assert(propsAndRanges.forall(_.attribute == attribute))
