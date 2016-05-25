@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.hbase.data
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Envelope, GeometryCollection}
+import com.vividsolutions.jts.geom.Envelope
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.data.{FeatureReader, FeatureWriter, Query, QueryCapabilities}
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.joda.time.{DateTimeZone, DateTime, Interval, Weeks}
+import org.joda.time.{DateTime, DateTimeZone, Interval, Weeks}
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.filter
@@ -104,25 +104,23 @@ class HBaseFeatureSource(entry: ContentEntry,
     val (spatialFilter, temporalFilter, postFilter) = partitionFilters(a.getChildren)
 
     val dtFieldName = sft.getDescriptor(dtgIndex).getLocalName
-    val interval = FilterHelper.extractInterval(temporalFilter, Some(dtFieldName))
+    // note: because we and the filters, there will be only one interval
+    // because we have already validated that the temporal filters exist, there will be at least 1 interval
+    val (startTime, endTime) = extractIntervals(andFilters(temporalFilter), dtFieldName).head
 
-    val geomsToCover = tryReduceGeometryFilter(spatialFilter).flatMap(decomposeToGeometry)
-    val geom = if (geomsToCover.isEmpty) {
-      AllGeom
-    } else if (geomsToCover.length == 1) {
-      geomsToCover.head.intersection(AllGeom)
-    } else {
-      new GeometryCollection(geomsToCover.toArray, geomsToCover.head.getFactory).intersection(AllGeom)
-    }
+    val geom =
+      andOption(spatialFilter)
+          .flatMap(extractSingleGeometry(_, sft.getGeometryDescriptor.getLocalName))
+          .getOrElse(AllGeom)
 
     val env = geom.getEnvelopeInternal
     val (lx, ly, ux, uy) = (env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
 
-    val epochWeekStart = Weeks.weeksBetween(EPOCH, interval.getStart)
-    val epochWeekEnd = Weeks.weeksBetween(EPOCH, interval.getEnd)
+    val epochWeekStart = Weeks.weeksBetween(EPOCH, startTime)
+    val epochWeekEnd = Weeks.weeksBetween(EPOCH, endTime)
     val weeks = scala.Range.inclusive(epochWeekStart.getWeeks, epochWeekEnd.getWeeks)
-    val lt = secondsInCurrentWeek(interval.getStart, epochWeekStart)
-    val ut = secondsInCurrentWeek(interval.getEnd, epochWeekEnd)
+    val lt = secondsInCurrentWeek(startTime, epochWeekStart)
+    val ut = secondsInCurrentWeek(endTime, epochWeekEnd)
 
     // time range for a chunk is 0 to 1 week (in seconds)
     val (tStart, tEnd) = (0, Weeks.ONE.toStandardSeconds.getSeconds)
@@ -189,8 +187,9 @@ class HBaseFeatureSource(entry: ContentEntry,
   }
 
   private def isBounded(temporalFilters: Seq[Filter]): Boolean = {
-    val interval = FilterHelper.extractInterval(temporalFilters, Some(sft.getDescriptor(dtgIndex).getLocalName))
-    interval != null && interval.getStartMillis != minDateTime && interval.getEndMillis != maxDateTime
+    andOption(temporalFilters)
+        .flatMap(FilterHelper.extractIntervals(_, sft.getDescriptor(dtgIndex).getLocalName).headOption)
+        .exists(i => i._1 != MinDateTime && i._2 != MaxDateTime)
   }
 }
 

@@ -358,6 +358,8 @@ package object filter {
   val MULTICHAR_WILDCARD = "%"
   val SINGLE_CHAR_WILDCARD = "_"
 
+  val WILDCARD_SUFFIX = "\uffff\uffff\uffff"
+
   /* Like queries that can be handled by current reverse index */
   def likeEligible(filter: PropertyIsLike): Boolean = containsNoSingles(filter) && trailingOnlyWildcard(filter)
 

@@ -8,17 +8,18 @@
 
 package org.locationtech.geomesa.accumulo.process.knn
 
-import com.vividsolutions.jts.geom.{Geometry, GeometryCollection}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.{Constants, IndexEntryDecoder}
+import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.filter._
+import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -100,18 +101,19 @@ class GenerateKNNQueryTest extends Specification {
       val (geomFilters, otherFilters) = partitionPrimarySpatials(newFilter, sft)
 
       // rewrite the geometry filter
-      val tweakedGeomFilters = geomFilters.map ( FilterHelper.updateTopologicalFilters(_, sft) )
-
-      val geomsToCover = tweakedGeomFilters.flatMap(FilterHelper.decomposeToGeometry)
-
-      val collectionToCover: Geometry = geomsToCover match {
-        case Nil => null
-        case seq: Seq[Geometry] => new GeometryCollection(geomsToCover.toArray, geomsToCover.head.getFactory)
+      val tweakedGeomFilters = geomFilters.map { filter =>
+        filter.accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter]
       }
-      val geometryToCover = new org.locationtech.geomesa.accumulo.index.IndexFilterHelpers{}.netGeom(collectionToCover)
+
+      val geomsToCover = {
+        import scala.collection.JavaConversions._
+        FilterHelper.extractSingleGeometry(ff.and(tweakedGeomFilters), sft.getGeometryDescriptor.getLocalName).orNull
+      }
+
+      val geometryToCover = new org.locationtech.geomesa.accumulo.index.IndexFilterHelpers{}.netGeom(geomsToCover)
 
       // confirm that the extracted spatial predicate matches the GeoHash BBOX.
       geometryToCover.equals(smallGH.geom) must beTrue
-    }.pendingUntilFixed("Fix intersection case")
+    }
   }
 }

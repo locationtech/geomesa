@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets
 
 import com.google.common.primitives.{Bytes, Longs}
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Geometry, GeometryCollection}
 import org.apache.accumulo.core.data.{Range => aRange}
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
@@ -50,21 +49,9 @@ class Z2IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
       }
     }
 
-    val geometryToCover = if (isInclude) { WholeWorldPolygon } else {
-      filter.primary.foreach(f => require(isSpatialFilter(f), s"Expected spatial filters but got ${filterToString(f)}"))
-
-      output(s"Geometry filters: ${filtersToString(filter.primary)}")
-
-      // standardize the two key query arguments:  polygon and date-range
-      val geomsToCover = tryReduceGeometryFilter(filter.primary).flatMap(decomposeToGeometry)
-
-      val collectionToCover: Geometry = geomsToCover match {
-        case Nil => null
-        case seq: Seq[Geometry] => new GeometryCollection(geomsToCover.toArray, geomsToCover.head.getFactory)
-      }
-
-      netGeom(collectionToCover)
-    }
+    // TODO GEOMESA-1215 this can handle OR'd geoms, but the query splitter won't currently send them
+    val geometryToCover =
+      filter.singlePrimary.flatMap(extractSingleGeometry(_, sft.getGeomField)).getOrElse(WholeWorldPolygon)
 
     output(s"GeomsToCover: $geometryToCover")
 

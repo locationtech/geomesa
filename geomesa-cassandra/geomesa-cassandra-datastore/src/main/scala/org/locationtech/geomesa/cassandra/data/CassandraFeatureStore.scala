@@ -100,13 +100,13 @@ class CassandraFeatureStore(entry: ContentEntry) extends ContentFeatureStore(ent
     val re = WHOLE_WORLD.intersection(new ReferencedEnvelope(origBounds, DefaultGeographicCRS.WGS84))
     val (lx, ly, ux, uy) = (re.getMinX, re.getMinY, re.getMaxX, re.getMaxY)
     val (dtgFilters, _) = partitionPrimaryTemporals(decomposeAnd(query.getFilter), contentState.sft)
-    val interval = FilterHelper.extractInterval(dtgFilters, contentState.sft.getDtgField)
-    val startWeek = CassandraPrimaryKey.epochWeeks(interval.getStart)
+    val (lt, ut) = FilterHelper.extractIntervals(andFilters(dtgFilters), contentState.sft.getDtgField.get).head
+    val startWeek = CassandraPrimaryKey.epochWeeks(lt)
     val sew = startWeek.getWeeks
-    val endWeek = CassandraPrimaryKey.epochWeeks(interval.getEnd)
+    val endWeek = CassandraPrimaryKey.epochWeeks(ut)
     val eew = endWeek.getWeeks
 
-    val rows = (sew to eew).map { dt => getRowKeys(lx, ly, ux, uy, interval, sew, eew, dt) }
+    val rows = (sew to eew).map { dt => getRowKeys(lx, ly, ux, uy, lt, ut, sew, eew, dt) }
 
     val plans =
       rows.flatMap { case ((s, e), rowRanges) =>
@@ -138,7 +138,7 @@ class CassandraFeatureStore(entry: ContentEntry) extends ContentFeatureStore(ent
     }
   }
 
-  def getRowKeys(lx: Double, ly: Double, ux: Double, uy: Double, interval: Interval, sew: Int, eew: Int, dt: Int): ((Int, Int), Seq[Int]) = {
+  def getRowKeys(lx: Double, ly: Double, ux: Double, uy: Double, lt: DateTime, ut: DateTime, sew: Int, eew: Int, dt: Int): ((Int, Int), Seq[Int]) = {
     val dtshift = dt << 16
     val dtg = new DateTime(0).plusWeeks(dt)
 
@@ -147,10 +147,10 @@ class CassandraFeatureStore(entry: ContentEntry) extends ContentFeatureStore(ent
         (0, CassandraPrimaryKey.ONE_WEEK_IN_SECONDS)
       } else {
         val starts =
-          if (dt == sew) CassandraPrimaryKey.secondsInCurrentWeek(interval.getStart)
+          if (dt == sew) CassandraPrimaryKey.secondsInCurrentWeek(lt)
           else 0
         val ends =
-          if (dt == eew) CassandraPrimaryKey.secondsInCurrentWeek(interval.getEnd)
+          if (dt == eew) CassandraPrimaryKey.secondsInCurrentWeek(ut)
           else CassandraPrimaryKey.ONE_WEEK_IN_SECONDS
         (starts, ends)
       }

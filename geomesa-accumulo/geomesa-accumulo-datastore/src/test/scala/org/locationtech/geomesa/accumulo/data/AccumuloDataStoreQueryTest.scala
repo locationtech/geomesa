@@ -139,8 +139,8 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         o.toString()
       }
 
-      explainNull must contain("Geometry filters: BBOX(geom, 40.0,44.0,50.0,54.0)")
-      explainEmpty must contain("Geometry filters: BBOX(geom, 40.0,44.0,50.0,54.0)")
+      explainNull must contain("Strategy filter: Z2[BBOX(geom, 40.0,44.0,50.0,54.0)][None]")
+      explainEmpty must contain("Strategy filter: Z2[BBOX(geom, 40.0,44.0,50.0,54.0)][None]")
 
       val featuresNull = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(queryNull).features.toSeq
       val featuresEmpty = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(queryEmpty).features.toSeq

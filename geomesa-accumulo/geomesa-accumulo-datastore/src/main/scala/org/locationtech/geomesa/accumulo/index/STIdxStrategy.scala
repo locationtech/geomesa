@@ -9,12 +9,12 @@
 package org.locationtech.geomesa.accumulo.index
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Geometry, GeometryCollection}
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
+import org.joda.time.Interval
 import org.locationtech.geomesa.accumulo.GEOMESA_ITERATORS_IS_DENSITY_TYPE
 import org.locationtech.geomesa.accumulo.data.tables.SpatioTemporalTable
 import org.locationtech.geomesa.accumulo.index.QueryHints._
@@ -26,6 +26,7 @@ import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.filter.FilterHelper._
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.geotools._
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -53,17 +54,22 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     output(s"Temporal filters: ${filtersToString(temporalFilters)}")
 
     // standardize the two key query arguments:  polygon and date-range
-    val geomsToCover = geomFilters.flatMap(decomposeToGeometry)
 
-    output(s"GeomsToCover: $geomsToCover")
+    val geometryToCover =
+      andOption(geomFilters).flatMap(extractSingleGeometry(_, sft.getGeomField)).getOrElse(WholeWorldPolygon)
 
-    val collectionToCover: Geometry = geomsToCover match {
-      case Nil => null
-      case seq: Seq[Geometry] => new GeometryCollection(geomsToCover.toArray, geomsToCover.head.getFactory)
+    output(s"GeomsToCover: $geometryToCover")
+
+    val interval = {
+      val intervals = for { dtg <- dtgField; filter <- andOption(temporalFilters) } yield {
+        extractIntervals(filter, dtg)
+      }
+      // note: because our filters were and'ed, there will be at most one interval
+      intervals.flatMap(_.headOption) match {
+        case None => null
+        case Some((s, e)) => new Interval(s, e)
+      }
     }
-
-    val interval = extractInterval(temporalFilters, dtgField)
-    val geometryToCover = netGeom(collectionToCover)
 
     val keyPlanningFilter = buildFilter(geometryToCover, interval)
     // This catches the case when a whole world query slips through DNF/CNF

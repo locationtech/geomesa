@@ -8,29 +8,22 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Range => AccRange}
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
-import org.geotools.temporal.`object`.DefaultPeriod
 import org.locationtech.geomesa.accumulo.data.tables.{AttributeTable, RecordTable}
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.QueryPlanners.JoinFunction
 import org.locationtech.geomesa.accumulo.index.Strategy._
 import org.locationtech.geomesa.accumulo.iterators._
-import org.locationtech.geomesa.filter.FilterHelper._
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.expression.{Literal, PropertyName}
-import org.opengis.filter.temporal.{After, Before, During, TEquals}
-import org.opengis.filter.{Filter, PropertyIsEqualTo, PropertyIsLike, _}
+import org.opengis.filter.{Filter, PropertyIsEqualTo}
 
-import scala.collection.JavaConversions._
 import scala.util.Try
 
 class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging {
@@ -45,24 +38,32 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
     val sft = queryPlanner.sft
 
     // pull out any dates from the filter to help narrow down the attribute ranges
-    val dates = {
-      val (dateFilters, _) = filter.secondary.map {
-        case a: And => partitionPrimaryTemporals(a.getChildren, queryPlanner.sft)
-        case f      => partitionPrimaryTemporals(Seq(f), queryPlanner.sft)
-      }.getOrElse((Seq.empty, Seq.empty))
-      val interval = extractInterval(dateFilters, queryPlanner.sft.getDtgField)
-      if (interval == everywhen) None else Some((interval.getStartMillis, interval.getEndMillis))
+    val dates = for {
+      dtgField  <- sft.getDtgField
+      secondary <- filter.secondary
+      intervals = FilterHelper.extractIntervals(secondary, dtgField)
+      if intervals.nonEmpty
+    } yield {
+      (intervals.map(_._1.getMillis).min, intervals.map(_._2.getMillis).max)
     }
 
     // for an attribute query, the primary filters are considered an OR
     // (an AND would never match unless the attribute is a list...)
-    val propsAndRanges = filter.primary.map(getPropertyAndRange(queryPlanner.sft, _, dates))
-    val attributeSftIndex = propsAndRanges.head._1
-    val ranges = propsAndRanges.map(_._2)
+    val propsAndRanges = {
+      val primary = filter.singlePrimary.getOrElse {
+        throw new IllegalStateException("Attribute index does not support Filter.INCLUDE")
+      }
+      getBounds(sft, primary, dates)
+    }
+    val attribute = propsAndRanges.headOption.map(_.attribute).getOrElse {
+      throw new IllegalStateException(s"No ranges found for query filter $filter. " +
+          "This should have been checked during query planning")
+    }
+    val ranges = propsAndRanges.map(_.range)
     // ensure we only have 1 prop we're working on
-    assert(propsAndRanges.forall(_._1 == attributeSftIndex))
+    assert(propsAndRanges.forall(_.attribute == attribute))
 
-    val descriptor = sft.getDescriptor(attributeSftIndex)
+    val descriptor = sft.getDescriptor(attribute)
     val transform = hints.getTransformSchema
     val sampling = hints.getSampling
     val hasDupes = descriptor.isMultiValued
@@ -72,17 +73,17 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
     val priority = FILTERING_ITER_PRIORITY
 
     // query against the attribute table
-    val singleAttrValueOnlyPlan: ScanPlanFn = (schema, filter, transform) => {
-      val iters = KryoLazyFilterTransformIterator.configure(schema, filter, transform, sampling).toSeq
+    val singleAttrValueOnlyPlan: ScanPlanFn = (schema, ecql, transform) => {
+      val iters = KryoLazyFilterTransformIterator.configure(schema, ecql, transform, sampling).toSeq
       // need to use transform to convert key/values if it's defined
       val kvsToFeatures = queryPlanner.kvsToFeatures(transform.map(_._2).getOrElse(schema))
       BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
     }
 
     // query against the attribute table
-    val singleAttrPlusValuePlan: ScanPlanFn = (schema, filter, transform) => {
+    val singleAttrPlusValuePlan: ScanPlanFn = (schema, ecql, transform) => {
       val iters =
-        AttrKeyPlusValueIterator.configure(sft, schema, attributeSftIndex, filter, transform, sampling, priority)
+        AttrKeyPlusValueIterator.configure(sft, schema, sft.indexOf(attribute), ecql, transform, sampling, priority)
 
       // need to use transform to convert key/values if it's defined
       val kvsToFeatures = queryPlanner.kvsToFeatures(transform.map(_._2).getOrElse(schema))
@@ -209,7 +210,7 @@ object AttributeIdxStrategy extends StrategyProvider {
       .groupBy((f: String) => f)
       .map { case (name, itr) => (name, itr.size) }
 
-    val cost = attrsAndCounts.map{ case (attr, count) =>
+    val cost = attrsAndCounts.map { case (attr, count) =>
       val descriptor = sft.getDescriptor(attr)
       // join queries are much more expensive than non-join queries
       // TODO we could consider whether a join is actually required based on the filter and transform
@@ -234,112 +235,54 @@ object AttributeIdxStrategy extends StrategyProvider {
    * Gets the property name from the filter and a range that covers the filter in the attribute table.
    * Note that if the filter is not a valid attribute filter this method will throw an exception.
    */
-  def getPropertyAndRange(sft: SimpleFeatureType,
-                          filter: Filter,
-                          dates: Option[(Long, Long)]): (Int, AccRange) = {
-    filter match {
-      case f: PropertyIsBetween =>
-        val prop = sft.indexOf(f.getExpression.asInstanceOf[PropertyName].getPropertyName)
-        val lower = f.getLowerBoundary.asInstanceOf[Literal].getValue
-        val upper = f.getUpperBoundary.asInstanceOf[Literal].getValue
-        (prop, AttributeTable.between(sft, prop, (lower, upper), dates, inclusive = true))
+  def getBounds(sft: SimpleFeatureType, filter: Filter, dates: Option[(Long, Long)]): Seq[PropertyBounds] = {
+    val attribute = {
+      val names = DataUtilities.attributeNames(filter)
+      require(names.length == 1, s"Couldn't extract single attribute name from filter '${filterToString(filter)}'")
+      names(0)
+    }
 
-      case f: PropertyIsGreaterThan =>
-        val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
-        val idx = sft.indexOf(prop.name)
-        if (prop.flipped) {
-          (idx, AttributeTable.lt(sft, idx, prop.literal.getValue, dates.map(_._2)))
-        } else {
-          (idx, AttributeTable.gt(sft, idx, prop.literal.getValue, dates.map(_._1)))
-        }
+    val index = sft.indexOf(attribute)
+    require(index != -1, s"Attribute '$attribute' from filter '${filterToString(filter)}' does not exist in '$sft'")
 
-      case f: PropertyIsGreaterThanOrEqualTo =>
-        val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
-        val idx = sft.indexOf(prop.name)
-        if (prop.flipped) {
-          (idx, AttributeTable.lte(sft, idx, prop.literal.getValue, dates.map(_._2)))
-        } else {
-          (idx, AttributeTable.gte(sft, idx, prop.literal.getValue, dates.map(_._1)))
-        }
+    val binding = {
+      val descriptor = sft.getDescriptor(index)
+      descriptor.getListType().getOrElse(descriptor.getType.getBinding)
+    }
 
-      case f: PropertyIsLessThan =>
-        val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
-        val idx = sft.indexOf(prop.name)
-        if (prop.flipped) {
-          (idx, AttributeTable.gt(sft, idx, prop.literal.getValue, dates.map(_._1)))
-        } else {
-          (idx, AttributeTable.lt(sft, idx, prop.literal.getValue, dates.map(_._2)))
-        }
+    require(classOf[Comparable[_]].isAssignableFrom(binding), s"Attribute '$attribute' is not comparable")
 
-      case f: PropertyIsLessThanOrEqualTo =>
-        val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
-        val idx = sft.indexOf(prop.name)
-        if (prop.flipped) {
-          (idx, AttributeTable.gte(sft, idx, prop.literal.getValue, dates.map(_._1)))
-        } else {
-          (idx, AttributeTable.lte(sft, idx, prop.literal.getValue, dates.map(_._2)))
-        }
+    val fb = FilterHelper.extractAttributeBounds(filter, attribute, binding).getOrElse {
+      throw new RuntimeException(s"Unhandled filter type in attribute strategy: ${filterToString(filter)}")
+    }
 
-      case f: Before =>
-        val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
-        val idx = sft.indexOf(prop.name)
-        val lit = prop.literal.evaluate(null, classOf[Date])
-        if (prop.flipped) {
-          (idx, AttributeTable.gt(sft, idx, lit, dates.map(_._1)))
-        } else {
-          (idx, AttributeTable.lt(sft, idx, lit, dates.map(_._2)))
-        }
+    fb.bounds.map { bounds =>
+      val range = bounds.bounds match {
+        case (Some(lower), Some(upper)) =>
+          if (lower == upper) {
+            AttributeTable.equals(sft, index, lower, dates)
+          } else if (lower + WILDCARD_SUFFIX == upper) {
+            AttributeTable.prefix(sft, index, lower)
+          } else {
+            AttributeTable.between(sft, index, (lower, upper), dates, bounds.inclusive)
+          }
+        case (Some(lower), None) =>
+          if (bounds.inclusive) {
+            AttributeTable.gte(sft, index, lower, dates.map(_._1))
+          } else {
+            AttributeTable.gt(sft, index, lower, dates.map(_._1))
+          }
+        case (None, Some(upper)) =>
+          if (bounds.inclusive) {
+            AttributeTable.lte(sft, index, upper, dates.map(_._2))
+          } else {
+            AttributeTable.lt(sft, index, upper, dates.map(_._2))
+          }
+        case (None, None) => // not null
+          AttributeTable.all(sft, index)
+      }
 
-      case f: After =>
-        val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
-        val idx = sft.indexOf(prop.name)
-        val lit = prop.literal.evaluate(null, classOf[Date])
-        if (prop.flipped) {
-          (idx, AttributeTable.lt(sft, idx, lit, dates.map(_._2)))
-        } else {
-          (idx, AttributeTable.gt(sft, idx, lit, dates.map(_._1)))
-        }
-
-      case f: During =>
-        val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
-        val idx = sft.indexOf(prop.name)
-        val during = prop.literal.getValue.asInstanceOf[DefaultPeriod]
-        val lower = during.getBeginning.getPosition.getDate.getTime
-        val upper = during.getEnding.getPosition.getDate.getTime
-        // note that during is exclusive
-        (idx, AttributeTable.between(sft, idx, (lower, upper), dates, inclusive = false))
-
-      case f: PropertyIsEqualTo =>
-        val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
-        val idx = sft.indexOf(prop.name)
-        (idx, AttributeTable.equals(sft, idx, prop.literal.getValue, dates))
-
-      case f: TEquals =>
-        val prop = checkOrderUnsafe(f.getExpression1, f.getExpression2)
-        val idx = sft.indexOf(prop.name)
-        (idx, AttributeTable.equals(sft, idx, prop.literal.getValue, dates))
-
-      case f: PropertyIsLike =>
-        val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
-        val idx = sft.indexOf(prop)
-        // Remove the trailing wildcard and create a range prefix
-        val literal = f.getLiteral
-        val value = if (literal.endsWith(MULTICHAR_WILDCARD)) {
-          literal.substring(0, literal.length - MULTICHAR_WILDCARD.length)
-        } else {
-          literal
-        }
-        (idx, AttributeTable.prefix(sft, idx, value))
-
-      case n: Not =>
-        val f = n.getFilter.asInstanceOf[PropertyIsNull] // this should have been verified in getStrategy
-        val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
-        val idx = sft.indexOf(prop)
-        (idx, AttributeTable.all(sft, idx))
-
-      case _ =>
-        val msg = s"Unhandled filter type in attribute strategy: ${filter.getClass.getName}"
-        throw new RuntimeException(msg)
+      PropertyBounds(attribute, bounds.bounds, range)
     }
   }
 
@@ -378,5 +321,6 @@ object AttributeIdxStrategy extends StrategyProvider {
   }
 
   def distinctProperties(qf: QueryFilter) = qf.primary.flatMap { f => DataUtilities.attributeNames(f) }.distinct
-
 }
+
+case class PropertyBounds(attribute: String, bounds: (Option[Any], Option[Any]), range: AccRange)

@@ -398,8 +398,10 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends MethodProfiling with L
    */
   private def isBounded(temporalFilters: Seq[Filter]): Boolean = {
     import FilterHelper._
-    val interval = extractInterval(temporalFilters, sft.getDtgField)
-    interval != null && interval.getStartMillis != minDateTime && interval.getEndMillis != maxDateTime
+    sft.getDtgField.map(dtg => FilterHelper.extractIntervals(andFilters(temporalFilters), dtg)) match {
+      case None => false
+      case Some(intervals) => intervals.exists(i => i._1 != MinDateTime && i._2 != MaxDateTime)
+    }
   }
 
   /**
@@ -436,6 +438,10 @@ case class QueryFilter(strategy: StrategyType,
   lazy val filter: Option[Filter] = {
     val incl = if (or) andOption(orOption(primary).toSeq ++ secondary) else andOption(primary ++ secondary)
     incl.filter(_ != Filter.INCLUDE)
+  }
+  lazy val singlePrimary: Option[Filter] = {
+    val combined = if (or) orOption(primary) else andOption(primary)
+    combined.filter(_ != Filter.INCLUDE)
   }
   override lazy val toString: String =
     s"$strategy[${primary.map(filterToString).mkString(if (or) " OR " else " AND ")}]" +
