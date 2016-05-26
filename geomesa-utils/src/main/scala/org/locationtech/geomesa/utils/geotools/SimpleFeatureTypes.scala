@@ -10,7 +10,7 @@ package org.locationtech.geomesa.utils.geotools
 
 import java.util.{Date, Locale, UUID}
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{ConfigRenderOptions, ConfigValueFactory, Config, ConfigFactory}
 import com.vividsolutions.jts.geom._
 import org.apache.commons.lang.StringEscapeUtils
 import org.geotools.feature.AttributeTypeBuilder
@@ -50,6 +50,12 @@ object SimpleFeatureTypes {
   val USER_DATA_MAP_KEY_TYPE   = "keyclass"
   val USER_DATA_MAP_VALUE_TYPE = "valueclass"
 
+  val TypeNamePath   = "type-name"
+  val FieldsPath     = "fields"
+  val UserDataPath   = "user-data"
+  val AttributesPath = "attributes"
+  val TypePath       = "type"
+
   /**
    * Create a SimpleFeatureType from a typesafe Config
    *
@@ -64,15 +70,15 @@ object SimpleFeatureTypes {
       case None    => conf
     }
 
-    val nameSpec = toParse.getStringOpt("type-name").orElse(typeName).getOrElse(
+    val nameSpec = toParse.getStringOpt(TypeNamePath).orElse(typeName).getOrElse(
       throw new IllegalArgumentException("Unable to parse type name from provided argument or config")
     )
     val (namespace, name) = buildTypeName(nameSpec)
     val specParser = new SpecParser
 
     val fields = getFieldConfig(toParse).map(buildField(_, specParser))
-    val userData = if (toParse.hasPath("user-data")) {
-      toParse.getConfig("user-data").entrySet().map(e => e.getKey -> e.getValue.unwrapped()).toMap
+    val userData = if (toParse.hasPath(UserDataPath)) {
+      toParse.getConfig(UserDataPath).entrySet().map(e => e.getKey -> e.getValue.unwrapped()).toMap
     } else {
       Map.empty[String, AnyRef]
     }
@@ -81,9 +87,9 @@ object SimpleFeatureTypes {
   }
 
   def getFieldConfig(conf: Config): Seq[Config] =
-    if (conf.hasPath("fields")) { conf.getConfigList("fields") } else { conf.getConfigList("attributes") }
+    if (conf.hasPath(FieldsPath)) { conf.getConfigList(FieldsPath) } else { conf.getConfigList(AttributesPath) }
 
-  def buildField(conf: Config, specParser: SpecParser): AttributeSpec = conf.getString("type") match {
+  def buildField(conf: Config, specParser: SpecParser): AttributeSpec = conf.getString(TypePath) match {
     case t if simpleTypeMap.contains(t)   => SimpleAttributeSpec(conf)
     case t if geometryTypeMap.contains(t) => GeomAttributeSpec(conf)
 
@@ -147,6 +153,13 @@ object SimpleFeatureTypes {
     renamed
   }
 
+  /**
+    * Encode a SimpleFeatureType as a comma-separated String
+    *
+    * @param sft - SimpleFeatureType to encode
+    * @param includeUserData - defaults to false
+    * @return a string representing a serialization of the sft
+    */
   def encodeType(sft: SimpleFeatureType, includeUserData: Boolean = false): String = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -161,6 +174,41 @@ object SimpleFeatureTypes {
     sft.getAttributeDescriptors.map(encodeDescriptor(sft, _)).mkString("", ",", suffix)
   }
 
+  def toConfig(sft: SimpleFeatureType, includeUserData: Boolean = true): Config = {
+    import scala.collection.JavaConverters._
+    var fieldOptMap: Map[String, java.util.Map[String, String]] = sft.getAttributeDescriptors.map { ad =>
+      ad.getLocalName -> AttributeSpecFactory.fromAttributeDescriptor(sft, ad).toMap.asJava
+    }.toMap[String, java.util.Map[String, String]]
+
+    Option(sft.getGeometryDescriptor).foreach { gd =>
+      val g = gd.getLocalName
+      fieldOptMap = fieldOptMap.updated(g, fieldOptMap(g).updated("default", "true").asJava)
+    }
+
+    val base = ConfigFactory.empty()
+      .withValue(TypeNamePath, ConfigValueFactory.fromAnyRef(sft.getTypeName))
+      .withValue(FieldsPath, ConfigValueFactory.fromIterable(fieldOptMap.values.asJava))
+
+    val updated = if (includeUserData) {
+      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+      val prefixes = sft.getUserDataPrefixes
+      val userData = sft.getUserData
+        .filter { case (k, v) => v != null && prefixes.exists(k.toString.startsWith) }
+        .map { case (k,v) => k.toString -> v }
+        .foldLeft(ConfigFactory.empty())((c: Config, e:(String, AnyRef)) => {
+          c.withValue(e._1, ConfigValueFactory.fromAnyRef(e._2))
+        })
+      base.withValue(UserDataPath, userData.root())
+    } else {
+      base
+    }
+    updated.atPath(s"${ConfigSftParsing.path}.${sft.getTypeName}")
+  }
+
+  def toConfigString(sft: SimpleFeatureType, includeUserData: Boolean = true, concise: Boolean = false): String = {
+    val opts = if (concise) ConfigRenderOptions.concise else ConfigRenderOptions.defaults().setFormatted(true).setComments(false).setOriginComments(false).setJson(false)
+    toConfig(sft, includeUserData).root().render(opts)
+  }
 
   def encodeDescriptor(sft: SimpleFeatureType, descriptor: AttributeDescriptor): String =
     AttributeSpecFactory.fromAttributeDescriptor(sft, descriptor).toSpec
@@ -225,6 +273,13 @@ object SimpleFeatureTypes {
         builder.append(s":$opt=$value")
       }
       builder.toString()
+    }
+
+    def toMap: Map[String, String] = {
+      Map(
+        "name" -> name,
+        "type" -> getClassSpec
+      ) ++ options
     }
 
     def toAttribute: AttributeDescriptor = {

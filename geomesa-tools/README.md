@@ -462,8 +462,15 @@ Gets an existing simple feature type as an encoded string.
            Accumulo authorizations
       * -c, --catalog
            Catalog table name for GeoMesa
+        --concise
+           Render in concise format (true/false)
+           Default: false
       * -f, --feature-name
            Simple Feature Type name on which to operate
+        --format
+           Formats for sft (comma separated string, allowed values are typesafe,
+           spec)
+           Default: typesafe
         -i, --instance
            Accumulo instance name
         --mock
@@ -475,6 +482,9 @@ Gets an existing simple feature type as an encoded string.
            Accumulo user name
         --visibilities
            Accumulo scan visibilities
+        --with-user-data
+           Include user data (true/false)
+           Default: true
         -z, --zookeepers
            Zookeepers (host[:port], comma separated)
 

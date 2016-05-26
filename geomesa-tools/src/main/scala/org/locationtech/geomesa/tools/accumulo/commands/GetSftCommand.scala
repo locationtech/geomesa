@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.tools.accumulo.commands
 
-import com.beust.jcommander.{JCommander, Parameters}
+import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.GetSftCommand._
@@ -22,7 +22,14 @@ class GetSftCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
   override def execute() = {
     logger.info(s"Getting SFT for feature ${params.featureName} from catalog ${catalog}")
     try {
-      println(SimpleFeatureTypes.encodeType(ds.getSchema(params.featureName)))
+      params.format match {
+        case "typesafe" =>
+          println(SimpleFeatureTypes.toConfigString(ds.getSchema(params.featureName), params.userData, params.concise))
+        case "spec" =>
+          println(SimpleFeatureTypes.encodeType(ds.getSchema(params.featureName), params.userData))
+        case _ =>
+          logger.error(s"Unknown config format: ${params.format}")
+      }
     } catch {
     case npe: NullPointerException =>
       logger.error(s"Error: feature '${params.featureName}' not found. Check arguments...", npe)
@@ -35,7 +42,15 @@ class GetSftCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
 
 object GetSftCommand {
   @Parameters(commandDescription = "Get the SimpleFeatureType of a feature")
-  class GetSftParameters extends GeoMesaConnectionParams
-    with FeatureTypeNameParam {}
+  class GetSftParameters extends GeoMesaConnectionParams with FeatureTypeNameParam {
+    @Parameter(names = Array("--concise"), description = "Render in concise format (true/false)", required = false, arity =1)
+    var concise: Boolean = false
+
+    @Parameter(names = Array("--format"), description = "Formats for sft (comma separated string, allowed values are typesafe, spec)", required = false)
+    var format: String = "typesafe"
+
+    @Parameter(names = Array("--with-user-data"), description = "Include user data (true/false)", required = false, arity = 1)
+    var userData: Boolean = true
+  }
 }
 
