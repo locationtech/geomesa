@@ -72,6 +72,16 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       ds.getSchema(defaultSft.getTypeName) mustEqual defaultSft
     }
 
+    "create a schema with keywords" in {
+
+      val sftWithKeywords: SimpleFeatureType = ??? // Put keywords in userData
+      ds.createSchema(sftWithKeywords)
+
+      val fs = ds.getFeatureSource("keywordSFT")
+
+      fs.getInfo.getKeywords mustEqual ???
+    }
+
     "create and retrieve a schema without a geometry" in {
       import org.locationtech.geomesa.utils.geotools.Conversions._
 

@@ -62,6 +62,8 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
   lazy val fqName = new NameImpl(getDataStore.getNamespaceURI, getSchema.getName.getLocalPart)
 
   override def getName: Name = fqName
+
+  getInfo.getKeywords.add("NEW KEYWORD")
 }
 
 object KafkaConsumerFeatureSource {

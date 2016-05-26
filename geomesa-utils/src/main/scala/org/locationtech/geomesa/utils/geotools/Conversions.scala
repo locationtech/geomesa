@@ -246,5 +246,7 @@ object RichSimpleFeatureType {
       Seq(GEOMESA_PREFIX) ++ userData[String](USER_DATA_PREFIX).map(_.split(",")).getOrElse(Array.empty)
 
     def userData[T](key: AnyRef): Option[T] = Option(sft.getUserData.get(key).asInstanceOf[T])
+
+    def getKeyWords(): Seq[String] = ???
   }
 }

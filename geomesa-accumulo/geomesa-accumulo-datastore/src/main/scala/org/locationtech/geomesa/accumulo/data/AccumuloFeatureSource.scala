@@ -98,7 +98,11 @@ abstract class AccumuloFeatureSource(val dataStore: AccumuloDataStore, val featu
 
   override def getSupportedHints: java.util.Set[Key] = hints
 
-  override def getInfo: ResourceInfo = new DelegatingResourceInfo(this)
+  override def getInfo: ResourceInfo = {
+    val ri = new DelegatingResourceInfo(this)
+    ri.getKeywords.addAll(getSchema.getKeyWords())
+    ri
+  }
 
   override def addFeatureListener(listener: FeatureListener): Unit = {}
 
