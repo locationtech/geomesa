@@ -92,6 +92,14 @@ abstract class BinnedArray[T](val length: Int, val bounds: (T, T)) {
     * @return bounds for the bin
     */
   def bounds(index: Int): (T, T)
+
+  /**
+    * Indicates if the value is below the range of this array
+    *
+    * @param value value
+    * @return true if below, false otherwise (implies above if indexOf == -1)
+    */
+  def isBelow(value: T): Boolean
 }
 
 object BinnedArray {
@@ -150,43 +158,49 @@ abstract class WholeNumberBinnedArray[T](length: Int, bounds: (T, T)) extends Bi
     if (index < 0 || index > length) {
       throw new ArrayIndexOutOfBoundsException(index)
     }
-    val lo = min + math.ceil(binSize * index).toLong
-    val hi = math.max(lo, min + math.floor(binSize * (index + 1)).toLong)
-    (if (lo > max) bounds._2 else convertFromLong(lo), if (hi > max) bounds._2 else convertFromLong(hi, hi = true))
+    val loLong = min + math.ceil(binSize * index).toLong
+    val hiLong = math.max(loLong, min + math.floor(binSize * (index + 1)).toLong)
+    val lo = if (loLong <= min) bounds._1 else convertFromLong(loLong)
+    val hi = if (hiLong >= max) bounds._2 else convertFromLong(hiLong)
+
+    (lo, hi)
   }
+
+  override def isBelow(value: T): Boolean = convertToLong(value) < min
 
   /**
     * Maps a value to a long used to allocate values in bins
     *
     * @param value value to convert
-    * @param hi true if this is an upper value, false if it's a lower or middle value
     * @return value as a long
     */
-  protected def convertToLong(value: T, hi: Boolean = false): Long
+  protected def convertToLong(value: T): Long
 
   /**
     * Maps a long back to a value
     *
     * @param value value as a long
-    * @param hi true if this is an upper value, false if it's a lower or middle value
     * @return value
     */
-  protected def convertFromLong(value: Long, hi: Boolean = false): T
+  protected def convertFromLong(value: Long): T
 }
 
-class BinnedIntegerArray(length: Int, bounds: (Integer, Integer)) extends WholeNumberBinnedArray[Integer](length, bounds) {
-  override protected def convertToLong(value: Integer, hi: Boolean): Long = value.toLong
-  override protected def convertFromLong(value: Long, hi: Boolean): Integer = value.toInt
+class BinnedIntegerArray(length: Int, bounds: (Integer, Integer))
+    extends WholeNumberBinnedArray[Integer](length, bounds) {
+  override protected def convertToLong(value: Integer): Long = value.toLong
+  override protected def convertFromLong(value: Long): Integer = value.toInt
 }
 
-class BinnedLongArray(length: Int, bounds: (jLong, jLong)) extends WholeNumberBinnedArray[jLong](length, bounds) {
-  override protected def convertToLong(value: jLong, hi: Boolean): Long = value
-  override protected def convertFromLong(value: Long, hi: Boolean): jLong = value
+class BinnedLongArray(length: Int, bounds: (jLong, jLong))
+    extends WholeNumberBinnedArray[jLong](length, bounds) {
+  override protected def convertToLong(value: jLong): Long = value
+  override protected def convertFromLong(value: Long): jLong = value
 }
 
-class BinnedDateArray(length: Int, bounds: (Date, Date)) extends WholeNumberBinnedArray[Date](length, bounds) {
-  override protected def convertToLong(value: Date, hi: Boolean): Long = value.getTime
-  override protected def convertFromLong(value: Long, hi: Boolean): Date = new Date(if (hi) value - 1 else value)
+class BinnedDateArray(length: Int, bounds: (Date, Date))
+    extends WholeNumberBinnedArray[Date](length, bounds) {
+  override protected def convertToLong(value: Date): Long = value.getTime
+  override protected def convertFromLong(value: Long): Date = new Date(value)
 }
 
 /**
@@ -198,7 +212,7 @@ class BinnedDateArray(length: Int, bounds: (Date, Date)) extends WholeNumberBinn
 class BinnedGeometryArray(length: Int, bounds: (Geometry, Geometry))
     extends WholeNumberBinnedArray[Geometry](length, bounds) {
 
-  override protected def convertToLong(value: Geometry, hi: Boolean): Long = {
+  override protected def convertToLong(value: Geometry): Long = {
     val centroid = value match {
       case p: Point => p
       case g => g.getCentroid
@@ -206,7 +220,7 @@ class BinnedGeometryArray(length: Int, bounds: (Geometry, Geometry))
     Z2SFC.index(centroid.getX, centroid.getY).z
   }
 
-  override protected def convertFromLong(value: Long, hi: Boolean): Geometry = {
+  override protected def convertFromLong(value: Long): Geometry = {
     val (x, y) = Z2SFC.invert(new Z2(value))
     GeometryUtils.geoFactory.createPoint(new Coordinate(x, y))
   }
@@ -242,6 +256,8 @@ class BinnedFloatArray(length: Int, bounds: (jFloat, jFloat)) extends BinnedArra
     }
     (bounds._1 + binSize * index, bounds._1 + binSize * (index + 1))
   }
+
+  override def isBelow(value: jFloat): Boolean = value < bounds._1
 }
 
 class BinnedDoubleArray(length: Int, bounds: (jDouble, jDouble)) extends BinnedArray[jDouble](length, bounds) {
@@ -274,6 +290,8 @@ class BinnedDoubleArray(length: Int, bounds: (jDouble, jDouble)) extends BinnedA
     }
     (bounds._1 + binSize * index, bounds._1 + binSize * (index + 1))
   }
+
+  override def isBelow(value: jDouble): Boolean = value < bounds._1
 }
 
 /**
@@ -281,76 +299,49 @@ class BinnedDoubleArray(length: Int, bounds: (jDouble, jDouble)) extends BinnedA
   * bins by considering inputs to be roughly equivalent to base36 longs.
   *
   * @param length number of bins
-  * @param bounds upper and lower bounds for the input values
+  * @param rawBounds upper and lower bounds for the input values
   */
-class BinnedStringArray(length: Int, bounds: (String, String)) extends BinnedArray[String](length, bounds) {
+class BinnedStringArray(length: Int, rawBounds: (String, String))
+    extends WholeNumberBinnedArray[String](length, BinnedStringArray.normalizeBounds(rawBounds)) {
 
-  private val (start, end) = {
+  import BinnedStringArray._
+
+  private lazy val (start, end): (String, String) = bounds
+  private lazy val prefixLength = start.zip(end).indexWhere { case (l, r) => l != r }
+  private lazy val prefix = start.substring(0, prefixLength)
+
+  override protected def convertToLong(value: String): Long = {
+    val normalized = normalize(value)
+    if (normalized < start) { 0L } else if (normalized > end) { Long.MaxValue } else {
+      // note: 12 is the most base-36 numbers we can fit in Long.MaxValue
+      val sigDigits = normalized.substring(prefixLength).padTo(12, Base36Lowest).substring(0, 12)
+      jLong.parseLong(sigDigits, 36)
+    }
+  }
+
+  override protected def convertFromLong(value: Long): String =
+    prefix + jLong.toString(value, 36).reverse.padTo(12, Base36Lowest).reverse.replaceFirst("0+$", "")
+}
+
+object BinnedStringArray {
+
+  val Base36Chars   = (0 until 36).map(Integer.toString(_, 36).toLowerCase(Locale.US).charAt(0)).toArray
+  val Base36Lowest  = Base36Chars.head
+  val Base36Highest = Base36Chars.last
+
+  def normalize(s: String) = s.toLowerCase(Locale.US).replaceAll("[^0-9a-z]", Base36Lowest.toString)
+
+  def normalizeBounds(bounds: (String, String)): (String, String) = {
     val lower = normalize(bounds._1)
     val upper = normalize(bounds._2)
-    if (lower.length == upper.length) {
-      (lower, upper)
-    } else if (lower.length < upper.length) {
-      (lower.padTo(upper.length, '0'), upper)
-    } else {
-      (lower, upper.padTo(lower.length, 'z'))
-    }
-  }
-
-  require(start < end,
-    s"Upper bound must be greater than lower bound: lower='${bounds._1}'($start) upper='${bounds._2}'($end)")
-
-  // # of base 36 numbers we can consider
-  private val sigDigits = math.max(1, math.round(math.log(length) / math.log(36)).toInt)
-  private val prefixLength = start.zip(end).indexWhere { case (l, r) => l != r }
-
-  private val minLong = stringToLong(start)
-  private val maxLong = stringToLong(end, 'z')
-
-  private val binSize = (maxLong - minLong).toDouble / length
-
-  private def normalize(s: String) = s.toLowerCase(Locale.US).replaceAll("[^0-9a-z]", "0")
-
-  def stringToLong(s: String, padding: Char = '0'): Long = {
-    val normalized = if (s.length >= prefixLength + sigDigits) {
-      s.substring(prefixLength, prefixLength + sigDigits)
-    } else {
-      s.substring(prefixLength).padTo(sigDigits, padding)
-    }
-    jLong.parseLong(normalized, 36)
-  }
-  def longToString(long: Long, padding: Char = '0'): String =
-    start.substring(0, prefixLength) + jLong.toString(long, 36).padTo(sigDigits, padding)
-
-  override def directIndex(value: Long): Int = {
-    val i = math.floor((value - minLong) / binSize).toInt
-    // i == length check catches the upper bound
-    if (i < 0 || i > length) -1 else if (i == length) length - 1 else i
-  }
-
-  override def indexOf(value: String): Int = {
-    val normalized = normalize(value)
-    if (normalized < start || normalized > end) { -1 } else {
-      directIndex(stringToLong(normalized))
-    }
-  }
-
-  override def medianValue(index: Int): String = {
-    if (index < 0 || index > length) {
-      throw new ArrayIndexOutOfBoundsException(index)
-    }
-    val i = minLong + math.round(binSize / 2 + binSize * index)
-    longToString(if (i > maxLong) maxLong else i)
-  }
-
-  override def bounds(index: Int): (String, String) = {
-    if (index < 0 || index > length) {
-      throw new ArrayIndexOutOfBoundsException(index)
-    }
-    val loLong = minLong + math.ceil(binSize * index).toLong
-    val hiLong = math.max(loLong, minLong + math.floor(binSize * (index + 1)).toLong)
-    val lo = longToString(if (loLong > maxLong) maxLong else loLong)
-    val hi = longToString(if (hiLong > maxLong) maxLong else hiLong, 'z')
-    (lo, hi)
+    val length = math.max(lower.length, upper.length)
+    val pLower = lower.padTo(length, Base36Lowest)
+    val pUpper = upper.padTo(length, Base36Highest)
+    val prefixLength = pLower.zip(pUpper).indexWhere { case (l, r) => l != r }
+    require(prefixLength != -1, s"Normalized strings must not match: $lower, $upper")
+    // check to make sure they fit in a long (12 chars)
+    val sLower = if (pLower.length > prefixLength + 12) pLower.substring(0, prefixLength + 12) else pLower
+    val sUpper = if (pUpper.length > prefixLength + 12) pUpper.substring(0, prefixLength + 12) else pUpper
+    if (sLower < sUpper) (sLower, sUpper) else (sUpper, sLower)
   }
 }

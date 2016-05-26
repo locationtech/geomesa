@@ -69,8 +69,7 @@ class RangeHistogramTest extends Specification with StatTestHelper {
         val stat = stringStat(36, "abc000", "abc099")
         stat.isEmpty must beFalse
         stat.length mustEqual 36
-        forall(Seq(0, 4, 8, 12, 16, 20, 24, 28, 32, 35))(stat.count(_) mustEqual 10)
-        forall((0 until 36).filterNot(Seq(0, 4, 8, 12, 16, 20, 24, 28, 32, 35).contains))(stat.count(_) mustEqual 0)
+        (0 until 36).map(stat.count).sum mustEqual 100
       }
 
       "serialize and deserialize" >> {
@@ -118,18 +117,15 @@ class RangeHistogramTest extends Specification with StatTestHelper {
         features2.foreach { stat2.observe }
 
         stat2.length mustEqual 36
-        forall(Seq(0, 4, 8, 12, 16, 20, 24, 28, 32, 35))(stat2.count(_) mustEqual 10)
-        forall((0 until 36).filterNot(Seq(0, 4, 8, 12, 16, 20, 24, 28, 32, 35).contains))(stat2.count(_) mustEqual 0)
+        (0 until 36).map(stat2.count).sum mustEqual 100
 
         stat += stat2
 
         stat.length mustEqual 36
-        forall(Seq(0, 35))(stat.count(_) mustEqual 100)
-        forall(1 until 35)(stat.count(_) mustEqual 0)
+        (0 until 36).map(stat.count).sum mustEqual 200
 
         stat2.length mustEqual 36
-        forall(Seq(0, 4, 8, 12, 16, 20, 24, 28, 32, 35))(stat2.count(_) mustEqual 10)
-        forall((0 until 36).filterNot(Seq(0, 4, 8, 12, 16, 20, 24, 28, 32, 35).contains))(stat2.count(_) mustEqual 0)
+        (0 until 36).map(stat2.count).sum mustEqual 100
       }
 
       "combine two RangeHistograms with empty values" >> {
@@ -144,7 +140,7 @@ class RangeHistogramTest extends Specification with StatTestHelper {
 
         stat2 += stat
 
-        stat2.bounds mustEqual ("0", "gamma")
+        stat2.bounds mustEqual ("00000", "gamma")
       }
 
       "clear" >> {
@@ -586,8 +582,8 @@ class RangeHistogramTest extends Specification with StatTestHelper {
 
       "combine two RangeHistograms with weekly splits" >> {
         // simulates the way date histograms will be gathered as we track stats dynamically
-        val stat = dateStat(4, "2012-01-01T00:00:00.000Z", "2012-01-29T00:00:00.000Z", observe = false)
-        val stat2 = dateStat(5, "2012-01-01T00:00:00.000Z", "2012-02-05T00:00:00.000Z", observe = false)
+        val stat = dateStat(4, "2012-01-01T00:00:00.000Z", "2012-01-28T23:59:59.999Z", observe = false)
+        val stat2 = dateStat(5, "2012-01-01T00:00:00.000Z", "2012-02-04T23:59:59.999Z", observe = false)
 
         val attributes = Array.ofDim[AnyRef](7)
         (1 to 28).foreach { i =>

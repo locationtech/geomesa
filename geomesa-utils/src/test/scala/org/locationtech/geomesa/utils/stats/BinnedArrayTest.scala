@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import java.util.Date
-
 import com.vividsolutions.jts.geom.Point
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -183,16 +181,30 @@ class BinnedArrayTest extends Specification with StatTestHelper {
       array.medianValue(7) mustEqual toDate(7, 30)
       array.medianValue(8) mustEqual toDate(8, 30)
       array.medianValue(9) mustEqual toDate(9, 30)
-      array.bounds(0) mustEqual (toDate(0, 0), new Date(toDate(1, 0).getTime - 1))
-      array.bounds(1) mustEqual (toDate(1, 0), new Date(toDate(2, 0).getTime - 1))
-      array.bounds(2) mustEqual (toDate(2, 0), new Date(toDate(3, 0).getTime - 1))
-      array.bounds(3) mustEqual (toDate(3, 0), new Date(toDate(4, 0).getTime - 1))
-      array.bounds(4) mustEqual (toDate(4, 0), new Date(toDate(5, 0).getTime - 1))
-      array.bounds(5) mustEqual (toDate(5, 0), new Date(toDate(6, 0).getTime - 1))
-      array.bounds(6) mustEqual (toDate(6, 0), new Date(toDate(7, 0).getTime - 1))
-      array.bounds(7) mustEqual (toDate(7, 0), new Date(toDate(8, 0).getTime - 1))
-      array.bounds(8) mustEqual (toDate(8, 0), new Date(toDate(9, 0).getTime - 1))
-      array.bounds(9) mustEqual (toDate(9, 0), new Date(toDate(10, 0).getTime - 1))
+      array.bounds(0) mustEqual (toDate(0, 0), toDate(1, 0))
+      array.bounds(1) mustEqual (toDate(1, 0), toDate(2, 0))
+      array.bounds(2) mustEqual (toDate(2, 0), toDate(3, 0))
+      array.bounds(3) mustEqual (toDate(3, 0), toDate(4, 0))
+      array.bounds(4) mustEqual (toDate(4, 0), toDate(5, 0))
+      array.bounds(5) mustEqual (toDate(5, 0), toDate(6, 0))
+      array.bounds(6) mustEqual (toDate(6, 0), toDate(7, 0))
+      array.bounds(7) mustEqual (toDate(7, 0), toDate(8, 0))
+      array.bounds(8) mustEqual (toDate(8, 0), toDate(9, 0))
+      array.bounds(9) mustEqual (toDate(9, 0), toDate(10, 0))
+    }
+
+    "not provide date bounds that are out of order" >> {
+      import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
+      def toDate(millis: Int) = GeoToolsDateFormat.parseDateTime(f"2016-01-01T00:00:00.00${millis}Z").toDate
+
+      val array = new BinnedDateArray(10, (toDate(0), toDate(5)))
+      forall(0 until 10) { i =>
+        val (min, max) = array.bounds(i)
+        val lo = array.indexOf(min)
+        val hi = array.indexOf(max)
+        min.getTime must beLessThanOrEqualTo(max.getTime)
+        lo must beLessThanOrEqualTo(hi)
+      }
     }
 
     "bin strings" >> {
@@ -200,8 +212,27 @@ class BinnedArrayTest extends Specification with StatTestHelper {
       forall(0 until 10)(i => array.indexOf("aa" + ('0' + i).toChar + ('0' + 12).toChar) mustEqual i)
       forall(0 until 25)(i => array.indexOf("aa" + ('a' + i).toChar + ('0' + 12).toChar) mustEqual i + 10)
       array.indexOf("aaz") mustEqual 35
-      forall(0 until 10)(i => array.medianValue(i) mustEqual s"aa$i")
-      forall(10 until 36)(i => array.medianValue(i) mustEqual "aa" + ('a'.toInt + i - 10).toChar)
+      forall(1 until 10)(i => array.medianValue(i) must startWith(s"aa$i"))
+      forall(10 until 15)(i => array.medianValue(i) must startWith("aa" + ('a'.toInt + i - 10).toChar))
+    }
+
+    "not provide string bounds that are out of order" >> {
+      val bounds = Seq(("0", "z"), ("0name0", "9nrcyk5rcykg"), ("abc000", "abc099"))
+      forall(bounds) { b =>
+        val array = new BinnedStringArray(1000, b)
+        forall(0 until 1000) { i =>
+          val (min, max) = array.bounds(i)
+          val lo = array.indexOf(min)
+          val hi = array.indexOf(max)
+          lo must beLessThanOrEqualTo(hi)
+        }
+      }
+    }
+
+    "copy ranges correctly" >> {
+      val from = new BinnedStringArray(36, ("abc000", "abc099"))
+      val to = new BinnedStringArray(36, ("abc000", "abc199"))
+      RangeHistogram.copyInto(to, from) must not(throwAn[IllegalArgumentException])
     }
 
     "bin points" >> {
@@ -222,6 +253,18 @@ class BinnedArrayTest extends Specification with StatTestHelper {
       val m3 = array.medianValue(3).asInstanceOf[Point]
 
       Seq(m0, m1, m2, m3).map(_.toString).distinct must haveLength(4)
+    }
+
+    "not provide geometry bounds that are out of order" >> {
+      val lowerBound = WKTUtils.read("POINT (-87.04006865017121 15.836863706743756)")
+      val upperBound = WKTUtils.read("POINT (-64.42119213027004 52.51324361307232)")
+      val array = new BinnedGeometryArray(10, (lowerBound, upperBound))
+      forall(0 until 10) { i =>
+        val (min, max) = array.bounds(i)
+        val lo = array.indexOf(min)
+        val hi = array.indexOf(max)
+        lo must beLessThanOrEqualTo(hi)
+      }
     }
   }
 }
