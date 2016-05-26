@@ -153,6 +153,14 @@ class RangeHistogram[T](val attribute: Int, initialBins: Int, initialEndpoints: 
 
 object RangeHistogram {
 
+  /**
+    * Takes a single value and creates a range from it. Since the range histogram lower bound has to be
+    * strictly less than the upper bound, this lets us use a single value to create a valid histogram.
+    *
+    * @param value value to buffer
+    * @tparam T type of the value
+    * @return valid bounds for a histogram
+    */
   def buffer[T](value: T): (T, T) = {
     import BinnedStringArray.{Base36Lowest, Base36Highest}
     val buf = value match {
