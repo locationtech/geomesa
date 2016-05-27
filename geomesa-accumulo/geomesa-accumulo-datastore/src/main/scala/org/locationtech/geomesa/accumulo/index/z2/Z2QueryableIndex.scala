@@ -41,7 +41,7 @@ trait Z2QueryableIndex extends AccumuloFeatureIndex
 
     import AccumuloWritableIndex.{BinColumnFamily, FullColumnFamily}
     import QueryHints.{LOOSE_BBOX, RichHints}
-    import org.locationtech.geomesa.filter.FilterHelper._
+    import org.locationtech.geomesa.filter.FilterHelper.{logger => _, _}
     import org.locationtech.geomesa.filter._
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 

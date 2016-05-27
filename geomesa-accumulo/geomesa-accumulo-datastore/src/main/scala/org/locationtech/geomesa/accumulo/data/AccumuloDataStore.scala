@@ -242,10 +242,10 @@ class AccumuloDataStore(val connector: Connector,
       if (config.generateStats && metadata.read(typeName, STATS_GENERATION_KEY).isEmpty) {
         // configure the stats combining iterator - we only use this key for older data stores
         val configuredKey = "stats-configured"
-        if (!metadata.read(typeName, configuredKey).contains("true")) {
+        if (!metadata.read(typeName, configuredKey).exists(_ == "true")) {
           val lock = acquireCatalogLock()
           try {
-            if (!metadata.read(typeName, configuredKey, cache = false).contains("true")) {
+            if (!metadata.read(typeName, configuredKey, cache = false).exists(_ == "true")) {
               GeoMesaMetadataStats.configureStatCombiner(connector, statsTable, sft)
               metadata.insert(typeName, configuredKey, "true")
             }
@@ -335,7 +335,7 @@ class AccumuloDataStore(val connector: Connector,
       // update the configured indices if needed
       val previousIndices = previousSft.getIndices.map { case (name, version, _) => (name, version)}
       val newIndices = sft.getIndices.filterNot {
-        case (name, version, _) => previousIndices.contains((name, version))
+        case (name, version, _) => previousIndices.exists(_ == (name, version))
       }
       val validatedIndices = newIndices.map { case (name, version, _) =>
         AccumuloFeatureIndex.IndexLookup.get(name, version) match {
@@ -408,7 +408,7 @@ class AccumuloDataStore(val connector: Connector,
    * @return featureStore, suitable for reading and writing
    */
   override def getFeatureSource(typeName: Name): AccumuloFeatureStore = {
-    if (!getTypeNames.contains(typeName.getLocalPart)) {
+    if (!getTypeNames.exists(_ == typeName.getLocalPart)) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
     if (config.caching) {
@@ -638,7 +638,7 @@ class AccumuloDataStore(val connector: Connector,
     var schemaId = 1
     val existingSchemaIds = getTypeNames.flatMap(metadata.read(_, SCHEMA_ID_KEY, cache = false)
         .map(_.getBytes(StandardCharsets.UTF_8).head.toInt))
-    while (existingSchemaIds.contains(schemaId)) { schemaId += 1 }
+    while (existingSchemaIds.exists(_ == schemaId)) { schemaId += 1 }
     // We use a single byte for the row prefix to save space - if we exceed the single byte limit then
     // our ranges would start to overlap and we'd get errors
     require(schemaId <= Byte.MaxValue, s"No more than ${Byte.MaxValue} schemas may share a single catalog table")
