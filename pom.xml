@@ -1876,6 +1876,11 @@
                 <artifactId>jcommander</artifactId>
                 <version>1.48</version>
             </dependency>
+            <dependency>
+                <groupId>org.reflections</groupId>
+                <artifactId>reflections</artifactId>
+                <version>0.9.10</version>
+            </dependency>
 
             <!-- test dependencies -->
             <dependency>

@@ -20,7 +20,9 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.util.Converters
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter, ISODateTimeFormat}
+import org.locationtech.geomesa.convert.annotations.TransformFactory
 import org.locationtech.geomesa.utils.text.{EnhancedTokenParsers, WKTUtils}
+import org.reflections.Reflections
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -33,6 +35,18 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
 
   ServiceRegistry.lookupProviders(classOf[TransformerFunctionFactory]).foreach { factory =>
     factory.functions.foreach(f => f.names.foreach(functionMap.put(_, f)))
+  }
+  val reflections = new Reflections("org.locationtech.geomesa.convert")
+  val annotated = reflections.getTypesAnnotatedWith(classOf[TransformFactory])
+  annotated.foreach { case cls =>
+    if (classOf[TransformerFunctionFactory].isAssignableFrom(cls)) {
+      cls.newInstance().asInstanceOf[TransformerFunctionFactory]
+        .functions.foreach(f => f.names.foreach(functionMap.put(_, f)))
+      logger.info(s"Registered transform functions from ${cls.getName}")
+    } else {
+      logger.warn(s"Class ${cls.getName} does not implement ${classOf[TransformerFunctionFactory].getName} and will be" +
+        s"excluded from Converter function registration ")
+    }
   }
 
   val EQ   = "Eq"

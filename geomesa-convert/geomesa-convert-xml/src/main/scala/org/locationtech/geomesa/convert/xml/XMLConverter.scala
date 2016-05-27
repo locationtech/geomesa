@@ -22,6 +22,7 @@ import org.apache.commons.io.IOUtils
 import org.locationtech.geomesa.convert.LineMode.LineMode
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
 import org.locationtech.geomesa.convert._
+import org.locationtech.geomesa.convert.annotations.ConverterFactory
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
@@ -71,6 +72,7 @@ class XMLConverter(val targetSFT: SimpleFeatureType,
     }
 }
 
+@ConverterFactory
 class XMLConverterFactory extends SimpleFeatureConverterFactory[String] {
 
   private val xpath = XPathFactory.newInstance().newXPath()
