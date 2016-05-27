@@ -455,11 +455,13 @@ class SimpleFeatureTypesTest extends Specification {
           |{
           |  type-name = "testconf"
           |  fields = [
-          |    { name = "testStr",  type = "string"       , index = true  },
-          |    { name = "testCard", type = "string"       , index = true, cardinality = high },
-          |    { name = "testList", type = "List[String]" , index = false },
-          |    { name = "testMap",  type = "Map[String, String]", index = false },
-          |    { name = "geom",     type = "Point"        , srid = 4326, default = true }
+          |    { name = "testStr",  type = "string"             , index = true   }
+          |    { name = "testCard", type = "string"             , index = true,  cardinality = high }
+          |    { name = "testList", type = "List[String]"       , index = false  }
+          |    { name = "testMap",  type = "Map[String, String]", index = false  }
+          |    { name = "dtg",      type = "Date"                                }
+          |    { name = "dtg2",     type = "Date"                                } // not default because of ordering
+          |    { name = "geom",     type = "Point" , srid = 4326, default = true }
           |  ]
           |  user-data = {
           |    geomesa.one = "true"
@@ -483,7 +485,10 @@ class SimpleFeatureTypesTest extends Specification {
         "index" -> "join", "cardinality" -> "high")
       getFieldOpts("testList") must havePairs("name" -> "testList", "type" -> "List[String]")
       getFieldOpts("testMap") must havePairs("name" -> "testMap", "type" -> "Map[String,String]")
-      getFieldOpts("geom") must havePairs("name" -> "geom", "type" -> "Point", "srid" -> "4326", "default" -> "true")
+      getFieldOpts("dtg") must havePairs("name" -> "dtg", "type" -> "Date", "default" -> "true")
+      getFieldOpts("dtg2") must havePairs("name" -> "dtg2", "type" -> "Date")
+      getFieldOpts("geom") must havePairs("name" -> "geom", "type" -> "Point",
+        "srid" -> "4326", "default" -> "true")
 
       val userdata = typeConf.getConfig("user-data").entrySet().map(e => e.getKey -> e.getValue.unwrapped()).toMap
       userdata must havePairs("geomesa.one" -> "true", "geomesa.two" -> "two")

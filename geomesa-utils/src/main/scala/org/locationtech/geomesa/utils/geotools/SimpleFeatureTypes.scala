@@ -180,9 +180,11 @@ object SimpleFeatureTypes {
       ad.getLocalName -> AttributeSpecFactory.fromAttributeDescriptor(sft, ad).toMap.asJava
     }.toMap[String, java.util.Map[String, String]]
 
-    Option(sft.getGeometryDescriptor).foreach { gd =>
-      val g = gd.getLocalName
-      fieldOptMap = fieldOptMap.updated(g, fieldOptMap(g).updated("default", "true").asJava)
+    // Update "default" options (dtg and geom)
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    List(sft.getDtgDescriptor, Option(sft.getGeometryDescriptor)).flatten.foreach { defaultDesc =>
+      val fname = defaultDesc.getLocalName
+      fieldOptMap = fieldOptMap.updated(fname, fieldOptMap(fname).updated("default", "true").asJava)
     }
 
     val base = ConfigFactory.empty()
@@ -190,7 +192,6 @@ object SimpleFeatureTypes {
       .withValue(FieldsPath, ConfigValueFactory.fromIterable(fieldOptMap.values.asJava))
 
     val updated = if (includeUserData) {
-      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
       val prefixes = sft.getUserDataPrefixes
       val userData = sft.getUserData
         .filter { case (k, v) => v != null && prefixes.exists(k.toString.startsWith) }
@@ -206,7 +207,11 @@ object SimpleFeatureTypes {
   }
 
   def toConfigString(sft: SimpleFeatureType, includeUserData: Boolean = true, concise: Boolean = false): String = {
-    val opts = if (concise) ConfigRenderOptions.concise else ConfigRenderOptions.defaults().setFormatted(true).setComments(false).setOriginComments(false).setJson(false)
+    val opts = if (concise) {
+      ConfigRenderOptions.concise
+    } else {
+      ConfigRenderOptions.defaults().setFormatted(true).setComments(false).setOriginComments(false).setJson(false)
+    }
     toConfig(sft, includeUserData).root().render(opts)
   }
 

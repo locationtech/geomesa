@@ -463,7 +463,10 @@ Gets an existing simple feature type as an encoded string.
       * -c, --catalog
            Catalog table name for GeoMesa
         --concise
-           Render in concise format (true/false)
+           Render in concise format
+           Default: false
+        --exclude-user-data
+           Exclude user data
            Default: false
       * -f, --feature-name
            Simple Feature Type name on which to operate
@@ -482,9 +485,6 @@ Gets an existing simple feature type as an encoded string.
            Accumulo user name
         --visibilities
            Accumulo scan visibilities
-        --with-user-data
-           Include user data (true/false)
-           Default: true
         -z, --zookeepers
            Zookeepers (host[:port], comma separated)
 

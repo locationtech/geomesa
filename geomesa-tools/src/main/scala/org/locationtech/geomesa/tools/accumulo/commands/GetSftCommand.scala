@@ -22,11 +22,11 @@ class GetSftCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
   override def execute() = {
     logger.info(s"Getting SFT for feature ${params.featureName} from catalog ${catalog}")
     try {
-      params.format match {
+      params.format.toLowerCase match {
         case "typesafe" =>
-          println(SimpleFeatureTypes.toConfigString(ds.getSchema(params.featureName), params.userData, params.concise))
+          println(SimpleFeatureTypes.toConfigString(ds.getSchema(params.featureName), !params.excludeUserData, params.concise))
         case "spec" =>
-          println(SimpleFeatureTypes.encodeType(ds.getSchema(params.featureName), params.userData))
+          println(SimpleFeatureTypes.encodeType(ds.getSchema(params.featureName), !params.excludeUserData))
         case _ =>
           logger.error(s"Unknown config format: ${params.format}")
       }
@@ -43,14 +43,14 @@ class GetSftCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
 object GetSftCommand {
   @Parameters(commandDescription = "Get the SimpleFeatureType of a feature")
   class GetSftParameters extends GeoMesaConnectionParams with FeatureTypeNameParam {
-    @Parameter(names = Array("--concise"), description = "Render in concise format (true/false)", required = false, arity =1)
+    @Parameter(names = Array("--concise"), description = "Render in concise format", required = false)
     var concise: Boolean = false
 
     @Parameter(names = Array("--format"), description = "Formats for sft (comma separated string, allowed values are typesafe, spec)", required = false)
     var format: String = "typesafe"
 
-    @Parameter(names = Array("--with-user-data"), description = "Include user data (true/false)", required = false, arity = 1)
-    var userData: Boolean = true
+    @Parameter(names = Array("--exclude-user-data"), description = "Exclude user data", required = false)
+    var excludeUserData: Boolean = false
   }
 }
 
