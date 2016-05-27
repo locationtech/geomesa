@@ -112,9 +112,11 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
     }.getOrElse(None)
   }
 
-  override def getNames: util.List[Name] =
-    zkUtils.zkClient.getChildren(zkPath).asScala.map(name => new NameImpl(name) : Name).asJava
-
+  override def getNames: util.List[Name] = {
+    zkUtils.zkClient.getChildren(zkPath).asScala
+      .filter(name => zkUtils.zkClient.exists(getTopicPath(name)))
+      .map(name => new NameImpl(name): Name).asJava
+  }
 
   override def removeSchema(typeName: Name): Unit = removeSchema(typeName.getLocalPart)
 
