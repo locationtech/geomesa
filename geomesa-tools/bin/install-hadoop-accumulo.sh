@@ -11,9 +11,9 @@
 # into a given directory. Usually this is used to install the deps into either the
 # geomesa tools lib dir or the WEB-INF/lib dir of geoserver.
 
-accumulo_version="${accumulo.version}"
-hadoop_version="${hadoop.version}"
-zookeeper_version="${zookeeper.version}"
+accumulo_version="${accumulo.version.recommended}"
+hadoop_version="${hadoop.version.recommended}"
+zookeeper_version="${zookeeper.version.recommended}"
 thrift_version="${thrift.version}"
 
 # for hadoop 2.5 and 2.6 to work we need these
@@ -36,6 +36,7 @@ else
             "${base_url}org/apache/accumulo/accumulo-core/${accumulo_version}/accumulo-core-${accumulo_version}.jar"
             "${base_url}org/apache/accumulo/accumulo-fate/${accumulo_version}/accumulo-fate-${accumulo_version}.jar"
             "${base_url}org/apache/accumulo/accumulo-trace/${accumulo_version}/accumulo-trace-${accumulo_version}.jar"
+            "${base_url}org/apache/accumulo/accumulo-server-base/${accumulo_version}/accumulo-server-base-${accumulo_version}.jar"
             "${base_url}org/apache/thrift/libthrift/${thrift_version}/libthrift-${thrift_version}.jar"
             "${base_url}org/apache/zookeeper/zookeeper/${zookeeper_version}/zookeeper-${zookeeper_version}.jar"
             "${base_url}commons-configuration/commons-configuration/1.6/commons-configuration-1.6.jar"

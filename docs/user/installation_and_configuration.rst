@@ -346,13 +346,13 @@ connection).
     $ $GEOMESA_HOME/bin/install-hadoop-accumulo.sh /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
     Install accumulo and hadoop dependencies to /path/to/tomcat/webapps/geoserver/WEB-INF/lib/?
     Confirm? [Y/n]y
-    fetching https://search.maven.org/remotecontent?filepath=org/apache/accumulo/accumulo-core/1.6.2/accumulo-core-1.6.2.jar
-    --2015-09-29 15:06:48--  https://search.maven.org/remotecontent?filepath=org/apache/accumulo/accumulo-core/1.6.2/accumulo-core-1.6.2.jar
+    fetching https://search.maven.org/remotecontent?filepath=org/apache/accumulo/accumulo-core/1.6.5/accumulo-core-1.6.5.jar
+    --2015-09-29 15:06:48--  https://search.maven.org/remotecontent?filepath=org/apache/accumulo/accumulo-core/1.6.5/accumulo-core-1.6.5.jar
     Resolving search.maven.org (search.maven.org)... 207.223.241.72
     Connecting to search.maven.org (search.maven.org)|207.223.241.72|:443... connected.
     HTTP request sent, awaiting response... 200 OK
     Length: 4646545 (4.4M) [application/java-archive]
-    Saving to: ‘/path/to/tomcat/webapps/geoserver/WEB-INF/lib/accumulo-core-1.6.2.jar’
+    Saving to: ‘/path/to/tomcat/webapps/geoserver/WEB-INF/lib/accumulo-core-1.6.5.jar’
     ...
 
 If you do no have an internet connection you can download the JARs manually via http://search.maven.org/.
@@ -360,21 +360,21 @@ These may include the JARs below; the specific JARs needed for some common confi
 
 Accumulo 1.5
 
-* accumulo-core-1.5.3.jar
-* accumulo-fate-1.5.3.jar
-* accumulo-start-1.5.3.jar
-* accumulo-trace-1.5.3.jar
+* accumulo-core-1.5.4.jar
+* accumulo-fate-1.5.4.jar
+* accumulo-start-1.5.4.jar
+* accumulo-trace-1.5.4.jar
 * libthrift-0.9.0.jar
 * zookeeper-3.3.6.jar
 
 Accumulo 1.6
 
-* accumulo-core-1.6.4.jar
-* accumulo-fate-1.6.4.jar
-* accumulo-server-base-1.6.4.jar
-* accumulo-trace.1.6.4.jar
+* accumulo-core-1.6.5.jar
+* accumulo-fate-1.6.5.jar
+* accumulo-server-base-1.6.5.jar
+* accumulo-trace.1.6.5.jar
 * libthrift-0.9.1.jar
-* zookeeper-3.4.5.jar
+* zookeeper-3.4.6.jar
 
 Accumulo 1.7+ (note the addition of htrace)
 
@@ -383,22 +383,24 @@ Accumulo 1.7+ (note the addition of htrace)
 * accumulo-server-base-1.7.1.jar
 * accumulo-trace.1.7.1.jar
 * libthrift-0.9.1.jar
-* zookeeper-3.4.5.jar
+* zookeeper-3.4.6.jar
 * htrace-core-3.1.0-incubating.jar
 
 Hadoop 2.2
 
 * commons-configuration-1.6.jar
 * hadoop-auth-2.2.0.jar
+* hadoop-client-2.2.0.jar
 * hadoop-common-2.2.0.jar
 * hadoop-hdfs-2.2.0.jar
 
-Hadoop 2.4
+Hadoop 2.4-2.7 (adjust versions as needed)
 
 * commons-configuration-1.6.jar
-* hadoop-auth-2.4.0.jar
-* hadoop-common-2.4.0.jar
-* hadoop-hdfs-2.4.0.jar
+* hadoop-auth-2.6.4.jar
+* hadoop-client-2.6.4.jar
+* hadoop-common-2.6.4.jar
+* hadoop-hdfs-2.6.4.jar
 
 For Kafka
 ^^^^^^^^^
