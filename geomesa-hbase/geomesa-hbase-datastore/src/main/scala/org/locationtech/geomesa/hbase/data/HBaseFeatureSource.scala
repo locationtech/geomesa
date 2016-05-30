@@ -10,26 +10,27 @@ package org.locationtech.geomesa.hbase.data
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Envelope, GeometryCollection}
+import org.geotools.data._
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
-import org.geotools.data.{FeatureReader, FeatureWriter, Query, QueryCapabilities}
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.joda.time.{DateTimeZone, DateTime, Interval, Weeks}
+import org.joda.time.{DateTime, DateTimeZone, Interval, Weeks}
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.filter
 import org.locationtech.geomesa.filter.FilterHelper._
-import org.locationtech.geomesa.utils.geotools
+import org.locationtech.geomesa.filter._
+import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.{And, Filter}
+
+import scala.collection.JavaConversions._
 
 class HBaseFeatureSource(entry: ContentEntry,
                          query: Query,
                          sft: SimpleFeatureType)
     extends ContentFeatureStore(entry, query) with LazyLogging {
-  import geotools._
 
-  import scala.collection.JavaConversions._
 
   private val dtgIndex =
     sft.getAttributeDescriptors
@@ -95,7 +96,7 @@ class HBaseFeatureSource(entry: ContentEntry,
   private def and(a: And): FR = {
     // TODO: currently assumes geom + dtg
     import HBaseFeatureSource.AllGeom
-    import filter._
+
 
     // TODO: cache serializers
     val serializer = new KryoFeatureSerializer(sft)
@@ -191,6 +192,13 @@ class HBaseFeatureSource(entry: ContentEntry,
   private def isBounded(temporalFilters: Seq[Filter]): Boolean = {
     val interval = FilterHelper.extractInterval(temporalFilters, Some(sft.getDescriptor(dtgIndex).getLocalName))
     interval != null && interval.getStartMillis != minDateTime && interval.getEndMillis != maxDateTime
+  }
+
+  override def getInfo: ResourceInfo = {
+    import RichSimpleFeatureType._
+    val ri = super.getInfo
+    ri.getKeywords.addAll(getSchema.getKeywords)
+    ri
   }
 }
 

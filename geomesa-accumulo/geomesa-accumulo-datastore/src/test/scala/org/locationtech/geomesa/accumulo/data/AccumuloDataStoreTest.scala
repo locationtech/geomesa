@@ -56,6 +56,8 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
   val defaultGeom = WKTUtils.read("POINT(45.0 49.0)")
 
+  val keywordsDelimitter = "|"
+
   def defaultPoint(sft: SimpleFeatureType,
                    id: String = "f1",
                    name: String = "testType",
@@ -74,12 +76,17 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
     "create a schema with keywords" in {
 
-      val sftWithKeywords: SimpleFeatureType = ??? // Put keywords in userData
-      ds.createSchema(sftWithKeywords)
+      val sftWithKeywords: SimpleFeatureType = createNewSchema("name:String", dtgField = None)
+      val keywords: java.util.Set[String] = Set("keywordA", "keywordB", "keywordC")
+      sftWithKeywords.getUserData.put("geomesa.keywords", keywords.mkString(keywordsDelimitter))// Put keywords in userData
 
-      val fs = ds.getFeatureSource("keywordSFT")
+      val spec = SimpleFeatureTypes.encodeType(sftWithKeywords, true)
+      val newType = SimpleFeatureTypes.createType("keywordsTest", spec)
+      ds.createSchema(newType)
 
-      fs.getInfo.getKeywords mustEqual ???
+      val fs = ds.getFeatureSource(newType.getTypeName)
+
+      (fs.getInfo.getKeywords containsAll keywords) mustEqual true
     }
 
     "create and retrieve a schema without a geometry" in {

@@ -23,6 +23,7 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.{DateTime, Interval}
 import org.locationtech.geomesa.filter.FilterHelper
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
 import scala.collection.JavaConversions._
 
@@ -64,6 +65,12 @@ class CassandraFeatureStore(entry: ContentEntry) extends ContentFeatureStore(ent
     features
   }
 
+
+  override def getInfo: ResourceInfo = {
+    val ri = super.getInfo
+    ri.getKeywords.addAll(getSchema.getKeywords)
+    ri
+  }
 
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
     val iter =

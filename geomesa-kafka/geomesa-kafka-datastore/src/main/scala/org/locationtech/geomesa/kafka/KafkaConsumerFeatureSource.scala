@@ -13,7 +13,7 @@ import java.{util => ju}
 
 import com.vividsolutions.jts.geom.Envelope
 import org.geotools.data.store.{ContentEntry, ContentFeatureSource}
-import org.geotools.data.{FilteringFeatureReader, Query}
+import org.geotools.data.{FilteringFeatureReader, Query, ResourceInfo}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.NameImpl
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
@@ -29,6 +29,7 @@ import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator, Within}
 import org.opengis.filter.{And, Filter, IncludeFilter, Or}
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -39,6 +40,8 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
   extends ContentFeatureSource(entry, query)
   with ContentFeatureSourceSecuritySupport
   with ContentFeatureSourceReTypingSupport {
+
+  import org.locationtech.geomesa.utils.geotools.Conversions._
 
   override def getBoundsInternal(query: Query) = KafkaConsumerFeatureSource.wholeWorldBounds
 
@@ -63,7 +66,11 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
 
   override def getName: Name = fqName
 
-  getInfo.getKeywords.add("NEW KEYWORD")
+  override def getInfo: ResourceInfo = {
+    val ri = super.getInfo
+    ri.getKeywords.addAll(getSchema.getKeywords)
+    ri
+  }
 }
 
 object KafkaConsumerFeatureSource {
