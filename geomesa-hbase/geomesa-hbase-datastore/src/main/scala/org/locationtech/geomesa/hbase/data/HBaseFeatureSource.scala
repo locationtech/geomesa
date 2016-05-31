@@ -29,7 +29,8 @@ import scala.collection.JavaConversions._
 class HBaseFeatureSource(entry: ContentEntry,
                          query: Query,
                          sft: SimpleFeatureType)
-    extends ContentFeatureStore(entry, query) with LazyLogging {
+    extends ContentFeatureStore(entry, query) with LazyLogging
+    with ContentFeatureSourceInfo {
 
 
   private val dtgIndex =
@@ -194,12 +195,6 @@ class HBaseFeatureSource(entry: ContentEntry,
     interval != null && interval.getStartMillis != minDateTime && interval.getEndMillis != maxDateTime
   }
 
-  override def getInfo: ResourceInfo = {
-    import RichSimpleFeatureType._
-    val ri = super.getInfo
-    ri.getKeywords.addAll(getSchema.getKeywords)
-    ri
-  }
 }
 
 object HBaseFeatureSource {

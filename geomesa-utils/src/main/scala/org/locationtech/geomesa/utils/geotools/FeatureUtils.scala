@@ -11,6 +11,7 @@ package org.locationtech.geomesa.utils.geotools
 import java.lang.{Boolean => jBoolean}
 import java.util.Locale
 
+import org.geotools.data.store.ContentFeatureSource
 import org.geotools.data.{DataUtilities, FeatureWriter}
 import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder

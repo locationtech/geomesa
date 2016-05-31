@@ -195,7 +195,9 @@ object RichSimpleFeatureType {
   val USER_DATA_PREFIX    = "geomesa.user-data.prefix"
   val KEYWORDS_KEY        = "geomesa.keywords"
 
-  val KEYWORDS_DELIMITTER = """\|"""
+  val KEYWORDS_SPLITTER = "\\|"
+  val KEYWORDS_JOINER = "|"
+
 
   // in general we store everything as strings so that it's easy to pass to accumulo iterators
   implicit class RichSimpleFeatureType(val sft: SimpleFeatureType) extends AnyVal {
@@ -252,7 +254,9 @@ object RichSimpleFeatureType {
 
     def userData[T](key: AnyRef): Option[T] = Option(sft.getUserData.get(key).asInstanceOf[T])
 
-    def getKeywords: java.util.Set[String] = userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_DELIMITTER).toSet.asJava).getOrElse(java.util.Collections.emptySet[String])
+    def getKeywords: java.util.Set[String] = {
+      userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_SPLITTER).toSet.asJava).getOrElse(java.util.Collections.emptySet[String])
+    }
 
   }
 }

@@ -39,9 +39,10 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
                                           query: Query)
   extends ContentFeatureSource(entry, query)
   with ContentFeatureSourceSecuritySupport
-  with ContentFeatureSourceReTypingSupport {
+  with ContentFeatureSourceReTypingSupport
+  with ContentFeatureSourceInfo{
 
-  import org.locationtech.geomesa.utils.geotools.Conversions._
+  import org.locationtech.geomesa.utils.geotools._
 
   override def getBoundsInternal(query: Query) = KafkaConsumerFeatureSource.wholeWorldBounds
 
@@ -66,11 +67,6 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
 
   override def getName: Name = fqName
 
-  override def getInfo: ResourceInfo = {
-    val ri = super.getInfo
-    ri.getKeywords.addAll(getSchema.getKeywords)
-    ri
-  }
 }
 
 object KafkaConsumerFeatureSource {

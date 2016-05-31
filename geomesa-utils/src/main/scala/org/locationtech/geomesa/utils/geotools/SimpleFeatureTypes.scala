@@ -431,8 +431,6 @@ object SimpleFeatureTypes {
     }
   }
 
-  // Do something smart here for keyword-userData??!?
-
   case class FeatureSpec(attributes: Seq[AttributeSpec], opts: Seq[FeatureOption])
 
   private val typeEncode: Map[Class[_], String] = Map(

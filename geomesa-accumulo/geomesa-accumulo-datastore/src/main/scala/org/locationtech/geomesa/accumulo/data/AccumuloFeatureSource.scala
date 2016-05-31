@@ -98,11 +98,7 @@ abstract class AccumuloFeatureSource(val dataStore: AccumuloDataStore, val featu
 
   override def getSupportedHints: java.util.Set[Key] = hints
 
-  override def getInfo: ResourceInfo = {
-    val ri = new DelegatingResourceInfo(this)
-    ri.getKeywords.addAll(getSchema.getKeywords)
-    ri
-  }
+  override def getInfo: ResourceInfo = new DelegatingResourceInfo(this)
 
   override def addFeatureListener(listener: FeatureListener): Unit = {}
 
@@ -232,7 +228,7 @@ class DelegatingResourceInfo(source: SimpleFeatureSource) extends ResourceInfo {
 
   import scala.collection.JavaConversions._
 
-  private val keywords: java.util.Set[String] = new java.util.HashSet[String](List("features", getName))
+  private val keywords = Collections.unmodifiableSet(Set("features", getName) ++ source.getSchema.getKeywords)
 
   override def getName: String = source.getSchema.getTypeName
 
