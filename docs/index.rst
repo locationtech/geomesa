@@ -6,6 +6,6 @@ GeoMesa Documentation
 .. toctree::
     :maxdepth: 1
 
-    User Manual <user/index>
-    Developer Guide <developer/index>
-    Tutorials <tutorials/index>
+    user/index
+    developer/index
+    tutorials/index
