@@ -103,9 +103,13 @@ Display details about the attributes of a specified feature type::
 getsft
 ~~~~~~
 
+Get the specified feature type as a typesafe config::
+
+    $ geomesa getsft -u username -p password -c test_catalog -f test_feature --format typesafe
+
 Get the specified feature type as an encoded feature schema string::
 
-    $ geomesa getsft -u username -p password -c test_catalog -f test_feature
+    $ geomesa getsft -u username -p password -c test_catalog -f test_feature --format spec
 
 list
 ~~~~

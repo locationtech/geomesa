@@ -462,8 +462,18 @@ Gets an existing simple feature type as an encoded string.
            Accumulo authorizations
       * -c, --catalog
            Catalog table name for GeoMesa
+        --concise
+           Render in concise format
+           Default: false
+        --exclude-user-data
+           Exclude user data
+           Default: false
       * -f, --feature-name
            Simple Feature Type name on which to operate
+        --format
+           Formats for sft (comma separated string, allowed values are typesafe,
+           spec)
+           Default: typesafe
         -i, --instance
            Accumulo instance name
         --mock

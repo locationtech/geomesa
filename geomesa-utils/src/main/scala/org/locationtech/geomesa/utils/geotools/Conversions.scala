@@ -10,6 +10,7 @@ package org.locationtech.geomesa.utils.geotools
 
 import java.util.Date
 
+import com.typesafe.config.Config
 import com.vividsolutions.jts.geom._
 import org.geotools.data.FeatureReader
 import org.geotools.data.simple.SimpleFeatureIterator
@@ -246,5 +247,11 @@ object RichSimpleFeatureType {
       Seq(GEOMESA_PREFIX) ++ userData[String](USER_DATA_PREFIX).map(_.split(",")).getOrElse(Array.empty)
 
     def userData[T](key: AnyRef): Option[T] = Option(sft.getUserData.get(key).asInstanceOf[T])
+
+    /** For additional config options see {@link SimpleFeautureTypes#toConfig} **/
+    def toConfig: Config = SimpleFeatureTypes.toConfig(sft)
+
+    /** For additional rendering options see {@link SimpleFeautureTypes#toConfigString} **/
+    def toConfigString: String = SimpleFeatureTypes.toConfigString(sft)
   }
 }

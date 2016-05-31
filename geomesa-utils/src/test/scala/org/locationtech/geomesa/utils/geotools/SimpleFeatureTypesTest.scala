@@ -448,6 +448,52 @@ class SimpleFeatureTypesTest extends Specification {
       sft.getAttributeDescriptors.get(2).getUserData.get(USER_DATA_MAP_KEY_TYPE) mustEqual classOf[String]
       sft.getAttributeDescriptors.get(2).getUserData.get(USER_DATA_MAP_VALUE_TYPE) mustEqual classOf[Array[Byte]]
     }
+
+    "render SFTs as config again" >> {
+      val conf = ConfigFactory.parseString(
+        """
+          |{
+          |  type-name = "testconf"
+          |  fields = [
+          |    { name = "testStr",  type = "string"             , index = true   }
+          |    { name = "testCard", type = "string"             , index = true,  cardinality = high }
+          |    { name = "testList", type = "List[String]"       , index = false  }
+          |    { name = "testMap",  type = "Map[String, String]", index = false  }
+          |    { name = "dtg",      type = "Date"                                }
+          |    { name = "dtg2",     type = "Date"                                } // not default because of ordering
+          |    { name = "geom",     type = "Point" , srid = 4326, default = true }
+          |  ]
+          |  user-data = {
+          |    geomesa.one = "true"
+          |    geomesa.two = "two"
+          |  }
+          |}
+        """.stripMargin)
+
+      import RichSimpleFeatureType._
+      val sft = SimpleFeatureTypes.createType(conf)
+      val typeConf = sft.toConfig.getConfig("geomesa.sfts.testconf")
+      typeConf.getString("type-name") mustEqual "testconf"
+
+      def getFieldOpts(s: String) =
+        typeConf.getConfigList("fields").filter(_.getString("name") == s).get(0).entrySet().map { case e =>
+          e.getKey -> e.getValue.unwrapped()
+        }.toMap
+
+      getFieldOpts("testStr") must havePairs("name" -> "testStr", "type" -> "String", "index" -> "join")
+      getFieldOpts("testCard") must havePairs("name" -> "testCard", "type" -> "String",
+        "index" -> "join", "cardinality" -> "high")
+      getFieldOpts("testList") must havePairs("name" -> "testList", "type" -> "List[String]")
+      getFieldOpts("testMap") must havePairs("name" -> "testMap", "type" -> "Map[String,String]")
+      getFieldOpts("dtg") must havePairs("name" -> "dtg", "type" -> "Date", "default" -> "true")
+      getFieldOpts("dtg2") must havePairs("name" -> "dtg2", "type" -> "Date")
+      getFieldOpts("geom") must havePairs("name" -> "geom", "type" -> "Point",
+        "srid" -> "4326", "default" -> "true")
+
+      val userdata = typeConf.getConfig("user-data").entrySet().map(e => e.getKey -> e.getValue.unwrapped()).toMap
+      userdata must havePairs("geomesa.one" -> "true", "geomesa.two" -> "two")
+
+    }
   }
 
 }
