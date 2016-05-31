@@ -99,22 +99,52 @@ code,.rst-content tt,.rst-content code {
    border: #717577;
 }
 
-/* first level headers */
-.wy-menu-vertical li.current > a, .wy-menu-vertical li.current > a:hover {
+/* directly selected headers at each level */
+.wy-menu-vertical li.current > a {
+  border-bottom: 1px solid #535353;
+  border-top: 1px solid #535353;
+}
+
+/* non-active second+ level headers */
+.wy-menu-vertical li.current a {
+  color: #bbb;
+  background: #535353;
+  border-right: solid 1px #535353;
+}
+
+/* non-active second+ level headers - hover */
+.wy-menu-vertical li.current a:hover {
+  color: #333;
+  background: #b0b0b0;
+}
+
+/* active first level headers */
+.wy-menu-vertical li.toctree-l1.current > a, .wy-menu-vertical li.toctree-l1.current > a:hover {
   color: #e6a150;
   background: #333;
+  border-right: solid 1px #333;
+  border-bottom: 1px solid #333;
+  border-top: 1px solid #333;
 }
 
-/* second and third level nested headers */
-.wy-menu-vertical li.current li.current > a, .wy-menu-vertical li.current li.current a {
-  color: #413a33;
-  background: #c9c9c9;
+/* active second+ level headers */
+.wy-menu-vertical li.toctree-l2.current > a, .wy-menu-vertical li.toctree-l2.current li.toctree-l3 > a, .wy-menu-vertical li.toctree-l2.current li.toctree-l4 > a {
+  color: #bbb;
+  background: #434242;
+  border-right: solid 1px #434242;
 }
 
-/* second and third level nested headers */
-.wy-menu-vertical li.current li.current > a:hover, .wy-menu-vertical li.current li.current a:hover {
-  background: #aeaeae;
+.wy-menu-vertical li.toctree-l2.current > a {
+  border-bottom: 1px solid #434242;
+  border-top: 1px solid #434242;
 }
+
+/* active second+ level headers - hover */
+.wy-menu-vertical li.toctree-l2.current > a:hover, .wy-menu-vertical li.toctree-l2.current li.toctree-l3 > a:hover , .wy-menu-vertical li.toctree-l2.current li.toctree-l4 > a:hover {
+  color: #333;
+  background: #b0b0b0;
+}
+
 
 .wy-menu-vertical a:active {
   background-color: #E6A150;
