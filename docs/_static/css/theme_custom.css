@@ -96,27 +96,37 @@ input[type="file"]:focus:invalid:focus,input[type="radio"]:focus:invalid:focus,i
 
 code,.rst-content tt,.rst-content code {
    color: #E6A160;
+   border: #717577;
 }
 
-.wy-menu-vertical li.on a,.wy-menu-vertical li.current>a {
-   background: #333;
+/* first level headers */
+.wy-menu-vertical li.current > a, .wy-menu-vertical li.current > a:hover {
+  color: #e6a150;
+  background: #333;
 }
 
-.wy-menu-vertical li.on a:hover,.wy-menu-vertical li.current>a:hover {
-   background: #333
+/* second and third level nested headers */
+.wy-menu-vertical li.current li.current > a, .wy-menu-vertical li.current li.current a {
+  color: #413a33;
+  background: #c9c9c9;
+}
+
+/* second and third level nested headers */
+.wy-menu-vertical li.current li.current > a:hover, .wy-menu-vertical li.current li.current a:hover {
+  background: #aeaeae;
 }
 
 .wy-menu-vertical a:active {
-   background-color: #E6A150;
+  background-color: #E6A150;
 }
 
 .wy-side-nav-search {
-   background-color: #E6A150;
-   color: #333;
+   background-color: #333333;
+   color: #e6a150;
 }
 
 .wy-side-nav-search img {
-   background-color: #E6A150;
+   background-color: #e6a150;
 }
 
 .wy-side-nav-search>a,.wy-side-nav-search .wy-dropdown>a {
@@ -124,7 +134,11 @@ code,.rst-content tt,.rst-content code {
 }
 
 .wy-side-nav-search>div.version {
-   color: #666;
+   color: #bbb;
+}
+
+.wy-side-nav-search input[type=text] {
+    background-color: #e3e3e3;
 }
 
 .wy-nav .wy-menu-vertical header {
@@ -173,7 +187,7 @@ code,.rst-content tt,.rst-content code {
 }
 
 .rst-versions .rst-current-version .fa,.rst-versions .rst-current-version .wy-menu-vertical li span.toctree-expand,.wy-menu-vertical li .rst-versions .rst-current-version span.toctree-expand,.rst-versions .rst-current-version .rst-content .admonition-title,.rst-content .rst-versions .rst-current-version .admonition-title,.rst-versions .rst-current-version .rst-content h1 .headerlink,.rst-content h1 .rst-versions .rst-current-version .headerlink,.rst-versions .rst-current-version .rst-content h2 .headerlink,.rst-content h2 .rst-versions .rst-current-version .headerlink,.rst-versions .rst-current-version .rst-content h3 .headerlink,.rst-content h3 .rst-versions .rst-current-version .headerlink,.rst-versions .rst-current-version .rst-content h4 .headerlink,.rst-content h4 .rst-versions .rst-current-version .headerlink,.rst-versions .rst-current-version .rst-content h5 .headerlink,.rst-content h5 .rst-versions .rst-current-version .headerlink,.rst-versions .rst-current-version .rst-content h6 .headerlink,.rst-content h6 .rst-versions .rst-current-version .headerlink,.rst-versions .rst-current-version .rst-content dl dt .headerlink,.rst-content dl dt .rst-versions .rst-current-version .headerlink,.rst-versions .rst-current-version .rst-content p.caption .headerlink,.rst-content p.caption .rst-versions .rst-current-version .headerlink,.rst-versions .rst-current-version .rst-content tt.download span:first-child,.rst-content tt.download .rst-versions .rst-current-version span:first-child,.rst-versions .rst-current-version .rst-content code.download span:first-child,.rst-content code.download .rst-versions .rst-current-version span:first-child,.rst-versions .rst-current-version .icon {
-   color: #333
+   color: #333;
 }
 
 .rst-versions .rst-current-version.rst-out-of-date {
@@ -185,7 +199,7 @@ code,.rst-content tt,.rst-content code {
 }
 
 .rst-content tt.literal,.rst-content tt.literal,.rst-content code.literal {
-   color: #E6A160
+   color: #E26767
 }
 .rst-content a tt,.rst-content a tt,.rst-content a code {
    color: #E6A150
@@ -207,16 +221,9 @@ a:hover {
    color: #e6a150;
 }
 
-a.icon-home {
-   color: #333;
-}
-
-a.icon-home:hover {
-   color: #333; /* i.e. for the house icon and "GeoMesa" in the top, don't change color when visited */
-}
-
-a.icon-home:visited {
-   color: #333; /* i.e. for the house icon and "GeoMesa" in the top, don't change color when visited */
+a.icon-home, a.icon-home:hover, a.icon-home:visited {
+   /* i.e. for the house icon and "GeoMesa" in the top, don't change color when visited */
+   color: #e6a150;
 }
 
 .pre {
@@ -235,7 +242,9 @@ code.literal {
    background: #444;
 }
 
-.wy-menu-vertical li.current > a { color: #777; }
+.rst-content .warning .admonition-title {
+   background: #ea9f5e;
+}
 
 div.admonition.warning, div.admonition.note {
    background: #555;
