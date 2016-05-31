@@ -26,7 +26,7 @@ import org.opengis.filter.{And, Filter}
 class HBaseFeatureSource(entry: ContentEntry,
                          query: Query,
                          sft: SimpleFeatureType)
-    extends ContentFeatureStore(entry, query) with LazyLogging {
+    extends ContentFeatureStore(entry, query) {
   import geotools._
 
   import scala.collection.JavaConversions._
@@ -63,18 +63,8 @@ class HBaseFeatureSource(entry: ContentEntry,
       include()
     } else {
       filter.rewriteFilterInCNF(query.getFilter)(filter.ff) match {
-        case a: And => {
-          val (spatialFilter, temporalFilter, postFilter) = partitionFilters(a.getChildren)
-          if (temporalFilter.isEmpty || !isBounded(temporalFilter)) {
-            logger.warn(s"Temporal filter missing or not fully bounded; falling back to full-table scan for $query")
-            include(Some(query.getFilter))
-          } else {
-            and(a)
-          }
-        }
-        case _ =>
-          logger.warn(s"Failing back to full-table scan for $query.")
-          include(Some(query.getFilter))
+        case a: And => and(a)
+        case _      => throw new NotImplementedError("Queries must include a geometry and date filter")
       }
     }
   }
@@ -88,8 +78,8 @@ class HBaseFeatureSource(entry: ContentEntry,
     }
   }
 
-  private def include(clientFilter: Option[Filter] = None): FR = {
-    new HBaseFeatureReader(ds.getZ3Table(sft), sft, 0, Seq.empty, new KryoFeatureSerializer(sft), clientFilter)
+  private def include(): FR = {
+    new HBaseFeatureReader(ds.getZ3Table(sft), sft, 0, Seq.empty, new KryoFeatureSerializer(sft))
   }
 
   private def and(a: And): FR = {
@@ -101,26 +91,28 @@ class HBaseFeatureSource(entry: ContentEntry,
     val serializer = new KryoFeatureSerializer(sft)
     val table = ds.getZ3Table(sft)
 
-    val (spatialFilter, temporalFilter, postFilter) = partitionFilters(a.getChildren)
-
     val dtFieldName = sft.getDescriptor(dtgIndex).getLocalName
-    // note: because we and the filters, there will be only one interval
-    // because we have already validated that the temporal filters exist, there will be at least 1 interval
-    val (startTime, endTime) = extractIntervals(andFilters(temporalFilter), dtFieldName).head
+    val (i, _) = a.getChildren.partition(isTemporalFilter(_, dtFieldName))
+    val interval = FilterHelper.extractInterval(i, Some(dtFieldName))
 
-    val geom =
-      andOption(spatialFilter)
-          .flatMap(extractSingleGeometry(_, sft.getGeometryDescriptor.getLocalName))
-          .getOrElse(AllGeom)
+    val (b, _) = partitionPrimarySpatials(a.getChildren, sft)
+    val geomsToCover = tryReduceGeometryFilter(b).flatMap(decomposeToGeometry)
+    val geom = if (geomsToCover.isEmpty) {
+      AllGeom
+    } else if (geomsToCover.length == 1) {
+      geomsToCover.head.intersection(AllGeom)
+    } else {
+      new GeometryCollection(geomsToCover.toArray, geomsToCover.head.getFactory).intersection(AllGeom)
+    }
 
     val env = geom.getEnvelopeInternal
     val (lx, ly, ux, uy) = (env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
 
-    val epochWeekStart = Weeks.weeksBetween(EPOCH, startTime)
-    val epochWeekEnd = Weeks.weeksBetween(EPOCH, endTime)
+    val epochWeekStart = Weeks.weeksBetween(EPOCH, interval.getStart)
+    val epochWeekEnd = Weeks.weeksBetween(EPOCH, interval.getEnd)
     val weeks = scala.Range.inclusive(epochWeekStart.getWeeks, epochWeekEnd.getWeeks)
-    val lt = secondsInCurrentWeek(startTime, epochWeekStart)
-    val ut = secondsInCurrentWeek(endTime, epochWeekEnd)
+    val lt = secondsInCurrentWeek(interval.getStart, epochWeekStart)
+    val ut = secondsInCurrentWeek(interval.getEnd, epochWeekEnd)
 
     // time range for a chunk is 0 to 1 week (in seconds)
     val (tStart, tEnd) = (0, Weeks.ONE.toStandardSeconds.getSeconds)
@@ -129,7 +121,7 @@ class HBaseFeatureSource(entry: ContentEntry,
     // TODO: ignoring seconds for now
     if (weeks.length == 1) {
       val ranges = Z3_CURVE.ranges((lx, ux), (ly, uy), (lt, ut))
-      new HBaseFeatureReader(table, sft, weeks.head, ranges, serializer, Some(a))
+      new HBaseFeatureReader(table, sft, weeks.head, ranges, serializer)
     } else {
       val head +: xs :+ last = weeks.toList
       val oneWeekInSeconds = Weeks.ONE.toStandardSeconds.getSeconds
@@ -138,11 +130,11 @@ class HBaseFeatureSource(entry: ContentEntry,
       val middleRanges = Z3_CURVE.ranges((lx, ux), (ly, uy), (0, oneWeekInSeconds))
       val lastRanges   = Z3_CURVE.ranges((lx, ux), (ly, uy), (tStart, ut))
 
-      val headReader = new HBaseFeatureReader(table, sft, head, headRanges, serializer, Some(a))
+      val headReader = new HBaseFeatureReader(table, sft, head, headRanges, serializer)
       val middleReaders = xs.map { w =>
-        new HBaseFeatureReader(table, sft, w, middleRanges, serializer, Some(a))
+        new HBaseFeatureReader(table, sft, w, middleRanges, serializer)
       }
-      val lastReader = new HBaseFeatureReader(table, sft, head, lastRanges, serializer, Some(a))
+      val lastReader = new HBaseFeatureReader(table, sft, head, lastRanges, serializer)
 
       val readers = Seq(headReader) ++ middleReaders ++ Seq(lastReader)
 
@@ -175,29 +167,8 @@ class HBaseFeatureSource(entry: ContentEntry,
       }
     }
   }
-
-  import org.locationtech.geomesa.filter._
-
-  private def partitionFilters(filters: Seq[Filter]) = {
-    val (spatial, nonSpatial)         = partitionPrimarySpatials(filters, sft)
-    val dtFieldName = sft.getDescriptor(dtgIndex).getLocalName
-    val (temporal, nonSpatioTemporal) = nonSpatial.partition(isTemporalFilter(_, dtFieldName))
-
-    (spatial, temporal, andOption(nonSpatioTemporal))
-  }
-
-  private def isBounded(temporalFilters: Seq[Filter]): Boolean = {
-    andOption(temporalFilters)
-        .flatMap(FilterHelper.extractIntervals(_, sft.getDescriptor(dtgIndex).getLocalName).headOption)
-        .exists(i => i._1 != MinDateTime && i._2 != MaxDateTime)
-  }
 }
 
 object HBaseFeatureSource {
   val AllGeom = WKTUtils.read("POLYGON((-180 -90, 0 -90, 180 -90, 180 90, 0 90, -180 90, -180 -90))")
-  // Z3-indexable dates: "[1901-12-13T20:45:51.001Z, 2038-01-19T03:14:07.999Z]"
-  // rounding in a little bit to make it clear these are arbitrary dates
-  val MinDateTime = new DateTime(1901, 12, 31, 0, 0, 0, DateTimeZone.UTC).getMillis
-  val MaxDateTime = new DateTime(2038,  1,  1, 0, 0, 0, DateTimeZone.UTC).getMillis
-  val AllDateTime = new Interval(MinDateTime, MaxDateTime, DateTimeZone.UTC)
 }

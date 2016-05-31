@@ -13,7 +13,7 @@ import java.{util => ju}
 
 import com.vividsolutions.jts.geom.Envelope
 import org.geotools.data.store.{ContentEntry, ContentFeatureSource}
-import org.geotools.data.{FilteringFeatureReader, Query}
+import org.geotools.data.{FilteringFeatureReader, Query, ResourceInfo}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.NameImpl
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
@@ -29,6 +29,7 @@ import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator, Within}
 import org.opengis.filter.{And, Filter, IncludeFilter, Or}
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -38,7 +39,10 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
                                           query: Query)
   extends ContentFeatureSource(entry, query)
   with ContentFeatureSourceSecuritySupport
-  with ContentFeatureSourceReTypingSupport {
+  with ContentFeatureSourceReTypingSupport
+  with ContentFeatureSourceInfo{
+
+  import org.locationtech.geomesa.utils.geotools._
 
   override def getBoundsInternal(query: Query) = KafkaConsumerFeatureSource.wholeWorldBounds
 
@@ -62,6 +66,7 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
   lazy val fqName = new NameImpl(getDataStore.getNamespaceURI, getSchema.getName.getLocalPart)
 
   override def getName: Name = fqName
+
 }
 
 object KafkaConsumerFeatureSource {
