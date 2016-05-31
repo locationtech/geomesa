@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.utils.geotools
 
+import java.util
 import java.util.Date
 
 import com.typesafe.config.Config
@@ -29,6 +30,7 @@ import org.opengis.temporal.Instant
 import scala.reflect.ClassTag
 import scala.util.Try
 
+import scala.collection.JavaConverters._
 object Conversions {
 
   class RichSimpleFeatureIterator(iter: SimpleFeatureIterator) extends SimpleFeatureIterator
@@ -192,6 +194,11 @@ object RichSimpleFeatureType {
   val DEFAULT_DATE_KEY    = "geomesa.index.dtg"
   val ST_INDEX_SCHEMA_KEY = "geomesa.index.st.schema"
   val USER_DATA_PREFIX    = "geomesa.user-data.prefix"
+  val KEYWORDS_KEY        = "geomesa.keywords"
+
+  val KEYWORDS_SPLITTER = "\\|"
+  val KEYWORDS_JOINER = "|"
+
 
   // in general we store everything as strings so that it's easy to pass to accumulo iterators
   implicit class RichSimpleFeatureType(val sft: SimpleFeatureType) extends AnyVal {
@@ -253,5 +260,10 @@ object RichSimpleFeatureType {
 
     /** For additional rendering options see {@link SimpleFeautureTypes#toConfigString} **/
     def toConfigString: String = SimpleFeatureTypes.toConfigString(sft)
+
+    def getKeywords: java.util.Set[String] = {
+      userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_SPLITTER).toSet.asJava).getOrElse(java.util.Collections.emptySet[String])
+    }
+
   }
 }

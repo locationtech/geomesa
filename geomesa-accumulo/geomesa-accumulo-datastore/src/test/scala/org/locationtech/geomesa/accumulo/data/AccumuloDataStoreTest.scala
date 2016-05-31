@@ -38,6 +38,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 
 import scala.collection.JavaConversions._
 
@@ -70,6 +71,21 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
     "create a schema" in {
       ds.getSchema(defaultSft.getTypeName) mustEqual defaultSft
+    }
+
+    "create a schema with keywords" in {
+
+      val sftWithKeywords: SimpleFeatureType = createNewSchema("name:String", dtgField = None)
+      val keywords: Seq[String] = Seq("keywordA", "keywordB", "keywordC")
+
+      sftWithKeywords.getUserData.put("geomesa.keywords", keywords.mkString(KEYWORDS_JOINER))// Put keywords in userData
+
+      val spec = SimpleFeatureTypes.encodeType(sftWithKeywords, true)
+      val newType = SimpleFeatureTypes.createType("keywordsTest", spec)
+      ds.createSchema(newType)
+
+      val fs = ds.getFeatureSource(newType.getTypeName)
+      fs.getInfo.getKeywords.toSeq must containAllOf(keywords)
     }
 
     "create and retrieve a schema without a geometry" in {

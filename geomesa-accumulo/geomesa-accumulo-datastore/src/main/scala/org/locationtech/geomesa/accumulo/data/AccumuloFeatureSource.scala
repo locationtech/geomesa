@@ -228,7 +228,7 @@ class DelegatingResourceInfo(source: SimpleFeatureSource) extends ResourceInfo {
 
   import scala.collection.JavaConversions._
 
-  private val keywords = Collections.unmodifiableSet(Set("features", getName))
+  private val keywords = Collections.unmodifiableSet(Set("features", getName) ++ source.getSchema.getKeywords)
 
   override def getName: String = source.getSchema.getTypeName
 

@@ -19,6 +19,7 @@ import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.filter
 import org.locationtech.geomesa.filter.FilterHelper._
 import org.locationtech.geomesa.utils.geotools
+import org.locationtech.geomesa.utils.geotools.ContentFeatureSourceInfo
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.{And, Filter}
@@ -26,7 +27,8 @@ import org.opengis.filter.{And, Filter}
 class HBaseFeatureSource(entry: ContentEntry,
                          query: Query,
                          sft: SimpleFeatureType)
-    extends ContentFeatureStore(entry, query) with LazyLogging {
+    extends ContentFeatureStore(entry, query) with LazyLogging
+    with ContentFeatureSourceInfo {
   import geotools._
 
   import scala.collection.JavaConversions._
