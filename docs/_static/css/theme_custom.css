@@ -151,24 +151,28 @@ code,.rst-content tt,.rst-content code {
 }
 
 .wy-side-nav-search {
-   background-color: #333333;
-   color: #e6a150;
+  background-color: #111;
+  color: #e6a150;
 }
 
 .wy-side-nav-search img {
-   background-color: #e6a150;
+  background-color: #e6a150;
 }
 
 .wy-side-nav-search>a,.wy-side-nav-search .wy-dropdown>a {
-   color: #333;
+  color: #333;
 }
 
 .wy-side-nav-search>div.version {
-   color: #bbb;
+  color: #bbb;
 }
 
 .wy-side-nav-search input[type=text] {
-    background-color: #e3e3e3;
+  background-color: #e3e3e3;
+}
+
+.wy-nav-side {
+  background-color: #111;
 }
 
 .wy-nav .wy-menu-vertical header {
