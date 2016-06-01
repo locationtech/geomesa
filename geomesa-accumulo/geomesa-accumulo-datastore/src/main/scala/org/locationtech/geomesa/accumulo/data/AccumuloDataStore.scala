@@ -45,6 +45,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
+import scala.collection.immutable.HashMap
 
 
 /**
@@ -202,9 +203,43 @@ class AccumuloDataStore(val connector: Connector,
    * @param typeName simple feature type name
    * @param sft new simple feature type
    */
-  override def updateSchema(typeName: Name, sft: SimpleFeatureType): Unit =
-    throw new UnsupportedOperationException("AccumuloDataStore does not support updateSchema")
+  override def updateSchema(typeName: Name, sft: SimpleFeatureType): Unit = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 
+    // Currently this method only allows for updating of keywords in user data. All other attempted changes will fail
+
+    // Get previous schema and user data
+    val previousSft = getSchema(typeName)
+    val schemaTypeName = sft.getTypeName()
+    val existingUserData = metadata.read(schemaTypeName, ATTRIBUTES_KEY)
+
+    // Check that unmodifiable user data has not changed
+    // Currently only keywords at KEYWORDS_KEY are allowed
+    val unmodifiableUserdataKeys = HashMap(
+        "Geomesa prefix" -> GEOMESA_PREFIX,
+        "Schema version" -> SCHEMA_VERSION_KEY,
+        "Table sharing status" -> TABLE_SHARING_KEY,
+        "Sharing prefix" -> SHARING_PREFIX_KEY,
+        "Default date" -> DEFAULT_DATE_KEY,
+        "St index schema" -> ST_INDEX_SCHEMA_KEY,
+        "User data prefix" -> USER_DATA_PREFIX)
+
+    unmodifiableUserdataKeys.foreach({ case (key, value) =>
+      if (sft.getUserData.contains(value) && sft.userData[String](value) != previousSft.userData[String](value)) {
+        throw new UnsupportedOperationException("Updating " + key + " is not allowed")
+      }
+    })
+
+    // Check that the rest of the schema has not changed (columns, types, etc)
+    val previousColumns = previousSft.getAttributeDescriptors
+    val currentColumns = sft.getAttributeDescriptors
+    if (previousColumns != currentColumns) {
+      throw new UnsupportedOperationException("Updating schema columns is not allowed")
+    }
+
+    // If all is well, update the metadata
+    writeMetadata(sft)
+  }
   /**
    * Deletes all features from the accumulo index tables and deletes metadata from the catalog.
    * If the feature type shares tables with another, this is fairly expensive,

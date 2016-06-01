@@ -78,15 +78,67 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val sftWithKeywords: SimpleFeatureType = createNewSchema("name:String", dtgField = None)
       val keywords: Seq[String] = Seq("keywordA", "keywordB", "keywordC")
 
-      sftWithKeywords.getUserData.put("geomesa.keywords", keywords.mkString(KEYWORDS_JOINER))// Put keywords in userData
+      sftWithKeywords.getUserData.put(KEYWORDS_KEY, keywords.mkString(KEYWORDS_JOINER))// Put keywords in userData
 
       val spec = SimpleFeatureTypes.encodeType(sftWithKeywords, true)
-      val newType = SimpleFeatureTypes.createType("keywordsTest", spec)
+      val newType = SimpleFeatureTypes.createType("keywordsTestCreate", spec)
       ds.createSchema(newType)
 
       val fs = ds.getFeatureSource(newType.getTypeName)
       fs.getInfo.getKeywords.toSeq must containAllOf(keywords)
     }
+
+    "remove keywords from schema" in {
+      val sftWithKeywords: SimpleFeatureType = createNewSchema("name:String", dtgField = None)
+      val initialKeywords: Seq[String] = Seq("keywordA", "keywordB", "keywordC")
+
+      sftWithKeywords.getUserData.put(KEYWORDS_KEY, initialKeywords.mkString(KEYWORDS_JOINER))// Put keywords in userData
+
+      val spec = SimpleFeatureTypes.encodeType(sftWithKeywords, true)
+      val newType = SimpleFeatureTypes.createType("keywordsTestRemove", spec)
+      ds.createSchema(newType)
+
+
+      val keywordsToRemove = "keywordA|keywordC"
+      val remainingKeywords = Seq("keywordB", "features", "keywordsTestRemove")
+      newType.removeKeywords(keywordsToRemove)
+      ds.updateSchema(newType.getTypeName, newType)
+
+      val fs = ds.getFeatureSource(newType.getTypeName)
+      fs.getInfo.getKeywords.toSeq must containAllOf(remainingKeywords)
+      fs.getInfo.getKeywords.toSeq.length mustEqual remainingKeywords.length
+    }
+
+    "add keywords to schema" in {
+      val sftWithKeywords: SimpleFeatureType = createNewSchema("name:String, state:String", dtgField = None)
+      val initialKeywords: Seq[String] = Seq("keywordB")
+      val resultingKeywords = Seq("keywordA", "keywordB", "keywordC")
+      sftWithKeywords.getUserData.put(KEYWORDS_KEY, initialKeywords.mkString(KEYWORDS_JOINER))// Put keywords in userData
+
+      val spec = SimpleFeatureTypes.encodeType(sftWithKeywords, true)
+      val newType = SimpleFeatureTypes.createType("keywordsTestAdd", spec)
+      ds.createSchema(newType)
+
+      val keywordsToAdd = "keywordA|keywordC"
+      newType.addKeywords(keywordsToAdd)
+      ds.updateSchema(newType.getTypeName, newType)
+
+      val fs = ds.getFeatureSource(newType.getTypeName)
+      fs.getInfo.getKeywords.toSeq must containAllOf(resultingKeywords)
+    }
+
+    "not allow updating non-keyword user data" in {
+      val sftWithKeywords: SimpleFeatureType = createNewSchema("name:String", dtgField = None)
+
+      val spec = SimpleFeatureTypes.encodeType(sftWithKeywords, true)
+      val newType = SimpleFeatureTypes.createType("schemaChange", spec)
+      ds.createSchema(newType)
+
+      newType.getUserData.put(TABLE_SHARING_KEY, "false") // Change table sharing
+
+      ds.updateSchema(newType.getTypeName, newType) must throwAn[UnsupportedOperationException]
+    }
+
 
     "create and retrieve a schema without a geometry" in {
       import org.locationtech.geomesa.utils.geotools.Conversions._

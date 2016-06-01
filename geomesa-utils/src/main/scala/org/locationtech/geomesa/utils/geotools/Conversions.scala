@@ -265,5 +265,20 @@ object RichSimpleFeatureType {
       userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_SPLITTER).toSet.asJava).getOrElse(java.util.Collections.emptySet[String])
     }
 
+    def addKeywords(keywordsString: String): Unit = {
+      val currentKeywords = userData[String](KEYWORDS_KEY).get
+      sft.getUserData.update(KEYWORDS_KEY, currentKeywords.concat(KEYWORDS_JOINER.concat(keywordsString)))
+    }
+
+    def removeKeywords(keywordsString: String): Unit = {
+      val keywordsToRemove = keywordsString.split(KEYWORDS_SPLITTER).toSet
+      val currentKeywords = userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_SPLITTER).toSet).get
+      val remainingKeywords = currentKeywords.diff(keywordsToRemove)
+
+      val remainingKeywordsString = remainingKeywords.mkString(KEYWORDS_JOINER)
+
+      sft.getUserData.update(KEYWORDS_KEY, remainingKeywordsString)
+    }
+
   }
 }
