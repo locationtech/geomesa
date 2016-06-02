@@ -1,5 +1,5 @@
-GeoMesa |release| Tutorials
-===========================
+Tutorials
+=========
 
 Getting Started
 ---------------

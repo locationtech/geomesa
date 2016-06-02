@@ -1,7 +1,5 @@
-GeoMesa |release| User Manual
-=============================
-
-.. image:: _static/img/geomesa-2x.png
+User Manual
+===========
 
 .. toctree::
    :maxdepth: 2
