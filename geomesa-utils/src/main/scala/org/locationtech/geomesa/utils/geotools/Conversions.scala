@@ -261,11 +261,13 @@ object RichSimpleFeatureType {
     def toConfigString: String = SimpleFeatureTypes.toConfigString(sft)
 
     def getKeywords: java.util.Set[String] = {
-      userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_DELIMITER).toSet.asJava).getOrElse(java.util.Collections.emptySet[String])
+      userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_DELIMITER).toSet.asJava)
+        .getOrElse(java.util.Collections.emptySet[String])
     }
 
+
     def addKeywords(keywordsString: String): Unit = {
-      val currentKeywords = userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_DELIMITER).toSet).get
+      val currentKeywords = userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_DELIMITER).toSet).getOrElse(Set())
       val keywordsToAdd = keywordsString.split(KEYWORDS_DELIMITER).toSet
       val newKeywords = currentKeywords.union(keywordsToAdd)
       sft.getUserData.update(KEYWORDS_KEY, newKeywords.mkString(KEYWORDS_DELIMITER))
@@ -273,12 +275,16 @@ object RichSimpleFeatureType {
 
     def removeKeywords(keywordsString: String): Unit = {
       val keywordsToRemove = keywordsString.split(KEYWORDS_DELIMITER).toSet
-      val currentKeywords = userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_DELIMITER).toSet).get
+      val currentKeywords = userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_DELIMITER).toSet).getOrElse(Set())
       val remainingKeywords = currentKeywords.diff(keywordsToRemove)
 
       val remainingKeywordsString = remainingKeywords.mkString(KEYWORDS_DELIMITER)
 
       sft.getUserData.update(KEYWORDS_KEY, remainingKeywordsString)
+    }
+
+    def removeAllKeywords() : Unit = {
+      sft.getUserData.remove(KEYWORDS_KEY)
     }
 
   }

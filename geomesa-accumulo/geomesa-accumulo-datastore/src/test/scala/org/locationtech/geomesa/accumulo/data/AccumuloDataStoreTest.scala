@@ -75,17 +75,12 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "create a schema with keywords" in {
-
-      val sftWithKeywords: SimpleFeatureType = createNewSchema("name:String", dtgField = None)
       val keywords: Seq[String] = Seq("keywordA", "keywordB", "keywordC")
+      val spec = s"name:String;${KEYWORDS_KEY}=${keywords.mkString(KEYWORDS_DELIMITER)}"
+      val sftWithKeywords: SimpleFeatureType = createNewSchema(spec, dtgField = None)
+      ds.createSchema(sftWithKeywords)
 
-      sftWithKeywords.getUserData.put(KEYWORDS_KEY, keywords.mkString(KEYWORDS_DELIMITER))// Put keywords in userData
-
-      val spec = SimpleFeatureTypes.encodeType(sftWithKeywords, true)
-      val newType = SimpleFeatureTypes.createType("keywordsTestCreate", spec)
-      ds.createSchema(newType)
-
-      val fs = ds.getFeatureSource(newType.getTypeName)
+      val fs = ds.getFeatureSource(sftWithKeywords.getTypeName)
       fs.getInfo.getKeywords.toSeq must containAllOf(keywords)
     }
 
@@ -110,58 +105,71 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       ds.createSchema(sftWithKeywords)
       val fs = ds.getFeatureSource(sftWithKeywords.getTypeName)
       fs.getInfo.getKeywords.toSeq must containAllOf(keywords)
+    }
 
+    "create a schema w/ keyword string" in {
+      val keywords: Seq[String] = Seq("keywordA=foo,bar")
+      val regular = ConfigFactory.parseString(
+        """
+          |{
+          |  type-name = "testconf"
+          |  fields = [
+          |    { name = "testStr",  type = "string"       , index = true  },
+          |    { name = "testCard", type = "string"       , index = true, cardinality = high },
+          |    { name = "testList", type = "List[String]" , index = false },
+          |    { name = "geom",     type = "Point"        , srid = 4326, default = true }
+          |  ]
+          |  user-data = {
+          |    geomesa.keywords = "keywordA=foo,bar"
+          |  }
+          |}
+        """.stripMargin)
+      val sftWithKeywords = SimpleFeatureTypes.createType(regular)
+      ds.createSchema(sftWithKeywords)
+      val fs = ds.getFeatureSource(sftWithKeywords.getTypeName)
+      fs.getInfo.getKeywords.toSeq must containAllOf(keywords)
     }
 
     "remove keywords from schema" in {
-      val sftWithKeywords: SimpleFeatureType = createNewSchema("name:String", dtgField = None)
-      val initialKeywords: Seq[String] = Seq("keywordA=\"Hello\"", "keywordB", "keywordC")
+      val initialKeywords: Seq[String] = Seq("keywordA=Hello", "keywordB", "keywordC")
+      val spec = s"name:String;${KEYWORDS_KEY}=${initialKeywords.mkString(KEYWORDS_DELIMITER)}"
+      val sft: SimpleFeatureType = createNewSchema(spec, dtgField = None)
+      ds.createSchema(sft)
 
-      sftWithKeywords.getUserData.put(KEYWORDS_KEY, initialKeywords.mkString(KEYWORDS_DELIMITER))// Put keywords in userData
+      val keywordsToRemove = "keywordA=Hello" + KEYWORDS_DELIMITER + "keywordC"
+      val remainingKeywords = Seq("keywordB", "features", sft.getTypeName)
+      sft.removeKeywords(keywordsToRemove)
+      ds.updateSchema(sft.getTypeName, sft)
 
-      val spec = SimpleFeatureTypes.encodeType(sftWithKeywords, true)
-      val newType = SimpleFeatureTypes.createType("keywordsTestRemove", spec)
-      ds.createSchema(newType)
-
-
-      val keywordsToRemove = "keywordA=\"Hello\"" + KEYWORDS_DELIMITER + "keywordC"
-      val remainingKeywords = Seq("keywordB", "features", "keywordsTestRemove")
-      newType.removeKeywords(keywordsToRemove)
-      ds.updateSchema(newType.getTypeName, newType)
-
-      val fs = ds.getFeatureSource(newType.getTypeName)
+      val fs = ds.getFeatureSource(sft.getTypeName)
       fs.getInfo.getKeywords.toSeq must containAllOf(remainingKeywords)
       fs.getInfo.getKeywords.toSeq.length mustEqual remainingKeywords.length
     }
 
     "add keywords to schema" in {
-      val sftWithKeywords: SimpleFeatureType = createNewSchema("name:String, state:String", dtgField = None)
       val initialKeywords: Seq[String] = Seq("keywordB")
-      val resultingKeywords = Seq("keywordA", "keywordB", "~!@#$%^&*()_+`=/.,<>?;:|[]{}\\")
-      sftWithKeywords.getUserData.put(KEYWORDS_KEY, initialKeywords.mkString(KEYWORDS_DELIMITER))// Put keywords in userData
+      val spec = s"name:String;${KEYWORDS_KEY}=${initialKeywords.mkString(KEYWORDS_DELIMITER)}"
+      val sft: SimpleFeatureType = createNewSchema(spec, dtgField = None)
 
-      val spec = SimpleFeatureTypes.encodeType(sftWithKeywords, true)
-      val newType = SimpleFeatureTypes.createType("keywordsTestAdd", spec)
-      ds.createSchema(newType)
+      val resultingKeywords = Seq("keywordA", "keywordB", "~!@#$%^&*()_+`=/.,<>?;:|[]{}\\")
+
+      ds.createSchema(sft)
 
       val keywordsToAdd = "keywordA" + KEYWORDS_DELIMITER + "~!@#$%^&*()_+`=/.,<>?;:|[]{}\\"
-      newType.addKeywords(keywordsToAdd)
-      ds.updateSchema(newType.getTypeName, newType)
+      sft.addKeywords(keywordsToAdd)
+      ds.updateSchema(sft.getTypeName, sft)
 
-      val fs = ds.getFeatureSource(newType.getTypeName)
+      val fs = ds.getFeatureSource(sft.getTypeName)
       fs.getInfo.getKeywords.toSeq must containAllOf(resultingKeywords)
     }
 
     "not allow updating non-keyword user data" in {
-      val sftWithKeywords: SimpleFeatureType = createNewSchema("name:String", dtgField = None)
+      val sft: SimpleFeatureType = createNewSchema("name:String", dtgField = None)
+      ds.createSchema(sft)
 
-      val spec = SimpleFeatureTypes.encodeType(sftWithKeywords, true)
-      val newType = SimpleFeatureTypes.createType("schemaChange", spec)
-      ds.createSchema(newType)
+      sft.getUserData.put(TABLE_SHARING_KEY, "false") // Change table sharing
 
-      newType.getUserData.put(TABLE_SHARING_KEY, "false") // Change table sharing
-
-      ds.updateSchema(newType.getTypeName, newType) must throwAn[UnsupportedOperationException]
+      ds.updateSchema(sft.getTypeName, sft) must throwAn[UnsupportedOperationException]
     }
 
 

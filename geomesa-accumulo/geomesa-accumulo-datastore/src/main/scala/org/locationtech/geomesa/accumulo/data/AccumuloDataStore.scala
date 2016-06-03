@@ -237,7 +237,8 @@ class AccumuloDataStore(val connector: Connector,
     }
 
     // If all is well, update the metadata
-    writeMetadata(sft)
+    val attributesValue   = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
+    metadata.insert(schemaTypeName, ATTRIBUTES_KEY, attributesValue)
   }
   /**
    * Deletes all features from the accumulo index tables and deletes metadata from the catalog.
