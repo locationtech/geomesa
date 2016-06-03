@@ -24,7 +24,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 import scala.collection.JavaConversions._
 import scala.util.parsing.combinator.JavaTokenParsers
 import scala.util.{Failure, Success, Try}
-
+import RichSimpleFeatureType._
 object SimpleFeatureTypes {
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors._
@@ -82,7 +82,11 @@ object SimpleFeatureTypes {
     } else {
       Map.empty[String, AnyRef]
     }
-    val opts = userData.map { case (k, v) => new GenericOption(k, v) }.toSeq
+    val opts = userData.map {
+      // Special case to handle adding keywords
+      case (KEYWORDS_KEY, v) => new GenericOption(KEYWORDS_KEY, v.asInstanceOf[java.util.ArrayList[String]].mkString(KEYWORDS_DELIMITER))
+      case (k, v) => new GenericOption(k, v)
+    }.toSeq
     createType(namespace, name, fields, opts)
   }
 

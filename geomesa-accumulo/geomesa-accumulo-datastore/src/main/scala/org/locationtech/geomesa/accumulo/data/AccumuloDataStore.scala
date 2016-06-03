@@ -211,24 +211,23 @@ class AccumuloDataStore(val connector: Connector,
     // Get previous schema and user data
     val previousSft = getSchema(typeName)
     val schemaTypeName = sft.getTypeName()
+
+    // Prevent modifying wrong type if type names don't match
+    if (!schemaTypeName.equals(typeName.toString)) {
+      throw new UnsupportedOperationException("Updating the type name of a schema is not allowed " + schemaTypeName + " " + typeName)
+    }
+
     val existingUserData = metadata.read(schemaTypeName, ATTRIBUTES_KEY)
 
     // Check that unmodifiable user data has not changed
-    // Currently only keywords at KEYWORDS_KEY are allowed
-    val unmodifiableUserdataKeys = HashMap(
-        "Geomesa prefix" -> GEOMESA_PREFIX,
-        "Schema version" -> SCHEMA_VERSION_KEY,
-        "Table sharing status" -> TABLE_SHARING_KEY,
-        "Sharing prefix" -> SHARING_PREFIX_KEY,
-        "Default date" -> DEFAULT_DATE_KEY,
-        "St index schema" -> ST_INDEX_SCHEMA_KEY,
-        "User data prefix" -> USER_DATA_PREFIX)
+    val unmodifiableUserdataKeys = Set(SCHEMA_VERSION_KEY, TABLE_SHARING_KEY, SHARING_PREFIX_KEY,
+                                   DEFAULT_DATE_KEY, ST_INDEX_SCHEMA_KEY, SimpleFeatureTypes.ENABLED_INDEXES)
 
-    unmodifiableUserdataKeys.foreach({ case (key, value) =>
-      if (sft.getUserData.contains(value) && sft.userData[String](value) != previousSft.userData[String](value)) {
+    unmodifiableUserdataKeys.foreach { case (key) =>
+      if (sft.getUserData.contains(key) && sft.userData[String](key) != previousSft.userData[String](key)) {
         throw new UnsupportedOperationException("Updating " + key + " is not allowed")
       }
-    })
+    }
 
     // Check that the rest of the schema has not changed (columns, types, etc)
     val previousColumns = previousSft.getAttributeDescriptors

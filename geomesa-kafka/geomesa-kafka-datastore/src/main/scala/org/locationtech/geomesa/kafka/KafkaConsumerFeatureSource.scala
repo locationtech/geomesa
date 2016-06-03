@@ -39,7 +39,7 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
   extends ContentFeatureSource(entry, query)
   with ContentFeatureSourceSecuritySupport
   with ContentFeatureSourceReTypingSupport
-  with ContentFeatureSourceInfo{
+  with ContentFeatureSourceInfo {
 
   import org.locationtech.geomesa.utils.geotools._
 

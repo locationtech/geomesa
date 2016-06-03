@@ -196,8 +196,7 @@ object RichSimpleFeatureType {
   val USER_DATA_PREFIX    = "geomesa.user-data.prefix"
   val KEYWORDS_KEY        = "geomesa.keywords"
 
-  val KEYWORDS_SPLITTER = "\\|"
-  val KEYWORDS_JOINER = "|"
+  val KEYWORDS_DELIMITER = "\u0000"
 
 
   // in general we store everything as strings so that it's easy to pass to accumulo iterators
@@ -262,20 +261,22 @@ object RichSimpleFeatureType {
     def toConfigString: String = SimpleFeatureTypes.toConfigString(sft)
 
     def getKeywords: java.util.Set[String] = {
-      userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_SPLITTER).toSet.asJava).getOrElse(java.util.Collections.emptySet[String])
+      userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_DELIMITER).toSet.asJava).getOrElse(java.util.Collections.emptySet[String])
     }
 
     def addKeywords(keywordsString: String): Unit = {
-      val currentKeywords = userData[String](KEYWORDS_KEY).get
-      sft.getUserData.update(KEYWORDS_KEY, currentKeywords.concat(KEYWORDS_JOINER.concat(keywordsString)))
+      val currentKeywords = userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_DELIMITER).toSet).get
+      val keywordsToAdd = keywordsString.split(KEYWORDS_DELIMITER).toSet
+      val newKeywords = currentKeywords.union(keywordsToAdd)
+      sft.getUserData.update(KEYWORDS_KEY, newKeywords.mkString(KEYWORDS_DELIMITER))
     }
 
     def removeKeywords(keywordsString: String): Unit = {
-      val keywordsToRemove = keywordsString.split(KEYWORDS_SPLITTER).toSet
-      val currentKeywords = userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_SPLITTER).toSet).get
+      val keywordsToRemove = keywordsString.split(KEYWORDS_DELIMITER).toSet
+      val currentKeywords = userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_DELIMITER).toSet).get
       val remainingKeywords = currentKeywords.diff(keywordsToRemove)
 
-      val remainingKeywordsString = remainingKeywords.mkString(KEYWORDS_JOINER)
+      val remainingKeywordsString = remainingKeywords.mkString(KEYWORDS_DELIMITER)
 
       sft.getUserData.update(KEYWORDS_KEY, remainingKeywordsString)
     }

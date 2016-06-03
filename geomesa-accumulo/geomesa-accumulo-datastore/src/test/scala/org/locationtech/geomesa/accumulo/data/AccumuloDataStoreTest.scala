@@ -8,10 +8,11 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.io.IOException
+import java.io.{File, IOException}
 import java.util.Date
 
 import com.google.common.collect.ImmutableSet
+import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.Connector
 import org.apache.commons.codec.binary.Hex
@@ -78,7 +79,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val sftWithKeywords: SimpleFeatureType = createNewSchema("name:String", dtgField = None)
       val keywords: Seq[String] = Seq("keywordA", "keywordB", "keywordC")
 
-      sftWithKeywords.getUserData.put(KEYWORDS_KEY, keywords.mkString(KEYWORDS_JOINER))// Put keywords in userData
+      sftWithKeywords.getUserData.put(KEYWORDS_KEY, keywords.mkString(KEYWORDS_DELIMITER))// Put keywords in userData
 
       val spec = SimpleFeatureTypes.encodeType(sftWithKeywords, true)
       val newType = SimpleFeatureTypes.createType("keywordsTestCreate", spec)
@@ -88,18 +89,42 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       fs.getInfo.getKeywords.toSeq must containAllOf(keywords)
     }
 
+    "create a schema w/ keyword array" in {
+      val keywords: Seq[String] = Seq("keywordA=foo,bar", "keywordB", "keywordC")
+      val regular = ConfigFactory.parseString(
+        """
+          |{
+          |  type-name = "testconf"
+          |  fields = [
+          |    { name = "testStr",  type = "string"       , index = true  },
+          |    { name = "testCard", type = "string"       , index = true, cardinality = high },
+          |    { name = "testList", type = "List[String]" , index = false },
+          |    { name = "geom",     type = "Point"        , srid = 4326, default = true }
+          |  ]
+          |  user-data = {
+          |    geomesa.keywords = ["keywordA=foo,bar","keywordB","keywordC"]
+          |  }
+          |}
+        """.stripMargin)
+      val sftWithKeywords = SimpleFeatureTypes.createType(regular)
+      ds.createSchema(sftWithKeywords)
+      val fs = ds.getFeatureSource(sftWithKeywords.getTypeName)
+      fs.getInfo.getKeywords.toSeq must containAllOf(keywords)
+
+    }
+
     "remove keywords from schema" in {
       val sftWithKeywords: SimpleFeatureType = createNewSchema("name:String", dtgField = None)
-      val initialKeywords: Seq[String] = Seq("keywordA", "keywordB", "keywordC")
+      val initialKeywords: Seq[String] = Seq("keywordA=\"Hello\"", "keywordB", "keywordC")
 
-      sftWithKeywords.getUserData.put(KEYWORDS_KEY, initialKeywords.mkString(KEYWORDS_JOINER))// Put keywords in userData
+      sftWithKeywords.getUserData.put(KEYWORDS_KEY, initialKeywords.mkString(KEYWORDS_DELIMITER))// Put keywords in userData
 
       val spec = SimpleFeatureTypes.encodeType(sftWithKeywords, true)
       val newType = SimpleFeatureTypes.createType("keywordsTestRemove", spec)
       ds.createSchema(newType)
 
 
-      val keywordsToRemove = "keywordA|keywordC"
+      val keywordsToRemove = "keywordA=\"Hello\"" + KEYWORDS_DELIMITER + "keywordC"
       val remainingKeywords = Seq("keywordB", "features", "keywordsTestRemove")
       newType.removeKeywords(keywordsToRemove)
       ds.updateSchema(newType.getTypeName, newType)
@@ -112,14 +137,14 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     "add keywords to schema" in {
       val sftWithKeywords: SimpleFeatureType = createNewSchema("name:String, state:String", dtgField = None)
       val initialKeywords: Seq[String] = Seq("keywordB")
-      val resultingKeywords = Seq("keywordA", "keywordB", "keywordC")
-      sftWithKeywords.getUserData.put(KEYWORDS_KEY, initialKeywords.mkString(KEYWORDS_JOINER))// Put keywords in userData
+      val resultingKeywords = Seq("keywordA", "keywordB", "~!@#$%^&*()_+`=/.,<>?;:|[]{}\\")
+      sftWithKeywords.getUserData.put(KEYWORDS_KEY, initialKeywords.mkString(KEYWORDS_DELIMITER))// Put keywords in userData
 
       val spec = SimpleFeatureTypes.encodeType(sftWithKeywords, true)
       val newType = SimpleFeatureTypes.createType("keywordsTestAdd", spec)
       ds.createSchema(newType)
 
-      val keywordsToAdd = "keywordA|keywordC"
+      val keywordsToAdd = "keywordA" + KEYWORDS_DELIMITER + "~!@#$%^&*()_+`=/.,<>?;:|[]{}\\"
       newType.addKeywords(keywordsToAdd)
       ds.updateSchema(newType.getTypeName, newType)
 
