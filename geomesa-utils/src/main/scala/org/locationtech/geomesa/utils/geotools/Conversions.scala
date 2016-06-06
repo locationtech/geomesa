@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.util
 import java.util.Date
 
 import com.typesafe.config.Config
@@ -27,10 +26,9 @@ import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.temporal.Instant
 
+import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 import scala.util.Try
-
-import scala.collection.JavaConverters._
 object Conversions {
 
   class RichSimpleFeatureIterator(iter: SimpleFeatureIterator) extends SimpleFeatureIterator
@@ -264,8 +262,7 @@ object RichSimpleFeatureType {
       userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_DELIMITER).toSet.asJava)
         .getOrElse(java.util.Collections.emptySet[String])
     }
-
-
+    
     def addKeywords(keywordsString: String): Unit = {
       val currentKeywords = userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_DELIMITER).toSet).getOrElse(Set())
       val keywordsToAdd = keywordsString.split(KEYWORDS_DELIMITER).toSet

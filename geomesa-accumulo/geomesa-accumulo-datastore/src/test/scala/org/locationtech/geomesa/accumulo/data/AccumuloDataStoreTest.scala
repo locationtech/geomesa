@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.io.{File, IOException}
+import java.io.IOException
 import java.util.Date
 
 import com.google.common.collect.ImmutableSet
-import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
+import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.Connector
 import org.apache.commons.codec.binary.Hex
@@ -32,14 +32,13 @@ import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.accumulo.{AccumuloVersion, TestWithMultipleSfts}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.{RichSimpleFeatureType, _}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 
 import scala.collection.JavaConversions._
 
