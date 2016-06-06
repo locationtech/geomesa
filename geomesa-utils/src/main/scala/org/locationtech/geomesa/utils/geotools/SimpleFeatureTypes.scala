@@ -200,7 +200,13 @@ object SimpleFeatureTypes {
       val prefixes = sft.getUserDataPrefixes
       val userData = sft.getUserData
         .filter { case (k, v) => v != null && prefixes.exists(k.toString.startsWith) }
-        .map { case (k,v) => k.toString -> v }
+        .map {
+          // Handle keywords by converting to a quoted, comma separated array string
+          case (KEYWORDS_KEY, v) => KEYWORDS_KEY ->
+            "[".concat(v.asInstanceOf[String].split(KEYWORDS_DELIMITER)
+              .map{ "\"%s\"".format(_)}.mkString(",").concat("]"))
+          case (k,v) => k.toString -> v
+        }
         .foldLeft(ConfigFactory.empty())((c: Config, e:(String, AnyRef)) => {
           c.withValue(e._1, ConfigValueFactory.fromAnyRef(e._2))
         })
