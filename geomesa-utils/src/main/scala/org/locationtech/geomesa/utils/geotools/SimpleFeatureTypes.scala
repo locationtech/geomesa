@@ -10,11 +10,12 @@ package org.locationtech.geomesa.utils.geotools
 
 import java.util.{Date, Locale, UUID}
 
-import com.typesafe.config.{ConfigRenderOptions, ConfigValueFactory, Config, ConfigFactory}
+import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
 import com.vividsolutions.jts.geom._
 import org.apache.commons.lang.StringEscapeUtils
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.SpecParser.{ListAttributeType, MapAttributeType, SimpleAttributeType}
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
 import org.locationtech.geomesa.utils.text.EnhancedTokenParsers
@@ -24,7 +25,6 @@ import org.opengis.feature.simple.SimpleFeatureType
 import scala.collection.JavaConversions._
 import scala.util.parsing.combinator.JavaTokenParsers
 import scala.util.{Failure, Success, Try}
-
 object SimpleFeatureTypes {
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors._
@@ -82,7 +82,12 @@ object SimpleFeatureTypes {
     } else {
       Map.empty[String, AnyRef]
     }
-    val opts = userData.map { case (k, v) => new GenericOption(k, v) }.toSeq
+    val opts = userData.map {
+      // Special case to handle adding keywords
+      case (KEYWORDS_KEY, v : java.util.ArrayList[String]) =>
+        new GenericOption(KEYWORDS_KEY, v.asInstanceOf[java.util.ArrayList[String]].mkString(KEYWORDS_DELIMITER))
+      case (k, v) => new GenericOption(k, v)
+    }.toSeq
     createType(namespace, name, fields, opts)
   }
 
@@ -195,7 +200,13 @@ object SimpleFeatureTypes {
       val prefixes = sft.getUserDataPrefixes
       val userData = sft.getUserData
         .filter { case (k, v) => v != null && prefixes.exists(k.toString.startsWith) }
-        .map { case (k,v) => k.toString -> v }
+        .map {
+          // Handle keywords by converting to a quoted, comma separated array string
+          case (KEYWORDS_KEY, v) => KEYWORDS_KEY ->
+            "[".concat(v.asInstanceOf[String].split(KEYWORDS_DELIMITER)
+              .map{ "\"%s\"".format(_)}.mkString(",").concat("]"))
+          case (k,v) => k.toString -> v
+        }
         .foldLeft(ConfigFactory.empty())((c: Config, e:(String, AnyRef)) => {
           c.withValue(e._1, ConfigValueFactory.fromAnyRef(e._2))
         })

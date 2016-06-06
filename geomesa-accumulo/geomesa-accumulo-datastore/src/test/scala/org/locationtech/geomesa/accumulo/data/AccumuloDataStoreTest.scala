@@ -12,6 +12,7 @@ import java.io.IOException
 import java.util.Date
 
 import com.google.common.collect.ImmutableSet
+import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.Connector
 import org.apache.commons.codec.binary.Hex
@@ -31,7 +32,7 @@ import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.accumulo.{AccumuloVersion, TestWithMultipleSfts}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.{RichSimpleFeatureType, _}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -71,6 +72,128 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     "create a schema" in {
       ds.getSchema(defaultSft.getTypeName) mustEqual defaultSft
     }
+
+    "create a schema with keywords" in {
+      val keywords: Seq[String] = Seq("keywordA", "keywordB", "keywordC")
+      val spec = s"name:String;${KEYWORDS_KEY}=${keywords.mkString(KEYWORDS_DELIMITER)}"
+      val sftWithKeywords: SimpleFeatureType = createNewSchema(spec, dtgField = None)
+      ds.createSchema(sftWithKeywords)
+
+      val fs = ds.getFeatureSource(sftWithKeywords.getTypeName)
+      fs.getInfo.getKeywords.toSeq must containAllOf(keywords)
+    }
+
+    "create a schema w/ keyword array" in {
+      val keywords: Seq[String] = Seq("keywordA=foo,bar", "keywordB", "keywordC")
+      val regular = ConfigFactory.parseString(
+        """
+          |{
+          |  type-name = "testconf"
+          |  fields = [
+          |    { name = "testStr",  type = "string"       , index = true  },
+          |    { name = "testCard", type = "string"       , index = true, cardinality = high },
+          |    { name = "testList", type = "List[String]" , index = false },
+          |    { name = "geom",     type = "Point"        , srid = 4326, default = true }
+          |  ]
+          |  user-data = {
+          |    geomesa.keywords = ["keywordA=foo,bar","keywordB","keywordC"]
+          |  }
+          |}
+        """.stripMargin)
+      val sftWithKeywords = SimpleFeatureTypes.createType(regular)
+      ds.createSchema(sftWithKeywords)
+      val fs = ds.getFeatureSource(sftWithKeywords.getTypeName)
+      fs.getInfo.getKeywords.toSeq must containAllOf(keywords)
+    }
+
+    "create a schema w/ keyword string" in {
+      val keywords: Seq[String] = Seq("keywordA=foo,bar")
+      val regular = ConfigFactory.parseString(
+        """
+          |{
+          |  type-name = "testconf"
+          |  fields = [
+          |    { name = "testStr",  type = "string"       , index = true  },
+          |    { name = "testCard", type = "string"       , index = true, cardinality = high },
+          |    { name = "testList", type = "List[String]" , index = false },
+          |    { name = "geom",     type = "Point"        , srid = 4326, default = true }
+          |  ]
+          |  user-data = {
+          |    geomesa.keywords = "keywordA=foo,bar"
+          |  }
+          |}
+        """.stripMargin)
+      val sftWithKeywords = SimpleFeatureTypes.createType(regular)
+      ds.createSchema(sftWithKeywords)
+      val fs = ds.getFeatureSource(sftWithKeywords.getTypeName)
+      fs.getInfo.getKeywords.toSeq must containAllOf(keywords)
+    }
+
+    "remove keywords from schema" in {
+      val initialKeywords: Seq[String] = Seq("keywordA=Hello", "keywordB", "keywordC")
+      val spec = s"name:String;${KEYWORDS_KEY}=${initialKeywords.mkString(KEYWORDS_DELIMITER)}"
+      val sft: SimpleFeatureType = createNewSchema(spec, dtgField = None)
+      ds.createSchema(sft)
+
+      val keywordsToRemove = "keywordA=Hello" + KEYWORDS_DELIMITER + "keywordC"
+      val remainingKeywords = Seq("keywordB", "features", sft.getTypeName)
+      sft.removeKeywords(keywordsToRemove)
+      ds.updateSchema(sft.getTypeName, sft)
+
+      val fs = ds.getFeatureSource(sft.getTypeName)
+      fs.getInfo.getKeywords.toSeq must containAllOf(remainingKeywords)
+      fs.getInfo.getKeywords.toSeq.length mustEqual remainingKeywords.length
+    }
+
+    "add keywords to schema" in {
+      val initialKeywords: Seq[String] = Seq("keywordB")
+      val spec = s"name:String;${KEYWORDS_KEY}=${initialKeywords.mkString(KEYWORDS_DELIMITER)}"
+      val sft: SimpleFeatureType = createNewSchema(spec, dtgField = None)
+
+      val resultingKeywords = Seq("keywordA", "keywordB", "~!@#$%^&*()_+`=/.,<>?;:|[]{}\\")
+
+      ds.createSchema(sft)
+
+      val keywordsToAdd = "keywordA" + KEYWORDS_DELIMITER + "~!@#$%^&*()_+`=/.,<>?;:|[]{}\\"
+      sft.addKeywords(keywordsToAdd)
+      ds.updateSchema(sft.getTypeName, sft)
+
+      val fs = ds.getFeatureSource(sft.getTypeName)
+      fs.getInfo.getKeywords.toSeq must containAllOf(resultingKeywords)
+    }
+
+    "not allow updating non-keyword user data" in {
+      val sft: SimpleFeatureType = createNewSchema("name:String", dtgField = None)
+      ds.createSchema(sft)
+
+      sft.getUserData.put(TABLE_SHARING_KEY, "false") // Change table sharing
+
+      ds.updateSchema(sft.getTypeName, sft) must throwAn[UnsupportedOperationException]
+    }
+
+    "create config from schema w/ keywords" in {
+      val confString = """
+         |{
+         |  type-name = "testconf"
+         |  fields = [
+         |    { name = "testStr",  type = "string"       , index = true  },
+         |    { name = "testCard", type = "string"       , index = true, cardinality = high },
+         |    { name = "testList", type = "List[String]" , index = false },
+         |    { name = "geom",     type = "Point"        , srid = 4326, default = true }
+         |  ]
+         |  user-data = {
+         |    geomesa.keywords = ["keywordA=foo,bar","keywordB","keywordC"]
+         |  }
+         |}
+       """.stripMargin
+      val regular = ConfigFactory.parseString(confString)
+      val sftWithKeywords = SimpleFeatureTypes.createType(regular)
+
+      // Currently breaks as it can't derive the type name from the config string
+      val newSft = SimpleFeatureTypes.createType(sftWithKeywords.toConfig)
+
+      sftWithKeywords.getKeywords mustEqual newSft.getKeywords
+    }.pendingUntilFixed
 
     "create and retrieve a schema without a geometry" in {
       import org.locationtech.geomesa.utils.geotools.Conversions._

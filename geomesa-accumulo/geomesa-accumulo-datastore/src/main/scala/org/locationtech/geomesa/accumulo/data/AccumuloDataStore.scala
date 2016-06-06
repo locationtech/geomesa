@@ -45,6 +45,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
+import scala.collection.immutable.HashMap
 
 
 /**
@@ -202,9 +203,43 @@ class AccumuloDataStore(val connector: Connector,
    * @param typeName simple feature type name
    * @param sft new simple feature type
    */
-  override def updateSchema(typeName: Name, sft: SimpleFeatureType): Unit =
-    throw new UnsupportedOperationException("AccumuloDataStore does not support updateSchema")
+  override def updateSchema(typeName: Name, sft: SimpleFeatureType): Unit = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 
+    // Currently this method only allows for updating of keywords in user data. All other attempted changes will fail
+
+    // Get previous schema and user data
+    val previousSft = getSchema(typeName)
+    val schemaTypeName = sft.getTypeName()
+
+    // Prevent modifying wrong type if type names don't match
+    if (!schemaTypeName.equals(typeName.toString)) {
+      throw new UnsupportedOperationException("Updating the type name of a schema is not allowed " + schemaTypeName + " " + typeName)
+    }
+
+    val existingUserData = metadata.read(schemaTypeName, ATTRIBUTES_KEY)
+
+    // Check that unmodifiable user data has not changed
+    val unmodifiableUserdataKeys = Set(SCHEMA_VERSION_KEY, TABLE_SHARING_KEY, SHARING_PREFIX_KEY,
+                                   DEFAULT_DATE_KEY, ST_INDEX_SCHEMA_KEY, SimpleFeatureTypes.ENABLED_INDEXES)
+
+    unmodifiableUserdataKeys.foreach { case (key) =>
+      if (sft.getUserData.contains(key) && sft.userData[String](key) != previousSft.userData[String](key)) {
+        throw new UnsupportedOperationException("Updating " + key + " is not allowed")
+      }
+    }
+
+    // Check that the rest of the schema has not changed (columns, types, etc)
+    val previousColumns = previousSft.getAttributeDescriptors
+    val currentColumns = sft.getAttributeDescriptors
+    if (previousColumns != currentColumns) {
+      throw new UnsupportedOperationException("Updating schema columns is not allowed")
+    }
+
+    // If all is well, update the metadata
+    val attributesValue   = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
+    metadata.insert(schemaTypeName, ATTRIBUTES_KEY, attributesValue)
+  }
   /**
    * Deletes all features from the accumulo index tables and deletes metadata from the catalog.
    * If the feature type shares tables with another, this is fairly expensive,

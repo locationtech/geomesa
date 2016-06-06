@@ -20,13 +20,15 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.joda.time.{DateTime, Interval}
+import org.joda.time.DateTime
 import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.utils.geotools.ContentFeatureSourceInfo
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 
-class CassandraFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entry, Query.ALL) {
+class CassandraFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entry, Query.ALL)
+  with ContentFeatureSourceInfo {
 
   private lazy val contentState = entry.getState(getTransaction).asInstanceOf[CassandraContentState]
 
@@ -63,7 +65,6 @@ class CassandraFeatureStore(entry: ContentEntry) extends ContentFeatureStore(ent
     }
     features
   }
-
 
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
     val iter =

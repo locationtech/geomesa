@@ -26,9 +26,9 @@ import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.temporal.Instant
 
+import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 import scala.util.Try
-
 object Conversions {
 
   class RichSimpleFeatureIterator(iter: SimpleFeatureIterator) extends SimpleFeatureIterator
@@ -192,6 +192,10 @@ object RichSimpleFeatureType {
   val DEFAULT_DATE_KEY    = "geomesa.index.dtg"
   val ST_INDEX_SCHEMA_KEY = "geomesa.index.st.schema"
   val USER_DATA_PREFIX    = "geomesa.user-data.prefix"
+  val KEYWORDS_KEY        = "geomesa.keywords"
+
+  val KEYWORDS_DELIMITER = "\u0000"
+
 
   // in general we store everything as strings so that it's easy to pass to accumulo iterators
   implicit class RichSimpleFeatureType(val sft: SimpleFeatureType) extends AnyVal {
@@ -253,5 +257,32 @@ object RichSimpleFeatureType {
 
     /** For additional rendering options see {@link SimpleFeautureTypes#toConfigString} **/
     def toConfigString: String = SimpleFeatureTypes.toConfigString(sft)
+
+    def getKeywords: java.util.Set[String] = {
+      userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_DELIMITER).toSet.asJava)
+        .getOrElse(java.util.Collections.emptySet[String])
+    }
+
+    def addKeywords(keywordsString: String): Unit = {
+      val currentKeywords = getKeywords
+      val keywordsToAdd = keywordsString.split(KEYWORDS_DELIMITER).toSet
+      val newKeywords = currentKeywords.union(keywordsToAdd)
+      sft.getUserData.update(KEYWORDS_KEY, newKeywords.mkString(KEYWORDS_DELIMITER))
+    }
+
+    def removeKeywords(keywordsString: String): Unit = {
+      val keywordsToRemove = keywordsString.split(KEYWORDS_DELIMITER).toSet
+      val currentKeywords = getKeywords
+      val remainingKeywords = currentKeywords.diff(keywordsToRemove)
+
+      val remainingKeywordsString = remainingKeywords.mkString(KEYWORDS_DELIMITER)
+
+      sft.getUserData.update(KEYWORDS_KEY, remainingKeywordsString)
+    }
+
+    def removeAllKeywords() : Unit = {
+      sft.getUserData.remove(KEYWORDS_KEY)
+    }
+
   }
 }
