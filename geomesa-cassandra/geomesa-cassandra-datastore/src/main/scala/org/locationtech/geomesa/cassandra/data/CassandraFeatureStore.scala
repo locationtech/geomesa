@@ -94,6 +94,7 @@ class CassandraFeatureStore(entry: ContentEntry) extends ContentFeatureStore(ent
   val WHOLE_WORLD = new ReferencedEnvelope(-180.0, 180.0, -90.0, 90.0, DefaultGeographicCRS.WGS84)
   def planQuery(query: Query) = {
     import org.locationtech.geomesa.filter._
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 
     val origBounds = query.getFilter.accept(ExtractBoundsFilterVisitor.BOUNDS_VISITOR, DefaultGeographicCRS.WGS84).asInstanceOf[Envelope]
     // TODO: currently we assume that the query has a dtg between predicate and a bbox
