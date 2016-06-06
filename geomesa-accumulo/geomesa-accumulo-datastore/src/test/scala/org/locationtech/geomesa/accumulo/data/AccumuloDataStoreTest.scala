@@ -172,6 +172,29 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       ds.updateSchema(sft.getTypeName, sft) must throwAn[UnsupportedOperationException]
     }
 
+    "create config from schema w/ keywords" in {
+      val confString = """
+         |{
+         |  type-name = "testconf"
+         |  fields = [
+         |    { name = "testStr",  type = "string"       , index = true  },
+         |    { name = "testCard", type = "string"       , index = true, cardinality = high },
+         |    { name = "testList", type = "List[String]" , index = false },
+         |    { name = "geom",     type = "Point"        , srid = 4326, default = true }
+         |  ]
+         |  user-data = {
+         |    geomesa.keywords = ["keywordA=foo,bar","keywordB","keywordC"]
+         |  }
+         |}
+       """.stripMargin
+      val regular = ConfigFactory.parseString(confString)
+      val sftWithKeywords = SimpleFeatureTypes.createType(regular)
+
+      // Currently breaks as it can't derive the type name from the config string
+      val newSft = SimpleFeatureTypes.createType(sftWithKeywords.toConfig)
+
+      sftWithKeywords.getKeywords mustEqual newSft.getKeywords
+    }.pendingUntilFixed
 
     "create and retrieve a schema without a geometry" in {
       import org.locationtech.geomesa.utils.geotools.Conversions._
