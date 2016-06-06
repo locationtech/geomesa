@@ -11,7 +11,6 @@ package org.locationtech.geomesa.utils.geotools
 import org.geotools.data.store.ContentFeatureSource
 import org.geotools.data.ResourceInfo
 
-
 trait ContentFeatureSourceInfo extends ContentFeatureSource {
 
   abstract override def getInfo : ResourceInfo = {

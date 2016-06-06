@@ -10,11 +10,12 @@ package org.locationtech.geomesa.utils.geotools
 
 import java.util.{Date, Locale, UUID}
 
-import com.typesafe.config.{ConfigRenderOptions, ConfigValueFactory, Config, ConfigFactory}
+import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
 import com.vividsolutions.jts.geom._
 import org.apache.commons.lang.StringEscapeUtils
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.SpecParser.{ListAttributeType, MapAttributeType, SimpleAttributeType}
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
 import org.locationtech.geomesa.utils.text.EnhancedTokenParsers
@@ -24,7 +25,6 @@ import org.opengis.feature.simple.SimpleFeatureType
 import scala.collection.JavaConversions._
 import scala.util.parsing.combinator.JavaTokenParsers
 import scala.util.{Failure, Success, Try}
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 object SimpleFeatureTypes {
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors._
