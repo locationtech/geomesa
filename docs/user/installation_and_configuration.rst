@@ -181,6 +181,7 @@ Test the command that invokes the GeoMesa Tools:
         help             Show help
         ingest           Ingest a file of various formats into GeoMesa
         ingestraster     Ingest a raster file or raster files in a directory into GeoMesa
+        keyword          Add/remove keywords on an existing schema
         list             List GeoMesa features for a given catalog
         queryrasterstats Export queries and statistics about the last X number of queries to a CSV file.
         removeschema     Remove a schema and associated features from a GeoMesa catalog
