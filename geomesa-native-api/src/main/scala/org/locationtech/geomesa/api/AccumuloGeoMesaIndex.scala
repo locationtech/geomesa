@@ -16,12 +16,14 @@ import com.vividsolutions.jts.geom.Geometry
 import org.apache.hadoop.classification.InterfaceStability
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.data.{DataStoreFinder, Transaction}
-import org.geotools.factory.CommonFactoryFinder
+import org.geotools.factory.{Hints, CommonFactoryFinder}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.cql2.CQL
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.tables.{RecordTable, Z3Table}
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.util.Z3UuidGenerator
+import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.{Conversions, SftBuilder}
 
 @InterfaceStability.Unstable
@@ -88,10 +90,26 @@ class AccumuloGeoMesaIndex[T](ds: AccumuloDataStore,
     sf.setAttribute(0, dtg)
     sf.setAttribute(1, bytes)
     sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
+    sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     fw.write()
   }
 
-  override def delete(id: String): Unit = fs.removeFeatures(CQL.toFilter(s"IN('$id'"))
+  override def delete(id: String): Unit = {
+    fs.removeFeatures(ECQL.toFilter(s"IN($id)"))
+  }
+
+  override def insert(id: String, value: T, geometry: Geometry, dtg: Date, visibility: String): Unit = {
+    val bytes = serde.toBytes(value)
+    val fw = writers.get(fname)
+    val sf = fw.next()
+    sf.setDefaultGeometry(geometry)
+    sf.setAttribute(0, dtg)
+    sf.setAttribute(1, bytes)
+    sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
+    sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+    sf.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, visibility)
+    fw.write()
+  }
 }
 
 @InterfaceStability.Unstable

@@ -49,10 +49,16 @@ public class GeoMesaQuery {
         public GeoMesaQuery build() {
             GeoMesaQuery query = new GeoMesaQuery();
             query.filter = ff.and(
-                    ff.bbox("geom", minx, maxx, miny, maxy, "EPSG:4326"),
+                    ff.bbox("geom", minx, miny, maxx, maxy, "EPSG:4326"),
                     ff.between(ff.property("dtg"), ff.literal(start), ff.literal(end)));
             return query;
         }
+    }
+
+    public static GeoMesaQuery include() {
+        GeoMesaQuery query = new GeoMesaQuery();
+        query.filter = Filter.INCLUDE;
+        return query;
     }
 
     public Filter getFilter() {
