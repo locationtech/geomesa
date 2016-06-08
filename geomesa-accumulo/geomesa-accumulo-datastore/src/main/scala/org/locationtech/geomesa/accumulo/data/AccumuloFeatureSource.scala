@@ -32,6 +32,7 @@ import org.locationtech.geomesa.accumulo.process.query.QueryVisitor
 import org.locationtech.geomesa.accumulo.process.stats.StatsVisitor
 import org.locationtech.geomesa.accumulo.process.tube.TubeVisitor
 import org.locationtech.geomesa.accumulo.process.unique.AttributeVisitor
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
