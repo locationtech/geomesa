@@ -14,7 +14,7 @@ import java.util.Date
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.utils.geotools._
-import org.locationtech.geomesa.utils.stats.{RangeHistogram, Stat, StatSerializer}
+import org.locationtech.geomesa.utils.stats.{Histogram, Stat, StatSerializer}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -144,7 +144,7 @@ object GeoMesaStats {
       case b if classOf[Geometry].isAssignableFrom(b) => GeometryUtils.zeroPoint
       case _ => throw new NotImplementedError(s"Can't handle binding of type $binding")
     }
-    RangeHistogram.buffer(default.asInstanceOf[T])
+    Histogram.buffer(default.asInstanceOf[T])
   }
 
   /**

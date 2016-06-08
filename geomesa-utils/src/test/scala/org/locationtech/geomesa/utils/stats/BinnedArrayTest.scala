@@ -232,7 +232,7 @@ class BinnedArrayTest extends Specification with StatTestHelper {
     "copy ranges correctly" >> {
       val from = new BinnedStringArray(36, ("abc000", "abc099"))
       val to = new BinnedStringArray(36, ("abc000", "abc199"))
-      RangeHistogram.copyInto(to, from) must not(throwAn[IllegalArgumentException])
+      Histogram.copyInto(to, from) must not(throwAn[IllegalArgumentException])
     }
 
     "bin points" >> {

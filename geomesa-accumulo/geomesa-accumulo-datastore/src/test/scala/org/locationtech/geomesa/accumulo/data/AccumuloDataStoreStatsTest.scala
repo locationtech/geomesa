@@ -23,7 +23,7 @@ import org.locationtech.geomesa.accumulo.data.stats.AttributeBounds
 import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, wholeWorldEnvelope}
-import org.locationtech.geomesa.utils.stats.{Frequency, RangeHistogram, Z3RangeHistogram}
+import org.locationtech.geomesa.utils.stats._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
@@ -173,7 +173,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithDataStore {
         ds.stats.getAttributeBounds[String](sft, "name") must beSome(AttributeBounds("0", "9", 10))
         ds.stats.getAttributeBounds[Date](sft, "dtg") must beSome(AttributeBounds(minDate, maxDate, 10))
 
-        val nameHistogram = ds.stats.getStats[RangeHistogram[String]](sft, Seq("name"))
+        val nameHistogram = ds.stats.getStats[Histogram[String]](sft, Seq("name"))
         nameHistogram must haveLength(1)
         nameHistogram.head.bounds mustEqual ("0", "9")
         nameHistogram.head.length mustEqual 1000
@@ -186,7 +186,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithDataStore {
         nameFrequency.head.count("0") mustEqual 2
         forall(1 until 10)(i => nameFrequency.head.count(i.toString) mustEqual 1)
 
-        val dateHistogram = ds.stats.getStats[RangeHistogram[Date]](sft, Seq("dtg"))
+        val dateHistogram = ds.stats.getStats[Histogram[Date]](sft, Seq("dtg"))
         dateHistogram must haveLength(1)
         dateHistogram.head.bounds mustEqual (minDate, maxDate)
         dateHistogram.head.length mustEqual 1000
@@ -194,13 +194,13 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithDataStore {
         dateHistogram.head.count(999) mustEqual 1
         (0 until 1000).map(dateHistogram.head.count).sum mustEqual 11
 
-        val geomHistogram = ds.stats.getStats[RangeHistogram[Geometry]](sft, Seq("geom"))
+        val geomHistogram = ds.stats.getStats[Histogram[Geometry]](sft, Seq("geom"))
         geomHistogram must haveLength(1)
         geomHistogram.head.bounds mustEqual (minGeom, maxGeom)
         val geoms = (0 until 10).map(i => WKTUtils.read(s"POINT (${i * 3} $i)"))
         forall(geoms)(g => geomHistogram.head.count(geomHistogram.head.indexOf(g)) mustEqual 1)
 
-        val z3Histogram = ds.stats.getStats[Z3RangeHistogram](sft, Seq("geom", "dtg"))
+        val z3Histogram = ds.stats.getStats[Z3Histogram](sft, Seq("geom", "dtg"))
         z3Histogram must haveLength(1)
         val dates = (0 until 10).map(i => new Date(minDate.getTime + i * dayInMillis))
         forall(geoms.zip(dates)) { z =>

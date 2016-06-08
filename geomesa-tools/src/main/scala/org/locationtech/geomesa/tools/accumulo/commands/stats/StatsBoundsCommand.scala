@@ -13,6 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.tools.accumulo.commands.CommandWithCatalog
+import org.locationtech.geomesa.tools.common.AttributesParam
 import org.locationtech.geomesa.utils.stats.{MinMax, Stat}
 import org.opengis.filter.Filter
 
@@ -58,5 +59,5 @@ class StatsBoundsCommand(parent: JCommander) extends CommandWithCatalog(parent) 
   }
 }
 
-@Parameters(commandDescription = "View bounds on attributes in a GeoMesa schema")
-class StatsBoundsParameters extends StatsWithAttributeParams
+@Parameters(commandDescription = "View or calculate bounds on attributes in a GeoMesa feature type")
+class StatsBoundsParameters extends StatsParams with CachedStatsParams with AttributeStatsParams

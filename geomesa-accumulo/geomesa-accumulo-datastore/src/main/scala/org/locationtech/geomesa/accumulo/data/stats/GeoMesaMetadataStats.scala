@@ -103,8 +103,8 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
       readStat[CountStat](sft, countKey()).toSeq
     } else if (clas == classOf[MinMax[_]]) {
       toRetrieve.flatMap(a => readStat[MinMax[Any]](sft, minMaxKey(a)))
-    } else if (clas == classOf[RangeHistogram[_]]) {
-      toRetrieve.flatMap(a => readStat[RangeHistogram[Any]](sft, histogramKey(a)))
+    } else if (clas == classOf[Histogram[_]]) {
+      toRetrieve.flatMap(a => readStat[Histogram[Any]](sft, histogramKey(a)))
     } else if (clas == classOf[Frequency[_]]) {
       if (options.nonEmpty) {
         // we are retrieving the frequency by week
@@ -116,7 +116,7 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
       } else {
         toRetrieve.flatMap(a => readStat[Frequency[Any]](sft, frequencyKey(a)))
       }
-    } else if (clas == classOf[Z3RangeHistogram]) {
+    } else if (clas == classOf[Z3Histogram]) {
       val z = for {
         geom <- Option(sft.getGeomField)
         dtg  <- sft.getDtgField
@@ -131,9 +131,9 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
             Range.inclusive(lt, ut).map(_.toShort)
           }.getOrElse(Seq.empty)
         }
-        val histograms = weeks.map(histogramKey(geom, dtg, _)).flatMap(readStat[Z3RangeHistogram](sft, _))
+        val histograms = weeks.map(histogramKey(geom, dtg, _)).flatMap(readStat[Z3Histogram](sft, _))
         // combine the week splits into a single stat
-        Z3RangeHistogram.combine(histograms)
+        Z3Histogram.combine(histograms)
       }
       z.flatten.toSeq
     } else {
@@ -209,7 +209,7 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
       case s: SeqStat           => s.stats.foreach(writeStat(_, sft, merge))
       case s: CountStat         => writeStat(s, sft, countKey(), merge)
       case s: MinMax[_]         => writeStat(s, sft, minMaxKey(name(s.attribute)), merge)
-      case s: RangeHistogram[_] => writeStat(s, sft, histogramKey(name(s.attribute)), merge)
+      case s: Histogram[_] => writeStat(s, sft, histogramKey(name(s.attribute)), merge)
 
       case s: Frequency[_]      =>
         val attribute = name(s.attribute)
@@ -219,7 +219,7 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
           s.splitByWeek.foreach { case (w, f) => writeStat(f, sft, frequencyKey(attribute, w), merge) }
         }
 
-      case s: Z3RangeHistogram  =>
+      case s: Z3Histogram  =>
         val geom = name(s.geomIndex)
         val dtg  = name(s.dtgIndex)
         // split up the z3 histogram and store by week
@@ -324,7 +324,7 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
         val (min, max) = mm match {
           case None => defaultBounds(binding)
           // max has to be greater than min for the histogram bounds
-          case Some(b) if b.min == b.max => RangeHistogram.buffer(b.min)
+          case Some(b) if b.min == b.max => Histogram.buffer(b.min)
           case Some(b) => b.bounds
         }
         AttributeBounds(min, max, mm.map(_.cardinality).getOrElse(0L))
@@ -333,14 +333,14 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
       val size = if (attribute == sft.getGeomField) { MaxHistogramSize } else {
         math.min(MaxHistogramSize, math.max(DefaultHistogramSize, bounds.cardinality / 10000).toInt)
       }
-      Stat.RangeHistogram[Any](attribute, size, bounds.lower, bounds.upper)(ClassTag[Any](binding))
+      Stat.Histogram[Any](attribute, size, bounds.lower, bounds.upper)(ClassTag[Any](binding))
     }
 
     val z3Histogram = for {
       geom <- attributes.find(_._1 == sft.getGeomField).map(_._1)
       dtg  <- sft.getDtgField.filter(attributes.map(_._1).contains)
     } yield {
-      Stat.Z3RangeHistogram(geom, dtg, MaxHistogramSize)
+      Stat.Z3Histogram(geom, dtg, MaxHistogramSize)
     }
 
     Stat.SeqStat(Seq(count) ++ minMax ++ histograms ++ frequencies ++ z3Histogram)

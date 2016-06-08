@@ -36,6 +36,7 @@ object AccumuloRunner extends Runner {
     new StatsAnalyzeCommand(jc),
     new StatsBoundsCommand(jc),
     new StatsCountCommand(jc),
+    new StatsEnumerateCommand(jc),
     new StatsHistogramCommand(jc)
   )
 }

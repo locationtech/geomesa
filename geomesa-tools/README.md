@@ -53,9 +53,10 @@ This should print out the following usage text:
         removeschema        Remove a schema and associated features from a GeoMesa catalog
         genavroschema       Convert SimpleFeatureTypes to Avro schemas
         stats-analyze       Analyze statistics on a GeoMesa feature type
-        stats-bounds        View bounds on attributes in a GeoMesa schema
-        stats-count         View feature counts in a GeoMesa schema
-        stats-histogram     View statistics on a GeoMesa feature type
+        stats-bounds        View or calculate bounds on attributes in a GeoMesa feature type
+        stats-count         Estimate or calculate feature counts in a GeoMesa feature type
+        stats-enumerate     Enumerate attribute values in a GeoMesa feature type
+        stats-histogram     View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values
         tableconf           Perform table configuration operations
         version             GeoMesa Version
 
@@ -278,7 +279,7 @@ Use the `stats-bounds` command to view the bounds of your data for different att
 
 #### Usage
     $ geomesa help stats-bounds
-    View bounds on attributes in a GeoMesa schema
+    View or calculate bounds on attributes in a GeoMesa feature type
     Usage: stats-bounds [options]
       Options:
         -a, --attributes
@@ -331,7 +332,7 @@ Use the `stats-count` command to count features in your data set.
 
 #### Usage
     $ geomesa help stats-count
-      View feature counts in a GeoMesa schema
+      Estimate or calculate feature counts in a GeoMesa feature type
       Usage: stats-count [options]
         Options:
           --auths
@@ -372,45 +373,89 @@ Use the `stats-count` command to count features in your data set.
       Running stat query...
       Count: 182
 
+### stats-enumerate
+
+#### Usage
+    $ geomesa help stats-enumerate
+      Enumerate attribute values in a GeoMesa feature type
+      Usage: stats-enumerate [options]
+        Options:
+          -a, --attributes
+             Attributes to evaluate (space-separated)
+             Default: []
+          --auths
+             Accumulo authorizations
+        * -c, --catalog
+             Catalog table name for GeoMesa
+          -q, --cql
+             CQL predicate
+        * -f, --feature-name
+             Simple Feature Type name on which to operate
+          -i, --instance
+             Accumulo instance name
+          --mock
+             Run everything with a mock accumulo instance instead of a real one
+             Default: false
+          -p, --password
+             Accumulo password (will prompt if not supplied)
+        * -u, --user
+             Accumulo user name
+          --visibilities
+             Accumulo scan visibilities
+          -z, --zookeepers
+             Zookeepers (host[:port], comma separated)
+
+#### Example:
+    $ geomesa stats-enumerate -u username -p password -i instance -z zoo1,zoo2,zoo3 -c geomesa.data \
+        -f twitter -a user_id
+      Running stat query...
+      Values for 'user_id':
+        3144822634 (26383)
+        388009236 (20457)
+        497145453 (19514)
+        563319506 (15848)
+        2841269945 (15716)
+        ...
+
 ### stats-histogram
 Use the `stats-histogram` command to view the values of different attributes, grouped into sorted bins.
 If you query a histogram for a geometry attribute, the result will be displayed in an ASCII heatmap.
 
 #### Usage
     $ geomesa help stats-histogram
-       View statistics on a GeoMesa feature type
-       Usage: stats-histogram [options]
-         Options:
-           -a, --attributes
-              Attributes to evaluate (space-separated)
-              Default: []
-           --auths
-              Accumulo authorizations
-           -b, --bins
-              How many bins the data will be divided into. For example, if you are
-              examining a week of data, you may want to divide the date into 7 bins, one per day.
-         * -c, --catalog
-              Catalog table name for GeoMesa
-           -q, --cql
-              CQL predicate
-           -e, --exact
-              Calculate exact statistics (may be slow)
-              Default: false
-         * -f, --feature-name
-              Simple Feature Type name on which to operate
-           -i, --instance
-              Accumulo instance name
-           --mock
-              Run everything with a mock accumulo instance instead of a real one
-              Default: false
-           -p, --password
-              Accumulo password (will prompt if not supplied)
-         * -u, --user
-              Accumulo user name
-           --visibilities
-              Accumulo scan visibilities
-           -z, --zookeepers
-              Zookeepers (host[:port], comma separated)
+      View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values
+      Usage: stats-histogram [options]
+        Options:
+          -a, --attributes
+             Attributes to evaluate (space-separated)
+             Default: []
+          --auths
+             Accumulo authorizations
+          -b, --bins
+             How many bins the data will be divided into. For example, if you are
+             examining a week of data, you may want to divide the date into 7 bins, one per day.
+        * -c, --catalog
+             Catalog table name for GeoMesa
+          -q, --cql
+             CQL predicate
+          -e, --exact
+             Calculate exact statistics (may be slow)
+             Default: false
+        * -f, --feature-name
+             Simple Feature Type name on which to operate
+          -i, --instance
+             Accumulo instance name
+          --mock
+             Run everything with a mock accumulo instance instead of a real one
+             Default: false
+          -p, --password
+             Accumulo password (will prompt if not supplied)
+        * -u, --user
+             Accumulo user name
+          --visibilities
+             Accumulo scan visibilities
+          -z, --zookeepers
+             Zookeepers (host[:port], comma separated)
 
 #### Example:
     $ geomesa stats-histogram -u username -p password -i instance -z zoo1,zoo2,zoo3 -c geomesa.data \

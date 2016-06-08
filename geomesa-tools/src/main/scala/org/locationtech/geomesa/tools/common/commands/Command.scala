@@ -14,7 +14,7 @@ import com.beust.jcommander.JCommander
  * Abstract superclass for all top-level GeoMesa JCommander commands
  */
 abstract class Command(parent: JCommander) {
-  def execute()
+  def execute(): Unit
   val params: Any
   def register = parent.addCommand(command, params)
   val command: String

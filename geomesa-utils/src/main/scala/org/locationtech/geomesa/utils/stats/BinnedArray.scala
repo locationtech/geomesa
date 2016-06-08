@@ -332,16 +332,30 @@ object BinnedStringArray {
   def normalize(s: String) = s.toLowerCase(Locale.US).replaceAll("[^0-9a-z]", Base36Lowest.toString)
 
   def normalizeBounds(bounds: (String, String)): (String, String) = {
-    val lower = normalize(bounds._1)
-    val upper = normalize(bounds._2)
-    val length = math.max(lower.length, upper.length)
-    val pLower = lower.padTo(length, Base36Lowest)
-    val pUpper = upper.padTo(length, Base36Highest)
-    val prefixLength = pLower.zip(pUpper).indexWhere { case (l, r) => l != r }
-    require(prefixLength != -1, s"Normalized strings must not match: $lower, $upper")
+    val length = math.max(bounds._1.length, bounds._2.length)
+    val loBase36 = normalize(bounds._1)
+    val hiBase36 = normalize(bounds._2)
+    // pad them and make sure they are in sorted order
+    val (loPadded, hiPadded) = if (loBase36 < hiBase36) {
+      (loBase36.padTo(length, Base36Lowest), hiBase36.padTo(length, Base36Highest))
+    } else {
+      (hiBase36.padTo(length, Base36Lowest), loBase36.padTo(length, Base36Highest))
+    }
+    // ensure that they haven't become the same string
+    val (loDistinct, hiDistinct) = if (loPadded == hiPadded) {
+      (loPadded + Base36Lowest, hiPadded + Base36Highest)
+    } else {
+      (loPadded, hiPadded)
+    }
     // check to make sure they fit in a long (12 chars)
-    val sLower = if (pLower.length > prefixLength + 12) pLower.substring(0, prefixLength + 12) else pLower
-    val sUpper = if (pUpper.length > prefixLength + 12) pUpper.substring(0, prefixLength + 12) else pUpper
-    if (sLower < sUpper) (sLower, sUpper) else (sUpper, sLower)
+    val prefixLength = loDistinct.zip(hiDistinct).indexWhere { case (l, r) => l != r }
+    val loFit = if (loDistinct.length > prefixLength + 12) loDistinct.take(prefixLength + 12) else loDistinct
+    val hiFit = if (hiDistinct.length > prefixLength + 12) hiDistinct.take(prefixLength + 12) else hiDistinct
+    // check one last time that they aren't the same
+    if (loFit == hiFit) {
+      (loFit.dropRight(1) + Base36Lowest, hiFit.dropRight(1) + Base36Highest)
+    } else {
+      (loFit, hiFit)
+    }
   }
 }

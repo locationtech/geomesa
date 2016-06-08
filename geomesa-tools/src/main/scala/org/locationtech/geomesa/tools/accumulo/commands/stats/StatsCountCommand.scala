@@ -34,5 +34,5 @@ class StatsCountCommand(parent: JCommander) extends CommandWithCatalog(parent) w
   }
 }
 
-@Parameters(commandDescription = "View feature counts in a GeoMesa schema")
-class StatsCountParameters extends StatsParams
+@Parameters(commandDescription = "Estimate or calculate feature counts in a GeoMesa feature type")
+class StatsCountParameters extends StatsParams with CachedStatsParams

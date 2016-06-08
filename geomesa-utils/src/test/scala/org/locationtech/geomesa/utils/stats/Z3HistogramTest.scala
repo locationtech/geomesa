@@ -15,17 +15,17 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class Z3RangeHistogramTest extends Specification with StatTestHelper {
+class Z3HistogramTest extends Specification with StatTestHelper {
 
-  def createStat(length: Int, observe: Boolean): Z3RangeHistogram = {
-    val s = Stat(sft, Stat.Z3RangeHistogram("geom", "dtg", length))
+  def createStat(length: Int, observe: Boolean): Z3Histogram = {
+    val s = Stat(sft, Stat.Z3Histogram("geom", "dtg", length))
     if (observe) {
       features.foreach { s.observe }
     }
-    s.asInstanceOf[Z3RangeHistogram]
+    s.asInstanceOf[Z3Histogram]
   }
 
-  def createStat(observe: Boolean = true): Z3RangeHistogram = createStat(1024, observe)
+  def createStat(observe: Boolean = true): Z3Histogram = createStat(1024, observe)
 
   def toDate(string: String) = GeoToolsDateFormat.parseDateTime(string).toDate
   def toGeom(string: String) = WKTUtils.read(string)
@@ -52,11 +52,11 @@ class Z3RangeHistogramTest extends Specification with StatTestHelper {
         val packed   = StatSerializer(sft).serialize(stat)
         val unpacked = StatSerializer(sft).deserialize(packed)
 
-        unpacked must beAnInstanceOf[Z3RangeHistogram]
-        unpacked.asInstanceOf[Z3RangeHistogram].geomIndex mustEqual stat.geomIndex
-        unpacked.asInstanceOf[Z3RangeHistogram].dtgIndex mustEqual stat.dtgIndex
-        unpacked.asInstanceOf[Z3RangeHistogram].length mustEqual stat.length
-        unpacked.asInstanceOf[Z3RangeHistogram].toJson mustEqual stat.toJson
+        unpacked must beAnInstanceOf[Z3Histogram]
+        unpacked.asInstanceOf[Z3Histogram].geomIndex mustEqual stat.geomIndex
+        unpacked.asInstanceOf[Z3Histogram].dtgIndex mustEqual stat.dtgIndex
+        unpacked.asInstanceOf[Z3Histogram].length mustEqual stat.length
+        unpacked.asInstanceOf[Z3Histogram].toJson mustEqual stat.toJson
       }
 
       "serialize and deserialize empty stats" >> {
@@ -64,11 +64,11 @@ class Z3RangeHistogramTest extends Specification with StatTestHelper {
         val packed   = StatSerializer(sft).serialize(stat)
         val unpacked = StatSerializer(sft).deserialize(packed)
 
-        unpacked must beAnInstanceOf[Z3RangeHistogram]
-        unpacked.asInstanceOf[Z3RangeHistogram].geomIndex mustEqual stat.geomIndex
-        unpacked.asInstanceOf[Z3RangeHistogram].dtgIndex mustEqual stat.dtgIndex
-        unpacked.asInstanceOf[Z3RangeHistogram].length mustEqual stat.length
-        unpacked.asInstanceOf[Z3RangeHistogram].toJson mustEqual stat.toJson
+        unpacked must beAnInstanceOf[Z3Histogram]
+        unpacked.asInstanceOf[Z3Histogram].geomIndex mustEqual stat.geomIndex
+        unpacked.asInstanceOf[Z3Histogram].dtgIndex mustEqual stat.dtgIndex
+        unpacked.asInstanceOf[Z3Histogram].length mustEqual stat.length
+        unpacked.asInstanceOf[Z3Histogram].toJson mustEqual stat.toJson
       }
 
       "deserialize as immutable value" >> {
@@ -76,11 +76,11 @@ class Z3RangeHistogramTest extends Specification with StatTestHelper {
         val packed   = StatSerializer(sft).serialize(stat)
         val unpacked = StatSerializer(sft).deserialize(packed, immutable = true)
 
-        unpacked must beAnInstanceOf[Z3RangeHistogram]
-        unpacked.asInstanceOf[Z3RangeHistogram].geomIndex mustEqual stat.geomIndex
-        unpacked.asInstanceOf[Z3RangeHistogram].dtgIndex mustEqual stat.dtgIndex
-        unpacked.asInstanceOf[Z3RangeHistogram].length mustEqual stat.length
-        unpacked.asInstanceOf[Z3RangeHistogram].toJson mustEqual stat.toJson
+        unpacked must beAnInstanceOf[Z3Histogram]
+        unpacked.asInstanceOf[Z3Histogram].geomIndex mustEqual stat.geomIndex
+        unpacked.asInstanceOf[Z3Histogram].dtgIndex mustEqual stat.dtgIndex
+        unpacked.asInstanceOf[Z3Histogram].length mustEqual stat.length
+        unpacked.asInstanceOf[Z3Histogram].toJson mustEqual stat.toJson
 
         unpacked.clear must throwAn[Exception]
         unpacked.+=(stat) must throwAn[Exception]

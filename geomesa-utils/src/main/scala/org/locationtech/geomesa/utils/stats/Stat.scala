@@ -136,7 +136,7 @@ object Stat {
     * @param attribute attribute name to histogram
     * @return
     */
-  def Histogram(attribute: String): String = s"Histogram(${safeString(attribute)})"
+  def Enumeration(attribute: String): String = s"Enumeration(${safeString(attribute)})"
 
   /**
     * String that will be parsed into a count min sketch stat
@@ -179,9 +179,9 @@ object Stat {
     * @tparam T class type of the histogram attribute
     * @return
     */
-  def RangeHistogram[T](attribute: String, bins: Int, min: T, max: T)(implicit ct: ClassTag[T]): String = {
+  def Histogram[T](attribute: String, bins: Int, min: T, max: T)(implicit ct: ClassTag[T]): String = {
     val stringify = stringifier(ct.runtimeClass)
-    s"RangeHistogram(${safeString(attribute)},$bins,${safeString(stringify(min))},${safeString(stringify(max))})"
+    s"Histogram(${safeString(attribute)},$bins,${safeString(stringify(min))},${safeString(stringify(max))})"
   }
 
   /**
@@ -192,8 +192,8 @@ object Stat {
     * @param length number of the bins per week - @see RangeHistogramZ3
     * @return
     */
-  def Z3RangeHistogram(geom: String, dtg: String, length: Int): String =
-    s"Z3RangeHistogram(${safeString(geom)},${safeString(dtg)},$length)"
+  def Z3Histogram(geom: String, dtg: String, length: Int): String =
+    s"Z3Histogram(${safeString(geom)},${safeString(dtg)},$length)"
 
   /**
     * String that will be parsed to a iterator stack counter
@@ -321,64 +321,64 @@ object Stat {
       "IteratorStackCount()" ^^ { case _ => new IteratorStackCount() }
     }
 
-    def histogramParser: Parser[Histogram[_]] = {
-      "Histogram(" ~> argument <~ ")" ^^ {
+    def enumerationParser: Parser[EnumerationStat[_]] = {
+      "Enumeration(" ~> argument <~ ")" ^^ {
         case attribute =>
           val attrIndex = getAttrIndex(attribute)
           val attrType = sft.getDescriptor(attribute).getType.getBinding
 
           if (attrType == classOf[String]) {
-            new Histogram[String](attrIndex)
+            new EnumerationStat[String](attrIndex)
           } else if (attrType == classOf[Date]) {
-            new Histogram[Date](attrIndex)
+            new EnumerationStat[Date](attrIndex)
           } else if (attrType == classOf[Integer]) {
-            new Histogram[Integer](attrIndex)
+            new EnumerationStat[Integer](attrIndex)
           } else if (attrType == classOf[jLong]) {
-            new Histogram[jLong](attrIndex)
+            new EnumerationStat[jLong](attrIndex)
           } else if (attrType == classOf[jFloat]) {
-            new Histogram[jFloat](attrIndex)
+            new EnumerationStat[jFloat](attrIndex)
           } else if (attrType == classOf[jDouble]) {
-            new Histogram[jDouble](attrIndex)
+            new EnumerationStat[jDouble](attrIndex)
           } else if (classOf[Geometry].isAssignableFrom(attrType )) {
-            new Histogram[Geometry](attrIndex)
+            new EnumerationStat[Geometry](attrIndex)
           } else {
             throw new Exception(s"Cannot create stat for invalid type: $attrType for attribute: $attribute")
           }
       }
     }
 
-    def rangeHistogramParser: Parser[RangeHistogram[_]] = {
-      "RangeHistogram(" ~> argument ~ "," ~ positiveInt ~ "," ~ argument ~ "," ~ argument <~ ")" ^^ {
+    def histogramParser: Parser[Histogram[_]] = {
+      "Histogram(" ~> argument ~ "," ~ positiveInt ~ "," ~ argument ~ "," ~ argument <~ ")" ^^ {
         case attribute ~ "," ~ numBins ~ "," ~ lower ~ "," ~ upper =>
           val attrIndex = getAttrIndex(attribute)
           val attrType = sft.getDescriptor(attribute).getType.getBinding
 
           if (attrType == classOf[String]) {
-            new RangeHistogram(attrIndex, numBins.toInt, (lower, upper))
+            new Histogram(attrIndex, numBins.toInt, (lower, upper))
           } else if (attrType == classOf[Date]) {
             val lowerDate = GeoToolsDateFormat.parseDateTime(lower).toDate
             val upperDate = GeoToolsDateFormat.parseDateTime(upper).toDate
-            new RangeHistogram(attrIndex, numBins.toInt, (lowerDate, upperDate))
+            new Histogram(attrIndex, numBins.toInt, (lowerDate, upperDate))
           } else if (attrType == classOf[Integer]) {
-            new RangeHistogram(attrIndex, numBins.toInt, (Integer.valueOf(lower), Integer.valueOf(upper)))
+            new Histogram(attrIndex, numBins.toInt, (Integer.valueOf(lower), Integer.valueOf(upper)))
           } else if (attrType == classOf[jLong]) {
-            new RangeHistogram(attrIndex, numBins.toInt, (jLong.valueOf(lower), jLong.valueOf(upper)))
+            new Histogram(attrIndex, numBins.toInt, (jLong.valueOf(lower), jLong.valueOf(upper)))
           } else if (attrType == classOf[jDouble]) {
-            new RangeHistogram(attrIndex, numBins.toInt, (jDouble.valueOf(lower), jDouble.valueOf(upper)))
+            new Histogram(attrIndex, numBins.toInt, (jDouble.valueOf(lower), jDouble.valueOf(upper)))
           } else if (attrType == classOf[jFloat]) {
-            new RangeHistogram(attrIndex, numBins.toInt, (jFloat.valueOf(lower), jFloat.valueOf(upper)))
+            new Histogram(attrIndex, numBins.toInt, (jFloat.valueOf(lower), jFloat.valueOf(upper)))
           } else if (classOf[Geometry].isAssignableFrom(attrType )) {
-            new RangeHistogram(attrIndex, numBins.toInt, (WKTUtils.read(lower), WKTUtils.read(upper)))
+            new Histogram(attrIndex, numBins.toInt, (WKTUtils.read(lower), WKTUtils.read(upper)))
           } else {
             throw new Exception(s"Cannot create stat for invalid type: $attrType for attribute: $attribute")
           }
       }
     }
 
-    def z3RangeHistogramParser: Parser[Z3RangeHistogram] = {
-      "Z3RangeHistogram(" ~> argument ~ "," ~ argument ~ "," ~ positiveInt <~ ")" ^^ {
+    def z3HistogramParser: Parser[Z3Histogram] = {
+      "Z3Histogram(" ~> argument ~ "," ~ argument ~ "," ~ positiveInt <~ ")" ^^ {
         case geom ~ "," ~ dtg ~ "," ~ length =>
-          new Z3RangeHistogram(getAttrIndex(geom), getAttrIndex(dtg), length.toInt)
+          new Z3Histogram(getAttrIndex(geom), getAttrIndex(dtg), length.toInt)
       }
     }
 
@@ -416,8 +416,8 @@ object Stat {
       }
     }
 
-    def statParser: Parser[Stat] = countParser | minMaxParser | iteratorStackParser | histogramParser |
-        rangeHistogramParser | frequencyParser | z3RangeHistogramParser | z3FrequencyParser
+    def statParser: Parser[Stat] = countParser | minMaxParser | iteratorStackParser | enumerationParser |
+        histogramParser | frequencyParser | z3HistogramParser | z3FrequencyParser
 
     def statsParser: Parser[Stat] = {
       rep1sep(statParser, ";") ^^ {

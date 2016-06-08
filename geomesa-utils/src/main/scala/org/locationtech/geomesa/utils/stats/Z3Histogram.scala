@@ -19,7 +19,7 @@ import org.locationtech.sfcurve.zorder.Z3
 import org.opengis.feature.simple.SimpleFeature
 
 /**
-  * The range histogram's state is stored in an indexed array, where the index is the bin number
+  * The histogram's state is stored in an indexed array, where the index is the bin number
   * and the values are the counts.
   *
   * Tracks geometry and date attributes as a single value.
@@ -28,11 +28,11 @@ import org.opengis.feature.simple.SimpleFeature
   * @param dtgIndex date attribute index in the sft
   * @param length number of bins the histogram has, per week
  */
-class Z3RangeHistogram(val geomIndex: Int, val dtgIndex: Int, val length: Int) extends Stat {
+class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val length: Int) extends Stat {
 
-  import Z3RangeHistogram._
+  import Z3Histogram._
 
-  override type S = Z3RangeHistogram
+  override type S = Z3Histogram
 
   private [stats] val binMap = scala.collection.mutable.Map.empty[Short, BinnedLongArray]
   private [stats] def newBins = new BinnedLongArray(length, (minZ, maxZ))
@@ -61,7 +61,7 @@ class Z3RangeHistogram(val geomIndex: Int, val dtgIndex: Int, val length: Int) e
   private def fromKey(week: Short, z: Long): (Geometry, Date) = {
     val (x, y, t) = Z3SFC.invert(new Z3(z))
     val dtg = Z3Frequency.Epoch.plusWeeks(week).plusSeconds(t.toInt).toDate
-    val geom = Z3RangeHistogram.gf.createPoint(new Coordinate(x, y))
+    val geom = Z3Histogram.gf.createPoint(new Coordinate(x, y))
     (geom, dtg)
   }
 
@@ -71,9 +71,9 @@ class Z3RangeHistogram(val geomIndex: Int, val dtgIndex: Int, val length: Int) e
     *
     * @return
     */
-  def splitByWeek: Seq[(Short, Z3RangeHistogram)] = {
+  def splitByWeek: Seq[(Short, Z3Histogram)] = {
     binMap.toSeq.map { case (w, bins) =>
-      val hist = new Z3RangeHistogram(geomIndex, dtgIndex, length)
+      val hist = new Z3Histogram(geomIndex, dtgIndex, length)
       hist.binMap.put(w, bins)
       (w, hist)
     }
@@ -100,8 +100,8 @@ class Z3RangeHistogram(val geomIndex: Int, val dtgIndex: Int, val length: Int) e
   /**
     * Creates a new histogram by combining another histogram with this one
     */
-  override def +(other: Z3RangeHistogram): Z3RangeHistogram = {
-    val plus = new Z3RangeHistogram(geomIndex, dtgIndex, length)
+  override def +(other: Z3Histogram): Z3Histogram = {
+    val plus = new Z3Histogram(geomIndex, dtgIndex, length)
     plus += this
     plus += other
     plus
@@ -110,7 +110,7 @@ class Z3RangeHistogram(val geomIndex: Int, val dtgIndex: Int, val length: Int) e
   /**
     * Copies another histogram into this one
     */
-  override def +=(other: Z3RangeHistogram): Unit = {
+  override def +=(other: Z3Histogram): Unit = {
     if (length != other.length) {
       throw new NotImplementedError("Can only add z3 histograms with the same length")
     }
@@ -139,7 +139,7 @@ class Z3RangeHistogram(val geomIndex: Int, val dtgIndex: Int, val length: Int) e
   override def clear(): Unit = binMap.values.foreach(_.clear())
 
   override def isEquivalent(other: Stat): Boolean = other match {
-    case that: Z3RangeHistogram =>
+    case that: Z3Histogram =>
       geomIndex == that.geomIndex && dtgIndex == that.dtgIndex && length == that.length &&
           binMap.keySet == that.binMap.keySet &&
           binMap.forall { case (w, bins) => java.util.Arrays.equals(bins.counts, that.binMap(w).counts) }
@@ -147,7 +147,7 @@ class Z3RangeHistogram(val geomIndex: Int, val dtgIndex: Int, val length: Int) e
   }
 }
 
-object Z3RangeHistogram {
+object Z3Histogram {
 
   val gf = JTSFactoryFinder.getGeometryFactory
 
@@ -164,7 +164,7 @@ object Z3RangeHistogram {
     * @param histograms histograms to combine
     * @return
     */
-  def combine(histograms: Seq[Z3RangeHistogram]): Option[Z3RangeHistogram] = {
+  def combine(histograms: Seq[Z3Histogram]): Option[Z3Histogram] = {
     if (histograms.length < 2) {
       histograms.headOption
     } else {

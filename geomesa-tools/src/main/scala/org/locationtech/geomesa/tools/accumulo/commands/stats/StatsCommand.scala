@@ -17,7 +17,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 object StatsCommand {
 
   // gets attributes to run stats on, based on sft and input params
-  def getAttributes(sft: SimpleFeatureType, params: StatsWithAttributeParams): Seq[String] = {
+  def getAttributes(sft: SimpleFeatureType, params: AttributeStatsParams): Seq[String] = {
     import scala.collection.JavaConversions._
 
     if (params.attributes.isEmpty) {
@@ -26,7 +26,7 @@ object StatsCommand {
       val descriptors = params.attributes.map(sft.getDescriptor)
       if (descriptors.contains(null)) {
         val invalid = params.attributes.zip(descriptors).filter(_._2 == null).map(_._1).mkString("', '")
-        throw new ParameterException(s"Invalid attributes '$invalid' for schema '${sft.getTypeName}")
+        throw new ParameterException(s"Invalid attributes '$invalid' for schema ${sft.getTypeName}")
       }
       if (!descriptors.forall(GeoMesaStats.okForStats)) {
         val invalid = descriptors.filterNot(GeoMesaStats.okForStats)
@@ -38,13 +38,14 @@ object StatsCommand {
   }
 }
 
-trait StatsParams extends GeoMesaConnectionParams with FeatureTypeNameParam with OptionalCQLFilterParam {
+trait StatsParams extends GeoMesaConnectionParams with FeatureTypeNameParam with OptionalCQLFilterParam
+
+trait CachedStatsParams {
   @Parameter(names = Array("-e", "--exact"), description = "Calculate exact statistics (may be slow)")
   var exact: Boolean = false
 }
 
-trait StatsWithAttributeParams extends StatsParams {
+trait AttributeStatsParams {
   @Parameter(names = Array("-a", "--attributes"), description = "Attributes to evaluate (space-separated)")
   var attributes: java.util.List[String] = new java.util.ArrayList[String]()
-
 }

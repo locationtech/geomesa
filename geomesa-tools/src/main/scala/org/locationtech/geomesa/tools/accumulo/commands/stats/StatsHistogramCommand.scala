@@ -12,14 +12,17 @@ import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.Converters
 import org.locationtech.geomesa.accumulo.data.stats.GeoMesaStats
 import org.locationtech.geomesa.tools.accumulo.commands.CommandWithCatalog
 import org.locationtech.geomesa.tools.accumulo.commands.stats.StatsHistogramCommand.StatsHistogramParams
-import org.locationtech.geomesa.utils.stats.{MinMax, RangeHistogram, Stat}
+import org.locationtech.geomesa.utils.stats.{Histogram, MinMax, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+import scala.io.StdIn
 import scala.reflect.ClassTag
+import scala.util.Try
 
 class StatsHistogramCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
 
@@ -28,38 +31,94 @@ class StatsHistogramCommand(parent: JCommander) extends CommandWithCatalog(paren
   override val command = "stats-histogram"
   override val params = new StatsHistogramParams
 
-  override def execute() = {
+  override def execute(): Unit = {
     val sft = ds.getSchema(params.featureName)
     val attributes = StatsCommand.getAttributes(sft, params)
     val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
     val bins = Option(params.bins).map(_.intValue)
 
     val histograms = if (params.exact) {
-      logger.info("Running stat query...")
-      val query = Stat.SeqStat(attributes.map { attribute =>
-        val ct = ClassTag[Any](sft.getDescriptor(attribute).getType.getBinding)
-        val mm = ds.stats.getStats[MinMax[Any]](sft, Seq(attribute)).headOption
-        val bounds = mm match {
-          case None => GeoMesaStats.defaultBounds(ct.runtimeClass)
-          case Some(b) if b.min == b.max => RangeHistogram.buffer(b.min)
-          case Some(b) => b.bounds
+      val bounds = scala.collection.mutable.Map.empty[String, (Any, Any)]
+      attributes.foreach { attribute =>
+        ds.stats.getStats[MinMax[Any]](sft, Seq(attribute)).headOption.foreach { b =>
+          bounds.put(attribute, if (b.min == b.max) Histogram.buffer(b.min) else b.bounds)
         }
-        val length = bins.getOrElse(GeoMesaStats.DefaultHistogramSize)
-        Stat.RangeHistogram[Any](attribute, length, bounds._1, bounds._2)(ct)
-      })
-      ds.stats.runStats[RangeHistogram[Any]](sft, query, filter)
+      }
+
+      if (bounds.size != attributes.size) {
+        val noBounds = attributes.filterNot(bounds.contains)
+        logger.warn(s"Initial bounds are not available for attributes ${noBounds.mkString(", ")}.")
+        var response: Integer = null
+        println("\nWould you like to:\n" +
+                "  1. Calculate bounds (may be slow)\n" +
+                "  2. Use default bounds (may be less accurate)\n" +
+                "  3. Manually enter bounds\n" +
+                "  4. Cancel operation\n")
+        while (response == null) {
+          val in = StdIn.readLine("Please enter the number of your choice: ")
+          response = Try(in.toInt.asInstanceOf[Integer]).filter(r => r > 0 && r < 5).getOrElse(null)
+          if (response == null) {
+            logger.error("Invalid input. Please enter 1-4.")
+          }
+        }
+        if (response == 1) {
+          logger.info("Running bounds query...")
+          ds.stats.runStats[MinMax[Any]](sft, Stat.SeqStat(noBounds.map(Stat.MinMax)), filter).foreach { mm =>
+            bounds.put(sft.getDescriptor(mm.attribute).getLocalName, mm.bounds)
+          }
+        } else if (response == 2) {
+          noBounds.foreach { attribute =>
+            val ct = ClassTag[Any](sft.getDescriptor(attribute).getType.getBinding)
+            bounds.put(attribute, GeoMesaStats.defaultBounds(ct.runtimeClass))
+          }
+        } else if (response == 3) {
+          noBounds.foreach { attribute =>
+            val ct = sft.getDescriptor(attribute).getType.getBinding
+            var lower: Any = null
+            var upper: Any = null
+            while (lower == null) {
+              lower = Converters.convert(StdIn.readLine(s"Enter initial lower bound for '$attribute': "), ct)
+              if (lower == null) {
+                logger.error(s"Couldn't convert input to appropriate type: ${ct.getSimpleName}")
+              }
+            }
+            while (upper == null) {
+              upper = Converters.convert(StdIn.readLine(s"Enter initial upper bound for '$attribute': "), ct)
+              if (upper == null) {
+                logger.error(s"Couldn't convert input to appropriate type: ${ct.getSimpleName}")
+              }
+            }
+            if (lower == upper) {
+              bounds.put(attribute, Histogram.buffer(lower))
+            } else {
+              bounds.put(attribute, (lower, upper))
+            }
+          }
+        } else {
+          return // cancel operation
+        }
+      }
+
+      logger.info("Running stat query...")
+      val length = bins.getOrElse(GeoMesaStats.DefaultHistogramSize)
+      val queries = attributes.map { attribute =>
+        val ct = ClassTag[Any](sft.getDescriptor(attribute).getType.getBinding)
+        val (lower, upper) = bounds(attribute)
+        Stat.Histogram[Any](attribute, length, lower, upper)(ct)
+      }
+      ds.stats.runStats[Histogram[Any]](sft, Stat.SeqStat(queries), filter)
     } else {
       if (filter != Filter.INCLUDE) {
         logger.warn("Ignoring CQL filter for non-exact stat query")
       }
-      ds.stats.getStats[RangeHistogram[Any]](sft, attributes).map {
-        case histogram: RangeHistogram[Any] if bins.forall(_ == histogram.length) => histogram
-        case histogram: RangeHistogram[Any] =>
+      ds.stats.getStats[Histogram[Any]](sft, attributes).map {
+        case histogram: Histogram[Any] if bins.forall(_ == histogram.length) => histogram
+        case histogram: Histogram[Any] =>
           val descriptor = sft.getDescriptor(histogram.attribute)
           val ct = ClassTag[Any](descriptor.getType.getBinding)
           val attribute = descriptor.getLocalName
-          val statString = Stat.RangeHistogram[Any](attribute, bins.get, histogram.min, histogram.max)(ct)
-          val binned = Stat(sft, statString).asInstanceOf[RangeHistogram[Any]]
+          val statString = Stat.Histogram[Any](attribute, bins.get, histogram.min, histogram.max)(ct)
+          val binned = Stat(sft, statString).asInstanceOf[Histogram[Any]]
           binned.addCountsFrom(histogram)
           binned
       }
@@ -70,7 +129,7 @@ class StatsHistogramCommand(parent: JCommander) extends CommandWithCatalog(paren
         case None => logger.info(s"No histogram available for attribute '$attribute'")
         case Some(hist) =>
           if (classOf[Geometry].isAssignableFrom(sft.getDescriptor(attribute).getType.getBinding)) {
-            println(geomHistToString(attribute, hist.asInstanceOf[RangeHistogram[Geometry]]))
+            println(geomHistToString(attribute, hist.asInstanceOf[Histogram[Geometry]]))
           } else {
             println(histToString(hist, sft, attribute))
           }
@@ -81,8 +140,8 @@ class StatsHistogramCommand(parent: JCommander) extends CommandWithCatalog(paren
 
 object StatsHistogramCommand {
 
-  @Parameters(commandDescription = "View statistics on a GeoMesa feature type")
-  class StatsHistogramParams extends StatsWithAttributeParams {
+  @Parameters(commandDescription = "View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values")
+  class StatsHistogramParams extends StatsParams with CachedStatsParams with AttributeStatsParams {
     @Parameter(names = Array("-b", "--bins"), description = "How many bins the data will be divided into. " +
         "For example, if you are examining a week of data, you may want to divide the date into 7 bins, one per day.")
     var bins: Integer = null
@@ -91,7 +150,7 @@ object StatsHistogramCommand {
   /**
     * Creates a readable string for the histogram.
     */
-  def histToString(stat: RangeHistogram[Any], sft: SimpleFeatureType, attribute: String): String = {
+  def histToString(stat: Histogram[Any], sft: SimpleFeatureType, attribute: String): String = {
     val counts = (0 until stat.length).toList.flatMap { i =>
       val count = stat.count(i)
       if (count < 1) { None } else {
@@ -105,7 +164,7 @@ object StatsHistogramCommand {
   /**
     * Creates string containing an ASCII, color-coded map of densities.
     */
-  def geomHistToString(attribute: String, stat: RangeHistogram[Geometry]): String = {
+  def geomHistToString(attribute: String, stat: Histogram[Geometry]): String = {
     // grid of counts, corresponds to our world map dimensions
     val counts = Array.fill[Array[Long]](AsciiWorldMapHeight)(Array.fill[Long](AsciiWorldMapLength)(0))
     // min/max to normalize our densities

@@ -177,7 +177,7 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
     }
     val allWeeks = weeksAndOffsets.flatMap(_._1).distinct
 
-    stats.getStats[Z3RangeHistogram](sft, Seq(geomField, dateField), allWeeks).headOption match {
+    stats.getStats[Z3Histogram](sft, Seq(geomField, dateField), allWeeks).headOption match {
       case None => 0L
       case Some(histogram) =>
         // time range for a chunk is 0 to 1 week (in seconds)
@@ -268,7 +268,7 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
 
     for {
       geometry  <- FilterHelper.extractSingleGeometry(filter, sft.getGeomField)
-      histogram <- stats.getStats[RangeHistogram[Geometry]](sft, Seq(sft.getGeomField)).headOption
+      histogram <- stats.getStats[Histogram[Geometry]](sft, Seq(sft.getGeomField)).headOption
     } yield {
       val (zLo, zHi) = {
         val (xmin, ymin, _, _) = bounds(histogram.min)
@@ -300,7 +300,7 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
     for {
       dateField <- sft.getDtgField
       intervals <- Option(FilterHelper.extractIntervals(filter, dateField)).filter(_.nonEmpty)
-      histogram <- stats.getStats[RangeHistogram[Date]](sft, Seq(dateField)).headOption
+      histogram <- stats.getStats[Histogram[Date]](sft, Seq(dateField)).headOption
     } yield {
       def inRange(interval: (DateTime, DateTime)) =
         interval._1.getMillis <= histogram.max.getTime && interval._2.getMillis >= histogram.min.getTime
@@ -346,7 +346,7 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
     * @return estimated count, if available
     */
   private def estimateRangeCount(attribute: String, ranges: Seq[(Option[Any], Option[Any])]): Option[Long] = {
-    stats.getStats[RangeHistogram[Any]](sft, Seq(attribute)).headOption.map { histogram =>
+    stats.getStats[Histogram[Any]](sft, Seq(attribute)).headOption.map { histogram =>
       val inRangeRanges = ranges.filter {
         case (None, None)         => true // inclusive filter
         case (Some(lo), None)     => histogram.defaults.min(lo, histogram.max) == lo

@@ -14,7 +14,7 @@ import org.locationtech.geomesa.accumulo.data.stats.GeoMesaStats
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.MinMax.MinMaxGeometry
-import org.locationtech.geomesa.utils.stats.{RangeHistogram, Stat}
+import org.locationtech.geomesa.utils.stats.{Histogram, Stat}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -28,8 +28,8 @@ class StatsHistogramCommandTest extends Specification {
 
       val sft = SimpleFeatureTypes.createType("StatsHistogramCommandTest", "geom:Geometry:srid=4326")
       val length = GeoMesaStats.MaxHistogramSize
-      val stat = Stat(sft, Stat.RangeHistogram[Geometry]("geom", length, MinMaxGeometry.min, MinMaxGeometry.max))
-      val histogram = stat.asInstanceOf[RangeHistogram[Geometry]]
+      val stat = Stat(sft, Stat.Histogram[Geometry]("geom", length, MinMaxGeometry.min, MinMaxGeometry.max))
+      val histogram = stat.asInstanceOf[Histogram[Geometry]]
 
       def addPoint(x: Int, y: Int): Unit = {
         histogram.observe(new ScalaSimpleFeature("", sft, Array(WKTUtils.read(s"POINT ($x $y)"))))
