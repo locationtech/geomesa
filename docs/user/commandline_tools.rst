@@ -437,9 +437,9 @@ Example usage::
       Running stat analysis for feature type twitter...
       Stats analyzed:
         Total features: 8852601
-        Bounds for geom: [ -171.75, -45.5903996, 157.7302, 89.99997102 ]
-        Bounds for dtg: [ '2016-02-01T00:09:12.000Z' to '2016-03-01T00:21:02.000Z' ]
-        Bounds for user_id: [ '100000215' to '99999502' ]
+        Bounds for geom: [ -171.75, -45.5903996, 157.7302, 89.99997102 ] cardinality: 2119237
+        Bounds for dtg: [ '2016-02-01T00:09:12.000Z' to '2016-03-01T00:21:02.000Z' ] cardinality: 2161132
+        Bounds for user_id: [ '100000215' to '99999502' ] cardinality: 861283
       Use 'stats-histogram' or 'stats-count' commands for more details
 
 stats-bounds
