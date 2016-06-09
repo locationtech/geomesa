@@ -26,8 +26,6 @@ import scala.util.Try
 
 class StatsHistogramCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
 
-  import StatsHistogramCommand.{geomHistToString, histToString}
-
   override val command = "stats-histogram"
   override val params = new StatsHistogramParams
 
@@ -129,9 +127,9 @@ class StatsHistogramCommand(parent: JCommander) extends CommandWithCatalog(paren
         case None => logger.info(s"No histogram available for attribute '$attribute'")
         case Some(hist) =>
           if (classOf[Geometry].isAssignableFrom(sft.getDescriptor(attribute).getType.getBinding)) {
-            println(geomHistToString(attribute, hist.asInstanceOf[Histogram[Geometry]]))
+            println(StatsHistogramCommand.geomHistToString(attribute, hist.asInstanceOf[Histogram[Geometry]]))
           } else {
-            println(histToString(hist, sft, attribute))
+            StatsHistogramCommand.printHist(hist, sft, attribute)
           }
       }
     }
@@ -150,15 +148,16 @@ object StatsHistogramCommand {
   /**
     * Creates a readable string for the histogram.
     */
-  def histToString(stat: Histogram[Any], sft: SimpleFeatureType, attribute: String): String = {
-    val counts = (0 until stat.length).toList.flatMap { i =>
-      val count = stat.count(i)
-      if (count < 1) { None } else {
+  def printHist(stat: Histogram[Any], sft: SimpleFeatureType, attribute: String): Unit = {
+    println(s"Binned histogram for '$attribute':")
+    if (stat.isEmpty) {
+      println("  No values")
+    } else {
+      (0 until stat.length).foreach { i =>
         val (min, max) = stat.bounds(i)
-        Some(s"[ ${stat.stringify(min)} to ${stat.stringify(max)} ] $count")
+        println(s"  [ ${stat.stringify(min)} to ${stat.stringify(max)} ] ${stat.count(i)}")
       }
     }
-    s"Binned histogram for '$attribute':${if (counts.isEmpty) " No values" else counts.mkString("\n  ", "\n  ", "")}"
   }
 
   /**
