@@ -6,57 +6,70 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.tools.accumulo.commands
+package org.locationtech.geomesa.tools.kafka.commands
 
 import com.beust.jcommander._
 import com.beust.jcommander.converters.IParameterSplitter
-import org.geotools.data.DataStoreFinder
-import org.locationtech.geomesa.tools.accumulo.commands.KeywordCommand.KeywordParameters
-import org.locationtech.geomesa.tools.accumulo.{DataStoreHelper, GeoMesaConnectionParams}
-import org.locationtech.geomesa.tools.common.FeatureTypeNameParam
-import org.locationtech.geomesa.tools.common.commands.Command
-
+import org.locationtech.geomesa.kafka.{KafkaDataStore, KafkaDataStoreSchemaManager}
+import org.locationtech.geomesa.tools.kafka.commands.KeywordCommand.KeywordParameters
+import org.locationtech.geomesa.tools.common.OptionalFeatureTypeNameParam
+import org.locationtech.geomesa.tools.kafka.ProducerKDSConnectionParams
 import scala.collection.JavaConversions._
 import scala.io.StdIn
+import scala.util.{Try, Failure}
 
-class KeywordCommand(parent: JCommander) extends Command(parent) {
+class KeywordCommand(parent: JCommander) extends CommandWithKDS(parent) {
+
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
   override val command: String = "keyword"
   override val params = new KeywordParameters()
 
   override def execute(): Unit = {
-    val dsParams = new DataStoreHelper(params).paramMap
-    val tryDs = DataStoreFinder.getDataStore(dsParams)
-    if (tryDs == null) {
+
+    if (ds == null) {
       throw new ParameterException("Could not load a data store with the provided parameters")
     }
 
-    val sft = tryDs.getSchema(params.featureName)
+    val sft = ds.asInstanceOf[KafkaDataStore].getKafkaSchema(params.featureName)
+    var keywordsModified = false
 
     if (params.keywordsToAdd != null) {
       sft.addKeywords(params.keywordsToAdd.mkString(KEYWORDS_DELIMITER))
+      keywordsModified = true
     }
 
     if (params.keywordsToRemove != null) {
       sft.removeKeywords(params.keywordsToRemove.mkString(KEYWORDS_DELIMITER))
+      keywordsModified = true
     }
 
     if (params.removeAll) {
       val confirm = StdIn.readLine("Remove all keywords? (y/n): ").toLowerCase
       if (confirm.equals("y") || confirm.equals("yes")) {
         sft.removeAllKeywords()
+        keywordsModified = true
       } else {
         println("Aborting operation")
-        tryDs.dispose()
+        ds.dispose()
         return
       }
     }
 
-    tryDs.updateSchema(params.featureName, sft)
-    tryDs.dispose()
+    // Attempt to replace the old schema with the updated one
+    if (keywordsModified) {
+      Try {
+        ds.removeSchema(sft.getTypeName)
+      } match {
+        case Failure(ex) => println(ex.toString)
+      }
+      ds.asInstanceOf[KafkaDataStoreSchemaManager].createSchema(sft)
+    }
+
+    ds.dispose()
 
     if (params.list) {
-      println("Keywords: " + sft.getKeywords.toString)
+      val reloadedSft = ds.asInstanceOf[KafkaDataStore].getKafkaSchema(params.featureName)
+      println("Keywords: " + reloadedSft.getKeywords.toString)
     }
   }
 }
@@ -69,8 +82,8 @@ class KeywordParameterSplitter extends IParameterSplitter {
 object KeywordCommand {
 
   @Parameters(commandDescription = "Add/Remove/List keywords on an existing schema")
-  class KeywordParameters extends GeoMesaConnectionParams
-    with FeatureTypeNameParam {
+  class KeywordParameters extends  ProducerKDSConnectionParams
+    with OptionalFeatureTypeNameParam {
 
     @Parameter(names = Array("-a", "--add"), description = "A keyword to add. Can be specified multiple times", splitter = classOf[KeywordParameterSplitter])
     var keywordsToAdd: java.util.List[String] = null
