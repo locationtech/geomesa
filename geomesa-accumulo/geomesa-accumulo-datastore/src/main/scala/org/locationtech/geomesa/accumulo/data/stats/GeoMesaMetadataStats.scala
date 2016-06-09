@@ -194,6 +194,8 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
   override def statUpdater(sft: SimpleFeatureType): StatUpdater =
     new MetadataStatUpdater(this, sft, Stat(sft, buildStatsFor(sft)))
 
+  override def clearStats(sft: SimpleFeatureType): Unit = metadata.delete(sft.getTypeName)
+
   /**
     * Write a stat to accumulo. If merge == true, will write the stat but not remove the old stat,
     * and they will be combined on read in the StatsCombiner

@@ -100,6 +100,13 @@ trait GeoMesaStats {
     * @return updater
     */
   def statUpdater(sft: SimpleFeatureType): StatUpdater
+
+  /**
+    * Deletes any stats associated with the given schema
+    *
+    * @param sft simple feature type
+    */
+  def clearStats(sft: SimpleFeatureType): Unit
 }
 
 object GeoMesaStats {

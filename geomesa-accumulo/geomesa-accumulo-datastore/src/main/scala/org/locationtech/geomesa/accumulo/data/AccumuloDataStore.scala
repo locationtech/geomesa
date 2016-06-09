@@ -41,7 +41,6 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
-import scala.collection.immutable.HashMap
 
 
 /**
@@ -231,11 +230,11 @@ class AccumuloDataStore(val connector: Connector,
 
     // Get previous schema and user data
     val previousSft = getSchema(typeName)
-    val schemaTypeName = sft.getTypeName()
+    val schemaTypeName = sft.getTypeName
 
     // Prevent modifying wrong type if type names don't match
     if (!schemaTypeName.equals(typeName.toString)) {
-      throw new UnsupportedOperationException("Updating the type name of a schema is not allowed " + schemaTypeName + " " + typeName)
+      throw new UnsupportedOperationException(s"Updating the type name of a schema is not allowed: $schemaTypeName $typeName")
     }
 
     val existingUserData = metadata.read(schemaTypeName, ATTRIBUTES_KEY)
@@ -246,7 +245,7 @@ class AccumuloDataStore(val connector: Connector,
 
     unmodifiableUserdataKeys.foreach { case (key) =>
       if (sft.getUserData.contains(key) && sft.userData[String](key) != previousSft.userData[String](key)) {
-        throw new UnsupportedOperationException("Updating " + key + " is not allowed")
+        throw new UnsupportedOperationException(s"Updating $key is not allowed")
       }
     }
 
@@ -261,6 +260,7 @@ class AccumuloDataStore(val connector: Connector,
     val attributesValue   = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
     metadata.insert(schemaTypeName, ATTRIBUTES_KEY, attributesValue)
   }
+
   /**
    * Deletes all features from the accumulo index tables and deletes metadata from the catalog.
    * If the feature type shares tables with another, this is fairly expensive,
@@ -278,6 +278,7 @@ class AccumuloDataStore(val connector: Connector,
         } else {
           deleteStandAloneTables(sft)
         }
+        stats.clearStats(sft)
       }
       metadata.delete(typeName)
     } finally {
@@ -494,11 +495,10 @@ class AccumuloDataStore(val connector: Connector,
    */
   def delete() = {
     val indexTables = getTypeNames.map(getSchema).flatMap(GeoMesaTable.getTableNames(_, this)).distinct
+    val metadataTables = Seq(statsTable, catalogTable)
     // Delete index tables first then catalog table in case of error
-    indexTables.filter(tableOps.exists).foreach(tableOps.delete)
-    if (tableOps.exists(catalogTable)) {
-      tableOps.delete(catalogTable)
-    }
+    val allTables = indexTables ++ metadataTables
+    allTables.filter(tableOps.exists).foreach(tableOps.delete)
   }
 
   /**
