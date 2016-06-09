@@ -46,6 +46,6 @@ trait CachedStatsParams {
 }
 
 trait AttributeStatsParams {
-  @Parameter(names = Array("-a", "--attributes"), description = "Attributes to evaluate (space-separated)")
+  @Parameter(names = Array("-a", "--attributes"), description = "Attributes to evaluate (use multiple flags or separate with commas)")
   var attributes: java.util.List[String] = new java.util.ArrayList[String]()
 }

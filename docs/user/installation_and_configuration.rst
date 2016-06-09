@@ -187,6 +187,7 @@ Test the command that invokes the GeoMesa Tools:
         stats-analyze    Analyze statistics on a GeoMesa feature type
         stats-bounds     View bounds on attributes in a GeoMesa schema
         stats-count      View feature counts in a GeoMesa schema
+        stats-enumerate  Enumerate attribute values in a GeoMesa feature type
         stats-histogram  View statistics on a GeoMesa feature type
         tableconf        Perform table configuration operations
         version          GeoMesa Version

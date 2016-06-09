@@ -283,7 +283,7 @@ Use the `stats-bounds` command to view the bounds of your data for different att
     Usage: stats-bounds [options]
       Options:
         -a, --attributes
-           Attributes to evaluate (space-separated)
+           Attributes to evaluate (use multiple flags or separate with commas)
            Default: []
         --auths
            Accumulo authorizations
@@ -381,7 +381,7 @@ Use the `stats-count` command to count features in your data set.
       Usage: stats-enumerate [options]
         Options:
           -a, --attributes
-             Attributes to evaluate (space-separated)
+             Attributes to evaluate (use multiple flags or separate with commas)
              Default: []
           --auths
              Accumulo authorizations
@@ -427,7 +427,7 @@ If you query a histogram for a geometry attribute, the result will be displayed 
       Usage: stats-histogram [options]
         Options:
           -a, --attributes
-             Attributes to evaluate (space-separated)
+             Attributes to evaluate (use multiple flags or separate with commas)
              Default: []
           --auths
              Accumulo authorizations
