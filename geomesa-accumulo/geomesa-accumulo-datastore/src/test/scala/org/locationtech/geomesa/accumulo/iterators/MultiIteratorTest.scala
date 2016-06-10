@@ -37,7 +37,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
 
   // noinspection LanguageFeature
   // note: size returns an estimated amount, instead we need to actually count the features
-  implicit def collectionToIter(c: SimpleFeatureCollection): Iterator[SimpleFeature] = SelfClosingIterator(c)
+  implicit def collectionToIter(c: SimpleFeatureCollection): SelfClosingIterator[SimpleFeature] = SelfClosingIterator(c)
 
   def getQuery(sft: SimpleFeatureType,
                ecqlFilter: Option[String],
