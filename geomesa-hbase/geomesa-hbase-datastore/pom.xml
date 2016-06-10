@@ -31,21 +31,22 @@
             <groupId>org.geotools</groupId>
             <artifactId>gt-data</artifactId>
         </dependency>
+
+        <!-- provided deps -->
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-client</artifactId>
-            <version>${hbase.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-common</artifactId>
-            <version>${hbase.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-protocol</artifactId>
-            <version>${hbase.version}</version>
         </dependency>
+
+        <!-- test deps -->
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2_2.11</artifactId>
