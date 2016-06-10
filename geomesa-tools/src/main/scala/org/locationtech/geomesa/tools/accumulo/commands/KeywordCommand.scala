@@ -19,19 +19,18 @@ import org.locationtech.geomesa.tools.common.commands.Command
 import scala.collection.JavaConversions._
 import scala.io.StdIn
 
-class KeywordCommand(parent: JCommander) extends Command(parent) {
+class KeywordCommand(parent: JCommander) extends CommandWithCatalog(parent) {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
-  override val command: String = "keyword"
+  override val command: String = "keywords"
   override val params = new KeywordParameters()
 
   override def execute(): Unit = {
-    val dsParams = new DataStoreHelper(params).paramMap
-    val tryDs = DataStoreFinder.getDataStore(dsParams)
-    if (tryDs == null) {
+
+    if (ds == null) {
       throw new ParameterException("Could not load a data store with the provided parameters")
     }
 
-    val sft = tryDs.getSchema(params.featureName)
+    val sft = ds.getSchema(params.featureName)
 
     if (params.keywordsToAdd != null) {
       sft.addKeywords(params.keywordsToAdd.mkString(KEYWORDS_DELIMITER))
@@ -47,17 +46,18 @@ class KeywordCommand(parent: JCommander) extends Command(parent) {
         sft.removeAllKeywords()
       } else {
         println("Aborting operation")
-        tryDs.dispose()
+        ds.dispose()
         return
       }
     }
 
-    tryDs.updateSchema(params.featureName, sft)
-    tryDs.dispose()
+    ds.updateSchema(params.featureName, sft)
 
     if (params.list) {
-      println("Keywords: " + sft.getKeywords.toString)
+      println("Keywords: " + ds.getSchema(sft.getTypeName).getKeywords.toString)
     }
+
+    ds.dispose()
   }
 }
 

@@ -48,7 +48,7 @@ This should print out the following usage text:
         help                Show help
         ingest              Ingest/convert various file formats into GeoMesa
         ingestraster        Ingest a raster file or raster files in a directory into GeoMesa
-        keyword             Add/remove/list keywords on a given schema
+        keywords             Add/remove/list keywords on a given schema
         list                List GeoMesa features for a given catalog
         queryrasterstats    Export queries and statistics about the last X number of queries to a CSV file.
         removeschema        Remove a schema and associated features from a GeoMesa catalog
@@ -801,13 +801,13 @@ To list the features on a specified catalog table, use the `list` command.
 #### Example command:
     geomesa list -u username -p password -c test_catalog
     
-### keyword
-To add, remove, or list all the keywords on a specified catalog table, use the `keyword` command
+### keywords
+To add, remove, or list all the keywords on a specified catalog table, use the `keywords` command
 
 #### Usage (required options denoted with star):
-    $geomesa help keyword
+    $geomesa help keywords
     Add/Remove/List keywords on an existing schema
-    Usage: keyword [options]
+    Usage: keywords [options]
       Options:
         -a, --add
            A keyword to add. Can be specified multiple times
@@ -841,7 +841,7 @@ To add, remove, or list all the keywords on a specified catalog table, use the `
 
     
 #### Example command:
-    geomesa keyword -u username -p password -c test_catalog -f feature_name -i instance \
+    geomesa keywords -u username -p password -c test_catalog -f feature_name -i instance \
     -a keywordA -a keywordB=foo,bar -r keywordC -l
 
 
