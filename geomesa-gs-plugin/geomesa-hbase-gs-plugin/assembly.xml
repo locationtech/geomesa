@@ -15,10 +15,11 @@
     <dependencySets>
         <dependencySet>
             <outputDirectory>/</outputDirectory>
-            <useProjectArtifact>true</useProjectArtifact>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useProjectAttachments>true</useProjectAttachments>
             <scope>runtime</scope>
             <includes>
-                <include>org.locationtech.geomesa:geomesa-hbase-gs-plugin</include>
+                <include>org.locationtech.geomesa:geomesa-hbase-gs-plugin:jar:shaded</include>
             </includes>
         </dependencySet>
     </dependencySets>

@@ -1768,95 +1768,25 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>org.geoserver</groupId>
-                <artifactId>gs-main</artifactId>
-                <version>${geoserver.version}</version>
-                <scope>provided</scope>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geoserver.web</groupId>
-                <artifactId>gs-web-core</artifactId>
-                <version>${geoserver.version}</version>
-                <scope>provided</scope>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geoserver.extension</groupId>
-                <artifactId>gs-wps-core</artifactId>
-                <version>${geoserver.version}</version>
-                <scope>provided</scope>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geoserver</groupId>
-                <artifactId>gs-ows</artifactId>
-                <version>${geoserver.version}</version>
-                <scope>provided</scope>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geoserver</groupId>
-                <artifactId>gs-platform</artifactId>
-                <version>${geoserver.version}</version>
-                <scope>provided</scope>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geoserver</groupId>
-                <artifactId>gs-wfs</artifactId>
-                <version>${geoserver.version}</version>
-                <scope>provided</scope>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.wicket</groupId>
-                <artifactId>wicket</artifactId>
-                <version>1.4.12</version>
+                <groupId>org.apache.hbase</groupId>
+                <artifactId>hbase-client</artifactId>
+                <version>${hbase.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>org.apache.wicket</groupId>
-                <artifactId>wicket-extensions</artifactId>
-                <version>1.4.12</version>
+                <groupId>org.apache.hbase</groupId>
+                <artifactId>hbase-common</artifactId>
+                <version>${hbase.version}</version>
                 <scope>provided</scope>
             </dependency>
+            <dependency>
+                <groupId>org.apache.hbase</groupId>
+                <artifactId>hbase-protocol</artifactId>
+                <version>${hbase.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <!-- geoserver 2.8 spring version -->
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-webmvc</artifactId>
