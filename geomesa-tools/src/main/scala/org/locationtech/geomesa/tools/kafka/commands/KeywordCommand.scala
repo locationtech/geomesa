@@ -10,18 +10,18 @@ package org.locationtech.geomesa.tools.kafka.commands
 
 import com.beust.jcommander._
 import com.beust.jcommander.converters.IParameterSplitter
-import org.locationtech.geomesa.kafka.{KafkaDataStore, KafkaDataStoreSchemaManager}
+import org.locationtech.geomesa.kafka.KafkaDataStoreSchemaManager
 import org.locationtech.geomesa.tools.kafka.commands.KeywordCommand.KeywordParameters
-import org.locationtech.geomesa.tools.common.OptionalFeatureTypeNameParam
+import org.locationtech.geomesa.tools.common.{FeatureTypeNameParam}
 import org.locationtech.geomesa.tools.kafka.ProducerKDSConnectionParams
+
 import scala.collection.JavaConversions._
 import scala.io.StdIn
-import scala.util.{Try, Failure}
 
 class KeywordCommand(parent: JCommander) extends CommandWithKDS(parent) {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
-  override val command: String = "keyword"
+  override val command: String = "keywords"
   override val params = new KeywordParameters()
 
   override def execute(): Unit = {
@@ -30,7 +30,8 @@ class KeywordCommand(parent: JCommander) extends CommandWithKDS(parent) {
       throw new ParameterException("Could not load a data store with the provided parameters")
     }
 
-    val sft = ds.asInstanceOf[KafkaDataStore].getKafkaSchema(params.featureName)
+    val sft = ds.getFeatureSource(params.featureName).getSchema
+
     var keywordsModified = false
 
     if (params.keywordsToAdd != null) {
@@ -55,22 +56,15 @@ class KeywordCommand(parent: JCommander) extends CommandWithKDS(parent) {
       }
     }
 
-    // Attempt to replace the old schema with the updated one
-    if (keywordsModified) {
-      Try {
-        ds.removeSchema(sft.getTypeName)
-      } match {
-        case Failure(ex) => println(ex.toString)
-      }
-      ds.asInstanceOf[KafkaDataStoreSchemaManager].createSchema(sft)
+    // Update the existing schema
+    ds.asInstanceOf[KafkaDataStoreSchemaManager].updateKafkaSchema(sft.getTypeName, sft)
+
+    if (params.list) {
+      val reloadedSft = ds.getFeatureSource(params.featureName).getSchema
+      println("Keywords: " + reloadedSft.getKeywords.toString)
     }
 
     ds.dispose()
-
-    if (params.list) {
-      val reloadedSft = ds.asInstanceOf[KafkaDataStore].getKafkaSchema(params.featureName)
-      println("Keywords: " + reloadedSft.getKeywords.toString)
-    }
   }
 }
 
@@ -83,7 +77,7 @@ object KeywordCommand {
 
   @Parameters(commandDescription = "Add/Remove/List keywords on an existing schema")
   class KeywordParameters extends  ProducerKDSConnectionParams
-    with OptionalFeatureTypeNameParam {
+    with FeatureTypeNameParam {
 
     @Parameter(names = Array("-a", "--add"), description = "A keyword to add. Can be specified multiple times", splitter = classOf[KeywordParameterSplitter])
     var keywordsToAdd: java.util.List[String] = null
