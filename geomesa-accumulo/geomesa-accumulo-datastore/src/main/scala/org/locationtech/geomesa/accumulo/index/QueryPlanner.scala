@@ -56,7 +56,7 @@ case class QueryPlanner(sft: SimpleFeatureType, ds: AccumuloDataStore) extends M
   import org.locationtech.geomesa.accumulo.index.QueryPlanner._
 
   private lazy val serializationType = ds.getFeatureEncoding(sft)
-  private val strategyHints = ds.strategyHints(sft)
+  private val stats = ds.stats
 
   /**
    * Plan the query, but don't execute it - used for m/r jobs and explain query
@@ -131,7 +131,7 @@ case class QueryPlanner(sft: SimpleFeatureType, ds: AccumuloDataStore) extends M
 
     output.pushLevel("Strategy selection:")
     val requestedStrategy = requested.orElse(hints.getRequestedStrategy)
-    val strategies = QueryStrategyDecider.chooseStrategies(sft, q, strategyHints, requestedStrategy, output)
+    val strategies = QueryStrategyDecider.chooseStrategies(sft, q, stats, requestedStrategy, output)
     output.popLevel()
 
     var strategyCount = 1
@@ -166,7 +166,7 @@ case class QueryPlanner(sft: SimpleFeatureType, ds: AccumuloDataStore) extends M
     output(s"Table: ${plan.table}")
     output(s"Deduplicate: ${plan.hasDuplicates}")
     output(s"Column Families${if (plan.columnFamilies.isEmpty) ": all"
-      else s" (${plan.columnFamilies.size}): ${plan.columnFamilies.take(20)}"} ")
+      else s" (${plan.columnFamilies.size}): ${plan.columnFamilies.take(20)}"}")
     output(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(rangeToString).mkString(", ")}")
     output(s"Iterators (${plan.iterators.size}):", plan.iterators.map(_.toString))
     plan.join.foreach { j => outputPlan(j._2, output, "Join ") }
@@ -328,12 +328,10 @@ object QueryPlanner extends LazyLogging {
       val convertedRegularProps = regularProps.map { p => s"$p=$p" }
       val allTransforms = convertedRegularProps ++ transformProps
       // ensure that the returned props includes geometry, otherwise we get exceptions everywhere
-      val geomName = sft.getGeometryDescriptor.getLocalName
-      val geomTransform = if (allTransforms.exists(_.matches(s"$geomName\\s*=.*"))) {
-        Nil
-      } else {
-        Seq(s"$geomName=$geomName")
-      }
+      val geomTransform = Option(sft.getGeometryDescriptor).map(_.getLocalName)
+          .filterNot(name => allTransforms.exists(_.matches(s"$name\\s*=.*")))
+          .map(name => Seq(s"$name=$name"))
+          .getOrElse(Nil)
       val transforms = (allTransforms ++ geomTransform).mkString(";")
       val transformDefs = TransformProcess.toDefinition(transforms)
       val derivedSchema = computeSchema(sft, transformDefs.asScala)

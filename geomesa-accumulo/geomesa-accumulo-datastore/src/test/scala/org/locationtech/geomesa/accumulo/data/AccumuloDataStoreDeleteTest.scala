@@ -58,6 +58,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       // tests that metadata exists in the catalog before being deleted
       ds.getFeatureReader(new Query(typeName), Transaction.AUTO_COMMIT) must not(beNull)
       ds.metadata.getFeatureTypes.toSeq must contain(typeName)
+      ds.stats.getCount(sft, exact = false) must beSome(1)
 
       // delete the schema
       ds.removeSchema(typeName)
@@ -67,6 +68,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
 
       // metadata should be deleted from the catalog now
       ds.metadata.getFeatureTypes.toSeq must not contain typeName
+      ds.stats.getCount(sft, exact = false) must beNone
 
       ds.getFeatureSource(typeName).getFeatures(Filter.INCLUDE) must throwA[Exception]
     }
@@ -94,6 +96,9 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       ds.metadata.getFeatureTypes.toSeq must contain(typeName1)
       ds.metadata.getFeatureTypes.toSeq must contain(typeName2)
 
+      ds.stats.getCount(sft1, exact = false) must beSome(1)
+      ds.stats.getCount(sft2, exact = false) must beSome(1)
+
       ds.removeSchema(typeName1)
 
       // these tables should be deleted now
@@ -105,6 +110,9 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       ds.metadata.getFeatureTypes.toSeq must not contain typeName1
       // metadata should still exist for sftName2
       ds.metadata.getFeatureTypes.toSeq must contain(typeName2)
+
+      ds.stats.getCount(sft1, exact = false) must beNone
+      ds.stats.getCount(sft2, exact = false) must beSome(1)
 
       ds.getFeatureSource(typeName2).getFeatures(Filter.INCLUDE).size() mustEqual 1
     }
@@ -196,8 +204,8 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       val ds = DataStoreFinder.getDataStore(Map("connector" -> connector, "tableName" -> catalog)).asInstanceOf[AccumuloDataStore]
       val sft = SimpleFeatureTypes.createType(catalog, "name:String:index=true,dtg:Date,*geom:Point:srid=4326")
       ds.createSchema(sft)
-      val tables = GeoMesaTable.getTableNames(sft, ds) ++ Seq(catalog)
-      tables must haveSize(5)
+      val tables = GeoMesaTable.getTableNames(sft, ds) ++ Seq(catalog, s"${catalog}_stats")
+      tables must haveSize(6)
       forall(tables)(tableOps.exists(_) must beTrue)
       ds.delete()
       forall(tables)(tableOps.exists(_) must beFalse)

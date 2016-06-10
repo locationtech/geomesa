@@ -250,7 +250,7 @@ object FilterHelper extends LazyLogging {
         all.reduceLeftOption[FilterBounds[T]] { case (left, right) => left.or(right) }
 
       case f: PropertyIsEqualTo =>
-        checkOrder(f.getExpression1, f.getExpression2).flatMap { prop =>
+        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap { prop =>
           Option(prop.literal.evaluate(null, binding)).map { lit =>
             val bounds = Bounds(Some(lit), Some(lit), inclusive = true)
             FilterBounds(prop.name, Seq(bounds))
@@ -260,11 +260,13 @@ object FilterHelper extends LazyLogging {
       case f: PropertyIsBetween =>
         try {
           val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
-          val lower = f.getLowerBoundary.evaluate(null, binding)
-          val upper = f.getUpperBoundary.evaluate(null, binding)
-          // note that between is inclusive
-          val bounds = Bounds(Option(lower), Option(upper), inclusive = true)
-          Some(FilterBounds(prop, Seq(bounds)))
+          if (prop != attribute) { None } else {
+            val lower = f.getLowerBoundary.evaluate(null, binding)
+            val upper = f.getUpperBoundary.evaluate(null, binding)
+            // note that between is inclusive
+            val bounds = Bounds(Option(lower), Option(upper), inclusive = true)
+            Some(FilterBounds(prop, Seq(bounds)))
+          }
         } catch {
           case e: Exception =>
             logger.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
@@ -272,7 +274,7 @@ object FilterHelper extends LazyLogging {
         }
 
       case f: During if classOf[Date].isAssignableFrom(binding) =>
-        checkOrder(f.getExpression1, f.getExpression2).flatMap { prop =>
+        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap { prop =>
           Option(prop.literal.evaluate(null, classOf[Period])).map { p =>
             val lower = p.getBeginning.getPosition.getDate.asInstanceOf[T]
             val upper = p.getEnding.getPosition.getDate.asInstanceOf[T]
@@ -283,7 +285,7 @@ object FilterHelper extends LazyLogging {
         }
 
       case f: PropertyIsGreaterThan =>
-        checkOrder(f.getExpression1, f.getExpression2).flatMap { prop =>
+        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap { prop =>
           Option(prop.literal.evaluate(null, binding)).map { lit =>
             val (lower, upper) = if (prop.flipped) (None, Some(lit)) else (Some(lit), None)
             val bounds = Bounds(lower, upper, inclusive = false)
@@ -292,7 +294,7 @@ object FilterHelper extends LazyLogging {
         }
 
       case f: PropertyIsGreaterThanOrEqualTo =>
-        checkOrder(f.getExpression1, f.getExpression2).flatMap { prop =>
+        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap { prop =>
           Option(prop.literal.evaluate(null, binding)).map { lit =>
             val (lower, upper) = if (prop.flipped) (None, Some(lit)) else (Some(lit), None)
             val bounds = Bounds(lower, upper, inclusive = true)
@@ -301,7 +303,7 @@ object FilterHelper extends LazyLogging {
         }
 
       case f: PropertyIsLessThan =>
-        checkOrder(f.getExpression1, f.getExpression2).flatMap { prop =>
+        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap { prop =>
           Option(prop.literal.evaluate(null, binding)).map { lit =>
             val (lower, upper) = if (prop.flipped) (Some(lit), None) else (None, Some(lit))
             val bounds = Bounds(lower, upper, inclusive = false)
@@ -310,7 +312,7 @@ object FilterHelper extends LazyLogging {
         }
 
       case f: PropertyIsLessThanOrEqualTo =>
-        checkOrder(f.getExpression1, f.getExpression2).flatMap { prop =>
+        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap { prop =>
           Option(prop.literal.evaluate(null, binding)).map { lit =>
             val (lower, upper) = if (prop.flipped) (Some(lit), None) else (None, Some(lit))
             val bounds = Bounds(lower, upper, inclusive = true)
@@ -319,7 +321,7 @@ object FilterHelper extends LazyLogging {
         }
 
       case f: Before =>
-        checkOrder(f.getExpression1, f.getExpression2).flatMap { prop =>
+        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap { prop =>
           Option(prop.literal.evaluate(null, binding)).map { lit =>
             val (lower, upper) = if (prop.flipped) (Option(lit), None) else (None, Option(lit))
             // note that before is exclusive
@@ -329,7 +331,7 @@ object FilterHelper extends LazyLogging {
         }
 
       case f: After =>
-        checkOrder(f.getExpression1, f.getExpression2).flatMap { prop =>
+        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap { prop =>
           Option(prop.literal.evaluate(null, binding)).map { lit =>
             val (lower, upper) = if (prop.flipped) (None, Option(lit)) else (Option(lit), None)
             // note that after is exclusive
@@ -341,16 +343,18 @@ object FilterHelper extends LazyLogging {
       case f: PropertyIsLike if binding == classOf[String] =>
         try {
           val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
-          // Remove the trailing wildcard and create a range prefix
-          val literal = f.getLiteral
-          val lower = if (literal.endsWith(MULTICHAR_WILDCARD)) {
-            literal.substring(0, literal.length - MULTICHAR_WILDCARD.length)
-          } else {
-            literal
+          if (prop != attribute) { None } else {
+            // Remove the trailing wildcard and create a range prefix
+            val literal = f.getLiteral
+            val lower = if (literal.endsWith(MULTICHAR_WILDCARD)) {
+              literal.substring(0, literal.length - MULTICHAR_WILDCARD.length)
+            } else {
+              literal
+            }
+            val upper = Some(lower + WILDCARD_SUFFIX).asInstanceOf[Some[T]]
+            val bounds = Bounds(Some(lower.asInstanceOf[T]), upper, inclusive = true)
+            Some(FilterBounds(prop, Seq(bounds)))
           }
-          val upper = Some(lower + WILDCARD_SUFFIX).asInstanceOf[Some[T]]
-          val bounds = Bounds(Some(lower.asInstanceOf[T]), upper, inclusive = true)
-          Some(FilterBounds(prop, Seq(bounds)))
         } catch {
           case e: Exception =>
             logger.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
@@ -361,8 +365,10 @@ object FilterHelper extends LazyLogging {
         try {
           val isNull = f.getFilter.asInstanceOf[PropertyIsNull]
           val prop = isNull.getExpression.asInstanceOf[PropertyName].getPropertyName
-          val bounds = Bounds[T](None, None, inclusive = true)
-          Some(FilterBounds(prop, Seq(bounds)))
+          if (prop != attribute) { None } else {
+            val bounds = Bounds[T](None, None, inclusive = true)
+            Some(FilterBounds(prop, Seq(bounds)))
+          }
         } catch {
           case e: Exception =>
             logger.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
@@ -389,7 +395,7 @@ object FilterHelper extends LazyLogging {
         }
 
       case f: TEquals =>
-        checkOrder(f.getExpression1, f.getExpression2).flatMap { prop =>
+        checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap { prop =>
           Option(prop.literal.evaluate(null, binding)).map { lit =>
             val bounds = Bounds(Some(lit), Some(lit), inclusive = true)
             FilterBounds(prop.name, Seq(bounds))

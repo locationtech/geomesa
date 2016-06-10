@@ -24,6 +24,8 @@ import org.opengis.feature.simple.SimpleFeatureType
 // https://geomesa.atlassian.net/browse/GEOMESA-344
 object RecordTable extends GeoMesaTable {
 
+  private val SFT_CF = new Text("SFT")
+
   override def supports(sft: SimpleFeatureType) = true
 
   override val suffix: String = "records"

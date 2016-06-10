@@ -69,24 +69,24 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
       isc.count must beGreaterThanOrEqualTo(1L)
     }
 
-    "work with the Histogram stat" in {
-      val q = getQuery("Histogram(idt)")
+    "work with the Enumeration stat" in {
+      val q = getQuery("Enumeration(idt)")
       val results = fs.getFeatures(q).features().toList
       val sf = results.head
 
-      val eh = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[Histogram[java.lang.Integer]]
+      val eh = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[EnumerationStat[java.lang.Integer]]
       eh.size mustEqual 150
       eh.frequency(0) mustEqual 1
       eh.frequency(149) mustEqual 1
       eh.frequency(150) mustEqual 0
     }
 
-    "work with the RangeHistogram stat" in {
-      val q = getQuery("RangeHistogram(idt,5,10,14)", Some("idt between 10 and 14"))
+    "work with the Histogram stat" in {
+      val q = getQuery("Histogram(idt,5,10,14)", Some("idt between 10 and 14"))
       val results = fs.getFeatures(q).features().toList
       val sf = results.head
 
-      val rh = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[RangeHistogram[java.lang.Integer]]
+      val rh = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[Histogram[java.lang.Integer]]
       rh.length mustEqual 5
       rh.count(rh.indexOf(10)) mustEqual 1
       rh.count(rh.indexOf(11)) mustEqual 1
@@ -96,7 +96,7 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
     }
 
     "work with multiple stats at once" in {
-      val q = getQuery("MinMax(attr);IteratorStackCount();Histogram(idt);RangeHistogram(idt,5,10,14)")
+      val q = getQuery("MinMax(attr);IteratorStackCount();Enumeration(idt);Histogram(idt,5,10,14)")
       val results = fs.getFeatures(q).features().toList
       val sf = results.head
 
@@ -106,8 +106,8 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
 
       val minMax = stats(0).asInstanceOf[MinMax[java.lang.Long]]
       val isc = stats(1).asInstanceOf[IteratorStackCount]
-      val eh = stats(2).asInstanceOf[Histogram[java.lang.Integer]]
-      val rh = stats(3).asInstanceOf[RangeHistogram[java.lang.Integer]]
+      val eh = stats(2).asInstanceOf[EnumerationStat[java.lang.Integer]]
+      val rh = stats(3).asInstanceOf[Histogram[java.lang.Integer]]
 
       minMax.bounds mustEqual (0, 298)
 

@@ -60,7 +60,7 @@ object Z3Table extends GeoMesaTable {
 
   // z3 always needs a separate table since we don't include the feature name in the row key
   override def formatTableName(prefix: String, sft: SimpleFeatureType): String =
-    GeoMesaTable.formatSoloTableName(prefix, suffix, sft)
+    GeoMesaTable.formatSoloTableName(prefix, suffix, sft.getTypeName)
 
   override def writer(sft: SimpleFeatureType): FeatureToMutations = {
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new RuntimeException("Z3 writer requires a valid date"))

@@ -12,6 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Range => AccRange}
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
+import org.locationtech.geomesa.accumulo.data.stats.GeoMesaStats
 import org.locationtech.geomesa.accumulo.data.tables.{AttributeTable, RecordTable}
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.QueryPlanners.JoinFunction
@@ -77,7 +78,7 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
       val iters = KryoLazyFilterTransformIterator.configure(schema, ecql, transform, sampling).toSeq
       // need to use transform to convert key/values if it's defined
       val kvsToFeatures = queryPlanner.kvsToFeatures(transform.map(_._2).getOrElse(schema))
-      BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
+      BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
     }
 
     // query against the attribute table
@@ -87,7 +88,7 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
 
       // need to use transform to convert key/values if it's defined
       val kvsToFeatures = queryPlanner.kvsToFeatures(transform.map(_._2).getOrElse(schema))
-      BatchScanPlan(attrTable, ranges, Seq(iters), Seq.empty, kvsToFeatures, attrThreads, hasDupes)
+      BatchScanPlan(filter, attrTable, ranges, Seq(iters), Seq.empty, kvsToFeatures, attrThreads, hasDupes)
     }
 
     if (hints.isBinQuery) {
@@ -95,7 +96,7 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
         // can apply the bin aggregating iterator directly to the sft
         val iters = Seq(BinAggregatingIterator.configureDynamic(sft, filter.secondary, hints, hasDupes))
         val kvsToFeatures = BinAggregatingIterator.kvsToFeatures()
-        BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
+        BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
       } else {
         // check to see if we can execute against the index values
         val indexSft = IndexValueEncoder.getIndexSft(sft)
@@ -104,7 +105,7 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
             filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
           val iters = Seq(BinAggregatingIterator.configureDynamic(indexSft, filter.secondary, hints, hasDupes))
           val kvsToFeatures = BinAggregatingIterator.kvsToFeatures()
-          BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
+          BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
         } else {
           // have to do a join against the record table
           joinQuery(sft, hints, queryPlanner, hasDupes, singleAttrValueOnlyPlan)
@@ -114,14 +115,14 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
       val kvsToFeatures = KryoLazyStatsIterator.kvsToFeatures(sft)
       if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
         val iters = Seq(KryoLazyStatsIterator.configure(sft, filter.secondary, hints, hasDupes))
-        BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDuplicates = false)
+        BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDuplicates = false)
       } else {
         // check to see if we can execute against the index values
         val indexSft = IndexValueEncoder.getIndexSft(sft)
         if (Try(Stat(indexSft, hints.getStatsIteratorQuery)).isSuccess &&
             filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
           val iters = Seq(KryoLazyStatsIterator.configure(indexSft, filter.secondary, hints, hasDupes))
-          BatchScanPlan(attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDuplicates = false)
+          BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDuplicates = false)
         } else {
           // have to do a join against the record table
           joinQuery(sft, hints, queryPlanner, hasDupes, singleAttrValueOnlyPlan)
@@ -190,10 +191,10 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
     val recordTable = queryPlanner.ds.getTableName(sft.getTypeName, RecordTable)
     val recordThreads = queryPlanner.ds.getSuggestedThreads(sft.getTypeName, RecordTable)
     val recordRanges = Seq(new AccRange()) // this will get overwritten in the join method
-    val joinQuery = BatchScanPlan(recordTable, recordRanges, recordIterators, Seq.empty,
+    val joinQuery = BatchScanPlan(filter, recordTable, recordRanges, recordIterators, Seq.empty,
       kvsToFeatures, recordThreads, hasDupes)
 
-    JoinPlan(attributeScan.table, attributeScan.ranges, attributeScan.iterators,
+    JoinPlan(filter, attributeScan.table, attributeScan.ranges, attributeScan.iterators,
       attributeScan.columnFamilies, recordThreads, hasDupes, joinFunction, joinQuery)
   }
 }
@@ -203,7 +204,45 @@ object AttributeIdxStrategy extends StrategyProvider {
   val FILTERING_ITER_PRIORITY = 25
   type ScanPlanFn = (SimpleFeatureType, Option[Filter], Option[(String, SimpleFeatureType)]) => BatchScanPlan
 
-  override def getCost(filter: QueryFilter, sft: SimpleFeatureType, hints: StrategyHints) = {
+  override protected def statsBasedCost(sft: SimpleFeatureType,
+                                        filter: QueryFilter,
+                                        transform: Option[SimpleFeatureType],
+                                        stats: GeoMesaStats): Option[Long] = {
+    filter.singlePrimary match {
+      case None => Some(Long.MaxValue)
+      case Some(f) =>
+        stats.getCount(sft, f, exact = false).map { count =>
+          // account for cardinality and index coverage
+          val attribute = FilterHelper.propertyNames(f, sft).head
+          val descriptor = sft.getDescriptor(attribute)
+          if (descriptor.getCardinality == Cardinality.HIGH) {
+            count / 10 // prioritize attributes marked high-cardinality
+          } else if (descriptor.getIndexCoverage == IndexCoverage.FULL ||
+                       IteratorTrigger.canUseAttrIdxValues(sft, filter.secondary, transform) ||
+                       IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, filter.secondary, transform)) {
+            count
+          } else {
+            count * 10 // de-prioritize join queries, they are much more expensive
+          }
+        }
+    }
+  }
+
+  /**
+    * full index:
+    *   high cardinality - 1
+    *   unknown cardinality - 101
+    * join index:
+    *   high cardinality - 10
+    *   unknown cardinality - 1010
+    * low cardinality - Long.MaxValue
+    *
+    * Compare with id lookups at 1, z2/z3 at 200-401
+    */
+  override protected def indexBasedCost(sft: SimpleFeatureType,
+                                        filter: QueryFilter,
+                                        transform: Option[SimpleFeatureType]): Long = {
+    // note: names should be only a single attribute
     val attrsAndCounts = filter.primary
       .flatMap(getAttributeProperty)
       .map(_.name)
@@ -213,22 +252,26 @@ object AttributeIdxStrategy extends StrategyProvider {
     val cost = attrsAndCounts.map { case (attr, count) =>
       val descriptor = sft.getDescriptor(attr)
       // join queries are much more expensive than non-join queries
-      // TODO we could consider whether a join is actually required based on the filter and transform
       // TODO figure out the actual cost of each additional range...I'll make it 2
       val additionalRangeCost = 1
       val joinCost = 10
       val multiplier =
-        if (descriptor.getIndexCoverage() == IndexCoverage.JOIN) joinCost + (additionalRangeCost*(count-1))
-        else 1
+        if (descriptor.getIndexCoverage == IndexCoverage.FULL ||
+              IteratorTrigger.canUseAttrIdxValues(sft, filter.secondary, transform) ||
+              IteratorTrigger.canUseAttrKeysPlusValues(attr, sft, filter.secondary, transform)) {
+          1
+        } else {
+          joinCost + (additionalRangeCost*(count-1))
+        }
 
       // scale attribute cost by expected cardinality
-      hints.cardinality(descriptor) match {
+      descriptor.getCardinality() match {
         case Cardinality.HIGH    => 1 * multiplier
         case Cardinality.UNKNOWN => 101 * multiplier
-        case Cardinality.LOW     => Int.MaxValue
+        case Cardinality.LOW     => Long.MaxValue
       }
     }.sum
-    if (cost == 0) Int.MaxValue else cost // cost == 0 if somehow the filters don't match anything
+    if (cost == 0) Long.MaxValue else cost // cost == 0 if somehow the filters don't match anything
   }
 
   /**

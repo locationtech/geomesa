@@ -16,7 +16,6 @@ Running the command line tools
 Run ``geomesa`` without any arguments to produce the following usage text::
 
     $ geomesa
-    Warning: GEOMESA_HOME is not set, using /opt/devel/src/geomesa/geomesa-dist/target/geomesa-1.2.0-SNAPSHOT/dist/tools/geomesa-tools-1.2.0-SNAPSHOT
     Usage: geomesa [command] [command options]
       Commands:
         create              Create a feature definition in a GeoMesa catalog
@@ -32,6 +31,11 @@ Run ``geomesa`` without any arguments to produce the following usage text::
         ingestraster        Ingest a raster file or raster files in a directory into GeoMesa
         list                List GeoMesa features for a given catalog
         queryrasterstats    Export queries and statistics about the last X number of queries to a CSV file.
+        stats-analyze       Analyze statistics on a GeoMesa feature type
+        stats-bounds        View or calculate bounds on attributes in a GeoMesa feature type
+        stats-count         Estimate or calculate feature counts in a GeoMesa feature type
+        stats-enumerate     Enumerate attribute values in a GeoMesa feature type
+        stats-histogram     View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values
         removeschema        Remove a schema and associated features from a GeoMesa catalog
         tableconf           Perform table configuration operations
         version             GeoMesa Version
@@ -40,7 +44,6 @@ This usage text lists the available commands. To see help for an individual comm
 run ``geomesa help <command-name>``, which for example will give you something like this::
 
     $ geomesa help list
-    Warning: GEOMESA_HOME is not set, using /opt/devel/src/geomesa/geomesa-dist/target/geomesa-1.2.0-SNAPSHOT/dist/tools/geomesa-tools-1.2.0-SNAPSHOT
     List GeoMesa features for a given catalog
     Usage: list [options]
       Options:
@@ -423,6 +426,133 @@ Explain how a given GeoMesa query will be executed::
     $ geomesa explain -u username -p password \
       -c test_catalog -f test_feature \
       -q "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))"
+
+stats-analyze
+~~~~~~~~~~~~~
+
+Analyze statistics for your data set. This may improve query planning.
+
+Example usage::
+
+    $ geomesa stats-analyze -u username -p password -c geomesa.data -f twitter
+      Running stat analysis for feature type twitter...
+      Stats analyzed:
+        Total features: 8852601
+        Bounds for geom: [ -171.75, -45.5903996, 157.7302, 89.99997102 ] cardinality: 2119237
+        Bounds for dtg: [ '2016-02-01T00:09:12.000Z' to '2016-03-01T00:21:02.000Z' ] cardinality: 2161132
+        Bounds for user_id: [ '100000215' to '99999502' ] cardinality: 861283
+      Use 'stats-histogram' or 'stats-count' commands for more details
+
+stats-bounds
+~~~~~~~~~~~~
+
+Displays the bounds of your data for different attributes. You can use pre-calculated stats for a quick
+estimation, or get the definitive result by querying the data set using the '--exact' flag.
+
+Example usage::
+
+    $ geomesa stats-bounds -u username -p password -i instance -z zoo1,zoo2,zoo3 \
+        -c geomesa.data -f twitter
+      user_id [ 100000215 to 99999502 ] cardinality: 861283
+      user_name [ unavailable ]
+      text [ unavailable ]
+      dtg [ 2016-02-01T00:09:12.000Z to 2016-03-01T00:21:02.000Z ] cardinality: 2161132
+      geom [ -171.75, -45.5903996, 157.7302, 89.99997102 ] cardinality: 2119237
+
+    $ geomesa stats-bounds -u username -p password -i instance -z zoo1,zoo2,zoo3 \
+        -c geomesa.data -f twitter --exact \
+        -q 'BBOX(geom,-70,45,-60,55) AND dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
+      Running stat query...
+        user_id [ 1011811424 to 99124417 ] cardinality: 115
+        user_name [ bar_user to foo_user ] cardinality: 113
+        text [ bar to foo ] cardinality: 180
+        dtg [ 2016-02-02T00:01:07.000Z to 2016-02-02T23:59:41.000Z ] cardinality: 178
+        geom [ -69.87212338, 45.01259299, -60.08925, 53.8868369 ] cardinality: 155
+
+stats-count
+~~~~~~~~~~~
+
+Counts the features in your data set. You can count total features, or features that match a CQL filter.
+You can use pre-calculated stats for a quick estimation, or get the definitive result by querying the
+data set using the '--exact' flag.
+
+Example usage::
+
+    $ geomesa stats-count -u username -p password -i instance -z zoo1,zoo2,zoo3 \
+        -c geomesa.data -f twitter
+      Estimated count: 8852601
+
+    $ geomesa stats-count -u username -p password -i instance -z zoo1,zoo2,zoo3 \
+        -c geomesa.data -f twitter \
+        -q 'BBOX(geom,-70,45,-60,55) AND dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
+      Estimated count: 2681
+
+    $ geomesa stats-count -u username -p password -i instance -z zoo1,zoo2,zoo3 \
+        -c geomesa.data -f twitter --exact \
+        -q 'BBOX(geom,-70,45,-60,55) AND dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
+      Running stat query...
+      Count: 182
+
+
+stats-enumerate
+~~~~~~~~~~~~~~~
+
+Enumerates the values for attributes in your data set. You can enumerate all values, or only values for
+features that match a CQL filter.
+
+Example usage::
+
+    $ geomesa stats-enumerate -u username -p password -i instance -z zoo1,zoo2,zoo3 \
+        -c geomesa.data -f twitter -a user_id
+      Running stat query...
+      Values for 'user_id':
+        3144822634 (26383)
+        388009236 (20457)
+        497145453 (19514)
+        563319506 (15848)
+        2841269945 (15716)
+        ...
+
+stats-histogram
+~~~~~~~~~~~~~~~
+
+Counts the features in your data set, grouped into sorted bins. You may specify the number of bins to group
+attribute into. You can count total features, or features that match a CQL filter. You can use
+pre-calculated stats for a quick estimation, or get the definitive result by querying the
+data set using the '--exact' flag.
+
+If you query a histogram for a geometry attribute, the result will be displayed in an ASCII heatmap.
+
+Example usage::
+
+    $ geomesa stats-histogram -u username -p password -i instance -z zoo1,zoo2,zoo3 \
+        -c geomesa.data -f twitter -a dtg --bins 10
+      Binned histogram for 'dtg':
+        [ 2016-02-01T00:09:12.000Z to 2016-02-03T21:46:23.000Z ] 798968
+        [ 2016-02-03T21:46:23.000Z to 2016-02-06T19:23:34.000Z ] 868019
+        [ 2016-02-06T19:23:34.000Z to 2016-02-09T17:00:45.000Z ] 861720
+        [ 2016-02-09T17:00:45.000Z to 2016-02-12T14:37:56.000Z ] 833473
+        [ 2016-02-12T14:37:56.000Z to 2016-02-15T12:15:07.000Z ] 990292
+        [ 2016-02-15T12:15:07.000Z to 2016-02-18T09:52:18.000Z ] 842434
+        [ 2016-02-18T09:52:18.000Z to 2016-02-21T07:29:29.000Z ] 968936
+        [ 2016-02-21T07:29:29.000Z to 2016-02-24T05:06:40.000Z ] 862808
+        [ 2016-02-24T05:06:40.000Z to 2016-02-27T02:43:51.000Z ] 869208
+        [ 2016-02-27T02:43:51.000Z to 2016-03-01T00:21:02.000Z ] 956743
+
+    $ geomesa stats-histogram -u username -p password -i instance -z zoo1,zoo2,zoo3 \
+        -c geomesa.data -f twitter -a dtg --bins 10 --exact
+      Running stat query...
+      Binned histogram for 'dtg':
+        [ 2016-02-01T00:09:12.000Z to 2016-02-03T21:46:23.000Z ] 805620
+        [ 2016-02-03T21:46:23.000Z to 2016-02-06T19:23:34.000Z ] 869361
+        [ 2016-02-06T19:23:34.000Z to 2016-02-09T17:00:45.000Z ] 859868
+        [ 2016-02-09T17:00:45.000Z to 2016-02-12T14:37:56.000Z ] 832458
+        [ 2016-02-12T14:37:56.000Z to 2016-02-15T12:15:07.000Z ] 986829
+        [ 2016-02-15T12:15:07.000Z to 2016-02-18T09:52:18.000Z ] 841580
+        [ 2016-02-18T09:52:18.000Z to 2016-02-21T07:29:29.000Z ] 970460
+        [ 2016-02-21T07:29:29.000Z to 2016-02-24T05:06:40.000Z ] 863484
+        [ 2016-02-24T05:06:40.000Z to 2016-02-27T02:43:51.000Z ] 871742
+        [ 2016-02-27T02:43:51.000Z to 2016-03-01T00:21:02.000Z ] 951199
 
 tableconf
 ~~~~~~~~~

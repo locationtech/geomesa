@@ -16,7 +16,7 @@ import org.specs2.runner.JUnitRunner
 class SeqStatTest extends Specification with StatTestHelper {
 
   def newStat[T](observe: Boolean = true): SeqStat = {
-    val stat = Stat(sft, "MinMax(intAttr);IteratorStackCount();Histogram(longAttr);RangeHistogram(doubleAttr,20,0,200)")
+    val stat = Stat(sft, "MinMax(intAttr);IteratorStackCount();Enumeration(longAttr);Histogram(doubleAttr,20,0,200)")
     if (observe) {
       features.foreach { stat.observe }
     }
@@ -33,8 +33,8 @@ class SeqStatTest extends Specification with StatTestHelper {
 
       val mm = stat.stats(0).asInstanceOf[MinMax[java.lang.Integer]]
       val ic = stat.stats(1).asInstanceOf[IteratorStackCount]
-      val eh = stat.stats(2).asInstanceOf[Histogram[java.lang.Long]]
-      val rh = stat.stats(3).asInstanceOf[RangeHistogram[java.lang.Double]]
+      val eh = stat.stats(2).asInstanceOf[EnumerationStat[java.lang.Long]]
+      val rh = stat.stats(3).asInstanceOf[Histogram[java.lang.Double]]
 
       mm.attribute mustEqual intIndex
       mm.isEmpty must beTrue
@@ -42,7 +42,7 @@ class SeqStatTest extends Specification with StatTestHelper {
       ic.counter mustEqual 1
 
       eh.attribute mustEqual longIndex
-      eh.histogram must beEmpty
+      eh.enumeration must beEmpty
 
       rh.attribute mustEqual doubleIndex
       forall(0 until rh.length)(rh.count(_) mustEqual 0)
@@ -58,16 +58,16 @@ class SeqStatTest extends Specification with StatTestHelper {
 
       val mm = stat.stats(0).asInstanceOf[MinMax[java.lang.Integer]]
       val ic = stat.stats(1).asInstanceOf[IteratorStackCount]
-      val eh = stat.stats(2).asInstanceOf[Histogram[java.lang.Long]]
-      val rh = stat.stats(3).asInstanceOf[RangeHistogram[java.lang.Double]]
+      val eh = stat.stats(2).asInstanceOf[EnumerationStat[java.lang.Long]]
+      val rh = stat.stats(3).asInstanceOf[Histogram[java.lang.Double]]
 
       mm.bounds mustEqual (0, 99)
 
       ic.counter mustEqual 1
 
-      eh.histogram.size mustEqual 100
-      eh.histogram(0L) mustEqual 1
-      eh.histogram(100L) mustEqual 0
+      eh.enumeration.size mustEqual 100
+      eh.enumeration(0L) mustEqual 1
+      eh.enumeration(100L) mustEqual 0
 
       rh.length mustEqual 20
       rh.count(rh.indexOf(0.0)) mustEqual 10
@@ -117,17 +117,17 @@ class SeqStatTest extends Specification with StatTestHelper {
 
       val mm = stat.stats(0).asInstanceOf[MinMax[java.lang.Integer]]
       val ic = stat.stats(1).asInstanceOf[IteratorStackCount]
-      val eh = stat.stats(2).asInstanceOf[Histogram[java.lang.Long]]
-      val rh = stat.stats(3).asInstanceOf[RangeHistogram[java.lang.Double]]
+      val eh = stat.stats(2).asInstanceOf[EnumerationStat[java.lang.Long]]
+      val rh = stat.stats(3).asInstanceOf[Histogram[java.lang.Double]]
 
       val mm2 = stat2.stats(0).asInstanceOf[MinMax[java.lang.Integer]]
       val ic2 = stat2.stats(1).asInstanceOf[IteratorStackCount]
-      val eh2 = stat2.stats(2).asInstanceOf[Histogram[java.lang.Long]]
-      val rh2 = stat2.stats(3).asInstanceOf[RangeHistogram[java.lang.Double]]
+      val eh2 = stat2.stats(2).asInstanceOf[EnumerationStat[java.lang.Long]]
+      val rh2 = stat2.stats(3).asInstanceOf[Histogram[java.lang.Double]]
 
       ic2.counter mustEqual 1
       mm2.isEmpty must beTrue
-      eh2.histogram must beEmpty
+      eh2.enumeration must beEmpty
 
       rh2.length mustEqual 20
       forall(0 until 20)(rh2.count(_) mustEqual 0)
@@ -140,9 +140,9 @@ class SeqStatTest extends Specification with StatTestHelper {
 
       ic.counter mustEqual 2
 
-      eh.histogram.size mustEqual 200
-      eh.histogram(0L) mustEqual 1
-      eh.histogram(100L) mustEqual 1
+      eh.enumeration.size mustEqual 200
+      eh.enumeration(0L) mustEqual 1
+      eh.enumeration(100L) mustEqual 1
 
       rh.length mustEqual 20
       rh.count(rh.indexOf(0.0)) mustEqual 10
@@ -153,9 +153,9 @@ class SeqStatTest extends Specification with StatTestHelper {
 
       ic2.counter mustEqual 1
 
-      eh2.histogram.size mustEqual 100
-      eh2.histogram(0L) mustEqual 0
-      eh2.histogram(100L) mustEqual 1
+      eh2.enumeration.size mustEqual 100
+      eh2.enumeration(0L) mustEqual 0
+      eh2.enumeration(100L) mustEqual 1
 
       rh2.length mustEqual 20
       rh2.count(rh2.indexOf(0.0)) mustEqual 0
@@ -171,8 +171,8 @@ class SeqStatTest extends Specification with StatTestHelper {
 
       val mm = stat.stats(0).asInstanceOf[MinMax[java.lang.Integer]]
       val ic = stat.stats(1).asInstanceOf[IteratorStackCount]
-      val eh = stat.stats(2).asInstanceOf[Histogram[java.lang.Long]]
-      val rh = stat.stats(3).asInstanceOf[RangeHistogram[java.lang.Double]]
+      val eh = stat.stats(2).asInstanceOf[EnumerationStat[java.lang.Long]]
+      val rh = stat.stats(3).asInstanceOf[Histogram[java.lang.Double]]
 
       mm.attribute mustEqual intIndex
       mm.isEmpty must beTrue
@@ -180,7 +180,7 @@ class SeqStatTest extends Specification with StatTestHelper {
       ic.counter mustEqual 1
 
       eh.attribute mustEqual longIndex
-      eh.histogram must beEmpty
+      eh.enumeration must beEmpty
 
       rh.attribute mustEqual doubleIndex
       forall(0 until rh.length)(rh.count(_) mustEqual 0)

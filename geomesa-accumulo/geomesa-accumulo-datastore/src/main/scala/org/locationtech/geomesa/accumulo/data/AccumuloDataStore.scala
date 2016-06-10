@@ -11,41 +11,36 @@ package org.locationtech.geomesa.accumulo.data
 
 import java.io.IOException
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.{Lock, ReentrantLock}
 import java.util.{List => jList}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client._
-import org.apache.accumulo.core.client.mock.MockConnector
-import org.apache.curator.framework.CuratorFrameworkFactory
-import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
-import org.apache.curator.retry.ExponentialBackoffRetry
 import org.geotools.data._
 import org.geotools.factory.Hints
 import org.geotools.feature.{FeatureTypes, NameImpl}
+import org.joda.time.DateTimeUtils
 import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore._
-import org.locationtech.geomesa.accumulo.data.stats.GeoMesaMetadataStats
+import org.locationtech.geomesa.accumulo.data.GeoMesaMetadata._
+import org.locationtech.geomesa.accumulo.data.stats.{GeoMesaMetadataStats, GeoMesaStats, HasGeoMesaStats, StatsRunner}
 import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.stats.{QueryStat, Stat, StatWriter}
-import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
+import org.locationtech.geomesa.accumulo.util.{DistributedLocking, GeoMesaBatchWriterConfig, Releasable}
 import org.locationtech.geomesa.accumulo.{AccumuloVersion, GeomesaSystemProperties}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializers}
 import org.locationtech.geomesa.security.{AuditProvider, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{FeatureSpec, NonGeomAttributeSpec}
+import org.locationtech.geomesa.utils.geotools.{GeoToolsDateFormat, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
-import scala.collection.immutable.HashMap
 
 
 /**
@@ -66,8 +61,8 @@ class AccumuloDataStore(val connector: Connector,
                         val auditProvider: AuditProvider,
                         val defaultVisibilities: String,
                         val config: AccumuloDataStoreConfig)
-    extends DataStore with AccumuloConnectorCreator with HasGeoMesaMetadata
-            with GeoMesaMetadataStats with StrategyHintsProvider with LazyLogging {
+    extends DataStore with AccumuloConnectorCreator with DistributedLocking
+      with HasGeoMesaMetadata[String] with HasGeoMesaStats with LazyLogging {
 
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
 
@@ -79,9 +74,12 @@ class AccumuloDataStore(val connector: Connector,
 
   private val defaultBWConfig = GeoMesaBatchWriterConfig().setMaxWriteThreads(config.writeThreads)
 
-  override val metadata: GeoMesaMetadata = new AccumuloBackedMetadata(connector, catalogTable, authProvider)
-
   private val tableOps = connector.tableOperations()
+  private val statsTable = GeoMesaTable.concatenateNameParts(catalogTable, "stats")
+
+  override val metadata: GeoMesaMetadata[String] =
+    new AccumuloBackedMetadata(connector, catalogTable, MetadataStringSerializer)
+  override val stats: GeoMesaStats = new GeoMesaMetadataStats(this, statsTable)
 
   // methods from org.geotools.data.DataStore
 
@@ -157,13 +155,12 @@ class AccumuloDataStore(val connector: Connector,
       val sft = SimpleFeatureTypes.createType(name.getURI, attributes)
 
       // back compatible check if user data wasn't encoded with the sft
-      // noinspection ScalaDeprecation
       if (!sft.getUserData.containsKey(SCHEMA_VERSION_KEY)) {
-        metadata.read(typeName, DTGFIELD_KEY).foreach(sft.setDtgField)
+        metadata.read(typeName, "dtgfield").foreach(sft.setDtgField)
         sft.setSchemaVersion(metadata.readRequired(typeName, VERSION_KEY).toInt)
 
         // If no data is written, we default to 'false' in order to support old tables.
-        if (metadata.read(typeName, SHARED_TABLES_KEY).exists(_.toBoolean)) {
+        if (metadata.read(typeName, "tables.sharing").exists(_.toBoolean)) {
           sft.setTableSharing(true)
           // use schema id if available or fall back to old type name for backwards compatibility
           val prefix = metadata.read(typeName, SCHEMA_ID_KEY).getOrElse(s"${sft.getTypeName}~")
@@ -172,9 +169,10 @@ class AccumuloDataStore(val connector: Connector,
           sft.setTableSharing(false)
           sft.setTableSharingPrefix("")
         }
+        // noinspection ScalaDeprecation
         metadata.read(typeName, SimpleFeatureTypes.ENABLED_INDEXES_OLD).foreach(sft.setEnabledTables)
         // old st_idx schema, kept around for back-compatibility
-        metadata.read(typeName, SCHEMA_KEY).foreach(sft.setStIndexSchema)
+        metadata.read(typeName, "schema").foreach(sft.setStIndexSchema)
       }
 
       if (sft.getSchemaVersion > CURRENT_SCHEMA_VERSION) {
@@ -184,6 +182,28 @@ class AccumuloDataStore(val connector: Connector,
             "version of GeoMesa than this client can handle. Please ensure that you are using the " +
             "same GeoMesa jar versions across your entire workflow. For more information, see " +
             "http://www.geomesa.org/documentation/user/installation_and_configuration.html#upgrading")
+      }
+
+      // back compatibility check for stat configuration
+      if (metadata.read(typeName, STATS_GENERATION_KEY).isEmpty) {
+        // configure the stats combining iterator - we only use this key for older data stores
+        val configuredKey = "stats-configured"
+        if (!metadata.read(typeName, configuredKey).contains("true")) {
+          val lock = acquireDistributedLock()
+          try {
+            if (!metadata.read(typeName, configuredKey, cache = false).contains("true")) {
+              GeoMesaMetadataStats.configureStatCombiner(connector, statsTable, sft)
+              metadata.insert(typeName, configuredKey, "true")
+            }
+          } finally {
+            lock.release()
+          }
+        }
+        // kick off asynchronous stats run for the existing data
+        // this may get triggered more than once, but should only run one time
+        val statsRunner = new StatsRunner(this)
+        statsRunner.submit(sft)
+        statsRunner.close()
       }
 
       sft
@@ -210,11 +230,11 @@ class AccumuloDataStore(val connector: Connector,
 
     // Get previous schema and user data
     val previousSft = getSchema(typeName)
-    val schemaTypeName = sft.getTypeName()
+    val schemaTypeName = sft.getTypeName
 
     // Prevent modifying wrong type if type names don't match
     if (!schemaTypeName.equals(typeName.toString)) {
-      throw new UnsupportedOperationException("Updating the type name of a schema is not allowed " + schemaTypeName + " " + typeName)
+      throw new UnsupportedOperationException(s"Updating the type name of a schema is not allowed: $schemaTypeName $typeName")
     }
 
     val existingUserData = metadata.read(schemaTypeName, ATTRIBUTES_KEY)
@@ -225,7 +245,7 @@ class AccumuloDataStore(val connector: Connector,
 
     unmodifiableUserdataKeys.foreach { case (key) =>
       if (sft.getUserData.contains(key) && sft.userData[String](key) != previousSft.userData[String](key)) {
-        throw new UnsupportedOperationException("Updating " + key + " is not allowed")
+        throw new UnsupportedOperationException(s"Updating $key is not allowed")
       }
     }
 
@@ -240,6 +260,7 @@ class AccumuloDataStore(val connector: Connector,
     val attributesValue   = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
     metadata.insert(schemaTypeName, ATTRIBUTES_KEY, attributesValue)
   }
+
   /**
    * Deletes all features from the accumulo index tables and deletes metadata from the catalog.
    * If the feature type shares tables with another, this is fairly expensive,
@@ -257,9 +278,9 @@ class AccumuloDataStore(val connector: Connector,
         } else {
           deleteStandAloneTables(sft)
         }
+        stats.clearStats(sft)
       }
-      metadata.delete(typeName, 1)
-      metadata.expireCache(typeName)
+      metadata.delete(typeName)
     } finally {
       lock.release()
     }
@@ -302,8 +323,8 @@ class AccumuloDataStore(val connector: Connector,
    * @return feature reader
    */
   override def getFeatureReader(query: Query, transaction: Transaction): AccumuloFeatureReader = {
-    val stats = Some(this).collect { case w: StatWriter => w }.map((_, auditProvider))
     val qp = getQueryPlanner(query.getTypeName)
+    val stats = Some(this).collect { case w: StatWriter => w }.map((_, auditProvider))
     AccumuloFeatureReader(query, qp, queryTimeoutMillis, stats)
   }
 
@@ -465,15 +486,6 @@ class AccumuloDataStore(val connector: Connector,
     }
   }
 
-  /**
-   * Method from StrategyHintsProvider
-   *
-   * @see org.locationtech.geomesa.accumulo.index.StrategyHintsProvider#strategyHints(org.opengis.feature.simple.SimpleFeatureType)
-   * @param sft feature type
-   * @return hints
-   */
-  override def strategyHints(sft: SimpleFeatureType) = new UserDataStrategyHints()
-
   // other public methods
 
   /**
@@ -483,11 +495,10 @@ class AccumuloDataStore(val connector: Connector,
    */
   def delete() = {
     val indexTables = getTypeNames.map(getSchema).flatMap(GeoMesaTable.getTableNames(_, this)).distinct
+    val metadataTables = Seq(statsTable, catalogTable)
     // Delete index tables first then catalog table in case of error
-    indexTables.filter(tableOps.exists).foreach(tableOps.delete)
-    if (tableOps.exists(catalogTable)) {
-      tableOps.delete(catalogTable)
-    }
+    val allTables = indexTables ++ metadataTables
+    allTables.filter(tableOps.exists).foreach(tableOps.delete)
   }
 
   /**
@@ -499,20 +510,9 @@ class AccumuloDataStore(val connector: Connector,
    */
   @throws[RuntimeException]
   def getFeatureEncoding(sft: SimpleFeatureType): SerializationType =
-    // noinspection ScalaDeprecation
-    metadata.read(sft.getTypeName, FEATURE_ENCODING_KEY)
+    metadata.read(sft.getTypeName, "featureEncoding")
         .map(SerializationType.withName)
         .getOrElse(SerializationType.KRYO)
-
-  /**
-   * Reads the index schema format out of the metadata
-   *
-   * @param sft simple feature type
-   * @return index schema format string
-   */
-  def getIndexSchemaFmt(sft: SimpleFeatureType): String =
-    // noinspection ScalaDeprecation
-    metadata.read(sft.getTypeName, SCHEMA_KEY).orElse(Option(sft.getStIndexSchema)).getOrElse(EMPTY_STRING)
 
   /**
    * Used to update the attributes that are marked as indexed - partial implementation of updateSchema.
@@ -591,8 +591,8 @@ class AccumuloDataStore(val connector: Connector,
     // determine the schema ID - ensure that it is unique in this catalog
     // IMPORTANT: this method needs to stay inside a zookeeper distributed locking block
     var schemaId = 1
-    val existingSchemaIds =
-      getTypeNames.flatMap(metadata.readNoCache(_, SCHEMA_ID_KEY).map(_.getBytes(StandardCharsets.UTF_8).head.toInt))
+    val existingSchemaIds = getTypeNames.flatMap(metadata.read(_, SCHEMA_ID_KEY, cache = false)
+        .map(_.getBytes(StandardCharsets.UTF_8).head.toInt))
     while (existingSchemaIds.contains(schemaId)) { schemaId += 1 }
     // We use a single byte for the row prefix to save space - if we exceed the single byte limit then
     // our ranges would start to overlap and we'd get errors
@@ -630,6 +630,7 @@ class AccumuloDataStore(val connector: Connector,
     val attrIdxTableValue = AttributeTable.formatTableName(catalogTable, sft)
     val recordTableValue  = RecordTable.formatTableName(catalogTable, sft)
     val queriesTableValue = formatQueriesTableName(catalogTable)
+    val statDateValue     = GeoToolsDateFormat.print(DateTimeUtils.currentTimeMillis())
     val dataStoreVersion  = sft.getSchemaVersion.toString
 
     // store each metadata in the associated key
@@ -640,6 +641,7 @@ class AccumuloDataStore(val connector: Connector,
       ATTR_IDX_TABLE_KEY    -> attrIdxTableValue,
       RECORD_TABLE_KEY      -> recordTableValue,
       QUERIES_TABLE_KEY     -> queriesTableValue,
+      STATS_GENERATION_KEY  -> statDateValue,
       VERSION_KEY           -> dataStoreVersion,
       SCHEMA_ID_KEY         -> schemaIdString,
       // noinspection ScalaDeprecation
@@ -650,6 +652,9 @@ class AccumuloDataStore(val connector: Connector,
     }
 
     metadata.insert(sft.getTypeName, metadataMap)
+
+    // configure the stats combining iterator on the table for this sft
+    GeoMesaMetadataStats.configureStatCombiner(connector, statsTable, sft)
   }
 
   private def deleteSharedTables(sft: SimpleFeatureType) = {
@@ -673,42 +678,18 @@ class AccumuloDataStore(val connector: Connector,
     GeoMesaTable.getTableNames(sft, this).filter(tableOps.exists).foreach(tableOps.delete)
 
   /**
-   * Gets and acquires a distributed lock for all accumulo data stores sharing this catalog table.
+   * Acquires a distributed lock for all accumulo data stores sharing this catalog table.
    * Make sure that you 'release' the lock in a finally block.
    */
   private def acquireDistributedLock(): Releasable = {
-    if (connector.isInstanceOf[MockConnector]) {
-      // for mock connections use a jvm-level lock
-      val lock = mockLocks.synchronized(mockLocks.getOrElseUpdate(catalogTable, new ReentrantLock()))
-      lock.lock()
-      new Releasable {
-        override def release(): Unit = lock.unlock()
-      }
-    } else {
-      val backoff = new ExponentialBackoffRetry(1000, 3)
-      val client = CuratorFrameworkFactory.newClient(connector.getInstance().getZooKeepers, backoff)
-      client.start()
-      // unique path per catalog table - must start with a forward slash
-      val lockPath =  s"/org.locationtech.geomesa/accumulo/ds/$catalogTable"
-      val lock = new InterProcessSemaphoreMutex(client, lockPath)
-      if (!lock.acquire(120, TimeUnit.SECONDS)) {
-        throw new RuntimeException(s"Could not acquire distributed lock at '$lockPath'")
-      }
-      // delegate lock that will close the curator client upon release
-      new Releasable {
-        override def release(): Unit = try lock.release() finally client.close()
-      }
+    val path = s"/org.locationtech.geomesa/accumulo/ds/$catalogTable"
+    acquireDistributedLock(path, 120000).getOrElse {
+      throw new RuntimeException(s"Could not acquire distributed lock at '$path'")
     }
   }
 }
 
 object AccumuloDataStore {
-
-  private lazy val mockLocks = scala.collection.mutable.Map.empty[String, Lock]
-
-  trait Releasable {
-    def release(): Unit
-  }
 
   /**
    * Format queries table name for Accumulo...table name is stored in metadata for other usage

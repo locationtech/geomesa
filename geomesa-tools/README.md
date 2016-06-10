@@ -52,6 +52,11 @@ This should print out the following usage text:
         queryrasterstats    Export queries and statistics about the last X number of queries to a CSV file.
         removeschema        Remove a schema and associated features from a GeoMesa catalog
         genavroschema       Convert SimpleFeatureTypes to Avro schemas
+        stats-analyze       Analyze statistics on a GeoMesa feature type
+        stats-bounds        View or calculate bounds on attributes in a GeoMesa feature type
+        stats-count         Estimate or calculate feature counts in a GeoMesa feature type
+        stats-enumerate     Enumerate attribute values in a GeoMesa feature type
+        stats-histogram     View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values
         tableconf           Perform table configuration operations
         version             GeoMesa Version
 
@@ -229,8 +234,259 @@ To remove a feature type and it's associated data from a catalog table, use the 
 ####Example:
     geomesa removeschema -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog -f testfeature1
     geomesa removeschema -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog --pattern 'testfeatures\d+'
-    
-    
+
+
+### stats-analyze
+Use the `stats-analyze` command to update the statistics associated with your data. This can improve query planning.
+
+#### Usage (required options denoted with star):
+    $ geomesa help stats-analyze
+    Analyze statistics on a GeoMesa feature type
+    Usage: stats-analyze [options]
+      Options:
+        --auths
+           Accumulo authorizations
+      * -c, --catalog
+           Catalog table name for GeoMesa
+      * -f, --feature-name
+           Simple Feature Type name on which to operate
+        -i, --instance
+           Accumulo instance name
+        --mock
+           Run everything with a mock accumulo instance instead of a real one
+           Default: false
+        -p, --password
+           Accumulo password (will prompt if not supplied)
+      * -u, --user
+           Accumulo user name
+        --visibilities
+           Accumulo scan visibilities
+        -z, --zookeepers
+           Zookeepers (host[:port], comma separated)
+
+#### Example:
+    $ geomesa stats-analyze -u username -p password -i instance -z zoo1,zoo2,zoo3 -c geomesa.data -f twitter
+    Running stat analysis for feature type twitter...
+    Stats analyzed:
+      Total features: 8852601
+      Bounds for geom: [ -171.75, -45.5903996, 157.7302, 89.99997102 ] cardinality: 2119237
+      Bounds for dtg: [ '2016-02-01T00:09:12.000Z' to '2016-03-01T00:21:02.000Z' ] cardinality: 2161132
+      Bounds for user_id: [ '100000215' to '99999502' ] cardinality: 861283
+    Use 'stats-histogram' or 'stats-count' commands for more details
+
+### stats-bounds
+Use the `stats-bounds` command to view the bounds of your data for different attributes.
+
+#### Usage
+    $ geomesa help stats-bounds
+    View or calculate bounds on attributes in a GeoMesa feature type
+    Usage: stats-bounds [options]
+      Options:
+        -a, --attributes
+           Attributes to evaluate (use multiple flags or separate with commas)
+           Default: []
+        --auths
+           Accumulo authorizations
+      * -c, --catalog
+           Catalog table name for GeoMesa
+        -q, --cql
+           CQL predicate
+        -e, --exact
+           Calculate exact statistics (may be slow)
+           Default: false
+      * -f, --feature-name
+           Simple Feature Type name on which to operate
+        -i, --instance
+           Accumulo instance name
+        --mock
+           Run everything with a mock accumulo instance instead of a real one
+           Default: false
+        -p, --password
+           Accumulo password (will prompt if not supplied)
+      * -u, --user
+           Accumulo user name
+        --visibilities
+           Accumulo scan visibilities
+        -z, --zookeepers
+           Zookeepers (host[:port], comma separated)
+
+#### Example:
+    $ geomesa stats-bounds -u username -p password -i instance -z zoo1,zoo2,zoo3 -c geomesa.data -f twitter
+      user_id [ 100000215 to 99999502 ] cardinality: 861283
+      user_name [ unavailable ]
+      text [ unavailable ]
+      dtg [ 2016-02-01T00:09:12.000Z to 2016-03-01T00:21:02.000Z ] cardinality: 2161132
+      geom [ -171.75, -45.5903996, 157.7302, 89.99997102 ] cardinality: 2119237
+
+    $ geomesa stats-bounds -u username -p password -i instance -z zoo1,zoo2,zoo3 -c geomesa.data -f twitter \
+        --exact -q 'BBOX(geom,-70,45,-60,55) AND dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
+      Running stat query...
+        user_id [ 1011811424 to 99124417 ] cardinality: 115
+        user_name [ bar_user to foo_user ] cardinality: 113
+        text [ bar to foo ] cardinality: 180
+        dtg [ 2016-02-02T00:01:07.000Z to 2016-02-02T23:59:41.000Z ] cardinality: 178
+        geom [ -69.87212338, 45.01259299, -60.08925, 53.8868369 ] cardinality: 155
+
+### stats-count
+Use the `stats-count` command to count features in your data set.
+
+#### Usage
+    $ geomesa help stats-count
+      Estimate or calculate feature counts in a GeoMesa feature type
+      Usage: stats-count [options]
+        Options:
+          --auths
+             Accumulo authorizations
+        * -c, --catalog
+             Catalog table name for GeoMesa
+          -q, --cql
+             CQL predicate
+          -e, --exact
+             Calculate exact statistics (may be slow)
+             Default: false
+        * -f, --feature-name
+             Simple Feature Type name on which to operate
+          -i, --instance
+             Accumulo instance name
+          --mock
+             Run everything with a mock accumulo instance instead of a real one
+             Default: false
+          -p, --password
+             Accumulo password (will prompt if not supplied)
+        * -u, --user
+             Accumulo user name
+          --visibilities
+             Accumulo scan visibilities
+          -z, --zookeepers
+             Zookeepers (host[:port], comma separated)
+
+#### Example:
+    $ geomesa stats-count -u username -p password -i instance -z zoo1,zoo2,zoo3 -c geomesa.data -f twitter
+      Estimated count: 8852601
+
+    $ geomesa stats-count -u username -p password -i instance -z zoo1,zoo2,zoo3 -c geomesa.data -f twitter \
+        -q 'BBOX(geom,-70,45,-60,55) AND dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
+      Estimated count: 2681
+
+    $ geomesa stats-count -u username -p password -i instance -z zoo1,zoo2,zoo3 -c geomesa.data -f twitter \
+        --exact -q 'BBOX(geom,-70,45,-60,55) AND dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
+      Running stat query...
+      Count: 182
+
+### stats-enumerate
+
+#### Usage
+    $ geomesa help stats-enumerate
+      Enumerate attribute values in a GeoMesa feature type
+      Usage: stats-enumerate [options]
+        Options:
+          -a, --attributes
+             Attributes to evaluate (use multiple flags or separate with commas)
+             Default: []
+          --auths
+             Accumulo authorizations
+        * -c, --catalog
+             Catalog table name for GeoMesa
+          -q, --cql
+             CQL predicate
+        * -f, --feature-name
+             Simple Feature Type name on which to operate
+          -i, --instance
+             Accumulo instance name
+          --mock
+             Run everything with a mock accumulo instance instead of a real one
+             Default: false
+          -p, --password
+             Accumulo password (will prompt if not supplied)
+        * -u, --user
+             Accumulo user name
+          --visibilities
+             Accumulo scan visibilities
+          -z, --zookeepers
+             Zookeepers (host[:port], comma separated)
+
+#### Example:
+    $ geomesa stats-enumerate -u username -p password -i instance -z zoo1,zoo2,zoo3 -c geomesa.data \
+        -f twitter -a user_id
+      Running stat query...
+      Values for 'user_id':
+        3144822634 (26383)
+        388009236 (20457)
+        497145453 (19514)
+        563319506 (15848)
+        2841269945 (15716)
+        ...
+
+### stats-histogram
+Use the `stats-histogram` command to view the values of different attributes, grouped into sorted bins.
+If you query a histogram for a geometry attribute, the result will be displayed in an ASCII heatmap.
+
+#### Usage
+    $ geomesa help stats-histogram
+      View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values
+      Usage: stats-histogram [options]
+        Options:
+          -a, --attributes
+             Attributes to evaluate (use multiple flags or separate with commas)
+             Default: []
+          --auths
+             Accumulo authorizations
+          -b, --bins
+             How many bins the data will be divided into. For example, if you are
+             examining a week of data, you may want to divide the date into 7 bins, one per day.
+        * -c, --catalog
+             Catalog table name for GeoMesa
+          -q, --cql
+             CQL predicate
+          -e, --exact
+             Calculate exact statistics (may be slow)
+             Default: false
+        * -f, --feature-name
+             Simple Feature Type name on which to operate
+          -i, --instance
+             Accumulo instance name
+          --mock
+             Run everything with a mock accumulo instance instead of a real one
+             Default: false
+          -p, --password
+             Accumulo password (will prompt if not supplied)
+        * -u, --user
+             Accumulo user name
+          --visibilities
+             Accumulo scan visibilities
+          -z, --zookeepers
+             Zookeepers (host[:port], comma separated)
+
+#### Example:
+    $ geomesa stats-histogram -u username -p password -i instance -z zoo1,zoo2,zoo3 -c geomesa.data \
+        -f twitter -a dtg --bins 10
+      Binned histogram for 'dtg':
+        [ 2016-02-01T00:09:12.000Z to 2016-02-03T21:46:23.000Z ] 798968
+        [ 2016-02-03T21:46:23.000Z to 2016-02-06T19:23:34.000Z ] 868019
+        [ 2016-02-06T19:23:34.000Z to 2016-02-09T17:00:45.000Z ] 861720
+        [ 2016-02-09T17:00:45.000Z to 2016-02-12T14:37:56.000Z ] 833473
+        [ 2016-02-12T14:37:56.000Z to 2016-02-15T12:15:07.000Z ] 990292
+        [ 2016-02-15T12:15:07.000Z to 2016-02-18T09:52:18.000Z ] 842434
+        [ 2016-02-18T09:52:18.000Z to 2016-02-21T07:29:29.000Z ] 968936
+        [ 2016-02-21T07:29:29.000Z to 2016-02-24T05:06:40.000Z ] 862808
+        [ 2016-02-24T05:06:40.000Z to 2016-02-27T02:43:51.000Z ] 869208
+        [ 2016-02-27T02:43:51.000Z to 2016-03-01T00:21:02.000Z ] 956743
+
+    $ geomesa stats-histogram -u username -p password -i instance -z zoo1,zoo2,zoo3 -c geomesa.data \
+        -f twitter -a dtg --bins 10 --exact
+      Running stat query...
+      Binned histogram for 'dtg':
+        [ 2016-02-01T00:09:12.000Z to 2016-02-03T21:46:23.000Z ] 805620
+        [ 2016-02-03T21:46:23.000Z to 2016-02-06T19:23:34.000Z ] 869361
+        [ 2016-02-06T19:23:34.000Z to 2016-02-09T17:00:45.000Z ] 859868
+        [ 2016-02-09T17:00:45.000Z to 2016-02-12T14:37:56.000Z ] 832458
+        [ 2016-02-12T14:37:56.000Z to 2016-02-15T12:15:07.000Z ] 986829
+        [ 2016-02-15T12:15:07.000Z to 2016-02-18T09:52:18.000Z ] 841580
+        [ 2016-02-18T09:52:18.000Z to 2016-02-21T07:29:29.000Z ] 970460
+        [ 2016-02-21T07:29:29.000Z to 2016-02-24T05:06:40.000Z ] 863484
+        [ 2016-02-24T05:06:40.000Z to 2016-02-27T02:43:51.000Z ] 871742
+        [ 2016-02-27T02:43:51.000Z to 2016-03-01T00:21:02.000Z ] 951199
+
 ### deleteraster
 To delete a specific raster table use the `deleteraster` command.
 

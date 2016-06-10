@@ -12,400 +12,397 @@ import org.geotools.data.Query
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
+import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
-import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
-import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.geotools.SftBuilder.Opts
-import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.stats.Cardinality
+import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
+import org.locationtech.geomesa.accumulo.index.Strategy.{CostEvaluation, StrategyType}
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.opengis.filter.{And, Filter}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
-import scala.reflect.ClassTag
+import scala.util.Random
 
 //Expand the test - https://geomesa.atlassian.net/browse/GEOMESA-308
 @RunWith(classOf[JUnitRunner])
-class QueryStrategyDeciderTest extends Specification {
+class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
 
-  val sftIndex = new SftBuilder()
-    .intType("id")
-    .point("geom", default = true)
-    .date("dtg", default = true)
-    .stringType("attr1")
-    .stringType("attr2", index = true)
-    .stringType("high", Opts(index = true, cardinality = Cardinality.HIGH))
-    .stringType("low", Opts(index = true, cardinality = Cardinality.LOW))
-    .date("dtgNonIdx")
-    .build("feature")
+  override val spec = "nameHighCardinality:String:index=true:cardinality=high,ageJoinIndex:Long:index=true," +
+      "heightFullIndex:Float:index=full,dtgJoinIndex:Date:index=true,weightNoIndex:String," +
+      "dtgNoIndex:Date,dtg:Date,*geom:Point:srid=4326"
 
-  val sftNonIndex = new SftBuilder()
-    .intType("id")
-    .point("geom", default = true)
-    .date("dtg", default = true)
-    .stringType("attr1")
-    .stringType("attr2")
-    .build("featureNonIndex")
+  val ff = CommonFactoryFinder.getFilterFactory2
 
-  def getStrategy(filterString: String, version: Int = CURRENT_SCHEMA_VERSION): Strategy = {
-    val sft = if (version > 0) sftIndex else sftNonIndex
-    sft.setSchemaVersion(version)
-    val filter = ECQL.toFilter(filterString)
-    val hints = new UserDataStrategyHints()
-    val query = new Query(sft.getTypeName)
-    query.setFilter(filter.accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter])
-    val strats = QueryStrategyDecider.chooseStrategies(sft, query, hints, None)
-    strats must haveLength(1)
-    strats.head
-  }
-
-  def getStrategyT[T <: Strategy](filterString: String, ct: ClassTag[T]) =
-    getStrategy(filterString) must beAnInstanceOf[T](ct)
-
-  def getRecordStrategy(filterString: String) =
-    getStrategyT(filterString, ClassTag(classOf[RecordIdxStrategy]))
-  def getAttributeIdxStrategy(filterString: String) =
-    getStrategyT(filterString, ClassTag(classOf[AttributeIdxStrategy]))
-  def getZ2Strategy(filterString: String) =
-    getStrategyT(filterString, ClassTag(classOf[Z2IdxStrategy]))
-  def getZ3Strategy(filterString: String) =
-    getStrategyT(filterString, ClassTag(classOf[Z3IdxStrategy]))
-  def getFullTableStrategy(filterString: String) = getZ2Strategy(filterString)
-
-  "Good spatial predicates" should {
-    "get the stidx strategy" in {
-      forall(goodSpatialPredicates){ getZ2Strategy }
+  addFeatures {
+    val r = new Random(-57L)
+    (0 until 1000).map { i =>
+      val id = f"$i%03d"
+      val name = s"name$id"
+      val age = 20 + i % 40
+      val height = 5.5 + (i % 10) / 10.0
+      val weight = 150 + (1000 - i) % 70
+      val noDtg = f"2016-02-${(i % 27) + 1}%02dT${i % 24}%02d:00:00.000Z"
+      val dtg = f"2016-03-${(i % 30) + 1}%02dT${i % 24}%02d:00:00.000Z"
+      val geom = {
+        val tens = (i % 10) * -10
+        val ones = r.nextDouble() * (if (r.nextBoolean()) 5 else -5)
+        val dec = i % 100
+        s"POINT (${tens + ones.toInt}.$dec 50.0)"
+      }
+      val sf = new ScalaSimpleFeature(id, sft)
+      sf.setAttributes(Array(name, age, height, dtg, weight, noDtg, dtg, geom).asInstanceOf[Array[AnyRef]])
+      sf
     }
   }
 
-  "Attribute filters" should {
-    "get the attribute equals strategy" in {
-      getAttributeIdxStrategy("attr2 = 'val56'")
+  // run stats so we have the latest
+  ds.stats.generateStats(sft)
+
+  "Cost-based strategy decisions" should {
+
+    def getStrategies(filter: Filter, transforms: Option[Array[String]], explain: ExplainerOutputType): Seq[QueryFilter] = {
+      val query = transforms.map(new Query(sftName, filter, _)).getOrElse(new Query(sftName, filter))
+      ds.getQueryPlan(query, explainer = explain).map(_.filter)
     }
 
-    "get the attribute equals strategy for namespaced attribute" in {
-      getAttributeIdxStrategy("ns:attr2 = 'val56'")
+    def getStrategy(filter: String, expected: StrategyType, transforms: Option[Array[String]], explain: ExplainerOutputType) = {
+      val strategies = getStrategies(ECQL.toFilter(filter), transforms, explain)
+      forall(strategies)(_.strategy mustEqual expected)
     }
 
-    "get full table strategy for non indexed attributes" in {
-      getFullTableStrategy("attr1 = 'val56'")
+    def getRecordStrategy(filter: String, transforms: Option[Array[String]] = None, explain: ExplainerOutputType = ExplainNull) =
+      getStrategy(filter, StrategyType.RECORD, transforms, explain)
+    def getAttributeStrategy(filter: String, transforms: Option[Array[String]] = None, explain: ExplainerOutputType = ExplainNull) =
+      getStrategy(filter, StrategyType.ATTRIBUTE, transforms, explain)
+    def getZ2Strategy(filter: String, transforms: Option[Array[String]] = None, explain: ExplainerOutputType = ExplainNull) =
+      getStrategy(filter, StrategyType.Z2, transforms, explain)
+    def getZ3Strategy(filter: String, transforms: Option[Array[String]] = None, explain: ExplainerOutputType = ExplainNull) =
+      getStrategy(filter, StrategyType.Z3, transforms, explain)
+
+    "select z3 over z2 when spatial is limiting factor" >> {
+      getZ3Strategy("bbox(geom,-75,45,-70,55) AND dtg DURING 2016-03-01T00:00:00.000Z/2016-03-07T00:00:00.000Z")
     }
 
-    "get the attribute likes strategy" in {
-      val fs = "attr2 ILIKE '2nd1%'"
-      getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
+    "select strategy based on expected cost" >> {
+      getZ2Strategy("bbox(geom,-120,49,-119,51) AND nameHighCardinality > 'name001'")
+      getZ2Strategy("bbox(geom,-75,45,-65,55) AND ageJoinIndex > 30")
+      getZ3Strategy("bbox(geom,-75,45,-65,55) AND dtg DURING 2016-03-01T00:00:00.000Z/2016-03-07T00:00:00.000Z AND " +
+          "ageJoinIndex = 35")
+      getAttributeStrategy("bbox(geom,-75,45,-65,55) AND dtg DURING 2016-03-01T00:00:00.000Z/2016-03-07T00:00:00.000Z AND " +
+          "ageJoinIndex = 35", Some(Array("geom", "dtg")))
+      getAttributeStrategy("bbox(geom,-75,45,-65,55) AND dtg DURING 2016-03-01T00:00:00.000Z/2016-03-07T00:00:00.000Z AND " +
+          "ageJoinIndex = 35", Some(Array("geom", "dtg", "ageJoinIndex")))
+      getAttributeStrategy("bbox(geom,-75,45,-65,55) AND dtg DURING 2016-03-01T00:00:00.000Z/2016-03-07T00:00:00.000Z AND " +
+          "nameHighCardinality > 'name990'")
+      getAttributeStrategy("bbox(geom,-75,45,-65,55) AND dtg DURING 2016-03-01T00:00:00.000Z/2016-03-07T00:00:00.000Z AND " +
+          "nameHighCardinality IN ('name990', 'name991', 'name992', 'name993', 'name994')")
+      getRecordStrategy("bbox(geom,-75,45,-65,55) AND dtg DURING 2016-03-01T00:00:00.000Z/2016-03-07T00:00:00.000Z AND " +
+          "nameHighCardinality > 'name990' AND IN('name001', 'name002', 'name003')")
     }
 
-    "get the attribute likes strategy for namespaced attribute" in {
-      val fs = "ns:attr2 ILIKE '2nd1%'"
-      getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
+    "select strategies that should result in zero rows scanned" >> {
+      getZ2Strategy("bbox(geom,-75,0,-74.99,0.01)AND nameHighCardinality IN ('name990', 'name991', 'name992', 'name993', 'name994')")
+      getAttributeStrategy("bbox(geom,-75,45,-65,55) AND dtg DURING 2016-03-01T00:00:00.000Z/2016-03-07T00:00:00.000Z AND " +
+          "nameHighCardinality > 'zzz'")
+      getAttributeStrategy("bbox(geom,-75,45,-65,55) AND dtg DURING 2016-03-01T00:00:00.000Z/2016-03-07T00:00:00.000Z AND " +
+          "nameHighCardinality > 'zzz' AND IN('name001', 'name002', 'name003')")
+    }
+  }
+
+  "Index-based strategy decisions" should {
+
+    def getStrategies(filter: Filter): Seq[QueryFilter] = {
+      import org.locationtech.geomesa.accumulo.index.QueryHints.COST_EVALUATION_KEY
+      // default behavior for this test is to use the index-based query costs
+      val query = new Query(sftName, filter)
+      query.getHints.put(COST_EVALUATION_KEY, CostEvaluation.Index)
+      ds.getQueryPlan(query).map(_.filter)
     }
 
-    "get full table strategy if attribute non-indexed" in {
-      getFullTableStrategy("attr1 ILIKE '2nd1%'")
+    def getStrategy(filter: String, expected: StrategyType) = {
+      val strategies = getStrategies(ECQL.toFilter(filter))
+      forall(strategies)(_.strategy mustEqual expected)
     }
 
-    "get the record strategy if attribute non-indexed for a namespaced attribute" in {
-      getFullTableStrategy("ns:attr1 ILIKE '2nd1%'")
+    def getRecordStrategy(filter: String) = getStrategy(filter, StrategyType.RECORD)
+    def getAttributeStrategy(filter: String) = getStrategy(filter, StrategyType.ATTRIBUTE)
+    def getZ2Strategy(filter: String) = getStrategy(filter, StrategyType.Z2)
+    def getZ3Strategy(filter: String) = getStrategy(filter, StrategyType.Z3)
+    def getFullTableStrategy(filter: String) = getZ2Strategy(filter)
+
+    "Good spatial predicates should" >> {
+      "get the z2 strategy" >> {
+        forall(goodSpatialPredicates)(getZ2Strategy)
+      }
     }
 
-    "get the attribute strategy for lte" in {
-      val fs = "attr2 <= 11"
-      getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
-    }
+    "Indexed attribute filters should" >> {
+      "get the attribute strategy for indexed attributes" >> {
+        val predicates = Seq(
+          "ageJoinIndex = '1000'",
+          "ns:ageJoinIndex = '1000'",
+          "nameHighCardinality LIKE '500%'",
+          "ns:nameHighCardinality LIKE '500%'",
+          "nameHighCardinality ILIKE '500%'",
+          "ns:nameHighCardinality ILIKE '500%'",
+          "ageJoinIndex <= 11",
+          "ageJoinIndex < 11",
+          "ageJoinIndex >= 11",
+          "ageJoinIndex > 11",
+          "11 > ageJoinIndex",
+          "dtgJoinIndex DURING 2012-01-01T11:00:00.000Z/2014-01-01T12:15:00.000Z",
+          "ns:dtgJoinIndex DURING 2012-01-01T11:00:00.000Z/2014-01-01T12:15:00.000Z",
+          "dtgJoinIndex AFTER 2013-01-01T12:30:00.000Z",
+          "dtgJoinIndex BEFORE 2014-01-01T12:30:00.000Z",
+          "ns:dtgJoinIndex BEFORE 2014-01-01T12:30:00.000Z",
+          "ageJoinIndex BETWEEN 10 and 20",
+          "ageJoinIndex >= 11 AND ageJoinIndex < 20"
+        )
+        forall(predicates)(getAttributeStrategy)
+      }
 
-    "get the attribute strategy for lt" in {
-      val fs = "attr2 < 11"
-      getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
-    }
+      "get the attribute strategy for prefix filters on indexed attribute" >> {
+        val predicates = Seq(
+          "ageJoinIndex LIKE '500%'",
+          "ns:ageJoinIndex LIKE '500%'",
+          "ageJoinIndex ILIKE '500%'",
+          "ns:ageJoinIndex ILIKE '500%'"
+        )
+        forall(predicates)(getAttributeStrategy)
+      }.pendingUntilFixed("Lexicoders don't allow us to do prefix filters on non-strings")
 
-    "get the attribute strategy for gte" in {
-      val fs = "attr2 >= 11"
-      getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
-    }
+      "find the best filter among several" >> {
+        val ageFilter = ff.equals(ff.property("ageJoinIndex"), ff.literal(21))
+        val nameFilter = ff.equals(ff.literal("foo"), ff.property("nameHighCardinality"))
+        val heightFilter = ff.equals(ff.property("heightFullIndex"), ff.literal(12.0D))
+        val weightFilter = ff.equals(ff.literal(21.12D), ff.property("weightNoIndex"))
 
-    "get the attribute strategy for gt" in {
-      val fs = "attr2 > 11"
-      getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
-    }
-
-    "get the attribute strategy for gt prop on right" in {
-      val fs = "11 > attr2"
-      getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
-    }
-
-    "get the attribute strategy for during" in {
-      val fs = "attr2 DURING 2012-01-01T11:00:00.000Z/2014-01-01T12:15:00.000Z"
-      getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
-    }
-
-    "get the attribute strategy for during for a namespaced attributes" in {
-      val fs = "ns:attr2 DURING 2012-01-01T11:00:00.000Z/2014-01-01T12:15:00.000Z"
-      getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
-    }
-
-    "get the attribute strategy for after" in {
-      val fs = "attr2 AFTER 2013-01-01T12:30:00.000Z"
-      getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
-    }
-
-    "get the attribute strategy for before" in {
-      val fs = "attr2 BEFORE 2014-01-01T12:30:00.000Z"
-      getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
-    }
-
-    "get the attribute strategy for before for a namespaced attributes" in {
-      val fs = "ns:attr2 BEFORE 2014-01-01T12:30:00.000Z"
-      getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
-    }
-
-    "get the attribute strategy for between" in {
-      val fs = "attr2 BETWEEN 10 and 20"
-      getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
-    }
-
-    "get the attribute strategy for ANDed attributes" in {
-      val fs = "attr2 >= 11 AND attr2 < 20"
-      getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
-    }
-
-    "partition a query by selecting the best filter" >> {
-      val sftName = "attributeQuerySplitTest"
-      val spec = "name:String:index=true:cardinality=high," +
-          "age:Integer:index=true:cardinality=low," +
-          "weight:Double:index=false," +
-          "height:Float:index=false:cardinality=unknown," +
-          "count:Integer:index=true:cardinality=low," +
-          "*geom:Point:srid=4326"
-      val sft = SimpleFeatureTypes.createType(sftName, spec)
-
-      val ff = CommonFactoryFinder.getFilterFactory(null)
-      val ageFilter = ff.equals(ff.property("age"), ff.literal(21))
-      val nameFilter = ff.equals(ff.literal("foo"), ff.property("name"))
-      val heightFilter = ff.equals(ff.property("height"), ff.literal(12.0D))
-      val weightFilter = ff.equals(ff.literal(21.12D), ff.property("weight"))
-
-      val hints = new UserDataStrategyHints()
-
-      "when best is first" >> {
-        val filter = ff.and(Seq(nameFilter, heightFilter, weightFilter, ageFilter))
         val primary = Seq(nameFilter)
         val secondary = ff.and(Seq(heightFilter, weightFilter, ageFilter))
 
-        val query = new Query(sft.getTypeName, filter)
-        val strats = QueryStrategyDecider.chooseStrategies(sft, query, hints, None)
+        "when best is first" >> {
+          val strats = getStrategies(ff.and(Seq(nameFilter, heightFilter, weightFilter, ageFilter)))
+          strats must haveLength(1)
+          strats.head.strategy mustEqual StrategyType.ATTRIBUTE
+          strats.head.primary mustEqual primary
+          strats.head.secondary must beSome(secondary)
+        }
 
-        strats must haveLength(1)
-        strats.head.filter.strategy mustEqual StrategyType.ATTRIBUTE
-        strats.head.filter.primary mustEqual primary
-        strats.head.filter.secondary must beSome(secondary)
-      }
+        "when best is in the middle" >> {
+          val strats = getStrategies(ff.and(Seq(ageFilter, nameFilter, heightFilter, weightFilter)))
+          strats must haveLength(1)
+          strats.head.strategy mustEqual StrategyType.ATTRIBUTE
+          strats.head.primary mustEqual primary
+          strats.head.secondary must beSome(secondary)
+        }
 
-      "when best is in the middle" >> {
-        val filter = ff.and(Seq[Filter](ageFilter, nameFilter, heightFilter, weightFilter))
-        val primary = Seq(nameFilter)
-        val secondary = ff.and(Seq(heightFilter, weightFilter, ageFilter))
+        "when best is last" >> {
+          val strats = getStrategies(ff.and(Seq(ageFilter, heightFilter, weightFilter, nameFilter)))
+          strats must haveLength(1)
+          strats.head.strategy mustEqual StrategyType.ATTRIBUTE
+          strats.head.primary mustEqual primary
+          strats.head.secondary must beSome(secondary)
+        }
 
-        val query = new Query(sft.getTypeName, filter)
-        val strats = QueryStrategyDecider.chooseStrategies(sft, query, hints, None)
-
-        strats must haveLength(1)
-        strats.head.filter.strategy mustEqual StrategyType.ATTRIBUTE
-        strats.head.filter.primary mustEqual primary
-        strats.head.filter.secondary must beSome(secondary)
-      }
-
-      "when best is last" >> {
-        val filter = ff.and(Seq[Filter](ageFilter, heightFilter, weightFilter, nameFilter))
-        val primary = Seq(nameFilter)
-        val secondary = ff.and(Seq(heightFilter, weightFilter, ageFilter))
-
-        val query = new Query(sft.getTypeName, filter)
-        val strats = QueryStrategyDecider.chooseStrategies(sft, query, hints, None)
-
-        strats must haveLength(1)
-        strats.head.filter.strategy mustEqual StrategyType.ATTRIBUTE
-        strats.head.filter.primary mustEqual primary
-        strats.head.filter.secondary must beSome(secondary)
-      }
-
-      "use best indexable attribute if like and retain all children for > 2 filters" in {
-        val filter = ECQL.toFilter("name LIKE 'baddy' AND age=21 AND count<5")
-        val query = new Query(sft.getTypeName, filter)
-
-        val strats = QueryStrategyDecider.chooseStrategies(sft, query, hints, None)
-
-        strats must haveLength(1)
-        strats.head.filter.strategy mustEqual StrategyType.ATTRIBUTE
-        strats.head.filter.primary mustEqual Seq(ECQL.toFilter("name LIKE 'baddy'"))
-        strats.head.filter.secondary must beSome(ECQL.toFilter("age=21 AND count<5"))
+        "use best indexed attribute if like and retain all children for > 2 filters" >> {
+          val like = ff.like(ff.property("nameHighCardinality"), "baddy")
+          val strats = getStrategies(ff.and(Seq(like, heightFilter, weightFilter, ageFilter)))
+          strats must haveLength(1)
+          strats.head.strategy mustEqual StrategyType.ATTRIBUTE
+          strats.head.primary mustEqual Seq(like)
+          strats.head.secondary must beSome(secondary)
+        }
       }
     }
-  }
 
-  "Attribute filters" should {
-    "get full table strategy if not catalog" in {
-      getZ2Strategy("attr1 ILIKE '2nd1%'")
-    }
-  }
-
-  "Id filters" should {
-    "get the attribute equals strategy" in {
-      val fs = "IN ('val56')"
-      getStrategy(fs) must beAnInstanceOf[RecordIdxStrategy]
-    }
-  }
-
-  "Id and Spatio-temporal filters" should {
-    "get the records strategy" in {
-      val fs = "IN ('val56') AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"
-      getStrategy(fs) must beAnInstanceOf[RecordIdxStrategy]
-    }
-  }
-
-  "Id and Attribute filters" should {
-    "get the records strategy" in {
-      val fs = "IN ('val56') AND attr2 = val56"
-      getStrategy(fs) must beAnInstanceOf[RecordIdxStrategy]
-    }
-  }
-
-  "Really complicated Id AND * filters" should {
-    "get the records strategy" in {
-      val fsFragment1="INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"
-      val fsFragment2="AND IN ('val56','val55') AND attr2 = val56 AND IN('val59','val54') AND attr2 = val60"
-      val fs = s"$fsFragment1 $fsFragment2"
-      getStrategy(fs) must beAnInstanceOf[RecordIdxStrategy]
-    }
-  }
-
-  "IS NOT NULL filters" should {
-    "get the attribute strategy if attribute is indexed" in {
-      val fs = "attr2 IS NOT NULL"
-      getStrategy(fs) must beAnInstanceOf[AttributeIdxStrategy]
-    }
-    "get full table strategy if attribute is not indexed" in {
-      getFullTableStrategy("attr1 IS NOT NULL")
-    }
-  }
-
-  "Anded Attribute filters" should {
-    "get the STIdx strategy with stIdxStrategyPredicates" in {
-      forall(stIdxStrategyPredicates) { getZ2Strategy }
+    "Non-indexed attribute filters should" >> {
+      "get full table strategy" >> {
+        val predicates = Seq(
+          "weightNoIndex = 'val56'",
+          "weightNoIndex ILIKE '2nd1%'",
+          "ns:weightNoIndex ILIKE '2nd1%'"
+        )
+        forall(predicates)(getFullTableStrategy)
+      }
     }
 
-    "get the STIdx strategy with stIdxStrategyPredicates with namespaces" in {
-      forall(stIdxStrategyPredicatesWithNS) { getZ2Strategy }
+    "Id filters should" >> {
+      "get the records strategy for mixed id queries" >> {
+        val predicates = Seq(
+          "IN ('val56')",
+          "IN('01','02')" ,
+          "IN('03','05') AND IN('01')",
+          "IN('01','02') AND ageJoinIndex = 100001",
+          "IN('01','02') AND ageJoinIndex = 100001 AND IN('03','05')",
+          "ageJoinIndex = '100001'  AND IN('01')" ,
+          "IN ('val56') AND ageJoinIndex = 400",
+          "IN('10')",
+          "IN ('val56') AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+          "dtg DURING 2010-06-01T00:00:00.000Z/2010-08-31T23:59:59.000Z AND IN('01')",
+          "IN('01') AND dtg DURING 2010-06-01T00:00:00.000Z/2010-08-31T23:59:59.000Z ",
+          "WITHIN(geom, POLYGON ((40 20, 50 20, 50 30, 40 30, 40 20))) AND IN('01')",
+          "IN('01') AND WITHIN(geom, POLYGON ((40 20, 50 20, 50 30, 40 30, 40 20)))",
+          "dtg DURING 2010-06-01T00:00:00.000Z/2010-08-31T23:59:59.000Z AND IN('01','02')" +
+              "AND WITHIN(geom, POLYGON ((40 20, 50 20, 50 30, 40 30, 40 20))) AND ageJoinIndex = '100001'",
+          "INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))" +
+              "AND IN('val56','val55') AND ageJoinIndex = 3000 AND IN('val59','val54') AND ageJoinIndex = '20'"
+        )
+        forall(predicates)(getRecordStrategy)
+      }
     }
 
-    "get the stidx strategy with attributeAndGeometricPredicates" in {
-      forall(attributeAndGeometricPredicates) { getZ2Strategy }
+    "IS NOT NULL filters should" >> {
+      "get the attribute strategy if attribute is indexed" >> {
+        getAttributeStrategy("ageJoinIndex IS NOT NULL")
+      }
+      "get full table strategy if attribute is not indexed" >> {
+        getFullTableStrategy("weightNoIndex IS NOT NULL")
+      }
     }
 
-    "get the stidx strategy with attributeAndGeometricPredicates with namespaces" in {
-      forall(attributeAndGeometricPredicatesWithNS) { getZ2Strategy }
-    }
+    "Spatio-temporal filters should" >> {
 
-    "get the record table strategy for id queries" in {
-      forall(idPredicates) { getRecordStrategy }
-    }
-
-    "get full table strategy for non-indexed queries" in {
-      forall(nonIndexedPredicates) { getFullTableStrategy }
-    }
-
-    "get the z3 strategy with spatio-temporal queries" in {
-      forall(spatioTemporalPredicates) { getZ3Strategy }
-      val morePredicates = temporalPredicates.drop(1).flatMap(p => goodSpatialPredicates.map(_ + " AND " + p))
-      forall(morePredicates) { getZ3Strategy }
-      val withAttrs = temporalPredicates.drop(1).flatMap(p => attributeAndGeometricPredicates.map(_ + " AND " + p))
-      forall(withAttrs) { getZ3Strategy }
-      val wholeWorld = "BBOX(geom,-180,-90,180,90) AND dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z"
-      getZ3Strategy(wholeWorld)
-    }
-
-    "get the z3 strategy with temporal queries" in {
-      forall(z3Predicates) { getZ3Strategy }
-    }
-
-    "get the stidx strategy with non-bounded time intervals" in {
-      val predicates = Seq(
-        "bbox(geom, 35, 59, 45, 70) AND dtg before 2010-05-12T12:00:00.000Z",
-        "bbox(geom, 35, 59, 45, 70) AND dtg after 2010-05-12T12:00:00.000Z",
-        "bbox(geom, 35, 59, 45, 70) AND dtg < '2010-05-12T12:00:00.000Z'",
-        "bbox(geom, 35, 59, 45, 70) AND dtg <= '2010-05-12T12:00:00.000Z'",
-        "bbox(geom, 35, 59, 45, 70) AND dtg > '2010-05-12T12:00:00.000Z'",
-        "bbox(geom, 35, 59, 45, 70) AND dtg >= '2010-05-12T12:00:00.000Z'"
+      val temporalPredicates = Seq(
+        "dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z",
+        "ns:dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z",
+        "dtg BETWEEN '2010-07-01T00:00:00.000Z' AND '2010-07-31T00:00:00.000Z'"
       )
-      forall(predicates) { getZ2Strategy }
-    }
+      val spatioTemporalPredicates = goodSpatialPredicates.flatMap(s => temporalPredicates.map(t => s"$s AND $t"))
 
-    "get the attribute strategy with attrIdxStrategyPredicates" in {
-      forall(attrIdxStrategyPredicates) { getAttributeIdxStrategy }
-    }
+      val joinAttributePredicates = Seq(
+        "ageJoinIndex = 100001",
+        "ageJoinIndex ILIKE '1001%'"
+      )
 
-    "respect high cardinality attributes regardless of order" in {
-      val attr = "high = 'test'"
-      val geom = "BBOX(geom, -10,-10,10,10)"
-      getStrategy(s"$attr AND $geom") must beAnInstanceOf[AttributeIdxStrategy]
-      getStrategy(s"$geom AND $attr") must beAnInstanceOf[AttributeIdxStrategy]
-    }
-
-    "respect low cardinality attributes regardless of order" in {
-      val attr = "low = 'test'"
-      val geom = "BBOX(geom, -10,-10,10,10)"
-      getStrategy(s"$attr AND $geom") must beAnInstanceOf[Z2IdxStrategy]
-      getStrategy(s"$geom AND $attr") must beAnInstanceOf[Z2IdxStrategy]
-    }
-
-    "respect cardinality with multiple attributes" in {
-      val attr1 = "low = 'test'"
-      val attr2 = "high = 'test'"
-      val geom = "BBOX(geom, -10,-10,10,10)"
-      getStrategy(s"$geom AND $attr1 AND $attr2") must beAnInstanceOf[AttributeIdxStrategy]
-      getStrategy(s"$geom AND $attr2 AND $attr1") must beAnInstanceOf[AttributeIdxStrategy]
-      getStrategy(s"$attr1 AND $attr2 AND $geom") must beAnInstanceOf[AttributeIdxStrategy]
-      getStrategy(s"$attr2 AND $attr1 AND $geom") must beAnInstanceOf[AttributeIdxStrategy]
-      getStrategy(s"$attr1 AND $geom AND $attr2") must beAnInstanceOf[AttributeIdxStrategy]
-      getStrategy(s"$attr2 AND $geom AND $attr1") must beAnInstanceOf[AttributeIdxStrategy]
-    }
-  }
-
-  "QueryStrategyDecider" should {
-    "handle complex filters" in {
-      skipped("debugging")
-      implicit val ff = CommonFactoryFinder.getFilterFactory2
-      val filter = ECQL.toFilter("BBOX(geom,-180,-90,180,90) AND " +
-          "dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z")
-      println(filter)
-      println(org.locationtech.geomesa.filter.rewriteFilterInDNF(filter))
-      success
-    }
-  }
-
-  "Single Attribute, indexed, high cardinality OR queries" should {
-    "select an single attribute index scan with multiple ranges" in {
-
-      "OR query" >> {
-        val orQuery = (0 until 5).map( i => s"high = 'h$i'").mkString(" OR ")
-        val fs = s"($orQuery) AND BBOX(geom, 40.0,40.0,50.0,50.0) AND dtg DURING 2014-01-01T00:00:00+00:00/2014-01-01T23:59:59+00:00"
-        val strat = getStrategy(fs)
-        strat must beAnInstanceOf[AttributeIdxStrategy]
-        strat.filter.or mustEqual true
-        strat.filter.strategy mustEqual StrategyType.ATTRIBUTE
-        strat.filter.primary.length mustEqual 5
-        strat.filter.secondary.isDefined mustEqual true
-        strat.filter.secondary.get must beAnInstanceOf[And]
-        strat.filter.secondary.get.asInstanceOf[And].getChildren.length mustEqual 2
+      "get the z3 strategy" >> {
+        forall(spatioTemporalPredicates)(getZ3Strategy)
       }
 
-      "in query" >> {
-        val fs = "(high IN ('a','b','c')) AND BBOX(geom, 40.0,40.0,50.0,50.0) AND dtg DURING 2014-01-01T00:00:00+00:00/2014-01-01T23:59:59+00:00"
-        val strat = getStrategy(fs)
-        strat must beAnInstanceOf[AttributeIdxStrategy]
+      "prioritize z3 index over low-cardinality join indexed attributes" >> {
+        val withAttributes = spatioTemporalPredicates.flatMap(st => joinAttributePredicates.map(a => s"$st AND $a"))
+        forall(withAttributes)(getZ3Strategy)
+      }
+
+      "get the z3 strategy with only temporal filters" >> {
+        forall(temporalPredicates)(getZ3Strategy)
+      }
+
+      "get the z3 strategy with whole world filters and temporal filters" >> {
+        val withWholeWorld = temporalPredicates.map("BBOX(geom,-180,-90,180,90) AND " + _)
+        forall(withWholeWorld)(getZ3Strategy)
+      }
+
+      "prioritize z3 index over low-cardinality join indexed attributes with only temporal filters" >> {
+        val withAttributes = temporalPredicates.flatMap(st => joinAttributePredicates.map(a => s"$st AND $a"))
+        forall(withAttributes)(getZ3Strategy)
+      }
+
+      "get the z2 strategy with non-bounded time intervals" >> {
+        val predicates = Seq(
+          "bbox(geom, 35, 59, 45, 70) AND dtg before 2010-05-12T12:00:00.000Z",
+          "bbox(geom, 35, 59, 45, 70) AND dtg after 2010-05-12T12:00:00.000Z",
+          "bbox(geom, 35, 59, 45, 70) AND dtg < '2010-05-12T12:00:00.000Z'",
+          "bbox(geom, 35, 59, 45, 70) AND dtg <= '2010-05-12T12:00:00.000Z'",
+          "bbox(geom, 35, 59, 45, 70) AND dtg > '2010-05-12T12:00:00.000Z'",
+          "bbox(geom, 35, 59, 45, 70) AND dtg >= '2010-05-12T12:00:00.000Z'"
+        )
+        forall(predicates)(getZ2Strategy)
+      }
+    }
+
+    "ANDed Attribute filters should" >> {
+      "prioritize spatial filters over normal-cardinality join or non indexed attributes" >> {
+        val predicates = Seq(
+          "ageJoinIndex = 21 AND INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
+          "INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) AND ageJoinIndex = 21",
+          "weightNoIndex = 'dummy' AND INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) " +
+              "AND ageJoinIndex = 'dummy'",
+          "weightNoIndex = 'dummy' AND INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
+          "ageJoinIndex ILIKE '%1' AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+          "dtgNonIdx DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z AND " +
+              "INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND ageJoinIndex = '100'",
+          "ageJoinIndex = '100001' AND INTERSECTS(geom, POLYGON ((45 20, 48 20, 48 27, 45 27, 45 20)))",
+          "ageJoinIndex = '100001' AND INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
+          "ageJoinIndex ILIKE '2nd1%' AND CROSSES(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+          "ageJoinIndex ILIKE '2nd1%' AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+          "ageJoinIndex ILIKE '2nd1%' AND OVERLAPS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
+          "ageJoinIndex ILIKE '2nd1%' AND WITHIN(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"
+        )
+        forall(predicates)(getZ2Strategy)
+      }
+
+      "prioritize spatial filters over normal-cardinality join or non indexed attributes with namespaces" >> {
+        val predicates = Seq(
+          "ns:ageJoinIndex = 21 AND INTERSECTS(ns:geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
+          "INTERSECTS(ns:geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) AND ns:ageJoinIndex = 21",
+          "ns:weightNoIndex = 'dummy' AND INTERSECTS(ns:geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28))) AND " +
+              "ns:ageJoinIndex = 'dummy'",
+          "ns:weightNoIndex = 'dummy' AND INTERSECTS(ns:geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
+          "ns:ageJoinIndex ILIKE '%1' AND INTERSECTS(ns:geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+          "ns:dtgNonIdx DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z AND " +
+              "INTERSECTS(ns:geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND ns:ageJoinIndex = '100'",
+          "ns:ageJoinIndex = '100001' AND INTERSECTS(ns:geom, POLYGON ((45 20, 48 20, 48 27, 45 27, 45 20)))",
+          "ns:ageJoinIndex = '100001' AND INTERSECTS(ns:geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
+          "ns:ageJoinIndex ILIKE '2nd1%' AND CROSSES(ns:geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+          "ns:ageJoinIndex ILIKE '2nd1%' AND INTERSECTS(ns:geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+          "ns:ageJoinIndex ILIKE '2nd1%' AND OVERLAPS(ns:geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
+          "ns:ageJoinIndex ILIKE '2nd1%' AND WITHIN(ns:geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"
+        )
+        forall(predicates)(getZ2Strategy)
+      }
+
+      "get the attribute strategy when other predicates are not indexed" >> {
+        val predicates = Seq(
+          "ageJoinIndex = '100001' AND DISJOINT(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))", // disjoint is not covered by stidx
+          "ageJoinIndex = '100'",
+          "weightNoIndex = 'val56' AND ageJoinIndex = '100'",
+          "ageJoinIndex = '100' AND weightNoIndex = 'val3'",
+          "weightNoIndex = 'val56' AND weightNoIndex = 'val57' AND ageJoinIndex = '100'",
+          "nameHighCardinality = 'val56' AND dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z",
+          "dtg DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z AND nameHighCardinality = 'val56'",
+          "ageJoinIndex = '100' AND NOT (INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))))"
+        )
+        forall(predicates)(getAttributeStrategy)
+      }
+
+      "respect high cardinality attributes regardless of order" >> {
+        val attr = "nameHighCardinality = 'test'"
+        val geom = "BBOX(geom, -10,-10,10,10)"
+        getAttributeStrategy(s"$attr AND $geom")
+        getAttributeStrategy(s"$geom AND $attr")
+      }
+
+      "respect cardinality with multiple attributes" >> {
+        val attrNoIndex = "weightNoIndex = 'test'"
+        val attrIndex = "nameHighCardinality = 'test'"
+        val geom = "BBOX(geom, -10,-10,10,10)"
+        getAttributeStrategy(s"$geom AND $attrNoIndex AND $attrIndex")
+        getAttributeStrategy(s"$geom AND $attrIndex AND $attrNoIndex")
+        getAttributeStrategy(s"$attrNoIndex AND $attrIndex AND $geom")
+        getAttributeStrategy(s"$attrIndex AND $attrNoIndex AND $geom")
+        getAttributeStrategy(s"$attrNoIndex AND $geom AND $attrIndex")
+        getAttributeStrategy(s"$attrIndex AND $geom AND $attrNoIndex")
+      }
+    }
+
+    "Single Attribute, indexed, high cardinality OR queries should" >> {
+      "select an single attribute index scan with multiple ranges" >> {
+
+        val st = " AND BBOX(geom, 40.0,40.0,50.0,50.0) AND dtg DURING 2014-01-01T00:00:00+00:00/2014-01-01T23:59:59+00:00"
+        val orQuery = (0 until 5).map(i => s"nameHighCardinality = 'h$i'").mkString("(", " OR ", s") $st")
+        val inQuery = s"(nameHighCardinality IN ('a','b','c','d','e')) $st"
+
+        forall(Seq(orQuery, inQuery)) { filter =>
+          val strats = getStrategies(ECQL.toFilter(filter))
+          strats must haveLength(1)
+          strats.head.strategy mustEqual StrategyType.ATTRIBUTE
+          strats.head.or must beTrue
+          strats.head.primary.length mustEqual 5
+          strats.head.secondary must beSome
+          strats.head.secondary.get must beAnInstanceOf[And]
+          strats.head.secondary.get.asInstanceOf[And].getChildren must haveLength(2)
+        }
       }
     }
   }

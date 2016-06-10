@@ -9,6 +9,9 @@
 package org.locationtech.geomesa.accumulo.index
 
 import org.geotools.data.Query
+import org.locationtech.geomesa.accumulo.data.stats.GeoMesaStats
+import org.locationtech.geomesa.accumulo.index.QueryHints._
+import org.locationtech.geomesa.accumulo.index.Strategy.CostEvaluation.CostEvaluation
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -19,7 +22,7 @@ import org.opengis.filter.Filter
 trait QueryStrategyDecider {
   def chooseStrategies(sft: SimpleFeatureType,
                        query: Query,
-                       hints: StrategyHints,
+                       stats: GeoMesaStats,
                        requested: Option[StrategyType],
                        output: ExplainerOutputType = ExplainNull): Seq[Strategy]
 }
@@ -49,14 +52,24 @@ object QueryStrategyDecider extends QueryStrategyDecider with MethodProfiling {
    */
   override def chooseStrategies(sft: SimpleFeatureType,
                                 query: Query,
-                                hints: StrategyHints,
+                                stats: GeoMesaStats,
                                 requested: Option[StrategyType],
                                 output: ExplainerOutputType): Seq[Strategy] = {
 
     implicit val timings = new Timing()
 
     // get the various options that we could potentially use
-    val options = new QueryFilterSplitter(sft).getQueryOptions(query.getFilter, output)
+    val options = {
+      val all = new QueryFilterSplitter(sft).getQueryOptions(query.getFilter, output)
+      // don't evaluate z2 index if there is a z3 option, it will always be picked
+      // TODO if we eventually take into account date range, this will need to be removed
+      if (requested.isEmpty && all.exists(_.filters.forall(_.strategy == StrategyType.Z3)) &&
+          all.exists(_.filters.forall(_.strategy == StrategyType.Z2))) {
+        all.filterNot(_.filters.forall(_.strategy == StrategyType.Z2))
+      } else {
+        all
+      }
+    }
 
     val selected = profile {
       if (requested.isDefined) {
@@ -73,11 +86,18 @@ object QueryStrategyDecider extends QueryStrategyDecider with MethodProfiling {
           options.head
         } else {
           // choose the best option based on cost
-          val costs = options.map(o => (o, o.filters.map(getCost(_, sft, hints)).sum)).sortBy(_._2)
-          val cheapest = costs.head
-          output(s"Filter plan selected: ${cheapest._1} (Cost ${cheapest._2})")
-          output(s"Filter plans not used (${costs.size - 1}):", costs.drop(1).map(c => s"${c._1} (Cost ${c._2})"))
-          cheapest._1
+          val evaluation = query.getHints.getCostEvaluation
+          val transform = query.getHints.getTransformSchema
+          val costs = options.map { option =>
+            val timing = new Timing
+            val optionCosts = profile(option.filters.map(getCost(sft, _, transform, stats, evaluation)))(timing)
+            (option, optionCosts.sum, timing.time)
+          }.sortBy(_._2)
+          val (cheapest, cost, time) = costs.head
+          output(s"Filter plan selected: $cheapest (Cost $cost)(Cost evaluation: $evaluation in ${time}ms)")
+          output(s"Filter plans not used (${costs.size - 1}):",
+            costs.drop(1).map(c => s"${c._1} (Cost ${c._2} in ${c._3}ms)"))
+          cheapest
         }
         filterPlan.filters.map(createStrategy(_, sft))
       }
@@ -98,15 +118,23 @@ object QueryStrategyDecider extends QueryStrategyDecider with MethodProfiling {
    * Gets the estimated cost of running a particular strategy
    */
   // noinspection ScalaDeprecation
-  private def getCost(filter: QueryFilter, sft: SimpleFeatureType, hints: StrategyHints): Int = {
-    filter.strategy match {
-      case StrategyType.Z2        => Z2IdxStrategy.getCost(filter, sft, hints)
-      case StrategyType.Z3        => Z3IdxStrategy.getCost(filter, sft, hints)
-      case StrategyType.RECORD    => RecordIdxStrategy.getCost(filter, sft, hints)
-      case StrategyType.ATTRIBUTE if sft.getSchemaVersion >= ImplVersionChange => AttributeIdxStrategy.getCost(filter, sft, hints)
-      case StrategyType.ST        => STIdxStrategy.getCost(filter, sft, hints)
-      case StrategyType.ATTRIBUTE => AttributeIdxStrategyV5.getCost(filter, sft, hints)
+  private def getCost(sft: SimpleFeatureType,
+                      filter: QueryFilter,
+                      transform: Option[SimpleFeatureType],
+                      stats: GeoMesaStats,
+                      evaluation: CostEvaluation): Long = {
+    val strategy = filter.strategy match {
+      case StrategyType.Z2        => Z2IdxStrategy
+      case StrategyType.Z3        => Z3IdxStrategy
+      case StrategyType.RECORD    => RecordIdxStrategy
+      case StrategyType.ATTRIBUTE => AttributeIdxStrategy
+      case StrategyType.ST        => STIdxStrategy
       case _ => throw new IllegalStateException(s"Unknown query plan requested: ${filter.strategy}")
+    }
+    if (sft.getSchemaVersion < ImplVersionChange && strategy == AttributeIdxStrategy) {
+      AttributeIdxStrategyV5.getCost(sft, filter, transform, stats, evaluation)
+    } else {
+      strategy.getCost(sft, filter, transform, stats, evaluation)
     }
   }
 

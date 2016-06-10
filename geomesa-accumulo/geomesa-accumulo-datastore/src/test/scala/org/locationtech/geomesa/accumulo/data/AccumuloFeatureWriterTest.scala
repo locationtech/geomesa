@@ -362,9 +362,8 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
 
       val filter = CQL.toFilter("name = 'will'")
 
-      val hints = ds.strategyHints(sft)
       val q = new Query(sft.getTypeName, filter)
-      QueryStrategyDecider.chooseStrategies(sft, q, hints, None).head must beAnInstanceOf[AttributeIdxStrategy]
+      QueryStrategyDecider.chooseStrategies(sft, q, ds.stats, None).head must beAnInstanceOf[AttributeIdxStrategy]
 
       import org.locationtech.geomesa.utils.geotools.Conversions._
 
