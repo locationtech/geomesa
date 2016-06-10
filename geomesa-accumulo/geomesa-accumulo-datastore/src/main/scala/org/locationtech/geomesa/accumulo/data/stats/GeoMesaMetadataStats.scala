@@ -108,7 +108,7 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
     } else if (clas == classOf[Frequency[_]]) {
       if (options.nonEmpty) {
         // we are retrieving the frequency by week
-        val weeks = options.map(_.asInstanceOf[Short])
+        val weeks = options.asInstanceOf[Seq[Short]]
         val frequencies = toRetrieve.flatMap { a =>
           weeks.map(frequencyKey(a, _)).flatMap(readStat[Frequency[Any]](sft, _))
         }
@@ -117,14 +117,17 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
         toRetrieve.flatMap(a => readStat[Frequency[Any]](sft, frequencyKey(a)))
       }
     } else if (clas == classOf[Z3Histogram]) {
-      val z = for {
+      val geomDtgOption = for {
         geom <- Option(sft.getGeomField)
         dtg  <- sft.getDtgField
         if toRetrieve.contains(geom) && toRetrieve.contains(dtg)
       } yield {
+        (geom, dtg)
+      }
+      geomDtgOption.flatMap { case (geom, dtg) =>
         // z3 histograms are stored by week - calculate the weeks to retrieve
         // either use the options if passed in, or else calculate from the time bounds
-        val weeks: Seq[Short] = if (options.nonEmpty) { options.map(_.asInstanceOf[Short]) } else {
+        val weeks: Seq[Short] = if (options.nonEmpty) { options.asInstanceOf[Seq[Short]] } else {
           readStat[MinMax[Date]](sft, minMaxKey(dtg)).map { bounds =>
             val lt = Z3Table.getWeekAndSeconds(bounds.min.getTime)._1
             val ut = Z3Table.getWeekAndSeconds(bounds.max.getTime)._1
@@ -134,8 +137,7 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
         val histograms = weeks.map(histogramKey(geom, dtg, _)).flatMap(readStat[Z3Histogram](sft, _))
         // combine the week splits into a single stat
         Z3Histogram.combine(histograms)
-      }
-      z.flatten.toSeq
+      }.toSeq
     } else {
       Seq.empty
     }
