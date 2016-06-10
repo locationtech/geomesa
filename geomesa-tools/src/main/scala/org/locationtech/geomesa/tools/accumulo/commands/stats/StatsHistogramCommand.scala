@@ -93,6 +93,7 @@ class StatsHistogramCommand(parent: JCommander) extends CommandWithCatalog(paren
             }
           }
         } else {
+          println("Operation cancelled.")
           return // cancel operation
         }
       }
