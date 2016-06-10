@@ -28,6 +28,8 @@ class BinLineStringTest extends Specification with TestWithDataStore {
 
   import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 
+  sequential
+
   override val spec = "name:String,track:String,dtgList:List[Date],dtg:Date,*geom:LineString:srid=4326"
 
   val features =
