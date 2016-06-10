@@ -222,6 +222,33 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       schemaWithNs.getName.getLocalPart mustEqual sft.getTypeName
     }
 
+    "handle cql functions" in {
+      val sftName = defaultSft.getTypeName
+      val filters = Seq("name = 'name1'", "IN('fid-1')", "bbox(geom, 44, 48, 46, 50)",
+        "bbox(geom, 44, 48, 46, 50) AND dtg DURING 2010-05-07T12:00:00.000Z/2010-05-07T13:00:00.000Z")
+      val positives = filters.map(f => new Query(sftName, ECQL.toFilter(s"$f AND geometryType(geom) = 'Point'")))
+      val negatives = filters.map(f => new Query(sftName, ECQL.toFilter(s"$f AND geometryType(geom) = 'Polygon'")))
+
+      val pStrategies = positives.map(ds.getQueryPlan(_))
+      val nStrategies = negatives.map(ds.getQueryPlan(_))
+
+      forall(pStrategies ++ nStrategies)(_ must haveLength(1))
+      pStrategies.map(_.head.filter.strategy) mustEqual
+          Seq(StrategyType.ATTRIBUTE, StrategyType.RECORD, StrategyType.Z2, StrategyType.Z3)
+      nStrategies.map(_.head.filter.strategy) mustEqual
+          Seq(StrategyType.ATTRIBUTE, StrategyType.RECORD, StrategyType.Z2, StrategyType.Z3)
+
+      forall(positives) { query =>
+        val result = ds.getFeatureSource(sftName).getFeatures(query).features().toList
+        result must haveLength(1)
+        result.head.getID mustEqual "fid-1"
+      }
+      forall(negatives) { query =>
+        val result = ds.getFeatureSource(sftName).getFeatures(query).features().toList
+        result must beEmpty
+      }
+    }
+
     "avoid deduplication when possible" in {
       val sft = createNewSchema(s"name:String:index=join:cardinality=high,dtg:Date,*geom:Point:srid=4326")
       addFeature(sft, ScalaSimpleFeature.create(sft, "1", "bob", "2010-05-07T12:00:00.000Z", "POINT(45 45)"))
