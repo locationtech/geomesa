@@ -216,6 +216,12 @@ class BinnedArrayTest extends Specification with StatTestHelper {
       forall(10 until 15)(i => array.medianValue(i) must startWith("aa" + ('a'.toInt + i - 10).toChar))
     }
 
+    "bin strings with different length endpoints" >> {
+      val array = new BinnedStringArray(100, ("Addams", "Clemens"))
+      array.indexOf("Addams") mustEqual(0)
+      array.indexOf("Clemens") mustEqual(99)
+    }
+
     "not provide string bounds that are out of order" >> {
       val bounds = Seq(("0", "z"), ("0name0", "9nrcyk5rcykg"), ("abc000", "abc099"))
       forall(bounds) { b =>
