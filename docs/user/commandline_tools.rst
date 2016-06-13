@@ -447,7 +447,7 @@ stats-bounds
 ~~~~~~~~~~~~
 
 Displays the bounds of your data for different attributes. You can use pre-calculated stats for a quick
-estimation, or get the definitive result by querying the data set using the '--exact' flag.
+estimation, or get the definitive result by querying the data set using the '--no-cache' flag.
 
 Example usage::
 
@@ -460,7 +460,7 @@ Example usage::
       geom [ -171.75, -45.5903996, 157.7302, 89.99997102 ] cardinality: 2119237
 
     $ geomesa stats-bounds -u username -p password -i instance -z zoo1,zoo2,zoo3 \
-        -c geomesa.data -f twitter --exact \
+        -c geomesa.data -f twitter --no-cache \
         -q 'BBOX(geom,-70,45,-60,55) AND dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
       Running stat query...
         user_id [ 1011811424 to 99124417 ] cardinality: 115
@@ -474,7 +474,7 @@ stats-count
 
 Counts the features in your data set. You can count total features, or features that match a CQL filter.
 You can use pre-calculated stats for a quick estimation, or get the definitive result by querying the
-data set using the '--exact' flag.
+data set using the '--no-cache' flag.
 
 Example usage::
 
@@ -488,7 +488,7 @@ Example usage::
       Estimated count: 2681
 
     $ geomesa stats-count -u username -p password -i instance -z zoo1,zoo2,zoo3 \
-        -c geomesa.data -f twitter --exact \
+        -c geomesa.data -f twitter --no-cache \
         -q 'BBOX(geom,-70,45,-60,55) AND dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
       Running stat query...
       Count: 182
@@ -519,7 +519,7 @@ stats-histogram
 Counts the features in your data set, grouped into sorted bins. You may specify the number of bins to group
 attribute into. You can count total features, or features that match a CQL filter. You can use
 pre-calculated stats for a quick estimation, or get the definitive result by querying the
-data set using the '--exact' flag.
+data set using the '--no-cache' flag.
 
 If you query a histogram for a geometry attribute, the result will be displayed in an ASCII heatmap.
 
@@ -540,7 +540,7 @@ Example usage::
         [ 2016-02-27T02:43:51.000Z to 2016-03-01T00:21:02.000Z ] 956743
 
     $ geomesa stats-histogram -u username -p password -i instance -z zoo1,zoo2,zoo3 \
-        -c geomesa.data -f twitter -a dtg --bins 10 --exact
+        -c geomesa.data -f twitter -a dtg --bins 10 --no-cache
       Running stat query...
       Binned histogram for 'dtg':
         [ 2016-02-01T00:09:12.000Z to 2016-02-03T21:46:23.000Z ] 805620
