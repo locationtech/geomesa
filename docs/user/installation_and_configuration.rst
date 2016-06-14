@@ -210,6 +210,7 @@ In this case you may download SLF4J from http://www.slf4j.org/download.html. Ext
 ``slf4j-log4j12-1.7.7.jar`` and place it in the ``lib`` directory of the binary distribution. 
 If this conflicts with another SLF4J implementation, you may need to remove it from the ``lib`` directory.
 
+.. _install_accumulo_runtime:
 
 Installing the Accumulo distributed runtime library
 ---------------------------------------------------
@@ -239,6 +240,8 @@ each tablet server.
 
     You do not need the JAR on the Accumulo master server, and including
     it there may cause classpath issues later.
+
+.. _install_accumulo_runtime_namespace:
 
 For Accumulo 1.6+
 ^^^^^^^^^^^^^^^^^
@@ -410,16 +413,21 @@ Hadoop 2.4-2.7 (adjust versions as needed)
 For Kafka
 ^^^^^^^^^
 
-To install the GeoMesa Kafka GeoServer plugin, unpack the contents of the
-``geomesa-kafka-gs-plugin-$VERSION.tar.gz`` file in ``geomesa-$VERSION/dist/gs-plugins`` 
-into your GeoServer's ``lib`` directory (``$VERSION`` = |release|):
+The GeoMesa GeoServer plugin for Kafka 0.8.2 is found in the ``geomesa-kafka-gs-plugin-$VERSION-install.tar.gz``
+file in ``geomesa-$VERSION/dist/gs-plugins`` in the binary distribution, or is built in
+the ``geomesa-gs-plugin/geomesa-kafka-gs-plugin`` directory of the source distribution.
 
-If you are using Tomcat:
+The GeoMesa GeoServer plugin for Kafka 0.9 is found in ``geomesa-kafka-09-gs-plugin-$VERSION-install.tar.gz``
+(downloaded here: |release_kafka09_plugin|), or is built in the
+``geomesa-gs-plugin/geomesa-kafka-09-gs-plugin`` directory of the source distribution.
+
+In either case, the contents of the appropriate archive should be unpacked in the GeoServer
+``WEB-INF/lib`` directory. If you are using Tomcat:
 
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-$VERSION/dist/gs-plugins/geomesa-kafka-gs-plugin-$VERSION-install.zip \
+      geomesa-$VERSION/dist/gs-plugins/geomesa-kafka-gs-plugin-$VERSION-install.tar.gz \
       -C /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
 
 If you are using GeoServer's built in Jetty web server:
@@ -427,7 +435,7 @@ If you are using GeoServer's built in Jetty web server:
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-$VERSION/dist/gs-plugins/geomesa-kafka-gs-plugin-$VERSION-install.zip \
+      geomesa-$VERSION/dist/gs-plugins/geomesa-kafka-gs-plugin-$VERSION-install.tar.gz \
       -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib/
 
 This will install the JARs for the Kafka GeoServer plugin and most of its dependencies.
@@ -479,6 +487,16 @@ To upgrade between minor releases of GeoMesa, the versions of all GeoMesa compon
 This means that the version of the ``geomesa-distributed-runtime`` JAR installed on Accumulo tablet servers
 **must** match the version of the ``geomesa-plugin`` JARs installed in the ``WEB-INF/lib`` directory of GeoServer.
 
+Configuring GeoMesa Accumulo
+----------------------------
+
+The `Zookeeper session timeout <http://accumulo.apache.org/1.6/accumulo_user_manual#_instance_zookeeper_timeout>`__
+for the GeoMesa Accumulo data store is exposed as the Java system property ``instance.zookeeper.timeout``:
+
+.. code-block:: bash
+
+    export JAVA_OPTS="-Dinstance.zookeeper.timeout=10s"
+
 Configuring GeoServer
 ---------------------
 
@@ -508,7 +526,7 @@ Apache Commons Collections
 --------------------------
 
 Version 3.2.1 and earlier of the Apache Commons Collections library have a CVSS 10.0 vulnerability.  Read more `here
-https://commons.apache.org/proper/commons-collections/security-reports.html`__.
+<https://commons.apache.org/proper/commons-collections/security-reports.html>`__.
 
 Note that Accumulo 1.6.5 is the first version of Accumulo which addresses this security concern.
 Fixes for the GeoServer project will be available in versions 2.8.3+ and 2.9.0+.
