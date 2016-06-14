@@ -117,7 +117,7 @@ keywords
 
 Add or remove keywords to a specified schema::
 Repeat the -a or -r flags to add or remove multiple keywords
-The ``-ra``` option removes all keywords
+The ``--removeAll``` option removes all keywords
 The ```-l``` option lists the schema's keywords following all operations
 If there is whitespace within a keyword, enclose it in quotes for proper functionality
 

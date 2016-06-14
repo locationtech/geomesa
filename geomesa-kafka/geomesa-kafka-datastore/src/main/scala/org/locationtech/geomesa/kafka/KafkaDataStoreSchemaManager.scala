@@ -153,9 +153,9 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
     val unmodifiableUserdataKeys = Set(SCHEMA_VERSION_KEY, TABLE_SHARING_KEY, SHARING_PREFIX_KEY,
       DEFAULT_DATE_KEY, ST_INDEX_SCHEMA_KEY, SimpleFeatureTypes.ENABLED_INDEXES)
 
-    unmodifiableUserdataKeys.foreach { case (key) =>
+    unmodifiableUserdataKeys.foreach { key =>
       if (sft.getUserData.keySet().contains(key) && sft.userData[String](key) != previousSft.userData[String](key)) {
-        throw new UnsupportedOperationException("Updating " + key + " is not allowed")
+        throw new UnsupportedOperationException(s"Updating $key is not allowed")
       }
     }
 

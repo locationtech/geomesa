@@ -71,13 +71,6 @@ class KafkaDataStore(override val zookeepers: String,
     super[KafkaDataStoreSchemaManager].dispose()
   }
 
-  def getKafkaSchema(typeName: String): SimpleFeatureType = getSchema(new NameImpl(typeName))
-
-  override def getSchema(name: Name): SimpleFeatureType = {
-    val typeName = name.getLocalPart
-    getFeatureConfig(typeName).sft
-  }
-
 }
 
 object KafkaDataStoreFactoryParams {

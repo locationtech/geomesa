@@ -30,7 +30,7 @@ class KeywordCommand(parent: JCommander) extends CommandWithKDS(parent) {
       throw new ParameterException("Could not load a data store with the provided parameters")
     }
 
-    val sft = ds.getFeatureSource(params.featureName).getSchema
+    val sft = ds.getSchema(params.featureName)
 
     var keywordsModified = false
 
@@ -60,7 +60,7 @@ class KeywordCommand(parent: JCommander) extends CommandWithKDS(parent) {
     ds.asInstanceOf[KafkaDataStoreSchemaManager].updateKafkaSchema(sft.getTypeName, sft)
 
     if (params.list) {
-      val reloadedSft = ds.getFeatureSource(params.featureName).getSchema
+      val reloadedSft = ds.getSchema(params.featureName)
       println("Keywords: " + reloadedSft.getKeywords.toString)
     }
 

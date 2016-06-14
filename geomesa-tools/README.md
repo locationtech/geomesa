@@ -48,7 +48,7 @@ This should print out the following usage text:
         help                Show help
         ingest              Ingest/convert various file formats into GeoMesa
         ingestraster        Ingest a raster file or raster files in a directory into GeoMesa
-        keywords             Add/remove/list keywords on a given schema
+        keywords            Add/remove/list keywords on a given schema
         list                List GeoMesa features for a given catalog
         queryrasterstats    Export queries and statistics about the last X number of queries to a CSV file.
         removeschema        Remove a schema and associated features from a GeoMesa catalog
