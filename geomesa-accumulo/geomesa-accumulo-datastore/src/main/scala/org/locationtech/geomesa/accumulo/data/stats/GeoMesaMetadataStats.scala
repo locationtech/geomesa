@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.accumulo.data.stats
 
 import java.util.Date
-import java.util.concurrent.Executors
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
+import java.util.concurrent.{Executors, TimeUnit}
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
@@ -44,6 +45,16 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
   import GeoMesaMetadataStats._
 
   private val metadata = new AccumuloBackedMetadata(ds.connector, statsTable, new StatsMetadataSerializer(ds))
+
+  private val compactionScheduled = new AtomicBoolean(false)
+  private val lastCompaction = new AtomicLong(0L)
+
+  executor.scheduleWithFixedDelay(new Runnable() {
+    override def run(): Unit = if (compactionScheduled.compareAndSet(true, false) &&
+        lastCompaction.get < DateTime.now(DateTimeZone.UTC).minusHours(1).getMillis) {
+      compact()
+    }
+  }, 1, 1, TimeUnit.HOURS)
 
   override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
     if (exact) {
@@ -182,13 +193,12 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
     logger.trace(s"Stats for ${sft.getTypeName}: ${stats.map(_.toJson).mkString(", ")}")
     logger.debug(s"Writing stats for ${sft.getTypeName}")
 
-    stats.foreach(writeStat(_, sft, merge = false)) // don't merge, this is the authoritative value
+    // write the stats in one go - don't merge, this is the authoritative value
+    writeStat(new SeqStat(stats), sft, merge = false)
+
     // update our last run time
     val date = GeoToolsDateFormat.print(DateTime.now(DateTimeZone.UTC))
     ds.metadata.insert(sft.getTypeName, STATS_GENERATION_KEY, date)
-
-    // schedule a table compaction so we don't have to combine until more data is written
-    compact()
 
     stats
   }
@@ -207,62 +217,67 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
     * @param merge merge with the existing stat - otherwise overwrite
     */
   private [stats] def writeStat(stat: Stat, sft: SimpleFeatureType, merge: Boolean): Unit = {
+
+    def shouldWrite(keyAndStat: (String, Stat)): Boolean = {
+      if (merge && keyAndStat._2.isInstanceOf[CountStat]) {
+        // count stat is additive so we don't want to compare to the current value
+        true
+      } else {
+        // only re-write if it's changed - writes and compactions are expensive
+        !readStat[Stat](sft, keyAndStat._1, cache = false).exists(_.isEquivalent(keyAndStat._2))
+      }
+    }
+
+    val toWrite = getKeysAndStatsForWrite(stat, sft).filter(shouldWrite)
+
+    if (merge) {
+      toWrite.foreach { case (k, s) =>
+        metadata.insert(sft.getTypeName, k, s)
+        // re-load it so that the combiner takes effect
+        readStat[Stat](sft, k, cache = false)
+      }
+    } else {
+      // due to accumulo issues with combiners, deletes and compactions, we have to:
+      // 1) delete the existing data; 2) compact the table; 3) insert the new value
+      // see: https://issues.apache.org/jira/browse/ACCUMULO-2232
+      toWrite.foreach { case (k, _) => metadata.remove(sft.getTypeName, k) }
+      compact()
+      toWrite.foreach { case (k, s) => metadata.insert(sft.getTypeName, k, s) }
+    }
+  }
+
+  /**
+    * Gets keys and stats to write. Some stats end up getting split for writing.
+    *
+    * @param stat stat to write
+    * @param sft simple feature type
+    * @return metadata keys and split stats
+    */
+  private def getKeysAndStatsForWrite(stat: Stat, sft: SimpleFeatureType): Seq[(String, Stat)] = {
     def name(i: Int) = sft.getDescriptor(i).getLocalName
 
     stat match {
-      case s: SeqStat           => s.stats.foreach(writeStat(_, sft, merge))
-      case s: CountStat         => writeStat(s, sft, countKey(), merge)
-      case s: MinMax[_]         => writeStat(s, sft, minMaxKey(name(s.attribute)), merge)
-      case s: Histogram[_] => writeStat(s, sft, histogramKey(name(s.attribute)), merge)
+      case s: SeqStat      => s.stats.flatMap(getKeysAndStatsForWrite(_, sft))
+      case s: CountStat    => Seq((countKey(), s))
+      case s: MinMax[_]    => Seq((minMaxKey(name(s.attribute)), s))
+      case s: Histogram[_] => Seq((histogramKey(name(s.attribute)), s))
 
-      case s: Frequency[_]      =>
+      case s: Frequency[_] =>
         val attribute = name(s.attribute)
         if (s.dtgIndex == -1) {
-          writeStat(s, sft, frequencyKey(attribute), merge)
+          Seq((frequencyKey(attribute), s))
         } else {
-          s.splitByWeek.foreach { case (w, f) => writeStat(f, sft, frequencyKey(attribute, w), merge) }
+          // split up the frequency and store by week
+          s.splitByWeek.map { case (w, f) => (frequencyKey(attribute, w), f) }
         }
 
       case s: Z3Histogram  =>
         val geom = name(s.geomIndex)
         val dtg  = name(s.dtgIndex)
         // split up the z3 histogram and store by week
-        s.splitByWeek.foreach { case (w, z) => writeStat(z, sft, histogramKey(geom, dtg, w), merge) }
+        s.splitByWeek.map { case (w, z) => (histogramKey(geom, dtg, w), z) }
 
-      case _ => throw new NotImplementedError("Only Count, Frequency, MinMax and RangeHistogram stats are tracked")
-    }
-  }
-
-  /**
-    * Writes a stat to accumulo. We use a combiner to merge values in accumulo, so we don't have to worry
-    * about any synchronization here.
-    *
-    * @param stat stat to write
-    * @param sft simple feature type
-    * @param key unique key for identifying the stat
-    * @param merge merge with existing stat - otherwise overwrite
-    */
-  private def writeStat(stat: Stat, sft: SimpleFeatureType, key: String, merge: Boolean): Unit = {
-    if (merge && stat.isInstanceOf[CountStat]) {
-      // count stats is additive so we don't want to compare to the current value
-      metadata.insert(sft.getTypeName, key, stat)
-      // re-load it so that the combiner takes effect
-      readStat[Stat](sft, key, cache = false)
-    } else {
-      // only re-write if it's changed - writes and compactions are expensive
-      readStat[Stat](sft, key, cache = false) match {
-        case None => metadata.insert(sft.getTypeName, key, stat)
-        case Some(s) if s.isEquivalent(stat) => // no-op
-        case Some(s) =>
-          if (merge) {
-            metadata.insert(sft.getTypeName, key, stat)
-            // re-load it so that the combiner takes effect
-            readStat[Stat](sft, key, cache = false)
-          } else {
-            metadata.remove(sft.getTypeName, key)
-            metadata.insert(sft.getTypeName, key, stat)
-          }
-      }
+      case _ => throw new NotImplementedError("Only Count, Frequency, MinMax and Histogram stats are tracked")
     }
   }
 
@@ -278,13 +293,17 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
     metadata.read(sft.getTypeName, key, cache).collect { case s: T if !s.isEmpty => s }
 
   /**
-    * Compacts the stat table. Uses an executor because even a 'asynchronous' compaction takes a while
-    * to return.
+    * Schedules a compaction for the stat table
     */
-  private [stats] def compact(): Unit = {
-    GeoMesaMetadataStats.executor.submit(new Runnable() {
-      override def run(): Unit = ds.connector.tableOperations().compact(statsTable, null, null, true, false)
-    })
+  private [stats] def scheduleCompaction(): Unit = compactionScheduled.set(true)
+
+  /**
+    * Performs a synchronous compaction of the stats table
+    */
+  private def compact(): Unit = {
+    compactionScheduled.set(false)
+    ds.connector.tableOperations().compact(statsTable, null, null, true, true)
+    lastCompaction.set(DateTime.now(DateTimeZone.UTC).getMillis)
   }
 
   /**
@@ -371,7 +390,7 @@ class MetadataStatUpdater(stats: GeoMesaMetadataStats, sft: SimpleFeatureType, s
   override def close(): Unit = {
     stats.writeStat(stat, sft, merge = true)
     // schedule a compaction so our metadata doesn't stack up too much
-    stats.compact()
+    stats.scheduleCompaction()
   }
 
   override def flush(): Unit = {
@@ -406,7 +425,7 @@ object GeoMesaMetadataStats {
   private val FrequencyKeyPrefix = "stats-freq"
   private val HistogramKeyPrefix = "stats-hist"
 
-  private [stats] val executor = Executors.newSingleThreadExecutor()
+  private [stats] val executor = Executors.newSingleThreadScheduledExecutor()
   sys.addShutdownHook(executor.shutdown())
 
   /**
