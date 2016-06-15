@@ -130,8 +130,9 @@ interface:
     }
 
 When a GeoMesa ``DataStore`` is instantiated, it will scan for available
-service providers. Third-party implementations can be enabled by simply
-placing them on the classpath. See the Oracle
+service providers. Third-party implementations can be enabled by placing
+them on the classpath and including a special service descriptor file.
+See the Oracle
 `Javadoc <http://docs.oracle.com/javase/7/docs/api/javax/imageio/spi/ServiceRegistry.html>`__
 for details on implementing a service provider.
 
@@ -253,16 +254,12 @@ To build, run
 
     $ mvn clean install -pl geomesa-examples-authorizations
 
-.. note::
-
-    Ensure that the version of Accumulo, Hadoop, etc in
+    :warning: Note: ensure that the version of Accumulo, Hadoop, etc in
     the root ``pom.xml`` match your environment.
 
-.. note::
-
-    Depending on the version, you may also need to build
+    :warning: Note: depending on the version, you may also need to build
     GeoMesa locally. Instructions can be found
-    in :doc:`/developer/index`.
+    `here <https://github.com/locationtech/geomesa/>`__.
 
 Run the Tutorial
 ----------------
@@ -349,8 +346,6 @@ There is a more useful implementation of ``AuthorizationsProvider`` that
 will be explored in more detail in the next section, the
 ``LdapAuthorizationsProvider``.
 
-.. _authorizations-gs-pki-ldap:
-
 Applying Authorizations and Visibilities to GeoServer Using PKIS and LDAP
 -------------------------------------------------------------------------
 
@@ -369,18 +364,15 @@ Once we have a user's authentication and authorizations, we will apply
 them to the GeoMesa query using a custom ``AuthorizationsProvider``
 implementation.
 
-.. note::
-
-    It is assumed for the rest of the tutorial that you have created
-    the GeoServer data stores and layers outlined in the :doc:`./geomesa-examples-gdelt/`
-    tutorial.
+**Note: It is assumed for the rest of the tutorial that you have created
+the GeoServer data stores and layers outlined in the `GDELT
+tutorial <../geomesa-examples-gdelt/>`__.**
 
 Run GeoServer in Tomcat
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. note::
-
-    If you are already running GeoServer in Tomcat, you can skip this step.
+*Note: If you are already running GeoServer in Tomcat, you can skip this
+step.*
 
 GeoServer ships by default with an embedded Jetty servlet. In order to
 use PKI login, we need to install it in Tomcat instead.
@@ -446,9 +438,7 @@ add it to the 'rest', 'gwc' and 'default' chains (in addition to web).
 We will be using the 'rod' and 'scott' users, so be sure to install
 those into your browser.
 
-.. warning::
-
-    Make sure that you click the 'Save' button on all
+    :warning: Note: make sure that you click the 'Save' button on all
     GeoServer screens. Otherwise, your changes may be lost.
 
 Verify that the changes were applied by re-starting Tomcat, and checking
@@ -457,12 +447,13 @@ that the 'web' filter chain has the 'cert' filter selected:
 .. figure:: _static/geomesa-examples-authorizations/filter-chain-cert.jpg
    :alt: Web Filter Panel
 
+   Web Filter Panel
+
 Install an LDAP Server for Storing Authorizations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. note::
-
-    If you are already have an LDAP server set up, you can skip this step.
+*Note: If you are already have an LDAP server set up, you can skip this
+step.*
 
 1. Download and install
    `ApacheDS <http://directory.apache.org/apacheds/>`__
@@ -514,7 +505,8 @@ In order to do that, we will use Apache Directory Studio.
 5. Load the following LDIF file, which will create the Spring Security
    OU and the 'rod' user:
 
-   -  :download:`spring-security-rod.ldif <_static/geomesa-examples-authorizations/spring-security-rod.ldif>`
+   -  `Spring Security
+      LDIF <_static/geomesa-examples-authorizations/spring-security-rod.ldif>`__.
    -  Right-click the 'Root DSE' node in the LDAP browser, and select
       'Import->LDIF import...'
 
@@ -607,10 +599,8 @@ specified as the ``EmptyAuthorizationsProvider``.
        $ cp ./geomesa-examples-authorizations/target/original-geomesa-examples-authorizations-<version>.jar \
           /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
 
-.. note::
-
-   We want to use the unshaded jar since all the
-   required dependencies are already installed in GeoServer.
+       :warning: Note: we want to use the unshaded jar since all the
+       required dependencies are already installed in GeoServer.
 
 4. Restart GeoServer (or start it if it is not running).
 
@@ -635,14 +625,14 @@ indicating the data:
 .. figure:: _static/geomesa-examples-authorizations/Ukraine_Unfiltered.png
    :alt: Authorized Results
 
+   Authorized Results
+
 Now try the same query, but use the 'scott' certificate. This time,
 there should be no data returned, as the 'scott' user does not have any
 authorizations set up in LDAP.
 
-.. note::
-
-    A simple way to use different certificates at once is to open
-    multiple 'incognito' or 'private' browser windows.
+***Note: a simple way to use different certificates at once is to open
+multiple 'incognito' or 'private' browser windows.***
 
 Querying GeoServer through a Web Feature Service (WFS) with a Java Client
 -------------------------------------------------------------------------
@@ -683,19 +673,13 @@ where you provide the following arguments:
    these need to be before the class name, otherwise they will be
    treated as arguments to the program.
 
-.. note::
+    :warning: Note: Ensure that the URL for GeoServer is using HTTPS.
 
-    Ensure that the URL for GeoServer is using HTTPS.
-
-.. note::
-
-    The feature store needs to be namespaced with the
+    :warning: Note: The feature store needs to be namespaced with the
     GeoServer workspace. The workspace and store name are separated with
     a colon.
 
-.. note::
-
-    If you happen to have two GeoServer data stores with
+    :warning: Note: If you happen to have two GeoServer data stores with
     the same name but different workspaces, you will need to delete or
     rename one of them. There is a bug in GeoServer where it might
     return the wrong features if there are two data stores with the same

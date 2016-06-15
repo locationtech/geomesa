@@ -11,7 +11,8 @@
 # Upate for your system
 GEOMESA_PATH=/opt/devel/src/geomesa
 TUTORIAL_PATH=/opt/devel/src/geomesa-tutorials
-TUTORIALS="
+if [ "$#" -eq 0 ] ; then
+    TUTORIALS="
 geomesa-examples-authorizations
 geomesa-examples-avro
 geomesa-examples-featurelevelvis
@@ -21,7 +22,10 @@ geomesa-quickstart-accumulo
 geomesa-quickstart-hbase
 geomesa-quickstart-kafka
 geomesa-quickstart-storm
-"
+    "
+else
+    TUTORIALS="$@"
+fi
 
 #
 for tutorial in $TUTORIALS ; do
