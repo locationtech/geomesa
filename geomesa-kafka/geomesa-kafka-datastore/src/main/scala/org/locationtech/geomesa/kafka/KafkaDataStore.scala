@@ -18,6 +18,7 @@ import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.data.{DataStore, DataStoreFactorySpi, Query}
 import org.geotools.feature.NameImpl
+import org.opengis.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.kafka.KafkaDataStore.FeatureSourceFactory
 import org.opengis.feature.`type`.Name
 import org.opengis.filter.Filter
@@ -69,6 +70,7 @@ class KafkaDataStore(override val zookeepers: String,
     super[ContentDataStore].dispose()
     super[KafkaDataStoreSchemaManager].dispose()
   }
+
 }
 
 object KafkaDataStoreFactoryParams {

@@ -29,6 +29,7 @@ Run ``geomesa`` without any arguments to produce the following usage text::
         help                Show help
         ingest              Ingest/convert various file formats into GeoMesa
         ingestraster        Ingest a raster file or raster files in a directory into GeoMesa
+        keywords            Add/remove keywords on an existing schema
         list                List GeoMesa features for a given catalog
         queryrasterstats    Export queries and statistics about the last X number of queries to a CSV file.
         stats-analyze       Analyze statistics on a GeoMesa feature type
@@ -113,6 +114,20 @@ Get the specified feature type as a typesafe config::
 Get the specified feature type as an encoded feature schema string::
 
     $ geomesa getsft -u username -p password -c test_catalog -f test_feature --format spec
+
+keywords
+~~~~~~~~
+
+Add or remove keywords to a specified schema::
+Repeat the -a or -r flags to add or remove multiple keywords
+The ``--removeAll``` option removes all keywords
+The ```-l``` option lists the schema's keywords following all operations
+If there is whitespace within a keyword, enclose it in quotes for proper functionality
+
+    $ geomesa keywords -u username -p password \
+        -a keywordB -a keywordC -r keywordA -l\
+        -i instance -z zoo1,zoo2,zoo3 \
+        -c catalog -f featureTypeName
 
 list
 ~~~~

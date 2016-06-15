@@ -20,6 +20,7 @@ import org.locationtech.geomesa.kafka.common.ZkUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 
 import scala.collection.JavaConverters._
 import scala.util.Try
@@ -135,6 +136,38 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
         zkUtils.deleteTopic(fc.topic)
       }
     }
+  }
+
+  def updateKafkaSchema(typeName: String, sft: SimpleFeatureType) = {
+
+    // Get previous schema and user data
+    val previousSft = getSchema(typeName)
+    val schemaTypeName = sft.getTypeName()
+
+    // Prevent modifying wrong type if type names don't match
+    if (!schemaTypeName.equals(typeName.toString)) {
+      throw new UnsupportedOperationException("Updating the type name of a schema is not allowed " + schemaTypeName + " " + typeName)
+    }
+
+    // Check that unmodifiable user data has not changed
+    val unmodifiableUserdataKeys = Set(SCHEMA_VERSION_KEY, TABLE_SHARING_KEY, SHARING_PREFIX_KEY,
+      DEFAULT_DATE_KEY, ST_INDEX_SCHEMA_KEY, SimpleFeatureTypes.ENABLED_INDEXES)
+
+    unmodifiableUserdataKeys.foreach { key =>
+      if (sft.getUserData.keySet().contains(key) && sft.userData[String](key) != previousSft.userData[String](key)) {
+        throw new UnsupportedOperationException(s"Updating $key is not allowed")
+      }
+    }
+
+    // Check that the rest of the schema has not changed (columns, types, etc)
+    val previousColumns = previousSft.getAttributeDescriptors
+    val currentColumns = sft.getAttributeDescriptors
+    if (previousColumns != currentColumns) {
+      throw new UnsupportedOperationException("Updating schema columns is not allowed")
+    }
+
+    // If all is well, write to zookeeper metadata
+    zkUtils.zkClient.writeData(getSchemaPath(typeName), SimpleFeatureTypes.encodeType(sft, includeUserData = true))
   }
 
   override def dispose(): Unit = {
