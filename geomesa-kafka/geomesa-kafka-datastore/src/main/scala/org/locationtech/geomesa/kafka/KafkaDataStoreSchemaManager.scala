@@ -146,7 +146,11 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
 
     // Prevent modifying wrong type if type names don't match
     if (!schemaTypeName.equals(typeName.toString)) {
-      throw new UnsupportedOperationException("Updating the type name of a schema is not allowed " + schemaTypeName + " " + typeName)
+      throw new IllegalArgumentException(s"Provided type name $typeName does not match schema type name $schemaTypeName")
+    }
+
+    if (previousSft == null) {
+      throw new IllegalArgumentException(s"No schema found for given type name $typeName")
     }
 
     // Check that unmodifiable user data has not changed

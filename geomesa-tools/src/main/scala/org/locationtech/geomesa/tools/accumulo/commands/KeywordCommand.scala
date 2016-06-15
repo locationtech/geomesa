@@ -9,12 +9,9 @@
 package org.locationtech.geomesa.tools.accumulo.commands
 
 import com.beust.jcommander._
-import com.beust.jcommander.converters.IParameterSplitter
-import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.tools.accumulo.commands.KeywordCommand.KeywordParameters
-import org.locationtech.geomesa.tools.accumulo.{DataStoreHelper, GeoMesaConnectionParams}
-import org.locationtech.geomesa.tools.common.FeatureTypeNameParam
-import org.locationtech.geomesa.tools.common.commands.Command
+import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
+import org.locationtech.geomesa.tools.common.{FeatureTypeNameParam, KeywordParamSplitter}
 
 import scala.collection.JavaConversions._
 import scala.io.StdIn
@@ -25,10 +22,6 @@ class KeywordCommand(parent: JCommander) extends CommandWithCatalog(parent) {
   override val params = new KeywordParameters()
 
   override def execute(): Unit = {
-
-    if (ds == null) {
-      throw new ParameterException("Could not load a data store with the provided parameters")
-    }
 
     val sft = ds.getSchema(params.featureName)
 
@@ -61,21 +54,16 @@ class KeywordCommand(parent: JCommander) extends CommandWithCatalog(parent) {
   }
 }
 
-// Overrides JCommander's split on comma to allow single keywords containing commas
-class KeywordParameterSplitter extends IParameterSplitter {
-  override def split(s : String): java.util.List[String] = List(s)
-}
-
 object KeywordCommand {
 
   @Parameters(commandDescription = "Add/Remove/List keywords on an existing schema")
   class KeywordParameters extends GeoMesaConnectionParams
     with FeatureTypeNameParam {
 
-    @Parameter(names = Array("-a", "--add"), description = "A keyword to add. Can be specified multiple times", splitter = classOf[KeywordParameterSplitter])
+    @Parameter(names = Array("-a", "--add"), description = "A keyword to add. Can be specified multiple times", splitter = classOf[KeywordParamSplitter])
     var keywordsToAdd: java.util.List[String] = null
 
-    @Parameter(names = Array("-r", "--remove"), description = "A keyword to remove. Can be specified multiple times", splitter = classOf[KeywordParameterSplitter])
+    @Parameter(names = Array("-r", "--remove"), description = "A keyword to remove. Can be specified multiple times", splitter = classOf[KeywordParamSplitter])
     var keywordsToRemove: java.util.List[String] = null
 
     @Parameter(names = Array("-l", "--list"), description = "List all keywords on the schema")
