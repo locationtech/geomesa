@@ -15,6 +15,8 @@ import org.locationtech.geomesa.tools.accumulo.commands.CommandWithCatalog
 import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat}
 import org.opengis.filter.Filter
 
+import scala.math.Ordering
+
 class StatsEnumerateCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
 
   override val command = "stats-enumerate"
@@ -36,8 +38,29 @@ class StatsEnumerateCommand(parent: JCommander) extends CommandWithCatalog(paren
       enumeration match {
         case None => println("  unavailable")
         case Some(e) =>
-          val stringify = Stat.stringifier(sft.getDescriptor(attribute).getType.getBinding)
-          e.frequencies.toSeq.sortBy(_._2)(Ordering.Long.reverse).foreach { case (value, count) =>
+          val binding = sft.getDescriptor(attribute).getType.getBinding
+          val ordering = if (classOf[Comparable[Any]].isAssignableFrom(binding)) {
+            new Ordering[Tuple2[Any, Long]] {
+              override def compare(x: (Any, Long), y: (Any, Long)): Int = {
+                // swap positions to get reverse sorting with large counts first
+                val compareCount = y._2.compareTo(x._2)
+                if (compareCount != 0) {
+                  compareCount
+                } else {
+                  x._1.asInstanceOf[Comparable[Any]].compareTo(y._1)
+                }
+              }
+            }
+          } else {
+            new Ordering[Tuple2[Any, Long]] {
+              override def compare(x: (Any, Long), y: (Any, Long)): Int = {
+                // swap positions to get reverse sorting with large counts first
+                y._2.compareTo(x._2)
+              }
+            }
+          }
+          val stringify = Stat.stringifier(binding)
+          e.frequencies.toSeq.sorted(ordering).foreach { case (value, count) =>
             println(s"  ${stringify(value)} ($count)")
           }
       }

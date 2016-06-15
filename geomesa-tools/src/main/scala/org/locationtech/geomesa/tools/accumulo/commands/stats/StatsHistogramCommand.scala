@@ -167,20 +167,12 @@ object StatsHistogramCommand {
   def geomHistToString(attribute: String, stat: Histogram[Geometry]): String = {
     // grid of counts, corresponds to our world map dimensions
     val counts = Array.fill[Array[Long]](AsciiWorldMapHeight)(Array.fill[Long](AsciiWorldMapLength)(0))
-    // min/max to normalize our densities
-    var min = stat.count(0)
-    var max = min
 
     // translate histogram values into the grid and also calculate min/max for normalization
     def putCountsInGrid(): Unit = {
       var i = 0
       while (i < stat.length) {
         val count = stat.count(i)
-        if (count > max) {
-          max = count
-        } else if (count < min) {
-          min = count
-        }
         if (count > 0) {
           val point = stat.medianValue(i).asInstanceOf[Point]
           val (x, y) = (point.getX, point.getY)
@@ -195,12 +187,16 @@ object StatsHistogramCommand {
       }
     }
 
+    putCountsInGrid()
+
+    // min/max to normalize our densities
+    val min = counts.map(_.min).min
+    val max = counts.map(_.max).max
+
     // normalize a count to 0-1 based on our min/max values
     def normalize(count: Long): Float = (count - min).toFloat / (max - min)
     // reverse a normalized percent
     def denormalize(percent: Float): Long = (percent * (max - min)).toLong + min
-
-    putCountsInGrid()
 
     val sb = new StringBuilder
 

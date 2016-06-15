@@ -41,7 +41,7 @@ object StatsCommand {
 trait StatsParams extends GeoMesaConnectionParams with FeatureTypeNameParam with OptionalCQLFilterParam
 
 trait CachedStatsParams {
-  @Parameter(names = Array("-e", "--exact"), description = "Calculate exact statistics (may be slow)")
+  @Parameter(names = Array("--no-cache"), description = "Calculate against the data set instead of using cached statistics (may be slow)")
   var exact: Boolean = false
 }
 
