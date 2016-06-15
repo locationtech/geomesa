@@ -254,12 +254,16 @@ To build, run
 
     $ mvn clean install -pl geomesa-examples-authorizations
 
-    :warning: Note: ensure that the version of Accumulo, Hadoop, etc in
+.. note::
+
+    Ensure that the version of Accumulo, Hadoop, etc in
     the root ``pom.xml`` match your environment.
 
-    :warning: Note: depending on the version, you may also need to build
+.. note::
+
+    Depending on the version, you may also need to build
     GeoMesa locally. Instructions can be found
-    `here <https://github.com/locationtech/geomesa/>`__.
+    in :doc:`/developer/index`.
 
 Run the Tutorial
 ----------------
@@ -346,6 +350,8 @@ There is a more useful implementation of ``AuthorizationsProvider`` that
 will be explored in more detail in the next section, the
 ``LdapAuthorizationsProvider``.
 
+.. _authorizations-gs-pki-ldap:
+
 Applying Authorizations and Visibilities to GeoServer Using PKIS and LDAP
 -------------------------------------------------------------------------
 
@@ -364,15 +370,18 @@ Once we have a user's authentication and authorizations, we will apply
 them to the GeoMesa query using a custom ``AuthorizationsProvider``
 implementation.
 
-**Note: It is assumed for the rest of the tutorial that you have created
-the GeoServer data stores and layers outlined in the `GDELT
-tutorial <../geomesa-examples-gdelt/>`__.**
+.. note::
+
+    It is assumed for the rest of the tutorial that you have created
+    the GeoServer data stores and layers outlined in the :doc:`./geomesa-examples-gdelt/`
+    tutorial.
 
 Run GeoServer in Tomcat
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-*Note: If you are already running GeoServer in Tomcat, you can skip this
-step.*
+.. note::
+
+    If you are already running GeoServer in Tomcat, you can skip this step.
 
 GeoServer ships by default with an embedded Jetty servlet. In order to
 use PKI login, we need to install it in Tomcat instead.
@@ -438,7 +447,9 @@ add it to the 'rest', 'gwc' and 'default' chains (in addition to web).
 We will be using the 'rod' and 'scott' users, so be sure to install
 those into your browser.
 
-    :warning: Note: make sure that you click the 'Save' button on all
+.. warning::
+
+    Make sure that you click the 'Save' button on all
     GeoServer screens. Otherwise, your changes may be lost.
 
 Verify that the changes were applied by re-starting Tomcat, and checking
@@ -447,13 +458,12 @@ that the 'web' filter chain has the 'cert' filter selected:
 .. figure:: _static/geomesa-examples-authorizations/filter-chain-cert.jpg
    :alt: Web Filter Panel
 
-   Web Filter Panel
-
 Install an LDAP Server for Storing Authorizations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-*Note: If you are already have an LDAP server set up, you can skip this
-step.*
+.. note::
+
+    If you are already have an LDAP server set up, you can skip this step.
 
 1. Download and install
    `ApacheDS <http://directory.apache.org/apacheds/>`__
@@ -505,8 +515,7 @@ In order to do that, we will use Apache Directory Studio.
 5. Load the following LDIF file, which will create the Spring Security
    OU and the 'rod' user:
 
-   -  `Spring Security
-      LDIF <_static/geomesa-examples-authorizations/spring-security-rod.ldif>`__.
+   -  :download:`spring-security-rod.ldif <_static/geomesa-examples-authorizations/spring-security-rod.ldif>`
    -  Right-click the 'Root DSE' node in the LDAP browser, and select
       'Import->LDIF import...'
 
@@ -599,8 +608,10 @@ specified as the ``EmptyAuthorizationsProvider``.
        $ cp ./geomesa-examples-authorizations/target/original-geomesa-examples-authorizations-<version>.jar \
           /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
 
-       :warning: Note: we want to use the unshaded jar since all the
-       required dependencies are already installed in GeoServer.
+.. note::
+
+   We want to use the unshaded jar since all the
+   required dependencies are already installed in GeoServer.
 
 4. Restart GeoServer (or start it if it is not running).
 
@@ -625,14 +636,14 @@ indicating the data:
 .. figure:: _static/geomesa-examples-authorizations/Ukraine_Unfiltered.png
    :alt: Authorized Results
 
-   Authorized Results
-
 Now try the same query, but use the 'scott' certificate. This time,
 there should be no data returned, as the 'scott' user does not have any
 authorizations set up in LDAP.
 
-***Note: a simple way to use different certificates at once is to open
-multiple 'incognito' or 'private' browser windows.***
+.. note::
+
+    A simple way to use different certificates at once is to open
+    multiple 'incognito' or 'private' browser windows.
 
 Querying GeoServer through a Web Feature Service (WFS) with a Java Client
 -------------------------------------------------------------------------
@@ -673,13 +684,19 @@ where you provide the following arguments:
    these need to be before the class name, otherwise they will be
    treated as arguments to the program.
 
-    :warning: Note: Ensure that the URL for GeoServer is using HTTPS.
+.. note::
 
-    :warning: Note: The feature store needs to be namespaced with the
+    Ensure that the URL for GeoServer is using HTTPS.
+
+.. note::
+
+    The feature store needs to be namespaced with the
     GeoServer workspace. The workspace and store name are separated with
     a colon.
 
-    :warning: Note: If you happen to have two GeoServer data stores with
+.. note::
+
+    If you happen to have two GeoServer data stores with
     the same name but different workspaces, you will need to delete or
     rename one of them. There is a bug in GeoServer where it might
     return the wrong features if there are two data stores with the same
