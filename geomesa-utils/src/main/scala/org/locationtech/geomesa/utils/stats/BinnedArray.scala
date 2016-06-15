@@ -307,11 +307,12 @@ class BinnedStringArray(length: Int, rawBounds: (String, String))
   import BinnedStringArray._
 
   private lazy val (start, end): (String, String) = bounds
+  private lazy val normalizedLength = start.length
   private lazy val prefixLength = start.zip(end).indexWhere { case (l, r) => l != r }
   private lazy val prefix = start.substring(0, prefixLength)
 
   override protected def convertToLong(value: String): Long = {
-    val normalized = normalize(value)
+    val normalized = normalize(value).padTo(normalizedLength, '0')
     if (normalized < start) { 0L } else if (normalized > end) { Long.MaxValue } else {
       // note: 12 is the most base-36 numbers we can fit in Long.MaxValue
       val sigDigits = normalized.substring(prefixLength).padTo(12, Base36Lowest).substring(0, 12)
