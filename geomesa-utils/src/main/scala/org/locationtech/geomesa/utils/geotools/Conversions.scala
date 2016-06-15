@@ -259,8 +259,12 @@ object RichSimpleFeatureType {
     def toConfigString: String = SimpleFeatureTypes.toConfigString(sft)
 
     def getKeywords: java.util.Set[String] = {
-      userData[String](KEYWORDS_KEY).map(_.split(KEYWORDS_DELIMITER).toSet.asJava)
-        .getOrElse(java.util.Collections.emptySet[String])
+      val keywordsString = userData[String](KEYWORDS_KEY).getOrElse("")
+      if (keywordsString.equals("")) {
+        return java.util.Collections.emptySet[String]
+      } else {
+        keywordsString.split(KEYWORDS_DELIMITER).toSet.asJava
+      }
     }
 
     def addKeywords(keywordsString: String): Unit = {

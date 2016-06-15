@@ -26,6 +26,7 @@ object AccumuloRunner extends Runner {
     new HelpCommand(jc),
     new IngestCommand(jc),
     new IngestRasterCommand(jc),
+    new KeywordCommand(jc),
     new ListCommand(jc),
     new RemoveSchemaCommand(jc),
     new TableConfCommand(jc),
