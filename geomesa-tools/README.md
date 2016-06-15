@@ -292,8 +292,8 @@ Use the `stats-bounds` command to view the bounds of your data for different att
            Catalog table name for GeoMesa
         -q, --cql
            CQL predicate
-        -e, --exact
-           Calculate exact statistics (may be slow)
+        --no-cache
+           Calculate against the data set instead of using cached statistics (may be slow)
            Default: false
       * -f, --feature-name
            Simple Feature Type name on which to operate
@@ -342,8 +342,8 @@ Use the `stats-count` command to count features in your data set.
              Catalog table name for GeoMesa
           -q, --cql
              CQL predicate
-          -e, --exact
-             Calculate exact statistics (may be slow)
+          --no-cache
+             Calculate against the data set instead of using cached statistics (may be slow)
              Default: false
         * -f, --feature-name
              Simple Feature Type name on which to operate
@@ -439,8 +439,8 @@ If you query a histogram for a geometry attribute, the result will be displayed 
              Catalog table name for GeoMesa
           -q, --cql
              CQL predicate
-          -e, --exact
-             Calculate exact statistics (may be slow)
+          --no-cache
+             Calculate against the data set instead of using cached statistics (may be slow)
              Default: false
         * -f, --feature-name
              Simple Feature Type name on which to operate
