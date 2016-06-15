@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.kafka
 
 import java.awt.RenderingHints.Key
-import java.io.Serializable
+import java.io.{Closeable, Serializable}
 import java.{util => ju}
 
-import com.google.common.cache.{CacheBuilder, CacheLoader}
+import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
@@ -41,9 +41,10 @@ class KafkaDataStore(override val zookeepers: String,
   override def createTypeNames() = getNames.asScala.map(name => new NameImpl(getNamespaceURI, name.getLocalPart) : Name).asJava
 
   case class FeatureSourceCacheKey(entry: ContentEntry, query: Query)
-  private val featureSourceCache =
-    CacheBuilder.newBuilder().build[FeatureSourceCacheKey, ContentFeatureSource](
-      new CacheLoader[FeatureSourceCacheKey, ContentFeatureSource] {
+
+  private val featureSourceCache: LoadingCache[FeatureSourceCacheKey, ContentFeatureSource with Closeable] =
+    CacheBuilder.newBuilder().build[FeatureSourceCacheKey, ContentFeatureSource with Closeable](
+      new CacheLoader[FeatureSourceCacheKey, ContentFeatureSource with Closeable] {
         override def load(key: FeatureSourceCacheKey) = {
           fsFactory(key.entry, kds)
         }
@@ -66,8 +67,12 @@ class KafkaDataStore(override val zookeepers: String,
   }
 
   override def dispose(): Unit = {
+    import scala.collection.JavaConversions._
+
     super[ContentDataStore].dispose()
     super[KafkaDataStoreSchemaManager].dispose()
+    featureSourceCache.asMap().values.foreach(_.close())
+    featureSourceCache.asMap().clear()
   }
 }
 
@@ -84,7 +89,7 @@ object KafkaDataStoreFactoryParams {
 }
 
 object KafkaDataStore {
-  type FeatureSourceFactory = (ContentEntry, KafkaDataStoreSchemaManager) => ContentFeatureSource
+  type FeatureSourceFactory = (ContentEntry, KafkaDataStoreSchemaManager) => ContentFeatureSource with Closeable
 }
 
 /** A [[DataStoreFactorySpi]] to create a [[KafkaDataStore]] in either producer or consumer mode */
@@ -123,8 +128,8 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
   override def createNewDataStore(params: ju.Map[String, Serializable]): DataStore =
     throw new UnsupportedOperationException
 
-  override def getDisplayName: String = "Kafka Data Store"
-  override def getDescription: String = "Kafka Data Store"
+  override def getDisplayName: String = "Kafka (GeoMesa)"
+  override def getDescription: String = "Apache Kafka\u2122 distributed messaging queue"
 
   override def getParametersInfo: Array[Param] =
     Array(KAFKA_BROKER_PARAM, ZOOKEEPERS_PARAM, ZK_PATH, EXPIRATION_PERIOD, CLEANUP_LIVE_CACHE, TOPIC_PARTITIONS, TOPIC_REPLICATION, NAMESPACE_PARAM)

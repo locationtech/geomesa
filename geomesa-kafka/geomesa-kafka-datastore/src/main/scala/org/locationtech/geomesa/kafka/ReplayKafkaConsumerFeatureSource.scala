@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.kafka
 
+import java.io.Closeable
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
@@ -23,6 +24,7 @@ import org.locationtech.geomesa.kafka.consumer.offsets.FindOffset
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.FR
 import org.locationtech.geomesa.utils.index.{SpatialIndex, WrappedQuadtree}
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 import org.opengis.filter.expression.PropertyName
@@ -37,13 +39,18 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
                                        kf: KafkaConsumerFactory,
                                        replayConfig: ReplayConfig,
                                        query: Query = null)
-  extends KafkaConsumerFeatureSource(entry, replaySFT, query)
-  with LazyLogging {
+  extends KafkaConsumerFeatureSource(entry, replaySFT, query) with MethodProfiling with Closeable with LazyLogging {
 
   import TimestampFilterSplit.split
 
   // messages are stored as an array where the most recent is at index 0
-  private[kafka] val messages: Array[GeoMessage] = readMessages()
+  private[kafka] val messages: Array[GeoMessage] = {
+    val timing = new Timing
+    logger.debug(s"Begin reading messages from $topic using $replayConfig")
+    val msgs = profile(readMessages())(timing)
+    logger.debug(s"Read ${msgs.length} messages in ${timing.time}ms from $topic using $replayConfig")
+    msgs
+  }
 
   override def getReaderForFilter(filter: Filter): FR = {
 
@@ -126,13 +133,6 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
   }
 
   private def readMessages(): Array[GeoMessage] = {
-
-    logger.debug("Begin reading messages from {} using {}", topic, replayConfig)
-    val readStart = System.currentTimeMillis()
-
-    // don't want to block waiting for more messages so specify  a timeout
-    val kafkaConsumer = kf.kafkaConsumer(topic, Map("consumer.timeout.ms" -> "250"))
-
     // use the liveSFT to decode becuase that's the type that was used to encode
     val msgDecoder = new KafkaGeoMessageDecoder(liveSFT)
 
@@ -144,26 +144,29 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
       if (key.ts.isEqual(startTime)) 0 else if (key.ts.isAfter(startTime)) 1 else -1
     })
 
-    // required: there is only 1 partition;  validate??
-    val stream = kafkaConsumer.createMessageStreams(1, offsetRequest).head
+    // don't want to block waiting for more messages so specify  a timeout
+    val kafkaConsumer = kf.kafkaConsumer(topic, Map("consumer.timeout.ms" -> "250"))
 
-    val msgIds = scala.collection.mutable.HashSet.empty[(Int, Long)]
+    try {
+      // required: there is only 1 partition;  validate??
+      val stream = kafkaConsumer.createMessageStreams(1, offsetRequest).head
 
-    val msgs = stream.iterator
-      .stopOnTimeout
-      .filter(m => msgIds.add((m.partition, m.offset))) // avoid replayed duplicates
-      .map(msgDecoder.decode)
-      .dropWhile(replayConfig.isBeforeRealStart)
-      .takeWhile(replayConfig.isNotAfterEnd)
-      .foldLeft(List.empty[GeoMessage])((seq, elem) => elem :: seq)
-      .toArray
+      val msgIds = scala.collection.mutable.HashSet.empty[(Int, Long)]
 
-    val readTime = (System.currentTimeMillis() - readStart).asInstanceOf[AnyRef]
-    logger.debug("Read {} messages in {}ms from {} using {}",
-      msgs.length.asInstanceOf[AnyRef], readTime, topic, replayConfig)
-
-    msgs
+      stream.iterator
+        .stopOnTimeout
+        .filter(m => msgIds.add((m.partition, m.offset))) // avoid replayed duplicates
+        .map(msgDecoder.decode)
+        .dropWhile(replayConfig.isBeforeRealStart)
+        .takeWhile(replayConfig.isNotAfterEnd)
+        .foldLeft(List.empty[GeoMessage])((seq, elem) => elem :: seq)
+        .toArray
+    } finally {
+      kafkaConsumer.shutdown()
+    }
   }
+
+  override def close(): Unit = {}
 }
 
 object ReplayTimeHelper {

@@ -8,9 +8,11 @@
 
 package org.locationtech.geomesa.utils.index
 
+import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
+
 import com.vividsolutions.jts.geom.Envelope
 import org.locationtech.geomesa.utils.geotools.GridSnap
-import scala.collection.mutable
 
 /**
  * Spatial index that breaks up space into discrete buckets to index points.
@@ -20,20 +22,22 @@ class BucketIndex[T](xBuckets: Int = 360,
                      yBuckets: Int = 180,
                      extents: Envelope = new Envelope(-180.0, 180.0, -90.0, 90.0)) extends SpatialIndex[T] {
 
-  // create the buckets upfront to avoid having to synchronize the whole array
   private val gridSnap = new GridSnap(extents, xBuckets, yBuckets)
-  private val buckets = Array.fill(xBuckets, yBuckets)(mutable.HashSet.empty[T])
+  // create the buckets up front to avoid having to synchronize the whole array
+  // we use a concurrentHashSet, which gives us iterators that aren't affected by modifications to the backing set
+  private def newSet = Collections.newSetFromMap(new ConcurrentHashMap[T, java.lang.Boolean])
+  private val buckets = Array.fill(xBuckets, yBuckets)(newSet)
 
   override def insert(envelope: Envelope, item: T): Unit = {
     val (i, j) = getBucket(envelope)
     val bucket = buckets(i)(j)
-    bucket.synchronized(bucket.add(item))
+    bucket.add(item)
   }
 
   override def remove(envelope: Envelope, item: T): Boolean = {
     val (i, j) = getBucket(envelope)
     val bucket = buckets(i)(j)
-    bucket.synchronized(bucket.remove(item))
+    bucket.remove(item)
   }
 
   override def query(envelope: Envelope): Iterator[T] = {
@@ -43,9 +47,11 @@ class BucketIndex[T](xBuckets: Int = 360,
     val maxj = gridSnap.j(envelope.getMaxY)
 
     new Iterator[T]() {
+      import scala.collection.JavaConverters._
+
       var i = mini
       var j = minj
-      var iter = Iterator.empty.asInstanceOf[Iterator[T]]
+      var iter = Iterator.empty.asInstanceOf[Iterator[T]].asJava
 
       override def hasNext = {
         while (!iter.hasNext && i <= maxi && j <= maxj) {
@@ -56,7 +62,7 @@ class BucketIndex[T](xBuckets: Int = 360,
             j = minj
             i += 1
           }
-          iter = bucket.synchronized(bucket.toSeq).iterator
+          iter = bucket.iterator()
         }
         iter.hasNext
       }

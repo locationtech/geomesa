@@ -63,12 +63,11 @@ class KafkaConsumerFactory(brokers: String, zookeepers: String) {
    */
   def offsetManager: OffsetManager = new OffsetManager(config)
 
-  def messageStreams(topic: String, numStreams: Int = 1): Seq[RawKafkaStream] = {
-
+  def messageStreams(topic: String, numStreams: Int = 1): (ConsumerConnector, Seq[RawKafkaStream]) = {
     val client = consumerConnector
     val whiteList = new Whitelist(topic)
     val decoder = KafkaConsumerFactory.defaultDecoder
-    client.createMessageStreamsByFilter(whiteList, 1, decoder, decoder)
+    (client, client.createMessageStreamsByFilter(whiteList, 1, decoder, decoder))
   }
 
   private def config(extraConfig: Map[String, String]): ConsumerConfig = {
