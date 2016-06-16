@@ -19,6 +19,7 @@ import org.geotools.factory.Hints
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.FunctionExpressionImpl
+import org.geotools.filter.visitor.BindingFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess
 import org.geotools.process.vector.TransformProcess.Definition
@@ -277,8 +278,11 @@ object QueryPlanner extends LazyLogging {
       }
     }
 
-    // update the filter to remove namespaces, handle null property names, and tweak topological filters
     if (query.getFilter != null && query.getFilter != Filter.INCLUDE) {
+      // bind the literal values to the appropriate type, so that it isn't done every time the filter is evaluated
+      // important: do this before running through the QueryPlanFilterVisitor, otherwise can mess with IDL handling
+      query.setFilter(query.getFilter.accept(new BindingFilterVisitor(sft), null).asInstanceOf[Filter])
+      // update the filter to remove namespaces, handle null property names, and tweak topological filters
       query.setFilter(query.getFilter.accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter])
     }
 
