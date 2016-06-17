@@ -34,12 +34,13 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithDataStore {
 
   sequential
 
-  val spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4326"
+  // note: attributes that are not indexed but still collect stats only store bounds and topK
+  val spec = "name:String:index=true,age:Int:keep-stats=true,height:Int,dtg:Date,*geom:Point:srid=4326"
 
   val baseMillis = {
     val sf = new ScalaSimpleFeature("", sft)
-    sf.setAttribute(1, "2016-01-04T00:00:00.000Z")
-    sf.getAttribute(1).asInstanceOf[Date].getTime
+    sf.setAttribute(3, "2016-01-04T00:00:00.000Z")
+    sf.getAttribute(3).asInstanceOf[Date].getTime
   }
 
   val dayInMillis = new DateTime(baseMillis, DateTimeZone.UTC).plusDays(1).getMillis - baseMillis
@@ -51,7 +52,18 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithDataStore {
         ds.stats.getCount(sft) must beNone
         ds.stats.getBounds(sft) mustEqual wholeWorldEnvelope
         ds.stats.getAttributeBounds[String](sft, "name") must beNone
+        ds.stats.getAttributeBounds[Int](sft, "age") must beNone
         ds.stats.getAttributeBounds[Date](sft, "dtg") must beNone
+        ds.stats.getStats[TopK[String]](sft, Seq("name")) must beEmpty
+        ds.stats.getStats[TopK[Int]](sft, Seq("age")) must beEmpty
+        ds.stats.getStats[TopK[Date]](sft, Seq("dtg")) must beEmpty
+        ds.stats.getStats[Frequency[String]](sft, Seq("name")) must beEmpty
+        ds.stats.getStats[Frequency[Int]](sft, Seq("age")) must beEmpty
+        ds.stats.getStats[Frequency[Date]](sft, Seq("dtg")) must beEmpty
+        ds.stats.getStats[Histogram[String]](sft, Seq("name")) must beEmpty
+        ds.stats.getStats[Histogram[Int]](sft, Seq("age")) must beEmpty
+        ds.stats.getStats[Histogram[Date]](sft, Seq("dtg")) must beEmpty
+        ds.stats.getStats[Histogram[Geometry]](sft, Seq("geom")) must beEmpty
       }
 
       "through feature writer append" >> {
@@ -59,20 +71,42 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithDataStore {
 
         val sf = writer.next()
         sf.setAttribute(0, "alpha")
-        sf.setAttribute(1, "2016-01-04T00:00:00.000Z")
-        sf.setAttribute(2, "POINT (0 0)")
+        sf.setAttribute(1, 10)
+        sf.setAttribute(2, 10)
+        sf.setAttribute(3, "2016-01-04T00:00:00.000Z")
+        sf.setAttribute(4, "POINT (0 0)")
         writer.write()
         writer.flush()
 
         ds.stats.getCount(sft) must beSome(1)
+
         ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(0, 0, 0, 0, CRS_EPSG_4326)
         ds.stats.getAttributeBounds[String](sft, "name") must beSome(AttributeBounds("alpha", "alpha", 1))
+        ds.stats.getAttributeBounds[Int](sft, "age") must beSome(AttributeBounds(10, 10, 1))
+        ds.stats.getAttributeBounds[String](sft, "height") must beNone
         ds.stats.getAttributeBounds[Date](sft, "dtg") must beSome(AttributeBounds(new Date(baseMillis), new Date(baseMillis), 1))
+
+        ds.stats.getStats[TopK[String]](sft, Seq("name")).map(_.topK(10)) mustEqual Seq(Seq(("alpha", 1)))
+        ds.stats.getStats[TopK[Int]](sft, Seq("age")).map(_.topK(10)) mustEqual Seq(Seq((10, 1)))
+        ds.stats.getStats[TopK[Int]](sft, Seq("height")) must beEmpty
+        ds.stats.getStats[TopK[Date]](sft, Seq("dtg")).map(_.topK(10)) must beEmpty
+
+        ds.stats.getStats[Frequency[String]](sft, Seq("name")) must haveLength(1)
+        ds.stats.getStats[Frequency[Int]](sft, Seq("age")) must beEmpty
+        ds.stats.getStats[Frequency[Int]](sft, Seq("height")) must beEmpty
+        ds.stats.getStats[Frequency[Date]](sft, Seq("dtg")) must beEmpty
+
+        ds.stats.getStats[Histogram[String]](sft, Seq("name")) must haveLength(1)
+        ds.stats.getStats[Histogram[Int]](sft, Seq("age")) must beEmpty
+        ds.stats.getStats[Histogram[Date]](sft, Seq("dtg")) must haveLength(1)
+        ds.stats.getStats[Histogram[Geometry]](sft, Seq("geom")) must haveLength(1)
 
         val sf2 = writer.next()
         sf2.setAttribute(0, "cappa")
-        sf2.setAttribute(1, "2016-01-04T12:00:00.000Z")
-        sf2.setAttribute(2, "POINT (10 10)")
+        sf2.setAttribute(1, 12)
+        sf2.setAttribute(2, 12)
+        sf2.setAttribute(3, "2016-01-04T12:00:00.000Z")
+        sf2.setAttribute(4, "POINT (10 10)")
         writer.write()
         writer.close()
 
@@ -88,8 +122,10 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithDataStore {
 
         val sf = new ScalaSimpleFeature("collection1", sft)
         sf.setAttribute(0, "gamma")
-        sf.setAttribute(1, "2016-01-05T00:00:00.000Z")
-        sf.setAttribute(2, "POINT (-10 -10)")
+        sf.setAttribute(1, Int.box(15))
+        sf.setAttribute(2, Int.box(15))
+        sf.setAttribute(3, "2016-01-05T00:00:00.000Z")
+        sf.setAttribute(4, "POINT (-10 -10)")
 
         val features = new DefaultFeatureCollection()
         features.add(sf)
@@ -107,8 +143,10 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithDataStore {
 
         val sf = writer.next()
         sf.setAttribute(0, "beta")
-        sf.setAttribute(1, "2016-01-04T00:00:00.000Z")
-        sf.setAttribute(2, "POINT (0 0)")
+        sf.setAttribute(1, 11)
+        sf.setAttribute(2, 11)
+        sf.setAttribute(3, "2016-01-04T00:00:00.000Z")
+        sf.setAttribute(4, "POINT (0 0)")
         writer.write()
         writer.close()
 
@@ -124,8 +162,10 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithDataStore {
 
         val sf = new ScalaSimpleFeature("", sft)
         sf.setAttribute(0, "0")
-        sf.setAttribute(1, "2016-01-03T00:00:00.000Z")
-        sf.setAttribute(2, "POINT (15 0)")
+        sf.setAttribute(1, Int.box(10))
+        sf.setAttribute(2, Int.box(10))
+        sf.setAttribute(3, "2016-01-03T00:00:00.000Z")
+        sf.setAttribute(4, "POINT (15 0)")
 
         val features = new SimpleFeatureReader() {
           val iter = Iterator(sf)
@@ -145,13 +185,26 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithDataStore {
       }
 
       "update all stats" >> {
+        val deleter = ds.getFeatureWriter(sftName, Transaction.AUTO_COMMIT)
+        while (deleter.hasNext) {
+          deleter.next()
+          deleter.remove()
+        }
+        deleter.close()
+
         val writer = ds.getFeatureWriterAppend(sftName, Transaction.AUTO_COMMIT)
 
         (0 until 10).foreach { i =>
           val sf = writer.next()
           sf.setAttribute(0, s"$i")
-          sf.setAttribute(1, f"2016-01-${i + 1}%02dT00:00:00.000Z")
-          sf.setAttribute(2, s"POINT (${i * 3} $i)")
+          if (i < 3) {
+            sf.setAttribute(1, Int.box(1))
+          } else {
+            sf.setAttribute(1, Int.box(2))
+          }
+          sf.setAttribute(2, Int.box(i))
+          sf.setAttribute(3, f"2016-01-${i + 1}%02dT00:00:00.000Z")
+          sf.setAttribute(4, s"POINT (${i * 3} $i)")
           writer.write()
         }
 
@@ -168,23 +221,40 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithDataStore {
         // run it twice so that all our bounds are exact for histograms
         ds.stats.generateStats(sft)
 
-        ds.stats.getCount(sft) must beSome(11)
+        ds.stats.getCount(sft) must beSome(10)
         ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(0, 27, 0, 9, CRS_EPSG_4326)
         ds.stats.getAttributeBounds[String](sft, "name") must beSome(AttributeBounds("0", "9", 10))
+        ds.stats.getAttributeBounds[Int](sft, "age") must beSome(AttributeBounds(1, 2, 2))
+        ds.stats.getAttributeBounds[Int](sft, "height") must beNone
         ds.stats.getAttributeBounds[Date](sft, "dtg") must beSome(AttributeBounds(minDate, maxDate, 10))
+
+        val nameTopK = ds.stats.getStats[TopK[String]](sft, Seq("name"))
+        nameTopK must haveLength(1)
+        nameTopK.head.topK(10) must containTheSameElementsAs((0 until 10).map(i => (s"$i", 1)))
+
+        val ageTopK = ds.stats.getStats[TopK[Int]](sft, Seq("age"))
+        ageTopK must haveLength(1)
+        ageTopK.head.topK(10) mustEqual Seq((2, 7), (1, 3))
+
+        ds.stats.getStats[TopK[Int]](sft, Seq("height")) must beEmpty
+        ds.stats.getStats[TopK[Date]](sft, Seq("dtg")) must beEmpty
+
+        val nameFrequency = ds.stats.getStats[Frequency[String]](sft, Seq("name"))
+        nameFrequency must haveLength(1)
+        forall(0 until 10)(i => nameFrequency.head.count(i.toString) mustEqual 1)
+
+        ds.stats.getStats[Frequency[Int]](sft, Seq("age")) must beEmpty
+        ds.stats.getStats[Frequency[Int]](sft, Seq("height")) must beEmpty
 
         val nameHistogram = ds.stats.getStats[Histogram[String]](sft, Seq("name"))
         nameHistogram must haveLength(1)
         nameHistogram.head.bounds mustEqual ("0", "9")
         nameHistogram.head.length mustEqual 1000
-        nameHistogram.head.count(nameHistogram.head.indexOf("0")) mustEqual 2
-        forall(1 until 10)(i => nameHistogram.head.count(nameHistogram.head.indexOf(i.toString)) mustEqual 1)
-        (0 until 1000).map(nameHistogram.head.count).sum mustEqual 11
+        forall(0 until 10)(i => nameHistogram.head.count(nameHistogram.head.indexOf(i.toString)) mustEqual 1)
+        (0 until 1000).map(nameHistogram.head.count).sum mustEqual 10
 
-        val nameFrequency = ds.stats.getStats[Frequency[String]](sft, Seq("name"))
-        nameFrequency must haveLength(1)
-        nameFrequency.head.count("0") mustEqual 2
-        forall(1 until 10)(i => nameFrequency.head.count(i.toString) mustEqual 1)
+        ds.stats.getStats[Histogram[Int]](sft, Seq("age")) must beEmpty
+        ds.stats.getStats[Histogram[Int]](sft, Seq("height")) must beEmpty
 
         val dateHistogram = ds.stats.getStats[Histogram[Date]](sft, Seq("dtg"))
         dateHistogram must haveLength(1)
@@ -192,7 +262,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithDataStore {
         dateHistogram.head.length mustEqual 1000
         dateHistogram.head.count(0) mustEqual 1
         dateHistogram.head.count(999) mustEqual 1
-        (0 until 1000).map(dateHistogram.head.count).sum mustEqual 11
+        (0 until 1000).map(dateHistogram.head.count).sum mustEqual 10
 
         val geomHistogram = ds.stats.getStats[Histogram[Geometry]](sft, Seq("geom"))
         geomHistogram must haveLength(1)

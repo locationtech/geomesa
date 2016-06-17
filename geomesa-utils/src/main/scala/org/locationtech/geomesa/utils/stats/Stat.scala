@@ -139,6 +139,14 @@ object Stat {
   def Enumeration(attribute: String): String = s"Enumeration(${safeString(attribute)})"
 
   /**
+    * String that will be parsed into a TopK stat
+    *
+    * @param attribute attribute name to evaluate
+    * @return
+    */
+  def TopK(attribute: String): String = s"TopK(${safeString(attribute)})"
+
+  /**
     * String that will be parsed into a count min sketch stat
     *
     * @param attribute attribute to sketch
@@ -347,6 +355,15 @@ object Stat {
       }
     }
 
+    def topKParser: Parser[TopK[_]] = {
+      "TopK(" ~> argument <~ ")" ^^ {
+        case attribute =>
+          val attrIndex = getAttrIndex(attribute)
+          val binding = sft.getDescriptor(attribute).getType.getBinding
+          new TopK[Any](attrIndex)(ClassTag(binding))
+      }
+    }
+
     def histogramParser: Parser[Histogram[_]] = {
       "Histogram(" ~> argument ~ "," ~ positiveInt ~ "," ~ argument ~ "," ~ argument <~ ")" ^^ {
         case attribute ~ "," ~ numBins ~ "," ~ lower ~ "," ~ upper =>
@@ -417,7 +434,7 @@ object Stat {
     }
 
     def statParser: Parser[Stat] = countParser | minMaxParser | iteratorStackParser | enumerationParser |
-        histogramParser | frequencyParser | z3HistogramParser | z3FrequencyParser
+        topKParser | histogramParser | frequencyParser | z3HistogramParser | z3FrequencyParser
 
     def statsParser: Parser[Stat] = {
       rep1sep(statParser, ";") ^^ {

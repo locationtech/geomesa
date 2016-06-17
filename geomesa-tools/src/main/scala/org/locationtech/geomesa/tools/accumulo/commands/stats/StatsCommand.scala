@@ -38,9 +38,7 @@ object StatsCommand {
   }
 }
 
-trait StatsParams extends GeoMesaConnectionParams with FeatureTypeNameParam with OptionalCQLFilterParam
-
-trait CachedStatsParams {
+trait StatsParams extends GeoMesaConnectionParams with FeatureTypeNameParam with OptionalCQLFilterParam {
   @Parameter(names = Array("--no-cache"), description = "Calculate against the data set instead of using cached statistics (may be slow)")
   var exact: Boolean = false
 }

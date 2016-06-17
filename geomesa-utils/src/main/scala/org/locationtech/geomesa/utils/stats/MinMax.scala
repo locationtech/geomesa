@@ -48,7 +48,6 @@ class MinMax[T] private (val attribute: Int, private [stats] var hpp: HyperLogLo
   lazy val stringify = Stat.stringifier(ct.runtimeClass)
   private lazy val jsonStringify = Stat.stringifier(ct.runtimeClass, json = true)
 
-
   def min: T = if (isEmpty) maxValue else minValue
   def max: T = if (isEmpty) minValue else maxValue
   def bounds: (T, T) = (min, max)

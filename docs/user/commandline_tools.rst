@@ -35,7 +35,7 @@ Run ``geomesa`` without any arguments to produce the following usage text::
         stats-analyze       Analyze statistics on a GeoMesa feature type
         stats-bounds        View or calculate bounds on attributes in a GeoMesa feature type
         stats-count         Estimate or calculate feature counts in a GeoMesa feature type
-        stats-enumerate     Enumerate attribute values in a GeoMesa feature type
+        stats-top-k         Enumerate the most frequent values in a GeoMesa feature type
         stats-histogram     View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values
         removeschema        Remove a schema and associated features from a GeoMesa catalog
         tableconf           Perform table configuration operations
@@ -509,24 +509,27 @@ Example usage::
       Count: 182
 
 
-stats-enumerate
-~~~~~~~~~~~~~~~
+stats-top-k
+~~~~~~~~~~~
 
-Enumerates the values for attributes in your data set. You can enumerate all values, or only values for
-features that match a CQL filter.
+Enumerates the values for attributes in your data set. You can enumerate all values for all features,
+or only values for features that match a CQL filter.
 
 Example usage::
 
-    $ geomesa stats-enumerate -u username -p password -i instance -z zoo1,zoo2,zoo3 \
-        -c geomesa.data -f twitter -a user_id
-      Running stat query...
-      Values for 'user_id':
-        3144822634 (26383)
-        388009236 (20457)
-        497145453 (19514)
+    $ geomesa stats-top-k -u username -p password -i instance -z zoo1,zoo2,zoo3 \
+        -c geomesa.data -f twitter -a user_id -k 10
+      Top values for 'user_id':
+        3144822634 (26681)
+        388009236 (20553)
+        497145453 (19858)
         563319506 (15848)
-        2841269945 (15716)
-        ...
+        2841269945 (15763)
+        2924224280 (15731)
+        141302910 (15240)
+        2587789764 (14811)
+        56266341 (14487)
+        889599440 (14330)
 
 stats-histogram
 ~~~~~~~~~~~~~~~

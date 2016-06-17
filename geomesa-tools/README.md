@@ -56,7 +56,7 @@ This should print out the following usage text:
         stats-analyze       Analyze statistics on a GeoMesa feature type
         stats-bounds        View or calculate bounds on attributes in a GeoMesa feature type
         stats-count         Estimate or calculate feature counts in a GeoMesa feature type
-        stats-enumerate     Enumerate attribute values in a GeoMesa feature type
+        stats-top-k         Enumerate the most frequent values in a GeoMesa feature type
         stats-histogram     View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values
         tableconf           Perform table configuration operations
         version             GeoMesa Version
@@ -374,12 +374,12 @@ Use the `stats-count` command to count features in your data set.
       Running stat query...
       Count: 182
 
-### stats-enumerate
+### stats-top-k
 
 #### Usage
-    $ geomesa help stats-enumerate
-      Enumerate attribute values in a GeoMesa feature type
-      Usage: stats-enumerate [options]
+    $ geomesa help stats-top-k
+      Enumerate the most frequent values in a GeoMesa feature type
+      Usage: stats-top-k [options]
         Options:
           -a, --attributes
              Attributes to evaluate (use multiple flags or separate with commas)
@@ -388,6 +388,8 @@ Use the `stats-count` command to count features in your data set.
              Accumulo authorizations
         * -c, --catalog
              Catalog table name for GeoMesa
+          -k
+             Number of top values to show
           -q, --cql
              CQL predicate
         * -f, --feature-name
@@ -407,10 +409,10 @@ Use the `stats-count` command to count features in your data set.
              Zookeepers (host[:port], comma separated)
 
 #### Example:
-    $ geomesa stats-enumerate -u username -p password -i instance -z zoo1,zoo2,zoo3 -c geomesa.data \
-        -f twitter -a user_id
+    $ geomesa stats-top-k -u username -p password -i instance -z zoo1,zoo2,zoo3 -c geomesa.data \
+        -f twitter -a user_id --no-cache
       Running stat query...
-      Values for 'user_id':
+      Top values for 'user_id':
         3144822634 (26383)
         388009236 (20457)
         497145453 (19514)

@@ -140,7 +140,7 @@ class StatsHistogramCommand(parent: JCommander) extends CommandWithCatalog(paren
 object StatsHistogramCommand {
 
   @Parameters(commandDescription = "View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values")
-  class StatsHistogramParams extends StatsParams with CachedStatsParams with AttributeStatsParams {
+  class StatsHistogramParams extends StatsParams with AttributeStatsParams {
     @Parameter(names = Array("-b", "--bins"), description = "How many bins the data will be divided into. " +
         "For example, if you are examining a week of data, you may want to divide the date into 7 bins, one per day.")
     var bins: Integer = null
