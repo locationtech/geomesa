@@ -29,6 +29,7 @@ Run ``geomesa`` without any arguments to produce the following usage text::
         help                Show help
         ingest              Ingest/convert various file formats into GeoMesa
         ingestraster        Ingest a raster file or raster files in a directory into GeoMesa
+        keywords            Add/remove keywords on an existing schema
         list                List GeoMesa features for a given catalog
         queryrasterstats    Export queries and statistics about the last X number of queries to a CSV file.
         stats-analyze       Analyze statistics on a GeoMesa feature type
@@ -113,6 +114,20 @@ Get the specified feature type as a typesafe config::
 Get the specified feature type as an encoded feature schema string::
 
     $ geomesa getsft -u username -p password -c test_catalog -f test_feature --format spec
+
+keywords
+~~~~~~~~
+
+Add or remove keywords to a specified schema::
+Repeat the -a or -r flags to add or remove multiple keywords
+The ``--removeAll`` option removes all keywords
+The ``-l`` option lists the schema's keywords following all operations
+If there is whitespace within a keyword, enclose it in quotes for proper functionality::
+
+    $ geomesa keywords -u username -p password \
+        -a keywordB -a keywordC -r keywordA -l \
+        -i instance -z zoo1,zoo2,zoo3 \
+        -c catalog -f featureTypeName
 
 list
 ~~~~
@@ -447,7 +462,7 @@ stats-bounds
 ~~~~~~~~~~~~
 
 Displays the bounds of your data for different attributes. You can use pre-calculated stats for a quick
-estimation, or get the definitive result by querying the data set using the '--exact' flag.
+estimation, or get the definitive result by querying the data set using the '--no-cache' flag.
 
 Example usage::
 
@@ -460,7 +475,7 @@ Example usage::
       geom [ -171.75, -45.5903996, 157.7302, 89.99997102 ] cardinality: 2119237
 
     $ geomesa stats-bounds -u username -p password -i instance -z zoo1,zoo2,zoo3 \
-        -c geomesa.data -f twitter --exact \
+        -c geomesa.data -f twitter --no-cache \
         -q 'BBOX(geom,-70,45,-60,55) AND dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
       Running stat query...
         user_id [ 1011811424 to 99124417 ] cardinality: 115
@@ -474,7 +489,7 @@ stats-count
 
 Counts the features in your data set. You can count total features, or features that match a CQL filter.
 You can use pre-calculated stats for a quick estimation, or get the definitive result by querying the
-data set using the '--exact' flag.
+data set using the '--no-cache' flag.
 
 Example usage::
 
@@ -488,7 +503,7 @@ Example usage::
       Estimated count: 2681
 
     $ geomesa stats-count -u username -p password -i instance -z zoo1,zoo2,zoo3 \
-        -c geomesa.data -f twitter --exact \
+        -c geomesa.data -f twitter --no-cache \
         -q 'BBOX(geom,-70,45,-60,55) AND dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
       Running stat query...
       Count: 182
@@ -519,7 +534,7 @@ stats-histogram
 Counts the features in your data set, grouped into sorted bins. You may specify the number of bins to group
 attribute into. You can count total features, or features that match a CQL filter. You can use
 pre-calculated stats for a quick estimation, or get the definitive result by querying the
-data set using the '--exact' flag.
+data set using the '--no-cache' flag.
 
 If you query a histogram for a geometry attribute, the result will be displayed in an ASCII heatmap.
 
@@ -540,7 +555,7 @@ Example usage::
         [ 2016-02-27T02:43:51.000Z to 2016-03-01T00:21:02.000Z ] 956743
 
     $ geomesa stats-histogram -u username -p password -i instance -z zoo1,zoo2,zoo3 \
-        -c geomesa.data -f twitter -a dtg --bins 10 --exact
+        -c geomesa.data -f twitter -a dtg --bins 10 --no-cache
       Running stat query...
       Binned histogram for 'dtg':
         [ 2016-02-01T00:09:12.000Z to 2016-02-03T21:46:23.000Z ] 805620

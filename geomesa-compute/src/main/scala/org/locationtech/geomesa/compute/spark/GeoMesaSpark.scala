@@ -51,7 +51,13 @@ object GeoMesaSpark extends LazyLogging {
     val jarOpt = sys.props.get(SYS_PROP_SPARK_LOAD_CP).map(v => s"-D$SYS_PROP_SPARK_LOAD_CP=$v")
     val extraOpts = (typeOpts ++ jarOpt).mkString(" ")
 
-    conf.set("spark.executor.extraJavaOptions", extraOpts)
+    val newOpts = if (conf.contains("spark.executor.extraJavaOptions")) {
+      conf.get("spark.executor.extraJavaOptions").concat(" ").concat(extraOpts)
+    } else {
+      extraOpts
+    }
+
+    conf.set("spark.executor.extraJavaOptions", newOpts)
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     conf.set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
   }
@@ -129,6 +135,7 @@ object GeoMesaSpark extends LazyLogging {
   /**
    * Writes this RDD to a GeoMesa table.
    * The type must exist in the data store, and all of the features in the RDD must be of this type.
+   *
    * @param rdd
    * @param writeDataStoreParams
    * @param writeTypeName

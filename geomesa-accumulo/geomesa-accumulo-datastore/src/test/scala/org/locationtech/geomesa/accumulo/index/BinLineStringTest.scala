@@ -28,6 +28,8 @@ class BinLineStringTest extends Specification with TestWithDataStore {
 
   import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 
+  sequential
+
   override val spec = "name:String,track:String,dtgList:List[Date],dtg:Date,*geom:LineString:srid=4326"
 
   val features =
@@ -62,7 +64,12 @@ class BinLineStringTest extends Specification with TestWithDataStore {
     import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
     val binSize = if (query.getHints.containsKey(BIN_LABEL_KEY)) 24 else 16
     val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
-    val bytes = features.map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]])
+    val bytes = features.map { f =>
+      val array = f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]
+      val copy = Array.ofDim[Byte](array.length)
+      System.arraycopy(array, 0, copy, 0, array.length)
+      copy
+    }
     bytes.flatMap(b => b.grouped(binSize).map(Convert2ViewerFunction.decode)).toSeq
   }
 

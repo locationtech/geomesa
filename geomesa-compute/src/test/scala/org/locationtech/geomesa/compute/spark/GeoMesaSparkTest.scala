@@ -65,18 +65,20 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
       tableNameParam.key -> TEST_TABLE_NAME,
       mockParam.key -> "true")
 
-    lazy val ds: DataStore = {
+    def getDs(params: Map[String,String]): DataStore = {
       val mockInstance = new MockInstance("dummy")
       val c = mockInstance.getConnector("user", new PasswordToken("pass".getBytes))
-      c.tableOperations.create(TEST_TABLE_NAME)
+      c.tableOperations.create(tableNameParam.lookUp(params).toString)
       val splits = (0 to 99).map(s => "%02d".format(s)).map(new Text(_))
-      c.tableOperations().addSplits(TEST_TABLE_NAME, new java.util.TreeSet[Text](splits.asJava))
+      c.tableOperations().addSplits(tableNameParam.lookUp(params).toString, new java.util.TreeSet[Text](splits.asJava))
 
       val dsf = new AccumuloDataStoreFactory
 
-      val ds = dsf.createDataStore(dsParams.mapValues(_.asInstanceOf[JSerializable]).asJava)
+      val ds = dsf.createDataStore(params.mapValues(_.asInstanceOf[JSerializable]).asJava)
       ds
     }
+
+    lazy val ds = getDs(dsParams)
 
     lazy val spec = "an_id:Integer,map:Map[String,Integer],dtg:Date,geom:Point:srid=4326"
 
@@ -149,6 +151,60 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
       val coll = ds.getFeatureSource(typeName).getFeatures
       coll.size() should equalTo(encodedFeatures.length)
       feats.map(_.getAttribute("an_id")) should contain(coll.features().next().getAttribute("an_id"))
+    }
+
+    "Read multiple data stores" in {
+      // Initialize first datastore and table
+      val typeName = s"sparktest${UUID.randomUUID().toString}"
+      val sft = createSFT(typeName)
+
+      ds.createSchema(sft)
+
+      val fs = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
+      val feats = createFeatures(ds, sft, encodedFeatures)
+      fs.addFeatures(DataUtilities.collection(feats.asJava))
+      fs.getTransaction.commit()
+
+      val conf = new SparkConf().setMaster("local[2]").setAppName("testSpark")
+      GeoMesaSpark.init(conf, ds)
+
+      // Initialize second
+      val secondDsParams = Map[String, String](
+        zookeepersParam.key -> "dummy",
+        instanceIdParam.key -> "dummy",
+        userParam.key -> "user",
+        passwordParam.key -> "pass",
+        tableNameParam.key -> "SECOND_TABLE",
+        mockParam.key -> "true")
+
+      val secondDs: DataStore = getDs(secondDsParams)
+
+      val secondTypeName = s"sparktest${UUID.randomUUID().toString}"
+
+      val secondSpec = "another_id:Integer,map:Map[String,Integer],dtg:Date,geom:Point:srid=4326"
+      val secondSft = SimpleFeatureTypes.createType(secondTypeName, secondSpec)
+      secondDs.createSchema(secondSft)
+      secondDs.getSchema(secondTypeName) should not(beNull)
+      val secondFs = secondDs.getFeatureSource(secondTypeName).asInstanceOf[SimpleFeatureStore]
+      val secondFeats = createFeatures(secondDs, secondSft, encodedFeatures)
+      secondFs.addFeatures(DataUtilities.collection(secondFeats.asJava))
+      secondFs.getTransaction.commit()
+
+      GeoMesaSpark.init(conf, secondDs)
+
+      // Check that each RDDs can be generated for each and that they have the correct attributes
+
+      Option(sc).foreach(_.stop())
+      sc = new SparkContext(conf) // will get shut down by shutdown method
+
+      val rdd = GeoMesaSpark.rdd(new Configuration(), sc, dsParams, new Query(typeName), useMock = true)
+      val secondRdd = GeoMesaSpark.rdd(new Configuration(), sc, secondDsParams, new Query(secondTypeName), useMock = true)
+
+      rdd.count() should equalTo(feats.length)
+      secondRdd.count() should equalTo(secondFeats.length)
+
+      feats.map(_.getAttribute("an_id")) should contain(rdd.take(1).head.getAttribute("an_id"))
+      secondFeats.map(_.getAttribute("another_id")) should contain(secondRdd.take(1).head.getAttribute("another_id"))
     }
   }
 

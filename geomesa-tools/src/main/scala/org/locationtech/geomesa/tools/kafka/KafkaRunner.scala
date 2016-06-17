@@ -21,6 +21,7 @@ object KafkaRunner extends Runner {
     new RemoveSchemaCommand(jc),
     new DescribeCommand(jc),
     new ListCommand(jc),
-    new ListenCommand(jc)
+    new ListenCommand(jc),
+    new KeywordCommand(jc)
   )
 }

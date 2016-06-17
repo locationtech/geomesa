@@ -228,13 +228,18 @@ class AccumuloDataStore(val connector: Connector,
 
     // Currently this method only allows for updating of keywords in user data. All other attempted changes will fail
 
-    // Get previous schema and user data
-    val previousSft = getSchema(typeName)
     val schemaTypeName = sft.getTypeName
 
     // Prevent modifying wrong type if type names don't match
     if (!schemaTypeName.equals(typeName.toString)) {
       throw new UnsupportedOperationException(s"Updating the type name of a schema is not allowed: $schemaTypeName $typeName")
+    }
+
+    // Get previous schema and user data
+    val previousSft = getSchema(typeName)
+
+    if (previousSft == null) {
+      throw new IllegalArgumentException(s"No schema found for given type name $typeName")
     }
 
     val existingUserData = metadata.read(schemaTypeName, ATTRIBUTES_KEY)
@@ -243,7 +248,7 @@ class AccumuloDataStore(val connector: Connector,
     val unmodifiableUserdataKeys = Set(SCHEMA_VERSION_KEY, TABLE_SHARING_KEY, SHARING_PREFIX_KEY,
                                    DEFAULT_DATE_KEY, ST_INDEX_SCHEMA_KEY, SimpleFeatureTypes.ENABLED_INDEXES)
 
-    unmodifiableUserdataKeys.foreach { case (key) =>
+    unmodifiableUserdataKeys.foreach { key =>
       if (sft.getUserData.contains(key) && sft.userData[String](key) != previousSft.userData[String](key)) {
         throw new UnsupportedOperationException(s"Updating $key is not allowed")
       }
