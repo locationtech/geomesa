@@ -46,7 +46,7 @@ class KafkaDataStore(override val zookeepers: String,
     CacheBuilder.newBuilder().build[FeatureSourceCacheKey, ContentFeatureSource with Closeable](
       new CacheLoader[FeatureSourceCacheKey, ContentFeatureSource with Closeable] {
         override def load(key: FeatureSourceCacheKey) = {
-          fsFactory(key.entry, kds)
+          fsFactory(key.entry, key.query, kds)
         }
       })
 
@@ -89,7 +89,7 @@ object KafkaDataStoreFactoryParams {
 }
 
 object KafkaDataStore {
-  type FeatureSourceFactory = (ContentEntry, KafkaDataStoreSchemaManager) => ContentFeatureSource with Closeable
+  type FeatureSourceFactory = (ContentEntry, Query, KafkaDataStoreSchemaManager) => ContentFeatureSource with Closeable
 }
 
 /** A [[DataStoreFactorySpi]] to create a [[KafkaDataStore]] in either producer or consumer mode */

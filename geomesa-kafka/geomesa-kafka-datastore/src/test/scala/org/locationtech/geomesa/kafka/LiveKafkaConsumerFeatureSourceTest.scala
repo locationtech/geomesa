@@ -221,6 +221,8 @@ class LiveKafkaConsumerFeatureSourceTest extends Specification with HasEmbeddedK
       sf.setDefaultGeometry(gf.createPoint(new Coordinate(-88, 38)))
       fw.write()
 
+      Thread.sleep(1000)
+
       import org.locationtech.geomesa.utils.geotools.Conversions._
       val features = consumerFC.getFeatures.features().toList
       features.size must be equalTo 1

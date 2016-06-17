@@ -193,6 +193,10 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedKafka with LazyLo
       ok
     }
 
+    "allow for calls to getFeatureWriterAppend" >> {
+      producerDS.getFeatureWriterAppend(schema.getTypeName, Transaction.AUTO_COMMIT) must not(beNull)
+    }
+
     "return correctly from canProcess" >> {
       import KafkaDataStoreFactoryParams._
       val factory = new KafkaDataStoreFactory

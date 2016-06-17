@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.kafka
 
 import java.io.Closeable
+import java.util.concurrent.atomic.AtomicLong
 import java.{util => ju}
 
 import com.typesafe.scalalogging.LazyLogging
@@ -17,7 +18,6 @@ import kafka.producer.{Producer, ProducerConfig}
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.data.{FeatureReader, FeatureWriter, Query}
 import org.geotools.feature.FeatureCollection
-import org.geotools.feature.collection.BridgeIterator
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.kafka.KafkaDataStore.FeatureSourceFactory
@@ -34,10 +34,10 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
                                 topic: String,
                                 broker: String,
                                 producer: Producer[Array[Byte], Array[Byte]],
-                                q: Query = null)
+                                q: Query)
   extends ContentFeatureStore(entry, q) with Closeable with LazyLogging {
 
-  private val writerPool = ObjectPoolFactory(new ModifyingFeatureWriter(query), 5)
+  private val writerPool = ObjectPoolFactory(getWriterInternal(null, 0).asInstanceOf[KafkaFeatureWriter], 5)
 
   override def getBoundsInternal(query: Query) =
     ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), CRS_EPSG_4326)
@@ -47,13 +47,13 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
   override def addFeatures(featureCollection: FeatureCollection[SimpleFeatureType, SimpleFeature]): ju.List[FeatureId] = {
     writerPool.withResource { fw =>
       val ret = Array.ofDim[FeatureId](featureCollection.size())
-      fw.setIter(new BridgeIterator[SimpleFeature](featureCollection.features()))
+      val iter = featureCollection.features()
       var i = 0
-      while(fw.hasNext) {
+      while (iter.hasNext) {
         val sf = fw.next()
         ret(i) = sf.getIdentifier
-        i+=1
-        fw.write()
+        fw.write(sf)
+        i += 1
       }
       ret.toList
     }
@@ -64,75 +64,13 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
     case _              => super.removeFeatures(filter)
   }
 
-  def clearFeatures(): Unit = {
-    val msg = GeoMessage.clear()
-    logger.debug("sending message: {}", msg)
+  def clearFeatures(): Unit = writerPool.withResource { fw => fw.send(GeoMessage.clear()) }
 
-    val encoder = new KafkaGeoMessageEncoder(sft)
-    producer.send(encoder.encodeClearMessage(topic, msg))
-  }
-
-  override def getWriterInternal(query: Query, flags: Int) =
-    new ModifyingFeatureWriter(query)
-
-  class ModifyingFeatureWriter(query: Query) extends FeatureWriter[SimpleFeatureType, SimpleFeature] with LazyLogging {
-
-    val msgEncoder = new KafkaGeoMessageEncoder(sft)
-    val reuse = new ScalaSimpleFeature("", sft)
-
-    private var id = 1L
-    def getNextId: String = {
-      val ret = id
-      id += 1
-      s"$ret"
-    }
-
-    var toModify: Iterator[SimpleFeature] =
-      if(query == null) Iterator[SimpleFeature]()
-      else if(query.getFilter == null) Iterator.continually {
-        reuse.getIdentifier.setID(getNextId)
-        reuse
-      }
-      else query.getFilter match {
-        case ids: Id        =>
-          ids.getIDs.map(id => new ScalaSimpleFeature(id.toString, sft)).iterator
-
-        case Filter.INCLUDE =>
-          Iterator.continually(new ScalaSimpleFeature("", sft))
-      }
-
-    def setIter(iter: Iterator[SimpleFeature]): Unit = {
-      toModify = iter
-    }
-
-    var curFeature: SimpleFeature = null
-    override def getFeatureType: SimpleFeatureType = sft
-
-    override def next(): SimpleFeature = {
-      curFeature = toModify.next()
-      curFeature
-    }
-
-    override def remove(): Unit = {
-      val msg = GeoMessage.delete(curFeature.getID)
-      curFeature = null
-
-      send(msg)
-    }
-
-    override def write(): Unit = {
-      val msg = GeoMessage.createOrUpdate(curFeature)
-      curFeature = null
-
-      send(msg)
-    }
-
-    override def hasNext: Boolean = toModify.hasNext
-    override def close(): Unit = {}
-
-    private def send(msg: GeoMessage): Unit = {
-      logger.debug("sending message: {}", msg)
-      producer.send(msgEncoder.encodeMessage(topic, msg))
+  override def getWriterInternal(query: Query, flags: Int) = {
+    if (query == null || query == Query.ALL || query.getFilter == null || query.getFilter == Filter.INCLUDE) {
+      new KafkaFeatureWriterAppend(sft, producer, topic)
+    } else {
+      new KafkaFeatureWriterModify(sft, producer, topic, query)
     }
   }
 
@@ -142,7 +80,66 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
   override def close(): Unit = producer.close()
 }
 
+abstract class KafkaFeatureWriter(sft: SimpleFeatureType, producer: Producer[Array[Byte], Array[Byte]], topic: String)
+    extends FeatureWriter[SimpleFeatureType, SimpleFeature]with LazyLogging {
+
+  protected val msgEncoder = new KafkaGeoMessageEncoder(sft)
+
+  private [kafka] def write(sf: SimpleFeature): Unit = send(GeoMessage.createOrUpdate(sf))
+
+  private [kafka] def send(msg: GeoMessage): Unit = {
+    logger.debug("sending message: {}", msg)
+    producer.send(msgEncoder.encodeMessage(topic, msg))
+  }
+
+  override def getFeatureType: SimpleFeatureType = sft
+  override def close(): Unit = {}
+}
+
+class KafkaFeatureWriterAppend(sft: SimpleFeatureType, producer: Producer[Array[Byte], Array[Byte]], topic: String)
+    extends KafkaFeatureWriter(sft, producer, topic) {
+
+  protected val reuse = new ScalaSimpleFeature("", sft)
+
+  protected def nextId: String = KafkaProducerFeatureStoreFactory.FeatureIds.getAndIncrement().toString
+
+  // always return false as we're appending, per the geotools API
+  override def hasNext: Boolean = false
+
+  override def next(): SimpleFeature = {
+    reuse.getIdentifier.setID(nextId)
+    reuse.getUserData.clear()
+    var i = 0
+    while (i < reuse.values.length) {
+      reuse.values(i) = null
+      i += 1
+    }
+    reuse
+  }
+
+  override def write(): Unit = write(reuse)
+
+  override def remove(): Unit = throw new NotImplementedError("Remove called on FeatureWriterAppend")
+}
+
+class KafkaFeatureWriterModify(sft: SimpleFeatureType, producer: Producer[Array[Byte], Array[Byte]], topic: String, query: Query)
+    extends KafkaFeatureWriterAppend(sft, producer, topic) {
+
+  private val ids = query.getFilter match {
+    case ids: Id => ids.getIDs.iterator
+    case _ => throw new NotImplementedError("Only modify by ID is supported")
+  }
+
+  override protected def nextId: String = ids.next.toString
+
+  override def hasNext: Boolean = ids.hasNext
+
+  override def remove(): Unit = send(GeoMessage.delete(reuse.getID))
+}
+
 object KafkaProducerFeatureStoreFactory {
+
+  private [kafka] val FeatureIds = new AtomicLong(0L)
 
   def apply(broker: String): FeatureSourceFactory = {
 
@@ -153,10 +150,10 @@ object KafkaProducerFeatureStoreFactory {
       new ProducerConfig(props)
     }
 
-    (entry: ContentEntry, schemaManager: KafkaDataStoreSchemaManager) => {
+    (entry: ContentEntry, query: Query, schemaManager: KafkaDataStoreSchemaManager) => {
       val fc = schemaManager.getFeatureConfig(entry.getTypeName)
       val kafkaProducer = new Producer[Array[Byte], Array[Byte]](config)
-      new KafkaProducerFeatureStore(entry, fc.sft, fc.topic, broker, kafkaProducer)
+      new KafkaProducerFeatureStore(entry, fc.sft, fc.topic, broker, kafkaProducer, query)
     }
   }
 }
