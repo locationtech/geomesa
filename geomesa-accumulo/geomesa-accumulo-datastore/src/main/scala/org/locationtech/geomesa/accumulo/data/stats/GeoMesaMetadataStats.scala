@@ -50,10 +50,11 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
   private val lastCompaction = new AtomicLong(0L)
 
   executor.scheduleWithFixedDelay(new Runnable() {
-    override def run(): Unit = if (compactionScheduled.compareAndSet(true, false) &&
-        lastCompaction.get < DateTime.now(DateTimeZone.UTC).minusHours(1).getMillis) {
-      compact()
-    }
+    override def run(): Unit =
+      if (lastCompaction.get < DateTime.now(DateTimeZone.UTC).minusHours(1).getMillis &&
+          compactionScheduled.compareAndSet(true, false) ) {
+        compact()
+      }
   }, 1, 1, TimeUnit.HOURS)
 
   override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
