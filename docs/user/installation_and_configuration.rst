@@ -277,9 +277,10 @@ the same Accumulo instance. You should remove any GeoMesa JARs under
 Bootstrapping GeoMesa and Accumulo on Elastic Map Reduce
 --------------------------------------------------------
 
-A script to bootstrap GeoMesa and Accumulo is provided in ``geomesa-tools/emr4`` and on this public S3 bucket: ``s3://elasticmapreduce-geomesa/bootstrap-geomesa.sh``. These rely on the EMR managed Hadoop and ZooKeeper applications. See ``geomesa-tools/emr4/README.md`` for more details. The commands below launch a GeoMesa EMR cluster:
+A script to bootstrap GeoMesa and Accumulo on an Elastic Map Reduce cluster is provided in ``geomesa-tools/emr4`` and on this public S3 bucket: `s3://elasticmapreduce-geomesa/ <http://s3.amazonaws.com/elasticmapreduce-geomesa/>`_. These rely on the EMR managed Hadoop and ZooKeeper applications. See ``geomesa-tools/emr4/README.md`` for more details on using these clusters. The command below launches a GeoMesa EMR cluster:
 
 .. code-block:: bash
+
     NUM_WORKERS=2
     CLUSTER_NAME=geomesa-emr
     AWS_REGION=us-east-1
