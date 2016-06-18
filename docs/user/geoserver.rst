@@ -119,3 +119,39 @@ A tool like GeoServer (once its WPS plugin has been installed) uses WPS to
 retrieve data from GeoMesa. WPS processes can be chained, letting you use
 additional WPS requests to build on the results of earlier ones.
 
+Configuring GeoServer
+---------------------
+
+Depending on your hardware, it may be important to set the limits for
+your WMS plugin to be higher or disable them completely by clicking
+"WMS" under "Services" on the left side of the admin page of GeoServer.
+Check with your server administrator to determine the correct settings.
+For massive queries, the standard 60 second timeout may be too short.
+
+|"Disable limits"|
+
+.. |"Disable limits"| image:: _static/img/wms_limits.png
+
+To enable explain query logging in GeoServer, add the following to the
+``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties`` file::
+
+    log4j.category.org.locationtech.geomesa.accumulo.index.QueryPlanner=TRACE
+
+If you are not sure of the location of your GeoServer data directory, it
+is printed out when you start GeoServer::
+
+    ----------------------------------
+    - GEOSERVER_DATA_DIR: /opt/devel/install/geoserver-data-dir
+    ----------------------------------
+
+GeoMesa GeoServer Community Module
+----------------------------------
+
+The GeoMesa community module adds support for raster imagery to GeoServer. The community module
+requires the Accumulo GeoServer plugin to be installed first.
+
+The community module can be downloaded from `OpenGeo <http://ares.opengeo.org/geoserver/>`__, or can
+be built from `source <https://github.com/geoserver/geoserver/tree/master/src/community/geomesa>`__.
+
+Once obtained, the community module can be installed by copying ``geomesa-gs-<version>.jar`` into
+the GeoServer ``lib`` directory.
