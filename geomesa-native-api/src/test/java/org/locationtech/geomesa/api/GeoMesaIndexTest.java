@@ -54,8 +54,14 @@ public class GeoMesaIndexTest {
         final DomainObject two = new DomainObject("2", 2, 2.0);
 
         final GeoMesaIndex<DomainObject> index =
-                AccumuloGeoMesaIndex.build("hello", "zoo1:2181", "mycloud", "myuser", "mypass",
-                        true, new DomainObjectValueSerializer());
+                AccumuloGeoMesaIndex.build(
+                        "hello",
+                        "zoo1:2181",
+                        "mycloud",
+                        "myuser", "mypass",
+                        true,
+                        new DomainObjectValueSerializer(),
+                        new DefaultSimpleFeatureView<DomainObject>("foo"));
 
         final GeometryFactory gf = JTSFactoryFinder.getGeometryFactory();
 
