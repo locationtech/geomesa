@@ -56,7 +56,7 @@ public interface GeoMesaIndexedBlobStore extends Closeable {
      * @param id String feature Id of the Blob, from getIds functions
      * @return Map.Entry<String, byte[]> map entry of filename to file bytes
      */
-    Map.Entry<String, byte[]> get(String id);
+    Blob get(String id);
 
     /**
      * Deletes a blob from the blobstore by id

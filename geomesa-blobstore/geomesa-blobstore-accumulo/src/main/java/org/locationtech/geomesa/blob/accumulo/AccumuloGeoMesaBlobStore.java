@@ -12,7 +12,7 @@ import org.geotools.data.Query;
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore;
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory;
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams;
-import org.locationtech.geomesa.blob.accumulo.GeoMesaAccumuloBlobStore;
+import org.locationtech.geomesa.blob.api.Blob;
 import org.locationtech.geomesa.blob.api.GeoMesaIndexedBlobStore;
 import org.opengis.filter.Filter;
 
@@ -110,7 +110,7 @@ public class AccumuloGeoMesaBlobStore implements GeoMesaIndexedBlobStore {
      * @return Map.Entry<String, byte[]> map entry of filename to file bytes
      */
     @Override
-    public Map.Entry<String, byte[]> get(String id) {
+    public Blob get(String id) {
         return geoMesaAccumuloBlobStore.get(id);
     }
 

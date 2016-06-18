@@ -8,16 +8,13 @@
 
 package org.locationtech.geomesa.blob.accumulo
 
-import java.util.Map.Entry
-
-import com.google.common.collect.Maps
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector}
 import org.apache.accumulo.core.data.{Mutation, Range, Value}
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.blob.api.BlobStore
+import org.locationtech.geomesa.blob.api.{Blob, BlobStore}
 import org.locationtech.geomesa.security.{AuditProvider, AuthorizationsProvider}
 
 import scala.collection.JavaConversions._
@@ -34,7 +31,7 @@ class AccumuloBlobStoreImpl(val connector: Connector,
   protected val bw = connector.createBatchWriter(blobTableName, bwConf)
   protected val tableOps = connector.tableOperations()
 
-  override def get(id: String): Entry[String, Array[Byte]] = {
+  override def get(id: String): Blob = {
     val scanner = connector.createScanner(
       blobTableName,
       authProvider.getAuthorizations
@@ -44,9 +41,9 @@ class AccumuloBlobStoreImpl(val connector: Connector,
       val iter = scanner.iterator()
       if (iter.hasNext) {
         val next = iter.next()
-        Maps.immutableEntry(next.getKey.getColumnQualifier.toString, next.getValue.get)
+        new Blob(id, next.getKey.getColumnQualifier.toString, next.getValue.get)
       } else {
-        Maps.immutableEntry("", Array.empty[Byte])
+        new Blob()
       }
     } finally {
       scanner.close()

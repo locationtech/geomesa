@@ -185,12 +185,12 @@ class BlobstoreServlet(val persistence: FilePersistence)
         logger.debug("Attempting to get blob for id: {} from store: {}", id, alias)
         try {
           val ret = abs.get(id)
-          val bytes = ret.getValue
+          val bytes: Array[Byte] = ret.getPayload
           if (bytes == null) {
             BadRequest(reason = s"Unknown ID $id")
           } else {
             contentType = "application/octet-stream"
-            response.setHeader("Content-Disposition", "attachment;filename=" + ret.getKey)
+            response.setHeader("Content-Disposition", "attachment;filename=" + ret.getLocalName)
             Ok(bytes)
           }
         } catch {

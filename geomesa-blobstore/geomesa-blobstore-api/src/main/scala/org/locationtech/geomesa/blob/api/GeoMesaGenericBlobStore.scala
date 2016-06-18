@@ -10,19 +10,18 @@ package org.locationtech.geomesa.blob.api
 
 import java.io.File
 import java.util
-import java.util.Map.Entry
 
 import com.google.common.io.Files
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStore, Query}
 import org.geotools.filter.identity.FeatureIdImpl
-import org.opengis.filter.Filter
 import org.locationtech.geomesa.blob.api.GeoMesaBlobStoreSFT._
 import org.locationtech.geomesa.blob.api.handlers.{BlobStoreByteArrayHandler, BlobStoreFileHandler}
 import org.locationtech.geomesa.utils.filters.Filters
 import org.locationtech.geomesa.utils.geotools.Conversions.{RichSimpleFeature, _}
 import org.opengis.feature.simple.SimpleFeature
+import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
 
@@ -30,7 +29,7 @@ abstract class GeoMesaGenericBlobStore(ds: DataStore, bs: BlobStore) extends Geo
 
   protected val fs = ds.getFeatureSource(BlobFeatureTypeName).asInstanceOf[SimpleFeatureStore]
 
-  override def get(id: String): Entry[String, Array[Byte]] = {
+  override def get(id: String): Blob = {
     bs.get(id)
   }
 

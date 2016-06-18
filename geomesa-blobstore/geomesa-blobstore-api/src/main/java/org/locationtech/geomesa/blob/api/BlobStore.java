@@ -10,7 +10,6 @@ package org.locationtech.geomesa.blob.api;
 
 
 import java.io.Closeable;
-import java.util.Map;
 
 /**
  * An interface to define the behavior of a GeoMesa BlobStore
@@ -36,7 +35,7 @@ public interface BlobStore extends Closeable {
      * @param id Blob Id
      * @return blob
      */
-    Map.Entry<String, byte[]> get(String id);
+    Blob get(String id);
 
     /**
      * GeoMesa BlobStores must be able to delete a Blob by id.

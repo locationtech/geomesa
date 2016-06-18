@@ -51,8 +51,8 @@ class GeoMesaAccumuloBlobStoreTest extends Specification {
 
       // test if blobstore get is failing to return anything
       val ret = bstore.get(storeId)
-      ret.getKey mustEqual ""
-      ret.getValue must beEmpty
+      ret.getLocalName mustEqual ""
+      ret.getPayload must beEmpty
 
       // test if geomesa feature table is empty
       val ids = bstore.getIds(Filter.INCLUDE).toList
@@ -66,8 +66,8 @@ class GeoMesaAccumuloBlobStoreTest extends Specification {
 
       val inputStream = ByteStreams.toByteArray(Files.newInputStreamSupplier(file))
 
-      ret.getKey mustEqual testfile1
-      inputStream mustEqual ret.getValue
+      ret.getLocalName mustEqual testfile1
+      inputStream mustEqual ret.getPayload
     }
 
     "query for ids and then retrieve a file" in {
@@ -79,8 +79,8 @@ class GeoMesaAccumuloBlobStoreTest extends Specification {
 
       val ret = bstore.get(id)
 
-      ret.getValue must not be null
-      ret.getKey mustEqual testfile1
+      ret.getPayload must not be null
+      ret.getLocalName mustEqual testfile1
     }
 
     "insert a second file and then be able to query for both" in {
@@ -91,7 +91,7 @@ class GeoMesaAccumuloBlobStoreTest extends Specification {
 
       val ret = bstore.get(storeId2)
 
-      ret.getKey mustEqual testfile2
+      ret.getLocalName mustEqual testfile2
 
       val filter = ECQL.toFilter("BBOX(geom, -10,-10,10,10)")
 

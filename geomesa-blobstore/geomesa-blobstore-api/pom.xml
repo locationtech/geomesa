@@ -23,11 +23,9 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-filter</artifactId>
         </dependency>
-
-        <!-- provided dependencies -->
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-accumulo-datastore</artifactId>
         </dependency>
 
         <!--test dependencies-->

@@ -62,8 +62,8 @@ public class AccumuloGeoMesaBlobStoreTest {
             }
             assertTrue(idCount >= 1);
 
-            Map.Entry<String, byte[]> result = agbs.get(id);
-            assertEquals(result.getKey(), "testFile.txt");
+            Blob result = agbs.get(id);
+            assertEquals(result.getLocalName(), "testFile.txt");
 
             agbs.delete(id);
 
@@ -91,9 +91,9 @@ public class AccumuloGeoMesaBlobStoreTest {
         String id = agbs.put(randomArray, params);
         assertFalse(id.isEmpty());
 
-        Map.Entry<String, byte[]> result = agbs.get(id);
-        assertEquals(result.getKey(), "testrandomarray.txt");
-        assertArrayEquals(randomArray, result.getValue());
+        Blob result = agbs.get(id);
+        assertEquals(result.getLocalName(), "testrandomarray.txt");
+        assertArrayEquals(randomArray, result.getPayload());
     }
 
     @Test
@@ -113,9 +113,9 @@ public class AccumuloGeoMesaBlobStoreTest {
 
         final String id = bs.put("testBytes".getBytes(), params);
 
-        final Map.Entry<String, byte[]> result = bs.get(id);
-        assertEquals(result.getKey(), "testrandomarray.txt");
-        assertArrayEquals("testBytes".getBytes(), result.getValue());
+        Blob result = bs.get(id);
+        assertEquals(result.getLocalName(), "testrandomarray.txt");
+        assertArrayEquals("testBytes".getBytes(), result.getPayload());
     }
 
 }
