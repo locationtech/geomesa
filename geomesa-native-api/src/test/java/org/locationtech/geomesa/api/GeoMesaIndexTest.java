@@ -25,7 +25,6 @@ import org.junit.Test;
 import javax.annotation.Nullable;
 import java.time.ZonedDateTime;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 
 public class GeoMesaIndexTest {
@@ -128,7 +127,7 @@ public class GeoMesaIndexTest {
                 AccumuloGeoMesaIndex.buildDefaultView("securityTest", "zoo1:2181", instanceId, "myuser", "password",
                         true, new DomainObjectValueSerializer());
 
-        Map<String, Object> visibility = ImmutableMap.of(AccumuloGeoMesaIndex$.MODULE$.VISIBILITY(), (Object)"user");
+        Map<String, Object> visibility = ImmutableMap.<String,Object>of(AccumuloGeoMesaIndex$.MODULE$.VISIBILITY(), "user");
         index.insert(
                 one.id,
                 one,
@@ -136,7 +135,7 @@ public class GeoMesaIndexTest {
                 date("2016-01-01T12:15:00.000Z"),
                 visibility);
 
-        Map<String, Object> visibility2 = ImmutableMap.of(AccumuloGeoMesaIndex$.MODULE$.VISIBILITY(), (Object)"admin");
+        Map<String, Object> visibility2 = ImmutableMap.<String,Object>of(AccumuloGeoMesaIndex$.MODULE$.VISIBILITY(), "admin");
         index.insert(
                 two.id,
                 two,
