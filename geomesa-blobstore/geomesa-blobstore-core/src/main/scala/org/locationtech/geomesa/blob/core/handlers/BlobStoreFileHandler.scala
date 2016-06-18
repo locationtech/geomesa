@@ -10,20 +10,18 @@ package org.locationtech.geomesa.blob.core.handlers
 
 import java.io.File
 import java.util
-import java.util.{UUID, Date}
+import java.util.Date
 import javax.imageio.spi.ServiceRegistry
 
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.locationtech.geomesa.accumulo.util.{Z3FeatureIdGenerator, Z3UuidGenerator}
-import org.locationtech.geomesa.blob.core.AccumuloBlobStore._
 import org.locationtech.geomesa.blob.core.FileHandler
-import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.geomesa.blob.core.GeoMesaBlobStoreSFT._
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
-import scala.util.Try
 
 object BlobStoreFileHandler {
   def buildSF(file: File, params: Map[String, String]): Option[SimpleFeature] = {
@@ -33,32 +31,7 @@ object BlobStoreFileHandler {
   }
 }
 
-object BlobStoreByteArrayHandler extends BlobStoreSimpleFeatureBuilder {
-  def buildSF(params: util.Map[String, String]): SimpleFeature = {
-    val date = getDate(params)
-    val geom = getGeometry(params)
-    val fileName = getFileName(params)
-    buildBlobSF(fileName, geom, date)
-  }
 
-  def getDate(params: util.Map[String, String]): Date = {
-    getDateFromParams(params).getOrElse(new Date())
-  }
-
-  def getDateFromParams(params: util.Map[String, String]): Option[Date] = {
-    Try { new Date(params.get(DtgFieldName).toLong) }.toOption
-  }
-
-  def getGeometry(params: util.Map[String, String]): Geometry = {
-    WKTUtils.read(
-      params.getOrElse(GeomFieldName, throw new Exception(s"Missing Geometry Information from $params"))
-    )
-  }
-
-  def getFileName(params: util.Map[String, String]): String = {
-    params.getOrElse(FilenameFieldName, UUID.randomUUID().toString)
-  }
-}
 
 trait AbstractFileHandler extends BlobStoreSimpleFeatureBuilder with FileHandler with BlobStoreFileName {
 

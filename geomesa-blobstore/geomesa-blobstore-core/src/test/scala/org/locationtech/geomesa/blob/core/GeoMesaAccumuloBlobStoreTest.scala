@@ -22,7 +22,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloBlobStoreTest extends Specification {
+class GeoMesaAccumuloBlobStoreTest extends Specification {
   val dsParams = Map(
     "instanceId"        -> "mycloud",
     "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
@@ -32,7 +32,7 @@ class AccumuloBlobStoreTest extends Specification {
     "useMock"           -> "true")
   val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
 
-  val bstore = new AccumuloBlobStore(ds)
+  val bstore = new GeoMesaAccumuloBlobStore(ds)
 
   sequential
 
@@ -43,7 +43,7 @@ class AccumuloBlobStoreTest extends Specification {
 
   "AccumuloBlobStore" should {
 
-    "be able to store and delete a file" in {
+    "be able to store and deleteBlob a file" in {
       val (storeId, file) = ingestFile(testfile3, "POINT(10 10)")
 
       bstore.delete(storeId)

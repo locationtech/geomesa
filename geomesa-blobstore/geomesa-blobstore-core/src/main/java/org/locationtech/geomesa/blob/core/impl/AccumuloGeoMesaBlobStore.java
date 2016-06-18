@@ -12,8 +12,8 @@ import org.geotools.data.Query;
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore;
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory;
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams;
-import org.locationtech.geomesa.blob.core.AccumuloBlobStore;
-import org.locationtech.geomesa.blob.core.GeoMesaBlobStore;
+import org.locationtech.geomesa.blob.core.GeoMesaAccumuloBlobStore;
+import org.locationtech.geomesa.blob.core.GeoBlobStore;
 import org.opengis.filter.Filter;
 
 import java.io.File;
@@ -23,16 +23,16 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class AccumuloGeoMesaBlobStore implements GeoMesaBlobStore {
+public class AccumuloGeoMesaBlobStore implements GeoBlobStore {
 
-    protected final AccumuloBlobStore accumuloBlobStore;
+    protected final GeoMesaAccumuloBlobStore geoMesaAccumuloBlobStore;
 
     public AccumuloGeoMesaBlobStore(final Map<String, Serializable> dataStoreParams) throws IOException {
         final AccumuloDataStore ds = genNewADS(dataStoreParams);
         if (ds == null) {
             throw new IOException("Error initializing AccumuloGeoMesaBlobStore");
         } else {
-            accumuloBlobStore = new AccumuloBlobStore(ds);
+            geoMesaAccumuloBlobStore = new GeoMesaAccumuloBlobStore(ds);
         }
     }
 
@@ -68,7 +68,7 @@ public class AccumuloGeoMesaBlobStore implements GeoMesaBlobStore {
      */
     @Override
     public String put(File file, Map<String, String> params) {
-        return accumuloBlobStore.put(file, params);
+        return geoMesaAccumuloBlobStore.put(file, params);
     }
 
     /**
@@ -78,7 +78,7 @@ public class AccumuloGeoMesaBlobStore implements GeoMesaBlobStore {
      */
     @Override
     public String put(byte[] bytes, Map<String, String> params) {
-        return accumuloBlobStore.put(bytes, params);
+        return geoMesaAccumuloBlobStore.put(bytes, params);
     }
 
     /**
@@ -89,7 +89,7 @@ public class AccumuloGeoMesaBlobStore implements GeoMesaBlobStore {
      */
     @Override
     public Iterator<String> getIds(Filter filter) {
-        return accumuloBlobStore.getIds(filter);
+        return geoMesaAccumuloBlobStore.getIds(filter);
     }
 
     /**
@@ -100,7 +100,7 @@ public class AccumuloGeoMesaBlobStore implements GeoMesaBlobStore {
      */
     @Override
     public Iterator<String> getIds(Query query) {
-        return accumuloBlobStore.getIds(query);
+        return geoMesaAccumuloBlobStore.getIds(query);
     }
 
     /**
@@ -111,17 +111,17 @@ public class AccumuloGeoMesaBlobStore implements GeoMesaBlobStore {
      */
     @Override
     public Map.Entry<String, byte[]> get(String id) {
-        return accumuloBlobStore.get(id);
+        return geoMesaAccumuloBlobStore.get(id);
     }
 
     /**
      * Deletes Blob by id
      *
-     * @param id id of the blob to delete
+     * @param id id of the blob to deleteBlob
      */
     @Override
     public void delete(String id) {
-        accumuloBlobStore.delete(id);
+        geoMesaAccumuloBlobStore.delete(id);
     }
 
     /**
@@ -131,11 +131,11 @@ public class AccumuloGeoMesaBlobStore implements GeoMesaBlobStore {
      */
     @Override
     public void deleteBlobStore() {
-        accumuloBlobStore.deleteBlobStore();
+        geoMesaAccumuloBlobStore.deleteBlobStore();
     }
 
     @Override
     public void close() throws IOException {
-        accumuloBlobStore.close();
+        geoMesaAccumuloBlobStore.close();
     }
 }
