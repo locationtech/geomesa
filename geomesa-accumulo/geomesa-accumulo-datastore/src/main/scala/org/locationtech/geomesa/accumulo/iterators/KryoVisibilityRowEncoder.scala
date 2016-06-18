@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
+import java.nio.ByteBuffer
+
 import com.esotericsoftware.kryo.io.Output
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
@@ -58,28 +60,28 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 
   override def rowEncoder(keys: java.util.List[Key], values: java.util.List[Value]): Value = {
 
-    val allValues = new java.util.ArrayList[Array[Byte]](sft.getAttributeCount)
+    val allValues = Array.ofDim[Array[Byte]](sft.getAttributeCount)
 
-    if (keys.size == sft.getAttributeCount) {
-      var i = 0
-      while (i < sft.getAttributeCount) {
-        allValues.add(values.get(i).get)
-        i += 1
+    var i = 0
+    while (i < keys.size) {
+      val indices = keys.get(i).getColumnQualifier.getBytes.map(_.toInt)
+      val bytes = ByteBuffer.wrap(values.get(i).get)
+      indices.foreach { i =>
+        val value = Array.ofDim[Byte](bytes.getInt)
+        bytes.get(value)
+        allValues(i) = value
       }
-    } else {
-      var i = 0
-      var pos = 0
-      while (i < sft.getAttributeCount) {
-        if (pos < keys.size && keys.get(pos).getColumnQualifier.getBytes.head == i) {
-          allValues.add(values.get(pos).get)
-          pos += 1
-        } else {
-          output.clear()
-          writers(i).apply(output, null)
-          allValues.add(output.toBytes)
-        }
-        i += 1
+      i += 1
+    }
+
+    i = 0
+    while (i < allValues.length) {
+      if (allValues(i) == null) {
+        output.clear()
+        writers(i).apply(output, null)
+        allValues(i) = output.toBytes
       }
+      i += 1
     }
     val id = idFromRow(keys.get(0).getRow.copyBytes).substring(1)
     // TODO this doesn't work...
@@ -111,22 +113,22 @@ object KryoVisibilityRowEncoder {
     is
   }
 
-  private def encode(id: String, values: java.util.List[Array[Byte]], output: Output, offsets: Array[Int]): Value = {
+  private def encode(id: String, values: Array[Array[Byte]], output: Output, offsets: Array[Int]): Value = {
     output.clear()
     output.writeInt(KryoFeatureSerializer.VERSION, true)
     output.setPosition(5) // leave 4 bytes to write the offsets
     output.writeString(id)
     // write attributes and keep track off offset into byte array
     var i = 0
-    while (i < values.size) {
+    while (i < values.length) {
       offsets(i) = output.position()
-      output.write(values.get(i))
+      output.write(values(i))
       i += 1
     }
     // write the offsets - variable width
     i = 0
     val offsetStart = output.position()
-    while (i < values.size) {
+    while (i < values.length) {
       output.writeInt(offsets(i), true)
       i += 1
     }

@@ -9,8 +9,10 @@
 package org.locationtech.geomesa.accumulo.data
 
 import java.io.Flushable
+import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicLong
 
+import com.google.common.primitives.Bytes
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.BatchWriter
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
@@ -65,16 +67,25 @@ object AccumuloFeatureWriter extends LazyLogging {
     // hash value of the feature id
     lazy val idHash = Math.abs(MurmurHash3.stringHash(feature.getID))
 
+    // TODO optimize for case where all vis are the same
     lazy val perAttributeValues: Seq[RowValue] = {
       val count = feature.getFeatureType.getAttributeCount
       val visibilities = feature.userData[String](FEATURE_VISIBILITY).map(_.split(","))
           .getOrElse(Array.fill(count)(defaultVisibility))
       require(visibilities.length == count, "Per-attribute visibilities do not match feature type")
-      visibilities.zipWithIndex.map { case (vis, i) =>
-        val value = new Value(serializer.serialize(i, feature.getAttribute(i)))
-        val cq = GeoMesaTable.PerAttributeColumnQualifiers(i)
+      visibilities.zipWithIndex.groupBy(_._1).map { case (vis, iAndVis) =>
+        val indices = iAndVis.map(_._2.toByte).sorted
+        val cq = new Text(indices)
+        val values = indices.map(i => serializer.serialize(i, feature.getAttribute(i)))
+        // TODO replace this with kryo
+        val bytes = ByteBuffer.allocate(values.map(_.length).sum + values.length * 4)
+        values.foreach { value =>
+          bytes.putInt(value.length)
+          bytes.put(value)
+        }
+        val value = new Value(bytes.array())
         RowValue(GeoMesaTable.PerAttributeColumnFamily, cq, new ColumnVisibility(vis), value)
-      }
+      }.toSeq
     }
   }
 
