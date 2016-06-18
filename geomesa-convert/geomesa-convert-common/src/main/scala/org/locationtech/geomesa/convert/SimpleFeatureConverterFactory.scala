@@ -158,7 +158,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
         ec.set(i, requiredFields(i).eval(t)(ec))
       } catch {
         case e: Exception =>
-          val valuesStr = Option(t.tail).map(_.mkString(", ")).getOrElse("")
+          val valuesStr = if (t.length > 0) t.tail.mkString(", ") else ""
           logger.warn(s"Failed to evaluate field '${requiredFields(i).name}' using values:\n" +
             s"${t.headOption.orNull}\n[$valuesStr]", e) // head is the whole record
           return null
