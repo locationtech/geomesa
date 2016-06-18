@@ -26,7 +26,7 @@ Indexing Strategies
 GeoMesa uses several different strategies to index simple features. In the code, these strategies are abstracted as 'tables'. For details on how GeoMesa encodes and indexes data, see tables. For details on how GeoMesa chooses and executes queries, see the ``org.locationtech.geomesa.accumulo.index.QueryPlanner`` and ``org.locationtech.geomesa.accumulo.index.QueryStrategyDecider`` classes.
 
 Explaining:  Query Plans
-^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Given a data store and a query, you can ask GeoMesa to explain its plan for how to execute the query:
 
@@ -39,7 +39,7 @@ Instead of ``ExplainPrintln``, you can also use ``ExplainString`` or ``ExplainLo
 Knowing the plan -- including information such as the indexing strategy -- can be useful when you need to debug slow queries.  It can suggest when indexes should be added as well as when query-hints may expedite execution times.
 
 Iterator Stack
-^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~
 
 GeoMesa uses Accumulo iterators to push processing out to the whole cluster. The iterator stack can be considered a 'tight inner loop' - generally, every feature returned will be processed in the iterators. As such, the iterators have been written for performance over readability.
 

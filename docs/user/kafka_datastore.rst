@@ -127,7 +127,7 @@ Each operation that creates, modifies, deletes, or clears simple
 features results in a message being sent to the Kafka topic.
 
 Data Consumers
-~~~~~~~~~~~~~~
+--------------
 
 First, create the data store. For example:
 
@@ -177,7 +177,7 @@ deleted, or cleared by the Kafka Data Store Producer, the current state
 is updated. All queries to the ``SimpleFeatureSource`` are queries
 against the current state. For example:
 
-::
+.. code-block:: java
 
     String typeName = ...
     SimpleFeatureSource liveFeatureSource = consumerDs.getFeatureSource(typeName);
@@ -189,7 +189,7 @@ It is also possible to provide a CQL filter to the getFeatureSource method call 
 the resulting ``FeatureSource`` only contains certain records. Providing a filter to reduce the number of
 returned records will provide a performance boost when using the featureSource.
 
-::
+.. code-block:: java
 
     String typeName = ...
     SimpleFeatureSource liveFeatureSource = consumerDs.getFeatureSource(typeName, filter);
@@ -206,7 +206,7 @@ be used to answer the query.
 In order to use Replay mode some additional hints are required: the
 start and end times of the replay window and a read behind duration:
 
-::
+.. code-block:: java
 
     Instant replayStart = ...
     Instant replayEnd = ...
@@ -238,7 +238,7 @@ possible.
 After creating the ``ReplayConfig`` pass it, along with the
 ``streamingSFT`` to the ``KafkaDataStoreHelper``:
 
-::
+.. code-block:: java
 
     SimpleFeatureType streamingSFT = consumerDs.getSchema(typeName);
     SimpleFeatureType replaySFT = KafkaDataStoreHelper.createReplaySFT(streamingSFT, replayConfig);
@@ -257,7 +257,7 @@ which represents the historical query time.
 After creating the ``replaySFT`` the Kafka Replay Feature Source may be
 created:
 
-::
+.. code-block:: java
 
     consumerDs.createSchema(replaySFT);
 
@@ -269,7 +269,7 @@ new ``SimpleFeatureType``.
 
 Finally the Kafka Replay Consumer Feature Source can be queried:
 
-::
+.. code-block:: java
 
     Instant historicalTime = ...
     Filter timeFilter = ff.and(filter, ReplayTimeHelper.toFilter(historicalTime));
@@ -284,7 +284,7 @@ used with the ``kafka-console-consumer``, part of Apache Kafka. In order
 to use this formatter call the kafka-console consumer with these
 additional arguments:
 
-::
+.. code-block:: bash
 
     --formatter org.locationtech.geomesa.kafka.KafkaGeoMessageFormatter
     --property sft.name={sftName}
