@@ -28,6 +28,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToWr
 import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, Z3FeatureIdGenerator}
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory, SimpleFeatureSerializer}
 import org.locationtech.geomesa.security.SecurityUtils.FEATURE_VISIBILITY
 import org.locationtech.geomesa.utils.uuid.FeatureIdGenerator
@@ -73,19 +74,18 @@ object AccumuloFeatureWriter extends LazyLogging {
       val visibilities = feature.userData[String](FEATURE_VISIBILITY).map(_.split(","))
           .getOrElse(Array.fill(count)(defaultVisibility))
       require(visibilities.length == count, "Per-attribute visibilities do not match feature type")
-      visibilities.zipWithIndex.groupBy(_._1).map { case (vis, iAndVis) =>
-        val indices = iAndVis.map(_._2.toByte).sorted
+      val groups = visibilities.zipWithIndex.groupBy(_._1).mapValues(_.map(_._2.toByte).sorted).toSeq
+      groups.map { case (vis, indices) =>
         val cq = new Text(indices)
         val values = indices.map(i => serializer.serialize(i, feature.getAttribute(i)))
-        // TODO replace this with kryo
-        val bytes = ByteBuffer.allocate(values.map(_.length).sum + values.length * 4)
+        val output = KryoFeatureSerializer.getOutput() // note: same output object used in serializer.serialize
         values.foreach { value =>
-          bytes.putInt(value.length)
-          bytes.put(value)
+          output.writeInt(value.length, true)
+          output.write(value)
         }
-        val value = new Value(bytes.array())
+        val value = new Value(output.toBytes)
         RowValue(GeoMesaTable.PerAttributeColumnFamily, cq, new ColumnVisibility(vis), value)
-      }.toSeq
+      }
     }
   }
 

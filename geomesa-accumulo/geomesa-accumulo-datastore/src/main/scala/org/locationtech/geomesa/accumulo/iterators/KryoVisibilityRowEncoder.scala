@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.nio.ByteBuffer
-
 import com.esotericsoftware.kryo.io.Output
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
@@ -28,7 +26,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 
   private var sft: SimpleFeatureType = null
   private var output: Output = null
-  private var writers: Array[(Output, AnyRef) => Unit] = null
+  private var nullBytes: Array[Array[Byte]] = null
   private var idFromRow: (Array[Byte]) => String = null
   private var offsets: Array[Int] = null
 
@@ -50,25 +48,24 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     idFromRow = table.getIdFromRow(sft)
     val cacheKey = CacheKeyGenerator.cacheKeyForSFT(sft)
     output = KryoFeatureSerializer.getOutput()
-    writers = KryoFeatureSerializer.getWriters(cacheKey, sft)
     offsets = KryoFeatureSerializer.getOffsets(cacheKey, sft.getAttributeCount)
-  }
-
-  override def rowDecoder(rowKey: Key, rowValue: Value): java.util.SortedMap[Key, Value] = {
-    throw new NotImplementedError("")
+    nullBytes = KryoFeatureSerializer.getWriters(cacheKey, sft).map { writer =>
+      output.clear()
+      writer(output, null)
+      output.toBytes
+    }
   }
 
   override def rowEncoder(keys: java.util.List[Key], values: java.util.List[Value]): Value = {
-
     val allValues = Array.ofDim[Array[Byte]](sft.getAttributeCount)
 
     var i = 0
     while (i < keys.size) {
       val indices = keys.get(i).getColumnQualifier.getBytes.map(_.toInt)
-      val bytes = ByteBuffer.wrap(values.get(i).get)
+      val input = KryoFeatureSerializer.getInput(values.get(i).get)
       indices.foreach { i =>
-        val value = Array.ofDim[Byte](bytes.getInt)
-        bytes.get(value)
+        val value = Array.ofDim[Byte](input.readInt(true))
+        input.readBytes(value)
         allValues(i) = value
       }
       i += 1
@@ -77,17 +74,18 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     i = 0
     while (i < allValues.length) {
       if (allValues(i) == null) {
-        output.clear()
-        writers(i).apply(output, null)
-        allValues(i) = output.toBytes
+        allValues(i) = nullBytes(i)
       }
       i += 1
     }
-    val id = idFromRow(keys.get(0).getRow.copyBytes).substring(1)
-    // TODO this doesn't work...
+
+    val id = idFromRow(keys.get(0).getRow.copyBytes)
     // TODO if we don't have a geometry, skip the record?
     KryoVisibilityRowEncoder.encode(id, allValues, output, offsets)
   }
+
+  override def rowDecoder(rowKey: Key, rowValue: Value): java.util.SortedMap[Key, Value] =
+    throw new NotImplementedError("")
 
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = {
     val iterator = new KryoVisibilityRowEncoder
@@ -108,7 +106,7 @@ object KryoVisibilityRowEncoder {
 
   def configure(sft: SimpleFeatureType, table: GeoMesaTable, priority: Int = DefaultPriority): IteratorSetting = {
     val is = new IteratorSetting(priority, "feature-merge-iter", classOf[KryoVisibilityRowEncoder])
-    is.addOption(SftOpt, SimpleFeatureTypes.encodeType(sft))
+    is.addOption(SftOpt, SimpleFeatureTypes.encodeType(sft, includeUserData = true)) // need user data for id calc
     is.addOption(TableOpt, table.getClass.getSimpleName)
     is
   }
