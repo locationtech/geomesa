@@ -17,7 +17,8 @@ import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper}
 
 import org.apache.commons.io.FilenameUtils
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
-import org.locationtech.geomesa.blob.core.{GeoMesaAccumuloBlobStore, GeoMesaBlobStoreSFT}
+import org.locationtech.geomesa.blob.accumulo.GeoMesaAccumuloBlobStore
+import org.locationtech.geomesa.blob.api.GeoMesaBlobStoreSFT
 import org.locationtech.geomesa.utils.cache.FilePersistence
 import org.locationtech.geomesa.web.core.PersistentDataStoreServlet
 import org.scalatra._
