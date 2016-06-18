@@ -131,7 +131,8 @@ interface:
 
 When a GeoMesa ``DataStore`` is instantiated, it will scan for available
 service providers. Third-party implementations can be enabled by placing
-them on the classpath and including a special service descriptor file. See the Oracle
+them on the classpath and including a special service descriptor file.
+See the Oracle
 `Javadoc <http://docs.oracle.com/javase/7/docs/api/javax/imageio/spi/ServiceRegistry.html>`__
 for details on implementing a service provider.
 
@@ -244,7 +245,7 @@ Pick a reasonable directory on your machine, and run:
 
 .. code-block:: bash
 
-    $ git clone git@github.com:geomesa/geomesa-tutorials.git
+    $ git clone https://github.com/geomesa/geomesa-tutorials.git
     $ cd geomesa-tutorials
 
 To build, run

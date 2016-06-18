@@ -24,10 +24,10 @@ Prerequisites
 
 Before you begin, you must have the following:
 
--  an instance of Accumulo 1.5 or 1.6 running on Hadoop 2.2.x
+-  an instance of Accumulo |accumulo_version| running on Hadoop |hadoop_version|
 -  an Accumulo user that has both create-table and write permissions
--  a local copy of the `Java <http://java.oracle.com/>`__ Development
-   Kit 1.7.x
+-  the GeoMesa Accumulo distributed runtime installed for your Accumulo instance (see :ref:`install_accumulo_runtime` )
+-  a local copy of the `Java <http://java.oracle.com/>`__ JDK 8
 -  Apache `Maven <http://maven.apache.org/>`__ installed
 -  a GitHub client installed
 
@@ -38,7 +38,7 @@ Pick a reasonable directory on your machine, and run:
 
 .. code-block:: bash
 
-    $ git clone git@github.com:geomesa/geomesa-tutorials.git
+    $ git clone https://github.com/geomesa/geomesa-tutorials.git
     $ cd geomesa-tutorials
 
 To build, run
@@ -90,6 +90,13 @@ where you provide the following arguments:
    user
 -  ``<table>`` the name of the destination table that will accept these
    test records; this table should either not exist or should be empty
+
+.. warning::
+
+    If you have set up the GeoMesa Accumulo distributed
+    runtime to be isolated within a namespace (see
+    :ref:`install_accumulo_runtime_namespace`) the value of ``<table>``
+    should include the namespace (e.g. ``myNamespace.geomesa``).
 
 You should see output similar to the following (not including some of
 Maven's output and log4j's warnings):
@@ -213,11 +220,11 @@ data, because we have enabled the time dimension for this layer, but the
 preview does not specify a time. In the URL bar for the visualization,
 add the following to the end:
 
-``&TIME=2014-01-01T00:00:00.000Z/2014-12-31T23:59:59.999Z``
+``&TIME=2014-01-01T00:00:00.000Z/2014-01-31T23:59:59.999Z``
 
-That tells GeoServer to display the records for the entire calendar year
-2014. You can find more information about the TIME parameter from
-`GeoServer's
+That tells GeoServer to display the records for the entire month of
+January 2014. You can find more information about the TIME parameter
+from `GeoServer's
 documentation <http://docs.geoserver.org/latest/en/user/services/wms/time.html>`__.
 
 Once you press <Enter>, the display will update, and you should see a
@@ -257,4 +264,3 @@ Generating Heatmaps
    change to a density heat-map. (NB: For this to work, you will have to
    first install the WPS module for GeoServer. See the official web site
    for a download.)
-
