@@ -5,6 +5,4 @@ Developer Manual
    :maxdepth: 2
    
    introduction
-   api
-   analysis
    modules
