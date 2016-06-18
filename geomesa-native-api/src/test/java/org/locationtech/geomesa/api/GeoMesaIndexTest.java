@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.api;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.gson.Gson;
 import com.vividsolutions.jts.geom.Coordinate;
@@ -127,8 +128,7 @@ public class GeoMesaIndexTest {
                 AccumuloGeoMesaIndex.buildDefaultView("securityTest", "zoo1:2181", instanceId, "myuser", "password",
                         true, new DomainObjectValueSerializer());
 
-        Map<String, Object> visibility = new HashMap<>(1);
-        visibility.put(AccumuloGeoMesaIndex$.MODULE$.VISIBILITY(), "user");
+        Map<String, Object> visibility = ImmutableMap.of(AccumuloGeoMesaIndex$.MODULE$.VISIBILITY(), (Object)"user");
         index.insert(
                 one.id,
                 one,
@@ -136,8 +136,7 @@ public class GeoMesaIndexTest {
                 date("2016-01-01T12:15:00.000Z"),
                 visibility);
 
-        Map<String, Object> visibility2 = new HashMap<>(1);
-        visibility2.put(AccumuloGeoMesaIndex$.MODULE$.VISIBILITY(), "admin");
+        Map<String, Object> visibility2 = ImmutableMap.of(AccumuloGeoMesaIndex$.MODULE$.VISIBILITY(), (Object)"admin");
         index.insert(
                 two.id,
                 two,
