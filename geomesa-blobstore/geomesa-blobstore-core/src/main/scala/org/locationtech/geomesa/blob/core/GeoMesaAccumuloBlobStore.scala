@@ -13,8 +13,8 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.blob.core.GeoMesaBlobStoreSFT._
 
-class GeoMesaAccumuloBlobStore(ds: AccumuloDataStore, bs: BlobStore)
-  extends GeoMesaBlobStore(ds, bs) with LazyLogging
+class GeoMesaAccumuloBlobStore(ds: AccumuloDataStore, bs: AccumuloBlobStoreImpl)
+  extends GeoMesaGenericBlobStore(ds, bs) with LazyLogging
 
 object GeoMesaAccumuloBlobStore {
 

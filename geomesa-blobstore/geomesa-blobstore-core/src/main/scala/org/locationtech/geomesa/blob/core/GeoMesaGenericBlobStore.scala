@@ -26,7 +26,7 @@ import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
 
-abstract class GeoMesaBlobStore(ds: DataStore, bs: BlobStore) extends GeoBlobStore {
+abstract class GeoMesaGenericBlobStore(ds: DataStore, bs: BlobStore) extends GeoMesaIndexedBlobStore {
 
   protected val fs = ds.getFeatureSource(BlobFeatureTypeName).asInstanceOf[SimpleFeatureStore]
 

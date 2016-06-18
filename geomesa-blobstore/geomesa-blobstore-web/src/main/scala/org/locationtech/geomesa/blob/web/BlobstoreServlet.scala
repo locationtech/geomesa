@@ -17,8 +17,7 @@ import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper}
 
 import org.apache.commons.io.FilenameUtils
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
-import org.locationtech.geomesa.blob.core.GeoMesaAccumuloBlobStore
-import org.locationtech.geomesa.blob.core.AccumuloBlobStore._
+import org.locationtech.geomesa.blob.core.{GeoMesaAccumuloBlobStore, GeoMesaBlobStoreSFT}
 import org.locationtech.geomesa.utils.cache.FilePersistence
 import org.locationtech.geomesa.web.core.PersistentDataStoreServlet
 import org.scalatra._
@@ -61,7 +60,7 @@ class BlobstoreServlet(val persistence: FilePersistence)
       logger.warn("Bad Connection Params: {}", dsParams)
       None
     } else {
-      Some(new GeoMesaAccumuloBlobStore(ds))
+      Some(GeoMesaAccumuloBlobStore(ds))
     }
   }
 
@@ -107,7 +106,7 @@ class BlobstoreServlet(val persistence: FilePersistence)
       try {
         persistence.removeAll(persistence.keys(prefix).toSeq)
         persistence.persistAll(toPersist)
-        blobStores.put(alias, new GeoMesaAccumuloBlobStore(ds))
+        blobStores.put(alias, GeoMesaAccumuloBlobStore(ds))
         Ok()
       } catch {
         case e: Exception => handleError(s"Error persisting data store '$alias':", e)
@@ -213,7 +212,7 @@ class BlobstoreServlet(val persistence: FilePersistence)
             case None =>
               BadRequest(reason = "no file parameter in request")
             case Some(file) =>
-              val params = multiParams.map{case (k, v) => k -> v.toString}.updated(FilenameFieldName, file.getName)
+              val params = multiParams.map{case (k, v) => k -> v.toString}.updated(GeoMesaBlobStoreSFT.FilenameFieldName, file.getName)
               attemptBlobWriting(abs, file, params)
           }
         } catch {

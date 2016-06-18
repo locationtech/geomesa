@@ -32,7 +32,7 @@ class GeoMesaAccumuloBlobStoreTest extends Specification {
     "useMock"           -> "true")
   val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
 
-  val bstore = new GeoMesaAccumuloBlobStore(ds)
+  val bstore = GeoMesaAccumuloBlobStore(ds)
 
   sequential
 

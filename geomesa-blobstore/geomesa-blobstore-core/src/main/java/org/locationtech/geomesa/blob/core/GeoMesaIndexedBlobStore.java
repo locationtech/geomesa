@@ -19,7 +19,7 @@ import java.util.Map;
 /**
  * An interface to define how users may ingest and query a GeoMesa BlobStore
  */
-public interface GeoBlobStore extends Closeable {
+public interface GeoMesaIndexedBlobStore extends Closeable {
 
     /**
      * Add a File to the blobstore, relying on available FileHandlers to determine ingest

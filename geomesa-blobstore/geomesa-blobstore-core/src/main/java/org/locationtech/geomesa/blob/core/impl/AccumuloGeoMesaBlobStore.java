@@ -13,7 +13,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStore;
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory;
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams;
 import org.locationtech.geomesa.blob.core.GeoMesaAccumuloBlobStore;
-import org.locationtech.geomesa.blob.core.GeoBlobStore;
+import org.locationtech.geomesa.blob.core.GeoMesaIndexedBlobStore;
 import org.opengis.filter.Filter;
 
 import java.io.File;
@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class AccumuloGeoMesaBlobStore implements GeoBlobStore {
+public class AccumuloGeoMesaBlobStore implements GeoMesaIndexedBlobStore {
 
     protected final GeoMesaAccumuloBlobStore geoMesaAccumuloBlobStore;
 
@@ -32,7 +32,7 @@ public class AccumuloGeoMesaBlobStore implements GeoBlobStore {
         if (ds == null) {
             throw new IOException("Error initializing AccumuloGeoMesaBlobStore");
         } else {
-            geoMesaAccumuloBlobStore = new GeoMesaAccumuloBlobStore(ds);
+            geoMesaAccumuloBlobStore = GeoMesaAccumuloBlobStore.apply(ds);
         }
     }
 

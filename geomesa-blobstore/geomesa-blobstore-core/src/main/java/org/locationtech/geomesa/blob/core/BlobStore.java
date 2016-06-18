@@ -12,34 +12,42 @@ package org.locationtech.geomesa.blob.core;
 import java.io.Closeable;
 import java.util.Map;
 
+/**
+ * An interface to define the behavior of a GeoMesa BlobStore
+ */
 public interface BlobStore extends Closeable {
 
     /**
-     * BlobStores must be able to put a file (bytes) by the id
+     * GeoMesa BlobStores must be able to persist a file (bytes) by the id
      * generated via a FileHandler and it must also store the
-     * localName (filename) of the blob in a way that can be
+     * localName (filename) of the blob or file in a way that can be
      * retrieved by just the ID
-     * @param bytes
+     * @param id generated ID of blob
+     * @param localName filename of blob
+     * @param bytes bytes of blob
      */
     void put(String id, String localName, byte[] bytes);
 
 
     /**
-     * BlobStores must be able to retrieve a Blob and the Blob's
+     * GeoMesa BlobStores must be able to retrieve a Blob and the Blob's
      * filename by just the ID returned via the geotools data store index.
-     * @param id
-     * @return
+     * @param id Blob Id
+     * @return blob
      */
     Map.Entry<String, byte[]> get(String id);
 
     /**
-     * BlobStores must be able to deleteBlob a given blob by id
+     * GeoMesa BlobStores must be able to delete a Blob by id.
+     *
      * @param id
      */
     void deleteBlob(String id);
 
     /**
-     * A BlobStore may need to delete itself and all contents
+     * A GeoMesa BlobStore may need to delete itself and all content.
+     * This should delete all blobs for a particular
+     * BlobStore table
      */
     void deleteBlobStore();
 
