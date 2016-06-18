@@ -10,7 +10,7 @@
 package org.locationtech.geomesa.accumulo.data.tables
 
 import java.nio.charset.Charset
-import java.util.{Collection => JCollection, Date, Locale}
+import java.util.{Date, Locale, Collection => JCollection}
 
 import com.google.common.collect.ImmutableSortedSet
 import com.google.common.primitives.Bytes
@@ -243,7 +243,7 @@ object AttributeTable extends GeoMesaTable with LazyLogging {
   /**
    * Returns a function to get the feature ID from the row key
    */
-  def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = {
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = {
     val from = if (sft.isTableSharing) 3 else 2  // exclude feature byte and index bytes
     // drop the encoded value and the date field (12 bytes) if it's present - the rest of the row is the ID
     if (sft.getDtgField.isDefined) {

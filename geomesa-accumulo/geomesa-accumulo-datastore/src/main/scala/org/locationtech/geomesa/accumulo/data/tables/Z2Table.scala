@@ -55,6 +55,7 @@ object Z2Table extends GeoMesaTable {
     (fw: FeatureToWrite) => {
       val rows = getRowKeys(fw)
       // store the duplication factor in the column qualifier for later use
+      // TODO need to append this to the attr byte i guess...
       val cq = if (rows.length > 1) new Text(Integer.toHexString(rows.length)) else EMPTY_TEXT
       rows.map { row =>
         val mutation = new Mutation(row)
@@ -80,6 +81,11 @@ object Z2Table extends GeoMesaTable {
         mutation
       }
     }
+  }
+
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = {
+    val offset = getIdRowOffset(sft)
+    (row: Array[Byte]) => new String(row, offset, row.length - offset, StandardCharsets.UTF_8)
   }
 
   // split(1 byte), z value (8 bytes), id (n bytes)
@@ -165,12 +171,6 @@ object Z2Table extends GeoMesaTable {
     prefix + length
   }
 
-  // reads the feature ID from the row key
-  def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = {
-    val offset = getIdRowOffset(sft)
-    (row: Array[Byte]) => new String(row, offset, row.length - offset, StandardCharsets.UTF_8)
-  }
-
   override def configureTable(sft: SimpleFeatureType, table: String, tableOps: TableOperations): Unit = {
     import scala.collection.JavaConversions._
 
@@ -188,6 +188,7 @@ object Z2Table extends GeoMesaTable {
     }
     val splitsToAdd = splits -- tableOps.listSplits(table).toSet
     if (splitsToAdd.nonEmpty) {
+      // noinspection RedundantCollectionConversion
       tableOps.addSplits(table, ImmutableSortedSet.copyOf(splitsToAdd.toIterable))
     }
   }

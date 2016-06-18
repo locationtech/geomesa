@@ -119,6 +119,11 @@ object Z3Table extends GeoMesaTable {
     }
   }
 
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = {
+    val offset = getIdRowOffset(sft)
+    (row: Array[Byte]) => new String(row, offset, row.length - offset, Charsets.UTF_8)
+  }
+
   override def deleteFeaturesForType(sft: SimpleFeatureType, bd: BatchDeleter): Unit = {
     bd.setRanges(Seq(new aRange()))
     bd.delete()
@@ -219,12 +224,6 @@ object Z3Table extends GeoMesaTable {
     prefix + length
   }
 
-  // reads the feature ID from the row key
-  def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = {
-    val offset = getIdRowOffset(sft)
-    (row: Array[Byte]) => new String(row, offset, row.length - offset, Charsets.UTF_8)
-  }
-
   override def configureTable(sft: SimpleFeatureType, table: String, tableOps: TableOperations): Unit = {
     tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
 
@@ -235,6 +234,7 @@ object Z3Table extends GeoMesaTable {
     val splits = SPLIT_ARRAYS.drop(1).map(new Text(_)).toSet
     val splitsToAdd = splits -- tableOps.listSplits(table).toSet
     if (splitsToAdd.nonEmpty) {
+      // noinspection RedundantCollectionConversion
       tableOps.addSplits(table, ImmutableSortedSet.copyOf(splitsToAdd.toIterable))
     }
   }

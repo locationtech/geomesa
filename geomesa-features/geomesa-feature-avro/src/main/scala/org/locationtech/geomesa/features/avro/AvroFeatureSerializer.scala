@@ -37,6 +37,8 @@ class AvroFeatureSerializer(sft: SimpleFeatureType, val options: Set[Serializati
     reuse.flush()
     baos.toByteArray
   }
+
+  override def serialize(i: Int, value: AnyRef): Array[Byte] = throw new NotImplementedError()
 }
 
 /**

@@ -46,6 +46,8 @@ object SpatioTemporalTable extends GeoMesaTable with LazyLogging {
     (toWrite: FeatureToWrite) => stEncoder.encode(toWrite, delete = true)
   }
 
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = ???
+
   // index rows have an index flag as part of the schema
   def isIndexEntry(key: Key): Boolean = key.getRow.find(INDEX_CHECK) != -1
 

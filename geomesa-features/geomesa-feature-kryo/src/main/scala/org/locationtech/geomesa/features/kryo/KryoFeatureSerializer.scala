@@ -46,6 +46,12 @@ class KryoFeatureSerializer(sft: SimpleFeatureType, val options: Set[Serializati
   override def serialize(sf: SimpleFeature): Array[Byte] = doWrite(sf)
   override def deserialize(bytes: Array[Byte]): SimpleFeature = doRead(bytes)
 
+  override def serialize(i: Int, value: AnyRef): Array[Byte] = {
+    val output = getOutput()
+    writers(i)(output, value)
+    output.toBytes
+  }
+
   private val doWrite: (SimpleFeature) => Array[Byte] = if (options.withUserData) writeWithUserData else write
   private val doRead: (Array[Byte]) => SimpleFeature = if (options.withUserData) readWithUserData else read
 

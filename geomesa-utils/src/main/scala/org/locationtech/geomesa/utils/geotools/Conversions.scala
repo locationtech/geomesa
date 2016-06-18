@@ -19,6 +19,8 @@ import org.geotools.geometry.DirectPosition2D
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
 import org.joda.time.DateTime
 import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
+import org.locationtech.geomesa.utils.index.VisibilityLevel
+import org.locationtech.geomesa.utils.index.VisibilityLevel.{apply => _, _}
 import org.locationtech.geomesa.utils.stats.Cardinality._
 import org.locationtech.geomesa.utils.stats.IndexCoverage._
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
@@ -200,6 +202,7 @@ object RichSimpleFeatureType {
   val ST_INDEX_SCHEMA_KEY = "geomesa.index.st.schema"
   val USER_DATA_PREFIX    = "geomesa.user-data.prefix"
   val KEYWORDS_KEY        = "geomesa.keywords"
+  val ATTR_LEVEL_VIS_KEY  = "geomesa.visibility.level"
 
   val KEYWORDS_DELIMITER = "\u0000"
 
@@ -242,6 +245,12 @@ object RichSimpleFeatureType {
       val gd = sft.getGeometryDescriptor
       gd != null && gd.getType.getBinding == classOf[LineString]
     }
+
+    def getVisibilityLevel: VisibilityLevel = userData[String](ATTR_LEVEL_VIS_KEY) match {
+      case None        => VisibilityLevel.Feature
+      case Some(level) => VisibilityLevel.withName(level.toLowerCase)
+    }
+    def setVisibilityLevel(vis: VisibilityLevel): Unit = sft.getUserData.put(ATTR_LEVEL_VIS_KEY, vis.toString)
 
     //  If no user data is specified when creating a new SFT, we should default to 'true'.
     def isTableSharing: Boolean = userData[String](TABLE_SHARING_KEY).forall(_.toBoolean)

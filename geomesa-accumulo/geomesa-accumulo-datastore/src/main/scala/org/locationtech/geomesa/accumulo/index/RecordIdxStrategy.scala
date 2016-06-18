@@ -16,9 +16,10 @@ import org.locationtech.geomesa.accumulo.data.stats.GeoMesaStats
 import org.locationtech.geomesa.accumulo.data.tables.RecordTable
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.Strategy._
-import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, KryoLazyFilterTransformIterator, KryoLazyStatsIterator}
+import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, KryoLazyFilterTransformIterator, KryoLazyStatsIterator, KryoVisibilityRowEncoder}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.{Filter, Id}
 
@@ -83,22 +84,25 @@ class RecordIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLoggi
     val table = ds.getTableName(sft.getTypeName, RecordTable)
     val threads = ds.getSuggestedThreads(sft.getTypeName, RecordTable)
 
+
     if (sft.getSchemaVersion > 5) {
       // optimized path when we know we're using kryo serialization
-      if (hints.isBinQuery) {
-        // use the server side aggregation
-        val iters = Seq(BinAggregatingIterator.configureDynamic(sft, filter.secondary, hints, deduplicate = false))
-        val kvsToFeatures = BinAggregatingIterator.kvsToFeatures()
-        BatchScanPlan(filter, table, ranges, iters, Seq.empty, kvsToFeatures, threads, hasDuplicates = false)
-      } else if (hints.isStatsIteratorQuery) {
-        val iters = Seq(KryoLazyStatsIterator.configure(sft, filter.secondary, hints, deduplicate = false))
-        val kvsToFeatures = KryoLazyStatsIterator.kvsToFeatures(sft)
-        BatchScanPlan(filter, table, ranges, iters, Seq.empty, kvsToFeatures, threads, hasDuplicates = false)
-      } else {
-        val iters = KryoLazyFilterTransformIterator.configure(sft, filter.secondary, hints).toSeq
-        val kvsToFeatures = queryPlanner.defaultKVsToFeatures(hints)
-        BatchScanPlan(filter, table, ranges, iters, Seq.empty, kvsToFeatures, threads, hasDuplicates = false)
+      val perAttributeIter = sft.getVisibilityLevel match {
+        case VisibilityLevel.Feature   => Seq.empty
+        case VisibilityLevel.Attribute => Seq(KryoVisibilityRowEncoder.configure(sft, RecordTable))
       }
+      val (iters, kvsToFeatures) = if (hints.isBinQuery) {
+        // use the server side aggregation
+        val iter = BinAggregatingIterator.configureDynamic(sft, filter.secondary, hints, deduplicate = false)
+        (Seq(iter), BinAggregatingIterator.kvsToFeatures())
+      } else if (hints.isStatsIteratorQuery) {
+        val iter = KryoLazyStatsIterator.configure(sft, filter.secondary, hints, deduplicate = false)
+        (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(sft))
+      } else {
+        val iter = KryoLazyFilterTransformIterator.configure(sft, filter.secondary, hints)
+        (iter.toSeq, queryPlanner.defaultKVsToFeatures(hints))
+      }
+      BatchScanPlan(filter, table, ranges, iters ++ perAttributeIter, Seq.empty, kvsToFeatures, threads, hasDuplicates = false)
     } else {
       val iters = if (filter.secondary.isDefined || hints.getTransformSchema.isDefined) {
         Seq(configureRecordTableIterator(sft, featureEncoding, filter.secondary, hints))

@@ -52,6 +52,14 @@ trait GeoMesaTable {
   def remover(sft: SimpleFeatureType): FeatureToMutations
 
   /**
+    * Retrieve an ID from a row. All tables are assumed to encode the feature ID into the row key
+    *
+    * @param sft simple feature type
+    * @return a function to retrieve an ID from a row
+    */
+  def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String
+
+  /**
    * Deletes all features from the table
    */
   def deleteFeaturesForType(sft: SimpleFeatureType, bd: BatchDeleter): Unit = {
@@ -67,6 +75,9 @@ object GeoMesaTable {
 
   // noinspection ScalaDeprecation
   val AllTables = Seq(RecordTable, SpatioTemporalTable, AttributeTableV5, AttributeTable, Z2Table, Z3Table)
+
+  val PerAttributeColumnFamily = new Text("a")
+  val PerAttributeColumnQualifiers = (0 until Byte.MaxValue).map(i => new Text(Array(i.toByte))).toArray
 
   def getTables(sft: SimpleFeatureType): Seq[GeoMesaTable] = {
     val enabled = sft.getEnabledTables.collect {
