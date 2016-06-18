@@ -58,11 +58,17 @@ public class GeoMesaQuery {
         public GeoMesaQuery build() {
             // TODO: need to respect the SimpleFeatureView
             GeoMesaQuery query = new GeoMesaQuery();
-            BBOX geoFilter = ff.bbox("geom", minx, maxx, miny, maxy, "EPSG:4326");
+            BBOX geoFilter = ff.bbox("geom", minx, miny, maxx, maxy, "EPSG:4326");
             PropertyIsBetween dtgFilter = ff.between(ff.property("dtg"), ff.literal(start), ff.literal(end));
             query.filter = ff.and(extraFilter, ff.and(geoFilter, dtgFilter));
             return query;
         }
+    }
+
+    public static GeoMesaQuery include() {
+        GeoMesaQuery query = new GeoMesaQuery();
+        query.filter = Filter.INCLUDE;
+        return query;
     }
 
     public Filter getFilter() {

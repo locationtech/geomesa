@@ -17,7 +17,8 @@ import com.vividsolutions.jts.geom.Geometry
 import org.apache.hadoop.classification.InterfaceStability
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.data.{DataStoreFinder, Transaction}
-import org.geotools.filter.text.cql2.CQL
+import org.geotools.factory.Hints
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.util.Z3UuidGenerator
 import org.locationtech.geomesa.security.SecurityUtils
@@ -69,6 +70,7 @@ class AccumuloGeoMesaIndex[T](ds: AccumuloDataStore,
     val bytes = serde.toBytes(value)
     val fw = writers.get(sft.getTypeName)
     val sf = fw.next()
+    sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     view.populate(sf, value, id, bytes, geom, dtg)
     setVisibility(sf, hints)
     fw.write()
@@ -86,7 +88,7 @@ class AccumuloGeoMesaIndex[T](ds: AccumuloDataStore,
 
   override def update(id: String, newValue: T, geometry: Geometry, dtg: Date): Unit = ???
 
-  override def delete(id: String): Unit = fs.removeFeatures(CQL.toFilter(s"IN('$id'"))
+  override def delete(id: String): Unit = fs.removeFeatures(ECQL.toFilter(s"IN('$id')"))
 
   override def flush(): Unit = {
     // DO NOTHING - using AUTO_COMMIT
@@ -99,7 +101,6 @@ class AccumuloGeoMesaIndex[T](ds: AccumuloDataStore,
   }
 
   def catalogTable() = ds.catalogTable
-
 }
 
 @InterfaceStability.Unstable
@@ -110,7 +111,16 @@ object AccumuloGeoMesaIndex {
                user: String, pass: String,
                mock: Boolean,
                valueSerializer: ValueSerializer[T])
-              (view: SimpleFeatureView[T] = new DefaultSimpleFeatureView[T](name)) = {
+              (view: SimpleFeatureView[T] = new DefaultSimpleFeatureView[T](name)) =
+    buildWithView[T](name, zk, instanceId, user, pass, mock, valueSerializer, view)
+
+    def buildWithView[T](name: String,
+                 zk: String,
+                 instanceId: String,
+                 user: String, pass: String,
+                 mock: Boolean,
+                 valueSerializer: ValueSerializer[T],
+                 view: SimpleFeatureView[T]) = {
     import scala.collection.JavaConversions._
     val ds =
       DataStoreFinder.getDataStore(Map(
@@ -122,6 +132,15 @@ object AccumuloGeoMesaIndex {
         AccumuloDataStoreParams.mockParam.key        -> (if(mock) "TRUE" else "FALSE")
       )).asInstanceOf[AccumuloDataStore]
     new AccumuloGeoMesaIndex[T](ds, valueSerializer, view)
+  }
+
+  def buildDefaultView[T](name: String,
+                          zk: String,
+                          instanceId: String,
+                          user: String, pass: String,
+                          mock: Boolean,
+                          valueSerializer: ValueSerializer[T]) = {
+    build(name, zk, instanceId, user, pass, mock, valueSerializer)(new DefaultSimpleFeatureView[T](name))
   }
 
   final val VISIBILITY = "visibility"
