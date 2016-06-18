@@ -34,7 +34,7 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
-                                          schema: SimpleFeatureType,
+                                          sft: SimpleFeatureType,
                                           query: Query)
   extends ContentFeatureSource(entry, query)
   with ContentFeatureSourceSecuritySupport
@@ -47,11 +47,10 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
 
   override def buildFeatureType(): SimpleFeatureType = {
     val builder = new SimpleFeatureTypeBuilder()
-    builder.init(schema)
+    builder.init(sft)
     builder.setNamespaceURI(getDataStore.getNamespaceURI)
-    schema.getUserData.foreach { case (k, v) => builder.userData(k, v)}
-    val sft = builder.buildFeatureType()
-    sft
+    sft.getUserData.foreach { case (k, v) => builder.userData(k, v)}
+    builder.buildFeatureType()
   }
 
   override def getCountInternal(query: Query): Int = getReaderInternal(query).getIterator.length

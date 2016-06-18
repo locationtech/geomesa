@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.kafka
 
+import java.io.Closeable
 import java.util
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{Executors, LinkedBlockingQueue, ScheduledThreadPoolExecutor, TimeUnit}
@@ -34,15 +35,15 @@ import org.opengis.filter.identity.FeatureId
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
+class LiveKafkaConsumerFeatureSource(e: ContentEntry,
                                      sft: SimpleFeatureType,
                                      topic: String,
                                      kf: KafkaConsumerFactory,
                                      expirationPeriod: Option[Long] = None,
                                      cleanUpCache: Boolean,
-                                     query: Query = Query.ALL)
+                                     q: Query = Query.ALL)
                                     (implicit ticker: Ticker = Ticker.systemTicker())
-  extends KafkaConsumerFeatureSource(entry, sft, query) with Runnable with LazyLogging {
+  extends KafkaConsumerFeatureSource(e, sft, q) with Runnable with Closeable with LazyLogging {
 
   private[kafka] val featureCache = new LiveFeatureCache(sft, expirationPeriod)
 
@@ -50,18 +51,15 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
 
   private val msgDecoder = new KafkaGeoMessageDecoder(sft)
   private val queue = new LinkedBlockingQueue[GeoMessage]()
-  private val stream = kf.messageStreams(topic, 1).head
+  private val (client, streams) = kf.messageStreams(topic, 1)
+  private val stream = streams.head // we only have 1 since we used 1 thread
 
   private val running = new AtomicBoolean(true)
 
   val es = Executors.newFixedThreadPool(2)
   val ses = new ScheduledThreadPoolExecutor(1)
 
-  sys.addShutdownHook {
-    running.set(false)
-    es.shutdownNow()
-    ses.shutdownNow()
-  }
+  sys.addShutdownHook(close())
 
   es.submit(this)
   es.submit(new Runnable() {
@@ -121,7 +119,7 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
   if (expirationPeriod.isDefined && cleanUpCache) {
     ses.scheduleAtFixedRate(new Runnable() {
       override def run(): Unit = featureCache.cleanUp()
-    }, 0, 1, TimeUnit.SECONDS)
+    }, 0, 10, TimeUnit.SECONDS)
   }
 
   override def run(): Unit =
@@ -154,6 +152,13 @@ class LiveKafkaConsumerFeatureSource(entry: ContentEntry,
     if (contentState.hasListener) {
       contentState.fireFeatureEvent(event)
     }
+  }
+
+  override def close(): Unit = {
+    running.set(false)
+    client.shutdown()
+    es.shutdownNow()
+    ses.shutdownNow()
   }
 }
 
@@ -217,9 +222,7 @@ class LiveFeatureCache(override val sft: SimpleFeatureType,
                        expirationPeriod: Option[Long])(implicit ticker: Ticker)
   extends KafkaConsumerFeatureCache with LazyLogging {
 
-  def cleanUp(): Unit = {
-    cache.cleanUp()
-  }
+  def cleanUp(): Unit = cache.cleanUp()
 
   var spatialIndex: SpatialIndex[SimpleFeature] = newSpatialIndex()
 

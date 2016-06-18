@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.kafka
 
+import java.io.Closeable
 import java.{util => ju}
 
 import com.typesafe.scalalogging.LazyLogging
@@ -33,17 +34,16 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
                                 topic: String,
                                 broker: String,
                                 producer: Producer[Array[Byte], Array[Byte]],
-                                query: Query = null)
-  extends ContentFeatureStore(entry, query) with LazyLogging {
+                                q: Query = null)
+  extends ContentFeatureStore(entry, q) with Closeable with LazyLogging {
+
+  private val writerPool = ObjectPoolFactory(new ModifyingFeatureWriter(query), 5)
 
   override def getBoundsInternal(query: Query) =
     ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), CRS_EPSG_4326)
 
   override def buildFeatureType(): SimpleFeatureType = sft
 
-  type FW = FeatureWriter[SimpleFeatureType, SimpleFeature]
-
-  val writerPool = ObjectPoolFactory(new ModifyingFeatureWriter(query), 5)
   override def addFeatures(featureCollection: FeatureCollection[SimpleFeatureType, SimpleFeature]): ju.List[FeatureId] = {
     writerPool.withResource { fw =>
       val ret = Array.ofDim[FeatureId](featureCollection.size())
@@ -75,7 +75,7 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
   override def getWriterInternal(query: Query, flags: Int) =
     new ModifyingFeatureWriter(query)
 
-  class ModifyingFeatureWriter(query: Query) extends FW with LazyLogging {
+  class ModifyingFeatureWriter(query: Query) extends FeatureWriter[SimpleFeatureType, SimpleFeature] with LazyLogging {
 
     val msgEncoder = new KafkaGeoMessageEncoder(sft)
     val reuse = new ScalaSimpleFeature("", sft)
@@ -138,6 +138,8 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
 
   override def getCountInternal(query: Query): Int = 0
   override def getReaderInternal(query: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = null
+
+  override def close(): Unit = producer.close()
 }
 
 object KafkaProducerFeatureStoreFactory {
