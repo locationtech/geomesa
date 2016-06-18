@@ -14,13 +14,11 @@ import org.locationtech.geomesa.blob.core.GeoMesaBlobStoreSFT._
 import org.locationtech.geomesa.blob.core.handlers.{BlobStoreByteArrayHandler, BlobStoreFileHandler}
 import org.locationtech.geomesa.utils.filters.Filters
 import org.locationtech.geomesa.utils.geotools.Conversions.{RichSimpleFeature, _}
+import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
 
-/**
-  * Created by ama6fy on 6/18/16.
-  */
-class GeoMesaBlobStore(ds: DataStore, bs: BlobStore) extends GeoBlobStore {
+abstract class GeoMesaBlobStore(ds: DataStore, bs: BlobStore) extends GeoBlobStore {
 
   protected val fs = ds.getFeatureSource(BlobFeatureTypeName).asInstanceOf[SimpleFeatureStore]
 
@@ -31,16 +29,16 @@ class GeoMesaBlobStore(ds: DataStore, bs: BlobStore) extends GeoBlobStore {
   override def put(file: File, params: util.Map[String, String]): String = {
     BlobStoreFileHandler.buildSF(file, params.toMap).map { sf =>
       val bytes = Files.toByteArray(file)
-      val id = sf.get[String](IdFieldName)
-      val localName = sf.get[String](FilenameFieldName)
-      fs.addFeatures(new ListFeatureCollection(sft, List(sf)))
-      bs.put(id, localName, bytes)
-      id
+      putInternalSF(sf, bytes)
     }.orNull
   }
 
   override def put(bytes: Array[Byte], params: util.Map[String, String]): String = {
     val sf = BlobStoreByteArrayHandler.buildSF(params)
+    putInternalSF(sf, bytes)
+  }
+
+  private def putInternalSF(sf: SimpleFeature, bytes: Array[Byte]): String = {
     val id = sf.get[String](IdFieldName)
     val localName = sf.get[String](FilenameFieldName)
     fs.addFeatures(new ListFeatureCollection(sft, List(sf)))
