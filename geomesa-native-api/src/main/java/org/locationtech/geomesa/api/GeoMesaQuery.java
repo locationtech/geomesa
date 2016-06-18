@@ -12,6 +12,8 @@ import org.apache.hadoop.classification.InterfaceStability;
 import org.geotools.factory.CommonFactoryFinder;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
+import org.opengis.filter.PropertyIsBetween;
+import org.opengis.filter.spatial.BBOX;
 
 import java.util.Date;
 
@@ -28,6 +30,8 @@ public class GeoMesaQuery {
         private Double minx, miny, maxx, maxy;
         private Date start;
         private Date end;
+        private Filter extraFilter = Filter.INCLUDE;
+
         public static GeoMesaQueryBuilder builder() {
             return new GeoMesaQueryBuilder();
         }
@@ -46,11 +50,17 @@ public class GeoMesaQuery {
             return this;
         }
 
+        public GeoMesaQueryBuilder filter(Filter filter) {
+            extraFilter = ff.and(extraFilter, filter);
+            return this;
+        }
+
         public GeoMesaQuery build() {
+            // TODO: need to respect the SimpleFeatureView
             GeoMesaQuery query = new GeoMesaQuery();
-            query.filter = ff.and(
-                    ff.bbox("geom", minx, maxx, miny, maxy, "EPSG:4326"),
-                    ff.between(ff.property("dtg"), ff.literal(start), ff.literal(end)));
+            BBOX geoFilter = ff.bbox("geom", minx, maxx, miny, maxy, "EPSG:4326");
+            PropertyIsBetween dtgFilter = ff.between(ff.property("dtg"), ff.literal(start), ff.literal(end));
+            query.filter = ff.and(extraFilter, ff.and(geoFilter, dtgFilter));
             return query;
         }
     }
