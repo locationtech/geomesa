@@ -37,9 +37,9 @@ class GeoMesaAccumuloBlobStoreTest extends Specification {
 
   sequential
 
-  val testfile1 = "src/test/resources/testFile.txt"
-  val testfile2 = "src/test/resources/testFile2.txt"
-  val testfile3 = "src/test/resources/testFile3.txt"
+  val testfile1 = "testFile.txt"
+  val testfile2 = "testFile2.txt"
+  val testfile3 = "testFile3.txt"
   var testFile1Id = ""
 
   "AccumuloBlobStore" should {
@@ -51,8 +51,8 @@ class GeoMesaAccumuloBlobStoreTest extends Specification {
 
       // test if blobstore get is failing to return anything
       val ret = bstore.get(storeId)
-      ret.getLocalName mustEqual ""
-      ret.getPayload must beEmpty
+      ret.getLocalName must beNull
+      ret.getPayload must beNull
 
       // test if geomesa feature table is empty
       val ids = bstore.getIds(Filter.INCLUDE).toList
