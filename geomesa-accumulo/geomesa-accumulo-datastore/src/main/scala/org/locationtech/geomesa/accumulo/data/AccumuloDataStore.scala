@@ -170,7 +170,8 @@ class AccumuloDataStore(val connector: Connector,
           sft.setTableSharingPrefix("")
         }
         // noinspection ScalaDeprecation
-        metadata.read(typeName, SimpleFeatureTypes.ENABLED_INDEXES_OLD).foreach(sft.setEnabledTables)
+        metadata.read(typeName, SimpleFeatureTypes.ENABLED_INDEXES_OLD)
+            .foreach(sft.getUserData.put(SimpleFeatureTypes.ENABLED_INDEXES, _))
         // old st_idx schema, kept around for back-compatibility
         metadata.read(typeName, "schema").foreach(sft.setStIndexSchema)
       }

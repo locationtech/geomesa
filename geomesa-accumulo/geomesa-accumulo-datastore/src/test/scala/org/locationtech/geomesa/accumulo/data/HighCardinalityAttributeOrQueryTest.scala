@@ -32,7 +32,6 @@ class HighCardinalityAttributeOrQueryTest extends Specification with TestWithDat
     .stringType("low", Opts(index = true, cardinality = Cardinality.LOW))
     .date("dtg", default = true)
     .point("geom", default = true)
-    .withIndexes(AvailableTables.DefaultTablesStr)
     .getSpec
 
   val numFeatures = 10

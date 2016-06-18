@@ -35,7 +35,7 @@ object AttributeTableV5 extends GeoMesaTable with LazyLogging {
   override def supports(sft: SimpleFeatureType) =
     sft.getSchemaVersion < 6 && SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).nonEmpty
 
-  override val suffix: String = "attr_idx"
+  override val suffix: String = "attr"
 
   override def writer(sft: SimpleFeatureType): FeatureToMutations = {
     val indexedAttributes = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft)

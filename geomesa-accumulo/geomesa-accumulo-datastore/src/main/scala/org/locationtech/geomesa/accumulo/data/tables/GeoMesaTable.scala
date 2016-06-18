@@ -69,11 +69,15 @@ object GeoMesaTable {
   val AllTables = Seq(RecordTable, SpatioTemporalTable, AttributeTableV5, AttributeTable, Z2Table, Z3Table)
 
   def getTables(sft: SimpleFeatureType): Seq[GeoMesaTable] = {
-    val enabled = {
-      val s = sft.getEnabledTables.toString
-      if (s.nonEmpty) AvailableTables.toTables(s.split(",").toList) else AvailableTables.AllTables
+    val enabled = sft.getEnabledTables.collect {
+      case "attr_idx" => "attr" // check for old suffix
+      case t => t
     }
-    AllTables.filter(t => t.supports(sft) && enabled.contains(t))
+    if (enabled.nonEmpty) {
+      AllTables.filter(t => t.supports(sft) && enabled.contains(t.suffix))
+    } else {
+      AllTables.filter(_.supports(sft))
+    }
   }
 
   def getTableNames(sft: SimpleFeatureType, acc: AccumuloConnectorCreator): Seq[String] =

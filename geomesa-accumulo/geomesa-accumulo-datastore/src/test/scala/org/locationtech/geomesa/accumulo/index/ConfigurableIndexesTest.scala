@@ -26,7 +26,7 @@ class ConfigurableIndexesTest extends Specification {
   val sft = new SftBuilder()
     .date("dtg", default = true)
     .point("geom", default = true)
-    .withIndexes(AvailableTables.Z3TableSchemeStr)
+    .withIndexes(AvailableTables.Z3TableScheme)
     .build("ConfigurableIndexesTest")
 
   val splitter = new QueryFilterSplitter(sft)

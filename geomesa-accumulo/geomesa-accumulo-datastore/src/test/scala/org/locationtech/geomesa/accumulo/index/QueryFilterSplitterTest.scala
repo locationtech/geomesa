@@ -36,7 +36,6 @@ class QueryFilterSplitterTest extends Specification {
     .stringType("low", Opts(index = true, cardinality = Cardinality.LOW))
     .date("dtg", default = true)
     .point("geom", default = true)
-    .withIndexes(AvailableTables.DefaultTablesStr)
     .build("QueryFilterSplitterTest")
 
   val ff = CommonFactoryFinder.getFilterFactory2
