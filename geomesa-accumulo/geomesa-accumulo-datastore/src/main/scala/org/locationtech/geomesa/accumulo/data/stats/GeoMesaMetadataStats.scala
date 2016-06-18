@@ -104,9 +104,10 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
   override def getStats[T <: Stat](sft: SimpleFeatureType,
                                    attributes: Seq[String],
                                    options: Seq[Any])(implicit ct: ClassTag[T]): Seq[T] = {
-    val toRetrieve = {
-      val available = GeoMesaStats.statAttributesFor(sft)
-      if (attributes.isEmpty) available else attributes.filter(available.contains)
+    val toRetrieve = if (attributes.nonEmpty) {
+      attributes.filter(a => Option(sft.getDescriptor(a)).exists(GeoMesaStats.okForStats))
+    } else {
+      sft.getAttributeDescriptors.filter(GeoMesaStats.okForStats).map(_.getLocalName)
     }
 
     val clas = ct.runtimeClass
@@ -115,6 +116,8 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
       readStat[CountStat](sft, countKey()).toSeq
     } else if (clas == classOf[MinMax[_]]) {
       toRetrieve.flatMap(a => readStat[MinMax[Any]](sft, minMaxKey(a)))
+    } else if (clas == classOf[TopK[_]]) {
+      toRetrieve.flatMap(a => readStat[TopK[Any]](sft, topKKey(a)))
     } else if (clas == classOf[Histogram[_]]) {
       toRetrieve.flatMap(a => readStat[Histogram[Any]](sft, histogramKey(a)))
     } else if (clas == classOf[Frequency[_]]) {
@@ -219,31 +222,31 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
     */
   private [stats] def writeStat(stat: Stat, sft: SimpleFeatureType, merge: Boolean): Unit = {
 
-    def shouldWrite(keyAndStat: (String, Stat)): Boolean = {
-      if (merge && keyAndStat._2.isInstanceOf[CountStat]) {
+    def shouldWrite(ks: KeyAndStat): Boolean = {
+      if (merge && ks.stat.isInstanceOf[CountStat]) {
         // count stat is additive so we don't want to compare to the current value
         true
       } else {
         // only re-write if it's changed - writes and compactions are expensive
-        !readStat[Stat](sft, keyAndStat._1, cache = false).exists(_.isEquivalent(keyAndStat._2))
+        !readStat[Stat](sft, ks.key, cache = false).exists(_.isEquivalent(ks.stat))
       }
     }
 
     val toWrite = getKeysAndStatsForWrite(stat, sft).filter(shouldWrite)
 
     if (merge) {
-      toWrite.foreach { case (k, s) =>
-        metadata.insert(sft.getTypeName, k, s)
+      toWrite.foreach { ks =>
+        metadata.insert(sft.getTypeName, ks.key, ks.stat)
         // re-load it so that the combiner takes effect
-        readStat[Stat](sft, k, cache = false)
+        readStat[Stat](sft, ks.key, cache = false)
       }
     } else {
       // due to accumulo issues with combiners, deletes and compactions, we have to:
       // 1) delete the existing data; 2) compact the table; 3) insert the new value
       // see: https://issues.apache.org/jira/browse/ACCUMULO-2232
-      toWrite.foreach { case (k, _) => metadata.remove(sft.getTypeName, k) }
+      toWrite.foreach(ks => metadata.remove(sft.getTypeName, ks.key))
       compact()
-      toWrite.foreach { case (k, s) => metadata.insert(sft.getTypeName, k, s) }
+      toWrite.foreach(ks => metadata.insert(sft.getTypeName, ks.key, ks.stat))
     }
   }
 
@@ -254,31 +257,32 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
     * @param sft simple feature type
     * @return metadata keys and split stats
     */
-  private def getKeysAndStatsForWrite(stat: Stat, sft: SimpleFeatureType): Seq[(String, Stat)] = {
+  private def getKeysAndStatsForWrite(stat: Stat, sft: SimpleFeatureType): Seq[KeyAndStat] = {
     def name(i: Int) = sft.getDescriptor(i).getLocalName
 
     stat match {
       case s: SeqStat      => s.stats.flatMap(getKeysAndStatsForWrite(_, sft))
-      case s: CountStat    => Seq((countKey(), s))
-      case s: MinMax[_]    => Seq((minMaxKey(name(s.attribute)), s))
-      case s: Histogram[_] => Seq((histogramKey(name(s.attribute)), s))
+      case s: CountStat    => Seq(KeyAndStat(countKey(), s))
+      case s: MinMax[_]    => Seq(KeyAndStat(minMaxKey(name(s.attribute)), s))
+      case s: TopK[_]      => Seq(KeyAndStat(topKKey(name(s.attribute)), s))
+      case s: Histogram[_] => Seq(KeyAndStat(histogramKey(name(s.attribute)), s))
 
       case s: Frequency[_] =>
         val attribute = name(s.attribute)
         if (s.dtgIndex == -1) {
-          Seq((frequencyKey(attribute), s))
+          Seq(KeyAndStat(frequencyKey(attribute), s))
         } else {
           // split up the frequency and store by week
-          s.splitByWeek.map { case (w, f) => (frequencyKey(attribute, w), f) }
+          s.splitByWeek.map { case (w, f) => KeyAndStat(frequencyKey(attribute, w), f) }
         }
 
       case s: Z3Histogram  =>
         val geom = name(s.geomIndex)
         val dtg  = name(s.dtgIndex)
         // split up the z3 histogram and store by week
-        s.splitByWeek.map { case (w, z) => (histogramKey(geom, dtg, w), z) }
+        s.splitByWeek.map { case (w, z) => KeyAndStat(histogramKey(geom, dtg, w), z) }
 
-      case _ => throw new NotImplementedError("Only Count, Frequency, MinMax and Histogram stats are tracked")
+      case _ => throw new NotImplementedError("Only Count, Frequency, MinMax, TopK and Histogram stats are tracked")
     }
   }
 
@@ -320,27 +324,38 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
     */
   private def buildStatsFor(sft: SimpleFeatureType): String = {
     import GeoMesaStats._
+    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
-    val attributes = statAttributesFor(sft).map(a => (a, sft.getDescriptor(a).getType.getBinding))
+    // get the attributes that we will keep stats for
+    val stAttributes = Option(sft.getGeomField).toSeq ++ sft.getDtgField
+    val indexedAttributes = sft.getAttributeDescriptors.filter(d => d.isIndexed && okForStats(d)).map(_.getLocalName)
+    val flaggedAttributes = sft.getAttributeDescriptors.filter(d => d.isKeepStats && okForStats(d)).map(_.getLocalName)
 
     val count = Stat.Count()
-    val minMax = attributes.map(a => Stat.MinMax(a._1))
 
+    // calculate min/max for all attributes
+    val minMax = (stAttributes ++ indexedAttributes ++ flaggedAttributes).distinct.map(Stat.MinMax)
+
+    // calculate topk for indexed attributes, but not geom + date
+    val topK = (indexedAttributes ++ flaggedAttributes).distinct.map(Stat.TopK)
+
+    // calculate frequencies only for indexed attributes
     val frequencies = {
-      import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-      val indexed = attributes.filter { case (a, _) => sft.getDescriptor(a).isIndexed }
+      val descriptors = indexedAttributes.map(sft.getDescriptor)
       // calculate one frequency that's split by week, and one that isn't
       // for queries with time bounds, the split by week will be more accurate
       // for queries without time bounds, we save the overhead of merging the weekly splits
       val withDates = sft.getDtgField match {
         case None => Seq.empty
-        case Some(dtg) => indexed.map { case (a, b) => Stat.Frequency(a, dtg, defaultPrecision(b)) }
+        case Some(dtg) => descriptors.map(d => Stat.Frequency(d.getLocalName, dtg, defaultPrecision(d.getType.getBinding)))
       }
-      val noDates = indexed.map { case (a, b) => Stat.Frequency(a, defaultPrecision(b)) }
+      val noDates = descriptors.map(d => Stat.Frequency(d.getLocalName, defaultPrecision(d.getType.getBinding)))
       withDates ++ noDates
     }
 
-    val histograms = attributes.map { case (attribute, binding) =>
+    // calculate histograms for all indexed attributes and geom/date
+    val histograms = (stAttributes ++ indexedAttributes).distinct.map { attribute =>
+        val binding = sft.getDescriptor(attribute).getType.getBinding
       // calculate the endpoints for the histogram
       // the histogram will expand as needed, but this is a starting point
       val bounds = {
@@ -361,13 +376,13 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
     }
 
     val z3Histogram = for {
-      geom <- attributes.find(_._1 == sft.getGeomField).map(_._1)
-      dtg  <- sft.getDtgField.filter(attributes.map(_._1).contains)
+      geom <- Option(sft.getGeomField).filter(stAttributes.contains)
+      dtg  <- sft.getDtgField.filter(stAttributes.contains)
     } yield {
       Stat.Z3Histogram(geom, dtg, MaxHistogramSize)
     }
 
-    Stat.SeqStat(Seq(count) ++ minMax ++ histograms ++ frequencies ++ z3Histogram)
+    Stat.SeqStat(Seq(count) ++ minMax ++ topK ++ histograms ++ frequencies ++ z3Histogram)
   }
 }
 
@@ -423,6 +438,7 @@ object GeoMesaMetadataStats {
 
   private val CountKey           = "stats-count"
   private val BoundsKeyPrefix    = "stats-bounds"
+  private val TopKKeyPrefix      = "stats-topk"
   private val FrequencyKeyPrefix = "stats-freq"
   private val HistogramKeyPrefix = "stats-hist"
 
@@ -470,6 +486,9 @@ object GeoMesaMetadataStats {
   // gets the key for storing a min-max
   private [stats] def minMaxKey(attribute: String): String = s"$BoundsKeyPrefix-$attribute"
 
+  // gets the key for storing a min-max
+  private [stats] def topKKey(attribute: String): String = s"$TopKKeyPrefix-$attribute"
+
   // gets the key for storing a frequency attribute
   private [stats] def frequencyKey(attribute: String): String =
     s"$FrequencyKeyPrefix-$attribute"
@@ -484,4 +503,6 @@ object GeoMesaMetadataStats {
   // gets the key for storing a Z3 histogram
   private [stats] def histogramKey(geom: String, dtg: String, week: Short): String =
     histogramKey(s"$geom-$dtg-$week")
+
+  private case class KeyAndStat(key: String, stat: Stat)
 }

@@ -122,6 +122,13 @@ object RichAttributeDescriptors {
       Option(ad.getUserData.get(OPT_INDEX).asInstanceOf[String])
           .flatMap(c => Try(IndexCoverage.withName(c)).toOption).getOrElse(IndexCoverage.NONE)
 
+    def setKeepStats(enabled: Boolean): Unit = if (enabled) {
+      ad.getUserData.put(OPT_STATS, "true")
+    } else {
+      ad.getUserData.remove(OPT_STATS)
+    }
+    def isKeepStats(): Boolean = Option(ad.getUserData.get(OPT_STATS)).exists(_ == "true")
+
     def isIndexValue(): Boolean = Option(ad.getUserData.get(OPT_INDEX_VALUE)).contains("true")
 
     def setCardinality(cardinality: Cardinality): Unit =

@@ -114,7 +114,6 @@ object GeoMesaStats {
   import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   // date bucket size in milliseconds for the date frequency - one day
   val DateFrequencyPrecision = 1000 * 60 * 60 * 24
@@ -176,13 +175,6 @@ object GeoMesaStats {
   // TODO GEOMESA-1217 support list/maps in stats
   def okForStats(d: AttributeDescriptor): Boolean =
     !d.isMultiValued && StatClasses.exists(_.isAssignableFrom(d.getType.getBinding))
-
-  // get the attributes that we will keep stats for
-  private [stats] def statAttributesFor(sft: SimpleFeatureType): Seq[String] = {
-    import scala.collection.JavaConversions._
-    val indexed = sft.getAttributeDescriptors.filter(d => d.isIndexed && okForStats(d)).map(_.getLocalName)
-    (Option(sft.getGeomField).toSeq ++ sft.getDtgField ++ indexed).distinct
-  }
 }
 
 trait HasGeoMesaStats {

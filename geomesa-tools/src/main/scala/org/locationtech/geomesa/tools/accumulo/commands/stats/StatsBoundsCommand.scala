@@ -60,4 +60,4 @@ class StatsBoundsCommand(parent: JCommander) extends CommandWithCatalog(parent) 
 }
 
 @Parameters(commandDescription = "View or calculate bounds on attributes in a GeoMesa feature type")
-class StatsBoundsParameters extends StatsParams with CachedStatsParams with AttributeStatsParams
+class StatsBoundsParameters extends StatsParams with AttributeStatsParams

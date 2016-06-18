@@ -41,10 +41,11 @@ object SimpleFeatureTypes {
   val OPT_SRID                 = "srid"
   val OPT_INDEX_VALUE          = "index-value"
   val OPT_INDEX                = "index"
+  val OPT_STATS                = "keep-stats"
   val OPT_CARDINALITY          = "cardinality"
   val OPT_BIN_TRACK_ID         = "bin-track-id"
 
-  val OPTS = Seq(OPT_DEFAULT, OPT_SRID, OPT_INDEX, OPT_INDEX_VALUE, OPT_CARDINALITY, OPT_BIN_TRACK_ID)
+  val OPTS = Seq(OPT_DEFAULT, OPT_SRID, OPT_INDEX, OPT_STATS, OPT_INDEX_VALUE, OPT_CARDINALITY, OPT_BIN_TRACK_ID)
 
   val USER_DATA_LIST_TYPE      = "subtype"
   val USER_DATA_MAP_KEY_TYPE   = "keyclass"
@@ -251,6 +252,9 @@ object SimpleFeatureTypes {
       if (ad.isBinTrackId) {
         options.put(OPT_BIN_TRACK_ID, "true")
       }
+      if (ad.isKeepStats) {
+        options.put(OPT_STATS, "true")
+      }
       ad.getType match {
         case t if simpleTypeMap.contains(t.getBinding.getSimpleName) =>
           SimpleAttributeSpec(ad.getLocalName, ad.getType.getBinding, options.toMap)
@@ -320,6 +324,7 @@ object SimpleFeatureTypes {
   object AttributeSpec {
     val defaults = Map[String, AnyRef](
       OPT_INDEX        -> IndexCoverage.NONE.toString,
+      OPT_STATS        -> java.lang.Boolean.FALSE,
       OPT_INDEX_VALUE  -> java.lang.Boolean.FALSE,
       OPT_CARDINALITY  -> Cardinality.UNKNOWN.toString,
       OPT_SRID         -> Integer.valueOf(4326),
@@ -345,6 +350,9 @@ object SimpleFeatureTypes {
         case Cardinality.HIGH => options.put(OPT_CARDINALITY, Cardinality.HIGH.toString)
         case Cardinality.LOW  => options.put(OPT_CARDINALITY, Cardinality.LOW.toString)
         case _ => // nothing
+      }
+      if (conf.getBoolean(OPT_STATS)) {
+        options.put(OPT_STATS, "true")
       }
       if (conf.getBoolean(OPT_INDEX_VALUE)) {
         options.put(OPT_INDEX_VALUE, "true")

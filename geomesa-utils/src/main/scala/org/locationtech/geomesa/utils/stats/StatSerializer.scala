@@ -11,6 +11,7 @@ package org.locationtech.geomesa.utils.stats
 import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
 import java.util.Date
 
+import com.clearspring.analytics.stream.StreamSummary
 import com.clearspring.analytics.stream.cardinality.HyperLogLog
 import com.clearspring.analytics.stream.frequency.RichCountMinSketch
 import com.esotericsoftware.kryo.io.{Input, Output}
@@ -73,12 +74,14 @@ object KryoStatSerializer {
   private [stats] val FrequencyByte: Byte     = 6
   private [stats] val Z3HistogramByte: Byte   = 7
   private [stats] val Z3FrequencyByte: Byte   = 8
+  private [stats] val TopKByte: Byte          = 9
 
   private [stats] def write(output: Output, sft: SimpleFeatureType, stat: Stat): Unit = {
     stat match {
       case s: CountStat          => output.writeByte(CountByte);         writeCount(output, s)
       case s: MinMax[_]          => output.writeByte(MinMaxByte);        writeMinMax(output, sft, s)
-      case s: EnumerationStat[_]     => output.writeByte(EnumerationByte);   writeEnumeration(output, sft, s)
+      case s: EnumerationStat[_] => output.writeByte(EnumerationByte);   writeEnumeration(output, sft, s)
+      case s: TopK[_]            => output.writeByte(TopKByte);          writeTopK(output, sft, s)
       case s: Histogram[_]       => output.writeByte(HistogramByte);     writeHistogram(output, sft, s)
       case s: Frequency[_]       => output.writeByte(FrequencyByte);     writeFrequency(output, sft, s)
       case s: Z3Histogram        => output.writeByte(Z3HistogramByte);   writeZ3Histogram(output, sft, s)
@@ -93,6 +96,7 @@ object KryoStatSerializer {
       case CountByte         => readCount(input, immutable)
       case MinMaxByte        => readMinMax(input, sft, immutable)
       case EnumerationByte   => readEnumeration(input, sft, immutable)
+      case TopKByte          => readTopK(input, sft, immutable)
       case HistogramByte     => readHistogram(input, sft, immutable)
       case FrequencyByte     => readFrequency(input, sft, immutable)
       case Z3HistogramByte   => readZ3Histogram(input, sft, immutable)
@@ -188,6 +192,31 @@ object KryoStatSerializer {
     }
 
     stat
+  }
+
+  private [stats] def writeTopK(output: Output, sft: SimpleFeatureType, stat: TopK[_]): Unit = {
+    output.writeInt(stat.attribute, true)
+    val summary = stat.summary.toBytes
+    output.writeInt(summary.length, true)
+    output.write(summary)
+  }
+
+  private [stats] def readTopK(input: Input, sft: SimpleFeatureType, immutable: Boolean): TopK[_] = {
+    val attribute = input.readInt(true)
+    val summary = {
+      val summaryBytes = Array.ofDim[Byte](input.readInt(true))
+      input.read(summaryBytes)
+      new StreamSummary[Any](summaryBytes)
+    }
+
+    val binding = sft.getDescriptor(attribute).getType.getBinding
+    val classTag = ClassTag[Any](binding)
+
+    if (immutable) {
+      new TopK[Any](attribute, summary)(classTag) with ImmutableStat
+    } else {
+      new TopK[Any](attribute, summary)(classTag)
+    }
   }
 
   private [stats] def writeHistogram(output: Output, sft: SimpleFeatureType, stat: Histogram[_]): Unit = {
