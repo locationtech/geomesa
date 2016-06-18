@@ -1,3 +1,11 @@
+/***********************************************************************
+* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0
+* which accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
+
 package org.locationtech.geomesa.blob.core.handlers
 
 import java.util
@@ -10,7 +18,6 @@ import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
 import scala.util.Try
-
 
 object BlobStoreByteArrayHandler extends BlobStoreSimpleFeatureBuilder {
   def buildSF(params: util.Map[String, String]): SimpleFeature = {
