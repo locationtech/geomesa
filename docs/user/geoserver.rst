@@ -6,6 +6,9 @@ in GeoMesa data stores is to use `GeoServer <http://www.geoserver.org/>`_,
 an open source server for sharing geospatial data. This chapter describes
 how to work with the GeoMesa GeoServer plugins.
 
+Installation
+------------
+
 Instructions for installing the GeoMesa plugins in GeoServer are
 available at :ref:`install_geoserver_plugins`.
 
@@ -119,8 +122,11 @@ A tool like GeoServer (once its WPS plugin has been installed) uses WPS to
 retrieve data from GeoMesa. WPS processes can be chained, letting you use
 additional WPS requests to build on the results of earlier ones.
 
-Configuring GeoServer
----------------------
+Configuration
+-------------
+
+WMS Plugin
+~~~~~~~~~~
 
 Depending on your hardware, it may be important to set the limits for
 your WMS plugin to be higher or disable them completely by clicking
