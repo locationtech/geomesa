@@ -8,17 +8,17 @@ The GeoMesa Native API is for developers who prefer not to use GeoTools interfac
 ## Usage
 To interact with the GeoMesa Native API, instantiate an instance of a `GeoMesaIndex<T>` with your payload type `T`.
 
-    ```java
-    GeoMesaIndex<DomainObject> index =
-                    AccumuloGeoMesaIndex.build(
-                            "hello",
-                            "zoo1:2181",
-                            "mycloud",
-                            "myuser", "mypass",
-                            true,
-                            new DomainObjectValueSerializer(),
-                            new DefaultSimpleFeatureView<DomainObject>("foo"));
-    ```
+```java
+GeoMesaIndex<DomainObject> index =
+                AccumuloGeoMesaIndex.build(
+                        "hello",
+                        "zoo1:2181",
+                        "mycloud",
+                        "myuser", "mypass",
+                        true,
+                        new DomainObjectValueSerializer(),
+                        new DefaultSimpleFeatureView<DomainObject>("foo"));
+```
 
 In the code snippet above, we are instantiating an `AccumuloGeoMesaIndex` with a type parameter of `DomainObject`, the
 payload object type that is specific to each usage of the native API.  We have provided a `DomainObjectValueSerializer`
@@ -32,19 +32,19 @@ rich `SimpleFeature`.  You can then leverage GeoMesa's secondary indexing optimi
 Persisting data to a `GeoMesaIndex` requires utilizing the various `insert` methods.  The following code snippet demonstrates
 how you can put domain objects into the index.
 
-    ```java
-    final GeometryFactory gf = JTSFactoryFinder.getGeometryFactory();
-    DomainObject one = new DomainObject();
-    DomainObject two = new DomainObject();
-    index.insert(
-            one,
-            gf.createPoint(new Coordinate(-78.0, 38.0)),
-            date("2016-01-01T12:15:00.000Z"));
-    index.insert(
-            two,
-            gf.createPoint(new Coordinate(-78.0, 40.0)),
-            date("2016-02-01T12:15:00.000Z"));
-    ```
+```java
+final GeometryFactory gf = JTSFactoryFinder.getGeometryFactory();
+DomainObject one = new DomainObject();
+DomainObject two = new DomainObject();
+index.insert(
+        one,
+        gf.createPoint(new Coordinate(-78.0, 38.0)),
+        date("2016-01-01T12:15:00.000Z"));
+index.insert(
+        two,
+        gf.createPoint(new Coordinate(-78.0, 40.0)),
+        date("2016-02-01T12:15:00.000Z"));
+```
 
 The code above will compute an identifier for each of the domain objects.  If you want to control the identifiers,
 use the `insert` methods with `id` in the signature.  If you do not intend to query GeoMesa using the specific identifiers of
@@ -54,26 +54,26 @@ your domain object, prefer the method that generates an identifier for you.  The
 To query data stored using the GeoMesa Native API, you will build up a `GeoMesaQuery` and pass it to the `GeoMesaIndex`.
  For example, the following code snippet queries GeoMesa on space and time.
  
-     ```java
-     GeoMesaQuery q =
-       GeoMesaQuery.GeoMesaQueryBuilder.builder()
-               .within(-79.0, 37.0, -77.0, 39.0)
-               .during(date("2016-01-01T00:00:00.000Z"), date("2016-03-01T00:00:00.000Z"))
-               .build();
-     Iterable<DomainObject> results = index.query(q);
-     ```
+```java
+GeoMesaQuery q =
+  GeoMesaQuery.GeoMesaQueryBuilder.builder()
+          .within(-79.0, 37.0, -77.0, 39.0)
+          .during(date("2016-01-01T00:00:00.000Z"), date("2016-03-01T00:00:00.000Z"))
+          .build();
+Iterable<DomainObject> results = index.query(q);
+```
 
 If you have used a custom `SimpleFeatureView`, you can query on the attributes you've lifted into the `SimpleFeatureType`.
 For instance, if you have lifted an attribute called `age` into the `SimpleFeatureType`, you can query on it as follows and 
 GeoMesa will push the `age` predicate down for processing in the database.
 
-     ```java
-     FilterFactory ff = CommonFactoryFinder.getFilterFactory2();
-     GeoMesaQuery q =
-       GeoMesaQuery.GeoMesaQueryBuilder.builder()
-               .within(-79.0, 37.0, -77.0, 39.0)
-               .during(date("2016-01-01T00:00:00.000Z"), date("2016-03-01T00:00:00.000Z"))
-               .filter(ff.greaterThan(ff.property("age"), 30)
-               .build();
-     Iterable<DomainObject> results = index.query(q);
-     ```
+```java
+FilterFactory ff = CommonFactoryFinder.getFilterFactory2();
+GeoMesaQuery q =
+  GeoMesaQuery.GeoMesaQueryBuilder.builder()
+          .within(-79.0, 37.0, -77.0, 39.0)
+          .during(date("2016-01-01T00:00:00.000Z"), date("2016-03-01T00:00:00.000Z"))
+          .filter(ff.greaterThan(ff.property("age"), 30)
+          .build();
+Iterable<DomainObject> results = index.query(q);
+```
