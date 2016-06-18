@@ -476,16 +476,6 @@ To upgrade between minor releases of GeoMesa, the versions of all GeoMesa compon
 This means that the version of the ``geomesa-distributed-runtime`` JAR installed on Accumulo tablet servers
 **must** match the version of the ``geomesa-plugin`` JARs installed in the ``WEB-INF/lib`` directory of GeoServer.
 
-Configuring GeoMesa Accumulo
-----------------------------
-
-The `Zookeeper session timeout <http://accumulo.apache.org/1.6/accumulo_user_manual#_instance_zookeeper_timeout>`__
-for the GeoMesa Accumulo data store is exposed as the Java system property ``instance.zookeeper.timeout``:
-
-.. code-block:: bash
-
-    export JAVA_OPTS="-Dinstance.zookeeper.timeout=10s"
-
 Apache Commons Collections
 --------------------------
 

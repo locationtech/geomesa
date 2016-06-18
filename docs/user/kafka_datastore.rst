@@ -20,6 +20,11 @@ in *replay* mode will pull data from a specified time interval in the
 past and can provide features as they existed at any point in time
 within that interval.
 
+Installation
+------------
+
+Use of the Kafka data store does not require server-side configuration.
+
 Usage/Configuration
 -------------------
 
