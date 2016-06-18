@@ -41,7 +41,7 @@ Pick a reasonable directory on your machine, and run:
 
 .. code-block:: bash
 
-    $ git clone git@github.com:geomesa/geomesa-tutorials.git
+    $ git clone https://github.com/geomesa/geomesa-tutorials.git
     $ cd geomesa-tutorials
 
 To build, run

@@ -50,7 +50,7 @@ Pick a reasonable directory on your machine, and run:
 
 .. code-block:: bash
 
-    $ git clone git@github.com:geomesa/geomesa-tutorials.git
+    $ git clone https://github.com/geomesa/geomesa-tutorials.git
     $ cd geomesa-tutorials
 
 To build, run
@@ -312,5 +312,5 @@ system like `Storm <https://storm.apache.org/>`__ or
 tutorial for more information on using Storm with GeoMesa.
 
 For additional information about the ``KafkaDataStore``, see the
-`README.md <https://github.com/locationtech/geomesa/blob/master/geomesa-kafka/geomesa-kafka-datastore/README.md>`__
+`readme <https://github.com/locationtech/geomesa/blob/master/geomesa-kafka/geomesa-kafka-datastore/README.md>`__
 on github.

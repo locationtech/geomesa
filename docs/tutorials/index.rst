@@ -9,6 +9,7 @@ Getting Started
 
     geomesa-quickstart-accumulo
     geomesa-quickstart-kafka
+    geomesa-quickstart-hbase
 
 Data In/Out
 -----------
@@ -18,6 +19,7 @@ Data In/Out
 
     geomesa-quickstart-storm
     geomesa-examples-gdelt
+    geomesa-examples-avro
     geomesa-raster
     geomesa-examples-transformations
 
