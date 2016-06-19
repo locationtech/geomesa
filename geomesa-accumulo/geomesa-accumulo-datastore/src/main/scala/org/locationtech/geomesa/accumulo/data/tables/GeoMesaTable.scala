@@ -76,8 +76,11 @@ object GeoMesaTable {
   // noinspection ScalaDeprecation
   val AllTables = Seq(RecordTable, SpatioTemporalTable, AttributeTableV5, AttributeTable, Z2Table, Z3Table)
 
-  val PerAttributeColumnFamily = new Text("a")
-  val PerAttributeColumnQualifiers = (0 until Byte.MaxValue).map(i => new Text(Array(i.toByte))).toArray
+  val FullColumnFamily      = new Text("F")
+  val BinColumnFamily       = new Text("B")
+  val AttributeColumnFamily = new Text("A")
+
+  val EmptyColumnQualifier  = new Text()
 
   def getTables(sft: SimpleFeatureType): Seq[GeoMesaTable] = {
     val enabled = sft.getEnabledTables.collect {

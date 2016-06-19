@@ -25,7 +25,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 class KryoVisibilityRowEncoder extends RowEncodingIterator {
 
   private var sft: SimpleFeatureType = null
-  private var output: Output = null
+  private var output: Output = new Output(1024, -1)
   private var nullBytes: Array[Array[Byte]] = null
   private var idFromRow: (Array[Byte]) => String = null
   private var offsets: Array[Int] = null
@@ -47,8 +47,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     }
     idFromRow = table.getIdFromRow(sft)
     val cacheKey = CacheKeyGenerator.cacheKeyForSFT(sft)
-    output = KryoFeatureSerializer.getOutput()
-    offsets = KryoFeatureSerializer.getOffsets(cacheKey, sft.getAttributeCount)
+    if (offsets == null || offsets.length != sft.getAttributeCount) {
+      offsets = Array.ofDim[Int](sft.getAttributeCount)
+    }
     nullBytes = KryoFeatureSerializer.getWriters(cacheKey, sft).map { writer =>
       output.clear()
       writer(output, null)
@@ -92,6 +93,10 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     if (sourceIter != null) {
       iterator.sourceIter = sourceIter.deepCopy(env)
     }
+    iterator.sft = sft
+    iterator.idFromRow = idFromRow
+    iterator.offsets = Array.ofDim[Int](sft.getAttributeCount)
+    iterator.nullBytes = nullBytes
     iterator
   }
 }
@@ -101,7 +106,6 @@ object KryoVisibilityRowEncoder {
   val SftOpt   = "sft"
   val TableOpt = "table"
 
-  // TODO fix other priorities
   val DefaultPriority = 21 // needs to be first thing that runs after the versioning iterator at 20
 
   def configure(sft: SimpleFeatureType, table: GeoMesaTable, priority: Int = DefaultPriority): IteratorSetting = {

@@ -26,6 +26,7 @@ import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
@@ -48,36 +49,86 @@ object AttributeTable extends GeoMesaTable with LazyLogging {
 
   private type TryEncoder = Try[(TypeEncoder[Any, String], TypeEncoder[_, String])]
 
-  override def supports(sft: SimpleFeatureType) =
-    sft.getSchemaVersion > 5 && sft.getAttributeDescriptors.exists(_.isIndexed)
+  override def supports(sft: SimpleFeatureType) = {
+    val ok = sft.getSchemaVersion > 5 && sft.getAttributeDescriptors.exists(_.isIndexed)
+    if (ok && sft.getVisibilityLevel == VisibilityLevel.Attribute &&
+        !sft.getAttributeDescriptors.filter(_.isIndexed).forall(_.getIndexCoverage() == IndexCoverage.FULL)) {
+      // TODO GEOMESA-1254 support index values
+      throw new IllegalArgumentException("Attribute level visibility is currently only supported for fully" +
+          " covering attribute indices. Use e.g. 'foo:String:index=full'.")
+    }
+    ok
+  }
 
   override val suffix: String = "attr"
 
-  override def writer(sft: SimpleFeatureType): FeatureToMutations = mutator(sft, delete = false)
-
-  override def remover(sft: SimpleFeatureType): FeatureToMutations = mutator(sft, delete = true)
-
-  private def mutator(sft: SimpleFeatureType, delete: Boolean): FeatureToMutations = {
-    val indexedAttributes = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft)
-    val indexesOfIndexedAttributes = indexedAttributes.map(a => sft.indexOf(a.getName))
-    val attributesToIdx = indexedAttributes.zip(indexesOfIndexedAttributes)
-    val prefixBytes = sft.getTableSharingPrefix.getBytes(UTF8)
-
-    sft.getDtgIndex match {
-      case None =>
-        (toWrite: FeatureToWrite) => {
-          val idBytes = toWrite.feature.getID.getBytes(UTF8)
-          getMutations(toWrite, attributesToIdx, prefixBytes, idBytes, delete)
+  override def writer(sft: SimpleFeatureType): FeatureToMutations = {
+    val getRows = getRowKeys(sft)
+    sft.getVisibilityLevel match {
+      case VisibilityLevel.Feature =>
+        (fw) => {
+          getRows(fw).map { case (descriptor, row) =>
+            val mutation = new Mutation(row)
+            val value = descriptor.getIndexCoverage() match {
+              case IndexCoverage.FULL => fw.dataValue
+              case IndexCoverage.JOIN => fw.indexValue
+            }
+            mutation.put(EMPTY_TEXT, EMPTY_TEXT, fw.columnVisibility, value)
+            mutation
+          }
         }
-      case Some(dtgIndex) =>
-        (toWrite: FeatureToWrite) => {
-          val dtg = toWrite.feature.getAttribute(dtgIndex).asInstanceOf[Date]
-          val time = if (dtg == null) System.currentTimeMillis() else dtg.getTime
-          val timeBytes = timeToBytes(time)
-          val idBytes = toWrite.feature.getID.getBytes(UTF8)
-          getMutations(toWrite, attributesToIdx, prefixBytes, Bytes.concat(timeBytes, idBytes), delete)
+      case VisibilityLevel.Attribute =>
+        (fw) => {
+          getRows(fw).map { case (descriptor, row) =>
+            val mutation = new Mutation(row)
+            // TODO GEOMESA-1254 support index values
+            fw.perAttributeValues.foreach(v => mutation.put(v.cf, v.cq, v.vis, v.value))
+            mutation
+          }
         }
     }
+  }
+
+  override def remover(sft: SimpleFeatureType): FeatureToMutations = {
+    val getRows = getRowKeys(sft)
+    sft.getVisibilityLevel match {
+      case VisibilityLevel.Feature =>
+        (fw) => {
+          getRows(fw).map { case (descriptor, row) =>
+            val mutation = new Mutation(row)
+            mutation.putDelete(EMPTY_TEXT, EMPTY_TEXT, fw.columnVisibility)
+            mutation
+          }
+        }
+      case VisibilityLevel.Attribute =>
+        (fw) => {
+          getRows(fw).map { case (descriptor, row) =>
+            val mutation = new Mutation(row)
+            // TODO GEOMESA-1254 support index values
+            fw.perAttributeValues.foreach(v => mutation.putDelete(v.cf, v.cq, v.vis))
+            mutation
+          }
+        }
+    }
+  }
+
+  private def getRowKeys(sft: SimpleFeatureType): (FeatureToWrite) => Seq[(AttributeDescriptor, Array[Byte])] = {
+    val indexedAttributes = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).map { d =>
+      val i = sft.indexOf(d.getName)
+      (d, i, indexToBytes(i))
+    }
+    val prefix = sft.getTableSharingPrefix.getBytes(UTF8)
+    val getSuffix: (FeatureToWrite) => Array[Byte] = sft.getDtgIndex match {
+      case None => (fw: FeatureToWrite) => fw.feature.getID.getBytes(UTF8)
+      case Some(dtgIndex) =>
+        (fw: FeatureToWrite) => {
+          val dtg = fw.feature.getAttribute(dtgIndex).asInstanceOf[Date]
+          val timeBytes = timeToBytes(if (dtg == null) 0L else dtg.getTime)
+          val idBytes = fw.feature.getID.getBytes(UTF8)
+          Bytes.concat(timeBytes, idBytes)
+        }
+    }
+    getRowKeys(indexedAttributes, prefix, getSuffix)
   }
 
   /**
@@ -90,27 +141,14 @@ object AttributeTable extends GeoMesaTable with LazyLogging {
    * - 12 bytes storing the dtg of the feature (OPTIONAL - only if the sft has a dtg field)
    * - n bytes storing the feature ID
    */
-  private def getMutations(toWrite: FeatureToWrite,
-                           indexedAttributes: Seq[(AttributeDescriptor, Int)],
-                           prefix: Array[Byte],
-                           suffix: Array[Byte],
-                           delete: Boolean): Seq[Mutation] = {
-    indexedAttributes.flatMap { case (descriptor, idx) =>
-      val indexBytes = indexToBytes(idx)
-      val attributes = encodeForIndex(toWrite.feature.getAttribute(idx), descriptor)
-      val mutations = attributes.map { attribute =>
-        new Mutation(Bytes.concat(prefix, indexBytes, attribute.getBytes(UTF8), NULLBYTE, suffix))
-      }
-      if (delete) {
-        mutations.foreach(_.putDelete(EMPTY_TEXT, EMPTY_TEXT, toWrite.columnVisibility))
-      } else {
-        val value = descriptor.getIndexCoverage() match {
-          case IndexCoverage.FULL => toWrite.dataValue
-          case IndexCoverage.JOIN => toWrite.indexValue
-        }
-        mutations.foreach(_.put(EMPTY_TEXT, EMPTY_TEXT, toWrite.columnVisibility, value))
-      }
-      mutations
+  private def getRowKeys(indexedAttributes: Seq[(AttributeDescriptor, Int, Array[Byte])],
+                         prefix: Array[Byte],
+                         suffix: (FeatureToWrite) => Array[Byte])
+                        (fw: FeatureToWrite): Seq[(AttributeDescriptor, Array[Byte])] = {
+    val suffixBytes = suffix(fw)
+    indexedAttributes.flatMap { case (descriptor, idx, idxBytes) =>
+      val attributes = encodeForIndex(fw.feature.getAttribute(idx), descriptor)
+      attributes.map(a => (descriptor, Bytes.concat(prefix, idxBytes, a.getBytes(UTF8), NULLBYTE, suffixBytes)))
     }
   }
 

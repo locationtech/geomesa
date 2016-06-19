@@ -9,10 +9,8 @@
 package org.locationtech.geomesa.accumulo.data
 
 import java.io.Flushable
-import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicLong
 
-import com.google.common.primitives.Bytes
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.BatchWriter
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
@@ -68,7 +66,7 @@ object AccumuloFeatureWriter extends LazyLogging {
     // hash value of the feature id
     lazy val idHash = Math.abs(MurmurHash3.stringHash(feature.getID))
 
-    // TODO optimize for case where all vis are the same
+    // TODO GEOMESA-1254 optimize for case where all vis are the same
     lazy val perAttributeValues: Seq[RowValue] = {
       val count = feature.getFeatureType.getAttributeCount
       val visibilities = feature.userData[String](FEATURE_VISIBILITY).map(_.split(","))
@@ -84,7 +82,7 @@ object AccumuloFeatureWriter extends LazyLogging {
           output.write(value)
         }
         val value = new Value(output.toBytes)
-        RowValue(GeoMesaTable.PerAttributeColumnFamily, cq, new ColumnVisibility(vis), value)
+        RowValue(GeoMesaTable.AttributeColumnFamily, cq, new ColumnVisibility(vis), value)
       }
     }
   }

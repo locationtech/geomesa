@@ -84,7 +84,6 @@ class RecordIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLoggi
     val table = ds.getTableName(sft.getTypeName, RecordTable)
     val threads = ds.getSuggestedThreads(sft.getTypeName, RecordTable)
 
-
     if (sft.getSchemaVersion > 5) {
       // optimized path when we know we're using kryo serialization
       val perAttributeIter = sft.getVisibilityLevel match {
