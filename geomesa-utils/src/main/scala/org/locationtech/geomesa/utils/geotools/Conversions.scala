@@ -202,7 +202,7 @@ object RichSimpleFeatureType {
   val ST_INDEX_SCHEMA_KEY = "geomesa.index.st.schema"
   val USER_DATA_PREFIX    = "geomesa.user-data.prefix"
   val KEYWORDS_KEY        = "geomesa.keywords"
-  val ATTR_LEVEL_VIS_KEY  = "geomesa.visibility.level"
+  val VIS_LEVEL_KEY       = "geomesa.visibility.level"
 
   val KEYWORDS_DELIMITER = "\u0000"
 
@@ -246,11 +246,11 @@ object RichSimpleFeatureType {
       gd != null && gd.getType.getBinding == classOf[LineString]
     }
 
-    def getVisibilityLevel: VisibilityLevel = userData[String](ATTR_LEVEL_VIS_KEY) match {
+    def getVisibilityLevel: VisibilityLevel = userData[String](VIS_LEVEL_KEY) match {
       case None        => VisibilityLevel.Feature
       case Some(level) => VisibilityLevel.withName(level.toLowerCase)
     }
-    def setVisibilityLevel(vis: VisibilityLevel): Unit = sft.getUserData.put(ATTR_LEVEL_VIS_KEY, vis.toString)
+    def setVisibilityLevel(vis: VisibilityLevel): Unit = sft.getUserData.put(VIS_LEVEL_KEY, vis.toString)
 
     //  If no user data is specified when creating a new SFT, we should default to 'true'.
     def isTableSharing: Boolean = userData[String](TABLE_SHARING_KEY).forall(_.toBoolean)
