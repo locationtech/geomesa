@@ -17,7 +17,7 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStore, Query}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.blob.api.GeoMesaBlobStoreSFT._
-import org.locationtech.geomesa.blob.api.handlers.{BlobStoreByteArrayHandler, BlobStoreFileHandler}
+import org.locationtech.geomesa.blob.api.handlers.{ByteArrayHandler, BlobStoreFileHandler}
 import org.locationtech.geomesa.utils.filters.Filters
 import org.locationtech.geomesa.utils.geotools.Conversions.{RichSimpleFeature, _}
 import org.opengis.feature.simple.SimpleFeature
@@ -41,7 +41,7 @@ abstract class GeoMesaGenericBlobStore(ds: DataStore, bs: BlobStore) extends Geo
   }
 
   override def put(bytes: Array[Byte], params: util.Map[String, String]): String = {
-    val sf = BlobStoreByteArrayHandler.buildSF(params)
+    val sf = ByteArrayHandler.buildSF(params)
     putInternalSF(sf, bytes)
   }
 

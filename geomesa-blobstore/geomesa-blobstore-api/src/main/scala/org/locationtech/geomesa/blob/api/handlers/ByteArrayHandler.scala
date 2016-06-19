@@ -19,7 +19,7 @@ import org.opengis.feature.simple.SimpleFeature
 import scala.collection.JavaConversions._
 import scala.util.Try
 
-object BlobStoreByteArrayHandler extends BlobStoreSimpleFeatureBuilder {
+object ByteArrayHandler extends BlobStoreSimpleFeatureBuilder {
   def buildSF(params: util.Map[String, String]): SimpleFeature = {
     val date = getDate(params)
     val geom = getGeometry(params)
