@@ -20,6 +20,7 @@ Data In/Out
     geomesa-examples-gdelt
     geomesa-raster
     geomesa-examples-transformations
+    geomesa-blobstore
 
 Data Analysis
 -------------

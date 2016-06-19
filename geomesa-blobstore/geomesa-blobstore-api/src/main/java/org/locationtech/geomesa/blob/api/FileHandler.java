@@ -20,13 +20,13 @@ public interface FileHandler {
     /**
      * Indicates whether or not the class can handle the file with the associated parameters.
      * @param file   File to Store
-     * @param params Map of parameters indicating or hinting how to processing should work.
-     * @return       Whether or not the class can handle the given input
+     * @param params Map of parameters indicating or hinting how the processing should work.
+     * @return       Whether or not this class can handle the given input
      */
     Boolean canProcess(File file, Map<String, String> params);
 
     /**
-     * This method builds the SimpleFeature indexing the input file.
+     * This method builds a SimpleFeature given the input file.
      * @param file   File to Store
      * @param params Map of parameters indicating or hinting how to processing should work.
      * @return       SimpleFeature indexing the file.  Must contain a unique ID.
