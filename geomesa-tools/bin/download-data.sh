@@ -23,48 +23,54 @@ if [ -z "$GEOMESA_HOME" ]; then
   setGeoHome
 fi
 
-if [ "$type" = 'gdelt' ]; then
+case "$type" in
+  gdelt)
+    read -p "Enter a date in the form YYYYMMDD: " DATE
 
-  read -p "Enter a date in the form YYYYMMDD: " DATE
+    wget "http://data.gdeltproject.org/events/${DATE}.export.CSV.zip" -P $GEOMESA_HOME/data/gdelt
+    ;;
 
-  wget "http://data.gdeltproject.org/events/${DATE}.export.CSV.zip" -P $GEOMESA_HOME/data/gdelt
+  geolife)
 
-elif [ "$type" = 'geolife' ]; then
+    wget "http://ftp.research.microsoft.com/downloads/b16d359d-d164-469e-9fd4-daa38f2b2e13/Geolife Trajectories 1.3.zip" -P $GEOMESA_HOME/data/geolife
+    ;;
 
-  wget "http://ftp.research.microsoft.com/downloads/b16d359d-d164-469e-9fd4-daa38f2b2e13/Geolife Trajectories 1.3.zip" -P $GEOMESA_HOME/data/geolife
+  osm-gpx)
 
-elif [ "$type" = 'osm-gpx' ]; then
+    echo "Available regions: africa, asia, austrailia-oceania, canada, central-america,europe, ex-ussr, south-america, usa"
+    read -p "Enter a region to download tracks for: " CONTINENT
 
-  echo "Available regions: africa, asia, austrailia-oceania, canada, central-america,europe, ex-ussr, south-america, usa"
-  read -p "Enter a region to download tracks for: " CONTINENT
+    wget "http://zverik.osm.rambler.ru/gps/files/extracts/$CONTINENT.tar.xz" -P $GEOMESA_HOME/data/osm-gpx
+    ;;
 
-  wget "http://zverik.osm.rambler.ru/gps/files/extracts/$CONTINENT.tar.xz" -P $GEOMESA_HOME/data/osm-gpx
+  tdrive)
 
-elif [ "$type" = 'tdrive' ]; then
+    echo "Note: each zip file contains approximately one million points"
+    read -p "Download how many zip files? " NUM
 
-  echo "Note: each zip file contains approximately one million points"
-  read -p "Download how many zip files? " NUM
+    for i in `seq 1 $NUM`; do
+	  echo "Downloading zip $i of $NUM"
+	  wget "http://research.microsoft.com/pubs/152883/0$i.zip" -P $GEOMESA_HOME/data/tdrive
+    done
 
-  for i in `seq 1 $NUM`; do
-	echo "Downloading zip $i of $NUM"
-	wget "http://research.microsoft.com/pubs/152883/0$i.zip" -P $GEOMESA_HOME/data/tdrive
-  done
+    wget "http://research.microsoft.com/pubs/152883/User_guide_T-drive.pdf" -P $GEOMESA_HOME/data/tdrive
+    ;;
 
-  wget "http://research.microsoft.com/pubs/152883/User_guide_T-drive.pdf" -P $GEOMESA_HOME/data/tdrive
+  geonames)
 
-elif [ "$type" = 'geonames' ]; then
+    read -p "Enter the country code to download data for: " CC
 
-  read -p "Enter the country code to download data for: " CC
+    wget "http://download.geonames.org/export/dump/$CC.zip" -P $GEOMESA_HOME/data/geonames
+    ;;
 
-  wget "http://download.geonames.org/export/dump/$CC.zip" -P $GEOMESA_HOME/data/geonames
+  *)
 
-else
+    if [ -n "$type" ]; then
+      PREFIX="Unknown data type '$type'."
+    else
+      PREFIX="Please enter a data type."
+    fi
+    echo "$PREFIX Available types: gdelt, geolife, osm-gpx, tdrive, geonames"
+    ;;
 
-  if [ -n "$type" ]; then
-    PREFIX="Unknown data type '$type'."
-  else
-    PREFIX="Please enter a data type."
-  fi
-  echo "$PREFIX Available types: gdelt, geolife, osm-gpx, tdrive, geonames"
-
-fi
+esac
