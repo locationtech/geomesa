@@ -9,30 +9,23 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>geomesa-blobstore-handlers</artifactId>
+        <artifactId>geomesa-blobstore</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
         <version>1.2.3-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-blobstore-gdal-handler</artifactId>
-    <name>GeoMesa Blobstore EXIF Metadata Handler</name>
+    <artifactId>geomesa-blobstore-api</artifactId>
+    <name>GeoMesa Blobstore API</name>
 
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-datastore</artifactId>
+            <artifactId>geomesa-filter</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-blobstore-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.gdal</groupId>
-            <artifactId>gdal</artifactId>
-            <version>${gdal.version}</version>
+            <artifactId>geomesa-accumulo-datastore</artifactId>
         </dependency>
 
         <!--test dependencies-->

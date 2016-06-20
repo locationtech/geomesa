@@ -1506,7 +1506,7 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-blobstore-core</artifactId>
+                <artifactId>geomesa-blobstore-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

@@ -22,6 +22,7 @@ Data In/Out
     geomesa-examples-avro
     geomesa-raster
     geomesa-examples-transformations
+    geomesa-blobstore
 
 Data Analysis
 -------------
