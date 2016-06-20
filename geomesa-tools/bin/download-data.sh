@@ -35,7 +35,7 @@ elif [ "$type" = 'geolife' ]; then
 
 elif [ "$type" = 'osm-gpx' ]; then
 
-  echo "Available reagions: africa, asia, austrailia-oceania, canada, central-america,europe, ex-ussr, south-america, usa"
+  echo "Available regions: africa, asia, austrailia-oceania, canada, central-america,europe, ex-ussr, south-america, usa"
   read -p "Enter a region to download tracks for: " CONTINENT
 
   wget "http://zverik.osm.rambler.ru/gps/files/extracts/$CONTINENT.tar.xz" -P $GEOMESA_HOME/data/osm-gpx
@@ -52,6 +52,12 @@ elif [ "$type" = 'tdrive' ]; then
 
   wget "http://research.microsoft.com/pubs/152883/User_guide_T-drive.pdf" -P $GEOMESA_HOME/data/tdrive
 
+elif [ "$type" = 'geonames' ]; then
+
+  read -p "Enter the country code to download data for: " CC
+
+  wget "http://download.geonames.org/export/dump/$CC.zip" -P $GEOMESA_HOME/data/geonames
+
 else
 
   if [ -n "$type" ]; then
@@ -59,6 +65,6 @@ else
   else
     PREFIX="Please enter a data type."
   fi
-  echo "$PREFIX Available types: gdelt, geolife, osm-gpx, tdrive"
+  echo "$PREFIX Available types: gdelt, geolife, osm-gpx, tdrive, geonames"
 
 fi

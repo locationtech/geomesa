@@ -293,7 +293,7 @@ Packaged with geomesa script for easily downloading publicly
 available data sets and a set of corresponding config files.
 
 The currently available data sets are GDELT_, GeoLife_, OSM-GPX_, T-Drive_, GeoNames_, 
-NYCTaxi_, GTD_, and Twitter_. The first four of which are easily downloadable via a provided script.
+NYCTaxi_, GTD_, and Twitter_. The first five of which are easily downloadable via a provided script.
 
 .. _GDELT: http://gdeltproject.org/
 .. _GeoLife: http://research.microsoft.com/en-us/projects/geolife/
@@ -306,7 +306,7 @@ NYCTaxi_, GTD_, and Twitter_. The first four of which are easily downloadable vi
 
 To download these sets, run the download script found in geomesa-tools/bin and 
 provide the name of the data set desired. 
-This can be one of ```gdelt```, ```geolife```, ```osm-gpx```, or ```tdrive```:
+This can be one of ```gdelt```, ```geolife```, ```osm-gpx```, ```tdrive```, or ```geonames```:
 
 Example Usage:
 
