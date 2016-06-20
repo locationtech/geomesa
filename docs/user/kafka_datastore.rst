@@ -281,6 +281,11 @@ Finally the Kafka Replay Consumer Feature Source can be queried:
 
     replayFeatureSource.getFeatures(timeFilter);
 
+Using the Kafka Data Store in GeoServer
+---------------------------------------
+
+See :doc:`./geoserver`.
+
 Command Line Tools
 ------------------
 

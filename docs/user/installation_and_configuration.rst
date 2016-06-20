@@ -278,7 +278,7 @@ the same Accumulo instance. You should remove any GeoMesa JARs under
 
 .. _install_geoserver_plugins:
 
-Installing the GeoMesa GeoServer plugins
+Installing the GeoMesa GeoServer Plugins
 ----------------------------------------
 
 .. warning::
@@ -310,6 +310,8 @@ the plugin. The GeoServer website includes `instructions for downloading and ins
     should also consider passing ``-DGEOWEBCACHE_CACHE_DIR=/tmp/$USER-gwc``
     and ``-DEPSG-HSQL.directory=/tmp/$USER-hsql``
     as well. Be sure to restart Tomcat for changes to take place.
+
+.. _install_accumulo_geoserver:
 
 For Accumulo
 ^^^^^^^^^^^^
@@ -411,6 +413,10 @@ Hadoop 2.4-2.7 (adjust versions as needed)
 * hadoop-common-2.6.4.jar
 * hadoop-hdfs-2.6.4.jar
 
+Restart GeoServer after the JARs are installed.
+
+.. _install_kafka_geoserver:
+
 For Kafka
 ^^^^^^^^^
 
@@ -468,15 +474,66 @@ There is a script in the ``geomesa-tools-$VERSION`` directory
 dependencies to a target directory using ``wget`` (requires an internet
 connection).
 
+Restart GeoServer after the JARs are installed.
+
+.. _install_hbase_geoserver:
+
 For HBase
 ^^^^^^^^^
 
-See :ref:`install_hbase_geoserver`.
+The HBase GeoServer plugin is not bundled by default in the GeoMesa binary distribution
+and should be built from source. Download the source distribution (see
+:ref:`building_from_source`), go to the ``geomesa-gs-plugin/geomesa-hbase-gs-plugin``
+directory, and build the module using the ``hbase`` Maven profile:
+
+.. code-block:: bash
+
+    $ mvn clean install -Phbase
+
+After building, extract ``target/geomesa-hbase-gs-plugin-$VERSION-install.tar.gz`` into GeoServer's
+``WEB-INF/lib`` directory. Note that this plugin contains a shaded JAR with HBase 1.1.5
+bundled. If you require a different version, modify the ``pom.xml`` and rebuild following
+the instructions above.
+
+This distribution does not include the Hadoop or Zookeeper JARs; the following JARs
+should be copied from the ``lib`` directory of your HBase or Hadoop installations into
+GeoServer's ``WEB-INF/lib`` directory:
+
+ * hadoop-annotations-2.5.1.jar
+ * hadoop-auth-2.5.1.jar
+ * hadoop-common-2.5.1.jar
+ * hadoop-mapreduce-client-core-2.5.1.jar
+ * hadoop-yarn-api-2.5.1.jar
+ * hadoop-yarn-common-2.5.1.jar
+ * zookeeper-3.4.6.jar
+ * commons-configuration-1.6.jar
+
+(Note the versions may vary depending on your installation.)
+
+The HBase data store requires the configuration file ``hbase-site.xml`` to be on the classpath. This can
+be accomplished by placing the file in ``geoserver/WEB-INF/classes`` (you should make the directory if it
+doesn't exist).
+
+Restart GeoServer after the JARs are installed.
+
+.. _install_cassandra_geoserver:
 
 For Cassandra
 ^^^^^^^^^^^^^
 
-See :ref:`install_cassandra_geoserver`.
+The Cassandra GeoServer plugin is not bundled by default in the GeoMesa binary distribution
+and should be built from source. Download the source distribution (see
+:ref:`building_from_source`), go to the ``geomesa-gs-plugin/geomesa-cassandra-gs-plugin``
+directory, and build the module:
+
+.. code-block:: bash
+
+    $ mvn clean install
+
+After building, extract ``target/geomesa-cassandra-gs-plugin-$VERSION-install.tar.gz`` into GeoServer's
+``WEB-INF/lib`` directory.
+
+Restart GeoServer after the JARs are installed.
 
 Upgrading
 ---------

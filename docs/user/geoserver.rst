@@ -16,33 +16,35 @@ Go to your GeoServer installation at ``http://<hostname>:8080/geoserver``.
 For new installations of GeoServer, the default username is ``admin`` and
 password is ``geoserver``, but these may be different at your own installation.
 
-Register a New Accumulo Data Store
-----------------------------------
+Creating a Data Store
+---------------------
 
 From the main GeoServer page, create a new store by either clicking
 "Add stores" in the middle of the **Welcome** page, or anywhere in the
 interface by clicking "Data > Stores" in the left-hand menu and then
 clicking "Add new Store".
 
-The list of data store types GeoServer knows should be listed. If you
-have properly installed the GeoMesa Accumulo GeoServer plugin as described
-in :ref:`install_geoserver_plugins`, "Accumulo (GeoMesa)"
-should be included in the list under **Vector Data Sources**. If you do not
-see this, check that the plugin is in the right directory and restart GeoServer.
+If you have properly installed the GeoMesa GeoServer plugins as described
+in :ref:`install_geoserver_plugins`, the plugins with the names specified
+below should be included in the list under **Vector Data Sources**. If you do not
+see this for a particular plugin, check that you unpacked the plugin JARs
+into in the right directory and restart GeoServer.
 
 .. image:: _static/img/geoserver-geomesa-accumulo-data-source.png
    :scale: 75%
    :align: center
 
-When you click on "Accumulo (GeoMesa)", several configuration
-parameters are available:
+.. _create_accumulo_ds_geoserver:
+
+Accumulo Data Store
+^^^^^^^^^^^^^^^^^^^
+
+On the "Add Store" page, select "Accumulo (GeoMesa)". The Accumulo Data Store takes
+several parameters:
 
 ==================== =======================================================================================
 Parameter            Description
 ==================== =======================================================================================
-Workspace *          The GeoServer workspace in which the data store will be placed
-Data Source Name *   The name of the data source (should not contain spaces)
-Description          A human readable version of the data
 instanceId *         The instance ID of the Accumulo installation
 zookeepers *         A comma separated list of zookeeper servers (e.g. "zoo1,zoo2,zoo3" or "localhost:2181")
 user *               Accumulo username
@@ -58,12 +60,64 @@ collectStats         Toggle collection of statistics
 caching              Toggle caching of results
 ==================== =======================================================================================
 
-The required parameters are marked with an asterisk.
+The required parameters are marked with an asterisk. Click "Save", and GeoServer will
+search your Accumulo table for any GeoMesa-managed feature types.
 
-Click "Save", and GeoServer will search your Accumulo table for any
-GeoMesa-managed feature types.
+.. _create_kafka_ds_geoserver:
 
-.. Sections for Kafka, HBase, Bigtable plugins
+Kafka Data Store
+^^^^^^^^^^^^^^^^
+
+On the "Add Store" page, select "Kafka (GeoMesa)". The Kafka Data Store takes several parameters.
+
+================= ======== ====================================================================
+Parameter         Type     Description
+================= ======== ====================================================================
+brokers *         String   Comma-separated list of Kafka brokers
+zookeepers *      String   Comma-separated list of Zookeeper servers
+zkPath            String   Path to GeoMesa Kafka data in Zookeeper
+namespace         String   Namespace
+partitions        Integer  Number of partitions to use in Kafka topics
+replication       Integer  Replication factor to use in Kafka topics
+isProducer        Boolean  Indicates whether the Kafka Data Store is a producer
+expirationPeriod  Long     Feature will be "auto-dropped" (expired) after this delay
+                           in milliseconds. Leave black or use -1 to not drop features.
+cleanUpCache      Boolean  If true, run a thread to clean up the live feature cache every
+                           second if set to true. False by default.
+================= ======== ====================================================================
+
+The required parameters are marked with an asterisk. Click "Save", and GeoServer
+will search Kafka for any GeoMesa-managed feature types.
+
+.. _create_hbase_ds_geoserver:
+
+HBase Data Store
+^^^^^^^^^^^^^^^^
+
+On the "Add Store" page, select "HBase (GeoMesa)". The HBase data store takes two parameters:
+
+* **bigtable.table.name** - the name of the HBase table that stores feature type data
+* **namespace** - the namespace URI for the data store (optional)
+
+Other configuration information is taken from the HBase ``site.xml`` file (see
+:ref:`install_hbase_geoserver`).
+
+Click "Save", and GeoServer will search HBase for any GeoMesa-managed feature types.
+
+.. _create_cassandra_ds_geoserver:
+
+Cassandra Data Store
+^^^^^^^^^^^^^^^^^^^^
+
+On the "Add Store" page, select "Cassandra (GeoMesa)" as shown below.
+
+.. image:: _static/img/CassandraNewDataSource.png
+
+In the following page, enter the name and description of the data store, the contact point
+(HOST:PORT), and the keyspace. Click "Save", and GeoServer will search Cassandra for any
+GeoMesa-managed feature types in that keyspace.
+
+.. image:: _static/img/CassandraDSParams.png
 
 Publish a GeoMesa Layer
 -----------------------
@@ -126,7 +180,7 @@ Configuration
 -------------
 
 WMS Plugin
-~~~~~~~~~~
+^^^^^^^^^^
 
 Depending on your hardware, it may be important to set the limits for
 your WMS plugin to be higher or disable them completely by clicking
@@ -137,6 +191,9 @@ For massive queries, the standard 60 second timeout may be too short.
 |"Disable limits"|
 
 .. |"Disable limits"| image:: _static/img/wms_limits.png
+
+Query Logging
+^^^^^^^^^^^^^
 
 To enable explain query logging in GeoServer, add the following to the
 ``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties`` file::

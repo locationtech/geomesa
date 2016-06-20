@@ -75,19 +75,10 @@ DataStore such as the PostGIS DataStore or the Accumulo DataStore.  To get a con
     DataStore ds = DataStoreFinder.getDataStore(params);
     ds.createSchema(SimpleFeatureTypes.createType("test", "testjavaaccess", "foo:Int,dtg:Date,*geom:Point:srid=4326"));
 
-.. _install_cassandra_geoserver:
-
-Using the Cassandra Data Store in GeoServer
+Using the Cassandra Data Store in Geoserver
 -------------------------------------------
 
-First, you need to install the ``geomesa-cassandra-gs-plugin-$VERSION.jar`` in the ``geoserver/WEB-INF/lib`` directory.  Then,
-restart GeoServer, navigate to the ``Add Store`` page, and select ``Data Store (Cassandra)`` as shown below.
-
-.. image:: _static/img/CassandraNewDataSource.png
-
-In the following page, enter the name and description of the data store, the contact point (HOST:PORT), and the keyspace.  Finally, click submit and you should see all the layers that are in that keyspace available for publishing.  From there, Cassandra DataStore layers act just like any other Geoserver data store.
-
-.. image:: _static/img/CassandraDSParams.png
+See :doc:`./geoserver`.
 
 How you can contribute
 ----------------------

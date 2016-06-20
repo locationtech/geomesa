@@ -25,6 +25,11 @@ An instance of an Accumulo data store can be obtained through the normal GeoTool
 
 More information on using GeoTools can be found in the `GeoTools user guide <http://docs.geotools.org/stable/userguide/>`_.
 
+Using the Accumulo Data Store in GeoServer
+------------------------------------------
+
+See :doc:`./geoserver`.
+
 Indexing Strategies
 -------------------
 
