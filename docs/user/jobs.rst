@@ -118,7 +118,7 @@ Updating Existing Data to the Latest Index Format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 GeoMesa is constantly improving our indexing. We strive to maintain
-backwards comaptiblity, but old data can't always take advantage of the
+backwards compatibility, but old data can't always take advantage of the
 improvements we make. However, old data can be updated through the
 SchemaCopyJob. This will copy it to a new table (or feature name),
 rewriting all the data using the latest codebase. Once the data is

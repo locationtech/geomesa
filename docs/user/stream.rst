@@ -91,7 +91,7 @@ caveats:
 -  Each UDP packet data must end with a newline character
 -  Each UDP packet data must contain exactly one line - everything after
    the newline will be dropped
--  Maximun text line size can be controlled by the route parameter
+-  Maximum text line size can be controlled by the route parameter
    'decoderMaxLineLength' with a maximum value of 2048
 -  If the message is longer than the line size then the message will be
    dropped
