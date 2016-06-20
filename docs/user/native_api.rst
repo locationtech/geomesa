@@ -1,5 +1,5 @@
-Native API
-==========
+GeoMesa Native API
+==================
 
 The GeoMesa Native API is for developers who prefer not to use GeoTools interfaces and just want to geo index their
 data.  It exposes a simple interface for persisting and querying GeoMesa as well as a simple integration point with
@@ -8,7 +8,7 @@ Geoserver in cases where OGC access is still desired.
 Usage
 -----
 
-To interact with the GeoMesa Native API, instantiate an instance of a `GeoMesaIndex<T>` with your payload type `T`.
+To interact with the GeoMesa Native API, instantiate an instance of a ``GeoMesaIndex<T>`` with your payload type ``T``.
 
 .. code-block:: java
 
@@ -22,16 +22,16 @@ To interact with the GeoMesa Native API, instantiate an instance of a `GeoMesaIn
                         new DomainObjectValueSerializer(),
                         new DefaultSimpleFeatureView<DomainObject>("foo"));
 
-In the code snippet above, we are instantiating an `AccumuloGeoMesaIndex` with a type parameter of `DomainObject`, the
-payload object type that is specific to each usage of the native API.  We have provided a `DomainObjectValueSerializer`
-an implementation of `ValueSerializer` which tells the native API how to convert the domain object into a byte array
-payload.  We have also provided a `DefaultSimpleFeatureView` which maintains integration with the Geotools infrastructure.
-The `DefaultSimpleFeatureView` will create a `SimpleFeatureType` that contains the geometry, date, and identifier of the
-`DomainObject` and enable querying based on these attributes.  If you want to enable querying on more attributes from
-your domain object, you should create a class that extends `SimpleFeatureView` and converts the domain object into a
-rich `SimpleFeature`.  You can then leverage GeoMesa's secondary indexing optimizations on first class attributes.
+In the code snippet above, we are instantiating an ``AccumuloGeoMesaIndex`` with a type parameter of ``DomainObject``, the
+payload object type that is specific to each usage of the native API.  We have provided a ``DomainObjectValueSerializer``
+an implementation of ``ValueSerializer`` which tells the native API how to convert the domain object into a byte array
+payload.  We have also provided a ``DefaultSimpleFeatureView`` which maintains integration with the Geotools infrastructure.
+The ``DefaultSimpleFeatureView`` will create a ``SimpleFeatureType`` that contains the geometry, date, and identifier of the
+``DomainObject`` and enable querying based on these attributes.  If you want to enable querying on more attributes from
+your domain object, you should create a class that extends ``SimpleFeatureView`` and converts the domain object into a
+rich ``SimpleFeature``.  You can then leverage GeoMesa's secondary indexing optimizations on first class attributes.
 
-Persisting data to a `GeoMesaIndex` requires utilizing the various `insert` methods.  The following code snippet demonstrates
+Persisting data to a ``GeoMesaIndex`` requires utilizing the various ``insert`` methods.  The following code snippet demonstrates
 how you can put domain objects into the index.
 
 .. code-block:: java
@@ -49,11 +49,11 @@ how you can put domain objects into the index.
         date("2016-02-01T12:15:00.000Z"));
 
 The code above will compute an identifier for each of the domain objects.  If you want to control the identifiers,
-use the `insert` methods with `id` in the signature.  If you do not intend to query GeoMesa using the specific identifiers of
+use the ``insert`` methods with ``id`` in the signature.  If you do not intend to query GeoMesa using the specific identifiers of
 your domain object, prefer the method that generates an identifier for you.  The reason is that the identifier chosen by
  GeoMesa optimizes the locality properties of the identifier and thus the caching within the underlying database.
 
-To query data stored using the GeoMesa Native API, build up a `GeoMesaQuery` and pass it to the `GeoMesaIndex`.
+To query data stored using the GeoMesa Native API, build up a ``GeoMesaQuery`` and pass it to the ``GeoMesaIndex``.
  For example, the following code snippet queries GeoMesa on space and time.
 
 .. code-block:: java
@@ -65,9 +65,9 @@ To query data stored using the GeoMesa Native API, build up a `GeoMesaQuery` and
             .build();
     Iterable<DomainObject> results = index.query(q);
 
-If you have used a custom `SimpleFeatureView`, you can query on the attributes you've lifted into the `SimpleFeatureType`.
-For instance, if you have lifted an attribute called `age` into the `SimpleFeatureType`, you can query on it as follows and
-GeoMesa will push the `age` predicate down for processing in the database.
+If you have used a custom ``SimpleFeatureView``, you can query on the attributes you've lifted into the ``SimpleFeatureType``.
+For instance, if you have lifted an attribute called ``age`` into the ``SimpleFeatureType``, you can query on it as follows and
+GeoMesa will push the ``age`` predicate down for processing in the database.
 
 .. code-block:: java
 

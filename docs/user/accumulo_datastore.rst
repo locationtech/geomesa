@@ -8,6 +8,19 @@ Installation
 
 Use of the Accumulo data store requires that the distributed runtime JAR be installed on the tablet servers, described in more detail in :ref:`install_accumulo_runtime`.
 
+Configuration
+-------------
+
+Zookeeper session timeout
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The `Zookeeper session timeout <http://accumulo.apache.org/1.6/accumulo_user_manual#_instance_zookeeper_timeout>`__
+for the GeoMesa Accumulo data store is exposed as the Java system property ``instance.zookeeper.timeout``:
+
+.. code-block:: bash
+
+    export JAVA_OPTS="-Dinstance.zookeeper.timeout=10s"
+
 Creating a Data Store
 ---------------------
 
@@ -56,16 +69,3 @@ GeoMesa uses Accumulo iterators to push processing out to the whole cluster. The
 We use several techniques to improve iterator performance. For one, we only deserialize the attributes of a simple feature that we need to evaluate a given query. When retrieving attributes, we always look them up by index, instead of by name. For aggregating queries, we create partial aggregates in the iterators, instead of doing all the processing in the client. The main goals are to minimize disk reads, processing and bandwidth as much as possible.
 
 For more details, see the ``org.locationtech.geomesa.accumulo.iterators`` package.
-
-Configuration
--------------
-
-Zookeeper session timeout
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The `Zookeeper session timeout <http://accumulo.apache.org/1.6/accumulo_user_manual#_instance_zookeeper_timeout>`__
-for the GeoMesa Accumulo data store is exposed as the Java system property ``instance.zookeeper.timeout``:
-
-.. code-block:: bash
-
-    export JAVA_OPTS="-Dinstance.zookeeper.timeout=10s"
