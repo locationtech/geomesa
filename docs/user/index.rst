@@ -11,9 +11,7 @@ User Manual
    kafka_datastore
    hbase_datastore
    cassandra_datastore
-   blobstore
-   native_api
-   jobs
+   modules
    geoserver
    commandline_tools
    data_management
