@@ -1,7 +1,7 @@
 GeoMesa Native API
 ==================
 
-The GeoMesa Native API is for developers who prefer not to use GeoTools interfaces and just want to geo index their
+The GeoMesa Native API (``geomesa-native-api`` in the source distribution) is for developers who prefer not to use GeoTools interfaces and just want to geo index their
 data.  It exposes a simple interface for persisting and querying GeoMesa as well as a simple integration point with
 Geoserver in cases where OGC access is still desired.
 
@@ -51,7 +51,7 @@ how you can put domain objects into the index.
 The code above will compute an identifier for each of the domain objects.  If you want to control the identifiers,
 use the ``insert`` methods with ``id`` in the signature.  If you do not intend to query GeoMesa using the specific identifiers of
 your domain object, prefer the method that generates an identifier for you.  The reason is that the identifier chosen by
- GeoMesa optimizes the locality properties of the identifier and thus the caching within the underlying database.
+GeoMesa optimizes the locality properties of the identifier and thus the caching within the underlying database.
 
 To query data stored using the GeoMesa Native API, build up a ``GeoMesaQuery`` and pass it to the ``GeoMesaIndex``.
  For example, the following code snippet queries GeoMesa on space and time.
