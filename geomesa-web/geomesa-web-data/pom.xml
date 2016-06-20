@@ -88,12 +88,10 @@
         <dependency>
             <groupId>org.scalatra</groupId>
             <artifactId>scalatra-json_2.11</artifactId>
-            <version>${scalatra.version}</version>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-native_2.11</artifactId>
-            <version>3.2.10</version>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
