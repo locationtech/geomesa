@@ -8,4 +8,5 @@ Modules and Libraries
    convert
    jobs
    native_api
+   stream
    web_data
