@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.web.stats
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.filter.text.ecql.ECQL
 import org.json4s.{DefaultFormats, Formats}
 import org.locationtech.geomesa.utils.stats.MinMax
 import org.locationtech.geomesa.web.core.GeoMesaServletCatalog.GeoMesaLayerInfo
@@ -44,41 +45,35 @@ class GeoMesaStatsEndpoint extends GeoMesaScalatraServlet with LazyLogging with 
     }
   }
 
-  /**
-    * Histogram
-    */
-  get("/:workspace/:layer/histogram") {
-    retrieveInfo("histogram") match {
-      case Some(statInfo) => logger.info("Found a GeoMesa datastore for the layer")
-        val sft = statInfo.sft
-        logger.info(s"SFT for layer is $sft.")
-
-        statInfo.ads.stats.getCount(sft) match {
-          case Some(count) => logger.info(s"Got count $count")
-            count
-          case None =>        logger.info(s"No estimated count for ${sft.getTypeName}")
-            BadRequest(s"Estimated count for ${sft.getTypeName} is not available.")
-        }
-
-      case _ => BadRequest("No registered datastore.")
-    }
-  }
-
   // Returns an estimated count for the entire layer.
   get("/:workspace/:layer/count") {
     retrieveInfo("count") match {
-      case Some(statInfo) => logger.info("Found a GeoMesa datastore for the layer")
+      case Some(statInfo) =>
+        val layer = params("layer")
         val sft = statInfo.sft
-        logger.info(s"SFT for layer is $sft.")
 
-        statInfo.ads.stats.getCount(sft) match {
-          case Some(count) => logger.info(s"Got count $count")
+        logger.debug(s"Found a GeoMesa Accumulo datastore for $layer")
+        logger.debug(s"SFT for $layer is $sft.")
+
+        val geomesaStats = statInfo.ads.stats
+        val countStat = params.get(GeoMesaStatsEndpoint.CqlFilterParam) match {
+          case Some(filter) =>
+            val cqlFilter = ECQL.toFilter(filter)
+            logger.debug(s"Querying with filter: $filter")
+            geomesaStats.getCount(sft, cqlFilter)
+          case None => geomesaStats.getCount(sft)
+        }
+
+        countStat match {
+          case Some(count) =>
+            logger.debug(s"Retrieved count $count for $layer")
             count
-          case None =>        logger.info(s"No estimated count for ${sft.getTypeName}")
+          case None =>
+            logger.debug(s"No estimated count for ${sft.getTypeName}")
             BadRequest(s"Estimated count for ${sft.getTypeName} is not available.")
         }
 
-      case _ => BadRequest("No registered datastore.")
+      case _ => BadRequest(s"No registered layer called ${params("layer")}")
     }
   }
 
@@ -91,7 +86,7 @@ class GeoMesaStatsEndpoint extends GeoMesaScalatraServlet with LazyLogging with 
 
         statInfo.ads.stats.getBounds(sft)
 
-      case _ => BadRequest("No registered datastore.")
+      case _ => BadRequest(s"No registered layer called ${params("layer")}")
     }
   }
 
@@ -104,16 +99,20 @@ class GeoMesaStatsEndpoint extends GeoMesaScalatraServlet with LazyLogging with 
 
         val bounds = statInfo.ads.stats.getStats[MinMax[Any]](sft, attrNames)
         bounds.map(_.toJson).mkString("[", ",", "]")
-      case _ => BadRequest("No registered datastore.")
+      case _ => BadRequest(s"No registered layer called ${params("layer")}")
     }
   }
 
   def retrieveInfo(call: String): Option[GeoMesaLayerInfo] = {
     val workspace = params("workspace")
     val layer     = params("layer")
-    logger.info(s"Received $call request for workspace: $workspace and layer: $layer.")
+    logger.debug(s"Received $call request for workspace: $workspace and layer: $layer.")
     GeoMesaServletCatalog.getGeoMesaLayerInfo(workspace, layer)
   }
+}
+
+object GeoMesaStatsEndpoint {
+  val CqlFilterParam = "cql_filter"
 }
 
 
