@@ -110,7 +110,7 @@ This library can be downloaded from your local nexus repo or `http://download.ja
 
 To install, copy the jai_core.jar and jai_codec.jar into `$GEOMESA_HOME/lib/`
 
-Optionally there is a script bundled as `$GEOMESA_HOME/bin/install-jai` that will attempt to wget and install 
+Optionally there is a script bundled as `$GEOMESA_HOME/bin/install-jai.sh` that will attempt to wget and install
 the jai libraries.
 
 
@@ -141,7 +141,7 @@ Due to licensing restrictions, a number of necessary dependencies required for r
 
 To install, you can either locate the JAR files or run the following included script which will attempt to wget and install the JARs.
 
-`$GEOMESA_HOME/bin/install-jai`
+`$GEOMESA_HOME/bin/install-jai.sh`
  
 ###Logging configuration
 GeoMesa tools comes bundled by default with an slf4j implementation that is installed to the $GEOMESA_HOME/lib directory
