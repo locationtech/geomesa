@@ -468,6 +468,16 @@ There is a script in the ``geomesa-tools-$VERSION`` directory
 dependencies to a target directory using ``wget`` (requires an internet
 connection).
 
+For HBase
+^^^^^^^^^
+
+See :ref:`install_hbase_geoserver`.
+
+For Cassandra
+^^^^^^^^^^^^^
+
+See :ref:`install_cassandra_geoserver`.
+
 Upgrading
 ---------
 
