@@ -1,7 +1,8 @@
 GeoMesa Stream Processing
 =========================
 
-The GeoMesa Stream library provides tools to process streams of
+The GeoMesa Stream library (``geomesa-stream`` in the source distribution)
+provides tools to process streams of
 ``SimpleFeatures``. The library can be used to instantiate a
 ``DataStore`` either in GeoServer or in a user's application to serve as
 a constant source of ``SimpleFeatures``. For example, you can

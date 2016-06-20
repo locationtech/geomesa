@@ -1,7 +1,8 @@
 GeoMesa Web Data
 ================
 
-The GeoMesa Web Data modules is found in ``geomesa-web/geomesa-web-data`` in the source distribution.
+The GeoMesa Web Data modules is found in ``geomesa-web/geomesa-web-data`` in
+the source distribution.
 
 Building Instructions
 ---------------------
@@ -22,17 +23,17 @@ To install geomesa-web-data, extract all jars from
 into your geoserver lib folder. You will need to copy
 ``spark-<version>-geomesa-assembly.jar`` into the geoserver lib folder,
 and if not already installed you will need to install the
-`**geomesa-accumulo-gs-plugin** <../../geomesa-gs-plugin/geomesa-accumulo-geoserver-plugin>`__.
+GeoMesa Accumulo plugin (see :ref:`install_accumulo_geoserver`).
 
 To get the required Spark jar, you may build the geomesa-web-install
 project using the 'assemble' profile. Please note GeoMesa does not
 bundle Spark by default, and that Spark has not been approved for
 distribution under the GeoMesa license.
 
-You will need hadoop and slf4j jars that are compatible with your spark
-install. For a full list of jars from a working GeoServer instance,
-refer to `Appendix A <#appendix-a-geoserver-jars>`__. Of note, slf4j
-needs to be version 1.6.1, you will need to add the hadoop-yarn jars and
+You will need Hadoop and Slf4j jars that are compatible with your Spark
+installation. For a full list of jars from a working GeoServer instance,
+refer to :ref:`Spark_geoserver_jars`. Of note, slf4j
+needs to be version 1.6.1; you will need to add the hadoop-yarn jars and
 commons-cli jar.
 
 In addition to installing jars, you will need to ensure that the hadoop
@@ -89,7 +90,7 @@ Advanced Configuration
 Distributed Jars
 ^^^^^^^^^^^^^^^^
 
-The spark context will load a list of distributed jars to the remote
+The Spark context will load a list of distributed jars to the remote
 cluster. This can be overridden by supplying a file called
 ``spark-jars.list`` on the classpath. This file should contain jar file
 name prefixes, one per line, which will be loaded from the environment.
@@ -99,7 +100,7 @@ file containing 'slf4j-api'.
 Distributed Classloading
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-The spark context may not load distributed jars properly, resulting in
+The Spark context may not load distributed jars properly, resulting in
 serialization exceptions in the remote cluster. You may force the
 classloading of distributed jars by setting the following system
 property:
@@ -111,7 +112,7 @@ property:
 Analytic Web Service
 --------------------
 
-The analytic endpoint provides the ability to run spark jobs through a
+The analytic endpoint provides the ability to run Spark jobs through a
 web service.
 
 The main context path is ``/geoserver/geomesa/analytics``
@@ -138,7 +139,7 @@ The following paths are defined:
     -  caching (optional)
 
 This method must be called to register any data store you wish to query
-later. It should not be called while the spark context is running.
+later. It should not be called while the Spark context is running.
 Registered data stores will persist between geoserver reboots.
 
 -  DELETE /ds/:alias - Delete a previously registered GeoMesa data store
