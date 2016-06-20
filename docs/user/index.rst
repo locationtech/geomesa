@@ -13,7 +13,7 @@ User Manual
    cassandra_datastore
    blobstore
    native_api
-   stats_api
+   jobs
    geoserver
    commandline_tools
    data_management

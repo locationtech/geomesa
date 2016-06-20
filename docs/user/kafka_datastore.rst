@@ -1,6 +1,9 @@
 Kafka Data Store
 ================
 
+The GeoMesa Kafka Data Store is found in ``geomesa-kafka`` in the source
+distribution.
+
 The ``KafkaDataStore`` is an implementation of the GeoTools
 ``DataStore`` interface that is backed by Apache Kafka. The
 implementation supports the ability for feature producers to instantiate

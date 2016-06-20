@@ -3,7 +3,7 @@ HBase/BigTable Data Stores
 
 HBase
 -----
-The code for the HBase support is found in two modules:
+The code for the HBase support is found in two modules in the source distribution.
 
 * **geomesa-hbase/geomesa-hbase-datastore** - the core GeoMesa HBase datastore
 * **geomesa-gs-plugin/geomesa-hbase-gs-plugin** - the GeoServer bundle for GeoMesa HBase

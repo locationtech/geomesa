@@ -1,7 +1,9 @@
 Accumulo Data Store
 ===================
 
-The data store module contains all of the Accumulo-related code for GeoMesa. This includes client code and distributed iterator code for the Accumulo tablet servers.
+The GeoMesa Accumulo Data Store module (``geomesa-accumulo`` in the source distribution)
+contains all of the Accumulo-related code for GeoMesa. This includes client code and
+distributed iterator code for the Accumulo tablet servers.
 
 Installation
 ------------
@@ -46,7 +48,7 @@ See :doc:`./geoserver`.
 Indexing Strategies
 -------------------
 
-GeoMesa uses several different strategies to index simple features. In the code, these strategies are abstracted as 'tables'. For details on how GeoMesa encodes and indexes data, see tables. For details on how GeoMesa chooses and executes queries, see the ``org.locationtech.geomesa.accumulo.index.QueryPlanner`` and ``org.locationtech.geomesa.accumulo.index.QueryStrategyDecider`` classes.
+GeoMesa uses several different strategies to index simple features. In the code, these strategies are abstracted as 'tables'. For details on how GeoMesa encodes and indexes data, see tables. For details on how GeoMesa chooses and executes queries, see the `org.locationtech.geomesa.accumulo.index.QueryPlanner <https://github.com/locationtech/geomesa/blob/master/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/QueryPlanner.scala>`__ and `org.locationtech.geomesa.accumulo.index.QueryStrategyDecider <https://github.com/locationtech/geomesa/blob/master/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/QueryStrategyDecider.scala>`__ classes.
 
 Explaining:  Query Plans
 ------------------------
@@ -68,4 +70,4 @@ GeoMesa uses Accumulo iterators to push processing out to the whole cluster. The
 
 We use several techniques to improve iterator performance. For one, we only deserialize the attributes of a simple feature that we need to evaluate a given query. When retrieving attributes, we always look them up by index, instead of by name. For aggregating queries, we create partial aggregates in the iterators, instead of doing all the processing in the client. The main goals are to minimize disk reads, processing and bandwidth as much as possible.
 
-For more details, see the ``org.locationtech.geomesa.accumulo.iterators`` package.
+For more details, see the `org.locationtech.geomesa.accumulo.iterators <https://github.com/locationtech/geomesa/tree/master/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/iterators>`__ package.

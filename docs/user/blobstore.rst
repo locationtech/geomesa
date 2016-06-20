@@ -46,7 +46,7 @@ Other Blob Store commands:
 
 -  GET /ds/:alias - Display a registered GeoMesa data store
 
--  GET /ds/ - Display all registered .
+-  GET /ds/ - Display all registered BlobStores
 
 To ingest a file:
 
