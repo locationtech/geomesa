@@ -2,7 +2,7 @@ GeoMesa Development
 ===================
 
 This chapter describes how to build GeoMesa from source and provides an
-overview for writing your own Java or Scala software that makes use of GeoMesa.
+overview of the process of developing GeoMesa.
 
 Using Maven
 -----------
@@ -73,8 +73,14 @@ The ``build/mvn`` script is a wrapper around Maven that builds the project using
     $ build/mvn clean install -Daccumulo-1.5  # Accumulo 1.5
     $ build/mvn clean install                 # Accumulo 1.6
 
+Scala
+-----
+
+For the most part, GeoMesa is written in `Scala <http://www.scala-lang.org/>`__,
+and is compiled with Scala 2.11.7.
+
 Using the Scala Console
------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 
 To test and interact with core functionality, the Scala console can be invoked in a couple of ways. For example, by
 running this command in the root source directory:
