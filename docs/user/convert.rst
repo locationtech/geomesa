@@ -1,10 +1,8 @@
-.. _geomesa-convert:
-
-geomesa-convert
+GeoMesa Convert
 ===============
 
 A configurable and extensible library for converting data into
-SimpleFeatures.
+SimpleFeatures, found in ``geomesa-convert`` in the source distribution.
 
 Overview
 --------
@@ -48,17 +46,17 @@ transforming it into our ``SimpleFeatureType``.
 
 ::
 
-     {
-       type         = "delimited-text",
-       format       = "CSV",
-       id-field     = "md5($0)",
-       fields = [
-         { name = "phrase", transform = "concatenate($1, $2)" },
-         { name = "lat",    transform = "$4::double" },
-         { name = "lon",    transform = "$5::double" },
-         { name = "dtg",    transform = "dateHourMinuteSecondMillis($3)" },
-         { name = "geom",   transform = "point($lon, $lat)" }
-       ]
+     { 
+      type         = "delimited-text",
+      format       = "CSV",
+      id-field     = "md5($0)",
+      fields = [
+        { name = "phrase", transform = "concatenate($1, $2)" },
+        { name = "lat",    transform = "$4::double" },
+        { name = "lon",    transform = "$5::double" },
+        { name = "dtg",    transform = "dateHourMinuteSecondMillis($3)" },
+        { name = "geom",   transform = "point($lon, $lat)" }
+      ]
      }
 
 The ``id`` of the ``SimpleFeature`` is formed from an md5 hash of the
@@ -151,7 +149,7 @@ to load functions from. Then, any function you define in a file in one
 of those paths will be available in a convert definition with a
 namespace prefix. For instance, if you have defined a function such as
 
-.. code:: javascript
+.. code-block:: javascript
 
     function hello(s) {
        return "hello: " + s;
@@ -159,6 +157,22 @@ namespace prefix. For instance, if you have defined a function such as
 
 you can reference that function in a transform expression as
 ``js:hello($2)``
+
+CQL Functions
+~~~~~~~~~~~~~
+
+Most of the basic CQL functions are available as transformations. To use
+one, invoke it like a regular function, prefixed with the ``cql``
+namespace. For example, you can use the CQL buffer function to turn a
+point into a polygon:
+
+::
+
+    cql:buffer($1, 2.0)
+
+For more information on the various CQL functions, see the GeoServer
+`filter function
+reference <http://docs.geoserver.org/stable/en/user/filter/function_reference.html#filter-function-reference>`__.
 
 JSON/Avro Transformations
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -677,7 +691,7 @@ delimiters for a map:
 
 ::
 
-      { name = "numbers", transform = "parseMap('int -> string', $2, ',', '->')" }
+    { name = "numbers", transform = "parseMap('int -> string', $2, ',', '->')" }
 
 Parsing JSON
 ------------
@@ -895,7 +909,7 @@ To add new transformation functions, create a
 For example, here's how to add a new transformation function that
 computes a SHA-256 hash.
 
-.. code:: scala
+.. code-block:: scala
 
     import org.locationtech.geomesa.convert.TransformerFunctionFactory
     import org.locationtech.geomesa.convert.TransformerFn
@@ -944,18 +958,24 @@ Sample csv file: ``example.csv``:
 
 The "renegades" SFT and "renegades-csv" converter should be specified in
 the GeoMesa Tools configuration file
-(``$GEOMESA_HOME/conf/application.conf``). Use ``geomesa env`` to
-confirm that ``geomesa ingest`` can properly read the updated file.
+(``$GEOMESA_HOME/conf/application.conf``). By default,
+SimpleFeatureTypes (SFTs) should be loaded at the path ``geomesa.sfts``
+and converters should be loaded at the path ``geomesa.converters``. Each
+converter and SFT definition is keyed by the name that can be referenced
+in the converter and SFT loaders.
+
+Use ``geomesa env`` to confirm that ``geomesa ingest`` can properly read
+the updated file.
 
 ``$GEOMESA_HOME/conf/application.conf``:
 
 ::
 
-    geomesa {
-      sfts {
+    geomesa = {
+      sfts = {
         # other sfts
         # ...
-        renegades {
+        "renegades" = {
           attributes = [
             { name = "id",       type = "Integer",      index = false                             }
             { name = "name",     type = "String",       index = true                              }
@@ -966,10 +986,10 @@ confirm that ``geomesa ingest`` can properly read the updated file.
           ]
         }
       }
-      converters {
+      converters = {
         # other converters
         # ...
-        renegades-csv {
+        "renegades-csv" = {
           type = "delimited-text",
           format = "CSV",
           options {
@@ -989,3 +1009,32 @@ confirm that ``geomesa ingest`` can properly read the updated file.
         }
       }
     }
+
+Loading Converters and SFTs at Runtime
+--------------------------------------
+
+If you have defined converters or SFTs in typesafe config you can place
+them on the classpath or load them with a ConverterConfigProvider or
+SimpleFeatureTypeProvider via Java SPI loading. By default, classpath
+and URL providers are provided. Placing a typesafe config file named
+``reference.conf`` containing properly formatted converters and SFTs
+(see example application.conf above) in a jar file on the classpath will
+enable the reference of the converters and SFTs using the public loader
+API:
+
+.. code-block:: scala
+
+    // ConverterConfigLoader.scala
+    // Public API
+    def listConverterNames: List[String] = confs.keys.toList
+    def getAllConfigs: Map[String, Config] = confs
+    def configForName(name: String) = confs.get(name)
+
+    // SimpleFeatureTypeLoader.scala
+    // Public API
+    def listTypeNames: List[String] = sfts.map(_.getTypeName)
+    def sftForName(n: String): Option[SimpleFeatureType] = sfts.find(_.getTypeName == n)
+
+The `GeoMesa gm-data project <https://github.com/geomesa/gm-data>`__
+contains common data formats packaged in jar files that can be placed on
+the classpath of your project.

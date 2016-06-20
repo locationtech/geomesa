@@ -1,7 +1,8 @@
-geomesa-stream
-==============
+GeoMesa Stream Processing
+=========================
 
-The GeoMesa Stream library provides tools to process streams of
+The GeoMesa Stream library (``geomesa-stream`` in the source distribution)
+provides tools to process streams of
 ``SimpleFeatures``. The library can be used to instantiate a
 ``DataStore`` either in GeoServer or in a user's application to serve as
 a constant source of ``SimpleFeatures``. For example, you can
@@ -26,7 +27,7 @@ Usage
 To illustrate usage, assume we are processing a stream of Twitter data
 as a csv. The configuration in GeoServer is as follows:
 
-.. code:: javascript
+.. code-block:: javascript
 
     {
       type         = "generic"
@@ -58,7 +59,7 @@ messages that have the following columns: ``user``, ``msg``, ``lon``,
 ``lat``, ``dtg``. To instantiate a ``DataStore`` for this type that
 keeps the last 30 seconds of tweets, use the following code.
 
-.. code:: scala
+.. code-block:: scala
 
     val ds = DataStoreFinder.getDataStore(
       Map(
@@ -70,7 +71,7 @@ To query this stream source, use a ``FilterFactory`` from
 ``org.geotools.factory.CommonFactoryFinder``. To receive notifications
 on new ``SimpleFeatures``, use a ``StreamListener``:
 
-.. code:: scala
+.. code-block:: scala
 
     val listener = 
       new StreamListener {
@@ -79,7 +80,7 @@ on new ``SimpleFeatures``, use a ``StreamListener``:
     ds.asInstanceOf[org.locationtech.geomesa.stream.datastore.StreamDataStore].registerListener(listener)
 
 UDP
-~~~
+----
 
 The generic source can be used with UDP as well, although there are some
 caveats:
@@ -90,7 +91,7 @@ caveats:
 -  Each UDP packet data must end with a newline character
 -  Each UDP packet data must contain exactly one line - everything after
    the newline will be dropped
--  Maximum text line size can be controlled by the route parameter
+-  Maximun text line size can be controlled by the route parameter
    'decoderMaxLineLength' with a maximum value of 2048
 -  If the message is longer than the line size then the message will be
    dropped

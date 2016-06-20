@@ -1,63 +1,8 @@
-The GeoMesa API
-===============
+Kafka Data Store
+================
 
-This chapter describes the data structures and usage of the GeoMesa API.
-
-GeoTools DataStore
-------------------
-
-GeoMesa provides multiple classes that implement the `GeoTools <http://geotools.org>`_ |geotools_version| `DataStore <http://docs.geotools.org/latest/userguide/library/api/datastore.html>`_ class, each of which uses a different backing store. These include ``DataStore``\ s that use Accumulo or Kafka.
-
-Accumulo DataStore
-^^^^^^^^^^^^^^^^^^
-The data store module contains all of the Accumulo-related code for GeoMesa. This includes client code and distributed iterator code for the Accumulo tablet servers.
-
-Creating a Data Store
-~~~~~~~~~~~~~~~~~~~~~
-
-An instance of an Accumulo data store can be obtained through the normal GeoTools discovery methods, assuming that the GeoMesa code is on the classpath:
-
-.. code-block:: java
-
-    Map<String, String> parameters = new HashMap<>;
-    parameters.put("instanceId", "myInstance");
-    parameters.put("zookeepers", "zoo1,zoo2,zoo3");
-    parameters.put("user", "myUser");
-    parameters.put("password", "myPassword");
-    parameters.put("tableName", "my_table");
-    org.geotools.data.DataStore dataStore = org.geotools.data.DataStoreFinder.getDataStore(parameters);
-
-More information on using GeoTools can be found in the `GeoTools user guide <http://docs.geotools.org/stable/userguide/>`_.
-
-Indexing Strategies
-~~~~~~~~~~~~~~~~~~~
-
-GeoMesa uses several different strategies to index simple features. In the code, these strategies are abstracted as 'tables'. For details on how GeoMesa encodes and indexes data, see tables. For details on how GeoMesa chooses and executes queries, see the ``org.locationtech.geomesa.accumulo.index.QueryPlanner`` and ``org.locationtech.geomesa.accumulo.index.QueryStrategyDecider`` classes.
-
-Explaining:  Query Plans
-++++++++++++++++++++++++
-
-Given a data store and a query, you can ask GeoMesa to explain its plan for how to execute the query:
-
-.. code-block:: java
-
-    dataStore.getQueryPlan(query, explainer = new ExplainPrintln);
-
-Instead of ``ExplainPrintln``, you can also use ``ExplainString`` or ``ExplainLogging`` to redirect the explainer output elsewhere.  (For the ``ExplainLogging``, it may be helpful to refer to GeoServer's `Advanced log configuration <http://docs.geoserver.org/2.8.x/en/user/advanced/logging.html>`_ documentation for the specifics of how and where to manage the GeoServer logs.)
-
-Knowing the plan -- including information such as the indexing strategy -- can be useful when you need to debug slow queries.  It can suggest when indexes should be added as well as when query-hints may expedite execution times.
-
-Iterator Stack
-~~~~~~~~~~~~~~
-
-GeoMesa uses Accumulo iterators to push processing out to the whole cluster. The iterator stack can be considered a 'tight inner loop' - generally, every feature returned will be processed in the iterators. As such, the iterators have been written for performance over readability.
-
-We use several techniques to improve iterator performance. For one, we only deserialize the attributes of a simple feature that we need to evaluate a given query. When retrieving attributes, we always look them up by index, instead of by name. For aggregating queries, we create partial aggregates in the iterators, instead of doing all the processing in the client. The main goals are to minimize disk reads, processing and bandwidth as much as possible.
-
-For more details, see the ``org.locationtech.geomesa.accumulo.iterators`` package.
-
-Kafka DataStore
-^^^^^^^^^^^^^^^
+The GeoMesa Kafka Data Store is found in ``geomesa-kafka`` in the source
+distribution.
 
 The ``KafkaDataStore`` is an implementation of the GeoTools
 ``DataStore`` interface that is backed by Apache Kafka. The
@@ -78,8 +23,13 @@ in *replay* mode will pull data from a specified time interval in the
 past and can provide features as they existed at any point in time
 within that interval.
 
+Installation
+------------
+
+Use of the Kafka data store does not require server-side configuration.
+
 Usage/Configuration
-~~~~~~~~~~~~~~~~~~~
+-------------------
 
 To create a ``KafkaDataStore`` there are two required properties, one
 for the Apache Kafka connection, "brokers", and one for the Apache
@@ -105,11 +55,11 @@ on the Kafka Data Store Producer it cannot be called on the Kafka
 Consumer Data Store Consumer.
 
 Data Producers
-~~~~~~~~~~~~~~
+--------------
 
 First, create the data store. For example:
 
-.. code-block:: scala
+.. code-block:: java
 
     String brokers = ...
     String zookeepers = ...
@@ -131,7 +81,7 @@ First, create the data store. For example:
 Next, create the schema. Each data store can have one or many schemas.
 For example:
 
-.. code-block:: scala
+.. code-block:: java
 
     SimpleFeatureType sft = ...
     SimpleFeatureType streamingSFT = KafkaDataStoreHelper.createStreamingSFT(sft, zkPath);
@@ -154,7 +104,7 @@ was not created by the ``KafkaDataStoreHelper``.
 
 Now, you can create or update simple features:
 
-.. code-block:: scala
+.. code-block:: java
 
     // the name of the simple feature type -  will be the same as sft.getTypeName();
     String typeName = streamingSFT.getTypeName();
@@ -167,7 +117,7 @@ Now, you can create or update simple features:
 
 Delete simple features:
 
-.. code-block:: scala
+.. code-block:: java
 
     SimpleFeatureStore producerStore = (SimpleFeatureStore) producerDs.getFeatureSource(typeName);
     FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
@@ -177,7 +127,7 @@ Delete simple features:
 
 And, clear (delete all) features:
 
-.. code-block:: scala
+.. code-block:: java
 
     producerStore.removeFeatures(Filter.INCLUDE);
 
@@ -185,11 +135,11 @@ Each operation that creates, modifies, deletes, or clears simple
 features results in a message being sent to the Kafka topic.
 
 Data Consumers
-~~~~~~~~~~~~~~
+--------------
 
 First, create the data store. For example:
 
-::
+.. code-block:: java
 
     String brokers = ...
     String zookeepers = ...
@@ -226,7 +176,7 @@ Now that the Kafka Data Store Consumer has been created it can be
 queried in either *live* or *replay* mode.
 
 Live Mode
-~~~~~~~~~
+---------
 
 Live mode is the default and requires no extra setup. In this mode the
 ``SimpleFeatureSource`` contains the current state of the
@@ -235,7 +185,7 @@ deleted, or cleared by the Kafka Data Store Producer, the current state
 is updated. All queries to the ``SimpleFeatureSource`` are queries
 against the current state. For example:
 
-::
+.. code-block:: java
 
     String typeName = ...
     SimpleFeatureSource liveFeatureSource = consumerDs.getFeatureSource(typeName);
@@ -247,13 +197,13 @@ It is also possible to provide a CQL filter to the getFeatureSource method call 
 the resulting ``FeatureSource`` only contains certain records. Providing a filter to reduce the number of
 returned records will provide a performance boost when using the featureSource.
 
-::
+.. code-block:: java
 
     String typeName = ...
     SimpleFeatureSource liveFeatureSource = consumerDs.getFeatureSource(typeName, filter);
 
 Replay Mode
-~~~~~~~~~~~
+-----------
 
 Replay mode allows the a user to query the ``KafkaDataStore`` as it
 existed at any point in the past. Queries against a Kafka Replay Simple
@@ -264,7 +214,7 @@ be used to answer the query.
 In order to use Replay mode some additional hints are required: the
 start and end times of the replay window and a read behind duration:
 
-::
+.. code-block:: java
 
     Instant replayStart = ...
     Instant replayEnd = ...
@@ -296,7 +246,7 @@ possible.
 After creating the ``ReplayConfig`` pass it, along with the
 ``streamingSFT`` to the ``KafkaDataStoreHelper``:
 
-::
+.. code-block:: java
 
     SimpleFeatureType streamingSFT = consumerDs.getSchema(typeName);
     SimpleFeatureType replaySFT = KafkaDataStoreHelper.createReplaySFT(streamingSFT, replayConfig);
@@ -315,7 +265,7 @@ which represents the historical query time.
 After creating the ``replaySFT`` the Kafka Replay Feature Source may be
 created:
 
-::
+.. code-block:: java
 
     consumerDs.createSchema(replaySFT);
 
@@ -327,22 +277,27 @@ new ``SimpleFeatureType``.
 
 Finally the Kafka Replay Consumer Feature Source can be queried:
 
-::
+.. code-block:: java
 
     Instant historicalTime = ...
     Filter timeFilter = ff.and(filter, ReplayTimeHelper.toFilter(historicalTime));
 
     replayFeatureSource.getFeatures(timeFilter);
 
+Using the Kafka Data Store in GeoServer
+---------------------------------------
+
+See :doc:`./geoserver`.
+
 Command Line Tools
-~~~~~~~~~~~~~~~~~~
+------------------
 
 The KafkaGeoMessageFormatter, part of geomesa-kafka-datastore, may be
 used with the ``kafka-console-consumer``, part of Apache Kafka. In order
 to use this formatter call the kafka-console consumer with these
 additional arguments:
 
-::
+.. code-block:: bash
 
     --formatter org.locationtech.geomesa.kafka.KafkaGeoMessageFormatter
     --property sft.name={sftName}
