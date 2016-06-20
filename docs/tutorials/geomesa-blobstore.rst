@@ -7,6 +7,7 @@ This tutorial will show you:
 2. How to extend the BlobStore with FileHandlers
 3. How to deploy the GeoMesa BlobStore Servlet
 4. How to add FileHandlers to the servlet deploy
+5. How to use the RESTful API
 
 Prerequisites
 -------------
@@ -63,11 +64,87 @@ Classes the implement the FileHandler interface are loaded at runtime by the Jav
 To make a class that implements the interface available at runtime the classname should be registered in *META-INF/services/org.locationtech.geomesa.blob.api.FileHandler*.
 
 
-GeoMesa BlobStore Servlet Instructions
---------------------------------------
+GeoMesa BlobStore Servlet Installation Instructions
+---------------------------------------------------
 
+The GeoMesa BlobStore Servlet provides a easy to use RESTful api for interaction with multiple BlobStores.
+As of now the the BlobStore only provides an interface to an Accumulo backed DataStore and BlobStore.
 
+You should have already followed the instructions in :doc:`/user/installation_and_configuration` on how to setup GeoMesa.
+In particular the instructions on how to setup GeoServer with GeoMesa should have been followed before attempting to deploy the blobstore servlet.
 
+To deploy the BlobStore Servlet into your GeoServer, extract the contents of ``geomesa-blobstore-gs-plugin-$VERSION.tar.gz`` file in ``geomesa-$VERSION/dist/gs-plugins``
+into your GeoServer's ``lib`` directory (``$VERSION`` = |release|):
+
+If you are using Tomcat:
+
+.. code-block:: bash
+
+    $ tar -xzvf \
+      geomesa-$VERSION/dist/gs-plugins/geomesa-blobstore-gs-plugin-$VERSION-install.tar.gz \
+      -C /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
+
+If you are using GeoServer's built in Jetty web server:
+
+.. code-block:: bash
+
+    $ tar -xzvf \
+      geomesa-$VERSION/dist/gs-plugins/geomesa-blobstore-gs-plugin-$VERSION-install.tar.gz \
+      -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib/
 
 Adding FileHandlers to the Web Deploy
 -------------------------------------
+
+Individual FileHandlers can be made available to the Servlet by similarly placing the jars in the same *geoserver/WEB-INF/lib/*
+directory as the rest of the blobstore servlet components.
+
+
+RESTful API
+-----------
+
+Once the servlet is deployed the RESTful api for the Blobstore can be easily utilized via cURL.
+DataStores are managed by assigning them to aliases, this allows users to connect to multiple blobstores.
+Below is an example cURL request that registers an Accumulo Data Store to the alias *myBlobStore*
+
+.. code-block:: bash
+
+    $ curl -d 'instanceId=myCloud' -d 'zookeepers=zoo1,zoo2,zoo3' -d 'tableName=myBlobStore' \
+      -d 'user=user' -d 'password=password' http://localhost:8080/geoserver/geomesa/blobstore/ds/myBlobStore
+
+Once a BlobStore has been registered via the servlet the BlobStore can be accessed.
+Additionally to manage registered BlobStores the user has the following commands available:
+
+- DELETE /ds/:alias - Delete a previously registered GeoMesa data store
+
+- GET /ds/:alias - Display a registered GeoMesa data store
+
+- GET /ds/ - Display all registered BlobStores
+
+To ingest a file to the BlobStore run:
+
+.. code-block:: bash
+
+    $ curl -X POST -F file=@filename.whatever http://localhost:8080/geoserver/geomesa/blobstore/blob/:alias
+
+
+To GET a file with the original filename preserved via id, run:
+
+.. code-block:: bash
+
+    $ curl -JO http://localhost:8080/geoserver/geomesa/blobstore/blob/:alias/some-id/
+
+
+The Blobstore servlet also has optional GZip support which can be used by adding the `--compressed` cURL parameter.
+
+.. code-block:: bash
+
+    $ curl --compressed -JO http://localhost:8080/geoserver/geomesa/blobstore/blob/:alias/some-id
+
+
+To DELETE a file from the blobstore, you must do so by id:
+
+.. code-block:: bash
+
+    $ curl -X "DELETE" http://localhost:8080/geoserver/geomesa/blobstore/blob/:alias/some-id
+
+
