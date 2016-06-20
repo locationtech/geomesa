@@ -36,7 +36,7 @@ The RESTful API for the Blobstore can be easily utilized via cURL.
 
 To register a GeoMesa Blob Store to an alias (in this case myBlobStore):
 
-.. code:: bash
+.. code-block:: bash
 
     curl -d 'instanceId=myCloud' -d 'zookeepers=zoo1,zoo2,zoo3' -d 'tableName=myBlobStore' -d 'user=user' -d 'password=password' http://localhost:8080/geoserver/geomesa/blobstore/ds/myBlobStore
 
@@ -50,26 +50,26 @@ Other Blob Store commands:
 
 To ingest a file:
 
-.. code:: bash
+.. code-block:: bash
 
     curl -X POST -F file=@filename.whatever http://localhost:8080/geoserver/geomesa/blobstore/blob/:alias
 
 To GET a file with the original filename preserved via id, run:
 
-.. code:: bash
+.. code-block:: bash
 
     curl -JO http://localhost:8080/geoserver/geomesa/blobstore/blob/:alias/some-id/
 
 The Blobstore servlet also has optional GZip support which can be used
 by adding the ``--compressed`` cURL parameter.
 
-.. code:: bash
+.. code-block:: bash
 
     curl --compressed -JO http://localhost:8080/geoserver/geomesa/blobstore/blob/:alias/some-id
 
 To DELETE a file from the blobstore, you must do so by id:
 
-.. code:: bash
+.. code-block:: bash
 
     curl -X "DELETE" http://localhost:8080/geoserver/geomesa/blobstore/blob/:alias/some-id   
 
@@ -79,11 +79,11 @@ Servlet Configuration Options
 File upload constraints for the ``BlobstoreServlet`` can be configured with
 the following system properties:
 
-.. code:: bash
+.. code-block:: bash
 
     org.locationtech.geomesa.blob.api.maxFileSizeMB    (defaults to 50MB)
 
-.. code:: bash
+.. code-block:: bash
 
     org.locationtech.geomesa.blob.api.maxRequestSizeMB (defaults to 100MB)  
 

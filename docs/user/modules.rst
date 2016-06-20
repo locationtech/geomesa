@@ -8,3 +8,4 @@ Modules and Libraries
    convert
    jobs
    native_api
+   web_data
