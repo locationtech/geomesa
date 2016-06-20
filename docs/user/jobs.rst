@@ -1,22 +1,20 @@
-.. _geomesa-jobs:
-
-geomesa-jobs
+GeoMesa Jobs
 ============
 
 Building Instructions
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 
-This project contains map/reduce and scalding jobs for maintaining
-GeoMesa.
+This project (``geomesa-jobs`` in the source distribution) contains Map-Reduce
+and Scalding jobs for maintaining GeoMesa.
 
 If you wish to build this project separately, you can with maven:
 
-.. code:: shell
+.. code-block:: shell
 
     geomesa> mvn clean install -pl geomesa-jobs
 
 GeoMesa Input and Output Formats
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------
 
 GeoMesa provides input and output formats that can be used in Hadoop
 map/reduce jobs. The input/output formats can be used directly in Scala,
@@ -70,14 +68,14 @@ exist in GeoMesa, it will be created for you. You may write different
 catalog table.
 
 Map/Reduce Jobs
-~~~~~~~~~~~~~~~
+---------------
 
 To facilitate running jobs, you may wish to build a shaded jar that
 contains all the required dependencies. Ensure that the pom references
 the correct versions of hadoop, accumulo etc for your cluster, then
 build the project using the 'assemble' profile
 
-.. code:: shell
+.. code-block:: shell
 
     geomesa> mvn clean install -P assemble -pl geomesa-jobs
 
@@ -99,7 +97,7 @@ You only need to run this job once.
 The job can be invoked through yarn as follows (jar version may vary
 slightly):
 
-.. code:: shell
+.. code-block:: shell
 
     geomesa> yarn jar geomesa-jobs/target/geomesa-jobs-1.0.0-shaded.jar \
         org.locationtech.geomesa.jobs.index.AttributeIndexJob \
@@ -130,7 +128,7 @@ the original names.
 The job can be invoked through yarn as follows (jar version may vary
 slightly):
 
-.. code:: shell
+.. code-block:: shell
 
     yarn jar geomesa-jobs/target/geomesa-jobs-1.0.0-shaded.jar \
         org.locationtech.geomesa.jobs.index.SchemaCopyJob \

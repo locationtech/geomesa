@@ -7,6 +7,12 @@ User Manual
    introduction
    architecture
    installation_and_configuration
+   datastores
+   accumulo_datastore
+   kafka_datastore
+   hbase_datastore
+   cassandra_datastore
+   modules
    geoserver
    commandline_tools
    data_management
