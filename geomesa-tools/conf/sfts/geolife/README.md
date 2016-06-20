@@ -47,8 +47,9 @@ If it is not, merge the contents of `reference.conf` with `$GEOMESA_HOME/conf/ap
 
 Run the ingest. You may optionally point to a different accumulo instance using `-i` and `-z` options. See `geomesa help ingest` for more detail.
 
-    geomesa ingest -u USERNAME -c CATALOGNAME -s geolife -c geolife geolife_entry.plt
+    geomesa ingest -u USERNAME -c CATALOGNAME -s geolife -c geolife useridFolder/Trajectory/trackid.plt
 
+**Note:** Pay special attention to the directory structure of the data file. The converter expects this hierarchy in order to correctly parse the user ID and the track ID of the trace. 
 
 Microsoft Research asks that you cite the following papers when using this dataset
 >
