@@ -5,4 +5,3 @@ Developer Manual
    :maxdepth: 2
    
    introduction
-   modules
