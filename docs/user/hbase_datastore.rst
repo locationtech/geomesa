@@ -41,5 +41,4 @@ Experimental support for GeoMesa implemented on Google BigTable.
 The code for BigTable support is found in two modules in the source distribution:
 
 * **geomesa-hbase/geomesa-bigtable-datastore** - contains a stub POM for building a Google BigTable-backed GeoTools data store
-* **geomesa-gs-plugin/geomesa-bigtable-gs-plugin** - contains a stub POM for building a bundle containing
-all of the JARs to use the Google BigTable data store in GeoServer
+* **geomesa-gs-plugin/geomesa-bigtable-gs-plugin** - contains a stub POM for building a bundle containing all of the JARs to use the Google BigTable data store in GeoServer
