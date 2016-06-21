@@ -13,14 +13,15 @@ import com.vividsolutions.jts.geom.Geometry
 import org.geotools.filter.text.ecql.ECQL
 import org.json4s.{DefaultFormats, Formats}
 import org.locationtech.geomesa.accumulo.data.stats.GeoMesaStats
-import org.locationtech.geomesa.tools.accumulo.commands.stats.StatsCommand
-import org.locationtech.geomesa.utils.stats.MinMax
+import org.locationtech.geomesa.tools.accumulo.commands.stats.{StatsHistogramCommand, StatsCommand}
+import org.locationtech.geomesa.utils.stats.{Histogram, Stat, MinMax}
 import org.locationtech.geomesa.web.core.GeoMesaServletCatalog.GeoMesaLayerInfo
 import org.locationtech.geomesa.web.core.{GeoMesaScalatraServlet, GeoMesaServletCatalog}
 import org.scalatra.BadRequest
 import org.scalatra.json._
 
 import scala.collection.JavaConversions._
+import scala.reflect.ClassTag
 
 class GeoMesaStatsEndpoint extends GeoMesaScalatraServlet with LazyLogging with NativeJsonSupport {
   override def root: String = "stats"
@@ -34,20 +35,6 @@ class GeoMesaStatsEndpoint extends GeoMesaScalatraServlet with LazyLogging with 
     contentType = formats(format)
   }
 
-  // Endpoint for debugging
-  get("/:workspace/:layer") {
-    retrieveInfo("get") match {
-      case Some(statInfo) => logger.info("Found a GeoMesa datastore for the layer")
-        val sft = statInfo.sft
-        logger.info(s"SFT for layer is $sft.")
-
-      case _ => logger.info("Didn't find a GeoMesa datastore.  Available ws/layer combinations are:")
-        GeoMesaServletCatalog.getKeys.foreach { case (ws, layer) =>
-          logger.info(s"Workspace: $ws Layer: $layer.")
-        }
-    }
-  }
-
   /**
     * Retrieves an estimated count of the features.
     * (only works against attributes which are cached in the stats table)
@@ -56,7 +43,7 @@ class GeoMesaStatsEndpoint extends GeoMesaScalatraServlet with LazyLogging with 
     *   'cql_filter' - Optional CQL filter.
     */
   get("/:workspace/:layer/count") {
-    retrieveInfo("count") match {
+    retrieveLayerInfo("count") match {
       case Some(statInfo) =>
         val layer = params("layer")
         val sft = statInfo.sft
@@ -64,6 +51,7 @@ class GeoMesaStatsEndpoint extends GeoMesaScalatraServlet with LazyLogging with 
         logger.debug(s"Found a GeoMesa Accumulo datastore for $layer")
         logger.debug(s"SFT for $layer is $sft")
 
+        // obtain stats using cql filter if present
         val geomesaStats = statInfo.ads.stats
         val countStat = params.get(GeoMesaStatsEndpoint.CqlFilterParam) match {
           case Some(filter) =>
@@ -91,12 +79,11 @@ class GeoMesaStatsEndpoint extends GeoMesaScalatraServlet with LazyLogging with 
     * (only works against attributes which are cached in the stats table)
     *
     * params:
-    *   'cql_filter' - Optional CQL filter.
     *   'attributes' - Comma separated attributes list to retrieve bounds for.
     *                  If omitted, the command will fetch bounds for all attributes.
     */
   get("/:workspace/:layer/bounds") {
-    retrieveInfo("bounds") match {
+    retrieveLayerInfo("bounds") match {
       case Some(statInfo) =>
         val layer = params(GeoMesaStatsEndpoint.LayerParam)
         val sft = statInfo.sft
@@ -108,19 +95,19 @@ class GeoMesaStatsEndpoint extends GeoMesaScalatraServlet with LazyLogging with 
           case Some(attributesString) => attributesString.split(',')
           case None => Nil
         }
-
         val attributes = StatsCommand.getAttributes(sft, userAttributes)
-        val statList = statInfo.ads.stats.getStats[MinMax[Any]](sft, attributes)
+
+        val boundStatList = statInfo.ads.stats.getStats[MinMax[Any]](sft, attributes)
 
         val jsonBoundsList = attributes.map { attribute =>
           val i = sft.indexOf(attribute)
-          val out = statList.find(_.attribute == i) match {
+          val out = boundStatList.find(_.attribute == i) match {
             case None => "\"unavailable\""
             case Some(mm) if mm.isEmpty => "\"no matching data\""
             case Some(mm) => mm.toJson
-
           }
-          s"""\"$attribute\": $out"""
+
+          s""""$attribute": $out"""
         }
 
         jsonBoundsList.mkString("{", ", ", "}")
@@ -129,9 +116,17 @@ class GeoMesaStatsEndpoint extends GeoMesaScalatraServlet with LazyLogging with 
     }
   }
 
-  // Gets the spatial envelope for a layer.
-  get("/:workspace/:layer/envelope") {
-    retrieveInfo("envelope") match {
+  /**
+    * Retrieves a histogram of attributes.
+    * (only works against attributes which are cached in the stats table)
+    *
+    * params:
+    *   'attributes' - Comma separated attributes list to retrieve histograms for.
+    *                  If omitted, the command will create histograms for all attributes.
+    *   'bins'       - Number of bins as an integer
+    */
+  get("/:workspace/:layer/histogram") {
+    retrieveLayerInfo("histogram") match {
       case Some(statInfo) =>
         val layer = params(GeoMesaStatsEndpoint.LayerParam)
         val sft = statInfo.sft
@@ -139,12 +134,43 @@ class GeoMesaStatsEndpoint extends GeoMesaScalatraServlet with LazyLogging with 
         logger.debug(s"Found a GeoMesa Accumulo datastore for $layer")
         logger.debug(s"SFT for layer is $sft")
 
-        statInfo.ads.stats.getBounds(sft)
+        val userAttributes: Seq[String] = params.get(GeoMesaStatsEndpoint.AttributesParam) match {
+          case Some(attributesString) => attributesString.split(',')
+          case None => Nil
+        }
+        val attributes = StatsCommand.getAttributes(sft, userAttributes)
+
+        val bins = params.get("bins").map(_.toInt)
+
+        val histograms = statInfo.ads.stats.getStats[Histogram[Any]](sft, attributes).map {
+          case histogram: Histogram[Any] if bins.forall(_ == histogram.length) => histogram
+          case histogram: Histogram[Any] =>
+            val descriptor = sft.getDescriptor(histogram.attribute)
+            val ct = ClassTag[Any](descriptor.getType.getBinding)
+            val attribute = descriptor.getLocalName
+            val statString = Stat.Histogram[Any](attribute, bins.get, histogram.min, histogram.max)(ct)
+            val binned = Stat(sft, statString).asInstanceOf[Histogram[Any]]
+            binned.addCountsFrom(histogram)
+            binned
+        }
+
+        val jsonHistogramList = attributes.map { attribute =>
+          val out = histograms.find(_.attribute == sft.indexOf(attribute)) match {
+            case None => "\"unavailable\""
+            case Some(hist) if hist.isEmpty => "\"no matching data\""
+            case Some(hist) => hist.toJson
+          }
+
+          s""""$attribute": $out"""
+        }
+
+        jsonHistogramList.mkString("{", ", ", "}")
+
       case _ => BadRequest(s"No registered layer called ${params("layer")}")
     }
   }
 
-  def retrieveInfo(call: String): Option[GeoMesaLayerInfo] = {
+  def retrieveLayerInfo(call: String): Option[GeoMesaLayerInfo] = {
     val workspace = params("workspace")
     val layer     = params("layer")
     logger.debug(s"Received $call request for workspace: $workspace and layer: $layer.")
