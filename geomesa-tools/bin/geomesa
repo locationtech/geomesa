@@ -146,10 +146,15 @@ function findJars() {
     echo $CP
 }
 
+function findSftDirs() {
+    DIRS=$(find $GEOMESA_CONF_DIR/sfts -mindepth 1 -type d -exec printf {}: \;)
+    echo ${DIRS%:}
+}
 # Start constructing GEOMESA_CP (classpath)
 # include geomesa first so that the correct log4j.properties is picked up
 GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB/common)"
 GEOMESA_CP="${GEOMESA_CP}:${ACCUMULO_CONF_DIR}:${HADOOP_CONF_DIR}"
+GEOMESA_CP="${GEOMESA_CP}:${GEOMESA_CONF_DIR}:$(findSftDirs)"
 ACCUMULO_CP="$(findJars $ACCUMULO_LIB)"
 
 # Get the hadoop jars, ignoring jars with names containing slf4j and test
