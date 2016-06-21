@@ -14,12 +14,14 @@
 
     <properties>
         <scalatra.version>2.3.0</scalatra.version>
+        <json4s.version>3.2.10</json4s.version>
     </properties>
 
     <modules>
         <module>geomesa-web-core</module>
         <module>geomesa-web-data</module>
         <module>geomesa-web-install</module>
+        <module>geomesa-web-stats</module>
     </modules>
 
     <dependencyManagement>
@@ -202,6 +204,16 @@
                 <groupId>org.scalatra</groupId>
                 <artifactId>scalatra-auth_2.11</artifactId>
                 <version>${scalatra.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scalatra</groupId>
+                <artifactId>scalatra-json_2.11</artifactId>
+                <version>${scalatra.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json4s</groupId>
+                <artifactId>json4s-native_2.11</artifactId>
+                <version>${json4s.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
