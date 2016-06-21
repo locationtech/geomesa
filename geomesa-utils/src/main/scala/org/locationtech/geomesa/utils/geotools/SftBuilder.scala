@@ -129,7 +129,7 @@ abstract class InitBuilder[T] {
       case t if tt == typeOf[Array[Byte]]   => "Bytes"
     }
 
-  private def append(name: String, opts: Opts, typeStr: String) = {
+  def append(name: String, opts: Opts, typeStr: String) = {
     val parts = List(name, typeStr) ++ indexPart(opts.index) ++ stIndexPart(opts.stIndex) ++
         cardinalityPart(opts.cardinality)
     entries += parts.mkString(SepPart)
