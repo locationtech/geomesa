@@ -49,6 +49,16 @@ public interface GeoMesaIndex<T> {
     void insert(String id, T value, Geometry geometry, Date dtg);
 
     /**
+     * Insert a value in the GeoMesa index
+     * @param id identifier to use for the value
+     * @param value
+     * @param geometry
+     * @param dtg date time of the object or null if using spatial only
+     * @param visibility String representation of visibilities
+     */
+    void insert(String id, T value, Geometry geometry, Date dtg, String visibility);
+
+    /**
      * Update a given identifier with a new value
      * @param id
      * @param newValue
