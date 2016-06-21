@@ -915,7 +915,7 @@ For more documentation on converter configuration, check out the [geomesa-conver
 
 Hadoop ships with an implementation of a S3 filesystems that can be enabled in the Hadoop configuration used with GeoMesa Tools. GeoMesa Tools can perform ingest using both the second-generation (`s3n`) and third-generation (`s3a`) filesystems. Edit the `$HADOOP_CONF_DIR/core-site.xml` file in your Hadoop installation, as shown below. These instructions apply to Hadoop 2.5.0 and higher. Note that you must have the environment variable ``HADOOP_MAPRED_HOME`` set properly in your environment. Some configurations can substitute ``HADOOP_PREFIX`` in the classpath values below.
 
-Warning: AWS credentials are valueable. They pay for services and control read and write protection for data. If you are running GeoMesa on AWS EC2 instances, it is recommended to use s3a. With s3a, you can omit the Access Key Id and Secret Access keys from `core-site.xml` and rely on IAM roles. 
+Warning: AWS credentials are valuable. They pay for services and control read and write protection for data. If you are running GeoMesa on AWS EC2 instances, it is recommended to use s3a. With s3a, you can omit the Access Key Id and Secret Access keys from `core-site.xml` and rely on IAM roles. 
 
 ##### s3a
 
@@ -923,7 +923,7 @@ Warning: AWS credentials are valueable. They pay for services and control read a
     <property>
         <name>mapreduce.application.classpath</name>
         <value>$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*:$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*:$HADOOP_MAPRED_HOME/share/hadoop/tools/lib/*</value>
-        <description>The classpath specifically for mapreduce jobs. This override is neeeded so that s3 URLs work on hadoop 2.6.0+</description>
+        <description>The classpath specifically for mapreduce jobs. This override is needed so that s3 URLs work on hadoop 2.6.0+</description>
     </property>
 
     <!-- OMIT these keys if running on AWS EC2; use IAM roles instead -->
@@ -1009,7 +1009,7 @@ input_file out_file`.
         -p, --password
            Accumulo password (will prompt if not supplied)
         --query-threads
-           Threads for quering raster data
+           Threads for querying raster data
       * -t, --raster-table
            Accumulo table for storing raster data
         -T, --timestamp
