@@ -31,7 +31,7 @@ class StatsHistogramCommand(parent: JCommander) extends CommandWithCatalog(paren
 
   override def execute(): Unit = {
     val sft = ds.getSchema(params.featureName)
-    val attributes = StatsCommand.getAttributes(sft, params)
+    val attributes = StatsCommand.getAttributesFromParams(sft, params)
     val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
     val bins = Option(params.bins).map(_.intValue)
 
@@ -269,7 +269,7 @@ object StatsHistogramCommand {
     """                         ,,,________,.:__.,.,,:: ,                 .:,________________________________,,,__________,,                       """,
     """                          __________.,.: .,__,/:                    __.,,,____,:;__.:,.,;__.,:,__________________,, :                       """,
     """                          .,__________,__.,                      ,,.:  : , .::;.,:.,__:,.,__________________,:__   __                       """,
-    """                           ,,,__________.,,                       :,,__.      :,;__________________________,,  ,.:,,                        """,
+    """                           ,println(,,__________.,,                       :,,__.      :,;__________________________,,  ,.:,,                        """,
     """                             :,____.,.,,:                        ______.,.:____,,__,,,____________________.,,,                              """,
     """                              ,,,.,                            ,,________________.,__:.: ,,,______,________.,;                              """,
     """                                 ,,, :,    ;:.                 ________________,. ,__,,,     ,.,,.  ,,__ :                                  """,

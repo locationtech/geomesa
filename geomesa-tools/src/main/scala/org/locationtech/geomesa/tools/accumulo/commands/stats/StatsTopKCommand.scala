@@ -24,7 +24,7 @@ class StatsTopKCommand(parent: JCommander) extends CommandWithCatalog(parent) wi
 
   override def execute() = {
     val sft = ds.getSchema(params.featureName)
-    val attributes = StatsCommand.getAttributes(sft, params)
+    val attributes = StatsCommand.getAttributesFromParams(sft, params)
     val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
     val k = Option(params.k).map(_.intValue)
 

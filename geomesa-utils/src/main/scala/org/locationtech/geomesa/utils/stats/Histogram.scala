@@ -135,9 +135,26 @@ class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T
     }
   }
 
-  override def toJson: String =
-    s"""{ "lower-bound" : ${jsonStringify(bounds._1)}, "upper-bound" : ${jsonStringify(bounds._2)}, """ +
-        s""""bins" : [ ${bins.counts.mkString(", ")} ] }"""
+  override def toJson: String = {
+    val sb = new StringBuilder()
+    sb.append(s"""{ "lower-bound" : ${jsonStringify(bounds._1)}, """)
+    sb.append(s""""upper-bound" : ${jsonStringify(bounds._2)}, "bins" : [ """)
+    var i = 0
+    while (i < bins.length) {
+      sb.append(s"""{ "index": $i, "lower-bound": ${jsonStringify(bounds(i)._1)}, """)
+
+      if (i == bins.length-1) {
+        sb.append(s""""upper-bound": ${jsonStringify(bounds(i)._2)}, "count": ${bins.counts(i)}}""")
+      } else {
+        sb.append(s""""upper-bound": ${jsonStringify(bounds(i)._2)}, "count": ${bins.counts(i)}}, """)
+      }
+
+      i += 1
+    }
+
+    sb.append("] }")
+    sb.toString()
+  }
 
   override def isEmpty: Boolean = bins.counts.forall(_ == 0)
 
