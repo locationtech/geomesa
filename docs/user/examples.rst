@@ -285,6 +285,42 @@ To confirm that GeoMesa can properly parse your edited
         name="gdelt_tsv"
         type=delimited-text
 
+
+Downloading sample data 
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Packaged with geomesa script for easily downloading publicly 
+available data sets and a set of corresponding config files.
+
+The currently available data sets are GDELT_, GeoLife_, OSM-GPX_, T-Drive_, GeoNames_, 
+NYCTaxi_, GTD_, and Twitter_. The first five of which are easily downloadable via a provided script.
+
+.. _GDELT: http://gdeltproject.org/
+.. _GeoLife: http://research.microsoft.com/en-us/projects/geolife/
+.. _OSM-GPX: http://wiki.openstreetmap.org/wiki/Planet.gpx
+.. _T-Drive: http://research.microsoft.com/apps/pubs/?id=152883
+.. _GeoNames: http://www.geonames.org/
+.. _NYCTaxi: https://publish.illinois.edu/dbwork/open-data/
+.. _GTD: http://www.start.umd.edu/gtd/
+.. _Twitter: https://dev.twitter.com/rest/public
+
+To download these sets, run the download script found in geomesa-tools/bin and 
+provide the name of the data set desired. 
+This can be one of ```gdelt```, ```geolife```, ```osm-gpx```, ```tdrive```, or ```geonames```:
+
+Example Usage:
+
+.. code:: bash
+
+    $ ./download-data.sh geolife
+
+Depending on the desired data, you may be prompted further information to specify desired dates or locations.
+
+The resulting data will then be downloaded to ```$GEOMESA_HOME/data```.
+
+Configuration files for these data sets are found under ```$GEOMESA_HOME/conf/sfts```. 
+Modifications to them can seen by running ```geomesa env``` and will be reflected in the next run ingest. 
+
 Running an Ingest
 ^^^^^^^^^^^^^^^^^
 

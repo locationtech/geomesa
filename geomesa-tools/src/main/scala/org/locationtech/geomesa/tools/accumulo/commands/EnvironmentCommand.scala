@@ -61,7 +61,7 @@ class EnvironmentCommand(parent: JCommander) extends Command(parent) with LazyLo
     } else {
       val options = ConfigRenderOptions.defaults().setJson(false).setOriginComments(false)
       def render(c: Config) = c.root().render(options).replaceAll("\n", "\n\t")
-      filtered.map { case (name, conf)=> s"\t${render(conf)}\n"}.foreach(println)
+      filtered.map { case (name, conf)=> s"\t$name\n\t${render(conf)}\n"}.foreach(println)
     }
   }
 }
