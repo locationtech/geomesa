@@ -17,23 +17,34 @@ import org.opengis.feature.simple.SimpleFeatureType
 object StatsCommand {
 
   // gets attributes to run stats on, based on sft and input params
-  def getAttributes(sft: SimpleFeatureType, params: AttributeStatsParams): Seq[String] = {
+  def getAttributesFromParams(sft: SimpleFeatureType, params: AttributeStatsParams): Seq[String] = {
+    getAttributes(sft, params.attributes)
+  }
+
+  /**
+    * Obtains attributes to run stats on
+    *
+    * @param sft the SFT to obtain attribute names from
+    * @param attributes a list of attribute names to pull from the SFT
+    * @return
+    */
+  def getAttributes(sft: SimpleFeatureType, attributes: java.util.List[String]): Seq[String] = {
     import scala.collection.JavaConversions._
 
-    if (params.attributes.isEmpty) {
+    if (attributes.isEmpty) {
       sft.getAttributeDescriptors.filter(GeoMesaStats.okForStats).map(_.getLocalName)
     } else {
-      val descriptors = params.attributes.map(sft.getDescriptor)
+      val descriptors = attributes.map(sft.getDescriptor)
       if (descriptors.contains(null)) {
-        val invalid = params.attributes.zip(descriptors).filter(_._2 == null).map(_._1).mkString("', '")
+        val invalid = attributes.zip(descriptors).filter(_._2 == null).map(_._1).mkString("', '")
         throw new ParameterException(s"Invalid attributes '$invalid' for schema ${sft.getTypeName}")
       }
       if (!descriptors.forall(GeoMesaStats.okForStats)) {
         val invalid = descriptors.filterNot(GeoMesaStats.okForStats)
-            .map(d => s"${d.getLocalName}:${d.getType.getBinding.getSimpleName}").mkString("', '")
+          .map(d => s"${d.getLocalName}:${d.getType.getBinding.getSimpleName}").mkString("', '")
         throw new ParameterException(s"Can't evaluate stats for attributes '$invalid' due to unsupported data types")
       }
-      params.attributes
+      attributes
     }
   }
 }

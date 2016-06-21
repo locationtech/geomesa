@@ -22,7 +22,7 @@ class StatsEnumerateCommand(parent: JCommander) extends CommandWithCatalog(paren
 
   override def execute() = {
     val sft = ds.getSchema(params.featureName)
-    val attributes = StatsCommand.getAttributes(sft, params)
+    val attributes = StatsCommand.getAttributesFromParams(sft, params)
     val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
 
     logger.info("Running stat query...")
