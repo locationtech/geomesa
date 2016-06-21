@@ -26,6 +26,7 @@ import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.sfcurve.zorder.Z3
 import org.locationtech.sfcurve.zorder.Z3.ZPrefix
 import org.opengis.feature.simple.SimpleFeatureType
@@ -82,16 +83,29 @@ object Z3Table extends GeoMesaTable {
       val writer = new KryoFeatureSerializer(sft)
       (fw) => new Value(writer.serialize(fw.feature))
     }
-    (fw: FeatureToWrite) => {
-      val rows = getRowKeys(fw, dtgIndex)
-      // store the duplication factor in the column qualifier for later use
-      val cq = if (rows.length > 1) new Text(Integer.toHexString(rows.length)) else EMPTY_TEXT
-      rows.map { row =>
-        val mutation = new Mutation(row)
-        mutation.put(FULL_CF, cq, fw.columnVisibility, getValue(fw))
-        fw.binValue.foreach(v => mutation.put(BIN_CF, cq, fw.columnVisibility, v))
-        mutation
-      }
+    sft.getVisibilityLevel match {
+      case VisibilityLevel.Feature =>
+        (fw: FeatureToWrite) => {
+          val rows = getRowKeys(fw, dtgIndex)
+          // store the duplication factor in the column qualifier for later use
+          val cq = if (rows.length > 1) new Text(Integer.toHexString(rows.length)) else EMPTY_TEXT
+          rows.map { row =>
+            val mutation = new Mutation(row)
+            mutation.put(FULL_CF, cq, fw.columnVisibility, getValue(fw))
+            fw.binValue.foreach(v => mutation.put(BIN_CF, cq, fw.columnVisibility, v))
+            mutation
+          }
+        }
+      case VisibilityLevel.Attribute =>
+        (fw: FeatureToWrite) => {
+          val rows = getRowKeys(fw, dtgIndex)
+          // TODO GEOMESA-1254 duplication factor, bin values
+          rows.map { row =>
+            val mutation = new Mutation(row)
+            fw.perAttributeValues.foreach(key => mutation.put(key.cf, key.cq, key.vis, key.value))
+            mutation
+          }
+        }
     }
   }
 
@@ -107,16 +121,34 @@ object Z3Table extends GeoMesaTable {
       } else {
         getGeomRowKeys
       }
-    (fw: FeatureToWrite) => {
-      val rows = getRowKeys(fw, dtgIndex)
-      val cq = if (rows.length > 1) new Text(Integer.toHexString(rows.length)) else EMPTY_TEXT
-      rows.map { row =>
-        val mutation = new Mutation(row)
-        mutation.putDelete(BIN_CF, cq, fw.columnVisibility)
-        mutation.putDelete(FULL_CF, cq, fw.columnVisibility)
-        mutation
-      }
+    sft.getVisibilityLevel match {
+      case VisibilityLevel.Feature =>
+        (fw: FeatureToWrite) => {
+          val rows = getRowKeys(fw, dtgIndex)
+          val cq = if (rows.length > 1) new Text(Integer.toHexString(rows.length)) else EMPTY_TEXT
+          rows.map { row =>
+            val mutation = new Mutation(row)
+            mutation.putDelete(BIN_CF, cq, fw.columnVisibility)
+            mutation.putDelete(FULL_CF, cq, fw.columnVisibility)
+            mutation
+          }
+        }
+      case VisibilityLevel.Attribute =>
+        (fw: FeatureToWrite) => {
+          val rows = getRowKeys(fw, dtgIndex)
+          // TODO duplication factor, bin values
+          rows.map { row =>
+            val mutation = new Mutation(row)
+            fw.perAttributeValues.foreach(key => mutation.putDelete(key.cf, key.cq, key.vis))
+            mutation
+          }
+        }
     }
+  }
+
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = {
+    val offset = getIdRowOffset(sft)
+    (row: Array[Byte]) => new String(row, offset, row.length - offset, Charsets.UTF_8)
   }
 
   override def deleteFeaturesForType(sft: SimpleFeatureType, bd: BatchDeleter): Unit = {
@@ -219,12 +251,6 @@ object Z3Table extends GeoMesaTable {
     prefix + length
   }
 
-  // reads the feature ID from the row key
-  def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = {
-    val offset = getIdRowOffset(sft)
-    (row: Array[Byte]) => new String(row, offset, row.length - offset, Charsets.UTF_8)
-  }
-
   override def configureTable(sft: SimpleFeatureType, table: String, tableOps: TableOperations): Unit = {
     tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
 
@@ -235,6 +261,7 @@ object Z3Table extends GeoMesaTable {
     val splits = SPLIT_ARRAYS.drop(1).map(new Text(_)).toSet
     val splitsToAdd = splits -- tableOps.listSplits(table).toSet
     if (splitsToAdd.nonEmpty) {
+      // noinspection RedundantCollectionConversion
       tableOps.addSplits(table, ImmutableSortedSet.copyOf(splitsToAdd.toIterable))
     }
   }

@@ -19,9 +19,10 @@ import org.apache.accumulo.core.conf.Property
 import org.apache.accumulo.core.data.{Mutation, Value}
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
-import org.locationtech.geomesa.accumulo.data.EMPTY_TEXT
+import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.sfcurve.zorder.Z2
 import org.locationtech.sfcurve.zorder.Z3.ZPrefix
 import org.opengis.feature.simple.SimpleFeatureType
@@ -52,16 +53,29 @@ object Z2Table extends GeoMesaTable {
     val getRowKeys: (FeatureToWrite) => Seq[Array[Byte]] =
       if (sft.isPoints) getPointRowKey(sharing) else getGeomRowKeys(sharing)
 
-    (fw: FeatureToWrite) => {
-      val rows = getRowKeys(fw)
-      // store the duplication factor in the column qualifier for later use
-      val cq = if (rows.length > 1) new Text(Integer.toHexString(rows.length)) else EMPTY_TEXT
-      rows.map { row =>
-        val mutation = new Mutation(row)
-        mutation.put(FULL_CF, cq, fw.columnVisibility, fw.dataValue)
-        fw.binValue.foreach(v => mutation.put(BIN_CF, cq, fw.columnVisibility, v))
-        mutation
-      }
+    sft.getVisibilityLevel match {
+      case VisibilityLevel.Feature =>
+        (fw: FeatureToWrite) => {
+          val rows = getRowKeys(fw)
+          // store the duplication factor in the column qualifier for later use
+          val cq = if (rows.length > 1) new Text(Integer.toHexString(rows.length)) else EMPTY_TEXT
+          rows.map { row =>
+            val mutation = new Mutation(row)
+            mutation.put(FULL_CF, cq, fw.columnVisibility, fw.dataValue)
+            fw.binValue.foreach(v => mutation.put(BIN_CF, cq, fw.columnVisibility, v))
+            mutation
+          }
+        }
+      case VisibilityLevel.Attribute =>
+        (fw: FeatureToWrite) => {
+          val rows = getRowKeys(fw)
+          // TODO GEOMESA-1254 duplication factor, bin values
+          rows.map { row =>
+            val mutation = new Mutation(row)
+            fw.perAttributeValues.foreach(key => mutation.put(key.cf, key.cq, key.vis, key.value))
+            mutation
+          }
+        }
     }
   }
 
@@ -70,16 +84,34 @@ object Z2Table extends GeoMesaTable {
     val getRowKeys: (FeatureToWrite) => Seq[Array[Byte]] =
       if (sft.isPoints) getPointRowKey(sharing) else getGeomRowKeys(sharing)
 
-    (fw: FeatureToWrite) => {
-      val rows = getRowKeys(fw)
-      val cq = if (rows.length > 1) new Text(Integer.toHexString(rows.length)) else EMPTY_TEXT
-      rows.map { row =>
-        val mutation = new Mutation(row)
-        mutation.putDelete(BIN_CF, cq, fw.columnVisibility)
-        mutation.putDelete(FULL_CF, cq, fw.columnVisibility)
-        mutation
-      }
+    sft.getVisibilityLevel match {
+      case VisibilityLevel.Feature =>
+        (fw: FeatureToWrite) => {
+          val rows = getRowKeys(fw)
+          val cq = if (rows.length > 1) new Text(Integer.toHexString(rows.length)) else EMPTY_TEXT
+          rows.map { row =>
+            val mutation = new Mutation(row)
+            mutation.putDelete(BIN_CF, cq, fw.columnVisibility)
+            mutation.putDelete(FULL_CF, cq, fw.columnVisibility)
+            mutation
+          }
+        }
+      case VisibilityLevel.Attribute =>
+        (fw: FeatureToWrite) => {
+          val rows = getRowKeys(fw)
+          // TODO GEOMESA-1254 duplication factor, bin values
+          rows.map { row =>
+            val mutation = new Mutation(row)
+            fw.perAttributeValues.foreach(key => mutation.putDelete(key.cf, key.cq, key.vis))
+            mutation
+          }
+        }
     }
+  }
+
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = {
+    val offset = getIdRowOffset(sft)
+    (row: Array[Byte]) => new String(row, offset, row.length - offset, StandardCharsets.UTF_8)
   }
 
   // split(1 byte), z value (8 bytes), id (n bytes)
@@ -165,12 +197,6 @@ object Z2Table extends GeoMesaTable {
     prefix + length
   }
 
-  // reads the feature ID from the row key
-  def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = {
-    val offset = getIdRowOffset(sft)
-    (row: Array[Byte]) => new String(row, offset, row.length - offset, StandardCharsets.UTF_8)
-  }
-
   override def configureTable(sft: SimpleFeatureType, table: String, tableOps: TableOperations): Unit = {
     import scala.collection.JavaConversions._
 
@@ -188,6 +214,7 @@ object Z2Table extends GeoMesaTable {
     }
     val splitsToAdd = splits -- tableOps.listSplits(table).toSet
     if (splitsToAdd.nonEmpty) {
+      // noinspection RedundantCollectionConversion
       tableOps.addSplits(table, ImmutableSortedSet.copyOf(splitsToAdd.toIterable))
     }
   }

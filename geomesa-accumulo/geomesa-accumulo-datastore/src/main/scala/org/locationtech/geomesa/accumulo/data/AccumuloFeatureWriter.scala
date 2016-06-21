@@ -26,6 +26,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToWr
 import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, Z3FeatureIdGenerator}
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory, SimpleFeatureSerializer}
 import org.locationtech.geomesa.security.SecurityUtils.FEATURE_VISIBILITY
 import org.locationtech.geomesa.utils.uuid.FeatureIdGenerator
@@ -47,20 +48,43 @@ object AccumuloFeatureWriter extends LazyLogging {
 
   class FeatureToWrite(val feature: SimpleFeature,
                        defaultVisibility: String,
-                       encoder: SimpleFeatureSerializer,
+                       serializer: SimpleFeatureSerializer,
                        indexValueEncoder: IndexValueEncoder,
                        binEncoder: Option[BinEncoder]) {
-    val visibility =
-      new Text(feature.getUserData.getOrElse(FEATURE_VISIBILITY, defaultVisibility).asInstanceOf[String])
+
+    import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
+
+    lazy val visibility = new Text(feature.userData[String](FEATURE_VISIBILITY).getOrElse(defaultVisibility))
+
     lazy val columnVisibility = new ColumnVisibility(visibility)
     // the index value is the encoded date/time/fid
     lazy val indexValue = new Value(indexValueEncoder.encode(feature))
     // the data value is the encoded SimpleFeature
-    lazy val dataValue = new Value(encoder.serialize(feature))
+    lazy val dataValue = new Value(serializer.serialize(feature))
     // bin formatted value
     lazy val binValue = binEncoder.map(e => new Value(e.encode(feature)))
     // hash value of the feature id
     lazy val idHash = Math.abs(MurmurHash3.stringHash(feature.getID))
+
+    // TODO GEOMESA-1254 optimize for case where all vis are the same
+    lazy val perAttributeValues: Seq[RowValue] = {
+      val count = feature.getFeatureType.getAttributeCount
+      val visibilities = feature.userData[String](FEATURE_VISIBILITY).map(_.split(","))
+          .getOrElse(Array.fill(count)(defaultVisibility))
+      require(visibilities.length == count, "Per-attribute visibilities do not match feature type")
+      val groups = visibilities.zipWithIndex.groupBy(_._1).mapValues(_.map(_._2.toByte).sorted).toSeq
+      groups.map { case (vis, indices) =>
+        val cq = new Text(indices)
+        val values = indices.map(i => serializer.serialize(i, feature.getAttribute(i)))
+        val output = KryoFeatureSerializer.getOutput() // note: same output object used in serializer.serialize
+        values.foreach { value =>
+          output.writeInt(value.length, true)
+          output.write(value)
+        }
+        val value = new Value(output.toBytes)
+        RowValue(GeoMesaTable.AttributeColumnFamily, cq, new ColumnVisibility(vis), value)
+      }
+    }
   }
 
   def featureWriter(writers: Seq[(BatchWriter, FeatureToMutations)]): FeatureWriterFn = feature => {
@@ -115,6 +139,8 @@ object AccumuloFeatureWriter extends LazyLogging {
         logger.warn(s"Unknown feature ID implementation found, rebuilding feature: ${f.getClass} $f")
         ScalaSimpleFeatureFactory.copyFeature(sft, feature, fid)
     }
+
+  case class RowValue(cf: Text, cq: Text, vis: ColumnVisibility, value: Value)
 }
 
 abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
