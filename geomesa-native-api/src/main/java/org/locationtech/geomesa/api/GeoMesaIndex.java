@@ -12,6 +12,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import org.apache.hadoop.classification.InterfaceStability;
 
 import java.util.Date;
+import java.util.Map;
 
 /**
  * GeoMesaIndex is an API for utilizing GeoMesa as a spatial index
@@ -45,8 +46,20 @@ public interface GeoMesaIndex<T> {
      * @param value
      * @param geometry
      * @param dtg date time of the object or null if using spatial only
+     * @return identifier of the object stored
      */
-    void insert(String id, T value, Geometry geometry, Date dtg);
+    String insert(String id, T value, Geometry geometry, Date dtg);
+
+    /**
+     * Insert a value in the GeoMesa index
+     * @param id identifier to use for the value
+     * @param value
+     * @param geometry
+     * @param dtg date time of the object or null if using spatial only
+     * @param hints implementation specific hints for serialization
+     * @return The identifier of the value written to GeoMesa
+     */
+    String insert(String id, T value, Geometry geometry, Date dtg, Map<String, Object> hints);
 
     /**
      * Update a given identifier with a new value
@@ -62,5 +75,15 @@ public interface GeoMesaIndex<T> {
      * @param id
      */
     void delete(String id);
+
+    /**
+     * Flushes any pending transactions
+     */
+    void flush();
+
+    /**
+     * Closes the index and flushes any pending commits
+     */
+    void close();
 
 }

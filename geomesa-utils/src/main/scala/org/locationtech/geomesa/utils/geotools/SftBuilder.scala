@@ -14,6 +14,7 @@ import org.locationtech.geomesa.utils.geotools.SftBuilder._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.locationtech.geomesa.utils.stats.Cardinality.Cardinality
+import org.opengis.feature.`type`.AttributeDescriptor
 
 import scala.collection.mutable.ListBuffer
 import scala.reflect.runtime.universe.{Type => UType, _}
@@ -105,6 +106,10 @@ abstract class InitBuilder[T] {
     append(name, opts.copy(stIndex = false), s"Map[${resolve(typeOf[K])},${resolve(typeOf[V])}]")
   def listType[Type: TypeTag](name: String, opts: Opts = Opts()) =
     append(name, opts.copy(stIndex = false), s"List[${resolve(typeOf[Type])}]")
+
+  // Convenience method to add columns via Attribute Descriptors
+  def attributeDescriptor(ad: AttributeDescriptor) =
+    append(ad.getLocalName, Opts(), ad.getType.getBinding.getCanonicalName)
 
   def withIndexes(indexSuffixes: List[String]): T = userData(ENABLED_INDEXES, indexSuffixes.mkString(","))
 
