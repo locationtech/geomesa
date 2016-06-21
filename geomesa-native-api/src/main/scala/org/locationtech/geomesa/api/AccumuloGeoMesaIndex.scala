@@ -18,19 +18,36 @@ import org.apache.hadoop.classification.InterfaceStability
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.data.{DataStoreFinder, Transaction}
 import org.geotools.factory.Hints
+import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.util.Z3UuidGenerator
 import org.locationtech.geomesa.security.SecurityUtils
+import org.locationtech.geomesa.utils.geotools.SftBuilder
+import org.locationtech.geomesa.utils.geotools.SftBuilder.Opts
+import org.locationtech.geomesa.utils.stats.Cardinality
+import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeature
 
 @InterfaceStability.Unstable
 class AccumuloGeoMesaIndex[T](ds: AccumuloDataStore,
+                              name: String,
                               serde: ValueSerializer[T],
                               view: SimpleFeatureView[T]
                              ) extends GeoMesaIndex[T] {
 
-  val sft = view.getSimpleFeatureType
+  import scala.collection.JavaConversions._
+
+
+  val builder = new SftBuilder()
+    .date("dtg", true, true)
+    .bytes("payload", new SftBuilder.Opts(false, false, false, Cardinality.UNKNOWN))
+    .geometry("geom", true)
+    .userData("geomesa.mixed.geometries", "true")
+
+  view.getExtraAttributes.foreach { ad: AttributeDescriptor => builder.append(ad.getLocalName, Opts(), ad.getType.getBinding.getCanonicalName) }
+
+  val sft = builder.build(name)
 
   if(!ds.getTypeNames.contains(sft.getTypeName)) {
     ds.createSchema(sft)
@@ -71,6 +88,10 @@ class AccumuloGeoMesaIndex[T](ds: AccumuloDataStore,
     val fw = writers.get(sft.getTypeName)
     val sf = fw.next()
     sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+    sf.setAttribute("geom", geom)
+    sf.setAttribute("dtg", dtg)
+    sf.setAttribute("payload", bytes)
+    sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
     view.populate(sf, value, id, bytes, geom, dtg)
     setVisibility(sf, hints)
     fw.write()
@@ -131,7 +152,7 @@ object AccumuloGeoMesaIndex {
         AccumuloDataStoreParams.passwordParam.key    -> pass,
         AccumuloDataStoreParams.mockParam.key        -> (if(mock) "TRUE" else "FALSE")
       )).asInstanceOf[AccumuloDataStore]
-    new AccumuloGeoMesaIndex[T](ds, valueSerializer, view)
+    new AccumuloGeoMesaIndex[T](ds, name, valueSerializer, view)
   }
 
   def buildDefaultView[T](name: String,

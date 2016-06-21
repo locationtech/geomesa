@@ -11,20 +11,28 @@ package org.locationtech.geomesa.api;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.security.Authorizations;
+import org.geotools.factory.CommonFactoryFinder;
+import org.geotools.feature.AttributeTypeBuilder;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.junit.Assert;
 import org.junit.Test;
+import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.filter.FilterFactory2;
 
 import javax.annotation.Nullable;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 public class GeoMesaIndexTest {
@@ -153,6 +161,74 @@ public class GeoMesaIndexTest {
 
         final Iterable<DomainObject> results2 = index2.query(GeoMesaQuery.include());
         Assert.assertEquals(Iterables.size(results2), 1);
+    }
+
+    @Test
+    public void testCustomView() throws Exception {
+        final GeoMesaIndex<DomainObject> index =
+                AccumuloGeoMesaIndex.buildWithView(
+                        "customview",
+                        "zoo1:2181",
+                        "mycloud",
+                        "myuser", "mypass",
+                        true,
+                        new DomainObjectValueSerializer(),
+                        new SimpleFeatureView<DomainObject>() {
+                            AttributeTypeBuilder atb = new AttributeTypeBuilder();
+                            private List<AttributeDescriptor> attributeDescriptors =
+                                    Lists.newArrayList(atb.binding(Integer.class).buildDescriptor("age"));
+                            @Override
+                            public void populate(SimpleFeature f, DomainObject domainObject, String id, byte[] payload, Geometry geom, Date dtg) {
+                                f.setAttribute("age", 50);
+                            }
+
+                            @Override
+                            public List<AttributeDescriptor> getExtraAttributes() {
+                                return attributeDescriptors;
+                            }
+                        });
+
+        index.insert(
+                one.id,
+                one,
+                gf.createPoint(new Coordinate(-78.0, 38.0)),
+                date("2016-01-01T12:15:00.000Z"));
+        index.insert(
+                two.id,
+                two,
+                gf.createPoint(new Coordinate(-78.0, 40.0)),
+                date("2016-02-01T12:15:00.000Z"));
+
+        final FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
+        final GeoMesaQuery q =
+                GeoMesaQuery.GeoMesaQueryBuilder.builder()
+                        .within(-79.0, 37.0, -77.0, 39.0)
+                        .during(date("2016-01-01T00:00:00.000Z"), date("2016-03-01T00:00:00.000Z"))
+                        .filter(ff.equals(ff.property("age"), ff.literal(50)))
+                        .build();
+        final Iterable<DomainObject> results = index.query(q);
+
+        final Iterable<String> ids = Iterables.transform(results, new Function<DomainObject, String>() {
+            @Nullable
+            @Override
+            public String apply(@Nullable DomainObject domainObject) {
+                return domainObject.id;
+            }
+        });
+        Assert.assertArrayEquals("Invalid results", new String[] { "1" }, Iterables.toArray(ids, String.class));
+
+        index.delete("1");
+
+        final Iterable<DomainObject> resultsAfterDelete = index.query(q);
+        final Iterable<String> idsPostDelete = Iterables.transform(resultsAfterDelete, new Function<DomainObject, String>() {
+            @Nullable
+            @Override
+            public String apply(@Nullable DomainObject domainObject) {
+                System.out.println("Got id " + domainObject.id);
+                return domainObject.id;
+            }
+        });
+        Assert.assertArrayEquals("Invalid results", new String[] { }, Iterables.toArray(idsPostDelete, String.class));
     }
 
     private Date date(String s) {

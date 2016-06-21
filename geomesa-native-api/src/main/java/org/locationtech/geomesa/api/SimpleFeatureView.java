@@ -11,15 +11,16 @@ package org.locationtech.geomesa.api;
 import com.vividsolutions.jts.geom.Geometry;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.feature.type.AttributeDescriptor;
 
 import java.util.Date;
+import java.util.List;
 
 @InterfaceStability.Unstable
 public interface SimpleFeatureView<T> {
 
     void populate(SimpleFeature f, T t, String id, byte[] payload, Geometry geom, Date dtg);
 
-    SimpleFeatureType getSimpleFeatureType();
+    List<AttributeDescriptor> getExtraAttributes();
 
 }
