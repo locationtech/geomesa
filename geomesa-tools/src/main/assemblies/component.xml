@@ -57,7 +57,13 @@
             <filtered>false</filtered>
             <directoryMode>755</directoryMode>
         </fileSet>
-
+        <fileSet>
+            <directory>../geomesa-tools/emr4</directory>
+            <outputDirectory>emr4</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>true</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
     </fileSets>
     <files>
         <file>
