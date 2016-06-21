@@ -100,8 +100,7 @@ class AccumuloDataStoreAttributeVisibilityTest extends Specification {
       "auths"        -> auths)).asInstanceOf[AccumuloDataStore]
     val query = new Query(sftName, ECQL.toFilter(filter))
     val plans = ds.getQueryPlan(query)
-    plans must haveLength(1)
-    plans.head.filter.strategy mustEqual expectedStrategy
+    forall(plans)(_.filter.strategy mustEqual expectedStrategy)
     SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq
   }
 
