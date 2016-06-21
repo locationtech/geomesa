@@ -14,12 +14,13 @@ import org.apache.accumulo.core.data.Range
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data.stats.GeoMesaStats
-import org.locationtech.geomesa.accumulo.data.tables.Z3Table
+import org.locationtech.geomesa.accumulo.data.tables.{GeoMesaTable, Z3Table}
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools._
+import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.sfcurve.zorder.Z3
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -99,6 +100,7 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
       // can't use if there are non-st filters or if custom fields are requested
       val (iters, cf) =
         if (filter.secondary.isEmpty && BinAggregatingIterator.canUsePrecomputedBins(sft, hints)) {
+          // TODO GEOMESA-1254 per-attribute vis + bins
           val idOffset = Z3Table.getIdRowOffset(sft)
           (Seq(BinAggregatingIterator.configurePrecomputed(sft, ecql, hints, idOffset, sft.nonPoints)), Z3Table.BIN_CF)
         } else {
@@ -172,8 +174,15 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     val wmax = weeks.last
 
     val zIter = Z3Iterator.configure(sft.isPoints, xmin, xmax, ymin, ymax, tmin, tmax, wmin, wmax, tLo, tHi, hasSplits, Z3_ITER_PRIORITY)
-    val iters = Seq(zIter) ++ iterators
-    BatchScanPlan(filter, z3table, ranges, iters, Seq(colFamily), kvsToFeatures, numThreads, hasDupes)
+
+    val perAttributeIter = sft.getVisibilityLevel match {
+      case VisibilityLevel.Feature   => Seq.empty
+      case VisibilityLevel.Attribute => Seq(KryoVisibilityRowEncoder.configure(sft, Z3Table))
+    }
+    val cf = if (perAttributeIter.isEmpty) colFamily else GeoMesaTable.AttributeColumnFamily
+
+    val iters = perAttributeIter ++ Seq(zIter) ++ iterators
+    BatchScanPlan(filter, z3table, ranges, iters, Seq(cf), kvsToFeatures, numThreads, hasDupes)
   }
 
   def getPointRanges(prefixes: Seq[Array[Byte]], x: (Double, Double), y: (Double, Double), t: (Long, Long)): Seq[Range] = {
@@ -203,7 +212,7 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
 
 object Z3IdxStrategy extends StrategyProvider {
 
-  val Z3_ITER_PRIORITY = 21
+  val Z3_ITER_PRIORITY = 23
   val FILTERING_ITER_PRIORITY = 25
 
   override protected def statsBasedCost(sft: SimpleFeatureType,

@@ -21,6 +21,7 @@ import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.{Filter, PropertyIsEqualTo}
@@ -75,7 +76,12 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
 
     // query against the attribute table
     val singleAttrValueOnlyPlan: ScanPlanFn = (schema, ecql, transform) => {
-      val iters = KryoLazyFilterTransformIterator.configure(schema, ecql, transform, sampling).toSeq
+      val perAttributeIter = sft.getVisibilityLevel match {
+        case VisibilityLevel.Feature   => Seq.empty
+        case VisibilityLevel.Attribute => Seq(KryoVisibilityRowEncoder.configure(sft, AttributeTable))
+      }
+      val iter = KryoLazyFilterTransformIterator.configure(schema, ecql, transform, sampling).toSeq
+      val iters = perAttributeIter ++ iter
       // need to use transform to convert key/values if it's defined
       val kvsToFeatures = queryPlanner.kvsToFeatures(transform.map(_._2).getOrElse(schema))
       BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
