@@ -195,14 +195,15 @@ You cannot mix target files (e.g. local and HDFS).
     The header, if present, is not parsed by ``ingest`` for information. It is assumed that all lines are valid entries.
 
 Converters and SFTs are specified in HOCON format (https://github.com/typesafehub/config/blob/master/HOCON.md) and
-loaded using TypeSafe config. They can be referenced by name using the ``-s`` and ``-C`` args.
+loaded using the `TypeSafe configuration library <https://github.com/typesafehub/config>`__.
+They can be referenced by name using the ``-s`` and ``-C`` args.
 
 To define new converters for the users can package a ``reference.conf`` file inside a jar and drop it in the
 ``$GEOMESA_HOME/lib`` directory or add config definitions to the ``$GEOMESA_TOOLS/conf/application.conf`` file which
 includes some examples. SFT and Converter specifications should use the path prefixes
 ``geomesa.converters.<convertername>`` and ``geomesa.sfts.<typename>``
 
-For example...Here's a simple CSV file to ingest named ``example.csv``::
+For example, here's a simple CSV file to ingest named ``example.csv``::
 
     ID,Name,Age,LastSeen,Friends,Lat,Lon
     23623,Harry,20,2015-05-06,"Will, Mark, Suzan",-100.236523,23
@@ -210,7 +211,7 @@ For example...Here's a simple CSV file to ingest named ``example.csv``::
     3233,Severus,30,2015-10-23,"Tom, Riddle, Voldemort",3,-62.23
 
 To ingest this file, a SimpleFeatureType named ``renegades`` and a converter named ``renegades-csv`` can be placed in
-the application.conf file::
+the ``application.conf`` file::
 
     # cat $GEOMESA_HOME/conf/application.conf
     geomesa {
@@ -304,7 +305,7 @@ Similarly, converter configurations must be nested when passing them directly to
 Using the SFT and Converter config files we can then ingest our csv file with this command::
 
     # ingest command
-    geomesa ingest -u username -p password -c geomesa_catalog -i instance -s /tmp/renegades.sft -C /tmp/renegades.convert hdfs:///some/hdfs/path/to/example.csv
+    $ geomesa ingest -u username -p password -c geomesa_catalog -i instance -s /tmp/renegades.sft -C /tmp/renegades.convert hdfs:///some/hdfs/path/to/example.csv
 
 
 For more documentation on converter configuration, refer to the the ``geomesa-$VERSION/docs/README-convert.md`` file
@@ -314,21 +315,32 @@ Shape files may also be ingested::
 
     $ geomesa ingest -u username -p password -c test_catalog -f shapeFileFeatureName /some/path/to/file.shp
 
-**Enabling S3 Ingest**
 
-Hadoop ships with an implementation of a S3 filesystems that can be enabled in the Hadoop configuration used with GeoMesa Tools. GeoMesa Tools can perform ingest using both the second-generation (`s3n`) and third-generation (`s3a`) filesystems. Edit the `$HADOOP_CONF_DIR/core-site.xml` file in your Hadoop installation, as shown below. These instructions apply to Hadoop 2.5.0 and higher. Note that you must have the environment variable ``HADOOP_MAPRED_HOME`` set properly in your environment. Some configurations can substitute ``HADOOP_PREFIX`` in the classpath values below.
+Enabling S3 Ingest
+^^^^^^^^^^^^^^^^^^
 
-.. note:: 
+Hadoop ships with implementations of S3-based filesystems, which can be enabled in the Hadoop configuration used with
+GeoMesa tools. Specifically, GeoMesa tools can perform ingests using both the second-generation (`s3n`) and
+third-generation (`s3a`) filesystems. Edit the ``$HADOOP_CONF_DIR/core-site.xml`` file in your Hadoop installation,
+as shown below (these instructions apply to Hadoop 2.5.0 and higher). Note that you must have the environment variable
+``$HADOOP_MAPRED_HOME`` set properly in your environment. Some configurations
+can substitute ``$HADOOP_PREFIX`` in the classpath values below.
 
-    Warning: AWS credentials are valueable. They pay for services and control read and write protection for data. If you are running GeoMesa on AWS EC2 instances, it is recommended to use s3a. With s3a, you can omit the Access Key Id and Secret Access keys from `core-site.xml` and rely on IAM roles.:
+.. warning::
 
-s3a::
+    AWS credentials are valuable! They pay for services and control read and write protection for data. If you are
+    running GeoMesa on AWS EC2 instances, it is recommended to use the ``s3a`` filesystem. With ``s3a``, you can omit the
+    Access Key Id and Secret Access keys from `core-site.xml` and rely on IAM roles.
+
+For ``s3a``:
+
+.. code-block:: xml
 
     <!-- core-site.xml -->
     <property>
         <name>mapreduce.application.classpath</name>
         <value>$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*:$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*:$HADOOP_MAPRED_HOME/share/hadoop/tools/lib/*</value>
-        <description>The classpath specifically for mapreduce jobs. This override is neeeded so that s3 URLs work on hadoop 2.6.0+</description>
+        <description>The classpath specifically for Map-Reduce jobs. This override is needed so that s3 URLs work on Hadoop 2.6.0+</description>
     </property>
 
     <!-- OMIT these keys if running on AWS EC2; use IAM roles instead -->
@@ -339,16 +351,17 @@ s3a::
     <property>
         <name>fs.s3a.secret.key</name>
         <value>XXXX YOURS HERE</value>
-        <description>Valueable credential - do not commit to CM</description>
+        <description>Valuable credential - do not commit to CM</description>
     </property>
- 
 
+After you have enabled S3 in your Hadoop configuration you can ingest with GeoMesa tools. Note that you can still
+use the Kleene star (*) with S3.:
 
-After you have enabled S3 in your Hadoop configuration you can ingest with GeoMesa tools. Note that you can still use the Kleene star (*) with S3.:
+    $ geomesa ingest -u username -p password -c geomesa_catalog -i instance -s yourspec -C convert s3a://bucket/path/file*
 
-    geomesa ingest -u username -p password -c geomesa_catalog -i instance -s yourspec -C convert s3a://bucket/path/file* 
+For ``s3n``:
 
-s3n::
+.. code-block:: xml
 
     <!-- core-site.xml -->
     <!-- Note that you need to make sure HADOOP_MAPRED_HOME is set or some other way of getting this on the classpath -->
@@ -373,8 +386,7 @@ s3n::
 
 S3n paths are prefixed in hadoop with ``s3n://`` as shown below::
 
-    geomesa ingest -u username -p password -c geomesa_catalog -i instance -s yourspec -C convert s3n://bucket/path/file s3n://bucket/path/*
-
+    $ geomesa ingest -u username -p password -c geomesa_catalog -i instance -s yourspec -C convert s3n://bucket/path/file s3n://bucket/path/*
 
 
 Working with raster data
@@ -658,12 +670,12 @@ List all known feature types in Kafka::
 
     $ geomesa-kafka list -z zoo1,zoo2,zoo3 -b broker1:9092,broker2:9092
 
-If no zkpath parameter is specified, the list command will search all of zookeeper for potential feature types.
+If no ``--zkpath`` parameter is specified, the ``list`` command will search all of zookeeper for potential feature types.
 
 listen
 ~~~~~~
 
-Logs out the messages written to a topic corresponding to the passed in feature type.
+Logs out the messages written to a topic corresponding to the feature type passed in.
 
     $ geomesa-kafka listen -f testfeature \
       -z zoo1,zoo2,zoo3 \

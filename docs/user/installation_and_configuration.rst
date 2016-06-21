@@ -211,6 +211,7 @@ In this case you may download SLF4J from http://www.slf4j.org/download.html. Ext
 ``slf4j-log4j12-1.7.7.jar`` and place it in the ``lib`` directory of the binary distribution. 
 If this conflicts with another SLF4J implementation, you may need to remove it from the ``lib`` directory.
 
+.. _install_accumulo_runtime:
 
 Installing the Accumulo distributed runtime library
 ---------------------------------------------------
@@ -240,6 +241,8 @@ each tablet server.
 
     You do not need the JAR on the Accumulo master server, and including
     it there may cause classpath issues later.
+
+.. _install_accumulo_runtime_namespace:
 
 For Accumulo 1.6+
 ^^^^^^^^^^^^^^^^^
@@ -275,7 +278,7 @@ the same Accumulo instance. You should remove any GeoMesa JARs under
 
 .. _install_geoserver_plugins:
 
-Installing the GeoMesa GeoServer plugins
+Installing the GeoMesa GeoServer Plugins
 ----------------------------------------
 
 .. warning::
@@ -307,6 +310,8 @@ the plugin. The GeoServer website includes `instructions for downloading and ins
     should also consider passing ``-DGEOWEBCACHE_CACHE_DIR=/tmp/$USER-gwc``
     and ``-DEPSG-HSQL.directory=/tmp/$USER-hsql``
     as well. Be sure to restart Tomcat for changes to take place.
+
+.. _install_accumulo_geoserver:
 
 For Accumulo
 ^^^^^^^^^^^^
@@ -408,19 +413,28 @@ Hadoop 2.4-2.7 (adjust versions as needed)
 * hadoop-common-2.6.4.jar
 * hadoop-hdfs-2.6.4.jar
 
+Restart GeoServer after the JARs are installed.
+
+.. _install_kafka_geoserver:
+
 For Kafka
 ^^^^^^^^^
 
-To install the GeoMesa Kafka GeoServer plugin, unpack the contents of the
-``geomesa-kafka-gs-plugin-$VERSION.tar.gz`` file in ``geomesa-$VERSION/dist/gs-plugins`` 
-into your GeoServer's ``lib`` directory (``$VERSION`` = |release|):
+The GeoMesa GeoServer plugin for Kafka 0.8.2 is found in the ``geomesa-kafka-gs-plugin-$VERSION-install.tar.gz``
+file in ``geomesa-$VERSION/dist/gs-plugins`` in the binary distribution, or is built in
+the ``geomesa-gs-plugin/geomesa-kafka-gs-plugin`` directory of the source distribution.
 
-If you are using Tomcat:
+The GeoMesa GeoServer plugin for Kafka 0.9 is found in ``geomesa-kafka-09-gs-plugin-$VERSION-install.tar.gz``
+(downloaded here: |release_kafka09_plugin|), or is built in the
+``geomesa-gs-plugin/geomesa-kafka-09-gs-plugin`` directory of the source distribution.
+
+In either case, the contents of the appropriate archive should be unpacked in the GeoServer
+``WEB-INF/lib`` directory. If you are using Tomcat:
 
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-$VERSION/dist/gs-plugins/geomesa-kafka-gs-plugin-$VERSION-install.zip \
+      geomesa-$VERSION/dist/gs-plugins/geomesa-kafka-gs-plugin-$VERSION-install.tar.gz \
       -C /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
 
 If you are using GeoServer's built in Jetty web server:
@@ -428,7 +442,7 @@ If you are using GeoServer's built in Jetty web server:
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-$VERSION/dist/gs-plugins/geomesa-kafka-gs-plugin-$VERSION-install.zip \
+      geomesa-$VERSION/dist/gs-plugins/geomesa-kafka-gs-plugin-$VERSION-install.tar.gz \
       -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib/
 
 This will install the JARs for the Kafka GeoServer plugin and most of its dependencies.
@@ -460,17 +474,66 @@ There is a script in the ``geomesa-tools-$VERSION`` directory
 dependencies to a target directory using ``wget`` (requires an internet
 connection).
 
-GeoMesa GeoServer Community Module
-----------------------------------
+Restart GeoServer after the JARs are installed.
 
-The GeoMesa community module adds support for raster imagery to GeoServer. The community module
-requires the Accumulo GeoServer plugin to be installed first.
+.. _install_hbase_geoserver:
 
-The community module can be downloaded from `OpenGeo <http://ares.opengeo.org/geoserver/>`__, or can
-be built from `source <https://github.com/geoserver/geoserver/tree/master/src/community/geomesa>`__.
+For HBase
+^^^^^^^^^
 
-Once obtained, the community module can be installed by copying ``geomesa-gs-<version>.jar`` into
-the GeoServer ``lib`` directory.
+The HBase GeoServer plugin is not bundled by default in the GeoMesa binary distribution
+and should be built from source. Download the source distribution (see
+:ref:`building_from_source`), go to the ``geomesa-gs-plugin/geomesa-hbase-gs-plugin``
+directory, and build the module using the ``hbase`` Maven profile:
+
+.. code-block:: bash
+
+    $ mvn clean install -Phbase
+
+After building, extract ``target/geomesa-hbase-gs-plugin-$VERSION-install.tar.gz`` into GeoServer's
+``WEB-INF/lib`` directory. Note that this plugin contains a shaded JAR with HBase 1.1.5
+bundled. If you require a different version, modify the ``pom.xml`` and rebuild following
+the instructions above.
+
+This distribution does not include the Hadoop or Zookeeper JARs; the following JARs
+should be copied from the ``lib`` directory of your HBase or Hadoop installations into
+GeoServer's ``WEB-INF/lib`` directory:
+
+ * hadoop-annotations-2.5.1.jar
+ * hadoop-auth-2.5.1.jar
+ * hadoop-common-2.5.1.jar
+ * hadoop-mapreduce-client-core-2.5.1.jar
+ * hadoop-yarn-api-2.5.1.jar
+ * hadoop-yarn-common-2.5.1.jar
+ * zookeeper-3.4.6.jar
+ * commons-configuration-1.6.jar
+
+(Note the versions may vary depending on your installation.)
+
+The HBase data store requires the configuration file ``hbase-site.xml`` to be on the classpath. This can
+be accomplished by placing the file in ``geoserver/WEB-INF/classes`` (you should make the directory if it
+doesn't exist).
+
+Restart GeoServer after the JARs are installed.
+
+.. _install_cassandra_geoserver:
+
+For Cassandra
+^^^^^^^^^^^^^
+
+The Cassandra GeoServer plugin is not bundled by default in the GeoMesa binary distribution
+and should be built from source. Download the source distribution (see
+:ref:`building_from_source`), go to the ``geomesa-gs-plugin/geomesa-cassandra-gs-plugin``
+directory, and build the module:
+
+.. code-block:: bash
+
+    $ mvn clean install
+
+After building, extract ``target/geomesa-cassandra-gs-plugin-$VERSION-install.tar.gz`` into GeoServer's
+``WEB-INF/lib`` directory.
+
+Restart GeoServer after the JARs are installed.
 
 Upgrading
 ---------
@@ -480,36 +543,11 @@ To upgrade between minor releases of GeoMesa, the versions of all GeoMesa compon
 This means that the version of the ``geomesa-distributed-runtime`` JAR installed on Accumulo tablet servers
 **must** match the version of the ``geomesa-plugin`` JARs installed in the ``WEB-INF/lib`` directory of GeoServer.
 
-Configuring GeoServer
----------------------
-
-Depending on your hardware, it may be important to set the limits for
-your WMS plugin to be higher or disable them completely by clicking
-"WMS" under "Services" on the left side of the admin page of GeoServer.
-Check with your server administrator to determine the correct settings.
-For massive queries, the standard 60 second timeout may be too short.
-
-|"Disable limits"|
-
-.. |"Disable limits"| image:: _static/img/wms_limits.png
-
-To enable explain query logging in GeoServer, add the following to the
-``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties`` file::
-
-    log4j.category.org.locationtech.geomesa.accumulo.index.QueryPlanner=TRACE
-
-If you are not sure of the location of your GeoServer data directory, it
-is printed out when you start GeoServer::
-
-    ----------------------------------
-    - GEOSERVER_DATA_DIR: /opt/devel/install/geoserver-data-dir
-    ----------------------------------
-
 Apache Commons Collections
 --------------------------
 
 Version 3.2.1 and earlier of the Apache Commons Collections library have a CVSS 10.0 vulnerability.  Read more `here
-https://commons.apache.org/proper/commons-collections/security-reports.html`__.
+<https://commons.apache.org/proper/commons-collections/security-reports.html>`__.
 
 Note that Accumulo 1.6.5 is the first version of Accumulo which addresses this security concern.
 Fixes for the GeoServer project will be available in versions 2.8.3+ and 2.9.0+.
