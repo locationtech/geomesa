@@ -26,6 +26,7 @@ trait HasEncodingOptions {
  */
 trait SimpleFeatureSerializer extends HasEncodingOptions {
   def serialize(feature: SimpleFeature): Array[Byte]
+  def serialize(i: Int, value: AnyRef): Array[Byte]
 }
 
 /**

@@ -53,6 +53,8 @@ object AttributeTableV5 extends GeoMesaTable with LazyLogging {
     (toWrite: FeatureToWrite) => getAttributeIndexMutations(toWrite, attributesToIdx, rowIdPrefix, delete = true)
   }
 
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = ???
+
   private val NULLBYTE = "\u0000"
 
   /**
