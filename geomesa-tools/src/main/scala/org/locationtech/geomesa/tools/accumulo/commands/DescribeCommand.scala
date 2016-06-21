@@ -14,7 +14,7 @@ import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.DescribeCommand._
 import org.locationtech.geomesa.tools.common.FeatureTypeNameParam
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 
 import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
@@ -49,7 +49,12 @@ class DescribeCommand(parent: JCommander) extends CommandWithCatalog(parent) wit
       val userData = sft.getUserData
       if (!userData.isEmpty) {
         println("\nUser data:")
-        userData.foreach { case (key, value) => println(s"  $key: $value") }
+        userData.foreach {
+          case (KEYWORDS_KEY, v) => println(s"  $KEYWORDS_KEY: " +
+            "[".concat(v.asInstanceOf[String].split(KEYWORDS_DELIMITER)
+              .map{ "\"%s\"".format(_)}.mkString(",").concat("]")))
+          case (key, value) => println(s"  $key: $value")
+        }
       }
 
     } catch {

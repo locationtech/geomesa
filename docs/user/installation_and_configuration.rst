@@ -159,8 +159,8 @@ ingest must be separately installed. Do this with the following commands:
 
 .. code-block:: bash
 
-    $ bin/install-jai
-    $ bin/install-jline
+    $ bin/install-jai.sh
+    $ bin/install-jline.sh
 
 Test the command that invokes the GeoMesa Tools:
 
