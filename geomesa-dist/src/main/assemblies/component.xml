@@ -35,6 +35,7 @@
                 <include>org.locationtech.geomesa:geomesa-blobstore-gs-plugin*</include>
                 <include>org.locationtech.geomesa:geomesa-kafka-gs-plugin*</include>
                 <include>org.locationtech.geomesa:geomesa-stream-gs-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-process*</include>
             </includes>
         </dependencySet>
         <dependencySet>
