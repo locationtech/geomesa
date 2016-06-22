@@ -553,8 +553,8 @@ To upgrade between minor releases of GeoMesa, the versions of all GeoMesa compon
 JAR installed on Accumulo tablet servers **must** match the version of the
 ``geomesa-plugin`` JARs installed in the ``WEB-INF/lib`` directory of GeoServer.
 
-We strive to maintain backwards compatibility with data ingested between minor
-releases of GeoMesa, and in general data ingested with older 1.2.x releases
+We strive to maintain backwards compatibility for data ingested with older
+releases of GeoMesa, and in general data ingested with older releases
 may be read with newer ones (note that the reverse does not apply). For example,
 data ingested into Accumulo with GeoMesa 1.2.2 may be read with 1.2.3.
 
