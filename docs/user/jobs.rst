@@ -11,7 +11,7 @@ If you wish to build this project separately, you can with maven:
 
 .. code-block:: shell
 
-    geomesa> mvn clean install -pl geomesa-jobs
+    geomesa$ mvn clean install -pl geomesa-jobs
 
 GeoMesa Input and Output Formats
 --------------------------------
@@ -77,7 +77,7 @@ build the project using the 'assemble' profile
 
 .. code-block:: shell
 
-    geomesa> mvn clean install -P assemble -pl geomesa-jobs
+    geomesa$ mvn clean install -P assemble -pl geomesa-jobs
 
 The following instructions assume you have built a shaded jar; if not
 you will need to use the 'libjars' argument to ensure the correct jars
@@ -99,7 +99,7 @@ slightly):
 
 .. code-block:: shell
 
-    geomesa> yarn jar geomesa-jobs/target/geomesa-jobs-1.0.0-shaded.jar \
+    geomesa$ yarn jar geomesa-jobs/target/geomesa-jobs-$VERSION-shaded.jar \
         org.locationtech.geomesa.jobs.index.AttributeIndexJob \
         --geomesa.input.instanceId <instance> \
         --geomesa.input.zookeepers <zookeepers> \
@@ -113,6 +113,8 @@ slightly):
 (Note that if you did not build with the 'assemble' profile, you will
 also need to include an extensive -libjars argument with all dependent
 jars)
+
+.. _update_index_format_job:
 
 Updating Existing Data to the Latest Index Format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -130,7 +132,7 @@ slightly):
 
 .. code-block:: shell
 
-    yarn jar geomesa-jobs/target/geomesa-jobs-1.0.0-shaded.jar \
+    geomesa$ yarn jar geomesa-jobs/target/geomesa-jobs-1.0.0-shaded.jar \
         org.locationtech.geomesa.jobs.index.SchemaCopyJob \
         --geomesa.input.instanceId <instance> \
         --geomesa.output.instanceId <instance> \
