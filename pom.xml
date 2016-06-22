@@ -1524,6 +1524,8 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <!-- note: accumulo uses guava 17, but geotools uses 11. The methods we use happen to exist
+                 in both, but try to use guava sparingly. -->
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>

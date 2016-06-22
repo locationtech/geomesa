@@ -183,7 +183,7 @@ class AccumuloBackedMetadata[T](connector: Connector, catalogTable: String, seri
     writer.addMutation(insert)
     writer.close()
     // also pre-fetch into the cache
-    // note: don't use putAll, it breaks guava compatibility
+    // note: don't use putAll, it breaks guava 11 compatibility
     kvPairs.foreach(kv => metaDataCache.put((typeName, kv._1), Option(kv._2)))
   }
 
