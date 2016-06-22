@@ -10,6 +10,15 @@ Installation
 
 See :ref:`setting_up_commandline`.
 
+Installing SFT and Converter Definitions
+----------------------------------------
+
+Starting with version 1.2.3, GeoMesa Tools ships with embedded SimpleFeatureType and GeoMesa Conveter definitions for common data types including Twitter, GeoNames, T-drive, and many more. Users can add additional types by providing a ``reference.conf`` file embedded with a jar within the ``lib/common`` directory or by registering the ``reference.conf`` file in the ``$GEOMESA_HOME/conf/sfts`` directory. 
+
+For example, to add a type named ``customtype``, create a directory named ``$GEOMESA_HOME/conf/sfts/customtype`` and then add the SFT and Conveter typesafe config to the a file named ``$GEOMESA_HOME/conf/sfts/customtype/reference.conf``. This file will be automatically picked up and placed on the classpath when the tools are run.
+
+To see which SFT and Converter confs are installed try the ``geomesa env`` command described below.
+
 Running the command line tools
 ------------------------------
 

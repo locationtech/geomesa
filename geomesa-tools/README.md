@@ -4,7 +4,7 @@
 GeoMesa Tools is a set of command line tools to add feature management functions, query planning and explanation, ingest, and export abilities from 
 the command line.  
 
-## Configuration
+## Installation
 To begin using the command line tools, first build the full GeoMesa project from the GeoMesa source directory with 
 
     mvn clean install
@@ -97,6 +97,12 @@ In all commands below, one can add `--instance-name`, `--zookeepers`, `--auths`,
 to properly configure the Accumulo data store connector. The Accumulo instance name and Zookeepers string can usually
 be automatically assigned as long as Accumulo is configured correctly. The Auths and Visibilities strings will have to
 be added as arguments to each command, if needed.
+
+### Installing SFT and Converter Definitions
+
+Starting with version 1.2.3 GeoMesa Tools ships with embedded SimpleFeatureType and GeoMesa Conveter definitions for common data types including Twitter, GeoNames, T-drive, and many more. Users can add additional types by providing a `reference.conf` file embedded with a jar within the `lib/common` directory or by registering the `reference.conf` file in the `$GEOMESA_HOME/conf/sfts` directory. 
+
+For example, to add a type named `customtype`, create a directory named `$GEOMESA_HOME/conf/sfts/customtype` and then add the SFT and Conveter typesafe config to the a file named `$GEOMESA_HOME/conf/sfts/customtype/reference.conf`. This file will be automatically picked up and placed on the classpath when the tools are run.
 
 ###Enabling Shape File Support
 Due to licensing restrictions, a necessary dependency (jai-core) for shape file support must be manually installed:
