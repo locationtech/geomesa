@@ -13,6 +13,7 @@ import com.vividsolutions.jts.geom.Coordinate
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.factory.Hints
+import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
@@ -54,8 +55,8 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedKafka with LazyLo
     val consumerDS = DataStoreFinder.getDataStore(consumerParams)
     val producerDS = DataStoreFinder.getDataStore(producerParams)
 
-    "consumerDS must not be null" >> { consumerDS must not beNull }
-    "producerDS must not be null" >> { producerDS must not beNull }
+    "consumerDS must not be null" >> { consumerDS must not(beNull) }
+    "producerDS must not be null" >> { producerDS must not(beNull) }
 
     val schema = {
       val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
@@ -174,6 +175,18 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedKafka with LazyLo
         val spatialQ = ff.bbox("geom", -10, -10, 10, 10, "EPSG:4326")
         val attrQ = ff.greater(ff.property("age"), ff.literal(50))
         res = consumerFC.getFeatures(ff.and(spatialQ, attrQ))
+        res.size() must be equalTo 1
+        res.features().next().getAttribute("name") must be equalTo "jones"
+
+        val mixedQ = ECQL.toFilter("age = 60 AND INTERSECTS(geom, POLYGON(-10 -10, 10 -10, 10 10, -10 10, -10 -10) " +
+            "AND bbox(geom, -10, -10, 10, 10)")
+        res = consumerFC.getFeatures(mixedQ)
+        res.size() must be equalTo 1
+        res.features().next().getAttribute("name") must be equalTo "jones"
+
+        val mixedQ2 = ECQL.toFilter("bbox(geom, -10, -10, 10, 10) AND age = 60 AND " +
+            "INTERSECTS(geom, POLYGON(-10 -10, 10 -10, 10 10, -10 10, -10 -10)")
+        res = consumerFC.getFeatures(mixedQ2)
         res.size() must be equalTo 1
         res.features().next().getAttribute("name") must be equalTo "jones"
       }
