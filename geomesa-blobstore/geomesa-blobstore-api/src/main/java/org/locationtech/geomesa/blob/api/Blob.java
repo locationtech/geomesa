@@ -1,6 +1,8 @@
 package org.locationtech.geomesa.blob.api;
 
 
+import com.google.common.base.Objects;
+
 public class Blob {
 
     private String id;
@@ -31,11 +33,9 @@ public class Blob {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("GeoMesa Blob id: ");
-        sb.append(id);
-        sb.append(", localname: ");
-        sb.append(localName);
-        return sb.toString();
+        return Objects.toStringHelper(this)
+                .add("id", id)
+                .add("localName", localName)
+                .toString();
     }
 }
