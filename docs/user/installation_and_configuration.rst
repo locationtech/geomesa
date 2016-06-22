@@ -554,14 +554,14 @@ JAR installed on Accumulo tablet servers **must** match the version of the
 ``geomesa-plugin`` JARs installed in the ``WEB-INF/lib`` directory of GeoServer.
 
 We strive to maintain backwards compatibility with data ingested between minor
-releases of GeoMesa, and thus in general data ingested with older 1.2.x releases
+releases of GeoMesa, and in general data ingested with older 1.2.x releases
 may be read with newer ones (note that the reverse does not apply). For example,
-data ingested into Accumulo with GeoMesa 1.2.2 may be read with GeoMesa 1.2.3.
+data ingested into Accumulo with GeoMesa 1.2.2 may be read with 1.2.3.
 
 It should be noted, however, that data ingested with older GeoMesa versions may
 not take full advantage of indexing improvements in newer releases. If
-it is not feasible to reingest your data, see :ref:`update_index_format_job`
-for more information on updating the index format of your existing data.
+it is not feasible to reingest old data, see :ref:`update_index_format_job`
+for more information on updating its index format.
 
 Security Concerns
 -----------------
