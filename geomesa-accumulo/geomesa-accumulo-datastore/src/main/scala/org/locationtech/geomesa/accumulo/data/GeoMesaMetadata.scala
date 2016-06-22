@@ -183,8 +183,8 @@ class AccumuloBackedMetadata[T](connector: Connector, catalogTable: String, seri
     writer.addMutation(insert)
     writer.close()
     // also pre-fetch into the cache
-    val toCache = kvPairs.map(kv => (typeName, kv._1) -> Option(kv._2))
-    metaDataCache.putAll(toCache)
+    // note: don't use putAll, it breaks guava 11 compatibility
+    kvPairs.foreach(kv => metaDataCache.put((typeName, kv._1), Option(kv._2)))
   }
 
   override def remove(typeName: String, key: String): Unit = {
