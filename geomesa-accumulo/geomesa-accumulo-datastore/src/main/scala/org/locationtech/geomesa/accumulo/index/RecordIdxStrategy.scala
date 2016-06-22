@@ -16,7 +16,7 @@ import org.locationtech.geomesa.accumulo.data.stats.GeoMesaStats
 import org.locationtech.geomesa.accumulo.data.tables.RecordTable
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.Strategy._
-import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, KryoLazyFilterTransformIterator, KryoLazyStatsIterator, KryoVisibilityRowEncoder}
+import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, KryoLazyDensityIterator, KryoLazyFilterTransformIterator, KryoLazyStatsIterator, KryoVisibilityRowEncoder}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.index.VisibilityLevel
@@ -94,6 +94,9 @@ class RecordIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLoggi
         // use the server side aggregation
         val iter = BinAggregatingIterator.configureDynamic(sft, filter.secondary, hints, deduplicate = false)
         (Seq(iter), BinAggregatingIterator.kvsToFeatures())
+      } else if (hints.isDensityQuery) {
+        val iter = KryoLazyDensityIterator.configure(sft, filter.secondary, hints)
+        (Seq(iter), KryoLazyDensityIterator.kvsToFeatures())
       } else if (hints.isStatsIteratorQuery) {
         val iter = KryoLazyStatsIterator.configure(sft, filter.secondary, hints, deduplicate = false)
         (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(sft))
