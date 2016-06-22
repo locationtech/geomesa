@@ -155,12 +155,11 @@ function findSftDirs() {
 GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB/common)"
 GEOMESA_CP="${GEOMESA_CP}:${ACCUMULO_CONF_DIR}:${HADOOP_CONF_DIR}"
 GEOMESA_CP="${GEOMESA_CP}:${GEOMESA_CONF_DIR}:$(findSftDirs)"
-ACCUMULO_CP="$(findJars $ACCUMULO_LIB)"
+ACCUMULO_CP="$(findJars $ACCUMULO_LIB true)"
 
 # Get the hadoop jars, ignoring jars with names containing slf4j and test
 # Copied from accumulo classpath
 hadoopDirs=(
-  $ZOOKEEPER_HOME
   # Hadoop 2 requirements
   $HADOOP_HOME/share/hadoop/common
   $HADOOP_HOME/share/hadoop/hdfs/
@@ -193,6 +192,12 @@ for home in ${hadoopDirs[*]}; do
     HADOOP_CP="${HADOOP_CP:1}"
   fi
 done
+
+# For zookeeper only include the single root jar
+if [[ -d "${ZOOKEEPER_HOME}" ]]; then
+  ZOOKEEPER_JAR="$(find $ZOOKEEPER_HOME -maxdepth 1 -type f -name *zookeeper*jar)"
+fi
+
 
 if [ -n "$JAVA_LIBRARY_PATH" ]; then
   GEOMESA_OPTS="${GEOMESA_OPTS} -Djava.library.path=${JAVA_LIBRARY_PATH}"
@@ -243,7 +248,7 @@ if  [[ $1 = configure ]]; then
     echo "export GEOMESA_HOME="$GEOMESA_HOME""
     echo "export PATH=\${GEOMESA_HOME}/bin:\$PATH"
 elif [[ $1 = classpath ]]; then
-    CLASSPATH="$GEOMESA_CP:$ACCUMULO_CP:$HADOOP_CP"
+    CLASSPATH="$GEOMESA_CP:$ACCUMULO_CP:$HADOOP_CP:${ZOOKEEPER_JAR}"
     for element in ${CLASSPATH//:/ } ; do
         echo ${element}
     done
@@ -252,6 +257,6 @@ else
         GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
         shift 1
     fi
-    CLASSPATH="$GEOMESA_CP:$ACCUMULO_CP:$HADOOP_CP"
+    CLASSPATH="$GEOMESA_CP:$ACCUMULO_CP:$HADOOP_CP:${ZOOKEEPER_JAR}"
     java ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.accumulo.AccumuloRunner "$@"
 fi

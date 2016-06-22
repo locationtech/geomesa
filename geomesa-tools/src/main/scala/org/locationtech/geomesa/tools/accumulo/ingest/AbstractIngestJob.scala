@@ -55,6 +55,7 @@ abstract class AbstractIngestJob extends LazyLogging {
     job.setOutputValueClass(classOf[ScalaSimpleFeature])
     job.setNumReduceTasks(0)
     job.getConfiguration.set("mapred.reduce.tasks.speculative.execution", "false")
+    job.getConfiguration.set("mapreduce.job.user.classpath.first", "true")
 
     FileInputFormat.setInputPaths(job, paths.mkString(","))
     configureJob(job)

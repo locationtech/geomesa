@@ -56,6 +56,16 @@ object ClassPathUtils extends LazyLogging {
     sys.env.get(home).map(new File(_)).filter(_.isDirectory).toSeq.flatMap(loadJarsFromFolder)
 
   /**
+    * Finds URLs of jar files based on an environment variable
+    *
+    * @param home
+    * @param path - the path to append to the result of the env var
+    * @return
+    */
+  def getJarsFromEnvironment(home: String, path: String): Seq[File] =
+    sys.env.get(home).map(h => new File(new File(h), path)).filter(_.isDirectory).toSeq.flatMap(loadJarsFromFolder)
+
+  /**
    * Finds URLs of jar files based on the current classpath
    *
    * @param clas

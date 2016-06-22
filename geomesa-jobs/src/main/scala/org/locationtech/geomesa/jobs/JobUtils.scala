@@ -39,7 +39,8 @@ object JobUtils extends LazyLogging {
 
   // paths are in order of preference for finding a jar
   def defaultSearchPath: Iterator[() => Seq[File]] =
-    Iterator(() => ClassPathUtils.getJarsFromEnvironment("GEOMESA_HOME"),
+    Iterator(() => ClassPathUtils.getJarsFromEnvironment("GEOMESA_HOME", "lib/common"),
+             () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_HOME", "lib/mapreduce"),
              () => ClassPathUtils.getJarsFromEnvironment("ACCUMULO_HOME"),
              () => ClassPathUtils.getJarsFromClasspath(classOf[AccumuloDataStore]),
              () => ClassPathUtils.getJarsFromClasspath(classOf[Connector]))
