@@ -59,9 +59,9 @@ class FilterHelperTest extends Specification {
     }
 
     "not modify valid intersects" >> {
-      val filter = ff.intersects(ff.property("geom"), ff.literal("POLYGON((45 23, 48 23, 48 27, 45 27, 45 23))"))
+      val filter = ff.intersects(ff.property("geom"), ff.literal("POLYGON((45 23, 45 27, 48 27, 48 23, 45 23))"))
       val updated = updateFilter(filter)
-      ECQL.toCQL(updated) mustEqual "INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))"
+      ECQL.toCQL(updated) mustEqual "INTERSECTS(geom, POLYGON ((45 23, 45 27, 48 27, 48 23, 45 23)))"
     }
 
     "fix IDL polygons in intersects" >> {
