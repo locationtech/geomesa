@@ -104,6 +104,20 @@ Starting with version 1.2.3 GeoMesa Tools ships with embedded SimpleFeatureType 
 
 For example, to add a type named `customtype`, create a directory named `$GEOMESA_HOME/conf/sfts/customtype` and then add the SFT and Conveter typesafe config to the a file named `$GEOMESA_HOME/conf/sfts/customtype/reference.conf`. This file will be automatically picked up and placed on the classpath when the tools are run.
 
+### Downloading Common Datasets
+
+GeoMesa ships with a script that will download common datasets and place them in a `$GEOMESA_HOME/data/<datatype>` directory. For example, to download gdelt data run:
+
+    > $GEOMESA_HOME/bin/download-data.sh gdelt
+    Enter a date in the form YYYYMMDD: 20150101
+    Saving to: “/tmp/geomesa-tools-1.2.3-SNAPSHOT/data/gdelt/20150101.export.CSV.zip”
+    
+    > unzip -P data/gdelt/ data/gdelt/20150101.export.CSV.zip 
+    Archive:  data/gdelt/20150101.export.CSV.zip
+      inflating: 20150101.export.CSV     
+
+    > geomesa ingest -u root -p <password> -c catalog -s gdelt -C gdelt $GEOMESA_HOME/data/gdelt/20150101.export.CSV
+
 ###Enabling Shape File Support
 Due to licensing restrictions, a necessary dependency (jai-core) for shape file support must be manually installed:
     
