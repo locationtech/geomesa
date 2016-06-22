@@ -13,7 +13,7 @@ import org.geotools.geometry.jts.JTS
 import org.locationtech.geomesa.utils.geotools.{DFI, DFR, FR}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.expression.{Literal, PropertyName}
-import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator, Within}
+import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator, Intersects, Within}
 
 import scala.collection.JavaConverters._
 
@@ -21,6 +21,14 @@ trait QuadTreeFeatureStore {
 
   def spatialIndex: SpatialIndex[SimpleFeature]
   def sft: SimpleFeatureType
+
+  def intersects(i: Intersects): FR = {
+    val (_, geomLit) = splitBinOp(i)
+    val geom = geomLit.evaluate(null).asInstanceOf[Geometry]
+    val res = spatialIndex.query(geom.getEnvelopeInternal, i.evaluate)
+    val fiter = new DFI(res.asJava)
+    new DFR(sft, fiter)
+  }
 
   def within(w: Within): FR = {
     val (_, geomLit) = splitBinOp(w)
