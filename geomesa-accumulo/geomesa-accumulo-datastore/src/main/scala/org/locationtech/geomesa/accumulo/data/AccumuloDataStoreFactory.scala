@@ -84,14 +84,15 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       queryThreadsParam.lookupWithDefault(params),
       recordThreadsParam.lookupWithDefault(params),
       writeThreadsParam.lookupWithDefault(params),
+      generateStatsParam.lookupWithDefault[Boolean](params),
       cachingParam.lookupWithDefault(params),
       looseBBoxParam.lookupWithDefault(params)
     )
 
     // stats defaults to true if not specified
-    val collectStats = !useMock && statsParam.lookupWithDefault[Boolean](params)
+    val auditQueries = !useMock && queryAuditingParam.lookupWithDefault[Boolean](params)
 
-    if (collectStats) {
+    if (auditQueries) {
       new AccumuloDataStore(connector, tableName, authProvider, auditProvider, visibility, config) with StatWriter
     } else {
       new AccumuloDataStore(connector, tableName, authProvider, auditProvider, visibility, config)
@@ -116,7 +117,8 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       recordThreadsParam,
       writeThreadsParam,
       looseBBoxParam,
-      statsParam,
+      generateStatsParam,
+      queryAuditingParam,
       cachingParam,
       forceEmptyAuthsParam
     )
@@ -185,7 +187,8 @@ object AccumuloDataStoreParams {
   val recordThreadsParam   = new Param("recordThreads", classOf[Integer], "The number of threads to use for record retrieval", false, 10)
   val writeThreadsParam    = new Param("writeThreads", classOf[Integer], "The number of threads to use for writing records", false, 10)
   val looseBBoxParam       = new Param("looseBoundingBox", classOf[java.lang.Boolean], "Use loose bounding boxes - queries will be faster but may return extraneous results", false, true)
-  val statsParam           = new Param("collectStats", classOf[java.lang.Boolean], "Toggle collection of statistics", false, true)
+  val generateStatsParam   = new Param("generateStats", classOf[java.lang.Boolean], "Toggle collection of data statistics", false, true)
+  val queryAuditingParam   = new Param("auditQueries", classOf[java.lang.Boolean], "Toggle collection of query statistics", false, true)
   val cachingParam         = new Param("caching", classOf[java.lang.Boolean], "Toggle caching of results", false, false)
   val mockParam            = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
   val forceEmptyAuthsParam = new Param("forceEmptyAuths", classOf[java.lang.Boolean], "When checked, force the data store to use empty Accumulo authorizations", false, false)

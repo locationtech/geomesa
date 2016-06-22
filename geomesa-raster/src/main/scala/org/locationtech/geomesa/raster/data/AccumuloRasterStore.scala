@@ -332,7 +332,7 @@ object AccumuloRasterStore {
     val wMem: Option[String] = RasterParams.writeMemoryParam.lookupOpt[String](config)
     val wThread: Option[Int] = writeThreadsParam.lookupOpt[Int](config)
     val qThread: Option[Int] = queryThreadsParam.lookupOpt[Int](config)
-    val cStats: Boolean      = java.lang.Boolean.valueOf(statsParam.lookupOpt[Boolean](config).getOrElse(false))
+    val cStats: Boolean      = java.lang.Boolean.valueOf(queryAuditingParam.lookupOpt[Boolean](config).getOrElse(false))
 
     AccumuloRasterStore(username, password, instance, zookeepers, tablename,
       auths, vis, useMock, wMem, wThread, qThread, cStats)
