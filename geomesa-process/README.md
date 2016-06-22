@@ -18,12 +18,12 @@ The following analytic processes are available and optimized on GeoMesa data sto
 
 The above extensions are particular to the Accumulo datastore.
 
-While they can be used independently, the common use case is to use them with GeoServer.  To deploy them in GeoServer, one will require a) the GeoMesa Accumulo datastore plugin, b) the GeoServer WPS extension zip [], and c) the geomesa-process-${VERSION}.jar to be deployed in ${GEOSERVER_HOME}/WEB-INF/lib.  
+While they can be used independently, the common use case is to use them with GeoServer.  To deploy them in GeoServer, one will require a) the GeoMesa Accumulo datastore plugin, b) the GeoServer WPS extension, and c) the `geomesa-process-${VERSION}.jar` to be deployed in `${GEOSERVER_HOME}/WEB-INF/lib`.  
 
 The GeoMesa Accumulo datastore plugin and GeoMesa process jars are both available in the binary distribution in the gs-plugins directory.
 
 Documentation about the GeoServer WPS Extension (including download instructions) is available here: http://docs.geoserver.org/2.8.1/user/extensions/wps/install.html.
 
-To verify the install, start GeoServer, and you should see a line like "INFO [geoserver.wps] - Found 11 bindable processes in GeoMesa Process Factory".
+To verify the install, start GeoServer, and you should see a line like `INFO [geoserver.wps] - Found 11 bindable processes in GeoMesa Process Factory`.
 
 In the GeoServer web UI, click 'Demos' and then 'WPS request builder'.  From the request builder, under 'Choose Process', click on any of the 'geomesa:' options to build up example requests and in some cases see results.
