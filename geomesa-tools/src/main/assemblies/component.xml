@@ -34,6 +34,17 @@
                 <include>org.apache.zookeeper:zookeeper</include>
             </includes>
         </dependencySet>
+        <dependencySet>
+            <outputDirectory>lib/mapreduce</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0644</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>true</useTransitiveDependencies>
+            <useTransitiveFiltering>true</useTransitiveFiltering>
+            <includes>
+                <include>com.google.guava:guava</include>
+            </includes>
+        </dependencySet>
     </dependencySets>
     <fileSets>
         <fileSet>

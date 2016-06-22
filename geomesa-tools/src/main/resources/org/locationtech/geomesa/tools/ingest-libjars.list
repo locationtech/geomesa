@@ -11,6 +11,7 @@ curator-framework
 curator-recipes
 geomesa
 gson
+guava-17
 gt
 joda
 json-path
@@ -25,3 +26,4 @@ minlog
 scala
 spatial4j
 sfcurve
+stream
