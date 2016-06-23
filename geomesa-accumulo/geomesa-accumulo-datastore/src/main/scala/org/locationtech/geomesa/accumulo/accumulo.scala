@@ -50,7 +50,7 @@ package object accumulo {
     val CONFIG_FILE = PropAndDefault("geomesa.config.file", "geomesa-site.xml")
 
     object QueryProperties {
-      val QUERY_EXACT_COUNT    = PropAndDefault("geomesa.force.count", "true")
+      val QUERY_EXACT_COUNT    = PropAndDefault("geomesa.force.count", "false")
       val QUERY_COST_TYPE      = PropAndDefault("geomesa.query.cost.type", null)
       val QUERY_TIMEOUT_MILLIS = PropAndDefault("geomesa.query.timeout.millis", null) // default is no timeout
       val SCAN_BATCH_RANGES    = PropAndDefault("geomesa.scan.ranges.batch", "20000")
