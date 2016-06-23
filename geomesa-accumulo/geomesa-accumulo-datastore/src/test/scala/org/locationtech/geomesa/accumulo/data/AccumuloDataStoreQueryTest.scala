@@ -204,6 +204,13 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       features.map(DataUtilities.encodeFeature) mustEqual List("fid-1=name1|POINT (45 49)|2010-05-07T12:30:00.000Z")
     }
 
+    "handle out-of-bound longitude and in-bounds latitude bboxes" in {
+      val filter = ECQL.toFilter("BBOX(geom, -266.8359375,-75.5859375,279.4921875,162.7734375)")
+      val query = new Query(defaultSft.getTypeName, filter)
+      val features = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features.toList
+      features.map(DataUtilities.encodeFeature) mustEqual List("fid-1=name1|POINT (45 49)|2010-05-07T12:30:00.000Z")
+    }
+
     "handle requests with namespaces" in {
       // create the data store
       val ns = "mytestns"

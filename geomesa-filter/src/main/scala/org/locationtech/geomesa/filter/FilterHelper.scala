@@ -55,8 +55,10 @@ object FilterHelper extends LazyLogging {
       val attribute = Option(prop.name).filterNot(_.isEmpty).getOrElse(sft.getGeomField)
       // copy the geometry so we don't modify the original
       val geomCopy = gf.createGeometry(geom)
+      // trim to world boundaries
+      val trimmedGeom = geomCopy.intersection(WholeWorldPolygon)
       // add waypoints if needed so that IDL is handled correctly
-      val geomWithWayPoints = if (op.isInstanceOf[BBOX]) addWayPointsToBBOX(geomCopy) else geomCopy
+      val geomWithWayPoints = if (op.isInstanceOf[BBOX]) addWayPointsToBBOX(trimmedGeom) else trimmedGeom
       val safeGeometry = getInternationalDateLineSafeGeometry(geomWithWayPoints)
       // mark it as being visited
       safeGeometry.setUserData(SafeGeomString)
@@ -94,7 +96,9 @@ object FilterHelper extends LazyLogging {
       val attribute = Option(prop.name).filterNot(_.isEmpty).getOrElse(sft.getGeomField)
       // copy the geometry so we don't modify the original
       val geomCopy = gf.createGeometry(geom)
-      val safeGeometry = getInternationalDateLineSafeGeometry(geomCopy)
+      // trim to world boundaries
+      val trimmedGeom = geomCopy.intersection(WholeWorldPolygon)
+      val safeGeometry = getInternationalDateLineSafeGeometry(trimmedGeom)
       // mark it as being visited
       safeGeometry.setUserData(SafeGeomString)
       recreateAsIdlSafeFilter(op, attribute, safeGeometry, prop.flipped, distanceDegrees)
