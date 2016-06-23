@@ -94,10 +94,85 @@ the build process.
 
 More information about developing with GeoMesa may be found in the :doc:`/developer/index`.
 
+.. _install_accumulo_runtime:
+
+Installing the Accumulo Distributed Runtime Library
+---------------------------------------------------
+
+The ``geomesa-$VERSION/dist/accumulo`` directory contains the distributed
+runtime JAR that contains server-side code for Accumulo that must be made
+available on each of the Accumulo tablet servers in the cluster. This JAR
+contains GeoMesa code and the Accumulo iterator required for querying
+GeoMesa data.
+
+The version of the distributed runtime JAR must match the version of the GeoMesa
+data store client JAR (usually installed in GeoServer; see below). If not,
+queries might not work correctly or at all.
+
+For Accumulo 1.5
+^^^^^^^^^^^^^^^^
+
+The runtime JAR should be copied into the ``$ACCUMULO_HOME/lib/ext`` folder on
+each tablet server.
+
+.. code-block:: bash
+
+    # something like this for each tablet server
+    $ scp geomesa-$VERSION/dist/accumulo/geomesa-accumulo-distributed-runtime-$VERSION.jar tserver1:$ACCUMULO_HOME/lib/ext
+
+.. note::
+
+    You do not need the JAR on the Accumulo master server, and including
+    it there may cause classpath issues later.
+
+.. _install_accumulo_runtime_namespace:
+
+For Accumulo 1.6+
+^^^^^^^^^^^^^^^^^
+
+Copying the runtime JAR to each tablet server as for Accumulo 1.5 above will
+still work, but in Accumulo 1.6, we can leverage namespaces to isolate the
+GeoMesa classpath from the rest of Accumulo. First, you have to create the
+namespace in the Accumulo shell:
+
+.. code::
+
+    $ accumulo shell -u root
+    > createnamespace myNamespace
+    > grant NameSpace.CREATE_TABLE -ns myNamespace -u myUser
+    > config -s general.vfs.context.classpath.myNamespace=hdfs://NAME_NODE_FDQN:54310/accumulo/classpath/myNamespace/[^.].*.jar
+    > config -ns myNamespace -s table.classpath.context=myNamespace
+
+.. note::
+
+    Depending on Hadoop version, you may need to use ``hdfs://NAME_NODE_FDQN:8020``.
+
+Then copy the distributed runtime jar into HDFS under the path you specified.
+The path above is just an example; you can included nested folders with project
+names, version numbers, and other information in order to have different versions of GeoMesa on
+the same Accumulo instance. You should remove any GeoMesa JARs under
+``$ACCUMULO_HOME/lib/ext`` to prevent any classpath conflicts.
+
+.. note::
+
+    When connecting to a data store using Accumulo namespaces, you must prefix
+    the ``tableName`` parameter with the namespace. For example, refer to the
+    ``my_catalog`` table as ``myNamespace.my_catalog``.
+
 .. _setting_up_commandline:
 
 Setting up the Command Line Tools
 ---------------------------------
+
+.. warning::
+
+    To use the Accumulo data store with the command line tools, you need to install
+    the distributed runtime first. See :ref:`install_accumulo_runtime`.
+
+.. note::
+
+    The command line tools currently support the Accumulo and Kafka
+    data stores.
 
 GeoMesa comes with a set of command line tools for managing features. To complete the setup 
 of the tools, `cd` into the ``dist/tools`` directory of the binary distribution and unpack the
@@ -210,71 +285,6 @@ Note that if no slf4j implementation is installed you will see this error:
 In this case you may download SLF4J from http://www.slf4j.org/download.html. Extract 
 ``slf4j-log4j12-1.7.7.jar`` and place it in the ``lib`` directory of the binary distribution. 
 If this conflicts with another SLF4J implementation, you may need to remove it from the ``lib`` directory.
-
-.. _install_accumulo_runtime:
-
-Installing the Accumulo distributed runtime library
----------------------------------------------------
-
-The ``geomesa-$VERSION/dist/accumulo`` directory contains the distributed
-runtime JAR that contains server-side code for Accumulo that must be made
-available on each of the Accumulo tablet servers in the cluster. This JAR
-contains GeoMesa code and the Accumulo iterator required for querying 
-GeoMesa data.
-
-The version of the distributed runtime JAR must match the version of the GeoMesa
-data store client JAR (usually installed in GeoServer; see below). If not,
-queries might not work correctly or at all.
-
-For Accumulo 1.5
-^^^^^^^^^^^^^^^^
-
-The runtime JAR should be copied into the ``$ACCUMULO_HOME/lib/ext`` folder on
-each tablet server. 
-
-.. code-block:: bash
-
-    # something like this for each tablet server
-    $ scp geomesa-$VERSION/dist/accumulo/geomesa-accumulo-distributed-runtime-$VERSION.jar tserver1:$ACCUMULO_HOME/lib/ext
-
-.. note::
-
-    You do not need the JAR on the Accumulo master server, and including
-    it there may cause classpath issues later.
-
-.. _install_accumulo_runtime_namespace:
-
-For Accumulo 1.6+
-^^^^^^^^^^^^^^^^^
-
-Copying the runtime JAR to each tablet server as for Accumulo 1.5 above will
-still work, but in Accumulo 1.6, we can leverage namespaces to isolate the
-GeoMesa classpath from the rest of Accumulo. First, you have to create the
-namespace in the Accumulo shell:
-
-.. code::
-
-    $ accumulo shell -u root
-    > createnamespace myNamespace
-    > grant NameSpace.CREATE_TABLE -ns myNamespace -u myUser
-    > config -s general.vfs.context.classpath.myNamespace=hdfs://NAME_NODE_FDQN:54310/accumulo/classpath/myNamespace/[^.].*.jar
-    > config -ns myNamespace -s table.classpath.context=myNamespace
-
-.. note::
-
-    Depending on Hadoop version, you may need to use ``hdfs://NAME_NODE_FDQN:8020``.
-
-Then copy the distributed runtime jar into HDFS under the path you specified.
-The path above is just an example; you can included nested folders with project
-names, version numbers, and other information in order to have different versions of GeoMesa on
-the same Accumulo instance. You should remove any GeoMesa JARs under
-``$ACCUMULO_HOME/lib/ext`` to prevent any classpath conflicts.
-
-.. note::
-
-    When connecting to a data store using Accumulo namespaces, you must prefix
-    the ``tableName`` parameter with the namespace. For example, refer to the 
-    ``my_catalog`` table as ``myNamespace.my_catalog``.
 
 .. _install_geoserver_plugins:
 
@@ -542,13 +552,26 @@ Restart GeoServer after the JARs are installed.
 Upgrading
 ---------
 
-To upgrade between minor releases of GeoMesa, the versions of all GeoMesa components **must** match. 
+To upgrade between minor releases of GeoMesa, the versions of all GeoMesa components
+**must** match. This means that the version of the ``geomesa-distributed-runtime``
+JAR installed on Accumulo tablet servers **must** match the version of the
+``geomesa-plugin`` JARs installed in the ``WEB-INF/lib`` directory of GeoServer.
 
-This means that the version of the ``geomesa-distributed-runtime`` JAR installed on Accumulo tablet servers
-**must** match the version of the ``geomesa-plugin`` JARs installed in the ``WEB-INF/lib`` directory of GeoServer.
+We strive to maintain backwards compatibility for data ingested with older
+releases of GeoMesa, and in general data ingested with older releases
+may be read with newer ones (note that the reverse does not apply). For example,
+data ingested into Accumulo with GeoMesa 1.2.2 may be read with 1.2.3.
+
+It should be noted, however, that data ingested with older GeoMesa versions may
+not take full advantage of indexing improvements in newer releases. If
+it is not feasible to reingest old data, see :ref:`update_index_format_job`
+for more information on updating its index format.
+
+Security Concerns
+-----------------
 
 Apache Commons Collections
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Version 3.2.1 and earlier of the Apache Commons Collections library have a CVSS 10.0 vulnerability.  Read more `here
 <https://commons.apache.org/proper/commons-collections/security-reports.html>`__.
