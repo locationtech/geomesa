@@ -39,8 +39,10 @@ See below for some common configurations:
 | accumulo-fate-1.6.5.jar | 111114 |
 | accumulo-trace-1.6.5.jar | 124575 |
 | accumulo-server-base-1.6.5.jar | 550180 |
+| accumulo-start-1.6.5.jar | 60719 |
 | libthrift-0.9.1.jar | 217053 |
 | zookeeper-3.4.6.jar | 792964 |
+| commons-vfs2-2.0.jar | 415578 |
 
 
 #### Hadoop 2.2
