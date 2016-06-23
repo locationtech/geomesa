@@ -12,7 +12,7 @@ import java.awt.RenderingHints.Key
 import java.net.URI
 import java.util
 import java.util.Collections
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.typesafe.scalalogging.LazyLogging
@@ -118,7 +118,7 @@ abstract class AccumuloFeatureSource(val dataStore: AccumuloDataStore, val featu
  * Feature collection implementation
  */
 class AccumuloFeatureCollection(source: AccumuloFeatureSource, query: Query)
-  extends DataFeatureCollection {
+  extends DataFeatureCollection(AccumuloFeatureCollection.nextId) {
 
   private val ds = source.getDataStore
   private val open = new AtomicBoolean(false)
@@ -175,6 +175,11 @@ class AccumuloFeatureCollection(source: AccumuloFeatureSource, query: Query)
   override def getCount = source.getCount(query)
 
   override def getBounds = source.getBounds(query)
+}
+
+object AccumuloFeatureCollection {
+  private val oneUp = new AtomicLong(0)
+  def nextId: String = s"AccumuloFeatureCollection-${oneUp.getAndIncrement()}"
 }
 
 class CachingAccumuloFeatureCollection(source: AccumuloFeatureSource, query: Query)

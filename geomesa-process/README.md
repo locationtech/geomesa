@@ -12,6 +12,7 @@ The following analytic processes are available and optimized on GeoMesa data sto
 * `TubeSelectProcess` - performs a correlated search across time/space dimensions
 * `QueryProcess` - optimizes GeoMesa queries in WPS chains
 * `UniqueProcess` - identifies unique values for an attribute in results of a CQL query
+* `JoinProcess` - returns merged features from two different schemas using a common attribute field
 
 
 ## Installation

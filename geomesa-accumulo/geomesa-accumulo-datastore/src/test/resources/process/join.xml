@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wps:Execute version="1.0.0" service="WPS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.opengis.net/wps/1.0.0" xmlns:wfs="http://www.opengis.net/wfs" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc" xmlns:wcs="http://www.opengis.net/wcs/1.1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+  <ows:Identifier>geomesa:Join</ows:Identifier>
+  <wps:DataInputs>
+    <wps:Input>
+      <ows:Identifier>primary</ows:Identifier>
+      <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wps" method="POST">
+        <wps:Body>
+          <wps:Execute version="1.0.0" service="WPS">
+            <ows:Identifier>geomesa:Query</ows:Identifier>
+            <wps:DataInputs>
+              <wps:Input>
+                <ows:Identifier>features</ows:Identifier>
+                <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">
+                  <wps:Body>
+                    <wfs:GetFeature service="WFS" version="1.0.0" outputFormat="GML2" xmlns:geomesa="geomesa">
+                      <wfs:Query typeName="geomesa:summary"/>
+                    </wfs:GetFeature>
+                  </wps:Body>
+                </wps:Reference>
+              </wps:Input>
+              <wps:Input>
+                <ows:Identifier>filter</ows:Identifier>
+                <wps:Data>
+                  <wps:ComplexData mimeType="text/plain; subtype=cql"><![CDATA[age = 5]]></wps:ComplexData>
+                </wps:Data>
+              </wps:Input>
+            </wps:DataInputs>
+            <wps:ResponseForm>
+              <wps:RawDataOutput mimeType="text/xml; subtype=wfs-collection/1.0">
+                <ows:Identifier>result</ows:Identifier>
+              </wps:RawDataOutput>
+            </wps:ResponseForm>
+          </wps:Execute>
+        </wps:Body>
+      </wps:Reference>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>secondary</ows:Identifier>
+      <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">
+        <wps:Body>
+          <wfs:GetFeature service="WFS" version="1.0.0" outputFormat="GML2" xmlns:geomesa="geomesa">
+            <wfs:Query typeName="geomesa:detail"/>
+          </wfs:GetFeature>
+        </wps:Body>
+      </wps:Reference>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>joinAttribute</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>track</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <!-- optional filter on the joined schema, in addition to the implicit join attribute filter -->
+    <!--<wps:Input>
+      <ows:Identifier>joinFilter</ows:Identifier>
+      <wps:Data>
+        <wps:ComplexData mimeType="text/plain; subtype=cql"><![CDATA[bbox(geom,10,10,12,12)]]></wps:ComplexData>
+      </wps:Data>
+    </wps:Input>-->
+    <!-- optionally restrict the attributes coming back -->
+    <!-- unambiguous attributes can be specified by their simple name. otherwise, they must be prefixed with the simple feature type name -->
+    <!--<wps:Input>
+      <ows:Identifier>attributes</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>track</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>attributes</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>summary.age</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>attributes</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>detail.geom</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>-->
+    <!-- optional BIN parameters -->
+    <!-- note: BIN output requires the geomesa-ext wfs geoserver jar -->
+    <!-- Enable BIN output by setting 'bins' true and setting the ResponseForm mimeType to 'application/vnd.binary-viewer'-->
+    <!-- if not specified, date and trackId will try to use sensible defaults -->
+    <!--<wps:Input>
+      <ows:Identifier>bins</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>true</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>binDtg</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>some.qualified.attribute</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>binTrackId</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>some.qualified.attribute</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier>binLabel</ows:Identifier>
+      <wps:Data>
+        <wps:LiteralData>some.qualified.attribute</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>-->
+  </wps:DataInputs>
+  <wps:ResponseForm>
+    <wps:RawDataOutput mimeType="application/json">
+      <ows:Identifier>result</ows:Identifier>
+    </wps:RawDataOutput>
+  </wps:ResponseForm>
+</wps:Execute>

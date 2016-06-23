@@ -206,7 +206,7 @@ class BinFileExport(os: OutputStream,
   val latLon = latAttribute.flatMap(lat => lonAttribute.map(lon => (lat, lon)))
 
   override def write(fc: SimpleFeatureCollection) =
-    encodeFeatureCollection(fc, os, dtgAttribute, id, lblAttribute, latLon, AxisOrder.LonLat)
+    encodeFeatureCollection(fc, os, EncodingOptions(dtgAttribute, id, lblAttribute, latLon, AxisOrder.LonLat))
 
   override def flush() = os.flush()
 
