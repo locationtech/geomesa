@@ -19,6 +19,7 @@ thrift_version="${thrift.version}"
 # for hadoop 2.5 and 2.6 to work we need these
 guava_version="11.0.2"
 com_log_version="1.1.3"
+commons_vfs2_version="2.0"
 
 base_url="https://search.maven.org/remotecontent?filepath="
 
@@ -37,6 +38,7 @@ else
             "${base_url}org/apache/accumulo/accumulo-fate/${accumulo_version}/accumulo-fate-${accumulo_version}.jar"
             "${base_url}org/apache/accumulo/accumulo-trace/${accumulo_version}/accumulo-trace-${accumulo_version}.jar"
             "${base_url}org/apache/accumulo/accumulo-server-base/${accumulo_version}/accumulo-server-base-${accumulo_version}.jar"
+            "${base_url}org/apache/accumulo/accumulo-start/${accumulo_version}/accumulo-start-${accumulo_version}.jar"
             "${base_url}org/apache/thrift/libthrift/${thrift_version}/libthrift-${thrift_version}.jar"
             "${base_url}org/apache/zookeeper/zookeeper/${zookeeper_version}/zookeeper-${zookeeper_version}.jar"
             "${base_url}commons-configuration/commons-configuration/1.6/commons-configuration-1.6.jar"
@@ -46,6 +48,7 @@ else
             "${base_url}org/apache/hadoop/hadoop-hdfs/${hadoop_version}/hadoop-hdfs-${hadoop_version}.jar"
             "${base_url}commons-logging/commons-logging/${com_log_version}/commons-logging-${com_log_version}.jar"
             "${base_url}com/google/guava/guava/${guava_version}/guava-${guava_version}.jar"
+            "${base_url}org/apache/commons/commons-vfs2/${commons_vfs2_version}/commons-vfs2-${commons_vfs2_version}.jar"
             )
 
         for x in "${urls[@]}"; do
