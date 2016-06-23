@@ -62,7 +62,7 @@ object FilterHelper extends LazyLogging {
         case bbox: BBOX             => addWayPoints(trimmedGeom)
         case intersects: Intersects => addWayPoints(trimmedGeom)
         case _                      => trimmedGeom
-      if
+      }
       val safeGeometry = getInternationalDateLineSafeGeometry(geomWithWayPoints)
       // mark it as being visited
       safeGeometry.setUserData(SafeGeomString)
