@@ -211,6 +211,13 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       features.map(DataUtilities.encodeFeature) mustEqual List("fid-1=name1|POINT (45 49)|2010-05-07T12:30:00.000Z")
     }
 
+    "handle whole world intersects" in {
+      val filter = ECQL.toFilter("INTERSECTS(geom, POLYGON((-180 -90,-180 80,180 80,180 -90,-180 -90)))")
+      val query = new Query(defaultSft.getTypeName, filter)
+      val features = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features.toList
+      features.size mustEqual 1
+    }
+
     "handle requests with namespaces" in {
       // create the data store
       val ns = "mytestns"
