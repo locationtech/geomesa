@@ -1,13 +1,13 @@
 GeoMesa Jobs
 ============
 
-Building Instructions
----------------------
-
 This project (``geomesa-jobs`` in the source distribution) contains Map-Reduce
 and Scalding jobs for maintaining GeoMesa.
 
-If you wish to build this project separately, you can with maven:
+Building Instructions
+---------------------
+
+If you wish to build ``geomesa-jobs`` separately, you can with Maven:
 
 .. code-block:: shell
 
@@ -70,17 +70,17 @@ catalog table.
 Map/Reduce Jobs
 ---------------
 
-To facilitate running jobs, you may wish to build a shaded jar that
-contains all the required dependencies. Ensure that the pom references
-the correct versions of hadoop, accumulo etc for your cluster, then
-build the project using the 'assemble' profile
+To facilitate running jobs, you may wish to build a shaded JAR that
+contains all the required dependencies. Ensure that the ``pom.xml`` references
+the correct versions of Hadoop, Accumulo, etc. for your cluster, then
+build the project using the ``assemble`` profile:
 
 .. code-block:: shell
 
     geomesa$ mvn clean install -P assemble -pl geomesa-jobs
 
-The following instructions assume you have built a shaded jar; if not
-you will need to use the 'libjars' argument to ensure the correct jars
+The following instructions assume you have built a shaded JAR; if not
+you will need to use the ``-libjars`` argument to ensure the correct JARs
 are available on the distributed classpath.
 
 .. _attribute_indexing_job:
@@ -94,7 +94,7 @@ schema (simple feature type). If you decide later on that you would like
 to index additional attributes, you can use the attribute indexing job.
 You only need to run this job once.
 
-The job can be invoked through yarn as follows (jar version may vary
+The job can be invoked through Yarn as follows (JAR version may vary
 slightly):
 
 .. code-block:: shell
@@ -110,29 +110,30 @@ slightly):
         --geomesa.index.coverage <full|join> \ # optional attribute
         --geomesa.index.attributes <attributes to index - space separated>
 
-(Note that if you did not build with the 'assemble' profile, you will
-also need to include an extensive -libjars argument with all dependent
-jars)
+.. note::
+
+    If you did not build with the ``assemble`` profile, you will also need to
+    include an extensive ``-libjars`` argument with all dependent JARs.
 
 .. _update_index_format_job:
 
 Updating Existing Data to the Latest Index Format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-GeoMesa is constantly improving our indexing. We strive to maintain
+The indexing in GeoMesa is constantly being improved. We strive to maintain
 backwards compatibility, but old data can't always take advantage of the
 improvements we make. However, old data can be updated through the
-SchemaCopyJob. This will copy it to a new table (or feature name),
+``SchemaCopyJob``. This will copy it to a new table (or feature name),
 rewriting all the data using the latest codebase. Once the data is
 updated, you can drop the old tables and rename the new tables back to
 the original names.
 
-The job can be invoked through yarn as follows (jar version may vary
+The job can be invoked through Yarn as follows (JAR version may vary
 slightly):
 
 .. code-block:: shell
 
-    geomesa$ yarn jar geomesa-jobs/target/geomesa-jobs-1.0.0-shaded.jar \
+    geomesa$ yarn jar geomesa-jobs/target/geomesa-jobs-$VERSION-shaded.jar \
         org.locationtech.geomesa.jobs.index.SchemaCopyJob \
         --geomesa.input.instanceId <instance> \
         --geomesa.output.instanceId <instance> \
@@ -148,6 +149,7 @@ slightly):
         --geomesa.output.feature <feature> \
         --geomesa.input.cql <options cql filter for input features>
 
-(Note that if you did not build with the 'assemble' profile, you will
-also need to include an extensive -libjars argument with all dependent
-jars)
+.. note::
+
+    If you did not build with the ``assemble`` profile, you will also need to
+    include an extensive ``-libjars`` argument with all dependent JARs.
