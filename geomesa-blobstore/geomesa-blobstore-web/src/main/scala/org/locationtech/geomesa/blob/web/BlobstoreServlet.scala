@@ -17,8 +17,8 @@ import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper}
 
 import org.apache.commons.io.FilenameUtils
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
-import org.locationtech.geomesa.blob.core.AccumuloBlobStore
-import org.locationtech.geomesa.blob.core.AccumuloBlobStore._
+import org.locationtech.geomesa.blob.accumulo.GeoMesaAccumuloBlobStore
+import org.locationtech.geomesa.blob.api.GeoMesaBlobStoreSFT
 import org.locationtech.geomesa.utils.cache.FilePersistence
 import org.locationtech.geomesa.web.core.PersistentDataStoreServlet
 import org.scalatra._
@@ -50,18 +50,18 @@ class BlobstoreServlet(val persistence: FilePersistence)
       handleError("IO exception in BlobstoreServlet", e)
   }
 
-  val blobStores: concurrent.Map[String, AccumuloBlobStore] = new ConcurrentHashMap[String, AccumuloBlobStore]
+  val blobStores: concurrent.Map[String, GeoMesaAccumuloBlobStore] = new ConcurrentHashMap[String, GeoMesaAccumuloBlobStore]
   getPersistedDataStores.foreach {
     case (alias, params) => connectToBlobStore(params).map(abs => blobStores.putIfAbsent(alias, abs))
   }
 
-  private def connectToBlobStore(dsParams: Map[String, String]): Option[AccumuloBlobStore] = {
+  private def connectToBlobStore(dsParams: Map[String, String]): Option[GeoMesaAccumuloBlobStore] = {
     val ds = new AccumuloDataStoreFactory().createDataStore(dsParams).asInstanceOf[AccumuloDataStore]
     if (ds == null) {
       logger.warn("Bad Connection Params: {}", dsParams)
       None
     } else {
-      Some(new AccumuloBlobStore(ds))
+      Some(GeoMesaAccumuloBlobStore(ds))
     }
   }
 
@@ -107,7 +107,7 @@ class BlobstoreServlet(val persistence: FilePersistence)
       try {
         persistence.removeAll(persistence.keys(prefix).toSeq)
         persistence.persistAll(toPersist)
-        blobStores.put(alias, new AccumuloBlobStore(ds))
+        blobStores.put(alias, GeoMesaAccumuloBlobStore(ds))
         Ok()
       } catch {
         case e: Exception => handleError(s"Error persisting data store '$alias':", e)
@@ -163,7 +163,7 @@ class BlobstoreServlet(val persistence: FilePersistence)
       case None => BadRequest(reason = "AccumuloBlobStore is not initialized.")
       case Some(abs) =>
         val id = params("id")
-        logger.debug("Attempting to delete: {} from store: {}", id, alias)
+        logger.debug("Attempting to deleteBlob: {} from store: {}", id, alias)
         try {
           abs.delete(id)
           Ok(reason = s"deleted feature: $id")
@@ -185,12 +185,12 @@ class BlobstoreServlet(val persistence: FilePersistence)
         logger.debug("Attempting to get blob for id: {} from store: {}", id, alias)
         try {
           val ret = abs.get(id)
-          val bytes = ret.getValue
+          val bytes: Array[Byte] = ret.getPayload
           if (bytes == null) {
             BadRequest(reason = s"Unknown ID $id")
           } else {
             contentType = "application/octet-stream"
-            response.setHeader("Content-Disposition", "attachment;filename=" + ret.getKey)
+            response.setHeader("Content-Disposition", "attachment;filename=" + ret.getLocalName)
             Ok(bytes)
           }
         } catch {
@@ -213,7 +213,7 @@ class BlobstoreServlet(val persistence: FilePersistence)
             case None =>
               BadRequest(reason = "no file parameter in request")
             case Some(file) =>
-              val params = multiParams.map{case (k, v) => k -> v.toString}.updated(FilenameFieldName, file.getName)
+              val params = multiParams.map{case (k, v) => k -> v.toString}.updated(GeoMesaBlobStoreSFT.FilenameFieldName, file.getName)
               attemptBlobWriting(abs, file, params)
           }
         } catch {
@@ -222,7 +222,7 @@ class BlobstoreServlet(val persistence: FilePersistence)
     }
   }
 
-  private def attemptBlobWriting(abs: AccumuloBlobStore, file: FileItem, otherParams: Map[String, String]) = {
+  private def attemptBlobWriting(abs: GeoMesaAccumuloBlobStore, file: FileItem, otherParams: Map[String, String]) = {
     val tempFile = File.createTempFile(UUID.randomUUID().toString, FilenameUtils.getExtension(file.getName))
     try {
       file.write(tempFile)

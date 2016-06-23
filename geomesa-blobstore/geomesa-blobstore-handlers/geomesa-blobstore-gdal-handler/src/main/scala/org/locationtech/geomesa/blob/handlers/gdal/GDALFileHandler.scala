@@ -16,7 +16,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Coordinate, Geometry, GeometryFactory}
 import org.gdal.gdal.{Dataset, Transformer, gdal}
 import org.gdal.gdalconst.gdalconstConstants
-import org.locationtech.geomesa.blob.core.handlers.AbstractFileHandler
+import org.locationtech.geomesa.blob.api.handlers.AbstractFileHandler
 
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
