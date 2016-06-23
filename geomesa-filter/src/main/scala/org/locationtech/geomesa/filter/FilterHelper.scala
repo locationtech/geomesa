@@ -58,7 +58,11 @@ object FilterHelper extends LazyLogging {
       // trim to world boundaries
       val trimmedGeom = geomCopy.intersection(WholeWorldPolygon)
       // add waypoints if needed so that IDL is handled correctly
-      val geomWithWayPoints = if (op.isInstanceOf[BBOX]) addWayPointsToBBOX(trimmedGeom) else trimmedGeom
+      val geomWithWayPoints = op match {
+        case bbox: BBOX             => addWayPoints(trimmedGeom)
+        case intersects: Intersects => addWayPoints(trimmedGeom)
+        case _                      => trimmedGeom
+      if
       val safeGeometry = getInternationalDateLineSafeGeometry(geomWithWayPoints)
       // mark it as being visited
       safeGeometry.setUserData(SafeGeomString)
@@ -156,7 +160,7 @@ object FilterHelper extends LazyLogging {
   def getGeometryListOf(inMP: Geometry): Seq[Geometry] =
     for( i <- 0 until inMP.getNumGeometries ) yield inMP.getGeometryN(i)
 
-  def addWayPointsToBBOX(g: Geometry): Geometry = {
+  def addWayPoints(g: Geometry): Geometry = {
     val gf = g.getFactory
     val geomArray = g.getCoordinates
     val correctedGeom = GeometryUtils.addWayPoints(geomArray).toArray
