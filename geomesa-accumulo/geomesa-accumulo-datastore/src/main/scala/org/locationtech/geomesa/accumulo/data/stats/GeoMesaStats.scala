@@ -189,6 +189,13 @@ trait StatUpdater extends Closeable with Flushable {
   def remove(sf: SimpleFeature): Unit
 }
 
+object NoopStatUpdater extends StatUpdater {
+  override def add(sf: SimpleFeature): Unit = {}
+  override def remove(sf: SimpleFeature): Unit = {}
+  override def flush(): Unit = {}
+  override def close(): Unit = {}
+}
+
 case class AttributeBounds[T](lower: T, upper: T, cardinality: Long) {
   def bounds: (T, T) = (lower, upper)
 }

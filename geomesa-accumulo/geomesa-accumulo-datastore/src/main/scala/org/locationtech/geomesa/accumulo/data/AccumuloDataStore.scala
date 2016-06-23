@@ -79,7 +79,7 @@ class AccumuloDataStore(val connector: Connector,
 
   override val metadata: GeoMesaMetadata[String] =
     new AccumuloBackedMetadata(connector, catalogTable, MetadataStringSerializer)
-  override val stats: GeoMesaStats = new GeoMesaMetadataStats(this, statsTable)
+  override val stats: GeoMesaStats = new GeoMesaMetadataStats(this, statsTable, config.generateStats)
 
   // methods from org.geotools.data.DataStore
 
@@ -186,7 +186,7 @@ class AccumuloDataStore(val connector: Connector,
       }
 
       // back compatibility check for stat configuration
-      if (metadata.read(typeName, STATS_GENERATION_KEY).isEmpty) {
+      if (config.generateStats && metadata.read(typeName, STATS_GENERATION_KEY).isEmpty) {
         // configure the stats combining iterator - we only use this key for older data stores
         val configuredKey = "stats-configured"
         if (!metadata.read(typeName, configuredKey).contains("true")) {
@@ -713,5 +713,6 @@ case class AccumuloDataStoreConfig(queryTimeout: Option[Long],
                                    queryThreads: Int,
                                    recordThreads: Int,
                                    writeThreads: Int,
+                                   generateStats: Boolean,
                                    caching: Boolean,
                                    looseBBox: Boolean)

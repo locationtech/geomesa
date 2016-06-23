@@ -342,6 +342,34 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithDataStore {
           estimated must beSome(beCloseTo(exact, 1L))
         }
       }
+
+      "not calculate stats when collection is disabled" >> {
+        import scala.collection.JavaConversions._
+        val dsNoStats =  DataStoreFinder.getDataStore(Map(
+          "connector"     -> connector,
+          "caching"       -> false,
+          "tableName"     -> sftName,
+          "generateStats" -> false)).asInstanceOf[AccumuloDataStore]
+
+        val fs = dsNoStats.getFeatureSource(sftName)
+
+        val sf = new ScalaSimpleFeature("collection1", sft)
+        sf.setAttribute(0, "zed")
+        sf.setAttribute(1, Int.box(100))
+        sf.setAttribute(2, Int.box(100))
+        sf.setAttribute(3, "2016-01-05T00:00:00.000Z")
+        sf.setAttribute(4, "POINT (-100 -90)")
+
+        val features = new DefaultFeatureCollection()
+        features.add(sf)
+        fs.addFeatures(features)
+
+        ds.stats.getCount(sft) must beSome(10)
+        ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(0, 27, 0, 9, CRS_EPSG_4326)
+        ds.stats.getAttributeBounds[String](sft, "name") must beSome(AttributeBounds("0", "9", 10))
+        ds.stats.getAttributeBounds[Int](sft, "age") must beSome(AttributeBounds(1, 2, 2))
+        ds.stats.getAttributeBounds[Int](sft, "height") must beNone
+      }
     }
   }
 }

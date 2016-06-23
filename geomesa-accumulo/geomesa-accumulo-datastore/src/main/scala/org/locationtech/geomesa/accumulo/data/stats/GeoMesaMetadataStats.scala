@@ -39,7 +39,7 @@ import scala.reflect.ClassTag
 /**
  * Tracks stats via entries stored in metadata.
  */
-class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
+class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, generateStats: Boolean)
     extends GeoMesaStats with StatsBasedEstimator with LazyLogging {
 
   import GeoMesaMetadataStats._
@@ -208,7 +208,7 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String)
   }
 
   override def statUpdater(sft: SimpleFeatureType): StatUpdater =
-    new MetadataStatUpdater(this, sft, Stat(sft, buildStatsFor(sft)))
+    if (generateStats) new MetadataStatUpdater(this, sft, Stat(sft, buildStatsFor(sft))) else NoopStatUpdater
 
   override def clearStats(sft: SimpleFeatureType): Unit = metadata.delete(sft.getTypeName)
 
