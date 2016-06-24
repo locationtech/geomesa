@@ -50,8 +50,27 @@ object GeometryUtils {
     case Some((a, b)) => a :: unfoldRight(b)(f)
   }
 
-  /** Adds way points to Seq[Coordinates] so that they remain valid with Spatial4j, useful for BBOX */
   def addWayPoints(coords: Seq[Coordinate]): List[Coordinate] =
+    unfoldRight(coords) {
+      case Seq() => None
+      case Seq(pt) => Some((pt, Seq()))
+      case Seq(first, second, rest @ _*) => (second.x - first.x, second.y - first.y) match {
+        case (dx, dy) =>
+          val dist = Math.hypot(dx, dy)
+          if (dist > 120) {
+            val scale = 120 / dist
+            Some((first,
+              new Coordinate(
+                first.x + scale * dx,
+                first.y + scale * dy) +: second +: rest))
+          } else Some((first, second +: rest))
+        case _ => Some((first, second +: rest))
+      }
+    }
+
+
+  /** Adds way points to Seq[Coordinates] so that they remain valid with Spatial4j, useful for BBOX */
+  def addWayPointsToBBOX(coords: Seq[Coordinate]): List[Coordinate] =
     unfoldRight(coords) {
       case Seq() => None
       case Seq(pt) => Some((pt, Seq()))
