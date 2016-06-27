@@ -22,8 +22,8 @@ class JoinProcessTest extends Specification with TestWithMultipleSfts {
 
   sequential
 
-  val sft1 = createNewSchema("pk:String,age:Int,weight:Int,dtg:Date,*geom:Point:srid=4326")
-  val sft2 = createNewSchema("pk:String:index=true,dtg:Date,*geom:Point:srid=4326")
+  val sft1 = createNewSchema("track:String,age:Int,weight:Int,dtg:Date,*geom:LineString:srid=4326")
+  val sft2 = createNewSchema("track:String:index=true,dtg:Date,*geom:Point:srid=4326")
 
   val features1 = (0 until 10).map { i =>
     val sf = new ScalaSimpleFeature(i.toString, sft1)
@@ -31,7 +31,7 @@ class JoinProcessTest extends Specification with TestWithMultipleSfts {
     sf.setAttribute(1, i.asInstanceOf[AnyRef])
     sf.setAttribute(2, i.asInstanceOf[AnyRef])
     sf.setAttribute(3, "2015-01-01T00:00:00.000Z")
-    sf.setAttribute(4, "POINT(0 0)")
+    sf.setAttribute(4, "LINESTRING(0 0, 1 1)")
     sf
   }
 
@@ -52,14 +52,14 @@ class JoinProcessTest extends Specification with TestWithMultipleSfts {
       val fc2 = ds.getFeatureSource(sft2.getTypeName).getFeatures()
 
       val unique = new UniqueProcess
-      val fcUnique = unique.execute(fc1, "pk", null, false, null, null, null)
+      val fcUnique = unique.execute(fc1, "track", null, false, null, null, null)
 
       val process = new JoinProcess
-      val results = process.execute(fcUnique, fc2, "pk", false, null, null, null, null)
+      val results = process.execute(fcUnique, fc2, "track", false, null, null, null, null)
 
       val features = SelfClosingIterator(results).toList
       features must haveLength(10)
-      forall(features)(_.getAttribute("pk") mustEqual "5")
+      forall(features)(_.getAttribute("track") mustEqual "5")
     }
   }
 }
