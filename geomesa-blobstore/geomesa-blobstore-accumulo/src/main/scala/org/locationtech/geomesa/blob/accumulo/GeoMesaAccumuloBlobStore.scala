@@ -11,7 +11,6 @@ package org.locationtech.geomesa.blob.accumulo
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
-import org.locationtech.geomesa.blob.api.GeoMesaBlobStoreSFT._
 import org.locationtech.geomesa.blob.api.GeoMesaGenericBlobStore
 
 class GeoMesaAccumuloBlobStore(ds: AccumuloDataStore, bs: AccumuloBlobStoreImpl)
@@ -21,7 +20,6 @@ object GeoMesaAccumuloBlobStore {
 
   def apply(ds: AccumuloDataStore): GeoMesaAccumuloBlobStore = {
     val blobTableName = s"${ds.catalogTable}_blob"
-    ds.createSchema(sft)
 
     val bwConf = GeoMesaBatchWriterConfig().setMaxWriteThreads(ds.config.writeThreads)
 

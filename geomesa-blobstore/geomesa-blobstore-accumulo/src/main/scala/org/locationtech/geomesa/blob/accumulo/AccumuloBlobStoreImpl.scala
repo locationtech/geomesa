@@ -43,7 +43,7 @@ class AccumuloBlobStoreImpl(val connector: Connector,
         val next = iter.next()
         new Blob(id, next.getKey.getColumnQualifier.toString, next.getValue.get)
       } else {
-        new Blob()
+        null
       }
     } finally {
       scanner.close()

@@ -51,8 +51,7 @@ class GeoMesaAccumuloBlobStoreTest extends Specification {
 
       // test if blobstore get is failing to return anything
       val ret = bstore.get(storeId)
-      ret.getLocalName must beNull
-      ret.getPayload must beNull
+      ret must beNull
 
       // test if geomesa feature table is empty
       val ids = bstore.getIds(Filter.INCLUDE).toList

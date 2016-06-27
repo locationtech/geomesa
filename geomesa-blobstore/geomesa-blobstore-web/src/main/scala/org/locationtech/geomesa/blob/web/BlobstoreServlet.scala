@@ -18,7 +18,7 @@ import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper}
 import org.apache.commons.io.FilenameUtils
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
 import org.locationtech.geomesa.blob.accumulo.GeoMesaAccumuloBlobStore
-import org.locationtech.geomesa.blob.api.GeoMesaBlobStoreSFT
+import org.locationtech.geomesa.blob.api.{Blob, GeoMesaBlobStoreSFT}
 import org.locationtech.geomesa.utils.cache.FilePersistence
 import org.locationtech.geomesa.web.core.PersistentDataStoreServlet
 import org.scalatra._
@@ -184,14 +184,14 @@ class BlobstoreServlet(val persistence: FilePersistence)
         val id = params("id")
         logger.debug("Attempting to get blob for id: {} from store: {}", id, alias)
         try {
-          val ret = abs.get(id)
-          val bytes: Array[Byte] = ret.getPayload
-          if (bytes == null) {
-            BadRequest(reason = s"Unknown ID $id")
-          } else {
-            contentType = "application/octet-stream"
-            response.setHeader("Content-Disposition", "attachment;filename=" + ret.getLocalName)
-            Ok(bytes)
+          val ret: Option[Blob] = Option(abs.get(id))
+          ret match {
+            case None =>
+              BadRequest(reason = s"Unknown ID $id")
+            case Some(blob) =>
+              contentType = "application/octet-stream"
+              response.setHeader("Content-Disposition", "attachment;filename=" + blob.getLocalName)
+              Ok(blob.getPayload)
           }
         } catch {
           case e: Exception => handleError("Error retrieving blob", e)

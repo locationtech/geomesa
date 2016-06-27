@@ -27,6 +27,8 @@ import scala.collection.JavaConversions._
 
 abstract class GeoMesaGenericBlobStore(ds: DataStore, bs: BlobStore) extends GeoMesaIndexedBlobStore {
 
+  ds.createSchema(sft)
+
   protected val fs = ds.getFeatureSource(BlobFeatureTypeName).asInstanceOf[SimpleFeatureStore]
 
   override def get(id: String): Blob = {
