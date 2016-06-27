@@ -17,7 +17,7 @@ public class Blob {
     private String localName;
     private byte[] payload;
 
-    public Blob(){
+    public Blob() {
 
     }
 

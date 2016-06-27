@@ -41,7 +41,7 @@ for the handler into the existing classpath. For this tutorial, we assume the us
 the EXIF FileHandler to an existing GeoServer with the BlobStore web servlet. See instructions above for
 setting up the BlobStore in the prerequisites.
 
-To deploy the EXIF FileHandler run:
+To deploy the EXIF FileHandler if you are using Tomcat run:
 
 .. code-block:: bash
 
@@ -49,7 +49,7 @@ To deploy the EXIF FileHandler run:
       geomesa-$VERSION/dist/handlers/geomesa-blobstore-exif-handler-$VERSION.jar \
       -C /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
 
-If you are using GeoServer's built in Jetty web server:
+To deploy the EXIF FileHandler if you are using GeoServer's built in Jetty web server:
 
 .. code-block:: bash
 
@@ -89,7 +89,7 @@ interested in obtaining a test data set. The below script will download 100 imag
 
 
 
-First we need to register a BlobStore using the following command:
+First we need to register a BlobStore using the following command. Note that the parameters for user/password/zookeepers/instanceId need to be modified to suite your environment:
 
 .. code-block:: bash
 

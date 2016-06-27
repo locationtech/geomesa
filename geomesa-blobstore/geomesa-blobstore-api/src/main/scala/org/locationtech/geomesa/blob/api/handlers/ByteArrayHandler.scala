@@ -20,11 +20,11 @@ import scala.collection.JavaConversions._
 import scala.util.Try
 
 object ByteArrayHandler extends BlobStoreSimpleFeatureBuilder {
-  def buildSF(params: util.Map[String, String]): SimpleFeature = {
+  def buildSimpleFeature(params: util.Map[String, String]): SimpleFeature = {
     val date = getDate(params)
     val geom = getGeometry(params)
     val fileName = getFileName(params)
-    buildBlobSF(fileName, geom, date)
+    buildBlobSimpleFeature(fileName, geom, date)
   }
 
   def getDate(params: util.Map[String, String]): Date = {

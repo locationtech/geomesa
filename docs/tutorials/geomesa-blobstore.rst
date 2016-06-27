@@ -58,7 +58,7 @@ The FileHandler interface has only two functions that must be defined by the use
      * @param params Map of parameters indicating or hinting how to processing should work.
      * @return       SimpleFeature indexing the file.  Must contain a unique ID.
      */
-    SimpleFeature buildSF(File file, Map<String, String> params);
+    SimpleFeature buildSimpleFeature(File file, Map<String, String> params);
 
 Classes the implement the FileHandler interface are loaded at runtime by the Java ServiceLoader.
 To make a class that implements the interface available at runtime the classname should be registered in *META-INF/services/org.locationtech.geomesa.blob.api.FileHandler*.

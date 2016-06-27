@@ -31,5 +31,5 @@ public interface FileHandler {
      * @param params Map of parameters indicating or hinting how to processing should work.
      * @return       SimpleFeature indexing the file.  Must contain a unique ID.
      */
-    SimpleFeature buildSF(File file, Map<String, String> params);
+    SimpleFeature buildSimpleFeature(File file, Map<String, String> params);
 }

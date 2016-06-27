@@ -34,14 +34,14 @@ abstract class GeoMesaGenericBlobStore(ds: DataStore, bs: BlobStore) extends Geo
   }
 
   override def put(file: File, params: util.Map[String, String]): String = {
-    BlobStoreFileHandler.buildSF(file, params.toMap).map { sf =>
+    BlobStoreFileHandler.buildSimpleFeature(file, params.toMap).map { sf =>
       val bytes = Files.toByteArray(file)
       putInternalSF(sf, bytes)
     }.orNull
   }
 
   override def put(bytes: Array[Byte], params: util.Map[String, String]): String = {
-    val sf = ByteArrayHandler.buildSF(params)
+    val sf = ByteArrayHandler.buildSimpleFeature(params)
     putInternalSF(sf, bytes)
   }
 

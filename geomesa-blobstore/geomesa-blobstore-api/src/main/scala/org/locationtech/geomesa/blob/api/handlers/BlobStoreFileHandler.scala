@@ -24,10 +24,10 @@ import org.opengis.feature.simple.SimpleFeature
 import scala.collection.JavaConversions._
 
 object BlobStoreFileHandler {
-  def buildSF(file: File, params: Map[String, String]): Option[SimpleFeature] = {
+  def buildSimpleFeature(file: File, params: Map[String, String]): Option[SimpleFeature] = {
     val handlers = ServiceRegistry.lookupProviders(classOf[FileHandler])
 
-    handlers.find(_.canProcess(file, params)).map(_.buildSF(file, params))
+    handlers.find(_.canProcess(file, params)).map(_.buildSimpleFeature(file, params))
   }
 }
 
@@ -35,11 +35,11 @@ object BlobStoreFileHandler {
 
 trait AbstractFileHandler extends BlobStoreSimpleFeatureBuilder with FileHandler with BlobStoreFileName {
 
-  override def buildSF(file: File, params: util.Map[String, String]): SimpleFeature = {
+  override def buildSimpleFeature(file: File, params: util.Map[String, String]): SimpleFeature = {
     val fileName = getFileName(file, params)
     val geom = getGeometry(file, params)
     val dtg = getDate(file, params)
-    buildBlobSF(fileName, geom, dtg)
+    buildBlobSimpleFeature(fileName, geom, dtg)
   }
 
   def getDate(file: File, params: util.Map[String, String]): Date = {
@@ -80,7 +80,7 @@ trait BlobStoreSimpleFeatureBuilder {
 
   val featureIdGenerator = new Z3FeatureIdGenerator
 
-  def buildBlobSF(fileName: String, geom: Geometry, dtg: Date): SimpleFeature = {
+  def buildBlobSimpleFeature(fileName: String, geom: Geometry, dtg: Date): SimpleFeature = {
     val z3id = Z3UuidGenerator.createUuid(geom, dtg.getTime)
 
     val builder = builderLocal.get()
