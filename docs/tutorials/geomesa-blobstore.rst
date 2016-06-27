@@ -42,7 +42,7 @@ FileHandlers
 The GeoMesa BlobStore operates by using the FileHandler interface to provide the capability to process different file formats.
 The FileHandler interface has only two functions that must be defined by the user:
 
-. code-block:: java
+.. code-block:: java
 
     /**
      * Indicates whether or not the class can handle the file with the associated parameters.
@@ -104,7 +104,9 @@ RESTful API
 
 Once the servlet is deployed the RESTful api for the Blobstore can be easily utilized via cURL.
 DataStores are managed by assigning them to aliases, this allows users to connect to multiple blobstores.
-Below is an example cURL request that registers an Accumulo Data Store to the alias *myBlobStore*
+Below is an example cURL request that registers an Accumulo Data Store to the alias *myBlobStore* . Note the
+parameter for instanceId, zookeepers, user and password are particular to the user's environment and will
+need to be modified.
 
 .. code-block:: bash
 

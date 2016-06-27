@@ -66,14 +66,14 @@ GeoMesa-BlobStore-EXIF
 ~~~~~~~~~~~~~~~~~~~~~~
 
 The EXIF module contains the ``MetadataFileHandler`` which can parse
-EXIF metadata to retrieve geo location information. This enables ingest
-of large collections of geo-tagged images into a GeoMesa BlobStore.
+EXIF metadata to retrieve geolocation information. This enables ingest
+of large collections of geotagged images into a GeoMesa BlobStore.
 
 GeoMesa-BlobStore-GDAL
 ~~~~~~~~~~~~~~~~~~~~~~
 
 The GDAL module contains the ``GDALFileHandler`` which utilizes GDAL to
-extract geo location information and time from raster/imagery files
+extract geolocation information and time from raster/imagery files
 supported by GDAL 2.0.0. For a complete list of GDAL supported file
 formats please refer to: `GDAL formats list`_.
 

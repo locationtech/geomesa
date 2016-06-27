@@ -64,7 +64,7 @@ Using the EXIF Handler
 ----------------------
 In order to use our new handler, we will need to get some geotagged images.
 Below is a partial Python script that uses the Flickr API to grab some geotagged images taken around Monument Valley.
-Using the Flickr API is beyond the scope of this tutorial, however the Python code snippet is provided for those
+Using the Flickr API is beyond the scope of this tutorial; however the Python code snippet is provided for those
 interested in obtaining a test data set. The below script will download 100 images to the user's home directory.
 
 .. code-block:: python
@@ -108,7 +108,7 @@ Register Index table in GeoServer
 ---------------------------------
 
 The BlobStore index DataStore is an ordinary GeoTools DataStore, so the registration in GeoServer is no different than for other DataStores.
-For an example of registering a DataStore in GeoServer please follow these :doc:`/user/geoserver.rst'.
+For an example of registering a DataStore in GeoServer please follow these :doc:`/user/geoserver`.
 
 Once the layer is registered we can view the layer in the GeoServer layer previewer.
 
@@ -126,12 +126,12 @@ This can be verified by clicking through to Workspaces -> (your workspace) -> Ch
 .. figure:: _static/geomesa-blobstore-exif/geoserver-wfs-enable.png
     :alt: GeoServer Workspace Settings View
 
-This can also be achieved through the GeoServer REST API :doc:`http://docs.geoserver.org/stable/en/user/rest/index.html`
+This can also be achieved through the `GeoServer REST API <http://docs.geoserver.org/stable/en/user/rest/index.html>`__
 which is beyond the scope of this tutorial.
 
 Explaining WFS requests are beyond the scope of this tutorial, however listed below are some links to relevant documentation.
-A detailed description of WFS can be found here :doc:`http://docs.geoserver.org/stable/en/user/services/wfs/reference.html` .
-Further details on ECQL predicates are listed here: doc:`http://docs.geoserver.org/stable/en/user/filter/ecql_reference.html#filter-ecql-reference` .
+A detailed description of WFS can be found here `GeoServer WFS reference <http://docs.geoserver.org/stable/en/user/services/wfs/reference.html>`__ .
+Further details on ECQL predicates are listed here: `GeoServer ECQL reference <http://docs.geoserver.org/stable/en/user/filter/ecql_reference.html#filter-ecql-reference>`__ .
 
 Request for all features of provided type:
 
