@@ -26,6 +26,8 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class Z3IteratorTest extends Specification {
 
+  import Z3Iterator._
+
   sequential
 
   "Z3Iterator" should {
@@ -58,8 +60,9 @@ class Z3IteratorTest extends Specification {
       val (xmax, ymax, tmax) = Z3SFC.index(ux, uy, ut).decode
 
       val iter = new Z3Iterator
-      iter.init(srcIter, Map(Z3Iterator.pointsKey -> "true", Z3Iterator.splitsKey -> "false",
-        Z3Iterator.zKey -> s"$xmin:$xmax:$ymin:$ymax:$tmin:$tmax:0:0:0:${Z3SFC.time.max.toLong}"), null)
+
+      iter.init(srcIter, Map(PointsKey -> "true", SplitsKey -> "false",
+        ZKeyXY -> s"$xmin:$ymin:$xmax:$ymax", ZKeyT -> s"0:$tmin:$tmax"), null)
 
       "keep in bounds values" >> {
         val test1 = Z3SFC.index(-76.0, 38.5, 500)
@@ -85,8 +88,8 @@ class Z3IteratorTest extends Specification {
       val (xmax, ymax, tmax) = Z3(Z3SFC.index(ux, uy, ut).z & Z3Table.GEOM_Z_MASK).decode
 
       val iter = new Z3Iterator
-      iter.init(srcIter, Map(Z3Iterator.pointsKey -> "false", Z3Iterator.splitsKey -> "false",
-        Z3Iterator.zKey -> s"$xmin:$xmax:$ymin:$ymax:$tmin:$tmax:0:0:0:${Z3SFC.time.max.toLong}"), null)
+      iter.init(srcIter, Map(PointsKey -> "false", SplitsKey -> "false",
+        ZKeyXY -> s"$xmin:$ymin:$xmax:$ymax", ZKeyT -> s"0:$tmin:$tmax"), null)
 
       "keep in bounds values" >> {
         val test1 = Z3SFC.index(-76.0, 38.5, 500)

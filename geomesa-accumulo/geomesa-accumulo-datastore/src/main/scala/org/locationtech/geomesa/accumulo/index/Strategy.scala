@@ -79,6 +79,8 @@ object Strategy extends LazyLogging {
    */
   private def getScanner(queryPlan: QueryPlan, acc: AccumuloConnectorCreator): KVIter =
     queryPlan match {
+      case qp: EmptyPlan =>
+        CloseableIterator.empty
       case qp: ScanPlan =>
         val scanner = acc.getScanner(qp.table)
         configureScanner(scanner, qp)

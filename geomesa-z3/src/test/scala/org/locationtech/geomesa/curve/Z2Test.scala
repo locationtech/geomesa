@@ -10,7 +10,7 @@ package org.locationtech.geomesa.curve
 
 import org.junit.runner.RunWith
 import org.locationtech.sfcurve.CoveredRange
-import org.locationtech.sfcurve.zorder.Z2
+import org.locationtech.sfcurve.zorder.{Z2, ZRange}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -78,33 +78,25 @@ class Z2Test extends Specification {
     }
 
     "support bigmin" >> {
-      val zmin = Z2(2, 2)
-      val zmax = Z2(3, 6)
-      val f = Z2(5, 1)
+      val zmin = Z2(2, 2).z
+      val zmax = Z2(3, 6).z
+      val f = Z2(5, 1).z
       val (_, bigmin) = Z2.zdivide(f, zmin, zmax)
-      bigmin match {
-        case Z2(xhi, yhi) =>
-          xhi mustEqual 2
-          yhi mustEqual 4
-      }
+      Z2(bigmin).decode mustEqual((2, 4))
     }
 
     "support litmax" >> {
-      val zmin = Z2(2, 2)
-      val zmax = Z2(3, 6)
-      val f = Z2(1, 7)
+      val zmin = Z2(2, 2).z
+      val zmax = Z2(3, 6).z
+      val f = Z2(1, 7).z
       val (litmax, _) = Z2.zdivide(f, zmin, zmax)
-      litmax match {
-        case Z2(xlow, ylow) =>
-          xlow mustEqual 3
-          ylow mustEqual 5
-      }
+      Z2(litmax).decode mustEqual((3, 5))
     }
 
     "calculate ranges" >> {
-      val min = Z2(2, 2)
-      val max = Z2(3, 6)
-      val ranges = Z2.zranges(min, max)
+      val min = Z2(2, 2).z
+      val max = Z2(3, 6).z
+      val ranges = Z2.zranges(ZRange(min, max))
       ranges must haveLength(3)
       ranges must containTheSameElementsAs(
         Seq(
@@ -137,7 +129,7 @@ class Z2Test extends Specification {
         (math.round(z._1 * 1000.0) / 1000.0, math.round(z._2 * 1000.0) / 1000.0)
 
       forall(ranges) { r =>
-        val ret = Z2.zranges(r._1, r._2)
+        val ret = Z2.zranges(ZRange(r._1, r._2))
         ret.length must beGreaterThan(0)
       }
     }

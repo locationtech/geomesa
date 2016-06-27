@@ -10,7 +10,7 @@ package org.locationtech.geomesa.curve
 
 import org.joda.time.Weeks
 import org.locationtech.sfcurve.IndexRange
-import org.locationtech.sfcurve.zorder.Z3
+import org.locationtech.sfcurve.zorder.{Z3, ZRange}
 
 object Z3SFC extends SpaceTimeFillingCurve[Z3] {
 
@@ -26,14 +26,18 @@ object Z3SFC extends SpaceTimeFillingCurve[Z3] {
   override def index(x: Double, y: Double, t: Long): Z3 =
     Z3(lon.normalize(x), lat.normalize(y), time.normalize(t))
 
-  override def ranges(x: (Double, Double),
-                      y: (Double, Double),
-                      t: (Long, Long),
-                      precision: Int = 64): Seq[IndexRange] =
-    Z3.zranges(index(x._1, y._1, t._1), index(x._2, y._2, t._2), precision)
-
   override def invert(z: Z3): (Double, Double, Long) = {
     val (x, y, t) = z.decode
     (lon.denormalize(x), lat.denormalize(y), time.denormalize(t).toLong)
+  }
+
+  override def ranges(xy: Seq[(Double, Double, Double, Double)],
+                      t: Seq[(Long, Long)],
+                      precision: Int,
+                      maxRanges: Option[Int]): Seq[IndexRange] = {
+    val zbounds = for { (xmin, ymin, xmax, ymax) <- xy ; (tmin, tmax) <- t } yield {
+      ZRange(index(xmin, ymin, tmin).z, index(xmax, ymax, tmax).z)
+    }
+    Z3.zranges(zbounds.toArray, precision, maxRanges)
   }
 }

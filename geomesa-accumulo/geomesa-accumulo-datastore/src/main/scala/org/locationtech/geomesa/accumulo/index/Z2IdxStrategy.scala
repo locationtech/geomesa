@@ -15,16 +15,17 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Range => aRange}
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
+import org.locationtech.geomesa.accumulo.GeomesaSystemProperties.QueryProperties
 import org.locationtech.geomesa.accumulo.data.stats.GeoMesaStats
+import org.locationtech.geomesa.accumulo.data.tables.Z3Table._
 import org.locationtech.geomesa.accumulo.data.tables.{GeoMesaTable, Z2Table}
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.curve.Z2SFC
-import org.locationtech.geomesa.utils.geotools.WholeWorldPolygon
+import org.locationtech.geomesa.filter._
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
 import org.locationtech.geomesa.utils.index.VisibilityLevel
-import org.locationtech.sfcurve.zorder.Z2
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
-import org.opengis.filter.spatial._
+import org.opengis.filter.{And, Filter, Or}
 
 class Z2IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging with IndexFilterHelpers {
 
@@ -42,38 +43,29 @@ class Z2IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     val ds  = queryPlanner.ds
     val sft = queryPlanner.sft
 
-    val isInclude = QueryFilterSplitter.isFullTableScan(filter)
-
-    if (isInclude) {
-      // allow for full table scans - we use the z2 index for queries that can't be satisfied elsewhere
+    if (filter.primary.isEmpty) {
       filter.secondary.foreach { f =>
         logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
       }
     }
 
-    // TODO GEOMESA-1215 this can handle OR'd geoms, but the query splitter won't currently send them
-    val geometryToCover =
-      filter.singlePrimary.flatMap(extractSingleGeometry(_, sft.getGeomField, sft.isPoints)).getOrElse(WholeWorldPolygon)
+    val geometries = filter.primary.map(extractGeometries(_, sft.getGeomField, sft.isPoints))
+        .filter(_.nonEmpty).getOrElse(Seq(WholeWorldPolygon))
 
-    output(s"GeomsToCover: $geometryToCover")
+    output(s"Geometries: $geometries")
 
     val looseBBox = if (hints.containsKey(LOOSE_BBOX)) Boolean.unbox(hints.get(LOOSE_BBOX)) else ds.config.looseBBox
 
-    val ecql: Option[Filter] = if (isInclude || !looseBBox || sft.nonPoints) {
-      // if this is a full table scan, we can just use the filter option to get the secondary ecql
-      // if the user has requested strict bounding boxes, we apply the full filter
-      // if this is a non-point geometry, the index is coarse-grained, so we apply the full filter
-      filter.filter
+    // if the user has requested strict bounding boxes, we apply the full filter
+    // if this is a non-point geometry type, the index is coarse-grained, so we apply the full filter
+    // if the spatial predicate is rectangular (e.g. a bbox), the index is fine enough that we
+    // don't need to apply the filter on top of it. this may cause some minor errors at extremely
+    // fine resolutions, but the performance is worth it
+    // if we have a complicated geometry predicate, we need to pass it through to be evaluated
+    val ecql = if (looseBBox && sft.isPoints && geometries.forall(GeometryUtils.isRectangular)) {
+      filter.secondary
     } else {
-      // for normal bboxes, the index is fine enough that we don't need to apply the filter on top of it
-      // this may cause some minor errors at extremely fine resolution, but the performance is worth it
-      // if we have a complicated geometry predicate, we need to pass it through to be evaluated
-      val complexGeomFilter = filterListAsAnd(filter.primary.filter(isComplicatedSpatialFilter))
-      (complexGeomFilter, filter.secondary) match {
-        case (Some(gf), Some(fs)) => filterListAsAnd(Seq(gf, fs))
-        case (None, fs)           => fs
-        case (gf, None)           => gf
-      }
+      filter.filter
     }
 
     val (iterators, kvsToFeatures, colFamily, hasDupes) = if (hints.isBinQuery) {
@@ -104,7 +96,7 @@ class Z2IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     val z2table = ds.getTableName(sft.getTypeName, Z2Table)
     val numThreads = ds.getSuggestedThreads(sft.getTypeName, Z2Table)
 
-    val (ranges, z2Iter) = if (isInclude) {
+    val (ranges, z2Iter) = if (filter.primary.isEmpty) {
       val range = if (sft.isTableSharing) {
         aRange.prefix(new Text(sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)))
       } else {
@@ -113,11 +105,15 @@ class Z2IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
       (Seq(range), None)
     } else {
       // setup Z2 iterator
-      val env = geometryToCover.getEnvelopeInternal
-      val (lx, ly, ux, uy) = (env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
-
-      val getRanges: (Seq[Array[Byte]], (Double, Double), (Double, Double)) => Seq[aRange] =
-        if (sft.isPoints) getPointRanges else getGeomRanges
+      val xy = geometries.map(GeometryUtils.bounds)
+      val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
+      val zRanges = if (sft.isPoints) {
+        Z2SFC.ranges(xy, 64, rangeTarget).map(r => (Longs.toByteArray(r.lower), Longs.toByteArray(r.upper)))
+      } else {
+        Z2SFC.ranges(xy, 8 * GEOM_Z_NUM_BYTES, rangeTarget).map { r =>
+          (Longs.toByteArray(r.lower).take(GEOM_Z_NUM_BYTES), Longs.toByteArray(r.upper).take(GEOM_Z_NUM_BYTES))
+        }
+      }
 
       val prefixes = if (sft.isTableSharing) {
         val ts = sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)
@@ -125,19 +121,16 @@ class Z2IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
       } else {
         Z2Table.SPLIT_ARRAYS
       }
-      val ranges = getRanges(prefixes, (lx, ux), (ly, uy))
 
-      // index space values for comparing in the iterator
-      def decode(x: Double, y: Double): (Int, Int) = if (sft.isPoints) {
-        Z2SFC.index(x, y).decode
-      } else {
-        Z2(Z2SFC.index(x, y).z & Z2Table.GEOM_Z_MASK).decode
+      val ranges = prefixes.flatMap { prefix =>
+        zRanges.map { case (lo, hi) =>
+          val start = new Text(Bytes.concat(prefix, lo))
+          val end = aRange.followingPrefix(new Text(Bytes.concat(prefix, hi)))
+          new aRange(start, true, end, false)
+        }
       }
 
-      val (xmin, ymin) = decode(lx, ly)
-      val (xmax, ymax) = decode(ux, uy)
-
-      val zIter = Z2Iterator.configure(sft.isPoints, sft.isTableSharing, xmin, xmax, ymin, ymax, Z2IdxStrategy.Z2_ITER_PRIORITY)
+      val zIter = Z2Iterator.configure(xy, sft.isPoints, sft.isTableSharing, Z2_ITER_PRIORITY)
 
       (ranges, Some(zIter))
     }
@@ -151,30 +144,6 @@ class Z2IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     val iters = perAttributeIter ++ iterators ++ z2Iter
     BatchScanPlan(filter, z2table, ranges, iters, Seq(cf), kvsToFeatures, numThreads, hasDupes)
   }
-
-  def getPointRanges(prefixes: Seq[Array[Byte]], x: (Double, Double), y: (Double, Double)): Seq[aRange] = {
-    Z2SFC.ranges(x, y).flatMap { case indexRange =>
-      val startBytes = Longs.toByteArray(indexRange.lower)
-      val endBytes = Longs.toByteArray(indexRange.upper)
-      prefixes.map { prefix =>
-        val start = new Text(Bytes.concat(prefix, startBytes))
-        val end = aRange.followingPrefix(new Text(Bytes.concat(prefix, endBytes)))
-        new aRange(start, true, end, false)
-      }
-    }
-  }
-
-  def getGeomRanges(prefixes: Seq[Array[Byte]], x: (Double, Double), y: (Double, Double)): Seq[aRange] = {
-    Z2SFC.ranges(x, y, 8 * Z2Table.GEOM_Z_NUM_BYTES).flatMap { indexRange =>
-      val startBytes = Longs.toByteArray(indexRange.lower).take(Z2Table.GEOM_Z_NUM_BYTES)
-      val endBytes = Longs.toByteArray(indexRange.upper).take(Z2Table.GEOM_Z_NUM_BYTES)
-      prefixes.map { prefix =>
-        val start = new Text(Bytes.concat(prefix, startBytes))
-        val end = aRange.followingPrefix(new Text(Bytes.concat(prefix, endBytes)))
-        new aRange(start, true, end, false)
-      }
-    }
-  }
 }
 
 object Z2IdxStrategy extends StrategyProvider {
@@ -186,7 +155,7 @@ object Z2IdxStrategy extends StrategyProvider {
                                         filter: QueryFilter,
                                         transform: Option[SimpleFeatureType],
                                         stats: GeoMesaStats): Option[Long] = {
-    filter.singlePrimary match {
+    filter.primary match {
       case None => Some(Long.MaxValue)
       // add one so that we prefer the z3 index even if geometry is the limiting factor, resulting in the same count
       case Some(f) => stats.getCount(sft, f, exact = false).map(c => if (c == 0L) 0L else c + 1L)
@@ -201,18 +170,18 @@ object Z2IdxStrategy extends StrategyProvider {
                                         filter: QueryFilter,
                                         transform: Option[SimpleFeatureType]): Long = 400L
 
-  def isComplicatedSpatialFilter(f: Filter): Boolean = {
-    f match {
-      case _: BBOX => false
-      case _: DWithin => true
-      case _: Contains => true
-      case _: Crosses => true
-      case _: Intersects => true
-      case _: Overlaps => true
-      case _: Within => true
-      case _ => false        // Beyond, Disjoint, DWithin, Equals, Touches
+  /**
+    * Evaluates filters that we can handle with the z-index strategies
+    *
+    * @param filter filter to check
+    * @return
+    */
+  def spatialCheck(filter: Filter): Boolean = {
+    filter match {
+      case f: And => true // note: implies further evaluation of children
+      case f: Or  => true // note: implies further evaluation of children
+      case _ => isSpatialFilter(filter)
     }
   }
-
 }
 

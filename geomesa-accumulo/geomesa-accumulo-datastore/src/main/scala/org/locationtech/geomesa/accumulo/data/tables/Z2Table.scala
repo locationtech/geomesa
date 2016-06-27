@@ -22,8 +22,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToMut
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.sfcurve.zorder.Z2
-import org.locationtech.sfcurve.zorder.Z3.ZPrefix
+import org.locationtech.sfcurve.zorder.{Z2, ZPrefix}
 import org.opengis.feature.simple.SimpleFeatureType
 
 object Z2Table extends GeoMesaTable {
@@ -180,8 +179,8 @@ object Z2Table extends GeoMesaTable {
       val ZPrefix(zprefix, zbits) = Z2.longestCommonPrefix(min, max)
       if (zbits < GEOM_Z_NUM_BYTES * 8) {
         // divide the range into two smaller ones using tropf litmax/bigmin
-        val (litmax, bigmin) = Z2.zdivide(Z2((min + max) / 2), Z2(min), Z2(max))
-        in.enqueue((min, litmax.z), (bigmin.z, max))
+        val (litmax, bigmin) = Z2.zdivide((min + max) >>> 1, min, max) // >>> 1 is overflow safe mean
+        in.enqueue((min, litmax), (bigmin, max))
       } else {
         // we've found a prefix that contains our z range
         // truncate down to the bytes we use so we don't get dupes
