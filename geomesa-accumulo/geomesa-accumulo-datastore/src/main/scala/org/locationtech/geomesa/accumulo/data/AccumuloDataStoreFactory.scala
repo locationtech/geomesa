@@ -19,7 +19,7 @@ import org.apache.accumulo.core.client.{ClientConfiguration, Connector, ZooKeepe
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.accumulo.GeomesaSystemProperties
-import org.locationtech.geomesa.accumulo.stats.{ParamsAuditProvider, StatWriter}
+import org.locationtech.geomesa.accumulo.data.stats.usage.ParamsAuditProvider
 import org.locationtech.geomesa.security
 
 import scala.collection.JavaConversions._
@@ -37,8 +37,9 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     val visibility = visibilityParam.lookupOpt[String](params).getOrElse("")
 
     val tableName = tableNameParam.lookUp(params).asInstanceOf[String]
-    val useMock = java.lang.Boolean.valueOf(mockParam.lookUp(params).asInstanceOf[String])
-    val connector = connParam.lookupOpt[Connector](params).getOrElse(buildAccumuloConnector(params, useMock))
+    val connector = connParam.lookupOpt[Connector](params).getOrElse {
+      buildAccumuloConnector(params, java.lang.Boolean.valueOf(mockParam.lookUp(params).asInstanceOf[String]))
+    }
 
     val forceEmptyOpt: Option[java.lang.Boolean] = forceEmptyAuthsParam.lookupOpt[java.lang.Boolean](params)
     val forceEmptyAuths = forceEmptyOpt.getOrElse(java.lang.Boolean.FALSE).asInstanceOf[Boolean]
@@ -79,24 +80,21 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     val queryTimeout = queryTimeoutParam.lookupOpt[Int](params).map(i => i * 1000L).orElse {
       GeomesaSystemProperties.QueryProperties.QUERY_TIMEOUT_MILLIS.option.map(_.toLong)
     }
+    val collectQueryStats =
+      !connector.isInstanceOf[MockConnector] && collectQueryStatsParam.lookupWithDefault[Boolean](params)
+
     val config = AccumuloDataStoreConfig(
       queryTimeout,
       queryThreadsParam.lookupWithDefault(params),
       recordThreadsParam.lookupWithDefault(params),
       writeThreadsParam.lookupWithDefault(params),
       generateStatsParam.lookupWithDefault[Boolean](params),
+      collectQueryStats,
       cachingParam.lookupWithDefault(params),
       looseBBoxParam.lookupWithDefault(params)
     )
 
-    // stats defaults to true if not specified
-    val collectQueryStats = !useMock && collectQueryStatsParam.lookupWithDefault[Boolean](params)
-
-    if (collectQueryStats) {
-      new AccumuloDataStore(connector, tableName, authProvider, auditProvider, visibility, config) with StatWriter
-    } else {
-      new AccumuloDataStore(connector, tableName, authProvider, auditProvider, visibility, config)
-    }
+    new AccumuloDataStore(connector, tableName, authProvider, auditProvider, visibility, config)
   }
 
   override def getDisplayName = AccumuloDataStoreFactory.DISPLAY_NAME

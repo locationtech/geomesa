@@ -56,6 +56,8 @@ class StatsBoundsCommand(parent: JCommander) extends CommandWithCatalog(parent) 
       }
       println(s"  $attribute $out")
     }
+
+    ds.dispose()
   }
 }
 

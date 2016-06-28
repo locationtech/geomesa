@@ -31,6 +31,8 @@ class StatsCountCommand(parent: JCommander) extends CommandWithCatalog(parent) w
 
     val label = if (params.exact) "Count" else "Estimated count"
     println(s"$label: $count")
+
+    ds.dispose()
   }
 }
 

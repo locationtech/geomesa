@@ -57,26 +57,34 @@ class SchemaCopyJob extends Tool {
     val sftIn = {
       val dsIn = DataStoreFinder.getDataStore(dsInParams)
       require(dsIn != null, "The specified input data store could not be created - check your job parameters")
-      val sft = dsIn.getSchema(featureIn)
-      require(sft != null, s"The feature '$featureIn' does not exist in the input data store")
-      sft
+      try {
+        val sft = dsIn.getSchema(featureIn)
+        require(sft != null, s"The feature '$featureIn' does not exist in the input data store")
+        sft
+      } finally {
+        dsIn.dispose()
+      }
     }
     val sftOut = {
       val dsOut = DataStoreFinder.getDataStore(dsOutParams)
       require(dsOut != null, "The specified output data store could not be created - check your job parameters")
-      var sft = dsOut.getSchema(featureOut)
-      if (sft == null) {
-        // update the feature name
-        if (featureOut == featureIn) {
-          sft = sftIn
+      try {
+        var sft = dsOut.getSchema(featureOut)
+        if (sft == null) {
+          // update the feature name
+          if (featureOut == featureIn) {
+            sft = sftIn
+          } else {
+            sft = SimpleFeatureTypes.createType(featureOut, SimpleFeatureTypes.encodeType(sftIn))
+          }
+          // create the schema in the output datastore
+          dsOut.createSchema(sft)
+          dsOut.getSchema(featureOut)
         } else {
-          sft = SimpleFeatureTypes.createType(featureOut, SimpleFeatureTypes.encodeType(sftIn))
+          sft
         }
-        // create the schema in the output datastore
-        dsOut.createSchema(sft)
-        dsOut.getSchema(featureOut)
-      } else {
-        sft
+      } finally {
+        dsOut.dispose()
       }
     }
 
@@ -123,6 +131,7 @@ class CopyMapper extends Mapper[Text, SimpleFeature, Text, SimpleFeature] {
     val dsParams = GeoMesaConfigurator.getDataStoreOutParams(context.getConfiguration)
     val ds = DataStoreFinder.getDataStore(dsParams)
     sftOut = ds.getSchema(GeoMesaConfigurator.getFeatureTypeOut(context.getConfiguration))
+    ds.dispose()
   }
 
   override protected def cleanup(context: Context): Unit = {

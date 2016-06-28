@@ -39,6 +39,7 @@ class DeleteRasterCommand(parent: JCommander) extends Command(parent) with LazyL
     } else {
       logger.info(s"Cancelled deletion of GeoMesa Raster Table: '$table'")
     }
+    RasterStore.close()
   }
 }
 

@@ -38,6 +38,7 @@ class RemoveSchemaCommand(parent: JCommander) extends CommandWithCatalog(parent)
       case Failure(ex) =>
         println(s"Feature validation failed on error: ${ex.getMessage}.")
     }
+    ds.dispose()
   }
 
   protected def removeAll(typeNames: List[String]) = {

@@ -35,6 +35,7 @@ class DataEndpoint extends GeoMesaScalatraServlet with LazyLogging {
         BadRequest()
       } else {
         ds.removeSchema(fn)
+        ds.dispose()
         Ok()
       }
     } catch {

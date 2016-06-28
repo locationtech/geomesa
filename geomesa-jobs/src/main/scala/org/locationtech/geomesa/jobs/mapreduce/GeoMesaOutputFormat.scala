@@ -42,7 +42,6 @@ object GeoMesaOutputFormat {
   def configureDataStore(job: Job, dsParams: Map[String, String]): Unit = {
 
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
-
     assert(ds != null, "Invalid data store parameters")
 
     // set up the underlying accumulo input format
@@ -60,6 +59,8 @@ object GeoMesaOutputFormat {
     val conf = job.getConfiguration
     GeoMesaConfigurator.setDataStoreOutParams(conf, dsParams)
     GeoMesaConfigurator.setSerialization(conf)
+
+    ds.dispose()
   }
 
   /**
@@ -160,5 +161,6 @@ class GeoMesaRecordWriter(params: Map[String, String],
   override def close(context: TaskAttemptContext) = {
     delegate.close(context)
     statsCache.values.foreach(_.close())
+    ds.dispose()
   }
 }

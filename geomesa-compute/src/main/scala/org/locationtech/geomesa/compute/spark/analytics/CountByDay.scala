@@ -69,6 +69,8 @@ object CountByDay {
     // Collect the results and print
     countByDay.collect().foreach(println)
     println("\n")
+
+    ds.dispose()
   }
 
 }

@@ -57,7 +57,6 @@ object GeoMesaInputFormat extends LazyLogging {
   def configure(job: JobConf, dsParams: Map[String, String], query: Query): Unit = {
 
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
-
     assert(ds != null, "Invalid data store parameters")
 
     // set up the underlying accumulo input format
@@ -99,6 +98,8 @@ object GeoMesaInputFormat extends LazyLogging {
       GeoMesaConfigurator.setFilter(job, ECQL.toCQL(query.getFilter))
     }
     query.getHints.getTransformSchema.foreach(GeoMesaConfigurator.setTransformSchema(job, _))
+
+    ds.dispose()
   }
 }
 
@@ -119,6 +120,7 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLoggi
     sft = ds.getSchema(GeoMesaConfigurator.getFeatureType(conf))
     encoding = ds.getFeatureEncoding(sft)
     desiredSplitCount = GeoMesaConfigurator.getDesiredSplits(conf)
+    ds.dispose()
   }
 
   /**

@@ -40,6 +40,7 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
     if (fmt == SHP) {
       val ds = new DataStoreHelper(params).getDataStore()
       params.files.foreach(GeneralShapefileIngest.shpToDataStore(_, ds, params.featureName))
+      ds.dispose()
     } else {
       val dsParams = new DataStoreHelper(params).paramMap
       val tryDs = DataStoreFinder.getDataStore(dsParams)

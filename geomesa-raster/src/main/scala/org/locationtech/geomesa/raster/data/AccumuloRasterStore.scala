@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.raster.data
 
-import java.io.Serializable
+import java.io.{Closeable, Serializable}
 import java.util.Map.Entry
 import java.util.concurrent.{Callable, TimeUnit}
 import java.util.{Map => JMap}
@@ -21,9 +21,9 @@ import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
 import org.apache.accumulo.core.security.TablePermission
 import org.geotools.coverage.grid.GridEnvelope2D
 import org.joda.time.DateTime
+import org.locationtech.geomesa.accumulo.data.stats.usage._
 import org.locationtech.geomesa.accumulo.index.Strategy._
 import org.locationtech.geomesa.accumulo.iterators.BBOXCombiner._
-import org.locationtech.geomesa.accumulo.stats.{Stat, RasterQueryStat, RasterQueryStatTransform, StatWriter}
 import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.index.RasterIndexSchema
@@ -41,7 +41,8 @@ class AccumuloRasterStore(val connector: Connector,
                   writeMemoryConfig: Option[String] = None,
                   writeThreadsConfig: Option[Int] = None,
                   queryThreadsConfig: Option[Int] = None,
-                  collectStats: Boolean = false) extends MethodProfiling with StatWriter with LazyLogging {
+                  collectStats: Boolean = false) extends Closeable with MethodProfiling with LazyLogging {
+
   val writeMemory = writeMemoryConfig.getOrElse("10000").toLong
   val writeThreads = writeThreadsConfig.getOrElse(10)
   val bwConfig: BatchWriterConfig =
@@ -53,11 +54,14 @@ class AccumuloRasterStore(val connector: Connector,
   private val profileTable   = s"${tableName}_queries"
   private def getBoundsRowID = tableName + "_bounds"
 
+  private val usageStats = if (collectStats) new GeoMesaUsageStatsImpl(connector, profileTable, true) else null
+
   def getAuths = authorizationsProvider.getAuthorizations
 
   /**
    *  Given A Query, return a single buffered image that is a mosaic of the tiles
    *  This is primarily used to satisfy WCS/WMS queries.
+   *
    * @param query
    * @param params
    * @return Buffered
@@ -76,7 +80,7 @@ class AccumuloRasterStore(val connector: Connector,
                                  timings.time("scanning") - timings.time("planning"),
                                  timings.time("mosaic"),
                                  numRasters)
-      this.writeStat(stat)
+      usageStats.writeUsageStat(stat)
     }
     image
   }
@@ -288,7 +292,7 @@ class AccumuloRasterStore(val connector: Connector,
     }
   }
 
-  def getStatTable(stat: Stat): String = profileTable
+  override def close(): Unit = if (usageStats != null) { usageStats.close() }
 }
 
 object AccumuloRasterStore {

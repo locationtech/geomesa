@@ -20,7 +20,7 @@ class GetSftCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
   override val params = new GetSftParameters
 
   override def execute() = {
-    logger.info(s"Getting SFT for feature ${params.featureName} from catalog ${catalog}")
+    logger.info(s"Getting SFT for feature ${params.featureName} from catalog $catalog")
     try {
       params.format.toLowerCase match {
         case "typesafe" =>
@@ -31,10 +31,12 @@ class GetSftCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
           logger.error(s"Unknown config format: ${params.format}")
       }
     } catch {
-    case npe: NullPointerException =>
-      logger.error(s"Error: feature '${params.featureName}' not found. Check arguments...", npe)
-    case e: Exception =>
-      logger.error(s"Error describing feature '${params.featureName}': " + e.getMessage, e)
+      case npe: NullPointerException =>
+        logger.error(s"Error: feature '${params.featureName}' not found. Check arguments...", npe)
+      case e: Exception =>
+        logger.error(s"Error describing feature '${params.featureName}':", e)
+    } finally {
+      ds.dispose()
     }
   }
 

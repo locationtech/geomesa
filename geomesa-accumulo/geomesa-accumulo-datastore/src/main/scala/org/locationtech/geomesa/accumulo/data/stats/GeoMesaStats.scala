@@ -25,7 +25,7 @@ import scala.reflect.ClassTag
  * Tracks stats for a schema - spatial/temporal bounds, number of records, etc. Persistence of
  * stats is not part of this trait, as different implementations will likely have different method signatures.
  */
-trait GeoMesaStats {
+trait GeoMesaStats extends Closeable {
 
   /**
     * Gets the number of features that will be returned for a query. May return -1 if exact is false

@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.stats
+package org.locationtech.geomesa.accumulo.data.stats.usage
 
 import java.util.Map.Entry
 
@@ -19,9 +19,9 @@ import org.locationtech.geomesa.accumulo.util.{CloseableIterator, SelfClosingIte
 import scala.util.Random
 
 /**
- * Base trait for all stat types
+ * Base trait for all usage stat types
  */
-trait Stat {
+trait UsageStat {
   def typeName: String
   def date: Long
 }
@@ -29,9 +29,10 @@ trait Stat {
 /**
  * Trait for mapping stats to accumulo and back
  */
-trait StatTransform[S <: Stat] extends LazyLogging {
+trait UsageStatTransform[S <: UsageStat] extends LazyLogging {
 
-  protected def createMutation(stat: Stat) = new Mutation(s"${stat.typeName}~${StatTransform.dateFormat.print(stat.date)}")
+  protected def createMutation(stat: UsageStat) =
+    new Mutation(s"${stat.typeName}~${UsageStatTransform.dateFormat.print(stat.date)}")
 
   protected def createRandomColumnFamily = Random.nextInt(9999).formatted("%1$04d")
 
@@ -89,6 +90,10 @@ trait StatTransform[S <: Stat] extends LazyLogging {
   }
 }
 
-object StatTransform {
+object UsageStatTransform {
+
   val dateFormat = DateTimeFormat.forPattern("yyyyMMdd-HH:mm:ss.SSS").withZoneUTC()
+
+  implicit val QueryStatHasTransform = QueryStatTransform
+  implicit val RasterQueryStatHasTransform = RasterQueryStatTransform
 }
