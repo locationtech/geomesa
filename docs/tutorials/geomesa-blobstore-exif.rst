@@ -54,7 +54,7 @@ To deploy the EXIF FileHandler if you are using GeoServer's built in Jetty web s
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-$VERSION/dist/handlers/geomesa-blobstore-exif-handler-$VERSION.jar\
+      geomesa-$VERSION/dist/handlers/geomesa-blobstore-exif-handler-$VERSION.jar \
       -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib/
 
 Now the BlobStore is able to read image files with EXIF metadata headers.

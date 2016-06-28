@@ -13,13 +13,9 @@ import com.google.common.base.Objects;
 
 public class Blob {
 
-    private String id;
-    private String localName;
-    private byte[] payload;
-
-    public Blob() {
-
-    }
+    private final String id;
+    private final String localName;
+    private final byte[] payload;
 
     public Blob(String newID, String newLocalName, byte[] newPayload) {
         id = newID;

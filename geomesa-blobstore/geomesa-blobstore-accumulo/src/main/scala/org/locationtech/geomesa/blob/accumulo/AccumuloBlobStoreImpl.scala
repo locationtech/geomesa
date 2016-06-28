@@ -83,3 +83,9 @@ class AccumuloBlobStoreImpl(val connector: Connector,
     }
   }
 }
+
+object AccumuloBlobStoreImpl {
+
+  val blobSuffix: String = "_blob"
+
+}
