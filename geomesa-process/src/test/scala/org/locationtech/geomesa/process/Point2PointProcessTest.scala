@@ -123,5 +123,15 @@ class Point2PointProcessTest extends Specification {
       f2(3).get[java.util.Date]("dtg_end").getTime mustEqual sdf.parse("2015-08-05").getTime
     }
 
+    "set the SFT even if the features source passed in is empty" >> {
+      val filter = ECQL.toFilter("myid in ('abcdefg_not_here')")
+      val features = ds.getFeatureSource(fName).getFeatures(filter)
+      val p2p = new Point2PointProcess
+      import org.locationtech.geomesa.utils.geotools.Conversions._
+      val res = p2p.execute(features, "myid", "dtg", 2, false, true)
+      res.features.size mustEqual 0
+      res.getSchema must not(beNull)
+    }
+
   }
 }
