@@ -53,14 +53,16 @@ case "$type" in
   tdrive)
 
     echo "Note: each zip file contains approximately one million points"
-    read -p "Download how many zip files? " NUM
+    read -p "Download how many zip files? (9 total) " NUM
 
     for i in `seq 1 $NUM`; do
-	  echo "Downloading zip $i of $NUM"
-	  wget "http://research.microsoft.com/pubs/152883/0$i.zip" -P $GEOMESA_HOME/data/tdrive
+      echo "Downloading zip $i of $NUM"
+      ZIP_ID=$((i+5))
+      wget "https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/0$ZIP_ID.zip" -P $GEOMESA_HOME/data/tdrive
+      sleep 5
     done
 
-    wget "http://research.microsoft.com/pubs/152883/User_guide_T-drive.pdf" -P $GEOMESA_HOME/data/tdrive
+    wget "https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/User_guide_T-drive.pdf" -P $GEOMESA_HOME/data/tdrive
     ;;
 
   geonames)
