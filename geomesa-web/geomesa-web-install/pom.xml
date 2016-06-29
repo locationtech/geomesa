@@ -207,7 +207,7 @@
                                 <configuration>
                                     <attach>false</attach>
                                     <finalName>spark-${project.version}</finalName>
-                                    <tarLongFileMode>gnu</tarLongFileMode>
+                                    <tarLongFileMode>posix</tarLongFileMode>
                                     <descriptors>
                                         <descriptor>src/main/assemblies/spark-assembly.xml</descriptor>
                                     </descriptors>
