@@ -23,7 +23,7 @@ import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.opengis.feature.Feature
 import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.util.ProgressListener
 
@@ -88,14 +88,8 @@ class UniqueProcess extends VectorProcess with LazyLogging {
                              sort: Option[String],
                              sortByCount: Boolean): SimpleFeatureCollection = {
 
-    val sftb = new SimpleFeatureTypeBuilder
-    sftb.add("value", binding)
-    if (histogram) {
-      // histogram includes extra 'count' attribute
-      sftb.add("count", classOf[java.lang.Long])
-    }
-    sftb.setName("UniqueValue")
-    val ft = sftb.buildFeatureType
+    val ft = UniqueProcess.createUniqueSft(binding, histogram)
+
     val sfb = new SimpleFeatureBuilder(ft)
 
     val result = new ListFeatureCollection(ft)
@@ -124,6 +118,32 @@ class UniqueProcess extends VectorProcess with LazyLogging {
     sorted.foreach { case (key, value) => addFn(key, value) }
 
     result
+  }
+}
+
+object UniqueProcess {
+
+  val SftName = "UniqueValue"
+  val AttributeValue = "value"
+  val AttributeCount = "count"
+
+  /**
+    * Based on geotools UniqueProcess simple feature type
+    *
+    * @param binding class of attribute
+    * @param histogram return counts or not
+    * @return
+    */
+  def createUniqueSft(binding: Class[_], histogram: Boolean): SimpleFeatureType = {
+    val sftb = new SimpleFeatureTypeBuilder
+    sftb.add(AttributeValue, binding)
+    if (histogram) {
+      // histogram includes extra 'count' attribute
+      sftb.add(AttributeCount, classOf[java.lang.Long])
+    }
+
+    sftb.setName(SftName)
+    sftb.buildFeatureType
   }
 }
 

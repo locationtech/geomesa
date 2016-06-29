@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.EncodingOptions
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -44,7 +45,7 @@ class BinaryOutputEncoderTest extends Specification {
       "with label field" >> {
         val out = new ByteArrayOutputStream()
         BinaryOutputEncoder
-            .encodeFeatureCollection(fc, out, "dtg", Some("track"), Some("label"), None, AxisOrder.LatLon, false)
+            .encodeFeatureCollection(fc, out, EncodingOptions("dtg", Some("track"), Some("label"), None, AxisOrder.LatLon), false)
         val encoded = out.toByteArray
         (0 until 4).foreach { i =>
           val decoded = Convert2ViewerFunction.decode(encoded.slice(i * 24, (i + 1) * 24))
@@ -60,7 +61,7 @@ class BinaryOutputEncoderTest extends Specification {
       "without label field" >> {
         val out = new ByteArrayOutputStream()
         BinaryOutputEncoder
-            .encodeFeatureCollection(fc, out, "dtg", Some("track"), None, None, AxisOrder.LatLon, false)
+            .encodeFeatureCollection(fc, out, EncodingOptions("dtg", Some("track"), None, None, AxisOrder.LatLon), false)
         val encoded = out.toByteArray
         (0 until 4).foreach { i =>
           val decoded = Convert2ViewerFunction.decode(encoded.slice(i * 16, (i + 1) * 16))
@@ -76,7 +77,7 @@ class BinaryOutputEncoderTest extends Specification {
       "with id field" >> {
         val out = new ByteArrayOutputStream()
         BinaryOutputEncoder
-            .encodeFeatureCollection(fc, out, "dtg", Some("id"), None, None, AxisOrder.LatLon, false)
+            .encodeFeatureCollection(fc, out, EncodingOptions("dtg", Some("id"), None, None, AxisOrder.LatLon), false)
         val encoded = out.toByteArray
         (0 until 4).foreach { i =>
           val decoded = Convert2ViewerFunction.decode(encoded.slice(i * 16, (i + 1) * 16))
@@ -92,7 +93,7 @@ class BinaryOutputEncoderTest extends Specification {
       "without custom lat/lon" >> {
         val out = new ByteArrayOutputStream()
         BinaryOutputEncoder
-            .encodeFeatureCollection(fc, out, "dtg", Some("track"), None, Some(("lat", "lon")), AxisOrder.LatLon, false)
+            .encodeFeatureCollection(fc, out, EncodingOptions("dtg", Some("track"), None, Some(("lat", "lon")), AxisOrder.LatLon), false)
         val encoded = out.toByteArray
         (0 until 4).foreach { i =>
           val decoded = Convert2ViewerFunction.decode(encoded.slice(i * 16, (i + 1) * 16))
@@ -123,7 +124,7 @@ class BinaryOutputEncoderTest extends Specification {
       "with label field" >> {
         val out = new ByteArrayOutputStream()
         BinaryOutputEncoder
-            .encodeFeatureCollection(fc, out, "dates", Some("track"), Some("label"), None, AxisOrder.LatLon, false)
+            .encodeFeatureCollection(fc, out, EncodingOptions("dates", Some("track"), Some("label"), None, AxisOrder.LatLon), false)
         val encoded = out.toByteArray
         (0 until 4).foreach { i =>
           val decoded = Convert2ViewerFunction.decode(encoded.slice(i * 24, (i + 1) * 24))
@@ -139,7 +140,7 @@ class BinaryOutputEncoderTest extends Specification {
       "without label field" >> {
         val out = new ByteArrayOutputStream()
         BinaryOutputEncoder
-            .encodeFeatureCollection(fc, out, "dates", Some("track"), None, None, AxisOrder.LatLon, false)
+            .encodeFeatureCollection(fc, out, EncodingOptions("dates", Some("track"), None, None, AxisOrder.LatLon), false)
         val encoded = out.toByteArray
         (0 until 4).foreach { i =>
           val decoded = Convert2ViewerFunction.decode(encoded.slice(i * 16, (i + 1) * 16))
@@ -155,7 +156,7 @@ class BinaryOutputEncoderTest extends Specification {
       "with sorting" >> {
         val out = new ByteArrayOutputStream()
         BinaryOutputEncoder
-            .encodeFeatureCollection(fc, out, "dates", Some("track"), None, None, AxisOrder.LatLon, true)
+            .encodeFeatureCollection(fc, out, EncodingOptions("dates", Some("track"), None, None, AxisOrder.LatLon), true)
         val encoded = out.toByteArray
         (0 until 4).foreach { i =>
           val decoded = Convert2ViewerFunction.decode(encoded.slice(i * 16, (i + 1) * 16))
