@@ -33,17 +33,17 @@ object CassandraDataStore {
 
   val typeMap = HashBiMap.create[Class[_], DataType]
   typeMap.putAll(Map(
-    classOf[Integer]    -> DataType.cint(),
-    classOf[Long]       -> DataType.bigint(),
-    classOf[Float]      -> DataType.cfloat(),
-    classOf[Double]     -> DataType.cdouble(),
-    classOf[Boolean]    -> DataType.cboolean(),
-    classOf[BigDecimal] -> DataType.decimal(),
-    classOf[BigInteger] -> DataType.varint(),
-    classOf[String]     -> DataType.text(),
-    classOf[Date]       -> DataType.timestamp(),
-    classOf[UUID]       -> DataType.uuid(),
-    classOf[Point]      -> DataType.blob()
+    classOf[Integer]           -> DataType.cint(),
+    classOf[java.lang.Long]    -> DataType.bigint(),
+    classOf[java.lang.Float]   -> DataType.cfloat(),
+    classOf[java.lang.Double]  -> DataType.cdouble(),
+    classOf[java.lang.Boolean] -> DataType.cboolean(),
+    classOf[BigDecimal]        -> DataType.decimal(),
+    classOf[BigInteger]        -> DataType.varint(),
+    classOf[String]            -> DataType.text(),
+    classOf[Date]              -> DataType.timestamp(),
+    classOf[UUID]              -> DataType.uuid(),
+    classOf[Point]             -> DataType.blob()
   ))
 
   def getSchema(name: Name, table: TableMetadata): SimpleFeatureType = {

@@ -27,6 +27,7 @@ import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class CassandraDataStoreTest extends Specification {
@@ -52,6 +53,16 @@ class CassandraDataStoreTest extends Specification {
       ds.createSchema(SimpleFeatureTypes.createType("test:test", "name:String,age:Int,*geom:Point:srid=4326,dtg:Date"))
       ds.getTypeNames.toSeq must contain("test")
       ds.dispose()
+      ok
+    }
+
+    "parse simpleType to Cassandra Types" >> {
+      val simpleFeatureType = SimpleFeatureTypes.createType("test:test",
+        "string:String,int:Int,float:Float,double:Double,long:Long,boolean:Boolean,*geom:Point:srid=4326,dtg:Date")
+      val types = simpleFeatureType.getTypes.asScala.map(_.getBinding)
+      types foreach { t =>
+        CassandraDataStore.typeMap.get(t) shouldNotEqual null
+      }
       ok
     }
 
