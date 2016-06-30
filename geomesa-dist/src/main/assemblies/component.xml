@@ -127,6 +127,11 @@
             <outputDirectory>docs</outputDirectory>
         </file>
         <file>
+            <source>../geomesa-blobstore/geomesa-blobstore-handlers/geomesa-blobstore-gdal-handler</source>
+            <destName>README-blobstore-gdal-handler.md</destName>
+            <outputDirectory>docs</outputDirectory>
+        </file>
+        <file>
             <source>../geomesa-kafka/geomesa-kafka-datastore/README.md</source>
             <destName>README-kafka-datastore.md</destName>
             <outputDirectory>docs</outputDirectory>
