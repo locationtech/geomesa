@@ -42,10 +42,10 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
   def dataStoreWithStats(statArray: ArrayBuffer[UsageStat]) =
     new AccumuloDataStore(ds.connector, ds.catalogTable, ds.authProvider,
       ds.auditProvider, ds.defaultVisibilities, ds.config.copy(collectUsageStats = true)) {
-    override val usageStats = new StatWriter(statArray)
+    override val usageStats = new MockUsageStats(statArray)
   }
 
-  class StatWriter(statArray: ArrayBuffer[UsageStat]) extends GeoMesaUsageStats {
+  class MockUsageStats(statArray: ArrayBuffer[UsageStat]) extends GeoMesaUsageStats {
     override def writeUsageStat[T <: UsageStat](stat: T)(implicit transform: UsageStatTransform[T]): Unit =
       statArray.append(stat)
     override def getUsageStats[T <: UsageStat](typeName: String,
@@ -74,7 +74,7 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
       val query = new Query(sftName, filter)
 
       val qp = ds.getQueryPlanner(sftName)
-      val sw = new StatWriter(stats)
+      val sw = new MockUsageStats(stats)
       val reader = AccumuloFeatureReader(query, qp, None, Some(sw, new ParamsAuditProvider))
 
       var count = 0
@@ -94,7 +94,7 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
       query.getHints.put(QueryHints.BIN_BATCH_SIZE_KEY, 10)
 
       val qp = ds.getQueryPlanner(sftName)
-      val sw = new StatWriter(stats)
+      val sw = new MockUsageStats(stats)
 
       val reader = AccumuloFeatureReader(query, qp, None, Some(sw, new ParamsAuditProvider))
 
@@ -185,7 +185,7 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
       query.setMaxFeatures(10)
 
       val qp = ds.getQueryPlanner(sftName)
-      val sw = new StatWriter(stats)
+      val sw = new MockUsageStats(stats)
 
       val reader = AccumuloFeatureReader(query, qp, None, Some(sw, new ParamsAuditProvider))
 
@@ -207,7 +207,7 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
       query.setMaxFeatures(10)
 
       val qp = ds.getQueryPlanner(sftName)
-      val sw = new StatWriter(stats)
+      val sw = new MockUsageStats(stats)
 
       val reader = AccumuloFeatureReader(query, qp, None, Some(sw, new ParamsAuditProvider))
 

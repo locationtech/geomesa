@@ -60,9 +60,7 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
         compact()
       }
       if (running.get) {
-        scheduledCompaction = executor.schedule(this, 1, TimeUnit.HOURS)
-      } else {
-        scheduledCompaction = null
+        synchronized(scheduledCompaction = executor.schedule(this, 1, TimeUnit.HOURS))
       }
     }
   }
@@ -226,9 +224,7 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
 
   override def close(): Unit = {
     running.set(false)
-    if (scheduledCompaction != null) {
-      scheduledCompaction.cancel(false)
-    }
+    synchronized(scheduledCompaction.cancel(false))
   }
 
   /**
