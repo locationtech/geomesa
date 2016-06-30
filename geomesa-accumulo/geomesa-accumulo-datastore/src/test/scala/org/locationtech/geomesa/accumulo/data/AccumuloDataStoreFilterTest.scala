@@ -22,7 +22,8 @@ class AccumuloDataStoreFilterTest extends Specification with TestWithDataStore {
 
   sequential
 
-  override val spec = "name:String,dtg:Date,*geom:Geometry:srid=4326;geomesa.mixed.geometries='true'"
+  // note: index=full on the geometry tests a regression bug in stats (GEOMESA-1292)
+  override val spec = "name:String,dtg:Date,*geom:Geometry:srid=4326:index=full;geomesa.mixed.geometries='true'"
 
   val point = {
     val sf = new ScalaSimpleFeature("point", sft)

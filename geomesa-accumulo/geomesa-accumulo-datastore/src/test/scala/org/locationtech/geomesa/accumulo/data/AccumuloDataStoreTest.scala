@@ -394,8 +394,8 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "update metadata for indexed attributes" in {
-      val originalSchema = "name:String,dtg:Date,*geom:Point:srid=4326:index=full:index-value=true"
-      val updatedSchema = "name:String:index=join,dtg:Date,*geom:Point:srid=4326:index=full:index-value=true"
+      val originalSchema = "name:String,dtg:Date,*geom:Point:srid=4326"
+      val updatedSchema = "name:String:index=join,dtg:Date,*geom:Point:srid=4326"
 
       val sft = createNewSchema(originalSchema)
       ds.updateIndexedAttributes(sft.getTypeName, updatedSchema)
