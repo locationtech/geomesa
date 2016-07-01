@@ -81,7 +81,7 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
 }
 
 abstract class KafkaFeatureWriter(sft: SimpleFeatureType, producer: Producer[Array[Byte], Array[Byte]], topic: String)
-    extends FeatureWriter[SimpleFeatureType, SimpleFeature]with LazyLogging {
+    extends FeatureWriter[SimpleFeatureType, SimpleFeature] with LazyLogging {
 
   protected val msgEncoder = new KafkaGeoMessageEncoder(sft)
 
