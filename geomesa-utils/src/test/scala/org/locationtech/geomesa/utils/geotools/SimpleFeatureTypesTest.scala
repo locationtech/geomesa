@@ -39,6 +39,10 @@ class SimpleFeatureTypesTest extends Specification {
         val geomDescriptor = sft.getGeometryDescriptor
         geomDescriptor.getLocalName must be equalTo "geom"
       }
+      "not include index flag for geometry" >> {
+        val geomDescriptor = sft.getGeometryDescriptor
+        geomDescriptor.getUserData.get("index") must beNull
+      }
       "encode an sft properly" >> {
         SimpleFeatureTypes.encodeType(sft) must be equalTo s"id:Integer,dtg:Date,*geom:Point:srid=4326"
       }

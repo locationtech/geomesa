@@ -472,11 +472,21 @@ object SimpleFeatureTypes {
       val star = if (default) "*" else ""
       val builder = new StringBuilder(s"$star$name:$getClassSpec")
       for (opt <- OPTS; value <- options.get(opt)) {
-        if (opt != OPT_DEFAULT) { // default geoms are indicated by the *
+        // default geoms are indicated by the *
+        // we don't allow attribute indexing for geometries
+        if (opt != OPT_DEFAULT && opt != OPT_INDEX) {
           builder.append(s":$opt=$value")
         }
       }
       builder.toString()
+    }
+
+    override def toAttribute: AttributeDescriptor = {
+      val builder = new AttributeTypeBuilder().binding(clazz)
+      // don't include index flag - geometries can't be attribute indexed
+      OPTS.filterNot(_ == OPT_INDEX).foreach(opt => options.get(opt).foreach(value => builder.userData(opt, value)))
+      addOptions(builder)
+      builder.buildDescriptor(name)
     }
 
     override def addOptions(builder: AttributeTypeBuilder) = {
@@ -485,6 +495,7 @@ object SimpleFeatureTypes {
       builder.crs(CRS_EPSG_4326)
     }
 
+    override def toMap: Map[String, String] = super.toMap - OPT_INDEX
   }
 
   sealed trait FeatureOption {
