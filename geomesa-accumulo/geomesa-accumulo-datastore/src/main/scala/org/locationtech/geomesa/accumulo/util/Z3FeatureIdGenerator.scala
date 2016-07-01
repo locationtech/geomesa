@@ -12,8 +12,8 @@ import java.util.{Date, UUID}
 
 import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.vividsolutions.jts.geom.{Geometry, Point}
-import org.locationtech.geomesa.accumulo.data.tables.Z3Table
-import org.locationtech.geomesa.curve.Z3SFC
+import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
+import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.uuid.{FeatureIdGenerator, RandomLsbUuidGenerator}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -65,23 +65,24 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator {
 
     val pt = sf.getAttribute(sft.getGeomIndex)
     if (sft.isPoints) {
-      createUuid(pt.asInstanceOf[Point], time)
+      createUuid(pt.asInstanceOf[Point], time, sft.getZ3Interval)
     } else {
-      createUuid(pt.asInstanceOf[Geometry].getCentroid, time)
+      createUuid(pt.asInstanceOf[Geometry].getCentroid, time, sft.getZ3Interval)
     }
   }
 
-  def createUuid(geom: Geometry, time: Long): UUID = createUuid(geom.getCentroid, time)
+  def createUuid(geom: Geometry, time: Long, period: TimePeriod): UUID =
+    createUuid(geom.getCentroid, time, period)
 
-  def createUuid(pt: Point, time: Long) = {
+  def createUuid(pt: Point, time: Long, period: TimePeriod) = {
     // create the random part
     // this uses the same temp array we use later, so be careful with the order this gets called
     val leastSigBits = createRandomLsb()
 
     val z3 = {
-      val (w, t) = Z3Table.getWeekAndSeconds(time)
-      val z = Z3SFC.index(pt.getX, pt.getY, t).z
-      Bytes.concat(Shorts.toByteArray(w), Longs.toByteArray(z))
+      val BinnedTime(b, t) = BinnedTime.timeToBinnedTime(period)(time)
+      val z = Z3SFC(period).index(pt.getX, pt.getY, t).z
+      Bytes.concat(Shorts.toByteArray(b), Longs.toByteArray(z))
     }
 
     // shard is first 4 bits of our uuid (e.g. 1 hex char) - this allows nice pre-splitting

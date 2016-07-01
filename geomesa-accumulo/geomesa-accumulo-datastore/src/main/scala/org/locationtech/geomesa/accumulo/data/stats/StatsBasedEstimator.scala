@@ -13,9 +13,8 @@ import java.util.Date
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.joda.time.DateTime
-import org.locationtech.geomesa.accumulo.data.tables.Z3Table
 import org.locationtech.geomesa.accumulo.index.RecordIdxStrategy
-import org.locationtech.geomesa.curve.{Z2SFC, Z3SFC}
+import org.locationtech.geomesa.curve.{BinnedTime, Z2SFC, Z3SFC}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -172,46 +171,47 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
                                           dateField: String,
                                           geometries: Seq[Geometry],
                                           intervals: Seq[(DateTime, DateTime)]): Long = {
-
-    val weeksAndOffsets = intervals.map { interval =>
-      val (epochWeekStart, lt) = Z3Table.getWeekAndSeconds(interval._1)
-      val (epochWeekEnd, ut) = Z3Table.getWeekAndSeconds(interval._2)
-      (Range.inclusive(epochWeekStart, epochWeekEnd).map(_.toShort), lt, ut)
+    val dateToBins = BinnedTime.dateToBinnedTime(sft.getZ3Interval)
+    val binnedTimes = intervals.map { interval =>
+      val BinnedTime(lb, lt) = dateToBins(interval._1)
+      val BinnedTime(ub, ut) = dateToBins(interval._2)
+      (Range.inclusive(lb, ub).map(_.toShort), lt, ut)
     }
-    val allWeeks = weeksAndOffsets.flatMap(_._1).distinct
+    val allBins = binnedTimes.flatMap(_._1).distinct
 
-    stats.getStats[Z3Histogram](sft, Seq(geomField, dateField), allWeeks).headOption match {
+    stats.getStats[Z3Histogram](sft, Seq(geomField, dateField), allBins).headOption match {
       case None => 0L
       case Some(histogram) =>
         // time range for a chunk is 0 to 1 week (in seconds)
-        val (tmin, tmax) = (Z3SFC.time.min.toLong, Z3SFC.time.max.toLong)
+        val sfc = Z3SFC(sft.getZ3Interval)
+        val (tmin, tmax) = (sfc.time.min.toLong, sfc.time.max.toLong)
         val xy = geometries.map(GeometryUtils.bounds)
 
         def getIndices(t1: Long, t2: Long): Seq[Int] = {
-          val w = histogram.weeks.head // z3 histogram bounds are fixed, so indices should be the same
-          val zs = Z3SFC.ranges(xy, Seq((t1, t2)), ZHistogramPrecision)
+          val w = histogram.timeBins.head // z3 histogram bounds are fixed, so indices should be the same
+          val zs = sfc.ranges(xy, Seq((t1, t2)), ZHistogramPrecision)
           zs.flatMap(r => histogram.directIndex(w, r.lower) to histogram.directIndex(w, r.upper))
         }
 
         // build up our indices by week so that we can deduplicate them afterwards
-        val weeksAndIndices = scala.collection.mutable.Map.empty[Short, Seq[Int]].withDefaultValue(Seq.empty)
+        val timeBinsAndIndices = scala.collection.mutable.Map.empty[Short, Seq[Int]].withDefaultValue(Seq.empty)
 
         // the z3 index breaks time into 1 week chunks, so create a range for each week in our range
-        weeksAndOffsets.foreach { case (weeks, lt, ut) =>
-          if (weeks.length == 1) {
-            weeksAndIndices(weeks.head) ++= getIndices(lt, ut)
+        binnedTimes.foreach { case (bins, lt, ut) =>
+          if (bins.length == 1) {
+            timeBinsAndIndices(bins.head) ++= getIndices(lt, ut)
           } else {
-            val head +: middle :+ last = weeks.toList
-            weeksAndIndices(head) ++= getIndices(lt, tmax)
-            weeksAndIndices(last) ++= getIndices(tmin, ut)
+            val head +: middle :+ last = bins.toList
+            timeBinsAndIndices(head) ++= getIndices(lt, tmax)
+            timeBinsAndIndices(last) ++= getIndices(tmin, ut)
             if (middle.nonEmpty) {
               val indices = getIndices(tmin, tmax)
-              middle.foreach(w => weeksAndIndices(w) ++= indices)
+              middle.foreach(m => timeBinsAndIndices(m) ++= indices)
             }
           }
         }
 
-        weeksAndIndices.map { case (w, indices) => indices.distinct.map(histogram.count(w, _)).sum }.sum
+        timeBinsAndIndices.map { case (b, indices) => indices.distinct.map(histogram.count(b, _)).sum }.sum
     }
   }
 
@@ -333,10 +333,11 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
                                   values: Seq[Any],
                                   loDate: Option[Date],
                                   hiDate: Option[Date]): Option[Long] = {
-    val weeks = for { dtg <- sft.getDtgField; d1  <- loDate; d2  <- hiDate } yield {
-      Range.inclusive(Frequency.getWeek(d1), Frequency.getWeek(d2)).map(_.toShort)
+    val timeBins = for { dtg <- sft.getDtgField; d1  <- loDate; d2  <- hiDate } yield {
+      val timeToBin = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
+      Range.inclusive(timeToBin(d1.getTime).bin, timeToBin(d2.getTime).bin).map(_.toShort)
     }
-    val options = weeks.getOrElse(Seq.empty)
+    val options = timeBins.getOrElse(Seq.empty)
     stats.getStats[Frequency[Any]](sft, Seq(attribute), options).headOption.map(f => values.map(f.count).sum)
   }
 

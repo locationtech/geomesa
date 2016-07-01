@@ -22,6 +22,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.util.Z3UuidGenerator
+import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.SftBuilder
 import org.locationtech.geomesa.utils.geotools.SftBuilder.Opts
@@ -79,7 +80,7 @@ class AccumuloGeoMesaIndex[T](ds: AccumuloDataStore,
   }
 
   override def insert(value: T, geom: Geometry, dtg: Date): String = {
-    val id = Z3UuidGenerator.createUuid(geom, dtg.getTime).toString
+    val id = Z3UuidGenerator.createUuid(geom, dtg.getTime, TimePeriod.Week).toString
     insert(id, value, geom, dtg, null)
   }
 

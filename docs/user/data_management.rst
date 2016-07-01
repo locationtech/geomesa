@@ -5,6 +5,10 @@ GeoMesa provides many ways to optimize your data storage. You can add additional
 certain queries, disable indices to speed up ingestion, pre-split tables for optimal data
 distribution and migrate data between tables or environments.
 
+.. note::
+
+    Currently this section applies only to the Accumulo Data Store.
+
 Index Structure
 ---------------
 
@@ -137,6 +141,31 @@ If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribu
         .date("dtg")
         .geometry("geom", default = true)
         .build("mySft")
+
+
+Customizing the Z-Index
+-----------------------
+
+GeoMesa uses a z-curve index for time-based queries. By default, time is split into week-long chunks and indexed
+per-week. If your queries are typically much larger or smaller than one week, you may wish to partition at a
+different interval. GeoMesa provides four intervals - ``day``, ``week``, ``month`` or ``year``. As the interval
+gets larger, fewer partitions must be examined for a query, but the precision of each interval will go down.
+
+If you typically query months of data at a time, then indexing per-month may provide better performance.
+Alternatively, if you typically query minutes of data at a time, indexing per-day may be faster. The default
+per-week partitioning tends to provides a good balance for most scenarios. Note that the optimal partitioning
+depends on query patterns, not the distribution of data.
+
+The time partitioning is set when calling ``createSchema``. It may be specified through the simple feature type
+user data using the hint ``geomesa.z3.interval``:
+
+.. code-block:: java
+
+    // set the hint directly
+    SimpleFeatureType sft = ...
+    sft.getUserData().put("geomesa.z3.interval", "month");
+
+See below for alternate ways to set the user data.
 
 
 Customizing Index Creation

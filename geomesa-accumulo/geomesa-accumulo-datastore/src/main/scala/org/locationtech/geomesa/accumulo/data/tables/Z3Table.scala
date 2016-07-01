@@ -19,10 +19,10 @@ import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.conf.Property
 import org.apache.accumulo.core.data.{Mutation, Value, Range => aRange}
 import org.apache.hadoop.io.Text
-import org.joda.time.{DateTime, DateTimeZone, Seconds, Weeks}
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToMutations
 import org.locationtech.geomesa.accumulo.data.{EMPTY_TEXT, WritableFeature}
-import org.locationtech.geomesa.curve.Z3SFC
+import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
+import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.sfcurve.zorder.{Z3, ZPrefix}
@@ -32,8 +32,6 @@ import scala.collection.JavaConversions._
 
 object Z3Table extends GeoMesaTable {
 
-  val EPOCH = new DateTime(0) // min value we handle - 1970-01-01T00:00:00.000
-  val EPOCH_END = EPOCH.plusSeconds(Int.MaxValue) // max value we can calculate - 2038-01-18T22:19:07.000
   val FULL_CF = new Text("F")
   val BIN_CF = new Text("B")
   val EMPTY_BYTES = Array.empty[Byte]
@@ -62,15 +60,17 @@ object Z3Table extends GeoMesaTable {
 
   override def writer(sft: SimpleFeatureType): FeatureToMutations = {
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new RuntimeException("Z3 writer requires a valid date"))
+    val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
+    val sfc = Z3SFC(sft.getZ3Interval)
     val getRowKeys: (WritableFeature, Int) => Seq[Array[Byte]] = {
       if (sft.isPoints) {
         if (hasSplits(sft)) {
-          getPointRowKey
+          getPointRowKey(timeToIndex, sfc)
         } else {
-          (wf, i) => getPointRowKey(wf, i).map(_.drop(1))
+          (wf, i) => getPointRowKey(timeToIndex, sfc)(wf, i).map(_.drop(1))
         }
       } else {
-        getGeomRowKeys
+        getGeomRowKeys(timeToIndex, sfc)
       }
     }
     if (sft.getSchemaVersion < 9) {
@@ -108,15 +108,17 @@ object Z3Table extends GeoMesaTable {
 
   override def remover(sft: SimpleFeatureType): FeatureToMutations = {
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new RuntimeException("Z3 writer requires a valid date"))
+    val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
+    val sfc = Z3SFC(sft.getZ3Interval)
     val getRowKeys: (WritableFeature, Int) => Seq[Array[Byte]] = {
       if (sft.isPoints) {
         if (hasSplits(sft)) {
-          getPointRowKey
+          getPointRowKey(timeToIndex, sfc)
         } else {
-          (ftw, i) => getPointRowKey(ftw, i).map(_.drop(1))
+          (ftw, i) => getPointRowKey(timeToIndex, sfc)(ftw, i).map(_.drop(1))
         }
       } else {
-        getGeomRowKeys
+        getGeomRowKeys(timeToIndex, sfc)
       }
     }
     if (sft.getSchemaVersion < 9) {
@@ -163,64 +165,56 @@ object Z3Table extends GeoMesaTable {
   // geoms always have splits, but they weren't added until schema 7
   def hasSplits(sft: SimpleFeatureType) = sft.getSchemaVersion > 6
 
-  // gets week and seconds into that week
-  def getWeekAndSeconds(time: DateTime): (Short, Long) = {
-    val weeks = Weeks.weeksBetween(EPOCH, time)
-    val secondsInWeek = Seconds.secondsBetween(EPOCH, time).getSeconds - weeks.toStandardSeconds.getSeconds
-    (weeks.getWeeks.toShort, secondsInWeek.toLong)
-  }
-
-  // gets week and seconds into that week
-  def getWeekAndSeconds(time: Long): (Short, Long) = getWeekAndSeconds(new DateTime(time, DateTimeZone.UTC))
-
   // split(1 byte), week(2 bytes), z value (8 bytes), id (n bytes)
-  private def getPointRowKey(wf: WritableFeature, dtgIndex: Int): Seq[Array[Byte]] = {
+  private def getPointRowKey(timeToIndex: TimeToBinnedTime, sfc: Z3SFC)
+                            (wf: WritableFeature, dtgIndex: Int): Seq[Array[Byte]] = {
     val split = SPLIT_ARRAYS(wf.idHash % NUM_SPLITS)
-    val (week, z) = {
+    val (timeBin, z) = {
       val dtg = wf.feature.getAttribute(dtgIndex).asInstanceOf[Date]
       val time = if (dtg == null) 0 else dtg.getTime
-      val (w, t) = getWeekAndSeconds(time)
+      val BinnedTime(b, t) = timeToIndex(time)
       val geom = wf.feature.point
-      (w, Z3SFC.index(geom.getX, geom.getY, t).z)
+      (b, sfc.index(geom.getX, geom.getY, t).z)
     }
     val id = wf.feature.getID.getBytes(StandardCharsets.UTF_8)
-    Seq(Bytes.concat(split, Shorts.toByteArray(week), Longs.toByteArray(z), id))
+    Seq(Bytes.concat(split, Shorts.toByteArray(timeBin), Longs.toByteArray(z), id))
   }
 
   // split(1 byte), week (2 bytes), z value (3 bytes), id (n bytes)
-  private def getGeomRowKeys(wf: WritableFeature, dtgIndex: Int): Seq[Array[Byte]] = {
+  private def getGeomRowKeys(timeToIndex: TimeToBinnedTime, sfc: Z3SFC)
+                            (wf: WritableFeature, dtgIndex: Int): Seq[Array[Byte]] = {
     val split = SPLIT_ARRAYS(wf.idHash % NUM_SPLITS)
-    val (week, zs) = {
+    val (timeBin, zs) = {
       val dtg = wf.feature.getAttribute(dtgIndex).asInstanceOf[Date]
       val time = if (dtg == null) 0 else dtg.getTime
-      val (w, t) = getWeekAndSeconds(time)
+      val BinnedTime(b, t) = timeToIndex(time)
       val geom = wf.feature.getDefaultGeometry.asInstanceOf[Geometry]
-      (Shorts.toByteArray(w), zBox(geom, t).toSeq)
+      (Shorts.toByteArray(b), zBox(sfc, geom, t).toSeq)
     }
     val id = wf.feature.getID.getBytes(StandardCharsets.UTF_8)
-    zs.map(z => Bytes.concat(split, week, Longs.toByteArray(z).take(GEOM_Z_NUM_BYTES), id))
+    zs.map(z => Bytes.concat(split, timeBin, Longs.toByteArray(z).take(GEOM_Z_NUM_BYTES), id))
   }
 
   // gets a sequence of (week, z) values that cover the geometry
-  private def zBox(geom: Geometry, t: Long): Set[Long] = geom match {
-    case g: Point => Set(Z3SFC.index(g.getX, g.getY, t).z)
+  private def zBox(sfc: Z3SFC, geom: Geometry, t: Long): Set[Long] = geom match {
+    case g: Point => Set(sfc.index(g.getX, g.getY, t).z)
     case g: LineString =>
       // we flatMap bounds for each line segment so we cover a smaller area
       (0 until g.getNumPoints).map(g.getPointN).sliding(2).flatMap { case Seq(one, two) =>
         val (xmin, xmax) = minMax(one.getX, two.getX)
         val (ymin, ymax) = minMax(one.getY, two.getY)
-        zBox(xmin, ymin, xmax, ymax, t)
+        zBox(sfc, xmin, ymin, xmax, ymax, t)
       }.toSet
-    case g: GeometryCollection => (0 until g.getNumGeometries).toSet.map(g.getGeometryN).flatMap(zBox(_, t))
+    case g: GeometryCollection => (0 until g.getNumGeometries).toSet.map(g.getGeometryN).flatMap(zBox(sfc, _, t))
     case g: Geometry =>
       val env = g.getEnvelopeInternal
-      zBox(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY, t)
+      zBox(sfc, env.getMinX, env.getMinY, env.getMaxX, env.getMaxY, t)
   }
 
   // gets a sequence of (week, z) values that cover the bounding box
-  private def zBox(xmin: Double, ymin: Double, xmax: Double, ymax: Double, t: Long): Set[Long] = {
-    val zmin = Z3SFC.index(xmin, ymin, t).z
-    val zmax = Z3SFC.index(xmax, ymax, t).z
+  private def zBox(sfc: Z3SFC, xmin: Double, ymin: Double, xmax: Double, ymax: Double, t: Long): Set[Long] = {
+    val zmin = sfc.index(xmin, ymin, t).z
+    val zmax = sfc.index(xmax, ymax, t).z
     getZPrefixes(zmin, zmax)
   }
 

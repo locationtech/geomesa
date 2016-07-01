@@ -21,7 +21,7 @@ import org.geotools.data.store._
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.feature.{AttributeTypeBuilder, NameImpl}
 import org.joda.time.{DateTime, Seconds, Weeks}
-import org.locationtech.geomesa.curve.Z3SFC
+import org.locationtech.geomesa.curve.{TimePeriod, Z3SFC}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.sfcurve.zorder.ZCurve2D
@@ -153,7 +153,7 @@ object CassandraPrimaryKey {
     Seconds.secondsBetween(EPOCH, dtg).getSeconds - epochWeeks(dtg).getWeeks*ONE_WEEK_IN_SECONDS
 
   val SFC2D = new ZCurve2D(math.pow(2,5).toInt)
-  val SFC3D = Z3SFC
+  val SFC3D = Z3SFC(TimePeriod.Week)
 }
 
 

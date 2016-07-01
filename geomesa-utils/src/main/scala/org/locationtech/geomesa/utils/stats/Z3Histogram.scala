@@ -12,8 +12,8 @@ import java.util.Date
 
 import com.vividsolutions.jts.geom.{Coordinate, Geometry, Point}
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.joda.time.{DateTime, DateTimeZone, Seconds, Weeks}
-import org.locationtech.geomesa.curve.Z3SFC
+import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
+import org.locationtech.geomesa.curve.{BinnedTime, TimePeriod, Z3SFC}
 import org.locationtech.geomesa.utils.stats.MinMax.MinMaxGeometry
 import org.locationtech.sfcurve.zorder.Z3
 import org.opengis.feature.simple.SimpleFeature
@@ -26,54 +26,66 @@ import org.opengis.feature.simple.SimpleFeature
   *
   * @param geomIndex geometry attribute index in the sft
   * @param dtgIndex date attribute index in the sft
-  * @param length number of bins the histogram has, per week
+  * @param period time period to use for z index
+  * @param length number of bins the histogram has, per period
  */
-class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val length: Int) extends Stat {
+class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val period: TimePeriod, val length: Int) extends Stat {
 
   import Z3Histogram._
 
   override type S = Z3Histogram
 
+  private val sfc = Z3SFC(period)
+  private val timeToBin = BinnedTime.timeToBinnedTime(period)
+  private val binToDate = BinnedTime.binnedTimeToDate(period)
+  private val minZ = sfc.index(minGeom.getX, minGeom.getY, sfc.time.min.toLong).z
+  private val maxZ = sfc.index(maxGeom.getX, maxGeom.getY, sfc.time.max.toLong).z
+
+  private lazy val jsonFormat = period match {
+    case TimePeriod.Day   => s"$period-%05d"
+    case TimePeriod.Week  => s"$period-%04d"
+    case TimePeriod.Month => s"$period-%03d"
+    case TimePeriod.Year  => s"$period-%02d"
+  }
+
   private [stats] val binMap = scala.collection.mutable.Map.empty[Short, BinnedLongArray]
   private [stats] def newBins = new BinnedLongArray(length, (minZ, maxZ))
 
-  def weeks: Seq[Short] = binMap.keys.toSeq.sorted
-  def count(week: Short, i: Int): Long = binMap(week).counts(i)
+  def timeBins: Seq[Short] = binMap.keys.toSeq.sorted
+  def count(timeBin: Short, i: Int): Long = binMap(timeBin).counts(i)
 
-  def directIndex(week: Short, value: Long): Int = binMap.get(week).map(_.indexOf(value)).getOrElse(-1)
+  def directIndex(timeBin: Short, value: Long): Int = binMap.get(timeBin).map(_.indexOf(value)).getOrElse(-1)
 
   def indexOf(value: (Geometry, Date)): (Short, Int) = {
-    val (week, z) = toKey(value._1, value._2)
-    (week, directIndex(week, z))
+    val (timeBin, z) = toKey(value._1, value._2)
+    (timeBin, directIndex(timeBin, z))
   }
 
-  def medianValue(week: Short, i: Int): (Geometry, Date) = fromKey(week, binMap(week).medianValue(i))
+  def medianValue(timeBin: Short, i: Int): (Geometry, Date) = fromKey(timeBin, binMap(timeBin).medianValue(i))
 
   private def toKey(geom: Geometry, dtg: Date): (Short, Long) = {
-    val time = new DateTime(dtg, DateTimeZone.UTC)
-    val week = Weeks.weeksBetween(Z3Frequency.Epoch, time).getWeeks
-    val secondsInWeek = Seconds.secondsBetween(Z3Frequency.Epoch, time.minusWeeks(week)).getSeconds
+    val BinnedTime(bin, offset) = timeToBin(dtg.getTime)
     val centroid = geom.getCentroid
-    val z = Z3SFC.index(centroid.getX, centroid.getY, secondsInWeek).z
-    (week.toShort, z)
+    val z = sfc.index(centroid.getX, centroid.getY, offset).z
+    (bin, z)
   }
 
-  private def fromKey(week: Short, z: Long): (Geometry, Date) = {
-    val (x, y, t) = Z3SFC.invert(new Z3(z))
-    val dtg = Z3Frequency.Epoch.plusWeeks(week).plusSeconds(t.toInt).toDate
+  private def fromKey(timeBin: Short, z: Long): (Geometry, Date) = {
+    val (x, y, t) = sfc.invert(new Z3(z))
+    val dtg = binToDate(BinnedTime(timeBin, t)).toDate
     val geom = Z3Histogram.gf.createPoint(new Coordinate(x, y))
     (geom, dtg)
   }
 
   /**
-    * Split the stat into a separate stat per week of z data. Allows for separate handling of the reduced
+    * Split the stat into a separate stat per time bin of z data. Allows for separate handling of the reduced
     * data set.
     *
     * @return
     */
-  def splitByWeek: Seq[(Short, Z3Histogram)] = {
+  def splitByTime: Seq[(Short, Z3Histogram)] = {
     binMap.toSeq.map { case (w, bins) =>
-      val hist = new Z3Histogram(geomIndex, dtgIndex, length)
+      val hist = new Z3Histogram(geomIndex, dtgIndex, period, length)
       hist.binMap.put(w, bins)
       (w, hist)
     }
@@ -83,8 +95,8 @@ class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val length: Int) extend
     val geom = sf.getAttribute(geomIndex).asInstanceOf[Geometry]
     val dtg  = sf.getAttribute(dtgIndex).asInstanceOf[Date]
     if (geom != null && dtg != null) {
-      val (week, z3) = toKey(geom, dtg)
-      binMap.getOrElseUpdate(week, newBins).add(z3, 1L)
+      val (timeBin, z3) = toKey(geom, dtg)
+      binMap.getOrElseUpdate(timeBin, newBins).add(z3, 1L)
     }
   }
 
@@ -92,8 +104,8 @@ class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val length: Int) extend
     val geom = sf.getAttribute(geomIndex).asInstanceOf[Geometry]
     val dtg  = sf.getAttribute(dtgIndex).asInstanceOf[Date]
     if (geom != null && dtg != null) {
-      val (week, z3) = toKey(geom, dtg)
-      binMap.get(week).foreach(_.add(z3, -1L))
+      val (timeBin, z3) = toKey(geom, dtg)
+      binMap.get(timeBin).foreach(_.add(z3, -1L))
     }
   }
 
@@ -101,7 +113,7 @@ class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val length: Int) extend
     * Creates a new histogram by combining another histogram with this one
     */
   override def +(other: Z3Histogram): Z3Histogram = {
-    val plus = new Z3Histogram(geomIndex, dtgIndex, length)
+    val plus = new Z3Histogram(geomIndex, dtgIndex, period, length)
     plus += this
     plus += other
     plus
@@ -128,10 +140,10 @@ class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val length: Int) extend
   }
 
   override def toJson: String = {
-    val weeks = binMap.toSeq.sortBy(_._1).map {
-      case (w, bins) => f""""week-$w%03d" : { "bins" : [ ${bins.counts.mkString(", ")} ] }"""
+    val timeBins = binMap.toSeq.sortBy(_._1).map { case (p, bins) =>
+      s""""${String.format(jsonFormat, Short.box(p))}" : { "bins" : [ ${bins.counts.mkString(", ")} ] }"""
     }
-    weeks.mkString("{ ", ", ", " }")
+    timeBins.mkString("{ ", ", ", " }")
   }
 
   override def isEmpty: Boolean = binMap.values.forall(_.counts.forall(_ == 0))
@@ -140,8 +152,8 @@ class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val length: Int) extend
 
   override def isEquivalent(other: Stat): Boolean = other match {
     case that: Z3Histogram =>
-      geomIndex == that.geomIndex && dtgIndex == that.dtgIndex && length == that.length &&
-          binMap.keySet == that.binMap.keySet &&
+      geomIndex == that.geomIndex && dtgIndex == that.dtgIndex && period == that.period &&
+          length == that.length && binMap.keySet == that.binMap.keySet &&
           binMap.forall { case (w, bins) => java.util.Arrays.equals(bins.counts, that.binMap(w).counts) }
     case _ => false
   }
@@ -153,25 +165,4 @@ object Z3Histogram {
 
   val minGeom = MinMaxGeometry.min.asInstanceOf[Point]
   val maxGeom = MinMaxGeometry.max.asInstanceOf[Point]
-  val minDate = Z3SFC.time.min.toLong
-  val maxDate = Z3SFC.time.max.toLong
-  val minZ = Z3SFC.index(minGeom.getX, minGeom.getY, minDate).z
-  val maxZ = Z3SFC.index(maxGeom.getX, maxGeom.getY, maxDate).z
-
-  /**
-    * Combines a sequence of split histograms. This will not modify any of the inputs.
-    *
-    * @param histograms histograms to combine
-    * @return
-    */
-  def combine(histograms: Seq[Z3Histogram]): Option[Z3Histogram] = {
-    if (histograms.length < 2) {
-      histograms.headOption
-    } else {
-      // create a new stat so that we don't modify the existing ones
-      val summed = histograms.head + histograms.tail.head
-      histograms.drop(2).foreach(summed += _)
-      Some(summed)
-    }
-  }
 }

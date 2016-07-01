@@ -19,7 +19,6 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data.tables.Z3Table
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyDensityIterator.DensityResult
 import org.locationtech.geomesa.curve.Z3SFC
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.sfcurve.zorder.Z3
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -31,10 +30,13 @@ class Z3DensityIterator extends KryoLazyDensityIterator {
 
   var normalizeWeight: (Double) => Double = null
   val zBytes = Array.fill[Byte](8)(0)
+  var sfc: Z3SFC = null
 
   override def init(src: SortedKeyValueIterator[Key, Value],
                     jOptions: jMap[String, String],
                     env: IteratorEnvironment): Unit = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
     super.init(src, jOptions, env)
     if (sft.isPoints) {
       normalizeWeight = (weight) => weight
@@ -51,6 +53,7 @@ class Z3DensityIterator extends KryoLazyDensityIterator {
         }
       }
     }
+    sfc = Z3SFC(sft.getZ3Interval)
   }
 
   /**
@@ -66,7 +69,7 @@ class Z3DensityIterator extends KryoLazyDensityIterator {
         zBytes(i) = row.byteAt(zOffset + i)
         i += 1
       }
-      val (x, y, _) = Z3SFC.invert(Z3(Longs.fromByteArray(zBytes)))
+      val (x, y, _) = sfc.invert(Z3(Longs.fromByteArray(zBytes)))
       val nWeight = normalizeWeight(weight)
       writePointToResult(x, y, nWeight, result)
   }

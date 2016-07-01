@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.util.Date
+import java.util.{Date, Locale}
 
 import com.typesafe.config.Config
 import com.vividsolutions.jts.geom._
@@ -19,6 +19,8 @@ import org.geotools.geometry.DirectPosition2D
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
 import org.joda.time.DateTime
 import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
+import org.locationtech.geomesa.curve.TimePeriod
+import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.index.VisibilityLevel.{apply => _, _}
 import org.locationtech.geomesa.utils.stats.Cardinality._
@@ -203,9 +205,9 @@ object RichSimpleFeatureType {
   val USER_DATA_PREFIX    = "geomesa.user-data.prefix"
   val KEYWORDS_KEY        = "geomesa.keywords"
   val VIS_LEVEL_KEY       = "geomesa.visibility.level"
+  val Z3_INTERVAL_KEY     = "geomesa.z3.interval"
 
   val KEYWORDS_DELIMITER = "\u0000"
-
 
   // in general we store everything as strings so that it's easy to pass to accumulo iterators
   implicit class RichSimpleFeatureType(val sft: SimpleFeatureType) extends AnyVal {
@@ -251,6 +253,12 @@ object RichSimpleFeatureType {
       case Some(level) => VisibilityLevel.withName(level.toLowerCase)
     }
     def setVisibilityLevel(vis: VisibilityLevel): Unit = sft.getUserData.put(VIS_LEVEL_KEY, vis.toString)
+
+    def getZ3Interval: TimePeriod = userData[String](Z3_INTERVAL_KEY) match {
+      case None    => TimePeriod.Week
+      case Some(i) => TimePeriod.withName(i.toLowerCase)
+    }
+    def setZ3Interval(i: TimePeriod): Unit = sft.getUserData.put(Z3_INTERVAL_KEY, i.toString)
 
     //  If no user data is specified when creating a new SFT, we should default to 'true'.
     def isTableSharing: Boolean = userData[String](TABLE_SHARING_KEY).forall(_.toBoolean)
