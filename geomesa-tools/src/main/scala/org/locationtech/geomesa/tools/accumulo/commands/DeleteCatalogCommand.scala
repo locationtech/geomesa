@@ -26,6 +26,7 @@ class DeleteCatalogCommand (parent: JCommander) extends CommandWithCatalog(paren
     } else {
       logger.info(s"Cancelled deletion.")
     }
+    ds.dispose()
   }
 }
 

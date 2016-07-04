@@ -8,13 +8,14 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.apache.accumulo.core.client.Connector
+import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
+import org.joda.time.Interval
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
+import org.locationtech.geomesa.accumulo.data.stats.usage._
 import org.locationtech.geomesa.accumulo.index.{QueryHints, QueryPlanner}
-import org.locationtech.geomesa.accumulo.stats.{ParamsAuditProvider, QueryStat, Stat, StatWriter}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -38,10 +39,20 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
 
   val filter = ECQL.toFilter("bbox(geom, -10, -10, 10, 10) and dtg during 2010-05-07T00:00:00.000Z/2010-05-08T00:00:00.000Z")
 
-  def dataStoreWithStats(statArray: ArrayBuffer[Stat]) =
+  def dataStoreWithStats(statArray: ArrayBuffer[UsageStat]) =
     new AccumuloDataStore(ds.connector, ds.catalogTable, ds.authProvider,
-      ds.auditProvider, ds.defaultVisibilities, ds.config) with StatWriter {
-    override def writeStat(stat: Stat): Unit = statArray.append(stat)
+      ds.auditProvider, ds.defaultVisibilities, ds.config.copy(collectUsageStats = true)) {
+    override val usageStats = new MockUsageStats(statArray)
+  }
+
+  class MockUsageStats(statArray: ArrayBuffer[UsageStat]) extends GeoMesaUsageStats {
+    override def writeUsageStat[T <: UsageStat](stat: T)(implicit transform: UsageStatTransform[T]): Unit =
+      statArray.append(stat)
+    override def getUsageStats[T <: UsageStat](typeName: String,
+                                               dates: Interval,
+                                               auths: Authorizations)
+                                              (implicit transform: UsageStatTransform[T]): Iterator[T] = ???
+    override def close(): Unit = ???
   }
 
   "AccumuloFeatureReader" should {
@@ -59,16 +70,11 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
     }
 
     "be able to collect stats" in {
-      val stats = ArrayBuffer.empty[Stat]
+      val stats = ArrayBuffer.empty[UsageStat]
       val query = new Query(sftName, filter)
 
       val qp = ds.getQueryPlanner(sftName)
-      val sw = new StatWriter {
-        override def getStatTable(stat: Stat): String = ???
-        override def connector: Connector = ds.connector
-        override def writeStat(stat: Stat): Unit = stats.append(stat)
-      }
-
+      val sw = new MockUsageStats(stats)
       val reader = AccumuloFeatureReader(query, qp, None, Some(sw, new ParamsAuditProvider))
 
       var count = 0
@@ -82,17 +88,13 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
     }
 
     "be able to count bin results in stats" in {
-      val stats = ArrayBuffer.empty[Stat]
+      val stats = ArrayBuffer.empty[UsageStat]
       val query = new Query(sftName, filter)
       query.getHints.put(QueryHints.BIN_TRACK_KEY, "name")
       query.getHints.put(QueryHints.BIN_BATCH_SIZE_KEY, 10)
 
       val qp = ds.getQueryPlanner(sftName)
-      val sw = new StatWriter {
-        override def getStatTable(stat: Stat): String = ???
-        override def connector: Connector = ds.connector
-        override def writeStat(stat: Stat): Unit = stats.append(stat)
-      }
+      val sw = new MockUsageStats(stats)
 
       val reader = AccumuloFeatureReader(query, qp, None, Some(sw, new ParamsAuditProvider))
 
@@ -107,7 +109,7 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
     }
 
     "be able to count bin results in stats through geoserver" in {
-      val stats = ArrayBuffer.empty[Stat]
+      val stats = ArrayBuffer.empty[UsageStat]
       val query = new Query(sftName, filter)
 
       val collection = dataStoreWithStats(stats).getFeatureSource(sftName).getFeatures(query)
@@ -178,16 +180,12 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
     }
 
     "be able to limit features and collect stats" in {
-      val stats = ArrayBuffer.empty[Stat]
+      val stats = ArrayBuffer.empty[UsageStat]
       val query = new Query(sftName, filter)
       query.setMaxFeatures(10)
 
       val qp = ds.getQueryPlanner(sftName)
-      val sw = new StatWriter {
-        override def getStatTable(stat: Stat): String = ???
-        override def connector: Connector = ds.connector
-        override def writeStat(stat: Stat): Unit = stats.append(stat)
-      }
+      val sw = new MockUsageStats(stats)
 
       val reader = AccumuloFeatureReader(query, qp, None, Some(sw, new ParamsAuditProvider))
 
@@ -202,18 +200,14 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
     }
 
     "be able to limit features in bin results and collect stats" in {
-      val stats = ArrayBuffer.empty[Stat]
+      val stats = ArrayBuffer.empty[UsageStat]
       val query = new Query(sftName, filter)
       query.getHints.put(QueryHints.BIN_TRACK_KEY, "name")
       query.getHints.put(QueryHints.BIN_BATCH_SIZE_KEY, 10)
       query.setMaxFeatures(10)
 
       val qp = ds.getQueryPlanner(sftName)
-      val sw = new StatWriter {
-        override def getStatTable(stat: Stat): String = ???
-        override def connector: Connector = ds.connector
-        override def writeStat(stat: Stat): Unit = stats.append(stat)
-      }
+      val sw = new MockUsageStats(stats)
 
       val reader = AccumuloFeatureReader(query, qp, None, Some(sw, new ParamsAuditProvider))
 
@@ -228,7 +222,7 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
     }
 
     "be able to limit  features in bin results and collect stats through geoserver" in {
-      val stats = ArrayBuffer.empty[Stat]
+      val stats = ArrayBuffer.empty[UsageStat]
       val query = new Query(sftName, filter)
       query.setMaxFeatures(10)
 

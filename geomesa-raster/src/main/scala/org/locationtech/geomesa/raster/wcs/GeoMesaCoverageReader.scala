@@ -84,4 +84,9 @@ class GeoMesaCoverageReader(val url: String, hints: Hints) extends AbstractGridC
   }
 
   def getGridRange: GridEnvelope2D = ars.getGridRange
+
+  override def dispose(): Unit = {
+    ars.close()
+    super.dispose()
+  }
 }

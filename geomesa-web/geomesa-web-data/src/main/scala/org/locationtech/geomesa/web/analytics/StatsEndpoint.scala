@@ -13,7 +13,7 @@ import org.joda.time.Interval
 import org.joda.time.format.ISODateTimeFormat
 import org.json4s.{DefaultFormats, Formats}
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.stats.{QueryStat, QueryStatReader}
+import org.locationtech.geomesa.accumulo.data.stats.usage.{QueryStat, QueryStatTransform}
 import org.locationtech.geomesa.utils.cache.FilePersistence
 import org.locationtech.geomesa.web.core.GeoMesaDataStoreServlet
 import org.scalatra.BadRequest
@@ -26,13 +26,12 @@ class StatsEndpoint(val persistence: FilePersistence) extends GeoMesaDataStoreSe
 
   override def root: String = "stats"
 
-  override def defaultFormat: Symbol = 'json
   override protected implicit def jsonFormats: Formats = DefaultFormats
 
   private val dtFormat = ISODateTimeFormat.dateTime().withZoneUTC()
 
   before() {
-    contentType = formats(format)
+    contentType = formats("json")
   }
 
   /**
@@ -62,19 +61,19 @@ class StatsEndpoint(val persistence: FilePersistence) extends GeoMesaDataStoreSe
         }
         BadRequest(reason = reason.toString())
       } else {
-        val getTable = (typeName: String) => {
-          ds.getStatTable(new QueryStat(typeName, 0L, "", "", "", 0L, 0L, 0))
-        }
-        val reader = new QueryStatReader(ds.connector, getTable)
+        val reader = ds.usageStats
         val interval = new Interval(dates(0), dates(1))
-        // json response doesn't seem to handle iterators directly, have to convert to iterable
-        val iter = reader.query(sft, interval, ds.authProvider.getAuthorizations).toIterable
+        val auths = ds.authProvider.getAuthorizations
+        // note: json response doesn't seem to handle iterators directly, have to convert to iterable
+        val iter = reader.getUsageStats[QueryStat](sft, interval, auths)(QueryStatTransform)
         // we do the user filtering here, instead of in the tservers - revisit if performance becomes an issue
         // 'user' appears to be reserved by scalatra
-        params.get("who") match {
-          case None => iter
-          case Some(user) => iter.filter(_.user == user)
+        val result = params.get("who") match {
+          case None => iter.toIterable
+          case Some(user) => iter.filter(_.user == user).toIterable
         }
+        ds.dispose()
+        result
       }
     } catch {
       case e: Exception => handleError(s"Error reading queries:", e)

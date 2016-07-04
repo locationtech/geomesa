@@ -20,13 +20,12 @@ import org.geotools.factory.Hints
 import org.geotools.feature.{FeatureTypes, NameImpl}
 import org.joda.time.DateTimeUtils
 import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore._
 import org.locationtech.geomesa.accumulo.data.GeoMesaMetadata._
+import org.locationtech.geomesa.accumulo.data.stats.usage.{GeoMesaUsageStats, GeoMesaUsageStatsImpl, HasGeoMesaUsageStats}
 import org.locationtech.geomesa.accumulo.data.stats.{GeoMesaMetadataStats, GeoMesaStats, HasGeoMesaStats, StatsRunner}
 import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.stats.{QueryStat, Stat, StatWriter}
 import org.locationtech.geomesa.accumulo.util.{DistributedLocking, GeoMesaBatchWriterConfig, Releasable}
 import org.locationtech.geomesa.accumulo.{AccumuloVersion, GeomesaSystemProperties}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
@@ -62,7 +61,7 @@ class AccumuloDataStore(val connector: Connector,
                         val defaultVisibilities: String,
                         val config: AccumuloDataStoreConfig)
     extends DataStore with AccumuloConnectorCreator with DistributedLocking
-      with HasGeoMesaMetadata[String] with HasGeoMesaStats with LazyLogging {
+      with HasGeoMesaMetadata[String] with HasGeoMesaStats with HasGeoMesaUsageStats with LazyLogging {
 
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
 
@@ -76,10 +75,15 @@ class AccumuloDataStore(val connector: Connector,
 
   private val tableOps = connector.tableOperations()
   private val statsTable = GeoMesaTable.concatenateNameParts(catalogTable, "stats")
+  private val usageStatsTable = GeoMesaTable.concatenateNameParts(catalogTable, "queries")
 
   override val metadata: GeoMesaMetadata[String] =
     new AccumuloBackedMetadata(connector, catalogTable, MetadataStringSerializer)
+
   override val stats: GeoMesaStats = new GeoMesaMetadataStats(this, statsTable, config.generateStats)
+  override val usageStats: GeoMesaUsageStats =
+    new GeoMesaUsageStatsImpl(connector, usageStatsTable, config.collectUsageStats)
+
 
   // methods from org.geotools.data.DataStore
 
@@ -330,7 +334,7 @@ class AccumuloDataStore(val connector: Connector,
    */
   override def getFeatureReader(query: Query, transaction: Transaction): AccumuloFeatureReader = {
     val qp = getQueryPlanner(query.getTypeName)
-    val stats = Some(this).collect { case w: StatWriter => w }.map((_, auditProvider))
+    val stats = if (config.collectUsageStats) Some((usageStats, auditProvider)) else None
     AccumuloFeatureReader(query, qp, queryTimeoutMillis, stats)
   }
 
@@ -407,7 +411,10 @@ class AccumuloDataStore(val connector: Connector,
    *
    * @see org.geotools.data.DataAccess#dispose()
    */
-  override def dispose(): Unit = {}
+  override def dispose(): Unit = {
+    stats.close()
+    usageStats.close()
+  }
 
   // end methods from org.geotools.data.DataStore
 
@@ -473,24 +480,6 @@ class AccumuloDataStore(val connector: Connector,
   }
 
   // end methods from AccumuloConnectorCreator
-
-  /**
-   * Method from StatWriter - allows us to mixin stat writing
-   *
-   * @see org.locationtech.geomesa.accumulo.stats.StatWriter.getStatTable
-   */
-  def getStatTable(stat: Stat): String = {
-    stat match {
-      case qs: QueryStat =>
-        metadata.read(stat.typeName, QUERIES_TABLE_KEY).getOrElse {
-          // For backwards compatibility with existing tables that do not have queries table metadata
-          val queriesTableValue = formatQueriesTableName(catalogTable)
-          metadata.insert(stat.typeName, QUERIES_TABLE_KEY, queriesTableValue) // side effect
-          queriesTableValue
-        }
-      case _ => throw new NotImplementedError()
-    }
-  }
 
   // other public methods
 
@@ -635,7 +624,6 @@ class AccumuloDataStore(val connector: Connector,
     val z3TableValue      = Z3Table.formatTableName(catalogTable, sft)
     val attrIdxTableValue = AttributeTable.formatTableName(catalogTable, sft)
     val recordTableValue  = RecordTable.formatTableName(catalogTable, sft)
-    val queriesTableValue = formatQueriesTableName(catalogTable)
     val statDateValue     = GeoToolsDateFormat.print(DateTimeUtils.currentTimeMillis())
     val dataStoreVersion  = sft.getSchemaVersion.toString
 
@@ -646,7 +634,6 @@ class AccumuloDataStore(val connector: Connector,
       Z3_TABLE_KEY          -> z3TableValue,
       ATTR_IDX_TABLE_KEY    -> attrIdxTableValue,
       RECORD_TABLE_KEY      -> recordTableValue,
-      QUERIES_TABLE_KEY     -> queriesTableValue,
       STATS_GENERATION_KEY  -> statDateValue,
       VERSION_KEY           -> dataStoreVersion,
       SCHEMA_ID_KEY         -> schemaIdString,
@@ -695,24 +682,12 @@ class AccumuloDataStore(val connector: Connector,
   }
 }
 
-object AccumuloDataStore {
-
-  /**
-   * Format queries table name for Accumulo...table name is stored in metadata for other usage
-   * and provide compatibility moving forward if table names change
-   *
-   * @param catalogTable table
-   * @return formatted name
-   */
-  def formatQueriesTableName(catalogTable: String): String =
-    GeoMesaTable.concatenateNameParts(catalogTable, "queries")
-}
-
 // record scans are single-row ranges - increasing the threads too much actually causes performance to decrease
 case class AccumuloDataStoreConfig(queryTimeout: Option[Long],
                                    queryThreads: Int,
                                    recordThreads: Int,
                                    writeThreads: Int,
                                    generateStats: Boolean,
+                                   collectUsageStats: Boolean,
                                    caching: Boolean,
                                    looseBBox: Boolean)

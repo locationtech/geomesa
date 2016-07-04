@@ -113,6 +113,8 @@ class AttributeIndexJob extends Tool {
       ds.connector.tableOperations().compact(tableName, null, null, true, false)
     }
 
+    ds.dispose()
+
     if (result) 0 else 1
   }
 
@@ -151,6 +153,8 @@ class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
     indexValueEncoder = IndexValueEncoder(sft)
     binEncoder = BinEncoder(sft)
     writer = if (sft.getSchemaVersion < 6) AttributeTableV5.writer(sft) else AttributeTable.writer(sft)
+
+    ds.dispose()
   }
 
   override protected def cleanup(context: Context): Unit = {

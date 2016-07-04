@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.stats
+package org.locationtech.geomesa.accumulo.data.stats.usage
 
 import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
@@ -33,9 +33,10 @@ class LiveStatReaderTest extends Specification {
 
       skipped("Meant for integration")
 
-      val reader = new QueryStatReader(connector, (fName: String) => s"${table}_${fName}_queries")
+      val reader = new UsageStatReader(connector, s"${table}_${feature}_queries")
 
-      val results = reader.query(feature, new Interval(0, System.currentTimeMillis()), new Authorizations())
+      val dates = new Interval(0, System.currentTimeMillis())
+      val results = reader.query[QueryStat](feature, dates, new Authorizations())
 
       results.foreach(println)
 

@@ -46,6 +46,7 @@ class LocalRasterIngest(config: Map[String, Option[String]]) extends RasterInges
 
     files.tasksupport = new ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(parLevel))
     files.foreach(ingestRasterFromFile)
+    rs.close()
   }
 
   def ingestRasterFromFile(file: File) {

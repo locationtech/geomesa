@@ -134,6 +134,8 @@ class StatsHistogramCommand(parent: JCommander) extends CommandWithCatalog(paren
           }
       }
     }
+
+    ds.dispose()
   }
 }
 

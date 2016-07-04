@@ -119,6 +119,7 @@ class AccumuloGeoMesaIndex[T](ds: AccumuloDataStore,
     import scala.collection.JavaConversions._
 
     writers.asMap().values().foreach { _.close() }
+    ds.dispose()
   }
 
   def catalogTable() = ds.catalogTable

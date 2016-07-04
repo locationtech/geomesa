@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.stats
+package org.locationtech.geomesa.accumulo.data.stats.usage
 
 import java.util.Date
 import java.util.Map.Entry
@@ -23,12 +23,12 @@ case class RasterQueryStat(typeName:   String,
                            planningTime:  Long,
                            scanTime:      Long,
                            mosaicTime:    Long,
-                           numResults:    Int) extends Stat
+                           numResults:    Int) extends UsageStat
 
 /**
  * Maps query stats to accumulo
  */
-object RasterQueryStatTransform extends StatTransform[RasterQueryStat] {
+object RasterQueryStatTransform extends UsageStatTransform[RasterQueryStat] {
 
   private val CQ_QUERY = "rasterQuery"
   private val CQ_PLANTIME = "timePlanning_ms"
@@ -39,7 +39,7 @@ object RasterQueryStatTransform extends StatTransform[RasterQueryStat] {
   val reverseEncoder = new LongReverseEncoder()
   val NUMBER_OF_CQ_DATA_TYPES = 6
 
-  override def createMutation(stat: Stat) = {
+  override def createMutation(stat: UsageStat) = {
     new Mutation(s"${stat.typeName}~${reverseEncoder.encode(stat.date)}")
   }
 

@@ -10,8 +10,9 @@ package org.locationtech.geomesa.accumulo.data.stats
 
 import java.util.Date
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
-import java.util.concurrent.{Executors, TimeUnit}
+import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
 
+import com.google.common.util.concurrent.MoreExecutors
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.{Connector, IteratorSetting}
@@ -49,13 +50,22 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
   private val compactionScheduled = new AtomicBoolean(false)
   private val lastCompaction = new AtomicLong(0L)
 
-  executor.scheduleWithFixedDelay(new Runnable() {
-    override def run(): Unit =
+  private val running = new AtomicBoolean(true)
+  private var scheduledCompaction: ScheduledFuture[_] = null
+
+  private val compactor = new Runnable() {
+    override def run(): Unit = {
       if (lastCompaction.get < DateTime.now(DateTimeZone.UTC).minusHours(1).getMillis &&
           compactionScheduled.compareAndSet(true, false) ) {
         compact()
       }
-  }, 1, 1, TimeUnit.HOURS)
+      if (running.get) {
+        synchronized(scheduledCompaction = executor.schedule(this, 1, TimeUnit.HOURS))
+      }
+    }
+  }
+
+  scheduledCompaction = executor.schedule(compactor, 1, TimeUnit.HOURS)
 
   override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
     if (exact) {
@@ -211,6 +221,11 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
     if (generateStats) new MetadataStatUpdater(this, sft, Stat(sft, buildStatsFor(sft))) else NoopStatUpdater
 
   override def clearStats(sft: SimpleFeatureType): Unit = metadata.delete(sft.getTypeName)
+
+  override def close(): Unit = {
+    running.set(false)
+    synchronized(scheduledCompaction.cancel(false))
+  }
 
   /**
     * Write a stat to accumulo. If merge == true, will write the stat but not remove the old stat,
@@ -442,8 +457,8 @@ object GeoMesaMetadataStats {
   private val FrequencyKeyPrefix = "stats-freq"
   private val HistogramKeyPrefix = "stats-hist"
 
-  private [stats] val executor = Executors.newSingleThreadScheduledExecutor()
-  sys.addShutdownHook(executor.shutdown())
+  private [stats] val executor = MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(1))
+  sys.addShutdownHook(executor.shutdownNow())
 
   /**
     * Configures the stat combiner to sum stats dynamically.

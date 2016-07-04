@@ -20,6 +20,7 @@ class ListCommand(parent: JCommander) extends CommandWithCatalog(parent) with La
   override def execute() = {
     logger.info("Running List Features on catalog " + params.catalog)
     ds.getTypeNames.foreach(println)
+    ds.dispose()
   }
 
 }

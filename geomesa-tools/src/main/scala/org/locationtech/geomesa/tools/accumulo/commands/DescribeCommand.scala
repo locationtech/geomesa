@@ -64,6 +64,8 @@ class DescribeCommand(parent: JCommander) extends CommandWithCatalog(parent) wit
         logger.error(s"Error describing feature '${params.featureName}': " + e.getMessage, e)
       case NonFatal(e) =>
         logger.warn(s"Non fatal error encountered describing feature '${params.featureName}': ", e)
+    } finally {
+      ds.dispose()
     }
   }
 

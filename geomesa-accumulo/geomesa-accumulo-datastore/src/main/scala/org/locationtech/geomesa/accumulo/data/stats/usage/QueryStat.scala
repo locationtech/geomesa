@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.stats
+package org.locationtech.geomesa.accumulo.data.stats.usage
 
 import java.util.Map.Entry
 
@@ -27,12 +27,12 @@ case class QueryStat(typeName: String,
                      hints:    String,
                      planTime: Long,
                      scanTime: Long,
-                     hits:     Long) extends Stat
+                     hits:     Long) extends UsageStat
 
 /**
  * Maps query stats to accumulo
  */
-object QueryStatTransform extends StatTransform[QueryStat] {
+object QueryStatTransform extends UsageStatTransform[QueryStat] {
 
   private val CQ_USER = "user"
   private val CQ_QUERY_FILTER = "queryFilter"
@@ -63,7 +63,7 @@ object QueryStatTransform extends StatTransform[QueryStat] {
     }
 
     val ROWID(featureName, dateString) = entries.head.getKey.getRow.toString
-    val date = StatTransform.dateFormat.parseMillis(dateString)
+    val date = UsageStatTransform.dateFormat.parseMillis(dateString)
     val values = collection.mutable.Map.empty[String, Any]
 
     entries.foreach { e =>
@@ -122,15 +122,15 @@ object QueryStatTransform extends StatTransform[QueryStat] {
    */
   private def keyToString(key: Hints.Key): String =
     key match {
-      case TRANSFORMS       => "TRANSFORMS"
-      case TRANSFORM_SCHEMA => "TRANSFORM_SCHEMA"
-      case BIN_TRACK_KEY    => "BIN_TRACK_KEY"
-      case STATS_KEY     => "STATS_STRING_KEY"
-      case RETURN_ENCODED_KEY   => "RETURN_ENCODED"
-      case DENSITY_BBOX_KEY => "DENSITY_BBOX_KEY"
-      case WIDTH_KEY        => "WIDTH_KEY"
-      case HEIGHT_KEY       => "HEIGHT_KEY"
-      case _                => "unknown_hint"
+      case TRANSFORMS         => "TRANSFORMS"
+      case TRANSFORM_SCHEMA   => "TRANSFORM_SCHEMA"
+      case BIN_TRACK_KEY      => "BIN_TRACK_KEY"
+      case STATS_KEY          => "STATS_STRING_KEY"
+      case RETURN_ENCODED_KEY => "RETURN_ENCODED"
+      case DENSITY_BBOX_KEY   => "DENSITY_BBOX_KEY"
+      case WIDTH_KEY          => "WIDTH_KEY"
+      case HEIGHT_KEY         => "HEIGHT_KEY"
+      case _                  => "unknown_hint"
     }
 
   /**

@@ -12,7 +12,7 @@ import java.io._
 import java.util.Date
 
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
-import org.locationtech.geomesa.accumulo.stats.RasterQueryStatTransform
+import org.locationtech.geomesa.accumulo.data.stats.usage.RasterQueryStatTransform
 import org.locationtech.geomesa.raster.data.AccumuloRasterStore
 import org.locationtech.geomesa.tools.accumulo.commands.QueryRasterStatsCommmand.QueryStatsParameters
 import org.locationtech.geomesa.tools.accumulo.{AccumuloConnectionParams, AccumuloProperties, AccumuloRasterTableParam}
@@ -23,8 +23,8 @@ class QueryRasterStatsCommmand(parent: JCommander) extends Command(parent) with 
   override val params = new QueryStatsParameters()
 
   override def execute() = {
-    val queryRecords = createRasterStore
-      .getQueryRecords(params.numRecords * RasterQueryStatTransform.NUMBER_OF_CQ_DATA_TYPES)
+    val store = createRasterStore
+    val queryRecords = store.getQueryRecords(params.numRecords * RasterQueryStatTransform.NUMBER_OF_CQ_DATA_TYPES)
     val fw = getFileWriter
     val out = new BufferedWriter(fw)
     queryRecords.foreach(str => {
@@ -32,6 +32,7 @@ class QueryRasterStatsCommmand(parent: JCommander) extends Command(parent) with 
       out.newLine()
     })
     out.close()
+    store.close()
   }
 
   def createRasterStore: AccumuloRasterStore = {

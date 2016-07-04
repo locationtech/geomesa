@@ -50,6 +50,8 @@ class StatsTopKCommand(parent: JCommander) extends CommandWithCatalog(parent) wi
           }
       }
     }
+
+    ds.dispose()
   }
 }
 

@@ -129,6 +129,8 @@ object GeoMesaSpark extends LazyLogging {
     val auths = Option(AccumuloDataStoreParams.authsParam.lookUp(dsParams).asInstanceOf[String])
     auths.foreach(a => InputConfigurator.setScanAuthorizations(classOf[AccumuloInputFormat], conf, new Authorizations(a.split(","): _*)))
 
+    ds.dispose()
+
     sc.newAPIHadoopRDD(conf, classOf[GeoMesaInputFormat], classOf[Text], classOf[SimpleFeature]).map(U => U._2)
   }
 
@@ -142,7 +144,12 @@ object GeoMesaSpark extends LazyLogging {
    */
   def save(rdd: RDD[SimpleFeature], writeDataStoreParams: Map[String, String], writeTypeName: String): Unit = {
     val ds = DataStoreFinder.getDataStore(writeDataStoreParams).asInstanceOf[AccumuloDataStore]
-    require(ds.getSchema(writeTypeName) != null, "feature type must exist before calling save.  Call .createSchema on the DataStore before calling .save")
+    try {
+      require(ds.getSchema(writeTypeName) != null,
+        "feature type must exist before calling save.  Call .createSchema on the DataStore before calling .save")
+    } finally {
+      ds.dispose()
+    }
 
     rdd.foreachPartition { iter =>
       val ds = DataStoreFinder.getDataStore(writeDataStoreParams).asInstanceOf[AccumuloDataStore]
@@ -156,6 +163,7 @@ object GeoMesaSpark extends LazyLogging {
         }
       } finally {
         featureWriter.close()
+        ds.dispose()
       }
     }
   }

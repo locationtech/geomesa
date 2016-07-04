@@ -66,6 +66,8 @@ class StatsAnalyzeCommand(parent: JCommander) extends CommandWithCatalog(parent)
     logger.info("Stats analyzed:")
     println(strings.mkString("  ", "\n  ", ""))
     logger.info("Use 'stats-histogram', 'stats-top-k' or 'stats-count' commands for more details")
+
+    ds.dispose()
   }
 }
 

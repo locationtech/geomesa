@@ -11,10 +11,10 @@ package org.locationtech.geomesa.accumulo.data
 import java.util.concurrent.atomic.AtomicBoolean
 
 import org.geotools.data.{FeatureReader, Query}
+import org.locationtech.geomesa.accumulo.data.stats.usage.{GeoMesaUsageStats, QueryStat, QueryStatTransform}
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
-import org.locationtech.geomesa.accumulo.stats._
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.security.AuditProvider
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
@@ -45,7 +45,7 @@ abstract class AccumuloFeatureReader(val query: Query, val timeout: Option[Long]
 }
 
 object AccumuloFeatureReader {
-  def apply(query: Query, qp: QueryPlanner, timeout: Option[Long], stats: Option[(StatWriter, AuditProvider)]) = {
+  def apply(query: Query, qp: QueryPlanner, timeout: Option[Long], stats: Option[(GeoMesaUsageStats, AuditProvider)]) = {
     val maxFeatures = if (query.isMaxFeaturesUnlimited) None else Some(query.getMaxFeatures)
 
     (stats, maxFeatures) match {
@@ -76,7 +76,7 @@ class AccumuloFeatureReaderImpl(query: Query, qp: QueryPlanner, timeout: Option[
 class AccumuloFeatureReaderWithStats(query: Query,
                                      qp: QueryPlanner,
                                      timeout: Option[Long],
-                                     sw: StatWriter,
+                                     sw: GeoMesaUsageStats,
                                      auditProvider: AuditProvider,
                                      maxFeatures: Long = 0L)
     extends AccumuloFeatureReader(query, timeout, maxFeatures) with MethodProfiling {
@@ -98,7 +98,7 @@ class AccumuloFeatureReaderWithStats(query: Query,
       timings.time("next") + timings.time("hasNext"),
       count
     )
-    sw.writeStat(stat)
+    sw.writeUsageStat(stat) // note: implementation is asynchronous
   }
 }
 

@@ -55,6 +55,7 @@ class CreateCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
       logger.error(s"A feature named '$featureName' already exists in the data store with " +
         s"catalog table '$catalog'.")
     }
+    ds.dispose()
   }
 }
 

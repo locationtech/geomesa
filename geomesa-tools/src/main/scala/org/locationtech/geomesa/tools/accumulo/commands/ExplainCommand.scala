@@ -28,6 +28,8 @@ class ExplainCommand(parent: JCommander) extends CommandWithCatalog(parent) with
     } catch {
       case e: Exception =>
         logger.error(s"Error: Could not explain the query (${params.cqlFilter}): ${e.getMessage}", e)
+    } finally {
+      ds.dispose()
     }
 
 }
