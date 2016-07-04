@@ -10,7 +10,7 @@ package org.locationtech.geomesa.raster.wcs
 
 import org.geotools.coverage.grid.io.AbstractGridFormat
 import org.geotools.coverage.grid.io.AbstractGridFormat._
-import org.geotools.factory.Hints
+import org.geotools.factory.{GeoTools, Hints}
 import org.geotools.parameter.{DefaultParameterDescriptorGroup, ParameterGroup}
 import org.opengis.coverage.grid.Format
 import org.opengis.parameter.GeneralParameterDescriptor
@@ -41,9 +41,14 @@ class GeoMesaCoverageFormat extends AbstractGridFormat with Format {
     }
   }
 
-  override def accepts(input: AnyRef) = true
+  override def accepts(input: AnyRef) = accepts(input, null)
 
-  override def accepts(source: AnyRef, hints: Hints) = true
+  override def accepts(source: AnyRef, hints: Hints) = {
+    source match {
+      case string: String => string.startsWith("accumulo://")
+      case _ => false
+    }
+  }
 
   override def getWriter(destination: AnyRef) = throw new UnsupportedOperationException("Unsupported")
 
