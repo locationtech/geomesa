@@ -34,6 +34,12 @@
             </properties>
         </profile>
         <profile>
+            <id>singlehtml</id>
+            <properties>
+                <target>singlehtml</target>
+            </properties>
+        </profile>
+        <profile>
             <id>latex</id>
             <properties>
                 <target>latex</target>

@@ -29,10 +29,20 @@
 		</delete>
 	</target>
 	
+	<target name="singlehtml" depends="init,single-html">
+	</target>
+
 	<target name="html" depends="init,all-html">
 	</target>
 
 	<target name="latex" depends="init,all-latex">
+	</target>
+
+	<target name="single-html" depends="init">
+		<antcall target="sphinx">
+			<param name="id" value="." />
+			<param name="build" value="singlehtml" />
+		</antcall>
 	</target>
 
 	<target name="all-html" depends="init">
