@@ -37,11 +37,16 @@ To build HTML versions of the manuals:
 If you do not have Sphinx installed the manual will not be built.
 The outputted files are written to the ``target/html`` directory. 
 
-To build PDF versions:
+To build a PDF version:
 
-    $ mvn clean install -Puser-latex
-    $ cd target/latex/user
+    $ mvn clean install -Pdocs,latex
+    $ cd target/latex
     $ make
+
+There may be some errors during the LaTeX build; just press *Enter*
+when it prompts for input. It should build the whole document. If the
+table of contents doesn't render properly, delete ``GeoMesa.pdf``
+and run ``make`` again.
 
 ## About
 
