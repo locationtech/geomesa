@@ -34,21 +34,9 @@
             </properties>
         </profile>
         <profile>
-            <id>user-latex</id>
+            <id>latex</id>
             <properties>
-                <target>user-latex</target>
-            </properties>
-        </profile>
-        <profile>
-            <id>developer-latex</id>
-            <properties>
-                <target>developer-latex</target>
-            </properties>
-        </profile>
-        <profile>
-            <id>tutorials-latex</id>
-            <properties>
-                <target>tutorials-latex</target>
+                <target>latex</target>
             </properties>
         </profile>
         <profile>
