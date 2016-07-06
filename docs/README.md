@@ -48,6 +48,10 @@ when it prompts for input. It should build the whole document. If the
 table of contents doesn't render properly, delete ``GeoMesa.pdf``
 and run ``make`` again.
 
+To build a single HTML file containing all three manuals:
+
+    $ mvn clean install -Pdocs,singlehtml
+
 ## About
 
 There are currently three main manuals: the User Manual (``user``), the Developer Manual (``developer``),
