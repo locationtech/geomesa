@@ -8,74 +8,205 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.geotools.data.Query
+import java.io.{File, FileInputStream, FileOutputStream}
+
+import com.esotericsoftware.kryo.io.{Input, Output}
+import com.typesafe.scalalogging.LazyLogging
+import org.apache.accumulo.core.client.BatchWriterConfig
+import org.apache.accumulo.core.client.mock.MockInstance
+import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.accumulo.core.data.Mutation
+import org.apache.accumulo.core.security.{Authorizations, ColumnVisibility}
+import org.apache.hadoop.io.Text
 import org.geotools.data.simple.SimpleFeatureSource
+import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.factory.Hints
+import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
-import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
-import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
+import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import scala.collection.JavaConversions._
+
 @RunWith(classOf[JUnitRunner])
-class BackCompatibilityTest extends Specification with TestWithMultipleSfts {
+class BackCompatibilityTest extends Specification with LazyLogging {
+
+  /**
+    * Runs version tests against old data. To add more versions, generate a new data file by running
+    * 'BackCompatibilityWriter' against the git tag, then add another call to 'testVersion'.
+    */
 
   sequential
 
-  val spec = "name:String:index=true:cardinality=high,age:Int,dtg:Date,geom:Point:srid=4326"
-
-  def getTestFeatures(sft: SimpleFeatureType) = (0 until 10).map { i =>
-    val name = s"name$i"
-    val age = java.lang.Integer.valueOf(10 + i)
-    val dtg = s"2014-01-1${i}T00:00:00.000Z"
-    val geom = s"POINT(45 5$i)"
-    ScalaSimpleFeatureFactory.buildFeature(sft, Array(name, age, dtg, geom), s"$i")
-  }
+  lazy val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
 
   val queries = Seq(
-    ("bbox(geom, 40, 54.5, 50, 60)", Seq(5, 6, 7, 8, 9)),
-    ("bbox(geom, 40, 54.5, 50, 60) AND dtg DURING 2014-01-14T00:00:00.000Z/2014-01-17T23:59:59.999Z", Seq(5, 6, 7)),
-    ("name = 'name5' AND bbox(geom, 40, 54.5, 50, 60) AND dtg DURING 2014-01-14T00:00:00.000Z/2014-01-15T23:59:59.999Z", Seq(5)),
-    ("name = 'name5' AND dtg DURING 2014-01-14T00:00:00.000Z/2014-01-15T23:59:59.999Z", Seq(5)),
-    ("name = 'name5' AND bbox(geom, 40, 54.5, 50, 60)", Seq(5)),
-    ("age > '16' AND bbox(geom, 40, 54.5, 50, 60)", Seq(7, 8, 9))
+    ("INCLUDE", Seq(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)),
+    ("bbox(geom, -130, 45, -120, 50)", Seq(5, 6, 7, 8, 9)),
+    ("bbox(geom, -130, 45, -120, 50) AND dtg DURING 2015-01-01T00:00:00.000Z/2015-01-01T07:59:59.999Z", Seq(5, 6, 7)),
+    ("name = 'name5' AND bbox(geom, -130, 45, -120, 50) AND dtg DURING 2015-01-01T00:00:00.000Z/2015-01-01T07:59:59.999Z", Seq(5)),
+    ("name = 'name5' AND dtg DURING 2015-01-01T00:00:00.000Z/2015-01-01T07:59:59.999Z", Seq(5)),
+    ("name = 'name5' AND bbox(geom, -130, 40, -120, 50)", Seq(5)),
+    ("dtg DURING 2015-01-01T00:00:00.000Z/2015-01-01T07:59:59.999Z", Seq(0, 1, 2, 3, 4, 5, 6, 7))
   )
 
   val transforms = Seq(
     Array("geom"),
-    Array("geom", "dtg"),
     Array("geom", "name")
   )
 
   def doQuery(fs: SimpleFeatureSource, query: Query): Seq[Int] =
     fs.getFeatures(query).features.map(_.getID.toInt).toList
 
-  def runVersionTest(version: Int) = {
-    val sft = createNewSchema(spec, schemaVersion = Some(version))
+  def runVersionTest(tables: Seq[TableMutations]) = {
+    import scala.collection.JavaConversions._
 
-    addFeatures(sft, getTestFeatures(sft))
-
-    val fs = ds.getFeatureSource(sft.getTypeName)
-
-    queries.foreach { case (q, results) =>
-      val filter = ECQL.toFilter(q)
-      doQuery(fs, new Query(sft.getTypeName, filter)) must containTheSameElementsAs(results)
-      transforms.foreach { t =>
-        doQuery(fs, new Query(sft.getTypeName, filter, t)) must containTheSameElementsAs(results)
+    // reload the tables
+    tables.foreach { case TableMutations(table, mutations) =>
+      if (connector.tableOperations.exists(table)) {
+        connector.tableOperations.delete(table)
       }
+      connector.tableOperations.create(table)
+      val bw = connector.createBatchWriter(table, new BatchWriterConfig)
+      bw.addMutations(mutations)
+      bw.flush()
+      bw.close()
+    }
+
+    // get the data store
+    val sftName = tables.map(_.table).minBy(_.length)
+    val ds = DataStoreFinder.getDataStore(Map(
+      "connector" -> connector,
+      "caching"   -> false,
+      "tableName" -> sftName
+    ))
+    val fs = ds.getFeatureSource(sftName)
+
+    // test adding features
+    val writer = ds.getFeatureWriterAppend(sftName, Transaction.AUTO_COMMIT)
+    val feature = writer.next()
+    feature.getIdentifier.asInstanceOf[FeatureIdImpl].setID("10")
+    feature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+    feature.setAttribute(0, "name10")
+    feature.setAttribute(1, "2016-01-01T00:00:00.000Z")
+    feature.setAttribute(2, "POINT(-110 45)")
+    writer.write()
+    writer.close()
+
+    // make sure we can read it back
+    SelfClosingIterator(fs.getFeatures(ECQL.toFilter("IN ('10')"))).toList.map(_.getID) must
+        containTheSameElementsAs(Seq("10"))
+
+    // test queries
+    forall(queries) { case (q, results) =>
+      val filter = ECQL.toFilter(q)
+      logger.debug(s"Running query $q")
+      doQuery(fs, new Query(sftName, filter)) must containTheSameElementsAs(results)
+      forall(transforms) { transform =>
+        doQuery(fs, new Query(sftName, filter, transform)) must containTheSameElementsAs(results)
+      }
+    }
+
+    ds.dispose()
+    ok
+  }
+
+  def readVersion(file: File): Seq[TableMutations] = {
+    val input = new Input(new FileInputStream(file))
+    def readBytes: Array[Byte] = {
+      val bytes = Array.ofDim[Byte](input.readInt)
+      input.read(bytes)
+      bytes
+    }
+    val numTables = input.readInt
+    (0 until numTables).map { _ =>
+      val tableName = input.readString
+      val numMutations = input.readInt
+      val mutations = (0 until numMutations).map { _ =>
+        val row = readBytes
+        val cf = readBytes
+        val cq = readBytes
+        val vis = new ColumnVisibility(readBytes)
+        val timestamp = input.readLong
+        val value = readBytes
+        val mutation = new Mutation(row)
+        mutation.put(cf, cq, vis, timestamp, value)
+        mutation
+      }
+      TableMutations(tableName, mutations)
     }
   }
 
+  def testVersion(version: String) = {
+    val file = new File(s"src/test/resources/data/versioned-data-$version.kryo")
+    val data = readVersion(file)
+    logger.info(s"Running back compatible test on version $version")
+    runVersionTest(data)
+  }
+
   "GeoMesa" should {
-    // note: version number 3 was skipped
-    (2 until CURRENT_SCHEMA_VERSION).filter(_ != 3).foreach { version =>
-      s"support back compatibility to version $version" >> {
-        runVersionTest(version)
-        success
+    "support backward compatibility to 1.1.0-rc.7" >> { testVersion("1.1.0-rc.7") }
+    "support backward compatibility to 1.2.0" >> { testVersion("1.2.0") }
+    "support backward compatibility to 1.2.1" >> { testVersion("1.2.1") }
+    "support backward compatibility to 1.2.2" >> { testVersion("1.2.2") }
+    "support backward compatibility to 1.2.3" >> { testVersion("1.2.3") }
+  }
+
+  case class TableMutations(table: String, mutations: Seq[Mutation])
+}
+
+@RunWith(classOf[JUnitRunner])
+class BackCompatibilityWriter extends TestWithDataStore {
+
+  override val spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4326"
+
+  val version = "REPLACEME"
+
+  "AccumuloDataStore" should {
+    "write data" in {
+
+      skipped("integration")
+
+      addFeatures((0 until 10).map { i =>
+        val sf = new ScalaSimpleFeature(i.toString, sft)
+        sf.setAttribute(0, s"name$i")
+        sf.setAttribute(1, s"2015-01-01T0$i:01:00.000Z")
+        sf.setAttribute(2, s"POINT(-12$i 4$i)")
+        sf
+      })
+
+      val dataFile = new File(s"src/test/resources/data/versioned-data-$version.kryo")
+      val fs = new FileOutputStream(dataFile)
+      val output = new Output(fs)
+
+      def writeText(text: Text): Unit = {
+        output.writeInt(text.getLength)
+        output.write(text.getBytes, 0, text.getLength)
       }
+
+      val tables = connector.tableOperations().list().filter(_.startsWith(sftName))
+      output.writeInt(tables.size)
+      tables.foreach { table =>
+        output.writeAscii(table)
+        output.writeInt(connector.createScanner(table, new Authorizations()).size)
+        connector.createScanner(table, new Authorizations()).foreach { entry =>
+          val key = entry.getKey
+          Seq(key.getRow, key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibility).foreach(writeText)
+          output.writeLong(key.getTimestamp)
+          val value = entry.getValue.get
+          output.writeInt(value.length)
+          output.write(value)
+        }
+      }
+
+      output.flush()
+      output.close()
+      ok
     }
   }
 }
