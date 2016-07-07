@@ -3,5 +3,9 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean name="geomesaStatsEndpoint" class="org.locationtech.geomesa.web.stats.GeoMesaStatsEndpoint"/>
+    <bean name="geomesaStatsEndpoint" class="org.locationtech.geomesa.web.stats.GeoMesaStatsEndpoint">
+        <constructor-arg index="0" ref="geomesaSwagger"/>
+        <constructor-arg index="1" value="#{ scalatraBootstrap.rootPath }"/>
+    </bean>
+
 </beans>

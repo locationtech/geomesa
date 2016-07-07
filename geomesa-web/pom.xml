@@ -190,15 +190,20 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>org.scalatra</groupId>
-                <artifactId>scalatra_2.11</artifactId>
-                <version>${scalatra.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j.version}</version>
                 <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.scalatra</groupId>
+                <artifactId>scalatra-swagger_2.11</artifactId>
+                <version>${scalatra.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scalatra</groupId>
+                <artifactId>scalatra_2.11</artifactId>
+                <version>${scalatra.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.scalatra</groupId>
