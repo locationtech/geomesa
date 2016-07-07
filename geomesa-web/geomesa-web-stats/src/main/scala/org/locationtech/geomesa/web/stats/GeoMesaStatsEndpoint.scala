@@ -147,7 +147,7 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
       pathParam[String]("workspace").description("GeoServer workspace."),
       pathParam[String]("layer").description("GeoServer layer."),
       queryParam[Option[String]]("attributes").description("A comma separated list of attribute names to retrieve bounds for. If omitted, all attributes will be used."),
-      queryParam[Option[Integer]]("bins").description("The number of bins the histograms will have. If omitted, all attributes will be used."))
+      queryParam[Option[Integer]]("bins").description("The number of bins the histograms will have. Defaults to 1000."))
     )
 
   get("/:workspace/:layer/histogram", operation(getHistograms)) {
