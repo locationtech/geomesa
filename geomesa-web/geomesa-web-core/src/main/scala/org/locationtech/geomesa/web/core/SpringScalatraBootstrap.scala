@@ -69,9 +69,9 @@ class SpringScalatraBootstrap extends ApplicationContextAware with ServletContex
     val richCtx = new RichServletContext(servletContext)
     val servlets = applicationContext.getBeansOfType(classOf[GeoMesaScalatraServlet])
     for ((name, servlet) <- servlets) {
-        val path = s"/$rootPath/${servlet.root}"
-        logger.info(s"Mounting servlet bean '$name' at path '$path'")
-        richCtx.mount(servlet, s"$path/*")
+      val path = s"/$rootPath/${servlet.root}"
+      logger.info(s"Mounting servlet bean '$name' at path '$path'")
+      richCtx.mount(servlet, s"$path/*")
     }
 
     richCtx.mount(applicationContext.getBean("geomesaResourcesApp").asInstanceOf[ResourcesApp], "/api-docs")
