@@ -52,16 +52,12 @@ object GeoMesaSpark extends LazyLogging {
     val jarOpt = sys.props.get(SYS_PROP_SPARK_LOAD_CP).map(v => s"-D$SYS_PROP_SPARK_LOAD_CP=$v")
     val extraOpts = (typeOpts ++ jarOpt).mkString(" ")
 
-    // This line replaces the need for setting the configs to follow
-    sfts.foreach { GeoMesaSparkKryoRegistrator.putType }
-
     val newOpts = if (conf.contains("spark.executor.extraJavaOptions")) {
       conf.get("spark.executor.extraJavaOptions").concat(" ").concat(extraOpts)
     } else {
       extraOpts
     }
 
-    // Deprecated
     conf.set("spark.executor.extraJavaOptions", newOpts)
     // These configurations can be set in spark-defaults.conf
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
@@ -71,6 +67,10 @@ object GeoMesaSpark extends LazyLogging {
   def typeProp(typeName: String) = s"geomesa.types.$typeName"
 
   def jOpt(typeName: String, spec: String) = s"-D${typeProp(typeName)}=$spec"
+
+  def register(ds: DataStore): Unit = register(ds.getTypeNames.map(ds.getSchema))
+
+  def register(sfts: Seq[SimpleFeatureType]): Unit = sfts.foreach { GeoMesaSparkKryoRegistrator.putType }
 
   def rdd(conf: Configuration,
           sc: SparkContext,
@@ -224,6 +224,12 @@ object GeoMesaSparkKryoRegistrator {
   }
 
   def getType(typeName: String): SimpleFeatureType = {
-    GeoMesaSparkKryoRegistrator.typeCache.get(typeName)
+    val spec = System.getProperty(GeoMesaSpark.typeProp(typeName))
+    if (spec == null) {
+      GeoMesaSparkKryoRegistrator.typeCache.get(typeName)
+    }
+    else {
+      SimpleFeatureTypes.createType(typeName, spec)
+    }
   }
 }
