@@ -25,7 +25,6 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.specs2.mutable.Specification
@@ -46,13 +45,21 @@ class BackCompatibilityTest extends Specification with LazyLogging {
   lazy val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
 
   val queries = Seq(
-    ("INCLUDE", Seq(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)),
+    ("INCLUDE", Seq(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)),
+    ("IN ('0', '5', '7')", Seq(0, 5, 7)),
     ("bbox(geom, -130, 45, -120, 50)", Seq(5, 6, 7, 8, 9)),
     ("bbox(geom, -130, 45, -120, 50) AND dtg DURING 2015-01-01T00:00:00.000Z/2015-01-01T07:59:59.999Z", Seq(5, 6, 7)),
     ("name = 'name5' AND bbox(geom, -130, 45, -120, 50) AND dtg DURING 2015-01-01T00:00:00.000Z/2015-01-01T07:59:59.999Z", Seq(5)),
     ("name = 'name5' AND dtg DURING 2015-01-01T00:00:00.000Z/2015-01-01T07:59:59.999Z", Seq(5)),
     ("name = 'name5' AND bbox(geom, -130, 40, -120, 50)", Seq(5)),
     ("dtg DURING 2015-01-01T00:00:00.000Z/2015-01-01T07:59:59.999Z", Seq(0, 1, 2, 3, 4, 5, 6, 7))
+  )
+
+  val addQueries = Seq(
+    "IN ('10')",
+    "name = 'name10'",
+    "bbox(geom, -111, 44, -109, 46)",
+    "bbox(geom, -111, 44, -109, 46) AND dtg DURING 2016-01-01T00:00:00.000Z/2016-01-01T01:00:00.000Z"
   )
 
   val transforms = Seq(
@@ -93,14 +100,36 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     feature.getIdentifier.asInstanceOf[FeatureIdImpl].setID("10")
     feature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     feature.setAttribute(0, "name10")
-    feature.setAttribute(1, "2016-01-01T00:00:00.000Z")
+    feature.setAttribute(1, "2016-01-01T00:30:00.000Z")
     feature.setAttribute(2, "POINT(-110 45)")
     writer.write()
     writer.close()
 
     // make sure we can read it back
-    SelfClosingIterator(fs.getFeatures(ECQL.toFilter("IN ('10')"))).toList.map(_.getID) must
-        containTheSameElementsAs(Seq("10"))
+    forall(addQueries) { query =>
+      val filter = ECQL.toFilter(query)
+      doQuery(fs, new Query(sftName, filter)) mustEqual Seq(10)
+      forall(transforms) { transform =>
+        doQuery(fs, new Query(sftName, filter, transform)) mustEqual Seq(10)
+      }
+    }
+
+    // delete it
+    val remover = ds.getFeatureWriter(sftName, ECQL.toFilter("IN ('10')"), Transaction.AUTO_COMMIT)
+    remover.hasNext must beTrue
+    remover.next
+    remover.remove()
+    remover.hasNext must beFalse
+    remover.close()
+
+    // make sure that it no longer comes back
+    forall(addQueries) { query =>
+      val filter = ECQL.toFilter(query)
+      doQuery(fs, new Query(sftName, filter)) must beEmpty
+      forall(transforms) { transform =>
+        doQuery(fs, new Query(sftName, filter, transform)) must beEmpty
+      }
+    }
 
     // test queries
     forall(queries) { case (q, results) =>
