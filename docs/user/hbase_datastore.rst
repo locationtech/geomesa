@@ -1,4 +1,4 @@
-HBase/BigTable Data Stores
+HBase/Bigtable Data Stores
 ==========================
 
 HBase
@@ -23,22 +23,23 @@ An instance of an HBase data store can be obtained through the normal GeoTools d
 
 The data store takes two parameters:
 
-* **bigtable.table.name** - the name of the HBase table that stores feature type data
-* **namespace** - the namespace URI for the data store (optional)
+* ``bigtable.table.name`` - the name of the HBase table that stores feature type data
+* ``namespace`` - the namespace URI for the data store (optional)
 
-More information on using GeoTools can be found in the GeoTools [user guide](http://docs.geotools.org/stable/userguide/).
+More information on using GeoTools can be found in the GeoTools `user guide
+<http://docs.geotools.org/stable/userguide/>`__.
 
 Using the HBase Data Store in GeoServer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 See :doc:`./geoserver`.
 
-BigTable
+Bigtable
 --------
 
-Experimental support for GeoMesa implemented on Google BigTable.
+Experimental support for GeoMesa implemented on `Google Cloud Bigtable <https://cloud.google.com/bigtable>`__.
 
-The code for BigTable support is found in two modules in the source distribution:
+The code for Bigtable support is found in two modules in the source distribution:
 
-* ``geomesa-hbase/geomesa-bigtable-datastore`` - contains a stub POM for building a Google BigTable-backed GeoTools data store
-* ``geomesa-gs-plugin/geomesa-bigtable-gs-plugin`` - contains a stub POM for building a bundle containing all of the JARs to use the Google BigTable data store in GeoServer
+* ``geomesa-hbase/geomesa-bigtable-datastore`` - contains a stub POM for building a Google Cloud Bigtable-backed GeoTools data store
+* ``geomesa-gs-plugin/geomesa-bigtable-gs-plugin`` - contains a stub POM for building a bundle containing all of the JARs to use the Google Cloud Bigtable data store in GeoServer
