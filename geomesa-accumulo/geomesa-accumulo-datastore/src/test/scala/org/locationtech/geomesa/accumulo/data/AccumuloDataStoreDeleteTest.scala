@@ -13,9 +13,12 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data._
 import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.data.tables._
+import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter
@@ -31,8 +34,9 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
 
   lazy val tableOps = ds.connector.tableOperations()
 
-  def createFeature(tableSharing: Boolean) = {
-    val sft = createNewSchema("name:String:index=true,*geom:Point:srid=4326,dtg:Date", Some("dtg"), tableSharing)
+  def createFeature(tableSharing: Boolean,
+                    schema: String = "name:String:index=true,*geom:Point:srid=4326,dtg:Date") = {
+    val sft = createNewSchema(schema, Some("dtg"), tableSharing)
 
     // create a feature
     val builder = new SimpleFeatureBuilder(sft)
@@ -196,6 +200,57 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       z2TableOpt must beSome
       val z2Table = z2TableOpt.get
       ds.connector.createScanner(z2Table, new Authorizations()).toSeq must haveSize(101)
+    }
+
+    "delete non-point geometries" >> {
+      val spec = "name:String:index=true,*geom:Geometry:srid=4326,dtg:Date;geomesa.mixed.geometries='true'"
+      val sft1 = createFeature(tableSharing = true, spec)
+      val sft2 = createFeature(tableSharing = false, spec)
+
+      val feature1 = new ScalaSimpleFeature("fid", sft1)
+      val feature2 = new ScalaSimpleFeature("fid", sft2)
+
+      feature1.setAttribute(0, "name")
+      feature1.setAttribute(1, "POLYGON((41 28, 42 28, 42 29, 41 29, 41 28))")
+      feature1.setAttribute(2, "2015-01-01T00:30:00.000Z")
+      feature2.setAttribute(0, "name")
+      feature2.setAttribute(1, "POLYGON((41 28, 42 28, 42 29, 41 29, 41 28))")
+      feature2.setAttribute(2, "2015-01-01T00:30:00.000Z")
+
+      addFeatures(sft1, Seq(feature1))
+      addFeatures(sft2, Seq(feature2))
+
+      val typeNames = Seq(sft1.getTypeName, sft2.getTypeName)
+
+      val filters = Seq("IN ('fid')", "name = 'name'", "bbox(geom, 40, 27, 43, 30)",
+        "bbox(geom, 40, 27, 43, 30) AND dtg DURING 2015-01-01T00:00:00.000Z/2015-01-01T01:00:00.000Z")
+
+      // verify that features come back
+      forall(filters) { f =>
+        val filter = ECQL.toFilter(f)
+        forall(typeNames) { typeName =>
+          val query = new Query(typeName, filter)
+          val res = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(_.getID).toSeq
+          res mustEqual Seq("fid")
+        }
+      }
+
+      // remove the features
+      typeNames.foreach { typeName =>
+        val remover = ds.getFeatureWriter(typeName, ECQL.toFilter("IN ('fid')"), Transaction.AUTO_COMMIT)
+        remover.next
+        remover.remove
+        remover.close
+      }
+
+      // verify that features no longer come back
+      forall(filters) { f =>
+        val filter = ECQL.toFilter(f)
+        forall(typeNames) { typeName =>
+          val query = new Query(typeName, filter)
+          SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(_.getID).toSeq must beEmpty
+        }
+      }
     }
 
     "delete all associated tables" >> {
