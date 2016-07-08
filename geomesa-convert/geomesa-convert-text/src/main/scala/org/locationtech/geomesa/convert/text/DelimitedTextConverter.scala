@@ -15,20 +15,25 @@ import com.google.common.collect.Queues
 import com.typesafe.config.Config
 import org.apache.commons.csv.{CSVFormat, QuoteMode}
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
-import org.locationtech.geomesa.convert.{Field, LinesToSimpleFeatureConverter, SimpleFeatureConverterFactory}
+import org.locationtech.geomesa.convert.{AbstractSimpleFeatureConverterFactory, Field, LinesToSimpleFeatureConverter}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.JavaConversions._
+import scala.collection.immutable.IndexedSeq
 
-class DelimitedTextConverterFactory extends SimpleFeatureConverterFactory[String] {
+class DelimitedTextConverterFactory extends AbstractSimpleFeatureConverterFactory[String] {
 
-  override def canProcess(conf: Config): Boolean = canProcessType(conf, "delimited-text")
+  override protected val typeToProcess = "delimited-text"
 
   val QUOTED                    = CSVFormat.DEFAULT.withQuoteMode(QuoteMode.ALL)
   val QUOTE_ESCAPE              = CSVFormat.DEFAULT.withEscape('"')
   val QUOTED_WITH_QUOTE_ESCAPE  = QUOTE_ESCAPE.withQuoteMode(QuoteMode.ALL)
 
-  def buildConverter(targetSFT: SimpleFeatureType, conf: Config): DelimitedTextConverter = {
+  override protected def buildConverter(sft: SimpleFeatureType,
+                                        conf: Config,
+                                        idBuilder: Expr,
+                                        fields: IndexedSeq[Field],
+                                        userDataBuilder: Map[String, Expr],
+                                        validating: Boolean): DelimitedTextConverter = {
     val baseFmt = conf.getString("format").toUpperCase match {
       case "CSV" | "DEFAULT"          => CSVFormat.DEFAULT
       case "EXCEL"                    => CSVFormat.EXCEL
@@ -50,9 +55,7 @@ class DelimitedTextConverterFactory extends SimpleFeatureConverterFactory[String
       dOpts
     }
 
-    val fields    = buildFields(conf.getConfigList("fields"))
-    val idBuilder = buildIdBuilder(conf.getString("id-field"))
-    new DelimitedTextConverter(baseFmt, targetSFT, idBuilder, fields, opts, isValidating(conf))
+    new DelimitedTextConverter(baseFmt, sft, idBuilder, fields, userDataBuilder, opts, validating)
   }
 }
 
@@ -62,6 +65,7 @@ class DelimitedTextConverter(format: CSVFormat,
                              val targetSFT: SimpleFeatureType,
                              val idBuilder: Expr,
                              val inputFields: IndexedSeq[Field],
+                             val userDataBuilder: Map[String, Expr],
                              val options: DelimitedOptions,
                              val validating: Boolean)
   extends LinesToSimpleFeatureConverter {

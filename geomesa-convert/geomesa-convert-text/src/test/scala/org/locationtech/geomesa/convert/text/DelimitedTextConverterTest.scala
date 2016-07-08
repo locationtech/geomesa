@@ -29,12 +29,10 @@ class DelimitedTextConverterTest extends Specification {
 
   "DelimitedTextConverter" should {
 
-    val data =
-      """
-        |1,hello,45.0,45.0
-        |2,world,90.0,90.0
-        |willfail,hello
-      """.stripMargin
+    val data = Seq(
+      """1,hello,45.0,45.0""",
+      """2,world,90.0,90.0""",
+      """willfail,hello""").mkString("\n")
 
     val conf = ConfigFactory.parseString(
       """
@@ -387,6 +385,39 @@ class DelimitedTextConverterTest extends Specification {
         res(0).getDefaultGeometry mustEqual geoFac.createPoint(new Coordinate(46, 45))
         res(1).getDefaultGeometry mustEqual geoFac.createPoint(new Coordinate(90, 90))
       }
+    }
+    "handle user data" >> {
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "delimited-text",
+          |   format       = "DEFAULT",
+          |   id-field     = "md5(string2bytes($0))",
+          |   user-data    = {
+          |     my.first.key  = "$1::int",
+          |     my.second.key = "$2",
+          |     my.third.key  = "$concat"
+          |   }
+          |   fields = [
+          |     { name = "concat", transform = "concat($1, $2)" },
+          |     { name = "lat",    transform = "$3::double" },
+          |     { name = "lon",    transform = "$4::double" },
+          |     { name = "geom",   transform = "point($lat, $lon)" }
+          |   ]
+          | }
+        """.stripMargin)
+      val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      converter must not(beNull)
+      val res = converter.processInput(data.split("\n").toIterator).toList
+      converter.close()
+      res.size must be equalTo 2
+      res(0).getUserData.get("my.first.key") mustEqual 1
+      res(0).getUserData.get("my.second.key") mustEqual "hello"
+      res(0).getUserData.get("my.third.key") mustEqual "1hello"
+      res(1).getUserData.get("my.first.key") mustEqual 2
+      res(1).getUserData.get("my.second.key") mustEqual "world"
+      res(1).getUserData.get("my.third.key") mustEqual "2world"
     }
   }
 }

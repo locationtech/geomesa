@@ -50,6 +50,9 @@ transforming it into our ``SimpleFeatureType``.
       type         = "delimited-text",
       format       = "CSV",
       id-field     = "md5($0)",
+      user-data    = {
+        my.user.key = "$phrase"
+      }
       fields = [
         { name = "phrase", transform = "concatenate($1, $2)" },
         { name = "lat",    transform = "$4::double" },
@@ -60,8 +63,11 @@ transforming it into our ``SimpleFeatureType``.
      }
 
 The ``id`` of the ``SimpleFeature`` is formed from an md5 hash of the
-entire record (``$0`` is the original data) and the other fields are
-formed from appropriate transforms.
+entire record (``$0`` is the original data). The simple feature attributes
+are created from the ``fields`` list with appropriate transforms (note the
+use of intermediate fields 'lat' and 'lon'). If desired, user data for the
+feature can be set by referencing fields. This can be used for setting
+Accumulo visibility constraints, among other things (see :ref:`accumulo_visibilities`).
 
 Transformation Functions
 ------------------------

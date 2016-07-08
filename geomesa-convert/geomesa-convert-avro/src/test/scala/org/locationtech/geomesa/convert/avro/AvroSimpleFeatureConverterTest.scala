@@ -41,8 +41,9 @@ class AvroSimpleFeatureConverterTest extends Specification with AvroUtils {
         | }
       """.stripMargin)
 
+    val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+
     "properly convert a GenericRecord to a SimpleFeature" >> {
-      val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
       val converter = SimpleFeatureConverters.build[Array[Byte]](sft, conf)
       val ec = converter.createEvaluationContext()
       val sf = converter.processInput(Iterator.apply[Array[Byte]](bytes), ec).next()
@@ -55,7 +56,6 @@ class AvroSimpleFeatureConverterTest extends Specification with AvroUtils {
     }
 
     "properly convert an input stream" >> {
-      val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
       val converter = SimpleFeatureConverters.build[Array[Byte]](sft, conf)
       val ec = converter.createEvaluationContext()
       val sf = converter.process(new ByteArrayInputStream(bytes), ec).next()
@@ -65,6 +65,39 @@ class AvroSimpleFeatureConverterTest extends Specification with AvroUtils {
       ec.counter.getFailure mustEqual 0L
       ec.counter.getSuccess mustEqual 1L
       ec.counter.getLineCount mustEqual 1L  // zero indexed so this is 2 records
+    }
+
+    "convert user data" >> {
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type        = "avro"
+          |   schema-file = "/schema.avsc"
+          |   sft         = "testsft"
+          |   id-field    = "uuid()"
+          |   user-data   = {
+          |     my.user.key = "$lat"
+          |   }
+          |   fields = [
+          |     { name = "tobj", transform = "avroPath($1, '/content$type=TObj')" },
+          |     { name = "dtg",  transform = "date('YYYY-MM-dd', avroPath($tobj, '/kvmap[$k=dtg]/v'))" },
+          |     { name = "lat",  transform = "avroPath($tobj, '/kvmap[$k=lat]/v')" },
+          |     { name = "lon",  transform = "avroPath($tobj, '/kvmap[$k=lon]/v')" },
+          |     { name = "geom", transform = "point($lon, $lat)" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val converter = SimpleFeatureConverters.build[Array[Byte]](sft, conf)
+      val ec = converter.createEvaluationContext()
+      val sf = converter.processInput(Iterator.apply[Array[Byte]](bytes), ec).next()
+      sf.getAttributeCount must be equalTo 2
+      sf.getAttribute("dtg") must not(beNull)
+      sf.getUserData.get("my.user.key") mustEqual 45d
+
+      ec.counter.getFailure mustEqual 0L
+      ec.counter.getSuccess mustEqual 1L
+      ec.counter.getLineCount mustEqual 1L  // only 1 record passed in itr
     }
   }
 }

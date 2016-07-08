@@ -18,35 +18,36 @@ import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
 import org.locationtech.geomesa.convert._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.JavaConversions._
+import scala.collection.immutable.IndexedSeq
 
-class AvroSimpleFeatureConverterFactory extends SimpleFeatureConverterFactory[Array[Byte]] {
+class AvroSimpleFeatureConverterFactory extends AbstractSimpleFeatureConverterFactory[Array[Byte]] {
 
-  override def canProcess(conf: Config): Boolean = canProcessType(conf, "avro")
+  override protected val typeToProcess = "avro"
 
-  override def buildConverter(targetSFT: SimpleFeatureType, conf: Config): SimpleFeatureConverter[Array[Byte]] = {
+  override protected def buildConverter(sft: SimpleFeatureType,
+                                        conf: Config,
+                                        idBuilder: Expr,
+                                        fields: IndexedSeq[Field],
+                                        userDataBuilder: Map[String, Expr],
+                                        validating: Boolean): SimpleFeatureConverter[Array[Byte]] = {
     val avroSchema =
       if (conf.hasPath("schema-file")) {
         new org.apache.avro.Schema.Parser().parse(getClass.getResourceAsStream(conf.getString("schema-file")))
       } else {
         new org.apache.avro.Schema.Parser().parse(conf.getString("schema"))
       }
-
     val reader = new GenericDatumReader[GenericRecord](avroSchema)
-    val fields = buildFields(conf.getConfigList("fields"))
-    val idBuilder = buildIdBuilder(conf.getString("id-field"))
-
-    new AvroSimpleFeatureConverter(avroSchema, reader, targetSFT, fields, idBuilder, isValidating(conf))
+    new AvroSimpleFeatureConverter(avroSchema, reader, sft, fields, idBuilder, userDataBuilder, validating)
   }
-
 }
 
 class AvroSimpleFeatureConverter(avroSchema: Schema,
-                                  reader: GenericDatumReader[GenericRecord],
-                                  val targetSFT: SimpleFeatureType,
-                                  val inputFields: IndexedSeq[Field],
-                                  val idBuilder: Expr,
-                                  val validating: Boolean)
+                                 reader: GenericDatumReader[GenericRecord],
+                                 val targetSFT: SimpleFeatureType,
+                                 val inputFields: IndexedSeq[Field],
+                                 val idBuilder: Expr,
+                                 val userDataBuilder: Map[String, Expr],
+                                 val validating: Boolean)
   extends ToSimpleFeatureConverter[Array[Byte]] {
 
   var decoder: BinaryDecoder = null
