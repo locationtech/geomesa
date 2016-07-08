@@ -437,7 +437,7 @@ class StatsMetadataSerializer(ds: AccumuloDataStore) extends MetadataSerializer[
 
   private def serializer(typeName: String) = {
     val sft = sfts.synchronized(sfts.getOrElseUpdate(typeName, ds.getSchema(typeName)))
-    GeoMesaStats.serializer(sft) // retrieves a cached value
+    StatSerializer(sft) // retrieves a cached value
   }
 
   override def serialize(typeName: String, key: String, value: Stat): Array[Byte] =

@@ -15,9 +15,8 @@ import com.vividsolutions.jts.geom.Geometry
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureDeserializer}
-import org.locationtech.geomesa.features.serialization.CacheKeyGenerator
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureDeserializer, SimpleFeatureSerializer}
-import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
+import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocalCache}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.`type`.AttributeDescriptor
@@ -69,7 +68,7 @@ object IndexValueEncoder {
     apply(sft, Some(transform))
 
   def apply(sft: SimpleFeatureType, transform: Option[SimpleFeatureType]): IndexValueEncoder = {
-    val key = CacheKeyGenerator.cacheKeyForSFT(sft)
+    val key = CacheKeyGenerator.cacheKey(sft)
     val (indexSft, attributes) = cache.getOrElseUpdate(key, (getIndexSft(sft), getIndexValueFields(sft)))
     val copyFunction = getCopyFunction(sft, indexSft)
 
@@ -290,7 +289,7 @@ object OldIndexValueEncoder {
   // gets a cached instance to avoid the initialization overhead
   // we use sft.toString, which includes the fields and type name, as a unique key
   def apply(sft: SimpleFeatureType, transform: SimpleFeatureType) = {
-    val key = CacheKeyGenerator.cacheKeyForSFT(sft) + CacheKeyGenerator.cacheKeyForSFT(transform)
+    val key = CacheKeyGenerator.cacheKey(sft) + CacheKeyGenerator.cacheKey(transform)
     cache.get.getOrElseUpdate(key, new OldIndexValueEncoder(sft, transform, getSchema(sft)))
   }
 

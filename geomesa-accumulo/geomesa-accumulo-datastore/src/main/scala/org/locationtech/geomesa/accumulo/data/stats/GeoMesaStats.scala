@@ -14,7 +14,7 @@ import java.util.Date
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.utils.geotools._
-import org.locationtech.geomesa.utils.stats.{Histogram, Stat, StatSerializer}
+import org.locationtech.geomesa.utils.stats.{Histogram, Stat}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -126,11 +126,6 @@ object GeoMesaStats {
 
   val StatClasses = Seq(classOf[Geometry], classOf[String], classOf[Integer],
     classOf[jLong], classOf[jFloat], classOf[jDouble], classOf[Date])
-
-  private val serializers = scala.collection.mutable.Map.empty[String, StatSerializer]
-
-  def serializer(sft: SimpleFeatureType): StatSerializer =
-    serializers.synchronized(serializers.getOrElseUpdate(sft.getTypeName, StatSerializer(sft)))
 
   /**
     * Get the default bounds for a range histogram

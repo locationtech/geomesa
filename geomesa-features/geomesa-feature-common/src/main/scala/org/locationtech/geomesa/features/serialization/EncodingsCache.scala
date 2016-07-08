@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.features.serialization
 
-import org.locationtech.geomesa.utils.cache.{SoftThreadLocal, SoftThreadLocalCache}
+import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocal, SoftThreadLocalCache}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -37,7 +37,7 @@ trait EncodingsCache[Writer] {
     * and [[SimpleFeatureType]].
     */
   def encodings(sft: SimpleFeatureType): Array[(Writer, SimpleFeature) => Unit] =
-    encodingsCache.getOrElseUpdate(CacheKeyGenerator.cacheKeyForSFT(sft), {
+    encodingsCache.getOrElseUpdate(CacheKeyGenerator.cacheKey(sft), {
 
       val datumWriters = writer
 

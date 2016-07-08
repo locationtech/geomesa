@@ -18,9 +18,11 @@ import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuild
 import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.process.vector.VectorProcess
-import org.locationtech.geomesa.accumulo.data.GEOMESA_UNIQUE
+import org.locationtech.geomesa.accumulo.index.QueryHints
+import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator
 import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat}
 import org.opengis.feature.Feature
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeature
@@ -67,7 +69,7 @@ class UniqueProcess extends VectorProcess with LazyLogging {
 
     val visitor = new AttributeVisitor(features, attributeDescriptor, Option(filter), hist)
     features.accepts(visitor, progressListener)
-    val uniqueValues = visitor.uniqueValues.toMap
+    val uniqueValues = visitor.getResult.attributes
 
     createReturnCollection(uniqueValues, attributeDescriptor.getType.getBinding, hist, Option(sort), sortBy)
   }
@@ -75,11 +77,11 @@ class UniqueProcess extends VectorProcess with LazyLogging {
   /**
    * Duplicates output format from geotools UniqueProcess
    *
-   * @param uniqueValues
-   * @param binding
-   * @param histogram
-   * @param sort
-   * @param sortByCount
+   * @param uniqueValues values
+   * @param binding value binding
+   * @param histogram include counts or just values
+   * @param sort sort
+   * @param sortByCount sort by count or by value
    * @return
    */
   def createReturnCollection(uniqueValues: Map[Any, Long],
@@ -130,10 +132,10 @@ class UniqueProcess extends VectorProcess with LazyLogging {
 /**
  * Visitor that tracks unique attribute values and counts
  *
- * @param features
- * @param attributeDescriptor
- * @param filter
- * @param histogram
+ * @param features features to evaluate
+ * @param attributeDescriptor attribute to evaluate
+ * @param filter optional filter to apply to features before evaluating
+ * @param histogram return counts or not
  */
 class AttributeVisitor(val features: SimpleFeatureCollection,
                        val attributeDescriptor: AttributeDescriptor,
@@ -145,8 +147,11 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
 
   import scala.collection.JavaConversions._
 
-  val attribute    = attributeDescriptor.getLocalName
-  var attributeIdx: Int = -1
+  private val attribute = attributeDescriptor.getLocalName
+  private val uniqueValues = mutable.Map.empty[Any, Long].withDefaultValue(0)
+
+  private var attributeIdx: Int = -1
+
   private def getAttribute[T](f: SimpleFeature) = {
     if (attributeIdx == -1) {
       attributeIdx = f.getType.indexOf(attribute)
@@ -154,21 +159,27 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
     f.get[T](attributeIdx)
   }
 
-
-  val uniqueValues = mutable.Map.empty[Any, Long].withDefaultValue(0)
-
-  private val addSingularValue = (f: SimpleFeature) => Option(getAttribute[AnyRef](f)).foreach(uniqueValues(_) += 1)
-  private val addMultiValue = (f: SimpleFeature) =>
-    getAttribute[java.util.Collection[_]](f) match {
-      case c if c != null => c.foreach(uniqueValues(_) += 1)
-      case _ => // do nothing
+  private def addSingularValue(f: SimpleFeature): Unit = {
+    val value = getAttribute[AnyRef](f)
+    if (value != null) {
+      uniqueValues(value) += 1
     }
-  private val addValue = if(attributeDescriptor.isList) addMultiValue else addSingularValue
+  }
+
+  private def addMultiValue(f: SimpleFeature): Unit = {
+    val values = getAttribute[java.util.Collection[_]](f)
+    if (values != null) {
+      values.foreach(uniqueValues(_) += 1)
+    }
+  }
+
+  private val addValue: (SimpleFeature) => Unit =
+    if (attributeDescriptor.isList) addMultiValue else addSingularValue
 
   /**
    * Called for non AccumuloFeatureCollections
    *
-   * @param feature
+   * @param feature feature to visit
    */
   override def visit(feature: Feature): Unit = {
     val f = feature.asInstanceOf[SimpleFeature]
@@ -177,35 +188,56 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
     }
   }
 
-  override def getResult: CalcResult = new AttributeResult(uniqueValues.toMap)
+  override def getResult: AttributeResult = new AttributeResult(uniqueValues.toMap)
 
-  /**
-   * Set results explicitly, bypassing normal visit cycle
-   *
-   * @param features
-   */
-  def setValue(features: SimpleFeatureCollection) =
-    SelfClosingIterator(features.features()).foreach(addValue)
-
+  def setValue(enumeration: Iterable[(Any, Long)]): Unit = {
+    uniqueValues.clear()
+    enumeration.foreach { case (k, v) => uniqueValues.put(k, v) }
+  }
 
   /**
    * Called by AccumuloFeatureSource to optimize the query plan
    *
-   * @param source
-   * @param query
+   * @param source simple feature source
+   * @param query query to execute
    * @return
    */
-  def unique(source: SimpleFeatureSource, query: Query) = {
-    logger.debug(s"Running Geomesa attribute process on source type ${source.getClass.getName}")
+  def unique(source: SimpleFeatureSource, query: Query): Iterable[(Any, Long)] = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    // only return the attribute we are interested in to reduce bandwidth
-    query.setPropertyNames(Seq(attribute).asJava)
+    logger.debug(s"Running Geomesa histogram process on source type ${source.getClass.getName}")
 
     // combine filters from this process and any input collection
-    if (filter.isDefined) {
-      val combinedFilter = combineFilters(query.getFilter, filter.get)
-      query.setFilter(combinedFilter)
+    filter.foreach(f => query.setFilter(combineFilters(query.getFilter, f)))
+
+    val sft = source.getSchema
+
+    if (sft.getSchemaVersion < 6 || attributeDescriptor.isMultiValued) {
+      // attribute strategy v5 doesn't support stats
+      // stats don't support list types
+      uniqueV5(source, query)
+    } else {
+      query.getHints.put(QueryHints.STATS_KEY, Stat.Enumeration(attribute))
+      query.getHints.put(QueryHints.RETURN_ENCODED_KEY, java.lang.Boolean.TRUE)
+
+      // execute the query
+      val reader = source.getFeatures(query).features()
+
+      val enumeration = try {
+        // stats should always return exactly one result, even if there are no features in the table
+        val encoded = reader.next.getAttribute(0).asInstanceOf[String]
+        KryoLazyStatsIterator.decodeStat(encoded, sft).asInstanceOf[EnumerationStat[Any]]
+      } finally {
+        reader.close()
+      }
+
+      enumeration.frequencies
     }
+  }
+
+  private def uniqueV5(source: SimpleFeatureSource, query: Query): Iterable[(Any, Long)] = {
+    // only return the attribute we are interested in to reduce bandwidth
+    query.setPropertyNames(Seq(attribute).asJava)
 
     // if there is no filter, try to force an attribute scan - should be fastest query
     if (query.getFilter == Filter.INCLUDE && features.getSchema.getDescriptor(attribute).isIndexed) {
@@ -215,11 +247,13 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
     if (!histogram) {
       // add hint to use unique iterator, which skips duplicate attributes
       // we don't use this for histograms since we have to count each attribute occurrence
-      query.getHints.put(GEOMESA_UNIQUE, attribute)
+      // noinspection ScalaDeprecation
+      query.getHints.put(org.locationtech.geomesa.accumulo.data.GEOMESA_UNIQUE, attribute)
     }
 
     // execute the query
-    source.getFeatures(query)
+    SelfClosingIterator(source.getFeatures(query).features()).foreach(addValue)
+    uniqueValues.toMap
   }
 }
 
@@ -241,7 +275,7 @@ object AttributeVisitor {
   /**
    * Returns a filter that is equivalent to Filter.INCLUDE, but against the attribute index.
    *
-   * @param attribute
+   * @param attribute attribute to query
    * @return
    */
   def getIncludeAttributeFilter(attribute: String) = ff.greaterOrEqual(ff.property(attribute), ff.literal(""))
@@ -250,9 +284,9 @@ object AttributeVisitor {
 /**
  * Result class to hold the attribute histogram
  *
- * @param attributes
+ * @param attributes result
  */
-class AttributeResult(attributes: Map[Any, Long]) extends AbstractCalcResult {
+class AttributeResult(val attributes: Map[Any, Long]) extends AbstractCalcResult {
 
   override def getValue: java.util.Map[Any, Long] = attributes.asJava
 

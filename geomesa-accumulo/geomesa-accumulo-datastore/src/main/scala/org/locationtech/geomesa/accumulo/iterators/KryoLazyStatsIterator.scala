@@ -20,7 +20,6 @@ import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanner.SFIter
 import org.locationtech.geomesa.accumulo.index.QueryPlanners._
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.serialization.CacheKeyGenerator
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -68,7 +67,6 @@ object KryoLazyStatsIterator extends LazyLogging {
   }
 
   def kvsToFeatures(sft: SimpleFeatureType): FeatureFunction = {
-    val key = CacheKeyGenerator.cacheKeyForSFT(sft)
     val sf = new ScalaSimpleFeature("", StatsSft)
     sf.setAttribute(1, GeometryUtils.zeroPoint)
     (e: Entry[Key, Value]) => {
