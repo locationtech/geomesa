@@ -71,6 +71,10 @@ package object accumulo {
         PropAndDefault("geomesa.feature.id-generator", classOf[Z3FeatureIdGenerator].getCanonicalName)
     }
 
+    object StatsProperties {
+      val STAT_COMPACTION_MILLIS = PropAndDefault("geomesa.stats.compact.millis", (3600 * 1000L).toString) // one hour
+    }
+
     case class PropAndDefault(property: String, default: String) {
       def get: String = sys.props.getOrElse(property, default)
       def option: Option[String] = sys.props.get(property).orElse(Option(default))

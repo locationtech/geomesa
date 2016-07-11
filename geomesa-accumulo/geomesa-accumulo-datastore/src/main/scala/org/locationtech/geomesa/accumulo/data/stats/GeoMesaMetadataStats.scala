@@ -55,12 +55,14 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
 
   private val compactor = new Runnable() {
     override def run(): Unit = {
-      if (lastCompaction.get < DateTime.now(DateTimeZone.UTC).minusHours(1).getMillis &&
+      import org.locationtech.geomesa.accumulo.GeomesaSystemProperties.StatsProperties.STAT_COMPACTION_MILLIS
+      val compactInterval = STAT_COMPACTION_MILLIS.get.toLong
+      if (lastCompaction.get < DateTimeUtils.currentTimeMillis() - compactInterval &&
           compactionScheduled.compareAndSet(true, false) ) {
         compact()
       }
       if (running.get) {
-        synchronized(scheduledCompaction = executor.schedule(this, 1, TimeUnit.HOURS))
+        synchronized(scheduledCompaction = executor.schedule(this, compactInterval, TimeUnit.MILLISECONDS))
       }
     }
   }
@@ -237,31 +239,22 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
     */
   private [stats] def writeStat(stat: Stat, sft: SimpleFeatureType, merge: Boolean): Unit = {
 
-    def shouldWrite(ks: KeyAndStat): Boolean = {
-      if (merge && ks.stat.isInstanceOf[CountStat]) {
-        // count stat is additive so we don't want to compare to the current value
-        true
-      } else {
-        // only re-write if it's changed - writes and compactions are expensive
-        !readStat[Stat](sft, ks.key, cache = false).exists(_.isEquivalent(ks.stat))
-      }
-    }
-
-    val toWrite = getKeysAndStatsForWrite(stat, sft).filter(shouldWrite)
+    val typeName = sft.getTypeName
+    val toWrite = getKeysAndStatsForWrite(stat, sft)
 
     if (merge) {
       toWrite.foreach { ks =>
-        metadata.insert(sft.getTypeName, ks.key, ks.stat)
-        // re-load it so that the combiner takes effect
-        readStat[Stat](sft, ks.key, cache = false)
+        metadata.insert(typeName, ks.key, ks.stat)
+        // invalidate the cache as we would need to reload from accumulo for the combiner to take effect
+        metadata.invalidateCache(typeName, ks.key)
       }
     } else {
       // due to accumulo issues with combiners, deletes and compactions, we have to:
       // 1) delete the existing data; 2) compact the table; 3) insert the new value
       // see: https://issues.apache.org/jira/browse/ACCUMULO-2232
-      toWrite.foreach(ks => metadata.remove(sft.getTypeName, ks.key))
+      toWrite.foreach(ks => metadata.remove(typeName, ks.key))
       compact()
-      toWrite.foreach(ks => metadata.insert(sft.getTypeName, ks.key, ks.stat))
+      toWrite.foreach(ks => metadata.insert(typeName, ks.key, ks.stat))
     }
   }
 
@@ -323,7 +316,7 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
   private def compact(): Unit = {
     compactionScheduled.set(false)
     ds.connector.tableOperations().compact(statsTable, null, null, true, true)
-    lastCompaction.set(DateTime.now(DateTimeZone.UTC).getMillis)
+    lastCompaction.set(DateTimeUtils.currentTimeMillis())
   }
 
   /**
@@ -457,7 +450,7 @@ object GeoMesaMetadataStats {
   private val FrequencyKeyPrefix = "stats-freq"
   private val HistogramKeyPrefix = "stats-hist"
 
-  private [stats] val executor = MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(1))
+  private [stats] val executor = MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(3))
   sys.addShutdownHook(executor.shutdownNow())
 
   /**
