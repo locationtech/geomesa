@@ -22,7 +22,7 @@ import org.joda.time.DateTimeUtils
 import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
 import org.locationtech.geomesa.accumulo.data.GeoMesaMetadata._
 import org.locationtech.geomesa.accumulo.data.stats.usage.{GeoMesaUsageStats, GeoMesaUsageStatsImpl, HasGeoMesaUsageStats}
-import org.locationtech.geomesa.accumulo.data.stats.{GeoMesaMetadataStats, GeoMesaStats, HasGeoMesaStats, StatsRunner}
+import org.locationtech.geomesa.accumulo.data.stats._
 import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
 import org.locationtech.geomesa.accumulo.index._
@@ -78,7 +78,8 @@ class AccumuloDataStore(val connector: Connector,
   private val usageStatsTable = GeoMesaTable.concatenateNameParts(catalogTable, "queries")
 
   override val metadata: GeoMesaMetadata[String] =
-    new AccumuloBackedMetadata(connector, catalogTable, MetadataStringSerializer)
+    new MultiRowAccumuloMetadata(connector, catalogTable, MetadataStringSerializer)
+  private val oldMetadata = new SingleRowAccumuloMetadata(connector, catalogTable, MetadataStringSerializer)
 
   override val stats: GeoMesaStats = new GeoMesaMetadataStats(this, statsTable, config.generateStats)
   override val usageStats: GeoMesaUsageStats =
@@ -91,7 +92,7 @@ class AccumuloDataStore(val connector: Connector,
    * @see org.geotools.data.DataStore#getTypeNames()
    * @return existing simple feature type names
    */
-  override def getTypeNames: Array[String] = metadata.getFeatureTypes
+  override def getTypeNames: Array[String] = metadata.getFeatureTypes ++ oldMetadata.getFeatureTypes
 
   /**
    * @see org.geotools.data.DataAccess#getNames()
@@ -155,7 +156,25 @@ class AccumuloDataStore(val connector: Connector,
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.SCHEMA_VERSION_KEY
 
     val typeName = name.getLocalPart
-    metadata.read(typeName, ATTRIBUTES_KEY).map { attributes =>
+    val attributes = metadata.read(typeName, ATTRIBUTES_KEY).orElse {
+      // check for old-style metadata and re-write it if necessary
+      if (oldMetadata.read(typeName, ATTRIBUTES_KEY, cache = false).isDefined) {
+        val lock = acquireDistributedLock()
+        try {
+          if (oldMetadata.read(typeName, ATTRIBUTES_KEY, cache = false).isDefined) {
+            metadata.asInstanceOf[MultiRowAccumuloMetadata[String]].migrate(typeName)
+            new MultiRowAccumuloMetadata[Any](connector, statsTable, null).migrate(typeName)
+          }
+        } finally {
+          lock.release()
+        }
+        metadata.read(typeName, ATTRIBUTES_KEY)
+      } else {
+        None
+      }
+    }
+
+    attributes.map { attributes =>
       val sft = SimpleFeatureTypes.createType(name.getURI, attributes)
 
       // back compatible check if user data wasn't encoded with the sft

@@ -12,6 +12,7 @@ import java.util.Date
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
 
+import com.google.common.collect.ImmutableSortedSet
 import com.google.common.util.concurrent.MoreExecutors
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
@@ -45,7 +46,7 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
 
   import GeoMesaMetadataStats._
 
-  private val metadata = new AccumuloBackedMetadata(ds.connector, statsTable, new StatsMetadataSerializer(ds))
+  private val metadata = new MultiRowAccumuloMetadata(ds.connector, statsTable, new StatsMetadataSerializer(ds))
 
   private val compactionScheduled = new AtomicBoolean(false)
   private val lastCompaction = new AtomicLong(0L)
@@ -478,6 +479,11 @@ object GeoMesaMetadataStats {
       val is = new IteratorSetting(10, CombinerName, classOf[StatsCombiner])
       options.foreach { case (k, v) => is.addOption(k, v) }
       tableOps.attachIterator(table, is)
+
+      val keys = Seq(CountKey, BoundsKeyPrefix, TopKKeyPrefix, FrequencyKeyPrefix, HistogramKeyPrefix)
+      val splits = keys.map(k => MultiRowAccumuloMetadata.getRowKey(sft.getTypeName, k))
+      // noinspection RedundantCollectionConversion
+      tableOps.addSplits(table, ImmutableSortedSet.copyOf(splits.toIterable))
     }
 
     val sftKey = s"${StatsCombiner.SftOption}${sft.getTypeName}"

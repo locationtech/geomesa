@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.data.stats
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{Combiner, IteratorEnvironment, SortedKeyValueIterator}
-import org.locationtech.geomesa.accumulo.data.AccumuloBackedMetadata
+import org.locationtech.geomesa.accumulo.data.{MultiRowAccumuloMetadata, SingleRowAccumuloMetadata}
 import org.locationtech.geomesa.accumulo.iterators.IteratorClassLoader
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.StatSerializer
@@ -46,7 +46,11 @@ class StatsCombiner extends Combiner with LazyLogging {
     if (!iter.hasNext) {
       head
     } else {
-      val sftName = AccumuloBackedMetadata.getTypeNameFromMetadataRowKey(key.getRow.toString)
+      var sftName = MultiRowAccumuloMetadata.getTypeName(key.getRow)
+      if (sftName.isEmpty) {
+        // back compatible check
+        sftName = SingleRowAccumuloMetadata.getTypeName(key.getRow)
+      }
       val serializer = serializers(sftName)
       val stat = serializer.deserialize(head.get)
       iter.foreach { s =>
