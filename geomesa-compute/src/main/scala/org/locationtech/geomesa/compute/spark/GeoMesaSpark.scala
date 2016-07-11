@@ -227,8 +227,7 @@ object GeoMesaSparkKryoRegistrator {
     val spec = System.getProperty(GeoMesaSpark.typeProp(typeName))
     if (spec == null) {
       GeoMesaSparkKryoRegistrator.typeCache.get(typeName)
-    }
-    else {
+    } else {
       SimpleFeatureTypes.createType(typeName, spec)
     }
   }
