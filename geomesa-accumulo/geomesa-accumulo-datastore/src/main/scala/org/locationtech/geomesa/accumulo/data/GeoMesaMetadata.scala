@@ -196,7 +196,7 @@ class AccumuloBackedMetadata[T](connector: Connector, catalogTable: String, seri
       // also remove from the cache
       metaDataCache.invalidate((typeName, key))
     } else {
-      logger.warn(s"Trying to delete '$typeName:$key' from '$catalogTable' but table does not exist")
+      logger.debug(s"Trying to delete '$typeName:$key' from '$catalogTable' but table does not exist")
     }
   }
 
@@ -214,7 +214,7 @@ class AccumuloBackedMetadata[T](connector: Connector, catalogTable: String, seri
       deleter.delete()
       deleter.close()
     } else {
-      logger.warn(s"Trying to delete type '$typeName' from '$catalogTable' but table does not exist")
+      logger.debug(s"Trying to delete type '$typeName' from '$catalogTable' but table does not exist")
     }
     metaDataCache.asMap.toMap.keys.filter(_._1 == typeName).foreach(metaDataCache.invalidate)
   }
