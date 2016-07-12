@@ -19,8 +19,8 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
+import scala.collection.immutable.IndexedSeq
 import scala.collection.mutable
-import scala.util.Try
 
 trait Field {
   def name: String
@@ -36,29 +36,58 @@ object StandardOptions {
 }
 
 trait SimpleFeatureConverterFactory[I] {
-
   def canProcess(conf: Config): Boolean
-
-  def canProcessType(conf: Config, name: String) = Try { conf.getString("type").equals(name) }.getOrElse(false)
-
   def buildConverter(sft: SimpleFeatureType, conf: Config): SimpleFeatureConverter[I]
+}
 
-  def buildFields(fields: Seq[Config]): IndexedSeq[Field] =
-    fields.map { f =>
-      val name = f.getString("name")
-      val transform = Transformers.parseTransform(f.getString("transform"))
-      SimpleField(name, transform)
-    }.toIndexedSeq
+abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureConverterFactory[I] {
 
-  def buildIdBuilder(t: String) = Transformers.parseTransform(t)
+  override def canProcess(conf: Config): Boolean =
+    if (conf.hasPath("type")) conf.getString("type").equals(typeToProcess) else false
 
-  def isValidating(conf: Config): Boolean =
-    if (conf.hasPath(StandardOptions.Validating)) {
-      conf.getBoolean(StandardOptions.Validating)
+  override def buildConverter(sft: SimpleFeatureType, conf: Config): SimpleFeatureConverter[I] = {
+    val idBuilder = buildIdBuilder(conf)
+    val fields = buildFields(conf)
+    val userDataBuilder = buildUserDataBuilder(conf)
+    val validating = isValidating(conf)
+    buildConverter(sft, conf, idBuilder, fields, userDataBuilder, validating)
+  }
+
+  protected def typeToProcess: String
+
+  protected def buildConverter(sft: SimpleFeatureType,
+                               conf: Config,
+                               idBuilder: Expr,
+                               fields: IndexedSeq[Field],
+                               userDataBuilder: Map[String, Expr],
+                               validating: Boolean): SimpleFeatureConverter[I]
+
+  protected def buildFields(conf: Config): IndexedSeq[Field] =
+    conf.getConfigList("fields").map(buildField).toIndexedSeq
+
+  protected def buildField(field: Config): Field =
+    SimpleField(field.getString("name"), Transformers.parseTransform(field.getString("transform")))
+
+  protected def buildIdBuilder(conf: Config): Expr = {
+    if (conf.hasPath("id-field")) {
+      Transformers.parseTransform(conf.getString("id-field"))
     } else {
-      true
+      Transformers.parseTransform("null")
     }
+  }
 
+  protected def buildUserDataBuilder(conf: Config): Map[String, Expr] = {
+    if (conf.hasPath("user-data")) {
+      conf.getConfig("user-data").entrySet.map { e =>
+        e.getKey -> Transformers.parseTransform(e.getValue.unwrapped().toString)
+      }.toMap
+    } else {
+      Map.empty
+    }
+  }
+
+  protected def isValidating(conf: Config): Boolean =
+    if (conf.hasPath(StandardOptions.Validating)) conf.getBoolean(StandardOptions.Validating) else true
 }
 
 trait SimpleFeatureConverter[I] extends Closeable {
@@ -98,6 +127,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
   def targetSFT: SimpleFeatureType
   def inputFields: IndexedSeq[Field]
   def idBuilder: Expr
+  def userDataBuilder: Map[String, Expr]
   def fromInputType(i: I): Seq[Array[Any]]
   def validating: Boolean
 
@@ -128,7 +158,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
     } else (sf: SimpleFeature, ec: EvaluationContext) => true
   }
 
-  val fieldNameMap = inputFields.map { f => (f.name, f) }.toMap
+  val fieldNameMap = inputFields.map(f => (f.name, f)).toMap
 
   // compute only the input fields that we need to deal with to populate the simple feature
   val attrRequiredFieldsNames = targetSFT.getAttributeDescriptors.flatMap { ad =>
@@ -139,7 +169,8 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
   }.toSet
 
   val idDependencies = idBuilder.dependenciesOf(fieldNameMap)
-  val requiredFieldsNames: Set[String] = attrRequiredFieldsNames ++ idDependencies
+  val userDataDependencies = userDataBuilder.values.flatMap(_.dependenciesOf(fieldNameMap)).toSet
+  val requiredFieldsNames: Set[String] = attrRequiredFieldsNames ++ idDependencies ++ userDataDependencies
   val requiredFields = inputFields.filter(f => requiredFieldsNames.contains(f.name))
   val nfields = requiredFields.length
 
@@ -172,6 +203,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
 
     val id = idBuilder.eval(t)(ec).asInstanceOf[String]
     val sf = new ScalaSimpleFeature(id, targetSFT, sfValues)
+    userDataBuilder.foreach { case (k, v) => sf.getUserData.put(k, v.eval(t)(ec).asInstanceOf[AnyRef]) }
 
     if (validate(sf, ec)) sf else null
   }
@@ -199,7 +231,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
     val names = requiredFields.map(_.name) ++ globalKeys
     val values = Array.ofDim[Any](names.length)
     globalKeys.zipWithIndex.foreach { case (k, i) => values(requiredFields.length + i) = globalParams(k) }
-    new EvaluationContextImpl(names.toIndexedSeq, values, counter)
+    new EvaluationContextImpl(names, values, counter)
   }
 
   override def processInput(is: Iterator[I], ec: EvaluationContext): Iterator[SimpleFeature] =

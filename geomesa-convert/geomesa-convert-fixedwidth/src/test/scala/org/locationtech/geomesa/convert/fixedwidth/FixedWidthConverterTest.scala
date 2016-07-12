@@ -75,5 +75,37 @@ class FixedWidthConverterTest extends Specification {
       val res = converter.processInput(data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0)).toList
       res.size must be equalTo 0
     }
+
+    "process user data" >> {
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type      = "fixed-width"
+          |   id-field  = "uuid()"
+          |   options {
+          |     validating = false
+          |   }
+          |   user-data = {
+          |     my.user.key = "$lat"
+          |   }
+          |   fields = [
+          |     { name = "lat",  transform = "$0::double", start = 1, width = 2 },
+          |     { name = "lon",  transform = "$0::double", start = 3, width = 2 },
+          |     { name = "geom", transform = "point($lon, $lat)" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+      val converter = SimpleFeatureConverters.build[String](sft, conf)
+
+      converter must not beNull
+      val res = converter.processInput(data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0)).toList
+      res.size must be equalTo 2
+      res(0).getDefaultGeometry.asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(55.0, 45.0)
+      res(1).getDefaultGeometry.asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(65.0, 65.0)
+      res(0).getUserData.get("my.user.key") mustEqual 45.0
+      res(1).getUserData.get("my.user.key") mustEqual 65.0
+    }
   }
 }

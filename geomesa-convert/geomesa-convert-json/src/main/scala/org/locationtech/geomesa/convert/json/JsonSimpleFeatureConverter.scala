@@ -11,7 +11,7 @@ package org.locationtech.geomesa.convert.json
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 
-import com.google.gson.{JsonObject, JsonArray, JsonElement}
+import com.google.gson.{JsonArray, JsonElement, JsonObject}
 import com.jayway.jsonpath.spi.json.GsonJsonProvider
 import com.jayway.jsonpath.{Configuration, JsonPath}
 import com.typesafe.config.Config
@@ -25,6 +25,7 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
+import scala.collection.immutable.IndexedSeq
 import scala.io.Source
 import scala.util.Try
 
@@ -33,6 +34,7 @@ class JsonSimpleFeatureConverter(jsonConfig: Configuration,
                                  val root: Option[JsonPath],
                                  val inputFields: IndexedSeq[Field],
                                  val idBuilder: Expr,
+                                 val userDataBuilder: Map[String, Expr],
                                  val validating: Boolean,
                                  val lineMode: LineMode) extends ToSimpleFeatureConverter[String] {
 
@@ -59,9 +61,7 @@ class JsonSimpleFeatureConverter(jsonConfig: Configuration,
 
 }
 
-class JsonSimpleFeatureConverterFactory extends SimpleFeatureConverterFactory[String] {
-
-  import scala.collection.JavaConversions._
+class JsonSimpleFeatureConverterFactory extends AbstractSimpleFeatureConverterFactory[String] {
 
   private val jsonConfig =
     Configuration.builder()
@@ -69,36 +69,34 @@ class JsonSimpleFeatureConverterFactory extends SimpleFeatureConverterFactory[St
       .options(com.jayway.jsonpath.Option.DEFAULT_PATH_LEAF_TO_NULL)
       .build()
 
-  override def canProcess(conf: Config): Boolean = canProcessType(conf, "json")
+  override protected val typeToProcess = "json"
 
-  override def buildConverter(targetSFT: SimpleFeatureType, conf: Config): SimpleFeatureConverter[String] = {
-    val root      = if (conf.hasPath("feature-path")) Some(JsonPath.compile(conf.getString("feature-path"))) else None
-    val fields    = buildFields(conf.getConfigList("fields"))
-    val idBuilder = buildIdBuilder(conf.getString("id-field"))
-    val lineMode  = LineMode.getLineMode(conf)
-    val validate  = isValidating(conf)
-
-    new JsonSimpleFeatureConverter(jsonConfig, targetSFT, root, fields, idBuilder, validate, lineMode)
+  override protected def buildConverter(sft: SimpleFeatureType,
+                                        conf: Config,
+                                        idBuilder: Expr,
+                                        fields: IndexedSeq[Field],
+                                        userDataBuilder: Map[String, Expr],
+                                        validating: Boolean): SimpleFeatureConverter[String] = {
+    val lineMode = LineMode.getLineMode(conf)
+    val root = if (conf.hasPath("feature-path")) Some(JsonPath.compile(conf.getString("feature-path"))) else None
+    new JsonSimpleFeatureConverter(jsonConfig, sft, root, fields, idBuilder, userDataBuilder, validating, lineMode)
   }
 
-  override def buildFields(fields: Seq[Config]): IndexedSeq[Field] = {
-    fields.map { f =>
-      val name = f.getString("name")
-      val transform = if (f.hasPath("transform")) {
-        Transformers.parseTransform(f.getString("transform"))
-      } else {
-        null
-      }
-      if (f.hasPath("path")) {
-        // path can be absolute, or relative to the feature node
-        // it can also include xpath functions to manipulate the result
-        JsonField(name, JsonPath.compile(f.getString("path")), jsonConfig, transform, f.getString("json-type"))
-      } else {
-        SimpleField(name, transform)
-      }
-    }.toIndexedSeq
+  override protected def buildField(field: Config): Field = {
+    val name = field.getString("name")
+    val transform = if (field.hasPath("transform")) {
+      Transformers.parseTransform(field.getString("transform"))
+    } else {
+      null
+    }
+    if (field.hasPath("path")) {
+      // path can be absolute, or relative to the feature node
+      // it can also include xpath functions to manipulate the result
+      JsonField(name, JsonPath.compile(field.getString("path")), jsonConfig, transform, field.getString("json-type"))
+    } else {
+      SimpleField(name, transform)
+    }
   }
-
 }
 
 object JsonField {

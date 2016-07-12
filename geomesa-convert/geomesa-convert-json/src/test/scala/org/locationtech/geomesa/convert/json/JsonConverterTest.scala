@@ -837,5 +837,57 @@ class JsonConverterTest extends Specification {
             UUID.fromString("00000000-0000-0000-0000-000000000000")))
       }
     }
+    "parse user data" >> {
+      val jsonStr =
+        """ {
+          |    DataSource: { name: "myjson" },
+          |    Features: [
+          |      {
+          |        id: 1,
+          |        number: 123,
+          |        color: "red",
+          |        physical: {
+          |          weight: 127.5,
+          |          height: "5'11"
+          |        },
+          |        lat: 0,
+          |        lon: 0
+          |      }
+          |    ]
+          | }
+        """.stripMargin
+
+      val parserConf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "json"
+          |   id-field     = "$id"
+          |   feature-path = "$.Features[*]"
+          |   user-data    = {
+          |     my.user.key = "$color"
+          |   }
+          |   fields = [
+          |     { name = "id",     json-type = "integer", path = "$.id",               transform = "toString($0)"      }
+          |     { name = "number", json-type = "integer", path = "$.number",                                           }
+          |     { name = "color",  json-type = "string",  path = "$.color",            transform = "trim($0)"          }
+          |     { name = "weight", json-type = "double",  path = "$.physical.weight",                                  }
+          |     { name = "lat",    json-type = "double",  path = "$.lat",                                              }
+          |     { name = "lon",    json-type = "double",  path = "$.lon",                                              }
+          |     { name = "geom",                                                       transform = "point($lon, $lat)" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val pt1 = new Point(new Coordinate(0, 0), new PrecisionModel(PrecisionModel.FIXED), 4326)
+
+      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
+      val features = converter.processInput(Iterator(jsonStr)).toList
+      features must haveLength(1)
+      features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
+      features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
+      features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+      features(0).getDefaultGeometry must be equalTo pt1
+      features(0).getUserData.get("my.user.key") mustEqual "red"
+    }
   }
 }

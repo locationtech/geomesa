@@ -218,6 +218,8 @@ If you are using the GeoMesa ``SftBuilder``, you may call the ``withIndexes`` me
         .build("mySft")
 
 
+.. _accumulo_visibilities:
+
 Accumulo Visibilities
 ---------------------
 

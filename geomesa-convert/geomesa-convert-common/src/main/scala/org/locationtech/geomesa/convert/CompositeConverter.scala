@@ -16,10 +16,13 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
+import scala.collection.immutable.IndexedSeq
 import scala.util.Try
 
 class CompositeConverterFactory[I] extends SimpleFeatureConverterFactory[I] {
-  override def canProcess(conf: Config): Boolean = canProcessType(conf, "composite-converter")
+
+  override def canProcess(conf: Config): Boolean =
+    if (conf.hasPath("type")) conf.getString("type").equals("composite-converter") else false
 
   override def buildConverter(sft: SimpleFeatureType, conf: Config): SimpleFeatureConverter[I] = {
     val converters: Seq[(Predicate, SimpleFeatureConverter[I])] =

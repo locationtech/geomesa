@@ -26,7 +26,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
 
-import scala.collection.JavaConversions._
+import scala.collection.immutable.IndexedSeq
 import scala.io.Source
 
 class XMLConverter(val targetSFT: SimpleFeatureType,
@@ -34,6 +34,7 @@ class XMLConverter(val targetSFT: SimpleFeatureType,
                    val featurePath: Option[XPathExpression],
                    val xsd: Option[String],
                    val inputFields: IndexedSeq[Field],
+                   val userDataBuilder: Map[String, Expr],
                    val validating: Boolean,
                    val lineMode: LineMode) extends ToSimpleFeatureConverter[String] with LazyLogging {
 
@@ -71,40 +72,40 @@ class XMLConverter(val targetSFT: SimpleFeatureType,
     }
 }
 
-class XMLConverterFactory extends SimpleFeatureConverterFactory[String] {
+class XMLConverterFactory extends AbstractSimpleFeatureConverterFactory[String] {
 
   private val xpath = XPathFactory.newInstance().newXPath()
 
-  override def canProcess(conf: Config): Boolean = canProcessType(conf, "xml")
+  override protected val typeToProcess = "xml"
 
-  override def buildConverter(sft: SimpleFeatureType, conf: Config): XMLConverter = {
-    val fields    = buildFields(conf.getConfigList("fields"))
-    val idBuilder = buildIdBuilder(conf.getString("id-field"))
+  override protected def buildConverter(sft: SimpleFeatureType,
+                                        conf: Config,
+                                        idBuilder: Expr,
+                                        fields: IndexedSeq[Field],
+                                        userDataBuilder: Map[String, Expr],
+                                        validating: Boolean): XMLConverter = {
     // feature path can be any xpath that resolves to a node set (or a single node)
     // it can be absolute, or relative to the root node
     val featurePath = if (conf.hasPath("feature-path")) Some(conf.getString("feature-path")) else None
     val xsd         = if (conf.hasPath("xsd")) Some(conf.getString("xsd")) else None
     val lineMode    = LineMode.getLineMode(conf)
-    val validate    = isValidating(conf)
-    new XMLConverter(sft, idBuilder, featurePath.map(xpath.compile), xsd, fields, validate, lineMode)
+    new XMLConverter(sft, idBuilder, featurePath.map(xpath.compile), xsd, fields, userDataBuilder, validating, lineMode)
   }
 
-  override def buildFields(fields: Seq[Config]): IndexedSeq[Field] = {
-    fields.map { f =>
-      val name = f.getString("name")
-      val transform = if (f.hasPath("transform")) {
-        Transformers.parseTransform(f.getString("transform"))
-      } else {
-        null
-      }
-      if (f.hasPath("path")) {
-        // path can be absolute, or relative to the feature node
-        // it can also include xpath functions to manipulate the result
-        XMLField(name, xpath.compile(f.getString("path")), transform)
-      } else {
-        SimpleField(name, transform)
-      }
-    }.toIndexedSeq
+  override protected def buildField(field: Config): Field = {
+    val name = field.getString("name")
+    val transform = if (field.hasPath("transform")) {
+      Transformers.parseTransform(field.getString("transform"))
+    } else {
+      null
+    }
+    if (field.hasPath("path")) {
+      // path can be absolute, or relative to the feature node
+      // it can also include xpath functions to manipulate the result
+      XMLField(name, xpath.compile(field.getString("path")), transform)
+    } else {
+      SimpleField(name, transform)
+    }
   }
 }
 
