@@ -250,7 +250,7 @@ class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito wi
     val encoder = new KafkaGeoMessageEncoder(sft)
     messages.foreach(msg => mockKafka.send(encoder.encodeMessage(topic, msg)))
 
-    new ReplayKafkaConsumerFeatureSource(entry, replayType, sft, topic, consumerFactory, replayConfig)
+    new ReplayKafkaConsumerFeatureSource(entry, replayType, sft, topic, consumerFactory, replayConfig, null)
   }
 
   @tailrec

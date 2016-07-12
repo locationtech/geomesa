@@ -64,7 +64,7 @@ class KafkaDataStoreSchemaManagerTest
         zChildren.get(0) mustEqual typename
         val sPath = datastore.getSchemaPath(typename)
         val encoded = zkClient.readData[String](sPath)
-        encoded mustEqual SimpleFeatureTypes.encodeType(sft)
+        encoded mustEqual SimpleFeatureTypes.encodeType(sft, includeUserData = true)
 
         val sChildren = zkClient.getChildren(sPath)
         sChildren.size() mustEqual 1
@@ -94,7 +94,7 @@ class KafkaDataStoreSchemaManagerTest
 
         val sPath = datastore.getSchemaPath(replayTypename)
         val encoded = zkClient.readData[String](sPath)
-        encoded mustEqual SimpleFeatureTypes.encodeType(sft)
+        encoded mustEqual SimpleFeatureTypes.encodeType(sft, includeUserData = true)
 
         val sChildren = zkClient.getChildren(sPath).asScala
         sChildren.size mustEqual 2

@@ -143,20 +143,20 @@ object KafkaConsumerFeatureSourceFactory {
       Option(KafkaDataStoreFactoryParams.CLEANUP_LIVE_CACHE.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
     }
 
-    (entry: ContentEntry, schemaManager: KafkaDataStoreSchemaManager) => {
+    (entry: ContentEntry, query: Query, schemaManager: KafkaDataStoreSchemaManager) => {
       val kf = new KafkaConsumerFactory(brokers, zk)
       val fc = schemaManager.getFeatureConfig(entry.getTypeName)
 
       fc.replayConfig match {
         case None =>
-          new LiveKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, expirationPeriod, cleanUpCache)
+          new LiveKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, expirationPeriod, cleanUpCache, query)
 
         case Some(rc) =>
           val replaySFT = fc.sft
           val liveSFT = schemaManager.getLiveFeatureType(replaySFT)
             .getOrElse(throw new IllegalArgumentException(
               "Cannot create Replay FeatureSource because SFT has not been properly prepared."))
-          new ReplayKafkaConsumerFeatureSource(entry, replaySFT, liveSFT, fc.topic, kf, rc)
+          new ReplayKafkaConsumerFeatureSource(entry, replaySFT, liveSFT, fc.topic, kf, rc, query)
       }
     }
   }

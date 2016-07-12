@@ -38,7 +38,7 @@ class ReplayKafkaConsumerFeatureSource(entry: ContentEntry,
                                        topic: String,
                                        kf: KafkaConsumerFactory,
                                        replayConfig: ReplayConfig,
-                                       query: Query = null)
+                                       query: Query)
   extends KafkaConsumerFeatureSource(entry, replaySFT, query) with MethodProfiling with Closeable with LazyLogging {
 
   import TimestampFilterSplit.split
