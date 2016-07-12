@@ -17,7 +17,7 @@ object GeoMesaApiInfo extends ApiInfo(
   "The GeoMesa REST API",
   "Docs for the GeoMesa REST API",
   "http://geomesa.org",
-  "geomesa@ccri.com",
+  "geomesa-users@locationtech.org",
   "Apache License, Version 2.0",
   "http://www.apache.org/licenses")
 

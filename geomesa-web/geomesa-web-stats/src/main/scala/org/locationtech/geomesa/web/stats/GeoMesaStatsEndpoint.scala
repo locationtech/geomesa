@@ -54,13 +54,13 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
   }
 
   val getCount = (
-    apiOperation[Integer]("getCount")
-      summary "Gets an estimated count of simple features"
-      notes "Gets an estimated count of simple features from the stats table in Accumulo."
-      parameters (
-      pathParam[String]("workspace").description("GeoServer workspace."),
-      pathParam[String]("layer").description("GeoServer layer."),
-      queryParam[Option[String]]("cql_filter").description("A CQL filter to compute the count of simple features against. If omitted, the CQL filter will be Filter.INCLUDE."))
+        apiOperation[Integer]("getCount")
+        summary "Gets an estimated count of simple features"
+        notes "Gets an estimated count of simple features from the stats table in Accumulo."
+        parameters (
+        pathParam[String]("workspace").description("GeoServer workspace."),
+        pathParam[String]("layer").description("GeoServer layer."),
+        queryParam[Option[String]]("cql_filter").description("A CQL filter to compute the count of simple features against. If omitted, the CQL filter will be Filter.INCLUDE."))
     )
 
   get("/:workspace/:layer/count", operation(getCount)) {
@@ -96,13 +96,13 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
   }
 
   val getBounds = (
-    apiOperation[String]("getBounds")
-      summary "Gets the bounds of attributes"
-      notes "Gets the bounds of attributes from the stats table in Accumulo."
-      parameters (
-      pathParam[String]("workspace").description("GeoServer workspace."),
-      pathParam[String]("layer").description("GeoServer layer."),
-      queryParam[Option[String]]("attributes").description("A comma separated list of attribute names to retrieve bounds for. If omitted, all attributes will be used."))
+        apiOperation[String]("getBounds")
+        summary "Gets the bounds of attributes"
+        notes "Gets the bounds of attributes from the stats table in Accumulo."
+        parameters (
+        pathParam[String]("workspace").description("GeoServer workspace."),
+        pathParam[String]("layer").description("GeoServer layer."),
+        queryParam[Option[String]]("attributes").description("A comma separated list of attribute names to retrieve bounds for. If omitted, all attributes will be used."))
     )
 
   get("/:workspace/:layer/bounds", operation(getBounds)) {
@@ -140,14 +140,14 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
   }
 
   val getHistograms = (
-    apiOperation[String]("getHistogram")
-      summary "Gets histograms of attributes"
-      notes "Gets histograms of attributes from the stats table in Accumulo."
-      parameters (
-      pathParam[String]("workspace").description("GeoServer workspace."),
-      pathParam[String]("layer").description("GeoServer layer."),
-      queryParam[Option[String]]("attributes").description("A comma separated list of attribute names to retrieve bounds for. If omitted, all attributes will be used."),
-      queryParam[Option[Integer]]("bins").description("The number of bins the histograms will have. Defaults to 1000."))
+        apiOperation[String]("getHistogram")
+        summary "Gets histograms of attributes"
+        notes "Gets histograms of attributes from the stats table in Accumulo."
+        parameters (
+        pathParam[String]("workspace").description("GeoServer workspace."),
+        pathParam[String]("layer").description("GeoServer layer."),
+        queryParam[Option[String]]("attributes").description("A comma separated list of attribute names to retrieve bounds for. If omitted, all attributes will be used."),
+        queryParam[Option[Integer]]("bins").description("The number of bins the histograms will have. Defaults to 1000."))
     )
 
   get("/:workspace/:layer/histogram", operation(getHistograms)) {
