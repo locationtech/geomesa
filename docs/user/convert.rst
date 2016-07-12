@@ -51,6 +51,7 @@ transforming it into our ``SimpleFeatureType``.
       format       = "CSV",
       id-field     = "md5($0)",
       user-data    = {
+        // note: keys will be treated as strings and should not be quoted
         my.user.key = "$phrase"
       }
       fields = [
