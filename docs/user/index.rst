@@ -14,6 +14,7 @@ User Manual
    cassandra_datastore
    modules
    geoserver
+   spark
    commandline_tools
    data_management
    examples
