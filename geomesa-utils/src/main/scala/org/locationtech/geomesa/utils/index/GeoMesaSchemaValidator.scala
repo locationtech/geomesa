@@ -35,13 +35,10 @@ object ReservedWordCheck extends LazyLogging {
   def validateAttributeNames(sft: SimpleFeatureType): Unit = {
     val reservedWords = FeatureUtils.sftReservedWords(sft)
     if (reservedWords.nonEmpty) {
-      // TODO:  Make this an exception after GeoMesa 1.2.2
-      logger.warn(
-        "The simple feature type contains one or more attributes whose names are reserved words:  " +
-          reservedWords.mkString(", "))
+      throw new IllegalArgumentException("The simple feature type contains attribute name(s) that are " +
+          s"reserved words: ${reservedWords.mkString(", ")}")
     }
   }
-
 }
 
 /**
