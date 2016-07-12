@@ -179,6 +179,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
   }
 
   "GeoMesa" should {
+    "support backward compatibility to 1.1.0-rc.6" >> { testVersion("1.1.0-rc.6") }
     "support backward compatibility to 1.1.0-rc.7" >> { testVersion("1.1.0-rc.7") }
     "support backward compatibility to 1.2.0" >> { testVersion("1.2.0") }
     "support backward compatibility to 1.2.1" >> { testVersion("1.2.1") }
