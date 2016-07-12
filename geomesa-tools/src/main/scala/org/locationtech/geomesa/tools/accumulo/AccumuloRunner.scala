@@ -18,6 +18,7 @@ object AccumuloRunner extends Runner {
   override val commands: List[Command] = List(
     new CreateCommand(jc),
     new DeleteCatalogCommand(jc),
+    new DeleteFeaturesCommand(jc),
     new DeleteRasterCommand(jc),
     new DescribeCommand(jc),
     new EnvironmentCommand(jc),
