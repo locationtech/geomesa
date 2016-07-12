@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.filter.function
 
 import java.io.OutputStream
-import java.util.Date
+import java.util.{Collections, Date}
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Geometry, LineString, Point}
@@ -28,30 +28,30 @@ object BinaryOutputEncoder extends LazyLogging {
 
   case class ValuesToEncode(lat: Float, lon: Float, dtg: Long, track: String, label: Option[Long])
 
+  case class EncodingOptions(dtgField: String,
+                             trackIdField: Option[String],
+                             labelField: Option[String] = None,
+                             latLon: Option[(String, String)] = None,
+                             axisOrder: AxisOrder = LatLon)
+
+  val CollectionEncodingOptions = Collections.synchronizedMap(new java.util.HashMap[String, EncodingOptions])
+
   implicit val ordering = new Ordering[ValuesToEncode]() {
     override def compare(x: ValuesToEncode, y: ValuesToEncode) = x.dtg.compareTo(y.dtg)
   }
 
   /**
-   * Encodes a feature collection to bin format. Features are written to the output stream.
-   *
-   * @param fc
-   * @param output
-   * @param dtgField
-   * @param trackIdField
-   * @param labelField
-   * @param latLon
-   * @param axisOrder
-   * @param sort
-   */
+    * Encodes a feature collection to bin format. Features are written to the output stream.
+    *
+    * @param fc feature collection to encode
+    * @param output output stream to write to
+    * @param options fields, etc to encode
+    * @param sort sort results before returning
+    */
   def encodeFeatureCollection(
       fc: SimpleFeatureCollection,
       output: OutputStream,
-      dtgField: String,
-      trackIdField: Option[String],
-      labelField: Option[String] = None,
-      latLon: Option[(String, String)] = None,
-      axisOrder: AxisOrder = LatLon,
+      options: EncodingOptions,
       sort: Boolean = false): Unit = {
 
     val sft = fc.getSchema
@@ -59,12 +59,12 @@ object BinaryOutputEncoder extends LazyLogging {
     val isLineString = !isPoint && sft.getGeometryDescriptor.getType.getBinding == classOf[LineString]
 
     // validate our input data
-    validateDateAttribute(dtgField, sft, isLineString)
-    validateLabels(trackIdField, labelField, sft)
-    validateLatLong(latLon, sft)
+    validateDateAttribute(options.dtgField, sft, isLineString)
+    validateLabels(options.trackIdField, options.labelField, sft)
+    validateLatLong(options.latLon, sft)
 
     val sysTime = System.currentTimeMillis
-    val dtgIndex = sft.indexOf(dtgField)
+    val dtgIndex = sft.indexOf(options.dtgField)
 
     // get date function based
     val getDtg: (SimpleFeature) => Long = (f) => {
@@ -79,7 +79,7 @@ object BinaryOutputEncoder extends LazyLogging {
 
     // get lat/lon as floats
     val getLatLon: (SimpleFeature) => (Float, Float) =
-      latLon.map { case (lat, lon) =>
+      options.latLon.map { case (lat, lon) =>
         // if requested, export arbitrary fields as lat/lon
         val latIndex = sft.indexOf(lat)
         val lonIndex = sft.indexOf(lon)
@@ -97,7 +97,7 @@ object BinaryOutputEncoder extends LazyLogging {
       }.getOrElse {
         // default is to use the geometry
         // depending on srs requested and wfs versions, axis order can be flipped
-        axisOrder match {
+        options.axisOrder match {
           case LatLon =>
             if (isPoint) {
               (f) => pointToXY(f.getDefaultGeometry.asInstanceOf[Point])
@@ -114,7 +114,7 @@ object BinaryOutputEncoder extends LazyLogging {
       }
     // for linestrings, we return each point - use an array so we get constant-time lookup
     // depending on srs requested and wfs versions, axis order can be flipped
-    val getLineLatLon: (SimpleFeature) => Array[(Float, Float)] = axisOrder match {
+    val getLineLatLon: (SimpleFeature) => Array[(Float, Float)] = options.axisOrder match {
       case LatLon => (f) => {
         val geom = f.getDefaultGeometry.asInstanceOf[LineString]
         val points = (0 until geom.getNumPoints).map(geom.getPointN)
@@ -128,7 +128,7 @@ object BinaryOutputEncoder extends LazyLogging {
     }
 
     // gets the track id from a feature
-    val getTrackId: (SimpleFeature) => String = trackIdField match {
+    val getTrackId: (SimpleFeature) => String = options.trackIdField match {
       case Some(trackId) if trackId == "id" =>
         (f) => f.getID
 
@@ -144,7 +144,7 @@ object BinaryOutputEncoder extends LazyLogging {
     }
 
     // gets the label from a feature
-    val getLabel: (SimpleFeature) => Option[Long] = labelField match {
+    val getLabel: (SimpleFeature) => Option[Long] = options.labelField match {
       case Some(label) =>
         val labelIndex = sft.indexOf(label)
         (f) => Option(f.getAttribute(labelIndex).asInstanceOf[Long])
@@ -153,7 +153,7 @@ object BinaryOutputEncoder extends LazyLogging {
     }
 
     // encodes the values in either 16 or 24 bytes
-    val encode: (ValuesToEncode) => Unit = labelField match {
+    val encode: (ValuesToEncode) => Unit = options.labelField match {
       case Some(label) => (v) => {
         val toEncode = ExtendedValues(v.lat, v.lon, v.dtg, v.track, v.label.getOrElse(-1))
         Convert2ViewerFunction.encode(toEncode, output)
