@@ -8,8 +8,7 @@
 
 package org.locationtech.geomesa.features
 
-import java.util
-import java.util.{Collection => JCollection, List => JList}
+import java.util.{Collections, Collection => JCollection, List => JList}
 
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.feature.`type`.{AttributeDescriptorImpl, Types}
@@ -85,7 +84,7 @@ class ScalaSimpleFeature(initialId: String, sft: SimpleFeatureType, initialValue
   }
 
   override def getAttributeCount = values.length
-  override def getAttributes: JList[Object] = values.toList
+  override def getAttributes: JList[Object] = Collections.unmodifiableList(java.util.Arrays.asList(values: _*))
 
   override def getDefaultGeometry: Object = if (geomIndex == -1) null else getAttribute(geomIndex)
   override def setDefaultGeometry(geo: Object) = setAttribute(geomIndex, geo)
@@ -104,7 +103,7 @@ class ScalaSimpleFeature(initialId: String, sft: SimpleFeatureType, initialValue
     val attributes = getAttributes
     val descriptors = sft.getAttributeDescriptors
     assert(attributes.size == descriptors.size)
-    val properties = new util.ArrayList[Property](attributes.size)
+    val properties = new java.util.ArrayList[Property](attributes.size)
     var i = 0
     while (i < attributes.size) {
       properties.add(new AttributeImpl(attributes.get(i), descriptors.get(i), featureId))
@@ -161,7 +160,11 @@ object ScalaSimpleFeature {
    */
   def create(sft: SimpleFeatureType, id: String, values: Any*): SimpleFeature = {
     val sf = new ScalaSimpleFeature(id, sft)
-    values.zipWithIndex.foreach { case (v, i) => sf.setAttribute(i, v.asInstanceOf[AnyRef]) }
+    var i = 0
+    while (i < values.length) {
+      sf.setAttribute(i, values(i).asInstanceOf[AnyRef])
+      i += 1
+    }
     sf
   }
 
