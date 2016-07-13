@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.compute.spark
 
 import java.text.SimpleDateFormat
+import java.util.concurrent.ConcurrentHashMap
 
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.io.{Input, Output}
@@ -58,6 +59,7 @@ object GeoMesaSpark extends LazyLogging {
     }
 
     conf.set("spark.executor.extraJavaOptions", newOpts)
+    // These configurations can be set in spark-defaults.conf
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     conf.set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
   }
@@ -65,6 +67,10 @@ object GeoMesaSpark extends LazyLogging {
   def typeProp(typeName: String) = s"geomesa.types.$typeName"
 
   def jOpt(typeName: String, spec: String) = s"-D${typeProp(typeName)}=$spec"
+
+  def register(ds: DataStore): Unit = register(ds.getTypeNames.map(ds.getSchema))
+
+  def register(sfts: Seq[SimpleFeatureType]): Unit = sfts.foreach { GeoMesaSparkKryoRegistrator.putTypeIfAbsent }
 
   def rdd(conf: Configuration,
           sc: SparkContext,
@@ -186,27 +192,20 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator {
 
   override def registerClasses(kryo: Kryo): Unit = {
     val serializer = new com.esotericsoftware.kryo.Serializer[SimpleFeature]() {
-      val typeCache = CacheBuilder.newBuilder().build(
-        new CacheLoader[String, SimpleFeatureType] {
-          override def load(key: String): SimpleFeatureType = {
-            val spec = System.getProperty(GeoMesaSpark.typeProp(key))
-            if (spec == null) throw new IllegalArgumentException(s"Couldn't find property geomesa.types.$key")
-            SimpleFeatureTypes.createType(key, spec)
-          }
-        })
 
       val serializerCache = CacheBuilder.newBuilder().build(
         new CacheLoader[String, SimpleFeatureSerializer] {
-          override def load(key: String): SimpleFeatureSerializer = new SimpleFeatureSerializer(typeCache.get(key))
+          override def load(key: String): SimpleFeatureSerializer = new SimpleFeatureSerializer(GeoMesaSparkKryoRegistrator.getType(key))
         })
 
       override def write(kryo: Kryo, out: Output, feature: SimpleFeature): Unit = {
         val typeName = feature.getFeatureType.getTypeName
+        GeoMesaSparkKryoRegistrator.putTypeIfAbsent(feature.getFeatureType)
         out.writeString(typeName)
         serializerCache.get(typeName).write(kryo, out, feature)
       }
 
-      override def read(kry: Kryo, in: Input, clazz: Class[SimpleFeature]): SimpleFeature = {
+      override def read(kryo: Kryo, in: Input, clazz: Class[SimpleFeature]): SimpleFeature = {
         val typeName = in.readString()
         serializerCache.get(typeName).read(kryo, in, clazz)
       }
@@ -214,5 +213,30 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator {
 
     kryo.setReferences(false)
     SimpleFeatureSerializers.simpleFeatureImpls.foreach(kryo.register(_, serializer, kryo.getNextRegistrationId))
+  }
+}
+
+object GeoMesaSparkKryoRegistrator {
+  val typeCache: ConcurrentHashMap[String, SimpleFeatureType] = new ConcurrentHashMap[String, SimpleFeatureType]()
+
+  def putType(sft: SimpleFeatureType): Unit = {
+    GeoMesaSparkKryoRegistrator.typeCache.put(sft.getTypeName, sft)
+  }
+
+  def putTypeIfAbsent(sft: SimpleFeatureType): Unit = {
+    GeoMesaSparkKryoRegistrator.typeCache.putIfAbsent(sft.getTypeName, sft)
+  }
+
+  def getType(typeName: String): SimpleFeatureType = {
+    val spec = System.getProperty(GeoMesaSpark.typeProp(typeName))
+    if (spec == null) {
+      GeoMesaSparkKryoRegistrator.typeCache.get(typeName)
+    } else {
+      SimpleFeatureTypes.createType(typeName, spec)
+    }
+  }
+
+  def replaceType(sft: SimpleFeatureType): Unit = {
+    GeoMesaSparkKryoRegistrator.typeCache.replace(sft.getTypeName, sft)
   }
 }
