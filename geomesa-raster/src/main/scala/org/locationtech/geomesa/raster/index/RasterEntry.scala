@@ -16,17 +16,16 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
+import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatureSerializer}
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.data.Raster
 import org.opengis.feature.simple.SimpleFeature
 
 object RasterEntry {
 
-  val encoder = new ThreadLocal[IndexValueEncoder] {
-    override def initialValue(): IndexValueEncoder = IndexValueEncoder(rasterSft)
+  val encoder = new ThreadLocal[SimpleFeatureSerializer] {
+    override def initialValue(): SimpleFeatureSerializer = IndexValueEncoder(rasterSft)
   }
 
   def encodeIndexCQMetadata(metadata: DecodedIndexValue): Array[Byte] = {
@@ -38,13 +37,13 @@ object RasterEntry {
     encodeIndexCQMetadata(metadata)
   }
 
-  def encodeIndexCQMetadata(sf: SimpleFeature): Array[Byte] = encoder.get.encode(sf)
+  def encodeIndexCQMetadata(sf: SimpleFeature): Array[Byte] = encoder.get.serialize(sf)
 
   def decodeIndexCQMetadata(k: Key): DecodedIndexValue = {
     decodeIndexCQMetadata(k.getColumnQualifierData.toArray)
   }
 
-  def decodeIndexCQMetadataToSf(cq: Array[Byte]): SimpleFeature = encoder.get.decode(cq)
+  def decodeIndexCQMetadataToSf(cq: Array[Byte]): SimpleFeature = encoder.get.deserialize(cq)
 
   def decodeIndexCQMetadata(cq: Array[Byte]): DecodedIndexValue = {
     val sf = decodeIndexCQMetadataToSf(cq)

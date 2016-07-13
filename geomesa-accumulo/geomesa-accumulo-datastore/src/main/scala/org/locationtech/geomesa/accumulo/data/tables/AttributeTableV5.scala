@@ -15,7 +15,7 @@ import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.conf.Property
 import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
+import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToMutations
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -42,7 +42,7 @@ object AttributeTableV5 extends GeoMesaTable with LazyLogging {
     val indexesOfIndexedAttributes = indexedAttributes.map { a => sft.indexOf(a.getName) }
     val attributesToIdx = indexedAttributes.zip(indexesOfIndexedAttributes)
     val rowIdPrefix = sft.getTableSharingPrefix
-    (toWrite: FeatureToWrite) => getAttributeIndexMutations(toWrite, attributesToIdx, rowIdPrefix)
+    (toWrite: WritableFeature) => getAttributeIndexMutations(toWrite, attributesToIdx, rowIdPrefix)
   }
 
   override def remover(sft: SimpleFeatureType): FeatureToMutations = {
@@ -50,10 +50,10 @@ object AttributeTableV5 extends GeoMesaTable with LazyLogging {
     val indexesOfIndexedAttributes = indexedAttributes.map { a => sft.indexOf(a.getName)}
     val attributesToIdx = indexedAttributes.zip(indexesOfIndexedAttributes)
     val rowIdPrefix = sft.getTableSharingPrefix
-    (toWrite: FeatureToWrite) => getAttributeIndexMutations(toWrite, attributesToIdx, rowIdPrefix, delete = true)
+    (toWrite: WritableFeature) => getAttributeIndexMutations(toWrite, attributesToIdx, rowIdPrefix, delete = true)
   }
 
-  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = ???
+  override def getIdFromRow(sft: SimpleFeatureType): (Text) => String = ???
 
   private val NULLBYTE = "\u0000"
 
@@ -66,7 +66,7 @@ object AttributeTableV5 extends GeoMesaTable with LazyLogging {
    * @param delete whether we are writing or deleting
    * @return
    */
-  def getAttributeIndexMutations(toWrite: FeatureToWrite,
+  def getAttributeIndexMutations(toWrite: WritableFeature,
                                  indexedAttributes: Seq[(AttributeDescriptor, Int)],
                                  rowIdPrefix: String,
                                  delete: Boolean = false): Seq[Mutation] = {
@@ -75,13 +75,13 @@ object AttributeTableV5 extends GeoMesaTable with LazyLogging {
       val attribute = toWrite.feature.getAttribute(idx)
       val mutations = getAttributeIndexRows(rowIdPrefix, descriptor, attribute).map(new Mutation(_))
       if (delete) {
-        mutations.foreach(_.putDelete(EMPTY_COLF, cq, toWrite.columnVisibility))
+        mutations.foreach(_.putDelete(EMPTY_COLF, cq, toWrite.indexValues.head.vis))
       } else {
         val value = descriptor.getIndexCoverage() match {
-          case IndexCoverage.FULL => toWrite.dataValue
-          case IndexCoverage.JOIN => toWrite.indexValue
+          case IndexCoverage.FULL => toWrite.fullValues.head
+          case IndexCoverage.JOIN => toWrite.indexValues.head
         }
-        mutations.foreach(_.put(EMPTY_COLF, cq, toWrite.columnVisibility, value))
+        mutations.foreach(_.put(EMPTY_COLF, cq, value.vis, value.value))
       }
       mutations
     }

@@ -33,6 +33,7 @@ object GeoMesaConfigurator {
 
   private val filterKey        = s"$prefix.filter"
   private val sftKey           = s"$prefix.sft"
+  private val tableKey         = s"$prefix.table"
   private val transformsKey    = s"$prefix.transforms.schema"
   private val transformNameKey = s"$prefix.transforms.name"
   private val sftKeyOut        = s"$prefix.out.sft"
@@ -69,6 +70,11 @@ object GeoMesaConfigurator {
     conf.set(sftKeyOut, featureType)
   def getFeatureTypeOut(job: Job): String = getFeatureType(job.getConfiguration)
   def getFeatureTypeOut(conf: Configuration): String = conf.get(sftKeyOut)
+
+  def setTable(conf: Configuration, featureType: String): Unit =
+    conf.set(tableKey, featureType)
+  def getTable(job: Job): String = getTable(job.getConfiguration)
+  def getTable(conf: Configuration): String = conf.get(tableKey)
 
   /**
    * Configure the number of desired splits. This should be called with the final intended

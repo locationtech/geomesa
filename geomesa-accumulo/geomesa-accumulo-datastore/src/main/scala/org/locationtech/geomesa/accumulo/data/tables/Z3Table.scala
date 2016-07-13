@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.accumulo.data.tables
 
+import java.nio.charset.StandardCharsets
 import java.util.Date
 
-import com.google.common.base.Charsets
 import com.google.common.collect.{ImmutableSet, ImmutableSortedSet}
 import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.vividsolutions.jts.geom._
@@ -20,13 +20,11 @@ import org.apache.accumulo.core.conf.Property
 import org.apache.accumulo.core.data.{Mutation, Value, Range => aRange}
 import org.apache.hadoop.io.Text
 import org.joda.time.{DateTime, DateTimeZone, Seconds, Weeks}
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
-import org.locationtech.geomesa.accumulo.data.EMPTY_TEXT
+import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToMutations
+import org.locationtech.geomesa.accumulo.data.{EMPTY_TEXT, WritableFeature}
 import org.locationtech.geomesa.curve.Z3SFC
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.sfcurve.zorder.Z3
 import org.locationtech.sfcurve.zorder.Z3.ZPrefix
 import org.opengis.feature.simple.SimpleFeatureType
@@ -65,53 +63,53 @@ object Z3Table extends GeoMesaTable {
 
   override def writer(sft: SimpleFeatureType): FeatureToMutations = {
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new RuntimeException("Z3 writer requires a valid date"))
-    val getRowKeys: (FeatureToWrite, Int) => Seq[Array[Byte]] =
+    val getRowKeys: (WritableFeature, Int) => Seq[Array[Byte]] = {
       if (sft.isPoints) {
         if (hasSplits(sft)) {
           getPointRowKey
         } else {
-          (ftw, i) => getPointRowKey(ftw, i).map(_.drop(1))
+          (wf, i) => getPointRowKey(wf, i).map(_.drop(1))
         }
       } else {
         getGeomRowKeys
       }
-    val getValue: (FeatureToWrite) => Value = if (sft.getSchemaVersion > 5) {
-      // we know the data is kryo serialized in version 6+
-      (fw) => fw.dataValue
-    } else {
-      // we always want to use kryo - reserialize the value to ensure it
-      val writer = new KryoFeatureSerializer(sft)
-      (fw) => new Value(writer.serialize(fw.feature))
     }
-    sft.getVisibilityLevel match {
-      case VisibilityLevel.Feature =>
-        (fw: FeatureToWrite) => {
-          val rows = getRowKeys(fw, dtgIndex)
-          // store the duplication factor in the column qualifier for later use
-          val cq = if (rows.length > 1) new Text(Integer.toHexString(rows.length)) else EMPTY_TEXT
-          rows.map { row =>
-            val mutation = new Mutation(row)
-            mutation.put(FULL_CF, cq, fw.columnVisibility, getValue(fw))
-            fw.binValue.foreach(v => mutation.put(BIN_CF, cq, fw.columnVisibility, v))
-            mutation
-          }
+    if (sft.getSchemaVersion < 9) {
+      (wf: WritableFeature) => {
+        val rows = getRowKeys(wf, dtgIndex)
+        // store the duplication factor in the column qualifier for later use
+        val cq = if (rows.length > 1) new Text(Integer.toHexString(rows.length)) else EMPTY_TEXT
+        rows.map { row =>
+          val mutation = new Mutation(row)
+          wf.fullValues.foreach(value => mutation.put(FULL_CF, cq, value.vis, value.value))
+          wf.binValues.foreach(value => mutation.put(BIN_CF, cq, value.vis, value.value))
+          mutation
         }
-      case VisibilityLevel.Attribute =>
-        (fw: FeatureToWrite) => {
-          val rows = getRowKeys(fw, dtgIndex)
-          // TODO GEOMESA-1254 duplication factor, bin values
-          rows.map { row =>
-            val mutation = new Mutation(row)
-            fw.perAttributeValues.foreach(key => mutation.put(key.cf, key.cq, key.vis, key.value))
-            mutation
+      }
+    } else {
+      (wf: WritableFeature) => {
+        val rows = getRowKeys(wf, dtgIndex)
+        // store the duplication factor in the column qualifier for later use
+        val duplication = Integer.toHexString(rows.length)
+        rows.map { row =>
+          val mutation = new Mutation(row)
+          wf.fullValues.foreach { value =>
+            val cq = new Text(s"$duplication,${value.cq.toString}")
+            mutation.put(value.cf, cq, value.vis, value.value)
           }
+          wf.binValues.foreach { value =>
+            val cq = new Text(s"$duplication,${value.cq.toString}")
+            mutation.put(value.cf, cq, value.vis, value.value)
+          }
+          mutation
         }
+      }
     }
   }
 
   override def remover(sft: SimpleFeatureType): FeatureToMutations = {
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new RuntimeException("Z3 writer requires a valid date"))
-    val getRowKeys: (FeatureToWrite, Int) => Seq[Array[Byte]] =
+    val getRowKeys: (WritableFeature, Int) => Seq[Array[Byte]] = {
       if (sft.isPoints) {
         if (hasSplits(sft)) {
           getPointRowKey
@@ -121,34 +119,41 @@ object Z3Table extends GeoMesaTable {
       } else {
         getGeomRowKeys
       }
-    sft.getVisibilityLevel match {
-      case VisibilityLevel.Feature =>
-        (fw: FeatureToWrite) => {
-          val rows = getRowKeys(fw, dtgIndex)
-          val cq = if (rows.length > 1) new Text(Integer.toHexString(rows.length)) else EMPTY_TEXT
-          rows.map { row =>
-            val mutation = new Mutation(row)
-            mutation.putDelete(BIN_CF, cq, fw.columnVisibility)
-            mutation.putDelete(FULL_CF, cq, fw.columnVisibility)
-            mutation
-          }
+    }
+    if (sft.getSchemaVersion < 9) {
+      (wf: WritableFeature) => {
+        val rows = getRowKeys(wf, dtgIndex)
+        val cq = if (rows.length > 1) new Text(Integer.toHexString(rows.length)) else EMPTY_TEXT
+        rows.map { row =>
+          val mutation = new Mutation(row)
+          wf.fullValues.foreach(value => mutation.putDelete(FULL_CF, cq, value.vis))
+          wf.binValues.foreach(value => mutation.putDelete(BIN_CF, cq, value.vis))
+          mutation
         }
-      case VisibilityLevel.Attribute =>
-        (fw: FeatureToWrite) => {
-          val rows = getRowKeys(fw, dtgIndex)
-          // TODO duplication factor, bin values
-          rows.map { row =>
-            val mutation = new Mutation(row)
-            fw.perAttributeValues.foreach(key => mutation.putDelete(key.cf, key.cq, key.vis))
-            mutation
+      }
+    } else {
+      (wf: WritableFeature) => {
+        val rows = getRowKeys(wf, dtgIndex)
+        val duplication = Integer.toHexString(rows.length)
+        rows.map { row =>
+          val mutation = new Mutation(row)
+          wf.fullValues.foreach { value =>
+            val cq = new Text(s"$duplication,${value.cq.toString}")
+            mutation.putDelete(value.cf, cq, value.vis)
           }
+          wf.binValues.foreach { value =>
+            val cq = new Text(s"$duplication,${value.cq.toString}")
+            mutation.putDelete(value.cf, cq, value.vis)
+          }
+          mutation
         }
+      }
     }
   }
 
-  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = {
+  override def getIdFromRow(sft: SimpleFeatureType): (Text) => String = {
     val offset = getIdRowOffset(sft)
-    (row: Array[Byte]) => new String(row, offset, row.length - offset, Charsets.UTF_8)
+    (row: Text) => new String(row.getBytes, offset, row.getLength - offset, StandardCharsets.UTF_8)
   }
 
   override def deleteFeaturesForType(sft: SimpleFeatureType, bd: BatchDeleter): Unit = {
@@ -170,30 +175,30 @@ object Z3Table extends GeoMesaTable {
   def getWeekAndSeconds(time: Long): (Short, Int) = getWeekAndSeconds(new DateTime(time, DateTimeZone.UTC))
 
   // split(1 byte), week(2 bytes), z value (8 bytes), id (n bytes)
-  private def getPointRowKey(ftw: FeatureToWrite, dtgIndex: Int): Seq[Array[Byte]] = {
-    val split = SPLIT_ARRAYS(ftw.idHash % NUM_SPLITS)
+  private def getPointRowKey(wf: WritableFeature, dtgIndex: Int): Seq[Array[Byte]] = {
+    val split = SPLIT_ARRAYS(wf.idHash % NUM_SPLITS)
     val (week, z) = {
-      val dtg = ftw.feature.getAttribute(dtgIndex).asInstanceOf[Date]
+      val dtg = wf.feature.getAttribute(dtgIndex).asInstanceOf[Date]
       val time = if (dtg == null) 0 else dtg.getTime
       val (w, t) = getWeekAndSeconds(time)
-      val geom = ftw.feature.point
+      val geom = wf.feature.point
       (w, Z3SFC.index(geom.getX, geom.getY, t).z)
     }
-    val id = ftw.feature.getID.getBytes(Charsets.UTF_8)
+    val id = wf.feature.getID.getBytes(StandardCharsets.UTF_8)
     Seq(Bytes.concat(split, Shorts.toByteArray(week), Longs.toByteArray(z), id))
   }
 
   // split(1 byte), week (2 bytes), z value (3 bytes), id (n bytes)
-  private def getGeomRowKeys(ftw: FeatureToWrite, dtgIndex: Int): Seq[Array[Byte]] = {
-    val split = SPLIT_ARRAYS(ftw.idHash % NUM_SPLITS)
+  private def getGeomRowKeys(wf: WritableFeature, dtgIndex: Int): Seq[Array[Byte]] = {
+    val split = SPLIT_ARRAYS(wf.idHash % NUM_SPLITS)
     val (week, zs) = {
-      val dtg = ftw.feature.getAttribute(dtgIndex).asInstanceOf[Date]
+      val dtg = wf.feature.getAttribute(dtgIndex).asInstanceOf[Date]
       val time = if (dtg == null) 0 else dtg.getTime
       val (w, t) = getWeekAndSeconds(time)
-      val geom = ftw.feature.getDefaultGeometry.asInstanceOf[Geometry]
+      val geom = wf.feature.getDefaultGeometry.asInstanceOf[Geometry]
       (Shorts.toByteArray(w), zBox(geom, t).toSeq)
     }
-    val id = ftw.feature.getID.getBytes(Charsets.UTF_8)
+    val id = wf.feature.getID.getBytes(StandardCharsets.UTF_8)
     zs.map(z => Bytes.concat(split, week, Longs.toByteArray(z).take(GEOM_Z_NUM_BYTES), id))
   }
 

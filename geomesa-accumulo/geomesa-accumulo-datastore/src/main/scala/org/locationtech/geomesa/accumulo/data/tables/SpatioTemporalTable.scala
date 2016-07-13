@@ -16,7 +16,8 @@ import org.apache.accumulo.core.data
 import org.apache.accumulo.core.data.Key
 import org.apache.accumulo.core.file.keyfunctor.ColumnFamilyFunctor
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
+import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToMutations
+import org.locationtech.geomesa.accumulo.data.WritableFeature
 import org.locationtech.geomesa.accumulo.index.{IndexSchema, _}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
@@ -38,15 +39,15 @@ object SpatioTemporalTable extends GeoMesaTable with LazyLogging {
 
   override def writer(sft: SimpleFeatureType): FeatureToMutations = {
     val stEncoder = IndexSchema.buildKeyEncoder(sft, sft.getStIndexSchema)
-    (toWrite: FeatureToWrite) => stEncoder.encode(toWrite)
+    (toWrite: WritableFeature) => stEncoder.encode(toWrite)
   }
 
   override def remover(sft: SimpleFeatureType): FeatureToMutations = {
     val stEncoder = IndexSchema.buildKeyEncoder(sft, sft.getStIndexSchema)
-    (toWrite: FeatureToWrite) => stEncoder.encode(toWrite, delete = true)
+    (toWrite: WritableFeature) => stEncoder.encode(toWrite, delete = true)
   }
 
-  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = ???
+  override def getIdFromRow(sft: SimpleFeatureType): (Text) => String = throw new NotImplementedError
 
   // index rows have an index flag as part of the schema
   def isIndexEntry(key: Key): Boolean = key.getRow.find(INDEX_CHECK) != -1

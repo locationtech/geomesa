@@ -31,7 +31,7 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeExample
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
@@ -434,7 +434,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       // ensure that the second part of the UUID is random
       rowKeys.map(_.substring(19)).toSet must haveLength(5)
 
-      val ids = rows.map(e => serializer.deserialize(e.getValue.get).getID)
+      val ids = rows.map(e => RecordTable.getIdFromRow(sft)(e.getKey.getRow))
       ids must haveLength(5)
       forall(ids)(_ must not(beMatching("fid\\d")))
       // ensure they share a common prefix, since they have the same dtg/geom

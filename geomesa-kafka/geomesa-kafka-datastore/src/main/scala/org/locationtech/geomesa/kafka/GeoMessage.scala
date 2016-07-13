@@ -15,7 +15,6 @@ import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.Instant
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.features.{SimpleFeatureDeserializer, SimpleFeatureSerializer}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 sealed trait GeoMessage {

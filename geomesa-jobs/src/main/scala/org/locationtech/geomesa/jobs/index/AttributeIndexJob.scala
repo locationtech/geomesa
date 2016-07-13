@@ -17,7 +17,6 @@ import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce.{Counter, Job, Mapper}
 import org.apache.hadoop.util.{Tool, ToolRunner}
 import org.geotools.data.{DataStoreFinder, Query}
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToWrite
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.data.tables.{AttributeTable, AttributeTableV5}
 import org.locationtech.geomesa.accumulo.index._
@@ -132,7 +131,7 @@ class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
   private var writer: AccumuloFeatureWriter.FeatureToMutations = null
   private var visibilities: String = null
   private var featureEncoder: SimpleFeatureSerializer = null
-  private var indexValueEncoder: IndexValueEncoder = null
+  private var indexValueEncoder: SimpleFeatureSerializer = null
   private var binEncoder: Option[BinEncoder] = null
 
   override protected def setup(context: Context): Unit = {
@@ -162,7 +161,7 @@ class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
   }
 
   override def map(key: Text, value: SimpleFeature, context: Context) {
-    val mutations = writer(new FeatureToWrite(value, visibilities, featureEncoder, indexValueEncoder, binEncoder))
+    val mutations = writer(WritableFeature(value, value.getFeatureType, visibilities, featureEncoder, indexValueEncoder, binEncoder))
     mutations.foreach(context.write(null: Text, _)) // default table name is set already
     counter.increment(mutations.length)
   }

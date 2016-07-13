@@ -16,6 +16,8 @@ import org.geotools.data.Query
 import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.data.tables.RecordTable
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType, SimpleFeatureSerializers}
 import org.locationtech.geomesa.security._
 import org.opengis.filter.sort.SortBy
@@ -65,15 +67,15 @@ class QueryPlannerTest extends Specification with Mockito with TestWithDataStore
       val visibilities = Array("", "USER", "ADMIN")
       val expectedVis = visibilities.map(vis => if (vis.isEmpty) None else Some(vis))
 
-      val serializer = SimpleFeatureSerializers(sft, SerializationType.KRYO)
+      val serializer = SimpleFeatureSerializers(sft, SerializationType.KRYO, SerializationOptions.withoutId)
 
       val value = new Value(serializer.serialize(sf))
-      val kvs =  visibilities.zipWithIndex.map { case (vis, ndx) =>
+      val kvs = visibilities.zipWithIndex.map { case (vis, ndx) =>
         val key = new Key(new Text(ndx.toString), new Text("cf"), new Text("cq"), new Text(vis))
         new SimpleEntry[Key, Value](key, value)
       }
 
-      val expectedResult = kvs.map(planner.defaultKVsToFeatures(query.getHints)).map(_.visibility)
+      val expectedResult = kvs.map(planner.kvsToFeatures(sft, sft, RecordTable)).map(_.visibility)
 
       expectedResult must haveSize(kvs.length)
       expectedResult mustEqual expectedVis

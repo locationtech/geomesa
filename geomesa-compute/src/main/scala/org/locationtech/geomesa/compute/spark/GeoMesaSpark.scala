@@ -123,6 +123,7 @@ object GeoMesaSpark extends LazyLogging {
       InputConfigurator.setAutoAdjustRanges(classOf[GeoMesaInputFormat], conf, false)
     }
     GeoMesaConfigurator.setSerialization(conf)
+    GeoMesaConfigurator.setTable(conf, qp.table)
     GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)
     GeoMesaConfigurator.setFeatureType(conf, typeName)
     if (query.getFilter != Filter.INCLUDE) {

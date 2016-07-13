@@ -26,18 +26,5 @@ trait HasEncodingOptions {
  */
 trait SimpleFeatureSerializer extends HasEncodingOptions {
   def serialize(feature: SimpleFeature): Array[Byte]
-  def serialize(i: Int, value: AnyRef): Array[Byte]
-}
-
-/**
- * Interface to read SimpleFeatures with a configurable serialization format.
- *
- * A SimpleFeatureDecoder is bound to a given SimpleFeatureType since serialization
- * may depend upon the schema of the feature type.
- *
- * SimpleFeatureDecoder classes may not be thread safe and should generally be used
- * as instance variables for performance reasons.
- */
-trait SimpleFeatureDeserializer extends HasEncodingOptions {
   def deserialize(bytes: Array[Byte]): SimpleFeature
 }

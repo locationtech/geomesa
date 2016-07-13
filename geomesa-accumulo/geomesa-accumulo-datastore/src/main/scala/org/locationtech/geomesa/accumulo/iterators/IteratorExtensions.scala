@@ -69,7 +69,7 @@ trait HasVersion extends IteratorExtensions {
 trait HasIndexValueDecoder extends HasVersion {
 
   var indexSft: SimpleFeatureType = null
-  var indexEncoder: IndexValueEncoder = null
+  var indexEncoder: SimpleFeatureSerializer = null
 
   // index value encoder/decoder
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
@@ -87,7 +87,7 @@ trait HasIndexValueDecoder extends HasVersion {
  */
 trait HasFeatureDecoder extends IteratorExtensions {
 
-  var featureDecoder: SimpleFeatureDeserializer = null
+  var featureDecoder: SimpleFeatureSerializer = null
   var featureEncoder: SimpleFeatureSerializer = null
   val defaultEncoding = org.locationtech.geomesa.accumulo.data.DEFAULT_ENCODING
 

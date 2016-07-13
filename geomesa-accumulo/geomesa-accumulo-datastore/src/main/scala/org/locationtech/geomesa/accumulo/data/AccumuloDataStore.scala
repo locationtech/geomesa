@@ -28,7 +28,9 @@ import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyTyp
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.util.{DistributedLocking, GeoMesaBatchWriterConfig, Releasable}
 import org.locationtech.geomesa.accumulo.{AccumuloVersion, GeomesaSystemProperties}
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.SerializationType.SerializationType
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializers}
 import org.locationtech.geomesa.security.{AuditProvider, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -385,7 +387,11 @@ class AccumuloDataStore(val connector: Connector,
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    val fe = SimpleFeatureSerializers(sft, getFeatureEncoding(sft))
+    val fe = if (sft.getSchemaVersion < 9) {
+      SimpleFeatureSerializers(sft, getFeatureEncoding(sft))
+    } else {
+      new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+    }
     new ModifyAccumuloFeatureWriter(sft, fe, this, defaultVisibilities, filter)
   }
 
@@ -402,7 +408,11 @@ class AccumuloDataStore(val connector: Connector,
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    val fe = SimpleFeatureSerializers(sft, getFeatureEncoding(sft))
+    val fe = if (sft.getSchemaVersion < 9) {
+      SimpleFeatureSerializers(sft, getFeatureEncoding(sft))
+    } else {
+      new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+    }
     new AppendAccumuloFeatureWriter(sft, fe, this, defaultVisibilities)
   }
 

@@ -70,9 +70,9 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
 
   addFeatures(features)
 
-  def execute(filter: String): List[String] = {
+  def execute(filter: String, explain: ExplainerOutputType = ExplainNull): List[String] = {
     val query = new Query(sftName, ECQL.toFilter(filter))
-    forall(ds.getQueryPlan(query))(_.table must endWith(AttributeTable.suffix))
+    forall(ds.getQueryPlan(query, explainer = explain))(_.table must endWith(AttributeTable.suffix))
     val results = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features())
     results.map(_.getAttribute("name").toString).toList
   }

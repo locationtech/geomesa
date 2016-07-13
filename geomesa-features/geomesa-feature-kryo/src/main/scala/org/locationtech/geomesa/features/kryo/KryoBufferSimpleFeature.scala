@@ -16,6 +16,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.features.SerializationOption._
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -32,7 +33,8 @@ object LazySimpleFeature {
 
 class KryoBufferSimpleFeature(sft: SimpleFeatureType,
                               readers: Array[(Input) => AnyRef],
-                              readUserData: (Input) => jMap[AnyRef, AnyRef]) extends SimpleFeature {
+                              readUserData: (Input) => jMap[AnyRef, AnyRef],
+                              options: Set[SerializationOption]) extends SimpleFeature {
 
   private val input = new Input
   private val offsets = Array.ofDim[Int](sft.getAttributeCount)
@@ -67,7 +69,7 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
     // transforms by evaluating the transform expressions and then serializing the resulting feature
     // we use this for transform expressions and for data that was written using an old schema
     reserializeTransform = {
-      val serializer = new KryoFeatureSerializer(transformSchema)
+      val serializer = new KryoFeatureSerializer(transformSchema, options)
       val sf = new ScalaSimpleFeature("", transformSchema)
       () => {
         sf.getIdentifier.setID(getID)
@@ -136,8 +138,10 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
 
   override def getIdentifier: FeatureId = new FeatureIdImpl(getID)
   override def getID: String = {
-    input.setPosition(5)
-    input.readString()
+    if (options.withoutId) { "" } else {
+      input.setPosition(5)
+      input.readString()
+    }
   }
 
   override def getAttribute(name: Name): AnyRef = getAttribute(name.getLocalPart)

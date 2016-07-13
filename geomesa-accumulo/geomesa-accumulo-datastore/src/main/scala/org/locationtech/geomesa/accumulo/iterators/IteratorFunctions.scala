@@ -137,7 +137,7 @@ trait SetTopIndexInclude
    * @param key
    */
   def setTopIndexInclude(key: Key): Unit = {
-    val sf = indexEncoder.decode(source.getTopValue.get)
+    val sf = indexEncoder.deserialize(source.getTopValue.get)
     reusableValue.set(featureEncoder.serialize(sf))
     topKey = key
     topValue = reusableValue
@@ -168,7 +168,7 @@ trait SetTopIndexFilter
    */
   def setTopIndexFilter(key: Key): Unit = {
     // the value contains the full-resolution geometry and time plus feature ID
-    val sf = indexEncoder.decode(source.getTopValue.get)
+    val sf = indexEncoder.deserialize(source.getTopValue.get)
     if (stFilter.evaluate(sf)) {
       reusableValue.set(featureEncoder.serialize(sf))
       topKey = key
@@ -200,7 +200,7 @@ trait SetTopIndexTransform
    */
   def setTopIndexTransform(key: Key): Unit = {
     // the value contains the full-resolution geometry and time plus feature ID
-    val sf = indexEncoder.decode(source.getTopValue.get)
+    val sf = indexEncoder.deserialize(source.getTopValue.get)
     reusableValue.set(transform(sf))
     topKey = key
     topValue = reusableValue
@@ -231,7 +231,7 @@ trait SetTopIndexFilterTransform
    */
   def setTopIndexFilterTransform(key: Key): Unit = {
     // the value contains the full-resolution geometry and time plus feature ID
-    val sf = indexEncoder.decode(source.getTopValue.get)
+    val sf = indexEncoder.deserialize(source.getTopValue.get)
     if (stFilter.evaluate(sf)) {
       reusableValue.set(transform(sf))
       topKey = key

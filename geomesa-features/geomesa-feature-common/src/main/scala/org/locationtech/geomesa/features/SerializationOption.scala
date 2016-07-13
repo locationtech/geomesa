@@ -12,6 +12,7 @@ package org.locationtech.geomesa.features
  * Options to be applied when encoding.  The same options must be specified when decoding.
  */
 object SerializationOption extends Enumeration {
+
   type SerializationOption = Value
 
   /**
@@ -19,6 +20,7 @@ object SerializationOption extends Enumeration {
    * serialized and deserialized.
    */
   val WithUserData = Value
+  val WithoutId = Value
 
   implicit class SerializationOptions(val options: Set[SerializationOption]) extends AnyVal {
 
@@ -30,6 +32,8 @@ object SerializationOption extends Enumeration {
 
     /** @return true iff ``this`` contains ``EncodingOption.WITH_USER_DATA`` */
     def withUserData: Boolean = options.contains(SerializationOption.WithUserData)
+
+    def withoutId: Boolean = options.contains(SerializationOption.WithoutId)
   }
 
   object SerializationOptions {
@@ -42,7 +46,9 @@ object SerializationOption extends Enumeration {
     /**
      * @return a new [[SerializationOptions]] containing just the ``EncodingOption.WITH_USER_DATA`` option
      */
-    def withUserData: Set[SerializationOption] = Set(SerializationOption.WithUserData)
+    val withUserData: Set[SerializationOption] = Set(SerializationOption.WithUserData)
+
+    val withoutId: Set[SerializationOption] = Set(SerializationOption.WithoutId)
   }
 }
 

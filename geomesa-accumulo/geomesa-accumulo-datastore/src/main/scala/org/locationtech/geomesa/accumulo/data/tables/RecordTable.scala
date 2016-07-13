@@ -8,8 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.data.tables
 
-import java.nio.charset.StandardCharsets
-
+import com.google.common.base.Charsets
 import com.google.common.collect.ImmutableSortedSet
 import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.conf.Property
@@ -20,7 +19,6 @@ import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter._
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
 
 // TODO: Implement as traits and cache results to gain flexibility and speed-up.
@@ -35,41 +33,41 @@ object RecordTable extends GeoMesaTable {
 
   override def writer(sft: SimpleFeatureType): FeatureToMutations = {
     val rowIdPrefix = sft.getTableSharingPrefix
-    val putValues: (FeatureToWrite, Mutation) => Unit = sft.getVisibilityLevel match {
-      case VisibilityLevel.Feature =>
-        (toWrite, mutation) => mutation.put(SFT_CF, EMPTY_COLQ, toWrite.columnVisibility, toWrite.dataValue)
-      case VisibilityLevel.Attribute =>
-        (toWrite, mutation) => toWrite.perAttributeValues.foreach(key => mutation.put(key.cf, key.cq, key.vis, key.value))
-    }
-    (toWrite: FeatureToWrite) => {
-      val mutation = new Mutation(getRowKey(rowIdPrefix, toWrite.feature.getID))
-      putValues(toWrite, mutation)
-      Seq(mutation)
+    if (sft.getSchemaVersion < 9) {
+      (wf: WritableFeature) => {
+        val mutation = new Mutation(getRowKey(rowIdPrefix, wf.feature.getID))
+        wf.fullValues.foreach(value => mutation.put(SFT_CF, EMPTY_COLQ, value.vis, value.value))
+        Seq(mutation)
+      }
+    } else {
+      (wf: WritableFeature) => {
+        val mutation = new Mutation(getRowKey(rowIdPrefix, wf.feature.getID))
+        wf.fullValues.foreach(value => mutation.put(value.cf, value.cq, value.vis, value.value))
+        Seq(mutation)
+      }
     }
   }
 
   override def remover(sft: SimpleFeatureType): FeatureToMutations = {
     val rowIdPrefix = sft.getTableSharingPrefix
-    val putValues: (FeatureToWrite, Mutation) => Unit = sft.getVisibilityLevel match {
-      case VisibilityLevel.Feature =>
-        (toWrite, mutation) => mutation.putDelete(SFT_CF, EMPTY_COLQ, toWrite.columnVisibility)
-      case VisibilityLevel.Attribute =>
-        (toWrite, mutation) => toWrite.perAttributeValues.foreach(key => mutation.putDelete(key.cf, key.cq, key.vis))
-    }
-    (toWrite: FeatureToWrite) => {
-      val mutation = new Mutation(getRowKey(rowIdPrefix, toWrite.feature.getID))
-      putValues(toWrite, mutation)
-      Seq(mutation)
+    if (sft.getSchemaVersion < 9) {
+      (wf: WritableFeature) => {
+        val mutation = new Mutation(getRowKey(rowIdPrefix, wf.feature.getID))
+        wf.fullValues.foreach(value => mutation.putDelete(SFT_CF, EMPTY_COLQ, value.vis))
+        Seq(mutation)
+      }
+    } else {
+      (wf: WritableFeature) => {
+        val mutation = new Mutation(getRowKey(rowIdPrefix, wf.feature.getID))
+        wf.fullValues.foreach(value => mutation.putDelete(value.cf, value.cq, value.vis))
+        Seq(mutation)
+      }
     }
   }
 
-  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = {
+  override def getIdFromRow(sft: SimpleFeatureType): (Text) => String = {
     val offset = sft.getTableSharingPrefix.length
-    if (offset == 0) {
-      (row) => new String(row, StandardCharsets.UTF_8)
-    } else {
-      (row) => new String(row.drop(offset), StandardCharsets.UTF_8)
-    }
+    (row: Text) => new String(row.getBytes, offset, row.getLength - offset, Charsets.UTF_8)
   }
 
   def getRowKey(rowIdPrefix: String, id: String): String = rowIdPrefix + id

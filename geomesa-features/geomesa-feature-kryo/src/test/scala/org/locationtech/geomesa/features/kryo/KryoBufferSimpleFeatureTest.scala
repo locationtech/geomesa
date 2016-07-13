@@ -78,7 +78,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
 
       val serializer = new KryoFeatureSerializer(sft)
 
-      val serialized = serializer.write(sf)
+      val serialized = serializer.serialize(sf)
       val laz = serializer.getReusableFeature
       laz.setBuffer(serialized)
 
@@ -100,7 +100,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
 
       val serializer = new KryoFeatureSerializer(sft)
 
-      val serialized = serializer.write(sf)
+      val serialized = serializer.serialize(sf)
       val laz = serializer.getReusableFeature
       laz.setBuffer(serialized)
 
@@ -117,7 +117,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
 
       val serializer = new KryoFeatureSerializer(sft)
 
-      val serialized = serializer.write(sf)
+      val serialized = serializer.serialize(sf)
       val laz = serializer.getReusableFeature
       laz.setBuffer(serialized)
 
@@ -183,7 +183,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(45.0 49.0)")
 
-      val serialized = new KryoFeatureSerializer(sft).write(sf)
+      val serialized = new KryoFeatureSerializer(sft).serialize(sf)
 
       val newSft = SimpleFeatureTypes.createType("mutableType", "name:String,*geom:Point,dtg:Date,attr1:String,attr2:Long")
 
@@ -207,7 +207,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(45.0 49.0)")
 
-      val serialized = new KryoFeatureSerializer(sft).write(sf)
+      val serialized = new KryoFeatureSerializer(sft).serialize(sf)
 
       val newSft = SimpleFeatureTypes.createType("mutableType", "name:String,*geom:Point,dtg:Date,attr1:String,attr2:Long")
 
@@ -234,7 +234,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
         sf.setAttribute("name", "foo")
         sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
         sf.setAttribute("geom", "POINT(45.0 49.0)")
-        new KryoFeatureSerializer(sft).write(sf)
+        new KryoFeatureSerializer(sft).serialize(sf)
       }
 
       val newSft = SimpleFeatureTypes.createType("mutableType", "name:String,*geom:Point,dtg:Date,attr1:String,attr2:Long")
@@ -246,7 +246,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
         sf.setAttribute("geom", "POINT(45.0 49.0)")
         sf.setAttribute("attr1", "test1")
         sf.setAttribute("attr2", "5")
-        new KryoFeatureSerializer(newSft).write(sf)
+        new KryoFeatureSerializer(newSft).serialize(sf)
       }
 
       val laz = new KryoFeatureSerializer(newSft).getReusableFeature

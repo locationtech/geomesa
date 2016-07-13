@@ -14,7 +14,10 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Range => aRange, _}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
+import org.apache.hadoop.io.Text
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -44,6 +47,7 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
   private var currentRange: aRange = null
 
   private var reusableSf: KryoBufferSimpleFeature = null
+  private var getId: (Text) => String = null
 
   // server-side deduplication - not 100% effective, but we can't dedupe client side as we don't send ids
   private val idsSeen = scala.collection.mutable.HashSet.empty[String]
@@ -52,13 +56,26 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
   override def init(src: SortedKeyValueIterator[Key, Value],
                     jOptions: jMap[String, String],
                     env: IteratorEnvironment): Unit = {
+
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
     IteratorClassLoader.initClassLoader(getClass)
 
     this.source = src.deepCopy(env)
     val options = jOptions.asScala
 
     sft = SimpleFeatureTypes.createType("", options(SFT_OPT))
-    reusableSf = new KryoFeatureSerializer(sft).getReusableFeature
+    if (sft.getSchemaVersion < 9) {
+      getId = (_) => reusableSf.getID
+      reusableSf = new KryoFeatureSerializer(sft).getReusableFeature
+    } else {
+      val tableName = options(TABLE_OPT)
+      val table = GeoMesaTable.AllTables.find(_.getClass.getSimpleName == tableName).getOrElse {
+        throw new RuntimeException(s"Table option not configured correctly: $tableName")
+      }
+      getId = table.getIdFromRow(sft)
+      reusableSf = new KryoFeatureSerializer(sft, SerializationOptions.withoutId).getReusableFeature
+    }
     val filt = options.get(CQL_OPT).map(FastFilterFactory.toFilter).orNull
     val dedupe = options.get(DUPE_OPT).exists(_.toBoolean)
     maxIdsToTrack = options.get(MAX_DUPE_OPT).map(_.toInt).getOrElse(99999)
@@ -90,6 +107,7 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
     }
   }
 
+  // noinspection LanguageFeature
   def findTop(): Unit = {
     result.clear()
 
@@ -128,11 +146,16 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
   def encodeResult(result: T): Array[Byte]
 
   def deduplicate(sf: SimpleFeature): Boolean =
-    if (idsSeen.size < maxIdsToTrack) idsSeen.add(sf.getID) else !idsSeen.contains(sf.getID)
+    if (idsSeen.size < maxIdsToTrack) {
+      idsSeen.add(getId(source.getTopKey.getRow))
+    } else {
+      !idsSeen.contains(getId(source.getTopKey.getRow))
+    }
 
   def filter(filter: Filter)(sf: SimpleFeature): Boolean = filter.evaluate(sf)
 
-  override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = ???
+  override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] =
+    throw new NotImplementedError()
 }
 
 object KryoLazyAggregatingIterator extends LazyLogging {
@@ -142,15 +165,18 @@ object KryoLazyAggregatingIterator extends LazyLogging {
   protected[iterators] val CQL_OPT      = "cql"
   protected[iterators] val DUPE_OPT     = "dupes"
   protected[iterators] val MAX_DUPE_OPT = "max-dupes"
+  protected[iterators] val TABLE_OPT    = "table"
 
   def configure(is: IteratorSetting,
                 sft: SimpleFeatureType,
+                table: GeoMesaTable,
                 filter: Option[Filter],
                 deduplicate: Boolean,
                 maxDuplicates: Option[Int]): Unit = {
-    is.addOption(SFT_OPT, SimpleFeatureTypes.encodeType(sft))
+    is.addOption(SFT_OPT, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
     filter.foreach(f => is.addOption(CQL_OPT, ECQL.toCQL(f)))
     is.addOption(DUPE_OPT, deduplicate.toString)
     maxDuplicates.foreach(m => is.addOption(MAX_DUPE_OPT, m.toString))
+    is.addOption(TABLE_OPT, table.getClass.getSimpleName)
   }
 }

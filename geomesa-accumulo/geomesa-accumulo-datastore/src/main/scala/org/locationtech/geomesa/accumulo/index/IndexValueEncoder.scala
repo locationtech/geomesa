@@ -14,80 +14,49 @@ import java.util.{Date, UUID}
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.identity.FeatureIdImpl
-import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureDeserializer}
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureDeserializer, SimpleFeatureSerializer}
+import org.locationtech.geomesa.features.SerializationOption.{SerializationOption, SerializationOptions}
+import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureDeserializer, ProjectingKryoFeatureSerializer}
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocalCache}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.mutable
-
-/**
- * Encode and decode index values
- */
-trait IndexValueEncoder {
-
-  /**
-   * Fields that will be encoded/decoded
-   *
-   * @return
-   */
-  def fields: Seq[String]
-
-  /**
-   * Encodes a simple feature into a byte array. Only the attributes marked for inclusion get encoded.
-   *
-   * @param sf
-   * @return
-   */
-  def encode(sf: SimpleFeature): Array[Byte]
-
-  /**
-   * Decodes a byte array into a simple feature
-   *
-   * @param value
-   * @return
-   */
-  def decode(value: Array[Byte]): SimpleFeature
-
-}
-
 object IndexValueEncoder {
-
-  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
   import scala.collection.JavaConversions._
 
-  private val cache = new SoftThreadLocalCache[String, (SimpleFeatureType, Seq[String])]()
+  private val cache = new SoftThreadLocalCache[String, SimpleFeatureType]()
 
-  def apply(sft: SimpleFeatureType): IndexValueEncoder = apply(sft, None)
+  def apply(sft: SimpleFeatureType): SimpleFeatureSerializer = apply(sft, None)
 
-  def apply(sft: SimpleFeatureType, transform: SimpleFeatureType): IndexValueEncoder =
+  def apply(sft: SimpleFeatureType, transform: SimpleFeatureType): SimpleFeatureSerializer =
     apply(sft, Some(transform))
 
-  def apply(sft: SimpleFeatureType, transform: Option[SimpleFeatureType]): IndexValueEncoder = {
+  def apply(sft: SimpleFeatureType, transform: Option[SimpleFeatureType]): SimpleFeatureSerializer = {
     val key = CacheKeyGenerator.cacheKey(sft)
-    val (indexSft, attributes) = cache.getOrElseUpdate(key, (getIndexSft(sft), getIndexValueFields(sft)))
-    val copyFunction = getCopyFunction(sft, indexSft)
+    val indexSft = cache.getOrElseUpdate(key, getIndexSft(sft))
 
     if (sft.getSchemaVersion < 4) { // kryo encoding introduced in version 4
       OldIndexValueEncoder(sft, transform.getOrElse(indexSft))
-    } else {
+    } else if (sft.getSchemaVersion < 9) {
       val encoder = new KryoFeatureSerializer(indexSft)
       val decoder = transform match {
         case None    => new KryoFeatureSerializer(indexSft)
         case Some(t) => new ProjectingKryoFeatureDeserializer(indexSft, t)
       }
-      new IndexValueEncoderImpl(copyFunction, indexSft, encoder, decoder, attributes)
+      val copyFunction = getCopyFunction(sft, indexSft)
+      new IndexValueEncoderImpl(copyFunction, indexSft, encoder, decoder)
+    } else {
+      new ProjectingKryoFeatureSerializer(sft, indexSft, SerializationOptions.withoutId)
     }
   }
 
   /**
    * Gets a feature type compatible with the stored index value
    *
-   * @param sft
+   * @param sft simple feature type
    * @return
    */
   def getIndexSft(sft: SimpleFeatureType) = {
@@ -108,7 +77,7 @@ object IndexValueEncoder {
   /**
    * Gets a feature type compatible with the stored index value
    *
-   * @param sft
+   * @param sft simple feature type
    * @return
    */
   protected[index] def getCopyFunction(sft: SimpleFeatureType, indexSft: SimpleFeatureType) = {
@@ -126,13 +95,14 @@ object IndexValueEncoder {
   /**
    * Gets the attributes that are stored in the index value
    *
-   * @param sft
+   * @param sft simple feature type
    * @return
    */
   protected[index] def getIndexValueAttributes(sft: SimpleFeatureType): Seq[AttributeDescriptor] = {
+    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
     val geom = sft.getGeometryDescriptor
     val dtg = sft.getDtgField
-    val attributes = mutable.Buffer.empty[AttributeDescriptor]
+    val attributes = scala.collection.mutable.Buffer.empty[AttributeDescriptor]
     var i = 0
     while (i < sft.getAttributeCount) {
       val ad = sft.getDescriptor(i)
@@ -147,7 +117,7 @@ object IndexValueEncoder {
   /**
    * Gets the attribute names that are stored in the index value
    *
-   * @param sft
+   * @param sft simple feature type
    * @return
    */
   def getIndexValueFields(sft: SimpleFeatureType): Seq[String] =
@@ -162,22 +132,23 @@ object IndexValueEncoder {
  *
  * @param encoder
  * @param decoder
- * @param fields
  */
+@deprecated
 class IndexValueEncoderImpl(copyFeature: (SimpleFeature, SimpleFeature) => Unit,
                             indexSft: SimpleFeatureType,
                             encoder: SimpleFeatureSerializer,
-                            decoder: SimpleFeatureDeserializer,
-                            val fields: Seq[String]) extends IndexValueEncoder {
+                            decoder: SimpleFeatureSerializer) extends SimpleFeatureSerializer {
 
   val reusableFeature = new ScalaSimpleFeature("", indexSft)
 
-  override def encode(sf: SimpleFeature): Array[Byte] = {
+  override val options: Set[SerializationOption] = Set.empty
+
+  override def serialize(sf: SimpleFeature): Array[Byte] = {
     copyFeature(sf, reusableFeature)
     encoder.serialize(reusableFeature)
   }
 
-  override def decode(value: Array[Byte]): SimpleFeature = decoder.deserialize(value)
+  override def deserialize(value: Array[Byte]): SimpleFeature = decoder.deserialize(value)
 }
 
 
@@ -187,14 +158,16 @@ class IndexValueEncoderImpl(copyFeature: (SimpleFeature, SimpleFeature) => Unit,
  * @param sft
  * @param fields
  */
-@Deprecated
+@deprecated
 class OldIndexValueEncoder(sft: SimpleFeatureType, encodedSft: SimpleFeatureType, val fields: Seq[String])
-    extends IndexValueEncoder {
+    extends SimpleFeatureSerializer {
 
   import org.locationtech.geomesa.accumulo.index.OldIndexValueEncoder._
 
   fields.foreach(f => require(sft.getDescriptor(f) != null ||
     f == ID_FIELD, s"Encoded field does not exist: $f"))
+
+  override val options: Set[SerializationOption] = Set.empty
 
   // check to see if we need to look for data encoded using the old scheme
   private val needsBackCompatible = fields == getDefaultSchema(sft)
@@ -227,7 +200,7 @@ class OldIndexValueEncoder(sft: SimpleFeatureType, encodedSft: SimpleFeatureType
    * @param sf
    * @return
    */
-  def encode(sf: SimpleFeature): Array[Byte] = {
+  override def serialize(sf: SimpleFeature): Array[Byte] = {
     val valuesWithIndex = fieldsWithIndex.map { case (f, i) =>
       if (f == ID_FIELD) (sf.getID, i) else (sf.getAttribute(f), i)
     }
@@ -253,7 +226,7 @@ class OldIndexValueEncoder(sft: SimpleFeatureType, encodedSft: SimpleFeatureType
    * @param value
    * @return
    */
-  def decode(value: Array[Byte]): SimpleFeature = {
+  override def deserialize(value: Array[Byte]): SimpleFeature = {
     val buf = ByteBuffer.wrap(value)
     val values = fieldsWithIndex.map { case (f, i) => f -> decodings(i)(buf) }.toMap
     val sf = new ScalaSimpleFeature(values(ID_FIELD).asInstanceOf[String], encodedSft)
@@ -282,7 +255,7 @@ object OldIndexValueEncoder {
   val ID_FIELD = "id"
 
   // even though the encoders are thread safe, this way we don't have to synchronize when retrieving them
-  private val cache = new ThreadLocal[scala.collection.mutable.Map[String, IndexValueEncoder]] {
+  private val cache = new ThreadLocal[scala.collection.mutable.Map[String, SimpleFeatureSerializer]] {
     override def initialValue() = scala.collection.mutable.Map.empty
   }
 

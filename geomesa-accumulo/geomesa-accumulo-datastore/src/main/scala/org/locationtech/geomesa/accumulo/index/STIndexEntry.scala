@@ -14,7 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Key, Mutation}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToWrite
+import org.locationtech.geomesa.accumulo.data.WritableFeature
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -31,7 +31,7 @@ case class STIndexEncoder(sft: SimpleFeatureType, rowf: TextFormatter, cff: Text
   val formats = Array(rowf, cff, cqf)
   val dtgFieldIndex = sft.getDtgIndex
 
-  val mutations: (Seq[GeoHash], FeatureToWrite, DateTime, Boolean) => Seq[Mutation] =
+  val mutations: (Seq[GeoHash], WritableFeature, DateTime, Boolean) => Seq[Mutation] =
     if (sft.isPoints) pointMutations else polyMutations
 
   // the resolutions are valid for decomposed objects are all 5-bit boundaries
@@ -41,7 +41,7 @@ case class STIndexEncoder(sft: SimpleFeatureType, rowf: TextFormatter, cff: Text
   // the maximum number of sub-units into which a geometry may be decomposed
   lazy val maximumDecompositions: Int = 5
 
-  def encode(toWrite: FeatureToWrite, delete: Boolean = false): Seq[Mutation] = {
+  def encode(toWrite: WritableFeature, delete: Boolean = false): Seq[Mutation] = {
 
     logger.trace(s"encoding feature: $toWrite")
 
@@ -63,41 +63,42 @@ case class STIndexEncoder(sft: SimpleFeatureType, rowf: TextFormatter, cff: Text
 
   // no duplicates - we know that each key will be on a different row
   private def pointMutations(geohashes: Seq[GeoHash],
-                             toWrite: FeatureToWrite,
+                             toWrite: WritableFeature,
                              dt: DateTime,
-                             delete: Boolean): Seq[Mutation] =
-    Seq((true, toWrite.indexValue), (false, toWrite.dataValue)).flatMap { case (index, value) =>
+                             delete: Boolean): Seq[Mutation] = {
+    Seq((true, toWrite.indexValues.head), (false, toWrite.fullValues.head)).flatMap { case (index, value) =>
       geohashes.map { gh =>
         formats.map(_.format(gh, dt, toWrite.feature, index)) match { case Array(row, cf, cq) =>
           val m = new Mutation(row)
           if (delete) {
-            m.putDelete(cf, cq, toWrite.columnVisibility)
+            m.putDelete(cf, cq, value.vis)
           } else {
-            m.put(cf, cq, toWrite.columnVisibility, value)
+            m.put(cf, cq, value.vis, value.value)
           }
           m
         }
       }
     }
+  }
 
   // group mutations by row
   private def polyMutations(geohashes: Seq[GeoHash],
-                            toWrite: FeatureToWrite,
+                            toWrite: WritableFeature,
                             dt: DateTime,
                             delete: Boolean): Seq[Mutation] = {
-    val keys = Seq((true, toWrite.indexValue), (false, toWrite.dataValue)).flatMap { case (index, value) =>
+    val keys = Seq((true, toWrite.indexValues.head), (false, toWrite.fullValues.head)).flatMap { case (index, value) =>
       geohashes.map { gh =>
         formats.map(_.format(gh, dt, toWrite.feature, index)) match {
-          case Array(row, cf, cq) => (row, cf, cq, value)
+          case Array(row, cf, cq) => (row, cf, cq, value.vis, value.value)
         }
       }
     }
     keys.groupBy(_._1).map { case (row, keys) =>
       val m = new Mutation(row)
       if (delete) {
-        keys.foreach { case (_, cf, cq, _) => m.putDelete(cf, cq, toWrite.columnVisibility) }
+        keys.foreach { case (_, cf, cq, vis, _) => m.putDelete(cf, cq, vis) }
       } else {
-        keys.foreach { case (_, cf, cq, value) => m.put(cf, cq, toWrite.columnVisibility, value) }
+        keys.foreach { case (_, cf, cq, vis, value) => m.put(cf, cq, vis, value) }
       }
       m
     }.toSeq

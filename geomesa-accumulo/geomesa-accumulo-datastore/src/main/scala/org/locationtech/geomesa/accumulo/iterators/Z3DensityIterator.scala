@@ -36,7 +36,6 @@ class Z3DensityIterator extends KryoLazyDensityIterator {
                     jOptions: jMap[String, String],
                     env: IteratorEnvironment): Unit = {
     super.init(src, jOptions, env)
-
     if (sft.isPoints) {
       normalizeWeight = (weight) => weight
     } else {
@@ -44,10 +43,11 @@ class Z3DensityIterator extends KryoLazyDensityIterator {
       // this is stored in the column qualifier
       normalizeWeight = (weight) => {
         val hexCount = topKey.getColumnQualifier.toString
-        if (hexCount.isEmpty) {
+        val hexSeparator = hexCount.indexOf(",")
+        if (hexSeparator == -1) {
           weight
         } else {
-          weight / Integer.parseInt(hexCount, 16)
+          weight / Integer.parseInt(hexCount.substring(0, hexSeparator), 16)
         }
       }
     }
@@ -81,7 +81,7 @@ object Z3DensityIterator {
                   filter: Option[Filter],
                   hints: Hints,
                   priority: Int = KryoLazyDensityIterator.DEFAULT_PRIORITY): IteratorSetting = {
-      val is = KryoLazyDensityIterator.configure(sft, filter, hints, priority)
+      val is = KryoLazyDensityIterator.configure(sft, Z3Table, filter, hints, priority)
       is.setIteratorClass(classOf[Z3DensityIterator].getName)
       is
     }
