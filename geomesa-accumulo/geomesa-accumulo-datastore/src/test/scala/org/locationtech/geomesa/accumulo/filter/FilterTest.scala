@@ -21,6 +21,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
 import org.locationtech.geomesa.accumulo.iterators.TestData
+import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -32,9 +33,9 @@ import org.specs2.runner.JUnitRunner
 
 
 @RunWith(classOf[JUnitRunner])
-class FilterTester extends Specification with TestWithDataStore with LazyLogging {
+class FilterTest extends Specification with TestWithDataStore with LazyLogging {
 
-  override val spec = SimpleFeatureTypes.encodeType(TestData.featureType)
+  override val spec = SimpleFeatureTypes.encodeType(TestData.featureType, includeUserData = true)
 
   val mediumDataFeatures: Seq[SimpleFeature] =
     TestData.mediumData.map(TestData.createSF).map(f => new ScalaSimpleFeature(f.getID, sft, f.getAttributes.toArray))
@@ -95,7 +96,7 @@ class FilterTester extends Specification with TestWithDataStore with LazyLogging
     val filterCount = mediumDataFeatures.count(filter.evaluate)
     val query = new Query(sftName, filter)
     Option(projection).foreach(query.setPropertyNames)
-    val queryCount = fs.getFeatures(query).size
+    val queryCount = SelfClosingIterator(fs.getFeatures(query)).length
     logger.debug(s"\nFilter: ${ECQL.toCQL(filter)}\nFullData size: ${mediumDataFeatures.size}: " +
         s"filter hits: $filterCount query hits: $queryCount")
     queryCount mustEqual filterCount

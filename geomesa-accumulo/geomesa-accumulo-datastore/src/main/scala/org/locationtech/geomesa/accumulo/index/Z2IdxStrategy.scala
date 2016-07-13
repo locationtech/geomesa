@@ -53,7 +53,7 @@ class Z2IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
 
     // TODO GEOMESA-1215 this can handle OR'd geoms, but the query splitter won't currently send them
     val geometryToCover =
-      filter.singlePrimary.flatMap(extractSingleGeometry(_, sft.getGeomField)).getOrElse(WholeWorldPolygon)
+      filter.singlePrimary.flatMap(extractSingleGeometry(_, sft.getGeomField, sft.isPoints)).getOrElse(WholeWorldPolygon)
 
     output(s"GeomsToCover: $geometryToCover")
 

@@ -170,8 +170,8 @@ object FilterHelper extends LazyLogging {
     * @param attribute attribute to consider
     * @return a single geometry (may be a geometry collection)
     */
-  def extractSingleGeometry(filter: Filter, attribute: String): Option[Geometry] =
-    extractGeometry(filter, attribute).map(WholeWorldPolygon.intersection)
+  def extractSingleGeometry(filter: Filter, attribute: String, intersect: Boolean = false): Option[Geometry] =
+    extractGeometry(filter, attribute, intersect).map(_.intersection(WholeWorldPolygon))
 
   /**
     * Extract geometries from a filter without validating boundaries.
@@ -180,13 +180,19 @@ object FilterHelper extends LazyLogging {
     * @param attribute attribute to consider
     * @return single geometry, if any relevant spatial predicates are present
     */
-  private def extractGeometry(filter: Filter, attribute: String): Option[Geometry] = filter match {
+  private def extractGeometry(filter: Filter, attribute: String, intersect: Boolean): Option[Geometry] = filter match {
     case a: And =>
-      val all = a.getChildren.flatMap(extractGeometry(_, attribute))
-      all.reduceOption[Geometry] { case (g1, g2) => g1.intersection(g2) }
+      val all = a.getChildren.flatMap(extractGeometry(_, attribute, intersect))
+      if (all.length < 2) {
+        all.headOption
+      } else if (intersect) {
+        all.reduceOption[Geometry] { case (g1, g2) => g1.intersection(g2) }
+      } else {
+        Some(new GeometryCollection(all.toArray, all.head.getFactory))
+      }
 
     case o: Or  =>
-      val all = o.getChildren.flatMap(extractGeometry(_, attribute))
+      val all = o.getChildren.flatMap(extractGeometry(_, attribute, intersect))
       if (all.length < 2) all.headOption else Some(new GeometryCollection(all.toArray, all.head.getFactory))
 
     // Note: although not technically required, all known spatial predicates are also binary spatial operators
