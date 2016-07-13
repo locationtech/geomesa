@@ -13,11 +13,10 @@ import java.util.concurrent.TimeUnit
 
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.{Connector, Scanner}
+import org.apache.accumulo.core.client.{BatchWriter, Connector, Scanner}
 import org.apache.accumulo.core.data.{Mutation, Range, Value}
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
-import org.locationtech.geomesa.accumulo.data.AccumuloBackedMetadata._
 import org.locationtech.geomesa.accumulo.util.{EmptyScanner, GeoMesaBatchWriterConfig}
 
 import scala.collection.JavaConversions._
@@ -134,41 +133,24 @@ object MetadataStringSerializer extends MetadataSerializer[String] {
   }
 }
 
-class AccumuloBackedMetadata[T](connector: Connector, catalogTable: String, serializer: MetadataSerializer[T])
+abstract class AccumuloBackedMetadata[T](connector: Connector,
+                                         catalogTable: String,
+                                         serializer: MetadataSerializer[T],
+                                         rowEncoding: AccumuloMetadataRow)
     extends GeoMesaMetadata[T] with LazyLogging {
 
-  import GeoMesaMetadata._
-
   // cache for our metadata - invalidate every 10 minutes so we keep things current
-  private val metaDataCache =
+  protected val metaDataCache =
     CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(
       new CacheLoader[(String, String), Option[T]] {
         override def load(key: (String, String)): Option[T] = scanEntry(key._1, key._2)
       }
     )
 
-  private val metadataBWConfig = GeoMesaBatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(1)
+  protected val metadataBWConfig = GeoMesaBatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(1)
 
   // warning: only access in a synchronized fashion
   private var tableExists = connector.tableOperations().exists(catalogTable)
-
-  /**
-   * Scans metadata rows and pulls out the different feature types in the table
-   *
-   * @return
-   */
-  override def getFeatureTypes: Array[String] = {
-    val scanner = createScanner
-    scanner.setRange(new Range(METADATA_TAG, METADATA_TAG_END))
-    // restrict to just one cf so we only get 1 hit per feature
-    // use attributes as it's the only thing that's been there through all geomesa versions
-    scanner.fetchColumnFamily(new Text(ATTRIBUTES_KEY))
-    try {
-      scanner.map(kv => getTypeNameFromMetadataRowKey(kv.getKey.getRow.toString)).toArray
-    } finally {
-      scanner.close()
-    }
-  }
 
   override def read(typeName: String, key: String, cache: Boolean): Option[T] = {
     if (!cache) {
@@ -181,25 +163,27 @@ class AccumuloBackedMetadata[T](connector: Connector, catalogTable: String, seri
 
   override def insert(typeName: String, kvPairs: Map[String, T]): Unit = {
     ensureTableExists()
-    val insert = new Mutation(getMetadataRowKey(typeName))
-    kvPairs.foreach { case (k,v) =>
-      val value = new Value(serializer.serialize(typeName, k, v))
-      insert.put(new Text(k), EMPTY_COLQ, value)
-    }
     val writer = connector.createBatchWriter(catalogTable, metadataBWConfig)
-    writer.addMutation(insert)
+    kvPairs.foreach { case (k, v) =>
+      val insert = new Mutation(rowEncoding.getRowKey(typeName, k))
+      val value = new Value(serializer.serialize(typeName, k, v))
+      val (cf, cq) = rowEncoding.getColumns(k)
+      insert.put(cf, cq, value)
+      writer.addMutation(insert)
+      // also pre-fetch into the cache
+      // note: don't use putAll, it breaks guava 11 compatibility
+      metaDataCache.put((typeName, k), Option(v))
+    }
     writer.close()
-    // also pre-fetch into the cache
-    // note: don't use putAll, it breaks guava 11 compatibility
-    kvPairs.foreach(kv => metaDataCache.put((typeName, kv._1), Option(kv._2)))
   }
 
   override def invalidateCache(typeName: String, key: String): Unit = metaDataCache.invalidate((typeName, key))
 
   override def remove(typeName: String, key: String): Unit = {
     if (synchronized(tableExists)) {
-      val delete = new Mutation(getMetadataRowKey(typeName))
-      delete.putDelete(new Text(key), EMPTY_COLQ)
+      val delete = new Mutation(rowEncoding.getRowKey(typeName, key))
+      val (cf, cq) = rowEncoding.getColumns(key)
+      delete.putDelete(cf, cq)
       val writer = connector.createBatchWriter(catalogTable, metadataBWConfig)
       writer.addMutation(delete)
       writer.close()
@@ -218,7 +202,7 @@ class AccumuloBackedMetadata[T](connector: Connector, catalogTable: String, seri
    */
   override def delete(typeName: String): Unit = {
     if (synchronized(tableExists)) {
-      val range = new Range(getMetadataRowKey(typeName))
+      val range = rowEncoding.getRange(typeName)
       val deleter = connector.createBatchDeleter(catalogTable, AccumuloVersion.getEmptyAuths, 1, metadataBWConfig)
       deleter.setRanges(List(range))
       deleter.delete()
@@ -238,8 +222,9 @@ class AccumuloBackedMetadata[T](connector: Connector, catalogTable: String, seri
    */
   private def scanEntry(typeName: String, key: String): Option[T] = {
     val scanner = createScanner
-    scanner.setRange(new Range(getMetadataRowKey(typeName)))
-    scanner.fetchColumn(new Text(key), EMPTY_COLQ)
+    scanner.setRange(Range.exact(rowEncoding.getRowKey(typeName, key)))
+    val (cf, cq) = rowEncoding.getColumns(key)
+    scanner.fetchColumn(cf, cq)
     try {
       val entries = scanner.iterator
       if (!entries.hasNext) { None } else {
@@ -253,7 +238,7 @@ class AccumuloBackedMetadata[T](connector: Connector, catalogTable: String, seri
   /**
    * Create an Accumulo Scanner to the Catalog table to query Metadata for this store
    */
-  private def createScanner: Scanner =
+  protected def createScanner: Scanner =
     if (synchronized(tableExists)) {
       connector.createScanner(catalogTable, AccumuloVersion.getEmptyAuths)
     } else {
@@ -268,29 +253,136 @@ class AccumuloBackedMetadata[T](connector: Connector, catalogTable: String, seri
   }
 }
 
-object AccumuloBackedMetadata {
+
+trait AccumuloMetadataRow {
+
+  /**
+    * Gets the row key for a given entry
+    *
+    * @param typeName simple feature type name
+    * @param key entry key
+    * @return
+    */
+  def getRowKey(typeName: String, key: String): Text
+
+  /**
+    * Gets the columns used to store a given entry
+    *
+    * @param key entry key
+    * @return
+    */
+  def getColumns(key: String): (Text, Text)
+
+  /**
+    * Gets a range that covers every entry under the given feature type
+    *
+    * @param typeName simple feature type name
+    * @return
+    */
+  def getRange(typeName: String): Range
+
+  /**
+    * Gets the schema name from a row key
+    *
+    * @param row row
+    * @return
+    */
+  def getTypeName(row: Text): String
+}
+
+class SingleRowAccumuloMetadata[T](connector: Connector, catalogTable: String, serializer: MetadataSerializer[T])
+    extends AccumuloBackedMetadata[T](connector, catalogTable, serializer, SingleRowAccumuloMetadata) {
+
+  import SingleRowAccumuloMetadata._
+
+  override def getFeatureTypes: Array[String] = {
+    val scanner = createScanner
+    scanner.setRange(new Range(METADATA_TAG, METADATA_TAG_END))
+    // restrict to just one cf so we only get 1 hit per feature
+    // use attributes as it's the only thing that's been there through all geomesa versions
+    scanner.fetchColumnFamily(new Text(GeoMesaMetadata.ATTRIBUTES_KEY))
+    try {
+      scanner.map(e => SingleRowAccumuloMetadata.getTypeName(e.getKey.getRow)).toArray
+    } finally {
+      scanner.close()
+    }
+  }
+}
+
+object SingleRowAccumuloMetadata extends AccumuloMetadataRow {
 
   private val METADATA_TAG     = "~METADATA"
   private val METADATA_TAG_END = s"$METADATA_TAG~~"
-
   private val MetadataRowKeyRegex = (METADATA_TAG + """_(.*)""").r
 
-  /**
-   * Reads the feature name from a given metadata row key
-   *
-   * @param rowKey row from accumulo
-   * @return simple feature type name
-   */
-  def getTypeNameFromMetadataRowKey(rowKey: String): String = {
-    val MetadataRowKeyRegex(typeName) = rowKey
+  override def getRowKey(typeName: String, key: String): Text = new Text(METADATA_TAG + "_" + typeName)
+
+  override def getColumns(key: String): (Text, Text) = (new Text(key), EMPTY_COLQ)
+
+  override def getRange(typeName: String): Range = new Range(METADATA_TAG + "_" + typeName)
+
+  override def getTypeName(row: Text): String = {
+    val MetadataRowKeyRegex(typeName) = row.toString
     typeName
+  }
+}
+
+class MultiRowAccumuloMetadata[T](connector: Connector, catalogTable: String, serializer: MetadataSerializer[T])
+    extends AccumuloBackedMetadata[T](connector, catalogTable, serializer, MultiRowAccumuloMetadata) {
+
+  override def getFeatureTypes: Array[String] = {
+    val scanner = createScanner
+    scanner.setRange(new Range("", "~"))
+    try {
+      scanner.map(e => MultiRowAccumuloMetadata.getTypeName(e.getKey.getRow)).toArray.distinct
+    } finally {
+      scanner.close()
+    }
   }
 
   /**
-   * Creates the row id for a metadata entry
-   *
-   * @param typeName simple feature type name
-   * @return
-   */
-  private def getMetadataRowKey(typeName: String) = new Text(METADATA_TAG + "_" + typeName)
+    * Migrate a table from the old single-row metadata to the new
+    *
+    * @param typeName simple feature type name
+    */
+  def migrate(typeName: String): Unit = {
+    val scanner = createScanner
+    var writer: BatchWriter = null
+    try {
+      scanner.setRange(SingleRowAccumuloMetadata.getRange(typeName))
+      val iterator = scanner.iterator
+      if (iterator.hasNext) {
+        writer = connector.createBatchWriter(catalogTable, metadataBWConfig)
+      }
+      iterator.foreach { entry =>
+        val key = entry.getKey.getColumnFamily.toString
+        // insert for the mutli-table format
+        val insert = new Mutation(MultiRowAccumuloMetadata.getRowKey(typeName, key))
+        val (cf, cq) = MultiRowAccumuloMetadata.getColumns(key)
+        insert.put(cf, cq, entry.getValue)
+        // delete for the old entry
+        val delete = new Mutation(entry.getKey.getRow)
+        delete.putDelete(entry.getKey.getColumnFamily, entry.getKey.getColumnQualifier)
+
+        writer.addMutations(Seq(insert, delete))
+      }
+    } finally {
+      scanner.close()
+      if (writer != null) {
+        writer.close()
+      }
+    }
+    metaDataCache.invalidateAll()
+  }
+}
+
+object MultiRowAccumuloMetadata extends AccumuloMetadataRow {
+
+  override def getRowKey(typeName: String, key: String): Text = new Text(s"$typeName~$key")
+
+  override def getColumns(key: String): (Text, Text) = (EMPTY_TEXT, EMPTY_TEXT)
+
+  override def getRange(typeName: String): Range = Range.prefix(s"$typeName~")
+
+  override def getTypeName(row: Text): String = Text.decode(row.getBytes, 0, row.find("~"))
 }
