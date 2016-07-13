@@ -70,7 +70,7 @@ object GeoMesaSpark extends LazyLogging {
 
   def register(ds: DataStore): Unit = register(ds.getTypeNames.map(ds.getSchema))
 
-  def register(sfts: Seq[SimpleFeatureType]): Unit = sfts.foreach { GeoMesaSparkKryoRegistrator.putType }
+  def register(sfts: Seq[SimpleFeatureType]): Unit = sfts.foreach { GeoMesaSparkKryoRegistrator.putTypeIfAbsent }
 
   def rdd(conf: Configuration,
           sc: SparkContext,
@@ -200,7 +200,7 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator {
 
       override def write(kryo: Kryo, out: Output, feature: SimpleFeature): Unit = {
         val typeName = feature.getFeatureType.getTypeName
-        GeoMesaSparkKryoRegistrator.putType(feature.getFeatureType)
+        GeoMesaSparkKryoRegistrator.putTypeIfAbsent(feature.getFeatureType)
         out.writeString(typeName)
         serializerCache.get(typeName).write(kryo, out, feature)
       }
@@ -220,6 +220,10 @@ object GeoMesaSparkKryoRegistrator {
   val typeCache: ConcurrentHashMap[String, SimpleFeatureType] = new ConcurrentHashMap[String, SimpleFeatureType]()
 
   def putType(sft: SimpleFeatureType): Unit = {
+    GeoMesaSparkKryoRegistrator.typeCache.put(sft.getTypeName, sft)
+  }
+
+  def putTypeIfAbsent(sft: SimpleFeatureType): Unit = {
     GeoMesaSparkKryoRegistrator.typeCache.putIfAbsent(sft.getTypeName, sft)
   }
 
@@ -230,5 +234,9 @@ object GeoMesaSparkKryoRegistrator {
     } else {
       SimpleFeatureTypes.createType(typeName, spec)
     }
+  }
+
+  def replaceType(sft: SimpleFeatureType): Unit = {
+    GeoMesaSparkKryoRegistrator.typeCache.replace(sft.getTypeName, sft)
   }
 }
