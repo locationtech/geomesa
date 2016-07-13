@@ -83,6 +83,14 @@ trait GeoMesaMetadata[T] {
     }
 
   /**
+    * Invalidates any cached value for the given key
+    *
+    * @param typeName simple feature type name
+    * @param key key
+    */
+  def invalidateCache(typeName: String, key: String): Unit
+
+  /**
    * Deletes all values associated with a given feature type
    *
    * @param typeName simple feature type name
@@ -185,6 +193,8 @@ class AccumuloBackedMetadata[T](connector: Connector, catalogTable: String, seri
     // note: don't use putAll, it breaks guava 11 compatibility
     kvPairs.foreach(kv => metaDataCache.put((typeName, kv._1), Option(kv._2)))
   }
+
+  override def invalidateCache(typeName: String, key: String): Unit = metaDataCache.invalidate((typeName, key))
 
   override def remove(typeName: String, key: String): Unit = {
     if (synchronized(tableExists)) {
