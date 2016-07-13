@@ -32,4 +32,4 @@ function build_and_mirror {
 #build_and_mirror wip_docs_122_backports 1.2.2
 #build_and_mirror wip_docs_123_backports 1.2.3
 build_and_mirror wip_docs_124_backports 1.2.4
-build_and_mirror wip_docs_123_backports root
+build_and_mirror wip_docs_124_backports root
