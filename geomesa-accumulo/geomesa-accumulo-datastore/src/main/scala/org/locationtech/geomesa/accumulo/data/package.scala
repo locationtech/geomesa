@@ -30,6 +30,7 @@ package object data {
   // SimpleFeature Hints
   val TRANSFORMS           = new ClassKey(classOf[String])
   val TRANSFORM_SCHEMA     = new ClassKey(classOf[SimpleFeatureType])
+  @deprecated
   val GEOMESA_UNIQUE       = new ClassKey(classOf[String])
 
   type SFFeatureWriter = FeatureWriter[SimpleFeatureType, SimpleFeature]

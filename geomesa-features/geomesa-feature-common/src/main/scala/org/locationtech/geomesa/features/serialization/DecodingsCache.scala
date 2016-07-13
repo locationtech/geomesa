@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.features.serialization
 
-import org.locationtech.geomesa.utils.cache.{SoftThreadLocal, SoftThreadLocalCache}
+import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocal, SoftThreadLocalCache}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
@@ -36,7 +36,7 @@ trait DecodingsCache[Reader] {
     * of a simple feature.  The decodings are ached per thread, [[SimpleFeatureType]], and version number.
     */
   def decodings(sft: SimpleFeatureType): DecodingsVersionCache[Reader] = {
-    decodingsCache.getOrElseUpdate(CacheKeyGenerator.cacheKeyForSFT(sft), {
+    decodingsCache.getOrElseUpdate(CacheKeyGenerator.cacheKey(sft), {
       new DecodingsVersionCache[Reader](reader, sft)
     })
   }
@@ -59,12 +59,4 @@ trait DecodingsCache[Reader] {
         datumReaders.selectReader(d.getType.getBinding, version, d.getUserData, datumReaders.standardNullable)
       }.toArray}
     )
-}
-
-object CacheKeyGenerator {
-
-  import collection.JavaConversions._
-
-  def cacheKeyForSFT(sft: SimpleFeatureType) =
-    s"${sft.getName};${sft.getAttributeDescriptors.map(ad => s"${ad.getName.toString}${ad.getType}").mkString(",")}"
 }

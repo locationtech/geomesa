@@ -16,7 +16,7 @@ import com.clearspring.analytics.stream.cardinality.HyperLogLog
 import com.clearspring.analytics.stream.frequency.RichCountMinSketch
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.vividsolutions.jts.geom.Geometry
-import org.locationtech.geomesa.utils.cache.SoftThreadLocal
+import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocal}
 import org.locationtech.geomesa.utils.stats.MinMax.MinMaxDefaults
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.simple.SimpleFeatureType
@@ -35,7 +35,12 @@ trait StatSerializer {
 }
 
 object StatSerializer {
-  def apply(sft: SimpleFeatureType): StatSerializer = new KryoStatSerializer(sft)
+
+  private val serializers = scala.collection.mutable.Map.empty[String, StatSerializer]
+
+  def apply(sft: SimpleFeatureType): StatSerializer = serializers.synchronized {
+    serializers.getOrElseUpdate(CacheKeyGenerator.cacheKey(sft), new KryoStatSerializer(sft))
+  }
 }
 
 /**

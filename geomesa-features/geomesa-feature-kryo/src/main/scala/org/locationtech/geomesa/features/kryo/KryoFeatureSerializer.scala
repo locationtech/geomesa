@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.features.kryo
 
-import java.util.{Date, HashMap => jHashMap, List => jList, Map => jMap, UUID}
+import java.util.{Date, UUID, HashMap => jHashMap, List => jList, Map => jMap}
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
@@ -16,9 +16,9 @@ import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features._
 import org.locationtech.geomesa.features.kryo.serialization.{KryoReader, KryoWriter}
+import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
-import org.locationtech.geomesa.features.serialization.{CacheKeyGenerator, ObjectType}
-import org.locationtech.geomesa.utils.cache.{SoftThreadLocal, SoftThreadLocalCache}
+import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocal, SoftThreadLocalCache}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -28,7 +28,7 @@ class KryoFeatureSerializer(sft: SimpleFeatureType, val options: Set[Serializati
 
   import KryoFeatureSerializer._
 
-  protected[kryo] val cacheKey = CacheKeyGenerator.cacheKeyForSFT(sft)
+  protected[kryo] val cacheKey = CacheKeyGenerator.cacheKey(sft)
   protected[kryo] val numAttributes = sft.getAttributeCount
 
   protected[kryo] val writers = getWriters(cacheKey, sft)

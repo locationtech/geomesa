@@ -15,7 +15,7 @@ import org.apache.accumulo.core.iterators.user.RowEncodingIterator
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.features.serialization.CacheKeyGenerator
+import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -46,7 +46,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
       }
     }
     idFromRow = table.getIdFromRow(sft)
-    val cacheKey = CacheKeyGenerator.cacheKeyForSFT(sft)
+    val cacheKey = CacheKeyGenerator.cacheKey(sft)
     if (offsets == null || offsets.length != sft.getAttributeCount) {
       offsets = Array.ofDim[Int](sft.getAttributeCount)
     }
