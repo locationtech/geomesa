@@ -59,11 +59,11 @@ author = u''
 #
 # version: The short X.Y version.
 # release: The full version, including alpha/beta/rc tags.
-release = '1.2.3'
-version = '1.2.3'
+release = '1.2.4'
+version = '1.2.4'
 
 release_1_1 = '1.1.0-rc.7'
-version_devel = '1.2.4-SNAPSHOT'
+version_devel = '1.2.5-SNAPSHOT'
 
 url_locationtech_release = "https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa"
 url_github_archive = "https://github.com/locationtech/geomesa/archive"
