@@ -31,6 +31,6 @@ If it is not, merge the contents of `reference.conf` to `$GEOMESA_HOME/conf/appl
 
 Run the ingest. You may optionally point to a different accumulo instance using `-i` and `-z` options. See `geomesa help ingest` for more detail.
 
-    geomesa ingest -u USERNAME -c CATALOGNAME -s gdelt -c gdelt gdelt_data.csv
+    geomesa ingest -u USERNAME -c CATALOGNAME -s gdelt -C gdelt gdelt_data.csv
 
 Further be aware that any errors in ingestion will be logged to `$GEOMESA_HOME/logs`

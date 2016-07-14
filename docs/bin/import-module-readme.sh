@@ -5,24 +5,19 @@
 
 # IMPORTANT: update these to match your system!
 # (I had two copies of the geomesa repo because they were checked out on different branches)
-GM_DOCS=/opt/devel/src/geomesa
+GM_DOCS=/opt/devel/src/geomesa-docs
 GM_MASTER=/opt/devel/src/geomesa
 MODULES="
-geomesa-compute
-geomesa-convert
-geomesa-jobs
 geomesa-metrics
 geomesa-process
 geomesa-raster
-geomesa-stream
 geomesa-utils
-geomesa-web/geomesa-web-data
 "
 
 for module in $MODULES ; do
 	readme=$GM_MASTER/$module/README.md
-	module_out=`basename $module`
-	rst=$GM_DOCS/docs/developer/modules/${module_out}.rst
+	module_out=${module//geomesa-/}
+	rst=$GM_DOCS/docs/user/${module_out}.rst
 	if [ -f $readme ] ; then
 		pandoc -i $readme -o $rst
 	else

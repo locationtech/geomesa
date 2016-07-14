@@ -1,4 +1,4 @@
-# T-Drive Trajetory Data for GeoMesa
+# T-Drive Trajectory Data for GeoMesa
 
 This directory provides [T-Drive](http://research.microsoft.com/apps/pubs/?id=152883) GeoMesa ingest commands and converter configuration files.
 
@@ -6,15 +6,15 @@ T-Drive is a project of Microsoft Research Asia. The [overall project](http://re
 
 Microsoft makes a small subsample of its data [available for download](http://research.microsoft.com/apps/pubs/?id=152883). This is about one third of the taxis for a period of a week.
 
-This readme describes the full process from original source data to GeoMesa ingest.
+This document describes the full process from original source data to GeoMesa ingest.
 
 Before proceeding please check out the data description and included terms of [use](http://research.microsoft.com/pubs/152883/User_guide_T-drive.pdf).
 
 
 ## Getting T-Drive data
-The GDELT data set can be downloaded using the provided ```download-data.sh``` script in `$GEOMESA_HOME/bin/` as such
+The T-Drive data set can be downloaded using the provided ```download-data.sh``` script in `$GEOMESA_HOME/bin/` as such
 
-    ./download-data.sh gdelt
+    ./download-data.sh tdrive
 
 Alternatively, download the T-Drive datasets from [here](http://research.microsoft.com/apps/pubs/?id=152883) download one or all of the zip files, then `unzip` into a convenient directory. 
 
@@ -35,7 +35,6 @@ If it is not, merge the contents of `reference.conf` with `$GEOMESA_HOME/conf/ap
 
 Run the ingest. You may optionally point to a different accumulo instance using `-i` and `-z` options. See `geomesa help ingest` for more detail.
 
-    geomesa ingest -u USERNAME -c CATALOGNAME -s tdrive -c tdrive tdrive_data.txt
+    geomesa ingest -u USERNAME -c CATALOGNAME -s tdrive -C tdrive tdrive_data.txt
 
-
-Further be aware that any errors in ingestion will be logged to `$GEOMESA_HOME/logs`
+Any errors during the ingest will be logged to `$GEOMESA_HOME/logs`.
