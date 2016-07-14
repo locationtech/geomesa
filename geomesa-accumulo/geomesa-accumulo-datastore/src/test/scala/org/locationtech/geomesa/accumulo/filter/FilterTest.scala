@@ -83,9 +83,9 @@ class FilterTest extends Specification with TestWithDataStore with LazyLogging {
       runTest(attributeAndGeometricPredicatesWithNS)
     }
 
-//    "filter correctly for DWITHIN predicates" >> {
-//      runTest(dwithinPointPredicates)
-//    }
+    "filter correctly for DWITHIN predicates" >> {
+      runTest(dwithinPointPredicates)
+    }.pendingUntilFixed("we are handling these correctly and geotools is not (probably)")
 
     "filter correctly for ID predicates" >> {
       runTest(idPredicates)
