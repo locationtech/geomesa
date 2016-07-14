@@ -57,7 +57,7 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     // standardize the two key query arguments:  polygon and date-range
 
     val geometryToCover =
-      andOption(geomFilters).flatMap(extractSingleGeometry(_, sft.getGeomField)).getOrElse(WholeWorldPolygon)
+      andOption(geomFilters).flatMap(extractSingleGeometry(_, sft.getGeomField, sft.isPoints)).getOrElse(WholeWorldPolygon)
 
     output(s"GeomsToCover: $geometryToCover")
 

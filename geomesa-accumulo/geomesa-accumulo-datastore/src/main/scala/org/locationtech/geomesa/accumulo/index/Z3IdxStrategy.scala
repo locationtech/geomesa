@@ -58,7 +58,7 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     // standardize the two key query arguments:  polygon and date-range
     // TODO GEOMESA-1215 this can handle OR'd geoms, but the query splitter won't currently send them
     val geometryToCover =
-      filter.singlePrimary.flatMap(extractSingleGeometry(_, sft.getGeomField)).getOrElse(WholeWorldPolygon)
+      filter.singlePrimary.flatMap(extractSingleGeometry(_, sft.getGeomField, sft.isPoints)).getOrElse(WholeWorldPolygon)
 
     // since we don't apply a temporal filter, we pass handleExclusiveBounds to
     // make sure we exclude the non-inclusive endpoints of a during filter.

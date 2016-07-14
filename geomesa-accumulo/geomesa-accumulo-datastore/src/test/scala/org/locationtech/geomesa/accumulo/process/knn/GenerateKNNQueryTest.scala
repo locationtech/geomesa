@@ -107,7 +107,8 @@ class GenerateKNNQueryTest extends Specification {
 
       val geomsToCover = {
         import scala.collection.JavaConversions._
-        FilterHelper.extractSingleGeometry(ff.and(tweakedGeomFilters), sft.getGeometryDescriptor.getLocalName).orNull
+        val geom = sft.getGeometryDescriptor.getLocalName
+        FilterHelper.extractSingleGeometry(ff.and(tweakedGeomFilters), geom, intersect = true).orNull
       }
 
       val geometryToCover = new org.locationtech.geomesa.accumulo.index.IndexFilterHelpers{}.netGeom(geomsToCover)

@@ -141,7 +141,7 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
     for {
       geomField <- Option(sft.getGeomField)
       dateField <- sft.getDtgField
-      geometry  <- FilterHelper.extractSingleGeometry(filter, geomField)
+      geometry  <- FilterHelper.extractSingleGeometry(filter, geomField, sft.isPoints)
       intervals <- Option(FilterHelper.extractIntervals(filter, dateField)).filter(_.nonEmpty)
       bounds    <- stats.getStats[MinMax[Date]](sft, Seq(dateField)).headOption
     } yield {
@@ -267,7 +267,7 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
 
     for {
-      geometry  <- FilterHelper.extractSingleGeometry(filter, sft.getGeomField)
+      geometry  <- FilterHelper.extractSingleGeometry(filter, sft.getGeomField, sft.isPoints)
       histogram <- stats.getStats[Histogram[Geometry]](sft, Seq(sft.getGeomField)).headOption
     } yield {
       val (zLo, zHi) = {
