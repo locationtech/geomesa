@@ -205,7 +205,7 @@
                                 </goals>
                                 <phase>package</phase>
                                 <configuration>
-                                    <attach>false</attach>
+                                    <attach>true</attach>
                                     <finalName>spark-${project.version}</finalName>
                                     <tarLongFileMode>posix</tarLongFileMode>
                                     <descriptors>
