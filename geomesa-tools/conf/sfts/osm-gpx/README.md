@@ -28,4 +28,4 @@ If it is not, merge the contents of `reference.conf` with `$GEOMESA_HOME/conf/ap
 
 Run the ingest. You may optionally point to a different accumulo instance using `-i` and `-z` options. See `geomesa help ingest` for more detail.
 
-    geomesa ingest -u USERNAME -c CATALOGNAME -s osm-gpx -c osm-gpx osm-data.csv
+    geomesa ingest -u USERNAME -c CATALOGNAME -s osm-gpx -C osm-gpx osm-data.csv

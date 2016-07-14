@@ -35,6 +35,6 @@ If it is not, merge the contents of `reference.conf` with `$GEOMESA_HOME/conf/ap
 
 Run the ingest. You may optionally point to a different accumulo instance using `-i` and `-z` options. See `geomesa help ingest` for more detail.
 
-    geomesa ingest -u USERNAME -c CATALOGNAME -s tdrive -c tdrive tdrive_data.txt
+    geomesa ingest -u USERNAME -c CATALOGNAME -s tdrive -C tdrive tdrive_data.txt
 
 Any errors during the ingest will be logged to `$GEOMESA_HOME/logs`.
