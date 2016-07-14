@@ -7,6 +7,10 @@ Modules and Libraries
    blobstore
    convert
    jobs
+   metrics
    native_api
+   process
+   raster
    stream
+   utils
    web_data
