@@ -69,17 +69,24 @@ object AvroCodecs {
     val JFLOAT = classOf[java.lang.Float]
     val JDOUBLE = classOf[java.lang.Double]
 
-    def normalizePrimitive(clazz:Class[_]) = clazz match {
-      case JBOOLEAN | java.lang.Boolean.TYPE => classOf[Boolean]
-      case JBYTE | java.lang.Byte.TYPE => classOf[Byte]
-      case JCHAR | java.lang.Character.TYPE => classOf[Char]
-      case JSHORT | java.lang.Short.TYPE => classOf[Short]
-      case JINT | java.lang.Integer.TYPE => classOf[Int]
-      case JLONG | java.lang.Long.TYPE => classOf[Long]
-      case JFLOAT | java.lang.Float.TYPE => classOf[Float]
-      case JDOUBLE | java.lang.Double.TYPE => classOf[Double]
-      case x => x
-    }
+    val normalizePrimitive = Map[Class[_],Class[_]](
+      JBOOLEAN -> classOf[Boolean],
+      JBYTE -> classOf[Byte],
+      JCHAR -> classOf[Char],
+      JSHORT -> classOf[Short],
+      JINT -> classOf[Int],
+      JLONG -> classOf[Long],
+      JFLOAT -> classOf[Float],
+      JDOUBLE -> classOf[Double],
+      java.lang.Boolean.TYPE -> classOf[Boolean],
+      java.lang.Byte.TYPE -> classOf[Byte],
+      java.lang.Character.TYPE -> classOf[Char],
+      java.lang.Short.TYPE -> classOf[Short],
+      java.lang.Integer.TYPE -> classOf[Int],
+      java.lang.Long.TYPE -> classOf[Long],
+      java.lang.Float.TYPE -> classOf[Float],
+      java.lang.Double.TYPE -> classOf[Double]
+    ).withDefault(k=>k)
 
     def findAll[T](clazz:Class[T]): Option[mutable.LinkedHashMap[Schema.Type, AvroCodec[_]]] =
       cache.getOrElseUpdate(clazz, registry.get(normalizePrimitive(clazz))
