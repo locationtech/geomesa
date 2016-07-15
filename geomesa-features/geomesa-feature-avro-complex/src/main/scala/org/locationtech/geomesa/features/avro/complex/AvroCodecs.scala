@@ -13,9 +13,9 @@ import org.apache.avro.io.{Decoder, Encoder}
 import org.geotools.feature.`type`.AttributeDescriptorImpl
 import org.geotools.feature.{AttributeImpl, ComplexAttributeImpl, FeatureImpl}
 import org.geotools.filter.identity.FeatureIdImpl
-import org.geotools.gml2.GMLSchema
+import org.geotools.gml3.GMLSchema
 import org.locationtech.geomesa.features.avro.complex.AvroSchemas.{FieldNameEncoder, _}
-import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors._
 import org.opengis.feature.`type`.{PropertyDescriptor, _}
 import org.opengis.feature.{Attribute, ComplexAttribute, Property}
 import org.opengis.filter.identity.FeatureId
@@ -396,7 +396,7 @@ object AvroCodecs {
       case _ => ???
     }
 
-    private[this] def bindEncOne(s:SchemaType, ad:PropertyDescriptor):EncodeProperty = s match {
+    private[this] def bindEncOne(s:SchemaType, ad:AttributeDescriptor):EncodeProperty = s match {
       case n@Nullable(st) =>
         val binding = bindEncOne(st,ad)
         new EncodeProperty { def apply(e: Encoder, p: Property) ={
