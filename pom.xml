@@ -1951,6 +1951,14 @@
                     <artifactId>scala-maven-plugin</artifactId>
                     <version>3.2.1</version>
                     <configuration>
+                    <compilerPlugins>
+                        <compilerPlugin>
+                            <groupId>org.brianmckenna</groupId>
+                            <artifactId>wartremover_2.11</artifactId>
+                            <version>0.14</version>
+                        </compilerPlugin>
+                    </compilerPlugins>
+
                         <dependencies>
                             <dependency>
                                 <groupId>org.scala-lang</groupId>
@@ -1968,6 +1976,7 @@
                             <arg>-nowarn</arg>
                             <arg>-unchecked</arg>
                             <arg>-deprecation</arg>
+ <arg>-P:wartremover:only-warn-traverser:org.brianmckenna.wartremover.warts.Unsafe</arg>
                         </args>
                         <source>1.7</source>
                         <target>1.7</target>
