@@ -13,8 +13,8 @@
     <packaging>pom</packaging>
 
     <properties>
-        <scalatra.version>2.3.0</scalatra.version>
-        <json4s.version>3.2.10</json4s.version>
+        <scalatra.version>2.4.0</scalatra.version>
+        <json4s.version>3.3.0</json4s.version>
     </properties>
 
     <modules>
