@@ -99,6 +99,10 @@
         <maven.test.jvmargs>-Duser.timezone=UTC -Xms1g -Xmx8g -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true</maven.test.jvmargs>
         <test.fork.count>1</test.fork.count>
         <test.fork.reuse>true</test.fork.reuse>
+        <fork.mode>once</fork.mode>
+
+        <scoverage.plugin.version>1.1.1</scoverage.plugin.version>
+        <scala.short>2.11</scala.short>
     </properties>
 
     <profiles>
@@ -256,6 +260,11 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.scoverage</groupId>
+                <artifactId>scalac-scoverage-plugin_${scala.short}</artifactId>
+                <version>${scoverage-plugin.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.scala-lang</groupId>
                 <artifactId>scala-library</artifactId>
@@ -1938,7 +1947,7 @@
                     <artifactId>maven-assembly-plugin</artifactId>
                     <version>2.6</version>
                     <configuration>
-                      <tarLongFileMode>posix</tarLongFileMode>
+                        <tarLongFileMode>posix</tarLongFileMode>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -2054,6 +2063,17 @@
 
         <plugins>
             <plugin>
+                <groupId>org.scoverage</groupId>
+                <artifactId>scoverage-maven-plugin</artifactId>
+                <version>${scoverage.plugin.version}</version>
+                <configuration>
+                    <highlighting>true</highlighting>
+                    <scalacPluginVersion>1.1.1</scalacPluginVersion>
+                    <aggregate>true</aggregate>
+                    <scalaVersion>2.11.7</scalaVersion>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
                 <executions>
@@ -2073,6 +2093,32 @@
                         </goals>
                     </execution>
                 </executions>
+
+                <!--<configuration>-->
+                    <!--<jvmArgs>-->
+                        <!--<jvmArg>-Xms1024m</jvmArg>-->
+                        <!--<jvmArg>-Xmx4096m</jvmArg>-->
+                        <!--<jvmArg>-XX:MaxPermSize=1024m</jvmArg>-->
+                    <!--</jvmArgs>-->
+                    <!--<compilerPlugins>-->
+                        <!--<compilerPlugin>-->
+                            <!--<groupId>org.scoverage</groupId>-->
+                            <!--<artifactId>scalac-scoverage-plugin_${scala.short}</artifactId>-->
+                            <!--<version>${scoverage-plugin.version}</version>-->
+                        <!--</compilerPlugin>-->
+                    <!--</compilerPlugins>-->
+                    <!--<args>-->
+                        <!--<arg>-g:vars</arg>-->
+                        <!--<arg>-P:scoverage:dataDir:${project.build.outputDirectory}</arg>-->
+                    <!--</args>-->
+                    <!--&lt;!&ndash; <args>-->
+                         <!--<arg>-nowarn</arg>-->
+                         <!--<arg>-unchecked</arg>-->
+                         <!--<arg>-deprecation</arg>-->
+                     <!--</args> &ndash;&gt;-->
+                    <!--<scalaVersion>${scala.version}</scalaVersion>-->
+                <!--</configuration>-->
+
             </plugin>
             <plugin>
                 <groupId>pl.project13.maven</groupId>
@@ -2132,6 +2178,37 @@
             </plugin>
         </plugins>
     </build>
+
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.8</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>index</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+
+            <plugin>
+                <groupId>org.scoverage</groupId>
+                <artifactId>scoverage-maven-plugin</artifactId>
+                <version>${scoverage.plugin.version}</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>report</report> <!-- select only one report from: report, integration-report and report-only reporters -->
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
 
     <scm>
         <connection>scm:git:git@github.com:locationtech/geomesa.git</connection>
