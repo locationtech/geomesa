@@ -1953,13 +1953,20 @@
                     <configuration>
                     <compilerPlugins>
                         <compilerPlugin>
-                            <groupId>org.brianmckenna</groupId>
-                            <artifactId>wartremover_2.11</artifactId>
-                            <version>0.14</version>
+                            <groupId>com.sksamuel.scapegoat</groupId>
+                            <artifactId>scalac-scapegoat-plugin_2.11</artifactId>
+                            <version>1.2.1</version>
+                            <!--<version>${scalac.plugin.scapegoat.version}</version>-->
                         </compilerPlugin>
                     </compilerPlugins>
 
-                        <dependencies>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.sksamuel.scapegoat</groupId>
+                            <artifactId>scalac-scapegoat-plugin_2.11</artifactId>
+                            <version>1.2.1</version>
+                        </dependency>
+
                             <dependency>
                                 <groupId>org.scala-lang</groupId>
                                 <artifactId>scala-reflect</artifactId>
@@ -1976,7 +1983,8 @@
                             <arg>-nowarn</arg>
                             <arg>-unchecked</arg>
                             <arg>-deprecation</arg>
- <arg>-P:wartremover:only-warn-traverser:org.brianmckenna.wartremover.warts.Unsafe</arg>
+                            <arg>-P:scapegoat:dataDir:target</arg>
+                            <arg>-P:scapegoat:consoleOutput:true</arg>
                         </args>
                         <source>1.7</source>
                         <target>1.7</target>
