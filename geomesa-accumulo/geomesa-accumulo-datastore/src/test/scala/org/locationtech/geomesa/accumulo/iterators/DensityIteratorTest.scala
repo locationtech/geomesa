@@ -267,7 +267,7 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
       }
 
       "with z3 index" >> {
-        val q = "BBOX(geom, 0.0, 0.0, 10.0, 10.0) AND " +
+        val q = "BBOX(geom, -1.0, -1.0, 11.0, 11.0) AND " +
             "dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z'"
         val density = getDensity(sft.getTypeName, q)
         density.map(_._3).sum must beCloseTo(15.0, 0.1)
@@ -298,7 +298,7 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
       }
 
       "with z3 index" >> {
-        val q = "BBOX(geom, 0.0, 0.0, 10.0, 10.0) AND " +
+        val q = "BBOX(geom, -1.0, -1.0, 11.0, 11.0) AND " +
             "dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z'"
         val density = getDensity(sft.getTypeName, q)
         density.map(_._3).sum must beCloseTo(15.0, 0.1)
