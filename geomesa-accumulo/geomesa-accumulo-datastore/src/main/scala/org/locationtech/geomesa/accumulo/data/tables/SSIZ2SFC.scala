@@ -21,8 +21,9 @@ object SSIZ2SFC extends SpaceFillingCurve[Z2] {
   def indexGeometryToBytes(geom: Geometry): Array[Byte] = {
     val size: Double = sizeOf(geom)
 
-    val tier: Tier = findTier(size)
-    val index = getTieredIndex(tier, geom)
+    val tier = findTier(size)
+    val centroid = geom.getCentroid
+    val index = tier.sfc.index(centroid.getX, centroid.getY)
 
     Bytes.concat(tier.id, Longs.toByteArray(index.z))
   }
@@ -31,18 +32,13 @@ object SSIZ2SFC extends SpaceFillingCurve[Z2] {
     Tier.tiers.find( f => f.minSize > size).get // TODO: .getOrElse BOTTOM TIER
   }
 
-  def getTieredIndex(tier: Tier, geom: Geometry): Z2 = {
-    val centroid = geom.getCentroid
-    tier.sfc.index(centroid.getX, centroid.getY)
-  }
-
   def sizeOf(geom: Geometry): Double = {
     val env = geom.getEnvelopeInternal
     math.max(env.getHeight, env.getWidth)
   }
 
   override def ranges(x: (Double, Double), y: (Double, Double), precision: Int): Seq[IndexRange] = {
-      Z2.zranges(index(x._1, y._1), index(x._2, y._2), precision)
+      Tier.tiers.flatMap( t => t.ranges(x, y, precision) )
     }
 
   override def invert(z: Z2): (Double, Double) = {
@@ -67,12 +63,14 @@ object Tier {
 class Z2Tier(precisionBits: Int) extends Tier {
   override def id: Array[Byte] = Array(precisionBits.toByte)
 
-  override def sfc: SpaceFillingCurve[Z2] = new Z2SFC(precisionBits)
+  override def sfc: SpaceFillingCurve[Z2] = new PaddedZ2SFC(precisionBits)
 
   override def minSize: Double = 180 / math.pow(2, precisionBits)
+
+  def ranges(x: (Double, Double), y: (Double, Double), precision: Int) = sfc.ranges(x, y, precision)
 }
 
-class Z2SFC(precisionBits: Int) extends SpaceFillingCurve[Z2] {
+class PaddedZ2SFC(precisionBits: Int) extends SpaceFillingCurve[Z2] {
 
   private val xprec: Long = math.pow(2, precisionBits).toLong - 1
   private val yprec: Long = math.pow(2, precisionBits).toLong - 1
@@ -80,10 +78,12 @@ class Z2SFC(precisionBits: Int) extends SpaceFillingCurve[Z2] {
   override val lon  = NormalizedLon(xprec)
   override val lat  = NormalizedLat(yprec)
 
+  val paddingSize: Double = 180 / math.pow(2, precisionBits+1)
+
   override def index(x: Double, y: Double): Z2 = Z2(lon.normalize(x), lat.normalize(y))
 
   override def ranges(x: (Double, Double), y: (Double, Double), precision: Int): Seq[IndexRange] =
-    Z2.zranges(index(x._1, y._1), index(x._2, y._2), precision)
+    Z2.zranges(index(x._1 - paddingSize, y._1 - paddingSize), index(x._2 + paddingSize, y._2 + paddingSize), precision)
 
   override def invert(z: Z2): (Double, Double) = {
     val (x, y) = z.decode

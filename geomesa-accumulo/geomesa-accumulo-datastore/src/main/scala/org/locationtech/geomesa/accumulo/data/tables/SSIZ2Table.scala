@@ -85,7 +85,6 @@ object SSIZ2Table extends GeoMesaTable {
   override def remover(sft: SimpleFeatureType): FeatureToMutations = ???
 
   def calculateRowKeys(tableSharing: Array[Byte])(ftw: FeatureToWrite): Seq[Array[Byte]] = {
-    import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
     val split: Array[Byte] = SPLIT_ARRAYS(ftw.idHash % NUM_SPLITS)
     val id = ftw.feature.getID.getBytes(StandardCharsets.UTF_8)
     val geom = ftw.feature.getDefaultGeometry.asInstanceOf[Geometry]
@@ -100,8 +99,6 @@ object SSIZ2Table extends GeoMesaTable {
     * @return a function to retrieve an ID from a row
     */
   override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = ???
-
-
 
   private def sharingPrefix(sft: SimpleFeatureType): Array[Byte] = {
     val sharing = if (sft.isTableSharing) {
