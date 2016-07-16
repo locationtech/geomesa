@@ -19,5 +19,6 @@ package object geomesa {
   // 6 == attribute indices with dates
   // 7 == z3 polygons
   // 8 == z2 index, deprecating stidx
-  val CURRENT_SCHEMA_VERSION = 8
+  // TODO: JNH set to 9 and wire up SSI tables
+  val CURRENT_SCHEMA_VERSION = 9
 }
