@@ -37,14 +37,16 @@ object SSIZ2SFC extends SpaceFillingCurve[Z2] {
     math.max(env.getHeight, env.getWidth)
   }
 
-  override def ranges(x: (Double, Double), y: (Double, Double), precision: Int): Seq[IndexRange] = {
-      Tier.tiers.flatMap( t => t.ranges(x, y, precision) )
+  def tieredranges(x: (Double, Double), y: (Double, Double)): Seq[(Array[Byte], IndexRange)] = {
+      Tier.tiers.flatMap( t => t.ranges(x, y, 64).map( rs => (t.id, rs)) )
     }
 
   override def invert(z: Z2): (Double, Double) = {
     val (x, y) = z.decode
     (lon.denormalize(x), lat.denormalize(y))
   }
+
+  override def ranges(x: (Double, Double), y: (Double, Double), precision: Int): Seq[IndexRange] = ???
 }
 
 trait Tier {

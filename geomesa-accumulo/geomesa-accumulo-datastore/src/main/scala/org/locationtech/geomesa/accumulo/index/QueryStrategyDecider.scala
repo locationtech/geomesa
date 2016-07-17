@@ -58,6 +58,11 @@ object QueryStrategyDecider extends QueryStrategyDecider with MethodProfiling {
 
     implicit val timings = new Timing()
 
+
+    val qf = QueryFilter(StrategyType.SSIZ2, Seq(query.getFilter))
+
+    return Seq(new SSIZ2Strategy(qf))
+
     // get the various options that we could potentially use
     val options = {
       val all = new QueryFilterSplitter(sft).getQueryOptions(query.getFilter, output)

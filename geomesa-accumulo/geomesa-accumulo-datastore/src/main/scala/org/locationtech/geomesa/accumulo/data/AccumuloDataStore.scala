@@ -473,6 +473,7 @@ class AccumuloDataStore(val connector: Connector,
       case AttributeTableV5    => ATTR_IDX_TABLE_KEY
       // noinspection ScalaDeprecation
       case SpatioTemporalTable => ST_IDX_TABLE_KEY
+      case SSIZ2Table          => SSIZ2_TABLE_KEY
       case _ => throw new NotImplementedError("Unknown table")
     }
     metadata.readRequired(featureName, key)
@@ -490,6 +491,7 @@ class AccumuloDataStore(val connector: Connector,
       case RecordTable         => config.recordThreads
       case Z2Table             => config.queryThreads
       case Z3Table             => config.queryThreads
+      case SSIZ2Table          => config.queryThreads
       case AttributeTable      => config.queryThreads
       // noinspection ScalaDeprecation
       case AttributeTableV5    => 1
@@ -643,6 +645,7 @@ class AccumuloDataStore(val connector: Connector,
     val z3TableValue      = Z3Table.formatTableName(catalogTable, sft)
     val attrIdxTableValue = AttributeTable.formatTableName(catalogTable, sft)
     val recordTableValue  = RecordTable.formatTableName(catalogTable, sft)
+    val ssiz2TableVale    = SSIZ2Table.formatTableName(catalogTable, sft)
     val statDateValue     = GeoToolsDateFormat.print(DateTimeUtils.currentTimeMillis())
     val dataStoreVersion  = sft.getSchemaVersion.toString
 
@@ -653,6 +656,7 @@ class AccumuloDataStore(val connector: Connector,
       Z3_TABLE_KEY          -> z3TableValue,
       ATTR_IDX_TABLE_KEY    -> attrIdxTableValue,
       RECORD_TABLE_KEY      -> recordTableValue,
+      SSIZ2_TABLE_KEY       -> ssiz2TableVale,
       STATS_GENERATION_KEY  -> statDateValue,
       VERSION_KEY           -> dataStoreVersion,
       SCHEMA_ID_KEY         -> schemaIdString,

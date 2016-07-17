@@ -74,7 +74,7 @@ trait GeoMesaTable {
 object GeoMesaTable {
 
   // noinspection ScalaDeprecation
-  val AllTables = Seq(RecordTable, SpatioTemporalTable, AttributeTableV5, AttributeTable, Z2Table, Z3Table)
+  val AllTables = Seq(RecordTable, SpatioTemporalTable, AttributeTableV5, AttributeTable, Z2Table, Z3Table, SSIZ2Table)
 
   val FullColumnFamily      = new Text("F")
   val BinColumnFamily       = new Text("B")

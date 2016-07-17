@@ -64,7 +64,7 @@ case class QueryPlanner(sft: SimpleFeatureType, ds: AccumuloDataStore) extends M
    */
   def planQuery(query: Query,
                 strategy: Option[StrategyType] = None,
-                output: ExplainerOutputType = new ExplainLogging): Seq[QueryPlan] = {
+                output: ExplainerOutputType = new ExplainPrintln): Seq[QueryPlan] = {
     getQueryPlans(query, strategy, output).toList // toList forces evaluation of entire iterator
   }
 
@@ -73,7 +73,7 @@ case class QueryPlanner(sft: SimpleFeatureType, ds: AccumuloDataStore) extends M
    */
   def runQuery(query: Query,
                strategy: Option[StrategyType] = None,
-               output: ExplainerOutputType = new ExplainLogging): SFIter = {
+               output: ExplainerOutputType = new ExplainPrintln): SFIter = {
     val plans = getQueryPlans(query, strategy, output)
     executePlans(query, plans, output)
   }
