@@ -236,7 +236,7 @@ object CassandraDataStoreTest {
 
       System.setProperty("cassandra.storagedir", storagedir.getPath)
 
-      EmbeddedCassandraServerHelper.startEmbeddedCassandra("cassandra-config.yaml", 30000L)
+      EmbeddedCassandraServerHelper.startEmbeddedCassandra("cassandra-config.yaml", 1200000L)
       val cluster = new Cluster.Builder().addContactPoints(host).withPort(port).build()
       val session = cluster.connect()
       val cqlDataLoader = new CQLDataLoader(session)
