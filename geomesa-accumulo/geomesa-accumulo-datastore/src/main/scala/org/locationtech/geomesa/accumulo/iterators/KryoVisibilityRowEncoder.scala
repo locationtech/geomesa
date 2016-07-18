@@ -13,7 +13,6 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.user.RowEncodingIterator
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
-import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -25,10 +24,11 @@ import org.opengis.feature.simple.SimpleFeatureType
 class KryoVisibilityRowEncoder extends RowEncodingIterator {
 
   private var sft: SimpleFeatureType = null
-  private var output: Output = new Output(1024, -1)
   private var nullBytes: Array[Array[Byte]] = null
-  private var idFromRow: (Array[Byte]) => String = null
   private var offsets: Array[Int] = null
+  private var offsetStart: Int = -1
+
+  private val output: Output = new Output(128, -1)
 
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
@@ -39,17 +39,10 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     super.init(source, options, env)
 
     sft = SimpleFeatureTypes.createType("", options.get(KryoVisibilityRowEncoder.SftOpt))
-    val table = {
-      val name = options.get(KryoVisibilityRowEncoder.TableOpt)
-      GeoMesaTable.AllTables.find(_.getClass.getSimpleName == name).getOrElse {
-        throw new IllegalArgumentException(s"Table $name not found")
-      }
-    }
-    idFromRow = table.getIdFromRow(sft)
-    val cacheKey = CacheKeyGenerator.cacheKey(sft)
     if (offsets == null || offsets.length != sft.getAttributeCount) {
       offsets = Array.ofDim[Int](sft.getAttributeCount)
     }
+    val cacheKey = CacheKeyGenerator.cacheKey(sft)
     nullBytes = KryoFeatureSerializer.getWriters(cacheKey, sft).map { writer =>
       output.clear()
       writer(output, null)
@@ -58,17 +51,31 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
   }
 
   override def rowEncoder(keys: java.util.List[Key], values: java.util.List[Value]): Value = {
-    val allValues = Array.ofDim[Array[Byte]](sft.getAttributeCount)
+    if (values.size() == 1) {
+      return values.get(0)
+    }
 
+    val allValues = Array.ofDim[Array[Byte]](sft.getAttributeCount)
     var i = 0
     while (i < keys.size) {
-      val indices = keys.get(i).getColumnQualifier.getBytes.map(_.toInt)
-      val input = KryoFeatureSerializer.getInput(values.get(i).get)
-      indices.foreach { i =>
-        val value = Array.ofDim[Byte](input.readInt(true))
-        input.readBytes(value)
-        allValues(i) = value
+      val cq = keys.get(i).getColumnQualifier
+      val comma = cq.find(",")
+      val indices = if (comma == -1) cq.getBytes.map(_.toInt) else cq.getBytes.drop(comma + 1).map(_.toInt)
+
+      val bytes = values.get(i).get
+
+      readOffsets(bytes)
+
+      // set the non-null values
+      indices.foreach { index =>
+        val endIndex = offsets.indexWhere(_ != -1, index + 1)
+        val end = if (endIndex == -1) offsetStart else offsets(endIndex)
+        val length = end - offsets(index)
+        val values = Array.ofDim[Byte](length)
+        System.arraycopy(bytes, offsets(index), values, 0, length)
+        allValues(index) = values
       }
+
       i += 1
     }
 
@@ -80,9 +87,27 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
       i += 1
     }
 
-    val id = idFromRow(keys.get(0).getRow.copyBytes)
     // TODO if we don't have a geometry, skip the record?
-    KryoVisibilityRowEncoder.encode(id, allValues, output, offsets)
+    KryoVisibilityRowEncoder.encode(allValues, output, offsets)
+  }
+
+  /**
+    * Reads offsets in the 'offsets' array and sets the start of the offset block
+    *
+    * @param bytes kryo feature bytes
+    * @return
+    */
+  private def readOffsets(bytes: Array[Byte]): Unit = {
+    val input = KryoFeatureSerializer.getInput(bytes)
+    // reset our offsets
+    input.setPosition(1) // skip version
+    offsetStart = input.readInt()
+    input.setPosition(offsetStart) // set to offsets start
+    var i = 0
+    while (i < offsets.length) {
+      offsets(i) = if (input.position < input.limit) input.readInt(true) else -1
+      i += 1
+    }
   }
 
   override def rowDecoder(rowKey: Key, rowValue: Value): java.util.SortedMap[Key, Value] =
@@ -94,7 +119,6 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
       iterator.sourceIter = sourceIter.deepCopy(env)
     }
     iterator.sft = sft
-    iterator.idFromRow = idFromRow
     iterator.offsets = Array.ofDim[Int](sft.getAttributeCount)
     iterator.nullBytes = nullBytes
     iterator
@@ -104,22 +128,20 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 object KryoVisibilityRowEncoder {
 
   val SftOpt   = "sft"
-  val TableOpt = "table"
 
   val DefaultPriority = 21 // needs to be first thing that runs after the versioning iterator at 20
 
-  def configure(sft: SimpleFeatureType, table: GeoMesaTable, priority: Int = DefaultPriority): IteratorSetting = {
+  def configure(sft: SimpleFeatureType, priority: Int = DefaultPriority): IteratorSetting = {
     val is = new IteratorSetting(priority, "feature-merge-iter", classOf[KryoVisibilityRowEncoder])
     is.addOption(SftOpt, SimpleFeatureTypes.encodeType(sft, includeUserData = true)) // need user data for id calc
-    is.addOption(TableOpt, table.getClass.getSimpleName)
     is
   }
 
-  private def encode(id: String, values: Array[Array[Byte]], output: Output, offsets: Array[Int]): Value = {
+  private def encode(values: Array[Array[Byte]], output: Output, offsets: Array[Int]): Value = {
     output.clear()
     output.writeInt(KryoFeatureSerializer.VERSION, true)
     output.setPosition(5) // leave 4 bytes to write the offsets
-    output.writeString(id)
+    // note: we don't write ID - tables are assumed to be using serialization without IDs
     // write attributes and keep track off offset into byte array
     var i = 0
     while (i < values.length) {

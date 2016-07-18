@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.accumulo.iterators
 
 import java.io.ByteArrayOutputStream
-import java.nio.charset.StandardCharsets
 import java.nio.{ByteBuffer, ByteOrder}
 import java.util.Date
 import java.util.Map.Entry
@@ -20,8 +19,11 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.factory.Hints
+import org.geotools.filter.identity.FeatureIdImpl
+import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.QueryPlanners._
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureDeserializers}
@@ -224,8 +226,11 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
     val sf = new ScalaSimpleFeature("", sft)
     val gf = new GeometryFactory
 
-    val idOffset = options(BinAggregatingIterator.ID_OFFSET_OPT).toInt
-    val getId = (row: Array[Byte]) => new String(row, idOffset, row.length - idOffset, StandardCharsets.UTF_8)
+    val tableName = options(KryoLazyAggregatingIterator.TABLE_OPT)
+    val table = GeoMesaTable.AllTables.find(_.getClass.getSimpleName == tableName).getOrElse {
+      throw new RuntimeException(s"Table option not configured correctly: $tableName")
+    }
+    val getId = table.getIdFromRow(sft)
 
     // we only need to decode the parts required for the filter/dedupe/sampling check
     // note: we wouldn't be using precomputed if sample by field wasn't the track id
@@ -240,13 +245,13 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
         (sf, long) => sf.setAttribute(dtgIndex, new Date(long))
       }
       (_) => {
-        sf.getIdentifier.setID(getId(source.getTopKey.getRow.getBytes))
+        sf.getIdentifier.setID(getId(source.getTopKey.getRow))
         setValuesFromBin(sf, gf)
         sf
       }
     } else if (sample && dedupe) {
       (_) => {
-        sf.getIdentifier.setID(getId(source.getTopKey.getRow.getBytes))
+        sf.getIdentifier.setID(getId(source.getTopKey.getRow))
         setTrackIdFromBin(sf)
         sf
       }
@@ -257,7 +262,7 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
       }
     } else if (dedupe) {
       (_) => {
-        sf.getIdentifier.setID(getId(source.getTopKey.getRow.getBytes))
+        sf.getIdentifier.setID(getId(source.getTopKey.getRow))
         sf
       }
     } else {
@@ -322,15 +327,13 @@ object BinAggregatingIterator extends LazyLogging {
 
   private val DATE_ARRAY_OPT = "dtg-array"
 
-  private [iterators] val ID_OFFSET_OPT  = "id-offset"
-
   /**
    * Creates an iterator config that expects entries to be precomputed bin values
    */
   def configurePrecomputed(sft: SimpleFeatureType,
+                           table: GeoMesaTable,
                            filter: Option[Filter],
                            hints: Hints,
-                           idOffset: Int,
                            deduplicate: Boolean,
                            priority: Int = DEFAULT_PRIORITY): IteratorSetting = {
     sft.getBinTrackId match {
@@ -340,8 +343,8 @@ object BinAggregatingIterator extends LazyLogging {
         val batch = hints.getBinBatchSize
         val sort = hints.isBinSorting
         val sampling = hints.getSampling
-        val is = configure(classOf[PrecomputedBinAggregatingIterator], sft, filter, trackId,
-          geom, dtg, None, batch, sort, deduplicate, sampling, Some(idOffset), priority)
+        val is = configure(classOf[PrecomputedBinAggregatingIterator], sft, table, filter, trackId,
+          geom, dtg, None, batch, sort, deduplicate, sampling, priority)
         is
       case None => throw new RuntimeException(s"No default trackId field found in SFT $sft")
     }
@@ -351,6 +354,7 @@ object BinAggregatingIterator extends LazyLogging {
    * Configure based on query hints
    */
   def configureDynamic(sft: SimpleFeatureType,
+                       table: GeoMesaTable,
                        filter: Option[Filter],
                        hints: Hints,
                        deduplicate: Boolean,
@@ -363,8 +367,8 @@ object BinAggregatingIterator extends LazyLogging {
     val sort = hints.isBinSorting
     val sampling = hints.getSampling
 
-    configure(classOf[BinAggregatingIterator], sft, filter, trackId, geom, dtg,
-      label, batchSize, sort, deduplicate, sampling, None, priority)
+    configure(classOf[BinAggregatingIterator], sft, table, filter, trackId, geom, dtg,
+      label, batchSize, sort, deduplicate, sampling, priority)
   }
 
   /**
@@ -372,6 +376,7 @@ object BinAggregatingIterator extends LazyLogging {
    */
   private def configure(clas: Class[_ <: BinAggregatingIterator],
                         sft: SimpleFeatureType,
+                        table: GeoMesaTable,
                         filter: Option[Filter],
                         trackId: String,
                         geom: String,
@@ -381,12 +386,11 @@ object BinAggregatingIterator extends LazyLogging {
                         sort: Boolean,
                         deduplicate: Boolean,
                         sampling: Option[(Float, Option[String])],
-                        idOffset: Option[Int],
                         priority: Int): IteratorSetting = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
     val is = new IteratorSetting(priority, "bin-iter", clas)
-    KryoLazyAggregatingIterator.configure(is, sft, filter, deduplicate, None)
+    KryoLazyAggregatingIterator.configure(is, sft, table, filter, deduplicate, None)
     is.addOption(BATCH_SIZE_OPT, batchSize.toString)
     is.addOption(TRACK_OPT, sft.indexOf(trackId).toString)
     is.addOption(GEOM_OPT, sft.indexOf(geom).toString)
@@ -398,7 +402,6 @@ object BinAggregatingIterator extends LazyLogging {
     label.foreach(l => is.addOption(LABEL_OPT, sft.indexOf(l).toString))
     is.addOption(SORT_OPT, sort.toString)
     sampling.foreach(SamplingIterator.configure(is, sft, _))
-    idOffset.foreach(o => is.addOption(ID_OFFSET_OPT, o.toString))
     is
   }
 
@@ -433,6 +436,7 @@ object BinAggregatingIterator extends LazyLogging {
    * Only encodes one bin (or one bin line) per feature
    */
   def nonAggregatedKvsToFeatures(sft: SimpleFeatureType,
+                                 table: GeoMesaTable,
                                  hints: Hints,
                                  serializationType: SerializationType): FeatureFunction = {
 
@@ -440,7 +444,7 @@ object BinAggregatingIterator extends LazyLogging {
 
     // don't use return sft from query hints, as it will be bin_sft
     val returnSft = hints.getTransformSchema.getOrElse(sft)
-    val deserializer = SimpleFeatureDeserializers(returnSft, serializationType)
+
     val trackIdIndex = returnSft.indexOf(hints.getBinTrackIdField)
     val geomIndex = hints.getBinGeomField.map(returnSft.indexOf).getOrElse(returnSft.getGeomIndex)
     val dtgIndex= hints.getBinDtgField.map(returnSft.indexOf).getOrElse(returnSft.getDtgIndex.get)
@@ -526,11 +530,24 @@ object BinAggregatingIterator extends LazyLogging {
         }
     }
 
-    (e: Entry[Key, Value]) => {
-      val deserialized = deserializer.deserialize(e.getValue.get())
-      // set the value directly in the array, as we don't support byte arrays as properties
-      new ScalaSimpleFeature(deserialized.getID, BIN_SFT, Array(encode(deserialized), zeroPoint))
+    if (sft.getSchemaVersion < 9) {
+      val deserializer = SimpleFeatureDeserializers(returnSft, serializationType)
+      (e: Entry[Key, Value]) => {
+        val deserialized = deserializer.deserialize(e.getValue.get())
+        // set the value directly in the array, as we don't support byte arrays as properties
+        new ScalaSimpleFeature(deserialized.getID, BIN_SFT, Array(encode(deserialized), zeroPoint))
+      }
+    } else {
+      val getId = table.getIdFromRow(sft)
+      val deserializer = SimpleFeatureDeserializers(returnSft, serializationType, SerializationOptions.withoutId)
+      (e: Entry[Key, Value]) => {
+        val deserialized = deserializer.deserialize(e.getValue.get())
+        deserialized.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(e.getKey.getRow))
+        // set the value directly in the array, as we don't support byte arrays as properties
+        new ScalaSimpleFeature(deserialized.getID, BIN_SFT, Array(encode(deserialized), zeroPoint))
+      }
     }
+
   }
 
   private def getTrack(sf: SimpleFeature, i: Int): String = {

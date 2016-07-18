@@ -18,11 +18,11 @@ import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
 import org.geotools.data.{DataStoreFinder, DataUtilities}
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
+import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToMutations
+import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.data.stats.StatUpdater
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloDataStoreParams, AccumuloFeatureWriter}
 import org.locationtech.geomesa.accumulo.index.{BinEncoder, IndexValueEncoder}
-import org.locationtech.geomesa.features.SimpleFeatureSerializers
+import org.locationtech.geomesa.features.{SimpleFeatureSerializer, SimpleFeatureSerializers}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -109,8 +109,8 @@ class GeoMesaRecordWriter(params: Map[String, String],
 
   val sftCache          = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
   val writerCache       = scala.collection.mutable.Map.empty[String, Seq[TableAndMutations]]
-  val encoderCache      = scala.collection.mutable.Map.empty[String, org.locationtech.geomesa.features.SimpleFeatureSerializer]
-  val indexEncoderCache = scala.collection.mutable.Map.empty[String, IndexValueEncoder]
+  val encoderCache      = scala.collection.mutable.Map.empty[String, SimpleFeatureSerializer]
+  val indexEncoderCache = scala.collection.mutable.Map.empty[String, SimpleFeatureSerializer]
   val binEncoderCache   = scala.collection.mutable.Map.empty[String, Option[BinEncoder]]
   val statsCache        = scala.collection.mutable.Map.empty[String, StatUpdater]
 
@@ -143,7 +143,7 @@ class GeoMesaRecordWriter(params: Map[String, String],
     val encoder = encoderCache.getOrElseUpdate(sftName, SimpleFeatureSerializers(sft, ds.getFeatureEncoding(sft)))
     val ive = indexEncoderCache.getOrElseUpdate(sftName, IndexValueEncoder(sft))
     val binEncoder = binEncoderCache.getOrElseUpdate(sftName, BinEncoder(sft))
-    val featureToWrite = new FeatureToWrite(withFid, ds.defaultVisibilities, encoder, ive, binEncoder)
+    val featureToWrite = WritableFeature(withFid, sft, ds.defaultVisibilities, encoder, ive, binEncoder)
 
     // calculate all the mutations first, so that if something fails we won't have a partially written feature
     try {

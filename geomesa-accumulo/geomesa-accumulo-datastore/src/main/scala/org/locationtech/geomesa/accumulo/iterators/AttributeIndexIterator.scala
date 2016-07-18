@@ -107,7 +107,7 @@ class AttributeIndexIterator
    */
   def setTopIndexTransformAttr(key: Key): Unit = {
     val sf = {
-      val intermediateFeature = indexEncoder.decode(source.getTopValue.get)
+      val intermediateFeature = indexEncoder.deserialize(source.getTopValue.get)
       testFeature.getIdentifier.setID(intermediateFeature.getID)
       intermediateFeature.getProperties.foreach(p => testFeature.setAttribute(p.getName, p.getValue))
       setAttributeFromRow(key, testFeature)
@@ -123,7 +123,7 @@ class AttributeIndexIterator
    * @param key
    */
   def setTopIndexFilterTransformAttr(key: Key): Unit = {
-    val intermediateFeature = indexEncoder.decode(source.getTopValue.get)
+    val intermediateFeature = indexEncoder.deserialize(source.getTopValue.get)
     if (stFilter.evaluate(intermediateFeature)) {
       val sf = {
         testFeature.getIdentifier.setID(intermediateFeature.getID)

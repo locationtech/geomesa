@@ -131,12 +131,12 @@ class SimpleFeatureSerializersTest extends Specification {
 
       // KRYO without options
       val kryo1 = ProjectingSimpleFeatureDeserializers(sft, projectedSft, SerializationType.KRYO)
-      kryo1 must beAnInstanceOf[KryoFeatureSerializer]
+      kryo1 must beAnInstanceOf[ProjectingKryoFeatureDeserializer]
       kryo1.options mustEqual SerializationOptions.none
 
       // KRYO with options
       val kryo2 = ProjectingSimpleFeatureDeserializers(sft, projectedSft, SerializationType.KRYO, opts)
-      kryo2 must beAnInstanceOf[KryoFeatureSerializer]
+      kryo2 must beAnInstanceOf[ProjectingKryoFeatureDeserializer]
       kryo2.options mustEqual opts
     }
   }

@@ -33,7 +33,7 @@ class IndexedSpatioTemporalFilter
   override def setTopConditionally() = {
     val sourceValue = source.getTopValue
     val meetsFilter = stFilter == null || {
-      val sf = indexEncoder.decode(sourceValue.get)
+      val sf = indexEncoder.deserialize(sourceValue.get)
       stFilter.evaluate(sf)
     }
     if (meetsFilter) {

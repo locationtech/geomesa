@@ -22,6 +22,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.{Text, Writable}
 import org.apache.hadoop.mapreduce._
 import org.geotools.data.{DataStoreFinder, Query}
+import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
@@ -34,6 +35,8 @@ import org.opengis.filter.Filter
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 
 object GeoMesaInputFormat extends LazyLogging {
 
@@ -96,6 +99,7 @@ object GeoMesaInputFormat extends LazyLogging {
     val conf = job.getConfiguration
 
     GeoMesaConfigurator.setSerialization(conf)
+    GeoMesaConfigurator.setTable(conf, queryPlan.table)
     GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)
     GeoMesaConfigurator.setFeatureType(conf, featureTypeName)
     if (query.getFilter != Filter.INCLUDE) {
@@ -144,6 +148,7 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLoggi
   var sft: SimpleFeatureType = null
   var encoding: SerializationType = null
   var desiredSplitCount: Int = -1
+  var table: GeoMesaTable = null
 
   private def init(conf: Configuration) = if (sft == null) {
     val params = GeoMesaConfigurator.getDataStoreInParams(conf)
@@ -151,6 +156,10 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLoggi
     sft = ds.getSchema(GeoMesaConfigurator.getFeatureType(conf))
     encoding = ds.getFeatureEncoding(sft)
     desiredSplitCount = GeoMesaConfigurator.getDesiredSplits(conf)
+    val tableName = GeoMesaConfigurator.getTable(conf)
+    table = GeoMesaTable.getTables(sft).find(t => tableName.endsWith(t.suffix)).getOrElse {
+      throw new RuntimeException(s"Couldn't find input table $tableName")
+    }
     ds.dispose()
   }
 
@@ -187,12 +196,19 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLoggi
   }
 
   override def createRecordReader(split: InputSplit, context: TaskAttemptContext) = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
     init(context.getConfiguration)
     val splits = split.asInstanceOf[GroupedSplit].splits
     val readers = splits.map(delegate.createRecordReader(_, context)).toArray
     val schema = GeoMesaConfigurator.getTransformSchema(context.getConfiguration).getOrElse(sft)
-    val decoder = SimpleFeatureDeserializers(schema, encoding)
-    new GeoMesaRecordReader(readers, decoder)
+    val (serializationOptions, hasId) = if (sft.getSchemaVersion < 9) {
+      (SerializationOptions.none, true)
+    } else {
+      (SerializationOptions.withoutId, false)
+    }
+    val decoder = SimpleFeatureDeserializers(schema, encoding, serializationOptions)
+    new GeoMesaRecordReader(sft, table, readers, hasId, decoder)
   }
 }
 
@@ -202,12 +218,18 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLoggi
  *
  * @param readers
  */
-class GeoMesaRecordReader(readers: Array[RecordReader[Key, Value]], decoder: org.locationtech.geomesa.features.SimpleFeatureDeserializer)
+class GeoMesaRecordReader(sft: SimpleFeatureType,
+                          table: GeoMesaTable,
+                          readers: Array[RecordReader[Key, Value]],
+                          hasId: Boolean,
+                          decoder: org.locationtech.geomesa.features.SimpleFeatureSerializer)
     extends RecordReader[Text, SimpleFeature] {
 
   var currentFeature: SimpleFeature = null
   var readerIndex: Int = -1
   var currentReader: Option[RecordReader[Key, Value]] = None
+
+  val getId = table.getIdFromRow(sft)
 
   override def initialize(split: InputSplit, context: TaskAttemptContext) = {
     val splits = split.asInstanceOf[GroupedSplit].splits
@@ -251,6 +273,9 @@ class GeoMesaRecordReader(readers: Array[RecordReader[Key, Value]], decoder: org
       case Some(reader) =>
         if (reader.nextKeyValue()) {
           currentFeature = decoder.deserialize(reader.getCurrentValue.get())
+          if (!hasId) {
+            currentFeature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(reader.getCurrentKey.getRow))
+          }
           true
         } else {
           nextReader()

@@ -12,7 +12,7 @@ package org.locationtech.geomesa.accumulo.iterators
 import java.util.{Collection => JCollection, Map => JMap}
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.data.{ByteSequence, Key, Range => ARange, Value}
+import org.apache.accumulo.core.data.{ByteSequence, Key, Value, Range => ARange}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.JTSFactoryFinder
@@ -40,7 +40,7 @@ abstract class FeatureAggregatingIterator[T <: Result](val other: FeatureAggrega
   var simpleFeatureType: SimpleFeatureType = null
   var source: SortedKeyValueIterator[Key,Value] = null
 
-  var originalDecoder: SimpleFeatureDeserializer = null
+  var originalDecoder: SimpleFeatureSerializer = null
   var featureEncoder: SimpleFeatureSerializer = null
 
   var projectedSFTDef: String = null

@@ -81,8 +81,8 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
 
       val serializer = new KryoFeatureSerializer(sft)
 
-      val serialized = serializer.write(sf)
-      val deserialized = serializer.read(serialized)
+      val serialized = serializer.serialize(sf)
+      val deserialized = serializer.deserialize(serialized)
 
       deserialized must not(beNull)
       deserialized.getType mustEqual sf.getType
@@ -101,8 +101,8 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
 
       val serializer = new KryoFeatureSerializer(sft)
 
-      val serialized = serializer.write(sf)
-      val deserialized = serializer.read(serialized)
+      val serialized = serializer.serialize(sf)
+      val deserialized = serializer.deserialize(serialized)
 
       deserialized must not(beNull)
       deserialized.getType mustEqual sf.getType
@@ -121,8 +121,8 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
 
       val serializer = new KryoFeatureSerializer(sft)
 
-      val serialized = serializer.write(sf)
-      val deserialized = serializer.read(serialized)
+      val serialized = serializer.serialize(sf)
+      val deserialized = serializer.deserialize(serialized)
 
       deserialized must not(beNull)
       deserialized.getType mustEqual sf.getType
@@ -139,8 +139,8 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
 
       val serializer = new KryoFeatureSerializer(sft)
 
-      val serialized = serializer.write(sf)
-      val deserialized = serializer.read(serialized)
+      val serialized = serializer.serialize(sf)
+      val deserialized = serializer.deserialize(serialized)
 
       deserialized must not(beNull)
       deserialized.getType mustEqual sf.getType
@@ -160,8 +160,8 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       val serializer = new KryoFeatureSerializer(sft)
       val deserializer = new ProjectingKryoFeatureDeserializer(sft, projectedSft)
 
-      val serialized = serializer.write(sf)
-      val deserialized = deserializer.read(serialized)
+      val serialized = serializer.serialize(sf)
+      val deserialized = deserializer.deserialize(serialized)
 
       deserialized.getID mustEqual sf.getID
       deserialized.getDefaultGeometry mustEqual sf.getDefaultGeometry
@@ -181,8 +181,8 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       val serializer = new KryoFeatureSerializer(sft)
       val deserializer = new ProjectingKryoFeatureDeserializer(sft, projectedSft)
 
-      val serialized = serializer.write(sf)
-      val deserialized = deserializer.read(serialized)
+      val serialized = serializer.serialize(sf)
+      val deserialized = deserializer.deserialize(serialized)
 
       deserialized.getID mustEqual sf.getID
       deserialized.getDefaultGeometry mustEqual sf.getDefaultGeometry
@@ -197,11 +197,11 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(45.0 49.0)")
 
-      val serialized = new KryoFeatureSerializer(sft).write(sf)
+      val serialized = new KryoFeatureSerializer(sft).serialize(sf)
 
       val newSft = SimpleFeatureTypes.createType("mutableType", "name:String,*geom:Point,dtg:Date,attr1:String,attr2:Long")
 
-      val deserialized = new KryoFeatureSerializer(newSft).read(serialized)
+      val deserialized = new KryoFeatureSerializer(newSft).deserialize(serialized)
 
       deserialized.getID mustEqual sf.getID
       deserialized.getDefaultGeometry mustEqual sf.getDefaultGeometry
@@ -220,12 +220,12 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(45.0 49.0)")
 
-      val serialized = new KryoFeatureSerializer(sft).write(sf)
+      val serialized = new KryoFeatureSerializer(sft).serialize(sf)
 
       val newSft = SimpleFeatureTypes.createType("mutableType", "name:String,*geom:Point,dtg:Date,attr1:String,attr2:Long")
       val projectedSft = SimpleFeatureTypes.createType("projectedType", "*geom:Point")
 
-      val deserialized = new ProjectingKryoFeatureDeserializer(newSft, projectedSft).read(serialized)
+      val deserialized = new ProjectingKryoFeatureDeserializer(newSft, projectedSft).deserialize(serialized)
 
       deserialized.getID mustEqual sf.getID
       deserialized.getDefaultGeometry mustEqual sf.getDefaultGeometry
@@ -245,7 +245,7 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       val version0SerializedBase64 = "AWZha2Vp5AEAAAE7+I60AAEBQEaAAAAAAABASIAAAAAAAA=="
       val version1Bytes = Base64.decodeBase64(version0SerializedBase64)
 
-      val deserialized = serializer.read(version1Bytes)
+      val deserialized = serializer.deserialize(version1Bytes)
 
       deserialized must not(beNull)
       deserialized.getType mustEqual sf.getType
@@ -274,7 +274,7 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
 
       val start = System.currentTimeMillis()
       (0 until 1000000).foreach { _ =>
-        val de = serializer.read(serialized)
+        val de = serializer.deserialize(serialized)
         de.getAttribute(1)
       }
       logger.debug(s"took ${System.currentTimeMillis() - start}ms")

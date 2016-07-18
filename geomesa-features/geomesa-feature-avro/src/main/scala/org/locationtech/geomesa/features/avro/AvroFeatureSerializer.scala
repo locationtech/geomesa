@@ -12,7 +12,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 
 import org.apache.avro.io.{BinaryDecoder, DecoderFactory, DirectBinaryEncoder, EncoderFactory}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
-import org.locationtech.geomesa.features.{SimpleFeatureDeserializer, SimpleFeatureSerializer}
+import org.locationtech.geomesa.features.SimpleFeatureSerializer
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 
@@ -38,7 +38,8 @@ class AvroFeatureSerializer(sft: SimpleFeatureType, val options: Set[Serializati
     baos.toByteArray
   }
 
-  override def serialize(i: Int, value: AnyRef): Array[Byte] = throw new NotImplementedError()
+  override def deserialize(bytes: Array[Byte]): SimpleFeature =
+    throw new NotImplementedError("This instance only handles serialization")
 }
 
 /**
@@ -48,10 +49,12 @@ class AvroFeatureSerializer(sft: SimpleFeatureType, val options: Set[Serializati
  */
 class ProjectingAvroFeatureDeserializer(original: SimpleFeatureType, projected: SimpleFeatureType,
                                         val options: Set[SerializationOption] = Set.empty)
-    extends SimpleFeatureDeserializer {
+    extends SimpleFeatureSerializer {
 
   private val reader = new FeatureSpecificReader(original, projected, options)
 
+  override def serialize(feature: SimpleFeature): Array[Byte] =
+    throw new NotImplementedError("This instance only handles deserialization")
   override def deserialize(bytes: Array[Byte]): SimpleFeature = decode(new ByteArrayInputStream(bytes))
 
   private var reuse: BinaryDecoder = null

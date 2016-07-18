@@ -16,6 +16,7 @@ import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -47,11 +48,15 @@ class KryoLazyFilterTransformIterator extends
   override def init(src: SortedKeyValueIterator[Key, Value],
                     options: jMap[String, String],
                     env: IteratorEnvironment): Unit = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
     IteratorClassLoader.initClassLoader(getClass)
+
     this.source = src.deepCopy(env)
     sft = SimpleFeatureTypes.createType("test", options.get(SFT_OPT))
 
-    kryo = new KryoFeatureSerializer(sft)
+    val kryoOptions = if (sft.getSchemaVersion < 9) SerializationOptions.none else SerializationOptions.withoutId
+    kryo = new KryoFeatureSerializer(sft, kryoOptions)
     reusablesf = kryo.getReusableFeature
 
     val transform = Option(options.get(TRANSFORM_DEFINITIONS_OPT))
@@ -129,7 +134,7 @@ object KryoLazyFilterTransformIterator {
                 priority: Int = DefaultPriority): Option[IteratorSetting] = {
     if (filter.isDefined || transform.isDefined || sampling.isDefined) {
       val is = new IteratorSetting(priority, "filter-transform-iter", classOf[KryoLazyFilterTransformIterator])
-      is.addOption(SFT_OPT, SimpleFeatureTypes.encodeType(sft))
+      is.addOption(SFT_OPT, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
       filter.foreach(f => is.addOption(CQL_OPT, ECQL.toCQL(f)))
       transform.foreach { case (tdef, tsft) =>
         is.addOption(TRANSFORM_DEFINITIONS_OPT, tdef)

@@ -9,7 +9,7 @@
 
 package org.locationtech.geomesa.accumulo.data.tables
 
-import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
 import java.util.{Date, Locale, Collection => JCollection}
 
 import com.google.common.collect.ImmutableSortedSet
@@ -21,12 +21,11 @@ import org.apache.accumulo.core.data.{Mutation, Range => AccRange}
 import org.apache.hadoop.io.Text
 import org.calrissian.mango.types.{LexiTypeEncoders, SimpleTypeEncoders, TypeEncoder}
 import org.joda.time.format.ISODateTimeFormat
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToMutations, FeatureToWrite}
+import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToMutations
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
@@ -40,8 +39,8 @@ import scala.util.{Failure, Success, Try}
  */
 object AttributeTable extends GeoMesaTable with LazyLogging {
 
-  private val UTF8 = Charset.forName("UTF-8")
-  private val NULLBYTE = "\u0000".getBytes(UTF8)
+  private val NullByte = "\u0000"
+  private val NullByteArray = NullByte.getBytes(StandardCharsets.UTF_8)
 
   private val typeRegistry   = LexiTypeEncoders.LEXI_TYPES
   private val simpleEncoders = SimpleTypeEncoders.SIMPLE_TYPES.getAllEncoders
@@ -49,82 +48,82 @@ object AttributeTable extends GeoMesaTable with LazyLogging {
 
   private type TryEncoder = Try[(TypeEncoder[Any, String], TypeEncoder[_, String])]
 
-  override def supports(sft: SimpleFeatureType) = {
-    val ok = sft.getSchemaVersion > 5 && sft.getAttributeDescriptors.exists(_.isIndexed)
-    if (ok && sft.getVisibilityLevel == VisibilityLevel.Attribute &&
-        !sft.getAttributeDescriptors.filter(_.isIndexed).forall(_.getIndexCoverage() == IndexCoverage.FULL)) {
-      // TODO GEOMESA-1254 support index values
-      throw new IllegalArgumentException("Attribute level visibility is currently only supported for fully" +
-          " covering attribute indices. Use e.g. 'foo:String:index=full'.")
-    }
-    ok
-  }
+  override def supports(sft: SimpleFeatureType) =
+    sft.getSchemaVersion > 5 && sft.getAttributeDescriptors.exists(_.isIndexed)
 
   override val suffix: String = "attr"
 
   override def writer(sft: SimpleFeatureType): FeatureToMutations = {
     val getRows = getRowKeys(sft)
-    sft.getVisibilityLevel match {
-      case VisibilityLevel.Feature =>
-        (fw) => {
-          getRows(fw).map { case (descriptor, row) =>
-            val mutation = new Mutation(row)
-            val value = descriptor.getIndexCoverage() match {
-              case IndexCoverage.FULL => fw.dataValue
-              case IndexCoverage.JOIN => fw.indexValue
-            }
-            mutation.put(EMPTY_TEXT, EMPTY_TEXT, fw.columnVisibility, value)
-            mutation
+    if (sft.getSchemaVersion < 9) {
+      (wf: WritableFeature) => {
+        getRows(wf).map { case (descriptor, row) =>
+          val mutation = new Mutation(row)
+          val value = descriptor.getIndexCoverage() match {
+            case IndexCoverage.FULL => wf.fullValues.head
+            case IndexCoverage.JOIN => wf.indexValues.head
           }
+          mutation.put(EMPTY_TEXT, EMPTY_TEXT, value.vis, value.value)
+          mutation
         }
-      case VisibilityLevel.Attribute =>
-        (fw) => {
-          getRows(fw).map { case (descriptor, row) =>
-            val mutation = new Mutation(row)
-            // TODO GEOMESA-1254 support index values
-            fw.perAttributeValues.foreach(v => mutation.put(v.cf, v.cq, v.vis, v.value))
-            mutation
+      }
+    } else {
+      (wf: WritableFeature) => {
+        getRows(wf).map { case (descriptor, row) =>
+          val mutation = new Mutation(row)
+          val values = descriptor.getIndexCoverage() match {
+            case IndexCoverage.FULL => wf.fullValues
+            case IndexCoverage.JOIN => wf.indexValues
           }
+          values.foreach(value => mutation.put(value.cf, value.cq, value.vis, value.value))
+          mutation
         }
+      }
     }
   }
 
   override def remover(sft: SimpleFeatureType): FeatureToMutations = {
     val getRows = getRowKeys(sft)
-    sft.getVisibilityLevel match {
-      case VisibilityLevel.Feature =>
-        (fw) => {
-          getRows(fw).map { case (descriptor, row) =>
-            val mutation = new Mutation(row)
-            mutation.putDelete(EMPTY_TEXT, EMPTY_TEXT, fw.columnVisibility)
-            mutation
+    if (sft.getSchemaVersion < 9) {
+      (wf: WritableFeature) => {
+        getRows(wf).map { case (descriptor, row) =>
+          val mutation = new Mutation(row)
+          val value = descriptor.getIndexCoverage() match {
+            case IndexCoverage.FULL => wf.fullValues.head
+            case IndexCoverage.JOIN => wf.indexValues.head
           }
+          mutation.putDelete(EMPTY_TEXT, EMPTY_TEXT, value.vis)
+          mutation
         }
-      case VisibilityLevel.Attribute =>
-        (fw) => {
-          getRows(fw).map { case (descriptor, row) =>
-            val mutation = new Mutation(row)
-            // TODO GEOMESA-1254 support index values
-            fw.perAttributeValues.foreach(v => mutation.putDelete(v.cf, v.cq, v.vis))
-            mutation
+      }
+    } else {
+      (wf: WritableFeature) => {
+        getRows(wf).map { case (descriptor, row) =>
+          val mutation = new Mutation(row)
+          val values = descriptor.getIndexCoverage() match {
+            case IndexCoverage.FULL => wf.fullValues
+            case IndexCoverage.JOIN => wf.indexValues
           }
+          values.foreach(value => mutation.putDelete(value.cf, value.cq, value.vis))
+          mutation
         }
+      }
     }
   }
 
-  private def getRowKeys(sft: SimpleFeatureType): (FeatureToWrite) => Seq[(AttributeDescriptor, Array[Byte])] = {
+  private def getRowKeys(sft: SimpleFeatureType): (WritableFeature) => Seq[(AttributeDescriptor, Array[Byte])] = {
     val indexedAttributes = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).map { d =>
       val i = sft.indexOf(d.getName)
       (d, i, indexToBytes(i))
     }
-    val prefix = sft.getTableSharingPrefix.getBytes(UTF8)
-    val getSuffix: (FeatureToWrite) => Array[Byte] = sft.getDtgIndex match {
-      case None => (fw: FeatureToWrite) => fw.feature.getID.getBytes(UTF8)
+    val prefix = sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)
+    val getSuffix: (WritableFeature) => Array[Byte] = sft.getDtgIndex match {
+      case None => (fw: WritableFeature) => fw.feature.getID.getBytes(StandardCharsets.UTF_8)
       case Some(dtgIndex) =>
-        (fw: FeatureToWrite) => {
+        (fw: WritableFeature) => {
           val dtg = fw.feature.getAttribute(dtgIndex).asInstanceOf[Date]
           val timeBytes = timeToBytes(if (dtg == null) 0L else dtg.getTime)
-          val idBytes = fw.feature.getID.getBytes(UTF8)
+          val idBytes = fw.feature.getID.getBytes(StandardCharsets.UTF_8)
           Bytes.concat(timeBytes, idBytes)
         }
     }
@@ -143,12 +142,14 @@ object AttributeTable extends GeoMesaTable with LazyLogging {
    */
   private def getRowKeys(indexedAttributes: Seq[(AttributeDescriptor, Int, Array[Byte])],
                          prefix: Array[Byte],
-                         suffix: (FeatureToWrite) => Array[Byte])
-                        (fw: FeatureToWrite): Seq[(AttributeDescriptor, Array[Byte])] = {
+                         suffix: (WritableFeature) => Array[Byte])
+                        (fw: WritableFeature): Seq[(AttributeDescriptor, Array[Byte])] = {
     val suffixBytes = suffix(fw)
     indexedAttributes.flatMap { case (descriptor, idx, idxBytes) =>
       val attributes = encodeForIndex(fw.feature.getAttribute(idx), descriptor)
-      attributes.map(a => (descriptor, Bytes.concat(prefix, idxBytes, a.getBytes(UTF8), NULLBYTE, suffixBytes)))
+      attributes.map { a =>
+        (descriptor, Bytes.concat(prefix, idxBytes, a.getBytes(StandardCharsets.UTF_8), NullByteArray, suffixBytes))
+      }
     }
   }
 
@@ -156,7 +157,7 @@ object AttributeTable extends GeoMesaTable with LazyLogging {
   def indexToBytes(i: Int) = Array((i << 8).asInstanceOf[Byte], i.asInstanceOf[Byte])
 
   // store the first 12 hex chars of the time - that is roughly down to the minute interval
-  def timeToBytes(t: Long) = typeRegistry.encode(t).substring(0, 12).getBytes(UTF8)
+  def timeToBytes(t: Long) = typeRegistry.encode(t).substring(0, 12).getBytes(StandardCharsets.UTF_8)
 
   // rounds up the time to ensure our range covers all possible times given our time resolution
   private def roundUpTime(time: Array[Byte]): Array[Byte] = {
@@ -177,7 +178,7 @@ object AttributeTable extends GeoMesaTable with LazyLogging {
    * Gets a prefix for an attribute row - this includes the sft and the attribute index only
    */
   def getRowPrefix(sft: SimpleFeatureType, i: Int): Array[Byte] =
-    Bytes.concat(sft.getTableSharingPrefix.getBytes(UTF8), indexToBytes(i))
+    Bytes.concat(sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8), indexToBytes(i))
 
   // ranges for querying - equals
   def equals(sft: SimpleFeatureType, i: Int, value: Any, times: Option[(Long, Long)]): AccRange = {
@@ -186,11 +187,11 @@ object AttributeTable extends GeoMesaTable with LazyLogging {
     times match {
       case None =>
         // if no time, use a prefix range terminated with a null byte to match all times
-        AccRange.prefix(new Text(Bytes.concat(prefix, encoded, NULLBYTE)))
+        AccRange.prefix(new Text(Bytes.concat(prefix, encoded, NullByteArray)))
       case Some((t1, t2)) =>
         val (t1Bytes, t2Bytes) = (timeToBytes(t1), roundUpTime(timeToBytes(t2)))
-        val start = new Text(Bytes.concat(prefix, encoded, NULLBYTE, t1Bytes))
-        val end = new Text(Bytes.concat(prefix, encoded, NULLBYTE, t2Bytes))
+        val start = new Text(Bytes.concat(prefix, encoded, NullByteArray, t1Bytes))
+        val end = new Text(Bytes.concat(prefix, encoded, NullByteArray, t2Bytes))
         new AccRange(start, true, end, true)
     }
   }
@@ -239,11 +240,11 @@ object AttributeTable extends GeoMesaTable with LazyLogging {
     val encoded = encodeForQuery(value, sft.getDescriptor(i))
     val timeBytes = time.map(timeToBytes).getOrElse(Array.empty)
     if (inclusive) {
-      new Text(Bytes.concat(prefix, encoded, NULLBYTE, timeBytes))
+      new Text(Bytes.concat(prefix, encoded, NullByteArray, timeBytes))
     } else {
       // get the next row, then append the time
       val following = AccRange.followingPrefix(new Text(Bytes.concat(prefix, encoded))).getBytes
-      new Text(Bytes.concat(following, NULLBYTE, timeBytes))
+      new Text(Bytes.concat(following, NullByteArray, timeBytes))
     }
   }
 
@@ -254,10 +255,10 @@ object AttributeTable extends GeoMesaTable with LazyLogging {
     if (inclusive) {
       // append time, then get the next row - this will match anything with the same value, up to the time
       val timeBytes = time.map(t => roundUpTime(timeToBytes(t))).getOrElse(Array.empty)
-      AccRange.followingPrefix(new Text(Bytes.concat(prefix, encoded, NULLBYTE, timeBytes)))
+      AccRange.followingPrefix(new Text(Bytes.concat(prefix, encoded, NullByteArray, timeBytes)))
     } else {
       // can't use time on an exclusive upper, as there aren't any methods to calculate previous rows
-      new Text(Bytes.concat(prefix, encoded, NULLBYTE))
+      new Text(Bytes.concat(prefix, encoded, NullByteArray))
     }
   }
 
@@ -274,20 +275,20 @@ object AttributeTable extends GeoMesaTable with LazyLogging {
   def decodeRow(sft: SimpleFeatureType, i: Int, row: Array[Byte]): Try[Any] = Try {
     val from = if (sft.isTableSharing) 3 else 2 // exclude feature byte and index bytes
     // null byte indicates end of value
-    val encodedValue = row.slice(from, row.indexOf(NULLBYTE(0), from + 1))
-    decode(new String(encodedValue, UTF8), sft.getDescriptor(i))
+    val encodedValue = row.slice(from, row.indexOf(NullByteArray(0), from + 1))
+    decode(new String(encodedValue, StandardCharsets.UTF_8), sft.getDescriptor(i))
   }
 
   /**
    * Returns a function to get the feature ID from the row key
    */
-  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = {
-    val from = if (sft.isTableSharing) 3 else 2  // exclude feature byte and index bytes
+  override def getIdFromRow(sft: SimpleFeatureType): (Text) => String = {
     // drop the encoded value and the date field (12 bytes) if it's present - the rest of the row is the ID
-    if (sft.getDtgField.isDefined) {
-      (row) => new String(row.drop(row.indexOf(NULLBYTE(0), from) + 13), UTF8)
-    } else {
-      (row) => new String(row.drop(row.indexOf(NULLBYTE(0), from) + 1), UTF8)
+    val from = if (sft.isTableSharing) 3 else 2  // exclude feature byte and index bytes
+    val prefix = if (sft.getDtgField.isDefined) 13 else 1
+    (row: Text) => {
+      val offset = row.find(NullByte, from) + prefix
+      new String(row.getBytes, offset, row.getLength - offset, StandardCharsets.UTF_8)
     }
   }
 
@@ -320,7 +321,7 @@ object AttributeTable extends GeoMesaTable with LazyLogging {
       if (encoded == null || encoded.isEmpty) {
         Array.empty
       } else {
-        encoded.getBytes(UTF8)
+        encoded.getBytes(StandardCharsets.UTF_8)
       }
     }
 

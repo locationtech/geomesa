@@ -15,7 +15,7 @@ import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.index.QueryHints.SAMPLING_KEY
-import org.locationtech.geomesa.accumulo.iterators.AttrKeyPlusValueIterator
+import org.locationtech.geomesa.accumulo.iterators.KryoLazyFilterTransformIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -70,7 +70,7 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
         plans.head must beAnInstanceOf[BatchScanPlan]
         val bsp = plans.head.asInstanceOf[BatchScanPlan]
         bsp.iterators.size mustEqual 1
-        bsp.iterators.head.getIteratorClass mustEqual classOf[AttrKeyPlusValueIterator].getName
+        bsp.iterators.head.getIteratorClass mustEqual classOf[KryoLazyFilterTransformIterator].getName
 
         val rws = fs.getFeatures(query).features().toList
         rws.size mustEqual 3
@@ -92,7 +92,7 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
         plans.head must beAnInstanceOf[BatchScanPlan]
         val bsp = plans.head.asInstanceOf[BatchScanPlan]
         bsp.iterators.size mustEqual 1
-        bsp.iterators.head.getIteratorClass mustEqual classOf[AttrKeyPlusValueIterator].getName
+        bsp.iterators.head.getIteratorClass mustEqual classOf[KryoLazyFilterTransformIterator].getName
       }
 
       "support sampling" >> {
@@ -109,7 +109,7 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
         plans.head must beAnInstanceOf[BatchScanPlan]
         val bsp = plans.head.asInstanceOf[BatchScanPlan]
         bsp.iterators.size mustEqual 1
-        bsp.iterators.head.getIteratorClass mustEqual classOf[AttrKeyPlusValueIterator].getName
+        bsp.iterators.head.getIteratorClass mustEqual classOf[KryoLazyFilterTransformIterator].getName
 
         val rws = fs.getFeatures(query).features().toList
         rws must haveSize(2)
@@ -137,7 +137,7 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
         plans.head must beAnInstanceOf[BatchScanPlan]
         val bsp = plans.head.asInstanceOf[BatchScanPlan]
         bsp.iterators.size mustEqual 1
-        bsp.iterators.head.getIteratorClass mustEqual classOf[AttrKeyPlusValueIterator].getName
+        bsp.iterators.head.getIteratorClass mustEqual classOf[KryoLazyFilterTransformIterator].getName
 
         val rws = fs.getFeatures(query).features().toList
         rws.size mustEqual 3
@@ -159,7 +159,7 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
         plans.head must beAnInstanceOf[BatchScanPlan]
         val bsp = plans.head.asInstanceOf[BatchScanPlan]
         bsp.iterators.size mustEqual 1
-        bsp.iterators.head.getIteratorClass mustEqual classOf[AttrKeyPlusValueIterator].getName
+        bsp.iterators.head.getIteratorClass mustEqual classOf[KryoLazyFilterTransformIterator].getName
       }
 
       "support sampling" >> {
@@ -176,7 +176,7 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
         plans.head must beAnInstanceOf[BatchScanPlan]
         val bsp = plans.head.asInstanceOf[BatchScanPlan]
         bsp.iterators.size mustEqual 1
-        bsp.iterators.head.getIteratorClass mustEqual classOf[AttrKeyPlusValueIterator].getName
+        bsp.iterators.head.getIteratorClass mustEqual classOf[KryoLazyFilterTransformIterator].getName
 
         val rws = fs.getFeatures(query).features().toList
         rws must haveSize(2)

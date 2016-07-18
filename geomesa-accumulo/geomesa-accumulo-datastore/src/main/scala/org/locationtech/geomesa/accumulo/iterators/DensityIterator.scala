@@ -20,10 +20,11 @@ import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.accumulo.index.{IndexEntryDecoder, IndexSchema, Strategy}
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyDensityIterator.DensityResult
 import org.locationtech.geomesa.features.SerializationType.SerializationType
-import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureDeserializer, SimpleFeatureDeserializers}
+import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureDeserializers, SimpleFeatureSerializer}
 import org.locationtech.geomesa.utils.geotools.Conversions.{RichSimpleFeature, toRichSimpleFeatureIterator}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -35,7 +36,7 @@ import scala.collection.JavaConverters._
  */
 class DensityIterator extends KryoLazyDensityIterator with LazyLogging {
 
-  var deserializer: SimpleFeatureDeserializer = null
+  var deserializer: SimpleFeatureSerializer = null
   var indexDecoder: IndexEntryDecoder = null
 
   override def init(src: SortedKeyValueIterator[Key, Value],
@@ -107,6 +108,7 @@ object DensityIterator extends LazyLogging {
    * Creates an iterator config that expects entries to be precomputed bin values
    */
   def configure(sft: SimpleFeatureType,
+                table: GeoMesaTable,
                 serializationType: SerializationType,
                 schema: String,
                 filter: Option[Filter],
@@ -118,6 +120,6 @@ object DensityIterator extends LazyLogging {
     val is = new IteratorSetting(priority, "density-iter", classOf[DensityIterator])
     Strategy.configureFeatureEncoding(is, serializationType)
     is.addOption(DEFAULT_SCHEMA_NAME, schema)
-    KryoLazyDensityIterator.configure(is, sft, filter, envelope, gridWidth, gridHeight, weightAttribute)
+    KryoLazyDensityIterator.configure(is, sft, table, filter, envelope, gridWidth, gridHeight, weightAttribute)
   }
 }

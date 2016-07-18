@@ -25,7 +25,7 @@ object SimpleFeatureDeserializers {
    * @param sft the encoded simple feature type to be decode
    * @param typ the encoding that was used to encode
    * @param options any options that were used to encode
-   * @return a new [[SimpleFeatureDeserializer]]
+   * @return a new [[SimpleFeatureSerializer]]
    */
   def apply(sft: SimpleFeatureType, typ: SerializationType, options: Set[SerializationOption] = Set.empty) =
     typ match {
@@ -43,7 +43,7 @@ object ProjectingSimpleFeatureDeserializers {
    * @param projectedSft the simple feature type to project to
    * @param typ the encoding that was used to encode
    * @param options any options that were used to encode
-   * @return a new [[SimpleFeatureDeserializer]]
+   * @return a new [[SimpleFeatureSerializer]]
    */
   def apply(originalSft: SimpleFeatureType,
             projectedSft: SimpleFeatureType,

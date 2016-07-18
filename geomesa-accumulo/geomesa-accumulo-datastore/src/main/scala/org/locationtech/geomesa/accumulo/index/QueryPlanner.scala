@@ -19,17 +19,20 @@ import org.geotools.factory.Hints
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.FunctionExpressionImpl
+import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.visitor.BindingFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess
 import org.geotools.process.vector.TransformProcess.Definition
 import org.locationtech.geomesa.accumulo.GeomesaSystemProperties.QueryProperties
 import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanners.FeatureFunction
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.accumulo.util.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features._
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
@@ -188,16 +191,25 @@ case class QueryPlanner(sft: SimpleFeatureType, ds: AccumuloDataStore) extends M
     Key.toPrintableString(k.getRow.getBytes, 0, k.getRow.getLength, k.getRow.getLength)
 
   // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures
-  def defaultKVsToFeatures(hints: Hints): FeatureFunction = kvsToFeatures(hints.getReturnSft)
-
-  // This function decodes/transforms that Iterator of Accumulo Key-Values into an Iterator of SimpleFeatures
-  def kvsToFeatures(sft: SimpleFeatureType): FeatureFunction = {
+  def kvsToFeatures(sft: SimpleFeatureType, returnSft: SimpleFeatureType, table: GeoMesaTable): FeatureFunction = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     // Perform a projecting decode of the simple feature
-    val deserializer = SimpleFeatureDeserializers(sft, serializationType)
-    (kv: Entry[Key, Value]) => {
-      val sf = deserializer.deserialize(kv.getValue.get)
-      applyVisibility(sf, kv.getKey)
-      sf
+    if (sft.getSchemaVersion < 9) {
+      val deserializer = SimpleFeatureDeserializers(returnSft, serializationType)
+      (kv: Entry[Key, Value]) => {
+        val sf = deserializer.deserialize(kv.getValue.get)
+        applyVisibility(sf, kv.getKey)
+        sf
+      }
+    } else {
+      val getId = table.getIdFromRow(sft)
+      val deserializer = SimpleFeatureDeserializers(returnSft, serializationType, SerializationOptions.withoutId)
+      (kv: Entry[Key, Value]) => {
+        val sf = deserializer.deserialize(kv.getValue.get)
+        sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(kv.getKey.getRow))
+        applyVisibility(sf, kv.getKey)
+        sf
+      }
     }
   }
 }

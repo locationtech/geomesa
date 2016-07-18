@@ -46,23 +46,23 @@ class IndexValueEncoderTest extends Specification {
   "IndexValueEncoder" should {
     "default to id,geom,date" in {
       val sft = getSft()
-      IndexValueEncoder(sft).fields must containAllOf(Seq("geom", "dtg"))
+      IndexValueEncoder.getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg"))
     }
     "default to id,geom if no date" in {
       val sft = getSft("*geom:Point,foo:String")
-      IndexValueEncoder(sft).fields must containAllOf(Seq("geom"))
+      IndexValueEncoder.getIndexValueFields(sft) must containAllOf(Seq("geom"))
     }
     "allow custom fields to be set" in {
       val sft = getSft(s"*geom:Point:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,s:String,i:Int:$OPT_INDEX_VALUE=true,d:Double,f:Float:$OPT_INDEX_VALUE=true,u:UUID,l:List[String]")
-      IndexValueEncoder(sft).fields must containAllOf(Seq("geom", "dtg", "i", "f"))
+      IndexValueEncoder.getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg", "i", "f"))
     }
     "always include id,geom,dtg" in {
       val sft = getSft(s"*geom:Point,dtg:Date,s:String,i:Int:$OPT_INDEX_VALUE=true,d:Double,f:Float:$OPT_INDEX_VALUE=true,u:UUID,l:List[String]")
-      IndexValueEncoder(sft).fields must containAllOf(Seq("geom", "dtg", "i", "f"))
+      IndexValueEncoder.getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg", "i", "f"))
     }
     "not allow complex types" in {
       val sft = getSft(s"*geom:Point:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,l:List[String]:$OPT_INDEX_VALUE=true")
-      IndexValueEncoder(sft).fields must containAllOf(Seq("geom", "dtg"))
+      IndexValueEncoder.getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg"))
     }
 
     "encode and decode id,geom,date" in {
@@ -75,18 +75,18 @@ class IndexValueEncoderTest extends Specification {
       val encoder = IndexValueEncoder(sft)
 
       // output
-      val value = encoder.encode(entry)
+      val value = encoder.serialize(entry)
 
       // requirements
-      value must not beNull
+      value must not(beNull)
 
       // return trip
-      val decoded = encoder.decode(value)
+      val decoded = encoder.deserialize(value)
 
       // requirements
-      decoded must not beNull;
-      decoded.getAttributeCount mustEqual(2)
-      decoded.getID mustEqual id
+      decoded must not(beNull)
+      decoded.getAttributeCount mustEqual 2
+      decoded.getID mustEqual ""
       decoded.getAttribute("geom") mustEqual geom
       decoded.getAttribute("dtg") mustEqual dt
     }
@@ -100,19 +100,19 @@ class IndexValueEncoderTest extends Specification {
       val encoder = IndexValueEncoder(sft)
 
       // output
-      val value = encoder.encode(entry)
+      val value = encoder.serialize(entry)
 
       // requirements
-      value must not beNull
+      value must not(beNull)
 
       // return trip
-      val decoded = encoder.decode(value)
+      val decoded = encoder.deserialize(value)
 
       // requirements
-      decoded must not beNull;
+      decoded must not(beNull)
       decoded.getAttribute("dtg") must beNull
-      decoded.getAttribute("geom") mustEqual(geom)
-      decoded.getID mustEqual(id)
+      decoded.getAttribute("geom") mustEqual geom
+      decoded.getID mustEqual ""
     }
 
     "encode and decode custom fields" in {
@@ -130,19 +130,19 @@ class IndexValueEncoderTest extends Specification {
       val encoder = IndexValueEncoder(sft)
 
       // output
-      val value = encoder.encode(entry)
+      val value = encoder.serialize(entry)
 
       // requirements
-      value must not beNull
+      value must not(beNull)
 
       // return trip
-      val decoded = encoder.decode(value)
+      val decoded = encoder.deserialize(value)
 
       // requirements
-      decoded must not beNull;
-      decoded.getAttributeCount mustEqual(7)
+      decoded must not(beNull)
+      decoded.getAttributeCount mustEqual 7
       decoded.getAttribute("geom") mustEqual geom
-      decoded.getID mustEqual id
+      decoded.getID mustEqual ""
       decoded.getAttribute("dtg") mustEqual dt
       decoded.getAttribute("d") mustEqual d
       decoded.getAttribute("f") mustEqual f
@@ -164,19 +164,19 @@ class IndexValueEncoderTest extends Specification {
       val encoder = IndexValueEncoder(sft)
 
       // output
-      val value = encoder.encode(entry)
+      val value = encoder.serialize(entry)
 
       // requirements
-      value must not beNull
+      value must not(beNull)
 
       // return trip
-      val decoded = encoder.decode(value)
+      val decoded = encoder.deserialize(value)
 
       // requirements
-      decoded must not beNull;
-      decoded.getAttributeCount mustEqual(7)
+      decoded must not(beNull)
+      decoded.getAttributeCount mustEqual 7
       decoded.getAttribute("geom") mustEqual geom
-      decoded.getID mustEqual id
+      decoded.getID mustEqual ""
       decoded.getAttribute("d") mustEqual d
       decoded.getAttribute("f") mustEqual f
       decoded.getAttribute("i") mustEqual i
@@ -191,9 +191,9 @@ class IndexValueEncoderTest extends Specification {
         List(geom, dt, null, null, null, null, null, null), id)
       val encoder = IndexValueEncoder(sft)
       val encoded = _encodeIndexValue(entry)
-      val decoded = encoder.decode(encoded.get())
-      decoded must not beNull;
-      decoded.getAttributeCount mustEqual(2)
+      val decoded = encoder.deserialize(encoded.get())
+      decoded must not(beNull)
+      decoded.getAttributeCount mustEqual 2
       decoded.getAttribute("geom") mustEqual geom
       decoded.getAttribute("dtg") mustEqual dt
       decoded.getID mustEqual id
@@ -220,15 +220,15 @@ class IndexValueEncoderTest extends Specification {
       var totalDecodeOriginal = 0L
 
       // run once to remove any initialization time...
-      oldEncoder.decode(oldEncoder.encode(entry))
-      encoder.decode(encoder.encode(entry))
+      oldEncoder.deserialize(oldEncoder.serialize(entry))
+      encoder.deserialize(encoder.serialize(entry))
       _decodeIndexValue(_encodeIndexValue(entry))
 
       (0 to 1000000).foreach { _ =>
         val start = System.currentTimeMillis()
-        val value = oldEncoder.encode(entry)
+        val value = oldEncoder.serialize(entry)
         val encode = System.currentTimeMillis()
-        oldEncoder.decode(value)
+        oldEncoder.deserialize(value)
         val decode = System.currentTimeMillis()
 
         totalEncodeOld += encode - start
@@ -237,9 +237,9 @@ class IndexValueEncoderTest extends Specification {
 
       (0 to 1000000).foreach { _ =>
         val start = System.currentTimeMillis()
-        val value = encoder.encode(entry)
+        val value = encoder.serialize(entry)
         val encode = System.currentTimeMillis()
-        encoder.decode(value)
+        encoder.deserialize(value)
         val decode = System.currentTimeMillis()
 
         totalEncodeNew += encode - start

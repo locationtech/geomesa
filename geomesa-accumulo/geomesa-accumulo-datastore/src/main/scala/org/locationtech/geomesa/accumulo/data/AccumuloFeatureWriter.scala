@@ -14,78 +14,32 @@ import java.util.concurrent.atomic.AtomicLong
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.BatchWriter
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
-import org.apache.accumulo.core.security.ColumnVisibility
-import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapred.RecordWriter
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.data.{Query, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.accumulo.GeomesaSystemProperties.FeatureIdProperties.FEATURE_ID_GENERATOR
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.{FeatureToWrite, FeatureWriterFn}
+import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureWriterFn
 import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, Z3FeatureIdGenerator}
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory, SimpleFeatureSerializer}
-import org.locationtech.geomesa.security.SecurityUtils.FEATURE_VISIBILITY
 import org.locationtech.geomesa.utils.uuid.FeatureIdGenerator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
-import scala.util.hashing.MurmurHash3
 
 object AccumuloFeatureWriter extends LazyLogging {
 
-  type FeatureToMutations = (FeatureToWrite) => Seq[Mutation]
-  type FeatureWriterFn    = (FeatureToWrite) => Unit
+  type FeatureToMutations = (WritableFeature) => Seq[Mutation]
+  type FeatureWriterFn    = (WritableFeature) => Unit
   type TableAndWriter     = (String, FeatureToMutations)
 
   type AccumuloRecordWriter = RecordWriter[Key, Value]
 
   val tempFeatureIds = new AtomicLong(0)
-
-  class FeatureToWrite(val feature: SimpleFeature,
-                       defaultVisibility: String,
-                       serializer: SimpleFeatureSerializer,
-                       indexValueEncoder: IndexValueEncoder,
-                       binEncoder: Option[BinEncoder]) {
-
-    import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
-
-    lazy val visibility = new Text(feature.userData[String](FEATURE_VISIBILITY).getOrElse(defaultVisibility))
-
-    lazy val columnVisibility = new ColumnVisibility(visibility)
-    // the index value is the encoded date/time/fid
-    lazy val indexValue = new Value(indexValueEncoder.encode(feature))
-    // the data value is the encoded SimpleFeature
-    lazy val dataValue = new Value(serializer.serialize(feature))
-    // bin formatted value
-    lazy val binValue = binEncoder.map(e => new Value(e.encode(feature)))
-    // hash value of the feature id
-    lazy val idHash = Math.abs(MurmurHash3.stringHash(feature.getID))
-
-    // TODO GEOMESA-1254 optimize for case where all vis are the same
-    lazy val perAttributeValues: Seq[RowValue] = {
-      val count = feature.getFeatureType.getAttributeCount
-      val visibilities = feature.userData[String](FEATURE_VISIBILITY).map(_.split(","))
-          .getOrElse(Array.fill(count)(defaultVisibility))
-      require(visibilities.length == count, "Per-attribute visibilities do not match feature type")
-      val groups = visibilities.zipWithIndex.groupBy(_._1).mapValues(_.map(_._2.toByte).sorted).toSeq
-      groups.map { case (vis, indices) =>
-        val cq = new Text(indices)
-        val values = indices.map(i => serializer.serialize(i, feature.getAttribute(i)))
-        val output = KryoFeatureSerializer.getOutput() // note: same output object used in serializer.serialize
-        values.foreach { value =>
-          output.writeInt(value.length, true)
-          output.write(value)
-        }
-        val value = new Value(output.toBytes)
-        RowValue(GeoMesaTable.AttributeColumnFamily, cq, new ColumnVisibility(vis), value)
-      }
-    }
-  }
 
   def featureWriter(writers: Seq[(BatchWriter, FeatureToMutations)]): FeatureWriterFn = feature => {
     // calculate all the mutations first, so that if something fails we won't have a partially written feature
@@ -139,19 +93,17 @@ object AccumuloFeatureWriter extends LazyLogging {
         logger.warn(s"Unknown feature ID implementation found, rebuilding feature: ${f.getClass} $f")
         ScalaSimpleFeatureFactory.copyFeature(sft, feature, fid)
     }
-
-  case class RowValue(cf: Text, cq: Text, vis: ColumnVisibility, value: Value)
 }
 
 abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
-                                     encoder: SimpleFeatureSerializer,
+                                     serializer: SimpleFeatureSerializer,
                                      ds: AccumuloDataStore,
                                      defaultVisibility: String)
     extends SimpleFeatureWriter with Flushable with LazyLogging {
 
   protected val multiBWWriter = ds.connector.createMultiTableBatchWriter(GeoMesaBatchWriterConfig())
   protected val binEncoder = BinEncoder(sft)
-  protected val indexValueEncoder = IndexValueEncoder(sft)
+  protected val indexValueSerializer = IndexValueEncoder(sft)
 
   // A "writer" is a function that takes a simple feature and writes it to an index or table
   protected val writer: FeatureWriterFn = {
@@ -169,7 +121,7 @@ abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
   protected def writeToAccumulo(feature: SimpleFeature): Unit = {
     // see if there's a suggested ID to use for this feature, else create one based on the feature
     val featureWithFid = AccumuloFeatureWriter.featureWithFid(sft, feature)
-    writer(new FeatureToWrite(featureWithFid, defaultVisibility, encoder, indexValueEncoder, binEncoder))
+    writer(WritableFeature(featureWithFid, sft, defaultVisibility, serializer, indexValueSerializer, binEncoder))
     statUpdater.add(featureWithFid)
   }
 
@@ -218,11 +170,11 @@ class AppendAccumuloFeatureWriter(sft: SimpleFeatureType,
  * Modifies or deletes existing features. Per the data store api, does not allow appending new features.
  */
 class ModifyAccumuloFeatureWriter(sft: SimpleFeatureType,
-                                  encoder: SimpleFeatureSerializer,
+                                  serializer: SimpleFeatureSerializer,
                                   ds: AccumuloDataStore,
                                   defaultVisibility: String,
                                   filter: Filter)
-  extends AccumuloFeatureWriter(sft, encoder, ds, defaultVisibility) {
+  extends AccumuloFeatureWriter(sft, serializer, ds, defaultVisibility) {
 
   val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
 
@@ -241,7 +193,7 @@ class ModifyAccumuloFeatureWriter(sft: SimpleFeatureType,
   }
 
   override def remove() = if (original != null) {
-    remover(new FeatureToWrite(original, defaultVisibility, encoder, indexValueEncoder, binEncoder))
+    remover(WritableFeature(original, sft, defaultVisibility, serializer, indexValueSerializer, binEncoder))
     statUpdater.remove(original)
   }
 
