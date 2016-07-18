@@ -131,6 +131,7 @@ object QueryStrategyDecider extends QueryStrategyDecider with MethodProfiling {
     val strategy = filter.strategy match {
       case StrategyType.Z2        => Z2IdxStrategy
       case StrategyType.Z3        => Z3IdxStrategy
+      case StrategyType.XZ2       => XZ2IdxStrategy
       case StrategyType.RECORD    => RecordIdxStrategy
       case StrategyType.ATTRIBUTE => AttributeIdxStrategy
       case StrategyType.ST        => STIdxStrategy
@@ -151,6 +152,7 @@ object QueryStrategyDecider extends QueryStrategyDecider with MethodProfiling {
     filter.strategy match {
       case StrategyType.Z2        => new Z2IdxStrategy(filter)
       case StrategyType.Z3        => new Z3IdxStrategy(filter)
+      case StrategyType.XZ2       => new XZ2IdxStrategy(filter)
       case StrategyType.RECORD    => new RecordIdxStrategy(filter)
       case StrategyType.ATTRIBUTE if sft.getSchemaVersion >= ImplVersionChange => new AttributeIdxStrategy(filter)
       case StrategyType.ST        => new STIdxStrategy(filter)

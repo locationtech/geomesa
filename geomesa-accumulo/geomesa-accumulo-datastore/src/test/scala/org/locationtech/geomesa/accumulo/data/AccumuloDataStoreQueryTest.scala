@@ -23,7 +23,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
-import org.locationtech.geomesa.accumulo.index.{ExplainString, JoinPlan, QueryHints, QueryPlanner}
+import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, TestData}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction}
@@ -325,7 +325,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       sorted(4) mustEqual BasicValues(50, 50, dtgs2(0).getTime, "name2".hashCode.toString)
       sorted(5) mustEqual BasicValues(51, 51, dtgs2(1).getTime, "name2".hashCode.toString)
       sorted(6) mustEqual BasicValues(52, 52, dtgs2(2).getTime, "name2".hashCode.toString)
-    }.pendingUntilFixed("GEOMESA-1162 - not supported yet with z-indices")
+    }
 
     "support IN queries without dtg on non-indexed string attributes" in {
       val sft = createNewSchema(s"name:String,dtg:Date,*geom:Point:srid=4326")

@@ -478,6 +478,7 @@ class AccumuloDataStore(val connector: Connector,
       case RecordTable         => RECORD_TABLE_KEY
       case Z2Table             => Z2_TABLE_KEY
       case Z3Table             => Z3_TABLE_KEY
+      case XZ2Table            => XZ2_TABLE_KEY
       case AttributeTable      => ATTR_IDX_TABLE_KEY
       // noinspection ScalaDeprecation
       case AttributeTableV5    => ATTR_IDX_TABLE_KEY
@@ -500,6 +501,7 @@ class AccumuloDataStore(val connector: Connector,
       case RecordTable         => config.recordThreads
       case Z2Table             => config.queryThreads
       case Z3Table             => config.queryThreads
+      case XZ2Table            => config.queryThreads
       case AttributeTable      => config.queryThreads
       // noinspection ScalaDeprecation
       case AttributeTableV5    => 1
@@ -594,20 +596,6 @@ class AccumuloDataStore(val connector: Connector,
 
   // end public methods
 
-  // equivalent to: s"%~#s%$maxShard#r%${name}#cstr%0,3#gh%yyyyMMddHH#d::%~#s%3,2#gh::%~#s%#id"
-  private def buildDefaultSpatioTemporalSchema(name: String, maxShard: Int = defaultMaxShard): String =
-    new IndexSchemaBuilder("~")
-        .randomNumber(maxShard)
-        .indexOrDataFlag()
-        .constant(name)
-        .geoHash(0, 3)
-        .date("yyyyMMddHH")
-        .nextPart()
-        .geoHash(3, 2)
-        .nextPart()
-        .id()
-        .build()
-
   /**
    * Computes and writes the metadata for this feature type
    */
@@ -624,10 +612,8 @@ class AccumuloDataStore(val connector: Connector,
     val schemaIdString = new String(Array(schemaId.asInstanceOf[Byte]), StandardCharsets.UTF_8)
 
     // set user data so that it gets persisted
-    if (sft.getSchemaVersion == CURRENT_SCHEMA_VERSION) {
-      // explicitly set it in case this was just the default
-      sft.setSchemaVersion(CURRENT_SCHEMA_VERSION)
-    }
+    sft.setSchemaVersion(CURRENT_SCHEMA_VERSION)
+
     if (sft.isTableSharing) {
       sft.setTableSharing(true) // explicitly set it in case this was just the default
       sft.setTableSharingPrefix(schemaIdString)
@@ -638,19 +624,11 @@ class AccumuloDataStore(val connector: Connector,
       sft.getUserData.put(SimpleFeatureTypes.ENABLED_INDEXES, old)
     }
 
-    // only set spatio-temporal fields if z2 isn't supported
-    val stTable = if (sft.getSchemaVersion > 7) { None } else {
-      // get the requested index schema or build the default
-      if (sft.getStIndexSchema == null) {
-        sft.setStIndexSchema(buildDefaultSpatioTemporalSchema(sft.getTypeName))
-      }
-      Some(SpatioTemporalTable.formatTableName(catalogTable, sft))
-    }
-
     // compute the metadata values - IMPORTANT: encode type has to be called after all user data is set
     val attributesValue   = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
     val z2TableValue      = Z2Table.formatTableName(catalogTable, sft)
     val z3TableValue      = Z3Table.formatTableName(catalogTable, sft)
+    val xz2TableValue     = XZ2Table.formatTableName(catalogTable, sft)
     val attrIdxTableValue = AttributeTable.formatTableName(catalogTable, sft)
     val recordTableValue  = RecordTable.formatTableName(catalogTable, sft)
     val statDateValue     = GeoToolsDateFormat.print(DateTimeUtils.currentTimeMillis())
@@ -661,17 +639,13 @@ class AccumuloDataStore(val connector: Connector,
       ATTRIBUTES_KEY        -> attributesValue,
       Z2_TABLE_KEY          -> z2TableValue,
       Z3_TABLE_KEY          -> z3TableValue,
+      XZ2_TABLE_KEY         -> xz2TableValue,
       ATTR_IDX_TABLE_KEY    -> attrIdxTableValue,
       RECORD_TABLE_KEY      -> recordTableValue,
       STATS_GENERATION_KEY  -> statDateValue,
       VERSION_KEY           -> dataStoreVersion,
-      SCHEMA_ID_KEY         -> schemaIdString,
-      // noinspection ScalaDeprecation
-      ST_IDX_TABLE_KEY      -> stTable
-    ).collect {
-      case (k: String, v: String) => (k, v)
-      case (k: String, v: Some[String]) => (k, v.get)
-    }
+      SCHEMA_ID_KEY         -> schemaIdString
+    )
 
     metadata.insert(sft.getTypeName, metadataMap)
 
