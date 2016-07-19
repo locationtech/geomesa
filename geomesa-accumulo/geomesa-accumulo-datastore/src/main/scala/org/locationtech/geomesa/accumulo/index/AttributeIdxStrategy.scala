@@ -408,6 +408,18 @@ object AttributeIdxStrategy extends StrategyProvider {
     }
   }
 
+  /**
+    * Tries to merge the two filters that are OR'd together into a single filter that can be queried in one pass.
+    * Will return the merged filter, or null if they can't be merged.
+    *
+    * We can merge filters if they have the same secondary filter AND:
+    *   1. One of them does not have a primary filter
+    *   2. They both have a primary filter on the same attribute
+    *
+    * @param toMerge first filter
+    * @param mergeTo second filter
+    * @return merged filter that satisfies both inputs, or null if that isn't possible
+    */
   def tryMergeAttrStrategy(toMerge: QueryFilter, mergeTo: QueryFilter): QueryFilter = {
     // TODO this will be incorrect for multi-valued properties where we have an AND in the primary filter
     val leftAttributes = toMerge.primary.map(FilterHelper.propertyNames(_, null))
