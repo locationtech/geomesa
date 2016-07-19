@@ -184,34 +184,70 @@ object AvroCodecs {
 
   def decodeUUID(bb: ByteBuffer): UUID = new UUID(bb.getLong, bb.getLong)
 
+  object FeatureCodecs {
+    private[FeatureCodecs] val VERSION_ENCODER = new EncodeComplexAttribute {
+      def apply(ca: ComplexAttribute, p: JHashMap[Name, JArrayList[Property]], e: Encoder) = e.writeInt(1)
+    }
 
-  /*
-   * These classes are specializations of Function to improve performance
-   */
+    private[FeatureCodecs] val FID_ENCODER = new EncodeComplexAttribute {
+      def apply(ca: ComplexAttribute, p: JHashMap[Name, JArrayList[Property]], e: Encoder) =
+        e.writeString(Option(ca.getIdentifier) flatMap (i => Option(i.getID)) map (_.toString) getOrElse "")
+    }
 
-  private[this] abstract class EncodeComplexAttribute extends ((ComplexAttribute,JHashMap[Name,JArrayList[Property]], Encoder)=>Unit) {
-    def apply(ca:ComplexAttribute, props: JHashMap[Name,JArrayList[Property]], e:Encoder)
+    /*
+     * These classes are specializations of Function to improve performance
+     */
+
+    private[FeatureCodecs] abstract class EncodeComplexAttribute extends ((ComplexAttribute,JHashMap[Name,JArrayList[Property]], Encoder)=>Unit) {
+      def apply(ca:ComplexAttribute, props: JHashMap[Name,JArrayList[Property]], e:Encoder)
+    }
+
+    private[FeatureCodecs] abstract class EncodeProperties extends ((JArrayList[Property],Encoder)=>Unit) {
+      def apply(props:JArrayList[Property], e:Encoder)
+    }
+
+    private[FeatureCodecs] abstract class EncodeProperty extends ((Encoder,Property)=>Unit) {
+      def apply(e: Encoder, p: Property)
+    }
+
+    private[FeatureCodecs] abstract class DecodeToAttribute extends (Decoder=>Attribute) {
+      def apply(d:Decoder): Attribute
+    }
+
+    private[FeatureCodecs] abstract class DecodeToAttributes extends (Decoder=>JCollection[Attribute]) {
+      def apply(d:Decoder): JCollection[Attribute]
+    }
+
+    private[FeatureCodecs] val arrayFactory = new Function[Name,JArrayList[Property]] { def apply(t: Name) = new JArrayList[Property]() }
+
+    private[FeatureCodecs] class EncodeUsingBinding(binding:EncodeProperties, name:Name) extends EncodeComplexAttribute {
+      def apply(ca: ComplexAttribute, p: JHashMap[Name, JArrayList[Property]], e: Encoder) =
+        binding(p.computeIfAbsent(name, arrayFactory), e)
+    }
+
+    private[FeatureCodecs] class EncodeNullOnly(n:Nullable) extends EncodeComplexAttribute {
+      def apply(ca: ComplexAttribute, p: JHashMap[Name, JArrayList[Property]], e: Encoder) = n.writeNull(e)
+    }
+
+    private[FeatureCodecs] class EncodeSimpleContent(binding: EncodeProperty, n: Nullable) extends EncodeComplexAttribute {
+      def apply(ca: ComplexAttribute, p: JHashMap[Name, JArrayList[Property]], e: Encoder) =
+        Option(ca.getProperty(GEOT_SIMPLE_CONTENT)) match {
+          case Some(value) if value.getValue != null =>
+            n.writeNonNull(e)
+            binding(e, value)
+          case _ =>
+            n.writeNull(e)
+        }
+    }
+
+    object Name {
+      def unapply(arg: Name): Option[(String,String)] = Some(arg.getNamespaceURI, arg.getLocalPart)
+    }
   }
-
-  private[this] abstract class EncodeProperties extends ((JArrayList[Property],Encoder)=>Unit) {
-    def apply(props:JArrayList[Property], e:Encoder)
-  }
-
-  private[this] abstract class EncodeProperty extends ((Encoder,Property)=>Unit) {
-    def apply(e: Encoder, p: Property)
-  }
-
-  private[this] abstract class DecodeToAttribute extends (Decoder=>Attribute) {
-    def apply(d:Decoder): Attribute
-  }
-
-  private[this] abstract class DecodeToAttributes extends (Decoder=>JCollection[Attribute]) {
-    def apply(d:Decoder): JCollection[Attribute]
-  }
-
-  private[this] val arrayFactory = new Function[Name,JArrayList[Property]] { def apply(t: Name) = new JArrayList[Property]() }
 
   trait FeatureCodecs { self: CodecRegistry =>
+    import FeatureCodecs._
+
     protected[this] val fne: FieldNameEncoder
     private[this] val schemaFac = new SchemaFactory(fne, this)
     private[this] val codecs = mutable.Map.empty[AttributeDescriptor,AvroCodec[Property]]
@@ -225,99 +261,69 @@ object AvroCodecs {
       find(new AttributeDescriptorImpl(ct, ct.getName, 1, 1, false, null))
     }
 
-    def find(ad:AttributeDescriptor): AvroCodec[Property] = {
-      codecs.getOrElseUpdate(ad, {
-        val schema = schemaFac(ad.getType.asInstanceOf[ComplexType])
-        val schemaType = getType(schema, fne)
-        val enc = bindEnc(schemaType, ad)
-        val dec = bindDec(schemaType, ad)
-        bind[Property](enc,dec,schema)
-      })
+    def find(ad:AttributeDescriptor): AvroCodec[Property] = codecs.getOrElseUpdate(ad, {
+      val schema = schemaFac(ad.getType.asInstanceOf[ComplexType])
+      val schemaType = getType(schema, fne)
+      val encMethod = bindEncOne(schemaType, ad)
+      val decMethod = bindDec(schemaType, ad)
+      new AvroCodec[Property](schema) {
+        val clazz = classOf[Property]
+        override def enc(t: Property, out: Encoder): Unit = encMethod(out, t)
+        override def dec(in: Decoder): Property = decMethod(in)
+      }
+    })
+
+    private[this] def bindComplexEncoder(r: Record, ct: ComplexType): EncodeProperty = {
+      encoders.get(r) match {
+        case Some(enc) => enc
+        case _ if constructing(r) =>
+          new EncodeProperty {
+            private[this] lazy val binding = encoders(r)
+            override def apply(e: Encoder, p: Property) = binding(e, p)
+          }
+        case _ =>
+          constructing(r) = true
+
+          val ret = computeEncoder(r, ct)
+          encoders(r) = ret
+          constructing(r) = false
+          ret
+      }
     }
 
-    private[this] def bindEnc(s:SchemaType, ad:PropertyDescriptor):EncodeProperty = s match {
-      case r@Record(fields) if ad.getType.isInstanceOf[ComplexType] =>
-        val ct = ad.getType.asInstanceOf[ComplexType]
-      encoders.get(r) match {
-        case Some(enc) => return enc
-        case _ =>
-      }
-
-      if(constructing(r)) {
-        return new EncodeProperty {
-          private[this] lazy val binding=encoders(r)
-          override def apply(e: Encoder, p: Property): Unit = binding(e,p)
-        }
-      }
-
-      constructing(r) = true
-
+    def computeEncoder(r: Record, ct: ComplexType): EncodeProperty {def apply(e: Encoder, p: Property): Unit} = {
       val descByName = AvroSchemas.allProps(ct).map(d => d.getName -> d).toMap
 
       // Each field MUST be mapped
-      val bindings = r.fields.map { case (name, st) =>
-        if (AvroSchemas.AVRO_NAMESPACE == name.getNamespaceURI) {
-          name.getLocalPart match {
-            case "__version__" =>
-              new EncodeComplexAttribute {
-                def apply(ca: ComplexAttribute, p: JHashMap[Name, JArrayList[Property]], e: Encoder) = e.writeInt(1)
-              }
-
-            case "__fid__" =>
-              new EncodeComplexAttribute {
-                def apply(ca: ComplexAttribute, p: JHashMap[Name, JArrayList[Property]], e: Encoder) =
-                  e.writeString(Option(ca.getIdentifier) flatMap (i => Option(i.getID)) map (_.toString) getOrElse "")
-              }
-
-            case "simpleContent" => st match {
-              case n@Nullable(Primitive(t)) =>
-                val binding = bindEncPrimitive(AvroSchemas.nearestSimpleType(ct), t)
-                new EncodeComplexAttribute {
-                  def apply(ca: ComplexAttribute, p: JHashMap[Name, JArrayList[Property]], e: Encoder) =
-                    Option(ca.getProperty(GEOT_SIMPLE_CONTENT)) match {
-                      case Some(value) if value.getValue != null =>
-                        n.writeNonNull(e)
-                        binding(e, value)
-                      case _ =>
-                        n.writeNull(e)
-                    }
-                }
-
-              case _ =>
-                throw new IllegalStateException(s"The property $name must be a nullable primitive type")
-            }
-
-            case other => st match {
-              case n: Nullable =>
-                new EncodeComplexAttribute {
-                  def apply(ca: ComplexAttribute, p: JHashMap[Name, JArrayList[Property]], e: Encoder) = n.writeNull(e)
-                }
-              case _ => ???
-            }
+      val bindings = r.fields.map {
+        case (Name(AVRO_NAMESPACE, AVRO_SIMPLE_FEATURE_VERSION), Primitive(Schema.Type.INT)) =>
+          VERSION_ENCODER
+        case (Name(AVRO_NAMESPACE, FEATURE_ID_AVRO_FIELD_NAME), Primitive(Schema.Type.STRING)) =>
+          FID_ENCODER
+        case (NAME_SIMPLE_CONTENT, n@Nullable(Primitive(t))) =>
+          new EncodeSimpleContent(bindEncPrimitive(AvroSchemas.nearestSimpleType(ct), t), n)
+        case (Name(AVRO_NAMESPACE, _), n: Nullable) =>
+          new EncodeNullOnly(n)
+        case (Name(AVRO_NAMESPACE, other), _) =>
+          throw new IllegalArgumentException(
+            s"""Don't know how to handle the non-nullabled metadata property "$other""""
+          )
+        case (name, st) =>
+          (descByName.get(name), st) match {
+            case (Some(desc), _) =>
+              new EncodeUsingBinding(bindEncMany(st, desc.asInstanceOf[AttributeDescriptor]), name)
+            case (None, n:Nullable) =>
+              new EncodeNullOnly(n)
+            case _ =>
+              throw new IllegalStateException(
+                s"""Cannot encode non-nullable Avro field named "$name" because no
+                    | match in "${ct.getName}" was found""".stripMargin
+              )
           }
-        } else {
-          descByName.get(name) match {
-            case Some(desc) =>
-              val binding = bindEncMany(st, desc.asInstanceOf[AttributeDescriptor])
-              new EncodeComplexAttribute {
-                def apply(ca: ComplexAttribute, p: JHashMap[Name, JArrayList[Property]], e: Encoder) =
-                  binding(p.computeIfAbsent(name, arrayFactory), e)
-              }
-            case None =>
-              st match {
-                case n: Nullable =>
-                  new EncodeComplexAttribute {
-                    def apply(ca: ComplexAttribute, p: JHashMap[Name, JArrayList[Property]], e: Encoder) = n.writeNull(e)
-                  }
-                case _ =>
-                  throw new IllegalStateException()
-              }
-          }
-        }
       }.toArray
 
 
-      val ret = new EncodeProperty {
+      new EncodeProperty {
         def apply(e: Encoder, p: Property) = {
           val ca = p.asInstanceOf[ComplexAttribute]
           val props = new JHashMap[Name, JArrayList[Property]]()
@@ -334,9 +340,6 @@ object AvroCodecs {
           }
         }
       }
-      encoders(r) = ret
-      constructing(r) = false
-      ret
     }
 
     private[this] def bindEncMany(s:SchemaType, ad:AttributeDescriptor):EncodeProperties = s match {
@@ -462,8 +465,11 @@ object AvroCodecs {
       case dr:DeferredRecord =>
         bindEncOne(dr.rec, ad)
 
-      case r:Record if ad.getType.isInstanceOf[ComplexType] =>
-        bindEnc(r, ad)
+      case r:Record  =>
+        ad.getType match {
+          case ct: ComplexType => bindComplexEncoder(r, ct)
+          case _ => throw new IllegalStateException(s"""Attempted to bind Avro record to simple-valued property $ad""")
+        }
 
       case Primitive(t) =>
         bindEncPrimitive(ad.getType, t)

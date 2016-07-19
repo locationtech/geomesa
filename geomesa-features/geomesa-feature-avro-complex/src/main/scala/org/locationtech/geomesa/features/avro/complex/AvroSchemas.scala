@@ -102,10 +102,6 @@ object AvroSchemas {
       f
     }
 
-    private[this] def computeFieldSchema(clazz:Class[_], nillable:Boolean, multi:Boolean) =
-      for(codec<-registry.find(clazz)) yield
-        computeType(codec.schema, nillable, multi)
-
     private[this] def computeType(s:Schema, ad:AttributeDescriptor):Schema =
       computeType(s, ad.getMinOccurs == 0 || ad.isNillable, ad.getMaxOccurs != 1)
 
