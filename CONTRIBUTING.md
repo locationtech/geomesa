@@ -69,7 +69,8 @@ Coding Standards
   in the commit. This can be done with the `git commit -s` flag.
 * Code must be reasonably formatted. Scala does not conform well to automatic formatting, but in general
   GeoMesa tries to adhere to the official Scala style guide: http://docs.scala-lang.org/style/
-* Code must contain an appropriate license header. GeoMesa is licensed under Apache 2.
+* Code must contain an appropriate license header. GeoMesa is licensed under Apache 2.  When a file is created, the contributor should indicate their copyright in the header.
+  * GeoMesa uses the License Maven Plugin (http://code.mycila.com/license-maven-plugin/) to help manage copyright headers.  In order to handle various headers, files can be put in the `build/` directory and referenced in a `validHeaders` block in the root pom.xml.
 * Code should include unit tests when appropriate.
 
 Contact
