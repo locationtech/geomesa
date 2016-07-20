@@ -64,7 +64,7 @@
 
         <!-- environment-dependent versions -->
         <!-- These are compiled and pass CQs and should be compatible with recommended versions -->
-        <accumulo.version>1.6.2</accumulo.version>
+        <accumulo.version>1.7.2</accumulo.version>
         <accumulo.server.artifact>accumulo-server-base</accumulo.server.artifact>
         <zookeeper.version>3.4.5</zookeeper.version>
         <thrift.version>0.9.1</thrift.version>
