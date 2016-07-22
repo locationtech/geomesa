@@ -11,7 +11,7 @@ package org.locationtech.geomesa.cassandra.data
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 
-import com.datastax.driver.core.Cluster
+import com.datastax.driver.core.{Cluster, SocketOptions}
 import com.vividsolutions.jts.geom.Coordinate
 import org.cassandraunit.CQLDataLoader
 import org.cassandraunit.dataset.cql.ClassPathCQLDataSet
@@ -27,6 +27,7 @@ import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
 import collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
@@ -237,7 +238,8 @@ object CassandraDataStoreTest {
       System.setProperty("cassandra.storagedir", storagedir.getPath)
 
       EmbeddedCassandraServerHelper.startEmbeddedCassandra("cassandra-config.yaml", 1200000L)
-      val cluster = new Cluster.Builder().addContactPoints(host).withPort(port).build()
+      // following line creates a cluster with read timeout of 40 minutes. If this is hit, something else is the issue.
+      val cluster = new Cluster.Builder().addContactPoints(host).withPort(port).withSocketOptions(new SocketOptions().setReadTimeoutMillis(2400000)).build().init()
       val session = cluster.connect()
       val cqlDataLoader = new CQLDataLoader(session)
       cqlDataLoader.load(new ClassPathCQLDataSet("init.cql", false, false))
