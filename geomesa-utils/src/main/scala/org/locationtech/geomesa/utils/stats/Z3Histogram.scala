@@ -52,7 +52,7 @@ class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val period: TimePeriod,
   private [stats] def newBins = new BinnedLongArray(length, (minZ, maxZ))
 
   def timeBins: Seq[Short] = binMap.keys.toSeq.sorted
-  def count(timeBin: Short, i: Int): Long = binMap(timeBin).counts(i)
+  def count(timeBin: Short, i: Int): Long = binMap.get(timeBin).map(_.counts(i)).getOrElse(0L)
 
   def directIndex(timeBin: Short, value: Long): Int = binMap.get(timeBin).map(_.indexOf(value)).getOrElse(-1)
 

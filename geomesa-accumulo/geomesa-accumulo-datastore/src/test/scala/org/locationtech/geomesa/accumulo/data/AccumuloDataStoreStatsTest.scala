@@ -324,7 +324,8 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithDataStore {
       "estimate counts for spatio-temporal queries" >> {
         val filters = Seq("bbox(geom,0,0,10,5) AND dtg during 2016-01-03T00:00:00.000Z/2016-01-05T00:00:00.000Z",
           "bbox(geom,10,5,30,10) AND dtg during 2015-01-03T00:00:00.000Z/2015-01-05T00:00:00.000Z",
-          "bbox(geom,0,0,30,10) AND dtg during 2016-01-08T00:00:00.000Z/2016-01-10T00:00:00.000Z")
+          "bbox(geom,0,0,30,10) AND dtg during 2016-01-08T00:00:00.000Z/2016-01-10T00:00:00.000Z",
+          "bbox(geom,0,0,30,10) AND dtg during 2015-12-30T00:00:00.000Z/2016-01-01T00:00:00.000Z")
         forall(filters.map(ECQL.toFilter)) { filter =>
           val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
           val exact = SelfClosingIterator(reader).length
