@@ -17,11 +17,11 @@ import com.vividsolutions.jts.geom.impl.CoordinateArraySequence
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.referencing.GeodeticCalculator
 import org.joda.time.format.DateTimeFormat
-import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeature
 
 /**
  * Build a tube for input to a TubeSelect by buffering and binning the input
@@ -32,7 +32,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
                            val maxBins: Int) extends LazyLogging {
 
   val calc = new GeodeticCalculator()
-  val dtgField = extractDtgField(tubeFeatures.getSchema)
+  val dtgField = tubeFeatures.getSchema.getDtgField.getOrElse(DEFAULT_DTG_FIELD)
   val geoFac = new GeometryFactory
 
   val GEOM_PROP = "geom"
@@ -66,15 +66,6 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
     builder.set(GEOM_PROP, bufferedGeom)
     builder.buildFeature(sf.getID)
   }
-
-  import scala.collection.JavaConversions._
-
-  def extractDtgField(sft: SimpleFeatureType) =
-    sft.getAttributeDescriptors
-      .filter { _.getUserData.contains(Constants.SF_PROPERTY_START_TIME) }
-      .headOption
-      .map { _.getName.toString }
-      .getOrElse(DEFAULT_DTG_FIELD)
 
   // transform the input tubeFeatures into the intermediate SF used by the
   // tubing code consisting of three attributes (geom, startTime, endTime)
