@@ -59,7 +59,7 @@ if [ -z "$GEOMESA_JAR" ]; then
     fi
 fi
 
-if [[ -z "$HDFS_URI" ]]; then
+if [ -z "$HDFS_URI" ]; then
     HDFS_URI=`hdfs getconf -confKey fs.defaultFS`
     echo "Null HDFS URI parameter encountered, using $HDFS_URI"
 fi
@@ -90,7 +90,7 @@ then
       "config -s general.vfs.context.classpath.${ACCUMULO_NAMESPACE}=${HDFS_URI}/accumulo/classpath/${ACCUMULO_NAMESPACE}/.*.jar\n" \
       "config -ns ${ACCUMULO_NAMESPACE} -s table.classpath.context=${ACCUMULO_NAMESPACE}\n" \
       | accumulo shell -u $ACCUMULO_USER -p $ACCUMULO_PASSWORD
-    echo -e "Finished installing GeoMesa distributed runtime jar."
+    echo -e "Finished installing GeoMesa distributed runtime JAR."
 else
   echo "No GeoMesa JAR found in HDFS. Please check HDFS (permissions?) and try again."
 fi
