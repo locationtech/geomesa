@@ -32,6 +32,7 @@ Data Analysis
     :maxdepth: 1
 
     spark
+    shallow-join
     geomesa-tubeselect
 
 Security

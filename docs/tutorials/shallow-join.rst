@@ -40,7 +40,7 @@ Prerequisites
     You will need to have ingested GDELT data using GeoMesa. Instructions are available in :doc:`geomesa-examples-gdelt`.
 
     You will need to have ingested a shapefile of polygons outlining your regions of choice. In this tutorial we use
-    `this <http://thematicmapping.org/downloads/world_borders.php>` shapefile of countries.
+    `this <http://thematicmapping.org/downloads/world_borders.php>`__ shapefile of countries.
 
 You will also need:
 
@@ -48,7 +48,7 @@ You will also need:
 -  an Accumulo user that has appropriate permissions to query your data
 -  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
 -  a `Jupyter Notebook <https://github.com/jupyter/notebook>`__ server with the
-    `Apache Toree https://toree.incubator.apache.org/documentation/user/installation.html`__ Scala kernel installed
+    `Apache Toree <https://toree.incubator.apache.org/documentation/user/installation.html>`__ Scala kernel installed
 
 
 Create RDDs
@@ -81,6 +81,7 @@ First, set up the parameters and initialize each of the desired data stores.
 Next, initialize a Spark context from the Simple Feature Types of the data stores.
 
 .. code-block:: scala
+
     val types = gdeltDs.getTypeNames.map(ds.getSchema) ++ countriesDs.getTypeNames.map(ds.getSchema)
     val sc = new SparkContext(GeoMesaSpark.init(new SparkConf(true), types)
 
@@ -143,7 +144,7 @@ Creating a New Simple Feature Type
 
 We first loop through the attributes of a sample feature from the GDELT RDD to decide what fields can be aggregated.
 
-.. code-block: scala
+.. code-block:: scala
 
     val featureAttributes = gdeltRdd.first.getAttributes.toSeq
     val countableIndices = featureAttributes.toIndexedSeq.indices.flatMap( { index =>
@@ -168,7 +169,7 @@ With these fields, we can create a Simple Feature Type to store their averages a
 "total_" and "avg_". Of course, it may not make sense to aggregate features like "ID" should it appear, but this
 approach makes it easy if the fields are not known ahead of time.
 
-.. code-block: scala
+.. code-block:: scala
 
     val sftBuilder = new SftBuilder()
     sftBuilder.stringType("country")
@@ -194,7 +195,7 @@ Aggregating by Key
 To begin aggregating we first send our new Simple Feature Type to each of the executors so that they are
 able to create and serialize Simple Features of that type.
 
-.. code-block: scala
+.. code-block:: scala
 
     GeoMesaSpark.register(Seq(coverSft))
 
@@ -218,7 +219,7 @@ the same key, apply the given function, and replace them with the result. Here, 
 
 For the sake of brevity, we will only show the first case, with the other three following similar patterns.
 
-.. code-block: scala
+.. code-block:: scala
 
     // Grab each feature's properties
     val featurePropertiesA = featureA.getProperties.toSeq
@@ -255,7 +256,7 @@ logically complex.
 With the totals and counts calculated, we can now compute the averages for each field. Also while iterating, we can add
 the country name and geometry to each feature. To do that, we first broadcast a map of name to geometry.
 
-.. code-block: scala
+.. code-block:: scala
 
     val countryMap: scala.collection.Map[String, Geometry] =
         countriesRdd.map { sf =>
@@ -266,7 +267,7 @@ the country name and geometry to each feature. To do that, we first broadcast a 
 
 Then we can transform the aggregate RDD into one with averages and geometries added.
 
-.. code-block: scala
+.. code-block:: scala
 
     val averaged = aggregate.mapPartitions { iter =>
         import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
@@ -303,7 +304,8 @@ While there are many ways to visualize data from an RDD, here we choose to demon
 with Jupyter Notebook. To use, either install it through Jupyter's ``nbextensions`` tool, or place the following HTML
 magic in your notebook to import it properly.
 
-.. code-block: HTML
+.. code-block:: HTML
+
     %%HTML
     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
     <script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
@@ -313,13 +315,14 @@ One option is to save the RDD to a GeoMesa schema and use the GeoServer Manager 
 is capable of then reading a WMS layer into it's map via HTTP. A more direct route, however, is to export the RDD as GeoJSON.
 To do this, use Toree's ``AddDeps`` magic to add the GeoTool GeoJSON dependency on the fly.
 
-.. code-block: bash
+.. code-block:: bash
+
     %AddDeps org.geotools gt-geojson 14.1 --transitive --repository http://download.osgeo.org/webdav/geotools
 
 We are then able to transform the RDD of Simple Features to an RDD of strings, collect those strings from each partition,
  join them, and write them to a file.
 
-.. code-block: scala
+.. code-block:: scala
 
     import org.geotools.geojson.feature.FeatureJSON
     import java.io.StringWriter
@@ -338,19 +341,38 @@ We are then able to transform the RDD of Simple Features to an RDD of strings, c
 
 In order to modify the DOM from within a Jupyter cell, we must set up a Mutation Observer to correctly respond to asynchronous
 changes. We attach the observer to ``element``, which refers to the cell from which the javascript code is run. Within
-this observer, we instantiate a new Leaflet map, and add a base layer from OSM. Further, inside the leaflet, we create a
-new layer either from GeoServer as WMS, or a tile layer from the GeoJSON file we created.
+this observer, we instantiate a new Leaflet map, and add a base layer from OSM.
 
-(new MutationObserver(function() {
+.. code-block:: JavaScript
 
-    // Initialize the map
-    var map = L.map('map').setView([35.4746,-44.7022],3);
-    // Add the base layer
-    L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png").addTo(map);
+    (new MutationObserver(function() {
 
+        // Initialize the map
+        var map = L.map('map').setView([35.4746,-44.7022],3);
+        // Add the base layer
+        L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png").addTo(map);
 
-    this.disconnect()
-})).observe(element[0], {childList: true})
+        this.disconnect()
+    })).observe(element[0], {childList: true})
+
+Further, inside the leaflet, we create a new layer either from GeoServer as WMS, or a tile layer from the GeoJSON file we created.
+
+.. code-block:: JavaScript
+
+    var rawFile = new XMLHttpRequest();
+    rawFile.onreadystatechange = function () {
+        if(rawFile.readyState === 4) {
+            if(rawFile.status === 200 || rawFile.status == 0) {
+                var allText = rawFile.response;
+                var gdeltJson = JSON.parse(allText)
+                L.geoJson(gdeltJson).addTo(map);
+                // Css override
+                $('svg').css("max-width","none")
+            }
+        }
+    }
+    rawFile.open("GET", "aggregateGdelt.json", false);
+    rawFile.send()
 
 There are many opportunities here to style these layers such as coloring polygons by attributes. Here we color each
 country's polygon by it's average goldstein scale, indicating how events are contributing to the stability of a country
