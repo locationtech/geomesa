@@ -58,7 +58,7 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
       (intervals.map(_._1.getMillis).min, intervals.map(_._2.getMillis).max)
     }
 
-    // TODO currently exclusive ANDs will return nothing - but if it's a list type it could actually match
+    // TODO GEOMESA-1336 fix exclusive AND handling for list types
     val bounds = AttributeIdxStrategy.getBounds(sft, primary, dates)
 
     if (bounds.isEmpty) {
