@@ -50,7 +50,11 @@ class AttributeIdxStrategyV5(val filter: QueryFilter) extends Strategy with Lazy
    * Perform scan against the Attribute Index Table and get an iterator returning records from the Record table
    */
   override def getQueryPlan(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType) = {
-    val propsAndRanges = filter.primary.map(getPropertyAndRange(_, queryPlanner.sft))
+    import scala.collection.JavaConversions._
+    val propsAndRanges = filter.primary.collect {
+      case or: Or => or.getChildren.map(getPropertyAndRange(_, queryPlanner.sft))
+      case f => Seq(getPropertyAndRange(f, queryPlanner.sft))
+    }.getOrElse(Seq.empty)
     val attributeName = propsAndRanges.head._1
     val ranges = propsAndRanges.map(_._2)
     // ensure we only have 1 prop we're working on

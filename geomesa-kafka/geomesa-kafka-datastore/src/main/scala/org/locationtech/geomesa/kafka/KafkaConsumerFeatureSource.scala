@@ -114,9 +114,14 @@ trait KafkaConsumerFeatureCache extends QuadTreeFeatureStore {
   }
 
   def and(a: And): FR = {
-    extractSingleGeometry(a, sft.getGeometryDescriptor.getLocalName).map { geom =>
-      new DFR(sft, new DFI(spatialIndex.query(geom.getEnvelopeInternal, a.evaluate)))
-    }.getOrElse(unoptimized(a))
+    val geometries = extractGeometries(a, sft.getGeometryDescriptor.getLocalName)
+    if (geometries.isEmpty) {
+      unoptimized(a)
+    } else {
+      val envelope = geometries.head.getEnvelopeInternal
+      geometries.tail.foreach(g => envelope.expandToInclude(g.getEnvelopeInternal))
+      new DFR(sft, new DFI(spatialIndex.query(envelope, a.evaluate)))
+    }
   }
 
   def or(o: Or): FR = {

@@ -42,61 +42,22 @@ class ConfigurableIndexesTest extends Specification {
   def or(clauses: String*)  = ff.or(clauses.map(ECQL.toFilter))
   def f(filter: String)     = ECQL.toFilter(filter)
 
-
-  implicit def filterToString(f: Filter): String = ECQL.toCQL(f)
-  implicit def stringToFilter(f: String): Filter = ECQL.toFilter(f)
+  def testFallback(filter: Filter) = {
+    val options = splitter.getQueryOptions(filter)
+    options must haveLength(1)
+    options.head.filters must haveLength(1)
+    options.head.filters.head.strategy mustEqual StrategyType.Z3
+    options.head.filters.head.primary must beNone
+    options.head.filters.head.secondary must beSome(filter)
+  }
 
   "AccumuloDataStore" should {
-
-    "fall back to records for ST queries" >> {
-      "spatial" >> {
-        val filter = f(geom)
-        val options = splitter.getQueryOptions(filter, ExplainNull)
-        options must haveLength(1)
-        options.head.filters must haveLength(1)
-        options.head.filters.head.strategy mustEqual StrategyType.RECORD
-        options.head.filters.head.primary mustEqual Seq(Filter.INCLUDE)
-        options.head.filters.head.secondary mustEqual Some(filter)
-      }
-    }
-
-    "fall back to records table on simple ands" >> {
-      "spatial" >> {
-        val filter = and(geom, geom2)
-        val options = splitter.getQueryOptions(filter, ExplainNull)
-        options must haveLength(1)
-        options.head.filters must haveLength(1)
-        options.head.filters.head.strategy mustEqual StrategyType.RECORD
-        options.head.filters.head.primary mustEqual Seq(Filter.INCLUDE)
-        options.head.filters.head.secondary mustEqual Some(filter)
-      }
-      "with multiple spatial clauses" >> {
-        val filter = or(geom, geom2)
-        val options = splitter.getQueryOptions(filter, ExplainNull)
-        options must haveLength(1)
-        options.head.filters must haveLength(1)
-        forall(options.head.filters)(_.strategy mustEqual StrategyType.RECORD)
-        options.head.filters.map(_.primary) must containTheSameElementsAs(Seq(Seq(Filter.INCLUDE)))
-        forall(options.head.filters)(_.secondary mustEqual Some(filter))
-      }
-      "with spatiotemporal and indexed attribute clauses" >> {
-        val filter = or(geom, indexedAttr)
-        val options = splitter.getQueryOptions(filter, ExplainNull)
-        options must haveLength(1)
-        options.head.filters must haveLength(1)
-        options.head.filters.map(_.strategy) must containTheSameElementsAs(Seq(StrategyType.RECORD))
-        options.head.filters.find(_.strategy == StrategyType.RECORD).get.primary mustEqual Seq(Filter.INCLUDE)
-        forall(options.head.filters)(_.secondary mustEqual Some(filter))
-      }
-      "with ORs" >> {
-        val filter = or(geom, or(dtg, indexedAttr))
-        val options = splitter.getQueryOptions(filter, ExplainNull)
-        options must haveLength(1)
-        options.head.filters must haveLength(1)
-        options.head.filters.head.strategy mustEqual StrategyType.RECORD
-        options.head.filters.head.primary mustEqual Seq(Filter.INCLUDE)
-        options.head.filters.head.secondary must beSome(or(geom, or(dtg, indexedAttr)))
-      }
+    "be able to use z3 for everything" >> {
+      "spatial" >>                            { testFallback(f(geom)) }
+      "spatial ands" >>                       { testFallback(and(geom, geom2)) }
+      "spatial ors" >>                        { testFallback(or(geom, geom2)) }
+      "spatial and attribute ors" >>          { testFallback(or(geom, indexedAttr)) }
+      "spatial temporal and attribute ors" >> { testFallback(or(geom, dtg, indexedAttr)) }
     }
   }
 }

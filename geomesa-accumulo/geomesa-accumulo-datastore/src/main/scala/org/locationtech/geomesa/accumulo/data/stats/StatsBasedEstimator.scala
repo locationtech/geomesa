@@ -17,6 +17,7 @@ import org.locationtech.geomesa.accumulo.data.tables.Z3Table
 import org.locationtech.geomesa.accumulo.index.RecordIdxStrategy
 import org.locationtech.geomesa.curve.{Z2SFC, Z3SFC}
 import org.locationtech.geomesa.filter._
+import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.stats._
 import org.locationtech.sfcurve.IndexRange
@@ -48,7 +49,7 @@ trait StatsBasedEstimator {
   */
 class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLogging {
 
-  import CountEstimator.{ZHistogramPrecision, bounds}
+  import CountEstimator.ZHistogramPrecision
   import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
 
   /**
@@ -70,7 +71,7 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
       case o: Or   => estimateOrCount(o, loDate, hiDate)
       case n: Not  => estimateNotCount(n, loDate, hiDate)
 
-      case i: Id   => Some(RecordIdxStrategy.intersectIdFilters(Seq(i)).size)
+      case i: Id   => Some(RecordIdxStrategy.intersectIdFilters(i).size)
       case _       =>
         // single filter - equals, between, less than, etc
         val attribute = FilterHelper.propertyNames(filter, sft).headOption
@@ -139,11 +140,13 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
     // currently we don't consider if the spatial predicate is actually AND'd with the temporal predicate...
     // TODO add filterhelper method that accurately pulls out the st values
     for {
-      geomField <- Option(sft.getGeomField)
-      dateField <- sft.getDtgField
-      geometry  <- FilterHelper.extractSingleGeometry(filter, geomField, sft.isPoints)
-      intervals <- Option(FilterHelper.extractIntervals(filter, dateField)).filter(_.nonEmpty)
-      bounds    <- stats.getStats[MinMax[Date]](sft, Seq(dateField)).headOption
+      geomField  <- Option(sft.getGeomField)
+      dateField  <- sft.getDtgField
+      geometries =  FilterHelper.extractGeometries(filter, geomField, sft.isPoints)
+      if geometries.nonEmpty
+      intervals  =  FilterHelper.extractIntervals(filter, dateField)
+      if intervals.nonEmpty
+      bounds     <- stats.getStats[MinMax[Date]](sft, Seq(dateField)).headOption
     } yield {
       val inRangeIntervals = {
         val minTime = bounds.min.getTime
@@ -151,7 +154,7 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
         intervals.filter(i => i._1.getMillis <= maxTime && i._2.getMillis >= minTime)
       }
       if (inRangeIntervals.isEmpty) { 0L } else {
-        estimateSpatioTemporalCount(geomField, dateField, geometry, inRangeIntervals)
+        estimateSpatioTemporalCount(geomField, dateField, geometries, inRangeIntervals)
       }
     }
   }
@@ -161,13 +164,13 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
     *
     * @param geomField geometry attribute name for the simple feature type
     * @param dateField date attribute name for the simple feature type
-    * @param geometry geometry to evaluate
+    * @param geometries geometry to evaluate
     * @param intervals intervals to evaluate
     * @return
     */
   private def estimateSpatioTemporalCount(geomField: String,
                                           dateField: String,
-                                          geometry: Geometry,
+                                          geometries: Seq[Geometry],
                                           intervals: Seq[(DateTime, DateTime)]): Long = {
 
     val weeksAndOffsets = intervals.map { interval =>
@@ -181,12 +184,12 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
       case None => 0L
       case Some(histogram) =>
         // time range for a chunk is 0 to 1 week (in seconds)
-        val (tmin, tmax) = (Z3SFC.time.min.toInt, Z3SFC.time.max.toInt)
-        val (lx, ly, ux, uy) = bounds(geometry)
+        val (tmin, tmax) = (Z3SFC.time.min.toLong, Z3SFC.time.max.toLong)
+        val xy = geometries.map(GeometryUtils.bounds)
 
-        def getIndices(t1: Int, t2: Int): Seq[Int] = {
+        def getIndices(t1: Long, t2: Long): Seq[Int] = {
           val w = histogram.weeks.head // z3 histogram bounds are fixed, so indices should be the same
-          val zs = Z3SFC.ranges((lx, ux), (ly, uy), (t1, t2), ZHistogramPrecision)
+          val zs = Z3SFC.ranges(xy, Seq((t1, t2)), ZHistogramPrecision)
           zs.flatMap(r => histogram.directIndex(w, r.lower) to histogram.directIndex(w, r.upper))
         }
 
@@ -266,25 +269,24 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
   private def estimateSpatialCount(filter: Filter): Option[Long] = {
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
 
-    for {
-      geometry  <- FilterHelper.extractSingleGeometry(filter, sft.getGeomField, sft.isPoints)
-      histogram <- stats.getStats[Histogram[Geometry]](sft, Seq(sft.getGeomField)).headOption
-    } yield {
-      val (zLo, zHi) = {
-        val (xmin, ymin, _, _) = bounds(histogram.min)
-        val (_, _, xmax, ymax) = bounds(histogram.max)
-        (Z2SFC.index(xmin, ymin).z, Z2SFC.index(xmax, ymax).z)
-      }
-      def inRange(r: IndexRange) = r.lower < zHi && r.upper > zLo
+    val geometries = FilterHelper.extractGeometries(filter, sft.getGeomField, sft.isPoints)
+    if (geometries.isEmpty) { None } else {
+      stats.getStats[Histogram[Geometry]](sft, Seq(sft.getGeomField)).headOption.map { histogram =>
+        val (zLo, zHi) = {
+          val (xmin, ymin, _, _) = GeometryUtils.bounds(histogram.min)
+          val (_, _, xmax, ymax) = GeometryUtils.bounds(histogram.max)
+          (Z2SFC.index(xmin, ymin).z, Z2SFC.index(xmax, ymax).z)
+        }
+        def inRange(r: IndexRange) = r.lower < zHi && r.upper > zLo
 
-      val (lx, ly, ux, uy) = bounds(geometry)
-      val ranges = Z2SFC.ranges((lx, ux), (ly, uy), ZHistogramPrecision)
-      val indices = ranges.filter(inRange).flatMap { range =>
-        val loIndex = Some(histogram.directIndex(range.lower)).filter(_ != -1).getOrElse(0)
-        val hiIndex = Some(histogram.directIndex(range.upper)).filter(_ != -1).getOrElse(histogram.length - 1)
-        loIndex to hiIndex
+        val ranges = Z2SFC.ranges(geometries.map(GeometryUtils.bounds), ZHistogramPrecision)
+        val indices = ranges.filter(inRange).flatMap { range =>
+          val loIndex = Some(histogram.directIndex(range.lower)).filter(_ != -1).getOrElse(0)
+          val hiIndex = Some(histogram.directIndex(range.upper)).filter(_ != -1).getOrElse(histogram.length - 1)
+          loIndex to hiIndex
+        }
+        indices.distinct.map(histogram.count).sumOrElse(0L)
       }
-      indices.distinct.map(histogram.count).sumOrElse(0L)
     }
   }
 
@@ -368,11 +370,6 @@ object CountEstimator {
 
   // we only need enough precision to cover the number of bins (e.g. 2^n == bins), plus 2 for unused bits
   val ZHistogramPrecision = math.ceil(math.log(GeoMesaStats.MaxHistogramSize) / math.log(2)).toInt + 2
-
-  private [stats] def bounds(geometry: Geometry): (Double, Double, Double, Double) = {
-    val env = geometry.getEnvelopeInternal
-    (env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
-  }
 
   /**
     * Extracts date bounds from a filter.

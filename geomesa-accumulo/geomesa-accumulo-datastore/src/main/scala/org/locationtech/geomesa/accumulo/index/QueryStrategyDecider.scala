@@ -15,7 +15,7 @@ import org.locationtech.geomesa.accumulo.index.Strategy.CostEvaluation.CostEvalu
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing}
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing, TimingsImpl}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -56,11 +56,11 @@ object QueryStrategyDecider extends QueryStrategyDecider with MethodProfiling {
                                 requested: Option[StrategyType],
                                 output: ExplainerOutputType): Seq[Strategy] = {
 
-    implicit val timings = new Timing()
+    implicit val timings = new TimingsImpl()
 
     // get the various options that we could potentially use
     val options = {
-      val all = new QueryFilterSplitter(sft).getQueryOptions(query.getFilter, output)
+      val all = profile(new QueryFilterSplitter(sft).getQueryOptions(query.getFilter), "split")
       // don't evaluate z2 index if there is a z3 option, it will always be picked
       // TODO if we eventually take into account date range, this will need to be removed
       if (requested.isEmpty && all.exists(_.filters.forall(_.strategy == StrategyType.Z3)) &&
@@ -71,7 +71,9 @@ object QueryStrategyDecider extends QueryStrategyDecider with MethodProfiling {
       }
     }
 
-    val selected = profile {
+    output(s"Query processing took ${timings.time("split")}ms and produced ${options.length} options")
+
+    val selected = profile({
       if (requested.isDefined) {
         val forced = forceStrategy(options, requested.get, query.getFilter)
         output(s"Filter plan forced to $forced")
@@ -101,8 +103,10 @@ object QueryStrategyDecider extends QueryStrategyDecider with MethodProfiling {
         }
         filterPlan.filters.map(createStrategy(_, sft))
       }
-    }
-    output(s"Strategy selection took ${timings.time}ms for ${options.length} options")
+    }, "cost")
+
+    output(s"Strategy selection took ${timings.time("cost")}ms for ${options.length} options")
+
     selected
   }
 
@@ -110,7 +114,8 @@ object QueryStrategyDecider extends QueryStrategyDecider with MethodProfiling {
   private def forceStrategy(options: Seq[FilterPlan], strategy: StrategyType, allFilter: Filter): FilterPlan = {
     def checkStrategy(f: QueryFilter) = f.strategy == strategy
     options.find(_.filters.forall(checkStrategy)).getOrElse {
-      FilterPlan(Seq(QueryFilter(strategy, Seq(Filter.INCLUDE), Some(allFilter))))
+      val secondary = if (allFilter == Filter.INCLUDE) None else Some(allFilter)
+      FilterPlan(Seq(QueryFilter(strategy, None, secondary)))
     }
   }
 

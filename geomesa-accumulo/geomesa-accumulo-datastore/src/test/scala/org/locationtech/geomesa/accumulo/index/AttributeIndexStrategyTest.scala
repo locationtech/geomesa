@@ -28,6 +28,7 @@ import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
+import org.opengis.filter.{Filter, Or}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -72,13 +73,13 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
 
   def execute(filter: String, explain: ExplainerOutputType = ExplainNull): List[String] = {
     val query = new Query(sftName, ECQL.toFilter(filter))
-    forall(ds.getQueryPlan(query, explainer = explain))(_.table must endWith(AttributeTable.suffix))
+    forall(ds.getQueryPlan(query, explainer = explain))(_.filter.strategy mustEqual StrategyType.ATTRIBUTE)
     val results = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features())
     results.map(_.getAttribute("name").toString).toList
   }
 
   def runQuery(query: Query): Iterator[SimpleFeature] = {
-    forall(ds.getQueryPlan(query))(_.table must endWith(AttributeTable.suffix))
+    forall(ds.getQueryPlan(query))(_.filter.strategy mustEqual StrategyType.ATTRIBUTE)
     SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features())
   }
 
@@ -742,12 +743,11 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     "merge PropertyIsEqualTo primary filters" >> {
       val q1 = ff.equals(ff.property("prop"), ff.literal("1"))
       val q2 = ff.equals(ff.property("prop"), ff.literal("2"))
-      val qf1 = new QueryFilter(StrategyType.ATTRIBUTE, Seq(q1), None)
-      val qf2 = new QueryFilter(StrategyType.ATTRIBUTE, Seq(q2), None)
+      val qf1 = new QueryFilter(StrategyType.ATTRIBUTE, Some(q1), None)
+      val qf2 = new QueryFilter(StrategyType.ATTRIBUTE, Some(q2), None)
       val res = AttributeIdxStrategy.tryMergeAttrStrategy(qf1, qf2)
-      "result must not be null" >> { res must not beNull }
-      "result must have two primary filters" >> { res.primary.length must equalTo(2) }
-      "result filters must be on 'prop'" >> { res.primary.flatMap { f => DataUtilities.attributeNames(f) } must contain(exactly("prop", "prop")) }
+      res must not(beNull)
+      res.primary must beSome(ff.or(q1, q2))
     }
 
     "merge PropertyIsEqualTo on multiple ORs" >> {
@@ -756,29 +756,28 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       val q1 = ff.equals(ff.property("prop"), ff.literal("1"))
       val q2 = ff.equals(ff.property("prop"), ff.literal("2"))
       val q3 = ff.equals(ff.property("prop"), ff.literal("3"))
-      val qf1 = new QueryFilter(StrategyType.ATTRIBUTE, Seq(q1), None)
-      val qf2 = new QueryFilter(StrategyType.ATTRIBUTE, Seq(q2), None)
-      val qf3 = new QueryFilter(StrategyType.ATTRIBUTE, Seq(q3), None)
+      val qf1 = new QueryFilter(StrategyType.ATTRIBUTE, Some(q1), None)
+      val qf2 = new QueryFilter(StrategyType.ATTRIBUTE, Some(q2), None)
+      val qf3 = new QueryFilter(StrategyType.ATTRIBUTE, Some(q3), None)
       val res = tryMergeAttrStrategy(tryMergeAttrStrategy(qf1, qf2), qf3)
-      "result must not be null" >> { res must not beNull }
-      "result must have three primary filters" >> { res.primary.length must equalTo(3) }
-      "result filters must be on 'prop'" >> { res.primary.flatMap { f => DataUtilities.attributeNames(f) } must contain(exactly("prop", "prop", "prop")) }
+      res must not(beNull)
+      res.primary.map(decomposeOr) must beSome(containTheSameElementsAs(Seq[Filter](q1, q2, q3)))
     }
 
     "merge PropertyIsEqualTo when secondary matches" >> {
       import AttributeIdxStrategy._
+
       val bbox = ff.bbox("geom", 1, 2, 3, 4, "EPSG:4326")
       val q1 = ff.equals(ff.property("prop"), ff.literal("1"))
       val q2 = ff.equals(ff.property("prop"), ff.literal("2"))
       val q3 = ff.equals(ff.property("prop"), ff.literal("3"))
-      val qf1 = new QueryFilter(StrategyType.ATTRIBUTE, Seq(q1), Some(bbox))
-      val qf2 = new QueryFilter(StrategyType.ATTRIBUTE, Seq(q2), Some(bbox))
-      val qf3 = new QueryFilter(StrategyType.ATTRIBUTE, Seq(q3), Some(bbox))
+      val qf1 = new QueryFilter(StrategyType.ATTRIBUTE, Some(q1), Some(bbox))
+      val qf2 = new QueryFilter(StrategyType.ATTRIBUTE, Some(q2), Some(bbox))
+      val qf3 = new QueryFilter(StrategyType.ATTRIBUTE, Some(q3), Some(bbox))
       val res = tryMergeAttrStrategy(tryMergeAttrStrategy(qf1, qf2), qf3)
-      "result must not be null" >> { res must not beNull }
-      "result must have three primary filters" >> { res.primary.length must equalTo(3) }
-      "result filters must be on 'prop'" >> { res.primary.flatMap { f => DataUtilities.attributeNames(f) } must contain(exactly("prop", "prop", "prop")) }
-      "result secondary must be bbox" >> { res.secondary.exists(_.equals(bbox)) }
+      res must not(beNull)
+      res.primary.map(decomposeOr) must beSome(containTheSameElementsAs(Seq[Filter](q1, q2, q3)))
+      res.secondary must beSome(bbox)
     }
 
     "not merge PropertyIsEqualTo when secondary does not match" >> {
@@ -786,10 +785,10 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       val bbox = ff.bbox("geom", 1, 2, 3, 4, "EPSG:4326")
       val q1 = ff.equals(ff.property("prop"), ff.literal("1"))
       val q2 = ff.equals(ff.property("prop"), ff.literal("2"))
-      val qf1 = new QueryFilter(StrategyType.ATTRIBUTE, Seq(q1), Some(bbox))
-      val qf2 = new QueryFilter(StrategyType.ATTRIBUTE, Seq(q2), None)
+      val qf1 = new QueryFilter(StrategyType.ATTRIBUTE, Some(q1), Some(bbox))
+      val qf2 = new QueryFilter(StrategyType.ATTRIBUTE, Some(q2), None)
       val res = tryMergeAttrStrategy(qf1, qf2)
-      "result must be null" >> { res must beNull }
+      res must beNull
     }
 
   }

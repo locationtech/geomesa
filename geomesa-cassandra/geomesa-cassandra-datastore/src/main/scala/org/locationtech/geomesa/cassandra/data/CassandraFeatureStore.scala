@@ -125,12 +125,11 @@ class CassandraFeatureStore(entry: ContentEntry) extends ContentFeatureStore(ent
     iter
   }
 
-  def planQueryForContiguousRowRange(s: Int, e: Int, rowRanges: Seq[Int]): Seq[RowAndColumnQueryPlan] = {
+  def planQueryForContiguousRowRange(s: Long, e: Long, rowRanges: Seq[Int]): Seq[RowAndColumnQueryPlan] = {
     rowRanges.flatMap { r =>
       val CassandraPrimaryKey.Key(_, _, _, _, z) = CassandraPrimaryKey.unapply(r)
       val (minx, miny, maxx, maxy) = CassandraPrimaryKey.SFC2D.bound(z)
-      val z3ranges =
-        org.locationtech.geomesa.cassandra.data.CassandraPrimaryKey.SFC3D.ranges((minx, maxx), (miny, maxy), (s, e))
+      val z3ranges = CassandraPrimaryKey.SFC3D.ranges((minx, maxx), (miny, maxy), (s, e))
 
       z3ranges.map { ir =>
         val (l, u, contains) = ir.tuple
@@ -155,7 +154,7 @@ class CassandraFeatureStore(entry: ContentEntry) extends ContentFeatureStore(ent
           else CassandraPrimaryKey.ONE_WEEK_IN_SECONDS
         (starts, ends)
       }
-    val zranges = org.locationtech.geomesa.cassandra.data.CassandraPrimaryKey.SFC2D.toRanges(lx, ly, ux, uy)
+    val zranges = CassandraPrimaryKey.SFC2D.toRanges(lx, ly, ux, uy)
     val shiftedRanges = zranges.flatMap { ir =>
       val (l, u, _) = ir.tuple
       (l to u).map { i => (dtshift + i).toInt }

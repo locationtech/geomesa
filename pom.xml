@@ -96,7 +96,7 @@
         <dist.dev>dev</dist.dev>
 
         <!-- testing properties -->
-        <maven.test.jvmargs>-Duser.timezone=UTC -Xms1g -Xmx8g -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true</maven.test.jvmargs>
+        <maven.test.jvmargs>-Duser.timezone=UTC -Xms1g -Xmx8g -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true -Dgeomesa.scan.ranges.target=500</maven.test.jvmargs>
         <test.fork.count>1</test.fork.count>
         <test.fork.reuse>true</test.fork.reuse>
     </properties>
@@ -134,14 +134,14 @@
         <profile>
             <id>debug-tests</id>
             <properties>
-                <maven.test.jvmargs>-Duser.timezone=UTC -Xms1g -Xmx8g -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</maven.test.jvmargs>
+                <maven.test.jvmargs>-Duser.timezone=UTC -Xms1g -Xmx8g -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true -Dgeomesa.scan.ranges.target=500 -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</maven.test.jvmargs>
             </properties>
         </profile>
 
         <profile>
             <id>travis-ci</id>
             <properties>
-                <maven.test.jvmargs>-Duser.timezone=UTC -Xms512m -Xmx3g -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true -Dgeomesa.scan.ranges.batch=2000</maven.test.jvmargs>
+                <maven.test.jvmargs>-Duser.timezone=UTC -Xms512m -Xmx3g -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true -Dgeomesa.scan.ranges.target=500 -Dgeomesa.scan.ranges.batch=2000</maven.test.jvmargs>
                 <test.fork.count>1</test.fork.count>
                 <test.fork.reuse>false</test.fork.reuse>
             </properties>

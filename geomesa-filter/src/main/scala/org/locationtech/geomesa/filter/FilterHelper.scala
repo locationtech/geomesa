@@ -15,6 +15,7 @@ import com.vividsolutions.jts.geom._
 import org.geotools.data.DataUtilities
 import org.geotools.filter.spatial.BBOXImpl
 import org.joda.time.{DateTime, DateTimeZone}
+import org.locationtech.geomesa.filter.visitor.IdDetectingFilterVisitor
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
@@ -52,7 +53,7 @@ object FilterHelper extends LazyLogging {
       op // we've already visited this geom once
     } else {
       // check for null or empty attribute and replace with default geometry name
-      val attribute = Option(prop.name).filterNot(_.isEmpty).getOrElse(sft.getGeomField)
+      val attribute = Option(prop.name).filterNot(_.isEmpty).getOrElse(if (sft == null) null else sft.getGeomField)
       // copy the geometry so we don't modify the original
       val geomCopy = gf.createGeometry(geom)
       // trim to world boundaries
@@ -93,7 +94,7 @@ object FilterHelper extends LazyLogging {
       val distanceDegrees = GeometryUtils.distanceDegrees(geom, distanceMeters)
 
       // check for null or empty attribute and replace with default geometry name
-      val attribute = Option(prop.name).filterNot(_.isEmpty).getOrElse(sft.getGeomField)
+      val attribute = Option(prop.name).filterNot(_.isEmpty).getOrElse(if (sft == null) null else sft.getGeomField)
       // copy the geometry so we don't modify the original
       val geomCopy = gf.createGeometry(geom)
       // trim to world boundaries
@@ -164,52 +165,70 @@ object FilterHelper extends LazyLogging {
   }
 
   /**
-    * Extracts geometries from a filter into a single geometry.
+    * Extracts geometries from a filter into a sequence of OR'd geometries
     *
     * @param filter filter to evaluate
     * @param attribute attribute to consider
-    * @return a single geometry (may be a geometry collection)
+    * @param intersect intersect AND'd geometries or return them all
+    * @return geometry bounds from spatial filters
     */
-  def extractSingleGeometry(filter: Filter, attribute: String, intersect: Boolean = false): Option[Geometry] =
-    extractGeometry(filter, attribute, intersect).map(_.intersection(WholeWorldPolygon))
+  def extractGeometries(filter: Filter, attribute: String, intersect: Boolean = false): Seq[Geometry] =
+    extractUnclippedGeometries(filter, attribute, intersect).map(_.intersection(WholeWorldPolygon))
 
   /**
     * Extract geometries from a filter without validating boundaries.
     *
     * @param filter filter to evaluate
     * @param attribute attribute to consider
-    * @return single geometry, if any relevant spatial predicates are present
+    * @param intersect intersect AND'd geometries or return them all
+    * @return geometry bounds from spatial filters
     */
-  private def extractGeometry(filter: Filter, attribute: String, intersect: Boolean): Option[Geometry] = filter match {
-    case a: And =>
-      val all = a.getChildren.flatMap(extractGeometry(_, attribute, intersect))
-      if (all.length < 2) {
-        all.headOption
-      } else if (intersect) {
-        all.reduceOption[Geometry] { case (g1, g2) => g1.intersection(g2) }
-      } else {
-        Some(new GeometryCollection(all.toArray, all.head.getFactory))
-      }
+  private def extractUnclippedGeometries(filter: Filter, attribute: String, intersect: Boolean): Seq[Geometry] = {
+    filter match {
+      case o: Or  => o.getChildren.flatMap(extractUnclippedGeometries(_, attribute, intersect))
 
-    case o: Or  =>
-      val all = o.getChildren.flatMap(extractGeometry(_, attribute, intersect))
-      if (all.length < 2) all.headOption else Some(new GeometryCollection(all.toArray, all.head.getFactory))
-
-    // Note: although not technically required, all known spatial predicates are also binary spatial operators
-    case f: BinarySpatialOperator =>
-      val propertyLiteral = checkOrder(f.getExpression1, f.getExpression2)
-      val withAttribute = propertyLiteral.filter(pl =>  pl.name == null || pl.name == attribute)
-      val geometry = withAttribute.map(_.literal.evaluate(null, classOf[Geometry]))
-      val processedGeometry = geometry.map { geom =>
-        f match {
-          // note: the dwithin should have already between rewritten
-          case dwithin: DWithin => geom.buffer(dwithin.getDistance)
-          case _ => geom
+      case a: And =>
+        val all = a.getChildren.map(extractUnclippedGeometries(_, attribute, intersect)).filter(_.nonEmpty)
+        if (all.isEmpty) {
+          Seq.empty
+        } else if (intersect) {
+          all.reduceLeft[Seq[Geometry]] { case (g1, g2) =>
+            if (g1.isEmpty) { Seq.empty } else {
+              val gc1 = if (g1.length == 1) g1.head else new GeometryCollection(g1.toArray, g1.head.getFactory)
+              val gc2 = if (g2.length == 1) g2.head else new GeometryCollection(g2.toArray, g2.head.getFactory)
+              gc1.intersection(gc2) match {
+                case g if g.isEmpty => Seq.empty
+                case g: GeometryCollection => (0 until g.getNumGeometries).map(g.getGeometryN)
+                case g => Seq(g)
+              }
+            }
+          }
+        } else {
+          all.flatten
         }
-      }
-      processedGeometry.map(GeohashUtils.getInternationalDateLineSafeGeometry)
 
-    case _ => None
+      // Note: although not technically required, all known spatial predicates are also binary spatial operators
+      case f: BinarySpatialOperator if isSpatialFilter(f) =>
+        val geometry = for {
+          prop <- checkOrder(f.getExpression1, f.getExpression2)
+          if prop.name == null || prop.name == attribute
+          geom <- Option(prop.literal.evaluate(null, classOf[Geometry]))
+        } yield {
+          val buffered = filter match {
+            // note: the dwithin should have already between rewritten
+            case dwithin: DWithin => geom.buffer(dwithin.getDistance)
+            case _ => geom
+          }
+          GeohashUtils.getInternationalDateLineSafeGeometry(buffered)
+        }
+        geometry match {
+          case Some(g: GeometryCollection) => (0 until g.getNumGeometries).map(g.getGeometryN)
+          case Some(g) => Seq(g)
+          case None    => Seq.empty
+        }
+
+      case _ => Seq.empty
+    }
   }
 
   /**
@@ -417,7 +436,10 @@ object FilterHelper extends LazyLogging {
   }
 
   def propertyNames(filter: Filter, sft: SimpleFeatureType): Seq[String] =
-    DataUtilities.propertyNames(filter, sft).map(_.getPropertyName).toSeq
+    DataUtilities.propertyNames(filter, sft).map(_.getPropertyName).toSeq.sorted
+
+  def hasIdFilter(filter: Filter): Boolean =
+    filter.accept(new IdDetectingFilterVisitor, false).asInstanceOf[Boolean]
 
   def filterListAsAnd(filters: Seq[Filter]): Option[Filter] = andOption(filters)
 }

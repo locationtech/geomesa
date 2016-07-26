@@ -42,6 +42,17 @@ sealed trait QueryPlan {
   def join: Option[(JoinFunction, QueryPlan)] = None
 }
 
+// plan that will not actually scan anything
+case class EmptyPlan(filter: QueryFilter) extends QueryPlan {
+  override val table: String = ""
+  override val iterators: Seq[IteratorSetting] = Seq.empty
+  override val kvsToFeatures: FeatureFunction = (_) => null
+  override val ranges: Seq[AccRange] = Seq.empty
+  override val columnFamilies: Seq[Text] = Seq.empty
+  override val hasDuplicates: Boolean = false
+  override val numThreads: Int = 0
+}
+
 // single scan plan
 case class ScanPlan(filter: QueryFilter,
                     table: String,
@@ -50,8 +61,8 @@ case class ScanPlan(filter: QueryFilter,
                     columnFamilies: Seq[Text],
                     kvsToFeatures: FeatureFunction,
                     hasDuplicates: Boolean) extends QueryPlan {
-  val numThreads = 1
-  val ranges = Seq(range)
+  override val numThreads = 1
+  override val ranges = Seq(range)
 }
 
 // batch scan plan
@@ -74,7 +85,7 @@ case class JoinPlan(filter: QueryFilter,
                     hasDuplicates: Boolean,
                     joinFunction: JoinFunction,
                     joinQuery: BatchScanPlan) extends QueryPlan {
-  def kvsToFeatures: FeatureFunction = joinQuery.kvsToFeatures
+  override def kvsToFeatures: FeatureFunction = joinQuery.kvsToFeatures
   override val join = Some((joinFunction, joinQuery))
 }
 

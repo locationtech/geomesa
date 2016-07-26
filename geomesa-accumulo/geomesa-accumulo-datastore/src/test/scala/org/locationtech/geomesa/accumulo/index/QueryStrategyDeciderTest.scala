@@ -112,16 +112,16 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
 
   "Index-based strategy decisions" should {
 
-    def getStrategies(filter: Filter): Seq[QueryFilter] = {
+    def getStrategies(filter: Filter, explain: ExplainerOutputType = ExplainNull): Seq[QueryFilter] = {
       import org.locationtech.geomesa.accumulo.index.QueryHints.COST_EVALUATION_KEY
       // default behavior for this test is to use the index-based query costs
       val query = new Query(sftName, filter)
       query.getHints.put(COST_EVALUATION_KEY, CostEvaluation.Index)
-      ds.getQueryPlan(query).map(_.filter)
+      ds.getQueryPlan(query, explainer = explain).map(_.filter)
     }
 
-    def getStrategy(filter: String, expected: StrategyType) = {
-      val strategies = getStrategies(ECQL.toFilter(filter))
+    def getStrategy(filter: String, expected: StrategyType, explain: ExplainerOutputType = ExplainNull) = {
+      val strategies = getStrategies(ECQL.toFilter(filter), explain)
       forall(strategies)(_.strategy mustEqual expected)
     }
 
@@ -129,7 +129,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
     def getAttributeStrategy(filter: String) = getStrategy(filter, StrategyType.ATTRIBUTE)
     def getZ2Strategy(filter: String) = getStrategy(filter, StrategyType.Z2)
     def getZ3Strategy(filter: String) = getStrategy(filter, StrategyType.Z3)
-    def getFullTableStrategy(filter: String) = getZ2Strategy(filter)
+    def getFullTableStrategy(filter: String) = getZ3Strategy(filter)
 
     "Good spatial predicates should" >> {
       "get the z2 strategy" >> {
@@ -178,7 +178,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
         val heightFilter = ff.equals(ff.property("heightFullIndex"), ff.literal(12.0D))
         val weightFilter = ff.equals(ff.literal(21.12D), ff.property("weightNoIndex"))
 
-        val primary = Seq(nameFilter)
+        val primary = Some(nameFilter)
         val secondary = ff.and(Seq(heightFilter, weightFilter, ageFilter))
 
         "when best is first" >> {
@@ -210,7 +210,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
           val strats = getStrategies(ff.and(Seq(like, heightFilter, weightFilter, ageFilter)))
           strats must haveLength(1)
           strats.head.strategy mustEqual StrategyType.ATTRIBUTE
-          strats.head.primary mustEqual Seq(like)
+          strats.head.primary mustEqual Some(like)
           strats.head.secondary must beSome(secondary)
         }
       }
@@ -389,16 +389,18 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
     "Single Attribute, indexed, high cardinality OR queries should" >> {
       "select an single attribute index scan with multiple ranges" >> {
 
+        import org.locationtech.geomesa.filter.decomposeOr
+
         val st = " AND BBOX(geom, 40.0,40.0,50.0,50.0) AND dtg DURING 2014-01-01T00:00:00+00:00/2014-01-01T23:59:59+00:00"
-        val orQuery = (0 until 5).map(i => s"nameHighCardinality = 'h$i'").mkString("(", " OR ", s") $st")
-        val inQuery = s"(nameHighCardinality IN ('a','b','c','d','e')) $st"
+        val orQuery = (0 until 5).map(i => s"nameHighCardinality = 'h$i'").mkString("(", " OR ", ")")
+        val inQuery = "(nameHighCardinality IN ('a','b','c','d','e'))"
 
         forall(Seq(orQuery, inQuery)) { filter =>
-          val strats = getStrategies(ECQL.toFilter(filter))
+          val strats = getStrategies(ECQL.toFilter(s"$filter $st"))
           strats must haveLength(1)
           strats.head.strategy mustEqual StrategyType.ATTRIBUTE
-          strats.head.or must beTrue
-          strats.head.primary.length mustEqual 5
+          strats.head.primary must beSome
+          decomposeOr(strats.head.primary.get) must containTheSameElementsAs(decomposeOr(ECQL.toFilter(filter)))
           strats.head.secondary must beSome
           strats.head.secondary.get must beAnInstanceOf[And]
           strats.head.secondary.get.asInstanceOf[And].getChildren must haveLength(2)

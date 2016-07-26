@@ -29,20 +29,24 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.{Filter, PropertyIsEqualTo}
+import org.opengis.filter._
+import org.opengis.filter.temporal.{After, Before, During, TEquals}
 
 import scala.util.Try
 
 class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging {
 
-  import org.locationtech.geomesa.accumulo.index.AttributeIdxStrategy._
+  import org.locationtech.geomesa.accumulo.index.AttributeIdxStrategy.{ScanPlanFn, attributeValueKvsToFeatures}
 
   /**
    * Perform scan against the Attribute Index Table and get an iterator returning records from the Record table
    */
-  override def getQueryPlan(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType) = {
-    val ds = queryPlanner.ds
+  override def getQueryPlan(queryPlanner: QueryPlanner, hints: Hints, output: ExplainerOutputType): QueryPlan = {
     val sft = queryPlanner.sft
+
+    val primary = filter.primary.getOrElse {
+      throw new IllegalStateException("Attribute index does not support Filter.INCLUDE")
+    }
 
     // pull out any dates from the filter to help narrow down the attribute ranges
     val dates = for {
@@ -54,21 +58,24 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
       (intervals.map(_._1.getMillis).min, intervals.map(_._2.getMillis).max)
     }
 
-    // for an attribute query, the primary filters are considered an OR
-    // (an AND would never match unless the attribute is a list...)
-    val propsAndRanges = {
-      val primary = filter.singlePrimary.getOrElse {
-        throw new IllegalStateException("Attribute index does not support Filter.INCLUDE")
-      }
-      getBounds(sft, primary, dates)
+    // TODO GEOMESA-1336 fix exclusive AND handling for list types
+    val bounds = AttributeIdxStrategy.getBounds(sft, primary, dates)
+
+    if (bounds.isEmpty) {
+      EmptyPlan(filter)
+    } else {
+      nonEmptyQueryPlan(queryPlanner, hints, bounds)
     }
-    val attribute = propsAndRanges.headOption.map(_.attribute).getOrElse {
-      throw new IllegalStateException(s"No ranges found for query filter $filter. " +
-          "This should have been checked during query planning")
-    }
-    val ranges = propsAndRanges.map(_.range)
+  }
+
+  private def nonEmptyQueryPlan(queryPlanner: QueryPlanner, hints: Hints, bounds: Seq[PropertyBounds]): QueryPlan = {
+    val ds = queryPlanner.ds
+    val sft = queryPlanner.sft
+
+    val attribute = bounds.head.attribute
+    val ranges = bounds.map(_.range)
     // ensure we only have 1 prop we're working on
-    assert(propsAndRanges.forall(_.attribute == attribute))
+    require(bounds.forall(_.attribute == attribute), "Found multiple attributes in attribute filter")
 
     val descriptor = sft.getDescriptor(attribute)
     val transform = hints.getTransformSchema
@@ -223,7 +230,7 @@ object AttributeIdxStrategy extends StrategyProvider {
                                         filter: QueryFilter,
                                         transform: Option[SimpleFeatureType],
                                         stats: GeoMesaStats): Option[Long] = {
-    filter.singlePrimary match {
+    filter.primary match {
       case None => Some(Long.MaxValue)
       case Some(f) =>
         stats.getCount(sft, f, exact = false).map { count =>
@@ -258,14 +265,14 @@ object AttributeIdxStrategy extends StrategyProvider {
                                         filter: QueryFilter,
                                         transform: Option[SimpleFeatureType]): Long = {
     // note: names should be only a single attribute
-    val attrsAndCounts = filter.primary
-      .flatMap(getAttributeProperty)
-      .map(_.name)
-      .groupBy((f: String) => f)
-      .map { case (name, itr) => (name, itr.size) }
-
-    val cost = attrsAndCounts.map { case (attr, count) =>
-      val descriptor = sft.getDescriptor(attr)
+    val cost = for {
+      f          <- filter.primary
+      attribute  <- FilterHelper.propertyNames(f, sft).headOption
+      descriptor <- Option(sft.getDescriptor(attribute))
+      binding    =  descriptor.getType.getBinding
+      bounds     <- FilterHelper.extractAttributeBounds(f, attribute, binding)
+      if bounds.bounds.nonEmpty
+    } yield {
       // join queries are much more expensive than non-join queries
       // TODO figure out the actual cost of each additional range...I'll make it 2
       val additionalRangeCost = 1
@@ -273,10 +280,10 @@ object AttributeIdxStrategy extends StrategyProvider {
       val multiplier =
         if (descriptor.getIndexCoverage == IndexCoverage.FULL ||
               IteratorTrigger.canUseAttrIdxValues(sft, filter.secondary, transform) ||
-              IteratorTrigger.canUseAttrKeysPlusValues(attr, sft, filter.secondary, transform)) {
+              IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, filter.secondary, transform)) {
           1
         } else {
-          joinCost + (additionalRangeCost*(count-1))
+          joinCost + (additionalRangeCost * (bounds.bounds.length - 1))
         }
 
       // scale attribute cost by expected cardinality
@@ -285,8 +292,29 @@ object AttributeIdxStrategy extends StrategyProvider {
         case Cardinality.UNKNOWN => 101 * multiplier
         case Cardinality.LOW     => Long.MaxValue
       }
-    }.sum
-    if (cost == 0) Long.MaxValue else cost // cost == 0 if somehow the filters don't match anything
+    }
+    cost.getOrElse(Long.MaxValue)
+  }
+
+  /**
+    * Checks for attribute filters that we can satisfy using the attribute index strategy
+    *
+    * @param filter filter to evaluate
+    * @return true if we can process it as an attribute query
+    */
+  def attributeCheck(filter: Filter): Boolean = {
+    filter match {
+      case _: And | _: Or => true // note: implies further processing of children
+      case _: PropertyIsEqualTo => true
+      case _: PropertyIsBetween => true
+      case _: PropertyIsGreaterThan | _: PropertyIsLessThan => true
+      case _: PropertyIsGreaterThanOrEqualTo | _: PropertyIsLessThanOrEqualTo => true
+      case _: During |  _: Before | _: After | _: TEquals => true
+      case _: PropertyIsNull => true // we need this to be able to handle 'not null'
+      case f: PropertyIsLike => likeEligible(f)
+      case f: Not =>  f.getFilter.isInstanceOf[PropertyIsNull]
+      case _ => false
+    }
   }
 
   /**
@@ -380,41 +408,34 @@ object AttributeIdxStrategy extends StrategyProvider {
     }
   }
 
+  /**
+    * Tries to merge the two filters that are OR'd together into a single filter that can be queried in one pass.
+    * Will return the merged filter, or null if they can't be merged.
+    *
+    * We can merge filters if they have the same secondary filter AND:
+    *   1. One of them does not have a primary filter
+    *   2. They both have a primary filter on the same attribute
+    *
+    * @param toMerge first filter
+    * @param mergeTo second filter
+    * @return merged filter that satisfies both inputs, or null if that isn't possible
+    */
   def tryMergeAttrStrategy(toMerge: QueryFilter, mergeTo: QueryFilter): QueryFilter = {
-    // TODO: check disjoint range queries on an attribute
-    // e.g. 'height < 5 OR height > 6'
-    tryMergeDisjointAttrEquals(toMerge, mergeTo)
-  }
-
-  def tryMergeDisjointAttrEquals(toMerge: QueryFilter, mergeTo: QueryFilter): QueryFilter = {
-    // determine if toMerge.primary and mergeTo.primary are all Equals filters on the same attribute
     // TODO this will be incorrect for multi-valued properties where we have an AND in the primary filter
-    if (isPropertyIsEqualToFilter(toMerge) && isPropertyIsEqualToFilter(mergeTo) && isSameProperty(toMerge, mergeTo)) {
-      // if we have disjoint attribute queries with the same secondary filter, merge into a multi-range query
-      (toMerge.secondary, mergeTo.secondary) match {
-        case (Some(f1), Some(f2)) if f1.equals(f2) =>
-          mergeTo.copy(primary = mergeTo.primary ++ toMerge.primary, or = true)
+    val leftAttributes = toMerge.primary.map(FilterHelper.propertyNames(_, null))
+    val rightAttributes = mergeTo.primary.map(FilterHelper.propertyNames(_, null))
 
-        case (None, None) =>
-          mergeTo.copy(primary = mergeTo.primary ++ toMerge.primary, or = true)
+    val canMergePrimary = (leftAttributes, rightAttributes) match {
+      case (Some(left), Some(right)) => left.length == 1 && right.length == 1 && left.head == right.head
+      case _ => true
+    }
 
-        case _ =>
-          null
-      }
+    if (canMergePrimary && toMerge.secondary == mergeTo.secondary) {
+      QueryFilter(mergeTo.strategy, orOption(toMerge.primary.toSeq ++ mergeTo.primary), mergeTo.secondary)
     } else {
       null
     }
   }
-
-  def isPropertyIsEqualToFilter(qf: QueryFilter) = qf.primary.forall(_.isInstanceOf[PropertyIsEqualTo])
-
-  def isSameProperty(l: QueryFilter, r: QueryFilter) = {
-    val lp = distinctProperties(l)
-    val rp = distinctProperties(r)
-    lp.length == 1 && rp.length == 1 && lp.head == rp.head
-  }
-
-  def distinctProperties(qf: QueryFilter) = qf.primary.flatMap { f => DataUtilities.attributeNames(f) }.distinct
 }
 
 case class PropertyBounds(attribute: String, bounds: (Option[Any], Option[Any]), range: AccRange)

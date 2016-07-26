@@ -23,8 +23,10 @@ object GeometryUtils {
 
   /** Convert meters to dec degrees based on widest point in dec degrees of circles at bounding box corners */
   def distanceDegrees(geometry: Geometry, meters: Double): Double = {
-    if (geometry.isInstanceOf[Point]) geometry.distance(farthestPoint(geometry.asInstanceOf[Point], meters))
-    else distanceDegrees(geometry.getEnvelopeInternal, meters)
+    geometry match {
+      case p: Point => geometry.distance(farthestPoint(p, meters))
+      case _ => distanceDegrees(geometry.getEnvelopeInternal, meters)
+    }
   }
 
   /** Convert meters to dec degrees based on widest point in dec degrees of circles at envelope corners */
@@ -64,4 +66,43 @@ object GeometryUtils {
       }
     }
 
+  /**
+    * Returns the rough bounds of a geometry
+    *
+    * @param geometry geometry
+    * @return (xmin, ymin, xmax, ymax)
+    */
+  def bounds(geometry: Geometry): (Double, Double, Double, Double) = {
+    val env = geometry.getEnvelopeInternal
+    (env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
+  }
+
+  /**
+    * Evaluates the complexity of a geometry. Will return true if the geometry is a point or
+    * a rectangular polygon without interior holes.
+    *
+    * @param geometry geometry
+    * @return
+    */
+  def isRectangular(geometry: Geometry): Boolean = geometry match {
+    case _: Point   => true
+    case p: Polygon => noInteriorRings(p) && noCutouts(p) && allRightAngles(p)
+    case _ => false
+  }
+
+  // checks that there are no interior holes
+  private def noInteriorRings(p: Polygon): Boolean = p.getNumInteriorRing == 0
+
+  // checks that all points are on the exterior envelope of the polygon
+  private def noCutouts(p: Polygon): Boolean = {
+    val (xmin, ymin, xmax, ymax) = {
+      val env = p.getEnvelopeInternal
+      (env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
+    }
+    p.getCoordinates.forall(c => c.x == xmin || c.x == xmax || c.y == ymin || c.y == ymax)
+  }
+
+  // checks that there aren't any angled lines
+  private def allRightAngles(p: Polygon): Boolean =
+    p.getCoordinates.sliding(2).forall { case Array(left, right) => left.x == right.x || left.y == right.y }
 }

@@ -9,12 +9,13 @@
 package org.locationtech.geomesa.accumulo.index
 
 import com.typesafe.scalalogging.LazyLogging
+import com.vividsolutions.jts.geom.GeometryCollection
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.iterators.user.RegExFilter
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.Interval
+import org.joda.time.{DateTime, Interval}
 import org.locationtech.geomesa.accumulo.GEOMESA_ITERATORS_IS_DENSITY_TYPE
 import org.locationtech.geomesa.accumulo.data.stats.GeoMesaStats
 import org.locationtech.geomesa.accumulo.data.tables.SpatioTemporalTable
@@ -25,7 +26,6 @@ import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.filter.FilterHelper._
-import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools._
 import org.opengis.feature.simple.SimpleFeatureType
@@ -46,47 +46,40 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     output(s"Scanning ST index table for feature type ${sft.getTypeName}")
     output(s"Filter: ${filter.primary} ${filter.secondary.map(_.toString).getOrElse("")}")
 
-    val dtgField = sft.getDtgField
-
-    val (geomFilters, temporalFilters) = filter.primary.filter(_ != Filter.INCLUDE).partition(isSpatialFilter)
-    val ecql = filter.secondary
-
-    output(s"Geometry filters: ${filtersToString(geomFilters)}")
-    output(s"Temporal filters: ${filtersToString(temporalFilters)}")
-
-    // standardize the two key query arguments:  polygon and date-range
-
-    val geometryToCover =
-      andOption(geomFilters).flatMap(extractSingleGeometry(_, sft.getGeomField, sft.isPoints)).getOrElse(WholeWorldPolygon)
-
-    output(s"GeomsToCover: $geometryToCover")
-
-    val interval = {
-      val intervals = for { dtg <- dtgField; filter <- andOption(temporalFilters) } yield {
-        extractIntervals(filter, dtg)
-      }
-      // note: because our filters were and'ed, there will be at most one interval
-      intervals.flatMap(_.headOption) match {
-        case None => null
-        case Some((s, e)) => new Interval(s, e)
-      }
-    }
-
-    val keyPlanningFilter = buildFilter(geometryToCover, interval)
-    // This catches the case when a whole world query slips through DNF/CNF
-    // The union on this geometry collection is necessary at the moment but is not true
-    // If given spatial predicates like disjoint.
-    val ofilter = if (isWholeWorld(geometryToCover)) {
-      filterListAsAnd(temporalFilters)
-    } else filterListAsAnd(geomFilters ++ temporalFilters)
-
-    if (ofilter.isEmpty) {
+    if (filter.primary.isEmpty) {
       logger.warn(s"Querying Accumulo without SpatioTemporal filter.")
     }
 
+    val dtgField = sft.getDtgField
+
+    // standardize the two key query arguments:  polygon and date-range
+
+    // convert the list of OR'd geometries coming back into a single geometry or geometry collection
+    val geometryToCover = filter.primary.map(extractGeometries(_, sft.getGeomField, sft.isPoints)).flatMap {
+      case g if g.length < 2 => g.headOption
+      case g => Some(new GeometryCollection(g.toArray, g.head.getFactory))
+    }.getOrElse(WholeWorldPolygon)
+
+    val interval = {
+      val intervals = for { dtg <- dtgField; filter <- filter.primary } yield { extractIntervals(filter, dtg) }
+      // get the outer bounds for the intervals
+      val reduced = intervals.getOrElse(Seq.empty).reduceLeftOption[(DateTime, DateTime)] {
+        case ((startLeft, endLeft), (startRight, endRight)) =>
+          val start = if (startLeft.isAfter(startRight)) startRight else startLeft
+          val end = if (endLeft.isBefore(endRight)) endRight else endLeft
+          (start, end)
+      }
+      reduced.map { case (start, end) => new Interval(start, end) }.orNull
+    }
+
+    output(s"Geometry to cover: $geometryToCover")
+    output(s"Interval to cover: $interval")
+
+    val keyPlanningFilter = buildFilter(geometryToCover, interval)
+
     val oint  = IndexSchema.somewhen(interval)
 
-    output(s"STII Filter: ${ofilter.getOrElse("No STII Filter")}")
+    output(s"STII Filter: ${filter.primary.getOrElse("No STII Filter")}")
     output(s"Interval:  ${oint.getOrElse("No interval")}")
     output(s"Filter: ${Option(keyPlanningFilter).getOrElse("No Filter")}")
 
@@ -115,8 +108,9 @@ class STIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
       }
     } else {
       // legacy iterators
+      val ecql = filter.secondary
       val iteratorConfig = IteratorTrigger.chooseIterator(filter.filter.getOrElse(Filter.INCLUDE), ecql, hints, sft)
-      val stiiIterCfg = getSTIIIterCfg(iteratorConfig, hints, sft, ofilter, ecql, featureEncoding, version)
+      val stiiIterCfg = getSTIIIterCfg(iteratorConfig, hints, sft, filter.primary, ecql, featureEncoding, version)
       val aggIterCfg = configureAggregatingIterator(hints, geometryToCover, schema, featureEncoding, sft)
 
       val indexEntries = iteratorConfig.iterator match {
@@ -264,7 +258,7 @@ object STIdxStrategy extends StrategyProvider {
                                         filter: QueryFilter,
                                         transform: Option[SimpleFeatureType],
                                         stats: GeoMesaStats): Option[Long] = {
-    filter.singlePrimary match {
+    filter.primary match {
       case Some(f) => stats.getCount(sft, f, exact = false)
       case None    => Some(Long.MaxValue)
     }

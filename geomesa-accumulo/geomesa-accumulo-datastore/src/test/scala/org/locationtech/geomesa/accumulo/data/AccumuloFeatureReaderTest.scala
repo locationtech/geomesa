@@ -25,6 +25,8 @@ import scala.collection.mutable.ArrayBuffer
 @RunWith(classOf[JUnitRunner])
 class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
 
+  sequential
+
   override def spec = s"name:String,dtg:Date,*geom:Point"
 
   val features = (0 until 100).map { i =>

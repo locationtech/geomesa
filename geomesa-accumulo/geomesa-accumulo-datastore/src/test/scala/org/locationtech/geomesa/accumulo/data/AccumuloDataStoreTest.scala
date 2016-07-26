@@ -26,6 +26,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.tables._
+import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.Z2Iterator
 import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
@@ -540,13 +541,10 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
     "create key plan that does not use STII when given something larger than the Whole World bbox" in {
       val query = new Query(defaultTypeName, ECQL.toFilter("bbox(geom, -190, -100, 190, 100)"), Array("geom"))
-      val explain = {
-        val o = new ExplainString
-        ds.getQueryPlan(query, explainer = o)
-        o.toString()
-      }
-      explain.split("\n").map(_.trim).filter(_.startsWith("Strategy filter:")).toSeq mustEqual
-          Seq("Strategy filter: Z2[INCLUDE][None]")
+      val plan = ds.getQueryPlan(query)
+      plan must haveLength(1)
+      plan.head.filter.strategy mustEqual StrategyType.Z3
+      plan.head.filter.filter must beNone
     }
 
     "create key plan that does not use STII when given an or'd geometry query with redundant bbox" in {

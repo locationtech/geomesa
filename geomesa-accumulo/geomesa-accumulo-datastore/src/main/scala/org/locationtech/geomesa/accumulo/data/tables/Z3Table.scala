@@ -25,8 +25,7 @@ import org.locationtech.geomesa.accumulo.data.{EMPTY_TEXT, WritableFeature}
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.sfcurve.zorder.Z3
-import org.locationtech.sfcurve.zorder.Z3.ZPrefix
+import org.locationtech.sfcurve.zorder.{Z3, ZPrefix}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
@@ -165,14 +164,14 @@ object Z3Table extends GeoMesaTable {
   def hasSplits(sft: SimpleFeatureType) = sft.getSchemaVersion > 6
 
   // gets week and seconds into that week
-  def getWeekAndSeconds(time: DateTime): (Short, Int) = {
+  def getWeekAndSeconds(time: DateTime): (Short, Long) = {
     val weeks = Weeks.weeksBetween(EPOCH, time)
     val secondsInWeek = Seconds.secondsBetween(EPOCH, time).getSeconds - weeks.toStandardSeconds.getSeconds
-    (weeks.getWeeks.toShort, secondsInWeek)
+    (weeks.getWeeks.toShort, secondsInWeek.toLong)
   }
 
   // gets week and seconds into that week
-  def getWeekAndSeconds(time: Long): (Short, Int) = getWeekAndSeconds(new DateTime(time, DateTimeZone.UTC))
+  def getWeekAndSeconds(time: Long): (Short, Long) = getWeekAndSeconds(new DateTime(time, DateTimeZone.UTC))
 
   // split(1 byte), week(2 bytes), z value (8 bytes), id (n bytes)
   private def getPointRowKey(wf: WritableFeature, dtgIndex: Int): Seq[Array[Byte]] = {
@@ -203,7 +202,7 @@ object Z3Table extends GeoMesaTable {
   }
 
   // gets a sequence of (week, z) values that cover the geometry
-  private def zBox(geom: Geometry, t: Int): Set[Long] = geom match {
+  private def zBox(geom: Geometry, t: Long): Set[Long] = geom match {
     case g: Point => Set(Z3SFC.index(g.getX, g.getY, t).z)
     case g: LineString =>
       // we flatMap bounds for each line segment so we cover a smaller area
@@ -219,7 +218,7 @@ object Z3Table extends GeoMesaTable {
   }
 
   // gets a sequence of (week, z) values that cover the bounding box
-  private def zBox(xmin: Double, ymin: Double, xmax: Double, ymax: Double, t: Int): Set[Long] = {
+  private def zBox(xmin: Double, ymin: Double, xmax: Double, ymax: Double, t: Long): Set[Long] = {
     val zmin = Z3SFC.index(xmin, ymin, t).z
     val zmax = Z3SFC.index(xmax, ymax, t).z
     getZPrefixes(zmin, zmax)
@@ -237,8 +236,8 @@ object Z3Table extends GeoMesaTable {
       val ZPrefix(zprefix, zbits) = Z3.longestCommonPrefix(min, max)
       if (zbits < GEOM_Z_NUM_BYTES * 8) {
         // divide the range into two smaller ones using tropf litmax/bigmin
-        val (litmax, bigmin) = Z3.zdivide(Z3((min + max) / 2), Z3(min), Z3(max))
-        in.enqueue((min, litmax.z), (bigmin.z, max))
+        val (litmax, bigmin) = Z3.zdivide((min + max) >>> 1, min, max) // >>> 1 is overflow safe mean
+        in.enqueue((min, litmax), (bigmin, max))
       } else {
         // we've found a prefix that contains our z range
         // truncate down to the bytes we use so we don't get dupes

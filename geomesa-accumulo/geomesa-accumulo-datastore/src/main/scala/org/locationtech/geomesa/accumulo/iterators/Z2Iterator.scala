@@ -14,23 +14,22 @@ import org.apache.accumulo.core.data.{ByteSequence, Key, Value, Range => AccRang
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.data.tables.Z2Table
+import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.sfcurve.zorder.Z2
 
 class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
 
-  import org.locationtech.geomesa.accumulo.iterators.Z2Iterator.{PointsKey, TableSharingKey, ZKey}
+  import org.locationtech.geomesa.accumulo.iterators.Z2Iterator._
 
   var source: SortedKeyValueIterator[Key, Value] = null
-  var zNums: Array[Int] = null
 
-  var xmin: Int = -1
-  var xmax: Int = -1
-  var ymin: Int = -1
-  var ymax: Int = -1
+  var keyXY: Array[String] = null
+
+  var xyvals: Array[(Int, Int, Int, Int)] = null
 
   var isPoints: Boolean = false
   var isTableSharing: Boolean = false
-  var rowToLong: Array[Byte] => Long = null
+  var rowToZ: Array[Byte] => Long = null
 
   var topKey: Key = null
   var topValue: Value = null
@@ -46,16 +45,12 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
     isPoints = options.get(PointsKey).toBoolean
     isTableSharing = options.get(TableSharingKey).toBoolean
 
-    zNums = options.get(ZKey).split(":").map(_.toInt)
-    xmin = zNums(0)
-    xmax = zNums(1)
-    ymin = zNums(2)
-    ymax = zNums(3)
+    keyXY = options.get(ZKeyXY).split(RangeSeparator)
+    xyvals = keyXY.map(_.toInt).grouped(4).map { case Array(x1, y1, x2, y2) => (x1, y1, x2, y2) }.toArray
 
     // account for shard and table sharing bytes
-    val offset = if (isTableSharing) 2 else 1
     val numBytes = if (isPoints) 8 else Z2Table.GEOM_Z_NUM_BYTES
-    rowToLong = rowToLong(offset, numBytes)
+    rowToZ = rowToZ(numBytes, isTableSharing)
   }
 
   override def next(): Unit = {
@@ -66,30 +61,42 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
   def findTop(): Unit = {
     topKey = null
     topValue = null
-    while (source.hasTop && !inBounds(source.getTopKey, rowToLong)) {
-      source.next()
-    }
-    if (source.hasTop) {
-      topKey = source.getTopKey
-      topValue = source.getTopValue
+    while (source.hasTop) {
+      if (inBounds(source.getTopKey)) {
+        topKey = source.getTopKey
+        topValue = source.getTopValue
+        return
+      } else {
+        source.next()
+      }
     }
   }
 
-  private def inBounds(k: Key, getZ: (Array[Byte] => Long)): Boolean = {
+  private def inBounds(k: Key): Boolean = {
     k.getRow(row)
-    val bytes = row.getBytes
-    val keyZ = getZ(bytes)
-    val (x, y) = new Z2(keyZ).decode
-    x >= xmin && x <= xmax && y >= ymin && y <= ymax
+    val keyZ = rowToZ(row.getBytes)
+    val x = Z2(keyZ).d0
+    val y = Z2(keyZ).d1
+
+    var i = 0
+    while (i < xyvals.length) {
+      val (xmin, ymin, xmax, ymax) = xyvals(i)
+      if (x >= xmin && x <= xmax && y >= ymin && y <= ymax) {
+        return true
+      }
+      i += 1
+    }
+    false
   }
 
-  private def rowToLong(offset: Int, count: Int): (Array[Byte]) => Long = {
-    count match {
-      case 3 => (bb) => Longs.fromBytes(bb(offset), bb(offset + 1), bb(offset + 2), 0, 0, 0, 0, 0)
-      case 4 => (bb) => Longs.fromBytes(bb(offset), bb(offset + 1), bb(offset + 2), bb(offset + 3), 0, 0, 0, 0)
-      case 8 => (bb) => Longs.fromBytes(bb(offset), bb(offset + 1), bb(offset + 2), bb(offset + 3), bb(offset + 4),
-                                        bb(offset + 5), bb(offset + 6), bb(offset + 7))
-    }
+  private def rowToZ(count: Int, tableSharing: Boolean): (Array[Byte]) => Long = (count, tableSharing) match {
+    case (3, true)  => (b) => Longs.fromBytes(b(2), b(3), b(4), 0, 0, 0, 0, 0)
+    case (3, false) => (b) => Longs.fromBytes(b(1), b(2), b(3), 0, 0, 0, 0, 0)
+    case (4, true)  => (b) => Longs.fromBytes(b(2), b(3), b(4), b(5), 0, 0, 0, 0)
+    case (4, false) => (b) => Longs.fromBytes(b(1), b(2), b(3), b(4), 0, 0, 0, 0)
+    case (8, true)  => (b) => Longs.fromBytes(b(2), b(3), b(4), b(5), b(6), b(7), b(8), b(9))
+    case (8, false) => (b) => Longs.fromBytes(b(1), b(2), b(3), b(4), b(5), b(6), b(7), b(8))
+    case _ => throw new IllegalArgumentException(s"Unhandled number of bytes for z value: $count")
   }
 
   override def getTopValue: Value = topValue
@@ -103,8 +110,12 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
 
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = {
     import scala.collection.JavaConversions._
+    val opts = Map(
+      ZKeyXY          -> keyXY.mkString(RangeSeparator),
+      PointsKey       -> isPoints.toString,
+      TableSharingKey -> isTableSharing.toString
+    )
     val iter = new Z2Iterator
-    val opts = Map(PointsKey -> isPoints.toString, TableSharingKey -> isTableSharing.toString, ZKey -> zNums.mkString(":"))
     iter.init(source, opts, env)
     iter
   }
@@ -112,15 +123,39 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
 
 object Z2Iterator {
 
-  val ZKey = "z"
-  val PointsKey = "p"
-  val TableSharingKey = "ts"
+  val ZKeyXY = "zxy"
+  val PointsKey = "points"
+  val TableSharingKey = "table-sharing"
 
-  def configure(isPoints: Boolean, tableSharing: Boolean, xmin: Int, xmax: Int, ymin: Int, ymax: Int, priority: Int) = {
+  val RangeSeparator = ":"
+
+  def configure(bounds: Seq[(Double, Double, Double, Double)],
+                isPoints: Boolean,
+                tableSharing: Boolean,
+                priority: Int) = {
+
     val is = new IteratorSetting(priority, "z2", classOf[Z2Iterator])
+
+    // index space values for comparing in the iterator
+    val xyOpts = if (isPoints) {
+      bounds.map { case (xmin, ymin, xmax, ymax) =>
+        s"${Z2SFC.lon.normalize(xmin)}$RangeSeparator${Z2SFC.lat.normalize(ymin)}$RangeSeparator" +
+            s"${Z2SFC.lon.normalize(xmax)}$RangeSeparator${Z2SFC.lat.normalize(ymax)}"
+      }
+    } else {
+      bounds.map { case (xmin, ymin, xmax, ymax) =>
+        val (lx, ly) = decodeNonPoints(xmin, ymin)
+        val (ux, uy) = decodeNonPoints(xmax, ymax)
+        s"$lx$RangeSeparator$ly$RangeSeparator$ux$RangeSeparator$uy"
+      }
+    }
+
+    is.addOption(ZKeyXY, xyOpts.mkString(RangeSeparator))
     is.addOption(PointsKey, isPoints.toString)
-    is.addOption(ZKey, s"$xmin:$xmax:$ymin:$ymax")
     is.addOption(TableSharingKey, tableSharing.toString)
     is
   }
+
+  private def decodeNonPoints(x: Double, y: Double): (Int, Int) =
+    Z2(Z2SFC.index(x, y).z & Z2Table.GEOM_Z_MASK).decode
 }
