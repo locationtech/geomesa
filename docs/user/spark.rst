@@ -46,10 +46,10 @@ types in each executor's registrator.
     // Register the sfts of a given data store
     GeoMesaSpark.register(dataStore)
     // Broadcast sft encodings to executors
-    val broadcastedSfts = sc.broadcast(sfts.map{ case(name, sft) => (name, SimpleFeatureTypes.encodeType(sft)})
+    val broadcastedSfts = sc.broadcast(sfts.map{ sft => (sft.getTypeName, SimpleFeatureTypes.encodeType(sft)})
     // Populate the type cache on each partition
     someRdd.foreachPartition { iter =>
-        broadcastedSfts.foreach { case (name, spec) =>
+        broadcastedSfts.value.foreach { case (name, spec) =>
             val sft = SimpleFeatureTypes.createType(name, spec)
             GeoMesaSparkKryoRegistrator.putType(sft)
         }

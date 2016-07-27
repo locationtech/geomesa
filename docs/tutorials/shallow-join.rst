@@ -300,6 +300,12 @@ Then we can transform the aggregate RDD into one with averages and geometries ad
 Visualization
 -------------
 
+At this point, we have created a new Simple Feature Type representing aggregated data, and an RDD of Simple Features of
+this type. The above code can all be compiled and submitted as a Spark job, but if placed into a Jupyter Notebook, the
+RDD can be kept in memory, and even quickly tweaked while continuously updating visualizations. With a Jupyter notebook
+server running with the Apache Toree kernel, create a notebook with the above code. The next section highlights how to
+create visualizations with the aggregated data.
+
 While there are many ways to visualize data from an RDD, here we choose to demonstrate the use of leaflet for easy integration
 with Jupyter Notebook. To use, either install it through Jupyter's ``nbextensions`` tool, or place the following HTML
 magic in your notebook to import it properly.
@@ -355,7 +361,8 @@ this observer, we instantiate a new Leaflet map, and add a base layer from OSM.
         this.disconnect()
     })).observe(element[0], {childList: true})
 
-Further, inside the leaflet, we create a new layer either from GeoServer as WMS, or a tile layer from the GeoJSON file we created.
+Further, inside the leaflet, we create a tile layer from the GeoJSON file we created. There are further options of
+creating a layer from an image file or from a Geoserver WMS layer.
 
 .. code-block:: javascript
 
@@ -379,3 +386,6 @@ country's polygon by its average goldstein scale, indicating how events are cont
 during that time range.
 
 .. figure:: _static/img/tutorials/2016-07-26-shallow-join/aggregate-GDELT.png
+
+The final result of the analysis described in this tutorial is found in the Jupyter notebook: :download:`_static/shallow-join-gdelt.ipynb`.
+A static render of this notebook can be found on Github (https://github.com/locationtech/geomesa/docs/tutorials/_static/shallow-join-gdelt.ipynb).
