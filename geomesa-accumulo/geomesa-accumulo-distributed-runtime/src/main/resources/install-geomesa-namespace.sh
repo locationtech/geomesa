@@ -9,7 +9,7 @@
 
 # Installs a GeoMesa distributed runtime JAR into an Accumulo namespace
 
-while getopts ":u:p:n:g:h:" opt; do
+while getopts ":u:p:n:g:h:d:" opt; do
   case $opt in
     u)
       ACCUMULO_USER=$OPTARG
@@ -22,6 +22,9 @@ while getopts ":u:p:n:g:h:" opt; do
       ;;
     g)
       GEOMESA_JAR=$OPTARG
+      ;;
+    d)
+      NAMESPACE_DIR=$OPTARG
       ;;
     h)
       HDFS_URI=$OPTARG
@@ -59,6 +62,11 @@ if [[ -z "$GEOMESA_JAR" ]]; then
     fi
 fi
 
+if [[ -z "$NAMESPACE_DIR" ]]; then
+    NAMESPACE_DIR="/accumulo/classpath"
+    echo "Null namespace directory parameter encountered, using $NAMESPACE_DIR"
+fi
+
 if [[ -z "$HDFS_URI" ]]; then
     HDFS_URI=`hdfs getconf -confKey fs.defaultFS`
     echo "Null HDFS URI parameter encountered, using $HDFS_URI"
@@ -75,19 +83,20 @@ if [[ -n "$ERROR" ]]; then
     echo -e "Optional parameters:\n\t" \
       "-p (Accumulo password)\n\t" \
       "-g (Path of GeoMesa distributed runtime JAR)\n\t" \
+      "-d (Directory to create namespace in, defaults to /accumulo/classpath)\n\t" \
       "-h (HDFS URI e.g. hdfs://localhost:54310)"
     exit 1
 fi
 
 echo "Copying GeoMesa JAR for Accumulo namespace $ACCUMULO_NAMESPACE ..."
-hadoop fs -mkdir -p /accumulo/classpath/${ACCUMULO_NAMESPACE}
-hadoop fs -copyFromLocal -f $GEOMESA_JAR /accumulo/classpath/${ACCUMULO_NAMESPACE}/
+hadoop fs -mkdir -p ${NAMESPACE_DIR}/${ACCUMULO_NAMESPACE}
+hadoop fs -copyFromLocal -f $GEOMESA_JAR ${NAMESPACE_DIR}/${ACCUMULO_NAMESPACE}/
 
-if hadoop fs -ls /accumulo/classpath/${ACCUMULO_NAMESPACE}/geomesa*.jar > /dev/null 2>&1
+if hadoop fs -ls ${NAMESPACE_DIR}/${ACCUMULO_NAMESPACE}/geomesa*.jar > /dev/null 2>&1
 then
     echo -e "createnamespace ${ACCUMULO_NAMESPACE}\n" \
       "grant NameSpace.CREATE_TABLE -ns ${ACCUMULO_NAMESPACE} -u $ACCUMULO_USER\n" \
-      "config -s general.vfs.context.classpath.${ACCUMULO_NAMESPACE}=${HDFS_URI}/accumulo/classpath/${ACCUMULO_NAMESPACE}/.*.jar\n" \
+      "config -s general.vfs.context.classpath.${ACCUMULO_NAMESPACE}=${HDFS_URI}${NAMESPACE_DIR}/${ACCUMULO_NAMESPACE}/.*.jar\n" \
       "config -ns ${ACCUMULO_NAMESPACE} -s table.classpath.context=${ACCUMULO_NAMESPACE}\n" \
       | accumulo shell -u $ACCUMULO_USER -p $ACCUMULO_PASSWORD
     echo -e "Finished installing GeoMesa distributed runtime JAR."
