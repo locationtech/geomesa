@@ -7,4 +7,10 @@
         <property name="rootPath" value="geomesa"/>
     </bean>
 
+    <bean name="geomesaSwagger" class="org.locationtech.geomesa.web.core.GeoMesaSwagger"/>
+
+    <bean name="geomesaResourcesApp" class="org.locationtech.geomesa.web.core.ResourcesApp">
+        <constructor-arg index="0" ref="geomesaSwagger"/>
+    </bean>
+
 </beans>

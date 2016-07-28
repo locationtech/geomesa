@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.web.core
 
 import javax.servlet.ServletContext
-import javax.servlet.http.{HttpServletRequestWrapper, HttpServletResponse, HttpServletRequest}
+import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.lang.exception.ExceptionUtils
@@ -55,6 +55,7 @@ trait GeoMesaScalatraServlet extends ScalatraServlet with LazyLogging {
 }
 
 object GeoMesaScalatraServlet {
+  val DefaultRootPath = "geomesa"
   val dsKeys = new AccumuloDataStoreFactory().getParametersInfo.map(_.getName)
 }
 
@@ -62,7 +63,7 @@ class SpringScalatraBootstrap extends ApplicationContextAware with ServletContex
 
   @BeanProperty var applicationContext: ApplicationContext = _
   @BeanProperty var servletContext: ServletContext = _
-  @BeanProperty var rootPath: String = _
+  @BeanProperty var rootPath: String = GeoMesaScalatraServlet.DefaultRootPath
 
   def init(): Unit = {
     val richCtx = new RichServletContext(servletContext)
@@ -72,5 +73,7 @@ class SpringScalatraBootstrap extends ApplicationContextAware with ServletContex
       logger.info(s"Mounting servlet bean '$name' at path '$path'")
       richCtx.mount(servlet, s"$path/*")
     }
+
+    richCtx.mount(applicationContext.getBean("geomesaResourcesApp").asInstanceOf[ResourcesApp], "/api-docs")
   }
 }
