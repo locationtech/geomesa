@@ -176,5 +176,10 @@
             <destName>README-process.md</destName>
             <outputDirectory>docs</outputDirectory>
         </file>
+        <file>
+            <source>../geomesa-accumulo/geomesa-accumulo-distributed-runtime/src/main/resources/install-geomesa-namespace.sh</source>
+            <outputDirectory>dist/accumulo</outputDirectory>
+            <fileMode>0755</fileMode>
+        </file>
     </files>
 </component>

@@ -132,20 +132,32 @@ For Accumulo 1.6+
 
 Copying the runtime JAR to each tablet server as for Accumulo 1.5 above will
 still work, but in Accumulo 1.6, we can leverage namespaces to isolate the
-GeoMesa classpath from the rest of Accumulo. First, you have to create the
-namespace in the Accumulo shell:
+GeoMesa classpath from the rest of Accumulo.
+
+Execute the ``install-geomesa-namespace.sh`` script in the ``geomesa-$VERSION/dist/accumulo`` directory.
 
 .. code::
 
+    $ ./install-geomesa-namespace.sh -u myUser -n myNamespace
+
+The command line arguments the script accepts are:
+
+Required parameters:
+     -u (Accumulo username)
+     -n (Accumulo namespace)
+Optional parameters:
+     -p (Accumulo password)
+     -g (Path of GeoMesa distributed runtime JAR)
+     -h (HDFS URI e.g. hdfs://localhost:54310)
+
+Alternatively you could manually install the GeoMesa distributed runtime JAR with these commands:
+
+.. code::
     $ accumulo shell -u root
     > createnamespace myNamespace
     > grant NameSpace.CREATE_TABLE -ns myNamespace -u myUser
     > config -s general.vfs.context.classpath.myNamespace=hdfs://NAME_NODE_FDQN:54310/accumulo/classpath/myNamespace/[^.].*.jar
     > config -ns myNamespace -s table.classpath.context=myNamespace
-
-.. note::
-
-    Depending on Hadoop version, you may need to use ``hdfs://NAME_NODE_FDQN:8020``.
 
 Then copy the distributed runtime jar into HDFS under the path you specified.
 The path above is just an example; you can included nested folders with project
