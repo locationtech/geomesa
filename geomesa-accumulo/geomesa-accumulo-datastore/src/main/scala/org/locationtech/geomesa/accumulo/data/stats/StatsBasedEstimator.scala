@@ -192,6 +192,7 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
           val zs = sfc.ranges(xy, Seq((t1, t2)), ZHistogramPrecision)
           zs.flatMap(r => histogram.directIndex(w, r.lower) to histogram.directIndex(w, r.upper))
         }
+        lazy val middleIndices = getIndices(tmin, tmax)
 
         // build up our indices by week so that we can deduplicate them afterwards
         val timeBinsAndIndices = scala.collection.mutable.Map.empty[Short, Seq[Int]].withDefaultValue(Seq.empty)
@@ -204,10 +205,7 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
             val head +: middle :+ last = bins.toList
             timeBinsAndIndices(head) ++= getIndices(lt, tmax)
             timeBinsAndIndices(last) ++= getIndices(tmin, ut)
-            if (middle.nonEmpty) {
-              val indices = getIndices(tmin, tmax)
-              middle.foreach(m => timeBinsAndIndices(m) ++= indices)
-            }
+            middle.foreach(m => timeBinsAndIndices(m) ++= middleIndices)
           }
         }
 
