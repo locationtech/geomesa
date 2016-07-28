@@ -7,7 +7,7 @@
 # http://www.opensource.org/licenses/apache2.0.php.
 #
 
-# Installs a GeoMesa distributed runtime JAR into an Accumulo namespace
+# Installs a GeoMesa distributed runtime JAR into HDFS and sets up a corresponding Accumulo namespace
 
 while getopts ":u:p:n:g:h:d:" opt; do
   case $opt in
@@ -55,25 +55,32 @@ if [[ -z "$GEOMESA_JAR" ]]; then
     cd "$( dirname "${BASH_SOURCE[0]}" )"
     GEOMESA_JAR=$(ls | grep geomesa-accumulo-distributed-runtime)
     if [ -z "$GEOMESA_JAR" ]; then
-        echo "Null GeoMesa JAR parameter encountered and could not find a GeoMesa distributed runtime JAR"
+        echo "Could not find GeoMesa distributed runtime JAR - please specify the JAR using the '-g' flag"
         ERROR=1
     else
-        echo "Null GeoMesa JAR parameter encountered, using $GEOMESA_JAR"
+        echo "Using GeoMesa JAR: $GEOMESA_JAR"
     fi
 fi
 
 if [[ -z "$NAMESPACE_DIR" ]]; then
     NAMESPACE_DIR="/accumulo/classpath"
-    echo "Null namespace directory parameter encountered, using $NAMESPACE_DIR"
+    echo "Using namespace directory: $NAMESPACE_DIR"
 fi
 
 if [[ -z "$HDFS_URI" ]]; then
     HDFS_URI=`hdfs getconf -confKey fs.defaultFS`
-    echo "Null HDFS URI parameter encountered, using $HDFS_URI"
 fi
 
-if [[ -z $ERROR && -z "$ACCUMULO_PASSWORD" ]]; then
-    read -s -p "Enter Accumulo Password: " ACCUMULO_PASSWORD
+if [[ $HDFS_URI == hdfs* ]]; then
+    echo "Using HDFS URI: $HDFS_URI"
+else
+    echo "Invalid HDFS URI discovered: $HDFS_URI"
+    ERROR=1
+fi
+
+if [[ -z "$ERROR" && -z "$ACCUMULO_PASSWORD" ]]; then
+    read -s -p "Enter Accumulo password for user $ACCUMULO_USER: " ACCUMULO_PASSWORD
+    echo
 fi
 
 if [[ -n "$ERROR" ]]; then
@@ -88,18 +95,23 @@ if [[ -n "$ERROR" ]]; then
     exit 1
 fi
 
-echo "Copying GeoMesa JAR for Accumulo namespace $ACCUMULO_NAMESPACE ..."
-hadoop fs -mkdir -p ${NAMESPACE_DIR}/${ACCUMULO_NAMESPACE}
-hadoop fs -copyFromLocal -f $GEOMESA_JAR ${NAMESPACE_DIR}/${ACCUMULO_NAMESPACE}/
+echo "Copying GeoMesa JAR for Accumulo namespace $ACCUMULO_NAMESPACE..."
+hadoop fs -mkdir -p "${NAMESPACE_DIR}/${ACCUMULO_NAMESPACE}"
+hadoop fs -copyFromLocal -f "$GEOMESA_JAR" "${NAMESPACE_DIR}/${ACCUMULO_NAMESPACE}/"
 
-if hadoop fs -ls ${NAMESPACE_DIR}/${ACCUMULO_NAMESPACE}/geomesa*.jar > /dev/null 2>&1
+if hadoop fs -ls "${NAMESPACE_DIR}/${ACCUMULO_NAMESPACE}/geomesa*.jar" > /dev/null 2>&1
 then
     echo -e "createnamespace ${ACCUMULO_NAMESPACE}\n" \
       "grant NameSpace.CREATE_TABLE -ns ${ACCUMULO_NAMESPACE} -u $ACCUMULO_USER\n" \
       "config -s general.vfs.context.classpath.${ACCUMULO_NAMESPACE}=${HDFS_URI}${NAMESPACE_DIR}/${ACCUMULO_NAMESPACE}/.*.jar\n" \
       "config -ns ${ACCUMULO_NAMESPACE} -s table.classpath.context=${ACCUMULO_NAMESPACE}\n" \
       | accumulo shell -u $ACCUMULO_USER -p $ACCUMULO_PASSWORD
-    echo -e "Finished installing GeoMesa distributed runtime JAR."
+
+    if [[ $? -eq 1 ]]; then
+        echo "Error encountered executing Accumulo shell commands, check above output for errors."
+    else
+        echo "Successfully installed GeoMesa distributed runtime JAR."
+    fi
 else
   echo "No GeoMesa JAR found in HDFS. Please check HDFS (permissions?) and try again."
 fi

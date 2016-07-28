@@ -138,7 +138,7 @@ Execute the ``install-geomesa-namespace.sh`` script in the ``geomesa-$VERSION/di
 
 .. code::
 
-    $ ./install-geomesa-namespace.sh -u root -n myNamespace
+    $ ./install-geomesa-namespace.sh -u myUser -n myNamespace
 
 The command line arguments the script accepts are:
 
@@ -162,7 +162,8 @@ Alternatively you could manually install the GeoMesa distributed runtime JAR wit
 Then copy the distributed runtime jar into HDFS under the path you specified.
 The path above is just an example; you can included nested folders with project
 names, version numbers, and other information in order to have different versions of GeoMesa on
-the same Accumulo instance.
+the same Accumulo instance. You should remove any GeoMesa JARs under
+``$ACCUMULO_HOME/lib/ext`` to prevent any classpath conflicts.
 
 .. note::
 
