@@ -14,6 +14,8 @@ import java.util.Date
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.commons.lang.StringEscapeUtils
 import org.geotools.data.DataUtilities
+import org.locationtech.geomesa.curve.TimePeriod
+import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.text.{EnhancedTokenParsers, WKTUtils}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -153,29 +155,32 @@ object Stat {
     * @param precision precision of the sketch - @see Frequency
     * @return
     */
-  def Frequency(attribute: String, precision: Int): String = s"Frequency(${safeString(attribute)},$precision)"
+  def Frequency(attribute: String, precision: Int): String =
+    s"Frequency(${safeString(attribute)},$precision)"
 
   /**
     * String that will be parsed into a count min sketch stat
     *
     * @param attribute attribute to sketch
     * @param dtg date attribute to use for binning
+    * @param period time period to split on
     * @param precision precision of the sketch - @see Frequency
     * @return
     */
-  def Frequency(attribute: String, dtg: String, precision: Int): String =
-    s"Frequency(${safeString(attribute)},${safeString(dtg)},$precision)"
+  def Frequency(attribute: String, dtg: String, period: TimePeriod, precision: Int): String =
+    s"Frequency(${safeString(attribute)},${safeString(dtg)},$period,$precision)"
 
   /**
     * String that will be parsed into a z3 count min sketch stat
     *
     * @param geom geometry attribute
     * @param dtg date attribute
+    * @param period time period to split on
     * @param precision precision of the z value - @see FrequencyZ3
     * @return
     */
-  def Z3Frequency(geom: String, dtg: String, precision: Int): String =
-    s"Z3Frequency(${safeString(geom)},${safeString(dtg)},$precision)"
+  def Z3Frequency(geom: String, dtg: String, period: TimePeriod, precision: Int): String =
+    s"Z3Frequency(${safeString(geom)},${safeString(dtg)},$period,$precision)"
 
   /**
     * String that will be parsed to a binned histogram stat
@@ -197,11 +202,12 @@ object Stat {
     *
     * @param geom geometry attribute
     * @param dtg date attribute
+    * @param period time period to split on
     * @param length number of the bins per week - @see RangeHistogramZ3
     * @return
     */
-  def Z3Histogram(geom: String, dtg: String, length: Int): String =
-    s"Z3Histogram(${safeString(geom)},${safeString(dtg)},$length)"
+  def Z3Histogram(geom: String, dtg: String, period: TimePeriod, length: Int): String =
+    s"Z3Histogram(${safeString(geom)},${safeString(dtg)},$period,$length)"
 
   /**
     * String that will be parsed to a iterator stack counter
@@ -217,6 +223,24 @@ object Stat {
     * @return
     */
   def SeqStat(stats: Seq[String]): String = stats.mkString(";")
+
+
+  /**
+    * Combines a sequence of stats. This will not modify any of the inputs.
+    *
+    * @param stats stats to combine
+    * @return
+    */
+  def combine[T <: Stat](stats: Seq[T]): Option[T] = {
+    if (stats.length < 2) {
+      stats.headOption
+    } else {
+      // create a new stat so that we don't modify the existing ones
+      val summed = stats.head + stats.tail.head
+      stats.drop(2).foreach(summed += _)
+      Some(summed.asInstanceOf[T])
+    }
+  }
 
   // note: adds quotes around the string
   private def safeString(s: String): String = s""""${StringEscapeUtils.escapeJava(s)}""""
@@ -291,8 +315,13 @@ object Stat {
       i
     }
 
-    val positiveInt = """[1-9][0-9]*""".r // any non-zero positive int
     val argument = dequotedString | "[a-zA-Z0-9_]+".r
+
+    def positiveInt = """[1-9][0-9]*""".r ^^ { case i => i.toInt } // any non-zero positive int
+
+    def timePeriod: Parser[TimePeriod] = {
+      argument ^^ { case period => TimePeriod.withName(period.toLowerCase) }
+    }
 
     def countParser: Parser[CountStat] = {
       "Count()" ^^ { _ => new CountStat() }
@@ -393,33 +422,40 @@ object Stat {
     }
 
     def z3HistogramParser: Parser[Z3Histogram] = {
-      "Z3Histogram(" ~> argument ~ "," ~ argument ~ "," ~ positiveInt <~ ")" ^^ {
-        case geom ~ "," ~ dtg ~ "," ~ length =>
-          new Z3Histogram(getAttrIndex(geom), getAttrIndex(dtg), length.toInt)
+      "Z3Histogram(" ~> argument ~ "," ~ argument ~ "," ~ timePeriod ~ "," ~ positiveInt <~ ")" ^^ {
+        case geom ~ "," ~ dtg ~ "," ~ period ~ "," ~ length  =>
+          new Z3Histogram(getAttrIndex(geom), getAttrIndex(dtg), period, length)
+      }
+    }
+
+    def dtgAndPeriod: Parser[(Int, TimePeriod)] = {
+      argument ~ "," ~ timePeriod ^^ {
+        case dtg ~ "," ~ period => (getAttrIndex(dtg), period)
       }
     }
 
     def frequencyParser: Parser[Frequency[_]] = {
-      "Frequency(" ~> argument ~ "," ~ (argument <~ ",").? ~ positiveInt <~ ")" ^^ {
-        case attribute ~ "," ~ dtg ~ precision =>
+      "Frequency(" ~> argument ~ "," ~ (dtgAndPeriod <~ ",").? ~ positiveInt <~ ")" ^^ {
+        case attribute ~ "," ~ dtgAndPeriod ~ precision =>
           val attrIndex = getAttrIndex(attribute)
-          val dtgIndex = dtg.map(getAttrIndex).getOrElse(-1)
+          val dtgIndex = dtgAndPeriod.map(_._1).getOrElse(-1)
+          val period = dtgAndPeriod.map(_._2).getOrElse(TimePeriod.Week)
           val attrType = sft.getDescriptor(attribute).getType.getBinding
 
           if (attrType == classOf[String]) {
-            new Frequency[String](attrIndex, dtgIndex, precision.toInt)
+            new Frequency[String](attrIndex, dtgIndex, period, precision)
           } else if (attrType == classOf[Date]) {
-            new Frequency[Date](attrIndex, dtgIndex, precision.toInt)
+            new Frequency[Date](attrIndex, dtgIndex, period, precision)
           } else if (attrType == classOf[Integer]) {
-            new Frequency[Integer](attrIndex, dtgIndex, precision.toInt)
+            new Frequency[Integer](attrIndex, dtgIndex, period, precision)
           } else if (attrType == classOf[jLong]) {
-            new Frequency[jLong](attrIndex, dtgIndex, precision.toInt)
+            new Frequency[jLong](attrIndex, dtgIndex, period, precision)
           } else if (attrType == classOf[jDouble]) {
-            new Frequency[jDouble](attrIndex, dtgIndex, precision.toInt)
+            new Frequency[jDouble](attrIndex, dtgIndex, period, precision)
           } else if (attrType == classOf[jFloat]) {
-            new Frequency[jFloat](attrIndex, dtgIndex, precision.toInt)
+            new Frequency[jFloat](attrIndex, dtgIndex, period, precision)
           } else if (classOf[Geometry].isAssignableFrom(attrType )) {
-            new Frequency[Geometry](attrIndex, dtgIndex, precision.toInt)
+            new Frequency[Geometry](attrIndex, dtgIndex, period, precision)
           } else {
             throw new Exception(s"Cannot create stat for invalid type: $attrType for attribute: $attribute")
           }
@@ -427,9 +463,9 @@ object Stat {
     }
 
     def z3FrequencyParser: Parser[Z3Frequency] = {
-      "Z3Frequency(" ~> argument ~ "," ~ argument ~ "," ~ positiveInt <~ ")" ^^ {
-        case geom ~ "," ~ dtg ~ "," ~ precision =>
-          new Z3Frequency(getAttrIndex(geom), getAttrIndex(dtg), precision.toInt)
+      "Z3Frequency(" ~> argument ~ "," ~ argument  ~ "," ~ timePeriod ~ "," ~ positiveInt <~ ")" ^^ {
+        case geom ~ "," ~ dtg ~ "," ~ period ~ "," ~ precision =>
+          new Z3Frequency(getAttrIndex(geom), getAttrIndex(dtg), period, precision)
       }
     }
 

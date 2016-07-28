@@ -16,6 +16,7 @@ import com.clearspring.analytics.stream.cardinality.HyperLogLog
 import com.clearspring.analytics.stream.frequency.RichCountMinSketch
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocal}
 import org.locationtech.geomesa.utils.stats.MinMax.MinMaxDefaults
 import org.locationtech.geomesa.utils.text.WKBUtils
@@ -76,10 +77,13 @@ object KryoStatSerializer {
   private [stats] val IteratorStackByte: Byte = 3
   private [stats] val EnumerationByte: Byte   = 4
   private [stats] val HistogramByte: Byte     = 5
-  private [stats] val FrequencyByte: Byte     = 6
-  private [stats] val Z3HistogramByte: Byte   = 7
-  private [stats] val Z3FrequencyByte: Byte   = 8
+  private [stats] val FrequencyByteV1: Byte   = 6
+  private [stats] val Z3HistogramByteV1: Byte = 7
+  private [stats] val Z3FrequencyByteV1: Byte = 8
   private [stats] val TopKByte: Byte          = 9
+  private [stats] val FrequencyByte: Byte     = 10
+  private [stats] val Z3HistogramByte: Byte   = 11
+  private [stats] val Z3FrequencyByte: Byte   = 12
 
   private [stats] def write(output: Output, sft: SimpleFeatureType, stat: Stat): Unit = {
     stat match {
@@ -103,11 +107,14 @@ object KryoStatSerializer {
       case EnumerationByte   => readEnumeration(input, sft, immutable)
       case TopKByte          => readTopK(input, sft, immutable)
       case HistogramByte     => readHistogram(input, sft, immutable)
-      case FrequencyByte     => readFrequency(input, sft, immutable)
-      case Z3HistogramByte   => readZ3Histogram(input, sft, immutable)
-      case Z3FrequencyByte   => readZ3Frequency(input, sft, immutable)
+      case FrequencyByte     => readFrequency(input, sft, immutable, 2)
+      case Z3HistogramByte   => readZ3Histogram(input, sft, immutable, 2)
+      case Z3FrequencyByte   => readZ3Frequency(input, sft, immutable, 2)
       case IteratorStackByte => readIteratorStackCount(input, immutable)
       case SeqStatByte       => readSeqStat(input, sft, immutable)
+      case FrequencyByteV1   => readFrequency(input, sft, immutable, 1)
+      case Z3HistogramByteV1 => readZ3Histogram(input, sft, immutable, 1)
+      case Z3FrequencyByteV1 => readZ3Frequency(input, sft, immutable, 1)
     }
   }
 
@@ -261,6 +268,7 @@ object KryoStatSerializer {
   private [stats] def writeZ3Histogram(output: Output, sft: SimpleFeatureType, stat: Z3Histogram): Unit = {
     output.writeInt(stat.geomIndex, true)
     output.writeInt(stat.dtgIndex, true)
+    output.writeAscii(stat.period.toString)
     output.writeInt(stat.length, true)
 
     val bins = stat.binMap.filter(_._2.counts.exists(_ != 0L))
@@ -273,15 +281,16 @@ object KryoStatSerializer {
     }
   }
 
-  private [stats] def readZ3Histogram(input: Input, sft: SimpleFeatureType, immutable: Boolean): Z3Histogram = {
+  private [stats] def readZ3Histogram(input: Input, sft: SimpleFeatureType, immutable: Boolean, version: Int): Z3Histogram = {
     val geomIndex = input.readInt(true)
     val dtgIndex  = input.readInt(true)
+    val period = if (version > 1) TimePeriod.withName(input.readString()) else TimePeriod.Week
     val length = input.readInt(true)
 
     val stat = if (immutable) {
-      new Z3Histogram(geomIndex, dtgIndex, length) with ImmutableStat
+      new Z3Histogram(geomIndex, dtgIndex, period, length) with ImmutableStat
     } else {
-      new Z3Histogram(geomIndex, dtgIndex, length)
+      new Z3Histogram(geomIndex, dtgIndex, period, length)
     }
 
     val numWeeks = input.readInt(true)
@@ -300,6 +309,7 @@ object KryoStatSerializer {
   private [stats] def writeFrequency(output: Output, sft: SimpleFeatureType, stat: Frequency[_]): Unit = {
     output.writeInt(stat.attribute, true)
     output.writeInt(stat.dtgIndex, true)
+    output.writeAscii(stat.period.toString)
     output.writeInt(stat.precision, true)
     output.writeDouble(stat.eps)
     output.writeDouble(stat.confidence)
@@ -319,18 +329,19 @@ object KryoStatSerializer {
     }
   }
 
-  private [stats] def readFrequency(input: Input, sft: SimpleFeatureType, immutable: Boolean): Frequency[_] = {
+  private [stats] def readFrequency(input: Input, sft: SimpleFeatureType, immutable: Boolean, version: Int): Frequency[_] = {
     val attribute = input.readInt(true)
     val dtgIndex = input.readInt(true)
+    val period = if (version > 1) TimePeriod.withName(input.readString()) else TimePeriod.Week
     val precision = input.readInt(true)
     val eps = input.readDouble()
     val confidence = input.readDouble()
 
     val binding = sft.getDescriptor(attribute).getType.getBinding
     val stat = if (immutable) {
-      new Frequency[Any](attribute, dtgIndex, precision, eps, confidence)(ClassTag[Any](binding)) with ImmutableStat
+      new Frequency[Any](attribute, dtgIndex, period, precision, eps, confidence)(ClassTag[Any](binding)) with ImmutableStat
     } else {
-      new Frequency[Any](attribute, dtgIndex, precision, eps, confidence)(ClassTag[Any](binding))
+      new Frequency[Any](attribute, dtgIndex, period, precision, eps, confidence)(ClassTag[Any](binding))
     }
 
     val sketchCount = input.readInt(true)
@@ -355,6 +366,7 @@ object KryoStatSerializer {
   private [stats] def writeZ3Frequency(output: Output, sft: SimpleFeatureType, stat: Z3Frequency): Unit = {
     output.writeInt(stat.geomIndex, true)
     output.writeInt(stat.dtgIndex, true)
+    output.writeAscii(stat.period.toString)
     output.writeInt(stat.precision, true)
     output.writeDouble(stat.eps)
     output.writeDouble(stat.confidence)
@@ -375,17 +387,18 @@ object KryoStatSerializer {
     }
   }
 
-  private [stats] def readZ3Frequency(input: Input, sft: SimpleFeatureType, immutable: Boolean): Z3Frequency = {
+  private [stats] def readZ3Frequency(input: Input, sft: SimpleFeatureType, immutable: Boolean, version: Int): Z3Frequency = {
     val geomIndex = input.readInt(true)
     val dtgIndex  = input.readInt(true)
+    val period = if (version > 1) TimePeriod.withName(input.readString()) else TimePeriod.Week
     val precision = input.readInt(true)
     val eps = input.readDouble()
     val confidence = input.readDouble()
 
     val stat = if (immutable) {
-      new Z3Frequency(geomIndex, dtgIndex, precision, eps, confidence) with ImmutableStat
+      new Z3Frequency(geomIndex, dtgIndex, period, precision, eps, confidence) with ImmutableStat
     } else {
-      new Z3Frequency(geomIndex, dtgIndex, precision, eps, confidence)
+      new Z3Frequency(geomIndex, dtgIndex, period,precision, eps, confidence)
     }
 
     val numSketches = input.readInt(true)

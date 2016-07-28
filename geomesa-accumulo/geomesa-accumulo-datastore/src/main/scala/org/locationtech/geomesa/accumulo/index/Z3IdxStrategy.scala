@@ -17,7 +17,7 @@ import org.locationtech.geomesa.accumulo.GeomesaSystemProperties.QueryProperties
 import org.locationtech.geomesa.accumulo.data.stats.GeoMesaStats
 import org.locationtech.geomesa.accumulo.data.tables.{GeoMesaTable, Z3Table}
 import org.locationtech.geomesa.accumulo.iterators._
-import org.locationtech.geomesa.curve.Z3SFC
+import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools._
@@ -106,40 +106,46 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     val z3table = ds.getTableName(sft.getTypeName, Z3Table)
     val numThreads = ds.getSuggestedThreads(sft.getTypeName, Z3Table)
 
+    val sfc = Z3SFC(sft.getZ3Interval)
+    val minTime = sfc.time.min.toLong
+    val maxTime = sfc.time.max.toLong
+    val wholePeriod = Seq((minTime, maxTime))
+
     // compute our accumulo ranges based on the coarse bounds for our query
     val (ranges, zIterator) = if (filter.primary.isEmpty) { (Seq(new aRange()), None) } else {
       val xy = geometries.map(GeometryUtils.bounds)
 
       // calculate map of weeks to time intervals in that week
-      val timesByWeek = scala.collection.mutable.Map.empty[Short, Seq[(Long, Long)]].withDefaultValue(Seq.empty)
+      val timesByBin = scala.collection.mutable.Map.empty[Short, Seq[(Long, Long)]].withDefaultValue(Seq.empty)
+      val dateToIndex = BinnedTime.dateToBinnedTime(sft.getZ3Interval)
       // note: intervals shouldn't have any overlaps
       intervals.foreach { interval =>
-        val (lWeek, lt) = Z3Table.getWeekAndSeconds(interval._1)
-        val (uWeek, ut) = Z3Table.getWeekAndSeconds(interval._2)
-        if (lWeek == uWeek) {
-          timesByWeek(lWeek) ++= Seq((lt, ut))
+        val BinnedTime(lb, lt) = dateToIndex(interval._1)
+        val BinnedTime(ub, ut) = dateToIndex(interval._2)
+        if (lb == ub) {
+          timesByBin(lb) ++= Seq((lt, ut))
         } else {
-          timesByWeek(lWeek) ++= Seq((lt, MaxTime))
-          timesByWeek(uWeek) ++= Seq((MinTime, ut))
-          Range.inclusive(lWeek + 1, uWeek - 1).foreach(w => timesByWeek(w.toShort) = WholeWeek)
+          timesByBin(lb) ++= Seq((lt, maxTime))
+          timesByBin(ub) ++= Seq((minTime, ut))
+          Range.inclusive(lb + 1, ub - 1).foreach(b => timesByBin(b.toShort) = wholePeriod)
         }
       }
 
       val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
       def toZRanges(t: Seq[(Long, Long)]): Seq[(Array[Byte], Array[Byte])] = if (sft.isPoints) {
-        Z3SFC.ranges(xy, t, 64, rangeTarget).map(r => (Longs.toByteArray(r.lower), Longs.toByteArray(r.upper)))
+        sfc.ranges(xy, t, 64, rangeTarget).map(r => (Longs.toByteArray(r.lower), Longs.toByteArray(r.upper)))
       } else {
-        Z3SFC.ranges(xy, t, 8 * GEOM_Z_NUM_BYTES, rangeTarget).map { r =>
+        sfc.ranges(xy, t, 8 * GEOM_Z_NUM_BYTES, rangeTarget).map { r =>
           (Longs.toByteArray(r.lower).take(GEOM_Z_NUM_BYTES), Longs.toByteArray(r.upper).take(GEOM_Z_NUM_BYTES))
         }
       }
 
-      lazy val wholeWeekRanges = toZRanges(WholeWeek)
+      lazy val wholePeriodRanges = toZRanges(wholePeriod)
 
-      val ranges = timesByWeek.flatMap { case (w, times) =>
-        val zs = if (times.eq(WholeWeek)) wholeWeekRanges else toZRanges(times)
-        val wBytes = Shorts.toByteArray(w)
-        val prefixes = if (hasSplits) Z3Table.SPLIT_ARRAYS.map(Bytes.concat(_, wBytes)) else Seq(wBytes)
+      val ranges = timesByBin.flatMap { case (b, times) =>
+        val zs = if (times.eq(wholePeriod)) wholePeriodRanges else toZRanges(times)
+        val binBytes = Shorts.toByteArray(b)
+        val prefixes = if (hasSplits) Z3Table.SPLIT_ARRAYS.map(Bytes.concat(_, binBytes)) else Seq(binBytes)
         prefixes.flatMap { prefix =>
           zs.map { case (lo, hi) =>
             val start = Bytes.concat(prefix, lo)
@@ -149,7 +155,9 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
         }
       }
 
-      val zIter = Z3Iterator.configure(xy, timesByWeek.toMap, sft.isPoints, hasSplits, Z3_ITER_PRIORITY)
+      // we know we're only going to scan appropriate periods, so leave out whole periods
+      val filteredTimes = timesByBin.filter(_._2 != wholePeriod).toMap
+      val zIter = Z3Iterator.configure(sfc, xy, filteredTimes, sft.isPoints, hasSplits, Z3_ITER_PRIORITY)
       (ranges.toSeq, Some(zIter))
     }
 
@@ -168,10 +176,6 @@ object Z3IdxStrategy extends StrategyProvider {
 
   val Z3_ITER_PRIORITY = 23
   val FILTERING_ITER_PRIORITY = 25
-
-  val MinTime = Z3SFC.time.min.toLong
-  val MaxTime = Z3SFC.time.max.toLong
-  val WholeWeek = Seq((MinTime, MaxTime))
 
   override protected def statsBasedCost(sft: SimpleFeatureType,
                                         filter: QueryFilter,

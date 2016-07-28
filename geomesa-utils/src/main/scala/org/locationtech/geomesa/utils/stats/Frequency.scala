@@ -12,8 +12,8 @@ import java.util.{Date, Locale}
 
 import com.clearspring.analytics.stream.frequency.{CountMinSketch, IFrequency, RichCountMinSketch}
 import com.vividsolutions.jts.geom.Geometry
-import org.joda.time.{DateTime, DateTimeZone, Weeks}
-import org.locationtech.geomesa.curve.Z2SFC
+import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
+import org.locationtech.geomesa.curve.{BinnedTime, Z2SFC}
 import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.SimpleFeature
 
@@ -24,6 +24,7 @@ import scala.reflect.ClassTag
   *
   * @param attribute attribute index for the attribute the sketch is being made for
   * @param dtgIndex index for the primary date attribute of the sft, or -1 if no date
+  * @param period time period to use for splitting by date
   * @param eps (epsilon) with probability at least @see confidence, estimates will be within eps * N
   * @param confidence percent - with probability at least confidence, estimates will be within @see eps * N
   * @param precision for geometry types, this is the number of bits of z-index to keep (max of 64)
@@ -37,6 +38,7 @@ import scala.reflect.ClassTag
   */
 class Frequency[T](val attribute: Int,
                    val dtgIndex: Int,
+                   val period: TimePeriod,
                    val precision: Int,
                    val eps: Double = 0.005,
                    val confidence: Double = 0.95)(implicit ct: ClassTag[T]) extends Stat {
@@ -47,18 +49,20 @@ class Frequency[T](val attribute: Int,
 
   private [stats] val sketchMap = scala.collection.mutable.Map.empty[Short, CountMinSketch]
   private [stats] def newSketch = new CountMinSketch(eps, confidence, Frequency.Seed)
+  private val timeToBin = BinnedTime.timeToBinnedTime(period)
 
   private val addAttribute = Frequency.add[T](ct.runtimeClass.asInstanceOf[Class[T]], precision)
   private val getCount = Frequency.count[T](ct.runtimeClass.asInstanceOf[Class[T]], precision)
 
   /**
-    * Gets the weeks covered by this frequency
+    * Gets the time bins covered by this frequency
     *
     * @return
     */
-  def weeks: Seq[Short] = sketchMap.keys.toSeq.sorted
+  def timeBins: Seq[Short] = sketchMap.keys.toSeq.sorted
+
   /**
-    * Gets the count for a given value, across all weeks
+    * Gets the count for a given value, across all time bins
     *
     * @param value value to consider
     * @return count of the value
@@ -66,16 +70,16 @@ class Frequency[T](val attribute: Int,
   def count(value: T): Long = sketchMap.values.map(getCount(_, value)).sumOrElse(0L)
 
   /**
-    * Gets the count for a given value in a particular week
+    * Gets the count for a given value in a particular time bin
     *
-    * @param week week since the epoch
+    * @param timeBin period since the epoch
     * @param value value to consider
     * @return count of the value
     */
-  def count(week: Short, value: T): Long = sketchMap.get(week).map(getCount(_, value)).getOrElse(0L)
+  def count(timeBin: Short, value: T): Long = sketchMap.get(timeBin).map(getCount(_, value)).getOrElse(0L)
 
   /**
-    * Gets the count for a given value, which has already been converted into a string, across all weeks.
+    * Gets the count for a given value, which has already been converted into a string, across all time bins.
     * Useful if you know the string key space ahead of time.
     *
     * @param value value to consider, converted into an appropriate string key
@@ -88,15 +92,15 @@ class Frequency[T](val attribute: Int,
     * Gets the count for a given value, which has already been converted into a string. Useful
     * if you know the string key space ahead of time.
     *
-    * @param week week since the epoch
+    * @param timeBin period since the epoch
     * @param value value to consider, converted into an appropriate string key
     * @return count of the value
     */
-  def countDirect(week: Short, value: String): Long =
-    sketchMap.get(week).map(_.estimateCount(value)).getOrElse(0L)
+  def countDirect(timeBin: Short, value: String): Long =
+    sketchMap.get(timeBin).map(_.estimateCount(value)).getOrElse(0L)
 
   /**
-    * Gets the count for a given value, which has already been converted into a long, across all weeks.
+    * Gets the count for a given value, which has already been converted into a long, across all time bins.
     * Useful if you know the long key space ahead of time (e.g. with z-values).
     *
     * @param value value to consider, converted into an appropriate long key
@@ -108,12 +112,12 @@ class Frequency[T](val attribute: Int,
     * Gets the count for a given value, which has already been converted into a long. Useful
     * if you know the long key space ahead of time (e.g. with z-values).
     *
-    * @param week week since the epoch
+    * @param timeBin period since the epoch
     * @param value value to consider, converted into an appropriate long key
     * @return count of the value
     */
-  def countDirect(week: Short, value: Long): Long =
-    sketchMap.get(week).map(_.estimateCount(value)).getOrElse(0L)
+  def countDirect(timeBin: Short, value: Long): Long =
+    sketchMap.get(timeBin).map(_.estimateCount(value)).getOrElse(0L)
 
   /**
     * Number of observations in the frequency map
@@ -123,14 +127,14 @@ class Frequency[T](val attribute: Int,
   def size: Long = sketchMap.values.map(_.size).sumOrElse(0L)
 
   /**
-    * Split the stat into a separate stat per week of z data. Allows for separate handling of the reduced
+    * Split the stat into a separate stat per time bin of z data. Allows for separate handling of the reduced
     * data set.
     *
     * @return
     */
-  def splitByWeek: Seq[(Short, Frequency[T])] = {
+  def splitByTime: Seq[(Short, Frequency[T])] = {
     sketchMap.toSeq.map { case (w, sketch) =>
-      val freq = new Frequency[T](attribute, dtgIndex, precision, eps, confidence)
+      val freq = new Frequency[T](attribute, dtgIndex, period, precision, eps, confidence)
       freq.sketchMap.put(w, sketch)
       (w, freq)
     }
@@ -139,10 +143,11 @@ class Frequency[T](val attribute: Int,
   override def observe(sf: SimpleFeature): Unit = {
     val value = sf.getAttribute(attribute).asInstanceOf[T]
     if (value != null) {
-      val week: Short = if (dtgIndex == -1) { Frequency.DefaultWeek } else {
-        Frequency.getWeek(sf.getAttribute(dtgIndex).asInstanceOf[Date])
+      val timeBin: Short = if (dtgIndex == -1) { Frequency.DefaultTimeBin } else {
+        val dtg = sf.getAttribute(dtgIndex).asInstanceOf[Date]
+        if (dtg == null) Frequency.DefaultTimeBin else timeToBin(dtg.getTime).bin
       }
-      addAttribute(sketchMap.getOrElseUpdate(week, newSketch), value)
+      addAttribute(sketchMap.getOrElseUpdate(timeBin, newSketch), value)
     }
   }
 
@@ -150,7 +155,7 @@ class Frequency[T](val attribute: Int,
   override def unobserve(sf: SimpleFeature): Unit = {}
 
   override def +(other: Frequency[T]): Frequency[T] = {
-    val plus = new Frequency[T](attribute, dtgIndex, precision, eps, confidence)
+    val plus = new Frequency[T](attribute, dtgIndex, period, precision, eps, confidence)
     plus += this
     plus += other
     plus
@@ -174,7 +179,7 @@ class Frequency[T](val attribute: Int,
   override def isEquivalent(other: Stat): Boolean = {
     other match {
       case s: Frequency[T] =>
-        attribute == s.attribute && dtgIndex == s.dtgIndex && precision == s.precision && {
+        attribute == s.attribute && dtgIndex == s.dtgIndex && period == s.period && precision == s.precision && {
           val sketches = sketchMap.filter(_._2.size != 0)
           val otherSketches = s.sketchMap.filter(_._2.size != 0)
           sketches.keySet == otherSketches.keySet && sketches.forall {
@@ -191,34 +196,8 @@ object Frequency {
   // the seed for our frequencies - frequencies can only be combined if they have the same seed.
   val Seed = -27
 
-  // default week we use for features without a date
-  val DefaultWeek: Short = 0
-
-  // converts a date into a week since the epoch
-  def getWeek(dtg: Date): Short = {
-    if (dtg == null) { DefaultWeek } else {
-      val time = new DateTime(dtg, DateTimeZone.UTC)
-      Weeks.weeksBetween(Z3Frequency.Epoch, time).getWeeks.toShort
-    }
-  }
-
-  /**
-    * Combines frequencies into a single value. Note: frequencies will be modified and state may be
-    * shared between them.
-    *
-    * @param frequencies frequencies to combine
-    * @return combined frequency
-    */
-  def combine[T](frequencies: Seq[Frequency[T]]): Option[Frequency[T]] = {
-    if (frequencies.length < 2) {
-      frequencies.headOption
-    } else {
-      // we can't always call += on the stat directly, since it might be immutable
-      val summed = frequencies.head + frequencies.tail.head
-      frequencies.drop(2).foreach(summed += _)
-      Some(summed)
-    }
-  }
+  // default time bin we use for features without a date
+  val DefaultTimeBin: Short = 0
 
   /**
     * Enumerate all the values contained in a sequence of ranges, using the supplied precision.

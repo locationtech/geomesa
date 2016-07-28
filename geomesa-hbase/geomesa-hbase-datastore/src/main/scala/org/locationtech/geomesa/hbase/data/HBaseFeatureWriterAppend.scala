@@ -15,7 +15,7 @@ import com.google.common.primitives.{Bytes, Longs, Shorts}
 import org.apache.hadoop.hbase.client.{Put, Table}
 import org.geotools.data.FeatureWriter
 import org.joda.time.DateTime
-import org.locationtech.geomesa.curve.Z3SFC
+import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -52,11 +52,9 @@ class HBaseFeatureWriterAppend(sft: SimpleFeatureType, table: Table) extends Fea
     val x = geom.getX
     val y = geom.getY
     val dtg = new DateTime(curFeature.getAttribute(dtgIndex).asInstanceOf[Date])
-    val weeks = epochWeeks(dtg)
-    val prefix = Shorts.toByteArray(weeks.getWeeks.toShort)
-
-    val secondsInWeek = secondsInCurrentWeek(dtg, weeks)
-    val z3 = Z3SFC.index(x, y, secondsInWeek)
+    val BinnedTime(weeks, seconds) = dateToIndex(dtg)
+    val prefix = Shorts.toByteArray(weeks)
+    val z3 = SFC.index(x, y, seconds)
     val z3idx = Longs.toByteArray(z3.z)
 
     val idBytes = curFeature.getID.getBytes(StandardCharsets.UTF_8)

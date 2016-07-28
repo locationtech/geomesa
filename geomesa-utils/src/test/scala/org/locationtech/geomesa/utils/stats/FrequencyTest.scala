@@ -14,7 +14,7 @@ import java.util.Date
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.curve.Z2SFC
+import org.locationtech.geomesa.curve.{BinnedTime, TimePeriod, Z2SFC}
 import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.sfcurve.zorder.Z2
@@ -67,10 +67,10 @@ class FrequencyTest extends Specification with StatTestHelper {
     }
 
     "support weekly binning" >> {
-      val stat = Stat(sft, Stat.Frequency("longAttr", "dtg", 1)).asInstanceOf[Frequency[Long]]
+      val stat = Stat(sft, Stat.Frequency("longAttr", "dtg", TimePeriod.Week, 1)).asInstanceOf[Frequency[Long]]
       val weekStart = 45 * 52 // approximately jan 2015
       val weeks = Set(weekStart, weekStart + 1, weekStart + 2, weekStart + 3)
-      val dayStart = Z3Frequency.Epoch.plusWeeks(weekStart).plusHours(1)
+      val dayStart = BinnedTime.Epoch.plusWeeks(weekStart).plusHours(1)
       (0 until 28 * 4).foreach { i =>
         val a = Array(null, null, i, null, null, "POINT(-75 45)", dayStart.plusDays(i % 28).toDate)
         val f = SimpleFeatureBuilder.build(sft, a.asInstanceOf[Array[AnyRef]], i.toString)
@@ -91,7 +91,7 @@ class FrequencyTest extends Specification with StatTestHelper {
       val deserialized = serializer.deserialize(serialized)
       stat.isEquivalent(deserialized) must beTrue
 
-      val splits = stat.splitByWeek.toMap
+      val splits = stat.splitByTime.toMap
       splits must haveSize(4)
       splits.keySet mustEqual weeks
       forall(offsets.flatMap(o => o +  0 until o +  7))(d => splits(weekStart.toShort).count(d) mustEqual 1)
@@ -99,8 +99,8 @@ class FrequencyTest extends Specification with StatTestHelper {
       forall(offsets.flatMap(o => o + 14 until o + 21))(d => splits((weekStart + 2).toShort).count(d) mustEqual 1)
       forall(offsets.flatMap(o => o + 21 until o + 28))(d => splits((weekStart + 3).toShort).count(d) mustEqual 1)
 
-      // the splits still have to serialize the attribute, eps, etc, hence the extra 21 bytes per (split - 1)
-      splits.values.map(serializer.serialize).map(_.length).sum mustEqual serialized.length + 3 * 21
+      // the splits still have to serialize the attribute, eps, etc, hence the extra 25 bytes per (split - 1)
+      splits.values.map(serializer.serialize).map(_.length).sum mustEqual serialized.length + 3 * 25
     }
 
     "work with strings" >> {

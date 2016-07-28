@@ -14,7 +14,6 @@ import org.apache.accumulo.core.data.{ByteSequence, Key, Value, Range => AccRang
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.data.tables.Z3Table
-import org.locationtech.geomesa.accumulo.index.Z3IdxStrategy
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.sfcurve.zorder.Z3
 
@@ -187,43 +186,39 @@ object Z3Iterator {
   val RangeSeparator = ":"
   val WeekSeparator = ";"
 
-  def configure(bounds: Seq[(Double, Double, Double, Double)],
-                timesByWeek: Map[Short, Seq[(Long, Long)]],
+  def configure(sfc: Z3SFC,
+                bounds: Seq[(Double, Double, Double, Double)],
+                timesByBin: Map[Short, Seq[(Long, Long)]],
                 isPoints: Boolean,
                 hasSplits: Boolean,
                 priority: Int) = {
-
-    import Z3IdxStrategy.MinTime
 
     val is = new IteratorSetting(priority, "z3", classOf[Z3Iterator])
 
     // index space values for comparing in the iterator
     val (xyOpts, tOpts) = if (isPoints) {
       val xyOpts = bounds.map { case (xmin, ymin, xmax, ymax) =>
-        s"${Z3SFC.lon.normalize(xmin)}$RangeSeparator${Z3SFC.lat.normalize(ymin)}$RangeSeparator" +
-            s"${Z3SFC.lon.normalize(xmax)}$RangeSeparator${Z3SFC.lat.normalize(ymax)}"
+        s"${sfc.lon.normalize(xmin)}$RangeSeparator${sfc.lat.normalize(ymin)}$RangeSeparator" +
+            s"${sfc.lon.normalize(xmax)}$RangeSeparator${sfc.lat.normalize(ymax)}"
       }
-      // we know we're only going to scan appropriate weeks, so leave out whole weeks
-      val tOpts = timesByWeek.filter(_._2 != Z3IdxStrategy.WholeWeek).toSeq.sortBy(_._1).map { case (w, times) =>
+      val tOpts = timesByBin.toSeq.sortBy(_._1).map { case (bin, times) =>
         val time = times.map { case (t1, t2) =>
-          s"${Z3SFC.time.normalize(t1)}$RangeSeparator${Z3SFC.time.normalize(t2)}"
+          s"${sfc.time.normalize(t1)}$RangeSeparator${sfc.time.normalize(t2)}"
         }
-        s"$w$RangeSeparator${time.mkString(RangeSeparator)}"
+        s"$bin$RangeSeparator${time.mkString(RangeSeparator)}"
       }
       (xyOpts, tOpts)
     } else {
       val normalized = bounds.map { case (xmin, ymin, xmax, ymax) =>
-        val (lx, ly, _) = decodeNonPoints(xmin, ymin, MinTime) // note: time is not used
-        val (ux, uy, _) = decodeNonPoints(xmax, ymax, MinTime) // note: time is not used
+        val (lx, ly, _) = decodeNonPoints(sfc, xmin, ymin, 0) // note: time is not used
+        val (ux, uy, _) = decodeNonPoints(sfc, xmax, ymax, 0) // note: time is not used
         s"$lx$RangeSeparator$ly$RangeSeparator$ux$RangeSeparator$uy"
       }
-
-      // we know we're only going to scan appropriate weeks, so leave out whole weeks
-      val tOpts = timesByWeek.filter(_._2 == Z3IdxStrategy.WholeWeek).toSeq.sortBy(_._1).map { case (w, times) =>
+      val tOpts = timesByBin.toSeq.sortBy(_._1).map { case (bin, times) =>
         val time = times.map { case (t1, t2) =>
-          s"${decodeNonPoints(0, 0, t1)._3}$RangeSeparator${decodeNonPoints(0, 0, t2)._3}"
+          s"${decodeNonPoints(sfc, 0, 0, t1)._3}$RangeSeparator${decodeNonPoints(sfc, 0, 0, t2)._3}"
         }
-        s"$w$RangeSeparator${time.mkString(RangeSeparator)}"
+        s"$bin$RangeSeparator${time.mkString(RangeSeparator)}"
       }
       (normalized, tOpts)
     }
@@ -236,6 +231,6 @@ object Z3Iterator {
     is
   }
 
-  private def decodeNonPoints(x: Double, y: Double, t: Long): (Int, Int, Int) =
-    Z3(Z3SFC.index(x, y, t).z & Z3Table.GEOM_Z_MASK).decode
+  private def decodeNonPoints(sfc: Z3SFC, x: Double, y: Double, t: Long): (Int, Int, Int) =
+    Z3(sfc.index(x, y, t).z & Z3Table.GEOM_Z_MASK).decode
 }

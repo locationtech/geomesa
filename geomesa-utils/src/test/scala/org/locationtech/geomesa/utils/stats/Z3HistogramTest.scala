@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.utils.stats
 
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -18,7 +19,7 @@ import org.specs2.runner.JUnitRunner
 class Z3HistogramTest extends Specification with StatTestHelper {
 
   def createStat(length: Int, observe: Boolean): Z3Histogram = {
-    val s = Stat(sft, Stat.Z3Histogram("geom", "dtg", length))
+    val s = Stat(sft, Stat.Z3Histogram("geom", "dtg", TimePeriod.Week, length))
     if (observe) {
       features.foreach { s.observe }
     }
@@ -30,7 +31,7 @@ class Z3HistogramTest extends Specification with StatTestHelper {
   def toDate(string: String) = GeoToolsDateFormat.parseDateTime(string).toDate
   def toGeom(string: String) = WKTUtils.read(string)
 
-  "FrequencyZ3 stat" should {
+  "HistogramZ3 stat" should {
 
     "work with geometries and dates" >> {
       "be empty initially" >> {
