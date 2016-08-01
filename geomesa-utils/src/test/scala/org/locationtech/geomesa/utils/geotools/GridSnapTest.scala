@@ -103,7 +103,7 @@ class GridSnapTest extends Specification with LazyLogging {
       resultHorizontal must haveLength(9)
 
       val resultSamePoint = gridSnap.genBresenhamCoordList(0, 0, 0, 0)
-      resultSamePoint must haveLength(1)
+      resultSamePoint must haveLength(0)
 
       val resultInverse = gridSnap.genBresenhamCoordList(9, 9, 0, 0)
       resultInverse must haveLength(9)
