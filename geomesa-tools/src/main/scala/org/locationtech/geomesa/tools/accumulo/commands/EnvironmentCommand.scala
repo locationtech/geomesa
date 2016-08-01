@@ -11,6 +11,7 @@ package org.locationtech.geomesa.tools.accumulo.commands
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.config.{Config, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.accumulo.core.util.shell.commands.HelpCommand
 import org.locationtech.geomesa.convert.ConverterConfigLoader
 import org.locationtech.geomesa.tools.accumulo.commands.EnvironmentCommand.EnvironmentParameters
 import org.locationtech.geomesa.tools.common.commands.Command
@@ -24,11 +25,76 @@ class EnvironmentCommand(parent: JCommander) extends Command(parent) with LazyLo
 
   // TODO accumulo environment?
   override def execute(): Unit = {
-    if (params.sfts == null && params.converters == null) {
+    if (params.sfts == null && params.converters == null && !params.listSfts && !params.listConverters && !params.describeSfts && !params.describeConverters) {
       // default - list all
-      listSfts()
+      parent.usage(command)
+    } else if (params.listSfts){
+      listSftsNames()
+      if (params.listConverters){
+        println
+        listConverterNames()
+      }
+      if (params.describeSfts) {
+        println
+        listSfts()
+      }
+      if (params.describeConverters) {
+        println
+        listConverters()
+      }
+      if (params.sfts != null) {
+        println
+        listSfts(params.sfts.toList)
+      }
+      if (params.converters != null) {
+        println
+        listConverters(params.converters.toList)
+      }
+    } else if (params.listConverters){
       println
+      listConverterNames()
+      if (params.describeSfts) {
+        println
+        listSfts()
+      }
+      if (params.describeConverters) {
+        println
+        listConverters()
+      }
+      if (params.sfts != null) {
+        println
+        listSfts(params.sfts.toList)
+      }
+      if (params.converters != null) {
+        println
+        listConverters(params.converters.toList)
+      }
+    } else if (params.describeSfts) {
+      println
+      listSfts()
+      if (params.describeConverters) {
+        println
+        listConverters()
+      }
+      if (params.sfts != null) {
+        println
+        listSfts(params.sfts.toList)
+      }
+      if (params.converters != null) {
+        println
+        listConverters(params.converters.toList)
+      }
+    } else if (params.describeConverters) {
       listConverters()
+      if (params.sfts != null) {
+        println
+        listSfts(params.sfts.toList)
+      }
+      if (params.converters != null) {
+        println
+        listConverters(params.converters.toList)
+      }
+
     } else if (params.sfts != null) {
       // only list specified
       listSfts(params.sfts.toList)
@@ -48,7 +114,15 @@ class EnvironmentCommand(parent: JCommander) extends Command(parent) with LazyLo
     if (filtered.isEmpty) {
       println("\tNone available")
     } else {
-      filtered.map(s => s"\t${s.getTypeName} = ${SimpleFeatureTypes.encodeType(s)}").foreach(println)
+      //filtered.sortBy(_.getTypeName).map(s => s"\t${s.getTypeName} = ${SimpleFeatureTypes.encodeType(s)}").foreach(println)
+      params.format.toLowerCase match {
+        case "typesafe" =>
+          filtered.sortBy(_.getTypeName).map(s => s"\t${s.getTypeName} = ${SimpleFeatureTypes.toConfigString(s, !params.excludeUserData, params.concise)}").foreach(println)
+        case "spec" =>
+          filtered.sortBy(_.getTypeName).map(s => s"\t${s.getTypeName} = ${SimpleFeatureTypes.toConfigString(s, !params.excludeUserData)}").foreach(println)
+        case _ =>
+          logger.error(s"Unknown config format: ${params.format}")
+      }
     }
   }
 
@@ -61,8 +135,19 @@ class EnvironmentCommand(parent: JCommander) extends Command(parent) with LazyLo
     } else {
       val options = ConfigRenderOptions.defaults().setJson(false).setOriginComments(false)
       def render(c: Config) = c.root().render(options).replaceAll("\n", "\n\t")
-      filtered.map { case (name, conf)=> s"\tconverter-name=$name\n\t${render(conf)}\n"}.foreach(println)
+      filtered.map { case (name, conf)=> s"\tconverter-name=$name\n\t${render(conf)}\n"}.toArray.sortBy(_.self).foreach(println)
     }
+  }
+
+  def listSftsNames(): Unit = {
+    println("Simple Feature Types:")
+    val all = SimpleFeatureTypeLoader.sfts
+    all.sortBy(_.getTypeName).map(s => s"\t${s.getTypeName}").foreach(println)
+  }
+  def listConverterNames(): Unit = {
+    println("Simple Feature Type Converters:")
+    val all = ConverterConfigLoader.confs
+    all.map { case (name, conf) => s"\t$name"}.toArray.sortBy(_.self).foreach(println)
   }
 }
 
@@ -74,5 +159,26 @@ object EnvironmentCommand {
 
     @Parameter(names = Array("-c", "--converters"), description = "Examine GeoMesa converters", variableArity = true)
     var converters: java.util.List[String] = null
+
+    @Parameter(names = Array("--list-sfts"), description = "List all the Simple Feature Types")
+    var listSfts: Boolean = false
+
+    @Parameter(names = Array("--list-converters"), description = "List all the Converter Names")
+    var listConverters: Boolean = false
+
+    @Parameter(names = Array("--describe-sfts"), description = "Describe all the Simple Feature Types")
+    var describeSfts: Boolean = false
+
+    @Parameter(names = Array("--describe-converters"), description = "Describe all the Simple Feature Type Converters")
+    var describeConverters: Boolean = false
+
+    @Parameter(names = Array("--format"), description = "Formats for sft (comma separated string, allowed values are typesafe, spec)", required = false)
+    var format: String = "typesafe"
+
+    @Parameter(names = Array("--concise"), description = "Render in concise format", required = false)
+    var concise: Boolean = false
+
+    @Parameter(names = Array("--exclude-user-data"), description = "Exclude user data", required = false)
+    var excludeUserData: Boolean = false
   }
 }
