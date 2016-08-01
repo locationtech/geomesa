@@ -93,19 +93,19 @@ class GridSnapTest extends Specification with LazyLogging {
       val bbox = new Envelope(0.0, 10.0, 0.0, 10.0)
       val gridSnap = new GridSnap(bbox, 10, 10)
 
-      val resultDiagonal = gridSnap.genBresenhamCoordSet(0, 0, 9, 9).toList
+      val resultDiagonal = gridSnap.genBresenhamCoordSet(0, 0, 9, 9)
       resultDiagonal must haveLength(9)
 
-      val resultVertical = gridSnap.genBresenhamCoordSet(0, 0, 0, 9).toList
+      val resultVertical = gridSnap.genBresenhamCoordSet(0, 0, 0, 9)
       resultVertical must haveLength(9)
 
-      val resultHorizontal = gridSnap.genBresenhamCoordSet(0, 0, 9, 0).toList
+      val resultHorizontal = gridSnap.genBresenhamCoordSet(0, 0, 9, 0)
       resultHorizontal must haveLength(9)
 
-      val resultSamePoint = gridSnap.genBresenhamCoordSet(0, 0, 0, 0).toList
+      val resultSamePoint = gridSnap.genBresenhamCoordSet(0, 0, 0, 0)
       resultSamePoint must haveLength(1)
 
-      val resultInverse = gridSnap.genBresenhamCoordSet(9, 9, 0, 0).toList
+      val resultInverse = gridSnap.genBresenhamCoordSet(9, 9, 0, 0)
       resultInverse must haveLength(9)
     }
 

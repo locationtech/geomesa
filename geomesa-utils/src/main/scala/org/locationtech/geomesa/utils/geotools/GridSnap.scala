@@ -9,6 +9,7 @@
 
 package org.locationtech.geomesa.utils.geotools
 
+import com.sun.xml.internal.bind.v2.runtime.Coordinator
 import com.vividsolutions.jts.geom.{Coordinate, Envelope}
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -80,7 +81,7 @@ class GridSnap(env: Envelope, xSize: Int, ySize: Int) {
   def snap(x: Double, y: Double): (Double, Double) = (this.x(i(x)), this.y(j(y)))
 
   /** Generate a Sequence of Coordinates between two given Snap Coordinates using Bresenham's Line Algorithm */
-  def genBresenhamCoordSet(x0: Int, y0: Int, x1: Int, y1: Int): Set[Coordinate] = {
+  def genBresenhamCoordList(x0: Int, y0: Int, x1: Int, y1: Int): List[Coordinate] = {
     val ( deltaX, deltaY ) = (abs(x1 - x0), abs(y1 - y0))
     if ((deltaX == 0) && (deltaY == 0)) Set[Coordinate](new Coordinate(x(x0), y(y0)))
     else {
@@ -97,13 +98,18 @@ class GridSnap(env: Envelope, xSize: Int, ySize: Int) {
         }
         def hasNext = stepX * xT <= fX && stepY * yT <= fY
       }
-      iter.toList.dropRight(1).toSet
+      iter.toList.dropRight(1).distinct
     }
   }
 
   /** Generate a Set of Coordinates between two given Snap Coordinates which includes both start and end points*/
   def generateLineCoordSet(coordOne: Coordinate, coordTwo: Coordinate): Set[Coordinate] = {
-    genBresenhamCoordSet(i(coordOne.x), j(coordOne.y), i(coordTwo.x), j(coordTwo.y)) + coordOne + coordTwo
+    genBresenhamCoordList(i(coordOne.x), j(coordOne.y), i(coordTwo.x), j(coordTwo.y)).toSet + coordOne + coordTwo
+  }
+
+  /** Generate an ordered List of Coordinates between two given Snap Coordinates which includes both start and end points*/
+  def generateLineCoordList(coordOne: Coordinate, coordTwo: Coordinate): List[Coordinate] = {
+    coordOne +: genBresenhamCoordList(i(coordOne.x), j(coordOne.y), i(coordTwo.x), j(coordTwo.y)) :+ coordTwo
   }
 
   /** return a SimpleFeatureSource grid the same size and extent as the bbox */
