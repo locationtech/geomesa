@@ -238,9 +238,11 @@ object CassandraDataStoreTest {
       System.setProperty("cassandra.storagedir", storagedir.getPath)
 
       EmbeddedCassandraServerHelper.startEmbeddedCassandra("cassandra-config.yaml", 1200000L)
-      // following line creates a cluster with read timeout of 40 minutes. If this is hit, something else is the issue.
 
-      val cluster = new Cluster.Builder().addContactPoints(host).withPort(port).withSocketOptions(new SocketOptions().setReadTimeoutMillis(Option(System.getProperty("cassandraReadTimeout")).getOrElse(30000).asInstanceOf[Int])).build().init()
+      var readTimeout: Int = util.Try(System.getProperty("cassandraReadTimeout").toInt).getOrElse(12000)
+      if(readTimeout < 0) readTimeout = 12000
+      val cluster = new Cluster.Builder().addContactPoints(host).withPort(port)
+        .withSocketOptions(new SocketOptions().setReadTimeoutMillis(readTimeout)).build().init()
       val session = cluster.connect()
       val cqlDataLoader = new CQLDataLoader(session)
       cqlDataLoader.load(new ClassPathCQLDataSet("init.cql", false, false))
