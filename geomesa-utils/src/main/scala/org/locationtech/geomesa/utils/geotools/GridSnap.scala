@@ -9,7 +9,6 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import com.sun.xml.internal.bind.v2.runtime.Coordinator
 import com.vividsolutions.jts.geom.{Coordinate, Envelope}
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -83,7 +82,7 @@ class GridSnap(env: Envelope, xSize: Int, ySize: Int) {
   /** Generate a Sequence of Coordinates between two given Snap Coordinates using Bresenham's Line Algorithm */
   def genBresenhamCoordList(x0: Int, y0: Int, x1: Int, y1: Int): List[Coordinate] = {
     val ( deltaX, deltaY ) = (abs(x1 - x0), abs(y1 - y0))
-    if ((deltaX == 0) && (deltaY == 0)) Set[Coordinate](new Coordinate(x(x0), y(y0)))
+    if ((deltaX == 0) && (deltaY == 0)) List[Coordinate]()
     else {
       val ( stepX, stepY ) = (if (x0 < x1) 1 else -1, if (y0 < y1) 1 else -1)
       val (fX, fY) =  ( stepX * x1, stepY * y1 )
