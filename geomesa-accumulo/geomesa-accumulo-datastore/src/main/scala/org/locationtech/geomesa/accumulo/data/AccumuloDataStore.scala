@@ -488,6 +488,7 @@ class AccumuloDataStore(val connector: Connector,
       case Z2Table             => Z2_TABLE_KEY
       case Z3Table             => Z3_TABLE_KEY
       case XZ2Table            => XZ2_TABLE_KEY
+      case XZ3Table            => XZ3_TABLE_KEY
       case AttributeTable      => ATTR_IDX_TABLE_KEY
       // noinspection ScalaDeprecation
       case AttributeTableV5    => ATTR_IDX_TABLE_KEY
@@ -511,6 +512,7 @@ class AccumuloDataStore(val connector: Connector,
       case Z2Table             => config.queryThreads
       case Z3Table             => config.queryThreads
       case XZ2Table            => config.queryThreads
+      case XZ3Table            => config.queryThreads
       case AttributeTable      => config.queryThreads
       // noinspection ScalaDeprecation
       case AttributeTableV5    => 1
@@ -638,6 +640,7 @@ class AccumuloDataStore(val connector: Connector,
     val z2TableValue      = Z2Table.formatTableName(catalogTable, sft)
     val z3TableValue      = Z3Table.formatTableName(catalogTable, sft)
     val xz2TableValue     = XZ2Table.formatTableName(catalogTable, sft)
+    val xz3TableValue     = XZ3Table.formatTableName(catalogTable, sft)
     val attrIdxTableValue = AttributeTable.formatTableName(catalogTable, sft)
     val recordTableValue  = RecordTable.formatTableName(catalogTable, sft)
     val statDateValue     = GeoToolsDateFormat.print(DateTimeUtils.currentTimeMillis())
@@ -649,6 +652,7 @@ class AccumuloDataStore(val connector: Connector,
       Z2_TABLE_KEY          -> z2TableValue,
       Z3_TABLE_KEY          -> z3TableValue,
       XZ2_TABLE_KEY         -> xz2TableValue,
+      XZ3_TABLE_KEY         -> xz3TableValue,
       ATTR_IDX_TABLE_KEY    -> attrIdxTableValue,
       RECORD_TABLE_KEY      -> recordTableValue,
       STATS_GENERATION_KEY  -> statDateValue,

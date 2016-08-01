@@ -162,9 +162,13 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends LazyLogging {
       }
       // use z3 if we have both spatial and temporal predicates,
       // or if we just have a temporal predicate and the date is not attribute indexed
-      if (supported.contains(Z3Table) && temporal.exists(isBounded) &&
-          (spatial.isDefined || !supported.contains(AttributeTable) || !temporalIndexed)) {
-        options.append(QueryFilter(StrategyType.Z3, spatioTemporal, others))
+      if (temporal.exists(isBounded) && (spatial.isDefined || !supported.contains(AttributeTable) || !temporalIndexed)) {
+        if (supported.contains(Z3Table)) {
+          options.append(QueryFilter(StrategyType.Z3, spatioTemporal, others))
+        } else if (supported.contains(XZ3Table)) {
+          options.append(QueryFilter(StrategyType.XZ3, spatioTemporal, others))
+        }
+
       }
     } else if (sft.getDtgField.exists(attributes.contains)) {
       // check for z3 without a geometry
@@ -173,9 +177,12 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends LazyLogging {
         case Some(dtg) => FilterExtractingVisitor(filter, dtg, sft)
       }
       // use z3 if we just have a temporal predicate and the date is not attribute indexed
-      if (supported.contains(Z3Table) && temporal.exists(isBounded) &&
-          !(supported.contains(AttributeTable) && temporalIndexed)) {
-        options.append(QueryFilter(StrategyType.Z3, temporal, others))
+      if (temporal.exists(isBounded) && !(supported.contains(AttributeTable) && temporalIndexed)) {
+        if (supported.contains(Z3Table)) {
+          options.append(QueryFilter(StrategyType.Z3, temporal, others))
+        } else if (supported.contains(XZ3Table)) {
+          options.append(QueryFilter(StrategyType.XZ3, temporal, others))
+        }
       }
     }
 
@@ -323,7 +330,7 @@ object QueryFilterSplitter {
 
   // strategies that support full table scans, in priority order of which to use
   private val fullTableScanOptions = Seq((Z3Table, StrategyType.Z3), (Z2Table, StrategyType.Z2),
-    (XZ2Table, StrategyType.XZ2), (RecordTable, StrategyType.RECORD))
+    (XZ3Table, StrategyType.XZ3), (XZ2Table, StrategyType.XZ2), (RecordTable, StrategyType.RECORD))
 
   /**
    * Try to merge the two query filters. Return the merged query filter if successful, else null.

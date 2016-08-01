@@ -8,7 +8,8 @@
 
 package org.locationtech.geomesa.curve
 
-import org.locationtech.geomesa.curve.XZ2SFC.{QueryWindow, XElement}
+import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
+import org.locationtech.geomesa.curve.XZ3SFC.{QueryWindow, XElement}
 import org.locationtech.sfcurve.IndexRange
 
 import scala.collection.mutable.ArrayBuffer
@@ -17,11 +18,12 @@ import scala.collection.mutable.ArrayBuffer
   * Extended Z-order curve implementation used for efficiently storing polygons.
   *
   * Based on 'XZ-Ordering: A Space-Filling Curve for Objects with Spatial Extension'
-  * by Christian Böhm, Gerald Klump  and Hans-Peter Kriegel
+  * by Christian Böhm, Gerald Klump  and Hans-Peter Kriegel, expanded to 3 dimensions
   *
   * @param g resolution level of the curve - i.e. how many times the space will be recursively quartered
+
   */
-class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
+class XZ3SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double), zBounds: (Double, Double)) {
 
   // TODO see what the max value of g can be where we can use Ints instead of Longs and possibly refactor to use Ints
 
@@ -29,34 +31,40 @@ class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
   private val xHi = xBounds._2
   private val yLo = yBounds._1
   private val yHi = yBounds._2
+  private val zLo = zBounds._1
+  private val zHi = zBounds._2
 
   private val xSize = xHi - xLo
   private val ySize = yHi - yLo
+  private val zSize = zHi - zLo
 
   /**
     * Index a polygon by it's bounding box
     *
-    * @param bounds (xmin, ymin, xmax, ymax)
+    * @param bounds (xmin, ymin, zmin, xmax, ymax, zmax)
     * @return z value for the bounding box
     */
-  def index(bounds: (Double, Double, Double, Double)): Long = index(bounds._1, bounds._2, bounds._3, bounds._4)
+  def index(bounds: (Double, Double, Double, Double, Double, Double)): Long =
+    index(bounds._1, bounds._2, bounds._3, bounds._4, bounds._5, bounds._6)
 
   /**
     * Index a polygon by it's bounding box
     *
     * @param xmin min x value in xBounds
     * @param ymin min y value in yBounds
+    * @param zmin min z value in zBounds
     * @param xmax max x value in xBounds, must be >= xmin
     * @param ymax max y value in yBounds, must be >= ymin
+    * @param zmax max z value in zBounds, must be >= tmin
     * @return z value for the bounding box
     */
-  def index(xmin: Double, ymin: Double, xmax: Double, ymax: Double): Long = {
+  def index(xmin: Double, ymin: Double, zmin: Double, xmax: Double, ymax: Double, zmax: Double): Long = {
     // normalize inputs to [0,1]
-    val (nxmin, nymin, nxmax, nymax) = normalize(xmin, ymin, xmax, ymax)
+    val (nxmin, nymin, nzmin, nxmax, nymax, nzmax) = normalize(xmin, ymin, zmin, xmax, ymax, zmax)
 
     // calculate the length of the sequence code (section 4.1 of XZ-Ordering paper)
 
-    val maxDim = math.max(nxmax - nxmin, nymax - nymin)
+    val maxDim = math.max(math.max(nxmax - nxmin, nymax - nymin), nzmax - nzmin)
 
     // l1 (el-one) is a bit confusing to read, but corresponds with the paper's definitions
     val l1 = math.floor(math.log(maxDim) / XZSFC.LogPointFive).toInt
@@ -69,28 +77,28 @@ class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
       // math.floor(min / w2) * w2 == start of cell containing min
       def predicate(min: Double, max: Double): Boolean = max <= (math.floor(min / w2) * w2) + (2 * w2)
 
-      if (predicate(nxmin, nxmax) && predicate(nymin, nymax)) l1 + 1 else l1
+      if (predicate(nxmin, nxmax) && predicate(nymin, nymax) && predicate(nzmin, nzmax)) l1 + 1 else l1
     }
 
-    sequenceCode(nxmin, nymin, length)
+    sequenceCode(nxmin, nymin, nzmin, length)
   }
 
   /**
     * Determine XZ-curve ranges that will cover a given query window
     *
-    * @param query a window to cover in the form (xmin, ymin, xmax, ymax) where: all values are in user space
+    * @param query a window to cover in the form (xmin, ymin, zmin, xmax, ymax, zmax) where all values are in user space
     * @return
     */
-  def ranges(query: (Double, Double, Double, Double)): Seq[IndexRange] = ranges(Seq(query))
+  def ranges(query: (Double, Double, Double, Double, Double, Double)): Seq[IndexRange] = ranges(Seq(query))
 
   /**
     * Determine XZ-curve ranges that will cover a given query window
     *
-    * @param query a window to cover in the form (xmin, ymin, xmax, ymax) where all values are in user space
+    * @param query a window to cover in the form (xmin, ymin, zmin, xmax, ymax, zmax) where all values are in user space
     * @param maxRanges a rough upper limit on the number of ranges to generate
     * @return
     */
-  def ranges(query: (Double, Double, Double, Double), maxRanges: Option[Int]): Seq[IndexRange] =
+  def ranges(query: (Double, Double, Double, Double, Double, Double), maxRanges: Option[Int]): Seq[IndexRange] =
     ranges(Seq(query), maxRanges)
 
   /**
@@ -98,39 +106,50 @@ class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
     *
     * @param xmin min x value in user space
     * @param ymin min y value in user space
+    * @param zmin min z value in user space
     * @param xmax max x value in user space, must be >= xmin
     * @param ymax max y value in user space, must be >= ymin
+    * @param zmax max z value in user space, must be >= zmin
     * @return
     */
-  def ranges(xmin: Double, ymin: Double, xmax: Double, ymax: Double): Seq[IndexRange] =
-    ranges(Seq((xmin, ymin, xmax, ymax)))
+  def ranges(xmin: Double, ymin: Double, zmin: Double, xmax: Double, ymax: Double, zmax: Double): Seq[IndexRange] =
+    ranges(Seq((xmin, ymin, zmin, xmax, ymax, zmax)))
 
   /**
     * Determine XZ-curve ranges that will cover a given query window
     *
     * @param xmin min x value in user space
     * @param ymin min y value in user space
+    * @param zmin min z value in user space
     * @param xmax max x value in user space, must be >= xmin
     * @param ymax max y value in user space, must be >= ymin
+    * @param zmax max z value in user space, must be >= zmin
     * @param maxRanges a rough upper limit on the number of ranges to generate
     * @return
     */
-  def ranges(xmin: Double, ymin: Double, xmax: Double, ymax: Double, maxRanges: Option[Int]): Seq[IndexRange] =
-    ranges(Seq((xmin, ymin, xmax, ymax)), maxRanges)
+  def ranges(xmin: Double,
+             ymin: Double,
+             zmin: Double,
+             xmax: Double,
+             ymax: Double,
+             zmax: Double,
+             maxRanges: Option[Int]): Seq[IndexRange] =
+    ranges(Seq((xmin, ymin, zmin, xmax, ymax, zmax)), maxRanges)
 
   /**
     * Determine XZ-curve ranges that will cover a given query window
     *
     * @param queries a sequence of OR'd windows to cover. Each window is in the form
-    *                (xmin, ymin, xmax, ymax) where all values are in user space
+    *                (xmin, ymin, zmin, xmax, ymax, zmax) where all values are in user space
     * @param maxRanges a rough upper limit on the number of ranges to generate
     * @return
     */
-  def ranges(queries: Seq[(Double, Double, Double, Double)], maxRanges: Option[Int] = None): Seq[IndexRange] = {
+  def ranges(queries: Seq[(Double, Double, Double, Double, Double, Double)],
+             maxRanges: Option[Int] = None): Seq[IndexRange] = {
     // normalize inputs to [0,1]
-    val windows = queries.map { case (xmin, ymin, xmax, ymax) =>
-      val (nxmin, nymin, nxmax, nymax) = normalize(xmin, ymin, xmax, ymax)
-      QueryWindow(nxmin, nymin, nxmax, nymax)
+    val windows = queries.map { case (xmin, ymin, zmin, xmax, ymax, zmax) =>
+      val (nxmin, nymin, nzmin, nxmax, nymax, nzmax) = normalize(xmin, ymin, zmin, xmax, ymax, zmax)
+      QueryWindow(nxmin, nymin, nzmin, nxmax, nymax, nzmax)
     }
     ranges(windows.toArray, maxRanges.getOrElse(Int.MaxValue))
   }
@@ -144,7 +163,7 @@ class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
     */
   private def ranges(query: Array[QueryWindow], rangeStop: Int): Seq[IndexRange] = {
 
-    import XZ2SFC.{LevelOneElements, LevelTerminator}
+    import XZ3SFC.{LevelOneElements, LevelTerminator}
 
     // stores our results - initial size of 100 in general saves us some re-allocation
     val ranges = new java.util.ArrayList[IndexRange](100)
@@ -153,10 +172,10 @@ class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
     val remaining = new java.util.ArrayDeque[XElement](100)
 
     // checks if a quad is contained in the search space
-    def isContained(quad: XElement): Boolean = {
+    def isContained(oct: XElement): Boolean = {
       var i = 0
       while (i < query.length) {
-        if (quad.isContained(query(i))) {
+        if (oct.isContained(query(i))) {
           return true
         }
         i += 1
@@ -165,10 +184,10 @@ class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
     }
 
     // checks if a quad overlaps the search space
-    def isOverlapped(quad: XElement): Boolean = {
+    def isOverlapped(oct: XElement): Boolean = {
       var i = 0
       while (i < query.length) {
-        if (quad.overlaps(query(i))) {
+        if (oct.overlaps(query(i))) {
           return true
         }
         i += 1
@@ -180,17 +199,17 @@ class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
     //   eliminates it as out of bounds
     //   adds it to our results as fully matching, or
     //   adds it to our results as partial matching and queues up it's children for further processing
-    def checkValue(quad: XElement, level: Short): Unit = {
-      if (isContained(quad)) {
+    def checkValue(oct: XElement, level: Short): Unit = {
+      if (isContained(oct)) {
         // whole range matches, happy day
-        val (min, max) = sequenceInterval(quad.xmin, quad.ymin, level, partial = false)
+        val (min, max) = sequenceInterval(oct.xmin, oct.ymin, oct.zmin, level, partial = false)
         ranges.add(IndexRange(min, max, contained = true))
-      } else if (isOverlapped(quad)) {
+      } else if (isOverlapped(oct)) {
         // some portion of this range is excluded
         // add the partial match and queue up each sub-range for processing
-        val (min, max) = sequenceInterval(quad.xmin, quad.ymin, level, partial = true)
+        val (min, max) = sequenceInterval(oct.xmin, oct.ymin, oct.zmin, level, partial = true)
         ranges.add(IndexRange(min, max, contained = false))
-        quad.children.foreach(remaining.add)
+        oct.children.foreach(remaining.add)
       }
     }
 
@@ -216,11 +235,11 @@ class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
 
     // bottom out and get all the ranges that partially overlapped but we didn't fully process
     while (!remaining.isEmpty) {
-      val quad = remaining.poll
-      if (quad.eq(LevelTerminator)) {
+      val oct = remaining.poll
+      if (oct.eq(LevelTerminator)) {
         level = (level + 1).toShort
       } else {
-        val (min, max) = sequenceInterval(quad.xmin, quad.ymin, level, partial = false)
+        val (min, max) = sequenceInterval(oct.xmin, oct.ymin, oct.zmin, level, partial = false)
         ranges.add(IndexRange(min, max, contained = false))
       }
     }
@@ -257,14 +276,17 @@ class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
     *
     * @param x normalized x value [0,1]
     * @param y normalized y value [0,1]
+    * @param z normalized z value [0,1]
     * @param length length of the sequence code that will be generated
     * @return
     */
-  private def sequenceCode(x: Double, y: Double, length: Int): Long = {
+  private def sequenceCode(x: Double, y: Double, z: Double, length: Int): Long = {
     var xmin = 0.0
     var ymin = 0.0
+    var zmin = 0.0
     var xmax = 1.0
     var ymax = 1.0
+    var zmax = 1.0
 
     var cs = 0L
 
@@ -272,11 +294,16 @@ class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
     while (i < length) {
       val xCenter = (xmin + xmax) / 2.0
       val yCenter = (ymin + ymax) / 2.0
-      (x < xCenter, y < yCenter) match {
-        case (true,  true)  => cs += 1L                                             ; xmax = xCenter; ymax = yCenter
-        case (false, true)  => cs += 1L + 1L * (math.pow(4, g - i).toLong - 1L) / 3L; xmin = xCenter; ymax = yCenter
-        case (true,  false) => cs += 1L + 2L * (math.pow(4, g - i).toLong - 1L) / 3L; xmax = xCenter; ymin = yCenter
-        case (false, false) => cs += 1L + 3L * (math.pow(4, g - i).toLong - 1L) / 3L; xmin = xCenter; ymin = yCenter
+      val zCenter = (zmin + zmax) / 2.0
+      (x < xCenter, y < yCenter, z < zCenter) match {
+        case (true,  true, true)   => cs += 1L                                             ; xmax = xCenter; ymax = yCenter; zmax = zCenter
+        case (false, true, true)   => cs += 1L + 1L * (math.pow(8, g - i).toLong - 1L) / 7L; xmin = xCenter; ymax = yCenter; zmax = zCenter
+        case (true,  false, true)  => cs += 1L + 2L * (math.pow(8, g - i).toLong - 1L) / 7L; xmax = xCenter; ymin = yCenter; zmax = zCenter
+        case (false, false, true)  => cs += 1L + 3L * (math.pow(8, g - i).toLong - 1L) / 7L; xmin = xCenter; ymin = yCenter; zmax = zCenter
+        case (true,  true, false)  => cs += 1L + 4L * (math.pow(8, g - i).toLong - 1L) / 7L; xmax = xCenter; ymax = yCenter; zmin = zCenter
+        case (false, true, false)  => cs += 1L + 5L * (math.pow(8, g - i).toLong - 1L) / 7L; xmin = xCenter; ymax = yCenter; zmin = zCenter
+        case (true,  false, false) => cs += 1L + 6L * (math.pow(8, g - i).toLong - 1L) / 7L; xmax = xCenter; ymin = yCenter; zmin = zCenter
+        case (false, false, false) => cs += 1L + 7L * (math.pow(8, g - i).toLong - 1L) / 7L; xmin = xCenter; ymin = yCenter; zmin = zCenter
       }
       i += 1
     }
@@ -293,13 +320,13 @@ class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
     * @param partial true if the element partially intersects the query window, false if it is fully contained
     * @return
     */
-  private def sequenceInterval(x: Double, y: Double, length: Short, partial: Boolean): (Long, Long) = {
-    val min = sequenceCode(x, y, length)
+  private def sequenceInterval(x: Double, y: Double, z: Double, length: Short, partial: Boolean): (Long, Long) = {
+    val min = sequenceCode(x, y, z, length)
     // if a partial match, we just use the single sequence code as an interval
     // if a full match, we have to match all sequence codes starting with the single sequence code
     val max = if (partial) { min } else {
       // from lemma 3 in the XZ-Ordering paper
-      min + (math.pow(4, g - length + 1).toLong - 1L) / 3L
+      min + (math.pow(8, g - length + 1).toLong - 1L) / 7L
     }
     (min, max)
   }
@@ -309,40 +336,47 @@ class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
     *
     * @param xmin min x value in user space
     * @param ymin min y value in user space
+    * @param zmin min z value in user space
     * @param xmax max x value in user space, must be >= xmin
     * @param ymax max y value in user space, must be >= ymin
+    * @param zmax max z value in user space, must be >= zmin
     * @return
     */
   private def normalize(xmin: Double,
                         ymin: Double,
+                        zmin: Double,
                         xmax: Double,
-                        ymax: Double): (Double, Double, Double, Double) = {
-    require(xmin <= xmax && ymin <= ymax, s"Bounds must be ordered: [$xmin $xmax] [$ymin $ymax]")
+                        ymax: Double,
+                        zmax: Double): (Double, Double, Double, Double, Double, Double) = {
+    require(xmin <= xmax && ymin <= ymax && zmin <= zmax,
+      s"Bounds must be ordered: [$xmin $xmax] [$ymin $ymax] [$zmin $zmax]")
 
     val nxmin = (XZSFC.bounded(xmin, xLo, xHi) - xLo) / xSize
     val nymin = (XZSFC.bounded(ymin, yLo, yHi) - yLo) / ySize
+    val nzmin = (XZSFC.bounded(zmin, zLo, zHi) - zLo) / zSize
     val nxmax = (XZSFC.bounded(xmax, xLo, xHi) - xLo) / xSize
     val nymax = (XZSFC.bounded(ymax, yLo, yHi) - yLo) / ySize
+    val nzmax = (XZSFC.bounded(zmax, zLo, zHi) - zLo) / zSize
 
-    (nxmin, nymin, nxmax, nymax)
+    (nxmin, nymin, nzmin, nxmax, nymax, nzmax)
   }
 }
 
-object XZ2SFC {
+object XZ3SFC {
 
-  // the initial level of quads
-  private val LevelOneElements = XElement(0.0, 0.0, 1.0, 1.0, 1.0).children
+  // the initial level of octs
+  private val LevelOneElements = XElement(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0).children
 
-  // indicator that we have searched a full level of the quad/oct tree
-  private val LevelTerminator = XElement(-1.0, -1.0, -1.0, -1.0, 0)
+  // indicator that we have searched a full level of the oct tree
+  private val LevelTerminator = XElement(-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, 0.0)
 
-  private val cache = new java.util.concurrent.ConcurrentHashMap[Short, XZ2SFC]()
+  private val cache = new java.util.concurrent.ConcurrentHashMap[(Short, TimePeriod), XZ3SFC]()
 
-  def apply(g: Short): XZ2SFC = {
-    var sfc = cache.get(g)
+  def apply(g: Short, period: TimePeriod): XZ3SFC = {
+    var sfc = cache.get((g, period))
     if (sfc == null) {
-      sfc = new XZ2SFC(g, (-180.0, 180.0), (-90.0, 90.0))
-      cache.put(g, sfc)
+      sfc = new XZ3SFC(g, (-180.0, 180.0), (-90.0, 90.0), (0.0, BinnedTime.maxOffset(period).toDouble))
+      cache.put((g, period), sfc)
     }
     sfc
   }
@@ -352,44 +386,62 @@ object XZ2SFC {
     *
     * @param xmin x lower bound in [0-1]
     * @param ymin y lower bound in [0-1]
+    * @param zmin z lower bound in [0-1]
     * @param xmax x upper bound in [0-1], must be >= xmin
     * @param ymax y upper bound in [0-1], must be >= ymin
+    * @param zmax z upper bound in [0-1], must be >= zmin
     */
-  private case class QueryWindow(xmin: Double, ymin: Double, xmax: Double, ymax: Double)
+  private case class QueryWindow(xmin: Double, ymin: Double, zmin: Double, xmax: Double, ymax: Double, zmax: Double)
 
   /**
     * An extended Z curve element. Bounds refer to the non-extended z element for simplicity of calculation.
     *
     * An extended Z element refers to a normal Z curve element that has it's upper bounds expanded by double it's
-    * width/height. By convention, an element is always square.
+    * width/length/height. By convention, an element is always a cube.
     *
     * @param xmin x lower bound in [0-1]
     * @param ymin y lower bound in [0-1]
+    * @param zmin z lower bound in [0-1]
     * @param xmax x upper bound in [0-1], must be >= xmin
     * @param ymax y upper bound in [0-1], must be >= ymin
-    * @param length length of the non-extended side (note: by convention width should be equal to height)
+    * @param zmax z upper bound in [0-1], must be >= zmin
+    * @param length length of the non-extended side (note: by convention width should be equal to height and depth)
     */
-  private case class XElement(xmin: Double, ymin: Double, xmax: Double, ymax: Double, length: Double) {
+  private case class XElement(xmin: Double,
+                              ymin: Double,
+                              zmin: Double,
+                              xmax: Double,
+                              ymax: Double,
+                              zmax: Double,
+                              length: Double) {
 
     // extended x and y bounds
     lazy val xext = xmax + length
     lazy val yext = ymax + length
+    lazy val zext = zmax + length
 
     def isContained(window: QueryWindow): Boolean =
-      window.xmin <= xmin && window.ymin <= ymin && window.xmax >= xext && window.ymax >= yext
+      window.xmin <= xmin && window.ymin <= ymin && window.zmin <= zmin &&
+          window.xmax >= xext && window.ymax >= yext && window.zmax >= zext
 
     def overlaps(window: QueryWindow): Boolean =
-      window.xmax >= xmin && window.ymax >= ymin && window.xmin <= xext && window.ymin <= yext
+      window.xmax >= xmin && window.ymax >= ymin && window.zmax >= zmin &&
+          window.xmin <= xext && window.ymin <= yext && window.zmin <= zext
 
     def children: Seq[XElement] = {
       val xCenter = (xmin + xmax) / 2.0
       val yCenter = (ymin + ymax) / 2.0
+      val zCenter = (zmin + zmax) / 2.0
       val len = length / 2.0
-      val c0 = copy(xmax = xCenter, ymax = yCenter, length = len)
-      val c1 = copy(xmin = xCenter, ymax = yCenter, length = len)
-      val c2 = copy(xmax = xCenter, ymin = yCenter, length = len)
-      val c3 = copy(xmin = xCenter, ymin = yCenter, length = len)
-      Seq(c0, c1, c2, c3)
+      val c0 = copy(xmax = xCenter, ymax = yCenter, zmax = zCenter, length = len)
+      val c1 = copy(xmin = xCenter, ymax = yCenter, zmax = zCenter, length = len)
+      val c2 = copy(xmax = xCenter, ymin = yCenter, zmax = zCenter, length = len)
+      val c3 = copy(xmin = xCenter, ymin = yCenter, zmax = zCenter, length = len)
+      val c4 = copy(xmax = xCenter, ymax = yCenter, zmin = zCenter, length = len)
+      val c5 = copy(xmin = xCenter, ymax = yCenter, zmin = zCenter, length = len)
+      val c6 = copy(xmax = xCenter, ymin = yCenter, zmin = zCenter, length = len)
+      val c7 = copy(xmin = xCenter, ymin = yCenter, zmin = zCenter, length = len)
+      Seq(c0, c1, c2, c3, c4, c5, c6, c7)
     }
   }
 }
