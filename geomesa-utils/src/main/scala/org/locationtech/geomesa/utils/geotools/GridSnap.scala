@@ -108,7 +108,7 @@ class GridSnap(env: Envelope, xSize: Int, ySize: Int) {
 
   /** Generate an ordered List of Coordinates between two given Snap Coordinates which includes both start and end points*/
   def generateLineCoordList(coordOne: Coordinate, coordTwo: Coordinate): List[Coordinate] = {
-    coordOne +: genBresenhamCoordList(i(coordOne.x), j(coordOne.y), i(coordTwo.x), j(coordTwo.y)) :+ coordTwo
+    (coordOne +: genBresenhamCoordList(i(coordOne.x), j(coordOne.y), i(coordTwo.x), j(coordTwo.y)) :+ coordTwo).distinct
   }
 
   /** return a SimpleFeatureSource grid the same size and extent as the bbox */
