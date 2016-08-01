@@ -36,8 +36,8 @@ class UsageStatWriter(connector: Connector, table: String) extends Runnable with
   private val queue = new java.util.concurrent.ConcurrentLinkedQueue[() => Mutation]
 
   /**
-   * Queues a stat for writing
-   */
+    * Queues a stat for writing
+    */
   def queueStat[T <: UsageStat](stat: T)(implicit transform: UsageStatTransform[T]): Unit =
     queue.offer(() => transform.statToMutation(stat))
 

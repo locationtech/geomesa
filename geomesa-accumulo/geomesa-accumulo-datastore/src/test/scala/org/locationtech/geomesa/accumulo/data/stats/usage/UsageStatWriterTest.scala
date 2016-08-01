@@ -35,7 +35,6 @@ class UsageStatWriterTest extends Specification {
   "StatWriter" should {
 
     "write query stats asynchronously" in {
-      skipped("concurrency issues cause intermittent failures- GEOMESA-323")
       val writer = new UsageStatWriter(connector, statsTable)
 
       writer.queueStat(QueryStat(featureName,
