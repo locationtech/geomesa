@@ -25,9 +25,7 @@ import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 class UsageStatWriter(connector: Connector, table: String) extends Runnable with Closeable with LazyLogging {
 
   // initial schedule
-  UsageStatWriter.executor.schedule(this, writeDelayMillis, TimeUnit.MILLISECONDS)
-
-  private val writeDelayMillis = 5000
+  UsageStatWriter.executor.schedule(this, UsageStatWriter.writeDelayMillis, TimeUnit.MILLISECONDS)
 
   private val batchWriterConfig = GeoMesaBatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(5)
 
@@ -55,7 +53,7 @@ class UsageStatWriter(connector: Connector, table: String) extends Runnable with
     }
 
     if (running.get) {
-      UsageStatWriter.executor.schedule(this, writeDelayMillis, TimeUnit.MILLISECONDS)
+      UsageStatWriter.executor.schedule(this, UsageStatWriter.writeDelayMillis, TimeUnit.MILLISECONDS)
     }
   }
 
@@ -78,6 +76,7 @@ class UsageStatWriter(connector: Connector, table: String) extends Runnable with
 }
 
 object UsageStatWriter {
+  private val writeDelayMillis = 5000
   private val executor = MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(5))
   sys.addShutdownHook(executor.shutdownNow())
 }
