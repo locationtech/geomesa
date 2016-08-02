@@ -16,6 +16,7 @@ import org.locationtech.geomesa.convert.ConverterConfigLoader
 import org.locationtech.geomesa.tools.accumulo.commands.EnvironmentCommand.EnvironmentParameters
 import org.locationtech.geomesa.tools.common.commands.Command
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypeLoader, SimpleFeatureTypes}
+import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
 
@@ -25,12 +26,15 @@ class EnvironmentCommand(parent: JCommander) extends Command(parent) with LazyLo
 
   // TODO accumulo environment?
   override def execute(): Unit = {
-    if (params.sfts == null && params.converters == null && !params.listSfts && !params.listConverters && !params.describeSfts && !params.describeConverters) {
+    if (params.sfts == null && params.converters == null && !params.listSfts &&
+      !params.listConverters && !params.describeSfts && !params.describeConverters) {
       // default - print out parameters
       println
       parent.usage(command)
-    } else if (params.listSfts){
-      listSftsNames()
+    } else {
+      if (params.listSfts) {
+        listSftsNames()
+      }
       if (params.listConverters){
         listConverterNames()
       }
@@ -46,48 +50,6 @@ class EnvironmentCommand(parent: JCommander) extends Command(parent) with LazyLo
       if (params.converters != null) {
         listConverters(params.converters.toList)
       }
-    } else if (params.listConverters){
-      listConverterNames()
-      if (params.describeSfts) {
-        listSfts()
-      }
-      if (params.describeConverters) {
-        listConverters()
-      }
-      if (params.sfts != null) {
-        listSfts(params.sfts.toList)
-      }
-      if (params.converters != null) {
-        listConverters(params.converters.toList)
-      }
-    } else if (params.describeSfts) {
-      listSfts()
-      if (params.describeConverters) {
-        listConverters()
-      }
-      if (params.sfts != null) {
-        listSfts(params.sfts.toList)
-      }
-      if (params.converters != null) {
-        listConverters(params.converters.toList)
-      }
-    } else if (params.describeConverters) {
-      listConverters()
-      if (params.sfts != null) {
-        listSfts(params.sfts.toList)
-      }
-      if (params.converters != null) {
-        listConverters(params.converters.toList)
-      }
-
-    } else if (params.sfts != null) {
-      // only list specified
-      listSfts(params.sfts.toList)
-      if (params.converters != null) {
-        listConverters(params.converters.toList)
-      }
-    } else {
-      listConverters(params.converters.toList)
     }
   }
 
@@ -98,15 +60,14 @@ class EnvironmentCommand(parent: JCommander) extends Command(parent) with LazyLo
     if (filtered.isEmpty) {
       println("\tNone available")
     } else {
-      //filtered.sortBy(_.getTypeName).map(s => s"\t${s.getTypeName} = ${SimpleFeatureTypes.encodeType(s)}").foreach(println)
-      params.format.toLowerCase match {
+      val formatFn = params.format.toLowerCase match {
         case "typesafe" =>
-          filtered.sortBy(_.getTypeName).map(s => s"\t${s.getTypeName} = ${SimpleFeatureTypes.toConfigString(s, !params.excludeUserData, params.concise)}").foreach(println)
+          (sft: SimpleFeatureType) => s"${SimpleFeatureTypes.toConfigString(sft, !params.excludeUserData, params.concise)}"
         case "spec" =>
-          filtered.sortBy(_.getTypeName).map(s => s"\t${s.getTypeName} = ${SimpleFeatureTypes.toConfigString(s, !params.excludeUserData)}").foreach(println)
-        case _ =>
-          logger.error(s"Unknown config format: ${params.format}")
+          (sft: SimpleFeatureType) => s"${SimpleFeatureTypes.encodeType(sft, !params.excludeUserData)}"
+        case _ => (sft: SimpleFeatureType) => s""
       }
+      filtered.sortBy(_.getTypeName).map(s => s"\t${s.getTypeName} = ${formatFn(s)}").foreach(println)
     }
   }
 
