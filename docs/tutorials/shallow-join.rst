@@ -3,10 +3,10 @@ Visualizing Analytics in Jupyter
 
 This tutorial will show you how to:
 
-1. Use GeoMesa with `Apache Spark <http://spark.apache.org/>`__.
+1. Use GeoMesa with `Apache Spark <http://spark.apache.org/>`__ in Scala.
 2. Calculate aggregate statistics using a covering set of polygons.
 3. Create a new simple feature type to represent this aggregation.
-4. Use Jupyter and leaflet to visualize the result.
+4. Use `Jupyter <http://jupyter.org/>` and `Leaflet <http://leafletjs.com/plugins.html/>` to visualize the result.
 
 Background
 ----------
@@ -20,13 +20,14 @@ lineage of a block of transformed data so that if a node goes down,
 Spark can restart the computation for just the missing blocks.
 
 `Jupyter Notebook <https://github.com/jupyter/notebook>`__ is an interactive web interface
-for a kernel. Jupyter allows you quickly prototype by writing code in runnable cells, computing a final result
-as you go. Visualization of data is also easily done through integration Jupyter cell "magics" to create JavaScript and
+for a kernel, which is an environment for running the code of a language. Jupyter allows you quickly prototype by
+writing code in runnable cells, computing a final result as you go. Visualization of data is also easily done through
+integration Jupyter cell "magics" (special directives for functionality outside of the kernel) to create JavaScript and
 HTML outputs.
 
 Here, we will combine these two services to demonstrate an operation we are naming "Shallow Join". This operation
 is a means of imposing a small, covering set of data, onto a much larger set of data. In our example, GDELT data has
-geometries for each event, but it is not directly known in which country the event took place. We "join" this geometry
+geometries for each event, but we do not directly know in which country it took place. We "join" this geometry
 against the polygons of the covering set in order to calculate statistics for a geographical region.
 
 
@@ -46,9 +47,9 @@ You will also need:
 
 -  a `Spark <http://spark.apache.org/>`__ 1.5.0 or later distribution
 -  an Accumulo user that has appropriate permissions to query your data
--  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
+-  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__
 -  a `Jupyter Notebook <https://github.com/jupyter/notebook>`__ server with the
-    `Apache Toree <https://toree.incubator.apache.org/documentation/user/installation.html>`__ Scala kernel installed
+    `Apache Toree <https://toree.incubator.apache.org/>`__ Scala kernel installed
 
 
 Create RDDs
@@ -98,8 +99,8 @@ Grouping by polygons
 --------------------
 
 To perform our shallow join, we send our smaller data set, countries, to each of the partitions of the larger data set,
-GDELT events. This is accomplished through a Spark broadcast, which serializes desired data and sends it to each of the
-nodes in the cluster. This way it is only copied once per task. Note also, that we collect the countries RDD into
+GDELT events. This is accomplished through a Spark broadcast, which serializes the desired data and sends it to each of the
+nodes in the cluster. This way it is only copied once per task. Note also that we collect the countries RDD into
 an Array before broadcasting. Spark does not allow broadcasting of RDDs, and due to the small size of the data set, we
 can safely collect data onto the driver node without a risk of running out of memory.
 
@@ -192,8 +193,8 @@ should they appear, but this approach makes it easy if the fields are not known 
 Aggregating by Key
 ------------------
 
-To begin aggregating we first send our new Simple Feature Type to each of the executors so that they are
-able to create and serialize Simple Features of that type.
+To begin aggregating we first send our new Simple Feature Type to each of the executors so that they can create and
+serialize Simple Features of that type.
 
 .. code-block:: scala
 
@@ -253,7 +254,7 @@ Spark also provides a ``combineByKey`` operation that also divides nicely into t
 logically complex.
 
 
-With the totals and counts calculated, we can now compute the averages for each field. Also while iterating, we can add
+With the totals and counts calculated, we can now compute the averages for each field. Also, while iterating, we can add
 the country name and geometry to each feature. To do that, we first broadcast a map of name to geometry.
 
 .. code-block:: scala
@@ -300,7 +301,7 @@ Then we can transform the aggregate RDD into one with averages and geometries ad
 Visualization
 -------------
 
-At this point, we have created a new Simple Feature Type representing aggregated data, and an RDD of Simple Features of
+At this point, we have created a new Simple Feature Type representing aggregated data and an RDD of Simple Features of
 this type. The above code can all be compiled and submitted as a Spark job, but if placed into a Jupyter Notebook, the
 RDD can be kept in memory, and even quickly tweaked while continuously updating visualizations. With a Jupyter notebook
 server running with the Apache Toree kernel, create a notebook with the above code. The next section highlights how to
@@ -308,7 +309,8 @@ create visualizations with the aggregated data.
 
 While there are many ways to visualize data from an RDD, here we choose to demonstrate the use of leaflet for easy integration
 with Jupyter Notebook. To use, either install it through Jupyter's ``nbextensions`` tool, or place the following HTML
-magic in your notebook to import it properly.
+in your notebook to import it properly. Note that we preface it with ``%%HTML``, a Jupyter cell magic, indicating that
+the cell should be interpreted as HTML.
 
 .. code-block:: HTML
 
@@ -325,7 +327,7 @@ To do this, use Toree's ``AddDeps`` magic to add the GeoTool GeoJSON dependency 
 
     %AddDeps org.geotools gt-geojson 14.1 --transitive --repository http://download.osgeo.org/webdav/geotools
 
-We are then able to transform the RDD of Simple Features to an RDD of strings, collect those strings from each partition,
+We can then transform the RDD of Simple Features to an RDD of strings, collect those strings from each partition,
  join them, and write them to a file.
 
 .. code-block:: scala
@@ -345,8 +347,9 @@ We are then able to transform the RDD of Simple Features to an RDD of strings, c
 
     // Write to file
 
-In order to modify the DOM from within a Jupyter cell, we must set up a Mutation Observer to correctly respond to asynchronous
-changes. We attach the observer to ``element``, which refers to the cell from which the javascript code is run. Within
+In order to modify the DOM (the HTML document that is the Jupyter Notebook) from within a Jupyter cell, we must set up
+a Mutation Observer to correctly respond to asynchronous changes. We attach the observer to ``element``, which refers to
+the cell from which the JavaScript code is run. Within
 this observer, we instantiate a new Leaflet map, and add a base layer from OSM.
 
 .. code-block:: javascript
@@ -361,8 +364,8 @@ this observer, we instantiate a new Leaflet map, and add a base layer from OSM.
         this.disconnect()
     })).observe(element[0], {childList: true})
 
-Further, inside the leaflet, we create a tile layer from the GeoJSON file we created. There are further options of
-creating a layer from an image file or from a Geoserver WMS layer.
+Inside the Leaflet we create a tile layer from the GeoJSON file we created. There are further options of
+creating a layer from an image file or from a GeoServer WMS layer.
 
 .. code-block:: javascript
 
@@ -382,10 +385,10 @@ creating a layer from an image file or from a Geoserver WMS layer.
     rawFile.send()
 
 There are many opportunities here to style these layers such as coloring polygons by attributes. Here we color each
-country's polygon by its average goldstein scale, indicating how events are contributing to the stability of a country
+country's polygon by its average Goldstein scale, indicating how events are contributing to the stability of a country
 during that time range.
 
 .. figure:: _static/img/tutorials/2016-07-26-shallow-join/aggregate-GDELT.png
 
 The final result of the analysis described in this tutorial is found in the Jupyter notebook: :download:`_static/shallow-join-gdelt.ipynb`.
-A static render of this notebook can be found on Github (https://github.com/locationtech/geomesa/docs/tutorials/_static/shallow-join-gdelt.ipynb).
+You can find a static render of this notebook on Github (https://github.com/locationtech/geomesa/docs/tutorials/_static/shallow-join-gdelt.ipynb).

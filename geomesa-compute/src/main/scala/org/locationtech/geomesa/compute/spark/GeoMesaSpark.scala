@@ -190,7 +190,7 @@ object GeoMesaSpark extends LazyLogging {
 
   def shallowJoin(sc: SparkContext, coveringSet: RDD[SimpleFeature], data: RDD[SimpleFeature], key: String): RDD[SimpleFeature] = {
     // Broadcast sfts to executors
-    val sfts = sc.broadcast(GeoMesaSparkKryoRegistrator.typeCache.values.map{ sft =>
+    val sfts = sc.broadcast(GeoMesaSparkKryoRegistrator.typeCache.values.map { sft =>
       (sft.getTypeName, SimpleFeatureTypes.encodeType(sft))
     }.toArray)
 
@@ -211,17 +211,19 @@ object GeoMesaSpark extends LazyLogging {
       iter.flatMap { sf =>
         // Iterate over covers until a match is found
         val it = broadcastedCover.value.iterator
-        var container = ""
-        while (it.hasNext && container == "") {
+        var container: Option[String] = None
+
+        while (it.hasNext) {
           val cover = it.next()
-          // If the cover's polygon contains the feature, set the container
-          if (cover.geometry.contains(sf.geometry)) {
-            container = cover.getAttribute(key).asInstanceOf[String]
+          // If the cover's polygon contains the feature,
+          // or in the case of non-point geoms, if they intersect, set the container
+          if (cover.geometry.intersects(sf.geometry)) {
+            container = Some(cover.getAttribute(key).asInstanceOf[String])
           }
         }
         // return the found cover as the key
-        if (container != "") {
-          Some(container, sf)
+        if (container.isDefined) {
+          Some(container.get, sf)
         } else {
           None
         }
@@ -229,23 +231,18 @@ object GeoMesaSpark extends LazyLogging {
     }
 
     // Get the indices and types of the attributes that can be aggregated and send them to the partitions
-    val featureAttributes = data.first.getAttributes.toSeq
-    val countableIndices = featureAttributes.toIndexedSeq.indices.flatMap( { index =>
-      // Skip the id
-      if (index != 0) {
-        featureAttributes(index) match {
-          case attr if attr != null && attr.getClass == classOf[Integer] =>
-            Some(index, "Integer")
-          case attr if attr != null && attr.getClass == classOf[java.lang.Long] =>
-            Some(index, "Long")
-          case attr if attr != null && attr.getClass == classOf[java.lang.Double] =>
-            Some(index, "Double")
-          case _ => None
-        }
+    val countableTypes = Seq("Integer", "Long", "Double")
+    val typeNames = data.first.getType.getTypes.toIndexedSeq.map{t => t.getBinding.getSimpleName.toString}
+
+    val countableIndices = typeNames.indices.flatMap { index =>
+      val featureType = typeNames(index)
+      // Only grab countable types, skipping the ID field
+      if ((countableTypes contains featureType) && index != 0) {
+        Some(index, featureType)
       } else {
         None
       }
-    }).toArray
+    }.toArray
     val countable = sc.broadcast(countableIndices)
 
     // Create a Simple Feature Type based on what can be aggregated
@@ -257,11 +254,11 @@ object GeoMesaSpark extends LazyLogging {
     countableIndices.foreach{ case (index, clazz) =>
         val featureName = featureProperties.apply(index).getName
         clazz match {
-          case "Integer" => sftBuilder.intType("total_" + featureName)
-          case "Long" => sftBuilder.longType("total_" + featureName)
-          case "Double" => sftBuilder.doubleType("total_" + featureName)
+          case "Integer" => sftBuilder.intType(s"total_$featureName")
+          case "Long" => sftBuilder.longType(s"total_$featureName")
+          case "Double" => sftBuilder.doubleType(s"total_$featureName")
         }
-        sftBuilder.doubleType("avg_"+featureProperties.apply(index).getName)
+        sftBuilder.doubleType(s"avg_${featureProperties.apply(index).getName}")
     }
     val coverSft = SimpleFeatureTypes.createType("aggregate",sftBuilder.getSpec)
 
@@ -277,8 +274,11 @@ object GeoMesaSpark extends LazyLogging {
       }
     }
 
+    // Pre-compute known indices and send them to workers
+    val stringAttrs = GeoMesaSparkKryoRegistrator.getType("aggregate").getAttributeDescriptors.map{_.getLocalName}
+    val countIndex = sc.broadcast(stringAttrs.indexOf("count"))
     // Reduce features by their covering area
-    val aggregate = reduceAndAggregate(keyedData, countable)
+    val aggregate = reduceAndAggregate(keyedData, countable, countIndex)
 
     // Send a map of cover name -> geom to the executors
     import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -290,7 +290,7 @@ object GeoMesaSpark extends LazyLogging {
     val broadcastedCoverMap = sc.broadcast(coverMap)
 
     // Compute averages and set cover names and geometries
-    aggregate.mapPartitions{ iter =>
+    aggregate.mapPartitions { iter =>
       import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 
       iter.flatMap{ case (coverName, sf) =>
@@ -300,12 +300,12 @@ object GeoMesaSpark extends LazyLogging {
             if (name.startsWith("total_")) {
               val count = sf.get[Integer]("count")
               val avg = prop.getValue match {
-                case (a: Integer) => a / count
-                case (a: java.lang.Long) => a / count
-                case (a: java.lang.Double) => a / count
+                case a: Integer => a.toDouble / count
+                case a: java.lang.Long => a.toDouble / count
+                case a: java.lang.Double => a / count
                 case _ => throw new Exception(s"couldn't match $name")
               }
-              sf.setAttribute("avg_" + name.substring(6), avg)
+              sf.setAttribute(s"avg_${name.substring(6)}", avg)
             }
           }
           sf.setAttribute(key, coverName)
@@ -318,7 +318,9 @@ object GeoMesaSpark extends LazyLogging {
     }
   }
 
-  def reduceAndAggregate(keyedData: RDD[(String, SimpleFeature)], countable: Broadcast[Array[(Int, String)]]): RDD[(String, SimpleFeature)] = {
+  def reduceAndAggregate(keyedData: RDD[(String, SimpleFeature)],
+                         countable: Broadcast[Array[(Int, String)]],
+                         countIndex: Broadcast[Int]): RDD[(String, SimpleFeature)] = {
 
     // Reduce features by their covering area
     val aggregate = keyedData.reduceByKey((featureA, featureB) => {
@@ -360,18 +362,21 @@ object GeoMesaSpark extends LazyLogging {
           val valA = if (propA == null) 0 else propA.getValue
           val valB = if (propB == null) 0 else propB.getValue
 
-          val sum = (valA, valB) match {
-            case (a: Integer, b: Integer) => a + b
-            case (a: java.lang.Long, b: java.lang.Long) => a + b
-            case (a: java.lang.Double, b: java.lang.Double) => a + b
-            case _ => throw new Exception("Couldn't match countable type.")
-          }
           // Set the total
-          if (propA != null) {
-            aggregateFeature.setAttribute("total_" + propA.getName.toString, sum)
+          if( propA != null && propB != null) {
+            val sum  = (valA, valB) match {
+              case (a: Integer, b: Integer) => a + b
+              case (a: java.lang.Long, b: java.lang.Long) => a + b
+              case (a: java.lang.Double, b: java.lang.Double) => a + b
+              case x => throw new Exception(s"Couldn't match countable type. $x")
+            }
+            aggregateFeature.setAttribute(s"total_${propA.getName.toString}", sum)
+          } else {
+            val sum = if (valA != null) valA else if (valB != null) valB else 0
+            aggregateFeature.setAttribute(s"total_${propB.getName.toString}", sum)
           }
         }
-        aggregateFeature.setAttribute("count", new Integer(2))
+        aggregateFeature.setAttribute(countIndex.value, new Integer(2))
         aggregateFeature
       // Case: combining a mix
       } else {
@@ -400,7 +405,7 @@ object GeoMesaSpark extends LazyLogging {
           }
 
         }
-        aggFeature.setAttribute("count", aggFeature.get[Integer]("count") + 1)
+        aggFeature.setAttribute(countIndex.value, aggFeature.get[Integer](countIndex.value) + 1)
         aggFeature
       }
     })
