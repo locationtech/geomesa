@@ -45,6 +45,20 @@ public class GeoMesaQuery {
             return this;
         }
 
+        public GeoMesaQueryBuilder before(Date end) {
+            return during(null, false, end, false);
+        }
+
+        public GeoMesaQueryBuilder after(Date start) {
+            return during(start, false, null, false);
+        }
+
+        public GeoMesaQueryBuilder allTime() {
+            this.start = null;
+            this.end = null;
+            return this;
+        }
+
         public GeoMesaQueryBuilder during(Date start, Date end) {
             return during(start, true, end, true);
         }
@@ -56,23 +70,30 @@ public class GeoMesaQuery {
          *
          * If the temporal bounds are set to non-sensical values, that will be handled elsewhere.
          *
+         * WARNING:  NULL values do *NOT* overwrite existing start/end values for the query builder.
+         * To clear out the start/end values, you must use the "allTime" method.
+         *
          * @param start the start date
          * @param isStartInclusive whether the start date should be included in the interval
          * @param end the end date
          * @param isEndInclusive whether the end date should be included in the interval
          * @return the query object updated for the effective temporal bounds
          */
-        protected GeoMesaQueryBuilder during(Date start, boolean isStartInclusive, Date end, boolean isEndInclusive) {
-            if (isStartInclusive) {
-                this.start = start;
-            } else {
-                this.start = start != null ? new Date(start.getTime() + 1L) : null;
+        public GeoMesaQueryBuilder during(Date start, boolean isStartInclusive, Date end, boolean isEndInclusive) {
+            if (start != null) {
+                if (isStartInclusive) {
+                    this.start = start;
+                } else {
+                    this.start = new Date(start.getTime() + 1L);
+                }
             }
 
-            if (isEndInclusive) {
-                this.end = end;
-            } else {
-                this.end = end != null ? new Date(end.getTime() - 1L) : null;
+            if (end != null) {
+                if (isEndInclusive) {
+                    this.end = end;
+                } else {
+                    this.end = new Date(end.getTime() - 1L);
+                }
             }
 
             return this;
