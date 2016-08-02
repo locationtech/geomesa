@@ -26,72 +26,57 @@ class EnvironmentCommand(parent: JCommander) extends Command(parent) with LazyLo
   // TODO accumulo environment?
   override def execute(): Unit = {
     if (params.sfts == null && params.converters == null && !params.listSfts && !params.listConverters && !params.describeSfts && !params.describeConverters) {
-      // default - list all
+      // default - print out parameters
+      println
       parent.usage(command)
     } else if (params.listSfts){
       listSftsNames()
       if (params.listConverters){
-        println
         listConverterNames()
       }
       if (params.describeSfts) {
-        println
         listSfts()
       }
       if (params.describeConverters) {
-        println
         listConverters()
       }
       if (params.sfts != null) {
-        println
         listSfts(params.sfts.toList)
       }
       if (params.converters != null) {
-        println
         listConverters(params.converters.toList)
       }
     } else if (params.listConverters){
-      println
       listConverterNames()
       if (params.describeSfts) {
-        println
         listSfts()
       }
       if (params.describeConverters) {
-        println
         listConverters()
       }
       if (params.sfts != null) {
-        println
         listSfts(params.sfts.toList)
       }
       if (params.converters != null) {
-        println
         listConverters(params.converters.toList)
       }
     } else if (params.describeSfts) {
-      println
       listSfts()
       if (params.describeConverters) {
-        println
         listConverters()
       }
       if (params.sfts != null) {
-        println
         listSfts(params.sfts.toList)
       }
       if (params.converters != null) {
-        println
         listConverters(params.converters.toList)
       }
     } else if (params.describeConverters) {
       listConverters()
       if (params.sfts != null) {
-        println
         listSfts(params.sfts.toList)
       }
       if (params.converters != null) {
-        println
         listConverters(params.converters.toList)
       }
 
@@ -99,7 +84,6 @@ class EnvironmentCommand(parent: JCommander) extends Command(parent) with LazyLo
       // only list specified
       listSfts(params.sfts.toList)
       if (params.converters != null) {
-        println
         listConverters(params.converters.toList)
       }
     } else {
@@ -110,7 +94,7 @@ class EnvironmentCommand(parent: JCommander) extends Command(parent) with LazyLo
   def listSfts(names: List[String] = List.empty): Unit = {
     val all = SimpleFeatureTypeLoader.sfts
     val filtered = if (names.isEmpty) all else names.flatMap(n => all.find(_.getTypeName == n))
-    println("Simple Feature Types:")
+    println("\nSimple Feature Types:")
     if (filtered.isEmpty) {
       println("\tNone available")
     } else {
@@ -129,7 +113,7 @@ class EnvironmentCommand(parent: JCommander) extends Command(parent) with LazyLo
   def listConverters(names: List[String] = List.empty): Unit = {
     val all = ConverterConfigLoader.confs
     val filtered = if (names.isEmpty) all else names.flatMap(n => all.find(_._1 == n))
-    println("Simple Feature Type Converters:")
+    println("\nSimple Feature Type Converters:")
     if (filtered.isEmpty) {
       println("\tNone available")
     } else {
@@ -140,12 +124,12 @@ class EnvironmentCommand(parent: JCommander) extends Command(parent) with LazyLo
   }
 
   def listSftsNames(): Unit = {
-    println("Simple Feature Types:")
+    println("\nSimple Feature Types:")
     val all = SimpleFeatureTypeLoader.sfts
     all.sortBy(_.getTypeName).map(s => s"\t${s.getTypeName}").foreach(println)
   }
   def listConverterNames(): Unit = {
-    println("Simple Feature Type Converters:")
+    println("\nSimple Feature Type Converters:")
     val all = ConverterConfigLoader.confs
     all.map { case (name, conf) => s"\t$name"}.toArray.sortBy(_.self).foreach(println)
   }
