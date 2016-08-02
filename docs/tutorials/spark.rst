@@ -80,7 +80,7 @@ Count Events by Day of Year
 ---------------------------
 
 You will need to have ingested some
-`GDELT <http://www.gdeltproject.org/>`__ data as described in :doc:`geomesa-examples-gdelt`.
+`GDELT <http://www.gdeltproject.org/>`__ data as described in :doc:`geomesa-examples-gdelt` and `GeoMesa tools gdelt confs <https://github.com/locationtech/geomesa/geomesa-tools/conf/sfts/gdelt>`__.
 We have an example analysis in the class
 ``geomesa-compute/src/main/scala/org/locationtech/geomesa/compute/spark/analytics/CountByDay.scala``.
 
@@ -99,8 +99,10 @@ for our bounding box.
       "auths"      -> "USER,ADMIN",
       "tableName"  -> "geomesa_catalog")
 
+    // Define a ECQL query here 
+    def filter: String = ???
     val ds = DataStoreFinder.getDataStore(params)
-    val q = new Query("event", ECQL.toFilter(filter))
+    val q = new Query("gdelt", ECQL.toFilter(filter))
 
 Next, initialize an ``RDD[SimpleFeature]`` using ``GeoMesaSpark``.
 
@@ -127,8 +129,7 @@ group.
 
 .. code-block:: scala
 
-    val groupedByDay = dayAndFeature.groupBy { case (date, _) => date }
-    val countByDay = groupedByDay.map { case (date, iter) => (date, iter.size) }
+    val countByDay = dayAndFeature.map( x => (x._1, 1)).reduceByKey(_ + _)
     countByDay.collect().foreach(println)
 
 Run the Tutorial Code
@@ -179,7 +180,7 @@ the bounding box.
 .. code-block:: scala
 
     val f = ff.bbox("geom", -180, -90, 180, 90, "EPSG:4326")
-    val q = new Query("event", f)
+    val q = new Query("gdelt", f)
 
     val queryRDD = GeoMesaSpark.rdd(new Configuration, sc, params, q, None)
 
@@ -196,10 +197,7 @@ Then, group by grid cell and count the number of features per cell.
 
 .. code-block:: scala
 
-    val density = discretized
-       .groupBy { case (gh, _)    => gh }
-       .map     { case (gh, iter) => (gh.bbox.envelope, iter.size) }
-
+    val density = discretized.reduceByKey(_ + _)
     density.collect.foreach(println)
 
 The resulting density plot is visualized below.

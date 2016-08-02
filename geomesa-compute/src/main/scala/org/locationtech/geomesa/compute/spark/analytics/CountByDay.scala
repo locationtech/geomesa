@@ -27,11 +27,12 @@ object CountByDay {
     "zookeepers" -> "zoo1,zoo2,zoo3",
     "user"       -> "user",
     "password"   -> "password",
-    "tableName"  -> "gdelt")
+    "tableName"  -> "geomesa_catalog")
 
-  val typeName = "event"
+  // see geomesa-tools/conf/sfts/gdelt/reference.conf
+  val typeName = "gdelt"
   val geom     = "geom"
-  val date     = "SQLDATE"
+  val date     = "dtg"
 
   val bbox   = "-80, 35, -79, 36"
   val during = "2014-01-01T00:00:00.000Z/2014-01-31T12:00:00.000Z"
@@ -60,11 +61,8 @@ object CountByDay {
       iter.map { f => (df.format(exp.evaluate(f).asInstanceOf[java.util.Date]), f) }
     }
 
-    // Group the results by day
-    val groupedByDay = dayAndFeature.groupBy { case (day, _) => day }
-
     // Count the number of features in each day
-    val countByDay = groupedByDay.map { case (day, iter) => (day, iter.size) }
+    val countByDay = dayAndFeature.map( x => (x._1, 1)).reduceByKey(_ + _)
 
     // Collect the results and print
     countByDay.collect().foreach(println)
