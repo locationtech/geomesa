@@ -73,7 +73,8 @@ class AccumuloRasterStore(val connector: Connector,
       RasterUtils.mosaicChunks(rasters, params.width.toInt, params.height.toInt, params.envelope),
       "mosaic")
     if (collectStats) {
-      val stat = RasterQueryStat(tableName,
+      val stat = RasterQueryStat("Accumulo Raster",
+                                 tableName,
                                  System.currentTimeMillis(),
                                  query.toString,
                                  timings.time("planning"),

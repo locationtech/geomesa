@@ -17,6 +17,7 @@ import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.data.stats.usage._
 import org.locationtech.geomesa.accumulo.index.{QueryHints, QueryPlanner}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.geotools.UsageStat
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

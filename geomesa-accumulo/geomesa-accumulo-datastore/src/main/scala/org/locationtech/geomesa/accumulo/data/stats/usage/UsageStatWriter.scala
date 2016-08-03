@@ -18,6 +18,7 @@ import org.apache.accumulo.core.client.{BatchWriter, Connector}
 import org.apache.accumulo.core.data.Mutation
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
+import org.locationtech.geomesa.utils.geotools.UsageStat
 
 /**
  * Manages writing of usage stats in a background thread.

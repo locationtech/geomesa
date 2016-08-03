@@ -86,6 +86,8 @@ object KafkaDataStoreFactoryParams {
   val IS_PRODUCER_PARAM  = new Param("isProducer", classOf[java.lang.Boolean], "Is Producer", false, false)
   val EXPIRATION_PERIOD  = new Param("expirationPeriod", classOf[java.lang.Long], "Features will be auto-dropped (expired) after this delay in milliseconds. Leave blank or use -1 to not drop features.", false)
   val CLEANUP_LIVE_CACHE = new Param("cleanUpCache", classOf[java.lang.Boolean], "Run a thread to clean up the live feature cache every second if set to true. False by default.", false)
+  val MONITOR            = new Param("monitor", classOf[java.lang.Boolean], "Enable monitoring stats for feature store.", false)
+
 }
 
 object KafkaDataStore {

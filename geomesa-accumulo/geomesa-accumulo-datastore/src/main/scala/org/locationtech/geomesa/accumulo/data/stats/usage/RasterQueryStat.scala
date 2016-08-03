@@ -15,11 +15,13 @@ import java.util.Map.Entry
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.apache.hadoop.io.Text
 import org.calrissian.mango.types.encoders.lexi.LongReverseEncoder
+import org.locationtech.geomesa.utils.geotools.UsageStat
 
 /**
  * Class for capturing query-related stats
  */
-case class RasterQueryStat(typeName:   String,
+case class RasterQueryStat(storeType: String,
+                           typeName:   String,
                            date:          Long,
                            rasterQuery:   String,
                            planningTime:  Long,
@@ -87,7 +89,7 @@ object RasterQueryStatTransform extends UsageStatTransform[RasterQueryStat] {
     val mosaicTime = values.getOrElse(CQ_MOSAICTIME, 0L).asInstanceOf[Long]
     val hits = values.getOrElse(CQ_HITS, 0).asInstanceOf[Int]
 
-    RasterQueryStat(featureName, date, rasterQuery, planTime, scanTime, mosaicTime, hits)
+    RasterQueryStat("Accumulo Raster", featureName, date, rasterQuery, planTime, scanTime, mosaicTime, hits)
   }
 
   def decodeStat(entry: Entry[Key, Value]): String = {

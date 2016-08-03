@@ -16,13 +16,14 @@ import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.QueryHints._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{UsageStat, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeatureType
 
 /**
  * Class for capturing query-related stats
  */
-case class QueryStat(typeName: String,
+case class QueryStat(storeType: String,
+                     typeName: String,
                      date:     Long,
                      user:     String,
                      filter:   String,
@@ -30,7 +31,7 @@ case class QueryStat(typeName: String,
                      planTime: Long,
                      scanTime: Long,
                      hits:     Long,
-                     deleted:  Boolean = false) extends UsageStat
+                     deleted:  Boolean = false) extends DeletableUsageStat
 
 /**
  * Maps query stats to accumulo
@@ -90,7 +91,7 @@ object QueryStatTransform extends UsageStatTransform[QueryStat] {
     val hits = values.getOrElse(CQ_HITS, 0).asInstanceOf[Int]
     val deleted = values.getOrElse(CQ_DELETED, false).asInstanceOf[Boolean]
 
-    QueryStat(featureName, date, user, queryFilter, queryHints, planTime, scanTime, hits, deleted)
+    QueryStat("Accumulo Vector", featureName, date, user, queryFilter, queryHints, planTime, scanTime, hits, deleted)
   }
 
   // list of query hints we want to persist
@@ -147,10 +148,11 @@ object QueryStatTransform extends UsageStatTransform[QueryStat] {
   }
 }
 
-case class SerializedQueryStat(typeName: String,
+case class SerializedQueryStat(storeType: String,
+                               typeName: String,
                                date:     Long,
                                deleted:  Boolean,
-                               entries:  Map[(Text, Text), Value]) extends UsageStat {
+                               entries:  Map[(Text, Text), Value]) extends DeletableUsageStat {
   lazy val user = entries.find(_._1._2 == QueryStatTransform.CQ_USER).map(_._2.toString).getOrElse("unknown")
 }
 
@@ -171,6 +173,6 @@ object SerializedQueryStatTransform extends UsageStatTransform[SerializedQuerySt
     val (delete, others) = kvs.partition(_._1._2 == CQ_DELETED)
     // noinspection MapGetOrElseBoolean
     val deleted = delete.headOption.map(_._2.toString.toBoolean).getOrElse(false)
-    SerializedQueryStat(typeName, date, deleted, others.toMap)
+    SerializedQueryStat("Accumulo Vector", typeName, date, deleted, others.toMap)
   }
 }

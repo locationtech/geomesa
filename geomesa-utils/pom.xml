@@ -73,6 +73,10 @@
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
+            <artifactId>gt-cql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
             <artifactId>gt-grid</artifactId>
         </dependency>
         <dependency>
@@ -106,6 +110,10 @@
         <dependency>
             <groupId>com.esotericsoftware.kryo</groupId>
             <artifactId>kryo</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
