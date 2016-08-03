@@ -77,6 +77,11 @@ public interface GeoMesaIndex<T> {
     void delete(String id);
 
     /**
+     * Removes the entire index from GeoMesa.
+     */
+    void removeSchema();
+
+    /**
      * Flushes any pending transactions
      */
     void flush();
