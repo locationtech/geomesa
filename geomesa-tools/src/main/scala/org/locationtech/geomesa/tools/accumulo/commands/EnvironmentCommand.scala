@@ -60,14 +60,18 @@ class EnvironmentCommand(parent: JCommander) extends Command(parent) with LazyLo
     if (filtered.isEmpty) {
       println("\tNone available")
     } else {
-      val formatFn = params.format.toLowerCase match {
-        case "typesafe" =>
-          (sft: SimpleFeatureType) => s"${SimpleFeatureTypes.toConfigString(sft, !params.excludeUserData, params.concise)}"
-        case "spec" =>
-          (sft: SimpleFeatureType) => s"${SimpleFeatureTypes.encodeType(sft, !params.excludeUserData)}"
-        case _ => (sft: SimpleFeatureType) => s""
+      val paramsLower = params.format.toLowerCase
+      if(paramsLower == "typesafe" || paramsLower == "spec") {
+        val formatFn = paramsLower match {
+          case "typesafe" =>
+            (sft: SimpleFeatureType) => s"${SimpleFeatureTypes.toConfigString(sft, !params.excludeUserData, params.concise)}"
+          case "spec" =>
+            (sft: SimpleFeatureType) => s"${SimpleFeatureTypes.encodeType(sft, !params.excludeUserData)}"
+        }
+        filtered.sortBy(_.getTypeName).map(s => s"\t${s.getTypeName} = ${formatFn(s)}").foreach(println)
+      } else {
+        logger.error(s"Unknown config format: ${params.format}")
       }
-      filtered.sortBy(_.getTypeName).map(s => s"\t${s.getTypeName} = ${formatFn(s)}").foreach(println)
     }
   }
 
