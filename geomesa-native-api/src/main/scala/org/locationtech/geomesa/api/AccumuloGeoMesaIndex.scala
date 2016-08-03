@@ -31,7 +31,7 @@ import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeature
 
 @InterfaceStability.Unstable
-class AccumuloGeoMesaIndex[T](ds: AccumuloDataStore,
+class AccumuloGeoMesaIndex[T](protected val ds: AccumuloDataStore,
                               name: String,
                               serde: ValueSerializer[T],
                               view: SimpleFeatureView[T]
@@ -111,6 +111,9 @@ class AccumuloGeoMesaIndex[T](ds: AccumuloDataStore,
   override def update(id: String, newValue: T, geometry: Geometry, dtg: Date): Unit = ???
 
   override def delete(id: String): Unit = fs.removeFeatures(ECQL.toFilter(s"IN('$id')"))
+
+  // should remove the index (SFT) as well as the associated Accumulo tables, if appropriate
+  override def removeSchema(): Unit = ds.removeSchema(sft.getTypeName)
 
   override def flush(): Unit = {
     // DO NOTHING - using AUTO_COMMIT

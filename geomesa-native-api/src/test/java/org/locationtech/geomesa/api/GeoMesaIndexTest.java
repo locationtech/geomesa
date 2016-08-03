@@ -25,15 +25,14 @@ import org.geotools.feature.AttributeTypeBuilder;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.junit.Assert;
 import org.junit.Test;
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.filter.FilterFactory2;
 
 import javax.annotation.Nullable;
 import java.time.ZonedDateTime;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class GeoMesaIndexTest {
 
@@ -229,6 +228,73 @@ public class GeoMesaIndexTest {
             }
         });
         Assert.assertArrayEquals("Invalid results", new String[] { }, Iterables.toArray(idsPostDelete, String.class));
+    }
+
+    /**
+     * Utility method to return all of the table names that begin with the given prefix.
+     */
+    private static SortedSet<String> filterTablesByPrefix(SortedSet<String> tables, String prefix) {
+        SortedSet<String> result = new TreeSet<String>();
+
+        for(String table : tables) {
+            if (table.startsWith(prefix)) result.add(table);
+        }
+
+        return result;
+    }
+
+    @Test
+    public void testRemoveSchema() {
+        String featureName = "deleteme";
+
+        // create the index, and insert a few records
+        final GeoMesaIndex<DomainObject> index =
+                AccumuloGeoMesaIndex.buildWithView(
+                        featureName,
+                        "zoo1:2181",
+                        "mycloud",
+                        "myuser", "mypass",
+                        true,
+                        new DomainObjectValueSerializer(),
+                        new SimpleFeatureView<DomainObject>() {
+                            AttributeTypeBuilder atb = new AttributeTypeBuilder();
+                            private List<AttributeDescriptor> attributeDescriptors =
+                                    Lists.newArrayList(atb.binding(Integer.class).buildDescriptor("age"));
+                            @Override
+                            public void populate(SimpleFeature f, DomainObject domainObject, String id, byte[] payload, Geometry geom, Date dtg) {
+                                f.setAttribute("age", 50);
+                            }
+
+                            @Override
+                            public List<AttributeDescriptor> getExtraAttributes() {
+                                return attributeDescriptors;
+                            }
+                        });
+        index.insert(
+                one.id,
+                one,
+                gf.createPoint(new Coordinate(-78.0, 38.0)),
+                date("2016-01-01T12:15:00.000Z"));
+        index.insert(
+                two.id,
+                two,
+                gf.createPoint(new Coordinate(-78.0, 40.0)),
+                date("2016-02-01T12:15:00.000Z"));
+
+        // fetch the underlying Accumulo data store
+        AccumuloDataStore ds = ((AccumuloGeoMesaIndex)index).ds();
+
+        // look up the tables that exist
+        SortedSet<String> preTables = filterTablesByPrefix(ds.connector().tableOperations().list(), featureName);
+        Assert.assertFalse("creating a MockAccumulo instance should create at least one table", preTables.isEmpty());
+
+        // remove the schema
+        index.removeSchema();
+
+        // ensure that all of the tables are now gone
+        SortedSet<String> postTables = filterTablesByPrefix(ds.connector().tableOperations().list(), featureName);
+        Assert.assertTrue("removeScheme on a MockAccumulo instance should remove all but two tables",
+                postTables.contains(featureName) && postTables.contains(featureName + "_stats") && postTables.size() == 2);
     }
 
     private Date date(String s) {
