@@ -60,7 +60,7 @@ object XZ2Table extends GeoMesaTable {
     (row: Text) => new String(row.getBytes, offset, row.getLength - offset, StandardCharsets.UTF_8)
   }
 
-  // table sharing (0-1 byte), split(1 byte), z value (8 bytes), id (n bytes)
+  // table sharing (0-1 byte), split(1 byte), xz value (8 bytes), id (n bytes)
   private def getRowKey(tableSharing: Array[Byte])(wf: WritableFeature): Array[Byte] = {
     val split = SPLIT_ARRAYS(wf.idHash % NUM_SPLITS)
     val envelope = wf.feature.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal

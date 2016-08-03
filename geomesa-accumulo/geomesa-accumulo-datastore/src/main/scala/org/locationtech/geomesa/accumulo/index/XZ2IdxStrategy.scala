@@ -84,7 +84,7 @@ class XZ2IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging 
         Seq(new aRange())
       }
     } else {
-      // setup Z2 iterator
+      // determine the ranges using the XZ curve
       val xy = geometries.map(GeometryUtils.bounds)
       val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
       val zRanges = XZ2Table.SFC.ranges(xy, rangeTarget).map { range =>

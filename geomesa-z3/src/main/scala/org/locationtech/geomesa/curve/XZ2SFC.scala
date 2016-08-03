@@ -29,7 +29,7 @@ class XZ2SFC(g: Short) {
     * Index a polygon by it's bounding box
     *
     * @param bounds (xmin, ymin, xmax, ymax)
-    * @return
+    * @return z value for the bounding box
     */
   def index(bounds: (Double, Double, Double, Double)): Long = index(bounds._1, bounds._2, bounds._3, bounds._4)
 
@@ -40,7 +40,7 @@ class XZ2SFC(g: Short) {
     * @param ymin min y value in [-90,90]
     * @param xmax max x value in [-180,180], must be >= xmin
     * @param ymax max y value in [-90,90], must be >= ymin
-    * @return
+    * @return z value for the bounding box
     */
   def index(xmin: Double, ymin: Double, xmax: Double, ymax: Double): Long = {
     // normalize inputs to [0,1]
@@ -52,7 +52,7 @@ class XZ2SFC(g: Short) {
     val h = nymax - nymin
 
     // el-one is a bit confusing to read, but corresponds with the paper's definitions
-    val l1 = math.min(g, math.floor(math.log(math.max(w, h)) / math.log(0.5)).toInt)
+    val l1 = math.min(g, math.floor(math.log(math.max(w, h)) / XZ2SFC.LogPointFive).toInt)
 
     // predicate for checking how many axis the polygon intersects
     def predicate(value: Double, wh: Double): Boolean = math.floor((value / l1) + 2) * l1 <= value + wh
@@ -311,6 +311,8 @@ object XZ2SFC {
   val QueryMinY = -90.0
   val QueryMaxX = 180.0
   val QueryMaxY = 90.0
+
+  val LogPointFive = math.log(0.5)
 
   private val QueryRangeX = QueryMaxX - QueryMinX
   private val QueryRangeY = QueryMaxY - QueryMinY
