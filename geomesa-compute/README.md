@@ -35,11 +35,11 @@ object CountByDay {
     
     // Configure Spark    
     val conf = new Configuration
-    val sconf = init(new SparkConf(true), ds)
+    val sconf = GeoMesaSpark.init(new SparkConf(true), ds)
     val sc = new SparkContext(sconf)
 
     // Create an RDD from a query
-    val queryRDD = geomesa.compute.spark.GeoMesaSpark.rdd(conf, sc, ds, query)
+    val queryRDD = GeoMesaSpark.rdd(conf, sc, ds, query)
     
     // Convert RDD[SimpleFeature] to RDD[(String, SimpleFeature)] where the first
     // element of the tuple is the date to the day resolution
@@ -50,11 +50,8 @@ object CountByDay {
       iter.map { f => (df.format(exp.evaluate(f).asInstanceOf[java.util.Date]), f) }
     }
     
-    // Group the results by day
-    val groupedByDay = dayAndFeature.groupBy { case (date, _) => date }
-    
     // Count the number of features in each day
-    val countByDay = groupedByDay.map { case (date, iter) => (date, iter.size) }
+    val countByDay = dayAndFeature.map( x => (x._1, 1)).reduceByKey(_ + _) 
     
     // Collect the results and print
     countByDay.collect.foreach(println)
@@ -70,6 +67,18 @@ $ /opt/spark/bin/spark-submit --master yarn-client --num-executors 40 --executor
 ```
 
 ### Spark Shell Execution
-To run the spark shell (for spark version 1.1.0) compile and run:
 
-    bin/spark-shell --driver-class-path /path/to/geomesa-compute-accumulo1.5-1.0.0-rc.3-SNAPSHOT-shaded.jar
+Add the following values to `$SPARK_HOME/conf/spark-defaults.conf`:
+
+```
+spark.serializer                   org.apache.spark.serializer.KryoSerializer
+spark.kryo.registrator             org.locationtech.geomesa.compute.spark.GeoMesaSparkKryoRegistrator
+spark.kryo.registrationRequired    false
+```
+
+To run the spark shell (for spark version 1.5.0) compile and run:
+
+    bin/spark-shell --jars /path/to/geomesa-compute-1.2.4-shaded.jar
+
+The example code above is provided a script for `spark-shell` under `geomesa-compute/scripts/test/scala/localtest.scala`.
+
