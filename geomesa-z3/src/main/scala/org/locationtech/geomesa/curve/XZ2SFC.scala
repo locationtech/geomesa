@@ -51,15 +51,13 @@ class XZ2SFC(g: Short) {
     val w = nxmax - nxmin
     val h = nymax - nymin
 
-    // el-one is a bit confusing to read, but corresponds with the paper's definitions
-    val l1 = math.min(g, math.floor(math.log(math.max(w, h)) / XZ2SFC.LogPointFive).toInt)
+    val (wh, lower, upper) = if (w > h) (w, nxmin, nxmax) else (h, nymin, nymax)
+
+    // l1 (el-one) is a bit confusing to read, but corresponds with the paper's definitions
+    val l1 = math.min(g, math.floor(math.log(wh) / XZ2SFC.LogPointFive).toInt)
 
     // predicate for checking how many axis the polygon intersects
-    def predicate(value: Double, wh: Double): Boolean = math.floor((value / l1) + 2) * l1 <= value + wh
-
-    // note: this part of the paper is slightly confusing - do both x AND y have to satisfy the predicate?
-    // from experimental results seems that way
-    val length = if (predicate(nxmin, w) && predicate(nymin, h)) l1 else l1 + 1
+    val length = if (math.floor((lower / l1) + 2) * l1 <= upper) l1 else l1 + 1
 
     sequenceCode(nxmin, nymin, length)
   }
