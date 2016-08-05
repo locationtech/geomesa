@@ -30,7 +30,13 @@ case class QueryStat(typeName: String,
                      planTime: Long,
                      scanTime: Long,
                      hits:     Long,
-                     deleted:  Boolean = false) extends UsageStat
+                     deleted:  Boolean = false) extends DeletableUsageStat {
+  def storeType = QueryStat.storeType
+}
+
+object QueryStat {
+  val storeType = "vector-accumulo"
+}
 
 /**
  * Maps query stats to accumulo
@@ -150,7 +156,8 @@ object QueryStatTransform extends UsageStatTransform[QueryStat] {
 case class SerializedQueryStat(typeName: String,
                                date:     Long,
                                deleted:  Boolean,
-                               entries:  Map[(Text, Text), Value]) extends UsageStat {
+                               entries:  Map[(Text, Text), Value]) extends DeletableUsageStat {
+  def storeType = QueryStat.storeType
   lazy val user = entries.find(_._1._2 == QueryStatTransform.CQ_USER).map(_._2.toString).getOrElse("unknown")
 }
 

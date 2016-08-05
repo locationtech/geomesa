@@ -15,6 +15,7 @@ import java.util.Map.Entry
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.apache.hadoop.io.Text
 import org.calrissian.mango.types.encoders.lexi.LongReverseEncoder
+import org.locationtech.geomesa.utils.monitoring.UsageStat
 
 /**
  * Class for capturing query-related stats
@@ -26,7 +27,13 @@ case class RasterQueryStat(typeName:   String,
                            scanTime:      Long,
                            mosaicTime:    Long,
                            numResults:    Int,
-                           deleted: Boolean = false) extends UsageStat
+                           deleted: Boolean = false) extends UsageStat {
+  override def storeType: String = RasterQueryStat.storeType
+}
+
+object RasterQueryStat {
+  val storeType = "raster-accumulo"
+}
 
 /**
  * Maps query stats to accumulo
