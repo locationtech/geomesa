@@ -170,11 +170,11 @@ object AccumuloGeoMesaIndex {
                        valueSerializer: ValueSerializer[T],
                        view: SimpleFeatureView[T]) = {
 
-    val ds = AccumuloDataStoreFactory.createDataStore(
-      connector,
+    val ds = DataStoreFinder.getDataStore(
       Map[String, java.io.Serializable](
+        AccumuloDataStoreParams.connParam.key -> connector.asInstanceOf[java.io.Serializable],
         AccumuloDataStoreParams.tableNameParam.key -> name
-      ).asJava)
+      ).asJava).asInstanceOf[AccumuloDataStore]
     new AccumuloGeoMesaIndex[T](ds, name, valueSerializer, view)
   }
 
