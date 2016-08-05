@@ -10,25 +10,27 @@ package org.locationtech.geomesa.api
 
 import java.lang.Iterable
 import java.util
-import java.util.Date
+import java.util.{Date, List => JList}
 
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.vividsolutions.jts.geom.Geometry
+import org.apache.accumulo.core.client.Connector
 import org.apache.hadoop.classification.InterfaceStability
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.data.{DataStoreFinder, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
+import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.util.Z3UuidGenerator
 import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.SftBuilder
-import org.locationtech.geomesa.utils.geotools.SftBuilder.Opts
 import org.locationtech.geomesa.utils.stats.Cardinality
-import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeature
+
+import scala.collection.JavaConverters._
 
 @InterfaceStability.Unstable
 class AccumuloGeoMesaIndex[T](protected val ds: AccumuloDataStore,
@@ -37,20 +39,9 @@ class AccumuloGeoMesaIndex[T](protected val ds: AccumuloDataStore,
                               view: SimpleFeatureView[T]
                              ) extends GeoMesaIndex[T] {
 
-  import scala.collection.JavaConversions._
+  val sft = AccumuloGeoMesaIndex.buildSimpleFeatureType(name)(view)
 
-
-  val builder = new SftBuilder()
-    .date("dtg", true, true)
-    .bytes("payload", new SftBuilder.Opts(false, false, false, Cardinality.UNKNOWN))
-    .geometry("geom", true)
-    .userData("geomesa.mixed.geometries", "true")
-
-  view.getExtraAttributes.foreach { builder.attributeDescriptor }
-
-  val sft = builder.build(name)
-
-  if(!ds.getTypeNames.contains(sft.getTypeName)) {
+  if (!ds.getTypeNames.contains(sft.getTypeName)) {
     ds.createSchema(sft)
   }
 
@@ -100,7 +91,7 @@ class AccumuloGeoMesaIndex[T](protected val ds: AccumuloDataStore,
   }
 
   private def setVisibility(sf: SimpleFeature, hints: util.Map[String, AnyRef]): Unit = {
-    if(hints != null && hints.containsKey(AccumuloGeoMesaIndex.VISIBILITY)) {
+    if (hints != null && hints.containsKey(AccumuloGeoMesaIndex.VISIBILITY)) {
       val viz = hints.get(AccumuloGeoMesaIndex.VISIBILITY)
       sf.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, viz)
     }
@@ -122,7 +113,9 @@ class AccumuloGeoMesaIndex[T](protected val ds: AccumuloDataStore,
   override def close(): Unit = {
     import scala.collection.JavaConversions._
 
-    writers.asMap().values().foreach { _.close() }
+    writers.asMap().values().foreach {
+      _.close()
+    }
     ds.dispose()
   }
 
@@ -132,6 +125,18 @@ class AccumuloGeoMesaIndex[T](protected val ds: AccumuloDataStore,
 @InterfaceStability.Unstable
 object AccumuloGeoMesaIndex {
   def build[T](name: String,
+               connector: Connector,
+               valueSerializer: ValueSerializer[T]): AccumuloGeoMesaIndex[T] = {
+    build(name, connector, valueSerializer, new DefaultSimpleFeatureView[T](name))
+  }
+
+  def build[T](name: String,
+               connector: Connector,
+               valueSerializer: ValueSerializer[T],
+               view: SimpleFeatureView[T]): AccumuloGeoMesaIndex[T] =
+    buildWithView[T](name, connector, valueSerializer, view)
+
+  def build[T](name: String,
                zk: String,
                instanceId: String,
                user: String, pass: String,
@@ -140,23 +145,36 @@ object AccumuloGeoMesaIndex {
               (view: SimpleFeatureView[T] = new DefaultSimpleFeatureView[T](name)) =
     buildWithView[T](name, zk, instanceId, user, pass, mock, valueSerializer, view)
 
-    def buildWithView[T](name: String,
-                 zk: String,
-                 instanceId: String,
-                 user: String, pass: String,
-                 mock: Boolean,
-                 valueSerializer: ValueSerializer[T],
-                 view: SimpleFeatureView[T]) = {
+  def buildWithView[T](name: String,
+                       zk: String,
+                       instanceId: String,
+                       user: String, pass: String,
+                       mock: Boolean,
+                       valueSerializer: ValueSerializer[T],
+                       view: SimpleFeatureView[T]) = {
     import scala.collection.JavaConversions._
     val ds =
       DataStoreFinder.getDataStore(Map(
-        AccumuloDataStoreParams.tableNameParam.key   -> name,
-        AccumuloDataStoreParams.zookeepersParam.key  -> zk,
-        AccumuloDataStoreParams.instanceIdParam.key  -> instanceId,
-        AccumuloDataStoreParams.userParam.key        -> user,
-        AccumuloDataStoreParams.passwordParam.key    -> pass,
-        AccumuloDataStoreParams.mockParam.key        -> (if(mock) "TRUE" else "FALSE")
+        AccumuloDataStoreParams.tableNameParam.key -> name,
+        AccumuloDataStoreParams.zookeepersParam.key -> zk,
+        AccumuloDataStoreParams.instanceIdParam.key -> instanceId,
+        AccumuloDataStoreParams.userParam.key -> user,
+        AccumuloDataStoreParams.passwordParam.key -> pass,
+        AccumuloDataStoreParams.mockParam.key -> (if (mock) "TRUE" else "FALSE")
       )).asInstanceOf[AccumuloDataStore]
+    new AccumuloGeoMesaIndex[T](ds, name, valueSerializer, view)
+  }
+
+  def buildWithView[T](name: String,
+                       connector: Connector,
+                       valueSerializer: ValueSerializer[T],
+                       view: SimpleFeatureView[T]) = {
+
+    val ds = AccumuloDataStoreFactory.createDataStore(
+      connector,
+      Map[String, java.io.Serializable](
+        AccumuloDataStoreParams.tableNameParam.key -> name
+      ).asJava)
     new AccumuloGeoMesaIndex[T](ds, name, valueSerializer, view)
   }
 
@@ -166,7 +184,37 @@ object AccumuloGeoMesaIndex {
                           user: String, pass: String,
                           mock: Boolean,
                           valueSerializer: ValueSerializer[T]) = {
-    build(name, zk, instanceId, user, pass, mock, valueSerializer)(new DefaultSimpleFeatureView[T](name))
+    build(name, zk, instanceId, user, pass, mock, valueSerializer)()
+  }
+
+  def buildDefaultView[T](name: String,
+                          connector: Connector,
+                          valueSerializer: ValueSerializer[T]) = {
+    build(name, connector, valueSerializer, new DefaultSimpleFeatureView[T](name))
+  }
+
+  private def buildSimpleFeatureType[T](name: String)
+                                       (view: SimpleFeatureView[T] = new DefaultSimpleFeatureView[T](name)) = {
+    val builder = new SftBuilder()
+      .date("dtg", true, true)
+      .bytes("payload", new SftBuilder.Opts(false, false, false, Cardinality.UNKNOWN))
+      .geometry("geom", true)
+      .userData("geomesa.mixed.geometries", "true")
+
+    view.getExtraAttributes.asScala.foreach {
+      builder.attributeDescriptor
+    }
+
+    builder.build(name)
+  }
+
+  def getTableNames[T](name: String): JList[String] =
+    getTableNames[T](name, new DefaultSimpleFeatureView[T](name))
+
+  def getTableNames[T](name: String, view: SimpleFeatureView[T]): JList[String] = {
+    val sft = buildSimpleFeatureType(name)(view)
+    val tables = GeoMesaTable.getTables(sft)
+    (tables.map(_.formatTableName(name, sft)) :+ name :+ s"${name}_stats").asJava
   }
 
   final val VISIBILITY = "visibility"
