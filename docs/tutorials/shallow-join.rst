@@ -6,7 +6,9 @@ This tutorial will show you how to:
 1. Use GeoMesa with `Apache Spark <http://spark.apache.org/>`__ in Scala.
 2. Calculate aggregate statistics using a covering set of polygons.
 3. Create a new simple feature type to represent this aggregation.
-4. Use `Jupyter <http://jupyter.org/>` and `Leaflet <http://leafletjs.com/plugins.html/>` to visualize the result.
+4. Use `Jupyter <http://jupyter.org/>`__ and `Leaflet <http://leafletjs.com/plugins.html/>`__ to visualize the result.
+
+The end of the tutorial provides a link to a downloadable Jupyter notebook with all the necessary code.
 
 Background
 ----------
@@ -22,7 +24,7 @@ Spark can restart the computation for just the missing blocks.
 `Jupyter Notebook <https://github.com/jupyter/notebook>`__ is an interactive web interface
 for a kernel, which is an environment for running the code of a language. Jupyter allows you quickly prototype by
 writing code in runnable cells, computing a final result as you go. Visualization of data is also easily done through
-integration Jupyter cell "magics" (special directives for functionality outside of the kernel) to create JavaScript and
+integration of Jupyter cell "magics" (special directives for functionality outside of the kernel) to create JavaScript and
 HTML outputs.
 
 Here, we will combine these two services to demonstrate an operation we are naming "Shallow Join". This operation
@@ -51,10 +53,9 @@ Prerequisites
 You will also need:
 
 -  a `Spark <http://spark.apache.org/>`__ 1.5.0 or later distribution
--  an Accumulo user that has appropriate permissions to query your data
+-  Accumulo user credentials with appropriate permissions to query your data
 -  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__
--  a `Jupyter Notebook <https://github.com/jupyter/notebook>`__ server with the
-    `Apache Toree <https://toree.incubator.apache.org/>`__ Scala kernel installed
+-  a `Jupyter Notebook <https://github.com/jupyter/notebook>`__ server with the `Apache Toree <https://toree.incubator.apache.org/>`__ Scala kernel installed
 
 
 Create RDDs
@@ -218,7 +219,7 @@ the same key, apply the given function, and replace them with the result. Here, 
 2. The two Simple Features have both been aggregated into one of a new type.
 3. One of the Simple Features has been aggregated (but not both).
 
-For the sake of brevity, we will only show the first case, with the other three following similar patterns.
+For the sake of brevity, we will only show the first case, with the other two following similar patterns.
 
 .. code-block:: scala
 
@@ -303,14 +304,15 @@ Visualization
 
 At this point, we have created a new Simple Feature Type representing aggregated data and an RDD of Simple Features of
 this type. The above code can all be compiled and submitted as a Spark job, but if placed into a Jupyter Notebook, the
-RDD can be kept in memory, and even quickly tweaked while continuously updating visualizations. With a Jupyter notebook
-server running with the Apache Toree kernel, create a notebook with the above code. The next section highlights how to
-create visualizations with the aggregated data.
+RDD can be kept in memory and even quickly tweaked while continuously updating visualizations.
 
-While there are many ways to visualize data from an RDD, here we choose to demonstrate the use of leaflet for easy integration
-with Jupyter Notebook. To use, either install it through Jupyter's ``nbextensions`` tool, or place the following HTML
-in your notebook to import it properly. Note that we preface it with ``%%HTML``, a Jupyter cell magic, indicating that
-the cell should be interpreted as HTML.
+With a Jupyter notebook server running with the Apache Toree kernel, create a notebook with the above code. The next
+section highlights how to create visualizations with the aggregated data.
+
+While there are many ways to visualize data from an RDD, here we choose to demonstrate the use of Leaflet, a JavaScript
+library for creating interactive maps, for easy integration of the map image with Jupyter Notebook. To use, either
+install it through Jupyter's ``nbextensions`` tool, or place the following HTML in your notebook to import it properly.
+Note that we preface it with ``%%HTML``, a Jupyter cell magic, indicating that the cell should be interpreted as HTML.
 
 .. code-block:: HTML
 
@@ -328,7 +330,7 @@ To do this, use Toree's ``AddDeps`` magic to add the GeoTool GeoJSON dependency 
     %AddDeps org.geotools gt-geojson 14.1 --transitive --repository http://download.osgeo.org/webdav/geotools
 
 We can then transform the RDD of Simple Features to an RDD of strings, collect those strings from each partition,
- join them, and write them to a file.
+join them, and write them to a file.
 
 .. code-block:: scala
 
@@ -347,10 +349,9 @@ We can then transform the RDD of Simple Features to an RDD of strings, collect t
 
     // Write to file
 
-In order to modify the DOM (the HTML document that is the Jupyter Notebook) from within a Jupyter cell, we must set up
-a Mutation Observer to correctly respond to asynchronous changes. We attach the observer to ``element``, which refers to
-the cell from which the JavaScript code is run. Within
-this observer, we instantiate a new Leaflet map, and add a base layer from OSM.
+In order to modify the DOM of the HTML document from within a Jupyter cell, we must set up a Mutation Observer to correctly
+respond to asynchronous changes. We attach the observer to ``element``, which refers to the cell from which the JavaScript
+code is run. Within this observer, we instantiate a new Leaflet map, and add a base layer from OSM.
 
 .. code-block:: javascript
 
