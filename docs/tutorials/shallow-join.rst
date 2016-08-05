@@ -1,4 +1,4 @@
-Visualizing Analytics in Jupyter
+Aggregating and Visualizing Data
 ================================
 
 This tutorial will show you how to:
@@ -26,9 +26,14 @@ integration Jupyter cell "magics" (special directives for functionality outside 
 HTML outputs.
 
 Here, we will combine these two services to demonstrate an operation we are naming "Shallow Join". This operation
-is a means of imposing a small, covering set of data, onto a much larger set of data. In our example, GDELT data has
-geometries for each event, but we do not directly know in which country it took place. We "join" this geometry
-against the polygons of the covering set in order to calculate statistics for a geographical region.
+is a means of imposing a small, covering set of geospatial data onto a much larger set of data. We essentially perform
+an inner join with the geospatial predicate, then aggregate over the result. All of this is done in a distributed fashion
+using Spark.
+
+In our example, `GDELT <http://gdeltproject.org/>`__ data has point geometries for each event, but we do not directly
+know in which country it took place. We "join" this geometry against the polygons of the covering set in order to
+calculate statistics for a geographical region. However, the example is general enough to support statistics for any
+data set with numerical fields or other non-point geometries such as LineStrings or polygons.
 
 
 Prerequisites
@@ -120,19 +125,20 @@ the partition. Here we transform each iterator and store the result into a new R
         iter.flatMap { sf =>
             // Iterate over regions until a match is found
             val it = broadcastedRegions.value.iterator
-            var container = ""
-            while (it.hasNext() && container == "") {
-                val country = it.next()
-                // If the polygon contains the event, set the container
-                if (country.geometry.contains(sf.geometry)) {
-                    container = country.getAttribute("NAME").asInstanceOf[String]
-                }
+            var container: Option[String] = None
+            while (it.hasNext) {
+              val cover = it.next()
+              // If the cover's polygon contains the feature,
+              // or in the case of non-point geoms, if they intersect, set the container
+              if (cover.geometry.intersects(sf.geometry)) {
+                container = Some(cover.getAttribute(key).asInstanceOf[String])
+              }
             }
             // return the found country as the key
-            if (container != "") {
-                Some(container, sf)
+            if (container.isDefined) {
+              Some(container.get, sf)
             } else {
-                None
+              None
             }
         }
     }
@@ -143,27 +149,21 @@ first, we need to create a simple feature type to represent the aggregated data.
 Creating a New Simple Feature Type
 ----------------------------------
 
-We first loop through the attributes of a sample feature from the GDELT RDD to decide what fields can be aggregated.
+We first loop through the types of a sample feature from the GDELT RDD to decide what fields can be aggregated.
 
 .. code-block:: scala
 
-    val featureAttributes = gdeltRdd.first.getAttributes.toSeq
-    val countableIndices = featureAttributes.toIndexedSeq.indices.flatMap( { index =>
-        // Skip the id
-        if (index != 0) {
-            featureAttributes(index) match {
-                case attr if attr != null && attr.getClass == classOf[Integer] =>
-                    Some(index, "Integer")
-                case attr if attr != null && attr.getClass == classOf[java.lang.Long] =>
-                    Some(index, "Long")
-                case attr if attr != null && attr.getClass == classOf[java.lang.Double] =>
-                    Some(index, "Double")
-                case _ => None
-            }
+    val countableTypes = Seq("Integer", "Long", "Double")
+    val typeNames = gdeltRdd.first.getType.getTypes.toIndexedSeq.map{t => t.getBinding.getSimpleName.toString}
+    val countableIndices = typeNames.indices.flatMap { index =>
+        val featureType = typeNames(index)
+        // Only grab countable types, skipping the ID field
+        if ((countableTypes contains featureType) && index != 0) {
+            Some(index, featureType)
         } else {
             None
         }
-    }).toArray
+    }.toArray
     val countable = sc.broadcast(countableIndices)
 
 With these fields, we can create a Simple Feature Type to store their averages and totals, prefixing each one with
@@ -176,7 +176,7 @@ should they appear, but this approach makes it easy if the fields are not known 
     sftBuilder.stringType("country")
     sftBuilder.multiPolygon("geom")
     sftBuilder.intType("count")
-    val featureProperties = smallGdeltRdd.first.getProperties.toSeq
+    val featureProperties = gdeltRdd.first.getProperties.toSeq
     countableIndices.foreach { case (index, clazz) => {
         val featureName = featureProperties.apply(index).getName
         clazz match {
