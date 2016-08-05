@@ -181,22 +181,6 @@ object AccumuloDataStoreFactory {
     security.getAuthorizationsProvider(params, auths)
   }
 
-  def createDataStore(connector: Connector, params: JMap[String, Serializable] = EmptyParams): AccumuloDataStore = {
-    val visibility = visibilityParam.lookupOpt[String](params).getOrElse("")
-
-    val tableName = tableNameParam.lookUp(params).asInstanceOf[String]
-    val connector = connParam.lookupOpt[Connector](params).getOrElse {
-      buildAccumuloConnector(params, java.lang.Boolean.valueOf(mockParam.lookUp(params).asInstanceOf[String]))
-    }
-
-    val authProvider = buildAuthsProvider(connector, params)
-    val auditProvider = buildAuditProvider(params)
-
-    val config = buildConfig(connector, params)
-
-    new AccumuloDataStore(connector, tableName, authProvider, auditProvider, visibility, config)
-  }
-
   def canProcess(params: JMap[String,Serializable]): Boolean =
     params.containsKey(instanceIdParam.key) || params.containsKey(connParam.key)
 }
