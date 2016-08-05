@@ -94,7 +94,7 @@ object RasterQueryStatTransform extends UsageStatTransform[RasterQueryStat] {
     val mosaicTime = values.getOrElse(CQ_MOSAICTIME, 0L).asInstanceOf[Long]
     val hits = values.getOrElse(CQ_HITS, 0).asInstanceOf[Int]
 
-    RasterQueryStat("Accumulo Raster", featureName, date, rasterQuery, planTime, scanTime, mosaicTime, hits)
+    RasterQueryStat(featureName, date, rasterQuery, planTime, scanTime, mosaicTime, hits)
   }
 
   def decodeStat(entry: Entry[Key, Value]): String = {
