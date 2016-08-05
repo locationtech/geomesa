@@ -76,7 +76,7 @@ spark.kryo.registrator             org.locationtech.geomesa.compute.spark.GeoMes
 spark.kryo.registrationRequired    false
 ```
 
-To run the spark shell (for spark version 1.5.0) compile and run:
+To run the spark shell (for spark version 2.0.0) compile and run:
 
     bin/spark-shell --jars /path/to/geomesa-compute-1.2.4-shaded.jar
 
