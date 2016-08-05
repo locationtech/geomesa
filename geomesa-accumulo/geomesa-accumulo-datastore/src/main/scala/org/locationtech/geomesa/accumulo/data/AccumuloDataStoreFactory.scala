@@ -24,6 +24,7 @@ import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.AuthorizationsProvider
 
 import scala.collection.JavaConversions._
+import scala.collection.immutable.HashMap
 
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
@@ -87,7 +88,7 @@ object AccumuloDataStoreFactory {
   val DISPLAY_NAME = "Accumulo (GeoMesa)"
   val DESCRIPTION = "Apache Accumulo\u2122 distributed key/value store"
 
-  val EmptyParams: JMap[String, Serializable] = new java.util.HashMap[String, Serializable]()
+  val EmptyParams: JMap[String, Serializable] = new HashMap[String, Serializable]()
 
   implicit class RichParam(val p: Param) extends AnyVal {
     def lookup[T](params: JMap[String, Serializable]): T = p.lookUp(params).asInstanceOf[T]
