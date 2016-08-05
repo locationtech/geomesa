@@ -31,11 +31,11 @@ case class QueryStat(typeName: String,
                      scanTime: Long,
                      hits:     Long,
                      deleted:  Boolean = false) extends DeletableUsageStat {
-  val storeType = QueryStat.storeType
+  def storeType = QueryStat.storeType
 }
 
 object QueryStat {
-  val storeType = "Accumulo Vector"
+  val storeType = "vector-accumulo"
 }
 
 /**
@@ -157,7 +157,7 @@ case class SerializedQueryStat(typeName: String,
                                date:     Long,
                                deleted:  Boolean,
                                entries:  Map[(Text, Text), Value]) extends DeletableUsageStat {
-  val storeType = QueryStat.storeType
+  def storeType = QueryStat.storeType
   lazy val user = entries.find(_._1._2 == QueryStatTransform.CQ_USER).map(_._2.toString).getOrElse("unknown")
 }
 

@@ -18,7 +18,6 @@ import kafka.producer.{Producer, ProducerConfig}
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.data.{FeatureReader, FeatureWriter, Query}
 import org.geotools.feature.FeatureCollection
-import org.geotools.feature.collection.BridgeIterator
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.kafka.KafkaDataStore.FeatureSourceFactory

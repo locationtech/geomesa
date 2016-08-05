@@ -20,15 +20,20 @@ import org.locationtech.geomesa.utils.geotools.UsageStat
 /**
  * Class for capturing query-related stats
  */
-case class RasterQueryStat(storeType: String,
-                           typeName:   String,
+case class RasterQueryStat(typeName:   String,
                            date:          Long,
                            rasterQuery:   String,
                            planningTime:  Long,
                            scanTime:      Long,
                            mosaicTime:    Long,
                            numResults:    Int,
-                           deleted: Boolean = false) extends UsageStat
+                           deleted: Boolean = false) extends UsageStat {
+  override def storeType: String = RasterQueryStat.storeType
+}
+
+object RasterQueryStat {
+  val storeType = "raster-accumulo"
+}
 
 /**
  * Maps query stats to accumulo

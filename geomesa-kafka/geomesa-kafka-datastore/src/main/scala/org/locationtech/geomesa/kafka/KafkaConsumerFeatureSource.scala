@@ -40,7 +40,6 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
   extends ContentFeatureSource(entry, query)
   with ContentFeatureSourceSecuritySupport
   with ContentFeatureSourceReTypingSupport
-  //with MonitoringFeatureSourceSupport
   with ContentFeatureSourceInfo {
 
   import org.locationtech.geomesa.utils.geotools._
@@ -154,7 +153,7 @@ object KafkaConsumerFeatureSourceFactory {
     }
 
     val monitor: Boolean = {
-      Option(KafkaDataStoreFactoryParams.MONITOR.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
+      Option(KafkaDataStoreFactoryParams.COLLECT_QUERY_STAT.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
     }
 
     (entry: ContentEntry, query: Query, schemaManager: KafkaDataStoreSchemaManager) => {
