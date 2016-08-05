@@ -12,7 +12,7 @@ import org.apache.accumulo.core.client.Connector
 import org.apache.accumulo.core.data.Range
 import org.apache.accumulo.core.security.Authorizations
 import org.joda.time.Interval
-import org.locationtech.geomesa.utils.geotools.UsageStat
+import org.locationtech.geomesa.utils.monitoring.UsageStat
 
 /**
  * Manages reading of usage stats

@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.utils.geotools
+package org.locationtech.geomesa.utils.monitoring
 
 import com.google.gson.{Gson, GsonBuilder}
 import com.typesafe.scalalogging.LazyLogging

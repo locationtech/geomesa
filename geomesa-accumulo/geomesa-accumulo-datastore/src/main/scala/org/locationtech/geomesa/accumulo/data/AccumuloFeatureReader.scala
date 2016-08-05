@@ -17,7 +17,7 @@ import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.security.AuditProvider
-import org.locationtech.geomesa.utils.geotools.Monitoring
+import org.locationtech.geomesa.utils.monitoring.Monitoring
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 

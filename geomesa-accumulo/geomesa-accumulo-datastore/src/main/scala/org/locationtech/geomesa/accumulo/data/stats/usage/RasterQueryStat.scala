@@ -15,7 +15,7 @@ import java.util.Map.Entry
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.apache.hadoop.io.Text
 import org.calrissian.mango.types.encoders.lexi.LongReverseEncoder
-import org.locationtech.geomesa.utils.geotools.UsageStat
+import org.locationtech.geomesa.utils.monitoring.UsageStat
 
 /**
  * Class for capturing query-related stats

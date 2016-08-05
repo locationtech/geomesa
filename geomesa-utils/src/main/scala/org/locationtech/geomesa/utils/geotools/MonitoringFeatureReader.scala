@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import org.geotools.data.store.ContentFeatureSource
 import org.geotools.data.{DelegatingFeatureReader, FeatureReader, Query}
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.utils.monitoring.{UsageStat, Monitoring}
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
