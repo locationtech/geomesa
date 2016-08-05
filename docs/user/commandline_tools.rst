@@ -468,6 +468,8 @@ feature types and converters, describe all the feature types and converters, or 
 types and converters. There are a few options that permit you to specify the desired format when describing simple
 feature types.
 
+There are a few commands pertaining to the format of describing simple feature types.
+
 Example usage::
 
     $ geomesa env --list-sfts

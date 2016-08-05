@@ -58,17 +58,17 @@ class EnvironmentCommand(parent: JCommander) extends Command(parent) with LazyLo
     val filtered = if (names.isEmpty) all else names.flatMap(n => all.find(_.getTypeName == n))
     println("\nSimple Feature Types:")
     if (filtered.isEmpty) {
-      println("\tNone available")
+      println("None available")
     } else {
       val paramsLower = params.format.toLowerCase
-      if(paramsLower == "typesafe" || paramsLower == "spec") {
+      if (paramsLower == "typesafe" || paramsLower == "spec") {
         val formatFn = paramsLower match {
           case "typesafe" =>
             (sft: SimpleFeatureType) => s"${SimpleFeatureTypes.toConfigString(sft, !params.excludeUserData, params.concise)}"
           case "spec" =>
             (sft: SimpleFeatureType) => s"${SimpleFeatureTypes.encodeType(sft, !params.excludeUserData)}"
         }
-        filtered.sortBy(_.getTypeName).map(s => s"\t${s.getTypeName} = ${formatFn(s)}").foreach(println)
+        filtered.sortBy(_.getTypeName).map(s => s"${s.getTypeName} = ${formatFn(s)}").foreach(println)
       } else {
         logger.error(s"Unknown config format: ${params.format}")
       }
@@ -80,33 +80,33 @@ class EnvironmentCommand(parent: JCommander) extends Command(parent) with LazyLo
     val filtered = if (names.isEmpty) all else names.flatMap(n => all.find(_._1 == n))
     println("\nSimple Feature Type Converters:")
     if (filtered.isEmpty) {
-      println("\tNone available")
+      println("None available")
     } else {
       val options = ConfigRenderOptions.defaults().setJson(false).setOriginComments(false)
-      def render(c: Config) = c.root().render(options).replaceAll("\n", "\n\t")
-      filtered.map { case (name, conf)=> s"\tconverter-name=$name\n\t${render(conf)}\n"}.toArray.sortBy(_.self).foreach(println)
+      def render(c: Config) = c.root().render(options)
+      filtered.map { case (name, conf)=> s"converter-name=$name\n${render(conf)}\n"}.toArray.sortBy(_.self).foreach(println)
     }
   }
 
   def listSftsNames(): Unit = {
     println("\nSimple Feature Types:")
     val all = SimpleFeatureTypeLoader.sfts
-    all.sortBy(_.getTypeName).map(s => s"\t${s.getTypeName}").foreach(println)
+    all.sortBy(_.getTypeName).map(s => s"${s.getTypeName}").foreach(println)
   }
   def listConverterNames(): Unit = {
     println("\nSimple Feature Type Converters:")
     val all = ConverterConfigLoader.confs
-    all.map { case (name, conf) => s"\t$name"}.toArray.sortBy(_.self).foreach(println)
+    all.map { case (name, conf) => s"$name"}.toArray.sortBy(_.self).foreach(println)
   }
 }
 
 object EnvironmentCommand {
   @Parameters(commandDescription = "Examine the current GeoMesa environment")
   class EnvironmentParameters {
-    @Parameter(names = Array("-s", "--sfts"), description = "Examine simple feature types", variableArity = true)
+    @Parameter(names = Array("-s", "--sfts"), description = "Describe specific simple feature types", variableArity = true)
     var sfts: java.util.List[String] = null
 
-    @Parameter(names = Array("-c", "--converters"), description = "Examine GeoMesa converters", variableArity = true)
+    @Parameter(names = Array("-c", "--converters"), description = "Describe specific GeoMesa converters", variableArity = true)
     var converters: java.util.List[String] = null
 
     @Parameter(names = Array("--list-sfts"), description = "List all the Simple Feature Types")
