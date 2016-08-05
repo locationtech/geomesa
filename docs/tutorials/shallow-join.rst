@@ -6,7 +6,7 @@ This tutorial will show you how to:
 1. Use GeoMesa with `Apache Spark <http://spark.apache.org/>`__ in Scala.
 2. Calculate aggregate statistics using a covering set of polygons.
 3. Create a new simple feature type to represent this aggregation.
-4. Use `Jupyter <http://jupyter.org/>`__ and `Leaflet <http://leafletjs.com/plugins.html/>`__ to visualize the result.
+4. Use `Jupyter <http://jupyter.org/>`__ and `Leaflet <http://leafletjs.com/>`__ to visualize the result.
 
 The end of the tutorial provides a link to a downloadable Jupyter notebook with all the necessary code.
 
@@ -21,7 +21,7 @@ computation across a distributed set of resources. Spark manages the
 lineage of a block of transformed data so that if a node goes down,
 Spark can restart the computation for just the missing blocks.
 
-`Jupyter Notebook <https://github.com/jupyter/notebook>`__ is an interactive web interface
+`Jupyter Notebook <http://jupyter.org/>`__ is an interactive web interface
 for a kernel, which is an environment for running the code of a language. Jupyter allows you quickly prototype by
 writing code in runnable cells, computing a final result as you go. Visualization of data is also easily done through
 integration of Jupyter cell "magics" (special directives for functionality outside of the kernel) to create JavaScript and
@@ -391,5 +391,5 @@ during that time range.
 
 .. figure:: _static/img/tutorials/2016-07-26-shallow-join/aggregate-GDELT.png
 
-The final result of the analysis described in this tutorial is found in the Jupyter notebook: :download:`_static/shallow-join-gdelt.ipynb`.
-You can find a static render of this notebook on Github (https://github.com/locationtech/geomesa/docs/tutorials/_static/shallow-join-gdelt.ipynb).
+The final result of the analysis described in this tutorial is found in the Jupyter notebook: :download:`_static/geomesa-examples-jupyter/shallow-join-gdelt.ipynb`.
+You can find a static render of this notebook on `Github <https://github.com/locationtech/geomesa/blob/master/docs/tutorials/_static/geomesa-examples-jupyter/shallow-join-gdelt.ipynb>`__.
