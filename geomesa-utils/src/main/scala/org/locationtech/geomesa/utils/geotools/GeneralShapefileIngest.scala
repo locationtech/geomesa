@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.utils.geotools
 
 import java.io.{File, Serializable}
+import java.net.URL
 import java.util.{Map => JMap}
 
 import org.geotools.data._
@@ -16,6 +17,7 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import scala.collection.JavaConversions._
 import scala.util.Try
 
 object GeneralShapefileIngest {
@@ -24,15 +26,26 @@ object GeneralShapefileIngest {
 
   def shpToDataStoreViaParams(shapefilePath: String,
                               params: JMap[String, Serializable], featureName: String): DataStore = {
-    val shapefile =  FileDataStoreFinder.getDataStore(new File(shapefilePath))
+    val shapefile = getShapefileDatastore(shapefilePath)
     val features = shapefile.getFeatureSource.getFeatures
     val newDS = featuresToDataStoreViaParams(features, params, featureName)
     shapefile.dispose()
     newDS
   }
 
+  // The goal of this method is to allow for URL-based look-ups.
+  //  This allows for us to ingest files from HDFS and S3.
+  def getShapefileDatastore(shapefilePath: String): FileDataStore = {
+    if (shapefilePath.contains(":")) {
+      DataStoreFinder.getDataStore(Map("url" -> shapefilePath)).asInstanceOf[FileDataStore]
+    } else {
+      FileDataStoreFinder.getDataStore(new File(shapefilePath))
+    }
+
+  }
+
   def shpToDataStore(shapefilePath: String, ds: DataStore, featureName: String): DataStore = {
-    val shapefile =  FileDataStoreFinder.getDataStore(new File(shapefilePath))
+    val shapefile: FileDataStore =  getShapefileDatastore(shapefilePath)
     val features = shapefile.getFeatureSource.getFeatures
     val newDS = featuresToDataStore(features, ds, featureName)
     shapefile.dispose()

@@ -94,6 +94,18 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
     ds.dispose()
   }
 
+  def getTypeAndFeatures(file: File, failed: AtomicLong): (SimpleFeatureType, Iterator[SimpleFeature], CountingInputStream, Closeable) = {
+    val converter = createLocalConverter(file, failed)
+    // count the raw bytes read from the file, as that's what we based our total on
+    val countingStream = new CountingInputStream(new FileInputStream(file))
+    val is = PathUtils.handleCompression(countingStream, file.getPath)
+    val (sft, features) = converter.convert(is)
+    val closeable = new Closeable {
+      override def close(): Unit = { converter.close(); is.close() }
+    }
+    (sft, features, countingStream, closeable)
+  }
+
   private def runLocal(): Unit = {
 
     // Global failure shared between threads
@@ -107,16 +119,14 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
           // only create the feature writer after the converter runs
           // so that we can create the schema based off the input file
           var fw: FeatureWriter[SimpleFeatureType, SimpleFeature] = null
-          val converter = createLocalConverter(file, failed)
-          // count the raw bytes read from the file, as that's what we based our total on
-          val countingStream = new CountingInputStream(new FileInputStream(file))
-          val is = PathUtils.handleCompression(countingStream, file.getPath)
+
+          val (sft, features, countingStream, closer) = getTypeAndFeatures(file, failed)
+          if (features.hasNext) {
+            ds.createSchema(sft)
+            fw = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
+          }
+
           try {
-            val (sft, features) = converter.convert(is)
-            if (features.hasNext) {
-              ds.createSchema(sft)
-              fw = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
-            }
             features.foreach { sf =>
               val toWrite = fw.next()
               toWrite.setAttributes(sf.getAttributes)
@@ -135,8 +145,7 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
               countingStream.resetCount()
             }
           } finally {
-            IOUtils.closeQuietly(converter)
-            IOUtils.closeQuietly(is)
+            IOUtils.closeQuietly(closer)
             IOUtils.closeQuietly(fw)
           }
         } catch {
