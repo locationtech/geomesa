@@ -288,6 +288,14 @@ public class GeoMesaIndexTest {
         SortedSet<String> preTables = filterTablesByPrefix(ds.connector().tableOperations().list(), featureName);
         Assert.assertFalse("creating a MockAccumulo instance should create at least one table", preTables.isEmpty());
 
+        // require that the function to pre-compute the names of all tables for this feature type is accurate
+        List<String> expectedTables = AccumuloGeoMesaIndex$.MODULE$.getTableNames(featureName);
+        for (String expectedTable : expectedTables) {
+            Assert.assertTrue("Every expected table must be created:  " + expectedTable,
+                    preTables.contains(expectedTable));
+        }
+        Assert.assertEquals("The number of expected tables must exist", expectedTables.size(), preTables.size());
+
         // remove the schema
         index.removeSchema();
 

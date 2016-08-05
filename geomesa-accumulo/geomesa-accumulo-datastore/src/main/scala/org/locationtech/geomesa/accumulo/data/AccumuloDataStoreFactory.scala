@@ -21,8 +21,10 @@ import org.geotools.data.{DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.accumulo.GeomesaSystemProperties
 import org.locationtech.geomesa.accumulo.data.stats.usage.ParamsAuditProvider
 import org.locationtech.geomesa.security
+import org.locationtech.geomesa.security.AuthorizationsProvider
 
 import scala.collection.JavaConversions._
+import scala.collection.immutable.HashMap
 
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
@@ -33,7 +35,6 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
   def createNewDataStore(params: JMap[String, Serializable]) = createDataStore(params)
 
   def createDataStore(params: JMap[String, Serializable]) = {
-
     val visibility = visibilityParam.lookupOpt[String](params).getOrElse("")
 
     val tableName = tableNameParam.lookUp(params).asInstanceOf[String]
@@ -41,58 +42,10 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       buildAccumuloConnector(params, java.lang.Boolean.valueOf(mockParam.lookUp(params).asInstanceOf[String]))
     }
 
-    val forceEmptyOpt: Option[java.lang.Boolean] = forceEmptyAuthsParam.lookupOpt[java.lang.Boolean](params)
-    val forceEmptyAuths = forceEmptyOpt.getOrElse(java.lang.Boolean.FALSE).asInstanceOf[Boolean]
+    val authProvider = buildAuthsProvider(connector, params)
+    val auditProvider = buildAuditProvider(params)
 
-    // convert the connector authorizations into a string array - this is the maximum auths this connector can support
-    val securityOps = connector.securityOperations
-    val masterAuths = securityOps.getUserAuthorizations(connector.whoami)
-    val masterAuthsStrings = masterAuths.map(b => new String(b))
-
-    // get the auth params passed in as a comma-delimited string
-    val configuredAuths = authsParam.lookupOpt[String](params).getOrElse("").split(",").filter(s => !s.isEmpty)
-
-    // verify that the configured auths are valid for the connector we are using (fail-fast)
-    if (!connector.isInstanceOf[MockConnector]) {
-      val invalidAuths = configuredAuths.filterNot(masterAuthsStrings.contains)
-      if (invalidAuths.nonEmpty) {
-        throw new IllegalArgumentException(s"The authorizations '${invalidAuths.mkString(",")}' " +
-            "are not valid for the Accumulo connection being used")
-      }
-    }
-
-    // if the caller provided any non-null string for authorizations, use it;
-    // otherwise, grab all authorizations to which the Accumulo user is entitled
-    if (configuredAuths.length != 0 && forceEmptyAuths) {
-      throw new IllegalArgumentException("Forcing empty auths is checked, but explicit auths are provided")
-    }
-    val auths: List[String] =
-      if (forceEmptyAuths || configuredAuths.length > 0) configuredAuths.toList
-      else masterAuthsStrings.toList
-
-    val authProvider = security.getAuthorizationsProvider(params, auths)
-    val auditProvider = security.getAuditProvider(params).getOrElse {
-      val provider = new ParamsAuditProvider
-      provider.configure(params)
-      provider
-    }
-
-    val queryTimeout = queryTimeoutParam.lookupOpt[Int](params).map(i => i * 1000L).orElse {
-      GeomesaSystemProperties.QueryProperties.QUERY_TIMEOUT_MILLIS.option.map(_.toLong)
-    }
-    val collectQueryStats =
-      !connector.isInstanceOf[MockConnector] && collectQueryStatsParam.lookupWithDefault[Boolean](params)
-
-    val config = AccumuloDataStoreConfig(
-      queryTimeout,
-      queryThreadsParam.lookupWithDefault(params),
-      recordThreadsParam.lookupWithDefault(params),
-      writeThreadsParam.lookupWithDefault(params),
-      generateStatsParam.lookupWithDefault[Boolean](params),
-      collectQueryStats,
-      cachingParam.lookupWithDefault(params),
-      looseBBoxParam.lookupWithDefault(params)
-    )
+    val config = buildConfig(connector, params)
 
     new AccumuloDataStore(connector, tableName, authProvider, auditProvider, visibility, config)
   }
@@ -135,6 +88,8 @@ object AccumuloDataStoreFactory {
   val DISPLAY_NAME = "Accumulo (GeoMesa)"
   val DESCRIPTION = "Apache Accumulo\u2122 distributed key/value store"
 
+  val EmptyParams: JMap[String, Serializable] = new HashMap[String, Serializable]()
+
   implicit class RichParam(val p: Param) extends AnyVal {
     def lookup[T](params: JMap[String, Serializable]): T = p.lookUp(params).asInstanceOf[T]
     def lookupOpt[T](params: JMap[String, Serializable]): Option[T] = Option(p.lookup[T](params))
@@ -164,6 +119,66 @@ object AccumuloDataStoreFactory {
 
       new ZooKeeperInstance(clientConfiguration).getConnector(user, authToken)
     }
+  }
+
+  def buildConfig(connector: Connector, params: JMap[String, Serializable] = EmptyParams): AccumuloDataStoreConfig = {
+    val queryTimeout = queryTimeoutParam.lookupOpt[Int](params).map(i => i * 1000L).orElse {
+      GeomesaSystemProperties.QueryProperties.QUERY_TIMEOUT_MILLIS.option.map(_.toLong)
+    }
+    val collectQueryStats =
+      !connector.isInstanceOf[MockConnector] && collectQueryStatsParam.lookupWithDefault[Boolean](params)
+
+    AccumuloDataStoreConfig(
+      queryTimeout,
+      queryThreadsParam.lookupWithDefault(params),
+      recordThreadsParam.lookupWithDefault(params),
+      writeThreadsParam.lookupWithDefault(params),
+      generateStatsParam.lookupWithDefault[Boolean](params),
+      collectQueryStats,
+      cachingParam.lookupWithDefault(params),
+      looseBBoxParam.lookupWithDefault(params)
+    )
+  }
+
+  def buildAuditProvider(params: JMap[String, Serializable] = EmptyParams) = {
+    security.getAuditProvider(params).getOrElse {
+      val provider = new ParamsAuditProvider
+      provider.configure(params)
+      provider
+    }
+  }
+
+  def buildAuthsProvider(connector: Connector, params: JMap[String, Serializable] = EmptyParams): AuthorizationsProvider = {
+    val forceEmptyOpt: Option[java.lang.Boolean] = forceEmptyAuthsParam.lookupOpt[java.lang.Boolean](params)
+    val forceEmptyAuths = forceEmptyOpt.getOrElse(java.lang.Boolean.FALSE).asInstanceOf[Boolean]
+
+    // convert the connector authorizations into a string array - this is the maximum auths this connector can support
+    val securityOps = connector.securityOperations
+    val masterAuths = securityOps.getUserAuthorizations(connector.whoami)
+    val masterAuthsStrings = masterAuths.map(b => new String(b))
+
+    // get the auth params passed in as a comma-delimited string
+    val configuredAuths = authsParam.lookupOpt[String](params).getOrElse("").split(",").filter(s => !s.isEmpty)
+
+    // verify that the configured auths are valid for the connector we are using (fail-fast)
+    if (!connector.isInstanceOf[MockConnector]) {
+      val invalidAuths = configuredAuths.filterNot(masterAuthsStrings.contains)
+      if (invalidAuths.nonEmpty) {
+        throw new IllegalArgumentException(s"The authorizations '${invalidAuths.mkString(",")}' " +
+          "are not valid for the Accumulo connection being used")
+      }
+    }
+
+    // if the caller provided any non-null string for authorizations, use it;
+    // otherwise, grab all authorizations to which the Accumulo user is entitled
+    if (configuredAuths.length != 0 && forceEmptyAuths) {
+      throw new IllegalArgumentException("Forcing empty auths is checked, but explicit auths are provided")
+    }
+    val auths: List[String] =
+      if (forceEmptyAuths || configuredAuths.length > 0) configuredAuths.toList
+      else masterAuthsStrings.toList
+
+    security.getAuthorizationsProvider(params, auths)
   }
 
   def canProcess(params: JMap[String,Serializable]): Boolean =
