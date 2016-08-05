@@ -90,7 +90,7 @@ class AccumuloFeatureReaderWithStats(query: Query,
 
   override protected def closeOnce(): Unit = {
     iter.close()
-    val stat = QueryStat("Accumulo Vector",
+    val stat = QueryStat(
       qp.sft.getTypeName,
       System.currentTimeMillis(),
       auditProvider.getCurrentUserId,

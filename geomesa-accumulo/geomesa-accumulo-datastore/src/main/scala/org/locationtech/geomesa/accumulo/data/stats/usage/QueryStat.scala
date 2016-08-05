@@ -22,8 +22,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 /**
  * Class for capturing query-related stats
  */
-case class QueryStat(storeType: String,
-                     typeName: String,
+case class QueryStat(typeName: String,
                      date:     Long,
                      user:     String,
                      filter:   String,
@@ -31,7 +30,13 @@ case class QueryStat(storeType: String,
                      planTime: Long,
                      scanTime: Long,
                      hits:     Long,
-                     deleted:  Boolean = false) extends DeletableUsageStat
+                     deleted:  Boolean = false) extends DeletableUsageStat {
+  val storeType = QueryStat.storeType
+}
+
+object QueryStat {
+  val storeType = "Accumulo Vector"
+}
 
 /**
  * Maps query stats to accumulo
@@ -91,7 +96,7 @@ object QueryStatTransform extends UsageStatTransform[QueryStat] {
     val hits = values.getOrElse(CQ_HITS, 0).asInstanceOf[Int]
     val deleted = values.getOrElse(CQ_DELETED, false).asInstanceOf[Boolean]
 
-    QueryStat("Accumulo Vector", featureName, date, user, queryFilter, queryHints, planTime, scanTime, hits, deleted)
+    QueryStat(featureName, date, user, queryFilter, queryHints, planTime, scanTime, hits, deleted)
   }
 
   // list of query hints we want to persist
@@ -148,11 +153,11 @@ object QueryStatTransform extends UsageStatTransform[QueryStat] {
   }
 }
 
-case class SerializedQueryStat(storeType: String,
-                               typeName: String,
+case class SerializedQueryStat(typeName: String,
                                date:     Long,
                                deleted:  Boolean,
                                entries:  Map[(Text, Text), Value]) extends DeletableUsageStat {
+  val storeType = QueryStat.storeType
   lazy val user = entries.find(_._1._2 == QueryStatTransform.CQ_USER).map(_._2.toString).getOrElse("unknown")
 }
 
@@ -173,6 +178,6 @@ object SerializedQueryStatTransform extends UsageStatTransform[SerializedQuerySt
     val (delete, others) = kvs.partition(_._1._2 == CQ_DELETED)
     // noinspection MapGetOrElseBoolean
     val deleted = delete.headOption.map(_._2.toString.toBoolean).getOrElse(false)
-    SerializedQueryStat("Accumulo Vector", typeName, date, deleted, others.toMap)
+    SerializedQueryStat(typeName, date, deleted, others.toMap)
   }
 }

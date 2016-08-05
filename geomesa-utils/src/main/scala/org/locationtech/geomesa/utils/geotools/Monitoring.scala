@@ -1,3 +1,11 @@
+/***********************************************************************
+* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0
+* which accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
+
 package org.locationtech.geomesa.utils.geotools
 
 import com.google.gson.{Gson, GsonBuilder}
@@ -9,7 +17,6 @@ object Monitoring extends LazyLogging {
     .create()
 
   def log(stat: UsageStat): Unit = {
-    println("Logging a message")
     logger.trace(gson.toJson(stat))
   }
 }

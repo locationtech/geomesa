@@ -134,7 +134,7 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
   override def getDescription: String = "Apache Kafka\u2122 distributed messaging queue"
 
   override def getParametersInfo: Array[Param] =
-    Array(KAFKA_BROKER_PARAM, ZOOKEEPERS_PARAM, ZK_PATH, EXPIRATION_PERIOD, CLEANUP_LIVE_CACHE, TOPIC_PARTITIONS, TOPIC_REPLICATION, NAMESPACE_PARAM)
+    Array(KAFKA_BROKER_PARAM, ZOOKEEPERS_PARAM, ZK_PATH, EXPIRATION_PERIOD, CLEANUP_LIVE_CACHE, TOPIC_PARTITIONS, TOPIC_REPLICATION, NAMESPACE_PARAM, MONITOR)
 
   override def canProcess(params: ju.Map[String, Serializable]): Boolean =
     params.containsKey(KAFKA_BROKER_PARAM.key) && params.containsKey(ZOOKEEPERS_PARAM.key)
