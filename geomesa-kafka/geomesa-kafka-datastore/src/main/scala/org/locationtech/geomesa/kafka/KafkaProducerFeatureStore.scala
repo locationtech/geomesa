@@ -50,7 +50,7 @@ class KafkaProducerFeatureStore(entry: ContentEntry,
       val iter = featureCollection.features()
       var i = 0
       while (iter.hasNext) {
-        val sf = fw.next()
+        val sf = iter.next()
         ret(i) = sf.getIdentifier
         fw.write(sf)
         i += 1
