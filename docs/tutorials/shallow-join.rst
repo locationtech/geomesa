@@ -392,4 +392,4 @@ during that time range.
 .. figure:: _static/img/tutorials/2016-07-26-shallow-join/aggregate-GDELT.png
 
 The final result of the analysis described in this tutorial is found in the Jupyter notebook: :download:`_static/geomesa-examples-jupyter/shallow-join-gdelt.ipynb`.
-You can find a static render of this notebook on `Github <https://github.com/locationtech/geomesa/blob/master/docs/tutorials/_static/geomesa-examples-jupyter/shallow-join-gdelt.ipynb>.
+You can find a static render of this notebook on `Github <https://github.com/locationtech/geomesa/blob/master/docs/tutorials/_static/geomesa-examples-jupyter/shallow-join-gdelt.ipynb>`__.
