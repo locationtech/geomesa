@@ -57,7 +57,7 @@ class XZ2SFC(g: Short) {
 
       // predicate for checking how many axis the polygon intersects
       // math.floor(min / w2) * w2 == start of cell containing min
-      def predicate(min: Double, max: Double): Boolean = max <= (math.floor(min / w2) * w2) + w2
+      def predicate(min: Double, max: Double): Boolean = max <= (math.floor(min / w2) * w2) + (2 * w2)
 
       if (predicate(nxmin, nxmax) && predicate(nymin, nymax)) l1 + 1 else l1
     }
