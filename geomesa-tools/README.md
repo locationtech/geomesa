@@ -649,13 +649,36 @@ Available types can be used for ingestion - see the `ingest` command.
     Examine the current GeoMesa environment
     Usage: env [options]
       Options:
+        --concise
+           Render in concise format
+           Default: false
         -c, --converters
-           Examine GeoMesa converters
+           Describe specific GeoMesa converters
+        --describe-converters
+           Describe all the Simple Feature Type Converters
+           Default: false
+        --describe-sfts
+           Describe all the Simple Feature Types
+           Default: false
+        --exclude-user-data
+           Exclude user data
+           Default: false
+        --format
+           Formats for sft (comma separated string, allowed values are typesafe,
+           spec)
+           Default: typesafe
+        --list-converters
+           List all the Converter Names
+           Default: false
+        --list-sfts
+           List all the Simple Feature Types
+           Default: false
         -s, --sfts
-           Examine simple feature types
+           Describe specific simple feature types
+  
 
 #### Example command:
-    geomesa env
+    geomesa env --list-sfts --concise
 
 ### explain
 To ask GeoMesa how it intends to satisfy a given query, use the `explain` command.

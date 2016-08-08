@@ -451,7 +451,7 @@ deletefeatures
 
 Delete features from a table in GeoMesa. Does not delete any tables or schema information.
 
-Example usage:
+Example usage::
 
     $ geomesa deletefeatures -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog \
         -q 'dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
@@ -461,10 +461,18 @@ env
 
 Examines the current GeoMesa tools environment, and prints out simple feature types converters that 
 are available on the current classpath. The available types can be used for ingestion; see the :ref:`ingest` command.
+Use of this command without parameters will result in behavior similar to when the help command is used.
+
+Parameters allow you to specify what to print to out. These give you the ability to view a list of all simple
+feature types and converters, describe all the feature types and converters, or review a subset of these simple feature
+types and converters. There are a few options that permit you to specify the desired format when describing simple
+feature types.
+
+There are a few commands pertaining to the format of describing simple feature types.
 
 Example usage::
 
-    $ geomesa env
+    $ geomesa env --list-sfts
 
 explain
 ~~~~~~~
