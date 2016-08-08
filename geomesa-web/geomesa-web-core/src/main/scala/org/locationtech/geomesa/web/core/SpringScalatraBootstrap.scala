@@ -30,9 +30,12 @@ trait GeoMesaScalatraServlet extends ScalatraServlet with LazyLogging {
 
   // This may be causing issues within scalatra, to paraphrase a comment: "Wrapped requests are probably wrapped for a reason."
   // https://geomesa.atlassian.net/browse/GEOMESA-1062
-  override def handle(req: HttpServletRequest, res: HttpServletResponse): Unit = req match {
-    case r: HttpServletRequestWrapper => super.handle(r.getRequest.asInstanceOf[HttpServletRequest], res)
-    case _ => super.handle(req, res)
+  override def handle(req: HttpServletRequest, res: HttpServletResponse): Unit = {
+    val wrapped = req match {
+      case r: HttpServletRequestWrapper => new PathHandlingServletRequest(r)
+      case _ => req
+    }
+    super.handle(wrapped, res)
   }
 
   /**
