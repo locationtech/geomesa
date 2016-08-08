@@ -48,16 +48,19 @@ class XZ2SFC(g: Short) {
 
     // calculate the length of the sequence code (section 4.1 of XZ-Ordering paper)
 
-    val w = nxmax - nxmin
-    val h = nymax - nymin
-
-    val (wh, lower, upper) = if (w > h) (w, nxmin, nxmax) else (h, nymin, nymax)
-
     // l1 (el-one) is a bit confusing to read, but corresponds with the paper's definitions
-    val l1 = math.min(g, math.floor(math.log(wh) / XZ2SFC.LogPointFive).toInt)
+    val l1 = math.floor(math.log(math.max(nxmax - nxmin, nymax - nymin)) / XZ2SFC.LogPointFive).toInt
 
-    // predicate for checking how many axis the polygon intersects
-    val length = if (math.floor((lower / l1) + 2) * l1 <= upper) l1 else l1 + 1
+    // the length will either be (l1) or (l1 + 1)
+    val length = if (l1 >= g) { g } else {
+      val w2 = math.pow(0.5, l1 + 1) // width of an element at resolution l2 (l1 + 1)
+
+      // predicate for checking how many axis the polygon intersects
+      // math.floor(min / w2) * w2 == start of cell containing min
+      def predicate(min: Double, max: Double): Boolean = max <= (math.floor(min / w2) * w2) + w2
+
+      if (predicate(nxmin, nxmax) && predicate(nymin, nymax)) l1 + 1 else l1
+    }
 
     sequenceCode(nxmin, nymin, length)
   }
@@ -316,10 +319,10 @@ object XZ2SFC {
   private val QueryRangeY = QueryMaxY - QueryMinY
 
   // the initial level of quads
-  private val LevelOneElements = XElement(0.0, 0.0, 1.0, 1.0).children
+  private val LevelOneElements = XElement(0.0, 0.0, 1.0, 1.0, 1.0).children
 
   // indicator that we have searched a full level of the quad/oct tree
-  private val LevelTerminator = XElement(-1.0, -1.0, -1.0, -1.0)
+  private val LevelTerminator = XElement(-1.0, -1.0, -1.0, -1.0, 0)
 
   /**
     * Normalize lat/lon to [0,1]
@@ -363,11 +366,9 @@ object XZ2SFC {
     * @param ymin y lower bound in [0-1]
     * @param xmax x upper bound in [0-1], must be >= xmin
     * @param ymax y upper bound in [0-1], must be >= ymin
+    * @param length length of the non-extended side (note: by convention width should be equal to height)
     */
-  private case class XElement(xmin: Double, ymin: Double, xmax: Double, ymax: Double) {
-
-    // length of the non-extended side (note: by convention width should be equal to height)
-    lazy private val length = xmax - xmin
+  private case class XElement(xmin: Double, ymin: Double, xmax: Double, ymax: Double, length: Double) {
 
     // extended x and y bounds
     lazy val xext = xmax + length
@@ -382,10 +383,11 @@ object XZ2SFC {
     def children: Seq[XElement] = {
       val xCenter = (xmin + xmax) / 2.0
       val yCenter = (ymin + ymax) / 2.0
-      val c0 = copy(xmax = xCenter, ymax = yCenter)
-      val c1 = copy(xmin = xCenter, ymax = yCenter)
-      val c2 = copy(xmax = xCenter, ymin = yCenter)
-      val c3 = copy(xmin = xCenter, ymin = yCenter)
+      val len = length / 2.0
+      val c0 = copy(xmax = xCenter, ymax = yCenter, length = len)
+      val c1 = copy(xmin = xCenter, ymax = yCenter, length = len)
+      val c2 = copy(xmax = xCenter, ymin = yCenter, length = len)
+      val c3 = copy(xmin = xCenter, ymin = yCenter, length = len)
       Seq(c0, c1, c2, c3)
     }
   }

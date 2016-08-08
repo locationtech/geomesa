@@ -212,7 +212,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
 
       // validate the total number of query-hits
       stQueriedCount mustEqual filteredCount
-    }.pendingUntilFixed("GEOMESA-1163 - off by 1")
+    }
 
     "return an unfiltered results-set with a global request" in {
       val dtFilter = IndexSchema.everywhen

@@ -39,7 +39,6 @@ class XZ2SFCTest extends Specification {
       val disjoint = Seq(
         (-180.0, -90.0, 8.0, 8.0),
         (0.0, 0.0, 8.0, 8.0),
-        (9.0, 9.0, 9.5, 9.5),
         (20.0, 20.0, 180.0, 90.0)
       )
       forall(containing ++ overlapping) { bbox =>
