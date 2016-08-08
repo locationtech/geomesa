@@ -11,10 +11,12 @@ package org.locationtech.geomesa.accumulo.data
 
 import java.io.IOException
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.atomic.AtomicLong
 import java.util.{List => jList}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client._
+import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data._
 import org.geotools.factory.Hints
 import org.geotools.feature.{FeatureTypes, NameImpl}
@@ -26,6 +28,7 @@ import org.locationtech.geomesa.accumulo.data.stats._
 import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
 import org.locationtech.geomesa.accumulo.index._
+import org.locationtech.geomesa.accumulo.iterators.ProjectVersionIterator
 import org.locationtech.geomesa.accumulo.util.{DistributedLocking, GeoMesaBatchWriterConfig, Releasable}
 import org.locationtech.geomesa.accumulo.{AccumuloVersion, GeomesaSystemProperties}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
@@ -33,6 +36,7 @@ import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializers}
 import org.locationtech.geomesa.security.{AuditProvider, AuthorizationsProvider}
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{FeatureSpec, NonGeomAttributeSpec}
 import org.locationtech.geomesa.utils.geotools.{GeoToolsDateFormat, SimpleFeatureTypes}
@@ -42,6 +46,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
+import scala.util.control.NonFatal
 
 
 /**
@@ -78,6 +83,8 @@ class AccumuloDataStore(val connector: Connector,
   private val tableOps = connector.tableOperations()
   private val statsTable = GeoMesaTable.concatenateNameParts(catalogTable, "stats")
   private val usageStatsTable = GeoMesaTable.concatenateNameParts(catalogTable, "queries")
+
+  private val projectVersionCheck = new AtomicLong(0)
 
   override val metadata: GeoMesaMetadata[String] =
     new MultiRowAccumuloMetadata(connector, catalogTable, MetadataStringSerializer)
@@ -178,6 +185,8 @@ class AccumuloDataStore(val connector: Connector,
 
     attributes.map { attributes =>
       val sft = SimpleFeatureTypes.createType(name.getURI, attributes)
+
+      checkProjectVersion()
 
       // back compatible check if user data wasn't encoded with the sft
       if (!sft.getUserData.containsKey(SCHEMA_VERSION_KEY)) {
@@ -698,6 +707,30 @@ class AccumuloDataStore(val connector: Connector,
   // NB: We are *not* currently deleting the query table and/or query information.
   private def deleteStandAloneTables(sft: SimpleFeatureType) =
     GeoMesaTable.getTableNames(sft, this).filter(tableOps.exists).foreach(tableOps.delete)
+
+  /**
+    * Checks that the distributed runtime jar matches the project version of this client. We cache
+    * successful checks for 10 minutes.
+    */
+  private def checkProjectVersion(): Unit = {
+    if (projectVersionCheck.get() < System.currentTimeMillis()) {
+      val clientVersion = GeoMesaProperties.GeoMesaProjectVersion
+      val scanner = connector.createScanner(catalogTable, new Authorizations())
+      val iteratorVersion = try {
+        ProjectVersionIterator.scanProjectVersion(scanner)
+      } catch {
+        case NonFatal(e) => "unavailable"
+      } finally {
+        scanner.close()
+      }
+      if (iteratorVersion != clientVersion) {
+        val versionMsg = "Configured server-side iterators do not match client version - " +
+            s"client version: $clientVersion, server version: $iteratorVersion"
+        logger.warn(versionMsg)
+      }
+      projectVersionCheck.set(System.currentTimeMillis() + 3600000) // 1 hour
+    }
+  }
 
   /**
    * Acquires a distributed lock for all accumulo data stores sharing this catalog table.
