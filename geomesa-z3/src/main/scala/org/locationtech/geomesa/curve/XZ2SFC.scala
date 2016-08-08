@@ -267,17 +267,17 @@ class XZ2SFC(g: Short) {
     var xmax = 1.0
     var ymax = 1.0
 
-    var cs = 1L
+    var cs = 0L
 
     var i = 0
     while (i < length) {
       val xCenter = (xmin + xmax) / 2.0
       val yCenter = (ymin + ymax) / 2.0
       (x < xCenter, y < yCenter) match {
-        case (true,  true)  =>                                                   xmax = xCenter; ymax = yCenter
-        case (false, true)  => cs += 1L * (math.pow(4, g - i).toLong - 1L) / 3L; xmin = xCenter; ymax = yCenter
-        case (true,  false) => cs += 2L * (math.pow(4, g - i).toLong - 1L) / 3L; xmax = xCenter; ymin = yCenter
-        case (false, false) => cs += 3L * (math.pow(4, g - i).toLong - 1L) / 3L; xmin = xCenter; ymin = yCenter
+        case (true,  true)  => cs += 1L                                             ; xmax = xCenter; ymax = yCenter
+        case (false, true)  => cs += 1L + 1L * (math.pow(4, g - i).toLong - 1L) / 3L; xmin = xCenter; ymax = yCenter
+        case (true,  false) => cs += 1L + 2L * (math.pow(4, g - i).toLong - 1L) / 3L; xmax = xCenter; ymin = yCenter
+        case (false, false) => cs += 1L + 3L * (math.pow(4, g - i).toLong - 1L) / 3L; xmin = xCenter; ymin = yCenter
       }
       i += 1
     }
