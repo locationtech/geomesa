@@ -33,6 +33,12 @@
             <groupId>de.topobyte</groupId>
             <artifactId>osm4j-utils</artifactId>
             <version>0.0.22</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>de.topobyte</groupId>
+                    <artifactId>commons-cli-helper</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>de.topobyte</groupId>
@@ -43,6 +49,12 @@
             <groupId>de.topobyte</groupId>
             <artifactId>osm4j-pbf</artifactId>
             <version>0.0.7</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>de.topobyte</groupId>
+                    <artifactId>commons-cli-helper</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
