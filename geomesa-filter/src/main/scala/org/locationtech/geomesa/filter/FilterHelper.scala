@@ -179,8 +179,8 @@ object FilterHelper extends LazyLogging {
     * Extract geometries from a filter without validating boundaries.
     *
     * @param filter filter to evaluate
-    * @param attribute attribute to consider
-    * @param intersect intersect AND'd geometries or return them all
+    * @param attribute attribute to consider.  If attribute is null, all geometries in filter are returned.
+    * @param intersect intersect AND'd geometries or return them all.  Ignored if attribute is null.
     * @return geometry bounds from spatial filters
     */
   private def extractUnclippedGeometries(filter: Filter, attribute: String, intersect: Boolean): Seq[Geometry] = {
@@ -191,7 +191,7 @@ object FilterHelper extends LazyLogging {
         val all = a.getChildren.map(extractUnclippedGeometries(_, attribute, intersect)).filter(_.nonEmpty)
         if (all.isEmpty) {
           Seq.empty
-        } else if (intersect) {
+        } else if (intersect && attribute != null) {  // only intersect if we are filtering by attribute...
           all.reduceLeft[Seq[Geometry]] { case (g1, g2) =>
             if (g1.isEmpty) { Seq.empty } else {
               val gc1 = if (g1.length == 1) g1.head else new GeometryCollection(g1.toArray, g1.head.getFactory)
@@ -209,9 +209,10 @@ object FilterHelper extends LazyLogging {
 
       // Note: although not technically required, all known spatial predicates are also binary spatial operators
       case f: BinarySpatialOperator if isSpatialFilter(f) =>
+        if (attribute == null) logger.warn("Geometry attribute is not set.  Will include all geometries from filter")
         val geometry = for {
           prop <- checkOrder(f.getExpression1, f.getExpression2)
-          if prop.name == null || prop.name == attribute
+          if prop.name == null || prop.name == attribute || attribute == null  // yield this geom even if attribute is null
           geom <- Option(prop.literal.evaluate(null, classOf[Geometry]))
         } yield {
           val buffered = filter match {
