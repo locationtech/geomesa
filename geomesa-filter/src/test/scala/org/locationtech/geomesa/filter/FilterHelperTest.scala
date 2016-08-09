@@ -10,6 +10,8 @@ package org.locationtech.geomesa.filter
 
 import java.util.Date
 
+import com.vividsolutions.jts.geom.{Coordinate, Geometry, GeometryFactory}
+import com.vividsolutions.jts.io.WKTReader
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
@@ -160,5 +162,72 @@ class FilterHelperTest extends Specification {
         intervals mustEqual Seq(toInterval(MinDateTime, "2016-01-01T00:00:00.000Z"))
       }
     }
+
+    "extract simple geometry correctly (intersect)" >> {
+      val filter = "BBOX(geom, 10, 20, 30, 40)"
+      val result = FilterHelper.extractGeometries(filter,"geom",intersect = true)
+      result mustEqual Seq(new WKTReader().read("POLYGON((10 20, 10 40, 30 40, 30 20, 10 20))"))
+    }
+
+    "extract simple geometry correctly (no intersect)" >> {
+      val filter = "BBOX(geom, 10, 20, 30, 40)"
+      val result = FilterHelper.extractGeometries(filter,"geom",intersect = false)
+      result mustEqual Seq(new WKTReader().read("POLYGON((10 20, 10 40, 30 40, 30 20, 10 20))"))
+    }
+
+    "extract simple geometry correctly (null attribute)" >> {
+      val filter = "BBOX(geom, 10, 20, 30, 40)"
+      val result = FilterHelper.extractGeometries(filter,null,intersect = false)
+      result mustEqual Seq(new WKTReader().read("POLYGON((10 20, 10 40, 30 40, 30 20, 10 20))"))
+    }
+
+    "extract composite geometry correctly (intersect)" >> {
+      val filter = "BBOX(geom, 10, 20, 30, 40) AND BBOX(geom, 10, 20, 25, 35)"
+      val result = FilterHelper.extractGeometries(filter,"geom",intersect = true)
+      result mustEqual Seq(new WKTReader().read("POLYGON((10 20, 10 35, 25 35, 25 20, 10 20))"))
+    }
+
+    "extract composite geometry correctly (no intersect)" >> {
+      val filter = "BBOX(geom, 10, 20, 30, 40) AND BBOX(geom, 10, 20, 25, 35)"
+      val result = FilterHelper.extractGeometries(filter,"geom",intersect = false)
+      result must containTheSameElementsAs(
+        Seq(
+          new WKTReader().read("POLYGON((10 20, 10 40, 30 40, 30 20, 10 20))"),
+          new WKTReader().read("POLYGON((10 20, 10 35, 25 35, 25 20, 10 20))")
+        )
+      )
+    }
+    "extract composite geometry correctly (null attribute and no intersect)" >> {
+      val filter = "BBOX(geom, 10, 20, 30, 40) AND BBOX(geom, 10, 20, 25, 35)"
+      val result = FilterHelper.extractGeometries(filter,null,intersect = false)
+      result must containTheSameElementsAs(
+        Seq(
+          new WKTReader().read("POLYGON((10 20, 10 40, 30 40, 30 20, 10 20))"),
+          new WKTReader().read("POLYGON((10 20, 10 35, 25 35, 25 20, 10 20))")
+        )
+      )
+    }
+
+    "extract composite geometry correctly (null attribute and no intersect with different attributes)" >> {
+      val filter = "BBOX(geom, 10, 20, 30, 40) AND BBOX(geom2, 10, 20, 25, 35)"
+      val result = FilterHelper.extractGeometries(filter,null,intersect = false)
+      result must containTheSameElementsAs(
+        Seq(
+          new WKTReader().read("POLYGON((10 20, 10 40, 30 40, 30 20, 10 20))"),
+          new WKTReader().read("POLYGON((10 20, 10 35, 25 35, 25 20, 10 20))")
+        )
+      )
+    }
+  }
+
+  "extract composite geometry correctly (null attribute with intersect)" >> {
+    val filter = "BBOX(geom, 10, 20, 30, 40) AND BBOX(geom, 10, 20, 25, 35)"
+    val result = FilterHelper.extractGeometries(filter,null,intersect = true)
+    result must containTheSameElementsAs(
+      Seq(
+        new WKTReader().read("POLYGON((10 20, 10 40, 30 40, 30 20, 10 20))"),
+        new WKTReader().read("POLYGON((10 20, 10 35, 25 35, 25 20, 10 20))")
+      )
+    )
   }
 }
