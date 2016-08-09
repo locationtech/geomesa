@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.web.stats
 
-import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse}
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.filter.text.ecql.ECQL
@@ -42,10 +42,8 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
   //  We can achieve that in one of two ways:
   //  1.  Put the below override in this class.
   //  2.  Make a trait which has this override in and make sure it appears last (or merely latter than CorsSupport, etc.)
-  override def handle(req: HttpServletRequest, res: HttpServletResponse): Unit = req match {
-    case r: HttpServletRequestWrapper => super.handle(r.getRequest.asInstanceOf[HttpServletRequest], res)
-    case _ => super.handle(req, res)
-  }
+  override def handle(req: HttpServletRequest, res: HttpServletResponse): Unit =
+    super.handle(GeoMesaScalatraServlet.wrap(req), res)
 
   logger.info("*** Starting the stats REST API endpoint!")
 
