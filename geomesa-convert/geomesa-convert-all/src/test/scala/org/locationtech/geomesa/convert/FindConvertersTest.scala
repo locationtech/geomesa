@@ -12,7 +12,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.avro.{AvroSimpleFeatureConverter, AvroSimpleFeatureConverterFactory}
 import org.locationtech.geomesa.convert.fixedwidth.{FixedWidthConverter, FixedWidthConverterFactory}
 import org.locationtech.geomesa.convert.json.{JsonSimpleFeatureConverter, JsonSimpleFeatureConverterFactory}
-import org.locationtech.geomesa.convert.osm.{OsmNodesConverterFactory, OsmWaysConverterFactory}
 import org.locationtech.geomesa.convert.text.{DelimitedTextConverter, DelimitedTextConverterFactory}
 import org.locationtech.geomesa.convert.xml.{XMLConverter, XMLConverterFactory}
 import org.specs2.mutable.Specification
@@ -41,9 +40,6 @@ class FindConvertersTest extends Specification {
       classOf[CompositeConverter[_]] must not(throwAn[ClassNotFoundException])
       classOf[CompositeConverterFactory[_]] must not(throwAn[ClassNotFoundException])
       classOf[SimpleFeatureConverterFactory[_]] must not(throwAn[ClassNotFoundException])
-
-      classOf[OsmNodesConverterFactory] must not(throwAn[ClassNotFoundException])
-      classOf[OsmWaysConverterFactory] must not(throwAn[ClassNotFoundException])
     }
 
     "register all the converters" >> {
@@ -55,9 +51,7 @@ class FindConvertersTest extends Specification {
           classOf[DelimitedTextConverterFactory],
           classOf[XMLConverterFactory],
           classOf[JsonSimpleFeatureConverterFactory],
-          classOf[CompositeConverterFactory[_]],
-          classOf[OsmNodesConverterFactory],
-          classOf[OsmWaysConverterFactory]
+          classOf[CompositeConverterFactory[_]]
         )
       )
     }
