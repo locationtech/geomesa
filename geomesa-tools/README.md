@@ -766,6 +766,9 @@ To export features, use the `export` command.
            Accumulo user name
         --visibilities
            Accumulo scan visibilities
+        --without-types
+           Export as a delimited text format (csv|tsv) without a type header     
+           Default: false
         -z, --zookeepers
            Zookeepers (host[:port], comma separated)
 
