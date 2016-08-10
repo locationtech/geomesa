@@ -33,6 +33,11 @@
             <artifactId>specs2_2.11</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.typesafe.scala-logging</groupId>
+            <artifactId>scala-logging_2.11</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

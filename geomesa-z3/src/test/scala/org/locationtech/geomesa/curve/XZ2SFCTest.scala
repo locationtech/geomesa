@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.curve
 
+import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -15,7 +16,7 @@ import org.specs2.runner.JUnitRunner
 import scala.io.Source
 
 @RunWith(classOf[JUnitRunner])
-class XZ2SFCTest extends Specification {
+class XZ2SFCTest extends Specification with LazyLogging {
 
   val sfc = new XZ2SFC(12)
 
@@ -46,7 +47,7 @@ class XZ2SFCTest extends Specification {
         val ranges = sfc.ranges(Seq(bbox)).map(r => (r.lower, r.upper))
         val matches = ranges.exists(r => r._1 <= poly && r._2 >= poly)
         if (!matches) {
-          println(s"$bbox - no match")
+          logger.warn(s"$bbox - no match")
         }
         matches must beTrue
       }
@@ -54,7 +55,7 @@ class XZ2SFCTest extends Specification {
         val ranges = sfc.ranges(Seq(bbox)).map(r => (r.lower, r.upper))
         val matches = ranges.exists(r => r._1 <= poly && r._2 >= poly)
         if (matches) {
-          println(s"$bbox - invalid match")
+          logger.warn(s"$bbox - invalid match")
         }
         matches must beFalse
       }
@@ -87,7 +88,7 @@ class XZ2SFCTest extends Specification {
         val ranges = sfc.ranges(Seq(bbox)).map(r => (r.lower, r.upper))
         val matches = ranges.exists(r => r._1 <= poly && r._2 >= poly)
         if (!matches) {
-          println(s"$bbox - no match")
+          logger.warn(s"$bbox - no match")
         }
         matches must beTrue
       }
@@ -95,7 +96,7 @@ class XZ2SFCTest extends Specification {
         val ranges = sfc.ranges(Seq(bbox)).map(r => (r.lower, r.upper))
         val matches = ranges.exists(r => r._1 <= poly && r._2 >= poly)
         if (matches) {
-          println(s"$bbox - invalid match")
+          logger.warn(s"$bbox - invalid match")
         }
         matches must beFalse
       }
@@ -120,7 +121,7 @@ class XZ2SFCTest extends Specification {
         val index = sfc.index(geom)
         val matches = ranges.exists(r => r.lower <= index && r.upper >= index)
         if (!matches) {
-          println(s"$p - invalid match")
+          logger.warn(s"$geom - invalid match")
         }
         matches must beTrue
       }
