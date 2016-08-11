@@ -21,6 +21,12 @@ guava_version="11.0.2"
 com_log_version="1.1.3"
 commons_vfs2_version="2.0"
 
+# for Accumulo 1.7+ to work we also need the following
+if [[ "$accumulo_version" == "1.7"* ]]; then
+    htrace_core_version="3.1.0-incubating"
+    commons_vfs2_version="2.1"
+fi
+
 base_url="https://search.maven.org/remotecontent?filepath="
 
 if [[ (-z "$1") ]]; then
@@ -50,6 +56,10 @@ else
             "${base_url}com/google/guava/guava/${guava_version}/guava-${guava_version}.jar"
             "${base_url}org/apache/commons/commons-vfs2/${commons_vfs2_version}/commons-vfs2-${commons_vfs2_version}.jar"
             )
+
+        if [[ "$accumulo_version" == "1.7"* ]]; then
+            urls=("${urls[@]}" "${base_url}org/apache/htrace/htrace-core/${htrace_core_version}/htrace-core-${htrace_core_version}.jar")
+        fi
 
         for x in "${urls[@]}"; do
             fname=$(basename "$x");
