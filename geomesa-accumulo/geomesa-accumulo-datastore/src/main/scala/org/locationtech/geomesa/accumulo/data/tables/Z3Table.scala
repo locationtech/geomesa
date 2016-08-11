@@ -48,9 +48,12 @@ object Z3Table extends GeoMesaTable {
   // mask for zeroing the last (8 - GEOM_Z_NUM_BYTES) bytes
   val GEOM_Z_MASK: Long = Long.MaxValue << (64 - 8 * GEOM_Z_NUM_BYTES)
 
-  override def supports(sft: SimpleFeatureType): Boolean =
-    sft.getDtgField.isDefined && ((sft.getSchemaVersion > 6 && sft.getGeometryDescriptor != null) ||
-        (sft.getSchemaVersion > 4 && sft.isPoints))
+  override def supports(sft: SimpleFeatureType): Boolean = {
+    sft.getDtgField.isDefined && sft.getSchemaVersion > 4 &&
+        (sft.isPoints || (sft.getGeometryDescriptor != null && sft.getSchemaVersion > 6 && sft.getSchemaVersion < 10))
+  }
+
+
 
   override val suffix: String = "z3"
 
