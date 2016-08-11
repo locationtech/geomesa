@@ -31,7 +31,7 @@ case class QueryStat(typeName: String,
                      scanTime: Long,
                      hits:     Long,
                      deleted:  Boolean = false) extends DeletableUsageStat {
-  def storeType = QueryStat.storeType
+  val storeType = QueryStat.storeType
 }
 
 object QueryStat {
