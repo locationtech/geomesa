@@ -28,7 +28,7 @@ case class RasterQueryStat(typeName:   String,
                            mosaicTime:    Long,
                            numResults:    Int,
                            deleted: Boolean = false) extends UsageStat {
-  override def storeType: String = RasterQueryStat.storeType
+  val storeType: String = RasterQueryStat.storeType
 }
 
 object RasterQueryStat {
