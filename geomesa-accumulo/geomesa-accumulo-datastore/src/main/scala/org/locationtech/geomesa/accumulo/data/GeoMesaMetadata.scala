@@ -108,6 +108,7 @@ object GeoMesaMetadata {
   val RECORD_TABLE_KEY    = "tables.record.name"
   val Z2_TABLE_KEY        = "tables.z2.name"
   val Z3_TABLE_KEY        = "tables.z3.name"
+  val XZ2_TABLE_KEY       = "tables.xz2.name"
   @deprecated
   val ST_IDX_TABLE_KEY    = "tables.idx.st.name"
 

@@ -153,6 +153,8 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends LazyLogging {
       if (spatial.isDefined) {
         if (supported.contains(Z2Table)) {
           options.append(QueryFilter(StrategyType.Z2, spatial, nonSpatial))
+        } else if(supported.contains(XZ2Table)) {
+          options.append(QueryFilter(StrategyType.XZ2, spatial, nonSpatial))
         } else if (supported.contains(SpatioTemporalTable)) {
           // noinspection ScalaDeprecation
           options.append(QueryFilter(StrategyType.ST, spatioTemporal, others))
@@ -320,8 +322,8 @@ class QueryFilterSplitter(sft: SimpleFeatureType) extends LazyLogging {
 object QueryFilterSplitter {
 
   // strategies that support full table scans, in priority order of which to use
-  private val fullTableScanOptions =
-    Seq((Z3Table, StrategyType.Z3), (Z2Table, StrategyType.Z2), (RecordTable, StrategyType.RECORD))
+  private val fullTableScanOptions = Seq((Z3Table, StrategyType.Z3), (Z2Table, StrategyType.Z2),
+    (XZ2Table, StrategyType.XZ2), (RecordTable, StrategyType.RECORD))
 
   /**
    * Try to merge the two query filters. Return the merged query filter if successful, else null.

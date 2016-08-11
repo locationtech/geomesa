@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.utils.geotools
 
+import java.nio.charset.StandardCharsets
 import java.util.{Date, Locale}
 
 import com.typesafe.config.Config
@@ -242,7 +243,10 @@ object RichSimpleFeatureType {
       val gd = sft.getGeometryDescriptor
       gd != null && gd.getType.getBinding == classOf[Point]
     }
-    def nonPoints = !isPoints
+    def nonPoints = {
+      val gd = sft.getGeometryDescriptor
+      gd != null && gd.getType.getBinding != classOf[Point]
+    }
     def isLines = {
       val gd = sft.getGeometryDescriptor
       gd != null && gd.getType.getBinding == classOf[LineString]
@@ -266,6 +270,12 @@ object RichSimpleFeatureType {
 
     def getTableSharingPrefix: String = userData[String](SHARING_PREFIX_KEY).getOrElse("")
     def setTableSharingPrefix(prefix: String): Unit = sft.getUserData.put(SHARING_PREFIX_KEY, prefix)
+
+    def getTableSharingBytes: Array[Byte] = if (sft.isTableSharing) {
+      sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)
+    } else {
+      Array.empty[Byte]
+    }
 
     // gets suffixes of enabled tables
     def getEnabledTables: Seq[String] =

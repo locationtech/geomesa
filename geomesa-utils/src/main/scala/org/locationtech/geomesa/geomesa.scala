@@ -10,15 +10,16 @@ package org.locationtech
 
 package object geomesa {
 
-  // 0 == old single table style
-  // 1 == multi-table style
-  // 2 == sorted keys in the STIDX table
-  // 3 == skipped for integration
-  // 4 == kryo encoded index values
-  // 5 == z3 index
-  // 6 == attribute indices with dates
-  // 7 == z3 polygons
-  // 8 == z2 index, deprecating stidx
-  // 9 == per-attribute-visibilities, not serializing ID in value
-  val CURRENT_SCHEMA_VERSION = 9
+  // 0  -> old single table style
+  // 1  -> multi-table style
+  // 2  -> sorted keys in the STIDX table
+  // 3  -> skipped for integration
+  // 4  -> kryo encoded index values
+  // 5  -> z3 index
+  // 6  -> attribute indices with dates
+  // 7  -> z3 polygons
+  // 8  -> z2 index, deprecating stidx
+  // 9  -> per-attribute-visibilities, not serializing ID in value
+  // 10 -> XZ2 index
+  val CURRENT_SCHEMA_VERSION = 10
 }
