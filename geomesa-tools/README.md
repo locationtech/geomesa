@@ -758,6 +758,9 @@ To export features, use the `export` command.
         --mock
            Run everything with a mock accumulo instance instead of a real one
            Default: false
+        --no-header
+           Export as a delimited text format (csv|tsv) without a type header     
+           Default: false
         -o, --output
            name of the file to output to instead of std out
         -p, --password
@@ -765,10 +768,7 @@ To export features, use the `export` command.
       * -u, --user
            Accumulo user name
         --visibilities
-           Accumulo scan visibilities
-        --no-header
-           Export as a delimited text format (csv|tsv) without a type header     
-           Default: false
+           Accumulo scan visibilities      
         -z, --zookeepers
            Zookeepers (host[:port], comma separated)
 
