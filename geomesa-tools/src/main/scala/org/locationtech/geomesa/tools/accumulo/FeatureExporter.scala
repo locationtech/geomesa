@@ -122,7 +122,7 @@ object ShapefileExport {
   }
 }
 
-class DelimitedExport(writer: Writer, format: Formats, withTypes: Boolean = true) extends FeatureExporter with LazyLogging {
+class DelimitedExport(writer: Writer, format: Formats, withHeader: Boolean = true) extends FeatureExporter with LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 
@@ -141,7 +141,7 @@ class DelimitedExport(writer: Writer, format: Formats, withTypes: Boolean = true
     val headers = indices.map(sft.getDescriptor).map(SimpleFeatureTypes.encodeDescriptor(sft, _))
 
     // write out a header line
-    if (withTypes) {
+    if (withHeader) {
       printer.print("id")
       printer.printRecord(headers: _*)
     }
