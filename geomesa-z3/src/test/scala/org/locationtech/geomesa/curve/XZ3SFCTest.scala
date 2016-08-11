@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.curve
 
+import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -15,7 +16,7 @@ import org.specs2.runner.JUnitRunner
 import scala.io.Source
 
 @RunWith(classOf[JUnitRunner])
-class XZ3SFCTest extends Specification {
+class XZ3SFCTest extends Specification with LazyLogging {
 
   val sfc = XZ3SFC(12, TimePeriod.Week)
 
@@ -46,7 +47,7 @@ class XZ3SFCTest extends Specification {
         val ranges = sfc.ranges(bbox, Some(10000)).map(r => (r.lower, r.upper))
         val matches = ranges.exists(r => r._1 <= poly && r._2 >= poly)
         if (!matches) {
-          println(s"$bbox - no match")
+          logger.warn(s"$bbox - no match")
         }
         matches must beTrue
       }
@@ -54,7 +55,7 @@ class XZ3SFCTest extends Specification {
         val ranges = sfc.ranges(bbox, Some(10000)).map(r => (r.lower, r.upper))
         val matches = ranges.exists(r => r._1 <= poly && r._2 >= poly)
         if (matches) {
-          println(s"$bbox - invalid match")
+          logger.warn(s"$bbox - invalid match")
         }
         matches must beFalse
       }
@@ -86,7 +87,7 @@ class XZ3SFCTest extends Specification {
         val ranges = sfc.ranges(bbox, Some(10000)).map(r => (r.lower, r.upper))
         val matches = ranges.exists(r => r._1 <= poly && r._2 >= poly)
         if (!matches) {
-          println(s"$bbox - no match")
+          logger.warn(s"$bbox - no match")
         }
         matches must beTrue
       }
@@ -94,7 +95,7 @@ class XZ3SFCTest extends Specification {
         val ranges = sfc.ranges(bbox, Some(10000)).map(r => (r.lower, r.upper))
         val matches = ranges.exists(r => r._1 <= poly && r._2 >= poly)
         if (matches) {
-          println(s"$bbox - invalid match")
+          logger.warn(s"$bbox - invalid match")
         }
         matches must beFalse
       }
@@ -119,7 +120,7 @@ class XZ3SFCTest extends Specification {
         val index = sfc.index((geom._1, geom._2, 1000.0, geom._3, geom._4, 1000.0))
         val matches = ranges.exists(r => r.lower <= index && r.upper >= index)
         if (!matches) {
-          println(s"$geom - no match")
+          logger.warn(s"$geom - no match")
         }
         matches must beTrue
       }
