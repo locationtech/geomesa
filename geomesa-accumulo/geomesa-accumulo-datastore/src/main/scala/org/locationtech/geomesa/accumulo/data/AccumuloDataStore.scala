@@ -127,6 +127,11 @@ class AccumuloDataStore(val connector: Connector,
           // do this before anything else so that any modifications will be in place
           GeoMesaSchemaValidator.validate(sft)
 
+          // TODO GEOMESA-1322 support tilde in feature name
+          if (sft.getTypeName.contains("~")) {
+            throw new IllegalArgumentException("AccumuloDataStore does not currently support '~' in feature type names")
+          }
+
           // write out the metadata to the catalog table
           writeMetadata(sft)
 
