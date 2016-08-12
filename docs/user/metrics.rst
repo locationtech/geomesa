@@ -114,7 +114,7 @@ metrics servlet.
 Update the configuration for the metrics servlet (either in
 ``application.conf`` or ``web.xml``) with the following attribute:
 
-.. code-block:: json
+.. code-block:: javascript
 
     // how often to update metrics for expired sessions, in seconds
     // if set to &lt; 1, sessions will not be tracked
