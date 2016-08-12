@@ -71,6 +71,14 @@ object Conversions {
   implicit class RichGeometry(val geom: Geometry) extends AnyVal {
     def bufferMeters(meters: Double): Geometry = geom.buffer(distanceDegrees(meters))
     def distanceDegrees(meters: Double) = GeometryUtils.distanceDegrees(geom, meters)
+    def safeCentroid(): Point = {
+      val centroid = geom.getCentroid
+      if (java.lang.Double.isNaN(centroid.getCoordinate.x) || java.lang.Double.isNaN(centroid.getCoordinate.y)) {
+        geom.getEnvelope.getCentroid
+      } else {
+        centroid
+      }
+    }
   }
 
   implicit class RichSimpleFeature(val sf: SimpleFeature) extends AnyVal {

@@ -32,6 +32,7 @@ object GeohashUtils
 
   // make sure the implicits related to distance are in-scope
   import Distance._
+  import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
 
   // the list of allowable GeoHash characters
   val base32seq = GeoHash.base32.toSeq
@@ -345,7 +346,7 @@ object GeohashUtils
    * @return the centroid of the given geometry
    */
   def getCentroid(geom:Geometry) : Point = {
-    val pt = geom.getCentroid
+    val pt = geom.safeCentroid()
     geom.getFactory.createPoint(new Coordinate(pt.getX, pt.getY))
   }
 
@@ -831,11 +832,11 @@ object GeohashUtils
   def reconstructGeohashFromGeometry(geometry: Geometry): GeoHash = geometry match {
     case null => throw new Exception("Invalid geometry:  null")
     case _ if "Point".equals(geometry.getGeometryType) => GeoHash(geometry.asInstanceOf[Point], maxRealisticGeoHashPrecision)
-    case _ if geometry.isRectangle => GeoHash(geometry.getCentroid, estimateGeometryGeohashPrecision(geometry))
+    case _ if geometry.isRectangle => GeoHash(geometry.safeCentroid(), estimateGeometryGeohashPrecision(geometry))
     case m: MultiPolygon =>
       if(m.getNumGeometries != 1) throw new Exception("Expected simple geometry")
       else if(!m.getGeometryN(0).isRectangle) throw new Exception("Expected rectangular geometry")
-      else GeoHash(m.getGeometryN(0).getCentroid, estimateGeometryGeohashPrecision(m.getGeometryN(0)))
+      else GeoHash(m.getGeometryN(0).safeCentroid(), estimateGeometryGeohashPrecision(m.getGeometryN(0)))
     case _ => throw new Exception(s"Invalid geometry:  $geometry")
   }
 
@@ -874,7 +875,7 @@ object GeohashUtils
       g.buffer(1e-6)
     case g: Polygon =>
       if (g.getArea > 0.0) g
-      else g.getCentroid.buffer(1e-6)
+      else g.safeCentroid().buffer(1e-6)
     case g          =>
       val env = g.getEnvelope
       if (env.getArea > 0.0) env
@@ -942,7 +943,7 @@ object GeohashUtils
     val usedBits = length * 5
     val allResolutions = ResolutionRange(0, Math.min(35, maxBits), 1)
     val maxKeys = Math.min(2 << Math.min(usedBits, 29), MAX_KEYS_IN_LIST)
-    val polyCentroid = cover.getCentroid
+    val polyCentroid = cover.safeCentroid()
 
     // find the smallest GeoHash you can that covers the target geometry
     val ghMBR = getMinimumBoundingGeohash(geom, allResolutions)

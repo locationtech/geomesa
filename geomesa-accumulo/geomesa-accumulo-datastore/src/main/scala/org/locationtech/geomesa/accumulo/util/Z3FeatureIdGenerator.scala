@@ -67,12 +67,15 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator {
     if (sft.isPoints) {
       createUuid(pt.asInstanceOf[Point], time, sft.getZ3Interval)
     } else {
-      createUuid(pt.asInstanceOf[Geometry].getCentroid, time, sft.getZ3Interval)
+      import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
+      createUuid(pt.asInstanceOf[Geometry].safeCentroid(), time, sft.getZ3Interval)
     }
   }
 
-  def createUuid(geom: Geometry, time: Long, period: TimePeriod): UUID =
-    createUuid(geom.getCentroid, time, period)
+  def createUuid(geom: Geometry, time: Long, period: TimePeriod): UUID = {
+    import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
+    createUuid(geom.safeCentroid(), time, period)
+  }
 
   def createUuid(pt: Point, time: Long, period: TimePeriod) = {
     // create the random part

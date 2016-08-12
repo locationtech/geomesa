@@ -96,7 +96,8 @@ class DensityIterator extends KryoLazyDensityIterator with LazyLogging {
     val grid = gridSnap.generateCoverageGrid
     grid.getFeatures.features.foreach { f =>
       if (poly.intersects(f.polygon)) {
-        writePointToResult(f.polygon.getCentroid, weight, result)
+        import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
+        writePointToResult(f.polygon.safeCentroid(), weight, result)
       }
     }
   }
