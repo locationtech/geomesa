@@ -34,7 +34,7 @@ import org.locationtech.geomesa.accumulo.{AccumuloVersion, GeomesaSystemProperti
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializers}
+import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializer, SimpleFeatureSerializers}
 import org.locationtech.geomesa.security.{AuditProvider, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.conf.GeoMesaProperties
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -396,12 +396,7 @@ class AccumuloDataStore(val connector: Connector,
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    val fe = if (sft.getSchemaVersion < 9) {
-      SimpleFeatureSerializers(sft, getFeatureEncoding(sft))
-    } else {
-      new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
-    }
-    new ModifyAccumuloFeatureWriter(sft, fe, this, defaultVisibilities, filter)
+    new ModifyAccumuloFeatureWriter(sft, getSerializer(sft), this, defaultVisibilities, filter)
   }
 
   /**
@@ -417,12 +412,7 @@ class AccumuloDataStore(val connector: Connector,
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    val fe = if (sft.getSchemaVersion < 9) {
-      SimpleFeatureSerializers(sft, getFeatureEncoding(sft))
-    } else {
-      new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
-    }
-    new AppendAccumuloFeatureWriter(sft, fe, this, defaultVisibilities)
+    new AppendAccumuloFeatureWriter(sft, getSerializer(sft), this, defaultVisibilities)
   }
 
   /**
@@ -550,6 +540,20 @@ class AccumuloDataStore(val connector: Connector,
     metadata.read(sft.getTypeName, "featureEncoding")
         .map(SerializationType.withName)
         .getOrElse(SerializationType.KRYO)
+
+  /**
+    * Gets a simple feature serializer for writing values
+    *
+    * @param sft simple feature type
+    * @return
+    */
+  def getSerializer(sft: SimpleFeatureType): SimpleFeatureSerializer = {
+    if (sft.getSchemaVersion < 9) {
+      SimpleFeatureSerializers(sft, getFeatureEncoding(sft))
+    } else {
+      new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+    }
+  }
 
   /**
    * Used to update the attributes that are marked as indexed - partial implementation of updateSchema.

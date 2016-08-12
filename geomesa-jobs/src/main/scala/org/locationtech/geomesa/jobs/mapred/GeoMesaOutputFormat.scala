@@ -24,9 +24,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToMut
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.data.stats.StatUpdater
 import org.locationtech.geomesa.accumulo.index.{BinEncoder, IndexValueEncoder}
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.features.{SimpleFeatureSerializer, SimpleFeatureSerializers}
+import org.locationtech.geomesa.features.SimpleFeatureSerializer
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -96,8 +94,6 @@ class GeoMesaOutputFormat extends OutputFormat[Text, SimpleFeature] {
 class GeoMesaRecordWriter(params: Map[String, String], delegate: RecordWriter[Text, Mutation])
     extends RecordWriter[Text, SimpleFeature] with LazyLogging {
 
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
   type TableAndMutations = (Text, FeatureToMutations)
 
   val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
@@ -132,12 +128,7 @@ class GeoMesaRecordWriter(params: Map[String, String], delegate: RecordWriter[Te
     val stats = statsCache.getOrElseUpdate(sftName, ds.stats.statUpdater(sft))
 
     val withFid = AccumuloFeatureWriter.featureWithFid(sft, value)
-    val serializer = serializerCache.getOrElseUpdate(sftName,
-      if (sft.getSchemaVersion < 9) {
-        SimpleFeatureSerializers(sft, ds.getFeatureEncoding(sft))
-      } else {
-        new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
-      })
+    val serializer = serializerCache.getOrElseUpdate(sftName, ds.getSerializer(sft))
     val ive = indexEncoderCache.getOrElseUpdate(sftName, IndexValueEncoder(sft))
     val binEncoder = binEncoderCache.getOrElseUpdate(sftName, BinEncoder(sft))
     val featureToWrite = WritableFeature(withFid, sft, ds.defaultVisibilities, serializer, ive, binEncoder)
