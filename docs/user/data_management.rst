@@ -16,17 +16,24 @@ Index Structure
 
 By default, GeoMesa creates a number of indices:
 
-- **Z2** - the Z2 index uses a Z-order curve to index latitude and longitude. This is the primary index used
-  to answer queries of features with point geometry with a spatial component but no temporal component.
-- **Z3** - the Z3 index uses a Z-order curve to index latitude, longitude and time. This is the primary index
-  used to answer queries of features with point geometry with both a spatial and temporal component.
-- **XZ2** - the XZ2 index uses an implementation of XZ-ordering [#ref1]_, an extension of the Z-order curve
-  designed for spatially extended objects (i.e. non-point geometries such as line strings or polygons), to
-  index latitude and longitude. This is the primary index used to answer queries of features with non-point
-  geometry with a spatial component but no temporal component.
-- **XZ3** - the XZ3 index uses an implementation of XZ-ordering [#ref1]_ to index latitude, longitude, and time.
-  This is the primary index used to answer queries of features with non-point geometry with both spatial and
-  temporal components.
+- **Z2** - the Z2 index uses a two-dimensional Z-order curve to index latitude and longitude
+  for point data. This index will be created if the feature type has the geometry type
+  ``Point``. This is used to efficiently answer queries of
+  features with point geometry with a spatial component but no temporal component.
+- **Z3** - the Z3 index uses a three-dimensional Z-order curve to index latitude, longitude,
+  and time for point data. This index will be created if the feature type has the geometry
+  type ``Point`` and has a time attribute. This is used to efficiently answer queries of
+  features with point geometry with both spatial and temporal components.
+- **XZ2** - the XZ2 index uses a two-dimensional implementation of XZ-ordering [#ref1]_ to index
+  latitude and longitude for non-point data. XZ-ordering is an extension of Z-ordering
+  designed for spatially extended objects (i.e. non-point geometries such as line strings or
+  polygons). This index will be created if the feature type has a non-\ ``Point`` geometry. This
+  is used to efficiently answer queries of features with non-point geometry with a spatial
+  component but no temporal component.
+- **XZ3** - the XZ3 index uses a three-dimensional implementation of XZ-ordering [#ref1]_ to index
+  latitude, longitude, and time for non-point data. This index will be created if the feature
+  type has a non-\ ``Point`` geometry and has a time attribute. This is used to efficiently
+  answer queries of features with non-point geometry with both spatial and temporal components.
 - **Record** - the record index stores features by feature ID. It is used for any query by ID. Additionally,
   certain attribute queries may end up retrieving data from the record index. This is explained below.
 

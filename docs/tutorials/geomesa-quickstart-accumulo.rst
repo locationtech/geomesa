@@ -267,7 +267,7 @@ Generating Heatmaps
 -  To try out the DensityIterator, you can install the Heatmap SLD from
    the :doc:`geomesa-examples-gdelt` tutorial.
 -  After configuring the SLD, in the URL, change ``styles=`` to be
-   ``styles=heatmap&density=true``. Once you press , the display will
+   ``styles=heatmap&density=true``. Once you press <Enter>, the display will
    change to a density heat-map.
 
 .. note::
