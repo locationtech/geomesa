@@ -23,7 +23,9 @@
             </ogc:Function>
             <ogc:Function name="parameter">
               <ogc:Literal>weightAttr</ogc:Literal>
-              <ogc:Literal>weight</ogc:Literal>
+              <ogc:Function name="env">
+                <ogc:Literal>weightAttr</ogc:Literal>
+              </ogc:Function>
             </ogc:Function>
             <ogc:Function name="parameter">
               <ogc:Literal>outputBBOX</ogc:Literal>
