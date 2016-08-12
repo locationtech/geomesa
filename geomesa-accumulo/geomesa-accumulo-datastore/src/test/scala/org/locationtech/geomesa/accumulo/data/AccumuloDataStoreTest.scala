@@ -74,6 +74,11 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       ds.getSchema(defaultSft.getTypeName) mustEqual defaultSft
     }
 
+    "reject a schema with a ~" in {
+      val sft = SimpleFeatureTypes.createType("name~name", "name:String,geom:Point:srid=4326")
+      ds.createSchema(sft) must throwAn[IllegalArgumentException]
+    }
+
     "create a schema with keywords" in {
       val keywords: Seq[String] = Seq("keywordA", "keywordB", "keywordC")
       val spec = s"name:String;${KEYWORDS_KEY}=${keywords.mkString(KEYWORDS_DELIMITER)}"
