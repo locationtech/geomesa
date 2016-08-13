@@ -246,14 +246,14 @@ class XMLConverterTest extends Specification {
           | {
           |   type         = "xml"
           |   id-field     = "uuid()"
-          |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
+          |   feature-path = "*:Feature" // can be any xpath - relative to the root, or absolute
           |   xsd          = "xml-feature.xsd" // looked up by class.getResource
           |   fields = [
           |     // paths can be any xpath - relative to the feature-path, or absolute
-          |     { name = "number", path = "number",           transform = "$0::integer" }
-          |     { name = "color",  path = "color",            transform = "trim($0)" }
-          |     { name = "weight", path = "physical/@weight", transform = "$0::double" }
-          |     { name = "source", path = "/doc/DataSource/name/text()" }
+          |     { name = "number", path = "*:number",           transform = "$0::integer" }
+          |     { name = "color",  path = "*:color",            transform = "trim($0)" }
+          |     { name = "weight", path = "*:physical/@weight", transform = "$0::double" }
+          |     { name = "source", path = "/*:doc/*:DataSource/*:name/text()" }
           |   ]
           | }
         """.stripMargin)
@@ -299,17 +299,17 @@ class XMLConverterTest extends Specification {
           | {
           |   type         = "xml"
           |   id-field     = "uuid()"
-          |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
+          |   feature-path = "*:Feature" // can be any xpath - relative to the root, or absolute
           |   xsd          = "xml-feature.xsd" // looked up by class.getResource
           |   options {
           |     line-mode  = "multi"
           |   }
           |   fields = [
           |     // paths can be any xpath - relative to the feature-path, or absolute
-          |     { name = "number", path = "number",           transform = "$0::integer" }
-          |     { name = "color",  path = "color",            transform = "trim($0)" }
-          |     { name = "weight", path = "physical/@weight", transform = "$0::double" }
-          |     { name = "source", path = "/doc/DataSource/name/text()" }
+          |     { name = "number", path = "*:number",           transform = "$0::integer" }
+          |     { name = "color",  path = "*:color",            transform = "trim($0)" }
+          |     { name = "weight", path = "*:physical/@weight", transform = "$0::double" }
+          |     { name = "source", path = "/*:doc/*:DataSource/*:name/text()" }
           |   ]
           | }
         """.stripMargin)
@@ -346,17 +346,17 @@ class XMLConverterTest extends Specification {
           | {
           |   type         = "xml"
           |   id-field     = "uuid()"
-          |   feature-path = "Feature" // can be any xpath - relative to the root, or absolute
+          |   feature-path = "*:Feature" // can be any xpath - relative to the root, or absolute
           |   xsd          = "xml-feature.xsd" // looked up by class.getResource
           |   options {
           |     line-mode  = "single"
           |   }
           |   fields = [
           |     // paths can be any xpath - relative to the feature-path, or absolute
-          |     { name = "number", path = "number",           transform = "$0::integer" }
-          |     { name = "color",  path = "color",            transform = "trim($0)" }
-          |     { name = "weight", path = "physical/@weight", transform = "$0::double" }
-          |     { name = "source", path = "/doc/DataSource/name/text()" }
+          |     { name = "number", path = "*:number",           transform = "$0::integer" }
+          |     { name = "color",  path = "*:color",            transform = "trim($0)" }
+          |     { name = "weight", path = "*:physical/@weight", transform = "$0::double" }
+          |     { name = "source", path = "/*:doc/*:DataSource/*:name/text()" }
           |   ]
           | }
         """.stripMargin)
