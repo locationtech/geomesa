@@ -46,7 +46,8 @@ class BinEncoder(sft: SimpleFeatureType, trackIdField: String) {
   }
 
   private def getLatLonNonPoints(sf: SimpleFeature): (Float, Float) = {
-    val geom = sf.getAttribute(geomIndex).asInstanceOf[Geometry].getCentroid
+    import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
+    val geom = sf.getAttribute(geomIndex).asInstanceOf[Geometry].safeCentroid()
     (geom.getY.toFloat, geom.getX.toFloat)
   }
 

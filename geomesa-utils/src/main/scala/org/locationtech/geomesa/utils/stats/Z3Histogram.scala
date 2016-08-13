@@ -64,8 +64,9 @@ class Z3Histogram(val geomIndex: Int, val dtgIndex: Int, val period: TimePeriod,
   def medianValue(timeBin: Short, i: Int): (Geometry, Date) = fromKey(timeBin, binMap(timeBin).medianValue(i))
 
   private def toKey(geom: Geometry, dtg: Date): (Short, Long) = {
+    import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
     val BinnedTime(bin, offset) = timeToBin(dtg.getTime)
-    val centroid = geom.getCentroid
+    val centroid = geom.safeCentroid()
     val z = sfc.index(centroid.getX, centroid.getY, offset).z
     (bin, z)
   }

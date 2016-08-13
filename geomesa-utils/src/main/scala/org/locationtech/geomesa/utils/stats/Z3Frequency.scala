@@ -43,8 +43,9 @@ class Z3Frequency(val geomIndex: Int,
   private [stats] def newSketch: CountMinSketch = new CountMinSketch(eps, confidence, Frequency.Seed)
 
   private def toKey(geom: Geometry, dtg: Date): (Short, Long) = {
+    import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
     val BinnedTime(b, o) = timeToBin(dtg.getTime)
-    val centroid = geom.getCentroid
+    val centroid = geom.safeCentroid()
     val z = sfc.index(centroid.getX, centroid.getY, o).z & mask
     (b, z)
   }
