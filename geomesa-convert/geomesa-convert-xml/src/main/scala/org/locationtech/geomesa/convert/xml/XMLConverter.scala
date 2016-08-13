@@ -19,11 +19,12 @@ import javax.xml.xpath.{XPathConstants, XPathExpression, XPathFactory}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
+import org.apache.xpath.CachedXPathAPI
 import org.locationtech.geomesa.convert.LineMode.LineMode
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
 import org.locationtech.geomesa.convert._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.w3c.dom.NodeList
+import org.w3c.dom.{ Node, NodeList }
 import org.xml.sax.InputSource
 
 import scala.collection.immutable.IndexedSeq
@@ -58,7 +59,10 @@ class XMLConverter(val targetSFT: SimpleFeatureType,
     val root = docBuilder.parse(new InputSource(new StringReader(i))).getDocumentElement
     featurePath.map { path =>
       val nodeList = path.evaluate(root, XPathConstants.NODESET).asInstanceOf[NodeList]
-      (0 until nodeList.getLength).map(i => Array[Any](nodeList.item(i)))
+        (0 until nodeList.getLength).map { i =>
+          val item = nodeList.item(i)
+          Array[Any](item)
+        }.toSeq
     }.getOrElse(Seq(Array[Any](root)))
   }
 
@@ -102,19 +106,20 @@ class XMLConverterFactory extends AbstractSimpleFeatureConverterFactory[String] 
     if (field.hasPath("path")) {
       // path can be absolute, or relative to the feature node
       // it can also include xpath functions to manipulate the result
-      XMLField(name, xpath.compile(field.getString("path")), transform)
+      XMLField(name, field.getString("path"), transform)
     } else {
       SimpleField(name, transform)
     }
   }
 }
 
-case class XMLField(name: String, expression: XPathExpression, transform: Expr) extends Field {
+case class XMLField(name: String, expression: String, transform: Expr) extends Field {
 
+  private val xpath = new CachedXPathAPI()
   private val mutableArray = Array.ofDim[Any](1)
 
   override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
-    mutableArray(0) = expression.evaluate(args(0))
+    mutableArray(0) = xpath.eval(args(0).asInstanceOf[Node], expression).str()
     if (transform == null) {
       mutableArray(0)
     } else {
