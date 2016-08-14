@@ -14,7 +14,6 @@ import javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
-import javax.xml.xpath.{XPathConstants, XPathExpression, XPathFactory}
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
@@ -24,7 +23,7 @@ import org.locationtech.geomesa.convert.LineMode.LineMode
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
 import org.locationtech.geomesa.convert._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.w3c.dom.{ Node, NodeList }
+import org.w3c.dom.Node
 import org.xml.sax.InputSource
 
 import scala.collection.immutable.IndexedSeq
@@ -32,7 +31,7 @@ import scala.io.Source
 
 class XMLConverter(val targetSFT: SimpleFeatureType,
                    val idBuilder: Expr,
-                   val featurePath: Option[XPathExpression],
+                   val featurePath: Option[String],
                    val xsd: Option[String],
                    val inputFields: IndexedSeq[Field],
                    val userDataBuilder: Map[String, Expr],
@@ -51,18 +50,17 @@ class XMLConverter(val targetSFT: SimpleFeatureType,
     xsdStream.close()
     schema.newValidator()
   }
+  private val cachedAPI = new CachedXPathAPI
 
   override def fromInputType(i: String): Seq[Array[Any]] = {
     // if a schema is defined, validate it - this will throw an exception on failure
     validator.foreach(_.validate(new StreamSource(new StringReader(i))))
     // parse the document once, then extract each feature node and operate on it
     val root = docBuilder.parse(new InputSource(new StringReader(i))).getDocumentElement
+
     featurePath.map { path =>
-      val nodeList = path.evaluate(root, XPathConstants.NODESET).asInstanceOf[NodeList]
-        (0 until nodeList.getLength).map { i =>
-          val item = nodeList.item(i)
-          Array[Any](item)
-        }.toSeq
+      val nl = cachedAPI.eval(root, path).nodelist()
+      (0 until nl.getLength).map { i => Array[Any](nl.item(i)) }
     }.getOrElse(Seq(Array[Any](root)))
   }
 
@@ -78,7 +76,7 @@ class XMLConverter(val targetSFT: SimpleFeatureType,
 
 class XMLConverterFactory extends AbstractSimpleFeatureConverterFactory[String] {
 
-  private val xpath = XPathFactory.newInstance().newXPath()
+  private val cachedXPathAPI = new CachedXPathAPI()
 
   override protected val typeToProcess = "xml"
 
@@ -93,7 +91,7 @@ class XMLConverterFactory extends AbstractSimpleFeatureConverterFactory[String] 
     val featurePath = if (conf.hasPath("feature-path")) Some(conf.getString("feature-path")) else None
     val xsd         = if (conf.hasPath("xsd")) Some(conf.getString("xsd")) else None
     val lineMode    = LineMode.getLineMode(conf)
-    new XMLConverter(sft, idBuilder, featurePath.map(xpath.compile), xsd, fields, userDataBuilder, validating, lineMode)
+    new XMLConverter(sft, idBuilder, featurePath, xsd, fields, userDataBuilder, validating, lineMode)
   }
 
   override protected def buildField(field: Config): Field = {
@@ -106,16 +104,15 @@ class XMLConverterFactory extends AbstractSimpleFeatureConverterFactory[String] 
     if (field.hasPath("path")) {
       // path can be absolute, or relative to the feature node
       // it can also include xpath functions to manipulate the result
-      XMLField(name, field.getString("path"), transform)
+      XMLField(name, field.getString("path"), transform, cachedXPathAPI)
     } else {
       SimpleField(name, transform)
     }
   }
 }
 
-case class XMLField(name: String, expression: String, transform: Expr) extends Field {
+case class XMLField(name: String, expression: String, transform: Expr, xpath: CachedXPathAPI) extends Field {
 
-  private val xpath = new CachedXPathAPI()
   private val mutableArray = Array.ofDim[Any](1)
 
   override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
