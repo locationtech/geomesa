@@ -129,6 +129,13 @@ Maven's output and log4j's warnings):
     Feature ID Observation.990 | Who: Addams | What: 990
     Feature ID Observation.987 | Who: Addams | What: 987
 
+The quick start code may also be run via Maven using the ``live-test``
+profile:
+
+.. code-block:: bash
+
+    $ mvn -Plive-test exec:exec -DinstanceId=<instance> -Dzookeepers=<zookeepers> -Duser=<user> -Dpassword=<password> -DtableName=<tableName>
+
 Looking at the Code
 -------------------
 
@@ -261,6 +268,9 @@ Generating Heatmaps
    the :doc:`geomesa-examples-gdelt` tutorial.
 -  After configuring the SLD, in the URL, change ``styles=`` to be
    ``styles=heatmap&density=true``. Once you press <Enter>, the display will
-   change to a density heat-map. (NB: For this to work, you will have to
-   first install the WPS module for GeoServer. See the official web site
-   for a download.)
+   change to a density heat-map.
+
+.. note::
+
+    For this to work, you will have to first install the WPS module for GeoServer
+    as described in :doc:`/user/geoserver`.

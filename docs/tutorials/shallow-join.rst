@@ -168,7 +168,7 @@ We first loop through the types of a sample feature from the GDELT RDD to decide
     val countable = sc.broadcast(countableIndices)
 
 With these fields, we can create a Simple Feature Type to store their averages and totals, prefixing each one with
-"total_" and "avg_". Of course, it may not make sense to aggregate ID fields or fields that are already an average,
+"total\_" and "avg\_". Of course, it may not make sense to aggregate ID fields or fields that are already an average,
 should they appear, but this approach makes it easy if the fields are not known ahead of time.
 
 .. code-block:: scala

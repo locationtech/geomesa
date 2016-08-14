@@ -192,6 +192,10 @@ following changes:
 
        -visibilities <visibilities>
 
+You can also ingest data with visibilities using geomesa command line
+tools by including the --visibilities option, specifically
+``--visibilities user`` in this example.
+
 The visibility string can be anything valid for your Accumulo instance.
 For the rest of this exercise, we are going to assume the visibility
 string is ``user``, and the Accumulo table is ``gdelt_auths``. You can
@@ -248,7 +252,7 @@ Pick a reasonable directory on your machine, and run:
     $ git clone https://github.com/geomesa/geomesa-tutorials.git
     $ cd geomesa-tutorials
 
-To build, run
+Cloning the repository should only take a few seconds. To build it, run
 
 .. code-block:: bash
 
@@ -313,11 +317,11 @@ console. You should see output similar to the following:
 The first query should return 1 or more results. The second query should
 return 0 results, since they are hidden by visibilities.
 
-Insight into How the Tutorial Works
------------------------------------
+Insight into How the Authorizations Tutorial Works
+--------------------------------------------------
 
 The code for querying with authorizations is available in the class
-``com.example.geomesa.authorizations.AuthorizationsTutorial``.
+```com.example.geomesa.authorizations.AuthorizationsTutorial`` <https://github.com/geomesa/geomesa-tutorials/blob/master/geomesa-examples-authorizations/src/main/java/com/example/geomesa/authorizations/AuthorizationsTutorial.java>`__.
 
 The interesting code for this tutorial is contained in the ``main``
 method:
@@ -564,7 +568,7 @@ attribute to match.
 
 The tutorial code includes a test case for connecting to LDAP, in the
 class
-``com.example.geomesa.authorizations.LdapAuthorizationsProviderTest``.
+```com.example.geomesa.authorizations.LdapAuthorizationsProviderTest`` <https://github.com/geomesa/geomesa-tutorials/blob/master/geomesa-examples-authorizations/src/main/java/com/example/geomesa/authorizations/LdapAuthorizationsProviderTest.java>`__.
 
 Once you have modified ``geomesa-ldap.properties`` to connect to your
 LDAP, you can test the connection by running this test class:
@@ -595,7 +599,7 @@ specified as the ``EmptyAuthorizationsProvider``.
 
 1. Ensure that your LDAP configuration is correct by running
    ``LdapAuthorizationsProviderTest``, as described above.
-2. Change the provider class in
+2. Change the provider class in the single line file
    ``src/main/resources/META-INF/services/org.locationtech.geomesa.security.AuthorizationsProvider``
    to be
    ``com.example.geomesa.authorizations.LdapAuthorizationsProvider``
@@ -723,11 +727,11 @@ you should get no results:
     INFO: Cached XML schema: https://localhost:8443/geoserver/wfs?service=WFS&version=1.0.0&request=DescribeFeatureType&typeName=geomesa%3Agdelt
     No results
 
-Insight into How the Tutorial Works
------------------------------------
+Insight into How the GeoServerAuthorizations Tutorial Works
+-----------------------------------------------------------
 
 The code for querying through WFS is available in the class
-``com.example.geomesa.authorizations.GeoServerAuthorizationsTutorial``.
+```com.example.geomesa.authorizations.GeoServerAuthorizationsTutorial`` <https://github.com/geomesa/geomesa-tutorials/blob/master/geomesa-examples-authorizations/src/main/java/com/example/geomesa/authorizations/GeoServerAuthorizationsTutorial.java>`__.
 The interesting code for this tutorial is contained in the ``main``
 method:
 

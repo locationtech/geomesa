@@ -7,26 +7,44 @@ distribution and migrate data between tables or environments.
 
 .. note::
 
-    Currently this section applies only to the Accumulo Data Store.
+    Currently this chapter applies only to the Accumulo Data Store.
+
+.. _index_structure:
 
 Index Structure
 ---------------
 
-By default, GeoMesa creates three indices:
+By default, GeoMesa creates a number of indices:
 
-- Z2 - the Z2 index uses a z-order curve to index latitude and longitude. This is the primary index used
-  to answer queries with a spatial component but no temporal component.
-- Z3 - the Z3 index uses a z-order curve to index latitude, longitude and time. This is the primary index
-  used to answer queries with both a spatial and temporal component.
-- Record - the record index stores features by feature ID. It is used for any query by ID. Additionally,
+- **Z2** - the Z2 index uses a two-dimensional Z-order curve to index latitude and longitude
+  for point data. This index will be created if the feature type has the geometry type
+  ``Point``. This is used to efficiently answer queries of
+  features with point geometry with a spatial component but no temporal component.
+- **Z3** - the Z3 index uses a three-dimensional Z-order curve to index latitude, longitude,
+  and time for point data. This index will be created if the feature type has the geometry
+  type ``Point`` and has a time attribute. This is used to efficiently answer queries of
+  features with point geometry with both spatial and temporal components.
+- **XZ2** - the XZ2 index uses a two-dimensional implementation of XZ-ordering [#ref1]_ to index
+  latitude and longitude for non-point data. XZ-ordering is an extension of Z-ordering
+  designed for spatially extended objects (i.e. non-point geometries such as line strings or
+  polygons). This index will be created if the feature type has a non-\ ``Point`` geometry. This
+  is used to efficiently answer queries of features with non-point geometry with a spatial
+  component but no temporal component.
+- **XZ3** - the XZ3 index uses a three-dimensional implementation of XZ-ordering [#ref1]_ to index
+  latitude, longitude, and time for non-point data. This index will be created if the feature
+  type has a non-\ ``Point`` geometry and has a time attribute. This is used to efficiently
+  answer queries of features with non-point geometry with both spatial and temporal components.
+- **Record** - the record index stores features by feature ID. It is used for any query by ID. Additionally,
   certain attribute queries may end up retrieving data from the record index. This is explained below.
 
 If specified, GeoMesa will also create the following indices:
 
-- Attribute - the attribute index uses attribute values as the primary index key. This allows for
+- **Attribute** - the attribute index uses attribute values as the primary index key. This allows for
   fast retrieval of queries without a spatio-temporal component. Attribute indices can be created
   in a 'reduced' format, that takes up less disk space at the cost of performance for certain queries,
   or a 'full' format that takes up more space but can answer certain queries faster.
+
+.. _attribute_indices:
 
 Attribute Indices
 -----------------
@@ -112,7 +130,7 @@ you may set the hint directly in the feature type:
 If you are using TypeSafe configuration files to define your simple feature type, you may include the hint in
 the attribute field:
 
-.. code-block:: json
+.. code-block:: javascript
 
     geomesa {
       sfts {
@@ -142,6 +160,7 @@ If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribu
         .geometry("geom", default = true)
         .build("mySft")
 
+.. _customizing_z_index:
 
 Customizing the Z-Index
 -----------------------
@@ -167,13 +186,15 @@ user data using the hint ``geomesa.z3.interval``:
 
 See below for alternate ways to set the user data.
 
+.. _customizing_index_creation:
 
 Customizing Index Creation
 --------------------------
 
 To speed up ingestion, or because you are only using certain query patterns, you may disable some indices.
-The indices are created when calling ``createSchema``. If nothing is specified, the Z2, Z3 and record
-indices will all be created, as well as any attribute indices you have defined.
+The indices are created when calling ``createSchema``. If nothing is specified, the Z2/Z3 (or XZ2/XZ3
+depending on geometry type) indices and record indices will all be created, as well as any attribute
+indices you have defined.
 
 .. warning::
 
@@ -215,7 +236,7 @@ you may set the hint directly in the feature type:
 If you are using TypeSafe configuration files to define your simple feature type, you may include
 a 'user-data' key:
 
-.. code-block:: json
+.. code-block:: javascript
 
     geomesa {
       sfts {
@@ -246,6 +267,14 @@ If you are using the GeoMesa ``SftBuilder``, you may call the ``withIndexes`` me
         .withIndexes(List("records", "z3", "attr_idx"))
         .build("mySft")
 
+If the default geometry type is ``Geometry`` (i.e. supporting both point and non-point
+features), you must explicitly enable "mixed" indexing mode with ``geomesa.mixed.geometries``:
+
+.. code-block:: java
+
+    // append the hints to the end of the string, separated by a semi-colon
+    String spec = "name:String,dtg:Date,*geom:Geometry:srid=4326;geomesa.mixed.geometries='true'";
+    SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
 
 .. _accumulo_visibilities:
 
@@ -380,7 +409,7 @@ you may set the hint directly in the feature type:
 If you are using TypeSafe configuration files to define your simple feature type, you may include
 a 'user-data' key:
 
-.. code-block:: json
+.. code-block:: javascript
 
     geomesa {
       sfts {
@@ -426,3 +455,7 @@ If you prefer to not use Avro files, you may do the same process with delimited 
 
     $ geomesa export -c myTable -f mySft --format tsv --gzip 6 -o myFeatures.tsv.gz
     $ geomesa import -c myTable -f mySft myFeatures.tsv.gz
+
+.. rubric:: Footnotes
+
+.. [#ref1] Böhm, Klump, and Kriegel. "XZ-ordering: a space-filling curve for objects with spatial extension." 6th. Int. Symposium on Large Spatial Databases (SSD), 1999, Hong Kong, China. (http://www.dbs.ifi.lmu.de/Publikationen/Boehm/Ordering_99.pdf)
