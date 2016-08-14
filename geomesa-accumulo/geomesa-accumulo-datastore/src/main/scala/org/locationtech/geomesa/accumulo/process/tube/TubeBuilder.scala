@@ -47,7 +47,10 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
   def getStartTime(sf: SimpleFeature) = sf.getAttribute(1).asInstanceOf[Date]
   def getEndTime(sf: SimpleFeature) = sf.getAttribute(2).asInstanceOf[Date]
 
-  def bufferGeom(geom: Geometry, meters: Double) = geom.buffer(metersToDegrees(meters, geom.getCentroid))
+  def bufferGeom(geom: Geometry, meters: Double) = {
+    import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
+    geom.buffer(metersToDegrees(meters, geom.safeCentroid()))
+  }
 
   def metersToDegrees(meters: Double, point: Point) = {
     logger.debug("Buffering: "+meters.toString + " "+WKTUtils.write(point))
@@ -155,9 +158,10 @@ class LineGapFill(tubeFeatures: SimpleFeatureCollection,
     val sortedTube = transformed.toSeq.sortBy { sf => getStartTime(sf).getTime }
 
     val lineFeatures = sortedTube.sliding(2).map { pair =>
-      val p1 = getGeom(pair(0)).getCentroid
+      import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
+      val p1 = getGeom(pair(0)).safeCentroid()
       val t1 = getStartTime(pair(0))
-      val p2 = getGeom(pair(1)).getCentroid
+      val p2 = getGeom(pair(1)).safeCentroid()
       val t2 = getStartTime(pair(1))
 
       val geo =

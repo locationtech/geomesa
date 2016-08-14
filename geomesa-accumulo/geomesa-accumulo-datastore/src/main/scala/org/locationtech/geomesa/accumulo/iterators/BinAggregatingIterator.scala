@@ -192,8 +192,10 @@ class BinAggregatingIterator
    * Writes a bin record from a feature that has a arbitrary geometry.
    * A single internal point will be written.
    */
-  def writeGeometry(sf: KryoBufferSimpleFeature, byteBuffer: ByteBuffer): Unit =
-    writeBinToBuffer(sf, sf.getAttribute(geomIndex).asInstanceOf[Geometry].getCentroid, byteBuffer)
+  def writeGeometry(sf: KryoBufferSimpleFeature, byteBuffer: ByteBuffer): Unit = {
+    import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
+    writeBinToBuffer(sf, sf.getAttribute(geomIndex).asInstanceOf[Geometry].safeCentroid(), byteBuffer)
+  }
 
   /**
    * Writes geom + label
@@ -569,7 +571,8 @@ object BinAggregatingIterator extends LazyLogging {
 
   // get a single geom
   private def getGenericGeom(sf: SimpleFeature, i: Int): (Float, Float) = {
-    val p = sf.getAttribute(i).asInstanceOf[Geometry].getCentroid
+    import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
+    val p = sf.getAttribute(i).asInstanceOf[Geometry].safeCentroid()
     (p.getY.toFloat, p.getX.toFloat)
   }
 
