@@ -11,6 +11,7 @@ package org.locationtech.geomesa.kafka
 import java.io.Serializable
 import java.{util => ju}
 
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Envelope
 import org.geotools.data.store.{ContentEntry, ContentFeatureSource}
 import org.geotools.data.{FilteringFeatureReader, Query}
