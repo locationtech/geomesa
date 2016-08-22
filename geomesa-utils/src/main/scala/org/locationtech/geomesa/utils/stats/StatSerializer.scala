@@ -13,7 +13,6 @@ import java.util.Date
 
 import com.clearspring.analytics.stream.StreamSummary
 import com.clearspring.analytics.stream.cardinality.HyperLogLog
-import com.clearspring.analytics.stream.frequency.RichCountMinSketch
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.curve.TimePeriod
