@@ -263,7 +263,7 @@ The above map is using the `Stamen
 Toner <http://maps.stamen.com/toner>`__ layer as a base layer. For more
 information about adding multiple layers into one group see the
 `GeoServer
-documentation <http://docs.geoserver.org/stable/en/user/webadmin/data/layergroups.html>`__.
+documentation <http://docs.geoserver.org/stable/en/user/data/webadmin/layergroups.html>`__.
 
 Filter
 ~~~~~~
