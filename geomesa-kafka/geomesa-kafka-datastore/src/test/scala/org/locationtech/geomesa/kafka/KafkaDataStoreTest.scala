@@ -68,8 +68,7 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedKafka with LazyLo
       consumerDS.getTypeNames.toList must contain("test")
     }
 
-    //todo: This test fails.  producerDs has the userData, but consumerDs doesn't.  Not seeing where sft/usrData is written to zookeeper.
-    /*
+    //todo: This test fails.
     "allow schemas to be created with user-data and be available in other data stores" >> {
       val schemaWithMetadata = {
         val sft = SimpleFeatureTypes.createType("user-data",
@@ -82,7 +81,7 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedKafka with LazyLo
       val retrieved = consumerDS.getSchema("user-data")
       retrieved must not(beNull)
       retrieved.getUserData.get("geomesa.foo") mustEqual "bar"
-    }*/
+    }.pendingUntilFixed("producerDs has the userData, but consumerDs doesn't.  Not seeing in code where sft/usrData is written to zookeeper.")
 
     "allow schemas to be deleted" >> {
       val replaySFT = KafkaDataStoreHelper.createReplaySFT(schema, ReplayConfig(10000L, 20000L, 1000L))
