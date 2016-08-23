@@ -261,7 +261,11 @@ case class KafkaConsumer[K, V](topic: String,
     private val topic = tap.topic
     private val partition = tap.partition
     private val stopped = new AtomicBoolean(false)
-    private def scheduleRun(): Unit = executor.schedule(this, fetchBackoff, TimeUnit.MILLISECONDS)
+    private def scheduleRun: Unit = {
+
+      if (!executor.isShutdown && !executor.isTerminated)
+      executor.schedule(this, fetchBackoff, TimeUnit.MILLISECONDS)
+    }
 
     def stop(): Unit = stopped.set(true)
 
@@ -274,7 +278,7 @@ case class KafkaConsumer[K, V](topic: String,
       response match {
         case Success(messages) =>
           if (messages.isEmpty) {
-            scheduleRun()
+            scheduleRun
           } else {
             val consumed = new AtomicLong(-1)
             val fetched = new AtomicLong(messages.last.offset)
@@ -289,15 +293,18 @@ case class KafkaConsumer[K, V](topic: String,
         case Failure(e) =>
           logger.warn("Fetching thread received error", e)
           consumer.disconnect()
-          scheduleRun()
+          scheduleRun
       }
     } catch {
       case e: Exception =>
         logger.warn("Fetching thread threw exception", e)
-        try { consumer.disconnect() } catch {
+        try {
+          consumer.disconnect()
+        } catch {
           case e: Exception => logger.warn("Fetching thread threw exception trying to disconnect from consumer", e)
         }
-        scheduleRun()
+    } finally {
+      scheduleRun
     }
   }
 }
@@ -423,7 +430,7 @@ case class WrappedConsumer(var consumer: SimpleConsumer, tap: TopicAndPartition,
 
   def connect(): Unit =
     if (!isConnected) {
-      consumer = KafkaConsumer.reCreateConsumer(consumer, tap, config)
+      //      consumer = KafkaConsumer.reCreateConsumer(consumer, tap, config)
       isConnected = true
     }
 
