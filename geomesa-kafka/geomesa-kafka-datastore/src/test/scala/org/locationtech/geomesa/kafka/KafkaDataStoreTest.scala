@@ -31,7 +31,7 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedKafka with LazyLo
   sequential // this doesn't really need to be sequential, but we're trying to reduce zk load
 
   // skip embedded kafka tests unless explicitly enabled, they often fail randomly
-  skipAllUnless(sys.props.get(SYS_PROP_RUN_TESTS).exists(_.toBoolean))
+  //skipAllUnless(sys.props.get(SYS_PROP_RUN_TESTS).exists(_.toBoolean))
 
   val gf = JTSFactoryFinder.getGeometryFactory
 
