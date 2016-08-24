@@ -312,12 +312,12 @@ As described in section :ref:`geomesa_and_geoserver`, GeoMesa implements a
 `GeoTools <http://geotools.org/>`_-compatible data store. This makes it possible
 to use GeoMesa as a data store in `GeoServer <http://geoserver.org>`_. The documentation
 below describes how to configure GeoServer to connect to GeoMesa Accumulo and Kafka data stores.
-GeoServer's web site includes `installation instructions for GeoServer <http://docs.geoserver.org/latest/en/user/installation/index.html>`_.
+GeoServer's web site includes `installation instructions for GeoServer <http://docs.geoserver.org/stable/en/user/installation/index.html>`_.
 
 After GeoServer is running, you will also need to install the WPS plugin to
 your GeoServer instance. The GeoServer WPS Plugin must match the version of
 GeoServer instance. This is needed for both the Accumulo and Kafka variants of
-the plugin. The GeoServer website includes `instructions for downloading and installing <http://docs.geoserver.org/stable/en/user/extensions/wps/install.html>`_ the WPS plugin.
+the plugin. The GeoServer website includes `instructions for downloading and installing <http://docs.geoserver.org/stable/en/user/services/wps/install.html>`_ the WPS plugin.
 
 .. note::
 
