@@ -38,7 +38,7 @@ available in the binary distribution in the gs-plugins directory.
 
 Documentation about the GeoServer WPS Extension (including download
 instructions) is available here:
-http://docs.geoserver.org/2.8.1/user/extensions/wps/install.html.
+http://docs.geoserver.org/stable/en/user/services/wps/install.html.
 
 To verify the install, start GeoServer, and you should see a line like
 ``INFO [geoserver.wps] - Found 11 bindable processes in GeoMesa Process Factory``.
