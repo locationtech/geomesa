@@ -28,14 +28,14 @@ val params = Map(
   "zookeepers" -> "localhost",
   "user"       -> "USER",
   "password"   -> "PASSWORD",
-  "tableName"  -> "TABLENAME")
+  "tableName"  -> "SOURCE_TABLE")
 
 val params2 =  Map(
   "instanceId" -> "local",
   "zookeepers" -> "localhost",
   "user"       -> "USER",
   "password"   -> "PASSWORD",
-  "tableName"  -> "TABLE2")
+  "tableName"  -> "TARGET_TABLE")
 
 val typeName = "TYPENAME HERE"
 
