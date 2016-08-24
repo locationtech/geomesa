@@ -64,8 +64,12 @@ else
         for x in "${urls[@]}"; do
             fname=$(basename "$x");
             echo "fetching ${x}";
-            wget -O "${1}/${fname}" "$x";
-         done
+            wget -O "${1}/${fname}" "$x" || { rm -f "${1}/${fname}"; echo "Error downloading dependency: ${fname}"; \
+                errorList="${errorList} ${x} ${NL}"; };
+        done
+        if [[ -n "${errorList}" ]]; then
+            echo "Failed to download: ${NL} ${errorList}";
+        fi
     else
         echo "Installation cancelled"
     fi
