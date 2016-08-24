@@ -69,13 +69,13 @@ class AttributeIndexJob extends Tool {
     require(sft != null, s"The schema '$typeName' does not exist in the input data store")
     val tableName = ds.getTableName(typeName, AttributeTable)
 
-    {
-      val valid = sft.getAttributeDescriptors.map(_.getLocalName)
-      attributes.foreach(a => assert(valid.contains(a), s"Attribute '$a' does not exist in schema '$typeName'"))
-    }
+    val valid = sft.getAttributeDescriptors.map(_.getLocalName)
+    attributes.foreach(a => assert(valid.contains(a), s"Attribute '$a' does not exist in schema '$typeName'"))
 
     val job = Job.getInstance(conf,
       s"GeoMesa Attribute Index Job '${sft.getTypeName}' - '${attributes.mkString(", ")}'")
+
+    JobUtils.setLibJars(job.getConfiguration)
 
     job.setJarByClass(SchemaCopyJob.getClass)
     job.setMapperClass(classOf[AttributeMapper])
