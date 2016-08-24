@@ -192,6 +192,14 @@ class KafkaDataStoreTest extends Specification with HasEmbeddedKafka with LazyLo
       res = consumerFC.getFeatures(mixedQ3)
       res.size() must be equalTo 1
       res.features().next().getAttribute("name") must be equalTo "jones"
+
+      val mixedQ4 = ECQL.toFilter("name in ('jones') AND " +
+          "INTERSECTS(geom, POLYGON((-180 -90, -180 90, 180 90, 180 -90, -180 -90))) AND " +
+          "bbox(geom, -10, -10, 10, 10)"
+      )
+      res = consumerFC.getFeatures(mixedQ4)
+      res.size() must be equalTo 1
+      res.features().next().getAttribute("name") must be equalTo "jones"
     }
 
     "allow for calls to getFeatureWriterAppend" >> {
