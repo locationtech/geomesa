@@ -1794,6 +1794,13 @@
                 <artifactId>jcommander</artifactId>
                 <version>1.48</version>
             </dependency>
+            <dependency>
+                <groupId>com.clearspring.analytics</groupId>
+                <artifactId>stream</artifactId>
+                <!-- Track Spark version to avoid conflicts -->
+                <version>2.7.0</version>
+            </dependency>
+
 
             <!-- test dependencies -->
             <dependency>

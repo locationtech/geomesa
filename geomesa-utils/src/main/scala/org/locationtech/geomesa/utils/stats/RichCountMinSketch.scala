@@ -10,6 +10,7 @@ package org.locationtech.geomesa.utils.stats
 
 import com.clearspring.analytics.stream.frequency.CountMinSketch
 import RichCountMinSketch._
+
 /**
   * Extends counts min sketch with public access to protected variables for more efficient operations.
   */
