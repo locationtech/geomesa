@@ -32,6 +32,7 @@
         <module>geomesa-hbase-gs-plugin</module>
         <module>geomesa-kafka-gs-plugin</module>
         <module>geomesa-kafka-09-gs-plugin</module>
+        <module>geomesa-stats-gs-plugin</module>
         <module>geomesa-stream-gs-plugin</module>
         <module>geomesa-cassandra-gs-plugin</module>
     </modules>
