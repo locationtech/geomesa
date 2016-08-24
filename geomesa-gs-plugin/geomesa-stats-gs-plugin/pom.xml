@@ -22,6 +22,17 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>info.ganglia.gmetric4j</groupId>
+                <artifactId>gmetric4j</artifactId>
+                <version>1.0.7</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
