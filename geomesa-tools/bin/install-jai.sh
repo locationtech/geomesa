@@ -25,24 +25,36 @@ else
     confirm=${confirm,,} #lowercasing
     if [[ $confirm =~ ^(yes|y) ]]; then
         echo "Trying to install JAI tools from $url_jttools to $GEOMESA_HOME"
-        wget -O $GEOMESA_HOME/lib/common/jt-utils-1.3.1.jar $url_jttools \
+        wget -O "${GEOMESA_HOME}/lib/common/jt-utils-1.3.1.jar" $url_jttools \
             && chmod 0755 $GEOMESA_HOME/lib/common/jt-utils-1.3.1.jar \
-            && echo "Successfully installed JAI tools"
+            && echo "Successfully installed JAI tools" \
+            || { rm -f $GEOMESA_HOME/lib/common/jt-utils-1.3.1.jar; echo "Failed to download: ${url_jttools}"; \
+            errorList="${errorList} ${url_jttools} ${NL}"; };
 
         echo "Trying to install JAI ImageIO from $url_imageio to $GEOMESA_HOME"
-        wget -O $GEOMESA_HOME/lib/common/jai_imageio-1.1.jar $url_imageio \
+        wget -O "${GEOMESA_HOME}/lib/common/jai_imageio-1.1.jar" $url_imageio \
             && chmod 0755 $GEOMESA_HOME/lib/common/jai_imageio-1.1.jar \
-            && echo "Successfully installed JAI imageio"
+            && echo "Successfully installed JAI imageio"\
+            || { rm -f $GEOMESA_HOME/lib/common/jai_imageio-1.1.jar; echo "Failed to download: ${url_imageio}"; \
+            errorList="${errorList} ${url_imageio} ${NL}"; };
 
         echo "Trying to install JAI Codec from $url_codec to $GEOMESA_HOME"
         wget -O "${GEOMESA_HOME}/lib/common/jai_codec-1.1.3.jar" $url_codec \
             && chmod 0755 "${GEOMESA_HOME}/lib/common/jai_codec-1.1.3.jar" \
-            && echo "Successfully installed JAI codec to $GEOMESA_HOME"
+            && echo "Successfully installed JAI codec to $GEOMESA_HOME"\
+            || { rm -f "${GEOMESA_HOME}/lib/common/jai_codec-1.1.3.jar"; echo "Failed to download: ${url_codec}"; \
+            errorList="${errorList} ${url_codec} ${NL}"; };
 
         echo "Trying to install JAI Core from $url_core to $GEOMESA_HOME"
         wget -O "${GEOMESA_HOME}/lib/common/jai_core-1.1.3.jar" $url_core \
             && chmod 0755 "${GEOMESA_HOME}/lib/common/jai_core-1.1.3.jar" \
-            && echo "Successfully installed JAI core to $GEOMESA_HOME"
+            && echo "Successfully installed JAI core to $GEOMESA_HOME"\
+            || { rm -f "${GEOMESA_HOME}/lib/common/jai_core-1.1.3.jar"; echo "Failed to download: ${url_core}"; \
+            errorList="${errorList} ${url_core} ${NL}"; };
+            
+        if [[ -n "${errorList}" ]]; then
+            echo "Failed to download: ${NL} ${errorList}";
+        fi
     else
         echo "Cancelled installation of Java Advanced Imaging (jai)"
     fi
