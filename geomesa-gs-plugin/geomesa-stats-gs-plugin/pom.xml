@@ -15,17 +15,28 @@
         <version>1.2.6-SNAPSHOT</version>
     </parent>
 
-    <artifactId>geomesa-accumulo-gs-plugin</artifactId>
-    <name>GeoMesa Accumulo Geoserver Plugin</name>
+    <artifactId>geomesa-stats-gs-plugin</artifactId>
+    <name>GeoMesa Statistics Geoserver Plugin</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>info.ganglia.gmetric4j</groupId>
+                <artifactId>gmetric4j</artifactId>
+                <version>1.0.7</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-datastore</artifactId>
+            <artifactId>geomesa-metrics</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>org.geotools</groupId>
@@ -39,10 +50,15 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-raster</artifactId>
+            <artifactId>geomesa-web-stats</artifactId>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.geotools</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.vividsolutions</groupId>
                     <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
