@@ -55,7 +55,7 @@ Using the GeoServer Plugin
 
 Once everything is installed you should see "geomesa:TubeSelect" appear
 in the `WPS Request
-Builder <http://docs.geoserver.org/stable/en/user/extensions/wps/requestbuilder.html>`__,
+Builder <http://docs.geoserver.org/stable/en/user/services/wps/requestbuilder.html>`__,
 which is found under the *Demos* link in the menu bar on the left side
 of the GeoServer web administration interface.
 
@@ -294,7 +294,7 @@ Chaining Processes
 WPS supports chaining other WPS processes. This is useful when selecting
 data from an existing layer or storing data back into GeoServer to
 create a new layer. The GeoServer User Guide has a section on `Process
-Chaining <http://docs.geoserver.org/stable/en/user/extensions/wps/processes.html#process-chaining>`__.
+Chaining <http://docs.geoserver.org/stable/en/user/services/wps/processes/chaining.html>`__.
 
 Tube Selections
 ---------------
