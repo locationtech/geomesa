@@ -12,6 +12,7 @@ import com.spatial4j.core.context.jts.JtsSpatialContext
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.locationtech.geomesa.utils.CartesianProductIterable
+import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.text.WKTUtils
 
 import scala.collection.BitSet
@@ -763,18 +764,22 @@ object GeohashUtils
       }
     }
 
+    // copy the geometry so that we don't modify the input - JTS mutates the geometry
+    // don't use the defaultGeometryFactory as it has limited precision
+    val copy = GeometryUtils.geoFactory.createGeometry(targetGeom)
     val withinBoundsGeom =
       if (targetGeom.getEnvelopeInternal.getMinX < -180 || targetGeom.getEnvelopeInternal.getMaxX > 180)
-        translateGeometry(targetGeom)
+        translateGeometry(copy)
       else
-        targetGeom
+        copy
 
     try {
       JtsSpatialContext.GEO.makeShape(withinBoundsGeom, true, true).getGeom
     } catch {
       case e: Exception =>
+        // TODO GEOMESA-1397 return a Try and propagate error to caller
         logger.warn(s"Error splitting geometry on IDL for $withinBoundsGeom", e)
-        withinBoundsGeom
+        targetGeom
     }
   }
 
