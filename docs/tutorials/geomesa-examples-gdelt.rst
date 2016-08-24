@@ -263,7 +263,7 @@ The above map is using the `Stamen
 Toner <http://maps.stamen.com/toner>`__ layer as a base layer. For more
 information about adding multiple layers into one group see the
 `GeoServer
-documentation <http://docs.geoserver.org/stable/en/user/webadmin/data/layergroups.html>`__.
+documentation <http://docs.geoserver.org/stable/en/user/data/webadmin/layergroups.html>`__.
 
 Filter
 ~~~~~~
@@ -282,12 +282,12 @@ OpenLayers preview.
    :alt: Enter CQL Filter into Toolbar
 
 Let's use a custom icon to display THREATEN events, by adding an `SLD
-style <http://docs.geoserver.org/latest/en/user/styling/index.html>`__
+style <http://docs.geoserver.org/stable/en/user/styling/index.html>`__
 to the layer. Add the SLD file
 :download:`threat.sld <_static/geomesa-examples-gdelt/threat.sld>`
 to GeoServer (See the GeoServer documentation for `more information
 about adding SLD
-files <http://docs.geoserver.org/latest/en/user/styling/sld-working.html>`__.
+files <http://docs.geoserver.org/stable/en/user/styling/sld-working.html>`__.
 For the ExternalGraphic in the SLD to work, move the image file to the
 specified location in your GeoServer installation.
 
