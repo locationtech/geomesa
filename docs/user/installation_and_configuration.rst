@@ -201,6 +201,10 @@ The instructions below assume that the ``geomesa-tools-$VERSION`` directory is k
 ``geomesa-$VERSION/dist/tools`` directory, but the tools distribution may be moved elsewhere
 as desired.
 
+.. note::
+
+    You can configure environment variables and classpath settings in geomesa-env.sh.
+
 In the ``geomesa-tools-$VERSION`` directory, run ``bin/geomesa configure`` to set up the tools.
 
 .. code-block:: bash

@@ -38,7 +38,7 @@ trait AccumuloConnectionParams extends OptionalZookeepersParam {
   @Parameter(names = Array("--auths"), description = "Accumulo authorizations")
   var auths: String = null
 
-  @Parameter(names = Array("--visibilities"), description = "Accumulo scan visibilities")
+  @Parameter(names = Array("--visibilities"), description = "Default feature visibilities")
   var visibilities: String = null
 
   @Parameter(names = Array("--mock"), description = "Run everything with a mock accumulo instance instead of a real one")
