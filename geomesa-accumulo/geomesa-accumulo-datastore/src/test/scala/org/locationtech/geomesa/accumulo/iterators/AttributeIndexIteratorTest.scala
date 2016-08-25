@@ -18,7 +18,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.index.QueryPlanner
-import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
+import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -59,7 +59,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
 
   def query(filter: String, attributes: Array[String] = Array.empty) = {
     val query = new Query(sftName, ECQL.toFilter(filter), if (attributes.length == 0) null else attributes)
-    queryPlanner.runQuery(query, Some(StrategyType.ATTRIBUTE)).toList
+    queryPlanner.runQuery(query, Some(AttributeIndex)).toList
   }
 
   "AttributeIndexIterator" should {

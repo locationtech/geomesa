@@ -20,9 +20,9 @@ import org.apache.hadoop.mapreduce._
 import org.geotools.data.{DataStoreFinder, DataUtilities}
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToMutations
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.data.stats.StatUpdater
-import org.locationtech.geomesa.accumulo.index.{BinEncoder, IndexValueEncoder}
-import org.locationtech.geomesa.features.SimpleFeatureSerializer
+import org.locationtech.geomesa.accumulo.index.encoders.{BinEncoder, IndexValueEncoder}
+import org.locationtech.geomesa.features.{SimpleFeatureSerializer, SimpleFeatureSerializers}
+import org.locationtech.geomesa.index.stats.StatUpdater
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 

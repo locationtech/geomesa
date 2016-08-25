@@ -291,6 +291,10 @@ object RichSimpleFeatureType {
           .getOrElse(List.empty)
     def setEnabledTables(tables: Seq[String]): Unit =
       sft.getUserData.put(SimpleFeatureTypes.ENABLED_INDEXES, tables.mkString(","))
+    def isTableEnabled(table: String) = {
+      val enabled = getEnabledTables
+      enabled.isEmpty || enabled.contains(table)
+    }
 
     def setUserDataPrefixes(prefixes: Seq[String]): Unit = sft.getUserData.put(USER_DATA_PREFIX, prefixes.mkString(","))
     def getUserDataPrefixes: Seq[String] =

@@ -17,8 +17,8 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.data.tables.Z3Table
 import org.locationtech.geomesa.accumulo.index.QueryHints._
+import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
 import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.curve.Z3SFC
@@ -79,7 +79,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       skipped("used for debugging")
       import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-      ds.connector.createScanner(ds.getTableName(sftName, Z3Table), new Authorizations()).foreach { r =>
+      ds.connector.createScanner(ds.getTableName(sftName, Z3Index), new Authorizations()).foreach { r =>
         val bytes = r.getKey.getRow.getBytes
         val keyZ = Longs.fromByteArray(bytes.drop(2))
         val (x, y, t) = Z3SFC(sft.getZ3Interval).invert(Z3(keyZ))
@@ -203,7 +203,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       val query = new Query(sftName, ECQL.toFilter(filter), Array("geom", "dtg"))
 
       val qps = ds.getQueryPlan(query)
-      forall(qps)(p => p.columnFamilies must containTheSameElementsAs(Seq(Z3Table.BIN_CF)))
+      forall(qps)(p => p.columnFamilies must containTheSameElementsAs(Seq(AccumuloWritableIndex.BinColumnFamily)))
 
       val features = runQuery(query).toList
       features must haveSize(4)

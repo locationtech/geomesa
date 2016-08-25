@@ -12,6 +12,8 @@ import com.vividsolutions.jts.geom.Polygon
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.index.geohash._
+import org.locationtech.geomesa.index.utils.ExplainNull
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification

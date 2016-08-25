@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.tools.accumulo.ingest
 
-import java.io.{FilenameFilter, File}
+import java.io.{File, FilenameFilter}
 
 import org.geotools.coverage.grid.GridCoverage2D
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.accumulo.index.DecodedIndexValue
+import org.locationtech.geomesa.accumulo.index.encoders.DecodedIndexValue
 import org.locationtech.geomesa.raster.data.Raster
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams

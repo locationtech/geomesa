@@ -18,13 +18,12 @@ import org.apache.hadoop.mapreduce.{Counter, Job, Mapper}
 import org.apache.hadoop.util.{Tool, ToolRunner}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.data.tables.{AttributeTable, AttributeTableV5}
-import org.locationtech.geomesa.accumulo.index._
+import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
+import org.locationtech.geomesa.accumulo.index.encoders.{BinEncoder, IndexValueEncoder}
 import org.locationtech.geomesa.features.{SimpleFeatureSerializer, SimpleFeatureSerializers}
 import org.locationtech.geomesa.jobs._
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaInputFormat
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.`type`.AttributeDescriptor
@@ -67,7 +66,7 @@ class AttributeIndexJob extends Tool {
     require(ds != null, "The specified input data store could not be created - check your job parameters")
     val sft = ds.getSchema(typeName)
     require(sft != null, s"The schema '$typeName' does not exist in the input data store")
-    val tableName = ds.getTableName(typeName, AttributeTable)
+    val tableName = ds.getTableName(typeName, AttributeIndex)
 
     {
       val valid = sft.getAttributeDescriptors.map(_.getLocalName)
@@ -107,7 +106,7 @@ class AttributeIndexJob extends Tool {
       val updatedSpec = SimpleFeatureTypes.encodeType(sft)
       ds.updateIndexedAttributes(typeName, updatedSpec)
       // configure the table splits
-      AttributeTable.configureTable(sft, tableName, ds.connector.tableOperations())
+      AttributeIndex.configure(sft, ds)
       // schedule a table compaction to clean up the table
       ds.connector.tableOperations().compact(tableName, null, null, true, false)
     }
@@ -151,7 +150,7 @@ class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
     featureEncoder = SimpleFeatureSerializers(sft, encoding)
     indexValueEncoder = IndexValueEncoder(sft)
     binEncoder = BinEncoder(sft)
-    writer = if (sft.getSchemaVersion < 6) AttributeTableV5.writer(sft) else AttributeTable.writer(sft)
+    writer = AttributeIndex.writer(sft, ds)
 
     ds.dispose()
   }

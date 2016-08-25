@@ -17,6 +17,7 @@ import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.index._
+import org.locationtech.geomesa.accumulo.index.encoders.{DecodedIndexValue, IndexValueEncoder}
 import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatureSerializer}
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.data.Raster

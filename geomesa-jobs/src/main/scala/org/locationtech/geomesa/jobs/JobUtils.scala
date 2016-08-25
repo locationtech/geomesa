@@ -8,18 +8,16 @@
 
 package org.locationtech.geomesa.jobs
 
-import java.io.{File, FileFilter, FilenameFilter}
-import java.net.{URLClassLoader, URLDecoder}
+import java.io.File
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.Connector
 import org.apache.hadoop.conf.Configuration
 import org.geotools.data.Query
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
+import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.accumulo.index.{JoinPlan, QueryPlan}
 import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.jobs.mapreduce.GeoMesaInputFormat._
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 
 import scala.io.Source
@@ -75,7 +73,7 @@ object JobUtils extends LazyLogging {
     tryPlan.getOrElse {
       // this query has a join or requires multiple scans - instead, fall back to the record index
       logger.warn("Desired query plan requires multiple scans - falling back to full table scan")
-      val qps = ds.getQueryPlan(query, Some(StrategyType.RECORD))
+      val qps = ds.getQueryPlan(query, Some(RecordIndex))
       if (qps.length > 1) {
         logger.error("The query being executed requires multiple scans, which is not currently " +
             "supported by geomesa. Your result set will be partially incomplete. " +
