@@ -25,7 +25,7 @@ trait AccumuloRasterTableParam {
   var table: String = null
 }
 
-trait git AccumuloConnectionParams extends OptionalZookeepersParam {
+trait AccumuloConnectionParams extends OptionalZookeepersParam {
   @Parameter(names = Array("-u", "--user"), description = "Accumulo user name", required = true)
   var user: String = null
 
