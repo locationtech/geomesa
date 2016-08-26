@@ -15,6 +15,7 @@ import org.locationtech.geomesa.tools.accumulo.commands.DescribeCommand._
 import org.locationtech.geomesa.tools.common.FeatureTypeNameParam
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+import org.locationtech.geomesa.utils.stats.IndexCoverage
 
 import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
@@ -32,16 +33,18 @@ class DescribeCommand(parent: JCommander) extends CommandWithCatalog(parent) wit
       sft.getAttributeDescriptors.foreach { attr =>
         sb.clear()
         val name = attr.getLocalName
+        val indexCoverage = attr.getIndexCoverage()
 
         // TypeName
         sb.append(name)
         sb.append(": ")
         sb.append(attr.getType.getBinding.getSimpleName)
 
-        if (sft.getDtgField.exists(_ == name)) sb.append(" (ST-Time-index)")
-        if (sft.getGeometryDescriptor == attr) sb.append(" (ST-Geo-index)")
-        if (attr.isIndexed)                    sb.append(" (Indexed)")
-        if (attr.getDefaultValue != null)      sb.append("- Default Value: ", attr.getDefaultValue)
+        if (sft.getDtgField.exists(_ == name))        sb.append(" (ST-Time-index)")
+        if (sft.getGeometryDescriptor == attr)        sb.append(" (ST-Geo-index)")
+        if (indexCoverage == IndexCoverage.JOIN)      sb.append(" (Indexed - Join)")
+        else if (indexCoverage == IndexCoverage.FULL) sb.append(" (Indexed - Full)")
+        if (attr.getDefaultValue != null)             sb.append("- Default Value: ", attr.getDefaultValue)
 
         println(sb.toString())
       }
