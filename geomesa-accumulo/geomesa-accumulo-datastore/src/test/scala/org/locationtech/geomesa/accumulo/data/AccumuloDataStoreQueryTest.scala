@@ -145,10 +145,10 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       }
 
       planNull must haveLength(1)
-      planNull.head.table must endWith(Z2Index.name)
+      planNull.head.table must endWith(Z2Index.tableSuffix)
 
       planEmpty must haveLength(1)
-      planEmpty.head.table must endWith(Z2Index.name)
+      planEmpty.head.table must endWith(Z2Index.tableSuffix)
 
       explainNull must contain("Filter plan: FilterPlan[Z2Index[BBOX(geom, 40.0,44.0,50.0,54.0)][None]]")
       explainEmpty must contain("Filter plan: FilterPlan[Z2Index[BBOX(geom, 40.0,44.0,50.0,54.0)][None]]")

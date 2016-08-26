@@ -37,6 +37,7 @@ import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing}
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -301,11 +302,11 @@ object QueryPlanner extends LazyLogging {
           Some(RecordIndex)
         } else {
           val check = name.toLowerCase(Locale.US)
-          AccumuloFeatureIndex.indices(sft).find(_.name.toLowerCase(Locale.US) == check)
+          AccumuloFeatureIndex.indices(sft, IndexMode.Read).find(_.name.toLowerCase(Locale.US) == check)
         }
         if (value.isEmpty) {
           logger.error(s"Ignoring invalid strategy name from view params: $name. Valid values " +
-              s"are ${AccumuloFeatureIndex.indices(sft).map(_.name).mkString(", ")}")
+              s"are ${AccumuloFeatureIndex.indices(sft, IndexMode.Read).map(_.name).mkString(", ")}")
         }
         value
       }

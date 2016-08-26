@@ -98,15 +98,12 @@ class AttributeIndexJob extends Tool {
     val result = job.waitForCompletion(true)
 
     if (result) {
-      // update the metadata
+      // update the metadata and splits
       // reload the sft, as we nulled out the index flags earlier
       val sft = ds.getSchema(typeName)
       def wasIndexed(ad: AttributeDescriptor) = attributes.contains(ad.getLocalName)
       sft.getAttributeDescriptors.filter(wasIndexed).foreach(_.setIndexCoverage(coverage))
-      val updatedSpec = SimpleFeatureTypes.encodeType(sft)
-      ds.updateIndexedAttributes(typeName, updatedSpec)
-      // configure the table splits
-      AttributeIndex.configure(sft, ds)
+      ds.updateSchema(typeName, sft)
       // schedule a table compaction to clean up the table
       ds.connector.tableOperations().compact(tableName, null, null, true, false)
     }

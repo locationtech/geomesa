@@ -10,6 +10,7 @@ package org.locationtech.geomesa.accumulo.data
 
 import org.apache.accumulo.core.client.{BatchScanner, Connector, Scanner}
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
+import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
 
 trait AccumuloConnectorCreator {
 
@@ -23,7 +24,7 @@ trait AccumuloConnectorCreator {
   /**
    * Gets the accumulo table name for the given table
    */
-  def getTableName(featureName: String, index: AccumuloFeatureIndex): String
+  def getTableName(featureName: String, index: AccumuloWritableIndex): String
 
   /**
    * Gets the suggested number of threads for querying the given table

@@ -19,11 +19,14 @@ import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
 import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
 import org.locationtech.geomesa.curve.{BinnedTime, XZ3SFC}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
+
+import scala.util.Try
 
 trait XZ3WritableIndex extends AccumuloWritableIndex {
 
@@ -75,10 +78,15 @@ trait XZ3WritableIndex extends AccumuloWritableIndex {
     Bytes.concat(tableSharing, split, Shorts.toByteArray(b), Longs.toByteArray(xz), id)
   }
 
-   override def configure(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
+
+  override def configure(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
     import scala.collection.JavaConversions._
 
-    val table = ops.getTableName(sft.getTypeName, this)
+    val table = Try(ops.getTableName(sft.getTypeName, this)).getOrElse {
+      val table = GeoMesaTable.formatTableName(ops.catalogTable, tableSuffix, sft)
+      ops.metadata.insert(sft.getTypeName, tableNameKey, table)
+      table
+    }
     AccumuloVersion.ensureTableExists(ops.connector, table)
     ops.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
 

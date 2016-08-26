@@ -20,6 +20,7 @@ import org.locationtech.geomesa.filter.{decomposeAnd, decomposeOr}
 import org.locationtech.geomesa.index.api.FilterSplitter
 import org.locationtech.geomesa.utils.geotools.SftBuilder.Opts
 import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.opengis.filter._
 import org.opengis.filter.temporal.During
@@ -32,6 +33,8 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class QueryFilterSplitterTest extends Specification {
 
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
   val sft = new SftBuilder()
     .stringType("attr1")
     .stringType("attr2", index = true)
@@ -43,8 +46,11 @@ class QueryFilterSplitterTest extends Specification {
     .point("geom", default = true)
     .build("QueryFilterSplitterTest")
 
+  sft.setSchemaVersion(org.locationtech.geomesa.CURRENT_SCHEMA_VERSION)
+  sft.setIndices(AccumuloFeatureIndex.getDefaultIndices(sft).map(i => (i.name, i.version, IndexMode.ReadWrite)))
+
   val ff = CommonFactoryFinder.getFilterFactory2
-  val splitter = new FilterSplitter(sft, AccumuloFeatureIndex.indices(sft))
+  val splitter = new FilterSplitter(sft, AccumuloFeatureIndex.indices(sft, IndexMode.Any))
 
   val geom                = "BBOX(geom,40,40,50,50)"
   val geom2               = "BBOX(geom,60,60,70,70)"
@@ -473,7 +479,9 @@ class QueryFilterSplitterTest extends Specification {
 
     "support indexed date attributes" >> {
       val sft = SimpleFeatureTypes.createType("dtgIndex", "dtg:Date:index=full,*geom:Point:srid=4326")
-      val splitter = new FilterSplitter(sft, AccumuloFeatureIndex.indices(sft))
+      sft.setSchemaVersion(org.locationtech.geomesa.CURRENT_SCHEMA_VERSION)
+      sft.setIndices(AccumuloFeatureIndex.getDefaultIndices(sft).map(i => (i.name, i.version, IndexMode.ReadWrite)))
+      val splitter = new FilterSplitter(sft, AccumuloFeatureIndex.indices(sft, IndexMode.Any))
       val filter = f("dtg TEQUALS 2014-01-01T12:30:00.000Z")
       val options = splitter.getQueryOptions(filter)
       options must haveLength(1)

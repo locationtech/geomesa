@@ -170,6 +170,7 @@ public class HotfixExtractBoundsFilterVisitor extends NullFilterVisitor {
         ReferencedEnvelope bbox = bbox( data );
 
         // consider doing reprojection here into data CRS?
+        @SuppressWarnings("deprecation")
         Envelope bounds = new Envelope(filter.getMinX(), filter.getMaxX(), filter.getMinY(), filter
                 .getMaxY());
         if(bbox != null) {

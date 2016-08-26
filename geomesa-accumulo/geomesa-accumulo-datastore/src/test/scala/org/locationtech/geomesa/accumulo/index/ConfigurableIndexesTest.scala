@@ -8,56 +8,108 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import org.geotools.factory.CommonFactoryFinder
+import org.apache.accumulo.core.security.Authorizations
+import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.index.z2.Z2Index
 import org.locationtech.geomesa.accumulo.index.z3.Z3Index
-import org.locationtech.geomesa.index.api.FilterSplitter
-import org.locationtech.geomesa.utils.geotools.SftBuilder
-import org.opengis.filter.Filter
+import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
+import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
-class ConfigurableIndexesTest extends Specification {
+class ConfigurableIndexesTest extends Specification with TestWithDataStore {
 
-  val sft = new SftBuilder()
-    .date("dtg", default = true)
-    .point("geom", default = true)
-    .withIndexes(AccumuloFeatureIndex.Schemes.Z3TableScheme)
-    .build("ConfigurableIndexesTest")
+  sequential
 
-  val splitter = new FilterSplitter(sft, AccumuloFeatureIndex.indices(sft))
+  override val spec = s"name:String,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='${Z3Index.name}'"
 
-  val ff = CommonFactoryFinder.getFilterFactory2
-
-  val geom                = "BBOX(geom,40,40,50,50)"
-  val geom2               = "BBOX(geom,60,60,70,70)"
-  val indexedAttr         = "attr2 = 'test'"
-  val dtg                 = "dtg DURING 2014-01-01T00:00:00Z/2014-01-01T23:59:59Z"
-
-  def and(clauses: String*) = ff.and(clauses.map(ECQL.toFilter))
-  def or(clauses: String*)  = ff.or(clauses.map(ECQL.toFilter))
-  def f(filter: String)     = ECQL.toFilter(filter)
-
-  def testFallback(filter: Filter) = {
-    val options = splitter.getQueryOptions(filter)
-    options must haveLength(1)
-    options.head.strategies must haveLength(1)
-    options.head.strategies.head.index mustEqual Z3Index
-    options.head.strategies.head.primary must beNone
-    options.head.strategies.head.secondary must beSome(filter)
+  val features = (0 until 10).map { i =>
+    val sf = new ScalaSimpleFeature(s"f-$i", sft)
+    sf.setAttribute(0, s"name-$i")
+    sf.setAttribute(1, s"2016-01-01T0$i:01:00.000Z")
+    sf.setAttribute(2, s"POINT(4$i 5$i)")
+    sf
   }
+  addFeatures(features)
 
   "AccumuloDataStore" should {
-    "be able to use z3 for everything" >> {
-      "spatial" >>                            { testFallback(f(geom)) }
-      "spatial ands" >>                       { testFallback(and(geom, geom2)) }
-      "spatial ors" >>                        { testFallback(or(geom, geom2)) }
-      "spatial and attribute ors" >>          { testFallback(or(geom, indexedAttr)) }
-      "spatial temporal and attribute ors" >> { testFallback(or(geom, dtg, indexedAttr)) }
+    "only create the z3 index" >> {
+      ds.tableOps.exists(ds.getTableName(sft.getTypeName, Z3Index)) must beTrue
+      forall(AccumuloFeatureIndex.AllIndices.filter(i => i != Z3Index)) { i =>
+        Try(ds.getTableName(sft.getTypeName, i)).map(ds.tableOps.exists).getOrElse(false) must beFalse
+      }
+    }
+
+    "be able to use z3 for spatial queries" >> {
+      val filter = "BBOX(geom,40,50,50,60)"
+      val query = new Query(sftName, ECQL.toFilter(filter))
+      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      results must haveSize(10)
+      results.map(_.getID) must containTheSameElementsAs((0 until 10).map(i => s"f-$i"))
+    }
+
+    "be able to use z3 for spatial ors" >> {
+      val filter = "BBOX(geom,40,50,45,55) OR BBOX(geom,44,54,50,60) "
+      val query = new Query(sftName, ECQL.toFilter(filter))
+      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      results must haveSize(10)
+      results.map(_.getID) must containTheSameElementsAs((0 until 10).map(i => s"f-$i"))
+    }
+
+    "be able to use z3 for spatial and attribute ors" >> {
+      val filter = "BBOX(geom,40,50,45,55) OR name IN ('name-6', 'name-7', 'name-8', 'name-9')"
+      val query = new Query(sftName, ECQL.toFilter(filter))
+      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      results must haveSize(10)
+      results.map(_.getID) must containTheSameElementsAs((0 until 10).map(i => s"f-$i"))
+    }
+
+    "add another empty index" >> {
+      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+      sft.setIndices(sft.getIndices :+ (Z2Index.name, Z2Index.version, IndexMode.ReadWrite))
+      ds.updateSchema(sftName, sft)
+      forall(Seq(Z3Index, Z2Index))(i => ds.tableOps.exists(ds.getTableName(sft.getTypeName, i)) must beTrue)
+      forall(AccumuloFeatureIndex.AllIndices.filter(i => i != Z3Index && i != Z2Index)) { i =>
+        Try(ds.getTableName(sft.getTypeName, i)).map(ds.tableOps.exists).getOrElse(false) must beFalse
+      }
+      val scanner = connector.createScanner(ds.getTableName(sft.getTypeName, Z2Index), new Authorizations)
+      try {
+        scanner.iterator.hasNext must beFalse
+      } finally {
+        scanner.close()
+      }
+    }
+
+    "use another index" >> {
+      val filter = "BBOX(geom,40,50,51,61)"
+      val query = new Query(sftName, ECQL.toFilter(filter))
+      var results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      results must beEmpty
+
+      val sf = new ScalaSimpleFeature(s"f-10", ds.getSchema(sftName))
+      sf.setAttribute(0, "name-10")
+      sf.setAttribute(1, "2016-01-01T10:01:00.000Z")
+      sf.setAttribute(2, "POINT(50 60)")
+      addFeatures(Seq(sf))
+
+      results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      results must haveSize(1)
+      results.head.getID mustEqual "f-10"
+    }
+
+    "use the original index" >> {
+      val filter = "BBOX(geom,40,50,51,61) AND dtg DURING 2016-01-01T00:00:00.000Z/2016-01-02T00:00:00.000Z"
+      val query = new Query(sftName, ECQL.toFilter(filter))
+      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      results must haveSize(11)
+      results.map(_.getID) must containTheSameElementsAs((0 until 11).map(i => s"f-$i"))
     }
   }
 }

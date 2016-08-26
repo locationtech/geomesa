@@ -210,17 +210,5 @@ object AccumuloGeoMesaIndex {
     builder.build(name)
   }
 
-  def getTableNames[T](name: String): JList[String] =
-    getTableNames[T](name, new DefaultSimpleFeatureView[T](name))
-
-  def getTableNames[T](name: String, view: SimpleFeatureView[T]): JList[String] = {
-    val sft = buildSimpleFeatureType(name)(view)
-    val tables = AccumuloFeatureIndex.indices(sft).map {
-      case Z3Index => GeoMesaTable.formatSoloTableName(name, Z3Index.name, sft.getTypeName)
-      case index   => GeoMesaTable.formatTableName(name, index.name, sft)
-    }
-    (tables :+ name :+ s"${name}_stats").asJava
-  }
-
   final val VISIBILITY = "visibility"
 }

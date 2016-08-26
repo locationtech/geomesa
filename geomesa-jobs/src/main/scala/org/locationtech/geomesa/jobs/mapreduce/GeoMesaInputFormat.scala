@@ -31,6 +31,7 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.SimpleFeatureDeserializers
 import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -157,9 +158,9 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLoggi
     encoding = ds.getFeatureEncoding(sft)
     desiredSplitCount = GeoMesaConfigurator.getDesiredSplits(conf)
     val tableName = GeoMesaConfigurator.getTable(conf)
-    table = AccumuloFeatureIndex.indices(sft).find(t => tableName.endsWith(t.name)).getOrElse {
-      throw new RuntimeException(s"Couldn't find input table $tableName")
-    }
+    table = AccumuloFeatureIndex.indices(sft, IndexMode.Read)
+        .find(t => ds.getTableName(sft.getTypeName, t) == tableName)
+        .getOrElse(throw new RuntimeException(s"Couldn't find input table $tableName"))
     ds.dispose()
   }
 

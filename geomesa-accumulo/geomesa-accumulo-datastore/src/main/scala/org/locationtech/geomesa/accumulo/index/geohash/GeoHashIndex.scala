@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.index.geohash
 
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -16,8 +17,7 @@ object GeoHashIndex extends AccumuloFeatureIndex with GeoHashWritableIndex with 
 
   override val name: String = "st_idx"
 
-  override def supports(sft: SimpleFeatureType): Boolean = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    sft.getGeometryDescriptor != null && sft.getSchemaVersion < 8 && sft.isTableEnabled(name)
-  }
+  override val version: Int = 1
+
+  override def supports(sft: SimpleFeatureType): Boolean = sft.getGeometryDescriptor != null
 }
