@@ -136,9 +136,9 @@ The ``-l`` option lists the schema's keywords following all operations
 If there is whitespace within a keyword, enclose it in quotes for proper functionality::
 
     $ geomesa keywords -u username -p password \
-        -a keywordB -a keywordC -r keywordA -l \
-        -i instance -z zoo1,zoo2,zoo3 \
-        -c catalog -f featureTypeName
+      -a keywordB -a keywordC -r keywordA -l \
+      -i instance -z zoo1,zoo2,zoo3 \
+      -c catalog -f featureTypeName
 
 list
 ~~~~
@@ -167,11 +167,11 @@ Ingesting and exporting data
 export
 ~~~~~~
 
-Export GeoMesa features. The "attribute expressions" specified by the ``-a`` option are comma-separated expressions 
+Export GeoMesa features. The "attribute expressions" specified by the ``-a`` option are comma-separated expressions
 in the format::
-    
+
     attribute[=filter_function_expression]|derived-attribute=filter_function_expression
-    
+
 `filter_function_expression` is an expression of filter function applied to attributes, literals and filter functions, i.e. can be nested.
 
 Example export commands::
@@ -181,13 +181,13 @@ Example export commands::
       -a "geom,text,user_name" --format csv \
       -q "include" -m 100
     $ geomesa export -u username -p password \
-       -c test_catalog -f test_feature \
-       -a "geom,text,user_name" --format gml \
-       -q "user_name='JohnSmith'"
+      -c test_catalog -f test_feature \
+      -a "geom,text,user_name" --format gml \
+      -q "user_name='JohnSmith'"
     $ geomesa export -u username -p password \
       -c test_catalog -f test_feature \
       -a "user_name,buf=buffer(geom\, 2)" \
-       --format csv -q "[[ user_name like `John%' ] AND [ bbox(geom, 22.1371589, 44.386463, 40.228581, 52.379581, 'EPSG:4326') ]]"
+      --format csv -q "[[ user_name like `John%' ] AND [ bbox(geom, 22.1371589, 44.386463, 40.228581, 52.379581, 'EPSG:4326') ]]"
 
 .. _ingest:
 
@@ -216,10 +216,15 @@ includes some examples. SFT and Converter specifications should use the path pre
 
 For example, here's a simple CSV file to ingest named ``example.csv``::
 
-    ID,Name,Age,LastSeen,Friends,Lat,Lon
+    FID,Name,Age,LastSeen,Friends,Lat,Lon
     23623,Harry,20,2015-05-06,"Will, Mark, Suzan",-100.236523,23
     26236,Hermione,25,2015-06-07,"Edward, Bill, Harry",40.232,-53.2356
     3233,Severus,30,2015-10-23,"Tom, Riddle, Voldemort",3,-62.23
+
+.. note::
+
+    ID is a reserved word, for a full list of reserved words see
+    `Geomesa Data Store Reserved Words <http://www.geomesa.org/documentation/user/datastores.html#reserved-words>`__.
 
 To ingest this file, a SimpleFeatureType named ``renegades`` and a converter named ``renegades-csv`` can be placed in
 the ``application.conf`` file::
@@ -229,7 +234,7 @@ the ``application.conf`` file::
       sfts {
         renegades = {
           attributes = [
-            { name = "id",       type = "Integer",      index = false                             }
+            { name = "fid",      type = "Integer",      index = false                             }
             { name = "name",     type = "String",       index = true                              }
             { name = "age",      type = "Integer",      index = false                             }
             { name = "lastseen", type = "Date",         index = true                              }
@@ -245,9 +250,9 @@ the ``application.conf`` file::
           options {
             skip-lines = 1 //skip the header
           }
-          id-field = "toString($id)"
+          id-field = "toString($fid)"
           fields = [
-            { name = "id",       transform = "$1::int"                 }
+            { name = "fid",      transform = "$1::int"                 }
             { name = "name",     transform = "$2::string"              }
             { name = "age",      transform = "$3::int"                 }
             { name = "lastseen", transform = "date('YYYY-MM-dd', $4)"  }
@@ -265,11 +270,11 @@ The SFT and Converter can be referenced by name and the following commands can i
 
     $ geomesa ingest -u username -p password \
       -c geomesa_catalog -i instance \
-      -s renegates -C renegades-csv example1.csv
+      -s renegades -C renegades-csv example.csv
     # use the Hadoop file system instead
     $ geomesa ingest -u username -p password \
       -c geomesa_catalog -i instance \
-      -s renegades -C renegades-csv hdfs:///some/hdfs/path/to/example1.csv
+      -s renegades -C renegades-csv hdfs:///some/hdfs/path/to/example.csv
 
 SFT and Converter configs can also be provided as strings or filenames to the ``-s`` and ``-C`` arguments. The syntax is
 very similar to the ``application.conf`` and ``reference.conf`` format. Config specifications must be nested using the
@@ -281,7 +286,7 @@ paths ``geomesa.converters.<convertername>`` and ``geomesa.sfts.<typename>`` as 
     # cat /tmp/renegades.sft
     geomesa.sfts.renegades = {
       attributes = [
-        { name = "id",       type = "Integer",      index = false                             }
+        { name = "fid",      type = "Integer",      index = false                             }
         { name = "name",     type = "String",       index = true                              }
         { name = "age",      type = "Integer",      index = false                             }
         { name = "lastseen", type = "Date",         index = true                              }
@@ -300,9 +305,9 @@ Similarly, converter configurations must be nested when passing them directly to
       options {
         skip-lines = 0 // don't skip lines in distributed ingest
       }
-      id-field = "toString($id)"
+      id-field = "toString($fid)"
       fields = [
-        { name = "id",       transform = "$1::int"                 }
+        { name = "fid",      transform = "$1::int"                 }
         { name = "name",     transform = "$2::string"              }
         { name = "age",      transform = "$3::int"                 }
         { name = "lastseen", transform = "date('YYYY-MM-dd', $4)"  }
@@ -316,7 +321,10 @@ Similarly, converter configurations must be nested when passing them directly to
 Using the SFT and Converter config files we can then ingest our csv file with this command::
 
     # ingest command
-    $ geomesa ingest -u username -p password -c geomesa_catalog -i instance -s /tmp/renegades.sft -C /tmp/renegades.convert hdfs:///some/hdfs/path/to/example.csv
+    $ geomesa ingest -u username -p password \
+      -c geomesa_catalog -i instance \
+      -s /tmp/renegades.sft \
+      -C /tmp/renegades.convert hdfs:///some/hdfs/path/to/example.csv
 
 
 For more documentation on converter configuration, refer to the the ``geomesa-$VERSION/docs/README-convert.md`` file
@@ -324,7 +332,8 @@ in the binary distribution.
 
 Shape files may also be ingested::
 
-    $ geomesa ingest -u username -p password -c test_catalog -f shapeFileFeatureName /some/path/to/file.shp
+    $ geomesa ingest -u username -p password \
+      -c test_catalog -f shapeFileFeatureName /some/path/to/file.shp
 
 
 Enabling S3 Ingest
@@ -397,7 +406,9 @@ For ``s3n``:
 
 S3n paths are prefixed in hadoop with ``s3n://`` as shown below::
 
-    $ geomesa ingest -u username -p password -c geomesa_catalog -i instance -s yourspec -C convert s3n://bucket/path/file s3n://bucket/path/*
+    $ geomesa ingest -u username -p password \
+      -c geomesa_catalog -i instance -s yourspec \
+      -C convert s3n://bucket/path/file s3n://bucket/path/*
 
 
 Working with raster data
@@ -414,9 +425,9 @@ ingestraster
 ~~~~~~~~~~~~
 
 Ingest one or multiple raster image files into Geomesa. Input files, GeoTIFF or
-DTED, should be located on the local file system. 
+DTED, should be located on the local file system.
 
-.. note:: 
+.. note::
 
     Make sure GDAL is installed when doing chunking, which depends on the GDAL utility ``gdal_translate``.
 
@@ -426,7 +437,8 @@ DTED, should be located on the local file system.
 
 Example usage::
 
-    $ geomesa ingestraster -u username -p password -t geomesa_raster -f /some/local/path/to/raster.tif
+    $ geomesa ingestraster -u username -p password \
+      -t geomesa_raster -f /some/local/path/to/raster.tif
 
 queryrasterstats
 ~~~~~~~~~~~~~~~~
@@ -444,7 +456,8 @@ deletecatalog
 
 Delete a GeoMesa catalog table completely, along with all features in it.::
 
-    $ geomesa deletecatalog -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog
+    $ geomesa deletecatalog -u username -p password \
+      -i instance -z zoo1,zoo2,zoo3 -c test_catalog
 
 deletefeatures
 ~~~~~~~~~~~~~~
@@ -453,13 +466,14 @@ Delete features from a table in GeoMesa. Does not delete any tables or schema in
 
 Example usage::
 
-    $ geomesa deletefeatures -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog \
-        -q 'dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
+    $ geomesa deletefeatures -u username -p password \
+      -i instance -z zoo1,zoo2,zoo3 -c test_catalog \
+      -q 'dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
 
 env
 ~~~
 
-Examines the current GeoMesa tools environment, and prints out simple feature types converters that 
+Examines the current GeoMesa tools environment, and prints out simple feature types converters that
 are available on the current classpath. The available types can be used for ingestion; see the :ref:`ingest` command.
 Use of this command without parameters will result in behavior similar to when the help command is used.
 
@@ -690,7 +704,8 @@ describe
 
 Display details about the attributes of a specified feature type::
 
-    $ geomesa-kafka describe -f testfeature -z zoo1,zoo2,zoo3 -b broker1:9092,broker2:9092 -p /geomesa/ds/kafka
+    $ geomesa-kafka describe -f testfeature -z zoo1,zoo2,zoo3 \
+      -b broker1:9092,broker2:9092 -p /geomesa/ds/kafka
 
 list
 ~~~~
