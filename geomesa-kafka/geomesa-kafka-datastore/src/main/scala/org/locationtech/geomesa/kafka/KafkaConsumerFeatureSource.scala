@@ -99,6 +99,10 @@ trait KafkaConsumerFeatureCache extends QuadTreeFeatureStore {
     }
   }
 
+  def size(): Int = {
+    features.size
+  }
+
   def getReaderForFilter(filter: Filter): FR =
     filter match {
       case f: IncludeFilter => include(f)
@@ -123,9 +127,26 @@ trait KafkaConsumerFeatureCache extends QuadTreeFeatureStore {
     if (geometries.isEmpty) {
       unoptimized(a)
     } else {
-      val envelope = geometries.head.getEnvelopeInternal
-      geometries.tail.foreach(g => envelope.expandToInclude(g.getEnvelopeInternal))
-      new DFR(sft, new DFI(spatialIndex.query(envelope, a.evaluate)))
+      val set = geometries.toSet
+
+      if (set.size == 1) {
+        val envelope = set.head.getEnvelopeInternal
+        new DFR(sft, new DFI(spatialIndex.query(envelope, a.evaluate)))
+      } else if (set.size == 2 && !set.head.overlaps(set.tail.head)) {
+
+        val env1 = set.head.getEnvelopeInternal
+        val env2 = set.tail.head.getEnvelopeInternal
+
+        new DFR(sft, new DFI(
+          spatialIndex.query(set.head.getEnvelopeInternal, a.evaluate) ++
+          spatialIndex.query(set.tail.head.getEnvelopeInternal, a.evaluate)))
+      } else {
+        val envelope = geometries.head.getEnvelopeInternal
+        geometries.tail.foreach(g => envelope.expandToInclude(g.getEnvelopeInternal))
+        geometries
+
+        new DFR(sft, new DFI(spatialIndex.query(envelope, a.evaluate)))
+      }
     }
   }
 
@@ -152,6 +173,10 @@ object KafkaConsumerFeatureSourceFactory {
       Option(KafkaDataStoreFactoryParams.CLEANUP_LIVE_CACHE.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
     }
 
+    val useCQCache: Boolean = {
+      Option(KafkaDataStoreFactoryParams.USE_CQ_LIVE_CACHE.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
+    }
+
     val monitor: Boolean = {
       Option(KafkaDataStoreFactoryParams.COLLECT_QUERY_STAT.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
     }
@@ -162,7 +187,7 @@ object KafkaConsumerFeatureSourceFactory {
 
       fc.replayConfig match {
         case None =>
-          new LiveKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, expirationPeriod, cleanUpCache, query, monitor)
+          new LiveKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, expirationPeriod, cleanUpCache, useCQCache, query, monitor)
 
         case Some(rc) =>
           val replaySFT = fc.sft

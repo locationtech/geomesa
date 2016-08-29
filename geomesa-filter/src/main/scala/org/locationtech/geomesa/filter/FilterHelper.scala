@@ -106,7 +106,7 @@ object FilterHelper extends LazyLogging {
     }
   }
 
-  private def recreateAsIdlSafeFilter(op: BinarySpatialOperator,
+  def recreateAsIdlSafeFilter(op: BinarySpatialOperator,
                                       property: String,
                                       geom: Geometry,
                                       flipped: Boolean,
@@ -121,7 +121,7 @@ object FilterHelper extends LazyLogging {
     }
   }
 
-  private def recreateFilter(op: BinarySpatialOperator,
+  def recreateFilter(op: BinarySpatialOperator,
                              property: String,
                              geom: Geometry,
                              flipped: Boolean,
@@ -147,7 +147,7 @@ object FilterHelper extends LazyLogging {
       case _ => false
     }
 
-  private def isOperationGeomWholeWorld[Op <: BinarySpatialOperator](op: Op): Boolean = {
+  def isOperationGeomWholeWorld[Op <: BinarySpatialOperator](op: Op): Boolean = {
     val prop = checkOrder(op.getExpression1, op.getExpression2)
     prop.map(_.literal.evaluate(null, classOf[Geometry])).exists(isWholeWorld)
   }
@@ -183,7 +183,7 @@ object FilterHelper extends LazyLogging {
     * @param intersect intersect AND'd geometries or return them all
     * @return geometry bounds from spatial filters
     */
-  private def extractUnclippedGeometries(filter: Filter, attribute: String, intersect: Boolean): Seq[Geometry] = {
+  def extractUnclippedGeometries(filter: Filter, attribute: String, intersect: Boolean): Seq[Geometry] = {
     filter match {
       case o: Or  => o.getChildren.flatMap(extractUnclippedGeometries(_, attribute, intersect))
 

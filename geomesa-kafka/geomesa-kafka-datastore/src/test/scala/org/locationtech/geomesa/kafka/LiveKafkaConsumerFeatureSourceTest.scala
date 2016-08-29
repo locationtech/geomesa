@@ -102,7 +102,7 @@ class LiveKafkaConsumerFeatureSourceTest extends Specification with HasEmbeddedK
       }
 
       // force the cache cleanup - normally this would happen during additional reads and writes
-      consumerFC.asInstanceOf[LiveKafkaConsumerFeatureSource].featureCache.cache.cleanUp()
+      consumerFC.asInstanceOf[LiveKafkaConsumerFeatureSource].featureCache.cleanUp()
 
       // verify feature has expired - hit the spatial index
       {
