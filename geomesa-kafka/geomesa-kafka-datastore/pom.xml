@@ -61,7 +61,6 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-memory</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
