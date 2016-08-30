@@ -44,6 +44,7 @@ else
 
     read -r -p "Imageio-ext 1.1.13 is GNU Lesser General Public licensed and is not distributed with GeoMesa...are you sure you want to install it from $url_gtimageioextgdal ? [Y/n]" confirm
     confirm=${confirm,,} #lowercasing
+    NL=$'\n'
     if [[ $confirm =~ ^(yes|y) ]]; then
         echo "Trying to install ${#imageio_jars[@]} ImageIo EXT Jars from ${osgeo_url}/webdav/geotools/... to $GEOMESA_HOME"
         for x in "${imageio_jars[@]}"; do
@@ -52,12 +53,17 @@ else
             thisDownloadPath="$GEOMESA_HOME/lib/common/$thisJar"
             wget -O ${thisDownloadPath} ${thisURL} \
                 && chmod 0644 "${thisDownloadPath}" \
-                && echo "Successfully installed ${thisJar} to ${GEOMESA_HOME}";
+                && echo "Successfully installed ${thisJar} to ${GEOMESA_HOME}" \
+                || { rm -f ${thisDownloadPath}; echo "Failed to download: ${thisURL}"; \
+                errorList="{$errorList} ${thisURL} ${NL}";};
         done
         imageio_gdal_bindings_downloadpath="$GEOMESA_HOME/lib/common/$imageio_gdal_bindings_jarname"
         wget -O ${imageio_gdal_bindings_downloadpath} ${imageio_gdal_bindings_url} \
             && chmod 0644 "${imageio_gdal_bindings_downloadpath}" \
-            && echo "Successfully installed ${imageio_gdal_bindings_jarname} to ${GEOMESA_HOME}"
+            && echo "Successfully installed ${imageio_gdal_bindings_jarname} to ${GEOMESA_HOME}" \
+            || { rm -f ${imageio_gdal_bindings_downloadpath}; echo "Failed to download: ${imageio_gdal_bindings_url}"; \
+            errorList="${errorList} ${thisURL} ${NL}"; };
+        echo "Failed to download files: ${NL} ${errorList}";
     else
         echo "Cancelled installation of Imageio-ext 1.1.13"
     fi
