@@ -10,6 +10,7 @@ package org.locationtech.geomesa.utils.stats
 
 import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
 import java.util.{Date, Locale}
+import com.typesafe.scalalogging.LazyLogging
 
 import com.vividsolutions.jts.geom.{Coordinate, Geometry, Point}
 import org.locationtech.geomesa.curve.Z2SFC
@@ -25,7 +26,7 @@ import scala.reflect.ClassTag
   * @param bounds upper and lower bounds for the input values
   * @tparam T type of input value
   */
-abstract class BinnedArray[T](val length: Int, val bounds: (T, T)) {
+abstract class BinnedArray[T](val length: Int, val bounds: (T, T)) extends LazyLogging {
 
   private [stats] val counts = Array.fill[Long](length)(0L)
 

@@ -19,7 +19,8 @@ else
         echo "Trying to install JLine from $url to $GEOMESA_HOME"
         wget -O /tmp/jline-2.12.1.jar $url \
             && mv /tmp/jline-2.12.1.jar $GEOMESA_HOME/lib/common/ \
-            && echo "Successfully installed JLine to $GEOMESA_HOME"
+            && echo "Successfully installed JLine to $GEOMESA_HOME" \
+            || { rm -f /tmp/jline-2.12.1.jar; echo "Failed to download: ${url}"; };
     else
         echo "Cancelled installation of JLine"
     fi
