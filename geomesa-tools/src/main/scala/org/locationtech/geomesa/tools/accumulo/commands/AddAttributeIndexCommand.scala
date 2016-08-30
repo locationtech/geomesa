@@ -11,28 +11,29 @@ package org.locationtech.geomesa.tools.accumulo.commands
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.util.ToolRunner
+import org.locationtech.geomesa.jobs.GeoMesaArgs
 import org.locationtech.geomesa.jobs.index.AttributeIndexJob
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
-import org.locationtech.geomesa.tools.accumulo.commands.AddIndexCommand.AddIndexParameters
+import org.locationtech.geomesa.tools.accumulo.commands.AddAttributeIndexCommand.AddIndexParameters
 import org.locationtech.geomesa.tools.common.{AttributesParam, FeatureTypeNameParam}
 
 import scala.util.control.NonFatal
 
-class AddIndexCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
-  override val command = "addindex"
+class AddAttributeIndexCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
+  override val command = "add-attribute-index"
   override val params = new AddIndexParameters
 
   override def execute() = {
     try {
       val attributeIndexJobParams = Map(
-        "--geomesa.input.user" -> params.user,
-        "--geomesa.input.password" -> params.password,
-        "--geomesa.input.instanceId" -> params.instance,
-        "--geomesa.input.zookeepers" -> params.zookeepers,
-        "--geomesa.input.tableName" -> params.catalog,
-        "--geomesa.input.feature" -> params.featureName,
-        "--geomesa.index.attributes" -> params.attributes,
-        "--geomesa.index.coverage" -> params.coverage
+        GeoMesaArgs.InputUser -> params.user,
+        GeoMesaArgs.InputPassword -> params.password,
+        GeoMesaArgs.InputInstanceId -> params.instance,
+        GeoMesaArgs.InputZookeepers -> params.zookeepers,
+        GeoMesaArgs.InputTableName -> params.catalog,
+        GeoMesaArgs.InputFeatureName -> params.featureName,
+        AttributeIndexJob.IndexAttributes -> params.attributes,
+        AttributeIndexJob.IndexCoverage -> params.coverage
       ).filter(_._2 != null).flatMap(e => List(e._1, e._2)).toArray
 
       logger.info(s"Running map reduce index job for attributes: ${params.attributes} with coverage: ${params.coverage}...")
@@ -58,7 +59,7 @@ class AddIndexCommand(parent: JCommander) extends CommandWithCatalog(parent) wit
   }
 }
 
-object AddIndexCommand {
+object AddAttributeIndexCommand {
   @Parameters(commandDescription = "Run a Hadoop map reduce job to add an index for attributes")
   class AddIndexParameters extends GeoMesaConnectionParams
     with FeatureTypeNameParam with AttributesParam {

@@ -34,6 +34,8 @@ import org.opengis.filter.Filter
 import scala.collection.JavaConversions._
 
 object AttributeIndexJob {
+  final val IndexAttributes = "--geomesa.index.attributes"
+  final val IndexCoverage = "--geomesa.index.coverage"
 
   protected[index] val AttributesKey = "org.locationtech.geomesa.attributes"
   protected[index] val CoverageKey = "org.locationtech.geomesa.coverage"
@@ -168,9 +170,9 @@ class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
 }
 
 trait AttributeIndexArgs {
-  @Parameter(names = Array("--geomesa.index.attributes"), description = "Attributes to index", variableArity = true, required = true)
+  @Parameter(names = Array(AttributeIndexJob.IndexAttributes), description = "Attributes to index", variableArity = true, required = true)
   var attributes: java.util.List[String] = null
 
-  @Parameter(names = Array("--geomesa.index.coverage"), description = "Type of index (join or full)")
+  @Parameter(names = Array(AttributeIndexJob.IndexCoverage), description = "Type of index (join or full)")
   var coverage: String = null
 }

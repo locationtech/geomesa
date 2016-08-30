@@ -16,7 +16,7 @@ import org.locationtech.geomesa.tools.common.commands.{Command, GenerateAvroSche
 object AccumuloRunner extends Runner {
   override val scriptName: String = "geomesa"
   override val commands: List[Command] = List(
-    new AddIndexCommand(jc),
+    new AddAttributeIndexCommand(jc),
     new CreateCommand(jc),
     new DeleteCatalogCommand(jc),
     new DeleteFeaturesCommand(jc),

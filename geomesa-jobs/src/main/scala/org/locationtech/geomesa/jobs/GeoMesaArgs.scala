@@ -15,20 +15,36 @@ class GeoMesaArgs(val args: Array[String]) {
   def parse(): Unit = new JCommander(this, args: _*)
 }
 
+object GeoMesaArgs {
+  final val InputUser = "--geomesa.input.user"
+  final val InputPassword = "--geomesa.input.password"
+  final val InputInstanceId = "--geomesa.input.instanceId"
+  final val InputZookeepers = "--geomesa.input.zookeepers"
+  final val InputTableName = "--geomesa.input.tableName"
+  final val InputFeatureName = "--geomesa.input.feature"
+  final val InputCQL = "--geomesa.input.cql"
+  final val OutputUser = "--geomesa.output.user"
+  final val OutputPassword = "--geomesa.output.password"
+  final val OutputInstanceId = "--geomesa.output.instanceId"
+  final val OutputZookeepers = "--geomesa.output.zookeepers"
+  final val OutputTableName = "--geomesa.output.tableName"
+  final val OutputFeature = "--geomesa.output.feature"
+}
+
 trait InputDataStoreArgs {
-  @Parameter(names = Array("--geomesa.input.user"), description = "Accumulo user name", required = true)
+  @Parameter(names = Array(GeoMesaArgs.InputUser), description = "Accumulo user name", required = true)
   var inUser: String = null
 
-  @Parameter(names = Array("--geomesa.input.password"), description = "Accumulo password", required = true)
+  @Parameter(names = Array(GeoMesaArgs.InputPassword), description = "Accumulo password", required = true)
   var inPassword: String = null
 
-  @Parameter(names = Array("--geomesa.input.instanceId"), description = "Accumulo instance name", required = true)
+  @Parameter(names = Array(GeoMesaArgs.InputInstanceId), description = "Accumulo instance name", required = true)
   var inInstanceId: String = null
 
-  @Parameter(names = Array("--geomesa.input.zookeepers"), description = "Zookeepers (host[:port], comma separated)", required = true)
+  @Parameter(names = Array(GeoMesaArgs.InputZookeepers), description = "Zookeepers (host[:port], comma separated)", required = true)
   var inZookeepers: String = null
 
-  @Parameter(names = Array("--geomesa.input.tableName"), description = "Accumulo catalog table name", required = true)
+  @Parameter(names = Array(GeoMesaArgs.InputTableName), description = "Accumulo catalog table name", required = true)
   var inTableName: String = null
 
   def inDataStore: Map[String, String] = Map(
@@ -41,24 +57,24 @@ trait InputDataStoreArgs {
 }
 
 trait InputFeatureArgs {
-  @Parameter(names = Array("--geomesa.input.feature"), description = "Simple feature type name", required = true)
+  @Parameter(names = Array(GeoMesaArgs.InputFeatureName), description = "Simple feature type name", required = true)
   var inFeature: String = null
 }
 
 trait OutputDataStoreArgs {
-  @Parameter(names = Array("--geomesa.output.user"), description = "Accumulo user name", required = true)
+  @Parameter(names = Array(GeoMesaArgs.OutputUser), description = "Accumulo user name", required = true)
   var outUser: String = null
 
-  @Parameter(names = Array("--geomesa.output.password"), description = "Accumulo password", required = true)
+  @Parameter(names = Array(GeoMesaArgs.OutputPassword), description = "Accumulo password", required = true)
   var outPassword: String = null
 
-  @Parameter(names = Array("--geomesa.output.instanceId"), description = "Accumulo instance name", required = true)
+  @Parameter(names = Array(GeoMesaArgs.OutputInstanceId), description = "Accumulo instance name", required = true)
   var outInstanceId: String = null
 
-  @Parameter(names = Array("--geomesa.output.zookeepers"), description = "Zookeepers (host[:port], comma separated)", required = true)
+  @Parameter(names = Array(GeoMesaArgs.OutputZookeepers), description = "Zookeepers (host[:port], comma separated)", required = true)
   var outZookeepers: String = null
 
-  @Parameter(names = Array("--geomesa.output.tableName"), description = "Accumulo catalog table name", required = true)
+  @Parameter(names = Array(GeoMesaArgs.OutputTableName), description = "Accumulo catalog table name", required = true)
   var outTableName: String = null
 
   def outDataStore: Map[String, String] = Map(
@@ -71,16 +87,16 @@ trait OutputDataStoreArgs {
 }
 
 trait OutputFeatureArgs {
-  @Parameter(names = Array("--geomesa.output.feature"), description = "Simple feature type name", required = true)
+  @Parameter(names = Array(GeoMesaArgs.OutputFeature), description = "Simple feature type name", required = true)
   var outFeature: String = null
 }
 
 trait OutputFeatureOptionalArgs {
-  @Parameter(names = Array("--geomesa.output.feature"), description = "Simple feature type name")
+  @Parameter(names = Array(GeoMesaArgs.OutputFeature), description = "Simple feature type name")
   var outFeature: String = null
 }
 
 trait InputCqlArgs {
-  @Parameter(names = Array("--geomesa.input.cql"), description = "CQL query filter")
+  @Parameter(names = Array(GeoMesaArgs.InputCQL), description = "CQL query filter")
   var inCql: String = null
 }
