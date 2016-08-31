@@ -185,6 +185,9 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     "support backward compatibility to 1.2.1" >> { testVersion("1.2.1") }
     "support backward compatibility to 1.2.2" >> { testVersion("1.2.2") }
     "support backward compatibility to 1.2.3" >> { testVersion("1.2.3") }
+    "support backward compatibility to 1.2.4" >> { testVersion("1.2.4") }
+    // note: data on disk is the same in 1.2.5 and 1.2.6
+    "support backward compatibility to 1.2.6" >> { testVersion("1.2.6") }
   }
 
   case class TableMutations(table: String, mutations: Seq[Mutation])
