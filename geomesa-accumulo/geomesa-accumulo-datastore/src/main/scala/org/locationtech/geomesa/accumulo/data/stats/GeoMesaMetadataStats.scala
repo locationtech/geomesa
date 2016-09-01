@@ -37,6 +37,7 @@ import org.opengis.filter._
 
 import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
 
 /**
  * Tracks stats via entries stored in metadata.
@@ -371,7 +372,13 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
       // calculate the endpoints for the histogram
       // the histogram will expand as needed, but this is a starting point
       val bounds = {
-        val mm = readStat[MinMax[Any]](sft, minMaxKey(attribute))
+        val mm = try {
+          readStat[MinMax[Any]](sft, minMaxKey(attribute))
+        } catch {
+          case NonFatal(e) =>
+            logger.error("Error reading existing stats - possibly the distributed runtime jar is not available", e)
+            None
+        }
         val (min, max) = mm match {
           case None => defaultBounds(binding)
           // max has to be greater than min for the histogram bounds
