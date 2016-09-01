@@ -36,6 +36,10 @@
             <artifactId>joda-convert</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-api</artifactId>
         </dependency>
@@ -51,6 +55,19 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-utils</artifactId>
         </dependency>
+
+        <!-- provided dependencies -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <!-- 'works with' due to license issues -->
+            <groupId>javax.media</groupId>
+            <artifactId>jai_core</artifactId>
+        </dependency>
+
         <!-- test deps -->
         <dependency>
             <groupId>org.specs2</groupId>
