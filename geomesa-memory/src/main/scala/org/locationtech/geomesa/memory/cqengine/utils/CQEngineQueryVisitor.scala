@@ -278,7 +278,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     val prop = getProp(after)
     sft.getDescriptor(prop.name).getType.getBinding match {
       case c if classOf[Date].isAssignableFrom(c) => {
-        val attr = lookup.lookupComparable[Date](prop.name)
+        val attr = lookup.lookup[Date](prop.name)
         val value = prop.literal.evaluate(null, classOf[Date])
         new cqquery.simple.GreaterThan[SimpleFeature, Date](attr, value, false)
       }
@@ -293,7 +293,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     val prop = getProp(before)
     sft.getDescriptor(prop.name).getType.getBinding match {
       case c if classOf[Date].isAssignableFrom(c) => {
-        val attr = lookup.lookupComparable[Date](prop.name)
+        val attr = lookup.lookup[Date](prop.name)
         val value = prop.literal.evaluate(null, classOf[Date])
         new cqquery.simple.LessThan[SimpleFeature, Date](attr, value, false)
       }
@@ -308,7 +308,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     val prop = getProp(during)
     sft.getDescriptor(prop.name).getType.getBinding match {
       case c if classOf[Date].isAssignableFrom(c) => {
-        val attr = lookup.lookupComparable[Date](prop.name)
+        val attr = lookup.lookup[Date](prop.name)
         val p = prop.literal.evaluate(null, classOf[Period])
         val lower = p.getBeginning.getPosition.getDate
         val upper = p.getEnding.getPosition.getDate

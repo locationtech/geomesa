@@ -10,7 +10,6 @@ package org.locationtech.geomesa.memory.cqengine.utils
 
 import java.util.Date
 
-import com.googlecode.cqengine.index.Index
 import com.googlecode.cqengine.index.hash.HashIndex
 import com.googlecode.cqengine.index.navigable.NavigableIndex
 import com.googlecode.cqengine.index.radix.RadixTreeIndex
@@ -18,6 +17,7 @@ import com.googlecode.cqengine.index.support.AbstractAttributeIndex
 import com.googlecode.cqengine.index.unique.UniqueIndex
 import com.vividsolutions.jts.geom.Geometry
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
 import org.locationtech.geomesa.memory.cqengine.index.GeoIndex
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexingOptions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -68,9 +68,9 @@ class CQIndexingOptionsTest extends Specification {
     "build IndexedCollections with indices" >> {
       val sft = SimpleFeatureTypes.createType("test", spec)
 
-      val cq = CQIndexingOptions.buildIndexedCollection(sft)
+      val cq = new GeoCQEngine(sft)
       val indexes: List[AbstractAttributeIndex[_, SimpleFeature]] =
-        cq.getIndexes.toList.collect{ case a: AbstractAttributeIndex[_, SimpleFeature] => a }
+        cq.cqcache.getIndexes.toList.collect{ case a: AbstractAttributeIndex[_, SimpleFeature] => a }
 
       val nameToIndex: Map[String, AbstractAttributeIndex[_, SimpleFeature]] = indexes.map {
         index => index.getAttribute.getAttributeName -> index
@@ -81,10 +81,9 @@ class CQIndexingOptionsTest extends Specification {
 
       // Who is a string field and the 'default' hint is used.  This should be a Radix index
       nameToIndex("Who")   must beAnInstanceOf[RadixTreeIndex[String, SimpleFeature]]
-      nameToIndex("What")   must beAnInstanceOf[UniqueIndex[Integer, SimpleFeature]]
-      //nameToIndex("When")   must beAnInstanceOf[NavigableIndex[Date, SimpleFeature]]
-      nameToIndex("Why")    must beAnInstanceOf[HashIndex[String, SimpleFeature]]
-      // TODO: Fix the commented out tests above.
+      nameToIndex("What")  must beAnInstanceOf[UniqueIndex[Integer, SimpleFeature]]
+      nameToIndex("When")  must beAnInstanceOf[NavigableIndex[Date, SimpleFeature]]
+      nameToIndex("Why")   must beAnInstanceOf[HashIndex[String, SimpleFeature]]
     }
 
   }

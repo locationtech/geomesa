@@ -27,7 +27,7 @@ trait CompQueryBuilder {
   protected[this] def mkQuery(attr: ATTRIBUTE, data: DATA): QUERY
 
   def apply(prop: PropertyLiteral)(implicit lookup: SFTAttributes): QUERY = {
-    val attr = lookup.lookupComparable[VALUE](prop.name)
+    val attr = lookup.lookup[VALUE](prop.name)
     val data = extractData(prop)
     mkQuery(attr, data)
   }
