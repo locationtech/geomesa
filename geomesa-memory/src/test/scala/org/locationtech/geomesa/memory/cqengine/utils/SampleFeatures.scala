@@ -64,12 +64,8 @@ object SampleFeatures {
   def getName: String = names(Random.nextInt(names.length))
 
   /* get non-uniformly distributed booleans */
-  def randomBoolean(fracTrue: Double): java.lang.Boolean = {
-    if (Random.nextDouble() < fracTrue)
-      true
-    else
-      false
-  }
+  def randomBoolean(fracTrue: Double): java.lang.Boolean =
+    Random.nextDouble() < fracTrue
 
   def getPoint: Point = {
     val minx = -180

@@ -20,9 +20,6 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-/**
-  * Created by mzimmerman on 8/27/16.
-  */
 /** @param sft the [[SimpleFeatureType]]
   * @param expirationPeriod the number of milliseconds after write to expire a feature or ``None`` to not
   *                         expire

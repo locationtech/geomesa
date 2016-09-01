@@ -69,7 +69,6 @@ class GeoCQEngine(sft: SimpleFeatureType) extends LazyLogging {
     filter match {
       case f: IncludeFilter => include(f)
       case f => queryCQ(f, dedup = true)
-      // JNH: Consider testing filter rewrite before passing to CQEngine?
     }
 
   def queryCQ(f: Filter, dedup: Boolean = true): FR = {
@@ -80,7 +79,6 @@ class GeoCQEngine(sft: SimpleFeatureType) extends LazyLogging {
       case _ => throw new Exception(s"Filter visitor didn't recognize filter: $f.")
     }
     // TODO: Replace println with logging.
-    //println(s"Querying CQEngine with $query")
     if (dedup) {
       val dedupOpt = QueryFactory.deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION)
       val queryOptions = QueryFactory.queryOptions(dedupOpt)
@@ -91,13 +89,8 @@ class GeoCQEngine(sft: SimpleFeatureType) extends LazyLogging {
   }
 
   def include(i: IncludeFilter) = {
-    println("Running Filter.INCLUDE")
+    logger.warn("Running Filter.INCLUDE")
     new DFR(sft, new DFI(cqcache.retrieve(new All(classOf[SimpleFeature])).iterator()))
-  }
-
-  // This is a convenience method to query CQEngine directly.
-  def getReaderForQuery(query: Query[SimpleFeature]): FR = {
-    new DFR(sft, new DFI(cqcache.retrieve(query).iterator))
   }
 
   private def addIndex(ad: AttributeDescriptor): Unit = {

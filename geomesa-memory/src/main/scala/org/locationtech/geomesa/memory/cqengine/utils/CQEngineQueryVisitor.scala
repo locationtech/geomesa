@@ -359,7 +359,4 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
       case None => throw new RuntimeException(s"Can't parse filter $filter")
     }
   }
-
-  // TODO: revisit this if needed.
-  override def toString = "CQEngineQueryVisit()"
 }

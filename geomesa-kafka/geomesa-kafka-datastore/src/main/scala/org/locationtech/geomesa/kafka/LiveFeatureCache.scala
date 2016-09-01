@@ -13,19 +13,12 @@ import org.opengis.filter.Filter
 
 trait LiveFeatureCache {
   def cleanUp(): Unit
-
   def createOrUpdateFeature(update: CreateOrUpdate): Unit
-
   def removeFeature(toDelete: Delete): Unit
-
   def clear(): Unit
-
   def size(): Int
-
   def size(filter: Filter): Int
-
   def getFeatureById(id: String): FeatureHolder
-
   def getReaderForFilter(filter: Filter): FR
 }
 

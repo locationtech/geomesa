@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.memory.cqengine.utils
 
+import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
@@ -20,7 +21,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class GeoCQEngineTest extends Specification {
+class GeoCQEngineTest extends Specification with LazyLogging {
   "GeoCQEngine" should {
     "return correct number of results" >> {
       import SampleFilters._
@@ -45,7 +46,11 @@ class GeoCQEngineTest extends Specification {
 
         val cqCount = getCQEngineCount(filter, cq)
 
-        println(s"GT: $gtCount CQ: $cqCount Filter: $filter")
+        val msg = s"GT: $gtCount CQ: $cqCount Filter: $filter"
+        if (gtCount == cqCount)
+          logger.debug(msg)
+        else
+          logger.error("MISMATCH: "+msg)
 
         // since GT count is (presumably) correct
         cqCount must equalTo(gtCount)

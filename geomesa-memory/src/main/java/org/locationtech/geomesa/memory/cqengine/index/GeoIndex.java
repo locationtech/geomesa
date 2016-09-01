@@ -102,7 +102,6 @@ public class GeoIndex<A extends Geometry, O extends SimpleFeature> extends Abstr
             public Iterator<O> iterator() {
                 scala.collection.Iterator<SimpleFeature> iter = getSimpleFeatureIteratorInternal((Intersects) query, queryOptions);
 
-                // JNH: Fix this:!?
                 return (Iterator<O>) JavaConversions.asJavaIterator(iter);
             }
 
@@ -134,23 +133,21 @@ public class GeoIndex<A extends Geometry, O extends SimpleFeature> extends Abstr
                 return INDEX_RETRIEVAL_COST;
             }
 
-            // JNH: I'm returning the size here as the MergeCost.
-            // The geoindex size isn't optimal, so I don't know if this is good or not...
+            // Returning the size here as the MergeCost.
+            // The geoindex size isn't optimal, so there might be a better
+            // measure of this.
             @Override
             public int getMergeCost() {
-                //System.out.println("In retrieve's getMergeCost method");
                 return size();
             }
 
             @Override
             public int size() {
-                //System.out.println("In retrieve's size method");
                 return getSimpleFeatureIteratorInternal((Intersects) query, queryOptions).size();
             }
 
             @Override
             public void close() {
-
             }
         };
     }
@@ -181,7 +178,6 @@ public class GeoIndex<A extends Geometry, O extends SimpleFeature> extends Abstr
         return true;
     }
 
-    // JNH: I don't think we have to quantize this index.
     @Override
     public boolean isQuantized() {
         return false;

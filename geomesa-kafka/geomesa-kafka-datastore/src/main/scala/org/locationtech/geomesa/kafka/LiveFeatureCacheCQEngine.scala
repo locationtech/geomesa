@@ -30,7 +30,6 @@ class LiveFeatureCacheCQEngine(sft: SimpleFeatureType,
 
   val geocq = new GeoCQEngine(sft)
 
-  // JNH: Do we need FeatureHolder anymore?
   private val cache: Cache[String, FeatureHolder] = {
     val cb = CacheBuilder.newBuilder().ticker(ticker)
     expirationPeriod.foreach { ep =>
@@ -38,11 +37,8 @@ class LiveFeatureCacheCQEngine(sft: SimpleFeatureType,
         .removalListener(new RemovalListener[String, FeatureHolder] {
           def onRemoval(removal: RemovalNotification[String, FeatureHolder]) = {
             if (removal.getCause == RemovalCause.EXPIRED) {
-              println(s"Removing feature ${removal.getKey} due to expiration after ${ep}ms")
-
               logger.debug(s"Removing feature ${removal.getKey} due to expiration after ${ep}ms")
               val ret = geocq.remove(removal.getValue.sf)
-              println(s"Removing feature ${removal.getKey} due to expiration after ${ep}ms returned $ret from CQEngine")
             }
           }
         })
@@ -84,7 +80,6 @@ class LiveFeatureCacheCQEngine(sft: SimpleFeatureType,
     val id = toDelete.id
     val old = cache.getIfPresent(id)
     if (old != null) {
-      //spatialIndex.remove(old.env, old.sf)
       geocq.remove(old.sf)
       cache.invalidate(id)
     }
@@ -92,25 +87,19 @@ class LiveFeatureCacheCQEngine(sft: SimpleFeatureType,
 
   override def clear(): Unit = {
     cache.invalidateAll()
-    geocq.clear()        // Consider re-instanting the CQCache
+    geocq.clear()  // Consider re-instantiating the CQCache
   }
 
   def getReaderForFilter(filter: Filter): FR =
     filter match {
-      case f: Id            => fid(f)
-      case f                => geocq.getReaderForFilter(f)
-      // JNH: Consider testing filter rewrite before passing to CQEngine?
+      case f: Id => fid(f)
+      case f     => geocq.getReaderForFilter(f)
     }
 
   def fid(ids: Id): FR = {
-    println("Queried for IDs; using Guava ID index")
+    logger.debug("Queried for IDs; using Guava ID index")
     val iter = ids.getIDs.flatMap(id => features.get(id.toString).map(_.sf)).iterator
     new DFR(sft, new DFI(iter))
-  }
-
-  // TODO: Remove after testing is finished
-  def getReaderForQuery(query: Query[SimpleFeature]): FR = {
-    new DFR(sft, new DFI(geocq.getReaderForQuery(query).getIterator))
   }
 }
 
