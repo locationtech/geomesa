@@ -127,26 +127,9 @@ trait KafkaConsumerFeatureCache extends QuadTreeFeatureStore {
     if (geometries.isEmpty) {
       unoptimized(a)
     } else {
-      val set = geometries.toSet
-
-      if (set.size == 1) {
-        val envelope = set.head.getEnvelopeInternal
-        new DFR(sft, new DFI(spatialIndex.query(envelope, a.evaluate)))
-      } else if (set.size == 2 && !set.head.overlaps(set.tail.head)) {
-
-        val env1 = set.head.getEnvelopeInternal
-        val env2 = set.tail.head.getEnvelopeInternal
-
-        new DFR(sft, new DFI(
-          spatialIndex.query(set.head.getEnvelopeInternal, a.evaluate) ++
-          spatialIndex.query(set.tail.head.getEnvelopeInternal, a.evaluate)))
-      } else {
-        val envelope = geometries.head.getEnvelopeInternal
-        geometries.tail.foreach(g => envelope.expandToInclude(g.getEnvelopeInternal))
-        geometries
-
-        new DFR(sft, new DFI(spatialIndex.query(envelope, a.evaluate)))
-      }
+      val envelope = geometries.head.getEnvelopeInternal
+      geometries.tail.foreach(g => envelope.expandToInclude(g.getEnvelopeInternal))
+      new DFR(sft, new DFI(spatialIndex.query(envelope, a.evaluate)))
     }
   }
 
