@@ -22,6 +22,8 @@ import com.vividsolutions.jts.geom.Geometry;
 import org.locationtech.geomesa.memory.cqengine.query.Intersects;
 import org.locationtech.geomesa.utils.index.BucketIndex;
 import org.opengis.feature.simple.SimpleFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scala.collection.JavaConversions;
 import scala.runtime.AbstractFunction1;
 
@@ -30,6 +32,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class GeoIndex<A extends Geometry, O extends SimpleFeature> extends AbstractAttributeIndex<A, O> implements OnHeapTypeIndex {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GeoIndex.class);
 
     private static final int INDEX_RETRIEVAL_COST = 40;
 
@@ -60,7 +63,6 @@ public class GeoIndex<A extends Geometry, O extends SimpleFeature> extends Abstr
 
             for (O object : objectSet) {
                 Envelope env = ((Geometry)object.getDefaultGeometry()).getEnvelopeInternal();
-                //System.out.println("Adding " + object + " with envelope " + env);
                 index.insert(env, object);
                 modified = true;
             }
@@ -164,8 +166,7 @@ public class GeoIndex<A extends Geometry, O extends SimpleFeature> extends Abstr
                     Geometry geom = (Geometry) feature.getAttribute(attributeName);
                     return intersects.matchesValue(geom, queryOptions);
                 } catch (Exception e) {
-                    System.out.println("Caught exception while trying to look up geometry.");
-                    e.printStackTrace();
+                    LOGGER.warn("Caught exception while trying to look up geometry", e);
                     return false;
                 }
             }

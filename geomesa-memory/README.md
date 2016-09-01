@@ -54,7 +54,9 @@ the type of index that is built:
  * ``default`` - let the module pick based on attribute type
  * ``navigable`` - indexes equality, greater than or less than; for numeric types and ``Date``
  * ``radix``- indexes for string matching operations (String)
- * ``unique``- indexes unique fields (String, Int, Long)
+ * ``unique``- indexes fields (String, Int, Long) guaranteed to have unique values
+               (CQEngine will throw an exception if duplicate values are present
+               for this attribute)
  * ``hash`` - use for equality on enumerable fields (String, Int, Long)
  * ``none`` - no index
  

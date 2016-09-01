@@ -25,8 +25,6 @@ class LiveFeatureCacheCQEngineTest extends Specification with Mockito with Simpl
   import KafkaConsumerTestData._
 
   implicit val ticker = Ticker.systemTicker()
-  //val wholeWorld = new Envelope(-180, 180, -90, 90)
-
   val wholeWorldFilter = ECQL.toFilter("INTERSECTS(geom, POLYGON((-180 -90, -180 90, 180 90, 180 -90, -180 -90)))")
 
   "LiveFeatureCache" should {
