@@ -208,10 +208,6 @@ updated: Data and Dimensions.
 In the Data pane, enter values for the bounding boxes. In this case, you
 can click on the link to compute these values from the data.
 
-In the Dimensions tab, check the "Enabled" checkbox under Time. Then
-select "When" in the Attribute and End Attribute dropdowns, and
-"Continuous Interval" in the Presentation dropdown.
-
 Click on the "Save" button when you are done.
 
 Take a look
