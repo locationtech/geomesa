@@ -21,7 +21,3 @@ trait LiveFeatureCache {
   def getFeatureById(id: String): FeatureHolder
   def getReaderForFilter(filter: Filter): FR
 }
-
-
-
-

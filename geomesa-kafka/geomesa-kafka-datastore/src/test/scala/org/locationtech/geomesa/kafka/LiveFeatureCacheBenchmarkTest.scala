@@ -13,7 +13,6 @@ import com.vividsolutions.jts.geom.Point
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.filter.visitor.SimplifyingFilterVisitor
 import org.joda.time.{DateTime, DateTimeZone, Instant}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter._
@@ -26,7 +25,6 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
@@ -175,53 +173,26 @@ class LiveFeatureCacheBenchmarkTest extends Specification {
     System.currentTimeMillis() - now
   }
 
+  def countPopulate(count: Int, time: Long): String = {
+    "%d in %d ms (%.1f /ms)".format(count, time, count.toDouble / time)
+  }
+
   val ab = ECQL.toFilter("Who IN('Addams', 'Bierce')")
   val cd = ECQL.toFilter("Who IN('Clemens', 'Damon')")
-  val ab_cd = ff.and(ab, cd)
-
   val w14 = ECQL.toFilter("What = 1 OR What = 2 OR What = 3 or What = 4")
-
   val where = ECQL.toFilter("BBOX(Where, 0, 0, 180, 90)")
   val where2 = ECQL.toFilter("BBOX(Where, -180, -90, 0, 0)")
-
-  val posIDL = ECQL.toFilter("BBOX(Where, 170, 0, 180, 10)")
-  val negIDL = ECQL.toFilter("BBOX(Where, -180, 0, -170, 10)")
-  val idl = ff.or(posIDL, negIDL)
-
-  val abIDL = ff.and(idl, ab)
-
-  val posAB = ff.and(posIDL, ab)
-  val negAB = ff.and(negIDL, ab)
-  val abIDL2 = ff.or(posAB, negAB)
-
   val bbox2 = ff.or(where, where2)
-
   val justified = ECQL.toFilter("Why is not null")
-
   val justifiedAB = ff.and(ff.and(ab, w14), justified)
   val justifiedCD = ff.and(ff.and(cd, w14), justified)
-
   val just = ff.or(justifiedAB, justifiedCD)
-
   val justBBOX = ff.and(just, where)
   val justBBOX2 = ff.and(just, where2)
-
-  val justOR = ff.or(justBBOX, justBBOX2)
-
-  val niceAnd = ff.and(justOR, just)
-
-  val niceAnd2 = ff.and(bbox2, just)
-
-  val geoJustAB = ff.and(justifiedAB, bbox2)
-  val geoJustCD = ff.and(justifiedCD, bbox2)
-  val badOr = ff.or(geoJustAB, geoJustCD)
-
   val overlapWhere1 = ECQL.toFilter("BBOX(Where, -180, 0, 0, 90)")
   val overlapWhere2 = ECQL.toFilter("BBOX(Where, -90, -90, 0, 90)")
   val overlapOR1 = ff.or(overlapWhere1, overlapWhere2)
-
   val overlapOR2 = ECQL.toFilter("Who = 'Addams' OR What = 1")
-
   val overlapORpathological = ff.or(List[Filter](
     "Who = 'Addams'",
     "What = 1",
@@ -240,26 +211,6 @@ class LiveFeatureCacheBenchmarkTest extends Specification {
     "Who = 'Harry'",
     "What = 8"))
 
-  // Easier filters
-  val geoCD = ff.and(cd, bbox2)
-  val geoAB = ff.and(ab, bbox2)
-
-  val abcd = ff.or(ab, cd)
-
-  val abcdWhere = ff.and(abcd, where)
-  val abcdWhere2 = ff.and(abcd, where2)
-
-  val badOr3 = ff.or(geoCD, geoAB)
-  val niceAnd3 = ff.and(abcd, bbox2)
-  val jor = ff.or(abcdWhere, abcdWhere2)
-
-  // One geom
-  val whereAB = ff.and(where, ab)
-  val whereCD = ff.and(where, cd)
-
-  val bad1 = ff.or(whereAB, whereCD)
-  val nice1 = ff.and(where, abcd)
-
   val filters = Seq(ab, cd, w14, where, justified, justifiedAB, justifiedCD, just, justBBOX, justBBOX2, bbox2, overlapOR1, overlapOR2, overlapORpathological)
 
   val nFeats = 100000
@@ -271,88 +222,6 @@ class LiveFeatureCacheBenchmarkTest extends Specification {
   val lfc = new LiveFeatureCacheGuava(sft, None)
   //val h2  = new LiveFeatureCacheH2(sft)
   val cq = new LiveFeatureCacheCQEngine(sft, None)
-
-  val sfv = new SimplifyingFilterVisitor
-
-  def benchmark(f: Filter) {
-    println("Running f")
-    val (regularCount, t1) = time(lfc.getReaderForFilter(f).getIterator.size)
-
-    println("\n\nRunning filter in CNF")
-    val cnf = rewriteFilterInCNF(f)
-    val (cnfCount, tcnf) = time(lfc.getReaderForFilter(cnf.accept(sfv, null).asInstanceOf[Filter]).getIterator.size)
-
-    println("\n\nRunning filter in DNF")
-    val dnf = rewriteFilterInDNF(f)
-    val (dnfCount, tdnf) = time(lfc.getReaderForFilter(dnf.accept(sfv, null).asInstanceOf[Filter]).getIterator.size)
-
-    println("\n\nRunning filter in 'unoptimized'")
-    //val (simpleCount, t2) = time(lfc.getReaderForFilter(f.accept(sfv, null).asInstanceOf[Filter]).getIterator.size)
-    val (unoptimizedCount, t3) = time(lfc.unoptimized(f).getIterator.size)
-
-    println(s"\nFilter: $f")
-    if (regularCount == cnfCount && regularCount == dnfCount && regularCount == unoptimizedCount) {
-      if (t3 < t1) {
-        println("'Unoptimized' was quicker than regular")
-      }
-      if (tcnf < t1) {
-        println("'CNF' was quicker than regular")
-      }
-      if (tdnf < t1) {
-        println("'DNF' was quicker than regular")
-      }
-      println(s"All filters returned $regularCount")
-
-    } else {
-      println(s"MISMATCHED Counts: Regular: $regularCount CNF: $cnfCount DNF: $dnfCount  Unoptimized: $unoptimizedCount")
-    }
-    println(s"Timings: regular: $t1 CNF: $tcnf DNF: $tdnf unoptimized: $t3\n")
-  }
-
-  def toC(f: Filter) = {
-    f match {
-      case or: Or => or.getChildren.toIndexedSeq
-      case _ => Seq(f)
-    }
-  }
-
-  // f is bigger than g
-  def contains(f: Filter, g: Filter): Boolean = {
-    val fc = toC(f)
-    val gc = toC(g)
-    fc.contains(gc)
-  }
-
-
-  def printBoolean(f: Filter): String = {
-    var int = 0
-    val map = new mutable.HashMap[Int, String]()
-    val abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray
-
-    def printBooleanInternal(f: Filter): String = {
-      f match {
-        case a: And => "(" + a.getChildren.map(printBooleanInternal).mkString("+") + ")"
-        case o: Or => "(" + o.getChildren.map(printBooleanInternal).mkString("*") + ")"
-        case _ =>
-          println(s"F: ${f.hashCode()} + $map")
-          map.get(f.hashCode) match {
-            case Some(v) => v
-            case None => {
-              val ret = abc(int).toString
-              println(s"map.put(${f.hashCode()}, $ret)")
-              map.put(f.hashCode(), ret)
-              int += 1
-              ret
-            }
-          }
-      }
-    }
-    printBooleanInternal(f)
-  }
-
-  def countPopulate(count: Int, time: Long): String = {
-    "%d in %d ms (%.1f /ms)".format(count, time, count.toDouble / time)
-  }
 
   "LiveFeatureCacheCQEngine " should {
     "benchmark" >> {
