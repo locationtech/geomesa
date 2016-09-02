@@ -58,6 +58,8 @@ class CQIndexingOptionsTest extends Specification {
       }
 
       "via setCQIndexType" >> {
+        sequential
+
         val originalWhoDescriptor = sft.getDescriptor("Who")
         getCQIndexType(originalWhoDescriptor) mustEqual CQIndexType.DEFAULT
 
