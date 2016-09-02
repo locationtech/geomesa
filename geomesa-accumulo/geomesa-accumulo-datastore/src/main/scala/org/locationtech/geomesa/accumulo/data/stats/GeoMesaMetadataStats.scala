@@ -72,13 +72,14 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
 
   override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
     if (exact) {
-      if (sft.isPoints) {
+      if (sft.isPoints || sft.getSchemaVersion > 9) {
+        // we know that we don't have any duplicate entries
         runStats[CountStat](sft, Stat.Count(), filter).headOption.map(_.count)
       } else {
-        import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
-
         // stat query doesn't entirely handle duplicates - only on a per-iterator basis
         // is a full scan worth it? the stat will be pretty close...
+
+        import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 
         // restrict fields coming back so that we push as little data as possible
         val props = Array(Option(sft.getGeomField).getOrElse(sft.getDescriptor(0).getLocalName))
