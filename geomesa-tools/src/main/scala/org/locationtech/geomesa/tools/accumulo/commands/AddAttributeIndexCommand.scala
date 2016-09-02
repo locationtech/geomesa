@@ -64,7 +64,7 @@ object AddAttributeIndexCommand {
   class AddIndexParameters extends GeoMesaConnectionParams
     with FeatureTypeNameParam with AttributesParam {
 
-    @Parameter(names = Array("-co", "--coverage"),
+    @Parameter(names = Array("--coverage"),
       description = "Type of index (join or full)", required = true)
     var coverage: String = null
   }

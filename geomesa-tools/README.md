@@ -37,30 +37,31 @@ This should print out the following usage text:
     $ geomesa
     Usage: geomesa [command] [command options]
       Commands:
-        create              Create a feature definition in a GeoMesa catalog
-        deletecatalog       Delete a GeoMesa catalog completely (and all features in it)
-        deletefeatures      Delete features from a table in GeoMesa. Does not delete any tables or schema information.
-        deleteraster        Delete a GeoMesa Raster Table
-        describe            Describe the attributes of a given feature in GeoMesa
-        env                 Examine the current GeoMesa environment
-        explain             Explain how a GeoMesa query will be executed
-        export              Export a GeoMesa feature
-        genavroschema       Generate an Avro schema from a SimpleFeatureType
-        getsft              Get the SimpleFeatureType of a feature
-        help                Show help
-        ingest              Ingest/convert various file formats into GeoMesa
-        ingestraster        Ingest a raster file or raster files in a directory into GeoMesa
-        keywords            Add/Remove/List keywords on an existing schema
-        list                List GeoMesa features for a given catalog
-        queryrasterstats    Export queries and statistics about the last X number of queries to a CSV file.
-        removeschema        Remove a schema and associated features from a GeoMesa catalog
-        stats-analyze       Analyze statistics on a GeoMesa feature type
-        stats-bounds        View or calculate bounds on attributes in a GeoMesa feature type
-        stats-count         Estimate or calculate feature counts in a GeoMesa feature type
-        stats-histogram     View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values
-        stats-top-k         Enumerate the most frequent values in a GeoMesa feature type
-        tableconf           Perform table configuration operations
-        version             GeoMesa Version
+        add-attribute-index    Run a Hadoop map reduce job to add an index for attributes
+        create                 Create a feature definition in a GeoMesa catalog
+        deletecatalog          Delete a GeoMesa catalog completely (and all features in it)
+        deletefeatures         Delete features from a table in GeoMesa. Does not delete any tables or schema information.
+        deleteraster           Delete a GeoMesa Raster Table
+        describe               Describe the attributes of a given feature in GeoMesa
+        env                    Examine the current GeoMesa environment
+        explain                Explain how a GeoMesa query will be executed
+        export                 Export a GeoMesa feature
+        genavroschema          Generate an Avro schema from a SimpleFeatureType
+        getsft                 Get the SimpleFeatureType of a feature
+        help                   Show help
+        ingest                 Ingest/convert various file formats into GeoMesa
+        ingestraster           Ingest a raster file or raster files in a directory into GeoMesa
+        keywords               Add/Remove/List keywords on an existing schema
+        list                   List GeoMesa features for a given catalog
+        queryrasterstats       Export queries and statistics about the last X number of queries to a CSV file.
+        removeschema           Remove a schema and associated features from a GeoMesa catalog
+        stats-analyze          Analyze statistics on a GeoMesa feature type
+        stats-bounds           View or calculate bounds on attributes in a GeoMesa feature type
+        stats-count            Estimate or calculate feature counts in a GeoMesa feature type
+        stats-histogram        View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values
+        stats-top-k            Enumerate the most frequent values in a GeoMesa feature type
+        tableconf              Perform table configuration operations
+        version                GeoMesa Version
 
 
 This usage text lists the available commands. To see help for an individual command run `geomesa help <command-name>` which for example
@@ -1105,6 +1106,42 @@ input_file out_file`.
 
 #### Example commands:
     geomesa ingestraster -u username -p password -t geomesa_raster -f /some/local/path/to/raster.tif
+
+### add-attribute-index
+Add an attribute an index for a specified list of attributes. 
+
+#### Usage (required options denoted with star):
+    $ geomesa help list
+    List GeoMesa features for a given catalog
+    Usage: list [options]
+      Options:
+      * -a, --attributes
+           Attributes to evaluate (comma-separated)
+        --auths
+           Accumulo authorizations
+      * -c, --catalog
+           Catalog table name for GeoMesa
+      * --coverage
+           Type of index (join or full)
+      * -f, --feature-name
+           Simple Feature Type name on which to operate
+        -i, --instance
+           Accumulo instance name
+        --mock
+           Run everything with a mock accumulo instance instead of a real one
+           Default: false
+        -p, --password
+           Accumulo password (will prompt if not supplied)
+      * -u, --user
+           Accumulo user name
+        --visibilities
+           Accumulo scan visibilities
+        -z, --zookeepers
+           Zookeepers (host[:port], comma separated)
+
+
+#### Example command:
+    geomesa list -u username -p password -c test_catalog
 
 ### list
 To list the features on a specified catalog table, use the `list` command.  
