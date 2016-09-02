@@ -386,5 +386,5 @@ object MultiRowAccumuloMetadata extends AccumuloMetadataRow {
 
   override def getRange(typeName: String): Range = Range.prefix(s"$typeName~")
 
-  override def getTypeName(row: Text): String = Text.decode(row.getBytes, 0, row.find("~"))
+  override def getTypeName(row: Text): String = Text.decode(row.getBytes, 0, row.toString.lastIndexOf("~"))
 }
