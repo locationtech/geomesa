@@ -18,8 +18,16 @@ import scala.util.Try
 // See geomesa/geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/geotools/Conversions.scala
 object CQIndexingOptions extends LazyLogging {
   def getCQIndexType(ad: AttributeDescriptor): CQIndexType = {
-    Option(ad.getUserData.get(SimpleFeatureTypes.OPT_CQ_INDEX).asInstanceOf[String])
-      .flatMap(c => Try(CQIndexType.withName(c)).toOption).getOrElse(CQIndexType.NONE)
+    Option(ad.getUserData.get(SimpleFeatureTypes.OPT_CQ_INDEX).asInstanceOf[String]) match {
+      case Some(n) => Try(CQIndexType.withName(n)).toOption match {
+        case Some(t) => t
+        case None => {
+          logger.warn(s"CQ index type $n unrecognized, not creating index")
+          CQIndexType.NONE
+        }
+      }
+      case None => CQIndexType.NONE
+    }
   }
 
   def setCQIndexType(ad: AttributeDescriptor, indexType: CQIndexType) {

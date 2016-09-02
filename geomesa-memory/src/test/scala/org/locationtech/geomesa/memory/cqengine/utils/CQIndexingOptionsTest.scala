@@ -34,7 +34,8 @@ class CQIndexingOptionsTest extends Specification {
              "What:Integer:cq-index=unique," +
              "When:Date:cq-index=navigable," +
              "*Where:Point:srid=4326," +
-             "Why:String:cq-index=hash"
+             "Why:String:cq-index=hash," +
+             "BadIndex:String:cq-index=foo"
 
   "CQ Indexing options" should {
     "be configurable from SimpleFeatureTypes" >> {
@@ -55,6 +56,9 @@ class CQIndexingOptionsTest extends Specification {
 
         val whyDescriptor = sft.getDescriptor("Why")
         getCQIndexType(whyDescriptor) mustEqual CQIndexType.HASH
+
+        val badIndexDescriptor = sft.getDescriptor("BadIndex")
+        getCQIndexType(badIndexDescriptor) mustEqual CQIndexType.NONE
       }
 
       "via setCQIndexType" >> {

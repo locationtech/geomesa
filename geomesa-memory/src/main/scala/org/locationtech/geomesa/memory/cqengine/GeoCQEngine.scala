@@ -40,27 +40,22 @@ class GeoCQEngine(sft: SimpleFeatureType) extends LazyLogging {
   // TODO: Add logic to allow for the geo-index to be disabled?  (Low priority)
   addGeoIndex(sft.getGeometryDescriptor)
 
-  // Add fid index
-  // TODO: should we always build this or expose building this as an option?
-  addFidIndex()
-
   // Add other indexes
   sft.getAttributeDescriptors.foreach {addIndex(_)}
 
-
-  def remove(sf: SimpleFeature) {
+  def remove(sf: SimpleFeature): Boolean = {
     cqcache.remove(sf)
   }
 
-  def add(sf: SimpleFeature) {
+  def add(sf: SimpleFeature): Boolean = {
     cqcache.add(sf)
   }
 
-  def addAll(sfs: util.Collection[SimpleFeature]) {
+  def addAll(sfs: util.Collection[SimpleFeature]): Boolean = {
     cqcache.addAll(sfs)
   }
 
-  def clear() {
+  def clear(): Unit = {
     cqcache.clear()
   }
 
@@ -78,7 +73,6 @@ class GeoCQEngine(sft: SimpleFeatureType) extends LazyLogging {
       case q: Query[SimpleFeature] => q
       case _ => throw new Exception(s"Filter visitor didn't recognize filter: $f.")
     }
-    // TODO: Replace println with logging.
     if (dedup) {
       val dedupOpt = QueryFactory.deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION)
       val queryOptions = QueryFactory.queryOptions(dedupOpt)
@@ -88,7 +82,7 @@ class GeoCQEngine(sft: SimpleFeatureType) extends LazyLogging {
       new DFR(sft, new DFI(cqcache.retrieve(query).iterator()))
   }
 
-  def include(i: IncludeFilter) = {
+  def include(i: IncludeFilter): FR = {
     logger.warn("Running Filter.INCLUDE")
     new DFR(sft, new DFI(cqcache.retrieve(new All(classOf[SimpleFeature])).iterator()))
   }
