@@ -162,7 +162,6 @@ class LiveFeatureCacheBenchmarkTest extends Specification {
   def time[A](a: => A) = {
     val now = System.currentTimeMillis()
     val result = a
-    //println("%f seconds".format( (System.nanoTime - now) / 1000000000.0 ))
 
     (result, System.currentTimeMillis() - now)
   }

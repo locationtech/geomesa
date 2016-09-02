@@ -44,12 +44,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.scalacheck</groupId>
-            <artifactId>scalacheck_2.11</artifactId>
-            <version>1.11.6</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-kafka-utils-common</artifactId>
         </dependency>
@@ -116,6 +110,12 @@
             <artifactId>specs2_2.11</artifactId>
         </dependency>
         <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+        </dependency>
+
+        <!-- test dependencies -->
+        <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_2.11</artifactId>
             <version>${kafka.08.version}</version>
@@ -156,9 +156,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
+            <groupId>org.scalacheck</groupId>
+            <artifactId>scalacheck_2.11</artifactId>
+            <version>1.11.6</version>
+            <scope>test</scope>
         </dependency>
+
     </dependencies>
 
     <build>

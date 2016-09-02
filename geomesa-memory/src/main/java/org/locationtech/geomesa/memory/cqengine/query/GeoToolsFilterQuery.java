@@ -41,8 +41,19 @@ public class GeoToolsFilterQuery extends SimpleQuery<SimpleFeature, SimpleFeatur
         return filter.evaluate(object);
     }
 
+    //NB: This is IDEA's auto-generated equals.
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        GeoToolsFilterQuery that = (GeoToolsFilterQuery) o;
+
+        return filter != null ? filter.equals(that.filter) : that.filter == null;
+    }
+
     @Override
     protected int calcHashCode() {
-        return 0;
+        return filter.hashCode();
     }
 }

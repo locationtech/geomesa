@@ -51,6 +51,11 @@ class LiveFeatureCacheGuava(override val sft: SimpleFeatureType,
 
   override def cleanUp(): Unit = cache.cleanUp()
 
+  /**
+    * WARNING: this method is not thread-safe
+    *
+    * TODO: https://geomesa.atlassian.net/browse/GEOMESA-1409
+    */
   override def createOrUpdateFeature(update: CreateOrUpdate): Unit = {
     val sf = update.feature
     val id = sf.getID
@@ -63,6 +68,11 @@ class LiveFeatureCacheGuava(override val sft: SimpleFeatureType,
     cache.put(id, FeatureHolder(sf, env))
   }
 
+  /**
+    * WARNING: this method is not thread-safe
+    *
+    * TODO: https://geomesa.atlassian.net/browse/GEOMESA-1409
+    */
   override def removeFeature(toDelete: Delete): Unit = {
     val id = toDelete.id
     val old = cache.getIfPresent(id)

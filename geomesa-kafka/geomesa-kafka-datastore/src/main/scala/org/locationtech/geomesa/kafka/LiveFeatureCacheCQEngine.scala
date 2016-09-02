@@ -62,6 +62,13 @@ class LiveFeatureCacheCQEngine(sft: SimpleFeatureType,
 
   override def cleanUp(): Unit = { cache.cleanUp() }
 
+  /**
+    * WARNING: this method is not thread-safe. CQEngine's ConcurrentIndexedCollection
+    * does provide some protections on simultaneous mutations, but not if two threads
+    * write the same feature.
+    *
+    * TODO: https://geomesa.atlassian.net/browse/GEOMESA-1409
+    */
   override def createOrUpdateFeature(update: CreateOrUpdate): Unit = {
     val sf = update.feature
     val id = sf.getID
@@ -76,6 +83,13 @@ class LiveFeatureCacheCQEngine(sft: SimpleFeatureType,
 
   override def getFeatureById(id: String): FeatureHolder = cache.getIfPresent(id)
 
+  /**
+    * WARNING: this method is not thread-safe. CQEngine's ConcurrentIndexedCollection
+    * does provide some protections on simultaneous mutations, but not if two threads
+    * write the same feature.
+    *
+    * TODO: https://geomesa.atlassian.net/browse/GEOMESA-1409
+    */
   override def removeFeature(toDelete: Delete): Unit = {
     val id = toDelete.id
     val old = cache.getIfPresent(id)

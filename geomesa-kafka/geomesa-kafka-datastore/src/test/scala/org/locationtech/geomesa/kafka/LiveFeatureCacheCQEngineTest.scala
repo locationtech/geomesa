@@ -117,8 +117,6 @@ class LiveFeatureCacheCQEngineTest extends Specification with Mockito with Simpl
    }
 
     "expire message correctly" >> {
-      //pending("expiration not implemented yet")
-
       implicit val ticker = new MockTicker
       ticker.tic = 1000000L // ns
 

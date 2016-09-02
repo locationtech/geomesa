@@ -61,7 +61,7 @@ public class Intersects<O, A extends Geometry> extends SimpleQuery<O, A> {
                 ")";
     }
 
-    //     NB: This is IDEA's auto-generated equals
+    //NB: This is IDEA's auto-generated equals
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -71,14 +71,6 @@ public class Intersects<O, A extends Geometry> extends SimpleQuery<O, A> {
 
         if (!attribute.equals(that.attribute)) return false;
         return value.equals(that.value);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + attribute.hashCode();
-        result = 31 * result + value.hashCode();
-        return result;
     }
 
     @Override
