@@ -68,7 +68,7 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
     }
   }
 
-  scheduledCompaction = executor.schedule(compactor, 1, TimeUnit.HOURS)
+  compactor.run() // schedule initial compaction
 
   override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
     if (exact) {
