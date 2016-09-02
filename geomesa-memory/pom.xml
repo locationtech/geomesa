@@ -27,6 +27,22 @@
                     <groupId>com.esotericsoftware.kryo</groupId>
                     <artifactId>kryo</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.esotericsoftware</groupId>
+                    <artifactId>kryo</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>de.javakaffee</groupId>
+                    <artifactId>kryo-serializers</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.xerial</groupId>
+                    <artifactId>sqlite-jdbc</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.javassist</groupId>
+                    <artifactId>javassist</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
