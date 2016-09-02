@@ -102,6 +102,9 @@ object SimpleFeatureTypes {
 
     case t if specParser.parse(specParser.listType, t).successful => ListAttributeSpec(conf)
     case t if specParser.parse(specParser.mapType, t).successful  => MapAttributeSpec(conf)
+
+    case default => throw new IllegalArgumentException(s"Type $default is not a supported Simple Feature attribute type, "
+      + s"valid types are: ${simpleTypeMap.keys.toList.sorted}, ${geometryTypeMap.keys.toList.sorted}, List[?], Map[?,?]")
   }
 
   def createType(nameSpec: String, spec: String): SimpleFeatureType = {
@@ -136,7 +139,6 @@ object SimpleFeatureTypes {
     }
     val defaultGeom = geomAttributes.find(_.options.get(OPT_DEFAULT).exists(_.toBoolean))
         .orElse(geomAttributes.headOption)
-    // TODO GEOMESA-594 allow for setting default date field
     val defaultDate = dateAttributes.find(_.options.get(OPT_DEFAULT).exists(_.toBoolean))
         .orElse(dateAttributes.headOption)
 
