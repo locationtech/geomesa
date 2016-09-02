@@ -127,7 +127,7 @@ class GeoCQEngine(sft: SimpleFeatureType) extends LazyLogging {
   private def addGeoIndex(ad: AttributeDescriptor): Unit = {
     // TODO: Add logic to allow for the geo-index to be disabled?  (Low priority)
     val geom: Attribute[SimpleFeature, Geometry] = attributes.lookup[Geometry](ad.getLocalName)
-    cqcache.addIndex(GeoIndex.onAttribute(geom))
+    cqcache.addIndex(GeoIndex.onAttribute(sft, geom))
   }
 
   private def addNavigableIndex(ad: AttributeDescriptor): Unit = {

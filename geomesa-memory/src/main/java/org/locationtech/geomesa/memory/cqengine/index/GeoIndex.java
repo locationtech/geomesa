@@ -22,6 +22,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import org.locationtech.geomesa.memory.cqengine.query.Intersects;
 import org.locationtech.geomesa.utils.index.BucketIndex;
 import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.collection.JavaConversions;
@@ -37,18 +38,20 @@ public class GeoIndex<A extends Geometry, O extends SimpleFeature> extends Abstr
     private static final int INDEX_RETRIEVAL_COST = 40;
 
     volatile BucketIndex<SimpleFeature> index;
+    int geomAttributeIndex;
 
     static Set<Class<? extends Query>> supportedQueries = new HashSet<Class<? extends Query>>() {{
         add(Intersects.class);
     }};
 
-    public GeoIndex(Attribute<O, A> attribute) {
+    public GeoIndex(SimpleFeatureType sft, Attribute<O, A> attribute) {
         super(attribute, supportedQueries);
         index = new BucketIndex<SimpleFeature>(360, 180, new Envelope(-180.0, 180.0, -90.0, 90.0));
+        geomAttributeIndex = sft.indexOf(attribute.getAttributeName());
     }
 
-    public static <A extends Geometry, O extends SimpleFeature> GeoIndex<A , O> onAttribute(Attribute<O, A> attribute) {
-        return new GeoIndex<A, O>(attribute);
+    public static <A extends Geometry, O extends SimpleFeature> GeoIndex<A , O> onAttribute(SimpleFeatureType sft, Attribute<O, A> attribute) {
+        return new GeoIndex<A, O>(sft, attribute);
     }
 
     @Override
@@ -110,8 +113,7 @@ public class GeoIndex<A extends Geometry, O extends SimpleFeature> extends Abstr
             @Override
             public boolean contains(O object) {
                 final Intersects intersects = (Intersects) query;
-                String attributeName = intersects.getAttributeName();
-                Geometry geom = (Geometry) object.getAttribute(attributeName);
+                Geometry geom = (Geometry) object.getAttribute(geomAttributeIndex);
                 return intersects.matchesValue(geom, queryOptions);
             }
 
@@ -160,10 +162,8 @@ public class GeoIndex<A extends Geometry, O extends SimpleFeature> extends Abstr
         return index.query(queryEnvelope, new AbstractFunction1<SimpleFeature, Object>() {
             @Override
             public Object apply(SimpleFeature feature) {
-                String attributeName = intersects.getAttributeName();
-
                 try {
-                    Geometry geom = (Geometry) feature.getAttribute(attributeName);
+                    Geometry geom = (Geometry) feature.getAttribute(geomAttributeIndex);
                     return intersects.matchesValue(geom, queryOptions);
                 } catch (Exception e) {
                     LOGGER.warn("Caught exception while trying to look up geometry", e);
