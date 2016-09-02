@@ -19,6 +19,7 @@ com.googlecode.json-simple:json-simple	1.1	compile
 com.googlecode.juniversalchardet:juniversalchardet	1.0.3	compile
 com.google.guava:guava	14.0.1	compile
 com.google.guava:guava	17.0	compile
+com.google.guava:guava	18.0	compile
 com.google.protobuf:protobuf-java	2.5.0	compile
 com.google.protobuf:protobuf-java	2.6.1	compile
 com.jayway.jsonpath:json-path	2.0.0	compile
