@@ -9,6 +9,9 @@ GeoMesa is an open-source, distributed, spatio-temporal database built on top of
 
 [![Codecov branch](https://img.shields.io/codecov/c/github/jnh5y/geomesa/codecov.svg?maxAge=2592000?style=flat-square)]()
 
+[![codecov](https://codecov.io/gh/locationtech/geomesa/branch/master/graph/badge.svg)](https://codecov.io/gh/locationtech/geomesa)
+
+
 #### ![LocationTech](https://pbs.twimg.com/profile_images/2552421256/hv2oas84tv7n3maianiq_normal.png) GeoMesa is a member of the [LocationTech](http://www.locationtech.org) working group of the Eclipse Foundation.
 
 ## Versions and Downloads
