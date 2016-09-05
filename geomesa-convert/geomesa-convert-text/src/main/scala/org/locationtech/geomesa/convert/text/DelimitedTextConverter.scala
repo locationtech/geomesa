@@ -34,7 +34,7 @@ class DelimitedTextConverterFactory extends AbstractSimpleFeatureConverterFactor
                                         fields: IndexedSeq[Field],
                                         userDataBuilder: Map[String, Expr],
                                         validating: Boolean): DelimitedTextConverter = {
-    val baseFmt = conf.getString("format").toUpperCase match {
+    var baseFmt = conf.getString("format").toUpperCase match {
       case "CSV" | "DEFAULT"          => CSVFormat.DEFAULT
       case "EXCEL"                    => CSVFormat.EXCEL
       case "MYSQL"                    => CSVFormat.MYSQL
@@ -46,8 +46,8 @@ class DelimitedTextConverterFactory extends AbstractSimpleFeatureConverterFactor
       case _ => throw new IllegalArgumentException("Unknown delimited text format")
     }
 
+    import org.locationtech.geomesa.utils.conf.ConfConversions._
     val opts = {
-      import org.locationtech.geomesa.utils.conf.ConfConversions._
       val o = "options"
       val dOpts = new DelimitedOptions()
       conf.getIntOpt(s"$o.skip-lines").foreach(s => dOpts.skipLines = s)
@@ -55,11 +55,15 @@ class DelimitedTextConverterFactory extends AbstractSimpleFeatureConverterFactor
       dOpts
     }
 
+    conf.getStringOpt("options.quote").foreach { q =>
+      baseFmt = baseFmt.withQuote(q.toCharArray()(0))
+    }
+
     new DelimitedTextConverter(baseFmt, sft, idBuilder, fields, userDataBuilder, opts, validating)
   }
 }
 
-class DelimitedOptions(var skipLines: Int = 0, var pipeSize: Int = 16 * 1024)
+class DelimitedOptions(var skipLines: Int = 0, var pipeSize: Int = 16 * 1024, var quote: String = "\"")
 
 class DelimitedTextConverter(format: CSVFormat,
                              val targetSFT: SimpleFeatureType,
