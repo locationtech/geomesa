@@ -13,8 +13,7 @@ import java.lang.Float._
 import java.net.{URL, URLClassLoader}
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.mapreduce.{AccumuloInputFormat, AbstractInputFormat, InputFormatBase, RangeInputSplit}
-import org.apache.accumulo.core.client.mock.MockInstance
+import org.apache.accumulo.core.client.mapreduce.{AbstractInputFormat, AccumuloInputFormat, InputFormatBase, RangeInputSplit}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
@@ -62,32 +61,20 @@ object GeoMesaInputFormat extends LazyLogging {
    */
   def configure(job: Job, dsParams: Map[String, String], query: Query): Unit = {
 
-    val user = AccumuloDataStoreParams.userParam.lookUp(dsParams).asInstanceOf[String]
-    val password = AccumuloDataStoreParams.passwordParam.lookUp(dsParams).asInstanceOf[String]
-    val isMock = AccumuloDataStoreParams.mockParam.lookUp(dsParams).asInstanceOf[String].toBoolean
-
-    val params: Map[String, Any] =
-      if(isMock) {
-        val connector = new MockInstance("fake").getConnector(user, new PasswordToken(password))
-        connector.securityOperations().changeUserAuthorizations(user, new Authorizations("admin", "user"))
-
-        Map(
-          "connector" -> connector,
-          "caching"   -> false,
-          "tableName" -> AccumuloDataStoreParams.tableNameParam.lookUp(dsParams).asInstanceOf[String]
-        )
-      } else dsParams
-
-    val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+    val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
     assert(ds != null, "Invalid data store parameters")
 
     // set up the underlying accumulo input format
+    val user = AccumuloDataStoreParams.userParam.lookUp(dsParams).asInstanceOf[String]
+    val password = AccumuloDataStoreParams.passwordParam.lookUp(dsParams).asInstanceOf[String]
     InputFormatBaseAdapter.setConnectorInfo(job, user, new PasswordToken(password.getBytes))
 
     val instance = AccumuloDataStoreParams.instanceIdParam.lookUp(dsParams).asInstanceOf[String]
     val zookeepers = AccumuloDataStoreParams.zookeepersParam.lookUp(dsParams).asInstanceOf[String]
-    if(isMock) AbstractInputFormat.setMockInstance(job, instance)
-    else InputFormatBaseAdapter.setZooKeeperInstance(job, instance, zookeepers)
+    if(AccumuloDataStoreParams.mockParam.lookUp(dsParams).asInstanceOf[String] == "true")
+      AbstractInputFormat.setMockInstance(job, instance)
+    else
+      InputFormatBaseAdapter.setZooKeeperInstance(job, instance, zookeepers)
 
     val auths = Option(AccumuloDataStoreParams.authsParam.lookUp(dsParams).asInstanceOf[String])
     auths.foreach(a => InputFormatBaseAdapter.setScanAuthorizations(job, new Authorizations(a.split(","): _*)))
@@ -167,23 +154,7 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLoggi
   var table: GeoMesaTable = null
 
   private def init(conf: Configuration) = if (sft == null) {
-    val dsParams = GeoMesaConfigurator.getDataStoreInParams(conf)
-    val user = AccumuloDataStoreParams.userParam.lookUp(dsParams).asInstanceOf[String]
-    val password = AccumuloDataStoreParams.passwordParam.lookUp(dsParams).asInstanceOf[String]
-    val isMock = AccumuloDataStoreParams.mockParam.lookUp(dsParams).asInstanceOf[String].toBoolean
-
-    val params =
-    if(isMock) {
-      val connector = new MockInstance("fake").getConnector(user, new PasswordToken(password))
-      connector.securityOperations().changeUserAuthorizations(user, new Authorizations("admin", "user"))
-
-      Map(
-        "connector" -> connector,
-        "caching"   -> false,
-        "tableName" -> AccumuloDataStoreParams.tableNameParam.lookUp(dsParams).asInstanceOf[String]
-      )
-    } else dsParams
-
+    val params = GeoMesaConfigurator.getDataStoreInParams(conf)
     val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
     sft = ds.getSchema(GeoMesaConfigurator.getFeatureType(conf))
     encoding = ds.getFeatureEncoding(sft)
