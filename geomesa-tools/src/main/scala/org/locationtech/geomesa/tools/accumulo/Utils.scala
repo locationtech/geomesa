@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.tools.accumulo
 
-import java.io.{BufferedReader, File, InputStreamReader}
+import java.io.{FileNotFoundException, BufferedReader, File, InputStreamReader}
 import java.util.Locale
 
 import com.typesafe.scalalogging.LazyLogging
@@ -107,9 +107,15 @@ trait ReadPassword {
  */
 trait AccumuloProperties extends ReadPassword with LazyLogging {
   lazy val accumuloConf = {
-    val conf = Option(System.getProperty("geomesa.tools.accumulo.site.xml"))
-      .getOrElse(s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml")
-    XML.loadFile(conf)
+    try {
+      val conf = Option(System.getProperty("geomesa.tools.accumulo.site.xml"))
+        .getOrElse(s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml")
+      XML.loadFile(conf)
+    } catch {
+      case e: FileNotFoundException =>
+        throw new RuntimeException("Could not find $ACCUMULO_HOME/conf/accumulo-site.xml file. " +
+          "Check your Accumulo installation or pass in values for the instance and zookeeper flags.", e)
+    }
   }
 
   lazy val zookeepersProp =
