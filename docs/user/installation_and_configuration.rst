@@ -442,6 +442,16 @@ Hadoop 2.4-2.7 (adjust versions as needed)
 * hadoop-common-2.6.4.jar
 * hadoop-hdfs-2.6.4.jar
 
+.. _install_geomesa_process:
+
+.. note::
+
+    Some GeoMesa-specific WPS processes such as ``geomesa:Density``, which is used
+    in the generation of heat maps, also require ``geomesa-process-$VERSION.jar``.
+    This JAR is included in the ``dist/gs-plugins`` directory of the binary
+    distribution, or is built in the ``geomesa-process`` module of the source
+    distribution.
+
 Restart GeoServer after the JARs are installed.
 
 .. _install_kafka_geoserver:
