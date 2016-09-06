@@ -20,7 +20,6 @@ import org.geotools.factory.Hints
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.stats.AttributeBounds
-import org.locationtech.geomesa.tools.accumulo.DataStoreHelper
 import org.locationtech.geomesa.tools.accumulo.commands.IngestCommand.IngestParameters
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.{GeneralShapefileIngest, SimpleFeatureTypes}
@@ -74,7 +73,7 @@ class ShpIngestTest extends Specification {
     ingestParams.catalog = "testshpingestcatalog"
     ingestParams.useMock = true
 
-    val ds = new DataStoreHelper(ingestParams).getDataStore()
+    val ds = ingestParams.createDataStore()
 
     "should properly ingest a shapefile" >> {
       ingestParams.files.add(shpFile.getPath)

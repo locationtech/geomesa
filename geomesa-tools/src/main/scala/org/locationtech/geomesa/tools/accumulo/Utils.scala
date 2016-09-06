@@ -88,8 +88,8 @@ object Utils {
 
 }
 /* get password trait */
-trait GetPassword {
-  def getPassword(pass: String) = Option(pass).getOrElse({
+trait ReadPassword {
+  def readPassword(): String = {
     if (System.console() != null) {
       System.err.print("Password (mask enabled)> ")
       System.console().readPassword().mkString
@@ -98,14 +98,14 @@ trait GetPassword {
       val reader = new BufferedReader(new InputStreamReader(System.in))
       reader.readLine()
     }
-  })
+  }
 }
 
 /**
  * Loads accumulo properties for instance and zookeepers from the accumulo installation found via
  * the system path in ACCUMULO_HOME in the case that command line parameters are not provided
  */
-trait AccumuloProperties extends GetPassword with LazyLogging {
+trait AccumuloProperties extends ReadPassword with LazyLogging {
   lazy val accumuloConf = {
     val conf = Option(System.getProperty("geomesa.tools.accumulo.site.xml"))
       .getOrElse(s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml")

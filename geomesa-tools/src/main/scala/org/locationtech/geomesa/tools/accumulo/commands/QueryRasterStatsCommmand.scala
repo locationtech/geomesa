@@ -36,9 +36,9 @@ class QueryRasterStatsCommmand(parent: JCommander) extends Command(parent) with 
   }
 
   def createRasterStore: AccumuloRasterStore = {
-    val password = getPassword(params.password)
     val auths = Option(params.auths)
-    AccumuloRasterStore(params.user, password,
+    AccumuloRasterStore(params.user,
+                        params.password,
                         params.instance,
                         params.zookeepers,
                         params.table,

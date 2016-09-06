@@ -10,6 +10,7 @@ package org.locationtech.geomesa.tools.common
 
 import com.beust.jcommander.{JCommander, ParameterException}
 import com.typesafe.scalalogging.LazyLogging
+import org.locationtech.geomesa.tools.accumulo.AccumuloConnectionParams
 import org.locationtech.geomesa.tools.common.commands.Command
 import org.locationtech.geomesa.tools.common.commands.convert.GeoMesaIStringConverterFactory
 
@@ -48,7 +49,12 @@ trait Runner extends LazyLogging {
         sys.exit(-1)
     }
 
-    commandMap.getOrElse(jc.getParsedCommand, new DefaultCommand(jc))
+    val command = commandMap.getOrElse(jc.getParsedCommand, new DefaultCommand(jc))
+    command.params match {
+      case p: AccumuloConnectionParams => p.resolveEnvironment()
+      case _ => // no-op
+    }
+    command
   }
 
   def mkSubCommand(parent: JCommander, name: String, obj: Object): JCommander = {
