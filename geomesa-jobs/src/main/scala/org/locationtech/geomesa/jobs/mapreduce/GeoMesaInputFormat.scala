@@ -71,7 +71,7 @@ object GeoMesaInputFormat extends LazyLogging {
 
     val instance = AccumuloDataStoreParams.instanceIdParam.lookUp(dsParams).asInstanceOf[String]
     val zookeepers = AccumuloDataStoreParams.zookeepersParam.lookUp(dsParams).asInstanceOf[String]
-    if(AccumuloDataStoreParams.mockParam.lookUp(dsParams).asInstanceOf[String] == "true")
+    if (AccumuloDataStoreParams.mockParam.lookUp(dsParams).asInstanceOf[String] == "true")
       AbstractInputFormat.setMockInstance(job, instance)
     else
       InputFormatBaseAdapter.setZooKeeperInstance(job, instance, zookeepers)
