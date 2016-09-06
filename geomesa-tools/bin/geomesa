@@ -59,8 +59,8 @@ GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB/common)"
 GEOMESA_CP="${GEOMESA_CP}:${ACCUMULO_CONF_DIR}:${HADOOP_CONF_DIR}"
 GEOMESA_CP="${GEOMESA_CP}:${GEOMESA_CONF_DIR}:$(findSftDirs)"
 # Add user defined directories to the classpath
-if [[ -z "$CUSTOM_CONF_DIR"  ]]; then
-    GEOMESA_CP="${GEOMESA_CP}:$(findJars $CUSTOM_CONF_DIR true)"
+if [[ -z "$GEOMESA_EXTRA_CLASSPATHS"  ]]; then
+    GEOMESA_CP="${GEOMESA_CP}:$(findJars $GEOMESA_EXTRA_CLASSPATHS true)"
 fi
 ACCUMULO_CP="$(findJars $ACCUMULO_LIB true true)"
 
@@ -124,5 +124,5 @@ else
         shift 1
     fi
     CLASSPATH="$GEOMESA_CP:$ACCUMULO_CP:$HADOOP_CP:${ZOOKEEPER_JAR}"
-    java ${JAVA_CUSTOM_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.accumulo.AccumuloRunner "$@"
+    java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.accumulo.AccumuloRunner "$@"
 fi

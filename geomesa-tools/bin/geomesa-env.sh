@@ -87,7 +87,7 @@
 # Add a colon separated list of directories to the GEOMESA_CP (class path variable).
 # Note this will exclude any slf4j files.
 #
-# export CUSTOM_CONF_DIR=/some/dir/:/another/dir/
+# export GEOMESA_EXTRA_CLASSPATHS=/some/dir/:/another/dir/
 
 # Java library path. Used to set GeoMesa Options.
 #
@@ -98,4 +98,4 @@
 # Add additional options after {$JAVA_OPTS} to preserve current JAVA_OPTS.
 # Replace {$JAVA_OPTS} to use different java options.
 #
-# export JAVA_CUSTOM_OPTS="{$JAVA_OPTS}"
+# export CUSTOM_JAVA_OPTS="{$JAVA_OPTS}"

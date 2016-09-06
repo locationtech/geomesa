@@ -16,8 +16,8 @@
 # include geomesa first so that the correct log4j.properties is picked up
 GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB/common):$(findJars $GEOMESA_LIB/kafka)"
 # Add user defined directories to the classpath
-if [[ -z "$CUSTOM_CONF_DIR"  ]]; then
-    GEOMESA_CP="${GEOMESA_CP}:$(findJars $CUSTOM_CONF_DIR true)"
+if [[ -z "$GEOMESA_EXTRA_CLASSPATHS"  ]]; then
+    GEOMESA_CP="${GEOMESA_CP}:$(findJars $GEOMESA_EXTRA_CLASSPATHS true)"
 fi
 
 # Geomesa tools setup completed, below we parse user arguments
@@ -39,5 +39,5 @@ else
         shift 1
     fi
     CLASSPATH="$GEOMESA_CP"
-    java ${JAVA_CUSTOM_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.kafka.KafkaRunner "$@"
+    java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.kafka.KafkaRunner "$@"
 fi

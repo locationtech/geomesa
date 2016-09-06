@@ -174,6 +174,6 @@ if [[ -n "$JAVA_LIBRARY_PATH" ]]; then
 fi
 
 # Configure Java Options this can be set in geomesa-env.
-if [[ -z "$JAVA_CUSTOM_OPTS" ]]; then
-  export JAVA_CUSTOM_OPTS="${JAVA_OPTS}"
+if [[ -z "$CUSTOM_JAVA_OPTS" ]]; then
+  export CUSTOM_JAVA_OPTS="${JAVA_OPTS}"
 fi
