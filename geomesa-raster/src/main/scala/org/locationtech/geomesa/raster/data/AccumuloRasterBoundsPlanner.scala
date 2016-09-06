@@ -11,7 +11,7 @@ package org.locationtech.geomesa.raster.data
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
-import org.locationtech.geomesa.accumulo.iterators.BBOXCombiner
+import org.locationtech.geomesa.raster.iterators.BBOXCombiner
 
 object AccumuloRasterBoundsPlanner extends LazyLogging {
 

@@ -13,7 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
-import org.locationtech.geomesa.accumulo.data.stats.GeoMesaStats
+import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.tools.accumulo.commands.CommandWithCatalog
 import org.locationtech.geomesa.tools.accumulo.commands.stats.StatsHistogramCommand.StatsHistogramParams
 import org.locationtech.geomesa.utils.stats.{Histogram, MinMax, Stat}

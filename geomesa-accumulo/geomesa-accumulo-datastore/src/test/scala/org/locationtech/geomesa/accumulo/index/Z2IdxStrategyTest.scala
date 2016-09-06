@@ -17,13 +17,13 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.data.tables.{Z2Table, Z3Table}
 import org.locationtech.geomesa.accumulo.index.QueryHints._
-import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
+import org.locationtech.geomesa.accumulo.index.z2.Z2Index
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.{Convert2ViewerFunction, ExtendedValues}
+import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.sfcurve.zorder.Z2
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
@@ -54,7 +54,7 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
   addFeatures(features)
 
   implicit val ff = CommonFactoryFinder.getFilterFactory2
-  val strategy = StrategyType.Z2
+  val strategy = Z2Index
   val queryPlanner = new QueryPlanner(sft, ds)
   val output = ExplainNull
 
@@ -62,7 +62,7 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
     "print values" in {
       skipped("used for debugging")
       println()
-      ds.connector.createScanner(ds.getTableName(sftName, Z2Table), new Authorizations()).foreach { r =>
+      ds.connector.createScanner(ds.getTableName(sftName, Z2Index), new Authorizations()).foreach { r =>
         val bytes = r.getKey.getRow.getBytes
         val keyZ = Longs.fromByteArray(bytes.drop(2))
         val (x, y) = Z2SFC.invert(Z2(keyZ))
@@ -180,7 +180,7 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
           " AND dtg between '2010-05-07T06:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val query = new Query(sftName, ECQL.toFilter(filter), Array("geom", "dtg"))
       val qps = getQueryPlans(query)
-      forall(qps)(p => p.columnFamilies must containTheSameElementsAs(Seq(Z3Table.BIN_CF)))
+      forall(qps)(p => p.columnFamilies must containTheSameElementsAs(Seq(AccumuloWritableIndex.BinColumnFamily)))
 
       val features = execute(filter, Some(Array("geom", "dtg")))
       features must haveSize(4)
@@ -331,7 +331,7 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
     }
   }
 
-  def execute(ecql: String, transforms: Option[Array[String]] = None, explain: ExplainerOutputType = ExplainNull) = {
+  def execute(ecql: String, transforms: Option[Array[String]] = None, explain: Explainer = ExplainNull) = {
     val query = transforms match {
       case None    => new Query(sftName, ECQL.toFilter(ecql))
       case Some(t) => new Query(sftName, ECQL.toFilter(ecql), t)

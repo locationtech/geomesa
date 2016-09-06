@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.apache.accumulo.core.client.{Connector, BatchScanner, Scanner}
-import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
+import org.apache.accumulo.core.client.{BatchScanner, Connector, Scanner}
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
 
 trait AccumuloConnectorCreator {
 
@@ -23,12 +23,12 @@ trait AccumuloConnectorCreator {
   /**
    * Gets the accumulo table name for the given table
    */
-  def getTableName(featureName: String, table: GeoMesaTable): String
+  def getTableName(featureName: String, index: AccumuloFeatureIndex): String
 
   /**
    * Gets the suggested number of threads for querying the given table
    */
-  def getSuggestedThreads(featureName: String, table: GeoMesaTable): Int
+  def getSuggestedThreads(featureName: String, index: AccumuloFeatureIndex): Int
 
   /**
    * Gets a single-range scanner for the given table

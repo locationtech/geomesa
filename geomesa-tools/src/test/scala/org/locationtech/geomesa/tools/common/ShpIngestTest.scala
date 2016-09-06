@@ -19,7 +19,7 @@ import org.geotools.data.shapefile.ShapefileDataStoreFactory
 import org.geotools.factory.Hints
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.stats.AttributeBounds
+import org.locationtech.geomesa.index.stats.AttributeBounds
 import org.locationtech.geomesa.tools.accumulo.DataStoreHelper
 import org.locationtech.geomesa.tools.accumulo.commands.IngestCommand.IngestParameters
 import org.locationtech.geomesa.utils.geotools.Conversions._

@@ -16,7 +16,8 @@ import org.apache.accumulo.core.data.{Range => aRange, _}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
+import org.locationtech.geomesa.accumulo.index.{AccumuloWritableIndex, AccumuloFeatureIndex}
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
@@ -70,7 +71,7 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
       reusableSf = new KryoFeatureSerializer(sft).getReusableFeature
     } else {
       val tableName = options(TABLE_OPT)
-      val table = GeoMesaTable.AllTables.find(_.getClass.getSimpleName == tableName).getOrElse {
+      val table = AccumuloFeatureIndex.AllIndices.find(_.getClass.getSimpleName == tableName).getOrElse {
         throw new RuntimeException(s"Table option not configured correctly: $tableName")
       }
       getId = table.getIdFromRow(sft)
@@ -169,7 +170,7 @@ object KryoLazyAggregatingIterator extends LazyLogging {
 
   def configure(is: IteratorSetting,
                 sft: SimpleFeatureType,
-                table: GeoMesaTable,
+                index: AccumuloFeatureIndex,
                 filter: Option[Filter],
                 deduplicate: Boolean,
                 maxDuplicates: Option[Int]): Unit = {
@@ -177,6 +178,6 @@ object KryoLazyAggregatingIterator extends LazyLogging {
     filter.foreach(f => is.addOption(CQL_OPT, ECQL.toCQL(f)))
     is.addOption(DUPE_OPT, deduplicate.toString)
     maxDuplicates.foreach(m => is.addOption(MAX_DUPE_OPT, m.toString))
-    is.addOption(TABLE_OPT, table.getClass.getSimpleName)
+    is.addOption(TABLE_OPT, index.getClass.getSimpleName)
   }
 }

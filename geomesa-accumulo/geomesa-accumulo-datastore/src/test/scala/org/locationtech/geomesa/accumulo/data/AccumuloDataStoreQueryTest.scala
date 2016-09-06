@@ -21,12 +21,17 @@ import org.geotools.util.Converters
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.QueryHints._
-import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index._
+import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
+import org.locationtech.geomesa.accumulo.index.id.RecordIndex
+import org.locationtech.geomesa.accumulo.index.z2.Z2Index
+import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, TestData}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction}
+import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.filters.Filters
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -128,19 +133,25 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val queryNull = new Query(defaultSft.getTypeName, filterNull)
       val queryEmpty = new Query(defaultSft.getTypeName, filterEmpty)
 
-      val explainNull = {
+      val (planNull, explainNull) = {
         val o = new ExplainString
-        ds.getQueryPlan(queryNull, explainer = o)
-        o.toString()
+        val p = ds.getQueryPlan(queryNull, explainer = o)
+        (p, o.toString())
       }
-      val explainEmpty = {
+      val (planEmpty, explainEmpty) = {
         val o = new ExplainString
-        ds.getQueryPlan(queryEmpty, explainer = o)
-        o.toString()
+        val p = ds.getQueryPlan(queryEmpty, explainer = o)
+        (p, o.toString())
       }
 
-      explainNull must contain("Strategy filter: Z2[BBOX(geom, 40.0,44.0,50.0,54.0)][None]")
-      explainEmpty must contain("Strategy filter: Z2[BBOX(geom, 40.0,44.0,50.0,54.0)][None]")
+      planNull must haveLength(1)
+      planNull.head.table must endWith(Z2Index.name)
+
+      planEmpty must haveLength(1)
+      planEmpty.head.table must endWith(Z2Index.name)
+
+      explainNull must contain("Filter plan: FilterPlan[Z2Index[BBOX(geom, 40.0,44.0,50.0,54.0)][None]]")
+      explainEmpty must contain("Filter plan: FilterPlan[Z2Index[BBOX(geom, 40.0,44.0,50.0,54.0)][None]]")
 
       val featuresNull = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(queryNull).features.toSeq
       val featuresEmpty = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(queryEmpty).features.toSeq
@@ -240,10 +251,8 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val nStrategies = negatives.map(ds.getQueryPlan(_))
 
       forall(pStrategies ++ nStrategies)(_ must haveLength(1))
-      pStrategies.map(_.head.filter.strategy) mustEqual
-          Seq(StrategyType.ATTRIBUTE, StrategyType.RECORD, StrategyType.Z2, StrategyType.Z3)
-      nStrategies.map(_.head.filter.strategy) mustEqual
-          Seq(StrategyType.ATTRIBUTE, StrategyType.RECORD, StrategyType.Z2, StrategyType.Z3)
+      pStrategies.map(_.head.filter.index) mustEqual Seq(AttributeIndex, RecordIndex, Z2Index, Z3Index)
+      nStrategies.map(_.head.filter.index) mustEqual Seq(AttributeIndex, RecordIndex, Z2Index, Z3Index)
 
       forall(positives) { query =>
         val result = ds.getFeatureSource(sftName).getFeatures(query).features().toList
@@ -286,7 +295,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       query.getHints.put(BIN_TRACK_KEY, "name")
       query.getHints.put(BIN_BATCH_SIZE_KEY, 1000)
       val queryPlanner = new QueryPlanner(sft, ds)
-      val results = queryPlanner.runQuery(query, Some(StrategyType.Z2)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
+      val results = queryPlanner.runQuery(query, Some(Z2Index)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
       bins must haveSize(2)
@@ -370,7 +379,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val filter = "BBOX(geom,40,40,50,50) and dtg during 2010-05-07T00:00:00.000Z/2010-05-08T00:00:00.000Z and name='name1'"
       val query = new Query(defaultSft.getTypeName, ECQL.toFilter(filter))
 
-      def expectStrategy(strategy: String) = {
+      def expectStrategy(strategy: AccumuloFeatureIndex) = {
         val explain = new ExplainString
         ds.getQueryPlan(query, explainer = explain)
         explain.toString().split("\n").map(_.trim).filter(_.startsWith("Strategy 1 of 1:")) mustEqual Array(s"Strategy 1 of 1: $strategy")
@@ -378,36 +387,36 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         res must containTheSameElementsAs(Seq("fid-1"))
       }
 
-      query.getHints.put(QUERY_STRATEGY_KEY, StrategyType.ATTRIBUTE)
-      expectStrategy("AttributeIdxStrategy")
+      query.getHints.put(QUERY_INDEX_KEY, AttributeIndex)
+      expectStrategy(AttributeIndex)
 
-      query.getHints.put(QUERY_STRATEGY_KEY, StrategyType.Z2)
-      expectStrategy("Z2IdxStrategy")
+      query.getHints.put(QUERY_INDEX_KEY, Z2Index)
+      expectStrategy(Z2Index)
 
-      query.getHints.put(QUERY_STRATEGY_KEY, StrategyType.Z3)
-      expectStrategy("Z3IdxStrategy")
+      query.getHints.put(QUERY_INDEX_KEY, Z3Index)
+      expectStrategy(Z3Index)
 
-      query.getHints.put(QUERY_STRATEGY_KEY, StrategyType.RECORD)
-      expectStrategy("RecordIdxStrategy")
+      query.getHints.put(QUERY_INDEX_KEY, RecordIndex)
+      expectStrategy(RecordIndex)
 
       val viewParams =  new java.util.HashMap[String, String]
       query.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, viewParams)
 
-      query.getHints.remove(QUERY_STRATEGY_KEY)
+      query.getHints.remove(QUERY_INDEX_KEY)
       viewParams.put("STRATEGY", "attribute")
-      expectStrategy("AttributeIdxStrategy")
+      expectStrategy(AttributeIndex)
 
-      query.getHints.remove(QUERY_STRATEGY_KEY)
+      query.getHints.remove(QUERY_INDEX_KEY)
       viewParams.put("STRATEGY", "Z2")
-      expectStrategy("Z2IdxStrategy")
+      expectStrategy(Z2Index)
 
-      query.getHints.remove(QUERY_STRATEGY_KEY)
+      query.getHints.remove(QUERY_INDEX_KEY)
       viewParams.put("STRATEGY", "Z3")
-      expectStrategy("Z3IdxStrategy")
+      expectStrategy(Z3Index)
 
-      query.getHints.remove(QUERY_STRATEGY_KEY)
+      query.getHints.remove(QUERY_INDEX_KEY)
       viewParams.put("STRATEGY", "RECORD")
-      expectStrategy("RecordIdxStrategy")
+      expectStrategy(RecordIndex)
 
       success
     }

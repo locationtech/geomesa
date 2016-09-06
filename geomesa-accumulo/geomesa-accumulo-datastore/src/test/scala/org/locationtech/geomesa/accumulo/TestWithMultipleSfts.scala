@@ -16,8 +16,8 @@ import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.accumulo.index._
+import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -53,19 +53,19 @@ trait TestWithMultipleSfts extends Specification {
   // after all tests, drop the tables we created to free up memory
   override def map(fragments: => Fragments) = fragments ^ Step {
     val to = connector.tableOperations()
-    val tables = Seq(sftBaseName) ++ sfts.flatMap(sft => Try(GeoMesaTable.getTableNames(sft, ds)).getOrElse(Seq.empty))
+    val tables = Seq(sftBaseName) ++ sfts.flatMap { sft =>
+      Try(AccumuloFeatureIndex.indices(sft).map(ds.getTableName(sft.getTypeName, _))).getOrElse(Seq.empty)
+    }
     tables.toSet.filter(to.exists).foreach(to.delete)
   }
 
   def createNewSchema(spec: String,
                       dtgField: Option[String] = Some("dtg"),
-                      tableSharing: Boolean = true,
-                      schemaVersion: Option[Int] = None): SimpleFeatureType = synchronized {
+                      tableSharing: Boolean = true): SimpleFeatureType = synchronized {
     val sftName = sftBaseName + sftCounter.getAndIncrement()
     val sft = SimpleFeatureTypes.createType(sftName, spec)
     dtgField.foreach(sft.setDtgField)
     sft.setTableSharing(tableSharing)
-    schemaVersion.foreach(sft.setSchemaVersion)
     ds.createSchema(sft)
     val reloaded = ds.getSchema(sftName) // reload the sft from the ds to ensure all user data is set properly
     sfts += reloaded

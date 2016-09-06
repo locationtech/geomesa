@@ -11,8 +11,8 @@ package org.locationtech.geomesa.accumulo.index
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.tables.AvailableTables
-import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
+import org.locationtech.geomesa.accumulo.index.z3.Z3Index
+import org.locationtech.geomesa.index.api.FilterSplitter
 import org.locationtech.geomesa.utils.geotools.SftBuilder
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -26,10 +26,10 @@ class ConfigurableIndexesTest extends Specification {
   val sft = new SftBuilder()
     .date("dtg", default = true)
     .point("geom", default = true)
-    .withIndexes(AvailableTables.Z3TableScheme)
+    .withIndexes(AccumuloFeatureIndex.Schemes.Z3TableScheme)
     .build("ConfigurableIndexesTest")
 
-  val splitter = new QueryFilterSplitter(sft)
+  val splitter = new FilterSplitter(sft, AccumuloFeatureIndex.indices(sft))
 
   val ff = CommonFactoryFinder.getFilterFactory2
 
@@ -45,10 +45,10 @@ class ConfigurableIndexesTest extends Specification {
   def testFallback(filter: Filter) = {
     val options = splitter.getQueryOptions(filter)
     options must haveLength(1)
-    options.head.filters must haveLength(1)
-    options.head.filters.head.strategy mustEqual StrategyType.Z3
-    options.head.filters.head.primary must beNone
-    options.head.filters.head.secondary must beSome(filter)
+    options.head.strategies must haveLength(1)
+    options.head.strategies.head.index mustEqual Z3Index
+    options.head.strategies.head.primary must beNone
+    options.head.strategies.head.secondary must beSome(filter)
   }
 
   "AccumuloDataStore" should {

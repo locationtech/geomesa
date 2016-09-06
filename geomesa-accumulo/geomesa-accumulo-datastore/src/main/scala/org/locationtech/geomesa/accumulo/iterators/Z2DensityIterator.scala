@@ -16,7 +16,7 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.accumulo.data.tables.Z2Table
+import org.locationtech.geomesa.accumulo.index.z2.Z2Index
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyDensityIterator.DensityResult
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -70,7 +70,7 @@ class Z2DensityIterator extends KryoLazyDensityIterator {
       val row = topKey.getRowData
       val zOffset = row.offset() + zPrefix
       var i = 0
-      while (i < Z2Table.GEOM_Z_NUM_BYTES) {
+      while (i < Z2Index.GEOM_Z_NUM_BYTES) {
         zBytes(i) = row.byteAt(zOffset + i)
         i += 1
       }
@@ -91,7 +91,7 @@ object Z2DensityIterator {
                 filter: Option[Filter],
                 hints: Hints,
                 priority: Int = KryoLazyDensityIterator.DEFAULT_PRIORITY): IteratorSetting = {
-    val is = KryoLazyDensityIterator.configure(sft, Z2Table, filter, hints, priority)
+    val is = KryoLazyDensityIterator.configure(sft, Z2Index, filter, hints, priority)
     is.setIteratorClass(classOf[Z2DensityIterator].getName)
     is.addOption(TableSharingKey, sft.isTableSharing.toString)
     is

@@ -23,6 +23,8 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloDataStoreParams}
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
+import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.accumulo.util.Z3UuidGenerator
 import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.security.SecurityUtils
@@ -213,8 +215,11 @@ object AccumuloGeoMesaIndex {
 
   def getTableNames[T](name: String, view: SimpleFeatureView[T]): JList[String] = {
     val sft = buildSimpleFeatureType(name)(view)
-    val tables = GeoMesaTable.getTables(sft)
-    (tables.map(_.formatTableName(name, sft)) :+ name :+ s"${name}_stats").asJava
+    val tables = AccumuloFeatureIndex.indices(sft).map {
+      case Z3Index => GeoMesaTable.formatSoloTableName(name, Z3Index.name, sft.getTypeName)
+      case index   => GeoMesaTable.formatTableName(name, index.name, sft)
+    }
+    (tables :+ name :+ s"${name}_stats").asJava
   }
 
   final val VISIBILITY = "visibility"

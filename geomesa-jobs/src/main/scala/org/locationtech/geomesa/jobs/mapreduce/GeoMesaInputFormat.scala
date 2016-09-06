@@ -26,6 +26,8 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
+import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AccumuloWritableIndex}
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.SimpleFeatureDeserializers
 import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
@@ -35,8 +37,6 @@ import org.opengis.filter.Filter
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 
 object GeoMesaInputFormat extends LazyLogging {
 
@@ -148,7 +148,7 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLoggi
   var sft: SimpleFeatureType = null
   var encoding: SerializationType = null
   var desiredSplitCount: Int = -1
-  var table: GeoMesaTable = null
+  var table: AccumuloWritableIndex = null
 
   private def init(conf: Configuration) = if (sft == null) {
     val params = GeoMesaConfigurator.getDataStoreInParams(conf)
@@ -157,7 +157,7 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLoggi
     encoding = ds.getFeatureEncoding(sft)
     desiredSplitCount = GeoMesaConfigurator.getDesiredSplits(conf)
     val tableName = GeoMesaConfigurator.getTable(conf)
-    table = GeoMesaTable.getTables(sft).find(t => tableName.endsWith(t.suffix)).getOrElse {
+    table = AccumuloFeatureIndex.indices(sft).find(t => tableName.endsWith(t.name)).getOrElse {
       throw new RuntimeException(s"Couldn't find input table $tableName")
     }
     ds.dispose()
@@ -219,7 +219,7 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLoggi
  * @param readers
  */
 class GeoMesaRecordReader(sft: SimpleFeatureType,
-                          table: GeoMesaTable,
+                          table: AccumuloWritableIndex,
                           readers: Array[RecordReader[Key, Value]],
                           hasId: Boolean,
                           decoder: org.locationtech.geomesa.features.SimpleFeatureSerializer)

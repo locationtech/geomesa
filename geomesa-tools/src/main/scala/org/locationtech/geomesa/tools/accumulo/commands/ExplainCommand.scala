@@ -12,7 +12,7 @@ import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo.index.ExplainPrintln
+import org.locationtech.geomesa.index.utils.ExplainPrintln
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.ExplainCommand.ExplainParameters
 import org.locationtech.geomesa.tools.common.{CQLFilterParam, FeatureTypeNameParam}

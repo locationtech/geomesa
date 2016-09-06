@@ -18,8 +18,8 @@ import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIt
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
-import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
-import org.locationtech.geomesa.accumulo.index.QueryPlanners._
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
+import org.locationtech.geomesa.accumulo.index.QueryPlan.FeatureFunction
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyDensityIterator.DensityResult
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
@@ -156,7 +156,7 @@ object KryoLazyDensityIterator extends LazyLogging {
    * Creates an iterator config for the kryo density iterator
    */
   def configure(sft: SimpleFeatureType,
-                table: GeoMesaTable,
+                index: AccumuloFeatureIndex,
                 filter: Option[Filter],
                 hints: Hints,
                 priority: Int = DEFAULT_PRIORITY): IteratorSetting = {
@@ -165,19 +165,19 @@ object KryoLazyDensityIterator extends LazyLogging {
     val (width, height) = hints.getDensityBounds.get
     val weight = hints.getDensityWeight
     val is = new IteratorSetting(priority, "density-iter", classOf[KryoLazyDensityIterator])
-    configure(is, sft, table, filter, envelope, width, height, weight)
+    configure(is, sft, index, filter, envelope, width, height, weight)
   }
 
   protected[iterators] def configure(is: IteratorSetting,
                                      sft: SimpleFeatureType,
-                                     table: GeoMesaTable,
+                                     index: AccumuloFeatureIndex,
                                      filter: Option[Filter],
                                      envelope: Envelope,
                                      gridWidth: Int,
                                      gridHeight: Int,
                                      weightAttribute: Option[String]): IteratorSetting = {
     // we never need to dedupe densities - either we don't have dupes or we weight based on the duplicates
-    KryoLazyAggregatingIterator.configure(is, sft, table, filter, deduplicate = false, None)
+    KryoLazyAggregatingIterator.configure(is, sft, index, filter, deduplicate = false, None)
     is.addOption(ENVELOPE_OPT, s"${envelope.getMinX},${envelope.getMaxX},${envelope.getMinY},${envelope.getMaxY}")
     is.addOption(GRID_OPT, s"$gridWidth,$gridHeight")
     weightAttribute.foreach(is.addOption(WEIGHT_OPT, _))

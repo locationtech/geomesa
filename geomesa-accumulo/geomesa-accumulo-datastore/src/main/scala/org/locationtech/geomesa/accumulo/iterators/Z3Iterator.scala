@@ -13,7 +13,7 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ByteSequence, Key, Value, Range => AccRange}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo.data.tables.Z3Table
+import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.sfcurve.zorder.Z3
 
@@ -76,7 +76,7 @@ class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
     weeksAndTimes.foreach { case (w, times) => tvals(w - minWeek) = times }
 
     hasSplits = options.get(SplitsKey).toBoolean
-    val count = if (isPoints) 8 else Z3Table.GEOM_Z_NUM_BYTES
+    val count = if (isPoints) 8 else Z3Index.GEOM_Z_NUM_BYTES
     rowToWeekZ = rowToWeekZ(count, hasSplits)
   }
 
@@ -232,5 +232,5 @@ object Z3Iterator {
   }
 
   private def decodeNonPoints(sfc: Z3SFC, x: Double, y: Double, t: Long): (Int, Int, Int) =
-    Z3(sfc.index(x, y, t).z & Z3Table.GEOM_Z_MASK).decode
+    Z3(sfc.index(x, y, t).z & Z3Index.GEOM_Z_MASK).decode
 }

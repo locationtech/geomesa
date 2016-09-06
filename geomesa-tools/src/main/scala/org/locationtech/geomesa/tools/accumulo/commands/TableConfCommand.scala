@@ -12,7 +12,7 @@ import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.TableNotFoundException
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.data.tables._
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.tools.accumulo.AccumuloRunner.mkSubCommand
 import org.locationtech.geomesa.tools.accumulo.commands.TableConfCommand._
 import org.locationtech.geomesa.tools.accumulo.{DataStoreHelper, GeoMesaConnectionParams}
@@ -96,14 +96,10 @@ object TableConfCommand {
     }
   
   def getTableName(ds: AccumuloDataStore, params: ListParams) =
-    params.tableSuffix match {
-      case SpatioTemporalTable.suffix => params.ds.getTableName(params.featureName, SpatioTemporalTable)
-      case AttributeTable.suffix      => params.ds.getTableName(params.featureName, AttributeTable)
-      case RecordTable.suffix         => params.ds.getTableName(params.featureName, RecordTable)
-      case Z2Table.suffix             => params.ds.getTableName(params.featureName, Z2Table)
-      case Z3Table.suffix             => params.ds.getTableName(params.featureName, Z3Table)
-      case _                          => throw new Exception(s"Invalid table suffix: ${params.tableSuffix}")
-    }
+    AccumuloFeatureIndex.indices(ds.getSchema(params.featureName))
+        .find(_.name == params.tableSuffix)
+        .map(ds.getTableName(params.featureName, _))
+        .getOrElse(throw new Exception(s"Invalid table suffix: ${params.tableSuffix}"))
   
   @Parameters(commandDescription = "Perform table configuration operations")
   class TableConfParams {}
