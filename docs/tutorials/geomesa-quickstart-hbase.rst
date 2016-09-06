@@ -257,4 +257,4 @@ display will now show only those points matching your filter criterion.
 
 This is a CQL filter, which can be constructed in various ways to query
 our data. You can find more information about CQL from `GeoServer's CQL
-tutorial <http://docs.geoserver.org/latest/en/user/tutorials/cql/cql_tutorial.html>`__.
+tutorial <http://docs.geoserver.org/stable/en/user/tutorials/cql/cql_tutorial.html>`__.

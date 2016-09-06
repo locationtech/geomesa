@@ -1,0 +1,18 @@
+<assembly>
+    <id>install</id>
+    <formats>
+        <format>tar.gz</format>
+    </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>/</outputDirectory>
+            <excludes>
+                <exclude>org.geotools:*</exclude>
+            </excludes>
+            <useProjectArtifact>false</useProjectArtifact>
+            <scope>compile</scope>
+            <useTransitiveDependencies>true</useTransitiveDependencies>
+        </dependencySet>
+    </dependencySets>
+</assembly>
