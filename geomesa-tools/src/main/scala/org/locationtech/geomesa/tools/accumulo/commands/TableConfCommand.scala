@@ -14,8 +14,8 @@ import org.apache.accumulo.core.client.TableNotFoundException
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.tools.accumulo.AccumuloRunner.mkSubCommand
+import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.TableConfCommand._
-import org.locationtech.geomesa.tools.accumulo.{DataStoreHelper, GeoMesaConnectionParams}
 import org.locationtech.geomesa.tools.common.FeatureTypeNameParam
 
 import scala.collection.JavaConversions._
@@ -114,7 +114,7 @@ object TableConfCommand {
     @Parameter(names = Array("-t", "--table-suffix"), description = "Table suffix to operate on (attr_idx, st_idx, or records)", required = true)
     var tableSuffix: String = null
 
-    lazy val ds = new DataStoreHelper(this).getDataStore()
+    lazy val ds = createDataStore()
     lazy val tableName = getTableName(ds, this)
   }
 

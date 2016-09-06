@@ -14,11 +14,11 @@ import java.util.Locale
 import com.beust.jcommander.{JCommander, Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataStoreFinder
+import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats._
 import org.locationtech.geomesa.tools.accumulo.commands.IngestCommand._
 import org.locationtech.geomesa.tools.accumulo.ingest.{AutoIngest, ConverterIngest}
-import org.locationtech.geomesa.tools.accumulo.{DataStoreHelper, GeoMesaConnectionParams}
 import org.locationtech.geomesa.tools.common.commands._
 import org.locationtech.geomesa.tools.common.{CLArgResolver, OptionalFeatureTypeNameParam, OptionalFeatureTypeSpecParam}
 import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
@@ -38,12 +38,11 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
     val fmt = fmtParam.orElse(fmtFile).getOrElse(Other)
 
     if (fmt == SHP) {
-      val ds = new DataStoreHelper(params).getDataStore()
+      val ds = params.createDataStore()
       params.files.foreach(GeneralShapefileIngest.shpToDataStore(_, ds, params.featureName))
       ds.dispose()
     } else {
-      val dsParams = new DataStoreHelper(params).paramMap
-      val tryDs = DataStoreFinder.getDataStore(dsParams)
+      val tryDs = DataStoreFinder.getDataStore(params.dataStoreParams)
       if (tryDs == null) {
         throw new ParameterException("Could not load a data store with the provided parameters")
       }
@@ -57,11 +56,11 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
         }
         // auto-detect the import schema
         logger.info("No schema or converter defined - will attempt to detect schema from input files")
-        new AutoIngest(dsParams, params.featureName, params.files, params.threads, fmt).run()
+        new AutoIngest(params.dataStoreParams, params.featureName, params.files, params.threads, fmt).run()
       } else {
         val sft = CLArgResolver.getSft(params.spec, params.featureName)
         val converterConfig = CLArgResolver.getConfig(params.config)
-        new ConverterIngest(dsParams, params.files, params.threads, sft, converterConfig).run()
+        new ConverterIngest(params.dataStoreParams, params.files, params.threads, sft, converterConfig).run()
       }
     }
   }

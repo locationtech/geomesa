@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.tools.accumulo.commands
 
 import com.beust.jcommander.JCommander
-import org.locationtech.geomesa.tools.accumulo.{AccumuloProperties, DataStoreHelper, GeoMesaConnectionParams}
+import org.locationtech.geomesa.tools.accumulo.{AccumuloProperties, GeoMesaConnectionParams}
 import org.locationtech.geomesa.tools.common.commands.Command
 
 /**
@@ -17,6 +17,6 @@ import org.locationtech.geomesa.tools.common.commands.Command
  */
 abstract class CommandWithCatalog(parent: JCommander) extends Command(parent) with AccumuloProperties {
   override val params: GeoMesaConnectionParams
-  lazy val ds = new DataStoreHelper(params).getDataStore()
+  lazy val ds = params.createDataStore()
   lazy val catalog = params.catalog
 }
