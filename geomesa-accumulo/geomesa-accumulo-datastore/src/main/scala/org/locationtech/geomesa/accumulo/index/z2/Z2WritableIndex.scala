@@ -19,89 +19,18 @@ import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToMutations
 import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 
+import scala.util.Try
+
 trait Z2WritableIndex extends AccumuloWritableIndex {
 
   import AccumuloWritableIndex.{BinColumnFamily, FullColumnFamily}
   import Z2Index._
-
-  override def writer(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
-    val sharing = sharingPrefix(sft)
-    val getRowKeys: (WritableFeature) => Seq[Array[Byte]] =
-      if (sft.isPoints) getPointRowKey(sharing) else getGeomRowKeys(sharing)
-
-    if (sft.getSchemaVersion < 9) {
-      (wf: WritableFeature) => {
-        val rows = getRowKeys(wf)
-        // store the duplication factor in the column qualifier for later use
-        val cq = if (rows.length > 1) new Text(Integer.toHexString(rows.length)) else EMPTY_TEXT
-        rows.map { row =>
-          val mutation = new Mutation(row)
-          wf.fullValues.foreach(value => mutation.put(FullColumnFamily, cq, value.vis, value.value))
-          wf.binValues.foreach(value => mutation.put(BinColumnFamily, cq, value.vis, value.value))
-          mutation
-        }
-      }
-    } else {
-      (wf: WritableFeature) => {
-        val rows = getRowKeys(wf)
-        // store the duplication factor in the column qualifier for later use
-        val duplication = Integer.toHexString(rows.length)
-        rows.map { row =>
-          val mutation = new Mutation(row)
-          wf.fullValues.foreach { value =>
-            val cq = new Text(s"$duplication,${value.cq.toString}")
-            mutation.put(value.cf, cq, value.vis, value.value)
-          }
-          wf.binValues.foreach { value =>
-            val cq = new Text(s"$duplication,${value.cq.toString}")
-            mutation.put(value.cf, cq, value.vis, value.value)
-          }
-          mutation
-        }
-      }
-    }
-  }
-
-  override def remover(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
-    val sharing = sharingPrefix(sft)
-    val getRowKeys: (WritableFeature) => Seq[Array[Byte]] =
-      if (sft.isPoints) getPointRowKey(sharing) else getGeomRowKeys(sharing)
-
-    if (sft.getSchemaVersion < 9) {
-      (wf: WritableFeature) => {
-        val rows = getRowKeys(wf)
-        val cq = if (rows.length > 1) new Text(Integer.toHexString(rows.length)) else EMPTY_TEXT
-        rows.map { row =>
-          val mutation = new Mutation(row)
-          wf.fullValues.foreach(value => mutation.putDelete(FullColumnFamily, cq, value.vis))
-          wf.binValues.foreach(value => mutation.putDelete(BinColumnFamily, cq, value.vis))
-          mutation
-        }
-      }
-    } else {
-      (wf: WritableFeature) => {
-        val rows = getRowKeys(wf)
-        val duplication = Integer.toHexString(rows.length)
-        rows.map { row =>
-          val mutation = new Mutation(row)
-          wf.fullValues.foreach { value =>
-            val cq = new Text(s"$duplication,${value.cq.toString}")
-            mutation.putDelete(value.cf, cq, value.vis)
-          }
-          wf.binValues.foreach { value =>
-            val cq = new Text(s"$duplication,${value.cq.toString}")
-            mutation.putDelete(value.cf, cq, value.vis)
-          }
-          mutation
-        }
-      }
-    }
-  }
 
   override def getIdFromRow(sft: SimpleFeatureType): (Text) => String = {
     val offset = getIdRowOffset(sft)
@@ -109,7 +38,7 @@ trait Z2WritableIndex extends AccumuloWritableIndex {
   }
 
   // split(1 byte), z value (8 bytes), id (n bytes)
-  private def getPointRowKey(tableSharing: Array[Byte])(wf: WritableFeature): Seq[Array[Byte]] = {
+  protected def getPointRowKey(tableSharing: Array[Byte])(wf: WritableFeature): Seq[Array[Byte]] = {
     import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
     val split = SPLIT_ARRAYS(wf.idHash % NUM_SPLITS)
     val id = wf.feature.getID.getBytes(StandardCharsets.UTF_8)
@@ -119,7 +48,7 @@ trait Z2WritableIndex extends AccumuloWritableIndex {
   }
 
   // split(1 byte), z value (3 bytes), id (n bytes)
-  private def getGeomRowKeys(tableSharing: Array[Byte])(wf: WritableFeature): Seq[Array[Byte]] = {
+  protected def getGeomRowKeys(tableSharing: Array[Byte])(wf: WritableFeature): Seq[Array[Byte]] = {
     val split = SPLIT_ARRAYS(wf.idHash % NUM_SPLITS)
     val geom = wf.feature.getDefaultGeometry.asInstanceOf[Geometry]
     val zs = zBox(geom)
@@ -159,7 +88,7 @@ trait Z2WritableIndex extends AccumuloWritableIndex {
     }.toSet
   }
 
-  private def sharingPrefix(sft: SimpleFeatureType): Array[Byte] = {
+  protected def sharingPrefix(sft: SimpleFeatureType): Array[Byte] = {
     val sharing = if (sft.isTableSharing) {
       sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)
     } else {
@@ -179,7 +108,11 @@ trait Z2WritableIndex extends AccumuloWritableIndex {
   override def configure(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
     import scala.collection.JavaConversions._
 
-    val table = ops.getTableName(sft.getTypeName, this)
+    val table = Try(ops.getTableName(sft.getTypeName, this)).getOrElse {
+      val table = GeoMesaTable.formatTableName(ops.catalogTable, tableSuffix, sft)
+      ops.metadata.insert(sft.getTypeName, tableNameKey, table)
+      table
+    }
     AccumuloVersion.ensureTableExists(ops.connector, table)
     ops.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
 

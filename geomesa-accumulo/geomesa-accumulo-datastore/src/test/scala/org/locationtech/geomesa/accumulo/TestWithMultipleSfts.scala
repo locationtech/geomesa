@@ -20,6 +20,7 @@ import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.identity.FeatureId
@@ -54,7 +55,7 @@ trait TestWithMultipleSfts extends Specification {
   override def map(fragments: => Fragments) = fragments ^ Step {
     val to = connector.tableOperations()
     val tables = Seq(sftBaseName) ++ sfts.flatMap { sft =>
-      Try(AccumuloFeatureIndex.indices(sft).map(ds.getTableName(sft.getTypeName, _))).getOrElse(Seq.empty)
+      Try(AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(ds.getTableName(sft.getTypeName, _))).getOrElse(Seq.empty)
     }
     tables.toSet.filter(to.exists).foreach(to.delete)
   }

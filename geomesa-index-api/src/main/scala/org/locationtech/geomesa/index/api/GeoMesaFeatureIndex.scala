@@ -24,6 +24,13 @@ trait GeoMesaFeatureIndex[Ops <: HasGeoMesaStats, FeatureWrapper, Result, Plan] 
   def name: String
 
   /**
+    * Current version of the index
+    *
+    * @return
+    */
+  def version: Int
+
+  /**
     * Is the index compatible with the given feature type
     *
     * @param sft simple feature type

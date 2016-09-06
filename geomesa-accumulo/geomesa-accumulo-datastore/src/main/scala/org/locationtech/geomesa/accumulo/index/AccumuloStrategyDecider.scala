@@ -12,9 +12,11 @@ import org.apache.accumulo.core.data.Mutation
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, WritableFeature}
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
 import org.locationtech.geomesa.index.api.StrategyDecider
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 
 object AccumuloStrategyDecider extends StrategyDecider[AccumuloDataStore, WritableFeature, Seq[Mutation], QueryPlan] {
 
-  override def indices(sft: SimpleFeatureType): Seq[AccumuloFeatureIndex] = AccumuloFeatureIndex.indices(sft)
+  override def indices(sft: SimpleFeatureType): Seq[AccumuloFeatureIndex] =
+    AccumuloFeatureIndex.indices(sft, IndexMode.Read)
 }

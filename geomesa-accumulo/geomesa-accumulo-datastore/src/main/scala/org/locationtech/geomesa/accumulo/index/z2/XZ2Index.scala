@@ -18,8 +18,10 @@ object XZ2Index extends AccumuloFeatureIndex with XZ2WritableIndex with XZ2Query
 
   override val name: String = "xz2"
 
+  override val version: Int = 1
+
   override def supports(sft: SimpleFeatureType): Boolean = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    sft.getSchemaVersion > 9 && sft.nonPoints && sft.isTableEnabled(name)
+    sft.nonPoints
   }
 }

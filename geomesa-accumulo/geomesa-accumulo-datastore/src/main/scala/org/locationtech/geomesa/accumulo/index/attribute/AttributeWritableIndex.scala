@@ -23,6 +23,7 @@ import org.joda.time.format.ISODateTimeFormat
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToMutations
 import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -101,7 +102,11 @@ trait AttributeWritableIndex extends AccumuloWritableIndex with LazyLogging {
   }
 
   override def configure(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
-    val table = ops.getTableName(sft.getTypeName, AttributeIndex)
+    val table = Try(ops.getTableName(sft.getTypeName, this)).getOrElse {
+      val table = GeoMesaTable.formatTableName(ops.catalogTable, tableSuffix, sft)
+      ops.metadata.insert(sft.getTypeName, tableNameKey, table)
+      table
+    }
     AccumuloVersion.ensureTableExists(ops.connector, table)
     ops.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
     val indexedAttrs = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft)

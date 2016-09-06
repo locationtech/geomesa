@@ -15,11 +15,10 @@ import com.google.common.collect.{ImmutableSet, ImmutableSortedSet}
 import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.vividsolutions.jts.geom._
 import org.apache.accumulo.core.conf.Property
-import org.apache.accumulo.core.data.{Mutation, Range => aRange}
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToMutations
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, EMPTY_TEXT, WritableFeature}
+import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, WritableFeature}
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
 import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
@@ -28,105 +27,12 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
+import scala.util.Try
 
 trait Z3WritableIndex extends AccumuloWritableIndex {
 
   import AccumuloWritableIndex.{BinColumnFamily, FullColumnFamily}
   import Z3Index.{GEOM_Z_MASK, GEOM_Z_NUM_BYTES, GEOM_Z_STEP, hasSplits}
-
-  override def writer(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
-    val dtgIndex = sft.getDtgIndex.getOrElse(throw new RuntimeException("Z3 writer requires a valid date"))
-    val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
-    val sfc = Z3SFC(sft.getZ3Interval)
-    val getRowKeys: (WritableFeature, Int) => Seq[Array[Byte]] = {
-      if (sft.isPoints) {
-        if (hasSplits(sft)) {
-          getPointRowKey(timeToIndex, sfc)
-        } else {
-          (wf, i) => getPointRowKey(timeToIndex, sfc)(wf, i).map(_.drop(1))
-        }
-      } else {
-        getGeomRowKeys(timeToIndex, sfc)
-      }
-    }
-    if (sft.getSchemaVersion < 9) {
-      (wf: WritableFeature) => {
-        val rows = getRowKeys(wf, dtgIndex)
-        // store the duplication factor in the column qualifier for later use
-        val cq = if (rows.length > 1) new Text(Integer.toHexString(rows.length)) else EMPTY_TEXT
-        rows.map { row =>
-          val mutation = new Mutation(row)
-          wf.fullValues.foreach(value => mutation.put(FullColumnFamily, cq, value.vis, value.value))
-          wf.binValues.foreach(value => mutation.put(BinColumnFamily, cq, value.vis, value.value))
-          mutation
-        }
-      }
-    } else {
-      (wf: WritableFeature) => {
-        val rows = getRowKeys(wf, dtgIndex)
-        // store the duplication factor in the column qualifier for later use
-        val duplication = Integer.toHexString(rows.length)
-        rows.map { row =>
-          val mutation = new Mutation(row)
-          wf.fullValues.foreach { value =>
-            val cq = new Text(s"$duplication,${value.cq.toString}")
-            mutation.put(value.cf, cq, value.vis, value.value)
-          }
-          wf.binValues.foreach { value =>
-            val cq = new Text(s"$duplication,${value.cq.toString}")
-            mutation.put(value.cf, cq, value.vis, value.value)
-          }
-          mutation
-        }
-      }
-    }
-  }
-
-  override def remover(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
-    val dtgIndex = sft.getDtgIndex.getOrElse(throw new RuntimeException("Z3 writer requires a valid date"))
-    val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
-    val sfc = Z3SFC(sft.getZ3Interval)
-    val getRowKeys: (WritableFeature, Int) => Seq[Array[Byte]] = {
-      if (sft.isPoints) {
-        if (hasSplits(sft)) {
-          getPointRowKey(timeToIndex, sfc)
-        } else {
-          (ftw, i) => getPointRowKey(timeToIndex, sfc)(ftw, i).map(_.drop(1))
-        }
-      } else {
-        getGeomRowKeys(timeToIndex, sfc)
-      }
-    }
-    if (sft.getSchemaVersion < 9) {
-      (wf: WritableFeature) => {
-        val rows = getRowKeys(wf, dtgIndex)
-        val cq = if (rows.length > 1) new Text(Integer.toHexString(rows.length)) else EMPTY_TEXT
-        rows.map { row =>
-          val mutation = new Mutation(row)
-          wf.fullValues.foreach(value => mutation.putDelete(FullColumnFamily, cq, value.vis))
-          wf.binValues.foreach(value => mutation.putDelete(BinColumnFamily, cq, value.vis))
-          mutation
-        }
-      }
-    } else {
-      (wf: WritableFeature) => {
-        val rows = getRowKeys(wf, dtgIndex)
-        val duplication = Integer.toHexString(rows.length)
-        rows.map { row =>
-          val mutation = new Mutation(row)
-          wf.fullValues.foreach { value =>
-            val cq = new Text(s"$duplication,${value.cq.toString}")
-            mutation.putDelete(value.cf, cq, value.vis)
-          }
-          wf.binValues.foreach { value =>
-            val cq = new Text(s"$duplication,${value.cq.toString}")
-            mutation.putDelete(value.cf, cq, value.vis)
-          }
-          mutation
-        }
-      }
-    }
-  }
 
   override def removeAll(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
     val table = ops.getTableName(sft.getTypeName, this)
@@ -141,8 +47,8 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
   }
 
   // split(1 byte), week(2 bytes), z value (8 bytes), id (n bytes)
-  private def getPointRowKey(timeToIndex: TimeToBinnedTime, sfc: Z3SFC)
-                            (wf: WritableFeature, dtgIndex: Int): Seq[Array[Byte]] = {
+  protected def getPointRowKey(timeToIndex: TimeToBinnedTime, sfc: Z3SFC)
+                              (wf: WritableFeature, dtgIndex: Int): Seq[Array[Byte]] = {
     val split = AccumuloWritableIndex.DefaultSplitArrays(wf.idHash % AccumuloWritableIndex.DefaultNumSplits)
     val (timeBin, z) = {
       val dtg = wf.feature.getAttribute(dtgIndex).asInstanceOf[Date]
@@ -156,8 +62,8 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
   }
 
   // split(1 byte), week (2 bytes), z value (3 bytes), id (n bytes)
-  private def getGeomRowKeys(timeToIndex: TimeToBinnedTime, sfc: Z3SFC)
-                            (wf: WritableFeature, dtgIndex: Int): Seq[Array[Byte]] = {
+  protected def getGeomRowKeys(timeToIndex: TimeToBinnedTime, sfc: Z3SFC)
+                              (wf: WritableFeature, dtgIndex: Int): Seq[Array[Byte]] = {
     val split = AccumuloWritableIndex.DefaultSplitArrays(wf.idHash % AccumuloWritableIndex.DefaultNumSplits)
     val (timeBin, zs) = {
       val dtg = wf.feature.getAttribute(dtgIndex).asInstanceOf[Date]
@@ -210,7 +116,12 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
   }
 
   override def configure(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
-    val table = ops.getTableName(sft.getTypeName, this)
+    val table = Try(ops.getTableName(sft.getTypeName, this)).getOrElse {
+      // z3 always has it's own table
+      val table = GeoMesaTable.formatSoloTableName(ops.catalogTable, tableSuffix, sft.getTypeName)
+      ops.metadata.insert(sft.getTypeName, tableNameKey, table)
+      table
+    }
     AccumuloVersion.ensureTableExists(ops.connector, table)
     ops.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
 

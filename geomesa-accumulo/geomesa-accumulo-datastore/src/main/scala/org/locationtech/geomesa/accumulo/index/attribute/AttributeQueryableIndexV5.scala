@@ -24,7 +24,6 @@ import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.QueryPlan.JoinFunction
 import org.locationtech.geomesa.accumulo.index.QueryPlanner._
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex.AttributeIndexV5
 import org.locationtech.geomesa.accumulo.index.geohash.Strategy._
 import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.accumulo.iterators._
@@ -259,9 +258,9 @@ trait AttributeQueryableIndexV5 extends AccumuloFeatureIndex with LazyLogging {
     val rowIdPrefix = sft.getTableSharingPrefix
     // grab the first encoded row - right now there will only ever be a single item in the seq
     // eventually we may support searching a whole collection at once
-    val rowWithValue = AttributeIndexV5.getAttributeIndexRows(rowIdPrefix, descriptor, typedValue).headOption
+    val rowWithValue = AttributeIndexV1.getAttributeIndexRows(rowIdPrefix, descriptor, typedValue).headOption
     // if value is null there won't be any rows returned, instead just use the row prefix
-    rowWithValue.getOrElse(AttributeIndexV5.getAttributeIndexRowPrefix(rowIdPrefix, descriptor))
+    rowWithValue.getOrElse(AttributeIndexV1.getAttributeIndexRowPrefix(rowIdPrefix, descriptor))
   }
 
   /**
@@ -401,12 +400,12 @@ trait AttributeQueryableIndexV5 extends AccumuloFeatureIndex with LazyLogging {
 
   private def lowerBound(sft: SimpleFeatureType, prop: String): Text = {
     val rowIdPrefix = sft.getTableSharingPrefix
-    new Text(AttributeIndexV5.getAttributeIndexRowPrefix(rowIdPrefix, sft.getDescriptor(prop)))
+    new Text(AttributeIndexV1.getAttributeIndexRowPrefix(rowIdPrefix, sft.getDescriptor(prop)))
   }
 
   private def upperBound(sft: SimpleFeatureType, prop: String): Text = {
     val rowIdPrefix = sft.getTableSharingPrefix
-    val end = new Text(AttributeIndexV5.getAttributeIndexRowPrefix(rowIdPrefix, sft.getDescriptor(prop)))
+    val end = new Text(AttributeIndexV1.getAttributeIndexRowPrefix(rowIdPrefix, sft.getDescriptor(prop)))
     AccRange.followingPrefix(end)
   }
 

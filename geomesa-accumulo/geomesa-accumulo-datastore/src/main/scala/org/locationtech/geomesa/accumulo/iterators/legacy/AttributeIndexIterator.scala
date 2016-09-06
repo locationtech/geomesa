@@ -12,7 +12,7 @@ import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.accumulo._
-import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex.AttributeIndexV5
+import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndexV1
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.stats.IndexCoverage
@@ -152,7 +152,7 @@ class AttributeIndexIterator
    */
   def setAttributeFromRow(key: Key, sf: SimpleFeature) = {
     val row = key.getRow.toString
-    val decoded = AttributeIndexV5.decodeAttributeIndexRow(attributeRowPrefix, attributeType, row)
+    val decoded = AttributeIndexV1.decodeAttributeIndexRow(attributeRowPrefix, attributeType, row)
     decoded match {
       case Success(att) => sf.setAttribute(att.attributeName, att.attributeValue)
       case Failure(e)   => logger.error(s"Error decoding attribute row: row: $row, error: ${e.toString}")
