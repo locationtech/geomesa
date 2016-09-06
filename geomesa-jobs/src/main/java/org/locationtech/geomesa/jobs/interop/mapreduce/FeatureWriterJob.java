@@ -52,7 +52,7 @@ public class FeatureWriterJob {
             counter.increment(1);
 
             Object[] values = new Object[] { value.getAttribute("dtg"), value.getAttribute("geom") };
-            SimpleFeature feature = new ScalaSimpleFeature(value.getID(), sft, values);
+            SimpleFeature feature = new ScalaSimpleFeature(value.getID(), sft, values, null);
             context.write(text, feature);
         }
     }
