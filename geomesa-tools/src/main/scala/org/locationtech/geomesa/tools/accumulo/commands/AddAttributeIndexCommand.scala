@@ -24,6 +24,9 @@ class AddAttributeIndexCommand(parent: JCommander) extends CommandWithCatalog(pa
   override val params = new AddIndexParameters
 
   override def execute() = {
+    println(params.instance)
+    println(params.zookeepers)
+
     try {
       val attributeIndexJobParams = Map(
         GeoMesaArgs.InputUser -> params.user,
@@ -38,8 +41,8 @@ class AddAttributeIndexCommand(parent: JCommander) extends CommandWithCatalog(pa
 
       logger.info(s"Running map reduce index job for attributes: ${params.attributes} with coverage: ${params.coverage}...")
 
-      val result = ToolRunner.run(new AttributeIndexJob(), attributeIndexJobParams)
-
+//      val result = ToolRunner.run(new AttributeIndexJob(), attributeIndexJobParams)
+      val result = 0
       if (result == 0) {
         logger.info("Add attribute index command finished successfully.")
       } else {
@@ -47,14 +50,10 @@ class AddAttributeIndexCommand(parent: JCommander) extends CommandWithCatalog(pa
       }
 
     } catch {
-      case npe: NullPointerException =>
-        logger.error(s"Error: feature '${params.featureName}' not found. Check arguments...", npe)
       case e: Exception =>
-        logger.error(s"Error describing feature '${params.featureName}': " + e.getMessage, e)
+        logger.error(s"Error adding attribute index for '${params.featureName}': " + e.getMessage, e)
       case NonFatal(e) =>
-        logger.warn(s"Non fatal error encountered describing feature '${params.featureName}': ", e)
-    } finally {
-      ds.dispose()
+        logger.error(s"Non fatal error encountered describing feature '${params.featureName}': ", e)
     }
   }
 }

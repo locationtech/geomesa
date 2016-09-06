@@ -1111,9 +1111,9 @@ input_file out_file`.
 Add an attribute an index for a specified list of attributes. 
 
 #### Usage (required options denoted with star):
-    $ geomesa help list
-    List GeoMesa features for a given catalog
-    Usage: list [options]
+    $ geomesa help add-attribute-index
+    Run a Hadoop map reduce job to add an index for attributes
+    Usage: add-attribute-index [options]
       Options:
       * -a, --attributes
            Attributes to evaluate (comma-separated)
@@ -1141,7 +1141,8 @@ Add an attribute an index for a specified list of attributes.
 
 
 #### Example command:
-    geomesa list -u username -p password -c test_catalog
+    $ geomesa add-attribute-index -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog \
+        -f test_feature -a attribute1,attribute2 --coverage full
 
 ### list
 To list the features on a specified catalog table, use the `list` command.  

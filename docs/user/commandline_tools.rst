@@ -463,7 +463,7 @@ add-attribute-index
 
 Add an attribute an index for a specified list of attributes.::
 
-    $ geomesa add-attribute-index -u username -p spawarinstall -i instance -z zoo1,zoo2,zoo3 -c test_catalog \
+    $ geomesa add-attribute-index -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog \
         -f test_feature -a attribute1,attribute2 --coverage full
 
 env

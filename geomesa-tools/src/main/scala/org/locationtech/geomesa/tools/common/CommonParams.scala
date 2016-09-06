@@ -11,6 +11,7 @@ package org.locationtech.geomesa.tools.common
 import java.util.regex.Pattern
 
 import com.beust.jcommander.Parameter
+import org.locationtech.geomesa.tools.accumulo.AccumuloProperties
 
 /**
   * Shared parameters as individual traits
