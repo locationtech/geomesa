@@ -241,7 +241,7 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_HOME`` an
     If you are running the tools on a system without
     Accumulo installed and configured, the ``install-hadoop-accumulo.sh`` script
     in the ``bin`` directory may be used to download the needed Hadoop/Accumulo JARs into
-    the ``lib`` directory. You should edit this script to match the versions used by your
+    the ``lib/common`` directory. You should edit this script to match the versions used by your
     installation.
 
 Due to licensing restrictions, dependencies for shape file support and raster
@@ -298,8 +298,8 @@ Note that if no slf4j implementation is installed you will see this error:
     SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
 
 In this case you may download SLF4J from http://www.slf4j.org/download.html. Extract 
-``slf4j-log4j12-1.7.7.jar`` and place it in the ``lib`` directory of the binary distribution. 
-If this conflicts with another SLF4J implementation, you may need to remove it from the ``lib`` directory.
+``slf4j-log4j12-1.7.7.jar`` and place it in the ``lib/common`` directory of the binary distribution.
+If this conflicts with another SLF4J implementation, you may need to remove it from the ``lib/common`` directory.
 
 .. _install_geoserver_plugins:
 
