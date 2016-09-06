@@ -24,8 +24,6 @@ class AddAttributeIndexCommand(parent: JCommander) extends CommandWithCatalog(pa
   override val params = new AddIndexParameters
 
   override def execute() = {
-    println(params.instance)
-    println(params.zookeepers)
 
     try {
       val attributeIndexJobParams = Map(
@@ -41,8 +39,8 @@ class AddAttributeIndexCommand(parent: JCommander) extends CommandWithCatalog(pa
 
       logger.info(s"Running map reduce index job for attributes: ${params.attributes} with coverage: ${params.coverage}...")
 
-//      val result = ToolRunner.run(new AttributeIndexJob(), attributeIndexJobParams)
-      val result = 0
+      val result = ToolRunner.run(new AttributeIndexJob(), attributeIndexJobParams)
+
       if (result == 0) {
         logger.info("Add attribute index command finished successfully.")
       } else {
@@ -51,9 +49,7 @@ class AddAttributeIndexCommand(parent: JCommander) extends CommandWithCatalog(pa
 
     } catch {
       case e: Exception =>
-        logger.error(s"Error adding attribute index for '${params.featureName}': " + e.getMessage, e)
-      case NonFatal(e) =>
-        logger.error(s"Non fatal error encountered describing feature '${params.featureName}': ", e)
+        logger.error(s"Exception encountered running attribute index command. Check hadoop's job history logs for more information: " + e.getMessage, e)
     }
   }
 }
