@@ -36,7 +36,7 @@ object GeneralShapefileIngest {
   // The goal of this method is to allow for URL-based look-ups.
   //  This allows for us to ingest files from HDFS and S3.
   def getShapefileDatastore(shapefilePath: String): FileDataStore = {
-    if (shapefilePath.contains(":")) {
+    if (shapefilePath.matches("""\w{3,4}:\/\/.*$""")) {
       DataStoreFinder.getDataStore(Map("url" -> shapefilePath)).asInstanceOf[FileDataStore]
     } else {
       FileDataStoreFinder.getDataStore(new File(shapefilePath))

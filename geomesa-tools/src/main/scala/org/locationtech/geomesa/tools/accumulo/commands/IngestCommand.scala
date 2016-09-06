@@ -37,7 +37,7 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
   def isDistributedUrl(url: String) = remotePrefixes.exists(url.startsWith)
 
   override def execute(): Unit = {
-    ensureSameFs(Seq("hdfs", "s3n", "s3a"))
+    ensureSameFs(remotePrefixes)
 
     val fmtParam = Option(params.format).flatMap(f => Try(Formats.withName(f.toLowerCase(Locale.US))).toOption)
     lazy val fmtFile = params.files.flatMap(f => Try(Formats.withName(getFileExtension(f))).toOption).headOption
@@ -54,7 +54,7 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
       }
 
       if (params.threads > 1) {
-        val parfiles =  params.files.par
+        val parfiles = params.files.par
         parfiles.tasksupport = new ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(params.threads))
         parfiles.foreach(GeneralShapefileIngest.shpToDataStore(_, ds, params.featureName))
       } else {

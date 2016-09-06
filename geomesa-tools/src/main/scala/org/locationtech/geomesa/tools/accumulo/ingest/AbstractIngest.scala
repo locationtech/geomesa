@@ -101,7 +101,10 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
     val is = PathUtils.handleCompression(countingStream, file.getPath)
     val (sft, features) = converter.convert(is)
     val closeable = new Closeable {
-      override def close(): Unit = { converter.close(); is.close() }
+      override def close(): Unit = {
+        IOUtils.closeQuietly(converter)
+        IOUtils.closeQuietly(is)
+      }
     }
     (sft, features, countingStream, closeable)
   }
