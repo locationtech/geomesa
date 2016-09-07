@@ -170,7 +170,7 @@ fi
 # Find geomesa-env and load config
 GEOMESA_ENV=${GEOMESA_CONF_DIR}/geomesa-env.sh
 if [[ -f "$GEOMESA_ENV" ]]; then
-    . GEOMESA_ENV
+    . ${GEOMESA_ENV}
     if [[ "${#existingEnvVars[@]}" -ge "1" ]]; then
         echo "The following variables were not loaded from ${GEOMESA_ENV} due to an existing configuration."
         for i in "${existingEnvVars[@]}"; do echo "$i"; done
