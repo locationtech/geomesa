@@ -19,6 +19,8 @@ import org.apache.commons.compress.compressors.xz.XZUtils
 import org.apache.commons.io.{FileUtils, FilenameUtils}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
+import org.geotools.data.DataStoreFinder
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 
 import scala.util.Try
 import scala.xml.XML
@@ -87,25 +89,12 @@ object Utils {
   }
 
 }
-/* get password trait */
-trait ReadPassword {
-  def readPassword(): String = {
-    if (System.console() != null) {
-      System.err.print("Password (mask enabled)> ")
-      System.console().readPassword().mkString
-    } else {
-      System.err.print("Password (mask disabled when redirecting output)> ")
-      val reader = new BufferedReader(new InputStreamReader(System.in))
-      reader.readLine()
-    }
-  }
-}
 
 /**
  * Loads accumulo properties for instance and zookeepers from the accumulo installation found via
  * the system path in ACCUMULO_HOME in the case that command line parameters are not provided
  */
-trait AccumuloProperties extends ReadPassword with LazyLogging {
+trait AccumuloProperties extends LazyLogging {
   lazy val accumuloConf = {
     try {
       val conf = Option(System.getProperty("geomesa.tools.accumulo.site.xml"))
@@ -135,4 +124,32 @@ trait AccumuloProperties extends ReadPassword with LazyLogging {
   def instanceIdStr = HdfsZooInstance.getInstance().getInstanceID
 
   def instanceName = HdfsZooInstance.getInstance().getInstanceName
+}
+
+/**
+  * Handles the optional arguments when they're omitted
+  */
+object OptionalArgumentResolver extends AccumuloProperties {
+  def readPassword(): String = {
+    if (System.console() != null) {
+      System.err.print("Password (mask enabled)> ")
+      System.console().readPassword().mkString
+    } else {
+      System.err.print("Password (mask disabled when redirecting output)> ")
+      val reader = new BufferedReader(new InputStreamReader(System.in))
+      reader.readLine()
+    }
+  }
+
+  def resolveEnvironment(params: AccumuloConnectionParams) = {
+    if (params.instance == null) {
+      params.instance = instanceName
+    }
+    if (params.zookeepers == null) {
+      params.zookeepers = zookeepersProp
+    }
+    if (params.password == null) {
+      params.password = readPassword()
+    }
+  }
 }
