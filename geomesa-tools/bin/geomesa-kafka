@@ -17,7 +17,7 @@
 GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB/common):$(findJars $GEOMESA_LIB/kafka)"
 # Add user defined directories to the classpath
 if [[ -z "$GEOMESA_EXTRA_CLASSPATHS"  ]]; then
-    GEOMESA_CP="${GEOMESA_CP}:$(findJars $GEOMESA_EXTRA_CLASSPATHS true)"
+  GEOMESA_CP="${GEOMESA_CP}:$(findJars $GEOMESA_EXTRA_CLASSPATHS true)"
 fi
 
 # Geomesa tools setup completed, below we parse user arguments
@@ -27,17 +27,17 @@ fi
 # else is running actual commands in the tools
 
 if  [[ $1 = configure ]]; then
-    geomesaConfigure
+  geomesaConfigure
 elif [[ $1 = classpath ]]; then
-    CLASSPATH="$GEOMESA_CP"
-    for element in ${CLASSPATH//:/ } ; do
-        echo ${element}
-    done
+  CLASSPATH="$GEOMESA_CP"
+  for element in ${CLASSPATH//:/ } ; do
+    echo ${element}
+  done
 else
-    if [[ $1 = debug ]]; then
-        GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
-        shift 1
-    fi
-    CLASSPATH="$GEOMESA_CP"
-    java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.kafka.KafkaRunner "$@"
+  if [[ $1 = debug ]]; then
+    GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
+    shift 1
+  fi
+  CLASSPATH="$GEOMESA_CP"
+  java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.kafka.KafkaRunner "$@"
 fi

@@ -12,190 +12,190 @@
 # Set $GEOMESA_CONF_DIR before running to use alternate configurations
 
 function setGeoHome() {
-    SOURCE="${BASH_SOURCE[0]}"
-    # resolve $SOURCE until the file is no longer a symlink
-    while [[ -h "${SOURCE}" ]]; do
-        bin="$( cd -P "$( dirname "${SOURCE}" )" && pwd )"
-        SOURCE="$(readlink "${SOURCE}")"
-        # if $SOURCE was a relative symlink, we need to resolve it relative to the path where
-        # the symlink file was located
-        [[ "${SOURCE}" != /* ]] && SOURCE="${bin}/${SOURCE}"
-    done
-    bin="$( cd -P "$( dirname "${SOURCE}" )" && cd ../ && pwd )"
-    export GEOMESA_HOME="$bin"
-    export PATH=${GEOMESA_HOME}/bin:$PATH
-    setGeoLog
-    echo "Warning: GEOMESA_HOME is not set, using $GEOMESA_HOME" >> ${GEOMESA_LOG}
+  SOURCE="${BASH_SOURCE[0]}"
+  # resolve $SOURCE until the file is no longer a symlink
+  while [[ -h "${SOURCE}" ]]; do
+    bin="$( cd -P "$( dirname "${SOURCE}" )" && pwd )"
+    SOURCE="$(readlink "${SOURCE}")"
+    # if $SOURCE was a relative symlink, we need to resolve it relative to the path where
+    # the symlink file was located
+    [[ "${SOURCE}" != /* ]] && SOURCE="${bin}/${SOURCE}"
+  done
+  bin="$( cd -P "$( dirname "${SOURCE}" )" && cd ../ && pwd )"
+  export GEOMESA_HOME="$bin"
+  export PATH=${GEOMESA_HOME}/bin:$PATH
+  setGeoLog
+  echo "Warning: GEOMESA_HOME is not set, using $GEOMESA_HOME" >> ${GEOMESA_LOG}
 }
 
 function setGeoLog() {
-    if [[ -z "${GEOMESA_LOG_DIR}" ]]; then
-        export GEOMESA_LOG_DIR="${GEOMESA_HOME}/logs"
-        export GEOMESA_OPTS="-Dgeomesa.log.dir=${GEOMESA_LOG_DIR} $GEOMESA_OPTS"
-    fi
-    if [[ ! -d "${GEOMESA_LOG_DIR}" ]]; then
-        mkdir "${GEOMESA_LOG_DIR}"
-    fi
-    GEOMESA_LOG=${GEOMESA_LOG_DIR}/geomesa.err
-    touch GEOMESA_LOG
+  if [[ -z "${GEOMESA_LOG_DIR}" ]]; then
+    export GEOMESA_LOG_DIR="${GEOMESA_HOME}/logs"
+    export GEOMESA_OPTS="-Dgeomesa.log.dir=${GEOMESA_LOG_DIR} $GEOMESA_OPTS"
+  fi
+  if [[ ! -d "${GEOMESA_LOG_DIR}" ]]; then
+    mkdir "${GEOMESA_LOG_DIR}"
+  fi
+  GEOMESA_LOG=${GEOMESA_LOG_DIR}/geomesa.err
+  touch GEOMESA_LOG
 }
 
 function findJars() {
-    # findJars [path] [bool: exclude test and slf2j jars] [bool: do not descend into sub directories]
-    home="$1"
-    CP=""
-    if [[ -n "$home" && -d "$home" ]]; then
-        if [[ ("$3" == "true") ]]; then
-            for jar in $(find ${home} -maxdepth 1 -name "*.jar"); do
-                if [[ ("$2" != "true") || (("$jar" != *"test"*) && ("$jar" != *"slf4j"*)) ]]; then
-                    if [[ "$jar" = "${jar%-sources.jar}" && "$jar" = "${jar%-test.jar}" ]]; then
-                      CP="$CP:$jar"
-                    fi
-                fi
-            done
-        else
-            for jar in $(find ${home} -name "*.jar"); do
-                if [[ ("$2" != "true") || (("$jar" != *"test"*) && ("$jar" != *"slf4j"*)) ]]; then
-                    if [[ "$jar" = "${jar%-sources.jar}" && "$jar" = "${jar%-test.jar}" ]]; then
-                      CP="$CP:$jar"
-                    fi
-                fi
-            done
+  # findJars [path] [bool: exclude test and slf2j jars] [bool: do not descend into sub directories]
+  home="$1"
+  CP=""
+  if [[ -n "$home" && -d "$home" ]]; then
+    if [[ ("$3" == "true") ]]; then
+      for jar in $(find ${home} -maxdepth 1 -name "*.jar"); do
+        if [[ ("$2" != "true") || (("$jar" != *"test"*) && ("$jar" != *"slf4j"*)) ]]; then
+          if [[ "$jar" = "${jar%-sources.jar}" && "$jar" = "${jar%-test.jar}" ]]; then
+            CP="$CP:$jar"
+          fi
         fi
-        if [[ -d "$home/native" ]]; then
-            if [[ -z "$JAVA_LIBRARY_PATH" ]]; then
-                JAVA_LIBRARY_PATH="$home/native"
-            else
-                JAVA_LIBRARY_PATH="$home/native:$JAVA_LIBRARY_PATH"
-            fi
+      done
+    else
+      for jar in $(find ${home} -name "*.jar"); do
+        if [[ ("$2" != "true") || (("$jar" != *"test"*) && ("$jar" != *"slf4j"*)) ]]; then
+          if [[ "$jar" = "${jar%-sources.jar}" && "$jar" = "${jar%-test.jar}" ]]; then
+            CP="$CP:$jar"
+          fi
         fi
+      done
     fi
-    if [[ "${CP:0:1}" = ":" ]]; then
-        CP="${CP:1}"
+    if [[ -d "$home/native" ]]; then
+      if [[ -z "$JAVA_LIBRARY_PATH" ]]; then
+        JAVA_LIBRARY_PATH="$home/native"
+      else
+        JAVA_LIBRARY_PATH="$home/native:$JAVA_LIBRARY_PATH"
+      fi
     fi
-    echo $CP
+  fi
+  if [[ "${CP:0:1}" = ":" ]]; then
+    CP="${CP:1}"
+  fi
+  echo $CP
 }
 
 function geomesaConfigure() {
-    echo >&2 "Using GEOMESA_HOME as set: $GEOMESA_HOME"
+  echo >&2 "Using GEOMESA_HOME as set: $GEOMESA_HOME"
+  read -p "Is this intentional? Y\n " -n 1 -r
+  if [[  $REPLY =~ ^[Nn]$ ]]; then
+    bin="$( cd -P "$( dirname "${SOURCE}" )" && cd ../ && pwd )"
+    export GEOMESA_HOME="$bin"
+    echo >&2 ""
+    echo "Now set to ${GEOMESA_HOME}"
+  fi
+
+  if [[ -z "$GEOMESA_LIB" ]]; then
+    GEOMESA_LIB=${GEOMESA_HOME}/lib
+  elif containsElement "GEOMESA_LIB" "${existingEnvVars[@]}"; then
+    message="Warning: GEOMESA_LIB already set, probably by a prior configuration."
+    message="${message}\n Current value is ${GEOMESA_LIB}."
+    echo >&2 ""
+    echo -e >&2 "$message"
+    echo >&2 ""
     read -p "Is this intentional? Y\n " -n 1 -r
     if [[  $REPLY =~ ^[Nn]$ ]]; then
-        bin="$( cd -P "$( dirname "${SOURCE}" )" && cd ../ && pwd )"
-        export GEOMESA_HOME="$bin"
-        echo >&2 ""
-        echo "Now set to ${GEOMESA_HOME}"
+      GEOMESA_LIB=${GEOMESA_HOME}/lib
+      echo >&2 ""
+      echo "Now set to ${GEOMESA_LIB}"
     fi
-
-    if [[ -z "$GEOMESA_LIB" ]]; then
-        GEOMESA_LIB=${GEOMESA_HOME}/lib
-    elif containsElement "GEOMESA_LIB" "${existingEnvVars[@]}"; then
-        message="Warning: GEOMESA_LIB already set, probably by a prior configuration."
-        message="${message}\n Current value is ${GEOMESA_LIB}."
-        echo >&2 ""
-        echo -e >&2 "$message"
-        echo >&2 ""
-        read -p "Is this intentional? Y\n " -n 1 -r
-        if [[  $REPLY =~ ^[Nn]$ ]]; then
-            GEOMESA_LIB=${GEOMESA_HOME}/lib
-            echo >&2 ""
-            echo "Now set to ${GEOMESA_LIB}"
-        fi
-        echo >&2 ""
-    fi
-
     echo >&2 ""
-    echo "To persist the configuration please edit conf/geomesa-env.sh or update your bashrc file to include: "
-    echo "export GEOMESA_HOME="$GEOMESA_HOME""
-    echo "export PATH=\${GEOMESA_HOME}/bin:\$PATH"
+  fi
+
+  echo >&2 ""
+  echo "To persist the configuration please edit conf/geomesa-env.sh or update your bashrc file to include: "
+  echo "export GEOMESA_HOME="$GEOMESA_HOME""
+  echo "export PATH=\${GEOMESA_HOME}/bin:\$PATH"
 }
 
 function containsElement() {
-    local element
-    for element in "${@:2}"; do [[ "$element" == "$1" ]] && return 0; done
-    return 1
+  local element
+  for element in "${@:2}"; do [[ "$element" == "$1" ]] && return 0; done
+  return 1
 }
 
 # Define GEOMESA_HOME and update the PATH if necessary.
 if [[ -z "$GEOMESA_HOME" ]]; then
-    setGeoHome
+  setGeoHome
 else
-    echo >&2 "Using GEOMESA_HOME = $GEOMESA_HOME"
-    if [[ $1 = configure ]]; then
-        read -p "Do you want to reset this? Y\n " -n 1 -r
-        if [[  $REPLY =~ ^[Yy]$ ]]; then
-            echo >&2 ""
-            setGeoHome
-        fi
-        echo >&2 ""
+  echo >&2 "Using GEOMESA_HOME = $GEOMESA_HOME"
+  if [[ $1 = configure ]]; then
+    read -p "Do you want to reset this? Y\n " -n 1 -r
+    if [[  $REPLY =~ ^[Yy]$ ]]; then
+      echo >&2 ""
+      setGeoHome
     fi
+    echo >&2 ""
+  fi
 fi
 
 # Define GEOMESA_CONF_DIR so we can find geomesa-env.sh
 if [[ -z "$GEOMESA_CONF_DIR" ]]; then
-    GEOMESA_CONF_DIR=${GEOMESA_HOME}/conf
-    if [[ ! -d "$GEOMESA_CONF_DIR" ]]; then
-        message="Warning: Unable to locate GeoMesa config directory"
-        message="${message}\n The current value is ${GEOMESA_CONF_DIR}."
-        echo >&2 ""
-        echo -e >&2 "$message"
-        echo >&2 ""
-        read -p "Do you want to continue? Y\n " -n 1 -r
-        if [[  $REPLY =~ ^[Yy]$ ]]; then
-            echo "Continuing without configuration, functionality will be limited"
-        else
-            message="You may set this value manually using 'export GEOMESA_CONF_DIR=/path/to/dir'"
-            message="${message} and running this script again."
-            echo >&2 ""
-            echo -e >&2 "$message"
-            echo >&2 ""
-            exit -1
-        fi
-        echo >&2 ""
-    fi
-elif [[ $1 = configure ]]; then
-    message="Warning: GEOMESA_CONF_DIR was already set, probably by a prior configuration."
+  GEOMESA_CONF_DIR=${GEOMESA_HOME}/conf
+  if [[ ! -d "$GEOMESA_CONF_DIR" ]]; then
+    message="Warning: Unable to locate GeoMesa config directory"
     message="${message}\n The current value is ${GEOMESA_CONF_DIR}."
     echo >&2 ""
     echo -e >&2 "$message"
     echo >&2 ""
-    read -p "Do you want to reset this to ${GEOMESA_HOME}/conf? Y\n " -n 1 -r
+    read -p "Do you want to continue? Y\n " -n 1 -r
     if [[  $REPLY =~ ^[Yy]$ ]]; then
-        GEOMESA_CONF_DIR=${GEOMESA_HOME}/conf
-        echo >&2 ""
-        echo "Now set to ${GEOMESA_CONF_DIR}"
+      echo "Continuing without configuration, functionality will be limited"
+    else
+      message="You may set this value manually using 'export GEOMESA_CONF_DIR=/path/to/dir'"
+      message="${message} and running this script again."
+      echo >&2 ""
+      echo -e >&2 "$message"
+      echo >&2 ""
+      exit -1
     fi
     echo >&2 ""
+  fi
+elif [[ $1 = configure ]]; then
+  message="Warning: GEOMESA_CONF_DIR was already set, probably by a prior configuration."
+  message="${message}\n The current value is ${GEOMESA_CONF_DIR}."
+  echo >&2 ""
+  echo -e >&2 "$message"
+  echo >&2 ""
+  read -p "Do you want to reset this to ${GEOMESA_HOME}/conf? Y\n " -n 1 -r
+  if [[  $REPLY =~ ^[Yy]$ ]]; then
+    GEOMESA_CONF_DIR=${GEOMESA_HOME}/conf
+    echo >&2 ""
+    echo "Now set to ${GEOMESA_CONF_DIR}"
+  fi
+  echo >&2 ""
 fi
 
 # Find geomesa-env and load config
 GEOMESA_ENV=${GEOMESA_CONF_DIR}/geomesa-env.sh
 if [[ -f "$GEOMESA_ENV" ]]; then
-    . ${GEOMESA_ENV}
-    if [[ "${#existingEnvVars[@]}" -ge "1" ]]; then
-        echo "The following variables were not loaded from ${GEOMESA_ENV} due to an existing configuration."
-        for i in "${existingEnvVars[@]}"; do echo "$i"; done
-    fi
+  . ${GEOMESA_ENV}
+  if [[ "${#existingEnvVars[@]}" -ge "1" ]]; then
+    echo "The following variables were not loaded from ${GEOMESA_ENV} due to an existing configuration."
+    for i in "${existingEnvVars[@]}"; do echo "$i"; done
+  fi
 elif [[ -d "$GEOMESA_CONF_DIR" ]]; then
-    # If the directory doesn't exist then we already warned about this.
-    message="Warning: geomesa-env configuration file not found in ${GEOMESA_CONF_DIR}."
+  # If the directory doesn't exist then we already warned about this.
+  message="Warning: geomesa-env configuration file not found in ${GEOMESA_CONF_DIR}."
 fi
 
 # GEOMESA paths, GEOMESA_LIB should live inside GEOMESA_HOME, but can be pointed elsewhere in geomesa-env
 if [[ -z "$GEOMESA_LIB" ]]; then
-    GEOMESA_LIB=${GEOMESA_HOME}/lib
+  GEOMESA_LIB=${GEOMESA_HOME}/lib
 elif [[ $1 = configure ]] && containsElement "GEOMESA_LIB" "${existingEnvVars[@]}"; then
-    message="Warning: GEOMESA_LIB was already set, probably by a prior configuration or the geomesa-env config."
-    message="${message}\n The current value is ${GEOMESA_LIB}."
+  message="Warning: GEOMESA_LIB was already set, probably by a prior configuration or the geomesa-env config."
+  message="${message}\n The current value is ${GEOMESA_LIB}."
+  echo >&2 ""
+  echo -e >&2 "$message"
+  echo >&2 ""
+  read -p "Do you want to reset this to ${GEOMESA_HOME}/lib? Y\n " -n 1 -r
+  if [[  $REPLY =~ ^[Yy]$ ]]; then
+    GEOMESA_LIB=${GEOMESA_HOME}/lib
     echo >&2 ""
-    echo -e >&2 "$message"
-    echo >&2 ""
-    read -p "Do you want to reset this to ${GEOMESA_HOME}/lib? Y\n " -n 1 -r
-    if [[  $REPLY =~ ^[Yy]$ ]]; then
-        GEOMESA_LIB=${GEOMESA_HOME}/lib
-        echo >&2 ""
-        echo "Now set to ${GEOMESA_LIB}"
-    fi
-    echo >&2 ""
+    echo "Now set to ${GEOMESA_LIB}"
+  fi
+  echo >&2 ""
 fi
 
 # Set GeoMesa parameters

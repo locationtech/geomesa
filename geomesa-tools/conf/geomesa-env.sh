@@ -22,11 +22,11 @@ configPriority="0"
 # ------------------- Do not alter this section --------------------
 existingEnvVars=()
 function setvar() {
-    if [[ "$configPriority" == "0" ]]; then
-        test -z "$(eval "echo \$$1")"  && export $1=$2 || existingEnvVars=("${existingEnvVars[@]}" $1)
-    else
-        export $1=$2
-    fi
+  if [[ "$configPriority" == "0" ]]; then
+    test -z "$(eval "echo \$$1")"  && export $1=$2 || existingEnvVars=("${existingEnvVars[@]}" $1)
+  else
+    export $1=$2
+  fi
 }
 # ------------------------------------------------------------------
 
