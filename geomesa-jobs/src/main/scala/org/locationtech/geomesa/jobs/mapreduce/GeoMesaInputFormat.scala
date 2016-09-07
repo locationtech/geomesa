@@ -13,7 +13,7 @@ import java.lang.Float._
 import java.net.{URL, URLClassLoader}
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.mapreduce.{AccumuloInputFormat, InputFormatBase, RangeInputSplit}
+import org.apache.accumulo.core.client.mapreduce.{AbstractInputFormat, AccumuloInputFormat, InputFormatBase, RangeInputSplit}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
@@ -72,7 +72,11 @@ object GeoMesaInputFormat extends LazyLogging {
 
     val instance = AccumuloDataStoreParams.instanceIdParam.lookUp(dsParams).asInstanceOf[String]
     val zookeepers = AccumuloDataStoreParams.zookeepersParam.lookUp(dsParams).asInstanceOf[String]
-    InputFormatBaseAdapter.setZooKeeperInstance(job, instance, zookeepers)
+    if (java.lang.Boolean.valueOf(AccumuloDataStoreParams.mockParam.lookUp(dsParams).asInstanceOf[String])) {
+      AbstractInputFormat.setMockInstance(job, instance)
+    } else {
+      InputFormatBaseAdapter.setZooKeeperInstance(job, instance, zookeepers)
+    }
 
     val auths = Option(AccumuloDataStoreParams.authsParam.lookUp(dsParams).asInstanceOf[String])
     auths.foreach(a => InputFormatBaseAdapter.setScanAuthorizations(job, new Authorizations(a.split(","): _*)))
