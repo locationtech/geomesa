@@ -43,7 +43,7 @@ object GeneralShapefileIngest {
   }
 
   def shpToDataStore(shapefilePath: String, ds: DataStore, featureName: String): DataStore = {
-    val shapefile: FileDataStore =  getShapefileDatastore(shapefilePath)
+    val shapefile: FileDataStore = getShapefileDatastore(shapefilePath)
     val features = shapefile.getFeatureSource.getFeatures
     val newDS = featuresToDataStore(features, ds, featureName)
     shapefile.dispose()
