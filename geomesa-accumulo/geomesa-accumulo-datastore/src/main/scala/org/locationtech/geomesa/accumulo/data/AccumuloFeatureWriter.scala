@@ -21,10 +21,11 @@ import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.accumulo.GeomesaSystemProperties.FeatureIdProperties.FEATURE_ID_GENERATOR
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureWriterFn
-import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index._
+import org.locationtech.geomesa.accumulo.index.encoders.{BinEncoder, IndexValueEncoder}
 import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, Z3FeatureIdGenerator}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory, SimpleFeatureSerializer}
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.uuid.FeatureIdGenerator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -50,14 +51,19 @@ object AccumuloFeatureWriter extends LazyLogging {
   /**
    * Gets writers and table names for each table (e.g. index) that supports the sft
    */
-  def getTablesAndWriters(sft: SimpleFeatureType, ds: AccumuloConnectorCreator): Seq[TableAndWriter] =
-    GeoMesaTable.getTables(sft).map(table => (ds.getTableName(sft.getTypeName, table), table.writer(sft)))
+  def getTablesAndWriters(sft: SimpleFeatureType, ds: AccumuloDataStore): Seq[TableAndWriter] =
+    AccumuloFeatureIndex.indices(sft, IndexMode.Write).map { index =>
+      (ds.getTableName(sft.getTypeName, index), index.writer(sft, ds))
+    }
 
   /**
    * Gets removers and table names for each table (e.g. index) that supports the sft
    */
-  def getTablesAndRemovers(sft: SimpleFeatureType, ds: AccumuloConnectorCreator): Seq[TableAndWriter] =
-    GeoMesaTable.getTables(sft).map(table => (ds.getTableName(sft.getTypeName, table), table.remover(sft)))
+  def getTablesAndRemovers(sft: SimpleFeatureType, ds: AccumuloDataStore): Seq[TableAndWriter] =
+    // note: get both read and write indices as we don't know where the data was first written
+    AccumuloFeatureIndex.indices(sft, IndexMode.Any).map { index =>
+      (ds.getTableName(sft.getTypeName, index), index.remover(sft, ds))
+    }
 
   private val idGenerator: FeatureIdGenerator =
     try {

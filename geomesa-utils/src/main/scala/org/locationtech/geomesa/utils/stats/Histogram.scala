@@ -188,7 +188,8 @@ object Histogram {
       case v: String => (s"$v$Base36Lowest", s"$v$Base36Highest")
       case v: Date   => (new Date(v.getTime - 60000), new Date(v.getTime + 60000))
       case v: Geometry =>
-        val env = v.getCentroid.buffer(10.0).getEnvelopeInternal
+        import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
+        val env = v.safeCentroid().buffer(10.0).getEnvelopeInternal
         val min = GeometryUtils.geoFactory.createPoint(new Coordinate(env.getMinX, env.getMinY))
         val max = GeometryUtils.geoFactory.createPoint(new Coordinate(env.getMaxX, env.getMaxY))
         (min, max)

@@ -14,7 +14,7 @@ import java.util.UUID
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.accumulo.index.DecodedIndexValue
+import org.locationtech.geomesa.accumulo.index.encoders.DecodedIndexValue
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 

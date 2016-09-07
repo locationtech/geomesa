@@ -29,6 +29,7 @@ import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.{BoundsFilterVisitor, QueryPlanFilterVisitor}
+import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats._
@@ -37,6 +38,7 @@ import org.opengis.filter._
 
 import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
 
 /**
  * Tracks stats via entries stored in metadata.
@@ -68,17 +70,18 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
     }
   }
 
-  scheduledCompaction = executor.schedule(compactor, 1, TimeUnit.HOURS)
+  compactor.run() // schedule initial compaction
 
   override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
     if (exact) {
-      if (sft.isPoints) {
+      if (sft.isPoints || sft.getSchemaVersion > 9) {
+        // we know that we don't have any duplicate entries
         runStats[CountStat](sft, Stat.Count(), filter).headOption.map(_.count)
       } else {
-        import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
-
         // stat query doesn't entirely handle duplicates - only on a per-iterator basis
         // is a full scan worth it? the stat will be pretty close...
+
+        import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 
         // restrict fields coming back so that we push as little data as possible
         val props = Array(Option(sft.getGeomField).getOrElse(sft.getDescriptor(0).getLocalName))
@@ -371,7 +374,13 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
       // calculate the endpoints for the histogram
       // the histogram will expand as needed, but this is a starting point
       val bounds = {
-        val mm = readStat[MinMax[Any]](sft, minMaxKey(attribute))
+        val mm = try {
+          readStat[MinMax[Any]](sft, minMaxKey(attribute))
+        } catch {
+          case NonFatal(e) =>
+            logger.error("Error reading existing stats - possibly the distributed runtime jar is not available", e)
+            None
+        }
         val (min, max) = mm match {
           case None => defaultBounds(binding)
           // max has to be greater than min for the histogram bounds

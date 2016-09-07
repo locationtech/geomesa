@@ -36,11 +36,7 @@ class AvroIngestConverter(ds: DataStore, typeName: String) extends LocalIngestCo
     val dataSft = reader.getSft
     val sft = if (typeName == dataSft.getTypeName) dataSft else SimpleFeatureTypes.renameSft(dataSft, typeName)
     ds.createSchema(sft)
-    val features = if (dataSft == sft) {
-      reader
-    } else {
-      reader.map(sf => new ScalaSimpleFeature(sf.getID, sft, sf.getAttributes.toArray))
-    }
+    val features = if (dataSft == sft) { reader } else { reader.map(ScalaSimpleFeature.create(sft, _)) }
     (sft, features)
   }
 

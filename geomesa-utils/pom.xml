@@ -11,7 +11,7 @@
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
         <artifactId>geomesa</artifactId>
-        <version>1.2.5-SNAPSHOT</version>
+        <version>1.2.7-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -150,4 +150,24 @@
             <artifactId>specs2_2.11</artifactId>
         </dependency>
     </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>org/locationtech/geomesa/geomesa.properties</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>org/locationtech/geomesa/geomesa.properties</include>
+                </includes>
+            </resource>
+        </resources>
+    </build>
+
 </project>

@@ -57,14 +57,13 @@ author = u''
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-# version: The short X.Y version.
-# release: The full version, including alpha/beta/rc tags.
-release = '1.2.4'
-version = '1.2.4'
+# Warning: current version numbers are handled in versions.py, which is preprocessed
+# by Maven. Do not hardcode current GeoMesa version numbers here!
+from target.versions import release,version,version_devel
 
+# Other versions and variables unlikely to change on every point release
 release_1_1 = '1.1.0-rc.7'
-version_devel = '1.2.5-SNAPSHOT'
-
+release_eclipse = '1.2.0'
 url_locationtech_release = "https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa"
 url_github_archive = "https://github.com/locationtech/geomesa/archive"
 
@@ -79,11 +78,11 @@ rst_epilog = """
 
 .. |release_kafka09_plugin| replace:: %(url_locationtech_release)s/geomesa-kafka-09-gs-plugin/%(release)s/geomesa-kafka-09-gs-plugin-%(release)s-install.tar.gz
 
-.. |eclipse_release| replace:: 1.2.0
+.. |eclipse_release| replace:: %(release_eclipse)s
 
-.. |eclipse_release_tarball| replace:: http://download.locationtech.org/geomesa/1.2.0/geomesa-dist-1.2.0-bin.tar.gz
+.. |eclipse_release_tarball| replace:: http://download.locationtech.org/geomesa/%(release_eclipse)s/geomesa-dist-%(release_eclipse)s-bin.tar.gz
 
-.. |eclipse_release_source_tarball| replace:: http://download.locationtech.org/geomesa/1.2.0/geomesa-source-1.2.0.tar.gz 
+.. |eclipse_release_source_tarball| replace:: http://download.locationtech.org/geomesa/%(release_eclipse)s/geomesa-source-%(release_eclipse)s.tar.gz
 
 .. |development| replace:: %(version_devel)s
 
@@ -109,6 +108,7 @@ rst_epilog = """
 
 """ % {"release": release,
        "release_1_1": release_1_1,
+       "release_eclipse": release_eclipse,
        "version_devel": version_devel,
        "url_locationtech_release": url_locationtech_release,
        "url_github_archive": url_github_archive}

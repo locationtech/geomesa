@@ -38,7 +38,7 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
     val features = getFeatureCollection(fmt)
     lazy val avroCompression = Option(params.gzip).map(_.toInt).getOrElse(Deflater.DEFAULT_COMPRESSION)
     val exporter: FeatureExporter = fmt match {
-      case CSV | TSV      => new DelimitedExport(getWriter(), fmt)
+      case CSV | TSV      => new DelimitedExport(getWriter(), fmt, !params.noHeader)
       case SHP            => new ShapefileExport(checkShpFile())
       case GeoJson | JSON => new GeoJsonExport(getWriter())
       case GML            => new GmlExport(createOutputStream())
@@ -161,5 +161,8 @@ object ExportCommand {
 
     @Parameter(names = Array("-o", "--output"), description = "name of the file to output to instead of std out")
     var file: File = null
+
+    @Parameter(names = Array("--no-header"), description = "Export as a delimited text format (csv|tsv) without a type header", required = false)
+    var noHeader: Boolean = false
   }
 }

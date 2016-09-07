@@ -11,7 +11,8 @@ package org.locationtech.geomesa.accumulo.index
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.data.{DEFAULT_ENCODING, WritableFeature}
-import org.locationtech.geomesa.accumulo.data.tables.AttributeTable
+import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
+import org.locationtech.geomesa.accumulo.index.encoders.{BinEncoder, IndexValueEncoder}
 import org.locationtech.geomesa.features.SimpleFeatureSerializers
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -38,7 +39,7 @@ class AttributeTableTest extends Specification with TestWithDataStore {
       val binEncoder = BinEncoder(sft)
 
       val toWrite = WritableFeature(feature, sft, "", featureEncoder, indexValueEncoder, binEncoder)
-      val mutations = AttributeTable.writer(sft)(toWrite)
+      val mutations = AttributeIndex.writer(sft, ds)(toWrite)
       mutations.size mustEqual 2 // for null date
       mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
       mutations.map(_.getUpdates.get(0).isDeleted) must contain(beEqualTo(false)).foreach
@@ -54,7 +55,7 @@ class AttributeTableTest extends Specification with TestWithDataStore {
       feature.setAttribute("age",50.asInstanceOf[Any])
 
       val toWrite = WritableFeature(feature, sft, "", null, null, null)
-      val mutations = AttributeTable.remover(sft)(toWrite)
+      val mutations = AttributeIndex.remover(sft, ds)(toWrite)
       mutations.size mustEqual 2 // for null date
       mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
       mutations.map(_.getUpdates.get(0).isDeleted) must contain(beEqualTo(true)).foreach

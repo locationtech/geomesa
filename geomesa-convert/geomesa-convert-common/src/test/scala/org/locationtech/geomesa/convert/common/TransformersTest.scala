@@ -129,6 +129,14 @@ class TransformersTest extends Specification {
           val exp = Transformers.parseTransform("concat(toString($1), toString($2))")
           exp.eval(Array("", 5, 6)) must be equalTo "56"
         }
+        "concat many args" >> {
+          val exp = Transformers.parseTransform("concat($1, $2, $3, $4, $5, $6)")
+          exp.eval(Array("", 1, 2, 3, 4, 5, 6)) must be equalTo "123456"
+        }
+        "mkstring" >> {
+          val exp = Transformers.parseTransform("mkstring(',', $1, $2, $3, $4, $5, $6)")
+          exp.eval(Array("", 1, 2, 3, 4, 5, 6)) must be equalTo "1,2,3,4,5,6"
+        }
       }
 
       "handle non-string literals" >> {

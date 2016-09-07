@@ -2,7 +2,7 @@ GeoMesa Avro Binary Format Example
 ==================================
 
 This example shows Java code for creating a ``SimpleFeatureCollection``,
-serializing and deserializing to and from the Avro format.
+serializing and immediately deserializing to and from the Avro format.
 
 Prerequisites
 -------------

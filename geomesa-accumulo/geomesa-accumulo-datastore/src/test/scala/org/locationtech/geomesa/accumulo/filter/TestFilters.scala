@@ -99,6 +99,7 @@ object TestFilters {
       "OVERLAPS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
       "WITHIN(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
       "CONTAINS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
+      "CONTAINS(geom, POINT (45 23))",
       "CROSSES(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
       "BBOX(geom, 45, 23, 48, 27)"
     )

@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.tools.accumulo.commands.stats
 
 import com.beust.jcommander.{Parameter, ParameterException}
-import org.locationtech.geomesa.accumulo.data.stats.GeoMesaStats
+import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.common.{FeatureTypeNameParam, OptionalCQLFilterParam}
 import org.opengis.feature.simple.SimpleFeatureType

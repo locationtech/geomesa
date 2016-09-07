@@ -111,7 +111,7 @@ abstract class InitBuilder[T] {
   def attributeDescriptor(ad: AttributeDescriptor) =
     append(ad.getLocalName, Opts(), ad.getType.getBinding.getCanonicalName)
 
-  def withIndexes(indexSuffixes: List[String]): T = userData(ENABLED_INDEXES, indexSuffixes.mkString(","))
+  def withIndexes(indexSuffixes: List[String]): T = userData(ENABLED_INDEXES.head, indexSuffixes.mkString(","))
 
   def userData(key: String, value: String): T = {
     options.append(s"$key='$value'")

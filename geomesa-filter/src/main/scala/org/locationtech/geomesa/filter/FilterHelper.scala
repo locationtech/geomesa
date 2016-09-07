@@ -217,6 +217,10 @@ object FilterHelper extends LazyLogging {
           val buffered = filter match {
             // note: the dwithin should have already between rewritten
             case dwithin: DWithin => geom.buffer(dwithin.getDistance)
+            case bbox: BBOX =>
+              val geomCopy = gf.createGeometry(geom)
+              val trimmedGeom = geomCopy.intersection(WholeWorldPolygon)
+              addWayPointsToBBOX(trimmedGeom)
             case _ => geom
           }
           GeohashUtils.getInternationalDateLineSafeGeometry(buffered)

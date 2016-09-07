@@ -16,8 +16,11 @@ import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
-import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
+import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
+import org.locationtech.geomesa.accumulo.index.id.RecordIndex
+import org.locationtech.geomesa.accumulo.index.z2.Z2Index
+import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
@@ -93,22 +96,22 @@ class AccumuloDataStoreAttributeVisibilityTest extends Specification {
   val fs = ds.getFeatureSource(sftName)
   fs.addFeatures(featureCollection)
 
-  def queryByAuths(auths: String, filter: String, expectedStrategy: StrategyType): Seq[SimpleFeature] = {
+  def queryByAuths(auths: String, filter: String, expectedStrategy: AccumuloFeatureIndex): Seq[SimpleFeature] = {
     val ds = DataStoreFinder.getDataStore(Map(
       "connector"    -> connector,
       "tableName"    -> sftName,
       "auths"        -> auths)).asInstanceOf[AccumuloDataStore]
     val query = new Query(sftName, ECQL.toFilter(filter))
     val plans = ds.getQueryPlan(query)
-    forall(plans)(_.filter.strategy mustEqual expectedStrategy)
+    forall(plans)(_.filter.index mustEqual expectedStrategy)
     SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq
   }
 
   val filters = Seq(
-    ("IN ('user', 'admin', 'mixed')", StrategyType.RECORD),
-    ("bbox(geom, -121, 44, -119, 48)", StrategyType.Z2),
-    ("bbox(geom, -121, 44, -119, 48) AND dtg DURING 2014-01-01T00:00:00.000Z/2014-01-04T00:00:00.000Z", StrategyType.Z3),
-    ("name = 'name-user' OR name = 'name-admin' OR name = 'name-mixed'", StrategyType.ATTRIBUTE)
+    ("IN ('user', 'admin', 'mixed')", RecordIndex),
+    ("bbox(geom, -121, 44, -119, 48)", Z2Index),
+    ("bbox(geom, -121, 44, -119, 48) AND dtg DURING 2014-01-01T00:00:00.000Z/2014-01-04T00:00:00.000Z", Z3Index),
+    ("name = 'name-user' OR name = 'name-admin' OR name = 'name-mixed'", AttributeIndex)
   )
 
   "AccumuloDataStore" should {

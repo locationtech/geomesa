@@ -16,7 +16,7 @@
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa</artifactId>
     <packaging>pom</packaging>
-    <version>1.2.5-SNAPSHOT</version>
+    <version>1.2.7-SNAPSHOT</version>
 
     <modules>
         <module>geomesa-utils</module>
@@ -42,13 +42,15 @@
         <module>geomesa-metrics</module>
         <module>docs</module>
         <module>geomesa-native-api</module>
+        <module>geomesa-index-api</module>
     </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- bump version right before performing releases for the README and the documentation -->
-        <geomesa.release.version>1.2.4</geomesa.release.version>
+        <geomesa.release.version>1.2.6</geomesa.release.version>
+        <geomesa.devel.version>1.2.6-SNAPSHOT</geomesa.devel.version>
 
         <scala.version>2.11.7</scala.version>
         <scala.xml.version>1.0.5</scala.xml.version>
@@ -1349,6 +1351,11 @@
                 <groupId>org.calrissian.mango</groupId>
                 <artifactId>mango-core</artifactId>
                 <version>1.2.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-index-api</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>

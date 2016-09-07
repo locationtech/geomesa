@@ -12,6 +12,7 @@ import com.spatial4j.core.context.jts.JtsSpatialContext
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.locationtech.geomesa.utils.CartesianProductIterable
+import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.text.WKTUtils
 
 import scala.collection.BitSet
@@ -32,6 +33,7 @@ object GeohashUtils
 
   // make sure the implicits related to distance are in-scope
   import Distance._
+  import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
 
   // the list of allowable GeoHash characters
   val base32seq = GeoHash.base32.toSeq
@@ -345,7 +347,7 @@ object GeohashUtils
    * @return the centroid of the given geometry
    */
   def getCentroid(geom:Geometry) : Point = {
-    val pt = geom.getCentroid
+    val pt = geom.safeCentroid()
     geom.getFactory.createPoint(new Coordinate(pt.getX, pt.getY))
   }
 
@@ -762,18 +764,22 @@ object GeohashUtils
       }
     }
 
+    // copy the geometry so that we don't modify the input - JTS mutates the geometry
+    // don't use the defaultGeometryFactory as it has limited precision
+    val copy = GeometryUtils.geoFactory.createGeometry(targetGeom)
     val withinBoundsGeom =
       if (targetGeom.getEnvelopeInternal.getMinX < -180 || targetGeom.getEnvelopeInternal.getMaxX > 180)
-        translateGeometry(targetGeom)
+        translateGeometry(copy)
       else
-        targetGeom
+        copy
 
     try {
       JtsSpatialContext.GEO.makeShape(withinBoundsGeom, true, true).getGeom
     } catch {
       case e: Exception =>
+        // TODO GEOMESA-1397 return a Try and propagate error to caller
         logger.warn(s"Error splitting geometry on IDL for $withinBoundsGeom", e)
-        withinBoundsGeom
+        targetGeom
     }
   }
 
@@ -831,11 +837,11 @@ object GeohashUtils
   def reconstructGeohashFromGeometry(geometry: Geometry): GeoHash = geometry match {
     case null => throw new Exception("Invalid geometry:  null")
     case _ if "Point".equals(geometry.getGeometryType) => GeoHash(geometry.asInstanceOf[Point], maxRealisticGeoHashPrecision)
-    case _ if geometry.isRectangle => GeoHash(geometry.getCentroid, estimateGeometryGeohashPrecision(geometry))
+    case _ if geometry.isRectangle => GeoHash(geometry.safeCentroid(), estimateGeometryGeohashPrecision(geometry))
     case m: MultiPolygon =>
       if(m.getNumGeometries != 1) throw new Exception("Expected simple geometry")
       else if(!m.getGeometryN(0).isRectangle) throw new Exception("Expected rectangular geometry")
-      else GeoHash(m.getGeometryN(0).getCentroid, estimateGeometryGeohashPrecision(m.getGeometryN(0)))
+      else GeoHash(m.getGeometryN(0).safeCentroid(), estimateGeometryGeohashPrecision(m.getGeometryN(0)))
     case _ => throw new Exception(s"Invalid geometry:  $geometry")
   }
 
@@ -874,7 +880,7 @@ object GeohashUtils
       g.buffer(1e-6)
     case g: Polygon =>
       if (g.getArea > 0.0) g
-      else g.getCentroid.buffer(1e-6)
+      else g.safeCentroid().buffer(1e-6)
     case g          =>
       val env = g.getEnvelope
       if (env.getArea > 0.0) env
@@ -942,7 +948,7 @@ object GeohashUtils
     val usedBits = length * 5
     val allResolutions = ResolutionRange(0, Math.min(35, maxBits), 1)
     val maxKeys = Math.min(2 << Math.min(usedBits, 29), MAX_KEYS_IN_LIST)
-    val polyCentroid = cover.getCentroid
+    val polyCentroid = cover.safeCentroid()
 
     // find the smallest GeoHash you can that covers the target geometry
     val ghMBR = getMinimumBoundingGeohash(geom, allResolutions)

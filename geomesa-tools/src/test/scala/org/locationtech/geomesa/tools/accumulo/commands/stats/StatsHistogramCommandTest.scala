@@ -10,8 +10,8 @@ package org.locationtech.geomesa.tools.accumulo.commands.stats
 
 import com.vividsolutions.jts.geom.Geometry
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.stats.GeoMesaStats
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.MinMax.MinMaxGeometry
 import org.locationtech.geomesa.utils.stats.{Histogram, Stat}

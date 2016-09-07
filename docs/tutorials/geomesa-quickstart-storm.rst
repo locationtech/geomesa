@@ -242,14 +242,21 @@ GeoServer, then browse to the following URL:
 
     http://localhost:8080/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=geomesa:OSM&styles=OSMPoint&bbox=-87.63,41.88,-87.61,41.9&width=1400&height=600&srs=EPSG:4326&format=application/openlayers
 
-.. image:: _static/geomesa-quickstart-storm/ChicagoPoint.png
+.. figure:: _static/geomesa-quickstart-storm/ChicagoPoint.png
    :alt: "Showing all OSM events in Chicago before Mar 12, 2012"
 
 Heatmaps
 --------
 
 Use a heatmap to more clearly visualize a high volume of data in the
-same location. Add the
+same location.
+
+.. note::
+
+    The heatmap style requires that ``geomesa-process`` be installed in your
+    GeoServer, as described in :ref:`install_geomesa_process`.
+
+Add the
 :download:`heatmap.sld <_static/geomesa-quickstart-storm/heatmap.sld>` file to
 GeoServer, then browse to the following URL:
 
@@ -257,7 +264,7 @@ GeoServer, then browse to the following URL:
 
     http://localhost:8080/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=geomesa:OSM&styles=heatmap&bbox=-87.63,41.88,-87.61,41.9&width=1400&height=600&srs=EPSG:4326&format=application/openlayers
 
-.. image:: _static/geomesa-quickstart-storm/ChicagoDensity.png
+.. figure:: _static/geomesa-quickstart-storm/ChicagoDensity.png
    :alt: "Showing heatmap of OSM events in Chicago before Mar 12, 2012"
 
 Conclusion

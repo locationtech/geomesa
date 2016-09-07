@@ -8,19 +8,31 @@
 
 package org.locationtech.geomesa.utils.index
 
+import java.lang.{Boolean => jBoolean}
+
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.{DEFAULT_DATE_KEY, RichSimpleFeatureType}
-import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{MIXED_GEOMETRIES, RESERVED_WORDS}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConverters._
 
 object GeoMesaSchemaValidator {
+
   def validate(sft: SimpleFeatureType): Unit = {
     MixedGeometryCheck.validateGeometryType(sft)
     TemporalIndexCheck.validateDtgField(sft)
     ReservedWordCheck.validateAttributeNames(sft)
+  }
+
+  private [index] def boolean(value: AnyRef): Boolean = value match {
+    case null => false
+    case bool: jBoolean if bool => true
+    case bool: String if jBoolean.valueOf(bool) => true
+    case bool if jBoolean.valueOf(bool.toString) => true
+    case _ => false
   }
 }
 
@@ -35,8 +47,14 @@ object ReservedWordCheck extends LazyLogging {
   def validateAttributeNames(sft: SimpleFeatureType): Unit = {
     val reservedWords = FeatureUtils.sftReservedWords(sft)
     if (reservedWords.nonEmpty) {
-      throw new IllegalArgumentException("The simple feature type contains attribute name(s) that are " +
-          s"reserved words: ${reservedWords.mkString(", ")}")
+      val msg = "The simple feature type contains attribute name(s) that are reserved words: " +
+          s"${reservedWords.mkString(", ")}. You may override this check by setting '$RESERVED_WORDS=true' " +
+          "in the simple feature type user data, but it may cause errors with some functionality."
+      if (GeoMesaSchemaValidator.boolean(sft.getUserData.get(RESERVED_WORDS))) {
+        logger.warn(msg)
+      } else {
+        throw new IllegalArgumentException(msg)
+      }
     }
   }
 }
@@ -78,20 +96,10 @@ object TemporalIndexCheck extends LazyLogging {
 
 object MixedGeometryCheck extends LazyLogging {
 
-  import java.lang.{Boolean => jBoolean}
-
-  import SimpleFeatureTypes.MIXED_GEOMETRIES
-
   def validateGeometryType(sft: SimpleFeatureType): Unit = {
     val gd = sft.getGeometryDescriptor
     if (gd != null && gd.getType.getBinding == classOf[Geometry]) {
-      val declared = sft.getUserData.get(MIXED_GEOMETRIES) match {
-        case null => false
-        case mixed: jBoolean if mixed => true
-        case mixed: String if jBoolean.valueOf(mixed) => true
-        case mixed if jBoolean.valueOf(mixed.toString) => true
-        case _ => false
-      }
+      val declared = GeoMesaSchemaValidator.boolean(sft.getUserData.get(MIXED_GEOMETRIES))
       if (!declared) {
         throw new IllegalArgumentException("Trying to create a schema with mixed geometry type " +
             s"'${gd.getLocalName}:Geometry'. Queries may be slower when using mixed geometries. " +

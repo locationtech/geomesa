@@ -16,7 +16,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
-import org.locationtech.geomesa.accumulo.index.IndexSchema
+import org.locationtech.geomesa.accumulo.index.geohash.IndexSchema
 import org.locationtech.geomesa.accumulo.iterators.TestData._
 import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -212,7 +212,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
 
       // validate the total number of query-hits
       stQueriedCount mustEqual filteredCount
-    }.pendingUntilFixed("GEOMESA-1163 - off by 1")
+    }
 
     "return an unfiltered results-set with a global request" in {
       val dtFilter = IndexSchema.everywhen

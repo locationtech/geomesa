@@ -31,11 +31,12 @@ object SimpleFeatureTypes {
 
   val TABLE_SPLITTER           = "table.splitter.class"
   val TABLE_SPLITTER_OPTIONS   = "table.splitter.options"
-  val ENABLED_INDEXES          = "geomesa.indexes.enabled"
+  val INDEX_VERSIONS           = "geomesa.indices"
   val MIXED_GEOMETRIES         = "geomesa.mixed.geometries"
+  val RESERVED_WORDS           = "override.reserved.words" // note: doesn't start with geomesa so we don't persist it
 
-  @deprecated
-  val ENABLED_INDEXES_OLD      = "table.indexes.enabled"
+  // keep around old values for back compatibility
+  val ENABLED_INDEXES          = Seq("geomesa.indices.enabled", "geomesa.indexes.enabled", "table.indexes.enabled")
 
   val OPT_DEFAULT              = "default"
   val OPT_SRID                 = "srid"
@@ -101,6 +102,9 @@ object SimpleFeatureTypes {
 
     case t if specParser.parse(specParser.listType, t).successful => ListAttributeSpec(conf)
     case t if specParser.parse(specParser.mapType, t).successful  => MapAttributeSpec(conf)
+
+    case default => throw new IllegalArgumentException(s"Type $default is not a supported Simple Feature attribute type, "
+      + s"valid types are: ${simpleTypeMap.keys.toList.sorted}, ${geometryTypeMap.keys.toList.sorted}, List[?], Map[?,?]")
   }
 
   def createType(nameSpec: String, spec: String): SimpleFeatureType = {
@@ -135,7 +139,6 @@ object SimpleFeatureTypes {
     }
     val defaultGeom = geomAttributes.find(_.options.get(OPT_DEFAULT).exists(_.toBoolean))
         .orElse(geomAttributes.headOption)
-    // TODO GEOMESA-594 allow for setting default date field
     val defaultDate = dateAttributes.find(_.options.get(OPT_DEFAULT).exists(_.toBoolean))
         .orElse(dateAttributes.headOption)
 
@@ -743,7 +746,7 @@ object SimpleFeatureTypes {
     private val EQ = "="
 
     def optValue = quotedString | nonQuotedString
-    def fOptKey = "[a-zA-Z0-9\\.]+".r
+    def fOptKey = "[a-zA-Z0-9\\._]+".r
     def fOptKeyValue =  (fOptKey <~ EQ) ~ optValue ^^ {  x => x._1 -> x._2 }
 
     def fOptList = repsep(fOptKeyValue, ",") ^^ { case optPairs =>
@@ -754,7 +757,7 @@ object SimpleFeatureTypes {
         Splitter(ts, tsOpts)
       }
 
-      val enabledOpt = optMap.get(ENABLED_INDEXES).map(new ListSplitter().parse).map(EnabledIndexes)
+      val enabledOpt = ENABLED_INDEXES.flatMap(optMap.get).headOption.map(new ListSplitter().parse).map(EnabledIndexes)
 
       // other arbitrary options
       val known = Seq(TABLE_SPLITTER, TABLE_SPLITTER_OPTIONS, ENABLED_INDEXES)
