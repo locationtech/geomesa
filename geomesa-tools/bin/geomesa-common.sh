@@ -8,10 +8,8 @@
 #
 
 # Common functions for GeoMesa command line tools
-
 # Set environment variables in bin/geomesa-env.sh
-# Load config Env Variables
-. "${0%/*}"/geomesa-env.sh
+# Set $GEOMESA_CONF_DIR before running to use alternate configurations
 
 function setGeoHome() {
     SOURCE="${BASH_SOURCE[0]}"
@@ -27,14 +25,19 @@ function setGeoHome() {
     export GEOMESA_HOME="$bin"
     export PATH=${GEOMESA_HOME}/bin:$PATH
     setGeoLog
-    echo "Warning: GEOMESA_HOME is not set, using $GEOMESA_HOME" >> ${GEOMESA_LOG_DIR}/geomesa.err
+    echo "Warning: GEOMESA_HOME is not set, using $GEOMESA_HOME" >> ${GEOMESA_LOG}
 }
 
 function setGeoLog() {
     if [[ -z "${GEOMESA_LOG_DIR}" ]]; then
-      export GEOMESA_LOG_DIR="${GEOMESA_HOME}/logs"
-      export GEOMESA_OPTS="-Dgeomesa.log.dir=${GEOMESA_LOG_DIR} $GEOMESA_OPTS"
+        export GEOMESA_LOG_DIR="${GEOMESA_HOME}/logs"
+        export GEOMESA_OPTS="-Dgeomesa.log.dir=${GEOMESA_LOG_DIR} $GEOMESA_OPTS"
     fi
+    if [[ ! -d "${GEOMESA_LOG_DIR}" ]]; then
+        mkdir "${GEOMESA_LOG_DIR}"
+    fi
+    GEOMESA_LOG=${GEOMESA_LOG_DIR}/geomesa.err
+    touch GEOMESA_LOG
 }
 
 function findJars() {
@@ -85,8 +88,8 @@ function geomesaConfigure() {
 
     if [[ -z "$GEOMESA_LIB" ]]; then
         GEOMESA_LIB=${GEOMESA_HOME}/lib
-    else
-        message="Warning: GEOMESA_LIB already set, probably by a prior configuration or the geomesa-env config."
+    elif contiansElement "GEOMESA_LIB" "${existingEnvVars[@]}"; then
+        message="Warning: GEOMESA_LIB already set, probably by a prior configuration."
         message="${message}\n Current value is ${GEOMESA_LIB}."
         echo >&2 ""
         echo -e >&2 "$message"
@@ -101,19 +104,20 @@ function geomesaConfigure() {
     fi
 
     echo >&2 ""
-    echo "To persist the configuration please update your bashrc file to include: "
+    echo "To persist the configuration please edit conf/geomesa-env.sh or update your bashrc file to include: "
     echo "export GEOMESA_HOME="$GEOMESA_HOME""
     echo "export PATH=\${GEOMESA_HOME}/bin:\$PATH"
 }
 
-GEOMESA_OPTS="-Duser.timezone=UTC -DEPSG-HSQL.directory=/tmp/$(whoami)"
-GEOMESA_OPTS="${GEOMESA_OPTS} -Djava.awt.headless=true"
-GEOMESA_DEBUG_OPTS="-Xmx8192m -XX:MaxPermSize=512m -XX:-UseGCOverheadLimit -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9898"
-GEOMESA_CP=""
+function contiansElement() {
+    local element
+    for element in "${@:2}"; do [[ "$element" == "$1" ]] && return 0; done
+    return 1
+}
 
 # Define GEOMESA_HOME and update the PATH if necessary.
 if [[ -z "$GEOMESA_HOME" ]]; then
-setGeoHome
+    setGeoHome
 else
     echo >&2 "Using GEOMESA_HOME = $GEOMESA_HOME"
     if [[ $1 = configure ]]; then
@@ -126,10 +130,60 @@ else
     fi
 fi
 
+# Define GEOMESA_CONF_DIR so we can find geomesa-env.sh
+if [[ -z "$GEOMESA_CONF_DIR" ]]; then
+    GEOMESA_CONF_DIR=${GEOMESA_HOME}/conf
+    if [[ ! -d "$GEOMESA_CONF_DIR" ]]; then
+        message="Warning: Unable to locate GeoMesa config directory"
+        message="${message}\n The current value is ${GEOMESA_CONF_DIR}."
+        echo >&2 ""
+        echo -e >&2 "$message"
+        echo >&2 ""
+        read -p "Do you want to continue? Y\n " -n 1 -r
+        if [[  $REPLY =~ ^[Yy]$ ]]; then
+            echo "Continuing without configuration, functionality will be limited"
+        else
+            message="You may set this value manually using 'export GEOMESA_CONF_DIR=/path/to/dir'"
+            message="${message} and running this script again."
+            echo >&2 ""
+            echo -e >&2 "$message"
+            echo >&2 ""
+            exit -1
+        fi
+        echo >&2 ""
+    fi
+elif [[ $1 = configure ]]; then
+    message="Warning: GEOMESA_CONF_DIR was already set, probably by a prior configuration."
+    message="${message}\n The current value is ${GEOMESA_CONF_DIR}."
+    echo >&2 ""
+    echo -e >&2 "$message"
+    echo >&2 ""
+    read -p "Do you want to reset this to ${GEOMESA_HOME}/conf? Y\n " -n 1 -r
+    if [[  $REPLY =~ ^[Yy]$ ]]; then
+        GEOMESA_CONF_DIR=${GEOMESA_HOME}/conf
+        echo >&2 ""
+        echo "Now set to ${GEOMESA_CONF_DIR}"
+    fi
+    echo >&2 ""
+fi
+
+# Find geomesa-env and load config
+GEOMESA_ENV=${GEOMESA_CONF_DIR}/geomesa-env.sh
+if [[ -f "$GEOMESA_ENV" ]]; then
+    . GEOMESA_ENV
+    if [[ "${#existingEnvVars[@]}" -ge "1" ]]; then
+        echo "The following variables were not loaded from ${GEOMESA_ENV} due to an existing configuration."
+        for i in "${existingEnvVars[@]}"; do echo "$i"; done
+    fi
+elif [[ -d "$GEOMESA_CONF_DIR" ]]; then
+    # If the directory doesn't exist then we already warned about this.
+    message="Warning: geomesa-env configuration file not found in ${GEOMESA_CONF_DIR}."
+fi
+
 # GEOMESA paths, GEOMESA_LIB should live inside GEOMESA_HOME, but can be pointed elsewhere in geomesa-env
 if [[ -z "$GEOMESA_LIB" ]]; then
     GEOMESA_LIB=${GEOMESA_HOME}/lib
-elif [[ $1 = configure ]]; then
+elif [[ $1 = configure ]] && contiansElement "GEOMESA_LIB" "${existingEnvVars[@]}"; then
     message="Warning: GEOMESA_LIB was already set, probably by a prior configuration or the geomesa-env config."
     message="${message}\n The current value is ${GEOMESA_LIB}."
     echo >&2 ""
@@ -144,25 +198,12 @@ elif [[ $1 = configure ]]; then
     echo >&2 ""
 fi
 
-# Configure geomesa conf directory this can be set in geomesa-env
-if [[ -z "$GEOMESA_CONF_DIR" ]]; then
-    GEOMESA_CONF_DIR=${GEOMESA_HOME}/conf
-elif [[ $1 = configure ]]; then
-    message="Warning: GEOMESA_CONF_DIR was already set, probably by a prior configuration or the geomesa-env config."
-    message="${message}\n The current value is ${GEOMESA_CONF_DIR}."
-    echo >&2 ""
-    echo -e >&2 "$message"
-    echo >&2 ""
-    read -p "Do you want to reset this to ${GEOMESA_HOME}/conf? Y\n " -n 1 -r
-    if [[  $REPLY =~ ^[Yy]$ ]]; then
-        GEOMESA_CONF_DIR=${GEOMESA_HOME}/conf
-        echo >&2 ""
-        echo "Now set to ${GEOMESA_CONF_DIR}"
-    fi
-    echo >&2 ""
-fi
-
+# Set GeoMesa parameters
+GEOMESA_OPTS="-Duser.timezone=UTC -DEPSG-HSQL.directory=/tmp/$(whoami)"
+GEOMESA_OPTS="${GEOMESA_OPTS} -Djava.awt.headless=true"
 GEOMESA_OPTS="${GEOMESA_OPTS} -Dlog4j.configuration=file://${GEOMESA_CONF_DIR}/log4j.properties"
+GEOMESA_DEBUG_OPTS="-Xmx8192m -XX:MaxPermSize=512m -XX:-UseGCOverheadLimit -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9898"
+GEOMESA_CP=""
 
 # Configure geomesa logging directory this can be set in geomesa-env
 setGeoLog

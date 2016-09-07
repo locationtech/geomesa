@@ -7,14 +7,9 @@
 # http://www.opensource.org/licenses/apache2.0.php.
 #
 
-# Set environment variables in bin/geomesa-env.sh
-# Load config Env Variables
-. "${0%/*}"/geomesa-env.sh
-
 type=$1
 
-setGeoHome ()
-{
+function setGeoHome() {
     SOURCE="${BASH_SOURCE[0]}"
     # resolve $SOURCE until the file is no longer a symlink
     while [[ -h "${SOURCE}" ]]; do
@@ -30,7 +25,12 @@ setGeoHome ()
     if [[ -z "${GEOMESA_LOG_DIR}" ]]; then
       export GEOMESA_LOG_DIR="${GEOMESA_HOME}/logs"
     fi
-    echo "Warning: GEOMESA_HOME is not set, using $GEOMESA_HOME" >> ${GEOMESA_LOG_DIR}/geomesa.err
+    if [[ ! -d "${GEOMESA_LOG_DIR}" ]]; then
+        mkdir "${GEOMESA_LOG_DIR}"
+    fi
+    GEOMESA_LOG=${GEOMESA_LOG_DIR}/geomesa.err
+    touch GEOMESA_LOG
+    echo "Warning: GEOMESA_HOME is not set, using $GEOMESA_HOME" >> ${GEOMESA_LOG}
 }
 
 if [[ -z "$GEOMESA_HOME" ]]; then
