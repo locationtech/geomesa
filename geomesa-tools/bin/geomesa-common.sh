@@ -88,7 +88,7 @@ function geomesaConfigure() {
 
     if [[ -z "$GEOMESA_LIB" ]]; then
         GEOMESA_LIB=${GEOMESA_HOME}/lib
-    elif contiansElement "GEOMESA_LIB" "${existingEnvVars[@]}"; then
+    elif containsElement "GEOMESA_LIB" "${existingEnvVars[@]}"; then
         message="Warning: GEOMESA_LIB already set, probably by a prior configuration."
         message="${message}\n Current value is ${GEOMESA_LIB}."
         echo >&2 ""
@@ -109,7 +109,7 @@ function geomesaConfigure() {
     echo "export PATH=\${GEOMESA_HOME}/bin:\$PATH"
 }
 
-function contiansElement() {
+function containsElement() {
     local element
     for element in "${@:2}"; do [[ "$element" == "$1" ]] && return 0; done
     return 1
@@ -183,7 +183,7 @@ fi
 # GEOMESA paths, GEOMESA_LIB should live inside GEOMESA_HOME, but can be pointed elsewhere in geomesa-env
 if [[ -z "$GEOMESA_LIB" ]]; then
     GEOMESA_LIB=${GEOMESA_HOME}/lib
-elif [[ $1 = configure ]] && contiansElement "GEOMESA_LIB" "${existingEnvVars[@]}"; then
+elif [[ $1 = configure ]] && containsElement "GEOMESA_LIB" "${existingEnvVars[@]}"; then
     message="Warning: GEOMESA_LIB was already set, probably by a prior configuration or the geomesa-env config."
     message="${message}\n The current value is ${GEOMESA_LIB}."
     echo >&2 ""
