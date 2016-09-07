@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.tools.accumulo
 
-import java.io.{FileNotFoundException, BufferedReader, File, InputStreamReader}
+import java.io.{BufferedReader, File, FileNotFoundException, InputStreamReader}
 import java.util.Locale
 
 import com.typesafe.scalalogging.LazyLogging
@@ -19,8 +19,6 @@ import org.apache.commons.compress.compressors.xz.XZUtils
 import org.apache.commons.io.{FileUtils, FilenameUtils}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.geotools.data.DataStoreFinder
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 
 import scala.util.Try
 import scala.xml.XML
