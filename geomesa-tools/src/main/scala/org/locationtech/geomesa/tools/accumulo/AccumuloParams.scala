@@ -45,45 +45,9 @@ trait AccumuloConnectionParams extends OptionalZookeepersParam with AccumuloProp
 
   @Parameter(names = Array("--mock"), description = "Run everything with a mock accumulo instance instead of a real one")
   var useMock: Boolean = false
-
-  def resolveEnvironment() = {
-    if (instance == null) {
-      instance = instanceName
-    }
-    if (zookeepers == null) {
-      zookeepers = zookeepersProp
-    }
-    if (password == null) {
-      password = readPassword()
-    }
-  }
 }
 
 trait GeoMesaConnectionParams extends AccumuloConnectionParams {
-
   @Parameter(names = Array("-c", "--catalog"), description = "Catalog table name for GeoMesa", required = true)
   var catalog: String = null
-
-  lazy val dataStoreParams = Map[String, String](
-    AccumuloDataStoreParams.instanceIdParam.getName -> instance,
-    AccumuloDataStoreParams.zookeepersParam.getName -> zookeepers,
-    AccumuloDataStoreParams.userParam.getName       -> user,
-    AccumuloDataStoreParams.passwordParam.getName   -> password,
-    AccumuloDataStoreParams.tableNameParam.getName  -> catalog,
-    AccumuloDataStoreParams.visibilityParam.getName -> visibilities,
-    AccumuloDataStoreParams.authsParam.getName      -> auths,
-    AccumuloDataStoreParams.mockParam.getName       -> useMock.toString).filter(_._2 != null)
-
-  /**
-    * Get a handle to a datastore for a pre-existing catalog table
-    *
-    * @throws Exception if the catalog table does not exist in accumulo
-    */
-  def createDataStore(): AccumuloDataStore = {
-    import scala.collection.JavaConversions._
-    Option(DataStoreFinder.getDataStore(dataStoreParams).asInstanceOf[AccumuloDataStore]).getOrElse {
-      throw new Exception("Could not load a data store with the provided parameters: " +
-          dataStoreParams.map { case (k,v) => s"$k=$v" }.mkString(","))
-    }
-  }
 }

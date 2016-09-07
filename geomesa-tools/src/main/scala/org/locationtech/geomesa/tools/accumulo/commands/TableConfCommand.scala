@@ -114,7 +114,7 @@ object TableConfCommand {
     @Parameter(names = Array("-t", "--table-suffix"), description = "Table suffix to operate on (attr_idx, st_idx, or records)", required = true)
     var tableSuffix: String = null
 
-    lazy val ds = createDataStore()
+    lazy val ds = DataStoreParamsHelper.createDataStore(this)
     lazy val tableName = getTableName(ds, this)
   }
 
