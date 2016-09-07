@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.utils.geotools
 
 import java.io.{File, Serializable}
-import java.net.URL
 import java.util.{Map => JMap}
 
 import org.geotools.data._
@@ -18,7 +17,6 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
-import scala.util.Try
 
 object GeneralShapefileIngest {
   def shpToDataStoreViaParams(shapefilePath: String, params: JMap[String, Serializable]): DataStore =
@@ -36,12 +34,12 @@ object GeneralShapefileIngest {
   // The goal of this method is to allow for URL-based look-ups.
   //  This allows for us to ingest files from HDFS and S3.
   def getShapefileDatastore(shapefilePath: String): FileDataStore = {
+    // NOTE this regex is designed to work for s3a, s3n, etc.
     if (shapefilePath.matches("""\w{3,4}:\/\/.*$""")) {
       DataStoreFinder.getDataStore(Map("url" -> shapefilePath)).asInstanceOf[FileDataStore]
     } else {
       FileDataStoreFinder.getDataStore(new File(shapefilePath))
     }
-
   }
 
   def shpToDataStore(shapefilePath: String, ds: DataStore, featureName: String): DataStore = {

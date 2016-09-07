@@ -32,6 +32,7 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
   override val command = "ingest"
   override val params = new IngestParameters()
 
+  // If you change this, update the regex in GeneralShapefileIngest for URLs
   private val remotePrefixes = Seq("hdfs", "s3n", "s3a")
 
   def isDistributedUrl(url: String) = remotePrefixes.exists(url.startsWith)
