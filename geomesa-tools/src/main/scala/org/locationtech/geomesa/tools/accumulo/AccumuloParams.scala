@@ -9,8 +9,6 @@
 package org.locationtech.geomesa.tools.accumulo
 
 import com.beust.jcommander.Parameter
-import org.geotools.data.DataStoreFinder
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.tools.common.OptionalZookeepersParam
 
 /**
@@ -27,7 +25,7 @@ trait AccumuloRasterTableParam {
   var table: String = null
 }
 
-trait AccumuloConnectionParams extends OptionalZookeepersParam with AccumuloProperties {
+trait AccumuloConnectionParams extends OptionalZookeepersParam {
   @Parameter(names = Array("-u", "--user"), description = "Accumulo user name", required = true)
   var user: String = null
 
