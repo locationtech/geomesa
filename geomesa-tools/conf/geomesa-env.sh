@@ -83,6 +83,22 @@ function setvar() {
 #
 # setvar HADOOP_CONF_DIR /path/to/hadoop/etc/hadoop
 
+# Hadoop CDH configuration
+# Setting this variable to "1" will configure classpath settings for Hadoop
+# CDH. HADOOP_HOME and HADOOP_CONF_DIR are still used.
+#
+hadoopCDH="0"
+#
+# Hadoop CDH classpath variables
+# Depending on your installation configuration these may not be needed.
+# These are all loaded into the classpath. slf4j jars will be excluded.
+#
+# setvar HADOOP_COMMON_HOME /path/to/hadoop/common/home
+# setvar HADOOP_HDFS_HOME /path/to/hadoop/hdfs/home
+# setvar YARN_HOME /path/to/yarn/home
+# setvar HADOOP_MAPRED_HOME /path/to/map/reduce/home
+# setvar HADOOP_CUSTOM_CP /path/to/jars:/path/to/jars
+
 # ==================================================================
 # Zookeeper Environment Variables
 # ==================================================================
