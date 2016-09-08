@@ -203,7 +203,7 @@ as desired.
 
 .. note::
 
-    You can configure environment variables and classpath settings in geomesa-env.sh.
+    You can configure environment variables and classpath settings in geomesa-tools-$VERSION/bin/geomesa-env.sh.
 
 In the ``geomesa-tools-$VERSION`` directory, run ``bin/geomesa configure`` to set up the tools.
 
