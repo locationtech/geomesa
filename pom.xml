@@ -42,6 +42,7 @@
         <module>geomesa-metrics</module>
         <module>docs</module>
         <module>geomesa-native-api</module>
+        <module>geomesa-index-api</module>
     </modules>
 
     <properties>
@@ -1350,6 +1351,11 @@
                 <groupId>org.calrissian.mango</groupId>
                 <artifactId>mango-core</artifactId>
                 <version>1.2.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-index-api</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>

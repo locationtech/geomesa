@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.tools.accumulo.commands
 
+import java.net.URL
 import java.util
 import java.util.Locale
 
@@ -24,14 +25,20 @@ import org.locationtech.geomesa.tools.common.{CLArgResolver, OptionalFeatureType
 import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
 
 import scala.collection.JavaConversions._
+import scala.collection.parallel.ForkJoinTaskSupport
 import scala.util.Try
 
 class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging {
   override val command = "ingest"
   override val params = new IngestParameters()
 
+  // If you change this, update the regex in GeneralShapefileIngest for URLs
+  private val remotePrefixes = Seq("hdfs", "s3n", "s3a")
+
+  def isDistributedUrl(url: String) = remotePrefixes.exists(url.startsWith)
+
   override def execute(): Unit = {
-    ensureSameFs(Seq("hdfs", "s3n", "s3a"))
+    ensureSameFs(remotePrefixes)
 
     val fmtParam = Option(params.format).flatMap(f => Try(Formats.withName(f.toLowerCase(Locale.US))).toOption)
     lazy val fmtFile = params.files.flatMap(f => Try(Formats.withName(getFileExtension(f))).toOption).headOption
@@ -39,7 +46,21 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
 
     if (fmt == SHP) {
       val ds = new DataStoreHelper(params).getDataStore()
-      params.files.foreach(GeneralShapefileIngest.shpToDataStore(_, ds, params.featureName))
+
+      // If someone is ingesting file from hdfs or S3, we add the Hadoop URL Factories to the JVM.
+      if (params.files.exists(isDistributedUrl)) {
+        import org.apache.hadoop.fs.FsUrlStreamHandlerFactory
+        val factory = new FsUrlStreamHandlerFactory
+        URL.setURLStreamHandlerFactory(factory)
+      }
+
+      if (params.threads > 1) {
+        val parfiles = params.files.par
+        parfiles.tasksupport = new ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(params.threads))
+        parfiles.foreach(GeneralShapefileIngest.shpToDataStore(_, ds, params.featureName))
+      } else {
+        params.files.foreach(GeneralShapefileIngest.shpToDataStore(_, ds, params.featureName))
+      }
       ds.dispose()
     } else {
       val dsParams = new DataStoreHelper(params).paramMap

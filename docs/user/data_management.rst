@@ -321,13 +321,6 @@ Attribute-Level Visibilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For more advanced use cases, visibilities can be set at the attribute level.
-
-.. warning::
-
-    Attribute level visibilities is an experimental feature and currently does not support all query types.
-    Errors or data leaks may occur if the default date or geometry are not returned from a query
-    due to visibilities. Future versions of GeoMesa may not support the current attribute level visibilities.
-
 Attribute-level visibilities must be enabled when creating your simple feature type by setting
 the appropriate user data value:
 

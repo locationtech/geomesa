@@ -11,7 +11,7 @@ package org.locationtech.geomesa.raster.index
 
 import org.apache.hadoop.io.Text
 import org.joda.time.DateTime
-import org.locationtech.geomesa.accumulo.index.TextFormatter
+import org.locationtech.geomesa.accumulo.index.geohash.TextFormatter
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.opengis.feature.simple.SimpleFeature

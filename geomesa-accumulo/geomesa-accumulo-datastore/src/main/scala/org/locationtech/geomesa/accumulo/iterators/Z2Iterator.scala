@@ -13,7 +13,7 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ByteSequence, Key, Value, Range => AccRange}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo.data.tables.Z2Table
+import org.locationtech.geomesa.accumulo.index.z2.Z2Index
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.sfcurve.zorder.Z2
 
@@ -49,7 +49,7 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
     xyvals = keyXY.map(_.toInt).grouped(4).map { case Array(x1, y1, x2, y2) => (x1, y1, x2, y2) }.toArray
 
     // account for shard and table sharing bytes
-    val numBytes = if (isPoints) 8 else Z2Table.GEOM_Z_NUM_BYTES
+    val numBytes = if (isPoints) 8 else Z2Index.GEOM_Z_NUM_BYTES
     rowToZ = rowToZ(numBytes, isTableSharing)
   }
 
@@ -157,5 +157,5 @@ object Z2Iterator {
   }
 
   private def decodeNonPoints(x: Double, y: Double): (Int, Int) =
-    Z2(Z2SFC.index(x, y).z & Z2Table.GEOM_Z_MASK).decode
+    Z2(Z2SFC.index(x, y).z & Z2Index.GEOM_Z_MASK).decode
 }

@@ -16,6 +16,7 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.Constants
+import org.locationtech.geomesa.accumulo.index.geohash.IndexFilterHelpers
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.utils.geohash.GeoHash
@@ -116,7 +117,7 @@ class GenerateKNNQueryTest extends Specification {
         }
       }
 
-      val geometryToCover = new org.locationtech.geomesa.accumulo.index.IndexFilterHelpers{}.netGeom(geomsToCover)
+      val geometryToCover = new IndexFilterHelpers{}.netGeom(geomsToCover)
 
       // confirm that the extracted spatial predicate matches the GeoHash BBOX.
       geometryToCover.equals(smallGH.geom) must beTrue

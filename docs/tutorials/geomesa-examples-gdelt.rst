@@ -302,7 +302,15 @@ Heatmaps
 ~~~~~~~~
 
 Use a heatmap to more clearly visualize multiple events in the same
-location or high volume of data in general. Add the SLD file
+location or high volume of data in general.
+
+.. note::
+
+    The heatmap style requires that ``geomesa-process`` be installed in your
+    GeoServer, as described in :ref:`install_geomesa_process`.
+
+
+Add the SLD file
 :download:`heatmap.sld <_static/geomesa-examples-gdelt/heatmap.sld>` to
 GeoServer.
 
