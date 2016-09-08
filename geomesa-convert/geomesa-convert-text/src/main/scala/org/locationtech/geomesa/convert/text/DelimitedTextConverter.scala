@@ -56,14 +56,20 @@ class DelimitedTextConverterFactory extends AbstractSimpleFeatureConverterFactor
     }
 
     conf.getStringOpt("options.quote").foreach { q =>
+      require(q.length == 1, "Quote must be a single character")
       baseFmt = baseFmt.withQuote(q.toCharArray()(0))
+    }
+
+    conf.getStringOpt("options.escape").foreach { q =>
+      require(q.length == 1, "Escape must be a single character")
+      baseFmt = baseFmt.withEscape(q.toCharArray()(0))
     }
 
     new DelimitedTextConverter(baseFmt, sft, idBuilder, fields, userDataBuilder, opts, validating)
   }
 }
 
-class DelimitedOptions(var skipLines: Int = 0, var pipeSize: Int = 16 * 1024, var quote: String = "\"")
+class DelimitedOptions(var skipLines: Int = 0, var pipeSize: Int = 16 * 1024)
 
 class DelimitedTextConverter(format: CSVFormat,
                              val targetSFT: SimpleFeatureType,
