@@ -2,10 +2,10 @@
 #
 # Builds the HTML documentation tree and mirrors it to the geomesa.github.io repository.
 
-# default paths for docs, can be overridden by command line switches
-GEOMESA=/opt/devel/src/geomesa
-GEOMESA_GITHUB_IO=/opt/devel/src/geomesa.github.io
-DOCS=$GEOMESA_GITHUB_IO/documentation
+# default paths for docs, can be overridden by setting the GEOMESA
+# and GEOMESA_GITHUB_IO variables and/or by command line switches
+GEOMESA=${GEOMESA:-/path/to/geomesa}
+GEOMESA_GITHUB_IO=${GEOMESA_GITHUB_IO:-/path/to/geomesa.github.io}
 
 function check_repo {
     # check that repo in $dir is a Git repo and has $url as a remote
