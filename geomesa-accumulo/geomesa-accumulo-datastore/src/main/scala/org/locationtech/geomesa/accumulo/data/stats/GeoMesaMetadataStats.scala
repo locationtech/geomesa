@@ -425,13 +425,17 @@ class MetadataStatUpdater(stats: GeoMesaMetadataStats, sft: SimpleFeatureType, s
   override def remove(sf: SimpleFeature): Unit = stat.unobserve(sf)
 
   override def close(): Unit = {
-    stats.writeStat(stat, sft, merge = true)
+    if (!stat.isEmpty) {
+      stats.writeStat(stat, sft, merge = true)
+    }
     // schedule a compaction so our metadata doesn't stack up too much
     stats.scheduleCompaction()
   }
 
   override def flush(): Unit = {
-    stats.writeStat(stat, sft, merge = true)
+    if (!stat.isEmpty) {
+      stats.writeStat(stat, sft, merge = true)
+    }
     // reload the tracker - for long-held updaters, this will refresh the histogram ranges
     stat = statFunction
   }
