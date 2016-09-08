@@ -66,37 +66,50 @@ ACCUMULO_CP="$(findJars $ACCUMULO_LIB true true)"
 
 # Get the hadoop jars, ignoring jars with names containing slf4j and test
 # Copied from accumulo classpath
-hadoopDirs=(
-  # Hadoop 2 requirements
-  $HADOOP_HOME/share/hadoop/common
-  $HADOOP_HOME/share/hadoop/hdfs/
-  $HADOOP_HOME/share/hadoop/mapreduce/
-  $HADOOP_HOME/share/hadoop/tools/lib
-  $HADOOP_HOME/share/hadoop/yarn/
-  # HDP 2.0 requirements
-  /usr/lib/hadoop/
-  /usr/lib/hadoop-hdfs/
-  /usr/lib/hadoop-mapreduce/
-  /usr/lib/hadoop-yarn/
-  # HDP 2.2 requirements
-  /usr/hdp/current/hadoop-client/
-  /usr/hdp/current/hadoop-hdfs-client/
-  /usr/hdp/current/hadoop-mapreduce-client/
-  /usr/hdp/current/hadoop-yarn-client/
-  # IOP 4.1 requirements
-  /usr/iop/current/hadoop-client/
-  /usr/iop/current/hadoop-hdfs-client/
-  /usr/iop/current/hadoop-mapreduce-client/
-  /usr/iop/current/hadoop-yarn-client/
-)
+if [[ "$hadoopCDH" == "1" ]]; then
+  # Hadoop CDH configuration
+  hadoopDirs=(
+    $HADOOP_HOME
+    $HADOOP_CONF_DIR
+    $HADOOP_COMMON_HOME
+    $HADOOP_HDFS_HOME
+    $YARN_HOME
+    $HADOOP_MAPRED_HOME
+    $HADOOP_CUSTOM_CP
+  )
+else
+  hadoopDirs=(
+    # Hadoop 2 requirements
+    $HADOOP_HOME/share/hadoop/common
+    $HADOOP_HOME/share/hadoop/hdfs/
+    $HADOOP_HOME/share/hadoop/mapreduce/
+    $HADOOP_HOME/share/hadoop/tools/lib
+    $HADOOP_HOME/share/hadoop/yarn/
+    # HDP 2.0 requirements
+    /usr/lib/hadoop/
+    /usr/lib/hadoop-hdfs/
+    /usr/lib/hadoop-mapreduce/
+    /usr/lib/hadoop-yarn/
+    # HDP 2.2 requirements
+    /usr/hdp/current/hadoop-client/
+    /usr/hdp/current/hadoop-hdfs-client/
+    /usr/hdp/current/hadoop-mapreduce-client/
+    /usr/hdp/current/hadoop-yarn-client/
+    # IOP 4.1 requirements
+    /usr/iop/current/hadoop-client/
+    /usr/iop/current/hadoop-hdfs-client/
+    /usr/iop/current/hadoop-mapreduce-client/
+    /usr/iop/current/hadoop-yarn-client/
+  )
+fi
 
 for home in ${hadoopDirs[*]}; do
   tmp="$(findJars $home true)"
   if [[ -n "$tmp" ]]; then
-  HADOOP_CP="$HADOOP_CP:$tmp"
+    HADOOP_CP="$HADOOP_CP:$tmp"
   fi
   if [[ "${HADOOP_CP:0:1}" = ":" ]]; then
-  HADOOP_CP="${HADOOP_CP:1}"
+    HADOOP_CP="${HADOOP_CP:1}"
   fi
 done
 
