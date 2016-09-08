@@ -32,7 +32,7 @@ import scala.util.Try
  * Contains logic for converting between accumulo and geotools for the attribute index
  */
 @deprecated
-trait AttributeWritableIndexV5 extends AccumuloWritableIndex with LazyLogging {
+trait AttributeWritableIndexV5 extends AccumuloWritableIndex with AttributeSplittable with LazyLogging {
 
   override def writer(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
     val indexedAttributes = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft)
@@ -72,11 +72,11 @@ trait AttributeWritableIndexV5 extends AccumuloWritableIndex with LazyLogging {
       val attribute = toWrite.feature.getAttribute(idx)
       val mutations = getAttributeIndexRows(rowIdPrefix, descriptor, attribute).map(new Mutation(_))
       if (delete) {
-        mutations.foreach(_.putDelete(EMPTY_COLF, cq, toWrite.indexValues.head.vis))
+        mutations.foreach(_.putDelete(EMPTY_COLF, cq, toWrite.indexValuesWithId.head.vis))
       } else {
         val value = descriptor.getIndexCoverage() match {
-          case IndexCoverage.FULL => toWrite.fullValues.head
-          case IndexCoverage.JOIN => toWrite.indexValues.head
+          case IndexCoverage.FULL => toWrite.fullValuesWithId.head
+          case IndexCoverage.JOIN => toWrite.indexValuesWithId.head
         }
         mutations.foreach(_.put(EMPTY_COLF, cq, value.vis, value.value))
       }
@@ -132,20 +132,24 @@ trait AttributeWritableIndexV5 extends AccumuloWritableIndex with LazyLogging {
     }
 
   override def configure(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
-    val table = Try(ops.getTableName(sft.getTypeName, this)).getOrElse {
-      val table = GeoMesaTable.formatTableName(ops.catalogTable, tableSuffix, sft)
-      ops.metadata.insert(sft.getTypeName, tableNameKey, table)
-      table
-    }
+    val table = GeoMesaTable.formatTableName(ops.catalogTable, tableSuffix, sft)
+    ops.metadata.insert(sft.getTypeName, tableNameKey, table)
+
     AccumuloVersion.ensureTableExists(ops.connector, table)
+
+    configureSplits(sft, ops)
+
     ops.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
+  }
+
+  override def configureSplits(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
     val indexedAttrs = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft)
     if (indexedAttrs.nonEmpty) {
       val prefix = sft.getTableSharingPrefix
       val prefixFn = getAttributeIndexRowPrefix(prefix, _: AttributeDescriptor)
       val names = indexedAttrs.map(prefixFn).map(new Text(_))
       val splits = ImmutableSortedSet.copyOf(names.toArray)
-      ops.tableOps.addSplits(table, splits)
+      ops.tableOps.addSplits(ops.getTableName(sft.getTypeName, this), splits)
     }
   }
 }

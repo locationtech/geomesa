@@ -25,7 +25,6 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
-import scala.util.Try
 
 trait GeoHashWritableIndex extends AccumuloWritableIndex with LazyLogging {
 
@@ -100,12 +99,11 @@ trait GeoHashWritableIndex extends AccumuloWritableIndex with LazyLogging {
   }
 
   override def configure(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
-    val table = Try(ops.getTableName(sft.getTypeName, this)).getOrElse {
-      val table = GeoMesaTable.formatTableName(ops.catalogTable, tableSuffix, sft)
-      ops.metadata.insert(sft.getTypeName, tableNameKey, table)
-      table
-    }
+    val table = GeoMesaTable.formatTableName(ops.catalogTable, tableSuffix, sft)
+    ops.metadata.insert(sft.getTypeName, tableNameKey, table)
+
     AccumuloVersion.ensureTableExists(ops.connector, table)
+
     val maxShard = IndexSchema.maxShard(sft.getStIndexSchema)
     val splits = (1 until maxShard).map(i => new Text(s"%0${maxShard.toString.length}d".format(i)))
     ops.tableOps.addSplits(table, new java.util.TreeSet(splits))

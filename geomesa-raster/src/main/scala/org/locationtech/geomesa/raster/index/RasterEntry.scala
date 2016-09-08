@@ -26,7 +26,7 @@ import org.opengis.feature.simple.SimpleFeature
 object RasterEntry {
 
   val encoder = new ThreadLocal[SimpleFeatureSerializer] {
-    override def initialValue(): SimpleFeatureSerializer = IndexValueEncoder(rasterSft)
+    override def initialValue(): SimpleFeatureSerializer = IndexValueEncoder(rasterSft, includeIds = true)
   }
 
   def encodeIndexCQMetadata(metadata: DecodedIndexValue): Array[Byte] = {

@@ -91,7 +91,7 @@ trait Z2QueryableIndex extends AccumuloFeatureIndex
       val iter = KryoLazyMapAggregatingIterator.configure(sft, this, ecql, hints, sft.nonPoints)
       (Seq(iter), entriesToFeatures(sft, hints.getReturnSft), FullColumnFamily, false)
     } else {
-      val iters = KryoLazyFilterTransformIterator.configure(sft, ecql, hints).toSeq
+      val iters = KryoLazyFilterTransformIterator.configure(sft, this, ecql, hints).toSeq
       (iters, entriesToFeatures(sft, hints.getReturnSft), FullColumnFamily, sft.nonPoints)
     }
 

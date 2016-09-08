@@ -12,7 +12,7 @@ import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.DeleteCatalogCommand._
-import org.locationtech.geomesa.tools.common.{OptionalForceParam, PromptConfirm}
+import org.locationtech.geomesa.tools.common.{OptionalForceParam, Prompt}
 
 class DeleteCatalogCommand (parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
   override val command = "deletecatalog"
@@ -20,7 +20,7 @@ class DeleteCatalogCommand (parent: JCommander) extends CommandWithCatalog(paren
 
   override def execute() = {
     val msg = s"Delete catalog '$catalog'? (yes/no): "
-    if (params.force || PromptConfirm.confirm(msg, List("yes", "y"))) {
+    if (params.force || Prompt.confirm(msg, List("yes", "y"))) {
       ds.delete()
       println(s"Deleted catalog $catalog")
     } else {

@@ -33,6 +33,8 @@ trait Z3QueryableIndex extends AccumuloFeatureIndex
 
   writable: AccumuloWritableIndex =>
 
+  def hasSplits: Boolean
+
   override def getQueryPlan(sft: SimpleFeatureType,
                             ops: AccumuloDataStore,
                             filter: AccumuloFilterStrategy,
@@ -69,7 +71,6 @@ trait Z3QueryableIndex extends AccumuloFeatureIndex
     explain(s"Intervals: $intervals")
 
     val looseBBox = if (hints.containsKey(LOOSE_BBOX)) Boolean.unbox(hints.get(LOOSE_BBOX)) else ops.config.looseBBox
-    val hasSplits = Z3Index.hasSplits(sft)
 
     // if the user has requested strict bounding boxes, we apply the full filter
     // if this is a non-point geometry type, the index is coarse-grained, so we apply the full filter
@@ -104,7 +105,7 @@ trait Z3QueryableIndex extends AccumuloFeatureIndex
       val iter = KryoLazyMapAggregatingIterator.configure(sft, this, ecql, hints, sft.nonPoints)
       (Seq(iter), entriesToFeatures(sft, hints.getReturnSft), FullColumnFamily, false)
     } else {
-      val iters = KryoLazyFilterTransformIterator.configure(sft, ecql, hints).toSeq
+      val iters = KryoLazyFilterTransformIterator.configure(sft, this, ecql, hints).toSeq
       (iters, entriesToFeatures(sft, hints.getReturnSft), FullColumnFamily, sft.nonPoints)
     }
 

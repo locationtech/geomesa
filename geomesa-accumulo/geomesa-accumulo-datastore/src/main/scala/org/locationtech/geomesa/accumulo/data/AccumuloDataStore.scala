@@ -21,7 +21,6 @@ import org.geotools.data._
 import org.geotools.factory.Hints
 import org.geotools.feature.{FeatureTypes, NameImpl}
 import org.joda.time.DateTimeUtils
-import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
 import org.locationtech.geomesa.accumulo.GeomesaSystemProperties
 import org.locationtech.geomesa.accumulo.data.GeoMesaMetadata._
 import org.locationtech.geomesa.accumulo.data.stats._
@@ -29,7 +28,7 @@ import org.locationtech.geomesa.accumulo.data.stats.usage.{GeoMesaUsageStats, Ge
 import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
+import org.locationtech.geomesa.accumulo.index.attribute.{AttributeSplittable, AttributeIndex}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 // noinspection ScalaDeprecation
@@ -37,16 +36,13 @@ import org.locationtech.geomesa.accumulo.index.geohash.GeoHashIndex
 import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.accumulo.iterators.ProjectVersionIterator
 import org.locationtech.geomesa.accumulo.util.{DistributedLocking, GeoMesaBatchWriterConfig, Releasable}
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.features.SerializationType.SerializationType
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializer, SimpleFeatureSerializers}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.security.{AuditProvider, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.conf.GeoMesaProperties
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{FeatureSpec, NonGeomAttributeSpec}
 import org.locationtech.geomesa.utils.geotools.{GeoToolsDateFormat, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
 import org.opengis.feature.`type`.Name
@@ -234,11 +230,7 @@ class AccumuloDataStore(val connector: Connector,
           "same GeoMesa jar versions across your entire workflow. For more information, see " +
           "http://www.geomesa.org/documentation/user/installation_and_configuration.html#upgrading")
 
-      if (sft.getSchemaVersion > CURRENT_SCHEMA_VERSION) {
-        logger.error(s"Trying to access schema ${sft.getTypeName} with version ${sft.getSchemaVersion} " +
-            s"but client can only handle up to version $CURRENT_SCHEMA_VERSION.")
-        throw error
-      } else if (missingIndices.nonEmpty) {
+      if (missingIndices.nonEmpty) {
         val versions = missingIndices.map { case (n, v, _) => s"$n:$v" }.mkString(",")
         val available = AccumuloFeatureIndex.AllIndices.map(i => s"${i.name}:${i.version}").mkString(",")
         logger.error(s"Trying to access schema ${sft.getTypeName} with invalid index versions '$versions' - " +
@@ -300,8 +292,8 @@ class AccumuloDataStore(val connector: Connector,
     * @param sft new simple feature type
     */
   override def updateSchema(typeName: Name, sft: SimpleFeatureType): Unit = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 
     // validate type name has not changed
     if (typeName.toString != sft.getTypeName) {
@@ -342,17 +334,28 @@ class AccumuloDataStore(val connector: Connector,
 
       // update the configured indices if needed
       val previousIndices = previousSft.getIndices.map { case (name, version, _) => (name, version)}
-      val newIndices = sft.getIndices.collect {
-        case (name, version, _) if !previousIndices.contains((name, version)) => (name, version)
+      val newIndices = sft.getIndices.filterNot {
+        case (name, version, _) => previousIndices.contains((name, version))
       }
-      newIndices.flatMap(AccumuloFeatureIndex.IndexLookup.get).filter(_.supports(sft)).foreach(_.configure(sft, this))
+      val validatedIndices = newIndices.map { case (name, version, _) =>
+        AccumuloFeatureIndex.IndexLookup.get(name, version) match {
+          case Some(i) if i.supports(sft) => i
+          case Some(i) => throw new IllegalArgumentException(s"Index ${i.identifier} does not support this feature type")
+          case None => throw new IllegalArgumentException(s"Index $name:$version does not exist")
+        }
+      }
+      // configure the new indices
+      validatedIndices.foreach(_.configure(sft, this))
 
       // check for newly indexed attributes and re-configure the splits
       val previousAttrIndices = previousSft.getAttributeDescriptors.collect {
         case d if d.isIndexed => d.getLocalName
       }
       if (sft.getAttributeDescriptors.exists(d => d.isIndexed && !previousAttrIndices.contains(d.getLocalName))) {
-        AttributeIndex.configure(sft, this)
+        AccumuloFeatureIndex.indices(sft, IndexMode.Any).foreach {
+          case s: AttributeSplittable => s.configureSplits(sft, this)
+          case _ => // no-op
+        }
       }
 
       // If all is well, update the metadata
@@ -463,7 +466,7 @@ class AccumuloDataStore(val connector: Connector,
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    new ModifyAccumuloFeatureWriter(sft, getSerializer(sft), this, defaultVisibilities, filter)
+    new ModifyAccumuloFeatureWriter(sft, this, defaultVisibilities, filter)
   }
 
   /**
@@ -479,7 +482,7 @@ class AccumuloDataStore(val connector: Connector,
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    new AppendAccumuloFeatureWriter(sft, getSerializer(sft), this, defaultVisibilities)
+    new AppendAccumuloFeatureWriter(sft, this, defaultVisibilities)
   }
 
   /**
@@ -542,9 +545,9 @@ class AccumuloDataStore(val connector: Connector,
   // noinspection ScalaDeprecation
   override def getTableName(featureName: String, index: AccumuloWritableIndex): String = {
     lazy val oldKey = index match {
-      case RecordIndex  => "tables.record.name"
-      case GeoHashIndex => "tables.idx.st.name"
+      case i if i.name == RecordIndex.name    => "tables.record.name"
       case i if i.name == AttributeIndex.name => "tables.idx.attr.name"
+      case GeoHashIndex => "tables.idx.st.name"
       case i => s"tables.${i.name}.name"
     }
     metadata.read(featureName, index.tableNameKey).orElse(metadata.read(featureName, oldKey)).getOrElse {
@@ -599,20 +602,6 @@ class AccumuloDataStore(val connector: Connector,
         .getOrElse(SerializationType.KRYO)
 
   /**
-    * Gets a simple feature serializer for writing values
-    *
-    * @param sft simple feature type
-    * @return
-    */
-  def getSerializer(sft: SimpleFeatureType): SimpleFeatureSerializer = {
-    if (sft.getSchemaVersion < 9) {
-      SimpleFeatureSerializers(sft, getFeatureEncoding(sft))
-    } else {
-      new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
-    }
-  }
-
-  /**
    * Gets the query plan for a given query. The query plan consists of the tables, ranges, iterators etc
    * required to run a query against accumulo.
    *
@@ -656,8 +645,6 @@ class AccumuloDataStore(val connector: Connector,
     val schemaIdString = new String(Array(schemaId.asInstanceOf[Byte]), StandardCharsets.UTF_8)
 
     // set user data so that it gets persisted
-    sft.setSchemaVersion(CURRENT_SCHEMA_VERSION)
-
     if (sft.isTableSharing) {
       sft.setTableSharing(true) // explicitly set it in case this was just the default
       sft.setTableSharingPrefix(schemaIdString)
@@ -670,13 +657,11 @@ class AccumuloDataStore(val connector: Connector,
     // compute the metadata values - IMPORTANT: encode type has to be called after all user data is set
     val attributesValue   = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
     val statDateValue     = GeoToolsDateFormat.print(DateTimeUtils.currentTimeMillis())
-    val dataStoreVersion  = sft.getSchemaVersion.toString
 
     // store each metadata in the associated key
     val metadataMap = Map(
       ATTRIBUTES_KEY        -> attributesValue,
       STATS_GENERATION_KEY  -> statDateValue,
-      VERSION_KEY           -> dataStoreVersion,
       SCHEMA_ID_KEY         -> schemaIdString
     )
 

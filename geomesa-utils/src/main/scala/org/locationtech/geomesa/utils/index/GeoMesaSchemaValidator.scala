@@ -29,10 +29,9 @@ object GeoMesaSchemaValidator {
 
   private [index] def boolean(value: AnyRef): Boolean = value match {
     case null => false
-    case bool: jBoolean if bool => true
-    case bool: String if jBoolean.valueOf(bool) => true
-    case bool if jBoolean.valueOf(bool.toString) => true
-    case _ => false
+    case bool: jBoolean => bool
+    case bool: String => jBoolean.valueOf(bool)
+    case bool => jBoolean.valueOf(bool.toString)
   }
 }
 

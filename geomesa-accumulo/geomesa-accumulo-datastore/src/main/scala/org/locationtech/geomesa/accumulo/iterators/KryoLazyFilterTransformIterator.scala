@@ -16,12 +16,16 @@ import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex._
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import scala.util.control.NonFatal
 
 /**
  * Iterator that operates on kryo encoded values. It will:
@@ -48,14 +52,16 @@ class KryoLazyFilterTransformIterator extends
   override def init(src: SortedKeyValueIterator[Key, Value],
                     options: jMap[String, String],
                     env: IteratorEnvironment): Unit = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     IteratorClassLoader.initClassLoader(getClass)
 
     this.source = src.deepCopy(env)
     sft = SimpleFeatureTypes.createType("test", options.get(SFT_OPT))
 
-    val kryoOptions = if (sft.getSchemaVersion < 9) SerializationOptions.none else SerializationOptions.withoutId
+    val index = try { AccumuloFeatureIndex.index(options.get(INDEX_OPT)) } catch {
+      case NonFatal(e) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(INDEX_OPT)}")
+    }
+    val kryoOptions = if (index.serializedWithId) SerializationOptions.none else SerializationOptions.withoutId
     kryo = new KryoFeatureSerializer(sft, kryoOptions)
     reusablesf = kryo.getReusableFeature
 
@@ -118,16 +124,21 @@ object KryoLazyFilterTransformIterator {
   import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 
   val SFT_OPT                   = "sft"
+  val INDEX_OPT                 = "index"
   val CQL_OPT                   = "cql"
   val TRANSFORM_SCHEMA_OPT      = "tsft"
   val TRANSFORM_DEFINITIONS_OPT = "tdefs"
 
   val DefaultPriority = 25
 
-  def configure(sft: SimpleFeatureType, filter: Option[Filter], hints: Hints): Option[IteratorSetting] =
-    configure(sft, filter, hints.getTransform, hints.getSampling)
+  def configure(sft: SimpleFeatureType,
+                index: AccumuloFeatureIndex,
+                filter: Option[Filter],
+                hints: Hints): Option[IteratorSetting] =
+    configure(sft, index, filter, hints.getTransform, hints.getSampling)
 
   def configure(sft: SimpleFeatureType,
+                index: AccumuloFeatureIndex,
                 filter: Option[Filter],
                 transform: Option[(String, SimpleFeatureType)],
                 sampling: Option[(Float, Option[String])],
@@ -135,6 +146,7 @@ object KryoLazyFilterTransformIterator {
     if (filter.isDefined || transform.isDefined || sampling.isDefined) {
       val is = new IteratorSetting(priority, "filter-transform-iter", classOf[KryoLazyFilterTransformIterator])
       is.addOption(SFT_OPT, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
+      is.addOption(INDEX_OPT, index.identifier)
       filter.foreach(f => is.addOption(CQL_OPT, ECQL.toCQL(f)))
       transform.foreach { case (tdef, tsft) =>
         is.addOption(TRANSFORM_DEFINITIONS_OPT, tdef)

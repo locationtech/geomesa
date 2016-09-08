@@ -15,10 +15,10 @@ import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import org.locationtech.geomesa.accumulo.data.stats.usage.RasterQueryStatTransform
 import org.locationtech.geomesa.raster.data.AccumuloRasterStore
 import org.locationtech.geomesa.tools.accumulo.commands.QueryRasterStatsCommmand.QueryStatsParameters
-import org.locationtech.geomesa.tools.accumulo.{AccumuloConnectionParams, AccumuloProperties, AccumuloRasterTableParam}
+import org.locationtech.geomesa.tools.accumulo.{AccumuloConnectionParams, AccumuloRasterTableParam}
 import org.locationtech.geomesa.tools.common.commands.Command
 
-class QueryRasterStatsCommmand(parent: JCommander) extends Command(parent) with AccumuloProperties {
+class QueryRasterStatsCommmand(parent: JCommander) extends Command(parent) {
   override val command: String = "queryrasterstats"
   override val params = new QueryStatsParameters()
 
@@ -36,9 +36,9 @@ class QueryRasterStatsCommmand(parent: JCommander) extends Command(parent) with 
   }
 
   def createRasterStore: AccumuloRasterStore = {
-    val password = getPassword(params.password)
     val auths = Option(params.auths)
-    AccumuloRasterStore(params.user, password,
+    AccumuloRasterStore(params.user,
+                        params.password,
                         params.instance,
                         params.zookeepers,
                         params.table,

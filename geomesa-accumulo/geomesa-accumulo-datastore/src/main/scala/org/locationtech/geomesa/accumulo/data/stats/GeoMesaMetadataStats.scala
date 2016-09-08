@@ -24,7 +24,9 @@ import org.joda.time._
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.GeoMesaMetadata._
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.QueryHints
+import org.locationtech.geomesa.accumulo.index.z2.{Z2IndexV1, Z2IndexV2}
+import org.locationtech.geomesa.accumulo.index.z3.{Z3IndexV2, Z3IndexV3}
+import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, QueryHints}
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.filter._
@@ -32,6 +34,7 @@ import org.locationtech.geomesa.filter.visitor.{BoundsFilterVisitor, QueryPlanFi
 import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
@@ -74,8 +77,12 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
 
   override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
     if (exact) {
-      if (sft.isPoints || sft.getSchemaVersion > 9) {
-        // we know that we don't have any duplicate entries
+      val hasDupes = sft.nonPoints && {
+        val indices = AccumuloFeatureIndex.indices(sft, IndexMode.Read)
+        Seq(Z2IndexV1, Z2IndexV2, Z3IndexV2, Z3IndexV3).exists(indices.contains)
+        // TODO check for multivalued attribute indices
+      }
+      if (!hasDupes) {
         runStats[CountStat](sft, Stat.Count(), filter).headOption.map(_.count)
       } else {
         // stat query doesn't entirely handle duplicates - only on a per-iterator basis

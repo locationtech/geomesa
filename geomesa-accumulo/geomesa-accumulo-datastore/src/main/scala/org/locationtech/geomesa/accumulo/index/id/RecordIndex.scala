@@ -8,7 +8,12 @@
 
 package org.locationtech.geomesa.accumulo.index.id
 
+import org.apache.accumulo.core.data.Mutation
+import org.apache.hadoop.io.Text
+import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter._
+import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 
 object RecordIndex extends AccumuloFeatureIndex with RecordWritableIndex with RecordQueryableIndex {
@@ -17,7 +22,60 @@ object RecordIndex extends AccumuloFeatureIndex with RecordWritableIndex with Re
 
   override val name: String = "records"
 
-  override val version: Int = 1
+  override val version: Int = 2
+
+  override val serializedWithId: Boolean = false
 
   override def supports(sft: SimpleFeatureType): Boolean = true
+
+
+  override def writer(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
+    val rowIdPrefix = sft.getTableSharingPrefix
+    (wf: WritableFeature) => {
+      val mutation = new Mutation(getRowKey(rowIdPrefix, wf.feature.getID))
+      wf.fullValues.foreach(value => mutation.put(value.cf, value.cq, value.vis, value.value))
+      Seq(mutation)
+    }
+  }
+
+  override def remover(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
+    val rowIdPrefix = sft.getTableSharingPrefix
+    (wf: WritableFeature) => {
+      val mutation = new Mutation(getRowKey(rowIdPrefix, wf.feature.getID))
+      wf.fullValues.foreach(value => mutation.putDelete(value.cf, value.cq, value.vis))
+      Seq(mutation)
+    }
+  }
+
+}
+
+object RecordIndexV1 extends AccumuloFeatureIndex with RecordWritableIndex with RecordQueryableIndex {
+
+  private val SFT_CF = new Text("SFT")
+
+  override val name: String = "records"
+
+  override val version: Int = 1
+
+  override val serializedWithId: Boolean = true
+
+  override def supports(sft: SimpleFeatureType): Boolean = true
+
+  override def writer(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
+    val rowIdPrefix = sft.getTableSharingPrefix
+    (wf: WritableFeature) => {
+      val mutation = new Mutation(RecordIndex.getRowKey(rowIdPrefix, wf.feature.getID))
+      wf.fullValuesWithId.foreach(value => mutation.put(SFT_CF, EMPTY_COLQ, value.vis, value.value))
+      Seq(mutation)
+    }
+  }
+
+  override def remover(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
+    val rowIdPrefix = sft.getTableSharingPrefix
+    (wf: WritableFeature) => {
+      val mutation = new Mutation(RecordIndex.getRowKey(rowIdPrefix, wf.feature.getID))
+      wf.fullValuesWithId.foreach(value => mutation.putDelete(SFT_CF, EMPTY_COLQ, value.vis))
+      Seq(mutation)
+    }
+  }
 }

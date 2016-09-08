@@ -49,6 +49,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     ("IN ('0', '5', '7')", Seq(0, 5, 7)),
     ("bbox(geom, -130, 45, -120, 50)", Seq(5, 6, 7, 8, 9)),
     ("bbox(geom, -130, 45, -120, 50) AND dtg DURING 2015-01-01T00:00:00.000Z/2015-01-01T07:59:59.999Z", Seq(5, 6, 7)),
+    ("name = 'name5'", Seq(5)),
     ("name = 'name5' AND bbox(geom, -130, 45, -120, 50) AND dtg DURING 2015-01-01T00:00:00.000Z/2015-01-01T07:59:59.999Z", Seq(5)),
     ("name = 'name5' AND dtg DURING 2015-01-01T00:00:00.000Z/2015-01-01T07:59:59.999Z", Seq(5)),
     ("name = 'name5' AND bbox(geom, -130, 40, -120, 50)", Seq(5)),

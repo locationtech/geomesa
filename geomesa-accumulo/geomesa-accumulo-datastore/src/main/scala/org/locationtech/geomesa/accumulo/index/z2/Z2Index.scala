@@ -37,6 +37,8 @@ object Z2Index extends AccumuloFeatureIndex with Z2WritableIndex with Z2Queryabl
 
   override val version: Int = 3
 
+  override val serializedWithId: Boolean = false
+
   override def supports(sft: SimpleFeatureType): Boolean = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     sft.isPoints
@@ -75,6 +77,8 @@ object Z2IndexV2 extends AccumuloFeatureIndex with Z2WritableIndex with Z2Querya
   override val name: String = "z2"
 
   override val version: Int = 2
+
+  override val serializedWithId: Boolean = false
 
   override def supports(sft: SimpleFeatureType): Boolean = sft.getGeometryDescriptor != null
 
@@ -135,6 +139,8 @@ object Z2IndexV1 extends AccumuloFeatureIndex with Z2WritableIndex with Z2Querya
 
   override val version: Int = 1
 
+  override val serializedWithId: Boolean = true
+
   override def supports(sft: SimpleFeatureType): Boolean = sft.getGeometryDescriptor != null
 
   override def writer(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
@@ -149,7 +155,7 @@ object Z2IndexV1 extends AccumuloFeatureIndex with Z2WritableIndex with Z2Querya
       val cq = if (rows.length > 1) new Text(Integer.toHexString(rows.length)) else EMPTY_TEXT
       rows.map { row =>
         val mutation = new Mutation(row)
-        wf.fullValues.foreach(value => mutation.put(FullColumnFamily, cq, value.vis, value.value))
+        wf.fullValuesWithId.foreach(value => mutation.put(FullColumnFamily, cq, value.vis, value.value))
         wf.binValues.foreach(value => mutation.put(BinColumnFamily, cq, value.vis, value.value))
         mutation
       }
@@ -167,7 +173,7 @@ object Z2IndexV1 extends AccumuloFeatureIndex with Z2WritableIndex with Z2Querya
       val cq = if (rows.length > 1) new Text(Integer.toHexString(rows.length)) else EMPTY_TEXT
       rows.map { row =>
         val mutation = new Mutation(row)
-        wf.fullValues.foreach(value => mutation.putDelete(FullColumnFamily, cq, value.vis))
+        wf.fullValuesWithId.foreach(value => mutation.putDelete(FullColumnFamily, cq, value.vis))
         wf.binValues.foreach(value => mutation.putDelete(BinColumnFamily, cq, value.vis))
         mutation
       }

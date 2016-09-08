@@ -18,10 +18,12 @@ import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuild
 import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.process.vector.VectorProcess
-import org.locationtech.geomesa.accumulo.index.QueryHints
+import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndexV1
+import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, QueryHints}
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator
 import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat}
 import org.opengis.feature.Feature
 import org.opengis.feature.`type`.AttributeDescriptor
@@ -232,7 +234,8 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
 
     val sft = source.getSchema
 
-    if (sft.getSchemaVersion < 6 || attributeDescriptor.isMultiValued) {
+    if (attributeDescriptor.isMultiValued ||
+        AccumuloFeatureIndex.indices(sft, IndexMode.Write).contains(AttributeIndexV1)) {
       // attribute strategy v5 doesn't support stats
       // stats don't support list types
       uniqueV5(source, query)

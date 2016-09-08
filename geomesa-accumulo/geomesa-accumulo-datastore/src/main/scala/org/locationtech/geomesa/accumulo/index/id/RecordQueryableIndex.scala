@@ -78,7 +78,7 @@ trait RecordQueryableIndex extends AccumuloFeatureIndex
           val iter = KryoLazyStatsIterator.configure(sft, this, filter.secondary, hints, dupes)
           (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(sft))
         } else {
-          val iter = KryoLazyFilterTransformIterator.configure(sft, filter.secondary, hints)
+          val iter = KryoLazyFilterTransformIterator.configure(sft, this, filter.secondary, hints)
           (iter.toSeq, entriesToFeatures(sft, hints.getReturnSft))
         }
         BatchScanPlan(filter, table, ranges, iters ++ perAttributeIter, Seq.empty, kvsToFeatures, threads, dupes)

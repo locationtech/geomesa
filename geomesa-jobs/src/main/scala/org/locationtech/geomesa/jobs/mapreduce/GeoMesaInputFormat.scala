@@ -201,17 +201,13 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLoggi
   }
 
   override def createRecordReader(split: InputSplit, context: TaskAttemptContext) = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     init(context.getConfiguration)
     val splits = split.asInstanceOf[GroupedSplit].splits
     val readers = splits.map(delegate.createRecordReader(_, context)).toArray
     val schema = GeoMesaConfigurator.getTransformSchema(context.getConfiguration).getOrElse(sft)
-    val (serializationOptions, hasId) = if (sft.getSchemaVersion < 9) {
-      (SerializationOptions.none, true)
-    } else {
-      (SerializationOptions.withoutId, false)
-    }
+    val hasId = table.serializedWithId
+    val serializationOptions = if (hasId) SerializationOptions.none else SerializationOptions.withoutId
     val decoder = SimpleFeatureDeserializers(schema, encoding, serializationOptions)
     new GeoMesaRecordReader(sft, table, readers, hasId, decoder)
   }

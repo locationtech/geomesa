@@ -179,11 +179,8 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLoggi
     // otherwise this kills memory
     val readers = splits.iterator.map(delegate.getRecordReader(_, job, reporter))
     val schema = GeoMesaConfigurator.getTransformSchema(job).getOrElse(sft)
-    val (serializationOptions, hasId) = if (sft.getSchemaVersion < 9) {
-      (SerializationOptions.none, true)
-    } else {
-      (SerializationOptions.withoutId, false)
-    }
+    val hasId = table.serializedWithId
+    val serializationOptions = if (hasId) SerializationOptions.none else SerializationOptions.withoutId
     val decoder = SimpleFeatureDeserializers(schema, encoding, serializationOptions)
     new GeoMesaRecordReader(schema, table, decoder, hasId, readers, splits.length)
   }

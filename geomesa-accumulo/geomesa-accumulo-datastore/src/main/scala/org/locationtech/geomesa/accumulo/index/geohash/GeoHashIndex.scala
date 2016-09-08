@@ -19,5 +19,7 @@ object GeoHashIndex extends AccumuloFeatureIndex with GeoHashWritableIndex with 
 
   override val version: Int = 1
 
+  override val serializedWithId: Boolean = true
+
   override def supports(sft: SimpleFeatureType): Boolean = sft.getGeometryDescriptor != null
 }

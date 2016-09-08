@@ -11,10 +11,8 @@ package org.locationtech.geomesa.tools.accumulo.commands
 import java.io.File
 
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
-import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
-import org.locationtech.geomesa.tools.accumulo.AccumuloRunner
+import org.locationtech.geomesa.tools.accumulo.{AccumuloRunner, GeoMesaConnectionParams}
 import org.locationtech.geomesa.utils.geotools.Conversions
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -35,18 +33,6 @@ class IngestCommandTest extends Specification {
       this.getClass.getSimpleName + n.toString
     }
 
-    def getDS(id: String) = {
-      import scala.collection.JavaConversions._
-      def paramMap = Map[String, String](
-        AccumuloDataStoreParams.instanceIdParam.getName -> id,
-        AccumuloDataStoreParams.zookeepersParam.getName -> "zoo1:2181,zoo2:2181,zoo3:2181",
-        AccumuloDataStoreParams.userParam.getName       -> "foo",
-        AccumuloDataStoreParams.passwordParam.getName   -> "bar",
-        AccumuloDataStoreParams.tableNameParam.getName  -> id,
-        AccumuloDataStoreParams.mockParam.getName       -> "true")
-      DataStoreFinder.getDataStore(paramMap).asInstanceOf[AccumuloDataStore]
-    }
-
     "work with sft and converter configs as strings using geomesa.sfts.<name> and geomesa.converters.<name>" >> {
       val id = nextId
 
@@ -59,9 +45,10 @@ class IngestCommandTest extends Specification {
         "--converter", converter, "-s", sft, dataFile.getPath)
       args.length mustEqual 15
 
-      AccumuloRunner.createCommand(args).execute()
+      val command = AccumuloRunner.createCommand(args)
+      command.execute()
 
-      val ds = getDS(id)
+      val ds = command.params.asInstanceOf[GeoMesaConnectionParams].createDataStore()
       import Conversions._
       val features = ds.getFeatureSource("renegades").getFeatures.features().toList
       features.size mustEqual 3
@@ -78,9 +65,10 @@ class IngestCommandTest extends Specification {
         "--converter", confFile.getPath, "-s", confFile.getPath, dataFile.getPath)
       args.length mustEqual 15
 
-      AccumuloRunner.createCommand(args).execute()
+      val command = AccumuloRunner.createCommand(args)
+      command.execute()
 
-      val ds = getDS(id)
+      val ds = command.params.asInstanceOf[GeoMesaConnectionParams].createDataStore()
       import Conversions._
       val features = ds.getFeatureSource("renegades").getFeatures.features().toList
       features.size mustEqual 3

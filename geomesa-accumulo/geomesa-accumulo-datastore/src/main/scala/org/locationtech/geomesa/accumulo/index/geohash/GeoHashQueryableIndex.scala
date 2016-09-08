@@ -116,7 +116,7 @@ trait GeoHashQueryableIndex extends AccumuloFeatureIndex with LazyLogging with I
         val iter = KryoLazyStatsIterator.configure(sft, this, filter.filter, hints, sft.nonPoints)
         (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(sft), false, false)
       } else {
-        val iters = KryoLazyFilterTransformIterator.configure(sft, filter.filter, hints).toSeq
+        val iters = KryoLazyFilterTransformIterator.configure(sft, this, filter.filter, hints).toSeq
         (iters, entriesToFeatures(sft, hints.getReturnSft), false, sft.nonPoints)
       }
     } else {

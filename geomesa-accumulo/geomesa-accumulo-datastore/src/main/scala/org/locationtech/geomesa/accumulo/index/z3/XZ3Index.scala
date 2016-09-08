@@ -19,6 +19,8 @@ object XZ3Index extends AccumuloFeatureIndex with XZ3WritableIndex with XZ3Query
 
   override val version: Int = 1
 
+  override val serializedWithId: Boolean = false
+
   override def supports(sft: SimpleFeatureType): Boolean = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     sft.nonPoints && sft.getDtgField.isDefined

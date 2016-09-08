@@ -66,7 +66,7 @@ case class STIndexEncoder(sft: SimpleFeatureType, rowf: TextFormatter, cff: Text
                              toWrite: WritableFeature,
                              dt: DateTime,
                              delete: Boolean): Seq[Mutation] = {
-    Seq((true, toWrite.indexValues.head), (false, toWrite.fullValues.head)).flatMap { case (index, value) =>
+    Seq((true, toWrite.indexValuesWithId.head), (false, toWrite.fullValuesWithId.head)).flatMap { case (index, value) =>
       geohashes.map { gh =>
         formats.map(_.format(gh, dt, toWrite.feature, index)) match { case Array(row, cf, cq) =>
           val m = new Mutation(row)
@@ -86,7 +86,7 @@ case class STIndexEncoder(sft: SimpleFeatureType, rowf: TextFormatter, cff: Text
                             toWrite: WritableFeature,
                             dt: DateTime,
                             delete: Boolean): Seq[Mutation] = {
-    val keys = Seq((true, toWrite.indexValues.head), (false, toWrite.fullValues.head)).flatMap { case (index, value) =>
+    val keys = Seq((true, toWrite.indexValuesWithId.head), (false, toWrite.fullValuesWithId.head)).flatMap { case (index, value) =>
       geohashes.map { gh =>
         formats.map(_.format(gh, dt, toWrite.feature, index)) match {
           case Array(row, cf, cq) => (row, cf, cq, value.vis, value.value)
