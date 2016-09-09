@@ -45,7 +45,7 @@ else
   read -r -p "Imageio-ext 1.1.13 is GNU Lesser General Public licensed and is not distributed with GeoMesa...are you sure you want to install it from $url_gtimageioextgdal ? [Y/n]" confirm
   confirm=${confirm,,} #lowercasing
   NL=$'\n'
-  if [[ $confirm =~ ^(yes|y) ]]; then
+  if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
     echo "Trying to install ${#imageio_jars[@]} ImageIo EXT Jars from ${osgeo_url}/webdav/geotools/... to $GEOMESA_HOME"
     for x in "${imageio_jars[@]}"; do
       thisJar="${x}-${imageio_version}.jar"

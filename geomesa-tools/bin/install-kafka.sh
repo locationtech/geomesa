@@ -21,7 +21,7 @@ install_dir=$1
 NL=$'\n'
 read -r -p "Install Kafka ${kafka_major_version} DataStore dependencies to ${install_dir}?${NL}Confirm? [Y/n]" confirm
 confirm=${confirm,,} #lowercasing
-if [[ $confirm =~ ^(yes|y) ]]; then
+if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
   # get stuff
   if [[ $kafka_major_version = "0.8" ]]; then
     declare -a urls=(

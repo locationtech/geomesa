@@ -23,7 +23,7 @@ else
   NL=$'\n'
   read -r -p "Java Advanced Imaging (jai) is LGPL licensed and is not distributed with GeoMesa...are you sure you want to install the following files:${NL}${url_codec}${NL}${url_core}${NL}${url_jttools}${NL}${url_imageio}${NL}Confirm? [Y/n]" confirm
   confirm=${confirm,,} #lowercasing
-  if [[ $confirm =~ ^(yes|y) ]]; then
+  if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
     echo "Trying to install JAI tools from $url_jttools to $GEOMESA_HOME"
     wget -O "${GEOMESA_HOME}/lib/common/jt-utils-1.3.1.jar" $url_jttools \
       && chmod 0755 $GEOMESA_HOME/lib/common/jt-utils-1.3.1.jar \
