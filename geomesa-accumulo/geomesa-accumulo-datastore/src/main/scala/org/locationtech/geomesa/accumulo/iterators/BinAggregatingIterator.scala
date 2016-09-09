@@ -229,7 +229,7 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
     val sf = new ScalaSimpleFeature("", sft)
     val gf = new GeometryFactory
 
-    val tableName = options(KryoLazyAggregatingIterator.TABLE_OPT)
+    val tableName = options(KryoLazyAggregatingIterator.INDEX_OPT)
     val table = AccumuloFeatureIndex.AllIndices.find(_.getClass.getSimpleName == tableName).getOrElse {
       throw new RuntimeException(s"Table option not configured correctly: $tableName")
     }
@@ -533,7 +533,7 @@ object BinAggregatingIterator extends LazyLogging {
         }
     }
 
-    if (sft.getSchemaVersion < 9) {
+    if (index.serializedWithId) {
       val deserializer = SimpleFeatureDeserializers(returnSft, serializationType)
       (e: Entry[Key, Value]) => {
         val deserialized = deserializer.deserialize(e.getValue.get())

@@ -15,10 +15,12 @@ import org.apache.hadoop.io.Text
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
+import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndexV2
+import org.locationtech.geomesa.accumulo.index.id.RecordIndexV1
 // noinspection ScalaDeprecation
 import org.locationtech.geomesa.accumulo.index.attribute.{AttributeIndex, AttributeIndexV1}
-import org.locationtech.geomesa.accumulo.index.z2.{XZ2Index, Z2IndexV1, Z2IndexV2}
-import org.locationtech.geomesa.accumulo.index.z3.{XZ3Index, Z3IndexV1, Z3IndexV2, Z3IndexV3}
+import org.locationtech.geomesa.accumulo.index.z2.{XZ2Index, Z2IndexV1}
+import org.locationtech.geomesa.accumulo.index.z3.{XZ3Index, Z3IndexV1, Z3IndexV2}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 // noinspection ScalaDeprecation
 import org.locationtech.geomesa.accumulo.index.geohash.GeoHashIndex
@@ -39,24 +41,54 @@ object AccumuloFeatureIndex {
   type AccumuloFilterPlan = FilterPlan[AccumuloDataStore, WritableFeature, Seq[Mutation], QueryPlan]
   type AccumuloFilterStrategy = FilterStrategy[AccumuloDataStore, WritableFeature, Seq[Mutation], QueryPlan]
 
-  private val SpatialIndices        = Seq(Z2Index, XZ2Index, Z2IndexV2, Z2IndexV1, GeoHashIndex)
-  private val SpatioTemporalIndices = Seq(Z3Index, XZ3Index, Z3IndexV3, Z3IndexV2, Z3IndexV1)
-  private val AttributeIndices      = Seq(AttributeIndex, AttributeIndexV1)
+  private val SpatialIndices        = Seq(Z2Index, XZ2Index, Z2IndexV1, GeoHashIndex)
+  private val SpatioTemporalIndices = Seq(Z3Index, XZ3Index, Z3IndexV2, Z3IndexV1)
+  private val AttributeIndices      = Seq(AttributeIndex, AttributeIndexV2, AttributeIndexV1)
+  private val RecordIndices         = Seq(RecordIndex, RecordIndexV1)
 
   // note: keep in priority order for running full table scans
   val AllIndices: Seq[AccumuloWritableIndex] =
-    (SpatioTemporalIndices ++ SpatialIndices :+ RecordIndex) ++ AttributeIndices
+    SpatioTemporalIndices ++ SpatialIndices ++ RecordIndices ++ AttributeIndices
+
+  val CurrentIndices: Seq[AccumuloWritableIndex] =
+    Seq(Z3Index, XZ3Index, Z2Index, XZ2Index, RecordIndex, AttributeIndex)
 
   val IndexLookup = AllIndices.map(i => (i.name, i.version) -> i).toMap
 
   def indices(sft: SimpleFeatureType, mode: IndexMode): Seq[AccumuloWritableIndex] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    sft.getIndices.flatMap { case (n, v, m) => if (m.supports(mode)) IndexLookup.get((n, v)) else None }
+    val withMode = sft.getIndices.filter { case (_, _, m) => m.supports(mode) }
+    // filter the list of all indices so that we maintain priority order
+    AllIndices.filter(i => withMode.exists { case (n, v, _) => i.name == n && i.version == v})
+  }
+
+  def index(identifier: String): AccumuloWritableIndex = {
+    val Array(n, v) = identifier.split(":")
+    IndexLookup(n, v.toInt)
   }
 
   object Schemes {
     val Z3TableScheme: List[String] = List(AttributeIndex, RecordIndex, Z3Index, XZ3Index).map(_.name)
     val Z2TableScheme: List[String] = List(AttributeIndex, RecordIndex, Z2Index, XZ2Index).map(_.name)
+  }
+
+  /**
+    * Look up the existing index that could be replaced by the new index, if any
+    *
+    * @param index new index
+    * @param existing list of existing indices
+    * @return
+    */
+  def replaces(index: AccumuloFeatureIndex, existing: Seq[AccumuloFeatureIndex]): Option[AccumuloFeatureIndex] = {
+    if (SpatialIndices.contains(index)) {
+      existing.find(SpatialIndices.contains)
+    } else if (SpatioTemporalIndices.contains(index)) {
+      existing.find(SpatioTemporalIndices.contains)
+    } else if (AttributeIndices.contains(index)) {
+      existing.find(AttributeIndices.contains)
+    } else {
+      None
+    }
   }
 
   /**
@@ -69,16 +101,15 @@ object AccumuloFeatureIndex {
   def getDefaultIndices(sft: SimpleFeatureType): Seq[AccumuloWritableIndex] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val indices = sft.getSchemaVersion match {
-      case 10 => Seq(Z3Index, XZ3Index, Z2Index, XZ2Index, RecordIndex, AttributeIndex)
-      case 9  => Seq(Z3IndexV3, Z2IndexV2, RecordIndex, AttributeIndex)
-      case 8  => Seq(Z3IndexV2, Z2IndexV1, RecordIndex, AttributeIndex)
-      case 7  => Seq(Z3IndexV2, GeoHashIndex, RecordIndex, AttributeIndex)
-      case 6  => Seq(Z3IndexV1, GeoHashIndex, RecordIndex, AttributeIndex)
-      case 5  => Seq(Z3IndexV1, GeoHashIndex, RecordIndex, AttributeIndexV1)
-      case 4  => Seq(GeoHashIndex, RecordIndex, AttributeIndexV1)
-      case 3  => Seq(GeoHashIndex, RecordIndex, AttributeIndexV1)
-      case 2  => Seq(GeoHashIndex, RecordIndex, AttributeIndexV1)
-      case _  => Seq.empty
+      case 10 | 9 => CurrentIndices // note: version 9 was never in a release
+      case 8  => Seq(Z3IndexV2, Z2IndexV1, RecordIndexV1, AttributeIndexV2)
+      case 7  => Seq(Z3IndexV2, GeoHashIndex, RecordIndexV1, AttributeIndexV2)
+      case 6  => Seq(Z3IndexV1, GeoHashIndex, RecordIndexV1, AttributeIndexV2)
+      case 5  => Seq(Z3IndexV1, GeoHashIndex, RecordIndexV1, AttributeIndexV1)
+      case 4  => Seq(GeoHashIndex, RecordIndexV1, AttributeIndexV1)
+      case 3  => Seq(GeoHashIndex, RecordIndexV1, AttributeIndexV1)
+      case 2  => Seq(GeoHashIndex, RecordIndexV1, AttributeIndexV1)
+      case _ => throw new NotImplementedError("Need to update this method for new schema version")
     }
     indices.filter(_.supports(sft))
   }
@@ -120,6 +151,13 @@ trait AccumuloWritableIndex extends AccumuloFeatureIndex {
   def getIdFromRow(sft: SimpleFeatureType): (Text) => String
 
   /**
+    * Indicates whether the ID for each feature is serialized with the feature or in the row
+    *
+    * @return
+    */
+  def serializedWithId: Boolean
+
+  /**
     * Turns accumulo results into simple features
     *
     * @param sft simple feature type
@@ -127,9 +165,8 @@ trait AccumuloWritableIndex extends AccumuloFeatureIndex {
     * @return
     */
   def entriesToFeatures(sft: SimpleFeatureType, returnSft: SimpleFeatureType): (Entry[Key, Value]) => SimpleFeature = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     // Perform a projecting decode of the simple feature
-    if (sft.getSchemaVersion < 9) {
+    if (serializedWithId) {
       val deserializer = SimpleFeatureDeserializers(returnSft, SerializationType.KRYO)
       (kv: Entry[Key, Value]) => {
         val sf = deserializer.deserialize(kv.getValue.get)

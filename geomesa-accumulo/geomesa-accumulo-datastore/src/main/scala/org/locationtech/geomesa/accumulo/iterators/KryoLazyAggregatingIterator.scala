@@ -16,8 +16,8 @@ import org.apache.accumulo.core.data.{Range => aRange, _}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo.index.{AccumuloWritableIndex, AccumuloFeatureIndex}
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
+import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AccumuloWritableIndex}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
@@ -26,6 +26,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConverters._
+import scala.util.control.NonFatal
 
 /**
  * Aggregating iterator - only works on kryo-encoded features
@@ -36,6 +37,7 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
   import KryoLazyAggregatingIterator._
 
   var sft: SimpleFeatureType = null
+  var index: AccumuloWritableIndex = null
   var source: SortedKeyValueIterator[Key, Value] = null
 
   private var validate: (SimpleFeature) => Boolean = null
@@ -58,23 +60,21 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
                     jOptions: jMap[String, String],
                     env: IteratorEnvironment): Unit = {
 
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
     IteratorClassLoader.initClassLoader(getClass)
 
     this.source = src.deepCopy(env)
     val options = jOptions.asScala
 
     sft = SimpleFeatureTypes.createType("", options(SFT_OPT))
-    if (sft.getSchemaVersion < 9) {
+    index = try { AccumuloFeatureIndex.index(options(INDEX_OPT)) } catch {
+      case NonFatal(e) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(INDEX_OPT)}")
+    }
+
+    if (index.serializedWithId) {
       getId = (_) => reusableSf.getID
       reusableSf = new KryoFeatureSerializer(sft).getReusableFeature
     } else {
-      val tableName = options(TABLE_OPT)
-      val table = AccumuloFeatureIndex.AllIndices.find(_.getClass.getSimpleName == tableName).getOrElse {
-        throw new RuntimeException(s"Table option not configured correctly: $tableName")
-      }
-      getId = table.getIdFromRow(sft)
+      getId = index.getIdFromRow(sft)
       reusableSf = new KryoFeatureSerializer(sft, SerializationOptions.withoutId).getReusableFeature
     }
     val filt = options.get(CQL_OPT).map(FastFilterFactory.toFilter).orNull
@@ -166,7 +166,7 @@ object KryoLazyAggregatingIterator extends LazyLogging {
   protected[iterators] val CQL_OPT      = "cql"
   protected[iterators] val DUPE_OPT     = "dupes"
   protected[iterators] val MAX_DUPE_OPT = "max-dupes"
-  protected[iterators] val TABLE_OPT    = "table"
+  protected[iterators] val INDEX_OPT    = "index"
 
   def configure(is: IteratorSetting,
                 sft: SimpleFeatureType,
@@ -178,6 +178,6 @@ object KryoLazyAggregatingIterator extends LazyLogging {
     filter.foreach(f => is.addOption(CQL_OPT, ECQL.toCQL(f)))
     is.addOption(DUPE_OPT, deduplicate.toString)
     maxDuplicates.foreach(m => is.addOption(MAX_DUPE_OPT, m.toString))
-    is.addOption(TABLE_OPT, index.getClass.getSimpleName)
+    is.addOption(INDEX_OPT, index.identifier)
   }
 }

@@ -37,13 +37,26 @@ object SchemaCopyJob {
   }
 }
 
+class SchemaCopyArgs(args: Array[String]) extends GeoMesaArgs(args)
+    with InputFeatureArgs with InputDataStoreArgs with InputCqlArgs
+    with OutputFeatureOptionalArgs with OutputDataStoreArgs {
+
+  override def unparse(): Array[String] = {
+    Array.concat(super[InputFeatureArgs].unparse(),
+                 super[InputDataStoreArgs].unparse(),
+                 super[InputCqlArgs].unparse(),
+                 super[OutputFeatureOptionalArgs].unparse(),
+                 super[OutputDataStoreArgs].unparse()
+    )
+  }
+}
+
 class SchemaCopyJob extends Tool {
 
   private var conf: Configuration = new Configuration
 
   override def run(args: Array[String]): Int = {
-    val parsedArgs = new GeoMesaArgs(args) with InputFeatureArgs with InputDataStoreArgs with InputCqlArgs
-                         with OutputFeatureOptionalArgs with OutputDataStoreArgs
+    val parsedArgs = new SchemaCopyArgs(args)
     parsedArgs.parse()
 
     val featureIn   = parsedArgs.inFeature
@@ -94,7 +107,7 @@ class SchemaCopyJob extends Tool {
     val job = Job.getInstance(conf, s"GeoMesa Schema Copy '${sftIn.getTypeName}' to '${sftOut.getTypeName}'")
 
     job.setJarByClass(SchemaCopyJob.getClass)
-    job.setMapperClass(classOf[CopyMapper])
+    job.setMapperClass(classOf[PassThroughMapper])
     job.setInputFormatClass(classOf[GeoMesaInputFormat])
     job.setOutputFormatClass(classOf[GeoMesaOutputFormat])
     job.setMapOutputKeyClass(classOf[Text])
@@ -127,7 +140,7 @@ class CopyMapper extends Mapper[Text, SimpleFeature, Text, SimpleFeature] {
   private var sftOut: SimpleFeatureType = null
 
   override protected def setup(context: Context): Unit = {
-    counter = context.getCounter("org.locationtech.geomesa", "features-writtern")
+    counter = context.getCounter("org.locationtech.geomesa", "features-written")
     val dsParams = GeoMesaConfigurator.getDataStoreOutParams(context.getConfiguration)
     val ds = DataStoreFinder.getDataStore(dsParams)
     sftOut = ds.getSchema(GeoMesaConfigurator.getFeatureTypeOut(context.getConfiguration))

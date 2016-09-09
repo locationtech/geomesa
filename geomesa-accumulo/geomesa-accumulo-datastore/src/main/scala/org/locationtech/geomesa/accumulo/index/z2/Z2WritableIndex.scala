@@ -14,18 +14,14 @@ import com.google.common.collect.{ImmutableSet, ImmutableSortedSet}
 import com.google.common.primitives.{Bytes, Longs}
 import com.vividsolutions.jts.geom.{Geometry, GeometryCollection, LineString, Point}
 import org.apache.accumulo.core.conf.Property
-import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToMutations
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
-
-import scala.util.Try
 
 trait Z2WritableIndex extends AccumuloWritableIndex {
 
@@ -108,13 +104,10 @@ trait Z2WritableIndex extends AccumuloWritableIndex {
   override def configure(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
     import scala.collection.JavaConversions._
 
-    val table = Try(ops.getTableName(sft.getTypeName, this)).getOrElse {
-      val table = GeoMesaTable.formatTableName(ops.catalogTable, tableSuffix, sft)
-      ops.metadata.insert(sft.getTypeName, tableNameKey, table)
-      table
-    }
+    val table = GeoMesaTable.formatTableName(ops.catalogTable, tableSuffix, sft)
+    ops.metadata.insert(sft.getTypeName, tableNameKey, table)
+
     AccumuloVersion.ensureTableExists(ops.connector, table)
-    ops.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
 
     val localityGroups = Seq(BinColumnFamily, FullColumnFamily).map(cf => (cf.toString, ImmutableSet.of(cf))).toMap
     ops.tableOps.setLocalityGroups(table, localityGroups)
@@ -131,5 +124,7 @@ trait Z2WritableIndex extends AccumuloWritableIndex {
       // noinspection RedundantCollectionConversion
       ops.tableOps.addSplits(table, ImmutableSortedSet.copyOf(splitsToAdd.toIterable))
     }
+
+    ops.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
   }
 }

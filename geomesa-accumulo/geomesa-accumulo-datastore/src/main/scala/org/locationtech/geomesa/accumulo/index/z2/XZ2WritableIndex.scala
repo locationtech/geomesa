@@ -23,11 +23,9 @@ import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 
-import scala.util.Try
-
 trait XZ2WritableIndex extends AccumuloWritableIndex {
 
-  import AccumuloWritableIndex.{DefaultSplitArrays, DefaultNumSplits}
+  import AccumuloWritableIndex.{DefaultNumSplits, DefaultSplitArrays}
   import XZ2Index.SFC
 
   override def writer(sft: SimpleFeatureType, ops: AccumuloDataStore): (WritableFeature) => Seq[Mutation] = {
@@ -68,13 +66,10 @@ trait XZ2WritableIndex extends AccumuloWritableIndex {
   override def configure(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
     import scala.collection.JavaConversions._
 
-    val table = Try(ops.getTableName(sft.getTypeName, this)).getOrElse {
-      val table = GeoMesaTable.formatTableName(ops.catalogTable, tableSuffix, sft)
-      ops.metadata.insert(sft.getTypeName, tableNameKey, table)
-      table
-    }
+    val table = GeoMesaTable.formatTableName(ops.catalogTable, tableSuffix, sft)
+    ops.metadata.insert(sft.getTypeName, tableNameKey, table)
+
     AccumuloVersion.ensureTableExists(ops.connector, table)
-    ops.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
 
     val cfs = Seq(AccumuloWritableIndex.FullColumnFamily, AccumuloWritableIndex.BinColumnFamily)
     val localityGroups = cfs.map(cf => (cf.toString, ImmutableSet.of(cf))).toMap
@@ -92,5 +87,7 @@ trait XZ2WritableIndex extends AccumuloWritableIndex {
       // noinspection RedundantCollectionConversion
       ops.tableOps.addSplits(table, ImmutableSortedSet.copyOf(splitsToAdd.toIterable))
     }
+
+    ops.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
   }
 }

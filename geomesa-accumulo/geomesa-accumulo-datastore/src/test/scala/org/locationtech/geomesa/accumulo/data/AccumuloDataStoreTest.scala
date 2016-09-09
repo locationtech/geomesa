@@ -283,7 +283,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       sft.setTableSharing(true)
 
       import scala.collection.JavaConversions._
-      val prevsplits = ImmutableSet.copyOf(ds.connector.tableOperations().listSplits("AccumuloDataStoreTest_records").toIterable)
+      val prevsplits = ImmutableSet.copyOf(ds.connector.tableOperations().listSplits(s"AccumuloDataStoreTest_${RecordIndex.tableSuffix}").toIterable)
       ds.createSchema(sft)
       val recTable = ds.getTableName(sft.getTypeName, RecordIndex)
       val afterSplits = ds.connector.tableOperations().listSplits(recTable)

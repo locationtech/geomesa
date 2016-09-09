@@ -16,19 +16,17 @@ import com.google.common.collect.ImmutableSortedSet
 import com.google.common.primitives.Bytes
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.conf.Property
-import org.apache.accumulo.core.data.{Mutation, Range => AccRange}
+import org.apache.accumulo.core.data.{Range => AccRange}
 import org.apache.hadoop.io.Text
 import org.calrissian.mango.types.{LexiTypeEncoders, SimpleTypeEncoders, TypeEncoder}
 import org.joda.time.format.ISODateTimeFormat
 import org.locationtech.geomesa.accumulo.AccumuloVersion
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToMutations
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -39,81 +37,25 @@ import scala.util.{Failure, Success, Try}
 /**
  * Contains logic for converting between accumulo and geotools for the attribute index
  */
-trait AttributeWritableIndex extends AccumuloWritableIndex with LazyLogging {
-
-  import AttributeWritableIndex.getRowKeys
-
-  override def writer(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
-    val getRows = getRowKeys(sft)
-    if (sft.getSchemaVersion < 9) {
-      (wf: WritableFeature) => {
-        getRows(wf).map { case (descriptor, row) =>
-          val mutation = new Mutation(row)
-          val value = descriptor.getIndexCoverage() match {
-            case IndexCoverage.FULL => wf.fullValues.head
-            case IndexCoverage.JOIN => wf.indexValues.head
-          }
-          mutation.put(EMPTY_TEXT, EMPTY_TEXT, value.vis, value.value)
-          mutation
-        }
-      }
-    } else {
-      (wf: WritableFeature) => {
-        getRows(wf).map { case (descriptor, row) =>
-          val mutation = new Mutation(row)
-          val values = descriptor.getIndexCoverage() match {
-            case IndexCoverage.FULL => wf.fullValues
-            case IndexCoverage.JOIN => wf.indexValues
-          }
-          values.foreach(value => mutation.put(value.cf, value.cq, value.vis, value.value))
-          mutation
-        }
-      }
-    }
-  }
-
-  override def remover(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
-    val getRows = getRowKeys(sft)
-    if (sft.getSchemaVersion < 9) {
-      (wf: WritableFeature) => {
-        getRows(wf).map { case (descriptor, row) =>
-          val mutation = new Mutation(row)
-          val value = descriptor.getIndexCoverage() match {
-            case IndexCoverage.FULL => wf.fullValues.head
-            case IndexCoverage.JOIN => wf.indexValues.head
-          }
-          mutation.putDelete(EMPTY_TEXT, EMPTY_TEXT, value.vis)
-          mutation
-        }
-      }
-    } else {
-      (wf: WritableFeature) => {
-        getRows(wf).map { case (descriptor, row) =>
-          val mutation = new Mutation(row)
-          val values = descriptor.getIndexCoverage() match {
-            case IndexCoverage.FULL => wf.fullValues
-            case IndexCoverage.JOIN => wf.indexValues
-          }
-          values.foreach(value => mutation.putDelete(value.cf, value.cq, value.vis))
-          mutation
-        }
-      }
-    }
-  }
+trait AttributeWritableIndex extends AccumuloWritableIndex with AttributeSplittable with LazyLogging {
 
   override def configure(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
-    val table = Try(ops.getTableName(sft.getTypeName, this)).getOrElse {
-      val table = GeoMesaTable.formatTableName(ops.catalogTable, tableSuffix, sft)
-      ops.metadata.insert(sft.getTypeName, tableNameKey, table)
-      table
-    }
+    val table = GeoMesaTable.formatTableName(ops.catalogTable, tableSuffix, sft)
+    ops.metadata.insert(sft.getTypeName, tableNameKey, table)
+
     AccumuloVersion.ensureTableExists(ops.connector, table)
+
+    configureSplits(sft, ops)
+
     ops.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
+  }
+
+  override def configureSplits(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
     val indexedAttrs = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft)
     if (indexedAttrs.nonEmpty) {
       val indices = indexedAttrs.map(d => sft.indexOf(d.getLocalName))
       val splits = indices.map(i => new Text(AttributeWritableIndex.getRowPrefix(sft, i)))
-      ops.tableOps.addSplits(table, ImmutableSortedSet.copyOf(splits.toArray))
+      ops.tableOps.addSplits(ops.getTableName(sft.getTypeName, this), ImmutableSortedSet.copyOf(splits.toArray))
     }
   }
 
@@ -125,6 +67,25 @@ trait AttributeWritableIndex extends AccumuloWritableIndex with LazyLogging {
       val offset = row.find(AttributeWritableIndex.NullByte, from) + prefix
       new String(row.getBytes, offset, row.getLength - offset, StandardCharsets.UTF_8)
     }
+  }
+
+  def getRowKeys(sft: SimpleFeatureType): (WritableFeature) => Seq[(AttributeDescriptor, Array[Byte])] = {
+    val indexedAttributes = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).map { d =>
+      val i = sft.indexOf(d.getName)
+      (d, i, AttributeWritableIndex.indexToBytes(i))
+    }
+    val prefix = sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)
+    val getSuffix: (WritableFeature) => Array[Byte] = sft.getDtgIndex match {
+      case None => (fw: WritableFeature) => fw.feature.getID.getBytes(StandardCharsets.UTF_8)
+      case Some(dtgIndex) =>
+        (fw: WritableFeature) => {
+          val dtg = fw.feature.getAttribute(dtgIndex).asInstanceOf[Date]
+          val timeBytes = AttributeWritableIndex.timeToBytes(if (dtg == null) 0L else dtg.getTime)
+          val idBytes = fw.feature.getID.getBytes(StandardCharsets.UTF_8)
+          Bytes.concat(timeBytes, idBytes)
+        }
+    }
+    AttributeWritableIndex.getRowKeys(indexedAttributes, prefix, getSuffix)
   }
 }
 
@@ -138,25 +99,6 @@ object AttributeWritableIndex extends LazyLogging {
   private val dateFormat     = ISODateTimeFormat.dateTime()
 
   private type TryEncoder = Try[(TypeEncoder[Any, String], TypeEncoder[_, String])]
-
-  private def getRowKeys(sft: SimpleFeatureType): (WritableFeature) => Seq[(AttributeDescriptor, Array[Byte])] = {
-    val indexedAttributes = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).map { d =>
-      val i = sft.indexOf(d.getName)
-      (d, i, indexToBytes(i))
-    }
-    val prefix = sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)
-    val getSuffix: (WritableFeature) => Array[Byte] = sft.getDtgIndex match {
-      case None => (fw: WritableFeature) => fw.feature.getID.getBytes(StandardCharsets.UTF_8)
-      case Some(dtgIndex) =>
-        (fw: WritableFeature) => {
-          val dtg = fw.feature.getAttribute(dtgIndex).asInstanceOf[Date]
-          val timeBytes = timeToBytes(if (dtg == null) 0L else dtg.getTime)
-          val idBytes = fw.feature.getID.getBytes(StandardCharsets.UTF_8)
-          Bytes.concat(timeBytes, idBytes)
-        }
-    }
-    getRowKeys(indexedAttributes, prefix, getSuffix)
-  }
 
   /**
    * Rows in the attribute table have the following layout:

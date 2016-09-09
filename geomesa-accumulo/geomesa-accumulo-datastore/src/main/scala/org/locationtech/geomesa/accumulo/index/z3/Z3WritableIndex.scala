@@ -27,12 +27,13 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
-import scala.util.Try
 
 trait Z3WritableIndex extends AccumuloWritableIndex {
 
   import AccumuloWritableIndex.{BinColumnFamily, FullColumnFamily}
-  import Z3Index.{GEOM_Z_MASK, GEOM_Z_NUM_BYTES, GEOM_Z_STEP, hasSplits}
+  import Z3Index.{GEOM_Z_MASK, GEOM_Z_NUM_BYTES, GEOM_Z_STEP}
+
+  def hasSplits: Boolean
 
   override def removeAll(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
     val table = ops.getTableName(sft.getTypeName, this)
@@ -111,19 +112,16 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
   // gets the offset into the row for the id bytes
   def getIdRowOffset(sft: SimpleFeatureType): Int = {
     val length = if (sft.isPoints) 10 else 2 + GEOM_Z_NUM_BYTES // week + z bytes
-    val prefix = if (hasSplits(sft)) 1 else 0 // shard
+    val prefix = if (hasSplits) 1 else 0 // shard
     prefix + length
   }
 
   override def configure(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
-    val table = Try(ops.getTableName(sft.getTypeName, this)).getOrElse {
       // z3 always has it's own table
-      val table = GeoMesaTable.formatSoloTableName(ops.catalogTable, tableSuffix, sft.getTypeName)
-      ops.metadata.insert(sft.getTypeName, tableNameKey, table)
-      table
-    }
+    val table = GeoMesaTable.formatSoloTableName(ops.catalogTable, tableSuffix, sft.getTypeName)
+    ops.metadata.insert(sft.getTypeName, tableNameKey, table)
+
     AccumuloVersion.ensureTableExists(ops.connector, table)
-    ops.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
 
     val localityGroups = Seq(BinColumnFamily, FullColumnFamily).map(cf => (cf.toString, ImmutableSet.of(cf))).toMap
     ops.tableOps.setLocalityGroups(table, localityGroups)
@@ -135,5 +133,7 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
       // noinspection RedundantCollectionConversion
       ops.tableOps.addSplits(table, ImmutableSortedSet.copyOf(splitsToAdd.toIterable))
     }
+
+    ops.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
   }
 }

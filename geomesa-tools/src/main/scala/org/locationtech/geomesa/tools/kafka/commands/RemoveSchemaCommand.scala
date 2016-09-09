@@ -10,7 +10,7 @@ package org.locationtech.geomesa.tools.kafka.commands
 
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.tools.common.{OptionalFeatureTypeNameParam, OptionalForceParam, OptionalPatternParam, PromptConfirm}
+import org.locationtech.geomesa.tools.common.{OptionalFeatureTypeNameParam, OptionalForceParam, OptionalPatternParam, Prompt}
 import org.locationtech.geomesa.tools.kafka.SimpleProducerKDSConnectionParams
 import org.locationtech.geomesa.tools.kafka.commands.RemoveSchemaCommand.RemoveSchemaParams
 
@@ -75,7 +75,7 @@ class RemoveSchemaCommand(parent: JCommander) extends CommandWithKDS(parent) wit
   }
 
   protected def promptConfirm(featureNames: List[String]) =
-    PromptConfirm.confirm(s"Remove schema(s) ${featureNames.mkString(",")} at zkPath $zkPath? (yes/no): ")
+    Prompt.confirm(s"Remove schema(s) ${featureNames.mkString(",")} at zkPath $zkPath? (yes/no): ")
 }
 
 object RemoveSchemaCommand {

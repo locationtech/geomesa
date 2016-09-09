@@ -11,11 +11,18 @@ package org.locationtech.geomesa.jobs
 import com.beust.jcommander.{JCommander, Parameter}
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 
-class GeoMesaArgs(val args: Array[String]) {
+import scala.collection.mutable.ArrayBuffer
+
+abstract class GeoMesaArgs(val args: Array[String]) extends ReverseParsable {
   def parse(): Unit = new JCommander(this, args: _*)
 }
 
-trait InputDataStoreArgs {
+trait ReverseParsable {
+  def unparse(): Array[String]
+}
+
+trait InputDataStoreArgs extends ReverseParsable {
+
   @Parameter(names = Array("--geomesa.input.user"), description = "Accumulo user name", required = true)
   var inUser: String = null
 
@@ -38,14 +45,44 @@ trait InputDataStoreArgs {
     AccumuloDataStoreParams.zookeepersParam.getName -> inZookeepers,
     AccumuloDataStoreParams.tableNameParam.getName  -> inTableName
   )
+
+  override def unparse(): Array[String] = {
+    val buf = ArrayBuffer.empty[String]
+    if (inUser != null) {
+      buf.append("--geomesa.input.user", inUser)
+    }
+    if (inPassword != null) {
+      buf.append("--geomesa.input.password", inPassword)
+    }
+    if (inInstanceId != null) {
+      buf.append("--geomesa.input.instanceId", inInstanceId)
+    }
+    if (inZookeepers != null) {
+      buf.append("--geomesa.input.zookeepers", inZookeepers)
+    }
+    if (inTableName != null) {
+      buf.append("--geomesa.input.tableName", inTableName)
+    }
+    buf.toArray
+  }
 }
 
-trait InputFeatureArgs {
+trait InputFeatureArgs extends ReverseParsable {
+
   @Parameter(names = Array("--geomesa.input.feature"), description = "Simple feature type name", required = true)
   var inFeature: String = null
+
+  override def unparse(): Array[String] = {
+    if (inFeature != null) {
+      Array("--geomesa.input.feature", inFeature)
+    } else {
+      Array.empty
+    }
+  }
 }
 
-trait OutputDataStoreArgs {
+trait OutputDataStoreArgs extends ReverseParsable {
+
   @Parameter(names = Array("--geomesa.output.user"), description = "Accumulo user name", required = true)
   var outUser: String = null
 
@@ -68,19 +105,66 @@ trait OutputDataStoreArgs {
     AccumuloDataStoreParams.zookeepersParam.getName -> outZookeepers,
     AccumuloDataStoreParams.tableNameParam.getName  -> outTableName
   )
+
+  override def unparse(): Array[String] = {
+    val buf = ArrayBuffer.empty[String]
+    if (outUser != null) {
+      buf.append("--geomesa.output.user", outUser)
+    }
+    if (outPassword != null) {
+      buf.append("--geomesa.output.password", outPassword)
+    }
+    if (outInstanceId != null) {
+      buf.append("--geomesa.output.instanceId", outInstanceId)
+    }
+    if (outZookeepers != null) {
+      buf.append("--geomesa.output.zookeepers", outZookeepers)
+    }
+    if (outTableName != null) {
+      buf.append("--geomesa.output.tableName", outTableName)
+    }
+    buf.toArray
+  }
 }
 
-trait OutputFeatureArgs {
+trait OutputFeatureArgs extends ReverseParsable {
+
   @Parameter(names = Array("--geomesa.output.feature"), description = "Simple feature type name", required = true)
   var outFeature: String = null
+
+  override def unparse(): Array[String] = {
+    if (outFeature != null) {
+      Array("--geomesa.output.feature", outFeature)
+    } else {
+      Array.empty
+    }
+  }
 }
 
-trait OutputFeatureOptionalArgs {
+trait OutputFeatureOptionalArgs extends ReverseParsable {
+
   @Parameter(names = Array("--geomesa.output.feature"), description = "Simple feature type name")
   var outFeature: String = null
+
+  override def unparse(): Array[String] = {
+    if (outFeature != null) {
+      Array("--geomesa.output.feature", outFeature)
+    } else {
+      Array.empty
+    }
+  }
 }
 
-trait InputCqlArgs {
+trait InputCqlArgs extends ReverseParsable {
+
   @Parameter(names = Array("--geomesa.input.cql"), description = "CQL query filter")
   var inCql: String = null
+
+  override def unparse(): Array[String] = {
+    if (inCql != null) {
+      Array("--geomesa.input.cql", inCql)
+    } else {
+      Array.empty
+    }
+  }
 }

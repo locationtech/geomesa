@@ -18,6 +18,8 @@ trait GeoMesaFeatureIndex[Ops <: HasGeoMesaStats, FeatureWrapper, Result, Plan] 
 
   type TypedFilterStrategy = FilterStrategy[Ops, FeatureWrapper, Result, Plan]
 
+  lazy val identifier: String = s"$name:$version"
+
   /**
     * The name used to identify the index
     */
@@ -109,5 +111,4 @@ trait GeoMesaFeatureIndex[Ops <: HasGeoMesaStats, FeatureWrapper, Result, Plan] 
     * @return
     */
   override def toString = getClass.getSimpleName.split("\\$").last
-
 }

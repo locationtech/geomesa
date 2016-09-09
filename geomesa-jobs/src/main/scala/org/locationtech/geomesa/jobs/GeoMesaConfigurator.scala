@@ -11,6 +11,8 @@ package org.locationtech.geomesa.jobs
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.serializer.WritableSerialization
 import org.apache.hadoop.mapreduce.Job
+import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AccumuloWritableIndex}
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex._
 import org.locationtech.geomesa.jobs.mapreduce.SimpleFeatureSerialization
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
@@ -37,6 +39,7 @@ object GeoMesaConfigurator {
   private val transformsKey    = s"$prefix.transforms.schema"
   private val transformNameKey = s"$prefix.transforms.name"
   private val sftKeyOut        = s"$prefix.out.sft"
+  private val indicesOutKey    = s"$prefix.out.indices"
   private val desiredSplits    = s"$prefix.mapreduce.split.count.strongHint"
   private val serializersKey   = "io.serializations"
 
@@ -75,6 +78,17 @@ object GeoMesaConfigurator {
     conf.set(tableKey, featureType)
   def getTable(job: Job): String = getTable(job.getConfiguration)
   def getTable(conf: Configuration): String = conf.get(tableKey)
+
+  def setIndicesOut(conf: Configuration, indices: Seq[AccumuloWritableIndex]): Unit =
+    conf.set(indicesOutKey, indices.map(i => s"${i.name}:${i.version}").mkString(","))
+  def getIndicesOut(job: Job): Option[Seq[AccumuloWritableIndex]] = getIndicesOut(job.getConfiguration)
+  def getIndicesOut(conf: Configuration): Option[Seq[AccumuloWritableIndex]] =
+    Option(conf.get(indicesOutKey)).map { opt =>
+      opt.split(",").map { i =>
+        val Array(name, version) = i.split(":")
+        AccumuloFeatureIndex.IndexLookup((name, version.toInt))
+      }
+    }
 
   /**
    * Configure the number of desired splits. This should be called with the final intended

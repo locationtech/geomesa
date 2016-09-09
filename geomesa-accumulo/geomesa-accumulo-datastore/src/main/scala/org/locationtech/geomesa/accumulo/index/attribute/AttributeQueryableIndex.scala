@@ -16,7 +16,7 @@ import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.{AccumuloFeatureIndex, AccumuloFilterStrategy}
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFilterStrategy
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.QueryPlan.{FeatureFunction, JoinFunction}
 import org.locationtech.geomesa.accumulo.index._
@@ -32,7 +32,7 @@ import org.locationtech.geomesa.index.api.FilterStrategy
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.index.VisibilityLevel
+import org.locationtech.geomesa.utils.index.{IndexMode, VisibilityLevel}
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
@@ -40,7 +40,7 @@ import org.opengis.filter.temporal.{After, Before, During, TEquals}
 
 import scala.util.Try
 
-trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
+trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
 
   import AttributeQueryableIndex.attributeCheck
 
@@ -92,8 +92,8 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
     val sampling = hints.getSampling
     val hasDupes = descriptor.isMultiValued
 
-    val attrTable = ds.getTableName(sft.getTypeName, AttributeIndex)
-    val attrThreads = ds.getSuggestedThreads(sft.getTypeName, AttributeIndex)
+    val attrTable = ds.getTableName(sft.getTypeName, this)
+    val attrThreads = ds.getSuggestedThreads(sft.getTypeName, this)
 
     def visibilityIter(schema: SimpleFeatureType): Seq[IteratorSetting] = sft.getVisibilityLevel match {
       case VisibilityLevel.Feature   => Seq.empty
@@ -102,17 +102,17 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
 
     // query against the attribute table
     val singleAttrValueOnlyPlan: ScanPlanFn = (schema, ecql, transform) => {
-      val iter = KryoLazyFilterTransformIterator.configure(schema, ecql, transform, sampling)
+      val iter = KryoLazyFilterTransformIterator.configure(schema, this, ecql, transform, sampling)
       val iters = visibilityIter(schema) ++ iter.toSeq
       // need to use transform to convert key/values if it's defined
-      val kvsToFeatures = AttributeIndex.entriesToFeatures(sft, transform.map(_._2).getOrElse(schema))
+      val kvsToFeatures = entriesToFeatures(sft, transform.map(_._2).getOrElse(schema))
       BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
     }
 
     if (hints.isBinQuery) {
       if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
         // can apply the bin aggregating iterator directly to the sft
-        val iter = BinAggregatingIterator.configureDynamic(sft, AttributeIndex, filter.secondary, hints, hasDupes)
+        val iter = BinAggregatingIterator.configureDynamic(sft, this, filter.secondary, hints, hasDupes)
         val iters = visibilityIter(sft) :+ iter
         val kvsToFeatures = BinAggregatingIterator.kvsToFeatures()
         BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
@@ -122,7 +122,7 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
         if (indexSft.indexOf(hints.getBinTrackIdField) != -1 &&
             hints.getBinLabelField.forall(indexSft.indexOf(_) != -1) &&
             filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
-          val iter = BinAggregatingIterator.configureDynamic(indexSft, AttributeIndex, filter.secondary, hints, hasDupes)
+          val iter = BinAggregatingIterator.configureDynamic(indexSft, this, filter.secondary, hints, hasDupes)
           val iters = visibilityIter(indexSft) :+ iter
           val kvsToFeatures = BinAggregatingIterator.kvsToFeatures()
           BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
@@ -134,7 +134,7 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
     } else if (hints.isStatsIteratorQuery) {
       val kvsToFeatures = KryoLazyStatsIterator.kvsToFeatures(sft)
       if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
-        val iter = KryoLazyStatsIterator.configure(sft, AttributeIndex, filter.secondary, hints, hasDupes)
+        val iter = KryoLazyStatsIterator.configure(sft, this, filter.secondary, hints, hasDupes)
         val iters = visibilityIter(sft) :+ iter
         BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDuplicates = false)
       } else {
@@ -142,7 +142,7 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
         val indexSft = IndexValueEncoder.getIndexSft(sft)
         if (Try(Stat(indexSft, hints.getStatsIteratorQuery)).isSuccess &&
             filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
-          val iter = KryoLazyStatsIterator.configure(indexSft, AttributeIndex, filter.secondary, hints, hasDupes)
+          val iter = KryoLazyStatsIterator.configure(indexSft, this, filter.secondary, hints, hasDupes)
           val iters = visibilityIter(indexSft) :+ iter
           BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDuplicates = false)
         } else {
@@ -165,7 +165,7 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
       val transform = hints.getTransform.map(_._2).getOrElse {
         throw new IllegalStateException("Must have a transform for attribute key plus value scan")
       }
-      val kvsToFeatures = AttributeQueryableIndex.attributeValueKvsToFeatures(sft, indexSft, transform, attribute)
+      val kvsToFeatures = attributeValueKvsToFeatures(sft, indexSft, transform, attribute)
       plan.copy(kvsToFeatures = kvsToFeatures)
     } else {
       // have to do a join against the record table
@@ -194,10 +194,13 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
     val attributeScan = attributePlan(IndexValueEncoder.getIndexSft(sft), stFilter, None)
 
     // apply any secondary filters or transforms against the record table
+    val recordIndex = AccumuloFeatureIndex.indices(sft, IndexMode.Read).find(_.name == RecordIndex.name).getOrElse {
+      throw new RuntimeException("Record index does not exist for join query")
+    }
     val recordIter = if (hints.isStatsIteratorQuery) {
-      Seq(KryoLazyStatsIterator.configure(sft, RecordIndex, ecqlFilter, hints, deduplicate = false))
+      Seq(KryoLazyStatsIterator.configure(sft, recordIndex, ecqlFilter, hints, deduplicate = false))
     } else {
-      KryoLazyFilterTransformIterator.configure(sft, ecqlFilter, hints).toSeq
+      KryoLazyFilterTransformIterator.configure(sft, recordIndex, ecqlFilter, hints).toSeq
     }
     val visibilityIter = sft.getVisibilityLevel match {
       case VisibilityLevel.Feature   => Seq.empty
@@ -207,22 +210,21 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
 
     val kvsToFeatures = if (hints.isBinQuery) {
       // TODO GEOMESA-822 we can use the aggregating iterator if the features are kryo encoded
-      BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, RecordIndex, hints, ds.getFeatureEncoding(sft))
+      BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, recordIndex, hints, ds.getFeatureEncoding(sft))
     } else if (hints.isStatsIteratorQuery) {
       KryoLazyStatsIterator.kvsToFeatures(sft)
     } else {
-      RecordIndex.entriesToFeatures(sft, hints.getReturnSft)
+      recordIndex.entriesToFeatures(sft, hints.getReturnSft)
     }
 
     // function to join the attribute index scan results to the record table
     // have to pull the feature id from the row
     val prefix = sft.getTableSharingPrefix
-    val getIdFromRow = AttributeIndex.getIdFromRow(sft)
-    val joinFunction: JoinFunction =
-      (kv) => new AccRange(RecordIndex.getRowKey(prefix, getIdFromRow(kv.getKey.getRow)))
+    val getId = getIdFromRow(sft)
+    val joinFunction: JoinFunction = (kv) => new AccRange(RecordIndex.getRowKey(prefix, getId(kv.getKey.getRow)))
 
-    val recordTable = ds.getTableName(sft.getTypeName, RecordIndex)
-    val recordThreads = ds.getSuggestedThreads(sft.getTypeName, RecordIndex)
+    val recordTable = ds.getTableName(sft.getTypeName, recordIndex)
+    val recordThreads = ds.getSuggestedThreads(sft.getTypeName, recordIndex)
     val recordRanges = Seq(new AccRange()) // this will get overwritten in the join method
     val joinQuery = BatchScanPlan(filter, recordTable, recordRanges, recordIterators, Seq.empty,
       kvsToFeatures, recordThreads, hasDupes)
@@ -231,13 +233,50 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
       attributeScan.columnFamilies, recordThreads, hasDupes, joinFunction, joinQuery)
   }
 
+
+  def attributeValueKvsToFeatures(sft: SimpleFeatureType,
+                                  indexSft: SimpleFeatureType,
+                                  returnSft: SimpleFeatureType,
+                                  attribute: String): FeatureFunction = {
+    import scala.collection.JavaConversions._
+    val attributeIndex = sft.indexOf(attribute)
+    val returnIndex = returnSft.indexOf(attribute)
+    val translateIndices =
+      indexSft.getAttributeDescriptors.map(d => returnSft.indexOf(d.getLocalName)).zipWithIndex.filter(_._1 != -1)
+    // Perform a projecting decode of the simple feature
+    if (serializedWithId) {
+      val kryoFeature = new KryoFeatureSerializer(indexSft).getReusableFeature
+      (kv: Entry[Key, Value]) => {
+        kryoFeature.setBuffer(kv.getValue.get)
+        val sf = new ScalaSimpleFeature(kryoFeature.getID, returnSft)
+        translateIndices.foreach { case (to, from) => sf.setAttribute(to, kryoFeature.getAttribute(from)) }
+        val decoded = AttributeWritableIndex.decodeRow(sft, attributeIndex, kv.getKey.getRow.getBytes).get
+        sf.setAttribute(returnIndex, decoded.asInstanceOf[AnyRef])
+        QueryPlanner.applyVisibility(sf, kv.getKey)
+        sf
+      }
+    } else {
+      val kryoFeature = new KryoFeatureSerializer(indexSft, SerializationOptions.withoutId).getReusableFeature
+      val getId = AttributeIndex.getIdFromRow(sft)
+      (kv: Entry[Key, Value]) => {
+        kryoFeature.setBuffer(kv.getValue.get)
+        val sf = new ScalaSimpleFeature(getId(kv.getKey.getRow), returnSft)
+        translateIndices.foreach { case (to, from) => sf.setAttribute(to, kryoFeature.getAttribute(from)) }
+        val decoded = AttributeWritableIndex.decodeRow(sft, attributeIndex, kv.getKey.getRow.getBytes).get
+        sf.setAttribute(returnIndex, decoded.asInstanceOf[AnyRef])
+        QueryPlanner.applyVisibility(sf, kv.getKey)
+        sf
+      }
+    }
+  }
+
   override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[AccumuloFilterStrategy] = {
     val attributes = FilterHelper.propertyNames(filter, sft)
     val indexedAttributes = attributes.filter(a => Option(sft.getDescriptor(a)).exists(_.isIndexed))
     indexedAttributes.flatMap { attribute =>
       val (primary, secondary) = FilterExtractingVisitor(filter, attribute, sft, attributeCheck)
       if (primary.isDefined) {
-        Seq(FilterStrategy(AttributeIndex, primary, secondary))
+        Seq(FilterStrategy(this, primary, secondary))
       } else {
         Seq.empty
       }
@@ -392,42 +431,6 @@ object AttributeQueryableIndex {
       }
 
       PropertyBounds(attribute, bounds.bounds, range)
-    }
-  }
-
-  def attributeValueKvsToFeatures(sft: SimpleFeatureType,
-                                  indexSft: SimpleFeatureType,
-                                  returnSft: SimpleFeatureType,
-                                  attribute: String): FeatureFunction = {
-    import scala.collection.JavaConversions._
-    val attributeIndex = sft.indexOf(attribute)
-    val returnIndex = returnSft.indexOf(attribute)
-    val translateIndices =
-      indexSft.getAttributeDescriptors.map(d => returnSft.indexOf(d.getLocalName)).zipWithIndex.filter(_._1 != -1)
-    // Perform a projecting decode of the simple feature
-    if (sft.getSchemaVersion < 9) {
-      val kryoFeature = new KryoFeatureSerializer(indexSft).getReusableFeature
-      (kv: Entry[Key, Value]) => {
-        kryoFeature.setBuffer(kv.getValue.get)
-        val sf = new ScalaSimpleFeature(kryoFeature.getID, returnSft)
-        translateIndices.foreach { case (to, from) => sf.setAttribute(to, kryoFeature.getAttribute(from)) }
-        val decoded = AttributeWritableIndex.decodeRow(sft, attributeIndex, kv.getKey.getRow.getBytes).get
-        sf.setAttribute(returnIndex, decoded.asInstanceOf[AnyRef])
-        QueryPlanner.applyVisibility(sf, kv.getKey)
-        sf
-      }
-    } else {
-      val kryoFeature = new KryoFeatureSerializer(indexSft, SerializationOptions.withoutId).getReusableFeature
-      val getId = AttributeIndex.getIdFromRow(sft)
-      (kv: Entry[Key, Value]) => {
-        kryoFeature.setBuffer(kv.getValue.get)
-        val sf = new ScalaSimpleFeature(getId(kv.getKey.getRow), returnSft)
-        translateIndices.foreach { case (to, from) => sf.setAttribute(to, kryoFeature.getAttribute(from)) }
-        val decoded = AttributeWritableIndex.decodeRow(sft, attributeIndex, kv.getKey.getRow.getBytes).get
-        sf.setAttribute(returnIndex, decoded.asInstanceOf[AnyRef])
-        QueryPlanner.applyVisibility(sf, kv.getKey)
-        sf
-      }
     }
   }
 }

@@ -22,8 +22,7 @@ import org.apache.hadoop.util.Progressable
 import org.geotools.data.{DataStoreFinder, DataUtilities}
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToMutations
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.encoders.{BinEncoder, IndexValueEncoder}
-import org.locationtech.geomesa.features.{SimpleFeatureSerializer, SimpleFeatureSerializers}
+import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
 import org.locationtech.geomesa.index.stats.StatUpdater
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -73,8 +72,9 @@ class GeoMesaOutputFormat extends OutputFormat[Text, SimpleFeature] {
   val delegate = new AccumuloOutputFormat
 
   override def getRecordWriter(ignored: FileSystem, job: JobConf, name: String, progress: Progressable) = {
-    val params = GeoMesaConfigurator.getDataStoreOutParams(job)
-    new GeoMesaRecordWriter(params, delegate.getRecordWriter(ignored, job, name, progress))
+    val params  = GeoMesaConfigurator.getDataStoreOutParams(job)
+    val indices = GeoMesaConfigurator.getIndicesOut(job)
+    new GeoMesaRecordWriter(params, indices, delegate.getRecordWriter(ignored, job, name, progress))
   }
 
   override def checkOutputSpecs(ignored: FileSystem, job: JobConf) = {
@@ -91,19 +91,19 @@ class GeoMesaOutputFormat extends OutputFormat[Text, SimpleFeature] {
  *
  * Key is ignored. If the feature type for the given feature does not exist yet, it will be created.
  */
-class GeoMesaRecordWriter(params: Map[String, String], delegate: RecordWriter[Text, Mutation])
+class GeoMesaRecordWriter(params: Map[String, String],
+                          indices: Option[Seq[AccumuloWritableIndex]],
+                          delegate: RecordWriter[Text, Mutation])
     extends RecordWriter[Text, SimpleFeature] with LazyLogging {
 
   type TableAndMutations = (Text, FeatureToMutations)
 
   val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
 
-  val sftCache          = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
-  val writerCache       = scala.collection.mutable.Map.empty[String, Seq[TableAndMutations]]
-  val serializerCache   = scala.collection.mutable.Map.empty[String, SimpleFeatureSerializer]
-  val indexEncoderCache = scala.collection.mutable.Map.empty[String, SimpleFeatureSerializer]
-  val binEncoderCache   = scala.collection.mutable.Map.empty[String, Option[BinEncoder]]
-  val statsCache        = scala.collection.mutable.Map.empty[String, StatUpdater]
+  val sftCache        = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
+  val writerCache     = scala.collection.mutable.Map.empty[String, Seq[TableAndMutations]]
+  val toWritableCache = scala.collection.mutable.Map.empty[String, (SimpleFeature) => WritableFeature]
+  val statsCache      = scala.collection.mutable.Map.empty[String, StatUpdater]
 
   override def write(key: Text, value: SimpleFeature) = {
     val sftName = value.getFeatureType.getTypeName
@@ -121,17 +121,16 @@ class GeoMesaRecordWriter(params: Map[String, String], delegate: RecordWriter[Te
     })
 
     val writers = writerCache.getOrElseUpdate(sftName, {
-      AccumuloFeatureWriter.getTablesAndWriters(sft, ds).map {
+      AccumuloFeatureWriter.getTablesAndWriters(sft, ds, indices).map {
         case (table, writer) => (new Text(table), writer)
       }
     })
     val stats = statsCache.getOrElseUpdate(sftName, ds.stats.statUpdater(sft))
+    val toWritable = toWritableCache.getOrElseUpdate(sftName,
+      WritableFeature.toWritableFeature(sft, ds.getFeatureEncoding(sft), ds.defaultVisibilities))
 
     val withFid = AccumuloFeatureWriter.featureWithFid(sft, value)
-    val serializer = serializerCache.getOrElseUpdate(sftName, ds.getSerializer(sft))
-    val ive = indexEncoderCache.getOrElseUpdate(sftName, IndexValueEncoder(sft))
-    val binEncoder = binEncoderCache.getOrElseUpdate(sftName, BinEncoder(sft))
-    val featureToWrite = WritableFeature(withFid, sft, ds.defaultVisibilities, serializer, ive, binEncoder)
+    val featureToWrite = toWritable(withFid)
 
     // calculate all the mutations first, so that if something fails we won't have a partially written feature
     try {

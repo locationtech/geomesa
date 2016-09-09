@@ -22,9 +22,8 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.accumulo.GeomesaSystemProperties.FeatureIdProperties.FEATURE_ID_GENERATOR
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureWriterFn
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.index.encoders.{BinEncoder, IndexValueEncoder}
 import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, Z3FeatureIdGenerator}
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory, SimpleFeatureSerializer}
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.uuid.FeatureIdGenerator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -51,17 +50,21 @@ object AccumuloFeatureWriter extends LazyLogging {
   /**
    * Gets writers and table names for each table (e.g. index) that supports the sft
    */
-  def getTablesAndWriters(sft: SimpleFeatureType, ds: AccumuloDataStore): Seq[TableAndWriter] =
-    AccumuloFeatureIndex.indices(sft, IndexMode.Write).map { index =>
+  def getTablesAndWriters(sft: SimpleFeatureType,
+                          ds: AccumuloDataStore,
+                          indices: Option[Seq[AccumuloWritableIndex]] = None): Seq[TableAndWriter] =
+    indices.getOrElse(AccumuloFeatureIndex.indices(sft, IndexMode.Write)).map { index =>
       (ds.getTableName(sft.getTypeName, index), index.writer(sft, ds))
     }
 
   /**
    * Gets removers and table names for each table (e.g. index) that supports the sft
    */
-  def getTablesAndRemovers(sft: SimpleFeatureType, ds: AccumuloDataStore): Seq[TableAndWriter] =
+  def getTablesAndRemovers(sft: SimpleFeatureType,
+                           ds: AccumuloDataStore,
+                           indices: Option[Seq[AccumuloWritableIndex]] = None): Seq[TableAndWriter] =
     // note: get both read and write indices as we don't know where the data was first written
-    AccumuloFeatureIndex.indices(sft, IndexMode.Any).map { index =>
+    indices.getOrElse(AccumuloFeatureIndex.indices(sft, IndexMode.Any)).map { index =>
       (ds.getTableName(sft.getTypeName, index), index.remover(sft, ds))
     }
 
@@ -102,14 +105,12 @@ object AccumuloFeatureWriter extends LazyLogging {
 }
 
 abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
-                                     serializer: SimpleFeatureSerializer,
                                      ds: AccumuloDataStore,
                                      defaultVisibility: String)
     extends SimpleFeatureWriter with Flushable with LazyLogging {
 
   protected val multiBWWriter = ds.connector.createMultiTableBatchWriter(GeoMesaBatchWriterConfig())
-  protected val binEncoder = BinEncoder(sft)
-  protected val indexValueSerializer = IndexValueEncoder(sft)
+  protected val toWritableFeature = WritableFeature.toWritableFeature(sft, ds.getFeatureEncoding(sft), defaultVisibility)
 
   // A "writer" is a function that takes a simple feature and writes it to an index or table
   protected val writer: FeatureWriterFn = {
@@ -127,7 +128,7 @@ abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
   protected def writeToAccumulo(feature: SimpleFeature): Unit = {
     // see if there's a suggested ID to use for this feature, else create one based on the feature
     val featureWithFid = AccumuloFeatureWriter.featureWithFid(sft, feature)
-    writer(WritableFeature(featureWithFid, sft, defaultVisibility, serializer, indexValueSerializer, binEncoder))
+    writer(toWritableFeature(featureWithFid))
     statUpdater.add(featureWithFid)
   }
 
@@ -150,10 +151,9 @@ abstract class AccumuloFeatureWriter(sft: SimpleFeatureType,
  * Appends new features - can't modify or delete existing features.
  */
 class AppendAccumuloFeatureWriter(sft: SimpleFeatureType,
-                                  encoder: SimpleFeatureSerializer,
                                   ds: AccumuloDataStore,
                                   defaultVisibility: String)
-  extends AccumuloFeatureWriter(sft, encoder, ds, defaultVisibility) {
+  extends AccumuloFeatureWriter(sft, ds, defaultVisibility) {
 
   var currentFeature: SimpleFeature = null
 
@@ -176,11 +176,10 @@ class AppendAccumuloFeatureWriter(sft: SimpleFeatureType,
  * Modifies or deletes existing features. Per the data store api, does not allow appending new features.
  */
 class ModifyAccumuloFeatureWriter(sft: SimpleFeatureType,
-                                  serializer: SimpleFeatureSerializer,
                                   ds: AccumuloDataStore,
                                   defaultVisibility: String,
                                   filter: Filter)
-  extends AccumuloFeatureWriter(sft, serializer, ds, defaultVisibility) {
+  extends AccumuloFeatureWriter(sft, ds, defaultVisibility) {
 
   val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
 
@@ -199,7 +198,7 @@ class ModifyAccumuloFeatureWriter(sft: SimpleFeatureType,
   }
 
   override def remove() = if (original != null) {
-    remover(WritableFeature(original, sft, defaultVisibility, serializer, indexValueSerializer, binEncoder))
+    remover(toWritableFeature(original))
     statUpdater.remove(original)
   }
 

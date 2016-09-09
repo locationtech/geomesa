@@ -29,25 +29,30 @@ object IndexValueEncoder {
 
   private val cache = new SoftThreadLocalCache[String, SimpleFeatureType]()
 
-  def apply(sft: SimpleFeatureType): SimpleFeatureSerializer = apply(sft, None)
-
-  def apply(sft: SimpleFeatureType, transform: SimpleFeatureType): SimpleFeatureSerializer =
-    apply(sft, Some(transform))
-
-  def apply(sft: SimpleFeatureType, transform: Option[SimpleFeatureType]): SimpleFeatureSerializer = {
+  @deprecated
+  def apply(sft: SimpleFeatureType, transform: SimpleFeatureType): SimpleFeatureSerializer = {
     val key = CacheKeyGenerator.cacheKey(sft)
     val indexSft = cache.getOrElseUpdate(key, getIndexSft(sft))
-
     if (sft.getSchemaVersion < 4) { // kryo encoding introduced in version 4
-      OldIndexValueEncoder(sft, transform.getOrElse(indexSft))
-    } else if (sft.getSchemaVersion < 9) {
+      OldIndexValueEncoder(sft, transform)
+    } else {
       val encoder = new KryoFeatureSerializer(indexSft)
-      val decoder = transform match {
-        case None    => new KryoFeatureSerializer(indexSft)
-        case Some(t) => new ProjectingKryoFeatureDeserializer(indexSft, t)
-      }
+      val decoder = new ProjectingKryoFeatureDeserializer(indexSft, transform)
       val copyFunction = getCopyFunction(sft, indexSft)
       new IndexValueEncoderImpl(copyFunction, indexSft, encoder, decoder)
+    }
+  }
+
+
+  def apply(sft: SimpleFeatureType, includeIds: Boolean = false): SimpleFeatureSerializer = {
+    val key = CacheKeyGenerator.cacheKey(sft)
+    val indexSft = cache.getOrElseUpdate(key, getIndexSft(sft))
+    if (sft.getSchemaVersion < 4) { // kryo encoding introduced in version 4
+      OldIndexValueEncoder(sft, indexSft)
+    } else if (includeIds) {
+      val encoder = new KryoFeatureSerializer(indexSft)
+      val copyFunction = getCopyFunction(sft, indexSft)
+      new IndexValueEncoderImpl(copyFunction, indexSft, encoder, encoder)
     } else {
       new ProjectingKryoFeatureSerializer(sft, indexSft, SerializationOptions.withoutId)
     }

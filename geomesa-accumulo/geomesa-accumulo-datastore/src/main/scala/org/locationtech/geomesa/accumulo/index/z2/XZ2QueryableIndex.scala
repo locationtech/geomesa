@@ -76,7 +76,7 @@ trait XZ2QueryableIndex extends AccumuloFeatureIndex
       val iter = KryoLazyMapAggregatingIterator.configure(sft, this, ecql, hints, deduplicate = false)
       (Seq(iter), entriesToFeatures(sft, hints.getReturnSft), AccumuloWritableIndex.FullColumnFamily, false)
     } else {
-      val iters = KryoLazyFilterTransformIterator.configure(sft, ecql, hints).toSeq
+      val iters = KryoLazyFilterTransformIterator.configure(sft, this, ecql, hints).toSeq
       (iters, entriesToFeatures(sft, hints.getReturnSft), AccumuloWritableIndex.FullColumnFamily, false)
     }
 

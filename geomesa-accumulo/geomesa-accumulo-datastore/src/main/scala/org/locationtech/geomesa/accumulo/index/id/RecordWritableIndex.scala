@@ -11,11 +11,9 @@ package org.locationtech.geomesa.accumulo.index.id
 import com.google.common.base.Charsets
 import com.google.common.collect.ImmutableSortedSet
 import org.apache.accumulo.core.conf.Property
-import org.apache.accumulo.core.data.Mutation
 import org.apache.accumulo.core.file.keyfunctor.RowFunctor
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter._
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
@@ -23,49 +21,11 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
-import scala.util.Try
-
 // TODO: Implement as traits and cache results to gain flexibility and speed-up.
 // https://geomesa.atlassian.net/browse/GEOMESA-344
 trait RecordWritableIndex extends AccumuloWritableIndex {
 
   import RecordIndex.getRowKey
-
-  private val SFT_CF = new Text("SFT")
-
-  override def writer(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
-    val rowIdPrefix = sft.getTableSharingPrefix
-    if (sft.getSchemaVersion < 9) {
-      (wf: WritableFeature) => {
-        val mutation = new Mutation(getRowKey(rowIdPrefix, wf.feature.getID))
-        wf.fullValues.foreach(value => mutation.put(SFT_CF, EMPTY_COLQ, value.vis, value.value))
-        Seq(mutation)
-      }
-    } else {
-      (wf: WritableFeature) => {
-        val mutation = new Mutation(getRowKey(rowIdPrefix, wf.feature.getID))
-        wf.fullValues.foreach(value => mutation.put(value.cf, value.cq, value.vis, value.value))
-        Seq(mutation)
-      }
-    }
-  }
-
-  override def remover(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
-    val rowIdPrefix = sft.getTableSharingPrefix
-    if (sft.getSchemaVersion < 9) {
-      (wf: WritableFeature) => {
-        val mutation = new Mutation(getRowKey(rowIdPrefix, wf.feature.getID))
-        wf.fullValues.foreach(value => mutation.putDelete(SFT_CF, EMPTY_COLQ, value.vis))
-        Seq(mutation)
-      }
-    } else {
-      (wf: WritableFeature) => {
-        val mutation = new Mutation(getRowKey(rowIdPrefix, wf.feature.getID))
-        wf.fullValues.foreach(value => mutation.putDelete(value.cf, value.cq, value.vis))
-        Seq(mutation)
-      }
-    }
-  }
 
   override def getIdFromRow(sft: SimpleFeatureType): (Text) => String = {
     val offset = sft.getTableSharingPrefix.length
@@ -75,12 +35,11 @@ trait RecordWritableIndex extends AccumuloWritableIndex {
   override def configure(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
     import scala.collection.JavaConversions._
 
-    val table = Try(ops.getTableName(sft.getTypeName, this)).getOrElse {
-      val table = GeoMesaTable.formatTableName(ops.catalogTable, tableSuffix, sft)
-      ops.metadata.insert(sft.getTypeName, tableNameKey, table)
-      table
-    }
+    val table = GeoMesaTable.formatTableName(ops.catalogTable, tableSuffix, sft)
+    ops.metadata.insert(sft.getTypeName, tableNameKey, table)
+
     AccumuloVersion.ensureTableExists(ops.connector, table)
+
     val prefix = sft.getTableSharingPrefix
     val prefixFn = getRowKey(prefix, _: String)
     val splitterClazz = sft.getUserData.getOrElse(SimpleFeatureTypes.TABLE_SPLITTER, classOf[HexSplitter].getCanonicalName).asInstanceOf[String]
