@@ -99,6 +99,10 @@ trait KafkaConsumerFeatureCache extends QuadTreeFeatureStore {
     }
   }
 
+  def size(): Int = {
+    features.size
+  }
+
   def getReaderForFilter(filter: Filter): FR =
     filter match {
       case f: IncludeFilter => include(f)
@@ -152,6 +156,10 @@ object KafkaConsumerFeatureSourceFactory {
       Option(KafkaDataStoreFactoryParams.CLEANUP_LIVE_CACHE.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
     }
 
+    val useCQCache: Boolean = {
+      Option(KafkaDataStoreFactoryParams.USE_CQ_LIVE_CACHE.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
+    }
+
     val monitor: Boolean = {
       Option(KafkaDataStoreFactoryParams.COLLECT_QUERY_STAT.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
     }
@@ -162,7 +170,7 @@ object KafkaConsumerFeatureSourceFactory {
 
       fc.replayConfig match {
         case None =>
-          new LiveKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, expirationPeriod, cleanUpCache, query, monitor)
+          new LiveKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, expirationPeriod, cleanUpCache, useCQCache, query, monitor)
 
         case Some(rc) =>
           val replaySFT = fc.sft
