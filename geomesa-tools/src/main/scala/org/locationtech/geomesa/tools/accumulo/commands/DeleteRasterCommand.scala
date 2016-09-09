@@ -54,7 +54,7 @@ object DeleteRasterCommand {
         "Please ensure stdout is not redirected or --force flag is set")
     }
 
-  @Parameters(commandDescription = "Delete a GeoMesa Raster Table")
+  @Parameters(commandDescription = "Delete a GeoMesa Raster table")
   class DeleteRasterParams extends AccumuloConnectionParams
     with AccumuloRasterTableParam
     with OptionalForceParam {}

@@ -37,21 +37,22 @@ This should print out the following usage text:
     $ geomesa
     Usage: geomesa [command] [command options]
       Commands:
-        create              Create a feature definition in a GeoMesa catalog
+        add-index           Add or update indices for an existing GeoMesa feature type
+        create              Create a GeoMesa feature type
         deletecatalog       Delete a GeoMesa catalog completely (and all features in it)
         deletefeatures      Delete features from a table in GeoMesa. Does not delete any tables or schema information.
-        deleteraster        Delete a GeoMesa Raster Table
-        describe            Describe the attributes of a given feature in GeoMesa
+        deleteraster        Delete a GeoMesa Raster table
+        describe            Describe the attributes of a given GeoMesa feature type
         env                 Examine the current GeoMesa environment
         explain             Explain how a GeoMesa query will be executed
-        export              Export a GeoMesa feature
+        export              Export features from a GeoMesa data store
         genavroschema       Generate an Avro schema from a SimpleFeatureType
         getsft              Get the SimpleFeatureType of a feature
         help                Show help
         ingest              Ingest/convert various file formats into GeoMesa
-        ingestraster        Ingest a raster file or raster files in a directory into GeoMesa
+        ingestraster        Ingest raster files into GeoMesa
         keywords            Add/Remove/List keywords on an existing schema
-        list                List GeoMesa features for a given catalog
+        list                List GeoMesa feature types for a given catalog
         queryrasterstats    Export queries and statistics about the last X number of queries to a CSV file.
         removeschema        Remove a schema and associated features from a GeoMesa catalog
         stats-analyze       Analyze statistics on a GeoMesa feature type
@@ -60,7 +61,8 @@ This should print out the following usage text:
         stats-histogram     View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values
         stats-top-k         Enumerate the most frequent values in a GeoMesa feature type
         tableconf           Perform table configuration operations
-        version             GeoMesa Version
+        version             Display the installed GeoMesa version
+
 
 
 This usage text lists the available commands. To see help for an individual command run `geomesa help <command-name>` which for example
@@ -178,12 +180,50 @@ Note that if no slf4j implementation is installed you will see this error:
 
 ## Command Explanations and Usage
 
+### add-index
+Use the `add-index` command to add a new index to an existing schema, or to update an index to a newer version.
+
+#### Usage (required options denoted with star):
+    $ geomesa help add-index
+      Add or update indices for an existing GeoMesa feature type
+      Usage: add-index [options]
+        Options:
+          --auths
+             Accumulo authorizations
+        * -c, --catalog
+             Catalog table name for GeoMesa
+          -q, --cql
+             CQL predicate
+        * -f, --feature-name
+             Simple Feature Type name on which to operate
+        * --index
+             Name of index(es) to add - comma-separate or use multiple flags
+          -i, --instance
+             Accumulo instance name
+          --mock
+             Run everything with a mock accumulo instance instead of a real one
+             Default: false
+          --no-back-fill
+             Do not copy any existing data into the new index
+          -p, --password
+             Accumulo password (will prompt if not supplied)
+        * -u, --user
+             Accumulo user name
+          --visibilities
+             Default feature visibilities
+          -z, --zookeepers
+             Zookeepers (host[:port], comma separated)
+
+#### Example command:
+    geomesa add-index -u username -p password -c catalog -i instance -z zoo1,zoo2,zoo3 -f twitter --index z2
+
+
 ### create
 To create a new feature on a specified catalog table, use the `create` command.  
 
 #### Usage (required options denoted with star):
     $ geomesa help create
-      Create a feature definition in a GeoMesa catalog
+      Create a GeoMesa feature type
       Usage: create [options]
         Options:
           --auths
@@ -515,7 +555,7 @@ To delete a specific raster table use the `deleteraster` command.
 
 #### Usage (required options denoted with star):
     $ geomesa help deleteraster
-      Delete a GeoMesa Raster Table
+      Delete a GeoMesa Raster table
       Usage: deleteraster [options]
         Options:
           --auths
@@ -613,7 +653,7 @@ To describe the attributes of a feature on a specified catalog table, use the `d
 
 #### Usage (required options denoted with star):
     $ geomesa help describe
-    Describe the attributes of a given feature in GeoMesa
+    Describe the attributes of a given GeoMesa feature type
     Usage: describe [options]
       Options:
         --auths
@@ -719,7 +759,7 @@ To export features, use the `export` command.
 
 #### Usage (required options denoted with star):
     $ geomesa help export
-    Export a GeoMesa feature
+    Export features from a GeoMesa data store
     Usage: export [options]
       Options:
         -a, --attributes
@@ -785,6 +825,29 @@ Attribute expressions are comma-separated expressions with each in the format
     geomesa export -u username -p password -c test_catalog -f test_feature -a "geom,text,user_name" --format gml -q "user_name='JohnSmith'"
     geomesa export -u username -p password -c test_catalog -f test_feature -a "user_name,buf=buffer(geom\, 2)" \
         --format csv -q "[[ user_name like `John%' ] AND [ bbox(geom, 22.1371589, 44.386463, 40.228581, 52.379581, 'EPSG:4326') ]]"
+
+
+### genavroschema
+Generate an Avro schema from a SimpleFeatureType
+
+#### Usage (required options denoted with star):
+    $ geomesa help genavroschema
+    Convert SimpleFeatureTypes to Avro schemas
+    Usage: genavroschema [options]
+      Options:
+        -f, --feature-name
+           Simple Feature Type name on which to operate
+      * -s, --spec
+           SimpleFeatureType specification as a GeoTools spec string, SFT config, or
+           file with either
+
+#### Example commands:
+    # Convert an SFT loaded from config
+    geomesa genavroschema -s example-csv
+
+    # convert an SFT passed in as an argument
+    geomesa genavroschema -s "name:String,dtg:Date,geom:Point" -f myfeature
+
 
 ### getsft
 Gets an existing simple feature type as an encoded string.
@@ -1064,7 +1127,7 @@ input_file out_file`.
 
 #### Usage (required options denoted with star):
     $ geomesa help ingestraster
-    Ingest a raster file or raster files in a directory into GeoMesa
+    Ingest raster files into GeoMesa
     Usage: ingestraster [options]
       Options:
         --auths
@@ -1106,36 +1169,6 @@ input_file out_file`.
 #### Example commands:
     geomesa ingestraster -u username -p password -t geomesa_raster -f /some/local/path/to/raster.tif
 
-### list
-To list the features on a specified catalog table, use the `list` command.  
-
-#### Usage (required options denoted with star):
-    $ geomesa help list
-    List GeoMesa features for a given catalog
-    Usage: list [options]
-      Options:
-        --auths
-           Accumulo authorizations
-      * -c, --catalog
-           Catalog table name for GeoMesa
-        -i, --instance
-           Accumulo instance name
-        --mock
-           Run everything with a mock accumulo instance instead of a real one
-           Default: false
-        -p, --password
-           Accumulo password (will prompt if not supplied)
-      * -u, --user
-           Accumulo user name
-        --visibilities
-           Accumulo scan visibilities
-        -z, --zookeepers
-           Zookeepers (host[:port], comma separated)
-
-
-#### Example command:
-    geomesa list -u username -p password -c test_catalog
-    
 ### keywords
 To add, remove, or list all the keywords on a specified catalog table, use the `keywords` command
 
@@ -1174,19 +1207,50 @@ To add, remove, or list all the keywords on a specified catalog table, use the `
         -z, --zookeepers
            Zookeepers (host[:port], comma separated)
 
-    
+
 #### Example command:
     geomesa keywords -u username -p password -c test_catalog -f feature_name -i instance \
     -a keywordA -a keywordB=foo,bar -r keywordC -l
 
 
-### querystats
+### list
+To list the features on a specified catalog table, use the `list` command.  
+
+#### Usage (required options denoted with star):
+    $ geomesa help list
+    List GeoMesa feature types for a given catalog
+    Usage: list [options]
+      Options:
+        --auths
+           Accumulo authorizations
+      * -c, --catalog
+           Catalog table name for GeoMesa
+        -i, --instance
+           Accumulo instance name
+        --mock
+           Run everything with a mock accumulo instance instead of a real one
+           Default: false
+        -p, --password
+           Accumulo password (will prompt if not supplied)
+      * -u, --user
+           Accumulo user name
+        --visibilities
+           Accumulo scan visibilities
+        -z, --zookeepers
+           Zookeepers (host[:port], comma separated)
+
+
+#### Example command:
+    geomesa list -u username -p password -c test_catalog
+
+
+### queryrasterstats
 Export queries and statistics logged for raster tables by using the `querystats` command.
 
 #### Usage (required options denoted with star):
     $ geomesa help queryrasterstats
     Export queries and statistics about the last X number of queries to a CSV file.
-    Usage: querystats [options]
+    Usage: queryrasterstats [options]
       Options:
         --auths
            Accumulo authorizations
@@ -1214,27 +1278,6 @@ Export queries and statistics logged for raster tables by using the `querystats`
 
 #### Example command:
     geomesa queryrasterstats -u username -p password -t somerastertable -num 10
-
-### genavroschema 
-Generate an Avro schema from a SimpleFeatureType
-
-#### Usage (required options denoted with star):
-    $ geomesa help genavroschema
-    Convert SimpleFeatureTypes to Avro schemas
-    Usage: genavroschema [options]
-      Options:
-        -f, --feature-name
-           Simple Feature Type name on which to operate
-      * -s, --spec
-           SimpleFeatureType specification as a GeoTools spec string, SFT config, or
-           file with either
-
-#### Example commands:
-    # Convert an SFT loaded from config
-    geomesa genavroschema -s example-csv
-    
-    # convert an SFT passed in as an argument
-    geomesa genavroschema -s "name:String,dtg:Date,geom:Point" -f myfeature
     
 ### tableconf
 To list, describe, and update the configuration parameters on a specified table, use the `tableconf` command. 
@@ -1336,7 +1379,7 @@ Prints out the version, git branch, and commit ID that the tools were built with
 
 #### Usage:
     $geomesa help version
-    GeoMesa Version
+    Display the installed GeoMesa version
     Usage: version
 
 #### Example commands:

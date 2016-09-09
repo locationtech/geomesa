@@ -24,8 +24,8 @@ import org.joda.time._
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.GeoMesaMetadata._
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.z2.{Z2IndexV1, Z2IndexV2}
-import org.locationtech.geomesa.accumulo.index.z3.{Z3IndexV2, Z3IndexV3}
+import org.locationtech.geomesa.accumulo.index.z2.Z2IndexV1
+import org.locationtech.geomesa.accumulo.index.z3.Z3IndexV2
 import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, QueryHints}
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator
 import org.locationtech.geomesa.curve.BinnedTime
@@ -79,7 +79,7 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
     if (exact) {
       val hasDupes = sft.nonPoints && {
         val indices = AccumuloFeatureIndex.indices(sft, IndexMode.Read)
-        Seq(Z2IndexV1, Z2IndexV2, Z3IndexV2, Z3IndexV3).exists(indices.contains)
+        Seq(Z2IndexV1, Z3IndexV2).exists(indices.contains)
         // TODO check for multivalued attribute indices
       }
       if (!hasDupes) {

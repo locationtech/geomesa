@@ -148,7 +148,7 @@ class AddIndexCommand(parent: JCommander) extends CommandWithCatalog(parent) wit
 
 object AddIndexCommand {
 
-  @Parameters(commandDescription = "Add or update the indices for a GeoMesa feature type")
+  @Parameters(commandDescription = "Add or update indices for an existing GeoMesa feature type")
   class AddIndexParameters extends GeoMesaConnectionParams with FeatureTypeNameParam with OptionalCQLFilterParam {
     @Parameter(names = Array("--index"), description = "Name of index(es) to add - comma-separate or use multiple flags", required = true)
     var indexNames: java.util.List[String] = null

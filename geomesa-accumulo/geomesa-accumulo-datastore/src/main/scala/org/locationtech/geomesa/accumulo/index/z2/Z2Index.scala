@@ -16,7 +16,7 @@ import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeat
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex._
 import org.opengis.feature.simple.SimpleFeatureType
 
-// current version - deprecated non-point support in favor of xz
+// current version - deprecated non-point support in favor of xz, ids in row key, per-attribute vis
 object Z2Index extends AccumuloFeatureIndex with Z2WritableIndex with Z2QueryableIndex {
 
   val Z2IterPriority = 23
@@ -35,7 +35,7 @@ object Z2Index extends AccumuloFeatureIndex with Z2WritableIndex with Z2Queryabl
 
   override val name: String = "z2"
 
-  override val version: Int = 3
+  override val version: Int = 2
 
   override val serializedWithId: Boolean = false
 
@@ -65,67 +65,6 @@ object Z2Index extends AccumuloFeatureIndex with Z2WritableIndex with Z2Queryabl
         val mutation = new Mutation(row)
         wf.fullValues.foreach { value => mutation.putDelete(value.cf, value.cq, value.vis) }
         wf.binValues.foreach { value => mutation.putDelete(value.cf, value.cq, value.vis) }
-        mutation
-      }
-    }
-  }
-}
-
-// ids in row key, per-attribute vis
-object Z2IndexV2 extends AccumuloFeatureIndex with Z2WritableIndex with Z2QueryableIndex {
-
-  override val name: String = "z2"
-
-  override val version: Int = 2
-
-  override val serializedWithId: Boolean = false
-
-  override def supports(sft: SimpleFeatureType): Boolean = sft.getGeometryDescriptor != null
-
-  override def writer(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    val sharing = sharingPrefix(sft)
-    val getRowKeys: (WritableFeature) => Seq[Array[Byte]] =
-      if (sft.isPoints) getPointRowKey(sharing) else getGeomRowKeys(sharing)
-
-    (wf: WritableFeature) => {
-      val rows = getRowKeys(wf)
-      // store the duplication factor in the column qualifier for later use
-      val duplication = Integer.toHexString(rows.length)
-      rows.map { row =>
-        val mutation = new Mutation(row)
-        wf.fullValues.foreach { value =>
-          val cq = new Text(s"$duplication,${value.cq.toString}")
-          mutation.put(value.cf, cq, value.vis, value.value)
-        }
-        wf.binValues.foreach { value =>
-          val cq = new Text(s"$duplication,${value.cq.toString}")
-          mutation.put(value.cf, cq, value.vis, value.value)
-        }
-        mutation
-      }
-    }
-  }
-
-  override def remover(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    val sharing = sharingPrefix(sft)
-    val getRowKeys: (WritableFeature) => Seq[Array[Byte]] =
-      if (sft.isPoints) getPointRowKey(sharing) else getGeomRowKeys(sharing)
-
-    (wf: WritableFeature) => {
-      val rows = getRowKeys(wf)
-      val duplication = Integer.toHexString(rows.length)
-      rows.map { row =>
-        val mutation = new Mutation(row)
-        wf.fullValues.foreach { value =>
-          val cq = new Text(s"$duplication,${value.cq.toString}")
-          mutation.putDelete(value.cf, cq, value.vis)
-        }
-        wf.binValues.foreach { value =>
-          val cq = new Text(s"$duplication,${value.cq.toString}")
-          mutation.putDelete(value.cf, cq, value.vis)
-        }
         mutation
       }
     }

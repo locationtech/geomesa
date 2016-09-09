@@ -83,7 +83,7 @@ class PathValidator extends IParameterValidator {
 }
 
 object IngestRasterCommand {
-  @Parameters(commandDescription = "Ingest a raster file or raster files in a directory into GeoMesa")
+  @Parameters(commandDescription = "Ingest raster files into GeoMesa")
   class IngestRasterParameters extends AccumuloConnectionParams
     with AccumuloRasterTableParam {
 

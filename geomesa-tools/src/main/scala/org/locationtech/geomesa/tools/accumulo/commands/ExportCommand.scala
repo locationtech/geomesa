@@ -123,7 +123,7 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
 }
 
 object ExportCommand {
-  @Parameters(commandDescription = "Export a GeoMesa feature")
+  @Parameters(commandDescription = "Export features from a GeoMesa data store")
   class ExportParameters extends GeoMesaConnectionParams
     with FeatureTypeNameParam
     with OptionalCQLFilterParam {

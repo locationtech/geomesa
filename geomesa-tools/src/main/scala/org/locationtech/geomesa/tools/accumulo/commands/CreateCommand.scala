@@ -60,7 +60,7 @@ class CreateCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
 }
 
 object CreateCommand {
-  @Parameters(commandDescription = "Create a feature definition in a GeoMesa catalog")
+  @Parameters(commandDescription = "Create a GeoMesa feature type")
   class CreateParameters extends GeoMesaConnectionParams
     with FeatureTypeSpecParam
     with FeatureTypeNameParam

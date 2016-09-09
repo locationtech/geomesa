@@ -27,21 +27,22 @@ Run ``geomesa`` without any arguments to produce the following usage text::
     $ geomesa
     Usage: geomesa [command] [command options]
       Commands:
-        create              Create a feature definition in a GeoMesa catalog
+        add-index           Add or update indices for an existing GeoMesa feature type
+        create              Create a GeoMesa feature type
         deletecatalog       Delete a GeoMesa catalog completely (and all features in it)
         deletefeatures      Delete features from a table in GeoMesa. Does not delete any tables or schema information.
-        deleteraster        Delete a GeoMesa Raster Table
-        describe            Describe the attributes of a given feature in GeoMesa
+        deleteraster        Delete a GeoMesa Raster table
+        describe            Describe the attributes of a given GeoMesa feature type
         env                 Examine the current GeoMesa environment
         explain             Explain how a GeoMesa query will be executed
-        export              Export a GeoMesa feature
+        export              Export features from a GeoMesa data store
         genavroschema       Generate an Avro schema from a SimpleFeatureType
         getsft              Get the SimpleFeatureType of a feature
         help                Show help
         ingest              Ingest/convert various file formats into GeoMesa
-        ingestraster        Ingest a raster file or raster files in a directory into GeoMesa
+        ingestraster        Ingest raster files into GeoMesa
         keywords            Add/Remove/List keywords on an existing schema
-        list                List GeoMesa features for a given catalog
+        list                List GeoMesa feature types for a given catalog
         queryrasterstats    Export queries and statistics about the last X number of queries to a CSV file.
         removeschema        Remove a schema and associated features from a GeoMesa catalog
         stats-analyze       Analyze statistics on a GeoMesa feature type
@@ -50,13 +51,13 @@ Run ``geomesa`` without any arguments to produce the following usage text::
         stats-histogram     View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values
         stats-top-k         Enumerate the most frequent values in a GeoMesa feature type
         tableconf           Perform table configuration operations
-        version             GeoMesa Version
+        version             Display the installed GeoMesa version
 
 This usage text lists the available commands. To see help for an individual command,
 run ``geomesa help <command-name>``, which for example will give you something like this::
 
     $ geomesa help list
-    List GeoMesa features for a given catalog
+    List GeoMesa feature types for a given catalog
     Usage: list [options]
       Options:
         --auths
@@ -450,10 +451,25 @@ Export queries and statistics about the `n` most recent raster queries to a CSV 
 Performing system administration tasks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. _add_index_command:
+
+add-index
+~~~~~~~~~
+
+Add or update indices for an existing feature type. This can be used to upgrade-in-place, converting an older
+index format into the latest. See :ref:`index_upgrades` for more information.
+
+Example usage::
+
+    $ geomesa add-index -u username -p password -i instance \
+      -z zoo1,zoo2,zoo3 -c test_catalog -f test_feature --index xz3
+
 deletecatalog
 ~~~~~~~~~~~~~
 
-Delete a GeoMesa catalog table completely, along with all features in it.::
+Delete a GeoMesa catalog table completely, along with all features in it.
+
+Example usage::
 
     $ geomesa deletecatalog -u username -p password \
       -i instance -z zoo1,zoo2,zoo3 -c test_catalog

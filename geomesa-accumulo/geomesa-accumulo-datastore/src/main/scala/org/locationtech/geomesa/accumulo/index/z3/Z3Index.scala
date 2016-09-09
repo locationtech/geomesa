@@ -17,7 +17,7 @@ import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex._
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.opengis.feature.simple.SimpleFeatureType
 
-// current version - deprecated polygon support in favor of xz
+// current version - deprecated polygon support in favor of xz, ids in row key, per-attribute vis
 object Z3Index extends AccumuloFeatureIndex with Z3WritableIndex with Z3QueryableIndex {
 
   val Z3IterPriority = 23
@@ -35,7 +35,7 @@ object Z3Index extends AccumuloFeatureIndex with Z3WritableIndex with Z3Queryabl
 
   override val name: String = "z3"
 
-  override val version: Int = 4
+  override val version: Int = 3
 
   override val serializedWithId: Boolean = false
 
@@ -75,76 +75,6 @@ object Z3Index extends AccumuloFeatureIndex with Z3WritableIndex with Z3Queryabl
         val mutation = new Mutation(row)
         wf.fullValues.foreach { value => mutation.putDelete(value.cf, value.cq, value.vis) }
         wf.binValues.foreach { value => mutation.putDelete(value.cf, value.cq, value.vis) }
-        mutation
-      }
-    }
-  }
-}
-
-// ids in row key, per-attribute vis
-object Z3IndexV3 extends AccumuloFeatureIndex with Z3WritableIndex with Z3QueryableIndex {
-
-  override val name: String = "z3"
-
-  override val version: Int = 3
-
-  override val serializedWithId: Boolean = false
-
-  override val hasSplits: Boolean = true
-
-  override def supports(sft: SimpleFeatureType): Boolean = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    sft.getDtgField.isDefined && sft.getGeometryDescriptor != null
-  }
-
-  override def writer(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
-    val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
-    val sfc = Z3SFC(sft.getZ3Interval)
-    val getRowKeys: (WritableFeature, Int) => Seq[Array[Byte]] =
-      if (sft.isPoints) { getPointRowKey(timeToIndex, sfc) } else { getGeomRowKeys(timeToIndex, sfc) }
-
-    (wf: WritableFeature) => {
-      val rows = getRowKeys(wf, dtgIndex)
-      // store the duplication factor in the column qualifier for later use
-      val duplication = Integer.toHexString(rows.length)
-      rows.map { row =>
-        val mutation = new Mutation(row)
-        wf.fullValues.foreach { value =>
-          val cq = new Text(s"$duplication,${value.cq.toString}")
-          mutation.put(value.cf, cq, value.vis, value.value)
-        }
-        wf.binValues.foreach { value =>
-          val cq = new Text(s"$duplication,${value.cq.toString}")
-          mutation.put(value.cf, cq, value.vis, value.value)
-        }
-        mutation
-      }
-    }
-  }
-
-  override def remover(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
-    val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
-    val sfc = Z3SFC(sft.getZ3Interval)
-    val getRowKeys: (WritableFeature, Int) => Seq[Array[Byte]] =
-      if (sft.isPoints) { getPointRowKey(timeToIndex, sfc) } else { getGeomRowKeys(timeToIndex, sfc) }
-
-    (wf: WritableFeature) => {
-      val rows = getRowKeys(wf, dtgIndex)
-      val duplication = Integer.toHexString(rows.length)
-      rows.map { row =>
-        val mutation = new Mutation(row)
-        wf.fullValues.foreach { value =>
-          val cq = new Text(s"$duplication,${value.cq.toString}")
-          mutation.putDelete(value.cf, cq, value.vis)
-        }
-        wf.binValues.foreach { value =>
-          val cq = new Text(s"$duplication,${value.cq.toString}")
-          mutation.putDelete(value.cf, cq, value.vis)
-        }
         mutation
       }
     }
