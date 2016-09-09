@@ -37,7 +37,7 @@ else
   NL=$'\n'
   read -r -p "Install accumulo and hadoop dependencies to ${install_dir}?${NL}Confirm? [Y/n]" confirm
   confirm=${confirm,,} #lowercasing
-  if [[ $confirm =~ ^(yes|y) ]]; then
+  if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
     # get stuff
     declare -a urls=(
       "${base_url}org/apache/accumulo/accumulo-core/${accumulo_version}/accumulo-core-${accumulo_version}.jar"

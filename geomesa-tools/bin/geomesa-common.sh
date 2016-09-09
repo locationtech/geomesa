@@ -122,7 +122,7 @@ else
   echo >&2 "Using GEOMESA_HOME = $GEOMESA_HOME"
   if [[ $1 = configure ]]; then
     read -p "Do you want to reset this? Y\n " -n 1 -r
-    if [[  $REPLY =~ ^[Yy]$ ]]; then
+    if [[  $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
       echo >&2 ""
       setGeoHome
     fi
@@ -140,7 +140,7 @@ if [[ -z "$GEOMESA_CONF_DIR" ]]; then
     echo -e >&2 "$message"
     echo >&2 ""
     read -p "Do you want to continue? Y\n " -n 1 -r
-    if [[  $REPLY =~ ^[Yy]$ ]]; then
+    if [[  $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
       echo "Continuing without configuration, functionality will be limited"
     else
       message="You may set this value manually using 'export GEOMESA_CONF_DIR=/path/to/dir'"
@@ -159,7 +159,7 @@ elif [[ $1 = configure ]]; then
   echo -e >&2 "$message"
   echo >&2 ""
   read -p "Do you want to reset this to ${GEOMESA_HOME}/conf? Y\n " -n 1 -r
-  if [[  $REPLY =~ ^[Yy]$ ]]; then
+  if [[  $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
     GEOMESA_CONF_DIR=${GEOMESA_HOME}/conf
     echo >&2 ""
     echo "Now set to ${GEOMESA_CONF_DIR}"
@@ -190,7 +190,7 @@ elif [[ $1 = configure ]] && containsElement "GEOMESA_LIB" "${existingEnvVars[@]
   echo -e >&2 "$message"
   echo >&2 ""
   read -p "Do you want to reset this to ${GEOMESA_HOME}/lib? Y\n " -n 1 -r
-  if [[  $REPLY =~ ^[Yy]$ ]]; then
+  if [[  $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
     GEOMESA_LIB=${GEOMESA_HOME}/lib
     echo >&2 ""
     echo "Now set to ${GEOMESA_LIB}"

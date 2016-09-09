@@ -15,7 +15,7 @@ else
   url='http://search.maven.org/remotecontent?filepath=jline/jline/2.12.1/jline-2.12.1.jar'
   read -r -p "JLine is BSD licensed and free to use and distribute, however, the provenance of the code could not be established by the Eclipse Foundation, and thus it is not distributed with GeoMesa... are you sure you want to install it from $url ? [Y/n] " confirm
   confirm=${confirm,,} #lowercasing
-  if [[ $confirm =~ ^(yes|y) ]]; then
+  if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
     echo "Trying to install JLine from $url to $GEOMESA_HOME"
     wget -O /tmp/jline-2.12.1.jar $url \
       && mv /tmp/jline-2.12.1.jar $GEOMESA_HOME/lib/common/ \
