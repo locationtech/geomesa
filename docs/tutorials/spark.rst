@@ -39,7 +39,7 @@ Prerequisites
 
 You will also need:
 
--  a `Spark <http://spark.apache.org/>`__ 1.5.0 or later distribution (see below)
+-  a `Spark <http://spark.apache.org/>`__ 2.0.0 or later distribution (see below)
 -  an Accumulo user that has appropriate permissions to query your data
 -  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
 -  `Apache Maven <http://maven.apache.org/>`__ 3.2.2 or better
@@ -54,7 +54,7 @@ with Scala 2.11 details `here <http://spark.apache.org/docs/latest/building-spar
 
 .. warning::
 
-    Ensure that you are using Spark 1.5.0 or later
+    Ensure that you are using Spark 2.0.0 or later
 
 GeoMesa works best with Spark running on Yarn - as such, you need to have an available Hadoop with Yarn
 installation alongside your Spark distribution. We will use ``spark-submit`` to run our jobs on the cluster.
