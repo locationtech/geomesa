@@ -17,6 +17,7 @@ import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.data.stats.usage._
 import org.locationtech.geomesa.accumulo.index.{QueryHints, QueryPlanner}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.monitoring.UsageStat
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -24,6 +25,8 @@ import scala.collection.mutable.ArrayBuffer
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
+
+  sequential
 
   override def spec = s"name:String,dtg:Date,*geom:Point"
 

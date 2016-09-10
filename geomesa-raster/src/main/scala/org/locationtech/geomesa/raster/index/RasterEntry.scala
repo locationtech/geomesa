@@ -17,6 +17,7 @@ import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.index._
+import org.locationtech.geomesa.accumulo.index.encoders.{DecodedIndexValue, IndexValueEncoder}
 import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatureSerializer}
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.data.Raster
@@ -25,7 +26,7 @@ import org.opengis.feature.simple.SimpleFeature
 object RasterEntry {
 
   val encoder = new ThreadLocal[SimpleFeatureSerializer] {
-    override def initialValue(): SimpleFeatureSerializer = IndexValueEncoder(rasterSft)
+    override def initialValue(): SimpleFeatureSerializer = IndexValueEncoder(rasterSft, includeIds = true)
   }
 
   def encodeIndexCQMetadata(metadata: DecodedIndexValue): Array[Byte] = {

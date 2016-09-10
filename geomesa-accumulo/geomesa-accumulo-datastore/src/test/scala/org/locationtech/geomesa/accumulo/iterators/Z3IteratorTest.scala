@@ -15,8 +15,8 @@ import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.tables.Z3Table
-import org.locationtech.geomesa.curve.Z3SFC
+import org.locationtech.geomesa.accumulo.index.z3.Z3Index
+import org.locationtech.geomesa.curve.{TimePeriod, Z3SFC}
 import org.locationtech.sfcurve.zorder.Z3
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -25,6 +25,8 @@ import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class Z3IteratorTest extends Specification {
+
+  import Z3Iterator._
 
   sequential
 
@@ -53,16 +55,19 @@ class Z3IteratorTest extends Specification {
       override def hasTop: Boolean = staged != null
     }
 
+    val sfc = Z3SFC(TimePeriod.Week)
+
     "iterate on points" >> {
-      val (xmin, ymin, tmin) = Z3SFC.index(lx, ly, lt).decode
-      val (xmax, ymax, tmax) = Z3SFC.index(ux, uy, ut).decode
+      val (xmin, ymin, tmin) = sfc.index(lx, ly, lt).decode
+      val (xmax, ymax, tmax) = sfc.index(ux, uy, ut).decode
 
       val iter = new Z3Iterator
-      iter.init(srcIter, Map(Z3Iterator.pointsKey -> "true", Z3Iterator.splitsKey -> "false",
-        Z3Iterator.zKey -> s"$xmin:$xmax:$ymin:$ymax:$tmin:$tmax:0:0:0:${Z3SFC.time.max.toLong}"), null)
+
+      iter.init(srcIter, Map(PointsKey -> "true", SplitsKey -> "false",
+        ZKeyXY -> s"$xmin:$ymin:$xmax:$ymax", ZKeyT -> s"0:$tmin:$tmax"), null)
 
       "keep in bounds values" >> {
-        val test1 = Z3SFC.index(-76.0, 38.5, 500)
+        val test1 = sfc.index(-76.0, 38.5, 500)
         val prefix = Array[Byte](0, 0)
         val row = Bytes.concat(prefix, Longs.toByteArray(test1.z))
         srcIter.key = new Key(new Text(row))
@@ -71,7 +76,7 @@ class Z3IteratorTest extends Specification {
       }
 
       "drop out of bounds values" >> {
-        val test2 = Z3SFC.index(-70.0, 38.5, 500)
+        val test2 = sfc.index(-70.0, 38.5, 500)
         val prefix = Array[Byte](0, 0)
         val row = Bytes.concat(prefix, Longs.toByteArray(test2.z))
         srcIter.key = new Key(new Text(row))
@@ -81,26 +86,26 @@ class Z3IteratorTest extends Specification {
     }
 
     "iterate on non-points" >> {
-      val (xmin, ymin, tmin) = Z3(Z3SFC.index(lx, ly, lt).z & Z3Table.GEOM_Z_MASK).decode
-      val (xmax, ymax, tmax) = Z3(Z3SFC.index(ux, uy, ut).z & Z3Table.GEOM_Z_MASK).decode
+      val (xmin, ymin, tmin) = Z3(sfc.index(lx, ly, lt).z & Z3Index.GEOM_Z_MASK).decode
+      val (xmax, ymax, tmax) = Z3(sfc.index(ux, uy, ut).z & Z3Index.GEOM_Z_MASK).decode
 
       val iter = new Z3Iterator
-      iter.init(srcIter, Map(Z3Iterator.pointsKey -> "false", Z3Iterator.splitsKey -> "false",
-        Z3Iterator.zKey -> s"$xmin:$xmax:$ymin:$ymax:$tmin:$tmax:0:0:0:${Z3SFC.time.max.toLong}"), null)
+      iter.init(srcIter, Map(PointsKey -> "false", SplitsKey -> "false",
+        ZKeyXY -> s"$xmin:$ymin:$xmax:$ymax", ZKeyT -> s"0:$tmin:$tmax"), null)
 
       "keep in bounds values" >> {
-        val test1 = Z3SFC.index(-76.0, 38.5, 500)
+        val test1 = sfc.index(-76.0, 38.5, 500)
         val prefix = Array[Byte](0, 0)
-        val row = Bytes.concat(prefix, Longs.toByteArray(test1.z).take(Z3Table.GEOM_Z_NUM_BYTES))
+        val row = Bytes.concat(prefix, Longs.toByteArray(test1.z).take(Z3Index.GEOM_Z_NUM_BYTES))
         srcIter.key = new Key(new Text(row))
         iter.next()
         iter.hasTop must beTrue
       }
 
       "drop out of bounds values" >> {
-        val test2 = Z3SFC.index(-70.0, 38.5, 500)
+        val test2 = sfc.index(-70.0, 38.5, 500)
         val prefix = Array[Byte](0, 0)
-        val row = Bytes.concat(prefix, Longs.toByteArray(test2.z).take(Z3Table.GEOM_Z_NUM_BYTES))
+        val row = Bytes.concat(prefix, Longs.toByteArray(test2.z).take(Z3Index.GEOM_Z_NUM_BYTES))
         srcIter.key = new Key(new Text(row))
         iter.next()
         iter.hasTop must beFalse

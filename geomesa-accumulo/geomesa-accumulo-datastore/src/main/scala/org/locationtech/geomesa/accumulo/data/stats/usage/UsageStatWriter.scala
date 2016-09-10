@@ -18,6 +18,7 @@ import org.apache.accumulo.core.client.{BatchWriter, Connector}
 import org.apache.accumulo.core.data.Mutation
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
+import org.locationtech.geomesa.utils.monitoring.UsageStat
 
 /**
  * Manages writing of usage stats in a background thread.
@@ -25,9 +26,7 @@ import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 class UsageStatWriter(connector: Connector, table: String) extends Runnable with Closeable with LazyLogging {
 
   // initial schedule
-  UsageStatWriter.executor.schedule(this, writeDelayMillis, TimeUnit.MILLISECONDS)
-
-  private val writeDelayMillis = 5000
+  UsageStatWriter.executor.schedule(this, UsageStatWriter.writeDelayMillis, TimeUnit.MILLISECONDS)
 
   private val batchWriterConfig = GeoMesaBatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(5)
 
@@ -38,8 +37,8 @@ class UsageStatWriter(connector: Connector, table: String) extends Runnable with
   private val queue = new java.util.concurrent.ConcurrentLinkedQueue[() => Mutation]
 
   /**
-   * Queues a stat for writing
-   */
+    * Queues a stat for writing
+    */
   def queueStat[T <: UsageStat](stat: T)(implicit transform: UsageStatTransform[T]): Unit =
     queue.offer(() => transform.statToMutation(stat))
 
@@ -55,7 +54,7 @@ class UsageStatWriter(connector: Connector, table: String) extends Runnable with
     }
 
     if (running.get) {
-      UsageStatWriter.executor.schedule(this, writeDelayMillis, TimeUnit.MILLISECONDS)
+      UsageStatWriter.executor.schedule(this, UsageStatWriter.writeDelayMillis, TimeUnit.MILLISECONDS)
     }
   }
 
@@ -78,6 +77,7 @@ class UsageStatWriter(connector: Connector, table: String) extends Runnable with
 }
 
 object UsageStatWriter {
+  private val writeDelayMillis = 5000
   private val executor = MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(5))
   sys.addShutdownHook(executor.shutdownNow())
 }

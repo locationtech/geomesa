@@ -35,7 +35,8 @@ import scala.collection.mutable
 
 abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
                                           sft: SimpleFeatureType,
-                                          query: Query)
+                                          query: Query,
+                                          monitor: Boolean)
   extends ContentFeatureSource(entry, query)
   with ContentFeatureSourceSecuritySupport
   with ContentFeatureSourceReTypingSupport
@@ -57,7 +58,11 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
 
   override val canFilter: Boolean = true
 
-  override def getReaderInternal(query: Query): FR = addSupport(query, getReaderForFilter(query.getFilter))
+  override def getReaderInternal(query: Query): FR = if (monitor) {
+    new MonitoringFeatureReader("Kafka", query, addSupport(query, getReaderForFilter(query.getFilter)))
+  } else {
+    addSupport(query, getReaderForFilter(query.getFilter))
+  }
 
   def getReaderForFilter(f: Filter): FR
 
@@ -114,9 +119,14 @@ trait KafkaConsumerFeatureCache extends QuadTreeFeatureStore {
   }
 
   def and(a: And): FR = {
-    extractSingleGeometry(a, sft.getGeometryDescriptor.getLocalName).map { geom =>
-      new DFR(sft, new DFI(spatialIndex.query(geom.getEnvelopeInternal, a.evaluate)))
-    }.getOrElse(unoptimized(a))
+    val geometries = extractGeometries(a, sft.getGeometryDescriptor.getLocalName)
+    if (geometries.isEmpty) {
+      unoptimized(a)
+    } else {
+      val envelope = geometries.head.getEnvelopeInternal
+      geometries.tail.foreach(g => envelope.expandToInclude(g.getEnvelopeInternal))
+      new DFR(sft, new DFI(spatialIndex.query(envelope, a.evaluate)))
+    }
   }
 
   def or(o: Or): FR = {
@@ -142,13 +152,17 @@ object KafkaConsumerFeatureSourceFactory {
       Option(KafkaDataStoreFactoryParams.CLEANUP_LIVE_CACHE.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
     }
 
+    val monitor: Boolean = {
+      Option(KafkaDataStoreFactoryParams.COLLECT_QUERY_STAT.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
+    }
+
     (entry: ContentEntry, query: Query, schemaManager: KafkaDataStoreSchemaManager) => {
       val kf = new KafkaConsumerFactory(brokers, zk)
       val fc = schemaManager.getFeatureConfig(entry.getTypeName)
 
       fc.replayConfig match {
         case None =>
-          new LiveKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, expirationPeriod, cleanUpCache, query)
+          new LiveKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, expirationPeriod, cleanUpCache, query, monitor)
 
         case Some(rc) =>
           val replaySFT = fc.sft

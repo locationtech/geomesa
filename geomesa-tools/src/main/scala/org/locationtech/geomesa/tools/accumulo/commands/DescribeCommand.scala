@@ -72,7 +72,7 @@ class DescribeCommand(parent: JCommander) extends CommandWithCatalog(parent) wit
 }
 
 object DescribeCommand {
-  @Parameters(commandDescription = "Describe the attributes of a given feature in GeoMesa")
+  @Parameters(commandDescription = "Describe the attributes of a given GeoMesa feature type")
   class DescribeParameters extends GeoMesaConnectionParams
     with FeatureTypeNameParam {}
 }

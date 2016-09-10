@@ -374,7 +374,7 @@ trait TransformerFunctionFactory {
 class StringFunctionFactory extends TransformerFunctionFactory {
 
   override def functions: Seq[TransformerFn] =
-    Seq(stripQuotes, strLen, trim, capitalize, lowercase, uppercase, regexReplace, concat,  substr, string)
+    Seq(stripQuotes, strLen, trim, capitalize, lowercase, uppercase, regexReplace, concat, substr, string, mkstring)
 
   val string       = TransformerFn("toString")     { args => args(0).toString }
   val stripQuotes  = TransformerFn("stripQuotes")  { args => args(0).asInstanceOf[String].replaceAll("\"", "") }
@@ -382,7 +382,8 @@ class StringFunctionFactory extends TransformerFunctionFactory {
   val capitalize   = TransformerFn("capitalize")   { args => args(0).asInstanceOf[String].capitalize }
   val lowercase    = TransformerFn("lowercase")    { args => args(0).asInstanceOf[String].toLowerCase }
   val uppercase    = TransformerFn("uppercase")    { args => args(0).asInstanceOf[String].toUpperCase }
-  val concat       = TransformerFn("concat", "concatenate") { args => s"${args(0)}${args(1)}" }
+  val concat       = TransformerFn("concat", "concatenate") { args => args.map(_.toString).mkString }
+  val mkstring     = TransformerFn("mkstring")     { args => args.drop(1).map(_.toString).mkString(args(0).toString) }
   val regexReplace = TransformerFn("regexReplace") {
     args => args(0).asInstanceOf[Regex].replaceAllIn(args(2).asInstanceOf[String], args(1).asInstanceOf[String])
   }

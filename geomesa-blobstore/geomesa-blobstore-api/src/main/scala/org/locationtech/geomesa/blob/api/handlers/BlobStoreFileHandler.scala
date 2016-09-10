@@ -19,6 +19,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.locationtech.geomesa.accumulo.util.{Z3FeatureIdGenerator, Z3UuidGenerator}
 import org.locationtech.geomesa.blob.api.FileHandler
 import org.locationtech.geomesa.blob.api.GeoMesaBlobStoreSFT._
+import org.locationtech.geomesa.curve.TimePeriod
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
@@ -81,7 +82,7 @@ trait BlobStoreSimpleFeatureBuilder {
   val featureIdGenerator = new Z3FeatureIdGenerator
 
   def buildBlobSimpleFeature(fileName: String, geom: Geometry, dtg: Date): SimpleFeature = {
-    val z3id = Z3UuidGenerator.createUuid(geom, dtg.getTime)
+    val z3id = Z3UuidGenerator.createUuid(geom, dtg.getTime, TimePeriod.Week)
 
     val builder = builderLocal.get()
     builder.set(FilenameFieldName, fileName)

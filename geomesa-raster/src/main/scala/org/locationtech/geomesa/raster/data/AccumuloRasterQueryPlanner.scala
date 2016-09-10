@@ -9,7 +9,7 @@
 
 package org.locationtech.geomesa.raster.data
 
-import com.google.common.collect.{ImmutableMap => IMap, ImmutableSetMultimap}
+import com.google.common.collect.{ImmutableSetMultimap, ImmutableMap => IMap}
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.IteratorSetting
@@ -18,8 +18,8 @@ import org.apache.hadoop.io.Text
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo._
-import org.locationtech.geomesa.accumulo.index.{IndexFilterHelpers, QueryPlan, _}
-import org.locationtech.geomesa.accumulo.iterators._
+import org.locationtech.geomesa.accumulo.index.geohash.IndexFilterHelpers
+import org.locationtech.geomesa.accumulo.index.{BatchScanPlan, QueryPlan}
 import org.locationtech.geomesa.accumulo.process.knn.TouchingGeoHashes
 import org.locationtech.geomesa.raster.iterators.{RasterFilteringIterator => RFI}
 import org.locationtech.geomesa.raster.{defaultResolution, lexiEncodeDoubleToString, rasterSft, rasterSftName}
@@ -119,6 +119,7 @@ object AccumuloRasterQueryPlanner extends LazyLogging with IndexFilterHelpers {
     cfg.addOption(GEOMESA_ITERATORS_ECQL_FILTER, ECQL.toCQL(filter))
 
   def configureRasterMetadataFeatureType(cfg: IteratorSetting, featureType: SimpleFeatureType) = {
+    import org.locationtech.geomesa.accumulo.iterators.legacy.RichIteratorSetting
     val encodedSimpleFeatureType = SimpleFeatureTypes.encodeType(featureType)
     cfg.addOption(GEOMESA_ITERATORS_SFT_NAME, rasterSftName)
     cfg.addOption(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE, encodedSimpleFeatureType)

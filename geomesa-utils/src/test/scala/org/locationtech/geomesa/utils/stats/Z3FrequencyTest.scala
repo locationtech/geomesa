@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.utils.stats
 
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -18,7 +19,7 @@ import org.specs2.runner.JUnitRunner
 class Z3FrequencyTest extends Specification with StatTestHelper {
 
   def createStat(precision: Int, observe: Boolean): Z3Frequency = {
-    val s = Stat(sft, Stat.Z3Frequency("geom", "dtg", precision))
+    val s = Stat(sft, Stat.Z3Frequency("geom", "dtg", TimePeriod.Week, precision))
     if (observe) {
       features.foreach { s.observe }
     }

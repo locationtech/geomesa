@@ -20,9 +20,8 @@ import org.apache.hadoop.mapreduce._
 import org.geotools.data.{DataStoreFinder, DataUtilities}
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToMutations
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.data.stats.StatUpdater
-import org.locationtech.geomesa.accumulo.index.{BinEncoder, IndexValueEncoder}
-import org.locationtech.geomesa.features.{SimpleFeatureSerializer, SimpleFeatureSerializers}
+import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
+import org.locationtech.geomesa.index.stats.StatUpdater
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -78,8 +77,9 @@ class GeoMesaOutputFormat extends OutputFormat[Text, SimpleFeature] {
   val delegate = new AccumuloOutputFormat
 
   override def getRecordWriter(context: TaskAttemptContext) = {
-    val params = GeoMesaConfigurator.getDataStoreOutParams(context.getConfiguration)
-    new GeoMesaRecordWriter(params, context, delegate.getRecordWriter(context))
+    val params  = GeoMesaConfigurator.getDataStoreOutParams(context.getConfiguration)
+    val indices = GeoMesaConfigurator.getIndicesOut(context.getConfiguration)
+    new GeoMesaRecordWriter(params, indices, context, delegate.getRecordWriter(context))
   }
 
   override def checkOutputSpecs(context: JobContext) = {
@@ -99,6 +99,7 @@ class GeoMesaOutputFormat extends OutputFormat[Text, SimpleFeature] {
  * Key is ignored. If the feature type for the given feature does not exist yet, it will be created.
  */
 class GeoMesaRecordWriter(params: Map[String, String],
+                          indices: Option[Seq[AccumuloWritableIndex]],
                           context: TaskAttemptContext,
                           delegate: RecordWriter[Text, Mutation])
     extends RecordWriter[Text, SimpleFeature] with LazyLogging {
@@ -107,12 +108,10 @@ class GeoMesaRecordWriter(params: Map[String, String],
 
   val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
 
-  val sftCache          = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
-  val writerCache       = scala.collection.mutable.Map.empty[String, Seq[TableAndMutations]]
-  val encoderCache      = scala.collection.mutable.Map.empty[String, SimpleFeatureSerializer]
-  val indexEncoderCache = scala.collection.mutable.Map.empty[String, SimpleFeatureSerializer]
-  val binEncoderCache   = scala.collection.mutable.Map.empty[String, Option[BinEncoder]]
-  val statsCache        = scala.collection.mutable.Map.empty[String, StatUpdater]
+  val sftCache        = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
+  val writerCache     = scala.collection.mutable.Map.empty[String, Seq[TableAndMutations]]
+  val toWritableCache = scala.collection.mutable.Map.empty[String, (SimpleFeature) => WritableFeature]
+  val statsCache      = scala.collection.mutable.Map.empty[String, StatUpdater]
 
   val written = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written)
   val failed  = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Failed)
@@ -133,17 +132,16 @@ class GeoMesaRecordWriter(params: Map[String, String],
     })
 
     val writers = writerCache.getOrElseUpdate(sftName, {
-      AccumuloFeatureWriter.getTablesAndWriters(sft, ds).map {
+      AccumuloFeatureWriter.getTablesAndWriters(sft, ds, indices).map {
         case (table, writer) => (new Text(table), writer)
       }
     })
     val stats = statsCache.getOrElseUpdate(sftName, ds.stats.statUpdater(sft))
+    val toWritable = toWritableCache.getOrElseUpdate(sftName,
+      WritableFeature.toWritableFeature(sft, ds.getFeatureEncoding(sft), ds.defaultVisibilities))
 
     val withFid = AccumuloFeatureWriter.featureWithFid(sft, value)
-    val encoder = encoderCache.getOrElseUpdate(sftName, SimpleFeatureSerializers(sft, ds.getFeatureEncoding(sft)))
-    val ive = indexEncoderCache.getOrElseUpdate(sftName, IndexValueEncoder(sft))
-    val binEncoder = binEncoderCache.getOrElseUpdate(sftName, BinEncoder(sft))
-    val featureToWrite = WritableFeature(withFid, sft, ds.defaultVisibilities, encoder, ive, binEncoder)
+    val featureToWrite = toWritable(withFid)
 
     // calculate all the mutations first, so that if something fails we won't have a partially written feature
     try {

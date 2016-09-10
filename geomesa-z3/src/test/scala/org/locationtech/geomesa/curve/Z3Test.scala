@@ -10,7 +10,7 @@ package org.locationtech.geomesa.curve
 
 import org.junit.runner.RunWith
 import org.locationtech.sfcurve.CoveredRange
-import org.locationtech.sfcurve.zorder.Z3
+import org.locationtech.sfcurve.zorder.{Z3, ZRange}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -20,7 +20,7 @@ import scala.util.Random
 class Z3Test extends Specification {
 
   val rand = new Random(-574)
-  val maxInt = Z3SFC.lon.precision.toInt
+  val maxInt = Z3SFC(TimePeriod.Week).lon.precision.toInt
   def nextDim() = rand.nextInt(maxInt)
 
   def padTo(s: String) = (new String(Array.fill(63)('0')) + s).takeRight(63)
@@ -48,7 +48,7 @@ class Z3Test extends Specification {
     }
 
     "apply and unapply max values" >> {
-      val z3curve = Z3SFC
+      val z3curve = Z3SFC(TimePeriod.Week)
       val (x, y, t) = (z3curve.lon.precision, z3curve.lat.precision, z3curve.time.precision)
       val z = Z3(x.toInt, y.toInt, t.toInt)
       z match { case Z3(zx, zy, zt) =>
@@ -92,29 +92,19 @@ class Z3Test extends Specification {
     }
 
     "support bigmin" >> {
-      val zmin = Z3(2, 2, 0)
-      val zmax = Z3(3, 6, 0)
-      val f = Z3(5, 1, 0)
+      val zmin = Z3(2, 2, 0).z
+      val zmax = Z3(3, 6, 0).z
+      val f = Z3(5, 1, 0).z
       val (_, bigmin) = Z3.zdivide(f, zmin, zmax)
-      bigmin match {
-        case Z3(xhi, yhi, zhi) =>
-          xhi mustEqual 2
-          yhi mustEqual 4
-          zhi mustEqual 0
-      }
+      Z3(bigmin).decode mustEqual((2, 4, 0))
     }
 
     "support litmax" >> {
-      val zmin = Z3(2, 2, 0)
-      val zmax = Z3(3, 6, 0)
-      val f = Z3(1, 7, 0)
+      val zmin = Z3(2, 2, 0).z
+      val zmax = Z3(3, 6, 0).z
+      val f = Z3(1, 7, 0).z
       val (litmax, _) = Z3.zdivide(f, zmin, zmax)
-      litmax match {
-        case Z3(xlow, ylow, zlow) =>
-          xlow mustEqual 3
-          ylow mustEqual 5
-          zlow mustEqual 0
-      }
+      Z3(litmax).decode mustEqual((3, 5, 0))
     }
 
     "support in range" >> {
@@ -161,9 +151,9 @@ class Z3Test extends Specification {
     }
 
     "calculate ranges" >> {
-      val min = Z3(2, 2, 0)
-      val max = Z3(3, 6, 0)
-      val ranges = Z3.zranges(min, max)
+      val min = Z3(2, 2, 0).z
+      val max = Z3(3, 6, 0).z
+      val ranges = Z3.zranges(ZRange(min, max))
       ranges must haveLength(3)
       ranges must containTheSameElementsAs(
         Seq(
@@ -174,7 +164,7 @@ class Z3Test extends Specification {
     }
 
     "return non-empty ranges for a number of cases" >> {
-      val sfc = Z3SFC
+      val sfc = Z3SFC(TimePeriod.Week)
       val week = sfc.time.max.toLong
       val day = sfc.time.max.toLong / 7
       val hour = sfc.time.max.toLong / 168
@@ -204,8 +194,9 @@ class Z3Test extends Specification {
       def round(z: (Double, Double, Long)): (Double, Double, Long) =
         (math.round(z._1 * 1000.0) / 1000.0, math.round(z._2 * 1000.0) / 1000.0, z._3)
 
+      val start = System.currentTimeMillis()
       forall(ranges) { r =>
-        val ret = Z3.zranges(r._1, r._2)
+        val ret = Z3.zranges(Array(ZRange(r._1, r._2)), maxRanges = Some(1000))
         ret.length must beGreaterThan(0)
       }
     }

@@ -25,6 +25,9 @@ trait Runner extends LazyLogging {
     try {
       command.execute()
     } catch {
+      case e: IllegalArgumentException =>
+        logger.error(e.getMessage)
+        sys.exit(-1)
       case e: Exception =>
         logger.error(e.getMessage, e)
         sys.exit(-1)
@@ -37,23 +40,32 @@ trait Runner extends LazyLogging {
     jc.addConverterFactory(new GeoMesaIStringConverterFactory)
 
     commands.foreach(_.register)
-    val commandMap = commands.map(c => c.command -> c).toMap
 
     try {
-      jc.parse(args.toArray: _*)
+      jc.parse(args: _*)
     } catch {
       case pe: ParameterException =>
         println("Error parsing arguments: " + pe.getMessage)
-        println(commandUsage(jc))
+        val usage = Option(jc.getCommands.get(jc.getParsedCommand)).map { c =>
+          val out = new java.lang.StringBuilder
+          c.usage(out)
+          out.toString
+        }.getOrElse(commandUsage(jc))
+        println
+        println(usage)
         sys.exit(-1)
     }
 
-    commandMap.getOrElse(jc.getParsedCommand, new DefaultCommand(jc))
+    val command = commands.find(_.command == jc.getParsedCommand).getOrElse(new DefaultCommand(jc))
+    resolveEnvironment(command)
+    command
   }
+
+  def resolveEnvironment(command: Command): Unit = {}
 
   def mkSubCommand(parent: JCommander, name: String, obj: Object): JCommander = {
     parent.addCommand(name, obj)
-    parent.getCommands().get(name)
+    parent.getCommands.get(name)
   }
 
   class DefaultCommand(jc: JCommander) extends Command(jc) {

@@ -10,6 +10,7 @@
 package org.locationtech.geomesa.accumulo.iterators
 
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.util.DeDuplicatingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification

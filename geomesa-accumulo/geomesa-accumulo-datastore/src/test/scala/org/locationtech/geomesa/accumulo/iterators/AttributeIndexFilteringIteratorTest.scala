@@ -16,9 +16,13 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index._
+import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
+import org.locationtech.geomesa.accumulo.index.z2.Z2Index
+import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -47,14 +51,12 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
 
   val ff = CommonFactoryFinder.getFilterFactory2
 
-  def checkStrategies[T](query: Query, clas: Class[T]) = {
+  def checkStrategies[T](query: Query, strategy: AccumuloFeatureIndex) = {
     val out = new ExplainString
-    ds.getQueryPlan(query, explainer = out)
-    val lines = out.toString().split("\n").map(_.trim).filter(_.startsWith("Strategy 1 of 1:"))
-    lines must haveLength(1)
-    lines.head must contain(clas.getSimpleName)
+    val plan = ds.getQueryPlan(query)
+    plan must haveLength(1)
+    plan.head.filter.index mustEqual strategy
   }
-
 
   "AttributeIndexFilteringIterator" should {
 
@@ -64,23 +66,23 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
 
       // % should return all features
       val wildCardQuery = new Query(sftName, ff.like(ff.property("name"),"%"))
-      checkStrategies(wildCardQuery, classOf[AttributeIdxStrategy])
+      checkStrategies(wildCardQuery, AttributeIndex)
       SelfClosingIterator(fs.getFeatures()) must haveLength(16)
 
       forall(List("a", "b", "c", "d")) { letter =>
         // 4 features for this letter
         val leftWildCard = new Query(sftName, ff.like(ff.property("name"),s"%$letter"))
-        checkStrategies(leftWildCard, classOf[Z2IdxStrategy])
+        checkStrategies(leftWildCard, Z3Index)
         SelfClosingIterator(fs.getFeatures(leftWildCard)) must haveLength(4)
 
         // Double wildcards should be full table scan
         val doubleWildCard = new Query(sftName, ff.like(ff.property("name"),s"%$letter%"))
-        checkStrategies(doubleWildCard, classOf[Z2IdxStrategy])
+        checkStrategies(doubleWildCard, Z3Index)
         SelfClosingIterator(fs.getFeatures(doubleWildCard)) must haveLength(4)
 
         // should return the 4 features for this letter
         val rightWildcard = new Query(sftName, ff.like(ff.property("name"),s"$letter%"))
-        checkStrategies(rightWildcard, classOf[AttributeIdxStrategy])
+        checkStrategies(rightWildcard, AttributeIndex)
         SelfClosingIterator(fs.getFeatures(rightWildcard)) must haveLength(4)
       }
     }
@@ -88,18 +90,18 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
     "actually handle transforms properly and chose correct strategies for attribute indexing" in {
       // transform to only return the attribute geom - dropping dtg, age, and name
       val query = new Query(sftName, ECQL.toFilter("name = 'b'"), Array("geom"))
-      checkStrategies(query, classOf[AttributeIdxStrategy])
+      checkStrategies(query, AttributeIndex)
 
       // full table scan
       val leftWildCard = new Query(sftName, ff.like(ff.property("name"), "%b"), Array("geom"))
-      checkStrategies(leftWildCard, classOf[Z2IdxStrategy])
+      checkStrategies(leftWildCard, Z3Index)
 
       // full table scan
       val doubleWildCard = new Query(sftName, ff.like(ff.property("name"), "%b%"), Array("geom"))
-      checkStrategies(doubleWildCard, classOf[Z2IdxStrategy])
+      checkStrategies(doubleWildCard, Z3Index)
 
       val rightWildcard = new Query(sftName, ff.like(ff.property("name"), "b%"), Array("geom"))
-      checkStrategies(rightWildcard, classOf[AttributeIdxStrategy])
+      checkStrategies(rightWildcard, AttributeIndex)
 
       forall(List(query, leftWildCard, doubleWildCard, rightWildcard)) { query =>
         val features = SelfClosingIterator(fs.getFeatures(query)).toList
@@ -112,8 +114,7 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
     "handle corner case with attr idx, bbox, and no temporal filter" in {
       val filter = ff.and(ECQL.toFilter("name = 'b'"), ECQL.toFilter("BBOX(geom, 30, 30, 50, 50)"))
       val query = new Query(sftName, filter, Array("geom"))
-      QueryStrategyDecider.chooseStrategies(sft, query, ds.stats, None).head must
-          beAnInstanceOf[Z2IdxStrategy]
+      AccumuloStrategyDecider.getFilterPlan(sft, Some(ds), filter, None, None).head.index mustEqual Z2Index
 
       val features = SelfClosingIterator(fs.getFeatures(query)).toList
 

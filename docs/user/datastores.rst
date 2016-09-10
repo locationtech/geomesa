@@ -9,6 +9,8 @@ can be found in the `GeoTools user guide <http://docs.geotools.org/stable/usergu
 The sections below describe features and caveats common to all GeoMesa GeoTools data
 stores.
 
+.. _reserved-words:
+
 Reserved Words
 --------------
 

@@ -11,6 +11,7 @@ package org.locationtech.geomesa.accumulo.iterators;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.locationtech.geomesa.accumulo.iterators.legacy.TimestampSetIterator;
 
 public class TimestampSetIteratorTest {
     @Test

@@ -8,11 +8,14 @@
 
 package org.locationtech.geomesa.accumulo.data.stats.usage
 
+import java.nio.charset.StandardCharsets
 import java.util.Date
 import java.util.Map.Entry
 
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
+import org.apache.hadoop.io.Text
 import org.calrissian.mango.types.encoders.lexi.LongReverseEncoder
+import org.locationtech.geomesa.utils.monitoring.UsageStat
 
 /**
  * Class for capturing query-related stats
@@ -23,19 +26,26 @@ case class RasterQueryStat(typeName:   String,
                            planningTime:  Long,
                            scanTime:      Long,
                            mosaicTime:    Long,
-                           numResults:    Int) extends UsageStat
+                           numResults:    Int,
+                           deleted: Boolean = false) extends UsageStat {
+  val storeType: String = RasterQueryStat.storeType
+}
+
+object RasterQueryStat {
+  val storeType = "raster-accumulo"
+}
 
 /**
  * Maps query stats to accumulo
  */
 object RasterQueryStatTransform extends UsageStatTransform[RasterQueryStat] {
 
-  private val CQ_QUERY = "rasterQuery"
-  private val CQ_PLANTIME = "timePlanning_ms"
-  private val CQ_SCANTIME = "timeScanning_ms"
-  private val CQ_MOSAICTIME = "timeMosaicing_ms"
-  private val CQ_TIME = "timeTotal_ms"
-  private val CQ_HITS = "hits"
+  private val CQ_QUERY      = new Text("rasterQuery")
+  private val CQ_PLANTIME   = new Text("timePlanning_ms")
+  private val CQ_SCANTIME   = new Text("timeScanning_ms")
+  private val CQ_MOSAICTIME = new Text("timeMosaicing_ms")
+  private val CQ_TIME       = new Text("timeTotal_ms")
+  private val CQ_HITS       = new Text("hits")
   val reverseEncoder = new LongReverseEncoder()
   val NUMBER_OF_CQ_DATA_TYPES = 6
 
@@ -46,12 +56,12 @@ object RasterQueryStatTransform extends UsageStatTransform[RasterQueryStat] {
   override def statToMutation(stat: RasterQueryStat): Mutation = {
     val mutation = createMutation(stat)
     val cf = createRandomColumnFamily
-    mutation.put(cf, CQ_QUERY, stat.rasterQuery)
-    mutation.put(cf, CQ_PLANTIME, s"${stat.planningTime}")
-    mutation.put(cf, CQ_SCANTIME, s"${stat.scanTime}")
-    mutation.put(cf, CQ_MOSAICTIME, s"${stat.mosaicTime}")
-    mutation.put(cf, CQ_TIME, s"${stat.scanTime + stat.planningTime + stat.mosaicTime}")
-    mutation.put(cf, CQ_HITS, stat.numResults.toString)
+    mutation.put(cf, CQ_QUERY,      new Value(stat.rasterQuery.getBytes(StandardCharsets.UTF_8)))
+    mutation.put(cf, CQ_PLANTIME,   new Value(s"${stat.planningTime}".getBytes(StandardCharsets.UTF_8)))
+    mutation.put(cf, CQ_SCANTIME,   new Value(s"${stat.scanTime}".getBytes(StandardCharsets.UTF_8)))
+    mutation.put(cf, CQ_MOSAICTIME, new Value(s"${stat.mosaicTime}".getBytes(StandardCharsets.UTF_8)))
+    mutation.put(cf, CQ_TIME,       new Value(s"${stat.scanTime + stat.planningTime + stat.mosaicTime}".getBytes(StandardCharsets.UTF_8)))
+    mutation.put(cf, CQ_HITS,       new Value(stat.numResults.toString.getBytes(StandardCharsets.UTF_8)))
     mutation
   }
 
@@ -64,10 +74,10 @@ object RasterQueryStatTransform extends UsageStatTransform[RasterQueryStat] {
 
     val ROWID(featureName, dateString) = entries.head.getKey.getRow.toString
     val date = reverseEncoder.decode(dateString)
-    val values = collection.mutable.Map.empty[String, Any]
+    val values = collection.mutable.Map.empty[Text, Any]
 
     entries.foreach { e =>
-      e.getKey.getColumnQualifier.toString match {
+      e.getKey.getColumnQualifier match {
         case CQ_QUERY => values.put(CQ_QUERY, e.getValue.toString)
         case CQ_PLANTIME => values.put(CQ_PLANTIME, e.getValue.toString.toLong)
         case CQ_SCANTIME => values.put(CQ_SCANTIME, e.getValue.toString.toLong)
@@ -92,13 +102,13 @@ object RasterQueryStatTransform extends UsageStatTransform[RasterQueryStat] {
     val decodedDate = new Date(reverseEncoder.decode(dateString)).toString
     val cqVal = entry.getValue.toString
 
-    entry.getKey.getColumnQualifier.toString match {
-      case CQ_QUERY => statToCSVStr(decodedDate, featureName, CQ_QUERY, cqVal)
-      case CQ_PLANTIME => statToCSVStr(decodedDate, featureName, CQ_PLANTIME, cqVal)
-      case CQ_SCANTIME => statToCSVStr(decodedDate, featureName, CQ_SCANTIME, cqVal)
-      case CQ_MOSAICTIME => statToCSVStr(decodedDate, featureName, CQ_MOSAICTIME, cqVal)
-      case CQ_HITS => statToCSVStr(decodedDate, featureName, CQ_HITS, cqVal)
-      case CQ_TIME => statToCSVStr(decodedDate, featureName, CQ_TIME, cqVal)
+    entry.getKey.getColumnQualifier match {
+      case CQ_QUERY => statToCSVStr(decodedDate, featureName, CQ_QUERY.toString, cqVal)
+      case CQ_PLANTIME => statToCSVStr(decodedDate, featureName, CQ_PLANTIME.toString, cqVal)
+      case CQ_SCANTIME => statToCSVStr(decodedDate, featureName, CQ_SCANTIME.toString, cqVal)
+      case CQ_MOSAICTIME => statToCSVStr(decodedDate, featureName, CQ_MOSAICTIME.toString, cqVal)
+      case CQ_HITS => statToCSVStr(decodedDate, featureName, CQ_HITS.toString, cqVal)
+      case CQ_TIME => statToCSVStr(decodedDate, featureName, CQ_TIME.toString, cqVal)
       case _ => statToCSVStr(decodedDate, featureName, "unmappedCQType", cqVal)
     }
   }

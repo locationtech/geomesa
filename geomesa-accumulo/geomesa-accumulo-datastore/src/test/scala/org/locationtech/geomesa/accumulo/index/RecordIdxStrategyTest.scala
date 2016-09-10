@@ -13,11 +13,12 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.index.QueryHints._
-import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
+import org.locationtech.geomesa.accumulo.index.id.{RecordIndex, RecordQueryableIndex}
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
+import org.locationtech.geomesa.index.strategies.IdFilterStrategy
 import org.opengis.filter.{Filter, Id}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -40,10 +41,10 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
                              correctIntersection: String): IntersectionResult = {
     // extract the IDs from the a priori correct answer
     val trueIntersectionIds = ECQL.toFilter(correctIntersection)
-      .asInstanceOf[Id].getIDs.asScala.toSet.map { a:AnyRef =>a.toString }
+      .asInstanceOf[Id].getIDs.asScala.toSet[AnyRef].map(_.toString)
     // process the string sequences for the test
-    val filterSeq=stringSeqToTest.map ( ECQL.toFilter )
-    val combinedIDFilter = RecordIdxStrategy.intersectIdFilters(filterSeq)
+    val filterSeq = stringSeqToTest.map(ECQL.toFilter)
+    val combinedIDFilter = IdFilterStrategy.intersectIdFilters(ff.and(filterSeq.asJava))
     val computedIntersectionIds = if (combinedIDFilter.isEmpty) None else Some(combinedIDFilter)
 
     IntersectionResult(computedIntersectionIds, trueIntersectionIds)
@@ -64,7 +65,7 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
   addFeatures(features)
 
   val queryPlanner = QueryPlanner(sft, ds)
-  def runQuery(query: Query) = queryPlanner.runQuery(query, Some(StrategyType.RECORD))
+  def runQuery(query: Query) = queryPlanner.runQuery(query, Some(RecordIndex))
 
   "RecordIdxStrategy" should {
     "support bin queries" in {

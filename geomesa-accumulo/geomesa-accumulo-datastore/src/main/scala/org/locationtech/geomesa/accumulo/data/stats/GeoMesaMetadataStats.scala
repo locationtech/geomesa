@@ -24,19 +24,24 @@ import org.joda.time._
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.GeoMesaMetadata._
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.data.tables.Z3Table
-import org.locationtech.geomesa.accumulo.index.QueryHints
+import org.locationtech.geomesa.accumulo.index.z2.Z2IndexV1
+import org.locationtech.geomesa.accumulo.index.z3.Z3IndexV2
+import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, QueryHints}
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator
+import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.{BoundsFilterVisitor, QueryPlanFilterVisitor}
+import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 
 import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
 
 /**
  * Tracks stats via entries stored in metadata.
@@ -68,17 +73,22 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
     }
   }
 
-  scheduledCompaction = executor.schedule(compactor, 1, TimeUnit.HOURS)
+  compactor.run() // schedule initial compaction
 
   override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
     if (exact) {
-      if (sft.isPoints) {
+      val hasDupes = sft.nonPoints && {
+        val indices = AccumuloFeatureIndex.indices(sft, IndexMode.Read)
+        Seq(Z2IndexV1, Z3IndexV2).exists(indices.contains)
+        // TODO check for multivalued attribute indices
+      }
+      if (!hasDupes) {
         runStats[CountStat](sft, Stat.Count(), filter).headOption.map(_.count)
       } else {
-        import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
-
         // stat query doesn't entirely handle duplicates - only on a per-iterator basis
         // is a full scan worth it? the stat will be pretty close...
+
+        import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 
         // restrict fields coming back so that we push as little data as possible
         val props = Array(Option(sft.getGeomField).getOrElse(sft.getDescriptor(0).getLocalName))
@@ -140,7 +150,7 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
         val frequencies = toRetrieve.flatMap { a =>
           weeks.map(frequencyKey(a, _)).flatMap(readStat[Frequency[Any]](sft, _))
         }
-        Frequency.combine(frequencies).toSeq
+        Stat.combine(frequencies).toSeq
       } else {
         toRetrieve.flatMap(a => readStat[Frequency[Any]](sft, frequencyKey(a)))
       }
@@ -153,18 +163,19 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
         (geom, dtg)
       }
       geomDtgOption.flatMap { case (geom, dtg) =>
-        // z3 histograms are stored by week - calculate the weeks to retrieve
+        // z3 histograms are stored by time bin - calculate the times to retrieve
         // either use the options if passed in, or else calculate from the time bounds
-        val weeks: Seq[Short] = if (options.nonEmpty) { options.asInstanceOf[Seq[Short]] } else {
+        val timeBins: Seq[Short] = if (options.nonEmpty) { options.asInstanceOf[Seq[Short]] } else {
           readStat[MinMax[Date]](sft, minMaxKey(dtg)).map { bounds =>
-            val lt = Z3Table.getWeekAndSeconds(bounds.min.getTime)._1
-            val ut = Z3Table.getWeekAndSeconds(bounds.max.getTime)._1
-            Range.inclusive(lt, ut).map(_.toShort)
+            val timeToBin = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
+            val lBin = timeToBin(bounds.min.getTime).bin
+            val uBin = timeToBin(bounds.max.getTime).bin
+            Range.inclusive(lBin, uBin).map(_.toShort)
           }.getOrElse(Seq.empty)
         }
-        val histograms = weeks.map(histogramKey(geom, dtg, _)).flatMap(readStat[Z3Histogram](sft, _))
+        val histograms = timeBins.map(histogramKey(geom, dtg, _)).flatMap(readStat[Z3Histogram](sft, _))
         // combine the week splits into a single stat
-        Z3Histogram.combine(histograms)
+        Stat.combine(histograms)
       }.toSeq
     } else {
       Seq.empty
@@ -282,14 +293,14 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
           Seq(KeyAndStat(frequencyKey(attribute), s))
         } else {
           // split up the frequency and store by week
-          s.splitByWeek.map { case (w, f) => KeyAndStat(frequencyKey(attribute, w), f) }
+          s.splitByTime.map { case (b, f) => KeyAndStat(frequencyKey(attribute, b), f) }
         }
 
       case s: Z3Histogram  =>
         val geom = name(s.geomIndex)
         val dtg  = name(s.dtgIndex)
         // split up the z3 histogram and store by week
-        s.splitByWeek.map { case (w, z) => KeyAndStat(histogramKey(geom, dtg, w), z) }
+        s.splitByTime.map { case (b, z) => KeyAndStat(histogramKey(geom, dtg, b), z) }
 
       case _ => throw new NotImplementedError("Only Count, Frequency, MinMax, TopK and Histogram stats are tracked")
     }
@@ -356,7 +367,9 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
       // for queries without time bounds, we save the overhead of merging the weekly splits
       val withDates = sft.getDtgField match {
         case None => Seq.empty
-        case Some(dtg) => descriptors.map(d => Stat.Frequency(d.getLocalName, dtg, defaultPrecision(d.getType.getBinding)))
+        case Some(dtg) =>
+          val period = sft.getZ3Interval
+          descriptors.map(d => Stat.Frequency(d.getLocalName, dtg, period, defaultPrecision(d.getType.getBinding)))
       }
       val noDates = descriptors.map(d => Stat.Frequency(d.getLocalName, defaultPrecision(d.getType.getBinding)))
       withDates ++ noDates
@@ -368,7 +381,13 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
       // calculate the endpoints for the histogram
       // the histogram will expand as needed, but this is a starting point
       val bounds = {
-        val mm = readStat[MinMax[Any]](sft, minMaxKey(attribute))
+        val mm = try {
+          readStat[MinMax[Any]](sft, minMaxKey(attribute))
+        } catch {
+          case NonFatal(e) =>
+            logger.error("Error reading existing stats - possibly the distributed runtime jar is not available", e)
+            None
+        }
         val (min, max) = mm match {
           case None => defaultBounds(binding)
           // max has to be greater than min for the histogram bounds
@@ -388,7 +407,7 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
       geom <- Option(sft.getGeomField).filter(stAttributes.contains)
       dtg  <- sft.getDtgField.filter(stAttributes.contains)
     } yield {
-      Stat.Z3Histogram(geom, dtg, MaxHistogramSize)
+      Stat.Z3Histogram(geom, dtg, sft.getZ3Interval, MaxHistogramSize)
     }
 
     Stat.SeqStat(Seq(count) ++ minMax ++ topK ++ histograms ++ frequencies ++ z3Histogram)
@@ -413,13 +432,17 @@ class MetadataStatUpdater(stats: GeoMesaMetadataStats, sft: SimpleFeatureType, s
   override def remove(sf: SimpleFeature): Unit = stat.unobserve(sf)
 
   override def close(): Unit = {
-    stats.writeStat(stat, sft, merge = true)
+    if (!stat.isEmpty) {
+      stats.writeStat(stat, sft, merge = true)
+    }
     // schedule a compaction so our metadata doesn't stack up too much
     stats.scheduleCompaction()
   }
 
   override def flush(): Unit = {
-    stats.writeStat(stat, sft, merge = true)
+    if (!stat.isEmpty) {
+      stats.writeStat(stat, sft, merge = true)
+    }
     // reload the tracker - for long-held updaters, this will refresh the histogram ranges
     stat = statFunction
   }
@@ -507,16 +530,16 @@ object GeoMesaMetadataStats {
   private [stats] def frequencyKey(attribute: String): String =
     s"$FrequencyKeyPrefix-$attribute"
 
-  // gets the key for storing a frequency attribute by week
-  private [stats] def frequencyKey(attribute: String, week: Short): String =
-    frequencyKey(s"$attribute-$week")
+  // gets the key for storing a frequency attribute by time bin
+  private [stats] def frequencyKey(attribute: String, timeBin: Short): String =
+    frequencyKey(s"$attribute-$timeBin")
 
   // gets the key for storing a histogram
   private [stats] def histogramKey(attribute: String): String = s"$HistogramKeyPrefix-$attribute"
 
   // gets the key for storing a Z3 histogram
-  private [stats] def histogramKey(geom: String, dtg: String, week: Short): String =
-    histogramKey(s"$geom-$dtg-$week")
+  private [stats] def histogramKey(geom: String, dtg: String, timeBin: Short): String =
+    histogramKey(s"$geom-$dtg-$timeBin")
 
   private case class KeyAndStat(key: String, stat: Stat)
 }

@@ -262,6 +262,7 @@ class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito wi
     } else {
       val next = actual.next()
 
+      expected.head.equals(next)
       val result = expected aka s"Unexpected value found: $next" must contain(next)
       if (!result.isSuccess) {
         result

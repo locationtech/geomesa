@@ -16,10 +16,9 @@ import org.geotools.data.Query
 import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.data.tables.RecordTable
+import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType, SimpleFeatureSerializers}
-import org.locationtech.geomesa.security._
 import org.opengis.filter.sort.SortBy
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -60,6 +59,8 @@ class QueryPlannerTest extends Specification with Mockito with TestWithDataStore
     }
 
     "decode and set visibility properly" >> {
+      import org.locationtech.geomesa.security._
+
       val query = new Query(sft.getTypeName)
       val planner = new QueryPlanner(sft, ds)
       QueryPlanner.configureQuery(query, sft) // have to do manually
@@ -75,7 +76,7 @@ class QueryPlannerTest extends Specification with Mockito with TestWithDataStore
         new SimpleEntry[Key, Value](key, value)
       }
 
-      val expectedResult = kvs.map(planner.kvsToFeatures(sft, sft, RecordTable)).map(_.visibility)
+      val expectedResult = kvs.map(RecordIndex.entriesToFeatures(sft, sft)).map(_.visibility)
 
       expectedResult must haveSize(kvs.length)
       expectedResult mustEqual expectedVis

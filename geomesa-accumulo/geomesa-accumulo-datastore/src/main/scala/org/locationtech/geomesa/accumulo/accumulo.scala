@@ -53,6 +53,9 @@ package object accumulo {
       val QUERY_EXACT_COUNT    = PropAndDefault("geomesa.force.count", "false")
       val QUERY_COST_TYPE      = PropAndDefault("geomesa.query.cost.type", null)
       val QUERY_TIMEOUT_MILLIS = PropAndDefault("geomesa.query.timeout.millis", null) // default is no timeout
+      // rough upper limit on the number of accumulo ranges we will generate per query
+      val SCAN_RANGES_TARGET   = PropAndDefault("geomesa.scan.ranges.target", "2000")
+      // if we generate more ranges than this we will split them up into sequential scans
       val SCAN_BATCH_RANGES    = PropAndDefault("geomesa.scan.ranges.batch", "20000")
     }
 

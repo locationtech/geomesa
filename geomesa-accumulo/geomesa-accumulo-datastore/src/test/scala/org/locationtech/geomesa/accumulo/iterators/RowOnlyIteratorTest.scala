@@ -15,6 +15,7 @@ import org.apache.accumulo.core.data.{Key, Range, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.junit.{Before, Test}
 import org.locationtech.geomesa.accumulo.iterators.AbstractIteratorTest._
+import org.locationtech.geomesa.accumulo.iterators.legacy.RowOnlyIterator
 
 import scala.collection.JavaConverters._
 

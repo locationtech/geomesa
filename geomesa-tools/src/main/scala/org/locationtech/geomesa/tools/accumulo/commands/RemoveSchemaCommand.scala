@@ -12,7 +12,7 @@ import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.RemoveSchemaCommand.RemoveSchemaParams
-import org.locationtech.geomesa.tools.common.{OptionalFeatureTypeNameParam, OptionalForceParam, OptionalPatternParam, PromptConfirm}
+import org.locationtech.geomesa.tools.common.{OptionalFeatureTypeNameParam, OptionalForceParam, OptionalPatternParam, Prompt}
 
 import scala.util.{Failure, Success, Try}
 
@@ -76,7 +76,7 @@ class RemoveSchemaCommand(parent: JCommander) extends CommandWithCatalog(parent)
   }
 
   protected def promptConfirm(featureNames: List[String]) =
-    PromptConfirm.confirm(s"Remove schema(s) ${featureNames.mkString(",")} from catalog $catalog? (yes/no): ")
+    Prompt.confirm(s"Remove schema(s) ${featureNames.mkString(",")} from catalog $catalog? (yes/no): ")
 
 }
 

@@ -45,7 +45,7 @@ abstract class AbstractIngestJob extends LazyLogging {
 
     val job = Job.getInstance(new Configuration, "GeoMesa Tools Ingest")
 
-    JobUtils.setLibJars(job.getConfiguration, libJars = ingestLibJars, searchPath = ingestJarSearchPath)
+    JobUtils.setLibJars(job.getConfiguration, ingestLibJars, ingestJarSearchPath)
 
     job.setJarByClass(getClass)
     job.setMapperClass(classOf[IngestMapper])

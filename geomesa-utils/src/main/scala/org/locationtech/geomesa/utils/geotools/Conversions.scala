@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.utils.geotools
 
+import java.nio.charset.StandardCharsets
 import java.util.Date
 
 import com.typesafe.config.Config
@@ -19,6 +20,9 @@ import org.geotools.geometry.DirectPosition2D
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
 import org.joda.time.DateTime
 import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
+import org.locationtech.geomesa.curve.TimePeriod
+import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
+import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.index.VisibilityLevel.{apply => _, _}
 import org.locationtech.geomesa.utils.stats.Cardinality._
@@ -68,6 +72,14 @@ object Conversions {
   implicit class RichGeometry(val geom: Geometry) extends AnyVal {
     def bufferMeters(meters: Double): Geometry = geom.buffer(distanceDegrees(meters))
     def distanceDegrees(meters: Double) = GeometryUtils.distanceDegrees(geom, meters)
+    def safeCentroid(): Point = {
+      val centroid = geom.getCentroid
+      if (java.lang.Double.isNaN(centroid.getCoordinate.x) || java.lang.Double.isNaN(centroid.getCoordinate.y)) {
+        geom.getEnvelope.getCentroid
+      } else {
+        centroid
+      }
+    }
   }
 
   implicit class RichSimpleFeature(val sf: SimpleFeature) extends AnyVal {
@@ -203,12 +215,14 @@ object RichSimpleFeatureType {
   val USER_DATA_PREFIX    = "geomesa.user-data.prefix"
   val KEYWORDS_KEY        = "geomesa.keywords"
   val VIS_LEVEL_KEY       = "geomesa.visibility.level"
+  val Z3_INTERVAL_KEY     = "geomesa.z3.interval"
 
   val KEYWORDS_DELIMITER = "\u0000"
 
-
   // in general we store everything as strings so that it's easy to pass to accumulo iterators
   implicit class RichSimpleFeatureType(val sft: SimpleFeatureType) extends AnyVal {
+
+    import SimpleFeatureTypes.INDEX_VERSIONS
 
     def getGeomField: String = {
       val gd = sft.getGeometryDescriptor
@@ -240,7 +254,10 @@ object RichSimpleFeatureType {
       val gd = sft.getGeometryDescriptor
       gd != null && gd.getType.getBinding == classOf[Point]
     }
-    def nonPoints = !isPoints
+    def nonPoints = {
+      val gd = sft.getGeometryDescriptor
+      gd != null && gd.getType.getBinding != classOf[Point]
+    }
     def isLines = {
       val gd = sft.getGeometryDescriptor
       gd != null && gd.getType.getBinding == classOf[LineString]
@@ -252,6 +269,12 @@ object RichSimpleFeatureType {
     }
     def setVisibilityLevel(vis: VisibilityLevel): Unit = sft.getUserData.put(VIS_LEVEL_KEY, vis.toString)
 
+    def getZ3Interval: TimePeriod = userData[String](Z3_INTERVAL_KEY) match {
+      case None    => TimePeriod.Week
+      case Some(i) => TimePeriod.withName(i.toLowerCase)
+    }
+    def setZ3Interval(i: TimePeriod): Unit = sft.getUserData.put(Z3_INTERVAL_KEY, i.toString)
+
     //  If no user data is specified when creating a new SFT, we should default to 'true'.
     def isTableSharing: Boolean = userData[String](TABLE_SHARING_KEY).forall(_.toBoolean)
     def setTableSharing(sharing: Boolean): Unit = sft.getUserData.put(TABLE_SHARING_KEY, sharing.toString)
@@ -259,12 +282,22 @@ object RichSimpleFeatureType {
     def getTableSharingPrefix: String = userData[String](SHARING_PREFIX_KEY).getOrElse("")
     def setTableSharingPrefix(prefix: String): Unit = sft.getUserData.put(SHARING_PREFIX_KEY, prefix)
 
-    // gets suffixes of enabled tables
-    def getEnabledTables: Seq[String] =
-      userData[String](SimpleFeatureTypes.ENABLED_INDEXES).map(_.split(",").map(_.trim).filter(_.length > 0).toSeq)
-          .getOrElse(List.empty)
-    def setEnabledTables(tables: Seq[String]): Unit =
-      sft.getUserData.put(SimpleFeatureTypes.ENABLED_INDEXES, tables.mkString(","))
+    def getTableSharingBytes: Array[Byte] = if (sft.isTableSharing) {
+      sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)
+    } else {
+      Array.empty[Byte]
+    }
+
+    // gets (name, version, mode) of enabled indices
+    def getIndices: Seq[(String, Int, IndexMode)] = {
+      def toTuple(string: String): (String, Int, IndexMode) = {
+        val Array(n, v, m) = string.split(":")
+        (n, v.toInt, new IndexMode(m.toInt))
+      }
+      userData[String](INDEX_VERSIONS).map(_.split(",").map(toTuple).toSeq).getOrElse(List.empty)
+    }
+    def setIndices(indices: Seq[(String, Int, IndexMode)]): Unit =
+      sft.getUserData.put(INDEX_VERSIONS, indices.map { case (n, v, m) => s"$n:$v:${m.flag}"}.mkString(","))
 
     def setUserDataPrefixes(prefixes: Seq[String]): Unit = sft.getUserData.put(USER_DATA_PREFIX, prefixes.mkString(","))
     def getUserDataPrefixes: Seq[String] =

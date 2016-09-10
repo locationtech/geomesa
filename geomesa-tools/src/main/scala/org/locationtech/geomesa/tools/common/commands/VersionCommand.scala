@@ -35,6 +35,6 @@ class VersionCommand(parent: JCommander) extends Command(parent) {
 
 object VersionCommand {
   val propertiesPath ="org/locationtech/geomesa/tools/geomesaVersion.properties"
-  @Parameters(commandDescription = "GeoMesa Version")
+  @Parameters(commandDescription = "Display the installed GeoMesa version")
   class VersionParameters {}
 }

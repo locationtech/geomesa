@@ -99,3 +99,9 @@ class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends DuplicatingFilterVi
 
   private def includeEquivalent(f: Filter): Boolean = f == Filter.INCLUDE || isFilterWholeWorld(f)
 }
+
+object QueryPlanFilterVisitor {
+  def apply(filter: Filter): Filter = filter.accept(new QueryPlanFilterVisitor(null), null).asInstanceOf[Filter]
+  def apply(sft: SimpleFeatureType, filter: Filter): Filter =
+    filter.accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter]
+}

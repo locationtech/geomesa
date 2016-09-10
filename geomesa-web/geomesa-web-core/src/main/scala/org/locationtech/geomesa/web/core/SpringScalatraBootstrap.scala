@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.web.core
 
 import javax.servlet.ServletContext
-import javax.servlet.http.{HttpServletRequestWrapper, HttpServletResponse, HttpServletRequest}
+import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.lang.exception.ExceptionUtils
@@ -30,10 +30,8 @@ trait GeoMesaScalatraServlet extends ScalatraServlet with LazyLogging {
 
   // This may be causing issues within scalatra, to paraphrase a comment: "Wrapped requests are probably wrapped for a reason."
   // https://geomesa.atlassian.net/browse/GEOMESA-1062
-  override def handle(req: HttpServletRequest, res: HttpServletResponse): Unit = req match {
-    case r: HttpServletRequestWrapper => super.handle(r.getRequest.asInstanceOf[HttpServletRequest], res)
-    case _ => super.handle(req, res)
-  }
+  override def handle(req: HttpServletRequest, res: HttpServletResponse): Unit =
+    super.handle(GeoMesaScalatraServlet.wrap(req), res)
 
   /**
    * Pulls data store relevant values out of the request params
@@ -55,14 +53,23 @@ trait GeoMesaScalatraServlet extends ScalatraServlet with LazyLogging {
 }
 
 object GeoMesaScalatraServlet {
+
+  val DefaultRootPath = "geomesa"
   val dsKeys = new AccumuloDataStoreFactory().getParametersInfo.map(_.getName)
+
+  def wrap(request: HttpServletRequest): HttpServletRequest = {
+    request match {
+      case r: HttpServletRequestWrapper => new PathHandlingServletRequest(r)
+      case _ => request
+    }
+  }
 }
 
 class SpringScalatraBootstrap extends ApplicationContextAware with ServletContextAware with LazyLogging {
 
   @BeanProperty var applicationContext: ApplicationContext = _
   @BeanProperty var servletContext: ServletContext = _
-  @BeanProperty var rootPath: String = _
+  @BeanProperty var rootPath: String = GeoMesaScalatraServlet.DefaultRootPath
 
   def init(): Unit = {
     val richCtx = new RichServletContext(servletContext)
@@ -72,5 +79,7 @@ class SpringScalatraBootstrap extends ApplicationContextAware with ServletContex
       logger.info(s"Mounting servlet bean '$name' at path '$path'")
       richCtx.mount(servlet, s"$path/*")
     }
+
+    richCtx.mount(applicationContext.getBean("geomesaResourcesApp").asInstanceOf[ResourcesApp], "/api-docs")
   }
 }

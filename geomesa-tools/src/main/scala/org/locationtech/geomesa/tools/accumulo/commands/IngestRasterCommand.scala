@@ -12,16 +12,18 @@ import java.io.File
 import java.util.Locale
 
 import com.beust.jcommander.{IParameterValidator, JCommander, Parameter, Parameters}
+import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats._
 import org.locationtech.geomesa.tools.accumulo.commands.IngestRasterCommand.IngestRasterParameters
 import org.locationtech.geomesa.tools.accumulo.ingest.LocalRasterIngest
-import org.locationtech.geomesa.tools.accumulo.{AccumuloConnectionParams, AccumuloProperties, AccumuloRasterTableParam}
+import org.locationtech.geomesa.tools.accumulo.{AccumuloConnectionParams, AccumuloRasterTableParam}
 import org.locationtech.geomesa.tools.common.commands.Command
 
 import scala.util.{Failure, Success}
 
-class IngestRasterCommand(parent: JCommander) extends Command(parent) with AccumuloProperties {
+class IngestRasterCommand(parent: JCommander) extends Command(parent) with LazyLogging {
+
   override val command: String = "ingestraster"
   override val params = new IngestRasterParameters()
 
@@ -49,15 +51,15 @@ class IngestRasterCommand(parent: JCommander) extends Command(parent) with Accum
 
   def getRasterIngestParams(): Map[String, Option[String]] = {
     Map(
-      IngestRasterParams.ZOOKEEPERS        -> Some(Option(params.zookeepers).getOrElse(zookeepersProp)),
-      IngestRasterParams.ACCUMULO_INSTANCE -> Some(Option(params.instance).getOrElse(instanceName)),
-      IngestRasterParams.ACCUMULO_USER     -> Some(params.user),
-      IngestRasterParams.ACCUMULO_PASSWORD -> Some(getPassword(params.password)),
+      IngestRasterParams.ZOOKEEPERS        -> Option(params.zookeepers),
+      IngestRasterParams.ACCUMULO_INSTANCE -> Option(params.instance),
+      IngestRasterParams.ACCUMULO_USER     -> Option(params.user),
+      IngestRasterParams.ACCUMULO_PASSWORD -> Option(params.password),
       IngestRasterParams.AUTHORIZATIONS    -> Option(params.auths),
       IngestRasterParams.VISIBILITIES      -> Option(params.visibilities),
       IngestRasterParams.ACCUMULO_MOCK     -> Some(params.useMock.toString),
-      IngestRasterParams.TABLE             -> Some(params.table),
-      IngestRasterParams.FORMAT            -> Some(Option(params.format).getOrElse(getFormat(new File(params.file)))),
+      IngestRasterParams.TABLE             -> Option(params.table),
+      IngestRasterParams.FORMAT            -> Option(params.format).orElse(Some(getFormat(new File(params.file)))),
       IngestRasterParams.TIME              -> Option(params.timeStamp),
       IngestRasterParams.WRITE_MEMORY      -> Option(params.writeMemory),
       IngestRasterParams.WRITE_THREADS     -> Option(params.writeThreads).map(_.toString),
@@ -81,7 +83,7 @@ class PathValidator extends IParameterValidator {
 }
 
 object IngestRasterCommand {
-  @Parameters(commandDescription = "Ingest a raster file or raster files in a directory into GeoMesa")
+  @Parameters(commandDescription = "Ingest raster files into GeoMesa")
   class IngestRasterParameters extends AccumuloConnectionParams
     with AccumuloRasterTableParam {
 

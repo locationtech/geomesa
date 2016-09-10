@@ -26,6 +26,6 @@ class ListCommand(parent: JCommander) extends CommandWithCatalog(parent) with La
 }
 
 object ListCommand {
-  @Parameters(commandDescription = "List GeoMesa features for a given catalog")
+  @Parameters(commandDescription = "List GeoMesa feature types for a given catalog")
   class ListParameters extends GeoMesaConnectionParams {}
 }

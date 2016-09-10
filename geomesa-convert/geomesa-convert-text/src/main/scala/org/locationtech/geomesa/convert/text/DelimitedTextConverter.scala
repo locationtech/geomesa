@@ -34,7 +34,7 @@ class DelimitedTextConverterFactory extends AbstractSimpleFeatureConverterFactor
                                         fields: IndexedSeq[Field],
                                         userDataBuilder: Map[String, Expr],
                                         validating: Boolean): DelimitedTextConverter = {
-    val baseFmt = conf.getString("format").toUpperCase match {
+    var baseFmt = conf.getString("format").toUpperCase match {
       case "CSV" | "DEFAULT"          => CSVFormat.DEFAULT
       case "EXCEL"                    => CSVFormat.EXCEL
       case "MYSQL"                    => CSVFormat.MYSQL
@@ -46,13 +46,23 @@ class DelimitedTextConverterFactory extends AbstractSimpleFeatureConverterFactor
       case _ => throw new IllegalArgumentException("Unknown delimited text format")
     }
 
+    import org.locationtech.geomesa.utils.conf.ConfConversions._
     val opts = {
-      import org.locationtech.geomesa.utils.conf.ConfConversions._
       val o = "options"
       val dOpts = new DelimitedOptions()
       conf.getIntOpt(s"$o.skip-lines").foreach(s => dOpts.skipLines = s)
       conf.getIntOpt(s"$o.pipe-size").foreach(p => dOpts.pipeSize = p)
       dOpts
+    }
+
+    conf.getStringOpt("options.quote").foreach { q =>
+      require(q.length == 1, "Quote must be a single character")
+      baseFmt = baseFmt.withQuote(q.toCharArray()(0))
+    }
+
+    conf.getStringOpt("options.escape").foreach { q =>
+      require(q.length == 1, "Escape must be a single character")
+      baseFmt = baseFmt.withEscape(q.toCharArray()(0))
     }
 
     new DelimitedTextConverter(baseFmt, sft, idBuilder, fields, userDataBuilder, opts, validating)

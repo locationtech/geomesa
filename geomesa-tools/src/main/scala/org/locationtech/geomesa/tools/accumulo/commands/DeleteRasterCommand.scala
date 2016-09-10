@@ -13,11 +13,11 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Range => ARange}
 import org.locationtech.geomesa.raster.data.AccumuloRasterStore
 import org.locationtech.geomesa.tools.accumulo.commands.DeleteRasterCommand._
-import org.locationtech.geomesa.tools.accumulo.{AccumuloConnectionParams, AccumuloProperties, AccumuloRasterTableParam}
+import org.locationtech.geomesa.tools.accumulo.{AccumuloConnectionParams, AccumuloRasterTableParam}
 import org.locationtech.geomesa.tools.common.OptionalForceParam
 import org.locationtech.geomesa.tools.common.commands.Command
 
-class DeleteRasterCommand(parent: JCommander) extends Command(parent) with LazyLogging with AccumuloProperties {
+class DeleteRasterCommand(parent: JCommander) extends Command(parent) with LazyLogging {
   override val command = "deleteraster"
   override val params = new DeleteRasterParams()
 
@@ -25,8 +25,8 @@ class DeleteRasterCommand(parent: JCommander) extends Command(parent) with LazyL
     val user = params.user
     val pass = params.password
     val table = params.table
-    val instance = Option(params.instance).getOrElse(instanceName)
-    val zookeepers = Option(params.zookeepers).getOrElse(zookeepersProp)
+    val instance = params.instance
+    val zookeepers = params.zookeepers
     val authsParam = Option(params.auths).getOrElse("")
     val visibilities = Option(params.visibilities).getOrElse("")
     val useMock = params.useMock
@@ -54,7 +54,7 @@ object DeleteRasterCommand {
         "Please ensure stdout is not redirected or --force flag is set")
     }
 
-  @Parameters(commandDescription = "Delete a GeoMesa Raster Table")
+  @Parameters(commandDescription = "Delete a GeoMesa Raster table")
   class DeleteRasterParams extends AccumuloConnectionParams
     with AccumuloRasterTableParam
     with OptionalForceParam {}

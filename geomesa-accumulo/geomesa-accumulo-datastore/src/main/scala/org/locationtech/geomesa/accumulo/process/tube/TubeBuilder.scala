@@ -17,11 +17,11 @@ import com.vividsolutions.jts.geom.impl.CoordinateArraySequence
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.referencing.GeodeticCalculator
 import org.joda.time.format.DateTimeFormat
-import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeature
 
 /**
  * Build a tube for input to a TubeSelect by buffering and binning the input
@@ -32,7 +32,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
                            val maxBins: Int) extends LazyLogging {
 
   val calc = new GeodeticCalculator()
-  val dtgField = extractDtgField(tubeFeatures.getSchema)
+  val dtgField = tubeFeatures.getSchema.getDtgField.getOrElse(DEFAULT_DTG_FIELD)
   val geoFac = new GeometryFactory
 
   val GEOM_PROP = "geom"
@@ -47,7 +47,10 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
   def getStartTime(sf: SimpleFeature) = sf.getAttribute(1).asInstanceOf[Date]
   def getEndTime(sf: SimpleFeature) = sf.getAttribute(2).asInstanceOf[Date]
 
-  def bufferGeom(geom: Geometry, meters: Double) = geom.buffer(metersToDegrees(meters, geom.getCentroid))
+  def bufferGeom(geom: Geometry, meters: Double) = {
+    import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
+    geom.buffer(metersToDegrees(meters, geom.safeCentroid()))
+  }
 
   def metersToDegrees(meters: Double, point: Point) = {
     logger.debug("Buffering: "+meters.toString + " "+WKTUtils.write(point))
@@ -66,15 +69,6 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
     builder.set(GEOM_PROP, bufferedGeom)
     builder.buildFeature(sf.getID)
   }
-
-  import scala.collection.JavaConversions._
-
-  def extractDtgField(sft: SimpleFeatureType) =
-    sft.getAttributeDescriptors
-      .filter { _.getUserData.contains(Constants.SF_PROPERTY_START_TIME) }
-      .headOption
-      .map { _.getName.toString }
-      .getOrElse(DEFAULT_DTG_FIELD)
 
   // transform the input tubeFeatures into the intermediate SF used by the
   // tubing code consisting of three attributes (geom, startTime, endTime)
@@ -164,9 +158,10 @@ class LineGapFill(tubeFeatures: SimpleFeatureCollection,
     val sortedTube = transformed.toSeq.sortBy { sf => getStartTime(sf).getTime }
 
     val lineFeatures = sortedTube.sliding(2).map { pair =>
-      val p1 = getGeom(pair(0)).getCentroid
+      import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
+      val p1 = getGeom(pair(0)).safeCentroid()
       val t1 = getStartTime(pair(0))
-      val p2 = getGeom(pair(1)).getCentroid
+      val p2 = getGeom(pair(1)).safeCentroid()
       val t2 = getStartTime(pair(1))
 
       val geo =

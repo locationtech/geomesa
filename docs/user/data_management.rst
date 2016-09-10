@@ -5,24 +5,46 @@ GeoMesa provides many ways to optimize your data storage. You can add additional
 certain queries, disable indices to speed up ingestion, pre-split tables for optimal data
 distribution and migrate data between tables or environments.
 
+.. note::
+
+    Currently this chapter applies only to the Accumulo Data Store.
+
+.. _index_structure:
+
 Index Structure
 ---------------
 
-By default, GeoMesa creates three indices:
+By default, GeoMesa creates a number of indices:
 
-- Z2 - the Z2 index uses a z-order curve to index latitude and longitude. This is the primary index used
-  to answer queries with a spatial component but no temporal component.
-- Z3 - the Z3 index uses a z-order curve to index latitude, longitude and time. This is the primary index
-  used to answer queries with both a spatial and temporal component.
-- Record - the record index stores features by feature ID. It is used for any query by ID. Additionally,
+- **Z2** - the Z2 index uses a two-dimensional Z-order curve to index latitude and longitude
+  for point data. This index will be created if the feature type has the geometry type
+  ``Point``. This is used to efficiently answer queries of
+  features with point geometry with a spatial component but no temporal component.
+- **Z3** - the Z3 index uses a three-dimensional Z-order curve to index latitude, longitude,
+  and time for point data. This index will be created if the feature type has the geometry
+  type ``Point`` and has a time attribute. This is used to efficiently answer queries of
+  features with point geometry with both spatial and temporal components.
+- **XZ2** - the XZ2 index uses a two-dimensional implementation of XZ-ordering [#ref1]_ to index
+  latitude and longitude for non-point data. XZ-ordering is an extension of Z-ordering
+  designed for spatially extended objects (i.e. non-point geometries such as line strings or
+  polygons). This index will be created if the feature type has a non-\ ``Point`` geometry. This
+  is used to efficiently answer queries of features with non-point geometry with a spatial
+  component but no temporal component.
+- **XZ3** - the XZ3 index uses a three-dimensional implementation of XZ-ordering [#ref1]_ to index
+  latitude, longitude, and time for non-point data. This index will be created if the feature
+  type has a non-\ ``Point`` geometry and has a time attribute. This is used to efficiently
+  answer queries of features with non-point geometry with both spatial and temporal components.
+- **Record** - the record index stores features by feature ID. It is used for any query by ID. Additionally,
   certain attribute queries may end up retrieving data from the record index. This is explained below.
 
 If specified, GeoMesa will also create the following indices:
 
-- Attribute - the attribute index uses attribute values as the primary index key. This allows for
+- **Attribute** - the attribute index uses attribute values as the primary index key. This allows for
   fast retrieval of queries without a spatio-temporal component. Attribute indices can be created
   in a 'reduced' format, that takes up less disk space at the cost of performance for certain queries,
   or a 'full' format that takes up more space but can answer certain queries faster.
+
+.. _attribute_indices:
 
 Attribute Indices
 -----------------
@@ -108,7 +130,7 @@ you may set the hint directly in the feature type:
 If you are using TypeSafe configuration files to define your simple feature type, you may include the hint in
 the attribute field:
 
-.. code-block:: json
+.. code-block:: javascript
 
     geomesa {
       sfts {
@@ -138,13 +160,41 @@ If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribu
         .geometry("geom", default = true)
         .build("mySft")
 
+.. _customizing_z_index:
+
+Customizing the Z-Index
+-----------------------
+
+GeoMesa uses a z-curve index for time-based queries. By default, time is split into week-long chunks and indexed
+per-week. If your queries are typically much larger or smaller than one week, you may wish to partition at a
+different interval. GeoMesa provides four intervals - ``day``, ``week``, ``month`` or ``year``. As the interval
+gets larger, fewer partitions must be examined for a query, but the precision of each interval will go down.
+
+If you typically query months of data at a time, then indexing per-month may provide better performance.
+Alternatively, if you typically query minutes of data at a time, indexing per-day may be faster. The default
+per-week partitioning tends to provides a good balance for most scenarios. Note that the optimal partitioning
+depends on query patterns, not the distribution of data.
+
+The time partitioning is set when calling ``createSchema``. It may be specified through the simple feature type
+user data using the hint ``geomesa.z3.interval``:
+
+.. code-block:: java
+
+    // set the hint directly
+    SimpleFeatureType sft = ...
+    sft.getUserData().put("geomesa.z3.interval", "month");
+
+See below for alternate ways to set the user data.
+
+.. _customizing_index_creation:
 
 Customizing Index Creation
 --------------------------
 
 To speed up ingestion, or because you are only using certain query patterns, you may disable some indices.
-The indices are created when calling ``createSchema``. If nothing is specified, the Z2, Z3 and record
-indices will all be created, as well as any attribute indices you have defined.
+The indices are created when calling ``createSchema``. If nothing is specified, the Z2/Z3 (or XZ2/XZ3
+depending on geometry type) indices and record indices will all be created, as well as any attribute
+indices you have defined.
 
 .. warning::
 
@@ -186,7 +236,7 @@ you may set the hint directly in the feature type:
 If you are using TypeSafe configuration files to define your simple feature type, you may include
 a 'user-data' key:
 
-.. code-block:: json
+.. code-block:: javascript
 
     geomesa {
       sfts {
@@ -217,6 +267,131 @@ If you are using the GeoMesa ``SftBuilder``, you may call the ``withIndexes`` me
         .withIndexes(List("records", "z3", "attr_idx"))
         .build("mySft")
 
+If the default geometry type is ``Geometry`` (i.e. supporting both point and non-point
+features), you must explicitly enable "mixed" indexing mode with ``geomesa.mixed.geometries``:
+
+.. code-block:: java
+
+    // append the hints to the end of the string, separated by a semi-colon
+    String spec = "name:String,dtg:Date,*geom:Geometry:srid=4326;geomesa.mixed.geometries='true'";
+    SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
+
+.. _index_upgrades:
+
+Upgrading Existing Indices
+--------------------------
+
+GeoMesa often makes updates to indexing formats to improve query and write performance. However,
+the index format for a given schema is fixed when it is first created. Updating GeoMesa versions
+will provide bug fixes and new features, but will not update existing data to new index formats.
+
+The following tables show the different indices available for different versions of GeoMesa. If not
+known, the schema version for a feature type can be checked by examining the user data value
+``geomesa.version``, or by scanning the Accumulo catalog table for ``version``. For GeoMesa schemas
+created with 1.2.7 or later, the version of each index is tracked separately and the overall schema
+version is no longer maintained.
+
+Schema version 4 - 1.0.0-rc.7
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
++-----------+---------+----------------------------------------------------------------------------+
+| Index     | Version | Notes                                                                      |
++===========+=========+============================================================================+
+| GeoHash   | 1       | Used for most queries                                                      |
++-----------+---------+----------------------------------------------------------------------------+
+| Record    | 1       | Used for queries on feature ID                                             |
++-----------+---------+----------------------------------------------------------------------------+
+| Attribute | 1       | Used for attribute queries (when configured)                               |
++-----------+---------+----------------------------------------------------------------------------+
+
+Schema version 5 - 1.1.0-rc.1 through 1.1.0-rc.2
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
++-----------+---------+----------------------------------------------------------------------------+
+| Index     | Version | Notes                                                                      |
++===========+=========+============================================================================+
+| Z3        | 1       | Replaces GeoHash index for spatio-temporal queries on point geometries     |
++-----------+---------+----------------------------------------------------------------------------+
+| GeoHash   | 1       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+| Record    | 1       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+| Attribute | 1       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+
+Schema version 6 - 1.1.0-rc.3 through 1.2.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
++-----------+---------+----------------------------------------------------------------------------+
+| Index     | Version | Notes                                                                      |
++===========+=========+============================================================================+
+| Z3        | 1       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+| GeoHash   | 1       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+| Record    | 1       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+| Attribute | 2       | Added a composite date index and improved row-key collisions               |
++-----------+---------+----------------------------------------------------------------------------+
+
+
+Schema version 7 - 1.2.1
+^^^^^^^^^^^^^^^^^^^^^^^^
+
++-----------+---------+----------------------------------------------------------------------------+
+| Index     | Version | Notes                                                                      |
++===========+=========+============================================================================+
+| Z3        | 2       | Added support for non-point geometries and sharding for improved ingestion |
++-----------+---------+----------------------------------------------------------------------------+
+| GeoHash   | 1       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+| Record    | 1       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+| Attribute | 2       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+
+
+Schema version 8 - 1.2.2 through 1.2.4
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
++-----------+---------+----------------------------------------------------------------------------+
+| Index     | Version | Notes                                                                      |
++===========+=========+============================================================================+
+| Z3        | 2       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+| Z2        | 1       | Spatial only index to replace GeoHash index                                |
++-----------+---------+----------------------------------------------------------------------------+
+| Record    | 1       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+| Attribute | 2       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+
+Schema version 10 - 1.2.5+
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
++-----------+---------+----------------------------------------------------------------------------+
+| Index     | Version | Notes                                                                      |
++===========+=========+============================================================================+
+| Z3        | 3       | Support for attribute-level visibilities and improved feature ID encoding  |
++-----------+---------+----------------------------------------------------------------------------+
+| Z2        | 2       | Support for attribute-level visibilities and improved feature ID encoding  |
++-----------+---------+----------------------------------------------------------------------------+
+| XZ3       | 1       | Spatio-temporal index with improved support for non-point geometries       |
++-----------+---------+----------------------------------------------------------------------------+
+| XZ2       | 1       | Spatial index with improved support for non-point geometries               |
++-----------+---------+----------------------------------------------------------------------------+
+| Record    | 2       | Support for attribute-level visibilities and improved feature ID encoding  |
++-----------+---------+----------------------------------------------------------------------------+
+| Attribute | 3       | Support for attribute-level visibilities and improved feature ID encoding  |
++-----------+---------+----------------------------------------------------------------------------+
+
+Using the GeoMesa command line tools, you can add or update an index to a newer version using ``add-index``.
+For example, you could add the XZ3 index to replace the Z3 index for a feature type with non-point geometries.
+The command will populate the new index using a distributed job. For large data sets, you can choose to
+only populate features matching a CQL filter (e.g. the last month), or choose to not populate any
+data. The update is seamless, and clients can continue to query and ingest while it runs.
+
+See :ref:`add_index_command` for more details on the command line tools.
 
 .. _accumulo_visibilities:
 
@@ -263,13 +438,6 @@ Attribute-Level Visibilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For more advanced use cases, visibilities can be set at the attribute level.
-
-.. warning::
-
-    Attribute level visibilities is an experimental feature and currently does not support all query types.
-    Errors or data leaks may occur if the default date or geometry are not returned from a query
-    due to visibilities. Future versions of GeoMesa may not support the current attribute level visibilities.
-
 Attribute-level visibilities must be enabled when creating your simple feature type by setting
 the appropriate user data value:
 
@@ -351,7 +519,7 @@ you may set the hint directly in the feature type:
 If you are using TypeSafe configuration files to define your simple feature type, you may include
 a 'user-data' key:
 
-.. code-block:: json
+.. code-block:: javascript
 
     geomesa {
       sfts {
@@ -397,3 +565,7 @@ If you prefer to not use Avro files, you may do the same process with delimited 
 
     $ geomesa export -c myTable -f mySft --format tsv --gzip 6 -o myFeatures.tsv.gz
     $ geomesa import -c myTable -f mySft myFeatures.tsv.gz
+
+.. rubric:: Footnotes
+
+.. [#ref1] Böhm, Klump, and Kriegel. "XZ-ordering: a space-filling curve for objects with spatial extension." 6th. Int. Symposium on Large Spatial Databases (SSD), 1999, Hong Kong, China. (http://www.dbs.ifi.lmu.de/Publikationen/Boehm/Ordering_99.pdf)

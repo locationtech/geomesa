@@ -22,11 +22,11 @@ import org.apache.accumulo.core.security.TablePermission
 import org.geotools.coverage.grid.GridEnvelope2D
 import org.joda.time.DateTime
 import org.locationtech.geomesa.accumulo.data.stats.usage._
-import org.locationtech.geomesa.accumulo.index.Strategy._
-import org.locationtech.geomesa.accumulo.iterators.BBOXCombiner._
+import org.locationtech.geomesa.accumulo.index.QueryPlan
 import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.index.RasterIndexSchema
+import org.locationtech.geomesa.raster.iterators.BBOXCombiner._
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.geohash.BoundingBox
@@ -91,7 +91,7 @@ class AccumuloRasterStore(val connector: Connector,
       val plan = AccumuloRasterQueryPlanner.getQueryPlan(rasterQuery, getResToGeoHashLenMap, getResToBoundsMap)
       plan match {
         case Some(qp) =>
-          configureBatchScanner(batchScanner, qp)
+          QueryPlan.configureBatchScanner(batchScanner, qp)
           adaptIteratorToChunks(SelfClosingIterator(batchScanner))
         case _        => Iterator.empty
       }

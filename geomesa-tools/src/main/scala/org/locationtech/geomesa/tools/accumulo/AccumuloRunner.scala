@@ -8,13 +8,19 @@
 
 package org.locationtech.geomesa.tools.accumulo
 
+import org.apache.accumulo.server.client.HdfsZooInstance
 import org.locationtech.geomesa.tools.accumulo.commands._
 import org.locationtech.geomesa.tools.accumulo.commands.stats._
-import org.locationtech.geomesa.tools.common.Runner
 import org.locationtech.geomesa.tools.common.commands.{Command, GenerateAvroSchemaCommand, VersionCommand}
+import org.locationtech.geomesa.tools.common.{Prompt, Runner}
+
+import scala.util.control.NonFatal
+import scala.xml.XML
 
 object AccumuloRunner extends Runner {
+
   override val scriptName: String = "geomesa"
+
   override val commands: List[Command] = List(
     new CreateCommand(jc),
     new DeleteCatalogCommand(jc),
@@ -39,6 +45,38 @@ object AccumuloRunner extends Runner {
     new StatsBoundsCommand(jc),
     new StatsCountCommand(jc),
     new StatsTopKCommand(jc),
-    new StatsHistogramCommand(jc)
+    new StatsHistogramCommand(jc),
+    new AddIndexCommand(jc)
   )
+
+  /**
+    * Loads accumulo properties for instance and zookeepers from the accumulo installation found via
+    * the system path in ACCUMULO_HOME in the case that command line parameters are not provided
+    */
+  override def resolveEnvironment(command: Command): Unit = {
+    lazy val zookeepers = {
+      val accumuloSiteXml = Option(System.getProperty("geomesa.tools.accumulo.site.xml"))
+          .getOrElse(s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml")
+      try {
+        (XML.loadFile(accumuloSiteXml) \\ "property")
+            .filter(x => (x \ "name").text == "instance.zookeeper.host")
+            .map(y => (y \ "value").text)
+            .head
+      } catch {
+        case NonFatal(e) => null
+      }
+    }
+
+    Option(command.params).collect { case p: AccumuloConnectionParams => p }.foreach { params =>
+      if (params.instance == null) {
+        params.instance = HdfsZooInstance.getInstance().getInstanceName
+      }
+      if (params.zookeepers == null) {
+        params.zookeepers = zookeepers
+      }
+      if (params.password == null) {
+        params.password = Prompt.readPassword()
+      }
+    }
+  }
 }

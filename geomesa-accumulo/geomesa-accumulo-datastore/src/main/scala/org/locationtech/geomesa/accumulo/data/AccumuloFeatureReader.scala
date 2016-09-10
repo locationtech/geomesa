@@ -17,6 +17,7 @@ import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.security.AuditProvider
+import org.locationtech.geomesa.utils.monitoring.Monitoring
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -89,7 +90,8 @@ class AccumuloFeatureReaderWithStats(query: Query,
 
   override protected def closeOnce(): Unit = {
     iter.close()
-    val stat = QueryStat(qp.sft.getTypeName,
+    val stat = QueryStat(
+      qp.sft.getTypeName,
       System.currentTimeMillis(),
       auditProvider.getCurrentUserId,
       filterToString(query.getFilter),
@@ -98,6 +100,7 @@ class AccumuloFeatureReaderWithStats(query: Query,
       timings.time("next") + timings.time("hasNext"),
       count
     )
+    Monitoring.log(stat)
     sw.writeUsageStat(stat) // note: implementation is asynchronous
   }
 }

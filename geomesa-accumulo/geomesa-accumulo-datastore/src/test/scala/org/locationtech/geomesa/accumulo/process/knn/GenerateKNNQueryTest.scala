@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.process.knn
 
+import com.vividsolutions.jts.geom.GeometryCollection
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.referencing.CRS
@@ -15,6 +16,7 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.Constants
+import org.locationtech.geomesa.accumulo.index.geohash.IndexFilterHelpers
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.utils.geohash.GeoHash
@@ -107,11 +109,15 @@ class GenerateKNNQueryTest extends Specification {
 
       val geomsToCover = {
         import scala.collection.JavaConversions._
-        val geom = sft.getGeometryDescriptor.getLocalName
-        FilterHelper.extractSingleGeometry(ff.and(tweakedGeomFilters), geom, intersect = true).orNull
+        val geoms = FilterHelper.extractGeometries(ff.and(tweakedGeomFilters), sft.getGeometryDescriptor.getLocalName, intersect = true)
+        if (geoms.length < 2) {
+          geoms.headOption.orNull
+        } else {
+          new GeometryCollection(geoms.toArray, geoms.head.getFactory)
+        }
       }
 
-      val geometryToCover = new org.locationtech.geomesa.accumulo.index.IndexFilterHelpers{}.netGeom(geomsToCover)
+      val geometryToCover = new IndexFilterHelpers{}.netGeom(geomsToCover)
 
       // confirm that the extracted spatial predicate matches the GeoHash BBOX.
       geometryToCover.equals(smallGH.geom) must beTrue

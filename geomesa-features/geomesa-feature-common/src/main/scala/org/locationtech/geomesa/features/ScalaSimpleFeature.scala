@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.features
 
-import java.util.{Collections, Collection => JCollection, List => JList}
+import java.util.{Collections, Collection => JCollection, HashMap => JHashMap, List => JList}
 
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.feature.`type`.{AttributeDescriptorImpl, Types}
@@ -26,19 +26,23 @@ import scala.collection.JavaConversions._
 /**
  * Simple feature implementation optimized to instantiate from serialization
  *
- * @param initialId
- * @param sft
+ * @param initialId simple feature id
+ * @param sft simple feature type
  * @param initialValues if provided, must already be converted into the appropriate types
  */
-class ScalaSimpleFeature(initialId: String, sft: SimpleFeatureType, initialValues: Array[AnyRef] = null)
+class ScalaSimpleFeature(initialId: String,
+                         sft: SimpleFeatureType,
+                         initialValues: Array[AnyRef] = null,
+                         initialUserData: java.util.Map[AnyRef, AnyRef] = null)
     extends SimpleFeature {
 
   val featureId = new FeatureIdImpl(initialId)
   val values = if (initialValues == null) Array.ofDim[AnyRef](sft.getAttributeCount) else initialValues
 
-  lazy private[this] val userData  = collection.mutable.HashMap.empty[AnyRef, AnyRef]
   lazy private[this] val geomDesc  = sft.getGeometryDescriptor
   lazy private[this] val geomIndex = if (geomDesc == null) -1 else sft.indexOf(geomDesc.getLocalName)
+  lazy private[this] val userData  =
+    if (initialUserData == null) new JHashMap[AnyRef, AnyRef]() else new JHashMap[AnyRef, AnyRef](initialUserData)
 
   override def getFeatureType = sft
   override def getType = sft
@@ -155,10 +159,13 @@ class ScalaSimpleFeature(initialId: String, sft: SimpleFeatureType, initialValue
 
 object ScalaSimpleFeature {
 
+  def create(sft: SimpleFeatureType, copy: SimpleFeature): ScalaSimpleFeature =
+    new ScalaSimpleFeature(copy.getID, sft, copy.getAttributes.toArray, copy.getUserData)
+
   /**
    * Creates a simple feature, converting the values to the appropriate type
    */
-  def create(sft: SimpleFeatureType, id: String, values: Any*): SimpleFeature = {
+  def create(sft: SimpleFeatureType, id: String, values: Any*): ScalaSimpleFeature = {
     val sf = new ScalaSimpleFeature(id, sft)
     var i = 0
     while (i < values.length) {

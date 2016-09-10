@@ -14,7 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.geotools.data.Query
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.QueryPlanner.SFIter
 import org.locationtech.geomesa.accumulo.sumNumericValueMutableMaps
@@ -40,12 +40,10 @@ class KryoLazyMapAggregatingIterator extends KryoLazyAggregatingIterator[mutable
   var featureToSerialize: SimpleFeature = null
 
   override def init(options: Map[String, String]): mutable.Map[AnyRef, Int] = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
     val attributeName = options(MAP_ATTRIBUTE)
     mapAttribute = sft.indexOf(attributeName)
     val mapSft = SimpleFeatureTypes.createType("", createMapSft(sft, attributeName))
-    val kryoOptions = if (sft.getSchemaVersion < 9) SerializationOptions.none else SerializationOptions.withoutId
+    val kryoOptions = if (index.serializedWithId) SerializationOptions.none else SerializationOptions.withoutId
     serializer = new KryoFeatureSerializer(mapSft, kryoOptions)
     featureToSerialize = new ScalaSimpleFeature("", mapSft, Array(null, GeometryUtils.zeroPoint))
     mutable.Map.empty[AnyRef, Int]
@@ -71,14 +69,14 @@ object KryoLazyMapAggregatingIterator extends LazyLogging {
    * Creates an iterator config for the z3 density iterator
    */
   def configure(sft: SimpleFeatureType,
-                table: GeoMesaTable,
+                index: AccumuloFeatureIndex,
                 filter: Option[Filter],
                 hints: Hints,
                 deduplicate: Boolean,
                 priority: Int = DEFAULT_PRIORITY): IteratorSetting = {
     val mapAttribute = hints.getMapAggregatingAttribute
     val is = new IteratorSetting(priority, "map-aggregate-iter", classOf[KryoLazyMapAggregatingIterator])
-    KryoLazyAggregatingIterator.configure(is, sft, table, filter, deduplicate, None)
+    KryoLazyAggregatingIterator.configure(is, sft, index, filter, deduplicate, None)
     is.addOption(MAP_ATTRIBUTE, mapAttribute)
     is
   }

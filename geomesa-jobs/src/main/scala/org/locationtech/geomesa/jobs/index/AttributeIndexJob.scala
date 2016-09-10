@@ -18,14 +18,12 @@ import org.apache.hadoop.mapreduce.{Counter, Job, Mapper}
 import org.apache.hadoop.util.{Tool, ToolRunner}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.data.tables.{AttributeTable, AttributeTableV5}
-import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.features.{SimpleFeatureSerializer, SimpleFeatureSerializers}
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
+import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
 import org.locationtech.geomesa.jobs._
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaInputFormat
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeature
@@ -44,12 +42,38 @@ object AttributeIndexJob {
   }
 }
 
+class AttributeIndexArgs(args: Array[String]) extends GeoMesaArgs(args) with InputFeatureArgs with InputDataStoreArgs {
+
+  @Parameter(names = Array("--geomesa.index.attributes"), description = "Attributes to index", variableArity = true, required = true)
+  var attributes: java.util.List[String] = null
+
+  @Parameter(names = Array("--geomesa.index.coverage"), description = "Type of index (join or full)")
+  var coverage: String = null
+
+  override def unparse(): Array[String] = {
+    val attrs = if (attributes == null || attributes.isEmpty) {
+      Array.empty[String]
+    } else {
+      attributes.flatMap(n => Seq("--geomesa.index.attributes", n)).toArray
+    }
+    val cov = if (coverage == null) {
+      Array.empty[String]
+    } else {
+      Array("--geomesa.index.coverage", coverage)
+    }
+    Array.concat(super[InputFeatureArgs].unparse(),
+                 super[InputDataStoreArgs].unparse(),
+                 attrs,
+                 cov)
+  }
+}
+
 class AttributeIndexJob extends Tool {
 
   private var conf: Configuration = new Configuration
 
   override def run(args: Array[String]): Int = {
-    val parsedArgs = new GeoMesaArgs(args) with InputFeatureArgs with InputDataStoreArgs with AttributeIndexArgs
+    val parsedArgs = new AttributeIndexArgs(args)
     parsedArgs.parse()
 
     val typeName   = parsedArgs.inFeature
@@ -67,7 +91,12 @@ class AttributeIndexJob extends Tool {
     require(ds != null, "The specified input data store could not be created - check your job parameters")
     val sft = ds.getSchema(typeName)
     require(sft != null, s"The schema '$typeName' does not exist in the input data store")
-    val tableName = ds.getTableName(typeName, AttributeTable)
+    val index = AccumuloFeatureIndex.indices(sft, IndexMode.Write)
+        .find(_.name == AttributeIndex.name).getOrElse {
+      AttributeIndex.configure(sft, ds)
+      AttributeIndex
+    }
+    val tableName = ds.getTableName(typeName, index)
 
     {
       val valid = sft.getAttributeDescriptors.map(_.getLocalName)
@@ -99,15 +128,12 @@ class AttributeIndexJob extends Tool {
     val result = job.waitForCompletion(true)
 
     if (result) {
-      // update the metadata
+      // update the metadata and splits
       // reload the sft, as we nulled out the index flags earlier
       val sft = ds.getSchema(typeName)
       def wasIndexed(ad: AttributeDescriptor) = attributes.contains(ad.getLocalName)
       sft.getAttributeDescriptors.filter(wasIndexed).foreach(_.setIndexCoverage(coverage))
-      val updatedSpec = SimpleFeatureTypes.encodeType(sft)
-      ds.updateIndexedAttributes(typeName, updatedSpec)
-      // configure the table splits
-      AttributeTable.configureTable(sft, tableName, ds.connector.tableOperations())
+      ds.updateSchema(typeName, sft)
       // schedule a table compaction to clean up the table
       ds.connector.tableOperations().compact(tableName, null, null, true, false)
     }
@@ -129,10 +155,7 @@ class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
   private var counter: Counter = null
 
   private var writer: AccumuloFeatureWriter.FeatureToMutations = null
-  private var visibilities: String = null
-  private var featureEncoder: SimpleFeatureSerializer = null
-  private var indexValueEncoder: SimpleFeatureSerializer = null
-  private var binEncoder: Option[BinEncoder] = null
+  private var toWritable: (SimpleFeature) => WritableFeature = null
 
   override protected def setup(context: Context): Unit = {
     counter = context.getCounter("org.locationtech.geomesa", "attributes-written")
@@ -146,12 +169,11 @@ class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
       d.setIndexCoverage(if (attributes.contains(d.getLocalName)) coverage else IndexCoverage.NONE)
     }
 
-    visibilities = ds.defaultVisibilities
     val encoding = ds.getFeatureEncoding(sft)
-    featureEncoder = SimpleFeatureSerializers(sft, encoding)
-    indexValueEncoder = IndexValueEncoder(sft)
-    binEncoder = BinEncoder(sft)
-    writer = if (sft.getSchemaVersion < 6) AttributeTableV5.writer(sft) else AttributeTable.writer(sft)
+    val index = AccumuloFeatureIndex.indices(sft, IndexMode.Write)
+        .find(_.name == AttributeIndex.name).getOrElse(AttributeIndex)
+    writer = index.writer(sft, ds)
+    toWritable = WritableFeature.toWritableFeature(sft, encoding, ds.defaultVisibilities)
 
     ds.dispose()
   }
@@ -161,16 +183,8 @@ class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
   }
 
   override def map(key: Text, value: SimpleFeature, context: Context) {
-    val mutations = writer(WritableFeature(value, value.getFeatureType, visibilities, featureEncoder, indexValueEncoder, binEncoder))
+    val mutations = writer(toWritable(value))
     mutations.foreach(context.write(null: Text, _)) // default table name is set already
     counter.increment(mutations.length)
   }
-}
-
-trait AttributeIndexArgs {
-  @Parameter(names = Array("--geomesa.index.attributes"), description = "Attributes to index", variableArity = true, required = true)
-  var attributes: java.util.List[String] = null
-
-  @Parameter(names = Array("--geomesa.index.coverage"), description = "Type of index (join or full)")
-  var coverage: String = null
 }

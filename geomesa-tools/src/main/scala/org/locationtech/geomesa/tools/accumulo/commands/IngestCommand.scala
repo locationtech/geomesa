@@ -8,42 +8,62 @@
 
 package org.locationtech.geomesa.tools.accumulo.commands
 
+import java.net.URL
 import java.util
 import java.util.Locale
 
 import com.beust.jcommander.{JCommander, Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataStoreFinder
+import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats._
 import org.locationtech.geomesa.tools.accumulo.commands.IngestCommand._
 import org.locationtech.geomesa.tools.accumulo.ingest.{AutoIngest, ConverterIngest}
-import org.locationtech.geomesa.tools.accumulo.{DataStoreHelper, GeoMesaConnectionParams}
 import org.locationtech.geomesa.tools.common.commands._
 import org.locationtech.geomesa.tools.common.{CLArgResolver, OptionalFeatureTypeNameParam, OptionalFeatureTypeSpecParam}
 import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
 
 import scala.collection.JavaConversions._
+import scala.collection.parallel.ForkJoinTaskSupport
 import scala.util.Try
 
 class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging {
   override val command = "ingest"
   override val params = new IngestParameters()
 
+  // If you change this, update the regex in GeneralShapefileIngest for URLs
+  private val remotePrefixes = Seq("hdfs", "s3n", "s3a")
+
+  def isDistributedUrl(url: String) = remotePrefixes.exists(url.startsWith)
+
   override def execute(): Unit = {
-    ensureSameFs(Seq("hdfs", "s3n", "s3a"))
+    ensureSameFs(remotePrefixes)
 
     val fmtParam = Option(params.format).flatMap(f => Try(Formats.withName(f.toLowerCase(Locale.US))).toOption)
     lazy val fmtFile = params.files.flatMap(f => Try(Formats.withName(getFileExtension(f))).toOption).headOption
     val fmt = fmtParam.orElse(fmtFile).getOrElse(Other)
 
     if (fmt == SHP) {
-      val ds = new DataStoreHelper(params).getDataStore()
-      params.files.foreach(GeneralShapefileIngest.shpToDataStore(_, ds, params.featureName))
+      val ds = params.createDataStore()
+
+      // If someone is ingesting file from hdfs or S3, we add the Hadoop URL Factories to the JVM.
+      if (params.files.exists(isDistributedUrl)) {
+        import org.apache.hadoop.fs.FsUrlStreamHandlerFactory
+        val factory = new FsUrlStreamHandlerFactory
+        URL.setURLStreamHandlerFactory(factory)
+      }
+
+      if (params.threads > 1) {
+        val parfiles = params.files.par
+        parfiles.tasksupport = new ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(params.threads))
+        parfiles.foreach(GeneralShapefileIngest.shpToDataStore(_, ds, params.featureName))
+      } else {
+        params.files.foreach(GeneralShapefileIngest.shpToDataStore(_, ds, params.featureName))
+      }
       ds.dispose()
     } else {
-      val dsParams = new DataStoreHelper(params).paramMap
-      val tryDs = DataStoreFinder.getDataStore(dsParams)
+      val tryDs = DataStoreFinder.getDataStore(params.dataStoreParams)
       if (tryDs == null) {
         throw new ParameterException("Could not load a data store with the provided parameters")
       }
@@ -57,11 +77,11 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
         }
         // auto-detect the import schema
         logger.info("No schema or converter defined - will attempt to detect schema from input files")
-        new AutoIngest(dsParams, params.featureName, params.files, params.threads, fmt).run()
+        new AutoIngest(params.dataStoreParams, params.featureName, params.files, params.threads, fmt).run()
       } else {
         val sft = CLArgResolver.getSft(params.spec, params.featureName)
         val converterConfig = CLArgResolver.getConfig(params.config)
-        new ConverterIngest(dsParams, params.files, params.threads, sft, converterConfig).run()
+        new ConverterIngest(params.dataStoreParams, params.files, params.threads, sft, converterConfig).run()
       }
     }
   }

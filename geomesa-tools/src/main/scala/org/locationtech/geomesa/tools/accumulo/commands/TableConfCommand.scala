@@ -12,11 +12,12 @@ import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.TableNotFoundException
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.data.tables._
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.tools.accumulo.AccumuloRunner.mkSubCommand
+import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.TableConfCommand._
-import org.locationtech.geomesa.tools.accumulo.{DataStoreHelper, GeoMesaConnectionParams}
 import org.locationtech.geomesa.tools.common.FeatureTypeNameParam
+import org.locationtech.geomesa.utils.index.IndexMode
 
 import scala.collection.JavaConversions._
 
@@ -96,14 +97,10 @@ object TableConfCommand {
     }
   
   def getTableName(ds: AccumuloDataStore, params: ListParams) =
-    params.tableSuffix match {
-      case SpatioTemporalTable.suffix => params.ds.getTableName(params.featureName, SpatioTemporalTable)
-      case AttributeTable.suffix      => params.ds.getTableName(params.featureName, AttributeTable)
-      case RecordTable.suffix         => params.ds.getTableName(params.featureName, RecordTable)
-      case Z2Table.suffix             => params.ds.getTableName(params.featureName, Z2Table)
-      case Z3Table.suffix             => params.ds.getTableName(params.featureName, Z3Table)
-      case _                          => throw new Exception(s"Invalid table suffix: ${params.tableSuffix}")
-    }
+    AccumuloFeatureIndex.indices(ds.getSchema(params.featureName), IndexMode.Any)
+        .find(_.name == params.tableSuffix)
+        .map(ds.getTableName(params.featureName, _))
+        .getOrElse(throw new Exception(s"Invalid table suffix: ${params.tableSuffix}"))
   
   @Parameters(commandDescription = "Perform table configuration operations")
   class TableConfParams {}
@@ -114,7 +111,7 @@ object TableConfCommand {
     @Parameter(names = Array("-t", "--table-suffix"), description = "Table suffix to operate on (attr_idx, st_idx, or records)", required = true)
     var tableSuffix: String = null
 
-    lazy val ds = new DataStoreHelper(this).getDataStore()
+    lazy val ds = createDataStore()
     lazy val tableName = getTableName(ds, this)
   }
 

@@ -129,6 +129,13 @@ Maven's output and log4j's warnings):
     Feature ID Observation.990 | Who: Addams | What: 990
     Feature ID Observation.987 | Who: Addams | What: 987
 
+The quick start code may also be run via Maven using the ``live-test``
+profile:
+
+.. code-block:: bash
+
+    $ mvn -Plive-test exec:exec -DinstanceId=<instance> -Dzookeepers=<zookeepers> -Duser=<user> -Dpassword=<password> -DtableName=<tableName>
+
 Looking at the Code
 -------------------
 
@@ -225,7 +232,7 @@ add the following to the end:
 That tells GeoServer to display the records for the entire month of
 January 2014. You can find more information about the TIME parameter
 from `GeoServer's
-documentation <http://docs.geoserver.org/latest/en/user/services/wms/time.html>`__.
+documentation <http://docs.geoserver.org/stable/en/user/services/wms/time.html>`__.
 
 Once you press <Enter>, the display will update, and you should see a
 collection of red dots similar to the following image.
@@ -252,7 +259,7 @@ Here are just a few simple ways you can play with the visualization:
    your filter criterion. This is a CQL filter, which can be constructed
    in various ways to query our data. You can find more information
    about CQL from `GeoServer's CQL
-   tutorial <http://docs.geoserver.org/latest/en/user/tutorials/cql/cql_tutorial.html>`__.
+   tutorial <http://docs.geoserver.org/stable/en/user/tutorials/cql/cql_tutorial.html>`__.
 
 Generating Heatmaps
 ~~~~~~~~~~~~~~~~~~~
@@ -261,6 +268,9 @@ Generating Heatmaps
    the :doc:`geomesa-examples-gdelt` tutorial.
 -  After configuring the SLD, in the URL, change ``styles=`` to be
    ``styles=heatmap&density=true``. Once you press <Enter>, the display will
-   change to a density heat-map. (NB: For this to work, you will have to
-   first install the WPS module for GeoServer. See the official web site
-   for a download.)
+   change to a density heat-map.
+
+.. note::
+
+    For this to work, you will have to first install the WPS module for GeoServer
+    as described in :doc:`/user/geoserver`.

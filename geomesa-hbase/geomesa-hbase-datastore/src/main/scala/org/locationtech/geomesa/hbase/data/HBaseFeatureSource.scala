@@ -13,8 +13,7 @@ import com.vividsolutions.jts.geom.Envelope
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.data.{FeatureReader, FeatureWriter, Query, QueryCapabilities}
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.joda.time.{DateTime, DateTimeZone, Interval, Weeks}
-import org.locationtech.geomesa.curve.Z3SFC
+import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.filter
 import org.locationtech.geomesa.filter.FilterHelper._
@@ -24,10 +23,10 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.{And, Filter}
 
-class HBaseFeatureSource(entry: ContentEntry,
+class HBaseFeatureSource(e: ContentEntry,
                          query: Query,
                          sft: SimpleFeatureType)
-    extends ContentFeatureStore(entry, query) with LazyLogging
+    extends ContentFeatureStore(e, query) with LazyLogging
     with ContentFeatureSourceInfo {
   import geotools._
 
@@ -40,7 +39,6 @@ class HBaseFeatureSource(entry: ContentEntry,
       .map  { case (_, idx)  => idx }
       .getOrElse(throw new RuntimeException("No date attribute"))
 
-  private val Z3_CURVE = Z3SFC
   type FR = FeatureReader[SimpleFeatureType, SimpleFeature]
   private val ds = entry.getDataStore.asInstanceOf[HBaseDataStore]
 
@@ -105,44 +103,45 @@ class HBaseFeatureSource(entry: ContentEntry,
 
     val (spatialFilter, temporalFilter, postFilter) = partitionFilters(a.getChildren)
 
-    val dtFieldName = sft.getDescriptor(dtgIndex).getLocalName
-    // note: because we and the filters, there will be only one interval
-    // because we have already validated that the temporal filters exist, there will be at least 1 interval
-    val (startTime, endTime) = extractIntervals(andFilters(temporalFilter), dtFieldName).head
+    val (lx, ly, ux, uy) = {
+      // note: because we AND the filters, we know at most one geometry will come back
+      val geom =
+        andOption(spatialFilter)
+            .flatMap(extractGeometries(_, sft.getGeometryDescriptor.getLocalName).headOption)
+            .getOrElse(AllGeom)
+      val env = geom.getEnvelopeInternal
+      (env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
+    }
 
-    val geom =
-      andOption(spatialFilter)
-          .flatMap(extractSingleGeometry(_, sft.getGeometryDescriptor.getLocalName))
-          .getOrElse(AllGeom)
-
-    val env = geom.getEnvelopeInternal
-    val (lx, ly, ux, uy) = (env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
-
-    val epochWeekStart = Weeks.weeksBetween(EPOCH, startTime)
-    val epochWeekEnd = Weeks.weeksBetween(EPOCH, endTime)
-    val weeks = scala.Range.inclusive(epochWeekStart.getWeeks, epochWeekEnd.getWeeks)
-    val lt = secondsInCurrentWeek(startTime, epochWeekStart)
-    val ut = secondsInCurrentWeek(endTime, epochWeekEnd)
+    val (weeks, lt, ut) = {
+      val dtFieldName = sft.getDescriptor(dtgIndex).getLocalName
+      // note: because we and the filters, there will be only one interval
+      // because we have already validated that the temporal filters exist, there will be at least 1 interval
+      val (startTime, endTime) = extractIntervals(andFilters(temporalFilter), dtFieldName).head
+      val lTime = dateToIndex(startTime)
+      val uTime = dateToIndex(endTime)
+      val weeks = scala.Range.inclusive(lTime.bin, uTime.bin)
+      (weeks, lTime.offset, uTime.offset)
+    }
 
     // time range for a chunk is 0 to 1 week (in seconds)
-    val (tStart, tEnd) = (0, Weeks.ONE.toStandardSeconds.getSeconds)
+    val (tStart, tEnd) = (SFC.time.min.toLong, SFC.time.max.toLong)
 
     // the z3 index breaks time into 1 week chunks, so create a range for each week in our range
     // TODO: ignoring seconds for now
     if (weeks.length == 1) {
-      val ranges = Z3_CURVE.ranges((lx, ux), (ly, uy), (lt, ut))
+      val ranges = SFC.ranges((lx, ux), (ly, uy), (lt, ut))
       new HBaseFeatureReader(table, sft, weeks.head, ranges, serializer, Some(a))
     } else {
       val head +: xs :+ last = weeks.toList
-      val oneWeekInSeconds = Weeks.ONE.toStandardSeconds.getSeconds
 
-      val headRanges   = Z3_CURVE.ranges((lx, ux), (ly, uy), (lt, tEnd))
-      val middleRanges = Z3_CURVE.ranges((lx, ux), (ly, uy), (0, oneWeekInSeconds))
-      val lastRanges   = Z3_CURVE.ranges((lx, ux), (ly, uy), (tStart, ut))
+      val headRanges     = SFC.ranges((lx, ux), (ly, uy), (lt, tEnd))
+      lazy val midRanges = SFC.ranges((lx, ux), (ly, uy), (tStart, tEnd))
+      val lastRanges     = SFC.ranges((lx, ux), (ly, uy), (tStart, ut))
 
       val headReader = new HBaseFeatureReader(table, sft, head, headRanges, serializer, Some(a))
       val middleReaders = xs.map { w =>
-        new HBaseFeatureReader(table, sft, w, middleRanges, serializer, Some(a))
+        new HBaseFeatureReader(table, sft, w, midRanges, serializer, Some(a))
       }
       val lastReader = new HBaseFeatureReader(table, sft, head, lastRanges, serializer, Some(a))
 

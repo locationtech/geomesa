@@ -7,8 +7,8 @@
 *************************************************************************/
 
 // Run with:
-// bin/spark-shell --driver-class-path /path/to/geomesa-compute-accumulo1.5-1.0.0-rc.3-SNAPSHOT-shaded.jar
-// copy paste all this into the spark shell version 1.1.0
+// bin/spark-shell --master local[2] --name "localtest" --jars /path/to/geomesa-compute-1.2.5-shaded.jar
+// copy paste all this into the spark shell version 2.0.0
 
 import java.text.SimpleDateFormat
 
@@ -37,13 +37,11 @@ val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
 // We'll grab everything...but usually you want some CQL filter here (e.g. bbox)
 val q = new Query(feature, Filter.INCLUDE)
 
-// Configure Spark to run locally with 4 threads
 val conf = new Configuration
-val sconf = GeoMesaSpark.init(new SparkConf(true).setAppName("localtest").setMaster("local[4]"), ds)
-val sc = new SparkContext(sconf)
+GeoMesaSpark.init(sc.getConf, ds)
 
 // Create an RDD from a query
-val queryRDD = org.locationtech.geomesa.compute.spark.GeoMesaSpark.rdd(conf, sc, params, q)
+val queryRDD = GeoMesaSpark.rdd(conf, sc, params, q)
 
 // Convert RDD[SimpleFeature] to RDD[(String, SimpleFeature)] where the first
 // element of the tuple is the date to the day resolution
@@ -54,9 +52,7 @@ val dayAndFeature = queryRDD.mapPartitions { iter =>
   iter.map { f => (df.format(exp.evaluate(f).asInstanceOf[java.util.Date]), f) }
 }
 
-// Group the results by day
-val groupedByDay = dayAndFeature.groupBy { case (date, _) => date }
 // Count the number of features in each day
-val countByDay = groupedByDay.map { case (date, iter) => (date, iter.size) }
+val countByDay = dayAndFeature.map( x => (x._1, 1)).reduceByKey(_ + _)
 // Collect the results and print
 countByDay.collect.foreach(println)

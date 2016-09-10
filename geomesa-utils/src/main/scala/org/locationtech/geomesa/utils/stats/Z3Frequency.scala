@@ -12,8 +12,8 @@ import java.util.Date
 
 import com.clearspring.analytics.stream.frequency.{CountMinSketch, RichCountMinSketch}
 import com.vividsolutions.jts.geom.Geometry
-import org.joda.time.{DateTime, DateTimeZone, Seconds, Weeks}
-import org.locationtech.geomesa.curve.Z3SFC
+import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
+import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.opengis.feature.simple.SimpleFeature
 
 /**
@@ -21,12 +21,14 @@ import org.opengis.feature.simple.SimpleFeature
   *
   * @param geomIndex geometry attribute index in the sft
   * @param dtgIndex date attribute index in the sft
+  * @param period time period to use for z index
   * @param precision number of bits of z-index that will be used
   * @param eps (epsilon) with probability at least @see confidence, estimates will be within eps * N
   * @param confidence percent - with probability at least confidence, estimates will be within @see eps * N
   */
 class Z3Frequency(val geomIndex: Int,
                   val dtgIndex: Int,
+                  val period: TimePeriod,
                   val precision: Int,
                   val eps: Double = 0.005,
                   val confidence: Double = 0.95) extends Stat {
@@ -34,17 +36,18 @@ class Z3Frequency(val geomIndex: Int,
   override type S = Z3Frequency
 
   private val mask = Frequency.getMask(precision)
+  private val sfc = Z3SFC(period)
+  private val timeToBin = BinnedTime.timeToBinnedTime(period)
 
   private [stats] val sketches = scala.collection.mutable.Map.empty[Short, CountMinSketch]
   private [stats] def newSketch: CountMinSketch = new CountMinSketch(eps, confidence, Frequency.Seed)
 
   private def toKey(geom: Geometry, dtg: Date): (Short, Long) = {
-    val time = new DateTime(dtg, DateTimeZone.UTC)
-    val week = Weeks.weeksBetween(Z3Frequency.Epoch, time).getWeeks
-    val secondsInWeek = Seconds.secondsBetween(Z3Frequency.Epoch, time.minusWeeks(week)).getSeconds
-    val centroid = geom.getCentroid
-    val z = Z3SFC.index(centroid.getX, centroid.getY, secondsInWeek).z & mask
-    (week.toShort, z)
+    import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
+    val BinnedTime(b, o) = timeToBin(dtg.getTime)
+    val centroid = geom.safeCentroid()
+    val z = sfc.index(centroid.getX, centroid.getY, o).z & mask
+    (b, z)
   }
 
   /**
@@ -55,18 +58,18 @@ class Z3Frequency(val geomIndex: Int,
     * @return count of the values
     */
   def count(geom: Geometry, dtg: Date): Long = {
-    val (week, z3) = toKey(geom, dtg)
-    countDirect(week, z3)
+    val (bin, z3) = toKey(geom, dtg)
+    countDirect(bin, z3)
   }
 
   /**
-    * Gets the count for a week and z3. Useful if the values are known ahead of time.
+    * Gets the count for a time bin and z3. Useful if the values are known ahead of time.
     *
-    * @param week week since the epoch
+    * @param bin period since the epoch
     * @param z3 z value
     * @return count of the values
     */
-  def countDirect(week: Short, z3: Long): Long = sketches.get(week).map(_.estimateCount(z3)).getOrElse(0L)
+  def countDirect(bin: Short, z3: Long): Long = sketches.get(bin).map(_.estimateCount(z3)).getOrElse(0L)
 
   /**
     * Number of observations in the frequency map
@@ -76,14 +79,14 @@ class Z3Frequency(val geomIndex: Int,
   def size: Long = sketches.values.map(_.size()).sum
 
   /**
-    * Split the stat into a separate stat per week of z data. Allows for separate handling of the reduced
+    * Split the stat into a separate stat per time bin of z data. Allows for separate handling of the reduced
     * data set.
     *
     * @return
     */
-  def splitByWeek: Seq[(Short, Z3Frequency)] = {
+  def splitByTime: Seq[(Short, Z3Frequency)] = {
     sketches.toSeq.map { case (w, sketch) =>
-      val freq = new Z3Frequency(geomIndex, dtgIndex, precision, eps, confidence)
+      val freq = new Z3Frequency(geomIndex, dtgIndex, period, precision, eps, confidence)
       freq.sketches.put(w, sketch)
       (w, freq)
     }
@@ -93,8 +96,8 @@ class Z3Frequency(val geomIndex: Int,
     val geom = sf.getAttribute(geomIndex).asInstanceOf[Geometry]
     val dtg  = sf.getAttribute(dtgIndex).asInstanceOf[Date]
     if (geom != null && dtg != null) {
-      val (week, z3) = toKey(geom, dtg)
-      sketches.getOrElseUpdate(week, newSketch).add(z3, 1L)
+      val (bin, z3) = toKey(geom, dtg)
+      sketches.getOrElseUpdate(bin, newSketch).add(z3, 1L)
     }
   }
 
@@ -102,7 +105,7 @@ class Z3Frequency(val geomIndex: Int,
   override def unobserve(sf: SimpleFeature): Unit = {}
 
   override def +(other: Z3Frequency): Z3Frequency = {
-    val plus = new Z3Frequency(geomIndex, dtgIndex, precision, eps, confidence)
+    val plus = new Z3Frequency(geomIndex, dtgIndex, period, precision, eps, confidence)
     plus += this
     plus += other
     plus
@@ -127,7 +130,7 @@ class Z3Frequency(val geomIndex: Int,
   override def isEquivalent(other: Stat): Boolean = {
     other match {
       case s: Z3Frequency =>
-        geomIndex == s.geomIndex && dtgIndex == s.dtgIndex && precision == s.precision && {
+        geomIndex == s.geomIndex && dtgIndex == s.dtgIndex && period == s.period && precision == s.precision && {
           val nonEmpty = sketches.filter(_._2.size() > 0)
           val sNonEmpty = s.sketches.filter(_._2.size() > 0)
           nonEmpty.keys == sNonEmpty.keys && nonEmpty.keys.forall { k =>
@@ -135,28 +138,6 @@ class Z3Frequency(val geomIndex: Int,
           }
         }
       case _ => false
-    }
-  }
-}
-
-object Z3Frequency {
-
-  val Epoch = new DateTime(0, DateTimeZone.UTC)
-
-  /**
-    * Combines a sequence of split frequencies. This will not modify any of the inputs.
-    *
-    * @param frequencies frequencies to combine
-    * @return
-    */
-  def combine(frequencies: Seq[Z3Frequency]): Option[Z3Frequency] = {
-    if (frequencies.length < 2) {
-      frequencies.headOption
-    } else {
-      // create a new stat so that we don't modify the existing ones
-      val summed = frequencies.head + frequencies.tail.head
-      frequencies.drop(2).foreach(summed += _)
-      Some(summed)
     }
   }
 }

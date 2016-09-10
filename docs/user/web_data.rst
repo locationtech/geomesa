@@ -32,7 +32,7 @@ distribution under the GeoMesa license.
 
 You will need Hadoop and Slf4j jars that are compatible with your Spark
 installation. For a full list of jars from a working GeoServer instance,
-refer to :ref:`Spark_geoserver_jars`. Of note, slf4j
+refer to :ref:`spark_geoserver_jars`. Of note, slf4j
 needs to be version 1.6.1; you will need to add the hadoop-yarn jars and
 commons-cli jar.
 
@@ -233,6 +233,8 @@ Join:
 ::
 
     curl --header 'Accept: text/plain' --get --data-urlencode 'q=select mySft.myAttr, myOtherSft.myAttr from mySft, myOtherSft where bbox(mySft.geom, -115, 45, -110, 50) AND mySft.dtg during 2015-03-02T10:00:00.000Z/2015-03-02T11:00:00.000Z AND  bbox(myOtherSft.geom, -115, 45, -110, 50) AND myOtherSft.dtg during 2015-03-02T10:00:00.000Z/2015-03-02T11:00:00.000Z AND mySft.myJoinField = myOtherSft.myJoinField' http://localhost:8080/geoserver/geomesa/analytics/sql
+
+.. _spark_geoserver_jars:
 
 Appendix A: GeoServer Jars
 --------------------------

@@ -11,8 +11,7 @@ package org.locationtech.geomesa.accumulo.index
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.data.{DEFAULT_ENCODING, WritableFeature}
-import org.locationtech.geomesa.accumulo.data.tables.AttributeTable
-import org.locationtech.geomesa.features.SimpleFeatureSerializers
+import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -33,12 +32,8 @@ class AttributeTableTest extends Specification with TestWithDataStore {
       feature.setAttribute("name","fred")
       feature.setAttribute("age",50.asInstanceOf[Any])
 
-      val indexValueEncoder = IndexValueEncoder(sft)
-      val featureEncoder = SimpleFeatureSerializers(sft, DEFAULT_ENCODING)
-      val binEncoder = BinEncoder(sft)
-
-      val toWrite = WritableFeature(feature, sft, "", featureEncoder, indexValueEncoder, binEncoder)
-      val mutations = AttributeTable.writer(sft)(toWrite)
+      val toWrite = WritableFeature.toWritableFeature(sft, DEFAULT_ENCODING, "")(feature)
+      val mutations = AttributeIndex.writer(sft, ds)(toWrite)
       mutations.size mustEqual 2 // for null date
       mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
       mutations.map(_.getUpdates.get(0).isDeleted) must contain(beEqualTo(false)).foreach
@@ -53,8 +48,8 @@ class AttributeTableTest extends Specification with TestWithDataStore {
       feature.setAttribute("name","fred")
       feature.setAttribute("age",50.asInstanceOf[Any])
 
-      val toWrite = WritableFeature(feature, sft, "", null, null, null)
-      val mutations = AttributeTable.remover(sft)(toWrite)
+      val toWrite = WritableFeature.toWritableFeature(sft, DEFAULT_ENCODING, "")(feature)
+      val mutations = AttributeIndex.remover(sft, ds)(toWrite)
       mutations.size mustEqual 2 // for null date
       mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
       mutations.map(_.getUpdates.get(0).isDeleted) must contain(beEqualTo(true)).foreach

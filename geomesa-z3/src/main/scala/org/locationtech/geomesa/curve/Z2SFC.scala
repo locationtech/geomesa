@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.curve
 
 import org.locationtech.sfcurve.IndexRange
-import org.locationtech.sfcurve.zorder.Z2
+import org.locationtech.sfcurve.zorder.{Z2, ZRange}
 
 object Z2SFC extends SpaceFillingCurve[Z2] {
 
@@ -21,11 +21,15 @@ object Z2SFC extends SpaceFillingCurve[Z2] {
 
   override def index(x: Double, y: Double): Z2 = Z2(lon.normalize(x), lat.normalize(y))
 
-  override def ranges(x: (Double, Double), y: (Double, Double), precision: Int): Seq[IndexRange] =
-    Z2.zranges(index(x._1, y._1), index(x._2, y._2), precision)
-
   override def invert(z: Z2): (Double, Double) = {
     val (x, y) = z.decode
     (lon.denormalize(x), lat.denormalize(y))
+  }
+
+  override def ranges(xy: Seq[(Double, Double, Double, Double)],
+                      precision: Int,
+                      maxRanges: Option[Int]): Seq[IndexRange] = {
+    val zbounds = xy.map { case (xmin, ymin, xmax, ymax) => ZRange(index(xmin, ymin).z, index(xmax, ymax).z) }
+    Z2.zranges(zbounds.toArray, precision, maxRanges)
   }
 }

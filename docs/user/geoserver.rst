@@ -156,7 +156,7 @@ show only those points matching your filter criterion.
 
 This is a CQL filter, which can be constructed in various ways to query data. You can
 find more information about CQL from `GeoServer's CQL
-tutorial <http://docs.geoserver.org/latest/en/user/tutorials/cql/cql_tutorial.html>`__.
+tutorial <http://docs.geoserver.org/stable/en/user/tutorials/cql/cql_tutorial.html>`__.
 
 Analysis with WPS
 -----------------
@@ -192,10 +192,14 @@ For massive queries, the standard 60 second timeout may be too short.
 
 .. |"Disable limits"| image:: _static/img/wms_limits.png
 
-Query Logging
-^^^^^^^^^^^^^
+.. _geoserver_explain_query:
 
-To enable explain query logging in GeoServer, add the following to the
+Logging Explain Query Planning
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The GeoMesa Accumulo data store can explain its plan for executing queries,
+as described in :ref:`explain_query`. To enable the logging of explain query
+planning in GeoServer, add the following to the
 ``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties`` file::
 
     log4j.category.org.locationtech.geomesa.accumulo.index.QueryPlanner=TRACE
@@ -206,6 +210,24 @@ is printed out when you start GeoServer::
     ----------------------------------
     - GEOSERVER_DATA_DIR: /opt/devel/install/geoserver-data-dir
     ----------------------------------
+
+Monitoring GeoMesa DataStores
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+GeoMesa DataStores can log query metrics as JSON via log4j.  To use this, there are two steps:
+
+First, GeoServer logging needs to log `TRACE` level messages in the ``org.locationtech.geomesa.utils.monitoring`` package.
+To enable that logging, edit the GeoServer logging
+file (e.g. ``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties``) and add entries like::
+
+   log4j.appender.metrics=org.apache.log4j.FileAppender
+   log4j.appender.metrics.File=metrics.log
+   log4j.appender.metrics.layout=org.apache.log4j.PatternLayout
+   log4j.appender.metrics.layout.ConversionPattern=%m%n
+
+   log4j.category.org.locationtech.geomesa.utils.monitoring=TRACE, metrics
+
+Second as a DataStore is registered in GeoServer, the `collectQueryStats` box should be ticked for the store.
 
 GeoMesa GeoServer Community Module
 ----------------------------------

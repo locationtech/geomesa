@@ -213,9 +213,10 @@ class BinnedGeometryArray(length: Int, bounds: (Geometry, Geometry))
     extends WholeNumberBinnedArray[Geometry](length, bounds) {
 
   override protected def convertToLong(value: Geometry): Long = {
+    import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
     val centroid = value match {
       case p: Point => p
-      case g => g.getCentroid
+      case g => g.safeCentroid()
     }
     Z2SFC.index(centroid.getX, centroid.getY).z
   }

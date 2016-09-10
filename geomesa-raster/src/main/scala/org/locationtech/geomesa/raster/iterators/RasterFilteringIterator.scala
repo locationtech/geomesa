@@ -13,6 +13,7 @@ import java.util.{Map => JMap}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.locationtech.geomesa.accumulo.iterators._
+import org.locationtech.geomesa.accumulo.iterators.legacy._
 import org.locationtech.geomesa.raster.index.RasterEntry
 
 class RasterFilteringIterator

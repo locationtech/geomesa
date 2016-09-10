@@ -16,7 +16,8 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
-import org.locationtech.geomesa.accumulo.index.{Constants, IndexSchemaBuilder}
+import org.locationtech.geomesa.accumulo.index.Constants
+import org.locationtech.geomesa.accumulo.index.geohash.IndexSchemaBuilder
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geohash.VincentyModel
 import org.locationtech.geomesa.utils.geotools.Conversions._

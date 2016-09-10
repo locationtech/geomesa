@@ -28,7 +28,8 @@ object KafkaConsumerTestData {
   val track0v2 = track("track0", "LineString (30 30, 35 30, 40 34)")
   val track0v3 = track("track0", "LineString (30 30, 35 32, 40 34, 45 36)")
 
-  val track1v0 = track("track1", "LineString (50 20, 50 20)")
+  // Changed due to instability in between WKT Utils and Avro Geometry deserialization
+  val track1v0 = track("track1", "LineString (50 20, 50 21)")
   val track1v1 = track("track1", "LineString (50 20, 40 30)")
   val track1v2 = track("track1", "LineString (50 20, 40 30, 30 30)")
 
