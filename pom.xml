@@ -66,8 +66,7 @@
 
         <!-- environment-dependent versions -->
         <!-- These are compiled and pass CQs and should be compatible with recommended versions -->
-        <accumulo.version>1.6.2</accumulo.version>
-        <accumulo.server.artifact>accumulo-server-base</accumulo.server.artifact>
+        <accumulo.version>1.7.2</accumulo.version>
         <zookeeper.version>3.4.5</zookeeper.version>
         <thrift.version>0.9.1</thrift.version>
         <hadoop.version>2.5.2</hadoop.version>
@@ -78,7 +77,7 @@
 
         <!-- Recommended installation versions -->
         <!-- These take into account bugfixes and should be used in documentation -->
-        <accumulo.version.recommended>1.6.5</accumulo.version.recommended>
+        <accumulo.version.recommended>1.7.2</accumulo.version.recommended>
         <hadoop.version.recommended>2.6.4</hadoop.version.recommended>
         <zookeeper.version.recommended>3.4.6</zookeeper.version.recommended>
 
@@ -104,17 +103,6 @@
     </properties>
 
     <profiles>
-        <profile>
-            <id>Accumulo 1.5</id>
-            <activation>
-                <property><name>accumulo-1.5</name></property>
-            </activation>
-            <properties>
-                <accumulo.version>1.5.2</accumulo.version>
-                <accumulo.server.artifact>accumulo-server</accumulo.server.artifact>
-            </properties>
-        </profile>
-
         <profile>
             <id>zinc</id>
             <build>
@@ -1672,7 +1660,7 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.accumulo</groupId>
-                <artifactId>${accumulo.server.artifact}</artifactId>
+                <artifactId>accumulo-server-base</artifactId>
                 <version>${accumulo.version}</version>
                 <scope>provided</scope>
             </dependency>

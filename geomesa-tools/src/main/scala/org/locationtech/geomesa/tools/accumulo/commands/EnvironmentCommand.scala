@@ -11,7 +11,6 @@ package org.locationtech.geomesa.tools.accumulo.commands
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.config.{Config, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.util.shell.commands.HelpCommand
 import org.locationtech.geomesa.convert.ConverterConfigLoader
 import org.locationtech.geomesa.tools.accumulo.commands.EnvironmentCommand.EnvironmentParameters
 import org.locationtech.geomesa.tools.common.commands.Command

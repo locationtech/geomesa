@@ -17,7 +17,6 @@ com.google.guava:guava	18.0	compile
 com.jayway.jsonpath:json-path	2.0.0	compile
 commons-beanutils:commons-beanutils	1.7.0	compile
 commons-beanutils:commons-beanutils-core	1.8.0	compile
-commons-cli:commons-cli	1.2	compile
 commons-codec:commons-codec	1.9	compile
 commons-collections:commons-collections	3.2.2	compile
 commons-configuration:commons-configuration	1.6	compile
@@ -78,10 +77,9 @@ net.minidev:asm	1.0.2	compile
 net.minidev:json-smart	2.1.1	compile
 net.sf.geographiclib:GeographicLib-Java	1.44	compile
 net.sf.jopt-simple:jopt-simple	3.2	compile
-org.apache.accumulo:accumulo-core	1.6.2	compile
-org.apache.accumulo:accumulo-fate	1.6.2	compile
-org.apache.accumulo:accumulo-start	1.6.2	compile
-org.apache.accumulo:accumulo-trace	1.6.2	compile
+org.apache.accumulo:accumulo-core	1.7.2	compile
+org.apache.accumulo:accumulo-fate	1.7.2	compile
+org.apache.accumulo:accumulo-start	1.7.2	compile
 org.apache.avro:avro	1.7.5	compile
 org.apache.camel:camel-core	2.15.1	compile
 org.apache.camel:camel-scala	2.15.1	compile
@@ -97,6 +95,7 @@ org.apache.curator:curator-framework	2.4.0	compile
 org.apache.curator:curator-framework	2.7.1	compile
 org.apache.curator:curator-recipes	2.4.0	compile
 org.apache.curator:curator-recipes	2.7.1	compile
+org.apache.htrace:htrace-core	3.1.0-incubating	compile
 org.apache.kafka:kafka_2.11	0.8.2.1	compile
 org.apache.kafka:kafka-clients	0.8.2.1	compile
 org.apache.metamodel:MetaModel-core	4.3.6	compile
@@ -190,7 +189,7 @@ org.springframework.security:spring-security-web	3.1.0.RELEASE	provided
 org.springframework:spring-web	3.1.4.RELEASE	provided
 
 junit:junit	4.12	test
-org.apache.accumulo:accumulo-test	1.6.2	test
+org.apache.accumulo:accumulo-test	1.7.2	test
 org.apache.camel:camel-netty4	2.15.1	test
 org.apache.cassandra:cassandra-all	3.0.0	test
 org.apache.curator:curator-test	2.7.1	test
