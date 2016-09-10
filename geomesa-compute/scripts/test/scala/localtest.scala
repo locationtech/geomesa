@@ -8,7 +8,7 @@
 
 // Run with:
 // bin/spark-shell --master local[2] --name "localtest" --jars /path/to/geomesa-compute-1.2.5-shaded.jar
-// copy paste all this into the spark shell version 1.5.0
+// copy paste all this into the spark shell version 2.0.0
 
 import java.text.SimpleDateFormat
 

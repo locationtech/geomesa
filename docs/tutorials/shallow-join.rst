@@ -52,7 +52,7 @@ Prerequisites
 
 You will also need:
 
--  a `Spark <http://spark.apache.org/>`__ 1.5.0 or later distribution
+-  a `Spark <http://spark.apache.org/>`__ 2.0.0 or later distribution
 -  Accumulo user credentials with appropriate permissions to query your data
 -  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__
 -  a `Jupyter Notebook <https://github.com/jupyter/notebook>`__ server with the `Apache Toree <https://toree.incubator.apache.org/>`__ Scala kernel installed
