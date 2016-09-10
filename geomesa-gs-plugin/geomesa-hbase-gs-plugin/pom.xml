@@ -11,7 +11,7 @@
     <parent>
         <artifactId>geomesa-gs-plugin</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>1.2.7-SNAPSHOT</version>
+        <version>1.3.0-SNAPSHOT</version>
     </parent>
 
     <name>GeoMesa HBase GeoServer Plugin</name>
