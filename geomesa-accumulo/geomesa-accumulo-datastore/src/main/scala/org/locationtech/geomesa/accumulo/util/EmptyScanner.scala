@@ -51,4 +51,8 @@ object EmptyScanner extends Scanner {
   // added in accumulo 1.6 - don't user override so 1.5 compiles
   def getReadaheadThreshold: Long = ???
   def setReadaheadThreshold(batches: Long): Unit = {}
+
+  // added in Accumulo 1.7 
+  def fetchColumn(x$1: org.apache.accumulo.core.client.IteratorSetting.Column): Unit = ???
+  def getAuthorizations(): org.apache.accumulo.core.security.Authorizations = ???
 }
