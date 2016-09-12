@@ -44,15 +44,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-kafka-utils-common</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-kafka-09-utils</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-main</artifactId>
         </dependency>
@@ -136,35 +127,22 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-kafka-09-utils</artifactId>
-            <version>${project.version}</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-kafka-utils-common</artifactId>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
         </dependency>
     </dependencies>
 
     <build>
-        <sourceDirectory>../geomesa-kafka-datastore/src/main/scala</sourceDirectory>
-        <testSourceDirectory>../geomesa-kafka-datastore/src/test/scala</testSourceDirectory>
+        <sourceDirectory>src/main/scala</sourceDirectory>
+        <testSourceDirectory>src/test/scala</testSourceDirectory>
         <resources>
             <resource>
-                <directory>../geomesa-kafka-datastore/src/main/resources</directory>
+                <directory>src/main/resources</directory>
             </resource>
         </resources>
         <testResources>
             <testResource>
-                <directory>../geomesa-kafka-datastore/src/test/resources</directory>
+                <directory>src/test/resources</directory>
             </testResource>
         </testResources>
         <plugins>
@@ -182,8 +160,6 @@
                             <artifactSet>
                                 <includes>
                                     <include>org.locationtech.geomesa:geomesa-kafka-09-datastore</include>
-                                    <include>org.locationtech.geomesa:geomesa-kafka-utils-common</include>
-                                    <include>org.locationtech.geomesa:geomesa-kafka-09-utils</include>
                                 </includes>
                             </artifactSet>
                             <filters>

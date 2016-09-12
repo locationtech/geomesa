@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.tools.kafka.commands
 
 import com.beust.jcommander.JCommander
-import org.locationtech.geomesa.kafka.KafkaUtilsLoader
+import org.locationtech.geomesa.kafka08.KafkaUtils08
 import org.locationtech.geomesa.tools.common.commands.Command
 import org.locationtech.geomesa.tools.kafka.{DataStoreHelper, KafkaConnectionParams}
 
@@ -18,10 +18,10 @@ import org.locationtech.geomesa.tools.kafka.{DataStoreHelper, KafkaConnectionPar
   */
 abstract class CommandWithKDS(parent: JCommander) extends Command(parent) {
   override val params: KafkaConnectionParams
-  lazy val ds = new DataStoreHelper(params).getDataStore
+  lazy val ds = new DataStoreHelper(params).getDataStore()
   lazy val zkPath = params.zkPath
 
   // ZkUtils and ZkClient which some commands use
-  lazy val zkUtils = KafkaUtilsLoader.kafkaUtils.createZkUtils(params.zookeepers, Int.MaxValue, Int.MaxValue)
+  lazy val zkUtils = new KafkaUtils08().createZkUtils(params.zookeepers, Int.MaxValue, Int.MaxValue)
   def zkClient = zkUtils.zkClient
 }

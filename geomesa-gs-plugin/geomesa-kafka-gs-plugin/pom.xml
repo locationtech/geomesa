@@ -24,7 +24,7 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-kafka-datastore</artifactId>
+            <artifactId>geomesa-kafka-10-datastore</artifactId>
         </dependency>
     </dependencies>
 
