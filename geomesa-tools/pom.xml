@@ -69,7 +69,8 @@
         <!-- Kafka CLI dependencies -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-kafka-datastore</artifactId>
+            <artifactId>geomesa-kafka-08-datastore</artifactId>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.locationtech.geomesa</groupId>
@@ -80,6 +81,7 @@
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_2.11</artifactId>
+            <version>${kafka.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>

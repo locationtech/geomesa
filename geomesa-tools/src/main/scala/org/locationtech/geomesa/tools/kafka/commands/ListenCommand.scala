@@ -14,10 +14,11 @@ import java.util.Properties
 
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import kafka.tools.{ConsoleConsumer, MessageFormatter}
+import kafka.tools.ConsoleConsumer
+import kafka.tools.MessageFormatter
 import org.geotools.data.DataUtilities
-import org.locationtech.geomesa.kafka.KafkaDataStoreLogViewer._
-import org.locationtech.geomesa.kafka._
+import org.locationtech.geomesa.kafka08.KafkaDataStoreLogViewer._
+import org.locationtech.geomesa.kafka08._
 import org.locationtech.geomesa.tools.common.FeatureTypeNameParam
 import org.locationtech.geomesa.tools.kafka.ConsumerKDSConnectionParams
 import org.locationtech.geomesa.tools.kafka.commands.ListenCommand.ListenParameters
@@ -89,7 +90,7 @@ class ListenMessageFormatter extends MessageFormatter {
     decoder = new KafkaGeoMessageDecoder(sft)
   }
 
-  override def writeTo(key: Array[Byte], value: Array[Byte], output: PrintStream): Unit = {
+  def writeTo(key: Array[Byte], value: Array[Byte], output: PrintStream): Unit = {
     val msg = decoder.decode(key, value)
 
     val msgToWrite = msg match {
@@ -108,11 +109,12 @@ class ListenMessageFormatter extends MessageFormatter {
   override def close(): Unit = {
     decoder = null
   }
+
 }
 
 object KafkaGeoMessageFormatter {
-  private[kafka] val sftNameKey = "sft.name"
-  private[kafka] val sftSpecKey = "sft.spec"
+  val sftNameKey = "sft.name"
+  val sftSpecKey = "sft.spec"
 
   val lineSeparator = "\n".getBytes(StandardCharsets.UTF_8)
 }

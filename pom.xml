@@ -50,7 +50,7 @@
 
         <!-- bump version right before performing releases for the README and the documentation -->
         <geomesa.release.version>1.2.6</geomesa.release.version>
-        <geomesa.devel.version>1.2.6-SNAPSHOT</geomesa.devel.version>
+        <geomesa.devel.version>1.3.0-SNAPSHOT</geomesa.devel.version>
 
         <scala.version>2.11.7</scala.version>
         <scala.xml.version>1.0.5</scala.xml.version>
@@ -1450,33 +1450,16 @@
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-kafka-datastore</artifactId>
                 <version>${project.version}</version>
-                <exclusions>
-                    <!-- These are included in the datastore jar -->
-                    <exclusion>
-                        <groupId>org.locationtech.geomesa</groupId>
-                        <artifactId>geomesa-kafka-08-utils</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.locationtech.geomesa</groupId>
-                        <artifactId>geomesa-kafka-utils-common</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-kafka-09-datastore</artifactId>
                 <version>${project.version}</version>
-                <exclusions>
-                    <!-- These are included in the datastore jar -->
-                    <exclusion>
-                        <groupId>org.locationtech.geomesa</groupId>
-                        <artifactId>geomesa-kafka-09-utils</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.locationtech.geomesa</groupId>
-                        <artifactId>geomesa-kafka-utils-common</artifactId>
-                    </exclusion>
-                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-kafka-10-datastore</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>

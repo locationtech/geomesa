@@ -10,7 +10,7 @@ package org.locationtech.geomesa.tools.kafka.commands
 
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.kafka.KafkaDataStore
+import org.locationtech.geomesa.kafka08.KafkaDataStore
 import org.locationtech.geomesa.tools.common.FeatureTypeNameParam
 import org.locationtech.geomesa.tools.kafka.ConsumerKDSConnectionParams
 import org.locationtech.geomesa.tools.kafka.commands.DescribeCommand._
@@ -53,8 +53,7 @@ class DescribeCommand(parent: JCommander) extends CommandWithKDS(parent) with La
       val topicMetadata = zkUtils.fetchTopicMetadataFromZk(topicName)
 
       println("\nFetching Kafka topic metadata...")
-      println(s"Number of partitions: ${topicMetadata.partitionsMetadata.size}")
-      println(topicMetadata)
+      println(s"Topic: ${topicMetadata.topicName} Number of partitions: ${topicMetadata.numberOfPartitions}")
     } catch {
       case npe: NullPointerException =>
         logger.error(s"Error: feature '${params.featureName}' not found. Check arguments...", npe)

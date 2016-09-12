@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.tools.kafka.commands
 
 import com.beust.jcommander._
-import org.locationtech.geomesa.kafka.KafkaDataStoreSchemaManager
+import org.locationtech.geomesa.kafka08.KafkaDataStoreSchemaManager
 import org.locationtech.geomesa.tools.kafka.commands.KeywordCommand.KeywordParameters
 import org.locationtech.geomesa.tools.common.{FeatureTypeNameParam, KeywordParamSplitter}
 import org.locationtech.geomesa.tools.kafka.ProducerKDSConnectionParams

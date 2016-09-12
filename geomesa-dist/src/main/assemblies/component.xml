@@ -132,7 +132,7 @@
             <outputDirectory>docs</outputDirectory>
         </file>
         <file>
-            <source>../geomesa-kafka/geomesa-kafka-datastore/README.md</source>
+            <source>../geomesa-kafka/geomesa-kafka-08-datastore/README.md</source>
             <destName>README-kafka-datastore.md</destName>
             <outputDirectory>docs</outputDirectory>
         </file>
