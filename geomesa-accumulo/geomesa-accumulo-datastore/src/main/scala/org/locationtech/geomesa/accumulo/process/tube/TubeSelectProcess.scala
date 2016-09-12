@@ -22,7 +22,7 @@ import org.geotools.util.NullProgressListener
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureCollection
 import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.accumulo.process.tube.GapFill.GapFill
-import org.locationtech.geomesa.accumulo.util.UniqueMultiCollection
+import org.locationtech.geomesa.utils.UniqueMultiCollection
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.feature.Feature
 import org.opengis.filter.Filter

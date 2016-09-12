@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.utils
+package org.locationtech.geomesa.utils.iterators
 
 /**
  * Can create an iterator over all combinations of items from a list-of-lists.

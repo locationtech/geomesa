@@ -18,7 +18,7 @@ class InfiniteIteratorTest extends Specification with Mockito {
 
   "stop after" should {
 
-    import InfiniteIterator._
+    import org.locationtech.geomesa.utils.iterators.InfiniteIterator._
 
     "delegate until stop" >> {
 

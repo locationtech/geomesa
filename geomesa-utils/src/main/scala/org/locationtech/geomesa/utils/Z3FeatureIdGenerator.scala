@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.util
+package org.locationtech.geomesa.utils
 
 import java.util.{Date, UUID}
 
