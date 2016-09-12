@@ -16,7 +16,6 @@ import javax.imageio.spi.ServiceRegistry
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
-import org.locationtech.geomesa.accumulo.util.Z3UuidGenerator
 import org.locationtech.geomesa.blob.api.FileHandler
 import org.locationtech.geomesa.blob.api.GeoMesaBlobStoreSFT._
 import org.locationtech.geomesa.curve.TimePeriod
