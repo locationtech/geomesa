@@ -87,7 +87,7 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
 
     while(leader.isEmpty && System.currentTimeMillis < start + timeToWait) {
       leader = zkUtils.getLeaderForPartition(topic, partition)
-      if(leader.isEmpty) {
+      if (leader.isEmpty) {
         logger.debug(s"Still waiting on a leader for topic: $topic")
         Thread.sleep(100)
       }
@@ -200,7 +200,7 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
   }
 
   private val zkUtils = {
-    val ret = new KafkaUtils08().createZkUtils(zookeepers, Int.MaxValue, Int.MaxValue)
+    val ret = KafkaUtils08.createZkUtils(zookeepers, Int.MaxValue, Int.MaxValue)
 
     // build the top level zookeeper node
     if (!ret.zkClient.exists(zkPath)) {

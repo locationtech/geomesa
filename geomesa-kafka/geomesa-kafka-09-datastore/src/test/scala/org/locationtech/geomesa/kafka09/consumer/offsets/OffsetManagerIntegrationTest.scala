@@ -30,7 +30,7 @@ class OffsetManagerIntegrationTest extends Specification with HasEmbeddedKafka {
 
   val props = new Properties
   props.put("group.id", "mygroup")
-  props.put(new KafkaUtils09().brokerParam(), brokerConnect)
+  props.put(KafkaUtils09.brokerParam, brokerConnect)
   props.put("zookeeper.connect", zkConnect)
   val config = new ConsumerConfig(props)
   val offsetManager = new OffsetManager(config)
@@ -39,7 +39,7 @@ class OffsetManagerIntegrationTest extends Specification with HasEmbeddedKafka {
 
   step {
     val producerProps = new Properties()
-    producerProps.put(new KafkaUtils09().brokerParam(), brokerConnect)
+    producerProps.put(KafkaUtils09.brokerParam, brokerConnect)
     producerProps.put("serializer.class", "kafka.serializer.DefaultEncoder")
     val producer = new Producer[Array[Byte], Array[Byte]](new ProducerConfig(producerProps))
     for (i <- 0 until 10) {

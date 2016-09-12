@@ -91,8 +91,8 @@ class EmbeddedZookeeper extends EmbeddedService[String] {
   override def shutdown(): Unit = {
     try { zookeeper.shutdown() } catch { case _: Throwable => }
     try { factory.shutdown() } catch { case _: Throwable => }
-    new KafkaUtils08().rm(logDir)
-    new KafkaUtils08().rm(snapshotDir)
+    KafkaUtils08.rm(logDir)
+    KafkaUtils08.rm(snapshotDir)
   }
 }
 

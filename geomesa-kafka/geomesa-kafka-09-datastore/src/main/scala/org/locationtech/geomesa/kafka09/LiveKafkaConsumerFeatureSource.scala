@@ -127,7 +127,7 @@ class LiveKafkaConsumerFeatureSource(e: ContentEntry,
     while (running.get) {
       queue.take() match {
         case update: CreateOrUpdate =>
-          if(query.getFilter.evaluate(update.feature)) {
+          if (query.getFilter.evaluate(update.feature)) {
             fireEvent(KafkaFeatureEvent.changed(this, update.feature))
             featureCache.createOrUpdateFeature(update)
           }

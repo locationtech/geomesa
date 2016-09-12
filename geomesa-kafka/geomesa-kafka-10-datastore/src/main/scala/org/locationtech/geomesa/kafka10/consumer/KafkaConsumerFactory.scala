@@ -13,6 +13,7 @@ import java.util.Properties
 import kafka.consumer._
 import kafka.serializer.{Decoder, DefaultDecoder}
 import org.apache.commons.lang3.RandomStringUtils
+import org.locationtech.geomesa.kafka10.KafkaUtils10
 import org.locationtech.geomesa.kafka10.consumer.offsets.OffsetManager
 
 import scala.collection.JavaConverters._
@@ -31,7 +32,7 @@ class KafkaConsumerFactory(brokers: String, zookeepers: String) {
 
     val props = new Properties()
     props.put("zookeeper.connect", zookeepers)
-    props.put("bootstrap.servers", brokers)
+    props.put(KafkaUtils10.brokerParam, brokers)
     props.put("group.id", groupId)
     props.put("zookeeper.session.timeout.ms", "2000")
     props.put("zookeeper.sync.time.ms", "1000")

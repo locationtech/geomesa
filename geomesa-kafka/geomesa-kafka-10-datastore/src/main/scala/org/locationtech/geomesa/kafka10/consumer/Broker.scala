@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.kafka10.consumer
 
 import kafka.consumer.ConsumerConfig
+import org.locationtech.geomesa.kafka10.KafkaUtils10
 
 case class Broker(host: String, port: Int) {
   override def toString = s"[$host,$port]"
@@ -35,7 +36,7 @@ object Broker {
 object Brokers {
   def apply(brokers: String): Seq[Broker] = brokers.split(",").map(Broker.apply)
   def apply(config: ConsumerConfig): Seq[Broker] = {
-    val brokers : String = config.props.getString("bootstrap.servers")
+    val brokers : String = config.props.getString(KafkaUtils10.brokerParam)
     apply(brokers)
   }
 }

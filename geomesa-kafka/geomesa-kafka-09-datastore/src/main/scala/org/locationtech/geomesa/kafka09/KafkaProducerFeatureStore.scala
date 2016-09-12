@@ -145,7 +145,7 @@ object KafkaProducerFeatureStoreFactory {
 
     val config = {
       val props = new ju.Properties()
-      props.put(new KafkaUtils09().brokerParam(), broker)
+      props.put(KafkaUtils09.brokerParam, broker)
       props.put("serializer.class", "kafka.serializer.DefaultEncoder")
       new ProducerConfig(props)
     }

@@ -34,7 +34,7 @@ class KafkaConsumerTest extends Specification with HasEmbeddedKafka {
   def getConsumerConfig(group: String, threads: Int = 1) = {
     val consumerProps = new Properties
     consumerProps.put("group.id", group)
-    consumerProps.put(new KafkaUtils08().brokerParam(), brokerConnect)
+    consumerProps.put(KafkaUtils08.brokerParam, brokerConnect)
     consumerProps.put("zookeeper.connect", zkConnect)
     consumerProps.put("num.consumer.fetchers", threads.toString)
     consumerProps.put("auto.commit.enable", "false")
@@ -47,7 +47,7 @@ class KafkaConsumerTest extends Specification with HasEmbeddedKafka {
 
   "KafkaConsumer" should {
     val producerProps = new Properties()
-    producerProps.put(new KafkaUtils08().brokerParam(), brokerConnect)
+    producerProps.put(KafkaUtils08.brokerParam, brokerConnect)
     producerProps.put("retry.backoff.ms", "100")
     producerProps.put("message.send.max.retries", "20") // we have to bump this up as zk is pretty flaky
     producerProps.put("serializer.class", "kafka.serializer.DefaultEncoder")

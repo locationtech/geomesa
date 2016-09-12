@@ -16,14 +16,14 @@ import kafka.network.BlockingChannel
 import org.apache.kafka.common.security.JaasUtils
 import org.apache.kafka.common.utils.Utils
 
-class KafkaUtils09{
+object KafkaUtils09 {
   def channelToPayload: (BlockingChannel) => ByteBuffer = _.receive().payload()
   def assign(partitionAssignor: PartitionAssignor, ac: AssignmentContext) = partitionAssignor.assign(ac).get(ac.consumerId).toMap
   def createZkUtils(config: ConsumerConfig): ZkUtils09 =
     createZkUtils(config.zkConnect, config.zkSessionTimeoutMs, config.zkConnectionTimeoutMs)
   def createZkUtils(zkConnect: String, sessionTimeout: Int, connectTimeout: Int): ZkUtils09 =
-    ZkUtils09(kafka.utils.ZkUtils(zkConnect, sessionTimeout, connectTimeout, JaasUtils.isZkSecurityEnabled))
+    new ZkUtils09(kafka.utils.ZkUtils(zkConnect, sessionTimeout, connectTimeout, JaasUtils.isZkSecurityEnabled))
   def rm(file: File): Unit = Utils.delete(file)
   def messageFormatClassName: String = classOf[KafkaGeoMessageFormatter].getName
-  def brokerParam(): String = "metadata.broker.list"
+  def brokerParam: String = "metadata.broker.list"
 }

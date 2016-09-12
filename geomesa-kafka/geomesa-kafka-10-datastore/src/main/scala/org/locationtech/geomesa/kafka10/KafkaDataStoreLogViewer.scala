@@ -1,10 +1,10 @@
-/** *********************************************************************
-  * Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-  * All rights reserved. This program and the accompanying materials
-  * are made available under the terms of the Apache License, Version 2.0
-  * which accompanies this distribution and is available at
-  * http://www.opensource.org/licenses/apache2.0.php.
-  * ************************************************************************/
+/***********************************************************************
+* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0
+* which accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
 
 package org.locationtech.geomesa.kafka10
 
@@ -60,7 +60,7 @@ object KafkaDataStoreLogViewer extends LazyLogging {
   def run(zookeeper: String, zkPath: String, sftName: String, fromBeginning: Boolean): Unit = {
     val featureConfig = new KafkaDataStore(zookeeper, zkPath, 1, 1, null).getFeatureConfig(sftName)
 
-    val formatter = new KafkaUtils10().messageFormatClassName
+    val formatter = KafkaUtils10.messageFormatClassName
     val sftSpec = encodeSFT(featureConfig.sft)
 
     var ccArgs = Seq("--topic", featureConfig.topic,

@@ -379,7 +379,7 @@ class ZkContext(val zkConnect: String) extends After with LazyLogging {
   val schema = "name:String,age:Int,dtg:Date,*geom:Point:srid=4326"
   lazy val replayConfig = new ReplayConfig(new Instant(123L), new Instant(223L), new Duration(5L))
 
-  val zkUtils = new KafkaUtils09().createZkUtils(zkConnect, Int.MaxValue, Int.MaxValue)
+  val zkUtils = KafkaUtils09.createZkUtils(zkConnect, Int.MaxValue, Int.MaxValue)
   val zkClient = zkUtils.zkClient
   val zkPath = createRandomZkNode(zkClient)
   logger.trace(s"created $zkPath")

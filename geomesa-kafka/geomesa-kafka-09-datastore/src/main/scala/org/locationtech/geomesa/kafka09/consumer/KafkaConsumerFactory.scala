@@ -32,7 +32,7 @@ class KafkaConsumerFactory(brokers: String, zookeepers: String) {
 
     val props = new Properties()
     props.put("zookeeper.connect", zookeepers)
-    props.put(new KafkaUtils09().brokerParam(), brokers)
+    props.put(KafkaUtils09.brokerParam, brokers)
     props.put("group.id", groupId)
     props.put("zookeeper.session.timeout.ms", "2000")
     props.put("zookeeper.sync.time.ms", "1000")

@@ -60,7 +60,7 @@ class ReplayKafkaDataStoreTest
       val topic = KafkaDataStoreHelper.extractTopic(liveSFT)
       topic must beSome(contain(liveSFT.getTypeName))
 
-      val zkUtils = new KafkaUtils08().createZkUtils(zkConnect, Int.MaxValue, Int.MaxValue)
+      val zkUtils = KafkaUtils08.createZkUtils(zkConnect, Int.MaxValue, Int.MaxValue)
       try {
         zkUtils.topicExists(topic.get) must beTrue
       } finally {
@@ -200,7 +200,7 @@ class ReplayKafkaDataStoreTest
 
   def sendMessages(sft: SimpleFeatureType): Unit = {
     val props = new ju.Properties()
-    props.put(new KafkaUtils08().brokerParam(), brokerConnect)
+    props.put(KafkaUtils08.brokerParam, brokerConnect)
     props.put("serializer.class", "kafka.serializer.DefaultEncoder")
     val kafkaProducer = new Producer[Array[Byte], Array[Byte]](new ProducerConfig(props))
 

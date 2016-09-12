@@ -58,7 +58,7 @@ object KafkaDataStoreLogViewer extends LazyLogging {
   def run(zookeeper: String, zkPath: String, sftName: String, fromBeginning: Boolean): Unit = {
     val featureConfig = new KafkaDataStore(zookeeper, zkPath, 1, 1, null).getFeatureConfig(sftName)
 
-    val formatter = new KafkaUtils09().messageFormatClassName
+    val formatter = KafkaUtils09.messageFormatClassName
     val sftSpec = encodeSFT(featureConfig.sft)
 
     var ccArgs = Seq("--topic", featureConfig.topic,
@@ -137,11 +137,11 @@ class KafkaGeoMessageFormatter extends MessageFormatter{
   private var decoder: KafkaGeoMessageDecoder = null
 
   override def init(props: Properties): Unit = {
-    if(!props.containsKey(sftNameKey)) {
+    if (!props.containsKey(sftNameKey)) {
       throw new IllegalArgumentException(s"Property '$sftNameKey' is required.")
     }
 
-    if(!props.containsKey(sftSpecKey)) {
+    if (!props.containsKey(sftSpecKey)) {
       throw new IllegalArgumentException(s"Property '$sftSpecKey' is required.")
     }
 

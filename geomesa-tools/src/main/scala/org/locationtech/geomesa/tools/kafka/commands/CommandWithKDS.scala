@@ -22,6 +22,6 @@ abstract class CommandWithKDS(parent: JCommander) extends Command(parent) {
   lazy val zkPath = params.zkPath
 
   // ZkUtils and ZkClient which some commands use
-  lazy val zkUtils = new KafkaUtils08().createZkUtils(params.zookeepers, Int.MaxValue, Int.MaxValue)
+  lazy val zkUtils = KafkaUtils08.createZkUtils(params.zookeepers, Int.MaxValue, Int.MaxValue)
   def zkClient = zkUtils.zkClient
 }

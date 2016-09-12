@@ -1,10 +1,10 @@
-/** *********************************************************************
-  * Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-  * All rights reserved. This program and the accompanying materials
-  * are made available under the terms of the Apache License, Version 2.0
-  * which accompanies this distribution and is available at
-  * http://www.opensource.org/licenses/apache2.0.php.
-  * ************************************************************************/
+/***********************************************************************
+* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0
+* which accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
 
 package org.locationtech.geomesa.kafka10
 
@@ -147,7 +147,7 @@ object KafkaProducerFeatureStoreFactory {
   def apply(broker: String): FeatureSourceFactory = {
 
     val props = new ju.Properties()
-    props.put(new KafkaUtils10().brokerParam, broker)
+    props.put(KafkaUtils10.brokerParam, broker)
     props.put("key.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer")
     props.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer")
 

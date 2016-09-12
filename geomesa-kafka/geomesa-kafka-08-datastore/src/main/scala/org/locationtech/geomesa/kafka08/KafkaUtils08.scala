@@ -16,16 +16,16 @@ import kafka.network.BlockingChannel
 import kafka.utils.{Utils, ZKStringSerializer}
 import org.I0Itec.zkclient.ZkClient
 
-class KafkaUtils08{
+object KafkaUtils08 {
   def channelToPayload: (BlockingChannel) => ByteBuffer = _.receive().buffer
   def assign(partitionAssignor: PartitionAssignor, ac: AssignmentContext) = partitionAssignor.assign(ac)
   def createZkUtils(config: ConsumerConfig): ZkUtils08 =
     createZkUtils(config.zkConnect, config.zkSessionTimeoutMs, config.zkConnectionTimeoutMs)
   def createZkUtils(zkConnect: String, sessionTimeout: Int, connectTimeout: Int): ZkUtils08 = {
     // zkStringSerializer is required - otherwise topics won't be created correctly
-    ZkUtils08(new ZkClient(zkConnect, sessionTimeout, connectTimeout, ZKStringSerializer))
+    new ZkUtils08(new ZkClient(zkConnect, sessionTimeout, connectTimeout, ZKStringSerializer))
   }
   def rm(file: File): Unit = Utils.rm(file)
   def messageFormatClassName: String = classOf[KafkaGeoMessageFormatter].getName
-  def brokerParam(): String = "metadata.broker.list"
+  def brokerParam: String = "metadata.broker.list"
 }

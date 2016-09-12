@@ -39,7 +39,7 @@ import scala.collection.{Map, mutable}
 class ConsumerRebalancer[K, V](consumer: KafkaConsumer[K, V], config: ConsumerConfig)
     extends IZkStateListener with IZkDataListener with IZkChildListener with LazyLogging {
 
-  private val zkUtils = new KafkaUtils09().createZkUtils(config)
+  private val zkUtils = KafkaUtils09.createZkUtils(config)
   private val partitionAssignor = PartitionAssignor.createInstance(config.partitionAssignmentStrategy)
 
   private val topicStreamCount = mutable.Map.empty[String, Int] // used to register the consumer in zk
@@ -275,7 +275,7 @@ class ConsumerRebalancer[K, V](consumer: KafkaConsumer[K, V], config: ConsumerCo
       releasePartitionOwnership()
 
       val assignmentContext = zkUtils.createAssignmentContext(config.groupId, consumerId, config.excludeInternalTopics)
-      val partitionOwnershipDecision = new KafkaUtils09().assign(partitionAssignor, assignmentContext)
+      val partitionOwnershipDecision = KafkaUtils09.assign(partitionAssignor, assignmentContext)
 
       // move the partition ownership here, since that can be used to indicate a truly successful rebalancing
       // attempt. A rebalancing attempt is completed successfully only after the fetchers have been

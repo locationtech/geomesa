@@ -1,10 +1,10 @@
-/** *********************************************************************
-  * Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-  * All rights reserved. This program and the accompanying materials
-  * are made available under the terms of the Apache License, Version 2.0
-  * which accompanies this distribution and is available at
-  * http://www.opensource.org/licenses/apache2.0.php.
-  * ************************************************************************/
+/***********************************************************************
+* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0
+* which accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
 
 package org.locationtech.geomesa.kafka10.consumer.offsets
 
@@ -34,7 +34,7 @@ class OffsetManager(val config: ConsumerConfig)
   import OffsetManager._
 
   lazy private val channel = WrappedChannel(zkUtils, config)
-  lazy private val zkUtils = new KafkaUtils10().createZkUtils(config)
+  lazy private val zkUtils = KafkaUtils10.createZkUtils(config)
 
   /**
     * Get a saved offset.
@@ -213,7 +213,7 @@ class OffsetManager(val config: ConsumerConfig)
 
     try {
       channel.channel().send(request)
-      val response = OffsetCommitResponse.readFrom(new KafkaUtils10().channelToPayload(channel.channel()))
+      val response = OffsetCommitResponse.readFrom(KafkaUtils10.channelToPayload(channel.channel()))
       val errors = response.commitStatus.filter { case (_, code) => code != NoError }
       errors.foreach { case (topicAndPartition, code) =>
         if (code == OffsetMetadataTooLargeCode) {
@@ -259,7 +259,7 @@ object OffsetManager extends LazyLogging {
     val version = OffsetFetchRequest.CurrentVersion
     val request = new OffsetFetchRequest(config.groupId, partitions, version, 0, clientId)
     channel.send(request)
-    val response = OffsetFetchResponse.readFrom(new KafkaUtils10().channelToPayload(channel))
+    val response = OffsetFetchResponse.readFrom(KafkaUtils10.channelToPayload(channel))
     handleOffsetErrors(response.requestInfo.values.map(_.error))
     response.requestInfo.map { case (topicAndPartion, metadata) => (topicAndPartion, metadata.offset) }
   }
