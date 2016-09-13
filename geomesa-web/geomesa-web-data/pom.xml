@@ -95,7 +95,7 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-compute</artifactId>
+            <artifactId>geomesa-accumulo-compute</artifactId>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>

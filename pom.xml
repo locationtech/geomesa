@@ -24,13 +24,9 @@
         <module>geomesa-features</module>
         <module>geomesa-filter</module>
         <module>geomesa-gs-plugin</module>
-        <module>geomesa-jobs</module>
         <module>geomesa-kafka</module>
         <module>geomesa-convert</module>
-        <module>geomesa-tools</module>
-        <module>geomesa-compute</module>
-        <module>geomesa-dist</module>
-        <module>geomesa-raster</module>
+        <module>geomesa-tools-common</module>
         <module>geomesa-web</module>
         <module>geomesa-process</module>
         <module>geomesa-stream</module>
@@ -73,7 +69,9 @@
         <spark.version>2.0.0</spark.version>
         <hbase.version>1.1.5</hbase.version>
         <hbase.guava.version>12.0.1</hbase.guava.version>
-        <kafka.version>0.8.2.1</kafka.version>
+        <kafka.08.version>0.8.2.1</kafka.08.version>
+        <kafka.09.version>0.9.0.1</kafka.09.version>
+        <kafka.10.version>0.10.0.1</kafka.10.version>
 
         <!-- Recommended installation versions -->
         <!-- These take into account bugfixes and should be used in documentation -->
@@ -221,6 +219,14 @@
                     <url>https://repo.eclipse.org/content/repositories/cbi-releases/</url>
                 </pluginRepository>
             </pluginRepositories>
+        </profile>
+        <profile>
+            <id>bigtable</id>
+            <modules>
+                <module>geomesa-gs-plugin/geomesa-bigtable-gs-plugin</module>
+                <module>geomesa-hbase/geomesa-bigtable-datastore</module>
+                <module>geomesa-hbase/geomesa-dist-bigtable</module>
+            </modules>
         </profile>
     </profiles>
 
@@ -1377,33 +1383,53 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-raster</artifactId>
+                <artifactId>geomesa-accumulo-raster</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-tools</artifactId>
+                <artifactId>geomesa-tools-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-jobs</artifactId>
+                <artifactId>geomesa-accumulo-tools</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-compute</artifactId>
+                <artifactId>geomesa-kafka-tools</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-compute</artifactId>
+                <artifactId>geomesa-kafka-08-datastore</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-kafka-09-datastore</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-kafka-10-datastore</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-accumulo-jobs</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-accumulo-compute</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-accumulo-compute</artifactId>
                 <classifier>shaded</classifier>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-dist</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1448,38 +1474,18 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-kafka-datastore</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-kafka-09-datastore</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-kafka-10-datastore</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-blobstore-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.kafka</groupId>
-                <artifactId>kafka_2.11</artifactId>
-                <version>${kafka.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.xerial.snappy</groupId>
-                        <artifactId>snappy-java</artifactId>
-                    </exclusion>
-                </exclusions>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-blobstore-web</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-gs-plugin</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <!-- note: accumulo uses guava 17, but geotools uses 11. The methods we use happen to exist
                  in both, but try to use guava sparingly. -->
@@ -1632,6 +1638,17 @@
                 <groupId>com.twitter</groupId>
                 <artifactId>chill_2.11</artifactId>
                 <version>0.5.2</version>
+            </dependency>
+            <dependency>
+                <groupId>com.clearspring.analytics</groupId>
+                <artifactId>stream</artifactId>
+                <version>2.9.2</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>it.unimi.dsi</groupId>
+                        <artifactId>fastutil</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <!-- provided dependencies -->

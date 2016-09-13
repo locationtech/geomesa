@@ -11,27 +11,11 @@
     <name>GeoMesa Geoserver Plugin</name>
     <packaging>pom</packaging>
 
-    <profiles>
-        <profile>
-            <id>bigtable</id>
-            <modules>
-                <module>geomesa-bigtable-gs-plugin</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>hbase</id>
-            <modules>
-                <module>geomesa-hbase-gs-plugin</module>
-            </modules>
-        </profile>
-    </profiles>
-
     <modules>
         <module>geomesa-accumulo-gs-plugin</module>
         <module>geomesa-blobstore-gs-plugin</module>
         <module>geomesa-hbase-gs-plugin</module>
         <module>geomesa-kafka-gs-plugin</module>
-        <module>geomesa-kafka-09-gs-plugin</module>
         <module>geomesa-stats-gs-plugin</module>
         <module>geomesa-stream-gs-plugin</module>
         <module>geomesa-cassandra-gs-plugin</module>

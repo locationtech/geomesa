@@ -11,9 +11,9 @@
     <packaging>pom</packaging>
     <name>GeoMesa Kafka Parent</name>
     <modules>
-        <module>geomesa-kafka-08-datastore</module>
-        <module>geomesa-kafka-09-datastore</module>
-        <module>geomesa-kafka-10-datastore</module>
+        <module>geomesa-kafka-datastore</module>
+        <module>geomesa-kafka-dist</module>
+        <module>geomesa-kafka-tools</module>
     </modules>
 
     <properties>
@@ -22,7 +22,6 @@
 
     <dependencyManagement>
         <dependencies>
-
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>log4j-over-slf4j</artifactId>

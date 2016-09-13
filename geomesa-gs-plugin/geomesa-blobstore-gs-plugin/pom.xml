@@ -14,7 +14,6 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-blobstore-web</artifactId>
-            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

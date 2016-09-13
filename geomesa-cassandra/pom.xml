@@ -13,6 +13,7 @@
 
     <modules>
         <module>geomesa-cassandra-datastore</module>
+        <module>geomesa-cassandra-dist</module>
     </modules>
 
     <properties>
@@ -21,6 +22,11 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-cassandra-datastore</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.datastax.cassandra</groupId>
                 <artifactId>cassandra-driver-core</artifactId>

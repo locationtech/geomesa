@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2 http://maven.apache.org/xsd/component-1.1.2.xsd">
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>dist/gs-plugins</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0755</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <includes>
+                <include>org.locationtech.geomesa:geomesa-bigtable-gs-plugin*</include>
+            </includes>
+        </dependencySet>
+    </dependencySets>
+    <fileSets>
+        <fileSet>
+            <directory>../../</directory>
+            <fileMode>0644</fileMode>
+            <includes>
+                <include>LICENSE.txt</include>
+            </includes>
+        </fileSet>
+    </fileSets>
+    <files>
+        <file>
+            <source>../../README.md</source>
+            <outputDirectory>docs</outputDirectory>
+        </file>
+        <file>
+            <source>../../geomesa-gs-plugin/README.md</source>
+            <destName>README-gs-plugin.md</destName>
+            <outputDirectory>docs</outputDirectory>
+        </file>
+        <file>
+            <source>../../geomesa-utils/README.md</source>
+            <destName>README-utils.md</destName>
+            <outputDirectory>docs</outputDirectory>
+        </file>
+        <file>
+            <source>../../geomesa-convert/README.md</source>
+            <destName>README-convert.md</destName>
+            <outputDirectory>docs</outputDirectory>
+        </file>
+    </files>
+</component>
