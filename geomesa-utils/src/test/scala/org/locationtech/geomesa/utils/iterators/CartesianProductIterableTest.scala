@@ -6,10 +6,9 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.utils
+package org.locationtech.geomesa.utils.iterators
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.iterators.CartesianProductIterable
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
