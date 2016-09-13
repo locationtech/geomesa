@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.utils.uuid
 
+import java.util.{Date, UUID}
 import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod

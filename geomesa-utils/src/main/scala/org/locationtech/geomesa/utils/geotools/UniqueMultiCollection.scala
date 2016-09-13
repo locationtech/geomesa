@@ -13,6 +13,8 @@ import org.geotools.data.store.DataFeatureCollection
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import scala.collection.JavaConversions._
+
 /**
  * Build a unique feature collection based on feature ID
  */
