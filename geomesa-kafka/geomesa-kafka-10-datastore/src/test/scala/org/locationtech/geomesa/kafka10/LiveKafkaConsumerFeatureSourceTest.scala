@@ -21,6 +21,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.kafka.{KafkaDataStoreHelper, KafkaFeatureEvent, TestLambdaFeatureListener}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
@@ -117,7 +118,7 @@ class LiveKafkaConsumerFeatureSourceTest extends Specification with HasEmbeddedK
       }
 
       // force the cache cleanup - normally this would happen during additional reads and writes
-      consumerFC.asInstanceOf[LiveKafkaConsumerFeatureSource].featureCache.cache.cleanUp()
+      consumerFC.asInstanceOf[LiveKafkaConsumerFeatureSource].featureCache.cleanUp()
 
       // verify feature has expired - hit the spatial index
       {

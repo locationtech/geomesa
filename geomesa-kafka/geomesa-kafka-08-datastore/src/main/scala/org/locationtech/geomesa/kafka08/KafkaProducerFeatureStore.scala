@@ -20,6 +20,7 @@ import org.geotools.data.{FeatureReader, FeatureWriter, Query}
 import org.geotools.feature.FeatureCollection
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.kafka.GeoMessage
 import org.locationtech.geomesa.kafka08.KafkaDataStore.FeatureSourceFactory
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.text.ObjectPoolFactory
