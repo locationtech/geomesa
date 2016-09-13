@@ -6,14 +6,14 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.csv
+package org.locationtech.geomesa.utils.csv
 
 import java.lang.{Double => jDouble, Integer => jInt}
 
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.csv.CSVParser._
-import org.locationtech.geomesa.accumulo.csv.DMS.North
+import org.locationtech.geomesa.utils.csv.CSVParser._
+import org.locationtech.geomesa.utils.csv.DMS.North
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

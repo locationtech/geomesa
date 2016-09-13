@@ -6,10 +6,10 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.csv
+package org.locationtech.geomesa.utils.csv
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.csv.DMS._
+import org.locationtech.geomesa.utils.csv.DMS._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
