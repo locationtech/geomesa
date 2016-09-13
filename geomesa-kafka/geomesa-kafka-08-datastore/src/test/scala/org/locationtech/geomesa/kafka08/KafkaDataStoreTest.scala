@@ -17,7 +17,8 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.kafka08.ReplayTimeHelper.ff
+import org.locationtech.geomesa.kafka.{KafkaDataStoreHelper, ReplayConfig}
+import org.locationtech.geomesa.kafka.ReplayTimeHelper.ff
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
