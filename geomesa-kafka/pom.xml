@@ -11,11 +11,9 @@
     <packaging>pom</packaging>
     <name>GeoMesa Kafka Parent</name>
     <modules>
-        <module>geomesa-kafka-datastore</module>
+        <module>geomesa-kafka-08-datastore</module>
         <module>geomesa-kafka-09-datastore</module>
-        <module>geomesa-kafka-08-utils</module>
-        <module>geomesa-kafka-09-utils</module>
-        <module>geomesa-kafka-utils-common</module>
+        <module>geomesa-kafka-10-datastore</module>
     </modules>
 
     <properties>
@@ -24,11 +22,7 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-kafka-utils-common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
+
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>log4j-over-slf4j</artifactId>
@@ -38,13 +32,6 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-kafka-utils-common</artifactId>
-                <version>${project.version}</version>
-                <type>test-jar</type>
-                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
