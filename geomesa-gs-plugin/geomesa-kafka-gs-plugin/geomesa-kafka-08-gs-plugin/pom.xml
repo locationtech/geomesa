@@ -18,13 +18,6 @@
                 <version>${slf4j.version}</version>
                 <scope>provided</scope>
             </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-gs-plugin</artifactId>
-                <version>${project.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 

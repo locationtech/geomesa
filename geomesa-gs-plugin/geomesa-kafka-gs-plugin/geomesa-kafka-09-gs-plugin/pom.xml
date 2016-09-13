@@ -13,13 +13,6 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-gs-plugin</artifactId>
-                <version>${project.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j.version}</version>
