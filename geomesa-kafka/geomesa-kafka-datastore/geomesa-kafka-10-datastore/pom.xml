@@ -47,14 +47,14 @@
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
             <version>${kafka.10.version}</version>
-            <!--<scope>compile</scope>-->
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
             <version>${kafka.10.version}</version>
             <classifier>test</classifier>
-            <!--<scope>compile</scope>-->
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
