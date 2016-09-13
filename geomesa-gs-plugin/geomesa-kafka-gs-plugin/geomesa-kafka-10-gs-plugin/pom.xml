@@ -10,6 +10,17 @@
     <artifactId>geomesa-kafka-10-gs-plugin</artifactId>
     <name>GeoMesa Kafka 10 Geoserver Plugin</name>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
