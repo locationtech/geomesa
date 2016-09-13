@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.utils
+package org.locationtech.geomesa.utils.iterators
 
 import scala.collection.Iterator.empty
 

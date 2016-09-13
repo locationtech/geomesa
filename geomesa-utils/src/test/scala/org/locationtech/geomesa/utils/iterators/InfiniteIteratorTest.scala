@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.utils
+package org.locationtech.geomesa.utils.iterators
 
 import org.junit.runner.RunWith
 import org.specs2.mock.Mockito
