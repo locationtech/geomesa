@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa
 
-import org.locationtech.geomesa.utils.Z3FeatureIdGenerator
+import org.locationtech.geomesa.utils.uuid.Z3FeatureIdGenerator
 
 import scala.collection.mutable
 

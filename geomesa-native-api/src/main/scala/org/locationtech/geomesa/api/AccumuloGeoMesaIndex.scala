@@ -27,9 +27,9 @@ import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.security.SecurityUtils
-import org.locationtech.geomesa.utils.Z3UuidGenerator
 import org.locationtech.geomesa.utils.geotools.SftBuilder
 import org.locationtech.geomesa.utils.stats.Cardinality
+import org.locationtech.geomesa.utils.uuid.Z3UuidGenerator
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConverters._

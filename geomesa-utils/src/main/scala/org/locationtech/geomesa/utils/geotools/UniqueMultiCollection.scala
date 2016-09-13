@@ -6,14 +6,12 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.utils
+package org.locationtech.geomesa.utils.geotools
 
 import org.geotools.data.DataUtilities
 import org.geotools.data.store.DataFeatureCollection
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-
-import scala.collection.JavaConversions._
 
 /**
  * Build a unique feature collection based on feature ID
