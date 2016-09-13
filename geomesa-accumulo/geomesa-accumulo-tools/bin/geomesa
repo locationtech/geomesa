@@ -1,0 +1,145 @@
+#! /usr/bin/env bash
+#
+# Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0 which
+# accompanies this distribution and is available at
+# http://www.opensource.org/licenses/apache2.0.php.
+#
+
+# Set environment variables in bin/geomesa-env.sh
+
+if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
+  export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
+fi
+
+# Load common functions and setup
+. "${%%gmtools.dist.name%%_HOME}"/bin/geomesa-common.sh
+
+# ACCUMULO paths, user can hard set these in geomesa-env, or rely on this script to find set them via ACCUMULO_HOME
+if [[ -n "$ACCUMULO_HOME" ]]; then
+  if [[ -z "$ACCUMULO_LIB" && -d "${ACCUMULO_HOME}/lib" ]]; then
+    ACCUMULO_LIB=${ACCUMULO_HOME}/lib
+  fi
+  if [[ -z "$ACCUMULO_CONF_DIR" && -d "${ACCUMULO_HOME}/conf" ]]; then
+    ACCUMULO_CONF_DIR=${ACCUMULO_HOME}/conf
+  fi
+fi
+
+# HADOOP paths, user can hard set these in geomesa-env, or rely on this script to find set them via HADOOP_HOME
+if [[ -n "$HADOOP_HOME" ]]; then
+  if [[ -z "$HADOOP_CONF_DIR" && -d "${HADOOP_HOME}/etc/hadoop" ]]; then
+    HADOOP_CONF_DIR=${HADOOP_HOME}/etc/hadoop
+  fi
+fi
+
+# Warn user about missing environment variables
+if [[ (-z "$ACCUMULO_HOME") || (-z "$HADOOP_HOME") ]]; then
+  message="Warning: you have not set ACCUMULO_HOME and/or HADOOP_HOME as environment variables."
+  message="${message}\nGeoMesa tools will not run without the appropriate Accumulo and Hadoop jars in the tools classpath."
+  message="${message}\nPlease ensure that those jars are present in the classpath by running 'geomesa classpath' ."
+  message="${message}\nTo take corrective action, please place the necessary jar files in the lib directory of geomesa-tools."
+  echo >&2 ""
+  echo -e >&2 "$message"
+  echo >&2 ""
+elif [[ (-z "$ACCUMULO_CONF_DIR") || (-z "$HADOOP_CONF_DIR") ]]; then
+  message="Warning: you have not set ACCUMULO_CONF_DIR and/or HADOOP_CONF_DIR as environment variables."
+  message="${message}\nGeoMesa tools looks for these folders relative to the paths of the ACCUMULO_HOME and HADOOP_HOME environment variables."
+  message="${message}\nGeoMesa tools can run without these variables set, however the user will be required to provide the additional instanceId and zookeepers parameters."
+  message="${message}\nTo take corrective action, please set these environment variable to the appropriate locations"
+  echo >&2 ""
+  echo -e >&2 "$message"
+  echo >&2 ""
+fi
+
+function findSftDirs() {
+  DIRS=$(find $GEOMESA_CONF_DIR/sfts -mindepth 1 -type d -exec printf {}: \;)
+  echo ${DIRS%:}
+}
+
+# Start constructing GEOMESA_CP (classpath)
+# include geomesa first so that the correct log4j.properties is picked up
+GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB)"
+GEOMESA_CP="${GEOMESA_CP}:${ACCUMULO_CONF_DIR}:${HADOOP_CONF_DIR}"
+GEOMESA_CP="${GEOMESA_CP}:${GEOMESA_CONF_DIR}:$(findSftDirs)"
+# Add user defined directories to the classpath
+if [[ -z "$GEOMESA_EXTRA_CLASSPATHS"  ]]; then
+  GEOMESA_CP="${GEOMESA_CP}:$(findJars $GEOMESA_EXTRA_CLASSPATHS true)"
+fi
+ACCUMULO_CP="$(findJars $ACCUMULO_LIB true true)"
+
+# Get the hadoop jars, ignoring jars with names containing slf4j and test
+# Copied from accumulo classpath
+if [[ "$hadoopCDH" == "1" ]]; then
+  # Hadoop CDH configuration
+  hadoopDirs=(
+    $HADOOP_HOME
+    $HADOOP_CONF_DIR
+    $HADOOP_COMMON_HOME
+    $HADOOP_HDFS_HOME
+    $YARN_HOME
+    $HADOOP_MAPRED_HOME
+    $HADOOP_CUSTOM_CP
+  )
+else
+  hadoopDirs=(
+    # Hadoop 2 requirements
+    $HADOOP_HOME/share/hadoop/common
+    $HADOOP_HOME/share/hadoop/hdfs/
+    $HADOOP_HOME/share/hadoop/mapreduce/
+    $HADOOP_HOME/share/hadoop/tools/lib
+    $HADOOP_HOME/share/hadoop/yarn/
+    # HDP 2.0 requirements
+    /usr/lib/hadoop/
+    /usr/lib/hadoop-hdfs/
+    /usr/lib/hadoop-mapreduce/
+    /usr/lib/hadoop-yarn/
+    # HDP 2.2 requirements
+    /usr/hdp/current/hadoop-client/
+    /usr/hdp/current/hadoop-hdfs-client/
+    /usr/hdp/current/hadoop-mapreduce-client/
+    /usr/hdp/current/hadoop-yarn-client/
+    # IOP 4.1 requirements
+    /usr/iop/current/hadoop-client/
+    /usr/iop/current/hadoop-hdfs-client/
+    /usr/iop/current/hadoop-mapreduce-client/
+    /usr/iop/current/hadoop-yarn-client/
+  )
+fi
+
+for home in ${hadoopDirs[*]}; do
+  tmp="$(findJars $home true)"
+  if [[ -n "$tmp" ]]; then
+    HADOOP_CP="$HADOOP_CP:$tmp"
+  fi
+  if [[ "${HADOOP_CP:0:1}" = ":" ]]; then
+    HADOOP_CP="${HADOOP_CP:1}"
+  fi
+done
+
+# For zookeeper only include the single root jar
+if [[ -d "${ZOOKEEPER_HOME}" ]]; then
+  ZOOKEEPER_JAR="$(find $ZOOKEEPER_HOME -maxdepth 1 -type f -name *zookeeper*jar)"
+fi
+
+# Geomesa tools setup completed, below we parse user arguments
+#
+# configure runs the geomesa configuration, sets both the ${geomesa.dist.foobar} and PATH vars
+# classpath prints the class path, ie list of jars we are using
+# else is running actual commands in the tools
+
+if  [[ $1 = configure ]]; then
+  geomesaConfigure
+elif [[ $1 = classpath ]]; then
+  CLASSPATH="$GEOMESA_CP:$ACCUMULO_CP:$HADOOP_CP:${ZOOKEEPER_JAR}"
+  for element in ${CLASSPATH//:/ } ; do
+    echo ${element}
+  done
+else
+  if [[ $1 = debug ]]; then
+    GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
+    shift 1
+  fi
+  CLASSPATH="$GEOMESA_CP:$ACCUMULO_CP:$HADOOP_CP:${ZOOKEEPER_JAR}"
+  java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.accumulo.AccumuloRunner "$@"
+fi

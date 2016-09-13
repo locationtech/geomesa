@@ -29,7 +29,7 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-raster</artifactId>
+            <artifactId>geomesa-accumulo-raster</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>org.geotools</groupId>

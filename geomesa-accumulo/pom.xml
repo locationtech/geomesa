@@ -14,6 +14,11 @@
     <modules>
         <module>geomesa-accumulo-datastore</module>
         <module>geomesa-accumulo-distributed-runtime</module>
+        <module>geomesa-accumulo-raster</module>
+        <module>geomesa-accumulo-jobs</module>
+        <module>geomesa-accumulo-compute</module>
+        <module>geomesa-accumulo-tools</module>
+        <module>geomesa-accumulo-dist</module>
     </modules>
 
 </project>
