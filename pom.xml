@@ -18,6 +18,30 @@
     <packaging>pom</packaging>
     <version>1.3.0-SNAPSHOT</version>
 
+    <modules>
+        <module>geomesa-logger</module>
+        <module>geomesa-utils</module>
+        <module>geomesa-security</module>
+        <module>geomesa-features</module>
+        <module>geomesa-filter</module>
+        <module>geomesa-gs-plugin</module>
+        <module>geomesa-kafka</module>
+        <module>geomesa-convert</module>
+        <module>geomesa-tools-common</module>
+        <module>geomesa-web</module>
+        <module>geomesa-process</module>
+        <module>geomesa-stream</module>
+        <module>geomesa-z3</module>
+        <module>geomesa-accumulo</module>
+        <module>geomesa-hbase</module>
+        <module>geomesa-blobstore</module>
+        <module>geomesa-cassandra</module>
+        <module>geomesa-metrics</module>
+        <module>docs</module>
+        <module>geomesa-native-api</module>
+        <module>geomesa-index-api</module>
+    </modules>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -78,37 +102,6 @@
     </properties>
 
     <profiles>
-
-        <profile>
-            <id>default</id>
-            <activation>
-                <property><name>!spark</name></property>
-            </activation>
-            <modules>
-                <module>geomesa-logger</module>
-                <module>geomesa-utils</module>
-                <module>geomesa-security</module>
-                <module>geomesa-features</module>
-                <module>geomesa-filter</module>
-                <module>geomesa-gs-plugin</module>
-                <module>geomesa-kafka</module>
-                <module>geomesa-convert</module>
-                <module>geomesa-tools-common</module>
-                <module>geomesa-web</module>
-                <module>geomesa-process</module>
-                <module>geomesa-stream</module>
-                <module>geomesa-z3</module>
-                <module>geomesa-accumulo</module>
-                <module>geomesa-hbase</module>
-                <module>geomesa-blobstore</module>
-                <module>geomesa-cassandra</module>
-                <module>geomesa-metrics</module>
-                <module>docs</module>
-                <module>geomesa-native-api</module>
-                <module>geomesa-index-api</module>
-            </modules>
-        </profile>
-
         <profile>
             <id>scala-2.11</id>
             <activation>
@@ -157,26 +150,6 @@
                     </dependency>
                 </dependencies>
             </dependencyManagement>
-        </profile>
-
-        <profile>
-            <id>spark</id>
-            <activation>
-                <property><name>spark</name></property>
-            </activation>
-            <modules>
-                <module>geomesa-accumulo/geomesa-accumulo-compute</module>
-                <module>geomesa-accumulo/geomesa-accumulo-datastore</module>
-                <module>geomesa-accumulo/geomesa-accumulo-jobs</module>
-                <module>geomesa-convert</module>
-                <module>geomesa-filter</module>
-                <module>geomesa-features</module>
-                <module>geomesa-index-api</module>
-                <module>geomesa-logger</module>
-                <module>geomesa-security</module>
-                <module>geomesa-utils</module>
-                <module>geomesa-z3</module>
-            </modules>
         </profile>
 
         <profile>
