@@ -31,6 +31,7 @@
         <module>geomesa-process</module>
         <module>geomesa-stream</module>
         <module>geomesa-z3</module>
+        <module>geomesa-memory</module>
         <module>geomesa-accumulo</module>
         <module>geomesa-hbase</module>
         <module>geomesa-blobstore</module>
@@ -1510,6 +1511,11 @@
                         <artifactId>jai_core</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.googlecode.cqengine</groupId>
+                <artifactId>cqengine</artifactId>
+                <version>2.7.1</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.spark</groupId>

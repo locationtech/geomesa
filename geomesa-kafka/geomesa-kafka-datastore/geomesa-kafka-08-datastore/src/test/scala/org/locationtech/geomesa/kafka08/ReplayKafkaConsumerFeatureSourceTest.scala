@@ -11,6 +11,7 @@ package org.locationtech.geomesa.kafka08
 import org.geotools.data.EmptyFeatureReader
 import org.joda.time.Instant
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.kafka._
 import org.locationtech.geomesa.utils.geotools.FR
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
