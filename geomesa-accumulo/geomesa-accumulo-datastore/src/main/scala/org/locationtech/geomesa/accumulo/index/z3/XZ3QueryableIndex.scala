@@ -39,7 +39,7 @@ trait XZ3QueryableIndex extends AccumuloFeatureIndex
                             hints: Hints,
                             explain: Explainer): QueryPlan = {
     import QueryHints.RichHints
-    import org.locationtech.geomesa.filter.FilterHelper._
+    import org.locationtech.geomesa.filter.FilterHelper.{logger => _, _}
 
     // note: z3 requires a date field
     val dtgField = sft.getDtgField.getOrElse {

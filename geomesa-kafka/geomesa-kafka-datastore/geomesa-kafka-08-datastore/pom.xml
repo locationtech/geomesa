@@ -8,20 +8,20 @@
 *********************************************************************-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>geomesa-kafka-datastore</artifactId>
+        <artifactId>geomesa-kafka-datastore_2.11</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
         <version>1.3.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-kafka-08-datastore</artifactId>
+    <artifactId>geomesa-kafka-08-datastore_2.11</artifactId>
     <name>GeoMesa Kafka 08 Data Store</name>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>org.apache.kafka</groupId>
-                <artifactId>kafka_2.11</artifactId>
+                <artifactId>kafka_${scala.binary.version}</artifactId>
                 <version>${kafka.08.version}</version>
                 <scope>provided</scope>
                 <exclusions>
@@ -58,15 +58,15 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-feature-kryo</artifactId>
+            <artifactId>geomesa-feature-kryo_2.11</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-filter</artifactId>
+            <artifactId>geomesa-filter_2.11</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-security</artifactId>
+            <artifactId>geomesa-security_2.11</artifactId>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -85,7 +85,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.11</artifactId>
+            <artifactId>kafka_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>com.beust</groupId>
@@ -93,11 +93,11 @@
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2_2.11</artifactId>
+            <artifactId>specs2_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.11</artifactId>
+            <artifactId>kafka_${scala.binary.version}</artifactId>
             <version>${kafka.08.version}</version>
             <classifier>test</classifier>
             <scope>test</scope>

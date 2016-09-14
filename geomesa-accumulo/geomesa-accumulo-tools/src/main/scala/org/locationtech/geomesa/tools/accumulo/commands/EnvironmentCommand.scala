@@ -83,7 +83,7 @@ class EnvironmentCommand(parent: JCommander) extends Command(parent) with LazyLo
     } else {
       val options = ConfigRenderOptions.defaults().setJson(false).setOriginComments(false)
       def render(c: Config) = c.root().render(options)
-      filtered.map { case (name, conf)=> s"converter-name=$name\n${render(conf)}\n"}.toArray.sortBy(_.self).foreach(println)
+      filtered.map { case (name, conf)=> s"converter-name=$name\n${render(conf)}\n"}.toArray.sorted.foreach(println)
     }
   }
 
@@ -95,7 +95,7 @@ class EnvironmentCommand(parent: JCommander) extends Command(parent) with LazyLo
   def listConverterNames(): Unit = {
     println("\nSimple Feature Type Converters:")
     val all = ConverterConfigLoader.confs
-    all.map { case (name, conf) => s"$name"}.toArray.sortBy(_.self).foreach(println)
+    all.map { case (name, conf) => s"$name"}.toArray.sorted.foreach(println)
   }
 }
 

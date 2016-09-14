@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.index.utils
 
-import com.typesafe.scalalogging.Logger
+import org.locationtech.geomesa.util.logging.Logger
 import org.slf4j.LoggerFactory
 
 trait Explainer {

@@ -9,13 +9,13 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>geomesa</artifactId>
+        <artifactId>geomesa_2.11</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
         <version>1.3.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-filter</artifactId>
+    <artifactId>geomesa-filter_2.11</artifactId>
     <name>GeoMesa Filters and Functions</name>
 
     <properties>
@@ -49,17 +49,17 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-utils</artifactId>
+            <artifactId>geomesa-utils_2.11</artifactId>
         </dependency>
         <!-- test deps -->
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2_2.11</artifactId>
+            <artifactId>specs2_${scala.binary.version}</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-feature-all</artifactId>
+            <artifactId>geomesa-feature-all_2.11</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

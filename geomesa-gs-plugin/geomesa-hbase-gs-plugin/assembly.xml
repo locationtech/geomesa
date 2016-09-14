@@ -19,7 +19,7 @@
             <useProjectAttachments>true</useProjectAttachments>
             <scope>runtime</scope>
             <includes>
-                <include>org.locationtech.geomesa:geomesa-hbase-gs-plugin:jar:shaded</include>
+                <include>org.locationtech.geomesa:geomesa-hbase-gs-plugin_${scala.binary.version}:jar:shaded</include>
             </includes>
         </dependencySet>
     </dependencySets>

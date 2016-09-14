@@ -11,12 +11,12 @@
 
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
-        <artifactId>geomesa-accumulo</artifactId>
+        <artifactId>geomesa-accumulo_2.11</artifactId>
         <version>1.3.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-accumulo-raster</artifactId>
+    <artifactId>geomesa-accumulo-raster_2.11</artifactId>
     <name>GeoMesa Raster</name>
 
     <properties>
@@ -39,7 +39,7 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-datastore</artifactId>
+            <artifactId>geomesa-accumulo-datastore_2.11</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -75,7 +75,7 @@
         <!-- test dependencies -->
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2_2.11</artifactId>
+            <artifactId>specs2_${scala.binary.version}</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
