@@ -21,7 +21,7 @@
         <dependencies>
             <dependency>
                 <groupId>org.apache.kafka</groupId>
-		<artifactId>kafka_${scala.binary.version}</artifactId>
+		        <artifactId>kafka_${scala.binary.version}</artifactId>
                 <version>${kafka.10.version}</version>
                 <scope>provided</scope>
                 <exclusions>
@@ -102,7 +102,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
-	    <artifactId>kafka_${scala.binary.version}</artifactId>
+            <artifactId>kafka_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>com.beust</groupId>
@@ -110,11 +110,11 @@
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
-	    <artifactId>specs2_${scala.binary.version}</artifactId>
+            <artifactId>specs2_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
-	    <artifactId>kafka_${scala.binary.version}</artifactId>
+            <artifactId>kafka_${scala.binary.version}</artifactId>
             <version>${kafka.10.version}</version>
             <classifier>test</classifier>
             <scope>test</scope>
