@@ -26,8 +26,10 @@
 
     <modules>
         <module>geomesa-kafka-08-dist</module>
-        <module>geomesa-kafka-09-dist</module>
-        <module>geomesa-kafka-10-dist</module>
+
+        <!-- these are disabled and built with profiles -Pkafka09 and -Pkafka10 pending CQs -->
+        <!--<module>geomesa-kafka-09-dist</module>-->
+        <!--<module>geomesa-kafka-10-dist</module>-->
     </modules>
 
     <dependencies>
