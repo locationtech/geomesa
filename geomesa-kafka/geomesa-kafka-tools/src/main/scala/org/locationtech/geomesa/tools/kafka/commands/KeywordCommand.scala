@@ -15,7 +15,6 @@ import org.locationtech.geomesa.tools.common.{FeatureTypeNameParam, KeywordParam
 import org.locationtech.geomesa.tools.kafka.ProducerKDSConnectionParams
 
 import scala.collection.JavaConversions._
-import scala.io.StdIn
 
 class KeywordCommand(parent: JCommander) extends CommandWithKDS(parent) {
 
@@ -40,7 +39,7 @@ class KeywordCommand(parent: JCommander) extends CommandWithKDS(parent) {
     }
 
     if (params.removeAll) {
-      val confirm = StdIn.readLine("Remove all keywords? (y/n): ").toLowerCase
+      val confirm = System.console().readLine("Remove all keywords? (y/n): ").toLowerCase
       if (confirm.equals("y") || confirm.equals("yes")) {
         sft.removeAllKeywords()
         keywordsModified = true

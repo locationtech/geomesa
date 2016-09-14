@@ -20,7 +20,6 @@ import org.locationtech.geomesa.utils.stats.{Histogram, MinMax, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-import scala.io.StdIn
 import scala.reflect.ClassTag
 import scala.util.Try
 
@@ -53,7 +52,7 @@ class StatsHistogramCommand(parent: JCommander) extends CommandWithCatalog(paren
                 "  3. Manually enter bounds\n" +
                 "  4. Cancel operation\n")
         while (response == null) {
-          val in = StdIn.readLine("Please enter the number of your choice: ")
+          val in = System.console().readLine("Please enter the number of your choice: ")
           response = Try(in.toInt.asInstanceOf[Integer]).filter(r => r > 0 && r < 5).getOrElse(null)
           if (response == null) {
             logger.error("Invalid input. Please enter 1-4.")
@@ -75,13 +74,13 @@ class StatsHistogramCommand(parent: JCommander) extends CommandWithCatalog(paren
             var lower: Any = null
             var upper: Any = null
             while (lower == null) {
-              lower = Converters.convert(StdIn.readLine(s"Enter initial lower bound for '$attribute': "), ct)
+              lower = Converters.convert(System.console().readLine(s"Enter initial lower bound for '$attribute': "), ct)
               if (lower == null) {
                 logger.error(s"Couldn't convert input to appropriate type: ${ct.getSimpleName}")
               }
             }
             while (upper == null) {
-              upper = Converters.convert(StdIn.readLine(s"Enter initial upper bound for '$attribute': "), ct)
+              upper = Converters.convert(System.console().readLine(s"Enter initial upper bound for '$attribute': "), ct)
               if (upper == null) {
                 logger.error(s"Couldn't convert input to appropriate type: ${ct.getSimpleName}")
               }
