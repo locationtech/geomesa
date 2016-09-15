@@ -7,7 +7,7 @@
     <format>tar.gz</format>
   </formats>
   <includeBaseDirectory>true</includeBaseDirectory>
-  <baseDirectory>geomesa-accumulo-${project.version}</baseDirectory>
+  <baseDirectory>geomesa-accumulo_${scala.binary.version}-${project.version}</baseDirectory>
   <componentDescriptors>
     <componentDescriptor>src/main/assemblies/component.xml</componentDescriptor>
   </componentDescriptors>

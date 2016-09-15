@@ -229,7 +229,7 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
 
     if (attribute == sft.getGeomField) {
       estimateSpatialCount(filter)
-    } else if (sft.getDtgField.contains(attribute)) {
+    } else if (sft.getDtgField.exists(_ == attribute)) {
       estimateTemporalCount(filter)
     } else {
       // we have an attribute filter
@@ -241,7 +241,7 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
         bounds.bounds.map(_.bounds)
       }
       extractedBounds.flatMap { bounds =>
-        if (bounds.contains((None, None))) {
+        if (bounds.exists(_ == (None, None))) {
           estimateCount(Filter.INCLUDE, loDate, hiDate) // inclusive filter
         } else {
           val (equalsBounds, rangeBounds) = bounds.partition { case (l, r) => l == r }

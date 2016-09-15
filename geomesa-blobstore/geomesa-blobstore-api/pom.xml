@@ -9,23 +9,23 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>geomesa-blobstore</artifactId>
+        <artifactId>geomesa-blobstore_2.11</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>1.3.0-SNAPSHOT</version>
+        <version>1.3.0-m1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-blobstore-api</artifactId>
+    <artifactId>geomesa-blobstore-api_2.11</artifactId>
     <name>GeoMesa Blobstore API</name>
 
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-filter</artifactId>
+            <artifactId>geomesa-filter_2.11</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-datastore</artifactId>
+            <artifactId>geomesa-accumulo-datastore_2.11</artifactId>
         </dependency>
 
         <!--test dependencies-->
@@ -39,7 +39,7 @@
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2_2.11</artifactId>
+            <artifactId>specs2_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

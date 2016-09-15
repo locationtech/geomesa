@@ -158,7 +158,7 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
       val geomDtgOption = for {
         geom <- Option(sft.getGeomField)
         dtg  <- sft.getDtgField
-        if toRetrieve.contains(geom) && toRetrieve.contains(dtg)
+        if toRetrieve.exists(_ == geom) && toRetrieve.exists(_ == dtg)
       } yield {
         (geom, dtg)
       }
@@ -510,7 +510,7 @@ object GeoMesaMetadataStats {
       attach(Map(sftKey -> sftOpt, "all" -> "true"))
     } else {
       val existingSfts = existing.getOptions.filter(_._1.startsWith(StatsCombiner.SftOption))
-      if (!existingSfts.get(sftKey).contains(sftOpt)) {
+      if (!existingSfts.get(sftKey).exists(_ == sftOpt)) {
         tableOps.removeIterator(table, CombinerName, java.util.EnumSet.allOf(classOf[IteratorScope]))
         attach(existingSfts.toMap ++ Map(sftKey -> sftOpt, "all" -> "true"))
       }

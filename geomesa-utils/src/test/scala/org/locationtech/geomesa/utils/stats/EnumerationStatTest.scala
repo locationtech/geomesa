@@ -17,8 +17,6 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.util.parsing.json.JSON
-
 @RunWith(classOf[JUnitRunner])
 class EnumerationStatTest extends Specification with StatTestHelper {
 
@@ -58,7 +56,14 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize to json" >> {
         val stat = newStat[String]("strAttr")
-        JSON.parseFull(stat.toJson) must beSome(stat.enumeration)
+        val packed   = StatSerializer(sft).serialize(stat)
+        val unpacked = StatSerializer(sft).deserialize(packed)
+
+        unpacked must beAnInstanceOf[EnumerationStat[String]]
+        unpacked.asInstanceOf[EnumerationStat[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[EnumerationStat[String]].enumeration mustEqual stat.enumeration
+        unpacked.asInstanceOf[EnumerationStat[String]].size mustEqual stat.size
+        unpacked.asInstanceOf[EnumerationStat[String]].toJson mustEqual stat.toJson
       }
 
       "serialize empty to json" >> {
@@ -135,9 +140,14 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize to json" >> {
         val stat = newStat[java.lang.Integer]("intAttr")
-        val s = Stat.stringifier(classOf[java.lang.Integer])
-        val expected = stat.enumeration.map { case (k, v) => (s(k), v)}
-        JSON.parseFull(stat.toJson) must beSome(expected)
+        val packed   = StatSerializer(sft).serialize(stat)
+        val unpacked = StatSerializer(sft).deserialize(packed)
+
+        unpacked must beAnInstanceOf[EnumerationStat[java.lang.Integer]]
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Integer]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Integer]].enumeration mustEqual stat.enumeration
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Integer]].size mustEqual stat.size
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Integer]].toJson mustEqual stat.toJson
       }
 
       "serialize empty to json" >> {
@@ -202,9 +212,14 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize to json" >> {
         val stat = newStat[java.lang.Long]("longAttr")
-        val s = Stat.stringifier(classOf[java.lang.Long])
-        val expected = stat.enumeration.map { case (k, v) => (s(k), v)}
-        JSON.parseFull(stat.toJson) must beSome(expected)
+        val packed   = StatSerializer(sft).serialize(stat)
+        val unpacked = StatSerializer(sft).deserialize(packed)
+
+        unpacked must beAnInstanceOf[EnumerationStat[java.lang.Long]]
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Long]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Long]].enumeration mustEqual stat.enumeration
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Long]].size mustEqual stat.size
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Long]].toJson mustEqual stat.toJson
       }
 
       "serialize empty to json" >> {
@@ -269,9 +284,14 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize to json" >> {
         val stat = newStat[java.lang.Float]("floatAttr")
-        val s = Stat.stringifier(classOf[java.lang.Float])
-        val expected = stat.enumeration.map { case (k, v) => (s(k), v)}
-        JSON.parseFull(stat.toJson) must beSome(expected)
+        val packed   = StatSerializer(sft).serialize(stat)
+        val unpacked = StatSerializer(sft).deserialize(packed)
+
+        unpacked must beAnInstanceOf[EnumerationStat[java.lang.Float]]
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Float]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Float]].enumeration mustEqual stat.enumeration
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Float]].size mustEqual stat.size
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Float]].toJson mustEqual stat.toJson
       }
 
       "serialize empty to json" >> {
@@ -336,9 +356,14 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize to json" >> {
         val stat = newStat[java.lang.Double]("doubleAttr")
-        val s = Stat.stringifier(classOf[java.lang.Double])
-        val expected = stat.enumeration.map { case (k, v) => (s(k), v)}
-        JSON.parseFull(stat.toJson) must beSome(expected)
+        val packed   = StatSerializer(sft).serialize(stat)
+        val unpacked = StatSerializer(sft).deserialize(packed)
+
+        unpacked must beAnInstanceOf[EnumerationStat[java.lang.Double]]
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Double]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Double]].enumeration mustEqual stat.enumeration
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Double]].size mustEqual stat.size
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Double]].toJson mustEqual stat.toJson
       }
 
       "serialize empty to json" >> {
@@ -405,9 +430,14 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize to json" >> {
         val stat = newStat[Date]("dtg")
-        val s = Stat.stringifier(classOf[Date])
-        val expected = stat.enumeration.map { case (k, v) => (s(k), v)}
-        JSON.parseFull(stat.toJson) must beSome(expected)
+        val packed   = StatSerializer(sft).serialize(stat)
+        val unpacked = StatSerializer(sft).deserialize(packed)
+
+        unpacked must beAnInstanceOf[EnumerationStat[Date]]
+        unpacked.asInstanceOf[EnumerationStat[Date]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[EnumerationStat[Date]].enumeration mustEqual stat.enumeration
+        unpacked.asInstanceOf[EnumerationStat[Date]].size mustEqual stat.size
+        unpacked.asInstanceOf[EnumerationStat[Date]].toJson mustEqual stat.toJson
       }
 
       "serialize empty to json" >> {
@@ -478,9 +508,14 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize to json" >> {
         val stat = newStat[Geometry]("geom")
-        val s = Stat.stringifier(classOf[Geometry])
-        val expected = stat.enumeration.map { case (k, v) => (s(k), v)}
-        JSON.parseFull(stat.toJson) must beSome(expected)
+        val packed   = StatSerializer(sft).serialize(stat)
+        val unpacked = StatSerializer(sft).deserialize(packed)
+
+        unpacked must beAnInstanceOf[EnumerationStat[Geometry]]
+        unpacked.asInstanceOf[EnumerationStat[Geometry]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[EnumerationStat[Geometry]].enumeration mustEqual stat.enumeration
+        unpacked.asInstanceOf[EnumerationStat[Geometry]].size mustEqual stat.size
+        unpacked.asInstanceOf[EnumerationStat[Geometry]].toJson mustEqual stat.toJson
       }
 
       "serialize empty to json" >> {

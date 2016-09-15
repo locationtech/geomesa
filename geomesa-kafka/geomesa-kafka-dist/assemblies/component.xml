@@ -77,7 +77,7 @@
     </fileSets>
     <files>
         <file>
-            <source>../../geomesa-kafka-tools/target/geomesa-kafka-tools-${project.version}.jar</source>
+            <source>../../geomesa-kafka-tools/target/geomesa-kafka-tools_${scala.binary.version}-${project.version}.jar</source>
             <outputDirectory>lib</outputDirectory>
             <fileMode>0644</fileMode>
         </file>

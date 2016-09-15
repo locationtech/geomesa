@@ -10,22 +10,28 @@ GeoMesa is an open-source, distributed, spatio-temporal database built on top of
 
 ## Versions and Downloads
 
-**Latest release**: ${geomesa.release.version} 
-* [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=geomesa-${geomesa.release.version})](https://travis-ci.org/locationtech/geomesa) 
-* [Release tarball](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-dist/${geomesa.release.version}/geomesa-dist-${geomesa.release.version}-bin.tar.gz)
-* [Source](https://github.com/locationtech/geomesa/archive/geomesa-${geomesa.release.version}.tar.gz)
+**Latest 1.3 milestone**: ${geomesa.13.release.version}
+* [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=geomesa-${geomesa.13.release.version}_2.11)](https://travis-ci.org/locationtech/geomesa) 
+* [Accumulo Release tarball](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-accumulo-dist_2.11/${geomesa.13.release.version}/geomesa-accumulo-dist_2.11-${geomesa.13.release.version}-bin.tar.gz)
+* [Kafka08 Release tarball](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-kafka-08-dist_2.11/${geomesa.13.release.version}/geomesa-kafka-08-dist_2.11-${geomesa.13.release.version}-bin.tar.gz)
+* [Source](https://github.com/locationtech/geomesa/archive/geomesa_2.11-${geomesa.13.release.version}.tar.gz)
 
 **Development version (source only)**: ${project.version}
 * [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=master)](https://travis-ci.org/locationtech/geomesa)
 * [Source](https://github.com/locationtech/geomesa/archive/master.tar.gz)
+
+**Latest 1.2 release**: ${geomesa.12.release.version} 
+* [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=geomesa-${geomesa.12.release.version})](https://travis-ci.org/locationtech/geomesa) 
+* [Release tarball](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-dist/${geomesa.12.release.version}/geomesa-dist-${geomesa.12.release.version}-bin.tar.gz)
+* [Source](https://github.com/locationtech/geomesa/archive/geomesa-${geomesa.12.release.version}.tar.gz)
 
 **1.1.x release**: geomesa-1.1.0-rc.7 
 * [![Build Status](https://travis-ci.org/locationtech/geomesa.svg?branch=geomesa-1.1.0-rc.7)](https://travis-ci.org/locationtech/geomesa)
 * [Release tarball](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-assemble/1.1.0-rc.7/geomesa-assemble-1.1.0-rc.7-bin.tar.gz)
 * [Source](https://github.com/locationtech/geomesa/archive/geomesa-1.1.0-rc.7.tar.gz)
 
-<b>NOTE:</b> The current recommended version is `${geomesa.release.version}`. The most recent tar.gz assembly can be 
-[downloaded here](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-dist/${geomesa.release.version}/geomesa-dist-${geomesa.release.version}-bin.tar.gz) 
+<b>NOTE:</b> The current recommended version is `${geomesa.12.release.version}`. The most recent tar.gz assembly can be 
+[downloaded here](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-dist/${geomesa.12.release.version}/geomesa-dist-${geomesa.12.release.version}-bin.tar.gz) 
 which contains the [Accumulo distributed runtime jar](geomesa-accumulo/geomesa-accumulo-distributed-runtime), [Accumulo GeoServer plugin](geomesa-gs-plugin/geomesa-accumulo-gs-plugin), and [command line tools](geomesa-tools).
 
 GeoMesa artifacts can be downloaded from the [LocationTech Maven repository](https://repo.locationtech.org/content/repositories/geomesa-releases/)

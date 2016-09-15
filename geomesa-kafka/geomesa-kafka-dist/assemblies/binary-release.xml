@@ -7,7 +7,7 @@
     <format>tar.gz</format>
   </formats>
   <includeBaseDirectory>true</includeBaseDirectory>
-  <baseDirectory>geomesa-kafka-${kafka.maj.version}-${project.version}</baseDirectory>
+  <baseDirectory>geomesa-kafka-${kafka.maj.version}_${scala.binary.version}-${project.version}</baseDirectory>
   <componentDescriptors>
     <componentDescriptor>../assemblies/component.xml</componentDescriptor>
   </componentDescriptors>
