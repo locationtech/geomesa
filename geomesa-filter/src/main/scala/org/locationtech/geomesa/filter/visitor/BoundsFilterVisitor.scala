@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.filter.visitor
 
 import com.vividsolutions.jts.geom.Envelope
+import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.locationtech.geomesa.filter.HotfixExtractBoundsFilterVisitor
 import org.locationtech.geomesa.utils.geotools.wholeWorldEnvelope
 import org.opengis.filter._
 
@@ -27,9 +27,7 @@ object BoundsFilterVisitor {
     * @return the bounds
     */
   def visit(filter: Filter, envelope: Envelope = null): ReferencedEnvelope = {
-    // TODO GEOMESA-1350 for GeoMesa 1.3 release go back to GeoTools fixed version
-    //val result = filter.accept(ExtractBoundsFilterVisitor.BOUNDS_VISITOR, envelope).asInstanceOf[Envelope]
-    val result = filter.accept(HotfixExtractBoundsFilterVisitor.BOUNDS_VISITOR, envelope).asInstanceOf[Envelope]
+    val result = filter.accept(ExtractBoundsFilterVisitor.BOUNDS_VISITOR, envelope).asInstanceOf[Envelope]
     if (result == null) {
       wholeWorldEnvelope
     } else {
