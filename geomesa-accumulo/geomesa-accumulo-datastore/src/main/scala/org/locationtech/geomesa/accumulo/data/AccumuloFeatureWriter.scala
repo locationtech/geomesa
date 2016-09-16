@@ -22,10 +22,10 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.accumulo.GeomesaSystemProperties.FeatureIdProperties.FEATURE_ID_GENERATOR
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureWriterFn
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, Z3FeatureIdGenerator}
+import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory}
 import org.locationtech.geomesa.utils.index.IndexMode
-import org.locationtech.geomesa.utils.uuid.FeatureIdGenerator
+import org.locationtech.geomesa.utils.uuid.{FeatureIdGenerator, Z3FeatureIdGenerator}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 

@@ -15,8 +15,8 @@ import org.joda.time.format.DateTimeFormatter
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.accumulo.index.geohash.KeyUtils._
 import org.locationtech.geomesa.index.utils.Explainer
-import org.locationtech.geomesa.utils.CartesianProductIterable
 import org.locationtech.geomesa.utils.geohash.{GeoHash, GeohashUtils}
+import org.locationtech.geomesa.utils.iterators.CartesianProductIterable
 
 trait KeyPlanningFilter
 

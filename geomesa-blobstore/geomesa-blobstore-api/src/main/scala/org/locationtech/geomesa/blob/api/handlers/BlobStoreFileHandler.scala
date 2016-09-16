@@ -16,10 +16,10 @@ import javax.imageio.spi.ServiceRegistry
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
-import org.locationtech.geomesa.accumulo.util.{Z3FeatureIdGenerator, Z3UuidGenerator}
 import org.locationtech.geomesa.blob.api.FileHandler
 import org.locationtech.geomesa.blob.api.GeoMesaBlobStoreSFT._
 import org.locationtech.geomesa.curve.TimePeriod
+import org.locationtech.geomesa.utils.uuid.{Z3FeatureIdGenerator, Z3UuidGenerator}
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
