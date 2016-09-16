@@ -40,10 +40,10 @@ function printVersions() {
 
 # Command Line Help
 NL=$'\n'
-usage="usage: ./install-hadoop-accumulo.sh [[target dir] [<version(s)>]] | [-g|--get-versions] | [-h|--help]"
+usage="usage: ./install-hadoop-accumulo.sh [[target dir] [<version(s)>]] | [-g|--get-versions] | [--help]"
 
 # Parse command line options
-if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+if [[ "$1" == "--help" ]]; then
 	echo "${usage}"
 	echo "${NL}"
 	echo "All versions are detected automatically at compile time."
