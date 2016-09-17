@@ -4,7 +4,7 @@
    classpath.addRepository("http://download.osgeo.org/webdav/geotools")
    classpath.addRepository("http://central.maven.org/maven2")
    classpath.addRepository("https://repo.locationtech.org/content/repositories/geomesa-releases")
-   classpath.addRepository("file:///home/afox/.m2/repository")
+   classpath.addRepository("file:///home/username/.m2/repository")
    classpath.add("com.vividsolutions" % "jts" % "1.13")
    classpath.add("org.locationtech.geomesa" % "geomesa-accumulo-datastore" % "1.2.6")
    classpath.add("org.apache.accumulo" % "accumulo-core" % "1.6.4")
