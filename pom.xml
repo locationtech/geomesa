@@ -42,6 +42,7 @@
         <module>geomesa-utils</module>
         <module>geomesa-web</module>
         <module>geomesa-z3</module>
+        <module>geomesa-jupyter</module>
         <module>docs</module>
     </modules>
 
