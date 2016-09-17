@@ -18,3 +18,5 @@ target
 atlassian*
 geomesa-*.*.*-*
 **/src/main/resources/git.properties
+.ipynb_checkpoints
+*.ipynb

@@ -40,6 +40,7 @@
         <module>docs</module>
         <module>geomesa-native-api</module>
         <module>geomesa-index-api</module>
+        <module>geomesa-jupyter</module>
     </modules>
 
     <properties>
