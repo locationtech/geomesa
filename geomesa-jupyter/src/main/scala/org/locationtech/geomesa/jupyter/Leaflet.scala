@@ -20,9 +20,8 @@ object Jupyter {
                       ogcBaseURL: String = "http://stealthgs.ccri.com:8090/geoserver/wms") extends Layer {
     override def render: String =
       s"""
-         | L.tileLayer.wms('$ogcBaseURL?',
+         | L.WMS.layer('$ogcBaseURL?', layers: '$namespace:$name',
          |   {
-         |      layers: '$namespace:$name',
          |      cql_filter: "$filter",
          |      styles: '$style',
          |      env: '${env.map { case (k,v) => Array(k,v).mkString(sep = "=")}.mkString(sep = ":")}',
@@ -120,6 +119,7 @@ trait Leaflet {
        |<head>
        | <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.0-rc.3/dist/leaflet.css" />
        | <script src="https://unpkg.com/leaflet@1.0.0-rc.3/dist/leaflet.js"></script>
+       | <script src="http://bwdocker:9000/files/lwms/leaflet.wms.js"></script>
        |</head>
        |
        |<body>
