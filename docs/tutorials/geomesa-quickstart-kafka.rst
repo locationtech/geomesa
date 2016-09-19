@@ -93,7 +93,7 @@ configured, we'll pick back up with the paused program.
 
 Optional command-line arguments for ``KafkaQuickStart`` are:
 
--  ``-zkPath <zkpath>``: used for specifiying the Zookeeper path for
+-  ``-zkPath <zkpath>``: used for specifying the Zookeeper path for
    storing GeoMesa metadata. Defaults to "/geomesa/ds/kafka" and
    ordinarily does not need to be changed
 -  ``-automated``: omits the pause in execution for configuring
@@ -260,7 +260,7 @@ Open up a second terminal window and run:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-quickstart-kafka/target/geomesa-quickstart-kafka-${geomesa.version}.jar com.example.geomesa.kafka.KafkaListener -brokers <brokers> -zookeepers <zookeepers>
+    $ java -cp geomesa-quickstart-kafka/target/geomesa-quickstart-kafka-$VERSION.jar com.example.geomesa.kafka.KafkaListener -brokers <brokers> -zookeepers <zookeepers>
 
 and use the same settings for ``<brokers>`` and ``<zookeepers>``. Then
 in the first terminal window, re-run the ``KafkaQuickStart`` code as
@@ -309,7 +309,7 @@ Additionally, the ``KafkaQuickStart`` class run above can generate a
 
 .. code-block:: bash
 
-    $ java -Dclear=true -cp geomesa-quickstart-kafka/target/geomesa-quickstart-kafka-${geomesa.version}.jar com.example.geomesa.kafka.KafkaQuickStart -brokers <brokers> -zookeepers <zookeepers> 
+    $ java -Dclear=true -cp geomesa-quickstart-kafka/target/geomesa-quickstart-kafka-$VERSION.jar com.example.geomesa.kafka.KafkaQuickStart -brokers <brokers> -zookeepers <zookeepers>
 
 KafkaDataStore Load Test
 ------------------------
@@ -320,7 +320,7 @@ random latitude, and then have them step left or right.
 
 .. code-block:: bash
 
-    $ java -cp target/geomesa-quickstart-kafka-${geomesa.version}.jar com.example.geomesa.kafka.KafkaLoadTester -brokers <brokers> -zookeepers <zookeepers> -count <count>
+    $ java -cp target/geomesa-quickstart-kafka-$VERSION.jar com.example.geomesa.kafka.KafkaLoadTester -brokers <brokers> -zookeepers <zookeepers> -count <count>
 
 The 'count' parameter is optional. Without it, the tool defaults to 1000
 SimpleFeatures.

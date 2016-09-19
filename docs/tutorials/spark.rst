@@ -82,7 +82,7 @@ Count Events by Day of Year
 You will need to have ingested some
 `GDELT <http://www.gdeltproject.org/>`__ data as described in :doc:`geomesa-examples-gdelt` and `GeoMesa tools gdelt confs <https://github.com/locationtech/geomesa/geomesa-tools/conf/sfts/gdelt>`__.
 We have an example analysis in the class
-``geomesa-compute/src/main/scala/org/locationtech/geomesa/compute/spark/analytics/CountByDay.scala``.
+``geomesa-accumulo/geomesa-accumulo-compute/src/main/scala/org/locationtech/geomesa/compute/spark/analytics/CountByDay.scala``.
 
 The code goes as follows.
 
@@ -135,7 +135,7 @@ group.
 Run the Tutorial Code
 ^^^^^^^^^^^^^^^^^^^^^
 
-Edit the file ``geomesa-compute/src/main/scala/org/locationtech/geomesa/compute/spark/analytics/CountByDay.scala``
+Edit the file ``geomesa-accumulo/geomesa-accumulo-computer/src/main/scala/org/locationtech/geomesa/compute/spark/analytics/CountByDay.scala``
 so that the parameter map points to your cloud instance. Ensure that the ``filter`` covers
 a valid range of your GDELT data.
 

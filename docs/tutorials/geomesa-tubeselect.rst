@@ -38,7 +38,7 @@ necessary to change the versions of Accumulo and Hadoop that the tutorial
 uses. After completing the deployment tutorial, you should have:
 
 -  an instance of Accumulo |accumulo_version| running on Hadoop
-   2.2,
+   |hadoop_version|,
 -  access to an Accumulo user that has both create-table and write
    permissions, and
 -  an instance of GeoServer 2.5.2 with the GeoMesa plugin installed.

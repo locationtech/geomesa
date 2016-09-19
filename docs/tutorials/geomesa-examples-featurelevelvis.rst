@@ -23,7 +23,7 @@ Prerequisites
 
 You will need:
 
--  an Accumulo |accumulo_version| instance
+-  an Accumulo |accumulo_version| instance running on Hadoop |hadoop_version|
 -  an Accumulo user that has appropriate permissions to manage
    authorizations and query data
 -  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,

@@ -12,7 +12,7 @@ Prerequisites
 
 .. warning::
 
-    You will need access to a Hadoop 2.2.2 or better
+    You will need access to a Hadoop |hadoop_version| or better
     installation as well as an Accumulo |accumulo_version| database.
 
 You will also need:

@@ -1,17 +1,17 @@
 GeoMesa Jobs
 ============
 
-This project (``geomesa-jobs`` in the source distribution) contains Map-Reduce
-and Scalding jobs for maintaining GeoMesa.
+This project (``geomesa-accumulo/geomesa-accumulo-jobs`` in the source distribution) contains Map-Reduce
+and Scalding jobs for maintaining GeoMesa Accumulo.
 
 Building Instructions
 ---------------------
 
-If you wish to build ``geomesa-jobs`` separately, you can with Maven:
+If you wish to build ``geomesa-accumulo-jobs`` separately, you can with Maven:
 
 .. code-block:: shell
 
-    geomesa$ mvn clean install -pl geomesa-jobs
+    geomesa-accumulo$ mvn clean install -pl geomesa-accumulo-jobs
 
 GeoMesa Input and Output Formats
 --------------------------------
@@ -77,7 +77,7 @@ build the project using the ``assemble`` profile:
 
 .. code-block:: shell
 
-    geomesa$ mvn clean install -P assemble -pl geomesa-jobs
+    geomesa-accumulo$ mvn clean install -P assemble -pl geomesa-accumulo-jobs
 
 The following instructions assume you have built a shaded JAR; if not
 you will need to use the ``-libjars`` argument to ensure the correct JARs
@@ -99,7 +99,7 @@ slightly):
 
 .. code-block:: shell
 
-    geomesa$ yarn jar geomesa-jobs/target/geomesa-jobs-$VERSION-shaded.jar \
+    geomesa-accumulo$ yarn jar geomesa-accumulo-jobs/target/geomesa-accumulo-jobs_2.11-$VERSION-shaded.jar \
         org.locationtech.geomesa.jobs.index.AttributeIndexJob \
         --geomesa.input.instanceId <instance> \
         --geomesa.input.zookeepers <zookeepers> \
@@ -133,7 +133,7 @@ slightly):
 
 .. code-block:: shell
 
-    geomesa$ yarn jar geomesa-jobs/target/geomesa-jobs-$VERSION-shaded.jar \
+    geomesa-accumulo$ yarn jar geomesa-accumulo-jobs/target/geomesa-accumulo-jobs_2.11-$VERSION-shaded.jar \
         org.locationtech.geomesa.jobs.index.SchemaCopyJob \
         --geomesa.input.instanceId <instance> \
         --geomesa.output.instanceId <instance> \
