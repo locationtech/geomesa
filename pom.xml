@@ -325,7 +325,6 @@
         <profile>
             <id>kafka09</id>
             <modules>
-                <module>geomesa-kafka/geomesa-kafka-datastore/geomesa-kafka-09-datastore</module>
                 <module>geomesa-kafka/geomesa-kafka-dist/geomesa-kafka-09-dist</module>
                 <module>geomesa-gs-plugin/geomesa-kafka-gs-plugin/geomesa-kafka-09-gs-plugin</module>
             </modules>
@@ -333,7 +332,6 @@
         <profile>
             <id>kafka10</id>
             <modules>
-                <module>geomesa-kafka/geomesa-kafka-datastore/geomesa-kafka-10-datastore</module>
                 <module>geomesa-kafka/geomesa-kafka-dist/geomesa-kafka-10-dist</module>
                 <module>geomesa-gs-plugin/geomesa-kafka-gs-plugin/geomesa-kafka-10-gs-plugin</module>
             </modules>
