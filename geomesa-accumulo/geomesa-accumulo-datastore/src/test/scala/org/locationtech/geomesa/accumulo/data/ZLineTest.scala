@@ -14,7 +14,7 @@ import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.data.tables.Z3Table
+import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.specs2.mutable.Specification
@@ -48,7 +48,7 @@ class ZLineTest extends Specification with TestWithDataStore {
   "ZLines" should {
     "add features" in {
       skipped("testing")
-      val scanner = ds.connector.createScanner(ds.getTableName(sft.getTypeName, Z3Table), new Authorizations())
+      val scanner = ds.connector.createScanner(ds.getTableName(sft.getTypeName, Z3Index), new Authorizations())
       println(scanner.toSeq.length)
       scanner.close()
       success

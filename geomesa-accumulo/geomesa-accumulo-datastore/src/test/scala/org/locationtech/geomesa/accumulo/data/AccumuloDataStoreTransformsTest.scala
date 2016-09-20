@@ -116,20 +116,6 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
       }
     }
 
-    "handle back compatible transformations" >> {
-      val sft = createNewSchema(spec, schemaVersion = Some(2))
-      val sftName = sft.getTypeName
-
-      addFeatures(sft, createFeature(sft))
-
-      val query = new Query(sftName, Filter.INCLUDE, List("dtg", "geom").toArray)
-      val results = SelfClosingIterator(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())).toList
-      results must haveSize(1)
-      results.head.getAttribute("dtg") mustEqual date
-      results.head.getAttribute("geom") mustEqual geom
-      results.head.getAttribute("name") must beNull
-    }
-
     "handle transformations" >> {
       val sft = createNewSchema(spec2)
       val sftName = sft.getTypeName

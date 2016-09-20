@@ -23,11 +23,13 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloDataStoreParams}
-import org.locationtech.geomesa.accumulo.util.Z3UuidGenerator
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
+import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.SftBuilder
 import org.locationtech.geomesa.utils.stats.Cardinality
+import org.locationtech.geomesa.utils.uuid.Z3UuidGenerator
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConverters._
@@ -206,15 +208,6 @@ object AccumuloGeoMesaIndex {
     }
 
     builder.build(name)
-  }
-
-  def getTableNames[T](name: String): JList[String] =
-    getTableNames[T](name, new DefaultSimpleFeatureView[T](name))
-
-  def getTableNames[T](name: String, view: SimpleFeatureView[T]): JList[String] = {
-    val sft = buildSimpleFeatureType(name)(view)
-    val tables = GeoMesaTable.getTables(sft)
-    (tables.map(_.formatTableName(name, sft)) :+ name :+ s"${name}_stats").asJava
   }
 
   final val VISIBILITY = "visibility"

@@ -24,19 +24,24 @@ import org.joda.time._
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.GeoMesaMetadata._
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.QueryHints
+import org.locationtech.geomesa.accumulo.index.z2.Z2IndexV1
+import org.locationtech.geomesa.accumulo.index.z3.Z3IndexV2
+import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, QueryHints}
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.{BoundsFilterVisitor, QueryPlanFilterVisitor}
+import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 
 import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
 
 /**
  * Tracks stats via entries stored in metadata.
@@ -68,17 +73,22 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
     }
   }
 
-  scheduledCompaction = executor.schedule(compactor, 1, TimeUnit.HOURS)
+  compactor.run() // schedule initial compaction
 
   override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
     if (exact) {
-      if (sft.isPoints) {
+      val hasDupes = sft.nonPoints && {
+        val indices = AccumuloFeatureIndex.indices(sft, IndexMode.Read)
+        Seq(Z2IndexV1, Z3IndexV2).exists(indices.contains)
+        // TODO check for multivalued attribute indices
+      }
+      if (!hasDupes) {
         runStats[CountStat](sft, Stat.Count(), filter).headOption.map(_.count)
       } else {
-        import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
-
         // stat query doesn't entirely handle duplicates - only on a per-iterator basis
         // is a full scan worth it? the stat will be pretty close...
+
+        import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 
         // restrict fields coming back so that we push as little data as possible
         val props = Array(Option(sft.getGeomField).getOrElse(sft.getDescriptor(0).getLocalName))
@@ -148,7 +158,7 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
       val geomDtgOption = for {
         geom <- Option(sft.getGeomField)
         dtg  <- sft.getDtgField
-        if toRetrieve.contains(geom) && toRetrieve.contains(dtg)
+        if toRetrieve.exists(_ == geom) && toRetrieve.exists(_ == dtg)
       } yield {
         (geom, dtg)
       }
@@ -371,7 +381,13 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
       // calculate the endpoints for the histogram
       // the histogram will expand as needed, but this is a starting point
       val bounds = {
-        val mm = readStat[MinMax[Any]](sft, minMaxKey(attribute))
+        val mm = try {
+          readStat[MinMax[Any]](sft, minMaxKey(attribute))
+        } catch {
+          case NonFatal(e) =>
+            logger.error("Error reading existing stats - possibly the distributed runtime jar is not available", e)
+            None
+        }
         val (min, max) = mm match {
           case None => defaultBounds(binding)
           // max has to be greater than min for the histogram bounds
@@ -416,13 +432,17 @@ class MetadataStatUpdater(stats: GeoMesaMetadataStats, sft: SimpleFeatureType, s
   override def remove(sf: SimpleFeature): Unit = stat.unobserve(sf)
 
   override def close(): Unit = {
-    stats.writeStat(stat, sft, merge = true)
+    if (!stat.isEmpty) {
+      stats.writeStat(stat, sft, merge = true)
+    }
     // schedule a compaction so our metadata doesn't stack up too much
     stats.scheduleCompaction()
   }
 
   override def flush(): Unit = {
-    stats.writeStat(stat, sft, merge = true)
+    if (!stat.isEmpty) {
+      stats.writeStat(stat, sft, merge = true)
+    }
     // reload the tracker - for long-held updaters, this will refresh the histogram ranges
     stat = statFunction
   }
@@ -490,7 +510,7 @@ object GeoMesaMetadataStats {
       attach(Map(sftKey -> sftOpt, "all" -> "true"))
     } else {
       val existingSfts = existing.getOptions.filter(_._1.startsWith(StatsCombiner.SftOption))
-      if (!existingSfts.get(sftKey).contains(sftOpt)) {
+      if (!existingSfts.get(sftKey).exists(_ == sftOpt)) {
         tableOps.removeIterator(table, CombinerName, java.util.EnumSet.allOf(classOf[IteratorScope]))
         attach(existingSfts.toMap ++ Map(sftKey -> sftOpt, "all" -> "true"))
       }

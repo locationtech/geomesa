@@ -201,6 +201,10 @@ The instructions below assume that the ``geomesa-tools-$VERSION`` directory is k
 ``geomesa-$VERSION/dist/tools`` directory, but the tools distribution may be moved elsewhere
 as desired.
 
+.. note::
+
+    You can configure environment variables and classpath settings in geomesa-tools-$VERSION/bin/geomesa-env.sh.
+
 In the ``geomesa-tools-$VERSION`` directory, run ``bin/geomesa configure`` to set up the tools.
 
 .. code-block:: bash
@@ -237,7 +241,7 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_HOME`` an
     If you are running the tools on a system without
     Accumulo installed and configured, the ``install-hadoop-accumulo.sh`` script
     in the ``bin`` directory may be used to download the needed Hadoop/Accumulo JARs into
-    the ``lib`` directory. You should edit this script to match the versions used by your
+    the ``lib/common`` directory. You should edit this script to match the versions used by your
     installation.
 
 Due to licensing restrictions, dependencies for shape file support and raster
@@ -294,8 +298,8 @@ Note that if no slf4j implementation is installed you will see this error:
     SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
 
 In this case you may download SLF4J from http://www.slf4j.org/download.html. Extract 
-``slf4j-log4j12-1.7.7.jar`` and place it in the ``lib`` directory of the binary distribution. 
-If this conflicts with another SLF4J implementation, you may need to remove it from the ``lib`` directory.
+``slf4j-log4j12-1.7.7.jar`` and place it in the ``lib/common`` directory of the binary distribution.
+If this conflicts with another SLF4J implementation, you may need to remove it from the ``lib/common`` directory.
 
 .. _install_geoserver_plugins:
 
@@ -312,12 +316,12 @@ As described in section :ref:`geomesa_and_geoserver`, GeoMesa implements a
 `GeoTools <http://geotools.org/>`_-compatible data store. This makes it possible
 to use GeoMesa as a data store in `GeoServer <http://geoserver.org>`_. The documentation
 below describes how to configure GeoServer to connect to GeoMesa Accumulo and Kafka data stores.
-GeoServer's web site includes `installation instructions for GeoServer <http://docs.geoserver.org/latest/en/user/installation/index.html>`_.
+GeoServer's web site includes `installation instructions for GeoServer <http://docs.geoserver.org/stable/en/user/installation/index.html>`_.
 
 After GeoServer is running, you will also need to install the WPS plugin to
 your GeoServer instance. The GeoServer WPS Plugin must match the version of
 GeoServer instance. This is needed for both the Accumulo and Kafka variants of
-the plugin. The GeoServer website includes `instructions for downloading and installing <http://docs.geoserver.org/stable/en/user/extensions/wps/install.html>`_ the WPS plugin.
+the plugin. The GeoServer website includes `instructions for downloading and installing <http://docs.geoserver.org/stable/en/user/services/wps/install.html>`_ the WPS plugin.
 
 .. note::
 
@@ -437,6 +441,16 @@ Hadoop 2.4-2.7 (adjust versions as needed)
 * hadoop-client-2.6.4.jar
 * hadoop-common-2.6.4.jar
 * hadoop-hdfs-2.6.4.jar
+
+.. _install_geomesa_process:
+
+.. note::
+
+    Some GeoMesa-specific WPS processes such as ``geomesa:Density``, which is used
+    in the generation of heat maps, also require ``geomesa-process-$VERSION.jar``.
+    This JAR is included in the ``dist/gs-plugins`` directory of the binary
+    distribution, or is built in the ``geomesa-process`` module of the source
+    distribution.
 
 Restart GeoServer after the JARs are installed.
 

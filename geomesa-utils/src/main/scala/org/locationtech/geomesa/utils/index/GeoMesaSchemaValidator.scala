@@ -29,10 +29,9 @@ object GeoMesaSchemaValidator {
 
   private [index] def boolean(value: AnyRef): Boolean = value match {
     case null => false
-    case bool: jBoolean if bool => true
-    case bool: String if jBoolean.valueOf(bool) => true
-    case bool if jBoolean.valueOf(bool.toString) => true
-    case _ => false
+    case bool: jBoolean => bool
+    case bool: String => jBoolean.valueOf(bool)
+    case bool => jBoolean.valueOf(bool.toString)
   }
 }
 
@@ -48,7 +47,8 @@ object ReservedWordCheck extends LazyLogging {
     val reservedWords = FeatureUtils.sftReservedWords(sft)
     if (reservedWords.nonEmpty) {
       val msg = "The simple feature type contains attribute name(s) that are reserved words: " +
-          s"${reservedWords.mkString(", ")}"
+          s"${reservedWords.mkString(", ")}. You may override this check by setting '$RESERVED_WORDS=true' " +
+          "in the simple feature type user data, but it may cause errors with some functionality."
       if (GeoMesaSchemaValidator.boolean(sft.getUserData.get(RESERVED_WORDS))) {
         logger.warn(msg)
       } else {

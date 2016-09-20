@@ -419,5 +419,125 @@ class DelimitedTextConverterTest extends Specification {
       res(1).getUserData.get("my.second.key") mustEqual "world"
       res(1).getUserData.get("my.third.key") mustEqual "2world"
     }
+
+
+    "handle single quotes" >> {
+
+      val data =
+        """
+          |'1','hello','45.0','45.0'
+          |'2','world','90.0','90.0'
+        """.stripMargin
+
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "delimited-text",
+          |   format       = "DEFAULT",
+          |   id-field     = "md5(string2bytes($0))",
+          |   fields = [
+          |     { name = "phrase", transform = "$2" },
+          |     { name = "lat",    transform = "$3::double" },
+          |     { name = "lon",    transform = "$4::double" },
+          |     { name = "geom",   transform = "point($lat, $lon)" }
+          |   ]
+          |   options = {
+          |      quote = "'"
+          |   }
+          | }
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      converter must not(beNull)
+      val res = converter.processInput(data.split("\n").toIterator).toList
+      converter.close()
+      "must have size 2 " >> { res.size must be equalTo 2 }
+      "first string must be 'hello'" >> { res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "hello" }
+    }
+
+    "handle custom escape" >> {
+
+      val data =
+        """
+          |'1','he#'llo','45.0','45.0'
+          |'2','world','90.0','90.0'
+        """.stripMargin
+
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "delimited-text",
+          |   format       = "DEFAULT",
+          |   id-field     = "md5(string2bytes($0))",
+          |   fields = [
+          |     { name = "phrase", transform = "$2" },
+          |     { name = "lat",    transform = "$3::double" },
+          |     { name = "lon",    transform = "$4::double" },
+          |     { name = "geom",   transform = "point($lat, $lon)" }
+          |   ]
+          |   options = {
+          |      quote = "'"
+          |      escape = "#"
+          |   }
+          | }
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      converter must not(beNull)
+      val res = converter.processInput(data.split("\n").toIterator).toList
+      converter.close()
+      "must have size 2 " >> { res.size must be equalTo 2 }
+      "first string must be 'hello'" >> { res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "he'llo" }
+    }
+
+    "throw error on escape length > 1" >> {
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "delimited-text",
+          |   format       = "DEFAULT",
+          |   id-field     = "md5(string2bytes($0))",
+          |   fields = [
+          |     { name = "phrase", transform = "$2" },
+          |     { name = "lat",    transform = "$3::double" },
+          |     { name = "lon",    transform = "$4::double" },
+          |     { name = "geom",   transform = "point($lat, $lon)" }
+          |   ]
+          |   options = {
+          |      quote = "'"
+          |      escape = "##"
+          |   }
+          | }
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+      SimpleFeatureConverters.build[String](sft, conf) must throwAn[IllegalArgumentException]
+    }
+
+    "throw error on quote length > 1" >> {
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "delimited-text",
+          |   format       = "DEFAULT",
+          |   id-field     = "md5(string2bytes($0))",
+          |   fields = [
+          |     { name = "phrase", transform = "$2" },
+          |     { name = "lat",    transform = "$3::double" },
+          |     { name = "lon",    transform = "$4::double" },
+          |     { name = "geom",   transform = "point($lat, $lon)" }
+          |   ]
+          |   options = {
+          |      quote = "''"
+          |   }
+          | }
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+      SimpleFeatureConverters.build[String](sft, conf) must throwAn[IllegalArgumentException]
+    }
+
   }
 }

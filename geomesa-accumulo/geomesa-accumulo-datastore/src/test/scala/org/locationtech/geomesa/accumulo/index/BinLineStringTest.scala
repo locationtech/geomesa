@@ -14,8 +14,9 @@ import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.data.tables.{Z2Table, Z3Table}
 import org.locationtech.geomesa.accumulo.index.QueryHints._
+import org.locationtech.geomesa.accumulo.index.z2.Z2Index
+import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
 import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -78,7 +79,7 @@ class BinLineStringTest extends Specification with TestWithDataStore {
     "return all points of a linestring with z2 index" >> {
       val filter = "bbox(geom, 38, 58, 42, 72)"
       val query = getQuery(filter)
-      forall(ds.getQueryPlan(query))(_.table must endWith(Z2Table.suffix))
+      forall(ds.getQueryPlan(query))(_.table must endWith(Z2Index.name))
 
       val bins = runQuery(query)
 
@@ -98,7 +99,7 @@ class BinLineStringTest extends Specification with TestWithDataStore {
       val filter = "bbox(geom, 38, 58, 42, 72) " +
           "AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val query = getQuery(filter)
-      forall(ds.getQueryPlan(query))(_.table must endWith(Z3Table.suffix))
+      forall(ds.getQueryPlan(query))(_.table must endWith(Z3Index.name))
 
       val bins = runQuery(query)
 
@@ -117,7 +118,7 @@ class BinLineStringTest extends Specification with TestWithDataStore {
     "return all points of a linestring plus label with z2 index" >> {
       val filter = "bbox(geom, 38, 58, 42, 72)"
       val query = getQuery(filter, label = Some("name"))
-      forall(ds.getQueryPlan(query))(_.table must endWith(Z2Table.suffix))
+      forall(ds.getQueryPlan(query))(_.table must endWith(Z2Index.name))
 
       val bins = runQuery(query)
 
@@ -139,7 +140,7 @@ class BinLineStringTest extends Specification with TestWithDataStore {
       val filter = "bbox(geom, 38, 58, 42, 72) " +
           "AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val query = getQuery(filter, label = Some("name"))
-      forall(ds.getQueryPlan(query))(_.table must endWith(Z3Table.suffix))
+      forall(ds.getQueryPlan(query))(_.table must endWith(Z3Index.name))
 
       val bins = runQuery(query)
 
@@ -160,7 +161,7 @@ class BinLineStringTest extends Specification with TestWithDataStore {
     "return all points of a linestring and date list with z2 index" >> {
       val filter = "bbox(geom, 38, 58, 42, 72)"
       val query = getQuery(filter, dtg = Some("dtgList"))
-      forall(ds.getQueryPlan(query))(_.table must endWith(Z2Table.suffix))
+      forall(ds.getQueryPlan(query))(_.table must endWith(Z2Index.name))
 
       val bins = runQuery(query)
 
@@ -181,7 +182,7 @@ class BinLineStringTest extends Specification with TestWithDataStore {
       val filter = "bbox(geom, 38, 58, 42, 72) " +
           "AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val query = getQuery(filter, dtg = Some("dtgList"))
-      forall(ds.getQueryPlan(query))(_.table must endWith(Z3Table.suffix))
+      forall(ds.getQueryPlan(query))(_.table must endWith(Z3Index.name))
 
       val bins = runQuery(query)
 
@@ -201,7 +202,7 @@ class BinLineStringTest extends Specification with TestWithDataStore {
     "return all points of a linestring and date list plus label with z2 index" >> {
       val filter = "bbox(geom, 38, 58, 42, 72)"
       val query = getQuery(filter, dtg = Some("dtgList"), label = Some("name"))
-      forall(ds.getQueryPlan(query))(_.table must endWith(Z2Table.suffix))
+      forall(ds.getQueryPlan(query))(_.table must endWith(Z2Index.name))
 
       val bins = runQuery(query)
 
@@ -224,7 +225,7 @@ class BinLineStringTest extends Specification with TestWithDataStore {
       val filter = "bbox(geom, 38, 58, 42, 72) " +
           "AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val query = getQuery(filter, dtg = Some("dtgList"), label = Some("name"))
-      forall(ds.getQueryPlan(query))(_.table must endWith(Z3Table.suffix))
+      forall(ds.getQueryPlan(query))(_.table must endWith(Z3Index.name))
 
       val bins = runQuery(query)
 

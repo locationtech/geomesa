@@ -11,10 +11,12 @@ package org.locationtech.geomesa.accumulo.data
 import org.apache.accumulo.core.data.Value
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
-import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable._
-import org.locationtech.geomesa.accumulo.index.BinEncoder
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
+import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
+import org.locationtech.geomesa.accumulo.index.encoders.{BinEncoder, IndexValueEncoder}
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.SerializationType.SerializationType
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer, SimpleFeatureSerializers}
 import org.locationtech.geomesa.security.SecurityUtils._
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -40,12 +42,16 @@ trait WritableFeature {
     */
   def fullValues: Seq[RowValue]
 
+  def fullValuesWithId: Seq[RowValue]
+
   /**
     * Index values - e.g. a trimmed down feature with only date and geometry
     *
     * @return
     */
   def indexValues: Seq[RowValue]
+
+  def indexValuesWithId: Seq[RowValue]
 
   /**
     * Pre-computed BIN values
@@ -68,32 +74,37 @@ class RowValue(val cf: Text, val cq: Text, val vis: ColumnVisibility, toValue: =
 
 object WritableFeature {
 
-  def apply(feature: SimpleFeature,
-            sft: SimpleFeatureType,
-            defaultVisibility: String,
-            serializer: SimpleFeatureSerializer,
-            indexSerializer: SimpleFeatureSerializer,
-            binEncoder: Option[BinEncoder]): WritableFeature = {
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+  def toWritableFeature(sft: SimpleFeatureType,
+                        serializationType: SerializationType,
+                        defaultVisibility: String): (SimpleFeature) => WritableFeature = {
+    val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+    val serializerWithId = SimpleFeatureSerializers(sft, serializationType)
+    val indexSerializer = IndexValueEncoder(sft)
+    val indexSerializerWithId = IndexValueEncoder(sft, includeIds = true)
+    val binEncoder = BinEncoder(sft)
 
     sft.getVisibilityLevel match {
-      case VisibilityLevel.Feature   =>
-        new WritableFeatureLevelFeature(feature, sft, defaultVisibility, serializer, indexSerializer, binEncoder)
+      case VisibilityLevel.Feature =>
+        (sf) => new WritableFeatureLevelFeature(sf, defaultVisibility, serializer, serializerWithId,
+          indexSerializer, indexSerializerWithId, binEncoder)
       case VisibilityLevel.Attribute =>
-        new WritableAttributeLevelFeature(feature, sft, defaultVisibility, serializer, indexSerializer, binEncoder)
+        (sf) => new WritableAttributeLevelFeature(sf, sft, defaultVisibility, serializer, serializerWithId,
+          indexSerializer, indexSerializerWithId, binEncoder)
     }
   }
 }
 
 class WritableFeatureLevelFeature(val feature: SimpleFeature,
-                                  sft: SimpleFeatureType,
                                   defaultVisibility: String,
                                   serializer: SimpleFeatureSerializer,
+                                  serializerWithId: SimpleFeatureSerializer,
                                   indexSerializer: SimpleFeatureSerializer,
+                                  indexSerializerWithId: SimpleFeatureSerializer,
                                   binEncoder: Option[BinEncoder]) extends WritableFeature {
 
-  import GeoMesaTable.{BinColumnFamily, EmptyColumnQualifier, FullColumnFamily, IndexColumnFamily}
+  import AccumuloWritableIndex.{BinColumnFamily, EmptyColumnQualifier, FullColumnFamily, IndexColumnFamily}
   import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 
   private lazy val visibility =
@@ -102,8 +113,14 @@ class WritableFeatureLevelFeature(val feature: SimpleFeature,
   override lazy val fullValues: Seq[RowValue] =
     Seq(new RowValue(FullColumnFamily, EmptyColumnQualifier, visibility, new Value(serializer.serialize(feature))))
 
+  override lazy val fullValuesWithId: Seq[RowValue] =
+    Seq(new RowValue(FullColumnFamily, EmptyColumnQualifier, visibility, new Value(serializerWithId.serialize(feature))))
+
   override lazy val indexValues: Seq[RowValue] =
     Seq(new RowValue(IndexColumnFamily, EmptyColumnQualifier, visibility, new Value(indexSerializer.serialize(feature))))
+
+  override lazy val indexValuesWithId: Seq[RowValue] =
+    Seq(new RowValue(IndexColumnFamily, EmptyColumnQualifier, visibility, new Value(indexSerializerWithId.serialize(feature))))
 
   override lazy val binValues: Seq[RowValue] = binEncoder.toSeq.map { encoder =>
     new RowValue(BinColumnFamily, EmptyColumnQualifier, visibility, new Value(encoder.encode(feature)))
@@ -116,7 +133,9 @@ class WritableAttributeLevelFeature(val feature: SimpleFeature,
                                     sft: SimpleFeatureType,
                                     defaultVisibility: String,
                                     serializer: SimpleFeatureSerializer,
+                                    serializerWithId: SimpleFeatureSerializer,
                                     indexSerializer: SimpleFeatureSerializer,
+                                    indexSerializerWithId: SimpleFeatureSerializer,
                                     binEncoder: Option[BinEncoder]) extends WritableFeature {
 
   private lazy val visibilities: Array[String] = {
@@ -137,17 +156,35 @@ class WritableAttributeLevelFeature(val feature: SimpleFeature,
   override lazy val fullValues: Seq[RowValue] = indexGroups.map { case (vis, indices) =>
     val sf = new ScalaSimpleFeature("", sft)
     indices.foreach(i => sf.setAttribute(i, feature.getAttribute(i)))
-    new RowValue(GeoMesaTable.AttributeColumnFamily, new Text(indices), vis, new Value(serializer.serialize(sf)))
+    val cf = AccumuloWritableIndex.AttributeColumnFamily
+    new RowValue(cf, new Text(indices), vis, new Value(serializer.serialize(sf)))
+  }
+
+  override lazy val fullValuesWithId: Seq[RowValue] = indexGroups.map { case (vis, indices) =>
+    val sf = new ScalaSimpleFeature("", sft)
+    indices.foreach(i => sf.setAttribute(i, feature.getAttribute(i)))
+    val cf = AccumuloWritableIndex.AttributeColumnFamily
+    new RowValue(cf, new Text(indices), vis, new Value(serializerWithId.serialize(sf)))
   }
 
   override lazy val indexValues: Seq[RowValue] = indexGroups.map { case (vis, indices) =>
     val sf = new ScalaSimpleFeature("", sft)
     indices.foreach(i => sf.setAttribute(i, feature.getAttribute(i)))
-    new RowValue(GeoMesaTable.AttributeColumnFamily, new Text(indices), vis, new Value(indexSerializer.serialize(sf)))
+    val cf = AccumuloWritableIndex.AttributeColumnFamily
+    new RowValue(cf, new Text(indices), vis, new Value(indexSerializer.serialize(sf)))
+  }
+
+  override lazy val indexValuesWithId: Seq[RowValue] = indexGroups.map { case (vis, indices) =>
+    val sf = new ScalaSimpleFeature("", sft)
+    indices.foreach(i => sf.setAttribute(i, feature.getAttribute(i)))
+    val cf = AccumuloWritableIndex.AttributeColumnFamily
+    new RowValue(cf, new Text(indices), vis, new Value(indexSerializerWithId.serialize(sf)))
   }
 
   override lazy val binValues: Seq[RowValue] = {
+    import AccumuloWritableIndex.{BinColumnFamily, EmptyColumnQualifier}
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
     val rowOpt = for {
       encoder <- binEncoder
       trackId <- sft.getBinTrackId

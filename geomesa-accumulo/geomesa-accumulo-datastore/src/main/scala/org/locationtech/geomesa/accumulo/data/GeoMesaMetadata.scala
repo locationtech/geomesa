@@ -104,15 +104,6 @@ object GeoMesaMetadata {
   val VERSION_KEY         = "version"
   val SCHEMA_ID_KEY       = "id"
 
-  val ATTR_IDX_TABLE_KEY  = "tables.idx.attr.name"
-  val RECORD_TABLE_KEY    = "tables.record.name"
-  val Z2_TABLE_KEY        = "tables.z2.name"
-  val Z3_TABLE_KEY        = "tables.z3.name"
-  val XZ2_TABLE_KEY       = "tables.xz2.name"
-  val XZ3_TABLE_KEY       = "tables.xz3.name"
-  @deprecated
-  val ST_IDX_TABLE_KEY    = "tables.idx.st.name"
-
   val STATS_GENERATION_KEY   = "stats-date"
   val STATS_INTERVAL_KEY     = "stats-interval"
 }

@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.utils.geotools
 
 import java.nio.charset.StandardCharsets
-import java.util.{Date, Locale}
+import java.util.Date
 
 import com.typesafe.config.Config
 import com.vividsolutions.jts.geom._
@@ -22,6 +22,7 @@ import org.joda.time.DateTime
 import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
 import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
+import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.index.VisibilityLevel.{apply => _, _}
 import org.locationtech.geomesa.utils.stats.Cardinality._
@@ -142,7 +143,7 @@ object RichAttributeDescriptors {
     }
     def isKeepStats(): Boolean = Option(ad.getUserData.get(OPT_STATS)).exists(_ == "true")
 
-    def isIndexValue(): Boolean = Option(ad.getUserData.get(OPT_INDEX_VALUE)).contains("true")
+    def isIndexValue(): Boolean = Option(ad.getUserData.get(OPT_INDEX_VALUE)).exists(_ == "true")
 
     def setCardinality(cardinality: Cardinality): Unit =
       ad.getUserData.put(OPT_CARDINALITY, cardinality.toString)
@@ -153,7 +154,7 @@ object RichAttributeDescriptors {
 
     def setBinTrackId(opt: Boolean): Unit = ad.getUserData.put(OPT_BIN_TRACK_ID, opt.toString)
 
-    def isBinTrackId: Boolean = Option(ad.getUserData.get(OPT_BIN_TRACK_ID)).contains("true")
+    def isBinTrackId: Boolean = Option(ad.getUserData.get(OPT_BIN_TRACK_ID)).exists(_ == "true")
 
     def setCollectionType(typ: Class[_]): Unit = ad.getUserData.put(USER_DATA_LIST_TYPE, typ)
 
@@ -221,6 +222,8 @@ object RichSimpleFeatureType {
   // in general we store everything as strings so that it's easy to pass to accumulo iterators
   implicit class RichSimpleFeatureType(val sft: SimpleFeatureType) extends AnyVal {
 
+    import SimpleFeatureTypes.INDEX_VERSIONS
+
     def getGeomField: String = {
       val gd = sft.getGeometryDescriptor
       if (gd == null) null else gd.getLocalName
@@ -285,12 +288,16 @@ object RichSimpleFeatureType {
       Array.empty[Byte]
     }
 
-    // gets suffixes of enabled tables
-    def getEnabledTables: Seq[String] =
-      userData[String](SimpleFeatureTypes.ENABLED_INDEXES).map(_.split(",").map(_.trim).filter(_.length > 0).toSeq)
-          .getOrElse(List.empty)
-    def setEnabledTables(tables: Seq[String]): Unit =
-      sft.getUserData.put(SimpleFeatureTypes.ENABLED_INDEXES, tables.mkString(","))
+    // gets (name, version, mode) of enabled indices
+    def getIndices: Seq[(String, Int, IndexMode)] = {
+      def toTuple(string: String): (String, Int, IndexMode) = {
+        val Array(n, v, m) = string.split(":")
+        (n, v.toInt, new IndexMode(m.toInt))
+      }
+      userData[String](INDEX_VERSIONS).map(_.split(",").map(toTuple).toSeq).getOrElse(List.empty)
+    }
+    def setIndices(indices: Seq[(String, Int, IndexMode)]): Unit =
+      sft.getUserData.put(INDEX_VERSIONS, indices.map { case (n, v, m) => s"$n:$v:${m.flag}"}.mkString(","))
 
     def setUserDataPrefixes(prefixes: Seq[String]): Unit = sft.getUserData.put(USER_DATA_PREFIX, prefixes.mkString(","))
     def getUserDataPrefixes: Seq[String] =

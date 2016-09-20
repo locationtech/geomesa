@@ -276,6 +276,123 @@ features), you must explicitly enable "mixed" indexing mode with ``geomesa.mixed
     String spec = "name:String,dtg:Date,*geom:Geometry:srid=4326;geomesa.mixed.geometries='true'";
     SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
 
+.. _index_upgrades:
+
+Upgrading Existing Indices
+--------------------------
+
+GeoMesa often makes updates to indexing formats to improve query and write performance. However,
+the index format for a given schema is fixed when it is first created. Updating GeoMesa versions
+will provide bug fixes and new features, but will not update existing data to new index formats.
+
+The following tables show the different indices available for different versions of GeoMesa. If not
+known, the schema version for a feature type can be checked by examining the user data value
+``geomesa.version``, or by scanning the Accumulo catalog table for ``version``. For GeoMesa schemas
+created with 1.2.7 or later, the version of each index is tracked separately and the overall schema
+version is no longer maintained.
+
+Schema version 4 - 1.0.0-rc.7
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
++-----------+---------+----------------------------------------------------------------------------+
+| Index     | Version | Notes                                                                      |
++===========+=========+============================================================================+
+| GeoHash   | 1       | Used for most queries                                                      |
++-----------+---------+----------------------------------------------------------------------------+
+| Record    | 1       | Used for queries on feature ID                                             |
++-----------+---------+----------------------------------------------------------------------------+
+| Attribute | 1       | Used for attribute queries (when configured)                               |
++-----------+---------+----------------------------------------------------------------------------+
+
+Schema version 5 - 1.1.0-rc.1 through 1.1.0-rc.2
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
++-----------+---------+----------------------------------------------------------------------------+
+| Index     | Version | Notes                                                                      |
++===========+=========+============================================================================+
+| Z3        | 1       | Replaces GeoHash index for spatio-temporal queries on point geometries     |
++-----------+---------+----------------------------------------------------------------------------+
+| GeoHash   | 1       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+| Record    | 1       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+| Attribute | 1       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+
+Schema version 6 - 1.1.0-rc.3 through 1.2.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
++-----------+---------+----------------------------------------------------------------------------+
+| Index     | Version | Notes                                                                      |
++===========+=========+============================================================================+
+| Z3        | 1       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+| GeoHash   | 1       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+| Record    | 1       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+| Attribute | 2       | Added a composite date index and improved row-key collisions               |
++-----------+---------+----------------------------------------------------------------------------+
+
+
+Schema version 7 - 1.2.1
+^^^^^^^^^^^^^^^^^^^^^^^^
+
++-----------+---------+----------------------------------------------------------------------------+
+| Index     | Version | Notes                                                                      |
++===========+=========+============================================================================+
+| Z3        | 2       | Added support for non-point geometries and sharding for improved ingestion |
++-----------+---------+----------------------------------------------------------------------------+
+| GeoHash   | 1       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+| Record    | 1       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+| Attribute | 2       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+
+
+Schema version 8 - 1.2.2 through 1.2.4
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
++-----------+---------+----------------------------------------------------------------------------+
+| Index     | Version | Notes                                                                      |
++===========+=========+============================================================================+
+| Z3        | 2       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+| Z2        | 1       | Spatial only index to replace GeoHash index                                |
++-----------+---------+----------------------------------------------------------------------------+
+| Record    | 1       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+| Attribute | 2       |                                                                            |
++-----------+---------+----------------------------------------------------------------------------+
+
+Schema version 10 - 1.2.5+
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
++-----------+---------+----------------------------------------------------------------------------+
+| Index     | Version | Notes                                                                      |
++===========+=========+============================================================================+
+| Z3        | 3       | Support for attribute-level visibilities and improved feature ID encoding  |
++-----------+---------+----------------------------------------------------------------------------+
+| Z2        | 2       | Support for attribute-level visibilities and improved feature ID encoding  |
++-----------+---------+----------------------------------------------------------------------------+
+| XZ3       | 1       | Spatio-temporal index with improved support for non-point geometries       |
++-----------+---------+----------------------------------------------------------------------------+
+| XZ2       | 1       | Spatial index with improved support for non-point geometries               |
++-----------+---------+----------------------------------------------------------------------------+
+| Record    | 2       | Support for attribute-level visibilities and improved feature ID encoding  |
++-----------+---------+----------------------------------------------------------------------------+
+| Attribute | 3       | Support for attribute-level visibilities and improved feature ID encoding  |
++-----------+---------+----------------------------------------------------------------------------+
+
+Using the GeoMesa command line tools, you can add or update an index to a newer version using ``add-index``.
+For example, you could add the XZ3 index to replace the Z3 index for a feature type with non-point geometries.
+The command will populate the new index using a distributed job. For large data sets, you can choose to
+only populate features matching a CQL filter (e.g. the last month), or choose to not populate any
+data. The update is seamless, and clients can continue to query and ingest while it runs.
+
+See :ref:`add_index_command` for more details on the command line tools.
+
 .. _accumulo_visibilities:
 
 Accumulo Visibilities
@@ -321,13 +438,6 @@ Attribute-Level Visibilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For more advanced use cases, visibilities can be set at the attribute level.
-
-.. warning::
-
-    Attribute level visibilities is an experimental feature and currently does not support all query types.
-    Errors or data leaks may occur if the default date or geometry are not returned from a query
-    due to visibilities. Future versions of GeoMesa may not support the current attribute level visibilities.
-
 Attribute-level visibilities must be enabled when creating your simple feature type by setting
 the appropriate user data value:
 

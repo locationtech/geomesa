@@ -20,9 +20,9 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.QueryHints
-import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
-import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
+import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.feature.simple.SimpleFeatureType
@@ -49,13 +49,13 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
   def getDensity(sftName: String,
                  query: String,
                  envelope: Option[Envelope] = None,
-                 strategy: Option[StrategyType] = None): List[(Double, Double, Double)] = {
+                 strategy: Option[AccumuloFeatureIndex] = None): List[(Double, Double, Double)] = {
     val q = new Query(sftName, ECQL.toFilter(query))
     val geom = envelope.getOrElse(q.getFilter.accept(ExtractBoundsFilterVisitor.BOUNDS_VISITOR, null).asInstanceOf[Envelope])
     q.getHints.put(QueryHints.DENSITY_BBOX_KEY, new ReferencedEnvelope(geom, DefaultGeographicCRS.WGS84))
     q.getHints.put(QueryHints.WIDTH_KEY, 500)
     q.getHints.put(QueryHints.HEIGHT_KEY, 500)
-    strategy.foreach(s => q.getHints.put(QueryHints.QUERY_STRATEGY_KEY, s))
+    strategy.foreach(s => q.getHints.put(QueryHints.QUERY_INDEX_KEY, s))
     val decode = KryoLazyDensityIterator.decodeResult(geom, 500, 500)
     ds.getFeatureSource(sftName).getFeatures(q).features().flatMap(decode).toList
   }
@@ -108,7 +108,7 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
 
       "with record index" >> {
         val q = "INCLUDE"
-        val density = getDensity(sft.getTypeName, q, Some(new Envelope(-180, 180, -90, 90)), Some(StrategyType.RECORD))
+        val density = getDensity(sft.getTypeName, q, Some(new Envelope(-180, 180, -90, 90)), Some(RecordIndex))
 
         density.length must beLessThan(150)
         density.map(_._3).sum mustEqual 150

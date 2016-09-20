@@ -16,10 +16,10 @@ import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.commons.codec.binary.Base64
 import org.geotools.data.Query
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.QueryHints._
+import org.locationtech.geomesa.accumulo.index.QueryPlan.FeatureFunction
 import org.locationtech.geomesa.accumulo.index.QueryPlanner.SFIter
-import org.locationtech.geomesa.accumulo.index.QueryPlanners._
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.stats._
@@ -57,13 +57,13 @@ object KryoLazyStatsIterator extends LazyLogging {
   val StatsSft = SimpleFeatureTypes.createType("stats:stats", "stats:String,geom:Geometry")
 
   def configure(sft: SimpleFeatureType,
-                table: GeoMesaTable,
+                index: AccumuloFeatureIndex,
                 filter: Option[Filter],
                 hints: Hints,
                 deduplicate: Boolean,
                 priority: Int = DEFAULT_PRIORITY): IteratorSetting = {
     val is = new IteratorSetting(priority, "stats-iter", classOf[KryoLazyStatsIterator])
-    KryoLazyAggregatingIterator.configure(is, sft, table, filter, deduplicate, None)
+    KryoLazyAggregatingIterator.configure(is, sft, index, filter, deduplicate, None)
     is.addOption(STATS_STRING_KEY, hints.get(STATS_KEY).asInstanceOf[String])
     is
   }

@@ -249,7 +249,14 @@ Heatmaps
 --------
 
 Use a heatmap to more clearly visualize a high volume of data in the
-same location. Add the
+same location.
+
+.. note::
+
+    The heatmap style requires that ``geomesa-process`` be installed in your
+    GeoServer, as described in :ref:`install_geomesa_process`.
+
+Add the
 :download:`heatmap.sld <_static/geomesa-quickstart-storm/heatmap.sld>` file to
 GeoServer, then browse to the following URL:
 

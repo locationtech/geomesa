@@ -8,19 +8,17 @@
 
 package org.locationtech.geomesa.accumulo
 
-import com.typesafe.scalalogging.Logger
 import com.vividsolutions.jts.geom.Envelope
-import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
+import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.factory.Hints
 import org.geotools.factory.Hints.{ClassKey, IntegerKey}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.Strategy.CostEvaluation
-import org.locationtech.geomesa.accumulo.index.Strategy.CostEvaluation.CostEvaluation
-import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType._
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
+import org.locationtech.geomesa.accumulo.index.QueryPlanner.CostEvaluation
+import org.locationtech.geomesa.accumulo.index.QueryPlanner.CostEvaluation.CostEvaluation
 import org.opengis.feature.simple.SimpleFeatureType
-import org.slf4j.LoggerFactory
 
 import scala.languageFeature.implicitConversions
 
@@ -28,6 +26,7 @@ import scala.languageFeature.implicitConversions
  * These are package-wide constants.
  */
 package object index {
+
   // constrain these dates to the range GeoMesa can index (four-digit years)
   val MIN_DATE = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.forID("UTC"))
   val MAX_DATE = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.forID("UTC"))
@@ -36,7 +35,7 @@ package object index {
 
   object QueryHints {
     val RETURN_SFT_KEY       = new ClassKey(classOf[SimpleFeatureType])
-    val QUERY_STRATEGY_KEY   = new ClassKey(classOf[StrategyType])
+    val QUERY_INDEX_KEY      = new ClassKey(classOf[AccumuloFeatureIndex])
     val COST_EVALUATION_KEY  = new ClassKey(classOf[CostEvaluation])
 
     val DENSITY_BBOX_KEY     = new ClassKey(classOf[ReferencedEnvelope])
@@ -67,8 +66,8 @@ package object index {
       import org.locationtech.geomesa.accumulo.GeomesaSystemProperties.QueryProperties.QUERY_COST_TYPE
 
       def getReturnSft: SimpleFeatureType = hints.get(RETURN_SFT_KEY).asInstanceOf[SimpleFeatureType]
-      def getRequestedStrategy: Option[StrategyType] =
-        Option(hints.get(QUERY_STRATEGY_KEY).asInstanceOf[StrategyType])
+      def getRequestedIndex: Option[AccumuloFeatureIndex] =
+        Option(hints.get(QUERY_INDEX_KEY).asInstanceOf[AccumuloFeatureIndex])
       def getCostEvaluation: CostEvaluation = {
         Option(hints.get(COST_EVALUATION_KEY).asInstanceOf[CostEvaluation])
             .orElse(QUERY_COST_TYPE.option.flatMap(t => CostEvaluation.values.find(_.toString.equalsIgnoreCase(t))))
@@ -102,58 +101,6 @@ package object index {
         hints.getTransformDefinition.flatMap(d => hints.getTransformSchema.map((d, _)))
       def isExactCount: Option[Boolean] = Option(hints.get(EXACT_COUNT)).map(_.asInstanceOf[Boolean])
     }
-  }
-
-  trait ExplainerOutputType {
-    private var indent = ""
-    def apply(s: => String): ExplainerOutputType = { output(s"$indent$s"); this }
-    def apply(s: => String, c: => Seq[String]): ExplainerOutputType = {
-      output(s"$indent$s")
-      val ci = c // don't evaluate strings twice
-      if (ci.nonEmpty) { pushLevel(); ci.foreach(s => output(s"$indent$s")); popLevel() } else this
-    }
-    def pushLevel(): ExplainerOutputType = { indent += "  "; this }
-    def pushLevel(s: => String): ExplainerOutputType = { apply(s); pushLevel(); this }
-    def popLevel(): ExplainerOutputType = { indent = indent.substring(2); this }
-    def popLevel(s: => String): ExplainerOutputType = { popLevel(); apply(s); this }
-    protected def output(s: => String)
-  }
-
-  object ExplainerOutputType {
-    def toString(r: AccRange) = {
-      val first = if (r.isStartKeyInclusive) "[" else "("
-      val last =  if (r.isEndKeyInclusive) "]" else ")"
-      val start = Option(r.getStartKey).map(_.toStringNoTime).getOrElse("-inf")
-      val end = Option(r.getEndKey).map(_.toStringNoTime).getOrElse("+inf")
-      first + start + ", " + end + last
-    }
-  }
-
-  class ExplainPrintln extends ExplainerOutputType {
-    override def output(s: => String): Unit = println(s)
-  }
-
-  object ExplainNull extends ExplainerOutputType {
-    override def apply(s: => String): ExplainerOutputType = this
-    override def pushLevel(): ExplainerOutputType = this
-    override def pushLevel(s: => String): ExplainerOutputType = this
-    override def popLevel(): ExplainerOutputType = this
-    override def popLevel(s: => String): ExplainerOutputType = this
-    override def output(s: => String): Unit = {}
-  }
-
-  class ExplainString extends ExplainerOutputType {
-    private val string: StringBuilder = new StringBuilder()
-    override def output(s: => String): Unit = string.append(s).append("\n")
-    override def toString = string.toString()
-  }
-
-  class ExplainLogging extends ExplainerOutputType {
-    override def output(s: => String): Unit = ExplainLogging.logger.trace(s)
-  }
-
-  object ExplainLogging {
-    private val logger = Logger(LoggerFactory.getLogger(classOf[QueryPlanner]))
   }
 }
 
