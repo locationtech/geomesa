@@ -38,6 +38,8 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
   def isDistributedUrl(url: String) = remotePrefixes.exists(url.startsWith)
 
   override def execute(): Unit = {
+    if (params.featureName != null && params.featureName.contains("~"))
+      throw new ParameterException("Feature name is not permitted to contain a '~'")
     ensureSameFs(remotePrefixes)
 
     val fmtParam = Option(params.format).flatMap(f => Try(Formats.withName(f.toLowerCase(Locale.US))).toOption)
