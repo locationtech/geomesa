@@ -177,7 +177,10 @@ org.apache.hadoop:hadoop-common	2.5.2	provided
 org.apache.hbase:hbase-client	1.1.5	provided
 org.apache.hbase:hbase-common	1.1.5	provided
 org.apache.hbase:hbase-protocol	1.1.5	provided
+org.apache.kafka:kafka_2.11	0.10.0.1	provided
 org.apache.kafka:kafka_2.11	0.8.2.1	provided
+org.apache.kafka:kafka_2.11	0.9.0.1	provided
+org.apache.kafka:kafka-clients	0.10.0.1	provided
 org.apache.spark:spark-catalyst_2.11	2.0.0	provided
 org.apache.spark:spark-core_2.11	2.0.0	provided
 org.apache.spark:spark-sql_2.11	2.0.0	provided
@@ -191,7 +194,10 @@ org.apache.accumulo:accumulo-test	1.7.2	test
 org.apache.camel:camel-netty4	2.15.1	test
 org.apache.cassandra:cassandra-all	3.0.0	test
 org.apache.curator:curator-test	2.7.1	test
+org.apache.kafka:kafka_2.11	test:0.10.0.1	test
 org.apache.kafka:kafka_2.11	test:0.8.2.1	test
+org.apache.kafka:kafka_2.11	test:0.9.0.1	test
+org.apache.kafka:kafka-clients	test:0.10.0.1	test
 org.cassandraunit:cassandra-unit	2.2.2.1	test
 org.codehaus.groovy:groovy-jsr223	2.4.5	test
 org.geotools:gt-geometry	15.1	test

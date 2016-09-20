@@ -26,9 +26,8 @@
     <modules>
         <module>geomesa-kafka-datastore-common</module>
         <module>geomesa-kafka-08-datastore</module>
-        <!-- these are disabled and built with profiles -Pkafka09 and -Pkafka10 pending CQs -->
-        <!--<module>geomesa-kafka-09-datastore</module>-->
-        <!--<module>geomesa-kafka-10-datastore</module>-->
+        <module>geomesa-kafka-09-datastore</module>
+        <module>geomesa-kafka-10-datastore</module>
     </modules>
 
     <dependencyManagement>
