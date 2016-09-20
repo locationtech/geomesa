@@ -169,7 +169,7 @@ This discussion of the algorithm is coarse, in part because its role in
 the overall query process has been simplified to streamline the
 explanation in this short note. The full version as used within the
 query planner can be found nested inside the
-`getUniqueGeohashSubstringsInPolygon <https://github.com/locationtech/geomesa/blob/master/geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/geohash/GeohashUtils.scala#L937>`__
+`getUniqueGeohashSubstringsInPolygon <https://github.com/locationtech/geomesa/tree/geomesa_2.11-1.3.0-m0/geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/geohash/GeohashUtils.scala#L937>`__
 method, where it enables GeoMesa to enumerate the unique substrings of
 larger Geohashes quickly and efficiently, expediting the entire
 query-planning process.
