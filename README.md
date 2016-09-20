@@ -123,6 +123,9 @@ From the root directory, the commands above will build JARs for each sub-project
 ## GeoMesa Project Structure
 
 * [**geomesa-accumulo**](geomesa-accumulo/geomesa-accumulo-datastore): the implementations of the core Accumulo indexing structures, Accumulo iterators, and the GeoTools interfaces for exposing the functionality as a `DataStore` to both application developers and GeoServer. Assembles a jar with dependencies that must be distributed to Accumulo tablet servers lib/ext directory or to an HDFS directory where Accumulo's VFSClassLoader can pick it up.
+* [**geomesa-accumulo-compute**](geomesa-accumulo/geomesa-accumulo-compute): utilities for working with distributed computing environments. Currently, there are methods for instantiating an Apache Spark Resilient Distributed Dataset from a CQL query against data stored in GeoMesa. Eventually, this project will contain bindings for traditional map-reduce processing and other environments.
+* [**geomesa-accumulo-jobs**](geomesa-accumulo/geomesa-accumulo-jobs): map/reduce for maintaining GeoMesa.
+* [**geomesa-accumulo-raster**](geomesa-accumulo/geomesa-accumulo-raster): adds support for ingesting and working with geospatially-referenced raster data in GeoMesa.
 * [**geomesa-blobstore**](geomesa-blobstore): an Accumulo-based store  designed to store and retrieve files which have spatio-temporal data associated with them. 
 * [**geomesa-convert**](geomesa-convert): a configurable and extensible library for converting data into SimpleFeatures.
 * [**geomesa-features**](geomesa-features): includes code for serializing SimpleFeatures and custom SimpleFeature implementations designed for GeoMesa.

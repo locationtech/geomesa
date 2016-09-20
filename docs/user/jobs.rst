@@ -2,7 +2,7 @@ GeoMesa Jobs
 ============
 
 This project (``geomesa-accumulo/geomesa-accumulo-jobs`` in the source distribution) contains Map-Reduce
-and Scalding jobs for maintaining GeoMesa Accumulo.
+jobs for maintaining GeoMesa Accumulo.
 
 Building Instructions
 ---------------------

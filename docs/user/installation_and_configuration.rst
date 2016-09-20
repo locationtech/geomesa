@@ -223,8 +223,7 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_HOME`` an
     directory, not the main geomesa binary distribution directory!
 
 .. note::
- environment variable to load any
-    additional jars into the classpath.
+
     ``geomesa`` will read the ``$ACCUMULO_HOME`` and ``$HADOOP_HOME`` environment variables to load the
     appropriate JAR files for Hadoop, Accumulo, Zookeeper, and Thrift. If possible, we recommend
     installing the tools on the Accumulo master server, as you may also need various configuration
@@ -326,7 +325,7 @@ In the ``geomesa-kafka-$KAFKAVERSION_2.11-$VERSION`` directory, run ``bin/geomes
 .. code-block:: bash
 
     ### in geomesa-kafka-$KAFKAVERSION_2.11-$VERSION:
-    $ bin/geomesa-kafka configur
+    $ bin/geomesa-kafka configure
     Using GEOMESA_KAFKA_HOME as set: /path/to/geomesa-kafka-$KAFKAVERSION_2.11-$VERSION
     Is this intentional? Y\n y
     Warning: GEOMESA_LIB already set, probably by a prior configuration.
@@ -365,31 +364,16 @@ Test the command that invokes the GeoMesa Tools:
 
     $ geomesa-kafka
     Using GEOMESA_KAFKA_HOME = /path/to/geomesa-kafka-$KAFKAVERSION_2.11-$VERSION
-    Usage: geomesa [command] [command options]
+    Usage: geomesa-kafka [command] [command options]
       Commands:
-        create           Create a feature definition in a GeoMesa catalog
-        deletecatalog    Delete a GeoMesa catalog completely (and all features in it)
-        deleteraster     Delete a GeoMesa Raster Table
-        describe         Describe the attributes of a given feature in GeoMesa
-        env              Examine the current GeoMesa environment
-        explain          Explain how a GeoMesa query will be executed
-        export           Export a GeoMesa feature
-        getsft           Get the SimpleFeatureType of a feature
-        help             Show help
-        ingest           Ingest a file of various formats into GeoMesa
-        ingestraster     Ingest a raster file or raster files in a directory into GeoMesa
-        keywords         Add/remove keywords on an existing schema
-        list             List GeoMesa features for a given catalog
-        queryrasterstats Export queries and statistics about the last X number of queries to a CSV file.
-        removeschema     Remove a schema and associated features from a GeoMesa catalog
-        stats-analyze    Analyze statistics on a GeoMesa feature type
-        stats-bounds     View bounds on attributes in a GeoMesa schema
-        stats-count      View feature counts in a GeoMesa schema
-        stats-enumerate  Enumerate attribute values in a GeoMesa feature type
-        stats-histogram  View statistics on a GeoMesa feature type
-        tableconf        Perform table configuration operations
-        version          GeoMesa Version
-
+        create          Create a feature definition in GeoMesa
+        describe        Describe the attributes of a given feature in GeoMesa
+        help            Show help
+        keywords        Add/Remove/List keywords on an existing schema
+        list            List GeoMesa features for a given zkPath
+        listen          Listen to a GeoMesa Kafka topic
+        removeschema    Remove a schema and associated features from GeoMesa
+        version         Display the installed GeoMesa version
 
 GeoMesa Tools comes bundled by default with an SLF4J implementation that is installed to the ``$GEOMESA_KAFKA_HOME/lib`` directory
 named ``slf4j-log4j12-1.7.5.jar``. If you already have an SLF4J implementation installed on your Java classpath you may

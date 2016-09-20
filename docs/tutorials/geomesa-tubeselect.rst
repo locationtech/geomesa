@@ -47,7 +47,7 @@ Because this tutorial requires building custom Java code, development
 tools should also be installed and configured:
 
 -  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
--  `Apache Maven <http://maven.apache.org/>`__ 3.2.2 or better, and
+-  `Apache Maven <http://maven.apache.org/>`__ |maven_version|, and
 -  a `git <http://git-scm.com/>`__ client.
 
 Using the GeoServer Plugin

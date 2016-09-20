@@ -31,7 +31,7 @@ Prerequisites
 -  an instance of GeoServer version 2.8.1 with the GeoMesa Kafka plugin
    installed,
 -  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
--  `Apache Maven <http://maven.apache.org/>`__ 3.2.2 or better, and
+-  `Apache Maven <http://maven.apache.org/>`__ |maven_version|, and
 -  a `git <http://git-scm.com/>`__ client.
 
 In order to install the GeoMesa Kafka GeoServer plugin, follow the
