@@ -38,7 +38,7 @@ Versions and Downloads
 
 .. TODO: substitutions don't work in some kinds of markup, including URLs
 
-* Accumulo release tarball: |release_tarball|
+* Accumulo release tarball: |release_tarball_accumulo|
 * Kafka 08 release tarball: |release_tarball_kafka08|
 * Source: |release_source_tarball|
 
@@ -276,31 +276,17 @@ Test the command that invokes the GeoMesa Tools:
         tableconf        Perform table configuration operations
         version          GeoMesa Version
 
+.. note::
 
-GeoMesa Tools comes bundled by default with an SLF4J implementation that is installed to the ``$GEOMESA_HOME/lib`` directory
-named ``slf4j-log4j12-1.7.5.jar``. If you already have an SLF4J implementation installed on your Java classpath you may
-see errors at runtime and will have to exclude one of the JARs. This can be done by simply renaming the bundled
-``slf4j-log4j12-1.7.5.jar`` file to ``slf4j-log4j12-1.7.5.jar.exclude``.
- 
-Note that if no slf4j implementation is installed you will see this error:
-
-.. code::
-
-    SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
-    SLF4J: Defaulting to no-operation (NOP) logger implementation
-    SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
-
-In this case you may download SLF4J from http://www.slf4j.org/download.html. Extract 
-``slf4j-log4j12-1.7.7.jar`` and place it in the ``lib/common`` directory of the binary distribution.
-If this conflicts with another SLF4J implementation, you may need to remove it from the ``lib/common`` directory.
+    See :ref:`slf4j_configuration` for information about configuring the SLF4J implementation.
 
 Kafka Tools
 ^^^^^^^^^^^
 
 .. note::
 
-    These instructions assume the use of Kafka 08 but the instructions are identical from Kafka 9 and 10.
-    Just replace the version number with the appropriate value for your installation. ( $KAFKAVERSION = 08, 09 or 10 )
+    These instructions assume the use of Kafka 0.8.x but the instructions are identical for Kafka 0.9.x and 0.10.x.
+    Just replace the version number with the appropriate value for your installation. ( ``$KAFKAVERSION`` = 08, 09 or 10 )
 
 GeoMesa comes with a set of command line tools for managing kafka features. For Kafka 08 a binary distribution is available and the tools are located in ``geomesa-kafka-08-dist_2.11-$VERSION-bin.tar.gz/bin/``. For Kafka 09 and 10 only the source distribution is available. After building from source (:ref:`building_from_source`) the Kafka tools are located in ``geomesa-kafka/geomesa-kafka-dist/geomesa-kafka-$KAFKAVERSION-dist/target/geomesa-kafka-$KAFKAVERSION_2.11-$VERSION-bin.tar.gz``.
 
@@ -375,10 +361,15 @@ Test the command that invokes the GeoMesa Tools:
         removeschema    Remove a schema and associated features from GeoMesa
         version         Display the installed GeoMesa version
 
-GeoMesa Tools comes bundled by default with an SLF4J implementation that is installed to the ``$GEOMESA_KAFKA_HOME/lib`` directory
-named ``slf4j-log4j12-1.7.5.jar``. If you already have an SLF4J implementation installed on your Java classpath you may
-see errors at runtime and will have to exclude one of the JARs. This can be done by simply renaming the bundled
-``slf4j-log4j12-1.7.5.jar`` file to ``slf4j-log4j12-1.7.5.jar.exclude``.
+.. _slf4j_configuration:
+
+SLF4J Configuration
+^^^^^^^^^^^^^^^^^^^
+
+GeoMesa Tools comes bundled by default with an SLF4J implementation that is installed to the ``$GEOMESA_HOME/lib``
+or ``$GEOMESA_KAFKA_HOME/lib`` directory named ``slf4j-log4j12-1.7.5.jar``. If you already have an SLF4J implementation
+installed on your Java classpath you may see errors at runtime and will have to exclude one of the JARs. This can be
+done by simply renaming the bundled ``slf4j-log4j12-1.7.5.jar`` file to ``slf4j-log4j12-1.7.5.jar.exclude``.
 
 Note that if no slf4j implementation is installed you will see this error:
 
@@ -554,7 +545,7 @@ For Kafka
 The GeoMesa GeoServer plugin for Kafka |kafka_version| is found in the ``geomesa-kafka-$KAFKAVERSION-gs-plugin-$VERSION-install.tar.gz``
 file in ``geomesa-kafka-$KAFKAVERSION-gs-plugin/dist/gs-plugins/`` in the binary distribution, or is built in
 the ``geomesa-$VERSION/geomesa-gs-plugin/geomesa-kafka-gs-plugin/geomesa-kafka-$KAFKAVERSION-gs-plugin/target/``
-directory of the source distribution. ( $KAFKAVERSION = |kafka_version| )
+directory of the source distribution. ( ``$KAFKAVERSION`` = |kafka_version| )
 
 The GeoMesa GeoServer plugin for Kafka 0.8 is found in ``geomesa-kafka-08-gs-plugin-$VERSION-install.tar.gz``
 (downloaded here: |release_kafka08_plugin|), or is built in the

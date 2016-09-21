@@ -299,8 +299,8 @@ additional arguments:
 
 .. note::
 
-    Replace $KAFKAVERSION below with the appropriate version number for your environment: 08, 09, or 10.
-    e.g. org.locationtech.geomesa.kafka08.KafkaGeoMessageFormatter
+    Replace ``$KAFKAVERSION`` below with the appropriate version number for your environment: 08, 09, or 10.
+    e.g. ``org.locationtech.geomesa.kafka08.KafkaGeoMessageFormatter``
 
 .. code-block:: bash
 

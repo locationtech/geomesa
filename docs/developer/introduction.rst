@@ -45,7 +45,7 @@ list of dependent libraries that will be bundled together for each module of the
     to deploy files rather than setting the classpath. If you would rather not bundle these 
     dependencies, mark them as "provided" in the POM, and update your classpath as appropriate.
 
-The version of Accumulo supported in GeoMesa 1.3.x is Accumulo |accumulo_version|:
+The versions of Accumulo supported in GeoMesa 1.3.x are Accumulo |accumulo_version|:
 
 .. code-block:: bash
 
@@ -58,9 +58,9 @@ to omit the test phase of the build process:
 
     $ mvn clean install -DskipTests=true
 
-To compile for Kafka 09, Kafka 10, hbase or bigtable use the respective profile `kafka09`, `kafka10`, `hbase`, or `bigtable`.
+To compile for Kafka 09, Kafka 10, hbase, or bigtable use the respective profile `kafka09`, `kafka10`, `hbase`, or `bigtable`.
 
-.. clode-block:: bash
+.. code-block:: bash
 
     $ mvn clean install -Pkafka09
 
