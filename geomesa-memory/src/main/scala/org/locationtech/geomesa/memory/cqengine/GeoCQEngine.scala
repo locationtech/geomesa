@@ -19,7 +19,7 @@ import com.googlecode.cqengine.index.unique.UniqueIndex
 import com.googlecode.cqengine.{ConcurrentIndexedCollection, IndexedCollection}
 import com.googlecode.cqengine.query.option.DeduplicationStrategy
 import com.googlecode.cqengine.query.{QueryFactory, Query}
-import com.googlecode.cqengine.query.simple.All
+import com.googlecode.cqengine.query.simple.{Equal, All}
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.memory.cqengine.index.GeoIndex
@@ -31,7 +31,8 @@ import org.opengis.filter._
 
 import scala.collection.JavaConversions._
 
-class GeoCQEngine(sft: SimpleFeatureType) extends LazyLogging {
+class GeoCQEngine(sft: SimpleFeatureType,
+                  enableFidIndex: Boolean = false) extends LazyLogging {
   //val cqcache = CQIndexingOptions.buildIndexedCollection(sft)
   val cqcache: IndexedCollection[SimpleFeature] = new ConcurrentIndexedCollection[SimpleFeature]()
   val attributes = SFTAttributes(sft)
@@ -39,6 +40,8 @@ class GeoCQEngine(sft: SimpleFeatureType) extends LazyLogging {
   // Add Geometry index on default geometry first.
   // TODO: Add logic to allow for the geo-index to be disabled?  (Low priority)
   addGeoIndex(sft.getGeometryDescriptor)
+
+  if (enableFidIndex) addFidIndex()
 
   // Add other indexes
   sft.getAttributeDescriptors.foreach {addIndex(_)}
@@ -57,6 +60,19 @@ class GeoCQEngine(sft: SimpleFeatureType) extends LazyLogging {
 
   def clear(): Unit = {
     cqcache.clear()
+  }
+
+  def getById(id: String): Option[SimpleFeature] = {
+    // if this gets used, set enableFidIndex=true
+    cqcache.retrieve(new Equal(SFTAttributes.fidAttribute, id)).headOption
+  }
+
+  def update(sf: SimpleFeature): Boolean = {
+    getById(sf.getID) match {
+      case Some(oldsf) => cqcache.remove(oldsf)
+      case None =>
+    }
+    cqcache.add(sf)
   }
 
   // NB: We expect that FID filters have been handled previously
