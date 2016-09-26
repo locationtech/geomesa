@@ -29,6 +29,7 @@ import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.accumulo.index.z2.Z2Index
 import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, TestData}
+import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction}
 import org.locationtech.geomesa.index.utils.ExplainString
@@ -278,6 +279,15 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         val result = ds.getFeatureSource(sftName).getFeatures(query).features().toList
         result must beEmpty
       }
+    }
+
+    "handle ANDed Filter.INCLUDE" in {
+      val filter = ff.and(Filter.INCLUDE,
+        ECQL.toFilter("dtg DURING 2010-05-07T12:00:00.000Z/2010-05-07T13:00:00.000Z and bbox(geom,40,44,50,54)"))
+      val reader = ds.getFeatureReader(new Query(defaultSft.getTypeName, filter), Transaction.AUTO_COMMIT)
+      val features = SelfClosingIterator(reader).toList
+      features must haveLength(1)
+      features.head.getID mustEqual "fid-1"
     }
 
     "avoid deduplication when possible" in {
