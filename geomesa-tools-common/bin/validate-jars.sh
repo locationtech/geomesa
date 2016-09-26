@@ -32,6 +32,10 @@ if [[ "$1" == "--help" || "$1" == "-h" || $# -eq 0 ]]; then
   echo "  -i,--install         Install jars from the plugin-dir to the Geoserver lib-dir"
   echo "  -u,--uninstall       Remove jars from the Geoserver lib-dir that are in the plugin-dir."
   echo "                       Note this will only uninstall jars with an exact version match."
+  echo "  -r,--repair          Attempts to uninstall Geomesa's Geoserver plugins and then re-install them."
+  echo "                       This differs from --upgrade by using fuzzy version matching to remove any jar"
+  echo "                       related to this version of Geomesa. This may cause issues with other software"
+  echo "                       running on this Geoserver that requires certain versions of jars."
   echo "  -v,--validate        Reports if the installed jars match the jars in the given gs-plugin dir."
   echo ""
   exit 0
@@ -71,6 +75,10 @@ else
         cc=$(expr $cc + 1)
         command="uninstall"
       ;;
+      -r|--repair)
+        cc=$(expr $cc + 1)
+        command="repair"
+      ;;
       -v|--validate)
         cc=$(expr $cc + 1)
         command="validate"
@@ -84,6 +92,11 @@ else
     shift
   done
   # Parameter error checking
+  if [[ ! "${cc}" == "1" ]]; then
+    echo "Invalid argument set. Must use one and only one option. "
+    echo "${usage}"
+    exit 1
+  fi
   if [[ ! -d "${install_dir}" ]]; then
     echo "Invalid Geoserver plugin install dir"
     echo "${usage}"
@@ -94,13 +107,8 @@ else
     echo "${usage}"
     exit 1
   fi
-  if [[ -n "${old_gs_plugin_dir}" && ! -d "${old_gs_plugin_dir}" ]]; then
+  if [[ "${command}" == "upgrade" && ! -d "${old_gs_plugin_dir}" ]]; then
     echo "Invalid old Geomesa-Geoserver plugin source dir"
-    echo "${usage}"
-    exit 1
-  fi
-  if [[ ! "${cc}" == "1" ]]; then
-    echo "Invalid argument set. Must use one and only one option. "
     echo "${usage}"
     exit 1
   fi
@@ -129,6 +137,12 @@ gs_plugin_jars=($(echo "${gs_plugin_jars[@]}" | tr ' ' '\n' | sort -u | tr '\n' 
 installed_jars=($(echo "${installed_jars[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
 
 # Functions
+function containsElement() {
+  local var
+  for var in "${@:2}"; do [[ "${var}" == "$1" ]] && return 0; done
+  return 1
+}
+
 function removeJars() {
   install_dir="${1}"
   jars=("${@}")
@@ -155,9 +169,9 @@ function addJars() {
   tar_options=()
 
   # Collect tars
-  pushd "${gs_plugin_dir}" # Temp use this dir so pwd gives full path to tar
+  pushd "${gs_plugin_dir}" > /dev/null# Temp use this dir so pwd gives full path to tar
     gs_plugin_tars=($(find `pwd` -type f -name *.tar.gz | sed -e 's/\n/ /g'))
-  popd
+  popd > /dev/null
   for tar in "${gs_plugin_tars[@]}"; do
     tar_option="$(echo "$(basename $tar)" | sed -e 's/.tar.gz//' -e 's/-install//' -e 's/geomesa-//')"
     tar_options=("${tar_options[@]}" "${tar_option}")
@@ -177,7 +191,7 @@ function addJars() {
   if [[ "${options[0]}" =~ ^(a|A) ]]; then
     for tar in "${gs_plugin_tars[@]}"; do
       echo "Installing $(basename $tar)"
-      tar -xf "${gs_plugin_tars[$option]}" -C "${install_dir}"
+      tar -xf "${tar}" -C "${install_dir}"
     done
   else
     for option in "${options[@]}"; do
@@ -188,6 +202,15 @@ function addJars() {
   echo "Done"
 }
 
+function stripVersion() {
+  jar_list=("${!1}")
+  jar_list_nv=()
+  for jar in "${jar_list[@]}"; do
+    jar_list_nv="${jar_list_nv[@]} $(echo "${jar}" | sed 's/\(-[0-9]\(\.[0-9]\)*-\?[-.0-9a-zA-Z]*\).jar$//')"
+  done
+  echo "${jar_list_nv[@]}"
+}
+
 function buildComparison() {
   jar_list_1=("${!1}")
   jar_list_2=("${!2}")
@@ -195,15 +218,8 @@ function buildComparison() {
   matching=()
   mismatching=()
   notmatching=()
-  jar_list_1_nv=()
-  jar_list_2_nv=()
-  # Precompute no version matches (mismatched)
-  for jar in "${jar_list_1[@]}"; do
-    jar_list_1_nv=("${jar_list_1_nv[@]}" "$(echo "${jar}" | sed 's/\(-[0-9]\(\.[0-9]\)*-\?[-.0-9a-zA-Z]*\).jar$//')")
-  done
-  for jar in "${jar_list_2[@]}"; do
-    jar_list_2_nv=("${jar_list_2_nv[@]}" "$(echo "${jar}" | sed 's/\(-[0-9]\(\.[0-9]\)*-\?[-.0-9a-zA-Z]*\).jar$//')")
-  done
+  jar_list_1_nv=($(stripVersion jar_list_1[@]))
+  jar_list_2_nv=($(stripVersion jar_list_2[@]))
 
   echo "Building Jar Comparison"
   for i in "${!jar_list_1[@]}"; do
@@ -250,7 +266,8 @@ function printArrs() {
   notmatching=("${!3}")
 
   # Print matching results
-  echo "=========== Matching ==========${NL}"
+  echo "=========== Matching =========="
+  echo "These jars were found in both locations${NL}"
   for match in "${matching[@]}"; do
     echo "${match}"
   done
@@ -286,7 +303,13 @@ function printArrs() {
 
   # Print notmatching results
   echo "${NL}"
-  echo "======== Not matching =========${NL}"
+  echo "======== Not matching ========="
+  # Print direction info
+  if [[ "${direction}" == "forward" ]]; then
+    echo "Other installed jars${NL}"
+  else
+    echo "These jars available for install${NL}"
+  fi
   for notmatch in "${notmatching[@]}"; do
     echo "${notmatch}"
   done
@@ -299,9 +322,9 @@ if [[ "${command}" == "compare" ]]; then
 elif [[ "${command}" == "upgrade" ]]; then
   # Get lists of jars in old geomesa-gs-plugin tars
   echo "Collecting old geomesa-gs-plugin Jars"
-  pushd "${old_gs_plugin_dir}"
+  pushd "${old_gs_plugin_dir}" > /dev/null
     old_gs_plugin_tars=$(find `pwd` -type f -name *.tar.gz)
-  popd
+  popd > /dev/null
   for tar_path in $gs_plugin_tars; do
     old_gs_plugin_jars=("${old_gs_plugin_jars[@]}" $(tar tf "${tar_path}"))
   done
@@ -315,6 +338,45 @@ elif [[ "${command}" == "install" ]]; then
   addJars "${install_dir}" "${gs_plugin_dir}"
 elif [[ "${command}" == "uninstall" ]]; then
   removeJars "${install_dir}" "${gs_plugin_jars[@]}"
+elif [[ "${command}" == "repair" ]]; then
+  echo "Attempting to repair Geomesa's Geosever plugins"
+  read -p "Are you sure you want to continue? This cannot be undone. [y/N]" confirm
+  confirm=${confirm,,}
+  if [[ $confirm =~ ^(yes|y) ]]; then
+    echo "${NL}"
+    echo "Removing:"
+    # Uninstall jars
+    gs_plugin_jars_nv=($(stripVersion gs_plugin_jars[@]))
+    installed_jars_nv=($(stripVersion installed_jars[@]))
+    for i in "${!gs_plugin_jars[@]}"; do
+      for j in "${!installed_jars[@]}"; do
+        # Look for a fuzzy match for all installed jars and remove them
+        if [[ "${gs_plugin_jars_nv[$i]}" == "${installed_jars_nv[$j]}" ]]; then
+          echo "${installed_jars[$j]}"
+          rm -f "${install_dir}/${installed_jars[$j]}"
+          add_list=("${add_list[@]}" "${gs_plugin_jars[$i]}") # add_list may have duplicate jars
+        fi
+      done
+    done
+    echo "${NL}"
+    echo "Installing:"
+    # Install jars
+    for tar_path in $gs_plugin_tars; do
+      # Look in each tar for a jar we removed and if one is found install the whole tar
+      jar_list=($(tar tf "${tar_path}"))
+      install_tar="false"
+      for j in "${!add_list[@]}"; do
+        if containsElement "${add_list[$j]}" "${jar_list[@]}"; then
+          install_tar="true"
+          break
+        fi
+      done
+      if [[ "${install_tar}" == "true" ]]; then
+        echo "$(basename ${tar_path})"
+        tar -xf "${tar_path}" -C "${install_dir}"
+      fi
+    done
+  fi
 elif [[ "${command}" == "validate" ]]; then
   # Use this order so notmatching contains missing jars
   buildComparison gs_plugin_jars[@] installed_jars[@]
