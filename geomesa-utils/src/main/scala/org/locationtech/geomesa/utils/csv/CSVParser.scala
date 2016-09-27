@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.csv
+package org.locationtech.geomesa.utils.csv
 
 import java.lang.{Double => jDouble, Integer => jInt}
 import java.util.Date

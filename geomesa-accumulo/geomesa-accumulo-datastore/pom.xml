@@ -76,10 +76,6 @@
             <artifactId>gt-render</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-process-feature</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.vividsolutions</groupId>
             <artifactId>jts</artifactId>
         </dependency>
@@ -94,10 +90,6 @@
         <dependency>
             <groupId>org.calrissian.mango</groupId>
             <artifactId>mango-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-csv</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
