@@ -47,7 +47,8 @@ class AddAttributeIndexCommand(parent: JCommander) extends CommandWithCatalog(pa
 
     } catch {
       case e: Exception =>
-        logger.error(s"Exception encountered running attribute index command. Check hadoop's job history logs for more information: " + e.getMessage, e)
+        logger.error(s"Exception encountered running attribute index command. " +
+          s"Check hadoop's job history logs for more information if necessary: " + e.getMessage, e)
     }
   }
 }
