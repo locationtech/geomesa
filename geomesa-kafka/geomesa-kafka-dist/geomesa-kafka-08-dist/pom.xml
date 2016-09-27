@@ -42,14 +42,6 @@
             </exclusions>
         </dependency>
 
-        <!-- Correct for excluded kafka -->
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_${scala.binary.version}</artifactId>
-            <version>${kafka.08.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
         <!-- Kafka Datastore -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>

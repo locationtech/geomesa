@@ -323,20 +323,6 @@
             </pluginRepositories>
         </profile>
         <profile>
-            <id>kafka09</id>
-            <modules>
-                <module>geomesa-kafka/geomesa-kafka-dist/geomesa-kafka-09-dist</module>
-                <module>geomesa-gs-plugin/geomesa-kafka-gs-plugin/geomesa-kafka-09-gs-plugin</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>kafka10</id>
-            <modules>
-                <module>geomesa-kafka/geomesa-kafka-dist/geomesa-kafka-10-dist</module>
-                <module>geomesa-gs-plugin/geomesa-kafka-gs-plugin/geomesa-kafka-10-gs-plugin</module>
-            </modules>
-        </profile>
-        <profile>
             <id>hbase</id>
             <modules>
                 <module>geomesa-hbase/geomesa-dist-hbase</module>

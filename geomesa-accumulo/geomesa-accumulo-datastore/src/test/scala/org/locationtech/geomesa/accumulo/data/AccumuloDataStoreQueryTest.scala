@@ -68,6 +68,21 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       "and there are no results" >> { features.hasNext must beFalse }
     }
 
+    "process an exclude query correctly" in {
+      val fs = ds.getFeatureSource(defaultSft.getTypeName)
+
+      val query = new Query(defaultSft.getTypeName, Filter.EXCLUDE)
+
+      ds.getQueryPlan(query) must beEmpty
+
+      val features = fs.getFeatures(query).features
+      try {
+        features.hasNext must beFalse
+      } finally {
+        features.close()
+      }
+    }
+
     "process a DWithin query correctly" in {
       // compose a CQL query that uses a polygon that is disjoint with the feature bounds
       val geomFactory = JTSFactoryFinder.getGeometryFactory
