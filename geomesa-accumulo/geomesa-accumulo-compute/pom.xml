@@ -49,12 +49,6 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-epsg-wkt</artifactId>
-            <version>${gt.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
             <groupId>org.apache.metamodel</groupId>
             <artifactId>MetaModel-pojo</artifactId>
             <version>4.3.6</version>
