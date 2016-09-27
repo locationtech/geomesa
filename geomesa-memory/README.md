@@ -44,20 +44,20 @@ To enable an index on an attribute, add the ``cq-index`` option in the
 ``SimpleFeatureType`` schema:
 
     foo:String:cq-index=default,*geom:Point:srid=4326
-    
+
 The default geometry field is geo-indexed by default and does not require
 an option.
-    
+
 There are several arguments for the ``cq-index`` option that control
 the type of index that is built:
 
  * ``default`` - let the module pick based on attribute type
  * ``navigable`` - indexes equality, greater than or less than; for numeric types and ``Date``
- * ``radix``- indexes for string matching operations (String)
- * ``unique``- indexes fields (String, Int, Long) guaranteed to have unique values
+ * ``radix``- indexes for string matching operations (``String``)
+ * ``unique``- indexes fields (``String``, ``Int``, ``Long``) guaranteed to have unique values
                (CQEngine will throw an exception if duplicate values are present
                for this attribute)
- * ``hash`` - use for equality on enumerable fields (String, Int, Long)
+ * ``hash`` - use for equality on enumerable fields (``String``, ``Int``, ``Long``)
  * ``none`` - no index
  
 The default is ``none``. CQEngine will iterate over the whole collection
