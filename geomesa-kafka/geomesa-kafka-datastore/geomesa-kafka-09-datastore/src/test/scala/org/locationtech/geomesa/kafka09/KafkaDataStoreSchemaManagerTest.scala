@@ -17,6 +17,7 @@ import org.geotools.data.store.{ContentDataStore, ContentEntry}
 import org.geotools.feature.NameImpl
 import org.joda.time.{Duration, Instant}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.kafka.{ReplayConfig, KafkaDataStoreHelper}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType

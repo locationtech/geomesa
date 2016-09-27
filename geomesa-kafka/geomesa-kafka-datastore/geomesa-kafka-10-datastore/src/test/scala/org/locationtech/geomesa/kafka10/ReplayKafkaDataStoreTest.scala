@@ -16,6 +16,7 @@ import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.{DataStore, Query}
 import org.joda.time.Instant
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.kafka._
 import org.locationtech.geomesa.kafka10.KafkaDataStoreFactoryParams._
 import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
