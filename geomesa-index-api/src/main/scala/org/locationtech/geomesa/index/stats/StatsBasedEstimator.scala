@@ -264,7 +264,14 @@ trait StatsBasedEstimator {
         } else {
           val (equalsBounds, rangeBounds) = bounds.values.map(_.bounds).partition { case (l, r) => l == r }
           val equalsCount = if (equalsBounds.isEmpty) { Some(0L) } else {
-            estimateEqualsCount(sft, attribute, equalsBounds.map(_._1.get), loDate, hiDate)
+            // compare equals estimate with range estimate and take the smaller
+            val equals = estimateEqualsCount(sft, attribute, equalsBounds.map(_._1.get), loDate, hiDate)
+            val range  = estimateRangeCount(sft, attribute, equalsBounds)
+            (equals, range) match {
+              case (Some(e), Some(r)) => Some(math.min(e, r))
+              case (None, r) => r
+              case (e, None) => e
+            }
           }
           val rangeCount = if (rangeBounds.isEmpty) { Some(0L) } else {
             estimateRangeCount(sft, attribute, rangeBounds)
@@ -341,10 +348,6 @@ trait StatsBasedEstimator {
 
   /**
     * Estimates an equals predicate. Uses frequency (count min sketch) for estimated value.
-    * Frequency estimates will never return less than the actual number, but will often return more.
-    *
-    * Note: in our current stats, frequency has ~0.5% error rate based on the total number of features in the data set.
-    * The error will be multiplied by the number of values you are evaluating, which can lead to large error rates.
     *
     * @param sft simple feature type
     * @param attribute attribute to evaluate
@@ -363,7 +366,28 @@ trait StatsBasedEstimator {
       Range.inclusive(timeToBin(d1.getTime).bin, timeToBin(d2.getTime).bin).map(_.toShort)
     }
     val options = timeBins.getOrElse(Seq.empty)
-    stats.getStats[Frequency[Any]](sft, Seq(attribute), options).headOption.map(f => values.map(f.count).sum)
+    stats.getStats[Frequency[Any]](sft, Seq(attribute), options).headOption.map { freq =>
+      // frequency estimates will never return less than the actual number, but will often return more
+      // frequency has ~0.5% error rate based on the total number of features in the data set
+      // we adjust the raw estimate based on the absolute error rate
+      import CountEstimator.ErrorThresholds
+      val absoluteError = math.floor(freq.size * freq.eps)
+      val counts = if (absoluteError < 1.0) { values.map(freq.count) } else {
+        values.map { v =>
+          val estimate = freq.count(v)
+          if (estimate == 0L) {
+            0L
+          } else if (estimate > absoluteError) {
+            val relativeError = absoluteError / estimate
+            estimate - (ErrorThresholds.dropWhile(_ <= relativeError).head * 0.5 * absoluteError).toLong
+          } else {
+            val relativeError = estimate / absoluteError
+            (ErrorThresholds.dropWhile(_ < relativeError).head * 0.5 * estimate).toLong
+          }
+        }
+      }
+      counts.sum
+    }
   }
 
   /**
@@ -400,6 +424,8 @@ object CountEstimator {
 
   // we only need enough precision to cover the number of bins (e.g. 2^n == bins), plus 2 for unused bits
   val ZHistogramPrecision = math.ceil(math.log(GeoMesaStats.MaxHistogramSize) / math.log(2)).toInt + 2
+
+  val ErrorThresholds = Seq(0.1, 0.3, 0.5, 0.7, 0.9, 1.0)
 
   /**
     * Extracts date bounds from a filter. None is used to indicate a disjoint date range, otherwise
