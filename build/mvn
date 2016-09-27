@@ -91,8 +91,7 @@ install_zinc() {
 # the build/ folder
 install_scala() {
   # determine the Scala version used in Spark
-  local scala_version=`grep "scala.version" "${_DIR}/../pom.xml" | \
-                       head -1 | cut -f2 -d'>' | cut -f1 -d'<'`
+  local scala_version=`${MVN_BIN} -N help:evaluate -Dexpression=scala.version | grep -v '^\['`
   local scala_bin="${_DIR}/scala-${scala_version}/bin/scala"
 
   install_app \
