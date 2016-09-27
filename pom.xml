@@ -809,6 +809,18 @@
                 </exclusions>
             </dependency>
             <dependency>
+                <groupId>org.geotools.xsd</groupId>
+                <artifactId>gt-xsd-gml3</artifactId>
+                <version>${gt.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>javax.media</groupId>
+                        <artifactId>jai_core</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
                 <groupId>it.geosolutions.imageio-ext</groupId>
                 <artifactId>imageio-ext-gdalarcbinarygrid</artifactId>
                 <version>${imageio-ext.version}</version>

@@ -17,6 +17,7 @@
         <module>geomesa-feature-nio</module>
         <module>geomesa-feature-common</module>
         <module>geomesa-feature-all</module>
+        <module>geomesa-feature-avro-complex</module>
     </modules>
 
 </project>

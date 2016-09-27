@@ -84,6 +84,10 @@
             <artifactId>gt-data</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.geotools.xsd</groupId>
+            <artifactId>gt-xsd-gml3</artifactId>
+        </dependency>
+        <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
         </dependency>
