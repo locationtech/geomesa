@@ -50,5 +50,4 @@ trait AccumuloConnectionParams extends OptionalZookeepersParam {
 trait GeoMesaConnectionParams extends AccumuloConnectionParams {
   @Parameter(names = Array("-c", "--catalog"), description = "Catalog table name for GeoMesa", required = true)
   var catalog: String = null
-
 }
