@@ -7,6 +7,8 @@ com.drewnoakes:metadata-extractor	2.8.1	compile
 com.esotericsoftware.kryo:kryo	2.21	compile
 com.esotericsoftware.minlog:minlog	1.2	compile
 com.esotericsoftware.reflectasm:reflectasm	shaded:1.07	compile
+com.googlecode.concurrent-trees:concurrent-trees	2.6.0	compile
+com.googlecode.cqengine:cqengine	2.7.1	compile
 com.googlecode.efficient-java-matrix-library:core	0.26	compile
 com.google.code.gson:gson	2.3.1	compile
 com.googlecode.json-simple:json-simple	1.1	compile
@@ -74,6 +76,7 @@ net.java.dev.jsr-275:jsr-275	1.0-beta-2	compile
 net.minidev:asm	1.0.2	compile
 net.minidev:json-smart	2.1.1	compile
 net.sf.geographiclib:GeographicLib-Java	1.44	compile
+org.antlr:antlr4-runtime	4.5	compile
 org.apache.accumulo:accumulo-core	1.7.2	compile
 org.apache.accumulo:accumulo-fate	1.7.2	compile
 org.apache.accumulo:accumulo-start	1.7.2	compile

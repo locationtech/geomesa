@@ -24,10 +24,27 @@
     </properties>
 
     <modules>
+        <module>geomesa-kafka-datastore-common</module>
         <module>geomesa-kafka-08-datastore</module>
         <module>geomesa-kafka-09-datastore</module>
         <module>geomesa-kafka-10-datastore</module>
     </modules>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-kafka-datastore-common_2.11</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-kafka-datastore-common_2.11</artifactId>
+                <version>${project.version}</version>
+                <type>test-jar</type>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>
 
