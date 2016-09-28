@@ -19,6 +19,7 @@ import org.geotools.factory.Hints
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.FunctionExpressionImpl
+import org.geotools.filter.expression.PropertyAccessors
 import org.geotools.filter.visitor.BindingFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess
@@ -31,6 +32,7 @@ import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
 import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.accumulo.util.{CloseableIterator, DeDuplicatingIterator, SelfClosingIterator}
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
@@ -349,24 +351,31 @@ object QueryPlanner extends LazyLogging {
     }
 
   private def computeSchema(origSFT: SimpleFeatureType, transforms: Seq[Definition]): SimpleFeatureType = {
+    import scala.collection.JavaConversions._
     val descriptors: Seq[AttributeDescriptor] = transforms.map { definition =>
       val name = definition.name
       val cql  = definition.expression
       cql match {
         case p: PropertyName =>
-          if (!origSFT.getAttributeDescriptors.asScala.exists(_.getLocalName == p.getPropertyName)) {
-            throw new IllegalArgumentException(s"Attribute '${p.getPropertyName}' does not exist in SFT '${origSFT.getTypeName}'.")
-          }
-          val origAttr = origSFT.getDescriptor(p.getPropertyName)
-          val ab = new AttributeTypeBuilder()
-          ab.init(origAttr)
-          val descriptor = if (origAttr.isInstanceOf[GeometryDescriptor]) {
-            ab.buildDescriptor(name, ab.buildGeometryType())
-          } else {
+          val prop = p.getPropertyName
+          if (origSFT.getAttributeDescriptors.exists(_.getLocalName == prop)) {
+            val origAttr = origSFT.getDescriptor(prop)
+            val ab = new AttributeTypeBuilder()
+            ab.init(origAttr)
+            val descriptor = if (origAttr.isInstanceOf[GeometryDescriptor]) {
+              ab.buildDescriptor(name, ab.buildGeometryType())
+            } else {
+              ab.buildDescriptor(name, ab.buildType())
+            }
+            descriptor.getUserData.putAll(origAttr.getUserData)
+            descriptor
+          } else if (PropertyAccessors.findPropertyAccessors(new ScalaSimpleFeature("", origSFT), prop, null, null).nonEmpty) {
+            // note: we return String as we have to use a concrete type, but the json might return anything
+            val ab = new AttributeTypeBuilder().binding(classOf[String])
             ab.buildDescriptor(name, ab.buildType())
+          } else {
+            throw new IllegalArgumentException(s"Attribute '$prop' does not exist in SFT '${origSFT.getTypeName}'.")
           }
-          descriptor.getUserData.putAll(origAttr.getUserData)
-          descriptor
 
         case f: FunctionExpressionImpl  =>
           val clazz = f.getFunctionName.getReturn.getType

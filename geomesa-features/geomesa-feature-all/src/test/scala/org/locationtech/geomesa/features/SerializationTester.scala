@@ -16,7 +16,7 @@ import com.vividsolutions.jts.geom.{Point, Polygon}
 import org.apache.avro.io.{BinaryDecoder, BinaryEncoder, DecoderFactory, EncoderFactory}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.features.avro.{AvroSimpleFeature, AvroSimpleFeatureWriter, FeatureSpecificReader}
-import org.locationtech.geomesa.features.kryo.serialization.KryoFeatureSerializer
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
@@ -98,10 +98,10 @@ object SerializationTester {
     }
 
     def three() = {
-      val serializer = KryoFeatureSerializer(features(0).getType)
+      val serializer = new KryoFeatureSerializer(features(0).getType)
       features.map { f =>
-        val bytes = serializer.write(f)
-        val feat = serializer.read(bytes)
+        val bytes = serializer.serialize(f)
+        val feat = serializer.deserialize(bytes)
         assert(f.getAttributes == feat.getAttributes)
         bytes.size
       }.sum
