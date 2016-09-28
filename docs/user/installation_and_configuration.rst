@@ -336,15 +336,21 @@ the plugin. The GeoServer website includes `instructions for downloading and ins
     and ``-DEPSG-HSQL.directory=/tmp/$USER-hsql``
     as well. Be sure to restart Tomcat for changes to take place.
 
-Automatic Installation
-^^^^^^^^^^^^^^^^^^^^^^
+.. _install_accumulo_geoserver:
 
-To install GeoMesa's GeoServer plugin we can utilize the script ``validate-jars.sh`` in ``bin`` directory
+For Accumulo
+^^^^^^^^^^^^
+
+To install GeoMesa's GeoServer plugin we can utilize the script ``geoserver-plugins.sh`` in ``bin`` directory
 of the GeoMesa Accumulo or GeoMesa Hadoop distributions. (``$VERSION`` = |release|)
+
+.. note::
+
+    If $GEOSERVER_HOME is set, then the ``--lib-dir`` parameter is not needed.
 
 .. code-block:: bash
 
-    $ bin/validate-jars.sh /path/to/geoserver/WEB-INF/lib/ /path/to/geomesa/geomesa-gs-plugin/ --install
+    $ bin/geoserver-plugins.sh --lib-dir /path/to/geoserver/WEB-INF/lib/ --install
     Collecting Installed Jars
     Collecting geomesa-gs-plugin Jars
 
@@ -352,23 +358,17 @@ of the GeoMesa Accumulo or GeoMesa Hadoop distributions. (``$VERSION`` = |releas
     Multiple may be specified, eg: 1 4 10
     Type 'a' to specify all
     --------------------------------------
-    0 | cassandra-gs-plugin_2.11-$VERSION
-    1 | kafka-08-gs-plugin_2.11-$VERSION
-    2 | stats-gs-plugin_2.11-$VERSION
-    3 | accumulo-gs-plugin_2.11-$VERSION
-    4 | stream-gs-plugin_2.11-$VERSION
-    5 | blobstore-gs-plugin_2.11-$VERSION
-    Module(s) to install: 1 3
-    1 | Installing geomesa-kafka-08-gs-plugin_2.11-$VERSION-install.tar.gz
-    3 | Installing geomesa-accumulo-gs-plugin_2.11-$VERSION-install.tar.gz
+    0 | geomesa-accumulo-gs-plugin_2.11-$VERSION
+    1 | geomesa-blobstore-gs-plugin_2.11-$VERSION
+    2 | geomesa-process_2.11-$VERSION
+    3 | geomesa-stream-gs-plugin_2.11-$VERSION
+
+    Module(s) to install: 0 1
+    0 | Installing geomesa-accumulo-gs-plugin_2.11-$VERSION-install.tar.gz
+    1 | Installing geomesa-blobstore-gs-plugin_2.11-$VERSION-install.tar.gz
     Done
 
-.. _install_accumulo_geoserver:
-
-For Accumulo
-^^^^^^^^^^^^
-
-To install the GeoMesa Accumulo GeoServer plugin, unpack the contents of the
+If you prefer to install the GeoMesa Accumulo GeoServer plugin manually, unpack the contents of the
 ``geomesa-accumulo-gs-plugin-$VERSION.tar.gz`` file in ``geomesa-$VERSION/dist/gs-plugins``
 into your GeoServer's ``lib`` directory (``$VERSION`` = |release|):
 
@@ -483,8 +483,34 @@ Restart GeoServer after the JARs are installed.
 
 .. _install_kafka_geoserver:
 
-Manual Kafka Installation
-^^^^^^^^^^^^^^^^^^^^^^^^^
+For Kafka
+^^^^^^^^^
+
+To install GeoMesa's GeoServer plugin we can utilize the script ``geoserver-plugins.sh`` in ``bin`` directory
+of the GeoMesa Accumulo or GeoMesa Hadoop distributions. (``$VERSION`` = |release|)
+
+.. note::
+
+    If $GEOSERVER_HOME is set, then the ``--lib-dir`` parameter is not needed.
+
+.. code-block:: bash
+
+    $ bin/geoserver-plugins.sh --lib-dir /path/to/geoserver/WEB-INF/lib/ --install
+    Collecting Installed Jars
+    Collecting geomesa-gs-plugin Jars
+
+    Please choose which modules to install
+    Multiple may be specified, eg: 1 4 10
+    Type 'a' to specify all
+    --------------------------------------
+    0 | geomesa-kafka-$KAFKAVERSION-gs-plugin_2.11-$VERSION
+
+    Module(s) to install: 0
+    0 | Installing geomesa-kafka-$KAFKAVERSION-gs-plugin_2.11-$VERSION-install.tar.gz
+    Done
+
+If you prefer or need to manually install the GeoMesa GeoServer plugin you can follow the instructions below for
+your Kafka version.
 
 The GeoMesa GeoServer plugin for Kafka 0.8.2 is found in the ``geomesa-kafka-gs-plugin-$VERSION-install.tar.gz``
 file in ``geomesa-$VERSION/dist/gs-plugins`` in the binary distribution, or is built in

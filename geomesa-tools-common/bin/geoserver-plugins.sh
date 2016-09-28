@@ -17,7 +17,7 @@ HOME="\$%%gmtools.dist.name%%_HOME"
 
 NL=$'\n'
 TAB=$'\t'
-usage="usage: ./geoserver-plugins.sh [install_dir] [gs_plugin_dir] [<options>] | [-h|--help]"
+usage="usage: ./geoserver-plugins.sh [[install_dir] [gs_plugin_dir] [<options>]] | [<options>] | [-h|--help]"
 
 # Parse options
 if [[ "$1" == "--help" || "$1" == "-h" || $# -eq 0 ]]; then
@@ -79,10 +79,6 @@ else
       -u|--uninstall)
         cc=$(expr $cc + 1)
         command="uninstall"
-      ;;
-      -r|--repair)
-        cc=$(expr $cc + 1)
-        command="repair"
       ;;
       -v|--validate)
         cc=$(expr $cc + 1)
