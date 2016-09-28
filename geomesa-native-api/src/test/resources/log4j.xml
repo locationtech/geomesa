@@ -24,7 +24,7 @@
          from the index query-planner; this can be helpful in debugging
          query plans -->
     <!--
-    <category name="org.locationtech.geomesa.accumulo.index.QueryPlanner">
+    <category name="org.locationtech.geomesa.index.utils.Explainer">
         <priority value="trace"/>
     </category>
     -->
