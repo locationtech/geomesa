@@ -62,9 +62,14 @@ trait OptionalDTGParam {
   var dtgField: String = null
 }
 
-trait AttributesParam {
+trait OptionalAttributesParam {
   @Parameter(names = Array("-a", "--attributes"), description = "Attributes to evaluate (comma-separated)")
-  var attributes: String = null
+  var attributes: java.util.List[String] = null
+}
+
+trait AttributesParam {
+  @Parameter(names = Array("-a", "--attributes"), description = "Attributes to evaluate (comma-separated)", required = true)
+  var attributes: java.util.List[String] = null
 }
 
 trait ZookeepersParam {

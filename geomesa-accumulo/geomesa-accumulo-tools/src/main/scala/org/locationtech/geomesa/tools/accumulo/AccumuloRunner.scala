@@ -22,6 +22,7 @@ object AccumuloRunner extends Runner {
   override val scriptName: String = "geomesa"
 
   override val commands: List[Command] = List(
+    new AddAttributeIndexCommand(jc),
     new CreateCommand(jc),
     new DeleteCatalogCommand(jc),
     new DeleteFeaturesCommand(jc),

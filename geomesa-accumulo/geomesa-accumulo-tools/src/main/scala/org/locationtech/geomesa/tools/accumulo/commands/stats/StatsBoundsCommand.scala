@@ -13,7 +13,6 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.tools.accumulo.commands.CommandWithCatalog
-import org.locationtech.geomesa.tools.common.AttributesParam
 import org.locationtech.geomesa.utils.stats.{MinMax, Stat}
 import org.opengis.filter.Filter
 
