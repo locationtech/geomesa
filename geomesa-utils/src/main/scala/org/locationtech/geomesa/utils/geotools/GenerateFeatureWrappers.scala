@@ -74,6 +74,7 @@ object GenerateFeatureWrappers {
     import scala.collection.JavaConversions._
 
     val attrs = sft.getAttributeDescriptors.map(AttributeDetails(_, sft))
+    val sftName = sft.getTypeName()
 
     val sb = new StringBuilder()
     sb.append(s"${tab}implicit class ${sft.getTypeName}")
@@ -84,6 +85,10 @@ object GenerateFeatureWrappers {
       sb.append(s"$tab  ${a.optionGetter}\n")
       sb.append(s"$tab  ${a.setter}\n")
     }
+
+    sb.append(s"\n$tab  def getSimpleFeatureTypeName: String = ")
+    sb.append("\"" + sft.getTypeName + "\"\n")
+
     sb.append(
       s"""
         |$tab  def debug(): String = {

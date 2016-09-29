@@ -35,6 +35,8 @@ class GenerateFeatureWrappersTest extends Specification {
           |  def geomOpt(): Option[com.vividsolutions.jts.geom.Point] = Option(geom())
           |  def setGeom(x: com.vividsolutions.jts.geom.Point): Unit = sf.setAttribute(2, x)
           |
+          |  def getSimpleFeatureTypeName: String = "test1"
+          |
           |  def debug(): String = {
           |    import scala.collection.JavaConversions._
           |    val sb = new StringBuilder(s"${sf.getType.getTypeName}:${sf.getID}")
@@ -46,10 +48,10 @@ class GenerateFeatureWrappersTest extends Specification {
     }
 
     "support list and map types" in {
-      val sft = SimpleFeatureTypes.createType("test1", "attr:List[String],dtg:Map[String,Date],*geom:Point")
+      val sft = SimpleFeatureTypes.createType("test2", "attr:List[String],dtg:Map[String,Date],*geom:Point")
       val template = GenerateFeatureWrappers.buildClass(sft, "")
       val expected =
-        """implicit class test1(val sf: org.opengis.feature.simple.SimpleFeature) extends AnyVal {
+        """implicit class test2(val sf: org.opengis.feature.simple.SimpleFeature) extends AnyVal {
           |
           |  def attr(): java.util.List[java.lang.String] = sf.getAttribute(0).asInstanceOf[java.util.List[java.lang.String]]
           |  def attrOpt(): Option[java.util.List[java.lang.String]] = Option(attr())
@@ -63,6 +65,8 @@ class GenerateFeatureWrappersTest extends Specification {
           |  def geomOpt(): Option[com.vividsolutions.jts.geom.Point] = Option(geom())
           |  def setGeom(x: com.vividsolutions.jts.geom.Point): Unit = sf.setAttribute(2, x)
           |
+          |  def getSimpleFeatureTypeName: String = "test2"
+          |
           |  def debug(): String = {
           |    import scala.collection.JavaConversions._
           |    val sb = new StringBuilder(s"${sf.getType.getTypeName}:${sf.getID}")
@@ -74,10 +78,10 @@ class GenerateFeatureWrappersTest extends Specification {
     }
 
     "work with invalid attribute names" in {
-      val sft = SimpleFeatureTypes.createType("test1", "a#^2:String,@dt!g:Date,*geom:Point")
+      val sft = SimpleFeatureTypes.createType("test3", "a#^2:String,@dt!g:Date,*geom:Point")
       val template = GenerateFeatureWrappers.buildClass(sft, "")
       val expected =
-        """implicit class test1(val sf: org.opengis.feature.simple.SimpleFeature) extends AnyVal {
+        """implicit class test3(val sf: org.opengis.feature.simple.SimpleFeature) extends AnyVal {
           |
           |  def a__2(): java.lang.String = sf.getAttribute(0).asInstanceOf[java.lang.String]
           |  def a__2Opt(): Option[java.lang.String] = Option(a__2())
@@ -91,6 +95,8 @@ class GenerateFeatureWrappersTest extends Specification {
           |  def geomOpt(): Option[com.vividsolutions.jts.geom.Point] = Option(geom())
           |  def setGeom(x: com.vividsolutions.jts.geom.Point): Unit = sf.setAttribute(2, x)
           |
+          |  def getSimpleFeatureTypeName: String = "test3"
+          |
           |  def debug(): String = {
           |    import scala.collection.JavaConversions._
           |    val sb = new StringBuilder(s"${sf.getType.getTypeName}:${sf.getID}")
@@ -102,14 +108,14 @@ class GenerateFeatureWrappersTest extends Specification {
     }
 
     "generate a wrapper object" in {
-      val sft = SimpleFeatureTypes.createType("test1", "attr:String,dtg:Date,*geom:Point")
+      val sft = SimpleFeatureTypes.createType("test4", "attr:String,dtg:Date,*geom:Point")
       val template = GenerateFeatureWrappers.buildAllClasses(Seq(sft), "org.foo")
       val expected =
         """package org.foo
           |
           |object SimpleFeatureWrappers {
           |
-          |  implicit class test1(val sf: org.opengis.feature.simple.SimpleFeature) extends AnyVal {
+          |  implicit class test4(val sf: org.opengis.feature.simple.SimpleFeature) extends AnyVal {
           |
           |    def attr(): java.lang.String = sf.getAttribute(0).asInstanceOf[java.lang.String]
           |    def attrOpt(): Option[java.lang.String] = Option(attr())
@@ -122,6 +128,8 @@ class GenerateFeatureWrappersTest extends Specification {
           |    def geom(): com.vividsolutions.jts.geom.Point = sf.getAttribute(2).asInstanceOf[com.vividsolutions.jts.geom.Point]
           |    def geomOpt(): Option[com.vividsolutions.jts.geom.Point] = Option(geom())
           |    def setGeom(x: com.vividsolutions.jts.geom.Point): Unit = sf.setAttribute(2, x)
+          |
+          |    def getSimpleFeatureTypeName: String = "test4"
           |
           |    def debug(): String = {
           |      import scala.collection.JavaConversions._
