@@ -11,8 +11,7 @@ package org.locationtech.geomesa.tools.accumulo.commands
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.util.ToolRunner
-import org.locationtech.geomesa.jobs.GeoMesaArgs
-import org.locationtech.geomesa.jobs.index.AttributeIndexJob
+import org.locationtech.geomesa.jobs.index.{AttributeIndexArgs, AttributeIndexJob}
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.AddAttributeIndexCommand.AddIndexParameters
 import org.locationtech.geomesa.tools.common.{AttributesParam, FeatureTypeNameParam}
@@ -24,20 +23,19 @@ class AddAttributeIndexCommand(parent: JCommander) extends CommandWithCatalog(pa
   override def execute() = {
 
     try {
-      val attributeIndexJobParams = Map(
-        GeoMesaArgs.InputUser -> params.user,
-        GeoMesaArgs.InputPassword -> params.password,
-        GeoMesaArgs.InputInstanceId -> params.instance,
-        GeoMesaArgs.InputZookeepers -> params.zookeepers,
-        GeoMesaArgs.InputTableName -> params.catalog,
-        GeoMesaArgs.InputFeatureName -> params.featureName,
-        AttributeIndexJob.IndexAttributes -> params.attributes,
-        AttributeIndexJob.IndexCoverage -> params.coverage
-      ).filter(_._2 != null).flatMap(e => List(e._1, e._2)).toArray
+      val args = new AttributeIndexArgs(Array.empty)
+      args.inZookeepers = params.zookeepers
+      args.inInstanceId = params.instance
+      args.inUser       = params.user
+      args.inPassword   = params.password
+      args.inTableName  = params.catalog
+      args.inFeature    = params.featureName
+      args.coverage     = params.coverage
+      args.attributes.addAll(params.attributes)
 
       logger.info(s"Running map reduce index job for attributes: ${params.attributes} with coverage: ${params.coverage}...")
 
-      val result = ToolRunner.run(new AttributeIndexJob(), attributeIndexJobParams)
+      val result = ToolRunner.run(new AttributeIndexJob(), args.unparse())
 
       if (result == 0) {
         logger.info("Add attribute index command finished successfully.")

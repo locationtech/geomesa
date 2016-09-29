@@ -47,7 +47,7 @@ object AttributeIndexJob {
 class AttributeIndexArgs(args: Array[String]) extends GeoMesaArgs(args) with InputFeatureArgs with InputDataStoreArgs {
 
   @Parameter(names = Array(AttributeIndexJob.IndexAttributes), description = "Attributes to index", variableArity = true, required = true)
-  var attributes: java.util.List[String] = null
+  var attributes: java.util.List[String] = new java.util.ArrayList[String]()
 
   @Parameter(names = Array(AttributeIndexJob.IndexCoverage), description = "Type of index (join or full)")
   var coverage: String = null
