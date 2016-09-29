@@ -36,7 +36,7 @@ Prerequisites
 
 In order to install the GeoMesa Kafka GeoServer plugin, follow the
 instructions
-`here <https://github.com/locationtech/geomesa/tree/master/geomesa-gs-plugin/geomesa-kafka-gs-plugin>`__.
+`here <https://github.com/locationtech/geomesa/tree/master/geomesa-kafka/geomesa-kafka-gs-plugin>`__.
 
 Ensure your Kafka and Zookeeper instances are running. You can use
 Kafka's

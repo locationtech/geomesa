@@ -73,7 +73,7 @@ As of now the the BlobStore only provides an interface to an Accumulo backed Dat
 You should have already followed the instructions in :doc:`/user/installation_and_configuration` on how to setup GeoMesa.
 In particular the instructions on how to setup GeoServer with GeoMesa should have been followed before attempting to deploy the blobstore servlet.
 
-To deploy the BlobStore Servlet into your GeoServer, extract the contents of the ``geomesa-blobstore-gs-plugin_2.11-$VERSION.tar.gz`` file in ``dist/geoserver`` in the binary distribution or ``geomesa-$VERSION/geomesa-gs-plugin/geomesa-blobstore-gs-plugin/target`` in the source distribution.
+To deploy the BlobStore Servlet into your GeoServer, extract the contents of the ``geomesa-blobstore-gs-plugin_2.11-$VERSION.tar.gz`` file in ``dist/geoserver`` in the binary distribution or ``geomesa-$VERSION/geomesa-blobstore/geomesa-blobstore-gs-plugin/target`` in the source distribution.
 into your GeoServer's ``lib`` directory (``$VERSION`` = |release|):
 
 If you are using Tomcat:

@@ -178,7 +178,7 @@ Go into the build HBase GeoServer plugin module:
 
 ::
 
-    $ cd geomesa-gs-plugin/geomesa-hbase-gs-plugin/target
+    $ cd geomesa-hbase/geomesa-hbase-gs-plugin/target
 
 and extract the contents of the
 ``geomesa-hbase-gs-plugin_2.11-<version>-install.tar.gz`` file into

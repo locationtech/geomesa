@@ -25,7 +25,7 @@ You will need access to:
 
 In order to install the GeoMesa Accumulo GeoServer plugin, follow the
 instructions
-`here <https://github.com/locationtech/geomesa/tree/master/geomesa-gs-plugin/geomesa-accumulo-gs-plugin>`__.
+`here <https://github.com/locationtech/geomesa/tree/master/geomesa-accumulo/geomesa-accumulo-gs-plugin>`__.
 
 You will also need:
 

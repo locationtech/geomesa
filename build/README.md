@@ -126,14 +126,18 @@ From the root directory, the commands above will build JARs for each sub-project
 * [**geomesa-accumulo-compute**](geomesa-accumulo/geomesa-accumulo-compute): utilities for working with distributed computing environments. Currently, there are methods for instantiating an Apache Spark Resilient Distributed Dataset from a CQL query against data stored in GeoMesa. Eventually, this project will contain bindings for traditional map-reduce processing and other environments.
 * [**geomesa-accumulo-jobs**](geomesa-accumulo/geomesa-accumulo-jobs): map/reduce for maintaining GeoMesa.
 * [**geomesa-accumulo-raster**](geomesa-accumulo/geomesa-accumulo-raster): adds support for ingesting and working with geospatially-referenced raster data in GeoMesa.
-* [**geomesa-blobstore**](geomesa-blobstore): an Accumulo-based store  designed to store and retrieve files which have spatio-temporal data associated with them. 
+* [**geomesa-accumulo-gs-plugin**](geomesa-accumulo/geomesa-accumulo-gs-plugin): provides WFS and WMS support for GeoServer. Install by extracting into geoserver/WEB-INF/lib/.
+* [**geomesa-blobstore**](geomesa-blobstore): an Accumulo-based store  designed to store and retrieve files which have spatio-temporal data associated with them.
+* [**geomesa-cassandra**](geomesa-cassandra): an implementation of GeoMesa on Apache Cassandra.
+* [**geomesa-cassandra-gs-plugin**](geomesa-cassandra/geomesa-cassandra-gs-plugin): provides WFS and WMS support for GeoServer. Install by extracting into geoserver/WEB-INF/lib/.
 * [**geomesa-convert**](geomesa-convert): a configurable and extensible library for converting data into SimpleFeatures.
 * [**geomesa-features**](geomesa-features): includes code for serializing SimpleFeatures and custom SimpleFeature implementations designed for GeoMesa.
 * [**geomesa-filter**](geomesa-filter): a library for manipulating and working with GeoTools Filters.
-* [**geomesa-gs-plugin**](geomesa-gs-plugin): packages plugins which provide WFS and WMS support for various `DataStore` types including [**accumulo**](geomesa-gs-plugin/geomesa-accumulo-gs-plugin), [**bigtable**](geomesa-gs-plugin/geomesa-bigtable-gs-plugin), [**blobstore**](geomesa-gs-plugin/geomesa-blobstore-gs-plugin), [**cassandra**](geomesa-gs-plugin/geomesa-cassandra-gs-plugin), [**hbase**](geomesa-gs-plugin/geomesa-hbase-gs-plugin), [**kafka**](geomesa-gs-plugin/geomesa-kafka-gs-plugin), [**stats**](geomesa-gs-plugin/geomesa-stats-gs-plugin),and [**stream**](geomesa-gs-plugin/geomesa-stream-gs-plugin) DataStores. These are packaged as zip files and can be deployed in GeoServer by extracting their contents into geoserver/WEB-INF/lib/
 * [**geomesa-hbase**](geomesa-hbase): an implementation of GeoMesa on Apache HBase and Google Cloud Bigtable.
+* [**geomesa-hbase-gs-plugin**](geomesa-hbase/geomesa-hbase-gs-plugin): provides WFS and WMS support for GeoServer. Install by extracting into geoserver/WEB-INF/lib/.
 * [**geomesa-index-api**](geomesa-index-api): common structure and methods for indexing and querying simple features.
 * [**geomesa-kafka**](geomesa-kafka/geomesa-kafka-datastore): an implementation of GeoMesa in Kafka for maintaining near-real-time caches of streaming data.
+* [**geomesa-kafka-gs-plugin**](geomesa-kafka/geomesa-kafka-gs-plugin): provides WFS and WMS support for GeoServer. Install by extracting into geoserver/WEB-INF/lib/.
 * [**geomesa-logger**](geomesa-logger): logging facade for scala version compatibility.
 * [**geomesa-metrics**](geomesa-metrics): extensions and configuration for dropwizard metrics integration.
 * [**geomesa-native-api**](geomesa-native-api): a non-GeoTools-based API for persisting and querying data in GeoMesa Accumulo.

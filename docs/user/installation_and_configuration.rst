@@ -425,7 +425,7 @@ For Accumulo
 ^^^^^^^^^^^^
 
 To install the GeoMesa Accumulo GeoServer plugin, unpack the contents of the
-``geomesa-accumulo-gs-plugin_2.11-$VERSION-install.tar.gz`` file in ``geomesa-accumulo_2.11-$VERSION/dist/geoserver/`` in the binary distribution or ``geomesa-$VERSION/geomesa-gs-plugin/geomesa-accumulo-gs-plugin/target/`` in the source distribution
+``geomesa-accumulo-gs-plugin_2.11-$VERSION-install.tar.gz`` file in ``geomesa-accumulo_2.11-$VERSION/dist/geoserver/`` in the binary distribution or ``geomesa-$VERSION/geomesa-accumulo/geomesa-accumulo-gs-plugin/target/`` in the source distribution
 into your GeoServer's ``lib`` directory (``$VERSION`` = |release|):
 
 If you are using Tomcat:
@@ -544,12 +544,12 @@ For Kafka
 
 The GeoMesa GeoServer plugin for Kafka |kafka_version| is found in the ``geomesa-kafka-$KAFKAVERSION-gs-plugin-$VERSION-install.tar.gz``
 file in ``geomesa-kafka-$KAFKAVERSION-gs-plugin/dist/gs-plugins/`` in the binary distribution, or is built in
-the ``geomesa-$VERSION/geomesa-gs-plugin/geomesa-kafka-gs-plugin/geomesa-kafka-$KAFKAVERSION-gs-plugin/target/``
+the ``geomesa-$VERSION/geomesa-kafka/geomesa-kafka-gs-plugin/geomesa-kafka-$KAFKAVERSION-gs-plugin/target/``
 directory of the source distribution. ( ``$KAFKAVERSION`` = |kafka_version| )
 
 The GeoMesa GeoServer plugin for Kafka 0.8 is found in ``geomesa-kafka-08-gs-plugin-$VERSION-install.tar.gz``
 (downloaded here: |release_kafka08_plugin|), or is built in the
-``geomesa-gs-plugin/geomesa-kafka-gs-plugin/geomesa-kafka-08-gs-plugin`` directory of the source distribution.
+``geomesa-kafka/geomesa-kafka-gs-plugin/geomesa-kafka-08-gs-plugin`` directory of the source distribution.
 
 In either case, the contents of the appropriate archive should be unpacked in the GeoServer
 ``WEB-INF/lib`` directory. If you are using Tomcat:
@@ -606,7 +606,7 @@ For HBase
 
 The HBase GeoServer plugin is not bundled by default in the GeoMesa binary distribution
 and should be built from source. Download the source distribution (see
-:ref:`building_from_source`), go to the ``geomesa-gs-plugin/geomesa-hbase-gs-plugin``
+:ref:`building_from_source`), go to the ``geomesa-hbase/geomesa-hbase-gs-plugin``
 directory, and build the module using the ``hbase`` Maven profile:
 
 .. code-block:: bash
@@ -646,7 +646,7 @@ For Cassandra
 
 The Cassandra GeoServer plugin is not bundled by default in the GeoMesa binary distribution
 and should be built from source. Download the source distribution (see
-:ref:`building_from_source`), go to the ``geomesa-gs-plugin/geomesa-cassandra-gs-plugin``
+:ref:`building_from_source`), go to the ``geomesa-cassandra/geomesa-cassandra-gs-plugin``
 directory, and build the module:
 
 .. code-block:: bash
