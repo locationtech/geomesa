@@ -12,13 +12,15 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>geomesa-accumulo-datastore</module>
-        <module>geomesa-accumulo-distributed-runtime</module>
-        <module>geomesa-accumulo-raster</module>
-        <module>geomesa-accumulo-jobs</module>
         <module>geomesa-accumulo-compute</module>
-        <module>geomesa-accumulo-tools</module>
+        <module>geomesa-accumulo-datastore</module>
         <module>geomesa-accumulo-dist</module>
+        <module>geomesa-accumulo-distributed-runtime</module>
+        <module>geomesa-accumulo-gs-plugin</module>
+        <module>geomesa-accumulo-jobs</module>
+        <module>geomesa-accumulo-raster</module>
+        <module>geomesa-accumulo-stats-gs-plugin</module>
+        <module>geomesa-accumulo-tools</module>
     </modules>
 
 </project>

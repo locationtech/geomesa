@@ -16,7 +16,7 @@
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
 
-    <artifactId>geomesa-dist-hbase_2.11</artifactId>
+    <artifactId>geomesa-hbase-dist_2.11</artifactId>
     <name>GeoMesa HBase Distribution</name>
 
     <properties>

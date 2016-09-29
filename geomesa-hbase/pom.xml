@@ -13,6 +13,7 @@
 
     <modules>
         <module>geomesa-hbase-datastore</module>
+        <module>geomesa-hbase-gs-plugin</module>
     </modules>
 
 </project>
