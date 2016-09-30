@@ -13,7 +13,7 @@ Use of the Accumulo data store requires that the distributed runtime JAR be inst
 Bootstrapping GeoMesa Accumulo on Elastic Map Reduce
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A script to bootstrap GeoMesa Accumulo on an Elastic Map Reduce cluster is provided in ``geomesa-tools/emr4`` and on this public S3 bucket: `s3://elasticmapreduce-geomesa/ <http://s3.amazonaws.com/elasticmapreduce-geomesa/>`_. These rely on the EMR managed Hadoop and ZooKeeper applications. See ``geomesa-tools/emr4/README.md`` for more details on using these clusters. The command below launches a GeoMesa EMR cluster:
+A script to bootstrap GeoMesa Accumulo on an Elastic Map Reduce cluster is provided in ``geomesa-accumulo/geomesa-accumulo-tools/emr4`` and on this public S3 bucket: `s3://elasticmapreduce-geomesa/ <http://s3.amazonaws.com/elasticmapreduce-geomesa/>`_. These rely on the EMR managed Hadoop and ZooKeeper applications. See ``geomesa-accumulo/geomesa-accumulo-tools/emr4/README.md`` for more details on using these clusters. The command below launches a GeoMesa EMR cluster:
 
 .. code-block:: bash
 

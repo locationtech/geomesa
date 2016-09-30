@@ -55,7 +55,7 @@ Prerequisites
 
 Before you begin, you must have the following:
 
--  an instance of Accumulo 1.5 or 1.6 running on Hadoop 2.2.x
+-  an instance of Accumulo |accumulo_version| running on Hadoop |hadoop_version|
 -  an Accumulo user that has appropriate permissions to query your data
 -  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
 -  `Apache Maven <http://maven.apache.org/>`__ |maven_version|

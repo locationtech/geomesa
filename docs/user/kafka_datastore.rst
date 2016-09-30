@@ -1,7 +1,7 @@
 Kafka Data Store
 ================
 
-The GeoMesa Kafka Data Store is found in ``geomesa-kafka`` in the source
+The GeoMesa Kafka Data Store is found in ``geomesa-kafka/geomesa-kafka-datastore/geomesa-kafka-$KAFKAVERSION-datastore/`` in the source
 distribution.
 
 The ``KafkaDataStore`` is an implementation of the GeoTools
@@ -297,9 +297,14 @@ used with the ``kafka-console-consumer``, part of Apache Kafka. In order
 to use this formatter call the kafka-console consumer with these
 additional arguments:
 
+.. note::
+
+    Replace ``$KAFKAVERSION`` below with the appropriate version number for your environment: 08, 09, or 10.
+    e.g. ``org.locationtech.geomesa.kafka08.KafkaGeoMessageFormatter``
+
 .. code-block:: bash
 
-    --formatter org.locationtech.geomesa.kafka.KafkaGeoMessageFormatter
+    --formatter org.locationtech.geomesa.kafka$KAFKAVERSION.KafkaGeoMessageFormatter
     --property sft.name={sftName}
     --property sft.spec={sftSpec}
 
@@ -314,7 +319,7 @@ copy the geomesa-kafka-geoserver-plugin.jar to $KAFKA\_HOME/libs. Then
 create a copy of $KAFKA\_HOME/bin/kafka-console-consumer.sh called
 "kafka-ds-log-viewer" and in the copy replace the classname in the exec
 command at the end of the script with
-``org.locationtech.geomesa.kafka.KafkaDataStoreLogViewer``.
+``org.locationtech.geomesa.kafka$KAFKAVERSION.KafkaDataStoreLogViewer``.
 
 The ``KafkaDataStoreLogViewer`` requires three arguments:
 ``--zookeeper``, ``--zkPath``, and ``--sftName``. It also supports an

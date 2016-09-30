@@ -32,12 +32,14 @@ Versions and Downloads
 .. note::
 
     The current recommended version of GeoMesa to install is |release|.
+    For Kafka 09 and Kafka 10 download and build the source release. (:ref:`building_from_source`)
 
 **Latest release**: |release|
 
 .. TODO: substitutions don't work in some kinds of markup, including URLs
 
-* Release tarball: |release_tarball|
+* Accumulo release tarball: |release_tarball_accumulo|
+* Kafka 08 release tarball: |release_tarball_kafka08|
 * Source: |release_source_tarball|
 
 **Development version (source only)**: |development|
@@ -71,16 +73,16 @@ Installing from the Binary Distribution
 
 GeoMesa artifacts are available for download or can be built from source. 
 The easiest way to get started is to download the most recent binary version (``$VERSION`` = |release|) 
-and untar it somewhere convenient.
+and untar it somewhere convenient. For example, to download and prepare the geomesa-accumulo binary:
 
 .. code-block:: bash
 
     # download and unpackage the most recent distribution
-    $ wget http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-dist/$VERSION/geomesa-dist-$VERSION-bin.tar.gz
-    $ tar xvf geomesa-dist-$VERSION-bin.tar.gz
-    $ cd geomesa-$VERSION
+    $ wget http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-accumulo-dist/$VERSION/geomesa-accumulo-dist_2.11-$VERSION-bin.tar.gz
+    $ tar xvf geomesa-accumulo-dist_2.11-$VERSION-bin.tar.gz
+    $ cd geomesa-accumulo-dist_2.11-$VERSION
     $ ls
-    dist/  docs/  LICENSE.txt  README.md
+    bin/  conf/  dist/  docs/  emr4/  examples/  lib/  LICENSE.txt  logs/
 
 Building from Source
 --------------------
@@ -89,7 +91,7 @@ GeoMesa may also be built from source. For more information refer to :ref:`build
 in the :doc:`/developer/index`, or to the ``README.md`` file in the the
 source distribution. The remainder of the instructions in this chapter assume
 the use of the binary GeoMesa distribution. If you have built from source, the
-distribution is created in the ``geomesa-dist/target`` directory as a part of
+distribution is created in the ``/target`` directory of each respective module as a part of
 the build process.
 
 More information about developing with GeoMesa may be found in the :doc:`/developer/index`.
@@ -99,7 +101,7 @@ More information about developing with GeoMesa may be found in the :doc:`/develo
 Installing the Accumulo Distributed Runtime Library
 ---------------------------------------------------
 
-The ``geomesa-$VERSION/dist/accumulo`` directory contains the distributed
+The ``geomesa-accumulo-dist_2.11-$VERSION/dist/accumulo/`` directory contains the distributed
 runtime JAR that contains server-side code for Accumulo that must be made
 available on each of the Accumulo tablet servers in the cluster. This JAR
 contains GeoMesa code and the Accumulo iterator required for querying
@@ -109,8 +111,8 @@ The version of the distributed runtime JAR must match the version of the GeoMesa
 data store client JAR (usually installed in GeoServer; see below). If not,
 queries might not work correctly or at all.
 
-For Accumulo 1.5
-^^^^^^^^^^^^^^^^
+Manual Install
+^^^^^^^^^^^^^^
 
 The runtime JAR should be copied into the ``$ACCUMULO_HOME/lib/ext`` folder on
 each tablet server.
@@ -118,7 +120,7 @@ each tablet server.
 .. code-block:: bash
 
     # something like this for each tablet server
-    $ scp geomesa-$VERSION/dist/accumulo/geomesa-accumulo-distributed-runtime-$VERSION.jar tserver1:$ACCUMULO_HOME/lib/ext
+    $ scp geomesa-accumulo-dist_2.11-$VERSION/dist/accumulo/geomesa-accumulo-distributed-runtime_2.11-$VERSION.jar tserver1:$ACCUMULO_HOME/lib/ext
 
 .. note::
 
@@ -127,14 +129,15 @@ each tablet server.
 
 .. _install_accumulo_runtime_namespace:
 
-For Accumulo 1.6+
+Namespace Install
 ^^^^^^^^^^^^^^^^^
 
-Copying the runtime JAR to each tablet server as for Accumulo 1.5 above will
-still work, but in Accumulo 1.6, we can leverage namespaces to isolate the
-GeoMesa classpath from the rest of Accumulo.
+Copying the runtime JAR to each tablet server as above will work, but in
+Accumulo 1.6+, we can leverage namespaces to isolate the GeoMesa classpath
+from the rest of Accumulo.
 
-To install the distributed runtime JAR, use the ``install-geomesa-namespace.sh`` script in the ``geomesa-$VERSION/dist/accumulo`` directory.
+To install the distributed runtime JAR, use the ``install-geomesa-namespace.sh``
+script in the ``geomesa-accumulo-dist_2.11-$VERSION/dist/accumulo`` directory.
 
 .. code::
 
@@ -175,59 +178,48 @@ the same Accumulo instance. You should remove any GeoMesa JARs under
 Setting up the Command Line Tools
 ---------------------------------
 
-.. warning::
-
-    To use the Accumulo data store with the command line tools, you need to install
-    the distributed runtime first. See :ref:`install_accumulo_runtime`.
-
 .. note::
 
     The command line tools currently support the Accumulo and Kafka
     data stores.
 
-GeoMesa comes with a set of command line tools for managing features. To complete the setup 
-of the tools, `cd` into the ``dist/tools`` directory of the binary distribution and unpack the
-``geomesa-tools-$VERSION-bin.tar.gz`` file (``$VERSION`` = |release|).
+Accumulo Tools
+^^^^^^^^^^^^^^
 
-.. code-block:: bash
+.. warning::
 
-    $ cd geomesa-$VERSION/dist/tools
-    $ tar -xzvf geomesa-tools-$VERSION-bin.tar.gz
-    $ cd geomesa-tools-$VERSION
-    $ ls
-    bin/  conf/  examples/  lib/
+    To use the Accumulo data store with the command line tools, you need to install
+    the distributed runtime first. See :ref:`install_accumulo_runtime`.
 
-The instructions below assume that the ``geomesa-tools-$VERSION`` directory is kept in the 
-``geomesa-$VERSION/dist/tools`` directory, but the tools distribution may be moved elsewhere
-as desired.
+GeoMesa comes with a set of command line tools for managing accumulo features located in ``geomesa-accumulo_2.11-$VERSION/bin/`` of the binary distribution or ``geomesa-accumulo/geomesa-accumulo-dist/target/geomesa-accumulo_2.11-$VERSION/bin/`` of the source distribution.
 
 .. note::
 
-    You can configure environment variables and classpath settings in geomesa-tools-$VERSION/bin/geomesa-env.sh.
+    You can configure environment variables and classpath settings in geomesa-accumulo_2.11-$VERSION/bin/geomesa-env.sh.
 
-In the ``geomesa-tools-$VERSION`` directory, run ``bin/geomesa configure`` to set up the tools.
+In the ``geomesa-accumulo_2.11-$VERSION`` directory, run ``bin/geomesa configure`` to set up the tools.
 
 .. code-block:: bash
 
-    ### in geomesa-$VERSION/dist/tools/geomesa-tools-$VERSION:
+    ### in geomesa-accumulo_2.11-$VERSION/:
     $ bin/geomesa configure
-    Warning: GEOMESA_HOME is not set, using /path/to/geomesa-$VERSION/dist/tools/geomesa-tools-$VERSION
-    Using GEOMESA_HOME as set: /path/to/geomesa-$VERSION/dist/tools/geomesa-tools-$VERSION
+    Warning: GEOMESA_HOME is not set, using /path/to/geomesa-accumulo_2.11-$VERSION
+    Using GEOMESA_HOME as set: /path/to/geomesa-accumulo_2.11-$VERSION
     Is this intentional? Y\n y
     Warning: GEOMESA_LIB already set, probably by a prior configuration.
-    Current value is /path/to/geomesa-$VERSION/dist/tools/geomesa-tools-$VERSION/lib.
+    Current value is /path/to/geomesa-accumulo_2.11-$VERSION/lib.
 
     Is this intentional? Y\n y
 
     To persist the configuration please update your bashrc file to include: 
-    export GEOMESA_HOME=/path/to/geomesa-$VERSION/dist/tools/geomesa-tools-$VERSION
+    export GEOMESA_HOME=/path/to/geomesa-accumulo_2.11-$VERSION
     export PATH=${GEOMESA_HOME}/bin:$PATH
 
 Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_HOME`` and ``$PATH`` updates.
 
 .. warning::
 
-    Please note that the ``$GEOMESA_HOME`` variable points to the location of the ``geomesa-tools-$VERSION``
+    Please note that the ``$GEOMESA_HOME`` variable points to the location of the ``geomesa-accumulo_2.11-$VERSION``
     directory, not the main geomesa binary distribution directory!
 
 .. note::
@@ -235,8 +227,9 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_HOME`` an
     ``geomesa`` will read the ``$ACCUMULO_HOME`` and ``$HADOOP_HOME`` environment variables to load the
     appropriate JAR files for Hadoop, Accumulo, Zookeeper, and Thrift. If possible, we recommend
     installing the tools on the Accumulo master server, as you may also need various configuration
-    files from Hadoop/Accumulo in order to run certain commands. Use the ``geomesa classpath``
-    command in order to see what JARs are being used.
+    files from Hadoop/Accumulo in order to run certain commands. In addition ``geomesa`` will pull any
+    additional jars from the ``$GEOMESA_EXTRA_CLASSPATHS`` environment variable into the class path.
+    Use the ``geomesa classpath`` command in order to see what JARs are being used.
 
     If you are running the tools on a system without
     Accumulo installed and configured, the ``install-hadoop-accumulo.sh`` script
@@ -257,7 +250,7 @@ Test the command that invokes the GeoMesa Tools:
 .. code-block:: bash
 
     $ geomesa
-    Using GEOMESA_HOME = /path/to/geomesa-$VERSION
+    Using GEOMESA_HOME = /path/to/geomesa-accumulo-dist_2.11-$VERSION
     Usage: geomesa [command] [command options]
       Commands:
         create           Create a feature definition in a GeoMesa catalog
@@ -283,12 +276,101 @@ Test the command that invokes the GeoMesa Tools:
         tableconf        Perform table configuration operations
         version          GeoMesa Version
 
+.. note::
 
-GeoMesa Tools comes bundled by default with an SLF4J implementation that is installed to the ``$GEOMESA_HOME/lib`` directory
-named ``slf4j-log4j12-1.7.5.jar``. If you already have an SLF4J implementation installed on your Java classpath you may
-see errors at runtime and will have to exclude one of the JARs. This can be done by simply renaming the bundled
-``slf4j-log4j12-1.7.5.jar`` file to ``slf4j-log4j12-1.7.5.jar.exclude``.
- 
+    See :ref:`slf4j_configuration` for information about configuring the SLF4J implementation.
+
+Kafka Tools
+^^^^^^^^^^^
+
+.. note::
+
+    These instructions assume the use of Kafka 0.8.x but the instructions are identical for Kafka 0.9.x and 0.10.x.
+    Just replace the version number with the appropriate value for your installation. ( ``$KAFKAVERSION`` = 08, 09 or 10 )
+
+GeoMesa comes with a set of command line tools for managing kafka features. For Kafka 08 a binary distribution is available and the tools are located in ``geomesa-kafka-08-dist_2.11-$VERSION-bin.tar.gz/bin/``. For Kafka 09 and 10 only the source distribution is available. After building from source (:ref:`building_from_source`) the Kafka tools are located in ``geomesa-kafka/geomesa-kafka-dist/geomesa-kafka-$KAFKAVERSION-dist/target/geomesa-kafka-$KAFKAVERSION_2.11-$VERSION-bin.tar.gz``.
+
+.. code-block:: bash
+
+    $ cd geomesa-$VERSION/geomesa-kafka/geomesa-kafka-dist/geomesa-kafka-$KAFKAVERSION-dist/target/
+    $ tar -xzvf geomesa-kafka-$KAFKAVERSION_2.11-$VERSION-bin.tar.gz
+    $ cd geomesa-kafka-$KAFKAVERSION_2.11-$VERSION
+    $ ls
+    bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt
+
+The instructions below assume that the ``geomesa-kafka-$KAFKAVERSION_2.11-$VERSION`` directory is kept in the
+``geomesa-kafka/geomesa-kafka-dist/geomesa-kafka-$KAFKAVERSION-dist/target/`` directory, but the tools distribution may be moved elsewhere
+as desired.
+
+.. note::
+
+    You can configure environment variables and classpath settings in geomesa-kafka-$KAFKAVERSION_2.11-$VERSION/bin/geomesa-env.sh.
+
+In the ``geomesa-kafka-$KAFKAVERSION_2.11-$VERSION`` directory, run ``bin/geomesa configure`` to set up the tools.
+
+.. code-block:: bash
+
+    ### in geomesa-kafka-$KAFKAVERSION_2.11-$VERSION:
+    $ bin/geomesa-kafka configure
+    Using GEOMESA_KAFKA_HOME as set: /path/to/geomesa-kafka-$KAFKAVERSION_2.11-$VERSION
+    Is this intentional? Y\n y
+    Warning: GEOMESA_LIB already set, probably by a prior configuration.
+    Current value is /path/to/geomesa-kafka-$KAFKAVERSION_2.11-$VERSION/lib.
+
+    Is this intentional? Y\n y
+
+    To persist the configuration please update your bashrc file to include:
+    export GEOMESA_KAFKA_HOME=/path/to/geomesa-kafka-$KAFKAVERSION_2.11-$VERSION
+    export PATH=${GEOMESA_KAFKA_HOME}/bin:$PATH
+
+Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_KAFKA_HOME`` and ``$PATH`` updates.
+
+.. warning::
+
+    Please note that the ``$GEOMESA_KAFKA_HOME`` variable points to the location of the ``geomesa-kafka-$KAFKAVERSION_2.11-$VERSION``
+    directory, not the main geomesa binary distribution directory!
+
+.. note::
+
+    ``geomesa-kafka`` will read the ``$GEOMESA_EXTRA_CLASSPATHS`` environment variable to load any
+    additional jars into the classpath. Use the ``geomesa classpath`` command in order to see what
+    JARs are being used.
+
+Due to licensing restrictions, dependencies for shape file support and raster
+ingest must be separately installed. Do this with the following commands:
+
+.. code-block:: bash
+
+    $ bin/install-jai.sh
+    $ bin/install-jline.sh
+
+Test the command that invokes the GeoMesa Tools:
+
+.. code-block:: bash
+
+    $ geomesa-kafka
+    Using GEOMESA_KAFKA_HOME = /path/to/geomesa-kafka-$KAFKAVERSION_2.11-$VERSION
+    Usage: geomesa-kafka [command] [command options]
+      Commands:
+        create          Create a feature definition in GeoMesa
+        describe        Describe the attributes of a given feature in GeoMesa
+        help            Show help
+        keywords        Add/Remove/List keywords on an existing schema
+        list            List GeoMesa features for a given zkPath
+        listen          Listen to a GeoMesa Kafka topic
+        removeschema    Remove a schema and associated features from GeoMesa
+        version         Display the installed GeoMesa version
+
+.. _slf4j_configuration:
+
+SLF4J Configuration
+^^^^^^^^^^^^^^^^^^^
+
+GeoMesa Tools comes bundled by default with an SLF4J implementation that is installed to the ``$GEOMESA_HOME/lib``
+or ``$GEOMESA_KAFKA_HOME/lib`` directory named ``slf4j-log4j12-1.7.5.jar``. If you already have an SLF4J implementation
+installed on your Java classpath you may see errors at runtime and will have to exclude one of the JARs. This can be
+done by simply renaming the bundled ``slf4j-log4j12-1.7.5.jar`` file to ``slf4j-log4j12-1.7.5.jar.exclude``.
+
 Note that if no slf4j implementation is installed you will see this error:
 
 .. code::
@@ -297,9 +379,10 @@ Note that if no slf4j implementation is installed you will see this error:
     SLF4J: Defaulting to no-operation (NOP) logger implementation
     SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
 
-In this case you may download SLF4J from http://www.slf4j.org/download.html. Extract 
+In this case you may download SLF4J from http://www.slf4j.org/download.html. Extract
 ``slf4j-log4j12-1.7.7.jar`` and place it in the ``lib/common`` directory of the binary distribution.
 If this conflicts with another SLF4J implementation, you may need to remove it from the ``lib/common`` directory.
+
 
 .. _install_geoserver_plugins:
 
@@ -369,7 +452,8 @@ of the GeoMesa Accumulo or GeoMesa Hadoop distributions. (``$VERSION`` = |releas
     Done
 
 If you prefer to install the GeoMesa Accumulo GeoServer plugin manually, unpack the contents of the
-``geomesa-accumulo-gs-plugin-$VERSION.tar.gz`` file in ``geomesa-$VERSION/dist/gs-plugins``
+``geomesa-accumulo-gs-plugin_2.11-$VERSION-install.tar.gz`` file in ``geomesa-accumulo_2.11-$VERSION/dist/geoserver/``
+in the binary distribution or ``geomesa-$VERSION/geomesa-accumulo/geomesa-accumulo-gs-plugin/target/`` in the source distribution
 into your GeoServer's ``lib`` directory (``$VERSION`` = |release|):
 
 If you are using Tomcat:
@@ -377,7 +461,7 @@ If you are using Tomcat:
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-$VERSION/dist/gs-plugins/geomesa-accumulo-gs-plugin-$VERSION-install.tar.gz \
+      geomesa-accumulo_2.11-$VERSION/dist/geoserver/geomesa-accumulo-gs-plugin_2.11-$VERSION-install.tar.gz \
       -C /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
 
 If you are using GeoServer's built in Jetty web server:
@@ -385,7 +469,7 @@ If you are using GeoServer's built in Jetty web server:
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-$VERSION/dist/gs-plugins/geomesa-accumulo-gs-plugin-$VERSION-install.tar.gz \
+      geomesa-accumulo_2.11-$VERSION/dist/geoserver/geomesa-accumulo-gs-plugin_2.11-$VERSION-install.tar.gz \
       -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib/
 
 There are additional JARs for Accumulo, Zookeeper, Hadoop, and Thrift that will
@@ -394,7 +478,7 @@ be specific to your installation that you will also need to copy to GeoServer's
 |hadoop_version|, but if you are using Hadoop 2.5.0 you should use the JARs
 that match the version of Hadoop you are running.
 
-There is a script in the ``geomesa-tools-$VERSION`` directory
+There is a script in the ``geomesa-accumulo_2.11-$VERSION/bin`` directory
 (``$GEOMESA_HOME/bin/install-hadoop-accumulo.sh``) which will install these
 dependencies to a target directory using ``wget`` (requires an internet
 connection).
@@ -475,7 +559,7 @@ Hadoop 2.4-2.7 (adjust versions as needed)
 
     Some GeoMesa-specific WPS processes such as ``geomesa:Density``, which is used
     in the generation of heat maps, also require ``geomesa-process-$VERSION.jar``.
-    This JAR is included in the ``dist/gs-plugins`` directory of the binary
+    This JAR is included in the ``geomesa-accumulo/geomesa-accumulo-dist/target/geomesa-accumulo_2.11-$VERSION/dist/geoserver`` directory of the binary
     distribution, or is built in the ``geomesa-process`` module of the source
     distribution.
 
@@ -486,6 +570,7 @@ Restart GeoServer after the JARs are installed.
 For Kafka
 ^^^^^^^^^
 
+<<<<<<< HEAD
 To install GeoMesa's GeoServer plugin we can utilize the script ``geoserver-plugins.sh`` in ``bin`` directory
 of the GeoMesa Accumulo or GeoMesa Hadoop distributions. (``$VERSION`` = |release|)
 
@@ -515,10 +600,16 @@ your Kafka version.
 The GeoMesa GeoServer plugin for Kafka 0.8.2 is found in the ``geomesa-kafka-gs-plugin-$VERSION-install.tar.gz``
 file in ``geomesa-$VERSION/dist/gs-plugins`` in the binary distribution, or is built in
 the ``geomesa-gs-plugin/geomesa-kafka-gs-plugin`` directory of the source distribution.
+=======
+The GeoMesa GeoServer plugin for Kafka |kafka_version| is found in the ``geomesa-kafka-$KAFKAVERSION-gs-plugin-$VERSION-install.tar.gz``
+file in ``geomesa-kafka-$KAFKAVERSION-gs-plugin/dist/gs-plugins/`` in the binary distribution, or is built in
+the ``geomesa-$VERSION/geomesa-kafka/geomesa-kafka-gs-plugin/geomesa-kafka-$KAFKAVERSION-gs-plugin/target/``
+directory of the source distribution. ( ``$KAFKAVERSION`` = |kafka_version| )
+>>>>>>> master
 
-The GeoMesa GeoServer plugin for Kafka 0.9 is found in ``geomesa-kafka-09-gs-plugin-$VERSION-install.tar.gz``
-(downloaded here: |release_kafka09_plugin|), or is built in the
-``geomesa-gs-plugin/geomesa-kafka-09-gs-plugin`` directory of the source distribution.
+The GeoMesa GeoServer plugin for Kafka 0.8 is found in ``geomesa-kafka-08-gs-plugin-$VERSION-install.tar.gz``
+(downloaded here: |release_kafka08_plugin|), or is built in the
+``geomesa-kafka/geomesa-kafka-gs-plugin/geomesa-kafka-08-gs-plugin`` directory of the source distribution.
 
 In either case, the contents of the appropriate archive should be unpacked in the GeoServer
 ``WEB-INF/lib`` directory. If you are using Tomcat:
@@ -526,7 +617,7 @@ In either case, the contents of the appropriate archive should be unpacked in th
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-$VERSION/dist/gs-plugins/geomesa-kafka-gs-plugin-$VERSION-install.tar.gz \
+      geomesa-kafka-$KAFKAVERSION-gs-plugin/dist/gs-plugins/geomesa-kafka-$KAFKAVERSION-gs-plugin_2.11-$VERSION-install.tar.gz \
       -C /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
 
 If you are using GeoServer's built in Jetty web server:
@@ -534,7 +625,7 @@ If you are using GeoServer's built in Jetty web server:
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-$VERSION/dist/gs-plugins/geomesa-kafka-gs-plugin-$VERSION-install.tar.gz \
+      geomesa-kafka-$KAFKAVERSION-gs-plugin/dist/gs-plugins/geomesa-kafka-$KAFKAVERSION-gs-plugin_2.11-$VERSION-install.tar.gz \
       -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib/
 
 This will install the JARs for the Kafka GeoServer plugin and most of its dependencies.
@@ -561,8 +652,8 @@ your GeoServer ``WEB-INF/lib`` directory.
 * Zookeeper
     * zookeeper-3.4.5.jar
 
-There is a script in the ``geomesa-tools-$VERSION`` directory
-(``$GEOMESA_HOME/bin/install-kafka.sh``) which will install these
+There is a script in the ``geomesa-kafka-$KAFKAVERSION_2.11-$VERSION/bin`` directory
+(``$GEOMESA_KAFKA_HOME/bin/install-kafka.sh``) which will install these
 dependencies to a target directory using ``wget`` (requires an internet
 connection).
 
@@ -575,14 +666,14 @@ For HBase
 
 The HBase GeoServer plugin is not bundled by default in the GeoMesa binary distribution
 and should be built from source. Download the source distribution (see
-:ref:`building_from_source`), go to the ``geomesa-gs-plugin/geomesa-hbase-gs-plugin``
+:ref:`building_from_source`), go to the ``geomesa-hbase/geomesa-hbase-gs-plugin``
 directory, and build the module using the ``hbase`` Maven profile:
 
 .. code-block:: bash
 
     $ mvn clean install -Phbase
 
-After building, extract ``target/geomesa-hbase-gs-plugin-$VERSION-install.tar.gz`` into GeoServer's
+After building, extract ``target/geomesa-hbase-gs-plugin_2.11-$VERSION-install.tar.gz`` into GeoServer's
 ``WEB-INF/lib`` directory. Note that this plugin contains a shaded JAR with HBase 1.1.5
 bundled. If you require a different version, modify the ``pom.xml`` and rebuild following
 the instructions above.
@@ -615,14 +706,14 @@ For Cassandra
 
 The Cassandra GeoServer plugin is not bundled by default in the GeoMesa binary distribution
 and should be built from source. Download the source distribution (see
-:ref:`building_from_source`), go to the ``geomesa-gs-plugin/geomesa-cassandra-gs-plugin``
+:ref:`building_from_source`), go to the ``geomesa-cassandra/geomesa-cassandra-gs-plugin``
 directory, and build the module:
 
 .. code-block:: bash
 
     $ mvn clean install
 
-After building, extract ``target/geomesa-cassandra-gs-plugin-$VERSION-install.tar.gz`` into GeoServer's
+After building, extract ``target/geomesa-cassandra-gs-plugin_2.11-$VERSION-install.tar.gz`` into GeoServer's
 ``WEB-INF/lib`` directory.
 
 Restart GeoServer after the JARs are installed.

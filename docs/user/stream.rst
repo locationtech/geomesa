@@ -19,7 +19,7 @@ Modules
 -  ``geomesa-stream-api`` - the stream source and processing APIs
 -  ``geomesa-stream-generic`` - definition of the Camel generic source
 -  ``geomesa-stream-datastore`` - ``DataStore`` implementation
--  ``geomesa-gs-plugin`` - GeoServer hooks for stream sources
+-  ``geomesa-stream-gs-plugin`` - GeoServer hooks for stream sources
 
 Usage
 -----
