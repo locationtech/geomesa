@@ -65,7 +65,7 @@ object InputFormatBaseAdapter {
   }
 
   def setScanAuthorizations16(job: Job, authorizations: Authorizations): Unit = {
-    val method = classOf[AccumuloInputFormat].getMethod("setScanAuthorizations", classOf[Job], classOf[Authorizations], classOf[String])
+    val method = classOf[AccumuloInputFormat].getMethod("setScanAuthorizations", classOf[Job], classOf[Authorizations])
     method.invoke(null, job, authorizations)
   }
 

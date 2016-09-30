@@ -8,10 +8,9 @@
 
 package org.locationtech.geomesa.tools.common.commands
 
-import java.util.Properties
-
 import com.beust.jcommander.{JCommander, Parameters}
 import org.locationtech.geomesa.tools.common.commands.VersionCommand._
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties
 
 class VersionCommand(parent: JCommander) extends Command(parent) {
 
@@ -19,22 +18,14 @@ class VersionCommand(parent: JCommander) extends Command(parent) {
   override val params = new VersionParameters
 
   override def execute() = {
-    val properties = new Properties()
-    val stream = getClass
-                  .getClassLoader
-                  .getResourceAsStream(propertiesPath)
-
-    properties.load(stream)
-    println(s"GeoMesa Version ${properties.getProperty("geomesa.build.version")} " +
-            s"built on ${properties.getProperty("geomesa.build.date")}.")
-    println(s"Commit ID: ${properties.getProperty("geomesa.build.commit.id")}")
-    println(s"Branch: ${properties.getProperty("geomesa.build.branch")}")
-    stream.close()
+    import GeoMesaProperties._
+    println(s"GeoMesa version $ProjectVersion built on $BuildDate.")
+    println(s"Commit ID: $GitCommit")
+    println(s"Branch: $GitBranch")
   }
 }
 
 object VersionCommand {
-  val propertiesPath = "org/locationtech/geomesa/tools/geomesaVersion.properties"
   @Parameters(commandDescription = "Display the installed GeoMesa version")
   class VersionParameters {}
 }

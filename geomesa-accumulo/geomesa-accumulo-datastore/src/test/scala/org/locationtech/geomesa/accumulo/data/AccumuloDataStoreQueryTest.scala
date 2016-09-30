@@ -214,6 +214,22 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       (urNum + llNum) mustEqual (orNum + andNum)
     }
 
+    "process 'exists' queries correctly" in {
+      val fs = ds.getFeatureSource(defaultSft.getTypeName)
+
+      val exists = ECQL.toFilter("name EXISTS")
+      val doesNotExist = ECQL.toFilter("name DOES-NOT-EXIST")
+
+      val existsResults =
+        SelfClosingIterator(fs.getFeatures(new Query(defaultSft.getTypeName, exists)).features).toList
+      val doesNotExistResults =
+        SelfClosingIterator(fs.getFeatures(new Query(defaultSft.getTypeName, doesNotExist)).features).toList
+
+      existsResults must haveLength(1)
+      existsResults.head.getID mustEqual "fid-1"
+      doesNotExistResults must beEmpty
+    }
+
     "handle between intra-day queries" in {
       val filter =
         CQL.toFilter("bbox(geom,40,40,60,60) AND dtg BETWEEN '2010-05-07T12:00:00.000Z' AND '2010-05-07T13:00:00.000Z'")

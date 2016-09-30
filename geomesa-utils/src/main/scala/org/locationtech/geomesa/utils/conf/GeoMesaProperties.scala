@@ -32,5 +32,8 @@ object GeoMesaProperties extends LazyLogging {
     }
   }
 
-  val GeoMesaProjectVersion = props.getProperty("geomesa.project.version")
+  val ProjectVersion = props.getProperty("geomesa.project.version")
+  val BuildDate      = props.getProperty("geomesa.build.date")
+  val GitCommit      = props.getProperty("geomesa.build.commit.id")
+  val GitBranch      = props.getProperty("geomesa.build.branch")
 }
