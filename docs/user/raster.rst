@@ -1,7 +1,7 @@
 GeoMesa Raster
 ==============
 
-The Raster support in GeoMesa (in the ``geomesa-raster`` module)
+The Raster support in GeoMesa (in the ``geomesa-accumulo/geomesa-accumulo-raster`` module)
 is currently limited in scope and has a few important caveats that
 are noted here.
 
@@ -34,6 +34,6 @@ install
 
 ::
 
-    geomesa/geomesa-raster$ mvn clean install
+    geomesa/geomesa-accumulo/geomesa-accumulo-raster$ mvn clean install
 
 This will produce a JAR in ``target``.
