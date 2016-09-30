@@ -17,6 +17,15 @@ PING_LOOP_PID=$!
 mvn clean license:check install -Ptravis-ci 2>&1 | tee -a $BUILD_OUTPUT | grep -e '^\[INFO\] Building GeoMesa' -e '^\[INFO\] --- \(maven-surefire-plugin\|maven-install-plugin\|scala-maven-plugin.*:compile\)'
 RESULT=${PIPESTATUS[0]} # capture the status of the maven build
 
+echo "CQ Test"
+bash ${WORKDIR}/build/calculate-cqs.sh
+echo "break it" >> ${WORKDIR}/build/cqs.tsv
+cq=$(git diff ${WORKDIR}/build/cqs.tsv)
+echo "${cq}"
+if [[ ! "${cq}" == "" ]]; then
+  RESULT=1
+fi
+
 if [ $RESULT -ne 0 ]; then
   echo -e "[ERROR] Build failed!\n"
 fi
