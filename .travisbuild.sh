@@ -17,7 +17,29 @@ PING_LOOP_PID=$!
 mvn clean license:check install -Ptravis-ci 2>&1 | tee -a $BUILD_OUTPUT | grep -e '^\[INFO\] Building GeoMesa' -e '^\[INFO\] --- \(maven-surefire-plugin\|maven-install-plugin\|scala-maven-plugin.*:compile\)'
 RESULT=${PIPESTATUS[0]} # capture the status of the maven build
 
-if [ $RESULT -ne 0 ]; then
+# validate CQs
+if [[ $RESULT -eq 0 ]]; then
+
+  # calculate CQs
+  bash ${WORKDIR}/build/calculate-cqs.sh
+  manifest=($(cat ${WORKDIR}/build/CQManifest.tsv | sed -e 's/\n/ /g' -e 's/\t/ /g'))
+  cqs=($(cat ${WORKDIR}/build/cqs.tsv | sed -e 's/\n/ /g' -e 's/\t/ /g'))
+
+  # compare CQs, files must be exact match
+  for i in "${!manifest[@]}"; do
+    if [[ ! "${manifest[$i]}" == "${cqs[$i]}" ]]; then
+      let "loc=${i}/3*3" # Remove remainder so failures on name, version and scope display correct
+      echo -e "[ERROR] CQ check failed!"
+      echo -e "[ERROR] ${manifest[$loc]} ${manifest[$loc + 1]} ${manifest[$loc + 2]}"
+      echo -e "[ERROR] does not match"
+      echo -e "[ERROR] ${cqs[$loc]} ${cqs[$loc + 1]} ${cqs[$loc + 2]}"
+      RESULT=1
+      break
+    fi
+  done
+fi
+
+if [[ $RESULT -ne 0 ]]; then
   echo -e "[ERROR] Build failed!\n"
 fi
 
