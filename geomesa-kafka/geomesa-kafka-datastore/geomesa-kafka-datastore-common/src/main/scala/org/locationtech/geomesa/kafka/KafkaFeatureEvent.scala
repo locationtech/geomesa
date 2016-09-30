@@ -53,19 +53,19 @@ object KafkaFeatureEvent {
   }
 
   def changed(src: SimpleFeatureSource, feature: SimpleFeature): FeatureEvent =
-    new KafkaFeatureEvent(this,
+    new KafkaFeatureEvent(src,
       Type.CHANGED,
       KafkaFeatureEvent.buildBounds(feature),
       feature)
 
   def removed(src: SimpleFeatureSource, feature: SimpleFeature): FeatureEvent =
-    new FeatureEvent(this,
+    new FeatureEvent(src,
       Type.REMOVED,
       KafkaFeatureEvent.buildBounds(feature),
       KafkaFeatureEvent.buildId(feature.getID))
 
   def cleared(src: SimpleFeatureSource): FeatureEvent =
-    new FeatureEvent(this,
+    new FeatureEvent(src,
       Type.REMOVED,
       wholeWorldEnvelope,
       Filter.INCLUDE)
