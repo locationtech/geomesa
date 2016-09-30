@@ -44,4 +44,7 @@ class FastPropertyName(name: String) extends PropertyName with org.opengis.filte
   override def evaluate[T](obj: AnyRef, target: Class[T]): T = Converters.convert(evaluate(obj), target)
 
   override def accept(visitor: ExpressionVisitor, extraData: AnyRef): AnyRef = visitor.visit(this, extraData)
+
+  // required for some ECQL parsing
+  override def toString: String = name
 }

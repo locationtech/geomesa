@@ -202,7 +202,7 @@ as described in :ref:`explain_query`. To enable the logging of explain query
 planning in GeoServer, add the following to the
 ``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties`` file::
 
-    log4j.category.org.locationtech.geomesa.accumulo.index.QueryPlanner=TRACE
+    log4j.category.org.locationtech.geomesa.index.utils.Explainer=TRACE
 
 If you are not sure of the location of your GeoServer data directory, it
 is printed out when you start GeoServer::

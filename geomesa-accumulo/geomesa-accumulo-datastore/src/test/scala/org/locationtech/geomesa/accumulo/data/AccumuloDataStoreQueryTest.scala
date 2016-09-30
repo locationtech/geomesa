@@ -29,6 +29,7 @@ import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.accumulo.index.z2.Z2Index
 import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, TestData}
+import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction}
 import org.locationtech.geomesa.index.utils.ExplainString
@@ -66,6 +67,21 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
       "where schema matches" >> { results.getSchema mustEqual defaultSft }
       "and there are no results" >> { features.hasNext must beFalse }
+    }
+
+    "process an exclude query correctly" in {
+      val fs = ds.getFeatureSource(defaultSft.getTypeName)
+
+      val query = new Query(defaultSft.getTypeName, Filter.EXCLUDE)
+
+      ds.getQueryPlan(query) must beEmpty
+
+      val features = fs.getFeatures(query).features
+      try {
+        features.hasNext must beFalse
+      } finally {
+        features.close()
+      }
     }
 
     "process a DWithin query correctly" in {
@@ -198,6 +214,22 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       (urNum + llNum) mustEqual (orNum + andNum)
     }
 
+    "process 'exists' queries correctly" in {
+      val fs = ds.getFeatureSource(defaultSft.getTypeName)
+
+      val exists = ECQL.toFilter("name EXISTS")
+      val doesNotExist = ECQL.toFilter("name DOES-NOT-EXIST")
+
+      val existsResults =
+        SelfClosingIterator(fs.getFeatures(new Query(defaultSft.getTypeName, exists)).features).toList
+      val doesNotExistResults =
+        SelfClosingIterator(fs.getFeatures(new Query(defaultSft.getTypeName, doesNotExist)).features).toList
+
+      existsResults must haveLength(1)
+      existsResults.head.getID mustEqual "fid-1"
+      doesNotExistResults must beEmpty
+    }
+
     "handle between intra-day queries" in {
       val filter =
         CQL.toFilter("bbox(geom,40,40,60,60) AND dtg BETWEEN '2010-05-07T12:00:00.000Z' AND '2010-05-07T13:00:00.000Z'")
@@ -263,6 +295,15 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         val result = ds.getFeatureSource(sftName).getFeatures(query).features().toList
         result must beEmpty
       }
+    }
+
+    "handle ANDed Filter.INCLUDE" in {
+      val filter = ff.and(Filter.INCLUDE,
+        ECQL.toFilter("dtg DURING 2010-05-07T12:00:00.000Z/2010-05-07T13:00:00.000Z and bbox(geom,40,44,50,54)"))
+      val reader = ds.getFeatureReader(new Query(defaultSft.getTypeName, filter), Transaction.AUTO_COMMIT)
+      val features = SelfClosingIterator(reader).toList
+      features must haveLength(1)
+      features.head.getID mustEqual "fid-1"
     }
 
     "avoid deduplication when possible" in {

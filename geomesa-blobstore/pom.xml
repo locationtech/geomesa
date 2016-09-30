@@ -20,8 +20,9 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>geomesa-blobstore-api</module>
         <module>geomesa-blobstore-accumulo</module>
+        <module>geomesa-blobstore-api</module>
+        <module>geomesa-blobstore-gs-plugin</module>
         <module>geomesa-blobstore-handlers</module>
         <module>geomesa-blobstore-web</module>
     </modules>

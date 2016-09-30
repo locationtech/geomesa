@@ -14,13 +14,11 @@ import java.util.Locale
 
 import com.beust.jcommander.{JCommander, Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats._
 import org.locationtech.geomesa.tools.accumulo.commands.IngestCommand._
 import org.locationtech.geomesa.tools.accumulo.ingest.{AutoIngest, ConverterIngest}
-import org.locationtech.geomesa.tools.common.commands._
 import org.locationtech.geomesa.tools.common.{CLArgResolver, OptionalFeatureTypeNameParam, OptionalFeatureTypeSpecParam}
 import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
 
@@ -28,7 +26,7 @@ import scala.collection.JavaConversions._
 import scala.collection.parallel.ForkJoinTaskSupport
 import scala.util.Try
 
-class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging {
+class IngestCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
   override val command = "ingest"
   override val params = new IngestParameters()
 
@@ -45,8 +43,6 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
     val fmt = fmtParam.orElse(fmtFile).getOrElse(Other)
 
     if (fmt == SHP) {
-      val ds = params.createDataStore()
-
       // If someone is ingesting file from hdfs or S3, we add the Hadoop URL Factories to the JVM.
       if (params.files.exists(isDistributedUrl)) {
         import org.apache.hadoop.fs.FsUrlStreamHandlerFactory
@@ -63,11 +59,7 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
       }
       ds.dispose()
     } else {
-      val tryDs = DataStoreFinder.getDataStore(params.dataStoreParams)
-      if (tryDs == null) {
-        throw new ParameterException("Could not load a data store with the provided parameters")
-      }
-      tryDs.dispose()
+      ds.dispose()
 
       // if there is no sft and no converter passed in, try to use the auto ingest which will
       // pick up the schema from the input files themselves
@@ -77,11 +69,11 @@ class IngestCommand(parent: JCommander) extends Command(parent) with LazyLogging
         }
         // auto-detect the import schema
         logger.info("No schema or converter defined - will attempt to detect schema from input files")
-        new AutoIngest(params.dataStoreParams, params.featureName, params.files, params.threads, fmt).run()
+        new AutoIngest(DataStoreParamsHelper.getDataStoreParams(params), params.featureName, params.files, params.threads, fmt).run()
       } else {
         val sft = CLArgResolver.getSft(params.spec, params.featureName)
         val converterConfig = CLArgResolver.getConfig(params.config)
-        new ConverterIngest(params.dataStoreParams, params.files, params.threads, sft, converterConfig).run()
+        new ConverterIngest(DataStoreParamsHelper.getDataStoreParams(params), params.files, params.threads, sft, converterConfig).run()
       }
     }
   }

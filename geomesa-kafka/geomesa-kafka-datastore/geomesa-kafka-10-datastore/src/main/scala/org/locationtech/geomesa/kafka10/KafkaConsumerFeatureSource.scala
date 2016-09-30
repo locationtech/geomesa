@@ -12,26 +12,21 @@ import java.io.Serializable
 import java.{util => ju}
 
 import com.vividsolutions.jts.geom.Envelope
+import org.geotools.data.Query
 import org.geotools.data.store.{ContentEntry, ContentFeatureSource}
-import org.geotools.data.{FilteringFeatureReader, Query}
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.NameImpl
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.locationtech.geomesa.filter.FilterHelper._
 import org.locationtech.geomesa.kafka10.KafkaDataStore.FeatureSourceFactory
 import org.locationtech.geomesa.kafka10.consumer.KafkaConsumerFactory
 import org.locationtech.geomesa.security.ContentFeatureSourceSecuritySupport
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools._
-import org.locationtech.geomesa.utils.index.QuadTreeFeatureStore
 import org.opengis.feature.`type`.Name
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
-import org.opengis.filter.spatial.{BBOX, Intersects, Within}
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable
 
 abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
                                           sft: SimpleFeatureType,
@@ -76,71 +71,6 @@ object KafkaConsumerFeatureSource {
   lazy val wholeWorldBounds = ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), CRS_EPSG_4326)
 }
 
-case class FeatureHolder(sf: SimpleFeature, env: Envelope) {
-  override def hashCode(): Int = sf.hashCode()
-
-  override def equals(obj: scala.Any): Boolean = obj match {
-    case other: FeatureHolder => sf.equals(other.sf)
-    case _ => false
-  }
-}
-
-trait KafkaConsumerFeatureCache extends QuadTreeFeatureStore {
-
-  def features: mutable.Map[String, FeatureHolder]
-
-  private val ff = CommonFactoryFinder.getFilterFactory2
-
-  // optimized for filter.include
-  def size(f: Filter): Int = {
-    if (f == Filter.INCLUDE) {
-      features.size
-    } else {
-      getReaderForFilter(f).getIterator.length
-    }
-  }
-
-  def getReaderForFilter(filter: Filter): FR =
-    filter match {
-      case f: IncludeFilter => include(f)
-      case f: Id => fid(f)
-      case f: And => and(f)
-      case f: BBOX => bbox(f)
-      case f: Intersects => intersects(f)
-      case f: Within => within(f)
-      case f: Or => or(f)
-      case f => unoptimized(f)
-    }
-
-  def include(i: IncludeFilter) = new DFR(sft, new DFI(features.valuesIterator.map(_.sf)))
-
-  def fid(ids: Id): FR = {
-    val iter = ids.getIDs.flatMap(id => features.get(id.toString).map(_.sf)).iterator
-    new DFR(sft, new DFI(iter))
-  }
-
-  def and(a: And): FR = {
-    val geometries = extractGeometries(a, sft.getGeometryDescriptor.getLocalName)
-    if (geometries.isEmpty) {
-      unoptimized(a)
-    } else {
-      val envelope = geometries.head.getEnvelopeInternal
-      geometries.tail.foreach(g => envelope.expandToInclude(g.getEnvelopeInternal))
-      new DFR(sft, new DFI(spatialIndex.query(envelope, a.evaluate)))
-    }
-  }
-
-  def or(o: Or): FR = {
-    val readers = o.getChildren.map(getReaderForFilter).map(_.getIterator)
-    val composed = readers.foldLeft(Iterator[SimpleFeature]())(_ ++ _)
-    new DFR(sft, new DFI(composed))
-  }
-
-  def unoptimized(f: Filter): FR =
-    new FilteringFeatureReader[SimpleFeatureType, SimpleFeature](include(Filter.INCLUDE), f)
-
-}
-
 object KafkaConsumerFeatureSourceFactory {
 
   def apply(brokers: String, zk: String, params: ju.Map[String, Serializable]): FeatureSourceFactory = {
@@ -153,6 +83,10 @@ object KafkaConsumerFeatureSourceFactory {
       Option(KafkaDataStoreFactoryParams.CLEANUP_LIVE_CACHE.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
     }
 
+    val useCQCache: Boolean = {
+      Option(KafkaDataStoreFactoryParams.USE_CQ_LIVE_CACHE.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
+    }
+
     val monitor: Boolean = {
       Option(KafkaDataStoreFactoryParams.COLLECT_QUERY_STAT.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
     }
@@ -163,7 +97,7 @@ object KafkaConsumerFeatureSourceFactory {
 
       fc.replayConfig match {
         case None =>
-          new LiveKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, expirationPeriod, cleanUpCache, query, monitor)
+          new LiveKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, expirationPeriod, cleanUpCache, useCQCache, query, monitor)
 
         case Some(rc) =>
           val replaySFT = fc.sft

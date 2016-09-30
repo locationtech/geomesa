@@ -11,9 +11,10 @@ package org.locationtech.geomesa.tools.accumulo
 import org.apache.accumulo.server.client.HdfsZooInstance
 import org.locationtech.geomesa.tools.accumulo.commands._
 import org.locationtech.geomesa.tools.accumulo.commands.stats._
-import org.locationtech.geomesa.tools.common.commands.{Command, GenerateAvroSchemaCommand, VersionCommand}
+import org.locationtech.geomesa.tools.common.commands.{Command, GenerateAvroSchemaCommand}
 import org.locationtech.geomesa.tools.common.{Prompt, Runner}
 
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.control.NonFatal
 import scala.xml.XML
 
@@ -22,6 +23,7 @@ object AccumuloRunner extends Runner {
   override val scriptName: String = "geomesa"
 
   override val commands: List[Command] = List(
+    new AddAttributeIndexCommand(jc),
     new CreateCommand(jc),
     new DeleteCatalogCommand(jc),
     new DeleteFeaturesCommand(jc),
@@ -37,7 +39,7 @@ object AccumuloRunner extends Runner {
     new ListCommand(jc),
     new RemoveSchemaCommand(jc),
     new TableConfCommand(jc),
-    new VersionCommand(jc),
+    new AccumuloVersionCommand(jc),
     new QueryRasterStatsCommmand(jc),
     new GetSftCommand(jc),
     new GenerateAvroSchemaCommand(jc),
@@ -67,15 +69,25 @@ object AccumuloRunner extends Runner {
       }
     }
 
-    Option(command.params).collect { case p: AccumuloConnectionParams => p }.foreach { params =>
-      if (params.instance == null) {
-        params.instance = HdfsZooInstance.getInstance().getInstanceName
+    val params = Option(command.params)
+
+    params.collect {
+      case p: RequiredCredentialsParams if p.password == null => p
+      case p: OptionalCredentialsParams if p.password == null && p.user != null => p
+    }.foreach(_.password = Prompt.readPassword())
+
+    params.collect { case p: InstanceNameParams => p }.foreach { p =>
+      if (p.zookeepers == null) {
+        p.zookeepers = zookeepers
       }
-      if (params.zookeepers == null) {
-        params.zookeepers = zookeepers
-      }
-      if (params.password == null) {
-        params.password = Prompt.readPassword()
+      if (p.instance == null) {
+        p.instance = try {
+          // this will hang for 60+ seconds if it's not configured - so we wrap in a future and only wait 1s
+          import scala.concurrent.duration._
+          Await.result(Future(HdfsZooInstance.getInstance().getInstanceName)(ExecutionContext.global),  1000.millis)
+        } catch {
+          case NonFatal(e) => logger.warn(s"Exception getting zoo instance: ${e.toString}"); null
+        }
       }
     }
   }

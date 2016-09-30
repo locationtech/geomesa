@@ -261,7 +261,7 @@
                                 <goal>single</goal>
                             </goals>
                             <configuration>
-                                <descriptor>../../geomesa-gs-plugin/assembly.xml</descriptor>
+                                <descriptor>../../geomesa-archetypes/geomesa-archetypes-gs-plugin/assembly.xml</descriptor>
                             </configuration>
                         </execution>
                     </executions>

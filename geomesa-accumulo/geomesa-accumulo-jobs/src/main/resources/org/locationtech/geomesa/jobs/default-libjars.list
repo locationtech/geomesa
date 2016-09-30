@@ -11,6 +11,7 @@ curator-recipes
 geomesa
 gson
 gt
+htrace
 joda
 jsr
 jts

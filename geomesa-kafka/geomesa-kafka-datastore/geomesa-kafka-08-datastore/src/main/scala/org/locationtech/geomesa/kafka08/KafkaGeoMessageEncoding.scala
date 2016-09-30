@@ -10,6 +10,7 @@ package org.locationtech.geomesa.kafka08
 
 import kafka.message.{Message, MessageAndMetadata}
 import kafka.producer.KeyedMessage
+import org.locationtech.geomesa.kafka._
 import org.opengis.feature.simple.SimpleFeatureType
 
 /** Encodes [[GeoMessage]]s for transport via Kafka.

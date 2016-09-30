@@ -14,11 +14,11 @@ import java.util.Properties
 
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import kafka.tools.ConsoleConsumer
-import kafka.tools.MessageFormatter
+import kafka.tools.{ConsoleConsumer, MessageFormatter}
 import org.geotools.data.DataUtilities
+import org.locationtech.geomesa.kafka.{Clear, Delete, CreateOrUpdate}
 import org.locationtech.geomesa.kafka08.KafkaDataStoreLogViewer._
-import org.locationtech.geomesa.kafka08._
+import org.locationtech.geomesa.kafka08.{KafkaDataStore, KafkaDataStoreLogViewer, KafkaGeoMessageDecoder}
 import org.locationtech.geomesa.tools.common.FeatureTypeNameParam
 import org.locationtech.geomesa.tools.kafka.ConsumerKDSConnectionParams
 import org.locationtech.geomesa.tools.kafka.commands.ListenCommand.ListenParameters

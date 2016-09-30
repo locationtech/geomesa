@@ -17,25 +17,41 @@ abstract class GeoMesaArgs(val args: Array[String]) extends ReverseParsable {
   def parse(): Unit = new JCommander(this, args: _*)
 }
 
+object GeoMesaArgs {
+  final val InputUser = "--geomesa.input.user"
+  final val InputPassword = "--geomesa.input.password"
+  final val InputInstanceId = "--geomesa.input.instanceId"
+  final val InputZookeepers = "--geomesa.input.zookeepers"
+  final val InputTableName = "--geomesa.input.tableName"
+  final val InputFeatureName = "--geomesa.input.feature"
+  final val InputCQL = "--geomesa.input.cql"
+  final val OutputUser = "--geomesa.output.user"
+  final val OutputPassword = "--geomesa.output.password"
+  final val OutputInstanceId = "--geomesa.output.instanceId"
+  final val OutputZookeepers = "--geomesa.output.zookeepers"
+  final val OutputTableName = "--geomesa.output.tableName"
+  final val OutputFeature = "--geomesa.output.feature"
+}
+
 trait ReverseParsable {
   def unparse(): Array[String]
 }
 
 trait InputDataStoreArgs extends ReverseParsable {
 
-  @Parameter(names = Array("--geomesa.input.user"), description = "Accumulo user name", required = true)
+  @Parameter(names = Array(GeoMesaArgs.InputUser), description = "Accumulo user name", required = true)
   var inUser: String = null
 
-  @Parameter(names = Array("--geomesa.input.password"), description = "Accumulo password", required = true)
+  @Parameter(names = Array(GeoMesaArgs.InputPassword), description = "Accumulo password", required = true)
   var inPassword: String = null
 
-  @Parameter(names = Array("--geomesa.input.instanceId"), description = "Accumulo instance name", required = true)
+  @Parameter(names = Array(GeoMesaArgs.InputInstanceId), description = "Accumulo instance name", required = true)
   var inInstanceId: String = null
 
-  @Parameter(names = Array("--geomesa.input.zookeepers"), description = "Zookeepers (host[:port], comma separated)", required = true)
+  @Parameter(names = Array(GeoMesaArgs.InputZookeepers), description = "Zookeepers (host[:port], comma separated)", required = true)
   var inZookeepers: String = null
 
-  @Parameter(names = Array("--geomesa.input.tableName"), description = "Accumulo catalog table name", required = true)
+  @Parameter(names = Array(GeoMesaArgs.InputTableName), description = "Accumulo catalog table name", required = true)
   var inTableName: String = null
 
   def inDataStore: Map[String, String] = Map(
@@ -49,19 +65,19 @@ trait InputDataStoreArgs extends ReverseParsable {
   override def unparse(): Array[String] = {
     val buf = ArrayBuffer.empty[String]
     if (inUser != null) {
-      buf.append("--geomesa.input.user", inUser)
+      buf.append(GeoMesaArgs.InputUser, inUser)
     }
     if (inPassword != null) {
-      buf.append("--geomesa.input.password", inPassword)
+      buf.append(GeoMesaArgs.InputPassword, inPassword)
     }
     if (inInstanceId != null) {
-      buf.append("--geomesa.input.instanceId", inInstanceId)
+      buf.append(GeoMesaArgs.InputInstanceId, inInstanceId)
     }
     if (inZookeepers != null) {
-      buf.append("--geomesa.input.zookeepers", inZookeepers)
+      buf.append(GeoMesaArgs.InputZookeepers, inZookeepers)
     }
     if (inTableName != null) {
-      buf.append("--geomesa.input.tableName", inTableName)
+      buf.append(GeoMesaArgs.InputTableName, inTableName)
     }
     buf.toArray
   }
@@ -69,12 +85,12 @@ trait InputDataStoreArgs extends ReverseParsable {
 
 trait InputFeatureArgs extends ReverseParsable {
 
-  @Parameter(names = Array("--geomesa.input.feature"), description = "Simple feature type name", required = true)
+  @Parameter(names = Array(GeoMesaArgs.InputFeatureName), description = "Simple feature type name", required = true)
   var inFeature: String = null
 
   override def unparse(): Array[String] = {
     if (inFeature != null) {
-      Array("--geomesa.input.feature", inFeature)
+      Array(GeoMesaArgs.InputFeatureName, inFeature)
     } else {
       Array.empty
     }
@@ -83,19 +99,19 @@ trait InputFeatureArgs extends ReverseParsable {
 
 trait OutputDataStoreArgs extends ReverseParsable {
 
-  @Parameter(names = Array("--geomesa.output.user"), description = "Accumulo user name", required = true)
+  @Parameter(names = Array(GeoMesaArgs.OutputUser), description = "Accumulo user name", required = true)
   var outUser: String = null
 
-  @Parameter(names = Array("--geomesa.output.password"), description = "Accumulo password", required = true)
+  @Parameter(names = Array(GeoMesaArgs.OutputPassword), description = "Accumulo password", required = true)
   var outPassword: String = null
 
-  @Parameter(names = Array("--geomesa.output.instanceId"), description = "Accumulo instance name", required = true)
+  @Parameter(names = Array(GeoMesaArgs.OutputInstanceId), description = "Accumulo instance name", required = true)
   var outInstanceId: String = null
 
-  @Parameter(names = Array("--geomesa.output.zookeepers"), description = "Zookeepers (host[:port], comma separated)", required = true)
+  @Parameter(names = Array(GeoMesaArgs.OutputZookeepers), description = "Zookeepers (host[:port], comma separated)", required = true)
   var outZookeepers: String = null
 
-  @Parameter(names = Array("--geomesa.output.tableName"), description = "Accumulo catalog table name", required = true)
+  @Parameter(names = Array(GeoMesaArgs.OutputTableName), description = "Accumulo catalog table name", required = true)
   var outTableName: String = null
 
   def outDataStore: Map[String, String] = Map(
@@ -109,19 +125,19 @@ trait OutputDataStoreArgs extends ReverseParsable {
   override def unparse(): Array[String] = {
     val buf = ArrayBuffer.empty[String]
     if (outUser != null) {
-      buf.append("--geomesa.output.user", outUser)
+      buf.append(GeoMesaArgs.OutputUser, outUser)
     }
     if (outPassword != null) {
-      buf.append("--geomesa.output.password", outPassword)
+      buf.append(GeoMesaArgs.OutputPassword, outPassword)
     }
     if (outInstanceId != null) {
-      buf.append("--geomesa.output.instanceId", outInstanceId)
+      buf.append(GeoMesaArgs.OutputInstanceId, outInstanceId)
     }
     if (outZookeepers != null) {
-      buf.append("--geomesa.output.zookeepers", outZookeepers)
+      buf.append(GeoMesaArgs.OutputZookeepers, outZookeepers)
     }
     if (outTableName != null) {
-      buf.append("--geomesa.output.tableName", outTableName)
+      buf.append(GeoMesaArgs.OutputTableName, outTableName)
     }
     buf.toArray
   }
@@ -129,12 +145,12 @@ trait OutputDataStoreArgs extends ReverseParsable {
 
 trait OutputFeatureArgs extends ReverseParsable {
 
-  @Parameter(names = Array("--geomesa.output.feature"), description = "Simple feature type name", required = true)
+  @Parameter(names = Array(GeoMesaArgs.OutputFeature), description = "Simple feature type name", required = true)
   var outFeature: String = null
 
   override def unparse(): Array[String] = {
     if (outFeature != null) {
-      Array("--geomesa.output.feature", outFeature)
+      Array(GeoMesaArgs.OutputFeature, outFeature)
     } else {
       Array.empty
     }
@@ -143,12 +159,12 @@ trait OutputFeatureArgs extends ReverseParsable {
 
 trait OutputFeatureOptionalArgs extends ReverseParsable {
 
-  @Parameter(names = Array("--geomesa.output.feature"), description = "Simple feature type name")
+  @Parameter(names = Array(GeoMesaArgs.OutputFeature), description = "Simple feature type name")
   var outFeature: String = null
 
   override def unparse(): Array[String] = {
     if (outFeature != null) {
-      Array("--geomesa.output.feature", outFeature)
+      Array(GeoMesaArgs.OutputFeature, outFeature)
     } else {
       Array.empty
     }
@@ -157,12 +173,12 @@ trait OutputFeatureOptionalArgs extends ReverseParsable {
 
 trait InputCqlArgs extends ReverseParsable {
 
-  @Parameter(names = Array("--geomesa.input.cql"), description = "CQL query filter")
+  @Parameter(names = Array(GeoMesaArgs.InputCQL), description = "CQL query filter")
   var inCql: String = null
 
   override def unparse(): Array[String] = {
     if (inCql != null) {
-      Array("--geomesa.input.cql", inCql)
+      Array(GeoMesaArgs.InputCQL, inCql)
     } else {
       Array.empty
     }
