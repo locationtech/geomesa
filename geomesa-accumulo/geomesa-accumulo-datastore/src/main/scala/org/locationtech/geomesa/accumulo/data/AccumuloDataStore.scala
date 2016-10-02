@@ -560,51 +560,62 @@ class AccumuloDataStore(val connector: Connector,
 
 
   /**
-   * @see org.locationtech.geomesa.accumulo.data.AccumuloConnectorCreator#getBatchScanner(java.lang.String, int)
-   * @param table table to scan
-   * @param threads number of threads to use in scanning
-   * @return batch scanner
-   */
-  override def getBatchScanner(table: String, threads: Int): BatchScanner =
-  new BatchScanner {
-    val key = BatchScannersPoolKey(table, threads)
-    val delegate = batchScannersPool.borrowObject(key)
-    val closed = new AtomicBoolean(java.lang.Boolean.FALSE)
-
-    override def setRanges(ranges: util.Collection[Range]): Unit = delegate.setRanges(ranges)
-
-    override def setTimeout(timeout: Long, timeUnit: TimeUnit): Unit = delegate.setTimeout(timeout, timeUnit)
-
-    override def close(): Unit = {
-      if(!closed.getAndSet(java.lang.Boolean.TRUE)) {
-        batchScannersPool.returnObject(key, delegate)
-      }
-    }
-
-    override def updateScanIteratorOption(iteratorName: String, key: String, value: String): Unit =
-      delegate.updateScanIteratorOption(iteratorName, key, value)
-
-    override def removeScanIterator(iteratorName: String): Unit =
-      delegate.removeScanIterator(iteratorName)
-
-    override def getAuthorizations: Authorizations = delegate.getAuthorizations
-
-    override def fetchColumnFamily(col: Text): Unit = delegate.fetchColumnFamily(col)
-
-    override def getTimeout(timeUnit: TimeUnit): Long = delegate.getTimeout(timeUnit)
-
-    override def iterator(): util.Iterator[Entry[Key, Value]] = delegate.iterator()
-
-    override def clearScanIterators(): Unit = delegate.clearScanIterators()
-
-    override def fetchColumn(colFam: Text, colQual: Text): Unit = delegate.fetchColumn(colFam, colQual)
-
-    override def fetchColumn(column: Column): Unit = delegate.fetchColumn(column)
-
-    override def clearColumns(): Unit = delegate.clearColumns()
-
-    override def addScanIterator(cfg: IteratorSetting): Unit = delegate.addScanIterator(cfg)
+    * @see org.locationtech.geomesa.accumulo.data.AccumuloConnectorCreator#getBatchScanner
+           (java.lang.String, int)
+    * @param table table to scan
+    * @param threads number of threads to use in scanning
+    * @return batch scanner
+    */
+  override def getBatchScanner(table: String, threads: Int) = {
+    if (config.concurrentQueries > 0) getPooledBatchScanner(table, threads)
+    else getNonPooledBatchScanner(table, threads)
   }
+
+  val getNonPooledBatchScanner: (String, Int) => BatchScanner =
+    (table: String, threads: Int) => connector.createBatchScanner(table, authProvider.getAuthorizations, threads)
+
+
+  val getPooledBatchScanner: (String, Int) => BatchScanner =
+    (table: String, threads: Int) =>
+      new BatchScanner {
+        val key = BatchScannersPoolKey(table, threads)
+        val delegate = batchScannersPool.borrowObject(key)
+        val closed = new AtomicBoolean(java.lang.Boolean.FALSE)
+
+        override def setRanges(ranges: util.Collection[Range]): Unit = delegate.setRanges(ranges)
+
+        override def setTimeout(timeout: Long, timeUnit: TimeUnit): Unit = delegate.setTimeout(timeout, timeUnit)
+
+        override def close(): Unit = {
+          if(!closed.getAndSet(java.lang.Boolean.TRUE)) {
+            batchScannersPool.returnObject(key, delegate)
+          }
+        }
+
+        override def updateScanIteratorOption(iteratorName: String, key: String, value: String): Unit =
+          delegate.updateScanIteratorOption(iteratorName, key, value)
+
+        override def removeScanIterator(iteratorName: String): Unit =
+          delegate.removeScanIterator(iteratorName)
+
+        override def getAuthorizations: Authorizations = delegate.getAuthorizations
+
+        override def fetchColumnFamily(col: Text): Unit = delegate.fetchColumnFamily(col)
+
+        override def getTimeout(timeUnit: TimeUnit): Long = delegate.getTimeout(timeUnit)
+
+        override def iterator(): util.Iterator[Entry[Key, Value]] = delegate.iterator()
+
+        override def clearScanIterators(): Unit = delegate.clearScanIterators()
+
+        override def fetchColumn(colFam: Text, colQual: Text): Unit = delegate.fetchColumn(colFam, colQual)
+
+        override def fetchColumn(column: Column): Unit = delegate.fetchColumn(column)
+
+        override def clearColumns(): Unit = delegate.clearColumns()
+
+        override def addScanIterator(cfg: IteratorSetting): Unit = delegate.addScanIterator(cfg)
+      }
 
   /**
     * @see org.locationtech.geomesa.accumulo.data.AccumuloConnectorCreator#getTableName(java.lang.String,
