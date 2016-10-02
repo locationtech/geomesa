@@ -43,7 +43,7 @@ trait TestWithMultipleSfts extends Specification {
 
   val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
 
-  val dsParams = Map(
+  lazy val dsParams = Map(
     "connector" -> connector,
     "caching"   -> false,
     // note the table needs to be different to prevent testing errors

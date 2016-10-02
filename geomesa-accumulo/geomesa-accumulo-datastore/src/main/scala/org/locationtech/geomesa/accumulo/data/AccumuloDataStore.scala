@@ -11,12 +11,20 @@ package org.locationtech.geomesa.accumulo.data
 
 import java.io.IOException
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.atomic.AtomicLong
+import java.util
+import java.util.Map.Entry
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 import java.util.{List => jList}
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.accumulo.core.client.IteratorSetting.Column
 import org.apache.accumulo.core.client._
+import org.apache.accumulo.core.data.{Key, Range, Value}
 import org.apache.accumulo.core.security.Authorizations
+import org.apache.commons.pool2.impl.{DefaultPooledObject, GenericKeyedObjectPool, GenericKeyedObjectPoolConfig}
+import org.apache.commons.pool2.{BaseKeyedPooledObjectFactory, PooledObject}
+import org.apache.hadoop.io.Text
 import org.geotools.data._
 import org.geotools.factory.Hints
 import org.geotools.feature.{FeatureTypes, NameImpl}
@@ -526,6 +534,31 @@ class AccumuloDataStore(val connector: Connector,
   override def getScanner(table: String): Scanner =
     connector.createScanner(table, authProvider.getAuthorizations)
 
+  private case class BatchScannersPoolKey(table: String, threads: Int)
+
+  def buildBatchScannersPoolConfig(): GenericKeyedObjectPoolConfig = {
+    val poolConfig = new GenericKeyedObjectPoolConfig()
+    if(config.concurrentQueries > 0) {
+      poolConfig.setMaxTotal(config.concurrentQueries)
+    }
+    poolConfig
+  }
+
+  private val batchScannersPool =
+    new GenericKeyedObjectPool[BatchScannersPoolKey, BatchScanner](new BaseKeyedPooledObjectFactory[BatchScannersPoolKey, BatchScanner] {
+      override def wrap(value: BatchScanner): PooledObject[BatchScanner] = new DefaultPooledObject[BatchScanner](value)
+
+      override def create(key: BatchScannersPoolKey): BatchScanner =
+        connector.createBatchScanner(key.table, authProvider.getAuthorizations, key.threads)
+
+      override def passivateObject(key: BatchScannersPoolKey, p: PooledObject[BatchScanner]): Unit = {
+        val bs = p.getObject
+        bs.clearColumns()
+        bs.clearScanIterators()
+      }
+    }, buildBatchScannersPoolConfig())
+
+
   /**
    * @see org.locationtech.geomesa.accumulo.data.AccumuloConnectorCreator#getBatchScanner(java.lang.String, int)
    * @param table table to scan
@@ -533,15 +566,53 @@ class AccumuloDataStore(val connector: Connector,
    * @return batch scanner
    */
   override def getBatchScanner(table: String, threads: Int): BatchScanner =
-    connector.createBatchScanner(table, authProvider.getAuthorizations, threads)
+  new BatchScanner {
+    val key = BatchScannersPoolKey(table, threads)
+    val delegate = batchScannersPool.borrowObject(key)
+    val closed = new AtomicBoolean(java.lang.Boolean.FALSE)
+
+    override def setRanges(ranges: util.Collection[Range]): Unit = delegate.setRanges(ranges)
+
+    override def setTimeout(timeout: Long, timeUnit: TimeUnit): Unit = delegate.setTimeout(timeout, timeUnit)
+
+    override def close(): Unit = {
+      if(!closed.getAndSet(java.lang.Boolean.TRUE)) {
+        batchScannersPool.returnObject(key, delegate)
+      }
+    }
+
+    override def updateScanIteratorOption(iteratorName: String, key: String, value: String): Unit =
+      delegate.updateScanIteratorOption(iteratorName, key, value)
+
+    override def removeScanIterator(iteratorName: String): Unit =
+      delegate.removeScanIterator(iteratorName)
+
+    override def getAuthorizations: Authorizations = delegate.getAuthorizations
+
+    override def fetchColumnFamily(col: Text): Unit = delegate.fetchColumnFamily(col)
+
+    override def getTimeout(timeUnit: TimeUnit): Long = delegate.getTimeout(timeUnit)
+
+    override def iterator(): util.Iterator[Entry[Key, Value]] = delegate.iterator()
+
+    override def clearScanIterators(): Unit = delegate.clearScanIterators()
+
+    override def fetchColumn(colFam: Text, colQual: Text): Unit = delegate.fetchColumn(colFam, colQual)
+
+    override def fetchColumn(column: Column): Unit = delegate.fetchColumn(column)
+
+    override def clearColumns(): Unit = delegate.clearColumns()
+
+    override def addScanIterator(cfg: IteratorSetting): Unit = delegate.addScanIterator(cfg)
+  }
 
   /**
-   * @see org.locationtech.geomesa.accumulo.data.AccumuloConnectorCreator#getTableName(java.lang.String,
-   *          org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable)
-   * @param featureName feature type name
-   * @param index table
-   * @return accumulo table name
-   */
+    * @see org.locationtech.geomesa.accumulo.data.AccumuloConnectorCreator#getTableName(java.lang.String,
+    *          org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable)
+    * @param featureName feature type name
+    * @param index table
+    * @return accumulo table name
+    */
   // noinspection ScalaDeprecation
   override def getTableName(featureName: String, index: AccumuloWritableIndex): String = {
     lazy val oldKey = index match {
@@ -762,6 +833,7 @@ object AccumuloDataStore {
 // record scans are single-row ranges - increasing the threads too much actually causes performance to decrease
 case class AccumuloDataStoreConfig(queryTimeout: Option[Long],
                                    queryThreads: Int,
+                                   concurrentQueries: Int,
                                    recordThreads: Int,
                                    writeThreads: Int,
                                    generateStats: Boolean,
