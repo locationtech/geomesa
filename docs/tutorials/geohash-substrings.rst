@@ -27,7 +27,7 @@ with the time dimension represented on the Z-axis. This encoding is a
 simplified version of what GeoMesa uses as the default index-schema
 format.
 
-.. image:: _static/geohash-substrings/progression.gif
+.. image:: _static/geohash-substrings/progression-800x450.gif
 
 The two ribbons in front of the space-time cube represent the single,
 logical list of cell identifiers (in the foreground); and the same list
