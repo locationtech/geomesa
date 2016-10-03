@@ -43,8 +43,8 @@ might intuit that a query plan is really a list of contiguous cell
 ranges that fall inside the desired geographic area and time interval.
 As an example, assume we had this query:
 
- * -180 ≤ longitude < 225
- * -90 ≤ latitude < 112.5
+ * -180 ≤ longitude < 45
+ * -90 ≤ latitude < 22.5
  * 0 < time < 9 (on an arbitrary scale of 0 to 16 for this illustration)
 
 This corresponds to just over half of the lowest values in each of the
