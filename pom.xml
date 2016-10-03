@@ -1443,25 +1443,6 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
-                <artifactId>commons-vfs2</artifactId>
-                <version>2.0</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.apache.maven.scm</groupId>
-                        <artifactId>maven-scm-api</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.maven.scm</groupId>
-                        <artifactId>maven-scm-provider-svn-commons</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.maven.scm</groupId>
-                        <artifactId>maven-scm-provider-svnexe</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
                 <artifactId>commons-csv</artifactId>
                 <version>1.0</version>
             </dependency>

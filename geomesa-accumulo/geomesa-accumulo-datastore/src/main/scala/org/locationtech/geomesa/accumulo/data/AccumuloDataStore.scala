@@ -35,11 +35,11 @@ import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.accumulo.index.geohash.GeoHashIndex
 import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.accumulo.iterators.ProjectVersionIterator
-import org.locationtech.geomesa.accumulo.util.{DistributedLocking, GeoMesaBatchWriterConfig, Releasable}
+import org.locationtech.geomesa.accumulo.util.{DistributedLocking, Releasable}
 import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
-import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
+import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.security.{AuditProvider, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.conf.GeoMesaProperties
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -76,13 +76,8 @@ class AccumuloDataStore(val connector: Connector,
 
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
 
-  // having at least as many shards as tservers provides optimal parallelism in queries
-  private val defaultMaxShard = connector.instanceOperations().getTabletServers.size()
-
   private val queryTimeoutMillis: Option[Long] = config.queryTimeout
       .orElse(GeomesaSystemProperties.QueryProperties.QUERY_TIMEOUT_MILLIS.option.map(_.toLong))
-
-  private val defaultBWConfig = GeoMesaBatchWriterConfig().setMaxWriteThreads(config.writeThreads)
 
   private val statsTable = GeoMesaTable.concatenateNameParts(catalogTable, "stats")
   private val usageStatsTable = GeoMesaTable.concatenateNameParts(catalogTable, "queries")
@@ -611,9 +606,9 @@ class AccumuloDataStore(val connector: Connector,
    */
   def getQueryPlan(query: Query,
                    index: Option[AccumuloFeatureIndex] = None,
-                   explainer: Explainer = ExplainNull): Seq[QueryPlan] = {
+                   explainer: Explainer = new ExplainLogging): Seq[QueryPlan] = {
     require(query.getTypeName != null, "Type name is required in the query")
-    getQueryPlanner(query.getTypeName).planQuery(query, None, explainer)
+    getQueryPlanner(query.getTypeName).planQuery(query, index, explainer)
   }
 
   /**

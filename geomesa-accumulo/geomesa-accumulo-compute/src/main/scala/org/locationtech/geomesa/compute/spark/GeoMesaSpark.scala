@@ -13,7 +13,6 @@ import java.util.concurrent.ConcurrentHashMap
 
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.io.{Input, Output}
-import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat
@@ -31,16 +30,19 @@ import org.geotools.data._
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
+import org.locationtech.geomesa.accumulo.index.EmptyPlan
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
-import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatureSerializers}
 import org.locationtech.geomesa.features.kryo.serialization.SimpleFeatureSerializer
+import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatureSerializers}
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaInputFormat
 import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
+import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 
 import scala.collection.JavaConversions._
+import scala.util.hashing.MurmurHash3
 
 object GeoMesaSpark extends LazyLogging {
 
@@ -48,9 +50,9 @@ object GeoMesaSpark extends LazyLogging {
 
   def init(conf: SparkConf, sfts: Seq[SimpleFeatureType]): SparkConf = {
     import GeoMesaInputFormat.SYS_PROP_SPARK_LOAD_CP
-    val typeOptions = sfts.map { sft => (sft.getTypeName, SimpleFeatureTypes.encodeType(sft)) }
-    typeOptions.foreach { case (k,v) => System.setProperty(typeProp(k), v) }
-    val typeOpts = typeOptions.map { case (k,v) => jOpt(k, v) }
+    val typeOptions = GeoMesaSparkKryoRegistrator.systemProperties(sfts: _*)
+    typeOptions.foreach { case (k,v) => System.setProperty(k, v) }
+    val typeOpts = typeOptions.map { case (k,v) => s"-D$k=$v" }
     val jarOpt = sys.props.get(SYS_PROP_SPARK_LOAD_CP).map(v => s"-D$SYS_PROP_SPARK_LOAD_CP=$v")
     val extraOpts = (typeOpts ++ jarOpt).mkString(" ")
     val newOpts = if (conf.contains("spark.executor.extraJavaOptions")) {
@@ -65,13 +67,9 @@ object GeoMesaSpark extends LazyLogging {
     conf.set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
   }
 
-  def typeProp(typeName: String) = s"geomesa.types.$typeName"
-
-  def jOpt(typeName: String, spec: String) = s"-D${typeProp(typeName)}=$spec"
-
   def register(ds: DataStore): Unit = register(ds.getTypeNames.map(ds.getSchema))
 
-  def register(sfts: Seq[SimpleFeatureType]): Unit = sfts.foreach { GeoMesaSparkKryoRegistrator.putTypeIfAbsent }
+  def register(sfts: Seq[SimpleFeatureType]): Unit = sfts.foreach(GeoMesaSparkKryoRegistrator.putTypeIfAbsent)
 
   def rdd(conf: Configuration,
           sc: SparkContext,
@@ -88,58 +86,64 @@ object GeoMesaSpark extends LazyLogging {
           useMock: Boolean = false,
           numberOfSplits: Option[Int] = None): RDD[SimpleFeature] = {
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
-    val typeName = query.getTypeName
-    val username = AccumuloDataStoreParams.userParam.lookUp(dsParams).toString
-    val password = new PasswordToken(AccumuloDataStoreParams.passwordParam.lookUp(dsParams).toString.getBytes)
+    try {
+      // get the query plan to set up the iterators, ranges, etc
+      lazy val sft = ds.getSchema(query.getTypeName)
+      lazy val qp = JobUtils.getSingleQueryPlan(ds, query)
 
-    // get the query plan to set up the iterators, ranges, etc
-    val qp = JobUtils.getSingleQueryPlan(ds, query)
+      if (ds == null || sft == null || qp.isInstanceOf[EmptyPlan]) {
+        sc.emptyRDD[SimpleFeature]
+      } else {
+        val username = AccumuloDataStoreParams.userParam.lookUp(dsParams).toString
+        val password = new PasswordToken(AccumuloDataStoreParams.passwordParam.lookUp(dsParams).toString.getBytes)
+        val instance = ds.connector.getInstance().getInstanceName
+        lazy val zookeepers = ds.connector.getInstance().getZooKeepers
 
-    ConfiguratorBase.setConnectorInfo(classOf[AccumuloInputFormat], conf, username, password)
+        val transform = query.getHints.getTransformSchema
 
-    if (useMock){
-      ConfiguratorBase.setMockInstance(classOf[AccumuloInputFormat],
-        conf,
-        ds.connector.getInstance().getInstanceName)
-    } else {
-      ConfiguratorBase.setZooKeeperInstance(classOf[AccumuloInputFormat],
-        conf,
-        ds.connector.getInstance().getInstanceName,
-        ds.connector.getInstance().getZooKeepers)
+        ConfiguratorBase.setConnectorInfo(classOf[AccumuloInputFormat], conf, username, password)
+        if (useMock){
+          ConfiguratorBase.setMockInstance(classOf[AccumuloInputFormat], conf, instance)
+        } else {
+          ConfiguratorBase.setZooKeeperInstance(classOf[AccumuloInputFormat], conf, instance, zookeepers)
+        }
+        InputConfigurator.setInputTableName(classOf[AccumuloInputFormat], conf, qp.table)
+        InputConfigurator.setRanges(classOf[AccumuloInputFormat], conf, qp.ranges)
+        qp.iterators.foreach(InputConfigurator.addIterator(classOf[AccumuloInputFormat], conf, _))
+
+        if (qp.columnFamilies.nonEmpty) {
+          val cf = qp.columnFamilies.map(cf => new AccPair[Text, Text](cf, null))
+          InputConfigurator.fetchColumns(classOf[AccumuloInputFormat], conf, cf)
+        }
+
+        if (numberOfSplits.isDefined) {
+          GeoMesaConfigurator.setDesiredSplits(conf, numberOfSplits.get * sc.getExecutorStorageStatus.length)
+          InputConfigurator.setAutoAdjustRanges(classOf[AccumuloInputFormat], conf, false)
+          InputConfigurator.setAutoAdjustRanges(classOf[GeoMesaInputFormat], conf, false)
+        }
+        GeoMesaConfigurator.setSerialization(conf)
+        GeoMesaConfigurator.setTable(conf, qp.table)
+        GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)
+        GeoMesaConfigurator.setFeatureType(conf, sft.getTypeName)
+        if (query.getFilter != Filter.INCLUDE) {
+          GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(query.getFilter))
+        }
+        transform.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
+
+        // Configure Auths from DS
+        val auths = Option(AccumuloDataStoreParams.authsParam.lookUp(dsParams).asInstanceOf[String])
+        auths.foreach { a =>
+          val authorizations = new Authorizations(a.split(","): _*)
+          InputConfigurator.setScanAuthorizations(classOf[AccumuloInputFormat], conf, authorizations)
+        }
+
+        sc.newAPIHadoopRDD(conf, classOf[GeoMesaInputFormat], classOf[Text], classOf[SimpleFeature]).map(U => U._2)
+      }
+    } finally {
+      if (ds != null) {
+        ds.dispose()
+      }
     }
-    InputConfigurator.setInputTableName(classOf[AccumuloInputFormat], conf, qp.table)
-    InputConfigurator.setRanges(classOf[AccumuloInputFormat], conf, qp.ranges)
-    qp.iterators.foreach { is => InputConfigurator.addIterator(classOf[AccumuloInputFormat], conf, is)}
-
-    if (qp.columnFamilies.nonEmpty) {
-      InputConfigurator.fetchColumns(classOf[AccumuloInputFormat],
-        conf,
-        qp.columnFamilies.map(cf => new AccPair[Text, Text](cf, null)))
-    }
-
-    if (numberOfSplits.isDefined) {
-      GeoMesaConfigurator.setDesiredSplits(conf,
-        numberOfSplits.get * sc.getExecutorStorageStatus.length)
-      InputConfigurator.setAutoAdjustRanges(classOf[AccumuloInputFormat], conf, false)
-      InputConfigurator.setAutoAdjustRanges(classOf[GeoMesaInputFormat], conf, false)
-    }
-    GeoMesaConfigurator.setSerialization(conf)
-    GeoMesaConfigurator.setTable(conf, qp.table)
-    GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)
-    GeoMesaConfigurator.setFeatureType(conf, typeName)
-    if (query.getFilter != Filter.INCLUDE) {
-      GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(query.getFilter))
-    }
-
-    query.getHints.getTransformSchema.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
-
-    // Configure Auths from DS
-    val auths = Option(AccumuloDataStoreParams.authsParam.lookUp(dsParams).asInstanceOf[String])
-    auths.foreach(a => InputConfigurator.setScanAuthorizations(classOf[AccumuloInputFormat], conf, new Authorizations(a.split(","): _*)))
-
-    ds.dispose()
-
-    sc.newAPIHadoopRDD(conf, classOf[GeoMesaInputFormat], classOf[Text], classOf[SimpleFeature]).map(U => U._2)
   }
 
   /**
@@ -190,16 +194,7 @@ object GeoMesaSpark extends LazyLogging {
 
   def shallowJoin(sc: SparkContext, coveringSet: RDD[SimpleFeature], data: RDD[SimpleFeature], key: String): RDD[SimpleFeature] = {
     // Broadcast sfts to executors
-    val sfts = sc.broadcast(GeoMesaSparkKryoRegistrator.typeCache.values.map { sft =>
-      (sft.getTypeName, SimpleFeatureTypes.encodeType(sft))
-    }.toArray)
-
-    data.foreachPartition{ iter =>
-      sfts.value.foreach{ case (name, spec) =>
-        val sft = SimpleFeatureTypes.createType(name, spec)
-        GeoMesaSparkKryoRegistrator.putType(sft)
-      }
-    }
+    GeoMesaSparkKryoRegistrator.broadcast(sc, data)
 
     // Broadcast covering set to executors
     val broadcastedCover = sc.broadcast(coveringSet.collect)
@@ -260,25 +255,18 @@ object GeoMesaSpark extends LazyLogging {
         }
         sftBuilder.doubleType(s"avg_${featureProperties.apply(index).getName}")
     }
-    val coverSft = SimpleFeatureTypes.createType("aggregate",sftBuilder.getSpec)
+    val coverSft = SimpleFeatureTypes.createType("aggregate", sftBuilder.getSpec)
 
     // Register it with kryo and send it to executors
     GeoMesaSpark.register(Seq(coverSft))
-    val newSfts = sc.broadcast(GeoMesaSparkKryoRegistrator.typeCache.values.map{ sft =>
-      (sft.getTypeName, SimpleFeatureTypes.encodeType(sft))
-    }.toArray)
-    keyedData.foreachPartition{ iter =>
-      newSfts.value.foreach{ case (name, spec) =>
-        val newSft = SimpleFeatureTypes.createType(name, spec)
-        GeoMesaSparkKryoRegistrator.putTypeIfAbsent(newSft)
-      }
-    }
+    GeoMesaSparkKryoRegistrator.broadcast(sc, keyedData)
+    val coverSftBroadcast = sc.broadcast(SimpleFeatureTypes.encodeType(coverSft))
 
     // Pre-compute known indices and send them to workers
-    val stringAttrs = GeoMesaSparkKryoRegistrator.getType("aggregate").getAttributeDescriptors.map{_.getLocalName}
+    val stringAttrs = coverSft.getAttributeDescriptors.map(_.getLocalName)
     val countIndex = sc.broadcast(stringAttrs.indexOf("count"))
     // Reduce features by their covering area
-    val aggregate = reduceAndAggregate(keyedData, countable, countIndex)
+    val aggregate = reduceAndAggregate(keyedData, countable, countIndex, coverSftBroadcast)
 
     // Send a map of cover name -> geom to the executors
     import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -320,13 +308,14 @@ object GeoMesaSpark extends LazyLogging {
 
   def reduceAndAggregate(keyedData: RDD[(String, SimpleFeature)],
                          countable: Broadcast[Array[(Int, String)]],
-                         countIndex: Broadcast[Int]): RDD[(String, SimpleFeature)] = {
+                         countIndex: Broadcast[Int],
+                         coverSftBroadcast: Broadcast[String]): RDD[(String, SimpleFeature)] = {
 
     // Reduce features by their covering area
     val aggregate = keyedData.reduceByKey((featureA, featureB) => {
       import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 
-      val aggregateSft = GeoMesaSparkKryoRegistrator.getType("aggregate")
+      val aggregateSft = SimpleFeatureTypes.createType("aggregate", coverSftBroadcast.value)
 
       val typeA = featureA.getType.getTypeName
       val typeB = featureB.getType.getTypeName
@@ -417,22 +406,27 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator {
 
   override def registerClasses(kryo: Kryo): Unit = {
     val serializer = new com.esotericsoftware.kryo.Serializer[SimpleFeature]() {
-
-      val serializerCache = CacheBuilder.newBuilder().build(
-        new CacheLoader[String, SimpleFeatureSerializer] {
-          override def load(key: String): SimpleFeatureSerializer = new SimpleFeatureSerializer(GeoMesaSparkKryoRegistrator.getType(key))
-        })
+      val cache = new ConcurrentHashMap[Int, SimpleFeatureSerializer]()
 
       override def write(kryo: Kryo, out: Output, feature: SimpleFeature): Unit = {
-        val typeName = feature.getFeatureType.getTypeName
-        GeoMesaSparkKryoRegistrator.putTypeIfAbsent(feature.getFeatureType)
-        out.writeString(typeName)
-        serializerCache.get(typeName).write(kryo, out, feature)
+        val id = GeoMesaSparkKryoRegistrator.putTypeIfAbsent(feature.getFeatureType)
+        var serializer = cache.get(id)
+        if (serializer == null) {
+          serializer = new SimpleFeatureSerializer(feature.getFeatureType)
+          cache.put(id, serializer)
+        }
+        out.writeInt(id, true)
+        serializer.write(kryo, out, feature)
       }
 
       override def read(kryo: Kryo, in: Input, clazz: Class[SimpleFeature]): SimpleFeature = {
-        val typeName = in.readString()
-        serializerCache.get(typeName).read(kryo, in, clazz)
+        val id = in.readInt(true)
+        var serializer = cache.get(id)
+        if (serializer == null) {
+          serializer = new SimpleFeatureSerializer(GeoMesaSparkKryoRegistrator.getType(id))
+          cache.put(id, serializer)
+        }
+        serializer.read(kryo, in, clazz)
       }
     }
 
@@ -442,26 +436,54 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator {
 }
 
 object GeoMesaSparkKryoRegistrator {
-  val typeCache: ConcurrentHashMap[String, SimpleFeatureType] = new ConcurrentHashMap[String, SimpleFeatureType]()
 
-  def putType(sft: SimpleFeatureType): Unit = {
-    GeoMesaSparkKryoRegistrator.typeCache.put(sft.getTypeName, sft)
+  private val typeCache = new ConcurrentHashMap[Int, SimpleFeatureType]()
+
+  def identifier(sft: SimpleFeatureType): Int = math.abs(MurmurHash3.stringHash(CacheKeyGenerator.cacheKey(sft)))
+
+  def putType(sft: SimpleFeatureType): Int = {
+    val id = identifier(sft)
+    typeCache.put(id, sft)
+    id
   }
 
-  def putTypeIfAbsent(sft: SimpleFeatureType): Unit = {
-    GeoMesaSparkKryoRegistrator.typeCache.putIfAbsent(sft.getTypeName, sft)
+  def putTypeIfAbsent(sft: SimpleFeatureType): Int = {
+    val id = identifier(sft)
+    typeCache.putIfAbsent(id, sft)
+    id
   }
 
-  def getType(typeName: String): SimpleFeatureType = {
-    val spec = System.getProperty(GeoMesaSpark.typeProp(typeName))
-    if (spec == null) {
-      GeoMesaSparkKryoRegistrator.typeCache.get(typeName)
-    } else {
-      SimpleFeatureTypes.createType(typeName, spec)
+  def getType(id: Int): SimpleFeatureType =
+    Option(typeCache.get(id)).orElse {
+      val fromProps = fromSystemProperties(id)
+      fromProps.foreach(sft => typeCache.put(id, sft))
+      fromProps
+    }.orNull
+
+  def broadcast(sc: SparkContext, partitions: RDD[_]): Unit = {
+    import scala.collection.JavaConversions._
+
+    val encodedTypes = typeCache.map { case (_, sft) => (sft.getTypeName, SimpleFeatureTypes.encodeType(sft)) }
+    val broadcast = sc.broadcast(encodedTypes.toArray)
+    partitions.foreachPartition { _ =>
+      broadcast.value.foreach { case (name, spec) => putType(SimpleFeatureTypes.createType(name, spec)) }
     }
   }
 
-  def replaceType(sft: SimpleFeatureType): Unit = {
-    GeoMesaSparkKryoRegistrator.typeCache.replace(sft.getTypeName, sft)
+  def systemProperties(schemas: SimpleFeatureType*): Seq[(String, String)] = {
+    schemas.flatMap { sft =>
+      val id = identifier(sft)
+      val nameProp = (s"geomesa.types.$id.name", sft.getTypeName)
+      val specProp = (s"geomesa.types.$id.spec", SimpleFeatureTypes.encodeType(sft))
+      Seq(nameProp, specProp)
+    }
   }
+
+  private def fromSystemProperties(id: Int): Option[SimpleFeatureType] =
+    for {
+      name <- sys.props.get(s"geomesa.types.$id.name")
+      spec <- sys.props.get(s"geomesa.types.$id.spec")
+    } yield {
+      SimpleFeatureTypes.createType(name, spec)
+    }
 }

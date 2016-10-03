@@ -43,8 +43,18 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
   private var userData: jMap[AnyRef, AnyRef] = null
   private var userDataOffset: Int = -1
 
+  private var transforms: String = null
+  private var transformSchema: SimpleFeatureType = null
   private var binaryTransform: () => Array[Byte] = input.getBuffer
   private var reserializeTransform: () => Array[Byte] = input.getBuffer
+
+  def copy(): KryoBufferSimpleFeature = {
+    val sf = new KryoBufferSimpleFeature(sft, readers, readUserData, options)
+    if (transforms != null) {
+      sf.setTransforms(transforms, transformSchema)
+    }
+    sf
+  }
 
   def transform(): Array[Byte] = if (offsets.contains(-1)) reserializeTransform() else binaryTransform()
 
@@ -64,6 +74,9 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
   }
 
   def setTransforms(transforms: String, transformSchema: SimpleFeatureType) = {
+    this.transforms = transforms
+    this.transformSchema = transformSchema
+
     val tdefs = TransformProcess.toDefinition(transforms)
 
     // transforms by evaluating the transform expressions and then serializing the resulting feature
@@ -82,10 +95,16 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
       }
     }
 
+    val indices = tdefs.map { t =>
+      t.expression match {
+        case p: PropertyName => sft.indexOf(p.getPropertyName)
+        case _ => -1
+      }
+    }
+
     // if we are just returning a subset of attributes, we can copy the bytes directly and avoid creating
     // new objects, reserializing, etc
-    val isSimpleMapping = tdefs.forall(_.expression.isInstanceOf[PropertyName])
-    binaryTransform = if (isSimpleMapping) {
+    binaryTransform = if (!indices.contains(-1)) {
       val indices = tdefs.map(t => sft.indexOf(t.expression.asInstanceOf[PropertyName].getPropertyName))
       () => {
         val buf = input.getBuffer
