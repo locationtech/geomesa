@@ -209,7 +209,7 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
             }
           }
 
-          logger.debug("Running stat query...")
+          logger.debug("Running live histogram stat query...")
           val length = bins.getOrElse(GeoMesaStats.DefaultHistogramSize)
           val queries = attributes.map { attribute =>
             val ct = ClassTag[Any](sft.getDescriptor(attribute).getType.getBinding)
