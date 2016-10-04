@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.kafka
 
-import com.google.common.base.Ticker
+import com.github.benmanes.caffeine.cache.Ticker
 import com.vividsolutions.jts.geom.Point
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder

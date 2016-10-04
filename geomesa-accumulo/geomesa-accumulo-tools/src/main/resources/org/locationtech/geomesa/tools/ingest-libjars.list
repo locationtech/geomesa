@@ -3,6 +3,7 @@ accumulo-fate
 accumulo-start
 accumulo-trace
 avro
+caffeine
 commons-csv
 commons-pool
 config
