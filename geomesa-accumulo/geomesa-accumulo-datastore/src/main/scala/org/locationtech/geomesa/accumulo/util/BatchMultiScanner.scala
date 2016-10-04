@@ -8,36 +8,40 @@
 
 package org.locationtech.geomesa.accumulo.util
 
+import java.util.Map.Entry
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{Executors, TimeUnit}
+import java.util.concurrent.{Executors, Future, LinkedBlockingQueue, TimeUnit}
 
-import com.google.common.collect.Queues
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.{BatchScanner, ScannerBase}
-import org.apache.accumulo.core.data.{Key, Range => AccRange, Value}
+import org.apache.accumulo.core.client.ScannerBase
+import org.apache.accumulo.core.data.{Key, Value}
+import org.locationtech.geomesa.accumulo.data.AccumuloConnectorCreator
+import org.locationtech.geomesa.accumulo.index.QueryPlan.JoinFunction
+import org.locationtech.geomesa.accumulo.index.{BatchScanPlan, QueryPlan}
 
 import scala.collection.JavaConversions._
 
-class BatchMultiScanner(in: ScannerBase,
-                        out: BatchScanner,
-                        joinFn: java.util.Map.Entry[Key, Value] => AccRange,
+class BatchMultiScanner(acc: AccumuloConnectorCreator,
+                        in: ScannerBase,
+                        join: BatchScanPlan,
+                        joinFunction: JoinFunction,
+                        numThreads: Int = 12,
                         batchSize: Int = 32768)
   extends Iterable[java.util.Map.Entry[Key, Value]] with AutoCloseable with LazyLogging {
 
-  if(batchSize < 1) {
-    throw new IllegalArgumentException(f"Illegal batchSize($batchSize%d). Value must be > 0")
-  }
-  logger.trace(f"Creating BatchMultiScanner with batchSize $batchSize%d")
+  require(batchSize > 0, f"Illegal batchSize ($batchSize%d). Value must be > 0")
+  require(numThreads > 0, f"Illegal numThreads ($numThreads%d). Value must be > 0")
+  logger.trace(f"Creating BatchMultiScanner with batchSize $batchSize%d and numThreads $numThreads%d")
 
-  type KVEntry = java.util.Map.Entry[Key, Value]
-  val inExecutor  = Executors.newSingleThreadExecutor()
-  val outExecutor = Executors.newSingleThreadExecutor()
-  val inQ  = Queues.newLinkedBlockingQueue[KVEntry](batchSize)
-  val outQ = Queues.newArrayBlockingQueue[KVEntry](batchSize)
+  val executor = Executors.newFixedThreadPool(numThreads)
+
+  val inQ  = new LinkedBlockingQueue[Entry[Key, Value]](batchSize)
+  val outQ = new LinkedBlockingQueue[Entry[Key, Value]](batchSize)
+
   val inDone  = new AtomicBoolean(false)
   val outDone = new AtomicBoolean(false)
 
-  inExecutor.submit(new Runnable {
+  executor.submit(new Runnable {
     override def run(): Unit = {
       try {
         in.iterator().foreach(inQ.put)
@@ -47,49 +51,54 @@ class BatchMultiScanner(in: ScannerBase,
     }
   })
 
-  def mightHaveAnother = !inDone.get || !inQ.isEmpty
-
-  outExecutor.submit(new Runnable {
+  executor.submit(new Runnable {
     override def run(): Unit = {
       try {
-        while (mightHaveAnother) {
+        val tasks = collection.mutable.ListBuffer.empty[Future[_]]
+        while (!inDone.get || inQ.size() > 0) {
           val entry = inQ.poll(5, TimeUnit.MILLISECONDS)
           if (entry != null) {
-            val entries = new collection.mutable.ListBuffer[KVEntry]()
+            val entries = collection.mutable.ListBuffer(entry)
             inQ.drainTo(entries)
-            val ranges = (List(entry) ++ entries).map(joinFn)
-            out.setRanges(ranges)
-            out.iterator().foreach(outQ.put)
+            val task = executor.submit(new Runnable {
+              override def run(): Unit = {
+                val scanner = acc.getBatchScanner(join.table, join.numThreads)
+                try {
+                  QueryPlan.configureBatchScanner(scanner, join.copy(ranges = entries.map(joinFunction)))
+                  scanner.iterator().foreach(outQ.put)
+                } finally {
+                  scanner.close()
+                }
+              }
+            })
+            tasks.append(task)
           }
         }
+        tasks.foreach(_.get)
       } catch {
         case _: InterruptedException =>
       } finally {
+        executor.shutdown()
         outDone.set(true)
       }
     }
   })
 
   override def close() {
-    if (!inExecutor.isShutdown) inExecutor.shutdownNow()
-    if (!outExecutor.isShutdown) outExecutor.shutdownNow()
+    if (!executor.isShutdown) {
+      executor.shutdownNow()
+    }
     in.close()
-    out.close()
   }
 
-  override def iterator: Iterator[KVEntry] = new Iterator[KVEntry] {
+  override def iterator: Iterator[Entry[Key, Value]] = new Iterator[Entry[Key, Value]] {
 
-    var prefetch: KVEntry = null
-
-    // Indicate there MAY be one more in the outQ but not for sure
-    def mightHaveAnother = !outDone.get || !outQ.isEmpty
+    var prefetch: Entry[Key, Value] = null
 
     def prefetchIfNull() = {
-      if (prefetch == null) {
-        // loop while we might have another and we haven't set prefetch
-        while (mightHaveAnother && prefetch == null) {
-          prefetch = outQ.poll
-        }
+      // loop while we might have another and we haven't set prefetch
+      while (prefetch == null && (!outDone.get || outQ.size > 0)) {
+        prefetch = outQ.poll(5, TimeUnit.MILLISECONDS)
       }
     }
 
@@ -101,9 +110,8 @@ class BatchMultiScanner(in: ScannerBase,
       prefetch != null
     }
 
-    override def next(): KVEntry = {
+    override def next(): Entry[Key, Value] = {
       prefetchIfNull()
-
       val ret = prefetch
       prefetch = null
       ret
