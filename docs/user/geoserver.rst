@@ -165,8 +165,8 @@ tutorial <http://docs.geoserver.org/stable/en/user/tutorials/cql/cql_tutorial.ht
       ``&TIME=2014-01-01T00:00:00.000Z/2014-01-31T23:59:59.999Z``
    That tells GeoServer to display the records for the entire month of January 2014. GeoServer will add an implicit
    time filter if you do not specify one, which may cause unexpected results. This TIME parameter is distinct from the
-   CQL filter and specifying a CQL time filter without the TIME parameter will create an empty intersection with the
-   implicit time filter. You can find more information about the TIME parameter from `GeoServer's documentation <http://docs.geoserver.org/stable/en/user/services/wms/time.html>`__.
+   CQL_FILTER parameter and specifying a CQL time filter without the TIME parameter may create an empty intersection
+   with the implicit time filter. You can find more information about the TIME parameter from `GeoServer's documentation <http://docs.geoserver.org/stable/en/user/services/wms/time.html>`__.
 
 Analysis with WPS
 -----------------
