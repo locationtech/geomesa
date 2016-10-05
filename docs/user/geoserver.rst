@@ -158,6 +158,15 @@ This is a CQL filter, which can be constructed in various ways to query data. Yo
 find more information about CQL from `GeoServer's CQL
 tutorial <http://docs.geoserver.org/stable/en/user/tutorials/cql/cql_tutorial.html>`__.
 
+.. note::
+
+   If you enabled the time dimension for a layer, such as instructed in the :doc:`../tutorials/geomesa-quickstart-accumulo`,
+   then you will need to specify a time in the URL of the form:
+      ``&TIME=2014-01-01T00:00:00.000Z/2014-01-31T23:59:59.999Z``
+   That tells GeoServer to display the records for the entire month of January 2014. You can find more information
+   about the TIME parameter from `GeoServer's documentation <http://docs.geoserver.org/stable/en/user/services/wms/time.html>`__.
+   By default Geoserver does not add this parameter.
+
 Analysis with WPS
 -----------------
 
