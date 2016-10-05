@@ -57,6 +57,19 @@ See below for some common configurations:
 | zookeeper-3.4.6.jar | 792964 |
 | commons-vfs2-2.1.jar | 441849 |
 
+#### Accumulo 1.8
+
+| jar | size |
+| --- | ---- |
+| accumulo-core-1.8.0.jar | 5151370 |
+| accumulo-fate-1.8.0.jar | 113292 |
+| accumulo-trace-1.8.0.jar | 16119 |
+| accumulo-server-base-1.8.0.jar | 696285 |
+| accumulo-start-1.8.0.jar | 53190 |
+| libthrift-0.9.3.jar | 234201 |
+| zookeeper-3.4.6.jar | 792964 |
+| commons-vfs2-2.1.jar | 441849 |
+
 #### Hadoop 2.2
 
 | jar | size |
