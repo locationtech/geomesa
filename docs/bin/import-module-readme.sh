@@ -5,8 +5,8 @@
 
 # IMPORTANT: update these to match your system!
 # (I had two copies of the geomesa repo because they were checked out on different branches)
-GM_DOCS=/opt/devel/src/geomesa-docs
-GM_MASTER=/opt/devel/src/geomesa
+GM_DOCS=/path/to/geomesa-docs
+GM_MASTER=/path/to/geomesa
 MODULES="
 geomesa-metrics
 geomesa-process

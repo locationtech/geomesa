@@ -208,7 +208,7 @@ If you are not sure of the location of your GeoServer data directory, it
 is printed out when you start GeoServer::
 
     ----------------------------------
-    - GEOSERVER_DATA_DIR: /opt/devel/install/geoserver-data-dir
+    - GEOSERVER_DATA_DIR: /path/to/geoserver-data-dir
     ----------------------------------
 
 Monitoring GeoMesa DataStores
