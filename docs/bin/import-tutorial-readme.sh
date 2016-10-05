@@ -9,8 +9,8 @@
 # ----------------------------------------------------------------------
 
 # Upate for your system
-GEOMESA_PATH=/opt/devel/src/geomesa
-TUTORIAL_PATH=/opt/devel/src/geomesa-tutorials
+GEOMESA_PATH=/path/to/geomesa
+TUTORIAL_PATH=/path/to/geomesa-tutorials
 if [ "$#" -eq 0 ] ; then
     TUTORIALS="
 geomesa-examples-authorizations
