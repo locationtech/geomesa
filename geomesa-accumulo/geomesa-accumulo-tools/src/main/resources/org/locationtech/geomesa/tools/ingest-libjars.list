@@ -12,6 +12,7 @@ curator-recipes
 geomesa
 gson
 gt
+htrace
 joda
 json-path
 json-simple
