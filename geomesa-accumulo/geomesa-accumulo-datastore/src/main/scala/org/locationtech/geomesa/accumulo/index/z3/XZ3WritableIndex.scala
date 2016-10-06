@@ -30,7 +30,7 @@ trait XZ3WritableIndex extends AccumuloWritableIndex {
 
   override def writer(sft: SimpleFeatureType, ops: AccumuloDataStore): (WritableFeature) => Seq[Mutation] = {
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new RuntimeException("Z3 writer requires a valid date"))
-    val sfc = XZ3SFC(XZ3Index.Precision, sft.getZ3Interval)
+    val sfc = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sharing = sft.getTableSharingBytes
     require(sharing.length < 2, s"Expecting only a single byte for table sharing, got ${sft.getTableSharingPrefix}")
@@ -45,7 +45,7 @@ trait XZ3WritableIndex extends AccumuloWritableIndex {
 
   override def remover(sft: SimpleFeatureType, ops: AccumuloDataStore): (WritableFeature) => Seq[Mutation] = {
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new RuntimeException("Z3 writer requires a valid date"))
-    val sfc = XZ3SFC(XZ3Index.Precision, sft.getZ3Interval)
+    val sfc = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sharing = sft.getTableSharingBytes
     val rowKey = getRowKey(sfc, timeToIndex, sharing, dtgIndex)_
