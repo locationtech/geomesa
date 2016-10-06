@@ -20,7 +20,7 @@ import org.geotools.geometry.DirectPosition2D
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
 import org.joda.time.DateTime
 import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
-import org.locationtech.geomesa.curve.TimePeriod
+import org.locationtech.geomesa.curve.{TimePeriod, XZSFC}
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.index.VisibilityLevel
@@ -216,6 +216,7 @@ object RichSimpleFeatureType {
   val KEYWORDS_KEY        = "geomesa.keywords"
   val VIS_LEVEL_KEY       = "geomesa.visibility.level"
   val Z3_INTERVAL_KEY     = "geomesa.z3.interval"
+  val XZ_PRECISION_KEY    = "geomesa.xz.precision"
 
   val KEYWORDS_DELIMITER = "\u0000"
 
@@ -274,6 +275,9 @@ object RichSimpleFeatureType {
       case Some(i) => TimePeriod.withName(i.toLowerCase)
     }
     def setZ3Interval(i: TimePeriod): Unit = sft.getUserData.put(Z3_INTERVAL_KEY, i.toString)
+
+    def getXZPrecision: Short = userData[String](XZ_PRECISION_KEY).map(_.toShort).getOrElse(XZSFC.DefaultPrecision)
+    def setXZPrecision(p: Short): Unit = sft.getUserData.put(XZ_PRECISION_KEY, p.toString)
 
     //  If no user data is specified when creating a new SFT, we should default to 'true'.
     def isTableSharing: Boolean = userData[String](TABLE_SHARING_KEY).forall(_.toBoolean)
