@@ -80,6 +80,21 @@ object ClassPathUtils extends LazyLogging {
     }
   }
 
+  /**
+    * Finds URLs of jar files based on a system property
+    *
+    * @param prop
+    * @return
+    */
+  def getJarsFromSystemProperty(prop: String): Seq[File] = {
+    Option(System.getProperty(prop)) match {
+      case Some(path) => path.toString().split(":").map(new File(_)).filter(_.isDirectory).toSeq.flatMap(loadJarsFromFolder)
+      case None =>
+        logger.warn(s"Can't load jars from System Property: ${prop}")
+        Seq.empty
+    }
+  }
+
   // noinspection AccessorLikeMethodIsEmptyParen
   def getJarsFromSystemClasspath(): Seq[File] = {
     val urls = ClassLoader.getSystemClassLoader.asInstanceOf[URLClassLoader].getURLs
