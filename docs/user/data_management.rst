@@ -193,7 +193,8 @@ Customizing the XZ-Index
 
 GeoMesa uses an extended z-curve index for storing geometries with extents. The index can be customized
 by specifying the resolution level used to store geometries. By default, the resolution level is 12. If
-you have very small geometries, or very large geometries, you may want to tweak this value.
+you have very large geometries, you may want to lower this value. Conversely, if you have very small
+geometries, you may want to raise it.
 
 The resolution level for an index is set when calling ``createSchema``. It may be specified through
 the simple feature type user data using the hint ``geomesa.xz.precision``:
