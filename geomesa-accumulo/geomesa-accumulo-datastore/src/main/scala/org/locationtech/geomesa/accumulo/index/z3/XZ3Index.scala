@@ -13,8 +13,6 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 object XZ3Index extends AccumuloFeatureIndex with XZ3WritableIndex with XZ3QueryableIndex {
 
-  val Precision: Short = 12 // precision of our SFCs
-
   override val name: String = "xz3"
 
   override val version: Int = 1

@@ -18,6 +18,7 @@ import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, WritableFeatur
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators._
+import org.locationtech.geomesa.curve.XZ2SFC
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
@@ -93,7 +94,8 @@ trait XZ2QueryableIndex extends AccumuloFeatureIndex
       // determine the ranges using the XZ curve
       val xy = geometries.map(GeometryUtils.bounds)
       val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
-      val zRanges = XZ2Index.SFC.ranges(xy, rangeTarget).map { range =>
+      val sfc = XZ2SFC(sft.getXZPrecision)
+      val zRanges = sfc.ranges(xy, rangeTarget).map { range =>
         (Longs.toByteArray(range.lower), Longs.toByteArray(range.upper))
       }
 

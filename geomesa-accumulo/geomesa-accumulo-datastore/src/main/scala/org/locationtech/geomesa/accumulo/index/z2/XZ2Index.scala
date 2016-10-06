@@ -9,12 +9,9 @@
 package org.locationtech.geomesa.accumulo.index.z2
 
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
-import org.locationtech.geomesa.curve.XZ2SFC
 import org.opengis.feature.simple.SimpleFeatureType
 
 object XZ2Index extends AccumuloFeatureIndex with XZ2WritableIndex with XZ2QueryableIndex {
-
-  val SFC = XZ2SFC(12)
 
   override val name: String = "xz2"
 
