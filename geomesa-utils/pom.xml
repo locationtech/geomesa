@@ -133,7 +133,7 @@
         </dependency>
         <dependency>
             <groupId>org.parboiled</groupId>
-            <artifactId>parboiled-scala_${scala.binary.version}</artifactId>
+            <artifactId>parboiled-scala_2.11</artifactId>
         </dependency>
 
         <!-- test dependencies -->
