@@ -235,7 +235,7 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
       // we have an attribute filter
       val extractedBounds = for {
         descriptor <- Option(sft.getDescriptor(attribute))
-        binding    =  descriptor.getListType().getOrElse(descriptor.getType.getBinding)
+        binding    =  if (descriptor.isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
         bounds     <- FilterHelper.extractAttributeBounds(filter, attribute, binding.asInstanceOf[Class[Any]])
       } yield {
         bounds.bounds.map(_.bounds)

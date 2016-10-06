@@ -8,12 +8,11 @@
 
 package org.locationtech.geomesa.features.serialization
 
-import java.util.{Collections => JCollections, Map => JMap, UUID}
+import java.util.{UUID, Collections => JCollections, Map => JMap}
 
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.serialization.AbstractWriter._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 
 /** Combines all readers.
   *
@@ -71,6 +70,7 @@ trait AbstractReader[Reader]
   def selectReader(cls: Class[_], version: Version,
                    metadata: JMap[_ <: AnyRef, _ <: AnyRef] = JCollections.emptyMap(),
                    isNullable: isNullableFn = notNullable): DatumReader[Reader, AnyRef] = {
+    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs._
 
     val reader: DatumReader[Reader, AnyRef] = {
       if (classOf[java.lang.String].isAssignableFrom(cls)) readString
@@ -86,14 +86,14 @@ trait AbstractReader[Reader]
       else if (classOf[Hints.Key].isAssignableFrom(cls)) readHintKey
 
       else if (classOf[java.util.List[_]].isAssignableFrom(cls)) {
-        val elemClass = metadata.get(USER_DATA_LIST_TYPE).asInstanceOf[Class[_]]
+        val elemClass = Class.forName(metadata.get(USER_DATA_LIST_TYPE).asInstanceOf[String])
         val elemReader = selectReader(elemClass, version, isNullable = isNullable)
         readList(elemReader)
       }
 
       else if (classOf[java.util.Map[_, _]].isAssignableFrom(cls)) {
-        val keyClass = metadata.get(USER_DATA_MAP_KEY_TYPE).asInstanceOf[Class[_]]
-        val valueClass = metadata.get(USER_DATA_MAP_VALUE_TYPE).asInstanceOf[Class[_]]
+        val keyClass = Class.forName(metadata.get(USER_DATA_MAP_KEY_TYPE).asInstanceOf[String])
+        val valueClass = Class.forName(metadata.get(USER_DATA_MAP_VALUE_TYPE).asInstanceOf[String])
         val keyDecoding = selectReader(keyClass, version, isNullable = isNullable)
         val valueDecoding = selectReader(valueClass, version, isNullable = isNullable)
         readMap(keyDecoding, valueDecoding)

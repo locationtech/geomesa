@@ -27,7 +27,6 @@ import org.locationtech.geomesa.tools.accumulo.Utils.Formats.Formats
 import org.locationtech.geomesa.tools.accumulo.commands.ExportCommand.ExportParameters
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.ListSplitter
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -116,7 +115,7 @@ object ShapefileExport {
    * @return
    */
   def replaceGeomInAttributesString(attributes: String, sft: SimpleFeatureType): String = {
-    val trimmedAttributes = scala.collection.mutable.LinkedList(new ListSplitter().parse(attributes):_*)
+    val trimmedAttributes = scala.collection.mutable.LinkedList(attributes.split(",").map(_.trim): _*)
     val geomDescriptor = sft.getGeometryDescriptor.getLocalName
 
     if (trimmedAttributes.contains(geomDescriptor)) {

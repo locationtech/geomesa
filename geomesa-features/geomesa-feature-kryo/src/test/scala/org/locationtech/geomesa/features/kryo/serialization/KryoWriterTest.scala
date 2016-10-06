@@ -194,7 +194,8 @@ class KryoWriterTest extends Specification with Mockito {
 
       "for a List" >> {
         "with necessary metadata" >> {
-          val metadata = Map(USER_DATA_LIST_TYPE -> classOf[java.util.Date]).asJava
+          import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs._
+          val metadata = Map(USER_DATA_LIST_TYPE -> classOf[java.util.Date].getName).asJava
           val result: DatumWriter[Output, List[java.util.Date]] = writer.selectWriter(classOf[java.util.List[java.util.Date]], metadata)
           result must not(beNull)
         }
@@ -206,9 +207,10 @@ class KryoWriterTest extends Specification with Mockito {
 
       "for a Map" >> {
         "with necessary metadata" >> {
+          import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs._
           val metadata = Map(
-            USER_DATA_MAP_KEY_TYPE -> classOf[String],
-            USER_DATA_MAP_VALUE_TYPE -> classOf[Geometry]
+            USER_DATA_MAP_KEY_TYPE -> classOf[String].getName,
+            USER_DATA_MAP_VALUE_TYPE -> classOf[Geometry].getName
           ).asJava
           val result: DatumWriter[Output, Map[String, Geometry]] = writer.selectWriter(classOf[java.util.Map[String, Geometry]], metadata)
           result must not(beNull)

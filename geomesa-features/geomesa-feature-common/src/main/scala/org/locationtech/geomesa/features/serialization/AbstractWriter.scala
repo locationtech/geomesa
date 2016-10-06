@@ -8,12 +8,11 @@
 
 package org.locationtech.geomesa.features.serialization
 
-import java.util.{Collections => JCollections, List => JList, Map => JMap, UUID}
+import java.util.{UUID, Collections => JCollections, List => JList, Map => JMap}
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 import scala.collection.JavaConverters._
 
@@ -90,6 +89,7 @@ trait AbstractWriter[Writer]
    */
   def selectWriter[T](clazz: Class[_ <: T], metadata: JMap[_ <: AnyRef, _ <: AnyRef] = JCollections.emptyMap(),
                       isNullable: isNullableFn = notNullable): DatumWriter[Writer, T] = {
+    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs._
 
     val writer = clazz match {
       case cls if classOf[java.lang.String].isAssignableFrom(cls) => writeString.asInstanceOf[DatumWriter[Writer, T]]
@@ -105,13 +105,13 @@ trait AbstractWriter[Writer]
       case cls if classOf[Hints.Key].isAssignableFrom(cls) => writeHintKey.asInstanceOf[DatumWriter[Writer, T]]
 
       case c if classOf[JList[_]].isAssignableFrom(c) =>
-        val elemClass = metadata.get(SimpleFeatureTypes.USER_DATA_LIST_TYPE).asInstanceOf[Class[_]]
+        val elemClass  = Class.forName(metadata.get(USER_DATA_LIST_TYPE).asInstanceOf[String])
         val elemWriter = selectWriter(elemClass, isNullable = isNullable)
         writeList(elemWriter).asInstanceOf[DatumWriter[Writer, T]]
 
       case c if classOf[JMap[_, _]].isAssignableFrom(c) =>
-        val keyClass      = metadata.get(SimpleFeatureTypes.USER_DATA_MAP_KEY_TYPE).asInstanceOf[Class[_]]
-        val valueClass    = metadata.get(SimpleFeatureTypes.USER_DATA_MAP_VALUE_TYPE).asInstanceOf[Class[_]]
+        val keyClass    = Class.forName(metadata.get(USER_DATA_MAP_KEY_TYPE).asInstanceOf[String])
+        val valueClass  = Class.forName(metadata.get(USER_DATA_MAP_VALUE_TYPE).asInstanceOf[String])
         val keyWriter   = selectWriter(keyClass, isNullable = isNullable)
         val valueWriter = selectWriter(valueClass, isNullable = isNullable)
         writeMap(keyWriter, valueWriter).asInstanceOf[DatumWriter[Writer, T]]

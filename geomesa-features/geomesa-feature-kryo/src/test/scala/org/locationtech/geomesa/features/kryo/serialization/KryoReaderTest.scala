@@ -16,7 +16,6 @@ import org.geotools.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.SerializationException
 import org.locationtech.geomesa.features.serialization.{DatumReader, DatumWriter}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
@@ -270,7 +269,8 @@ class KryoReaderTest extends Specification {
 
       "for a List" >> {
         "with necessary metadata" >> {
-          val metadata = Map(USER_DATA_LIST_TYPE -> classOf[java.util.Date]).asJava
+          import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs._
+          val metadata = Map(USER_DATA_LIST_TYPE -> classOf[java.util.Date].getName).asJava
           val result = reader.selectReader(classOf[java.util.List[java.util.Date]], 0, metadata)
           result must not(beNull)
         }
@@ -282,9 +282,10 @@ class KryoReaderTest extends Specification {
 
       "for a Map" >> {
         "with necessary metadata" >> {
+          import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs._
           val metadata = Map(
-            USER_DATA_MAP_KEY_TYPE -> classOf[String],
-            USER_DATA_MAP_VALUE_TYPE -> classOf[Geometry]
+            USER_DATA_MAP_KEY_TYPE -> classOf[String].getName,
+            USER_DATA_MAP_VALUE_TYPE -> classOf[Geometry].getName
           ).asJava
           val result = reader.selectReader(classOf[java.util.Map[String, Geometry]], 0, metadata)
           result must not(beNull)

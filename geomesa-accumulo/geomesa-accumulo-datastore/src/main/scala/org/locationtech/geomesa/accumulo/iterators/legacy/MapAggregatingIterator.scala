@@ -17,7 +17,7 @@ import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIt
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.locationtech.geomesa.accumulo.iterators.legacy.FeatureAggregatingIterator.Result
 import org.locationtech.geomesa.accumulo.sumNumericValueMutableMaps
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.{AttributeSpec, GeometryUtils, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.mutable
@@ -58,11 +58,7 @@ object MapAggregatingIterator extends LazyLogging {
 
   val MAP_ATTRIBUTE = "map_attribute"
   def projectedSFTDef(mapAttributeName: String, underlyingSFT: SimpleFeatureType) = {
-    val mapAttributeSpec =
-      SimpleFeatureTypes.AttributeSpecFactory.fromAttributeDescriptor(
-        underlyingSFT,
-        underlyingSFT.getDescriptor(mapAttributeName))
-
+    val mapAttributeSpec = AttributeSpec(underlyingSFT, underlyingSFT.getDescriptor(mapAttributeName))
     s"${mapAttributeSpec.toSpec},geom:Point:srid=4326"
   }
 

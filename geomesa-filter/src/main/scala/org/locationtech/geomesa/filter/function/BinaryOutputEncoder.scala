@@ -14,8 +14,8 @@ import java.util.{Collections, Date}
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Geometry, LineString, Point}
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.ListAttributeSpec
+import org.locationtech.geomesa.utils.geotools.AttributeSpec.ListAttributeSpec
+import org.locationtech.geomesa.utils.geotools.{SimpleFeatureSpecParser, SimpleFeatureTypes}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -201,7 +201,7 @@ object BinaryOutputEncoder extends LazyLogging {
   private def pointToXY(p: Point) = (p.getX.toFloat, p.getY.toFloat)
 
   private def validateDateAttribute(dtgField: String, sft: SimpleFeatureType, isLineString: Boolean) = {
-    val sftAttributes = SimpleFeatureTypes.parse(SimpleFeatureTypes.encodeType(sft)).attributes
+    val sftAttributes = SimpleFeatureSpecParser.parse(SimpleFeatureTypes.encodeType(sft)).attributes
     val dateAttribute = sftAttributes.find(_.name == dtgField)
     val ok = dateAttribute.exists { spec =>
       if (isLineString) {

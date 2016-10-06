@@ -168,7 +168,8 @@ class AccumuloDataStore(val connector: Connector,
    * @return feature type, or null if it does not exist
    */
   override def getSchema(name: Name): SimpleFeatureType = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.SCHEMA_VERSION_KEY
+    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.{ENABLED_INDEX_OPTS, ENABLED_INDICES}
+    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.{INDEX_VERSIONS, SCHEMA_VERSION_KEY}
 
     val typeName = name.getLocalPart
     val attributes = metadata.read(typeName, ATTRIBUTES_KEY).orElse {
@@ -195,7 +196,7 @@ class AccumuloDataStore(val connector: Connector,
       checkProjectVersion()
 
       // back compatible check for index versions
-      if (!sft.getUserData.contains(SimpleFeatureTypes.INDEX_VERSIONS)) {
+      if (!sft.getUserData.contains(INDEX_VERSIONS)) {
         // back compatible check if user data wasn't encoded with the sft
         if (!sft.getUserData.containsKey(SCHEMA_VERSION_KEY)) {
           metadata.read(typeName, "dtgfield").foreach(sft.setDtgField)
@@ -211,8 +212,8 @@ class AccumuloDataStore(val connector: Connector,
             sft.setTableSharing(false)
             sft.setTableSharingPrefix("")
           }
-          SimpleFeatureTypes.ENABLED_INDEXES.foreach { i =>
-            metadata.read(typeName, i).foreach(e => sft.getUserData.put(SimpleFeatureTypes.ENABLED_INDEXES.head, e))
+          ENABLED_INDEX_OPTS.foreach { i =>
+            metadata.read(typeName, i).foreach(e => sft.getUserData.put(ENABLED_INDICES, e))
           }
           // old st_idx schema, kept around for back-compatibility
           metadata.read(typeName, "schema").foreach(sft.setStIndexSchema)
@@ -293,7 +294,8 @@ class AccumuloDataStore(val connector: Connector,
     */
   override def updateSchema(typeName: Name, sft: SimpleFeatureType): Unit = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs._
+    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs._
 
     // validate type name has not changed
     if (typeName.toString != sft.getTypeName) {
@@ -668,7 +670,7 @@ class AccumuloDataStore(val connector: Connector,
 
     // set the enabled indices
     sft.setIndices(AccumuloDataStore.getEnabledIndices(sft))
-    SimpleFeatureTypes.ENABLED_INDEXES.foreach(sft.getUserData.remove)
+    SimpleFeatureTypes.Configs.ENABLED_INDEX_OPTS.foreach(sft.getUserData.remove)
 
     // compute the metadata values - IMPORTANT: encode type has to be called after all user data is set
     val attributesValue   = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
@@ -746,7 +748,8 @@ object AccumuloDataStore {
     * @return sequence of index (name, version)
     */
   private def getEnabledIndices(sft: SimpleFeatureType): Seq[(String, Int, IndexMode)] = {
-    val marked: Seq[String] = SimpleFeatureTypes.ENABLED_INDEXES.map(sft.getUserData.get).find(_ != null) match {
+    import SimpleFeatureTypes.Configs.ENABLED_INDEX_OPTS
+    val marked: Seq[String] = ENABLED_INDEX_OPTS.map(sft.getUserData.get).find(_ != null) match {
       case None => AccumuloFeatureIndex.AllIndices.map(_.name).distinct
       case Some(enabled) =>
         val e = enabled.toString.split(",").map(_.trim).filter(_.length > 0)

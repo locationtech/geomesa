@@ -272,7 +272,7 @@ object AttributeWritableIndex extends LazyLogging {
     if (value == null) {
       Array.empty
     } else {
-      val binding = descriptor.getListType().getOrElse(descriptor.getType.getBinding)
+      val binding = if (descriptor.isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
       val converted = convertType(value, value.getClass, binding)
       val encoded = typeEncode(converted)
       if (encoded == null || encoded.isEmpty) {
@@ -296,7 +296,7 @@ object AttributeWritableIndex extends LazyLogging {
   def decode(encoded: String, descriptor: AttributeDescriptor): Any = {
     if (descriptor.isList) {
       // get the alias from the type of values in the collection
-      val alias = descriptor.getListType().map(_.getSimpleName.toLowerCase(Locale.US)).head
+      val alias = descriptor.getListType().getSimpleName.toLowerCase(Locale.US)
       Seq(typeRegistry.decode(alias, encoded)).asJava
     } else if (descriptor.isMap) {
       // TODO GEOMESA-454 - support querying against map attributes

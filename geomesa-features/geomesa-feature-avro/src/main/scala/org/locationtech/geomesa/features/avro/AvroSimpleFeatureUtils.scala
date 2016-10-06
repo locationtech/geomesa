@@ -16,15 +16,11 @@ import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io.WKBWriter
 import org.apache.avro.{Schema, SchemaBuilder}
 import org.geotools.util.Converters
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
 
 object AvroSimpleFeatureUtils {
-
-  import SimpleFeatureTypes._
-  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors._
 
   val FEATURE_ID_AVRO_FIELD_NAME: String = "__fid__"
   val AVRO_SIMPLE_FEATURE_VERSION: String = "__version__"
@@ -107,6 +103,8 @@ object AvroSimpleFeatureUtils {
   // Resulting functions in map are not thread-safe...use only as
   // member variable, not in a static context
   def createTypeMap(sft: SimpleFeatureType, wkbWriter: WKBWriter, nameEncoder: FieldNameEncoder): Map[String, Binding] = {
+    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
     sft.getAttributeDescriptors.map { ad =>
       val conv = ad.getType.getBinding match {
         case t if primitiveTypes.contains(t) => (v: AnyRef) => v
@@ -118,13 +116,10 @@ object AvroSimpleFeatureUtils {
         case t if classOf[Geometry].isAssignableFrom(t) =>
           (v: AnyRef) => ByteBuffer.wrap(wkbWriter.write(v.asInstanceOf[Geometry]))
 
-        case t if ad.isList => (v: AnyRef) =>
-          encodeList(v.asInstanceOf[java.util.List[_]],
-            ad.getUserData.get(USER_DATA_LIST_TYPE).asInstanceOf[Class[_]])
+        case t if ad.isList => (v: AnyRef) => encodeList(v.asInstanceOf[java.util.List[_]], ad.getListType())
 
         case t if ad.isMap => (v: AnyRef) =>
-          val keyclass   = ad.getUserData.get(USER_DATA_MAP_KEY_TYPE).asInstanceOf[Class[_]]
-          val valueclass = ad.getUserData.get(USER_DATA_MAP_VALUE_TYPE).asInstanceOf[Class[_]]
+          val (keyclass, valueclass) = ad.getMapTypes()
           encodeMap(v.asInstanceOf[java.util.Map[_, _]], keyclass, valueclass)
 
         case t if classOf[Array[Byte]].isAssignableFrom(t) =>
