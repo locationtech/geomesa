@@ -155,6 +155,8 @@ org.locationtech.sfcurve:sfcurve-api_2.11	0.2.0	compile
 org.locationtech.sfcurve:sfcurve-zorder_2.11	0.2.0	compile
 org.objenesis:objenesis	1.0	compile
 org.ow2.asm:asm	4.0	compile
+org.parboiled:parboiled-core	1.1.7	compile
+org.parboiled:parboiled-scala_2.11	1.1.7	compile
 org.scala-lang.modules:scala-parser-combinators_2.11	1.0.4	compile
 org.scala-lang.modules:scala-xml_2.11	1.0.5	compile
 org.scala-lang:scala-compiler	2.11.7	compile
