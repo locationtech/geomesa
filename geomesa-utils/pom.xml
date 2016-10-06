@@ -128,6 +128,10 @@
             <groupId>com.clearspring.analytics</groupId>
             <artifactId>stream</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.parboiled</groupId>
+            <artifactId>parboiled-scala_${scala.binary.version}</artifactId>
+        </dependency>
 
         <!-- test dependencies -->
         <dependency>
