@@ -17,7 +17,6 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureStore
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats._
 import org.locationtech.geomesa.tools.accumulo._
@@ -35,6 +34,7 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
 
   override def execute() = {
     val fmt = Formats.withName(params.format.toLowerCase(Locale.US))
+    val start = System.currentTimeMillis()
     val features = getFeatureCollection(fmt)
     lazy val avroCompression = Option(params.gzip).map(_.toInt).getOrElse(Deflater.DEFAULT_COMPRESSION)
     val exporter: FeatureExporter = fmt match {
@@ -44,17 +44,19 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
       case GML            => new GmlExport(createOutputStream())
       case BIN            => BinFileExport(createOutputStream(), params)
       case AVRO           => new AvroExport(createOutputStream(true), features.getSchema, avroCompression)
+      case NULL           => NullExport
       // shouldn't happen unless someone adds a new format and doesn't implement it here
       case _              => throw new UnsupportedOperationException(s"Format $fmt can't be exported")
     }
     try {
       exporter.write(features)
-      logger.info(s"Feature export complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")}")
     } finally {
       exporter.flush()
       exporter.close()
       ds.dispose()
     }
+    logger.info(s"Feature export complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")} " +
+        s"in ${System.currentTimeMillis() - start}ms")
   }
 
   def getFeatureCollection(fmt: Formats): SimpleFeatureCollection = {
@@ -90,7 +92,7 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
     }
 
     // get the feature store used to query the GeoMesa data
-    val fs = ds.getFeatureSource(params.featureName).asInstanceOf[AccumuloFeatureStore]
+    val fs = ds.getFeatureSource(params.featureName)
 
     // and execute the query
     Try(fs.getFeatures(q)) match {
