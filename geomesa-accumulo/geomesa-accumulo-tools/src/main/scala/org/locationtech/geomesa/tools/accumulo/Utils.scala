@@ -52,6 +52,7 @@ object Utils extends LazyLogging {
     val BIN     = Value("bin")
     val AVRO    = Value("avro")
     val XML     = Value("xml")
+    val NULL    = Value("null")
     val Other   = Value("other")
 
     def getFileExtension(name: String): String = {

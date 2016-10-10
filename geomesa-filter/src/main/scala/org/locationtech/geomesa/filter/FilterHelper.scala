@@ -16,7 +16,6 @@ import org.geotools.data.DataUtilities
 import org.geotools.filter.spatial.BBOXImpl
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.filter.visitor.IdDetectingFilterVisitor
-import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -28,6 +27,7 @@ import org.opengis.filter.temporal.{After, Before, During, TEquals}
 import org.opengis.temporal.Period
 
 import scala.collection.JavaConversions._
+import scala.util.{Failure, Success}
 
 object FilterHelper extends LazyLogging {
 
@@ -60,7 +60,7 @@ object FilterHelper extends LazyLogging {
       val trimmedGeom = geomCopy.intersection(WholeWorldPolygon)
       // add waypoints if needed so that IDL is handled correctly
       val geomWithWayPoints = if (op.isInstanceOf[BBOX]) addWayPointsToBBOX(trimmedGeom) else trimmedGeom
-      val safeGeometry = getInternationalDateLineSafeGeometry(geomWithWayPoints)
+      val safeGeometry = tryGetIdlSafeGeom(geomWithWayPoints)
       // mark it as being visited
       safeGeometry.setUserData(SafeGeomString)
       recreateAsIdlSafeFilter(op, attribute, safeGeometry, prop.flipped)
@@ -99,11 +99,16 @@ object FilterHelper extends LazyLogging {
       val geomCopy = gf.createGeometry(geom)
       // trim to world boundaries
       val trimmedGeom = geomCopy.intersection(WholeWorldPolygon)
-      val safeGeometry = getInternationalDateLineSafeGeometry(trimmedGeom)
+      val safeGeometry = tryGetIdlSafeGeom(trimmedGeom)
       // mark it as being visited
       safeGeometry.setUserData(SafeGeomString)
       recreateAsIdlSafeFilter(op, attribute, safeGeometry, prop.flipped, distanceDegrees)
     }
+  }
+
+  private def tryGetIdlSafeGeom(geom: Geometry): Geometry = getInternationalDateLineSafeGeometry(geom) match {
+    case Success(g) => g
+    case Failure(e) => logger.warn(s"Error splitting geometry on IDL for $geom", e); geom
   }
 
   private def recreateAsIdlSafeFilter(op: BinarySpatialOperator,
@@ -223,7 +228,7 @@ object FilterHelper extends LazyLogging {
               addWayPointsToBBOX(trimmedGeom)
             case _ => geom
           }
-          GeohashUtils.getInternationalDateLineSafeGeometry(buffered)
+          tryGetIdlSafeGeom(buffered)
         }
         geometry match {
           case Some(g: GeometryCollection) => (0 until g.getNumGeometries).map(g.getGeometryN)

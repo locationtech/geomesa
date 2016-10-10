@@ -37,6 +37,12 @@ trait FeatureExporter extends AutoCloseable with Flushable {
   def write(featureCollection: SimpleFeatureCollection): Unit
 }
 
+object NullExport extends FeatureExporter {
+  override def write(features: SimpleFeatureCollection): Unit = features.features().foreach(_ => Unit)
+  override def flush() = {}
+  override def close() = {}
+}
+
 class GeoJsonExport(writer: Writer) extends FeatureExporter {
 
   val featureJson = new FeatureJSON()
