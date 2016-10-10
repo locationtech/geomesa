@@ -18,7 +18,7 @@ import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureStore
-import org.locationtech.geomesa.tools.accumulo.Utils.Formats
+import org.locationtech.geomesa.tools.accumulo.Utils.{Formats, setOverrideAttributes}
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats._
 import org.locationtech.geomesa.tools.accumulo._
 import org.locationtech.geomesa.tools.accumulo.commands.ExportCommand.ExportParameters
@@ -80,14 +80,7 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
     logger.debug(s"Applying CQL filter ${filter.toString}")
     val q = new Query(params.featureName, filter)
     Option(params.maxFeatures).foreach(q.setMaxFeatures(_))
-
-    // If there are override attributes given as an arg or via command line params
-    // split attributes by "," meanwhile allowing to escape it by "\,".
-    overrideAttributes.orElse(Option(params.attributes)).foreach { attributes =>
-      val splitAttrs = attributes.split("""(?<!\\),""").map(_.trim.replace("\\,", ","))
-      logger.debug("Attributes used for query transform: " + splitAttrs.mkString("|"))
-      q.setPropertyNames(splitAttrs)
-    }
+    setOverrideAttributes(q, overrideAttributes.orElse(Option(params.attributes)))
 
     // get the feature store used to query the GeoMesa data
     val fs = ds.getFeatureSource(params.featureName).asInstanceOf[AccumuloFeatureStore]

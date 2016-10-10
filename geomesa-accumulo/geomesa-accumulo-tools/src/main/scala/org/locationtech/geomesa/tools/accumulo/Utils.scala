@@ -17,8 +17,11 @@ import org.apache.commons.compress.compressors.xz.XZUtils
 import org.apache.commons.io.{FileUtils, FilenameUtils}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
+import org.locationtech.geomesa.tools.accumulo.commands.ExportCommand.ExportParameters
+import org.geotools.data.Query
+import com.typesafe.scalalogging.LazyLogging
 
-object Utils {
+object Utils extends LazyLogging {
 
   object IngestParams {
     val ACCUMULO_INSTANCE   = "geomesa.tools.ingest.instance"
@@ -79,6 +82,16 @@ object Utils {
     val fs = FileSystem.get(new Configuration)
     val path = new Path(pathStr)
     fs.delete(path, true)
+  }
+
+  // If there are override attributes given as an arg or via command line params
+  // split attributes by "," meanwhile allowing to escape it by "\,".
+  def setOverrideAttributes(q: Query, overrideAttributes: Option[String] = None) = {
+    overrideAttributes.foreach { attributes =>
+      val splitAttrs = attributes.split("""(?<!\\),""").map(_.trim.replace("\\,", ","))
+      logger.debug("Attributes used for query transform: " + splitAttrs.mkString("|"))
+      q.setPropertyNames(splitAttrs)
+    }
   }
 
 }

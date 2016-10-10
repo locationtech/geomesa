@@ -14,6 +14,7 @@ import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.utils.ExplainPrintln
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
+import org.locationtech.geomesa.tools.accumulo.Utils.setOverrideAttributes
 import org.locationtech.geomesa.tools.accumulo.commands.ExplainCommand.ExplainParameters
 import org.locationtech.geomesa.tools.common.{CQLFilterParam, FeatureTypeNameParam, OptionalAttributesParam}
 
@@ -24,11 +25,7 @@ class ExplainCommand(parent: JCommander) extends CommandWithCatalog(parent) with
   override def execute() =
     try {
       val q = new Query(params.featureName, ECQL.toFilter(params.cqlFilter))
-      Option(params.attributes).foreach { attribute =>
-        val splitAttrs = attribute.toString().split("""(?<!\\),""").map(_.trim.replace("\\,", ","))
-        logger.debug("Attributes used for query transform: " + splitAttrs.mkString("|"))
-        q.setPropertyNames(splitAttrs)
-      }
+      setOverrideAttributes(q, Option(params.attributes))
       ds.getQueryPlan(q, explainer = new ExplainPrintln)
     } catch {
       case e: Exception =>
