@@ -26,8 +26,22 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent)
   override val params = new ExportParameters
 
   override def execute() = {
+    val start = System.currentTimeMillis()
+    lazy val sft = ds.getSchema(params.featureName)
     val fmt = Formats.withName(params.format.toLowerCase(Locale.US))
-    val features = getFeatureCollection(fmt, ds, params)
+    val features = fmt match {
+      case SHP =>
+        val schemaString =
+          if (params.attributes == null) {
+            ShapefileExport.modifySchema(sft)
+          } else {
+            ShapefileExport.replaceGeomInAttributesString(params.attributes, sft)
+          }
+        getFeatureCollection(Some(schemaString), ds, params)
+      case _ =>
+        getFeatureCollection(None, ds, params)
+    }
+
     lazy val avroCompression = Option(params.gzip).map(_.toInt).getOrElse(Deflater.DEFAULT_COMPRESSION)
     val exporter: FeatureExporter = fmt match {
       case CSV | TSV      => new DelimitedExport(getWriter(params), fmt, !params.noHeader)

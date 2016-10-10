@@ -17,34 +17,13 @@ import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
-import org.locationtech.geomesa.tools.accumulo.Utils.Formats._
 import org.locationtech.geomesa.tools.accumulo._
 import org.locationtech.geomesa.tools.common.{FeatureTypeNameParam, OptionalCQLFilterParam}
 import org.opengis.filter.Filter
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
 import scala.util.{Failure, Success, Try}
 
 trait ExportCommandTools[P <: ExportCommandToolsParam] extends LazyLogging {
-
-  def getFeatureCollection(fmt: Formats, ds: AccumuloDataStore, params: P):
-    SimpleFeatureCollection = {
-    lazy val sft = ds.getSchema(params.featureName)
-    fmt match {
-      case SHP =>
-        val schemaString =
-          if (params.attributes == null) {
-            ShapefileExport.modifySchema(sft)
-          } else {
-            ShapefileExport.replaceGeomInAttributesString(params.attributes, sft)
-          }
-        getFeatureCollection(Some(schemaString), ds, params)
-      case BIN =>
-        sft.getDtgField.foreach(BinFileExport.DEFAULT_TIME = _)
-        getFeatureCollection(Some(BinFileExport.getAttributeList(params)), ds, params)
-      case _ => getFeatureCollection(None, ds, params)
-    }
-  }
 
   def getFeatureCollection(overrideAttributes: Option[String] = None, ds: AccumuloDataStore, params: P):
     SimpleFeatureCollection = {

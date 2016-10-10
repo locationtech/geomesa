@@ -11,8 +11,8 @@ package org.locationtech.geomesa.tools.accumulo.commands
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.accumulo._
-
 import org.locationtech.geomesa.tools.accumulo.commands.BinaryExportCommand.BinaryExportParameters
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
 class BinaryExportCommand(parent: JCommander) extends CommandWithCatalog(parent)
   with ExportCommandTools[BinaryExportParameters]
@@ -22,8 +22,11 @@ class BinaryExportCommand(parent: JCommander) extends CommandWithCatalog(parent)
   override val params = new BinaryExportParameters
 
   override def execute() = {
-    val fmt = Option("bin")
-    val features = getFeatureCollection(fmt, ds, params)
+    val start = System.currentTimeMillis()
+    val optAtt = Option(BinFileExport.getAttributeList(params))
+    val sft = ds.getSchema(params.featureName)
+    sft.getDtgField.foreach(BinFileExport.DEFAULT_TIME = _)
+    val features = getFeatureCollection(optAtt, ds, params)
     val exporter: FeatureExporter = BinFileExport(createOutputStream(false, params), params)
     try {
       exporter.write(features)
