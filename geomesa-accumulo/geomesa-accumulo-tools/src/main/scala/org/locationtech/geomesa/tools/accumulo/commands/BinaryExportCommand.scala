@@ -33,6 +33,8 @@ class BinaryExportCommand(parent: JCommander) extends CommandWithCatalog(parent)
       exporter.close()
       ds.dispose()
     }
+    logger.info(s"Feature export complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")} " +
+      s"in ${System.currentTimeMillis() - start}ms")
   }
 }
 
