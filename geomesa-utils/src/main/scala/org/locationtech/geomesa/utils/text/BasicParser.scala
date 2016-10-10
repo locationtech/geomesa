@@ -14,7 +14,7 @@ import org.apache.commons.lang.StringEscapeUtils
 import org.parboiled.scala._
 
 /**
-  * Base class por parboiled parsers that provides methods for string and number matching
+  * Base class for parboiled parsers that provides methods for string and number matching
   */
 class BasicParser extends Parser {
 
