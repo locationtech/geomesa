@@ -25,6 +25,7 @@ import org.locationtech.geomesa.filter.function._
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats.Formats
 import org.locationtech.geomesa.tools.accumulo.commands.ExportCommand.ExportParameters
+import org.locationtech.geomesa.tools.accumulo.commands.BinaryExportCommand.BinaryExportParameters
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.ListSplitter
@@ -185,14 +186,14 @@ object BinFileExport {
 
   var DEFAULT_TIME = "dtg"
 
-  def getAttributeList(p: ExportParameters): String = {
+  def getAttributeList(p: BinaryExportParameters): String = {
     val dtg = Option(p.dateAttribute).getOrElse(DEFAULT_TIME)
     Seq(p.latAttribute, p.lonAttribute, p.idAttribute, dtg, p.labelAttribute)
         .filter(_ != null)
         .mkString(",")
   }
 
-  def apply(os: OutputStream, params: ExportParameters) =
+  def apply(os: OutputStream, params: BinaryExportParameters) =
     new BinFileExport(os,
                       Option(params.dateAttribute).getOrElse(DEFAULT_TIME),
                       Option(params.idAttribute),
