@@ -29,10 +29,12 @@ import scala.util.matching.Regex
 
 object Transformers extends EnhancedTokenParsers with LazyLogging {
 
-  val functionMap = mutable.HashMap[String, TransformerFn]()
-
-  ServiceRegistry.lookupProviders(classOf[TransformerFunctionFactory]).foreach { factory =>
-    factory.functions.foreach(f => f.names.foreach(functionMap.put(_, f)))
+  lazy val functionMap = {
+    val fn = mutable.HashMap[String, TransformerFn]()
+    ServiceRegistry.lookupProviders(classOf[TransformerFunctionFactory]).foreach { factory =>
+      factory.functions.foreach(f => f.names.foreach(fn.put(_, f)))
+    }
+    fn
   }
 
   val EQ   = "Eq"
