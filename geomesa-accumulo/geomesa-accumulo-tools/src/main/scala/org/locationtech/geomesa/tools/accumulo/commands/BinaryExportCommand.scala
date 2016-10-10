@@ -53,7 +53,7 @@ object BinaryExportCommand {
     @Parameter(names = Array("--lon-attribute"), description = "name of the longitude attribute to export")
     var lonAttribute: String = null
 
-    @Parameter(names = Array("--dt-attribute"), description = "name of the date attribute to export")
+    @Parameter(names = Array("--dt-attribute"), description = "name of the date attribute to export", required = true)
     var dateAttribute: String = null
 
     @Parameter(names = Array("--label-attribute"), description = "name of the attribute to use as a bin file label")
