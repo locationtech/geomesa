@@ -88,9 +88,13 @@ object ClassPathUtils extends LazyLogging {
     */
   def getJarsFromSystemProperty(prop: String): Seq[File] = {
     Option(System.getProperty(prop)) match {
-      case Some(path) => path.toString().split(":").map(new File(_)).filter(_.isDirectory).toSeq.flatMap(loadJarsFromFolder)
+      case Some(path) => path.toString().split(":").map(new File(_)).filter{ file =>
+          val isDir = file.isDirectory
+          if (!isDir) logger.warn(s"${file} : Is not a directory")
+          isDir
+        }.toSeq.flatMap(loadJarsFromFolder)
       case None =>
-        logger.warn(s"Can't load jars from System Property: ${prop}")
+        logger.debug(s"No jars loaded from system property: ${prop}")
         Seq.empty
     }
   }
