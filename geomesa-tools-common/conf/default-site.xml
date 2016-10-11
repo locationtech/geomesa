@@ -76,7 +76,9 @@
     <property>
         <name>geomesa.convert.scripts.path</name>
         <value></value>
-        <description>A colon separated list of paths containing jars to be loaded onto the classpath.</description>
+        <description>A colon separated list of paths containing files to be loaded
+        onto the classpath. This is useful for getting scripts onto the classpath
+        for use by map-reduce ingest jobs.</description>
     </property>
 
     <property>
