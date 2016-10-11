@@ -12,7 +12,7 @@ import org.apache.accumulo.server.client.HdfsZooInstance
 import org.locationtech.geomesa.tools.accumulo.commands._
 import org.locationtech.geomesa.tools.accumulo.commands.stats._
 import org.locationtech.geomesa.tools.common.commands.{Command, GenerateAvroSchemaCommand}
-import org.locationtech.geomesa.tools.common.{Prompt, Runner}
+import org.locationtech.geomesa.tools.common.{Prompt, Runner, ConfigLoader}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.control.NonFatal
@@ -52,10 +52,13 @@ object AccumuloRunner extends Runner {
   )
 
   /**
+    * Loads geomesa system properties from geomesa-site.xml
     * Loads accumulo properties for instance and zookeepers from the accumulo installation found via
     * the system path in ACCUMULO_HOME in the case that command line parameters are not provided
     */
   override def resolveEnvironment(command: Command): Unit = {
+    ConfigLoader.loadConfig(ConfigLoader.findConfig("ACCUMULO_HOME"))
+
     lazy val zookeepers = {
       val accumuloSiteXml = Option(System.getProperty("geomesa.tools.accumulo.site.xml"))
           .getOrElse(s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml")
