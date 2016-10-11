@@ -80,25 +80,6 @@ object ClassPathUtils extends LazyLogging {
     }
   }
 
-  /**
-    * Finds URLs of jar files based on a system property
-    *
-    * @param prop
-    * @return
-    */
-  def getJarsFromSystemProperty(prop: String): Seq[File] = {
-    Option(System.getProperty(prop)) match {
-      case Some(path) => path.toString().split(":").map(new File(_)).filter{ file =>
-          val isDir = file.isDirectory
-          if (!isDir) logger.warn(s"${file} : Is not a directory")
-          isDir
-        }.toSeq.flatMap(loadJarsFromFolder)
-      case None =>
-        logger.debug(s"No jars loaded from system property: ${prop}")
-        Seq.empty
-    }
-  }
-
   // noinspection AccessorLikeMethodIsEmptyParen
   def getJarsFromSystemClasspath(): Seq[File] = {
     val urls = ClassLoader.getSystemClassLoader.asInstanceOf[URLClassLoader].getURLs
@@ -114,6 +95,37 @@ object ClassPathUtils extends LazyLogging {
   def loadJarsFromFolder(dir: File): Seq[File] = {
     val files = Option(dir.listFiles(jarFileFilter)).toSeq.flatten
     val children = Option(dir.listFiles(folderFileFilter)).toSeq.flatten.flatMap(loadJarsFromFolder)
+    files ++ children
+  }
+
+  /**
+    * Finds URLs of files based on a system property
+    *
+    * @param prop
+    * @return
+    */
+  def getFilesFromSystemProperty(prop: String): Seq[File] = {
+    Option(System.getProperty(prop)) match {
+      case Some(path) => path.toString().split(":").map(new File(_)).filter{ file =>
+        val isDir = file.isDirectory
+        if (!isDir) logger.warn(s"${file} : Is not a directory")
+        isDir
+      }.toSeq.flatMap(loadFilesFromFolder)
+      case None =>
+        logger.debug(s"No files loaded onto classpath from system property: ${prop}")
+        Seq.empty
+    }
+  }
+
+  /**
+    * Recursively searches folders for all files
+    *
+    * @param dir
+    * @return
+    */
+  def loadFilesFromFolder(dir: File): Seq[File] = {
+    val files = Option(dir.listFiles()).toSeq.flatten
+    val children = Option(dir.listFiles(folderFileFilter)).toSeq.flatten.flatMap(loadFilesFromFolder)
     files ++ children
   }
 
