@@ -10,6 +10,7 @@ package org.locationtech.geomesa.tools.accumulo.commands
 
 import java.io._
 import java.util.zip.GZIPOutputStream
+import scala.collection.JavaConversions._
 
 import com.beust.jcommander.{Parameter, ParameterException}
 import com.typesafe.scalalogging.LazyLogging
@@ -32,7 +33,7 @@ trait ExportCommandTools[P <: ExportCommandToolsParam] extends LazyLogging {
     logger.debug(s"Applying CQL filter ${filter.toString}")
     val q = new Query(params.featureName, filter)
     Option(params.maxFeatures).foreach(q.setMaxFeatures(_))
-    setOverrideAttributes(q, overrideAttributes.orElse(Option(params.attributes)))
+    setOverrideAttributes(q, overrideAttributes.orElse(Option(seqAsJavaList(Seq(params.attributes)))))
 
     // get the feature store used to query the GeoMesa data
     val fs = ds.getFeatureSource(params.featureName).asInstanceOf[AccumuloFeatureStore]

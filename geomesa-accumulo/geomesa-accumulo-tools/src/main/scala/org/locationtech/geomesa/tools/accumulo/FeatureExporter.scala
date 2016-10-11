@@ -24,7 +24,6 @@ import org.locationtech.geomesa.features.avro.AvroDataFileWriter
 import org.locationtech.geomesa.filter.function._
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats.Formats
-import org.locationtech.geomesa.tools.accumulo.commands.ExportCommand.ExportParameters
 import org.locationtech.geomesa.tools.accumulo.commands.BinaryExportCommand.BinaryExportParameters
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -116,7 +115,7 @@ object ShapefileExport {
    * @param sft
    * @return
    */
-  def replaceGeomInAttributesString(attributes: java.util.List[String], sft: SimpleFeatureType): String = {
+  def replaceGeomInAttributesString(attributes: String, sft: SimpleFeatureType): String = {
     val trimmedAttributes = scala.collection.mutable.LinkedList(new ListSplitter().parse(attributes):_*)
     val geomDescriptor = sft.getGeometryDescriptor.getLocalName
 

@@ -9,20 +9,13 @@
 package org.locationtech.geomesa.tools.accumulo.commands
 
 import java.util.Locale
-
-import java.util.zip.{Deflater, GZIPOutputStream}
-import scala.collection.JavaConversions._
-
 import java.util.zip.Deflater
-
+import scala.collection.JavaConversions._
 
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 
-import org.geotools.data.Query
-import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.tools.accumulo.Utils.{Formats, setOverrideAttributes}
+import org.locationtech.geomesa.tools.accumulo.Utils.Formats
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats._
 import org.locationtech.geomesa.tools.accumulo._
 import org.locationtech.geomesa.tools.accumulo.commands.ExportCommand.ExportParameters
