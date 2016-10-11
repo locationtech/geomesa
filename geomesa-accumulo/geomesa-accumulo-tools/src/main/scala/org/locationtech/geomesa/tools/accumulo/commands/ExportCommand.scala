@@ -11,6 +11,7 @@ package org.locationtech.geomesa.tools.accumulo.commands
 import java.io._
 import java.util.Locale
 import java.util.zip.{Deflater, GZIPOutputStream}
+import scala.collection.JavaConversions._
 
 import com.beust.jcommander.{JCommander, Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
@@ -63,21 +64,21 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
     lazy val sft = ds.getSchema(params.featureName)
     fmt match {
       case SHP =>
-        val schemaString =
+        val schemaString: Seq[String] =
           if (params.attributes == null) {
-            ShapefileExport.modifySchema(sft)
+            Seq(ShapefileExport.modifySchema(sft))
           } else {
-            ShapefileExport.replaceGeomInAttributesString(params.attributes, sft)
+            Seq(ShapefileExport.replaceGeomInAttributesString(params.attributes, sft))
           }
-        getFeatureCollection(Some(schemaString))
+        getFeatureCollection(Some(seqAsJavaList(schemaString)))
       case BIN =>
         sft.getDtgField.foreach(BinFileExport.DEFAULT_TIME = _)
-        getFeatureCollection(Some(BinFileExport.getAttributeList(params)))
+        getFeatureCollection(Some(seqAsJavaList(Seq(BinFileExport.getAttributeList(params)))))
       case _ => getFeatureCollection()
     }
   }
 
-  def getFeatureCollection(overrideAttributes: Option[String] = None): SimpleFeatureCollection = {
+  def getFeatureCollection(overrideAttributes: Option[java.util.List[String]] = None): SimpleFeatureCollection = {
     val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
     logger.debug(s"Applying CQL filter ${filter.toString}")
     val q = new Query(params.featureName, filter)
@@ -134,7 +135,7 @@ object ExportCommand {
       "attribute[=filter_function_expression]|derived-attribute=filter_function_expression. " +
       "filter_function_expression is an expression of filter function applied to attributes, literals " +
       "and filter functions, i.e. can be nested")
-    var attributes: String = null
+    var attributes: java.util.List[String] = null
 
     @Parameter(names = Array("--gzip"), description = "level of gzip compression to apply to output, from 1-9")
     var gzip: Integer = null

@@ -87,8 +87,9 @@ object Utils extends LazyLogging {
 
   // If there are override attributes given as an arg or via command line params
   // split attributes by "," meanwhile allowing to escape it by "\,".
-  def setOverrideAttributes(q: Query, overrideAttributes: Option[String] = None) = {
-    overrideAttributes.foreach { attributes =>
+  def setOverrideAttributes(q: Query, overrideAttributes: Option[java.util.List[String]] = None) = {
+    for ( list <- overrideAttributes;
+          attributes: String <- list ){
       val splitAttrs = attributes.split("""(?<!\\),""").map(_.trim.replace("\\,", ","))
       logger.debug("Attributes used for query transform: " + splitAttrs.mkString("|"))
       q.setPropertyNames(splitAttrs)

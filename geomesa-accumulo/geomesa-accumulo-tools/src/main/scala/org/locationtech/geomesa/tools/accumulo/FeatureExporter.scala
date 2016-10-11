@@ -115,7 +115,7 @@ object ShapefileExport {
    * @param sft
    * @return
    */
-  def replaceGeomInAttributesString(attributes: String, sft: SimpleFeatureType): String = {
+  def replaceGeomInAttributesString(attributes: java.util.List[String], sft: SimpleFeatureType): String = {
     val trimmedAttributes = scala.collection.mutable.LinkedList(new ListSplitter().parse(attributes):_*)
     val geomDescriptor = sft.getGeometryDescriptor.getLocalName
 
