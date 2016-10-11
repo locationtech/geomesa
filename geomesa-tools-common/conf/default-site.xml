@@ -9,8 +9,8 @@
 -->
 
 <!-- Do not modify this file directly. Instead, copy entries that you    -->
-<!-- wish to modify from this file into geomesa-site.xml and change them -->
-<!-- there.  If geomesa-site.xml does not already exist, create it.      -->
+<!-- wish to modify from this file into geomesa-site.xml and change      -->
+<!-- them there.  If geomesa-site.xml does not already exist, create it. -->
 
 <configuration>
     <property>
@@ -70,6 +70,18 @@
     <property>
         <name>geomesa.stats.compact.millis</name>
         <value>3600000</value>
+        <description></description>
+    </property>
+
+    <property>
+        <name>geomesa.convert.scripts.path</name>
+        <value></value>
+        <description>A colon separated list of paths containing jars to be loaded onto the classpath.</description>
+    </property>
+
+    <property>
+        <name></name>
+        <value></value>
         <description></description>
     </property>
 </configuration>
