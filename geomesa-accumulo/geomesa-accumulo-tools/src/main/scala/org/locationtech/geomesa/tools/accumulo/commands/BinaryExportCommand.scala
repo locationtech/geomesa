@@ -26,7 +26,7 @@ class BinaryExportCommand(parent: JCommander) extends CommandWithCatalog(parent)
     val start = System.currentTimeMillis()
     val sft = ds.getSchema(params.featureName)
     sft.getDtgField.foreach(BinFileExport.DEFAULT_TIME = _)
-    val optAtt = BinFileExport.getAttributeList(params)
+    val optAtt = Seq(BinFileExport.getAttributeList(params))
     val features = getFeatureCollection(Option(seqAsJavaList(optAtt)), ds, params)
     val exporter: FeatureExporter = BinFileExport(createOutputStream(false, params), params)
     try {

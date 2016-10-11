@@ -185,10 +185,11 @@ object BinFileExport {
 
   var DEFAULT_TIME = "dtg"
 
-  def getAttributeList(p: BinaryExportParameters): Seq[String] = {
+  def getAttributeList(p: BinaryExportParameters): String = {
     val dtg = Option(p.dateAttribute).getOrElse(DEFAULT_TIME)
     Seq(p.latAttribute, p.lonAttribute, p.idAttribute, dtg, p.labelAttribute)
         .filter(_ != null)
+        .mkString(",")
   }
 
   def apply(os: OutputStream, params: BinaryExportParameters) =
