@@ -19,7 +19,7 @@ class BinaryExportCommand(parent: JCommander) extends CommandWithCatalog(parent)
   with ExportCommandTools[BinaryExportParameters]
   with LazyLogging {
 
-  override val command = "export-bin"
+  override val command = "exportbin"
   override val params = new BinaryExportParameters
 
   override def execute() = {
