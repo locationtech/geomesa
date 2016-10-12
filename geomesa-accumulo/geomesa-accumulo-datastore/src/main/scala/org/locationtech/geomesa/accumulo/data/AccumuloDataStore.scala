@@ -28,7 +28,7 @@ import org.locationtech.geomesa.accumulo.data.stats.usage.{GeoMesaUsageStats, Ge
 import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.index.attribute.{AttributeSplittable, AttributeIndex}
+import org.locationtech.geomesa.accumulo.index.attribute.{AttributeIndex, AttributeSplittable}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 // noinspection ScalaDeprecation
@@ -408,13 +408,14 @@ class AccumuloDataStore(val connector: Connector,
    * @return featureStore, suitable for reading and writing
    */
   override def getFeatureSource(typeName: Name): AccumuloFeatureStore = {
-    if (!getTypeNames.contains(typeName.getLocalPart)) {
+    val sft = getSchema(typeName)
+    if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
     if (config.caching) {
-      new AccumuloFeatureStore(this, typeName) with CachingFeatureSource
+      new AccumuloFeatureStore(this, sft) with CachingFeatureSource
     } else {
-      new AccumuloFeatureStore(this, typeName)
+      new AccumuloFeatureStore(this, sft)
     }
   }
 
