@@ -45,14 +45,12 @@ import org.opengis.util.ProgressListener
 import scala.collection.JavaConversions._
 import scala.util.Try
 
-abstract class AccumuloFeatureSource(val dataStore: AccumuloDataStore, val featureName: Name)
+abstract class AccumuloFeatureSource(dataStore: AccumuloDataStore, override val getSchema: SimpleFeatureType)
     extends SimpleFeatureSource with LazyLogging {
 
-  private[data] val typeName = featureName.getLocalPart
+  protected val typeName = getSchema.getTypeName
 
   lazy private val hints = Collections.unmodifiableSet(Set.empty[Key])
-
-  override lazy val getSchema: SimpleFeatureType = dataStore.getSchema(featureName)
 
   /**
    * The default behavior for getCount is to use estimated statistics.
@@ -91,7 +89,7 @@ abstract class AccumuloFeatureSource(val dataStore: AccumuloDataStore, val featu
 
   override def getFeatures: SimpleFeatureCollection = getFeatures(Filter.INCLUDE)
 
-  override def getName: Name = featureName
+  override def getName: Name = getSchema.getName
 
   override def getDataStore: AccumuloDataStore = dataStore
 
