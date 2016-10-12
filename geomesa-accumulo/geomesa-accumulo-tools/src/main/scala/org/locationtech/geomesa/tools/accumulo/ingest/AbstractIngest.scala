@@ -193,15 +193,34 @@ object AbstractIngest {
                     emptyBar: String,
                     replacement: Char,
                     indicator: Char)(progress: Float, start: Long, pass: Long, fail: Long, done: Boolean): Unit = {
-    val numFilled = (emptyBar.length * progress).toInt
-    val bar = if (numFilled < 1) {
-      emptyBar
-    } else if (numFilled >= emptyBar.length) {
-      buildString(replacement, numFilled)
-    } else {
-      s"${buildString(replacement, numFilled - 1)}$indicator${emptyBar.substring(numFilled)}"
-    }
     val percent = f"${(progress * 100).toInt}%3d"
+    val infoStr = s" $percent% complete $pass ingested $fail failed in ${getTime(start)}"
+
+    val scaleFactor = try {
+      val tWidth = jline.Terminal.getTerminal.getTerminalWidth
+      // Sanity check as jline may not be correct. We also don't scale up, ~112 := scaleFactor = 1.0f
+      if (tWidth > 10 && tWidth <= emptyBar.length + infoStr.length + 2) {
+        // Screen Width 80 yields scaleFactor of .46
+        (tWidth - infoStr.length - 2) / emptyBar.length // -2 is for brackets around bar
+      } else {
+        1.0f
+      }
+    } catch {
+      case _ => 1.0f
+    }
+
+    val scaledLen: Int = (emptyBar.length * scaleFactor).toInt
+    val numDone = (scaledLen * progress).toInt
+    val bar = if (numDone < 1) {
+      emptyBar.substring(emptyBar.length - scaledLen)
+    } else if (numDone >= scaledLen) {
+      buildString(replacement, scaledLen)
+    } else {
+      val doneStr = buildString(replacement, (scaledLen * progress).toInt - 1) // -1 for indicator
+      val doStr = emptyBar.substring(doneStr.length + 1)
+      s"$doneStr$indicator$doStr"
+    }
+
     // use \r to replace current line
     // trailing space separates cursor
     out.print(s"\r[$bar] $percent% complete $pass ingested $fail failed in ${getTime(start)} ")
