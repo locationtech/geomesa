@@ -17,7 +17,7 @@ import org.locationtech.geomesa.tools.kafka.commands.RemoveSchemaCommand.RemoveS
 import scala.util.{Failure, Success, Try}
 
 class RemoveSchemaCommand(parent: JCommander) extends CommandWithKDS(parent) with LazyLogging {
-  override val command = "removeschema"
+  override val command = "remove-schema"
   override val params = new RemoveSchemaParams
 
   override def execute() = {

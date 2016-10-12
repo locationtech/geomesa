@@ -6,24 +6,26 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.tools.kafka.commands
+package org.locationtech.geomesa.tools.accumulo.commands
 
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.kafka08.KafkaDataStore
+import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
+import org.locationtech.geomesa.tools.accumulo.commands.GetSchemaCommand._
 import org.locationtech.geomesa.tools.common.FeatureTypeNameParam
-import org.locationtech.geomesa.tools.kafka.ConsumerKDSConnectionParams
-import org.locationtech.geomesa.tools.kafka.commands.DescribeCommand._
+import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+import org.locationtech.geomesa.utils.stats.IndexCoverage
 
 import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
 
-class DescribeCommand(parent: JCommander) extends CommandWithKDS(parent) with LazyLogging {
-  override val command = "describe"
+class GetSchemaCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
+  override val command = "get-schema"
   override val params = new DescribeParameters
 
   def execute() = {
-    logger.info(s"Describing attributes of feature type '${params.featureName}' at zkPath '$zkPath'...")
+    logger.info(s"Describing attributes of feature '${params.featureName}' from catalog table '$catalog'...")
     try {
       val sft = ds.getSchema(params.featureName)
 
@@ -31,14 +33,18 @@ class DescribeCommand(parent: JCommander) extends CommandWithKDS(parent) with La
       sft.getAttributeDescriptors.foreach { attr =>
         sb.clear()
         val name = attr.getLocalName
+        val indexCoverage = attr.getIndexCoverage()
 
         // TypeName
         sb.append(name)
         sb.append(": ")
         sb.append(attr.getType.getBinding.getSimpleName)
 
-        if (sft.getGeometryDescriptor == attr) sb.append(" (Default geometry)")
-        if (attr.getDefaultValue != null)      sb.append("- Default Value: ", attr.getDefaultValue)
+        if (sft.getDtgField.exists(_ == name))        sb.append(" (ST-Time-index)")
+        if (sft.getGeometryDescriptor == attr)        sb.append(" (ST-Geo-index)")
+        if (indexCoverage == IndexCoverage.JOIN)      sb.append(" (Indexed - Join)")
+        else if (indexCoverage == IndexCoverage.FULL) sb.append(" (Indexed - Full)")
+        if (attr.getDefaultValue != null)             sb.append("- Default Value: ", attr.getDefaultValue)
 
         println(sb.toString())
       }
@@ -46,14 +52,14 @@ class DescribeCommand(parent: JCommander) extends CommandWithKDS(parent) with La
       val userData = sft.getUserData
       if (!userData.isEmpty) {
         println("\nUser data:")
-        userData.foreach { case (key, value) => println(s"  $key: $value") }
+        userData.foreach {
+          case (KEYWORDS_KEY, v) => println(s"  $KEYWORDS_KEY: " +
+            "[".concat(v.asInstanceOf[String].split(KEYWORDS_DELIMITER)
+              .map{ "\"%s\"".format(_)}.mkString(",").concat("]")))
+          case (key, value) => println(s"  $key: $value")
+        }
       }
 
-      val topicName = zkClient.readData[String](ds.asInstanceOf[KafkaDataStore].getTopicPath(params.featureName))
-      val topicMetadata = zkUtils.fetchTopicMetadataFromZk(topicName)
-
-      println("\nFetching Kafka topic metadata...")
-      println(s"Topic: ${topicMetadata.topicName} Number of partitions: ${topicMetadata.numberOfPartitions}")
     } catch {
       case npe: NullPointerException =>
         logger.error(s"Error: feature '${params.featureName}' not found. Check arguments...", npe)
@@ -61,13 +67,16 @@ class DescribeCommand(parent: JCommander) extends CommandWithKDS(parent) with La
         logger.error(s"Error describing feature '${params.featureName}': " + e.getMessage, e)
       case NonFatal(e) =>
         logger.warn(s"Non fatal error encountered describing feature '${params.featureName}': ", e)
+    } finally {
+      ds.dispose()
     }
   }
+
 }
 
-object DescribeCommand {
-  @Parameters(commandDescription = "Describe the attributes of a given feature in GeoMesa")
-  class DescribeParameters extends ConsumerKDSConnectionParams
+object GetSchemaCommand {
+  @Parameters(commandDescription = "Describe the attributes of a given GeoMesa feature type")
+  class DescribeParameters extends GeoMesaConnectionParams
     with FeatureTypeNameParam {}
 }
 

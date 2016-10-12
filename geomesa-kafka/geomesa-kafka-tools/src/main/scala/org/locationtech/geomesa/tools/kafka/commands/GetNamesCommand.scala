@@ -12,10 +12,10 @@ import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.I0Itec.zkclient.exception.ZkNoNodeException
 import org.locationtech.geomesa.tools.kafka.OptionalZkPathParams
-import org.locationtech.geomesa.tools.kafka.commands.ListCommand._
+import org.locationtech.geomesa.tools.kafka.commands.GetNamesCommand._
 
-class ListCommand(parent: JCommander) extends CommandWithKDS(parent) with LazyLogging {
-  override val command = "list"
+class GetNamesCommand(parent: JCommander) extends CommandWithKDS(parent) with LazyLogging {
+  override val command = "get-names"
   override val params = new ListParameters()
 
   override def execute() = {
@@ -65,7 +65,7 @@ class ListCommand(parent: JCommander) extends CommandWithKDS(parent) with LazyLo
   }
 }
 
-object ListCommand {
+object GetNamesCommand {
   @Parameters(commandDescription = "List GeoMesa features for a given zkPath")
   class ListParameters extends OptionalZkPathParams {
     override val isProducer: Boolean = false

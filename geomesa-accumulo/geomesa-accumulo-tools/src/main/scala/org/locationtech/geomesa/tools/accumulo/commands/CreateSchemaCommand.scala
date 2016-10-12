@@ -11,14 +11,14 @@ package org.locationtech.geomesa.tools.accumulo.commands
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.accumulo.index.Constants
-import org.locationtech.geomesa.tools.accumulo.commands.CreateCommand.CreateParameters
+import org.locationtech.geomesa.tools.accumulo.commands.CreateSchemaCommand.CreateParameters
 import org.locationtech.geomesa.tools.accumulo.{GeoMesaConnectionParams, OptionalAccumuloSharedTablesParam}
 import org.locationtech.geomesa.tools.common.{CLArgResolver, FeatureTypeNameParam, FeatureTypeSpecParam, OptionalDTGParam}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
-class CreateCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
-  override val command = "create"
+class CreateSchemaCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
+  override val command = "create-schema"
   override val params = new CreateParameters()
 
   override def execute() = {
@@ -59,7 +59,7 @@ class CreateCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
   }
 }
 
-object CreateCommand {
+object CreateSchemaCommand {
   @Parameters(commandDescription = "Create a GeoMesa feature type")
   class CreateParameters extends GeoMesaConnectionParams
     with FeatureTypeSpecParam

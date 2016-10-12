@@ -14,7 +14,7 @@ Sharding is not currently used to spread the table across the cluster.
 Ingest
 ------
 
-Currently ingest is accomplished by using the ``ingestraster`` command
+Currently ingest is accomplished by using the ``ingest-raster`` command
 in the GeoMesa command line tools. See the tools README for usage.
 
 GeoServer

@@ -24,7 +24,7 @@ import scala.util.{Failure, Success}
 
 class IngestRasterCommand(parent: JCommander) extends Command(parent) with LazyLogging {
 
-  override val command: String = "ingestraster"
+  override val command: String = "ingest-raster"
   override val params = new IngestRasterParameters()
 
   override def execute() {

@@ -106,7 +106,7 @@ Deleting a feature type
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Continuing on, let's delete the first feature type we created with the
-``removeschema`` command. The ``removeschema`` command takes two flags:
+``remove-schema`` command. The ``remove-schema`` command takes two flags:
 
 -  ``-c`` or ``--catalog``: the name of the catalog table
 -  ``-f`` or ``--feature-name``: the name of the feature to delete
@@ -115,7 +115,7 @@ Run the following command:
 
 .. code:: bash
 
-    geomesa removeschema -u <username> -p <password> -c cmd_tutorial -fn feature
+    geomesa remove-schema -u <username> -p <password> -c cmd_tutorial -fn feature
 
 NOTE: Running this command will take a bit longer than the previous two,
 as it will delete three tables in Accumulo, as well as remove the

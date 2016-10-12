@@ -11,10 +11,10 @@ package org.locationtech.geomesa.tools.accumulo.commands
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
-import org.locationtech.geomesa.tools.accumulo.commands.ListCommand._
+import org.locationtech.geomesa.tools.accumulo.commands.GetNamesCommand._
 
-class ListCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
-  override val command = "list"
+class GetNamesCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
+  override val command = "get-names"
   override val params = new ListParameters()
 
   override def execute() = {
@@ -25,7 +25,7 @@ class ListCommand(parent: JCommander) extends CommandWithCatalog(parent) with La
 
 }
 
-object ListCommand {
+object GetNamesCommand {
   @Parameters(commandDescription = "List GeoMesa feature types for a given catalog")
   class ListParameters extends GeoMesaConnectionParams {}
 }

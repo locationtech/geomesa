@@ -16,7 +16,7 @@ import org.locationtech.geomesa.utils.geotools.SftArgResolver
 
 class GenerateAvroSchemaCommand(parent: JCommander) extends Command(parent) {
 
-  override val command = "genavroschema"
+  override val command = "gen-avroschema"
   val params = new GenerateAvroSchemaParams
 
   override def execute() = {

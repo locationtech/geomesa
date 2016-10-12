@@ -18,7 +18,7 @@ import org.locationtech.geomesa.tools.common.{FeatureTypeNameParam, OptionalCQLF
 import org.opengis.filter.Filter
 
 class DeleteFeaturesCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
-  override val command = "deletefeatures"
+  override val command = "delete-features"
   override val params = new DeleteFeaturesParameters
 
   override def execute() = {

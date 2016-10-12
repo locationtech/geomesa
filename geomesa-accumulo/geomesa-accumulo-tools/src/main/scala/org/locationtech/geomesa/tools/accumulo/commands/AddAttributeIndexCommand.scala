@@ -17,7 +17,7 @@ import org.locationtech.geomesa.tools.accumulo.commands.AddAttributeIndexCommand
 import org.locationtech.geomesa.tools.common.{AttributesParam, FeatureTypeNameParam}
 
 class AddAttributeIndexCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
-  override val command = "add-attribute-index"
+  override val command = "add-attributeindex"
   override val params = new AddIndexParameters
 
   override def execute() = {
