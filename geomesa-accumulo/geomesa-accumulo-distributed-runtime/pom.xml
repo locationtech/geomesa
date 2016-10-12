@@ -28,24 +28,6 @@
             <artifactId>geomesa-accumulo-datastore_2.11</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-raster_2.11</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.geotools</groupId>
-                    <artifactId>gt-epsg-hsql</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.geotools</groupId>
-                    <artifactId>gt-geotiff</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.geotools</groupId>
-                    <artifactId>gt-imageio-ext-gdal</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-opengis</artifactId>
         </dependency>

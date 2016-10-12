@@ -8,7 +8,7 @@ distributed iterator code for the Accumulo tablet servers.
 Installation
 ------------
 
-Use of the Accumulo data store requires that the distributed runtime JAR be installed on the tablet servers, described in more detail in :ref:`install_accumulo_runtime`.
+Use of the Accumulo data store requires that the distributed runtime JAR(s) be installed on the tablet servers, described in more detail in :ref:`install_accumulo_runtime`.
 
 Bootstrapping GeoMesa Accumulo on Elastic Map Reduce
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

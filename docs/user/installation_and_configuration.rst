@@ -111,20 +111,25 @@ The version of the distributed runtime JAR must match the version of the GeoMesa
 data store client JAR (usually installed in GeoServer; see below). If not,
 queries might not work correctly or at all.
 
+If raster support is desired, the GeoMesa raster JAR must also be made available
+on each of the Accumulo tablet servers in the cluster. The GeoMesa raster JAR is
+also located in ``geomesa-accumulo-raster_2.11-$VERSION/dist/accumulo/``.
+
 Manual Install
 ^^^^^^^^^^^^^^
 
-The runtime JAR should be copied into the ``$ACCUMULO_HOME/lib/ext`` folder on
+The runtime JAR(s) should be copied into the ``$ACCUMULO_HOME/lib/ext`` folder on
 each tablet server.
 
 .. code-block:: bash
 
     # something like this for each tablet server
     $ scp geomesa-accumulo-dist_2.11-$VERSION/dist/accumulo/geomesa-accumulo-distributed-runtime_2.11-$VERSION.jar tserver1:$ACCUMULO_HOME/lib/ext
+    $ scp geomesa-accumulo-raster_2.11-$VERSION/dist/accumulo/geomesa-accumulo-raster_2.11-$VERSION.jar tserver1:$ACCUMULO_HOME/lib/ext
 
 .. note::
 
-    You do not need the JAR on the Accumulo master server, and including
+    You do not need the JAR(s) on the Accumulo master server, and including
     it there may cause classpath issues later.
 
 .. _install_accumulo_runtime_namespace:
@@ -136,7 +141,7 @@ Copying the runtime JAR to each tablet server as above will work, but in
 Accumulo 1.6+, we can leverage namespaces to isolate the GeoMesa classpath
 from the rest of Accumulo.
 
-To install the distributed runtime JAR, use the ``install-geomesa-namespace.sh``
+To install the distributed runtime JAR(s), use the ``install-geomesa-namespace.sh``
 script in the ``geomesa-accumulo-dist_2.11-$VERSION/dist/accumulo`` directory.
 
 .. code::
@@ -148,10 +153,10 @@ The command line arguments the script accepts are:
 * -u <Accumulo username>
 * -n <Accumulo namespace>
 * -p <Accumulo password> (optional, will prompt if not supplied)
-* -g <Path of GeoMesa distributed runtime JAR> (optional, will default to the distribution folder)
+* -g <Path of GeoMesa distributed runtime JAR(s)> (optional, will default to the distribution folder)
 * -h <HDFS URI e.g. hdfs://localhost:54310> (optional, will attempt to determine if not supplied)
 
-Alternatively you can manually install the distributed runtime JAR with these commands:
+Alternatively you can manually install the distributed runtime JAR(s) with these commands:
 
 .. code::
 
@@ -161,7 +166,7 @@ Alternatively you can manually install the distributed runtime JAR with these co
     > config -s general.vfs.context.classpath.myNamespace=hdfs://NAME_NODE_FDQN:54310/accumulo/classpath/myNamespace/[^.].*.jar
     > config -ns myNamespace -s table.classpath.context=myNamespace
 
-Then copy the distributed runtime jar into HDFS under the path you specified.
+Then copy the distributed runtime JAR(s) into HDFS under the path you specified.
 The path above is just an example; you can included nested folders with project
 names, version numbers, and other information in order to have different versions of GeoMesa on
 the same Accumulo instance. You should remove any GeoMesa JARs under
@@ -189,7 +194,7 @@ Accumulo Tools
 .. warning::
 
     To use the Accumulo data store with the command line tools, you need to install
-    the distributed runtime first. See :ref:`install_accumulo_runtime`.
+    the distributed runtime(s) first. See :ref:`install_accumulo_runtime`.
 
 GeoMesa comes with a set of command line tools for managing accumulo features located in ``geomesa-accumulo_2.11-$VERSION/bin/`` of the binary distribution or ``geomesa-accumulo/geomesa-accumulo-dist/target/geomesa-accumulo_2.11-$VERSION/bin/`` of the source distribution.
 
