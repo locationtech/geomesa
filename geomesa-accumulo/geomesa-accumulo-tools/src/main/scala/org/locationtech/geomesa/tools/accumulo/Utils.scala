@@ -10,6 +10,7 @@ package org.locationtech.geomesa.tools.accumulo
 
 import java.io.File
 import java.util.Locale
+import scala.collection.JavaConverters._
 
 import org.apache.commons.compress.compressors.bzip2.BZip2Utils
 import org.apache.commons.compress.compressors.gzip.GzipUtils
@@ -17,7 +18,6 @@ import org.apache.commons.compress.compressors.xz.XZUtils
 import org.apache.commons.io.{FileUtils, FilenameUtils}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.locationtech.geomesa.tools.accumulo.commands.ExportCommand.ExportParameters
 import org.geotools.data.Query
 import com.typesafe.scalalogging.LazyLogging
 
@@ -89,7 +89,7 @@ object Utils extends LazyLogging {
   // split attributes by "," meanwhile allowing to escape it by "\,".
   def setOverrideAttributes(q: Query, overrideAttributes: Option[java.util.List[String]] = None) = {
     for ( list <- overrideAttributes;
-          attributes: String <- list ){
+        attributes: String <- asScalaBufferConverter(list).asScala.toSeq ){
       val splitAttrs = attributes.split("""(?<!\\),""").map(_.trim.replace("\\,", ","))
       logger.debug("Attributes used for query transform: " + splitAttrs.mkString("|"))
       q.setPropertyNames(splitAttrs)
