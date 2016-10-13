@@ -231,8 +231,9 @@ object AbstractIngest {
   }
 
   private def buildString(c: Char, length: Int) = {
-    val sb = new StringBuilder(length)
-    (0 until length).foreach(_ => sb.append(c))
+    val slength = if (length < 0) 0 else length
+    val sb = new StringBuilder(slength)
+    (0 until slength).foreach(_ => sb.append(c))
     sb.toString()
   }
 
