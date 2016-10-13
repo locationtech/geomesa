@@ -196,8 +196,9 @@ object AbstractIngest {
     val percent = f"${(progress * 100).toInt}%3d"
     val infoStr = s" $percent% complete $pass ingested $fail failed in ${getTime(start)}"
 
-    val scaleFactor = try {
-      val tWidth = jline.Terminal.getTerminal.getTerminalWidth
+    // Figure out if and how much the progress bar should be scaled to accommodate smaller terminals
+    val scaleFactor: Float = try {
+      val tWidth: Float = jline.Terminal.getTerminal.getTerminalWidth.toFloat
       // Sanity check as jline may not be correct. We also don't scale up, ~112 := scaleFactor = 1.0f
       if (tWidth > 10 && tWidth <= emptyBar.length + infoStr.length + 2) {
         // Screen Width 80 yields scaleFactor of .46
@@ -216,14 +217,14 @@ object AbstractIngest {
     } else if (numDone >= scaledLen) {
       buildString(replacement, scaledLen)
     } else {
-      val doneStr = buildString(replacement, (scaledLen * progress).toInt - 1) // -1 for indicator
-      val doStr = emptyBar.substring(doneStr.length + 1)
+      val doneStr = buildString(replacement, numDone - 1) // -1 for indicator
+      val doStr = emptyBar.substring(emptyBar.length - (scaledLen - numDone))
       s"$doneStr$indicator$doStr"
     }
 
     // use \r to replace current line
     // trailing space separates cursor
-    out.print(s"\r[$bar] $percent% complete $pass ingested $fail failed in ${getTime(start)} ")
+    out.print(s"\r[$bar]$infoStr")
     if (done) {
       out.println()
     }
