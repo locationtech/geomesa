@@ -9,45 +9,45 @@ Accumulo Command Line Tools
 +---------------------+--------------------+
 | Old                 | New                |
 +=====================+====================+
-| add-attribute-index	| add-attributeindex |
+| add-attribute-index | add-attributeindex |
 +---------------------+--------------------+
-| add-index         	| add-index          |
+| add-index           | add-index          |
 +---------------------+--------------------+
-| create	            | create-schema      |
+| create              | create-schema      |
 +---------------------+--------------------+
-| deletecatalog	      | delete-catalog     |
+| deletecatalog       | delete-catalog     |
 +---------------------+--------------------+
-| deletefeatures	    | delete-features    |
+| deletefeatures      | delete-features    |
 +---------------------+--------------------+
-| deleteraster	      | delete-raster      |
+| deleteraster        | delete-raster      |
 +---------------------+--------------------+
-| describe	          | get-schema         |
+| describe            | get-schema         |
 +---------------------+--------------------+
-| env 	              | env                |
+| env                 | env                |
 +---------------------+--------------------+
-| explain	            | explain            |
+| explain             | explain            |
 +---------------------+--------------------+
-| export             	| export             |
+| export              | export             |
 +---------------------+--------------------+
-| genavroschema	      | gen-avroschema     |
+| genavroschema       | gen-avroschema     |
 +---------------------+--------------------+
-| getsft	            | get-sft            |
+| getsft              | get-sft            |
 +---------------------+--------------------+
-| help               	| help               |
+| help                | help               |
 +---------------------+--------------------+
-| ingestraster	      | ingest-raster      |
+| ingestraster        | ingest-raster      |
 +---------------------+--------------------+
-| keywords          	| keywords           |
+| keywords            | keywords           |
 +---------------------+--------------------+
-| list	              | get-names          |
+| list                | get-names          |
 +---------------------+--------------------+
-| queryrasterstats	  | query-rasterstats  |
+| queryrasterstats    | query-rasterstats  |
 +---------------------+--------------------+
-| removeschema	      | remove-schema      |
+| removeschema        | remove-schema      |
 +---------------------+--------------------+
-| tableconf         	| config-table       |
+| tableconf           | config-table       |
 +---------------------+--------------------+
-| version           	| version            |
+| version             | version            |
 +---------------------+--------------------+
 
 Kafka Command Line Tools
@@ -56,17 +56,17 @@ Kafka Command Line Tools
 +---------------------+--------------------+
 | Old                 | New                |
 +=====================+====================+
-| create	            | create-schema      |
+| create              | create-schema      |
 +---------------------+--------------------+
-| describe	          | get-schema         |
+| describe            | get-schema         |
 +---------------------+--------------------+
-| help               	| help               |
+| help                | help               |
 +---------------------+--------------------+
-| keywords          	| keywords           |
+| keywords            | keywords           |
 +---------------------+--------------------+
-| list	              | get-names          |
+| list                | get-names          |
 +---------------------+--------------------+
-| removeschema	      | remove-schema      |
+| removeschema        | remove-schema      |
 +---------------------+--------------------+
-| version           	| version            |
+| version             | version            |
 +---------------------+--------------------+
