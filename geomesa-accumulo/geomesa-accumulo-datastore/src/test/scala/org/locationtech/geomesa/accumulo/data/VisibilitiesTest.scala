@@ -83,7 +83,7 @@ class VisibilitiesTest extends Specification {
 
       "using ALL queries" in {
         val reader = unprivDS.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)
-        val readFeatures = reader.getIterator.toList
+        val readFeatures = reader.toIterator.toList
 
         readFeatures.size must be equalTo 3
       }
@@ -91,7 +91,7 @@ class VisibilitiesTest extends Specification {
       "using ST queries" in {
         val filter = bbox(prop("geom"), 44.0, 44.0, 46.0, 46.0, "EPSG:4326")
         val reader = unprivDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        reader.getIterator.toList.size must be equalTo 3
+        reader.toIterator.toList.size must be equalTo 3
       }
 
       "using attribute queries" in {
@@ -100,7 +100,7 @@ class VisibilitiesTest extends Specification {
           ff.equals(prop("name"), lit("4")))
 
         val reader = unprivDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        reader.getIterator.toList.size must be equalTo 1
+        reader.toIterator.toList.size must be equalTo 1
       }
 
     }
@@ -109,13 +109,13 @@ class VisibilitiesTest extends Specification {
 
       "using ALL queries" in {
         val reader = ds.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)
-        val readFeatures = reader.getIterator.toList
+        val readFeatures = reader.toIterator.toList
         readFeatures.size must be equalTo 6
       }
       "using ST queries" in {
         val filter = bbox(prop("geom"), 44.0, 44.0, 46.0, 46.0, "EPSG:4326")
         val reader = ds.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        reader.getIterator.toList.size must be equalTo 6
+        reader.toIterator.toList.size must be equalTo 6
       }
 
       "using attribute queries" in {
@@ -124,7 +124,7 @@ class VisibilitiesTest extends Specification {
           ff.equals(prop("name"), lit("4")))
 
         val reader = ds.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        reader.getIterator.toList.size must be equalTo 2
+        reader.toIterator.toList.size must be equalTo 2
       }
     }
   }
@@ -196,7 +196,7 @@ class VisibilitiesTest extends Specification {
           ff.equals(prop("name"), lit("4")))
 
         val reader = ds.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        reader.getIterator.toList.size must be equalTo 1
+        reader.toIterator.toList.size must be equalTo 1
       }
     }
 

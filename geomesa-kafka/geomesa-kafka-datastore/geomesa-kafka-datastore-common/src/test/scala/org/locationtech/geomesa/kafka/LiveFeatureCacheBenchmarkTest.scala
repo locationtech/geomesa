@@ -250,9 +250,9 @@ class LiveFeatureCacheBenchmarkTest extends Specification {
         11,
         Seq("lfc", "cq", "cqdd"),
         Seq(
-          f => lfc.getReaderForFilter(f).getIterator.size,
-          f => cq.geocq.queryCQ(f, false).getIterator.size,
-          f => cq.geocq.queryCQ(f, true).getIterator.size),
+          f => lfc.getReaderForFilter(f).toIterator.size,
+          f => cq.geocq.queryCQ(f, false).toIterator.size,
+          f => cq.geocq.queryCQ(f, true).toIterator.size),
         filters)
 
       true must equalTo(true)
