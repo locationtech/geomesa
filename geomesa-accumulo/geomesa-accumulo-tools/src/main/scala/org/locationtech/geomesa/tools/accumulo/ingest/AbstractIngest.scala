@@ -200,7 +200,7 @@ object AbstractIngest {
     val scaleFactor: Float = try {
       val tWidth: Float = jline.Terminal.getTerminal.getTerminalWidth.toFloat
       // Sanity check as jline may not be correct. We also don't scale up, ~112 := scaleFactor = 1.0f
-      if (tWidth > 10 && tWidth <= emptyBar.length + infoStr.length + 2) {
+      if (tWidth > infoStr.length + 3 && tWidth < emptyBar.length + infoStr.length + 2) {
         // Screen Width 80 yields scaleFactor of .46
         (tWidth - infoStr.length - 2) / emptyBar.length // -2 is for brackets around bar
       } else {
