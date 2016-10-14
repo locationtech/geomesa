@@ -35,6 +35,8 @@ Accumulo Command Line Tools
 +---------------------+--------------------+
 | help                | help               |
 +---------------------+--------------------+
+| ingest              | ingest             |
++---------------------+--------------------+
 | ingestraster        | ingest-raster      |
 +---------------------+--------------------+
 | keywords            | keywords           |
@@ -44,6 +46,16 @@ Accumulo Command Line Tools
 | queryrasterstats    | query-rasterstats  |
 +---------------------+--------------------+
 | removeschema        | remove-schema      |
++---------------------+--------------------+
+| stats-analyze       | stats-analyze      |
++---------------------+--------------------+
+| stats-bounds        | stats-bounds       |
++---------------------+--------------------+
+| stats-count         | stats-count        |
++---------------------+--------------------+
+| stats-histogram     | stats-histogram    |
++---------------------+--------------------+
+| stats-top-k         | stats-top-k        |
 +---------------------+--------------------+
 | tableconf           | config-table       |
 +---------------------+--------------------+
@@ -63,6 +75,8 @@ Kafka Command Line Tools
 | help                | help               |
 +---------------------+--------------------+
 | keywords            | keywords           |
++---------------------+--------------------+
+| listen              | listen             |
 +---------------------+--------------------+
 | list                | get-names          |
 +---------------------+--------------------+
