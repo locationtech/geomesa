@@ -9,7 +9,28 @@
 
 # Installs a GeoMesa distributed runtime JAR into HDFS and sets up a corresponding Accumulo namespace
 
-while getopts ":u:p:n:g:h:d:" opt; do
+usage="usage: ./setup-namespace.sh -u username -n namespace [<options>]"
+
+function help() {
+  echo ""
+  echo "Installs a GeoMesa distributed runtime JAR into HDFS and sets up a corresponding Accumulo namespace"
+  echo ""
+  echo "${usage}"
+  echo ""
+  echo "Required:"
+  echo "  -u    Accumulo username for your instance"
+  echo "  -n    Accumulo namespace to use"
+  echo ""
+  echo "Optional:"
+  echo "  -p    Accumulo password for the provided username"
+  echo "  -g    Path of the GeoMesa distributed runtime JAR, with or without raster support."
+  echo "  -d    Directory to create namespace in, default: /accumulo/classpath"
+  echo "  -h    HDFS URI e.g. hdfs://localhost:54310"
+  echo ""
+  exit 0
+}
+
+while getopts ":u:p:n:g:h:d:help" opt; do
   case $opt in
     u)
       ACCUMULO_USER=$OPTARG
@@ -29,12 +50,17 @@ while getopts ":u:p:n:g:h:d:" opt; do
     h)
       HDFS_URI=$OPTARG
       ;;
+     help)
+      help
+      ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
+      echo "${usage}"
       exit 1
       ;;
     :)
       echo "Option -$OPTARG requires an argument." >&2
+      echo "${usage}"
       exit 1
       ;;
   esac
@@ -86,15 +112,7 @@ if [[ -z "$ERROR" && -z "$ACCUMULO_PASSWORD" ]]; then
 fi
 
 if [[ -n "$ERROR" ]]; then
-    echo -e "\nRequired parameters:\n\t" \
-      "-u (Accumulo username)\n\t" \
-      "-n (Accumulo namespace)"
-    echo -e "Optional parameters:\n\t" \
-      "-p (Accumulo password)\n\t" \
-      "-g (Path of GeoMesa distributed runtime JAR)\n\t" \
-      "-d (Directory to create namespace in, defaults to /accumulo/classpath)\n\t" \
-      "-h (HDFS URI e.g. hdfs://localhost:54310)"
-    exit 1
+    help
 fi
 
 echo "Copying GeoMesa JAR for Accumulo namespace $ACCUMULO_NAMESPACE..."

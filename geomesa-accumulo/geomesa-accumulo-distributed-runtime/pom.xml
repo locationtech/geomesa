@@ -31,6 +31,24 @@
             <groupId>org.geotools</groupId>
             <artifactId>gt-opengis</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-accumulo-raster_2.11</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.geotools</groupId>
+                    <artifactId>gt-epsg-hsql</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.geotools</groupId>
+                    <artifactId>gt-geotiff</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.geotools</groupId>
+                    <artifactId>gt-imageio-ext-gdal</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -41,6 +59,37 @@
                 <executions>
                     <execution>
                         <phase>package</phase>
+                        <id>geomesa-accumulo-distributed-runtime</id>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>org.slf4j:*</exclude>
+                                    <exclude>org.locationtech.geomesa:geomesa-accumulo-raster_2.11</exclude>
+                                </excludes>
+                            </artifactSet>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                            </transformers>
+                            <finalName>geomesa-accumulo-distributed-runtime_2.11-${project.version}</finalName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <phase>package</phase>
+                        <id>geomesa-accumulo-distributed-runtime-raster</id>
                         <goals>
                             <goal>shade</goal>
                         </goals>
@@ -64,6 +113,7 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                             </transformers>
+                            <finalName>geomesa-accumulo-distributed-runtime-raster_2.11-${project.version}</finalName>
                         </configuration>
                     </execution>
                 </executions>
