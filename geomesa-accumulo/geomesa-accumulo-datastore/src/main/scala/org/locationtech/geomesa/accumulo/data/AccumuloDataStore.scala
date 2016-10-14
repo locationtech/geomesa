@@ -29,6 +29,7 @@ import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.index.attribute.{AttributeIndex, AttributeSplittable}
+import org.locationtech.geomesa.utils.conf.ConfigLoader
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 // noinspection ScalaDeprecation
@@ -73,6 +74,8 @@ class AccumuloDataStore(val connector: Connector,
                         val config: AccumuloDataStoreConfig)
     extends DataStore with AccumuloConnectorCreator with DistributedLocking
       with HasGeoMesaMetadata[String] with HasGeoMesaStats with HasGeoMesaUsageStats with LazyLogging {
+
+  ConfigLoader.init(ConfigLoader.ACCUMULO_HOME)
 
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
 

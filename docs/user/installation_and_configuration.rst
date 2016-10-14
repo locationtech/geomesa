@@ -658,6 +658,21 @@ After building, extract ``target/geomesa-cassandra-gs-plugin_2.11-$VERSION-insta
 
 Restart GeoServer after the JARs are installed.
 
+Additional Configuration
+------------------------
+
+GeoMesa uses a site xml file to maintain system property configurations. This file can be found
+at ``conf/geomesa-site.xml`` of either the Accumulo or Kafka distributions. The default settings
+for GeoMesa are stored in ``conf/geomesa-default.xml``. Do not modify this file directly as it is
+never read, instead copy over the desired configurations into geomesa-site.xml.
+
+By default command line parameters will take precedent over this configuration file. If you wish
+a configuration item to always take precedence, even over command line parameters change the
+``<final>`` tag to true.
+
+By default configuration properties with empty values will not be applied, you can change this
+by marking a property as final.
+
 Upgrading
 ---------
 

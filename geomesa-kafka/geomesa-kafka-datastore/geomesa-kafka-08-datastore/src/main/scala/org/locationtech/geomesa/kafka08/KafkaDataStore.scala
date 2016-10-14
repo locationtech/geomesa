@@ -20,6 +20,7 @@ import org.geotools.data.{DataStore, DataStoreFactorySpi, Query}
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.kafka.KafkaDataStoreHelper
 import org.locationtech.geomesa.kafka08.KafkaDataStore.FeatureSourceFactory
+import org.locationtech.geomesa.utils.conf.ConfigLoader
 import org.opengis.feature.`type`.Name
 import org.opengis.filter.Filter
 
@@ -37,6 +38,7 @@ class KafkaDataStore(override val zookeepers: String,
 
   kds =>
 
+  ConfigLoader.init(ConfigLoader.KAFKA_HOME)
   setNamespaceURI(namespaceStr)
 
   override def createTypeNames() = getNames.asScala.map(name => new NameImpl(getNamespaceURI, name.getLocalPart) : Name).asJava

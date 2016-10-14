@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.tools.kafka
 
-import org.locationtech.geomesa.tools.common.{ConfigLoader, Runner}
+import org.locationtech.geomesa.tools.common.Runner
 import org.locationtech.geomesa.tools.common.commands.{Command, VersionCommand}
 import org.locationtech.geomesa.tools.kafka.commands._
 
@@ -25,7 +25,4 @@ object KafkaRunner extends Runner {
     new KeywordCommand(jc)
   )
 
-  override def resolveEnvironment(command: Command): Unit = {
-    ConfigLoader.loadConfig(ConfigLoader.findConfig("KAFKA_HOME"))
-  }
 }
