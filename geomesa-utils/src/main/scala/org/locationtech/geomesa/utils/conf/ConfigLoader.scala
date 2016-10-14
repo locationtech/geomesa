@@ -44,7 +44,7 @@ object ConfigLoader extends LazyLogging {
       properties.foreach { prop =>
         val key = prop \ "name"
         val value = prop \ "value"
-        val isfinal: Boolean = (prop \ "final").toString().toBoolean
+        val isfinal: Boolean = (prop \ "final").toString.toBoolean
         // Don't overwrite properties, this gives commandline params preference
         if(System.getProperty(key.text).isEmpty && value.nonEmpty || isfinal){
           System.setProperty(key.text, value.text)
