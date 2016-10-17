@@ -113,13 +113,6 @@
             <groupId>javax.media</groupId>
             <artifactId>jai_core</artifactId>
         </dependency>
-        <dependency>
-            <!-- marked provided due to license issues -->
-            <groupId>jline</groupId>
-            <artifactId>jline</artifactId>
-            <version>1.0</version>
-            <scope>provided</scope>
-        </dependency>
 
         <!-- test deps -->
         <dependency>
