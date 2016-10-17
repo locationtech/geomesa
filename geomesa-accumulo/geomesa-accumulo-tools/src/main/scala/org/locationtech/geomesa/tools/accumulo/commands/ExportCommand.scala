@@ -53,6 +53,7 @@ class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent)
       case AVRO           => new AvroExport(createOutputStream(true, params), features.getSchema, avroCompression)
       case BIN            => throw new UnsupportedOperationException(s"This operation has been depreciated. " +
                               "Use the command 'export-bin' instead.")
+      case NULL           => NullExport
       // shouldn't happen unless someone adds a new format and doesn't implement it here
       case _              => throw new UnsupportedOperationException(s"Format $fmt can't be exported")
     }

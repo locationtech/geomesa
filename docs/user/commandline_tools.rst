@@ -37,6 +37,7 @@ Run ``geomesa`` without any arguments to produce the following usage text::
         env                    Examine the current GeoMesa environment
         explain                Explain how a GeoMesa query will be executed
         export                 Export features from a GeoMesa data store
+        export-bin             Export features from a GeoMesa data store in a binary format.
         genavroschema          Generate an Avro schema from a SimpleFeatureType
         getsft                 Get the SimpleFeatureType of a feature
         help                   Show help
