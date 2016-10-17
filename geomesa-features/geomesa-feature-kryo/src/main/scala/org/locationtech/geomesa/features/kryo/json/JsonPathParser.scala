@@ -109,5 +109,5 @@ private class JsonPathParser extends Parser {
 
   def Unicode: Rule0 = rule { "u" ~ HexDigit ~ HexDigit ~ HexDigit ~ HexDigit }
 
-  def HexDigit: Rule0 = rule { "0" - "9" | "a" - "f" | "A" - "Z" }
+  def HexDigit: Rule0 = rule { "0" - "9" | "a" - "f" | "A" - "F" }
 }
