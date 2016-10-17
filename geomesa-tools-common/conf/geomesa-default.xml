@@ -40,9 +40,74 @@
     </property>
 
     <property>
-        <name>geomesa.sft.config.urls</name>
+        <name>geomesa.audit.provider.impl</name>
         <value></value>
         <description></description>
+        <final>false</final>
+    </property>
+
+    <!-- geomesa.batchwriter
+    These properties map directly to the underlying Accumulo BatchWriter configurations. See
+    https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxLatency(long,%20java.util.concurrent.TimeUnit)
+    https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxWriteThreads(int)
+    https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxMemory(long)
+    https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setTimeout(long,%20java.util.concurrent.TimeUnit)
+    -->
+
+    <property>
+        <name>geomesa.batchwriter.latency.millis</name>
+        <value>60000</value>
+        <description>
+            https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxLatency(long,%20java.util.concurrent.TimeUnit)
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
+        <name>geomesa.batchwriter.maxthreads</name>
+        <value>10</value>
+        <description>
+            https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxWriteThreads(int)
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
+        <name>geomesa.batchwriter.memory</name>
+        <value>52428800</value>
+        <description>
+            https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxMemory(long)
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
+        <name>geomesa.batchwriter.timeout.millis</name>
+        <value></value>
+        <description>
+            https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setTimeout(long,%20java.util.concurrent.TimeUnit)
+        </description>
+        <final>false</final>
+    </property>
+
+    <!-- /geomesa.batchwriter -->
+
+    <property>
+        <name>geomesa.convert.config.urls</name>
+        <value></value>
+        <description></description>
+        <final>false</final>
+    </property>
+
+    <property>
+        <name>geomesa.feature.id-generator</name>
+        <value></value>
+        <description>This property controls the default implementation used
+            for generating IDs for simple features, if `USE_PROVIDED_FIDS`
+            or `PROVIDED_FID` is not set in the feature. It should be set to
+            the fully-qualified class name for a class implementing
+            `org.locationtech.geomesa.utils.uuid.FeatureIdGenerator`.
+        </description>
         <final>false</final>
     </property>
 
@@ -118,41 +183,9 @@
     </property>
 
     <property>
-        <name>geomesa.batchwriter.latency.millis</name>
-        <value>60000</value>
-        <description>These properties map directly to the underlying Accumulo
-            BatchWriter configurations. See
-            https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxLatency(long,%20java.util.concurrent.TimeUnit),
-            https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxWriteThreads(int),
-            https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxMemory(long),
-            https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setTimeout(long,%20java.util.concurrent.TimeUnit)
-        </description>
-        <final>false</final>
-    </property>
-
-    <property>
-        <name>geomesa.batchwriter.memory</name>
-        <value>52428800</value>
-        <description></description>
-        <final>false</final>
-    </property>
-
-    <property>
-        <name>geomesa.batchwriter.maxthreads</name>
-        <value>10</value>
-        <description></description>
-        <final>false</final>
-    </property>
-
-    <property>
-        <name>geomesa.feature.id-generator</name>
+        <name>geomesa.sft.config.urls</name>
         <value></value>
-        <description>This property controls the default implementation used
-            for generating IDs for simple features, if `USE_PROVIDED_FIDS`
-            or `PROVIDED_FID` is not set in the feature. It should be set to
-            the fully-qualified class name for a class implementing
-            `org.locationtech.geomesa.utils.uuid.FeatureIdGenerator`.
-        </description>
+        <description></description>
         <final>false</final>
     </property>
 
@@ -167,27 +200,6 @@
             track compactions separately, so they may occur more often than
             this.
         </description>
-        <final>false</final>
-    </property>
-
-    <property>
-        <name>geomesa.convert.config.urls</name>
-        <value></value>
-        <description></description>
-        <final>false</final>
-    </property>
-
-    <property>
-        <name>geomesa.audit.provider.impl</name>
-        <value></value>
-        <description></description>
-        <final>false</final>
-    </property>
-
-    <property>
-        <name></name>
-        <value></value>
-        <description></description>
         <final>false</final>
     </property>
 </configuration>
