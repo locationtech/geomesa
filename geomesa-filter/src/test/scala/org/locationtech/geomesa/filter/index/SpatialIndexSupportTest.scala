@@ -23,7 +23,7 @@ class SpatialIndexSupportTest extends Specification {
 
   import org.locationtech.geomesa.utils.geotools.Conversions._
 
-  "QuadTreeFeatureStore" should {
+  "SpatialIndexSupport" should {
     val _sft = SimpleFeatureTypes.createType("test", "name:String,*geom:Point:srid=4326,geom2:Point:srid=4326")
     val f1 = ScalaSimpleFeature.create(_sft, "one", "one", "POINT(48.9 80)", "POINT(38.9 80)")
     val f2 = ScalaSimpleFeature.create(_sft, "two", "two", "POINT(49.5 80)", "POINT(39.5 80)")
