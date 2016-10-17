@@ -32,38 +32,43 @@ sealed trait AttributeSpec {
   /**
     * Attribute name
     *
-    * @return
+    * @return name
     */
   def name: String
 
   /**
     * Type binding
-    * @return
+    *
+    * @return class binding
     */
   def clazz: Class[_]
 
   /**
     * Attribute level options - all options are stored as strings for simplicity.
     * @see `RichAttributeDescriptors` for conversions.
-    * @return
+    *
+    * @return attribute level options
     */
   def options: Map[String, String]
 
   /**
     * Convert to a spec string
-    * @return
+    *
+    * @return a partial spec string
     */
   def toSpec: String = s"$name:$getClassSpec${specOptions.map { case (k, v) => s":$k=$v" }.mkString}"
 
   /**
     * Convert to a typesafe config map
-    * @return
+    *
+    * @return a spec map
     */
   def toConfigMap: Map[String, String] = Map("name" -> name, "type" -> getClassSpec) ++ configOptions
 
   /**
     * Convert to an attribute descriptor
-    * @return
+    *
+    * @return a descriptor
     */
   def toDescriptor: AttributeDescriptor = {
     val builder = new AttributeTypeBuilder().binding(clazz)
@@ -74,30 +79,35 @@ sealed trait AttributeSpec {
 
   /**
     * Gets class binding as a spec string
-    * @return
+    *
+    * @return class part of spec string
     */
   protected def getClassSpec: String = s"${AttributeSpec.typeEncode(clazz)}"
 
   /**
     * Options encoded in the spec string
-    * @return
+    *
+    * @return options to include in the spec string conversion
     */
   protected def specOptions: Map[String, String] = options
 
   /**
     * Options encoded in the config map
-    * @return
+    *
+    * @return options to include in the config map conversion
     */
   protected def configOptions: Map[String, String] = options
 
   /**
     * Options set in the attribute descriptor
-    * @return
+    *
+    * @return options to include in the descriptor conversion
     */
   protected def descriptorOptions: Map[String, String] = options
 
   /**
     * Hook for modifying attribute descriptor
+    *
     * @param builder attribute desctiptor builder
     */
   protected def builderHook(builder: AttributeTypeBuilder): Unit = {}

@@ -320,20 +320,16 @@ object RichSimpleFeatureType {
   }
 
   private class KVPairParser(pairSep: String = ",", kvSep: String = ":") extends JavaTokenParsers {
-    def k = "[0-9a-zA-Z\\.]+".r
-    def v = s"[^($pairSep)^($kvSep)]+".r
+    def key = "[0-9a-zA-Z\\.]+".r
+    def value = s"[^($pairSep)^($kvSep)]+".r
 
-    def kv = k ~ kvSep ~ v ^^ { case key ~ kvSep ~ value => key -> value }
-    def kvList = repsep(kv, pairSep) ^^ { case x => x.toMap }
+    def keyValue = key ~ kvSep ~ value ^^ { case key ~ sep ~ value => key -> value }
+    def keyValueList = repsep(keyValue, pairSep) ^^ { x => x.toMap }
 
-    def parse(s: String): Map[String, String] = {
-      parse(kvList, s.trim) match {
-        case Success(t, r)     if r.atEnd => t
-        case NoSuccess(msg, r) if r.atEnd =>
-          throw new IllegalArgumentException(s"Error parsing spec '$s' : $msg")
-        case other =>
-          throw new IllegalArgumentException(s"Error parsing spec '$s' : $other")
-      }
+    def parse(s: String): Map[String, String] = parse(keyValueList, s.trim) match {
+      case Success(result, next) if next.atEnd => result
+      case NoSuccess(msg, next) if next.atEnd => throw new IllegalArgumentException(s"Error parsing spec '$s' : $msg")
+      case other => throw new IllegalArgumentException(s"Error parsing spec '$s' : $other")
     }
   }
 }
