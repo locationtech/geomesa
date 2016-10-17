@@ -81,7 +81,7 @@ if [[ -z "$GEOMESA_JAR" ]]; then
     # double dirnames takes the parent of the parent of the script
     # which should be the GM home if this script is in "bin"
     GMDIR="$(dirname $(dirname "${BASH_SOURCE[0]}"))"
-    GEOMESA_JAR=$(find ${GMDIR}/dist/accumulo -name "geomesa-accumulo-distributed-runtime*")
+    GEOMESA_JAR=$(find ${GMDIR}/dist/accumulo -name "geomesa-accumulo-distributed-runtime*" | grep -v "raster")
     if [[ "x$GEOMESA_JAR" == "x" ]]; then
         echo "Could not find GeoMesa distributed runtime JAR - please specify the JAR using the '-g' flag"
         ERROR=1

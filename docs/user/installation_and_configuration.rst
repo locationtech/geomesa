@@ -153,7 +153,7 @@ The command line arguments the script accepts are:
 * -u <Accumulo username>
 * -n <Accumulo namespace>
 * -p <Accumulo password> (optional, will prompt if not supplied)
-* -g <Path of GeoMesa distributed runtime JAR> (optional, will default to the distribution folder and raster support)
+* -g <Path of GeoMesa distributed runtime JAR> (optional, will default to the distribution folder and without raster support)
 * -h <HDFS URI e.g. hdfs://localhost:54310> (optional, will attempt to determine if not supplied)
 
 Alternatively you can manually install the distributed runtime JAR with these commands:
