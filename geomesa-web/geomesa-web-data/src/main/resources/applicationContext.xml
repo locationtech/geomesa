@@ -13,6 +13,12 @@
   <bean name="statsEndpoint" class="org.locationtech.geomesa.web.analytics.StatsEndpoint">
     <constructor-arg index="0" ref="dataPersistence"/>
     <property name="debug" value="true"/>
+    <property name="passwordHandler">
+      <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetObject" ref="authenticationManager"/>
+        <property name="targetMethod" value="getConfigPasswordEncryptionHelper"/>
+      </bean>
+    </property>
   </bean>
 
   <bean name="dataPersistence" class="org.locationtech.geomesa.utils.cache.FilePersistence">

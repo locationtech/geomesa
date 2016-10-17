@@ -77,7 +77,10 @@ See :ref:`accumulo_visibilities` for more information.
 Indexing Strategies
 -------------------
 
-GeoMesa uses several different strategies to index simple features. In the code, these strategies are abstracted as 'tables'. For details on how GeoMesa encodes and indexes data, see :ref:`index_structure`. The :doc:`./data_management` chapter also describes how to optimize these indexes by manipulating :ref:`attribute_indices`, :ref:`customizing_z_index`, and :ref:`customizing_index_creation`.
+GeoMesa uses several different strategies to index simple features. In the code, these strategies are
+abstracted as 'tables'. For details on how GeoMesa encodes and indexes data, see :ref:`index_structure`.
+The :doc:`./data_management` chapter also describes how to optimize these indexes by manipulating
+:ref:`attribute_indices`, :ref:`customizing_z_index`, :ref:`customizing_xz_index`, and :ref:`customizing_index_creation`.
 
 For details on how GeoMesa chooses and executes queries, see the `org.locationtech.geomesa.accumulo.index.QueryPlanner <https://github.com/locationtech/geomesa/blob/master/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/QueryPlanner.scala>`__ and `org.locationtech.geomesa.accumulo.index.QueryStrategyDecider <https://github.com/locationtech/geomesa/blob/master/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/QueryStrategyDecider.scala>`__ classes.
 

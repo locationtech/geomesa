@@ -96,7 +96,7 @@ trait XZ3QueryableIndex extends AccumuloFeatureIndex
     val table = ops.getTableName(sft.getTypeName, this)
     val numThreads = ops.getSuggestedThreads(sft.getTypeName, this)
 
-    val sfc = XZ3SFC(XZ3Index.Precision, sft.getZ3Interval)
+    val sfc = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
     val minTime = 0.0
     val maxTime = BinnedTime.maxOffset(sft.getZ3Interval).toDouble
     val wholePeriod = (minTime, maxTime)
