@@ -107,8 +107,10 @@ available on each of the Accumulo tablet servers in the cluster. These JARs
 contain GeoMesa code and the Accumulo iterator required for querying
 GeoMesa data.
 
-There are two runtime JARs available, with and without raster support. Only one is
-needed and including both will cause classpath issues.
+.. warning::
+
+    There are two runtime JARs available, with and without raster support. Only one is
+    needed and including both will cause classpath issues.
 
 The version of the distributed runtime JAR must match the version of the GeoMesa
 data store client JAR (usually installed in GeoServer; see below). If not,
