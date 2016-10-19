@@ -36,7 +36,7 @@ class IngestCommandTest extends Specification {
     "work with sft and converter configs as strings using geomesa.sfts.<name> and geomesa.converters.<name>" >> {
       val id = nextId
 
-      val conf = ConfigFactory.load("examples/example1.conf")
+      val conf = ConfigFactory.load("examples/example1-csv.conf")
       val sft = conf.root().render(ConfigRenderOptions.concise())
       val converter = conf.root().render(ConfigRenderOptions.concise())
       val dataFile = new File(this.getClass.getClassLoader.getResource("examples/example1.csv").getFile)
@@ -58,7 +58,7 @@ class IngestCommandTest extends Specification {
     "work with nested sft and converter configs as files" >> {
       val id = nextId
 
-      val confFile = new File(this.getClass.getClassLoader.getResource("examples/example1.conf").getFile)
+      val confFile = new File(this.getClass.getClassLoader.getResource("examples/example1-csv.conf").getFile)
       val dataFile = new File(this.getClass.getClassLoader.getResource("examples/example1.csv").getFile)
 
       val args = Array("ingest", "--mock", "-i", id, "-u", "foo", "-p", "bar", "-c", id,
@@ -78,7 +78,7 @@ class IngestCommandTest extends Specification {
     "not ingest csv to tsv " >> {
       val id = nextId
 
-      val confFile = new File(this.getClass.getClassLoader.getResource("examples/example2.conf").getFile)
+      val confFile = new File(this.getClass.getClassLoader.getResource("examples/example1-tsv.conf").getFile)
       val dataFile = new File(this.getClass.getClassLoader.getResource("examples/example1.csv").getFile)
 
       val args = Array("ingest", "--mock", "-i", id, "-u", "foo", "-p", "bar", "-c", id,
@@ -97,7 +97,7 @@ class IngestCommandTest extends Specification {
     "ingest mysql to tsv" >> {
       val id = nextId
 
-      val confFile = new File(this.getClass.getClassLoader.getResource("examples/city1.conf").getFile)
+      val confFile = new File(this.getClass.getClassLoader.getResource("examples/city-tsv.conf").getFile)
       val dataFile = new File(this.getClass.getClassLoader.getResource("examples/city.mysql").getFile)
 
       val args = Array("ingest", "--mock", "-i", id, "-u", "foo", "-p", "bar", "-c", id,
@@ -116,7 +116,7 @@ class IngestCommandTest extends Specification {
      "not ingest tsv to mysql" >> {
       val id = nextId
 
-      val confFile = new File(this.getClass.getClassLoader.getResource("examples/city2.conf").getFile)
+      val confFile = new File(this.getClass.getClassLoader.getResource("examples/city-mysql.conf").getFile)
       val dataFile = new File(this.getClass.getClassLoader.getResource("examples/city.tsv").getFile)
 
       val args = Array("ingest", "--mock", "-i", id, "-u", "foo", "-p", "bar", "-c", id,
