@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.io.{Input, Output}
-import com.google.common.cache.{CacheBuilder, CacheLoader}
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat
@@ -418,9 +418,10 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator {
   override def registerClasses(kryo: Kryo): Unit = {
     val serializer = new com.esotericsoftware.kryo.Serializer[SimpleFeature]() {
 
-      val serializerCache = CacheBuilder.newBuilder().build(
+      val serializerCache = Caffeine.newBuilder().build(
         new CacheLoader[String, SimpleFeatureSerializer] {
-          override def load(key: String): SimpleFeatureSerializer = new SimpleFeatureSerializer(GeoMesaSparkKryoRegistrator.getType(key))
+          override def load(key: String): SimpleFeatureSerializer =
+            new SimpleFeatureSerializer(GeoMesaSparkKryoRegistrator.getType(key))
         })
 
       override def write(kryo: Kryo, out: Output, feature: SimpleFeature): Unit = {

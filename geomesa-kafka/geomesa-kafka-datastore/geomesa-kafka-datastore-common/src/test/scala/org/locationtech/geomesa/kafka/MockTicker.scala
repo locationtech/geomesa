@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.kafka
 
-import com.google.common.base.Ticker
+import com.github.benmanes.caffeine.cache.Ticker
 
 class MockTicker extends Ticker {
 

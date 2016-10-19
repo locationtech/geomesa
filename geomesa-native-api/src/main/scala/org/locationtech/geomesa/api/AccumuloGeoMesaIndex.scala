@@ -12,7 +12,7 @@ import java.lang.Iterable
 import java.util
 import java.util.{Date, List => JList}
 
-import com.google.common.cache.{CacheBuilder, CacheLoader}
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.Connector
 import org.apache.hadoop.classification.InterfaceStability
@@ -50,7 +50,7 @@ class AccumuloGeoMesaIndex[T](protected val ds: AccumuloDataStore,
   val fs = ds.getFeatureSource(sft.getTypeName)
 
   val writers =
-    CacheBuilder.newBuilder().build(
+    Caffeine.newBuilder().build(
       new CacheLoader[String, SimpleFeatureWriter] {
         override def load(k: String): SimpleFeatureWriter = {
           ds.getFeatureWriterAppend(k, Transaction.AUTO_COMMIT).asInstanceOf[SimpleFeatureWriter]
