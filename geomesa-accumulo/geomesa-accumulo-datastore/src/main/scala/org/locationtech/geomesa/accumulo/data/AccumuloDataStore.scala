@@ -29,7 +29,6 @@ import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.index.attribute.{AttributeIndex, AttributeSplittable}
-import org.locationtech.geomesa.utils.conf.ConfigLoader
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 // noinspection ScalaDeprecation

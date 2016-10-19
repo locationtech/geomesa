@@ -52,29 +52,30 @@ package object security {
     import scala.collection.JavaConversions._
 
     // if the user specifies an auth provider to use, try to use that impl
-    val authProviderSystemProperty = Option(GeoMesaProperties.GEOMESA_AUTH_PROVIDER_IMPL)
+    val authProviderSystemProperty = GeoMesaProperties.GEOMESA_AUTH_PROVIDER_IMPL
 
     // we wrap the authorizations provider in one that will filter based on the max auths configured for this store
     val providers = ServiceRegistry.lookupProviders(classOf[AuthorizationsProvider]).toBuffer
-    val toWrap = authProviderSystemProperty match {
-      case Some(prop) =>
-        if (classOf[DefaultAuthorizationsProvider].getName == prop)
+    val toWrap = {
+      if (authProviderSystemProperty.nonEmpty) {
+        if (classOf[DefaultAuthorizationsProvider].getName == authProviderSystemProperty)
           new DefaultAuthorizationsProvider
         else
-          providers.find(_.getClass.getName == prop).getOrElse {
-            throw new IllegalArgumentException(s"The service provider class '$prop' specified by " +
+          providers.find(_.getClass.getName == authProviderSystemProperty).getOrElse {
+            throw new IllegalArgumentException(s"The service provider class '$authProviderSystemProperty' specified by " +
               s"${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} could not be loaded")
           }
-      case None =>
+      } else {
         providers.length match {
           case 0 => new DefaultAuthorizationsProvider
           case 1 => providers.head
           case _ =>
             throw new IllegalStateException(
               "Found multiple AuthorizationsProvider implementations. Please specify the one to use with " +
-                  s"the system property '${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY}' :: " +
-                  s"${providers.map(_.getClass.getName).mkString(", ")}")
+                s"the system property '${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY}' :: " +
+                s"${providers.map(_.getClass.getName).mkString(", ")}")
         }
+      }
     }
 
     val authorizationsProvider = new FilteringAuthorizationsProvider(toWrap)

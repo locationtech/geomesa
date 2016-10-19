@@ -87,9 +87,7 @@ object AccumuloRunner extends Runner {
         p.instance = try {
           // this will hang for 60+ seconds if it's not configured - so we wrap in a future and only wait 1s
           val lookupTime: Long =
-            Option(System.getProperty("instance.zookeeper.timeout")).flatMap{s =>
-              Try { java.lang.Long.parseLong(s) }.toOption
-            }.getOrElse(5000L)
+            GeoMesaProperties.getProperty("instance.zookeeper.timeout", "5000").toLong
 
           logger.debug(s"Looking up Accumulo Instance Id in Zookeeper for $lookupTime milliseconds.")
           logger.debug("You can specify the Instance Id via the command line or\n" +

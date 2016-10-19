@@ -33,7 +33,6 @@ object ConfigLoader extends LazyLogging {
 
   def loadConfig(path: String): Unit = {
     try {
-      logger.warn("Path: " + path)
       val xml = XML.loadFile(path)
       logger.info("Using GeoMesa config file found at: " + path)
       loadConfig(xml)

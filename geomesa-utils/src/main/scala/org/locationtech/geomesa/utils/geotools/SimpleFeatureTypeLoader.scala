@@ -15,7 +15,6 @@ import javax.imageio.spi.ServiceRegistry
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
 import org.opengis.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.utils.conf.ConfigLoader
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._

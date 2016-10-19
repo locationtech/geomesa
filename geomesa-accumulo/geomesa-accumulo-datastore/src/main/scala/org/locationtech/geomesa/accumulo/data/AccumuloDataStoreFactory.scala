@@ -109,7 +109,7 @@ object AccumuloDataStoreFactory {
       new MockInstance(instance).getConnector(user, authToken)
     } else {
       // NB: For those wanting to set this via JAVA_OPTS, this key is "instance.zookeeper.timeout" in Accumulo 1.6.x.
-      val clientConfiguration = if (GeoMesaProperties.getProperty(ClientProperty.INSTANCE_ZK_TIMEOUT.getKey) != null) {
+      val clientConfiguration = if (GeoMesaProperties.getProperty(ClientProperty.INSTANCE_ZK_TIMEOUT.getKey) != "") {
         new ClientConfiguration()
           .withInstance(instance)
           .withZkHosts(zookeepers)
