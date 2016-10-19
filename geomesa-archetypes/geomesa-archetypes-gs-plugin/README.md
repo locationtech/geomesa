@@ -1,10 +1,9 @@
-# GeoMesa GeoServer 2.8.x Plugins
+# GeoMesa GeoServer 2.9.x Plugins
 
-GeoMesa provides an easy way to integrate with GeoServer 2.8.x. When built, the various GeoServer
+GeoMesa provides an easy way to integrate with GeoServer 2.9.x. When built, the various GeoServer
 modules will all produce a tar.gz file containing all the artifacts needed for GeoServer.
 
-Note: if you can't use GeoServer 2.8.x, older versions of GeoMesa are compatible with GeoServer 2.5.x.
-See [geomesa-1.1.0-rc.7](tree/geomesa-1.1.0-rc.7) for the last compatible version.
+Note: if you are interested in support for older versions of GeoServer, the GeoMesa 1.2.x series works with GeoServer 2.8.x.  For GeoServer 2.5.x, see [geomesa-1.1.0-rc.7](tree/geomesa-1.1.0-rc.7).
 
 ### Installation
 
