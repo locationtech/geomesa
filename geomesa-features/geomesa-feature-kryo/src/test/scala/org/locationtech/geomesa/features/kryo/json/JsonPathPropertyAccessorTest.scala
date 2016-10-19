@@ -57,5 +57,24 @@ class JsonPathPropertyAccessorTest extends Specification {
       sf.setAttribute(0, """{ "foo" : "baz" }""")
       expression.evaluate(sf) must beFalse
     }
+    "return null for invalid paths" in {
+      val sf0 = {
+        val sf = new ScalaSimpleFeature("", sft)
+        sf.setAttribute(0, """{ "foo" : "bar" }""")
+        sf
+      }
+      val sf1 = {
+        val serializer = new KryoFeatureSerializer(sft)
+        val sf = serializer.getReusableFeature
+        sf.setBuffer(serializer.serialize(sf0))
+        sf
+      }
+      forall(Seq(sf0, sf1)) { sf =>
+        forall(Seq("$baz", "$.baz", "baz", "$.baz/a")) { path =>
+          ff.property(path).evaluate(sf) must beNull
+          ECQL.toFilter(s""""$path" = 'bar'""").evaluate(sf) must beFalse
+        }
+      }
+    }
   }
 }
