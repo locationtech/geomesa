@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.tools.accumulo
 
+import org.apache.accumulo.core.client.ClientConfiguration.ClientProperty
 import org.apache.accumulo.server.client.HdfsZooInstance
 import org.locationtech.geomesa.tools.accumulo.commands._
 import org.locationtech.geomesa.tools.accumulo.commands.stats._
@@ -15,6 +16,7 @@ import org.locationtech.geomesa.tools.common.commands.{Command, GenerateAvroSche
 import org.locationtech.geomesa.tools.common.{Prompt, Runner}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.util.Try
 import scala.util.control.NonFatal
 import scala.xml.XML
 
@@ -83,8 +85,17 @@ object AccumuloRunner extends Runner {
       if (p.instance == null) {
         p.instance = try {
           // this will hang for 60+ seconds if it's not configured - so we wrap in a future and only wait 1s
+          val lookupTime: Long =
+            Option(System.getProperty("instance.zookeeper.timeout")).flatMap{s =>
+              Try { java.lang.Long.parseLong(s) }.toOption
+            }.getOrElse(5000L)
+
+          logger.debug(s"Looking up Accumulo Instance Id in Zookeeper for $lookupTime milliseconds.")
+          logger.debug("You can specify the Instance Id via the command line or\n" +
+            "change the Zookeeper timeout by setting the system property 'instance.zookeeper.timeout'.")
+
           import scala.concurrent.duration._
-          Await.result(Future(HdfsZooInstance.getInstance().getInstanceName)(ExecutionContext.global),  1000.millis)
+          Await.result(Future(HdfsZooInstance.getInstance().getInstanceName)(ExecutionContext.global),  lookupTime.millis)
         } catch {
           case NonFatal(e) => logger.warn(s"Exception getting zoo instance: ${e.toString}"); null
         }
