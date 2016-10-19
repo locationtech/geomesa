@@ -84,7 +84,8 @@ object AccumuloRunner extends Runner {
       }
       if (p.instance == null) {
         p.instance = try {
-          // this will hang for 60+ seconds if it's not configured - so we wrap in a future and only wait 1s
+          // This block checks for the same system property which Accumulo uses for Zookeeper timeouts.
+          //  If it is set, we use it.  Otherwise, a timeout of 5 seconds is used.
           val lookupTime: Long =
             Option(System.getProperty("instance.zookeeper.timeout")).flatMap{s =>
               Try { java.lang.Long.parseLong(s) }.toOption
