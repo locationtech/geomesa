@@ -15,6 +15,7 @@
         <module>geomesa-cassandra-datastore</module>
         <module>geomesa-cassandra-dist</module>
         <module>geomesa-cassandra-gs-plugin</module>
+        <module>geomesa-cassandra-tools</module>
     </modules>
 
     <properties>
@@ -32,20 +33,28 @@
                 <groupId>com.datastax.cassandra</groupId>
                 <artifactId>cassandra-driver-core</artifactId>
                 <version>${cassandra.version}</version>
-                <scope>provided</scope>
+                <scope>compile</scope>
             </dependency>
             <dependency>
                 <groupId>com.datastax.cassandra</groupId>
                 <artifactId>cassandra-driver-mapping</artifactId>
                 <version>${cassandra.version}</version>
-                <scope>provided</scope>
+                <scope>compile</scope>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>18.0</version>
-                <scope>provided</scope>
+                <scope>compile</scope>
             </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>log4j-over-slf4j</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+
+
         </dependencies>
     </dependencyManagement>
 
