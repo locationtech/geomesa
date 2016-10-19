@@ -729,7 +729,7 @@ Additional Configuration
 ------------------------
 
 GeoMesa uses a site xml file to maintain system property configurations. This file can be found
-at ``conf/geomesa-site.xml`` of either the Accumulo or Kafka distributions. The default settings
+at ``conf/geomesa-site.xml`` of either the GeoMesa-Accumulo or GeoMesa-Kafka distributions. The default settings
 for GeoMesa are stored in ``conf/geomesa-default.xml``. Do not modify this file directly as it is
 never read, instead copy over the desired configurations into geomesa-site.xml.
 

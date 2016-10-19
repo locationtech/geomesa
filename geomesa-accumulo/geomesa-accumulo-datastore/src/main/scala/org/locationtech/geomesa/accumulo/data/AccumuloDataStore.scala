@@ -75,8 +75,6 @@ class AccumuloDataStore(val connector: Connector,
     extends DataStore with AccumuloConnectorCreator with DistributedLocking
       with HasGeoMesaMetadata[String] with HasGeoMesaStats with HasGeoMesaUsageStats with LazyLogging {
 
-  ConfigLoader.init(ConfigLoader.ACCUMULO_HOME)
-
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
 
   // having at least as many shards as tservers provides optimal parallelism in queries

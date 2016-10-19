@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+    <property>
+        <name>geomesa.config.test1</name>
+        <value>1</value>
+        <description>
+        </description>
+        <final>false</final>
+    </property>
+    <property>
+        <name>geomesa.config.test2</name>
+        <value>2</value>
+        <description>
+        </description>
+        <final>true</final>
+    </property>
+</configuration>

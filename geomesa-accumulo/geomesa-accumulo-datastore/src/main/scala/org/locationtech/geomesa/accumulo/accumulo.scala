@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa
 
-import org.locationtech.geomesa.utils.uuid.Z3FeatureIdGenerator
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties
 
 import scala.collection.mutable
 
@@ -50,32 +50,27 @@ package object accumulo {
     val CONFIG_FILE = PropAndDefault("geomesa.config.file", "geomesa-site.xml")
 
     object QueryProperties {
-      val QUERY_EXACT_COUNT    = PropAndDefault("geomesa.force.count", "false")
-      val QUERY_COST_TYPE      = PropAndDefault("geomesa.query.cost.type", null)
-      val QUERY_TIMEOUT_MILLIS = PropAndDefault("geomesa.query.timeout.millis", null) // default is no timeout
-      // rough upper limit on the number of accumulo ranges we will generate per query
-      val SCAN_RANGES_TARGET   = PropAndDefault("geomesa.scan.ranges.target", "2000")
-      // if we generate more ranges than this we will split them up into sequential scans
-      val SCAN_BATCH_RANGES    = PropAndDefault("geomesa.scan.ranges.batch", "20000")
+      val QUERY_EXACT_COUNT    = PropAndDefault("geomesa.force.count", GeoMesaProperties.GEOMESA_FORCE_COUNT)
+      val QUERY_COST_TYPE      = PropAndDefault("geomesa.query.cost.type", GeoMesaProperties.GEOMESA_QUERY_COST_TYPE)
+      val QUERY_TIMEOUT_MILLIS = PropAndDefault("geomesa.query.timeout.millis", GeoMesaProperties.GEOMESA_QUERY_TIMEOUT_MILLS)
+      val SCAN_RANGES_TARGET   = PropAndDefault("geomesa.scan.ranges.target", GeoMesaProperties.GEOMESA_SCAN_RANGES_TARGET)
+      val SCAN_BATCH_RANGES    = PropAndDefault("geomesa.scan.ranges.batch", GeoMesaProperties.GEOMESA_SCAN_RANGES_BATCH)
     }
 
     object BatchWriterProperties {
-      // Measured in millis, default 60 seconds
-      val WRITER_LATENCY_MILLIS  = PropAndDefault("geomesa.batchwriter.latency.millis", (60 * 1000L).toString)
-      // Measured in bytes, default 50mb (see Accumulo BatchWriterConfig)
-      val WRITER_MEMORY_BYTES    = PropAndDefault("geomesa.batchwriter.memory", (50 * 1024 * 1024L).toString)
-      val WRITER_THREADS         = PropAndDefault("geomesa.batchwriter.maxthreads", "10")
-      // Timeout measured in seconds.  Likely unnecessary.
-      val WRITE_TIMEOUT_MILLIS   = PropAndDefault("geomesa.batchwriter.timeout.millis", null)
+      val WRITER_LATENCY_MILLIS  = PropAndDefault("geomesa.batchwriter.latency.millis", GeoMesaProperties.GEOMESA_BATCHWRITER_LATENCY_MILLS)
+      val WRITER_MEMORY_BYTES    = PropAndDefault("geomesa.batchwriter.memory", GeoMesaProperties.GEOMESA_BATCHWRITER_MEMORY)
+      val WRITER_THREADS         = PropAndDefault("geomesa.batchwriter.maxthreads", GeoMesaProperties.GEOMESA_BATCHWRITER_MAXTHREADS)
+      val WRITE_TIMEOUT_MILLIS   = PropAndDefault("geomesa.batchwriter.timeout.millis", GeoMesaProperties.GEOMESA_BATCHWRITER_TIMEOUT_MILLS)
     }
 
     object FeatureIdProperties {
       val FEATURE_ID_GENERATOR =
-        PropAndDefault("geomesa.feature.id-generator", classOf[Z3FeatureIdGenerator].getCanonicalName)
+        PropAndDefault("geomesa.feature.id-generator", GeoMesaProperties.GEOMESA_FEATURE_ID_GENERATOR)
     }
 
     object StatsProperties {
-      val STAT_COMPACTION_MILLIS = PropAndDefault("geomesa.stats.compact.millis", (3600 * 1000L).toString) // one hour
+      val STAT_COMPACTION_MILLIS = PropAndDefault("geomesa.stats.compact.millis", GeoMesaProperties.GEOMESA_STATS_COMPACT_MILLIS)
     }
 
     case class PropAndDefault(property: String, default: String) {

@@ -12,6 +12,7 @@ import java.{io => jio, util => ju}
 import javax.imageio.spi.ServiceRegistry
 
 import org.geotools.data.DataAccessFactory.Param
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties
 import org.opengis.feature.simple.SimpleFeature
 
 package object security {
@@ -51,7 +52,7 @@ package object security {
     import scala.collection.JavaConversions._
 
     // if the user specifies an auth provider to use, try to use that impl
-    val authProviderSystemProperty = Option(System.getProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY))
+    val authProviderSystemProperty = Option(GeoMesaProperties.GEOMESA_AUTH_PROVIDER_IMPL)
 
     // we wrap the authorizations provider in one that will filter based on the max auths configured for this store
     val providers = ServiceRegistry.lookupProviders(classOf[AuthorizationsProvider]).toBuffer
@@ -92,7 +93,7 @@ package object security {
     val providers = ServiceRegistry.lookupProviders(classOf[AuditProvider]).toBuffer
 
     // if the user specifies an auth provider to use, try to use that impl
-    val specified = Option(System.getProperty(AuditProvider.AUDIT_PROVIDER_SYS_PROPERTY)).map { prop =>
+    val specified = Option(GeoMesaProperties.GEOMESA_AUDIT_PROVIDER_IMPL).map { prop =>
       providers.find(_.getClass.getName == prop).getOrElse {
         throw new RuntimeException(s"Could not load audit provider $prop")
       }

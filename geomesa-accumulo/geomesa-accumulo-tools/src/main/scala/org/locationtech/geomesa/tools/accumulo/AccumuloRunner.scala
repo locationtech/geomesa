@@ -13,6 +13,7 @@ import org.locationtech.geomesa.tools.accumulo.commands._
 import org.locationtech.geomesa.tools.accumulo.commands.stats._
 import org.locationtech.geomesa.tools.common.commands.{Command, GenerateAvroSchemaCommand}
 import org.locationtech.geomesa.tools.common.{Prompt, Runner}
+import org.locationtech.geomesa.utils.conf.{ConfigLoader, GeoMesaProperties}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.control.NonFatal
@@ -57,10 +58,8 @@ object AccumuloRunner extends Runner {
     * the system path in ACCUMULO_HOME in the case that command line parameters are not provided
     */
   override def resolveEnvironment(command: Command): Unit = {
-
     lazy val zookeepers = {
-      val accumuloSiteXml = Option(System.getProperty("geomesa.tools.accumulo.site.xml"))
-          .getOrElse(s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml")
+      val accumuloSiteXml = GeoMesaProperties.GEOMESA_TOOLS_ACCUMULO_SITE_XML
       try {
         (XML.loadFile(accumuloSiteXml) \\ "property")
             .filter(x => (x \ "name").text == "instance.zookeeper.host")

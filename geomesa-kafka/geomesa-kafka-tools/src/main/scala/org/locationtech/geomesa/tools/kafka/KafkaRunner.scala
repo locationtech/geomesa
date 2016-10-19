@@ -11,6 +11,7 @@ package org.locationtech.geomesa.tools.kafka
 import org.locationtech.geomesa.tools.common.Runner
 import org.locationtech.geomesa.tools.common.commands.{Command, VersionCommand}
 import org.locationtech.geomesa.tools.kafka.commands._
+import org.locationtech.geomesa.utils.conf.ConfigLoader
 
 object KafkaRunner extends Runner {
   override val scriptName: String = "geomesa-kafka"

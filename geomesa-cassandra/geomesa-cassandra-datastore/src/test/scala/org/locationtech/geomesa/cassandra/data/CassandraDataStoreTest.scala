@@ -23,6 +23,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
@@ -239,7 +240,7 @@ object CassandraDataStoreTest {
 
       EmbeddedCassandraServerHelper.startEmbeddedCassandra("cassandra-config.yaml", 1200000L)
 
-      var readTimeout: Int = util.Try(System.getProperty("cassandraReadTimeout").toInt).getOrElse(12000)
+      var readTimeout: Int = util.Try(GeoMesaProperties.getProperty("cassandraReadTimeout").toInt).getOrElse(12000)
       if(readTimeout < 0) readTimeout = 12000
       val cluster = new Cluster.Builder().addContactPoints(host).withPort(port)
         .withSocketOptions(new SocketOptions().setReadTimeoutMillis(readTimeout)).build().init()

@@ -16,6 +16,7 @@ import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
 import org.locationtech.geomesa.security._
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties
 
 import scala.collection.JavaConversions._
 
@@ -84,7 +85,7 @@ object AccumuloStoreHelper {
 
   def getAuthorizationsProvider(auths: Seq[String], connector: Connector): AuthorizationsProvider = {
     // if the user specifies an auth provider to use, try to use that impl
-    val authProviderSystemProperty = Option(System.getProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY))
+    val authProviderSystemProperty = Option(GeoMesaProperties.getProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY))
 
     // we wrap the authorizations provider in one that will filter based on the max auths configured for this store
     val authorizationsProvider = new FilteringAuthorizationsProvider ({

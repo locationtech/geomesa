@@ -39,9 +39,9 @@ at ``conf/geomesa-site.xml`` of the Accumulo distribution. The default settings 
 stored in ``conf/geomesa-default.xml``. Do not modify this file directly as it is never read,
 instead copy over the desired configurations into geomesa-site.xml.
 
-By default command line parameters will take precedent over this configuration file. If you wish
-a configuration item to always take precedence, even over command line parameters change the
-``<final>`` tag to true.
+By default, system properties set through command line parameters will take precedent over this
+configuration file. If you wish a configuration item to always take precedence, even over command
+line parameters change the ``<final>`` tag to true.
 
 By default configuration properties with empty values will not be applied, you can change this
 by marking a property as final.
@@ -56,7 +56,7 @@ for the GeoMesa Accumulo data store is exposed as the Java system property ``ins
 
     export JAVA_OPTS="-Dinstance.zookeeper.timeout=10s"
 
-To preserve configuration set this property in the ``geomesa-site.xml``.
+To preserve configuration set this property in ``geomesa-site.xml``.
 
 Creating a Data Store
 ---------------------

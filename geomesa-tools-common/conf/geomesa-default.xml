@@ -13,7 +13,8 @@
 <!-- them there.  If geomesa-site.xml does not already exist, create it. -->
 
 <!-- If you wish a configuration item to always take precedence, even    -->
-<!-- over command line parameters change the <final> tag to true.        -->
+<!-- over system properties set through command line parameters change   -->
+<!-- the <final> tag to true.                                            -->
 
 <!-- By default configuration properties with empty values will not be   -->
 <!-- applied, you can change this by marking a property as final.        -->

@@ -38,7 +38,6 @@ class KafkaDataStore(override val zookeepers: String,
 
   kds =>
 
-  ConfigLoader.init(ConfigLoader.KAFKA_HOME)
   setNamespaceURI(namespaceStr)
 
   override def createTypeNames() = getNames.asScala.map(name => new NameImpl(getNamespaceURI, name.getLocalPart) : Name).asJava

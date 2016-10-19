@@ -15,6 +15,7 @@ import javax.imageio.spi.ServiceRegistry
 
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
+import org.locationtech.geomesa.utils.conf.ConfigLoader
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -109,6 +110,7 @@ class URLConfigProvider extends ConverterConfigProvider with GeoMesaConvertParse
 }
 
 object URLConfigProvider {
+  if (! ConfigLoader.isLoaded) ConfigLoader.init()
   val ConverterConfigURLs = "geomesa.convert.config.urls"
 }
 
