@@ -12,23 +12,21 @@ import java.io.Serializable
 import java.{util => ju}
 
 import com.vividsolutions.jts.geom.Envelope
+import org.geotools.data.Query
+import org.geotools.data.simple.SimpleFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureSource}
-import org.geotools.data.{FilteringFeatureReader, Query}
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.NameImpl
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.locationtech.geomesa.filter.FilterHelper._
+import org.locationtech.geomesa.filter.index.SpatialIndexSupport
 import org.locationtech.geomesa.kafka.KafkaDataStore.FeatureSourceFactory
 import org.locationtech.geomesa.kafka.consumer.KafkaConsumerFactory
 import org.locationtech.geomesa.security.ContentFeatureSourceSecuritySupport
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools._
-import org.locationtech.geomesa.utils.index.QuadTreeFeatureStore
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
-import org.opengis.filter.spatial.{BBOX, Intersects, Within}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -85,10 +83,9 @@ case class FeatureHolder(sf: SimpleFeature, env: Envelope) {
   }
 }
 
-trait KafkaConsumerFeatureCache extends QuadTreeFeatureStore {
+trait KafkaConsumerFeatureCache extends SpatialIndexSupport {
 
   def features: mutable.Map[String, FeatureHolder]
-  private val ff = CommonFactoryFinder.getFilterFactory2
 
   // optimized for filter.include
   def size(f: Filter): Int = {
@@ -99,45 +96,18 @@ trait KafkaConsumerFeatureCache extends QuadTreeFeatureStore {
     }
   }
 
-  def getReaderForFilter(filter: Filter): FR =
+  override def allFeatures(): Iterator[SimpleFeature] = features.valuesIterator.map(_.sf)
+
+  override def getReaderForFilter(filter: Filter): SimpleFeatureReader =
     filter match {
-      case f: IncludeFilter => include(f)
-      case f: Id            => fid(f)
-      case f: And           => and(f)
-      case f: BBOX          => bbox(f)
-      case f: Intersects    => intersects(f)
-      case f: Within        => within(f)
-      case f: Or            => or(f)
-      case f                => unoptimized(f)
+      case f: Id => fid(f)
+      case _     => super.getReaderForFilter(filter)
     }
 
-  def include(i: IncludeFilter) = new DFR(sft, new DFI(features.valuesIterator.map(_.sf)))
-
-  def fid(ids: Id): FR = {
+  def fid(ids: Id): SimpleFeatureReader = {
     val iter = ids.getIDs.flatMap(id => features.get(id.toString).map(_.sf)).iterator
-    new DFR(sft, new DFI(iter))
+    reader(iter)
   }
-
-  def and(a: And): FR = {
-    val geometries = extractGeometries(a, sft.getGeometryDescriptor.getLocalName)
-    if (geometries.isEmpty) {
-      unoptimized(a)
-    } else {
-      val envelope = geometries.head.getEnvelopeInternal
-      geometries.tail.foreach(g => envelope.expandToInclude(g.getEnvelopeInternal))
-      new DFR(sft, new DFI(spatialIndex.query(envelope, a.evaluate)))
-    }
-  }
-
-  def or(o: Or): FR = {
-    val readers = o.getChildren.map(getReaderForFilter).map(_.getIterator)
-    val composed = readers.foldLeft(Iterator[SimpleFeature]())(_ ++ _)
-    new DFR(sft, new DFI(composed))
-  }
-
-  def unoptimized(f: Filter): FR =
-    new FilteringFeatureReader[SimpleFeatureType, SimpleFeature](include(Filter.INCLUDE), f)
-
 }
 
 object KafkaConsumerFeatureSourceFactory {
