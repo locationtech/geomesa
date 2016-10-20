@@ -96,8 +96,4 @@ class DelimitedTextConverter(format: CSVFormat,
     }
     Seq(ret)
   }
-
-  override def close(): Unit = {
-  }
-
 }
