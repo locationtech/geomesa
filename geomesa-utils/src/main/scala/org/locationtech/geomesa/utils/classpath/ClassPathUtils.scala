@@ -26,6 +26,10 @@ object ClassPathUtils extends LazyLogging {
     override def accept(pathname: File) = pathname.isDirectory
   }
 
+  private val fileFilter = new FileFilter() {
+    override def accept(pathname: File) = pathname.isFile()
+  }
+
   def findJars(jars: Seq[String], searchPath: Iterator[() => Seq[File]]): Seq[File] = {
     val foundJars = ArrayBuffer.empty[File]
     var remaining = jars
@@ -106,11 +110,7 @@ object ClassPathUtils extends LazyLogging {
     */
   def getFilesFromSystemProperty(prop: String): Seq[File] = {
     Option(System.getProperty(prop)) match {
-      case Some(path) => path.toString().split(":").map(new File(_)).filter{ file =>
-        val isDir = file.isDirectory
-        if (!isDir) logger.warn(s"${file} : Is not a directory")
-        isDir
-      }.toSeq.flatMap(loadFilesFromFolder)
+      case Some(path) => path.toString().split(":").map(new File(_)).toSeq.flatMap(loadFiles)
       case None =>
         logger.debug(s"No files loaded onto classpath from system property: ${prop}")
         Seq.empty
@@ -118,15 +118,19 @@ object ClassPathUtils extends LazyLogging {
   }
 
   /**
-    * Recursively searches folders for all files
+    * Recursively searches file for all files. Accepts file or dir.
     *
-    * @param dir
+    * @param file
     * @return
     */
-  def loadFilesFromFolder(dir: File): Seq[File] = {
-    val files = Option(dir.listFiles()).toSeq.flatten
-    val children = Option(dir.listFiles(folderFileFilter)).toSeq.flatten.flatMap(loadFilesFromFolder)
-    files ++ children
+  def loadFiles(file: File): Seq[File] = {
+    if (file.isDirectory) {
+      val files = Option(file.listFiles(fileFilter)).toSeq.flatten
+      val childDirs = Option(file.listFiles(folderFileFilter)).toSeq.flatten.flatMap(loadFiles)
+      files ++ childDirs
+    } else {
+      Option(file).toSeq
+    }
   }
 
   def cleanClassPathURL(url: String): String =
