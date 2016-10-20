@@ -11,11 +11,12 @@ package org.locationtech.geomesa.tools.accumulo.commands
 import com.beust.jcommander._
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.KeywordCommand.KeywordParameters
+import org.locationtech.geomesa.tools.common.commands.Command
 import org.locationtech.geomesa.tools.common.{FeatureTypeNameParam, KeywordParamSplitter}
 
 import scala.collection.JavaConversions._
 
-class KeywordCommand(parent: JCommander) extends CommandWithCatalog(parent) {
+class KeywordCommand(parent: JCommander) extends Command(parent) with CommandWithAccumuloDataStore {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
   override val command: String = "keywords"
   override val params = new KeywordParameters()

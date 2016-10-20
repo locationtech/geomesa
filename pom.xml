@@ -317,7 +317,7 @@
                 </repository>
             </repositories>
         </profile>
-<!--        <profile>
+        <profile>
             <id>eclipse-sign</id>
             <build>
                 <plugins>
@@ -347,7 +347,7 @@
                     <url>https://repo.eclipse.org/content/repositories/cbi-releases/</url>
                 </pluginRepository>
             </pluginRepositories>
-        </profile>-->
+        </profile>
         <profile>
             <id>hbase</id>
             <modules>

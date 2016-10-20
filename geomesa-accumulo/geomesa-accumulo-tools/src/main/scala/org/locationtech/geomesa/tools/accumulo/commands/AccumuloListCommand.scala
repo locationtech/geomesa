@@ -11,21 +11,20 @@ package org.locationtech.geomesa.tools.accumulo.commands
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
-import org.locationtech.geomesa.tools.accumulo.commands.ListCommand._
+import org.locationtech.geomesa.tools.accumulo.commands.AccumuloListCommand._
+import org.locationtech.geomesa.tools.common.commands.{Command, ListCommand}
 
-class ListCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
-  override val command = "list"
-  override val params = new ListParameters()
+class AccumuloListCommand(parent: JCommander)
+  extends Command(parent)
+    with ListCommand
+    with CommandWithAccumuloDataStore
+    with LazyLogging {
 
-  override def execute() = {
-    logger.info("Running List Features on catalog " + params.catalog)
-    ds.getTypeNames.foreach(println)
-    ds.dispose()
-  }
+  override val params = new AccumuloListParameters
 
 }
 
-object ListCommand {
+object AccumuloListCommand {
   @Parameters(commandDescription = "List GeoMesa feature types for a given catalog")
-  class ListParameters extends GeoMesaConnectionParams {}
+  class AccumuloListParameters extends GeoMesaConnectionParams {}
 }

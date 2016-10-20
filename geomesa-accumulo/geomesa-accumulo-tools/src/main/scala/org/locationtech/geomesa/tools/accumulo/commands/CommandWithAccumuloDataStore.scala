@@ -8,22 +8,21 @@
 
 package org.locationtech.geomesa.tools.accumulo.commands
 
-import com.beust.jcommander.JCommander
 import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
-import org.locationtech.geomesa.tools.common.commands.Command
+import org.locationtech.geomesa.tools.common.commands.CommandWithDataStore
 
 /**
  * Abstract class for commands that have a pre-existing catalog
  */
-abstract class CommandWithCatalog(parent: JCommander) extends Command(parent) {
-  override val params: GeoMesaConnectionParams
-  lazy val ds = DataStoreParamsHelper.createDataStore(params)
+trait CommandWithAccumuloDataStore extends CommandWithDataStore {
+  val params: GeoMesaConnectionParams
+  lazy val ds = AccumuloDataStoreParamsHelper.createDataStore(params)
   lazy val catalog = params.catalog
 }
 
-object DataStoreParamsHelper {
+object AccumuloDataStoreParamsHelper {
   def getDataStoreParams(params: GeoMesaConnectionParams): Map[String, String] = {
     Map[String, String](
       AccumuloDataStoreParams.instanceIdParam.getName -> params.instance,

@@ -13,9 +13,10 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.GetSftCommand._
 import org.locationtech.geomesa.tools.common.FeatureTypeNameParam
+import org.locationtech.geomesa.tools.common.commands.Command
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
-class GetSftCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
+class GetSftCommand(parent: JCommander) extends Command(parent) with CommandWithAccumuloDataStore with LazyLogging {
   override val command = "getsft"
   override val params = new GetSftParameters
 

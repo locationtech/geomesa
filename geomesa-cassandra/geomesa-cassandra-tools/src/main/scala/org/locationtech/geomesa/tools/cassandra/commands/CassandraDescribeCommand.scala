@@ -20,5 +20,6 @@ class CassandraDescribeCommand(parent: JCommander)
 
 object CassandraDescribeCommand {
   @Parameters(commandDescription = "describe")
-  class CassandraDescribeParameters extends FeatureTypeNameParam with CassandraConnectionParams {}
+  class CassandraDescribeParameters extends CassandraConnectionParams
+    with FeatureTypeNameParam {}
 }

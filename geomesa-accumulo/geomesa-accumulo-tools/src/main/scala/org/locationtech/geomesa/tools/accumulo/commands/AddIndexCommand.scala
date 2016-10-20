@@ -17,6 +17,7 @@ import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.jobs.index.{WriteIndexArgs, WriteIndexJob}
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.AddIndexCommand.AddIndexParameters
+import org.locationtech.geomesa.tools.common.commands.Command
 import org.locationtech.geomesa.tools.common.{FeatureTypeNameParam, OptionalCQLFilterParam, Prompt}
 import org.locationtech.geomesa.utils.index.IndexMode
 
@@ -31,7 +32,7 @@ import scala.util.control.NonFatal
   * 4. Turn old index off, put new index in read/write mode
   * 5. Pause and indicate that the user should bounce live ingestion again
   */
-class AddIndexCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
+class AddIndexCommand(parent: JCommander) extends Command(parent) with CommandWithAccumuloDataStore with LazyLogging {
 
   import GeoMesaMetadata.ATTRIBUTES_KEY
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType

@@ -11,13 +11,14 @@ package org.locationtech.geomesa.tools.accumulo.commands.stats
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.tools.accumulo.commands.CommandWithCatalog
+import org.locationtech.geomesa.tools.accumulo.commands.CommandWithAccumuloDataStore
+import org.locationtech.geomesa.tools.common.commands.Command
 import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat, TopK}
 import org.opengis.filter.Filter
 
 import scala.math.Ordering
 
-class StatsTopKCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
+class StatsTopKCommand(parent: JCommander) extends Command(parent) with CommandWithAccumuloDataStore with LazyLogging {
 
   override val command = "stats-top-k"
   override val params = new StatsTopKParameters

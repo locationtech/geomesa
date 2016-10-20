@@ -13,13 +13,14 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.accumulo.data.GeoMesaMetadata
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
-import org.locationtech.geomesa.tools.accumulo.commands.CommandWithCatalog
+import org.locationtech.geomesa.tools.accumulo.commands.CommandWithAccumuloDataStore
 import org.locationtech.geomesa.tools.accumulo.commands.stats.StatsAnalyzeCommand.StatsRunParameters
 import org.locationtech.geomesa.tools.common.FeatureTypeNameParam
+import org.locationtech.geomesa.tools.common.commands.Command
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.SimpleFeatureType
 
-class StatsAnalyzeCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
+class StatsAnalyzeCommand(parent: JCommander) extends Command(parent) with CommandWithAccumuloDataStore with LazyLogging {
 
   import StatsAnalyzeCommand.name
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType

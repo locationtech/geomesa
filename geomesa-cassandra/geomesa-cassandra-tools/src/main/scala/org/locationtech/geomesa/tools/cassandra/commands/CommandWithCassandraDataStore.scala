@@ -18,10 +18,8 @@ object CassandraDataStoreParamsHelper {
     Map[String, String](
       CassandraDataStoreParams.CONTACT_POINT.getName -> params.contactPoint,
       CassandraDataStoreParams.KEYSPACE.getName -> params.keySpace,
-
-      CassandraDataStoreParams.NAMESPACE.getName -> "blah")
-
-
+      CassandraDataStoreParams.NAMESPACE.getName -> params.nameSpace
+    )
   }
 
   def createDataStore(params: CassandraConnectionParams): CassandraDataStore = {

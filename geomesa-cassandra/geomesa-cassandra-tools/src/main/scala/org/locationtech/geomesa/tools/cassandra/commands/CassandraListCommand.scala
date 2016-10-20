@@ -15,7 +15,6 @@ class CassandraListCommand(parent: JCommander)
 
   override val params = new CassandraListParameters()
 
-
 }
 
 object CassandraListCommand {
