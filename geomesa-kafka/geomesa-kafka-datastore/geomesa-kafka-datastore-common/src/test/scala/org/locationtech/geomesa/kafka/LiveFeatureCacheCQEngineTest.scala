@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.kafka
 
-import com.google.common.base.Ticker
+import com.github.benmanes.caffeine.cache.Ticker
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.Instant
 import org.junit.runner.RunWith

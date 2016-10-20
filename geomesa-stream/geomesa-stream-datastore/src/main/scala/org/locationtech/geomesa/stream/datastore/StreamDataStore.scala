@@ -13,7 +13,7 @@ import java.util.concurrent.{CopyOnWriteArrayList, Executors, TimeUnit}
 import java.util.logging.Level
 import java.{util => ju}
 
-import com.google.common.cache.{Cache, CacheBuilder, RemovalListener, RemovalNotification}
+import com.github.benmanes.caffeine.cache.{Cache, Caffeine, RemovalCause, RemovalListener}
 import com.google.common.collect.Lists
 import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.Envelope
@@ -28,6 +28,8 @@ import org.locationtech.geomesa.filter.index.SpatialIndexSupport
 import org.locationtech.geomesa.stream.SimpleFeatureStreamSource
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.FR
+import org.locationtech.geomesa.utils.index.{SpatialIndex, SynchronizedQuadtree}
+import org.locationtech.geomesa.utils.geotools.{DFI, DFR, FR}
 import org.locationtech.geomesa.utils.index.{SpatialIndex, SynchronizedQuadtree}
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -51,18 +53,18 @@ class StreamDataStore(source: SimpleFeatureStreamSource, timeout: Int) extends C
   val qt = new SynchronizedQuadtree[SimpleFeature]
 
   val cb =
-    CacheBuilder
+    Caffeine
       .newBuilder()
       .expireAfterWrite(timeout, TimeUnit.SECONDS)
       .removalListener(
         new RemovalListener[String, FeatureHolder] {
-          def onRemoval(removal: RemovalNotification[String, FeatureHolder]) = {
-            qt.remove(removal.getValue.env, removal.getValue.sf)
+          override def onRemoval(k: String, v: FeatureHolder, removalCause: RemovalCause): Unit = {
+            qt.remove(v.env, v.sf)
           }
         }
       )
 
-  val features: Cache[String, FeatureHolder] = cb.build[String, FeatureHolder]()
+  val features = cb.build[String, FeatureHolder]()
 
   val listeners = new CopyOnWriteArrayList[StreamListener]()
 

@@ -13,7 +13,7 @@ import java.nio._
 import java.util.concurrent.TimeUnit
 import java.util.{Date, UUID, Collection => JCollection, List => JList}
 
-import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.google.common.collect.Maps
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.avro.generic.{GenericData, GenericDatumWriter, GenericRecord}
@@ -192,7 +192,7 @@ object Version2ASF {
     )
 
   def loadingCacheBuilder[V <: AnyRef](f: SimpleFeatureType => V) =
-    CacheBuilder
+    Caffeine
       .newBuilder
       .maximumSize(100)
       .expireAfterWrite(10, TimeUnit.MINUTES)
