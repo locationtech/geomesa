@@ -241,6 +241,7 @@ object CassandraDataStoreTest {
       EmbeddedCassandraServerHelper.startEmbeddedCassandra("cassandra-config.yaml", 1200000L)
 
       var readTimeout: Int = GeoMesaProperties.getProperty("cassandraReadTimeout", "12000").toInt
+
       if(readTimeout < 0) readTimeout = 12000
       val cluster = new Cluster.Builder().addContactPoints(host).withPort(port)
         .withSocketOptions(new SocketOptions().setReadTimeoutMillis(readTimeout)).build().init()

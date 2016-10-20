@@ -39,9 +39,8 @@ class KNearestNeighborSearchProcessTest extends Specification with LazyLogging {
 
   val sftName = "geomesaKNNTestType"
   val sft = SimpleFeatureTypes.createType(sftName, "geom:Point:srid=4326,dtg:Date,dtg_end_time:Date")
-  sft.getUserData.put(Constants.SF_PROPERTY_START_TIME,"dtg")
-
-  val ds = createStore
+  sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
+  lazy val ds = createStore
   ds.createSchema(sft)
 
   val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
@@ -75,7 +74,6 @@ class KNearestNeighborSearchProcessTest extends Specification with LazyLogging {
   // write the feature to the store
   fs.addFeatures(featureCollection)
 
-
   def createStore: AccumuloDataStore =
   // the specific parameter values should not matter, as we
   // are requesting a mock data store connection to Accumulo
@@ -90,6 +88,7 @@ class KNearestNeighborSearchProcessTest extends Specification with LazyLogging {
       "indexSchemaFormat" -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build(),
       "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
 
+
   // utility method to generate random points about a central point
   // note that these points will be uniform in cartesian space only
   def generateTestData(num: Int, centerLat: Double, centerLon: Double, width: Double) = {
@@ -103,6 +102,7 @@ class KNearestNeighborSearchProcessTest extends Specification with LazyLogging {
       TestEntry(wkt, (100000 + i).toString, dt)
     }).toList
   }
+
   // load data into the featureCollection
   def addTestData(points: List[TestEntry]) = {
     points.foreach { case e: TestEntry =>
@@ -112,6 +112,7 @@ class KNearestNeighborSearchProcessTest extends Specification with LazyLogging {
       featureCollection.add(sf)
     }
   }
+
   // generates a single SimpleFeature
   def queryFeature(label: String, lat: Double, lon: Double) = {
     val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), label)
@@ -119,6 +120,7 @@ class KNearestNeighborSearchProcessTest extends Specification with LazyLogging {
     sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
     sf
   }
+
   // generates a very loose query
   def wideQuery = {
     val lat = 38.0
@@ -217,7 +219,7 @@ class KNearestNeighborSearchProcessTest extends Specification with LazyLogging {
       val directFeatures = fs.getFeatures().features.toList
       val sortedByDist = directFeatures.sortBy (
         a => VincentyModel.getDistanceBetweenTwoPoints(referenceFeature.point, a.point).getDistanceInMeters).take(k)
-      knnFeatureIDs.equals(sortedByDist.map{_.getID}) must beTrue
+      knnFeatureIDs.equals(sortedByDist.map { _.getID }) must beTrue
     }
   }
 }

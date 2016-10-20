@@ -62,6 +62,7 @@ object AccumuloRunner extends Runner {
   override def resolveEnvironment(command: Command): Unit = {
     lazy val zookeepers = {
       val accumuloSiteXml = GeoMesaProperties.GEOMESA_TOOLS_ACCUMULO_SITE_XML
+
       try {
         (XML.loadFile(accumuloSiteXml) \\ "property")
             .filter(x => (x \ "name").text == "instance.zookeeper.host")
@@ -86,8 +87,13 @@ object AccumuloRunner extends Runner {
       if (p.instance == null) {
         p.instance = try {
           // this will hang for 60+ seconds if it's not configured - so we wrap in a future and only wait 1s
+//          val lookupTime: Long =
+//            GeoMesaProperties.getProperty("instance.zookeeper.timeout", "5000").toLong
+
           val lookupTime: Long =
-            GeoMesaProperties.getProperty("instance.zookeeper.timeout", "5000").toLong
+                        Option(System.getProperty("instance.zookeeper.timeout")).flatMap{s =>
+                            Try { java.lang.Long.parseLong(s) }.toOption
+                          }.getOrElse(5000L)
 
           logger.debug(s"Looking up Accumulo Instance Id in Zookeeper for $lookupTime milliseconds.")
           logger.debug("You can specify the Instance Id via the command line or\n" +
