@@ -253,7 +253,7 @@ Test the command that invokes the GeoMesa Tools:
     Using GEOMESA_HOME = /path/to/geomesa-accumulo-dist_2.11-$VERSION
     Usage: geomesa [command] [command options]
       Commands:
-        add-attributeindex     Run a Hadoop map reduce job to add an index for attributes
+        add-attribute-index    Run a Hadoop map reduce job to add an index for attributes
         add-index              Add or update indices for an existing GeoMesa feature type
         config-table           Perform table configuration operations
         create-schema          Create a GeoMesa feature type
@@ -263,15 +263,15 @@ Test the command that invokes the GeoMesa Tools:
         env                    Examine the current GeoMesa environment
         explain                Explain how a GeoMesa query will be executed
         export                 Export features from a GeoMesa data store
-        gen-avroschema         Generate an Avro schema from a SimpleFeatureType
+        gen-avro-schema        Generate an Avro schema from a SimpleFeatureType
         get-names              List GeoMesa feature types for a given catalog
         get-schema             Describe the attributes of a given GeoMesa feature type
-        get-sft                Get the SimpleFeatureType of a feature
+        get-sft-config                Get the SimpleFeatureType of a feature
         help                   Show help
         ingest                 Ingest/convert various file formats into GeoMesa
         ingest-raster          Ingest raster files into GeoMesa
         keywords               Add/Remove/List keywords on an existing schema
-        query-rasterstats      Export queries and statistics about the last X number of queries to a CSV file.
+        query-raster-stats     Export queries and statistics about the last X number of queries to a CSV file.
         remove-schema          Remove a schema and associated features from a GeoMesa catalog
         stats-analyze          Analyze statistics on a GeoMesa feature type
         stats-bounds           View or calculate bounds on attributes in a GeoMesa feature type

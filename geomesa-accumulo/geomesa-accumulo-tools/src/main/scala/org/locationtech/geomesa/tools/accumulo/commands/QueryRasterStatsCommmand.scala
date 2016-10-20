@@ -19,7 +19,7 @@ import org.locationtech.geomesa.tools.accumulo.{AccumuloConnectionParams, Accumu
 import org.locationtech.geomesa.tools.common.commands.Command
 
 class QueryRasterStatsCommmand(parent: JCommander) extends Command(parent) {
-  override val command: String = "queryrasterstats"
+  override val command: String = "query-raster-stats"
   override val params = new QueryStatsParameters()
 
   override def execute() = {

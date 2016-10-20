@@ -41,7 +41,7 @@ object AccumuloRunner extends Runner {
     new TableConfCommand(jc),
     new AccumuloVersionCommand(jc),
     new QueryRasterStatsCommmand(jc),
-    new GetSftCommand(jc),
+    new GetSftConfigCommand(jc),
     new GenerateAvroSchemaCommand(jc),
     new StatsAnalyzeCommand(jc),
     new StatsBoundsCommand(jc),

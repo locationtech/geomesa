@@ -31,7 +31,7 @@ Run ``geomesa`` without any arguments to produce the following usage text::
     $ geomesa
     Usage: geomesa [command] [command options]
       Commands:
-        add-attributeindex     Run a Hadoop map reduce job to add an index for attributes
+        add-attribute-index    Run a Hadoop map reduce job to add an index for attributes
         add-index              Add or update indices for an existing GeoMesa feature type
         config-table           Perform table configuration operations
         create-schema          Create a GeoMesa feature type
@@ -41,15 +41,15 @@ Run ``geomesa`` without any arguments to produce the following usage text::
         env                    Examine the current GeoMesa environment
         explain                Explain how a GeoMesa query will be executed
         export                 Export features from a GeoMesa data store
-        gen-avroschema         Generate an Avro schema from a SimpleFeatureType
+        gen-avro-schema        Generate an Avro schema from a SimpleFeatureType
         get-names              List GeoMesa feature types for a given catalog
         get-schema             Describe the attributes of a given GeoMesa feature type
-        get-sft                Get the SimpleFeatureType of a feature
+        get-sft-config                Get the SimpleFeatureType of a feature
         help                   Show help
         ingest                 Ingest/convert various file formats into GeoMesa
         ingest-raster          Ingest raster files into GeoMesa
         keywords               Add/Remove/List keywords on an existing schema
-        query-rasterstats      Export queries and statistics about the last X number of queries to a CSV file.
+        query-raster-stats     Export queries and statistics about the last X number of queries to a CSV file.
         remove-schema          Remove a schema and associated features from a GeoMesa catalog
         stats-analyze          Analyze statistics on a GeoMesa feature type
         stats-bounds           View or calculate bounds on attributes in a GeoMesa feature type
@@ -122,16 +122,16 @@ Display details about the attributes of a specified feature type::
 
     $ geomesa get-schema -u username -p password -c test_delete -f testing
 
-get-sft
+get-sft-config
 ~~~~~~~
 
 Get the specified feature type as a typesafe config::
 
-    $ geomesa get-sft -u username -p password -c test_catalog -f test_feature --format typesafe
+    $ geomesa get-sft-config -u username -p password -c test_catalog -f test_feature --format typesafe
 
 Get the specified feature type as an encoded feature schema string::
 
-    $ geomesa get-sft -u username -p password -c test_catalog -f test_feature --format spec
+    $ geomesa get-sft-config -u username -p password -c test_catalog -f test_feature --format spec
 
 keywords
 ~~~~~~~~
@@ -491,12 +491,12 @@ Example usage::
       -i instance -z zoo1,zoo2,zoo3 -c test_catalog \
       -q 'dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
 
-add-attributeindex
-~~~~~~~~~~~~~~~~~~
+add-attribute-index
+~~~~~~~~~~~~~~~~~~~
 
 Add an attribute index for a specified list of attributes.::
 
-    $ geomesa add-attributeindex -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog \
+    $ geomesa add-attribute-index -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog \
         -f test_feature -a attribute1,attribute2 --coverage full
 
 env
