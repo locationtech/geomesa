@@ -54,7 +54,7 @@ class LiveFeatureCacheCQEngine(sft: SimpleFeatureType,
     if (f == Filter.INCLUDE) {
       features.size
     } else {
-      getReaderForFilter(f).getIterator.length
+      getReaderForFilter(f).toIterator.length
     }
   }
 

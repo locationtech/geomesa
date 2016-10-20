@@ -19,19 +19,21 @@ import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.Envelope
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data._
+import org.geotools.data.simple.SimpleFeatureReader
 import org.geotools.data.store._
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.FidFilterImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.locationtech.geomesa.filter.index.SpatialIndexSupport
 import org.locationtech.geomesa.stream.SimpleFeatureStreamSource
 import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.geotools.FR
+import org.locationtech.geomesa.utils.index.{SpatialIndex, SynchronizedQuadtree}
 import org.locationtech.geomesa.utils.geotools.{DFI, DFR, FR}
-import org.locationtech.geomesa.utils.index.{QuadTreeFeatureStore, SpatialIndex, SynchronizedQuadtree}
+import org.locationtech.geomesa.utils.index.{SpatialIndex, SynchronizedQuadtree}
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.spatial.{BBOX, BinarySpatialOperator, Within}
-import org.opengis.filter.{And, Filter, IncludeFilter, Or}
+import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
 
@@ -115,7 +117,7 @@ class StreamFeatureStore(entry: ContentEntry,
                          features: Cache[String, FeatureHolder],
                          val spatialIndex: SpatialIndex[SimpleFeature],
                          val sft: SimpleFeatureType)
-  extends ContentFeatureStore(entry, query) with QuadTreeFeatureStore {
+  extends ContentFeatureStore(entry, query) with SpatialIndexSupport {
 
   override def canFilter: Boolean = true
 
@@ -125,48 +127,24 @@ class StreamFeatureStore(entry: ContentEntry,
   override def buildFeatureType(): SimpleFeatureType = sft
 
   override def getCountInternal(query: Query): Int =
-    getReaderInternal(query).getIterator.size
+    getReaderInternal(query).toIterator.size
 
   override def getReaderInternal(query: Query): FR = getReaderForFilter(query.getFilter)
 
-  def getReaderForFilter(f: Filter): FR =
+  override def allFeatures(): Iterator[SimpleFeature] = features.asMap().valuesIterator.map(_.sf)
+
+  override def getReaderForFilter(f: Filter): SimpleFeatureReader =
     f match {
-      case o: Or             => or(o)
-      case i: IncludeFilter  => include(i)
-      case w: Within         => within(w)
-      case b: BBOX           => bbox(b)
-      case a: And            => and(a)
       case id: FidFilterImpl => fid(id)
-      case _                 =>
-        new FilteringFeatureReader[SimpleFeatureType, SimpleFeature](include(Filter.INCLUDE), f)
+      case _                 => super.getReaderForFilter(f)
     }
 
-  def include(i: IncludeFilter) = new DFR(sft, new DFI(features.asMap().valuesIterator.map(_.sf)))
-
-  def fid(ids: FidFilterImpl): FR = {
+  def fid(ids: FidFilterImpl): SimpleFeatureReader = {
     val iter = ids.getIDs.flatMap(id => Option(features.getIfPresent(id.toString)).map(_.sf)).iterator
-    new DFR(sft, new DFI(iter))
+    reader(iter)
   }
-
-  private val ff = CommonFactoryFinder.getFilterFactory2
-  def and(a: And): FR = {
-    // assume just one spatialFilter for now, i.e. 'bbox() && attribute equals ??'
-    val (spatialFilter, others) = a.getChildren.partition(_.isInstanceOf[BinarySpatialOperator])
-    val restFilter = ff.and(others)
-    val filterIter = spatialFilter.headOption.map(getReaderForFilter).getOrElse(include(Filter.INCLUDE))
-    new FilteringFeatureReader[SimpleFeatureType, SimpleFeature](filterIter, restFilter)
-  }
-
-  def or(o: Or): FR = {
-    val readers = o.getChildren.map(getReaderForFilter).map(_.getIterator)
-    val composed = readers.foldLeft(Iterator[SimpleFeature]())(_ ++ _)
-    new DFR(sft, new DFI(composed))
-  }
-
 
   override def getWriterInternal(query: Query, flags: Int) = throw new IllegalArgumentException("Not allowed")
-
-
 }
 
 object StreamDataStoreParams {
