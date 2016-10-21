@@ -306,6 +306,29 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       features.head.getID mustEqual "fid-1"
     }
 
+    "short-circuit disjoint geometry predicates" in {
+      val filter = ECQL.toFilter("bbox(geom,0,0,10,10) AND bbox(geom,20,20,30,30)")
+      val query = new Query(defaultSft.getTypeName, filter)
+      val plans = ds.getQueryPlan(query)
+      plans must haveLength(1)
+      plans.head must beAnInstanceOf[EmptyPlan]
+      val reader = ds.getFeatureReader(new Query(defaultSft.getTypeName, filter), Transaction.AUTO_COMMIT)
+      val features = SelfClosingIterator(reader).toList
+      features must beEmpty
+    }
+
+    "short-circuit disjoint date predicates" in {
+      val filter = ECQL.toFilter("dtg DURING 2010-05-07T12:00:00.000Z/2010-05-07T13:00:00.000Z AND " +
+          "dtg DURING 2010-05-07T15:00:00.000Z/2010-05-07T17:00:00.000Z AND bbox(geom,0,0,10,10)")
+      val query = new Query(defaultSft.getTypeName, filter)
+      val plans = ds.getQueryPlan(query)
+      plans must haveLength(1)
+      plans.head must beAnInstanceOf[EmptyPlan]
+      val reader = ds.getFeatureReader(new Query(defaultSft.getTypeName, filter), Transaction.AUTO_COMMIT)
+      val features = SelfClosingIterator(reader).toList
+      features must beEmpty
+    }
+
     "avoid deduplication when possible" in {
       val sft = createNewSchema(s"name:String:index=join:cardinality=high,dtg:Date,*geom:Point:srid=4326")
       addFeature(sft, ScalaSimpleFeature.create(sft, "1", "bob", "2010-05-07T12:00:00.000Z", "POINT(45 45)"))
