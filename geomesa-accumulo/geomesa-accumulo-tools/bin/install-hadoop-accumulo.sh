@@ -11,15 +11,15 @@
 # into a given directory. Usually this is used to install the deps into either the
 # geomesa tools lib dir or the WEB-INF/lib dir of geoserver.
 
-accumulo_version="${accumulo.version.recommended}"
-hadoop_version="${hadoop.version.recommended}"
-zookeeper_version="${zookeeper.version.recommended}"
-thrift_version="${thrift.version}"
+accumulo_version="%%accumulo.version.recommended%%"
+hadoop_version="%%hadoop.version.recommended%%"
+zookeeper_version="%%zookeeper.version.recommended%%"
+thrift_version="%%thrift.version%%"
 
-accumulo_version_min="${accumulo.version.minimum}"
-hadoop_version_min="${hadoop.version.minimum}"
-zookeeper_version_min="${zookeeper.version.minimum}"
-thrift_version_min="${thrift.version.minimum}"
+accumulo_version_min="%%accumulo.version.minimum%%"
+hadoop_version_min="%%hadoop.version.minimum%%"
+zookeeper_version_min="%%zookeeper.version.minimum%%"
+thrift_version_min="%%thrift.version.minimum%%"
 
 # for hadoop 2.5 and 2.6 to work we need these
 guava_version="11.0.2"
@@ -44,7 +44,13 @@ function printVersions() {
     splitVersion=($(echo $i | sed -e 's/\./ /g'))
     for v in "${!filterVersion[@]}"; do
       if [[ "${splitVersion[$v]}" -lt "${filterVersion[$v]}" ]]; then
-        versionArray=("${versionArray[@]/$i}")
+        newVersionArray=()
+        for j in "${versionArray[@]}"; do
+          if [[ "${j}" != "${i}" ]]; then
+            newVersionArray=("${newVersionArray[@]}" "${j}")
+          fi
+        done
+        versionArray=("${newVersionArray[@]}")
         break
       fi
     done
@@ -52,13 +58,13 @@ function printVersions() {
 
   # Remove empty elements
   versionArray=($( echo "${versionArray[@]}" | sed -e 's/  / /g'))
-
   size=${#versionArray[@]}
   i=0
   while [[ $i -lt $size ]]; do
     echo -e "${versionArray[i]}\t${versionArray[i+1]}\t${versionArray[i+2]}\t${versionArray[i+3]}"
     i=$(expr $i + 4)
   done
+  echo ""
 }
 
 # Command Line Help
@@ -83,12 +89,13 @@ if [[ "$1" == "--help" || "$1" == "-help" ]]; then
 	echo "./install-hadoop-accumulo.sh /opt/jboss/standalone/deployments/geoserver.war/WEB-INF/lib -a 1.7.1 -h 2.7.3"
 	echo "${NL}"
 	exit
-elif [[ "$1" == "-g" || "$1" == "--get-versions" ]]; then
+elif [[ "$1" == "-l" || "$1" == "--list-versions" ]]; then
   accumulo_version_url="${base_url}org/apache/accumulo/accumulo/"
   hadoop_version_url="${base_url}org/apache/hadoop/hadoop-main/"
   zookeeper_version_url="${base_url}org/apache/zookeeper/zookeeper/"
   thrift_version_url="${base_url}org/apache/thrift/libthrift/"
 
+  echo ""
   echo "Available Accumulo Versions"
   printVersions "${accumulo_version_url}" "${accumulo_version_min}"
   echo "Accumulo 1.6.x requires: Thrift 0.9.1 and Zookeeper 3.3.6"
@@ -151,7 +158,7 @@ if [[ "${accumulo_version}" == "1.7"* ]]; then
 fi
 
 if [[ (-z "${install_dir}") ]]; then
-  echo "Error: Provide one arg which is the target directory (e.g. /opt/jboss/standalone/deployments/geoserver.war/WEB-INF/lib)"
+  echo "Error: Provide one arg which is the target directory (e.g. /opt/geoserver-2.9.1/webapps/geoserver/WEB-INF/lib)"
   echo "${usage}"
   exit
 else
