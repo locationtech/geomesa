@@ -14,6 +14,8 @@ GeoMesa is an open-source, distributed, spatio-temporal database built on top of
 * [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=geomesa-${geomesa.13.release.version}_2.11)](https://travis-ci.org/locationtech/geomesa) 
 * [Accumulo Release tarball](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-accumulo-dist_2.11/${geomesa.13.release.version}/geomesa-accumulo-dist_2.11-${geomesa.13.release.version}-bin.tar.gz)
 * [Kafka08 Release tarball](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-kafka-08-dist_2.11/${geomesa.13.release.version}/geomesa-kafka-08-dist_2.11-${geomesa.13.release.version}-bin.tar.gz)
+* [Kafka09 Release tarball](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-kafka-09-dist_2.11/${geomesa.13.release.version}/geomesa-kafka-09-dist_2.11-${geomesa.13.release.version}-bin.tar.gz)
+* [Kafka10 Release tarball](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-kafka-10-dist_2.11/${geomesa.13.release.version}/geomesa-kafka-10-dist_2.11-${geomesa.13.release.version}-bin.tar.gz)
 * [Source](https://github.com/locationtech/geomesa/archive/geomesa_2.11-${geomesa.13.release.version}.tar.gz)
 
 **Development version (source only)**: ${project.version}
@@ -107,8 +109,7 @@ If the property is omitted, support for Accumulo 1.6 is assumed:
 
 The `build/mvn` script is a wrapper around Maven that builds the project using the [Zinc](https://github.com/typesafehub/zinc) incremental compiler:
 
-    build/mvn clean install -Daccumulo-1.5  # Accumulo 1.5
-    build/mvn clean install                 # Accumulo 1.6
+    build/mvn clean install
 
 From the root directory, the commands above will build JARs for each sub-project with its additional dependencies bundled.
 
@@ -124,30 +125,36 @@ From the root directory, the commands above will build JARs for each sub-project
 ## GeoMesa Project Structure
 
 * [**geomesa-accumulo**](geomesa-accumulo/geomesa-accumulo-datastore): the implementations of the core Accumulo indexing structures, Accumulo iterators, and the GeoTools interfaces for exposing the functionality as a `DataStore` to both application developers and GeoServer. Assembles a jar with dependencies that must be distributed to Accumulo tablet servers lib/ext directory or to an HDFS directory where Accumulo's VFSClassLoader can pick it up.
-* [**geomesa-blobstore**](geomesa-blobstore): an Accumulo-based store  designed to store and retrieve files which have spatio-temporal data associated with them. 
-* [**geomesa-compute**](geomesa-compute): utilities for working with distributed computing environments. Currently, there are methods for instantiating an Apache Spark Resilient Distributed Dataset from a CQL query against data stored in GeoMesa. Eventually, this project will contain bindings for traditional map-reduce processing, Scalding, and other environments.
+* [**geomesa-accumulo-compute**](geomesa-accumulo/geomesa-accumulo-compute): utilities for working with distributed computing environments. Currently, there are methods for instantiating an Apache Spark Resilient Distributed Dataset from a CQL query against data stored in GeoMesa. Eventually, this project will contain bindings for traditional map-reduce processing and other environments.
+* [**geomesa-accumulo-jobs**](geomesa-accumulo/geomesa-accumulo-jobs): map/reduce for maintaining GeoMesa.
+* [**geomesa-accumulo-raster**](geomesa-accumulo/geomesa-accumulo-raster): adds support for ingesting and working with geospatially-referenced raster data in GeoMesa.
+* [**geomesa-accumulo-gs-plugin**](geomesa-accumulo/geomesa-accumulo-gs-plugin): provides WFS and WMS support for GeoServer. Install by extracting into geoserver/WEB-INF/lib/.
+* [**geomesa-blobstore**](geomesa-blobstore): an Accumulo-based store  designed to store and retrieve files which have spatio-temporal data associated with them.
+* [**geomesa-cassandra**](geomesa-cassandra): an implementation of GeoMesa on Apache Cassandra.
+* [**geomesa-cassandra-gs-plugin**](geomesa-cassandra/geomesa-cassandra-gs-plugin): provides WFS and WMS support for GeoServer. Install by extracting into geoserver/WEB-INF/lib/.
 * [**geomesa-convert**](geomesa-convert): a configurable and extensible library for converting data into SimpleFeatures.
-* **geomesa-dist**: packages the GeoMesa distributed runtimes, GeoMesa GeoServer plugins, and GeoMesa Tools.
-* **geomesa-features**: includes code for serializing SimpleFeatures and custom SimpleFeature implementations designed for GeoMesa.
-* **geomesa-filter**: a library for manipulating and working with GeoTools Filters.
-* **geomesa-gs-plugin**: packages plugins which provide WFS and WMS support for various `DataStore` types including [**accumulo**](geomesa-gs-plugin/geomesa-accumulo-gs-plugin), bigtable, kafka, and stream DataStores. These are packaged as zip files and can be deployed in GeoServer by extracting their contents into geoserver/WEB-INF/lib/
-* **geomesa-hbase**: an implementation of GeoMesa on Apache HBase and Google Cloud Bigtable.
-* [**geomesa-jobs**](geomesa-jobs): map/reduce and scalding jobs for maintaining GeoMesa.
+* [**geomesa-features**](geomesa-features): includes code for serializing SimpleFeatures and custom SimpleFeature implementations designed for GeoMesa.
+* [**geomesa-filter**](geomesa-filter): a library for manipulating and working with GeoTools Filters.
+* [**geomesa-hbase**](geomesa-hbase): an implementation of GeoMesa on Apache HBase and Google Cloud Bigtable.
+* [**geomesa-hbase-gs-plugin**](geomesa-hbase/geomesa-hbase-gs-plugin): provides WFS and WMS support for GeoServer. Install by extracting into geoserver/WEB-INF/lib/.
+* [**geomesa-index-api**](geomesa-index-api): common structure and methods for indexing and querying simple features.
 * [**geomesa-kafka**](geomesa-kafka/geomesa-kafka-datastore): an implementation of GeoMesa in Kafka for maintaining near-real-time caches of streaming data.
+* [**geomesa-kafka-gs-plugin**](geomesa-kafka/geomesa-kafka-gs-plugin): provides WFS and WMS support for GeoServer. Install by extracting into geoserver/WEB-INF/lib/.
+* [**geomesa-logger**](geomesa-logger): logging facade for scala version compatibility.
+* [**geomesa-metrics**](geomesa-metrics): extensions and configuration for dropwizard metrics integration.
+* [**geomesa-native-api**](geomesa-native-api): a non-GeoTools-based API for persisting and querying data in GeoMesa Accumulo.
 * [**geomesa-process**](geomesa-process): analytic processes optimized on GeoMesa data stores.
-* [**geomesa-raster**](geomesa-raster): adds support for ingesting and working with geospatially-referenced raster data in GeoMesa.
-* **geomesa-security**: adds support for managing security and authorization levels for data stored in GeoMesa. 
+* [**geomesa-security**](geomesa-security): adds support for managing security and authorization levels for data stored in GeoMesa. 
 * [**geomesa-stream**](geomesa-stream): a GeoMesa library that provides tools to process streams of `SimpleFeatures`.
-* [**geomesa-tools**](geomesa-tools): a set of command line tools for managing features, ingesting and exporting data, configuring tables, and explaining queries in GeoMesa.
+* [**geomesa-tools-common**](geomesa-tools): a common set of command line tools for managing features, ingesting and exporting data, configuring tables, and explaining queries in GeoMesa.
 * [**geomesa-utils**](geomesa-utils): stores our GeoHash implementation and other general library functions unrelated to Accumulo. This sub-project contains any helper tools for geomesa. Some of these tools such as the GeneralShapefileIngest have Map/Reduce components, so the geomesa-utils JAR lives on HDFS.
-* **geomesa-web**: web services for accessing GeoMesa.
-* **geomesa-z3**: the implementation of Z3, GeoMesa's space-filling Z-order curve.
+* [**geomesa-web**](geomesa-web): web services for accessing GeoMesa.
+* [**geomesa-z3**](geomesa-z3): the implementation of Z3, GeoMesa's space-filling Z-order curve.
 
 ## Scala console via scala-maven-plugin
 
 To test and interact with core functionality, the Scala console can be invoked in a couple of ways.  From the root directory by specifying geomesa-accumulo-datastore 
 
-    cd geomesa-accumulo
-    mvn -pl geomesa-accumulo-datastore scala:console
+    mvn -pl geomesa-accumulo/geomesa-accumulo-datastore scala:console
 
 By default, all of the project packages in `geomesa-accumulo-datastore` are loaded along with JavaConversions, JavaConverters.

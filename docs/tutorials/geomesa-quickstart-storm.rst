@@ -16,7 +16,7 @@ Prerequisites
 
 You will need access to:
 
--  an instance of Accumulo |accumulo_version|
+-  an instance of Accumulo |accumulo_version| running on Hadoop |hadoop_version|
 -  an Accumulo user with create-table and write permissions
 -  an installation of Kafka |kafka_version|
 -  an installation of Storm 0.8
@@ -25,13 +25,13 @@ You will need access to:
 
 In order to install the GeoMesa Accumulo GeoServer plugin, follow the
 instructions
-`here <https://github.com/locationtech/geomesa/tree/master/geomesa-gs-plugin/geomesa-accumulo-gs-plugin>`__.
+`here <https://github.com/locationtech/geomesa/tree/master/geomesa-accumulo/geomesa-accumulo-gs-plugin>`__.
 
 You will also need:
 
 -  The `xz <http://tukanni.org/xz/>`__ data compression tool
 -  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
--  `Apache Maven <http://maven.apache.org>`__ |maven_version| or better
+-  `Apache Maven <http://maven.apache.org>`__ |maven_version|
 -  a `git <http://git-scm.com/>`__ client
 
 Download and Build the Tutorial

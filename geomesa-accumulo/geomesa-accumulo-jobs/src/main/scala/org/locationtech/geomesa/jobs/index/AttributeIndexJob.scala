@@ -32,6 +32,8 @@ import org.opengis.filter.Filter
 import scala.collection.JavaConversions._
 
 object AttributeIndexJob {
+  final val IndexAttributes = "--geomesa.index.attributes"
+  final val IndexCoverage = "--geomesa.index.coverage"
 
   protected[index] val AttributesKey = "org.locationtech.geomesa.attributes"
   protected[index] val CoverageKey = "org.locationtech.geomesa.coverage"
@@ -44,22 +46,22 @@ object AttributeIndexJob {
 
 class AttributeIndexArgs(args: Array[String]) extends GeoMesaArgs(args) with InputFeatureArgs with InputDataStoreArgs {
 
-  @Parameter(names = Array("--geomesa.index.attributes"), description = "Attributes to index", variableArity = true, required = true)
-  var attributes: java.util.List[String] = null
+  @Parameter(names = Array(AttributeIndexJob.IndexAttributes), description = "Attributes to index", variableArity = true, required = true)
+  var attributes: java.util.List[String] = new java.util.ArrayList[String]()
 
-  @Parameter(names = Array("--geomesa.index.coverage"), description = "Type of index (join or full)")
+  @Parameter(names = Array(AttributeIndexJob.IndexCoverage), description = "Type of index (join or full)")
   var coverage: String = null
 
   override def unparse(): Array[String] = {
     val attrs = if (attributes == null || attributes.isEmpty) {
       Array.empty[String]
     } else {
-      attributes.flatMap(n => Seq("--geomesa.index.attributes", n)).toArray
+      attributes.flatMap(n => Seq(AttributeIndexJob.IndexAttributes, n)).toArray
     }
     val cov = if (coverage == null) {
       Array.empty[String]
     } else {
-      Array("--geomesa.index.coverage", coverage)
+      Array(AttributeIndexJob.IndexCoverage, coverage)
     }
     Array.concat(super[InputFeatureArgs].unparse(),
                  super[InputDataStoreArgs].unparse(),
@@ -98,13 +100,13 @@ class AttributeIndexJob extends Tool {
     }
     val tableName = ds.getTableName(typeName, index)
 
-    {
-      val valid = sft.getAttributeDescriptors.map(_.getLocalName)
-      attributes.foreach(a => assert(valid.contains(a), s"Attribute '$a' does not exist in schema '$typeName'"))
-    }
+    val valid = sft.getAttributeDescriptors.map(_.getLocalName)
+    attributes.foreach(a => assert(valid.contains(a), s"Attribute '$a' does not exist in schema '$typeName'"))
 
     val job = Job.getInstance(conf,
       s"GeoMesa Attribute Index Job '${sft.getTypeName}' - '${attributes.mkString(", ")}'")
+
+    JobUtils.setLibJars(job.getConfiguration)
 
     job.setJarByClass(SchemaCopyJob.getClass)
     job.setMapperClass(classOf[AttributeMapper])

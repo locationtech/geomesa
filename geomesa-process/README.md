@@ -23,7 +23,7 @@ While they can be used independently, the common use case is to use them with Ge
 
 The GeoMesa Accumulo datastore plugin and GeoMesa process jars are both available in the binary distribution in the gs-plugins directory.
 
-Documentation about the GeoServer WPS Extension (including download instructions) is available here: http://docs.geoserver.org/2.8.1/user/extensions/wps/install.html.
+Documentation about the GeoServer WPS Extension (including download instructions) is available here: http://docs.geoserver.org/2.9.1/user/services/wps/install.html.
 
 To verify the install, start GeoServer, and you should see a line like `INFO [geoserver.wps] - Found 11 bindable processes in GeoMesa Process Factory`.
 

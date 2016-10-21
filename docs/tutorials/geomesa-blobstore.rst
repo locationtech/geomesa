@@ -73,7 +73,7 @@ As of now the the BlobStore only provides an interface to an Accumulo backed Dat
 You should have already followed the instructions in :doc:`/user/installation_and_configuration` on how to setup GeoMesa.
 In particular the instructions on how to setup GeoServer with GeoMesa should have been followed before attempting to deploy the blobstore servlet.
 
-To deploy the BlobStore Servlet into your GeoServer, extract the contents of ``geomesa-blobstore-gs-plugin-$VERSION.tar.gz`` file in ``geomesa-$VERSION/dist/gs-plugins``
+To deploy the BlobStore Servlet into your GeoServer, extract the contents of the ``geomesa-blobstore-gs-plugin_2.11-$VERSION.tar.gz`` file in ``dist/geoserver`` in the binary distribution or ``geomesa-$VERSION/geomesa-blobstore/geomesa-blobstore-gs-plugin/target`` in the source distribution.
 into your GeoServer's ``lib`` directory (``$VERSION`` = |release|):
 
 If you are using Tomcat:
@@ -81,7 +81,7 @@ If you are using Tomcat:
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-$VERSION/dist/gs-plugins/geomesa-blobstore-gs-plugin-$VERSION-install.tar.gz \
+      dist/geoserver/geomesa-blobstore-gs-plugin-$VERSION-install.tar.gz \
       -C /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
 
 If you are using GeoServer's built in Jetty web server:
@@ -89,7 +89,7 @@ If you are using GeoServer's built in Jetty web server:
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-$VERSION/dist/gs-plugins/geomesa-blobstore-gs-plugin-$VERSION-install.tar.gz \
+      dist/geoserver/geomesa-blobstore-gs-plugin-$VERSION-install.tar.gz \
       -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib/
 
 Adding FileHandlers to the Web Deploy

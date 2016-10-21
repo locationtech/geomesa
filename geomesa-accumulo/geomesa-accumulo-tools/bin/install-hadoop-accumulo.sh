@@ -35,6 +35,7 @@ function printVersions() {
   filterVersion=($(echo $2 | sed -e 's/\./ /g'))
 
   content=$(wget $1 -q -O -)
+  # basic xml parsing for version numbers
   versions=$(echo "${content}" | grep -oP ">[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}\/<" | grep -oP "[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}")
   versionArray=($(echo "$versions" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/ /g'))
 

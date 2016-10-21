@@ -10,11 +10,12 @@ package org.locationtech.geomesa.kafka09
 
 import java.util
 
-import com.google.common.cache.{CacheBuilder, CacheLoader}
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.I0Itec.zkclient.exception.ZkNodeExistsException
 import org.geotools.data.DataStore
 import org.geotools.feature.NameImpl
+import org.locationtech.geomesa.kafka.{ReplayConfig, KafkaDataStoreHelper}
 import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.Name
@@ -226,7 +227,7 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
   }
 
   private val schemaCache =
-    CacheBuilder.newBuilder().build(new CacheLoader[String, KafkaFeatureConfig] {
+    Caffeine.newBuilder().build(new CacheLoader[String, KafkaFeatureConfig] {
       override def load(k: String): KafkaFeatureConfig =
         resolveTopicSchema(k)
     })

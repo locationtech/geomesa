@@ -28,7 +28,7 @@ import org.locationtech.geomesa.accumulo.data.stats.usage.{GeoMesaUsageStats, Ge
 import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.index.attribute.{AttributeSplittable, AttributeIndex}
+import org.locationtech.geomesa.accumulo.index.attribute.{AttributeIndex, AttributeSplittable}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 // noinspection ScalaDeprecation
@@ -408,13 +408,14 @@ class AccumuloDataStore(val connector: Connector,
    * @return featureStore, suitable for reading and writing
    */
   override def getFeatureSource(typeName: Name): AccumuloFeatureStore = {
-    if (!getTypeNames.exists(_ == typeName.getLocalPart)) {
+    val sft = getSchema(typeName)
+    if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
     if (config.caching) {
-      new AccumuloFeatureStore(this, typeName) with CachingFeatureSource
+      new AccumuloFeatureStore(this, sft) with CachingFeatureSource
     } else {
-      new AccumuloFeatureStore(this, typeName)
+      new AccumuloFeatureStore(this, sft)
     }
   }
 
@@ -617,6 +618,22 @@ class AccumuloDataStore(val connector: Connector,
   }
 
   /**
+    * Gets iterator version as a string
+    *
+    * @return iterator version
+    */
+  def getIteratorVersion: String = {
+    val scanner = connector.createScanner(catalogTable, new Authorizations())
+    try {
+      ProjectVersionIterator.scanProjectVersion(scanner)
+    } catch {
+      case NonFatal(e) => "unavailable"
+    } finally {
+      scanner.close()
+    }
+  }
+
+  /**
    * Gets a query planner. Also has side-effect of setting transforms in the query.
    */
   protected [data] def getQueryPlanner(typeName: String): QueryPlanner = {
@@ -686,15 +703,8 @@ class AccumuloDataStore(val connector: Connector,
     */
   private def checkProjectVersion(): Unit = {
     if (projectVersionCheck.get() < System.currentTimeMillis()) {
-      val clientVersion = GeoMesaProperties.GeoMesaProjectVersion
-      val scanner = connector.createScanner(catalogTable, new Authorizations())
-      val iteratorVersion = try {
-        ProjectVersionIterator.scanProjectVersion(scanner)
-      } catch {
-        case NonFatal(e) => "unavailable"
-      } finally {
-        scanner.close()
-      }
+      val clientVersion = GeoMesaProperties.ProjectVersion
+      val iteratorVersion = getIteratorVersion
       if (iteratorVersion != clientVersion) {
         val versionMsg = "Configured server-side iterators do not match client version - " +
             s"client version: $clientVersion, server version: $iteratorVersion"

@@ -13,7 +13,7 @@ See :ref:`setting_up_commandline`.
 Installing SFT and Converter Definitions
 ----------------------------------------
 
-Starting with version 1.2.3, GeoMesa Tools ships with embedded SimpleFeatureType and GeoMesa Conveter definitions for common data types including Twitter, GeoNames, T-drive, and many more. Users can add additional types by providing a ``reference.conf`` file embedded with a jar within the ``lib/common`` directory or by registering the ``reference.conf`` file in the ``$GEOMESA_HOME/conf/sfts`` directory. 
+Starting with version 1.2.3, GeoMesa Tools ships with embedded SimpleFeatureType and GeoMesa Conveter definitions for common data types including Twitter, GeoNames, T-drive, and many more. Users can add additional types by providing a ``reference.conf`` file embedded with a jar within the ``lib/common`` directory or by registering the ``reference.conf`` file in the ``$GEOMESA_HOME/conf/sfts`` or ``$GEOMESA_KAKFA_HOME/conf/sfts`` directory.
 
 For example, to add a type named ``customtype``, create a directory named ``$GEOMESA_HOME/conf/sfts/customtype`` and then add the SFT and Conveter typesafe config to the a file named ``$GEOMESA_HOME/conf/sfts/customtype/reference.conf``. This file will be automatically picked up and placed on the classpath when the tools are run.
 
@@ -27,31 +27,33 @@ Run ``geomesa`` without any arguments to produce the following usage text::
     $ geomesa
     Usage: geomesa [command] [command options]
       Commands:
-        add-index           Add or update indices for an existing GeoMesa feature type
-        create              Create a GeoMesa feature type
-        deletecatalog       Delete a GeoMesa catalog completely (and all features in it)
-        deletefeatures      Delete features from a table in GeoMesa. Does not delete any tables or schema information.
-        deleteraster        Delete a GeoMesa Raster table
-        describe            Describe the attributes of a given GeoMesa feature type
-        env                 Examine the current GeoMesa environment
-        explain             Explain how a GeoMesa query will be executed
-        export              Export features from a GeoMesa data store
-        genavroschema       Generate an Avro schema from a SimpleFeatureType
-        getsft              Get the SimpleFeatureType of a feature
-        help                Show help
-        ingest              Ingest/convert various file formats into GeoMesa
-        ingestraster        Ingest raster files into GeoMesa
-        keywords            Add/Remove/List keywords on an existing schema
-        list                List GeoMesa feature types for a given catalog
-        queryrasterstats    Export queries and statistics about the last X number of queries to a CSV file.
-        removeschema        Remove a schema and associated features from a GeoMesa catalog
-        stats-analyze       Analyze statistics on a GeoMesa feature type
-        stats-bounds        View or calculate bounds on attributes in a GeoMesa feature type
-        stats-count         Estimate or calculate feature counts in a GeoMesa feature type
-        stats-histogram     View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values
-        stats-top-k         Enumerate the most frequent values in a GeoMesa feature type
-        tableconf           Perform table configuration operations
-        version             Display the installed GeoMesa version
+        add-attribute-index    Run a Hadoop map reduce job to add an index for attributes
+        add-index              Add or update indices for an existing GeoMesa feature type
+        create                 Create a GeoMesa feature type
+        deletecatalog          Delete a GeoMesa catalog completely (and all features in it)
+        deletefeatures         Delete features from a table in GeoMesa. Does not delete any tables or schema information.
+        deleteraster           Delete a GeoMesa Raster table
+        describe               Describe the attributes of a given GeoMesa feature type
+        env                    Examine the current GeoMesa environment
+        explain                Explain how a GeoMesa query will be executed
+        export                 Export features from a GeoMesa data store
+        genavroschema          Generate an Avro schema from a SimpleFeatureType
+        getsft                 Get the SimpleFeatureType of a feature
+        help                   Show help
+        ingest                 Ingest/convert various file formats into GeoMesa
+        ingestraster           Ingest raster files into GeoMesa
+        keywords               Add/Remove/List keywords on an existing schema
+        list                   List GeoMesa feature types for a given catalog
+        queryrasterstats       Export queries and statistics about the last X number of queries to a CSV file.
+        removeschema           Remove a schema and associated features from a GeoMesa catalog
+        stats-analyze          Analyze statistics on a GeoMesa feature type
+        stats-bounds           View or calculate bounds on attributes in a GeoMesa feature type
+        stats-count            Estimate or calculate feature counts in a GeoMesa feature type
+        stats-histogram        View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values
+        stats-top-k            Enumerate the most frequent values in a GeoMesa feature type
+        tableconf              Perform table configuration operations
+        version                Display the installed GeoMesa version
+
 
 This usage text lists the available commands. To see help for an individual command,
 run ``geomesa help <command-name>``, which for example will give you something like this::
@@ -484,6 +486,14 @@ Example usage::
     $ geomesa deletefeatures -u username -p password \
       -i instance -z zoo1,zoo2,zoo3 -c test_catalog \
       -q 'dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
+
+add-attribute-index
+~~~~~~~~~~~~~~~~~~~
+
+Add an attribute index for a specified list of attributes.::
+
+    $ geomesa add-attribute-index -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog \
+        -f test_feature -a attribute1,attribute2 --coverage full
 
 env
 ~~~

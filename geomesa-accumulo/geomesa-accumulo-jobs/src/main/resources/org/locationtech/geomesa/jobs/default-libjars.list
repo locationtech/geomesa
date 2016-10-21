@@ -2,6 +2,7 @@ accumulo-core
 accumulo-fate
 accumulo-start
 accumulo-trace
+caffeine
 commons-csv
 commons-pool
 config
@@ -11,6 +12,7 @@ curator-recipes
 geomesa
 gson
 gt
+htrace
 joda
 jsr
 jts

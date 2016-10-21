@@ -7,6 +7,9 @@ com.drewnoakes:metadata-extractor	2.8.1	compile
 com.esotericsoftware.kryo:kryo	2.21	compile
 com.esotericsoftware.minlog:minlog	1.2	compile
 com.esotericsoftware.reflectasm:reflectasm	shaded:1.07	compile
+com.github.ben-manes.caffeine:caffeine	2.3.3	compile
+com.googlecode.concurrent-trees:concurrent-trees	2.6.0	compile
+com.googlecode.cqengine:cqengine	2.7.1	compile
 com.googlecode.efficient-java-matrix-library:core	0.26	compile
 com.google.code.gson:gson	2.3.1	compile
 com.googlecode.json-simple:json-simple	1.1	compile
@@ -74,6 +77,7 @@ net.java.dev.jsr-275:jsr-275	1.0-beta-2	compile
 net.minidev:asm	1.0.2	compile
 net.minidev:json-smart	2.1.1	compile
 net.sf.geographiclib:GeographicLib-Java	1.44	compile
+org.antlr:antlr4-runtime	4.5	compile
 org.apache.accumulo:accumulo-core	1.7.2	compile
 org.apache.accumulo:accumulo-fate	1.7.2	compile
 org.apache.accumulo:accumulo-start	1.7.2	compile
@@ -148,6 +152,8 @@ org.locationtech.sfcurve:sfcurve-api_2.11	0.2.0	compile
 org.locationtech.sfcurve:sfcurve-zorder_2.11	0.2.0	compile
 org.objenesis:objenesis	1.0	compile
 org.ow2.asm:asm	4.0	compile
+org.parboiled:parboiled-core	1.1.7	compile
+org.parboiled:parboiled-scala_2.11	1.1.7	compile
 org.scala-lang.modules:scala-parser-combinators_2.11	1.0.4	compile
 org.scala-lang.modules:scala-xml_2.11	1.0.5	compile
 org.scala-lang:scala-compiler	2.11.7	compile

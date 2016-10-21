@@ -3,7 +3,7 @@
     <parent>
         <artifactId>geomesa_2.11</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>1.3.0-m1-SNAPSHOT</version>
+        <version>1.3.0-m2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -13,6 +13,7 @@
 
     <modules>
         <module>geomesa-hbase-datastore</module>
+        <module>geomesa-hbase-gs-plugin</module>
     </modules>
 
 </project>

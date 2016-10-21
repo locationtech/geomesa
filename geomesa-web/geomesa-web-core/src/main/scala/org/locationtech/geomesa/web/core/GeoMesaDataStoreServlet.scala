@@ -9,11 +9,25 @@
 package org.locationtech.geomesa.web.core
 
 import org.geotools.data.DataStoreFinder
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.scalatra.{BadRequest, Ok}
 
 import scala.collection.JavaConversions._
 
 trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
+
+  type PasswordHandler = AnyRef { def encode(value: String): String; def decode(value: String): String }
+
+  private var passwordHandler: PasswordHandler = null
+  private val passwordKey = AccumuloDataStoreParams.passwordParam.getName
+
+  override def getPersistedDataStore(alias: String): Map[String, String] = {
+    val map = super.getPersistedDataStore(alias)
+    val withPassword = for { handler <- Option(passwordHandler); pw <- map.get(passwordKey) } yield {
+      map.updated(passwordKey, handler.decode(pw))
+    }
+    withPassword.getOrElse(map)
+  }
 
   /**
    * Registers a data store, making it available for later use
@@ -27,7 +41,10 @@ trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
       ds.dispose()
       val alias = params("alias")
       val prefix = keyFor(alias)
-      val toPersist = dsParams.map { case (k, v) => keyFor(alias, k) -> v }
+      val toPersist = dsParams.map { case (k, v) =>
+        val value = if (k == passwordKey && passwordHandler != null) { passwordHandler.encode(v) } else { v }
+        keyFor(alias, k) -> value
+      }
       try {
         persistence.removeAll(persistence.keys(prefix).toSeq)
         persistence.persistAll(toPersist)
@@ -74,5 +91,8 @@ trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
     }
   }
 
+  // spring bean accessors for password handler
+  def setPasswordHandler(handler: PasswordHandler): Unit = this.passwordHandler = handler
+  def getPasswordHandler: PasswordHandler = passwordHandler
 }
 

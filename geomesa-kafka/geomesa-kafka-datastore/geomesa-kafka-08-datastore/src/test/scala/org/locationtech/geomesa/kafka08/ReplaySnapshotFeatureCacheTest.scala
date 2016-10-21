@@ -11,6 +11,7 @@ package org.locationtech.geomesa.kafka08
 import com.vividsolutions.jts.geom.Envelope
 import org.joda.time.Instant
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.kafka._
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.matcher.Matcher
 import org.specs2.mutable.Specification

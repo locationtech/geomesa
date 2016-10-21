@@ -186,6 +186,30 @@ user data using the hint ``geomesa.z3.interval``:
 
 See below for alternate ways to set the user data.
 
+.. _customizing_xz_index:
+
+Customizing the XZ-Index
+------------------------
+
+GeoMesa uses an extended z-curve index for storing geometries with extents. The index can be customized
+by specifying the resolution level used to store geometries. By default, the resolution level is 12. If
+you have very large geometries, you may want to lower this value. Conversely, if you have very small
+geometries, you may want to raise it.
+
+The resolution level for an index is set when calling ``createSchema``. It may be specified through
+the simple feature type user data using the hint ``geomesa.xz.precision``:
+
+.. code-block:: java
+
+    // set the hint directly
+    SimpleFeatureType sft = ...
+    sft.getUserData().put("geomesa.xz.precision", 12);
+
+See below for alternate ways to set the user data.
+
+For more information on resolution level (g), see
+"XZ-Ordering: A Space-Filling Curve for Objects with Spatial Extension" by Böhm, Klump and Kriegel.
+
 .. _customizing_index_creation:
 
 Customizing Index Creation

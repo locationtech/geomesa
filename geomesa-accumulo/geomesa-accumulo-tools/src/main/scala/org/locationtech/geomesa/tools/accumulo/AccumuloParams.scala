@@ -27,30 +27,59 @@ trait AccumuloRasterTableParam {
   var table: String = null
 }
 
-trait AccumuloConnectionParams extends OptionalZookeepersParam {
-  @Parameter(names = Array("-u", "--user"), description = "Accumulo user name", required = true)
-  var user: String = null
-
+trait PasswordParams {
   @Parameter(names = Array("-p", "--password"), description = "Accumulo password (will prompt if not supplied)")
   var password: String = null
+}
 
+trait RequiredCredentialsParams extends PasswordParams {
+  @Parameter(names = Array("-u", "--user"), description = "Accumulo user name", required = true)
+  var user: String = null
+}
+
+trait OptionalCredentialsParams extends PasswordParams {
+  @Parameter(names = Array("-u", "--user"), description = "Accumulo user name")
+  var user: String = null
+}
+
+trait InstanceNameParams extends OptionalZookeepersParam {
   @Parameter(names = Array("-i", "--instance"), description = "Accumulo instance name")
   var instance: String = null
-
-  @Parameter(names = Array("--auths"), description = "Accumulo authorizations")
-  var auths: String = null
-
-  @Parameter(names = Array("--visibilities"), description = "Default feature visibilities")
-  var visibilities: String = null
 
   @Parameter(names = Array("--mock"), description = "Run everything with a mock accumulo instance instead of a real one")
   var useMock: Boolean = false
 }
 
-trait GeoMesaConnectionParams extends AccumuloConnectionParams {
+trait AccumuloConnectionParams extends InstanceNameParams with RequiredCredentialsParams {
+  @Parameter(names = Array("--auths"), description = "Accumulo authorizations")
+  var auths: String = null
 
+  @Parameter(names = Array("--visibilities"), description = "Default feature visibilities")
+  var visibilities: String = null
+}
+
+trait RequiredCatalogParams {
   @Parameter(names = Array("-c", "--catalog"), description = "Catalog table name for GeoMesa", required = true)
   var catalog: String = null
+}
+
+trait OptionalCatalogParams {
+  @Parameter(names = Array("-c", "--catalog"), description = "Catalog table name for GeoMesa")
+  var catalog: String = null
+}
+
+trait GeoMesaConnectionParams extends AccumuloConnectionParams with RequiredCatalogParams with DataStoreParams
+
+trait DataStoreParams {
+
+  def instance: String
+  def zookeepers: String
+  def user: String
+  def password: String
+  def catalog: String
+  def visibilities: String
+  def auths: String
+  def useMock: Boolean
 
   lazy val dataStoreParams = Map[String, String](
     AccumuloDataStoreParams.instanceIdParam.getName -> instance,

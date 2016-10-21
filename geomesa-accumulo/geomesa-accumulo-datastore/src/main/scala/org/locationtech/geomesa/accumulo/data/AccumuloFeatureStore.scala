@@ -22,8 +22,8 @@ import org.opengis.filter.identity.FeatureId
 import scala.collection.JavaConversions._
 
 
-class AccumuloFeatureStore(dataStore: AccumuloDataStore, featureName: Name)
-    extends AccumuloFeatureSource(dataStore, featureName) with SimpleFeatureStore {
+class AccumuloFeatureStore(dataStore: AccumuloDataStore, sft: SimpleFeatureType)
+    extends AccumuloFeatureSource(dataStore, sft) with SimpleFeatureStore {
 
   private var transaction: Transaction = Transaction.AUTO_COMMIT
 

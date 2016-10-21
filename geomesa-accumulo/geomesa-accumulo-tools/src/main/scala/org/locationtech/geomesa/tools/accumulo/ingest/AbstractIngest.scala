@@ -193,24 +193,45 @@ object AbstractIngest {
                     emptyBar: String,
                     replacement: Char,
                     indicator: Char)(progress: Float, start: Long, pass: Long, fail: Long, done: Boolean): Unit = {
-    val numFilled = (emptyBar.length * progress).toInt
-    val bar = if (numFilled < 1) {
-      emptyBar
-    } else if (numFilled >= emptyBar.length) {
-      buildString(replacement, numFilled)
-    } else {
-      s"${buildString(replacement, numFilled - 1)}$indicator${emptyBar.substring(numFilled)}"
-    }
     val percent = f"${(progress * 100).toInt}%3d"
+    val infoStr = s" $percent% complete $pass ingested $fail failed in ${getTime(start)}"
+
+    // Figure out if and how much the progress bar should be scaled to accommodate smaller terminals
+    val scaleFactor: Float = try {
+      val tWidth: Float = jline.Terminal.getTerminal.getTerminalWidth.toFloat
+      // Sanity check as jline may not be correct. We also don't scale up, ~112 := scaleFactor = 1.0f
+      if (tWidth > infoStr.length + 3 && tWidth < emptyBar.length + infoStr.length + 2) {
+        // Screen Width 80 yields scaleFactor of .46
+        (tWidth - infoStr.length - 2) / emptyBar.length // -2 is for brackets around bar
+      } else {
+        1.0f
+      }
+    } catch {
+      case _ => 1.0f
+    }
+
+    val scaledLen: Int = (emptyBar.length * scaleFactor).toInt
+    val numDone = (scaledLen * progress).toInt
+    val bar = if (numDone < 1) {
+      emptyBar.substring(emptyBar.length - scaledLen)
+    } else if (numDone >= scaledLen) {
+      buildString(replacement, scaledLen)
+    } else {
+      val doneStr = buildString(replacement, numDone - 1) // -1 for indicator
+      val doStr = emptyBar.substring(emptyBar.length - (scaledLen - numDone))
+      s"$doneStr$indicator$doStr"
+    }
+
     // use \r to replace current line
     // trailing space separates cursor
-    out.print(s"\r[$bar] $percent% complete $pass ingested $fail failed in ${getTime(start)} ")
+    out.print(s"\r[$bar]$infoStr")
     if (done) {
       out.println()
     }
   }
 
-  private def buildString(c: Char, length: Int) = {
+  private def buildString(c: Char, length: Int): String = {
+    if (length < 0) return ""
     val sb = new StringBuilder(length)
     (0 until length).foreach(_ => sb.append(c))
     sb.toString()

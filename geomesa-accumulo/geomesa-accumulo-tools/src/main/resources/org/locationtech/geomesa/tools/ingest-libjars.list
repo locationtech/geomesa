@@ -3,6 +3,7 @@ accumulo-fate
 accumulo-start
 accumulo-trace
 avro
+caffeine
 commons-csv
 commons-pool
 config
@@ -12,6 +13,7 @@ curator-recipes
 geomesa
 gson
 gt
+htrace
 joda
 json-path
 json-simple

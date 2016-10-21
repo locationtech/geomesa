@@ -46,11 +46,11 @@ install_app() {
     # check if we have curl installed
     # download application
     [ ! -f "${local_tarball}" ] && [ $(command -v curl) ] && \
-      echo "exec: curl ${curl_opts} ${remote_tarball}" && \
+      echo "exec: curl ${curl_opts} ${remote_tarball}" 1>&2 && \
       curl ${curl_opts} "${remote_tarball}" > "${local_tarball}"
     # if the file still doesn't exist, lets try `wget` and cross our fingers
     [ ! -f "${local_tarball}" ] && [ $(command -v wget) ] && \
-      echo "exec: wget ${wget_opts} ${remote_tarball}" && \
+      echo "exec: wget ${wget_opts} ${remote_tarball}" 1>&2 && \
       wget ${wget_opts} -O "${local_tarball}" "${remote_tarball}"
     # if both were unsuccessful, exit
     [ ! -f "${local_tarball}" ] && \
@@ -76,7 +76,7 @@ install_mvn() {
 
 # Install zinc under the build/ folder
 install_zinc() {
-  local ZINC_VERSION="0.3.9"
+  local ZINC_VERSION="0.3.11"
   local zinc_path="zinc-${ZINC_VERSION}/bin/zinc"
   [ ! -f "${zinc_path}" ] && ZINC_INSTALL_FLAG=1
   install_app \
@@ -84,24 +84,6 @@ install_zinc() {
     "zinc-${ZINC_VERSION}.tgz" \
     "${zinc_path}"
   ZINC_BIN="${_DIR}/${zinc_path}"
-}
-
-# Determine the Scala version from the root pom.xml file, set the Scala URL,
-# and, with that, download the specific version of Scala necessary under
-# the build/ folder
-install_scala() {
-  # determine the Scala version used in Spark
-  local scala_version=`grep "scala.version" "${_DIR}/../pom.xml" | \
-                       head -1 | cut -f2 -d'>' | cut -f1 -d'<'`
-  local scala_bin="${_DIR}/scala-${scala_version}/bin/scala"
-
-  install_app \
-    "http://downloads.typesafe.com/scala/${scala_version}" \
-    "scala-${scala_version}.tgz" \
-    "scala-${scala_version}/bin/scala"
-
-  SCALA_COMPILER="$(cd "$(dirname ${scala_bin})/../lib" && pwd)/scala-compiler.jar"
-  SCALA_LIBRARY="$(cd "$(dirname ${scala_bin})/../lib" && pwd)/scala-library.jar"
 }
 
 # Setup healthy defaults for the Zinc port if none were provided from
@@ -117,24 +99,21 @@ fi
 
 # Install the proper version of Scala and Zinc for the build
 install_zinc
-install_scala
 
 # Reset the current working directory
 cd "${_CALLING_DIR}"
 
 # Now that zinc is ensured to be installed, check its status and, if its
 # not running or just installed, start it
-if [ -n "${ZINC_INSTALL_FLAG}" -o -z "`${ZINC_BIN} -status`" ]; then
+if [ -n "${ZINC_INSTALL_FLAG}" -o -z "`"${ZINC_BIN}" -status -port ${ZINC_PORT}`" ]; then
   export ZINC_OPTS=${ZINC_OPTS:-"$_COMPILE_JVM_OPTS"}
-  ${ZINC_BIN} -shutdown
-  ${ZINC_BIN} -start -port ${ZINC_PORT} \
-    -scala-compiler "${SCALA_COMPILER}" \
-    -scala-library "${SCALA_LIBRARY}" &>/dev/null
+  "${ZINC_BIN}" -shutdown -port ${ZINC_PORT}
+  "${ZINC_BIN}" -start -port ${ZINC_PORT} &>/dev/null
 fi
 
 # Set any `mvn` options if not already present
 export MAVEN_OPTS=${MAVEN_OPTS:-"$_COMPILE_JVM_OPTS"}
 
-# Last, call the `mvn` command as usual, but with the 'zinc' profile
-${MVN_BIN} "-Pzinc " "$@"
+# Last, call the `mvn` command as usual, but with the 'zinc' port and profile
+${MVN_BIN} -DzincPort=${ZINC_PORT} -Pzinc "$@"
 

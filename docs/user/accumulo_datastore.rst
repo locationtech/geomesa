@@ -13,7 +13,7 @@ Use of the Accumulo data store requires that the distributed runtime JAR be inst
 Bootstrapping GeoMesa Accumulo on Elastic Map Reduce
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A script to bootstrap GeoMesa Accumulo on an Elastic Map Reduce cluster is provided in ``geomesa-tools/emr4`` and on this public S3 bucket: `s3://elasticmapreduce-geomesa/ <http://s3.amazonaws.com/elasticmapreduce-geomesa/>`_. These rely on the EMR managed Hadoop and ZooKeeper applications. See ``geomesa-tools/emr4/README.md`` for more details on using these clusters. The command below launches a GeoMesa EMR cluster:
+A script to bootstrap GeoMesa Accumulo on an Elastic Map Reduce cluster is provided in ``geomesa-accumulo/geomesa-accumulo-tools/emr4`` and on this public S3 bucket: `s3://elasticmapreduce-geomesa/ <http://s3.amazonaws.com/elasticmapreduce-geomesa/>`_. These rely on the EMR managed Hadoop and ZooKeeper applications. See ``geomesa-accumulo/geomesa-accumulo-tools/emr4/README.md`` for more details on using these clusters. The command below launches a GeoMesa EMR cluster:
 
 .. code-block:: bash
 
@@ -77,7 +77,10 @@ See :ref:`accumulo_visibilities` for more information.
 Indexing Strategies
 -------------------
 
-GeoMesa uses several different strategies to index simple features. In the code, these strategies are abstracted as 'tables'. For details on how GeoMesa encodes and indexes data, see :ref:`index_structure`. The :doc:`./data_management` chapter also describes how to optimize these indexes by manipulating :ref:`attribute_indices`, :ref:`customizing_z_index`, and :ref:`customizing_index_creation`.
+GeoMesa uses several different strategies to index simple features. In the code, these strategies are
+abstracted as 'tables'. For details on how GeoMesa encodes and indexes data, see :ref:`index_structure`.
+The :doc:`./data_management` chapter also describes how to optimize these indexes by manipulating
+:ref:`attribute_indices`, :ref:`customizing_z_index`, :ref:`customizing_xz_index`, and :ref:`customizing_index_creation`.
 
 For details on how GeoMesa chooses and executes queries, see the `org.locationtech.geomesa.accumulo.index.QueryPlanner <https://github.com/locationtech/geomesa/blob/master/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/QueryPlanner.scala>`__ and `org.locationtech.geomesa.accumulo.index.QueryStrategyDecider <https://github.com/locationtech/geomesa/blob/master/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/QueryStrategyDecider.scala>`__ classes.
 

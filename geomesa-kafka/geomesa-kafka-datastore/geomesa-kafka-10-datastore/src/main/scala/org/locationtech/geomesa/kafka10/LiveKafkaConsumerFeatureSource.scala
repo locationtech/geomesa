@@ -9,30 +9,19 @@
 package org.locationtech.geomesa.kafka10
 
 import java.io.Closeable
-import java.util
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{Executors, LinkedBlockingQueue, ScheduledThreadPoolExecutor, TimeUnit}
 
-import com.google.common.base.Ticker
-import com.google.common.cache._
+import com.github.benmanes.caffeine.cache.Ticker
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Envelope, Point}
-import org.geotools.data.FeatureEvent.Type
-import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.data.store.ContentEntry
 import org.geotools.data.{FeatureEvent, Query}
-import org.geotools.factory.CommonFactoryFinder
-import org.geotools.filter.identity.FeatureIdImpl
-import org.geotools.geometry.jts.ReferencedEnvelope
+import org.locationtech.geomesa.kafka._
 import org.locationtech.geomesa.kafka10.consumer.KafkaConsumerFactory
-import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools._
-import org.locationtech.geomesa.utils.index.{BucketIndex, SpatialIndex}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
-import org.opengis.filter.identity.FeatureId
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 class LiveKafkaConsumerFeatureSource(e: ContentEntry,
@@ -41,12 +30,16 @@ class LiveKafkaConsumerFeatureSource(e: ContentEntry,
                                      kf: KafkaConsumerFactory,
                                      expirationPeriod: Option[Long] = None,
                                      cleanUpCache: Boolean,
+                                     useCQCache: Boolean,
                                      q: Query,
                                      monitor: Boolean)
                                     (implicit ticker: Ticker = Ticker.systemTicker())
   extends KafkaConsumerFeatureSource(e, sft, q, monitor) with Runnable with Closeable with LazyLogging {
 
-  private[kafka10] val featureCache = new LiveFeatureCache(sft, expirationPeriod)
+  private[kafka10] val featureCache: LiveFeatureCache = if (useCQCache)
+    new LiveFeatureCacheCQEngine(sft, expirationPeriod)
+  else
+    new LiveFeatureCacheGuava(sft, expirationPeriod)
 
   private lazy val contentState = entry.getState(getTransaction)
 
@@ -132,7 +125,7 @@ class LiveKafkaConsumerFeatureSource(e: ContentEntry,
             featureCache.createOrUpdateFeature(update)
           }
         case del: Delete =>
-          fireEvent(KafkaFeatureEvent.removed(this, featureCache.features(del.id).sf))
+          fireEvent(KafkaFeatureEvent.removed(this, featureCache.getFeatureById(del.id).sf))
           featureCache.removeFeature(del)
         case clr: Clear =>
           fireEvent(KafkaFeatureEvent.cleared(this))
@@ -161,115 +154,4 @@ class LiveKafkaConsumerFeatureSource(e: ContentEntry,
     es.shutdownNow()
     ses.shutdownNow()
   }
-}
-
-import KafkaFeatureEvent._
-
-class KafkaFeatureEvent(source: AnyRef,
-                        eventType: FeatureEvent.Type,
-                        bounds: ReferencedEnvelope,
-                        val feature: SimpleFeature)
-  extends FeatureEvent(source, eventType, bounds, buildId(feature.getID)) {}
-
-object KafkaFeatureEvent {
-  val ff = CommonFactoryFinder.getFilterFactory2
-
-  def buildId(id: String): Filter = {
-    val fid = new FeatureIdImpl(id)
-    val set = new util.HashSet[FeatureId]
-    set.add(fid)
-
-    ff.id(set)
-  }
-
-  def buildBounds(feature: SimpleFeature): ReferencedEnvelope = {
-    try {
-      val geom = feature.getDefaultGeometry.asInstanceOf[Point]
-      val lon = geom.getX
-      val lat = geom.getY
-
-      ReferencedEnvelope.create(new Envelope(lon, lon, lat, lat), CRS_EPSG_4326)
-    } catch {
-      case t: Throwable =>
-        KafkaConsumerFeatureSource.wholeWorldBounds
-    }
-  }
-
-  def changed(src: SimpleFeatureSource, feature: SimpleFeature): FeatureEvent =
-    new KafkaFeatureEvent(this,
-      Type.CHANGED,
-      KafkaFeatureEvent.buildBounds(feature),
-      feature)
-
-  def removed(src: SimpleFeatureSource, feature: SimpleFeature): FeatureEvent =
-    new FeatureEvent(this,
-      Type.REMOVED,
-      KafkaFeatureEvent.buildBounds(feature),
-      KafkaFeatureEvent.buildId(feature.getID))
-
-  def cleared(src: SimpleFeatureSource): FeatureEvent =
-    new FeatureEvent(this,
-      Type.REMOVED,
-      KafkaConsumerFeatureSource.wholeWorldBounds,
-      Filter.INCLUDE)
-}
-
-/** @param sft              the [[SimpleFeatureType]]
-  * @param expirationPeriod the number of milliseconds after write to expire a feature or ``None`` to not
-  *                         expire
-  * @param ticker           used to determine elapsed time for expiring entries
-  */
-class LiveFeatureCache(override val sft: SimpleFeatureType,
-                       expirationPeriod: Option[Long])(implicit ticker: Ticker)
-  extends KafkaConsumerFeatureCache with LazyLogging {
-
-  def cleanUp(): Unit = cache.cleanUp()
-
-  var spatialIndex: SpatialIndex[SimpleFeature] = newSpatialIndex()
-
-  val cache: Cache[String, FeatureHolder] = {
-    val cb = CacheBuilder.newBuilder().ticker(ticker)
-    expirationPeriod.foreach { ep =>
-      cb.expireAfterWrite(ep, TimeUnit.MILLISECONDS)
-        .removalListener(new RemovalListener[String, FeatureHolder] {
-          def onRemoval(removal: RemovalNotification[String, FeatureHolder]) = {
-            if (removal.getCause == RemovalCause.EXPIRED) {
-              logger.debug(s"Removing feature ${removal.getKey} due to expiration after ${ep}ms")
-              spatialIndex.remove(removal.getValue.env, removal.getValue.sf)
-            }
-          }
-        })
-    }
-    cb.build()
-  }
-
-  override val features: mutable.Map[String, FeatureHolder] = cache.asMap().asScala
-
-  def createOrUpdateFeature(update: CreateOrUpdate): Unit = {
-    val sf = update.feature
-    val id = sf.getID
-    val old = cache.getIfPresent(id)
-    if (old != null) {
-      spatialIndex.remove(old.env, old.sf)
-    }
-    val env = sf.geometry.getEnvelopeInternal
-    spatialIndex.insert(env, sf)
-    cache.put(id, FeatureHolder(sf, env))
-  }
-
-  def removeFeature(toDelete: Delete): Unit = {
-    val id = toDelete.id
-    val old = cache.getIfPresent(id)
-    if (old != null) {
-      spatialIndex.remove(old.env, old.sf)
-      cache.invalidate(id)
-    }
-  }
-
-  def clear(): Unit = {
-    cache.invalidateAll()
-    spatialIndex = newSpatialIndex()
-  }
-
-  private def newSpatialIndex() = new BucketIndex[SimpleFeature]
 }

@@ -72,11 +72,17 @@ url_github_archive = "https://github.com/locationtech/geomesa/archive"
 # prior to appending the RST epilog to each file)
 rst_epilog = """
 
-.. |release_tarball| replace:: %(url_locationtech_release)s/geomesa-dist/%(release)s/geomesa-dist-%(release)s-bin.tar.gz
+.. |release_tarball_accumulo| replace:: %(url_locationtech_release)s/geomesa-accumulo_2.11/%(release)s/geomesa-accumulo_2.11-%(release)s-bin.tar.gz
+
+.. |release_tarball_kafka08| replace:: %(url_locationtech_release)s/geomesa-kafka-08-dist_2.11/%(release)s/geomesa-kafka-08-dist_2.11-%(release)s-bin.tar.gz
+
+.. |release_tarball_kafka09| replace:: %(url_locationtech_release)s/geomesa-kafka-09-dist_2.11/%(release)s/geomesa-kafka-09-dist_2.11-%(release)s-bin.tar.gz
+
+.. |release_tarball_kafka10| replace:: %(url_locationtech_release)s/geomesa-kafka-10-dist_2.11/%(release)s/geomesa-kafka-10-dist_2.11-%(release)s-bin.tar.gz
 
 .. |release_source_tarball| replace:: %(url_github_archive)s/geomesa-%(release)s.tar.gz
 
-.. |release_kafka09_plugin| replace:: %(url_locationtech_release)s/geomesa-kafka-09-gs-plugin/%(release)s/geomesa-kafka-09-gs-plugin-%(release)s-install.tar.gz
+.. |release_kafka08_plugin| replace:: %(url_locationtech_release)s/geomesa-kafka-08-gs-plugin_2.11/%(release)s/geomesa-kafka-08-gs-plugin_2.11-%(release)s-install.tar.gz
 
 .. |eclipse_release| replace:: %(release_eclipse)s
 
@@ -94,17 +100,17 @@ rst_epilog = """
 
 .. |maven_version| replace:: 3.2.2 or better
 
-.. |geoserver_version| replace:: 2.8.1
+.. |geoserver_version| replace:: 2.9.1
 
-.. |geotools_version| replace:: 14.1
+.. |geotools_version| replace:: 15.1
 
-.. |accumulo_version| replace:: 1.5, 1.6, or 1.7
+.. |accumulo_version| replace:: 1.6 or 1.7
 
 .. |hadoop_version| replace:: 2.2 or better
 
 .. |zookeeper_version| replace:: 3.4.5 or better
 
-.. |kafka_version| replace:: 0.8.2 or 0.9
+.. |kafka_version| replace:: 0.8, 0.9, or 0.10
 
 """ % {"release": release,
        "release_1_1": release_1_1,
