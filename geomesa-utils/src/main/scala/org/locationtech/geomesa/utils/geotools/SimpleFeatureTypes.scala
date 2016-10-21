@@ -255,7 +255,7 @@ object SimpleFeatureTypes {
       if (ad.isIndexValue()) {
         options.put(OPT_INDEX_VALUE, "true")
       }
-      if (ad.isBinTrackId) {
+      if (ad.isBinTrackId()) {
         options.put(OPT_BIN_TRACK_ID, "true")
       }
       if (ad.isKeepStats()) {
