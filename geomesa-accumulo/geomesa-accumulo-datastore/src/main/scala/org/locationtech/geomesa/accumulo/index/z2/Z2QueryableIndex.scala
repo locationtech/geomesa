@@ -23,7 +23,7 @@ import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
 import org.locationtech.geomesa.index.utils.Explainer
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
+import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -55,6 +55,11 @@ trait Z2QueryableIndex extends AccumuloFeatureIndex
         .filter(_.nonEmpty).getOrElse(Seq(WholeWorldPolygon))
 
     explain(s"Geometries: $geometries")
+
+    if (geometries == DisjointGeometries) {
+      explain("Non-intersecting geometries extracted, short-circuiting to empty query")
+      return EmptyPlan(filter)
+    }
 
     val looseBBox = if (hints.containsKey(LOOSE_BBOX)) Boolean.unbox(hints.get(LOOSE_BBOX)) else ops.config.looseBBox
 

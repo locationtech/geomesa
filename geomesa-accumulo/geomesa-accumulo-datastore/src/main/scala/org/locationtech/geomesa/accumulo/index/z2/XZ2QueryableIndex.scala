@@ -53,6 +53,11 @@ trait XZ2QueryableIndex extends AccumuloFeatureIndex
 
     explain(s"Geometries: $geometries")
 
+    if (geometries == DisjointGeometries) {
+      explain("Non-intersecting geometries extracted, short-circuiting to empty query")
+      return EmptyPlan(filter)
+    }
+
     val ecql = filter.filter
 
     val (iterators, kvsToFeatures, colFamily, hasDupes) = if (hints.isBinQuery) {
