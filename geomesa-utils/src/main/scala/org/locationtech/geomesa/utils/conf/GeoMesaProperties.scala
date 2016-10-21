@@ -42,32 +42,45 @@ object GeoMesaProperties extends LazyLogging {
     if (siteXML.nonEmpty) siteXML
     else s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml"
   }
-  def GEOMESA_AUDIT_PROVIDER_IMPL       = propOrDefault("geomesa.audit.provider.impl")
-  def GEOMESA_AUTH_PROVIDER_IMPL        = propOrDefault("geomesa.auth.provider.impl")
-  def GEOMESA_BATCHWRITER_LATENCY_MILLS = propOrDefault("geomesa.batchwriter.latency.millis")
-  def GEOMESA_BATCHWRITER_MAXTHREADS    = propOrDefault("geomesa.batchwriter.maxthreads")
-  def GEOMESA_BATCHWRITER_MEMORY        = propOrDefault("geomesa.batchwriter.memory")
-  def GEOMESA_BATCHWRITER_TIMEOUT_MILLS = propOrDefault("geomesa.batchwriter.timeout.millis")
-  def GEOMESA_CONVERT_CONFIG_URLS       = propOrDefault("geomesa.convert.config.urls")
-  def GEOMESA_CONVERT_SCRIPTS_PATH      = propOrDefault("geomesa.convert.scripts.path")
-  def GEOMESA_FEATURE_ID_GENERATOR      = propOrDefault("geomesa.feature.id-generator")
-  def GEOMESA_FORCE_COUNT               = propOrDefault("geomesa.force.count")
-  def GEOMESA_QUERY_COST_TYPE           = propOrDefault("geomesa.query.cost.type")
-  def GEOMESA_QUERY_TIMEOUT_MILLS       = propOrDefault("geomesa.query.timeout.millis")
-  def GEOMESA_SCAN_RANGES_TARGET        = propOrDefault("geomesa.scan.ranges.target")
-  def GEOMESA_SCAN_RANGES_BATCH         = propOrDefault("geomesa.scan.ranges.batch")
-  def GEOMESA_SFT_CONFIG_URLS           = propOrDefault("geomesa.sft.config.urls")
-  def GEOMESA_STATS_COMPACT_MILLIS      = propOrDefault("geomesa.stats.compact.millis")
+  def GEOMESA_AUDIT_PROVIDER_IMPL       = PropOrDefault("geomesa.audit.provider.impl")
+  def GEOMESA_AUTH_PROVIDER_IMPL        = PropOrDefault("geomesa.auth.provider.impl")
+  def GEOMESA_BATCHWRITER_LATENCY_MILLS = PropOrDefault("geomesa.batchwriter.latency.millis")
+  def GEOMESA_BATCHWRITER_MAXTHREADS    = PropOrDefault("geomesa.batchwriter.maxthreads")
+  def GEOMESA_BATCHWRITER_MEMORY        = PropOrDefault("geomesa.batchwriter.memory")
+  def GEOMESA_BATCHWRITER_TIMEOUT_MILLS = PropOrDefault("geomesa.batchwriter.timeout.millis")
+  def GEOMESA_CONVERT_CONFIG_URLS       = PropOrDefault("geomesa.convert.config.urls")
+  def GEOMESA_CONVERT_SCRIPTS_PATH      = PropOrDefault("geomesa.convert.scripts.path")
+  def GEOMESA_FEATURE_ID_GENERATOR      = PropOrDefault("geomesa.feature.id-generator")
+  def GEOMESA_FORCE_COUNT               = PropOrDefault("geomesa.force.count")
+  def GEOMESA_QUERY_COST_TYPE           = PropOrDefault("geomesa.query.cost.type")
+  def GEOMESA_QUERY_TIMEOUT_MILLS       = PropOrDefault("geomesa.query.timeout.millis")
+  def GEOMESA_SCAN_RANGES_TARGET        = PropOrDefault("geomesa.scan.ranges.target")
+  def GEOMESA_SCAN_RANGES_BATCH         = PropOrDefault("geomesa.scan.ranges.batch")
+  def GEOMESA_SFT_CONFIG_URLS           = PropOrDefault("geomesa.sft.config.urls")
+  def GEOMESA_STATS_COMPACT_MILLIS      = PropOrDefault("geomesa.stats.compact.millis")
 
-  def propOrDefault(prop: String): String = {
-    ensureConfig()
-    Option(System.getProperty(prop)).getOrElse{
-      Option(props.getProperty(prop)).getOrElse("")
+  case class PropOrDefault(property: String, dft: String = "") {
+    val default = if (dft.nonEmpty) dft
+    else Option(props.getProperty(property)).getOrElse(dft)
+    def get: String = {
+      ensureConfig()
+      Option(System.getProperty(property)).getOrElse(default)
     }
+    def option: Option[String] = {
+      ensureConfig()
+      Option{
+        Option(System.getProperty(property)).getOrElse {
+          if (default.nonEmpty) default else null
+        }
+      }
+    }
+    def set(value: String): Unit = System.setProperty(property, value)
+    def clear(): Unit = System.clearProperty(property)
   }
 
-  // For dynamic properties that are not in geomesa.properties
-  // This ensures the config is always loaded
+
+  // For dynamic properties that are not in geomesa.properties, this is intended
+  // to be a System.getProperty drop-in replacement that ensures the config is always loaded.
   def getProperty(prop: String, default: String = ""): String = {
     ensureConfig()
     Option(System.getProperty(prop)).getOrElse(default)

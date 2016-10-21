@@ -17,7 +17,7 @@ import org.apache.commons.io.filefilter.TrueFileFilter
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.locationtech.geomesa.convert.Transformers.EvaluationContext
 import org.locationtech.geomesa.convert.{TransformerFn, TransformerFunctionFactory}
-import org.locationtech.geomesa.utils.conf.GeoMesaProperties
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties.GEOMESA_CONVERT_SCRIPTS_PATH
 
 import scala.collection.JavaConversions._
 
@@ -55,7 +55,7 @@ class ScriptingFunctionFactory extends TransformerFunctionFactory {
   }
 
   def getScriptsFromEnvVar: Seq[URI] = {
-    val v = GeoMesaProperties.GEOMESA_CONVERT_SCRIPTS_PATH
+    val v = GEOMESA_CONVERT_SCRIPTS_PATH.get
     if (v.isEmpty) Seq.empty[URI]
     else {
       v.split(",")

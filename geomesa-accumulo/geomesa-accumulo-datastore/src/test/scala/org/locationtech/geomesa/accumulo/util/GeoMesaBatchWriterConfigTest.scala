@@ -12,10 +12,9 @@ import java.util.concurrent.TimeUnit
 
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.GeomesaSystemProperties
-import org.locationtech.geomesa.accumulo.GeomesaSystemProperties.PropAndDefault
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties.PropOrDefault
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
 
 @RunWith(classOf[JUnitRunner])
 class GeoMesaBatchWriterConfigTest extends Specification {
@@ -145,26 +144,26 @@ class GeoMesaBatchWriterConfigTest extends Specification {
   "fetchProperty" should {
     "retrieve a long correctly" in {
       System.setProperty("foo", "123456789")
-      val ret = GeoMesaBatchWriterConfig.fetchProperty(PropAndDefault("foo", null))
+      val ret = GeoMesaBatchWriterConfig.fetchProperty(PropOrDefault("foo", null))
       System.clearProperty("foo")
       ret should equalTo(Some(123456789l))
     }
 
     "return None correctly" in {
-      GeoMesaBatchWriterConfig.fetchProperty(PropAndDefault("bar", null)) should equalTo(None)
+      GeoMesaBatchWriterConfig.fetchProperty(PropOrDefault("bar", null)) should equalTo(None)
     }
 
     "return None correctly when the System property is not parseable as a Long" in {
       System.setProperty("baz", "fizzbuzz")
-      val ret = GeoMesaBatchWriterConfig.fetchProperty(PropAndDefault("foo", null))
+      val ret = GeoMesaBatchWriterConfig.fetchProperty(PropOrDefault("foo", null))
       System.clearProperty("baz")
       ret should equalTo(None)
     }
   }
 
   "fetchMemoryProperty" should {
-    val fooMemory = PropAndDefault("foo", null)
-    val bazMemory = PropAndDefault("baz", null)
+    val fooMemory = PropOrDefault("foo", null)
+    val bazMemory = PropOrDefault("baz", null)
     "retrieve a long correctly" in {
       System.setProperty("foo", "123456789")
       val ret = GeoMesaBatchWriterConfig.fetchMemoryProperty(fooMemory)
