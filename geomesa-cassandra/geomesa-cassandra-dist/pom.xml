@@ -17,14 +17,12 @@
     </properties>
 
     <dependencies>
-        <!-- Cassandra Tools -->
 
+        <!-- Cassandra Tools -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-tools-common_2.11</artifactId>
         </dependency>
-
-
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-cassandra-tools_2.11</artifactId>
@@ -66,35 +64,16 @@
             </exclusions>
         </dependency>
 
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>log4j-over-slf4j</artifactId>
-            <version>${slf4j.version}</version>
-            <scope>compile</scope>
-        </dependency>
 
+        <!-- additional -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <scope>compile</scope>
         </dependency>
-
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.accumulo</groupId>
-            <artifactId>accumulo-core</artifactId>
             <scope>compile</scope>
         </dependency>
 
@@ -121,7 +100,7 @@
                             </descriptors>
                             <delimiters>
                                 <delimiter>%%</delimiter>
-                            </delimiters>>
+                            </delimiters>
 
                         </configuration>
                     </execution>

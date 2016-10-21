@@ -15,7 +15,7 @@ import org.locationtech.geomesa.tools.accumulo.commands.CommandWithAccumuloDataS
 import org.locationtech.geomesa.tools.common.commands.Command
 import org.opengis.filter.Filter
 
-class StatsCountCommand(parent: JCommander) extends Command(parent) with CommandWithAccumuloDataStore with LazyLogging {
+class StatsCountCommand(parent: JCommander) extends CommandWithAccumuloDataStore(parent) with LazyLogging {
 
   override val command = "stats-count"
   override val params = new StatsCountParameters

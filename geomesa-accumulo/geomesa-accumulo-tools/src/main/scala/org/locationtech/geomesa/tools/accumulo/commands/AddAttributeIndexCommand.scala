@@ -14,10 +14,9 @@ import org.apache.hadoop.util.ToolRunner
 import org.locationtech.geomesa.jobs.index.{AttributeIndexArgs, AttributeIndexJob}
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.AddAttributeIndexCommand.AddIndexParameters
-import org.locationtech.geomesa.tools.common.commands.Command
 import org.locationtech.geomesa.tools.common.{AttributesParam, FeatureTypeNameParam}
 
-class AddAttributeIndexCommand(parent: JCommander) extends Command(parent) with CommandWithAccumuloDataStore with LazyLogging {
+class AddAttributeIndexCommand(parent: JCommander) extends CommandWithAccumuloDataStore(parent) with LazyLogging {
   override val command = "add-attribute-index"
   override val params = new AddIndexParameters
 

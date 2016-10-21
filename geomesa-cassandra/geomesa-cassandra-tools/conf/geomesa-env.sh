@@ -49,13 +49,6 @@
 #
 # setvar GEOMESA_LOG_DIR /path/to/geomesa-$VERSION/dist/tools/geomesa-tools-$VERSION/logs
 
-# ==================================================================
-# Zookeeper Environment Variables
-# ==================================================================
-
-# Zookeeper directory.
-#
-# setvar ZOOKEEPER_HOME /path/to/zookeeper
 
 # ==================================================================
 # Java Environment Variables

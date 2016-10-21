@@ -16,7 +16,7 @@ import org.locationtech.geomesa.tools.common.{FeatureTypeNameParam, KeywordParam
 
 import scala.collection.JavaConversions._
 
-class KeywordCommand(parent: JCommander) extends Command(parent) with CommandWithAccumuloDataStore {
+class KeywordCommand(parent: JCommander) extends CommandWithAccumuloDataStore(parent) {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
   override val command: String = "keywords"
   override val params = new KeywordParameters()

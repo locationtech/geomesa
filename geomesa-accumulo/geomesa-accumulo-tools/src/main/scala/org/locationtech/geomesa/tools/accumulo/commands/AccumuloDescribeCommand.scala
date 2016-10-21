@@ -13,13 +13,12 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.AccumuloDescribeCommand._
 import org.locationtech.geomesa.tools.common.FeatureTypeNameParam
-import org.locationtech.geomesa.tools.common.commands.{Command, DescribeCommand}
+import org.locationtech.geomesa.tools.common.commands.DescribeCommand
 
 
 class AccumuloDescribeCommand(parent: JCommander)
-  extends Command(parent)
+  extends CommandWithAccumuloDataStore(parent)
     with DescribeCommand
-    with CommandWithAccumuloDataStore
     with LazyLogging {
 
   override val params = new AccumuloDescribeParameters

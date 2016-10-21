@@ -12,12 +12,11 @@ import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.AccumuloListCommand._
-import org.locationtech.geomesa.tools.common.commands.{Command, ListCommand}
+import org.locationtech.geomesa.tools.common.commands.ListCommand
 
 class AccumuloListCommand(parent: JCommander)
-  extends Command(parent)
+  extends CommandWithAccumuloDataStore(parent)
     with ListCommand
-    with CommandWithAccumuloDataStore
     with LazyLogging {
 
   override val params = new AccumuloListParameters

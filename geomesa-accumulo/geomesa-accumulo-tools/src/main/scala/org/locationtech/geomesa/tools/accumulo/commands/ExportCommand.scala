@@ -21,14 +21,13 @@ import org.locationtech.geomesa.tools.accumulo.Utils.Formats
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats._
 import org.locationtech.geomesa.tools.accumulo._
 import org.locationtech.geomesa.tools.accumulo.commands.ExportCommand.ExportParameters
-import org.locationtech.geomesa.tools.common.commands.Command
 import org.locationtech.geomesa.tools.common.{FeatureTypeNameParam, OptionalCQLFilterParam}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.filter.Filter
 
 import scala.util.{Failure, Success, Try}
 
-class ExportCommand(parent: JCommander) extends Command(parent) with CommandWithAccumuloDataStore with LazyLogging {
+class ExportCommand(parent: JCommander) extends CommandWithAccumuloDataStore(parent) with LazyLogging {
 
   override val command = "export"
   override val params = new ExportParameters

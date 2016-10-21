@@ -17,7 +17,7 @@ import org.locationtech.geomesa.tools.common.{OptionalFeatureTypeNameParam, Opti
 
 import scala.util.{Failure, Success, Try}
 
-class RemoveSchemaCommand(parent: JCommander) extends Command(parent) with CommandWithAccumuloDataStore with LazyLogging {
+class RemoveSchemaCommand(parent: JCommander) extends CommandWithAccumuloDataStore(parent) with LazyLogging {
   override val command = "removeschema"
   override val params = new RemoveSchemaParams
 

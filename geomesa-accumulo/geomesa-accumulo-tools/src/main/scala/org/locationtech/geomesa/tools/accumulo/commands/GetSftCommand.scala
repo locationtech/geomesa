@@ -16,7 +16,7 @@ import org.locationtech.geomesa.tools.common.FeatureTypeNameParam
 import org.locationtech.geomesa.tools.common.commands.Command
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
-class GetSftCommand(parent: JCommander) extends Command(parent) with CommandWithAccumuloDataStore with LazyLogging {
+class GetSftCommand(parent: JCommander) extends CommandWithAccumuloDataStore(parent) with LazyLogging {
   override val command = "getsft"
   override val params = new GetSftParameters
 

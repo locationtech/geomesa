@@ -16,7 +16,6 @@ import org.geotools.util.Converters
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.tools.accumulo.commands.CommandWithAccumuloDataStore
 import org.locationtech.geomesa.tools.accumulo.commands.stats.StatsHistogramCommand.StatsHistogramParams
-import org.locationtech.geomesa.tools.common.commands.Command
 import org.locationtech.geomesa.utils.stats.{Histogram, MinMax, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -24,7 +23,7 @@ import org.opengis.filter.Filter
 import scala.reflect.ClassTag
 import scala.util.Try
 
-class StatsHistogramCommand(parent: JCommander) extends Command(parent) with CommandWithAccumuloDataStore with LazyLogging {
+class StatsHistogramCommand(parent: JCommander) extends CommandWithAccumuloDataStore(parent) with LazyLogging {
 
   override val command = "stats-histogram"
   override val params = new StatsHistogramParams

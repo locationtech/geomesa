@@ -27,7 +27,7 @@ import scala.collection.JavaConversions._
 import scala.collection.parallel.ForkJoinTaskSupport
 import scala.util.Try
 
-class IngestCommand(parent: JCommander) extends Command(parent) with CommandWithAccumuloDataStore with LazyLogging {
+class IngestCommand(parent: JCommander) extends CommandWithAccumuloDataStore(parent) with LazyLogging {
   override val command = "ingest"
   override val params = new IngestParameters()
 

@@ -24,10 +24,6 @@
     </properties>
 
     <dependencies>
-
-
-
-
         <dependency>
             <groupId>com.datastax.cassandra</groupId>
             <artifactId>cassandra-driver-core</artifactId>
@@ -36,33 +32,13 @@
             <groupId>com.datastax.cassandra</groupId>
             <artifactId>cassandra-driver-mapping</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-security_2.11</artifactId>
-            <scope>compile</scope>
         </dependency>
-
-
-        <dependency>
-            <groupId>org.apache.accumulo</groupId>
-            <artifactId>accumulo-core</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
-
-        <dependency>
-            <groupId>org.apache.avro</groupId>
-            <artifactId>avro</artifactId>
-        </dependency>
-
-
-
-
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-cassandra-datastore_2.11</artifactId>
-
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -72,7 +48,6 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-z3_2.11</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-utils_2.11</artifactId>
@@ -81,7 +56,6 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-filter_2.11</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-convert-all_2.11</artifactId>
@@ -99,38 +73,22 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
         </dependency>
-
-
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <scope>compile</scope>
         </dependency>
-
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
             <scope>compile</scope>
         </dependency>
-
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
         <dependency>
             <groupId>com.beust</groupId>
             <artifactId>jcommander</artifactId>
-
         </dependency>
 
-
-
         <!-- provided dependencies -->
-
-
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-geojson</artifactId>
@@ -142,10 +100,7 @@
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-data</artifactId>
-            <scope>compile</scope>
         </dependency>
-
-
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-epsg-hsql</artifactId>
@@ -180,7 +135,5 @@
             </resource>
         </resources>
     </build>
-
-
 
 </project>
