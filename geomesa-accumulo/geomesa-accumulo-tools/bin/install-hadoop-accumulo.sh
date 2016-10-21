@@ -16,6 +16,11 @@ hadoop_version="${hadoop.version.recommended}"
 zookeeper_version="${zookeeper.version.recommended}"
 thrift_version="${thrift.version}"
 
+accumulo_version_min="${accumulo.version.minimum}"
+hadoop_version_min="${hadoop.version.minimum}"
+zookeeper_version_min="${zookeeper.version.minimum}"
+thrift_version_min="${thrift.version.minimum}"
+
 # for hadoop 2.5 and 2.6 to work we need these
 guava_version="11.0.2"
 com_log_version="1.1.3"
@@ -26,10 +31,27 @@ base_url="https://search.maven.org/remotecontent?filepath="
 
 # Print versions available for download
 function printVersions() {
-  # usage: getVersions [url]
+  # usage: getVersions [url] [min_version]
+  filterVersion=($(echo $2 | sed -e 's/\./ /g'))
+
   content=$(wget $1 -q -O -)
   versions=$(echo "${content}" | grep -oP ">[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}\/<" | grep -oP "[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}")
   versionArray=($(echo "$versions" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/ /g'))
+
+  # Filter out version numbers that are older than min_version
+  for i in "${versionArray[@]}"; do
+    splitVersion=($(echo $i | sed -e 's/\./ /g'))
+    for v in "${!filterVersion[@]}"; do
+      if [[ "${splitVersion[$v]}" -lt "${filterVersion[$v]}" ]]; then
+        versionArray=("${versionArray[@]/$i}")
+        break
+      fi
+    done
+  done
+
+  # Remove empty elements
+  versionArray=($( echo "${versionArray[@]}" | sed -e 's/  / /g'))
+
   size=${#versionArray[@]}
   i=0
   while [[ $i -lt $size ]]; do
@@ -43,7 +65,7 @@ NL=$'\n'
 usage="usage: ./install-hadoop-accumulo.sh [[target dir] [<version(s)>]] | [-g|--get-versions] | [--help]"
 
 # Parse command line options
-if [[ "$1" == "--help" ]]; then
+if [[ "$1" == "--help" || "$1" == "-help" ]]; then
 	echo "${usage}"
 	echo "${NL}"
 	echo "All versions are detected automatically at compile time."
@@ -54,7 +76,7 @@ if [[ "$1" == "--help" ]]; then
 	echo "  -h,--hadoop-version       Manually set Hadoop version"
 	echo "  -z,--zookeeper-version    Manually set Zookeeper version"
 	echo "  -t,--thrift-version       Manually set Thrift version"
-	echo "  -g,--get-versions         Print out available version numbers."
+	echo "  -l,--list-versions        Print out available version numbers."
 	echo "${NL}"
 	echo "Example:"
 	echo "./install-hadoop-accumulo.sh /opt/jboss/standalone/deployments/geoserver.war/WEB-INF/lib -a 1.7.1 -h 2.7.3"
@@ -67,13 +89,17 @@ elif [[ "$1" == "-g" || "$1" == "--get-versions" ]]; then
   thrift_version_url="${base_url}org/apache/thrift/libthrift/"
 
   echo "Available Accumulo Versions"
-  printVersions "${accumulo_version_url}"
+  printVersions "${accumulo_version_url}" "${accumulo_version_min}"
+  echo "Accumulo 1.6.x requires: Thrift 0.9.1 and Zookeeper 3.3.6"
+  echo "Accumulo 1.7.x requires: Thrift 0.9.1 and Zookeeper 3.4.6"
+  echo "Accumulo 1.8.x requires: Thrift 0.9.3 and Zookeeper 3.4.6"
+  echo ""
   echo "Available Hadoop Versions"
-  printVersions "${hadoop_version_url}"
+  printVersions "${hadoop_version_url}" "${hadoop_version_min}"
   echo "Available Zookeeper Versions"
-  printVersions "${zookeeper_version_url}"
+  printVersions "${zookeeper_version_url}" "${zookeeper_version_min}"
   echo "Available Thrift Versions"
-  printVersions "${thrift_version_url}"
+  printVersions "${thrift_version_url}" "${thrift_version_min}"
 
   exit
 else

@@ -81,6 +81,13 @@
         <hadoop.version.recommended>2.6.4</hadoop.version.recommended>
         <zookeeper.version.recommended>3.4.6</zookeeper.version.recommended>
 
+        <!-- Minimum installation versions -->
+        <!-- These are the oldest versions supported -->
+        <accumulo.version.minimum>1.6.0</accumulo.version.minimum>
+        <hadoop.version.minimum>2.2.0</hadoop.version.minimum>
+        <zookeeper.version.minimum>3.3.6</zookeeper.version.minimum>
+        <thrift.version.minimum>0.9.1</thrift.version.minimum>
+
         <!-- logging properties - we expect logging jars to be provided -->
         <!-- 1.7.x is for hadoop 2 and accumulo 1.5.x -->
         <slf4j.version>1.7.5</slf4j.version>
