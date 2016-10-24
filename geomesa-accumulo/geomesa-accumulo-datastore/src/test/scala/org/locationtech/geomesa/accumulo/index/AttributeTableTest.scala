@@ -12,11 +12,11 @@ import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.data.{DEFAULT_ENCODING, WritableFeature}
+import org.locationtech.geomesa.accumulo.data.AccumuloFeature
 import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -51,7 +51,7 @@ class AttributeTableTest extends Specification with TestWithDataStore {
       feature.setAttribute("name","fred")
       feature.setAttribute("age",50.asInstanceOf[Any])
 
-      val toWrite = WritableFeature.toWritableFeature(sft, DEFAULT_ENCODING, "")(feature)
+      val toWrite = AccumuloFeature.wrapper(sft, "")(feature)
       val mutations = AttributeIndex.writer(sft, ds)(toWrite)
       mutations.size mustEqual 2 // for null date
       mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach
@@ -67,7 +67,7 @@ class AttributeTableTest extends Specification with TestWithDataStore {
       feature.setAttribute("name","fred")
       feature.setAttribute("age",50.asInstanceOf[Any])
 
-      val toWrite = WritableFeature.toWritableFeature(sft, DEFAULT_ENCODING, "")(feature)
+      val toWrite = AccumuloFeature.wrapper(sft, "")(feature)
       val mutations = AttributeIndex.remover(sft, ds)(toWrite)
       mutations.size mustEqual 2 // for null date
       mutations.map(_.getUpdates.size()) must contain(beEqualTo(1)).foreach

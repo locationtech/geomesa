@@ -98,7 +98,7 @@ class AttributeIndexJob extends Tool {
       AttributeIndex.configure(sft, ds)
       AttributeIndex
     }
-    val tableName = ds.getTableName(typeName, index)
+    val tableName = index.getTableName(typeName, ds)
 
     val valid = sft.getAttributeDescriptors.map(_.getLocalName)
     attributes.foreach(a => assert(valid.contains(a), s"Attribute '$a' does not exist in schema '$typeName'"))
@@ -156,8 +156,8 @@ class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
 
   private var counter: Counter = null
 
-  private var writer: AccumuloFeatureWriter.FeatureToMutations = null
-  private var toWritable: (SimpleFeature) => WritableFeature = null
+  private var writer: (AccumuloFeature) => Seq[Mutation] = null
+  private var toWritable: (SimpleFeature) => AccumuloFeature = null
 
   override protected def setup(context: Context): Unit = {
     counter = context.getCounter("org.locationtech.geomesa", "attributes-written")
@@ -171,11 +171,10 @@ class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
       d.setIndexCoverage(if (attributes.contains(d.getLocalName)) coverage else IndexCoverage.NONE)
     }
 
-    val encoding = ds.getFeatureEncoding(sft)
     val index = AccumuloFeatureIndex.indices(sft, IndexMode.Write)
         .find(_.name == AttributeIndex.name).getOrElse(AttributeIndex)
     writer = index.writer(sft, ds)
-    toWritable = WritableFeature.toWritableFeature(sft, encoding, ds.defaultVisibilities)
+    toWritable = AccumuloFeature.wrapper(sft, ds.config.defaultVisibilities)
 
     ds.dispose()
   }

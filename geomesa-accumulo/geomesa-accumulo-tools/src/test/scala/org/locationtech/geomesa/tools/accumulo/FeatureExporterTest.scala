@@ -18,7 +18,7 @@ import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureStore
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.features.avro.AvroDataFileReader
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats
@@ -52,7 +52,7 @@ class FeatureExporterTest extends Specification {
     val ds = DataStoreFinder
       .getDataStore(Map("connector" -> connector, "tableName" -> sftName, "caching"   -> false))
     ds.createSchema(sft)
-    ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore].addFeatures(featureCollection)
+    ds.asInstanceOf[AccumuloDataStore].getFeatureSource(sftName).addFeatures(featureCollection)
     (ds, sft)
   }
 

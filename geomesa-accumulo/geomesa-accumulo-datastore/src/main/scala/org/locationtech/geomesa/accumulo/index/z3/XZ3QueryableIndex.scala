@@ -8,18 +8,20 @@
 
 package org.locationtech.geomesa.accumulo.index.z3
 
+import java.util.Map.Entry
+
 import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.data.{Mutation, Range => aRange}
+import org.apache.accumulo.core.data.{Key, Mutation, Value, Range => aRange}
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.accumulo.GeomesaSystemProperties.QueryProperties
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, WritableFeature}
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.{AccumuloFeatureIndex, AccumuloFilterStrategy}
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators._
+import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloFilterStrategyType}
 import org.locationtech.geomesa.curve.{BinnedTime, XZ3SFC}
 import org.locationtech.geomesa.filter._
+import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -27,19 +29,19 @@ import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
 
-trait XZ3QueryableIndex extends AccumuloFeatureIndex
-    with SpatioTemporalFilterStrategy[AccumuloDataStore, WritableFeature, Seq[Mutation], QueryPlan]
+trait XZ3QueryableIndex extends AccumuloFeatureIndexType
+    with SpatioTemporalFilterStrategy[AccumuloDataStore, AccumuloFeature, Seq[Mutation], Entry[Key, Value]]
     with LazyLogging {
 
   writable: AccumuloWritableIndex =>
 
   override def getQueryPlan(sft: SimpleFeatureType,
-                            ops: AccumuloDataStore,
-                            filter:AccumuloFilterStrategy,
+                            ds: AccumuloDataStore,
+                            filter:AccumuloFilterStrategyType,
                             hints: Hints,
-                            explain: Explainer): QueryPlan = {
-    import QueryHints.RichHints
+                            explain: Explainer): AccumuloQueryPlan = {
     import org.locationtech.geomesa.filter.FilterHelper.{logger => _, _}
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     // note: z3 requires a date field
     val dtgField = sft.getDtgField.getOrElse {
@@ -72,7 +74,7 @@ trait XZ3QueryableIndex extends AccumuloFeatureIndex
 
     val ecql = filter.filter
 
-    val (iterators, kvsToFeatures, colFamily) = if (hints.isBinQuery) {
+    val (iterators, kvsToFeatures, reduce, colFamily) = if (hints.isBinQuery) {
       // if possible, use the pre-computed values
       // can't use if there are non-st filters or if custom fields are requested
       val (iters, cf) =
@@ -83,23 +85,25 @@ trait XZ3QueryableIndex extends AccumuloFeatureIndex
           val iter = BinAggregatingIterator.configureDynamic(sft, this, ecql, hints, deduplicate = false)
           (Seq(iter), AccumuloWritableIndex.FullColumnFamily)
         }
-      (iters, BinAggregatingIterator.kvsToFeatures(), cf)
+      (iters, BinAggregatingIterator.kvsToFeatures(), None, cf)
     } else if (hints.isDensityQuery) {
       val iter = KryoLazyDensityIterator.configure(sft, this, ecql, hints)
-      (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), AccumuloWritableIndex.FullColumnFamily)
+      (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), None, AccumuloWritableIndex.FullColumnFamily)
     } else if (hints.isStatsIteratorQuery) {
       val iter = KryoLazyStatsIterator.configure(sft, this, ecql, hints, deduplicate = false)
-      (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(sft), AccumuloWritableIndex.FullColumnFamily)
+      val reduce = Some(KryoLazyStatsIterator.reduceFeatures(sft, hints)(_))
+      (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(sft), reduce, AccumuloWritableIndex.FullColumnFamily)
     } else if (hints.isMapAggregatingQuery) {
       val iter = KryoLazyMapAggregatingIterator.configure(sft, this, ecql, hints, deduplicate = false)
-      (Seq(iter), entriesToFeatures(sft, hints.getReturnSft), AccumuloWritableIndex.FullColumnFamily)
+      val reduce = Some(KryoLazyMapAggregatingIterator.reduceMapAggregationFeatures(hints)(_))
+      (Seq(iter), entriesToFeatures(sft, hints.getReturnSft), reduce, AccumuloWritableIndex.FullColumnFamily)
     } else {
       val iters = KryoLazyFilterTransformIterator.configure(sft, this, ecql, hints).toSeq
-      (iters, entriesToFeatures(sft, hints.getReturnSft), AccumuloWritableIndex.FullColumnFamily)
+      (iters, entriesToFeatures(sft, hints.getReturnSft), None, AccumuloWritableIndex.FullColumnFamily)
     }
 
-    val table = ops.getTableName(sft.getTypeName, this)
-    val numThreads = ops.getSuggestedThreads(sft.getTypeName, this)
+    val table = getTableName(sft.getTypeName, ds)
+    val numThreads = ds.config.queryThreads
 
     val sfc = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
     val minTime = 0.0
@@ -169,6 +173,6 @@ trait XZ3QueryableIndex extends AccumuloFeatureIndex
     val cf = if (perAttributeIter.isEmpty) colFamily else AccumuloWritableIndex.AttributeColumnFamily
 
     val iters = perAttributeIter ++ iterators
-    BatchScanPlan(filter, table, ranges, iters, Seq(cf), kvsToFeatures, numThreads, hasDuplicates = false)
+    BatchScanPlan(filter, table, ranges, iters, Seq(cf), kvsToFeatures, reduce, numThreads, hasDuplicates = false)
   }
 }

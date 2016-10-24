@@ -17,8 +17,8 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification

@@ -1,0 +1,63 @@
+/***********************************************************************
+* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0
+* which accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
+
+package org.locationtech.geomesa.utils.audit
+
+import java.io.Closeable
+
+import com.google.gson.{Gson, GsonBuilder}
+import com.typesafe.scalalogging.LazyLogging
+import org.joda.time.Interval
+
+import scala.reflect.ClassTag
+
+trait AuditedEvent {
+  def storeType: String
+  def typeName: String
+  def date: Long
+}
+
+trait DeletableEvent extends AuditedEvent {
+  def deleted: Boolean
+}
+
+trait AuditWriter extends Closeable {
+
+  /**
+    * Writes an event asynchronously
+    *
+    * @param event event to write
+    * @tparam T event type
+    */
+  def writeEvent[T <: AuditedEvent](event: T)(implicit ct: ClassTag[T]): Unit
+}
+
+trait AuditReader extends Closeable {
+
+  /**
+    * Retrieves stored events
+    *
+    * @param typeName simple feature type name
+    * @param dates dates to retrieve stats for
+    * @tparam T event type
+    * @return iterator of events
+    */
+  def getEvents[T <: AuditedEvent](typeName: String, dates: Interval)(implicit ct: ClassTag[T]): Iterator[T]
+}
+
+trait AuditLogger extends AuditWriter with LazyLogging {
+
+  private val gson: Gson = new GsonBuilder().serializeNulls().create()
+
+  override def writeEvent[T <: AuditedEvent](event: T)(implicit ct: ClassTag[T]): Unit =
+    logger.debug(gson.toJson(event))
+
+  override def close(): Unit = {}
+}
+
+object AuditLogger extends AuditLogger

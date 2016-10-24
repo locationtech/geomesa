@@ -26,7 +26,7 @@ class AccumuloVersionCommand(parent: JCommander) extends Command(parent) {
     var ds: AccumuloDataStore = null
     val iterVersion = try {
       ds = params.createDataStore()
-      ds.getIteratorVersion
+      ds.getVersion._2
     } catch {
       case NonFatal(e) => "unavailable (use optional arguments to check distributed runtime version)"
     } finally {

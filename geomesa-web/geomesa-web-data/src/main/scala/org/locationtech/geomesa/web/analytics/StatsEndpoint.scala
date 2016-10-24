@@ -12,8 +12,9 @@ import org.geotools.data.DataStoreFinder
 import org.joda.time.Interval
 import org.joda.time.format.ISODateTimeFormat
 import org.json4s.{DefaultFormats, Formats, JValue}
+import org.locationtech.geomesa.accumulo.audit.SerializedQueryEvent
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.data.stats.usage.{QueryStat, QueryStatTransform, SerializedQueryStat, SerializedQueryStatTransform}
+import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.utils.cache.FilePersistence
 import org.locationtech.geomesa.web.core.GeoMesaDataStoreServlet
 import org.scalatra.json.NativeJsonSupport
@@ -67,18 +68,17 @@ class StatsEndpoint(val persistence: FilePersistence) extends GeoMesaDataStoreSe
         }
         BadRequest(reason = reason.toString())
       } else {
-        val reader = ds.usageStats
+        val reader = ds.config.audit.get._1
         val interval = new Interval(dates(0), dates(1))
-        val auths = ds.authProvider.getAuthorizations
         // note: json response doesn't seem to handle iterators directly, have to convert to iterable
-        val iter = reader.getUsageStats[QueryStat](sft, interval, auths)(QueryStatTransform)
+        val iter = reader.getEvents[QueryEvent](sft, interval)
         // we do the user filtering here, instead of in the tservers - revisit if performance becomes an issue
         // 'user' appears to be reserved by scalatra
-        val filter: (QueryStat) => Boolean = params.get("who") match {
+        val filt: (QueryEvent) => Boolean = params.get("who") match {
           case None => (s) => !s.deleted
           case Some(user) => (s) => s.user == user && !s.deleted
         }
-        val result = iter.filter(filter).toIterable
+        val result = iter.filter(filt).toIterable
         ds.dispose()
         result
       }
@@ -106,19 +106,18 @@ class StatsEndpoint(val persistence: FilePersistence) extends GeoMesaDataStoreSe
         }
         BadRequest(reason = reason.toString())
       } else {
-        val reader = ds.usageStats
+        val reader = ds.config.audit.get._1
         val interval = new Interval(dates(0), dates(1))
-        val auths = ds.authProvider.getAuthorizations
         // note: json response doesn't seem to handle iterators directly, have to convert to iterable
-        val iter = reader.getUsageStats[SerializedQueryStat](sft, interval, auths)(SerializedQueryStatTransform)
+        val iter = reader.getEvents[SerializedQueryEvent](sft, interval)
         // we do the user filtering here, instead of in the tservers - revisit if performance becomes an issue
         // 'user' appears to be reserved by scalatra
-        val filter: (SerializedQueryStat) => Boolean = params.get("who") match {
+        val filt: (SerializedQueryEvent) => Boolean = params.get("who") match {
           case None => (s) => !s.deleted
           case Some(user) => (s) => s.user == user && !s.deleted
         }
-        iter.filter(filter).foreach { s =>
-          reader.writeUsageStat(s.copy(deleted = true))(SerializedQueryStatTransform)
+        iter.filter(filt).foreach { s =>
+          reader.writeEvent(s.copy(deleted = true))
         }
         ds.dispose()
         Ok()

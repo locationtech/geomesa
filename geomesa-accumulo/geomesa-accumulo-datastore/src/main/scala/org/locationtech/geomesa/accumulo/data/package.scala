@@ -11,9 +11,7 @@ package org.locationtech.geomesa.accumulo
 import org.apache.accumulo.core.data.Value
 import org.apache.hadoop.io.Text
 import org.geotools.data.FeatureWriter
-import org.geotools.factory.Hints.ClassKey
 import org.locationtech.geomesa.features.SerializationType
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 package object data {
@@ -26,12 +24,6 @@ package object data {
   val EMPTY_VIZ            = new Text(EMPTY_STRING)
   val EMPTY_TEXT           = new Text()
   val DEFAULT_ENCODING     = SerializationType.KRYO
-
-  // SimpleFeature Hints
-  val TRANSFORMS           = new ClassKey(classOf[String])
-  val TRANSFORM_SCHEMA     = new ClassKey(classOf[SimpleFeatureType])
-  @deprecated
-  val GEOMESA_UNIQUE       = new ClassKey(classOf[String])
 
   type SFFeatureWriter = FeatureWriter[SimpleFeatureType, SimpleFeature]
 }

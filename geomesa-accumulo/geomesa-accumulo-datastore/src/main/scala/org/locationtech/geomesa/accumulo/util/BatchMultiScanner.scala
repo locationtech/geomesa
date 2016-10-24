@@ -15,13 +15,13 @@ import java.util.concurrent.{Executors, Future, LinkedBlockingQueue, TimeUnit}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.ScannerBase
 import org.apache.accumulo.core.data.{Key, Value}
-import org.locationtech.geomesa.accumulo.data.AccumuloConnectorCreator
-import org.locationtech.geomesa.accumulo.index.QueryPlan.JoinFunction
-import org.locationtech.geomesa.accumulo.index.{BatchScanPlan, QueryPlan}
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.index.AccumuloQueryPlan.JoinFunction
+import org.locationtech.geomesa.accumulo.index.BatchScanPlan
 
 import scala.collection.JavaConversions._
 
-class BatchMultiScanner(acc: AccumuloConnectorCreator,
+class BatchMultiScanner(ds: AccumuloDataStore,
                         in: ScannerBase,
                         join: BatchScanPlan,
                         joinFunction: JoinFunction,
@@ -62,12 +62,11 @@ class BatchMultiScanner(acc: AccumuloConnectorCreator,
             inQ.drainTo(entries)
             val task = executor.submit(new Runnable {
               override def run(): Unit = {
-                val scanner = acc.getBatchScanner(join.table, join.numThreads)
+                val iterator = join.copy(ranges = entries.map(joinFunction)).scan(ds)
                 try {
-                  QueryPlan.configureBatchScanner(scanner, join.copy(ranges = entries.map(joinFunction)))
-                  scanner.iterator().foreach(outQ.put)
+                  iterator.foreach(outQ.put)
                 } finally {
-                  scanner.close()
+                  iterator.close()
                 }
               }
             })

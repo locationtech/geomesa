@@ -8,19 +8,18 @@
 
 package org.locationtech.geomesa.index.api
 
-import org.locationtech.geomesa.index.stats.HasGeoMesaStats
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing, TimingsImpl}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-abstract class StrategyDecider[Ops <: HasGeoMesaStats, FeatureWrapper, Result, Plan]
+class StrategyDecider[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q](manager: GeoMesaIndexManager[DS, F, W, Q])
     extends MethodProfiling {
 
-  type TypedFeatureIndex = GeoMesaFeatureIndex[Ops, FeatureWrapper, Result, Plan]
-  type TypedFilterStrategy = FilterStrategy[Ops, FeatureWrapper, Result, Plan]
-
-  def indices(sft: SimpleFeatureType): Seq[TypedFeatureIndex]
+  type TypedFeatureIndex = GeoMesaFeatureIndex[DS, F, W, Q]
+  type TypedFilterStrategy = FilterStrategy[DS, F, W, Q]
 
   /**
     * Selects a strategy for executing a given query.
@@ -40,14 +39,14 @@ abstract class StrategyDecider[Ops <: HasGeoMesaStats, FeatureWrapper, Result, P
     * @return
     */
   def getFilterPlan(sft: SimpleFeatureType,
-                    ops: Option[Ops],
+                    ops: Option[DS],
                     filter: Filter,
                     transform: Option[SimpleFeatureType],
                     requested: Option[TypedFeatureIndex],
                     explain: Explainer = ExplainNull): Seq[TypedFilterStrategy] = {
     implicit val timings = new TimingsImpl()
 
-    val availableIndices = indices(sft)
+    val availableIndices = manager.indices(sft, IndexMode.Read)
 
     // get the various options that we could potentially use
     val options = profile(new FilterSplitter(sft, availableIndices).getQueryOptions(filter), "split")
@@ -62,7 +61,7 @@ abstract class StrategyDecider[Ops <: HasGeoMesaStats, FeatureWrapper, Result, P
       } else if (options.isEmpty) {
         // corresponds to filter.exclude
         explain("No filter plans found")
-        FilterPlan[Ops, FeatureWrapper, Result, Plan](Seq.empty)
+        FilterPlan[DS, F, W, Q](Seq.empty)
       } else if (options.length == 1) {
         // only a single option, so don't bother with cost
         explain(s"Filter plan: ${options.head}")
@@ -88,10 +87,10 @@ abstract class StrategyDecider[Ops <: HasGeoMesaStats, FeatureWrapper, Result, P
   }
 
   // see if one of the normal plans matches the requested type - if not, force it
-  private def forceStrategy(options: Seq[FilterPlan[Ops, FeatureWrapper, Result, Plan]],
+  private def forceStrategy(options: Seq[FilterPlan[DS, F, W, Q]],
                             index: TypedFeatureIndex,
-                            allFilter: Filter): FilterPlan[Ops, FeatureWrapper, Result, Plan] = {
-    def checkStrategy(f: FilterStrategy[Ops, FeatureWrapper, Result, Plan]) = f.index == index
+                            allFilter: Filter): FilterPlan[DS, F, W, Q] = {
+    def checkStrategy(f: FilterStrategy[DS, F, W, Q]) = f.index == index
     options.find(_.strategies.forall(checkStrategy)).getOrElse {
       val secondary = if (allFilter == Filter.INCLUDE) None else Some(allFilter)
       FilterPlan(Seq(FilterStrategy(index, None, secondary)))

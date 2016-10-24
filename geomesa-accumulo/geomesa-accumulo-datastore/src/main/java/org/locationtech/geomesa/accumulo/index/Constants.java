@@ -24,6 +24,6 @@ public class Constants {
   @Deprecated
   public final static String SF_PROPERTY_END_TIME   = "geomesa_index_end_time";
 
-  public final static DateTime MIN_DATE = package$.MODULE$.MIN_DATE();
-  public final static DateTime MAX_DATE = package$.MODULE$.MAX_DATE();
+//  public final static DateTime MIN_DATE = package$.MODULE$.MIN_DATE();
+//  public final static DateTime MAX_DATE = package$.MODULE$.MAX_DATE();
 }

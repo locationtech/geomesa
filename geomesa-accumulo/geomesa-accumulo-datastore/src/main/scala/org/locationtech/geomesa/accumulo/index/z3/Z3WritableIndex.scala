@@ -17,11 +17,11 @@ import com.vividsolutions.jts.geom._
 import org.apache.accumulo.core.conf.Property
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
-import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, WritableFeature}
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
 import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
@@ -35,10 +35,10 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
 
   def hasSplits: Boolean
 
-  override def removeAll(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
-    val table = ops.getTableName(sft.getTypeName, this)
-    if (ops.tableOps.exists(table)) {
-      ops.tableOps.delete(table)
+  override def delete(sft: SimpleFeatureType, ds: AccumuloDataStore, shared: Boolean): Unit = {
+    val table = getTableName(sft.getTypeName, ds)
+    if (ds.tableOps.exists(table)) {
+      ds.tableOps.delete(table)
     }
   }
 
@@ -49,7 +49,7 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
 
   // split(1 byte), week(2 bytes), z value (8 bytes), id (n bytes)
   protected def getPointRowKey(timeToIndex: TimeToBinnedTime, sfc: Z3SFC)
-                              (wf: WritableFeature, dtgIndex: Int): Seq[Array[Byte]] = {
+                              (wf: AccumuloFeature, dtgIndex: Int): Seq[Array[Byte]] = {
     val split = AccumuloWritableIndex.DefaultSplitArrays(wf.idHash % AccumuloWritableIndex.DefaultNumSplits)
     val (timeBin, z) = {
       val dtg = wf.feature.getAttribute(dtgIndex).asInstanceOf[Date]
@@ -64,7 +64,7 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
 
   // split(1 byte), week (2 bytes), z value (3 bytes), id (n bytes)
   protected def getGeomRowKeys(timeToIndex: TimeToBinnedTime, sfc: Z3SFC)
-                              (wf: WritableFeature, dtgIndex: Int): Seq[Array[Byte]] = {
+                              (wf: AccumuloFeature, dtgIndex: Int): Seq[Array[Byte]] = {
     val split = AccumuloWritableIndex.DefaultSplitArrays(wf.idHash % AccumuloWritableIndex.DefaultNumSplits)
     val (timeBin, zs) = {
       val dtg = wf.feature.getAttribute(dtgIndex).asInstanceOf[Date]
@@ -116,24 +116,26 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
     prefix + length
   }
 
-  override def configure(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
-      // z3 always has it's own table
-    val table = GeoMesaTable.formatSoloTableName(ops.catalogTable, tableSuffix, sft.getTypeName)
-    ops.metadata.insert(sft.getTypeName, tableNameKey, table)
+  override def configure(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {
+    // z3 always has it's own table
+    // note: we don't call super as it will write the table name we're overriding
+    val suffix = GeoMesaFeatureIndex.tableSuffix(this)
+    val table = GeoMesaFeatureIndex.formatSoloTableName(ds.config.catalog, suffix, sft.getTypeName)
+    ds.metadata.insert(sft.getTypeName, tableNameKey, table)
 
-    AccumuloVersion.ensureTableExists(ops.connector, table)
+    AccumuloVersion.ensureTableExists(ds.connector, table)
 
     val localityGroups = Seq(BinColumnFamily, FullColumnFamily).map(cf => (cf.toString, ImmutableSet.of(cf))).toMap
-    ops.tableOps.setLocalityGroups(table, localityGroups)
+    ds.tableOps.setLocalityGroups(table, localityGroups)
 
     // drop first split, otherwise we get an empty tablet
     val splits = AccumuloWritableIndex.DefaultSplitArrays.drop(1).map(new Text(_)).toSet
-    val splitsToAdd = splits -- ops.tableOps.listSplits(table).toSet
+    val splitsToAdd = splits -- ds.tableOps.listSplits(table).toSet
     if (splitsToAdd.nonEmpty) {
       // noinspection RedundantCollectionConversion
-      ops.tableOps.addSplits(table, ImmutableSortedSet.copyOf(splitsToAdd.toIterable))
+      ds.tableOps.addSplits(table, ImmutableSortedSet.copyOf(splitsToAdd.toIterable))
     }
 
-    ops.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
+    ds.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
   }
 }

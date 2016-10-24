@@ -22,7 +22,6 @@ import scala.collection.JavaConversions._
 //TODO: WCS: refactor this and AccumuloDataStoreFactory to remove duplication, etc...
 // GEOMESA-570
 object AccumuloStoreHelper {
-  import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory._
   import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
 
   def getVisibility(params: JMap[String,Serializable]): String = {
@@ -57,6 +56,8 @@ object AccumuloStoreHelper {
   }
 
   def getAuthorizations(params: JMap[String,Serializable], connector: Connector): List[String] = {
+    import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.RichParam
+
     // convert the connector authorizations into a string array - this is the maximum auths this connector can support
     val securityOps = connector.securityOperations
     val masterAuths = securityOps.getUserAuthorizations(connector.whoami)

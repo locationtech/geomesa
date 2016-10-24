@@ -10,19 +10,18 @@ package org.locationtech.geomesa.index.strategies
 
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
-import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex}
-import org.locationtech.geomesa.index.stats.HasGeoMesaStats
+import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, WrappedFeature}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-trait SpatioTemporalFilterStrategy[Ops <: HasGeoMesaStats, FeatureWrapper, Result, Plan] extends
-    GeoMesaFeatureIndex[Ops, FeatureWrapper, Result, Plan] {
+trait SpatioTemporalFilterStrategy[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q] extends
+    GeoMesaFeatureIndex[DS, F, W, Q] {
 
   import SpatioTemporalFilterStrategy.{StaticCost, isBounded}
 
-  override def getFilterStrategy(sft: SimpleFeatureType,
-                                 filter: Filter): Seq[FilterStrategy[Ops, FeatureWrapper, Result, Plan]] = {
+  override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[FilterStrategy[DS, F, W, Q]] = {
 
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
@@ -50,15 +49,15 @@ trait SpatioTemporalFilterStrategy[Ops <: HasGeoMesaStats, FeatureWrapper, Resul
   }
 
   override def getCost(sft: SimpleFeatureType,
-                       ops: Option[Ops],
-                       filter: FilterStrategy[Ops, FeatureWrapper, Result, Plan],
+                       ds: Option[DS],
+                       filter: FilterStrategy[DS, F, W, Q],
                        transform: Option[SimpleFeatureType]): Long = {
     // https://geomesa.atlassian.net/browse/GEOMESA-1166
     // TODO check date range and use z2 instead if too big
     // TODO also if very small bbox, z2 has ~10 more bits of lat/lon info
     filter.primary match {
       case None    => Long.MaxValue
-      case Some(f) => ops.flatMap(_.stats.getCount(sft, f, exact = false)).getOrElse {
+      case Some(f) => ds.flatMap(_.stats.getCount(sft, f, exact = false)).getOrElse {
         val names = filter.primary.map(FilterHelper.propertyNames(_, sft)).getOrElse(Seq.empty)
         if (names.contains(sft.getGeomField)) StaticCost else SpatialFilterStrategy.StaticCost + 1
       }

@@ -9,16 +9,14 @@
 package org.locationtech.geomesa.accumulo.index.attribute
 
 import org.apache.accumulo.core.data.Mutation
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter._
+import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.{AccumuloFeatureIndex, AccumuloFilterStrategy}
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 // current version - id in row keys
-object AttributeIndex extends AccumuloFeatureIndex with AttributeWritableIndex with AttributeQueryableIndex {
+case object AttributeIndex extends AccumuloFeatureIndexType with AttributeWritableIndex with AttributeQueryableIndex {
 
   override val name: String = "attr"
 
@@ -32,9 +30,9 @@ object AttributeIndex extends AccumuloFeatureIndex with AttributeWritableIndex w
     sft.getAttributeDescriptors.exists(_.isIndexed)
   }
 
-  override def writer(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
+  override def writer(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
     val getRows = getRowKeys(sft)
-    (wf: WritableFeature) => {
+    (wf: AccumuloFeature) => {
       getRows(wf).map { case (descriptor, row) =>
         val mutation = new Mutation(row)
         val values = descriptor.getIndexCoverage() match {
@@ -47,9 +45,9 @@ object AttributeIndex extends AccumuloFeatureIndex with AttributeWritableIndex w
     }
   }
 
-  override def remover(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
+  override def remover(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
     val getRows = getRowKeys(sft)
-    (wf: WritableFeature) => {
+    (wf: AccumuloFeature) => {
       getRows(wf).map { case (descriptor, row) =>
         val mutation = new Mutation(row)
         val values = descriptor.getIndexCoverage() match {
@@ -64,7 +62,7 @@ object AttributeIndex extends AccumuloFeatureIndex with AttributeWritableIndex w
 }
 
 // added feature ID and dates to row key
-object AttributeIndexV2 extends AccumuloFeatureIndex with AttributeWritableIndex with AttributeQueryableIndex {
+case object AttributeIndexV2 extends AccumuloFeatureIndexType with AttributeWritableIndex with AttributeQueryableIndex {
 
   override val name: String = "attr"
 
@@ -78,9 +76,9 @@ object AttributeIndexV2 extends AccumuloFeatureIndex with AttributeWritableIndex
     sft.getAttributeDescriptors.exists(_.isIndexed)
   }
 
-  override def writer(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
+  override def writer(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
     val getRows = getRowKeys(sft)
-    (wf: WritableFeature) => {
+    (wf: AccumuloFeature) => {
       getRows(wf).map { case (descriptor, row) =>
         val mutation = new Mutation(row)
         val value = descriptor.getIndexCoverage() match {
@@ -93,9 +91,9 @@ object AttributeIndexV2 extends AccumuloFeatureIndex with AttributeWritableIndex
     }
   }
 
-  override def remover(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
+  override def remover(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
     val getRows = getRowKeys(sft)
-    (wf: WritableFeature) => {
+    (wf: AccumuloFeature) => {
       getRows(wf).map { case (descriptor, row) =>
         val mutation = new Mutation(row)
         val value = descriptor.getIndexCoverage() match {
@@ -107,32 +105,4 @@ object AttributeIndexV2 extends AccumuloFeatureIndex with AttributeWritableIndex
       }
     }
   }
-}
-
-// noinspection ScalaDeprecation
-// initial implementation
-object AttributeIndexV1 extends AccumuloFeatureIndex with AttributeWritableIndexV5 with AttributeQueryableIndexV5 {
-
-  override val name: String = "attr"
-
-  override val version: Int = 1
-
-  override val serializedWithId: Boolean = true
-
-  override def supports(sft: SimpleFeatureType): Boolean = {
-    import scala.collection.JavaConversions._
-
-    sft.getAttributeDescriptors.exists(_.isIndexed)
-  }
-
-  override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[AccumuloFilterStrategy] =
-    // note: strategy is the same between versioned indices
-    AttributeIndex.getFilterStrategy(sft, filter)
-
-  override def getCost(sft: SimpleFeatureType,
-                       ops: Option[AccumuloDataStore],
-                       filter: AccumuloFilterStrategy,
-                       transform: Option[SimpleFeatureType]): Long =
-    // note: cost is the same between versioned indices
-    AttributeIndex.getCost(sft, ops, filter, transform)
 }

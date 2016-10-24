@@ -11,7 +11,6 @@ package org.locationtech.geomesa.tools.accumulo.commands
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.util.ToolRunner
-import org.locationtech.geomesa.accumulo.data.GeoMesaMetadata
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.jobs.index.{WriteIndexArgs, WriteIndexJob}
@@ -33,7 +32,7 @@ import scala.util.control.NonFatal
   */
 class AddIndexCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
 
-  import GeoMesaMetadata.ATTRIBUTES_KEY
+  import org.locationtech.geomesa.index.utils.GeoMesaMetadata.ATTRIBUTES_KEY
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   override val command = "add-index"
@@ -76,7 +75,7 @@ class AddIndexCommand(parent: JCommander) extends CommandWithCatalog(parent) wit
     ds.metadata.insert(sft.getTypeName, backupKey, ds.metadata.readRequired(sft.getTypeName, ATTRIBUTES_KEY))
 
     val toKeep = sft.getIndices.filter { case (n, v, _) =>
-      !toDisable.map(_._2).contains(AccumuloFeatureIndex.IndexLookup(n, v))
+      !toDisable.map(_._2).contains(AccumuloFeatureIndex.lookup(n, v))
     }
 
     if (params.noBackFill != null && params.noBackFill) {

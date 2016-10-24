@@ -17,9 +17,7 @@ import org.apache.accumulo.core.data.{Range => ARange}
 import org.apache.hadoop.io.Text
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo._
-import org.locationtech.geomesa.accumulo.index.geohash.IndexFilterHelpers
-import org.locationtech.geomesa.accumulo.index.{BatchScanPlan, QueryPlan}
+import org.locationtech.geomesa.accumulo.index.{AccumuloQueryPlan, BatchScanPlan}
 import org.locationtech.geomesa.accumulo.process.knn.TouchingGeoHashes
 import org.locationtech.geomesa.raster.iterators.{RasterFilteringIterator => RFI}
 import org.locationtech.geomesa.raster.{defaultResolution, lexiEncodeDoubleToString, rasterSft, rasterSftName}
@@ -31,7 +29,7 @@ import org.opengis.filter.Filter
 import scala.collection.JavaConversions._
 import scala.util.Try
 
-object AccumuloRasterQueryPlanner extends LazyLogging with IndexFilterHelpers {
+object AccumuloRasterQueryPlanner extends LazyLogging {
 
   // The two geometries must at least have some intersection that is two-dimensional
   def improvedOverlaps(a: Geometry, b: Geometry): Boolean = a.relate(b, "2********")
@@ -47,7 +45,7 @@ object AccumuloRasterQueryPlanner extends LazyLogging with IndexFilterHelpers {
     resToBounds.keys.toArray.filter(_ >= res).sorted.find(c => improvedOverlaps(queryBounds.geom, resToBounds(c).geom))
 
   def getQueryPlan(rq: RasterQuery, resAndGeoHashMap: ImmutableSetMultimap[Double, Int],
-                    resAndBoundsMap: IMap[Double, BoundingBox]): Option[QueryPlan] = {
+                    resAndBoundsMap: IMap[Double, BoundingBox]): Option[AccumuloQueryPlan] = {
     // Step 1. Pick resolution and Make sure the query extent is contained in the extent at that resolution
     val selectedRes: Double = getAcceptableResolution(rq, resAndBoundsMap).getOrElse(defaultResolution)
     val res = lexiEncodeDoubleToString(selectedRes)
@@ -88,7 +86,7 @@ object AccumuloRasterQueryPlanner extends LazyLogging with IndexFilterHelpers {
 
       // TODO: WCS: setup a CFPlanner to match against a list of strings
       // ticket is GEOMESA-559
-      Some(BatchScanPlan(null, null, rows, Seq(cfg), Seq.empty[Text], null, -1, hasDuplicates = false))
+      Some(BatchScanPlan(null, null, rows, Seq(cfg), Seq.empty[Text], null, None, -1, hasDuplicates = false))
     }
   }
 
@@ -115,15 +113,17 @@ object AccumuloRasterQueryPlanner extends LazyLogging with IndexFilterHelpers {
     ff.and(ff.intersects(property, bounds), ff.not(ff.touches(property, bounds)))
   }
 
-  def configureRasterFilter(cfg: IteratorSetting, filter: Filter) =
+  def configureRasterFilter(cfg: IteratorSetting, filter: Filter) = {
+    import org.locationtech.geomesa.raster.iterators.IteratorExtensions.GEOMESA_ITERATORS_ECQL_FILTER
     cfg.addOption(GEOMESA_ITERATORS_ECQL_FILTER, ECQL.toCQL(filter))
+  }
 
   def configureRasterMetadataFeatureType(cfg: IteratorSetting, featureType: SimpleFeatureType) = {
-    import org.locationtech.geomesa.accumulo.iterators.legacy.RichIteratorSetting
+    import org.locationtech.geomesa.raster.iterators.IteratorExtensions._
     val encodedSimpleFeatureType = SimpleFeatureTypes.encodeType(featureType)
     cfg.addOption(GEOMESA_ITERATORS_SFT_NAME, rasterSftName)
     cfg.addOption(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE, encodedSimpleFeatureType)
-    cfg.encodeUserData(featureType.getUserData, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
+    encodeUserData(cfg, featureType.getUserData, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
   }
 
   def modifyHashRange(hash: String, expectedLen: Int, res: String): ARange = expectedLen match {

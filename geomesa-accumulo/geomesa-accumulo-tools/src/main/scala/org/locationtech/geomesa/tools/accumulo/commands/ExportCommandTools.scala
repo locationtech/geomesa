@@ -16,7 +16,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.tools.accumulo.Utils.setOverrideAttributes
 import org.locationtech.geomesa.tools.accumulo._
 import org.locationtech.geomesa.tools.common.{FeatureTypeNameParam, OptionalCQLFilterParam}
@@ -37,7 +37,7 @@ trait ExportCommandTools[P <: BaseExportCommands] extends LazyLogging {
     setOverrideAttributes(q, overrideAttributes.orElse(Option(seqAsJavaList(Seq(params.attributes)))))
 
     // get the feature store used to query the GeoMesa data
-    val fs = ds.getFeatureSource(params.featureName).asInstanceOf[AccumuloFeatureStore]
+    val fs = ds.getFeatureSource(params.featureName)
 
     // and execute the query
     Try(fs.getFeatures(q)) match {

@@ -16,8 +16,8 @@ import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex._
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
@@ -126,7 +126,7 @@ class KryoLazyFilterTransformIterator extends
 
 object KryoLazyFilterTransformIterator {
 
-  import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
+  import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
   val SFT_OPT                   = "sft"
   val INDEX_OPT                 = "index"
@@ -137,13 +137,13 @@ object KryoLazyFilterTransformIterator {
   val DefaultPriority = 25
 
   def configure(sft: SimpleFeatureType,
-                index: AccumuloFeatureIndex,
+                index: AccumuloFeatureIndexType,
                 filter: Option[Filter],
                 hints: Hints): Option[IteratorSetting] =
     configure(sft, index, filter, hints.getTransform, hints.getSampling)
 
   def configure(sft: SimpleFeatureType,
-                index: AccumuloFeatureIndex,
+                index: AccumuloFeatureIndexType,
                 filter: Option[Filter],
                 transform: Option[(String, SimpleFeatureType)],
                 sampling: Option[(Float, Option[String])],

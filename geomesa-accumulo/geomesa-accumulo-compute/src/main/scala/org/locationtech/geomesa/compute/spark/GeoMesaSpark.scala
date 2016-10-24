@@ -31,9 +31,10 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.index.EmptyPlan
-import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.features.kryo.serialization.SimpleFeatureSerializer
 import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatureSerializers}
+import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatureSerializers}
+import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaInputFormat
 import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator

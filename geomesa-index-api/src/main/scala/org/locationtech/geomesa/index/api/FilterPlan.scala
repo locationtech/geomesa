@@ -9,16 +9,17 @@
 package org.locationtech.geomesa.index.api
 
 import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.index.stats.HasGeoMesaStats
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.opengis.filter.Filter
 
 /**
   * Filters split into a 'primary' that will be used for range planning,
   * and a 'secondary' that will be applied as a final step.
   */
-case class FilterStrategy[Ops <: HasGeoMesaStats, FeatureWrapper, Result, Plan]
-    (index: GeoMesaFeatureIndex[Ops, FeatureWrapper, Result, Plan],
-    primary: Option[Filter], secondary: Option[Filter] = None) {
+case class FilterStrategy[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q]
+    (index: GeoMesaFeatureIndex[DS, F, W, Q],
+     primary: Option[Filter],
+     secondary: Option[Filter] = None) {
 
   lazy val filter: Option[Filter] = andOption(primary.toSeq ++ secondary)
 
@@ -30,14 +31,12 @@ case class FilterStrategy[Ops <: HasGeoMesaStats, FeatureWrapper, Result, Plan]
 /**
   * A series of queries required to satisfy a filter - basically split on ORs
   */
-case class FilterPlan[Ops <: HasGeoMesaStats, FeatureWrapper, Result, Plan]
-    (strategies: Seq[FilterStrategy[Ops, FeatureWrapper, Result, Plan]]) {
+case class FilterPlan[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q](strategies: Seq[FilterStrategy[DS, F, W, Q]]) {
   override lazy val toString: String = s"FilterPlan[${strategies.mkString(",")}]"
 }
 
 object FilterPlan {
-  def apply[Ops <: HasGeoMesaStats, FeatureWrapper, Result, Plan]
-      (filter: FilterStrategy[Ops, FeatureWrapper, Result, Plan]):
-      FilterPlan[Ops, FeatureWrapper, Result, Plan] = FilterPlan(Seq(filter))
+  def apply[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q](filter: FilterStrategy[DS, F, W, Q]): FilterPlan[DS, F, W, Q] =
+    FilterPlan(Seq(filter))
 }
 

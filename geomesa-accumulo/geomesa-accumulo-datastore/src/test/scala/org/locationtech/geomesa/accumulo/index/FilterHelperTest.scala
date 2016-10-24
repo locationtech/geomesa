@@ -15,7 +15,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
-import org.locationtech.geomesa.accumulo.index.geohash.IndexSchema
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.FilterHelper._
 import org.locationtech.geomesa.utils.filters.Filters._
 import org.opengis.filter.{And, Filter}
@@ -30,12 +30,12 @@ class FilterHelperTest extends Specification with Mockito with LazyLogging {
   val ff = CommonFactoryFinder.getFilterFactory2
   val gf = JTSFactoryFinder.getGeometryFactory
 
-  val min = IndexSchema.minDateTime
-  val max = IndexSchema.maxDateTime
-  val a   = new DateTime(2010,  1, 31, 23, 59, 59, DateTimeZone.forID("UTC"))
-  val b   = new DateTime(2010,  3,  4, 10, 11, 12, DateTimeZone.forID("UTC"))
-  val c   = new DateTime(2011,  2, 12, 15, 34, 23, DateTimeZone.forID("UTC"))
-  val d   = new DateTime(2012, 11,  5,  5, 55, 11, DateTimeZone.forID("UTC"))
+  val min = FilterHelper.MinDateTime
+  val max = FilterHelper.MaxDateTime
+  val a   = new DateTime(2010,  1, 31, 23, 59, 59, DateTimeZone.UTC)
+  val b   = new DateTime(2010,  3,  4, 10, 11, 12, DateTimeZone.UTC)
+  val c   = new DateTime(2011,  2, 12, 15, 34, 23, DateTimeZone.UTC)
+  val d   = new DateTime(2012, 11,  5,  5, 55, 11, DateTimeZone.UTC)
 
   val dts = Seq(a, b, c, d)
   val dtPairs: Seq[(DateTime, DateTime)] = dts.combinations(2).map(sortDates).toSeq

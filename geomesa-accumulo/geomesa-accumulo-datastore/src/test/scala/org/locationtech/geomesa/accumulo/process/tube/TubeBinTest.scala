@@ -16,7 +16,6 @@ import org.geotools.feature.DefaultFeatureCollection
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
-import org.locationtech.geomesa.accumulo.index.geohash.IndexEntryDecoder
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils

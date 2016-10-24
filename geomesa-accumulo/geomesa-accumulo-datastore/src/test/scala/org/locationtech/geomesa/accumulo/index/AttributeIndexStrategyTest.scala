@@ -18,15 +18,15 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.index.QueryHints._
-import org.locationtech.geomesa.accumulo.index.attribute.{AttributeIndex, AttributeQueryableIndex, AttributeWritableIndex}
+import org.locationtech.geomesa.accumulo.index.attribute.{AttributeIndex, AttributeWritableIndex}
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
 import org.locationtech.geomesa.index.api.{FilterSplitter, FilterStrategy}
+import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
@@ -87,7 +87,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
   "AttributeIndexStrategy" should {
     "print values" in {
       skipped("used for debugging")
-      val scanner = connector.createScanner(ds.getTableName(sftName, AttributeIndex), new Authorizations())
+      val scanner = connector.createScanner(AttributeIndex.getTableName(sftName, ds), new Authorizations())
       val prefix = AttributeWritableIndex.getRowPrefix(sft, sft.indexOf("fingers"))
       scanner.setRange(AccRange.prefix(new Text(prefix)))
       scanner.asScala.foreach(println)
