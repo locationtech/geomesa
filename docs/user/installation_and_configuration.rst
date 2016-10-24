@@ -656,26 +656,29 @@ Kafka you are running.
 Copy these additional dependencies (or the equivalents for your Kafka installation) to
 your GeoServer ``WEB-INF/lib`` directory.
 
-* Kafka 0.8
+Kafka 0.8
+
     * kafka-clients-0.8.2.1.jar
     * kafka_2.11-0.8.2.1.jar
     * metrics-core-2.2.0.jar
     * zkclient-0.3.jar
-    * zookeeper-3.4.5.jar or zookeeper-3.4.6.jar
+    * zookeeper-3.4.6.jar
 
-* Kafka 0.9
+Kafka 0.9
+
     * kafka-clients-0.9.0.1.jar
     * kafka_2.11-0.9.0.1.jar
     * metrics-core-2.2.0.jar
     * zkclient-0.7.jar
-    * zookeeper-3.4.5.jar or zookeeper-3.4.6.jar
+    * zookeeper-3.4.6.jar
 
-* Kafka 0.10
+Kafka 0.10
+
     * kafka-clients-0.10.0.1.jar
     * kafka-2.11-0.10.0.1.jar
     * metrics-core-2.2.0.jar
     * zkclient-0.8.jar
-    * zookeeper-3.4.5.jar or zookeeper-3.4.6.jar
+    * zookeeper-3.4.6.jar
 
 There is a script in the ``geomesa-kafka-$KAFKAVERSION_2.11-$VERSION/bin`` directory
 (``$GEOMESA_KAFKA_HOME/bin/install-kafka.sh``) which will install these
