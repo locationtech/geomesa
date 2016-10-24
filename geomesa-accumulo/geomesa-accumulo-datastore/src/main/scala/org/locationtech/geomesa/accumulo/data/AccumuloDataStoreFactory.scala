@@ -98,7 +98,6 @@ object AccumuloDataStoreFactory {
   }
 
   def buildAccumuloConnector(params: JMap[String,Serializable], useMock: Boolean): Connector = {
-    val zookeepers = zookeepersParam.lookup[String](params)
     val instance = instanceIdParam.lookup[String](params)
     val user = userParam.lookup[String](params)
     val password = passwordParam.lookup[String](params)
@@ -107,6 +106,7 @@ object AccumuloDataStoreFactory {
     if (useMock) {
       new MockInstance(instance).getConnector(user, authToken)
     } else {
+      val zookeepers = zookeepersParam.lookup[String](params)
       // NB: For those wanting to set this via JAVA_OPTS, this key is "instance.zookeeper.timeout" in Accumulo 1.6.x.
       val clientConfiguration = if (System.getProperty(ClientProperty.INSTANCE_ZK_TIMEOUT.getKey) != null) {
         new ClientConfiguration()

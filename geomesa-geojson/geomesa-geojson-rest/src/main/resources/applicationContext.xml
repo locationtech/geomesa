@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean class="org.locationtech.geomesa.geojson.servlet.GeoJsonServlet">
+    <constructor-arg index="0" ref="geoJsonDataPersistence"/>
+    <property name="debug" value="false"/>
+  </bean>
+
+  <bean name="geoJsonDataPersistence" class="org.locationtech.geomesa.utils.cache.FilePersistence">
+    <constructor-arg index="0">
+      <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetObject">
+          <bean class="org.geoserver.config.GeoServerDataDirectory">
+            <constructor-arg index="0">
+              <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+                <property name="targetClass" value="org.geoserver.platform.GeoServerResourceLoader"/>
+                <property name="targetMethod" value="lookupGeoServerDataDirectory"/>
+                <property name="arguments">
+                  <list>
+                    <ref bean="servletContext"/>
+                  </list>
+                </property>
+              </bean>
+            </constructor-arg>
+          </bean>
+        </property>
+        <property name="targetMethod" value="findOrCreateDir"/>
+        <property name="arguments">
+          <list>
+            <value type="java.lang.String">geomesa-config</value>
+          </list>
+        </property>
+      </bean>
+    </constructor-arg>
+    <constructor-arg index="1" value="geomesa-geojson"/>
+  </bean>
+
+</beans>

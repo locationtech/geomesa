@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.classpath
 
-import java.io.{BufferedInputStream, File, FileInputStream, InputStream}
+import java.io._
 import java.nio.charset.StandardCharsets
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
@@ -87,4 +87,25 @@ object PathUtils {
   def getSource(f: File): BufferedSource =
     Source.fromInputStream(getInputStream(f), StandardCharsets.UTF_8.displayName)
 
+  def deleteRecursively(f: Path): Unit = Files.walkFileTree(f, new DeleteFileVisitor)
+}
+
+class DeleteFileVisitor extends FileVisitor[Path] {
+  import FileVisitResult.CONTINUE
+
+  override def visitFileFailed(file: Path, exc: IOException): FileVisitResult = CONTINUE
+
+  override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
+    if (!attrs.isDirectory) {
+      Files.delete(file)
+    }
+    CONTINUE
+  }
+
+  override def preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult = CONTINUE
+
+  override def postVisitDirectory(dir: Path, exc: IOException): FileVisitResult = {
+    Files.delete(dir)
+    CONTINUE
+  }
 }
