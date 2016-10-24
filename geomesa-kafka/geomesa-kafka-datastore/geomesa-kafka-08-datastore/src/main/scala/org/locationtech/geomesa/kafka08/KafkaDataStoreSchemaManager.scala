@@ -10,17 +10,16 @@ package org.locationtech.geomesa.kafka08
 
 import java.util
 
-import com.google.common.cache.{CacheBuilder, CacheLoader}
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.I0Itec.zkclient.exception.ZkNodeExistsException
 import org.geotools.data.DataStore
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.kafka.{KafkaDataStoreHelper, ReplayConfig}
-import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 
 import scala.collection.JavaConverters._
 import scala.util.Try
@@ -139,10 +138,13 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
   }
 
   def updateKafkaSchema(typeName: String, sft: SimpleFeatureType) = {
+    import SimpleFeatureTypes.Configs._
+    import SimpleFeatureTypes.InternalConfigs._
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 
     // Get previous schema and user data
     val previousSft = getSchema(typeName)
-    val schemaTypeName = sft.getTypeName()
+    val schemaTypeName = sft.getTypeName
 
     // Prevent modifying wrong type if type names don't match
     if (!schemaTypeName.equals(typeName.toString)) {
@@ -155,7 +157,7 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
 
     // Check that unmodifiable user data has not changed
     val unmodifiableUserdataKeys = Set(SCHEMA_VERSION_KEY, TABLE_SHARING_KEY, SHARING_PREFIX_KEY,
-      DEFAULT_DATE_KEY, ST_INDEX_SCHEMA_KEY, SimpleFeatureTypes.ENABLED_INDEXES)
+      DEFAULT_DATE_KEY, ST_INDEX_SCHEMA_KEY, ENABLED_INDICES)
 
     unmodifiableUserdataKeys.foreach { key =>
       if (sft.getUserData.keySet().contains(key) && sft.userData[String](key) != previousSft.userData[String](key)) {
@@ -227,7 +229,7 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
   }
 
   private val schemaCache =
-    CacheBuilder.newBuilder().build(new CacheLoader[String, KafkaFeatureConfig] {
+    Caffeine.newBuilder().build(new CacheLoader[String, KafkaFeatureConfig] {
       override def load(k: String): KafkaFeatureConfig =
         resolveTopicSchema(k)
     })

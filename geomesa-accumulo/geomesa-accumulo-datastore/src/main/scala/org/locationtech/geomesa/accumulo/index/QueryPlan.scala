@@ -145,10 +145,8 @@ case class JoinPlan(filter: AccumuloFilterStrategy,
       QueryPlan.configureBatchScanner(batchScanner, this)
       batchScanner
     }
-    val secondary = acc.getBatchScanner(joinQuery.table, joinQuery.numThreads)
-    QueryPlan.configureBatchScanner(secondary, joinQuery)
 
-    val bms = new BatchMultiScanner(primary, secondary, joinFunction)
+    val bms = new BatchMultiScanner(acc, primary, joinQuery, joinFunction)
     SelfClosingIterator(bms.iterator, () => bms.close())
   }
 }

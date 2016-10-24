@@ -18,7 +18,6 @@ import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
 // TODO: Implement as traits and cache results to gain flexibility and speed-up.
@@ -33,6 +32,8 @@ trait RecordWritableIndex extends AccumuloWritableIndex {
   }
 
   override def configure(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
     import scala.collection.JavaConversions._
 
     val table = GeoMesaTable.formatTableName(ops.catalogTable, tableSuffix, sft)
@@ -42,11 +43,8 @@ trait RecordWritableIndex extends AccumuloWritableIndex {
 
     val prefix = sft.getTableSharingPrefix
     val prefixFn = getRowKey(prefix, _: String)
-    val splitterClazz = sft.getUserData.getOrElse(SimpleFeatureTypes.TABLE_SPLITTER, classOf[HexSplitter].getCanonicalName).asInstanceOf[String]
-    val clazz = Class.forName(splitterClazz)
-    val splitter = clazz.newInstance().asInstanceOf[TableSplitter]
-    val splitterOptions = sft.getUserData.getOrElse(SimpleFeatureTypes.TABLE_SPLITTER_OPTIONS, Map.empty[String, String]).asInstanceOf[Map[String, String]]
-    val splits = splitter.getSplits(splitterOptions)
+    val splitter = sft.getTableSplitter.getOrElse(classOf[HexSplitter]).newInstance().asInstanceOf[TableSplitter]
+    val splits = splitter.getSplits(sft.getTableSplitterOptions)
     val sortedSplits = splits.map(_.toString).map(prefixFn).map(new Text(_)).toSet
     val splitsToAdd = sortedSplits -- ops.tableOps.listSplits(table).toSet
     if (splitsToAdd.nonEmpty) {

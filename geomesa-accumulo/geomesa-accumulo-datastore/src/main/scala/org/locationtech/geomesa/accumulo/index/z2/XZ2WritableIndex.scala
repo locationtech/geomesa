@@ -20,19 +20,20 @@ import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
+import org.locationtech.geomesa.curve.XZ2SFC
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 
 trait XZ2WritableIndex extends AccumuloWritableIndex {
 
   import AccumuloWritableIndex.{DefaultNumSplits, DefaultSplitArrays}
-  import XZ2Index.SFC
 
   override def writer(sft: SimpleFeatureType, ops: AccumuloDataStore): (WritableFeature) => Seq[Mutation] = {
+    val sfc = XZ2SFC(sft.getXZPrecision)
     val sharing = sft.getTableSharingBytes
     require(sharing.length < 2, s"Expecting only a single byte for table sharing, got ${sft.getTableSharingPrefix}")
     (wf: WritableFeature) => {
-      val mutation = new Mutation(getRowKey(sharing)(wf))
+      val mutation = new Mutation(getRowKey(sfc, sharing)(wf))
       wf.fullValues.foreach(value => mutation.put(value.cf, value.cq, value.vis, value.value))
       wf.binValues.foreach(value => mutation.put(value.cf, value.cq, value.vis, value.value))
       Seq(mutation)
@@ -40,9 +41,10 @@ trait XZ2WritableIndex extends AccumuloWritableIndex {
   }
 
   override def remover(sft: SimpleFeatureType, ops: AccumuloDataStore): (WritableFeature) => Seq[Mutation] = {
+    val sfc = XZ2SFC(sft.getXZPrecision)
     val sharing = sft.getTableSharingBytes
     (wf: WritableFeature) => {
-      val mutation = new Mutation(getRowKey(sharing)(wf))
+      val mutation = new Mutation(getRowKey(sfc, sharing)(wf))
       wf.fullValues.foreach(value => mutation.putDelete(value.cf, value.cq, value.vis))
       wf.binValues.foreach(value => mutation.putDelete(value.cf, value.cq, value.vis))
       Seq(mutation)
@@ -55,10 +57,10 @@ trait XZ2WritableIndex extends AccumuloWritableIndex {
   }
 
   // table sharing (0-1 byte), split(1 byte), xz value (8 bytes), id (n bytes)
-  private def getRowKey(tableSharing: Array[Byte])(wf: WritableFeature): Array[Byte] = {
+  private def getRowKey(sfc: XZ2SFC, tableSharing: Array[Byte])(wf: WritableFeature): Array[Byte] = {
     val split = DefaultSplitArrays(wf.idHash % DefaultNumSplits)
     val envelope = wf.feature.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal
-    val xz = SFC.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY)
+    val xz = sfc.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY)
     val id = wf.feature.getID.getBytes(StandardCharsets.UTF_8)
     Bytes.concat(tableSharing, split, Longs.toByteArray(xz), id)
   }

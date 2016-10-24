@@ -65,6 +65,11 @@ trait XZ3QueryableIndex extends AccumuloFeatureIndex
     explain(s"Geometries: $geometries")
     explain(s"Intervals: $intervals")
 
+    if (geometries == DisjointGeometries || intervals == DisjointInterval) {
+      explain("Disjoint geometries or dates extracted, short-circuiting to empty query")
+      return EmptyPlan(filter)
+    }
+
     val ecql = filter.filter
 
     val (iterators, kvsToFeatures, colFamily) = if (hints.isBinQuery) {
@@ -96,7 +101,7 @@ trait XZ3QueryableIndex extends AccumuloFeatureIndex
     val table = ops.getTableName(sft.getTypeName, this)
     val numThreads = ops.getSuggestedThreads(sft.getTypeName, this)
 
-    val sfc = XZ3SFC(XZ3Index.Precision, sft.getZ3Interval)
+    val sfc = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
     val minTime = 0.0
     val maxTime = BinnedTime.maxOffset(sft.getZ3Interval).toDouble
     val wholePeriod = (minTime, maxTime)

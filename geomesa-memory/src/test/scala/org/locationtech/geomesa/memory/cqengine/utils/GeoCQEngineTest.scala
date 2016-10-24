@@ -38,7 +38,7 @@ class GeoCQEngineTest extends Specification with LazyLogging {
       def getGeoToolsCount(filter: Filter) = feats.count(filter.evaluate)
 
       def getCQEngineCount(filter: Filter, cq: GeoCQEngine) = {
-        cq.getReaderForFilter(filter).getIterator.size
+        cq.getReaderForFilter(filter).toIterator.size
       }
 
       def checkFilter(filter: Filter, cq: GeoCQEngine): MatchResult[Int] = {

@@ -11,12 +11,12 @@ package org.locationtech.geomesa.features.kryo
 import java.util.{Date, UUID}
 
 import org.junit.runner.RunWith
-
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
 import scala.collection.JavaConversions._
 
 //import scala.languageFeature.postfixOps
@@ -292,7 +292,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
 
       val start = System.currentTimeMillis()
       (0 until 1000000).foreach { _ =>
-        val de = serializer.read(serialized)
+        val de = serializer.deserialize(serialized)
         de.getAttribute(1)
       }
       println(s"took ${System.currentTimeMillis() - start}ms")

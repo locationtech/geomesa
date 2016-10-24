@@ -10,23 +10,13 @@ package org.locationtech.geomesa.api;
 
 import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Geometry;
-import org.geotools.filter.identity.FeatureIdImpl;
 import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 
 import java.util.Date;
 import java.util.List;
 
 public class DefaultSimpleFeatureView<T> implements SimpleFeatureView<T> {
-
-    private String name;
-
-    private SimpleFeatureType sft;
-
-    public DefaultSimpleFeatureView(String name) {
-        this.name = name;
-    }
 
     @Override
     public void populate(SimpleFeature f, T t, String id, byte[] payload, Geometry geom, Date dtg) {

@@ -10,6 +10,8 @@ package org.locationtech.geomesa.curve
 
 object XZSFC {
 
+  val DefaultPrecision: Short = 12
+
   val LogPointFive = math.log(0.5)
 
   /**

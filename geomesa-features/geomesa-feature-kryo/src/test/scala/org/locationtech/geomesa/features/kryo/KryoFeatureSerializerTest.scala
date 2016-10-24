@@ -250,7 +250,7 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       deserialized must not(beNull)
       deserialized.getType mustEqual sf.getType
       deserialized.getAttributes mustEqual sf.getAttributes
-    }
+    }.pendingUntilFixed("dropping back compatibility")
 
     "be faster than full deserialization" in {
       skipped("integration")

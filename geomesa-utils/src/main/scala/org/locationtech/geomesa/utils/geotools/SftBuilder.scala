@@ -11,7 +11,8 @@ package org.locationtech.geomesa.utils.geotools
 import java.util.{Date, UUID}
 
 import org.locationtech.geomesa.utils.geotools.SftBuilder._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs._
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.locationtech.geomesa.utils.stats.Cardinality.Cardinality
 import org.opengis.feature.`type`.AttributeDescriptor
@@ -111,7 +112,7 @@ abstract class InitBuilder[T] {
   def attributeDescriptor(ad: AttributeDescriptor) =
     append(ad.getLocalName, Opts(), ad.getType.getBinding.getCanonicalName)
 
-  def withIndexes(indexSuffixes: List[String]): T = userData(ENABLED_INDEXES.head, indexSuffixes.mkString(","))
+  def withIndexes(indexSuffixes: List[String]): T = userData(ENABLED_INDICES, indexSuffixes.mkString(","))
 
   def userData(key: String, value: String): T = {
     options.append(s"$key='$value'")

@@ -51,11 +51,13 @@ class DescribeCommand(parent: JCommander) extends CommandWithCatalog(parent) wit
 
       val userData = sft.getUserData
       if (!userData.isEmpty) {
+        import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.KEYWORDS_KEY
         println("\nUser data:")
-        userData.foreach {
-          case (KEYWORDS_KEY, v) => println(s"  $KEYWORDS_KEY: " +
-            "[".concat(v.asInstanceOf[String].split(KEYWORDS_DELIMITER)
-              .map{ "\"%s\"".format(_)}.mkString(",").concat("]")))
+        val keywords = sft.getKeywords
+        if (keywords.nonEmpty) {
+          println(s"  $KEYWORDS_KEY: [${keywords.map("\"%s\"".format(_)).mkString(",")}]")
+        }
+        userData.filterKeys(_ != KEYWORDS_KEY).foreach {
           case (key, value) => println(s"  $key: $value")
         }
       }

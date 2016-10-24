@@ -13,11 +13,13 @@ import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.filter.text.ecql.ECQL
 import org.json4s.{DefaultFormats, Formats}
+import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.tools.accumulo.commands.stats.StatsCommand
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.{Histogram, MinMax, Stat}
 import org.locationtech.geomesa.web.core.GeoMesaServletCatalog.GeoMesaLayerInfo
 import org.locationtech.geomesa.web.core.{GeoMesaScalatraServlet, GeoMesaServletCatalog}
+import org.opengis.filter.Filter
 import org.scalatra.BadRequest
 import org.scalatra.json._
 import org.scalatra.swagger._
@@ -56,9 +58,10 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
         summary "Gets an estimated count of simple features"
         notes "Gets an estimated count of simple features from the stats table in Accumulo."
         parameters (
-        pathParam[String]("workspace").description("GeoServer workspace."),
-        pathParam[String]("layer").description("GeoServer layer."),
-        queryParam[Option[String]]("cql_filter").description("A CQL filter to compute the count of simple features against. If omitted, the CQL filter will be Filter.INCLUDE."))
+        pathParam[String](GeoMesaStatsEndpoint.WorkspaceParam).description("GeoServer workspace."),
+        pathParam[String](GeoMesaStatsEndpoint.LayerParam).description("GeoServer layer."),
+        queryParam[Option[String]](GeoMesaStatsEndpoint.CqlFilterParam).description("A CQL filter to compute the count of simple features against. Defaults to Filter.INCLUDE."),
+        queryParam[Option[Boolean]](GeoMesaStatsEndpoint.NoCacheParam).description("Calculate stats against the data set instead of using cached statistics (may be slow)."))
     )
 
   get("/:workspace/:layer/count", operation(getCount)) {
@@ -66,19 +69,15 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
       case Some(statInfo) =>
         val layer = params(GeoMesaStatsEndpoint.LayerParam)
         val sft = statInfo.sft
+        val filter = params.get(GeoMesaStatsEndpoint.CqlFilterParam).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
+        val noCache = params.get(GeoMesaStatsEndpoint.NoCacheParam).exists(_.toBoolean)
 
         logger.debug(s"Found a GeoMesa Accumulo datastore for $layer")
         logger.debug(s"SFT for $layer is ${SimpleFeatureTypes.encodeType(sft)}")
+        logger.debug(s"Running stat with filter: $filter")
+        logger.debug(s"Running stat with no cached stats: $noCache")
 
-        // obtain stats using cql filter if present
-        val geomesaStats = statInfo.ads.stats
-        val countStat = params.get(GeoMesaStatsEndpoint.CqlFilterParam) match {
-          case Some(filter) =>
-            val cqlFilter = ECQL.toFilter(filter)
-            logger.debug(s"Querying with filter: $filter")
-            geomesaStats.getCount(sft, cqlFilter)
-          case None => geomesaStats.getCount(sft)
-        }
+        val countStat = statInfo.ads.stats.getCount(sft, filter, noCache)
 
         countStat match {
           case Some(count) =>
@@ -98,9 +97,11 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
         summary "Gets the bounds of attributes"
         notes "Gets the bounds of attributes from the stats table in Accumulo."
         parameters (
-        pathParam[String]("workspace").description("GeoServer workspace."),
-        pathParam[String]("layer").description("GeoServer layer."),
-        queryParam[Option[String]]("attributes").description("A comma separated list of attribute names to retrieve bounds for. If omitted, all attributes will be used."))
+        pathParam[String](GeoMesaStatsEndpoint.WorkspaceParam).description("GeoServer workspace."),
+        pathParam[String](GeoMesaStatsEndpoint.LayerParam).description("GeoServer layer."),
+        queryParam[Option[String]](GeoMesaStatsEndpoint.AttributesParam).description("A comma separated list of attribute names to retrieve bounds for. If omitted, all attributes will be used."),
+        queryParam[Option[String]](GeoMesaStatsEndpoint.CqlFilterParam).description("A CQL filter to compute the count of simple features against. Defaults to Filter.INCLUDE. Will not be used if the noCache parameter is false."),
+        queryParam[Option[Boolean]](GeoMesaStatsEndpoint.NoCacheParam).description("Calculate stats against the data set instead of using cached statistics (may be slow)."))
     )
 
   get("/:workspace/:layer/bounds", operation(getBounds)) {
@@ -108,9 +109,13 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
       case Some(statInfo) =>
         val layer = params(GeoMesaStatsEndpoint.LayerParam)
         val sft = statInfo.sft
+        val filter = params.get(GeoMesaStatsEndpoint.CqlFilterParam).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
+        val noCache = params.get(GeoMesaStatsEndpoint.NoCacheParam).exists(_.toBoolean)
 
         logger.debug(s"Found a GeoMesa Accumulo datastore for $layer")
         logger.debug(s"SFT for $layer is ${SimpleFeatureTypes.encodeType(sft)}")
+        logger.debug(s"Running stat with filter: $filter")
+        logger.debug(s"Running stat with no cached stats: $noCache")
 
         val userAttributes: Seq[String] = params.get(GeoMesaStatsEndpoint.AttributesParam) match {
           case Some(attributesString) => attributesString.split(',')
@@ -118,7 +123,12 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
         }
         val attributes = StatsCommand.getAttributes(sft, userAttributes)
 
-        val boundStatList = statInfo.ads.stats.getStats[MinMax[Any]](sft, attributes)
+        val boundStatList = if (noCache) {
+          val statQuery = Stat.SeqStat(attributes.map(Stat.MinMax))
+          statInfo.ads.stats.runStats[MinMax[Any]](sft, statQuery, filter)
+        } else {
+          statInfo.ads.stats.getStats[MinMax[Any]](sft, attributes)
+        }
 
         val jsonBoundsList = attributes.map { attribute =>
           val i = sft.indexOf(attribute)
@@ -142,10 +152,13 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
         summary "Gets histograms of attributes"
         notes "Gets histograms of attributes from the stats table in Accumulo."
         parameters (
-        pathParam[String]("workspace").description("GeoServer workspace."),
-        pathParam[String]("layer").description("GeoServer layer."),
-        queryParam[Option[String]]("attributes").description("A comma separated list of attribute names to retrieve bounds for. If omitted, all attributes will be used."),
-        queryParam[Option[Integer]]("bins").description("The number of bins the histograms will have. Defaults to 1000."))
+        pathParam[String](GeoMesaStatsEndpoint.WorkspaceParam).description("GeoServer workspace."),
+        pathParam[String](GeoMesaStatsEndpoint.LayerParam).description("GeoServer layer."),
+        queryParam[Option[String]](GeoMesaStatsEndpoint.AttributesParam).description("A comma separated list of attribute names to retrieve bounds for. If omitted, all attributes will be used."),
+        queryParam[Option[Integer]](GeoMesaStatsEndpoint.BinsParam).description("The number of bins the histograms will have. Defaults to 1000."),
+        queryParam[Option[String]](GeoMesaStatsEndpoint.CqlFilterParam).description("A CQL filter to compute the count of simple features against. Defaults to Filter.INCLUDE. Will not be used if the noCache parameter is false."),
+        queryParam[Option[Boolean]](GeoMesaStatsEndpoint.NoCacheParam).description("Calculate stats against the data set instead of using cached statistics (may be slow)."),
+        queryParam[Option[Boolean]](GeoMesaStatsEndpoint.CalculateBoundsParam).description("Calculates the bounds of each histogram. Will use the default bounds if false. Will not be used if the noCache parameter is false."))
     )
 
   get("/:workspace/:layer/histogram", operation(getHistograms)) {
@@ -153,9 +166,14 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
       case Some(statInfo) =>
         val layer = params(GeoMesaStatsEndpoint.LayerParam)
         val sft = statInfo.sft
+        val filter = params.get(GeoMesaStatsEndpoint.CqlFilterParam).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
+        val noCache = params.get(GeoMesaStatsEndpoint.NoCacheParam).exists(_.toBoolean)
+        val calculateBounds = params.get(GeoMesaStatsEndpoint.CalculateBoundsParam).exists(_.toBoolean)
 
         logger.debug(s"Found a GeoMesa Accumulo datastore for $layer")
         logger.debug(s"SFT for $layer is ${SimpleFeatureTypes.encodeType(sft)}")
+        logger.debug(s"Running stat with filter: $filter")
+        logger.debug(s"Running stat with no cached stats: $noCache")
 
         val userAttributes: Seq[String] = params.get(GeoMesaStatsEndpoint.AttributesParam) match {
           case Some(attributesString) => attributesString.split(',')
@@ -165,16 +183,52 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
 
         val bins = params.get(GeoMesaStatsEndpoint.BinsParam).map(_.toInt)
 
-        val histograms = statInfo.ads.stats.getStats[Histogram[Any]](sft, attributes).map {
-          case histogram: Histogram[Any] if bins.forall(_ == histogram.length) => histogram
-          case histogram: Histogram[Any] =>
-            val descriptor = sft.getDescriptor(histogram.attribute)
-            val ct = ClassTag[Any](descriptor.getType.getBinding)
-            val attribute = descriptor.getLocalName
-            val statString = Stat.Histogram[Any](attribute, bins.get, histogram.min, histogram.max)(ct)
-            val binned = Stat(sft, statString).asInstanceOf[Histogram[Any]]
-            binned.addCountsFrom(histogram)
-            binned
+        val histograms = if (noCache) {
+          val bounds = scala.collection.mutable.Map.empty[String, (Any, Any)]
+          attributes.foreach { attribute =>
+            statInfo.ads.stats.getStats[MinMax[Any]](sft, Seq(attribute)).headOption.foreach { b =>
+              bounds.put(attribute, if (b.min == b.max) Histogram.buffer(b.min) else b.bounds)
+            }
+          }
+
+          if (bounds.size != attributes.size) {
+            val noBounds = attributes.filterNot(bounds.contains)
+            logger.warn(s"Initial bounds are not available for attributes ${noBounds.mkString(", ")}.")
+
+            if (calculateBounds) {
+              logger.debug("Calculating bounds...")
+              statInfo.ads.stats.runStats[MinMax[Any]](sft, Stat.SeqStat(noBounds.map(Stat.MinMax)), filter).foreach { mm =>
+                bounds.put(sft.getDescriptor(mm.attribute).getLocalName, mm.bounds)
+              }
+            } else {
+              logger.debug("Using default bounds.")
+              noBounds.foreach { attribute =>
+                val ct = ClassTag[Any](sft.getDescriptor(attribute).getType.getBinding)
+                bounds.put(attribute, GeoMesaStats.defaultBounds(ct.runtimeClass))
+              }
+            }
+          }
+
+          logger.debug("Running live histogram stat query...")
+          val length = bins.getOrElse(GeoMesaStats.DefaultHistogramSize)
+          val queries = attributes.map { attribute =>
+            val ct = ClassTag[Any](sft.getDescriptor(attribute).getType.getBinding)
+            val (lower, upper) = bounds(attribute)
+            Stat.Histogram[Any](attribute, length, lower, upper)(ct)
+          }
+          statInfo.ads.stats.runStats[Histogram[Any]](sft, Stat.SeqStat(queries), filter)
+        } else {
+          statInfo.ads.stats.getStats[Histogram[Any]](sft, attributes).map {
+            case histogram: Histogram[Any] if bins.forall(_ == histogram.length) => histogram
+            case histogram: Histogram[Any] =>
+              val descriptor = sft.getDescriptor(histogram.attribute)
+              val ct = ClassTag[Any](descriptor.getType.getBinding)
+              val attribute = descriptor.getLocalName
+              val statString = Stat.Histogram[Any](attribute, bins.get, histogram.min, histogram.max)(ct)
+              val binned = Stat(sft, statString).asInstanceOf[Histogram[Any]]
+              binned.addCountsFrom(histogram)
+              binned
+          }
         }
 
         val jsonHistogramList = attributes.map { attribute =>
@@ -207,6 +261,8 @@ object GeoMesaStatsEndpoint {
   val CqlFilterParam = "cql_filter"
   val AttributesParam = "attributes"
   val BinsParam = "bins"
+  val NoCacheParam = "noCache"
+  val CalculateBoundsParam = "calculateBounds"
 }
 
 
