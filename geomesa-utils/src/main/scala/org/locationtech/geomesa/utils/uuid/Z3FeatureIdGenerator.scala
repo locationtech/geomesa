@@ -64,6 +64,8 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator with LazyLogging {
         .getOrElse(System.currentTimeMillis())
 
     val pt = sf.getAttribute(sft.getGeomIndex)
+    validateGeometry(pt.asInstanceOf[Geometry])
+
     if (sft.isPoints) {
       createUuid(pt.asInstanceOf[Point], time, sft.getZ3Interval)
     } else {
@@ -73,16 +75,14 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator with LazyLogging {
   }
 
   def createUuid(geom: Geometry, time: Long, period: TimePeriod): UUID = {
+    validateGeometry(geom)
+
     import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
     createUuid(geom.safeCentroid(), time, period)
   }
 
   def createUuid(pt: Point, time: Long, period: TimePeriod): UUID = {
-    // handle missing geometry
-    if (pt == null) {
-      logger.error("Cannot generate a meaningful UUID for a <NULL> geometry; returning a random UUID instead.")
-      return UUID.randomUUID()
-    }
+    validateGeometry(pt)
 
     // create the random part
     // this uses the same temp array we use later, so be careful with the order this gets called
@@ -116,6 +116,11 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator with LazyLogging {
     val mostSigBits = Longs.fromByteArray(msb)
 
     new UUID(mostSigBits, leastSigBits)
+  }
+
+  // features with a null geometry-to-index should be rejected
+  private def validateGeometry(geom: Geometry): Unit = if (geom == null) {
+    throw new Exception("Cannot meaningfully index a feature with a NULL geometry")
   }
 
   // takes 4 low bits from b1 and 4 high bits of b2 as a new byte
