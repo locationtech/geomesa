@@ -13,7 +13,6 @@ import org.apache.hadoop.io.Text
 import org.geotools.data.FeatureWriter
 import org.geotools.factory.Hints.ClassKey
 import org.locationtech.geomesa.features.SerializationType
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 package object data {
@@ -30,8 +29,6 @@ package object data {
   // SimpleFeature Hints
   val TRANSFORMS           = new ClassKey(classOf[String])
   val TRANSFORM_SCHEMA     = new ClassKey(classOf[SimpleFeatureType])
-  @deprecated
-  val GEOMESA_UNIQUE       = new ClassKey(classOf[String])
 
   type SFFeatureWriter = FeatureWriter[SimpleFeatureType, SimpleFeature]
 }

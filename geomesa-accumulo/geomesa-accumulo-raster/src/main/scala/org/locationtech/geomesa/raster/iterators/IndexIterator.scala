@@ -6,21 +6,26 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.iterators.legacy
+package org.locationtech.geomesa.raster.iterators
 
 import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 
 /**
- * Iterator for the record table. Applies transforms and ECQL filters.
+ * This is an Index Only Iterator, to be used in situations where the data records are
+ * not useful enough to pay the penalty of decoding when using the
+ * SpatioTemporalIntersectingIterator.
+ *
+ * This iterator returns as its nextKey the key for the index. nextValue is
+ * the value for the INDEX, mapped into a SimpleFeature
  */
-class RecordTableIterator
+class IndexIterator
     extends GeomesaFilteringIterator
     with HasFeatureType
-    with SetTopInclude
-    with SetTopFilter
-    with SetTopTransform
-    with SetTopFilterTransform {
+    with SetTopIndexUnique
+    with SetTopIndexFilterUnique
+    with SetTopIndexTransformUnique
+    with SetTopIndexFilterTransformUnique {
 
   var setTopOptimized: (Key) => Unit = null
 
@@ -33,15 +38,17 @@ class RecordTableIterator
 
     // pick the execution path once based on the filters and transforms we need to apply
     // see org.locationtech.geomesa.core.iterators.IteratorFunctions
-    setTopOptimized = (filter, transform) match {
-      case (null, null) => setTopInclude
-      case (_, null)    => setTopFilter
-      case (null, _)    => setTopTransform
-      case (_, _)       => setTopFilterTransform
+    setTopOptimized = (stFilter, transform, checkUniqueId) match {
+      case (null, null, null) => setTopIndexInclude
+      case (null, null, _)    => setTopIndexUnique
+      case (_, null, null)    => setTopIndexFilter
+      case (_, null, _)       => setTopIndexFilterUnique
+      case (null, _, null)    => setTopIndexTransform
+      case (null, _, _)       => setTopIndexTransformUnique
+      case (_, _, null)       => setTopIndexFilterTransform
+      case (_, _, _)          => setTopIndexFilterTransformUnique
     }
   }
 
   override def setTopConditionally(): Unit = setTopOptimized(source.getTopKey)
 }
-
-

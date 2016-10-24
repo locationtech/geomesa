@@ -29,10 +29,6 @@ import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.index.attribute.{AttributeIndex, AttributeSplittable}
-import org.locationtech.geomesa.utils.index.IndexMode
-import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
-// noinspection ScalaDeprecation
-import org.locationtech.geomesa.accumulo.index.geohash.GeoHashIndex
 import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.accumulo.iterators.ProjectVersionIterator
 import org.locationtech.geomesa.accumulo.util.{DistributedLocking, Releasable}
@@ -44,7 +40,8 @@ import org.locationtech.geomesa.security.{AuditProvider, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.conf.GeoMesaProperties
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.{GeoToolsDateFormat, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
+import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
+import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, IndexMode}
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -210,8 +207,6 @@ class AccumuloDataStore(val connector: Connector,
           ENABLED_INDEX_OPTS.foreach { i =>
             metadata.read(typeName, i).foreach(e => sft.getUserData.put(ENABLED_INDICES, e))
           }
-          // old st_idx schema, kept around for back-compatibility
-          metadata.read(typeName, "schema").foreach(sft.setStIndexSchema)
         }
 
         // set the enabled indices
@@ -545,7 +540,6 @@ class AccumuloDataStore(val connector: Connector,
     lazy val oldKey = index match {
       case i if i.name == RecordIndex.name    => "tables.record.name"
       case i if i.name == AttributeIndex.name => "tables.idx.attr.name"
-      case GeoHashIndex => "tables.idx.st.name"
       case i => s"tables.${i.name}.name"
     }
     metadata.read(featureName, index.tableNameKey).orElse(metadata.read(featureName, oldKey)).getOrElse {

@@ -16,11 +16,10 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.Constants
-import org.locationtech.geomesa.accumulo.index.geohash.IndexFilterHelpers
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.utils.geohash.GeoHash
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, WholeWorldPolygon}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -117,7 +116,7 @@ class GenerateKNNQueryTest extends Specification {
         }
       }
 
-      val geometryToCover = new IndexFilterHelpers{}.netGeom(geomsToCover)
+      val geometryToCover = Option(geomsToCover).map(_.intersection(WholeWorldPolygon)).orNull
 
       // confirm that the extracted spatial predicate matches the GeoHash BBOX.
       geometryToCover.equals(smallGH.geom) must beTrue

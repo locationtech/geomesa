@@ -10,6 +10,7 @@ package org.locationtech.geomesa.accumulo.index
 
 import java.util.Map.Entry
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.apache.hadoop.io.Text
 import org.geotools.filter.identity.FeatureIdImpl
@@ -18,12 +19,11 @@ import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeat
 import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndexV2
 import org.locationtech.geomesa.accumulo.index.id.RecordIndexV1
 // noinspection ScalaDeprecation
-import org.locationtech.geomesa.accumulo.index.attribute.{AttributeIndex, AttributeIndexV1}
+import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
 import org.locationtech.geomesa.accumulo.index.z2.{XZ2Index, Z2IndexV1}
 import org.locationtech.geomesa.accumulo.index.z3.{XZ3Index, Z3IndexV1, Z3IndexV2}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 // noinspection ScalaDeprecation
-import org.locationtech.geomesa.accumulo.index.geohash.GeoHashIndex
 import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.accumulo.index.z2.Z2Index
 import org.locationtech.geomesa.accumulo.index.z3.Z3Index
@@ -35,15 +35,15 @@ import org.locationtech.geomesa.security.SecurityUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 // noinspection ScalaDeprecation
-object AccumuloFeatureIndex {
+object AccumuloFeatureIndex extends LazyLogging {
 
   type AccumuloFeatureIndex = GeoMesaFeatureIndex[AccumuloDataStore, WritableFeature, Seq[Mutation], QueryPlan]
   type AccumuloFilterPlan = FilterPlan[AccumuloDataStore, WritableFeature, Seq[Mutation], QueryPlan]
   type AccumuloFilterStrategy = FilterStrategy[AccumuloDataStore, WritableFeature, Seq[Mutation], QueryPlan]
 
-  private val SpatialIndices        = Seq(Z2Index, XZ2Index, Z2IndexV1, GeoHashIndex)
+  private val SpatialIndices        = Seq(Z2Index, XZ2Index, Z2IndexV1)
   private val SpatioTemporalIndices = Seq(Z3Index, XZ3Index, Z3IndexV2, Z3IndexV1)
-  private val AttributeIndices      = Seq(AttributeIndex, AttributeIndexV2, AttributeIndexV1)
+  private val AttributeIndices      = Seq(AttributeIndex, AttributeIndexV2)
   private val RecordIndices         = Seq(RecordIndex, RecordIndexV1)
 
   // note: keep in priority order for running full table scans
@@ -100,16 +100,23 @@ object AccumuloFeatureIndex {
     */
   def getDefaultIndices(sft: SimpleFeatureType): Seq[AccumuloWritableIndex] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    val indices = sft.getSchemaVersion match {
-      case 10 | 9 => CurrentIndices // note: version 9 was never in a release
-      case 8  => Seq(Z3IndexV2, Z2IndexV1, RecordIndexV1, AttributeIndexV2)
-      case 7  => Seq(Z3IndexV2, GeoHashIndex, RecordIndexV1, AttributeIndexV2)
-      case 6  => Seq(Z3IndexV1, GeoHashIndex, RecordIndexV1, AttributeIndexV2)
-      case 5  => Seq(Z3IndexV1, GeoHashIndex, RecordIndexV1, AttributeIndexV1)
-      case 4  => Seq(GeoHashIndex, RecordIndexV1, AttributeIndexV1)
-      case 3  => Seq(GeoHashIndex, RecordIndexV1, AttributeIndexV1)
-      case 2  => Seq(GeoHashIndex, RecordIndexV1, AttributeIndexV1)
-      case _ => throw new NotImplementedError("Need to update this method for new schema version")
+    lazy val docs =
+      "http://www.geomesa.org/documentation/user/jobs.html#updating-existing-data-to-the-latest-index-format"
+    val version = sft.getSchemaVersion
+    val indices = if (version > 8) {
+      CurrentIndices // note: version 9 was never in a release
+    } else if (version == 8) {
+      Seq(Z3IndexV2, Z2IndexV1, RecordIndexV1, AttributeIndexV2)
+    } else if (version > 5) {
+      logger.warn("The GeoHash index is no longer supported. Some queries make take longer than normal. To " +
+          s"update your data to a newer format, see $docs")
+      version match {
+        case 7 => Seq(Z3IndexV2, RecordIndexV1, AttributeIndexV2)
+        case 6 => Seq(Z3IndexV1, RecordIndexV1, AttributeIndexV2)
+      }
+    } else {
+      throw new NotImplementedError("This schema format is no longer supported. Please use " +
+          s"GeoMesa 1.2.6+ to update you data to a newer format. For more information, see $docs")
     }
     indices.filter(_.supports(sft))
   }

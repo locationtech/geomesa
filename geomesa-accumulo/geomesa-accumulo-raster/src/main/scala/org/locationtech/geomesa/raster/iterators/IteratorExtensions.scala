@@ -6,13 +6,15 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.iterators.legacy
+package org.locationtech.geomesa.raster.iterators
 
-import org.locationtech.geomesa.accumulo._
+import org.apache.accumulo.core.client.IteratorSetting
+import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.accumulo.index.encoders.IndexValueEncoder
-import org.locationtech.geomesa.accumulo.iterators.legacy.IteratorExtensions.OptionMap
+import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features._
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
+import org.locationtech.geomesa.raster.iterators.IteratorExtensions._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -26,7 +28,50 @@ trait IteratorExtensions {
 }
 
 object IteratorExtensions {
+
   type OptionMap = java.util.Map[String, String]
+
+  val ST_FILTER_PROPERTY_NAME = "geomesa.index.filter"
+  val DEFAULT_CACHE_SIZE_NAME = "geomesa.index.cache-size"
+  val FEATURE_ENCODING        = "geomesa.feature.encoding"
+
+  val GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE      = "geomesa.iterators.aggregator-types"
+  val GEOMESA_ITERATORS_SFT_NAME                 = "geomesa.iterators.sft-name"
+  val GEOMESA_ITERATORS_SFT_INDEX_VALUE          = "geomesa.iterators.sft.index-value-schema"
+  val GEOMESA_ITERATORS_ECQL_FILTER              = "geomesa.iterators.ecql-filter"
+  val GEOMESA_ITERATORS_TRANSFORM                = "geomesa.iterators.transform"
+  val GEOMESA_ITERATORS_TRANSFORM_SCHEMA         = "geomesa.iterators.transform.schema"
+  val GEOMESA_ITERATORS_IS_DENSITY_TYPE          = "geomesa.iterators.is-density-type"
+  val GEOMESA_ITERATORS_VERSION                  = "geomesa.iterators.version"
+
+  val USER_DATA = ".userdata."
+
+  /**
+    *  Copy UserData entries taken from a SimpleFeatureType into an IteratorSetting for later transfer back into
+    *  a SimpleFeatureType
+    *
+    *  This works around the fact that SimpleFeatureTypes.encodeType ignores the UserData
+    *
+    */
+  def encodeUserData(cfg: IteratorSetting, userData: java.util.Map[AnyRef,AnyRef], keyPrefix: String): Unit = {
+    import scala.collection.JavaConversions._
+    val fullPrefix = keyPrefix + USER_DATA
+    userData.foreach { case (k, v) => cfg.addOption(fullPrefix + k.toString, v.toString)}
+  }
+
+  /**
+    *  Copy UserData entries taken from an IteratorSetting/Options back into
+    *  a SimpleFeatureType
+    *
+    *  This works around the fact that SimpleFeatureTypes.encodeType ignores the UserData
+    *
+    */
+  def decodeUserData(sft: SimpleFeatureType, options: java.util.Map[String,String], keyPrefix:String): Unit = {
+    import scala.collection.JavaConversions._
+    val fullPrefix = keyPrefix + USER_DATA
+    val ud = options.collect { case (k, v) if k.startsWith(fullPrefix) => k.stripPrefix(fullPrefix) -> v }
+    sft.getUserData.putAll(ud)
+  }
 }
 
 /**
@@ -48,7 +93,7 @@ trait HasFeatureType {
   def initFeatureType(options: OptionMap) = {
     val sftName = Option(options.get(GEOMESA_ITERATORS_SFT_NAME)).getOrElse(this.getClass.getSimpleName)
     featureType = SimpleFeatureTypes.createType(sftName, options.get(GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE))
-    featureType.decodeUserData(options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
+    decodeUserData(featureType, options, GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE)
   }
 }
 
@@ -77,6 +122,7 @@ trait HasIndexValueDecoder extends HasVersion {
     indexSft = SimpleFeatureTypes.createType(featureType.getTypeName,
       options.get(GEOMESA_ITERATORS_SFT_INDEX_VALUE))
     indexSft.setSchemaVersion(version)
+    // noinspection ScalaDeprecation
     indexEncoder = IndexValueEncoder(indexSft, featureType)
   }
 }
@@ -104,6 +150,8 @@ trait HasFeatureDecoder extends IteratorExtensions {
  * Provides a spatio-temporal filter (date and geometry only) if the iterator config specifies one
  */
 trait HasSpatioTemporalFilter extends IteratorExtensions {
+
+  import IteratorExtensions.ST_FILTER_PROPERTY_NAME
 
   var stFilter: Filter = null
 
@@ -155,7 +203,7 @@ trait HasTransforms extends IteratorExtensions {
         options.containsKey(GEOMESA_ITERATORS_TRANSFORM)) {
       val transformSchema = options.get(GEOMESA_ITERATORS_TRANSFORM_SCHEMA)
       val targetFeatureType = SimpleFeatureTypes.createType(this.getClass.getCanonicalName, transformSchema)
-      targetFeatureType.decodeUserData(options, GEOMESA_ITERATORS_TRANSFORM_SCHEMA)
+      decodeUserData(targetFeatureType, options, GEOMESA_ITERATORS_TRANSFORM_SCHEMA)
 
       val transformString = options.get(GEOMESA_ITERATORS_TRANSFORM)
       val transformEncoding = Option(options.get(FEATURE_ENCODING)).map(SerializationType.withName)
@@ -170,6 +218,8 @@ trait HasTransforms extends IteratorExtensions {
  * Provides deduplication if the iterator config specifies it
  */
 trait HasInMemoryDeduplication extends IteratorExtensions {
+
+  import IteratorExtensions.DEFAULT_CACHE_SIZE_NAME
 
   type CheckUniqueId = (String) => Boolean
 
@@ -213,6 +263,33 @@ trait HasInMemoryDeduplication extends IteratorExtensions {
               !inMemoryIdCache.contains(id)
             }
       }
+    }
+  }
+}
+
+object TransformCreator {
+
+  /**
+    * Create a function to transform a feature from one sft to another...this will
+    * result in a new feature instance being created and encoded.
+    *
+    * The function returned may NOT be ThreadSafe to due the fact it contains a
+    * SimpleFeatureEncoder instance which is not thread safe to optimize performance
+    */
+  def createTransform(targetFeatureType: SimpleFeatureType,
+                      featureEncoding: SerializationType,
+                      transformString: String): (SimpleFeature => Array[Byte]) = {
+    import scala.collection.JavaConversions._
+
+    val encoder = SimpleFeatureSerializers(targetFeatureType, featureEncoding)
+    val defs = TransformProcess.toDefinition(transformString)
+
+    val newSf = new ScalaSimpleFeature("reusable", targetFeatureType)
+
+    (feature: SimpleFeature) => {
+      newSf.getIdentifier.setID(feature.getIdentifier.getID)
+      defs.foreach { t => newSf.setAttribute(t.name, t.expression.evaluate(feature)) }
+      encoder.serialize(newSf)
     }
   }
 }

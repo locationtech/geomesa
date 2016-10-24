@@ -11,11 +11,10 @@ package org.locationtech.geomesa.accumulo.index.attribute
 import org.apache.accumulo.core.data.Mutation
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter._
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.{AccumuloFeatureIndex, AccumuloFilterStrategy}
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 // current version - id in row keys
 object AttributeIndex extends AccumuloFeatureIndex with AttributeWritableIndex with AttributeQueryableIndex {
@@ -107,32 +106,4 @@ object AttributeIndexV2 extends AccumuloFeatureIndex with AttributeWritableIndex
       }
     }
   }
-}
-
-// noinspection ScalaDeprecation
-// initial implementation
-object AttributeIndexV1 extends AccumuloFeatureIndex with AttributeWritableIndexV5 with AttributeQueryableIndexV5 {
-
-  override val name: String = "attr"
-
-  override val version: Int = 1
-
-  override val serializedWithId: Boolean = true
-
-  override def supports(sft: SimpleFeatureType): Boolean = {
-    import scala.collection.JavaConversions._
-
-    sft.getAttributeDescriptors.exists(_.isIndexed)
-  }
-
-  override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[AccumuloFilterStrategy] =
-    // note: strategy is the same between versioned indices
-    AttributeIndex.getFilterStrategy(sft, filter)
-
-  override def getCost(sft: SimpleFeatureType,
-                       ops: Option[AccumuloDataStore],
-                       filter: AccumuloFilterStrategy,
-                       transform: Option[SimpleFeatureType]): Long =
-    // note: cost is the same between versioned indices
-    AttributeIndex.getCost(sft, ops, filter, transform)
 }
