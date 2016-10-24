@@ -29,10 +29,28 @@ commons_vfs2_version="2.0"
 # Resource download location
 base_url="https://search.maven.org/remotecontent?filepath="
 
-# Print versions available for download
+function compareVersions() {
+  # usage: compareVersions [version_1] [version_2]
+  # returns 0 (true) if version_1 > version_2
+  version_1_split=($(echo $1 | sed -e 's/\./ /g'))
+  version_2_split=($(echo $2 | sed -e 's/\./ /g'))
+
+  for v in "${!version_1_split[@]}"; do
+    if [[ "${version_1_split[$v]}" -gt "${version_2_split[$v]}" ]]; then
+      return 0
+    elif [[ "${version_1_split[$v]}" -eq "${version_2_split[$v]}" ]]; then
+      continue
+    elif [[ "${version_1_split[$v]}" -lt "${version_2_split[$v]}" ]]; then
+      return 1
+    fi
+  done
+
+  # Here only if $1 == $2
+  return 1
+}
+
 function printVersions() {
   # usage: getVersions [url] [min_version]
-  filterVersion=($(echo $2 | sed -e 's/\./ /g'))
 
   content=$(wget $1 -q -O -)
   # basic xml parsing for version numbers
@@ -40,20 +58,16 @@ function printVersions() {
   versionArray=($(echo "$versions" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/ /g'))
 
   # Filter out version numbers that are older than min_version
-  for i in "${versionArray[@]}"; do
-    splitVersion=($(echo $i | sed -e 's/\./ /g'))
-    for v in "${!filterVersion[@]}"; do
-      if [[ "${splitVersion[$v]}" -lt "${filterVersion[$v]}" ]]; then
-        newVersionArray=()
-        for j in "${versionArray[@]}"; do
-          if [[ "${j}" != "${i}" ]]; then
-            newVersionArray=("${newVersionArray[@]}" "${j}")
-          fi
-        done
-        versionArray=("${newVersionArray[@]}")
-        break
-      fi
-    done
+  for version in "${versionArray[@]}"; do
+    if compareVersions "${2}" "${version}"; then
+      newVersionArray=()
+      for j in "${versionArray[@]}"; do
+        if [[ "${j}" != "${version}" ]]; then
+          newVersionArray=("${newVersionArray[@]}" "${j}")
+        fi
+      done
+      versionArray=("${newVersionArray[@]}")
+    fi
   done
 
   # Remove empty elements
@@ -69,26 +83,26 @@ function printVersions() {
 
 # Command Line Help
 NL=$'\n'
-usage="usage: ./install-hadoop-accumulo.sh [[target dir] [<version(s)>]] | [-g|--get-versions] | [--help]"
+usage="usage: ./install-hadoop-accumulo.sh [[target dir] [<version(s)>]] | [-l|--list-versions] | [--help]"
 
 # Parse command line options
 if [[ "$1" == "--help" || "$1" == "-help" ]]; then
-	echo "${usage}"
-	echo "${NL}"
-	echo "All versions are detected automatically at compile time."
-	echo "These parameters are for situations where this may need overwritten."
-	echo "${NL}"
-	echo "Options:"
-	echo "  -a,--accumulo-version     Manually set Accumulo version"
-	echo "  -h,--hadoop-version       Manually set Hadoop version"
-	echo "  -z,--zookeeper-version    Manually set Zookeeper version"
-	echo "  -t,--thrift-version       Manually set Thrift version"
-	echo "  -l,--list-versions        Print out available version numbers."
-	echo "${NL}"
-	echo "Example:"
-	echo "./install-hadoop-accumulo.sh /opt/jboss/standalone/deployments/geoserver.war/WEB-INF/lib -a 1.7.1 -h 2.7.3"
-	echo "${NL}"
-	exit
+  echo "${usage}"
+  echo "${NL}"
+  echo "All versions are detected automatically at compile time."
+  echo "These parameters are for situations where this may need overwritten."
+  echo "${NL}"
+  echo "Options:"
+  echo "  -a,--accumulo-version     Manually set Accumulo version"
+  echo "  -h,--hadoop-version       Manually set Hadoop version"
+  echo "  -z,--zookeeper-version    Manually set Zookeeper version"
+  echo "  -t,--thrift-version       Manually set Thrift version"
+  echo "  -l,--list-versions        Print out available version numbers."
+  echo "${NL}"
+  echo "Example:"
+  echo "./install-hadoop-accumulo.sh /opt/jboss/standalone/deployments/geoserver.war/WEB-INF/lib -a 1.7.1 -h 2.7.3"
+  echo "${NL}"
+  exit
 elif [[ "$1" == "-l" || "$1" == "--list-versions" ]]; then
   accumulo_version_url="${base_url}org/apache/accumulo/accumulo/"
   hadoop_version_url="${base_url}org/apache/hadoop/hadoop-main/"
@@ -116,33 +130,33 @@ else
 fi
 
 while [[ $# -gt 1 ]]; do
-	key="$1"
+  key="$1"
 
-	case $key in
-		-a|--accumulo-version)
-			accumulo_version="$2"
-			shift
-		;;
-		-h|--hadoop-version)
-			hadoop_version="$2"
-			shift
-		;;
-		-z|--zookeeper-version)
-			zookeeper_version="$2"
-			shift
-		;;
-		-t|--thrift-version)
-			thrift_version="$2"
-			shift
-		;;
-		*)
-			echo "Unknown parameter $1"
-			echo "${usage}"
-			exit
-		;;
-	esac
+  case $key in
+    -a|--accumulo-version)
+      accumulo_version="$2"
+      shift
+    ;;
+    -h|--hadoop-version)
+      hadoop_version="$2"
+      shift
+    ;;
+    -z|--zookeeper-version)
+      zookeeper_version="$2"
+      shift
+    ;;
+    -t|--thrift-version)
+      thrift_version="$2"
+      shift
+    ;;
+    *)
+      echo "Unknown parameter $1"
+      echo "${usage}"
+      exit
+    ;;
+  esac
 
-	shift
+  shift
 done
 
 # Check for any incomplete parameters or mistypes e.g. "-a" without a version
@@ -152,7 +166,7 @@ if [[ -n "$1" ]]; then
 fi
 
 # for Accumulo 1.7+ to work we also need the following
-if [[ "${accumulo_version}" == "1.7"* ]]; then
+if compareVersions "${accumulo_version}" "1.6.999"; then
   htrace_core_version="3.1.0-incubating"
   commons_vfs2_version="2.1"
 fi
