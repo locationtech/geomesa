@@ -17,17 +17,17 @@
 # By default existing environment variables take precedent. If you would prefer the variables
 # set in this config to take precedent set the following variable to "1". This can be helpful if you
 # frequently use multiple configuration files/folders.
-#configPriority="0"
+configPriority="0"
 
 # ------------------- Do not alter this section --------------------
-#existingEnvVars=()
-#function setvar() {
-#  if [[ "$configPriority" == "0" ]]; then
-#    test -z "$(eval "echo \$$1")"  && export $1=$2 || existingEnvVars=("${existingEnvVars[@]}" $1)
-#  else
-#    export $1=$2
-#  fi
-#}
+existingEnvVars=()
+function setvar() {
+  if [[ "$configPriority" == "0" ]]; then
+    test -z "$(eval "echo \$$1")"  && export $1=$2 || existingEnvVars=("${existingEnvVars[@]}" $1)
+  else
+    export $1=$2
+  fi
+}
 # ------------------------------------------------------------------
 
 # ==================================================================
@@ -48,6 +48,22 @@
 # not set but %%gmtools.dist.name%%_HOME is, this will default to %%gmtools.dist.name%%_HOME/logs.
 #
 # setvar GEOMESA_LOG_DIR /path/to/geomesa-$VERSION/dist/tools/geomesa-tools-$VERSION/logs
+
+
+# ==================================================================
+# Cassandra Environment Variables
+# ==================================================================
+
+# Cassandra directory
+#
+# setvar CASSANDRA_HOME /path/to/cassandra
+
+# Cassandra lib directory
+# This resides inside Cassandra home by default. If this is not set but CASSANDRA_HOME is,
+# this will default to CASSANDRA_HOME/lib.
+#
+# setvar CASSANDRA_LIB /path/to/cassandra/lib
+
 
 
 # ==================================================================
