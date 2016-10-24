@@ -39,9 +39,9 @@ at ``conf/geomesa-site.xml`` of the Accumulo distribution. The default settings 
 stored in ``conf/geomesa-default.xml``. Do not modify this file directly as it is never read,
 instead copy over the desired configurations into geomesa-site.xml.
 
-By default, system properties set through command line parameters will take precedent over this
+By default, system properties set through command line parameters will take precedence over this
 configuration file. If you wish a configuration item to always take precedence, even over command
-line parameters change the ``<final>`` tag to true.
+line parameters, change the ``<final>`` tag to true.
 
 By default configuration properties with empty values will not be applied, you can change this
 by marking a property as final.

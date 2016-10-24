@@ -36,7 +36,7 @@ distribution. The default settings for GeoMesa are stored in
 is never read, instead copy over the desired configurations into
 geomesa-site.xml.
 
-By default command line parameters will take precedent over this
+By default command line parameters will take precedence over this
 configuration file. If you wish a configuration item to always take
 precedence, even over command line parameters change the ``<final>``
 tag to true.

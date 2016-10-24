@@ -117,7 +117,7 @@
         <value>false</value>
         <description>This property controls how GeoMesa calculates the size
             of a result set (e.g. `FeatureSource.getCount`). By default,
-            eomesa will estimate the size of a result set using statistics.
+            Geomesa will estimate the size of a result set using statistics.
             This will provide a rough estimate very quickly. Some
             applications rely on knowing the exact size of a result set up
             front, so estimates will cause problems. To force geomesa to
@@ -194,12 +194,12 @@
         <name>geomesa.stats.compact.millis</name>
         <value>3600000</value>
         <description>This property controls how often the GeoMesa statistics
-            table will be compacted. GeoMesa tracks data stastics during
-            ingestion, using an Accumulo combiner iterator to merge them at
-            read time. If the table is not compacted, reads will become
-            progressively slower. Note that each `AccumuloDataStore` will
-            track compactions separately, so they may occur more often than
-            this.
+            table will be compacted, in milliseconds. GeoMesa tracks data
+            statistics during ingestion, using an Accumulo combiner iterator
+            to merge them at read time. If the table is not compacted, reads
+            will become progressively slower. Note that each
+            `AccumuloDataStore` will track compactions separately, so they
+            may occur more often than this.
         </description>
         <final>false</final>
     </property>
