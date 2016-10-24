@@ -334,7 +334,11 @@ class SimpleFeatureSerializersTest extends Specification {
 
       val decoded = encoded.map(decoder.deserialize)
 
-      decoded must equalFeatures(features)
+      forall(decoded.zip(features)) { case (d, sf) =>
+        d.getID mustEqual sf.getID
+        d.getAttributes mustEqual sf.getAttributes
+        d.getUserData.toMap mustEqual sf.getUserData.filter(_._2 != null)
+      }
     }
 
     "work user data were encoded but are not expected by decoder" >> {
@@ -393,7 +397,7 @@ class SimpleFeatureSerializersTest extends Specification {
 
       // when decoding any empty visibilities will be transformed to null
       forall(features.zip(decoded)) { case (in, out) =>
-        out.getUserData mustEqual in.getUserData
+        out.getUserData.toMap mustEqual in.getUserData.filter(_._2 != null)
       }
     }
   }

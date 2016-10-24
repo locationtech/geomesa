@@ -86,7 +86,9 @@ object AccumuloRunner extends Runner {
       }
       if (p.instance == null) {
         p.instance = try {
-          // Don't include default here so .option will throw a None
+          // This block checks for the same system property which Accumulo uses for Zookeeper timeouts.
+          //  If it is set, we use it.  Otherwise, a timeout of 5 seconds is used.
+          //  Don't give default to PropOrDefault so .option will throw a None
           val lookupTime: Long = PropOrDefault("instance.zookeeper.timeout").option.flatMap{ p =>
             Try { java.lang.Long.parseLong(p) }.toOption
           }.getOrElse(5000L)

@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.filter.expression
 
+import org.geotools.filter.expression.PropertyAccessors
 import org.geotools.util.Converters
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.expression.{ExpressionVisitor, PropertyName}
@@ -18,7 +19,7 @@ import org.xml.sax.helpers.NamespaceSupport
  */
 class FastPropertyName(name: String) extends PropertyName with org.opengis.filter.expression.Expression {
 
-  private var index: Int = -1
+  private var getProperty: (SimpleFeature) => AnyRef = null
 
   override def getPropertyName: String = name
 
@@ -30,15 +31,25 @@ class FastPropertyName(name: String) extends PropertyName with org.opengis.filte
     } catch {
       case e: Exception => throw new IllegalArgumentException("Only simple features are supported", e)
     }
-    if (index == -1) {
+    if (getProperty == null) {
       val nsIndex = name.indexOf(':')
       val localName = if (nsIndex == -1) name else name.substring(nsIndex + 1)
-      index = sf.getFeatureType.indexOf(localName)
-      if (index == -1) {
-        throw new RuntimeException(s"Property name $name does not exist in feature type ${sf.getFeatureType}")
+      val index = sf.getFeatureType.indexOf(localName)
+      if (index != -1) {
+        getProperty = (sf) => sf.getAttribute(index)
+      } else {
+        import scala.collection.JavaConverters._
+        val accessors = PropertyAccessors.findPropertyAccessors(sf, name, null, null).asScala
+        if (accessors.nonEmpty) {
+          getProperty = (sf) => {
+            accessors.find(_.canHandle(sf, name, classOf[AnyRef])).map(_.get(sf, name, classOf[AnyRef])).orNull
+          }
+        } else {
+          throw new RuntimeException(s"Property name $name does not exist in feature type ${sf.getFeatureType}")
+        }
       }
     }
-    sf.getAttribute(index)
+    getProperty(sf)
   }
 
   override def evaluate[T](obj: AnyRef, target: Class[T]): T = Converters.convert(evaluate(obj), target)

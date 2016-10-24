@@ -18,11 +18,12 @@ object ObjectType extends Enumeration {
 
   type ObjectType = Value
 
-  val STRING, INT, LONG, FLOAT, DOUBLE, BOOLEAN, DATE, UUID, GEOMETRY, HINTS, LIST, MAP, BYTES = Value
+  val STRING, INT, LONG, FLOAT, DOUBLE, BOOLEAN, DATE, UUID, GEOMETRY, HINTS, LIST, MAP, BYTES, JSON = Value
 
   def selectType(clazz: Class[_], metadata: jMap[_, _] = jCollections.emptyMap()): (ObjectType, Seq[ObjectType]) = {
     clazz match {
-      case c if classOf[java.lang.String].isAssignableFrom(c) => (STRING, Seq.empty)
+      case c if classOf[java.lang.String].isAssignableFrom(c) =>
+        if (metadata.get(OPT_JSON) == "true") { (JSON, Seq.empty) } else { (STRING, Seq.empty) }
       case c if classOf[java.lang.Integer].isAssignableFrom(c) => (INT, Seq.empty)
       case c if classOf[java.lang.Long].isAssignableFrom(c) => (LONG, Seq.empty)
       case c if classOf[java.lang.Float].isAssignableFrom(c) => (FLOAT, Seq.empty)

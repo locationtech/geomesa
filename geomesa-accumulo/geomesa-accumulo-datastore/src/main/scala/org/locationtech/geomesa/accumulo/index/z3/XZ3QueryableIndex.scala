@@ -65,6 +65,11 @@ trait XZ3QueryableIndex extends AccumuloFeatureIndex
     explain(s"Geometries: $geometries")
     explain(s"Intervals: $intervals")
 
+    if (geometries == DisjointGeometries || intervals == DisjointInterval) {
+      explain("Disjoint geometries or dates extracted, short-circuiting to empty query")
+      return EmptyPlan(filter)
+    }
+
     val ecql = filter.filter
 
     val (iterators, kvsToFeatures, colFamily) = if (hints.isBinQuery) {

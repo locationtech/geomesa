@@ -12,7 +12,7 @@ import java.io.Closeable
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{Executors, LinkedBlockingQueue, ScheduledThreadPoolExecutor, TimeUnit}
 
-import com.google.common.base.Ticker
+import com.github.benmanes.caffeine.cache.Ticker
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.store.ContentEntry
 import org.geotools.data.{FeatureEvent, Query}

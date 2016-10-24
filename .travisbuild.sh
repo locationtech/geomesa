@@ -14,7 +14,7 @@ bash -c "while true; do sleep $PING_SLEEP; echo [INFO] \$(date -u '+%F %T UTC') 
 PING_LOOP_PID=$!
 
 # build using the maven executable, not the zinc maven compiler (which uses too much memory)
-mvn clean license:check install -Ptravis-ci 2>&1 | tee -a $BUILD_OUTPUT | grep -e '^\[INFO\] Building GeoMesa' -e '^\[INFO\] --- \(maven-surefire-plugin\|maven-install-plugin\|scala-maven-plugin.*:compile\)'
+mvn clean license:check install -Phbase,travis-ci 2>&1 | tee -a $BUILD_OUTPUT | grep -e '^\[INFO\] Building GeoMesa' -e '^\[INFO\] --- \(maven-surefire-plugin\|maven-install-plugin\|scala-maven-plugin.*:compile\)'
 RESULT=${PIPESTATUS[0]} # capture the status of the maven build
 
 # validate CQs
