@@ -251,7 +251,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
           "dtg DURING 2010-06-01T00:00:00.000Z/2010-08-31T23:59:59.000Z AND IN('01','02')" +
               "AND WITHIN(geom, POLYGON ((40 20, 50 20, 50 30, 40 30, 40 20))) AND ageJoinIndex = '100001'",
           "INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))" +
-              "AND IN('val56','val55') AND ageJoinIndex = 3000 AND IN('val59','val54') AND ageJoinIndex = '20'"
+              "AND IN('val56','val55') AND ageJoinIndex = 3000 AND IN('val59','val54') AND ageJoinIndex > '20'"
         )
         forall(predicates)(getRecordStrategy)
       }

@@ -70,6 +70,11 @@ trait Z3QueryableIndex extends AccumuloFeatureIndex
     explain(s"Geometries: $geometries")
     explain(s"Intervals: $intervals")
 
+    if (geometries == DisjointGeometries || intervals == DisjointInterval) {
+      explain("Disjoint geometries or dates extracted, short-circuiting to empty query")
+      return EmptyPlan(filter)
+    }
+
     val looseBBox = if (hints.containsKey(LOOSE_BBOX)) Boolean.unbox(hints.get(LOOSE_BBOX)) else ops.config.looseBBox
 
     // if the user has requested strict bounding boxes, we apply the full filter
