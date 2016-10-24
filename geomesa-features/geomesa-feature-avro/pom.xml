@@ -3,7 +3,7 @@
     <parent>
         <artifactId>geomesa-features_2.11</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>1.3.0-m1-SNAPSHOT</version>
+        <version>1.3.0-m2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -35,6 +35,11 @@
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+
         <!-- test dependencies -->
         <dependency>
             <groupId>org.slf4j</groupId>

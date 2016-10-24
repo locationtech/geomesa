@@ -4,7 +4,7 @@
     <parent>
         <artifactId>geomesa_2.11</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>1.3.0-m1-SNAPSHOT</version>
+        <version>1.3.0-m2-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -14,7 +14,6 @@
 
     <properties>
         <scalatra.version>2.3.0</scalatra.version>
-        <json4s.version>3.2.10</json4s.version>
     </properties>
 
     <modules>
@@ -214,11 +213,6 @@
                 <groupId>org.scalatra</groupId>
                 <artifactId>scalatra-json_${scala.binary.version}</artifactId>
                 <version>${scalatra.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.json4s</groupId>
-                <artifactId>json4s-native_${scala.binary.version}</artifactId>
-                <version>${json4s.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>

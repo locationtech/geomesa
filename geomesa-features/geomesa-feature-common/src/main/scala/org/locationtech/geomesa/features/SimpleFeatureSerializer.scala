@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.features
 
+import java.io.{InputStream, OutputStream}
+
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.opengis.feature.simple.SimpleFeature
 
@@ -26,5 +28,7 @@ trait HasEncodingOptions {
  */
 trait SimpleFeatureSerializer extends HasEncodingOptions {
   def serialize(feature: SimpleFeature): Array[Byte]
+  def serialize(feature: SimpleFeature, out: OutputStream): Unit = throw new NotImplementedError
   def deserialize(bytes: Array[Byte]): SimpleFeature
+  def deserialize(in: InputStream): SimpleFeature = throw new NotImplementedError
 }

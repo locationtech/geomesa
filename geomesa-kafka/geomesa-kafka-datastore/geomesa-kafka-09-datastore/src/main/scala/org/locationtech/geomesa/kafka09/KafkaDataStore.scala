@@ -12,7 +12,7 @@ import java.awt.RenderingHints.Key
 import java.io.{Closeable, Serializable}
 import java.{util => ju}
 
-import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
@@ -44,7 +44,7 @@ class KafkaDataStore(override val zookeepers: String,
   case class FeatureSourceCacheKey(entry: ContentEntry, query: Query)
 
   private val featureSourceCache: LoadingCache[FeatureSourceCacheKey, ContentFeatureSource with Closeable] =
-    CacheBuilder.newBuilder().build[FeatureSourceCacheKey, ContentFeatureSource with Closeable](
+    Caffeine.newBuilder().build[FeatureSourceCacheKey, ContentFeatureSource with Closeable](
       new CacheLoader[FeatureSourceCacheKey, ContentFeatureSource with Closeable] {
         override def load(key: FeatureSourceCacheKey) = {
           fsFactory(key.entry, key.query, kds)

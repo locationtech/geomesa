@@ -16,7 +16,8 @@ import org.geotools.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.avro.serde.Version2ASF
-import org.locationtech.geomesa.features.serialization.{AbstractWriter, HintKeySerialization}
+import org.locationtech.geomesa.features.avro.serialization.AvroUserDataSerialization
+import org.locationtech.geomesa.features.serialization.HintKeySerialization
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -115,7 +116,7 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
       there was one(encoder).writeString("java.lang.Boolean")
 
       // 1 key  and 1 value  are null
-      there was two(encoder).writeString(AbstractWriter.NULL_MARKER_STR)
+      there was two(encoder).writeString(AvroUserDataSerialization.NullMarkerString)
 
       // visibility data
       there was one(encoder).writeString(SecurityUtils.FEATURE_VISIBILITY)
