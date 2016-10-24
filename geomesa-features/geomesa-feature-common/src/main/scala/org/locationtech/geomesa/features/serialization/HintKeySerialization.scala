@@ -9,35 +9,6 @@
 package org.locationtech.geomesa.features.serialization
 
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.features.SerializationException
-
-/** Writes a [[Hints.Key]]. */
-trait HintKeyWriter[Writer] extends PrimitiveWriter[Writer] {
-
-  import HintKeySerialization.keyToId
-
-  /**
-   * A [[DatumWriter]] for writing a non-nullable [[Hints.Key]].
-   */
-  val writeHintKey: DatumWriter[Writer, Hints.Key] = (writer, key) => {
-    // exception should not be thrown - AbstractWriter.writeGenericMap will short circuit
-    val id = keyToId.getOrElse(key, throw new SerializationException(s"Unknown Key: '$key'"))
-    writeString(writer, id)
-  }
-}
-
-/** Reads a [[Hints.Key]] */
-trait HintKeyReader[Reader] extends PrimitiveReader[Reader] {
-
-  import HintKeySerialization.idToKey
-
-  val readHintKey: DatumReader[Reader, Hints.Key] = (reader) => {
-    val id = readString(reader)
-
-    // exception should not be thrown - if we wrote it, we should be able to read it!
-    idToKey.getOrElse(id, throw new SerializationException(s"Unknown Key ID: '$id'"))
-  }
-}
 
 /** Maintains Key -> String and String -> Key mappings */
 object HintKeySerialization {

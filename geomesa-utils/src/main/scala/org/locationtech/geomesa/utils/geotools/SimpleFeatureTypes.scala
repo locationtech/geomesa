@@ -46,8 +46,10 @@ object SimpleFeatureTypes {
   val OPT_CARDINALITY          = "cardinality"
   val OPT_BIN_TRACK_ID         = "bin-track-id"
   val OPT_CQ_INDEX             = "cq-index"
+  val OPT_JSON                 = "json"
 
-  val OPTS = Seq(OPT_DEFAULT, OPT_SRID, OPT_INDEX, OPT_STATS, OPT_INDEX_VALUE, OPT_CARDINALITY, OPT_BIN_TRACK_ID, OPT_CQ_INDEX)
+  val OPTS = Seq(OPT_DEFAULT, OPT_SRID, OPT_INDEX, OPT_STATS, OPT_INDEX_VALUE,
+    OPT_CARDINALITY, OPT_BIN_TRACK_ID, OPT_CQ_INDEX, OPT_JSON)
 
   val USER_DATA_LIST_TYPE      = "subtype"
   val USER_DATA_MAP_KEY_TYPE   = "keyclass"
@@ -253,11 +255,14 @@ object SimpleFeatureTypes {
       if (ad.isIndexValue()) {
         options.put(OPT_INDEX_VALUE, "true")
       }
-      if (ad.isBinTrackId) {
+      if (ad.isBinTrackId()) {
         options.put(OPT_BIN_TRACK_ID, "true")
       }
-      if (ad.isKeepStats) {
+      if (ad.isKeepStats()) {
         options.put(OPT_STATS, "true")
+      }
+      if (ad.isJson()) {
+        options.put(OPT_JSON, "true")
       }
       ad.getType match {
         case t if simpleTypeMap.contains(t.getBinding.getSimpleName) =>

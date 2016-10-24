@@ -19,7 +19,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureUtils._
 import org.locationtech.geomesa.features.avro.serde.{ASFDeserializer, Version1Deserializer, Version2Deserializer}
-import org.locationtech.geomesa.features.avro.serialization.AvroSerialization
+import org.locationtech.geomesa.features.avro.serialization.AvroUserDataSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -116,9 +116,7 @@ class FeatureSpecificReader(var oldType: SimpleFeatureType, var newType: SimpleF
     FeatureSpecificReader.checkVersion(serializationVersion)
     val sf = readAttributes(in, serializationVersion)
 
-    val ar = AvroSerialization.reader
-
-    val userData = ar.readGenericMap(serializationVersion)(in)
+    val userData = AvroUserDataSerialization.deserialize(in)
     sf.getUserData.putAll(userData)
 
     sf

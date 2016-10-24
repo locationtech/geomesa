@@ -86,7 +86,7 @@ public class GeoMesaIndexTest {
                         "myuser", "mypass",
                         true,
                         new DomainObjectValueSerializer(),
-                        new DefaultSimpleFeatureView<DomainObject>("foo"));
+                        new DefaultSimpleFeatureView<DomainObject>());
 
         index.insert(
                 one.id,

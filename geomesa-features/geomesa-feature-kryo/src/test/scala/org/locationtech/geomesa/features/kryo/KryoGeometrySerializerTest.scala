@@ -10,8 +10,9 @@ package org.locationtech.geomesa.features.kryo
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
+import com.esotericsoftware.kryo.io.{Input, Output}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.kryo.serialization.KryoGeometrySerializer
+import org.locationtech.geomesa.features.kryo.serialization.KryoGeometrySerialization
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -36,18 +37,20 @@ class KryoGeometrySerializerTest extends Specification {
 
       "using byte arrays" >> {
         geoms.foreach { geom =>
-          val serialized = KryoGeometrySerializer.write(geom)
-          val deserialized = KryoGeometrySerializer.read(serialized)
+          val out = new Output(512)
+          KryoGeometrySerialization.serialize(out, geom)
+          val in = new Input(out.toBytes)
+          val deserialized = KryoGeometrySerialization.deserialize(in)
           deserialized mustEqual geom
         }
         success
       }
       "using streams" >> {
         geoms.foreach { geom =>
-          val out = new ByteArrayOutputStream()
-          KryoGeometrySerializer.write(geom, out)
-          val in = new ByteArrayInputStream(out.toByteArray)
-          val deserialized = KryoGeometrySerializer.read(in)
+          val out = new Output(new ByteArrayOutputStream(), 512)
+          KryoGeometrySerialization.serialize(out, geom)
+          val in = new Input(new ByteArrayInputStream(out.toBytes))
+          val deserialized = KryoGeometrySerialization.deserialize(in)
           deserialized mustEqual geom
         }
         success
