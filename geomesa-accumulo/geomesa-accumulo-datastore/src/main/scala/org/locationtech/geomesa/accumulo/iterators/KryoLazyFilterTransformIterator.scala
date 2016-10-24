@@ -40,13 +40,12 @@ class KryoLazyFilterTransformIterator extends
   import KryoLazyFilterTransformIterator._
 
   var source: SortedKeyValueIterator[Key, Value] = null
+  val topValue: Value = new Value()
 
   var sft: SimpleFeatureType = null
   var filter: (SimpleFeature) => Boolean = null
-  var topValue: Value = new Value()
 
-  var kryo: KryoFeatureSerializer = null
-  var reusablesf: KryoBufferSimpleFeature = null
+  var reusableSf: KryoBufferSimpleFeature = null
   var hasTransform: Boolean = false
 
   override def init(src: SortedKeyValueIterator[Key, Value],
@@ -62,13 +61,12 @@ class KryoLazyFilterTransformIterator extends
       case NonFatal(e) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(INDEX_OPT)}")
     }
     val kryoOptions = if (index.serializedWithId) SerializationOptions.none else SerializationOptions.withoutId
-    kryo = new KryoFeatureSerializer(sft, kryoOptions)
-    reusablesf = kryo.getReusableFeature
+    reusableSf = new KryoFeatureSerializer(sft, kryoOptions).getReusableFeature
 
     val transform = Option(options.get(TRANSFORM_DEFINITIONS_OPT))
     val transformSchema = Option(options.get(TRANSFORM_SCHEMA_OPT))
     for { t <- transform; ts <- transformSchema } {
-      reusablesf.setTransforms(t, SimpleFeatureTypes.createType("", ts))
+      reusableSf.setTransforms(t, SimpleFeatureTypes.createType("", ts))
     }
     hasTransform = transform.isDefined
 
@@ -97,7 +95,7 @@ class KryoLazyFilterTransformIterator extends
   override def getTopKey: Key = source.getTopKey
   override def getTopValue: Value =
     if (hasTransform) {
-      topValue.set(reusablesf.transform())
+      topValue.set(reusableSf.transform())
       topValue
     } else {
       source.getTopValue
@@ -106,8 +104,8 @@ class KryoLazyFilterTransformIterator extends
   def findTop(): Unit = {
     var found = false
     while (!found && source.hasTop) {
-      reusablesf.setBuffer(source.getTopValue.get())
-      if (filter(reusablesf)) {
+      reusableSf.setBuffer(source.getTopValue.get())
+      if (filter(reusableSf)) {
         found = true
       } else {
         source.next()
@@ -115,8 +113,15 @@ class KryoLazyFilterTransformIterator extends
     }
   }
 
-  override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] =
-    throw new NotImplementedError
+  override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = {
+    val iter = new KryoLazyFilterTransformIterator
+    iter.source = source.deepCopy(env)
+    iter.sft = sft
+    iter.filter = filter
+    iter.reusableSf = reusableSf.copy()
+    iter.hasTransform = hasTransform
+    iter
+  }
 }
 
 object KryoLazyFilterTransformIterator {

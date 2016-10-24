@@ -21,72 +21,27 @@ import org.locationtech.geomesa.accumulo.index.QueryPlanner.KVIter
 import org.locationtech.geomesa.accumulo.util.{BatchMultiScanner, CloseableIterator, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeature
 
-object QueryPlan extends LazyLogging {
+object QueryPlan {
 
-  type JoinFunction = (java.util.Map.Entry[Key, Value]) => aRange
+  type JoinFunction = (Entry[Key, Value]) => aRange
   type FeatureFunction = (Entry[Key, Value]) => SimpleFeature
-
-  /**
-    * Creates a scanner based on a query plan
-    */
-  private def getScanner(queryPlan: QueryPlan, acc: AccumuloConnectorCreator): KVIter = {
-    try {
-      queryPlan match {
-        case qp: EmptyPlan =>
-          CloseableIterator.empty
-        case qp: ScanPlan =>
-          val scanner = acc.getScanner(qp.table)
-          configureScanner(scanner, qp)
-          SelfClosingIterator(scanner)
-        case qp: BatchScanPlan =>
-          if (qp.ranges.isEmpty) {
-            CloseableIterator(Iterator.empty)
-          } else {
-            val batchScanner = acc.getBatchScanner(qp.table, qp.numThreads)
-            configureBatchScanner(batchScanner, qp)
-            SelfClosingIterator(batchScanner)
-          }
-        case qp: JoinPlan =>
-          val primary = if (qp.ranges.length == 1) {
-            val scanner = acc.getScanner(qp.table)
-            configureScanner(scanner, qp)
-            scanner
-          } else {
-            val batchScanner = acc.getBatchScanner(qp.table, qp.numThreads)
-            configureBatchScanner(batchScanner, qp)
-            batchScanner
-          }
-          val jqp = qp.joinQuery
-          val secondary = acc.getBatchScanner(jqp.table, jqp.numThreads)
-          configureBatchScanner(secondary, jqp)
-
-          val bms = new BatchMultiScanner(acc, primary, jqp, qp.joinFunction)
-          SelfClosingIterator(bms.iterator, () => bms.close())
-      }
-    } catch {
-      case e: Exception =>
-        logger.error(s"Error in creating scanner: $e", e)
-        // since GeoTools would eat the error and return no records anyway,
-        // there's no harm in returning an empty iterator.
-        Iterator.empty
-    }
-  }
 
   def configureBatchScanner(bs: BatchScanner, qp: QueryPlan) {
     import scala.collection.JavaConversions._
-    qp.iterators.foreach { i => bs.addScanIterator(i) }
     bs.setRanges(qp.ranges)
-    qp.columnFamilies.foreach { c => bs.fetchColumnFamily(c) }
+    qp.iterators.foreach(bs.addScanIterator)
+    qp.columnFamilies.foreach(bs.fetchColumnFamily)
   }
 
   def configureScanner(scanner: Scanner, qp: QueryPlan) {
-    qp.iterators.foreach { i => scanner.addScanIterator(i) }
     qp.ranges.headOption.foreach(scanner.setRange)
-    qp.columnFamilies.foreach { c => scanner.fetchColumnFamily(c) }
+    qp.iterators.foreach(scanner.addScanIterator)
+    qp.columnFamilies.foreach(scanner.fetchColumnFamily)
   }
 }
 
-sealed trait QueryPlan {
+sealed trait QueryPlan extends LazyLogging {
+
   def filter: AccumuloFilterStrategy
   def table: String
   def ranges: Seq[aRange]
@@ -98,7 +53,23 @@ sealed trait QueryPlan {
 
   def join: Option[(JoinFunction, QueryPlan)] = None
 
-  def execute(acc: AccumuloConnectorCreator): KVIter = SelfClosingIterator(QueryPlan.getScanner(this, acc))
+  def execute(acc: AccumuloConnectorCreator): KVIter = {
+    try {
+      if (ranges.isEmpty) {
+        CloseableIterator.empty
+      } else {
+        executeInternal(acc)
+      }
+    } catch {
+      case e: Exception =>
+        logger.error(s"Error in creating scanner: $e", e)
+        // since GeoTools would eat the error and return no records anyway,
+        // there's no harm in returning an empty iterator.
+        CloseableIterator.empty
+    }
+  }
+
+  protected def executeInternal(acc: AccumuloConnectorCreator): KVIter
 }
 
 // plan that will not actually scan anything
@@ -110,6 +81,8 @@ case class EmptyPlan(filter: AccumuloFilterStrategy) extends QueryPlan {
   override val columnFamilies: Seq[Text] = Seq.empty
   override val hasDuplicates: Boolean = false
   override val numThreads: Int = 0
+
+  override protected def executeInternal(acc: AccumuloConnectorCreator): KVIter = CloseableIterator.empty
 }
 
 // single scan plan
@@ -120,8 +93,15 @@ case class ScanPlan(filter: AccumuloFilterStrategy,
                     columnFamilies: Seq[Text],
                     kvsToFeatures: FeatureFunction,
                     hasDuplicates: Boolean) extends QueryPlan {
+
   override val numThreads = 1
   override val ranges = Seq(range)
+
+  override protected def executeInternal(acc: AccumuloConnectorCreator): KVIter = {
+    val scanner = acc.getScanner(table)
+    QueryPlan.configureScanner(scanner, this)
+    SelfClosingIterator(scanner)
+  }
 }
 
 // batch scan plan
@@ -132,7 +112,14 @@ case class BatchScanPlan(filter: AccumuloFilterStrategy,
                          columnFamilies: Seq[Text],
                          kvsToFeatures: FeatureFunction,
                          numThreads: Int,
-                         hasDuplicates: Boolean) extends QueryPlan
+                         hasDuplicates: Boolean) extends QueryPlan {
+
+  override protected def executeInternal(acc: AccumuloConnectorCreator): KVIter = {
+    val batchScanner = acc.getBatchScanner(table, numThreads)
+    QueryPlan.configureBatchScanner(batchScanner, this)
+    SelfClosingIterator(batchScanner)
+  }
+}
 
 // join on multiple tables - requires multiple scans
 case class JoinPlan(filter: AccumuloFilterStrategy,
@@ -144,6 +131,22 @@ case class JoinPlan(filter: AccumuloFilterStrategy,
                     hasDuplicates: Boolean,
                     joinFunction: JoinFunction,
                     joinQuery: BatchScanPlan) extends QueryPlan {
+
   override def kvsToFeatures: FeatureFunction = joinQuery.kvsToFeatures
   override val join = Some((joinFunction, joinQuery))
+
+  override protected def executeInternal(acc: AccumuloConnectorCreator): KVIter = {
+    val primary = if (ranges.length == 1) {
+      val scanner = acc.getScanner(table)
+      QueryPlan.configureScanner(scanner, this)
+      scanner
+    } else {
+      val batchScanner = acc.getBatchScanner(table, numThreads)
+      QueryPlan.configureBatchScanner(batchScanner, this)
+      batchScanner
+    }
+
+    val bms = new BatchMultiScanner(acc, primary, joinQuery, joinFunction)
+    SelfClosingIterator(bms.iterator, () => bms.close())
+  }
 }

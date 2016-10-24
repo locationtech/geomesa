@@ -75,10 +75,12 @@ package object accumulo {
     }
 
     case class PropAndDefault(property: String, default: String) {
-      def get: String = sys.props.getOrElse(property, default)
-      def option: Option[String] = sys.props.get(property).orElse(Option(default))
+      def get: String = Option(threadLocalValue.get).getOrElse(sys.props.getOrElse(property, default))
+      def option: Option[String] = Option(threadLocalValue.get).orElse(sys.props.get(property)).orElse(Option(default))
       def set(value: String): Unit = sys.props.put(property, value)
       def clear(): Unit = sys.props.remove(property)
+
+      val threadLocalValue = new ThreadLocal[String]()
     }
   }
 

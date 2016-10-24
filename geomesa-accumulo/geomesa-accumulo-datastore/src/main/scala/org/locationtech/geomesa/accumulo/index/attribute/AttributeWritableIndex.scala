@@ -242,11 +242,13 @@ object AttributeWritableIndex extends LazyLogging {
   /**
    * Decodes an attribute value out of row string
    */
-  def decodeRow(sft: SimpleFeatureType, i: Int, row: Array[Byte]): Try[Any] = Try {
+  def decodeRow(sft: SimpleFeatureType, i: Int, row: Text): Try[Any] = Try {
     val from = if (sft.isTableSharing) 3 else 2 // exclude feature byte and index bytes
     // null byte indicates end of value
-    val encodedValue = row.slice(from, row.indexOf(NullByteArray(0), from + 1))
-    decode(new String(encodedValue, StandardCharsets.UTF_8), sft.getDescriptor(i))
+    val rawBytes = row.getBytes
+    val length = rawBytes.indexOf(NullByteArray(0), from + 1) - from
+    val encoded = new String(rawBytes, from, length, StandardCharsets.UTF_8)
+    decode(encoded, sft.getDescriptor(i))
   }
 
   /**
