@@ -32,10 +32,13 @@ import scala.util.{Failure, Success}
 object FilterHelper extends LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.GeometryUtils.{geoFactory => gf}
-  import org.locationtech.geomesa.utils.geotools.WholeWorldPolygon
+  import org.locationtech.geomesa.utils.geotools.{EmptyGeometry, WholeWorldPolygon}
 
   val MinDateTime = new DateTime(0, 1, 1, 0, 0, 0, DateTimeZone.UTC)
   val MaxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeZone.UTC)
+
+  val DisjointGeometries: Seq[Geometry] = Seq(EmptyGeometry)
+  val DisjointInterval: Seq[(DateTime, DateTime)] = Seq((null, null))
 
   private val SafeGeomString = "gm-safe"
 
@@ -198,11 +201,11 @@ object FilterHelper extends LazyLogging {
           Seq.empty
         } else if (intersect) {
           all.reduceLeft[Seq[Geometry]] { case (g1, g2) =>
-            if (g1.isEmpty) { Seq.empty } else {
+            if (g1.isEmpty) { DisjointGeometries } else {
               val gc1 = if (g1.length == 1) g1.head else new GeometryCollection(g1.toArray, g1.head.getFactory)
               val gc2 = if (g2.length == 1) g2.head else new GeometryCollection(g2.toArray, g2.head.getFactory)
               gc1.intersection(gc2) match {
-                case g if g.isEmpty => Seq.empty
+                case g if g.isEmpty => DisjointGeometries
                 case g: GeometryCollection => (0 until g.getNumGeometries).map(g.getGeometryN)
                 case g => Seq(g)
               }
@@ -246,7 +249,7 @@ object FilterHelper extends LazyLogging {
     *
     * @param filter filter to evaluate
     * @param attribute attribute to consider
-    * @return a sequence of intervals, if any
+    * @return a sequence of intervals, if any. disjoint intervals will result in Seq((null, null))
     */
   def extractIntervals(filter: Filter,
                        attribute: String,
@@ -258,14 +261,18 @@ object FilterHelper extends LazyLogging {
       if (millis == 0) dt.minusSeconds(1) else dt.withMillisOfSecond(0)
     }
 
-    extractAttributeBounds(filter, attribute, classOf[Date]).toSeq.flatMap(_.bounds).map { bounds =>
-      def roundLo(dt: DateTime) = if (handleExclusiveBounds && !bounds.inclusive) roundSecondsUp(dt) else dt
-      def roundUp(dt: DateTime) = if (handleExclusiveBounds && !bounds.inclusive) roundSecondsDown(dt) else dt
+    extractAttributeBounds(filter, attribute, classOf[Date]).toSeq.flatMap { fb =>
+      if (fb.bounds.isEmpty) { DisjointInterval } else {
+        fb.bounds.map { bounds =>
+          def roundLo(dt: DateTime) = if (handleExclusiveBounds && !bounds.inclusive) roundSecondsUp(dt) else dt
+          def roundUp(dt: DateTime) = if (handleExclusiveBounds && !bounds.inclusive) roundSecondsDown(dt) else dt
 
-      val lower = bounds.lower.map(new DateTime(_, DateTimeZone.UTC)).map(roundLo).getOrElse(MinDateTime)
-      val upper = bounds.upper.map(new DateTime(_, DateTimeZone.UTC)).map(roundUp).getOrElse(MaxDateTime)
+          val lower = bounds.lower.map(new DateTime(_, DateTimeZone.UTC)).map(roundLo).getOrElse(MinDateTime)
+          val upper = bounds.upper.map(new DateTime(_, DateTimeZone.UTC)).map(roundUp).getOrElse(MaxDateTime)
 
-      (lower, upper)
+          (lower, upper)
+        }
+      }
     }
   }
 
