@@ -49,7 +49,7 @@ abstract class KafkaConsumerFeatureSource(entry: ContentEntry,
     builder.buildFeatureType()
   }
 
-  override def getCountInternal(query: Query): Int = getReaderInternal(query).getIterator.length
+  override def getCountInternal(query: Query): Int = getReaderInternal(query).toIterator.length
 
   override val canFilter: Boolean = true
 

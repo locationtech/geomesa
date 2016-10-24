@@ -10,13 +10,12 @@ package org.locationtech.geomesa.kafka08
 
 import java.util
 
-import com.google.common.cache.{CacheBuilder, CacheLoader}
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.I0Itec.zkclient.exception.ZkNodeExistsException
 import org.geotools.data.DataStore
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.kafka.{KafkaDataStoreHelper, ReplayConfig}
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
 import org.opengis.feature.`type`.Name
@@ -141,10 +140,11 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
   def updateKafkaSchema(typeName: String, sft: SimpleFeatureType) = {
     import SimpleFeatureTypes.Configs._
     import SimpleFeatureTypes.InternalConfigs._
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 
     // Get previous schema and user data
     val previousSft = getSchema(typeName)
-    val schemaTypeName = sft.getTypeName()
+    val schemaTypeName = sft.getTypeName
 
     // Prevent modifying wrong type if type names don't match
     if (!schemaTypeName.equals(typeName.toString)) {
@@ -229,7 +229,7 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
   }
 
   private val schemaCache =
-    CacheBuilder.newBuilder().build(new CacheLoader[String, KafkaFeatureConfig] {
+    Caffeine.newBuilder().build(new CacheLoader[String, KafkaFeatureConfig] {
       override def load(k: String): KafkaFeatureConfig =
         resolveTopicSchema(k)
     })

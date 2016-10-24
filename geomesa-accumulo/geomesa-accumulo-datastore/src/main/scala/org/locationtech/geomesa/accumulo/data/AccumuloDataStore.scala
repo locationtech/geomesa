@@ -410,13 +410,14 @@ class AccumuloDataStore(val connector: Connector,
    * @return featureStore, suitable for reading and writing
    */
   override def getFeatureSource(typeName: Name): AccumuloFeatureStore = {
-    if (!getTypeNames.exists(_ == typeName.getLocalPart)) {
+    val sft = getSchema(typeName)
+    if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
     if (config.caching) {
-      new AccumuloFeatureStore(this, typeName) with CachingFeatureSource
+      new AccumuloFeatureStore(this, sft) with CachingFeatureSource
     } else {
-      new AccumuloFeatureStore(this, typeName)
+      new AccumuloFeatureStore(this, sft)
     }
   }
 

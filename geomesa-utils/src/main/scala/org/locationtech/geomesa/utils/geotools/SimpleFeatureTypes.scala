@@ -59,6 +59,7 @@ object SimpleFeatureTypes {
     val OPT_CARDINALITY  = "cardinality"
     val OPT_BIN_TRACK_ID = "bin-track-id"
     val OPT_CQ_INDEX     = "cq-index"
+    val OPT_JSON         = "json"
   }
 
   private [geomesa] object AttributeConfigs {

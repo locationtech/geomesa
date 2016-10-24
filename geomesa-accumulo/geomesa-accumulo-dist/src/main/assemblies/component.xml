@@ -33,7 +33,7 @@
             </includes>
         </dependencySet>
         <dependencySet>
-            <outputDirectory>dist/geoserver</outputDirectory>
+            <outputDirectory>dist/gs-plugins</outputDirectory>
             <directoryMode>0755</directoryMode>
             <fileMode>0644</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
