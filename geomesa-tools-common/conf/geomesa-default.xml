@@ -43,7 +43,9 @@
     <property>
         <name>geomesa.audit.provider.impl</name>
         <value></value>
-        <description></description>
+        <description>Fully-qualified classname of the implementation of the
+            audit provider interface to use.
+        </description>
         <final>false</final>
     </property>
 
