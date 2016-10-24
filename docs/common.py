@@ -82,7 +82,11 @@ rst_epilog = """
 
 .. |release_source_tarball| replace:: %(url_github_archive)s/geomesa-%(release)s.tar.gz
 
-.. |release_kafka08_plugin| replace:: %(url_locationtech_release)s/geomesa-kafka-08-gs-plugin_2.11/%(release)s/geomesa-kafka-08-gs-plugin_2.11-%(release)s-install.tar.gz
+.. |release_kafka08_plugin| replace:: `geomesa-kafka-08-gs-plugin-2.11-%(release)s.tar.gz <%(url_locationtech_release)s/geomesa-kafka-08-gs-plugin_2.11/%(release)s/geomesa-kafka-08-gs-plugin_2.11-%(release)s-install.tar.gz>`__
+
+.. |release_kafka09_plugin| replace:: `geomesa-kafka-09-gs-plugin-2.11-%(release)s.tar.gz <%(url_locationtech_release)s/geomesa-kafka-09-gs-plugin_2.11/%(release)s/geomesa-kafka-09-gs-plugin_2.11-%(release)s-install.tar.gz>`__
+
+.. |release_kafka10_plugin| replace:: `geomesa-kafka-10-gs-plugin-2.11-%(release)s.tar.gz <%(url_locationtech_release)s/geomesa-kafka-10-gs-plugin_2.11/%(release)s/geomesa-kafka-10-gs-plugin_2.11-%(release)s-install.tar.gz>`__
 
 .. |eclipse_release| replace:: %(release_eclipse)s
 
