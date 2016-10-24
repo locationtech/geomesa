@@ -56,7 +56,7 @@ class ScriptingFunctionFactory extends TransformerFunctionFactory {
 
   def getScriptsFromEnvVar: Seq[URI] = {
     val v = GEOMESA_CONVERT_SCRIPTS_PATH.get
-    if (v.isEmpty) Seq.empty[URI]
+    if (v == null) Seq.empty[URI]
     else {
       v.split(",")
         .map { d => new File(d) }

@@ -22,7 +22,7 @@ import org.locationtech.geomesa.accumulo.GeomesaSystemProperties
 import org.locationtech.geomesa.accumulo.data.stats.usage.ParamsAuditProvider
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.AuthorizationsProvider
-import org.locationtech.geomesa.utils.conf.GeoMesaProperties
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties.getProperty
 
 import scala.collection.JavaConversions._
 import scala.collection.immutable.HashMap
@@ -109,11 +109,11 @@ object AccumuloDataStoreFactory {
       new MockInstance(instance).getConnector(user, authToken)
     } else {
       // NB: For those wanting to set this via JAVA_OPTS, this key is "instance.zookeeper.timeout" in Accumulo 1.6.x.
-      val clientConfiguration = if (GeoMesaProperties.getProperty(ClientProperty.INSTANCE_ZK_TIMEOUT.getKey).nonEmpty) {
+      val clientConfiguration = if (getProperty(ClientProperty.INSTANCE_ZK_TIMEOUT.getKey) !=  null) {
         new ClientConfiguration()
           .withInstance(instance)
           .withZkHosts(zookeepers)
-          .`with`(ClientProperty.INSTANCE_ZK_TIMEOUT, GeoMesaProperties.getProperty(ClientProperty.INSTANCE_ZK_TIMEOUT.getKey))
+          .`with`(ClientProperty.INSTANCE_ZK_TIMEOUT, getProperty(ClientProperty.INSTANCE_ZK_TIMEOUT.getKey))
       } else {
         new ClientConfiguration().withInstance(instance).withZkHosts(zookeepers)
       }

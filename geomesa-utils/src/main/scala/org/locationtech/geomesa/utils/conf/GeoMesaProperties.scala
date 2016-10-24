@@ -60,8 +60,8 @@ object GeoMesaProperties extends LazyLogging {
   def GEOMESA_SFT_CONFIG_URLS           = PropOrDefault("geomesa.sft.config.urls")
   def GEOMESA_STATS_COMPACT_MILLIS      = PropOrDefault("geomesa.stats.compact.millis")
 
-  case class PropOrDefault(property: String, dft: String = "") {
-    val default = if (dft.nonEmpty) dft
+  case class PropOrDefault(property: String, dft: String = null) {
+    val default = if (dft != null) dft
                   else Option(props.getProperty(property)).getOrElse(dft)
     def get: String = {
       ensureConfig()
@@ -82,7 +82,7 @@ object GeoMesaProperties extends LazyLogging {
 
   // For dynamic properties that are not in geomesa.properties, this is intended
   // to be a System.getProperty drop-in replacement that ensures the config is always loaded.
-  def getProperty(prop: String, default: String = ""): String = {
+  def getProperty(prop: String, default: String = null): String = {
     ensureConfig()
     Option(System.getProperty(prop)).getOrElse(default)
   }
