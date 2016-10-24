@@ -86,7 +86,7 @@ object GeoMesaConfigurator {
     Option(conf.get(indicesOutKey)).map { opt =>
       opt.split(",").map { i =>
         val Array(name, version) = i.split(":")
-        AccumuloFeatureIndex.IndexLookup((name, version.toInt))
+        AccumuloFeatureIndex.lookup((name, version.toInt))
       }
     }
 

@@ -15,23 +15,23 @@ import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeU
 import com.google.common.collect.ImmutableSortedSet
 import com.google.common.util.concurrent.MoreExecutors
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.{Connector, IteratorSetting}
 import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope
 import org.geotools.data.{Query, Transaction}
-import org.geotools.geometry.jts.ReferencedEnvelope
 import org.joda.time._
 import org.locationtech.geomesa.accumulo.AccumuloVersion
-import org.locationtech.geomesa.accumulo.data.GeoMesaMetadata._
 import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.z2.Z2IndexV1
 import org.locationtech.geomesa.accumulo.index.z3.Z3IndexV2
-import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, QueryHints}
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.filter.visitor.{BoundsFilterVisitor, QueryPlanFilterVisitor}
+import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.stats._
+import org.locationtech.geomesa.index.utils.{GeoMesaMetadata, MetadataSerializer}
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode
@@ -61,7 +61,7 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
 
   private val compactor = new Runnable() {
     override def run(): Unit = {
-      import org.locationtech.geomesa.accumulo.GeomesaSystemProperties.StatsProperties.STAT_COMPACTION_MILLIS
+      import org.locationtech.geomesa.accumulo.AccumuloProperties.StatsProperties.STAT_COMPACTION_MILLIS
       val compactInterval = STAT_COMPACTION_MILLIS.get.toLong
       if (lastCompaction.get < DateTimeUtils.currentTimeMillis() - compactInterval &&
           compactionScheduled.compareAndSet(true, false) ) {
@@ -88,8 +88,6 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
         // stat query doesn't entirely handle duplicates - only on a per-iterator basis
         // is a full scan worth it? the stat will be pretty close...
 
-        import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
-
         // restrict fields coming back so that we push as little data as possible
         val props = Array(Option(sft.getGeomField).getOrElse(sft.getDescriptor(0).getLocalName))
         val query = new Query(sft.getTypeName, filter, props)
@@ -101,15 +99,6 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
     } else {
       estimateCount(sft, filter.accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter])
     }
-  }
-
-  override def getBounds(sft: SimpleFeatureType, filter: Filter, exact: Boolean): ReferencedEnvelope = {
-    val filterBounds = BoundsFilterVisitor.visit(filter)
-    Option(sft.getGeomField).flatMap(getAttributeBounds[Geometry](sft, _, filter, exact)).map { bounds =>
-      val env = bounds.lower.getEnvelopeInternal
-      env.expandToInclude(bounds.upper.getEnvelopeInternal)
-      filterBounds.intersection(env)
-    }.getOrElse(filterBounds)
   }
 
   override def getAttributeBounds[T](sft: SimpleFeatureType,
@@ -226,7 +215,7 @@ class GeoMesaMetadataStats(val ds: AccumuloDataStore, statsTable: String, genera
 
     // update our last run time
     val date = GeoToolsDateFormat.print(DateTime.now(DateTimeZone.UTC))
-    ds.metadata.insert(sft.getTypeName, STATS_GENERATION_KEY, date)
+    ds.metadata.insert(sft.getTypeName, GeoMesaMetadata.STATS_GENERATION_KEY, date)
 
     stats
   }

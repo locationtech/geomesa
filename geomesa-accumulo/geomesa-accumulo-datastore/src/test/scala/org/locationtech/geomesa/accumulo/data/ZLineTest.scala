@@ -48,7 +48,7 @@ class ZLineTest extends Specification with TestWithDataStore {
   "ZLines" should {
     "add features" in {
       skipped("testing")
-      val scanner = ds.connector.createScanner(ds.getTableName(sft.getTypeName, Z3Index), new Authorizations())
+      val scanner = ds.connector.createScanner(Z3Index.getTableName(sft.getTypeName, ds), new Authorizations())
       println(scanner.toSeq.length)
       scanner.close()
       success

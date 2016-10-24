@@ -13,11 +13,10 @@ import com.vividsolutions.jts.geom.{Geometry, GeometryFactory}
 import org.apache.accumulo.core.data.Value
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.DataStore
-import org.geotools.data.simple.SimpleFeatureSource
+import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureStore}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureStore
 import org.locationtech.geomesa.accumulo.index.encoders.{BinEncoder, IndexValueEncoder}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializers}
@@ -57,7 +56,7 @@ object TestData extends LazyLogging {
 
   def buildFeatureSource(ds: DataStore, featureType: SimpleFeatureType, features: Seq[SimpleFeature]): SimpleFeatureSource = {
     ds.createSchema(featureType)
-    val fs: AccumuloFeatureStore = ds.getFeatureSource(featureType.getTypeName).asInstanceOf[AccumuloFeatureStore]
+    val fs = ds.getFeatureSource(featureType.getTypeName).asInstanceOf[SimpleFeatureStore]
     val coll = new DefaultFeatureCollection(featureType.getTypeName)
     coll.addAll(features.asJavaCollection)
 

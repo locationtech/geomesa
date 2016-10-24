@@ -99,7 +99,7 @@ object TableConfCommand {
   def getTableName(ds: AccumuloDataStore, params: ListParams) =
     AccumuloFeatureIndex.indices(ds.getSchema(params.featureName), IndexMode.Any)
         .find(_.name == params.tableSuffix)
-        .map(ds.getTableName(params.featureName, _))
+        .map(_.getTableName(params.featureName, ds))
         .getOrElse(throw new Exception(s"Invalid table suffix: ${params.tableSuffix}"))
   
   @Parameters(commandDescription = "Perform table configuration operations")

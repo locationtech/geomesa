@@ -10,10 +10,16 @@
     <category name="org.apache.zookeeper">
         <priority value="warn"/>
     </category>
-    <category name="org.apache.accumulo">
+    <category name="org.apache.hadoop">
+        <priority value="error"/>
+    </category>
+    <category name="org.mortbay.log">
         <priority value="warn"/>
     </category>
-    <category name="org.apache.hadoop">
+    <category name="BlockStateChange">
+        <priority value="warn"/>
+    </category>
+    <category name="SecurityLogger.org.apache.hadoop.hbase.Server">
         <priority value="warn"/>
     </category>
     <category name="hsqldb">
@@ -23,11 +29,9 @@
     <!-- un-comment the following line to enable verbose log messages
          from the index query-planner; this can be helpful in debugging
          query plans -->
-    <!--
-    <category name="org.locationtech.geomesa.core.index.IndexQueryPlanner">
+    <!--<category name="org.locationtech.geomesa.index.utils.Explainer">
         <priority value="trace"/>
-    </category>
-    -->
+    </category>-->
 
     <root>
         <priority value="info"/>

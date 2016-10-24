@@ -12,16 +12,12 @@ import java.util.{UUID, Map => jMap}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
-import org.geotools.data.Query
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
-import org.locationtech.geomesa.accumulo.index.QueryHints._
-import org.locationtech.geomesa.accumulo.index.QueryPlanner.SFIter
-import org.locationtech.geomesa.accumulo.sumNumericValueMutableMaps
-import org.locationtech.geomesa.accumulo.util.CloseableIterator
+import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, sumNumericValueMutableMaps}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{AttributeSpec, GeometryUtils, SimpleFeatureTypes}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -61,6 +57,8 @@ class KryoLazyMapAggregatingIterator extends KryoLazyAggregatingIterator[mutable
 
 object KryoLazyMapAggregatingIterator extends LazyLogging {
 
+  import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
   val DEFAULT_PRIORITY = 30
   private val MAP_ATTRIBUTE = "map"
 
@@ -68,7 +66,7 @@ object KryoLazyMapAggregatingIterator extends LazyLogging {
    * Creates an iterator config for the z3 density iterator
    */
   def configure(sft: SimpleFeatureType,
-                index: AccumuloFeatureIndex,
+                index: AccumuloFeatureIndexType,
                 filter: Option[Filter],
                 hints: Hints,
                 deduplicate: Boolean,
@@ -83,9 +81,10 @@ object KryoLazyMapAggregatingIterator extends LazyLogging {
   def createMapSft(sft: SimpleFeatureType, mapAttribute: String) =
     s"${AttributeSpec(sft, sft.getDescriptor(mapAttribute)).toSpec},*geom:Point:srid=4326"
 
-  def reduceMapAggregationFeatures(features: SFIter, query: Query): SFIter = {
-    val sft = query.getHints.getReturnSft
-    val mapIndex = sft.indexOf(query.getHints.getMapAggregatingAttribute)
+  def reduceMapAggregationFeatures(hints: Hints)
+                                  (features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
+    val sft = hints.getReturnSft
+    val mapIndex = sft.indexOf(hints.getMapAggregatingAttribute)
 
     val maps = features.map(_.getAttribute(mapIndex).asInstanceOf[jMap[AnyRef, Int]].asScala)
 

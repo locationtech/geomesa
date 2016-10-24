@@ -109,7 +109,7 @@ trait TestWithDataStore extends Specification {
   def explain(filter: String): String = explain(new Query(sftName, ECQL.toFilter(filter)))
 
   def scanner(table: AccumuloWritableIndex): Scanner =
-    connector.createScanner(ds.getTableName(sftName, table), new Authorizations())
+    connector.createScanner(table.getTableName(sftName, ds), new Authorizations())
 
   def rowToString(key: Key) = bytesToString(key.getRow.copyBytes())
 

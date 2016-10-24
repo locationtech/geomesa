@@ -10,7 +10,8 @@ package org.locationtech.geomesa.accumulo.index
 
 import org.geotools.data.Query
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
+import org.locationtech.geomesa.index.api.QueryPlanner
+import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.Filter

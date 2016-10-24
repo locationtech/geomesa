@@ -17,7 +17,7 @@ import org.apache.accumulo.core.data.{Range => ARange}
 import org.apache.hadoop.io.Text
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo.index.{BatchScanPlan, QueryPlan}
+import org.locationtech.geomesa.accumulo.index.{AccumuloQueryPlan, BatchScanPlan}
 import org.locationtech.geomesa.accumulo.process.knn.TouchingGeoHashes
 import org.locationtech.geomesa.raster.iterators.{RasterFilteringIterator => RFI}
 import org.locationtech.geomesa.raster.{defaultResolution, lexiEncodeDoubleToString, rasterSft, rasterSftName}
@@ -45,7 +45,7 @@ object AccumuloRasterQueryPlanner extends LazyLogging {
     resToBounds.keys.toArray.filter(_ >= res).sorted.find(c => improvedOverlaps(queryBounds.geom, resToBounds(c).geom))
 
   def getQueryPlan(rq: RasterQuery, resAndGeoHashMap: ImmutableSetMultimap[Double, Int],
-                    resAndBoundsMap: IMap[Double, BoundingBox]): Option[QueryPlan] = {
+                    resAndBoundsMap: IMap[Double, BoundingBox]): Option[AccumuloQueryPlan] = {
     // Step 1. Pick resolution and Make sure the query extent is contained in the extent at that resolution
     val selectedRes: Double = getAcceptableResolution(rq, resAndBoundsMap).getOrElse(defaultResolution)
     val res = lexiEncodeDoubleToString(selectedRes)
@@ -86,7 +86,7 @@ object AccumuloRasterQueryPlanner extends LazyLogging {
 
       // TODO: WCS: setup a CFPlanner to match against a list of strings
       // ticket is GEOMESA-559
-      Some(BatchScanPlan(null, null, rows, Seq(cfg), Seq.empty[Text], null, -1, hasDuplicates = false))
+      Some(BatchScanPlan(null, null, rows, Seq(cfg), Seq.empty[Text], null, None, -1, hasDuplicates = false))
     }
   }
 

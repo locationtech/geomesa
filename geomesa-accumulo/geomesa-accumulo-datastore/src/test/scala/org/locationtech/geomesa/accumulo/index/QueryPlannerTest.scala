@@ -19,6 +19,7 @@ import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType, SimpleFeatureSerializers}
+import org.locationtech.geomesa.utils.iterators.SortingSimpleFeatureIterator
 import org.opengis.filter.sort.SortBy
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -37,33 +38,31 @@ class QueryPlannerTest extends Specification with Mockito with TestWithDataStore
 
   addFeatures(Seq(sf, sf2))
 
+  val planner = ds.queryPlanner
+
   "adaptStandardIterator" should {
     "return a LazySortedIterator when the query has an order by clause" >> {
       val query = new Query(sft.getTypeName)
       query.setSortBy(Array(SortBy.NATURAL_ORDER))
-
-      val planner = new QueryPlanner(sft, ds)
-      val result = planner.runQuery(query)
-
-      result must beAnInstanceOf[LazySortedIterator]
+      val result = planner.runQuery(sft, query)
+      result must beAnInstanceOf[SortingSimpleFeatureIterator]
     }
 
     "not return a LazySortedIterator when the query does not have an order by clause" >> {
       val query = new Query(sft.getTypeName)
       query.setSortBy(null)
 
-      val planner = new QueryPlanner(sft, ds)
-      val result = planner.runQuery(query)
+      val result = planner.runQuery(sft, query)
 
-      result must not (beAnInstanceOf[LazySortedIterator])
+      result must not (beAnInstanceOf[SortingSimpleFeatureIterator])
     }
 
     "decode and set visibility properly" >> {
       import org.locationtech.geomesa.security._
 
       val query = new Query(sft.getTypeName)
-      val planner = new QueryPlanner(sft, ds)
-      QueryPlanner.configureQuery(query, sft) // have to do manually
+
+      planner.configureQuery(query, sft) // have to do manually
 
       val visibilities = Array("", "USER", "ADMIN")
       val expectedVis = visibilities.map(vis => if (vis.isEmpty) None else Some(vis))
@@ -88,8 +87,7 @@ class QueryPlannerTest extends Specification with Mockito with TestWithDataStore
       query.setSortBy(Array(SortBy.NATURAL_ORDER))
       query.setProperties(List(ff.property("s")))
 
-      val planner = new QueryPlanner(sft, ds)
-      val result = planner.runQuery(query).toList
+      val result = planner.runQuery(sft, query).toList
 
       result.map(_.getID) mustEqual Seq("id", "id2")
       forall(result)(r => r.getAttributeCount mustEqual 2) // geom always gets included

@@ -16,7 +16,6 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.index.encoders.{DecodedIndexValue, IndexValueEncoder}
 import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatureSerializer}
 import org.locationtech.geomesa.raster._
@@ -57,7 +56,7 @@ object RasterEntry {
 
 object RasterEntryEncoder extends LazyLogging {
 
-  def encode(raster: Raster, visibility: String = ""): KeyValuePair = {
+  def encode(raster: Raster, visibility: String = ""): (Key, Value) = {
 
     logger.trace(s"encoding raster: $raster")
     val vis = new Text(visibility)
@@ -97,7 +96,7 @@ object RasterEntryDecoder {
     read
   }
 
-  def decode(entry: KeyValuePair) = {
+  def decode(entry: (Key, Value)) = {
     val renderedImage: RenderedImage = rasterImageDeserialize(entry._2.get)
     val metadata: DecodedIndexValue = RasterEntry.decodeIndexCQMetadata(entry._1)
     val res = lexiDecodeStringToDouble(new String(entry._1.getRowData.toArray).split("~")(0))

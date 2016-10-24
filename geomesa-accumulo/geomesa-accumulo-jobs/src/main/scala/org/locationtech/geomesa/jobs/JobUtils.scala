@@ -14,9 +14,9 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.Connector
 import org.apache.hadoop.conf.Configuration
 import org.geotools.data.Query
-import org.locationtech.geomesa.accumulo.GeomesaSystemProperties.QueryProperties
+import org.locationtech.geomesa.accumulo.AccumuloProperties.AccumuloQueryProperties
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.index._
+import org.locationtech.geomesa.accumulo.index.{AccumuloQueryPlan, JoinPlan, _}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.FilterStrategy
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
@@ -64,9 +64,9 @@ object JobUtils extends LazyLogging {
   /**
    * Gets a query plan that can be satisfied via AccumuloInputFormat - e.g. only 1 table and configuration.
    */
-  def getSingleQueryPlan(ds: AccumuloDataStore, query: Query): QueryPlan = {
+  def getSingleQueryPlan(ds: AccumuloDataStore, query: Query): AccumuloQueryPlan = {
     // disable range batching for this request
-    QueryProperties.SCAN_BATCH_RANGES.threadLocalValue.set(Int.MaxValue.toString)
+    AccumuloQueryProperties.SCAN_BATCH_RANGES.threadLocalValue.set(Int.MaxValue.toString)
 
     try {
       lazy val fallbackIndex = {
@@ -96,7 +96,7 @@ object JobUtils extends LazyLogging {
       }
     } finally {
       // make sure we reset the thread local
-      QueryProperties.SCAN_BATCH_RANGES.threadLocalValue.remove()
+      AccumuloQueryProperties.SCAN_BATCH_RANGES.threadLocalValue.remove()
     }
   }
 }

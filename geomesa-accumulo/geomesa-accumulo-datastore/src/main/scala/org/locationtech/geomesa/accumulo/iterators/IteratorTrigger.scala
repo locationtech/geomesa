@@ -12,9 +12,8 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
 import org.geotools.process.vector.TransformProcess
-import org.locationtech.geomesa.accumulo.index.QueryHints._
-import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.index.encoders.IndexValueEncoder
+import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.simple.SimpleFeatureType
@@ -115,7 +114,7 @@ object IteratorTrigger extends LazyLogging {
    * @return
    */
   def doTransformsCoverFilters(hints: Hints, filter: Filter): Boolean =
-    hints.getTransformDefinition.map { transformString =>
+    hints.getTransformDefinition.forall { transformString =>
       val filterAttributes = getFilterAttributes(filter) // attributes we are filtering on
       val transforms: Seq[String] = // names of the attributes the transform contains
         TransformProcess.toDefinition(transformString).asScala
@@ -132,7 +131,7 @@ object IteratorTrigger extends LazyLogging {
             }
           }
       filterAttributes.forall(transforms.contains(_))
-    }.getOrElse(true)
+    }
 
   /**
    * Scans the ECQL predicate,the transform definition and Density Key in order to determine if the

@@ -42,7 +42,6 @@ object AccumuloRunner extends Runner {
     new RemoveSchemaCommand(jc),
     new TableConfCommand(jc),
     new AccumuloVersionCommand(jc),
-    new QueryRasterStatsCommmand(jc),
     new GetSftCommand(jc),
     new GenerateAvroSchemaCommand(jc),
     new StatsAnalyzeCommand(jc),

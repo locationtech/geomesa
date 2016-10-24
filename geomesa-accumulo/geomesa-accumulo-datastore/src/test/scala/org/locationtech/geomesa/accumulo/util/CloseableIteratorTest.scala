@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.accumulo.util
 
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

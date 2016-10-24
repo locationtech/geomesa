@@ -18,7 +18,6 @@ import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
 import org.locationtech.geomesa.curve.XZ2SFC
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -28,11 +27,11 @@ trait XZ2WritableIndex extends AccumuloWritableIndex {
 
   import AccumuloWritableIndex.{DefaultNumSplits, DefaultSplitArrays}
 
-  override def writer(sft: SimpleFeatureType, ops: AccumuloDataStore): (WritableFeature) => Seq[Mutation] = {
+  override def writer(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
     val sfc = XZ2SFC(sft.getXZPrecision)
     val sharing = sft.getTableSharingBytes
     require(sharing.length < 2, s"Expecting only a single byte for table sharing, got ${sft.getTableSharingPrefix}")
-    (wf: WritableFeature) => {
+    (wf: AccumuloFeature) => {
       val mutation = new Mutation(getRowKey(sfc, sharing)(wf))
       wf.fullValues.foreach(value => mutation.put(value.cf, value.cq, value.vis, value.value))
       wf.binValues.foreach(value => mutation.put(value.cf, value.cq, value.vis, value.value))
@@ -40,10 +39,10 @@ trait XZ2WritableIndex extends AccumuloWritableIndex {
     }
   }
 
-  override def remover(sft: SimpleFeatureType, ops: AccumuloDataStore): (WritableFeature) => Seq[Mutation] = {
+  override def remover(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
     val sfc = XZ2SFC(sft.getXZPrecision)
     val sharing = sft.getTableSharingBytes
-    (wf: WritableFeature) => {
+    (wf: AccumuloFeature) => {
       val mutation = new Mutation(getRowKey(sfc, sharing)(wf))
       wf.fullValues.foreach(value => mutation.putDelete(value.cf, value.cq, value.vis))
       wf.binValues.foreach(value => mutation.putDelete(value.cf, value.cq, value.vis))
@@ -57,7 +56,7 @@ trait XZ2WritableIndex extends AccumuloWritableIndex {
   }
 
   // table sharing (0-1 byte), split(1 byte), xz value (8 bytes), id (n bytes)
-  private def getRowKey(sfc: XZ2SFC, tableSharing: Array[Byte])(wf: WritableFeature): Array[Byte] = {
+  private def getRowKey(sfc: XZ2SFC, tableSharing: Array[Byte])(wf: AccumuloFeature): Array[Byte] = {
     val split = DefaultSplitArrays(wf.idHash % DefaultNumSplits)
     val envelope = wf.feature.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal
     val xz = sfc.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY)
@@ -65,17 +64,17 @@ trait XZ2WritableIndex extends AccumuloWritableIndex {
     Bytes.concat(tableSharing, split, Longs.toByteArray(xz), id)
   }
 
-  override def configure(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
+  override def configure(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {
     import scala.collection.JavaConversions._
 
-    val table = GeoMesaTable.formatTableName(ops.catalogTable, tableSuffix, sft)
-    ops.metadata.insert(sft.getTypeName, tableNameKey, table)
+    super.configure(sft, ds)
+    val table = getTableName(sft.getTypeName, ds)
 
-    AccumuloVersion.ensureTableExists(ops.connector, table)
+    AccumuloVersion.ensureTableExists(ds.connector, table)
 
     val cfs = Seq(AccumuloWritableIndex.FullColumnFamily, AccumuloWritableIndex.BinColumnFamily)
     val localityGroups = cfs.map(cf => (cf.toString, ImmutableSet.of(cf))).toMap
-    ops.tableOps.setLocalityGroups(table, localityGroups)
+    ds.tableOps.setLocalityGroups(table, localityGroups)
 
     // drop first split, otherwise we get an empty tablet
     val splits = if (sft.isTableSharing) {
@@ -84,12 +83,12 @@ trait XZ2WritableIndex extends AccumuloWritableIndex {
     } else {
       DefaultSplitArrays.drop(1).map(new Text(_)).toSet
     }
-    val splitsToAdd = splits -- ops.tableOps.listSplits(table).toSet
+    val splitsToAdd = splits -- ds.tableOps.listSplits(table).toSet
     if (splitsToAdd.nonEmpty) {
       // noinspection RedundantCollectionConversion
-      ops.tableOps.addSplits(table, ImmutableSortedSet.copyOf(splitsToAdd.toIterable))
+      ds.tableOps.addSplits(table, ImmutableSortedSet.copyOf(splitsToAdd.toIterable))
     }
 
-    ops.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
+    ds.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
   }
 }

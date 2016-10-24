@@ -12,17 +12,17 @@ import java.util.concurrent.TimeUnit
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.BatchWriterConfig
-import org.locationtech.geomesa.accumulo.GeomesaSystemProperties
-import org.locationtech.geomesa.accumulo.GeomesaSystemProperties.PropAndDefault
+import org.locationtech.geomesa.accumulo.AccumuloProperties
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 import scala.util.Try
 
 object GeoMesaBatchWriterConfig extends LazyLogging {
 
-  protected[util] def fetchProperty(prop: PropAndDefault): Option[Long] =
+  protected[util] def fetchProperty(prop: SystemProperty): Option[Long] =
     for { p <- Option(prop.get); num <- Try(java.lang.Long.parseLong(p)).toOption } yield num
 
-  protected[util] def fetchMemoryProperty(prop: PropAndDefault): Option[Long] =
+  protected[util] def fetchMemoryProperty(prop: SystemProperty): Option[Long] =
     for { p <- Option(prop.get); num <- parseMemoryProperty(p) } yield num
 
   protected[util] def parseMemoryProperty(prop: String): Option[Long] = {
@@ -57,12 +57,12 @@ object GeoMesaBatchWriterConfig extends LazyLogging {
   }
 
   protected[util] def buildBWC: BatchWriterConfig = {
-    import GeomesaSystemProperties.BatchWriterProperties
+    import AccumuloProperties.BatchWriterProperties
 
     val bwc = new BatchWriterConfig
 
     val latency = fetchProperty(BatchWriterProperties.WRITER_LATENCY_MILLIS)
-        .getOrElse(GeomesaSystemProperties.BatchWriterProperties.WRITER_LATENCY_MILLIS.default.toLong)
+        .getOrElse(AccumuloProperties.BatchWriterProperties.WRITER_LATENCY_MILLIS.default.toLong)
     logger.trace(s"GeoMesaBatchWriter config: maxLatency set to $latency milliseconds.")
     bwc.setMaxLatency(latency, TimeUnit.MILLISECONDS)
 

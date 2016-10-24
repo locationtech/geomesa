@@ -9,15 +9,14 @@
 package org.locationtech.geomesa.accumulo.index.attribute
 
 import org.apache.accumulo.core.data.Mutation
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter._
+import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.simple.SimpleFeatureType
 
 // current version - id in row keys
-object AttributeIndex extends AccumuloFeatureIndex with AttributeWritableIndex with AttributeQueryableIndex {
+case object AttributeIndex extends AccumuloFeatureIndexType with AttributeWritableIndex with AttributeQueryableIndex {
 
   override val name: String = "attr"
 
@@ -31,9 +30,9 @@ object AttributeIndex extends AccumuloFeatureIndex with AttributeWritableIndex w
     sft.getAttributeDescriptors.exists(_.isIndexed)
   }
 
-  override def writer(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
+  override def writer(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
     val getRows = getRowKeys(sft)
-    (wf: WritableFeature) => {
+    (wf: AccumuloFeature) => {
       getRows(wf).map { case (descriptor, row) =>
         val mutation = new Mutation(row)
         val values = descriptor.getIndexCoverage() match {
@@ -46,9 +45,9 @@ object AttributeIndex extends AccumuloFeatureIndex with AttributeWritableIndex w
     }
   }
 
-  override def remover(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
+  override def remover(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
     val getRows = getRowKeys(sft)
-    (wf: WritableFeature) => {
+    (wf: AccumuloFeature) => {
       getRows(wf).map { case (descriptor, row) =>
         val mutation = new Mutation(row)
         val values = descriptor.getIndexCoverage() match {
@@ -63,7 +62,7 @@ object AttributeIndex extends AccumuloFeatureIndex with AttributeWritableIndex w
 }
 
 // added feature ID and dates to row key
-object AttributeIndexV2 extends AccumuloFeatureIndex with AttributeWritableIndex with AttributeQueryableIndex {
+case object AttributeIndexV2 extends AccumuloFeatureIndexType with AttributeWritableIndex with AttributeQueryableIndex {
 
   override val name: String = "attr"
 
@@ -77,9 +76,9 @@ object AttributeIndexV2 extends AccumuloFeatureIndex with AttributeWritableIndex
     sft.getAttributeDescriptors.exists(_.isIndexed)
   }
 
-  override def writer(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
+  override def writer(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
     val getRows = getRowKeys(sft)
-    (wf: WritableFeature) => {
+    (wf: AccumuloFeature) => {
       getRows(wf).map { case (descriptor, row) =>
         val mutation = new Mutation(row)
         val value = descriptor.getIndexCoverage() match {
@@ -92,9 +91,9 @@ object AttributeIndexV2 extends AccumuloFeatureIndex with AttributeWritableIndex
     }
   }
 
-  override def remover(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
+  override def remover(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
     val getRows = getRowKeys(sft)
-    (wf: WritableFeature) => {
+    (wf: AccumuloFeature) => {
       getRows(wf).map { case (descriptor, row) =>
         val mutation = new Mutation(row)
         val value = descriptor.getIndexCoverage() match {

@@ -17,8 +17,8 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.index.QueryHints
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -37,7 +37,7 @@ class MapAggregatingIteratorTest extends Specification with TestWithDataStore {
 
   val testData : Map[String,String] = {
     val source = Source.fromInputStream(getClass.getResourceAsStream("/test-lines.tsv"))
-    val map = source.getLines().toList.map(_.split("\t")).map(l => (l(0) -> l(1))).toMap
+    val map = source.getLines().toList.map(_.split("\t")).map(l => l(0) -> l(1)).toMap
     source.close()
     map
   }

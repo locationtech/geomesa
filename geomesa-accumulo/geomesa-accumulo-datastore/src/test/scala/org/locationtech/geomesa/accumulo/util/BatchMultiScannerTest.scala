@@ -64,7 +64,7 @@ class BatchMultiScannerTest extends Specification {
   val ds = createStore
   ds.createSchema(schema)
   val sft = ds.getSchema(sftName)
-  val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+  val fs = ds.getFeatureSource(sftName)
 
   val featureCollection = new DefaultFeatureCollection(sftName, sft)
 
@@ -102,7 +102,7 @@ class BatchMultiScannerTest extends Specification {
 
     val bms = new BatchMultiScanner(ds, attrScanner, jp, qp.join.get._1, 5, batchSize)
 
-    val retrieved = bms.iterator.map(jp.kvsToFeatures).toList
+    val retrieved = bms.iterator.map(jp.entriesToFeatures).toList
     forall(retrieved)(_.getAttribute(attr) mustEqual value)
 
     retrieved.size

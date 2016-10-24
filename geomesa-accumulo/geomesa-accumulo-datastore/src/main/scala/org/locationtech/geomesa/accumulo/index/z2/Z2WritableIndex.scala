@@ -17,7 +17,6 @@ import org.apache.accumulo.core.conf.Property
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -34,7 +33,7 @@ trait Z2WritableIndex extends AccumuloWritableIndex {
   }
 
   // split(1 byte), z value (8 bytes), id (n bytes)
-  protected def getPointRowKey(tableSharing: Array[Byte])(wf: WritableFeature): Seq[Array[Byte]] = {
+  protected def getPointRowKey(tableSharing: Array[Byte])(wf: AccumuloFeature): Seq[Array[Byte]] = {
     import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
     val split = SPLIT_ARRAYS(wf.idHash % NUM_SPLITS)
     val id = wf.feature.getID.getBytes(StandardCharsets.UTF_8)
@@ -44,7 +43,7 @@ trait Z2WritableIndex extends AccumuloWritableIndex {
   }
 
   // split(1 byte), z value (3 bytes), id (n bytes)
-  protected def getGeomRowKeys(tableSharing: Array[Byte])(wf: WritableFeature): Seq[Array[Byte]] = {
+  protected def getGeomRowKeys(tableSharing: Array[Byte])(wf: AccumuloFeature): Seq[Array[Byte]] = {
     val split = SPLIT_ARRAYS(wf.idHash % NUM_SPLITS)
     val geom = wf.feature.getDefaultGeometry.asInstanceOf[Geometry]
     val zs = zBox(geom)
@@ -101,16 +100,16 @@ trait Z2WritableIndex extends AccumuloWritableIndex {
     prefix + length
   }
 
-  override def configure(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
+  override def configure(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {
     import scala.collection.JavaConversions._
 
-    val table = GeoMesaTable.formatTableName(ops.catalogTable, tableSuffix, sft)
-    ops.metadata.insert(sft.getTypeName, tableNameKey, table)
+    super.configure(sft, ds)
+    val table = getTableName(sft.getTypeName, ds)
 
-    AccumuloVersion.ensureTableExists(ops.connector, table)
+    AccumuloVersion.ensureTableExists(ds.connector, table)
 
     val localityGroups = Seq(BinColumnFamily, FullColumnFamily).map(cf => (cf.toString, ImmutableSet.of(cf))).toMap
-    ops.tableOps.setLocalityGroups(table, localityGroups)
+    ds.tableOps.setLocalityGroups(table, localityGroups)
 
     // drop first split, otherwise we get an empty tablet
     val splits = if (sft.isTableSharing) {
@@ -119,12 +118,12 @@ trait Z2WritableIndex extends AccumuloWritableIndex {
     } else {
       SPLIT_ARRAYS.drop(1).map(new Text(_)).toSet
     }
-    val splitsToAdd = splits -- ops.tableOps.listSplits(table).toSet
+    val splitsToAdd = splits -- ds.tableOps.listSplits(table).toSet
     if (splitsToAdd.nonEmpty) {
       // noinspection RedundantCollectionConversion
-      ops.tableOps.addSplits(table, ImmutableSortedSet.copyOf(splitsToAdd.toIterable))
+      ds.tableOps.addSplits(table, ImmutableSortedSet.copyOf(splitsToAdd.toIterable))
     }
 
-    ops.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
+    ds.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
   }
 }

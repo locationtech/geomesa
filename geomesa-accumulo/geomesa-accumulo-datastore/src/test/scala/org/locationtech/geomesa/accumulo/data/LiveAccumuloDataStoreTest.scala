@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.data
 import org.geotools.data._
 import org.geotools.filter.text.cql2.CQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.util.CloseableIterator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -42,7 +42,7 @@ class LiveAccumuloDataStoreTest extends Specification {
       val query = new Query(sftName, CQL.toFilter("INCLUDE"))
 
       // get the feature store used to query the GeoMesa data
-      val featureStore = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+      val featureStore = ds.getFeatureSource(sftName)
 
       // execute the query
       val results = featureStore.getFeatures(query).features

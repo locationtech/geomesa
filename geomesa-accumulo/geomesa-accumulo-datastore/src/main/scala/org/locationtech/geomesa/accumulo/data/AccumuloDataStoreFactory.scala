@@ -18,13 +18,13 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{ClientConfiguration, Connector, ZooKeeperInstance}
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStoreFactorySpi, Parameter}
-import org.locationtech.geomesa.accumulo.GeomesaSystemProperties
-import org.locationtech.geomesa.accumulo.data.stats.usage.ParamsAuditProvider
+import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.AuthorizationsProvider
 
 import scala.collection.JavaConversions._
-import scala.collection.immutable.HashMap
 
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
@@ -35,19 +35,13 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
   def createNewDataStore(params: JMap[String, Serializable]) = createDataStore(params)
 
   def createDataStore(params: JMap[String, Serializable]) = {
-    val visibility = visibilityParam.lookupOpt[String](params).getOrElse("")
+    import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.RichParam
 
-    val tableName = tableNameParam.lookUp(params).asInstanceOf[String]
     val connector = connParam.lookupOpt[Connector](params).getOrElse {
       buildAccumuloConnector(params, java.lang.Boolean.valueOf(mockParam.lookUp(params).asInstanceOf[String]))
     }
-
-    val authProvider = buildAuthsProvider(connector, params)
-    val auditProvider = buildAuditProvider(params)
-
     val config = buildConfig(connector, params)
-
-    new AccumuloDataStore(connector, tableName, authProvider, auditProvider, visibility, config)
+    new AccumuloDataStore(connector, config)
   }
 
   override def getDisplayName = AccumuloDataStoreFactory.DISPLAY_NAME
@@ -69,7 +63,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       writeThreadsParam,
       looseBBoxParam,
       generateStatsParam,
-      collectQueryStatsParam,
+      auditQueriesParam,
       cachingParam,
       forceEmptyAuthsParam
     )
@@ -84,18 +78,10 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 object AccumuloDataStoreFactory {
 
   import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
+  import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.RichParam
 
   val DISPLAY_NAME = "Accumulo (GeoMesa)"
   val DESCRIPTION = "Apache Accumulo\u2122 distributed key/value store"
-
-  val EmptyParams: JMap[String, Serializable] = new HashMap[String, Serializable]()
-
-  implicit class RichParam(val p: Param) extends AnyVal {
-    def lookup[T](params: JMap[String, Serializable]): T = p.lookUp(params).asInstanceOf[T]
-    def lookupOpt[T](params: JMap[String, Serializable]): Option[T] = Option(p.lookup[T](params))
-    def lookupWithDefault[T](params: JMap[String, Serializable]): T =
-      p.lookupOpt[T](params).getOrElse(p.getDefaultValue.asInstanceOf[T])
-  }
 
   def buildAccumuloConnector(params: JMap[String,Serializable], useMock: Boolean): Connector = {
     val zookeepers = zookeepersParam.lookup[String](params)
@@ -121,26 +107,39 @@ object AccumuloDataStoreFactory {
     }
   }
 
-  def buildConfig(connector: Connector, params: JMap[String, Serializable] = EmptyParams): AccumuloDataStoreConfig = {
-    val queryTimeout = queryTimeoutParam.lookupOpt[Int](params).map(i => i * 1000L).orElse {
-      GeomesaSystemProperties.QueryProperties.QUERY_TIMEOUT_MILLIS.option.map(_.toLong)
+  def buildConfig(connector: Connector, params: JMap[String, Serializable]): AccumuloDataStoreConfig = {
+    val catalog = tableNameParam.lookUp(params).asInstanceOf[String]
+
+    val authProvider = buildAuthsProvider(connector, params)
+    val auditProvider = buildAuditProvider(params)
+
+    val auditQueries = !connector.isInstanceOf[MockConnector] &&
+        (auditQueriesParam.lookupWithDefault[Boolean](params) || collectQueryStatsParam.lookupWithDefault[Boolean](params))
+    val auditService = {
+      val auditTable = GeoMesaFeatureIndex.formatSharedTableName(catalog, "queries")
+      new AccumuloAuditService(connector, authProvider, auditTable, auditQueries)
     }
-    val collectQueryStats =
-      !connector.isInstanceOf[MockConnector] && collectQueryStatsParam.lookupWithDefault[Boolean](params)
+
+    val generateStats = generateStatsParam.lookupWithDefault[Boolean](params)
+    val visibility = visibilityParam.lookupOpt[String](params).getOrElse("")
+    val queryTimeout = GeoMesaDataStoreFactory.queryTimeout(params)
 
     AccumuloDataStoreConfig(
+      catalog,
+      visibility,
+      generateStats,
+      authProvider,
+      Some(auditService, auditProvider, AccumuloAuditService.StoreType),
       queryTimeout,
-      queryThreadsParam.lookupWithDefault(params),
-      recordThreadsParam.lookupWithDefault(params),
-      writeThreadsParam.lookupWithDefault(params),
-      generateStatsParam.lookupWithDefault[Boolean](params),
-      collectQueryStats,
+      looseBBoxParam.lookupWithDefault(params),
       cachingParam.lookupWithDefault(params),
-      looseBBoxParam.lookupWithDefault(params)
+      writeThreadsParam.lookupWithDefault(params),
+      queryThreadsParam.lookupWithDefault(params),
+      recordThreadsParam.lookupWithDefault(params)
     )
   }
 
-  def buildAuditProvider(params: JMap[String, Serializable] = EmptyParams) = {
+  def buildAuditProvider(params: JMap[String, Serializable]) = {
     security.getAuditProvider(params).getOrElse {
       val provider = new ParamsAuditProvider
       provider.configure(params)
@@ -148,7 +147,7 @@ object AccumuloDataStoreFactory {
     }
   }
 
-  def buildAuthsProvider(connector: Connector, params: JMap[String, Serializable] = EmptyParams): AuthorizationsProvider = {
+  def buildAuthsProvider(connector: Connector, params: JMap[String, Serializable]): AuthorizationsProvider = {
     val forceEmptyOpt: Option[java.lang.Boolean] = forceEmptyAuthsParam.lookupOpt[java.lang.Boolean](params)
     val forceEmptyAuths = forceEmptyOpt.getOrElse(java.lang.Boolean.FALSE).asInstanceOf[Boolean]
 
@@ -195,14 +194,15 @@ object AccumuloDataStoreParams {
   val authsParam             = org.locationtech.geomesa.security.authsParam
   val visibilityParam        = new Param("visibilities", classOf[String], "Default Accumulo visibilities to apply to all written data", false)
   val tableNameParam         = new Param("tableName", classOf[String], "Accumulo catalog table name", true)
-  val queryTimeoutParam      = new Param("queryTimeout", classOf[Integer], "The max time a query will be allowed to run before being killed, in seconds", false)
+  val queryTimeoutParam      = GeoMesaDataStoreFactory.QueryTimeoutParam
   val queryThreadsParam      = new Param("queryThreads", classOf[Integer], "The number of threads to use per query", false, 8)
   val recordThreadsParam     = new Param("recordThreads", classOf[Integer], "The number of threads to use for record retrieval", false, 10)
   val writeThreadsParam      = new Param("writeThreads", classOf[Integer], "The number of threads to use for writing records", false, 10)
-  val looseBBoxParam         = new Param("looseBoundingBox", classOf[java.lang.Boolean], "Use loose bounding boxes - queries will be faster but may return extraneous results", false, true)
-  val generateStatsParam     = new Param("generateStats", classOf[java.lang.Boolean], "Generate data statistics for improved query planning", false, true)
+  val looseBBoxParam         = GeoMesaDataStoreFactory.LooseBBoxParam
+  val generateStatsParam     = GeoMesaDataStoreFactory.GenerateStatsParam
   val collectQueryStatsParam = new Param("collectQueryStats", classOf[java.lang.Boolean], "Collect statistics on queries being run", false, true)
-  val cachingParam           = new Param("caching", classOf[java.lang.Boolean], "Cache the results of queries for faster repeated searches. Warning: large result sets can swamp memory", false, false)
+  val auditQueriesParam      = GeoMesaDataStoreFactory.AuditQueriesParam
+  val cachingParam           = GeoMesaDataStoreFactory.CachingParam
   val mockParam              = new Param("useMock", classOf[String], "Use a mock connection (for testing)", false)
   val forceEmptyAuthsParam   = new Param("forceEmptyAuths", classOf[java.lang.Boolean], "Default to using no authorizations during queries, instead of using the connection user's authorizations", false, false)
 }
