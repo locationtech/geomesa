@@ -399,7 +399,8 @@ object BinAggregatingIterator extends LazyLogging {
     is.addOption(GEOM_OPT, sft.indexOf(geom).toString)
     val dtgIndex = dtg.map(sft.indexOf).getOrElse(-1)
     is.addOption(DATE_OPT, dtgIndex.toString)
-    if (sft.isLines && dtgIndex != -1 && sft.getDescriptor(dtgIndex).getListType().exists(_ == classOf[Date])) {
+    if (sft.isLines && dtgIndex != -1 && sft.getDescriptor(dtgIndex).isList &&
+        classOf[Date].isAssignableFrom(sft.getDescriptor(dtgIndex).getListType())) {
       is.addOption(DATE_ARRAY_OPT, "true")
     }
     label.foreach(l => is.addOption(LABEL_OPT, sft.indexOf(l).toString))

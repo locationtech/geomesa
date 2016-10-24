@@ -404,7 +404,7 @@ object AttributeQueryableIndex {
 
     val binding = {
       val descriptor = sft.getDescriptor(index)
-      descriptor.getListType().getOrElse(descriptor.getType.getBinding)
+      if (descriptor.isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
     }
 
     require(classOf[Comparable[_]].isAssignableFrom(binding), s"Attribute '$attribute' is not comparable")

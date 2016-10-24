@@ -22,7 +22,7 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.feature.{AttributeTypeBuilder, NameImpl}
 import org.joda.time.{DateTime, Seconds, Weeks}
 import org.locationtech.geomesa.curve.{TimePeriod, Z3SFC}
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.sfcurve.zorder.ZCurve2D
 import org.opengis.feature.`type`.{AttributeDescriptor, Name}
@@ -59,7 +59,7 @@ object CassandraDataStore {
     sftBuilder.addAll(attributes)
     sftBuilder.setName(name.getLocalPart)
     val sft = sftBuilder.buildFeatureType()
-    sft.getUserData.put(RichSimpleFeatureType.DEFAULT_DATE_KEY, dtgAttribute.getLocalName)
+    sft.getUserData.put(SimpleFeatureTypes.Configs.DEFAULT_DATE_KEY, dtgAttribute.getLocalName)
     sft
   }
 

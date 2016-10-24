@@ -28,11 +28,12 @@ object AttributeDetails {
   def apply(ad: AttributeDescriptor, sft: SimpleFeatureType): AttributeDetails = {
     val majorBinding = classToString(Some(ad.getType.getBinding))
     val binding = if (ad.isList) {
-      val subtype = classToString(ad.getListType())
+      val subtype = classToString(Option(ad.getListType()))
       s"$majorBinding[$subtype]"
     } else if (ad.isMap) {
-      val keyType = classToString(Option(ad.getUserData.get("keyclass").asInstanceOf[Class[_]]))
-      val valueType = classToString(Option(ad.getUserData.get("valueclass").asInstanceOf[Class[_]]))
+      val types = ad.getMapTypes()
+      val keyType = classToString(Option(types._1))
+      val valueType = classToString(Option(types._2))
       s"$majorBinding[$keyType,$valueType]"
     } else {
       majorBinding

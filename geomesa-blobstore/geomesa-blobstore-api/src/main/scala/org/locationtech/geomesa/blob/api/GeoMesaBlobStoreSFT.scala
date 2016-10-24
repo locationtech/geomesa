@@ -26,7 +26,7 @@ object GeoMesaBlobStoreSFT {
     .geometry(GeomFieldName, default = true)
     .date(DtgFieldName, default = true)
     .stringType(ThumbnailFieldName)
-    .userData(SimpleFeatureTypes.MIXED_GEOMETRIES, "true")
+    .userData(SimpleFeatureTypes.Configs.MIXED_GEOMETRIES, "true")
     .build(BlobFeatureTypeName)
 
 }

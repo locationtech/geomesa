@@ -146,6 +146,8 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
   }
 
   def updateKafkaSchema(typeName: String, sft: SimpleFeatureType) = {
+    import SimpleFeatureTypes.Configs._
+    import SimpleFeatureTypes.InternalConfigs._
 
     // Get previous schema and user data
     val previousSft = getSchema(typeName)
@@ -162,7 +164,7 @@ trait KafkaDataStoreSchemaManager extends DataStore with LazyLogging {
 
     // Check that unmodifiable user data has not changed
     val unmodifiableUserdataKeys = Set(SCHEMA_VERSION_KEY, TABLE_SHARING_KEY, SHARING_PREFIX_KEY,
-      DEFAULT_DATE_KEY, ST_INDEX_SCHEMA_KEY, SimpleFeatureTypes.ENABLED_INDEXES)
+      DEFAULT_DATE_KEY, ST_INDEX_SCHEMA_KEY, ENABLED_INDICES)
 
     unmodifiableUserdataKeys.foreach { key =>
       if (sft.getUserData.keySet().contains(key) && sft.userData[String](key) != previousSft.userData[String](key)) {

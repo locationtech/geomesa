@@ -10,33 +10,23 @@ package org.locationtech.geomesa.tools.kafka.commands
 
 import com.beust.jcommander._
 import org.locationtech.geomesa.kafka08.KafkaDataStoreSchemaManager
-import org.locationtech.geomesa.tools.kafka.commands.KeywordCommand.KeywordParameters
 import org.locationtech.geomesa.tools.common.{FeatureTypeNameParam, KeywordParamSplitter}
 import org.locationtech.geomesa.tools.kafka.ProducerKDSConnectionParams
-
-import scala.collection.JavaConversions._
+import org.locationtech.geomesa.tools.kafka.commands.KeywordCommand.KeywordParameters
 
 class KeywordCommand(parent: JCommander) extends CommandWithKDS(parent) {
 
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
   override val command: String = "keywords"
   override val params = new KeywordParameters()
 
   override def execute(): Unit = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+
+    import scala.collection.JavaConversions._
 
     val sft = ds.getSchema(params.featureName)
 
     var keywordsModified = false
-
-    if (params.keywordsToAdd != null) {
-      sft.addKeywords(params.keywordsToAdd.mkString(KEYWORDS_DELIMITER))
-      keywordsModified = true
-    }
-
-    if (params.keywordsToRemove != null) {
-      sft.removeKeywords(params.keywordsToRemove.mkString(KEYWORDS_DELIMITER))
-      keywordsModified = true
-    }
 
     if (params.removeAll) {
       val confirm = System.console().readLine("Remove all keywords? (y/n): ").toLowerCase
@@ -48,6 +38,14 @@ class KeywordCommand(parent: JCommander) extends CommandWithKDS(parent) {
         ds.dispose()
         return
       }
+    } else if (params.keywordsToRemove != null) {
+      sft.removeKeywords(params.keywordsToRemove.toSet)
+      keywordsModified = true
+    }
+
+    if (params.keywordsToAdd != null) {
+      sft.addKeywords(params.keywordsToAdd.toSet)
+      keywordsModified = true
     }
 
     // Update the existing schema
@@ -55,7 +53,7 @@ class KeywordCommand(parent: JCommander) extends CommandWithKDS(parent) {
 
     if (params.list) {
       val reloadedSft = ds.getSchema(params.featureName)
-      println("Keywords: " + reloadedSft.getKeywords.toString)
+      println("Keywords: " + reloadedSft.getKeywords.mkString(", "))
     }
 
     ds.dispose()

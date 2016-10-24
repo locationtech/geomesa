@@ -13,8 +13,8 @@ import java.lang.{Boolean => jBoolean}
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.{DEFAULT_DATE_KEY, RichSimpleFeatureType}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{MIXED_GEOMETRIES, RESERVED_WORDS}
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.{DEFAULT_DATE_KEY, MIXED_GEOMETRIES, RESERVED_WORDS}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConverters._
