@@ -8,12 +8,16 @@
 
 package org.locationtech.geomesa.tools.accumulo.commands
 
-import scala.collection.JavaConversions._
+import java.io.Closeable
+
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.commons.io.IOUtils
 import org.locationtech.geomesa.tools.accumulo._
 import org.locationtech.geomesa.tools.accumulo.commands.BinaryExportCommand.BinaryExportParameters
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+import scala.collection.JavaConversions._
 
 class BinaryExportCommand(parent: JCommander) extends CommandWithCatalog(parent)
   with ExportCommandTools[BinaryExportParameters]
@@ -33,8 +37,7 @@ class BinaryExportCommand(parent: JCommander) extends CommandWithCatalog(parent)
       exporter.write(features)
       logger.info(s"Feature export complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")}")
     } finally {
-      exporter.flush()
-      exporter.close()
+      IOUtils.closeQuietly(exporter)
       ds.dispose()
     }
     logger.info(s"Feature export complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")} " +
@@ -44,7 +47,7 @@ class BinaryExportCommand(parent: JCommander) extends CommandWithCatalog(parent)
 
 object BinaryExportCommand {
   @Parameters(commandDescription = "Export features from a GeoMesa data store in a binary format.")
-  class BinaryExportParameters extends ExportCommandToolsParam {
+  class BinaryExportParameters extends BaseExportCommands {
     @Parameter(names = Array("--id-attribute"), description = "name of the id attribute to export")
     var idAttribute: String = null
 

@@ -10,7 +10,6 @@ package org.locationtech.geomesa.tools.accumulo.commands
 
 import java.io._
 import java.util.zip.GZIPOutputStream
-import scala.collection.JavaConversions._
 
 import com.beust.jcommander.{Parameter, ParameterException}
 import com.typesafe.scalalogging.LazyLogging
@@ -18,17 +17,19 @@ import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
-import org.locationtech.geomesa.tools.accumulo._
 import org.locationtech.geomesa.tools.accumulo.Utils.setOverrideAttributes
+import org.locationtech.geomesa.tools.accumulo._
 import org.locationtech.geomesa.tools.common.{FeatureTypeNameParam, OptionalCQLFilterParam}
 import org.opengis.filter.Filter
 
+import scala.collection.JavaConversions._
 import scala.util.{Failure, Success, Try}
 
-trait ExportCommandTools[P <: ExportCommandToolsParam] extends LazyLogging {
+trait ExportCommandTools[P <: BaseExportCommands] extends LazyLogging {
 
-  def getFeatureCollection(overrideAttributes: Option[java.util.List[String]] = None, ds: AccumuloDataStore, params: P):
-    SimpleFeatureCollection = {
+  def getFeatureCollection(overrideAttributes: Option[java.util.List[String]] = None,
+                           ds: AccumuloDataStore,
+                           params: P): SimpleFeatureCollection = {
     val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
     logger.debug(s"Applying CQL filter ${filter.toString}")
     val q = new Query(params.featureName, filter)
@@ -68,7 +69,7 @@ trait ExportCommandTools[P <: ExportCommandToolsParam] extends LazyLogging {
   }
 }
 
-trait ExportCommandToolsParam extends GeoMesaConnectionParams
+trait BaseExportCommands extends GeoMesaConnectionParams
   with FeatureTypeNameParam
   with OptionalCQLFilterParam {
 

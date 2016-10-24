@@ -10,8 +10,8 @@ package org.locationtech.geomesa.tools.accumulo
 
 import java.io.File
 import java.util.Locale
-import scala.collection.JavaConverters._
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.compress.compressors.bzip2.BZip2Utils
 import org.apache.commons.compress.compressors.gzip.GzipUtils
 import org.apache.commons.compress.compressors.xz.XZUtils
@@ -19,7 +19,8 @@ import org.apache.commons.io.{FileUtils, FilenameUtils}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.geotools.data.Query
-import com.typesafe.scalalogging.LazyLogging
+
+import scala.collection.JavaConverters._
 
 object Utils extends LazyLogging {
 

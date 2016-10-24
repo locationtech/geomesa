@@ -33,7 +33,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
 
-trait FeatureExporter extends AutoCloseable with Flushable {
+trait FeatureExporter extends AutoCloseable with Flushable with Closeable {
   def write(featureCollection: SimpleFeatureCollection): Unit
 }
 
