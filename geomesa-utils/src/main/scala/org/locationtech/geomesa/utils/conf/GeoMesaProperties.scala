@@ -13,9 +13,7 @@ import java.util.Properties
 import com.typesafe.scalalogging.LazyLogging
 
 object GeoMesaProperties extends LazyLogging {
-
   private val EmbeddedFile = "/org/locationtech/geomesa/geomesa.properties"
-
   private val props: Properties = {
     val resource = getClass.getResourceAsStream(EmbeddedFile)
     val props = new Properties
@@ -36,7 +34,10 @@ object GeoMesaProperties extends LazyLogging {
   val BuildDate      = props.getProperty("geomesa.build.date")
   val GitCommit      = props.getProperty("geomesa.build.commit.id")
   val GitBranch      = props.getProperty("geomesa.build.branch")
-//
+
+  val GEOMESA_CONFIG_FILE      = ConfigLoader.GEOMESA_CONFIG_FILE
+  val GEOMESA_CONFIG_FILE_NAME = ConfigLoader.GEOMESA_CONFIG_FILE_NAME
+
   def GEOMESA_TOOLS_ACCUMULO_SITE_XML: String = {
     val siteXML = getProperty("geomesa.tools.accumulo.site.xml")
     if (siteXML.nonEmpty) siteXML
@@ -61,7 +62,7 @@ object GeoMesaProperties extends LazyLogging {
 
   case class PropOrDefault(property: String, dft: String = "") {
     val default = if (dft.nonEmpty) dft
-    else Option(props.getProperty(property)).getOrElse(dft)
+                  else Option(props.getProperty(property)).getOrElse(dft)
     def get: String = {
       ensureConfig()
       Option(System.getProperty(property)).getOrElse(default)
