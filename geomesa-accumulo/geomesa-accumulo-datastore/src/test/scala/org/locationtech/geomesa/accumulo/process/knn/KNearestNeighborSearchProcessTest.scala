@@ -33,14 +33,15 @@ import scala.util.Random
 case class TestEntry(wkt: String, id: String, dt: DateTime = new DateTime())
 
 @RunWith(classOf[JUnitRunner])
-class KNearestNeighborSearchProcessTest extends Specification with LazyLogging {
+class KNearestNeighborSearchProcessTest extends Specification {
 
   sequential
 
   val sftName = "geomesaKNNTestType"
   val sft = SimpleFeatureTypes.createType(sftName, "geom:Point:srid=4326,dtg:Date,dtg_end_time:Date")
   sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
-  lazy val ds = createStore
+
+  val ds = createStore
   ds.createSchema(sft)
 
   val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
