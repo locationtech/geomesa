@@ -24,7 +24,7 @@ import org.locationtech.geomesa.features.avro.AvroDataFileWriter
 import org.locationtech.geomesa.filter.function._
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats.Formats
-import org.locationtech.geomesa.tools.accumulo.commands.ExportCommand.ExportParameters
+import org.locationtech.geomesa.tools.accumulo.commands.BinaryExportCommand.BinaryExportParameters
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -32,7 +32,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
 
-trait FeatureExporter extends AutoCloseable with Flushable {
+trait FeatureExporter extends AutoCloseable with Flushable with Closeable {
   def write(featureCollection: SimpleFeatureCollection): Unit
 }
 
@@ -184,14 +184,14 @@ object BinFileExport {
 
   var DEFAULT_TIME = "dtg"
 
-  def getAttributeList(p: ExportParameters): String = {
+  def getAttributeList(p: BinaryExportParameters): String = {
     val dtg = Option(p.dateAttribute).getOrElse(DEFAULT_TIME)
     Seq(p.latAttribute, p.lonAttribute, p.idAttribute, dtg, p.labelAttribute)
         .filter(_ != null)
         .mkString(",")
   }
 
-  def apply(os: OutputStream, params: ExportParameters) =
+  def apply(os: OutputStream, params: BinaryExportParameters) =
     new BinFileExport(os,
                       Option(params.dateAttribute).getOrElse(DEFAULT_TIME),
                       Option(params.idAttribute),
