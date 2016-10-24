@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.process.knn
 
-import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
