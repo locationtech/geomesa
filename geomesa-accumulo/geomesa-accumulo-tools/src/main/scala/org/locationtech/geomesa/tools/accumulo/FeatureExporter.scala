@@ -205,6 +205,7 @@ class BinFileExport(os: OutputStream,
                     idAttribute: Option[String],
                     latAttribute: Option[String],
                     lonAttribute: Option[String],
+
                     lblAttribute: Option[String]) extends FeatureExporter {
 
   import BinaryOutputEncoder._
