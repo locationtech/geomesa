@@ -19,7 +19,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.z3.Z3Index
-import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
+import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, Z3Iterator}
 import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -160,6 +160,22 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       val features = runQuery(filter).toList
       features must haveSize(1)
       features.head.getID.toInt mustEqual 1
+    }
+
+    "support AND'ed GT/LT for dates" >> {
+      val filter = "bbox(geom, 38, 59, 51, 61)" +
+          " AND dtg >= '2010-05-07T06:00:00.000Z' AND dtg <= '2010-05-08T00:00:00.000Z'"
+      // validate that date was used for range processing and not applied as a post-scan filter
+      val qps = ds.getQueryPlan(new Query(sftName, ECQL.toFilter(filter)))
+      forall(qps) { qp =>
+        qp.iterators must haveLength(1)
+        qp.iterators.head.getIteratorClass mustEqual classOf[Z3Iterator].getName
+      }
+
+      // validate correct results
+      val features = runQuery(filter).toList
+      features must haveSize(4)
+      features.map(_.getID.toInt) must containTheSameElementsAs(6 to 9)
     }
 
     "apply secondary filters" >> {

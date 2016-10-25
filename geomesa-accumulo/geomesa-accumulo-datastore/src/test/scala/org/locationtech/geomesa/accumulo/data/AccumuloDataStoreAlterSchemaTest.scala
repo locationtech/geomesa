@@ -17,9 +17,11 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
 import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -63,11 +65,15 @@ class AccumuloDataStoreAlterSchemaTest extends Specification {
 
   // TODO this gets run twice by maven
   if (sft.getAttributeDescriptors.length == 2) {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
     val builder = new SimpleFeatureTypeBuilder()
     builder.init(sft)
+    builder.userData("index", "join")
     builder.add("attr1", classOf[String])
     val updatedSft = builder.buildFeatureType()
     updatedSft.getUserData.putAll(sft.getUserData)
+    updatedSft.setIndices(updatedSft.getIndices :+ (AttributeIndex.name, AttributeIndex.version, IndexMode.ReadWrite))
 
     ds.updateSchema(sftName, updatedSft)
 

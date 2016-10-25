@@ -25,36 +25,69 @@ object JsonPathParser {
 
   @throws(classOf[ParsingException])
   def parse(path: String, report: Boolean = true): Seq[PathElement] = {
+    if (path == null) {
+      throw new IllegalArgumentException("Path must not be null")
+    }
     val runner = if (report) { ReportingParseRunner(Parser.Path) } else { BasicParseRunner(Parser.Path) }
-    val parsing = runner.run(path)
+    val fixedPath = if (path.startsWith("$")) { path } else s"$$.$path"
+    val parsing = runner.run(fixedPath)
     parsing.result.getOrElse {
       throw new ParsingException(s"Invalid json path: ${ErrorUtils.printParseErrors(parsing)}")
+    }
+  }
+
+  def print(path: Seq[PathElement], dollar: Boolean = true): String = {
+    require(path.nonEmpty, "Path must be non-empty")
+    if (dollar) {
+      path.mkString("$", "", "")
+    } else {
+      val string = path.mkString
+      if (string.charAt(0) == '.') {
+        // trim off leading self-selector to correspond to dot notation selection
+        string.substring(1)
+      } else {
+        string
+      }
     }
   }
 
   sealed trait PathElement
 
   // attribute: .foo
-  case class PathAttribute(name: String) extends PathElement
+  case class PathAttribute(name: String) extends PathElement {
+    override def toString: String = s".$name"
+  }
 
   // enumerated index: [1]
-  case class PathIndex(index: Int) extends PathElement
+  case class PathIndex(index: Int) extends PathElement {
+    override def toString: String = s"[$index]"
+  }
 
   // enumerated indices: [1,2,5]
-  case class PathIndices(indices: Seq[Int]) extends PathElement
+  case class PathIndices(indices: Seq[Int]) extends PathElement {
+    override def toString: String = indices.mkString("[", ",", "]")
+  }
 
   // any attribute: .*
-  case object PathAttributeWildCard extends PathElement
+  case object PathAttributeWildCard extends PathElement {
+    override val toString: String = ".*"
+  }
 
   // any index: [*]
-  case object PathIndexWildCard extends PathElement
+  case object PathIndexWildCard extends PathElement {
+    override val toString: String = "[*]"
+  }
 
   // deep scan: ..
-  case object PathDeepScan extends PathElement
+  case object PathDeepScan extends PathElement {
+    override val toString: String = ".."
+  }
 
   // path function: .min(), .max(), .avg(), .length()
   // not implemented: stddev
-  case class PathFunction(function: JsonPathFunction) extends PathElement
+  case class PathFunction(function: JsonPathFunction) extends PathElement {
+    override def toString: String = s".$function()"
+  }
 
   object JsonPathFunction extends Enumeration {
     type JsonPathFunction = Value
