@@ -25,7 +25,7 @@ class TemporalIndexCheckTest extends Specification {
   def oneDTGType = SimpleFeatureTypes.createType("oneDTGType", s"foo:String,bar:Geometry,baz:String,$DEFAULT_GEOMETRY_PROPERTY_NAME:Point,$DEFAULT_DTG_PROPERTY_NAME:Date")
   def twoDTGType = SimpleFeatureTypes.createType("twoDTGType", s"foo:String,bar:Geometry,baz:String,$DEFAULT_GEOMETRY_PROPERTY_NAME:Point,$DEFAULT_DTG_PROPERTY_NAME:Date,dtg_end_time:Date")
 
-  val DEFAULT_DATE_KEY = org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.DEFAULT_DATE_KEY
+  val DEFAULT_DATE_KEY = org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.DEFAULT_DATE_KEY
 
   def copy(sft: SimpleFeatureType) = {
     val b = new SimpleFeatureTypeBuilder()

@@ -21,7 +21,7 @@ Before you begin, you must have the following installed and configured:
 -  Apache `Maven <http://maven.apache.org/>`__
 -  a GitHub client
 -  HBase 1.1.x (optional)
--  GeoServer 2.8.1 (optional)
+-  GeoServer |geoserver_version| (optional)
 
 An existing HBase 1.1.x installation is helpful but not necessary. The
 tutorial described will work either with an existing HBase server or by

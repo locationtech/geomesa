@@ -1,12 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ~ Copyright (c) 2013-2015 Commonwealth Computer Research, Inc.
-  ~ All rights reserved. This program and the accompanying materials
-  ~ are made available under the terms of the Apache License, Version 2.0 which
-  ~ accompanies this distribution and is available at
-  ~ http://www.opensource.org/licenses/apache2.0.php.
-  -->
-
 <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
 
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
@@ -19,7 +11,7 @@
     <category name="org.apache.spark">
         <priority value="error"/>
     </category>
-    <category name="org.spark-project">
+    <category name="org.spark_project">
         <priority value="warn"/>
     </category>
     <category name="akka">
@@ -34,6 +26,9 @@
     <category name="org.apache.accumulo">
         <priority value="warn"/>
     </category>
+    <category name="org.apache.accumulo.core.client.ClientConfiguration">
+        <priority value="error"/>
+    </category>
     <category name="org.apache.hadoop">
         <priority value="warn"/>
     </category>
@@ -44,11 +39,9 @@
     <!-- un-comment the following line to enable verbose log messages
          from the index query-planner; this can be helpful in debugging
          query plans -->
-    <!--
-    <category name="org.locationtech.geomesa.core.index.IndexQueryPlanner">
+    <!--<category name="org.locationtech.geomesa.index.utils.Explainer">
         <priority value="trace"/>
-    </category>
-    -->
+    </category>-->
 
     <root>
         <priority value="info"/>

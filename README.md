@@ -10,13 +10,15 @@ GeoMesa is an open-source, distributed, spatio-temporal database built on top of
 
 ## Versions and Downloads
 
-**Latest 1.3 milestone**: 1.3.0-m0
-* [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=geomesa-1.3.0-m0_2.11)](https://travis-ci.org/locationtech/geomesa) 
-* [Accumulo Release tarball](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-accumulo-dist_2.11/1.3.0-m0/geomesa-accumulo-dist_2.11-1.3.0-m0-bin.tar.gz)
-* [Kafka08 Release tarball](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-kafka-08-dist_2.11/1.3.0-m0/geomesa-kafka-08-dist_2.11-1.3.0-m0-bin.tar.gz)
-* [Source](https://github.com/locationtech/geomesa/archive/geomesa_2.11-1.3.0-m0.tar.gz)
+**Latest 1.3 milestone**: 1.3.0-m1
+* [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=geomesa-1.3.0-m1_2.11)](https://travis-ci.org/locationtech/geomesa) 
+* [Accumulo Release tarball](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-accumulo-dist_2.11/1.3.0-m1/geomesa-accumulo-dist_2.11-1.3.0-m1-bin.tar.gz)
+* [Kafka08 Release tarball](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-kafka-08-dist_2.11/1.3.0-m1/geomesa-kafka-08-dist_2.11-1.3.0-m1-bin.tar.gz)
+* [Kafka09 Release tarball](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-kafka-09-dist_2.11/1.3.0-m1/geomesa-kafka-09-dist_2.11-1.3.0-m1-bin.tar.gz)
+* [Kafka10 Release tarball](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-kafka-10-dist_2.11/1.3.0-m1/geomesa-kafka-10-dist_2.11-1.3.0-m1-bin.tar.gz)
+* [Source](https://github.com/locationtech/geomesa/archive/geomesa_2.11-1.3.0-m1.tar.gz)
 
-**Development version (source only)**: 1.3.0-m1-SNAPSHOT
+**Development version (source only)**: 1.3.0-m2-SNAPSHOT
 * [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=master)](https://travis-ci.org/locationtech/geomesa)
 * [Source](https://github.com/locationtech/geomesa/archive/master.tar.gz)
 

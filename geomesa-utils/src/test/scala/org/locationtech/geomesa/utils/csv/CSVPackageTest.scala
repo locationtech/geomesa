@@ -15,7 +15,7 @@ import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.csv.CSVParser._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

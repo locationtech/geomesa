@@ -10,15 +10,16 @@ package org.locationtech.geomesa.memory.cqengine.utils
 
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.AttributeDescriptor
 
 import scala.util.Try
 
 // See geomesa/geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/geotools/Conversions.scala
 object CQIndexingOptions extends LazyLogging {
+  import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions.OPT_CQ_INDEX
+
   def getCQIndexType(ad: AttributeDescriptor): CQIndexType = {
-    Option(ad.getUserData.get(SimpleFeatureTypes.OPT_CQ_INDEX).asInstanceOf[String]) match {
+    Option(ad.getUserData.get(OPT_CQ_INDEX).asInstanceOf[String]) match {
       case Some(n) => Try(CQIndexType.withName(n)).toOption match {
         case Some(t) => t
         case None => {
@@ -31,7 +32,7 @@ object CQIndexingOptions extends LazyLogging {
   }
 
   def setCQIndexType(ad: AttributeDescriptor, indexType: CQIndexType) {
-    ad.getUserData.put(SimpleFeatureTypes.OPT_CQ_INDEX, indexType.toString)
+    ad.getUserData.put(OPT_CQ_INDEX, indexType.toString)
   }
 }
 

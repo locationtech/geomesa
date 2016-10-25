@@ -39,9 +39,9 @@ class CQIndexingOptionsTest extends Specification {
 
   "CQ Indexing options" should {
     "be configurable from SimpleFeatureTypes" >> {
-      val sft = SimpleFeatureTypes.createType("test", spec)
-
       "via SFT spec" >> {
+        val sft = SimpleFeatureTypes.createType("test", spec)
+
         val whoDescriptor = sft.getDescriptor("Who")
         getCQIndexType(whoDescriptor) mustEqual CQIndexType.DEFAULT
 
@@ -62,7 +62,7 @@ class CQIndexingOptionsTest extends Specification {
       }
 
       "via setCQIndexType" >> {
-        sequential
+        val sft = SimpleFeatureTypes.createType("test", spec)
 
         val originalWhoDescriptor = sft.getDescriptor("Who")
         getCQIndexType(originalWhoDescriptor) mustEqual CQIndexType.DEFAULT

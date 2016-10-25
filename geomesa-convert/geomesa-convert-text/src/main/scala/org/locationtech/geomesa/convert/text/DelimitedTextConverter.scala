@@ -9,15 +9,11 @@
 package org.locationtech.geomesa.convert.text
 
 import java.io._
-import java.util.concurrent.Executors
-
-import com.google.common.collect.Queues
 import com.typesafe.config.Config
 import org.apache.commons.csv.{CSVFormat, QuoteMode}
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
 import org.locationtech.geomesa.convert.{AbstractSimpleFeatureConverterFactory, Field, LinesToSimpleFeatureConverter}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-
 import scala.collection.immutable.IndexedSeq
 
 class DelimitedTextConverterFactory extends AbstractSimpleFeatureConverterFactory[String] {
@@ -80,44 +76,16 @@ class DelimitedTextConverter(format: CSVFormat,
                              val validating: Boolean)
   extends LinesToSimpleFeatureConverter {
 
-  var curString: String = null
-  val q = Queues.newArrayBlockingQueue[String](32)
-  // if the record to write is bigger than the buffer size of the PipedReader
-  // then the writer will block until the reader reads data off of the pipe.
-  // For this reason, we have to separate the reading and writing into two
-  // threads
-  val writer = new PipedWriter()
-  val reader = new PipedReader(writer, options.pipeSize)  // record size
-  val parser = format.parse(reader).iterator()
-  val separator = format.getRecordSeparator
-
-  val es = Executors.newSingleThreadExecutor()
-  es.submit(new Runnable {
-    override def run(): Unit = {
-      while (true) {
-        val s = q.take()
-        // make sure the input is not null and is nonempty...if it is empty the threads will deadlock
-        if (s != null && s.nonEmpty) {
-          writer.write(s)
-          writer.write(separator)
-          writer.flush()
-        }
-      }
-    }
-  })
-
   override def processInput(is: Iterator[String], ec: EvaluationContext): Iterator[SimpleFeature] = {
     ec.counter.incLineCount(options.skipLines)
     super.processInput(is.drop(options.skipLines), ec)
   }
 
   override def fromInputType(string: String): Seq[Array[Any]] = {
-    // empty strings cause deadlock
     if (string == null || string.isEmpty) {
       throw new IllegalArgumentException("Invalid input (empty)")
     }
-    q.put(string)
-    val rec = parser.next()
+    val rec = format.parse(new StringReader(string)).iterator().next()
     val len = rec.size()
     val ret = Array.ofDim[Any](len + 1)
     ret(0) = string
@@ -128,11 +96,4 @@ class DelimitedTextConverter(format: CSVFormat,
     }
     Seq(ret)
   }
-
-  override def close(): Unit = {
-    es.shutdownNow()
-    writer.close()
-    reader.close()
-  }
-
 }

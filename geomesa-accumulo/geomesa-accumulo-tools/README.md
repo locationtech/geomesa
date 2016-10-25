@@ -47,6 +47,7 @@ This should print out the following usage text:
         env                    Examine the current GeoMesa environment
         explain                Explain how a GeoMesa query will be executed
         export                 Export features from a GeoMesa data store
+        export-bin             Export features from a GeoMesa data store in a binary format.
         gen-avro-schema        Generate an Avro schema from a SimpleFeatureType
         get-names              List GeoMesa feature types for a given catalog
         get-schema             Describe the attributes of a given GeoMesa feature type

@@ -8,7 +8,8 @@
 
 package org.locationtech.geomesa.features.avro
 
-import com.google.common.cache.{CacheBuilder, CacheLoader}
+
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.AbstractFeatureFactoryImpl
 import org.geotools.feature.simple.SimpleFeatureBuilder
@@ -42,7 +43,7 @@ object AvroSimpleFeatureFactory {
   }
 
   private val builderCache =
-    CacheBuilder
+    Caffeine
       .newBuilder()
       .build(
         new CacheLoader[SimpleFeatureType, ObjectPoolUtils[SimpleFeatureBuilder]] {
@@ -55,7 +56,7 @@ object AvroSimpleFeatureFactory {
   private val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
 
   def buildAvroFeature(sft: SimpleFeatureType, attrs: Seq[AnyRef], id: String) =
-    builderCache(sft).withResource { builder =>
+    builderCache.get(sft).withResource { builder =>
       builder.addAll(attrs)
       builder.buildFeature(id)
     }

@@ -22,8 +22,7 @@ import org.locationtech.geomesa.accumulo.util.CloseableIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeSpecFactory
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.{AttributeSpec, GeometryUtils, SimpleFeatureTypes}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -81,10 +80,8 @@ object KryoLazyMapAggregatingIterator extends LazyLogging {
     is
   }
 
-  def createMapSft(sft: SimpleFeatureType, mapAttribute: String) = {
-    val mapAttributeSpec = AttributeSpecFactory.fromAttributeDescriptor(sft, sft.getDescriptor(mapAttribute))
-    s"${mapAttributeSpec.toSpec},*geom:Point:srid=4326"
-  }
+  def createMapSft(sft: SimpleFeatureType, mapAttribute: String) =
+    s"${AttributeSpec(sft, sft.getDescriptor(mapAttribute)).toSpec},*geom:Point:srid=4326"
 
   def reduceMapAggregationFeatures(features: SFIter, query: Query): SFIter = {
     val sft = query.getHints.getReturnSft

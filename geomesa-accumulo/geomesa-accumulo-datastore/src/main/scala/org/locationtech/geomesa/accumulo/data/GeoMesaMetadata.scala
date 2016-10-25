@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.data
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
 
-import com.google.common.cache.{CacheBuilder, CacheLoader}
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.{BatchWriter, Connector, Scanner}
 import org.apache.accumulo.core.data.{Mutation, Range, Value}
@@ -134,7 +134,7 @@ abstract class AccumuloBackedMetadata[T](connector: Connector,
 
   // cache for our metadata - invalidate every 10 minutes so we keep things current
   protected val metaDataCache =
-    CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(
+    Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(
       new CacheLoader[(String, String), Option[T]] {
         override def load(key: (String, String)): Option[T] = scanEntry(key._1, key._2)
       }

@@ -41,6 +41,7 @@ Run ``geomesa`` without any arguments to produce the following usage text::
         env                    Examine the current GeoMesa environment
         explain                Explain how a GeoMesa query will be executed
         export                 Export features from a GeoMesa data store
+        export-bin             Export features from a GeoMesa data store in a binary format.
         gen-avro-schema        Generate an Avro schema from a SimpleFeatureType
         get-names              List GeoMesa feature types for a given catalog
         get-schema             Describe the attributes of a given GeoMesa feature type
@@ -123,7 +124,7 @@ Display details about the attributes of a specified feature type::
     $ geomesa get-schema -u username -p password -c test_delete -f testing
 
 get-sft-config
-~~~~~~~
+~~~~~~~~~~~~~~
 
 Get the specified feature type as a typesafe config::
 
@@ -195,6 +196,21 @@ Example export commands::
       -c test_catalog -f test_feature \
       -a "user_name,buf=buffer(geom\, 2)" \
       --format csv -q "[[ user_name like `John%' ] AND [ bbox(geom, 22.1371589, 44.386463, 40.228581, 52.379581, 'EPSG:4326') ]]"
+
+.. note::
+
+    Use the `export-bin` command to export data in binary format.
+
+Example binary export command::
+
+    $ geomesa export-bin -u username -p password \
+      -c test_catalog -f test_feature \
+      -a "geom,text,user_name" -q "screen_name='JohnSmith'" \
+      --id-attribute "id_str" \
+      --lat-attribute "coord_lat" \
+      --lon-attribute "coord_lon" \
+      --date-attribute "dtg" \
+      --label-attribute "screen_name"
 
 .. _ingest:
 

@@ -11,7 +11,6 @@ package org.locationtech.geomesa.utils.geotools
 import java.nio.charset.StandardCharsets
 import java.util.Date
 
-import com.typesafe.config.Config
 import com.vividsolutions.jts.geom._
 import org.geotools.data.FeatureReader
 import org.geotools.data.simple.SimpleFeatureIterator
@@ -20,8 +19,8 @@ import org.geotools.geometry.DirectPosition2D
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
 import org.joda.time.DateTime
 import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
-import org.locationtech.geomesa.curve.{TimePeriod, XZSFC}
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
+import org.locationtech.geomesa.curve.{TimePeriod, XZSFC}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.index.VisibilityLevel.{apply => _, _}
@@ -32,9 +31,10 @@ import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.temporal.Instant
 
-import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 import scala.util.Try
+import scala.util.parsing.combinator.JavaTokenParsers
+
 object Conversions {
 
   class RichSimpleFeatureIterator(iter: SimpleFeatureIterator) extends SimpleFeatureIterator
@@ -52,7 +52,7 @@ object Conversions {
   }
 
   implicit class RichSimpleFeatureReader(val r: FeatureReader[SimpleFeatureType, SimpleFeature]) extends AnyVal {
-    def getIterator: Iterator[SimpleFeature] = new Iterator[SimpleFeature] {
+    def toIterator: Iterator[SimpleFeature] = new Iterator[SimpleFeature] {
       override def hasNext: Boolean = r.hasNext
       override def next(): SimpleFeature = r.next()
     }
@@ -125,16 +125,26 @@ object RichIterator {
  */
 object RichAttributeDescriptors {
 
-  import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
+  import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs._
+  import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
 
-  //noinspection AccessorLikeMethodIsEmptyParen
+  // noinspection AccessorLikeMethodIsEmptyParen
   implicit class RichAttributeDescriptor(val ad: AttributeDescriptor) extends AnyVal {
 
     def setIndexCoverage(coverage: IndexCoverage): Unit = ad.getUserData.put(OPT_INDEX, coverage.toString)
 
-    def getIndexCoverage(): IndexCoverage =
-      Option(ad.getUserData.get(OPT_INDEX).asInstanceOf[String])
-          .flatMap(c => Try(IndexCoverage.withName(c)).toOption).getOrElse(IndexCoverage.NONE)
+    def getIndexCoverage(): IndexCoverage = {
+      val coverage = ad.getUserData.get(OPT_INDEX).asInstanceOf[String]
+      if (coverage == null) { IndexCoverage.NONE } else {
+        Try(IndexCoverage.withName(coverage)).getOrElse {
+          if (java.lang.Boolean.valueOf(coverage)) {
+            IndexCoverage.JOIN
+          } else {
+            IndexCoverage.NONE
+          }
+        }
+      }
+    }
 
     def setKeepStats(enabled: Boolean): Unit = if (enabled) {
       ad.getUserData.put(OPT_STATS, "true")
@@ -152,37 +162,37 @@ object RichAttributeDescriptors {
       Option(ad.getUserData.get(OPT_CARDINALITY).asInstanceOf[String])
           .flatMap(c => Try(Cardinality.withName(c)).toOption).getOrElse(Cardinality.UNKNOWN)
 
+    def isJson(): Boolean = Option(ad.getUserData.get(OPT_JSON)).exists(_ == "true")
+
     def setBinTrackId(opt: Boolean): Unit = ad.getUserData.put(OPT_BIN_TRACK_ID, opt.toString)
 
-    def isBinTrackId: Boolean = Option(ad.getUserData.get(OPT_BIN_TRACK_ID)).exists(_ == "true")
+    def isBinTrackId(): Boolean = Option(ad.getUserData.get(OPT_BIN_TRACK_ID)).exists(_ == "true")
 
-    def setCollectionType(typ: Class[_]): Unit = ad.getUserData.put(USER_DATA_LIST_TYPE, typ)
+    def setListType(typ: Class[_]): Unit = ad.getUserData.put(USER_DATA_LIST_TYPE, typ.getName)
 
-    def getListType(): Option[Class[_]] =
-      Option(ad.getUserData.get(USER_DATA_LIST_TYPE)).map(_.asInstanceOf[Class[_]])
+    def getListType(): Class[_] = tryClass(ad.getUserData.get(USER_DATA_LIST_TYPE).asInstanceOf[String])
 
     def setMapTypes(keyType: Class[_], valueType: Class[_]): Unit = {
-      ad.getUserData.put(USER_DATA_MAP_KEY_TYPE, keyType)
-      ad.getUserData.put(USER_DATA_MAP_VALUE_TYPE, valueType)
+      ad.getUserData.put(USER_DATA_MAP_KEY_TYPE, keyType.getName)
+      ad.getUserData.put(USER_DATA_MAP_VALUE_TYPE, valueType.getName)
     }
 
-    def getMapTypes(): Option[(Class[_], Class[_])] = for {
-      keyClass   <- Option(ad.getUserData.get(USER_DATA_MAP_KEY_TYPE))
-      valueClass <- Option(ad.getUserData.get(USER_DATA_MAP_VALUE_TYPE))
-    } yield {
-      (keyClass.asInstanceOf[Class[_]], valueClass.asInstanceOf[Class[_]])
-    }
+    def getMapTypes(): (Class[_], Class[_]) =
+      (tryClass(ad.getUserData.get(USER_DATA_MAP_KEY_TYPE)), tryClass(ad.getUserData.get(USER_DATA_MAP_VALUE_TYPE)))
 
-    def isIndexed = getIndexCoverage() match {
+    private def tryClass(value: AnyRef): Class[_] = Try(Class.forName(value.asInstanceOf[String])).getOrElse(null)
+
+    def isIndexed: Boolean = getIndexCoverage() match {
       case IndexCoverage.FULL | IndexCoverage.JOIN => true
       case IndexCoverage.NONE => false
     }
 
-    def isList = getListType().isDefined
+    def isList: Boolean = ad.getUserData.containsKey(USER_DATA_LIST_TYPE)
 
-    def isMap = getMapTypes().isDefined
+    def isMap: Boolean =
+      ad.getUserData.containsKey(USER_DATA_MAP_KEY_TYPE) && ad.getUserData.containsKey(USER_DATA_MAP_VALUE_TYPE)
 
-    def isMultiValued = isList || isMap
+    def isMultiValued: Boolean = isList || isMap
   }
 
   implicit class RichAttributeTypeBuilder(val builder: AttributeTypeBuilder) extends AnyVal {
@@ -206,24 +216,11 @@ object RichSimpleFeatureType {
 
   import scala.collection.JavaConversions._
 
-  val GEOMESA_PREFIX      = "geomesa."
-  val SCHEMA_VERSION_KEY  = "geomesa.version"
-  val TABLE_SHARING_KEY   = "geomesa.table.sharing"
-  val SHARING_PREFIX_KEY  = "geomesa.table.sharing.prefix"
-  val DEFAULT_DATE_KEY    = "geomesa.index.dtg"
-  val ST_INDEX_SCHEMA_KEY = "geomesa.index.st.schema"
-  val USER_DATA_PREFIX    = "geomesa.user-data.prefix"
-  val KEYWORDS_KEY        = "geomesa.keywords"
-  val VIS_LEVEL_KEY       = "geomesa.visibility.level"
-  val Z3_INTERVAL_KEY     = "geomesa.z3.interval"
-  val XZ_PRECISION_KEY    = "geomesa.xz.precision"
-
-  val KEYWORDS_DELIMITER = "\u0000"
-
   // in general we store everything as strings so that it's easy to pass to accumulo iterators
   implicit class RichSimpleFeatureType(val sft: SimpleFeatureType) extends AnyVal {
 
-    import SimpleFeatureTypes.INDEX_VERSIONS
+    import SimpleFeatureTypes.Configs._
+    import SimpleFeatureTypes.InternalConfigs._
 
     def getGeomField: String = {
       val gd = sft.getGeometryDescriptor
@@ -245,7 +242,7 @@ object RichSimpleFeatureType {
     def getStIndexSchema: String = userData[String](ST_INDEX_SCHEMA_KEY).orNull
     def setStIndexSchema(schema: String): Unit = sft.getUserData.put(ST_INDEX_SCHEMA_KEY, schema)
 
-    def getBinTrackId: Option[String] = sft.getAttributeDescriptors.find(_.isBinTrackId).map(_.getLocalName)
+    def getBinTrackId: Option[String] = sft.getAttributeDescriptors.find(_.isBinTrackId()).map(_.getLocalName)
 
     def getSchemaVersion: Int =
       userData[String](SCHEMA_VERSION_KEY).map(_.toInt).getOrElse(CURRENT_SCHEMA_VERSION)
@@ -307,43 +304,34 @@ object RichSimpleFeatureType {
     def getUserDataPrefixes: Seq[String] =
       Seq(GEOMESA_PREFIX) ++ userData[String](USER_DATA_PREFIX).map(_.split(",")).getOrElse(Array.empty)
 
+    def getTableSplitter: Option[Class[_]] = userData[String](TABLE_SPLITTER).map(Class.forName)
+    def getTableSplitterOptions: Map[String, String] =
+      userData[String](TABLE_SPLITTER_OPTS).map(new KVPairParser().parse).getOrElse(Map.empty)
+
     def userData[T](key: AnyRef): Option[T] = Option(sft.getUserData.get(key).asInstanceOf[T])
 
-    /** For additional config options see {@link SimpleFeautureTypes#toConfig} **/
-    def toConfig: Config = SimpleFeatureTypes.toConfig(sft)
+    def getKeywords: Set[String] = userData[String](KEYWORDS_KEY).getOrElse("").split(KEYWORDS_DELIMITER).toSet
 
-    /** For additional rendering options see {@link SimpleFeautureTypes#toConfigString} **/
-    def toConfigString: String = SimpleFeatureTypes.toConfigString(sft)
+    def addKeywords(keywords: Set[String]): Unit =
+      sft.getUserData.put(KEYWORDS_KEY, getKeywords.union(keywords).mkString(KEYWORDS_DELIMITER))
 
-    def getKeywords: java.util.Set[String] = {
-      val keywordsString = userData[String](KEYWORDS_KEY).getOrElse("")
-      if (keywordsString.equals("")) {
-        return java.util.Collections.emptySet[String]
-      } else {
-        keywordsString.split(KEYWORDS_DELIMITER).toSet.asJava
-      }
+    def removeKeywords(keywords: Set[String]): Unit =
+      sft.getUserData.put(KEYWORDS_KEY, getKeywords.diff(keywords).mkString(KEYWORDS_DELIMITER))
+
+    def removeAllKeywords(): Unit = sft.getUserData.remove(KEYWORDS_KEY)
+  }
+
+  private class KVPairParser(pairSep: String = ",", kvSep: String = ":") extends JavaTokenParsers {
+    def key = "[0-9a-zA-Z\\.]+".r
+    def value = s"[^($pairSep)^($kvSep)]+".r
+
+    def keyValue = key ~ kvSep ~ value ^^ { case key ~ sep ~ value => key -> value }
+    def keyValueList = repsep(keyValue, pairSep) ^^ { x => x.toMap }
+
+    def parse(s: String): Map[String, String] = parse(keyValueList, s.trim) match {
+      case Success(result, next) if next.atEnd => result
+      case NoSuccess(msg, next) if next.atEnd => throw new IllegalArgumentException(s"Error parsing spec '$s' : $msg")
+      case other => throw new IllegalArgumentException(s"Error parsing spec '$s' : $other")
     }
-
-    def addKeywords(keywordsString: String): Unit = {
-      val currentKeywords = getKeywords
-      val keywordsToAdd = keywordsString.split(KEYWORDS_DELIMITER).toSet
-      val newKeywords = currentKeywords.union(keywordsToAdd)
-      sft.getUserData.update(KEYWORDS_KEY, newKeywords.mkString(KEYWORDS_DELIMITER))
-    }
-
-    def removeKeywords(keywordsString: String): Unit = {
-      val keywordsToRemove = keywordsString.split(KEYWORDS_DELIMITER).toSet
-      val currentKeywords = getKeywords
-      val remainingKeywords = currentKeywords.diff(keywordsToRemove)
-
-      val remainingKeywordsString = remainingKeywords.mkString(KEYWORDS_DELIMITER)
-
-      sft.getUserData.update(KEYWORDS_KEY, remainingKeywordsString)
-    }
-
-    def removeAllKeywords() : Unit = {
-      sft.getUserData.remove(KEYWORDS_KEY)
-    }
-
   }
 }

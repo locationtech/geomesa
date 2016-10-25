@@ -10,7 +10,6 @@ package org.locationtech.geomesa.accumulo.util
 
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.DigitSplitter
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -38,11 +37,13 @@ class AccumuloSftBuilderTest extends Specification {
         .build("test")
 
       def test(sft: SimpleFeatureType) = {
+        import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
         sft.getAttributeCount mustEqual 2
         sft.getAttributeDescriptors.map(_.getLocalName) must containAllOf(List("i", "l"))
 
-        sft.getUserData.get(SimpleFeatureTypes.TABLE_SPLITTER) must be equalTo classOf[DigitSplitter].getName
-        val opts = sft.getUserData.get(SimpleFeatureTypes.TABLE_SPLITTER_OPTIONS).asInstanceOf[Map[String, String]]
+        sft.getTableSplitter must beSome(classOf[DigitSplitter])
+        val opts = sft.getTableSplitterOptions
         opts.size must be equalTo 3
         opts("fmt") must be equalTo "%02d"
         opts("min") must be equalTo "0"

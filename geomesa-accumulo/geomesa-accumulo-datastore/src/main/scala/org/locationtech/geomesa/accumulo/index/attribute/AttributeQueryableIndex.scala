@@ -8,24 +8,19 @@
 
 package org.locationtech.geomesa.accumulo.index.attribute
 
-import java.util.Map.Entry
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
-import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
+import org.apache.accumulo.core.data.{Range => AccRange}
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFilterStrategy
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
-import org.locationtech.geomesa.accumulo.index.QueryPlan.{FeatureFunction, JoinFunction}
+import org.locationtech.geomesa.accumulo.index.QueryPlan.JoinFunction
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.index.encoders.IndexValueEncoder
 import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.accumulo.iterators._
-import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.FilterStrategy
@@ -56,6 +51,8 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
       throw new IllegalStateException("Attribute index does not support Filter.INCLUDE")
     }
 
+    val disjointDates = (Long.MinValue, Long.MinValue)
+
     // pull out any dates from the filter to help narrow down the attribute ranges
     val dates = for {
       dtgField  <- sft.getDtgField
@@ -63,13 +60,17 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
       intervals = FilterHelper.extractIntervals(secondary, dtgField)
       if intervals.nonEmpty
     } yield {
-      (intervals.map(_._1.getMillis).min, intervals.map(_._2.getMillis).max)
+      if (intervals == FilterHelper.DisjointInterval) {
+        disjointDates
+      } else {
+        (intervals.map(_._1.getMillis).min, intervals.map(_._2.getMillis).max)
+      }
     }
 
     // TODO GEOMESA-1336 fix exclusive AND handling for list types
-    val bounds = AttributeQueryableIndex.getBounds(sft, primary, dates)
+    lazy val bounds = AttributeQueryableIndex.getBounds(sft, primary, dates)
 
-    if (bounds.isEmpty) {
+    if (dates == disjointDates || bounds.isEmpty) {
       EmptyPlan(filter)
     } else {
       nonEmptyQueryPlan(ops, sft, filter, hints, bounds)
@@ -160,13 +161,13 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
       singleAttrValueOnlyPlan(IndexValueEncoder.getIndexSft(sft), filter.secondary, hints.getTransform)
     } else if (IteratorTrigger.canUseAttrKeysPlusValues(descriptor.getLocalName, sft, filter.secondary, transform)) {
       // we can use the index PLUS the value
-      val indexSft = IndexValueEncoder.getIndexSft(sft)
-      val plan = singleAttrValueOnlyPlan(indexSft, filter.secondary, None)
-      val transform = hints.getTransform.map(_._2).getOrElse {
+      val plan = singleAttrValueOnlyPlan(IndexValueEncoder.getIndexSft(sft), filter.secondary, hints.getTransform)
+      val transformSft = hints.getTransformSchema.getOrElse {
         throw new IllegalStateException("Must have a transform for attribute key plus value scan")
       }
-      val kvsToFeatures = attributeValueKvsToFeatures(sft, indexSft, transform, attribute)
-      plan.copy(kvsToFeatures = kvsToFeatures)
+      // make sure we set table sharing - required for the iterator
+      transformSft.setTableSharing(sft.isTableSharing)
+      plan.copy(iterators = plan.iterators :+ KryoAttributeKeyValueIterator.configure(this, transformSft, attribute))
     } else {
       // have to do a join against the record table
       joinQuery(ds, sft, filter, hints, hasDupes, singleAttrValueOnlyPlan)
@@ -233,43 +234,6 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
       attributeScan.columnFamilies, recordThreads, hasDupes, joinFunction, joinQuery)
   }
 
-
-  def attributeValueKvsToFeatures(sft: SimpleFeatureType,
-                                  indexSft: SimpleFeatureType,
-                                  returnSft: SimpleFeatureType,
-                                  attribute: String): FeatureFunction = {
-    import scala.collection.JavaConversions._
-    val attributeIndex = sft.indexOf(attribute)
-    val returnIndex = returnSft.indexOf(attribute)
-    val translateIndices =
-      indexSft.getAttributeDescriptors.map(d => returnSft.indexOf(d.getLocalName)).zipWithIndex.filter(_._1 != -1)
-    // Perform a projecting decode of the simple feature
-    if (serializedWithId) {
-      val kryoFeature = new KryoFeatureSerializer(indexSft).getReusableFeature
-      (kv: Entry[Key, Value]) => {
-        kryoFeature.setBuffer(kv.getValue.get)
-        val sf = new ScalaSimpleFeature(kryoFeature.getID, returnSft)
-        translateIndices.foreach { case (to, from) => sf.setAttribute(to, kryoFeature.getAttribute(from)) }
-        val decoded = AttributeWritableIndex.decodeRow(sft, attributeIndex, kv.getKey.getRow.getBytes).get
-        sf.setAttribute(returnIndex, decoded.asInstanceOf[AnyRef])
-        QueryPlanner.applyVisibility(sf, kv.getKey)
-        sf
-      }
-    } else {
-      val kryoFeature = new KryoFeatureSerializer(indexSft, SerializationOptions.withoutId).getReusableFeature
-      val getId = AttributeIndex.getIdFromRow(sft)
-      (kv: Entry[Key, Value]) => {
-        kryoFeature.setBuffer(kv.getValue.get)
-        val sf = new ScalaSimpleFeature(getId(kv.getKey.getRow), returnSft)
-        translateIndices.foreach { case (to, from) => sf.setAttribute(to, kryoFeature.getAttribute(from)) }
-        val decoded = AttributeWritableIndex.decodeRow(sft, attributeIndex, kv.getKey.getRow.getBytes).get
-        sf.setAttribute(returnIndex, decoded.asInstanceOf[AnyRef])
-        QueryPlanner.applyVisibility(sf, kv.getKey)
-        sf
-      }
-    }
-  }
-
   override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[AccumuloFilterStrategy] = {
     val attributes = FilterHelper.propertyNames(filter, sft)
     val indexedAttributes = attributes.filter(a => Option(sft.getDescriptor(a)).exists(_.isIndexed))
@@ -329,26 +293,29 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
       descriptor <- Option(sft.getDescriptor(attribute))
       binding    =  descriptor.getType.getBinding
       bounds     <- FilterHelper.extractAttributeBounds(f, attribute, binding)
-      if bounds.bounds.nonEmpty
     } yield {
-      // join queries are much more expensive than non-join queries
-      // TODO figure out the actual cost of each additional range...I'll make it 2
-      val additionalRangeCost = 1
-      val joinCost = 10
-      val multiplier =
-        if (descriptor.getIndexCoverage == IndexCoverage.FULL ||
-            IteratorTrigger.canUseAttrIdxValues(sft, filter.secondary, transform) ||
-            IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, filter.secondary, transform)) {
-          1
-        } else {
-          joinCost + (additionalRangeCost * (bounds.bounds.length - 1))
-        }
+      if (bounds.bounds.isEmpty) {
+        0L // disjoint range
+      } else {
+        // join queries are much more expensive than non-join queries
+        // TODO figure out the actual cost of each additional range...I'll make it 2
+        val additionalRangeCost = 1
+        val joinCost = 10
+        val multiplier =
+          if (descriptor.getIndexCoverage == IndexCoverage.FULL ||
+              IteratorTrigger.canUseAttrIdxValues(sft, filter.secondary, transform) ||
+              IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, filter.secondary, transform)) {
+            1
+          } else {
+            joinCost + (additionalRangeCost * (bounds.bounds.length - 1))
+          }
 
-      // scale attribute cost by expected cardinality
-      descriptor.getCardinality() match {
-        case Cardinality.HIGH    => 1 * multiplier
-        case Cardinality.UNKNOWN => 101 * multiplier
-        case Cardinality.LOW     => Long.MaxValue
+        // scale attribute cost by expected cardinality
+        descriptor.getCardinality() match {
+          case Cardinality.HIGH    => 1 * multiplier
+          case Cardinality.UNKNOWN => 101 * multiplier
+          case Cardinality.LOW     => Long.MaxValue
+        }
       }
     }
     cost.getOrElse(Long.MaxValue)
@@ -395,7 +362,7 @@ object AttributeQueryableIndex {
 
     val binding = {
       val descriptor = sft.getDescriptor(index)
-      descriptor.getListType().getOrElse(descriptor.getType.getBinding)
+      if (descriptor.isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
     }
 
     require(classOf[Comparable[_]].isAssignableFrom(binding), s"Attribute '$attribute' is not comparable")

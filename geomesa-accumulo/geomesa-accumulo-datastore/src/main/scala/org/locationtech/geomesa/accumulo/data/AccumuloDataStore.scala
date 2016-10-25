@@ -35,11 +35,11 @@ import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.accumulo.index.geohash.GeoHashIndex
 import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.accumulo.iterators.ProjectVersionIterator
-import org.locationtech.geomesa.accumulo.util.{DistributedLocking, GeoMesaBatchWriterConfig, Releasable}
+import org.locationtech.geomesa.accumulo.util.{DistributedLocking, Releasable}
 import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
-import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
+import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.security.{AuditProvider, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.conf.GeoMesaProperties
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -76,13 +76,8 @@ class AccumuloDataStore(val connector: Connector,
 
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
 
-  // having at least as many shards as tservers provides optimal parallelism in queries
-  private val defaultMaxShard = connector.instanceOperations().getTabletServers.size()
-
   private val queryTimeoutMillis: Option[Long] = config.queryTimeout
       .orElse(GeomesaSystemProperties.QueryProperties.QUERY_TIMEOUT_MILLIS.option.map(_.toLong))
-
-  private val defaultBWConfig = GeoMesaBatchWriterConfig().setMaxWriteThreads(config.writeThreads)
 
   private val statsTable = GeoMesaTable.concatenateNameParts(catalogTable, "stats")
   private val usageStatsTable = GeoMesaTable.concatenateNameParts(catalogTable, "queries")
@@ -168,7 +163,8 @@ class AccumuloDataStore(val connector: Connector,
    * @return feature type, or null if it does not exist
    */
   override def getSchema(name: Name): SimpleFeatureType = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.SCHEMA_VERSION_KEY
+    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.{ENABLED_INDEX_OPTS, ENABLED_INDICES}
+    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.{INDEX_VERSIONS, SCHEMA_VERSION_KEY}
 
     val typeName = name.getLocalPart
     val attributes = metadata.read(typeName, ATTRIBUTES_KEY).orElse {
@@ -195,7 +191,7 @@ class AccumuloDataStore(val connector: Connector,
       checkProjectVersion()
 
       // back compatible check for index versions
-      if (!sft.getUserData.contains(SimpleFeatureTypes.INDEX_VERSIONS)) {
+      if (!sft.getUserData.contains(INDEX_VERSIONS)) {
         // back compatible check if user data wasn't encoded with the sft
         if (!sft.getUserData.containsKey(SCHEMA_VERSION_KEY)) {
           metadata.read(typeName, "dtgfield").foreach(sft.setDtgField)
@@ -211,8 +207,8 @@ class AccumuloDataStore(val connector: Connector,
             sft.setTableSharing(false)
             sft.setTableSharingPrefix("")
           }
-          SimpleFeatureTypes.ENABLED_INDEXES.foreach { i =>
-            metadata.read(typeName, i).foreach(e => sft.getUserData.put(SimpleFeatureTypes.ENABLED_INDEXES.head, e))
+          ENABLED_INDEX_OPTS.foreach { i =>
+            metadata.read(typeName, i).foreach(e => sft.getUserData.put(ENABLED_INDICES, e))
           }
           // old st_idx schema, kept around for back-compatibility
           metadata.read(typeName, "schema").foreach(sft.setStIndexSchema)
@@ -293,7 +289,8 @@ class AccumuloDataStore(val connector: Connector,
     */
   override def updateSchema(typeName: Name, sft: SimpleFeatureType): Unit = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs._
+    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs._
 
     // validate type name has not changed
     if (typeName.toString != sft.getTypeName) {
@@ -408,13 +405,14 @@ class AccumuloDataStore(val connector: Connector,
    * @return featureStore, suitable for reading and writing
    */
   override def getFeatureSource(typeName: Name): AccumuloFeatureStore = {
-    if (!getTypeNames.exists(_ == typeName.getLocalPart)) {
+    val sft = getSchema(typeName)
+    if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
     if (config.caching) {
-      new AccumuloFeatureStore(this, typeName) with CachingFeatureSource
+      new AccumuloFeatureStore(this, sft) with CachingFeatureSource
     } else {
-      new AccumuloFeatureStore(this, typeName)
+      new AccumuloFeatureStore(this, sft)
     }
   }
 
@@ -611,9 +609,9 @@ class AccumuloDataStore(val connector: Connector,
    */
   def getQueryPlan(query: Query,
                    index: Option[AccumuloFeatureIndex] = None,
-                   explainer: Explainer = ExplainNull): Seq[QueryPlan] = {
+                   explainer: Explainer = new ExplainLogging): Seq[QueryPlan] = {
     require(query.getTypeName != null, "Type name is required in the query")
-    getQueryPlanner(query.getTypeName).planQuery(query, None, explainer)
+    getQueryPlanner(query.getTypeName).planQuery(query, index, explainer)
   }
 
   /**
@@ -668,7 +666,7 @@ class AccumuloDataStore(val connector: Connector,
 
     // set the enabled indices
     sft.setIndices(AccumuloDataStore.getEnabledIndices(sft))
-    SimpleFeatureTypes.ENABLED_INDEXES.foreach(sft.getUserData.remove)
+    SimpleFeatureTypes.Configs.ENABLED_INDEX_OPTS.foreach(sft.getUserData.remove)
 
     // compute the metadata values - IMPORTANT: encode type has to be called after all user data is set
     val attributesValue   = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
@@ -746,7 +744,8 @@ object AccumuloDataStore {
     * @return sequence of index (name, version)
     */
   private def getEnabledIndices(sft: SimpleFeatureType): Seq[(String, Int, IndexMode)] = {
-    val marked: Seq[String] = SimpleFeatureTypes.ENABLED_INDEXES.map(sft.getUserData.get).find(_ != null) match {
+    import SimpleFeatureTypes.Configs.ENABLED_INDEX_OPTS
+    val marked: Seq[String] = ENABLED_INDEX_OPTS.map(sft.getUserData.get).find(_ != null) match {
       case None => AccumuloFeatureIndex.AllIndices.map(_.name).distinct
       case Some(enabled) =>
         val e = enabled.toString.split(",").map(_.trim).filter(_.length > 0)
