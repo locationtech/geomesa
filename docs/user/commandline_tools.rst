@@ -22,6 +22,10 @@ To see which SFT and Converter confs are installed try the ``geomesa env`` comma
 Running the command line tools
 ------------------------------
 
+.. note::
+
+    Some command names have changed in GeoMesa 1.3.0 see :doc:`commandline_old_commands`
+
 Run ``geomesa`` without any arguments to produce the following usage text::
 
     $ geomesa
@@ -29,39 +33,39 @@ Run ``geomesa`` without any arguments to produce the following usage text::
       Commands:
         add-attribute-index    Run a Hadoop map reduce job to add an index for attributes
         add-index              Add or update indices for an existing GeoMesa feature type
-        create                 Create a GeoMesa feature type
-        deletecatalog          Delete a GeoMesa catalog completely (and all features in it)
-        deletefeatures         Delete features from a table in GeoMesa. Does not delete any tables or schema information.
-        deleteraster           Delete a GeoMesa Raster table
-        describe               Describe the attributes of a given GeoMesa feature type
+        config-table           Perform table configuration operations
+        create-schema          Create a GeoMesa feature type
+        delete-catalog         Delete a GeoMesa catalog completely (and all features in it)
+        delete-features        Delete features from a table in GeoMesa. Does not delete any tables or schema information.
+        delete-raster          Delete a GeoMesa Raster table
         env                    Examine the current GeoMesa environment
         explain                Explain how a GeoMesa query will be executed
         export                 Export features from a GeoMesa data store
         export-bin             Export features from a GeoMesa data store in a binary format.
-        genavroschema          Generate an Avro schema from a SimpleFeatureType
-        getsft                 Get the SimpleFeatureType of a feature
+        gen-avro-schema        Generate an Avro schema from a SimpleFeatureType
+        get-names              List GeoMesa feature types for a given catalog
+        get-schema             Describe the attributes of a given GeoMesa feature type
+        get-sft-config                Get the SimpleFeatureType of a feature
         help                   Show help
         ingest                 Ingest/convert various file formats into GeoMesa
-        ingestraster           Ingest raster files into GeoMesa
+        ingest-raster          Ingest raster files into GeoMesa
         keywords               Add/Remove/List keywords on an existing schema
-        list                   List GeoMesa feature types for a given catalog
-        queryrasterstats       Export queries and statistics about the last X number of queries to a CSV file.
-        removeschema           Remove a schema and associated features from a GeoMesa catalog
+        query-raster-stats     Export queries and statistics about the last X number of queries to a CSV file.
+        remove-schema          Remove a schema and associated features from a GeoMesa catalog
         stats-analyze          Analyze statistics on a GeoMesa feature type
         stats-bounds           View or calculate bounds on attributes in a GeoMesa feature type
         stats-count            Estimate or calculate feature counts in a GeoMesa feature type
         stats-histogram        View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values
         stats-top-k            Enumerate the most frequent values in a GeoMesa feature type
-        tableconf              Perform table configuration operations
         version                Display the installed GeoMesa version
 
 
 This usage text lists the available commands. To see help for an individual command,
 run ``geomesa help <command-name>``, which for example will give you something like this::
 
-    $ geomesa help list
+    $ geomesa help get-names
     List GeoMesa feature types for a given catalog
-    Usage: list [options]
+    Usage: get-names [options]
       Options:
         --auths
            Accumulo authorizations
@@ -99,8 +103,8 @@ Command overview
 Creating and deleting feature types
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-create
-~~~~~~
+create-schema
+~~~~~~~~~~~~~
 
 Used to create a feature type (``SimpleFeatureType``)  in a GeoMesa catalog::
 
@@ -112,23 +116,23 @@ Used to create a feature type (``SimpleFeatureType``)  in a GeoMesa catalog::
       --dtg dtg
 
 
-describe
-~~~~~~~~
+get-schema
+~~~~~~~~~~
 
 Display details about the attributes of a specified feature type::
 
-    $ geomesa describe -u username -p password -c test_delete -f testing
+    $ geomesa get-schema -u username -p password -c test_delete -f testing
 
-getsft
-~~~~~~
+get-sft-config
+~~~~~~~~~~~~~~
 
 Get the specified feature type as a typesafe config::
 
-    $ geomesa getsft -u username -p password -c test_catalog -f test_feature --format typesafe
+    $ geomesa get-sft-config -u username -p password -c test_catalog -f test_feature --format typesafe
 
 Get the specified feature type as an encoded feature schema string::
 
-    $ geomesa getsft -u username -p password -c test_catalog -f test_feature --format spec
+    $ geomesa get-sft-config -u username -p password -c test_catalog -f test_feature --format spec
 
 keywords
 ~~~~~~~~
@@ -144,22 +148,22 @@ If there is whitespace within a keyword, enclose it in quotes for proper functio
       -i instance -z zoo1,zoo2,zoo3 \
       -c catalog -f featureTypeName
 
-list
-~~~~
+get-names
+~~~~~~~~~
 
 List all known feature types in a GeoMesa catalog::
 
-    $ geomesa list -u username -p password -c test_catalog
+    $ geomesa get-names -u username -p password -c test_catalog
 
-removeschema
-~~~~~~~~~~~~
+remove-schema
+~~~~~~~~~~~~~
 
 Used to remove a feature type (``SimpleFeatureType``) in a GeoMesa catalog. This will also delete any feature of that type in the data store::
 
-    $ geomesa removeschema -u username -p password \
+    $ geomesa remove-schema -u username -p password \
       -i instance -z zoo1,zoo2,zoo3 \
       -c test_catalog -f testfeature1
-    $ geomesa removeschema -u username -p password \
+    $ geomesa remove-schema -u username -p password \
       -i instance -z zoo1,zoo2,zoo3 \
       -c test_catalog --pattern 'testfeatures\d+'
 
@@ -432,15 +436,15 @@ S3n paths are prefixed in hadoop with ``s3n://`` as shown below::
 Working with raster data
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-deleteraster
-~~~~~~~~~~~~
+delete-raster
+~~~~~~~~~~~~~
 
 Delete a given GeoMesa raster table::
 
-    $ geomesa deleteraster -u username -p password -t somerastertable -f
+    $ geomesa delete-raster -u username -p password -t somerastertable -f
 
-ingestraster
-~~~~~~~~~~~~
+ingest-raster
+~~~~~~~~~~~~~
 
 Ingest one or multiple raster image files into Geomesa. Input files, GeoTIFF or
 DTED, should be located on the local file system.
@@ -455,15 +459,15 @@ DTED, should be located on the local file system.
 
 Example usage::
 
-    $ geomesa ingestraster -u username -p password \
+    $ geomesa ingest-raster -u username -p password \
       -t geomesa_raster -f /some/local/path/to/raster.tif
 
-queryrasterstats
-~~~~~~~~~~~~~~~~
+query-rasterstats
+~~~~~~~~~~~~~~~~~
 
 Export queries and statistics about the `n` most recent raster queries to a CSV file::
 
-    $ geomesa queryrasterstats -u username -p password -t somerastertable -n 10
+    $ geomesa query-rasterstats -u username -p password -t somerastertable -n 10
 
 
 Performing system administration tasks
@@ -482,24 +486,24 @@ Example usage::
     $ geomesa add-index -u username -p password -i instance \
       -z zoo1,zoo2,zoo3 -c test_catalog -f test_feature --index xz3
 
-deletecatalog
-~~~~~~~~~~~~~
+delete-catalog
+~~~~~~~~~~~~~~
 
 Delete a GeoMesa catalog table completely, along with all features in it.
 
 Example usage::
 
-    $ geomesa deletecatalog -u username -p password \
+    $ geomesa delete-catalog -u username -p password \
       -i instance -z zoo1,zoo2,zoo3 -c test_catalog
 
-deletefeatures
-~~~~~~~~~~~~~~
+delete-features
+~~~~~~~~~~~~~~~
 
 Delete features from a table in GeoMesa. Does not delete any tables or schema information.
 
 Example usage::
 
-    $ geomesa deletefeatures -u username -p password \
+    $ geomesa delete-features -u username -p password \
       -i instance -z zoo1,zoo2,zoo3 -c test_catalog \
       -q 'dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
 
@@ -668,8 +672,8 @@ Example usage::
         [ 2016-02-24T05:06:40.000Z to 2016-02-27T02:43:51.000Z ] 871742
         [ 2016-02-27T02:43:51.000Z to 2016-03-01T00:21:02.000Z ] 951199
 
-tableconf
-~~~~~~~~~
+config-table
+~~~~~~~~~~~~
 
 Perform various table configuration tasks. There are three sub-arguments:
 
@@ -679,12 +683,12 @@ Perform various table configuration tasks. There are three sub-arguments:
 
 Example commands::
 
-    $ geomesa tableconf list -u username -p password \
+    $ geomesa config-table list -u username -p password \
       -c test_catalog -f test_feature -t st_idx
-    $ geomesa tableconf describe -u username -p password \
+    $ geomesa config-table describe -u username -p password \
       -c test_catalog -f test_feature -t attr_idx \
       --param table.bloom.enabled
-    $ geomesa tableconf update -u username -p password \
+    $ geomesa config-table update -u username -p password \
       -c test_catalog -f test_feature -t records \
       --param table.bloom.enabled -n true
 
@@ -704,20 +708,20 @@ Run ``geomesa-kafka`` without any arguments to produce the following usage text:
     $ geomesa-kafka
       Usage: geomesa-kafka [command] [command options]
         Commands:
-          create          Create a feature definition in GeoMesa
-          describe        Describe the attributes of a given feature in GeoMesa
+          create-schema   Create a feature definition in GeoMesa
+          get-schema      Describe the attributes of a given feature in GeoMesa
+          get-names       List GeoMesa features for a given zkPath
           help            Show help
-          list            List GeoMesa features for a given zkPath
           listen          Listen to a GeoMesa Kafka topic
-          removeschema    Remove a schema and associated features from GeoMesa
+          remove-schema   Remove a schema and associated features from GeoMesa
           version         GeoMesa Version
 
 This usage text lists the available commands. To see help for an individual command,
 run ``geomesa-kafka help <command-name>``, which for example will give you something like this::
 
-    $ geomesa-kafka help list
+    $ geomesa-kafka help get-names
       List GeoMesa features for a given zkPath
-      Usage: list [options]
+      Usage: get-names [options]
         Options:
         * -b, --brokers
              Brokers (host:port, comma separated)
@@ -729,33 +733,33 @@ run ``geomesa-kafka help <command-name>``, which for example will give you somet
 Command overview
 ^^^^^^^^^^^^^^^^
 
-create
-~~~~~~
+create-schema
+~~~~~~~~~~~~~
 
 Used to create a feature type (``SimpleFeatureType``) at the specified zkpath::
 
-    $ geomesa-kafka create -f testfeature \
+    $ geomesa-kafka create-schema -f testfeature \
       -z zoo1,zoo2,zoo3 \
       -b broker1:9092,broker2:9092 \
       -s fid:String:index=true,dtg:Date,geom:Point:srid=4326 \
       -p /geomesa/ds/kafka
 
-describe
-~~~~~~~~
+get-schema
+~~~~~~~~~~
 
 Display details about the attributes of a specified feature type::
 
-    $ geomesa-kafka describe -f testfeature -z zoo1,zoo2,zoo3 \
+    $ geomesa-kafka get-schema -f testfeature -z zoo1,zoo2,zoo3 \
       -b broker1:9092,broker2:9092 -p /geomesa/ds/kafka
 
-list
-~~~~
+get-names
+~~~~~~~~~
 
 List all known feature types in Kafka::
 
-    $ geomesa-kafka list -z zoo1,zoo2,zoo3 -b broker1:9092,broker2:9092
+    $ geomesa-kafka get-names -z zoo1,zoo2,zoo3 -b broker1:9092,broker2:9092
 
-If no ``--zkpath`` parameter is specified, the ``list`` command will search all of zookeeper for potential feature types.
+If no ``--zkpath`` parameter is specified, the ``get-names`` command will search all of zookeeper for potential feature types.
 
 listen
 ~~~~~~
@@ -768,16 +772,16 @@ Logs out the messages written to a topic corresponding to the feature type passe
       -p /geomesa/ds/kafka \
       --from-beginning
 
-removeschema
-~~~~~~~~~~~~
+remove-schema
+~~~~~~~~~~~~~
 
 Used to remove a feature type (``SimpleFeatureType``) in a GeoMesa catalog. This will also delete any feature of that type in the data store::
 
-    $ geomesa-kafka removeschema -f testfeature \
+    $ geomesa-kafka remove-schema -f testfeature \
       -z zoo1,zoo2,zoo3 \
       -b broker1:9092,broker2:9092 \
       -p /geomesa/ds/kafka
-    $ geomesa-kafka removeschema --pattern 'testfeature\d+' \
+    $ geomesa-kafka remove-schema --pattern 'testfeature\d+' \
       -z zoo1,zoo2,zoo3 \
       -b broker1:9092,broker2:9092 \
       -p /geomesa/ds/kafka

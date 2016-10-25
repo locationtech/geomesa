@@ -263,28 +263,33 @@ Test the command that invokes the GeoMesa Tools:
     Using GEOMESA_HOME = /path/to/geomesa-accumulo-dist_2.11-$VERSION
     Usage: geomesa [command] [command options]
       Commands:
-        create           Create a feature definition in a GeoMesa catalog
-        deletecatalog    Delete a GeoMesa catalog completely (and all features in it)
-        deleteraster     Delete a GeoMesa Raster Table
-        describe         Describe the attributes of a given feature in GeoMesa
-        env              Examine the current GeoMesa environment
-        explain          Explain how a GeoMesa query will be executed
-        export           Export a GeoMesa feature
-        getsft           Get the SimpleFeatureType of a feature
-        help             Show help
-        ingest           Ingest a file of various formats into GeoMesa
-        ingestraster     Ingest a raster file or raster files in a directory into GeoMesa
-        keywords         Add/remove keywords on an existing schema
-        list             List GeoMesa features for a given catalog
-        queryrasterstats Export queries and statistics about the last X number of queries to a CSV file.
-        removeschema     Remove a schema and associated features from a GeoMesa catalog
-        stats-analyze    Analyze statistics on a GeoMesa feature type
-        stats-bounds     View bounds on attributes in a GeoMesa schema
-        stats-count      View feature counts in a GeoMesa schema
-        stats-enumerate  Enumerate attribute values in a GeoMesa feature type
-        stats-histogram  View statistics on a GeoMesa feature type
-        tableconf        Perform table configuration operations
-        version          GeoMesa Version
+        add-attribute-index    Run a Hadoop map reduce job to add an index for attributes
+        add-index              Add or update indices for an existing GeoMesa feature type
+        config-table           Perform table configuration operations
+        create-schema          Create a GeoMesa feature type
+        delete-catalog         Delete a GeoMesa catalog completely (and all features in it)
+        delete-features        Delete features from a table in GeoMesa. Does not delete any tables or schema information.
+        delete-raster          Delete a GeoMesa Raster table
+        env                    Examine the current GeoMesa environment
+        explain                Explain how a GeoMesa query will be executed
+        export                 Export features from a GeoMesa data store
+        export-bin             Export features from a GeoMesa data store in a binary format.
+        gen-avro-schema        Generate an Avro schema from a SimpleFeatureType
+        get-names              List GeoMesa feature types for a given catalog
+        get-schema             Describe the attributes of a given GeoMesa feature type
+        get-sft-config         Get the SimpleFeatureType of a feature
+        help                   Show help
+        ingest                 Ingest/convert various file formats into GeoMesa
+        ingest-raster          Ingest raster files into GeoMesa
+        keywords               Add/Remove/List keywords on an existing schema
+        query-raster-stats     Export queries and statistics about the last X number of queries to a CSV file.
+        remove-schema          Remove a schema and associated features from a GeoMesa catalog
+        stats-analyze          Analyze statistics on a GeoMesa feature type
+        stats-bounds           View or calculate bounds on attributes in a GeoMesa feature type
+        stats-count            Estimate or calculate feature counts in a GeoMesa feature type
+        stats-histogram        View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values
+        stats-top-k            Enumerate the most frequent values in a GeoMesa feature type
+        version                Display the installed GeoMesa version
 
 .. note::
 
@@ -362,14 +367,13 @@ Test the command that invokes the GeoMesa Tools:
     Using GEOMESA_KAFKA_HOME = /path/to/geomesa-kafka-$KAFKAVERSION_2.11-$VERSION
     Usage: geomesa-kafka [command] [command options]
       Commands:
-        create          Create a feature definition in GeoMesa
-        describe        Describe the attributes of a given feature in GeoMesa
+        create-schema   Create a feature definition in GeoMesa
+        get-schema      Describe the attributes of a given feature in GeoMesa
+        get-names       List GeoMesa features for a given zkPath
         help            Show help
-        keywords        Add/Remove/List keywords on an existing schema
-        list            List GeoMesa features for a given zkPath
         listen          Listen to a GeoMesa Kafka topic
-        removeschema    Remove a schema and associated features from GeoMesa
-        version         Display the installed GeoMesa version
+        remove-schema   Remove a schema and associated features from GeoMesa
+        version         GeoMesa Version
 
 .. _slf4j_configuration:
 

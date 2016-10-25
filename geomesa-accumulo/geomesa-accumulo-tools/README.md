@@ -39,29 +39,30 @@ This should print out the following usage text:
       Commands:
         add-attribute-index    Run a Hadoop map reduce job to add an index for attributes
         add-index              Add or update indices for an existing GeoMesa feature type
-        create                 Create a GeoMesa feature type
-        deletecatalog          Delete a GeoMesa catalog completely (and all features in it)
-        deletefeatures         Delete features from a table in GeoMesa. Does not delete any tables or schema information.
-        deleteraster           Delete a GeoMesa Raster table
-        describe               Describe the attributes of a given GeoMesa feature type
+        config-table           Perform table configuration operations
+        create-schema          Create a GeoMesa feature type
+        delete-catalog         Delete a GeoMesa catalog completely (and all features in it)
+        delete-features        Delete features from a table in GeoMesa. Does not delete any tables or schema information.
+        delete-raster          Delete a GeoMesa Raster table
         env                    Examine the current GeoMesa environment
         explain                Explain how a GeoMesa query will be executed
         export                 Export features from a GeoMesa data store
-        genavroschema          Generate an Avro schema from a SimpleFeatureType
-        getsft                 Get the SimpleFeatureType of a feature
+        export-bin             Export features from a GeoMesa data store in a binary format.
+        gen-avro-schema        Generate an Avro schema from a SimpleFeatureType
+        get-names              List GeoMesa feature types for a given catalog
+        get-schema             Describe the attributes of a given GeoMesa feature type
+        get-sft-config                Get the SimpleFeatureType of a feature
         help                   Show help
         ingest                 Ingest/convert various file formats into GeoMesa
-        ingestraster           Ingest raster files into GeoMesa
+        ingest-raster          Ingest raster files into GeoMesa
         keywords               Add/Remove/List keywords on an existing schema
-        list                   List GeoMesa feature types for a given catalog
-        queryrasterstats       Export queries and statistics about the last X number of queries to a CSV file.
-        removeschema           Remove a schema and associated features from a GeoMesa catalog
+        query-raster-stats     Export queries and statistics about the last X number of queries to a CSV file.
+        remove-schema          Remove a schema and associated features from a GeoMesa catalog
         stats-analyze          Analyze statistics on a GeoMesa feature type
         stats-bounds           View or calculate bounds on attributes in a GeoMesa feature type
         stats-count            Estimate or calculate feature counts in a GeoMesa feature type
         stats-histogram        View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values
         stats-top-k            Enumerate the most frequent values in a GeoMesa feature type
-        tableconf              Perform table configuration operations
         version                Display the installed GeoMesa version
 
 
@@ -258,13 +259,13 @@ To create a new feature on a specified catalog table, use the `create` command.
 #### Example command:
     geomesa create -u username -p password -c test_create -i instance -z zoo1,zoo2,zoo3 -f testing -s fid:String:index=true,dtg:Date,geom:Point:srid=4326 --dtg dtg
 
-### removeschema
-To remove a feature type and it's associated data from a catalog table, use the `removeschema` command.
+### remove-schema
+To remove a feature type and it's associated data from a catalog table, use the `remove-schema` command.
 
 #### Usage (required options denoted with star):
-    $ geomesa help removeschema
+    $ geomesa help remove-schema
     Remove a schema and associated features from a GeoMesa catalog
-    Usage: removeschema [options]
+    Usage: remove-schema [options]
       Options:
         --auths
            Accumulo authorizations
@@ -293,8 +294,8 @@ To remove a feature type and it's associated data from a catalog table, use the 
 
 
 ####Example:
-    geomesa removeschema -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog -f testfeature1
-    geomesa removeschema -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog --pattern 'testfeatures\d+'
+    geomesa remove-schema -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog -f testfeature1
+    geomesa remove-schema -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog --pattern 'testfeatures\d+'
 
 
 ### stats-analyze
@@ -550,13 +551,13 @@ If you query a histogram for a geometry attribute, the result will be displayed 
         [ 2016-02-24T05:06:40.000Z to 2016-02-27T02:43:51.000Z ] 871742
         [ 2016-02-27T02:43:51.000Z to 2016-03-01T00:21:02.000Z ] 951199
 
-### deleteraster
-To delete a specific raster table use the `deleteraster` command.
+### delete-raster
+To delete a specific raster table use the `delete-raster` command.
 
 #### Usage (required options denoted with star):
-    $ geomesa help deleteraster
+    $ geomesa help delete-raster
       Delete a GeoMesa Raster table
-      Usage: deleteraster [options]
+      Usage: delete-raster [options]
         Options:
           --auths
              Accumulo authorizations
@@ -581,16 +582,16 @@ To delete a specific raster table use the `deleteraster` command.
 
 
 ####Example:
-    geomesa deleteraster -u username -p password -t somerastertable -f
+    geomesa delete-raster -u username -p password -t somerastertable -f
     
 
-### deletecatalog
-To delete a GeoMesa catalog completely (and all features in it) use the `deletecatalog` command.
+### delete-catalog
+To delete a GeoMesa catalog completely (and all features in it) use the `delete-catalog` command.
 
 #### Usage (required options denoted with star):
-    $ geomesa help deletecatalog
+    $ geomesa help delete-catalog
     Delete a GeoMesa catalog completely (and all features in it)
-    Usage: deletecatalog [options]
+    Usage: delete-catalog [options]
       Options:
         --auths
            Accumulo authorizations
@@ -615,16 +616,16 @@ To delete a GeoMesa catalog completely (and all features in it) use the `deletec
 
     
 ####Example:
-    geomesa deletecatalog -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog
+    geomesa delete-catalog -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog
     
-### deletefeatures
+### delete-features
 To delete features from a table in GeoMesa. Does not delete any tables or schema information.
 
 #### Usage (required options denoted with star):
 
-    $ geomesa help deletefeatures
+    $ geomesa help delete-features
     Delete features from a table in GeoMesa. Does not delete any tables or schema information.
-    Usage: deletefeatures [options]
+    Usage: delete-features [options]
       Options:
         --auths
            Accumulo authorizations
@@ -827,13 +828,13 @@ Attribute expressions are comma-separated expressions with each in the format
         --format csv -q "[[ user_name like `John%' ] AND [ bbox(geom, 22.1371589, 44.386463, 40.228581, 52.379581, 'EPSG:4326') ]]"
 
 
-### genavroschema
+### gen-avro-schema
 Generate an Avro schema from a SimpleFeatureType
 
 #### Usage (required options denoted with star):
-    $ geomesa help genavroschema
+    $ geomesa help gen-avro-schema
     Convert SimpleFeatureTypes to Avro schemas
-    Usage: genavroschema [options]
+    Usage: gen-avro-schema [options]
       Options:
         -f, --feature-name
            Simple Feature Type name on which to operate
@@ -843,19 +844,19 @@ Generate an Avro schema from a SimpleFeatureType
 
 #### Example commands:
     # Convert an SFT loaded from config
-    geomesa genavroschema -s example-csv
+    geomesa gen-avro-schema -s example-csv
 
     # convert an SFT passed in as an argument
-    geomesa genavroschema -s "name:String,dtg:Date,geom:Point" -f myfeature
+    geomesa gen-avro-schema -s "name:String,dtg:Date,geom:Point" -f myfeature
 
 
-### getsft
+### get-sft-config
 Gets an existing simple feature type as an encoded string.
 
 #### Usage (required options denoted with star):
-    $ geomesa help getsft
+    $ geomesa help get-sft-config
     Get the SimpleFeatureType of a feature
-    Usage: getsft [options]
+    Usage: get-sft-config [options]
       Options:
         --auths
            Accumulo authorizations
@@ -889,7 +890,7 @@ Gets an existing simple feature type as an encoded string.
 
 
 #### Example command:
-    geomesa getsft -u username -p password -c test_catalog -f test_feature -i instance
+    geomesa get-sft-config -u username -p password -c test_catalog -f test_feature -i instance
 
 ### ingest
 Ingests various file formats into GeoMesa using the GeoMesa Converter Framework. Converters are specified in HOCON 
@@ -1111,8 +1112,8 @@ S3n paths are prefixed in hadoop with ``s3n://`` as shown below:
     geomesa ingest -u username -p password -c geomesa_catalog -i instance -s yourspec -C convert s3n://bucket/path/file s3n://bucket/path/*
 
 
-### ingestraster
-To ingest one or multiple raster image files into Geomesa, use the `ingestraster` command. Input files, Geotiff or
+### ingest-raster
+To ingest one or multiple raster image files into Geomesa, use the `ingest-raster` command. Input files, Geotiff or
 DTED, are located on local file system. If chunking (only works for single file) is specified by option `-ck`,
 input file is cut into chunks by size in kilobytes (option `-cs or --chunk-size`) and chunks are ingested. Ingestion
 is done in local or distributed mode (by option `-m or --mode`, default is local). In local mode, files are ingested
@@ -1126,9 +1127,9 @@ EPSG:4326 raster files before ingestion. An example of doing conversion with GDA
 input_file out_file`.
 
 #### Usage (required options denoted with star):
-    $ geomesa help ingestraster
+    $ geomesa help ingest-raster
     Ingest raster files into GeoMesa
-    Usage: ingestraster [options]
+    Usage: ingest-raster [options]
       Options:
         --auths
            Accumulo authorizations
@@ -1167,7 +1168,7 @@ input_file out_file`.
 
 
 #### Example commands:
-    geomesa ingestraster -u username -p password -t geomesa_raster -f /some/local/path/to/raster.tif
+    geomesa ingest-raster -u username -p password -t geomesa_raster -f /some/local/path/to/raster.tif
 
 
 ### add-attribute-index
@@ -1283,13 +1284,13 @@ To list the features on a specified catalog table, use the `list` command.
     geomesa list -u username -p password -c test_catalog
 
 
-### queryrasterstats
+### query-raster-stats
 Export queries and statistics logged for raster tables by using the `querystats` command.
 
 #### Usage (required options denoted with star):
-    $ geomesa help queryrasterstats
+    $ geomesa help query-raster-stats
     Export queries and statistics about the last X number of queries to a CSV file.
-    Usage: queryrasterstats [options]
+    Usage: query-raster-stats [options]
       Options:
         --auths
            Accumulo authorizations
@@ -1316,15 +1317,15 @@ Export queries and statistics logged for raster tables by using the `querystats`
 
 
 #### Example command:
-    geomesa queryrasterstats -u username -p password -t somerastertable -num 10
+    geomesa query-raster-stats -u username -p password -t somerastertable -num 10
     
-### tableconf
-To list, describe, and update the configuration parameters on a specified table, use the `tableconf` command. 
+### config-table
+To list, describe, and update the configuration parameters on a specified table, use the `config-table` command. 
 
 #### Usage (required options denoted with star):
-    $ geomesa help tableconf
+    $ geomesa help config-table
     Perform table configuration operations
-    Usage: tableconf [options] [command] [command options]
+    Usage: config-table [options] [command] [command options]
       Commands:
         list      List the configuration parameters for a geomesa table
           Usage: list [options]
@@ -1409,9 +1410,9 @@ To list, describe, and update the configuration parameters on a specified table,
 
 
 #### Example commands:
-    geomesa tableconf list -u username -p password -c test_catalog -f test_feature -t st_idx
-    geomesa tableconf describe -u username -p password -c test_catalog -f test_feature -t attr_idx --param table.bloom.enabled
-    geomesa tableconf update -u username -p password -c test_catalog -f test_feature -t records --param table.bloom.enabled -n true
+    geomesa config-table list -u username -p password -c test_catalog -f test_feature -t st_idx
+    geomesa config-table describe -u username -p password -c test_catalog -f test_feature -t attr_idx --param table.bloom.enabled
+    geomesa config-table update -u username -p password -c test_catalog -f test_feature -t records --param table.bloom.enabled -n true
 
 ### version
 Prints out the version, git branch, and commit ID that the tools were built with.
@@ -1447,7 +1448,7 @@ This should print out the following usage text:
         help            Show help
         list            List GeoMesa features for a given zkPath
         listen          Listen to a GeoMesa Kafka topic
-        removeschema    Remove a schema and associated features from GeoMesa
+        remove-schema    Remove a schema and associated features from GeoMesa
         version         GeoMesa Version
 
 ### create
@@ -1555,14 +1556,14 @@ Logs out the messages written to a topic corresponding to the passed in feature 
       -p /geomesa/ds/kafka \
       --from-beginning
 
-### removeschema
+### remove-schema
 Used to remove a feature type `SimpleFeatureType` in a GeoMesa catalog. This will also delete any feature of that type in the data store.
 
 #### Usage:
 
-    $ geomesa-kafka help removeschema
+    $ geomesa-kafka help remove-schema
     Remove a schema and associated features from GeoMesa
-    Usage: removeschema [options]
+    Usage: remove-schema [options]
       Options:
       * -b, --brokers
            Brokers (host:port, comma separated)
@@ -1581,11 +1582,11 @@ Used to remove a feature type `SimpleFeatureType` in a GeoMesa catalog. This wil
 
 #### Example command:
 
-    $ geomesa-kafka removeschema -f testfeature \
+    $ geomesa-kafka remove-schema -f testfeature \
       -z zoo1,zoo2,zoo3 \
       -b broker1:9092,broker2:9092 \
       -p /geomesa/ds/kafka
-    $ geomesa-kafka removeschema --pattern 'testfeature\d+' \
+    $ geomesa-kafka remove-schema --pattern 'testfeature\d+' \
       -z zoo1,zoo2,zoo3 \
       -b broker1:9092,broker2:9092 \
       -p /geomesa/ds/kafka

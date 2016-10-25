@@ -15,12 +15,12 @@ import org.locationtech.geomesa.tools.kafka.commands._
 object KafkaRunner extends Runner {
   override val scriptName: String = "geomesa-kafka"
   override val commands: List[Command] = List(
-    new CreateCommand(jc),
+    new CreateSchemaCommand(jc),
     new HelpCommand(jc),
     new VersionCommand(jc),
     new RemoveSchemaCommand(jc),
-    new DescribeCommand(jc),
-    new ListCommand(jc),
+    new GetSchemaCommand(jc),
+    new GetNamesCommand(jc),
     new ListenCommand(jc),
     new KeywordCommand(jc)
   )

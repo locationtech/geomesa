@@ -11,12 +11,12 @@ package org.locationtech.geomesa.tools.accumulo.commands
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
-import org.locationtech.geomesa.tools.accumulo.commands.GetSftCommand._
+import org.locationtech.geomesa.tools.accumulo.commands.GetSftConfigCommand._
 import org.locationtech.geomesa.tools.common.FeatureTypeNameParam
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
-class GetSftCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
-  override val command = "getsft"
+class GetSftConfigCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
+  override val command = "get-sft-config"
   override val params = new GetSftParameters
 
   override def execute() = {
@@ -42,7 +42,7 @@ class GetSftCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
 
 }
 
-object GetSftCommand {
+object GetSftConfigCommand {
   @Parameters(commandDescription = "Get the SimpleFeatureType of a feature")
   class GetSftParameters extends GeoMesaConnectionParams with FeatureTypeNameParam {
     @Parameter(names = Array("--concise"), description = "Render in concise format", required = false)

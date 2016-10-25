@@ -13,11 +13,11 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.kafka.KafkaDataStoreHelper
 import org.locationtech.geomesa.tools.common.{CLArgResolver, FeatureTypeNameParam, FeatureTypeSpecParam}
 import org.locationtech.geomesa.tools.kafka.ProducerKDSConnectionParams
-import org.locationtech.geomesa.tools.kafka.commands.CreateCommand.CreateParameters
+import org.locationtech.geomesa.tools.kafka.commands.CreateSchemaCommand.CreateParameters
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
-class CreateCommand(parent: JCommander) extends CommandWithKDS(parent) with LazyLogging {
-  override val command = "create"
+class CreateSchemaCommand(parent: JCommander) extends CommandWithKDS(parent) with LazyLogging {
+  override val command = "create-schema"
   override val params = new CreateParameters()
 
   override def execute() = {
@@ -53,7 +53,7 @@ class CreateCommand(parent: JCommander) extends CommandWithKDS(parent) with Lazy
   }
 }
 
-object CreateCommand {
+object CreateSchemaCommand {
   @Parameters(commandDescription = "Create a feature definition in GeoMesa")
   class CreateParameters extends ProducerKDSConnectionParams
     with FeatureTypeSpecParam

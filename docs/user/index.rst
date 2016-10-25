@@ -18,3 +18,11 @@ User Manual
    commandline_tools
    data_management
    examples
+
+Appendix
+--------
+
+.. toctree::
+   :maxdepth: 2
+
+   commandline_old_commands

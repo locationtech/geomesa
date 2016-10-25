@@ -18,7 +18,7 @@ import org.locationtech.geomesa.tools.common.OptionalForceParam
 import org.locationtech.geomesa.tools.common.commands.Command
 
 class DeleteRasterCommand(parent: JCommander) extends Command(parent) with LazyLogging {
-  override val command = "deleteraster"
+  override val command = "delete-raster"
   override val params = new DeleteRasterParams()
 
   override def execute(): Unit = {

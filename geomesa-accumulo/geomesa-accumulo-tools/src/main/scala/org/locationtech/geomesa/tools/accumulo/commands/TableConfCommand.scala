@@ -22,7 +22,7 @@ import org.locationtech.geomesa.utils.index.IndexMode
 import scala.collection.JavaConversions._
 
 class TableConfCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
-  override val command = "tableconf"
+  override val command = "config-table"
   override val params = null
   override def register = {}
 
@@ -63,7 +63,7 @@ class TableConfCommand(parent: JCommander) extends CommandWithCatalog(parent) wi
         }
 
       case _ =>
-        println("Error: no tableconf command listed...run as: geomesa tableconf <tableconf-command>")
+        println("Error: no config-table command listed...run as: geomesa config-table <config-table-command>")
         parent.usage(command)
     }
   }

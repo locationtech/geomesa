@@ -13,13 +13,13 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.kafka08.KafkaDataStore
 import org.locationtech.geomesa.tools.common.FeatureTypeNameParam
 import org.locationtech.geomesa.tools.kafka.ConsumerKDSConnectionParams
-import org.locationtech.geomesa.tools.kafka.commands.DescribeCommand._
+import org.locationtech.geomesa.tools.kafka.commands.GetSchemaCommand._
 
 import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
 
-class DescribeCommand(parent: JCommander) extends CommandWithKDS(parent) with LazyLogging {
-  override val command = "describe"
+class GetSchemaCommand(parent: JCommander) extends CommandWithKDS(parent) with LazyLogging {
+  override val command = "get-schema"
   override val params = new DescribeParameters
 
   def execute() = {
@@ -65,7 +65,7 @@ class DescribeCommand(parent: JCommander) extends CommandWithKDS(parent) with La
   }
 }
 
-object DescribeCommand {
+object GetSchemaCommand {
   @Parameters(commandDescription = "Describe the attributes of a given feature in GeoMesa")
   class DescribeParameters extends ConsumerKDSConnectionParams
     with FeatureTypeNameParam {}

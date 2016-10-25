@@ -15,7 +15,7 @@ import org.locationtech.geomesa.tools.accumulo.commands.DeleteCatalogCommand._
 import org.locationtech.geomesa.tools.common.{OptionalForceParam, Prompt}
 
 class DeleteCatalogCommand (parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
-  override val command = "deletecatalog"
+  override val command = "delete-catalog"
   override val params = new DeleteCatalogParams
 
   override def execute() = {
