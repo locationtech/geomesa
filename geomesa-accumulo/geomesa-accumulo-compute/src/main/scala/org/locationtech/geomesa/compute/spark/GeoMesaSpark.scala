@@ -32,11 +32,11 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
-import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatureSerializers}
 import org.locationtech.geomesa.features.kryo.serialization.SimpleFeatureSerializer
+import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatureSerializers}
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaInputFormat
 import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
-import org.locationtech.geomesa.utils.conf.GeoMesaProperties
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties.getProperty
 import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
@@ -52,7 +52,7 @@ object GeoMesaSpark extends LazyLogging {
     val typeOptions = sfts.map { sft => (sft.getTypeName, SimpleFeatureTypes.encodeType(sft)) }
     typeOptions.foreach { case (k,v) => System.setProperty(typeProp(k), v) }
     val typeOpts = typeOptions.map { case (k,v) => jOpt(k, v) }
-    val jarOpt = sys.props.get(SYS_PROP_SPARK_LOAD_CP).map(v => s"-D$SYS_PROP_SPARK_LOAD_CP=$v")
+    val jarOpt = getProperty(SYS_PROP_SPARK_LOAD_CP).map(v => s"-D$SYS_PROP_SPARK_LOAD_CP=$v")
     val extraOpts = (typeOpts ++ jarOpt).mkString(" ")
     val newOpts = if (conf.contains("spark.executor.extraJavaOptions")) {
       conf.get("spark.executor.extraJavaOptions").concat(" ").concat(extraOpts)
@@ -455,7 +455,7 @@ object GeoMesaSparkKryoRegistrator {
   }
 
   def getType(typeName: String): SimpleFeatureType = {
-    val spec = GeoMesaProperties.getProperty(GeoMesaSpark.typeProp(typeName))
+    val spec = getProperty(GeoMesaSpark.typeProp(typeName))
     if (spec == null) {
       GeoMesaSparkKryoRegistrator.typeCache.get(typeName)
     } else {
