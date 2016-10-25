@@ -22,7 +22,7 @@ import org.specs2.runner.JUnitRunner
 class JsonPathPropertyAccessorTest extends Specification {
 
   val ff = CommonFactoryFinder.getFilterFactory2
-  val sft = SimpleFeatureTypes.createType("json", "json:String:json=true,dtg:Date,*geom:Point:srid=4326")
+  val sft = SimpleFeatureTypes.createType("json", "json:String:json=true,s:String,dtg:Date,*geom:Point:srid=4326")
 
   "JsonPathPropertyAccessor" should {
     "be available on the classpath" in {
@@ -40,13 +40,21 @@ class JsonPathPropertyAccessorTest extends Specification {
       sf.setAttribute(0, """{ "foo" : "baz" }""")
       property.evaluate(sf) mustEqual "baz"
     }
+    "access non-json strings in simple features" in {
+      val property = ff.property("$.s.foo")
+      val sf = new ScalaSimpleFeature("", sft)
+      sf.setAttribute(1, """{ "foo" : "bar" }""")
+      property.evaluate(sf) mustEqual "bar"
+      sf.setAttribute(1, """{ "foo" : "baz" }""")
+      property.evaluate(sf) mustEqual "baz"
+    }
     "access json values in kryo serialized simple features" in {
       val property = ff.property("$.json.foo")
       val serializer = new KryoFeatureSerializer(sft)
       val sf = serializer.getReusableFeature
-      sf.setBuffer(serializer.serialize(new ScalaSimpleFeature("", sft, Array("""{ "foo" : "bar" }""", null, null))))
+      sf.setBuffer(serializer.serialize(new ScalaSimpleFeature("", sft, Array("""{ "foo" : "bar" }""", null, null, null))))
       property.evaluate(sf) mustEqual "bar"
-      sf.setBuffer(serializer.serialize(new ScalaSimpleFeature("", sft, Array("""{ "foo" : "baz" }""", null, null))))
+      sf.setBuffer(serializer.serialize(new ScalaSimpleFeature("", sft, Array("""{ "foo" : "baz" }""", null, null, null))))
       property.evaluate(sf) mustEqual "baz"
     }
     "accept json path in ECQL" in {

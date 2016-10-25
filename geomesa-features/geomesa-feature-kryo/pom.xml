@@ -32,8 +32,12 @@
             <artifactId>json4s-native_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.parboiled</groupId>
-          <artifactId>parboiled-scala_${scala.binary.version}</artifactId>
+            <artifactId>parboiled-scala_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
