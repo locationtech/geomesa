@@ -17,18 +17,12 @@ fi
 . "${%%gmtools.dist.name%%_HOME}"/bin/geomesa-common.sh
 
 
-if [[ -n "$CASSANDRA_HOME" ]]; then
-  if [[ -z "$CASSANDRA_LIB" && -d "${CASSANDRA_HOME}/lib" ]]; then
-    CASSANDRA_LIB=${CASSANDRA_HOME}/lib
-  fi
-fi
 
 # Warn user about missing environment variables
-if [[ (-z "$CASSANDRA_HOME") ]]; then
-  message="Warning: you have not set CASSANDRA_HOME as environment variables."
-  message="${message}\nGeoMesa tools will not run without the appropriate Cassandra jars in the tools classpath."
-  message="${message}\nPlease ensure that those jars are present in the classpath by running 'geomesa classpath' ."
-  message="${message}\nTo take corrective action, please place the necessary jar files in the lib directory of geomesa-tools."
+if [[ (-z "$CASSANDRA_LIB") ]]; then
+  message="Warning: you have not set the CASSANDRA_LIB environment variable."
+  message="${message}\nGeoMesa tools will not run without the appropriate"
+  message="${message}\nCassandra jars in the tools classpath."
   echo >&2 ""
   echo -e >&2 "$message"
   echo >&2 ""

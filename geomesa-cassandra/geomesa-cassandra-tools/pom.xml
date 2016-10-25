@@ -21,6 +21,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <gmtools.dist.name>GEOMESA_CASSANDRA</gmtools.dist.name>
     </properties>
 
     <dependencies>
@@ -34,15 +35,7 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-security_2.11</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-cassandra-datastore_2.11</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-security_2.11</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>

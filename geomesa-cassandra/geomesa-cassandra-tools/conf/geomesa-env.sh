@@ -54,13 +54,8 @@ function setvar() {
 # Cassandra Environment Variables
 # ==================================================================
 
-# Cassandra directory
-#
-# setvar CASSANDRA_HOME /path/to/cassandra
 
 # Cassandra lib directory
-# This resides inside Cassandra home by default. If this is not set but CASSANDRA_HOME is,
-# this will default to CASSANDRA_HOME/lib.
 #
 # setvar CASSANDRA_LIB /path/to/cassandra/lib
 
