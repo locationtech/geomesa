@@ -96,6 +96,7 @@ abstract class AbstractIngestJob extends LazyLogging {
   def ingestJarSearchPath: Iterator[() => Seq[File]] =
     Iterator(() => ClassPathUtils.getJarsFromEnvironment("GEOMESA_HOME"),
       () => ClassPathUtils.getJarsFromEnvironment("ACCUMULO_HOME"),
+      () => ClassPathUtils.getFilesFromSystemProperty("geomesa.convert.scripts.path"),
       () => ClassPathUtils.getJarsFromClasspath(getClass),
       () => ClassPathUtils.getJarsFromClasspath(classOf[AccumuloDataStore]),
       () => ClassPathUtils.getJarsFromClasspath(classOf[Connector]))
