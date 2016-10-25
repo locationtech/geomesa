@@ -32,8 +32,8 @@ setting system properties.
 
 This file can be found at ``conf/geomesa-site.xml`` of the Kafka
 distribution. The default settings for GeoMesa are stored in
-``conf/geomesa-default.xml``. Do not modify this file directly as it
-is never read, instead copy over the desired configurations into
+``conf/geomesa-site.xml.template``. Do not modify this file directly as it
+is never read, instead copy the desired configurations into
 geomesa-site.xml.
 
 By default command line parameters will take precedence over this

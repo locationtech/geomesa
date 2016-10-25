@@ -62,7 +62,7 @@ object GeoMesaProperties extends LazyLogging {
 
   case class PropOrDefault(property: String, dft: String = null) {
     val default = if (dft != null) dft
-                  else Option(props.getProperty(property)).getOrElse(dft)
+                  else Option(getProperty(property)).getOrElse(dft)
     def get: String = {
       ensureConfig()
       Option(System.getProperty(property)).getOrElse(default)

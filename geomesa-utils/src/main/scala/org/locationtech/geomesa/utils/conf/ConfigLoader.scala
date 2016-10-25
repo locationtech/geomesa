@@ -16,6 +16,7 @@ import com.typesafe.scalalogging.LazyLogging
 object ConfigLoader extends LazyLogging {
   val GEOMESA_CONFIG_FILE = "geomesa.config.file"
   val GEOMESA_CONFIG_FILE_NAME = "geomesa-site.xml"
+  val GEOMESA_EMBEDDED_CONFIG_FILE_PATH = "/org/locationtech/geomesa/geomesa-site.xml.template"
   var isLoaded: Boolean = false
 
   def init(): Unit = {
@@ -27,7 +28,8 @@ object ConfigLoader extends LazyLogging {
     } else if (classConfig.toString.nonEmpty) {
       loadConfig(getClass.getClassLoader.getResource(GEOMESA_CONFIG_FILE_NAME).getFile)
     } else {
-      logger.warn("No config file was found.")
+      logger.info("Using embedded config file.")
+      loadConfig(getClass.getResource(GEOMESA_EMBEDDED_CONFIG_FILE_PATH).getFile)
     }
   }
 

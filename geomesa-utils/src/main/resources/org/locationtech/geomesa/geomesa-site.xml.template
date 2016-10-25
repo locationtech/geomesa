@@ -104,7 +104,7 @@
 
     <property>
         <name>geomesa.feature.id-generator</name>
-        <value></value>
+        <value>org.locationtech.geomesa.utils.uuid.Z3FeatureIdGenerator</value>
         <description>This property controls the default implementation used
             for generating IDs for simple features, if `USE_PROVIDED_FIDS`
             or `PROVIDED_FID` is not set in the feature. It should be set to
