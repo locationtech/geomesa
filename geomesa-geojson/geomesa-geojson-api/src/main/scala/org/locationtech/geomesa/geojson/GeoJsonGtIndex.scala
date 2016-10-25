@@ -22,7 +22,7 @@ import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser.PathElement
 import org.locationtech.geomesa.geojson.query.GeoJsonQuery
-import org.locationtech.geomesa.utils.geotools.{RichSimpleFeatureType, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.parboiled.errors.ParsingException
 
@@ -202,8 +202,8 @@ class GeoJsonGtIndex(ds: DataStore) extends GeoJsonIndex with LazyLogging {
 
 object GeoJsonGtIndex {
 
-  val IdPathKey  = s"${RichSimpleFeatureType.GEOMESA_PREFIX}json.id"
-  val DtgPathKey = s"${RichSimpleFeatureType.GEOMESA_PREFIX}json.dtg"
+  val IdPathKey  = s"${SimpleFeatureTypes.InternalConfigs.GEOMESA_PREFIX}json.id"
+  val DtgPathKey = s"${SimpleFeatureTypes.InternalConfigs.GEOMESA_PREFIX}json.dtg"
 
   private val jsonGeometry = new GeometryJSON()
 
@@ -228,7 +228,7 @@ object GeoJsonGtIndex {
       spec.append(",dtg:Date")
     }
 
-    val mixedGeoms = if (points) { Seq.empty } else { Seq(s"${SimpleFeatureTypes.MIXED_GEOMETRIES}='true'") }
+    val mixedGeoms = if (points) { Seq.empty } else { Seq(s"${SimpleFeatureTypes.Configs.MIXED_GEOMETRIES}='true'") }
     val id = idPath.map(p => s"$IdPathKey='$p'")
     val dtg = dtgPath.map(p => s"$DtgPathKey='$p'")
 
