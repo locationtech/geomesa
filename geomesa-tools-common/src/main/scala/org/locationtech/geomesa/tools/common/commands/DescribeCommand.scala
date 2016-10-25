@@ -1,17 +1,7 @@
-/***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+package org.locationtech.geomesa.tools.common.commands
 
-package org.locationtech.geomesa.tools.accumulo.commands
-
-import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
-import org.locationtech.geomesa.tools.accumulo.commands.DescribeCommand._
+
 import org.locationtech.geomesa.tools.common.FeatureTypeNameParam
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
@@ -20,12 +10,14 @@ import org.locationtech.geomesa.utils.stats.IndexCoverage
 import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
 
-class DescribeCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
-  override val command = "describe"
-  override val params = new DescribeParameters
 
+trait DescribeCommand extends CommandWithDataStore with LazyLogging {
+  val command = "describe"
+  val params: FeatureTypeNameParam
   def execute() = {
-    logger.info(s"Describing attributes of feature '${params.featureName}' from catalog table '$catalog'...")
+
+
+    logger.info(s"Describing attributes of feature '${params.featureName}'")
     try {
       val sft = ds.getSchema(params.featureName)
 
@@ -75,10 +67,3 @@ class DescribeCommand(parent: JCommander) extends CommandWithCatalog(parent) wit
   }
 
 }
-
-object DescribeCommand {
-  @Parameters(commandDescription = "Describe the attributes of a given GeoMesa feature type")
-  class DescribeParameters extends GeoMesaConnectionParams
-    with FeatureTypeNameParam {}
-}
-

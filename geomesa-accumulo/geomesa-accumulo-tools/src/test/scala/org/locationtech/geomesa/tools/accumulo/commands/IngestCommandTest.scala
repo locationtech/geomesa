@@ -48,7 +48,7 @@ class IngestCommandTest extends Specification {
       val command = AccumuloRunner.createCommand(args)
       command.execute()
 
-      val ds = DataStoreParamsHelper.createDataStore(command.params.asInstanceOf[GeoMesaConnectionParams])
+      val ds = AccumuloDataStoreParamsHelper.createDataStore(command.params.asInstanceOf[GeoMesaConnectionParams])
       import Conversions._
       val features = ds.getFeatureSource("renegades").getFeatures.features().toList
       features.size mustEqual 3
@@ -68,7 +68,7 @@ class IngestCommandTest extends Specification {
       val command = AccumuloRunner.createCommand(args)
       command.execute()
 
-      val ds = DataStoreParamsHelper.createDataStore(command.params.asInstanceOf[GeoMesaConnectionParams])
+      val ds = AccumuloDataStoreParamsHelper.createDataStore(command.params.asInstanceOf[GeoMesaConnectionParams])
       import Conversions._
       val features = ds.getFeatureSource("renegades").getFeatures.features().toList
       features.size mustEqual 3
@@ -88,7 +88,7 @@ class IngestCommandTest extends Specification {
       val command = AccumuloRunner.createCommand(args)
       command.execute()
 
-      val ds = DataStoreParamsHelper.createDataStore(command.params.asInstanceOf[GeoMesaConnectionParams])
+      val ds = AccumuloDataStoreParamsHelper.createDataStore(command.params.asInstanceOf[GeoMesaConnectionParams])
       import Conversions._
       val features = ds.getFeatureSource("renegades2").getFeatures.features().toList
       features.size mustEqual 0
@@ -107,7 +107,7 @@ class IngestCommandTest extends Specification {
       val command = AccumuloRunner.createCommand(args)
       command.execute()
 
-      val ds = DataStoreParamsHelper.createDataStore(command.params.asInstanceOf[GeoMesaConnectionParams])
+      val ds = AccumuloDataStoreParamsHelper.createDataStore(command.params.asInstanceOf[GeoMesaConnectionParams])
       import Conversions._
       val features = ds.getFeatureSource("geonames").getFeatures.features().toList
       features.size mustEqual 3
@@ -126,7 +126,7 @@ class IngestCommandTest extends Specification {
       val command = AccumuloRunner.createCommand(args)
       command.execute()
 
-      val ds = DataStoreParamsHelper.createDataStore(command.params.asInstanceOf[GeoMesaConnectionParams])
+      val ds = AccumuloDataStoreParamsHelper.createDataStore(command.params.asInstanceOf[GeoMesaConnectionParams])
       import Conversions._
       val features = ds.getFeatureSource("geonames").getFeatures.features().toList
       features.size mustEqual 0

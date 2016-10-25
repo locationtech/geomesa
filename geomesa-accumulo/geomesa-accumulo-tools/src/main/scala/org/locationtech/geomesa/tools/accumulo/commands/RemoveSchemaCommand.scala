@@ -12,11 +12,12 @@ import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.RemoveSchemaCommand.RemoveSchemaParams
+import org.locationtech.geomesa.tools.common.commands.Command
 import org.locationtech.geomesa.tools.common.{OptionalFeatureTypeNameParam, OptionalForceParam, OptionalPatternParam, Prompt}
 
 import scala.util.{Failure, Success, Try}
 
-class RemoveSchemaCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
+class RemoveSchemaCommand(parent: JCommander) extends CommandWithAccumuloDataStore(parent) with LazyLogging {
   override val command = "removeschema"
   override val params = new RemoveSchemaParams
 

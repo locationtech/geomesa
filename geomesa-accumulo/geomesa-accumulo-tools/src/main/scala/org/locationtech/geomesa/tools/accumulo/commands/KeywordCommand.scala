@@ -13,7 +13,7 @@ import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.KeywordCommand.KeywordParameters
 import org.locationtech.geomesa.tools.common.{FeatureTypeNameParam, KeywordParamSplitter}
 
-class KeywordCommand(parent: JCommander) extends CommandWithCatalog(parent) {
+class KeywordCommand(parent: JCommander) extends CommandWithAccumuloDataStore(parent) {
 
   override val command: String = "keywords"
   override val params = new KeywordParameters()

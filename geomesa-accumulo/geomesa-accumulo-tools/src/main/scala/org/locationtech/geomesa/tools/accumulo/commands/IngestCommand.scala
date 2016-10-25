@@ -19,6 +19,7 @@ import org.locationtech.geomesa.tools.accumulo.Utils.Formats
 import org.locationtech.geomesa.tools.accumulo.Utils.Formats._
 import org.locationtech.geomesa.tools.accumulo.commands.IngestCommand._
 import org.locationtech.geomesa.tools.accumulo.ingest.{AutoIngest, ConverterIngest}
+import org.locationtech.geomesa.tools.common.commands.Command
 import org.locationtech.geomesa.tools.common.{CLArgResolver, OptionalFeatureTypeNameParam, OptionalFeatureTypeSpecParam}
 import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
 
@@ -26,7 +27,7 @@ import scala.collection.JavaConversions._
 import scala.collection.parallel.ForkJoinTaskSupport
 import scala.util.Try
 
-class IngestCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
+class IngestCommand(parent: JCommander) extends CommandWithAccumuloDataStore(parent) with LazyLogging {
   override val command = "ingest"
   override val params = new IngestParameters()
 
@@ -69,11 +70,11 @@ class IngestCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
         }
         // auto-detect the import schema
         logger.info("No schema or converter defined - will attempt to detect schema from input files")
-        new AutoIngest(DataStoreParamsHelper.getDataStoreParams(params), params.featureName, params.files, params.threads, fmt).run()
+        new AutoIngest(AccumuloDataStoreParamsHelper.getDataStoreParams(params), params.featureName, params.files, params.threads, fmt).run()
       } else {
         val sft = CLArgResolver.getSft(params.spec, params.featureName)
         val converterConfig = CLArgResolver.getConfig(params.config)
-        new ConverterIngest(DataStoreParamsHelper.getDataStoreParams(params), params.files, params.threads, sft, converterConfig).run()
+        new ConverterIngest(AccumuloDataStoreParamsHelper.getDataStoreParams(params), params.files, params.threads, sft, converterConfig).run()
       }
     }
   }

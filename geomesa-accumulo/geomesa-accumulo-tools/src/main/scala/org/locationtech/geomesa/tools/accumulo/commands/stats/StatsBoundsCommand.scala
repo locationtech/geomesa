@@ -12,11 +12,11 @@ import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.tools.accumulo.commands.CommandWithCatalog
+import org.locationtech.geomesa.tools.accumulo.commands.CommandWithAccumuloDataStore
 import org.locationtech.geomesa.utils.stats.{MinMax, Stat}
 import org.opengis.filter.Filter
 
-class StatsBoundsCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
+class StatsBoundsCommand(parent: JCommander) extends CommandWithAccumuloDataStore(parent) with LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 

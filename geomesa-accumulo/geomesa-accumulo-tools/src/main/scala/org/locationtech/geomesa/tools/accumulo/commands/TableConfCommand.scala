@@ -17,11 +17,12 @@ import org.locationtech.geomesa.tools.accumulo.AccumuloRunner.mkSubCommand
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.TableConfCommand._
 import org.locationtech.geomesa.tools.common.FeatureTypeNameParam
+import org.locationtech.geomesa.tools.common.commands.Command
 import org.locationtech.geomesa.utils.index.IndexMode
 
 import scala.collection.JavaConversions._
 
-class TableConfCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
+class TableConfCommand(parent: JCommander) extends CommandWithAccumuloDataStore(parent) with LazyLogging {
   override val command = "tableconf"
   override val params = null
   override def register = {}
@@ -111,7 +112,7 @@ object TableConfCommand {
     @Parameter(names = Array("-t", "--table-suffix"), description = "Table suffix to operate on (attr_idx, st_idx, or records)", required = true)
     var tableSuffix: String = null
 
-    lazy val ds = DataStoreParamsHelper.createDataStore(this)
+    lazy val ds = AccumuloDataStoreParamsHelper.createDataStore(this)
     lazy val tableName = getTableName(ds, this)
   }
 

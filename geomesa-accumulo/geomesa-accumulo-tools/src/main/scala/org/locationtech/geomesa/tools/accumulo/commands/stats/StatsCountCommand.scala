@@ -11,10 +11,11 @@ package org.locationtech.geomesa.tools.accumulo.commands.stats
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.tools.accumulo.commands.CommandWithCatalog
+import org.locationtech.geomesa.tools.accumulo.commands.CommandWithAccumuloDataStore
+import org.locationtech.geomesa.tools.common.commands.Command
 import org.opengis.filter.Filter
 
-class StatsCountCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
+class StatsCountCommand(parent: JCommander) extends CommandWithAccumuloDataStore(parent) with LazyLogging {
 
   override val command = "stats-count"
   override val params = new StatsCountParameters

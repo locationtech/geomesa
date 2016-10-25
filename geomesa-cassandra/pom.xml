@@ -15,6 +15,7 @@
         <module>geomesa-cassandra-datastore</module>
         <module>geomesa-cassandra-dist</module>
         <module>geomesa-cassandra-gs-plugin</module>
+        <module>geomesa-cassandra-tools</module>
     </modules>
 
     <properties>

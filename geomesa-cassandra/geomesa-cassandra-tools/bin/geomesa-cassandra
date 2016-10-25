@@ -1,0 +1,70 @@
+#! /usr/bin/env bash
+#
+# Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0 which
+# accompanies this distribution and is available at
+# http://www.opensource.org/licenses/apache2.0.php.
+#
+
+# Set environment variables in bin/geomesa-env.sh
+
+if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
+  export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
+fi
+
+# Load common functions and setup
+. "${%%gmtools.dist.name%%_HOME}"/bin/geomesa-common.sh
+
+
+
+# Warn user about missing environment variables
+if [[ (-z "$CASSANDRA_LIB") ]]; then
+  message="Warning: you have not set the CASSANDRA_LIB environment variable."
+  message="${message}\nGeoMesa tools will not run without the appropriate"
+  message="${message}\nCassandra jars in the tools classpath."
+  echo >&2 ""
+  echo -e >&2 "$message"
+  echo >&2 ""
+fi
+
+
+function findSftDirs() {
+  DIRS=$(find $GEOMESA_CONF_DIR/sfts -mindepth 1 -type d -exec printf {}: \;)
+  echo ${DIRS%:}
+}
+
+# Start constructing GEOMESA_CP (classpath)
+# include geomesa first so that the correct log4j.properties is picked up
+GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB)"
+GEOMESA_CP="${GEOMESA_CP}:${GEOMESA_CONF_DIR}:$(findSftDirs)"
+
+# Add user defined directories to the classpath
+if [[ -n "$GEOMESA_EXTRA_CLASSPATHS" ]]; then
+  EXTRA_JARS="$(findJars $GEOMESA_EXTRA_CLASSPATHS true)"
+  GEOMESA_CP="${GEOMESA_CP}:${EXTRA_JARS}"
+fi
+
+CASSANDRA_CP="$(findJars $CASSANDRA_LIB true true)"
+
+# Geomesa tools setup completed, below we parse user arguments
+#
+# configure runs the geomesa configuration, sets both the %%gmtools.dist.name%%_HOME and PATH vars
+# classpath prints the class path, ie list of jars we are using
+# else is running actual commands in the tools
+
+if  [[ $1 = configure ]]; then
+  geomesaConfigure
+elif [[ $1 = classpath ]]; then
+  CLASSPATH="$GEOMESA_CP:$CASSANDRA_CP"
+  for element in ${CLASSPATH//:/ } ; do
+    echo ${element}
+  done
+else
+  if [[ $1 = debug ]]; then
+    GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
+    shift 1
+  fi
+  CLASSPATH="$GEOMESA_CP:$CASSANDRA_CP"
+  java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.cassandra.CassandraRunner "$@"
+fi

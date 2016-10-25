@@ -20,7 +20,7 @@ import org.locationtech.geomesa.tools.accumulo.Utils.Formats._
 import org.locationtech.geomesa.tools.accumulo._
 import org.locationtech.geomesa.tools.accumulo.commands.ExportCommand.ExportParameters
 
-class ExportCommand(parent: JCommander) extends CommandWithCatalog(parent)
+class ExportCommand(parent: JCommander) extends CommandWithAccumuloDataStore(parent)
   with ExportCommandTools[ExportParameters]
   with LazyLogging {
 

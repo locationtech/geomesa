@@ -30,7 +30,7 @@ object AccumuloRunner extends Runner {
     new DeleteCatalogCommand(jc),
     new DeleteFeaturesCommand(jc),
     new DeleteRasterCommand(jc),
-    new DescribeCommand(jc),
+    new AccumuloDescribeCommand(jc),
     new EnvironmentCommand(jc),
     new ExplainCommand(jc),
     new ExportCommand(jc),
@@ -38,7 +38,7 @@ object AccumuloRunner extends Runner {
     new IngestCommand(jc),
     new IngestRasterCommand(jc),
     new KeywordCommand(jc),
-    new ListCommand(jc),
+    new AccumuloListCommand(jc),
     new RemoveSchemaCommand(jc),
     new TableConfCommand(jc),
     new AccumuloVersionCommand(jc),
@@ -104,3 +104,4 @@ object AccumuloRunner extends Runner {
     }
   }
 }
+

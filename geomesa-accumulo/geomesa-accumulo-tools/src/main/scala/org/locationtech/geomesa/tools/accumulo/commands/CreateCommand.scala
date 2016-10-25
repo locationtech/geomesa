@@ -17,7 +17,7 @@ import org.locationtech.geomesa.tools.common.{CLArgResolver, FeatureTypeNamePara
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
-class CreateCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
+class CreateCommand(parent: JCommander) extends CommandWithAccumuloDataStore(parent) with LazyLogging {
   override val command = "create"
   override val params = new CreateParameters()
 
