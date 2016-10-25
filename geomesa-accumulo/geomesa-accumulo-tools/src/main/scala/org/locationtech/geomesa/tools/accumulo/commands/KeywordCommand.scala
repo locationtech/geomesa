@@ -13,24 +13,17 @@ import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.KeywordCommand.KeywordParameters
 import org.locationtech.geomesa.tools.common.{FeatureTypeNameParam, KeywordParamSplitter}
 
-import scala.collection.JavaConversions._
-
 class KeywordCommand(parent: JCommander) extends CommandWithCatalog(parent) {
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+
   override val command: String = "keywords"
   override val params = new KeywordParameters()
 
   override def execute(): Unit = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+
+    import scala.collection.JavaConversions._
 
     val sft = ds.getSchema(params.featureName)
-
-    if (params.keywordsToAdd != null) {
-      sft.addKeywords(params.keywordsToAdd.mkString(KEYWORDS_DELIMITER))
-    }
-
-    if (params.keywordsToRemove != null) {
-      sft.removeKeywords(params.keywordsToRemove.mkString(KEYWORDS_DELIMITER))
-    }
 
     if (params.removeAll) {
       val confirm = System.console().readLine("Remove all keywords? (y/n): ").toLowerCase()
@@ -41,12 +34,18 @@ class KeywordCommand(parent: JCommander) extends CommandWithCatalog(parent) {
         ds.dispose()
         return
       }
+    } else if (params.keywordsToRemove != null) {
+      sft.removeKeywords(params.keywordsToRemove.toSet)
+    }
+
+    if (params.keywordsToAdd != null) {
+      sft.addKeywords(params.keywordsToAdd.toSet)
     }
 
     ds.updateSchema(params.featureName, sft)
 
     if (params.list) {
-      println("Keywords: " + ds.getSchema(sft.getTypeName).getKeywords.toString)
+      println("Keywords: " + ds.getSchema(sft.getTypeName).getKeywords.mkString(", "))
     }
 
     ds.dispose()

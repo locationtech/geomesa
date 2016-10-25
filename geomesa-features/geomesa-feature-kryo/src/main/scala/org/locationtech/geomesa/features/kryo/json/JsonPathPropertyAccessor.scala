@@ -10,11 +10,13 @@ package org.locationtech.geomesa.features.kryo.json
 
 import java.lang.ref.SoftReference
 
+import com.jayway.jsonpath.Option.{ALWAYS_RETURN_LIST, DEFAULT_PATH_LEAF_TO_NULL, SUPPRESS_EXCEPTIONS}
+import com.jayway.jsonpath.{Configuration, JsonPath}
 import org.geotools.factory.Hints
 import org.geotools.filter.expression.{PropertyAccessor, PropertyAccessorFactory}
 import org.geotools.util.Converters
+import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser.{PathAttribute, PathAttributeWildCard, PathDeepScan, PathElement}
-import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.util.control.NonFatal
@@ -29,14 +31,12 @@ import scala.util.control.NonFatal
   */
 object JsonPathPropertyAccessor extends PropertyAccessor {
 
-  // TODO once jayway CQs are approved for GEOMESA-1406, we could change the non-kryo implementation to use that
-
   // cached references to parsed json path expressions
   private val paths = new java.util.concurrent.ConcurrentHashMap[String, SoftReference[Seq[PathElement]]]()
+  private val pathConfig =
+    Configuration.builder.options(ALWAYS_RETURN_LIST, DEFAULT_PATH_LEAF_TO_NULL, SUPPRESS_EXCEPTIONS).build()
 
   override def canHandle(obj: Any, xpath: String, target: Class[_]): Boolean = {
-    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-
     val path = try { pathFor(xpath) } catch { case NonFatal(e) => Seq.empty }
 
     if (path.isEmpty) { false } else {
@@ -45,10 +45,10 @@ object JsonPathPropertyAccessor extends PropertyAccessor {
       path.head match {
         case PathAttribute(name: String) =>
           val descriptor = sft.getDescriptor(name)
-          descriptor != null && descriptor.isJson
+          descriptor != null && descriptor.getType.getBinding == classOf[String]
         case PathAttributeWildCard | PathDeepScan =>
           import scala.collection.JavaConversions._
-          sft.getAttributeDescriptors.exists(_.isJson())
+          sft.getAttributeDescriptors.exists(_.getType.getBinding == classOf[String])
         case _ => false
       }
     }
@@ -64,25 +64,28 @@ object JsonPathPropertyAccessor extends PropertyAccessor {
       case PathAttribute(name: String) => sft.indexOf(name)
       case _ =>
         // we know it will be a wildcard due to canHandle
+        // prioritize fields marked json over generic strings
         // note: will only match first json attribute if more than 1
         import scala.collection.JavaConversions._
-        sft.getAttributeDescriptors.indexWhere(_.isJson())
+        val i = sft.getAttributeDescriptors.indexWhere(_.isJson())
+        if (i != -1) { i } else {
+          sft.getAttributeDescriptors.indexWhere(_.getType.getBinding == classOf[String])
+        }
     }
 
-    val input = obj match {
-      case f: KryoBufferSimpleFeature => f.getInput(attribute)
-      case f: SimpleFeature =>
-        // we have to serialize the json string to get an input
-        val out = KryoFeatureSerializer.getOutput(null)
-        KryoJsonSerialization.serialize(out, f.getAttribute(attribute).asInstanceOf[String])
-        KryoFeatureSerializer.getInput(out.getBuffer, 0, out.position())
-    }
-
-    val deserialized = KryoJsonSerialization.deserialize(input, path.tail)
-    if (target == null) {
-      deserialized.asInstanceOf[T]
+    val result = if (sft.getDescriptor(attribute).isJson() && obj.isInstanceOf[KryoBufferSimpleFeature]) {
+      val input = obj.asInstanceOf[KryoBufferSimpleFeature].getInput(attribute)
+      KryoJsonSerialization.deserialize(input, path.tail)
     } else {
-      Converters.convert(deserialized, target)
+      val json = obj.asInstanceOf[SimpleFeature].getAttribute(attribute).asInstanceOf[String]
+      val list = JsonPath.using(pathConfig).parse(json).read[java.util.List[AnyRef]](JsonPathParser.print(path.tail))
+      if (list == null || list.isEmpty) { null } else if (list.size == 1) { list.get(0) } else { list }
+    }
+
+    if (target == null) {
+      result.asInstanceOf[T]
+    } else {
+      Converters.convert(result, target)
     }
   }
 

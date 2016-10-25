@@ -10,7 +10,7 @@
 package org.locationtech.geomesa.compute.spark
 
 import java.io.{Serializable => JSerializable}
-import java.util.UUID
+import java.util.concurrent.atomic.AtomicInteger
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.mock.MockInstance
@@ -23,11 +23,11 @@ import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStore, DataStoreFinder, DataUtilities, Query}
 import org.geotools.factory.Hints
+import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloFeatureStore}
-import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -45,6 +45,8 @@ import scala.util.Random
 class GeoMesaSparkTest extends Specification with LazyLogging {
 
   sequential
+
+  val nameIncrement = new AtomicInteger()
 
   var sc: SparkContext = null
 
@@ -80,7 +82,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
 
     lazy val ds = getDs(dsParams)
 
-    lazy val spec = "an_id:Integer,map:Map[String,Integer],dtg:Date,geom:Point:srid=4326"
+    lazy val spec = "an_id:Integer:index=join,map:Map[String,Integer],dtg:Date,*geom:Point:srid=4326"
 
     def createFeatures(ds: DataStore, sft: SimpleFeatureType, encodedFeatures: Array[_ <: Array[_]]): Seq[SimpleFeature] = {
       val builder = ScalaSimpleFeatureFactory.featureBuilder(sft)
@@ -94,12 +96,8 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
       features
     }
 
-    def createTypeName() = s"sparktest${UUID.randomUUID().toString}"
-    def createSFT(typeName: String) = {
-      val t = SimpleFeatureTypes.createType(typeName, spec)
-      t.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
-      t
-    }
+    def newTypeName() = s"sparktest${nameIncrement.getAndIncrement()}"
+    def createSFT(typeName: String) = SimpleFeatureTypes.createType(typeName, spec)
 
     val random = new Random(83)
     val encodedFeatures = (0 until 150).toArray.map {
@@ -112,7 +110,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
     }
 
     "Read data" in {
-      val typeName = s"sparktest${UUID.randomUUID().toString}"
+      val typeName = newTypeName()
       val sft = createSFT(typeName)
 
       ds.createSchema(sft)
@@ -134,7 +132,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
     }
 
     "Write data" in {
-      val typeName = s"sparktest${UUID.randomUUID().toString}"
+      val typeName = newTypeName()
       val sft = createSFT(typeName)
       ds.createSchema(sft)
 
@@ -155,7 +153,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
 
     "Read multiple data stores" in {
       // Initialize first datastore and table
-      val typeName = s"sparktest${UUID.randomUUID().toString}"
+      val typeName = newTypeName()
       val sft = createSFT(typeName)
 
       ds.createSchema(sft)
@@ -179,7 +177,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
 
       val secondDs: DataStore = getDs(secondDsParams)
 
-      val secondTypeName = s"sparktest${UUID.randomUUID().toString}"
+      val secondTypeName = newTypeName()
 
       val secondSpec = "another_id:Integer,map:Map[String,Integer],dtg:Date,geom:Point:srid=4326"
       val secondSft = SimpleFeatureTypes.createType(secondTypeName, secondSpec)
@@ -205,6 +203,37 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
 
       feats.map(_.getAttribute("an_id")) should contain(rdd.take(1).head.getAttribute("an_id"))
       secondFeats.map(_.getAttribute("another_id")) should contain(secondRdd.take(1).head.getAttribute("another_id"))
+    }
+
+    "Read attribute queries" in {
+      val typeName = newTypeName()
+      val sft = createSFT(typeName)
+
+      ds.createSchema(sft)
+      ds.getSchema(typeName) should not(beNull)
+      val fs = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
+      val feats = createFeatures(ds, sft, encodedFeatures)
+      fs.addFeatures(DataUtilities.collection(feats.asJava))
+      fs.getTransaction.commit()
+
+      val conf = new SparkConf().setMaster("local[2]").setAppName("testSpark")
+      GeoMesaSpark.init(conf, ds)
+      Option(sc).foreach(_.stop())
+      sc = new SparkContext(conf) // will get shut down by shutdown method
+
+      val join = new Query(typeName, ECQL.toFilter("an_id < 50"))
+      val joined = GeoMesaSpark.rdd(new Configuration(), sc, dsParams, join, useMock = true).collect()
+      joined must haveLength(50)
+      forall(joined)(_.getAttributes must haveLength(4))
+      forall(joined.flatMap(_.getAttributes))(_ must not(beNull))
+      forall(joined.map(_.getAttribute("an_id").asInstanceOf[Int]))(_ must beLessThan(50))
+
+      val nonJoin = new Query(typeName, ECQL.toFilter("an_id < 50"), Array("an_id", "geom"))
+      val nonJoined = GeoMesaSpark.rdd(new Configuration(), sc, dsParams, nonJoin, useMock = true).collect()
+      nonJoined must haveLength(50)
+      forall(nonJoined)(_.getAttributes must haveLength(2))
+      forall(nonJoined.flatMap(_.getAttributes))(_ must not(beNull))
+      forall(nonJoined.map(_.getAttribute("an_id").asInstanceOf[Int]))(_ must beLessThan(50))
     }
   }
 
@@ -289,5 +318,4 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
       }
     }
   }
-
 }

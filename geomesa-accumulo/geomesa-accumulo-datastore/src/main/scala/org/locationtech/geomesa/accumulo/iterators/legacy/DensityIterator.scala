@@ -47,7 +47,7 @@ class DensityIterator extends KryoLazyDensityIterator with LazyLogging {
     deserializer = SimpleFeatureDeserializers(sft, encodingOpt)
 
     // only required for non-point geoms
-    val schemaEncoding = options(DEFAULT_SCHEMA_NAME)
+    val schemaEncoding = options(DensityIterator.DEFAULT_SCHEMA_NAME)
     indexDecoder = IndexSchema.getIndexEntryDecoder(schemaEncoding)
   }
 
@@ -102,6 +102,8 @@ class DensityIterator extends KryoLazyDensityIterator with LazyLogging {
 }
 
 object DensityIterator extends LazyLogging {
+
+  val DEFAULT_SCHEMA_NAME  = "geomesa.index.schema"
 
   /**
    * Creates an iterator config that expects entries to be precomputed bin values

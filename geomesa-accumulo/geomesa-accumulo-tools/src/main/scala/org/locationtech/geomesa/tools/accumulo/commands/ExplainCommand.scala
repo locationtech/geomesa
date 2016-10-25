@@ -14,8 +14,9 @@ import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.utils.ExplainPrintln
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
+import org.locationtech.geomesa.tools.accumulo.Utils.setOverrideAttributes
 import org.locationtech.geomesa.tools.accumulo.commands.ExplainCommand.ExplainParameters
-import org.locationtech.geomesa.tools.common.{CQLFilterParam, FeatureTypeNameParam}
+import org.locationtech.geomesa.tools.common.{CQLFilterParam, FeatureTypeNameParam, OptionalAttributesParam}
 
 class ExplainCommand(parent: JCommander) extends CommandWithCatalog(parent) with LazyLogging {
   override val command = "explain"
@@ -24,6 +25,7 @@ class ExplainCommand(parent: JCommander) extends CommandWithCatalog(parent) with
   override def execute() =
     try {
       val q = new Query(params.featureName, ECQL.toFilter(params.cqlFilter))
+      setOverrideAttributes(q, Option(params.attributes))
       ds.getQueryPlan(q, explainer = new ExplainPrintln)
     } catch {
       case e: Exception =>
@@ -38,5 +40,6 @@ object ExplainCommand {
   @Parameters(commandDescription = "Explain how a GeoMesa query will be executed")
   class ExplainParameters extends GeoMesaConnectionParams
     with FeatureTypeNameParam
-    with CQLFilterParam {}
+    with CQLFilterParam
+    with OptionalAttributesParam {}
 }

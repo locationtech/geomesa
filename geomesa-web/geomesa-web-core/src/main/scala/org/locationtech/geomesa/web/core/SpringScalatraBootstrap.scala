@@ -13,7 +13,7 @@ import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper, HttpSe
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.lang.exception.ExceptionUtils
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStoreFactory, AccumuloDataStoreParams}
 import org.scalatra.servlet.RichServletContext
 import org.scalatra.{ActionResult, InternalServerError, ScalatraServlet}
 import org.springframework.context.{ApplicationContext, ApplicationContextAware}
@@ -55,7 +55,8 @@ trait GeoMesaScalatraServlet extends ScalatraServlet with LazyLogging {
 object GeoMesaScalatraServlet {
 
   val DefaultRootPath = "geomesa"
-  val dsKeys = new AccumuloDataStoreFactory().getParametersInfo.map(_.getName)
+  val dsKeys =
+    new AccumuloDataStoreFactory().getParametersInfo.map(_.getName) :+ AccumuloDataStoreParams.mockParam.getName
 
   def wrap(request: HttpServletRequest): HttpServletRequest = {
     request match {

@@ -37,7 +37,7 @@ import org.locationtech.geomesa.accumulo.{AccumuloVersion, TestWithMultipleSfts}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.index.utils.ExplainString
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.{RichSimpleFeatureType, _}
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats.IndexCoverage
@@ -86,13 +86,14 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "create a schema with keywords" in {
-      val keywords: Seq[String] = Seq("keywordA", "keywordB", "keywordC")
-      val spec = s"name:String;${KEYWORDS_KEY}=${keywords.mkString(KEYWORDS_DELIMITER)}"
-      val sftWithKeywords: SimpleFeatureType = createNewSchema(spec, dtgField = None)
-      ds.createSchema(sftWithKeywords)
+      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.KEYWORDS_KEY
+      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.KEYWORDS_DELIMITER
 
-      val fs = ds.getFeatureSource(sftWithKeywords.getTypeName)
-      fs.getInfo.getKeywords.toSeq must containAllOf(keywords)
+      val keywords = Seq("keywordA", "keywordB", "keywordC")
+      val spec = s"name:String;$KEYWORDS_KEY=${keywords.mkString(KEYWORDS_DELIMITER)}"
+      val sftWithKeywords = createNewSchema(spec, dtgField = None)
+
+      ds.getFeatureSource(sftWithKeywords.getTypeName).getInfo.getKeywords.toSeq must containAllOf(keywords)
     }
 
     "create a schema w/ keyword array" in {
@@ -142,39 +143,42 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "remove keywords from schema" in {
-      val initialKeywords: Seq[String] = Seq("keywordA=Hello", "keywordB", "keywordC")
-      val spec = s"name:String;${KEYWORDS_KEY}=${initialKeywords.mkString(KEYWORDS_DELIMITER)}"
-      val sft: SimpleFeatureType = createNewSchema(spec, dtgField = None)
-      ds.createSchema(sft)
+      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.KEYWORDS_KEY
+      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.KEYWORDS_DELIMITER
 
-      val keywordsToRemove = "keywordA=Hello" + KEYWORDS_DELIMITER + "keywordC"
+      val initialKeywords = Set("keywordA=Hello", "keywordB", "keywordC")
+      val spec = s"name:String;$KEYWORDS_KEY=${initialKeywords.mkString(KEYWORDS_DELIMITER)}"
+      val sft = createNewSchema(spec, dtgField = None)
+
+      val keywordsToRemove = Set("keywordA=Hello", "keywordC")
       val remainingKeywords = Seq("keywordB", "features", sft.getTypeName)
       sft.removeKeywords(keywordsToRemove)
       ds.updateSchema(sft.getTypeName, sft)
 
-      val fs = ds.getFeatureSource(sft.getTypeName)
-      fs.getInfo.getKeywords.toSeq must containAllOf(remainingKeywords)
-      fs.getInfo.getKeywords.toSeq.length mustEqual remainingKeywords.length
+      val keywords = ds.getFeatureSource(sft.getTypeName).getInfo.getKeywords.toSeq
+      keywords must contain(initialKeywords -- keywordsToRemove)
+      keywords must not(contain(keywordsToRemove))
     }
 
     "add keywords to schema" in {
-      val initialKeywords: Seq[String] = Seq("keywordB")
-      val spec = s"name:String;${KEYWORDS_KEY}=${initialKeywords.mkString(KEYWORDS_DELIMITER)}"
-      val sft: SimpleFeatureType = createNewSchema(spec, dtgField = None)
+      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.KEYWORDS_KEY
 
-      val resultingKeywords = Seq("keywordA", "keywordB", "~!@#$%^&*()_+`=/.,<>?;:|[]{}\\")
+      val originalKeyword = "keywordB"
+      val keywordsToAdd = Set("keywordA", "~!@#$%^&*()_+`=/.,<>?;:|[]{}\\")
 
-      ds.createSchema(sft)
+      val spec = s"name:String;$KEYWORDS_KEY=$originalKeyword"
+      val sft = createNewSchema(spec, dtgField = None)
 
-      val keywordsToAdd = "keywordA" + KEYWORDS_DELIMITER + "~!@#$%^&*()_+`=/.,<>?;:|[]{}\\"
       sft.addKeywords(keywordsToAdd)
       ds.updateSchema(sft.getTypeName, sft)
 
       val fs = ds.getFeatureSource(sft.getTypeName)
-      fs.getInfo.getKeywords.toSeq must containAllOf(resultingKeywords)
+      fs.getInfo.getKeywords.toSeq must containAllOf((keywordsToAdd + originalKeyword).toSeq)
     }
 
     "not allow updating non-keyword user data" in {
+      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.TABLE_SHARING_KEY
+
       val sft: SimpleFeatureType = createNewSchema("name:String", dtgField = None)
       ds.createSchema(sft)
 
@@ -202,7 +206,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val sftWithKeywords = SimpleFeatureTypes.createType(regular)
 
       // Currently breaks as it can't derive the type name from the config string
-      val newSft = SimpleFeatureTypes.createType(sftWithKeywords.toConfig)
+      val newSft = SimpleFeatureTypes.createType(SimpleFeatureTypes.toConfig(sftWithKeywords))
 
       sftWithKeywords.getKeywords mustEqual newSft.getKeywords
     }.pendingUntilFixed

@@ -8,24 +8,19 @@
 
 package org.locationtech.geomesa.accumulo.index.attribute
 
-import java.util.Map.Entry
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
-import org.apache.accumulo.core.data.{Key, Value, Range => AccRange}
+import org.apache.accumulo.core.data.{Range => AccRange}
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFilterStrategy
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
-import org.locationtech.geomesa.accumulo.index.QueryPlan.{FeatureFunction, JoinFunction}
+import org.locationtech.geomesa.accumulo.index.QueryPlan.JoinFunction
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.index.encoders.IndexValueEncoder
 import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.accumulo.iterators._
-import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.FilterStrategy
@@ -166,13 +161,13 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
       singleAttrValueOnlyPlan(IndexValueEncoder.getIndexSft(sft), filter.secondary, hints.getTransform)
     } else if (IteratorTrigger.canUseAttrKeysPlusValues(descriptor.getLocalName, sft, filter.secondary, transform)) {
       // we can use the index PLUS the value
-      val indexSft = IndexValueEncoder.getIndexSft(sft)
-      val plan = singleAttrValueOnlyPlan(indexSft, filter.secondary, None)
-      val transform = hints.getTransform.map(_._2).getOrElse {
+      val plan = singleAttrValueOnlyPlan(IndexValueEncoder.getIndexSft(sft), filter.secondary, hints.getTransform)
+      val transformSft = hints.getTransformSchema.getOrElse {
         throw new IllegalStateException("Must have a transform for attribute key plus value scan")
       }
-      val kvsToFeatures = attributeValueKvsToFeatures(sft, indexSft, transform, attribute)
-      plan.copy(kvsToFeatures = kvsToFeatures)
+      // make sure we set table sharing - required for the iterator
+      transformSft.setTableSharing(sft.isTableSharing)
+      plan.copy(iterators = plan.iterators :+ KryoAttributeKeyValueIterator.configure(this, transformSft, attribute))
     } else {
       // have to do a join against the record table
       joinQuery(ds, sft, filter, hints, hasDupes, singleAttrValueOnlyPlan)
@@ -237,43 +232,6 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
 
     JoinPlan(filter, attributeScan.table, attributeScan.ranges, attributeScan.iterators,
       attributeScan.columnFamilies, recordThreads, hasDupes, joinFunction, joinQuery)
-  }
-
-
-  def attributeValueKvsToFeatures(sft: SimpleFeatureType,
-                                  indexSft: SimpleFeatureType,
-                                  returnSft: SimpleFeatureType,
-                                  attribute: String): FeatureFunction = {
-    import scala.collection.JavaConversions._
-    val attributeIndex = sft.indexOf(attribute)
-    val returnIndex = returnSft.indexOf(attribute)
-    val translateIndices =
-      indexSft.getAttributeDescriptors.map(d => returnSft.indexOf(d.getLocalName)).zipWithIndex.filter(_._1 != -1)
-    // Perform a projecting decode of the simple feature
-    if (serializedWithId) {
-      val kryoFeature = new KryoFeatureSerializer(indexSft).getReusableFeature
-      (kv: Entry[Key, Value]) => {
-        kryoFeature.setBuffer(kv.getValue.get)
-        val sf = new ScalaSimpleFeature(kryoFeature.getID, returnSft)
-        translateIndices.foreach { case (to, from) => sf.setAttribute(to, kryoFeature.getAttribute(from)) }
-        val decoded = AttributeWritableIndex.decodeRow(sft, attributeIndex, kv.getKey.getRow.getBytes).get
-        sf.setAttribute(returnIndex, decoded.asInstanceOf[AnyRef])
-        QueryPlanner.applyVisibility(sf, kv.getKey)
-        sf
-      }
-    } else {
-      val kryoFeature = new KryoFeatureSerializer(indexSft, SerializationOptions.withoutId).getReusableFeature
-      val getId = AttributeIndex.getIdFromRow(sft)
-      (kv: Entry[Key, Value]) => {
-        kryoFeature.setBuffer(kv.getValue.get)
-        val sf = new ScalaSimpleFeature(getId(kv.getKey.getRow), returnSft)
-        translateIndices.foreach { case (to, from) => sf.setAttribute(to, kryoFeature.getAttribute(from)) }
-        val decoded = AttributeWritableIndex.decodeRow(sft, attributeIndex, kv.getKey.getRow.getBytes).get
-        sf.setAttribute(returnIndex, decoded.asInstanceOf[AnyRef])
-        QueryPlanner.applyVisibility(sf, kv.getKey)
-        sf
-      }
-    }
   }
 
   override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[AccumuloFilterStrategy] = {
@@ -404,7 +362,7 @@ object AttributeQueryableIndex {
 
     val binding = {
       val descriptor = sft.getDescriptor(index)
-      descriptor.getListType().getOrElse(descriptor.getType.getBinding)
+      if (descriptor.isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
     }
 
     require(classOf[Comparable[_]].isAssignableFrom(binding), s"Attribute '$attribute' is not comparable")

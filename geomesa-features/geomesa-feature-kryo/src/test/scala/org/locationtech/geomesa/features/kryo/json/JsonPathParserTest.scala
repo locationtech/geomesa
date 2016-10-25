@@ -19,7 +19,6 @@ class JsonPathParserTest extends Specification {
 
   "JsonPathParser" should {
     "not parse invalid paths" in {
-      JsonPathParser.parse(".foo") must throwA[ParsingException]
       JsonPathParser.parse("$.$") must throwA[ParsingException]
     }
     "correctly parse attribute paths" in {

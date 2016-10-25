@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.features.serialization
 
-import java.util.{Collections => jCollections, List => jList, Map => jMap, UUID}
+import java.util.{UUID, Collections => jCollections, List => jList, Map => jMap}
 
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
 
 object ObjectType extends Enumeration {
 
@@ -21,6 +21,8 @@ object ObjectType extends Enumeration {
   val STRING, INT, LONG, FLOAT, DOUBLE, BOOLEAN, DATE, UUID, GEOMETRY, HINTS, LIST, MAP, BYTES, JSON = Value
 
   def selectType(clazz: Class[_], metadata: jMap[_, _] = jCollections.emptyMap()): (ObjectType, Seq[ObjectType]) = {
+    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs._
+
     clazz match {
       case c if classOf[java.lang.String].isAssignableFrom(c) =>
         if (metadata.get(OPT_JSON) == "true") { (JSON, Seq.empty) } else { (STRING, Seq.empty) }
@@ -34,10 +36,10 @@ object ObjectType extends Enumeration {
       case c if classOf[Geometry].isAssignableFrom(c) => (GEOMETRY, Seq.empty)
       case c if classOf[Hints.Key].isAssignableFrom(c) => (HINTS, Seq.empty)
       case c if classOf[jList[_]].isAssignableFrom(c) =>
-        (LIST, Seq(metadata.get(USER_DATA_LIST_TYPE).asInstanceOf[Class[_]]).map(selectType(_)._1))
+        (LIST, Seq(Class.forName(metadata.get(USER_DATA_LIST_TYPE).asInstanceOf[String])).map(selectType(_)._1))
       case c if classOf[jMap[_, _]].isAssignableFrom(c) =>
-        val keyClass   = metadata.get(USER_DATA_MAP_KEY_TYPE).asInstanceOf[Class[_]]
-        val valueClass = metadata.get(USER_DATA_MAP_VALUE_TYPE).asInstanceOf[Class[_]]
+        val keyClass   = Class.forName(metadata.get(USER_DATA_MAP_KEY_TYPE).asInstanceOf[String])
+        val valueClass = Class.forName(metadata.get(USER_DATA_MAP_VALUE_TYPE).asInstanceOf[String])
         (MAP, Seq(keyClass, valueClass).map(selectType(_)._1))
       case c if classOf[Array[Byte]].isAssignableFrom(c) => (BYTES, Seq.empty)
       case _ => throw new IllegalArgumentException(s"Class $clazz can't be serialized")
