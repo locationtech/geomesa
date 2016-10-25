@@ -39,7 +39,6 @@ import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.locationtech.geomesa.utils.conf.GeoMesaProperties.getProperty
 import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
-import org.locationtech.geomesa.compute.spark.GeoMesaSparkKryoRegistrator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 
@@ -454,16 +453,6 @@ object GeoMesaSparkKryoRegistrator {
     val id = identifier(sft)
     typeCache.putIfAbsent(id, sft)
     id
-  }
-
-
-  def getType(typeName: String): SimpleFeatureType = {
-    val spec = getProperty(GeoMesaSpark.typeProp(typeName))
-    if (spec == null) {
-      GeoMesaSparkKryoRegistrator.typeCache.get(typeName)
-    } else {
-      SimpleFeatureTypes.createType(typeName, spec)
-    }
   }
 
   def getType(id: Int): SimpleFeatureType =

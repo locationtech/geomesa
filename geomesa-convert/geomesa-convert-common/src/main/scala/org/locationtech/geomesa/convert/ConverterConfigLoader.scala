@@ -15,7 +15,7 @@ import javax.imageio.spi.ServiceRegistry
 
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
-
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties.getProperty
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
@@ -30,7 +30,7 @@ object ConverterConfigLoader extends LazyLogging {
     pList
   }
 
-  def path: String = sys.props.getOrElse(ConfigPathProperty, "geomesa.converters")
+  def path: String = getProperty(ConfigPathProperty, "geomesa.converters")
 
   // this is intentionally a method to allow reloading by the providers
   def confs: Map[String, Config] = configProviders.map(_.loadConfigs).reduce( _ ++ _).toMap
