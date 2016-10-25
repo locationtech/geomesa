@@ -73,8 +73,10 @@ object AutoIngestDelimited {
     val converters = sft.getAttributeDescriptors.zipWithIndex.map { case (ad, i) =>
       val hints = GeoTools.getDefaultHints
       // for maps/lists, we have to pass along the subtype info during type conversion
-      ad.getListType().foreach(l => hints.put(ConverterFactories.ListTypeKey, l))
-      ad.getMapTypes().foreach { case (k, v) =>
+      if (ad.isList) {
+        hints.put(ConverterFactories.ListTypeKey, ad.getListType())
+      } else if (ad.isMap) {
+        val (k, v) = ad.getMapTypes()
         hints.put(ConverterFactories.MapKeyTypeKey, k)
         hints.put(ConverterFactories.MapValueTypeKey, v)
       }

@@ -162,7 +162,7 @@ tutorial <http://docs.geoserver.org/stable/en/user/tutorials/cql/cql_tutorial.ht
 
    If you enabled the time dimension for a layer, such as instructed in the :doc:`../tutorials/geomesa-quickstart-accumulo`,
    then you will need to specify a TIME parameter in the URL of the form:
-      ``&TIME=2014-01-01T00:00:00.000Z/2014-01-31T23:59:59.999Z``
+   ``&TIME=2014-01-01T00:00:00.000Z/2014-01-31T23:59:59.999Z``
    That tells GeoServer to display the records for the entire month of January 2014. GeoServer will add an implicit
    time filter if you do not specify one, which may cause unexpected results. This TIME parameter is distinct from the
    CQL_FILTER parameter and specifying a CQL time filter without the TIME parameter may create an empty intersection

@@ -7,6 +7,7 @@ com.drewnoakes:metadata-extractor	2.8.1	compile
 com.esotericsoftware.kryo:kryo	2.21	compile
 com.esotericsoftware.minlog:minlog	1.2	compile
 com.esotericsoftware.reflectasm:reflectasm	shaded:1.07	compile
+com.github.ben-manes.caffeine:caffeine	2.3.3	compile
 com.googlecode.concurrent-trees:concurrent-trees	2.6.0	compile
 com.googlecode.cqengine:cqengine	2.7.1	compile
 com.googlecode.efficient-java-matrix-library:core	0.26	compile
@@ -88,7 +89,7 @@ org.apache.commons:commons-csv	1.0	compile
 org.apache.commons:commons-lang3	3.3.2	compile
 org.apache.commons:commons-math	2.1	compile
 org.apache.commons:commons-pool2	2.2	compile
-org.apache.commons:commons-vfs2	2.0	compile
+org.apache.commons:commons-vfs2	2.1	compile
 org.apache.curator:curator-client	2.4.0	compile
 org.apache.curator:curator-client	2.7.1	compile
 org.apache.curator:curator-framework	2.4.0	compile
@@ -205,4 +206,5 @@ org.codehaus.groovy:groovy-jsr223	2.4.5	test
 org.geotools:gt-geometry	15.1	test
 org.jruby:jruby	9.0.4.0	test
 org.mortbay.jetty:jetty	6.1.26	test
+org.scalatra:scalatra-specs2_2.11	2.3.0	test
 org.specs2:specs2_2.11	2.3.13	test

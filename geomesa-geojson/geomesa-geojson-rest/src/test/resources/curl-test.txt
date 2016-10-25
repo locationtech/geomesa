@@ -1,0 +1,9 @@
+curl -XGET 'localhost:8080/geoserver/geomesa/geojson/ds'
+curl -XPOST 'localhost:8080/geoserver/geomesa/geojson/ds/mycloud' -d user=foo -d password=foo -d tableName=foo.bar -d zookeepers=foo1,foo2,foo3 -d instanceId=foo
+curl -XPOST 'localhost:8080/geoserver/geomesa/geojson/index/mycloud/test' -d id=properties.id
+curl -XGET 'localhost:8080/geoserver/geomesa/geojson/index/mycloud/test/features'
+curl -XPOST 'localhost:8080/geoserver/geomesa/geojson/index/mycloud/test/features' -d 'json={"type":"Feature","geometry":{"type":"Point","coordinates":[30,10]},"properties":{"id":"0","name":"n0"}}'
+curl -XPOST 'localhost:8080/geoserver/geomesa/geojson/index/mycloud/test/features' -d 'json={"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[32,10]},"properties":{"id":"1","name":"n1"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[34,10]},"properties":{"id":"2","name":"n2"}}]}'
+curl -XGET 'localhost:8080/geoserver/geomesa/geojson/index/mycloud/test/features'
+curl -XGET 'localhost:8080/geoserver/geomesa/geojson/index/mycloud/test/features' --get --data-urlencode 'q={"properties.id":"0"}'
+curl -XGET 'localhost:8080/geoserver/geomesa/geojson/index/mycloud/test/features' --get --data-urlencode 'q={"geometry":{"$bbox":[33,9,35,11]}}'

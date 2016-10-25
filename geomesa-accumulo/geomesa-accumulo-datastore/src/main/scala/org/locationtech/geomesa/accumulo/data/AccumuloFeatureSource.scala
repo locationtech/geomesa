@@ -14,7 +14,7 @@ import java.util
 import java.util.Collections
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 
-import com.google.common.cache.{CacheBuilder, CacheLoader}
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator, SimpleFeatureSource}
@@ -208,7 +208,7 @@ class CachingAccumuloFeatureCollection(source: AccumuloFeatureSource, query: Que
 trait CachingFeatureSource extends AccumuloFeatureSource {
 
   private val featureCache =
-    CacheBuilder.newBuilder().build(
+    Caffeine.newBuilder().build(
       new CacheLoader[Query, SimpleFeatureCollection] {
         override def load(query: Query): SimpleFeatureCollection =
           new CachingAccumuloFeatureCollection(CachingFeatureSource.this, query)

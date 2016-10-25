@@ -10,10 +10,10 @@ package org.locationtech.geomesa.raster.data
 
 import java.io.{Closeable, Serializable}
 import java.util.Map.Entry
-import java.util.concurrent.{Callable, TimeUnit}
+import java.util.concurrent.TimeUnit
 import java.util.{Map => JMap}
 
-import com.google.common.cache.CacheBuilder
+import com.github.benmanes.caffeine.cache.Caffeine
 import com.google.common.collect.{ImmutableMap, ImmutableSetMultimap}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, TableExistsException}
@@ -125,8 +125,8 @@ class AccumuloRasterStore(val connector: Connector,
   def getResToGeoHashLenMap: ImmutableSetMultimap[Double, Int] =
     AccumuloRasterStore.geoHashLenCache.get(tableName, resToGeoHashLenMapCallable)
 
-  def resToGeoHashLenMapCallable = new Callable[ImmutableSetMultimap[Double, Int]] {
-    override def call(): ImmutableSetMultimap[Double, Int] = {
+  def resToGeoHashLenMapCallable = new java.util.function.Function[String, ImmutableSetMultimap[Double, Int]] {
+    override def apply(ignored: String): ImmutableSetMultimap[Double, Int] = {
       val m = new ImmutableSetMultimap.Builder[Double, Int]()
       for {
         k <- metaScanner().map(_.getKey)
@@ -142,8 +142,8 @@ class AccumuloRasterStore(val connector: Connector,
   def getResToBoundsMap: ImmutableMap[Double, BoundingBox] =
     AccumuloRasterStore.extentCache.get(tableName, resToBoundsCallable)
 
-  def resToBoundsCallable = new Callable[ImmutableMap[Double, BoundingBox]] {
-    override def call(): ImmutableMap[Double, BoundingBox] = {
+  def resToBoundsCallable = new java.util.function.Function[String, ImmutableMap[Double, BoundingBox]] {
+    override def apply(ignored: String): ImmutableMap[Double, BoundingBox] = {
       val m = new ImmutableMap.Builder[Double, BoundingBox]()
       for {
         kv <- metaScanner()
@@ -343,13 +343,13 @@ object AccumuloRasterStore {
   }
 
   val geoHashLenCache =
-    CacheBuilder.newBuilder()
+    Caffeine.newBuilder()
       .expireAfterAccess(10, TimeUnit.MINUTES)
       .expireAfterWrite(10, TimeUnit.MINUTES)
       .build[String, ImmutableSetMultimap[Double, Int]]
 
   val extentCache =
-    CacheBuilder.newBuilder()
+    Caffeine.newBuilder()
       .expireAfterAccess(10, TimeUnit.MINUTES)
       .expireAfterWrite(10, TimeUnit.MINUTES)
       .build[String, ImmutableMap[Double, BoundingBox]]

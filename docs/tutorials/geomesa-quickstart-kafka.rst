@@ -28,7 +28,7 @@ Prerequisites
    `GeoServer <http://geoserver.org>`__, and Kafka,
 -  an instance of Kafka 0.8.2.x with (an) appropriate Zookeeper
    instance(s),
--  an instance of GeoServer version 2.8.1 with the GeoMesa Kafka plugin
+-  an instance of GeoServer version |geoserver_version| with the GeoMesa Kafka plugin
    installed,
 -  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
 -  `Apache Maven <http://maven.apache.org/>`__ |maven_version|, and

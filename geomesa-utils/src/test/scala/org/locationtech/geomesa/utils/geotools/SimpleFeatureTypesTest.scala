@@ -11,7 +11,8 @@ package org.locationtech.geomesa.utils.geotools
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs._
 import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
@@ -27,7 +28,7 @@ class SimpleFeatureTypesTest extends Specification {
 
   "SimpleFeatureTypes" should {
     "create an sft that" >> {
-      val sft = SimpleFeatureTypes.createType("testing", "id:Integer:index=false,dtg:Date:index=false,*geom:Point:srid=4326:index=true")
+      val sft = SimpleFeatureTypes.createType("testing", "id:Integer,dtg:Date,*geom:Point:srid=4326:index=true")
       "has name \'test\'"  >> { sft.getTypeName mustEqual "testing" }
       "has three attributes" >> { sft.getAttributeCount must be_==(3) }
       "has an id attribute which is " >> {
@@ -206,10 +207,11 @@ class SimpleFeatureTypesTest extends Specification {
     }
 
     "handle splitter and splitter options" >> {
+      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
       val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options='fmt:%02d,min:0,max:99'"
       val sft = SimpleFeatureTypes.createType("test", spec)
-      sft.getUserData.get(SimpleFeatureTypes.TABLE_SPLITTER) must be equalTo "org.locationtech.geomesa.core.data.DigitSplitter"
-      val opts = sft.getUserData.get(SimpleFeatureTypes.TABLE_SPLITTER_OPTIONS).asInstanceOf[Map[String, String]]
+      sft.getUserData.get(TABLE_SPLITTER) must be equalTo "org.locationtech.geomesa.core.data.DigitSplitter"
+      val opts = sft.getTableSplitterOptions
       opts.size must be equalTo 3
       opts("fmt") must be equalTo "%02d"
       opts("min") must be equalTo "0"
@@ -217,24 +219,25 @@ class SimpleFeatureTypesTest extends Specification {
     }
 
     "handle enabled indexes" >> {
-      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.indexes.enabled='st_idx,records,z3'"
+      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='st_idx,records,z3'"
       val sft = SimpleFeatureTypes.createType("test", spec)
-      sft.getUserData.get(SimpleFeatureTypes.ENABLED_INDEXES).toString.split(",").toList must be equalTo List("st_idx", "records", "z3")
+      sft.getUserData.get(ENABLED_INDICES).toString.split(",").toList must be equalTo List("st_idx", "records", "z3")
     }
 
     "handle splitter opts and enabled indexes" >> {
+      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
       val specs = List(
-        "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options='fmt:%02d,min:0,max:99',geomesa.indexes.enabled='st_idx,records,z3'",
-        "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.indexes.enabled='st_idx,records,z3',table.splitter.class=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options='fmt:%02d,min:0,max:99'")
+        "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options='fmt:%02d,min:0,max:99',geomesa.indices.enabled='st_idx,records,z3'",
+        "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='st_idx,records,z3',table.splitter.class=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options='fmt:%02d,min:0,max:99'")
       specs.forall { spec =>
         val sft = SimpleFeatureTypes.createType("test", spec)
-        sft.getUserData.get(SimpleFeatureTypes.TABLE_SPLITTER) must be equalTo "org.locationtech.geomesa.core.data.DigitSplitter"
-        val opts = sft.getUserData.get(SimpleFeatureTypes.TABLE_SPLITTER_OPTIONS).asInstanceOf[Map[String, String]]
+        sft.getUserData.get(TABLE_SPLITTER) must be equalTo "org.locationtech.geomesa.core.data.DigitSplitter"
+        val opts = sft.getTableSplitterOptions
         opts.size must be equalTo 3
         opts("fmt") must be equalTo "%02d"
         opts("min") must be equalTo "0"
         opts("max") must be equalTo "99"
-        sft.getUserData.get(SimpleFeatureTypes.ENABLED_INDEXES).toString.split(",").toList must be equalTo List("st_idx", "records", "z3")
+        sft.getUserData.get(ENABLED_INDICES).toString.split(",").toList must be equalTo List("st_idx", "records", "z3")
       }
     }
 
@@ -287,7 +290,7 @@ class SimpleFeatureTypesTest extends Specification {
     "allow specification of index attribute coverages as booleans" >> {
       val spec = s"name:String:$OPT_INDEX=true,dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("test", spec)
-      sft.getDescriptor("name").getUserData.get(OPT_INDEX) mustEqual("join")
+      sft.getDescriptor("name").getUserData.get(OPT_INDEX) mustEqual("true")
       sft.getDescriptor("name").getIndexCoverage() mustEqual(IndexCoverage.JOIN)
     }
 
@@ -406,7 +409,7 @@ class SimpleFeatureTypesTest extends Specification {
       sft.getDescriptor("testCard").getCardinality() mustEqual(Cardinality.HIGH)
       sft.getTypeName must be equalTo "testconf"
       sft.getUserData.size() mustEqual 2
-      sft.getUserData.get("mydataone") mustEqual true
+      sft.getUserData.get("mydataone") mustEqual "true"
       sft.getUserData.get("mydatatwo") mustEqual "two"
     }
 
@@ -431,6 +434,7 @@ class SimpleFeatureTypesTest extends Specification {
     }
 
     "bytes as a type to work" >> {
+      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs._
       val conf = ConfigFactory.parseString(
         """
           |{
@@ -447,10 +451,10 @@ class SimpleFeatureTypesTest extends Specification {
       sft.getAttributeCount must be equalTo 3
       sft.getAttributeDescriptors.get(0).getType.getBinding must beAssignableFrom[Array[Byte]]
       sft.getAttributeDescriptors.get(1).getType.getBinding must beAssignableFrom[java.util.List[_]]
-      sft.getAttributeDescriptors.get(1).getUserData.get(USER_DATA_LIST_TYPE) mustEqual classOf[Array[Byte]]
+      sft.getAttributeDescriptors.get(1).getUserData.get(USER_DATA_LIST_TYPE) mustEqual classOf[Array[Byte]].getName
       sft.getAttributeDescriptors.get(2).getType.getBinding must beAssignableFrom[java.util.Map[_,_]]
-      sft.getAttributeDescriptors.get(2).getUserData.get(USER_DATA_MAP_KEY_TYPE) mustEqual classOf[String]
-      sft.getAttributeDescriptors.get(2).getUserData.get(USER_DATA_MAP_VALUE_TYPE) mustEqual classOf[Array[Byte]]
+      sft.getAttributeDescriptors.get(2).getUserData.get(USER_DATA_MAP_KEY_TYPE) mustEqual classOf[String].getName
+      sft.getAttributeDescriptors.get(2).getUserData.get(USER_DATA_MAP_VALUE_TYPE) mustEqual classOf[Array[Byte]].getName
     }
 
     "render SFTs as config again" >> {
@@ -474,19 +478,18 @@ class SimpleFeatureTypesTest extends Specification {
           |}
         """.stripMargin)
 
-      import RichSimpleFeatureType._
       val sft = SimpleFeatureTypes.createType(conf)
-      val typeConf = sft.toConfig.getConfig("geomesa.sfts.testconf")
+      val typeConf = SimpleFeatureTypes.toConfig(sft).getConfig("geomesa.sfts.testconf")
       typeConf.getString("type-name") mustEqual "testconf"
 
       def getFieldOpts(s: String) =
-        typeConf.getConfigList("fields").filter(_.getString("name") == s).get(0).entrySet().map { case e =>
+        typeConf.getConfigList("attributes").filter(_.getString("name") == s).get(0).entrySet().map { case e =>
           e.getKey -> e.getValue.unwrapped()
         }.toMap
 
-      getFieldOpts("testStr") must havePairs("name" -> "testStr", "type" -> "String", "index" -> "join")
+      getFieldOpts("testStr") must havePairs("name" -> "testStr", "type" -> "String", "index" -> "true")
       getFieldOpts("testCard") must havePairs("name" -> "testCard", "type" -> "String",
-        "index" -> "join", "cardinality" -> "high")
+        "index" -> "true", "cardinality" -> "high")
       getFieldOpts("testList") must havePairs("name" -> "testList", "type" -> "List[String]")
       getFieldOpts("testMap") must havePairs("name" -> "testMap", "type" -> "Map[String,String]")
       getFieldOpts("dtg") must havePairs("name" -> "dtg", "type" -> "Date", "default" -> "true")

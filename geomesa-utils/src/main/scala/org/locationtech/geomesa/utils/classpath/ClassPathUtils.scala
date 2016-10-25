@@ -26,6 +26,10 @@ object ClassPathUtils extends LazyLogging {
     override def accept(pathname: File) = pathname.isDirectory
   }
 
+  private val fileFilter = new FileFilter() {
+    override def accept(pathname: File) = pathname.isFile()
+  }
+
   def findJars(jars: Seq[String], searchPath: Iterator[() => Seq[File]]): Seq[File] = {
     val foundJars = ArrayBuffer.empty[File]
     var remaining = jars
@@ -96,6 +100,37 @@ object ClassPathUtils extends LazyLogging {
     val files = Option(dir.listFiles(jarFileFilter)).toSeq.flatten
     val children = Option(dir.listFiles(folderFileFilter)).toSeq.flatten.flatMap(loadJarsFromFolder)
     files ++ children
+  }
+
+  /**
+    * Finds URLs of files based on a system property
+    *
+    * @param prop
+    * @return
+    */
+  def getFilesFromSystemProperty(prop: String): Seq[File] = {
+    Option(System.getProperty(prop)) match {
+      case Some(path) => path.toString().split(":").map(new File(_)).toSeq.flatMap(loadFiles)
+      case None =>
+        logger.debug(s"No files loaded onto classpath from system property: ${prop}")
+        Seq.empty
+    }
+  }
+
+  /**
+    * Recursively searches file for all files. Accepts file or dir.
+    *
+    * @param file
+    * @return
+    */
+  def loadFiles(file: File): Seq[File] = {
+    if (file.isDirectory) {
+      val files = Option(file.listFiles(fileFilter)).toSeq.flatten
+      val childDirs = Option(file.listFiles(folderFileFilter)).toSeq.flatten.flatMap(loadFiles)
+      files ++ childDirs
+    } else {
+      Option(file).toSeq
+    }
   }
 
   def cleanClassPathURL(url: String): String =

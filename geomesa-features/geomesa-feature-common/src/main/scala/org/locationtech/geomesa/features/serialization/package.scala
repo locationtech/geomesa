@@ -10,13 +10,31 @@ package org.locationtech.geomesa.features
 
 package object serialization {
 
-  type Version = Int
+  type PrimitiveWriter = AnyRef {
+    def writeInt(value: Int): Unit
+    def writeLong(value: Long): Unit
+    def writeFloat(value: Float): Unit
+    def writeDouble(value: Double): Unit
+    def writeBoolean(value: Boolean): Unit
+    def writeString(value: String): Unit
+  }
 
-  // Write a datum.
-  type DatumWriter[Writer, -T] = (Writer, T) => Unit
+  type PrimitiveReader = AnyRef {
+    def readInt(): Int
+    def readLong(): Long
+    def readFloat(): Float
+    def readDouble(): Double
+    def readBoolean(): Boolean
+    def readString(): String
+  }
 
-  // Read a datum.
-  type DatumReader[Reader, +T] = (Reader) => T
+  type NumericWriter = AnyRef {
+    def writeInt(value: Int, optimizePositive: Boolean): Int
+    def writeDouble(value: Double): Unit
+  }
+
+  type NumericReader = AnyRef {
+    def readInt(optimizePositive: Boolean): Int
+    def readDouble(): Double
+  }
 }
-
-class SerializationException(msg: String, cause: Throwable = null) extends RuntimeException(msg, cause)

@@ -12,7 +12,7 @@ import java.lang.Iterable
 import java.util
 import java.util.{Date, List => JList}
 
-import com.google.common.cache.{CacheBuilder, CacheLoader}
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.Connector
 import org.apache.hadoop.classification.InterfaceStability
@@ -21,10 +21,7 @@ import org.geotools.data.{DataStoreFinder, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloDataStoreParams}
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
-import org.locationtech.geomesa.accumulo.index.z3.Z3Index
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.SftBuilder
@@ -50,7 +47,7 @@ class AccumuloGeoMesaIndex[T](protected val ds: AccumuloDataStore,
   val fs = ds.getFeatureSource(sft.getTypeName)
 
   val writers =
-    CacheBuilder.newBuilder().build(
+    Caffeine.newBuilder().build(
       new CacheLoader[String, SimpleFeatureWriter] {
         override def load(k: String): SimpleFeatureWriter = {
           ds.getFeatureWriterAppend(k, Transaction.AUTO_COMMIT).asInstanceOf[SimpleFeatureWriter]
@@ -99,7 +96,8 @@ class AccumuloGeoMesaIndex[T](protected val ds: AccumuloDataStore,
     }
   }
 
-  override def supportedIndexes(): Array[IndexType] = Array(IndexType.SPATIOTEMPORAL, IndexType.RECORD)
+  override def supportedIndexes(): Array[IndexType] =
+    Array(IndexType.SPATIOTEMPORAL, IndexType.SPATIAL, IndexType.RECORD)
 
   override def update(id: String, newValue: T, geometry: Geometry, dtg: Date): Unit = ???
 
@@ -129,7 +127,7 @@ object AccumuloGeoMesaIndex {
   def build[T](name: String,
                connector: Connector,
                valueSerializer: ValueSerializer[T]): AccumuloGeoMesaIndex[T] = {
-    build(name, connector, valueSerializer, new DefaultSimpleFeatureView[T](name))
+    build(name, connector, valueSerializer, new DefaultSimpleFeatureView[T]())
   }
 
   def build[T](name: String,
@@ -144,7 +142,7 @@ object AccumuloGeoMesaIndex {
                user: String, pass: String,
                mock: Boolean,
                valueSerializer: ValueSerializer[T])
-              (view: SimpleFeatureView[T] = new DefaultSimpleFeatureView[T](name)) =
+              (view: SimpleFeatureView[T] = new DefaultSimpleFeatureView[T]()) =
     buildWithView[T](name, zk, instanceId, user, pass, mock, valueSerializer, view)
 
   def buildWithView[T](name: String,
@@ -192,11 +190,11 @@ object AccumuloGeoMesaIndex {
   def buildDefaultView[T](name: String,
                           connector: Connector,
                           valueSerializer: ValueSerializer[T]) = {
-    build(name, connector, valueSerializer, new DefaultSimpleFeatureView[T](name))
+    build(name, connector, valueSerializer, new DefaultSimpleFeatureView[T]())
   }
 
   private def buildSimpleFeatureType[T](name: String)
-                                       (view: SimpleFeatureView[T] = new DefaultSimpleFeatureView[T](name)) = {
+                                       (view: SimpleFeatureView[T] = new DefaultSimpleFeatureView[T]()) = {
     val builder = new SftBuilder()
       .date("dtg", true, true)
       .bytes("payload", new SftBuilder.Opts(false, false, false, Cardinality.UNKNOWN))

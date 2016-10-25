@@ -19,10 +19,6 @@ package object accumulo {
   val DEFAULT_GEOMETRY_PROPERTY_NAME = "SF_PROPERTY_GEOMETRY"
   val DEFAULT_DTG_PROPERTY_NAME = "dtg"
 
-  val DEFAULT_FEATURE_TYPE = "geomesa.feature.type"
-  val DEFAULT_SCHEMA_NAME  = "geomesa.index.schema"
-  val DEFAULT_FEATURE_NAME = "geomesa.index.feature"
-
   val INGEST_TABLE_NAME                      = "geomesa.ingest.table"
   val ST_FILTER_PROPERTY_NAME                = "geomesa.index.filter"
   val DEFAULT_INTERVAL_PROPERTY_NAME         = "geomesa.index.interval"
@@ -79,10 +75,12 @@ package object accumulo {
     }
 
     case class PropAndDefault(property: String, default: String) {
-      def get: String = sys.props.getOrElse(property, default)
-      def option: Option[String] = sys.props.get(property).orElse(Option(default))
+      def get: String = Option(threadLocalValue.get).getOrElse(sys.props.getOrElse(property, default))
+      def option: Option[String] = Option(threadLocalValue.get).orElse(sys.props.get(property)).orElse(Option(default))
       def set(value: String): Unit = sys.props.put(property, value)
       def clear(): Unit = sys.props.remove(property)
+
+      val threadLocalValue = new ThreadLocal[String]()
     }
   }
 

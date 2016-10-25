@@ -241,10 +241,11 @@ trait AttributeQueryableIndexV5 extends AccumuloFeatureIndex with LazyLogging {
         value
       } else if (descriptor.isList) {
         // we need to encode with the collection type
-        descriptor.getListType() match {
-          case Some(collectionType) if collectionType == actualBinding => Seq(value).asJava
-          case Some(collectionType) if collectionType != actualBinding =>
-            Seq(AttributeWritableIndex.convertType(value, actualBinding, collectionType)).asJava
+        val listType = descriptor.getListType()
+        if (listType == actualBinding) {
+          Seq(value).asJava
+        } else {
+          Seq(AttributeWritableIndex.convertType(value, actualBinding, listType)).asJava
         }
       } else if (descriptor.isMap) {
         // TODO GEOMESA-454 - support querying against map attributes

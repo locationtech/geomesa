@@ -10,8 +10,7 @@ package org.locationtech.geomesa.kafka
 
 import java.util.concurrent.TimeUnit
 
-import com.google.common.base.Ticker
-import com.google.common.cache._
+import com.github.benmanes.caffeine.cache._
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.index.{BucketIndex, SpatialIndex}
@@ -32,19 +31,19 @@ class LiveFeatureCacheGuava(override val sft: SimpleFeatureType,
   var spatialIndex: SpatialIndex[SimpleFeature] = newSpatialIndex()
 
   private val cache: Cache[String, FeatureHolder] = {
-    val cb = CacheBuilder.newBuilder().ticker(ticker)
+    val cb = Caffeine.newBuilder().ticker(ticker)
     expirationPeriod.foreach { ep =>
       cb.expireAfterWrite(ep, TimeUnit.MILLISECONDS)
         .removalListener(new RemovalListener[String, FeatureHolder] {
-          def onRemoval(removal: RemovalNotification[String, FeatureHolder]) = {
-            if (removal.getCause == RemovalCause.EXPIRED) {
-              logger.debug(s"Removing feature ${removal.getKey} due to expiration after ${ep}ms")
-              spatialIndex.remove(removal.getValue.env, removal.getValue.sf)
+          override def onRemoval(key: String, value: FeatureHolder, cause: RemovalCause): Unit = {
+            if (cause == RemovalCause.EXPIRED) {
+              logger.debug(s"Removing feature $key due to expiration after ${ep}ms")
+              spatialIndex.remove(value.env, value.sf)
             }
           }
         })
     }
-    cb.build()
+    cb.build[String, FeatureHolder]()
   }
 
   override val features: mutable.Map[String, FeatureHolder] = cache.asMap().asScala

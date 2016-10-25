@@ -185,16 +185,14 @@ object GeoMesaSparkSql extends LazyLogging {
    * Converts a simple feature attribute into a SQL data type
    */
   private def types(d: AttributeDescriptor): DataType = {
-    val clas = d.getType.getBinding
-    if (classOf[jList[_]].isAssignableFrom(clas)) {
-      val listClass = d.getUserData.get(USER_DATA_LIST_TYPE).asInstanceOf[Class[_]]
-      DataTypes.createArrayType(types(listClass))
-    } else if (classOf[jMap[_, _]].isAssignableFrom(clas)) {
-      val keyClass   = d.getUserData.get(USER_DATA_MAP_KEY_TYPE).asInstanceOf[Class[_]]
-      val valueClass = d.getUserData.get(USER_DATA_MAP_VALUE_TYPE).asInstanceOf[Class[_]]
+    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+    if (d.isList) {
+      DataTypes.createArrayType(types(d.getListType()))
+    } else if (d.isMap) {
+      val (keyClass, valueClass) = d.getMapTypes()
       DataTypes.createMapType(types(keyClass), types(valueClass))
     } else {
-      types(clas)
+      types(d.getType.getBinding)
     }
   }
 

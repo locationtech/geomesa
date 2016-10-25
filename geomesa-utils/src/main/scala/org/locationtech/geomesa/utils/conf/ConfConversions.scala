@@ -33,6 +33,9 @@ object ConfConversions {
     def getConfigOpt(path: String): Option[Config] =
       if (base.hasPath(path)) Some(base.getConfig(path)) else None
 
+    def getConfigListOpt(path: String): Option[java.util.List[_ <: Config]] =
+      if (base.hasPath(path)) Some(base.getConfigList(path)) else None
+
     def getStringListOpt(path: String): Option[java.util.List[String]] =
       if (base.hasPath(path)) Some(base.getStringList(path)) else None
   }

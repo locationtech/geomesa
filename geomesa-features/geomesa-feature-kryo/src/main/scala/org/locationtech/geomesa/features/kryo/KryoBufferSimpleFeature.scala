@@ -43,8 +43,18 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
   private var userData: jMap[AnyRef, AnyRef] = null
   private var userDataOffset: Int = -1
 
+  private var transforms: String = null
+  private var transformSchema: SimpleFeatureType = null
   private var binaryTransform: () => Array[Byte] = input.getBuffer
   private var reserializeTransform: () => Array[Byte] = input.getBuffer
+
+  def copy(): KryoBufferSimpleFeature = {
+    val sf = new KryoBufferSimpleFeature(sft, readers, readUserData, options)
+    if (transforms != null) {
+      sf.setTransforms(transforms, transformSchema)
+    }
+    sf
+  }
 
   def transform(): Array[Byte] = if (offsets.contains(-1)) reserializeTransform() else binaryTransform()
 
@@ -64,6 +74,9 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
   }
 
   def setTransforms(transforms: String, transformSchema: SimpleFeatureType) = {
+    this.transforms = transforms
+    this.transformSchema = transformSchema
+
     val tdefs = TransformProcess.toDefinition(transforms)
 
     // transforms by evaluating the transform expressions and then serializing the resulting feature
@@ -82,11 +95,15 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
       }
     }
 
+    val indices = tdefs.map { t =>
+      t.expression match {
+        case p: PropertyName => sft.indexOf(p.getPropertyName)
+        case _ => -1
+      }
+    }
     // if we are just returning a subset of attributes, we can copy the bytes directly and avoid creating
     // new objects, reserializing, etc
-    val isSimpleMapping = tdefs.forall(_.expression.isInstanceOf[PropertyName])
-    binaryTransform = if (isSimpleMapping) {
-      val indices = tdefs.map(t => sft.indexOf(t.expression.asInstanceOf[PropertyName].getPropertyName))
+    binaryTransform = if (!indices.contains(-1)) {
       () => {
         val buf = input.getBuffer
         var length = offsets(0) // space for version, offset block and ID
@@ -122,13 +139,23 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
     }
   }
 
-  override def getAttribute(index: Int) = {
+  override def getAttribute(index: Int): AnyRef = {
     val offset = offsets(index)
     if (offset == -1) {
       null
     } else {
       input.setPosition(offset)
       readers(index)(input)
+    }
+  }
+
+  def getInput(index: Int): Input = {
+    val offset = offsets(index)
+    if (offset == -1) {
+      null
+    } else {
+      input.setPosition(offset)
+      input
     }
   }
 
@@ -176,27 +203,27 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
     userData
   }
 
-  override def getDefaultGeometryProperty = ???
-  override def getProperties: jCollection[Property] = ???
-  override def getProperties(name: Name) = ???
-  override def getProperties(name: String) = ???
-  override def getProperty(name: Name) = ???
-  override def getProperty(name: String) = ???
-  override def getValue = ???
-  override def getDescriptor = ???
+  override def getDefaultGeometryProperty = throw new NotImplementedError
+  override def getProperties: jCollection[Property] = throw new NotImplementedError
+  override def getProperties(name: Name) = throw new NotImplementedError
+  override def getProperties(name: String) = throw new NotImplementedError
+  override def getProperty(name: Name) = throw new NotImplementedError
+  override def getProperty(name: String) = throw new NotImplementedError
+  override def getValue = throw new NotImplementedError
+  override def getDescriptor = throw new NotImplementedError
 
-  override def setAttribute(name: Name, value: Object) = ???
-  override def setAttribute(name: String, value: Object) = ???
-  override def setAttribute(index: Int, value: Object) = ???
-  override def setAttributes(vals: jList[Object]) = ???
-  override def setAttributes(vals: Array[Object]) = ???
-  override def setDefaultGeometry(geo: Object) = ???
-  override def setDefaultGeometryProperty(geoAttr: GeometryAttribute) = ???
-  override def setValue(newValue: Object) = ???
-  override def setValue(values: jCollection[Property]) = ???
+  override def setAttribute(name: Name, value: Object) = throw new NotImplementedError
+  override def setAttribute(name: String, value: Object) = throw new NotImplementedError
+  override def setAttribute(index: Int, value: Object) = throw new NotImplementedError
+  override def setAttributes(vals: jList[Object]) = throw new NotImplementedError
+  override def setAttributes(vals: Array[Object]) = throw new NotImplementedError
+  override def setDefaultGeometry(geo: Object) = throw new NotImplementedError
+  override def setDefaultGeometryProperty(geoAttr: GeometryAttribute) = throw new NotImplementedError
+  override def setValue(newValue: Object) = throw new NotImplementedError
+  override def setValue(values: jCollection[Property]) = throw new NotImplementedError
 
   override def isNillable = true
-  override def validate() = ???
+  override def validate() = throw new NotImplementedError
 
   override def toString = s"KryoBufferSimpleFeature:$getID"
 }
