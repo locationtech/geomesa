@@ -19,7 +19,7 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 
 import scala.collection.JavaConversions._
 
-class BinaryExportCommand(parent: JCommander) extends CommandWithCatalog(parent)
+class BinaryExportCommand(parent: JCommander) extends CommandWithAccumuloDataStore(parent)
   with ExportCommandTools[BinaryExportParameters]
   with LazyLogging {
 
