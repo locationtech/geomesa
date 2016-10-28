@@ -55,7 +55,7 @@ object GeoMesaSpark extends LazyLogging {
     val typeOptions = GeoMesaSparkKryoRegistrator.systemProperties(sfts: _*)
     typeOptions.foreach { case (k,v) => System.setProperty(k, v) }
     val typeOpts = typeOptions.map { case (k,v) => s"-D$k=$v" }
-    val jarOpt = getProperty(SYS_PROP_SPARK_LOAD_CP).map(v => s"-D$SYS_PROP_SPARK_LOAD_CP=$v")
+    val jarOpt = Option(getProperty(SYS_PROP_SPARK_LOAD_CP)).map(v => s"-D$SYS_PROP_SPARK_LOAD_CP=$v")
     val extraOpts = (typeOpts ++ jarOpt).mkString(" ")
     val newOpts = if (conf.contains("spark.executor.extraJavaOptions")) {
       conf.get("spark.executor.extraJavaOptions").concat(" ").concat(extraOpts)

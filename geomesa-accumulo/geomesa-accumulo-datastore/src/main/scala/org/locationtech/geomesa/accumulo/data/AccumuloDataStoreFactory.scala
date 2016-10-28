@@ -18,7 +18,7 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{ClientConfiguration, Connector, ZooKeeperInstance}
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStoreFactorySpi, Parameter}
-import org.locationtech.geomesa.accumulo.GeomesaSystemProperties
+import org.locationtech.geomesa.accumulo.GeomesaSystemProperties.QueryProperties.QUERY_TIMEOUT_MILLIS
 import org.locationtech.geomesa.accumulo.data.stats.usage.ParamsAuditProvider
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.AuthorizationsProvider
@@ -42,12 +42,9 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     val connector = connParam.lookupOpt[Connector](params).getOrElse {
       buildAccumuloConnector(params, java.lang.Boolean.valueOf(mockParam.lookUp(params).asInstanceOf[String]))
     }
-
     val authProvider = buildAuthsProvider(connector, params)
     val auditProvider = buildAuditProvider(params)
-
     val config = buildConfig(connector, params)
-
     new AccumuloDataStore(connector, tableName, authProvider, auditProvider, visibility, config)
   }
 
@@ -123,9 +120,9 @@ object AccumuloDataStoreFactory {
   }
 
   def buildConfig(connector: Connector, params: JMap[String, Serializable] = EmptyParams): AccumuloDataStoreConfig = {
-    val queryTimeout = queryTimeoutParam.lookupOpt[Int](params).map(i => i * 1000L).orElse {
-      GeomesaSystemProperties.QueryProperties.QUERY_TIMEOUT_MILLIS.option.map(_.toLong)
-    }
+
+    val queryTimeout = queryTimeoutParam.lookupOpt[Int](params).map(i => i * 1000L).orElse { QUERY_TIMEOUT_MILLIS.option.map(_.toLong) }
+
     val collectQueryStats =
       !connector.isInstanceOf[MockConnector] && collectQueryStatsParam.lookupWithDefault[Boolean](params)
 

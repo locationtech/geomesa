@@ -43,7 +43,7 @@ package object accumulo {
 
   object GeomesaSystemProperties {
 
-    val CONFIG_FILE = getProperty(GEOMESA_CONFIG_FILE, GEOMESA_CONFIG_FILE_NAME)
+    val CONFIG_FILE = getProperty(GEOMESA_CONFIG_FILE_PROP, GEOMESA_CONFIG_FILE_NAME)
 
     object QueryProperties {
       val QUERY_EXACT_COUNT    = GEOMESA_FORCE_COUNT

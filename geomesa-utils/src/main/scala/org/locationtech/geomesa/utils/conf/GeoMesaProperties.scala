@@ -35,12 +35,12 @@ object GeoMesaProperties extends LazyLogging {
   val GitCommit      = props.getProperty("geomesa.build.commit.id")
   val GitBranch      = props.getProperty("geomesa.build.branch")
 
-  val GEOMESA_CONFIG_FILE      = ConfigLoader.GEOMESA_CONFIG_FILE
+  val GEOMESA_CONFIG_FILE_PROP = ConfigLoader.GEOMESA_CONFIG_FILE_PROP
   val GEOMESA_CONFIG_FILE_NAME = ConfigLoader.GEOMESA_CONFIG_FILE_NAME
 
   def GEOMESA_TOOLS_ACCUMULO_SITE_XML: String = {
     val siteXML = getProperty("geomesa.tools.accumulo.site.xml")
-    if (siteXML.nonEmpty) siteXML
+    if (siteXML != null) siteXML
     else s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml"
   }
   def GEOMESA_AUDIT_PROVIDER_IMPL       = PropOrDefault("geomesa.audit.provider.impl")
@@ -61,33 +61,22 @@ object GeoMesaProperties extends LazyLogging {
   def GEOMESA_STATS_COMPACT_MILLIS      = PropOrDefault("geomesa.stats.compact.millis")
 
   case class PropOrDefault(property: String, dft: String = null) {
-    val default = if (dft != null) dft
+    ensureConfig()
+    var default = if (dft != null) dft
                   else Option(getProperty(property)).getOrElse(dft)
     val threadLocalValue = new ThreadLocal[String]()
-    def get: String = {
-      ensureConfig()
-      Option(threadLocalValue.get).getOrElse(Option(System.getProperty(property)).getOrElse(default))
-    }
-    def option: Option[String] = {
-      ensureConfig()
-      Option{
-        Option(threadLocalValue.get).getOrElse{
-          Option(System.getProperty(property)).getOrElse {
-            if (default.nonEmpty) default else null
-          }
-        }
-      }
-    }
+    def get: String = Option(threadLocalValue.get).getOrElse(Option(System.getProperty(property)).getOrElse(default))
+    def option: Option[String] = Option{this.get}
     def set(value: String): Unit = System.setProperty(property, value)
     def clear(): Unit = System.clearProperty(property)
   }
 
-  // For dynamic properties that are not in geomesa.properties, this is intended
+  // For dynamic properties that are not in geomesa-site.xml.template, this is intended
   // to be a System.getProperty drop-in replacement that ensures the config is always loaded.
   def getProperty(prop: String, default: String = null): String = {
     ensureConfig()
     Option(System.getProperty(prop)).getOrElse(default)
   }
 
-  def ensureConfig(): Unit = if(! ConfigLoader.isLoaded) ConfigLoader.init()
+  def ensureConfig(): Unit = ConfigLoader.init
 }

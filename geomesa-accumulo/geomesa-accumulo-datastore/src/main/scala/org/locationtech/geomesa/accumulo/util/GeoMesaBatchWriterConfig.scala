@@ -58,23 +58,22 @@ object GeoMesaBatchWriterConfig extends LazyLogging {
 
   protected[util] def buildBWC: BatchWriterConfig = {
     import GeomesaSystemProperties.BatchWriterProperties
-
     val bwc = new BatchWriterConfig
 
-    val latency = fetchProperty(BatchWriterProperties.WRITER_LATENCY_MILLIS)
-        .getOrElse(GeomesaSystemProperties.BatchWriterProperties.WRITER_LATENCY_MILLIS.default.toLong)
+    val latency = fetchProperty(BatchWriterProperties.WRITER_LATENCY_MILLIS).getOrElse(BatchWriterProperties.WRITER_LATENCY_MILLIS.default.toLong)
     logger.trace(s"GeoMesaBatchWriter config: maxLatency set to $latency milliseconds.")
     bwc.setMaxLatency(latency, TimeUnit.MILLISECONDS)
 
-    val memory = fetchMemoryProperty(BatchWriterProperties.WRITER_MEMORY_BYTES)
-        .getOrElse(BatchWriterProperties.WRITER_MEMORY_BYTES.default.toLong)
+
+    val memory = fetchMemoryProperty(BatchWriterProperties.WRITER_MEMORY_BYTES).getOrElse(BatchWriterProperties.WRITER_MEMORY_BYTES.default.toLong)
     logger.trace(s"GeoMesaBatchWriter config: maxMemory set to $memory bytes.")
     bwc.setMaxMemory(memory)
 
-    val threads = fetchProperty(BatchWriterProperties.WRITER_THREADS).map(_.toInt)
-        .getOrElse(BatchWriterProperties.WRITER_THREADS.default.toInt)
+
+    val threads = fetchProperty(BatchWriterProperties.WRITER_THREADS).map(_.toInt).getOrElse(BatchWriterProperties.WRITER_THREADS.default.toInt)
     logger.trace(s"GeoMesaBatchWriter config: maxWriteThreads set to $threads.")
-    bwc.setMaxWriteThreads(threads.toInt)
+    bwc.setMaxWriteThreads(threads)
+
 
     fetchProperty(BatchWriterProperties.WRITE_TIMEOUT_MILLIS).foreach { timeout =>
       logger.trace(s"GeoMesaBatchWriter config: maxTimeout set to $timeout seconds.")

@@ -8,29 +8,31 @@
 
 package org.locationtech.geomesa.utils.conf
 
+import java.io.File
 import scala.xml.XML
 import java.io.FileNotFoundException
 
 import com.typesafe.scalalogging.LazyLogging
 
 object ConfigLoader extends LazyLogging {
-  val GEOMESA_CONFIG_FILE = "geomesa.config.file"
+  val GEOMESA_CONFIG_FILE_PROP = "geomesa.config.file"
   val GEOMESA_CONFIG_FILE_NAME = "geomesa-site.xml"
   val GEOMESA_EMBEDDED_CONFIG_FILE_PATH = "/org/locationtech/geomesa/geomesa-site.xml.template"
-  var isLoaded: Boolean = false
 
-  def init(): Unit = {
-    val sysConfig = Option(System.getProperty(GEOMESA_CONFIG_FILE)).getOrElse("")
-    val classConfig = Option(getClass.getClassLoader.getResource(GEOMESA_CONFIG_FILE_NAME)).getOrElse("")
+  val init: String = "Loaded"
 
-    if (sysConfig.nonEmpty) {
-      loadConfig(sysConfig)
-    } else if (classConfig.toString.nonEmpty) {
-      loadConfig(getClass.getClassLoader.getResource(GEOMESA_CONFIG_FILE_NAME).getFile)
-    } else {
-      logger.info("Using embedded config file.")
-      loadConfig(getClass.getResource(GEOMESA_EMBEDDED_CONFIG_FILE_PATH).getFile)
-    }
+  val sysConfig = Option(System.getProperty(GEOMESA_CONFIG_FILE_PROP)).getOrElse("")
+  val classConfig = Option(getClass.getClassLoader.getResource(GEOMESA_CONFIG_FILE_NAME)).getOrElse("")
+
+  // Load program defaults first
+  logger.info("Loading Config Defaults.")
+  loadConfig(XML.load(getClass.getResourceAsStream(GEOMESA_EMBEDDED_CONFIG_FILE_PATH)))
+
+  // Overwrite with any provided config file
+  if (sysConfig.nonEmpty) {
+    loadConfig(sysConfig)
+  } else if (classConfig.toString.nonEmpty) {
+    loadConfig(getClass.getClassLoader.getResource(GEOMESA_CONFIG_FILE_NAME).getFile)
   }
 
   def loadConfig(path: String): Unit = {
@@ -59,11 +61,11 @@ object ConfigLoader extends LazyLogging {
       } catch {
         // This catches failure to convert isfinal to boolean and key = ""
         case iae: IllegalArgumentException => logger.warn("Unable to set system property, this is most likely "
-          + "due to a malformed configuration property.\n" + "Property: " + prop, iae)
+          + s"due to a malformed configuration file (${GEOMESA_CONFIG_FILE_NAME}). Perhaps you wouldn't have this "
+          + "problem if you typed with more than two fingers.\n" + "Property:\n" + prop, iae)
         case _: Throwable => logger.warn("Error setting system property.", _: Throwable)
       }
     }
-    isLoaded = true
     logger.debug("Config loaded.")
   }
 }

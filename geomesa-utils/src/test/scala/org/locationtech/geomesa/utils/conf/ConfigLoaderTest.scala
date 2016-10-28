@@ -27,7 +27,6 @@ class ConfigLoaderTest extends Specification {
       ConfigLoader.loadConfig(testConfig)
       System.getProperty("geomesa.config.test1") must beEqualTo("a")
       System.getProperty("geomesa.config.test2") must beEqualTo("2") // Final
-      ConfigLoader.isLoaded must beTrue
     }
   }
 }
