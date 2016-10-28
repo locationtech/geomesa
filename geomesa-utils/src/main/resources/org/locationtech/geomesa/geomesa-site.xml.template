@@ -86,7 +86,7 @@
 
     <property>
         <name>geomesa.batchwriter.timeout.millis</name>
-        <value>10000</value>
+        <value></value>
         <description>
             https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setTimeout(long,%20java.util.concurrent.TimeUnit)
         </description>
@@ -149,7 +149,7 @@
 
     <property>
         <name>geomesa.query.timeout.millis</name>
-        <value>10001</value>
+        <value>10000</value>
         <description>This property can be used to prevent long-running
             queries from overloading the system. When set, queries will be
             closed after the timeout, even if not all results have been
