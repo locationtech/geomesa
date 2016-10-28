@@ -34,8 +34,9 @@ import org.locationtech.geomesa.accumulo.index.EmptyPlan
 import org.locationtech.geomesa.features.kryo.serialization.SimpleFeatureSerializer
 import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatureSerializers}
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-import org.locationtech.geomesa.jobs.mapreduce.GeoMesaInputFormat
-import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
+import org.locationtech.geomesa.jobs.GeoMesaConfigurator
+import org.locationtech.geomesa.jobs.accumulo.AccumuloJobUtils
+import org.locationtech.geomesa.jobs.mapreduce.GeoMesaAccumuloInputFormat
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
@@ -50,8 +51,7 @@ object GeoMesaSpark extends LazyLogging {
   def init(conf: SparkConf, ds: DataStore): SparkConf = init(conf, ds.getTypeNames.map(ds.getSchema))
 
   def init(conf: SparkConf, sfts: Seq[SimpleFeatureType]): SparkConf = {
-    import GeoMesaInputFormat.SYS_PROP_SPARK_LOAD_CP
-
+    import org.locationtech.geomesa.jobs.mapreduce.GeoMesaAccumuloInputFormat.SYS_PROP_SPARK_LOAD_CP
     val typeOptions = GeoMesaSparkKryoRegistrator.systemProperties(sfts: _*)
     typeOptions.foreach { case (k,v) => System.setProperty(k, v) }
     val typeOpts = typeOptions.map { case (k,v) => s"-D$k=$v" }
@@ -91,7 +91,7 @@ object GeoMesaSpark extends LazyLogging {
     try {
       // get the query plan to set up the iterators, ranges, etc
       lazy val sft = ds.getSchema(query.getTypeName)
-      lazy val qp = JobUtils.getSingleQueryPlan(ds, query)
+      lazy val qp = AccumuloJobUtils.getSingleQueryPlan(ds, query)
 
       if (ds == null || sft == null || qp.isInstanceOf[EmptyPlan]) {
         sc.emptyRDD[SimpleFeature]
@@ -121,7 +121,7 @@ object GeoMesaSpark extends LazyLogging {
         if (numberOfSplits.isDefined) {
           GeoMesaConfigurator.setDesiredSplits(conf, numberOfSplits.get * sc.getExecutorStorageStatus.length)
           InputConfigurator.setAutoAdjustRanges(classOf[AccumuloInputFormat], conf, false)
-          InputConfigurator.setAutoAdjustRanges(classOf[GeoMesaInputFormat], conf, false)
+          InputConfigurator.setAutoAdjustRanges(classOf[GeoMesaAccumuloInputFormat], conf, false)
         }
         GeoMesaConfigurator.setSerialization(conf)
         GeoMesaConfigurator.setTable(conf, qp.table)
@@ -139,7 +139,7 @@ object GeoMesaSpark extends LazyLogging {
           InputConfigurator.setScanAuthorizations(classOf[AccumuloInputFormat], conf, authorizations)
         }
 
-        sc.newAPIHadoopRDD(conf, classOf[GeoMesaInputFormat], classOf[Text], classOf[SimpleFeature]).map(U => U._2)
+        sc.newAPIHadoopRDD(conf, classOf[GeoMesaAccumuloInputFormat], classOf[Text], classOf[SimpleFeature]).map(U => U._2)
       }
     } finally {
       if (ds != null) {

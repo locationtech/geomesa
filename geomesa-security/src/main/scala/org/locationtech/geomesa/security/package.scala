@@ -86,28 +86,4 @@ package object security {
 
     authorizationsProvider
   }
-
-  def getAuditProvider(params: ju.Map[String, jio.Serializable]): Option[AuditProvider] = {
-    import scala.collection.JavaConversions._
-
-    val providers = ServiceRegistry.lookupProviders(classOf[AuditProvider]).toBuffer
-
-    // if the user specifies an auth provider to use, try to use that impl
-    val specified = GEOMESA_AUDIT_PROVIDER_IMPL.option.map { prop =>
-      providers.find(_.getClass.getName == prop).getOrElse {
-        throw new RuntimeException(s"Could not load audit provider $prop")
-      }
-    }
-    val provider = specified.orElse {
-      if (providers.length > 1) {
-        throw new IllegalStateException(
-          "Found multiple AuditProvider implementations. Please specify the one to use with the system " +
-              s"property '${GEOMESA_AUDIT_PROVIDER_IMPL.property}' :: " +
-              s"${providers.map(_.getClass.getName).mkString(", ")}")
-      }
-      providers.headOption
-    }
-    provider.foreach(_.configure(params))
-    provider
-  }
 }

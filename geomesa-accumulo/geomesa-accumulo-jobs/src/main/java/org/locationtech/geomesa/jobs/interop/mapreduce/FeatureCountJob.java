@@ -53,7 +53,7 @@ public class FeatureCountJob {
         Job job = Job.getInstance(conf, "simple feature count");
         job.setJarByClass(FeatureCountJob.class);
         job.setMapperClass(MyMapper.class);
-        job.setInputFormatClass(GeoMesaInputFormat.class);
+        job.setInputFormatClass(GeoMesaAccumuloInputFormat.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
         job.setNumReduceTasks(0);
@@ -69,7 +69,7 @@ public class FeatureCountJob {
 
         Query query = new Query("myfeature", ECQL.toFilter("BBOX(geom, -165,5,-50,75)"));
 
-        GeoMesaInputFormat.configure(job, params, query);
+        GeoMesaAccumuloInputFormat.configure(job, params, query);
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }

@@ -13,15 +13,18 @@ import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.hbase.HBaseSystemProperties.WriteBatchSize
-import org.locationtech.geomesa.hbase.{HBaseAppendFeatureWriterType, HBaseFeatureWriterType, HBaseModifyFeatureWriterType}
+import org.locationtech.geomesa.hbase.{HBaseAppendFeatureWriterType, HBaseFeatureIndexType, HBaseFeatureWriterType, HBaseModifyFeatureWriterType}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-class HBaseAppendFeatureWriter(sft: SimpleFeatureType, ds: HBaseDataStore)
-    extends HBaseFeatureWriterType(sft, ds) with HBaseAppendFeatureWriterType with HBaseFeatureWriter
+class HBaseAppendFeatureWriter(sft: SimpleFeatureType, ds: HBaseDataStore, indices: Option[Seq[HBaseFeatureIndexType]])
+    extends HBaseFeatureWriterType(sft, ds, indices) with HBaseAppendFeatureWriterType with HBaseFeatureWriter
 
-class HBaseModifyFeatureWriter(sft: SimpleFeatureType, ds: HBaseDataStore, val filter: Filter)
-    extends HBaseFeatureWriterType(sft, ds) with HBaseModifyFeatureWriterType with HBaseFeatureWriter
+class HBaseModifyFeatureWriter(sft: SimpleFeatureType,
+                               ds: HBaseDataStore,
+                               indices: Option[Seq[HBaseFeatureIndexType]],
+                               val filter: Filter)
+    extends HBaseFeatureWriterType(sft, ds, indices) with HBaseModifyFeatureWriterType with HBaseFeatureWriter
 
 trait HBaseFeatureWriter extends HBaseFeatureWriterType {
 

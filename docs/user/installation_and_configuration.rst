@@ -438,7 +438,7 @@ the plugin. The GeoServer website includes `instructions for downloading and ins
 For Accumulo
 ^^^^^^^^^^^^
 
-To install GeoMesa's GeoServer plugin we can utilize the script ``geoserver-plugins.sh`` in ``bin`` directory
+To install GeoMesa's GeoServer plugin we can utilize the script ``manage-geoserver-plugins.sh`` in ``bin`` directory
 of the GeoMesa Accumulo or GeoMesa Hadoop distributions. (``$VERSION`` = |release|)
 
 .. note::
@@ -447,7 +447,7 @@ of the GeoMesa Accumulo or GeoMesa Hadoop distributions. (``$VERSION`` = |releas
 
 .. code-block:: bash
 
-    $ bin/geoserver-plugins.sh --lib-dir /path/to/geoserver/WEB-INF/lib/ --install
+    $ bin/manage-geoserver-plugins.sh --lib-dir /path/to/geoserver/WEB-INF/lib/ --install
     Collecting Installed Jars
     Collecting geomesa-gs-plugin Jars
 
@@ -592,7 +592,7 @@ For Kafka
     These instructions are identical for Kafka 0.8.x, 0.9.x, and 0.10.x. The value of ``$KAFKAVERSION`` is
     "08" for Kafka 0.8.x, "09" for Kafka 0.9.x, or "10" for Kafka 0.10.x.
 
-To install GeoMesa's GeoServer plugin we can use the script ``geoserver-plugins.sh`` in ``bin`` directory
+To install GeoMesa's GeoServer plugin we can use the script ``manage-geoserver-plugins.sh`` in ``bin`` directory
 of the appropriate GeoMesa Kafka binary distribution (see :ref:`versions_and_downloads`).
 
 .. note::
@@ -601,7 +601,7 @@ of the appropriate GeoMesa Kafka binary distribution (see :ref:`versions_and_dow
 
 .. code-block:: bash
 
-    $ bin/geoserver-plugins.sh --lib-dir /path/to/geoserver/WEB-INF/lib/ --install
+    $ bin/manage-geoserver-plugins.sh --lib-dir /path/to/geoserver/WEB-INF/lib/ --install
     Collecting Installed Jars
     Collecting geomesa-gs-plugin Jars
 

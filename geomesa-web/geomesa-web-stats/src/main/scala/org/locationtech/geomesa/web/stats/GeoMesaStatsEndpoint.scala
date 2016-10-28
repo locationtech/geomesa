@@ -14,7 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.filter.text.ecql.ECQL
 import org.json4s.{DefaultFormats, Formats}
 import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.locationtech.geomesa.tools.accumulo.commands.stats.StatsCommand
+import org.locationtech.geomesa.tools.stats.StatsCommand
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.{Histogram, MinMax, Stat}
 import org.locationtech.geomesa.web.core.GeoMesaServletCatalog.GeoMesaLayerInfo

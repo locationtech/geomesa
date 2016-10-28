@@ -24,6 +24,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
+import org.locationtech.geomesa.utils.audit.AuditProvider
 
 import scala.collection.JavaConversions._
 
@@ -142,7 +143,7 @@ object AccumuloDataStoreFactory {
   }
 
   def buildAuditProvider(params: JMap[String, Serializable]) = {
-    security.getAuditProvider(params).getOrElse {
+    Option(AuditProvider.Loader.load(params)).getOrElse {
       val provider = new ParamsAuditProvider
       provider.configure(params)
       provider

@@ -1,5 +1,5 @@
 package com.typesafe.scalalogging
 
-import com.typesafe.scalalogging.slf4j.{LazyLogging => Remapped}
+trait LazyLogging extends com.typesafe.scalalogging.slf4j.LazyLogging
 
-trait LazyLogging extends Remapped
+trait StrictLogging extends com.typesafe.scalalogging.slf4j.StrictLogging

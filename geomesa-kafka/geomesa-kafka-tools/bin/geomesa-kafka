@@ -14,7 +14,7 @@ if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
 fi
 
 # Load common functions and setup
-. "${%%gmtools.dist.name%%_HOME}"/bin/geomesa-common.sh
+. "${%%gmtools.dist.name%%_HOME}"/bin/common-functions.sh
 
 # Start constructing GEOMESA_CP (classpath)
 # include geomesa first so that the correct log4j.properties is picked up

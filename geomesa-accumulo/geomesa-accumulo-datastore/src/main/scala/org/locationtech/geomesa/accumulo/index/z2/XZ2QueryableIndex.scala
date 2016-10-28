@@ -39,7 +39,7 @@ trait XZ2QueryableIndex extends AccumuloFeatureIndexType
                             hints: Hints,
                             explain: Explainer): AccumuloQueryPlan = {
 
-    import org.locationtech.geomesa.filter.FilterHelper.{logger => _, _}
+    import org.locationtech.geomesa.filter.FilterHelper._
     import org.locationtech.geomesa.filter._
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._

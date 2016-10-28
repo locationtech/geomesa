@@ -160,6 +160,8 @@ trait Z3Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
       ranges.toSeq
     }
 
-    scanPlan(sft, ds, filter, hints, ranges, filter.filter)
+    val ecql = if (ds.config.looseBBox) { filter.secondary } else { filter.filter }
+
+    scanPlan(sft, ds, filter, hints, ranges, ecql)
   }
 }

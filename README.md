@@ -99,20 +99,25 @@ Navigate to where you would like to download this project.
     git clone git@github.com:locationtech/geomesa.git
     cd geomesa
 
-The project is managed by Maven. The version of Accumulo supported is controlled by the `accumulo-1.5` property; to target Accumulo 1.5:   
-
-    mvn clean install -Daccumulo-1.5
-
-If the property is omitted, support for Accumulo 1.6 is assumed:
+The project is managed by Maven. To build, run:
 
     mvn clean install
 
-The `build/mvn` script is a wrapper around Maven that builds the project using the [Zinc](https://github.com/typesafehub/zinc) incremental compiler:
+Alternatively, the `build/mvn` script is a wrapper around Maven that builds the project using the
+[Zinc](https://github.com/typesafehub/zinc) incremental compiler:
 
     build/mvn clean install
 
-From the root directory, the commands above will build JARs for each sub-project with its additional dependencies bundled.
+## Scala 2.10 Support
 
+GeoMesa uses Scala 2.11 by default. To build for Scala 2.10, run:
+
+    build/change-scala-version.sh 2.10
+
+This will update the project poms to publish artifacts with a `_2.10` suffix.
+Then build with the 2.10 profile, which is activated with a system property:
+
+    mvn clean install -Dscala-2.10
 
 ## Documentation
 
@@ -146,7 +151,7 @@ From the root directory, the commands above will build JARs for each sub-project
 * [**geomesa-process**](geomesa-process): analytic processes optimized on GeoMesa data stores.
 * [**geomesa-security**](geomesa-security): adds support for managing security and authorization levels for data stored in GeoMesa. 
 * [**geomesa-stream**](geomesa-stream): a GeoMesa library that provides tools to process streams of `SimpleFeatures`.
-* [**geomesa-tools-common**](geomesa-tools): a common set of command line tools for managing features, ingesting and exporting data, configuring tables, and explaining queries in GeoMesa.
+* [**geomesa-tools**](geomesa-tools): a common set of command line tools for managing features, ingesting and exporting data, configuring tables, and explaining queries in GeoMesa.
 * [**geomesa-utils**](geomesa-utils): stores our GeoHash implementation and other general library functions unrelated to Accumulo. This sub-project contains any helper tools for geomesa. Some of these tools such as the GeneralShapefileIngest have Map/Reduce components, so the geomesa-utils JAR lives on HDFS.
 * [**geomesa-web**](geomesa-web): web services for accessing GeoMesa.
 * [**geomesa-z3**](geomesa-z3): the implementation of Z3, GeoMesa's space-filling Z-order curve.

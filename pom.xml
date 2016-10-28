@@ -29,6 +29,7 @@
         <module>geomesa-geojson</module>
         <module>geomesa-hbase</module>
         <module>geomesa-index-api</module>
+        <module>geomesa-jobs</module>
         <module>geomesa-kafka</module>
         <module>geomesa-logger</module>
         <module>geomesa-memory</module>
@@ -37,7 +38,7 @@
         <module>geomesa-process</module>
         <module>geomesa-security</module>
         <module>geomesa-stream</module>
-        <module>geomesa-tools-common</module>
+        <module>geomesa-tools</module>
         <module>geomesa-utils</module>
         <module>geomesa-web</module>
         <module>geomesa-z3</module>
@@ -125,25 +126,6 @@
             <properties>
                 <scala.version>2.11.7</scala.version>
             </properties>
-            <dependencyManagement>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.typesafe.scala-logging</groupId>
-                        <artifactId>scala-logging_${scala.binary.version}</artifactId>
-                        <version>${scalalogging.version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.scala-lang.modules</groupId>
-                        <artifactId>scala-parser-combinators_${scala.binary.version}</artifactId>
-                        <version>${scala.parsers.version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.scala-lang.modules</groupId>
-                        <artifactId>scala-xml_${scala.binary.version}</artifactId>
-                        <version>${scala.xml.version}</version>
-                    </dependency>
-                </dependencies>
-            </dependencyManagement>
             <build>
                 <plugins>
                     <plugin>
@@ -191,15 +173,6 @@
             <properties>
                 <scala.version>2.10.6</scala.version>
             </properties>
-            <dependencyManagement>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.typesafe.scala-logging</groupId>
-                        <artifactId>scala-logging-slf4j_${scala.binary.version}</artifactId>
-                        <version>2.1.2</version>
-                    </dependency>
-                </dependencies>
-            </dependencyManagement>
             <build>
                 <plugins>
                     <plugin>
@@ -358,20 +331,6 @@
                 </pluginRepository>
             </pluginRepositories>
         </profile>
-        <profile>
-            <id>hbase</id>
-            <modules>
-                <module>geomesa-hbase/geomesa-hbase-dist</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>bigtable</id>
-            <modules>
-                <module>geomesa-hbase/geomesa-bigtable-gs-plugin</module>
-                <module>geomesa-hbase/geomesa-bigtable-datastore</module>
-                <module>geomesa-hbase/geomesa-bigtable-dist</module>
-            </modules>
-        </profile>
     </profiles>
 
     <distributionManagement>
@@ -420,6 +379,28 @@
                 <groupId>org.scala-lang</groupId>
                 <artifactId>scalap</artifactId>
                 <version>${scala.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang.modules</groupId>
+                <artifactId>scala-parser-combinators_${scala.binary.version}</artifactId>
+                <version>${scala.parsers.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang.modules</groupId>
+                <artifactId>scala-xml_${scala.binary.version}</artifactId>
+                <version>${scala.xml.version}</version>
+            </dependency>
+            <!-- scala 2.11 logging -->
+            <dependency>
+                <groupId>com.typesafe.scala-logging</groupId>
+                <artifactId>scala-logging_${scala.binary.version}</artifactId>
+                <version>${scalalogging.version}</version>
+            </dependency>
+            <!-- scala 2.10 logging -->
+            <dependency>
+                <groupId>com.typesafe.scala-logging</groupId>
+                <artifactId>scala-logging-slf4j_${scala.binary.version}</artifactId>
+                <version>2.1.2</version>
             </dependency>
             <dependency>
                 <groupId>joda-time</groupId>
@@ -1493,6 +1474,31 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-hbase-datastore_2.11</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-hbase-tools_2.11</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-hbase-gs-plugin_2.11</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-bigtable-datastore_2.11</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-bigtable-tools_2.11</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-feature-all_2.11</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -1523,7 +1529,7 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-tools-common_2.11</artifactId>
+                <artifactId>geomesa-tools_2.11</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1625,6 +1631,11 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-archetypes-gs-plugin_2.11</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-jobs_2.11</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

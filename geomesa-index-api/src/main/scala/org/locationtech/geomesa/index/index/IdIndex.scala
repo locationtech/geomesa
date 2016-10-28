@@ -76,7 +76,7 @@ trait IdIndex[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
         filter.secondary.foreach { f =>
           logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
         }
-        scanPlan(sft, ds, filter, hints, Seq(rangePrefix(prefix)), filter.filter)
+        scanPlan(sft, ds, filter, hints, Seq(rangePrefix(prefix)), filter.secondary)
 
       case Some(primary) =>
         // Multiple sets of IDs in a ID Filter are ORs. ANDs of these call for the intersection to be taken.
@@ -86,7 +86,7 @@ trait IdIndex[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
         val ranges = identifiers.toSeq.map { id =>
           rangeExact(Bytes.concat(prefix, id.getBytes(StandardCharsets.UTF_8)))
         }
-        scanPlan(sft, ds, filter, hints, ranges, filter.filter)
+        scanPlan(sft, ds, filter, hints, ranges, filter.secondary)
     }
   }
 }

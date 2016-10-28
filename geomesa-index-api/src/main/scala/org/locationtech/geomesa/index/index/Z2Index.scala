@@ -97,6 +97,8 @@ trait Z2Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
       }
     }
 
-    scanPlan(sft, ds, filter, hints, ranges, filter.filter)
+    val ecql = if (ds.config.looseBBox) { filter.secondary } else { filter.filter }
+
+    scanPlan(sft, ds, filter, hints, ranges, ecql)
   }
 }

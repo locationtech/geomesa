@@ -26,16 +26,40 @@
 
     <dependencies>
 
-        <!-- GeoServer Plugins -->
+        <!-- datastore -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-hbase-gs-plugin_2.11</artifactId>
-            <classifier>install</classifier>
-            <version>${project.version}</version>
-            <type>tar.gz</type>
+            <artifactId>geomesa-hbase-datastore_2.11</artifactId>
         </dependency>
 
+        <!-- tools -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-hbase-tools_2.11</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>hbase</id>
+            <dependencies>
+                <!-- GeoServer Plugins -->
+                <dependency>
+                    <groupId>org.locationtech.geomesa</groupId>
+                    <artifactId>geomesa-hbase-gs-plugin_2.11</artifactId>
+                    <classifier>install</classifier>
+                    <version>${project.version}</version>
+                    <type>tar.gz</type>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
     <build>
         <plugins>
@@ -56,6 +80,9 @@
                             <descriptors>
                                 <descriptor>src/main/assemblies/binary-release.xml</descriptor>
                             </descriptors>
+                            <delimiters>
+                                <delimiter>%%</delimiter>
+                            </delimiters>
                         </configuration>
                     </execution>
                 </executions>

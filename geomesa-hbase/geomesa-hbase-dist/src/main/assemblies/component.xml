@@ -4,6 +4,18 @@
            xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2 http://maven.apache.org/xsd/component-1.1.2.xsd">
     <dependencySets>
         <dependencySet>
+            <outputDirectory>lib</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0644</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>true</useTransitiveDependencies>
+            <useTransitiveFiltering>true</useTransitiveFiltering>
+            <excludes>
+                <exclude>org.locationtech.geomesa:geomesa-hbase-gs-plugin*</exclude>
+                <exclude>com.google.guava:guava</exclude> <!-- Guava conflicts with HBase 1.2.3 which provides guava 12 -->
+            </excludes>
+        </dependencySet>
+        <dependencySet>
             <outputDirectory>dist/gs-plugins</outputDirectory>
             <directoryMode>0755</directoryMode>
             <fileMode>0755</fileMode>
@@ -14,7 +26,9 @@
             </includes>
         </dependencySet>
     </dependencySets>
+
     <fileSets>
+        <!-- license file -->
         <fileSet>
             <directory>../../</directory>
             <fileMode>0644</fileMode>
@@ -22,7 +36,56 @@
                 <include>LICENSE.txt</include>
             </includes>
         </fileSet>
+
+        <!-- HBase Tools filesets -->
+        <fileSet>
+            <directory>../geomesa-hbase-tools/bin</directory>
+            <outputDirectory>bin</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0755</fileMode>
+            <filtered>true</filtered>
+        </fileSet>
+        <fileSet>
+            <directory>../geomesa-hbase-tools/conf</directory>
+            <outputDirectory>conf</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>false</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
+
+        <!-- Common Tools filesets -->
+        <fileSet>
+            <directory>../../geomesa-tools/bin</directory>
+            <outputDirectory>bin</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0755</fileMode>
+            <filtered>true</filtered>
+        </fileSet>
+        <fileSet>
+            <directory>../../geomesa-tools/conf</directory>
+            <outputDirectory>conf</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>false</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
+        <fileSet>
+            <directory>../../geomesa-tools/examples</directory>
+            <outputDirectory>examples</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>false</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
+        <fileSet>
+            <directory>./</directory>
+            <outputDirectory>logs</outputDirectory>
+            <directoryMode>0700</directoryMode>
+            <excludes>
+                <exclude>*/**</exclude>
+            </excludes>
+        </fileSet>
     </fileSets>
+
+    <!-- readmes -->
     <files>
         <file>
             <source>../../README.md</source>
@@ -44,4 +107,5 @@
             <outputDirectory>docs</outputDirectory>
         </file>
     </files>
+
 </component>

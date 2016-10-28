@@ -11,7 +11,7 @@ package org.locationtech.geomesa.plugin.security
 import java.io.Serializable
 import java.util.{Map => jMap}
 
-import org.locationtech.geomesa.security.AuditProvider
+import org.locationtech.geomesa.utils.audit.AuditProvider
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails

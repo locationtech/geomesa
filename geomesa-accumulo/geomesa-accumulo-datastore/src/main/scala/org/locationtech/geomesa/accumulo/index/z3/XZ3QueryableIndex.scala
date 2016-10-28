@@ -40,7 +40,7 @@ trait XZ3QueryableIndex extends AccumuloFeatureIndexType
                             filter:AccumuloFilterStrategyType,
                             hints: Hints,
                             explain: Explainer): AccumuloQueryPlan = {
-    import org.locationtech.geomesa.filter.FilterHelper.{logger => _, _}
+    import org.locationtech.geomesa.filter.FilterHelper._
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     // note: z3 requires a date field

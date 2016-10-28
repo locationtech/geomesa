@@ -71,7 +71,7 @@ public class FeatureWriterJob {
         conf.setMapperClass(MyMapper.class);
         conf.setNumReduceTasks(0);
 
-        conf.setInputFormat(GeoMesaInputFormat.class);
+        conf.setInputFormat(GeoMesaAccumuloInputFormat.class);
         conf.setOutputFormat(GeoMesaOutputFormat.class);
 
         Map<String, String> params = new HashMap<String, String>();
@@ -83,7 +83,7 @@ public class FeatureWriterJob {
 
         Query query = new Query("myfeature", ECQL.toFilter("BBOX(geom, -165,5,-50,75)"));
 
-        GeoMesaInputFormat.configure(conf, params, query);
+        GeoMesaAccumuloInputFormat.configure(conf, params, query);
 
         Map<String, String> outParams = new HashMap<String, String>();
         outParams.put("instanceId", "myinstance");

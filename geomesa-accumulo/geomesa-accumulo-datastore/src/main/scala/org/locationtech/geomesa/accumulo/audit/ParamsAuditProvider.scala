@@ -13,7 +13,7 @@ import java.util.{Map => jMap}
 
 import org.apache.accumulo.core.client.Connector
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
-import org.locationtech.geomesa.security.AuditProvider
+import org.locationtech.geomesa.utils.audit.AuditProvider
 
 import scala.collection.JavaConversions._
 

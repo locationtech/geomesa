@@ -16,7 +16,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>geomesa-accumulo-jobs_2.11</artifactId>
-    <name>GeoMesa Jobs</name>
+    <name>GeoMesa Accumulo Jobs</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -29,15 +29,7 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-feature-all_2.11</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-convert-all_2.11</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-security_2.11</artifactId>
+            <artifactId>geomesa-jobs_2.11</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.accumulo</groupId>
@@ -46,10 +38,6 @@
         <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-client</artifactId>
         </dependency>
         <dependency>
             <groupId>com.beust</groupId>

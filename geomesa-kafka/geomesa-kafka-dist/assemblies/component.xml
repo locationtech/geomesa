@@ -54,21 +54,21 @@
 
         <!-- Common Tools filesets -->
         <fileSet>
-            <directory>../../../geomesa-tools-common/bin</directory>
+            <directory>../../../geomesa-tools/bin</directory>
             <outputDirectory>bin</outputDirectory>
             <directoryMode>755</directoryMode>
             <fileMode>0755</fileMode>
             <filtered>true</filtered>
         </fileSet>
         <fileSet>
-            <directory>../../../geomesa-tools-common/conf</directory>
+            <directory>../../../geomesa-tools/conf</directory>
             <outputDirectory>conf</outputDirectory>
             <fileMode>0644</fileMode>
             <filtered>false</filtered>
             <directoryMode>755</directoryMode>
         </fileSet>
         <fileSet>
-            <directory>../../../geomesa-tools-common/examples</directory>
+            <directory>../../../geomesa-tools/examples</directory>
             <outputDirectory>examples</outputDirectory>
             <fileMode>0644</fileMode>
             <filtered>false</filtered>

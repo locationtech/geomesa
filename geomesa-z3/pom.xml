@@ -20,8 +20,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-logger_2.11</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.sfcurve</groupId>
@@ -29,13 +29,12 @@
             <version>0.2.0</version>
         </dependency>
         <dependency>
-            <groupId>org.specs2</groupId>
-            <artifactId>specs2_${scala.binary.version}</artifactId>
-            <scope>test</scope>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-logger_2.11</artifactId>
+            <groupId>org.specs2</groupId>
+            <artifactId>specs2_${scala.binary.version}</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

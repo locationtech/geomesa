@@ -13,9 +13,32 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <gmtools.dist.name>GEOMESA_BIGTABLE</gmtools.dist.name> <!-- used in tools filtering -->
     </properties>
 
     <dependencies>
+
+        <!-- datastore -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-bigtable-datastore_2.11</artifactId>
+        </dependency>
+
+        <!-- tools -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-bigtable-tools_2.11</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <scope>compile</scope>
+        </dependency>
 
         <!-- GeoServer Plugins -->
         <dependency>
@@ -47,6 +70,9 @@
                             <descriptors>
                                 <descriptor>src/main/assemblies/binary-release.xml</descriptor>
                             </descriptors>
+                            <delimiters>
+                                <delimiter>%%</delimiter>
+                            </delimiters>
                         </configuration>
                     </execution>
                 </executions>

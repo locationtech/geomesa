@@ -116,7 +116,7 @@ GeoMesa Project Structure
 * **geomesa-process**: analytic processes optimized on GeoMesa data stores.
 * **geomesa-security**: adds support for managing security and authorization levels for data stored in GeoMesa.
 * **geomesa-stream**: a GeoMesa library that provides tools to process streams of `SimpleFeatures`.
-* **geomesa-tools-common**: a set of command line tools for managing features, ingesting and exporting data, configuring tables, and explaining queries in GeoMesa.
+* **geomesa-tools**: a set of command line tools for managing features, ingesting and exporting data, configuring tables, and explaining queries in GeoMesa.
 * **geomesa-utils**: stores our GeoHash implementation and other general library functions unrelated to Accumulo. This sub-project contains any helper tools for geomesa. Some of these tools such as the GeneralShapefileIngest have Map/Reduce components, so the geomesa-utils JAR lives on HDFS.
 * **geomesa-web**: web services for accessing GeoMesa.
 * **geomesa-z3**: the implementation of Z3, GeoMesa's space-filling Z-order curve.

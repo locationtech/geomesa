@@ -14,7 +14,7 @@ if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
 fi
 
 # Load common functions and setup
-. "${%%gmtools.dist.name%%_HOME}"/bin/geomesa-common.sh
+. "${%%gmtools.dist.name%%_HOME}"/bin/common-functions.sh
 
 # ACCUMULO paths, user can hard set these in geomesa-env, or rely on this script to find set them via ACCUMULO_HOME
 if [[ -n "$ACCUMULO_HOME" ]]; then
@@ -141,5 +141,5 @@ else
     shift 1
   fi
   CLASSPATH="$GEOMESA_CP:$ACCUMULO_CP:$HADOOP_CP:${ZOOKEEPER_JAR}"
-  java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.accumulo.AccumuloRunner "$@"
+  java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.accumulo.tools.AccumuloRunner "$@"
 fi
