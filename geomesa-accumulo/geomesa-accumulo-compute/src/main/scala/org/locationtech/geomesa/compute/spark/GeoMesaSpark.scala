@@ -8,7 +8,9 @@
 
 package org.locationtech.geomesa.compute.spark
 
+import java.sql.Timestamp
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.concurrent.ConcurrentHashMap
 
 import com.esotericsoftware.kryo.Kryo
@@ -17,7 +19,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat
 import org.apache.accumulo.core.client.mapreduce.lib.util.{ConfiguratorBase, InputConfigurator}
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, PasswordToken}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.accumulo.core.util.{Pair => AccPair}
 import org.apache.hadoop.conf.Configuration
@@ -25,20 +27,27 @@ import org.apache.hadoop.io.Text
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.serializer.KryoRegistrator
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.sql.catalyst.InternalRow
+import org.apache.spark.sql.catalyst.expressions.{GenericMutableRow, GenericRowWithSchema, SpecificMutableRow}
+import org.apache.spark.sql.sources._
+import org.apache.spark.sql.types.{DataTypes, SQLUserDefinedType, StructField, StructType}
+import org.apache.spark.sql.{Row, SQLContext, SQLTypes}
+import org.apache.spark.{Partition, SparkConf, SparkContext, TaskContext}
 import org.geotools.data._
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.index.EmptyPlan
 import org.locationtech.geomesa.features.kryo.serialization.SimpleFeatureSerializer
-import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatureSerializers}
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory, SimpleFeatureSerializers}
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaInputFormat
 import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.text.WKBUtils
+import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 
@@ -88,16 +97,16 @@ object GeoMesaSpark extends LazyLogging {
           useMock: Boolean = false,
           numberOfSplits: Option[Int] = None): RDD[SimpleFeature] = {
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
+    val username = AccumuloDataStoreParams.userParam.lookUp(dsParams).toString
+    val password = new PasswordToken(AccumuloDataStoreParams.passwordParam.lookUp(dsParams).toString.getBytes)
     try {
       // get the query plan to set up the iterators, ranges, etc
-      lazy val sft = ds.getSchema(query.getTypeName)
-      lazy val qp = JobUtils.getSingleQueryPlan(ds, query)
+      val sft = ds.getSchema(query.getTypeName)
+      val qp = JobUtils.getSingleQueryPlan(ds, query)
 
       if (ds == null || sft == null || qp.isInstanceOf[EmptyPlan]) {
         sc.emptyRDD[SimpleFeature]
       } else {
-        val username = AccumuloDataStoreParams.userParam.lookUp(dsParams).toString
-        val password = new PasswordToken(AccumuloDataStoreParams.passwordParam.lookUp(dsParams).toString.getBytes)
         val instance = ds.connector.getInstance().getInstanceName
         lazy val zookeepers = ds.connector.getInstance().getZooKeepers
 
@@ -488,5 +497,88 @@ object GeoMesaSparkKryoRegistrator {
     } yield {
       SimpleFeatureTypes.createType(name, spec)
     }
+
+}
+
+
+class GeoMesaDataSource
+  extends DataSourceRegister
+    with RelationProvider
+    with SchemaRelationProvider {
+
+  override def shortName(): String = "geomesa"
+
+  override def createRelation(sqlContext: SQLContext, parameters: Map[String, String]): BaseRelation = {
+    SQLTypes.init(sqlContext)
+    val ds = DataStoreFinder.getDataStore(parameters)
+    val sft = ds.getSchema(parameters("geomesa.feature"))
+    val schema = sft2StructType(sft)
+    new GeoMesaRelation(sqlContext, sft, schema, parameters, ds)
+  }
+
+  override def createRelation(sqlContext: SQLContext, parameters: Map[String, String], schema: StructType): BaseRelation = {
+    val ds = DataStoreFinder.getDataStore(parameters)
+    val sft = ds.getSchema(parameters("geomesa.feature"))
+    new GeoMesaRelation(sqlContext, sft, schema, parameters, ds)
+  }
+
+  private def sft2StructType(sft: SimpleFeatureType) = {
+    val fields = sft.getAttributeDescriptors.map { ad => ad2field(ad) }
+    StructType(fields)
+  }
+
+
+  private def ad2field(ad: AttributeDescriptor): StructField = {
+    import java.{lang => jl}
+    val dt = ad.getType.getBinding match {
+      case t if t == classOf[jl.Double]                       => DataTypes.DoubleType
+      case t if t == classOf[jl.Float]                        => DataTypes.FloatType
+      case t if t == classOf[jl.Integer]                      => DataTypes.IntegerType
+      case t if t == classOf[jl.String]                       => DataTypes.StringType
+      case t if t == classOf[jl.Boolean]                      => DataTypes.BooleanType
+      case t if      classOf[Geometry].isAssignableFrom(t)    => SQLTypes.PointType
+      case t if t == classOf[java.util.Date]                  => DataTypes.TimestampType
+      case _                                                  => null
+    }
+    StructField(ad.getLocalName, dt)
+  }
+}
+
+class GeoMesaRelation(val sqlContext: SQLContext,
+                      val sft: SimpleFeatureType,
+                      val schema: StructType,
+                      val params: Map[String, String],
+                      @volatile var ds: DataStore = null) extends BaseRelation with PrunedFilteredScan {
+
+  override def buildScan(requiredColumns: Array[String], filters: Array[org.apache.spark.sql.sources.Filter]): RDD[Row] = {
+    SparkUtils.buildScan(sft, requiredColumns, filters, sqlContext.sparkContext, schema, params)
+  }
+
+}
+
+object SparkUtils {
+
+  def buildScan(sft: SimpleFeatureType,
+                requiredColumns: Array[String],
+                filters: Array[org.apache.spark.sql.sources.Filter],
+                ctx: SparkContext,
+                schema: StructType,
+                params: Map[String, String]): RDD[Row] = {
+    val rdd = GeoMesaSpark.rdd(new Configuration(), ctx, params, new Query(params("geomesa.feature"), Filter.INCLUDE), Option.empty[Int])
+    val requiredIndexes = requiredColumns.map { col => sft.indexOf(col) }
+    val result = rdd.map(SparkUtils.sf2row(schema, _, requiredIndexes))
+    result.asInstanceOf[RDD[Row]]
+  }
+
+  def sf2row(schema: StructType, sf: SimpleFeature, requiredIndexes: Array[Int]): Row = {
+    val attrs = sf.asInstanceOf[ScalaSimpleFeature].values
+    new GenericRowWithSchema(requiredIndexes.map { i => toSparkType(attrs(i)) }, schema)
+  }
+
+  // TODO: optimize so we're not type checking every value
+  def toSparkType(v: Any): AnyRef = v match {
+    case t: Date => new Timestamp(t.getTime)
+    case t       => t.asInstanceOf[AnyRef]
+  }
 
 }

@@ -18,6 +18,7 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.accumulo.core.util.{Pair => AccPair}
+import org.apache.commons.collections.map.CaseInsensitiveMap
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.{Text, Writable}
 import org.apache.hadoop.mapreduce._
@@ -155,7 +156,7 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLoggi
 
   private def init(conf: Configuration) = if (sft == null) {
     val params = GeoMesaConfigurator.getDataStoreInParams(conf)
-    val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+    val ds = DataStoreFinder.getDataStore(new CaseInsensitiveMap(params).asInstanceOf[java.util.Map[_, _]]).asInstanceOf[AccumuloDataStore]
     sft = ds.getSchema(GeoMesaConfigurator.getFeatureType(conf))
     desiredSplitCount = GeoMesaConfigurator.getDesiredSplits(conf)
     val tableName = GeoMesaConfigurator.getTable(conf)

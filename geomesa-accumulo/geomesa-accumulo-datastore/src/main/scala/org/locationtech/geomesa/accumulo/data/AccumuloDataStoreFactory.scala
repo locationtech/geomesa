@@ -184,6 +184,7 @@ object AccumuloDataStoreFactory {
 
   def canProcess(params: JMap[String,Serializable]): Boolean =
     params.containsKey(instanceIdParam.key) || params.containsKey(connParam.key)
+
 }
 
 // keep params in a separate object so we don't require accumulo classes on the build path to access it
