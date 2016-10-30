@@ -19,7 +19,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat
 import org.apache.accumulo.core.client.mapreduce.lib.util.{ConfiguratorBase, InputConfigurator}
-import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, PasswordToken}
+import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.accumulo.core.util.{Pair => AccPair}
 import org.apache.hadoop.conf.Configuration
@@ -27,12 +27,11 @@ import org.apache.hadoop.io.Text
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.serializer.KryoRegistrator
-import org.apache.spark.sql.catalyst.InternalRow
-import org.apache.spark.sql.catalyst.expressions.{GenericMutableRow, GenericRowWithSchema, SpecificMutableRow}
+import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
 import org.apache.spark.sql.sources._
-import org.apache.spark.sql.types.{DataTypes, SQLUserDefinedType, StructField, StructType}
+import org.apache.spark.sql.types.{DataTypes, StructField, StructType}
 import org.apache.spark.sql.{Row, SQLContext, SQLTypes}
-import org.apache.spark.{Partition, SparkConf, SparkContext, TaskContext}
+import org.apache.spark.{SparkConf, SparkContext}
 import org.geotools.data._
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
@@ -46,7 +45,6 @@ import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
@@ -108,7 +106,7 @@ object GeoMesaSpark extends LazyLogging {
         sc.emptyRDD[SimpleFeature]
       } else {
         val instance = ds.connector.getInstance().getInstanceName
-        lazy val zookeepers = ds.connector.getInstance().getZooKeepers
+        val zookeepers = ds.connector.getInstance().getZooKeepers
 
         val transform = query.getHints.getTransformSchema
 
@@ -513,18 +511,18 @@ class GeoMesaDataSource
     val ds = DataStoreFinder.getDataStore(parameters)
     val sft = ds.getSchema(parameters("geomesa.feature"))
     val schema = sft2StructType(sft)
-    new GeoMesaRelation(sqlContext, sft, schema, parameters, ds)
+    new GeoMesaRelation(sqlContext, sft, schema, parameters, None)
   }
 
   override def createRelation(sqlContext: SQLContext, parameters: Map[String, String], schema: StructType): BaseRelation = {
     val ds = DataStoreFinder.getDataStore(parameters)
     val sft = ds.getSchema(parameters("geomesa.feature"))
-    new GeoMesaRelation(sqlContext, sft, schema, parameters, ds)
+    new GeoMesaRelation(sqlContext, sft, schema, parameters, None)
   }
 
   private def sft2StructType(sft: SimpleFeatureType) = {
-    val fields = sft.getAttributeDescriptors.map { ad => ad2field(ad) }
-    StructType(fields)
+    val fields = sft.getAttributeDescriptors.map { ad => ad2field(ad) }.toList
+    StructType(StructField("__fid__", DataTypes.StringType, nullable =false) :: fields)
   }
 
 
@@ -544,14 +542,18 @@ class GeoMesaDataSource
   }
 }
 
-class GeoMesaRelation(val sqlContext: SQLContext,
-                      val sft: SimpleFeatureType,
-                      val schema: StructType,
-                      val params: Map[String, String],
-                      @volatile var ds: DataStore = null) extends BaseRelation with PrunedFilteredScan {
+case class GeoMesaRelation(sqlContext: SQLContext,
+                           sft: SimpleFeatureType,
+                           schema: StructType,
+                           params: Map[String, String],
+                           filt: Option[org.opengis.filter.Filter],
+                           props: Option[Seq[String]] = None)
+  extends BaseRelation with PrunedFilteredScan {
+
+  lazy val isMock = params("useMock").toBoolean
 
   override def buildScan(requiredColumns: Array[String], filters: Array[org.apache.spark.sql.sources.Filter]): RDD[Row] = {
-    SparkUtils.buildScan(sft, requiredColumns, filters, sqlContext.sparkContext, schema, params)
+    SparkUtils.buildScan(sft, requiredColumns, filters, filt.getOrElse(Filter.INCLUDE), sqlContext.sparkContext, schema, params)
   }
 
 }
@@ -561,18 +563,33 @@ object SparkUtils {
   def buildScan(sft: SimpleFeatureType,
                 requiredColumns: Array[String],
                 filters: Array[org.apache.spark.sql.sources.Filter],
+                filt: org.opengis.filter.Filter,
                 ctx: SparkContext,
                 schema: StructType,
                 params: Map[String, String]): RDD[Row] = {
-    val rdd = GeoMesaSpark.rdd(new Configuration(), ctx, params, new Query(params("geomesa.feature"), Filter.INCLUDE), Option.empty[Int])
-    val requiredIndexes = requiredColumns.map { col => sft.indexOf(col) }
+    val rdd = GeoMesaSpark.rdd(
+      new Configuration(), ctx, params,
+      new Query(params("geomesa.feature"), filt),
+      params("useMock").toBoolean, Option.empty[Int])
+
+    val requiredIndexes = requiredColumns.map {
+      case "__fid__" => -1
+      case col => sft.indexOf(col)
+    }
     val result = rdd.map(SparkUtils.sf2row(schema, _, requiredIndexes))
     result.asInstanceOf[RDD[Row]]
   }
 
   def sf2row(schema: StructType, sf: SimpleFeature, requiredIndexes: Array[Int]): Row = {
-    val attrs = sf.asInstanceOf[ScalaSimpleFeature].values
-    new GenericRowWithSchema(requiredIndexes.map { i => toSparkType(attrs(i)) }, schema)
+    val res = Array.ofDim[Any](requiredIndexes.length)
+    var i = 0
+    while(i < requiredIndexes.length) {
+      val idx = requiredIndexes(i)
+      if(idx == -1) res(i) = sf.getID
+      else res(i) = toSparkType(sf.getAttribute(idx))
+      i += 1
+    }
+    new GenericRowWithSchema(res, schema)
   }
 
   // TODO: optimize so we're not type checking every value

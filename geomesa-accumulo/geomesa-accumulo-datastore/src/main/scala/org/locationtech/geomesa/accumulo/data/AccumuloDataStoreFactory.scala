@@ -78,6 +78,10 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
 object AccumuloDataStoreFactory {
 
+  val mockAccumuloThreadLocal = new ThreadLocal[MockInstance] {
+    override def initialValue(): MockInstance = null
+  }
+
   import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
   import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.RichParam
 
@@ -91,7 +95,11 @@ object AccumuloDataStoreFactory {
 
     val authToken = new PasswordToken(password.getBytes("UTF-8"))
     if (useMock) {
-      new MockInstance(instance).getConnector(user, authToken)
+      if(mockAccumuloThreadLocal.get() != null) {
+        mockAccumuloThreadLocal.get().getConnector(user, authToken)
+      } else {
+        new MockInstance(instance).getConnector(user, authToken)
+      }
     } else {
       val zookeepers = zookeepersParam.lookup[String](params)
       // NB: For those wanting to set this via JAVA_OPTS, this key is "instance.zookeeper.timeout" in Accumulo 1.6.x.
