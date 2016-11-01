@@ -64,6 +64,8 @@ object SparkSQLTest extends App {
 
   import spark.sqlContext.{sql => $}
 
+  $("select st_geomFromWKT('POINT(10 20)'),arrest from chicago limit 10").show()
+
   $("select arrest,case_number,geom from chicago limit 5").show()
 
   $("""
