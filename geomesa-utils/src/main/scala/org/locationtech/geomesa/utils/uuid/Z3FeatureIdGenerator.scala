@@ -120,7 +120,7 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator with LazyLogging {
 
   // features with a null geometry-to-index should be rejected
   private def validateGeometry(geom: Geometry): Unit = if (geom == null) {
-    throw new Exception("Cannot meaningfully index a feature with a NULL geometry")
+    throw new IllegalArgumentException("Cannot meaningfully index a feature with a NULL geometry")
   }
 
   // takes 4 low bits from b1 and 4 high bits of b2 as a new byte
