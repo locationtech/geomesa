@@ -64,7 +64,11 @@ object SparkSQLTest extends App {
 
   import spark.sqlContext.{sql => $}
 
-  $("select st_geomFromWKT('POINT(10 20)'),arrest from chicago limit 10").show()
+  $("select * from chicago where (dtg >= cast('2016-01-01' as timestamp) and dtg <= cast('2016-02-01' as timestamp))").show()
+  $("select st_castToPoint(st_geomFromWKT('POINT(-77 38)')) as p").show()
+  $("select st_contains(st_castToPoint(st_geomFromWKT('POINT(-77 38)')),st_geomFromWKT('POLYGON((-78 37,-76 37,-76 39,-78 39,-78 37))'))").show()
+
+  $("select st_centroid(st_geomFromWKT('POLYGON((-78 37,-76 37,-76 39,-78 39,-78 37))')),arrest from chicago limit 10").show()
 
   $("select arrest,case_number,geom from chicago limit 5").show()
 
