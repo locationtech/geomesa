@@ -19,28 +19,6 @@ package object accumulo {
   val DEFAULT_GEOMETRY_PROPERTY_NAME = "SF_PROPERTY_GEOMETRY"
   val DEFAULT_DTG_PROPERTY_NAME = "dtg"
 
-  val INGEST_TABLE_NAME                      = "geomesa.ingest.table"
-  val ST_FILTER_PROPERTY_NAME                = "geomesa.index.filter"
-  val DEFAULT_INTERVAL_PROPERTY_NAME         = "geomesa.index.interval"
-  val DEFAULT_ATTRIBUTE_NAMES                = "geomesa.index.shapefile.attribute-names"
-  val DEFAULT_CACHE_SIZE_NAME                = "geomesa.index.cache-size"
-  val DEFAULT_CACHE_TABLE_NAME               = "geomesa.index.cache-table"
-  val DEFAULT_AGGREGATOR_CLASS_PROPERTY_NAME = "geomesa.iterators.aggregator-class"
-  val DEFAULT_FILTER_PROPERTY_NAME           = "geomesa.iterators.filter-name"
-
-  val GEOMESA_ITERATORS_SIMPLE_FEATURE_TYPE      = "geomesa.iterators.aggregator-types"
-  val GEOMESA_ITERATORS_SFT_NAME                 = "geomesa.iterators.sft-name"
-  val GEOMESA_ITERATORS_SFT_INDEX_VALUE          = "geomesa.iterators.sft.index-value-schema"
-  val GEOMESA_ITERATORS_ATTRIBUTE_NAME           = "geomesa.iterators.attribute.name"
-  val GEOMESA_ITERATORS_ATTRIBUTE_COVERED        = "geomesa.iterators.attribute.covered"
-  val GEOMESA_ITERATORS_ECQL_FILTER              = "geomesa.iterators.ecql-filter"
-  val GEOMESA_ITERATORS_TRANSFORM                = "geomesa.iterators.transform"
-  val GEOMESA_ITERATORS_TRANSFORM_SCHEMA         = "geomesa.iterators.transform.schema"
-  val GEOMESA_ITERATORS_IS_DENSITY_TYPE          = "geomesa.iterators.is-density-type"
-  val GEOMESA_ITERATORS_IS_STATS_ITERATOR_TYPE   = "geomesa.iterators.is-stats-iterator-type"
-  val GEOMESA_ITERATORS_INDEX_SCHEMA             = "geomesa.iterators.index.schema"
-  val GEOMESA_ITERATORS_VERSION                  = "geomesa.iterators.version"
-
   object GeomesaSystemProperties {
 
     val CONFIG_FILE = PropAndDefault("geomesa.config.file", "geomesa-site.xml")

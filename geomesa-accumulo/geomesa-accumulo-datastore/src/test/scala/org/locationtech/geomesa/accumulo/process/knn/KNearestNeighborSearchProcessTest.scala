@@ -17,7 +17,6 @@ import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
 import org.locationtech.geomesa.accumulo.index.Constants
-import org.locationtech.geomesa.accumulo.index.geohash.IndexSchemaBuilder
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geohash.VincentyModel
 import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -85,9 +84,7 @@ class KNearestNeighborSearchProcessTest extends Specification {
       "password" -> "mypassword",
       "auths" -> "A,B,C",
       "tableName" -> "testwrite",
-      "useMock" -> "true",
-      "indexSchemaFormat" -> new IndexSchemaBuilder("~").randomNumber(3).constant("TEST").geoHash(0, 3).date("yyyyMMdd").nextPart().geoHash(3, 2).nextPart().id().build(),
-      "featureEncoding" -> "avro")).asInstanceOf[AccumuloDataStore]
+      "useMock" -> "true")).asInstanceOf[AccumuloDataStore]
 
   // utility method to generate random points about a central point
   // note that these points will be uniform in cartesian space only

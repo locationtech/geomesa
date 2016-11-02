@@ -16,7 +16,6 @@ import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, WritableFeatur
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex._
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.index.geohash.Strategy._
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
@@ -61,40 +60,25 @@ trait RecordQueryableIndex extends AccumuloFeatureIndex
       val threads = ops.getSuggestedThreads(sft.getTypeName, this)
       val dupes = false // record table never has duplicate entries
 
-      if (sft.getSchemaVersion > 5) {
-        // optimized path when we know we're using kryo serialization
-        val perAttributeIter = sft.getVisibilityLevel match {
-          case VisibilityLevel.Feature   => Seq.empty
-          case VisibilityLevel.Attribute => Seq(KryoVisibilityRowEncoder.configure(sft))
-        }
-        val (iters, kvsToFeatures) = if (hints.isBinQuery) {
-          // use the server side aggregation
-          val iter = BinAggregatingIterator.configureDynamic(sft, this, filter.secondary, hints, dupes)
-          (Seq(iter), BinAggregatingIterator.kvsToFeatures())
-        } else if (hints.isDensityQuery) {
-          val iter = KryoLazyDensityIterator.configure(sft, this, filter.secondary, hints)
-          (Seq(iter), KryoLazyDensityIterator.kvsToFeatures())
-        } else if (hints.isStatsIteratorQuery) {
-          val iter = KryoLazyStatsIterator.configure(sft, this, filter.secondary, hints, dupes)
-          (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(sft))
-        } else {
-          val iter = KryoLazyFilterTransformIterator.configure(sft, this, filter.secondary, hints)
-          (iter.toSeq, entriesToFeatures(sft, hints.getReturnSft))
-        }
-        BatchScanPlan(filter, table, ranges, iters ++ perAttributeIter, Seq.empty, kvsToFeatures, threads, dupes)
-      } else {
-        val iters = if (filter.secondary.isDefined || hints.getTransformSchema.isDefined) {
-          Seq(configureRecordTableIterator(sft, featureEncoding, filter.secondary, hints))
-        } else {
-          Seq.empty
-        }
-        val kvsToFeatures = if (hints.isBinQuery) {
-          BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, this, hints, featureEncoding)
-        } else {
-          entriesToFeatures(sft, hints.getReturnSft)
-        }
-        BatchScanPlan(filter, table, ranges, iters, Seq.empty, kvsToFeatures, threads, dupes)
+      val perAttributeIter = sft.getVisibilityLevel match {
+        case VisibilityLevel.Feature   => Seq.empty
+        case VisibilityLevel.Attribute => Seq(KryoVisibilityRowEncoder.configure(sft))
       }
+      val (iters, kvsToFeatures) = if (hints.isBinQuery) {
+        // use the server side aggregation
+        val iter = BinAggregatingIterator.configureDynamic(sft, this, filter.secondary, hints, dupes)
+        (Seq(iter), BinAggregatingIterator.kvsToFeatures())
+      } else if (hints.isDensityQuery) {
+        val iter = KryoLazyDensityIterator.configure(sft, this, filter.secondary, hints)
+        (Seq(iter), KryoLazyDensityIterator.kvsToFeatures())
+      } else if (hints.isStatsIteratorQuery) {
+        val iter = KryoLazyStatsIterator.configure(sft, this, filter.secondary, hints, dupes)
+        (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(sft))
+      } else {
+        val iter = KryoLazyFilterTransformIterator.configure(sft, this, filter.secondary, hints)
+        (iter.toSeq, entriesToFeatures(sft, hints.getReturnSft))
+      }
+      BatchScanPlan(filter, table, ranges, iters ++ perAttributeIter, Seq.empty, kvsToFeatures, threads, dupes)
     }
   }
 }

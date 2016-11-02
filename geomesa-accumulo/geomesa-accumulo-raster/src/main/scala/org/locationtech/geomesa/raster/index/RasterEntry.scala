@@ -68,9 +68,9 @@ object RasterEntryEncoder extends LazyLogging {
   }
 
   private def getRow(ras: Raster) = {
-    val resEncoder = DoubleTextFormatter(ras.resolution)
+    val resEncoder = lexiEncodeDoubleToString(ras.resolution)
     val geohash = ras.minimumBoundingGeoHash.map(_.hash).getOrElse("")
-    new Text(s"${resEncoder.fmtdStr}~$geohash")
+    new Text(s"$resEncoder~$geohash")
   }
 
   //TODO: WCS: add band value to Raster and insert it into the CF here

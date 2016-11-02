@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.iterators.legacy
+package org.locationtech.geomesa.raster.iterators
 
 import java.util.{Map => JMap}
 

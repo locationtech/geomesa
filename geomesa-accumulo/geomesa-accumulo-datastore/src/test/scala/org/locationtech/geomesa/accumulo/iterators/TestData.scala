@@ -18,9 +18,7 @@ import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureStore
-import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.index.encoders.{BinEncoder, IndexValueEncoder}
-import org.locationtech.geomesa.accumulo.index.geohash.{IndexSchema, IndexSchemaBuilder}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializers}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -43,18 +41,6 @@ object TestData extends LazyLogging {
   val wktQuery = "POLYGON((45 23, 48 23, 48 27, 45 27, 45 23))"
 
   val featureName = "feature"
-  val schemaEncoding =
-    new IndexSchemaBuilder("~")
-      .randomNumber(10)
-      .indexOrDataFlag()
-      .constant(featureName)
-      .geoHash(0, 3)
-      .date("yyyyMMdd")
-      .nextPart()
-      .geoHash(3, 2)
-      .nextPart()
-      .id()
-      .build()
 
   def getTypeSpec(suffix: String = "2") = {
     s"A_POINT:String,A_LINESTRING:String,A_POLYGON:String,attr$suffix:String:index=true," +
@@ -98,7 +84,6 @@ object TestData extends LazyLogging {
   lazy val featureEncoder = SimpleFeatureSerializers(getFeatureType(), SerializationType.AVRO)
   lazy val indexValueEncoder = IndexValueEncoder(featureType)
 
-  lazy val indexEncoder = IndexSchema.buildKeyEncoder(featureType, schemaEncoding)
   lazy val binEncoder = BinEncoder(featureType)
 
   val defaultDateTime = new DateTime(2011, 6, 1, 0, 0, 0, DateTimeZone.forID("UTC")).toDate

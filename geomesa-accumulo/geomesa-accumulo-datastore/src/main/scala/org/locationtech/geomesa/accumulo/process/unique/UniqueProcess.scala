@@ -18,12 +18,10 @@ import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuild
 import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.process.vector.VectorProcess
-import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndexV1
-import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, QueryHints}
+import org.locationtech.geomesa.accumulo.index.QueryHints
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator
 import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat}
 import org.opengis.feature.Feature
 import org.opengis.feature.`type`.AttributeDescriptor
@@ -225,7 +223,6 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
    * @return
    */
   def unique(source: SimpleFeatureSource, query: Query): Iterable[(Any, Long)] = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     logger.debug(s"Running Geomesa histogram process on source type ${source.getClass.getName}")
 
@@ -234,12 +231,11 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
 
     val sft = source.getSchema
 
-    if (attributeDescriptor.isMultiValued ||
-        AccumuloFeatureIndex.indices(sft, IndexMode.Write).contains(AttributeIndexV1)) {
-      // attribute strategy v5 doesn't support stats
+    if (attributeDescriptor.isMultiValued) {
       // stats don't support list types
       uniqueV5(source, query)
     } else {
+      // TODO if !histogram, we could write a new unique skipping iterator
       query.getHints.put(QueryHints.STATS_KEY, Stat.Enumeration(attribute))
       query.getHints.put(QueryHints.RETURN_ENCODED_KEY, java.lang.Boolean.TRUE)
 
@@ -265,13 +261,6 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
     // if there is no filter, try to force an attribute scan - should be fastest query
     if (query.getFilter == Filter.INCLUDE && features.getSchema.getDescriptor(attribute).isIndexed) {
       query.setFilter(getIncludeAttributeFilter(attribute))
-    }
-
-    if (!histogram) {
-      // add hint to use unique iterator, which skips duplicate attributes
-      // we don't use this for histograms since we have to count each attribute occurrence
-      // noinspection ScalaDeprecation
-      query.getHints.put(org.locationtech.geomesa.accumulo.data.GEOMESA_UNIQUE, attribute)
     }
 
     // execute the query

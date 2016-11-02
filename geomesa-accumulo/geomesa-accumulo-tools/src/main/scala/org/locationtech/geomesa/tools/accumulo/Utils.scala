@@ -24,24 +24,6 @@ import scala.collection.JavaConverters._
 
 object Utils extends LazyLogging {
 
-  object IngestParams {
-    val ACCUMULO_INSTANCE   = "geomesa.tools.ingest.instance"
-    val ZOOKEEPERS          = "geomesa.tools.ingest.zookeepers"
-    val ACCUMULO_MOCK       = "geomesa.tools.ingest.use-mock"
-    val ACCUMULO_USER       = "geomesa.tools.ingest.user"
-    val ACCUMULO_PASSWORD   = "geomesa.tools.ingest.password"
-    val AUTHORIZATIONS      = "geomesa.tools.ingest.authorizations"
-    val VISIBILITIES        = "geomesa.tools.ingest.visibilities"
-    val SHARDS              = "geomesa.tools.ingest.shards"
-    val INDEX_SCHEMA_FMT    = "geomesa.tools.ingest.index-schema-format"
-    val FILE_PATH           = "geomesa.tools.ingest.path"
-    val FEATURE_NAME        = "geomesa.tools.feature.name"
-    val CATALOG_TABLE       = "geomesa.tools.feature.tables.catalog"
-    val SFT_SPEC            = "geomesa.tools.feature.sft-spec"
-    val IS_TEST_INGEST      = "geomesa.tools.ingest.is-test-ingest"
-    val CONVERTER_CONFIG    = "geomesa.tools.ingest.converter-config"
-  }
-
   object Formats extends Enumeration {
     type Formats = Value
     val CSV     = Value("csv")
