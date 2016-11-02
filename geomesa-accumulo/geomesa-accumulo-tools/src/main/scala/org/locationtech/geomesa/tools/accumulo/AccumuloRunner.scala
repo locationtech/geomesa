@@ -8,13 +8,12 @@
 
 package org.locationtech.geomesa.tools.accumulo
 
-import org.apache.accumulo.core.client.ClientConfiguration.ClientProperty
 import org.apache.accumulo.server.client.HdfsZooInstance
 import org.locationtech.geomesa.tools.accumulo.commands._
 import org.locationtech.geomesa.tools.accumulo.commands.stats._
 import org.locationtech.geomesa.tools.common.commands.{Command, GenerateAvroSchemaCommand}
 import org.locationtech.geomesa.tools.common.{Prompt, Runner}
-import org.locationtech.geomesa.utils.conf.GeoMesaProperties.{GEOMESA_TOOLS_ACCUMULO_SITE_XML, GeoMesaSystemProperty}
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Try
@@ -43,7 +42,6 @@ object AccumuloRunner extends Runner {
     new RemoveSchemaCommand(jc),
     new TableConfCommand(jc),
     new AccumuloVersionCommand(jc),
-    new QueryRasterStatsCommmand(jc),
     new GetSftConfigCommand(jc),
     new GenerateAvroSchemaCommand(jc),
     new StatsAnalyzeCommand(jc),
@@ -61,7 +59,9 @@ object AccumuloRunner extends Runner {
     */
   override def resolveEnvironment(command: Command): Unit = {
     lazy val zookeepers = {
-      val accumuloSiteXml = GEOMESA_TOOLS_ACCUMULO_SITE_XML
+      val accumuloSiteXml = SystemProperty("geomesa.tools.accumulo.site.xml").option.getOrElse {
+        s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml"
+      }
 
       try {
         (XML.loadFile(accumuloSiteXml) \\ "property")
@@ -89,7 +89,7 @@ object AccumuloRunner extends Runner {
           // This block checks for the same system property which Accumulo uses for Zookeeper timeouts.
           //  If it is set, we use it.  Otherwise, a timeout of 5 seconds is used.
           //  Don't give default to GeoMesaSystemProperty so .option will throw a None
-          val lookupTime: Long = GeoMesaSystemProperty("instance.zookeeper.timeout").option.flatMap{ p =>
+          val lookupTime: Long = SystemProperty("instance.zookeeper.timeout").option.flatMap{ p =>
             Try { java.lang.Long.parseLong(p) }.toOption
           }.getOrElse(5000L)
 

@@ -10,7 +10,21 @@
     <artifactId>geomesa-hbase-datastore_2.11</artifactId>
     <name>GeoMesa HBase DataStore</name>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${hbase.guava.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-index-api_2.11</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-z3_2.11</artifactId>
@@ -50,6 +64,12 @@
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-testing-util</artifactId>
+            <version>${hbase.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

@@ -15,8 +15,8 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.index.z2.Z2Index
 import org.locationtech.geomesa.accumulo.index.z3.Z3Index
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -41,9 +41,9 @@ class ConfigurableIndexesTest extends Specification with TestWithDataStore {
 
   "AccumuloDataStore" should {
     "only create the z3 index" >> {
-      ds.tableOps.exists(ds.getTableName(sft.getTypeName, Z3Index)) must beTrue
+      ds.tableOps.exists(Z3Index.getTableName(sft.getTypeName, ds)) must beTrue
       forall(AccumuloFeatureIndex.AllIndices.filter(i => i != Z3Index)) { i =>
-        Try(ds.getTableName(sft.getTypeName, i)).map(ds.tableOps.exists).getOrElse(false) must beFalse
+        Try(i.getTableName(sft.getTypeName, ds)).map(ds.tableOps.exists).getOrElse(false) must beFalse
       }
     }
 
@@ -75,11 +75,11 @@ class ConfigurableIndexesTest extends Specification with TestWithDataStore {
       import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
       sft.setIndices(sft.getIndices :+ (Z2Index.name, Z2Index.version, IndexMode.ReadWrite))
       ds.updateSchema(sftName, sft)
-      forall(Seq(Z3Index, Z2Index))(i => ds.tableOps.exists(ds.getTableName(sft.getTypeName, i)) must beTrue)
+      forall(Seq(Z3Index, Z2Index))(i => ds.tableOps.exists(i.getTableName(sft.getTypeName, ds)) must beTrue)
       forall(AccumuloFeatureIndex.AllIndices.filter(i => i != Z3Index && i != Z2Index)) { i =>
-        Try(ds.getTableName(sft.getTypeName, i)).map(ds.tableOps.exists).getOrElse(false) must beFalse
+        Try(i.getTableName(sft.getTypeName, ds)).map(ds.tableOps.exists).getOrElse(false) must beFalse
       }
-      val scanner = connector.createScanner(ds.getTableName(sft.getTypeName, Z2Index), new Authorizations)
+      val scanner = connector.createScanner(Z2Index.getTableName(sft.getTypeName, ds), new Authorizations)
       try {
         scanner.iterator.hasNext must beFalse
       } finally {

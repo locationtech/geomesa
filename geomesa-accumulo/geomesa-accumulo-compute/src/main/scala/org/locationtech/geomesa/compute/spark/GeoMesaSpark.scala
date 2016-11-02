@@ -31,13 +31,13 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.index.EmptyPlan
-import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.features.kryo.serialization.SimpleFeatureSerializer
 import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatureSerializers}
+import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaInputFormat
 import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
-import org.locationtech.geomesa.utils.conf.GeoMesaProperties.getProperty
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
@@ -55,7 +55,7 @@ object GeoMesaSpark extends LazyLogging {
     val typeOptions = GeoMesaSparkKryoRegistrator.systemProperties(sfts: _*)
     typeOptions.foreach { case (k,v) => System.setProperty(k, v) }
     val typeOpts = typeOptions.map { case (k,v) => s"-D$k=$v" }
-    val jarOpt = Option(getProperty(SYS_PROP_SPARK_LOAD_CP)).map(v => s"-D$SYS_PROP_SPARK_LOAD_CP=$v")
+    val jarOpt = Option(GeoMesaSystemProperties.getProperty(SYS_PROP_SPARK_LOAD_CP)).map(v => s"-D$SYS_PROP_SPARK_LOAD_CP=$v")
     val extraOpts = (typeOpts ++ jarOpt).mkString(" ")
     val newOpts = if (conf.contains("spark.executor.extraJavaOptions")) {
       conf.get("spark.executor.extraJavaOptions").concat(" ").concat(extraOpts)
@@ -483,8 +483,8 @@ object GeoMesaSparkKryoRegistrator {
 
   private def fromSystemProperties(id: Int): Option[SimpleFeatureType] =
     for {
-      name <- Option(getProperty(s"geomesa.types.$id.name"))
-      spec <- Option(getProperty(s"geomesa.types.$id.spec"))
+      name <- Option(GeoMesaSystemProperties.getProperty(s"geomesa.types.$id.name"))
+      spec <- Option(GeoMesaSystemProperties.getProperty(s"geomesa.types.$id.spec"))
     } yield {
       SimpleFeatureTypes.createType(name, spec)
     }

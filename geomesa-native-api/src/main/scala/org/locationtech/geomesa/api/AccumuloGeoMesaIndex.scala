@@ -119,7 +119,7 @@ class AccumuloGeoMesaIndex[T](protected val ds: AccumuloDataStore,
     ds.dispose()
   }
 
-  def catalogTable() = ds.catalogTable
+  def catalogTable() = ds.config.catalog
 }
 
 @InterfaceStability.Unstable

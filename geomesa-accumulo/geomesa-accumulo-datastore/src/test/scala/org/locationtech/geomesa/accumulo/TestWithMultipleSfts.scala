@@ -55,7 +55,7 @@ trait TestWithMultipleSfts extends Specification {
   override def map(fragments: => Fragments) = fragments ^ Step {
     val to = connector.tableOperations()
     val tables = Seq(sftBaseName) ++ sfts.flatMap { sft =>
-      Try(AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(ds.getTableName(sft.getTypeName, _))).getOrElse(Seq.empty)
+      Try(AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, ds))).getOrElse(Seq.empty)
     }
     tables.toSet.filter(to.exists).foreach(to.delete)
   }

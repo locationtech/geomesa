@@ -19,8 +19,8 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.process.vector.{HeatmapSurface, VectorProcess}
-import org.locationtech.geomesa.accumulo.index.QueryHints
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyDensityIterator
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.opengis.coverage.grid.GridGeometry
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression

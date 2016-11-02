@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.utils.conf
 
+import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.conf.GeoMesaProperties.GeoMesaSystemProperty
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import com.typesafe.scalalogging.LazyLogging
 
 @RunWith(classOf[JUnitRunner])
 class GeoMesaPropertiesTest extends Specification with LazyLogging {
@@ -25,10 +25,10 @@ class GeoMesaPropertiesTest extends Specification with LazyLogging {
   val REAL_PROP = "geomesa.stats.compact.millis"
   val REAL_PROP_VAL = "3600000"
 
-  def testProp1 = GeoMesaSystemProperty(TEST_PROP_1)
-  def testProp2 = GeoMesaSystemProperty(TEST_PROP_2, "default")
+  def testProp1 = SystemProperty(TEST_PROP_1)
+  def testProp2 = SystemProperty(TEST_PROP_2, "default")
   // This is loaded from embedded config
-  def realProp = GeoMesaSystemProperty(REAL_PROP)
+  def realProp = SystemProperty(REAL_PROP)
 
   "props" should {
     "contain system properties" in {
@@ -45,13 +45,13 @@ class GeoMesaPropertiesTest extends Specification with LazyLogging {
       testProp1.get must beNull
       testProp1.option must beEqualTo(None)
 
-      testProp2.set("test")
+      System.setProperty(testProp2.property, "test")
       testProp2.get must beEqualTo("test")
       testProp2.option must beEqualTo(Option("test"))
-      testProp2.clear()
+      System.clearProperty(testProp2.property)
       testProp2.get must beEqualTo("default")
 
-      realProp.default must beEqualTo(REAL_PROP_VAL)
+      realProp.default must beNull
       realProp.get must beEqualTo(REAL_PROP_VAL)
       realProp.option must beEqualTo(Option(REAL_PROP_VAL))
     }
@@ -59,12 +59,12 @@ class GeoMesaPropertiesTest extends Specification with LazyLogging {
 
   "getProperty" should {
     "return null when property is empty" in {
-      GeoMesaProperties.getProperty(TEST_PROP_3) must beNull
+      GeoMesaSystemProperties.getProperty(TEST_PROP_3) must beNull
     }
 
     "return proper values" in {
       System.setProperty(TEST_PROP_3, "test")
-      GeoMesaProperties.getProperty(TEST_PROP_3) must beEqualTo("test")
+      GeoMesaSystemProperties.getProperty(TEST_PROP_3) must beEqualTo("test")
     }
   }
 }

@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.utils.conf
 
-import java.io.File
-
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -17,16 +15,12 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class ConfigLoaderTest extends Specification {
 
-  "loadConfig" should {
-    val testConfig = getClass.getClassLoader.getResource("geomesa-fake.xml").getPath
-
-    System.setProperty("geomesa.config.test1", "a")
-    System.setProperty("geomesa.config.test2", "b")
-
-    "set system properties" in {
-      ConfigLoader.loadConfig(testConfig)
-      System.getProperty("geomesa.config.test1") must beEqualTo("a")
-      System.getProperty("geomesa.config.test2") must beEqualTo("2") // Final
+  "ConfigLoader" should {
+    "load config files" in {
+      val config = ConfigLoader.loadConfig("geomesa-fake.xml")
+      config.get("geomesa.config.test1") must beSome(("1", false))
+      config.get("geomesa.config.test2") must beSome(("2", true)) // Final
+      config.get("geomesa.config.test3") must beNone
     }
   }
 }

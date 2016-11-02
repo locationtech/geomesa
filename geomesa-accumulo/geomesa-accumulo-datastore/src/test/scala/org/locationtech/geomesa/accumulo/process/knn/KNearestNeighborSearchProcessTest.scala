@@ -15,7 +15,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geohash.VincentyModel
@@ -42,7 +42,7 @@ class KNearestNeighborSearchProcessTest extends Specification {
   val ds = createStore
   ds.createSchema(sft)
 
-  val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+  val fs = ds.getFeatureSource(sftName)
 
   val featureCollection = new DefaultFeatureCollection(sftName, sft)
 

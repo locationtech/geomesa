@@ -14,9 +14,10 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
-import org.locationtech.geomesa.accumulo.index.QueryHints.SAMPLING_KEY
 import org.locationtech.geomesa.accumulo.iterators.{KryoAttributeKeyValueIterator, KryoLazyFilterTransformIterator}
+import org.locationtech.geomesa.accumulo.iterators.KryoLazyFilterTransformIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
@@ -106,7 +107,7 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
             s"dtg during 2014-01-01T00:00:00.000Z/2014-01-05T00:00:00.000Z ")
 
         val query = new Query(sftName, filter, Array[String]("dtg", "geom", "name"))
-        query.getHints.put(SAMPLING_KEY, new java.lang.Float(.5f))
+        query.getHints.put(QueryHints.SAMPLING_KEY, new java.lang.Float(.5f))
 
         val plans = ds.getQueryPlan(query)
         plans.size mustEqual 1
@@ -179,7 +180,7 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
             s"dtg during 2014-01-01T00:00:00.000Z/2014-01-05T00:00:00.000Z ")
 
         val query = new Query(sftName, filter, Array[String]("dtg", "geom", "name"))
-        query.getHints.put(SAMPLING_KEY, new java.lang.Float(.5f))
+        query.getHints.put(QueryHints.SAMPLING_KEY, new java.lang.Float(.5f))
 
         val plans = ds.getQueryPlan(query)
         plans.size mustEqual 1

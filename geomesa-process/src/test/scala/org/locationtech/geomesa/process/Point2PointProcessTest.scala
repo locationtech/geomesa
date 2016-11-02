@@ -16,7 +16,7 @@ import org.geotools.data.DataStoreFinder
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SftBuilder
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -54,7 +54,7 @@ class Point2PointProcessTest extends Specification {
       new ScalaSimpleFeature(s"second$i", sft, Array[AnyRef]("second", p, sdf.parse(s"2015-08-$i")))
     }
 
-    val fs = ds.getFeatureSource(fName).asInstanceOf[AccumuloFeatureStore]
+    val fs = ds.getFeatureSource(fName)
     val fc = new DefaultFeatureCollection(fName, sft)
     fc.addAll(points1 ++ points2)
     fs.addFeatures(fc)

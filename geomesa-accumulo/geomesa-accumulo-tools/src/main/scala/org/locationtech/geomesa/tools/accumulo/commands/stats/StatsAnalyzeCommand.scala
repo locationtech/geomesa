@@ -11,7 +11,7 @@ package org.locationtech.geomesa.tools.accumulo.commands.stats
 import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
-import org.locationtech.geomesa.accumulo.data.GeoMesaMetadata
+import org.locationtech.geomesa.index.utils.GeoMesaMetadata
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
 import org.locationtech.geomesa.tools.accumulo.commands.CommandWithCatalog
 import org.locationtech.geomesa.tools.accumulo.commands.stats.StatsAnalyzeCommand.StatsRunParameters

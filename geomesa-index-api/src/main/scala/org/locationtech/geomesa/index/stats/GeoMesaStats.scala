@@ -13,6 +13,7 @@ import java.util.Date
 
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.locationtech.geomesa.filter.visitor.BoundsFilterVisitor
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.stats.{Histogram, Stat}
 import org.opengis.feature.`type`.AttributeDescriptor
@@ -46,7 +47,15 @@ trait GeoMesaStats extends Closeable {
     * @param exact rough estimate, or precise bounds. note: precise bounds will likely be expensive.
     * @return bounds
     */
-  def getBounds(sft: SimpleFeatureType, filter: Filter = Filter.INCLUDE, exact: Boolean = false): ReferencedEnvelope
+  def getBounds(sft: SimpleFeatureType, filter: Filter = Filter.INCLUDE, exact: Boolean = false): ReferencedEnvelope = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    val filterBounds = BoundsFilterVisitor.visit(filter)
+    Option(sft.getGeomField).flatMap(getAttributeBounds[Geometry](sft, _, filter, exact)).map { bounds =>
+      val env = bounds.lower.getEnvelopeInternal
+      env.expandToInclude(bounds.upper.getEnvelopeInternal)
+      filterBounds.intersection(env)
+    }.getOrElse(filterBounds)
+  }
 
   /**
     * Gets the minimum and maximum values for the given attribute
@@ -182,13 +191,6 @@ trait HasGeoMesaStats {
 trait StatUpdater extends Closeable with Flushable {
   def add(sf: SimpleFeature): Unit
   def remove(sf: SimpleFeature): Unit
-}
-
-object NoopStatUpdater extends StatUpdater {
-  override def add(sf: SimpleFeature): Unit = {}
-  override def remove(sf: SimpleFeature): Unit = {}
-  override def flush(): Unit = {}
-  override def close(): Unit = {}
 }
 
 case class AttributeBounds[T](lower: T, upper: T, cardinality: Long) {

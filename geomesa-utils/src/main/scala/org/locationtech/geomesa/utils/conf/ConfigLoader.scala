@@ -8,64 +8,60 @@
 
 package org.locationtech.geomesa.utils.conf
 
-import java.io.File
-import scala.xml.XML
-import java.io.FileNotFoundException
+import java.io.InputStream
 
 import com.typesafe.scalalogging.LazyLogging
 
+import scala.util.control.NonFatal
+import scala.util.{Failure, Try}
+import scala.xml.XML
+
 object ConfigLoader extends LazyLogging {
+
   val GEOMESA_CONFIG_FILE_PROP = "geomesa.config.file"
   val GEOMESA_CONFIG_FILE_NAME = "geomesa-site.xml"
-  val GEOMESA_EMBEDDED_CONFIG_FILE_PATH = "/org/locationtech/geomesa/geomesa-site.xml.template"
+  private val EmbeddedConfigFile = "org/locationtech/geomesa/geomesa-site.xml.template"
 
-  val init: String = "Loaded"
-
-  val sysConfig = Option(System.getProperty(GEOMESA_CONFIG_FILE_PROP)).getOrElse("")
-  val classConfig = Option(getClass.getClassLoader.getResource(GEOMESA_CONFIG_FILE_NAME)).getOrElse("")
-
-  // Load program defaults first
-  logger.info("Loading Config Defaults.")
-  loadConfig(XML.load(getClass.getResourceAsStream(GEOMESA_EMBEDDED_CONFIG_FILE_PATH)))
-
-  // Overwrite with any provided config file
-  if (sysConfig.nonEmpty) {
-    loadConfig(sysConfig)
-  } else if (classConfig.toString.nonEmpty) {
-    loadConfig(getClass.getClassLoader.getResource(GEOMESA_CONFIG_FILE_NAME).getFile)
+  lazy val Config: Map[String, (String, Boolean)] = {
+    val file = Option(System.getProperty(GEOMESA_CONFIG_FILE_PROP)).getOrElse(GEOMESA_CONFIG_FILE_NAME)
+    // load defaults first then overwrite with user values (if any)
+    loadConfig(EmbeddedConfigFile) ++ loadConfig(file)
   }
 
-  def loadConfig(path: String): Unit = {
-    try {
-      val xml = XML.loadFile(path)
-      logger.info("Using GeoMesa config file found at: " + path)
-      loadConfig(xml)
-    } catch {
-      case fnfe: FileNotFoundException => logger.warn("Unable to find GeoMesa config file at: " + path, fnfe)
-      case _: Throwable => logger.warn("Error reading config file: " + path, _: Throwable)
-    }
+  def loadConfig(path: String): Map[String, (String, Boolean)] = {
+    logger.debug(s"Loading config from: $path")
+    val input = getClass.getClassLoader.getResourceAsStream(path)
+    val config: Map[String, (String, Boolean)] =
+      if (input == null) {
+        Map.empty
+      } else {
+        try {
+          loadConfig(input, path)
+        } catch {
+          case NonFatal(e) => logger.warn(s"Error reading config file at: $path", e); Map.empty
+        }
+      }
+    logger.trace(s"Loaded ${config.mkString(",")}")
+    config
   }
 
-  def loadConfig(xml: scala.xml.Elem): Unit = {
+  def loadConfig(input: InputStream, path: String): Map[String, (String, Boolean)] = {
+    val xml = XML.load(input)
     val properties = xml \\ "configuration" \\ "property"
-    properties.foreach { prop =>
-      try { // Use try/catch here so if we fail on a property the rest can still load
+    properties.flatMap { prop =>
+      // Use try here so if we fail on a property the rest can still load
+      val pair = Try {
         val key = (prop \ "name").text
         val value = (prop \ "value").text
-        val isfinal: Boolean = (prop \ "final").text.toString.toBoolean
-        // Don't overwrite properties, this gives commandline params preference
-        if (Option(System.getProperty(key)).getOrElse("").isEmpty && value.nonEmpty || isfinal) {
-          System.setProperty(key, value)
-          logger.debug("Set System Property: " + key + ":" + value)
-        }
-      } catch {
-        // This catches failure to convert isfinal to boolean and key = ""
-        case iae: IllegalArgumentException => logger.warn("Unable to set system property, this is most likely "
-          + s"due to a malformed configuration file (${GEOMESA_CONFIG_FILE_NAME}). Perhaps you wouldn't have this "
-          + "problem if you typed with more than two fingers.\n" + "Property:\n" + prop, iae)
-        case _: Throwable => logger.warn("Error setting system property.", _: Throwable)
+        // don't overwrite properties, this gives commandline params preference
+        val isFinal: Boolean = (prop \ "final").text.toString.toBoolean
+        key -> (value, isFinal)
       }
-    }
-    logger.debug("Config loaded.")
+      pair match {
+        case Failure(e) => logger.warn(s"Unable to load property from: $path\n$prop", e)
+        case _ => // no-op
+      }
+      pair.toOption.filter { case (_, (v, _)) => v != null && v.nonEmpty }
+    }.toMap
   }
 }

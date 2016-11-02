@@ -10,12 +10,12 @@
 
 package org.locationtech.geomesa.raster.index
 
-import org.locationtech.geomesa.accumulo.index.KeyValuePair
+import org.apache.accumulo.core.data.{Key, Value}
 import org.locationtech.geomesa.raster.data.Raster
 
 object RasterIndexSchema {
 
   def encode(raster: Raster, visibility: String = "") = RasterEntryEncoder.encode(raster, visibility)
-  def decode(entry: KeyValuePair): Raster = RasterEntryDecoder.decode(entry)
+  def decode(entry: (Key, Value)): Raster = RasterEntryDecoder.decode(entry)
 
 }

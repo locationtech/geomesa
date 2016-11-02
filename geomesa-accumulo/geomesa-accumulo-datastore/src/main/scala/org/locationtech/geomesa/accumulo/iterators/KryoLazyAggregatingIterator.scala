@@ -16,7 +16,7 @@ import org.apache.accumulo.core.data.{Range => aRange, _}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
+import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AccumuloWritableIndex}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
@@ -170,7 +170,7 @@ object KryoLazyAggregatingIterator extends LazyLogging {
 
   def configure(is: IteratorSetting,
                 sft: SimpleFeatureType,
-                index: AccumuloFeatureIndex,
+                index: AccumuloFeatureIndexType,
                 filter: Option[Filter],
                 deduplicate: Boolean,
                 maxDuplicates: Option[Int]): Unit = {

@@ -1,0 +1,327 @@
+/***********************************************************************
+* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0
+* which accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
+
+package org.locationtech.geomesa.index.api
+
+import java.util.{Locale, Map => jMap}
+
+import com.typesafe.scalalogging.LazyLogging
+import com.vividsolutions.jts.geom.Geometry
+import org.geotools.data.Query
+import org.geotools.factory.Hints
+import org.geotools.feature.AttributeTypeBuilder
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.geotools.filter.FunctionExpressionImpl
+import org.geotools.filter.expression.PropertyAccessors
+import org.geotools.filter.visitor.BindingFilterVisitor
+import org.geotools.process.vector.TransformProcess
+import org.geotools.process.vector.TransformProcess.Definition
+import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
+import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation
+import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
+import org.locationtech.geomesa.utils.cache.SoftThreadLocal
+import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.index.IndexMode
+import org.locationtech.geomesa.utils.iterators.{DeduplicatingSimpleFeatureIterator, SortingSimpleFeatureIterator}
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing}
+import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
+import org.opengis.filter.expression.PropertyName
+
+import scala.collection.JavaConverters._
+
+/**
+ * Plans and executes queries against geomesa
+ */
+class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q](ds: DS)
+    extends MethodProfiling with LazyLogging {
+
+  val strategyDecider: StrategyDecider[DS, F, W, Q] = new StrategyDecider(ds.manager)
+
+  /**
+    * Plan the query, but don't execute it - used for m/r jobs and explain query
+    *
+    * @param sft simple feature type
+    * @param query query to plan
+    * @param index override index to use for executing the query
+    * @param output planning explanation output
+    * @return
+    */
+  def planQuery(sft: SimpleFeatureType,
+                query: Query,
+                index: Option[GeoMesaFeatureIndex[DS, F, W, Q]] = None,
+                output: Explainer = new ExplainLogging): Seq[QueryPlan[DS, F, W, Q]] = {
+    getQueryPlans(sft, query, index, output).toList // toList forces evaluation of entire iterator
+  }
+
+  /**
+    * Execute a query
+    *
+    * @param sft simple feature type
+    * @param query query to execute
+    * @param index override index to use for executing the query
+    * @param output planning explanation output
+    * @return
+    */
+  def runQuery(sft: SimpleFeatureType,
+               query: Query,
+               index: Option[GeoMesaFeatureIndex[DS, F, W, Q]] = None,
+               output: Explainer = new ExplainLogging): CloseableIterator[SimpleFeature] = {
+    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableLike
+
+    val plans = getQueryPlans(sft, query, index, output)
+    var iterator = SelfClosingIterator(plans.iterator).ciFlatMap(p => p.scan(ds).map(p.entriesToFeatures))
+
+    if (plans.exists(_.hasDuplicates)) {
+      iterator = new DeduplicatingSimpleFeatureIterator(iterator)
+    }
+
+    // note: reduce must be the same across query plans
+    val reduce = plans.headOption.flatMap(_.reduce)
+    require(plans.tailOption.forall(_.reduce == reduce), "Reduce must be the same in all query plans")
+    reduce.foreach(r => iterator = r(iterator))
+
+    if (query.getSortBy != null && query.getSortBy.length > 0) {
+      iterator = new SortingSimpleFeatureIterator(iterator, query.getSortBy)
+    }
+
+    iterator
+  }
+
+  /**
+    * Set up the query plans and strategies used to execute them
+    *
+    * @param sft simple feature type
+    * @param original query to plan
+    * @param requested override index to use for executing the query
+    * @param output planning explanation output
+    * @return
+    */
+  protected def getQueryPlans(sft: SimpleFeatureType,
+                              original: Query,
+                              requested: Option[GeoMesaFeatureIndex[DS, F, W, Q]],
+                              output: Explainer): Seq[QueryPlan[DS, F, W, Q]] = {
+    import org.locationtech.geomesa.filter.filterToString
+
+    // set hints that we'll need later on, fix the query filter so it meets our expectations going forward
+    val query = configureQuery(original, sft)
+
+    val hints = query.getHints
+
+    output.pushLevel(s"Planning '${query.getTypeName}' ${filterToString(query.getFilter)}")
+    output(s"Original filter: ${filterToString(query.getFilter)}")
+    output(s"Hints: density[${hints.isDensityQuery}] bin[${hints.isBinQuery}] " +
+        s"stats[${hints.isStatsIteratorQuery}] map-aggregate[${hints.isMapAggregatingQuery}] " +
+        s"sampling[${hints.getSampling.map { case (s, f) => s"$s${f.map(":" + _).getOrElse("")}"}.getOrElse("none")}]")
+    output(s"Sort: ${Option(query.getSortBy).filter(_.nonEmpty).map(_.mkString(", ")).getOrElse("none")}")
+    output(s"Transforms: ${query.getHints.getTransformDefinition.getOrElse("None")}")
+
+    output.pushLevel("Strategy selection:")
+    val requestedIndex = requested.orElse(hints.getRequestedIndex)
+    val transform = query.getHints.getTransformSchema
+    val stats = query.getHints.getCostEvaluation match {
+      case CostEvaluation.Stats => Some(ds)
+      case CostEvaluation.Index => None
+    }
+    val strategies = strategyDecider.getFilterPlan(sft, stats, query.getFilter, transform, requestedIndex, output)
+    output.popLevel()
+
+    var strategyCount = 1
+    strategies.map { strategy =>
+      output.pushLevel(s"Strategy $strategyCount of ${strategies.length}: ${strategy.index}")
+      strategyCount += 1
+      output(s"Strategy filter: $strategy")
+
+      implicit val timing = new Timing
+      val plan = profile(strategy.index.getQueryPlan(sft, ds, strategy, hints, output))
+      plan.explain(output.popLevel())
+      output(s"Query planning took ${timing.time}ms")
+      plan
+    }
+  }
+
+
+  /**
+    * Configure the query - set hints, transforms, etc.
+    *
+    * @param original query to configure
+    * @param sft simple feature type associated with the query
+    */
+  protected [geomesa] def configureQuery(original: Query, sft: SimpleFeatureType): Query = {
+    val query = new Query(original)
+
+    // set query hints - we need this in certain situations where we don't have access to the query directly
+    QueryPlanner.threadedHints.get.foreach { hints =>
+      hints.foreach { case (k, v) => query.getHints.put(k, v) }
+      // clear any configured hints so we don't process them again
+      QueryPlanner.threadedHints.clear()
+    }
+
+    // handle any params passed in through geoserver
+    handleGeoServerParams(query, sft)
+
+    if (query.getFilter != null && query.getFilter != Filter.INCLUDE) {
+      // bind the literal values to the appropriate type, so that it isn't done every time the filter is evaluated
+      // important: do this before running through the QueryPlanFilterVisitor, otherwise can mess with IDL handling
+      query.setFilter(query.getFilter.accept(new BindingFilterVisitor(sft), null).asInstanceOf[Filter])
+      // update the filter to remove namespaces, handle null property names, and tweak topological filters
+      query.setFilter(query.getFilter.accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter])
+    }
+    query
+
+    // set transformations in the query
+    QueryPlanner.setQueryTransforms(query, sft)
+    // set return SFT in the query
+    setReturnSft(query, sft)
+
+    query
+  }
+
+  /**
+    * Checks the 'view params' passed in through geoserver and converts them to the appropriate query hints.
+    * This kind of a hack, but it's the only way geoserver exposes custom data to the underlying data store.
+    *
+    * Note - keys in the map are always uppercase.
+    *
+    * @param query query to modify
+    * @param sft simple feature type
+    */
+  protected def handleGeoServerParams(query: Query, sft: SimpleFeatureType): Unit = {
+    val viewParams = query.getHints.get(Hints.VIRTUAL_TABLE_PARAMETERS).asInstanceOf[jMap[String, String]]
+    if (viewParams != null) {
+      def withName(name: String) = {
+        val check = name.toLowerCase(Locale.US)
+        val value = ds.manager.indices(sft, IndexMode.Read).find(_.name.toLowerCase(Locale.US) == check)
+        if (value.isEmpty) {
+          logger.error(s"Ignoring invalid strategy name from view params: $name. Valid values " +
+              s"are ${ds.manager.indices(sft, IndexMode.Read).map(_.name).mkString(", ")}")
+        }
+        value
+      }
+      Option(viewParams.get("STRATEGY")).flatMap(withName).foreach { strategy =>
+        val old = query.getHints.get(QueryHints.QUERY_INDEX_KEY)
+        if (old == null) {
+          logger.debug(s"Using strategy $strategy from view params")
+          query.getHints.put(QueryHints.QUERY_INDEX_KEY, strategy)
+        } else if (old != strategy) {
+          logger.warn("Ignoring query hint from geoserver in favor of hint directly set in query. " +
+              s"Using $old and disregarding $strategy")
+        }
+      }
+    }
+  }
+
+  // This function calculates the SimpleFeatureType of the returned SFs.
+  protected def setReturnSft(query: Query, baseSft: SimpleFeatureType): Unit = {
+    val sft = query.getHints.getTransformSchema.getOrElse(baseSft)
+    query.getHints.put(QueryHints.RETURN_SFT_KEY, sft)
+  }
+}
+
+object QueryPlanner extends LazyLogging {
+
+  private val threadedHints = new SoftThreadLocal[Map[AnyRef, AnyRef]]
+
+  object CostEvaluation extends Enumeration {
+    type CostEvaluation = Value
+    val Stats, Index = Value
+  }
+
+  def setPerThreadQueryHints(hints: Map[AnyRef, AnyRef]): Unit = threadedHints.put(hints)
+  def clearPerThreadQueryHints() = threadedHints.clear()
+
+  /**
+   * Checks for attribute transforms in the query and sets them as hints if found
+   *
+   * @param query query
+   * @param sft simple feature type
+   * @return
+   */
+  def setQueryTransforms(query: Query, sft: SimpleFeatureType) = {
+    import scala.collection.JavaConversions._
+    val properties = query.getPropertyNames
+    query.setProperties(Query.ALL_PROPERTIES)
+    if (properties != null && properties.nonEmpty &&
+        properties.toSeq != sft.getAttributeDescriptors.map(_.getLocalName)) {
+      val (transformProps, regularProps) = properties.partition(_.contains('='))
+      val convertedRegularProps = regularProps.map { p => s"$p=$p" }
+      val allTransforms = convertedRegularProps ++ transformProps
+      // ensure that the returned props includes geometry, otherwise we get exceptions everywhere
+      val geomTransform = Option(sft.getGeometryDescriptor).map(_.getLocalName)
+          .filterNot(name => allTransforms.exists(_.matches(s"$name\\s*=.*")))
+          .map(name => Seq(s"$name=$name"))
+          .getOrElse(Nil)
+      val transforms = (allTransforms ++ geomTransform).mkString(";")
+      val transformDefs = TransformProcess.toDefinition(transforms)
+      val derivedSchema = computeSchema(sft, transformDefs.asScala)
+      query.getHints.put(QueryHints.TRANSFORMS, transforms)
+      query.getHints.put(QueryHints.TRANSFORM_SCHEMA, derivedSchema)
+    }
+  }
+
+  private def computeSchema(origSFT: SimpleFeatureType, transforms: Seq[Definition]): SimpleFeatureType = {
+    import scala.collection.JavaConversions._
+    val descriptors: Seq[AttributeDescriptor] = transforms.map { definition =>
+      val name = definition.name
+      val cql  = definition.expression
+      cql match {
+        case p: PropertyName =>
+          val prop = p.getPropertyName
+          if (origSFT.getAttributeDescriptors.exists(_.getLocalName == prop)) {
+            val origAttr = origSFT.getDescriptor(prop)
+            val ab = new AttributeTypeBuilder()
+            ab.init(origAttr)
+            val descriptor = if (origAttr.isInstanceOf[GeometryDescriptor]) {
+              ab.buildDescriptor(name, ab.buildGeometryType())
+            } else {
+              ab.buildDescriptor(name, ab.buildType())
+            }
+            descriptor.getUserData.putAll(origAttr.getUserData)
+            descriptor
+          } else if (PropertyAccessors.findPropertyAccessors(new ScalaSimpleFeature("", origSFT), prop, null, null).nonEmpty) {
+            // note: we return String as we have to use a concrete type, but the json might return anything
+            val ab = new AttributeTypeBuilder().binding(classOf[String])
+            ab.buildDescriptor(name, ab.buildType())
+          } else {
+            throw new IllegalArgumentException(s"Attribute '$prop' does not exist in SFT '${origSFT.getTypeName}'.")
+          }
+
+        case f: FunctionExpressionImpl  =>
+          val clazz = f.getFunctionName.getReturn.getType
+          val ab = new AttributeTypeBuilder().binding(clazz)
+          if (classOf[Geometry].isAssignableFrom(clazz)) {
+            ab.buildDescriptor(name, ab.buildGeometryType())
+          } else {
+            ab.buildDescriptor(name, ab.buildType())
+          }
+      }
+    }
+
+    val geomAttributes = descriptors.filter(_.isInstanceOf[GeometryDescriptor]).map(_.getLocalName)
+    val sftBuilder = new SimpleFeatureTypeBuilder()
+    sftBuilder.setName(origSFT.getName)
+    sftBuilder.addAll(descriptors.toArray)
+    if (geomAttributes.nonEmpty) {
+      val defaultGeom = if (geomAttributes.size == 1) { geomAttributes.head } else {
+        // try to find a geom with the same name as the original default geom
+        val origDefaultGeom = origSFT.getGeometryDescriptor.getLocalName
+        geomAttributes.find(_ == origDefaultGeom).getOrElse(geomAttributes.head)
+      }
+      sftBuilder.setDefaultGeometry(defaultGeom)
+    }
+    val schema = sftBuilder.buildFeatureType()
+    schema.getUserData.putAll(origSFT.getUserData)
+    schema
+  }
+}
+

@@ -15,14 +15,12 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
-import org.locationtech.geomesa.accumulo.index._
+import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, TestWithDataStore}
 import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
 import org.locationtech.geomesa.accumulo.index.z2.Z2Index
 import org.locationtech.geomesa.accumulo.index.z3.Z3Index
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.index.utils.ExplainString
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -51,7 +49,7 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
 
   val ff = CommonFactoryFinder.getFilterFactory2
 
-  def checkStrategies[T](query: Query, strategy: AccumuloFeatureIndex) = {
+  def checkStrategies[T](query: Query, strategy: AccumuloFeatureIndexType) = {
     val out = new ExplainString
     val plan = ds.getQueryPlan(query)
     plan must haveLength(1)
@@ -114,7 +112,7 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
     "handle corner case with attr idx, bbox, and no temporal filter" in {
       val filter = ff.and(ECQL.toFilter("name = 'b'"), ECQL.toFilter("BBOX(geom, 30, 30, 50, 50)"))
       val query = new Query(sftName, filter, Array("geom"))
-      AccumuloStrategyDecider.getFilterPlan(sft, Some(ds), filter, None, None).head.index mustEqual Z2Index
+      ds.queryPlanner.strategyDecider.getFilterPlan(sft, Some(ds), filter, None, None).head.index mustEqual Z2Index
 
       val features = SelfClosingIterator(fs.getFeatures(query)).toList
 
