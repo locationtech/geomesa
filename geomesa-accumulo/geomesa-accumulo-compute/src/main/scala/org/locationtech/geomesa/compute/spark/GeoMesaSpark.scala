@@ -127,9 +127,12 @@ object GeoMesaSpark extends LazyLogging {
         GeoMesaConfigurator.setTable(conf, qp.table)
         GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)
         GeoMesaConfigurator.setFeatureType(conf, sft.getTypeName)
-        if (query.getFilter != Filter.INCLUDE) {
-          GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(query.getFilter))
-        }
+
+        // set the secondary filter if it exists and is  not Filter.INCLUDE
+        qp.filter.secondary
+          .collect { case f if f != Filter.INCLUDE => f }
+          .foreach { f => GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(f)) }
+
         transform.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
 
         // Configure Auths from DS

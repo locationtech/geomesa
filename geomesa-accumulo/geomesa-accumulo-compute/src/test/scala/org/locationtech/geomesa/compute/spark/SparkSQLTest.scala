@@ -8,6 +8,7 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStoreFinder, DataUtilities}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.format.ISODateTimeFormat
+import org.locationtech.geomesa.accumulo.GeomesaSystemProperties.QueryProperties
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloDataStoreParams => GM}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -15,6 +16,9 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import scala.collection.JavaConversions._
 
 object SparkSQLTest extends App {
+
+  System.setProperty(QueryProperties.SCAN_RANGES_TARGET.property, "10")
+  System.setProperty(QueryProperties.SCAN_BATCH_RANGES.property, s"${Int.MaxValue}")
 
   val instance: MockInstance = new MockInstance("mycloud")
   val connector = instance.getConnector("user", new PasswordToken("password"))
@@ -64,7 +68,8 @@ object SparkSQLTest extends App {
 
   import spark.sqlContext.{sql => $}
 
-  $("select * from chicago where (dtg >= cast('2016-01-01' as timestamp) and dtg <= cast('2016-02-01' as timestamp))").show()
+  //$("select * from chicago where (dtg >= cast('2016-01-01' as timestamp) and dtg <= cast('2016-02-01' as timestamp))").show()
+  $("select * from chicago where arrest = 'true' and (dtg >= cast('2016-01-01' as timestamp) and dtg <= cast('2016-02-01' as timestamp)) and st_contains(geom, st_geomFromWKT('POLYGON((-78 37,-76 37,-76 39,-78 39,-78 37))'))").show()
   $("select st_castToPoint(st_geomFromWKT('POINT(-77 38)')) as p").show()
   $("select st_contains(st_castToPoint(st_geomFromWKT('POINT(-77 38)')),st_geomFromWKT('POLYGON((-78 37,-76 37,-76 39,-78 39,-78 37))'))").show()
 

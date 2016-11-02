@@ -13,9 +13,9 @@ import org.apache.spark.sql.sources._
 import org.apache.spark.sql.types.{DataTypes, StructField, StructType}
 import org.apache.spark.sql.{Row, SQLContext, SQLTypes}
 import org.geotools.data._
+import org.geotools.factory.CommonFactoryFinder
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter._
 
 import scala.collection.JavaConversions._
 
@@ -78,19 +78,27 @@ case class GeoMesaRelation(sqlContext: SQLContext,
                            sft: SimpleFeatureType,
                            schema: StructType,
                            params: Map[String, String],
-                           filt: org.opengis.filter.Filter = Filter.INCLUDE,
+                           filt: org.opengis.filter.Filter = org.opengis.filter.Filter.INCLUDE,
                            props: Option[Seq[String]] = None)
   extends BaseRelation with PrunedFilteredScan {
 
   lazy val isMock = params("useMock").toBoolean
 
   override def buildScan(requiredColumns: Array[String], filters: Array[org.apache.spark.sql.sources.Filter]): RDD[Row] = {
-    SparkUtils.buildScan(sft, requiredColumns, filters, Filter.INCLUDE, sqlContext.sparkContext, schema, params)
+    SparkUtils.buildScan(sft, requiredColumns, filters, org.opengis.filter.Filter.INCLUDE, sqlContext.sparkContext, schema, params)
   }
 
+  override def unhandledFilters(filters: Array[Filter]): Array[Filter] = {
+    filters.filter {
+      case t @ (_:IsNotNull | _:IsNull) => true
+      case _ => false
+    }
+  }
 }
 
 object SparkUtils {
+
+  @transient val ff = CommonFactoryFinder.getFilterFactory2
 
   def buildScan(sft: SimpleFeatureType,
                 requiredColumns: Array[String],
@@ -99,9 +107,10 @@ object SparkUtils {
                 ctx: SparkContext,
                 schema: StructType,
                 params: Map[String, String]): RDD[Row] = {
+    val compiledCQL = filters.flatMap(sparkFilterToCQLFilter).foldLeft[org.opengis.filter.Filter](org.opengis.filter.Filter.INCLUDE) { (l, r) => ff.and(l, r) }
     val rdd = GeoMesaSpark.rdd(
       new Configuration(), ctx, params,
-      new Query(params("geomesa.feature"), filt),
+      new Query(params("geomesa.feature"), compiledCQL),
       params("useMock").toBoolean, Option.empty[Int])
 
     val requiredIndexes = requiredColumns.map {
@@ -110,6 +119,23 @@ object SparkUtils {
     }
     val result = rdd.map(SparkUtils.sf2row(schema, _, requiredIndexes))
     result.asInstanceOf[RDD[Row]]
+  }
+
+  def sparkFilterToCQLFilter(filt: org.apache.spark.sql.sources.Filter): Option[org.opengis.filter.Filter] = filt match {
+    case GreaterThanOrEqual(attribute, v) => Some(ff.greaterOrEqual(ff.property(attribute), ff.literal(v)))
+    case GreaterThan(attr, v)             => Some(ff.greater(ff.property(attr), ff.literal(v)))
+    case LessThanOrEqual(attr, v)         => Some(ff.lessOrEqual(ff.property(attr), ff.literal(v)))
+    case LessThan(attr, v)                => Some(ff.less(ff.property(attr), ff.literal(v)))
+    case EqualTo(attr, v)                 => Some(ff.equals(ff.property(attr), ff.literal(v)))
+    case In(attr, values)                 => Some(values.map(v => ff.equals(ff.property(attr), ff.literal(v))).reduce[org.opengis.filter.Filter]( (l,r) => ff.or(l,r)))
+    case And(left, right)                 => Some(ff.and(sparkFilterToCQLFilter(left).get, sparkFilterToCQLFilter(right).get)) // TODO: can these be null
+    case Or(left, right)                  => Some(ff.or(sparkFilterToCQLFilter(left).get, sparkFilterToCQLFilter(right).get))
+    case Not(f)                           => Some(ff.not(sparkFilterToCQLFilter(f).get))
+    case StringStartsWith(a, v)           => Some(ff.like(ff.property(a), s"$v%"))
+    case StringEndsWith(a, v)             => Some(ff.like(ff.property(a), s"%$v"))
+    case StringContains(a, v)             => Some(ff.like(ff.property(a), s"%$v%"))
+    case IsNull(attr)                     => None
+    case IsNotNull(attr)                  => None
   }
 
   def sf2row(schema: StructType, sf: SimpleFeature, requiredIndexes: Array[Int]): Row = {
