@@ -12,6 +12,7 @@ import java.{io => jio, util => ju}
 import javax.imageio.spi.ServiceRegistry
 
 import org.geotools.data.DataAccessFactory.Param
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties.{GEOMESA_AUTH_PROVIDER_IMPL, GEOMESA_AUDIT_PROVIDER_IMPL}
 import org.opengis.feature.simple.SimpleFeature
 
 package object security {
@@ -50,19 +51,16 @@ package object security {
   def getAuthorizationsProvider(params: ju.Map[String, jio.Serializable], auths: Seq[String]): AuthorizationsProvider = {
     import scala.collection.JavaConversions._
 
-    // if the user specifies an auth provider to use, try to use that impl
-    val authProviderSystemProperty = Option(System.getProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY))
-
     // we wrap the authorizations provider in one that will filter based on the max auths configured for this store
     val providers = ServiceRegistry.lookupProviders(classOf[AuthorizationsProvider]).toBuffer
-    val toWrap = authProviderSystemProperty match {
+    val toWrap = GEOMESA_AUTH_PROVIDER_IMPL.option match {
       case Some(prop) =>
         if (classOf[DefaultAuthorizationsProvider].getName == prop)
           new DefaultAuthorizationsProvider
         else
           providers.find(_.getClass.getName == prop).getOrElse {
             throw new IllegalArgumentException(s"The service provider class '$prop' specified by " +
-              s"${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} could not be loaded")
+              s"${GEOMESA_AUTH_PROVIDER_IMPL.property} could not be loaded")
           }
       case None =>
         providers.length match {
@@ -71,8 +69,8 @@ package object security {
           case _ =>
             throw new IllegalStateException(
               "Found multiple AuthorizationsProvider implementations. Please specify the one to use with " +
-                  s"the system property '${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY}' :: " +
-                  s"${providers.map(_.getClass.getName).mkString(", ")}")
+                s"the system property '${GEOMESA_AUTH_PROVIDER_IMPL.property}' :: " +
+                s"${providers.map(_.getClass.getName).mkString(", ")}")
         }
     }
 
@@ -92,7 +90,7 @@ package object security {
     val providers = ServiceRegistry.lookupProviders(classOf[AuditProvider]).toBuffer
 
     // if the user specifies an auth provider to use, try to use that impl
-    val specified = Option(System.getProperty(AuditProvider.AUDIT_PROVIDER_SYS_PROPERTY)).map { prop =>
+    val specified = GEOMESA_AUDIT_PROVIDER_IMPL.option.map { prop =>
       providers.find(_.getClass.getName == prop).getOrElse {
         throw new RuntimeException(s"Could not load audit provider $prop")
       }
@@ -101,7 +99,7 @@ package object security {
       if (providers.length > 1) {
         throw new IllegalStateException(
           "Found multiple AuditProvider implementations. Please specify the one to use with the system " +
-              s"property '${AuditProvider.AUDIT_PROVIDER_SYS_PROPERTY}' :: " +
+              s"property '${GEOMESA_AUDIT_PROVIDER_IMPL.property}' :: " +
               s"${providers.map(_.getClass.getName).mkString(", ")}")
       }
       providers.headOption

@@ -37,6 +37,7 @@ import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatu
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaInputFormat
 import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties.getProperty
 import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
@@ -50,10 +51,11 @@ object GeoMesaSpark extends LazyLogging {
 
   def init(conf: SparkConf, sfts: Seq[SimpleFeatureType]): SparkConf = {
     import GeoMesaInputFormat.SYS_PROP_SPARK_LOAD_CP
+
     val typeOptions = GeoMesaSparkKryoRegistrator.systemProperties(sfts: _*)
     typeOptions.foreach { case (k,v) => System.setProperty(k, v) }
     val typeOpts = typeOptions.map { case (k,v) => s"-D$k=$v" }
-    val jarOpt = sys.props.get(SYS_PROP_SPARK_LOAD_CP).map(v => s"-D$SYS_PROP_SPARK_LOAD_CP=$v")
+    val jarOpt = Option(getProperty(SYS_PROP_SPARK_LOAD_CP)).map(v => s"-D$SYS_PROP_SPARK_LOAD_CP=$v")
     val extraOpts = (typeOpts ++ jarOpt).mkString(" ")
     val newOpts = if (conf.contains("spark.executor.extraJavaOptions")) {
       conf.get("spark.executor.extraJavaOptions").concat(" ").concat(extraOpts)
@@ -481,9 +483,10 @@ object GeoMesaSparkKryoRegistrator {
 
   private def fromSystemProperties(id: Int): Option[SimpleFeatureType] =
     for {
-      name <- sys.props.get(s"geomesa.types.$id.name")
-      spec <- sys.props.get(s"geomesa.types.$id.spec")
+      name <- Option(getProperty(s"geomesa.types.$id.name"))
+      spec <- Option(getProperty(s"geomesa.types.$id.spec"))
     } yield {
       SimpleFeatureTypes.createType(name, spec)
     }
+
 }

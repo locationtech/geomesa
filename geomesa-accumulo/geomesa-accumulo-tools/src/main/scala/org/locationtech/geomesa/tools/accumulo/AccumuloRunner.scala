@@ -14,6 +14,7 @@ import org.locationtech.geomesa.tools.accumulo.commands._
 import org.locationtech.geomesa.tools.accumulo.commands.stats._
 import org.locationtech.geomesa.tools.common.commands.{Command, GenerateAvroSchemaCommand}
 import org.locationtech.geomesa.tools.common.{Prompt, Runner}
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties.{GEOMESA_TOOLS_ACCUMULO_SITE_XML, GeoMesaSystemProperty}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Try
@@ -54,13 +55,14 @@ object AccumuloRunner extends Runner {
   )
 
   /**
+    * Loads geomesa system properties from geomesa-site.xml
     * Loads accumulo properties for instance and zookeepers from the accumulo installation found via
     * the system path in ACCUMULO_HOME in the case that command line parameters are not provided
     */
   override def resolveEnvironment(command: Command): Unit = {
     lazy val zookeepers = {
-      val accumuloSiteXml = Option(System.getProperty("geomesa.tools.accumulo.site.xml"))
-          .getOrElse(s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml")
+      val accumuloSiteXml = GEOMESA_TOOLS_ACCUMULO_SITE_XML
+
       try {
         (XML.loadFile(accumuloSiteXml) \\ "property")
             .filter(x => (x \ "name").text == "instance.zookeeper.host")
@@ -86,10 +88,10 @@ object AccumuloRunner extends Runner {
         p.instance = try {
           // This block checks for the same system property which Accumulo uses for Zookeeper timeouts.
           //  If it is set, we use it.  Otherwise, a timeout of 5 seconds is used.
-          val lookupTime: Long =
-            Option(System.getProperty("instance.zookeeper.timeout")).flatMap{s =>
-              Try { java.lang.Long.parseLong(s) }.toOption
-            }.getOrElse(5000L)
+          //  Don't give default to GeoMesaSystemProperty so .option will throw a None
+          val lookupTime: Long = GeoMesaSystemProperty("instance.zookeeper.timeout").option.flatMap{ p =>
+            Try { java.lang.Long.parseLong(p) }.toOption
+          }.getOrElse(5000L)
 
           logger.debug(s"Looking up Accumulo Instance Id in Zookeeper for $lookupTime milliseconds.")
           logger.debug("You can specify the Instance Id via the command line or\n" +

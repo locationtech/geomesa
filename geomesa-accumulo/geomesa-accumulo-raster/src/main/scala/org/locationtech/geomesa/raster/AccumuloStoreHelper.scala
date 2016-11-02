@@ -16,6 +16,7 @@ import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
 import org.locationtech.geomesa.security._
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties.GEOMESA_AUTH_PROVIDER_IMPL
 
 import scala.collection.JavaConversions._
 
@@ -83,24 +84,21 @@ object AccumuloStoreHelper {
   }
 
   def getAuthorizationsProvider(auths: Seq[String], connector: Connector): AuthorizationsProvider = {
-    // if the user specifies an auth provider to use, try to use that impl
-    val authProviderSystemProperty = Option(System.getProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY))
-
     // we wrap the authorizations provider in one that will filter based on the max auths configured for this store
     val authorizationsProvider = new FilteringAuthorizationsProvider ({
       val providers = ServiceRegistry.lookupProviders(classOf[AuthorizationsProvider]).toBuffer
-      authProviderSystemProperty match {
+      GEOMESA_AUTH_PROVIDER_IMPL.option match {
         case Some(prop) =>
           if (classOf[DefaultAuthorizationsProvider].getName == prop)
             new DefaultAuthorizationsProvider
           else
             providers.find(_.getClass.getName == prop)
               .getOrElse {
-              val message =
-                s"The service provider class '$prop' specified by " +
-                  s"${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} could not be loaded"
-              throw new IllegalArgumentException(message)
-            }
+                val message =
+                  s"The service provider class '$prop' specified by " +
+                    s"${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} could not be loaded"
+                throw new IllegalArgumentException(message)
+              }
         case None =>
           providers.length match {
             case 0 => new DefaultAuthorizationsProvider

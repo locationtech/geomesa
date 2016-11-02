@@ -122,5 +122,11 @@
             <destName>README-process.md</destName>
             <outputDirectory>docs</outputDirectory>
         </file>
+        <!-- geomesa-site.xml.template -->
+        <file>
+            <source>../../../geomesa-utils/src/main/resources/org/locationtech/geomesa/geomesa-site.xml.template</source>
+            <destName>geomesa-site.xml.template</destName>
+            <outputDirectory>conf</outputDirectory>
+        </file>
     </files>
 </component>

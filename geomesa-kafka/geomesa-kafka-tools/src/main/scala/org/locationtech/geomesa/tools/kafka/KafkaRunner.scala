@@ -24,4 +24,5 @@ object KafkaRunner extends Runner {
     new ListenCommand(jc),
     new KeywordCommand(jc)
   )
+
 }
