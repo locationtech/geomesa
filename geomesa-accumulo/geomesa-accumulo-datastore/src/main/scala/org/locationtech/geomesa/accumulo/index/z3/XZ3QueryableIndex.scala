@@ -30,7 +30,7 @@ import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
 
 trait XZ3QueryableIndex extends AccumuloFeatureIndexType
-    with SpatioTemporalFilterStrategy[AccumuloDataStore, AccumuloFeature, Seq[Mutation], Entry[Key, Value]]
+    with SpatioTemporalFilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation, Entry[Key, Value]]
     with LazyLogging {
 
   writable: AccumuloWritableIndex =>

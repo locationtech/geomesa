@@ -52,7 +52,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
 
       ds.getSchema(typeName) must beNull
 
-      ds.createSchema(SimpleFeatureTypes.createType(typeName, "name:String,dtg:Date,*geom:Point:srid=4326"))
+      ds.createSchema(SimpleFeatureTypes.createType(typeName, "name:String:index=true,dtg:Date,*geom:Point:srid=4326"))
 
       val sft = ds.getSchema(typeName)
 
@@ -63,7 +63,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
       val toAdd = (0 until 10).map { i =>
         val sf = new ScalaSimpleFeature(i.toString, sft)
         sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-        sf.setAttribute(0, s"name $i")
+        sf.setAttribute(0, s"name$i")
         sf.setAttribute(1, f"2014-01-${i + 1}%02dT00:00:01.000Z")
         sf.setAttribute(2, s"POINT(4$i 5$i)")
         sf
@@ -76,6 +76,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
       testQuery(ds, typeName, "IN('0', '2')", null, Seq(toAdd(0), toAdd(2)))
       testQuery(ds, typeName, "bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", null, toAdd.dropRight(2))
       testQuery(ds, typeName, "bbox(geom,42,48,52,62)", null, toAdd.drop(2))
+      testQuery(ds, typeName, "name < 'name5'", null, toAdd.take(5))
     }
 
     "work with polys" in {
@@ -97,7 +98,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
       val toAdd = (0 until 10).map { i =>
         val sf = new ScalaSimpleFeature(i.toString, sft)
         sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-        sf.setAttribute(0, s"name $i")
+        sf.setAttribute(0, s"name$i")
         sf.setAttribute(1, s"2014-01-01T0$i:00:01.000Z")
         sf.setAttribute(2, s"POLYGON((-120 4$i, -120 50, -125 50, -125 4$i, -120 4$i))")
         sf

@@ -27,7 +27,7 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
 
   // note: keep in priority order for running full table scans
   override val AllIndices: Seq[HBaseFeatureIndex] =
-    Seq(HBaseZ3Index, HBaseXZ3Index, HBaseZ2Index, HBaseXZ2Index, HBaseIdIndex)
+    Seq(HBaseZ3Index, HBaseXZ3Index, HBaseZ2Index, HBaseXZ2Index, HBaseIdIndex, HBaseAttributeIndex)
 
   override val CurrentIndices: Seq[HBaseFeatureIndex] = AllIndices
 

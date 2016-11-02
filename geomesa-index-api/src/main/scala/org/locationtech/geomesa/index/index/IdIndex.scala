@@ -29,21 +29,21 @@ trait IdIndex[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
 
   override def supports(sft: SimpleFeatureType): Boolean = true
 
-  override def writer(sft: SimpleFeatureType, ds: DS): (F) => W = {
+  override def writer(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
     val sharing = sft.getTableSharingBytes
     (wf) => {
       val id = wf.feature.getID.getBytes(StandardCharsets.UTF_8)
       val row = Bytes.concat(sharing, id)
-      createInsert(row, wf)
+      Seq(createInsert(row, wf))
     }
   }
 
-  override def remover(sft: SimpleFeatureType, ds: DS): (F) => W = {
+  override def remover(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
     val sharing = sft.getTableSharingBytes
     (wf) => {
       val id = wf.feature.getID.getBytes(StandardCharsets.UTF_8)
       val row = Bytes.concat(sharing, id)
-      createDelete(row, wf)
+      Seq(createDelete(row, wf))
     }
   }
 
@@ -60,7 +60,6 @@ trait IdIndex[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
                             filter: FilterStrategy[DS, F, W, Q],
                             hints: Hints,
                             explain: Explainer): QueryPlan[DS, F, W, Q] = {
-    import org.locationtech.geomesa.filter.FilterHelper._
 
     if (filter.primary.isEmpty) {
       filter.secondary.foreach { f =>

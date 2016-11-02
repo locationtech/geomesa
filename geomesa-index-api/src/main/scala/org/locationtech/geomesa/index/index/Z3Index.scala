@@ -35,22 +35,22 @@ trait Z3Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
 
   override def supports(sft: SimpleFeatureType): Boolean = sft.getDtgField.isDefined && sft.isPoints
 
-  override def writer(sft: SimpleFeatureType, ds: DS): (F) => W = {
+  override def writer(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
     val sharing = sft.getTableSharingBytes
     val sfc = Z3SFC(sft.getZ3Interval)
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
 
-    (wf) => createInsert(getRowKey(sfc, sharing, dtgIndex, timeToIndex, wf), wf)
+    (wf) => Seq(createInsert(getRowKey(sfc, sharing, dtgIndex, timeToIndex, wf), wf))
   }
 
-  override def remover(sft: SimpleFeatureType, ds: DS): (F) => W = {
+  override def remover(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
     val sharing = sft.getTableSharingBytes
     val sfc = Z3SFC(sft.getZ3Interval)
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
 
-    (wf) => createDelete(getRowKey(sfc, sharing, dtgIndex, timeToIndex, wf), wf)
+    (wf) => Seq(createDelete(getRowKey(sfc, sharing, dtgIndex, timeToIndex, wf), wf))
   }
 
   private def getRowKey(sfc: Z3SFC,
@@ -153,7 +153,9 @@ trait Z3Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
         val binBytes = Shorts.toByteArray(b)
         val prefixes = IndexAdapter.DefaultSplitArrays.map(concat(sharing, _, binBytes))
         prefixes.flatMap { prefix =>
-          zs.map { case (lo, hi) => range(concat(prefix, lo), concat(prefix, hi)) }
+          zs.map { case (lo, hi) =>
+            range(concat(prefix, lo), IndexAdapter.followingRow(concat(prefix, hi)))
+          }
         }
       }
 

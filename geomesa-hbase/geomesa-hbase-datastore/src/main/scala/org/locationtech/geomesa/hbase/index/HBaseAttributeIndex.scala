@@ -10,9 +10,9 @@ package org.locationtech.geomesa.hbase.index
 
 import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.hbase.data._
-import org.locationtech.geomesa.index.index.Z2Index
+import org.locationtech.geomesa.index.index.AttributeIndex
 
-case object HBaseZ2Index
-    extends HBaseFeatureIndex with Z2Index[HBaseDataStore, HBaseFeature, Mutation, Result, Query] {
+case object HBaseAttributeIndex
+    extends HBaseFeatureIndex with AttributeIndex[HBaseDataStore, HBaseFeature, Mutation, Result, Query] {
   override val version: Int = 1
 }

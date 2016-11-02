@@ -35,14 +35,14 @@ trait Z2Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
 
   override def supports(sft: SimpleFeatureType): Boolean = sft.isPoints
 
-  override def writer(sft: SimpleFeatureType, ds: DS): (F) => W = {
+  override def writer(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
     val sharing = sft.getTableSharingBytes
-    (wf) => createInsert(getRowKey(sharing, wf), wf)
+    (wf) => Seq(createInsert(getRowKey(sharing, wf), wf))
   }
 
-  override def remover(sft: SimpleFeatureType, ds: DS): (F) => W = {
+  override def remover(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
     val sharing = sft.getTableSharingBytes
-    (wf) => createDelete(getRowKey(sharing, wf), wf)
+    (wf) => Seq(createDelete(getRowKey(sharing, wf), wf))
   }
 
   private def getRowKey(sharing: Array[Byte], wrapper: F): Array[Byte] = {
@@ -86,14 +86,18 @@ trait Z2Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
 
     // compute our accumulo ranges based on the coarse bounds for our query
     val ranges = if (filter.primary.isEmpty) { Seq(rangePrefix(sharing)) } else {
+      import com.google.common.primitives.Bytes.concat
+
       val xy = geometries.map(GeometryUtils.bounds)
 
       val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
       val zs = Z2SFC.ranges(xy, 64, rangeTarget).map(r => (Longs.toByteArray(r.lower), Longs.toByteArray(r.upper)))
-      val prefixes = DefaultSplitArrays.map(Bytes.concat(sharing, _))
+      val prefixes = DefaultSplitArrays.map(concat(sharing, _))
 
       prefixes.flatMap { prefix =>
-        zs.map { case (lo, hi) => range(Bytes.concat(prefix, lo), Bytes.concat(prefix, hi)) }
+        zs.map { case (lo, hi) =>
+          range(concat(prefix, lo), IndexAdapter.followingRow(concat(prefix, hi)))
+        }
       }
     }
 
