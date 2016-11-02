@@ -13,16 +13,16 @@ import java.util.concurrent.TimeUnit
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.BatchWriterConfig
 import org.locationtech.geomesa.accumulo.GeomesaSystemProperties
-import org.locationtech.geomesa.utils.conf.GeoMesaProperties.PropOrDefault
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties.GeoMesaSystemProperty
 
 import scala.util.Try
 
 object GeoMesaBatchWriterConfig extends LazyLogging {
 
-  protected[util] def fetchProperty(prop: PropOrDefault): Option[Long] =
+  protected[util] def fetchProperty(prop: GeoMesaSystemProperty): Option[Long] =
     for { p <- prop.option; num <- Try(java.lang.Long.parseLong(p)).toOption } yield num
 
-  protected[util] def fetchMemoryProperty(prop: PropOrDefault): Option[Long] =
+  protected[util] def fetchMemoryProperty(prop: GeoMesaSystemProperty): Option[Long] =
     for { p <- prop.option; num <- parseMemoryProperty(p) } yield num
 
   protected[util] def parseMemoryProperty(prop: String): Option[Long] = {

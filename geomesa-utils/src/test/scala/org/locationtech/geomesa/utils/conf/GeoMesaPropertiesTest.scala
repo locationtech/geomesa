@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.utils.conf
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.conf.GeoMesaProperties.PropOrDefault
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties.GeoMesaSystemProperty
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import com.typesafe.scalalogging.LazyLogging
@@ -25,10 +25,10 @@ class GeoMesaPropertiesTest extends Specification with LazyLogging {
   val REAL_PROP = "geomesa.stats.compact.millis"
   val REAL_PROP_VAL = "3600000"
 
-  def testProp1 = PropOrDefault(TEST_PROP_1)
-  def testProp2 = PropOrDefault(TEST_PROP_2, "default")
+  def testProp1 = GeoMesaSystemProperty(TEST_PROP_1)
+  def testProp2 = GeoMesaSystemProperty(TEST_PROP_2, "default")
   // This is loaded from embedded config
-  def realProp = PropOrDefault(REAL_PROP)
+  def realProp = GeoMesaSystemProperty(REAL_PROP)
 
   "props" should {
     "contain system properties" in {
@@ -39,7 +39,7 @@ class GeoMesaPropertiesTest extends Specification with LazyLogging {
     }
   }
 
-  "PropOrDefault" should {
+  "GeoMesaSystemProperty" should {
     "return proper values" in {
       testProp1.default must beNull
       testProp1.get must beNull

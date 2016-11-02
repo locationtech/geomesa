@@ -43,24 +43,24 @@ object GeoMesaProperties extends LazyLogging {
     if (siteXML != null) siteXML
     else s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml"
   }
-  def GEOMESA_AUDIT_PROVIDER_IMPL       = PropOrDefault("geomesa.audit.provider.impl")
-  def GEOMESA_AUTH_PROVIDER_IMPL        = PropOrDefault("geomesa.auth.provider.impl")
-  def GEOMESA_BATCHWRITER_LATENCY_MILLS = PropOrDefault("geomesa.batchwriter.latency.millis")
-  def GEOMESA_BATCHWRITER_MAXTHREADS    = PropOrDefault("geomesa.batchwriter.maxthreads")
-  def GEOMESA_BATCHWRITER_MEMORY        = PropOrDefault("geomesa.batchwriter.memory")
-  def GEOMESA_BATCHWRITER_TIMEOUT_MILLS = PropOrDefault("geomesa.batchwriter.timeout.millis")
-  def GEOMESA_CONVERT_CONFIG_URLS       = PropOrDefault("geomesa.convert.config.urls")
-  def GEOMESA_CONVERT_SCRIPTS_PATH      = PropOrDefault("geomesa.convert.scripts.path")
-  def GEOMESA_FEATURE_ID_GENERATOR      = PropOrDefault("geomesa.feature.id-generator")
-  def GEOMESA_FORCE_COUNT               = PropOrDefault("geomesa.force.count")
-  def GEOMESA_QUERY_COST_TYPE           = PropOrDefault("geomesa.query.cost.type")
-  def GEOMESA_QUERY_TIMEOUT_MILLS       = PropOrDefault("geomesa.query.timeout.millis")
-  def GEOMESA_SCAN_RANGES_TARGET        = PropOrDefault("geomesa.scan.ranges.target")
-  def GEOMESA_SCAN_RANGES_BATCH         = PropOrDefault("geomesa.scan.ranges.batch")
-  def GEOMESA_SFT_CONFIG_URLS           = PropOrDefault("geomesa.sft.config.urls")
-  def GEOMESA_STATS_COMPACT_MILLIS      = PropOrDefault("geomesa.stats.compact.millis")
+  def GEOMESA_AUDIT_PROVIDER_IMPL       = GeoMesaSystemProperty("geomesa.audit.provider.impl")
+  def GEOMESA_AUTH_PROVIDER_IMPL        = GeoMesaSystemProperty("geomesa.auth.provider.impl")
+  def GEOMESA_BATCHWRITER_LATENCY_MILLS = GeoMesaSystemProperty("geomesa.batchwriter.latency.millis")
+  def GEOMESA_BATCHWRITER_MAXTHREADS    = GeoMesaSystemProperty("geomesa.batchwriter.maxthreads")
+  def GEOMESA_BATCHWRITER_MEMORY        = GeoMesaSystemProperty("geomesa.batchwriter.memory")
+  def GEOMESA_BATCHWRITER_TIMEOUT_MILLS = GeoMesaSystemProperty("geomesa.batchwriter.timeout.millis")
+  def GEOMESA_CONVERT_CONFIG_URLS       = GeoMesaSystemProperty("geomesa.convert.config.urls")
+  def GEOMESA_CONVERT_SCRIPTS_PATH      = GeoMesaSystemProperty("geomesa.convert.scripts.path")
+  def GEOMESA_FEATURE_ID_GENERATOR      = GeoMesaSystemProperty("geomesa.feature.id-generator")
+  def GEOMESA_FORCE_COUNT               = GeoMesaSystemProperty("geomesa.force.count")
+  def GEOMESA_QUERY_COST_TYPE           = GeoMesaSystemProperty("geomesa.query.cost.type")
+  def GEOMESA_QUERY_TIMEOUT_MILLS       = GeoMesaSystemProperty("geomesa.query.timeout.millis")
+  def GEOMESA_SCAN_RANGES_TARGET        = GeoMesaSystemProperty("geomesa.scan.ranges.target")
+  def GEOMESA_SCAN_RANGES_BATCH         = GeoMesaSystemProperty("geomesa.scan.ranges.batch")
+  def GEOMESA_SFT_CONFIG_URLS           = GeoMesaSystemProperty("geomesa.sft.config.urls")
+  def GEOMESA_STATS_COMPACT_MILLIS      = GeoMesaSystemProperty("geomesa.stats.compact.millis")
 
-  case class PropOrDefault(property: String, dft: String = null) {
+  case class GeoMesaSystemProperty(property: String, dft: String = null) {
     ensureConfig()
     var default = if (dft != null) dft
                   else Option(getProperty(property)).getOrElse(dft)

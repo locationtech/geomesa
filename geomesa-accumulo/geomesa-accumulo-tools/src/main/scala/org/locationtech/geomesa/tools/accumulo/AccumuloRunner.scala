@@ -14,7 +14,7 @@ import org.locationtech.geomesa.tools.accumulo.commands._
 import org.locationtech.geomesa.tools.accumulo.commands.stats._
 import org.locationtech.geomesa.tools.common.commands.{Command, GenerateAvroSchemaCommand}
 import org.locationtech.geomesa.tools.common.{Prompt, Runner}
-import org.locationtech.geomesa.utils.conf.GeoMesaProperties.{GEOMESA_TOOLS_ACCUMULO_SITE_XML, PropOrDefault}
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties.{GEOMESA_TOOLS_ACCUMULO_SITE_XML, GeoMesaSystemProperty}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Try
@@ -88,8 +88,8 @@ object AccumuloRunner extends Runner {
         p.instance = try {
           // This block checks for the same system property which Accumulo uses for Zookeeper timeouts.
           //  If it is set, we use it.  Otherwise, a timeout of 5 seconds is used.
-          //  Don't give default to PropOrDefault so .option will throw a None
-          val lookupTime: Long = PropOrDefault("instance.zookeeper.timeout").option.flatMap{ p =>
+          //  Don't give default to GeoMesaSystemProperty so .option will throw a None
+          val lookupTime: Long = GeoMesaSystemProperty("instance.zookeeper.timeout").option.flatMap{ p =>
             Try { java.lang.Long.parseLong(p) }.toOption
           }.getOrElse(5000L)
 
