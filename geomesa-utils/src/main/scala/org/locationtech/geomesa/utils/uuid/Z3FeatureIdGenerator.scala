@@ -9,7 +9,9 @@
 package org.locationtech.geomesa.utils.uuid
 
 import java.util.{Date, UUID}
+
 import com.google.common.primitives.{Bytes, Longs, Shorts}
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
@@ -49,7 +51,7 @@ class Z3FeatureIdGenerator extends FeatureIdGenerator {
  *   2 bits for the UUID variant
  *   62 bits of randomness
  */
-object Z3UuidGenerator extends RandomLsbUuidGenerator {
+object Z3UuidGenerator extends RandomLsbUuidGenerator with LazyLogging {
 
   /**
    * Creates a UUID where the first 8 bytes are based on the z3 index of the feature and
@@ -62,6 +64,8 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator {
         .getOrElse(System.currentTimeMillis())
 
     val pt = sf.getAttribute(sft.getGeomIndex)
+    validateGeometry(pt.asInstanceOf[Geometry])
+
     if (sft.isPoints) {
       createUuid(pt.asInstanceOf[Point], time, sft.getZ3Interval)
     } else {
@@ -71,11 +75,15 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator {
   }
 
   def createUuid(geom: Geometry, time: Long, period: TimePeriod): UUID = {
+    validateGeometry(geom)
+
     import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
     createUuid(geom.safeCentroid(), time, period)
   }
 
-  def createUuid(pt: Point, time: Long, period: TimePeriod) = {
+  def createUuid(pt: Point, time: Long, period: TimePeriod): UUID = {
+    validateGeometry(pt)
+
     // create the random part
     // this uses the same temp array we use later, so be careful with the order this gets called
     val leastSigBits = createRandomLsb()
@@ -108,6 +116,11 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator {
     val mostSigBits = Longs.fromByteArray(msb)
 
     new UUID(mostSigBits, leastSigBits)
+  }
+
+  // features with a null geometry-to-index should be rejected
+  private def validateGeometry(geom: Geometry): Unit = if (geom == null) {
+    throw new IllegalArgumentException("Cannot meaningfully index a feature with a NULL geometry")
   }
 
   // takes 4 low bits from b1 and 4 high bits of b2 as a new byte
