@@ -20,71 +20,72 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 object QueryHints {
 
-  // SimpleFeature Hints
-  val TRANSFORMS           = new ClassKey(classOf[String])
-  val TRANSFORM_SCHEMA     = new ClassKey(classOf[SimpleFeatureType])
-  val RETURN_SFT_KEY       = new ClassKey(classOf[SimpleFeatureType])
-  val QUERY_INDEX_KEY      = new ClassKey(classOf[GeoMesaFeatureIndex[_, _, _, _]])
-  val COST_EVALUATION_KEY  = new ClassKey(classOf[CostEvaluation])
+  val QUERY_INDEX      = new ClassKey(classOf[GeoMesaFeatureIndex[_, _, _, _]])
+  val COST_EVALUATION  = new ClassKey(classOf[CostEvaluation])
 
-  val DENSITY_BBOX_KEY     = new ClassKey(classOf[ReferencedEnvelope])
-  val DENSITY_WEIGHT       = new ClassKey(classOf[java.lang.String])
-  val WIDTH_KEY            = new IntegerKey(256)
-  val HEIGHT_KEY           = new IntegerKey(256)
+  val DENSITY_BBOX     = new ClassKey(classOf[ReferencedEnvelope])
+  val DENSITY_WEIGHT   = new ClassKey(classOf[java.lang.String])
+  val DENSITY_WIDTH    = new IntegerKey(256)
+  val DENSITY_HEIGHT   = new IntegerKey(256)
 
-  val STATS_KEY            = new ClassKey(classOf[java.lang.String])
-  val RETURN_ENCODED_KEY   = new ClassKey(classOf[java.lang.Boolean])
-  val MAP_AGGREGATION_KEY  = new ClassKey(classOf[java.lang.String])
+  val STATS_STRING     = new ClassKey(classOf[java.lang.String])
+  val ENCODE_STATS     = new ClassKey(classOf[java.lang.Boolean])
+  val MAP_AGGREGATION  = new ClassKey(classOf[java.lang.String])
 
-  val EXACT_COUNT          = new ClassKey(classOf[java.lang.Boolean])
-  val LOOSE_BBOX           = new ClassKey(classOf[java.lang.Boolean])
+  val EXACT_COUNT      = new ClassKey(classOf[java.lang.Boolean])
+  val LOOSE_BBOX       = new ClassKey(classOf[java.lang.Boolean])
 
-  val SAMPLING_KEY         = new ClassKey(classOf[java.lang.Float])
-  val SAMPLE_BY_KEY        = new ClassKey(classOf[String])
+  val SAMPLING         = new ClassKey(classOf[java.lang.Float])
+  val SAMPLE_BY        = new ClassKey(classOf[String])
 
-  val BIN_TRACK_KEY        = new ClassKey(classOf[java.lang.String])
-  val BIN_GEOM_KEY         = new ClassKey(classOf[java.lang.String])
-  val BIN_DTG_KEY          = new ClassKey(classOf[java.lang.String])
-  val BIN_LABEL_KEY        = new ClassKey(classOf[java.lang.String])
-  val BIN_SORT_KEY         = new ClassKey(classOf[java.lang.Boolean])
-  val BIN_BATCH_SIZE_KEY   = new ClassKey(classOf[java.lang.Integer])
+  val BIN_TRACK        = new ClassKey(classOf[java.lang.String])
+  val BIN_GEOM         = new ClassKey(classOf[java.lang.String])
+  val BIN_DTG          = new ClassKey(classOf[java.lang.String])
+  val BIN_LABEL        = new ClassKey(classOf[java.lang.String])
+  val BIN_SORT         = new ClassKey(classOf[java.lang.Boolean])
+  val BIN_BATCH_SIZE   = new ClassKey(classOf[java.lang.Integer])
 
-  val CONFIGURED_KEY       = new ClassKey(classOf[java.lang.Boolean])
+  // internal hints that shouldn't be set directly by users
+  object Internal {
+    val RETURN_SFT       = new ClassKey(classOf[SimpleFeatureType])
+    val TRANSFORMS       = new ClassKey(classOf[String])
+    val TRANSFORM_SCHEMA = new ClassKey(classOf[SimpleFeatureType])
+  }
 
   implicit class RichHints(val hints: Hints) extends AnyRef {
 
-    def getReturnSft: SimpleFeatureType = hints.get(RETURN_SFT_KEY).asInstanceOf[SimpleFeatureType]
+    def getReturnSft: SimpleFeatureType = hints.get(Internal.RETURN_SFT).asInstanceOf[SimpleFeatureType]
     def getRequestedIndex[O <: GeoMesaDataStore[O, F, W, Q], F <: WrappedFeature, W, Q]: Option[GeoMesaFeatureIndex[O, F, W, Q]] =
-      Option(hints.get(QUERY_INDEX_KEY).asInstanceOf[GeoMesaFeatureIndex[O, F, W, Q]])
+      Option(hints.get(QUERY_INDEX).asInstanceOf[GeoMesaFeatureIndex[O, F, W, Q]])
     def getCostEvaluation: CostEvaluation = {
-      Option(hints.get(COST_EVALUATION_KEY).asInstanceOf[CostEvaluation])
+      Option(hints.get(COST_EVALUATION).asInstanceOf[CostEvaluation])
           .orElse(QueryProperties.QUERY_COST_TYPE.option.flatMap(t => CostEvaluation.values.find(_.toString.equalsIgnoreCase(t))))
           .getOrElse(CostEvaluation.Stats)
     }
-    def isBinQuery: Boolean = hints.containsKey(BIN_TRACK_KEY)
-    def getBinTrackIdField: String = hints.get(BIN_TRACK_KEY).asInstanceOf[String]
-    def getBinGeomField: Option[String] = Option(hints.get(BIN_GEOM_KEY).asInstanceOf[String])
-    def getBinDtgField: Option[String] = Option(hints.get(BIN_DTG_KEY).asInstanceOf[String])
-    def getBinLabelField: Option[String] = Option(hints.get(BIN_LABEL_KEY).asInstanceOf[String])
+    def isBinQuery: Boolean = hints.containsKey(BIN_TRACK)
+    def getBinTrackIdField: String = hints.get(BIN_TRACK).asInstanceOf[String]
+    def getBinGeomField: Option[String] = Option(hints.get(BIN_GEOM).asInstanceOf[String])
+    def getBinDtgField: Option[String] = Option(hints.get(BIN_DTG).asInstanceOf[String])
+    def getBinLabelField: Option[String] = Option(hints.get(BIN_LABEL).asInstanceOf[String])
     def getBinBatchSize: Int =
-      Option(hints.get(BIN_BATCH_SIZE_KEY).asInstanceOf[Integer]).map(_.intValue).getOrElse(1000)
-    def isBinSorting: Boolean = hints.get(BIN_SORT_KEY).asInstanceOf[Boolean]
-    def getSamplePercent: Option[Float] = Option(hints.get(SAMPLING_KEY)).map(_.asInstanceOf[Float])
-    def getSampleByField: Option[String] = Option(hints.get(SAMPLE_BY_KEY).asInstanceOf[String])
+      Option(hints.get(BIN_BATCH_SIZE).asInstanceOf[Integer]).map(_.intValue).getOrElse(1000)
+    def isBinSorting: Boolean = hints.get(BIN_SORT).asInstanceOf[Boolean]
+    def getSamplePercent: Option[Float] = Option(hints.get(SAMPLING)).map(_.asInstanceOf[Float])
+    def getSampleByField: Option[String] = Option(hints.get(SAMPLE_BY).asInstanceOf[String])
     def getSampling: Option[(Float, Option[String])] = getSamplePercent.map((_, getSampleByField))
-    def isDensityQuery: Boolean = hints.containsKey(DENSITY_BBOX_KEY)
-    def getDensityEnvelope: Option[Envelope] = Option(hints.get(DENSITY_BBOX_KEY).asInstanceOf[Envelope])
+    def isDensityQuery: Boolean = hints.containsKey(DENSITY_BBOX)
+    def getDensityEnvelope: Option[Envelope] = Option(hints.get(DENSITY_BBOX).asInstanceOf[Envelope])
     def getDensityBounds: Option[(Int, Int)] =
-      for { w <- Option(hints.get(WIDTH_KEY).asInstanceOf[Int])
-            h <- Option(hints.get(HEIGHT_KEY).asInstanceOf[Int]) } yield (w, h)
+      for { w <- Option(hints.get(DENSITY_WIDTH).asInstanceOf[Int])
+            h <- Option(hints.get(DENSITY_HEIGHT).asInstanceOf[Int]) } yield (w, h)
     def getDensityWeight: Option[String] = Option(hints.get(DENSITY_WEIGHT).asInstanceOf[String])
-    def isStatsIteratorQuery: Boolean = hints.containsKey(STATS_KEY)
-    def getStatsIteratorQuery: String = hints.get(STATS_KEY).asInstanceOf[String]
-    def isMapAggregatingQuery: Boolean = hints.containsKey(MAP_AGGREGATION_KEY)
-    def getMapAggregatingAttribute: String = hints.get(MAP_AGGREGATION_KEY).asInstanceOf[String]
-    def getTransformDefinition: Option[String] = Option(hints.get(TRANSFORMS).asInstanceOf[String])
+    def isStatsIteratorQuery: Boolean = hints.containsKey(STATS_STRING)
+    def getStatsIteratorQuery: String = hints.get(STATS_STRING).asInstanceOf[String]
+    def isMapAggregatingQuery: Boolean = hints.containsKey(MAP_AGGREGATION)
+    def getMapAggregatingAttribute: String = hints.get(MAP_AGGREGATION).asInstanceOf[String]
+    def getTransformDefinition: Option[String] = Option(hints.get(Internal.TRANSFORMS).asInstanceOf[String])
     def getTransformSchema: Option[SimpleFeatureType] =
-      Option(hints.get(TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType])
+      Option(hints.get(Internal.TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType])
     def getTransform: Option[(String, SimpleFeatureType)] =
       hints.getTransformDefinition.flatMap(d => hints.getTransformSchema.map((d, _)))
     def isExactCount: Option[Boolean] = Option(hints.get(EXACT_COUNT)).map(_.asInstanceOf[Boolean])

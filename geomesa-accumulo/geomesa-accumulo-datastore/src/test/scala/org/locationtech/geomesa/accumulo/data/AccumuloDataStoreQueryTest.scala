@@ -367,8 +367,8 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       addFeature(sft, ScalaSimpleFeature.create(sft, "2", "name2", "2010-05-07T01:00:00.000Z", "POINT(45 45)"))
 
       val query = new Query(sft.getTypeName, ECQL.toFilter("BBOX(geom,40,40,50,50)"))
-      query.getHints.put(BIN_TRACK_KEY, "name")
-      query.getHints.put(BIN_BATCH_SIZE_KEY, 1000)
+      query.getHints.put(BIN_TRACK, "name")
+      query.getHints.put(BIN_BATCH_SIZE, 1000)
       val queryPlanner = new AccumuloQueryPlanner(ds)
       val results = queryPlanner.runQuery(sft, query, Some(Z2Index)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
@@ -394,9 +394,9 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
       forall(Seq(2, 1000)) { batch =>
         val query = new Query(sft.getTypeName, ECQL.toFilter("BBOX(geom,40,40,55,55)"))
-        query.getHints.put(BIN_TRACK_KEY, "name")
-        query.getHints.put(BIN_BATCH_SIZE_KEY, batch)
-        query.getHints.put(BIN_DTG_KEY, "dtgs")
+        query.getHints.put(BIN_TRACK, "name")
+        query.getHints.put(BIN_BATCH_SIZE, batch)
+        query.getHints.put(BIN_DTG, "dtgs")
 
         val bytes = ds.getFeatureSource(sft.getTypeName).getFeatures(query).features().map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
         forall(bytes)(_ must beAnInstanceOf[Array[Byte]])
@@ -464,34 +464,34 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         res must containTheSameElementsAs(Seq("fid-1"))
       }
 
-      query.getHints.put(QUERY_INDEX_KEY, AttributeIndex)
+      query.getHints.put(QUERY_INDEX, AttributeIndex)
       expectStrategy(AttributeIndex)
 
-      query.getHints.put(QUERY_INDEX_KEY, Z2Index)
+      query.getHints.put(QUERY_INDEX, Z2Index)
       expectStrategy(Z2Index)
 
-      query.getHints.put(QUERY_INDEX_KEY, Z3Index)
+      query.getHints.put(QUERY_INDEX, Z3Index)
       expectStrategy(Z3Index)
 
-      query.getHints.put(QUERY_INDEX_KEY, RecordIndex)
+      query.getHints.put(QUERY_INDEX, RecordIndex)
       expectStrategy(RecordIndex)
 
       val viewParams =  new java.util.HashMap[String, String]
       query.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, viewParams)
 
-      query.getHints.remove(QUERY_INDEX_KEY)
+      query.getHints.remove(QUERY_INDEX)
       viewParams.put("STRATEGY", "attr")
       expectStrategy(AttributeIndex)
 
-      query.getHints.remove(QUERY_INDEX_KEY)
+      query.getHints.remove(QUERY_INDEX)
       viewParams.put("STRATEGY", "Z2")
       expectStrategy(Z2Index)
 
-      query.getHints.remove(QUERY_INDEX_KEY)
+      query.getHints.remove(QUERY_INDEX)
       viewParams.put("STRATEGY", "Z3")
       expectStrategy(Z3Index)
 
-      query.getHints.remove(QUERY_INDEX_KEY)
+      query.getHints.remove(QUERY_INDEX)
       viewParams.put("STRATEGY", "RECORDS")
       expectStrategy(RecordIndex)
 

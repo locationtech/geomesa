@@ -114,9 +114,9 @@ class DensityProcess extends VectorProcess {
     val invertedQuery = new Query(targetQuery)
     invertedQuery.setFilter(filter)
     invertedQuery.setProperties(null)
-    invertedQuery.getHints.put(QueryHints.DENSITY_BBOX_KEY, argOutputEnv)
-    invertedQuery.getHints.put(QueryHints.WIDTH_KEY, argOutputWidth)
-    invertedQuery.getHints.put(QueryHints.HEIGHT_KEY, argOutputHeight)
+    invertedQuery.getHints.put(QueryHints.DENSITY_BBOX, argOutputEnv)
+    invertedQuery.getHints.put(QueryHints.DENSITY_WIDTH, argOutputWidth)
+    invertedQuery.getHints.put(QueryHints.DENSITY_HEIGHT, argOutputHeight)
     if (argWeightAttr != null) {
       invertedQuery.getHints.put(QueryHints.DENSITY_WEIGHT, argWeightAttr)
     }

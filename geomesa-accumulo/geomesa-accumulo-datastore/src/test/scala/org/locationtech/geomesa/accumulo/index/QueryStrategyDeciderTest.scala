@@ -120,7 +120,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
     def getStrategies(filter: Filter, explain: Explainer = ExplainNull): Seq[AccumuloFilterStrategyType] = {
       // default behavior for this test is to use the index-based query costs
       val query = new Query(sftName, filter)
-      query.getHints.put(QueryHints.COST_EVALUATION_KEY, CostEvaluation.Index)
+      query.getHints.put(QueryHints.COST_EVALUATION, CostEvaluation.Index)
       ds.getQueryPlan(query, explainer = explain).map(_.filter)
     }
 

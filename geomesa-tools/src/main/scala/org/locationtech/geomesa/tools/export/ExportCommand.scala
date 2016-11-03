@@ -103,7 +103,7 @@ object ExportCommand extends LazyLogging {
     val q = new Query(params.featureName, filter, attributes.map(_.toArray).orNull)
     Option(params.maxFeatures).map(Int.unbox).foreach(q.setMaxFeatures)
     params.loadIndex(ds, IndexMode.Read).foreach { index =>
-      q.getHints.put(QueryHints.QUERY_INDEX_KEY, index)
+      q.getHints.put(QueryHints.QUERY_INDEX, index)
       logger.debug(s"Using index ${index.identifier}")
     }
 

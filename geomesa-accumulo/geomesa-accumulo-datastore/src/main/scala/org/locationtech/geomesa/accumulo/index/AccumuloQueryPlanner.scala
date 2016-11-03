@@ -67,7 +67,7 @@ class AccumuloQueryPlanner(ds: AccumuloDataStore) extends AccumuloQueryPlannerTy
     } else {
       query.getHints.getTransformSchema.getOrElse(baseSft)
     }
-    query.getHints.put(QueryHints.RETURN_SFT_KEY, sft)
+    query.getHints.put(QueryHints.Internal.RETURN_SFT, sft)
     sft
   }
 }

@@ -93,8 +93,8 @@ class AccumuloGeoMesaStats(val ds: AccumuloDataStore, statsTable: String, val ge
 
   override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter): Seq[T] = {
     val query = new Query(sft.getTypeName, filter)
-    query.getHints.put(QueryHints.STATS_KEY, stats)
-    query.getHints.put(QueryHints.RETURN_ENCODED_KEY, java.lang.Boolean.TRUE)
+    query.getHints.put(QueryHints.STATS_STRING, stats)
+    query.getHints.put(QueryHints.ENCODE_STATS, java.lang.Boolean.TRUE)
 
     try {
       val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)

@@ -28,7 +28,7 @@ class StatsEndpoint(val persistence: FilePersistence) extends GeoMesaDataStoreSe
   override protected implicit def jsonFormats: Formats = DefaultFormats
 
   private val dtFormat = ISODateTimeFormat.dateTime().withZoneUTC()
-  private val binHintString = QueryEvent.keyToString(QueryHints.BIN_TRACK_KEY)
+  private val binHintString = QueryEvent.keyToString(QueryHints.BIN_TRACK)
 
   before() {
     contentType = formats("json")

@@ -38,7 +38,7 @@ trait ExplainCommand[DS <: GeoMesaDataStore[DS, _, _, _]] extends DataStoreComma
     val query = new Query(params.featureName, Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE))
     Option(params.attributes).filterNot(_.isEmpty).foreach(query.setPropertyNames)
     params.loadIndex(ds, IndexMode.Read).foreach { index =>
-      query.getHints.put(QueryHints.QUERY_INDEX_KEY, index)
+      query.getHints.put(QueryHints.QUERY_INDEX, index)
       logger.debug(s"Using index ${index.identifier}")
     }
     ds.getQueryPlan(query, None, new ExplainPrintln(System.err))
