@@ -12,6 +12,7 @@ import java.util.Map.Entry
 import java.util.concurrent.TimeUnit
 import java.util.{Iterator => jIterator}
 
+import org.apache.accumulo.core.client.sample.SamplerConfiguration
 import org.apache.accumulo.core.client.{IteratorSetting, Scanner}
 import org.apache.accumulo.core.data.{Key, Range, Value}
 import org.apache.hadoop.io.Text
@@ -55,4 +56,20 @@ object EmptyScanner extends Scanner {
   // added in Accumulo 1.7 
   def fetchColumn(x$1: org.apache.accumulo.core.client.IteratorSetting.Column): Unit = ???
   def getAuthorizations(): org.apache.accumulo.core.security.Authorizations = ???
+
+  override def setBatchTimeout(timeOut: Long, timeUnit: TimeUnit): Unit = ???
+
+  override def getBatchTimeout(timeUnit: TimeUnit): Long = ???
+
+  override def setClassLoaderContext(classLoaderContext: String): Unit = ???
+
+  override def getSamplerConfiguration: SamplerConfiguration = ???
+
+  override def clearSamplerConfiguration(): Unit = ???
+
+  override def getClassLoaderContext: String = ???
+
+  override def setSamplerConfiguration(samplerConfig: SamplerConfiguration): Unit = ???
+
+  override def clearClassLoaderContext(): Unit = ???
 }
