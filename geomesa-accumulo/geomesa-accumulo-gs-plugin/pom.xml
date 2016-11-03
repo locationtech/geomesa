@@ -18,7 +18,7 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-datastore_2.11</artifactId>
+            <artifactId>geomesa-accumulo-datastore_${scala.binary.version}</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>org.geotools</groupId>
@@ -32,7 +32,7 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-raster_2.11</artifactId>
+            <artifactId>geomesa-accumulo-raster_${scala.binary.version}</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>org.geotools</groupId>
