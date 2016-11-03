@@ -8,9 +8,10 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStoreFinder, DataUtilities}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.format.ISODateTimeFormat
-import org.locationtech.geomesa.accumulo.GeomesaSystemProperties.QueryProperties
+import org.locationtech.geomesa.accumulo.AccumuloProperties.AccumuloQueryProperties
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloDataStoreParams => GM}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 import scala.collection.JavaConversions._
@@ -18,7 +19,7 @@ import scala.collection.JavaConversions._
 object SparkSQLTest extends App {
 
   System.setProperty(QueryProperties.SCAN_RANGES_TARGET.property, "10")
-  System.setProperty(QueryProperties.SCAN_BATCH_RANGES.property, s"${Int.MaxValue}")
+  System.setProperty(AccumuloQueryProperties.SCAN_BATCH_RANGES.property, s"${Int.MaxValue}")
 
   val instance: MockInstance = new MockInstance("mycloud")
   val connector = instance.getConnector("user", new PasswordToken("password"))
