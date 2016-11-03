@@ -24,6 +24,7 @@ kryo
 libthrift
 mango
 minlog
+parboiled
 scala
 spatial4j
 sfcurve
