@@ -61,8 +61,8 @@ object ConfigLoader extends LazyLogging {
       } catch {
         // This catches failure to convert isfinal to boolean and key = ""
         case iae: IllegalArgumentException => logger.warn("Unable to set system property, this is most likely "
-          + s"due to a malformed configuration file (${GEOMESA_CONFIG_FILE_NAME}). Perhaps you wouldn't have this "
-          + "problem if you typed with more than two fingers.\n" + "Property:\n" + prop, iae)
+          + s"due to a malformed configuration file (${GEOMESA_CONFIG_FILE_NAME}).\n"
+          + "Property:\n" + prop, iae)
         case _: Throwable => logger.warn("Error setting system property.", _: Throwable)
       }
     }
