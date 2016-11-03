@@ -21,31 +21,31 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-convert-common_2.11</artifactId>
+            <artifactId>geomesa-convert-common_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-convert-avro_2.11</artifactId>
+            <artifactId>geomesa-convert-avro_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-convert-fixedwidth_2.11</artifactId>
+            <artifactId>geomesa-convert-fixedwidth_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-convert-json_2.11</artifactId>
+            <artifactId>geomesa-convert-json_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-convert-text_2.11</artifactId>
+            <artifactId>geomesa-convert-text_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-convert-xml_2.11</artifactId>
+            <artifactId>geomesa-convert-xml_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-convert-scripting_2.11</artifactId>
+            <artifactId>geomesa-convert-scripting_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>

@@ -95,22 +95,22 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-compute_2.11</artifactId>
+            <artifactId>geomesa-accumulo-compute_${scala.binary.version}</artifactId>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
                     <groupId>org.locationtech.geomesa</groupId>
-                    <artifactId>geomesa-accumulo-datastore_2.11</artifactId>
+                    <artifactId>geomesa-accumulo-datastore_${scala.binary.version}</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>org.locationtech.geomesa</groupId>
-                    <artifactId>geomesa-jobs_2.11</artifactId>
+                    <artifactId>geomesa-jobs_${scala.binary.version}</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-feature-all_2.11</artifactId>
+            <artifactId>geomesa-feature-all_${scala.binary.version}</artifactId>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -139,11 +139,11 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-web-core_2.11</artifactId>
+            <artifactId>geomesa-web-core_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-datastore_2.11</artifactId>
+            <artifactId>geomesa-accumulo-datastore_${scala.binary.version}</artifactId>
         </dependency>
     </dependencies>
 

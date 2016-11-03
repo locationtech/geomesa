@@ -26,19 +26,19 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-index-api_2.11</artifactId>
+            <artifactId>geomesa-index-api_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-jobs_2.11</artifactId>
+            <artifactId>geomesa-jobs_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-utils_2.11</artifactId>
+            <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-convert-all_2.11</artifactId>
+            <artifactId>geomesa-convert-all_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>

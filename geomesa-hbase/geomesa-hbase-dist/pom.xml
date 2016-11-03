@@ -29,13 +29,13 @@
         <!-- datastore -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-hbase-datastore_2.11</artifactId>
+            <artifactId>geomesa-hbase-datastore_${scala.binary.version}</artifactId>
         </dependency>
 
         <!-- tools -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-hbase-tools_2.11</artifactId>
+            <artifactId>geomesa-hbase-tools_${scala.binary.version}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -52,7 +52,7 @@
                 <!-- GeoServer Plugins -->
                 <dependency>
                     <groupId>org.locationtech.geomesa</groupId>
-                    <artifactId>geomesa-hbase-gs-plugin_2.11</artifactId>
+                    <artifactId>geomesa-hbase-gs-plugin_${scala.binary.version}</artifactId>
                     <classifier>install</classifier>
                     <version>${project.version}</version>
                     <type>tar.gz</type>

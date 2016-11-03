@@ -30,7 +30,7 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-logger_2.11</artifactId>
+            <artifactId>geomesa-logger_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>

@@ -21,11 +21,11 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-feature-all_2.11</artifactId>
+            <artifactId>geomesa-feature-all_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-utils_2.11</artifactId>
+            <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>com.typesafe</groupId>

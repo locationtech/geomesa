@@ -29,7 +29,7 @@
         <!-- Kafka Tools -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-kafka-tools_2.11</artifactId>
+            <artifactId>geomesa-kafka-tools_${scala.binary.version}</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>org.locationtech.geomesa</groupId>
@@ -45,7 +45,7 @@
         <!-- Kafka Datastore -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-kafka-08-datastore_2.11</artifactId>
+            <artifactId>geomesa-kafka-08-datastore_${scala.binary.version}</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>org.locationtech.geomesa</groupId>
@@ -57,7 +57,7 @@
         <!-- GeoServer Plugins -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-kafka-08-gs-plugin_2.11</artifactId>
+            <artifactId>geomesa-kafka-08-gs-plugin_${scala.binary.version}</artifactId>
             <classifier>install</classifier>
             <version>${project.version}</version>
             <type>tar.gz</type>
