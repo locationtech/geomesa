@@ -1426,6 +1426,13 @@
                 <groupId>com.esotericsoftware.kryo</groupId>
                 <artifactId>kryo</artifactId>
                 <version>2.21</version>
+                <exclusions>
+                    <!-- included as shaded and relocated package in encapsulating dependency -->
+                    <exclusion>
+                        <groupId>org.ow2.asm</groupId>
+                        <artifactId>asm</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>xerces</groupId>
@@ -1823,11 +1830,6 @@
                 <groupId>org.parboiled</groupId>
                 <artifactId>parboiled-core</artifactId>
                 <version>1.1.7</version>
-            </dependency>
-            <dependency>
-                <groupId>org.ow2.asm</groupId>
-                <artifactId>asm</artifactId>
-                <version>4.0</version>
             </dependency>
             <dependency>
                 <groupId>org.hsqldb</groupId>
