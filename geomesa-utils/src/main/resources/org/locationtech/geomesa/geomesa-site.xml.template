@@ -149,11 +149,11 @@
 
     <property>
         <name>geomesa.query.timeout.millis</name>
-        <value>10000</value>
+        <value></value>
         <description>This property can be used to prevent long-running
             queries from overloading the system. When set, queries will be
             closed after the timeout, even if not all results have been
-            returned yet. The timeout is specific in milliseconds.
+            returned yet. The timeout is specified in milliseconds.
         </description>
         <final>false</final>
     </property>
