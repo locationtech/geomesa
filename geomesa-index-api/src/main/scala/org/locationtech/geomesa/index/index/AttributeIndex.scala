@@ -90,14 +90,20 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W
     }
   }
 
-  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = {
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
     // drop the encoded value and the date field (12 bytes) if it's present - the rest of the row is the ID
-    val from = if (sft.isTableSharing) 3 else 2  // exclude feature byte and index bytes
+    val from = if (sft.isTableSharing) 3 else 2  // exclude feature byte and 2 index bytes
     val prefix = if (sft.getDtgField.isDefined) 13 else 1
-    (row: Array[Byte]) => {
-      val offset = row.indexOf(NullByte, from) + prefix
-      new String(row, offset, row.length - offset, StandardCharsets.UTF_8)
+    (row, offset, length) => {
+      val start = row.indexOf(NullByte, from + offset) + prefix
+      new String(row, start, length + offset - start, StandardCharsets.UTF_8)
     }
+  }
+
+  override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
+    val sharing = sft.getTableSharingBytes
+    val indices = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).map(d => sft.indexOf(d.getLocalName))
+    indices.map(i => Bytes.concat(sharing, indexToBytes(i)))
   }
 
   override def getQueryPlan(sft: SimpleFeatureType,
@@ -194,7 +200,7 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W
       case Some((t1, t2)) =>
         val (t1Bytes, t2Bytes) = (timeToBytes(t1), roundUpTime(timeToBytes(t2)))
         val start = Bytes.concat(prefix, encoded, NullByteArray, t1Bytes)
-        val end = IndexAdapter.followingRow(Bytes.concat(prefix, encoded, NullByteArray, t2Bytes))
+        val end = IndexAdapter.rowFollowingRow(Bytes.concat(prefix, encoded, NullByteArray, t2Bytes))
         range(start, end)
     }
   }
@@ -310,7 +316,7 @@ object AttributeIndex {
       Bytes.concat(prefix, encoded, NullByteArray, timeBytes)
     } else {
       // get the next row, then append the time
-      val following = IndexAdapter.followingPrefix(Bytes.concat(prefix, encoded))
+      val following = IndexAdapter.rowFollowingPrefix(Bytes.concat(prefix, encoded))
       Bytes.concat(following, NullByteArray, timeBytes)
     }
   }
@@ -322,7 +328,7 @@ object AttributeIndex {
     if (inclusive) {
       // append time, then get the next row - this will match anything with the same value, up to the time
       val timeBytes = time.map(t => roundUpTime(timeToBytes(t))).getOrElse(Array.empty)
-      IndexAdapter.followingPrefix(Bytes.concat(prefix, encoded, NullByteArray, timeBytes))
+      IndexAdapter.rowFollowingPrefix(Bytes.concat(prefix, encoded, NullByteArray, timeBytes))
     } else {
       // can't use time on an exclusive upper, as there aren't any methods to calculate previous rows
       Bytes.concat(prefix, encoded, NullByteArray)
@@ -334,5 +340,5 @@ object AttributeIndex {
 
   // upper bound for all values of the attribute, exclusive
   private def upperBound(sft: SimpleFeatureType, i: Int): Array[Byte] =
-    IndexAdapter.followingPrefix(rowPrefix(sft, i))
+    IndexAdapter.rowFollowingPrefix(rowPrefix(sft, i))
 }

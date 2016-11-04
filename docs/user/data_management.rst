@@ -498,19 +498,19 @@ up ingestion and queries.
 
 GeoMesa supplies three different table splitter options:
 
-- ``org.locationtech.geomesa.accumulo.data.HexSplitter`` (used by default)
+- ``org.locationtech.geomesa.index.conf.HexSplitter`` (used by default)
 
   Assumes an even distribution of IDs starting with 0-9, a-f, A-F
 
-- ``org.locationtech.geomesa.accumulo.data.AlphaNumericSplitter``
+- ``org.locationtech.geomesa.index.conf.AlphaNumericSplitter``
 
   Assumes an even distribution of IDs starting with 0-9, a-z, A-Z
 
-- ``org.locationtech.geomesa.accumulo.data.DigitSplitter``
+- ``org.locationtech.geomesa.index.conf.DigitSplitter``
 
   Assumes an even distribution of IDs starting with numeric values, which are specified as options
 
-Custom splitters may also be used - any class that extends ``org.locationtech.geomesa.accumulo.data.TableSplitter``.
+Custom splitters may also be used - any class that extends ``org.locationtech.geomesa.index.conf.TableSplitter``.
 
 Specifying a Table Splitter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -526,7 +526,7 @@ the hint to the end of the string, like so:
 
     // append the hints to the end of the string, separated by a semi-colon
     String spec = "name:String,dtg:Date,*geom:Point:srid=4326;" +
-        "table.splitter.class=org.locationtech.geomesa.accumulo.data.AlphaNumericSplitter";
+        "table.splitter.class=org.locationtech.geomesa.index.conf.AlphaNumericSplitter";
     SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
 
 If you have an existing simple feature type, or you are not using ``SimpleFeatureTypes.createType``,
@@ -537,7 +537,7 @@ you may set the hint directly in the feature type:
     // set the hint directly
     SimpleFeatureType sft = ...
     sft.getUserData().put("table.splitter.class",
-        "org.locationtech.geomesa.accumulo.data.DigitSplitter");
+        "org.locationtech.geomesa.index.conf.DigitSplitter");
     sft.getUserData().put("table.splitter.options", "fmt:%02d,min:0,max:99");
 
 If you are using TypeSafe configuration files to define your simple feature type, you may include
@@ -554,7 +554,7 @@ a 'user-data' key:
             { name = geom, type = Point, srid = 4326 }
           ]
           user-data = {
-            table.splitter.class = "org.locationtech.geomesa.accumulo.data.DigitSplitter"
+            table.splitter.class = "org.locationtech.geomesa.index.conf.DigitSplitter"
             table.splitter.options = "fmt:%01d,min:0,max:9"
           }
         }

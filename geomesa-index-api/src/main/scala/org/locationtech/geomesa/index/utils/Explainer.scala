@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.index.utils
 
+import java.io.PrintStream
+
 import org.slf4j.LoggerFactory
 
 trait Explainer {
@@ -25,8 +27,8 @@ trait Explainer {
   protected def output(s: => String)
 }
 
-class ExplainPrintln extends Explainer {
-  override def output(s: => String): Unit = println(s)
+class ExplainPrintln(out: PrintStream = System.out) extends Explainer {
+  override def output(s: => String): Unit = out.println(s)
 }
 
 object ExplainNull extends Explainer {

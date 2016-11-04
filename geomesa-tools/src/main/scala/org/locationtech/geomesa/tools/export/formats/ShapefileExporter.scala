@@ -17,7 +17,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 class ShapefileExporter(file: File) extends FeatureExporter {
 
-  override def export(features: SimpleFeatureCollection) = {
+  override def export(features: SimpleFeatureCollection): Option[Long] = {
     val url = DataUtilities.fileToURL(file)
     val factory = new ShapefileDataStoreFactory()
     val newShapeFile = factory.createDataStore(url).asInstanceOf[ShapefileDataStore]
@@ -25,6 +25,7 @@ class ShapefileExporter(file: File) extends FeatureExporter {
     newShapeFile.createSchema(features.getSchema)
     val store = newShapeFile.getFeatureSource.asInstanceOf[SimpleFeatureStore]
     store.addFeatures(features)
+    None
   }
 
   override def flush() = {}

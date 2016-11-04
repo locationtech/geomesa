@@ -94,6 +94,23 @@ trait GeoMesaFeatureIndex[DS <: GeoMesaDataStore[DS, F, WriteResult, QueryResult
   def delete(sft: SimpleFeatureType, ds: DS, shared: Boolean): Unit
 
   /**
+    *
+    * Retrieve an ID from a row. All indices are assumed to encode the feature ID into the row key
+    *
+    * @param sft simple feature type
+    * @return a function to retrieve an ID from a row - (row: Array[Byte], offset: Int, length: Int)
+    */
+  def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String
+
+  /**
+    * Gets the intitial splits for a table
+    *
+    * @param sft simple feature type
+    * @return
+    */
+  def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]]
+
+  /**
     * Gets options for a 'simple' filter, where each OR is on a single attribute, e.g.
     *   (bbox1 OR bbox2) AND dtg
     *   bbox AND dtg AND (attr1 = foo OR attr = bar)

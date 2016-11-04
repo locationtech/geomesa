@@ -15,6 +15,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
+import org.locationtech.geomesa.index.conf.{HexSplitter, TableSplitter}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
 import org.locationtech.geomesa.index.utils.Explainer
@@ -47,11 +48,23 @@ trait IdIndex[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
     }
   }
 
-  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = {
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
     if (sft.isTableSharing) {
-      (row: Array[Byte]) => new String(row, 1, row.length - 1, StandardCharsets.UTF_8)
+      (row, offset, length) => new String(row, offset + 1, length - 1, StandardCharsets.UTF_8)
     } else {
-      (row: Array[Byte]) => new String(row, StandardCharsets.UTF_8)
+      (row, offset, length) => new String(row, offset, length, StandardCharsets.UTF_8)
+    }
+  }
+
+  override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
+    import scala.collection.JavaConversions._
+    val splitter = sft.getTableSplitter.getOrElse(classOf[HexSplitter]).newInstance().asInstanceOf[TableSplitter]
+    val splits = splitter.getSplits(sft.getTableSplitterOptions)
+    if (sft.isTableSharing) {
+      val sharing = sft.getTableSharingBytes
+      splits.map(s => Bytes.concat(sharing, s))
+    } else {
+      splits
     }
   }
 

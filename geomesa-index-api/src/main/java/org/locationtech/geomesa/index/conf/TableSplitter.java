@@ -6,12 +6,10 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.data;
-
-import org.apache.hadoop.io.Text;
+package org.locationtech.geomesa.index.conf;
 
 import java.util.Map;
 
 public interface TableSplitter {
-    public Text[] getSplits(Map<String, String> options);
+    public byte[][] getSplits(Map<String, String> options);
 }

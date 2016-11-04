@@ -16,8 +16,8 @@ import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureDeserializer}
-import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase._
+import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.index.api.FilterStrategy
 import org.locationtech.geomesa.index.index.IndexAdapter
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -36,25 +36,12 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
 
   val DataColumnQualifier = Bytes.toBytes("d")
   val DataColumnQualifierDescriptor = new HColumnDescriptor(DataColumnQualifier)
-
-  val EmptyBytes = Array.empty[Byte]
-
-  val DefaultNumSplits = 4 // can't be more than Byte.MaxValue (127)
-  val DefaultSplitArrays = (0 until DefaultNumSplits).map(_.toByte).toArray.map(Array(_)).toSeq
 }
 
 trait HBaseFeatureIndex extends HBaseFeatureIndexType
     with IndexAdapter[HBaseDataStore, HBaseFeature, Mutation, Result, Query] {
 
   import HBaseFeatureIndex.{DataColumnFamily, DataColumnQualifier}
-
-  /**
-    * Retrieve an ID from a row. All indices are assumed to encode the feature ID into the row key
-    *
-    * @param sft simple feature type
-    * @return a function to retrieve an ID from a row
-    */
-  def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String
 
   /**
     * Turns accumulo results into simple features
@@ -74,7 +61,8 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
     (result) => {
       val entries = result.getFamilyMap(DataColumnFamily)
       val sf = deserializer.deserialize(entries.values.iterator.next)
-      sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(result.getRow))
+      val cell = result.rawCells()(0)
+      sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(cell.getRowArray, cell.getRowOffset, cell.getRowLength))
       sf
     }
   }
@@ -87,7 +75,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       if (!admin.tableExists(name)) {
         val descriptor = new HTableDescriptor(name)
         descriptor.addFamily(HBaseFeatureIndex.DataColumnFamilyDescriptor)
-        admin.createTable(descriptor)
+        admin.createTable(descriptor, getSplits(sft).toArray)
       }
     } finally {
       admin.close()
@@ -146,18 +134,30 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       if (ranges.head.isInstanceOf[Get]) {
         GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], eToF, ecql)
       } else {
-        ScanPlan(filter, table, ranges.asInstanceOf[Seq[Scan]], eToF, ecql)
+        // we want to ensure some parallelism in our batch scanning
+        // as not all scans will take the same amount of time, we want to have multiple per-thread
+        // since scans are executed by a thread pool, that should balance the work and keep all threads occupied
+        val scansPerThread = 3
+        val scans = ranges.asInstanceOf[Seq[Scan]]
+        val minScans = if (ds.config.queryThreads == 1) { 1 } else { ds.config.queryThreads * scansPerThread }
+        if (scans.length >= minScans) {
+          ScanPlan(filter, table, scans, eToF, ecql)
+        } else {
+          // split up the scans so that we get some parallelism
+          val multiplier = math.ceil(minScans.toDouble / scans.length).toInt
+          val splitScans = scans.flatMap { scan =>
+            val splits = IndexAdapter.splitRange(scan.getStartRow, scan.getStopRow, multiplier)
+            splits.map { case (start, stop) => new Scan(scan).setStartRow(start).setStopRow(stop) }
+          }
+          ScanPlan(filter, table, splitScans, eToF, ecql)
+        }
       }
     }
   }
 
-  // TODO following prefix?
   override protected def range(start: Array[Byte], end: Array[Byte]): Query =
     new Scan(start, end).addColumn(DataColumnFamily, DataColumnQualifier)
 
   override protected def rangeExact(row: Array[Byte]): Query =
     new Get(row).addColumn(DataColumnFamily, DataColumnQualifier)
-
-  override protected def rangePrefix(prefix: Array[Byte]): Query =
-    new Scan().setRowPrefixFilter(prefix).addColumn(DataColumnFamily, DataColumnQualifier)
 }

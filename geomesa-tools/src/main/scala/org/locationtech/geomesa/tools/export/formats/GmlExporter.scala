@@ -20,7 +20,10 @@ class GmlExporter(os: OutputStream) extends FeatureExporter {
   // JNH: "location" is unlikely to be a valid namespace.
   encode.setNamespace("location", "location.xsd")
 
-  override def export(features: SimpleFeatureCollection) = encode.encode(os, features)
+  override def export(features: SimpleFeatureCollection): Option[Long] = {
+    encode.encode(os, features)
+    None
+  }
 
   override def flush() = os.flush()
 
