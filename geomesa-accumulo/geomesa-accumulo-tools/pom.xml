@@ -76,6 +76,10 @@
             <artifactId>accumulo-core</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.apache.accumulo</groupId>
+            <artifactId>accumulo-server-base</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
         </dependency>
@@ -120,10 +124,12 @@
             <artifactId>specs2_${scala.binary.version}</artifactId>
             <scope>test</scope>
         </dependency>
+<!--
         <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-test</artifactId>
         </dependency>
+-->
     </dependencies>
 
     <build>
