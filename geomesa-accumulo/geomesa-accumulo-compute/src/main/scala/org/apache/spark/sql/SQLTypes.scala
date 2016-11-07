@@ -2,8 +2,8 @@ package org.apache.spark.sql
 
 import com.vividsolutions.jts.geom._
 import org.apache.spark.sql.catalyst.InternalRow
+import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.catalyst.expressions.codegen.CodegenFallback
-import org.apache.spark.sql.catalyst.expressions.{GenericInternalRow, LeafExpression, Literal, ScalaUDF, UnsafeArrayData}
 import org.apache.spark.sql.catalyst.plans.logical.{Filter, LogicalPlan}
 import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.execution.datasources.LogicalRelation
@@ -13,10 +13,14 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
 import org.locationtech.geomesa.compute.spark.GeoMesaRelation
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.slf4j.LoggerFactory
+
+class GeoMesaSQL
 
 object SQLTypes {
 
-  val geomFactory = JTSFactoryFinder.getGeometryFactory
+  @transient val log = LoggerFactory.getLogger(classOf[GeoMesaSQL])
+  @transient val geomFactory = JTSFactoryFinder.getGeometryFactory
   @transient val ff = CommonFactoryFinder.getFilterFactory2
 
   val PointType       = new PointUDT
@@ -31,6 +35,7 @@ object SQLTypes {
   val ST_Contains: (Point, Geometry) => Boolean = (p, geom) => geom.contains(p)
   val ST_Envelope:  Geometry => Geometry = p => p.getEnvelope
   val ST_MakeBox2D: (Point, Point) => Polygon = (ll, ur) => JTS.toGeometry(new Envelope(ll.getX, ur.getX, ll.getY, ur.getY))
+  val ST_MakeBBOX: (Double, Double, Double, Double) => Polygon = (lx, ly, ux, uy) => JTS.toGeometry(new Envelope(lx, ux, ly, uy))
   val ST_Centroid: Geometry => Point = g => g.getCentroid
 
   val ST_CastToPoint:      Geometry => Point       = g => g.asInstanceOf[Point]
@@ -48,6 +53,7 @@ object SQLTypes {
     sqlContext.udf.register("st_within"        , ST_Contains) // TODO: is contains different than within?
     sqlContext.udf.register("st_envelope"      , ST_Envelope)
     sqlContext.udf.register("st_makeBox2D"     , ST_MakeBox2D)
+    sqlContext.udf.register("st_makeBBOX"      , ST_MakeBBOX)
     sqlContext.udf.register("st_centroid"      , ST_Centroid)
     sqlContext.udf.register("st_castToPoint"   , ST_CastToPoint)
   }
@@ -66,15 +72,50 @@ object SQLTypes {
   }
 
   // new optimizations rules
-  object STContainsRule extends Rule[LogicalPlan] {
+  object STContainsRule extends Rule[LogicalPlan] with PredicateHelper {
+
+    def extractGeometry(e: Expression): Option[Geometry] = e match {
+       case And(l, r) => extractGeometry(l).orElse(extractGeometry(r))
+       case ScalaUDF(ST_Contains, _, Seq(_, GeometryLiteral(_, geom)), _) => Some(geom)
+       case _ => None  
+    }
+
     override def apply(plan: LogicalPlan): LogicalPlan = {
       plan.transform {
-        case Filter(ScalaUDF(ST_Contains, _, Seq(_, GeometryLiteral(_, geom)), _), lr@LogicalRelation(gmRel: GeoMesaRelation, _, _)) =>
-          val geomDescriptor = gmRel.sft.getGeometryDescriptor.getLocalName
-          val cqlFilter = ff.within(ff.property(geomDescriptor), ff.literal(geom))
-          // need to maintain expectedOutputAttributes so identifiers don't change in projections
-          lr.copy(expectedOutputAttributes = Some(lr.output), relation = gmRel.copy(filt = ff.and(gmRel.filt, cqlFilter)))
+        case filt @ Filter(f, lr@LogicalRelation(gmRel: GeoMesaRelation, _, _)) =>
+          // TODO: deal with `or`
 
+          // split up conjunctive predicates and extract the st_contains variable
+          val (st_contains, xs) = splitConjunctivePredicates(f).partition {
+            case ScalaUDF(ST_Contains, _, _, _) => true
+            case _                              => false
+          }
+          if(st_contains.nonEmpty) {
+            // we got an st_contains, extract the geometry and set up the new GeoMesa relation with the appropriate
+            // CQL filter
+
+            // TODO: only dealing with one st_contains at the moment
+            val ScalaUDF(_, _, Seq(_, GeometryLiteral(_, geom)), _) = st_contains.head
+            log.debug("Optimizing 'st_contains'")
+            val geomDescriptor = gmRel.sft.getGeometryDescriptor.getLocalName
+            val cqlFilter = ff.within(ff.property(geomDescriptor), ff.literal(geom))
+            val relation = gmRel.copy(filt = ff.and(gmRel.filt, cqlFilter))
+            // need to maintain expectedOutputAttributes so identifiers don't change in projections
+            val newrel = lr.copy(expectedOutputAttributes = Some(lr.output), relation = relation)
+            if(xs.nonEmpty) {
+              // if there are other filters, keep them
+              Filter(xs.reduce(And), newrel)
+            } else {
+              // if st_contains was the only filter, just return the new relation
+              newrel
+            }
+          } else {
+            filt
+          }
+
+        case t =>
+          log.debug(s"Not optimizing $t")
+          t
 
           // TODO: figure out how to extract temporal bounds and push down to GeoMesa
 /*

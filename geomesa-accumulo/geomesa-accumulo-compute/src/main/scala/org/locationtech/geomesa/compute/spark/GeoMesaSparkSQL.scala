@@ -18,6 +18,7 @@ import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
+import scala.util.Try
 
 // Spark DataSource for GeoMesa
 // enables loading a GeoMesa DataFrame as
@@ -82,10 +83,10 @@ case class GeoMesaRelation(sqlContext: SQLContext,
                            props: Option[Seq[String]] = None)
   extends BaseRelation with PrunedFilteredScan {
 
-  lazy val isMock = params("useMock").toBoolean
+  lazy val isMock = Try(params("useMock").toBoolean).getOrElse(false)
 
   override def buildScan(requiredColumns: Array[String], filters: Array[org.apache.spark.sql.sources.Filter]): RDD[Row] = {
-    SparkUtils.buildScan(sft, requiredColumns, filters, org.opengis.filter.Filter.INCLUDE, sqlContext.sparkContext, schema, params)
+    SparkUtils.buildScan(sft, requiredColumns, filters, filt, sqlContext.sparkContext, schema, params)
   }
 
   override def unhandledFilters(filters: Array[Filter]): Array[Filter] = {
@@ -99,6 +100,7 @@ case class GeoMesaRelation(sqlContext: SQLContext,
 object SparkUtils {
 
   @transient val ff = CommonFactoryFinder.getFilterFactory2
+  private val log = org.slf4j.LoggerFactory.getLogger("org.locationtech.geomesa.accumulo.spark.sql")
 
   def buildScan(sft: SimpleFeatureType,
                 requiredColumns: Array[String],
@@ -107,11 +109,14 @@ object SparkUtils {
                 ctx: SparkContext,
                 schema: StructType,
                 params: Map[String, String]): RDD[Row] = {
-    val compiledCQL = filters.flatMap(sparkFilterToCQLFilter).foldLeft[org.opengis.filter.Filter](org.opengis.filter.Filter.INCLUDE) { (l, r) => ff.and(l, r) }
+    log.debug(s"""Building scan, filt = $filt, filters = ${filters.mkString(",")}, requiredColumns = ${requiredColumns.mkString(",")}""")
+    val compiledCQL = filters.flatMap(sparkFilterToCQLFilter).foldLeft[org.opengis.filter.Filter](filt) { (l, r) => ff.and(l,r) }
+    log.debug(s"compiledCQL = $compiledCQL")
+
     val rdd = GeoMesaSpark.rdd(
       new Configuration(), ctx, params,
       new Query(params("geomesa.feature"), compiledCQL),
-      params("useMock").toBoolean, Option.empty[Int])
+      Try(params("useMock").toBoolean).getOrElse(false), Option.empty[Int])
 
     val requiredIndexes = requiredColumns.map {
       case "__fid__" => -1

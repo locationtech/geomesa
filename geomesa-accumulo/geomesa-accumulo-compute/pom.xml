@@ -55,15 +55,22 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>org.apache.thrift</groupId>
+            <artifactId>libthrift</artifactId>
+            <version>0.9.3</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-core</artifactId>
             <scope>compile</scope>
         </dependency>
+<!--
         <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-start</artifactId>
             <scope>compile</scope>
         </dependency>
+-->
         <!-- spark compatible version of apache curator -->
         <dependency>
             <groupId>org.apache.curator</groupId>
@@ -163,6 +170,10 @@
                                 </filter>
                             </filters>
                             <relocations>
+                                <relocation>
+                                    <pattern>org.apache.thrift</pattern>
+                                    <shadedPattern>org.lt.gm.thrift</shadedPattern>
+                                </relocation>
                                 <relocation>
                                     <pattern>com.clearspring.analytics</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shaded.com.clearspring.analytics</shadedPattern>
