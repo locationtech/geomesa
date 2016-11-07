@@ -12,12 +12,12 @@ import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.index.QueryHints._
-import org.locationtech.geomesa.accumulo.index.id.{RecordIndex, RecordQueryableIndex}
+import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
+import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
 import org.opengis.filter.{Filter, Id}
 import org.specs2.mutable.Specification
@@ -64,8 +64,8 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
 
   addFeatures(features)
 
-  val queryPlanner = QueryPlanner(sft, ds)
-  def runQuery(query: Query) = queryPlanner.runQuery(query, Some(RecordIndex))
+  val planner = ds.queryPlanner
+  def runQuery(query: Query) = planner.runQuery(sft, query, Some(RecordIndex))
 
   "RecordIdxStrategy" should {
     "support bin queries" in {

@@ -18,9 +18,9 @@ import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
 import org.geotools.data.{DataStoreFinder, DataUtilities}
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToMutations
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.index.stats.StatUpdater
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -104,13 +104,13 @@ class GeoMesaRecordWriter(params: Map[String, String],
                           delegate: RecordWriter[Text, Mutation])
     extends RecordWriter[Text, SimpleFeature] with LazyLogging {
 
-  type TableAndMutations = (Text, FeatureToMutations)
+  type TableAndMutations = (Text, (AccumuloFeature) => Seq[Mutation])
 
   val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
 
   val sftCache        = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
   val writerCache     = scala.collection.mutable.Map.empty[String, Seq[TableAndMutations]]
-  val toWritableCache = scala.collection.mutable.Map.empty[String, (SimpleFeature) => WritableFeature]
+  val toWritableCache = scala.collection.mutable.Map.empty[String, (SimpleFeature) => AccumuloFeature]
   val statsCache      = scala.collection.mutable.Map.empty[String, StatUpdater]
 
   val written = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written)
@@ -132,15 +132,14 @@ class GeoMesaRecordWriter(params: Map[String, String],
     })
 
     val writers = writerCache.getOrElseUpdate(sftName, {
-      AccumuloFeatureWriter.getTablesAndWriters(sft, ds, indices).map {
-        case (table, writer) => (new Text(table), writer)
-      }
+      val (tables, writers, _) = GeoMesaFeatureWriter.getTablesAndConverters(sft, ds, indices)
+      tables.map(new Text(_)).zip(writers)
     })
     val stats = statsCache.getOrElseUpdate(sftName, ds.stats.statUpdater(sft))
-    val toWritable = toWritableCache.getOrElseUpdate(sftName,
-      WritableFeature.toWritableFeature(sft, ds.getFeatureEncoding(sft), ds.defaultVisibilities))
+    val toWritable =
+      toWritableCache.getOrElseUpdate(sftName, AccumuloFeature.wrapper(sft, ds.config.defaultVisibilities))
 
-    val withFid = AccumuloFeatureWriter.featureWithFid(sft, value)
+    val withFid = GeoMesaFeatureWriter.featureWithFid(sft, value)
     val featureToWrite = toWritable(withFid)
 
     // calculate all the mutations first, so that if something fails we won't have a partially written feature

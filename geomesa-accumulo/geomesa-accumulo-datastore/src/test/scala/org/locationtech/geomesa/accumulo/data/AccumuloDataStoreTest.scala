@@ -25,19 +25,20 @@ import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.tables._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
 import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.accumulo.index.z2.Z2Index
 import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.accumulo.iterators.Z2Iterator
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.accumulo.{AccumuloVersion, TestWithMultipleSfts}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.index.geotools.CachingFeatureCollection
 import org.locationtech.geomesa.index.utils.ExplainString
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.{RichSimpleFeatureType, _}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats.IndexCoverage
@@ -273,23 +274,25 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val sft = SimpleFeatureTypes.createType("customsplit", spec)
       sft.setTableSharing(false)
       ds.createSchema(sft)
-      val recTable = ds.getTableName(sft.getTypeName, RecordIndex)
+      val recTable = RecordIndex.getTableName(sft.getTypeName, ds)
       val splits = ds.connector.tableOperations().listSplits(recTable)
       splits.size() mustEqual 100
       splits.head mustEqual new Text("00")
       splits.last mustEqual new Text("99")
     }
 
-    "create a schema with custom record splitting options with talbe sharing on" in {
+    "create a schema with custom record splitting options with table sharing on" in {
       val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=" +
         s"${classOf[DigitSplitter].getName},table.splitter.options='fmt:%02d,min:0,max:99'"
       val sft = SimpleFeatureTypes.createType("customsplit2", spec)
       sft.setTableSharing(true)
 
       import scala.collection.JavaConversions._
-      val prevsplits = ImmutableSet.copyOf(ds.connector.tableOperations().listSplits(s"AccumuloDataStoreTest_${RecordIndex.tableSuffix}").toIterable)
+      val prevTable = s"${ds.config.catalog}_${RecordIndex.name}_v${RecordIndex.version}"
+      val prevsplits = ImmutableSet.copyOf(ds.tableOps.listSplits(prevTable).toIterable)
       ds.createSchema(sft)
-      val recTable = ds.getTableName(sft.getTypeName, RecordIndex)
+      val recTable = RecordIndex.getTableName(sft.getTypeName, ds)
+      recTable mustEqual prevTable
       val afterSplits = ds.connector.tableOperations().listSplits(recTable)
 
       object TextOrdering extends Ordering[Text] {
@@ -332,7 +335,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
         val dst = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
         val qpts = dst.getQueryPlan(query)
         forall(qpts) { qpt =>
-          qpt.table mustEqual dst.getTableName(defaultTypeName, Z3Index)
+          qpt.table mustEqual Z3Index.getTableName(defaultTypeName, dst)
           qpt.numThreads mustEqual numThreads
         }
       }
@@ -342,7 +345,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       // check default
       val qpts = ds.getQueryPlan(query)
       forall(qpts) { qpt =>
-        qpt.table mustEqual ds.getTableName(defaultTypeName, Z3Index)
+        qpt.table mustEqual Z3Index.getTableName(defaultTypeName, ds)
         qpt.numThreads mustEqual 8
       }
     }
@@ -360,7 +363,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val sftName = sft.getTypeName
 
       "create all appropriate tables" >> {
-        val tables = AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(ds.getTableName(sft.getTypeName, _))
+        val tables = AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, ds))
         tables must haveLength(4)
         forall(Seq(Z2Index, Z3Index, AttributeIndex))(t => tables must contain(endWith(t.name)))
         forall(tables)(t => ds.connector.tableOperations.exists(t) must beTrue)
@@ -389,6 +392,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "hex encode multibyte chars as multiple underscore + hex" in {
+      import GeoMesaFeatureIndex._
       // accumulo supports only alphanum + underscore aka ^\\w+$
       // this should end up hex encoded
       val sftName = "nihao你好"
@@ -405,18 +409,18 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       enc("好") must haveLength(9)
 
       val encodedSFT = "nihao" + enc("你") + enc("好")
-      encodedSFT mustEqual GeoMesaTable.hexEncodeNonAlphaNumeric(sftName)
+      encodedSFT mustEqual hexEncodeNonAlphaNumeric(sftName)
 
       forall(AccumuloFeatureIndex.indices(sft, IndexMode.Any)) { table =>
-        GeoMesaTable.formatTableName(ds.catalogTable, table.tableSuffix, sft) mustEqual
-            s"${ds.catalogTable}_${encodedSFT}_${table.tableSuffix}"
+        formatTableName(ds.config.catalog, tableSuffix(table), sft) mustEqual
+            s"${ds.config.catalog}_${encodedSFT}_${tableSuffix(table)}"
       }
 
       val c = ds.connector
 
-      c.tableOperations().exists(ds.catalogTable) must beTrue
+      c.tableOperations().exists(ds.config.catalog) must beTrue
       forall(AccumuloFeatureIndex.indices(sft, IndexMode.Any)) { table =>
-        c.tableOperations().exists(s"${ds.catalogTable}_${encodedSFT}_${table.tableSuffix}") must beTrue
+        c.tableOperations().exists(s"${ds.config.catalog}_${encodedSFT}_${tableSuffix(table)}") must beTrue
       }
     }
 
@@ -516,7 +520,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
       "typeOf feature source must be CachingAccumuloFeatureCollection" >> {
         val fc = ds.getFeatureSource(defaultTypeName).getFeatures(Filter.INCLUDE)
-        fc must haveClass[CachingAccumuloFeatureCollection]
+        fc must beAnInstanceOf[CachingFeatureCollection]
       }
 
       "suport getCount" >> {
@@ -664,7 +668,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val ds = DataStoreFinder.getDataStore(dsParams ++ Map("tableName" -> catalog)).asInstanceOf[AccumuloDataStore]
       val sft = SimpleFeatureTypes.createType(catalog, "name:String:index=true,dtg:Date,*geom:Point:srid=4326")
       ds.createSchema(sft)
-      val tables = AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(ds.getTableName(sft.getTypeName, _)) ++ Seq(catalog)
+      val tables = AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, ds)) ++ Seq(catalog)
       tables must haveSize(5)
       connector.tableOperations().list().toSeq must containAllOf(tables)
       ds.delete()

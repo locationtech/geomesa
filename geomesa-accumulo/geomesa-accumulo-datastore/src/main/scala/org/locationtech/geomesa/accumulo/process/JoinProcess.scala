@@ -19,10 +19,10 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.geotools.process.vector.VectorProcess
 import org.geotools.util.NullProgressListener
 import org.locationtech.geomesa.accumulo.process.query.{QueryResult, QueryVisitor}
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.BinaryOutputEncoder
 import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.EncodingOptions
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.util.ProgressListener

@@ -12,15 +12,15 @@ import org.geotools.data.Query
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.{AccumuloFeatureIndex, AccumuloFilterStrategy}
-import org.locationtech.geomesa.accumulo.index.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
 import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.accumulo.index.z2.Z2Index
 import org.locationtech.geomesa.accumulo.index.z3.Z3Index
+import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloFilterStrategyType, TestWithDataStore}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.opengis.filter.{And, Filter}
 import org.specs2.mutable.Specification
@@ -66,12 +66,12 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
 
   "Cost-based strategy decisions" should {
 
-    def getStrategies(filter: Filter, transforms: Option[Array[String]], explain: Explainer): Seq[AccumuloFilterStrategy] = {
+    def getStrategies(filter: Filter, transforms: Option[Array[String]], explain: Explainer): Seq[AccumuloFilterStrategyType] = {
       val query = transforms.map(new Query(sftName, filter, _)).getOrElse(new Query(sftName, filter))
       ds.getQueryPlan(query, explainer = explain).map(_.filter)
     }
 
-    def getStrategy(filter: String, expected: AccumuloFeatureIndex, transforms: Option[Array[String]], explain: Explainer) = {
+    def getStrategy(filter: String, expected: AccumuloFeatureIndexType, transforms: Option[Array[String]], explain: Explainer) = {
       val strategies = getStrategies(ECQL.toFilter(filter), transforms, explain)
       forall(strategies)(_.index mustEqual expected)
     }
@@ -117,15 +117,14 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
 
   "Index-based strategy decisions" should {
 
-    def getStrategies(filter: Filter, explain: Explainer = ExplainNull): Seq[AccumuloFilterStrategy] = {
-      import org.locationtech.geomesa.accumulo.index.QueryHints.COST_EVALUATION_KEY
+    def getStrategies(filter: Filter, explain: Explainer = ExplainNull): Seq[AccumuloFilterStrategyType] = {
       // default behavior for this test is to use the index-based query costs
       val query = new Query(sftName, filter)
-      query.getHints.put(COST_EVALUATION_KEY, CostEvaluation.Index)
+      query.getHints.put(QueryHints.COST_EVALUATION_KEY, CostEvaluation.Index)
       ds.getQueryPlan(query, explainer = explain).map(_.filter)
     }
 
-    def getStrategy(filter: String, expected: AccumuloFeatureIndex, explain: Explainer = ExplainNull) = {
+    def getStrategy(filter: String, expected: AccumuloFeatureIndexType, explain: Explainer = ExplainNull) = {
       val strategies = getStrategies(ECQL.toFilter(filter), explain)
       forall(strategies)(_.index mustEqual expected)
     }

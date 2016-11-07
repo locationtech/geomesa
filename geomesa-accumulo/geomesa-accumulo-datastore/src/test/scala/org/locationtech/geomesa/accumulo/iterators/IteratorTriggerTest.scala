@@ -11,8 +11,8 @@ package org.locationtech.geomesa.accumulo.iterators
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.filter._
+import org.locationtech.geomesa.index.api.QueryPlanner
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._

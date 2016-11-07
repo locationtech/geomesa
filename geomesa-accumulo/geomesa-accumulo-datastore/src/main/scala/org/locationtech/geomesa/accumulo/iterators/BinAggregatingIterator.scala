@@ -20,9 +20,7 @@ import org.apache.accumulo.core.data._
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
-import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
-import org.locationtech.geomesa.accumulo.index.QueryPlan.FeatureFunction
+import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AccumuloWritableIndex}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.SerializationType.SerializationType
@@ -34,6 +32,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import scala.util.control.NonFatal
 
 /**
  * Iterator that computes and aggregates 'bin' entries
@@ -220,20 +220,21 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
   var writePrecomputedBin: (SimpleFeature, ByteBufferResult) => Unit = null
 
   override def init(options: Map[String, String]): ByteBufferResult = {
+    import KryoLazyAggregatingIterator._
+
     val result = super.init(options)
 
-    val filter = options.contains(KryoLazyAggregatingIterator.CQL_OPT)
-    val dedupe = options.contains(KryoLazyAggregatingIterator.DUPE_OPT)
+    val filter = options.contains(CQL_OPT)
+    val dedupe = options.contains(DUPE_OPT)
     val sample = options.contains(SamplingIterator.SAMPLE_BY_OPT)
 
     val sf = new ScalaSimpleFeature("", sft)
     val gf = new GeometryFactory
 
-    val tableName = options(KryoLazyAggregatingIterator.INDEX_OPT)
-    val table = AccumuloFeatureIndex.AllIndices.find(_.getClass.getSimpleName == tableName).getOrElse {
-      throw new RuntimeException(s"Table option not configured correctly: $tableName")
+    val index = try { AccumuloFeatureIndex.index(options(INDEX_OPT)) } catch {
+      case NonFatal(e) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(INDEX_OPT)}")
     }
-    val getId = table.getIdFromRow(sft)
+    val getId = index.getIdFromRow(sft)
 
     // we only need to decode the parts required for the filter/dedupe/sampling check
     // note: we wouldn't be using precomputed if sample by field wasn't the track id
@@ -312,6 +313,8 @@ class ByteBufferResult(var buffer: ByteBuffer) {
 
 object BinAggregatingIterator extends LazyLogging {
 
+  import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
   // need to be lazy to avoid class loading issues before init is called
   lazy val BIN_SFT = SimpleFeatureTypes.createType("bin", "bin:Bytes,*geom:Point:srid=4326")
   val BIN_ATTRIBUTE_INDEX = 0 // index of 'bin' attribute in BIN_SFT
@@ -334,7 +337,7 @@ object BinAggregatingIterator extends LazyLogging {
    * Creates an iterator config that expects entries to be precomputed bin values
    */
   def configurePrecomputed(sft: SimpleFeatureType,
-                           index: AccumuloFeatureIndex,
+                           index: AccumuloFeatureIndexType,
                            filter: Option[Filter],
                            hints: Hints,
                            deduplicate: Boolean,
@@ -357,7 +360,7 @@ object BinAggregatingIterator extends LazyLogging {
    * Configure based on query hints
    */
   def configureDynamic(sft: SimpleFeatureType,
-                       index: AccumuloFeatureIndex,
+                       index: AccumuloFeatureIndexType,
                        filter: Option[Filter],
                        hints: Hints,
                        deduplicate: Boolean,
@@ -379,7 +382,7 @@ object BinAggregatingIterator extends LazyLogging {
    */
   private def configure(clas: Class[_ <: BinAggregatingIterator],
                         sft: SimpleFeatureType,
-                        index: AccumuloFeatureIndex,
+                        index: AccumuloFeatureIndexType,
                         filter: Option[Filter],
                         trackId: String,
                         geom: String,
@@ -424,7 +427,7 @@ object BinAggregatingIterator extends LazyLogging {
    * Adapts the iterator to create simple features.
    * WARNING - the same feature is re-used and mutated - the iterator stream should be operated on serially.
    */
-  def kvsToFeatures(): FeatureFunction = {
+  def kvsToFeatures(): (Entry[Key, Value]) => SimpleFeature = {
     val sf = new ScalaSimpleFeature("", BIN_SFT)
     sf.setAttribute(1, zeroPoint)
     (e: Entry[Key, Value]) => {
@@ -442,9 +445,7 @@ object BinAggregatingIterator extends LazyLogging {
   def nonAggregatedKvsToFeatures(sft: SimpleFeatureType,
                                  index: AccumuloWritableIndex,
                                  hints: Hints,
-                                 serializationType: SerializationType): FeatureFunction = {
-
-    import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
+                                 serializationType: SerializationType): (Entry[Key, Value]) => SimpleFeature = {
 
     // don't use return sft from query hints, as it will be bin_sft
     val returnSft = hints.getTransformSchema.getOrElse(sft)

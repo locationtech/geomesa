@@ -12,10 +12,14 @@ import java.{io => jio, util => ju}
 import javax.imageio.spi.ServiceRegistry
 
 import org.geotools.data.DataAccessFactory.Param
-import org.locationtech.geomesa.utils.conf.GeoMesaProperties.{GEOMESA_AUTH_PROVIDER_IMPL, GEOMESA_AUDIT_PROVIDER_IMPL}
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.SimpleFeature
 
 package object security {
+
+  val GEOMESA_AUDIT_PROVIDER_IMPL = SystemProperty("geomesa.audit.provider.impl")
+  val GEOMESA_AUTH_PROVIDER_IMPL  = SystemProperty("geomesa.auth.provider.impl")
+
   val authsParam =
     new Param(
       "auths",
@@ -25,7 +29,6 @@ package object security {
         |differ, depending on the authorizations provider, but will be outside this set. Comma-delimited."
       """.stripMargin,
       false)
-
 
   implicit class SecureSimpleFeature(val sf: SimpleFeature) extends AnyVal {
     /**

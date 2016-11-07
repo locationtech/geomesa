@@ -16,8 +16,10 @@ import org.geotools.filter.text.cql2.CQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.joda.time.format.DateTimeFormat
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.index.QueryHints
+import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, AccumuloQueryEventTransform}
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
+import org.locationtech.geomesa.index.audit.QueryEvent
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -39,17 +41,17 @@ class QueryStatTransformTest extends Specification {
     "convert query stats to and from accumulo" in {
 
       // currently we don't restore table and feature in the query stat - thus setting them null here
-      val stat = QueryStat(featureName, 500L, "user1", "attr=1", "hint1=true", 101L, 201L, 11)
+      val stat = QueryEvent(AccumuloAuditService.StoreType, featureName, 500L, "user1", "attr=1", "hint1=true", 101L, 201L, 11)
 
       val writer = connector.createBatchWriter(table, GeoMesaBatchWriterConfig())
 
-      writer.addMutation(QueryStatTransform.statToMutation(stat))
+      writer.addMutation(AccumuloQueryEventTransform.toMutation(stat))
       writer.flush()
       writer.close()
 
       val scanner = connector.createScanner(table, new Authorizations())
 
-      val converted = QueryStatTransform.rowToStat(scanner.iterator().asScala.toList)
+      val converted = AccumuloQueryEventTransform.toEvent(scanner.iterator().asScala.toList)
 
       converted mustEqual stat
     }
@@ -62,7 +64,7 @@ class QueryStatTransformTest extends Specification {
       query.getHints.put(QueryHints.WIDTH_KEY, 500)
       query.getHints.put(QueryHints.HEIGHT_KEY, 500)
 
-      val hints = QueryStatTransform.hintsToString(query.getHints)
+      val hints = QueryEvent.hintsToString(query.getHints)
 
       hints must contain(s"DENSITY_BBOX_KEY=$env")
       hints must contain("WIDTH_KEY=500")

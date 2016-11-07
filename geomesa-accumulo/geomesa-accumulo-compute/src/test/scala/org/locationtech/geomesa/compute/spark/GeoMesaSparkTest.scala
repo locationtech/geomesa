@@ -27,7 +27,8 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloFeatureStore}
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
+import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -274,7 +275,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
       privDS.createSchema(sft)
 
       // write some data
-      val fs = privDS.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+      val fs = privDS.getFeatureSource(sftName)
 
       val features = getFeatures(sft).toList
       val privFeatures = features.take(3)

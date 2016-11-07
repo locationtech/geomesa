@@ -14,9 +14,9 @@ import java.util.concurrent.{Callable, Executors, Future, TimeUnit}
 
 import org.joda.time.{DateTime, DateTimeUtils, DateTimeZone}
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.data.GeoMesaMetadata._
-import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
-import org.locationtech.geomesa.accumulo.util.DistributedLocking
+import org.locationtech.geomesa.accumulo.util.ZookeeperLocking
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.index.utils.GeoMesaMetadata
 import org.locationtech.geomesa.utils.geotools._
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -102,7 +102,7 @@ class StatsRunner(ds: AccumuloDataStore) extends Runnable with Closeable {
   *                    If none, will wait indefinitely
   */
 class StatRunner(ds: AccumuloDataStore, sft: SimpleFeatureType, lockTimeout: Option[Long] = None)
-    extends Callable[DateTime] with DistributedLocking {
+    extends Callable[DateTime] with ZookeeperLocking {
 
   override val connector = ds.connector
 
@@ -150,7 +150,7 @@ class StatRunner(ds: AccumuloDataStore, sft: SimpleFeatureType, lockTimeout: Opt
     * @return last update
     */
   private def getLastUpdate: DateTime = {
-    ds.metadata.read(sft.getTypeName, STATS_GENERATION_KEY, cache = false) match {
+    ds.metadata.read(sft.getTypeName, GeoMesaMetadata.STATS_GENERATION_KEY, cache = false) match {
       case Some(dt) => GeoToolsDateFormat.parseDateTime(dt)
       case None     => new DateTime(0, DateTimeZone.UTC)
     }
@@ -163,11 +163,11 @@ class StatRunner(ds: AccumuloDataStore, sft: SimpleFeatureType, lockTimeout: Opt
     */
   private def getUpdateInterval: Int =
     // note: default is 1440 minutes (one day)
-    ds.metadata.read(sft.getTypeName, STATS_INTERVAL_KEY).map(_.toInt).getOrElse(1440)
+    ds.metadata.read(sft.getTypeName, GeoMesaMetadata.STATS_INTERVAL_KEY).map(_.toInt).getOrElse(1440)
 
   private def lockKey: String = {
-    val ca = GeoMesaTable.hexEncodeNonAlphaNumeric(ds.catalogTable)
-    val tn = GeoMesaTable.hexEncodeNonAlphaNumeric(sft.getTypeName)
+    val ca = GeoMesaFeatureIndex.hexEncodeNonAlphaNumeric(ds.config.catalog)
+    val tn = GeoMesaFeatureIndex.hexEncodeNonAlphaNumeric(sft.getTypeName)
     s"/org.locationtech.geomesa/accumulo/stats/$ca/$tn"
   }
 }

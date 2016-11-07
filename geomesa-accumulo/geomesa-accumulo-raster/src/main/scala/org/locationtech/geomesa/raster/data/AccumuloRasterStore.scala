@@ -21,14 +21,13 @@ import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
 import org.apache.accumulo.core.security.TablePermission
 import org.geotools.coverage.grid.GridEnvelope2D
 import org.joda.time.DateTime
-import org.locationtech.geomesa.accumulo.data.stats.usage._
-import org.locationtech.geomesa.accumulo.index.QueryPlan
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
+import org.locationtech.geomesa.accumulo.audit.AccumuloAuditService
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.index.RasterIndexSchema
 import org.locationtech.geomesa.raster.iterators.BBOXCombiner._
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.security.AuthorizationsProvider
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geohash.BoundingBox
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, NoOpTimings, Timings, TimingsImpl}
 
@@ -54,7 +53,7 @@ class AccumuloRasterStore(val connector: Connector,
   private val profileTable   = s"${tableName}_queries"
   private def getBoundsRowID = tableName + "_bounds"
 
-  private val usageStats = if (collectStats) new GeoMesaUsageStatsImpl(connector, profileTable, true) else null
+  private val usageStats = if (collectStats) new AccumuloAuditService(connector, authorizationsProvider, profileTable, true) else null
 
   def getAuths = authorizationsProvider.getAuthorizations
 
@@ -72,16 +71,6 @@ class AccumuloRasterStore(val connector: Connector,
     val (image, numRasters) = profile(
       RasterUtils.mosaicChunks(rasters, params.width.toInt, params.height.toInt, params.envelope),
       "mosaic")
-    if (collectStats) {
-      val stat = RasterQueryStat(tableName,
-                                 System.currentTimeMillis(),
-                                 query.toString,
-                                 timings.time("planning"),
-                                 timings.time("scanning") - timings.time("planning"),
-                                 timings.time("mosaic"),
-                                 numRasters)
-      usageStats.writeUsageStat(stat)
-    }
     image
   }
 
@@ -91,23 +80,20 @@ class AccumuloRasterStore(val connector: Connector,
       val plan = AccumuloRasterQueryPlanner.getQueryPlan(rasterQuery, getResToGeoHashLenMap, getResToBoundsMap)
       plan match {
         case Some(qp) =>
-          QueryPlan.configureBatchScanner(batchScanner, qp)
-          adaptIteratorToChunks(SelfClosingIterator(batchScanner))
+          qp.iterators.foreach(batchScanner.addScanIterator)
+          qp.columnFamilies.foreach(batchScanner.fetchColumnFamily)
+          batchScanner.setRanges(qp.ranges)
+          adaptIteratorToChunks(SelfClosingIterator(batchScanner.iterator, batchScanner.close))
         case _        => Iterator.empty
       }
     }, "scanning")
-  }
-
-  def getQueryRecords(numRecords: Int): Iterator[String] = {
-    val scanner = connector.createScanner(profileTable, authorizationsProvider.getAuthorizations)
-    scanner.iterator.take(numRecords).map(RasterQueryStatTransform.decodeStat)
   }
 
   def getBounds: BoundingBox = {
     ensureBoundsTableExists()
     val scanner = connector.createScanner(GEOMESA_RASTER_BOUNDS_TABLE, authorizationsProvider.getAuthorizations)
     scanner.setRange(new Range(getBoundsRowID))
-    val resultingBounds = SelfClosingIterator(scanner)
+    val resultingBounds = SelfClosingIterator(scanner.iterator, scanner.close)
     if (resultingBounds.isEmpty) {
       BoundingBox(-180, 180, -90, 90)
     } else {
@@ -160,7 +146,7 @@ class AccumuloRasterStore(val connector: Connector,
     ensureBoundsTableExists()
     val scanner = connector.createScanner(GEOMESA_RASTER_BOUNDS_TABLE, getAuths)
     scanner.setRange(new Range(getBoundsRowID))
-    SelfClosingIterator(scanner)
+    SelfClosingIterator(scanner.iterator, scanner.close)
   }
 
   def getGridRange: GridEnvelope2D = {
@@ -296,7 +282,6 @@ class AccumuloRasterStore(val connector: Connector,
 }
 
 object AccumuloRasterStore {
-  import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory._
   import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
 
   def apply(username: String,
@@ -325,6 +310,7 @@ object AccumuloRasterStore {
   }
 
   def apply(config: JMap[String, Serializable]): AccumuloRasterStore = {
+    import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.RichParam
     val username: String     = userParam.lookUp(config).asInstanceOf[String]
     val password: String     = passwordParam.lookUp(config).asInstanceOf[String]
     val instance: String     = instanceIdParam.lookUp(config).asInstanceOf[String]

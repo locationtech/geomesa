@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.accumulo.index.z2
 
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
+import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.opengis.feature.simple.SimpleFeatureType
 
-object XZ2Index extends AccumuloFeatureIndex with XZ2WritableIndex with XZ2QueryableIndex {
+case object XZ2Index extends AccumuloFeatureIndexType with XZ2WritableIndex with XZ2QueryableIndex {
 
   override val name: String = "xz2"
 

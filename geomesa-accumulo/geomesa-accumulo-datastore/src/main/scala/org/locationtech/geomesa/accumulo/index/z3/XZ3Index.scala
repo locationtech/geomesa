@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.accumulo.index.z3
 
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
+import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.opengis.feature.simple.SimpleFeatureType
 
-object XZ3Index extends AccumuloFeatureIndex with XZ3WritableIndex with XZ3QueryableIndex {
+case object XZ3Index extends AccumuloFeatureIndexType with XZ3WritableIndex with XZ3QueryableIndex {
 
   override val name: String = "xz3"
 

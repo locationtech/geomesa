@@ -17,13 +17,13 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, Z3Iterator}
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.{Convert2ViewerFunction, ExtendedValues}
+import org.locationtech.geomesa.index.conf.QueryHints._
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.sfcurve.zorder.Z3
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
@@ -79,7 +79,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       skipped("used for debugging")
       import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-      ds.connector.createScanner(ds.getTableName(sftName, Z3Index), new Authorizations()).foreach { r =>
+      ds.connector.createScanner(Z3Index.getTableName(sftName, ds), new Authorizations()).foreach { r =>
         val bytes = r.getKey.getRow.getBytes
         val keyZ = Longs.fromByteArray(bytes.drop(2))
         val (x, y, t) = Z3SFC(sft.getZ3Interval).invert(Z3(keyZ))

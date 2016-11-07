@@ -50,7 +50,7 @@ class GenerateKNNQueryTest extends Specification {
 
   ds.createSchema(sft)
 
-  val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+  val fs = ds.getFeatureSource(sftName)
 
   val smallGH = GeoHash("dqb0tg")
 

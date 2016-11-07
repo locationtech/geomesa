@@ -11,7 +11,7 @@ package org.locationtech.geomesa.index.api
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.IdDetectingFilterVisitor
-import org.locationtech.geomesa.index.stats.HasGeoMesaStats
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 
@@ -21,13 +21,13 @@ import scala.collection.mutable.ArrayBuffer
 /**
  * Class for splitting queries up based on Boolean clauses and the available query strategies.
  */
-class FilterSplitter[Ops <: HasGeoMesaStats, FeatureWrapper, Result, Plan](sft: SimpleFeatureType,
-    indices: Seq[GeoMesaFeatureIndex[Ops, FeatureWrapper, Result, Plan]]) extends LazyLogging {
+class FilterSplitter[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q]
+    (sft: SimpleFeatureType, indices: Seq[GeoMesaFeatureIndex[DS, F, W, Q]]) extends LazyLogging {
 
   import FilterSplitter._
 
-  type TypedFilterPlan = FilterPlan[Ops, FeatureWrapper, Result, Plan]
-  type TypedFilterStrategy = FilterStrategy[Ops, FeatureWrapper, Result, Plan]
+  type TypedFilterPlan = FilterPlan[DS, F, W, Q]
+  type TypedFilterStrategy = FilterStrategy[DS, F, W, Q]
 
   /**
     * Splits the query up into different filter plans to be evaluated. Each filter plan will consist of one or
@@ -67,14 +67,14 @@ class FilterSplitter[Ops <: HasGeoMesaStats, FeatureWrapper, Result, Plan](sft: 
         val (complex, simple) = a.getChildren.partition(f => f.isInstanceOf[Or] && attributeAndIdCount(f, sft) > 1)
         if (complex.isEmpty) {
           // no cross-attribute ORs
-          getSimpleQueryOptions(a).map(FilterPlan.apply[Ops, FeatureWrapper, Result, Plan])
+          getSimpleQueryOptions(a).map(FilterPlan.apply[DS, F, W, Q])
         } else if (simple.nonEmpty) {
           logger.warn("Not considering complex OR predicates in query planning: " +
               s"${complex.map(filterToString).mkString("(", ") AND (", ")")}")
           def addComplexPredicates(qf: TypedFilterStrategy) =
             qf.copy(secondary = andOption(qf.secondary.toSeq ++ complex))
           val simpleOptions = getSimpleQueryOptions(andFilters(simple))
-          simpleOptions.map(addComplexPredicates).map(FilterPlan.apply[Ops, FeatureWrapper, Result, Plan])
+          simpleOptions.map(addComplexPredicates).map(FilterPlan.apply[DS, F, W, Q])
         } else {
           logger.warn(s"Falling back to expand/reduce query splitting for filter ${filterToString(filter)}")
           val dnf = rewriteFilterInDNF(filter).asInstanceOf[Or]
@@ -248,10 +248,8 @@ object FilterSplitter {
   /**
    * Try to merge the two query filters. Return the merged query filter if successful, else null.
    */
-  def tryMerge[Ops <: HasGeoMesaStats, FeatureWrapper, Result, Plan]
-    (toMerge: FilterStrategy[Ops, FeatureWrapper, Result, Plan],
-     mergeTo: FilterStrategy[Ops, FeatureWrapper, Result, Plan]):
-      FilterStrategy[Ops, FeatureWrapper, Result, Plan] = {
+  def tryMerge[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q]
+      (toMerge: FilterStrategy[DS, F, W, Q], mergeTo: FilterStrategy[DS, F, W, Q]): FilterStrategy[DS, F, W, Q] = {
     if (mergeTo.primary.forall(_ == Filter.INCLUDE)) {
       // this is a full table scan, we can just append the OR to the secondary filter
       val secondary = orOption(mergeTo.secondary.toSeq ++ toMerge.filter)
@@ -277,10 +275,8 @@ object FilterSplitter {
     * @param mergeTo second filter
     * @return merged filter that satisfies both inputs, or null if that isn't possible
     */
-  def tryMergeAttrStrategy[Ops <: HasGeoMesaStats, FeatureWrapper, Result, Plan]
-    (toMerge: FilterStrategy[Ops, FeatureWrapper, Result, Plan],
-     mergeTo: FilterStrategy[Ops, FeatureWrapper, Result, Plan]):
-      FilterStrategy[Ops, FeatureWrapper, Result, Plan] = {
+  def tryMergeAttrStrategy[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q]
+      (toMerge: FilterStrategy[DS, F, W, Q], mergeTo: FilterStrategy[DS, F, W, Q]): FilterStrategy[DS, F, W, Q] = {
     // TODO this will be incorrect for multi-valued properties where we have an AND in the primary filter
     val leftAttributes = toMerge.primary.map(FilterHelper.propertyNames(_, null))
     val rightAttributes = mergeTo.primary.map(FilterHelper.propertyNames(_, null))
@@ -303,14 +299,12 @@ object FilterSplitter {
     * @param option filter plan
     * @return same filter plan with disjoint ORs
     */
-  def makeDisjoint[Ops <: HasGeoMesaStats, FeatureWrapper, Result, Plan]
-    (option: FilterPlan[Ops, FeatureWrapper, Result, Plan]):
-      FilterPlan[Ops, FeatureWrapper, Result, Plan] = {
+  def makeDisjoint[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q](option: FilterPlan[DS, F, W, Q]): FilterPlan[DS, F, W, Q] = {
     if (option.strategies.length < 2) {
       option
     } else {
       // A OR B OR C becomes... A OR (B NOT A) OR (C NOT A and NOT B)
-      def extractNot(qp: FilterStrategy[Ops, FeatureWrapper, Result, Plan]) = qp.filter.map(ff.not)
+      def extractNot(qp: FilterStrategy[DS, F, W, Q]) = qp.filter.map(ff.not)
       // keep track of our current disjoint clause
       val nots = ArrayBuffer[Filter]()
       extractNot(option.strategies.head).foreach(nots.append(_))

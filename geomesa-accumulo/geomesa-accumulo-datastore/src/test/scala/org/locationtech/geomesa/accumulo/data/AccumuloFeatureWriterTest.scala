@@ -21,9 +21,9 @@ import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
 import org.locationtech.geomesa.accumulo.index.id.RecordIndex
-import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AccumuloStrategyDecider}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -162,7 +162,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       val features = fs.getFeatures(Filter.INCLUDE).features().toSeq
       features must beEmpty
 
-      forall(AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(ds.getTableName(sft.getTypeName, _))) { name =>
+      forall(AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, ds))) { name =>
         val scanner = connector.createScanner(name, new Authorizations())
         try {
           scanner.iterator().hasNext must beFalse
@@ -364,7 +364,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
 
       val filter = CQL.toFilter("name = 'will'")
 
-      AccumuloStrategyDecider.getFilterPlan(sft, Some(ds), filter, None, None).head.index mustEqual AttributeIndex
+      ds.queryPlanner.strategyDecider.getFilterPlan(sft, Some(ds), filter, None, None).head.index mustEqual AttributeIndex
 
       import org.locationtech.geomesa.utils.geotools.Conversions._
 
@@ -421,7 +421,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
         Thread.sleep(2)
       }
 
-      val scanner = ds.connector.createScanner(ds.getTableName(sftName, RecordIndex), new Authorizations)
+      val scanner = ds.connector.createScanner(RecordIndex.getTableName(sftName, ds), new Authorizations)
       val serializer = new KryoFeatureSerializer(sft)
       val rows = scanner.toList
       scanner.close()
@@ -446,7 +446,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
   }
 
   def clearTablesHard(): Unit = {
-    AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(ds.getTableName(sft.getTypeName, _)).foreach { name =>
+    AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, ds)).foreach { name =>
       val deleter = connector.createBatchDeleter(name, new Authorizations(), 5, new BatchWriterConfig())
       deleter.setRanges(Seq(new aRange()))
       deleter.delete()

@@ -464,7 +464,6 @@ object KryoFeatureSerializer {
   * @param projected the simple feature type to project to when decoding
   * @param options the options what were applied when encoding
   */
-@deprecated
 class ProjectingKryoFeatureDeserializer(original: SimpleFeatureType,
                                         projected: SimpleFeatureType,
                                         val options: Set[SerializationOption] = Set.empty)

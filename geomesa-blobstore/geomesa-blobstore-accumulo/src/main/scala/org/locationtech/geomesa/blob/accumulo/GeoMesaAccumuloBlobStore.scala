@@ -19,14 +19,14 @@ class GeoMesaAccumuloBlobStore(ds: AccumuloDataStore, bs: AccumuloBlobStoreImpl)
 object GeoMesaAccumuloBlobStore {
 
   def apply(ds: AccumuloDataStore): GeoMesaAccumuloBlobStore = {
-    val blobTableName = s"${ds.catalogTable}${AccumuloBlobStoreImpl.blobSuffix}"
+    val blobTableName = s"${ds.config.catalog}${AccumuloBlobStoreImpl.blobSuffix}"
 
     val bwConf = GeoMesaBatchWriterConfig().setMaxWriteThreads(ds.config.writeThreads)
 
     val accBlobStore = new AccumuloBlobStoreImpl(ds.connector,
       blobTableName,
-      ds.authProvider,
-      ds.auditProvider,
+      ds.config.authProvider,
+      ds.config.audit.get._2,
       bwConf)
 
     new GeoMesaAccumuloBlobStore(ds, accBlobStore)

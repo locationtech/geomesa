@@ -13,6 +13,8 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.joda.time.Interval
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.audit.{AccumuloEventReader, AccumuloQueryEventTransform}
+import org.locationtech.geomesa.index.audit.QueryEvent
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -33,10 +35,10 @@ class LiveStatReaderTest extends Specification {
 
       skipped("Meant for integration")
 
-      val reader = new UsageStatReader(connector, s"${table}_${feature}_queries")
+      val reader = new AccumuloEventReader(connector, s"${table}_${feature}_queries")
 
       val dates = new Interval(0, System.currentTimeMillis())
-      val results = reader.query[QueryStat](feature, dates, new Authorizations())
+      val results = reader.query[QueryEvent](feature, dates, new Authorizations())(AccumuloQueryEventTransform)
 
       results.foreach(println)
 

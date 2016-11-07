@@ -21,7 +21,7 @@ import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.accumulo.index.z2.XZ2Index
 import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.accumulo.iterators.TestData._
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.filter._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -119,8 +119,8 @@ class TableSharingTest extends Specification with LazyLogging {
 
   // Delete one shared table feature to ensure that deleteSchema works.
   s"Removing ${sft2.getTypeName}" should {
-    val sft2Scanner = ds.getScanner(ds.getTableName(sft2.getTypeName, XZ2Index))
-    val sft2RecordScanner = ds.getScanner(ds.getTableName(sft2.getTypeName, RecordIndex))
+    val sft2Scanner = ds.connector.createScanner(XZ2Index.getTableName(sft2.getTypeName, ds), ds.auths)
+    val sft2RecordScanner = ds.connector.createScanner(RecordIndex.getTableName(sft2.getTypeName, ds), ds.auths)
 
     ds.removeSchema(sft2.getTypeName)
 

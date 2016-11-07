@@ -25,11 +25,10 @@ import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
-import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AccumuloWritableIndex}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.SerializationType.SerializationType
-import org.locationtech.geomesa.features.SimpleFeatureDeserializers
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -151,7 +150,6 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLoggi
   val delegate = new AccumuloInputFormat
 
   var sft: SimpleFeatureType = null
-  var encoding: SerializationType = null
   var desiredSplitCount: Int = -1
   var table: AccumuloWritableIndex = null
 
@@ -159,11 +157,10 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLoggi
     val params = GeoMesaConfigurator.getDataStoreInParams(conf)
     val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
     sft = ds.getSchema(GeoMesaConfigurator.getFeatureType(conf))
-    encoding = ds.getFeatureEncoding(sft)
     desiredSplitCount = GeoMesaConfigurator.getDesiredSplits(conf)
     val tableName = GeoMesaConfigurator.getTable(conf)
     table = AccumuloFeatureIndex.indices(sft, IndexMode.Read)
-        .find(t => ds.getTableName(sft.getTypeName, t) == tableName)
+        .find(t => t.getTableName(sft.getTypeName, ds) == tableName)
         .getOrElse(throw new RuntimeException(s"Couldn't find input table $tableName"))
     ds.dispose()
   }
@@ -208,7 +205,7 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLoggi
     val schema = GeoMesaConfigurator.getTransformSchema(context.getConfiguration).getOrElse(sft)
     val hasId = table.serializedWithId
     val serializationOptions = if (hasId) SerializationOptions.none else SerializationOptions.withoutId
-    val decoder = SimpleFeatureDeserializers(schema, encoding, serializationOptions)
+    val decoder = new KryoFeatureSerializer(schema, serializationOptions)
     new GeoMesaRecordReader(sft, table, readers, hasId, decoder)
   }
 }

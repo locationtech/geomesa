@@ -19,9 +19,9 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.stats.AttributeBounds
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, wholeWorldEnvelope}
 import org.locationtech.geomesa.utils.stats._
 import org.locationtech.geomesa.utils.text.WKTUtils

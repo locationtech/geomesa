@@ -10,14 +10,13 @@ package org.locationtech.geomesa.accumulo.index.z2
 
 import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter._
+import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex._
 import org.opengis.feature.simple.SimpleFeatureType
 
 // current version - deprecated non-point support in favor of xz, ids in row key, per-attribute vis
-object Z2Index extends AccumuloFeatureIndex with Z2WritableIndex with Z2QueryableIndex {
+case object Z2Index extends AccumuloFeatureIndexType with Z2WritableIndex with Z2QueryableIndex {
 
   val Z2IterPriority = 23
 
@@ -44,9 +43,9 @@ object Z2Index extends AccumuloFeatureIndex with Z2WritableIndex with Z2Queryabl
     sft.isPoints
   }
 
-  override def writer(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
+  override def writer(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
     val sharing = sharingPrefix(sft)
-    (wf: WritableFeature) => {
+    (wf: AccumuloFeature) => {
       val rows = getPointRowKey(sharing)(wf)
       rows.map { row =>
         val mutation = new Mutation(row)
@@ -57,9 +56,9 @@ object Z2Index extends AccumuloFeatureIndex with Z2WritableIndex with Z2Queryabl
     }
   }
 
-  override def remover(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
+  override def remover(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
     val sharing = sharingPrefix(sft)
-    (wf: WritableFeature) => {
+    (wf: AccumuloFeature) => {
       val rows = getPointRowKey(sharing)(wf)
       rows.map { row =>
         val mutation = new Mutation(row)
@@ -72,7 +71,7 @@ object Z2Index extends AccumuloFeatureIndex with Z2WritableIndex with Z2Queryabl
 }
 
 // initial implementation - supports points and non-points
-object Z2IndexV1 extends AccumuloFeatureIndex with Z2WritableIndex with Z2QueryableIndex {
+case object Z2IndexV1 extends AccumuloFeatureIndexType with Z2WritableIndex with Z2QueryableIndex {
 
   override val name: String = "z2"
 
@@ -82,13 +81,13 @@ object Z2IndexV1 extends AccumuloFeatureIndex with Z2WritableIndex with Z2Querya
 
   override def supports(sft: SimpleFeatureType): Boolean = sft.getGeometryDescriptor != null
 
-  override def writer(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
+  override def writer(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val sharing = sharingPrefix(sft)
-    val getRowKeys: (WritableFeature) => Seq[Array[Byte]] =
+    val getRowKeys: (AccumuloFeature) => Seq[Array[Byte]] =
       if (sft.isPoints) getPointRowKey(sharing) else getGeomRowKeys(sharing)
 
-    (wf: WritableFeature) => {
+    (wf: AccumuloFeature) => {
       val rows = getRowKeys(wf)
       // store the duplication factor in the column qualifier for later use
       val cq = if (rows.length > 1) new Text(Integer.toHexString(rows.length)) else EMPTY_TEXT
@@ -101,13 +100,13 @@ object Z2IndexV1 extends AccumuloFeatureIndex with Z2WritableIndex with Z2Querya
     }
   }
 
-  override def remover(sft: SimpleFeatureType, ops: AccumuloDataStore): FeatureToMutations = {
+  override def remover(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val sharing = sharingPrefix(sft)
-    val getRowKeys: (WritableFeature) => Seq[Array[Byte]] =
+    val getRowKeys: (AccumuloFeature) => Seq[Array[Byte]] =
       if (sft.isPoints) getPointRowKey(sharing) else getGeomRowKeys(sharing)
 
-    (wf: WritableFeature) => {
+    (wf: AccumuloFeature) => {
       val rows = getRowKeys(wf)
       val cq = if (rows.length > 1) new Text(Integer.toHexString(rows.length)) else EMPTY_TEXT
       rows.map { row =>
