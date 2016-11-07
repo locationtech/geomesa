@@ -8,10 +8,12 @@
 
 package org.locationtech.geomesa.tools.accumulo
 
+import java.io.File
+
 import com.beust.jcommander.Parameter
 import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
-import org.locationtech.geomesa.tools.common.OptionalZookeepersParam
+import org.locationtech.geomesa.tools.common.{FeatureTypeNameParam, OptionalCQLFilterParam, OptionalZookeepersParam}
 
 /**
   * Shared Accumulo-specific command line parameters

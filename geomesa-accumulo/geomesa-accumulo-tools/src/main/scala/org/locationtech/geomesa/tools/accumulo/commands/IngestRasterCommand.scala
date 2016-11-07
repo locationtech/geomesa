@@ -14,11 +14,11 @@ import java.util.Locale
 import com.beust.jcommander.{IParameterValidator, JCommander, Parameter, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
-import org.locationtech.geomesa.tools.accumulo.Utils.Formats._
 import org.locationtech.geomesa.tools.accumulo.commands.IngestRasterCommand.IngestRasterParameters
 import org.locationtech.geomesa.tools.accumulo.ingest.LocalRasterIngest
 import org.locationtech.geomesa.tools.accumulo.{AccumuloConnectionParams, AccumuloRasterTableParam}
 import org.locationtech.geomesa.tools.common.commands.Command
+import org.locationtech.geomesa.utils.file.FileUtils.Formats._
 
 import scala.util.{Failure, Success}
 

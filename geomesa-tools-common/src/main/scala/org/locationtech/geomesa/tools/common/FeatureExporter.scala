@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.tools.accumulo
+package org.locationtech.geomesa.tools.common
 
 import java.io._
 import java.util.{Date, List => jList, Map => jMap}
@@ -21,10 +21,10 @@ import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactor
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureStore}
 import org.geotools.geojson.feature.FeatureJSON
 import org.locationtech.geomesa.features.avro.AvroDataFileWriter
-import org.locationtech.geomesa.filter.function._
-import org.locationtech.geomesa.tools.accumulo.Utils.Formats
-import org.locationtech.geomesa.tools.accumulo.Utils.Formats.Formats
-import org.locationtech.geomesa.tools.accumulo.commands.BinaryExportCommand.BinaryExportParameters
+import org.locationtech.geomesa.filter.function.AxisOrder
+import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.{EncodingOptions, encodeFeatureCollection}
+import org.locationtech.geomesa.utils.file.FileUtils.Formats
+import org.locationtech.geomesa.utils.file.FileUtils.Formats.Formats
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -184,14 +184,14 @@ object BinFileExport {
 
   var DEFAULT_TIME = "dtg"
 
-  def getAttributeList(p: BinaryExportParameters): String = {
+  def getAttributeList[B <: BaseBinaryExportParameters](p: B): String = {
     val dtg = Option(p.dateAttribute).getOrElse(DEFAULT_TIME)
     Seq(p.latAttribute, p.lonAttribute, p.idAttribute, dtg, p.labelAttribute)
         .filter(_ != null)
         .mkString(",")
   }
 
-  def apply(os: OutputStream, params: BinaryExportParameters) =
+  def apply[B <: BaseBinaryExportParameters](os: OutputStream, params: B) =
     new BinFileExport(os,
                       Option(params.dateAttribute).getOrElse(DEFAULT_TIME),
                       Option(params.idAttribute),
@@ -205,10 +205,7 @@ class BinFileExport(os: OutputStream,
                     idAttribute: Option[String],
                     latAttribute: Option[String],
                     lonAttribute: Option[String],
-
                     lblAttribute: Option[String]) extends FeatureExporter {
-
-  import BinaryOutputEncoder._
 
   val id = idAttribute.orElse(Some("id"))
   val latLon = latAttribute.flatMap(lat => lonAttribute.map(lon => (lat, lon)))

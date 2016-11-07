@@ -12,8 +12,8 @@ import java.io.File
 import java.util.concurrent.atomic.AtomicLong
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.tools.accumulo.Utils.Formats
-import org.locationtech.geomesa.tools.accumulo.Utils.Formats.Formats
+import org.locationtech.geomesa.utils.file.FileUtils.Formats
+import org.locationtech.geomesa.utils.file.FileUtils.Formats.Formats
 
 /**
  * Attempts to ingest files based on metadata stored in the file itself. Operates

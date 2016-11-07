@@ -12,7 +12,7 @@ import org.apache.accumulo.core.client.ClientConfiguration.ClientProperty
 import org.apache.accumulo.server.client.HdfsZooInstance
 import org.locationtech.geomesa.tools.accumulo.commands._
 import org.locationtech.geomesa.tools.accumulo.commands.stats._
-import org.locationtech.geomesa.tools.common.commands.{Command, GenerateAvroSchemaCommand}
+import org.locationtech.geomesa.tools.common.commands.{Command, ConvertCommand, GenerateAvroSchemaCommand}
 import org.locationtech.geomesa.tools.common.{Prompt, Runner}
 import org.locationtech.geomesa.utils.conf.GeoMesaProperties.{GEOMESA_TOOLS_ACCUMULO_SITE_XML, GeoMesaSystemProperty}
 
@@ -51,7 +51,8 @@ object AccumuloRunner extends Runner {
     new StatsCountCommand(jc),
     new StatsTopKCommand(jc),
     new StatsHistogramCommand(jc),
-    new AddIndexCommand(jc)
+    new AddIndexCommand(jc),
+    new ConvertCommand(jc)
   )
 
   /**

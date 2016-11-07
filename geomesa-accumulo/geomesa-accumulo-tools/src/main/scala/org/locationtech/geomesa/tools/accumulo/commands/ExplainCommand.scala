@@ -14,7 +14,7 @@ import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.utils.ExplainPrintln
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
-import org.locationtech.geomesa.tools.accumulo.Utils.setOverrideAttributes
+import org.locationtech.geomesa.utils.file.FileUtils.setOverrideAttributes
 import org.locationtech.geomesa.tools.accumulo.commands.ExplainCommand.ExplainParameters
 import org.locationtech.geomesa.tools.common.{CQLFilterParam, FeatureTypeNameParam, OptionalAttributesParam}
 

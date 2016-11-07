@@ -8,19 +8,19 @@
 
 package org.locationtech.geomesa.tools.accumulo.commands
 
-import java.io.Closeable
-
-import com.beust.jcommander.{JCommander, Parameter, Parameters}
+import com.beust.jcommander.{JCommander, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
-import org.locationtech.geomesa.tools.accumulo._
 import org.locationtech.geomesa.tools.accumulo.commands.BinaryExportCommand.BinaryExportParameters
+import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
+import org.locationtech.geomesa.tools.common._
+import org.locationtech.geomesa.tools.common.commands.ExportCommandTools
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
 import scala.collection.JavaConversions._
 
 class BinaryExportCommand(parent: JCommander) extends CommandWithCatalog(parent)
-  with ExportCommandTools[BinaryExportParameters]
+  with ExportCommandTools
   with LazyLogging {
 
   override val command = "export-bin"
@@ -47,20 +47,7 @@ class BinaryExportCommand(parent: JCommander) extends CommandWithCatalog(parent)
 
 object BinaryExportCommand {
   @Parameters(commandDescription = "Export features from a GeoMesa data store in a binary format.")
-  class BinaryExportParameters extends BaseExportCommands {
-    @Parameter(names = Array("--id-attribute"), description = "name of the id attribute to export")
-    var idAttribute: String = null
-
-    @Parameter(names = Array("--lat-attribute"), description = "name of the latitude attribute to export")
-    var latAttribute: String = null
-
-    @Parameter(names = Array("--lon-attribute"), description = "name of the longitude attribute to export")
-    var lonAttribute: String = null
-
-    @Parameter(names = Array("--dt-attribute"), description = "name of the date attribute to export", required = true)
-    var dateAttribute: String = null
-
-    @Parameter(names = Array("--label-attribute"), description = "name of the attribute to use as a bin file label")
-    var labelAttribute: String = null
-  }
+  class BinaryExportParameters extends BaseExportCommands
+    with BaseBinaryExportParameters
+    with GeoMesaConnectionParams {}
 }

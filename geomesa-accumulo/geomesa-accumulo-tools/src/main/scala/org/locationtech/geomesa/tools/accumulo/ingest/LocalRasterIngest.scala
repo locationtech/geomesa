@@ -17,8 +17,8 @@ import org.locationtech.geomesa.accumulo.index.encoders.DecodedIndexValue
 import org.locationtech.geomesa.raster.data.Raster
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
+import org.locationtech.geomesa.utils.file.FileUtils.Formats._
 import org.locationtech.geomesa.utils.geohash.BoundingBox
-import org.locationtech.geomesa.tools.accumulo.Utils.Formats._
 
 import scala.collection.parallel.ForkJoinTaskSupport
 import scala.util.Try

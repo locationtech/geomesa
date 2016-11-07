@@ -15,11 +15,12 @@ import java.util.Locale
 import com.beust.jcommander.{JCommander, Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.accumulo.GeoMesaConnectionParams
-import org.locationtech.geomesa.tools.accumulo.Utils.Formats
-import org.locationtech.geomesa.tools.accumulo.Utils.Formats._
 import org.locationtech.geomesa.tools.accumulo.commands.IngestCommand._
 import org.locationtech.geomesa.tools.accumulo.ingest.{AutoIngest, ConverterIngest}
-import org.locationtech.geomesa.tools.common.{CLArgResolver, OptionalFeatureTypeNameParam, OptionalFeatureTypeSpecParam}
+import org.locationtech.geomesa.tools.common.{CLArgResolver, InputFileParams, OptionalFeatureTypeNameParam, OptionalFeatureTypeSpecParam}
+import org.locationtech.geomesa.utils.file.FileUtils
+import org.locationtech.geomesa.utils.file.FileUtils.Formats
+import org.locationtech.geomesa.utils.file.FileUtils.Formats._
 import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
 
 import scala.collection.JavaConversions._
@@ -30,13 +31,10 @@ class IngestCommand(parent: JCommander) extends CommandWithCatalog(parent) with 
   override val command = "ingest"
   override val params = new IngestParameters()
 
-  // If you change this, update the regex in GeneralShapefileIngest for URLs
-  private val remotePrefixes = Seq("hdfs", "s3n", "s3a")
-
-  def isDistributedUrl(url: String) = remotePrefixes.exists(url.startsWith)
+  def isDistributedUrl(url: String) = FileUtils.remotePrefixes.exists(url.startsWith)
 
   override def execute(): Unit = {
-    ensureSameFs(remotePrefixes)
+    ensureSameFs(FileUtils.remotePrefixes)
 
     val fmtParam = Option(params.format).flatMap(f => Try(Formats.withName(f.toLowerCase(Locale.US))).toOption)
     lazy val fmtFile = params.files.flatMap(f => Try(Formats.withName(getFileExtension(f))).toOption).headOption
@@ -91,18 +89,11 @@ object IngestCommand {
   @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
   class IngestParameters extends GeoMesaConnectionParams
     with OptionalFeatureTypeNameParam
-    with OptionalFeatureTypeSpecParam {
-
-    @Parameter(names = Array("-C", "--converter"), description = "GeoMesa converter specification as a config string, file name, or name of an available converter")
-    var config: String = null
-
-    @Parameter(names = Array("-F", "--format"), description = "File format of input files (shp, csv, tsv, avro, etc)")
-    var format: String = null
+    with OptionalFeatureTypeSpecParam
+    with InputFileParams {
 
     @Parameter(names = Array("-t", "--threads"), description = "Number of threads if using local ingest")
     var threads: Integer = 1
 
-    @Parameter(description = "<file>...", required = true)
-    var files: java.util.List[String] = new util.ArrayList[String]()
   }
 }

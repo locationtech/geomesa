@@ -17,11 +17,10 @@ import org.apache.commons.io.IOUtils
 import org.geotools.data.{DataStoreFinder, DataUtilities, FeatureWriter, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
-import org.joda.time.Period
-import org.joda.time.format.PeriodFormatterBuilder
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.utils.classpath.PathUtils
 import org.locationtech.geomesa.utils.stats.CountingInputStream
+import org.locationtech.geomesa.utils.text.TextTools._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -180,11 +179,6 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
 }
 
 object AbstractIngest {
-
-  val PeriodFormatter =
-    new PeriodFormatterBuilder().minimumPrintedDigits(2).printZeroAlways()
-      .appendHours().appendSeparator(":").appendMinutes().appendSeparator(":").appendSeconds().toFormatter
-
   /**
    * Prints progress using the provided output stream. Progress will be overwritten using '\r', and will only
    * include a line feed if done == true
@@ -229,32 +223,6 @@ object AbstractIngest {
       out.println()
     }
   }
-
-  private def buildString(c: Char, length: Int): String = {
-    if (length < 0) return ""
-    val sb = new StringBuilder(length)
-    (0 until length).foreach(_ => sb.append(c))
-    sb.toString()
-  }
-
-  /**
-   * Gets elapsed time as a string
-   */
-  def getTime(start: Long): String = PeriodFormatter.print(new Period(System.currentTimeMillis() - start))
-
-  /**
-   * Gets status as a string
-   */
-  def getStatInfo(successes: Long, failures: Long): String = {
-    val failureString = if (failures == 0) {
-      "with no failures"
-    } else {
-      s"and failed to ingest ${getPlural(failures, "feature")}"
-    }
-    s"Ingested ${getPlural(successes, "feature")} $failureString."
-  }
-
-  private def getPlural(i: Long, base: String): String = if (i == 1) s"$i $base" else s"$i ${base}s"
 }
 
 trait LocalIngestConverter extends Closeable {
