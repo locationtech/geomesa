@@ -29,6 +29,7 @@
         <module>geomesa-geojson</module>
         <module>geomesa-hbase</module>
         <module>geomesa-index-api</module>
+        <module>geomesa-jupyter</module>
         <module>geomesa-kafka</module>
         <module>geomesa-logger</module>
         <module>geomesa-memory</module>
