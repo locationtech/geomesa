@@ -60,9 +60,19 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W, Q], F <: Wrappe
 
   def manager: GeoMesaIndexManager[DS, F, W, Q]
 
-  protected def createFeatureWriterAppend(sft: SimpleFeatureType): GeoMesaFeatureWriter[DS, F, W, Q, _]
+  protected def createFeatureWriterAppend(sft: SimpleFeatureType,
+                                          indices: Option[Seq[GeoMesaFeatureIndex[DS, F, W, Q]]]): GeoMesaFeatureWriter[DS, F, W, Q, _]
 
-  protected def createFeatureWriterModify(sft: SimpleFeatureType, filter: Filter): GeoMesaFeatureWriter[DS, F, W, Q, _]
+  protected def createFeatureWriterModify(sft: SimpleFeatureType,
+                                          indices: Option[Seq[GeoMesaFeatureIndex[DS, F, W, Q]]],
+                                          filter: Filter): GeoMesaFeatureWriter[DS, F, W, Q, _]
+
+  /**
+    * Optimized method to delete everything (all tables) associated with this datastore
+    * (index tables and catalog table)
+    * NB: We are *not* currently deleting the query table and/or query information.
+    */
+  def delete(): Unit
 
   // hooks to allow extended functionality
 
@@ -359,7 +369,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W, Q], F <: Wrappe
     if (transaction != Transaction.AUTO_COMMIT) {
       logger.warn("Ignoring transaction - not supported")
     }
-    createFeatureWriterModify(sft, filter)
+    createFeatureWriterModify(sft, None, filter)
   }
 
   /**
@@ -371,14 +381,19 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W, Q], F <: Wrappe
    * @return feature writer
    */
   override def getFeatureWriterAppend(typeName: String, transaction: Transaction): GeoMesaFeatureWriter[DS, F, W, Q, _] = {
+    if (transaction != Transaction.AUTO_COMMIT) {
+      logger.warn("Ignoring transaction - not supported")
+    }
+    getIndexWriterAppend(typeName, null)
+  }
+
+  def getIndexWriterAppend(typeName: String,
+                           indices: Seq[GeoMesaFeatureIndex[DS, F, W, Q]]): GeoMesaFeatureWriter[DS, F, W, Q, _] = {
     val sft = getSchema(typeName)
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    if (transaction != Transaction.AUTO_COMMIT) {
-      logger.warn("Ignoring transaction - not supported")
-    }
-    createFeatureWriterAppend(sft)
+    createFeatureWriterAppend(sft, Option(indices))
   }
 
   /**

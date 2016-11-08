@@ -118,6 +118,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
       val admin = ds.connection.getAdmin
       try {
+        admin.disableTable(table)
         admin.deleteTable(table)
       } finally {
         admin.close()
@@ -143,9 +144,9 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
       val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
       val eToF = entriesToFeatures(sft, hints.getReturnSft)
       if (ranges.head.isInstanceOf[Get]) {
-        GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], eToF, filter.filter)
+        GetPlan(filter, table, ranges.asInstanceOf[Seq[Get]], eToF, ecql)
       } else {
-        ScanPlan(filter, table, ranges.asInstanceOf[Seq[Scan]], eToF, filter.filter)
+        ScanPlan(filter, table, ranges.asInstanceOf[Seq[Scan]], eToF, ecql)
       }
     }
   }

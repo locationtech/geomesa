@@ -63,7 +63,7 @@ public class FeatureWriterJob {
 
         job.setJarByClass(FeatureWriterJob.class);
         job.setMapperClass(MyMapper.class);
-        job.setInputFormatClass(GeoMesaInputFormat.class);
+        job.setInputFormatClass(GeoMesaAccumuloInputFormat.class);
         job.setOutputFormatClass(GeoMesaOutputFormat.class);
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(ScalaSimpleFeature.class);
@@ -78,7 +78,7 @@ public class FeatureWriterJob {
 
         Query query = new Query("myfeature", ECQL.toFilter("BBOX(geom, -165,5,-50,75)"));
 
-        GeoMesaInputFormat.configure(job, params, query);
+        GeoMesaAccumuloInputFormat.configure(job, params, query);
 
         Map<String, String> outParams = new HashMap<String, String>();
         outParams.put("instanceId", "myinstance");

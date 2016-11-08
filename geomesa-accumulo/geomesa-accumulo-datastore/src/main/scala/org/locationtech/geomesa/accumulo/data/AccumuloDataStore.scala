@@ -23,8 +23,8 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDa
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{Explainer, GeoMesaMetadata, MetadataStringSerializer}
-import org.locationtech.geomesa.security.{AuditProvider, AuthorizationsProvider}
-import org.locationtech.geomesa.utils.audit.{AuditReader, AuditWriter}
+import org.locationtech.geomesa.security.AuthorizationsProvider
+import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditReader, AuditWriter}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode
@@ -55,7 +55,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
   override def manager: AccumuloIndexManagerType = AccumuloFeatureIndex
 
   private val statsTable = GeoMesaFeatureIndex.formatSharedTableName(config.catalog, "stats")
-  override val stats: GeoMesaStats = new GeoMesaMetadataStats(this, statsTable, config.generateStats)
+  override val stats: GeoMesaStats = new AccumuloGeoMesaStats(this, statsTable, config.generateStats)
 
   // some convenience operations
 
@@ -68,7 +68,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     * (index tables and catalog table)
     * NB: We are *not* currently deleting the query table and/or query information.
     */
-  def delete() = {
+  override def delete(): Unit = {
     val sfts = getTypeNames.map(getSchema)
     val tables = sfts.flatMap(sft => manager.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, this)))
     // Delete index tables first then catalog table in case of error
@@ -78,11 +78,14 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   // data store hooks
 
-  override protected def createFeatureWriterAppend(sft: SimpleFeatureType): AccumuloFeatureWriterType =
-    new AccumuloAppendFeatureWriter(sft, this, config.defaultVisibilities)
+  override protected def createFeatureWriterAppend(sft: SimpleFeatureType,
+                                                   indices: Option[Seq[AccumuloFeatureIndexType]]): AccumuloFeatureWriterType =
+    new AccumuloAppendFeatureWriter(sft, this, indices, config.defaultVisibilities)
 
-  override protected def createFeatureWriterModify(sft: SimpleFeatureType, filter: Filter): AccumuloFeatureWriterType =
-    new AccumuloModifyFeatureWriter(sft, this, config.defaultVisibilities, filter)
+  override protected def createFeatureWriterModify(sft: SimpleFeatureType,
+                                                   indices: Option[Seq[AccumuloFeatureIndexType]],
+                                                   filter: Filter): AccumuloFeatureWriterType =
+    new AccumuloModifyFeatureWriter(sft, this, indices, config.defaultVisibilities, filter)
 
   override protected def createFeatureCollection(query: Query, source: GeoMesaFeatureSource): GeoMesaFeatureCollection =
     new AccumuloFeatureCollection(source, query)
@@ -129,8 +132,13 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
     super.createSchema(sft)
 
-    // configure the stats combining iterator on the table for this sft
-    GeoMesaMetadataStats.configureStatCombiner(connector, statsTable, sft)
+    val lock = acquireCatalogLock()
+    try {
+      // configure the stats combining iterator on the table for this sft
+      AccumuloGeoMesaStats.configureStatCombiner(connector, statsTable, sft)
+    } finally {
+      lock.release()
+    }
   }
 
   override def getSchema(typeName: String): SimpleFeatureType = {
@@ -194,7 +202,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
           val lock = acquireCatalogLock()
           try {
             if (!metadata.read(typeName, configuredKey, cache = false).exists(_ == "true")) {
-              GeoMesaMetadataStats.configureStatCombiner(connector, statsTable, sft)
+              AccumuloGeoMesaStats.configureStatCombiner(connector, statsTable, sft)
               metadata.insert(typeName, configuredKey, "true")
             }
           } finally {
@@ -218,7 +226,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     val previousSft = getSchema(typeName)
     super.updateSchema(typeName, sft)
 
-    val lock = acquireFeatureLock(sft.getTypeName)
+    val lock = acquireCatalogLock()
     try {
       // check for newly indexed attributes and re-configure the splits
       val previousAttrIndices = previousSft.getAttributeDescriptors.collect { case d if d.isIndexed => d.getLocalName }
@@ -228,6 +236,8 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
           case _ => // no-op
         }
       }
+      // configure the stats combining iterator on the table for this sft
+      AccumuloGeoMesaStats.configureStatCombiner(connector, statsTable, sft)
     } finally {
       lock.release()
     }

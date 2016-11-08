@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.index.utils
 
-import org.locationtech.geomesa.util.logging.Logger
 import org.slf4j.LoggerFactory
 
 trait Explainer {
@@ -50,5 +49,5 @@ class ExplainLogging extends Explainer {
 }
 
 object ExplainLogging {
-  private val logger = Logger(LoggerFactory.getLogger(classOf[Explainer]))
+  private val logger = LoggerFactory.getLogger(classOf[Explainer])
 }

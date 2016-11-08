@@ -17,9 +17,7 @@ import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
-import org.locationtech.geomesa.security
-import org.locationtech.geomesa.security.{AuditProvider, NoOpAuditProvider}
-import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditWriter}
+import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
 
 
 class HBaseDataStoreFactory extends DataStoreFactorySpi {
@@ -39,7 +37,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi {
 
     val generateStats = GenerateStatsParam.lookupWithDefault[Boolean](params)
     val audit = if (AuditQueriesParam.lookupWithDefault[Boolean](params)) {
-      Some(AuditLogger, security.getAuditProvider(params).getOrElse(NoOpAuditProvider), "hbase")
+      Some(AuditLogger, Option(AuditProvider.Loader.load(params)).getOrElse(NoOpAuditProvider), "hbase")
     } else {
       None
     }

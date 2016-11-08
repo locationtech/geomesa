@@ -29,7 +29,7 @@ import org.opengis.temporal.Period
 import scala.collection.JavaConversions._
 import scala.util.{Failure, Success}
 
-object FilterHelper extends LazyLogging {
+object FilterHelper {
 
   import org.locationtech.geomesa.utils.geotools.GeometryUtils.{geoFactory => gf}
   import org.locationtech.geomesa.utils.geotools.{EmptyGeometry, WholeWorldPolygon}
@@ -111,7 +111,7 @@ object FilterHelper extends LazyLogging {
 
   private def tryGetIdlSafeGeom(geom: Geometry): Geometry = getInternationalDateLineSafeGeometry(geom) match {
     case Success(g) => g
-    case Failure(e) => logger.warn(s"Error splitting geometry on IDL for $geom", e); geom
+    case Failure(e) => FilterHelperLogger.log.warn(s"Error splitting geometry on IDL for $geom", e); geom
   }
 
   private def recreateAsIdlSafeFilter(op: BinarySpatialOperator,
@@ -314,7 +314,7 @@ object FilterHelper extends LazyLogging {
           }
         } catch {
           case e: Exception =>
-            logger.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
+            FilterHelperLogger.log.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
             None
         }
 
@@ -402,7 +402,7 @@ object FilterHelper extends LazyLogging {
           }
         } catch {
           case e: Exception =>
-            logger.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
+            FilterHelperLogger.log.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
             None
         }
 
@@ -416,7 +416,7 @@ object FilterHelper extends LazyLogging {
           }
         } catch {
           case e: Exception =>
-            logger.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
+            FilterHelperLogger.log.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
             None
         }
 
@@ -460,3 +460,7 @@ object FilterHelper extends LazyLogging {
   def filterListAsAnd(filters: Seq[Filter]): Option[Filter] = andOption(filters)
 }
 
+// helper shim to let other classes avoid importing FilterHelper.logger
+object FilterHelperLogger extends LazyLogging {
+  def log = logger
+}

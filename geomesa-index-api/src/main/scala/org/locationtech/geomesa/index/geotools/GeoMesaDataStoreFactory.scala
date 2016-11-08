@@ -12,8 +12,7 @@ import java.io.Serializable
 
 import org.geotools.data.DataAccessFactory.Param
 import org.locationtech.geomesa.index.conf.QueryProperties
-import org.locationtech.geomesa.security.AuditProvider
-import org.locationtech.geomesa.utils.audit.AuditWriter
+import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 
 object GeoMesaDataStoreFactory {
 

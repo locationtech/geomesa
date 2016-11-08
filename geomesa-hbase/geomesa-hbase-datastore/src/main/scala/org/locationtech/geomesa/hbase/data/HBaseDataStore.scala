@@ -10,11 +10,12 @@ package org.locationtech.geomesa.hbase.data
 
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
+import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
-import org.locationtech.geomesa.hbase.{HBaseDataStoreType, HBaseFeatureWriterType, HBaseIndexManagerType}
-import org.locationtech.geomesa.index.stats.{GeoMesaStats, NoopStats}
+import org.locationtech.geomesa.index.stats.{GeoMesaStats, UnoptimizedRunnableStats}
 import org.locationtech.geomesa.index.utils.{GeoMesaMetadata, LocalLocking}
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -26,13 +27,16 @@ class HBaseDataStore(val connection: Connection, config: HBaseDataStoreConfig)
 
   override def manager: HBaseIndexManagerType = HBaseFeatureIndex
 
-  override def stats: GeoMesaStats = NoopStats
+  override def stats: GeoMesaStats = new UnoptimizedRunnableStats(this)
 
-  override def createFeatureWriterAppend(sft: SimpleFeatureType): HBaseFeatureWriterType =
-    new HBaseAppendFeatureWriter(sft, this)
+  override def createFeatureWriterAppend(sft: SimpleFeatureType,
+                                         indices: Option[Seq[HBaseFeatureIndexType]]): HBaseFeatureWriterType =
+    new HBaseAppendFeatureWriter(sft, this, indices)
 
-  override def createFeatureWriterModify(sft: SimpleFeatureType, filter: Filter): HBaseFeatureWriterType =
-    new HBaseModifyFeatureWriter(sft, this, filter)
+  override def createFeatureWriterModify(sft: SimpleFeatureType,
+                                         indices: Option[Seq[HBaseFeatureIndexType]],
+                                         filter: Filter): HBaseFeatureWriterType =
+    new HBaseModifyFeatureWriter(sft, this, indices, filter)
 
   override def createSchema(sft: SimpleFeatureType): Unit = {
     // TODO GEOMESA-1322 support tilde in feature name
@@ -40,6 +44,21 @@ class HBaseDataStore(val connection: Connection, config: HBaseDataStoreConfig)
       throw new IllegalArgumentException("AccumuloDataStore does not currently support '~' in feature type names")
     }
     super.createSchema(sft)
+  }
+
+  override def delete(): Unit = {
+    val tables = getTypeNames.map(getSchema).flatMap { sft =>
+      manager.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, this))
+    }
+    val admin = connection.getAdmin
+    try {
+      (tables.distinct :+ config.catalog).map(TableName.valueOf).par.foreach { table =>
+        admin.disableTable(table)
+        admin.deleteTable(table)
+      }
+    } finally {
+      admin.close()
+    }
   }
 
   override def dispose(): Unit = {

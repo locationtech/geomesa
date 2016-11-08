@@ -22,20 +22,6 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-security_2.11</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.accumulo</groupId>
-                    <artifactId>accumulo-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.hadoop</groupId>
-                    <artifactId>hadoop-common</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-logger_2.11</artifactId>
         </dependency>
         <dependency>

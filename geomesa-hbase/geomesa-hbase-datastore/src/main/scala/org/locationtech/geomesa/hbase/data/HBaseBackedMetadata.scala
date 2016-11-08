@@ -93,7 +93,8 @@ class HBaseBackedMetadata[T](connection: Connection, catalog: TableName, seriali
       val prefix = Bytes.toBytes(s"$typeName~")
       val scanner = scan(Some(prefix))
       try {
-        val deletes = scanner.iterator.map(r => new Delete(r.getRow)).toList
+        val deletes = scanner.iterator.map(r => new Delete(r.getRow)).toBuffer
+        // note: list passed in must be mutable
         table.delete(deletes)
       } finally {
         scanner.close()

@@ -10,7 +10,6 @@ package org.locationtech.geomesa.index.stats
 
 import java.util.Date
 
-import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.joda.time.DateTime
 import org.locationtech.geomesa.curve.{BinnedTime, Z2SFC, Z3SFC}
@@ -26,7 +25,10 @@ import scala.collection.JavaConversions._
 
 trait StatsBasedEstimator {
 
-  this: GeoMesaStats =>
+  stats: GeoMesaStats =>
+
+  import CountEstimator.ZHistogramPrecision
+  import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
 
   /**
     * Estimates the count for a given filter, based off the per-attribute metadata we have stored
@@ -39,43 +41,38 @@ trait StatsBasedEstimator {
     // TODO currently we don't consider if the dates are actually ANDed with everything else
     CountEstimator.extractDates(sft, filter) match {
       case None => Some(0L) // disjoint dates
-      case Some((lo, hi)) => new CountEstimator(sft, this).estimateCount(filter, lo, hi)
+      case Some((lo, hi)) => estimateCount(sft, filter, lo, hi)
     }
   }
-}
-
-/**
-  * Estimates counts based on stored statistics
-  */
-class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLogging {
-
-  import CountEstimator.ZHistogramPrecision
-  import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
 
   /**
     * Estimates the count for a given filter, based off the per-attribute metadata we have stored
     *
+    * @param sft simple feature type
     * @param filter filter to apply - should have been run through QueryPlanFilterVisitor so all props are right
     * @param loDate bounds on the dates to be queried, if any
     * @param hiDate bounds on the dates to be queried, if any
     * @return estimated count, if available
     */
-  def estimateCount(filter: Filter, loDate: Option[Date], hiDate: Option[Date]): Option[Long] = {
+  private def estimateCount(sft: SimpleFeatureType,
+                            filter: Filter,
+                            loDate: Option[Date],
+                            hiDate: Option[Date]): Option[Long] = {
     import Filter.{EXCLUDE, INCLUDE}
 
     filter match {
       case EXCLUDE => Some(0L)
       case INCLUDE => stats.getStats[CountStat](sft).headOption.map(_.count)
 
-      case a: And  => estimateAndCount(a, loDate, hiDate)
-      case o: Or   => estimateOrCount(o, loDate, hiDate)
-      case n: Not  => estimateNotCount(n, loDate, hiDate)
+      case a: And  => estimateAndCount(sft, a, loDate, hiDate)
+      case o: Or   => estimateOrCount(sft, o, loDate, hiDate)
+      case n: Not  => estimateNotCount(sft, n, loDate, hiDate)
 
       case i: Id   => Some(i.getIdentifiers.size)
       case _       =>
         // single filter - equals, between, less than, etc
         val attribute = FilterHelper.propertyNames(filter, sft).headOption
-        attribute.flatMap(estimateAttributeCount(filter, _, loDate, hiDate))
+        attribute.flatMap(estimateAttributeCount(sft, filter, _, loDate, hiDate))
     }
   }
 
@@ -85,46 +82,58 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
     *
     * We check for spatio-temporal filters first, as those are the only ones that operate on 2+ properties.
     *
+    * @param sft simple feature type
     * @param filter AND filter
     * @param loDate bounds on the dates to be queried, if any
     * @param hiDate bounds on the dates to be queried, if any
     * @return estimated count, if available
     */
-  private def estimateAndCount(filter: And, loDate: Option[Date], hiDate: Option[Date]): Option[Long] = {
-    val stCount = estimateSpatioTemporalCount(filter)
+  private def estimateAndCount(sft: SimpleFeatureType,
+                               filter: And,
+                               loDate: Option[Date],
+                               hiDate: Option[Date]): Option[Long] = {
+    val stCount = estimateSpatioTemporalCount(sft, filter)
     // note: we might over count if we get bbox1 AND bbox2, as we don't intersect them
-    val individualCounts = filter.getChildren.flatMap(estimateCount(_, loDate, hiDate))
+    val individualCounts = filter.getChildren.flatMap(estimateCount(sft, _, loDate, hiDate))
     (stCount ++ individualCounts).minOption
   }
 
   /**
     * Estimate counts for OR filters. Because this is an OR, we sum up the child counts
     *
+    * @param sft simple feature type
     * @param filter OR filter
     * @param loDate bounds on the dates to be queried, if any
     * @param hiDate bounds on the dates to be queried, if any
     * @return estimated count, if available
     */
-  private def estimateOrCount(filter: Or, loDate: Option[Date], hiDate: Option[Date]): Option[Long] = {
+  private def estimateOrCount(sft: SimpleFeatureType,
+                              filter: Or,
+                              loDate: Option[Date],
+                              hiDate: Option[Date]): Option[Long] = {
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
 
     // estimate for each child separately and sum
     // note that we might double count some values if the filter is complex
-    filter.getChildren.flatMap(estimateCount(_, loDate, hiDate)).sumOption
+    filter.getChildren.flatMap(estimateCount(sft, _, loDate, hiDate)).sumOption
   }
 
   /**
     * Estimates the count for NOT filters
     *
+    * @param sft simple feature type
     * @param filter filter
     * @param loDate bounds on the dates to be queried, if any
     * @param hiDate bounds on the dates to be queried, if any
     * @return count, if available
     */
-  private def estimateNotCount(filter: Not, loDate: Option[Date], hiDate: Option[Date]): Option[Long] = {
+  private def estimateNotCount(sft: SimpleFeatureType,
+                               filter: Not,
+                               loDate: Option[Date],
+                               hiDate: Option[Date]): Option[Long] = {
     for {
-      all <- estimateCount(Filter.INCLUDE, None, None)
-      neg <- estimateCount(filter.getFilter, loDate, hiDate)
+      all <- estimateCount(sft, Filter.INCLUDE, None, None)
+      neg <- estimateCount(sft, filter.getFilter, loDate, hiDate)
     } yield {
       math.max(0, all - neg)
     }
@@ -133,10 +142,11 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
   /**
     * Estimate spatio-temporal counts for an AND filter.
     *
+    * @param sft simple feature type
     * @param filter complex filter
     * @return count, if available
     */
-  private def estimateSpatioTemporalCount(filter: And): Option[Long] = {
+  private def estimateSpatioTemporalCount(sft: SimpleFeatureType, filter: And): Option[Long] = {
     // currently we don't consider if the spatial predicate is actually AND'd with the temporal predicate...
     // TODO add filterhelper method that accurately pulls out the st values
     for {
@@ -154,7 +164,7 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
         intervals.filter(i => i._1.getMillis <= maxTime && i._2.getMillis >= minTime)
       }
       if (geometries == FilterHelper.DisjointGeometries || inRangeIntervals.isEmpty) { 0L } else {
-        estimateSpatioTemporalCount(geomField, dateField, geometries, inRangeIntervals)
+        estimateSpatioTemporalCount(sft, geomField, dateField, geometries, inRangeIntervals)
       }
     }
   }
@@ -162,13 +172,15 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
   /**
     * Estimates counts based on a combination of spatial and temporal values.
     *
+    * @param sft simple feature type
     * @param geomField geometry attribute name for the simple feature type
     * @param dateField date attribute name for the simple feature type
     * @param geometries geometry to evaluate
     * @param intervals intervals to evaluate
     * @return
     */
-  private def estimateSpatioTemporalCount(geomField: String,
+  private def estimateSpatioTemporalCount(sft: SimpleFeatureType,
+                                          geomField: String,
                                           dateField: String,
                                           geometries: Seq[Geometry],
                                           intervals: Seq[(DateTime, DateTime)]): Long = {
@@ -217,22 +229,24 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
   /**
     * Estimates the count for attribute filters (equals, less than, during, etc)
     *
+    * @param sft simple feature type
     * @param filter filter
     * @param attribute attribute name to estimate
     * @param loDate bounds on the dates to be queried, if any
     * @param hiDate bounds on the dates to be queried, if any
     * @return count, if available
     */
-  private def estimateAttributeCount(filter: Filter,
+  private def estimateAttributeCount(sft: SimpleFeatureType,
+                                     filter: Filter,
                                      attribute: String,
                                      loDate: Option[Date],
                                      hiDate: Option[Date]): Option[Long] = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
     if (attribute == sft.getGeomField) {
-      estimateSpatialCount(filter)
+      estimateSpatialCount(sft, filter)
     } else if (sft.getDtgField.exists(_ == attribute)) {
-      estimateTemporalCount(filter)
+      estimateTemporalCount(sft, filter)
     } else {
       // we have an attribute filter
       val extractedBounds = for {
@@ -246,14 +260,14 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
         if (bounds.isEmpty) {
           Some(0L) // disjoint range
         } else if (bounds.exists(_ == (None, None))) {
-          estimateCount(Filter.INCLUDE, loDate, hiDate) // inclusive filter
+          estimateCount(sft, Filter.INCLUDE, loDate, hiDate) // inclusive filter
         } else {
           val (equalsBounds, rangeBounds) = bounds.partition { case (l, r) => l == r }
           val equalsCount = if (equalsBounds.isEmpty) { Some(0L) } else {
-            estimateEqualsCount(attribute, equalsBounds.map(_._1.get), loDate, hiDate)
+            estimateEqualsCount(sft, attribute, equalsBounds.map(_._1.get), loDate, hiDate)
           }
           val rangeCount = if (rangeBounds.isEmpty) { Some(0L) } else {
-            estimateRangeCount(attribute, rangeBounds)
+            estimateRangeCount(sft, attribute, rangeBounds)
           }
           for { e <- equalsCount; r <- rangeCount } yield { e + r }
         }
@@ -267,7 +281,7 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
     * @param filter filter to evaluate
     * @return estimated count, if available
     */
-  private def estimateSpatialCount(filter: Filter): Option[Long] = {
+  private def estimateSpatialCount(sft: SimpleFeatureType, filter: Filter): Option[Long] = {
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
 
     val geometries = FilterHelper.extractGeometries(filter, sft.getGeomField, sft.isPoints)
@@ -298,10 +312,11 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
   /**
     * Estimates counts from temporal predicates. Non-temporal predicates will be ignored.
     *
+    * @param sft simple feature type
     * @param filter filter to evaluate
     * @return estimated count, if available
     */
-  private def estimateTemporalCount(filter: Filter): Option[Long] = {
+  private def estimateTemporalCount(sft: SimpleFeatureType, filter: Filter): Option[Long] = {
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
 
     for {
@@ -330,13 +345,15 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
     * Note: in our current stats, frequency has ~0.5% error rate based on the total number of features in the data set.
     * The error will be multiplied by the number of values you are evaluating, which can lead to large error rates.
     *
+    * @param sft simple feature type
     * @param attribute attribute to evaluate
     * @param values values to be estimated
     * @param loDate bounds on the dates to be queried, if any
     * @param hiDate bounds on the dates to be queried, if any
     * @return estimated count, if available.
     */
-  private def estimateEqualsCount(attribute: String,
+  private def estimateEqualsCount(sft: SimpleFeatureType,
+                                  attribute: String,
                                   values: Seq[Any],
                                   loDate: Option[Date],
                                   hiDate: Option[Date]): Option[Long] = {
@@ -351,11 +368,15 @@ class CountEstimator(sft: SimpleFeatureType, stats: GeoMesaStats) extends LazyLo
   /**
     * Estimates a potentially unbounded range predicate. Uses a binned histogram for estimated value.
     *
+    * @param sft simple feature type
     * @param attribute attribute to evaluate
     * @param ranges ranges of values - may be unbounded (indicated by a None)
     * @return estimated count, if available
     */
-  private def estimateRangeCount(attribute: String, ranges: Seq[(Option[Any], Option[Any])]): Option[Long] = {
+  private def estimateRangeCount(sft: SimpleFeatureType,
+                                 attribute: String,
+                                 ranges: Seq[(Option[Any],
+                                 Option[Any])]): Option[Long] = {
     stats.getStats[Histogram[Any]](sft, Seq(attribute)).headOption.map { histogram =>
       val inRangeRanges = ranges.filter {
         case (None, None)         => true // inclusive filter

@@ -45,7 +45,7 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
 
     import AccumuloWritableIndex.{BinColumnFamily, FullColumnFamily}
     import Z3Index.GEOM_Z_NUM_BYTES
-    import org.locationtech.geomesa.filter.FilterHelper.{logger => _, _}
+    import org.locationtech.geomesa.filter.FilterHelper._
     import org.locationtech.geomesa.index.conf.QueryHints.{LOOSE_BBOX, RichHints}
 
     // note: z3 requires a date field

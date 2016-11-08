@@ -39,7 +39,7 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-tools-common_2.11</artifactId>
+            <artifactId>geomesa-tools_2.11</artifactId>
         </dependency>
     </dependencies>
 

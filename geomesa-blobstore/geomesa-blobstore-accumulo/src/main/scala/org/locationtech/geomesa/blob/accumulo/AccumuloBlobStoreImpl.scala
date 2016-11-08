@@ -15,7 +15,8 @@ import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.blob.api.{Blob, BlobStore}
-import org.locationtech.geomesa.security.{AuditProvider, AuthorizationsProvider}
+import org.locationtech.geomesa.security.AuthorizationsProvider
+import org.locationtech.geomesa.utils.audit.AuditProvider
 
 import scala.collection.JavaConversions._
 import scala.util.control.NonFatal

@@ -77,10 +77,11 @@ object GeoMesaFeatureWriter extends LazyLogging {
   }
 }
 
-abstract class GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, T](val sft: SimpleFeatureType, val ds: DS)
+abstract class GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, T]
+    (val sft: SimpleFeatureType, val ds: DS, val indices: Option[Seq[GeoMesaFeatureIndex[DS, F, W, Q]]])
     extends SimpleFeatureWriter with Flushable with LazyLogging {
 
-  private val (tables, wConverters, rConverters) = GeoMesaFeatureWriter.getTablesAndConverters[DS, F, W, Q](sft, ds, None)
+  private val (tables, wConverters, rConverters) = GeoMesaFeatureWriter.getTablesAndConverters[DS, F, W, Q](sft, ds, indices)
   protected val mutators = createMutators(tables)
   private val writers = wConverters.zip(createWrites(mutators))
   protected val writer = (f: F) => writers.foreach { case (convert, write) => write(convert(f)) }

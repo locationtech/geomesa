@@ -11,16 +11,23 @@ package org.locationtech.geomesa.accumulo.data
 import org.apache.accumulo.core.client.BatchWriter
 import org.apache.accumulo.core.data.Mutation
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
-import org.locationtech.geomesa.accumulo.{AccumuloAppendFeatureWriterType, AccumuloFeatureWriterType, AccumuloModifyFeatureWriterType}
+import org.locationtech.geomesa.accumulo.{AccumuloAppendFeatureWriterType, AccumuloFeatureIndexType, AccumuloFeatureWriterType, AccumuloModifyFeatureWriterType}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 
-class AccumuloAppendFeatureWriter(sft: SimpleFeatureType, ds: AccumuloDataStore, val defaultVisibility: String)
-    extends AccumuloFeatureWriterType(sft, ds) with AccumuloAppendFeatureWriterType with AccumuloFeatureWriter
+class AccumuloAppendFeatureWriter(sft: SimpleFeatureType,
+                                  ds: AccumuloDataStore,
+                                  indices: Option[Seq[AccumuloFeatureIndexType]],
+                                  val defaultVisibility: String)
+    extends AccumuloFeatureWriterType(sft, ds, indices) with AccumuloAppendFeatureWriterType with AccumuloFeatureWriter
 
-class AccumuloModifyFeatureWriter(sft: SimpleFeatureType, ds: AccumuloDataStore, val defaultVisibility: String, val filter: Filter)
-    extends AccumuloFeatureWriterType(sft, ds) with AccumuloModifyFeatureWriterType with AccumuloFeatureWriter
+class AccumuloModifyFeatureWriter(sft: SimpleFeatureType,
+                                  ds: AccumuloDataStore,
+                                  indices: Option[Seq[AccumuloFeatureIndexType]],
+                                  val defaultVisibility: String,
+                                  val filter: Filter)
+    extends AccumuloFeatureWriterType(sft, ds, indices) with AccumuloModifyFeatureWriterType with AccumuloFeatureWriter
 
 trait AccumuloFeatureWriter extends AccumuloFeatureWriterType {
 

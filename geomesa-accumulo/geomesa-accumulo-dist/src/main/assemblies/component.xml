@@ -11,12 +11,9 @@
             <useTransitiveDependencies>true</useTransitiveDependencies>
             <useTransitiveFiltering>true</useTransitiveFiltering>
             <excludes>
-                <exclude>org.locationtech.geomesa:*:tar.gz</exclude>
-                <exclude>org.locationtech.geomesa:geomesa-web-core</exclude>
-                <exclude>org.locationtech.geomesa:geomesa-process</exclude>
-                <exclude>org.locationtech.geomesa:geomesa-accumulo-gs-plugin*</exclude>
-                <exclude>org.locationtech.geomesa:geomesa-blobstore-gs-plugin*</exclude>
-                <exclude>org.locationtech.geomesa:geomesa-stream-gs-plugin*</exclude>
+                <exclude>org.locationtech.geomesa:*:tar.gz:*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-web-core*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-process*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-accumulo-distributed-runtime*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-accumulo-compute*</exclude>
                 <exclude>com.google.guava:guava</exclude> <!-- Guava conflicts with Hadoop 2.x which provides guava 11.0.2-->
@@ -110,21 +107,21 @@
 
         <!-- Common Tools filesets -->
         <fileSet>
-            <directory>../../geomesa-tools-common/bin</directory>
+            <directory>../../geomesa-tools/bin</directory>
             <outputDirectory>bin</outputDirectory>
             <directoryMode>755</directoryMode>
             <fileMode>0755</fileMode>
             <filtered>true</filtered>
         </fileSet>
         <fileSet>
-            <directory>../../geomesa-tools-common/conf</directory>
+            <directory>../../geomesa-tools/conf</directory>
             <outputDirectory>conf</outputDirectory>
             <fileMode>0644</fileMode>
             <filtered>false</filtered>
             <directoryMode>755</directoryMode>
         </fileSet>
         <fileSet>
-            <directory>../../geomesa-tools-common/examples</directory>
+            <directory>../../geomesa-tools/examples</directory>
             <outputDirectory>examples</outputDirectory>
             <fileMode>0644</fileMode>
             <filtered>false</filtered>
