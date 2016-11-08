@@ -16,7 +16,7 @@
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa</artifactId>
     <packaging>pom</packaging>
-    <version>1.2.6</version>
+    <version>1.2.6.1-SNAPSHOT</version>
 
     <modules>
         <module>geomesa-utils</module>
