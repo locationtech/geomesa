@@ -28,7 +28,6 @@ import org.junit.Test;
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore;
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex$;
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex;
-import org.locationtech.geomesa.utils.index.IndexMode;
 import org.locationtech.geomesa.utils.index.IndexMode$;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.type.AttributeDescriptor;
@@ -302,7 +301,7 @@ public class GeoMesaIndexTest {
                 AccumuloFeatureIndex$.MODULE$.indices(ds.getSchema(featureName), IndexMode$.MODULE$.Any()).iterator();
         List<String> expectedTables = new ArrayList<>();
         while (indices.hasNext()) {
-            expectedTables.add(ds.getTableName(featureName, indices.next()));
+            expectedTables.add(indices.next().getTableName(featureName, ds));
         }
         expectedTables.add(featureName);
         expectedTables.add(featureName + "_stats");

@@ -12,5 +12,5 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.opengis.feature.simple.SimpleFeatureType
 
 trait AttributeSplittable {
-  def configureSplits(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit
+  def configureSplits(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit
 }

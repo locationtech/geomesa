@@ -22,7 +22,6 @@ import org.calrissian.mango.types.{LexiTypeEncoders, SimpleTypeEncoders, TypeEnc
 import org.joda.time.format.ISODateTimeFormat
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -39,23 +38,23 @@ import scala.util.{Failure, Success, Try}
  */
 trait AttributeWritableIndex extends AccumuloWritableIndex with AttributeSplittable with LazyLogging {
 
-  override def configure(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
-    val table = GeoMesaTable.formatTableName(ops.catalogTable, tableSuffix, sft)
-    ops.metadata.insert(sft.getTypeName, tableNameKey, table)
+  override def configure(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {
+    super.configure(sft, ds)
+    val table = getTableName(sft.getTypeName, ds)
 
-    AccumuloVersion.ensureTableExists(ops.connector, table)
+    AccumuloVersion.ensureTableExists(ds.connector, table)
 
-    configureSplits(sft, ops)
+    configureSplits(sft, ds)
 
-    ops.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
+    ds.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
   }
 
-  override def configureSplits(sft: SimpleFeatureType, ops: AccumuloDataStore): Unit = {
+  override def configureSplits(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {
     val indexedAttrs = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft)
     if (indexedAttrs.nonEmpty) {
       val indices = indexedAttrs.map(d => sft.indexOf(d.getLocalName))
       val splits = indices.map(i => new Text(AttributeWritableIndex.getRowPrefix(sft, i)))
-      ops.tableOps.addSplits(ops.getTableName(sft.getTypeName, this), ImmutableSortedSet.copyOf(splits.toArray))
+      ds.tableOps.addSplits(getTableName(sft.getTypeName, ds), ImmutableSortedSet.copyOf(splits.toArray))
     }
   }
 
@@ -69,16 +68,16 @@ trait AttributeWritableIndex extends AccumuloWritableIndex with AttributeSplitta
     }
   }
 
-  def getRowKeys(sft: SimpleFeatureType): (WritableFeature) => Seq[(AttributeDescriptor, Array[Byte])] = {
+  def getRowKeys(sft: SimpleFeatureType): (AccumuloFeature) => Seq[(AttributeDescriptor, Array[Byte])] = {
     val indexedAttributes = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).map { d =>
       val i = sft.indexOf(d.getName)
       (d, i, AttributeWritableIndex.indexToBytes(i))
     }
     val prefix = sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)
-    val getSuffix: (WritableFeature) => Array[Byte] = sft.getDtgIndex match {
-      case None => (fw: WritableFeature) => fw.feature.getID.getBytes(StandardCharsets.UTF_8)
+    val getSuffix: (AccumuloFeature) => Array[Byte] = sft.getDtgIndex match {
+      case None => (fw: AccumuloFeature) => fw.feature.getID.getBytes(StandardCharsets.UTF_8)
       case Some(dtgIndex) =>
-        (fw: WritableFeature) => {
+        (fw: AccumuloFeature) => {
           val dtg = fw.feature.getAttribute(dtgIndex).asInstanceOf[Date]
           val timeBytes = AttributeWritableIndex.timeToBytes(if (dtg == null) 0L else dtg.getTime)
           val idBytes = fw.feature.getID.getBytes(StandardCharsets.UTF_8)
@@ -112,8 +111,8 @@ object AttributeWritableIndex extends LazyLogging {
    */
   private def getRowKeys(indexedAttributes: Seq[(AttributeDescriptor, Int, Array[Byte])],
                          prefix: Array[Byte],
-                         suffix: (WritableFeature) => Array[Byte])
-                        (fw: WritableFeature): Seq[(AttributeDescriptor, Array[Byte])] = {
+                         suffix: (AccumuloFeature) => Array[Byte])
+                        (fw: AccumuloFeature): Seq[(AttributeDescriptor, Array[Byte])] = {
     val suffixBytes = suffix(fw)
     indexedAttributes.flatMap { case (descriptor, idx, idxBytes) =>
       val attributes = encodeForIndex(fw.feature.getAttribute(idx), descriptor)

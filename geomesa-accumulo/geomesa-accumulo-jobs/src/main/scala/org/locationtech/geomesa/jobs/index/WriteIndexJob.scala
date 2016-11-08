@@ -75,7 +75,7 @@ class WriteIndexJob(libjars: Option[(Seq[String], Iterator[() => Seq[File]])] = 
       try {
         name.split(":") match {
           case Array(n)    => AccumuloFeatureIndex.CurrentIndices.find(_.name == name).get
-          case Array(n, v) => AccumuloFeatureIndex.IndexLookup((n, v.toInt))
+          case Array(n, v) => AccumuloFeatureIndex.lookup((n, v.toInt))
         }
       } catch {
         case NonFatal(e) =>

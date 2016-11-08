@@ -1,0 +1,19 @@
+<configuration>
+  <property>
+    <name>hbase.client.connection.impl</name>
+    <value>com.google.cloud.bigtable.hbase1_2.BigtableConnection</value>
+  </property>
+  <property>
+    <name>google.bigtable.instance.id</name>
+    <value>[YOUR PROJECT NAME HERE]</value>
+  </property>
+  <property>
+    <name>google.bigtable.project.id</name>
+    <value>[YOUR PROJECT ID HERE]</value>
+  </property>
+  <!-- default hbase value is 1200000, bigtable requires < 300000 -->
+  <property>
+    <name>hbase.client.operation.timeout</name>
+    <value>30000</value>
+  </property>
+</configuration>

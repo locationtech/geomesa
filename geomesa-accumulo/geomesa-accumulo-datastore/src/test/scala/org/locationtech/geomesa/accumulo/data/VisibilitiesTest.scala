@@ -55,7 +55,7 @@ class VisibilitiesTest extends Specification {
     ds.createSchema(sft)
 
     // write some data
-    val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+    val fs = ds.getFeatureSource(sftName)
 
     val features = getFeatures(sft).toList
     val privFeatures = features.take(3)
@@ -154,7 +154,7 @@ class VisibilitiesTest extends Specification {
     ds.createSchema(sft)
 
     // write some data
-    val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+    val fs = ds.getFeatureSource(sftName)
 
     val features = getFeatures(sft).toList
     val privFeatures = features.take(3)

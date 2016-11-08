@@ -19,11 +19,10 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
-import org.locationtech.geomesa.accumulo.index.QueryHints
 import org.locationtech.geomesa.accumulo.index.id.RecordIndex
+import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, TestWithMultipleSfts}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
@@ -49,7 +48,7 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
   def getDensity(sftName: String,
                  query: String,
                  envelope: Option[Envelope] = None,
-                 strategy: Option[AccumuloFeatureIndex] = None): List[(Double, Double, Double)] = {
+                 strategy: Option[AccumuloFeatureIndexType] = None): List[(Double, Double, Double)] = {
     val q = new Query(sftName, ECQL.toFilter(query))
     val geom = envelope.getOrElse(q.getFilter.accept(ExtractBoundsFilterVisitor.BOUNDS_VISITOR, null).asInstanceOf[Envelope])
     q.getHints.put(QueryHints.DENSITY_BBOX_KEY, new ReferencedEnvelope(geom, DefaultGeographicCRS.WGS84))

@@ -14,8 +14,8 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
+import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex._
 import org.locationtech.geomesa.accumulo.index.attribute.AttributeWritableIndex
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
@@ -86,7 +86,7 @@ object KryoAttributeKeyValueIterator {
 
   val DefaultPriority = 27 // needs to be higher than KryoLazyFilterTransformIterator at 25
 
-  def configure(index: AccumuloFeatureIndex,
+  def configure(index: AccumuloFeatureIndexType,
                 transform: SimpleFeatureType,
                 attribute: String,
                 priority: Int = DefaultPriority): IteratorSetting = {

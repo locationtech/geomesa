@@ -94,15 +94,26 @@ will search Kafka for any GeoMesa-managed feature types.
 HBase Data Store
 ^^^^^^^^^^^^^^^^
 
-On the "Add Store" page, select "HBase (GeoMesa)". The HBase data store takes two parameters:
+On the "Add Store" page, select "HBase (GeoMesa)". The HBase data store takes a single parameter:
 
 * **bigtable.table.name** - the name of the HBase table that stores feature type data
-* **namespace** - the namespace URI for the data store (optional)
 
-Other configuration information is taken from the HBase ``site.xml`` file (see
-:ref:`install_hbase_geoserver`).
+Other configuration information is taken from ``hbase-site.xml`` (see :ref:`install_hbase_geoserver`).
 
 Click "Save", and GeoServer will search HBase for any GeoMesa-managed feature types.
+
+.. _create_bigtable_ds_geoserver:
+
+Bigtable Data Store
+^^^^^^^^^^^^^^^^^^^
+
+On the "Add Store" page, select "Google Bigtable (GeoMesa)". The Bigtable data store takes a single parameter:
+
+* **bigtable.table.name** - the name of the Bigtable table that stores feature type data
+
+Other configuration information is taken from ``hbase-site.xml`` (see :ref:`install_bigtable_geoserver`).
+
+Click "Save", and GeoServer will search Bigtable for any GeoMesa-managed feature types.
 
 .. _create_cassandra_ds_geoserver:
 

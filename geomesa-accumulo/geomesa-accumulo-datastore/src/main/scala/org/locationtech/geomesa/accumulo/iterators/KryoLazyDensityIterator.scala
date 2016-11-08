@@ -18,8 +18,7 @@ import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIt
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
-import org.locationtech.geomesa.accumulo.index.QueryPlan.FeatureFunction
+import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyDensityIterator.DensityResult
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
@@ -156,11 +155,11 @@ object KryoLazyDensityIterator extends LazyLogging {
    * Creates an iterator config for the kryo density iterator
    */
   def configure(sft: SimpleFeatureType,
-                index: AccumuloFeatureIndex,
+                index: AccumuloFeatureIndexType,
                 filter: Option[Filter],
                 hints: Hints,
                 priority: Int = DEFAULT_PRIORITY): IteratorSetting = {
-    import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     val envelope = hints.getDensityEnvelope.get
     val (width, height) = hints.getDensityBounds.get
     val weight = hints.getDensityWeight
@@ -170,7 +169,7 @@ object KryoLazyDensityIterator extends LazyLogging {
 
   protected[iterators] def configure(is: IteratorSetting,
                                      sft: SimpleFeatureType,
-                                     index: AccumuloFeatureIndex,
+                                     index: AccumuloFeatureIndexType,
                                      filter: Option[Filter],
                                      envelope: Envelope,
                                      gridWidth: Int,
@@ -188,7 +187,7 @@ object KryoLazyDensityIterator extends LazyLogging {
    * Adapts the iterator to create simple features.
    * WARNING - the same feature is re-used and mutated - the iterator stream should be operated on serially.
    */
-  def kvsToFeatures(): FeatureFunction = {
+  def kvsToFeatures(): (Entry[Key, Value]) => SimpleFeature = {
     val sf = new ScalaSimpleFeature("", DENSITY_SFT)
     sf.setAttribute(1, GeometryUtils.zeroPoint)
     (e: Entry[Key, Value]) => {

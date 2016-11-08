@@ -20,8 +20,8 @@ import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
-import org.locationtech.geomesa.accumulo.index.QueryHints
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 import org.locationtech.geomesa.utils.geotools.GridSnap
 import org.opengis.feature.simple.SimpleFeature
@@ -153,7 +153,7 @@ class LiveDensityIteratorTest extends Specification with LazyLogging {
       val query = getQuery(s"(dtg between $dates) and BBOX(geom, ${bbox.lowx}, ${bbox.lowy}, ${bbox.highx}, ${bbox.highy})", size.width, size.height)
 
       // get the feature store used to query the GeoMesa data
-      val featureStore = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+      val featureStore = ds.getFeatureSource(sftName)
 
       // execute the query
       val results = featureStore.getFeatures(query)

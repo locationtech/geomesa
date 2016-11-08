@@ -8,15 +8,16 @@
 
 package org.locationtech.geomesa.accumulo.index.id
 
+import java.util.Map.Entry
+
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.data.{Mutation, Range => aRange}
+import org.apache.accumulo.core.data.{Key, Mutation, Value, Range => aRange}
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, WritableFeature}
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex._
-import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators._
+import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloFilterStrategyType}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
 import org.locationtech.geomesa.index.utils.Explainer
@@ -24,18 +25,19 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
 
-trait RecordQueryableIndex extends AccumuloFeatureIndex
-    with IdFilterStrategy[AccumuloDataStore, WritableFeature, Seq[Mutation], QueryPlan]
+trait RecordQueryableIndex extends AccumuloFeatureIndexType
+    with IdFilterStrategy[AccumuloDataStore, AccumuloFeature, Seq[Mutation], Entry[Key, Value]]
     with LazyLogging {
 
   writable: AccumuloWritableIndex =>
 
+  import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
   override def getQueryPlan(sft: SimpleFeatureType,
-                            ops: AccumuloDataStore,
-                            filter: AccumuloFilterStrategy,
+                            ds: AccumuloDataStore,
+                            filter: AccumuloFilterStrategyType,
                             hints: Hints,
-                            explain: Explainer): QueryPlan = {
-    val featureEncoding = ops.getFeatureEncoding(sft)
+                            explain: Explainer): AccumuloQueryPlan = {
     val prefix = sft.getTableSharingPrefix
 
     val ranges = filter.primary match {
@@ -56,29 +58,34 @@ trait RecordQueryableIndex extends AccumuloFeatureIndex
     }
 
     if (ranges.isEmpty) { EmptyPlan(filter) } else {
-      val table = ops.getTableName(sft.getTypeName, this)
-      val threads = ops.getSuggestedThreads(sft.getTypeName, this)
+      val table = getTableName(sft.getTypeName, ds)
+      val threads = ds.config.recordThreads
       val dupes = false // record table never has duplicate entries
 
       val perAttributeIter = sft.getVisibilityLevel match {
         case VisibilityLevel.Feature   => Seq.empty
         case VisibilityLevel.Attribute => Seq(KryoVisibilityRowEncoder.configure(sft))
       }
-      val (iters, kvsToFeatures) = if (hints.isBinQuery) {
+      val (iters, kvsToFeatures, reduce) = if (hints.isBinQuery) {
         // use the server side aggregation
         val iter = BinAggregatingIterator.configureDynamic(sft, this, filter.secondary, hints, dupes)
-        (Seq(iter), BinAggregatingIterator.kvsToFeatures())
+        (Seq(iter), BinAggregatingIterator.kvsToFeatures(), None)
       } else if (hints.isDensityQuery) {
         val iter = KryoLazyDensityIterator.configure(sft, this, filter.secondary, hints)
-        (Seq(iter), KryoLazyDensityIterator.kvsToFeatures())
+        (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), None)
       } else if (hints.isStatsIteratorQuery) {
         val iter = KryoLazyStatsIterator.configure(sft, this, filter.secondary, hints, dupes)
-        (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(sft))
+        val reduce = Some(KryoLazyStatsIterator.reduceFeatures(sft, hints)(_))
+        (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(sft), reduce)
+      } else if (hints.isMapAggregatingQuery) {
+        val iter = KryoLazyMapAggregatingIterator.configure(sft, this, filter.secondary, hints, dupes)
+        val reduce = Some(KryoLazyMapAggregatingIterator.reduceMapAggregationFeatures(hints)(_))
+        (Seq(iter), entriesToFeatures(sft, hints.getReturnSft), reduce)
       } else {
         val iter = KryoLazyFilterTransformIterator.configure(sft, this, filter.secondary, hints)
-        (iter.toSeq, entriesToFeatures(sft, hints.getReturnSft))
+        (iter.toSeq, entriesToFeatures(sft, hints.getReturnSft), None)
       }
-      BatchScanPlan(filter, table, ranges, iters ++ perAttributeIter, Seq.empty, kvsToFeatures, threads, dupes)
+      BatchScanPlan(filter, table, ranges, iters ++ perAttributeIter, Seq.empty, kvsToFeatures, reduce, threads, dupes)
     }
   }
 }

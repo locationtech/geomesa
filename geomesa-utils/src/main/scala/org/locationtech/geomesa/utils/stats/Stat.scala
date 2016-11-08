@@ -221,7 +221,6 @@ object Stat {
     */
   def SeqStat(stats: Seq[String]): String = stats.mkString(";")
 
-
   /**
     * Combines a sequence of stats. This will not modify any of the inputs.
     *

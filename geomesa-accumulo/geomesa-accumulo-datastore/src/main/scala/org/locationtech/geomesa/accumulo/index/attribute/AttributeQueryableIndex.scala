@@ -13,14 +13,14 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Range => AccRange}
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
+import org.locationtech.geomesa.accumulo.AccumuloFilterStrategyType
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFilterStrategy
-import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
-import org.locationtech.geomesa.accumulo.index.QueryPlan.JoinFunction
+import org.locationtech.geomesa.accumulo.index.AccumuloQueryPlan.JoinFunction
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.index.encoders.IndexValueEncoder
 import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.accumulo.iterators._
+import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.FilterStrategy
@@ -38,14 +38,15 @@ import scala.util.Try
 trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
 
   import AttributeQueryableIndex.attributeCheck
+  import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
   type ScanPlanFn = (SimpleFeatureType, Option[Filter], Option[(String, SimpleFeatureType)]) => BatchScanPlan
 
   override def getQueryPlan(sft: SimpleFeatureType,
-                            ops: AccumuloDataStore,
-                            filter: AccumuloFilterStrategy,
+                            ds: AccumuloDataStore,
+                            filter: AccumuloFilterStrategyType,
                             hints: Hints,
-                            explain: Explainer): QueryPlan = {
+                            explain: Explainer): AccumuloQueryPlan = {
 
     val primary = filter.primary.getOrElse {
       throw new IllegalStateException("Attribute index does not support Filter.INCLUDE")
@@ -73,15 +74,15 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
     if (dates == disjointDates || bounds.isEmpty) {
       EmptyPlan(filter)
     } else {
-      nonEmptyQueryPlan(ops, sft, filter, hints, bounds)
+      nonEmptyQueryPlan(ds, sft, filter, hints, bounds)
     }
   }
 
   private def nonEmptyQueryPlan(ds: AccumuloDataStore,
                                 sft: SimpleFeatureType,
-                                filter: AccumuloFilterStrategy,
+                                filter: AccumuloFilterStrategyType,
                                 hints: Hints,
-                                bounds: Seq[PropertyBounds]): QueryPlan = {
+                                bounds: Seq[PropertyBounds]): AccumuloQueryPlan = {
 
     val attribute = bounds.head.attribute
     val ranges = bounds.map(_.range)
@@ -93,8 +94,8 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
     val sampling = hints.getSampling
     val hasDupes = descriptor.isMultiValued
 
-    val attrTable = ds.getTableName(sft.getTypeName, this)
-    val attrThreads = ds.getSuggestedThreads(sft.getTypeName, this)
+    val attrTable = getTableName(sft.getTypeName, ds)
+    val attrThreads = ds.config.queryThreads
 
     def visibilityIter(schema: SimpleFeatureType): Seq[IteratorSetting] = sft.getVisibilityLevel match {
       case VisibilityLevel.Feature   => Seq.empty
@@ -107,7 +108,7 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
       val iters = visibilityIter(schema) ++ iter.toSeq
       // need to use transform to convert key/values if it's defined
       val kvsToFeatures = entriesToFeatures(sft, transform.map(_._2).getOrElse(schema))
-      BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
+      BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, None, attrThreads, hasDupes)
     }
 
     if (hints.isBinQuery) {
@@ -116,7 +117,7 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
         val iter = BinAggregatingIterator.configureDynamic(sft, this, filter.secondary, hints, hasDupes)
         val iters = visibilityIter(sft) :+ iter
         val kvsToFeatures = BinAggregatingIterator.kvsToFeatures()
-        BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
+        BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, None, attrThreads, hasDupes)
       } else {
         // check to see if we can execute against the index values
         val indexSft = IndexValueEncoder.getIndexSft(sft)
@@ -126,7 +127,7 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
           val iter = BinAggregatingIterator.configureDynamic(indexSft, this, filter.secondary, hints, hasDupes)
           val iters = visibilityIter(indexSft) :+ iter
           val kvsToFeatures = BinAggregatingIterator.kvsToFeatures()
-          BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDupes)
+          BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, None, attrThreads, hasDupes)
         } else {
           // have to do a join against the record table
           joinQuery(ds, sft, filter, hints, hasDupes, singleAttrValueOnlyPlan)
@@ -137,7 +138,8 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
       if (descriptor.getIndexCoverage() == IndexCoverage.FULL) {
         val iter = KryoLazyStatsIterator.configure(sft, this, filter.secondary, hints, hasDupes)
         val iters = visibilityIter(sft) :+ iter
-        BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDuplicates = false)
+        val reduce = Some(KryoLazyStatsIterator.reduceFeatures(sft, hints)(_))
+        BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, reduce, attrThreads, hasDuplicates = false)
       } else {
         // check to see if we can execute against the index values
         val indexSft = IndexValueEncoder.getIndexSft(sft)
@@ -145,7 +147,8 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
             filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
           val iter = KryoLazyStatsIterator.configure(indexSft, this, filter.secondary, hints, hasDupes)
           val iters = visibilityIter(indexSft) :+ iter
-          BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, attrThreads, hasDuplicates = false)
+          val reduce = Some(KryoLazyStatsIterator.reduceFeatures(indexSft, hints)(_))
+          BatchScanPlan(filter, attrTable, ranges, iters, Seq.empty, kvsToFeatures, reduce, attrThreads, hasDuplicates = false)
         } else {
           // have to do a join against the record table
           joinQuery(ds, sft, filter, hints, hasDupes, singleAttrValueOnlyPlan)
@@ -180,7 +183,7 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
    */
   def joinQuery(ds: AccumuloDataStore,
                 sft: SimpleFeatureType,
-                filter: AccumuloFilterStrategy,
+                filter: AccumuloFilterStrategyType,
                 hints: Hints,
                 hasDupes: Boolean,
                 attributePlan: ScanPlanFn): JoinPlan = {
@@ -209,13 +212,13 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
     }
     val recordIterators = visibilityIter ++ recordIter
 
-    val kvsToFeatures = if (hints.isBinQuery) {
+    val (kvsToFeatures, reduce) = if (hints.isBinQuery) {
       // TODO GEOMESA-822 we can use the aggregating iterator if the features are kryo encoded
-      BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, recordIndex, hints, ds.getFeatureEncoding(sft))
+      (BinAggregatingIterator.nonAggregatedKvsToFeatures(sft, recordIndex, hints, SerializationType.KRYO), None)
     } else if (hints.isStatsIteratorQuery) {
-      KryoLazyStatsIterator.kvsToFeatures(sft)
+      (KryoLazyStatsIterator.kvsToFeatures(sft), Some(KryoLazyStatsIterator.reduceFeatures(sft, hints)(_)))
     } else {
-      recordIndex.entriesToFeatures(sft, hints.getReturnSft)
+      (recordIndex.entriesToFeatures(sft, hints.getReturnSft), None)
     }
 
     // function to join the attribute index scan results to the record table
@@ -224,17 +227,17 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
     val getId = getIdFromRow(sft)
     val joinFunction: JoinFunction = (kv) => new AccRange(RecordIndex.getRowKey(prefix, getId(kv.getKey.getRow)))
 
-    val recordTable = ds.getTableName(sft.getTypeName, recordIndex)
-    val recordThreads = ds.getSuggestedThreads(sft.getTypeName, recordIndex)
+    val recordTable = recordIndex.getTableName(sft.getTypeName, ds)
+    val recordThreads = ds.config.recordThreads
     val recordRanges = Seq(new AccRange()) // this will get overwritten in the join method
     val joinQuery = BatchScanPlan(filter, recordTable, recordRanges, recordIterators, Seq.empty,
-      kvsToFeatures, recordThreads, hasDupes)
+      kvsToFeatures, reduce, recordThreads, hasDupes)
 
     JoinPlan(filter, attributeScan.table, attributeScan.ranges, attributeScan.iterators,
       attributeScan.columnFamilies, recordThreads, hasDupes, joinFunction, joinQuery)
   }
 
-  override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[AccumuloFilterStrategy] = {
+  override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[AccumuloFilterStrategyType] = {
     val attributes = FilterHelper.propertyNames(filter, sft)
     val indexedAttributes = attributes.filter(a => Option(sft.getDescriptor(a)).exists(_.isIndexed))
     indexedAttributes.flatMap { attribute =>
@@ -248,13 +251,13 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
   }
 
   override def getCost(sft: SimpleFeatureType,
-                       ops: Option[AccumuloDataStore],
-                       filter: AccumuloFilterStrategy,
+                       ds: Option[AccumuloDataStore],
+                       filter: AccumuloFilterStrategyType,
                        transform: Option[SimpleFeatureType]): Long = {
     filter.primary match {
       case None => Long.MaxValue
       case Some(f) =>
-        val statCost = for { ds <- ops; count <- ds.stats.getCount(sft, f, exact = false) } yield {
+        val statCost = for { ds <- ds; count <- ds.stats.getCount(sft, f, exact = false) } yield {
           // account for cardinality and index coverage
           val attribute = FilterHelper.propertyNames(f, sft).head
           val descriptor = sft.getDescriptor(attribute)
@@ -284,7 +287,7 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
     * Compare with id lookups at 1, z2/z3 at 200-401
     */
   private def indexBasedCost(sft: SimpleFeatureType,
-                             filter: AccumuloFilterStrategy,
+                             filter: AccumuloFilterStrategyType,
                              transform: Option[SimpleFeatureType]): Long = {
     // note: names should be only a single attribute
     val cost = for {

@@ -53,7 +53,7 @@ object SamplingIterator {
   val SAMPLE_BY_OPT = "sample-by"
 
   def configure(is: IteratorSetting, sft: SimpleFeatureType, hints: Hints): Unit = {
-    import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     hints.getSampling.foreach(configure(is, sft, _))
   }
 

@@ -10,16 +10,14 @@ package org.locationtech.geomesa.index.strategies
 
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.IdExtractingVisitor
-import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex}
-import org.locationtech.geomesa.index.stats.HasGeoMesaStats
+import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, WrappedFeature}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.{And, Filter, Id, Or}
 
-trait IdFilterStrategy[Ops <: HasGeoMesaStats, FeatureWrapper, Result, Plan] extends
-    GeoMesaFeatureIndex[Ops, FeatureWrapper, Result, Plan] {
+trait IdFilterStrategy[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q] extends GeoMesaFeatureIndex[DS, F, W, Q] {
 
-  override def getFilterStrategy(sft: SimpleFeatureType,
-                                 filter: Filter): Seq[FilterStrategy[Ops, FeatureWrapper, Result, Plan]] = {
+  override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[FilterStrategy[DS, F, W, Q]] = {
     if (filter == Filter.INCLUDE) {
       Seq(FilterStrategy(this, None, None))
     } else if (filter == Filter.EXCLUDE) {
@@ -36,8 +34,8 @@ trait IdFilterStrategy[Ops <: HasGeoMesaStats, FeatureWrapper, Result, Plan] ext
 
   // top-priority index - always 1 if there are actually ID filters
   override def getCost(sft: SimpleFeatureType,
-                       ops: Option[Ops],
-                       filter: FilterStrategy[Ops, FeatureWrapper, Result, Plan],
+                       ds: Option[DS],
+                       filter: FilterStrategy[DS, F, W, Q],
                        transform: Option[SimpleFeatureType]): Long = {
     if (filter.primary.isDefined) IdFilterStrategy.StaticCost else Long.MaxValue
   }

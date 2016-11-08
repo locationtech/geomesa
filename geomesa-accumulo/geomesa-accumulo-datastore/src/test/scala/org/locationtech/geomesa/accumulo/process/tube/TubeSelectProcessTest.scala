@@ -16,7 +16,7 @@ import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -57,7 +57,7 @@ class TubeSelectProcessTest extends Specification {
       val ds = createStore
 
       ds.createSchema(sft)
-      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+      val fs = ds.getFeatureSource(sftName)
 
       val featureCollection = new DefaultFeatureCollection(sftName, sft)
 
@@ -100,7 +100,7 @@ class TubeSelectProcessTest extends Specification {
       sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = dtgField
 
       val ds = createStore
-      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+      val fs = ds.getFeatureSource(sftName)
 
       val featureCollection = new DefaultFeatureCollection(sftName, sft)
 
@@ -147,7 +147,7 @@ class TubeSelectProcessTest extends Specification {
 
       ds.createSchema(sft)
 
-      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+      val fs = ds.getFeatureSource(sftName)
 
       val featureCollection = new DefaultFeatureCollection(sftName, sft)
 
@@ -196,7 +196,7 @@ class TubeSelectProcessTest extends Specification {
 
       val ds = createStore
 
-      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+      val fs = ds.getFeatureSource(sftName)
 
       // tube features
       val tubeFeatures = fs.getFeatures(CQL.toFilter("BBOX(geom, 39.999999999,39.999999999, 40.00000000001, 50.000000001) AND type = 'a'"))
@@ -233,7 +233,7 @@ class TubeSelectProcessTest extends Specification {
       val ds = createStore
 
       ds.createSchema(sft)
-      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+      val fs = ds.getFeatureSource(sftName)
 
       val featureCollection = new DefaultFeatureCollection(sftName, sft)
 
@@ -317,7 +317,7 @@ class TubeSelectProcessTest extends Specification {
       val ts = new TubeSelectProcess
       val ds = createStore
 
-      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+      val fs = ds.getFeatureSource(sftName)
 
       val q = new Query(sftName, Filter.INCLUDE)
       val res = fs.getFeatures(q)
@@ -347,7 +347,7 @@ class TubeSelectProcessTest extends Specification {
       val ds = createStore
 
       ds.createSchema(sft)
-      val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+      val fs = ds.getFeatureSource(sftName)
 
       val featureCollection = new DefaultFeatureCollection(sftName, sft)
 

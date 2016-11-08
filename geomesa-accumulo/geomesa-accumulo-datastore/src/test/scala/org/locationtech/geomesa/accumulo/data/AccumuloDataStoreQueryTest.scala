@@ -20,19 +20,19 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.util.Converters
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
-import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
 import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.accumulo.index.z2.Z2Index
 import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, TestData}
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
+import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, TestWithMultipleSfts}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction}
+import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.utils.ExplainString
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.filters.Filters
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -161,10 +161,10 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       }
 
       planNull must haveLength(1)
-      planNull.head.table must endWith(Z2Index.tableSuffix)
+      planNull.head.table mustEqual Z2Index.getTableName(defaultSft.getTypeName, ds)
 
       planEmpty must haveLength(1)
-      planEmpty.head.table must endWith(Z2Index.tableSuffix)
+      planEmpty.head.table mustEqual Z2Index.getTableName(defaultSft.getTypeName, ds)
 
       explainNull must contain("Filter plan: FilterPlan[Z2Index[BBOX(geom, 40.0,44.0,50.0,54.0)][None]]")
       explainEmpty must contain("Filter plan: FilterPlan[Z2Index[BBOX(geom, 40.0,44.0,50.0,54.0)][None]]")
@@ -258,18 +258,14 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       // create the data store
       val ns = "mytestns"
       val typeName = "namespacetest"
-      val sft = SimpleFeatureTypes.createType(ns, typeName, "name:String,geom:Point:srid=4326,dtg:Date")
-      ds.createSchema(sft)
 
-      val schemaWithoutNs = ds.getSchema(sft.getTypeName)
+      val sft = SimpleFeatureTypes.createType(typeName, "geom:Point:srid=4326")
+      val sftWithNs = SimpleFeatureTypes.createType(ns, typeName, "geom:Point:srid=4326")
 
-      schemaWithoutNs.getName.getNamespaceURI must beNull
-      schemaWithoutNs.getName.getLocalPart mustEqual sft.getTypeName
+      ds.createSchema(sftWithNs)
 
-      val schemaWithNs = ds.getSchema(new NameImpl(ns, sft.getTypeName))
-
-      schemaWithNs.getName.getNamespaceURI mustEqual ns
-      schemaWithNs.getName.getLocalPart mustEqual sft.getTypeName
+      ds.getSchema(typeName) mustEqual sft
+      ds.getSchema(new NameImpl(ns, typeName)) mustEqual sft
     }
 
     "handle cql functions" in {
@@ -358,8 +354,8 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val query = new Query(sft.getTypeName, ECQL.toFilter("BBOX(geom,40,40,50,50)"))
       query.getHints.put(BIN_TRACK_KEY, "name")
       query.getHints.put(BIN_BATCH_SIZE_KEY, 1000)
-      val queryPlanner = new QueryPlanner(sft, ds)
-      val results = queryPlanner.runQuery(query, Some(Z2Index)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
+      val queryPlanner = new AccumuloQueryPlanner(ds)
+      val results = queryPlanner.runQuery(sft, query, Some(Z2Index)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
       bins must haveSize(2)
@@ -429,7 +425,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     "kill queries after a configurable timeout" in {
       val params = Map(
         "connector" -> ds.connector,
-        "tableName" -> ds.catalogTable,
+        "tableName" -> ds.config.catalog,
         AccumuloDataStoreParams.queryTimeoutParam.getName -> "1"
       )
 
@@ -443,10 +439,10 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val filter = "BBOX(geom,40,40,50,50) and dtg during 2010-05-07T00:00:00.000Z/2010-05-08T00:00:00.000Z and name='name1'"
       val query = new Query(defaultSft.getTypeName, ECQL.toFilter(filter))
 
-      def expectStrategy(strategy: AccumuloFeatureIndex) = {
-        val explain = new ExplainString
-        ds.getQueryPlan(query, explainer = explain)
-        explain.toString().split("\n").map(_.trim).filter(_.startsWith("Strategy 1 of 1:")) mustEqual Array(s"Strategy 1 of 1: $strategy")
+      def expectStrategy(strategy: AccumuloFeatureIndexType) = {
+        val plans = ds.getQueryPlan(query)
+        plans must haveLength(1)
+        plans.head.filter.index mustEqual strategy
         val res = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features().map(_.getID).toList
         res must containTheSameElementsAs(Seq("fid-1"))
       }
@@ -467,7 +463,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       query.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, viewParams)
 
       query.getHints.remove(QUERY_INDEX_KEY)
-      viewParams.put("STRATEGY", "attribute")
+      viewParams.put("STRATEGY", "attr")
       expectStrategy(AttributeIndex)
 
       query.getHints.remove(QUERY_INDEX_KEY)
@@ -479,7 +475,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       expectStrategy(Z3Index)
 
       query.getHints.remove(QUERY_INDEX_KEY)
-      viewParams.put("STRATEGY", "RECORD")
+      viewParams.put("STRATEGY", "RECORDS")
       expectStrategy(RecordIndex)
 
       success
@@ -494,7 +490,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
       val params = Map(
         "connector" -> ds.connector,
-        "tableName" -> ds.catalogTable,
+        "tableName" -> ds.config.catalog,
         AccumuloDataStoreParams.looseBBoxParam.getName -> "false"
       )
 

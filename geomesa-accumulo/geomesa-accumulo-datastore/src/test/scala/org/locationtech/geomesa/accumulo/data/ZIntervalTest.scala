@@ -12,9 +12,10 @@ import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

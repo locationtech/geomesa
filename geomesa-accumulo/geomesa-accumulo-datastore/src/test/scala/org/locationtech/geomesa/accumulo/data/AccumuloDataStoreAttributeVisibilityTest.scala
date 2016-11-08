@@ -16,14 +16,14 @@ import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
+import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
 import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.accumulo.index.z2.Z2Index
 import org.locationtech.geomesa.accumulo.index.z3.Z3Index
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
@@ -96,7 +96,7 @@ class AccumuloDataStoreAttributeVisibilityTest extends Specification {
   val fs = ds.getFeatureSource(sftName)
   fs.addFeatures(featureCollection)
 
-  def queryByAuths(auths: String, filter: String, expectedStrategy: AccumuloFeatureIndex): Seq[SimpleFeature] = {
+  def queryByAuths(auths: String, filter: String, expectedStrategy: AccumuloFeatureIndexType): Seq[SimpleFeature] = {
     val ds = DataStoreFinder.getDataStore(Map(
       "connector"    -> connector,
       "tableName"    -> sftName,

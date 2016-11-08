@@ -18,10 +18,10 @@ import org.geotools.factory.Hints
 import org.geotools.geojson.geom.GeometryJSON
 import org.json4s._
 import org.json4s.native.JsonMethods._
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser.PathElement
 import org.locationtech.geomesa.geojson.query.GeoJsonQuery
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.parboiled.errors.ParsingException
