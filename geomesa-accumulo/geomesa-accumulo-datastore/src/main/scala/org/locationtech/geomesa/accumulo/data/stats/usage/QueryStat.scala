@@ -130,7 +130,7 @@ object QueryStatTransform extends UsageStatTransform[QueryStat] {
    * @param key
    * @return
    */
-  private def keyToString(key: Hints.Key): String =
+  def keyToString(key: Hints.Key): String =
     key match {
       case TRANSFORMS         => "TRANSFORMS"
       case TRANSFORM_SCHEMA   => "TRANSFORM_SCHEMA"
