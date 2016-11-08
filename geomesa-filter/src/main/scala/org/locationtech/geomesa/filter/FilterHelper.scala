@@ -196,13 +196,12 @@ object FilterHelper extends LazyLogging {
           Seq.empty
         } else if (intersect) {
           all.reduceLeft[Seq[Geometry]] { case (g1, g2) =>
-            if (g1.isEmpty) { DisjointGeometries } else {
-              val gc1 = if (g1.length == 1) g1.head else new GeometryCollection(g1.toArray, g1.head.getFactory)
-              val gc2 = if (g2.length == 1) g2.head else new GeometryCollection(g2.toArray, g2.head.getFactory)
-              gc1.intersection(gc2) match {
-                case g if g.isEmpty => DisjointGeometries
-                case g: GeometryCollection => (0 until g.getNumGeometries).map(g.getGeometryN)
-                case g => Seq(g)
+            if (g1.isEmpty || g1.eq(DisjointGeometries)) { DisjointGeometries } else {
+              val intersections = g1.flatMap(g => g2.map(_.intersection(g)).filterNot(_.isEmpty))
+              if (intersections.isEmpty) {
+                DisjointGeometries
+              } else {
+                intersections
               }
             }
           }
@@ -228,14 +227,15 @@ object FilterHelper extends LazyLogging {
           }
           GeohashUtils.getInternationalDateLineSafeGeometry(buffered)
         }
-        geometry match {
-          case Some(g: GeometryCollection) => (0 until g.getNumGeometries).map(g.getGeometryN)
-          case Some(g) => Seq(g)
-          case None    => Seq.empty
-        }
+        geometry.map(flattenGeometry).getOrElse(Seq.empty)
 
       case _ => Seq.empty
     }
+  }
+
+  private def flattenGeometry(geometry: Geometry): Seq[Geometry] = geometry match {
+    case g: GeometryCollection => (0 until g.getNumGeometries).map(g.getGeometryN).flatMap(flattenGeometry)
+    case _ => Seq(geometry)
   }
 
   /**
