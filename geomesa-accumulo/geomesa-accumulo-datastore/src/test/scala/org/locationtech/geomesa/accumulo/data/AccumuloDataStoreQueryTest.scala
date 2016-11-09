@@ -289,6 +289,21 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       features must beEmpty
     }
 
+    "support multi-polygon and bbox predicates" in {
+      val bbox = "bbox(geom,44.9,48.9,45.1,49.1)"
+      val intersects = "intersects(geom, 'MULTIPOLYGON (((40 40, 55 60, 20 60, 40 40)),((25 15, 50 20, 20 30, 15 20, 25 15)))')"
+      val dtg = "dtg DURING 2010-05-07T12:29:50.000Z/2010-05-07T12:30:10.000Z"
+      val dtg2 = "dtg DURING 2010-05-07T12:00:00.000Z/2010-05-07T13:00:00.000Z"
+      val queries = Seq(s"$bbox AND $dtg AND $intersects AND $dtg2", s"$intersects AND $dtg2 AND $bbox AND $dtg")
+      forall(queries) { ecql =>
+        val query = new Query(defaultSft.getTypeName, ECQL.toFilter(ecql))
+        val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
+        val features = SelfClosingIterator(reader).toList
+        features must haveLength(1)
+        features.head.getID mustEqual "fid-1"
+      }
+    }
+
     "avoid deduplication when possible" in {
       val sft = createNewSchema(s"name:String:index=join:cardinality=high,dtg:Date,*geom:Point:srid=4326")
       addFeature(sft, ScalaSimpleFeature.create(sft, "1", "bob", "2010-05-07T12:00:00.000Z", "POINT(45 45)"))
