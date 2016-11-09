@@ -52,13 +52,12 @@ class BinAggregatingIterator
   var getDtg: (KryoBufferSimpleFeature) => Long = null
   var linePointIndex: Int = -1
 
-  var batchSize: Int = -1
   var binSize: Int = 16
   var sort: Boolean = false
 
   var sampling: Option[(SimpleFeature) => Boolean] = null
 
-  var writeBin: (KryoBufferSimpleFeature, ByteBuffer) => Unit = null
+  var writeBin: (KryoBufferSimpleFeature, ByteBufferResult) => Unit = null
 
   override def init(options: Map[String, String]): ByteBufferResult = {
     geomIndex = options(GEOM_OPT).toInt
@@ -87,7 +86,7 @@ class BinAggregatingIterator
     sampling = sample(options)
 
     // derive the bin values from the features
-    val writeGeom: (KryoBufferSimpleFeature, ByteBuffer) => Unit = if (sft.isPoints) {
+    val writeGeom: (KryoBufferSimpleFeature, ByteBufferResult) => Unit = if (sft.isPoints) {
       if (labelIndex == -1) writePoint else writePointWithLabel
     } else if (sft.isLines) {
       if (labelIndex == -1) writeLineString else writeLineStringWithLabel
@@ -100,78 +99,90 @@ class BinAggregatingIterator
       case Some(samp) => (sf, bb) => if (samp(sf)) { writeGeom(sf, bb) }
     }
 
-    batchSize = options(BATCH_SIZE_OPT).toInt * binSize
+    val batchSize = options(BATCH_SIZE_OPT).toInt * binSize
 
-    new ByteBufferResult(ByteBuffer.wrap(Array.ofDim(batchSize)).order(ByteOrder.LITTLE_ENDIAN))
+    val buffer = ByteBuffer.wrap(Array.ofDim(batchSize)).order(ByteOrder.LITTLE_ENDIAN)
+    val overflow = ByteBuffer.wrap(Array.ofDim(binSize * 16)).order(ByteOrder.LITTLE_ENDIAN)
+
+    new ByteBufferResult(buffer, overflow)
   }
 
-  override def notFull(result: ByteBufferResult): Boolean = result.buffer.position < batchSize
+  override def notFull(result: ByteBufferResult): Boolean = result.buffer.position < result.buffer.limit
 
   override def aggregateResult(sf: SimpleFeature, result: ByteBufferResult): Unit =
-    writeBin(sf.asInstanceOf[KryoBufferSimpleFeature], result.buffer)
+    writeBin(sf.asInstanceOf[KryoBufferSimpleFeature], result)
 
   override def encodeResult(result: ByteBufferResult): Array[Byte] = {
-    val bytes = result.buffer.array()
-    if (sort) {
-      BinSorter.quickSort(bytes, 0, result.buffer.position - binSize, binSize)
-    }
-    if (result.buffer.position == batchSize) {
+    val bytes = if (result.overflow.position() > 0) {
+      // overflow bytes - copy the two buffers into one
+      val copy = Array.ofDim[Byte](result.buffer.position + result.overflow.position)
+      System.arraycopy(result.buffer.array, 0, copy, 0, result.buffer.position)
+      System.arraycopy(result.overflow.array, 0, copy, result.buffer.position, result.overflow.position)
+      copy
+    } else if (result.buffer.position == result.buffer.limit) {
       // use the existing buffer if possible
-      bytes
+      result.buffer.array
     } else {
       // if not, we have to copy it - values do not allow you to specify a valid range
       val copy = Array.ofDim[Byte](result.buffer.position)
-      System.arraycopy(bytes, 0, copy, 0, result.buffer.position)
+      System.arraycopy(result.buffer.array, 0, copy, 0, result.buffer.position)
       copy
     }
+    if (sort) {
+      BinSorter.quickSort(bytes, 0, bytes.length - binSize, binSize)
+    }
+    bytes
   }
 
   /**
    * Writes a point to our buffer in the bin format
    */
-  private def writeBinToBuffer(sf: KryoBufferSimpleFeature, pt: Point, byteBuffer: ByteBuffer): Unit = {
+  private def writeBinToBuffer(sf: KryoBufferSimpleFeature, pt: Point, result: ByteBufferResult): Unit = {
+    val buffer = result.ensureCapacity(16)
     val track = sf.getAttribute(trackIndex)
     if (track == null) {
-      byteBuffer.putInt(0)
+      buffer.putInt(0)
     } else {
-      byteBuffer.putInt(track.hashCode())
+      buffer.putInt(track.hashCode())
     }
-    byteBuffer.putInt((getDtg(sf) / 1000).toInt)
-    byteBuffer.putFloat(pt.getY.toFloat) // y is lat
-    byteBuffer.putFloat(pt.getX.toFloat) // x is lon
+    buffer.putInt((getDtg(sf) / 1000).toInt)
+    buffer.putFloat(pt.getY.toFloat) // y is lat
+    buffer.putFloat(pt.getX.toFloat) // x is lon
   }
 
   /**
    * Writes a label to the buffer in the bin format
    */
-  private def writeLabelToBuffer(sf: KryoBufferSimpleFeature, byteBuffer: ByteBuffer): Unit = {
+  private def writeLabelToBuffer(sf: KryoBufferSimpleFeature, result: ByteBufferResult): Unit = {
     val label = sf.getAttribute(labelIndex)
-    byteBuffer.putLong(if (label == null) 0L else Convert2ViewerFunction.convertToLabel(label.toString))
+    val labelAsLong = if (label == null) { 0L } else { Convert2ViewerFunction.convertToLabel(label.toString) }
+    val buffer = result.ensureCapacity(8)
+    buffer.putLong(labelAsLong)
   }
 
   /**
    * Writes a bin record from a feature that has a point geometry
    */
-  def writePoint(sf: KryoBufferSimpleFeature, byteBuffer: ByteBuffer): Unit =
-    writeBinToBuffer(sf, sf.getAttribute(geomIndex).asInstanceOf[Point], byteBuffer)
+  def writePoint(sf: KryoBufferSimpleFeature, result: ByteBufferResult): Unit =
+    writeBinToBuffer(sf, sf.getAttribute(geomIndex).asInstanceOf[Point], result)
 
   /**
    * Writes point + label
    */
-  def writePointWithLabel(sf: KryoBufferSimpleFeature, byteBuffer: ByteBuffer): Unit = {
-    writePoint(sf, byteBuffer)
-    writeLabelToBuffer(sf, byteBuffer)
+  def writePointWithLabel(sf: KryoBufferSimpleFeature, result: ByteBufferResult): Unit = {
+    writePoint(sf, result)
+    writeLabelToBuffer(sf, result)
   }
 
   /**
    * Writes bins record from a feature that has a line string geometry.
    * The feature will be multiple bin records.
    */
-  def writeLineString(sf: KryoBufferSimpleFeature, byteBuffer: ByteBuffer): Unit = {
+  def writeLineString(sf: KryoBufferSimpleFeature, result: ByteBufferResult): Unit = {
     val geom = sf.getAttribute(geomIndex).asInstanceOf[LineString]
     linePointIndex = 0
     while (linePointIndex < geom.getNumPoints) {
-      writeBinToBuffer(sf, geom.getPointN(linePointIndex), byteBuffer)
+      writeBinToBuffer(sf, geom.getPointN(linePointIndex), result)
       linePointIndex += 1
     }
   }
@@ -179,12 +190,12 @@ class BinAggregatingIterator
   /**
    * Writes line string + label
    */
-  def writeLineStringWithLabel(sf: KryoBufferSimpleFeature, byteBuffer: ByteBuffer): Unit = {
+  def writeLineStringWithLabel(sf: KryoBufferSimpleFeature, result: ByteBufferResult): Unit = {
     val geom = sf.getAttribute(geomIndex).asInstanceOf[LineString]
     linePointIndex = 0
     while (linePointIndex < geom.getNumPoints) {
-      writeBinToBuffer(sf, geom.getPointN(linePointIndex), byteBuffer)
-      writeLabelToBuffer(sf, byteBuffer)
+      writeBinToBuffer(sf, geom.getPointN(linePointIndex), result)
+      writeLabelToBuffer(sf, result)
       linePointIndex += 1
     }
   }
@@ -193,17 +204,17 @@ class BinAggregatingIterator
    * Writes a bin record from a feature that has a arbitrary geometry.
    * A single internal point will be written.
    */
-  def writeGeometry(sf: KryoBufferSimpleFeature, byteBuffer: ByteBuffer): Unit = {
+  def writeGeometry(sf: KryoBufferSimpleFeature, result: ByteBufferResult): Unit = {
     import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
-    writeBinToBuffer(sf, sf.getAttribute(geomIndex).asInstanceOf[Geometry].safeCentroid(), byteBuffer)
+    writeBinToBuffer(sf, sf.getAttribute(geomIndex).asInstanceOf[Geometry].safeCentroid(), result)
   }
 
   /**
    * Writes geom + label
    */
-  def writeGeometryWithLabel(sf: KryoBufferSimpleFeature, byteBuffer: ByteBuffer): Unit = {
-    writeGeometry(sf, byteBuffer)
-    writeLabelToBuffer(sf, byteBuffer)
+  def writeGeometryWithLabel(sf: KryoBufferSimpleFeature, result: ByteBufferResult): Unit = {
+    writeGeometry(sf, result)
+    writeLabelToBuffer(sf, result)
   }
 
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] =
@@ -274,8 +285,14 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
 
     // we are using the pre-computed bin values - we can copy the value directly into our buffer
     writePrecomputedBin = sampling match {
-      case None => (_, result) => result.buffer.put(source.getTopValue.get)
-      case Some(samp) => (sf, result) => if (samp(sf)) { result.buffer.put(source.getTopValue.get) }
+      case None => (_, result) => {
+        val bytes = source.getTopValue.get
+        result.ensureCapacity(bytes.length).put(bytes)
+      }
+      case Some(samp) => (sf, result) => if (samp(sf)) {
+        val bytes = source.getTopValue.get
+        result.ensureCapacity(bytes.length).put(bytes)
+      }
     }
 
     result
@@ -305,9 +322,27 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
 }
 
 // wrapper for java's byte buffer that adds scala methods for the aggregating iterator
-class ByteBufferResult(var buffer: ByteBuffer) {
+class ByteBufferResult(val buffer: ByteBuffer, var overflow: ByteBuffer) {
+  def ensureCapacity(size: Int): ByteBuffer = {
+    if (buffer.position < buffer.limit - size) {
+      buffer
+    } else if (overflow.position < overflow.limit - size) {
+      overflow
+    } else {
+      val expanded = Array.ofDim[Byte](overflow.limit * 2)
+      System.arraycopy(overflow.array, 0, expanded, 0, overflow.limit)
+      val order = overflow.order
+      val position = overflow.position
+      overflow = ByteBuffer.wrap(expanded).order(order).position(position).asInstanceOf[ByteBuffer]
+      overflow
+    }
+  }
+
   def isEmpty: Boolean = buffer.position == 0
-  def clear(): Unit = buffer.clear()
+  def clear(): Unit = {
+    buffer.clear()
+    overflow.clear()
+  }
 }
 
 object BinAggregatingIterator extends LazyLogging {
