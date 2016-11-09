@@ -53,7 +53,7 @@ object QueryEvent {
     * @param key hints key
     * @return
     */
-  private def keyToString(key: Hints.Key): String = key match {
+  def keyToString(key: Hints.Key): String = key match {
     case TRANSFORMS         => "TRANSFORMS"
     case TRANSFORM_SCHEMA   => "TRANSFORM_SCHEMA"
     case BIN_TRACK_KEY      => "BIN_TRACK_KEY"
