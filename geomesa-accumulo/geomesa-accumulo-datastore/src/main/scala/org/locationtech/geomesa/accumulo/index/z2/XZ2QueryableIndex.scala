@@ -51,11 +51,11 @@ trait XZ2QueryableIndex extends AccumuloFeatureIndexType
     }
 
     val geometries = filter.primary.map(extractGeometries(_, sft.getGeomField, sft.isPoints))
-        .filter(_.nonEmpty).getOrElse(Seq(WholeWorldPolygon))
+        .filter(_.nonEmpty).getOrElse(FilterValues(Seq(WholeWorldPolygon)))
 
     explain(s"Geometries: $geometries")
 
-    if (geometries == DisjointGeometries) {
+    if (geometries.disjoint) {
       explain("Non-intersecting geometries extracted, short-circuiting to empty query")
       return EmptyPlan(filter)
     }
@@ -101,7 +101,7 @@ trait XZ2QueryableIndex extends AccumuloFeatureIndexType
       }
     } else {
       // determine the ranges using the XZ curve
-      val xy = geometries.map(GeometryUtils.bounds)
+      val xy = geometries.values.map(GeometryUtils.bounds)
       val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
       val sfc = XZ2SFC(sft.getXZPrecision)
       val zRanges = sfc.ranges(xy, rangeTarget).map { range =>

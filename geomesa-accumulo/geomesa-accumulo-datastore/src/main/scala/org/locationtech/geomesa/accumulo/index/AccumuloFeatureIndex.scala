@@ -102,7 +102,7 @@ object AccumuloFeatureIndex extends AccumuloIndexManagerType with LazyLogging {
     } else if (version == 8) {
       Seq(Z3IndexV2, Z2IndexV1, RecordIndexV1, AttributeIndexV2)
     } else if (version > 5) {
-      logger.warn("The GeoHash index is no longer supported. Some queries make take longer than normal. To " +
+      logger.warn("The GeoHash index is no longer supported. Some queries may take longer than normal. To " +
           s"update your data to a newer format, see $docs")
       version match {
         case 7 => Seq(Z3IndexV2, RecordIndexV1, AttributeIndexV2)

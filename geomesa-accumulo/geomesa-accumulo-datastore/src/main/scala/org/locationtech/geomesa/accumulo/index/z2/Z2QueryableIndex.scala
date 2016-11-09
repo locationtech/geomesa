@@ -53,11 +53,11 @@ trait Z2QueryableIndex extends AccumuloFeatureIndexType
     }
 
     val geometries = filter.primary.map(extractGeometries(_, sft.getGeomField, sft.isPoints))
-        .filter(_.nonEmpty).getOrElse(Seq(WholeWorldPolygon))
+        .filter(_.nonEmpty).getOrElse(FilterValues(Seq(WholeWorldPolygon)))
 
     explain(s"Geometries: $geometries")
 
-    if (geometries == DisjointGeometries) {
+    if (geometries.disjoint) {
       explain("Non-intersecting geometries extracted, short-circuiting to empty query")
       return EmptyPlan(filter)
     }
@@ -70,7 +70,7 @@ trait Z2QueryableIndex extends AccumuloFeatureIndexType
     // don't need to apply the filter on top of it. this may cause some minor errors at extremely
     // fine resolutions, but the performance is worth it
     // if we have a complicated geometry predicate, we need to pass it through to be evaluated
-    val ecql = if (looseBBox && sft.isPoints && geometries.forall(GeometryUtils.isRectangular)) {
+    val ecql = if (looseBBox && sft.isPoints && geometries.values.forall(GeometryUtils.isRectangular)) {
       filter.secondary
     } else {
       filter.filter
@@ -116,7 +116,7 @@ trait Z2QueryableIndex extends AccumuloFeatureIndexType
     } else {
       // setup Z2 iterator
       import Z2Index.GEOM_Z_NUM_BYTES
-      val xy = geometries.map(GeometryUtils.bounds)
+      val xy = geometries.values.map(GeometryUtils.bounds)
       val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
       val zRanges = if (sft.isPoints) {
         Z2SFC.ranges(xy, 64, rangeTarget).map(r => (Longs.toByteArray(r.lower), Longs.toByteArray(r.upper)))

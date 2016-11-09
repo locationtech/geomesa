@@ -109,10 +109,10 @@ class GenerateKNNQueryTest extends Specification {
       val geomsToCover = {
         import scala.collection.JavaConversions._
         val geoms = FilterHelper.extractGeometries(ff.and(tweakedGeomFilters), sft.getGeometryDescriptor.getLocalName, intersect = true)
-        if (geoms.length < 2) {
-          geoms.headOption.orNull
+        if (geoms.values.length < 2) {
+          geoms.values.headOption.orNull
         } else {
-          new GeometryCollection(geoms.toArray, geoms.head.getFactory)
+          new GeometryCollection(geoms.values.toArray, geoms.values.head.getFactory)
         }
       }
 

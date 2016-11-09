@@ -83,11 +83,11 @@ trait Z2Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
     }
 
     val geometries = filter.primary.map(extractGeometries(_, sft.getGeomField, sft.isPoints))
-        .filter(_.nonEmpty).getOrElse(Seq(WholeWorldPolygon))
+        .filter(_.nonEmpty).getOrElse(FilterValues(Seq(WholeWorldPolygon)))
 
     explain(s"Geometries: $geometries")
 
-    if (geometries == DisjointGeometries) {
+    if (geometries.disjoint) {
       explain("Non-intersecting geometries extracted, short-circuiting to empty query")
       return scanPlan(sft, ds, filter, hints, Seq.empty, None)
     }
@@ -98,7 +98,7 @@ trait Z2Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
     val ranges = if (filter.primary.isEmpty) { Seq(rangePrefix(sharing)) } else {
       import com.google.common.primitives.Bytes.concat
 
-      val xy = geometries.map(GeometryUtils.bounds)
+      val xy = geometries.values.map(GeometryUtils.bounds)
 
       val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
       val zs = Z2SFC.ranges(xy, 64, rangeTarget).map(r => (Longs.toByteArray(r.lower), Longs.toByteArray(r.upper)))

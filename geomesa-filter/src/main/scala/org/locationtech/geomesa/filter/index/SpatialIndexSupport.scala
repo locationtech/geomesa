@@ -40,23 +40,23 @@ trait SpatialIndexSupport {
   def spatial(f: BinarySpatialOperator): SimpleFeatureReader = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    val geometries = FilterHelper.extractGeometries(f, sft.getGeomField)
+    val geometries = FilterHelper.extractGeometries(f, sft.getGeomField, intersect = false)
     if (geometries.isEmpty) {
       unoptimized(f)
     } else {
-      val envelope = geometries.head.getEnvelopeInternal
-      geometries.tail.foreach(g => envelope.expandToInclude(g.getEnvelopeInternal))
+      val envelope = geometries.values.head.getEnvelopeInternal
+      geometries.values.tail.foreach(g => envelope.expandToInclude(g.getEnvelopeInternal))
       reader(spatialIndex.query(envelope, f.evaluate))
     }
   }
 
   def and(a: And): SimpleFeatureReader = {
-    val geometries = extractGeometries(a, sft.getGeometryDescriptor.getLocalName)
+    val geometries = extractGeometries(a, sft.getGeometryDescriptor.getLocalName, intersect = false)
     if (geometries.isEmpty) {
       unoptimized(a)
     } else {
-      val envelope = geometries.head.getEnvelopeInternal
-      geometries.tail.foreach(g => envelope.expandToInclude(g.getEnvelopeInternal))
+      val envelope = geometries.values.head.getEnvelopeInternal
+      geometries.values.tail.foreach(g => envelope.expandToInclude(g.getEnvelopeInternal))
       reader(spatialIndex.query(envelope, a.evaluate))
     }
   }
