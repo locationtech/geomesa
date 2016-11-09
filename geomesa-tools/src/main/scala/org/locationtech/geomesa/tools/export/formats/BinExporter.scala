@@ -27,8 +27,10 @@ class BinExporter(os: OutputStream,
   val id = idAttribute.orElse(Some("id"))
   val latLon = latAttribute.flatMap(lat => lonAttribute.map(lon => (lat, lon)))
 
-  override def export(fc: SimpleFeatureCollection) =
+  override def export(fc: SimpleFeatureCollection): Option[Long] = {
     encodeFeatureCollection(fc, os, EncodingOptions(dtgAttribute, id, lblAttribute, latLon, AxisOrder.LonLat))
+    None
+  }
 
   override def flush() = os.flush()
 

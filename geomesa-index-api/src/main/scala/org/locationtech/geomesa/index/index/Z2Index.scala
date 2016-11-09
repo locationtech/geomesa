@@ -53,10 +53,20 @@ trait Z2Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
     Bytes.concat(sharing, split, Longs.toByteArray(z), id)
   }
 
-  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = {
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
+    val start = if (sft.isTableSharing) { 10 } else { 9 } // table sharing + shard + 8 byte long
+    (row, offset, length) => new String(row, offset + start, length - start, StandardCharsets.UTF_8)
+  }
+
+  override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    val start = if (sft.isTableSharing) { 10 } else { 9 }
-    (row: Array[Byte]) => new String(row, start, row.length - start, StandardCharsets.UTF_8)
+    val splits = DefaultSplitArrays.drop(1) // drop the first so we don't get an empty tablet
+    if (sft.isTableSharing) {
+      val sharing = sft.getTableSharingBytes
+      splits.map(s => Bytes.concat(sharing, s))
+    } else {
+      splits
+    }
   }
 
   override def getQueryPlan(sft: SimpleFeatureType,
@@ -96,7 +106,7 @@ trait Z2Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
 
       prefixes.flatMap { prefix =>
         zs.map { case (lo, hi) =>
-          range(concat(prefix, lo), IndexAdapter.followingRow(concat(prefix, hi)))
+          range(concat(prefix, lo), IndexAdapter.rowFollowingRow(concat(prefix, hi)))
         }
       }
     }

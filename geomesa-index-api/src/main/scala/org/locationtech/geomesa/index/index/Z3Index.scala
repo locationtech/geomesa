@@ -11,7 +11,7 @@ package org.locationtech.geomesa.index.index
 import java.nio.charset.StandardCharsets
 import java.util.Date
 
-import com.google.common.primitives.{Longs, Shorts}
+import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Point
 import org.geotools.factory.Hints
@@ -72,10 +72,20 @@ trait Z3Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
     concat(sharing, split, Shorts.toByteArray(timeBin), Longs.toByteArray(z), id)
   }
 
-  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = {
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
+    val start = if (sft.isTableSharing) { 12 } else { 11 } // table sharing + shard + 2 byte short + 8 byte long
+    (row, offset, length) => new String(row, offset + start, length - start, StandardCharsets.UTF_8)
+  }
+
+  override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    val start = if (sft.isTableSharing) { 12 } else { 11 }
-    (row: Array[Byte]) => new String(row, start, row.length - start, StandardCharsets.UTF_8)
+    val splits = DefaultSplitArrays.drop(1) // drop the first so we don't get an empty tablet
+    if (sft.isTableSharing) {
+      val sharing = sft.getTableSharingBytes
+      splits.map(s => Bytes.concat(sharing, s))
+    } else {
+      splits
+    }
   }
 
   override def getQueryPlan(sft: SimpleFeatureType,
@@ -154,7 +164,7 @@ trait Z3Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
         val prefixes = IndexAdapter.DefaultSplitArrays.map(concat(sharing, _, binBytes))
         prefixes.flatMap { prefix =>
           zs.map { case (lo, hi) =>
-            range(concat(prefix, lo), IndexAdapter.followingRow(concat(prefix, hi)))
+            range(concat(prefix, lo), IndexAdapter.rowFollowingRow(concat(prefix, hi)))
           }
         }
       }

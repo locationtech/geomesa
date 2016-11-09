@@ -39,10 +39,14 @@ class HBaseDataStore(val connection: Connection, config: HBaseDataStoreConfig)
     new HBaseModifyFeatureWriter(sft, this, indices, filter)
 
   override def createSchema(sft: SimpleFeatureType): Unit = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     // TODO GEOMESA-1322 support tilde in feature name
     if (sft.getTypeName.contains("~")) {
       throw new IllegalArgumentException("AccumuloDataStore does not currently support '~' in feature type names")
     }
+    // we are only allowed to set splits at table creation
+    // disable table sharing to allow for decent pre-splitting
+    sft.setTableSharing(false)
     super.createSchema(sft)
   }
 

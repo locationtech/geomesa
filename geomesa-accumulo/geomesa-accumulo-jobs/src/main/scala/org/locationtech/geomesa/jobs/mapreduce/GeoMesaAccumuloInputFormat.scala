@@ -273,7 +273,8 @@ class GeoMesaRecordReader(sft: SimpleFeatureType,
         if (reader.nextKeyValue()) {
           currentFeature = decoder.deserialize(reader.getCurrentValue.get())
           if (!hasId) {
-            currentFeature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(reader.getCurrentKey.getRow))
+            val row = reader.getCurrentKey.getRow
+            currentFeature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row.getBytes, 0, row.getLength))
           }
           true
         } else {

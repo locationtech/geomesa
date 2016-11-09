@@ -18,7 +18,10 @@ class AvroExporter(sft: SimpleFeatureType, os: OutputStream, compression: Int) e
 
   val writer = new AvroDataFileWriter(os, sft, compression)
 
-  override def export(fc: SimpleFeatureCollection): Unit = writer.append(fc)
+  override def export(fc: SimpleFeatureCollection): Option[Long] = {
+    writer.append(fc)
+    None
+  }
 
   override def flush() = {
     writer.flush()

@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.util
 
-import org.locationtech.geomesa.accumulo.data.TableSplitter
+import org.locationtech.geomesa.index.conf.TableSplitter
 import org.locationtech.geomesa.utils.geotools.SftBuilder._
 import org.locationtech.geomesa.utils.geotools.{InitBuilder, SimpleFeatureTypes}
 

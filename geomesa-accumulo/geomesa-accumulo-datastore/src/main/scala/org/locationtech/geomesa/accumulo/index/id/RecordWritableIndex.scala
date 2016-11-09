@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.accumulo.index.id
 
+import java.nio.charset.StandardCharsets
+
 import com.google.common.base.Charsets
 import com.google.common.collect.ImmutableSortedSet
 import org.apache.accumulo.core.conf.Property
@@ -16,6 +18,7 @@ import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
+import org.locationtech.geomesa.index.conf.{HexSplitter, TableSplitter}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -23,9 +26,12 @@ trait RecordWritableIndex extends AccumuloWritableIndex {
 
   import RecordIndex.getRowKey
 
-  override def getIdFromRow(sft: SimpleFeatureType): (Text) => String = {
-    val offset = sft.getTableSharingPrefix.length
-    (row: Text) => new String(row.getBytes, offset, row.getLength - offset, Charsets.UTF_8)
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
+    if (sft.isTableSharing) {
+      (row, offset, length) => new String(row, offset + 1, length - 1, StandardCharsets.UTF_8)
+    } else {
+      (row, offset, length) => new String(row, offset, length, StandardCharsets.UTF_8)
+    }
   }
 
   override def configure(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {
@@ -42,7 +48,7 @@ trait RecordWritableIndex extends AccumuloWritableIndex {
     val prefixFn = getRowKey(prefix, _: String)
     val splitter = sft.getTableSplitter.getOrElse(classOf[HexSplitter]).newInstance().asInstanceOf[TableSplitter]
     val splits = splitter.getSplits(sft.getTableSplitterOptions)
-    val sortedSplits = splits.map(_.toString).map(prefixFn).map(new Text(_)).toSet
+    val sortedSplits = splits.map(new String(_, StandardCharsets.UTF_8)).map(prefixFn).map(new Text(_)).toSet
     val splitsToAdd = sortedSplits -- ds.tableOps.listSplits(table).toSet
     if (splitsToAdd.nonEmpty) {
       // noinspection RedundantCollectionConversion

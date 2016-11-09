@@ -435,7 +435,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       // ensure that the second part of the UUID is random
       rowKeys.map(_.substring(19)).toSet must haveLength(5)
 
-      val ids = rows.map(e => RecordIndex.getIdFromRow(sft)(e.getKey.getRow))
+      val ids = rows.map(e => RecordIndex.getIdFromRow(sft)(e.getKey.getRow.getBytes, 0, e.getKey.getRow.getLength))
       ids must haveLength(5)
       forall(ids)(_ must not(beMatching("fid\\d")))
       // ensure they share a common prefix, since they have the same dtg/geom

@@ -30,9 +30,8 @@ class DelimitedExporter(writer: Writer, format: DataFormat, withHeader: Boolean 
     case DataFormats.Tsv => CSVFormat.TDF.withQuoteMode(QuoteMode.MINIMAL).print(writer)
   }
 
-  override def export(features: SimpleFeatureCollection): Unit = {
+  override def export(features: SimpleFeatureCollection): Option[Long] = {
     import org.locationtech.geomesa.utils.geotools.Conversions.toRichSimpleFeatureIterator
-
 
     val sft = features.getSchema
 
@@ -57,6 +56,7 @@ class DelimitedExporter(writer: Writer, format: DataFormat, withHeader: Boolean 
       }
     }
     logger.info(s"Exported $count features")
+    Some(count)
   }
 
   def stringify(o: Any): String = {

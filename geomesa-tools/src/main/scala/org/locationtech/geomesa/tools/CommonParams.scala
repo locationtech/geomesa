@@ -10,7 +10,10 @@ package org.locationtech.geomesa.tools
 
 import java.util.regex.Pattern
 
-import com.beust.jcommander.Parameter
+import com.beust.jcommander.{Parameter, ParameterException}
+import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, WrappedFeature}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 
 /**
   * Shared parameters as individual traits
@@ -97,4 +100,29 @@ trait OptionalForceParam {
 trait OptionalPatternParam {
   @Parameter(names = Array("--pattern"), description = "Regular expression for simple feature type names")
   var pattern: Pattern = null
+}
+
+trait OptionalIndexParam extends TypeNameParam {
+  @Parameter(names = Array("--index"), description = "Specify a particular index to query", required = false)
+  var index: String = null
+
+  @throws[ParameterException]
+  def loadIndex(ds: GeoMesaDataStore[_, _, _, _], mode: IndexMode): Option[GeoMesaFeatureIndex[_, _, _, _]] = {
+    Option(index).filter(_.length > 0).map { name =>
+      val untypedIndices = ds.manager.indices(ds.getSchema(featureName), mode)
+      val indices =
+        untypedIndices.asInstanceOf[Seq[GeoMesaFeatureIndex[_ <: GeoMesaDataStore[_, _, _, _], _ <: WrappedFeature, _, _]]]
+      val matched = if (name.indexOf(':') != -1) {
+        // full identifier with version
+        indices.find(_.identifier.equalsIgnoreCase(name))
+      } else {
+        // just index name
+        indices.find(_.name.equalsIgnoreCase(name))
+      }
+      matched.getOrElse {
+        throw new ParameterException(s"Specified index ' $index' not found. " +
+        s"Available indices are: ${indices.map(_.identifier).mkString(", ")}")
+      }
+    }
+  }
 }

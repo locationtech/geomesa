@@ -42,6 +42,13 @@ object FilterHelper {
 
   private val SafeGeomString = "gm-safe"
 
+  private lazy val logger = FilterHelperLogger.log
+
+  // helper shim to let other classes avoid importing FilterHelper.logger
+  object FilterHelperLogger extends LazyLogging {
+    def log = logger
+  }
+
   /**
     * Creates a new filter with valid bounds and attribute
     *
@@ -111,7 +118,7 @@ object FilterHelper {
 
   private def tryGetIdlSafeGeom(geom: Geometry): Geometry = getInternationalDateLineSafeGeometry(geom) match {
     case Success(g) => g
-    case Failure(e) => FilterHelperLogger.log.warn(s"Error splitting geometry on IDL for $geom", e); geom
+    case Failure(e) => logger.warn(s"Error splitting geometry on IDL for $geom", e); geom
   }
 
   private def recreateAsIdlSafeFilter(op: BinarySpatialOperator,
@@ -314,7 +321,7 @@ object FilterHelper {
           }
         } catch {
           case e: Exception =>
-            FilterHelperLogger.log.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
+            logger.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
             None
         }
 
@@ -402,7 +409,7 @@ object FilterHelper {
           }
         } catch {
           case e: Exception =>
-            FilterHelperLogger.log.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
+            logger.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
             None
         }
 
@@ -416,7 +423,7 @@ object FilterHelper {
           }
         } catch {
           case e: Exception =>
-            FilterHelperLogger.log.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
+            logger.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
             None
         }
 
@@ -458,9 +465,4 @@ object FilterHelper {
     filter.accept(new IdDetectingFilterVisitor, false).asInstanceOf[Boolean]
 
   def filterListAsAnd(filters: Seq[Filter]): Option[Filter] = andOption(filters)
-}
-
-// helper shim to let other classes avoid importing FilterHelper.logger
-object FilterHelperLogger extends LazyLogging {
-  def log = logger
 }

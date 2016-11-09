@@ -225,7 +225,10 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
     // have to pull the feature id from the row
     val prefix = sft.getTableSharingPrefix
     val getId = getIdFromRow(sft)
-    val joinFunction: JoinFunction = (kv) => new AccRange(RecordIndex.getRowKey(prefix, getId(kv.getKey.getRow)))
+    val joinFunction: JoinFunction = (kv) => {
+      val row = kv.getKey.getRow
+      new AccRange(RecordIndex.getRowKey(prefix, getId(row.getBytes, 0, row.getLength)))
+    }
 
     val recordTable = recordIndex.getTableName(sft.getTypeName, ds)
     val recordThreads = ds.config.recordThreads

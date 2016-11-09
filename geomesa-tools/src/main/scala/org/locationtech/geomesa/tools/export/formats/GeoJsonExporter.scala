@@ -17,7 +17,10 @@ class GeoJsonExporter(writer: Writer) extends FeatureExporter {
 
   val featureJson = new FeatureJSON()
 
-  override def export(features: SimpleFeatureCollection) = featureJson.writeFeatureCollection(features, writer)
+  override def export(features: SimpleFeatureCollection) = {
+    featureJson.writeFeatureCollection(features, writer)
+    None
+  }
 
   override def flush() = writer.flush()
 

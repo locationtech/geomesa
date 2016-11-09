@@ -42,9 +42,9 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
     }
   }
 
-  override def getIdFromRow(sft: SimpleFeatureType): (Text) => String = {
-    val offset = getIdRowOffset(sft)
-    (row: Text) => new String(row.getBytes, offset, row.getLength - offset, StandardCharsets.UTF_8)
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
+    val start = getIdRowOffset(sft)
+    (row, offset, length) => new String(row, offset + start, length - start, StandardCharsets.UTF_8)
   }
 
   // split(1 byte), week(2 bytes), z value (8 bytes), id (n bytes)

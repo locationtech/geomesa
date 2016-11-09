@@ -30,7 +30,7 @@ object GeoMesaDataStoreFactory {
       p.lookupOpt[T](params).getOrElse(p.getDefaultValue.asInstanceOf[T])
   }
 
-  def queryTimeout(params: java.util.Map[String, Serializable]) = {
+  def queryTimeout(params: java.util.Map[String, Serializable]): Option[Long] = {
     QueryTimeoutParam.lookupOpt[Int](params).map(i => i * 1000L).orElse {
       QueryProperties.QUERY_TIMEOUT_MILLIS.option.map(_.toLong)
     }

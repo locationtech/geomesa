@@ -11,9 +11,9 @@ package org.locationtech.geomesa.tools.export
 import java.io.File
 
 import com.beust.jcommander.{Parameter, Parameters}
-import org.locationtech.geomesa.tools.{CatalogParam, OptionalCqlFilterParam, RequiredTypeNameParam}
+import org.locationtech.geomesa.tools.{CatalogParam, OptionalCqlFilterParam, OptionalIndexParam, RequiredTypeNameParam}
 
-trait BaseExportParams extends CatalogParam with RequiredTypeNameParam with OptionalCqlFilterParam {
+trait BaseExportParams extends CatalogParam with RequiredTypeNameParam with OptionalCqlFilterParam with OptionalIndexParam {
   @Parameter(names = Array("-m", "--max-features"), description = "Maximum number of features to return. default: Unlimited")
   var maxFeatures: Integer = null
 

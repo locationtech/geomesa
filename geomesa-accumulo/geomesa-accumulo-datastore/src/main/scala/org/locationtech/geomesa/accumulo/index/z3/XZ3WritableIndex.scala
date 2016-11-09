@@ -56,9 +56,9 @@ trait XZ3WritableIndex extends AccumuloWritableIndex {
     }
   }
 
-  override def getIdFromRow(sft: SimpleFeatureType): (Text) => String = {
-    val offset = if (sft.isTableSharing) 12 else 11 // table sharing + shard + 2 byte short + 8 byte long
-    (row: Text) => new String(row.getBytes, offset, row.getLength - offset, StandardCharsets.UTF_8)
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
+    val start = if (sft.isTableSharing) { 12 } else { 11 } // table sharing + shard + 2 byte short + 8 byte long
+    (row, offset, length) => new String(row, offset + start, length - start, StandardCharsets.UTF_8)
   }
 
   // table sharing (0-1 byte), split (1 byte), time interval(2 bytes), z value (8 bytes), id (n bytes)
