@@ -105,16 +105,9 @@ trait InputFileParams {
   var files: java.util.List[String] = new util.ArrayList[String]()
 }
 
-trait BaseExportCommands extends OptionalFeatureTypeNameParam with OptionalCQLFilterParam {
+trait RootExportCommands extends OptionalCQLFilterParam {
   @Parameter(names = Array("-m", "--max-features"), description = "Maximum number of features to return. default: Unlimited")
   var maxFeatures: Integer = null
-
-  @Parameter(names = Array("-a", "--attributes"), description = "Attributes from feature to export " +
-  "(comma-separated)...Comma-separated expressions with each in the format " +
-  "attribute[=filter_function_expression]|derived-attribute=filter_function_expression. " +
-  "filter_function_expression is an expression of filter function applied to attributes, literals " +
-  "and filter functions, i.e. can be nested")
-  var attributes: String = null
 
   @Parameter(names = Array("-o", "--output"), description = "name of the file to output to instead of std out")
   var file: File = null
@@ -129,19 +122,28 @@ trait BaseExportCommands extends OptionalFeatureTypeNameParam with OptionalCQLFi
   var noHeader: Boolean = false
 }
 
+trait BaseExportCommands extends RootExportCommands with OptionalFeatureTypeNameParam {
+  @Parameter(names = Array("-a", "--attributes"), description = "Attributes from feature to export " +
+    "(comma-separated)...Comma-separated expressions with each in the format " +
+    "attribute[=filter_function_expression]|derived-attribute=filter_function_expression. " +
+    "filter_function_expression is an expression of filter function applied to attributes, literals " +
+    "and filter functions, i.e. can be nested")
+  var attributes: String = null
+}
+
 trait BaseBinaryExportParameters {
-  @Parameter(names = Array("--dt-attribute"), description = "[Bin Export Only] Name of the date attribute to export. default: dtg")
+  @Parameter(names = Array("--dt-attribute"), description = "[Bin Export Only] Optional: Name of the date attribute to export. default: dtg")
   var dateAttribute: String = null
 
-  @Parameter(names = Array("--id-attribute"), description = "[Bin Export Only] Name of the id attribute to export")
+  @Parameter(names = Array("--id-attribute"), description = "[Bin Export Only] Required: Name of the id attribute to export")
   var idAttribute: String = null
 
-  @Parameter(names = Array("--lat-attribute"), description = "[Bin Export Only] Name of the latitude attribute to export")
+  @Parameter(names = Array("--lat-attribute"), description = "[Bin Export Only] Required: Name of the latitude attribute to export")
   var latAttribute: String = null
 
-  @Parameter(names = Array("--lon-attribute"), description = "[Bin Export Only] Name of the longitude attribute to export")
+  @Parameter(names = Array("--lon-attribute"), description = "[Bin Export Only] Required: Name of the longitude attribute to export")
   var lonAttribute: String = null
 
-  @Parameter(names = Array("--label-attribute"), description = "[Bin Export Only] Name of the attribute to use as a bin file label")
+  @Parameter(names = Array("--label-attribute"), description = "[Bin Export Only] Required: Name of the attribute to use as a bin file label")
   var labelAttribute: String = null
 }

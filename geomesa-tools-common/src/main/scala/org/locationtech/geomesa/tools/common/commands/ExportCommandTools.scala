@@ -16,7 +16,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.data.{DataStore, Query}
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.tools.common.BaseExportCommands
+import org.locationtech.geomesa.tools.common.{BaseExportCommands, RootExportCommands}
 import org.locationtech.geomesa.utils.file.FileUtils.setOverrideAttributes
 import org.opengis.filter.Filter
 
@@ -46,7 +46,7 @@ trait ExportCommandTools extends LazyLogging {
     }
   }
 
-  def createOutputStream[P <: BaseExportCommands](skipCompression: Boolean = false, params: P): OutputStream = {
+  def createOutputStream[P <: RootExportCommands](skipCompression: Boolean = false, params: P): OutputStream = {
     val out = if (params.file == null) System.out else new FileOutputStream(params.file)
     val compressed = if (skipCompression || params.gzip == null) out else new GZIPOutputStream(out) {
       `def`.setLevel(params.gzip) // hack to access the protected deflate level
@@ -55,9 +55,9 @@ trait ExportCommandTools extends LazyLogging {
   }
 
   // noinspection AccessorLikeMethodIsEmptyParen
-  def getWriter[P <: BaseExportCommands](params: P): Writer = new OutputStreamWriter(createOutputStream(false, params))
+  def getWriter[P <: RootExportCommands](params: P): Writer = new OutputStreamWriter(createOutputStream(false, params))
 
-  def checkShpFile[P <: BaseExportCommands](params: P): File = {
+  def checkShpFile[P <: RootExportCommands](params: P): File = {
     if (params.file != null) {
       params.file
     } else {

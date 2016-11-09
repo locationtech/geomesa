@@ -10,6 +10,8 @@ object TextTools {
 
   def getPlural(i: Long, base: String): String = if (i == 1) s"$i $base" else s"$i ${base}s"
 
+  def getPlural(i: Long, base: String, pluralBase: String): String = if (i == 1) s"$i $base" else s"$i ${pluralBase}"
+
   /**
    * Gets elapsed time as a string
    */

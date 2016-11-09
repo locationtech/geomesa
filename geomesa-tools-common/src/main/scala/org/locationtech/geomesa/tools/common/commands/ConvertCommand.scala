@@ -20,14 +20,13 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.tools.common._
 import org.locationtech.geomesa.tools.common.commands.ConvertParameters._
-import org.locationtech.geomesa.utils.text.TextTools.getPlural
 import org.locationtech.geomesa.utils.file.FileUtils.Formats
 import org.locationtech.geomesa.utils.file.FileUtils.Formats._
+import org.locationtech.geomesa.utils.text.TextTools.getPlural
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
 import scala.util.Try
-
 class ConvertCommand(parent: JCommander) extends Command(parent) with ExportCommandTools with LazyLogging {
 
   override val command = "convert"
@@ -38,62 +37,51 @@ class ConvertCommand(parent: JCommander) extends Command(parent) with ExportComm
     lazy val inFMTFile = params.files.flatMap(f => Try(Formats.withName(getFileExtension(f))).toOption).headOption
     val inFMT = inFMTParam.orElse(inFMTFile).getOrElse(Other)
 
-    lazy val outputStream: OutputStream = createOutputStream(false, params)
-    lazy val writer: Writer = getWriter(params)
+    val sft = CLArgResolver.getSft(params.spec)
+    logger.info(s"Using SFT definition: ${sft}")
 
-    val sft = CLArgResolver.getSft(params.spec, params.featureName)
     val converterConfig = {
       if (params.config != null)
         CLArgResolver.getConfig(params.config)
-      else if (params.featureName != null) {
-        // Guess and look for featureName-Type e.g. example-json
-        val conf = params.featureName + "-" + inFMT.toString
-        logger.info(s"No converter config specified. Looking for $conf")
-        CLArgResolver.getConfig(conf)
-      } else {
-        throw new ParameterException("Unable to parse Simple Feature type from sft config or string")
-      }
+      else throw new ParameterException("Unable to parse Simple Feature type from sft config or string")
     }
     val converter = SimpleFeatureConverters.build(sft, converterConfig)
 
-    lazy val avroCompression = Option(params.gzip).map(_.toInt).getOrElse(Deflater.DEFAULT_COMPRESSION)
     val outFMT = Formats.withName(params.outputFormat.toLowerCase(Locale.US))
+    if (outFMT == BIN && Seq(params.idAttribute, params.latAttribute, params.lonAttribute, params.labelAttribute).contains(null))
+      throw new ParameterException("Missing parameters for binary export. For more information use: ./geomesa convert --help")
+
+    lazy val avroCompression = Option(params.gzip).map(_.toInt).getOrElse(Deflater.DEFAULT_COMPRESSION)
+    lazy val outputStream: OutputStream = createOutputStream(false, params)
+    lazy val writer: Writer = getWriter(params)
 
     val exporter: FeatureExporter = outFMT match {
       case CSV | TSV      => new DelimitedExport(writer, outFMT, !params.noHeader)
-      case SHP            =>
-        if (params.attributes == null) {
-          Seq(ShapefileExport.modifySchema(sft))
-        } else {
-          Seq(ShapefileExport.replaceGeomInAttributesString(params.attributes, sft))
-        }
-        new ShapefileExport(checkShpFile(params))
+      case SHP            => Seq(ShapefileExport.modifySchema(sft))
+                             new ShapefileExport(checkShpFile(params))
       case GeoJson | JSON => new GeoJsonExport(writer)
       case GML            => new GmlExport(outputStream)
       case AVRO           => new AvroExport(outputStream, sft, avroCompression)
       case BIN            => BinFileExport(outputStream, params)
-      // shouldn't happen unless someone adds a new format and doesn't implement it here
       case _              => throw new UnsupportedOperationException(s"Format $outFMT can't be exported")
     }
 
     val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
-    logger.debug(s"Applying CQL filter ${filter.toString}")
-    val fc = new DefaultFeatureCollection()
+    val fc = new DefaultFeatureCollection(sft.getTypeName, sft)
 
     try {
       params.files.foreach { file =>
-        val is: InputStream = new FileInputStream(file)
-        val dataIter = converter.process(is)
-        if (params.maxFeatures != null && params.maxFeatures > 0) {
-          logger.info(s"Exporting ${params.maxFeatures} ${getPlural(params.maxFeatures.toLong, "feature")}.")
-          for (i <- 0 to params.maxFeatures) {
+        val ec = converter.createEvaluationContext(Map("inputFilePath" -> file))
+        val dataIter = converter.process(new FileInputStream(file), ec)
+        if (params.maxFeatures != null && params.maxFeatures >= 0) {
+          logger.info(s"Converting ${getPlural(params.maxFeatures.toLong, "feature")} from $file")
+          for (i <- 1 to params.maxFeatures) {
             if (dataIter.hasNext) fc.add(dataIter.next())
           }
-        } else {
-          dataIter.foreach(fc.add)
-        }
+        } else dataIter.foreach(fc.add)
+        logger.info(s"Converted ${getPlural(ec.counter.getLineCount, "simple feature")} with ${getPlural(ec.counter.getSuccess, "success", "successes")} and ${getPlural(ec.counter.getFailure, "failure", "failures")}")
       }
-      logger.info("Write data")
+      logger.debug(s"Applying CQL filter ${filter.toString}")
       exporter.write(fc.subCollection(filter))
     } finally {
       exporter.flush()
@@ -105,9 +93,8 @@ class ConvertCommand(parent: JCommander) extends Command(parent) with ExportComm
 
 object ConvertParameters {
   @Parameters(commandDescription = "Convert files using GeoMesa's internal SFT converter framework")
-  class ConvertParameters extends BaseExportCommands
+  class ConvertParameters extends RootExportCommands
     with BaseBinaryExportParameters
     with OptionalFeatureTypeSpecParam
-    with OptionalCQLFilterParam
     with InputFileParams {}
 }

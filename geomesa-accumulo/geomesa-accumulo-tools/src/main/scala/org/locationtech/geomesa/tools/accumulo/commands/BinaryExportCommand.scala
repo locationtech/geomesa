@@ -48,6 +48,7 @@ class BinaryExportCommand(parent: JCommander) extends CommandWithCatalog(parent)
 object BinaryExportCommand {
   @Parameters(commandDescription = "Export features from a GeoMesa data store in a binary format.")
   class BinaryExportParameters extends BaseExportCommands
+    with OptionalFeatureTypeNameParam
     with BaseBinaryExportParameters
     with GeoMesaConnectionParams {}
 }
