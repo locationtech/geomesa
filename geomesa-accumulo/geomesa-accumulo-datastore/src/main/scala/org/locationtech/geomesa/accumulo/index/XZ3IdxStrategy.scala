@@ -61,6 +61,11 @@ class XZ3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging 
     output(s"Geometries: $geometries")
     output(s"Intervals: $intervals")
 
+    if (geometries == DisjointGeometries || intervals == DisjointInterval) {
+      output("Disjoint geometries or dates extracted, short-circuiting to empty query")
+      return EmptyPlan(filter)
+    }
+
     val ecql = filter.filter
 
     val (iterators, kvsToFeatures, colFamily) = if (hints.isBinQuery) {

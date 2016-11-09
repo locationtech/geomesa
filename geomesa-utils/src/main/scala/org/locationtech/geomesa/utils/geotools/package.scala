@@ -27,6 +27,8 @@ package object geotools {
   // we make this a function, as envelopes are mutable
   def wholeWorldEnvelope = new ReferencedEnvelope(-180, 180, -90, 90, CRS_EPSG_4326)
   val WholeWorldPolygon = WKTUtils.read("POLYGON((-180 -90, 0 -90, 180 -90, 180 90, 0 90, -180 90, -180 -90))").asInstanceOf[Polygon]
+  val EmptyGeometry = WKTUtils.read("POLYGON EMPTY")
+
   // date format with geotools pattern
   val GeoToolsDateFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZoneUTC()
 

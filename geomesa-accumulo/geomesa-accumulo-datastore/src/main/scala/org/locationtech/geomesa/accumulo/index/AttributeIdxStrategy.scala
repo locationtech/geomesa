@@ -48,6 +48,8 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
       throw new IllegalStateException("Attribute index does not support Filter.INCLUDE")
     }
 
+    val disjointDates = (Long.MinValue, Long.MinValue)
+
     // pull out any dates from the filter to help narrow down the attribute ranges
     val dates = for {
       dtgField  <- sft.getDtgField
@@ -55,13 +57,17 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
       intervals = FilterHelper.extractIntervals(secondary, dtgField)
       if intervals.nonEmpty
     } yield {
-      (intervals.map(_._1.getMillis).min, intervals.map(_._2.getMillis).max)
+      if (intervals == FilterHelper.DisjointInterval) {
+        disjointDates
+      } else {
+        (intervals.map(_._1.getMillis).min, intervals.map(_._2.getMillis).max)
+      }
     }
 
     // TODO GEOMESA-1336 fix exclusive AND handling for list types
-    val bounds = AttributeIdxStrategy.getBounds(sft, primary, dates)
+    lazy val bounds = AttributeIdxStrategy.getBounds(sft, primary, dates)
 
-    if (bounds.isEmpty) {
+    if (dates == disjointDates || bounds.isEmpty) {
       EmptyPlan(filter)
     } else {
       nonEmptyQueryPlan(queryPlanner, hints, bounds)
@@ -271,26 +277,29 @@ object AttributeIdxStrategy extends StrategyProvider {
       descriptor <- Option(sft.getDescriptor(attribute))
       binding    =  descriptor.getType.getBinding
       bounds     <- FilterHelper.extractAttributeBounds(f, attribute, binding)
-      if bounds.bounds.nonEmpty
     } yield {
-      // join queries are much more expensive than non-join queries
-      // TODO figure out the actual cost of each additional range...I'll make it 2
-      val additionalRangeCost = 1
-      val joinCost = 10
-      val multiplier =
-        if (descriptor.getIndexCoverage == IndexCoverage.FULL ||
-              IteratorTrigger.canUseAttrIdxValues(sft, filter.secondary, transform) ||
-              IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, filter.secondary, transform)) {
-          1
-        } else {
-          joinCost + (additionalRangeCost * (bounds.bounds.length - 1))
-        }
+      if (bounds.bounds.isEmpty) {
+        0L // disjoint range
+      } else {
+        // join queries are much more expensive than non-join queries
+        // TODO figure out the actual cost of each additional range...I'll make it 2
+        val additionalRangeCost = 1
+        val joinCost = 10
+        val multiplier =
+          if (descriptor.getIndexCoverage == IndexCoverage.FULL ||
+                IteratorTrigger.canUseAttrIdxValues(sft, filter.secondary, transform) ||
+                IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, filter.secondary, transform)) {
+            1
+          } else {
+            joinCost + (additionalRangeCost * (bounds.bounds.length - 1))
+          }
 
-      // scale attribute cost by expected cardinality
-      descriptor.getCardinality() match {
-        case Cardinality.HIGH    => 1 * multiplier
-        case Cardinality.UNKNOWN => 101 * multiplier
-        case Cardinality.LOW     => Long.MaxValue
+        // scale attribute cost by expected cardinality
+        descriptor.getCardinality() match {
+          case Cardinality.HIGH    => 1 * multiplier
+          case Cardinality.UNKNOWN => 101 * multiplier
+          case Cardinality.LOW     => Long.MaxValue
+        }
       }
     }
     cost.getOrElse(Long.MaxValue)

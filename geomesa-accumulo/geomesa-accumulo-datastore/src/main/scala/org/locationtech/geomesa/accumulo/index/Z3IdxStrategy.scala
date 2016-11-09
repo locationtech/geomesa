@@ -63,6 +63,11 @@ class Z3IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
     output(s"Geometries: $geometries")
     output(s"Intervals: $intervals")
 
+    if (geometries == DisjointGeometries || intervals == DisjointInterval) {
+      output("Disjoint geometries or dates extracted, short-circuiting to empty query")
+      return EmptyPlan(filter)
+    }
+
     val looseBBox = if (hints.containsKey(LOOSE_BBOX)) Boolean.unbox(hints.get(LOOSE_BBOX)) else ds.config.looseBBox
     val hasSplits = Z3Table.hasSplits(sft)
 

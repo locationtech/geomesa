@@ -47,6 +47,11 @@ class XZ2IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging 
 
     output(s"Geometries: $geometries")
 
+    if (geometries == DisjointGeometries) {
+      output("Non-intersecting geometries extracted, short-circuiting to empty query")
+      return EmptyPlan(filter)
+    }
+
     val ecql = filter.filter
 
     val (iterators, kvsToFeatures, colFamily, hasDupes) = if (hints.isBinQuery) {

@@ -54,6 +54,11 @@ class Z2IdxStrategy(val filter: QueryFilter) extends Strategy with LazyLogging w
 
     output(s"Geometries: $geometries")
 
+    if (geometries == DisjointGeometries) {
+      output("Non-intersecting geometries extracted, short-circuiting to empty query")
+      return EmptyPlan(filter)
+    }
+
     val looseBBox = if (hints.containsKey(LOOSE_BBOX)) Boolean.unbox(hints.get(LOOSE_BBOX)) else ds.config.looseBBox
 
     // if the user has requested strict bounding boxes, we apply the full filter
