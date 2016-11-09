@@ -88,6 +88,13 @@ at data store, feature, or individual attribute levels.
 
 See :ref:`accumulo_visibilities` for more information.
 
+Scan Authorizations
+-------------------
+
+The GeoMesa Accumulo data store provides a Java SPI for custom handling of user authorizations per query.
+
+See :ref:`accumulo_authorizations` for more information.
+
 Indexing Strategies
 -------------------
 

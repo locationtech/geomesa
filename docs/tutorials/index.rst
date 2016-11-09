@@ -35,6 +35,8 @@ Data Analysis
     shallow-join
     geomesa-tubeselect
 
+.. _accumulo_tutorials_security:
+
 Security
 --------
 
