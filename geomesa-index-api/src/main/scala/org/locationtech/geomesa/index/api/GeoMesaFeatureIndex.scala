@@ -73,7 +73,7 @@ trait GeoMesaFeatureIndex[DS <: GeoMesaDataStore[DS, F, WriteResult, QueryResult
     * @param ds data store
     * @return
     */
-  def writer(sft: SimpleFeatureType, ds: DS): (F) => WriteResult
+  def writer(sft: SimpleFeatureType, ds: DS): (F) => Seq[WriteResult]
 
   /**
     * Creates a function to delete a feature from the index
@@ -82,7 +82,7 @@ trait GeoMesaFeatureIndex[DS <: GeoMesaDataStore[DS, F, WriteResult, QueryResult
     * @param ds data store
     * @return
     */
-  def remover(sft: SimpleFeatureType, ds: DS): (F) => WriteResult
+  def remover(sft: SimpleFeatureType, ds: DS): (F) => Seq[WriteResult]
 
   /**
     * Deletes the entire index

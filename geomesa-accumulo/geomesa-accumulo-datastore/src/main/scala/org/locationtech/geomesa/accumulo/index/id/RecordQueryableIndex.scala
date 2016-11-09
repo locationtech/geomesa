@@ -26,7 +26,7 @@ import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
 
 trait RecordQueryableIndex extends AccumuloFeatureIndexType
-    with IdFilterStrategy[AccumuloDataStore, AccumuloFeature, Seq[Mutation], Entry[Key, Value]]
+    with IdFilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation, Entry[Key, Value]]
     with LazyLogging {
 
   writable: AccumuloWritableIndex =>

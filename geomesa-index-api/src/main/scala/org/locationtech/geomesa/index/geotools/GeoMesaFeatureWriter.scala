@@ -68,7 +68,7 @@ object GeoMesaFeatureWriter extends LazyLogging {
     * Gets writers and table names for each table (e.g. index) that supports the sft
     */
   def getTablesAndConverters[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q](sft: SimpleFeatureType, ds: DS,
-      indices: Option[Seq[GeoMesaFeatureIndex[DS, F, W, Q]]] = None): (Seq[String], Seq[(F) => W], Seq[(F) => W]) = {
+      indices: Option[Seq[GeoMesaFeatureIndex[DS, F, W, Q]]] = None): (Seq[String], Seq[(F) => Seq[W]], Seq[(F) => Seq[W]]) = {
     val toWrite = indices.getOrElse(ds.manager.indices(sft, IndexMode.Write))
     val tables = toWrite.map(_.getTableName(sft.getTypeName, ds))
     val writers = toWrite.map(_.writer(sft, ds))
@@ -102,9 +102,9 @@ abstract class GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS, F, W, Q], F <: Wr
 
   protected def createMutators(tables: Seq[String]): Seq[T]
 
-  protected def createWrites(mutators: Seq[T]): Seq[(W) => Unit]
+  protected def createWrites(mutators: Seq[T]): Seq[(Seq[W]) => Unit]
 
-  protected def createRemoves(mutators: Seq[T]): Seq[(W) => Unit]
+  protected def createRemoves(mutators: Seq[T]): Seq[(Seq[W]) => Unit]
 
   protected def wrapFeature(feature: SimpleFeature): F
 
@@ -145,7 +145,7 @@ trait GeoMesaAppendFeatureWriter[DS <: GeoMesaDataStore[DS, F, W, Q], F <: Wrapp
     currentFeature
   }
 
-  override protected def createRemoves(mutators: Seq[T]): Seq[(W) => Unit] = throw new NotImplementedError()
+  override protected def createRemoves(mutators: Seq[T]): Seq[(Seq[W]) => Unit] = throw new NotImplementedError()
 }
 
 /**

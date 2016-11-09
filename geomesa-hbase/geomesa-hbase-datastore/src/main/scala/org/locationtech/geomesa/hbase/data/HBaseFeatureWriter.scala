@@ -39,11 +39,11 @@ trait HBaseFeatureWriter extends HBaseFeatureWriterType {
     }
   }
 
-  override protected def createWrites(mutators: Seq[BufferedMutator]): Seq[(Mutation) => Unit] =
-    mutators.map(mutator => (m: Mutation) => mutator.mutate(m))
+  override protected def createWrites(mutators: Seq[BufferedMutator]): Seq[(Seq[Mutation]) => Unit] =
+    mutators.map(mutator => (m: Seq[Mutation]) => m.foreach(mutator.mutate))
 
-  override protected def createRemoves(mutators: Seq[BufferedMutator]): Seq[(Mutation) => Unit] =
-    mutators.map(mutator => (m: Mutation) => mutator.mutate(m))
+  override protected def createRemoves(mutators: Seq[BufferedMutator]): Seq[(Seq[Mutation]) => Unit] =
+    mutators.map(mutator => (m: Seq[Mutation]) => m.foreach(mutator.mutate))
 
   override def wrapFeature(feature: SimpleFeature): HBaseFeature =
     new HBaseFeature(feature, serializer)

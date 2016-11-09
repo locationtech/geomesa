@@ -14,6 +14,5 @@ import org.locationtech.geomesa.index.index.Z3Index
 
 case object HBaseZ3Index
     extends HBaseFeatureIndex with Z3Index[HBaseDataStore, HBaseFeature, Mutation, Result, Query] {
-
   override val version: Int = 1
 }
