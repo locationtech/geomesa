@@ -92,8 +92,8 @@ Scan Authorizations
 -------------------
 
 The GeoMesa Accumulo data store provides a Java SPI for custom handling of user authorizations per query.
-For simple use cases, authorizations can be set at the data store level through a configuration parameter.
-For more advanced scenarios, see :ref:`accumulo_tutorials_security`.
+
+See :ref:`accumulo_authorizations` for more information.
 
 Indexing Strategies
 -------------------
