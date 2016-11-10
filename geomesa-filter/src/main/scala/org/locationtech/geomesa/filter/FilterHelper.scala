@@ -40,8 +40,6 @@ object FilterHelper {
 
   private val SafeGeomString = "gm-safe"
 
-  private lazy val logger = FilterHelperLogger.log
-
   // helper shim to let other classes avoid importing FilterHelper.logger
   object FilterHelperLogger extends LazyLogging {
     def log = logger
@@ -116,7 +114,7 @@ object FilterHelper {
 
   private def tryGetIdlSafeGeom(geom: Geometry): Geometry = getInternationalDateLineSafeGeometry(geom) match {
     case Success(g) => g
-    case Failure(e) => logger.warn(s"Error splitting geometry on IDL for $geom", e); geom
+    case Failure(e) => FilterHelperLogger.log.warn(s"Error splitting geometry on IDL for $geom", e); geom
   }
 
   private def recreateAsIdlSafeFilter(op: BinarySpatialOperator,
@@ -323,7 +321,7 @@ object FilterHelper {
           }
         } catch {
           case e: Exception =>
-            logger.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
+            FilterHelperLogger.log.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
             FilterValues.empty
         }
 
@@ -411,7 +409,7 @@ object FilterHelper {
           }
         } catch {
           case e: Exception =>
-            logger.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
+            FilterHelperLogger.log.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
             FilterValues.empty
         }
 
@@ -425,7 +423,7 @@ object FilterHelper {
           }
         } catch {
           case e: Exception =>
-            logger.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
+            FilterHelperLogger.log.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
             FilterValues.empty
         }
 
