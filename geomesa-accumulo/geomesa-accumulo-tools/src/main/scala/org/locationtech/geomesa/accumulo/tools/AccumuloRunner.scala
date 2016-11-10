@@ -18,7 +18,7 @@ import org.locationtech.geomesa.accumulo.tools.status._
 import org.locationtech.geomesa.tools.export.GenerateAvroSchemaCommand
 import org.locationtech.geomesa.tools.status.{EnvironmentCommand, HelpCommand, VersionCommand}
 import org.locationtech.geomesa.tools.utils.Prompt
-import org.locationtech.geomesa.tools.{Command, Runner}
+import org.locationtech.geomesa.tools.{Command, ConvertCommand, Runner}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -56,7 +56,8 @@ object AccumuloRunner extends Runner {
     new AccumuloStatsCountCommand,
     new AccumuloStatsTopKCommand,
     new AccumuloStatsHistogramCommand,
-    new AddIndexCommand
+    new AddIndexCommand,
+    new ConvertCommand
   )
 
   /**
