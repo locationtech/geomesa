@@ -102,6 +102,7 @@ class JsonSimpleFeatureConverterFactory extends AbstractSimpleFeatureConverterFa
 object JsonField {
   def apply(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr, jsonType: String) = jsonType match {
     case "string"           => StringJsonField(name, expression, jsonConfig, transform)
+    case "float"            => FloatJsonField(name, expression, jsonConfig, transform)
     case "double"           => DoubleJsonField(name, expression, jsonConfig, transform)
     case "int" | "integer"  => IntJsonField(name, expression, jsonConfig, transform)
     case "bool" | "boolean" => BooleanJsonField(name, expression, jsonConfig, transform)
@@ -152,6 +153,11 @@ case class IntJsonField(name: String, expression: JsonPath, jsonConfig: Configur
 case class LongJsonField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr)
     extends BaseJsonField[java.lang.Long] {
   override def getAs(el: JsonElement): java.lang.Long = if (el.isJsonNull) null else el.getAsBigInteger.longValue()
+}
+
+case class FloatJsonField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr)
+  extends BaseJsonField[java.lang.Float] {
+  override def getAs(el: JsonElement): java.lang.Float = if (el.isJsonNull) null else el.getAsFloat
 }
 
 case class DoubleJsonField(name: String, expression: JsonPath, jsonConfig: Configuration, transform: Expr)
