@@ -16,23 +16,21 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.data.{DataStore, Query}
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.tools.{BaseExportCommands, RootExportCommands}
 import org.opengis.filter.Filter
 
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
 trait ExportCommandTools extends LazyLogging {
 
-  def getFeatureCollection[P <: BaseExportCommands](overrideAttributes: Option[java.util.List[String]] = None,
-                           ds: DataStore,
-                           params: P): SimpleFeatureCollection = {
+  def getFeatureCollection[P <: BaseExportParams](overrideAttributes: Option[java.util.List[String]] = None,
+                                                  ds: DataStore,
+                                                  params: P): SimpleFeatureCollection = {
     val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
     logger.debug(s"Applying CQL filter ${filter.toString}")
     val q = new Query(params.featureName, filter)
     Option(params.maxFeatures).foreach(q.setMaxFeatures(_))
-    setOverrideAttributes(q, overrideAttributes.orElse(Option(seqAsJavaList(Seq(params.attributes)))))
+    setOverrideAttributes(q, overrideAttributes.orElse(Option(params.attributes)))
 
     // get the feature store used to query the GeoMesa data
     val fs = ds.getFeatureSource(params.featureName)
@@ -57,7 +55,7 @@ trait ExportCommandTools extends LazyLogging {
     }
   }
 
-  def createOutputStream[P <: RootExportCommands](skipCompression: Boolean = false, params: P): OutputStream = {
+  def createOutputStream[P <: RootExportParams](skipCompression: Boolean = false, params: P): OutputStream = {
     val out = if (params.file == null) System.out else new FileOutputStream(params.file)
     val compressed = if (skipCompression || params.gzip == null) out else new GZIPOutputStream(out) {
       `def`.setLevel(params.gzip) // hack to access the protected deflate level
@@ -66,9 +64,9 @@ trait ExportCommandTools extends LazyLogging {
   }
 
   // noinspection AccessorLikeMethodIsEmptyParen
-  def getWriter[P <: RootExportCommands](params: P): Writer = new OutputStreamWriter(createOutputStream(false, params))
+  def getWriter[P <: RootExportParams](params: P): Writer = new OutputStreamWriter(createOutputStream(false, params))
 
-  def checkShpFile[P <: RootExportCommands](params: P): File = {
+  def checkShpFile[P <: RootExportParams](params: P): File = {
     if (params.file != null) {
       params.file
     } else {

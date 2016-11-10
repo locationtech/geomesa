@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.tools
 
-import java.io.File
 import java.util
 import java.util.regex.Pattern
 
@@ -125,47 +124,4 @@ trait InputFileParams {
 
   @Parameter(description = "<file>...", required = true)
   var files: java.util.List[String] = new util.ArrayList[String]()
-}
-
-trait RootExportCommands extends OptionalCqlFilterParam {
-  @Parameter(names = Array("-m", "--max-features"), description = "Maximum number of features to return. default: Unlimited")
-  var maxFeatures: Integer = null
-
-  @Parameter(names = Array("-o", "--output"), description = "name of the file to output to instead of std out")
-  var file: File = null
-
-  @Parameter(names = Array("--gzip"), description = "level of gzip compression to apply to output, from 1-9")
-  var gzip: Integer = null
-
-  @Parameter(names = Array("-F","--output-Format"), description = "File format of output files (csv|tsv|gml|json|shp|avro)")
-  var outputFormat: String = "csv"
-
-  @Parameter(names = Array("--no-header"), description = "Export as a delimited text format (csv|tsv) without a type header", required = false)
-  var noHeader: Boolean = false
-}
-
-trait BaseExportCommands extends RootExportCommands with OptionalTypeNameParam {
-  @Parameter(names = Array("-a", "--attributes"), description = "Attributes from feature to export " +
-    "(comma-separated)...Comma-separated expressions with each in the format " +
-    "attribute[=filter_function_expression]|derived-attribute=filter_function_expression. " +
-    "filter_function_expression is an expression of filter function applied to attributes, literals " +
-    "and filter functions, i.e. can be nested")
-  var attributes: String = null
-}
-
-trait BaseBinaryExportParameters {
-  @Parameter(names = Array("--dt-attribute"), description = "[Bin Export Only] Optional: Name of the date attribute to export. default: dtg")
-  var dateAttribute: String = null
-
-  @Parameter(names = Array("--id-attribute"), description = "[Bin Export Only] Required: Name of the id attribute to export")
-  var idAttribute: String = null
-
-  @Parameter(names = Array("--lat-attribute"), description = "[Bin Export Only] Required: Name of the latitude attribute to export")
-  var latAttribute: String = null
-
-  @Parameter(names = Array("--lon-attribute"), description = "[Bin Export Only] Required: Name of the longitude attribute to export")
-  var lonAttribute: String = null
-
-  @Parameter(names = Array("--label-attribute"), description = "[Bin Export Only] Required: Name of the attribute to use as a bin file label")
-  var labelAttribute: String = null
 }

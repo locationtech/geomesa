@@ -12,9 +12,7 @@ import java.io.OutputStream
 
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.locationtech.geomesa.filter.function.AxisOrder
-import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.EncodingOptions
-import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.encodeFeatureCollection
-import org.locationtech.geomesa.tools.export.BinExportParams
+import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.{EncodingOptions, encodeFeatureCollection}
 import org.locationtech.geomesa.tools.export.BinExportParams
 
 class BinExporter(os: OutputStream,

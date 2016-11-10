@@ -18,8 +18,9 @@ import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.tools.ConvertParameters.ConvertParameters
+import org.locationtech.geomesa.tools.export.OptionalBinExportParams
 import org.locationtech.geomesa.tools.export.formats._
-import org.locationtech.geomesa.tools.export.{BinExportParams, ExportCommand, ExportParams}
+import org.locationtech.geomesa.tools.export._
 import org.locationtech.geomesa.tools.utils.DataFormats._
 import org.locationtech.geomesa.tools.utils.{CLArgResolver, DataFormats}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType
@@ -58,12 +59,12 @@ class ConvertCommand extends Command with LazyLogging {
 
     lazy val avroCompression = Option(params.gzip).map(_.toInt).getOrElse(Deflater.DEFAULT_COMPRESSION)
     lazy val outputStream: OutputStream = ExportCommand.createOutputStream(params.file, params.gzip)
-    lazy val writer: Writer = ExportCommand.getWriter(params.asInstanceOf[ExportParams])
+    val writer: Writer = ExportCommand.getWriter(params.asInstanceOf[RootExportParams])
 
     val exporter = outFMT match {
       case Csv | Tsv      => new DelimitedExporter(writer, outFMT, !params.noHeader)
       case Shp            => Seq(ShapefileExporter.modifySchema(sft))
-                             new ShapefileExporter(ExportCommand.checkShpFile(params.asInstanceOf[ExportParams]))
+                             new ShapefileExporter(ExportCommand.checkShpFile(params.asInstanceOf[RootExportParams]))
       case GeoJson | Json => new GeoJsonExporter(writer)
       case Gml            => new GmlExporter(outputStream)
       case Avro           => new AvroExporter(sft, outputStream, avroCompression)
@@ -98,8 +99,9 @@ class ConvertCommand extends Command with LazyLogging {
 
 object ConvertParameters {
   @Parameters(commandDescription = "Convert files using GeoMesa's internal SFT converter framework")
-  class ConvertParameters extends RootExportCommands
-    with BaseBinaryExportParameters
-    with OptionalFeatureSpecParam
+  class ConvertParameters extends RootExportParams
+    with OptionalTypeNameParam
+    with OptionalBinExportParams
+    with RequiredFeatureSpecParam
     with InputFileParams
 }

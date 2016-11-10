@@ -10,11 +10,11 @@ package org.locationtech.geomesa.hbase.tools.export
 
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
-import org.locationtech.geomesa.tools.CatalogParam
+import org.locationtech.geomesa.tools.{CatalogParam, RequiredTypeNameParam}
 import org.locationtech.geomesa.tools.export.{BinExportCommand, BinExportParams}
 
 class HBaseBinExportCommand extends BinExportCommand[HBaseDataStore] with HBaseDataStoreCommand {
   override val params = new HBaseBinExportParams
 }
 
-class HBaseBinExportParams extends BinExportParams with CatalogParam
+class HBaseBinExportParams extends BinExportParams with CatalogParam with RequiredTypeNameParam

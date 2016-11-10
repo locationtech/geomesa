@@ -11,9 +11,7 @@ package org.locationtech.geomesa.tools.export
 import org.apache.commons.io.IOUtils
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools.DataStoreCommand
-import org.locationtech.geomesa.tools.DataStoreCommand
 import org.locationtech.geomesa.tools.export.formats._
-import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing}
 
