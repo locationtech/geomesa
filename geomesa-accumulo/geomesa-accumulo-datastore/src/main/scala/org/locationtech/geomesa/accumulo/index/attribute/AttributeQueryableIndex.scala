@@ -52,26 +52,21 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
       throw new IllegalStateException("Attribute index does not support Filter.INCLUDE")
     }
 
-    val disjointDates = (Long.MinValue, Long.MinValue)
-
     // pull out any dates from the filter to help narrow down the attribute ranges
-    val dates = for {
+    val intervals = for {
       dtgField  <- sft.getDtgField
       secondary <- filter.secondary
-      intervals = FilterHelper.extractIntervals(secondary, dtgField)
+      intervals =  FilterHelper.extractIntervals(secondary, dtgField)
       if intervals.nonEmpty
     } yield {
-      if (intervals == FilterHelper.DisjointInterval) {
-        disjointDates
-      } else {
-        (intervals.map(_._1.getMillis).min, intervals.map(_._2.getMillis).max)
-      }
+      intervals
     }
 
+    lazy val dates = intervals.map(i => (i.values.map(_._1.getMillis).min, i.values.map(_._2.getMillis).max))
     // TODO GEOMESA-1336 fix exclusive AND handling for list types
     lazy val bounds = AttributeQueryableIndex.getBounds(sft, primary, dates)
 
-    if (dates == disjointDates || bounds.isEmpty) {
+    if (intervals.exists(_.disjoint) || bounds.isEmpty) {
       EmptyPlan(filter)
     } else {
       nonEmptyQueryPlan(ds, sft, filter, hints, bounds)
@@ -298,11 +293,10 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
       attribute  <- FilterHelper.propertyNames(f, sft).headOption
       descriptor <- Option(sft.getDescriptor(attribute))
       binding    =  descriptor.getType.getBinding
-      bounds     <- FilterHelper.extractAttributeBounds(f, attribute, binding)
+      bounds     =  FilterHelper.extractAttributeBounds(f, attribute, binding)
+      if bounds.nonEmpty
     } yield {
-      if (bounds.bounds.isEmpty) {
-        0L // disjoint range
-      } else {
+      if (bounds.disjoint) { 0L } else {
         // join queries are much more expensive than non-join queries
         // TODO figure out the actual cost of each additional range...I'll make it 2
         val additionalRangeCost = 1
@@ -313,7 +307,7 @@ trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
               IteratorTrigger.canUseAttrKeysPlusValues(attribute, sft, filter.secondary, transform)) {
             1
           } else {
-            joinCost + (additionalRangeCost * (bounds.bounds.length - 1))
+            joinCost + (additionalRangeCost * (bounds.values.length - 1))
           }
 
         // scale attribute cost by expected cardinality
@@ -373,11 +367,12 @@ object AttributeQueryableIndex {
 
     require(classOf[Comparable[_]].isAssignableFrom(binding), s"Attribute '$attribute' is not comparable")
 
-    val fb = FilterHelper.extractAttributeBounds(filter, attribute, binding).getOrElse {
+    val fb = FilterHelper.extractAttributeBounds(filter, attribute, binding)
+    if (fb.isEmpty) {
       throw new RuntimeException(s"Unhandled filter type in attribute strategy: ${filterToString(filter)}")
     }
 
-    fb.bounds.map { bounds =>
+    fb.values.map { bounds =>
       val range = bounds.bounds match {
         case (Some(lower), Some(upper)) =>
           if (lower == upper) {

@@ -84,7 +84,7 @@ trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R
     }
 
     val geometries = filter.primary.map(extractGeometries(_, sft.getGeomField, sft.isPoints))
-        .filter(_.nonEmpty).getOrElse(Seq(WholeWorldPolygon))
+        .filter(_.nonEmpty).getOrElse(FilterValues(Seq(WholeWorldPolygon)))
 
     explain(s"Geometries: $geometries")
 
@@ -94,7 +94,7 @@ trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R
     val ranges = if (filter.primary.isEmpty) { Seq(rangePrefix(sharing)) } else {
       import com.google.common.primitives.Bytes.concat
 
-      val xy = geometries.map(GeometryUtils.bounds)
+      val xy = geometries.values.map(GeometryUtils.bounds)
 
       val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
       val sfc = XZ2SFC(sft.getXZPrecision)

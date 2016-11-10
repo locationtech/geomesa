@@ -115,26 +115,21 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W
       throw new IllegalStateException("Attribute index does not support Filter.INCLUDE")
     }
 
-    lazy val disjointDates = (Long.MinValue, Long.MinValue)
-
     // pull out any dates from the filter to help narrow down the attribute ranges
-    val dates = for {
+    val intervals = for {
       dtgField  <- sft.getDtgField
       secondary <- filter.secondary
-      intervals = FilterHelper.extractIntervals(secondary, dtgField)
+      intervals =  FilterHelper.extractIntervals(secondary, dtgField)
       if intervals.nonEmpty
     } yield {
-      if (intervals == FilterHelper.DisjointInterval) {
-        disjointDates
-      } else {
-        (intervals.map(_._1.getMillis).min, intervals.map(_._2.getMillis).max)
-      }
+      intervals
     }
 
-    if (dates.exists(_ == disjointDates)) {
+    if (intervals.exists(_.disjoint)) {
       // empty plan
       scanPlan(sft, ds, filter, hints, Seq.empty, None)
     } else {
+      val dates = intervals.map(i => (i.values.map(_._1.getMillis).min, i.values.map(_._2.getMillis).max))
       scanPlan(sft, ds, filter, hints, getRanges(sft, primary, dates), filter.secondary)
     }
   }
@@ -163,14 +158,12 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W
 
     require(classOf[Comparable[_]].isAssignableFrom(binding), s"Attribute '$attribute' is not comparable")
 
-    val fb = FilterHelper.extractAttributeBounds(filter, attribute, binding).getOrElse {
-      throw new RuntimeException(s"Unhandled filter type in attribute strategy: ${filterToString(filter)}")
-    }
+    val fb = FilterHelper.extractAttributeBounds(filter, attribute, binding)
 
     lazy val lowerDate = dates.map(_._1)
     lazy val upperDate = dates.map(_._2)
 
-    fb.bounds.map { bounds =>
+    fb.values.map { bounds =>
       bounds.bounds match {
         case (None, None) => range(lowerBound(sft, i), upperBound(sft, i)) // not null
         case (Some(lower), None) => range(startRow(sft, i, lower, bounds.inclusive, lowerDate), upperBound(sft, i))

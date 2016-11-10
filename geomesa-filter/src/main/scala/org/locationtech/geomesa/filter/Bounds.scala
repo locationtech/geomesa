@@ -9,29 +9,6 @@
 package org.locationtech.geomesa.filter
 
 /**
-  *
-  * Bounds extracted from a filter. The sequence of bounds is considered to be a union (i.e. OR).
-  *
-  * @param attribute attribute the filter operates on
-  * @param bounds sequence of OR'd bounds
-  * @tparam T binding of the attribute type
-  */
-case class FilterBounds[T](attribute: String, bounds: Seq[Bounds[T]]) {
-
-  def and(fb: FilterBounds[T]): FilterBounds[T] = {
-    var updated = bounds
-    fb.bounds.foreach { b => updated = FilterBounds.and(updated, b) }
-    FilterBounds(attribute, updated)
-  }
-
-  def or(fb: FilterBounds[T]): FilterBounds[T] = {
-    var updated = bounds
-    fb.bounds.foreach { b => updated = FilterBounds.or(updated, b) }
-    FilterBounds(attribute, updated)
-  }
-}
-
-/**
   * Single typed bound. If filter is unbounded on one or both sides, the associated bound will be None.
   *
   * For example, bounds for 'foo < 5' would be (None, Some(5))
@@ -47,7 +24,44 @@ case class Bounds[T](lower: Option[T], upper: Option[T], inclusive: Boolean) {
   def bounds: (Option[T], Option[T]) = (lower, upper)
 }
 
-object FilterBounds {
+object Bounds {
+
+  /**
+    * Takes the intersection of two bounds. If they are disjoint, will return None.
+    *
+    * @param left first bounds
+    * @param right second bounds
+    * @tparam T type parameter
+    * @return intersection
+    */
+  def intersection[T](left: Bounds[T], right: Bounds[T]): Option[Bounds[T]] = {
+    val lower = left.lower match {
+      case None => right.lower
+      case Some(lo) => right.lower.filter(_.compareTo(lo) >= 0).orElse(left.lower)
+    }
+    val upper = left.upper match {
+      case None => right.upper
+      case Some(up) => right.upper.filter(_.compareTo(up) <= 0).orElse(left.upper)
+    }
+    (lower, upper) match {
+      case (Some(lo), Some(up)) if up.compareTo(lo) < 0 => None
+      case _ => Some(Bounds(lower, upper, inclusive(lower, upper, left, right)))
+    }
+  }
+
+  /**
+    * Takes the union of two bounds
+    *
+    * @param left first bounds
+    * @param right second bounds
+    * @tparam T type parameter
+    * @return union
+    */
+  def union[T](left: Seq[Bounds[T]], right: Seq[Bounds[T]]): Seq[Bounds[T]] = {
+    var updated = left
+    right.foreach(b => updated = or(updated, b))
+    updated
+  }
 
   // noinspection LanguageFeature
   private implicit def toComparable[T](t: T): Comparable[T] = t.asInstanceOf[Comparable[T]]
@@ -117,29 +131,6 @@ object FilterBounds {
       case _ => None
     }
     Bounds(lower, upper, inclusive(lower, upper, left, right))
-  }
-
-  /**
-    * Takes the intersection of two bounds. If they are disjoint, will return None.
-    *
-    * @param left first bounds
-    * @param right second bounds
-    * @tparam T type parameter
-    * @return intersection
-    */
-  private def intersection[T](left: Bounds[T], right: Bounds[T]): Option[Bounds[T]] = {
-    val lower = left.lower match {
-      case None => right.lower
-      case Some(lo) => right.lower.filter(_.compareTo(lo) >= 0).orElse(left.lower)
-    }
-    val upper = left.upper match {
-      case None => right.upper
-      case Some(up) => right.upper.filter(_.compareTo(up) <= 0).orElse(left.upper)
-    }
-    (lower, upper) match {
-      case (Some(lo), Some(up)) if up.compareTo(lo) < 0 => None
-      case _ => Some(Bounds(lower, upper, inclusive(lower, upper, left, right)))
-    }
   }
 
   /**
