@@ -1727,8 +1727,13 @@
                 <artifactId>json-path</artifactId>
                 <version>2.2.0</version>
                 <exclusions>
+                    <!--
+                        excluded due to spark conflicts. note:
+                        net.minidev:accessors-smart:jar:1.1 shades in asm, but does not relocate it
+                        net.minidev:accessors-smart:jar:1.2-SNAPSHOT removes shaded asm, but still requires it
+                        thus, if we update json-path versions, this exclusions will likely have to be removed
+                    -->
                     <exclusion>
-                        <!-- excluded due to spark conflicts -->
                         <groupId>org.ow2.asm</groupId>
                         <artifactId>asm</artifactId>
                     </exclusion>
