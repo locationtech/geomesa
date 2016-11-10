@@ -13,11 +13,42 @@ import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex._
+import org.locationtech.geomesa.accumulo.index.{DefaultIndexConfig, IndexConfig}
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.opengis.feature.simple.SimpleFeatureType
 
+case class Z3IndexConfig(val numSplits: Int = Z3Index.numSplits) extends IndexConfig {
+  val splitArrays = (0 until numSplits).map(_.toByte).toArray.map(Array(_)).toSeq
+}
+
+case class Z3Index(conf: IndexConfig = DefaultIndexConfig)
+  extends AccumuloFeatureIndexType with IndexConfig with Z3WritableIndex with Z3QueryableIndex {
+
+  val numSplits = conf.numSplits
+  val splitArrays = conf.splitArrays
+
+  override val name: String = Z3Index.name
+
+  override val version: Int = Z3Index.version
+
+  override val serializedWithId: Boolean = Z3Index.serializedWithId
+
+  override val hasSplits: Boolean = Z3Index.hasSplits
+
+  override def supports(sft: SimpleFeatureType): Boolean = Z3Index.supports(sft)
+
+  override def writer(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] =
+    Z3Index.writer(sft, ds)
+
+  override def remover(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] =
+    Z3Index.remover(sft, ds)
+}
+
 // current version - deprecated polygon support in favor of xz, ids in row key, per-attribute vis
-case object Z3Index extends AccumuloFeatureIndexType with Z3WritableIndex with Z3QueryableIndex {
+case object Z3Index extends AccumuloFeatureIndexType with IndexConfig with Z3WritableIndex with Z3QueryableIndex {
+
+  val numSplits = DefaultIndexConfig.numSplits
+  val splitArrays = DefaultIndexConfig.splitArrays
 
   val Z3IterPriority = 23
 
@@ -81,7 +112,10 @@ case object Z3Index extends AccumuloFeatureIndexType with Z3WritableIndex with Z
 }
 
 // polygon support and splits
-case object Z3IndexV2 extends AccumuloFeatureIndexType with Z3WritableIndex with Z3QueryableIndex {
+case object Z3IndexV2 extends AccumuloFeatureIndexType with IndexConfig with Z3WritableIndex with Z3QueryableIndex {
+
+  val numSplits = DefaultIndexConfig.numSplits
+  val splitArrays = DefaultIndexConfig.splitArrays
 
   override val name: String = "z3"
 
@@ -139,7 +173,10 @@ case object Z3IndexV2 extends AccumuloFeatureIndexType with Z3WritableIndex with
 }
 
 // initial z3 implementation - only supports points
-case object Z3IndexV1 extends AccumuloFeatureIndexType with Z3WritableIndex with Z3QueryableIndex {
+case object Z3IndexV1 extends AccumuloFeatureIndexType with IndexConfig with Z3WritableIndex with Z3QueryableIndex {
+
+  val numSplits = DefaultIndexConfig.numSplits
+  val splitArrays = DefaultIndexConfig.splitArrays
 
   override val name: String = "z3"
 

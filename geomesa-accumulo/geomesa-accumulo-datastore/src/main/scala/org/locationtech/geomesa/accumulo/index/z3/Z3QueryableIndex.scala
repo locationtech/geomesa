@@ -33,7 +33,7 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
     with SpatioTemporalFilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation, Entry[Key, Value]]
     with LazyLogging {
 
-  writable: AccumuloWritableIndex =>
+  writable: IndexConfig with AccumuloWritableIndex =>
 
   def hasSplits: Boolean
 
@@ -161,7 +161,7 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
         val zs = if (times.eq(wholePeriod)) wholePeriodRanges else toZRanges(times)
         val binBytes = Shorts.toByteArray(b)
         val prefixes = if (hasSplits) {
-          AccumuloWritableIndex.DefaultSplitArrays.map(Bytes.concat(_, binBytes))
+          splitArrays.map(Bytes.concat(_, binBytes))
         } else {
           Seq(binBytes)
         }

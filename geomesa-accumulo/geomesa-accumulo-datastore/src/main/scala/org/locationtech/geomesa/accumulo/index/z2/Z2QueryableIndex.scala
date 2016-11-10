@@ -32,7 +32,7 @@ trait Z2QueryableIndex extends AccumuloFeatureIndexType
     with SpatialFilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation, Entry[Key, Value]]
     with LazyLogging {
 
-  writable: AccumuloWritableIndex =>
+  writable: IndexConfig with AccumuloWritableIndex =>
 
   override def getQueryPlan(sft: SimpleFeatureType,
                             ds: AccumuloDataStore,
@@ -128,9 +128,9 @@ trait Z2QueryableIndex extends AccumuloFeatureIndexType
 
       val prefixes = if (sft.isTableSharing) {
         val ts = sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)
-        AccumuloWritableIndex.DefaultSplitArrays.map(ts ++ _)
+        splitArrays.map(ts ++ _)
       } else {
-        AccumuloWritableIndex.DefaultSplitArrays
+        splitArrays
       }
 
       val ranges = prefixes.flatMap { prefix =>
