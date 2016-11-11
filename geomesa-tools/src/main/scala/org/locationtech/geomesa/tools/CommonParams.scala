@@ -105,16 +105,6 @@ trait OptionalZookeepersParam {
   var zookeepers: String = null
 }
 
-trait DateAttributeParam {
-  @Parameter(names = Array("--dt-attribute"), description = "[Bin-Export] Name of the date attribute to export", required = true)
-  var dateAttribute: String = null
-}
-
-trait OptionalDateAttributeParam {
-  @Parameter(names = Array("--dt-attribute"), description = "[Bin-Export] Name of the date attribute to export")
-  var dateAttribute: String = null
-}
-
 trait InputFileParams {
   @Parameter(names = Array("-C", "--converter"), description = "GeoMesa converter specification as a config string, file name, or name of an available converter")
   var config: String = null

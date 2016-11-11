@@ -1,3 +1,11 @@
+/***********************************************************************
+* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0
+* which accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
+
 package org.locationtech.geomesa.utils.text
 
 import org.joda.time.Period
@@ -16,18 +24,6 @@ object TextTools {
    * Gets elapsed time as a string
    */
   def getTime(start: Long): String = PeriodFormatter.print(new Period(System.currentTimeMillis() - start))
-
-  /**
-   * Gets status as a string
-   */
-  def getStatInfo(successes: Long, failures: Long): String = {
-    val failureString = if (failures == 0) {
-      "with no failures"
-    } else {
-      s"and failed to ingest ${getPlural(failures, "feature")}"
-    }
-    s"Ingested ${getPlural(successes, "feature")} $failureString."
-  }
 
   def buildString(c: Char, length: Int): String = {
     if (length < 0) return ""

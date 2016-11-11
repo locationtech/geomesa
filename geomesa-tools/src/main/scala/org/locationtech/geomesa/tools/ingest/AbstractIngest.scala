@@ -242,6 +242,18 @@ object AbstractIngest {
       out.println()
     }
   }
+
+  /**
+   * Gets status as a string
+   */
+  def getStatInfo(successes: Long, failures: Long): String = {
+    val failureString = if (failures == 0) {
+      "with no failures"
+    } else {
+      s"and failed to ingest ${getPlural(failures, "feature")}"
+    }
+    s"Ingested ${getPlural(successes, "feature")} $failureString."
+  }
 }
 
 trait LocalIngestConverter extends Closeable {
