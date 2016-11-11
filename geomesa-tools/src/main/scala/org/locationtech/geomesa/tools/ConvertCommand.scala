@@ -94,8 +94,8 @@ class ConvertCommand extends Command with LazyLogging {
       logger.debug(s"Applying CQL filter ${filter.toString}")
       exporter.export(fc.subCollection(filter))
     } finally {
-      IOUtils.closeQuietly(exporter)
       IOUtils.closeQuietly(converter)
+      IOUtils.closeQuietly(exporter)
     }
   }
 }
