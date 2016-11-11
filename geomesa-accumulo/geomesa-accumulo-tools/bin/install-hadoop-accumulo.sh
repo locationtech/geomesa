@@ -29,11 +29,18 @@ commons_vfs2_version="2.0"
 # Resource download location
 base_url="https://search.maven.org/remotecontent?filepath="
 
+function splitVersion() {
+  # Split a version on '.' and return space separated list for an array
+  split=($(echo $1 | sed -e 's/\./ /g'))
+  echo "${split[@]}"
+}
+
 function compareVersions() {
   # usage: compareVersions [version_1] [version_2]
   # returns 0 (true) if version_1 > version_2
-  version_1_split=($(echo $1 | sed -e 's/\./ /g'))
-  version_2_split=($(echo $2 | sed -e 's/\./ /g'))
+  # Note this function only works if the version numbers are the same length.
+  version_1_split=($(splitVersion $1))
+  version_2_split=($(splitVersion $2))
 
   for v in "${!version_1_split[@]}"; do
     if [[ "${version_1_split[$v]}" -gt "${version_2_split[$v]}" ]]; then
@@ -72,6 +79,8 @@ function printVersions() {
 
   # Remove empty elements
   versionArray=($( echo "${versionArray[@]}" | sed -e 's/  / /g'))
+
+  # Print results
   size=${#versionArray[@]}
   i=0
   while [[ $i -lt $size ]]; do
@@ -102,7 +111,7 @@ if [[ "$1" == "--help" || "$1" == "-help" ]]; then
   echo "Example:"
   echo "./install-hadoop-accumulo.sh /opt/jboss/standalone/deployments/geoserver.war/WEB-INF/lib -a 1.7.1 -h 2.7.3"
   echo "${NL}"
-  exit
+  exit 0
 elif [[ "$1" == "-l" || "$1" == "--list-versions" ]]; then
   accumulo_version_url="${base_url}org/apache/accumulo/accumulo/"
   hadoop_version_url="${base_url}org/apache/hadoop/hadoop-main/"
@@ -123,7 +132,7 @@ elif [[ "$1" == "-l" || "$1" == "--list-versions" ]]; then
   echo "Available Thrift Versions"
   printVersions "${thrift_version_url}" "${thrift_version_min}"
 
-  exit
+  exit 0
 else
   install_dir=$1
   shift
@@ -152,7 +161,7 @@ while [[ $# -gt 1 ]]; do
     *)
       echo "Unknown parameter $1"
       echo "${usage}"
-      exit
+      exit 1
     ;;
   esac
 
@@ -162,24 +171,38 @@ done
 # Check for any incomplete parameters or mistypes e.g. "-a" without a version
 if [[ -n "$1" ]]; then
   echo "Unknown or incomplete parameter $1"
-  exit
+  exit 1
 fi
 
-# for Accumulo 1.7+ to work we also need the following
+# Check for short version numbers. The version checker only works for version number of the same length.
+accumulo_version_split=($(splitVersion "${accumulo_version}"))
+hadoop_version_split=($(splitVersion "${hadoop_version}"))
+zookeeper_version_split=($(splitVersion "${zookeeper_version}"))
+thrift_version_split=($(splitVersion "${thrift_version}"))
+
+if [[ "${#accumulo_version_split[@]}" != "3" \
+   || "${#hadoop_version_split[@]}" != "3" \
+   || "${#zookeeper_version_split[@]}" != "3" \
+   || "${#thrift_version_split[@]}" != "3" ]]; then
+  echo "Error: Version numbers must be specified in the format X.X.X"
+  exit 1
+fi
+
+# For Accumulo 1.7+ to work we also need the following
 if compareVersions "${accumulo_version}" "1.6.999"; then
   htrace_core_version="3.1.0-incubating"
   commons_vfs2_version="2.1"
 fi
 
-if [[ (-z "${install_dir}") ]]; then
+if [[ -z "${install_dir}" ]]; then
   echo "Error: Provide one arg which is the target directory (e.g. /opt/geoserver-2.9.1/webapps/geoserver/WEB-INF/lib)"
   echo "${usage}"
-  exit
+  exit 1
 else
   read -r -p "Install accumulo and hadoop dependencies to ${install_dir}?${NL}Confirm? [Y/n]" confirm
-  confirm=${confirm,,} #lowercasing
+  confirm=${confirm,,} # Lowercasing
   if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
-    # get stuff
+    # Setup download URLs
     declare -a urls=(
       "${base_url}org/apache/accumulo/accumulo-core/${accumulo_version}/accumulo-core-${accumulo_version}.jar"
       "${base_url}org/apache/accumulo/accumulo-fate/${accumulo_version}/accumulo-fate-${accumulo_version}.jar"
@@ -198,10 +221,11 @@ else
       "${base_url}org/apache/commons/commons-vfs2/${commons_vfs2_version}/commons-vfs2-${commons_vfs2_version}.jar"
     )
 
-    if [[ "${accumulo_version}" == "1.7"* ]]; then
+    if [[ -n "${htrace_core_version}" ]]; then
       urls=("${urls[@]}" "${base_url}org/apache/htrace/htrace-core/${htrace_core_version}/htrace-core-${htrace_core_version}.jar")
     fi
 
+    # Download dependencies
     for x in "${urls[@]}"; do
       fname=$(basename "$x");
       echo "fetching ${x}";
