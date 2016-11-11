@@ -225,7 +225,8 @@ class CassandraDataStoreTest extends Specification {
       Map(
         CassandraDataStoreParams.CONTACT_POINT.getName -> CassandraDataStoreTest.CP,
         CassandraDataStoreParams.KEYSPACE.getName -> "geomesa_cassandra",
-        CassandraDataStoreParams.NAMESPACE.getName -> "http://geomesa.org"
+        CassandraDataStoreParams.NAMESPACE.getName -> "http://geomesa.org",
+        CassandraDataStoreParams.CATALOG.getName -> "geomesa_cassandra"
       )
     )
   }
