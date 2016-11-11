@@ -57,17 +57,18 @@ trait XZ3QueryableIndex extends AccumuloFeatureIndexType
     // standardize the two key query arguments:  polygon and date-range
 
     val geometries = filter.primary.map(extractGeometries(_, sft.getGeomField, sft.isPoints))
-        .filter(_.nonEmpty).getOrElse(Seq(WholeWorldPolygon))
+        .filter(_.nonEmpty).getOrElse(FilterValues(Seq(WholeWorldPolygon)))
 
     // since we don't apply a temporal filter, we pass handleExclusiveBounds to
     // make sure we exclude the non-inclusive endpoints of a during filter.
     // note that this isn't completely accurate, as we only index down to the second
-    val intervals = filter.primary.map(extractIntervals(_, dtgField, handleExclusiveBounds = true)).getOrElse(Seq.empty)
+    val intervals =
+      filter.primary.map(extractIntervals(_, dtgField, handleExclusiveBounds = true)).getOrElse(FilterValues.empty)
 
     explain(s"Geometries: $geometries")
     explain(s"Intervals: $intervals")
 
-    if (geometries == DisjointGeometries || intervals == DisjointInterval) {
+    if (geometries.disjoint || intervals.disjoint) {
       explain("Disjoint geometries or dates extracted, short-circuiting to empty query")
       return EmptyPlan(filter)
     }
@@ -114,7 +115,7 @@ trait XZ3QueryableIndex extends AccumuloFeatureIndexType
 
     // compute our accumulo ranges based on the coarse bounds for our query
     val ranges = if (filter.primary.isEmpty) { Seq(aRange.prefix(new Text(tableSharing))) } else {
-      val xy = geometries.map(GeometryUtils.bounds)
+      val xy = geometries.values.map(GeometryUtils.bounds)
 
       // calculate map of weeks to time intervals in that week
       val timesByBin = scala.collection.mutable.Map.empty[Short, (Double, Double)]

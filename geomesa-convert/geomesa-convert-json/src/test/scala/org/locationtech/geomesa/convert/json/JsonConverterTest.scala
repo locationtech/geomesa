@@ -837,6 +837,99 @@ class JsonConverterTest extends Specification {
             UUID.fromString("00000000-0000-0000-0000-000000000000")))
       }
     }
+
+    "parse and convert maps" >> {
+
+      val mapSftConf = ConfigFactory.parseString(
+        """{
+          |  type-name = "adv"
+          |  attributes = [
+          |    { name = "id",   type = "Integer"            }
+          |    { name = "map1", type = "Map[String,String]" }
+          |    { name = "map2", type = "Map[String,String]" }
+          |    { name = "map3", type = "Map[Int,Boolean]"   }
+          |    { name = "geom", type = "Point"              }
+          |  ]
+          |}
+        """.stripMargin)
+      val mapSft = SimpleFeatureTypes.createType(mapSftConf)
+
+      val json =
+        """ {
+          |    DataSource: { name: "myjson" },
+          |    Features: [
+          |      {
+          |        "id": 1,
+          |        "geometry": {"type": "Point", "coordinates": [55, 56]},
+          |        "map1": {
+          |          "a": "val1",
+          |          "b": "val2"
+          |        },
+          |        "map2": {
+          |          "a": 1.0,
+          |          "b": "foobar",
+          |          "c": false
+          |        },
+          |        "map3": {
+          |          "1": true,
+          |          "2": false,
+          |          "3": true
+          |        }
+          |      }
+          |    ]
+          | }
+        """.stripMargin
+
+      val mapConf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "json"
+          |   id-field     = "$id"
+          |   feature-path = "$.Features[*]"
+          |   fields = [
+          |     { name = "id",    json-type = "integer",  path = "$.id",       transform = "toString($0)"                   }
+          |     { name = "map1",  json-type = "map",      path = "$.map1",     transform = "jsonMap('string','string', $0)" }
+          |     { name = "map2",  json-type = "map",      path = "$.map2",     transform = "jsonMap('string','string', $0)" }
+          |     { name = "map3",  json-type = "map",      path = "$.map3",     transform = "jsonMap('int','boolean', $0)"   }
+          |     { name = "geom",  json-type = "geometry", path = "$.geometry", transform = "point($0)"                      }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val converter = SimpleFeatureConverters.build[String](mapSft, mapConf)
+      val ec = converter.createEvaluationContext()
+      val features = converter.processInput(Iterator(json), ec).toList
+      features must haveLength(1)
+      ec.counter.getSuccess mustEqual 1
+      ec.counter.getFailure mustEqual 0
+
+      import scala.collection.JavaConversions._
+      val f = features.head
+
+      import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
+      import java.util.{Map => JMap}
+
+      val m = f.get[JMap[String,String]]("map1")
+      m must beAnInstanceOf[JMap[String,String]]
+      m.size() mustEqual 2
+      m("a") mustEqual "val1"
+      m("b") mustEqual "val2"
+
+      val m2 = f.get[JMap[String,String]]("map2")
+      m2 must beAnInstanceOf[JMap[String,String]]
+      m2.size mustEqual 3
+      m2("a") mustEqual "1.0"
+      m2("b") mustEqual "foobar"
+      m2("c") mustEqual "false"
+
+      val m3 = f.get[JMap[Int,Boolean]]("map3")
+      m3 must beAnInstanceOf[JMap[Int,Boolean]]
+      m3.size mustEqual 3
+      m3(1) mustEqual true
+      m3(2) mustEqual false
+      m3(3) mustEqual true
+    }
+
     "parse user data" >> {
       val jsonStr =
         """ {
@@ -888,6 +981,70 @@ class JsonConverterTest extends Specification {
       features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
       features(0).getDefaultGeometry must be equalTo pt1
       features(0).getUserData.get("my.user.key") mustEqual "red"
+    }
+
+    "parse longs, booleans, int, double, float" >> {
+      val sftConf = ConfigFactory.parseString(
+        """{
+          |  type-name = "foo"
+          |  attributes = [
+          |    { name = "i", type = "int"     }
+          |    { name = "l", type = "long"    }
+          |    { name = "d", type = "double"  }
+          |    { name = "f", type = "float"   }
+          |    { name = "b", type = "boolean" }
+          |  ]
+          |}
+        """.stripMargin)
+      val typeSft = SimpleFeatureTypes.createType(sftConf)
+
+      val json =
+        """ {
+          |    DataSource: { name: "myjson" },
+          |    Features: [
+          |      {
+          |        "i": 1,
+          |        "l": 9223372036854775807,
+          |        "d": 1.7976931348623157E8,
+          |        "f": 1.023,
+          |        "b": false
+          |      }
+          |    ]
+          | }
+        """.stripMargin
+
+      val typeConf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "json"
+          |   id-field     = "md5(string2bytes(json2string($0)))"
+          |   feature-path = "$.Features[*]"
+          |   fields = [
+          |     { name = "i", json-type = "integer",  path = "$.i"}
+          |     { name = "l", json-type = "long",     path = "$.l"}
+          |     { name = "d", json-type = "double",   path = "$.d"}
+          |     { name = "f", json-type = "float",    path = "$.f"}
+          |     { name = "b", json-type = "boolean",  path = "$.b"}
+          |   ]
+          | }
+        """.stripMargin)
+
+      val converter = SimpleFeatureConverters.build[String](typeSft, typeConf)
+      val ec = converter.createEvaluationContext()
+      val features = converter.processInput(Iterator(json), ec).toList
+      features must haveLength(1)
+      ec.counter.getSuccess mustEqual 1
+      ec.counter.getFailure mustEqual 0
+
+      import scala.collection.JavaConversions._
+      val f = features.head
+
+      import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
+      f.get[Int]("i") mustEqual 1
+      f.get[Long]("l") mustEqual Long.MaxValue
+      f.get[Double]("d") mustEqual 1.7976931348623157E8
+      f.get[Float]("f") mustEqual 1.023f
+      f.get[Boolean]("b") mustEqual false
     }
   }
 }

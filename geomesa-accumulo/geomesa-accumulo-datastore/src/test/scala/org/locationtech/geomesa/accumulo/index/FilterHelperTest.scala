@@ -70,7 +70,7 @@ class FilterHelperTest extends Specification with Mockito with LazyLogging {
 
   val extractDT: (Seq[Filter]) => (DateTime, DateTime) = {
     import scala.collection.JavaConversions._
-    (f) => extractIntervals(ff.and(f), dtFieldName).headOption.getOrElse(null, null)
+    (f) => extractIntervals(ff.and(f), dtFieldName).values.headOption.getOrElse(null, null)
   }
 
   def decomposeAnd(f: Filter): Seq[Filter] = {
@@ -142,7 +142,7 @@ class FilterHelperTest extends Specification with Mockito with LazyLogging {
     "offset dates for during filters" in {
       forall(dts.combinations(2).map(sortDates)) { case (start, end) =>
         val filter = during(start, end)
-        val extractedInterval = extractIntervals(filter, dtFieldName, handleExclusiveBounds = true).head
+        val extractedInterval = extractIntervals(filter, dtFieldName, handleExclusiveBounds = true).values.head
         val expectedInterval = (start.plusSeconds(1), end.minusSeconds(1))
         logger.debug(s"Extracted interval $extractedInterval from filter ${ECQL.toCQL(filter)}")
         extractedInterval must equalTo(expectedInterval)
@@ -152,7 +152,7 @@ class FilterHelperTest extends Specification with Mockito with LazyLogging {
         val start = s.plusMillis(r.nextInt(998) + 1)
         val end = e.plusMillis(r.nextInt(998) + 1)
         val filter = during(start, end)
-        val extractedInterval = extractIntervals(filter, dtFieldName, handleExclusiveBounds = true).head
+        val extractedInterval = extractIntervals(filter, dtFieldName, handleExclusiveBounds = true).values.head
         val expectedInterval = (s.plusSeconds(1), e)
         logger.debug(s"Extracted interval $extractedInterval from filter ${ECQL.toCQL(filter)}")
         extractedInterval must equalTo(expectedInterval)

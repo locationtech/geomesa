@@ -29,7 +29,7 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-metrics_2.11</artifactId>
+            <artifactId>geomesa-metrics_${scala.binary.version}</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>org.geotools</groupId>
@@ -43,7 +43,7 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-web-stats_2.11</artifactId>
+            <artifactId>geomesa-web-stats_${scala.binary.version}</artifactId>
             <version>${project.version}</version>
             <exclusions>
                 <exclusion>

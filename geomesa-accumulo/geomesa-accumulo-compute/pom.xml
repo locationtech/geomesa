@@ -36,11 +36,11 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-datastore_2.11</artifactId>
+            <artifactId>geomesa-accumulo-datastore_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-jobs_2.11</artifactId>
+            <artifactId>geomesa-accumulo-jobs_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
@@ -150,6 +150,7 @@
                                     <exclude>org.geotools:gt-render:*</exclude>
                                     <exclude>org.geotools:gt-coverage:*</exclude>
                                     <exclude>it.geosolutions.jaiext.*</exclude>
+                                    <exclude>org.ow2.asm:*</exclude>
                                 </excludes>
                             </artifactSet>
                             <filters>
@@ -159,6 +160,7 @@
                                         <exclude>META-INF/*.SF</exclude>
                                         <exclude>META-INF/*.DSA</exclude>
                                         <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>org/objectweb/asm/**</exclude>
                                     </excludes>
                                 </filter>
                             </filters>

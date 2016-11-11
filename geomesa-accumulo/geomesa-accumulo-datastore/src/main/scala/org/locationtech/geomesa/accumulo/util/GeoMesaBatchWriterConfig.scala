@@ -14,6 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.BatchWriterConfig
 import org.locationtech.geomesa.accumulo.AccumuloProperties
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+import org.locationtech.geomesa.utils.text.Suffixes
 
 import scala.util.Try
 
@@ -23,38 +24,7 @@ object GeoMesaBatchWriterConfig extends LazyLogging {
     for { p <- prop.option; num <- Try(java.lang.Long.parseLong(p)).toOption } yield num
 
   protected[util] def fetchMemoryProperty(prop: SystemProperty): Option[Long] =
-    for { p <- prop.option; num <- parseMemoryProperty(p) } yield num
-
-  protected[util] def parseMemoryProperty(prop: String): Option[Long] = {
-
-    //Scala regex matches the whole string, the leading ^ and trailing $ is implied.
-    //First group matches numbers, second group must correspond to suffixMap keys below
-    val matchSuffix = """(\d+)([KkMmGg])?""".r
-
-    //Define suffixes based on powers of 2
-    val suffixMap = Map(
-      "K" -> 1024l,
-      "k" -> 1024l,
-      "M" -> 1024l * 1024l,
-      "m" -> 1024l * 1024l,
-      "G" -> 1024l * 1024l * 1024l,
-      "g" -> 1024l * 1024l * 1024l
-    )
-
-    prop match {
-      case matchSuffix(number, null) =>
-        //For-comprehension here also matches Scala.Long and Java.Long types
-        for {
-          num <- Try(java.lang.Long.parseLong(number)).toOption
-        } yield num
-      case matchSuffix(number, suffix) if suffixMap.contains(suffix) =>
-        for {
-        //Because we are not using parseLong(), we need to check for overflow
-          num <- Try(java.lang.Long.valueOf(number.toLong * suffixMap(suffix))).filter(_ > 0).toOption
-        } yield num
-      case _ => None
-    }
-  }
+    for { p <- prop.option; num <- Suffixes.Memory.bytes(p) } yield num
 
   protected[util] def buildBWC: BatchWriterConfig = {
     import AccumuloProperties.BatchWriterProperties

@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-blobstore-web_2.11</artifactId>
+            <artifactId>geomesa-blobstore-web_${scala.binary.version}</artifactId>
         </dependency>
     </dependencies>
 

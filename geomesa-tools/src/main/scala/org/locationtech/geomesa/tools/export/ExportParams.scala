@@ -11,7 +11,8 @@ package org.locationtech.geomesa.tools.export
 import java.io.File
 
 import com.beust.jcommander.{Parameter, Parameters}
-import org.locationtech.geomesa.tools.{CatalogParam, OptionalCqlFilterParam, RequiredTypeNameParam, TypeNameParam}
+import org.locationtech.geomesa.tools._
+import org.locationtech.geomesa.tools.{CatalogParam, OptionalCqlFilterParam, OptionalIndexParam, RequiredTypeNameParam}
 
 trait RootExportParams extends OptionalCqlFilterParam {
   @Parameter(names = Array("-m", "--max-features"), description = "Maximum number of features to return. default: Unlimited")
@@ -31,7 +32,8 @@ trait RootExportParams extends OptionalCqlFilterParam {
 }
 
 
-trait BaseExportParams extends RootExportParams with TypeNameParam {
+trait BaseExportParams extends RootExportParams
+  with TypeNameParam  with OptionalIndexParam {
   @Parameter(names = Array("-a", "--attributes"), description = "Attributes from feature to export " +
     "(comma-separated)...Comma-separated expressions with each in the format " +
     "attribute[=filter_function_expression]|derived-attribute=filter_function_expression. " +
@@ -40,9 +42,9 @@ trait BaseExportParams extends RootExportParams with TypeNameParam {
   var attributes: java.util.List[String] = null
 }
 
-trait ExportParams extends BaseExportParams with CatalogParam with RequiredTypeNameParam
+trait ExportParams extends BaseExportParams
+  with CatalogParam with RequiredTypeNameParam
 
-@Parameters(commandDescription = "Export features from a GeoMesa data store in a binary format")
 trait BaseBinExportParams {
   @Parameter(names = Array("--id-attribute"), description = "Name of the id attribute to export")
   var idAttribute: String = null

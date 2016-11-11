@@ -87,7 +87,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
 
       ds.getSchema(typeName) must beNull
 
-      ds.createSchema(SimpleFeatureTypes.createType(typeName, "name:String,dtg:Date,*geom:Polygon:srid=4326"))
+      ds.createSchema(SimpleFeatureTypes.createType(typeName, "name:String:index=true,dtg:Date,*geom:Polygon:srid=4326"))
 
       val sft = ds.getSchema(typeName)
 
@@ -111,6 +111,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
       testQuery(ds, typeName, "IN('0', '2')", null, Seq(toAdd(0), toAdd(2)))
       testQuery(ds, typeName, "bbox(geom,-126,38,-119,52) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-01T07:59:59.000Z", null, toAdd.dropRight(2))
       testQuery(ds, typeName, "bbox(geom,-126,42,-119,45)", null, toAdd.dropRight(4))
+      testQuery(ds, typeName, "name < 'name5'", null, toAdd.take(5))
     }
   }
 

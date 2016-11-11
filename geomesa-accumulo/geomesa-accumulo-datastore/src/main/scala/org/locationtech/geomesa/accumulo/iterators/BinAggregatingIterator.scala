@@ -260,13 +260,15 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
         (sf, long) => sf.setAttribute(dtgIndex, new Date(long))
       }
       (_) => {
-        sf.getIdentifier.setID(getId(source.getTopKey.getRow))
+        val row = source.getTopKey.getRow
+        sf.getIdentifier.setID(getId(row.getBytes, 0, row.getLength))
         setValuesFromBin(sf, gf)
         sf
       }
     } else if (sample && dedupe) {
       (_) => {
-        sf.getIdentifier.setID(getId(source.getTopKey.getRow))
+        val row = source.getTopKey.getRow
+        sf.getIdentifier.setID(getId(row.getBytes, 0, row.getLength))
         setTrackIdFromBin(sf)
         sf
       }
@@ -277,7 +279,8 @@ class PrecomputedBinAggregatingIterator extends BinAggregatingIterator {
       }
     } else if (dedupe) {
       (_) => {
-        sf.getIdentifier.setID(getId(source.getTopKey.getRow))
+        val row = source.getTopKey.getRow
+        sf.getIdentifier.setID(getId(row.getBytes, 0, row.getLength))
         sf
       }
     } else {
@@ -582,7 +585,8 @@ object BinAggregatingIterator extends LazyLogging {
       val deserializer = SimpleFeatureDeserializers(returnSft, serializationType, SerializationOptions.withoutId)
       (e: Entry[Key, Value]) => {
         val deserialized = deserializer.deserialize(e.getValue.get())
-        deserialized.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(e.getKey.getRow))
+        val row = e.getKey.getRow
+        deserialized.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row.getBytes, 0, row.getLength))
         // set the value directly in the array, as we don't support byte arrays as properties
         new ScalaSimpleFeature(deserialized.getID, BIN_SFT, Array(encode(deserialized), zeroPoint))
       }

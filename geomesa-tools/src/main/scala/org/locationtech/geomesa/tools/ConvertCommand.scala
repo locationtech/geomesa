@@ -52,9 +52,6 @@ class ConvertCommand extends Command with LazyLogging {
     val outFmt = DataFormats.values.find(_.toString.equalsIgnoreCase(params.outputFormat)).getOrElse {
       throw new ParameterException("Unable to parse output file type.")
     }
-    if (outFmt == Bin && )
-      throw new ParameterException("Missing parameters for binary export. For more information use: ./geomesa convert --help")
-
 
     lazy val outputStream: OutputStream = ExportCommand.createOutputStream(params.file, params.gzip)
     val writer: Writer = ExportCommand.getWriter(params.asInstanceOf[ExportParams])

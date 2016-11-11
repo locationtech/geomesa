@@ -13,7 +13,7 @@
     <name>GeoMesa Bigtable DataStore</name>
 
     <properties>
-        <bigtable.version>0.9.3</bigtable.version>
+        <bigtable.version>0.9.4</bigtable.version>
         <tcnative.version>1.1.33.Fork19</tcnative.version>
     </properties>
 
@@ -21,7 +21,7 @@
 
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-hbase-datastore_2.11</artifactId>
+            <artifactId>geomesa-hbase-datastore_${scala.binary.version}</artifactId>
             <version>${project.version}</version>
             <exclusions>
                 <!-- exclude older guava version used by hbase -->

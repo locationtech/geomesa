@@ -236,7 +236,10 @@ class GeoMesaRecordReader(sft: SimpleFeatureType,
   override def next(key: Text, value: SimpleFeature) =
     if (nextInternal()) {
       val sf = decoder.deserialize(delegateValue.get())
-      val id = if (hasId) sf.getID else getId(delegateKey.getRow)
+      val id = if (hasId) { sf.getID } else {
+        val row = delegateKey.getRow
+        getId(row.getBytes, 0, row.getLength)
+      }
       // copy the decoded sf into the reused one passed in to this method
       key.set(id)
       value.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id) // value will be a ScalaSimpleFeature

@@ -54,10 +54,20 @@ trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R
     Bytes.concat(sharing, split, Longs.toByteArray(xz), id)
   }
 
-  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte]) => String = {
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
+    val start = if (sft.isTableSharing) { 10 } else { 9 } // table sharing + shard + 8 byte long
+    (row, offset, length) => new String(row, offset + start, length - start, StandardCharsets.UTF_8)
+  }
+
+  override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    val start = if (sft.isTableSharing) { 10 } else { 9 }
-    (row: Array[Byte]) => new String(row, start, row.length - start, StandardCharsets.UTF_8)
+    val splits = DefaultSplitArrays.drop(1) // drop the first so we don't get an empty tablet
+    if (sft.isTableSharing) {
+      val sharing = sft.getTableSharingBytes
+      splits.map(s => Bytes.concat(sharing, s))
+    } else {
+      splits
+    }
   }
 
   override def getQueryPlan(sft: SimpleFeatureType,
@@ -74,7 +84,7 @@ trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R
     }
 
     val geometries = filter.primary.map(extractGeometries(_, sft.getGeomField, sft.isPoints))
-        .filter(_.nonEmpty).getOrElse(Seq(WholeWorldPolygon))
+        .filter(_.nonEmpty).getOrElse(FilterValues(Seq(WholeWorldPolygon)))
 
     explain(s"Geometries: $geometries")
 
@@ -84,7 +94,7 @@ trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R
     val ranges = if (filter.primary.isEmpty) { Seq(rangePrefix(sharing)) } else {
       import com.google.common.primitives.Bytes.concat
 
-      val xy = geometries.map(GeometryUtils.bounds)
+      val xy = geometries.values.map(GeometryUtils.bounds)
 
       val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
       val sfc = XZ2SFC(sft.getXZPrecision)
@@ -94,7 +104,7 @@ trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R
 
       prefixes.flatMap { prefix =>
         zs.map { case (lo, hi) =>
-          range(concat(prefix, lo), IndexAdapter.followingRow(concat(prefix, hi)))
+          range(concat(prefix, lo), IndexAdapter.rowFollowingRow(concat(prefix, hi)))
         }
       }
     }

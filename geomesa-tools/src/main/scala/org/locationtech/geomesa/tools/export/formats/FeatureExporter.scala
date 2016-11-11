@@ -13,5 +13,5 @@ import java.io.{Closeable, Flushable}
 import org.geotools.data.simple.SimpleFeatureCollection
 
 trait FeatureExporter extends Closeable with Flushable {
-  def export(featureCollection: SimpleFeatureCollection): Unit
+  def export(featureCollection: SimpleFeatureCollection): Option[Long]
 }

@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.hbase.tools.export
 
+import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
 import org.locationtech.geomesa.tools.{CatalogParam, RequiredTypeNameParam}
@@ -17,4 +18,5 @@ class HBaseBinExportCommand extends BinExportCommand[HBaseDataStore] with HBaseD
   override val params = new HBaseBinExportParams
 }
 
+@Parameters(commandDescription = "Export features from a GeoMesa data store in a binary format")
 class HBaseBinExportParams extends BinExportParams with CatalogParam with RequiredTypeNameParam

@@ -11,8 +11,14 @@ package org.locationtech.geomesa.tools.export.formats
 import org.geotools.data.simple.SimpleFeatureCollection
 
 object NullExporter extends FeatureExporter {
-  import org.locationtech.geomesa.utils.geotools.Conversions.toRichSimpleFeatureIterator
-  override def export(features: SimpleFeatureCollection): Unit = features.features().foreach(_ => Unit)
+
+  override def export(features: SimpleFeatureCollection): Option[Long] = {
+    import org.locationtech.geomesa.utils.geotools.Conversions.toRichSimpleFeatureIterator
+    var count = 0L
+    features.features().foreach(_ => count += 1)
+    Some(count)
+  }
+
   override def flush() = {}
   override def close() = {}
 }

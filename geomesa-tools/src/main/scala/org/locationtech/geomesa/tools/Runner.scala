@@ -23,7 +23,7 @@ trait Runner extends LazyLogging {
     try {
       parseCommand(args).execute()
     } catch {
-      case e: ParameterException => println(e.getMessage); sys.exit(-1)
+      case e: ParameterException => System.err.println(e.getMessage); sys.exit(-1)
       case NonFatal(e) => logger.error(e.getMessage, e); sys.exit(-1)
     }
     sys.exit(0)

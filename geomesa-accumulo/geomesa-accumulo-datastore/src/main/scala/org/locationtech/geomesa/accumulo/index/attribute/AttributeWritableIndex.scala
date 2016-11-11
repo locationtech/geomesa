@@ -58,13 +58,13 @@ trait AttributeWritableIndex extends AccumuloWritableIndex with AttributeSplitta
     }
   }
 
-  override def getIdFromRow(sft: SimpleFeatureType): (Text) => String = {
+  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
     // drop the encoded value and the date field (12 bytes) if it's present - the rest of the row is the ID
     val from = if (sft.isTableSharing) 3 else 2  // exclude feature byte and index bytes
     val prefix = if (sft.getDtgField.isDefined) 13 else 1
-    (row: Text) => {
-      val offset = row.find(AttributeWritableIndex.NullByte, from) + prefix
-      new String(row.getBytes, offset, row.getLength - offset, StandardCharsets.UTF_8)
+    (row, offset, length) => {
+      val start = row.indexOf(AttributeWritableIndex.NullByteArray.head, from + offset) + prefix
+      new String(row, start, length + offset - start, StandardCharsets.UTF_8)
     }
   }
 

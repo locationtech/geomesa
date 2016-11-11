@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.accumulo.util
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.DigitSplitter
+import org.locationtech.geomesa.index.conf.DigitSplitter
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

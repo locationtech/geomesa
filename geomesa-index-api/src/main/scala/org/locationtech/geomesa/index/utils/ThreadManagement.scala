@@ -8,8 +8,9 @@
 
 package org.locationtech.geomesa.index.utils
 
-import java.util.concurrent.{Executors, PriorityBlockingQueue, TimeUnit}
+import java.util.concurrent.{PriorityBlockingQueue, ScheduledThreadPoolExecutor, TimeUnit}
 
+import com.google.common.util.concurrent.MoreExecutors
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader
@@ -53,9 +54,9 @@ object ThreadManagement extends LazyLogging {
     }
   }
 
-  private val executor = Executors.newSingleThreadScheduledExecutor()
+  private val executor = MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(1))
   executor.scheduleWithFixedDelay(reaper, interval, interval, TimeUnit.MILLISECONDS)
-  sys.addShutdownHook(executor.shutdown())
+  sys.addShutdownHook(executor.shutdownNow())
 
   /**
    * Register a query with the thread manager

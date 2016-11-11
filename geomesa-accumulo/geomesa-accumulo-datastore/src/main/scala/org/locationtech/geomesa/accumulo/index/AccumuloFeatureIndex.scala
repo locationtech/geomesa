@@ -102,7 +102,7 @@ object AccumuloFeatureIndex extends AccumuloIndexManagerType with LazyLogging {
     } else if (version == 8) {
       Seq(Z3IndexV2, Z2IndexV1, RecordIndexV1, AttributeIndexV2)
     } else if (version > 5) {
-      logger.warn("The GeoHash index is no longer supported. Some queries make take longer than normal. To " +
+      logger.warn("The GeoHash index is no longer supported. Some queries may take longer than normal. To " +
           s"update your data to a newer format, see $docs")
       version match {
         case 7 => Seq(Z3IndexV2, RecordIndexV1, AttributeIndexV2)
@@ -144,14 +144,6 @@ trait AccumuloWritableIndex extends AccumuloFeatureIndexType {
   }
 
   /**
-    * Retrieve an ID from a row. All indices are assumed to encode the feature ID into the row key
-    *
-    * @param sft simple feature type
-    * @return a function to retrieve an ID from a row
-    */
-  def getIdFromRow(sft: SimpleFeatureType): (Text) => String
-
-  /**
     * Indicates whether the ID for each feature is serialized with the feature or in the row
     *
     * @return
@@ -179,12 +171,15 @@ trait AccumuloWritableIndex extends AccumuloFeatureIndexType {
       val deserializer = SimpleFeatureDeserializers(returnSft, SerializationType.KRYO, SerializationOptions.withoutId)
       (kv: Entry[Key, Value]) => {
         val sf = deserializer.deserialize(kv.getValue.get)
-        sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(kv.getKey.getRow))
+        val row = kv.getKey.getRow
+        sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row.getBytes, 0, row.getLength))
         AccumuloWritableIndex.applyVisibility(sf, kv.getKey)
         sf
       }
     }
   }
+
+  override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = ???
 
   // back compatibility check for old metadata keys
   abstract override def getTableName(typeName: String, ds: AccumuloDataStore): String = {

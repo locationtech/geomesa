@@ -245,6 +245,8 @@ object AttributeSpec {
     "float"             -> classOf[java.lang.Float],
     "0.0f"              -> classOf[java.lang.Float],
     "Boolean"           -> classOf[java.lang.Boolean],
+    "boolean"           -> classOf[java.lang.Boolean],
+    "bool"              -> classOf[java.lang.Boolean],
     "java.lang.Boolean" -> classOf[java.lang.Boolean],
     "true"              -> classOf[java.lang.Boolean],
     "false"             -> classOf[java.lang.Boolean],

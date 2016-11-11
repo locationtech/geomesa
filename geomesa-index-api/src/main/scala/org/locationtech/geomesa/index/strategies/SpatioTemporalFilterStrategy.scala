@@ -75,6 +75,6 @@ object SpatioTemporalFilterStrategy {
   def isBounded(temporalFilter: Filter, dtg: String): Boolean = {
     import FilterHelper.{MaxDateTime, MinDateTime}
     val intervals = FilterHelper.extractIntervals(temporalFilter, dtg)
-    intervals.nonEmpty && intervals.forall { case (start, end) => start != MinDateTime && end != MaxDateTime }
+    intervals.nonEmpty && intervals.values.forall { case (start, end) => start != MinDateTime && end != MaxDateTime }
   }
 }

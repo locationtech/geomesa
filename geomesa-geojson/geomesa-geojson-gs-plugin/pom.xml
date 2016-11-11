@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-geojson-rest_2.11</artifactId>
+            <artifactId>geomesa-geojson-rest_${scala.binary.version}</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>org.geotools</groupId>
