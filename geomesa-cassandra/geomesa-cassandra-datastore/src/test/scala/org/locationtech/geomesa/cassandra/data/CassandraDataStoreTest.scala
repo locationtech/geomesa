@@ -30,6 +30,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class CassandraDataStoreTest extends Specification {
@@ -190,7 +191,16 @@ class CassandraDataStoreTest extends Specification {
       ds.dispose()
       ok
     }
+
+    "preserve column ordering" >> {
+      val (ds, fs) = initializeDataStore("testcolumnordering")
+      val sft = ds.getSchema("testcolumnordering")
+      sft.getAttributeDescriptors.head.getLocalName mustEqual "name"
+      ds.dispose()
+      ok
+    }
   }
+
 
   def initializeDataStore(tableName: String): (DataStore, SimpleFeatureStore) = {
 
@@ -211,12 +221,12 @@ class CassandraDataStoreTest extends Specification {
   }
 
   def getDataStore: DataStore = {
-    import scala.collection.JavaConversions._
     DataStoreFinder.getDataStore(
       Map(
         CassandraDataStoreParams.CONTACT_POINT.getName -> CassandraDataStoreTest.CP,
         CassandraDataStoreParams.KEYSPACE.getName -> "geomesa_cassandra",
-        CassandraDataStoreParams.NAMESPACE.getName -> "http://geomesa.org"
+        CassandraDataStoreParams.NAMESPACE.getName -> "http://geomesa.org",
+        CassandraDataStoreParams.CATALOG.getName -> "geomesa_cassandra"
       )
     )
   }
