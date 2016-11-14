@@ -11,11 +11,13 @@ package org.locationtech.geomesa.tools.data
 import java.util.regex.Pattern
 
 import com.beust.jcommander.ParameterException
+import org.geotools.data.DataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.Prompt
 
-trait RemoveSchemaCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait RemoveSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
+//  trait RemoveSchemaCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
 
   override val name = "remove-schema"
   override def params: RemoveSchemaParams
