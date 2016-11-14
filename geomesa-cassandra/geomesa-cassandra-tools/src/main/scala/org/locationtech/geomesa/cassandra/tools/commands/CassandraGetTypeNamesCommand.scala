@@ -10,14 +10,14 @@ package org.locationtech.geomesa.cassandra.tools.commands
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.cassandra.data.CassandraDataStore
-import org.locationtech.geomesa.cassandra.tools.{CassandraConnectionParams, CassandraDataStoreCommand}
+import org.locationtech.geomesa.cassandra.tools.{CassandraConnectionParams, CassandraDataStoreCommand, CassandraDataStoreParams}
 import org.locationtech.geomesa.tools.CatalogParam
 import org.locationtech.geomesa.tools.status.GetTypeNamesCommand
 
 
 class CassandraGetTypeNamesCommand extends GetTypeNamesCommand[CassandraDataStore] with CassandraDataStoreCommand {
-  override val params = new GetTypeNamesParams()
+  override val params = new CassandraDataStoreParams
 }
 
-@Parameters(commandDescription = "List GeoMesa feature types for a given catalog")
-class GetTypeNamesParams extends CassandraConnectionParams with CatalogParam
+//@Parameters(commandDescription = "List GeoMesa feature types for a given catalog")
+//class GetTypeNamesParams extends CassandraDataStoreParams
