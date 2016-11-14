@@ -49,6 +49,31 @@ Key                   Type        GeoServer Conversion
 QueryHints.LOOSE_BBOX ``Boolean`` ``true`` or ``false``
 ===================== =========== =====================
 
+Java
+^^^^
+
+.. code-block:: java
+
+    import org.locationtech.geomesa.index.conf.QueryHints;
+
+    query.getHints().put(QueryHints.LOOSE_BBOX(), Boolean.FALSE);
+
+Scala
+^^^^^
+
+.. code-block:: scala
+
+    import org.locationtech.geomesa.index.conf.QueryHints
+
+    query.getHints.put(QueryHints.LOOSE_BBOX, false)
+
+GeoServer
+^^^^^^^^^
+
+.. code-block:: none
+
+    ...&viewparams=LOOSE_BBOX:false;
+
 Exact Counts
 ------------
 
@@ -61,6 +86,31 @@ Key                    Type        GeoServer Conversion
 ====================== =========== =====================
 QueryHints.EXACT_COUNT ``Boolean`` ``true`` or ``false``
 ====================== =========== =====================
+
+Java
+^^^^
+
+.. code-block:: java
+
+    import org.locationtech.geomesa.index.conf.QueryHints;
+
+    query.getHints().put(QueryHints.EXACT_COUNT(), Boolean.TRUE);
+
+Scala
+^^^^^
+
+.. code-block:: scala
+
+    import org.locationtech.geomesa.index.conf.QueryHints
+
+    query.getHints.put(QueryHints.EXACT_COUNT, true)
+
+GeoServer
+^^^^^^^^^
+
+.. code-block:: none
+
+    ...&viewparams=EXACT_COUNT:true;
 
 Query Index
 -----------
@@ -150,18 +200,23 @@ Instead of returning all features for a query, GeoMesa can use statistical sampl
 percentage of results. This can be useful when rendering maps, or when there are too many features to
 be meaningful.
 
-Features can either be sampled absolutely, or sampled by a certain attribute. For example, given a series of
-points in a track, you may wish to sample by the track identifier so that no tracks are completely sampled out.
-
 .. note::
 
     Currently this section applies only to the Accumulo Data Store.
 
+Features can either be sampled absolutely, or sampled by a certain attribute. For example, given a series of
+points in a track, you may wish to sample by the track identifier so that no tracks are completely sampled out.
+
+The sampling value should be a float in the range (0, 1), which represents the fractional value of features that will
+be returned. Due to distributed processing, the actual count returned is not guaranteed to equal the requested
+percentage - however, there will never be less features than requested. For example, if you sample 5 features
+at 10%, you will get back anywhere from 1 to 5 features, depending on how your data is distributed in the cluster.
+
 ========================== ================================== ====================
 Key                        Type                               GeoServer Conversion
 ========================== ================================== ====================
-QueryHints.SAMPLING        Float
-QueryHints.SAMPLE_BY       String - attribute name (optional)
+QueryHints.SAMPLING        Float                              any float
+QueryHints.SAMPLE_BY       String - attribute name (optional) any string
 ========================== ================================== ====================
 
 Java
@@ -171,6 +226,7 @@ Java
 
     import org.locationtech.geomesa.index.conf.QueryHints;
 
+    // returns 10% of features, threaded by 'track' attribute
     query.getHints().put(QueryHints.SAMPLING(), new Float(0.1));
     query.getHints().put(QueryHints.SAMPLE_BY(), "track");
 
@@ -181,8 +237,9 @@ Scala
 
     import org.locationtech.geomesa.index.conf.QueryHints
 
+    // returns 10% of features, threaded by 'track' attribute
     query.getHints.put(QueryHints.SAMPLING, 0.1f)
-    query.getHints().put(QueryHints.SAMPLE_BY(), "track");
+    query.getHints().put(QueryHints.SAMPLE_BY, "track");
 
 GeoServer
 ^^^^^^^^^
