@@ -72,7 +72,7 @@ object SQLTypes {
   }
 
   // new optimizations rules
-  object STContainsRule extends Rule[LogicalPlan] with PredicateHelper {
+ object STContainsRule extends Rule[LogicalPlan] with PredicateHelper {
 
     def extractGeometry(e: Expression): Option[Geometry] = e match {
        case And(l, r) => extractGeometry(l).orElse(extractGeometry(r))
@@ -131,6 +131,19 @@ object SQLTypes {
   }
 
 
+
+  object STContains extends Rule[LogicalPlan] {
+    override def apply(plan: LogicalPlan): LogicalPlan = plan transform {
+      case t @ (_: GeoMesaRelation | _: Polygon) => plan
+
+        case f @ Filter(ScalaUDF(ST_Contains, _, Seq(_, GeometryLiteral(_, geom)), _), LogicalRelation(gm: GeoMesaRelation,_, _)) => {
+          LogicalRelation(gm.copy(filt = ff.within(ff.property("geometry"), ff.literal(geom))))
+        }
+        case t => t
+    }
+  }
+
+
   object FoldConstantGeometryRule extends Rule[LogicalPlan] {
     override def apply(plan: LogicalPlan): LogicalPlan = {
       plan.transform {
@@ -144,7 +157,7 @@ object SQLTypes {
   }
 
   def registerOptimizations(sqlContext: SQLContext): Unit = {
-    Seq(FoldConstantGeometryRule, STContainsRule).foreach { r =>
+    Seq(FoldConstantGeometryRule, STContains).foreach { r =>
       if(!sqlContext.experimental.extraOptimizations.contains(r))
         sqlContext.experimental.extraOptimizations ++= Seq(r)
     }

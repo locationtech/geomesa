@@ -39,7 +39,7 @@ object L {
          |      layers: '$layerName',
          |      cql_filter: "$filter",
          |      styles: '$style',
-         |      env: '${env.map { case (k,v) => Array(k,v).mkString(sep = "=")}.mkString(sep = ":")}',
+         |      env: '${env.map { case (k,v) => Array(k,v).mkString(sep = ":")}.mkString(sep = ";")}',
          |      transparent: '$transparent',
          |      opacity: $opacity,
          |      format: 'image/png',
@@ -51,9 +51,7 @@ object L {
   case class SimpleFeatureLayer(features: Seq[SimpleFeature], style: StyleOptions) extends GeoRenderable {
     override def render: String =
       s"""
-         |L.geoJson(${features.map(simpleFeatureToGeoJSON).mkString("[",",","]")},
-         |    { "onEachFeature": featurePopup, style: '$style.render' }
-         |).addTo(map);
+         |L.geoJson(${features.map(simpleFeatureToGeoJSON).mkString("[",",","]")}).addTo(map);
        """.stripMargin
 
     private def simpleFeatureToGeoJSON(sf: SimpleFeature) = {
@@ -115,16 +113,13 @@ object L {
        |    <script src="https://unpkg.com/leaflet.wms@0.1.0/lib/leaflet.js"></script>
        |    <script src="https://unpkg.com/leaflet.wms@0.1.0/lib/leaflet.wms.js"></script>
        |    <script src="countries.geo.json" type="text/javascript"></script>
-       |  </lead>
+       |  </head>
        |  <body>
-       |    <div> id='map' style="width:100%;height:500px"><div>
+       |    <div id='map' style="width:1200px;height:800px"/>
        |    <script>
-       |      function featurePopup(f, l) {
-       |        if(f.properties.uri) l.bindPopup('<img width="400px" src="/dragonfish/thumbnail/preview?id=' f.properties['uri'].split(':')[2] + '"/>');
-       |      };
        |      // Initialize the Base Layer... Lodaded from GeoJson
-       |      var basestyle = {"color": "#717171", "weight": 2, "opacity": 1.0}
-       |      var base = L.geoJson(worldMap, basestle);
+       |      var basestyle = {"color": "#717171", "weight": 2, "opacity": 1.0};
+       |      var base = L.geoJson(worldMap, basestyle);
        |
        |      //'map' is the id of the map
        |      var map = L.map('map', {
@@ -142,19 +137,21 @@ object L {
      """.stripMargin
 
   def render(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 8) = {
-    val id = org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric(5)
+    val id = s"map${org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric(5)}"
     s"""
-       |<iframe> id="${id}" sandbox="allow-scripts allow-same-origin" style="border:none;width=100%;height:520px" srcdoc="${xml.Utility.escape(buildMap(layers, center, zoom))}"></iframe>
-       |<script>
-       |  if(typeof resizeIFrame != 'function') {
-       |    function resizeIFrame(el, k) {
-       |      el.style.height = el.contentWindow.document.body.scrollHeight + 'px';
-       |      if(k<=3) { setTimeout(function() { resizeIFrame(el, k+1)}, 1000) };
+       |  <iframe id="${id}" sandbox="allow-scripts allow-same-origin" style="border: none; width: 100%; height: 600px" srcdoc="${xml.Utility.escape(buildMap(layers, center, zoom))}"></iframe>
+       |  <script>
+       |    if (typeof resizeIFrame != 'function') {
+       |      function resizeIFrame(el, k) {
+       |        $$(el.contentWindow.document).ready(function() {
+       |          el.style.height = el.contentWindow.document.body.scrollHeight + 'px';
+       |        });
+       |        if (k <= 10) { setTimeout(function() { resizeIFrame(el, k+1) }, 1000 + (k * 250)) };
+       |      }
        |    }
-       |  }
-       |  $$().ready(function() {resizeIFrame($$('#$id').get(0).1);});
-       |</script>
-     """.stripMargin
+       |    $$().ready( function() { resizeIFrame($$('#${id}').get(0), 1); });
+       |  </script>
+      """.stripMargin
   }
 
   def show(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 8)(implicit disp: String => Unit) = disp(render(layers,center,zoom))
