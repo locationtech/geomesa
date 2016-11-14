@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.tools
 import com.beust.jcommander.JCommander
 import org.apache.accumulo.server.client.HdfsZooInstance
 import org.locationtech.geomesa.accumulo.tools.data._
-import org.locationtech.geomesa.accumulo.tools.export.AccumuloExportCommand
+import org.locationtech.geomesa.accumulo.tools.export.{AccumuloBinExportCommand, AccumuloExportCommand}
 import org.locationtech.geomesa.accumulo.tools.ingest.{AccumuloIngestCommand, IngestRasterCommand}
 import org.locationtech.geomesa.accumulo.tools.stats._
 import org.locationtech.geomesa.accumulo.tools.status._
@@ -56,7 +56,8 @@ object AccumuloRunner extends Runner {
     new AccumuloStatsCountCommand,
     new AccumuloStatsTopKCommand,
     new AccumuloStatsHistogramCommand,
-    new AddIndexCommand
+    new AddIndexCommand,
+    new AccumuloBinExportCommand
   )
 
   /**
