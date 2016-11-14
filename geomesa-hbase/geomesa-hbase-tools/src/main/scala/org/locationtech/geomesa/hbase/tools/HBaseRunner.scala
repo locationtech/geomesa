@@ -10,7 +10,7 @@ package org.locationtech.geomesa.hbase.tools
 
 import com.beust.jcommander.JCommander
 import org.locationtech.geomesa.hbase.tools.data._
-import org.locationtech.geomesa.hbase.tools.export.HBaseExportCommand
+import org.locationtech.geomesa.hbase.tools.export.{HBaseBinExportCommand, HBaseExportCommand}
 import org.locationtech.geomesa.hbase.tools.ingest.HBaseIngestCommand
 import org.locationtech.geomesa.hbase.tools.stats._
 import org.locationtech.geomesa.hbase.tools.status._
@@ -43,6 +43,7 @@ object HBaseRunner extends Runner {
     new HBaseStatsBoundsCommand,
     new HBaseStatsCountCommand,
     new HBaseStatsTopKCommand,
-    new HBaseStatsHistogramCommand
+    new HBaseStatsHistogramCommand,
+    new HBaseBinExportCommand
   )
 }
