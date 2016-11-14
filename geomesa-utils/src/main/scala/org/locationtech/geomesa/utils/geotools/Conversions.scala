@@ -308,6 +308,9 @@ object RichSimpleFeatureType {
     def getTableSplitterOptions: Map[String, String] =
       userData[String](TABLE_SPLITTER_OPTS).map(new KVPairParser().parse).getOrElse(Map.empty)
 
+    def setZShards(splits: Int) : Unit = sft.getUserData.put(NUM_SPLITS_KEY, splits.toString)
+    def getZShards: Int = Option[Int](Try(userData[String](NUM_SPLITS_KEY).get.toInt).getOrElse(4)).get
+
     def userData[T](key: AnyRef): Option[T] = Option(sft.getUserData.get(key).asInstanceOf[T])
 
     def getKeywords: Set[String] = userData[String](KEYWORDS_KEY).getOrElse("").split(KEYWORDS_DELIMITER).toSet

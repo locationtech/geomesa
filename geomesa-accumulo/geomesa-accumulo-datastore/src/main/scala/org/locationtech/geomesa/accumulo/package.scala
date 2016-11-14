@@ -57,10 +57,6 @@ package object accumulo {
     object StatsProperties {
       val STAT_COMPACTION_MILLIS = SystemProperty("geomesa.stats.compact.millis", (3600 * 1000L).toString) // one hour
     }
-
-    object AccumuloIndexProperties {
-      val NUM_SPLITS = SystemProperty("geomesa.accumulo.index.numsplits", 4.toString)
-    }
   }
 
   /**

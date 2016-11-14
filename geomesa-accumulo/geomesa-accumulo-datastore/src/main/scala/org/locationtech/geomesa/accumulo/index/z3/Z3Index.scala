@@ -13,42 +13,18 @@ import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex._
-import org.locationtech.geomesa.accumulo.index.{DefaultIndexConfig, IndexConfig}
+import org.locationtech.geomesa.accumulo.index.SplitArrays
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.opengis.feature.simple.SimpleFeatureType
 
-case class Z3IndexConfig(val numSplits: Int = Z3Index.numSplits) extends IndexConfig {
-  val splitArrays = (0 until numSplits).map(_.toByte).toArray.map(Array(_)).toSeq
-}
-
-case class Z3Index(conf: IndexConfig = DefaultIndexConfig)
-  extends AccumuloFeatureIndexType with IndexConfig with Z3WritableIndex with Z3QueryableIndex {
-
-  val numSplits = conf.numSplits
-  val splitArrays = conf.splitArrays
-
-  override val name: String = Z3Index.name
-
-  override val version: Int = Z3Index.version
-
-  override val serializedWithId: Boolean = Z3Index.serializedWithId
-
-  override val hasSplits: Boolean = Z3Index.hasSplits
-
-  override def supports(sft: SimpleFeatureType): Boolean = Z3Index.supports(sft)
-
-  override def writer(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] =
-    Z3Index.writer(sft, ds)
-
-  override def remover(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] =
-    Z3Index.remover(sft, ds)
-}
-
 // current version - deprecated polygon support in favor of xz, ids in row key, per-attribute vis
-case object Z3Index extends AccumuloFeatureIndexType with IndexConfig with Z3WritableIndex with Z3QueryableIndex {
+case object Z3Index extends AccumuloFeatureIndexType with Z3WritableIndex with Z3QueryableIndex {
 
-  val numSplits = DefaultIndexConfig.numSplits
-  val splitArrays = DefaultIndexConfig.splitArrays
+  def numSplits(sft: SimpleFeatureType) = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    sft.getZShards
+  }
+  def splitArrays(sft: SimpleFeatureType) = SplitArrays.getSplitArray(numSplits(sft))
 
   val Z3IterPriority = 23
 
@@ -83,7 +59,7 @@ case object Z3Index extends AccumuloFeatureIndexType with IndexConfig with Z3Wri
     val sfc = Z3SFC(sft.getZ3Interval)
 
     (wf: AccumuloFeature) => {
-      val rows = getPointRowKey(timeToIndex, sfc)(wf, dtgIndex)
+      val rows = getPointRowKey(timeToIndex, sfc, sft)(wf, dtgIndex)
       rows.map { row =>
         val mutation = new Mutation(row)
         wf.fullValues.foreach { value => mutation.put(value.cf, value.cq, value.vis, value.value) }
@@ -100,7 +76,7 @@ case object Z3Index extends AccumuloFeatureIndexType with IndexConfig with Z3Wri
     val sfc = Z3SFC(sft.getZ3Interval)
 
     (wf: AccumuloFeature) => {
-      val rows = getPointRowKey(timeToIndex, sfc)(wf, dtgIndex)
+      val rows = getPointRowKey(timeToIndex, sfc, sft)(wf, dtgIndex)
       rows.map { row =>
         val mutation = new Mutation(row)
         wf.fullValues.foreach { value => mutation.putDelete(value.cf, value.cq, value.vis) }
@@ -112,10 +88,13 @@ case object Z3Index extends AccumuloFeatureIndexType with IndexConfig with Z3Wri
 }
 
 // polygon support and splits
-case object Z3IndexV2 extends AccumuloFeatureIndexType with IndexConfig with Z3WritableIndex with Z3QueryableIndex {
+case object Z3IndexV2 extends AccumuloFeatureIndexType with Z3WritableIndex with Z3QueryableIndex {
 
-  val numSplits = DefaultIndexConfig.numSplits
-  val splitArrays = DefaultIndexConfig.splitArrays
+  def numSplits(sft: SimpleFeatureType) = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    sft.getZShards
+  }
+  def splitArrays(sft: SimpleFeatureType) = SplitArrays.getSplitArray(numSplits(sft))
 
   override val name: String = "z3"
 
@@ -136,7 +115,7 @@ case object Z3IndexV2 extends AccumuloFeatureIndexType with IndexConfig with Z3W
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
     val getRowKeys: (AccumuloFeature, Int) => Seq[Array[Byte]] =
-      if (sft.isPoints) { getPointRowKey(timeToIndex, sfc) } else { getGeomRowKeys(timeToIndex, sfc) }
+      if (sft.isPoints) { getPointRowKey(timeToIndex, sfc, sft) } else { getGeomRowKeys(timeToIndex, sfc, sft) }
 
     (wf: AccumuloFeature) => {
       val rows = getRowKeys(wf, dtgIndex)
@@ -157,7 +136,7 @@ case object Z3IndexV2 extends AccumuloFeatureIndexType with IndexConfig with Z3W
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
     val getRowKeys: (AccumuloFeature, Int) => Seq[Array[Byte]] =
-      if (sft.isPoints) { getPointRowKey(timeToIndex, sfc) } else { getGeomRowKeys(timeToIndex, sfc) }
+      if (sft.isPoints) { getPointRowKey(timeToIndex, sfc, sft) } else { getGeomRowKeys(timeToIndex, sfc, sft) }
 
     (wf: AccumuloFeature) => {
       val rows = getRowKeys(wf, dtgIndex)
@@ -173,10 +152,13 @@ case object Z3IndexV2 extends AccumuloFeatureIndexType with IndexConfig with Z3W
 }
 
 // initial z3 implementation - only supports points
-case object Z3IndexV1 extends AccumuloFeatureIndexType with IndexConfig with Z3WritableIndex with Z3QueryableIndex {
+case object Z3IndexV1 extends AccumuloFeatureIndexType with Z3WritableIndex with Z3QueryableIndex {
 
-  val numSplits = DefaultIndexConfig.numSplits
-  val splitArrays = DefaultIndexConfig.splitArrays
+  def numSplits(sft: SimpleFeatureType) = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    sft.getZShards
+  }
+  def splitArrays(sft: SimpleFeatureType) = SplitArrays.getSplitArray(numSplits(sft))
 
   override val name: String = "z3"
 
@@ -197,7 +179,7 @@ case object Z3IndexV1 extends AccumuloFeatureIndexType with IndexConfig with Z3W
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
     val getRowKeys: (AccumuloFeature, Int) => Seq[Array[Byte]] =
-      (wf, i) => getPointRowKey(timeToIndex, sfc)(wf, i).map(_.drop(1))
+      (wf, i) => getPointRowKey(timeToIndex, sfc, sft)(wf, i).map(_.drop(1))
 
     (wf: AccumuloFeature) => {
       val rows = getRowKeys(wf, dtgIndex)
@@ -216,7 +198,7 @@ case object Z3IndexV1 extends AccumuloFeatureIndexType with IndexConfig with Z3W
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
     val getRowKeys: (AccumuloFeature, Int) => Seq[Array[Byte]] =
-      (ftw, i) => getPointRowKey(timeToIndex, sfc)(ftw, i).map(_.drop(1))
+      (ftw, i) => getPointRowKey(timeToIndex, sfc, sft)(ftw, i).map(_.drop(1))
 
     (wf: AccumuloFeature) => {
       val rows = getRowKeys(wf, dtgIndex)

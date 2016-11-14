@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-trait IndexConfig {
-  val numSplits: Int
-  val splitArrays: Seq[Array[Byte]]
-}
 
-case object DefaultIndexConfig extends IndexConfig {
-  val numSplits = 4
-  val splitArrays = (0 until numSplits).map(_.toByte).toArray.map(Array(_)).toSeq
+
+object SplitArrays {
+  val splitArraysMap: scala.collection.mutable.HashMap[Int, Seq[Array[Byte]]] =
+    new scala.collection.mutable.HashMap[Int, Seq[Array[Byte]]]()
+
+  def getSplitArray(numSplits: Int): Seq[Array[Byte]] =
+    splitArraysMap.getOrElseUpdate(numSplits, (0 until numSplits).map(_.toByte).toArray.map(Array(_)).toSeq)
 }

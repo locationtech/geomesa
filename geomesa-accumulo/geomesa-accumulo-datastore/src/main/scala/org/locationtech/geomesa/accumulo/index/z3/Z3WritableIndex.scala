@@ -18,7 +18,7 @@ import org.apache.accumulo.core.conf.Property
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
-import org.locationtech.geomesa.accumulo.index.{AccumuloWritableIndex, IndexConfig}
+import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
 import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
@@ -30,10 +30,8 @@ import scala.collection.JavaConversions._
 
 trait Z3WritableIndex extends AccumuloWritableIndex {
 
-  writable: IndexConfig =>
-
   import AccumuloWritableIndex.{BinColumnFamily, FullColumnFamily}
-  import Z3Index.{GEOM_Z_MASK, GEOM_Z_NUM_BYTES, GEOM_Z_STEP}
+  import Z3Index._
 
   def hasSplits: Boolean
 
@@ -50,9 +48,9 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
   }
 
   // split(1 byte), week(2 bytes), z value (8 bytes), id (n bytes)
-  protected def getPointRowKey(timeToIndex: TimeToBinnedTime, sfc: Z3SFC)
+  protected def getPointRowKey(timeToIndex: TimeToBinnedTime, sfc: Z3SFC, sft: SimpleFeatureType)
                               (wf: AccumuloFeature, dtgIndex: Int): Seq[Array[Byte]] = {
-    val split = splitArrays(wf.idHash % numSplits)
+    val split = splitArrays(sft)(wf.idHash % numSplits(sft))
     val (timeBin, z) = {
       val dtg = wf.feature.getAttribute(dtgIndex).asInstanceOf[Date]
       val time = if (dtg == null) 0 else dtg.getTime
@@ -65,9 +63,9 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
   }
 
   // split(1 byte), week (2 bytes), z value (3 bytes), id (n bytes)
-  protected def getGeomRowKeys(timeToIndex: TimeToBinnedTime, sfc: Z3SFC)
+  protected def getGeomRowKeys(timeToIndex: TimeToBinnedTime, sfc: Z3SFC, sft: SimpleFeatureType)
                               (wf: AccumuloFeature, dtgIndex: Int): Seq[Array[Byte]] = {
-    val split = splitArrays(wf.idHash % numSplits)
+    val split = splitArrays(sft)(wf.idHash % numSplits(sft))
     val (timeBin, zs) = {
       val dtg = wf.feature.getAttribute(dtgIndex).asInstanceOf[Date]
       val time = if (dtg == null) 0 else dtg.getTime
@@ -131,7 +129,7 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
     ds.tableOps.setLocalityGroups(table, localityGroups)
 
     // drop first split, otherwise we get an empty tablet
-    val splits = splitArrays.drop(1).map(new Text(_)).toSet
+    val splits = splitArrays(sft).drop(1).map(new Text(_)).toSet
     val splitsToAdd = splits -- ds.tableOps.listSplits(table).toSet
     if (splitsToAdd.nonEmpty) {
       // noinspection RedundantCollectionConversion

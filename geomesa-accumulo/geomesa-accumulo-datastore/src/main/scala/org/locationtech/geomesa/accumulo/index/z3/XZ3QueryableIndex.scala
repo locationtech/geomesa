@@ -33,7 +33,8 @@ trait XZ3QueryableIndex extends AccumuloFeatureIndexType
     with SpatioTemporalFilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation, Entry[Key, Value]]
     with LazyLogging {
 
-  writable: IndexConfig with AccumuloWritableIndex =>
+  writable: AccumuloWritableIndex =>
+  import XZ3Index._
 
   override def getQueryPlan(sft: SimpleFeatureType,
                             ds: AccumuloDataStore,
@@ -153,7 +154,7 @@ trait XZ3QueryableIndex extends AccumuloFeatureIndexType
       val ranges = timesByBin.flatMap { case (b, times) =>
         val zs = if (times.eq(wholePeriod)) wholePeriodRanges else toZRanges(times)
         val binBytes = Shorts.toByteArray(b)
-        val prefixes = splitArrays.map(Bytes.concat(tableSharing, _, binBytes))
+        val prefixes = splitArrays(sft).map(Bytes.concat(tableSharing, _, binBytes))
         prefixes.flatMap { prefix =>
           zs.map { case (lo, hi) =>
             val start = Bytes.concat(prefix, lo)

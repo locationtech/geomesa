@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.accumulo.index.z3
 
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
-import org.locationtech.geomesa.accumulo.index.{DefaultIndexConfig, IndexConfig}
+import org.locationtech.geomesa.accumulo.index.SplitArrays
 import org.opengis.feature.simple.SimpleFeatureType
 
-case class XZ3IndexConfig(numSplits: Int = XZ3Index.numSplits) extends IndexConfig {
+/*case class XZ3IndexConfig(numSplits: Int = XZ3Index.numSplits) extends IndexConfig {
   val splitArrays = (0 until numSplits).map(_.toByte).toArray.map(Array(_)).toSeq
 }
 
@@ -29,12 +29,15 @@ case class XZ3Index(conf: IndexConfig)
   override val serializedWithId: Boolean = XZ3Index.serializedWithId
 
   override def supports(sft: SimpleFeatureType): Boolean = XZ3Index.supports(sft)
-}
+}*/
 
-case object XZ3Index extends AccumuloFeatureIndexType with IndexConfig with XZ3WritableIndex with XZ3QueryableIndex {
+case object XZ3Index extends AccumuloFeatureIndexType with XZ3WritableIndex with XZ3QueryableIndex {
 
-  val numSplits = DefaultIndexConfig.numSplits
-  val splitArrays = DefaultIndexConfig.splitArrays
+  def numSplits(sft: SimpleFeatureType): Int = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    sft.getZShards
+  }
+  def splitArrays(sft: SimpleFeatureType): Seq[Array[Byte]] = SplitArrays.getSplitArray(numSplits(sft))
 
   override val name: String = "xz3"
 
