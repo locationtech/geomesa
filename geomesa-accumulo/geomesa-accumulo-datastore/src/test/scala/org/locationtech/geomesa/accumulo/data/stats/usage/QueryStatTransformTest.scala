@@ -66,9 +66,9 @@ class QueryStatTransformTest extends Specification {
 
       val hints = QueryEvent.hintsToString(query.getHints)
 
-      hints must contain(s"DENSITY_BBOX=$env")
-      hints must contain("DENSITY_WIDTH=500")
-      hints must contain("DENSITY_HEIGHT=500")
+      hints must contain(s"DENSITY_BBOX_KEY=$env")
+      hints must contain("WIDTH_KEY=500")
+      hints must contain("HEIGHT_KEY=500")
     }
   }
 }
