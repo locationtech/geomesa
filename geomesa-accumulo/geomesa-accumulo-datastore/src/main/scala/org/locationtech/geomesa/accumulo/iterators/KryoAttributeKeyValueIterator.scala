@@ -53,7 +53,7 @@ class KryoAttributeKeyValueIterator extends SortedKeyValueIterator[Key, Value] w
       case NonFatal(e) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(INDEX_OPT)}")
     }
     val kryoOptions = if (index.serializedWithId) SerializationOptions.none else SerializationOptions.withoutId
-    serializer = new KryoFeatureSerializer(sft, kryoOptions)
+    serializer = IteratorCache.serializer(sft, kryoOptions)
   }
 
   override def seek(range: Range, columnFamilies: jCollection[ByteSequence], inclusive: Boolean): Unit =

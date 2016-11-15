@@ -19,14 +19,18 @@ import org.opengis.filter.Filter
 object IteratorCache {
 
   private val sftCache = new SoftThreadLocalCache[(String, String), SimpleFeatureType]()
+  private val serializerCache = new SoftThreadLocalCache[(SimpleFeatureType, SerializationOptions), KryoFeatureSerializer]()
   private val kryoBufferCache = new SoftThreadLocalCache[(SimpleFeatureType, SerializationOptions), KryoBufferSimpleFeature]()
-  private val cqlCache = new SoftThreadLocalCache[String, Filter]()
+  private val filterCache = new SoftThreadLocalCache[String, Filter]()
 
   def sft(name: String, spec: String): SimpleFeatureType =
     sftCache.getOrElseUpdate((name, spec), SimpleFeatureTypes.createType(name, spec))
 
-  def kryoBufferFeature(sft: SimpleFeatureType, options: Set[SerializationOption]) =
-    kryoBufferCache.getOrElseUpdate((sft, options), new KryoFeatureSerializer(sft, options).getReusableFeature)
+  def serializer(sft: SimpleFeatureType, options: Set[SerializationOption]): KryoFeatureSerializer =
+    serializerCache.getOrElseUpdate((sft, options), new KryoFeatureSerializer(sft, options))
 
-  def cql(q: String) = cqlCache.getOrElseUpdate(q, FastFilterFactory.toFilter(q))
+  def kryoBufferFeature(sft: SimpleFeatureType, options: Set[SerializationOption]) =
+    kryoBufferCache.getOrElseUpdate((sft, options), serializer(sft, options).getReusableFeature)
+
+  def filter(ecql: String): Filter = filterCache.getOrElseUpdate(ecql, FastFilterFactory.toFilter(ecql))
 }
