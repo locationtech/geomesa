@@ -46,7 +46,7 @@ class KryoAttributeKeyValueIterator extends SortedKeyValueIterator[Key, Value] w
     IteratorClassLoader.initClassLoader(getClass)
 
     this.source = src.deepCopy(env)
-    sft = SimpleFeatureTypes.createType("", options.get(SFT_OPT))
+    sft = IteratorCache.sft("", options.get(SFT_OPT))
     attribute = options.get(ATTRIBUTE_OPT).toInt
 
     val index = try { AccumuloFeatureIndex.index(options.get(INDEX_OPT)) } catch {
