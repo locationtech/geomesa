@@ -35,7 +35,6 @@ import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 
@@ -99,6 +98,8 @@ object GeoMesaInputFormat extends LazyLogging {
     // auto adjust ranges - this ensures that each split created will have a single location, which we want
     // for the GeoMesaInputFormat below
     InputFormatBase.setAutoAdjustRanges(job, true)
+
+    InputFormatBase.setSamplerConfiguration(job, null)
 
     // also set the datastore parameters so we can access them later
     val conf = job.getConfiguration
@@ -176,6 +177,7 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLoggi
   override def getSplits(context: JobContext): java.util.List[InputSplit] = {
     init(context.getConfiguration)
     val accumuloSplits = delegate.getSplits(context)
+    accumuloSplits.foreach { split => split.asInstanceOf[RangeInputSplit].setSamplerConfiguration(null) }
     // fallback on creating 2 mappers per node if desiredSplits is unset.
     // Account for case where there are less splits than shards
     val groupSize = if (desiredSplitCount > 0) {
@@ -234,6 +236,7 @@ class GeoMesaRecordReader(sft: SimpleFeatureType,
     val splits = split.asInstanceOf[GroupedSplit].splits
     var i = 0
     while (i < splits.length) {
+      splits(i).setSamplerConfiguration(null)
       readers(i).initialize(splits(i), context)
       i = i + 1
     }
@@ -265,21 +268,18 @@ class GeoMesaRecordReader(sft: SimpleFeatureType,
   /**
    * Get the next key value from the underlying reader, incrementing the reader when required
    */
-  @tailrec
   private def nextKeyValueInternal(): Boolean =
-    currentReader match {
-      case None => false
-      case Some(reader) =>
-        if (reader.nextKeyValue()) {
-          currentFeature = decoder.deserialize(reader.getCurrentValue.get())
-          if (!hasId) {
-            currentFeature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(reader.getCurrentKey.getRow))
-          }
-          true
-        } else {
-          nextReader()
-          nextKeyValueInternal()
+    currentReader.exists { reader =>
+      if (reader.nextKeyValue()) {
+        currentFeature = decoder.deserialize(reader.getCurrentValue.get())
+        if (!hasId) {
+          currentFeature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(reader.getCurrentKey.getRow))
         }
+        true
+      } else {
+        nextReader()
+        nextKeyValueInternal()
+      }
     }
 
   override def getCurrentValue = currentFeature
@@ -322,6 +322,7 @@ class GroupedSplit extends InputSplit with Writable {
     while (i < size) {
       val split = new RangeInputSplit()
       split.readFields(in)
+      split.setSamplerConfiguration(null)
       splits.append(split)
       i = i + 1
     }

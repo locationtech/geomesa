@@ -98,18 +98,6 @@ case class GeoMesaRelation(sqlContext: SQLContext,
 }
 
 object SparkUtils {
-  sealed trait Extractor {
-    def extract(sf: SimpleFeature): AnyRef
-  }
-
-  case class AttributeExtractor(idx: Int) extends Extractor {
-    override def extract(sf: SimpleFeature): AnyRef = toSparkType(sf.getAttribute(idx))
-  }
-
-  object IdExtractor extends Extractor {
-    override def extract(sf: SimpleFeature): AnyRef = sf.getID
-  }
-
   @transient val ff = CommonFactoryFinder.getFilterFactory2
   private val log = org.slf4j.LoggerFactory.getLogger("org.locationtech.geomesa.accumulo.spark.sql")
 
@@ -130,10 +118,14 @@ object SparkUtils {
       new Query(params("geomesa.feature"), compiledCQL, requiredAttributes),
       Try(params("useMock").toBoolean).getOrElse(false), Option.empty[Int])
 
+    type EXTRACTOR = SimpleFeature => AnyRef
+    val IdExtractor: SimpleFeature => AnyRef = sf => sf.getID
     // the SFT attributes do not have the __fid__ so we have to translate accordingly
-    val extractors = requiredColumns.map {
+    val extractors: Array[EXTRACTOR] = requiredColumns.map {
       case "__fid__" => IdExtractor
-      case col       => AttributeExtractor(requiredColumns.indexOf(col))
+      case col       =>
+        val index = requiredAttributes.indexOf(col)
+        sf: SimpleFeature => toSparkType(sf.getAttribute(index))
     }
 
     val result = rdd.map(SparkUtils.sf2row(schema, _, extractors))
@@ -158,11 +150,11 @@ object SparkUtils {
     case IsNotNull(attr)                  => None
   }
 
-  def sf2row(schema: StructType, sf: SimpleFeature, extractors: Array[Extractor]): Row = {
+  def sf2row(schema: StructType, sf: SimpleFeature, extractors: Array[SimpleFeature => AnyRef]): Row = {
     val res = Array.ofDim[Any](extractors.length)
     var i = 0
     while(i < extractors.length) {
-      res(i) = extractors(i).extract(sf)
+      res(i) = extractors(i)(sf)
       i += 1
     }
     new GenericRowWithSchema(res, schema)

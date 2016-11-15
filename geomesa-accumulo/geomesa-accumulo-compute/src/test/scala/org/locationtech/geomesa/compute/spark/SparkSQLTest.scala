@@ -1,15 +1,17 @@
 package org.locationtech.geomesa.compute.spark
 
+import java.io.File
+import java.nio.file.Files
+
 import com.vividsolutions.jts.geom.Coordinate
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.accumulo.minicluster.{MiniAccumuloCluster, MiniAccumuloConfig}
 import org.apache.spark.sql.SparkSession
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStoreFinder, DataUtilities}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.format.ISODateTimeFormat
 import org.locationtech.geomesa.accumulo.AccumuloProperties.AccumuloQueryProperties
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloDataStoreParams => GM}
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams => GM}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -21,12 +23,18 @@ object SparkSQLTest extends App {
   System.setProperty(QueryProperties.SCAN_RANGES_TARGET.property, "10")
   System.setProperty(AccumuloQueryProperties.SCAN_BATCH_RANGES.property, s"${Int.MaxValue}")
 
-  val instance: MockInstance = new MockInstance("mycloud")
-  val connector = instance.getConnector("user", new PasswordToken("password"))
-  AccumuloDataStoreFactory.mockAccumuloThreadLocal.set(instance)
+  val randomDir = Files.createTempDirectory("mac").toFile
+  val mac = new MiniAccumuloCluster(randomDir, "password")
+  mac.start()
+  val instanceName = mac.getInstanceName
+  val connector = mac.getConnector("root", "password")
 
   val dsParams = Map(
-    "connector" -> connector,
+//    "connector" -> connector,
+    GM.zookeepersParam.getName -> mac.getZooKeepers,
+    GM.instanceIdParam.getName -> instanceName,
+    GM.userParam.getName -> "root",
+    GM.passwordParam.getName -> "password",
     "caching"   -> false,
     // note the table needs to be different to prevent testing errors
     "tableName" -> "sparksql")
@@ -55,11 +63,12 @@ object SparkSQLTest extends App {
 
   val df = spark.read
     .format("geomesa")
-    .option(GM.instanceIdParam.getName, "mycloud")
-    .option(GM.userParam.getName, "user")
+    .option(GM.instanceIdParam.getName, instanceName)
+    .option(GM.userParam.getName, "root")
     .option(GM.passwordParam.getName, "password")
     .option(GM.tableNameParam.getName, "sparksql")
-    .option(GM.mockParam.getName, "true")
+    .option(GM.zookeepersParam.getName, mac.getZooKeepers)
+//    .option(GM.mockParam.getName, "true")
     .option("geomesa.feature", "chicago")
     .load()
 
