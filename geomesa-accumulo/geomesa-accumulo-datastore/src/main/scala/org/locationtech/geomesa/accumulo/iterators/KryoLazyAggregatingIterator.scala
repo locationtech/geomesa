@@ -64,7 +64,7 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
     this.source = src.deepCopy(env)
     val options = jOptions.asScala
 
-    sft = IteratorCache.sft("", options(SFT_OPT))
+    sft = IteratorCache.sft(options(SFT_OPT))
     index = try { AccumuloFeatureIndex.index(options(INDEX_OPT)) } catch {
       case NonFatal(e) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(INDEX_OPT)}")
     }

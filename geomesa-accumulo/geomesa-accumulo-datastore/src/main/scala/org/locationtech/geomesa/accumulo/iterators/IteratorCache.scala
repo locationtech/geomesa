@@ -18,13 +18,12 @@ import org.opengis.filter.Filter
 
 object IteratorCache {
 
-  private val sftCache = new SoftThreadLocalCache[(String, String), SimpleFeatureType]()
+  private val sftCache = new SoftThreadLocalCache[String, SimpleFeatureType]()
   private val serializerCache = new SoftThreadLocalCache[(SimpleFeatureType, SerializationOptions), KryoFeatureSerializer]()
   private val kryoBufferCache = new SoftThreadLocalCache[(SimpleFeatureType, SerializationOptions), KryoBufferSimpleFeature]()
   private val filterCache = new SoftThreadLocalCache[String, Filter]()
 
-  def sft(name: String, spec: String): SimpleFeatureType =
-    sftCache.getOrElseUpdate((name, spec), SimpleFeatureTypes.createType(name, spec))
+  def sft(spec: String): SimpleFeatureType = sftCache.getOrElseUpdate(spec, SimpleFeatureTypes.createType("", spec))
 
   def serializer(sft: SimpleFeatureType, options: Set[SerializationOption]): KryoFeatureSerializer =
     serializerCache.getOrElseUpdate((sft, options), new KryoFeatureSerializer(sft, options))

@@ -35,7 +35,7 @@ class KryoLazyStatsIterator extends KryoLazyAggregatingIterator[Stat] {
   var serializer: StatSerializer = null
 
   override def init(options: Map[String, String]): Stat = {
-    sft = SimpleFeatureTypes.createType("", options(KryoLazyAggregatingIterator.SFT_OPT))
+    sft = IteratorCache.sft(options(KryoLazyAggregatingIterator.SFT_OPT))
     serializer = StatSerializer(sft)
     Stat(sft, options(STATS_STRING_KEY))
   }
