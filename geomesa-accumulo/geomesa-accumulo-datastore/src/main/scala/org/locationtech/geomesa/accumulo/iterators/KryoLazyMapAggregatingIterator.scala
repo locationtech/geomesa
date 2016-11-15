@@ -42,9 +42,10 @@ class KryoLazyMapAggregatingIterator extends KryoLazyAggregatingIterator[mutable
   override def init(options: Map[String, String]): mutable.Map[AnyRef, Int] = {
     val attributeName = options(MAP_ATTRIBUTE)
     mapAttribute = sft.indexOf(attributeName)
-    val mapSft = SimpleFeatureTypes.createType("", createMapSft(sft, attributeName))
+    val mapSpec = createMapSft(sft, attributeName)
+    val mapSft = IteratorCache.sft(mapSpec)
     val kryoOptions = if (index.serializedWithId) SerializationOptions.none else SerializationOptions.withoutId
-    serializer = new KryoFeatureSerializer(mapSft, kryoOptions)
+    serializer = IteratorCache.serializer(mapSpec, kryoOptions)
     featureToSerialize = new ScalaSimpleFeature("", mapSft, Array(null, GeometryUtils.zeroPoint))
     mutable.Map.empty[AnyRef, Int]
   }
