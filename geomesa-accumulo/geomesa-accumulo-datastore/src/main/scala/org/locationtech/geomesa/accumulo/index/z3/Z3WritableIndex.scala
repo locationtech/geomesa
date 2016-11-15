@@ -48,9 +48,10 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
   }
 
   // split(1 byte), week(2 bytes), z value (8 bytes), id (n bytes)
-  protected def getPointRowKey(timeToIndex: TimeToBinnedTime, sfc: Z3SFC, sft: SimpleFeatureType)
+  protected def getPointRowKey(timeToIndex: TimeToBinnedTime, sfc: Z3SFC, splitArray: Seq[Array[Byte]])
                               (wf: AccumuloFeature, dtgIndex: Int): Seq[Array[Byte]] = {
-    val split = splitArrays(sft)(wf.idHash % numSplits(sft))
+    val numSplits = splitArray.length
+    val split = splitArray(wf.idHash % numSplits)
     val (timeBin, z) = {
       val dtg = wf.feature.getAttribute(dtgIndex).asInstanceOf[Date]
       val time = if (dtg == null) 0 else dtg.getTime
@@ -63,9 +64,10 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
   }
 
   // split(1 byte), week (2 bytes), z value (3 bytes), id (n bytes)
-  protected def getGeomRowKeys(timeToIndex: TimeToBinnedTime, sfc: Z3SFC, sft: SimpleFeatureType)
+  protected def getGeomRowKeys(timeToIndex: TimeToBinnedTime, sfc: Z3SFC, splitArray: Seq[Array[Byte]])
                               (wf: AccumuloFeature, dtgIndex: Int): Seq[Array[Byte]] = {
-    val split = splitArrays(sft)(wf.idHash % numSplits(sft))
+    val numSplits = splitArray.length
+    val split = splitArray(wf.idHash % numSplits)
     val (timeBin, zs) = {
       val dtg = wf.feature.getAttribute(dtgIndex).asInstanceOf[Date]
       val time = if (dtg == null) 0 else dtg.getTime
@@ -129,7 +131,7 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
     ds.tableOps.setLocalityGroups(table, localityGroups)
 
     // drop first split, otherwise we get an empty tablet
-    val splits = splitArrays(sft).drop(1).map(new Text(_)).toSet
+    val splits = splitArrays(sft.getZShards).drop(1).map(new Text(_)).toSet
     val splitsToAdd = splits -- ds.tableOps.listSplits(table).toSet
     if (splitsToAdd.nonEmpty) {
       // noinspection RedundantCollectionConversion

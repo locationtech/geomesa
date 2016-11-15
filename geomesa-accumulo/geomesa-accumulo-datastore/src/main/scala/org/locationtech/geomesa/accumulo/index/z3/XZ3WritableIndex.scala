@@ -34,7 +34,8 @@ trait XZ3WritableIndex extends AccumuloWritableIndex {
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sharing = sft.getTableSharingBytes
     require(sharing.length < 2, s"Expecting only a single byte for table sharing, got ${sft.getTableSharingPrefix}")
-    val rowKey = getRowKey(sfc, timeToIndex, sharing, dtgIndex, sft)_
+    val splitArray = splitArrays(sft.getZShards)
+    val rowKey = getRowKey(sfc, timeToIndex, sharing, dtgIndex, splitArray)_
     (wf: AccumuloFeature) => {
       val mutation = new Mutation(rowKey(wf))
       wf.fullValues.foreach(value => mutation.put(value.cf, value.cq, value.vis, value.value))
@@ -48,7 +49,8 @@ trait XZ3WritableIndex extends AccumuloWritableIndex {
     val sfc = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sharing = sft.getTableSharingBytes
-    val rowKey = getRowKey(sfc, timeToIndex, sharing, dtgIndex, sft)_
+    val splitArray = splitArrays(sft.getZShards)
+    val rowKey = getRowKey(sfc, timeToIndex, sharing, dtgIndex, splitArray)_
     (wf: AccumuloFeature) => {
       val mutation = new Mutation(rowKey(wf))
       wf.fullValues.foreach(value => mutation.putDelete(value.cf, value.cq, value.vis))
@@ -64,9 +66,10 @@ trait XZ3WritableIndex extends AccumuloWritableIndex {
 
   // table sharing (0-1 byte), split (1 byte), time interval(2 bytes), z value (8 bytes), id (n bytes)
   private def getRowKey(sfc: XZ3SFC, timeToIndex: TimeToBinnedTime, tableSharing: Array[Byte], dtgIndex: Int,
-                        sft: SimpleFeatureType)
+                        splitArray: Seq[Array[Byte]])
                        (wf: AccumuloFeature): Array[Byte] = {
-    val split = splitArrays(sft)(wf.idHash % numSplits(sft))
+    val numSplits = splitArray.length
+    val split = splitArray(wf.idHash % numSplits)
     val envelope = wf.feature.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal
     // TODO support date intervals
     val dtg = wf.feature.getAttribute(dtgIndex).asInstanceOf[Date]
@@ -92,9 +95,9 @@ trait XZ3WritableIndex extends AccumuloWritableIndex {
     // drop first split, otherwise we get an empty tablet
     val splits = if (sft.isTableSharing) {
       val ts = sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)
-      splitArrays(sft).drop(1).map(s => new Text(ts ++ s)).toSet
+      splitArrays(sft.getZShards).drop(1).map(s => new Text(ts ++ s)).toSet
     } else {
-      splitArrays(sft).drop(1).map(new Text(_)).toSet
+      splitArrays(sft.getZShards).drop(1).map(new Text(_)).toSet
     }
     val splitsToAdd = splits -- ds.tableOps.listSplits(table).toSet
     if (splitsToAdd.nonEmpty) {

@@ -39,7 +39,7 @@ object SimpleFeatureTypes {
     // keep around old values for back compatibility
     val ENABLED_INDEX_OPTS  = Seq(ENABLED_INDICES, "geomesa.indexes.enabled", "table.indexes.enabled")
     val ST_INDEX_SCHEMA_KEY = "geomesa.index.st.schema"
-    val NUM_SPLITS_KEY      = "geomesa.index.numsplits"
+    val NUM_SPLITS_KEY      = "geomesa.index.zsplits"
   }
 
   private [geomesa] object InternalConfigs {

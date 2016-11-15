@@ -8,12 +8,17 @@
 
 package org.locationtech.geomesa.accumulo.index
 
+import java.util.concurrent.ConcurrentHashMap
 
 
 object SplitArrays {
-  val splitArraysMap: scala.collection.mutable.HashMap[Int, Seq[Array[Byte]]] =
-    new scala.collection.mutable.HashMap[Int, Seq[Array[Byte]]]()
+  val splitArraysMap: ConcurrentHashMap[Int, Seq[Array[Byte]]] =
+    new ConcurrentHashMap[Int, Seq[Array[Byte]]]()
 
-  def getSplitArray(numSplits: Int): Seq[Array[Byte]] =
-    splitArraysMap.getOrElseUpdate(numSplits, (0 until numSplits).map(_.toByte).toArray.map(Array(_)).toSeq)
+  def getSplitArray(numSplits: Int): Seq[Array[Byte]] = {
+    require(numSplits < 128, "only up to 128 splits are supported")
+    val temp = splitArraysMap.get(numSplits)
+    if (temp == null) splitArraysMap.put(numSplits, (0 until numSplits).map(_.toByte).toArray.map(Array(_)).toSeq)
+    splitArraysMap.get(numSplits)
+  }
 }

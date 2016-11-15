@@ -30,8 +30,9 @@ trait XZ2WritableIndex extends AccumuloWritableIndex {
     val sfc = XZ2SFC(sft.getXZPrecision)
     val sharing = sft.getTableSharingBytes
     require(sharing.length < 2, s"Expecting only a single byte for table sharing, got ${sft.getTableSharingPrefix}")
+    val splitArray = splitArrays(sft.getZShards)
     (wf: AccumuloFeature) => {
-      val mutation = new Mutation(getRowKey(sfc, sharing, sft)(wf))
+      val mutation = new Mutation(getRowKey(sfc, sharing, splitArray)(wf))
       wf.fullValues.foreach(value => mutation.put(value.cf, value.cq, value.vis, value.value))
       wf.binValues.foreach(value => mutation.put(value.cf, value.cq, value.vis, value.value))
       Seq(mutation)
@@ -41,8 +42,9 @@ trait XZ2WritableIndex extends AccumuloWritableIndex {
   override def remover(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
     val sfc = XZ2SFC(sft.getXZPrecision)
     val sharing = sft.getTableSharingBytes
+    val splitArray = splitArrays(sft.getZShards)
     (wf: AccumuloFeature) => {
-      val mutation = new Mutation(getRowKey(sfc, sharing, sft)(wf))
+      val mutation = new Mutation(getRowKey(sfc, sharing, splitArray)(wf))
       wf.fullValues.foreach(value => mutation.putDelete(value.cf, value.cq, value.vis))
       wf.binValues.foreach(value => mutation.putDelete(value.cf, value.cq, value.vis))
       Seq(mutation)
@@ -55,8 +57,9 @@ trait XZ2WritableIndex extends AccumuloWritableIndex {
   }
 
   // table sharing (0-1 byte), split(1 byte), xz value (8 bytes), id (n bytes)
-  private def getRowKey(sfc: XZ2SFC, tableSharing: Array[Byte], sft: SimpleFeatureType)(wf: AccumuloFeature): Array[Byte] = {
-    val split = splitArrays(sft)(wf.idHash % numSplits(sft))
+  private def getRowKey(sfc: XZ2SFC, tableSharing: Array[Byte], splitArray: Seq[Array[Byte]])(wf: AccumuloFeature): Array[Byte] = {
+    val numSplits = splitArray.length
+    val split = splitArray(wf.idHash % numSplits)
     val envelope = wf.feature.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal
     val xz = sfc.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY)
     val id = wf.feature.getID.getBytes(StandardCharsets.UTF_8)
@@ -78,9 +81,9 @@ trait XZ2WritableIndex extends AccumuloWritableIndex {
     // drop first split, otherwise we get an empty tablet
     val splits = if (sft.isTableSharing) {
       val ts = sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)
-      splitArrays(sft).drop(1).map(s => new Text(ts ++ s)).toSet
+      splitArrays(sft.getZShards).drop(1).map(s => new Text(ts ++ s)).toSet
     } else {
-      splitArrays(sft).drop(1).map(new Text(_)).toSet
+      splitArrays(sft.getZShards).drop(1).map(new Text(_)).toSet
     }
     val splitsToAdd = splits -- ds.tableOps.listSplits(table).toSet
     if (splitsToAdd.nonEmpty) {

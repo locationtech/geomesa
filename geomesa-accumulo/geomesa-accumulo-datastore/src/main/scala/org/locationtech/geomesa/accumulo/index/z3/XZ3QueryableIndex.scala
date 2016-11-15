@@ -154,7 +154,7 @@ trait XZ3QueryableIndex extends AccumuloFeatureIndexType
       val ranges = timesByBin.flatMap { case (b, times) =>
         val zs = if (times.eq(wholePeriod)) wholePeriodRanges else toZRanges(times)
         val binBytes = Shorts.toByteArray(b)
-        val prefixes = splitArrays(sft).map(Bytes.concat(tableSharing, _, binBytes))
+        val prefixes = splitArrays(sft.getZShards).map(Bytes.concat(tableSharing, _, binBytes))
         prefixes.flatMap { prefix =>
           zs.map { case (lo, hi) =>
             val start = Bytes.concat(prefix, lo)

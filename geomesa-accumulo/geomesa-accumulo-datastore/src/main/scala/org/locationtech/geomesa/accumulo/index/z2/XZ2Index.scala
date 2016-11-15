@@ -14,11 +14,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 case object XZ2Index extends AccumuloFeatureIndexType with XZ2WritableIndex with XZ2QueryableIndex {
 
-  def numSplits(sft: SimpleFeatureType): Int = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    sft.getZShards
-  }
-  def splitArrays(sft: SimpleFeatureType): Seq[Array[Byte]] = SplitArrays.getSplitArray(numSplits(sft))
+  def splitArrays(numSplits: Int): Seq[Array[Byte]] = SplitArrays.getSplitArray(numSplits)
 
   override val name: String = "xz2"
 

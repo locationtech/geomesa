@@ -111,9 +111,9 @@ trait XZ2QueryableIndex extends AccumuloFeatureIndexType
 
       val prefixes = if (sft.isTableSharing) {
         val ts = sft.getTableSharingBytes
-        splitArrays(sft).map(ts ++ _)
+        splitArrays(sft.getZShards).map(ts ++ _)
       } else {
-        splitArrays(sft)
+        splitArrays(sft.getZShards)
       }
 
       prefixes.flatMap { prefix =>
