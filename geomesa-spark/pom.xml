@@ -12,8 +12,30 @@
     <name>GeoMesa Spark</name>
     <artifactId>geomesa-spark_2.11</artifactId>
     <packaging>pom</packaging>
+
     <modules>
+        <module>geomesa-spark-core</module>
         <module>geomesa-spark-sql</module>
         <module>geomesa-spark-accumulo</module>
     </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-spark-core_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-spark-sql_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-spark-accumulo_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>

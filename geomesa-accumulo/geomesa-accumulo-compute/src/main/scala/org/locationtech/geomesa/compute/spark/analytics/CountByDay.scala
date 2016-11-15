@@ -11,23 +11,25 @@ package org.locationtech.geomesa.compute.spark.analytics
 import java.text.SimpleDateFormat
 
 import org.apache.hadoop.conf.Configuration
+import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.compute.spark.GeoMesaSpark
+import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
 
 object CountByDay {
 
   val params = Map(
-    "instanceId" -> "mycloud",
-    "zookeepers" -> "zoo1,zoo2,zoo3",
-    "user"       -> "user",
-    "password"   -> "password",
-    "tableName"  -> "geomesa_catalog")
+    "instanceId" -> "local ",
+    "zookeepers" -> "localhost",
+    "user"       -> "root",
+    "password"   -> "secret",
+    "tableName"  -> "geomesa")
 
   // see geomesa-tools/conf/sfts/gdelt/reference.conf
   val typeName = "gdelt"
@@ -50,25 +52,22 @@ object CountByDay {
     val sc = new SparkContext(GeoMesaSpark.init(new SparkConf(true), ds))
 
     // Create an RDD from a query
-    val queryRDD = GeoMesaSpark.rdd(new Configuration, sc, params, q, None)
-
-    // Convert RDD[SimpleFeature] to RDD[(String, SimpleFeature)] where the first
-    // element of the tuple is the date to the day resolution
-    val dayAndFeature = queryRDD.mapPartitions { iter =>
-      val df = new SimpleDateFormat("yyyyMMdd")
-      val ff = CommonFactoryFinder.getFilterFactory2
-      val exp = ff.property(date)
-      iter.map { f => (df.format(exp.evaluate(f).asInstanceOf[java.util.Date]), f) }
-    }
-
-    // Count the number of features in each day
-    val countByDay = dayAndFeature.map( x => (x._1, 1)).reduceByKey(_ + _)
+    val rdd = GeoMesaSpark.rdd(new Configuration, sc, params, q)
 
     // Collect the results and print
-    countByDay.collect().foreach(println)
+    countByDay(rdd).collect().foreach(println)
     println("\n")
 
     ds.dispose()
   }
 
+  def countByDay(rdd: RDD[SimpleFeature], dateField: String = "dtg") = {
+    val dayAndFeature = rdd.mapPartitions { iter =>
+      val df = new SimpleDateFormat("yyyyMMdd")
+      val ff = CommonFactoryFinder.getFilterFactory2
+      val exp = ff.property(dateField)
+      iter.map { f => (df.format(exp.evaluate(f).asInstanceOf[java.util.Date]), f) }
+    }
+    dayAndFeature.map( x => (x._1, 1)).reduceByKey(_ + _)
+  }
 }

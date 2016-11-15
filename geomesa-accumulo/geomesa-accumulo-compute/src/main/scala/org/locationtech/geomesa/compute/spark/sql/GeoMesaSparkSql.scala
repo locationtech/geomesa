@@ -119,7 +119,7 @@ object GeoMesaSparkSql extends LazyLogging {
   /**
    * Execute a sql query against geomesa. Where clause is interpreted as CQL.
    */
-  def execute(sql: String, splits: Option[Int] = None): (StructType, Array[Row]) = {
+  def execute(sql: String): (StructType, Array[Row]) = {
     val canStart = synchronized {
       // we need to compare and modify the state inside the synchronized block
       if (running) {
@@ -130,7 +130,7 @@ object GeoMesaSparkSql extends LazyLogging {
     require(canStart, "Can only execute in a running instance")
 
     try {
-      val results = sparkSql.query(sql, splits)
+      val results = sparkSql.query(sql)
       // return the result schema and rows
       (results.schema, results.collect())
     } finally {
@@ -241,7 +241,7 @@ class GeoMesaSparkSql(sc: SparkContext, dsParams: Seq[Map[String, String]]) {
   /**
    * Execute a sql query against geomesa. Where clause is interpreted as CQL.
    */
-  def query(sql: String, splits: Option[Int]): DataFrame = {
+  def query(sql: String): DataFrame = {
     val parsedSql = dataContext.parseQuery(sql)
 
     // extract the feature types from the from clause
@@ -285,7 +285,7 @@ class GeoMesaSparkSql(sc: SparkContext, dsParams: Seq[Map[String, String]]) {
       val schema = StructType(fields)
 
       // create an rdd from the query
-      val features = GeoMesaSpark.rdd(new Configuration(), sc, params, query, splits)
+      val features = GeoMesaSpark.rdd(new Configuration(), sc, params, query)
 
       // convert records to rows - convert the values to sql-compatible ones
       val rowRdd = features.map { f =>

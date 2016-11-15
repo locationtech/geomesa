@@ -103,10 +103,9 @@ class AnalyticEndpoint(val persistence: FilePersistence) extends GeoMesaDataStor
    */
   get("/sql") {
     val sql = params.get("q").getOrElse(params("query"))
-    val splits = params.get("splits").map(_.toInt)
     try {
       GeoMesaSparkSql.start(sparkConfigs, distributedJars) // ensure the spark context is running
-      val results = GeoMesaSparkSql.execute(sql, splits)
+      val results = GeoMesaSparkSql.execute(sql)
       val output = SqlResults(results._1, results._2.toSeq.map(_.toSeq))
       format match {
         case "txt" => sqlToText(output)
