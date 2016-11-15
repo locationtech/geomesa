@@ -54,22 +54,24 @@ class KryoLazyFilterTransformIterator extends
     println(s"Initializing KLFTI, sampling = ${env.getSamplerConfiguration != null}")
     IteratorClassLoader.initClassLoader(getClass)
     this.source = src.deepCopy(env)
-    sft = IteratorCache.sft(options.get(SFT_OPT))
+
+    val spec = options.get(SFT_OPT)
+    sft = IteratorCache.sft(spec)
 
     val index = try { AccumuloFeatureIndex.index(options.get(INDEX_OPT)) } catch {
       case NonFatal(e) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(INDEX_OPT)}")
     }
     val kryoOptions = if (index.serializedWithId) SerializationOptions.none else SerializationOptions.withoutId
-    reusableSf = IteratorCache.kryoBufferFeature(sft, kryoOptions)
+    reusableSf = IteratorCache.serializer(spec, kryoOptions).getReusableFeature
 
     val transform = Option(options.get(TRANSFORM_DEFINITIONS_OPT))
     val transformSchema = Option(options.get(TRANSFORM_SCHEMA_OPT))
     for { t <- transform; ts <- transformSchema } {
-      reusableSf.setTransforms(t, IteratorCache.sft(ts))
+      reusableSf.setTransforms(t, SimpleFeatureTypes.createType("", ts))
     }
     hasTransform = transform.isDefined
 
-    val cql = Option(options.get(CQL_OPT)).map(IteratorCache.filter)
+    val cql = Option(options.get(CQL_OPT)).map(IteratorCache.filter(spec, _))
     val sampling = sample(options)
 
     filter = (cql, sampling) match {

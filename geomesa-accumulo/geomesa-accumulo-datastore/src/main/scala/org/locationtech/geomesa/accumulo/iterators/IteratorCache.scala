@@ -8,7 +8,9 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import org.locationtech.geomesa.features.SerializationOption.{SerializationOption, SerializationOptions}
+import java.util.concurrent.ConcurrentHashMap
+
+import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
@@ -16,20 +18,57 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+/**
+  * Cache for expensive objects used in iterators
+  */
 object IteratorCache {
 
-  private val sftCache = new SoftThreadLocalCache[String, SimpleFeatureType]()
-  private val serializerCache = new SoftThreadLocalCache[(SimpleFeatureType, SerializationOptions), KryoFeatureSerializer]()
-  private val kryoBufferCache = new SoftThreadLocalCache[(SimpleFeatureType, SerializationOptions), KryoBufferSimpleFeature]()
-  private val filterCache = new SoftThreadLocalCache[String, Filter]()
+  // thread safe objects can use a concurrent hashmap
+  private val sftCache = new ConcurrentHashMap[String, SimpleFeatureType]()
+  private val serializerCache = new ConcurrentHashMap[(String, String), KryoFeatureSerializer]()
 
-  def sft(spec: String): SimpleFeatureType = sftCache.getOrElseUpdate(spec, SimpleFeatureTypes.createType("", spec))
+  // non-thread safe objects use thread-locals
+  private val filterCache = new SoftThreadLocalCache[(String, String), Filter]()
 
-  def serializer(sft: SimpleFeatureType, options: Set[SerializationOption]): KryoFeatureSerializer =
-    serializerCache.getOrElseUpdate((sft, options), new KryoFeatureSerializer(sft, options))
+  /**
+    * Returns a cached simple feature type, creating one if necessary. Note: do not modify returned value.
+    *
+    * @param spec simple feature type spec
+    * @return
+    */
+  def sft(spec: String): SimpleFeatureType = {
+    val cached = sftCache.get(spec)
+    if (cached != null) { cached } else {
+      val sft = SimpleFeatureTypes.createType("", spec)
+      sftCache.put(spec, sft)
+      sft
+    }
+  }
 
-  def kryoBufferFeature(sft: SimpleFeatureType, options: Set[SerializationOption]) =
-    kryoBufferCache.getOrElseUpdate((sft, options), serializer(sft, options).getReusableFeature)
+  /**
+    * Returns a cached serializer, creating one if necessary
+    *
+    * @param spec simple feature type
+    * @param options serialization options
+    * @return
+    */
+  def serializer(spec: String, options: Set[SerializationOption]): KryoFeatureSerializer = {
+    val cached = serializerCache.get((spec, options.mkString))
+    if (cached != null) { cached } else {
+      val serializer = new KryoFeatureSerializer(sft(spec), options)
+      serializerCache.put((spec, options.mkString), serializer)
+      serializer
+    }
+  }
 
-  def filter(ecql: String): Filter = filterCache.getOrElseUpdate(ecql, FastFilterFactory.toFilter(ecql))
+  /**
+    * Returns a cached filter, creating one if necessary. Note: need to include simple feature type in cache key,
+    * as attribute name -> index gets cached in the filter
+    *
+    * @param spec simple feature type spec being filtered
+    * @param ecql ecql
+    * @return
+    */
+  def filter(spec: String, ecql: String): Filter =
+    filterCache.getOrElseUpdate((spec, ecql), FastFilterFactory.toFilter(ecql))
 }

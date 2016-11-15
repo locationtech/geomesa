@@ -64,20 +64,21 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
     this.source = src.deepCopy(env)
     val options = jOptions.asScala
 
-    sft = IteratorCache.sft(options(SFT_OPT))
+    val spec = options(SFT_OPT)
+    sft = IteratorCache.sft(spec)
     index = try { AccumuloFeatureIndex.index(options(INDEX_OPT)) } catch {
       case NonFatal(e) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(INDEX_OPT)}")
     }
 
     if (index.serializedWithId) {
       getId = (_) => reusableSf.getID
-      reusableSf = IteratorCache.kryoBufferFeature(sft, SerializationOptions.none)
+      reusableSf = IteratorCache.serializer(spec, SerializationOptions.none).getReusableFeature
     } else {
       val getIdFromRow = index.getIdFromRow(sft)
       getId = (row) => getIdFromRow(row.getBytes, 0, row.getLength)
-      reusableSf = IteratorCache.kryoBufferFeature(sft, SerializationOptions.withoutId)
+      reusableSf = IteratorCache.serializer(spec, SerializationOptions.withoutId).getReusableFeature
     }
-    val filt = options.get(CQL_OPT).map(IteratorCache.filter).orNull
+    val filt = options.get(CQL_OPT).map(IteratorCache.filter(spec, _)).orNull
     val dedupe = options.get(DUPE_OPT).exists(_.toBoolean)
     maxIdsToTrack = options.get(MAX_DUPE_OPT).map(_.toInt).getOrElse(99999)
     validate = (filt, dedupe) match {
