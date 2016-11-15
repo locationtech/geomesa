@@ -54,6 +54,7 @@ class KryoLazyFilterTransformIterator extends
 
     IteratorClassLoader.initClassLoader(getClass)
 
+    env.cloneWithSamplingEnabled()
     this.source = src.deepCopy(env)
     sft = SimpleFeatureTypes.createType("test", options.get(SFT_OPT))
 

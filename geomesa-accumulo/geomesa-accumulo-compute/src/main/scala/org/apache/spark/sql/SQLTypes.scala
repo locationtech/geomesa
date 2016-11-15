@@ -112,37 +112,9 @@ object SQLTypes {
           } else {
             filt
           }
-
-        case t =>
-          log.debug(s"Not optimizing $t")
-          t
-
-          // TODO: figure out how to extract temporal bounds and push down to GeoMesa
-/*
-        case f @ Filter(cond, lr@LogicalRelation(gmRel: GeoMesaRelation, _, _)) =>
-          cond.transformUp {
-            case g @ GreaterThanOrEqual(AttributeReference(n1, DataTypes.TimestampType, _, _), Literal(lb, DataTypes.TimestampType)) =>
-              lr
-          }
-          lr
-*/
       }
     }
   }
-
-
-
-  object STContains extends Rule[LogicalPlan] {
-    override def apply(plan: LogicalPlan): LogicalPlan = plan transform {
-      case t @ (_: GeoMesaRelation | _: Polygon) => plan
-
-        case f @ Filter(ScalaUDF(ST_Contains, _, Seq(_, GeometryLiteral(_, geom)), _), LogicalRelation(gm: GeoMesaRelation,_, _)) => {
-          LogicalRelation(gm.copy(filt = ff.within(ff.property("geometry"), ff.literal(geom))))
-        }
-        case t => t
-    }
-  }
-
 
   object FoldConstantGeometryRule extends Rule[LogicalPlan] {
     override def apply(plan: LogicalPlan): LogicalPlan = {
@@ -157,7 +129,7 @@ object SQLTypes {
   }
 
   def registerOptimizations(sqlContext: SQLContext): Unit = {
-    Seq(FoldConstantGeometryRule, STContains).foreach { r =>
+    Seq(FoldConstantGeometryRule, STContainsRule).foreach { r =>
       if(!sqlContext.experimental.extraOptimizations.contains(r))
         sqlContext.experimental.extraOptimizations ++= Seq(r)
     }
@@ -247,8 +219,17 @@ private [spark] class PolygonUDT extends UserDefinedType[Polygon] {
 
   override def deserialize(datum: Any): Polygon = {
     val ir = datum.asInstanceOf[InternalRow]
-    val coords = ir.getArray(1).toDoubleArray().grouped(2).map { case Array(l, r) => new Coordinate(l, r) }
-    SQLTypes.geomFactory.createPolygon(coords.toArray)
+    val coordsD = ir.getArray(1).toDoubleArray()
+    val length = coordsD.length
+    val numCoords = length/2
+    val coords = Array.ofDim[Coordinate](numCoords)
+    var i = 0
+    while(i < numCoords) {
+      val offset = i*2
+      coords(i) = new Coordinate(coordsD(offset), coordsD(offset+1))
+      i += 1
+    }
+    SQLTypes.geomFactory.createPolygon(coords)
   }
 
 }
