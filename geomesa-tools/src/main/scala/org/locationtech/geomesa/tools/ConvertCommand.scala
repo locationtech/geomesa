@@ -34,10 +34,6 @@ class ConvertCommand extends Command with LazyLogging {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     import scala.collection.JavaConversions._
 
-    val fmtParam = Option(params.format).flatMap(f => DataFormats.values.find(_.toString.equalsIgnoreCase(f)))
-    lazy val fmtFile = params.files.flatMap(DataFormats.fromFileName(_).right.toOption).headOption
-    val fmt = fmtParam.orElse(fmtFile).orNull
-
     val sft = CLArgResolver.getSft(params.spec)
 
     logger.info(s"Using SFT definition: ${sft}")
@@ -66,11 +62,7 @@ class ConvertCommand extends Command with LazyLogging {
       case Avro           =>
         val avroCompression = Option(params.gzip).map(_.toInt).getOrElse(Deflater.DEFAULT_COMPRESSION)
         new AvroExporter(sft, outputStream, avroCompression)
-      case Bin            =>
-        if(Seq(params.idAttribute, params.latAttribute, params.lonAttribute, params.labelAttribute).contains(null))
-          throw new ParameterException("Missing parameters for binary export. "
-            + "For more information use: ./geomesa convert --help")
-        BinExporter(outputStream, params.asInstanceOf[BinExportParams], sft.getDtgField)
+      case Bin            => BinExporter(outputStream, params.asInstanceOf[BinExportParams], sft.getDtgField)
       case _              => throw new ParameterException(s"Format $outFmt is not supported.")
     }
 
@@ -78,7 +70,7 @@ class ConvertCommand extends Command with LazyLogging {
     val fc = new DefaultFeatureCollection(sft.getTypeName, sft)
 
     try {
-      params.files.foreach{ file =>
+      params.files.foreach { file =>
         val ec = converter.createEvaluationContext(Map("inputFilePath" -> file))
         val dataIter = converter.process(new FileInputStream(file.toString), ec)
         if (params.maxFeatures != null && params.maxFeatures >= 0) {
@@ -86,7 +78,9 @@ class ConvertCommand extends Command with LazyLogging {
           for (i <- 1 to params.maxFeatures) {
             if (dataIter.hasNext) fc.add(dataIter.next())
           }
-        } else dataIter.foreach(fc.add)
+        } else {
+          dataIter.foreach(fc.add)
+        }
         logger.info(s"Converted ${getPlural(ec.counter.getLineCount, "simple feature")} "
           + s"with ${getPlural(ec.counter.getSuccess, "success", "successes")} "
           + s"and ${getPlural(ec.counter.getFailure, "failure")}")
@@ -101,10 +95,12 @@ class ConvertCommand extends Command with LazyLogging {
 }
 
 object ConvertParameters {
-  @Parameters(commandDescription = "Convert files using GeoMesa's internal SFT converter framework")
-  class ConvertParameters extends RootExportParams
+  @Parameters(commandDescription = "Convert files using GeoMesa's internal converter framework")
+  class ConvertParameters extends FileExportParams
+    with MaxFeaturesParam
+    with InputFilesParam
     with OptionalTypeNameParam
     with OptionalBinExportParams
     with RequiredFeatureSpecParam
-    with InputFileParams
+    with ConverterConfigParam
 }

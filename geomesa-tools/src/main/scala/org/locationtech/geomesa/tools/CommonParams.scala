@@ -14,6 +14,7 @@ import java.util.regex.Pattern
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 
 /**
@@ -108,15 +109,35 @@ trait OptionalZookeepersParam {
   var zookeepers: String = null
 }
 
-trait InputFileParams {
-  @Parameter(names = Array("-C", "--converter"), description = "GeoMesa converter specification as a config string, file name, or name of an available converter")
-  var config: String = null
-
-  @Parameter(names = Array("--input-format"), description = "File format of input files (shp, csv, tsv, avro, etc). Optional, autodetection will be attempted.")
-  var format: String = null
-
+trait InputFilesParam {
   @Parameter(description = "<file>...", required = true)
   var files: java.util.List[String] = new util.ArrayList[String]()
+}
+
+trait InputFormatParam extends InputFilesParam {
+  import scala.collection.JavaConversions._
+
+  def format: String
+
+  def fmt: DataFormats.DataFormat = {
+    val fmtParam = Option(format).flatMap(f => DataFormats.values.find(_.toString.equalsIgnoreCase(f)))
+    lazy val fmtFile = files.flatMap(DataFormats.fromFileName(_).right.toOption).headOption
+    fmtParam.orElse(fmtFile).orNull
+  }
+}
+
+trait OptionalInputFormatParam extends InputFormatParam {
+  @Parameter(names = Array("--input-format"), description = "File format of input files (shp, csv, tsv, avro, etc). Optional, autodetection will be attempted.")
+  var format: String = null
+}
+
+trait ConverterConfigParam {
+  @Parameter(names = Array("-C", "--converter"), description = "GeoMesa converter specification as a config string, file name, or name of an available converter")
+  var config: String = null
+}
+
+trait ConvertParams {
+
 }
 
 trait OptionalIndexParam extends TypeNameParam {

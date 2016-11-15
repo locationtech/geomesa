@@ -10,14 +10,10 @@ package org.locationtech.geomesa.tools.export
 
 import java.io.File
 
-import com.beust.jcommander.{Parameter, Parameters}
-import org.locationtech.geomesa.tools._
-import org.locationtech.geomesa.tools.{CatalogParam, OptionalCqlFilterParam, OptionalIndexParam, RequiredTypeNameParam}
+import com.beust.jcommander.Parameter
+import org.locationtech.geomesa.tools.{CatalogParam, OptionalCqlFilterParam, OptionalIndexParam, RequiredTypeNameParam, _}
 
-trait RootExportParams extends OptionalCqlFilterParam {
-  @Parameter(names = Array("-m", "--max-features"), description = "Maximum number of features to return. default: Unlimited")
-  var maxFeatures: Integer = null
-
+trait FileExportParams {
   @Parameter(names = Array("-o", "--output"), description = "Output to a file instead of std out")
   var file: File = null
 
@@ -31,9 +27,12 @@ trait RootExportParams extends OptionalCqlFilterParam {
   var noHeader: Boolean = false
 }
 
+trait MaxFeaturesParam {
+  @Parameter(names = Array("-m", "--max-features"), description = "Maximum number of features to return. default: Unlimited")
+  var maxFeatures: Integer = null
+}
 
-trait BaseExportParams extends RootExportParams
-  with TypeNameParam  with OptionalIndexParam {
+trait DataExportParams extends OptionalCqlFilterParam with MaxFeaturesParam {
   @Parameter(names = Array("-a", "--attributes"), description = "Attributes from feature to export " +
     "(comma-separated)...Comma-separated expressions with each in the format " +
     "attribute[=filter_function_expression]|derived-attribute=filter_function_expression. " +
@@ -42,8 +41,9 @@ trait BaseExportParams extends RootExportParams
   var attributes: java.util.List[String] = null
 }
 
-trait ExportParams extends BaseExportParams
-  with CatalogParam with RequiredTypeNameParam
+trait BaseExportParams extends FileExportParams with DataExportParams with TypeNameParam with OptionalIndexParam
+
+trait ExportParams extends BaseExportParams with CatalogParam with RequiredTypeNameParam
 
 trait BaseBinExportParams {
   @Parameter(names = Array("--id-attribute"), description = "Name of the id attribute to export")
@@ -64,9 +64,4 @@ trait OptionalBinExportParams extends BaseBinExportParams {
   var dateAttribute: String = null
 }
 
-trait RequiredBinExportParams extends BaseBinExportParams {
-  @Parameter(names = Array("--dt-attribute"), description = "Name of the date attribute to export", required = true)
-  var dateAttribute: String = null
-}
-
-trait BinExportParams extends RequiredBinExportParams with BaseExportParams with RequiredTypeNameParam
+trait BinExportParams extends OptionalBinExportParams with BaseExportParams with RequiredTypeNameParam

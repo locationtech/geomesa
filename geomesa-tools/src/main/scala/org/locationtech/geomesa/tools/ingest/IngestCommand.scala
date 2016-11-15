@@ -10,12 +10,11 @@ package org.locationtech.geomesa.tools.ingest
 
 import java.io.File
 import java.net.URL
-import java.util
 
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.{CLArgResolver, DataFormats}
-import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, OptionalFeatureSpecParam, OptionalTypeNameParam}
 import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
 
 import scala.collection.parallel.ForkJoinTaskSupport
@@ -35,11 +34,7 @@ trait IngestCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand
 
     ensureSameFs(IngestCommand.RemotePrefixes)
 
-    val fmtParam = Option(params.format).flatMap(f => DataFormats.values.find(_.toString.equalsIgnoreCase(f)))
-    lazy val fmtFile = params.files.flatMap(DataFormats.fromFileName(_).right.toOption).headOption
-    val fmt = fmtParam.orElse(fmtFile).orNull
-
-    if (fmt == Shp) {
+    if (params.fmt == Shp) {
       // If someone is ingesting file from hdfs or S3, we add the Hadoop URL Factories to the JVM.
       if (params.files.exists(IngestCommand.isDistributedUrl)) {
         import org.apache.hadoop.fs.FsUrlStreamHandlerFactory
@@ -59,13 +54,13 @@ trait IngestCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand
     } else {
       // if there is no sft and no converter passed in, try to use the auto ingest which will
       // pick up the schema from the input files themselves
-      val ingest = if (params.spec == null && params.config == null && Seq(Csv, Tsv, Avro).contains(fmt)) {
+      val ingest = if (params.spec == null && params.config == null && Seq(Csv, Tsv, Avro).contains(params.fmt)) {
         if (params.featureName == null) {
           throw new ParameterException("Feature name is required when a schema is not specified")
         }
         // auto-detect the import schema
         logger.info("No schema or converter defined - will attempt to detect schema from input files")
-        new AutoIngest(params.featureName, connection, params.files, fmt, libjarsFile, libjarsPaths, params.threads)
+        new AutoIngest(params.featureName, connection, params.files, params.fmt, libjarsFile, libjarsPaths, params.threads)
       } else {
         val sft = CLArgResolver.getSft(params.spec, params.featureName)
         val converterConfig = CLArgResolver.getConfig(params.config)
@@ -86,18 +81,13 @@ trait IngestCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand
 }
 
 // @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
-trait IngestParams extends CatalogParam with OptionalTypeNameParam with OptionalFeatureSpecParam {
-  @Parameter(names = Array("-C", "--converter"), description = "GeoMesa converter specification as a config string, file name, or name of an available converter")
-  var config: String = null
-
-  @Parameter(names = Array("-F", "--format"), description = "File format of input files (shp, csv, tsv, avro, etc)")
-  var format: String = null
-
+trait IngestParams extends CatalogParam
+  with OptionalTypeNameParam
+  with OptionalFeatureSpecParam
+  with ConverterConfigParam
+  with OptionalInputFormatParam {
   @Parameter(names = Array("-t", "--threads"), description = "Number of threads if using local ingest")
   var threads: Integer = 1
-
-  @Parameter(description = "<file>...", required = true)
-  var files: java.util.List[String] = new util.ArrayList[String]()
 }
 
 object IngestCommand {
