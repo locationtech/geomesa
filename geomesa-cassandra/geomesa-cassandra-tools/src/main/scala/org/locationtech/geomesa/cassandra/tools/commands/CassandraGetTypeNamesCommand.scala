@@ -16,8 +16,8 @@ import org.locationtech.geomesa.tools.status.GetTypeNamesCommand
 
 
 class CassandraGetTypeNamesCommand extends GetTypeNamesCommand[CassandraDataStore] with CassandraDataStoreCommand {
-  override val params = new CassandraDataStoreParams
+  override val params = new GetTypeNamesParams
 }
 
-//@Parameters(commandDescription = "List GeoMesa feature types for a given catalog")
-//class GetTypeNamesParams extends CassandraDataStoreParams
+@Parameters(commandDescription = "List GeoMesa feature types for a given catalog")
+class GetTypeNamesParams extends CassandraDataStoreParams

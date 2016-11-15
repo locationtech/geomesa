@@ -19,7 +19,8 @@ trait CassandraDataStoreCommand extends DataStoreCommand[CassandraDataStore] {
   override val params = new CassandraDataStoreParams
 
   override def connection: Map[String, String] =
-    Map(CassandraDataStoreParams.CATALOG.getName -> params.catalog,
+    Map(
+      CassandraDataStoreParams.CATALOG.getName -> params.catalog,
       CassandraDataStoreParams.KEYSPACE.getName -> params.keySpace,
       CassandraDataStoreParams.NAMESPACE.getName -> params.nameSpace,
       CassandraDataStoreParams.CONTACT_POINT.getName -> params.contactPoint
