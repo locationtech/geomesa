@@ -190,7 +190,7 @@ user data using the hint ``geomesa.z.splits``:
 
     SimpleFeatureType sft = ...
     sft.setZShards(16)
-    
+
 .. _customizing_z_index:
 
 Customizing the Z-Index
