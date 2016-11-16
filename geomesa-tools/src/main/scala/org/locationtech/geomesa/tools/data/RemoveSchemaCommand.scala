@@ -17,7 +17,6 @@ import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.Prompt
 
 trait RemoveSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
-//  trait RemoveSchemaCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
 
   override val name = "remove-schema"
   override def params: RemoveSchemaParams
