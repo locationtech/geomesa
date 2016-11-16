@@ -31,9 +31,9 @@ class MonitoringFeatureReader(storeType: String, query: Query, delegate: Feature
 
   override def next(): SimpleFeature = {
     counter += 1
-    profile(delegate.next(), "next")
+    profile("next")(delegate.next())
   }
-  override def hasNext: Boolean = profile(delegate.hasNext, "hasNext")
+  override def hasNext: Boolean = profile("hasNext")(delegate.hasNext)
 
   override def close() = if (!closed.getAndSet(true)) {
     closeOnce()

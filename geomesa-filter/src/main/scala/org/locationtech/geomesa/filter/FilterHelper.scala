@@ -471,6 +471,55 @@ object FilterHelper {
     filter.accept(new IdDetectingFilterVisitor, false).asInstanceOf[Boolean]
 
   def filterListAsAnd(filters: Seq[Filter]): Option[Filter] = andOption(filters)
+
+  /**
+    * Extracts out common parts in an OR clause to simplify further processing.
+    *
+    * Example: OR(AND(1, 2), AND(1, 3), AND(1, 4)) -> AND(1, OR(2, 3, 4))
+    *
+    * @param filter filter
+    * @return
+    */
+  def deduplicateOrs(filter: Filter): Filter = {
+    def deduplicate(f: Filter): Filter = f match {
+      case and: And => ff.and(and.getChildren.map(deduplicate))
+
+      case or: Or =>
+        // OR(AND(1,2,3), AND(1,2,4)) -> Seq(Seq(1,2,3), Seq(1,2,4))
+        val decomposed = or.getChildren.map(decomposeAnd)
+        val clauses = decomposed.head // Seq(1,2,3)
+        val duplicates = clauses.filter(c => decomposed.tail.forall(_.contains(c))) // Seq(1,2)
+        if (duplicates.isEmpty) { or } else {
+          val deduplicated = orOption(decomposed.flatMap(d => andOption(d.filterNot(duplicates.contains))))
+          andFilters(deduplicated.toSeq ++ duplicates)
+        }
+
+      case _ => f
+    }
+    flatten(deduplicate(flatten(filter)))
+  }
+
+  /**
+    * Flattens nested ands and ors.
+    *
+    * Example: AND(1, AND(2, 3)) -> AND(1, 2, 3)
+    *
+    * @param filter filter
+    * @return
+    */
+  def flatten(filter: Filter): Filter = {
+    filter match {
+      case and: And =>
+        val (ands, others) = and.getChildren.map(flatten).partition(_.isInstanceOf[And])
+        ff.and(ands.flatMap(_.asInstanceOf[And].getChildren) ++ others)
+
+      case or: Or =>
+        val (ors, others) = or.getChildren.map(flatten).partition(_.isInstanceOf[Or])
+        ff.or(ors.flatMap(_.asInstanceOf[Or].getChildren) ++ others)
+
+      case f: Filter => f
+    }
+  }
 }
 
 /**

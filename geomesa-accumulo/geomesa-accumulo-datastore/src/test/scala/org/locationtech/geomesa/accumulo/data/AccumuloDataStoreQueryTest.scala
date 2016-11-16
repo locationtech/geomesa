@@ -340,6 +340,21 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       }
     }
 
+    "support complex OR queries" in {
+      val sft = createNewSchema("attr1:String,attr2:Double,dtg:Date,*geom:Point:srid=4326")
+      val date = "dtg > '2010-05-07T12:29:50.000Z' AND dtg < '2010-05-07T12:30:10.000Z'"
+      def attr(fuzz: Int) = s"(intersects(geom, POLYGON ((39.$fuzz 39.$fuzz, 44.$fuzz 39.$fuzz, 44.$fuzz 44.$fuzz, 39.$fuzz 44.$fuzz, 39.$fuzz 39.$fuzz))) AND attr1 like 'foo%' AND attr2 > 0.001 and attr2 < 2.001)"
+      val disjoint = "disjoint(geom, POLYGON ((40 40, 42 42, 42 44, 40 40)))"
+      val clauses = (0 until 128).map(attr).mkString(" OR ")
+      val filter = s"$date AND ($clauses) AND $disjoint"
+      val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
+      val start = System.currentTimeMillis()
+      // makes sure this doesn't blow up
+      SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      // we give it 30 seconds due to weak build boxes
+      (System.currentTimeMillis() - start) must beLessThan(30000L)
+    }
+
     "avoid deduplication when possible" in {
       val sft = createNewSchema(s"name:String:index=join:cardinality=high,dtg:Date,*geom:Point:srid=4326")
       addFeature(sft, ScalaSimpleFeature.create(sft, "1", "bob", "2010-05-07T12:00:00.000Z", "POINT(45 45)"))

@@ -90,10 +90,10 @@ class GeoMesaFeatureReaderWithAudit(sft: SimpleFeatureType,
     extends GeoMesaFeatureReader(query, timeout, maxFeatures) with MethodProfiling {
 
   implicit val timings = new TimingsImpl
-  private val iter = profile(qp.runQuery(sft, query, None), "planning")
+  private val iter = profile("planning")(qp.runQuery(sft, query, None))
 
-  override def next(): SimpleFeature = profile(iter.next(), "next")
-  override def hasNext: Boolean = profile(iter.hasNext, "hasNext")
+  override def next(): SimpleFeature = profile("next")(iter.next())
+  override def hasNext: Boolean = profile("hasNext")(iter.hasNext)
 
   override protected def closeOnce(): Unit = {
     iter.close()
