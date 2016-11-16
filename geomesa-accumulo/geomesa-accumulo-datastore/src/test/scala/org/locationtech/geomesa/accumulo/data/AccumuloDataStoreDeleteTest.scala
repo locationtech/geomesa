@@ -27,6 +27,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter
+import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -99,31 +100,33 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       tables2 must containTheSameElementsAs(Seq(AttributeIndex, RecordIndex, Z2Index, Z3Index))
       forall(tableNames2)(tableOps.exists(_) must beTrue)
 
-      // tests that metadata exists in the catalog before being deleted
-      ds.getFeatureReader(new Query(typeName1), Transaction.AUTO_COMMIT) should not(beNull)
-      ds.getFeatureReader(new Query(typeName2), Transaction.AUTO_COMMIT) should not(beNull)
-      ds.metadata.getFeatureTypes.toSeq must contain(typeName1)
-      ds.metadata.getFeatureTypes.toSeq must contain(typeName2)
+      def testExists(typeName: String): MatchResult[Option[Long]] = {
+        ds.metadata.getFeatureTypes.toSeq must contain(typeName)
+        val sft = ds.getSchema(typeName)
+        sft must not(beNull)
+        val reader = ds.getFeatureReader(new Query(typeName), Transaction.AUTO_COMMIT)
+        try {
+          reader.hasNext must beTrue
+          reader must not(beNull)
+        } finally {
+          reader.close()
+        }
+        ds.stats.getCount(sft, exact = false) must beSome(1)
+      }
 
-      ds.stats.getCount(sft1, exact = false) must beSome(1)
-      ds.stats.getCount(sft2, exact = false) must beSome(1)
+      // tests that metadata exists in the catalog before being deleted
+      forall(Seq(typeName1, typeName2))(testExists)
 
       ds.removeSchema(typeName1)
 
-      // these tables should be deleted now
+      // ensure second sft wasn't deleted
+      testExists(typeName2)
+
+      // ensure first sft was deleted
       forall(tableNames1)(tableOps.exists(_) must beFalse)
-      // but these tables should still exist since sftName2 wasn't deleted
-      forall(tableNames2)(tableOps.exists(_) must beTrue)
-
-      // metadata should be deleted from the catalog now for sftName
       ds.metadata.getFeatureTypes.toSeq must not contain typeName1
-      // metadata should still exist for sftName2
-      ds.metadata.getFeatureTypes.toSeq must contain(typeName2)
-
+      ds.getSchema(typeName1) must beNull
       ds.stats.getCount(sft1, exact = false) must beNone
-      ds.stats.getCount(sft2, exact = false) must beSome(1)
-
-      ds.getFeatureSource(typeName2).getFeatures(Filter.INCLUDE).size() mustEqual 1
     }
 
     "delete schema and the z3 table on a shared table" in {
