@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.tools.data
 
-import org.geotools.data.DataStore
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.CLArgResolver
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
-trait CreateSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
+trait CreateSchemaCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
 
   override val name = "create-schema"
   override def params: CreateSchemaParams
