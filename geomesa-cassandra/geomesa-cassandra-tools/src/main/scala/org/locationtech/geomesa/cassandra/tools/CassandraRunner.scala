@@ -10,6 +10,7 @@ package org.locationtech.geomesa.cassandra.tools
 
 import com.beust.jcommander.JCommander
 import org.locationtech.geomesa.cassandra.tools.commands.{CassandraDescribeSchemaCommand, CassandraGetTypeNamesCommand}
+import org.locationtech.geomesa.tools.status.{EnvironmentCommand, HelpCommand, VersionCommand}
 import org.locationtech.geomesa.tools.{Command, Runner}
 
 
@@ -19,6 +20,9 @@ object CassandraRunner extends Runner {
 
   override def createCommands(jc: JCommander): Seq[Command] = Seq(
     new CassandraGetTypeNamesCommand,
-    new CassandraDescribeSchemaCommand
+    new CassandraDescribeSchemaCommand,
+    new HelpCommand(this, jc),
+    new EnvironmentCommand,
+    new VersionCommand
   )
 }
