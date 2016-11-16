@@ -160,6 +160,37 @@ If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribu
         .geometry("geom", default = true)
         .build("mySft")
 
+.. _configuring_z_shards:
+
+Configuring Z-Index Shards
+--------------------------
+
+GeoMesa allows you to specify the number of shards (or splits) to be used for each SimpleFeatureType. This gives
+you more flexibility with SimpleFeatureTypes whether they are large or small. By default, SimpleFeatureTypes are
+created with 4 as the number of shards. 4 is the default because previous versions of GeoMesa hardcoded it in
+the z indices.
+
+When dealing with large SimpleFeatureTypes or large clusters, it may be beneficial to use a larger number of shards.
+In most test cases on single machines, the default is most likely preferable. It is important to note that acceptable
+values for the number of shards are integers in the range ``[1, 127]``.
+
+The number of shards is set when calling ``createSchema``. It may be specified through the simple feature type
+user data using the hint ``geomesa.z.splits``:
+
+.. code-block:: scala
+
+    // set the hint directly
+    SimpleFeatureType sft = ...
+    sft.getUserData().put("geomesa.z.splits", "16")
+
+.. code-block:: scala
+
+    // or through using RichSimpleFeatureType
+    import org.locationtech.geomesa.utils.geomesa.RichSimpleFeatureType.RichSimpleFeatureType
+
+    SimpleFeatureType sft = ...
+    sft.setZShards(16)
+    
 .. _customizing_z_index:
 
 Customizing the Z-Index

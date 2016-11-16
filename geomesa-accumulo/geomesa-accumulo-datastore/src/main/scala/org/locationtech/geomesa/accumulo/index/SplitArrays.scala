@@ -16,7 +16,7 @@ object SplitArrays {
     new ConcurrentHashMap[Int, Seq[Array[Byte]]]()
 
   def getSplitArray(numSplits: Int): Seq[Array[Byte]] = {
-    require(numSplits < 128, "only up to 128 splits are supported")
+    require(numSplits > 0 && numSplits < 128, "only up to 128 splits are supported")
     val temp = splitArraysMap.get(numSplits)
     if (temp == null) splitArraysMap.put(numSplits, (0 until numSplits).map(_.toByte).toArray.map(Array(_)).toSeq)
     splitArraysMap.get(numSplits)
