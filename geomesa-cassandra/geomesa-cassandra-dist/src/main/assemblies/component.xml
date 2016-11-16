@@ -80,6 +80,14 @@
             <filtered>false</filtered>
             <directoryMode>755</directoryMode>
         </fileSet>
+        <fileSet>
+            <directory>./</directory>
+            <outputDirectory>logs</outputDirectory>
+            <directoryMode>0700</directoryMode>
+            <excludes>
+                <exclude>*/**</exclude>
+            </excludes>
+        </fileSet>
 
 
 
