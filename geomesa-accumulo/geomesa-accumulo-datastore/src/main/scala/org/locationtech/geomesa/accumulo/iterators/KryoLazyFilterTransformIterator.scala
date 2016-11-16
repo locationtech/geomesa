@@ -50,8 +50,6 @@ class KryoLazyFilterTransformIterator extends
   override def init(src: SortedKeyValueIterator[Key, Value],
                     options: jMap[String, String],
                     env: IteratorEnvironment): Unit = {
-    logger.info(s"Initializing KLFTI, sampling = ${env.getSamplerConfiguration != null}")
-    println(s"Initializing KLFTI, sampling = ${env.getSamplerConfiguration != null}")
     IteratorClassLoader.initClassLoader(getClass)
     this.source = src.deepCopy(env)
 

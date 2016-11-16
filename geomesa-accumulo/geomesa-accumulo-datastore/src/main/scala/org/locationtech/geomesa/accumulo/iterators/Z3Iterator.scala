@@ -43,9 +43,10 @@ class Z3Iterator extends SortedKeyValueIterator[Key, Value] {
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
                     env: IteratorEnvironment): Unit = {
-    IteratorClassLoader.initClassLoader(getClass)
+//    IteratorClassLoader.initClassLoader(getClass)
 
-    this.source = source.deepCopy(env)
+    // this.source = source.deepCopy(env)
+    this.source = source
 
     isPoints = options.get(PointsKey).toBoolean
 

@@ -14,9 +14,10 @@ import org.geotools.factory.GeoTools
 
 object IteratorClassLoader extends LazyLogging {
 
-  private var initialized = false
+  //private var initialized = false
 
-  def initClassLoader(clas: Class[_]) = synchronized {
+  def initClassLoader(clas: Class[_]) = {}
+  /*synchronized {
     if (!initialized) {
       try {
         logger.trace("Initializing classLoader")
@@ -38,4 +39,4 @@ object IteratorClassLoader extends LazyLogging {
       }
     }
   }
-}
+*/}

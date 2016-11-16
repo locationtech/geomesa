@@ -75,7 +75,7 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
       reusableSf = IteratorCache.serializer(spec, SerializationOptions.none).getReusableFeature
     } else {
       val getIdFromRow = index.getIdFromRow(sft)
-      getId = (row) => getIdFromRow(row.getBytes, 0, row.getLength)
+      getId = (row) => getIdFromRow(new Text(row.getBytes))
       reusableSf = IteratorCache.serializer(spec, SerializationOptions.withoutId).getReusableFeature
     }
     val filt = options.get(CQL_OPT).map(IteratorCache.filter(spec, _)).orNull

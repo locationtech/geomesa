@@ -20,11 +20,12 @@ import scala.collection.JavaConversions._
 
 object SparkSQLTest extends App {
 
-  System.setProperty(QueryProperties.SCAN_RANGES_TARGET.property, "10")
+  System.setProperty(QueryProperties.SCAN_RANGES_TARGET.property, "1")
   System.setProperty(AccumuloQueryProperties.SCAN_BATCH_RANGES.property, s"${Int.MaxValue}")
 
   val randomDir = Files.createTempDirectory("mac").toFile
-  val mac = new MiniAccumuloCluster(randomDir, "password")
+  val config = new MiniAccumuloConfig(randomDir, "password").setJDWPEnabled(true)
+  val mac = new MiniAccumuloCluster(config)
   mac.start()
   val instanceName = mac.getInstanceName
   val connector = mac.getConnector("root", "password")
@@ -88,9 +89,11 @@ object SparkSQLTest extends App {
 //  $("select arrest,case_number,geom from chicago limit 5").show()
 
   $("""
-      |select  *
+      |select  arrest,geom
       |from    chicago
-      |where   st_contains(geom, st_geomFromWKT('POLYGON((-78 37,-76 37,-76 39,-78 39,-78 37))'))
+      |where
+      |  st_contains(geom, st_geomFromWKT('POLYGON((-78 37,-76 37,-76 39,-78 39,-78 37))'))
+      |  and dtg >= cast('2015-12-31' as timestamp) and dtg <= cast('2016-01-07' as timestamp)
     """.stripMargin).show()
 
 
@@ -99,14 +102,20 @@ object SparkSQLTest extends App {
       |select __fid__ as id,arrest,geom from chicago
     """.stripMargin)
 
+/*
   res.show()
+*/
 
+/*
   res
     .where("st_contains(geom, st_geomFromWKT('POLYGON((-78 38.1,-76 38.1,-76 39,-78 39,-78 38.1))'))")
     .select("id").show()
+*/
 
+/*
   $(
     """
       |select st_makeBox2D(ll,ur) as bounds from (select p[0] as ll,p[1] as ur from (select collect_list(geom) as p from chicago group by arrest))
     """.stripMargin).show()
+*/
 }

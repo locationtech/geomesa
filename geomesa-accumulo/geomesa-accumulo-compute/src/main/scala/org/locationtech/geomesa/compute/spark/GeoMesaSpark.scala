@@ -123,6 +123,9 @@ object GeoMesaSpark extends LazyLogging {
           InputConfigurator.setAutoAdjustRanges(classOf[AccumuloInputFormat], conf, false)
           InputConfigurator.setAutoAdjustRanges(classOf[GeoMesaInputFormat], conf, false)
         }
+
+        org.apache.accumulo.core.client.mapreduce.lib.impl.InputConfigurator.setBatchScan(classOf[AccumuloInputFormat], conf, true)
+        org.apache.accumulo.core.client.mapreduce.lib.impl.InputConfigurator.setBatchScan(classOf[GeoMesaInputFormat], conf, true)
         GeoMesaConfigurator.setSerialization(conf)
         GeoMesaConfigurator.setTable(conf, qp.table)
         GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)

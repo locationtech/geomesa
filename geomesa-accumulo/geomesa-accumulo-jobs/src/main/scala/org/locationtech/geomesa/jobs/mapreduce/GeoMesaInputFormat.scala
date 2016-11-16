@@ -101,6 +101,8 @@ object GeoMesaInputFormat extends LazyLogging {
 
     InputFormatBase.setSamplerConfiguration(job, null)
 
+    InputFormatBase.setBatchScan(job, true)
+
     // also set the datastore parameters so we can access them later
     val conf = job.getConfiguration
 
@@ -177,34 +179,39 @@ class GeoMesaInputFormat extends InputFormat[Text, SimpleFeature] with LazyLoggi
   override def getSplits(context: JobContext): java.util.List[InputSplit] = {
     init(context.getConfiguration)
     val accumuloSplits = delegate.getSplits(context)
-    accumuloSplits.foreach { split => split.asInstanceOf[RangeInputSplit].setSamplerConfiguration(null) }
-    // fallback on creating 2 mappers per node if desiredSplits is unset.
-    // Account for case where there are less splits than shards
-    val groupSize = if (desiredSplitCount > 0) {
-      Some(Math.max(1, accumuloSplits.length / desiredSplitCount))
-    } else {
-      None
-    }
-    val splitsSet = accumuloSplits.groupBy(_.getLocations()(0)).flatMap { case (location, splits) =>
-      val size = groupSize.getOrElse(Math.max(1, splits.length / 2))
-      splits.grouped(size).map { group =>
-        val split = new GroupedSplit()
-        split.location = location
-        split.splits.append(group.map(_.asInstanceOf[RangeInputSplit]): _*)
-        split
-      }
-    }
+    /*
+        accumuloSplits.foreach { split => split.asInstanceOf[RangeInputSplit].setSamplerConfiguration(null) }
+        // fallback on creating 2 mappers per node if desiredSplits is unset.
+        // Account for case where there are less splits than shards
+        val groupSize = if (desiredSplitCount > 0) {
+          Some(Math.max(1, accumuloSplits.length / desiredSplitCount))
+        } else {
+          None
+        }
+        val splitsSet = accumuloSplits.groupBy(_.getLocations()(0)).flatMap { case (location, splits) =>
+          val size = groupSize.getOrElse(Math.max(1, splits.length / 2))
+          splits.grouped(size).map { group =>
+            val split = new GroupedSplit()
+            split.location = location
+            split.splits.append(group.map(_.asInstanceOf[RangeInputSplit]): _*)
+            split
+          }
+        }
 
-    logger.debug(s"Got ${splitsSet.toList.length} splits" +
-      s" using desired=$desiredSplitCount from ${accumuloSplits.length}")
-    splitsSet.toList
+        logger.debug(s"Got ${splitsSet.toList.length} splits" +
+          s" using desired=$desiredSplitCount from ${accumuloSplits.length}")
+        splitsSet.toList
+    */
+    logger.debug(s"Got ${accumuloSplits.length} splits")
+    accumuloSplits
   }
 
   override def createRecordReader(split: InputSplit, context: TaskAttemptContext) = {
 
     init(context.getConfiguration)
-    val splits = split.asInstanceOf[GroupedSplit].splits
-    val readers = splits.map(delegate.createRecordReader(_, context)).toArray
+//    val splits = split.asInstanceOf[GroupedSplit].splits
+    val readers = Array(delegate.createRecordReader(split, context))
+//    val readers = splits.map(delegate.createRecordReader(_, context)).toArray
     val schema = GeoMesaConfigurator.getTransformSchema(context.getConfiguration).getOrElse(sft)
     val hasId = table.serializedWithId
     val serializationOptions = if (hasId) SerializationOptions.none else SerializationOptions.withoutId
@@ -233,6 +240,7 @@ class GeoMesaRecordReader(sft: SimpleFeatureType,
   val getId = table.getIdFromRow(sft)
 
   override def initialize(split: InputSplit, context: TaskAttemptContext) = {
+/*
     val splits = split.asInstanceOf[GroupedSplit].splits
     var i = 0
     while (i < splits.length) {
@@ -240,7 +248,9 @@ class GeoMesaRecordReader(sft: SimpleFeatureType,
       readers(i).initialize(splits(i), context)
       i = i + 1
     }
+*/
 
+    readers(0).initialize(split, context)
     // queue up our first reader
     nextReader()
   }
@@ -289,6 +299,7 @@ class GeoMesaRecordReader(sft: SimpleFeatureType,
   override def close() = {} // delegate Accumulo readers have a no-op close
 }
 
+/*
 /**
  * Input split that groups a series of RangeInputSplits. Has to implement Hadoop Writable, thus the vars and
  * mutable state.
@@ -330,3 +341,4 @@ class GroupedSplit extends InputSplit with Writable {
 
   override def toString = s"mapreduce.GroupedSplit[$location](${splits.length})"
 }
+*/
