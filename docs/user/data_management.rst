@@ -165,31 +165,30 @@ If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribu
 Configuring Z-Index Shards
 --------------------------
 
-GeoMesa allows you to specify the number of shards (or splits) to be used for each SimpleFeatureType. This gives
-you more flexibility with SimpleFeatureTypes whether they are large or small. By default, SimpleFeatureTypes are
-created with 4 as the number of shards. 4 is the default because previous versions of GeoMesa hardcoded it in
-the z indices.
+GeoMesa Accumulo permits one to specify the number of shards (or splits) into which the Z2 (or Z3) indices are
+divided. This parameter may be changed individually for each ``SimpleFeatureType``. In previous versions of GeoMesa,
+the numberof shards was "hard-coded" to 4, which remains the default. Valid values for the number of shards range
+from 1 to 127 inclusive.
 
-When dealing with large SimpleFeatureTypes or large clusters, it may be beneficial to use a larger number of shards.
-In most test cases on single machines, the default is most likely preferable. It is important to note that acceptable
-values for the number of shards are integers in the range ``[1, 127]``.
+When using very large data sets or large clusters, it may be of benefit to use a larger number of shards. However, in
+most test cases--especially with single-node or small clusters--the default of 4 should be preferred.
 
 The number of shards is set when calling ``createSchema``. It may be specified through the simple feature type
 user data using the hint ``geomesa.z.splits``:
 
-.. code-block:: scala
+.. code-block:: java
 
     // set the hint directly
     SimpleFeatureType sft = ...
-    sft.getUserData().put("geomesa.z.splits", "16")
+    sft.getUserData().put("geomesa.z.splits", "16");
 
-.. code-block:: scala
+.. code-block:: java
 
     // or through using RichSimpleFeatureType
-    import org.locationtech.geomesa.utils.geomesa.RichSimpleFeatureType.RichSimpleFeatureType
+    import org.locationtech.geomesa.utils.geomesa.RichSimpleFeatureType.RichSimpleFeatureType;
 
     SimpleFeatureType sft = ...
-    sft.setZShards(16)
+    sft.setZShards(16);
 
 .. _customizing_z_index:
 
