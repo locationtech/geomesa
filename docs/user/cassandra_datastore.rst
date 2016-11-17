@@ -83,6 +83,27 @@ Using the Cassandra Data Store in Geoserver
 
 See :doc:`./geoserver`.
 
+
+Cassandra DataStore Command Line Tools
+--------------------------------------
+
+GeoMesa provides a set of command line tools for working with a Cassandra data store.
+To get a description on how to use the tools, type ``geomesa-cassandra``.
+Currently, the following commands are supported:
+
+- ``help``
+- ``version``
+- ``env``
+- ``get-type-names``
+- ``describe-schema``
+- ``get-sft-config``
+
+Before running the commands, you should set the the ``CASSANDRA_LIB``
+environment variable to the path of the ``lib`` directory of your
+Cassandra installation.
+
+
+
 How you can contribute
 ----------------------
 

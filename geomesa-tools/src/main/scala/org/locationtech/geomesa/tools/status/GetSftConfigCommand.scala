@@ -11,6 +11,7 @@ package org.locationtech.geomesa.tools.status
 import java.util
 
 import com.beust.jcommander._
+import org.geotools.data.DataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools.status.GetSftConfigCommand.{Spec, TypeSafe}
 import org.locationtech.geomesa.tools.{DataStoreCommand, RequiredTypeNameParam}
@@ -19,7 +20,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.control.NonFatal
 
-trait GetSftConfigCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait GetSftConfigCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   override val name: String = "get-sft-config"
 
