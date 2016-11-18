@@ -17,6 +17,9 @@ PING_LOOP_PID=$!
 mvn clean license:check install -Phbase,travis-ci 2>&1 | tee -a $BUILD_OUTPUT | grep -e '^\[INFO\] Building GeoMesa' -e '^\[INFO\] --- \(maven-surefire-plugin\|maven-install-plugin\|scala-maven-plugin.*:compile\)'
 RESULT=${PIPESTATUS[0]} # capture the status of the maven build
 
+# dump out the end of the build log, to show success or errors
+tail -500 $BUILD_OUTPUT
+
 # validate CQs
 if [[ $RESULT -eq 0 ]]; then
   # calculate CQs
@@ -34,9 +37,6 @@ fi
 if [[ $RESULT -ne 0 ]]; then
   echo -e "[ERROR] Build failed!\n"
 fi
-
-# dump out the end of the build log, to show success or errors
-tail -500 $BUILD_OUTPUT
 
 # nicely terminate the ping output loop
 kill $PING_LOOP_PID
