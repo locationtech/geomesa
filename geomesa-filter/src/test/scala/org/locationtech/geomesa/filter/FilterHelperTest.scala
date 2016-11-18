@@ -172,7 +172,7 @@ class FilterHelperTest extends Specification {
       )
 
       forall(filters) { case (original, expected) =>
-        ECQL.toCQL(FilterHelper.deduplicateOrs(ECQL.toFilter(original))) mustEqual expected
+        ECQL.toCQL(FilterHelper.simplify(ECQL.toFilter(original))) mustEqual expected
       }
     }
   }

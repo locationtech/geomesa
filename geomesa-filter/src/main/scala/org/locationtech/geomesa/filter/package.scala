@@ -57,7 +57,7 @@ package object filter {
    * @return       A filter in DNF (described above).
    */
   def rewriteFilterInDNF(filter: Filter)(implicit ff: FilterFactory): Filter = {
-    val ll = logicDistributionDNF(FilterHelper.deduplicateOrs(filter))
+    val ll = logicDistributionDNF(filter)
     if (ll.size == 1) {
       if (ll.head.size == 1) {
         ll.head.head
@@ -176,7 +176,7 @@ package object filter {
    * @return       A filter in CNF (described above).
    */
   def rewriteFilterInCNF(filter: Filter)(implicit ff: FilterFactory): Filter = {
-    val ll = logicDistributionCNF(FilterHelper.deduplicateOrs(filter))
+    val ll = logicDistributionCNF(FilterHelper.simplify(filter))
     if (ll.size == 1) {
       if (ll.head.size == 1) ll.head.head else ff.or(ll.head)
     } else {
