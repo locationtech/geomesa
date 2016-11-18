@@ -29,7 +29,7 @@
         <!-- Kafka Tools -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-kafka-tools_${scala.binary.version}</artifactId>
+            <artifactId>geomesa-kafka-09-tools_${scala.binary.version}</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>org.locationtech.geomesa</groupId>
