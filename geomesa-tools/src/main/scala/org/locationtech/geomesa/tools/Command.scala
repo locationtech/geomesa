@@ -44,8 +44,6 @@ trait CommandWithSubCommands extends Command {
 
 trait DataStoreCommand[DS <: DataStore] extends Command {
 
-//trait DataStoreCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends Command {
-
   def connection: Map[String, String]
 
   def withDataStore[T](method: (DS) => T): T = {

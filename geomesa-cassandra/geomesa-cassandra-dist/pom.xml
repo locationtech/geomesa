@@ -26,7 +26,7 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-cassandra-tools_2.11</artifactId>
-            <version>1.3.0-m3-SNAPSHOT</version>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.locationtech.geomesa</groupId>
@@ -52,7 +52,7 @@
         <!-- GeoServer Plugins -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-cassandra-gs-plugin_2.11</artifactId>
+            <artifactId>geomesa-cassandra-gs-plugin_${scala.binary.version}</artifactId>
             <classifier>install</classifier>
             <version>${project.version}</version>
             <type>tar.gz</type>

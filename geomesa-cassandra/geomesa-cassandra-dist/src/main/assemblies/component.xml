@@ -95,11 +95,6 @@
     </fileSets>
     <files>
         <file>
-            <source>../geomesa-cassandra-tools/target/geomesa-cassandra-tools_${scala.binary.version}-${project.version}.jar</source>
-            <outputDirectory>lib</outputDirectory>
-            <fileMode>0644</fileMode>
-        </file>
-        <file>
             <source>../../README.md</source>
             <outputDirectory>docs</outputDirectory>
         </file>

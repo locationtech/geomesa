@@ -87,16 +87,11 @@ See :doc:`./geoserver`.
 Cassandra DataStore Command Line Tools
 --------------------------------------
 
-GeoMesa provides a set of command line tools for working with a Cassandra data store.
-To get a description on how to use the tools, type ``geomesa-cassandra``.
-Currently, the following commands are supported:
-
-- ``help``
-- ``version``
-- ``env``
-- ``get-type-names``
-- ``describe-schema``
-- ``get-sft-config``
+GeoMesa provides a command line tool for working with a Cassandra data store.
+The tool script is located at ``bin/geomesa-cassandra`` within the
+GeoMesa Cassandra binary distribution. To use the tool, ``cd`` into the
+binary distribution directory, and then type ``bin/geomesa-cassandra``.
+This will print a message on how to use the tool.
 
 Before running the commands, you should set the the ``CASSANDRA_LIB``
 environment variable to the path of the ``lib`` directory of your
