@@ -32,7 +32,7 @@ import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.iterators.{DeduplicatingSimpleFeatureIterator, SortingSimpleFeatureIterator}
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing}
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -113,43 +113,47 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, 
                               output: Explainer): Seq[QueryPlan[DS, F, W, Q]] = {
     import org.locationtech.geomesa.filter.filterToString
 
-    // set hints that we'll need later on, fix the query filter so it meets our expectations going forward
-    val query = configureQuery(original, sft)
+    implicit val timings = new TimingsImpl
+    val plans = profile("all") {
+      // set hints that we'll need later on, fix the query filter so it meets our expectations going forward
+      val query = configureQuery(original, sft)
 
-    val hints = query.getHints
+      val hints = query.getHints
 
-    output.pushLevel(s"Planning '${query.getTypeName}' ${filterToString(query.getFilter)}")
-    output(s"Original filter: ${filterToString(query.getFilter)}")
-    output(s"Hints: density[${hints.isDensityQuery}] bin[${hints.isBinQuery}] " +
-        s"stats[${hints.isStatsIteratorQuery}] map-aggregate[${hints.isMapAggregatingQuery}] " +
-        s"sampling[${hints.getSampling.map { case (s, f) => s"$s${f.map(":" + _).getOrElse("")}"}.getOrElse("none")}]")
-    output(s"Sort: ${Option(query.getSortBy).filter(_.nonEmpty).map(_.mkString(", ")).getOrElse("none")}")
-    output(s"Transforms: ${query.getHints.getTransformDefinition.getOrElse("None")}")
+      output.pushLevel(s"Planning '${query.getTypeName}' ${filterToString(query.getFilter)}")
+      output(s"Original filter: ${filterToString(original.getFilter)}")
+      output(s"Hints: density[${hints.isDensityQuery}] bin[${hints.isBinQuery}] " +
+          s"stats[${hints.isStatsIteratorQuery}] map-aggregate[${hints.isMapAggregatingQuery}] " +
+          s"sampling[${hints.getSampling.map { case (s, f) => s"$s${f.map(":" + _).getOrElse("")}"}.getOrElse("none")}]")
+      output(s"Sort: ${Option(query.getSortBy).filter(_.nonEmpty).map(_.mkString(", ")).getOrElse("none")}")
+      output(s"Transforms: ${query.getHints.getTransformDefinition.getOrElse("None")}")
 
-    output.pushLevel("Strategy selection:")
-    val requestedIndex = requested.orElse(hints.getRequestedIndex)
-    val transform = query.getHints.getTransformSchema
-    val stats = query.getHints.getCostEvaluation match {
-      case CostEvaluation.Stats => Some(ds)
-      case CostEvaluation.Index => None
+      output.pushLevel("Strategy selection:")
+      val requestedIndex = requested.orElse(hints.getRequestedIndex)
+      val transform = query.getHints.getTransformSchema
+      val stats = query.getHints.getCostEvaluation match {
+        case CostEvaluation.Stats => Some(ds)
+        case CostEvaluation.Index => None
+      }
+      val strategies = strategyDecider.getFilterPlan(sft, stats, query.getFilter, transform, requestedIndex, output)
+      output.popLevel()
+
+      var strategyCount = 1
+      strategies.map { strategy =>
+        output.pushLevel(s"Strategy $strategyCount of ${strategies.length}: ${strategy.index}")
+        strategyCount += 1
+        output(s"Strategy filter: $strategy")
+        val plan = profile(s"s$strategyCount")(strategy.index.getQueryPlan(sft, ds, strategy, hints, output))
+        plan.explain(output)
+        output(s"Plan creation took ${timings.time(s"s$strategyCount")}ms").popLevel()
+        plan
+      }
     }
-    val strategies = strategyDecider.getFilterPlan(sft, stats, query.getFilter, transform, requestedIndex, output)
-    output.popLevel()
 
-    var strategyCount = 1
-    strategies.map { strategy =>
-      output.pushLevel(s"Strategy $strategyCount of ${strategies.length}: ${strategy.index}")
-      strategyCount += 1
-      output(s"Strategy filter: $strategy")
+    output(s"Query planning took ${timings.time("all")}ms")
 
-      implicit val timing = new Timing
-      val plan = profile(strategy.index.getQueryPlan(sft, ds, strategy, hints, output))
-      plan.explain(output.popLevel())
-      output(s"Query planning took ${timing.time}ms")
-      plan
-    }
+    plans
   }
-
 
   /**
     * Configure the query - set hints, transforms, etc.

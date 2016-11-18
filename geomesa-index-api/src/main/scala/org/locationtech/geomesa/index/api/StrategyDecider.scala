@@ -49,11 +49,11 @@ class StrategyDecider[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, 
     val availableIndices = manager.indices(sft, IndexMode.Read)
 
     // get the various options that we could potentially use
-    val options = profile(new FilterSplitter(sft, availableIndices).getQueryOptions(filter), "split")
+    val options = profile("split")(new FilterSplitter(sft, availableIndices).getQueryOptions(filter))
 
     explain(s"Query processing took ${timings.time("split")}ms and produced ${options.length} options")
 
-    val selected = profile({
+    val selected = profile("cost") {
       if (requested.isDefined) {
         val forced = forceStrategy(options, requested.get, filter)
         explain(s"Filter plan forced to $forced")
@@ -79,7 +79,7 @@ class StrategyDecider[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, 
           costs.drop(1).map(c => s"${c._1} (Cost ${c._2} in ${c._3}ms)"))
         cheapest
       }
-    }, "cost")
+    }
 
     explain(s"Strategy selection took ${timings.time("cost")}ms for ${options.length} options")
 

@@ -68,14 +68,14 @@ class AccumuloRasterStore(val connector: Connector,
   def getMosaicedRaster(query: RasterQuery, params: GeoMesaCoverageQueryParams) = {
     implicit val timings = if (collectStats) new TimingsImpl else NoOpTimings
     val rasters = getRasters(query)
-    val (image, numRasters) = profile(
-      RasterUtils.mosaicChunks(rasters, params.width.toInt, params.height.toInt, params.envelope),
-      "mosaic")
+    val (image, numRasters) = profile("mosaic") {
+      RasterUtils.mosaicChunks(rasters, params.width.toInt, params.height.toInt, params.envelope)
+    }
     image
   }
 
   def getRasters(rasterQuery: RasterQuery)(implicit timings: Timings): Iterator[Raster] = {
-    profile({
+    profile("scanning") {
       val batchScanner = connector.createBatchScanner(tableName, authorizationsProvider.getAuthorizations, numQThreads)
       val plan = AccumuloRasterQueryPlanner.getQueryPlan(rasterQuery, getResToGeoHashLenMap, getResToBoundsMap)
       plan match {
@@ -86,7 +86,7 @@ class AccumuloRasterStore(val connector: Connector,
           adaptIteratorToChunks(SelfClosingIterator(batchScanner.iterator, batchScanner.close))
         case _        => Iterator.empty
       }
-    }, "scanning")
+    }
   }
 
   def getBounds: BoundingBox = {
