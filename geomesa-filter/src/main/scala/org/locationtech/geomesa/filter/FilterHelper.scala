@@ -473,16 +473,22 @@ object FilterHelper {
   def filterListAsAnd(filters: Seq[Filter]): Option[Filter] = andOption(filters)
 
   /**
-    * Extracts out common parts in an OR clause to simplify further processing.
+    * Simplifies filters to make them easier to process.
     *
-    * Example: OR(AND(1, 2), AND(1, 3), AND(1, 4)) -> AND(1, OR(2, 3, 4))
+    * Current simplifications:
+    *
+    *   1) Extracts out common parts in an OR clause to simplify further processing.
+    *
+    *      Example: OR(AND(1, 2), AND(1, 3), AND(1, 4)) -> AND(1, OR(2, 3, 4))
+    *
+    *   2) N/A - add more simplifications here as needed
     *
     * @param filter filter
     * @return
     */
-  def deduplicateOrs(filter: Filter): Filter = {
-    def deduplicate(f: Filter): Filter = f match {
-      case and: And => ff.and(and.getChildren.map(deduplicate))
+  def simplify(filter: Filter): Filter = {
+    def deduplicateOrs(f: Filter): Filter = f match {
+      case and: And => ff.and(and.getChildren.map(deduplicateOrs))
 
       case or: Or =>
         // OR(AND(1,2,3), AND(1,2,4)) -> Seq(Seq(1,2,3), Seq(1,2,4))
@@ -496,7 +502,8 @@ object FilterHelper {
 
       case _ => f
     }
-    flatten(deduplicate(flatten(filter)))
+    // TODO GEOMESA-1533 simplify ANDs of ORs for DNF
+    flatten(deduplicateOrs(flatten(filter)))
   }
 
   /**
