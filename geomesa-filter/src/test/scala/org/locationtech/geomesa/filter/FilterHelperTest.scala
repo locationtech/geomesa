@@ -160,5 +160,20 @@ class FilterHelperTest extends Specification {
         intervals mustEqual Seq(toInterval(MinDateTime, "2016-01-01T00:00:00.000Z"))
       }
     }
+
+    "deduplicate OR filters" >> {
+      val filters = Seq(
+        ("(a > 1 AND b < 2 AND c = 3) OR (c = 3 AND a > 2 AND b < 2) OR (b < 2 AND a > 3 AND c = 3)",
+            "(a > 1 OR a > 2 OR a > 3) AND b < 2 AND c = 3"),
+        ("c = 3 AND ((a > 2 AND b < 2) OR (b < 2 AND a > 3))", "(a > 2 OR a > 3) AND b < 2 AND c = 3"),
+        ("(a > 1) OR (c = 3)", "a > 1 OR c = 3"),
+        ("(a > 1) AND (c = 3)", "a > 1 AND c = 3"),
+        ("a > 1", "a > 1")
+      )
+
+      forall(filters) { case (original, expected) =>
+        ECQL.toCQL(FilterHelper.simplify(ECQL.toFilter(original))) mustEqual expected
+      }
+    }
   }
 }
