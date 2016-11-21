@@ -101,6 +101,7 @@ object ConvertParameters {
     with InputFilesParam
     with OptionalTypeNameParam
     with OptionalBinExportParams
+    with OptionalCqlFilterParam
     with RequiredFeatureSpecParam
     with ConverterConfigParam
 }
