@@ -136,10 +136,6 @@ trait ConverterConfigParam {
   var config: String = null
 }
 
-trait ConvertParams {
-
-}
-
 trait OptionalIndexParam extends TypeNameParam {
   @Parameter(names = Array("--index"), description = "Specify a particular index to query", required = false)
   var index: String = null

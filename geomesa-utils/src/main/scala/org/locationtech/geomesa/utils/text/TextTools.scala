@@ -26,9 +26,11 @@ object TextTools {
   def getTime(start: Long): String = PeriodFormatter.print(new Period(System.currentTimeMillis() - start))
 
   def buildString(c: Char, length: Int): String = {
-    if (length < 0) return ""
-    val sb = new StringBuilder(length)
-    (0 until length).foreach(_ => sb.append(c))
-    sb.toString()
+    if (length < 0) ""
+    else {
+      val sb = new StringBuilder(length)
+      (0 until length).foreach(_ => sb.append(c))
+      sb.toString()
+    }
   }
 }
