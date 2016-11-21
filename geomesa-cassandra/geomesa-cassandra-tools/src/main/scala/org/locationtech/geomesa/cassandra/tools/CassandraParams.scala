@@ -12,12 +12,12 @@ import com.beust.jcommander.Parameter
 
 
 trait CassandraConnectionParams {
-  @Parameter(names = Array("--contact-point"), description = "contact-point", required = true)
+  @Parameter(names = Array("--contact-point"), description = "Cassandra contact point (address of a Cassandra node)", required = true)
   var contactPoint: String = null
 
-  @Parameter(names = Array("--key-space"), description = "key-space", required = true)
+  @Parameter(names = Array("--key-space"), description = "Cassandra key space (must already exist)", required = true)
   var keySpace: String = null
 
-  @Parameter(names = Array("--name-space"), description = "name-space", required = true)
+  @Parameter(names = Array("--name-space"), description = "GeoTools name space", required = true)
   var nameSpace: String = null
 }
