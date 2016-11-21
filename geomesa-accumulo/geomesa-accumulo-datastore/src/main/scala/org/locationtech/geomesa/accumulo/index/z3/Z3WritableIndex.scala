@@ -18,7 +18,7 @@ import org.apache.accumulo.core.conf.Property
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
-import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
+import org.locationtech.geomesa.accumulo.index.{AccumuloWritableIndex, SplitArrays}
 import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
@@ -131,7 +131,7 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
     ds.tableOps.setLocalityGroups(table, localityGroups)
 
     // drop first split, otherwise we get an empty tablet
-    val splits = splitArrays(sft.getZShards).drop(1).map(new Text(_)).toSet
+    val splits = SplitArrays.getSplitArray(sft.getZShards).drop(1).map(new Text(_)).toSet
     val splitsToAdd = splits -- ds.tableOps.listSplits(table).toSet
     if (splitsToAdd.nonEmpty) {
       // noinspection RedundantCollectionConversion

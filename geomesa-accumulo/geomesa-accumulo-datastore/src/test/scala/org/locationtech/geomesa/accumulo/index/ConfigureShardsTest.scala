@@ -8,13 +8,16 @@
 
 package org.locationtech.geomesa.accumulo.index
 
+import org.apache.accumulo.core.security.Authorizations
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.index.SplitArrays._
+import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.locationtech.geomesa.accumulo.index.SplitArrays._
+
+import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class ConfigureShardsTest extends Specification with TestWithDataStore {
@@ -23,37 +26,43 @@ class ConfigureShardsTest extends Specification with TestWithDataStore {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  val spec = "name:String,dtg:Date,*geom:Polygon:srid=4326;geomesa.z.splits='6'"
+  val spec = "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.z.splits='8'"
 
-  def features(sft: SimpleFeatureType): Seq[ScalaSimpleFeature] = {
-    (0 until 10).map { i =>
+  val features: Seq[ScalaSimpleFeature] = {
+    (0 until 100).map { i =>
       val sf = new ScalaSimpleFeature(s"$i", sft)
-      sf.setAttributes(Array[AnyRef](s"name$i", s"2010-05-07T$i:00:00.000Z",
-        s"POLYGON((40 3$i, 42 3$i, 42 2$i, 40 2$i, 40 3$i))"))
+      i match {
+        case a if a < 24 => sf.setAttributes(Array[AnyRef](s"name$i", s"2010-05-07T$i:00:00.000Z",
+          s"POINT(40 $i)"))
+        case b if b < 48 => sf.setAttributes(Array[AnyRef](s"name$i", s"2010-05-08T$i:00:00.000Z",
+          s"POINT(40 ${i - 24})"))
+        case c if c < 72 => sf.setAttributes(Array[AnyRef](s"name$i", s"2010-05-09T$i:00:00.000Z",
+          s"POINT(40 ${i - 48})"))
+        case d if d < 96 => sf.setAttributes(Array[AnyRef](s"name$i", s"2010-05-10T$i:00:00.000Z",
+          s"POINT(40 ${i - 72})"))
+        case e => sf.setAttributes(Array[AnyRef](s"name$i", s"2010-05-11T$i:00:00.000Z",
+          s"POINT(40 ${i - 96})"))
+      }
       sf
     }
   }
 
   "Indexes" should {
     "configure from spec" >> {
-      val feats = features(sft)
-      addFeatures(feats)
-      feats.head.getType.getZShards mustEqual 6
-    }
-
-    "configure from code" >> {
-      val sftPrivate = sft
-      sftPrivate.setZShards(8)
-      val feats = features(sftPrivate)
-      addFeatures(feats)
-      feats.head.getType.getZShards mustEqual 8
+      addFeatures(features)
+      var shardSet: Set[Long] = Set[Long]()
+      ds.connector.createScanner(Z3Index.getTableName(sftName, ds), new Authorizations()).foreach { r =>
+        val bytes = r.getKey.getRow.getBytes
+        val shard = bytes.head.toInt
+        shardSet = shardSet + shard
+      }
+      shardSet.toList.length mustEqual 8
+      success
     }
 
     "throw exception" >> {
       val sftPrivate = sft
       sftPrivate.setZShards(128)
-      val feats = features(sftPrivate)
-      addFeatures(feats)
       val numSplits = sftPrivate.getZShards
       getSplitArray(numSplits) must throwAn[IllegalArgumentException]
     }

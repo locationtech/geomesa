@@ -33,7 +33,6 @@ trait Z2QueryableIndex extends AccumuloFeatureIndexType
     with LazyLogging {
 
   writable: AccumuloWritableIndex =>
-  import Z2Index._
 
   override def getQueryPlan(sft: SimpleFeatureType,
                             ds: AccumuloDataStore,
@@ -129,9 +128,9 @@ trait Z2QueryableIndex extends AccumuloFeatureIndexType
 
       val prefixes = if (sft.isTableSharing) {
         val ts = sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)
-        splitArrays(sft.getZShards).map(ts ++ _)
+        SplitArrays.getSplitArray(sft.getZShards).map(ts ++ _)
       } else {
-        splitArrays(sft.getZShards)
+        SplitArrays.getSplitArray(sft.getZShards)
       }
 
       val ranges = prefixes.flatMap { prefix =>

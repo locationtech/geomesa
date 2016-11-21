@@ -21,8 +21,6 @@ case object Z2Index extends AccumuloFeatureIndexType with Z2WritableIndex with Z
 
   val Z2IterPriority = 23
 
-  def splitArrays(numSplits: Int): Seq[Array[Byte]] = SplitArrays.getSplitArray(numSplits)
-
   // the bytes of z we keep for complex geoms
   // 3 bytes is 22 bits of geometry (not including the first 2 bits which aren't used)
   // roughly equivalent to 4 digits of geohash (32^4 == 2^20) and ~20km resolution
@@ -46,7 +44,7 @@ case object Z2Index extends AccumuloFeatureIndexType with Z2WritableIndex with Z
   override def writer(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val sharing = sharingPrefix(sft)
-    val splitArray = splitArrays(sft.getZShards)
+    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
 
     (wf: AccumuloFeature) => {
       val rows = getPointRowKey(sharing, splitArray)(wf)
@@ -62,7 +60,7 @@ case object Z2Index extends AccumuloFeatureIndexType with Z2WritableIndex with Z
   override def remover(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val sharing = sharingPrefix(sft)
-    val splitArray = splitArrays(sft.getZShards)
+    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
     (wf: AccumuloFeature) => {
       val rows = getPointRowKey(sharing, splitArray)(wf)
       rows.map { row =>
@@ -78,8 +76,6 @@ case object Z2Index extends AccumuloFeatureIndexType with Z2WritableIndex with Z
 // initial implementation - supports points and non-points
 case object Z2IndexV1 extends AccumuloFeatureIndexType with Z2WritableIndex with Z2QueryableIndex {
 
-  def splitArrays(numSplits: Int): Seq[Array[Byte]] = SplitArrays.getSplitArray(numSplits)
-
   override val name: String = "z2"
 
   override val version: Int = 1
@@ -91,7 +87,7 @@ case object Z2IndexV1 extends AccumuloFeatureIndexType with Z2WritableIndex with
   override def writer(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val sharing = sharingPrefix(sft)
-    val splitArray = splitArrays(sft.getZShards)
+    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
     val getRowKeys: (AccumuloFeature) => Seq[Array[Byte]] =
       if (sft.isPoints) getPointRowKey(sharing, splitArray) else getGeomRowKeys(sharing, splitArray)
 
@@ -111,7 +107,7 @@ case object Z2IndexV1 extends AccumuloFeatureIndexType with Z2WritableIndex with
   override def remover(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val sharing = sharingPrefix(sft)
-    val splitArray = splitArrays(sft.getZShards)
+    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
     val getRowKeys: (AccumuloFeature) => Seq[Array[Byte]] =
       if (sft.isPoints) getPointRowKey(sharing, splitArray) else getGeomRowKeys(sharing, splitArray)
 

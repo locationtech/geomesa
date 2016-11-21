@@ -20,8 +20,6 @@ import org.opengis.feature.simple.SimpleFeatureType
 // current version - deprecated polygon support in favor of xz, ids in row key, per-attribute vis
 case object Z3Index extends AccumuloFeatureIndexType with Z3WritableIndex with Z3QueryableIndex {
 
-  def splitArrays(numSplits: Int): Seq[Array[Byte]] = SplitArrays.getSplitArray(numSplits)
-
   val Z3IterPriority = 23
 
   // the bytes of z we keep for complex geoms
@@ -53,7 +51,7 @@ case object Z3Index extends AccumuloFeatureIndexType with Z3WritableIndex with Z
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
-    val splitArray = splitArrays(sft.getZShards)
+    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
 
     (wf: AccumuloFeature) => {
       val rows = getPointRowKey(timeToIndex, sfc, splitArray)(wf, dtgIndex)
@@ -71,7 +69,7 @@ case object Z3Index extends AccumuloFeatureIndexType with Z3WritableIndex with Z
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
-    val splitArray = splitArrays(sft.getZShards)
+    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
 
     (wf: AccumuloFeature) => {
       val rows = getPointRowKey(timeToIndex, sfc, splitArray)(wf, dtgIndex)
@@ -87,8 +85,6 @@ case object Z3Index extends AccumuloFeatureIndexType with Z3WritableIndex with Z
 
 // polygon support and splits
 case object Z3IndexV2 extends AccumuloFeatureIndexType with Z3WritableIndex with Z3QueryableIndex {
-
-  def splitArrays(numSplits: Int): Seq[Array[Byte]] = SplitArrays.getSplitArray(numSplits)
 
   override val name: String = "z3"
 
@@ -108,7 +104,7 @@ case object Z3IndexV2 extends AccumuloFeatureIndexType with Z3WritableIndex with
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
-    val splitArray = splitArrays(sft.getZShards)
+    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
     val getRowKeys: (AccumuloFeature, Int) => Seq[Array[Byte]] =
       if (sft.isPoints) { getPointRowKey(timeToIndex, sfc, splitArray) }
       else { getGeomRowKeys(timeToIndex, sfc, splitArray) }
@@ -131,7 +127,7 @@ case object Z3IndexV2 extends AccumuloFeatureIndexType with Z3WritableIndex with
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
-    val splitArray = splitArrays(sft.getZShards)
+    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
     val getRowKeys: (AccumuloFeature, Int) => Seq[Array[Byte]] =
       if (sft.isPoints) { getPointRowKey(timeToIndex, sfc, splitArray) }
       else { getGeomRowKeys(timeToIndex, sfc, splitArray) }
@@ -152,8 +148,6 @@ case object Z3IndexV2 extends AccumuloFeatureIndexType with Z3WritableIndex with
 // initial z3 implementation - only supports points
 case object Z3IndexV1 extends AccumuloFeatureIndexType with Z3WritableIndex with Z3QueryableIndex {
 
-  def splitArrays(numSplits: Int): Seq[Array[Byte]] = SplitArrays.getSplitArray(numSplits)
-
   override val name: String = "z3"
 
   override val version: Int = 1
@@ -172,7 +166,7 @@ case object Z3IndexV1 extends AccumuloFeatureIndexType with Z3WritableIndex with
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
-    val splitArray = splitArrays(sft.getZShards)
+    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
     val getRowKeys: (AccumuloFeature, Int) => Seq[Array[Byte]] =
       (wf, i) => getPointRowKey(timeToIndex, sfc, splitArray)(wf, i).map(_.drop(1))
 
@@ -192,7 +186,7 @@ case object Z3IndexV1 extends AccumuloFeatureIndexType with Z3WritableIndex with
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
-    val splitArray = splitArrays(sft.getZShards)
+    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
     val getRowKeys: (AccumuloFeature, Int) => Seq[Array[Byte]] =
       (ftw, i) => getPointRowKey(timeToIndex, sfc, splitArray)(ftw, i).map(_.drop(1))
 

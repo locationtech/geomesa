@@ -34,7 +34,6 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
     with LazyLogging {
 
   writable: AccumuloWritableIndex =>
-  import Z3Index._
 
   def hasSplits: Boolean
 
@@ -162,7 +161,7 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
         val zs = if (times.eq(wholePeriod)) wholePeriodRanges else toZRanges(times)
         val binBytes = Shorts.toByteArray(b)
         val prefixes = if (hasSplits) {
-          splitArrays(sft.getZShards).map(Bytes.concat(_, binBytes))
+          SplitArrays.getSplitArray(sft.getZShards).map(Bytes.concat(_, binBytes))
         } else {
           Seq(binBytes)
         }

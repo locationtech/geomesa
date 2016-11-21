@@ -167,11 +167,13 @@ Configuring Z-Index Shards
 
 GeoMesa Accumulo permits one to specify the number of shards (or splits) into which the Z2 (or Z3) indices are
 divided. This parameter may be changed individually for each ``SimpleFeatureType``. In previous versions of GeoMesa,
-the numberof shards was "hard-coded" to 4, which remains the default. Valid values for the number of shards range
+the numberof shards was fixed at 4, which remains the default. Valid values for the number of shards range
 from 1 to 127 inclusive.
 
-When using very large data sets or large clusters, it may be of benefit to use a larger number of shards. However, in
-most test cases--especially with single-node or small clusters--the default of 4 should be preferred.
+Shards allow us to pre-split tables, which provides some initial parallelism for reads and writes. As more data is
+written, Accumulo will split tables based on size, thus obviating the need for explicit shards. For small data sets,
+shards are more important as the tables might never split from size. Setting the number of shards too high can reduce
+performance, as it requires more calculations to be performed per query.
 
 The number of shards is set when calling ``createSchema``. It may be specified through the simple feature type
 user data using the hint ``geomesa.z.splits``:
@@ -180,15 +182,7 @@ user data using the hint ``geomesa.z.splits``:
 
     // set the hint directly
     SimpleFeatureType sft = ...
-    sft.getUserData().put("geomesa.z.splits", "16");
-
-.. code-block:: java
-
-    // or through using RichSimpleFeatureType
-    import org.locationtech.geomesa.utils.geomesa.RichSimpleFeatureType.RichSimpleFeatureType;
-
-    SimpleFeatureType sft = ...
-    sft.setZShards(16);
+    sft.getUserData().put("geomesa.z.splits", "4");
 
 .. _customizing_z_index:
 

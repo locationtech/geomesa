@@ -18,7 +18,12 @@ object SplitArrays {
   def getSplitArray(numSplits: Int): Seq[Array[Byte]] = {
     require(numSplits > 0 && numSplits < 128, "only up to 128 splits are supported")
     val temp = splitArraysMap.get(numSplits)
-    if (temp == null) splitArraysMap.put(numSplits, (0 until numSplits).map(_.toByte).toArray.map(Array(_)).toSeq)
-    splitArraysMap.get(numSplits)
+    if (temp == null) {
+      val splitArrays = (0 until numSplits).map(_.toByte).toArray.map(Array(_)).toSeq
+      splitArraysMap.put(numSplits, splitArrays)
+      splitArrays
+    } else {
+      temp
+    }
   }
 }

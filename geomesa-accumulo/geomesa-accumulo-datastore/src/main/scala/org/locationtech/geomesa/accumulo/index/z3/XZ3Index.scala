@@ -14,8 +14,6 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 case object XZ3Index extends AccumuloFeatureIndexType with XZ3WritableIndex with XZ3QueryableIndex {
 
-  def splitArrays(numSplits: Int): Seq[Array[Byte]] = SplitArrays.getSplitArray(numSplits)
-
   override val name: String = "xz3"
 
   override val version: Int = 1
