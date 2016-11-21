@@ -13,7 +13,20 @@
                 <include>org.locationtech.geomesa:geomesa-cassandra-gs-plugin*</include>
             </includes>
         </dependencySet>
+        <dependencySet>
+            <outputDirectory>lib</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0644</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>true</useTransitiveDependencies>
+            <useTransitiveFiltering>true</useTransitiveFiltering>
+            <useStrictFiltering>true</useStrictFiltering>
+            <excludes>
+                <exclude>org.locationtech.geomesa:geomesa-cassandra-gs-plugin*</exclude>
+            </excludes>
+        </dependencySet>
     </dependencySets>
+
     <fileSets>
         <fileSet>
             <directory>../../</directory>
@@ -22,6 +35,54 @@
                 <include>LICENSE.txt</include>
             </includes>
         </fileSet>
+
+        <!-- Cassandra tools filesets -->
+        <fileSet>
+            <directory>../geomesa-cassandra-tools/bin</directory>
+            <outputDirectory>bin</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0755</fileMode>
+            <filtered>true</filtered>
+        </fileSet>
+        <fileSet>
+            <directory>../geomesa-cassandra-tools/conf</directory>
+            <outputDirectory>conf</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>true</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
+
+        <!-- Common Tools filesets -->
+        <fileSet>
+            <directory>../../geomesa-tools/bin</directory>
+            <outputDirectory>bin</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0755</fileMode>
+            <filtered>true</filtered>
+        </fileSet>
+        <fileSet>
+            <directory>../../geomesa-tools/conf</directory>
+            <outputDirectory>conf</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>false</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
+        <fileSet>
+            <directory>../../geomesa-tools/examples</directory>
+            <outputDirectory>examples</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>false</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
+        <fileSet>
+            <directory>./</directory>
+            <outputDirectory>logs</outputDirectory>
+            <directoryMode>0700</directoryMode>
+            <excludes>
+                <exclude>*/**</exclude>
+            </excludes>
+        </fileSet>
+
     </fileSets>
     <files>
         <file>

@@ -83,6 +83,22 @@ Using the Cassandra Data Store in Geoserver
 
 See :doc:`./geoserver`.
 
+
+Cassandra DataStore Command Line Tools
+--------------------------------------
+
+GeoMesa provides a command line tool for working with a Cassandra data store.
+The tool script is located at ``bin/geomesa-cassandra`` within the
+GeoMesa Cassandra binary distribution. To use the tool, ``cd`` into the
+binary distribution directory, and then type ``bin/geomesa-cassandra``.
+This will print a message on how to use the tool.
+
+Before running the commands, you should set the the ``CASSANDRA_LIB``
+environment variable to the path of the ``lib`` directory of your
+Cassandra installation.
+
+
+
 How you can contribute
 ----------------------
 
