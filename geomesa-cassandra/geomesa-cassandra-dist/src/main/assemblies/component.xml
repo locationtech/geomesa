@@ -25,12 +25,8 @@
                 <exclude>org.locationtech.geomesa:geomesa-cassandra-gs-plugin*</exclude>
             </excludes>
         </dependencySet>
-
-
-
-
-
     </dependencySets>
+
     <fileSets>
         <fileSet>
             <directory>../../</directory>
@@ -39,7 +35,6 @@
                 <include>LICENSE.txt</include>
             </includes>
         </fileSet>
-
 
         <!-- Cassandra tools filesets -->
         <fileSet>
@@ -56,7 +51,6 @@
             <filtered>true</filtered>
             <directoryMode>755</directoryMode>
         </fileSet>
-
 
         <!-- Common Tools filesets -->
         <fileSet>
@@ -88,9 +82,6 @@
                 <exclude>*/**</exclude>
             </excludes>
         </fileSet>
-
-
-
 
     </fileSets>
     <files>

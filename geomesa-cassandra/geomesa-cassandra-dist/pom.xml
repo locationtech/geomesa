@@ -32,7 +32,6 @@
                     <groupId>org.locationtech.geomesa</groupId>
                     <artifactId>*</artifactId>
                 </exclusion>
-
             </exclusions>
         </dependency>
 

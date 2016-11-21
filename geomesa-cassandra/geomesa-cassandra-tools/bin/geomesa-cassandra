@@ -16,8 +16,6 @@ fi
 # Load common functions and setup
 . "${%%gmtools.dist.name%%_HOME}"/bin/common-functions.sh
 
-
-
 # Warn user about missing environment variables
 if [[ (-z "$CASSANDRA_LIB") ]]; then
   message="Warning: you have not set the CASSANDRA_LIB environment variable."
@@ -27,7 +25,6 @@ if [[ (-z "$CASSANDRA_LIB") ]]; then
   echo -e >&2 "$message"
   echo >&2 ""
 fi
-
 
 function findSftDirs() {
   DIRS=$(find $GEOMESA_CONF_DIR/sfts -mindepth 1 -type d -exec printf {}: \;)
