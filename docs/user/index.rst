@@ -17,6 +17,7 @@ User Manual
    spark
    commandline_tools
    data_management
+   analytic_queries
    examples
 
 Appendix

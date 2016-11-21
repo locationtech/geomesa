@@ -83,9 +83,9 @@ class SamplingProcess extends VectorProcess with LazyLogging {
                   targetQuery: Query,
                   targetGridGeometry: GridGeometry): Query = {
     val invertedQuery = new Query(targetQuery)
-    invertedQuery.getHints.put(QueryHints.SAMPLING_KEY, samplePercent)
+    invertedQuery.getHints.put(QueryHints.SAMPLING, samplePercent)
     if (threadBy != null) {
-      invertedQuery.getHints.put(QueryHints.SAMPLE_BY_KEY, threadBy)
+      invertedQuery.getHints.put(QueryHints.SAMPLE_BY, threadBy)
     }
     invertedQuery
   }

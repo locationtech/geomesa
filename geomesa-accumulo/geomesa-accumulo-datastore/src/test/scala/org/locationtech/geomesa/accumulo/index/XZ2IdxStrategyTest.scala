@@ -43,9 +43,9 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
     }
   addFeatures(features)
 
-  val binHints = Map(BIN_TRACK_KEY -> "name", BIN_BATCH_SIZE_KEY -> 100)
-  val sampleHalfHints = Map(SAMPLING_KEY -> new java.lang.Float(.5f))
-  val sample20Hints = Map(SAMPLING_KEY -> new java.lang.Float(.2f))
+  val binHints = Map(BIN_TRACK -> "name", BIN_BATCH_SIZE -> 100)
+  val sampleHalfHints = Map(SAMPLING -> new java.lang.Float(.5f))
+  val sample20Hints = Map(SAMPLING -> new java.lang.Float(.2f))
 
   "XZ2IdxStrategy" should {
     "return all features for Filter.INCLUDE" >> {
@@ -168,7 +168,7 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
 
     "optimize for bin format with label" >> {
       val filter = "bbox(geom, 35, 55, 45, 75)"
-      val hints = binHints.updated(BIN_LABEL_KEY, "name")
+      val hints = binHints.updated(BIN_LABEL, "name")
 
       val qps = plan(filter, hints = hints)
       forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
@@ -214,14 +214,14 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
     }
 
     "support sampling by threading key" in {
-      val results = execute("INCLUDE", hints = sampleHalfHints.updated(SAMPLE_BY_KEY, "track")).toList
+      val results = execute("INCLUDE", hints = sampleHalfHints.updated(SAMPLE_BY, "track")).toList
       results must haveLength(10)
       results.count(_.getAttribute("track") == "track1") mustEqual 5
       results.count(_.getAttribute("track") == "track2") mustEqual 5
     }
 
     "support sampling with bin queries" in {
-      val hints = binHints.updated(BIN_TRACK_KEY, "track") ++ sample20Hints.updated(SAMPLE_BY_KEY, "track")
+      val hints = binHints.updated(BIN_TRACK, "track") ++ sample20Hints.updated(SAMPLE_BY, "track")
       val resultFeatures = execute("INCLUDE", hints = hints)
       import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
 

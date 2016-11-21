@@ -40,8 +40,8 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
   def getQuery(statString: String, ecql: Option[String] = None): Query = {
     val query = new Query(sftName, ECQL.toFilter("dtg DURING 2012-01-01T18:30:00.000Z/2012-01-01T19:30:00.000Z " +
         "AND bbox(geom,-80,35,-75,40)" + ecql.map(" AND " + _).getOrElse("")))
-    query.getHints.put(QueryHints.STATS_KEY, statString)
-    query.getHints.put(QueryHints.RETURN_ENCODED_KEY, java.lang.Boolean.TRUE)
+    query.getHints.put(QueryHints.STATS_STRING, statString)
+    query.getHints.put(QueryHints.ENCODE_STATS, java.lang.Boolean.TRUE)
     query
   }
 

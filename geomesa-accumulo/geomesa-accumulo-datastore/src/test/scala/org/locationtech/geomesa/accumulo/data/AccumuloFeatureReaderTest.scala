@@ -84,8 +84,8 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
       val events = ArrayBuffer.empty[AuditedEvent]
 
       val query = new Query(sftName, filter)
-      query.getHints.put(QueryHints.BIN_TRACK_KEY, "name")
-      query.getHints.put(QueryHints.BIN_BATCH_SIZE_KEY, 10)
+      query.getHints.put(QueryHints.BIN_TRACK, "name")
+      query.getHints.put(QueryHints.BIN_BATCH_SIZE, 10)
 
       var count = 0
       val reader = dataStoreWithAudit(events).getFeatureReader(query, Transaction.AUTO_COMMIT)
@@ -106,7 +106,7 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
 
       // put the hints in the request after getting the feature collection
       // to mimic the bin output format workflow
-      val hints = Map(QueryHints.BIN_TRACK_KEY -> "name", QueryHints.BIN_BATCH_SIZE_KEY -> 10)
+      val hints = Map(QueryHints.BIN_TRACK -> "name", QueryHints.BIN_BATCH_SIZE -> 10)
       QueryPlanner.setPerThreadQueryHints(hints.asInstanceOf[Map[AnyRef, AnyRef]])
 
       var count = 0
@@ -134,8 +134,8 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
 
     "be able to limit features in bin results" in {
       val query = new Query(sftName, filter)
-      query.getHints.put(QueryHints.BIN_TRACK_KEY, "name")
-      query.getHints.put(QueryHints.BIN_BATCH_SIZE_KEY, 10)
+      query.getHints.put(QueryHints.BIN_TRACK, "name")
+      query.getHints.put(QueryHints.BIN_BATCH_SIZE, 10)
       query.setMaxFeatures(10)
 
       var count = 0
@@ -152,7 +152,7 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
 
       val collection = ds.getFeatureSource(sftName).getFeatures(query)
 
-      val hints = Map(QueryHints.BIN_TRACK_KEY -> "name", QueryHints.BIN_BATCH_SIZE_KEY -> 10)
+      val hints = Map(QueryHints.BIN_TRACK -> "name", QueryHints.BIN_BATCH_SIZE -> 10)
       QueryPlanner.setPerThreadQueryHints(hints.asInstanceOf[Map[AnyRef, AnyRef]])
 
       var count = 0
@@ -182,8 +182,8 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
     "be able to limit features in bin results and collect stats" in {
       val events = ArrayBuffer.empty[AuditedEvent]
       val query = new Query(sftName, filter)
-      query.getHints.put(QueryHints.BIN_TRACK_KEY, "name")
-      query.getHints.put(QueryHints.BIN_BATCH_SIZE_KEY, 10)
+      query.getHints.put(QueryHints.BIN_TRACK, "name")
+      query.getHints.put(QueryHints.BIN_BATCH_SIZE, 10)
       query.setMaxFeatures(10)
 
       var count = 0
@@ -206,7 +206,7 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
 
       // put the hints in the request after getting the feature collection
       // to mimic the bin output format workflow
-      val hints = Map(QueryHints.BIN_TRACK_KEY -> "name", QueryHints.BIN_BATCH_SIZE_KEY -> 10)
+      val hints = Map(QueryHints.BIN_TRACK -> "name", QueryHints.BIN_BATCH_SIZE -> 10)
       QueryPlanner.setPerThreadQueryHints(hints.asInstanceOf[Map[AnyRef, AnyRef]])
 
       var count = 0

@@ -8,12 +8,9 @@
 
 package org.locationtech.geomesa.index.api
 
-import java.util.{Locale, Map => jMap}
-
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.data.Query
-import org.geotools.factory.Hints
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.FunctionExpressionImpl
@@ -26,11 +23,11 @@ import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
-import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.iterators.{DeduplicatingSimpleFeatureIterator, SortingSimpleFeatureIterator}
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
@@ -172,7 +169,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, 
     }
 
     // handle any params passed in through geoserver
-    handleGeoServerParams(query, sft)
+    ViewParams.setHints(ds, sft, query)
 
     if (query.getFilter != null && query.getFilter != Filter.INCLUDE) {
       // bind the literal values to the appropriate type, so that it isn't done every time the filter is evaluated
@@ -191,44 +188,10 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, 
     query
   }
 
-  /**
-    * Checks the 'view params' passed in through geoserver and converts them to the appropriate query hints.
-    * This kind of a hack, but it's the only way geoserver exposes custom data to the underlying data store.
-    *
-    * Note - keys in the map are always uppercase.
-    *
-    * @param query query to modify
-    * @param sft simple feature type
-    */
-  protected def handleGeoServerParams(query: Query, sft: SimpleFeatureType): Unit = {
-    val viewParams = query.getHints.get(Hints.VIRTUAL_TABLE_PARAMETERS).asInstanceOf[jMap[String, String]]
-    if (viewParams != null) {
-      def withName(name: String) = {
-        val check = name.toLowerCase(Locale.US)
-        val value = ds.manager.indices(sft, IndexMode.Read).find(_.name.toLowerCase(Locale.US) == check)
-        if (value.isEmpty) {
-          logger.error(s"Ignoring invalid strategy name from view params: $name. Valid values " +
-              s"are ${ds.manager.indices(sft, IndexMode.Read).map(_.name).mkString(", ")}")
-        }
-        value
-      }
-      Option(viewParams.get("STRATEGY")).flatMap(withName).foreach { strategy =>
-        val old = query.getHints.get(QueryHints.QUERY_INDEX_KEY)
-        if (old == null) {
-          logger.debug(s"Using strategy $strategy from view params")
-          query.getHints.put(QueryHints.QUERY_INDEX_KEY, strategy)
-        } else if (old != strategy) {
-          logger.warn("Ignoring query hint from geoserver in favor of hint directly set in query. " +
-              s"Using $old and disregarding $strategy")
-        }
-      }
-    }
-  }
-
   // This function calculates the SimpleFeatureType of the returned SFs.
   protected def setReturnSft(query: Query, baseSft: SimpleFeatureType): Unit = {
     val sft = query.getHints.getTransformSchema.getOrElse(baseSft)
-    query.getHints.put(QueryHints.RETURN_SFT_KEY, sft)
+    query.getHints.put(QueryHints.Internal.RETURN_SFT, sft)
   }
 }
 
@@ -268,8 +231,8 @@ object QueryPlanner extends LazyLogging {
       val transforms = (allTransforms ++ geomTransform).mkString(";")
       val transformDefs = TransformProcess.toDefinition(transforms)
       val derivedSchema = computeSchema(sft, transformDefs.asScala)
-      query.getHints.put(QueryHints.TRANSFORMS, transforms)
-      query.getHints.put(QueryHints.TRANSFORM_SCHEMA, derivedSchema)
+      query.getHints.put(QueryHints.Internal.TRANSFORMS, transforms)
+      query.getHints.put(QueryHints.Internal.TRANSFORM_SCHEMA, derivedSchema)
     }
   }
 

@@ -47,7 +47,7 @@ class KryoLazyStatsIterator extends KryoLazyAggregatingIterator[Stat] {
 
 object KryoLazyStatsIterator extends LazyLogging {
 
-  import org.locationtech.geomesa.index.conf.QueryHints.{RETURN_ENCODED_KEY, STATS_KEY}
+  import org.locationtech.geomesa.index.conf.QueryHints.{ENCODE_STATS, STATS_STRING}
 
   val DEFAULT_PRIORITY = 30
   val STATS_STRING_KEY = "geomesa.stats.string"
@@ -63,7 +63,7 @@ object KryoLazyStatsIterator extends LazyLogging {
                 priority: Int = DEFAULT_PRIORITY): IteratorSetting = {
     val is = new IteratorSetting(priority, "stats-iter", classOf[KryoLazyStatsIterator])
     KryoLazyAggregatingIterator.configure(is, sft, index, filter, deduplicate, None)
-    is.addOption(STATS_STRING_KEY, hints.get(STATS_KEY).asInstanceOf[String])
+    is.addOption(STATS_STRING_KEY, hints.get(STATS_STRING).asInstanceOf[String])
     is
   }
 
@@ -118,7 +118,7 @@ object KryoLazyStatsIterator extends LazyLogging {
 
     val sum = if (decodedStats.isEmpty) {
       // create empty stat based on the original input so that we always return something
-      Stat(sft, hints.get(STATS_KEY).asInstanceOf[String])
+      Stat(sft, hints.get(STATS_STRING).asInstanceOf[String])
     } else {
       val sum = decodedStats.next()
       decodedStats.foreach(sum += _)
@@ -126,7 +126,7 @@ object KryoLazyStatsIterator extends LazyLogging {
     }
     decodedStats.close()
 
-    val stats = if (hints.containsKey(RETURN_ENCODED_KEY)) encodeStat(sum, sft) else sum.toJson
+    val stats = if (hints.containsKey(ENCODE_STATS)) encodeStat(sum, sft) else sum.toJson
     Iterator(new ScalaSimpleFeature("stat", StatsSft, Array(stats, GeometryUtils.zeroPoint)))
   }
 }

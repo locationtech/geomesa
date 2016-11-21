@@ -107,7 +107,7 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
             s"dtg during 2014-01-01T00:00:00.000Z/2014-01-05T00:00:00.000Z ")
 
         val query = new Query(sftName, filter, Array[String]("dtg", "geom", "name"))
-        query.getHints.put(QueryHints.SAMPLING_KEY, new java.lang.Float(.5f))
+        query.getHints.put(QueryHints.SAMPLING, new java.lang.Float(.5f))
 
         val plans = ds.getQueryPlan(query)
         plans.size mustEqual 1
@@ -180,7 +180,7 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
             s"dtg during 2014-01-01T00:00:00.000Z/2014-01-05T00:00:00.000Z ")
 
         val query = new Query(sftName, filter, Array[String]("dtg", "geom", "name"))
-        query.getHints.put(QueryHints.SAMPLING_KEY, new java.lang.Float(.5f))
+        query.getHints.put(QueryHints.SAMPLING, new java.lang.Float(.5f))
 
         val plans = ds.getQueryPlan(query)
         plans.size mustEqual 1

@@ -105,8 +105,8 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     "support bin queries with join queries" in {
       import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, ECQL.toFilter("count>=2"))
-      query.getHints.put(BIN_TRACK_KEY, "name")
-      query.getHints.put(BIN_BATCH_SIZE_KEY, 1000)
+      query.getHints.put(BIN_TRACK, "name")
+      query.getHints.put(BIN_BATCH_SIZE, 1000)
       explain(query).split("\n").map(_.trim).filter(_.startsWith("Join Plan:")) must haveLength(1)
       val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
@@ -118,8 +118,8 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     "support bin queries against index values" in {
       import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, ECQL.toFilter("count>=2"))
-      query.getHints.put(BIN_TRACK_KEY, "dtg")
-      query.getHints.put(BIN_BATCH_SIZE_KEY, 1000)
+      query.getHints.put(BIN_TRACK, "dtg")
+      query.getHints.put(BIN_BATCH_SIZE, 1000)
       explain(query).split("\n").filter(_.startsWith("Join Table:")) must beEmpty
       val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
@@ -131,8 +131,8 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     "support bin queries against full values" in {
       import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, ECQL.toFilter("name>'amy'"))
-      query.getHints.put(BIN_TRACK_KEY, "count")
-      query.getHints.put(BIN_BATCH_SIZE_KEY, 1000)
+      query.getHints.put(BIN_TRACK, "count")
+      query.getHints.put(BIN_BATCH_SIZE, 1000)
       explain(query).split("\n").filter(_.startsWith("Join Table:")) must beEmpty
       val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
@@ -185,21 +185,21 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
 
     "support sampling" in {
       val query = new Query(sftName, ECQL.toFilter("name > 'a'"))
-      query.getHints.put(SAMPLING_KEY, new java.lang.Float(.5f))
+      query.getHints.put(SAMPLING, new java.lang.Float(.5f))
       val results = runQuery(query).toList
       results must haveLength(2)
     }
 
     "support sampling with cql" in {
       val query = new Query(sftName, ECQL.toFilter("name > 'a' AND track > 'track'"))
-      query.getHints.put(SAMPLING_KEY, new java.lang.Float(.5f))
+      query.getHints.put(SAMPLING, new java.lang.Float(.5f))
       val results = runQuery(query).toList
       results must haveLength(2)
     }
 
     "support sampling with transformations" in {
       val query = new Query(sftName, ECQL.toFilter("name > 'a'"), Array("name", "geom"))
-      query.getHints.put(SAMPLING_KEY, new java.lang.Float(.5f))
+      query.getHints.put(SAMPLING, new java.lang.Float(.5f))
       val results = runQuery(query).toList
       results must haveLength(2)
       forall(results)(_.getAttributeCount mustEqual 2)
@@ -207,7 +207,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
 
     "support sampling with cql and transformations" in {
       val query = new Query(sftName, ECQL.toFilter("name > 'a' AND track > 'track'"), Array("name", "geom"))
-      query.getHints.put(SAMPLING_KEY, new java.lang.Float(.2f))
+      query.getHints.put(SAMPLING, new java.lang.Float(.2f))
       val results = runQuery(query).toList
       results must haveLength(1)
       results.head.getAttributeCount mustEqual 2
@@ -215,8 +215,8 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
 
     "support sampling by thread" in {
       val query = new Query(sftName, ECQL.toFilter("name > 'a'"))
-      query.getHints.put(SAMPLING_KEY, new java.lang.Float(.5f))
-      query.getHints.put(SAMPLE_BY_KEY, "track")
+      query.getHints.put(SAMPLING, new java.lang.Float(.5f))
+      query.getHints.put(SAMPLE_BY, "track")
       val results = runQuery(query).toList
       results must haveLength(2)
       results.map(_.getAttribute("track")) must containTheSameElementsAs(Seq("track1", "track2"))
@@ -226,9 +226,9 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
       // important - id filters will create multiple ranges and cause multiple iterators to be created
       val query = new Query(sftName, ECQL.toFilter("name > 'a'"))
-      query.getHints.put(BIN_TRACK_KEY, "name")
-      query.getHints.put(BIN_BATCH_SIZE_KEY, 1000)
-      query.getHints.put(SAMPLING_KEY, new java.lang.Float(.5f))
+      query.getHints.put(BIN_TRACK, "name")
+      query.getHints.put(BIN_BATCH_SIZE, 1000)
+      query.getHints.put(SAMPLING, new java.lang.Float(.5f))
       // have to evaluate attributes before pulling into collection, as the same sf is reused
       val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
       forall(results)(_ must beAnInstanceOf[Array[Byte]])

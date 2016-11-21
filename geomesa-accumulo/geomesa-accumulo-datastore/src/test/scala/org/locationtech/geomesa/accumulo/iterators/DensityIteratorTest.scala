@@ -51,10 +51,10 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
                  strategy: Option[AccumuloFeatureIndexType] = None): List[(Double, Double, Double)] = {
     val q = new Query(sftName, ECQL.toFilter(query))
     val geom = envelope.getOrElse(q.getFilter.accept(ExtractBoundsFilterVisitor.BOUNDS_VISITOR, null).asInstanceOf[Envelope])
-    q.getHints.put(QueryHints.DENSITY_BBOX_KEY, new ReferencedEnvelope(geom, DefaultGeographicCRS.WGS84))
-    q.getHints.put(QueryHints.WIDTH_KEY, 500)
-    q.getHints.put(QueryHints.HEIGHT_KEY, 500)
-    strategy.foreach(s => q.getHints.put(QueryHints.QUERY_INDEX_KEY, s))
+    q.getHints.put(QueryHints.DENSITY_BBOX, new ReferencedEnvelope(geom, DefaultGeographicCRS.WGS84))
+    q.getHints.put(QueryHints.DENSITY_WIDTH, 500)
+    q.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
+    strategy.foreach(s => q.getHints.put(QueryHints.QUERY_INDEX, s))
     val decode = KryoLazyDensityIterator.decodeResult(geom, 500, 500)
     ds.getFeatureSource(sftName).getFeatures(q).features().flatMap(decode).toList
   }

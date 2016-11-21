@@ -54,16 +54,16 @@ class BinLineStringTest extends Specification with TestWithDataStore {
 
   def getQuery(filter: String, dtg: Option[String] = None, label: Option[String] = None): Query = {
     val query = new Query(sftName, ECQL.toFilter(filter))
-    query.getHints.put(BIN_TRACK_KEY, "track")
-    query.getHints.put(BIN_BATCH_SIZE_KEY, 100)
-    dtg.foreach(query.getHints.put(BIN_DTG_KEY, _))
-    label.foreach(query.getHints.put(BIN_LABEL_KEY, _))
+    query.getHints.put(BIN_TRACK, "track")
+    query.getHints.put(BIN_BATCH_SIZE, 100)
+    dtg.foreach(query.getHints.put(BIN_DTG, _))
+    label.foreach(query.getHints.put(BIN_LABEL, _))
     query
   }
 
   def runQuery(query: Query): Seq[EncodedValues] = {
     import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
-    val binSize = if (query.getHints.containsKey(BIN_LABEL_KEY)) 24 else 16
+    val binSize = if (query.getHints.containsKey(BIN_LABEL)) 24 else 16
     val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
     val bytes = features.map { f =>
       val array = f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]

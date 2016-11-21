@@ -44,7 +44,7 @@ class MapAggregatingIteratorTest extends Specification with TestWithDataStore {
 
   def getQuery(query: String): Query = {
     val q = new Query(sftName, ECQL.toFilter(query))
-    q.getHints.put(QueryHints.MAP_AGGREGATION_KEY, "map")
+    q.getHints.put(QueryHints.MAP_AGGREGATION, "map")
     q
   }
 
@@ -212,7 +212,7 @@ class MapAggregatingIteratorDoubleTest extends Specification with TestWithDataSt
 
   def getQuery(query: String): Query = {
     val q = new Query(sftName, ECQL.toFilter(query))
-    q.getHints.put(QueryHints.MAP_AGGREGATION_KEY, "map")
+    q.getHints.put(QueryHints.MAP_AGGREGATION, "map")
     q
   }
 

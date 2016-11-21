@@ -60,9 +60,9 @@ class QueryStatTransformTest extends Specification {
 
       val query = new Query("test", CQL.toFilter("INCLUDE"))
       val env = new ReferencedEnvelope()
-      query.getHints.put(QueryHints.DENSITY_BBOX_KEY, env)
-      query.getHints.put(QueryHints.WIDTH_KEY, 500)
-      query.getHints.put(QueryHints.HEIGHT_KEY, 500)
+      query.getHints.put(QueryHints.DENSITY_BBOX, env)
+      query.getHints.put(QueryHints.DENSITY_WIDTH, 500)
+      query.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
 
       val hints = QueryEvent.hintsToString(query.getHints)
 

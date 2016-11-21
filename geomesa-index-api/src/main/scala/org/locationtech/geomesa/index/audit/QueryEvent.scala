@@ -27,10 +27,11 @@ case class QueryEvent(storeType: String,
 object QueryEvent {
 
   import org.locationtech.geomesa.index.conf.QueryHints._
+  import org.locationtech.geomesa.index.conf.QueryHints.Internal._
 
   // list of query hints we want to persist
   val QUERY_HINTS =
-    List[Hints.Key](TRANSFORMS, TRANSFORM_SCHEMA, DENSITY_BBOX_KEY, WIDTH_KEY, HEIGHT_KEY, BIN_TRACK_KEY, STATS_KEY)
+    List[Hints.Key](TRANSFORMS, TRANSFORM_SCHEMA, DENSITY_BBOX, DENSITY_WIDTH, DENSITY_HEIGHT, BIN_TRACK, STATS_STRING)
 
   /**
     * Converts a query hints object to a string for persisting
@@ -54,15 +55,16 @@ object QueryEvent {
     * @return
     */
   def keyToString(key: Hints.Key): String = key match {
-    case TRANSFORMS         => "TRANSFORMS"
-    case TRANSFORM_SCHEMA   => "TRANSFORM_SCHEMA"
-    case BIN_TRACK_KEY      => "BIN_TRACK_KEY"
-    case STATS_KEY          => "STATS_STRING_KEY"
-    case RETURN_ENCODED_KEY => "RETURN_ENCODED"
-    case DENSITY_BBOX_KEY   => "DENSITY_BBOX_KEY"
-    case WIDTH_KEY          => "WIDTH_KEY"
-    case HEIGHT_KEY         => "HEIGHT_KEY"
-    case _                  => "unknown_hint"
+    // note: keep these at their old values for back compatibility
+    case TRANSFORMS       => "TRANSFORMS"
+    case TRANSFORM_SCHEMA => "TRANSFORM_SCHEMA"
+    case BIN_TRACK        => "BIN_TRACK_KEY"
+    case STATS_STRING     => "STATS_STRING_KEY"
+    case ENCODE_STATS     => "RETURN_ENCODED"
+    case DENSITY_BBOX     => "DENSITY_BBOX_KEY"
+    case DENSITY_WIDTH    => "WIDTH_KEY"
+    case DENSITY_HEIGHT   => "HEIGHT_KEY"
+    case _                => "unknown_hint"
   }
 
   /**

@@ -298,6 +298,8 @@ specified location in your GeoServer installation.
 .. image:: _static/geomesa-examples-gdelt/Ukraine_Event_RootCode_Threaten.png
    :alt: Showing GDELT events with CAMEO root code THREATEN from Jan 1, 2013 to April 30, 2014
 
+.. _gdelt_heatmaps:
+
 Heatmaps
 ~~~~~~~~
 

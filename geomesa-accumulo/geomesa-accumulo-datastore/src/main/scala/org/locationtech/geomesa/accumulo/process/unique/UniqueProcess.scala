@@ -236,8 +236,8 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
       uniqueV5(source, query)
     } else {
       // TODO if !histogram, we could write a new unique skipping iterator
-      query.getHints.put(QueryHints.STATS_KEY, Stat.Enumeration(attribute))
-      query.getHints.put(QueryHints.RETURN_ENCODED_KEY, java.lang.Boolean.TRUE)
+      query.getHints.put(QueryHints.STATS_STRING, Stat.Enumeration(attribute))
+      query.getHints.put(QueryHints.ENCODE_STATS, java.lang.Boolean.TRUE)
 
       // execute the query
       val reader = source.getFeatures(query).features()
