@@ -38,7 +38,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 
     super.init(source, options, env)
 
-    sft = SimpleFeatureTypes.createType("", options.get(KryoVisibilityRowEncoder.SftOpt))
+    sft = IteratorCache.sft(options.get(KryoVisibilityRowEncoder.SftOpt))
     if (offsets == null || offsets.length != sft.getAttributeCount) {
       offsets = Array.ofDim[Int](sft.getAttributeCount)
     }
