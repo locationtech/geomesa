@@ -21,8 +21,9 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kafka.min.version>${kafka.08.version}</kafka.min.version>
         <kafka.maj.version>08</kafka.maj.version>
+        <kafka.version>${kafka.08.version}</kafka.version>
+        <zkclient.version>0.3</zkclient.version>
     </properties>
 
     <dependencies>
