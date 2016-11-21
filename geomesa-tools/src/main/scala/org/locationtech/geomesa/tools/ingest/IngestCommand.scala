@@ -13,6 +13,7 @@ import java.net.URL
 import java.util
 
 import com.beust.jcommander.{Parameter, ParameterException}
+import org.geotools.data.DataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools.utils.{CLArgResolver, DataFormats}
 import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, OptionalFeatureSpecParam, OptionalTypeNameParam}
@@ -20,7 +21,7 @@ import org.locationtech.geomesa.utils.geotools.GeneralShapefileIngest
 
 import scala.collection.parallel.ForkJoinTaskSupport
 
-trait IngestCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   import scala.collection.JavaConversions._
 

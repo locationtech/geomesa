@@ -11,11 +11,11 @@ package org.locationtech.geomesa.tools.data
 import java.util.regex.Pattern
 
 import com.beust.jcommander.ParameterException
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.geotools.data.DataStore
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.Prompt
 
-trait RemoveSchemaCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait RemoveSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   override val name = "remove-schema"
   override def params: RemoveSchemaParams
@@ -46,7 +46,7 @@ trait RemoveSchemaCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreC
         } else {
           println(s"Removing '$typeName'")
           ds.removeSchema(typeName)
-          if (ds.getSchema(typeName) != null) {
+          if (ds.getTypeNames.contains(typeName)) {  // NB: For Cassandra this only checks metadata
             logger.error(s"Error removing feature type '$typeName'")
           }
         }

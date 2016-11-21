@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.cassandra.tools
 
 import com.beust.jcommander.JCommander
-import org.locationtech.geomesa.cassandra.tools.commands.{CassandraDescribeSchemaCommand, CassandraGetSftConfigCommand, CassandraGetTypeNamesCommand}
+import org.locationtech.geomesa.cassandra.tools.commands._
 import org.locationtech.geomesa.tools.status.{EnvironmentCommand, HelpCommand, VersionCommand}
 import org.locationtech.geomesa.tools.{Command, Runner}
 
@@ -24,6 +24,9 @@ object CassandraRunner extends Runner {
     new HelpCommand(this, jc),
     new EnvironmentCommand,
     new VersionCommand,
-    new CassandraGetSftConfigCommand
+    new CassandraGetSftConfigCommand,
+    new CassandraCreateSchemaCommand,
+    new CassandraRemoveSchemaCommand,
+    new CassandraIngestCommand
   )
 }

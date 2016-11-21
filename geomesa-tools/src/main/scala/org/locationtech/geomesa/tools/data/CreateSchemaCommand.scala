@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.tools.data
 
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.geotools.data.DataStore
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.CLArgResolver
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
-trait CreateSchemaCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait CreateSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   override val name = "create-schema"
   override def params: CreateSchemaParams
@@ -31,7 +31,7 @@ trait CreateSchemaCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreC
     lazy val sftString = SimpleFeatureTypes.encodeType(sft)
     logger.info(s"Creating '${params.featureName}' with spec '$sftString'. Just a few moments...")
 
-    if (ds.getSchema(sft.getTypeName) == null) {
+    if (!ds.getTypeNames.contains(sft.getTypeName)) {
       ds.createSchema(sft)
       if (ds.getSchema(sft.getTypeName) != null) {
         logger.info(s"Created schema '${sft.getTypeName}'")
