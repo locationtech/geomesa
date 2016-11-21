@@ -101,6 +101,11 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>com.esotericsoftware.kryo</groupId>
+            <artifactId>kryo</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>com.clearspring.analytics</groupId>
             <artifactId>stream</artifactId>
         </dependency>
