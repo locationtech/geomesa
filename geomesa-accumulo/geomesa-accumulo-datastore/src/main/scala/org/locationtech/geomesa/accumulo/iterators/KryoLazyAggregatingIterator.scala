@@ -19,8 +19,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AccumuloWritableIndex}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
-import org.locationtech.geomesa.filter.factory.FastFilterFactory
+import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -65,20 +64,21 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
     this.source = src.deepCopy(env)
     val options = jOptions.asScala
 
-    sft = SimpleFeatureTypes.createType("", options(SFT_OPT))
+    val spec = options(SFT_OPT)
+    sft = IteratorCache.sft(spec)
     index = try { AccumuloFeatureIndex.index(options(INDEX_OPT)) } catch {
       case NonFatal(e) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(INDEX_OPT)}")
     }
 
     if (index.serializedWithId) {
       getId = (_) => reusableSf.getID
-      reusableSf = new KryoFeatureSerializer(sft).getReusableFeature
+      reusableSf = IteratorCache.serializer(spec, SerializationOptions.none).getReusableFeature
     } else {
       val getIdFromRow = index.getIdFromRow(sft)
       getId = (row) => getIdFromRow(row.getBytes, 0, row.getLength)
-      reusableSf = new KryoFeatureSerializer(sft, SerializationOptions.withoutId).getReusableFeature
+      reusableSf = IteratorCache.serializer(spec, SerializationOptions.withoutId).getReusableFeature
     }
-    val filt = options.get(CQL_OPT).map(FastFilterFactory.toFilter).orNull
+    val filt = options.get(CQL_OPT).map(IteratorCache.filter(spec, _)).orNull
     val dedupe = options.get(DUPE_OPT).exists(_.toBoolean)
     maxIdsToTrack = options.get(MAX_DUPE_OPT).map(_.toInt).getOrElse(99999)
     validate = (filt, dedupe) match {
