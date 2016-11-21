@@ -18,8 +18,7 @@ import org.apache.hadoop.io.Text
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
-import org.locationtech.geomesa.filter.factory.FastFilterFactory
+import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -64,19 +63,20 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
     this.source = src.deepCopy(env)
     val options = jOptions.asScala
 
-    sft = SimpleFeatureTypes.createType("", options(SFT_OPT))
+    val spec = options(SFT_OPT)
+    sft = IteratorCache.sft(spec)
     if (sft.getSchemaVersion < 9) {
       getId = (_) => reusableSf.getID
-      reusableSf = new KryoFeatureSerializer(sft).getReusableFeature
+      reusableSf = IteratorCache.serializer(spec, SerializationOptions.none).getReusableFeature
     } else {
       val tableName = options(TABLE_OPT)
       val table = GeoMesaTable.AllTables.find(_.getClass.getSimpleName == tableName).getOrElse {
         throw new RuntimeException(s"Table option not configured correctly: $tableName")
       }
       getId = table.getIdFromRow(sft)
-      reusableSf = new KryoFeatureSerializer(sft, SerializationOptions.withoutId).getReusableFeature
+      reusableSf = IteratorCache.serializer(spec, SerializationOptions.withoutId).getReusableFeature
     }
-    val filt = options.get(CQL_OPT).map(FastFilterFactory.toFilter).orNull
+    val filt = options.get(CQL_OPT).map(IteratorCache.filter(spec, _)).orNull
     val dedupe = options.get(DUPE_OPT).exists(_.toBoolean)
     maxIdsToTrack = options.get(MAX_DUPE_OPT).map(_.toInt).getOrElse(99999)
     validate = (filt, dedupe) match {
