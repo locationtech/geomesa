@@ -87,7 +87,7 @@ class CassandraDataStore(val session: Session, keyspaceMetadata: KeyspaceMetadat
     new CassandraFeatureStore(contentEntry)
 
 
-  def getSchema(name: Name, table: TableMetadata): SimpleFeatureType = {
+  override def getSchema(name: Name): SimpleFeatureType = {
     val sftOpt = metadata.read(name.getLocalPart, "attributes").map(SimpleFeatureTypes.createType(name.getLocalPart, _))
     sftOpt.orNull
   }
@@ -120,7 +120,7 @@ class CassandraDataStore(val session: Session, keyspaceMetadata: KeyspaceMetadat
 
 
   override def createContentState(entry: ContentEntry): ContentState =
-    new CassandraContentState(entry, this, keyspaceMetadata.getTable(entry.getTypeName))
+    new CassandraContentState(entry, this)
 
   override def createTypeNames(): util.List[Name] =
     metadata.getFeatureTypes.map { t => new NameImpl(ns.toString, t) }.toList

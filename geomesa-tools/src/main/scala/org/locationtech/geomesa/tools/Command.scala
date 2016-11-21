@@ -10,7 +10,7 @@ package org.locationtech.geomesa.tools
 
 import com.beust.jcommander.JCommander
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.DataStoreFinder
+import org.geotools.data.{DataStore, DataStoreFinder}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 
 import scala.collection.JavaConversions._
@@ -42,7 +42,7 @@ trait CommandWithSubCommands extends Command {
   }
 }
 
-trait DataStoreCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends Command {
+trait DataStoreCommand[DS <: DataStore] extends Command {
 
   def connection: Map[String, String]
 
