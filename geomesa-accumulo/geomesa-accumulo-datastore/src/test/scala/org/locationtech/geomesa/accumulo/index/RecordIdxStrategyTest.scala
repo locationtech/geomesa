@@ -117,9 +117,9 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(SAMPLING_KEY, new java.lang.Float(.5f))
       query.getHints.put(SAMPLE_BY_KEY, "track")
       val results = runQuery(query).toList
-      results must haveLength(10)
-      results.count(_.getAttribute("track") == "track1") mustEqual 5
-      results.count(_.getAttribute("track") == "track2") mustEqual 5
+      results.length must beLessThan(12)
+      results.count(_.getAttribute("track") == "track1") must beLessThan(6)
+      results.count(_.getAttribute("track") == "track2") must beLessThan(6)
     }
 
     "support sampling with bin queries" in {
