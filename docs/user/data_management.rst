@@ -160,6 +160,30 @@ If you are using the GeoMesa ``SftBuilder``, you may call the overloaded attribu
         .geometry("geom", default = true)
         .build("mySft")
 
+.. _configuring_z_shards:
+
+Configuring Z-Index Shards
+--------------------------
+
+GeoMesa Accumulo permits one to specify the number of shards (or splits) into which the Z2 (or Z3) indices are
+divided. This parameter may be changed individually for each ``SimpleFeatureType``. In previous versions of GeoMesa,
+the numberof shards was fixed at 4, which remains the default. Valid values for the number of shards range
+from 1 to 127 inclusive.
+
+Shards allow us to pre-split tables, which provides some initial parallelism for reads and writes. As more data is
+written, Accumulo will split tables based on size, thus obviating the need for explicit shards. For small data sets,
+shards are more important as the tables might never split from size. Setting the number of shards too high can reduce
+performance, as it requires more calculations to be performed per query.
+
+The number of shards is set when calling ``createSchema``. It may be specified through the simple feature type
+user data using the hint ``geomesa.z.splits``:
+
+.. code-block:: java
+
+    // set the hint directly
+    SimpleFeatureType sft = ...
+    sft.getUserData().put("geomesa.z.splits", "4");
+
 .. _customizing_z_index:
 
 Customizing the Z-Index

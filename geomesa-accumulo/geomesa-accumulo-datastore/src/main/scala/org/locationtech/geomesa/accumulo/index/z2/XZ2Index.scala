@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.accumulo.index.z2
 
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
+import org.locationtech.geomesa.accumulo.index.SplitArrays
 import org.opengis.feature.simple.SimpleFeatureType
 
 case object XZ2Index extends AccumuloFeatureIndexType with XZ2WritableIndex with XZ2QueryableIndex {
