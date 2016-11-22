@@ -34,9 +34,7 @@ Prerequisites
 -  `Apache Maven <http://maven.apache.org/>`__ |maven_version|, and
 -  a `git <http://git-scm.com/>`__ client.
 
-In order to install the GeoMesa Kafka GeoServer plugin, follow the
-instructions
-`here <https://github.com/locationtech/geomesa/tree/master/geomesa-kafka/geomesa-kafka-gs-plugin>`__.
+In order to install the GeoMesa Kafka GeoServer plugin, follow the instructions here: :ref:`install_kafka_geoserver`.
 
 Ensure your Kafka and Zookeeper instances are running. You can use
 Kafka's
@@ -52,6 +50,11 @@ Pick a reasonable directory on your machine, and run:
 
     $ git clone https://github.com/geomesa/geomesa-tutorials.git
     $ cd geomesa-tutorials
+
+.. note::
+
+    You may need to download a particular release of the tutorials project
+    to target a particular GeoMesa release. See :ref:`tutorial_versions`.
 
 To build, run
 

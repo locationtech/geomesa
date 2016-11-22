@@ -54,6 +54,11 @@ Clone the geomesa-tutorials distribution from GitHub:
     $ git clone https://github.com/geomesa/geomesa-tutorials.git
     $ cd geomesa-tutorials
 
+.. note::
+
+    You may need to download a particular release of the tutorials project
+    to target a particular GeoMesa release. See :ref:`tutorial_versions`.
+
 The ``pom.xml`` file contains an explicit list of dependent libraries
 that will be bundled together into the final tutorial. You should
 confirm that the versions of HBase and Hadoop match what you are

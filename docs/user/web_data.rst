@@ -150,12 +150,13 @@ Registered data stores will persist between geoserver reboots.
 
 -  POST /spark/config - Set spark configurations
 
-Options are passed as parameters. For a list of available options, see:
+Options are passed as parameters. For a list of available options, see the
+following sections of the Spark documentation:
 
-https://spark.apache.org/docs/latest/configuration.html#available-properties
-https://spark.apache.org/docs/latest/running-on-yarn.html#spark-properties
-http://spark.apache.org/docs/latest/sql-programming-guide.html#caching-data-in-memory
-http://spark.apache.org/docs/latest/sql-programming-guide.html#other-configuration-options
+ * http://spark.apache.org/docs/latest/configuration.html#available-properties
+ * http://spark.apache.org/docs/latest/running-on-yarn.html#spark-properties
+ * http://spark.apache.org/docs/latest/sql-programming-guide.html#caching-data-in-memory
+ * http://spark.apache.org/docs/latest/sql-programming-guide.html#other-configuration-options
 
 Configuration changes will not take place until the Spark SQL context is
 restarted. Configuration will persist between geoserver restarts.

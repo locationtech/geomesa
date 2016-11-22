@@ -70,6 +70,11 @@ Pick a reasonable directory on your machine, and run:
     $ git clone https://github.com/geomesa/geomesa-tutorials.git
     $ cd geomesa-tutorials
 
+.. note::
+
+    You may need to download a particular release of the tutorials project
+    to target a particular GeoMesa release. See :ref:`tutorial_versions`.
+
 To build, run
 
 .. code-block:: bash

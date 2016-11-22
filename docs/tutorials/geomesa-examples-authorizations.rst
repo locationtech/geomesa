@@ -252,6 +252,11 @@ Pick a reasonable directory on your machine, and run:
     $ git clone https://github.com/geomesa/geomesa-tutorials.git
     $ cd geomesa-tutorials
 
+.. note::
+
+    You may need to download a particular release of the tutorials project
+    to target a particular GeoMesa release. See :ref:`tutorial_versions`.
+
 Cloning the repository should only take a few seconds. To build it, run
 
 .. code-block:: bash
@@ -321,10 +326,10 @@ Insight into How the Authorizations Tutorial Works
 --------------------------------------------------
 
 The code for querying with authorizations is available in the class
-```com.example.geomesa.authorizations.AuthorizationsTutorial`` <https://github.com/geomesa/geomesa-tutorials/blob/master/geomesa-examples-authorizations/src/main/java/com/example/geomesa/authorizations/AuthorizationsTutorial.java>`__.
-
-The interesting code for this tutorial is contained in the ``main``
+`AuthorizationsTutorial`_. The interesting code for this tutorial is contained in the ``main``
 method:
+
+.. _AuthorizationsTutorial: https://github.com/geomesa/geomesa-tutorials/blob/master/geomesa-examples-authorizations/src/main/java/com/example/geomesa/authorizations/AuthorizationsTutorial.java
 
 .. code-block:: java
 
@@ -431,11 +436,10 @@ Create the Accumulo Data Store and Layer in GeoServer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you haven't already, create an AccumuloDataStore and associated Layer
-pointing to the data with visibilities, as described in the `GDELT
-tutorial <../geomesa-examples-gdelt/>`__.
+pointing to the data with visibilities, as described in :doc:`./geomesa-examples-gdelt`.
 
-When configuring the DataStore, leave the ***auths*** field empty and
-set the ***visibilities*** field to what you used when ingesting data
+When configuring the DataStore, leave the **auths** field empty and
+set the **visibilities** field to what you used when ingesting data
 above.
 
 Configure GeoServer for PKI Login

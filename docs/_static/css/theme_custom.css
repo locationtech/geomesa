@@ -295,3 +295,7 @@ div.admonition.warning, div.admonition.note {
 .wy-table-responsive tr.row-odd td {
    background-color: transparent !important;
 }
+
+.wy-table-responsive table td, .wy-table-responsive table th {
+   white-space: normal;
+}

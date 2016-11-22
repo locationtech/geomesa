@@ -103,7 +103,15 @@ abstracted as 'tables'. For details on how GeoMesa encodes and indexes data, see
 The :doc:`./data_management` chapter also describes how to optimize these indexes by manipulating
 :ref:`attribute_indices`, :ref:`customizing_z_index`, :ref:`customizing_xz_index`, and :ref:`customizing_index_creation`.
 
-For details on how GeoMesa chooses and executes queries, see the `org.locationtech.geomesa.accumulo.index.QueryPlanner <https://github.com/locationtech/geomesa/blob/master/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/QueryPlanner.scala>`__ and `org.locationtech.geomesa.accumulo.index.QueryStrategyDecider <https://github.com/locationtech/geomesa/blob/master/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/QueryStrategyDecider.scala>`__ classes.
+For details on how GeoMesa chooses and executes queries, see the `QueryPlanner`_ and
+`StrategyDecider`_ classes in the **geomesa-index-api** project. The generic query
+planning API is configured for the Accumulo data store in the `AccumuloQueryPlanner`_ class.
+
+.. _QueryPlanner: https://github.com/locationtech/geomesa/blob/master/geomesa-index-api/src/main/scala/org/locationtech/geomesa/index/api/QueryPlanner.scala
+
+.. _StrategyDecider: https://github.com/locationtech/geomesa/blob/master/geomesa-index-api/src/main/scala/org/locationtech/geomesa/index/api/StrategyDecider.scala
+
+.. _AccumuloQueryPlanner: https://github.com/locationtech/geomesa/blob/master/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/AccumuloQueryPlanner.scala
 
 .. _explain_query:
 
