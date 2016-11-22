@@ -68,6 +68,7 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
     def cast2float   = expr <~ "::float"             ^^ { e => Cast2Float(e)   }
     def cast2double  = expr <~ "::double"            ^^ { e => Cast2Double(e)  }
     def cast2boolean = expr <~ "::bool" ~ "(ean)?".r ^^ { e => Cast2Boolean(e) }
+    def cast2string  = expr <~ "::string"            ^^ { e => Cast2String(e)  }
 
     def fieldLookup = "$" ~> ident                   ^^ { i => FieldLookup(i)  }
     def noNsfnName  = ident                          ^^ { n => LitString(n)    }
@@ -112,7 +113,7 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
     def logicPred = andPred | orPred | notPred
     def pred: Parser[Predicate] = binaryPred | logicPred
     def expr = tryFn | fn | wholeRecord | regexExpr | fieldLookup | column | lit
-    def transformExpr: Parser[Expr] = cast2double | cast2int | cast2boolean | cast2float | cast2long | expr
+    def transformExpr: Parser[Expr] = cast2double | cast2int | cast2boolean | cast2float | cast2long | cast2string | expr
     def argument = transformExpr | string
   }
 
@@ -208,6 +209,10 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
   case class Cast2Boolean(e: Expr) extends CastExpr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
       e.eval(args).asInstanceOf[String].toBoolean
+  }
+  case class Cast2String(e: Expr) extends CastExpr {
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
+      e.eval(args).toString
   }
 
   case object WholeRecord extends Expr {

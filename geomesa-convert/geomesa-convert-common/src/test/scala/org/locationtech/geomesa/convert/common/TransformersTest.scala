@@ -160,6 +160,11 @@ class TransformersTest extends Specification {
           val exp = Transformers.parseTransform("$1::boolean")
           exp.eval(Array("", "false")) mustEqual false
         }
+        "cast to string" >> {
+          val exp = Transformers.parseTransform("$1::string")
+          exp.eval(Array("", "1")) mustEqual "1"
+          exp.eval(Array("", 1)) mustEqual "1"
+        }
       }
 
       "handle dates" >> {
