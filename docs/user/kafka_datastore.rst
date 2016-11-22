@@ -304,7 +304,7 @@ Listening for Feature Events
 ----------------------------
 
 The GeoTools API includes a mechanism to fire off a `FeatureEvent`_ object each time
-that there is an "event," which occur when data are added, changed, or deleted in a
+that there is an "event," which occurs when data are added, changed, or deleted in a
 `SimpleFeatureSource`_. A client may implement a `FeatureListener`_, which has a single
 method called ``changed()`` that is invoked each time that each `FeatureEvent`_ is
 fired.
