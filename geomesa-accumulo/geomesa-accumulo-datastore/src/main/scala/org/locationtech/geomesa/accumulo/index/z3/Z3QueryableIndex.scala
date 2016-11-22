@@ -162,7 +162,7 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
         val zs = if (times.eq(wholePeriod)) wholePeriodRanges else toZRanges(times)
         val binBytes = Shorts.toByteArray(b)
         val prefixes = if (hasSplits) {
-          AccumuloWritableIndex.DefaultSplitArrays.map(Bytes.concat(_, binBytes))
+          SplitArrays.getSplitArray(sft.getZShards).map(Bytes.concat(_, binBytes))
         } else {
           Seq(binBytes)
         }

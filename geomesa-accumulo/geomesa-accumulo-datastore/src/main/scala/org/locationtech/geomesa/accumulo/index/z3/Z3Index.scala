@@ -13,6 +13,7 @@ import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex._
+import org.locationtech.geomesa.accumulo.index.SplitArrays
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -50,9 +51,10 @@ case object Z3Index extends AccumuloFeatureIndexType with Z3WritableIndex with Z
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
+    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
 
     (wf: AccumuloFeature) => {
-      val rows = getPointRowKey(timeToIndex, sfc)(wf, dtgIndex)
+      val rows = getPointRowKey(timeToIndex, sfc, splitArray)(wf, dtgIndex)
       rows.map { row =>
         val mutation = new Mutation(row)
         wf.fullValues.foreach { value => mutation.put(value.cf, value.cq, value.vis, value.value) }
@@ -67,9 +69,10 @@ case object Z3Index extends AccumuloFeatureIndexType with Z3WritableIndex with Z
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
+    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
 
     (wf: AccumuloFeature) => {
-      val rows = getPointRowKey(timeToIndex, sfc)(wf, dtgIndex)
+      val rows = getPointRowKey(timeToIndex, sfc, splitArray)(wf, dtgIndex)
       rows.map { row =>
         val mutation = new Mutation(row)
         wf.fullValues.foreach { value => mutation.putDelete(value.cf, value.cq, value.vis) }
@@ -101,8 +104,10 @@ case object Z3IndexV2 extends AccumuloFeatureIndexType with Z3WritableIndex with
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
+    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
     val getRowKeys: (AccumuloFeature, Int) => Seq[Array[Byte]] =
-      if (sft.isPoints) { getPointRowKey(timeToIndex, sfc) } else { getGeomRowKeys(timeToIndex, sfc) }
+      if (sft.isPoints) { getPointRowKey(timeToIndex, sfc, splitArray) }
+      else { getGeomRowKeys(timeToIndex, sfc, splitArray) }
 
     (wf: AccumuloFeature) => {
       val rows = getRowKeys(wf, dtgIndex)
@@ -122,8 +127,10 @@ case object Z3IndexV2 extends AccumuloFeatureIndexType with Z3WritableIndex with
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
+    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
     val getRowKeys: (AccumuloFeature, Int) => Seq[Array[Byte]] =
-      if (sft.isPoints) { getPointRowKey(timeToIndex, sfc) } else { getGeomRowKeys(timeToIndex, sfc) }
+      if (sft.isPoints) { getPointRowKey(timeToIndex, sfc, splitArray) }
+      else { getGeomRowKeys(timeToIndex, sfc, splitArray) }
 
     (wf: AccumuloFeature) => {
       val rows = getRowKeys(wf, dtgIndex)
@@ -159,8 +166,9 @@ case object Z3IndexV1 extends AccumuloFeatureIndexType with Z3WritableIndex with
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
+    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
     val getRowKeys: (AccumuloFeature, Int) => Seq[Array[Byte]] =
-      (wf, i) => getPointRowKey(timeToIndex, sfc)(wf, i).map(_.drop(1))
+      (wf, i) => getPointRowKey(timeToIndex, sfc, splitArray)(wf, i).map(_.drop(1))
 
     (wf: AccumuloFeature) => {
       val rows = getRowKeys(wf, dtgIndex)
@@ -178,8 +186,9 @@ case object Z3IndexV1 extends AccumuloFeatureIndexType with Z3WritableIndex with
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
+    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
     val getRowKeys: (AccumuloFeature, Int) => Seq[Array[Byte]] =
-      (ftw, i) => getPointRowKey(timeToIndex, sfc)(ftw, i).map(_.drop(1))
+      (ftw, i) => getPointRowKey(timeToIndex, sfc, splitArray)(ftw, i).map(_.drop(1))
 
     (wf: AccumuloFeature) => {
       val rows = getRowKeys(wf, dtgIndex)
