@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.tools.data
 
+import java.io.IOException
+
 import org.geotools.data.DataStore
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.CLArgResolver
@@ -31,9 +33,9 @@ trait CreateSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
     lazy val sftString = SimpleFeatureTypes.encodeType(sft)
     logger.info(s"Creating '${params.featureName}' with spec '$sftString'. Just a few moments...")
 
-    if (!ds.getTypeNames.contains(sft.getTypeName)) {
+    if (try { ds.getSchema(sft.getTypeName) == null } catch { case _: IOException => true }) {
       ds.createSchema(sft)
-      if (ds.getSchema(sft.getTypeName) != null) {
+      if (try { ds.getSchema(sft.getTypeName) != null } catch { case _: IOException => false }) {
         logger.info(s"Created schema '${sft.getTypeName}'")
         println(s"Created schema ${sft.getTypeName}")
       } else {

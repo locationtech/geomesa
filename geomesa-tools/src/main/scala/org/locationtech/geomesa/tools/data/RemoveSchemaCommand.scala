@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.tools.data
 
+import java.io.IOException
 import java.util.regex.Pattern
 
 import com.beust.jcommander.ParameterException
@@ -41,12 +42,12 @@ trait RemoveSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
   protected def remove(ds: DS, typeNames: Seq[String]): Unit = {
     if (params.force || promptConfirm(typeNames)) {
       typeNames.foreach { typeName =>
-        if (ds.getSchema(typeName) == null) {
+        if (try { ds.getSchema(typeName) == null } catch { case _: IOException => true }) {
           println(s"Schema '$typeName' doesn't exist")
         } else {
           println(s"Removing '$typeName'")
           ds.removeSchema(typeName)
-          if (ds.getTypeNames.contains(typeName)) {  // NB: For Cassandra this only checks metadata
+          if (try { ds.getSchema(typeName) != null } catch { case _: IOException => false }) {
             logger.error(s"Error removing feature type '$typeName'")
           }
         }
