@@ -326,6 +326,23 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       }
     }
 
+    "Prevent join indices on default date" in {
+      import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
+      "throw an exception if join index is found" >> {
+        createNewSchema("name:String,dtg:Date:index=true,*geom:Point:srid=4326") must throwAn[IllegalArgumentException]
+        createNewSchema("name:String,dtg:Date:index=join,*geom:Point:srid=4326") must throwAn[IllegalArgumentException]
+      }
+      "allow for full indices" >> {
+        val sft = createNewSchema("name:String,dtg:Date:index=full,*geom:Point:srid=4326")
+        sft.getDescriptor("dtg").getIndexCoverage mustEqual IndexCoverage.FULL
+      }
+      "allow for override" >> {
+        val sft = createNewSchema("name:String,dtg:Date:index=join,*geom:Point:srid=4326;override.index.dtg.join=true")
+        sft.getDescriptor("dtg").getIndexCoverage mustEqual IndexCoverage.JOIN
+      }
+    }
+
     "allow for a configurable number of threads in z3 queries" in {
       val param = AccumuloDataStoreParams.queryThreadsParam.getName
       val query = new Query(defaultTypeName, ECQL.toFilter("bbox(geom,-75,-75,-60,-60) AND " +

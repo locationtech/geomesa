@@ -14,16 +14,20 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.{DEFAULT_DATE_KEY, MIXED_GEOMETRIES, RESERVED_WORDS}
+import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs._
+import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConverters._
+import scala.collection.immutable.Seq
 
 object GeoMesaSchemaValidator {
 
   def validate(sft: SimpleFeatureType): Unit = {
     MixedGeometryCheck.validateGeometryType(sft)
     TemporalIndexCheck.validateDtgField(sft)
+    TemporalIndexCheck.validateDtgIndex(sft)
     ReservedWordCheck.validateAttributeNames(sft)
   }
 
@@ -88,7 +92,23 @@ object TemporalIndexCheck extends LazyLogging {
     }
   }
 
-  def scanForTemporalAttributes(sft: SimpleFeatureType) =
+  // note: dtg should be set appropriately before calling this method
+  def validateDtgIndex(sft: SimpleFeatureType): Unit = {
+    sft.getDtgField.foreach { dtg =>
+      if (sft.getDescriptor(dtg).getIndexCoverage == IndexCoverage.JOIN) {
+        val declared = GeoMesaSchemaValidator.boolean(sft.getUserData.get(DEFAULT_DTG_JOIN))
+        if (!declared) {
+          throw new IllegalArgumentException("Trying to create a schema with a partial (join) attribute index " +
+              s"on the default date field '$dtg'. This may cause whole-world queries with time bounds to be much " +
+              "slower. If this is intentional, you may override this message by putting Boolean.TRUE into the " +
+              s"SimpleFeatureType user data under the key '$DEFAULT_DTG_JOIN' before calling createSchema. " +
+              "Otherwise, please either specify a full attribute index or remove it entirely.")
+        }
+      }
+    }
+  }
+
+  private def scanForTemporalAttributes(sft: SimpleFeatureType): Seq[String] =
     sft.getAttributeDescriptors.asScala.toList
       .withFilter { classOf[java.util.Date] isAssignableFrom _.getType.getBinding } .map { _.getLocalName }
 }
