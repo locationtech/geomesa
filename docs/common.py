@@ -72,7 +72,7 @@ url_github_archive = "https://github.com/locationtech/geomesa/archive"
 # prior to appending the RST epilog to each file)
 rst_epilog = """
 
-.. |release_tarball_accumulo| replace:: %(url_locationtech_release)s/geomesa-accumulo_2.11/%(release)s/geomesa-accumulo_2.11-%(release)s-bin.tar.gz
+.. |release_tarball_accumulo| replace:: %(url_locationtech_release)s/geomesa-accumulo-dist_2.11/%(release)s/geomesa-accumulo-dist_2.11-%(release)s-bin.tar.gz
 
 .. |release_tarball_kafka08| replace:: %(url_locationtech_release)s/geomesa-kafka-08-dist_2.11/%(release)s/geomesa-kafka-08-dist_2.11-%(release)s-bin.tar.gz
 
@@ -80,7 +80,7 @@ rst_epilog = """
 
 .. |release_tarball_kafka10| replace:: %(url_locationtech_release)s/geomesa-kafka-10-dist_2.11/%(release)s/geomesa-kafka-10-dist_2.11-%(release)s-bin.tar.gz
 
-.. |release_source_tarball| replace:: %(url_github_archive)s/geomesa-%(release)s.tar.gz
+.. |release_source_tarball| replace:: %(url_github_archive)s/geomesa_2.11-%(release)s.tar.gz
 
 .. |release_kafka08_plugin| replace:: `geomesa-kafka-08-gs-plugin-2.11-%(release)s.tar.gz <%(url_locationtech_release)s/geomesa-kafka-08-gs-plugin_2.11/%(release)s/geomesa-kafka-08-gs-plugin_2.11-%(release)s-install.tar.gz>`__
 

@@ -81,7 +81,7 @@ and untar it somewhere convenient. For example, to download and prepare the geom
 .. code-block:: bash
 
     # download and unpackage the most recent distribution
-    $ wget http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-accumulo-dist/$VERSION/geomesa-accumulo-dist_2.11-$VERSION-bin.tar.gz
+    $ wget http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-accumulo-dist_2.11/$VERSION/geomesa-accumulo-dist_2.11-$VERSION-bin.tar.gz
     $ tar xvf geomesa-accumulo-dist_2.11-$VERSION-bin.tar.gz
     $ cd geomesa-accumulo-dist_2.11-$VERSION
     $ ls
