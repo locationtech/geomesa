@@ -47,5 +47,5 @@ else
     shift 1
   fi
   CLASSPATH="$GEOMESA_CP"
-  java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.tools.kafka.KafkaRunner "$@"
+  java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.kafka.tools.KafkaRunner "$@"
 fi
