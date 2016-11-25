@@ -15,7 +15,7 @@ import org.locationtech.geomesa.tools.export.formats._
 import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing}
 
-trait BinExportCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] with MethodProfiling {
+trait BinExportCommand[DS <: GeoMesaDataStore[_, _, _, _]] extends DataStoreCommand[DS] with MethodProfiling {
 
   override val name = "export-bin"
   override def params: BinExportParams

@@ -17,10 +17,10 @@ import org.apache.commons.io.IOUtils
 import org.geotools.data.{DataStoreFinder, DataUtilities, FeatureWriter, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
-import org.joda.time.Period
 import org.joda.time.format.PeriodFormatterBuilder
 import org.locationtech.geomesa.utils.classpath.PathUtils
 import org.locationtech.geomesa.utils.stats.CountingInputStream
+import org.locationtech.geomesa.utils.text.TextTools._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -243,18 +243,6 @@ object AbstractIngest {
     }
   }
 
-  private def buildString(c: Char, length: Int): String = {
-    if (length < 0) return ""
-    val sb = new StringBuilder(length)
-    (0 until length).foreach(_ => sb.append(c))
-    sb.toString()
-  }
-
-  /**
-   * Gets elapsed time as a string
-   */
-  def getTime(start: Long): String = PeriodFormatter.print(new Period(System.currentTimeMillis() - start))
-
   /**
    * Gets status as a string
    */
@@ -266,8 +254,6 @@ object AbstractIngest {
     }
     s"Ingested ${getPlural(successes, "feature")} $failureString."
   }
-
-  private def getPlural(i: Long, base: String): String = if (i == 1) s"$i $base" else s"$i ${base}s"
 }
 
 trait LocalIngestConverter extends Closeable {

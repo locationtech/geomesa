@@ -34,6 +34,7 @@ Run ``geomesa`` without any arguments to produce the following usage text::
         add-attribute-index    Run a Hadoop map reduce job to add an index for attributes
         add-index              Add or update indices for an existing GeoMesa feature type
         config-table           Perform table configuration operations
+        convert                Convert files using GeoMesa's internal SFT converter framework
         create-schema          Create a GeoMesa feature type
         delete-catalog         Delete a GeoMesa catalog completely (and all features in it)
         delete-features        Delete features from a table in GeoMesa. Does not delete any tables or schema information.
@@ -166,6 +167,23 @@ Used to remove a feature type (``SimpleFeatureType``) in a GeoMesa catalog. This
     $ geomesa remove-schema -u username -p password \
       -i instance -z zoo1,zoo2,zoo3 \
       -c test_catalog --pattern 'testfeatures\d+'
+
+Manipulating data
+^^^^^^^^^^^^^^^^^
+convert
+~~~~~~~
+
+Convert files using the internal SFT (``SimpleFeatureType``) converter framework::
+
+    $ geomesa convert -spec example --converter example-csv \
+      -F json ./exampledata.csv
+
+    $ geomesa convert -s example -C example-csv -F avro --gzip 4 \
+      --max-features 10 -o exampleout.avro ./exampledata.csv
+
+.. note::
+
+    Output data has been converted by the internal SFT converters as defined by the provided converter config. This most likely means a new converter config will be required to ingest (or re-convert) the converted data.
 
 Ingesting and exporting data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -708,6 +726,7 @@ Run ``geomesa-kafka`` without any arguments to produce the following usage text:
     $ geomesa-kafka
       Usage: geomesa-kafka [command] [command options]
         Commands:
+          convert         Convert files using GeoMesa's internal SFT converter framework
           create-schema   Create a feature definition in GeoMesa
           get-schema      Describe the attributes of a given feature in GeoMesa
           get-names       List GeoMesa features for a given zkPath

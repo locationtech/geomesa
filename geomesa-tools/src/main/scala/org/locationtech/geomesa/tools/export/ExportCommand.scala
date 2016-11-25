@@ -45,7 +45,7 @@ trait ExportCommand[DS <: GeoMesaDataStore[_, _, _, _]] extends DataStoreCommand
     import ExportCommand._
     import org.locationtech.geomesa.tools.utils.DataFormats._
 
-    val fmt = DataFormats.values.find(_.toString.equalsIgnoreCase(params.format)).getOrElse {
+    val fmt = DataFormats.values.find(_.toString.equalsIgnoreCase(params.outputFormat)).getOrElse {
       throw new ParameterException("")
     }
     val features = getFeatureCollection(ds, fmt, params)
