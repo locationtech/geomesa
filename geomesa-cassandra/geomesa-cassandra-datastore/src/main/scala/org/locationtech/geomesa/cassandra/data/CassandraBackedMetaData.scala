@@ -15,7 +15,7 @@ import org.locationtech.geomesa.index.utils.GeoMesaMetadata
 
 import scala.collection.JavaConversions._
 
-class CassandraBackedMetaData(session: Session, val catalog: String)
+class CassandraBackedMetaData(session: Session, catalog: String)
     extends GeoMesaMetadata[String]{
 
   def ensureTableExists(): Unit = {
