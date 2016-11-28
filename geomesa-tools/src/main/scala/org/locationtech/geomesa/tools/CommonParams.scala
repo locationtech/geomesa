@@ -132,7 +132,18 @@ trait OptionalInputFormatParam extends InputFormatParam {
 }
 
 trait ConverterConfigParam {
-  @Parameter(names = Array("-C", "--converter"), description = "GeoMesa converter specification as a config string, file name, or name of an available converter")
+  def config
+}
+
+trait OptionalConverterConfigParam {
+  @Parameter(names = Array("-C", "--converter"), description = "GeoMesa converter specification as a config string, file name, or name of an available converter",
+    required = false)
+  var config: String = null
+}
+
+trait RequiredConverterConfigParam {
+  @Parameter(names = Array("-C", "--converter"), description = "GeoMesa converter specification as a config string, file name, or name of an available converter",
+    required = true)
   var config: String = null
 }
 

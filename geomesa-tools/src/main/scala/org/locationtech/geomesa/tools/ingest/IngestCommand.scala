@@ -84,7 +84,7 @@ trait IngestCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand
 trait IngestParams extends CatalogParam
   with OptionalTypeNameParam
   with OptionalFeatureSpecParam
-  with ConverterConfigParam
+  with OptionalConverterConfigParam
   with OptionalInputFormatParam {
   @Parameter(names = Array("-t", "--threads"), description = "Number of threads if using local ingest")
   var threads: Integer = 1

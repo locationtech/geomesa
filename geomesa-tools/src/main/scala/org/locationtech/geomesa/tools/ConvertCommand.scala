@@ -16,47 +16,72 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.convert.SimpleFeatureConverters
+import org.locationtech.geomesa.convert.{SimpleFeatureConverter, SimpleFeatureConverters}
 import org.locationtech.geomesa.tools.ConvertParameters.ConvertParameters
-import org.locationtech.geomesa.tools.export.{OptionalBinExportParams, _}
 import org.locationtech.geomesa.tools.export.formats._
+import org.locationtech.geomesa.tools.export.{OptionalBinExportParams, _}
 import org.locationtech.geomesa.tools.utils.DataFormats._
 import org.locationtech.geomesa.tools.utils.{CLArgResolver, DataFormats}
 import org.locationtech.geomesa.utils.text.TextTools.getPlural
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-class ConvertCommand extends Command with LazyLogging {
+class ConvertCommand extends Command {
 
   override val name = "convert"
   override val params = new ConvertParameters
 
   override def execute() = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+    import ConvertCommand.{convertFile, getConverter, getExporter}
+
     import scala.collection.JavaConversions._
 
     val sft = CLArgResolver.getSft(params.spec)
-
     logger.info(s"Using SFT definition: ${sft}")
 
+    val converter = getConverter(params, sft)
+    val exporter = getExporter(params, sft)
+    val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
+    val fc = new DefaultFeatureCollection(sft.getTypeName, sft)
+
+    try {
+      params.files.foreach { file =>
+        convertFile(file, converter, params, fc)
+      }
+      logger.debug(s"Applying CQL filter ${filter.toString}")
+      exporter.export(fc.subCollection(filter))
+    } finally {
+      IOUtils.closeQuietly(converter)
+      IOUtils.closeQuietly(exporter)
+    }
+  }
+}
+
+object ConvertCommand extends LazyLogging {
+  def getConverter(params: ConvertParameters, sft: SimpleFeatureType): SimpleFeatureConverter[Any] = {
     val converterConfig = {
       if (params.config != null)
         CLArgResolver.getConfig(params.config)
       else throw new ParameterException("Unable to parse Simple Feature type from sft config or string")
     }
-    val converter = SimpleFeatureConverters.build(sft, converterConfig)
+    SimpleFeatureConverters.build(sft, converterConfig)
+  }
 
+  def getExporter(params: ConvertParameters, sft: SimpleFeatureType): FeatureExporter = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val outFmt = DataFormats.values.find(_.toString.equalsIgnoreCase(params.outputFormat)).getOrElse {
       throw new ParameterException("Unable to parse output file type.")
     }
 
     lazy val outputStream: OutputStream = ExportCommand.createOutputStream(params.file, params.gzip)
-    val writer: Writer = ExportCommand.getWriter(params.asInstanceOf[ExportParams])
+    val writer: Writer = ExportCommand.getWriter(params)
 
-    val exporter = outFmt match {
+    outFmt match {
       case Csv | Tsv      => new DelimitedExporter(writer, outFmt, !params.noHeader)
       case Shp            =>
         Seq(ShapefileExporter.modifySchema(sft))
-        new ShapefileExporter(ExportCommand.checkShpFile(params.asInstanceOf[ExportParams]))
+        new ShapefileExporter(ExportCommand.checkShpFile(params))
       case GeoJson | Json => new GeoJsonExporter(writer)
       case Gml            => new GmlExporter(outputStream)
       case Avro           =>
@@ -65,32 +90,26 @@ class ConvertCommand extends Command with LazyLogging {
       case Bin            => BinExporter(outputStream, params.asInstanceOf[BinExportParams], sft.getDtgField)
       case _              => throw new ParameterException(s"Format $outFmt is not supported.")
     }
+  }
 
-    val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
-    val fc = new DefaultFeatureCollection(sft.getTypeName, sft)
-
-    try {
-      params.files.foreach { file =>
-        val ec = converter.createEvaluationContext(Map("inputFilePath" -> file))
-        val dataIter = converter.process(new FileInputStream(file.toString), ec)
-        if (params.maxFeatures != null && params.maxFeatures >= 0) {
-          logger.info(s"Converting ${getPlural(params.maxFeatures.toLong, "feature")} from $file")
-          for (i <- 1 to params.maxFeatures) {
-            if (dataIter.hasNext) fc.add(dataIter.next())
-          }
-        } else {
-          dataIter.foreach(fc.add)
-        }
-        logger.info(s"Converted ${getPlural(ec.counter.getLineCount, "simple feature")} "
-          + s"with ${getPlural(ec.counter.getSuccess, "success", "successes")} "
-          + s"and ${getPlural(ec.counter.getFailure, "failure")}")
+  def convertFile(file: String,
+                  converter: SimpleFeatureConverter[Any],
+                  params: ConvertParameters,
+                  fc: DefaultFeatureCollection) = {
+    val ec = converter.createEvaluationContext(Map("inputFilePath" -> file))
+    val dataIter = converter.process(new FileInputStream(file.toString), ec)
+    if (params.maxFeatures != null && params.maxFeatures >= 0) {
+      logger.info(s"Converting ${getPlural(params.maxFeatures.toLong, "feature")} from $file")
+      for (i <- 1 to params.maxFeatures) {
+        if (dataIter.hasNext) fc.add(dataIter.next())
       }
-      logger.debug(s"Applying CQL filter ${filter.toString}")
-      exporter.export(fc.subCollection(filter))
-    } finally {
-      IOUtils.closeQuietly(converter)
-      IOUtils.closeQuietly(exporter)
+    } else {
+      dataIter.foreach(fc.add)
     }
+    val records = ec.counter.getLineCount - (if (params.noHeader) 0 else 1)
+    logger.info(s"Converted ${getPlural(records, "simple feature")} "
+      + s"with ${getPlural(ec.counter.getSuccess, "success", "successes")} "
+      + s"and ${getPlural(ec.counter.getFailure, "failure")}")
   }
 }
 
@@ -103,5 +122,5 @@ object ConvertParameters {
     with OptionalBinExportParams
     with OptionalCqlFilterParam
     with RequiredFeatureSpecParam
-    with ConverterConfigParam
+    with RequiredConverterConfigParam
 }
