@@ -6,15 +6,15 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.index.utils
+package org.locationtech.geomesa.index.metadata
 
-import java.nio.charset.StandardCharsets
+import java.io.Closeable
 
 /**
  * GeoMesa Metadata/Catalog abstraction using key/value String pairs storing
  * them on a per-typeName basis
  */
-trait GeoMesaMetadata[T] {
+trait GeoMesaMetadata[T] extends Closeable {
 
   /**
    * Returns existing simple feature types
@@ -89,28 +89,16 @@ trait GeoMesaMetadata[T] {
 object GeoMesaMetadata {
 
   // Metadata keys
-  val ATTRIBUTES_KEY      = "attributes"
-  val VERSION_KEY         = "version"
-  val SCHEMA_ID_KEY       = "id"
+  val ATTRIBUTES_KEY       = "attributes"
+  val VERSION_KEY          = "version"
+  val SCHEMA_ID_KEY        = "id"
 
-  val STATS_GENERATION_KEY   = "stats-date"
-  val STATS_INTERVAL_KEY     = "stats-interval"
+  val STATS_GENERATION_KEY = "stats-date"
+  val STATS_INTERVAL_KEY   = "stats-interval"
 }
 
 trait HasGeoMesaMetadata[T] {
   def metadata: GeoMesaMetadata[T]
 }
 
-trait MetadataSerializer[T] {
-  def serialize(typeName: String, key: String, value: T): Array[Byte]
-  def deserialize(typeName: String, key: String, value: Array[Byte]): T
-}
 
-object MetadataStringSerializer extends MetadataSerializer[String] {
-  def serialize(typeName: String, key: String, value: String): Array[Byte] = {
-    if (value == null) Array.empty else value.getBytes(StandardCharsets.UTF_8)
-  }
-  def deserialize(typeName: String, key: String, value: Array[Byte]): String = {
-    if (value.isEmpty) null else new String(value, StandardCharsets.UTF_8)
-  }
-}

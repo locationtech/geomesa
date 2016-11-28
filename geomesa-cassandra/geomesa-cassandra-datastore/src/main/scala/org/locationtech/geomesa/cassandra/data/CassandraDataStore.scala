@@ -21,7 +21,7 @@ import org.geotools.data.store._
 import org.geotools.feature.NameImpl
 import org.joda.time.{DateTime, Seconds, Weeks}
 import org.locationtech.geomesa.curve.{TimePeriod, Z3SFC}
-import org.locationtech.geomesa.index.utils.HasGeoMesaMetadata
+import org.locationtech.geomesa.index.metadata.{HasGeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.sfcurve.zorder.ZCurve2D
@@ -81,7 +81,7 @@ class CassandraDataStore(val session: Session, keyspaceMetadata: KeyspaceMetadat
 
   import scala.collection.JavaConversions._
 
-  val metadata = new CassandraBackedMetaData(session, catalog)
+  override val metadata = new CassandraBackedMetaData(session, catalog, MetadataStringSerializer)
 
   override def createFeatureSource(contentEntry: ContentEntry): ContentFeatureSource =
     new CassandraFeatureStore(contentEntry)

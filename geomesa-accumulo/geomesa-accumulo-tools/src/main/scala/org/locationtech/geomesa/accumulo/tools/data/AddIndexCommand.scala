@@ -34,7 +34,7 @@ import scala.util.control.NonFatal
   */
 class AddIndexCommand extends AccumuloDataStoreCommand with LazyLogging {
 
-  import org.locationtech.geomesa.index.utils.GeoMesaMetadata.ATTRIBUTES_KEY
+  import org.locationtech.geomesa.index.metadata.GeoMesaMetadata.ATTRIBUTES_KEY
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   override val name = "add-index"

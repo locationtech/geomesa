@@ -10,7 +10,7 @@ package org.locationtech.geomesa.tools.stats
 
 import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.utils.GeoMesaMetadata
+import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, TypeNameParam}
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.SimpleFeatureType

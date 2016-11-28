@@ -11,7 +11,7 @@ package org.locationtech.geomesa.index.stats
 import org.geotools.data.{Query, Transaction}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.utils.GeoMesaMetadata
+import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.stats.{SeqStat, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -26,7 +26,7 @@ class UnoptimizedRunnableStats[DS <: GeoMesaDataStore[_, _, _, _]](val ds: DS) e
 
   override protected val generateStats: Boolean = false
 
-  override protected val metadata: GeoMesaMetadata[Stat] = new NoOpMetadata[Stat]
+  override private [geomesa] val metadata: GeoMesaMetadata[Stat] = new NoOpMetadata[Stat]
 
   override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter): Seq[T] = {
     val stat = Stat(sft, stats)
@@ -65,4 +65,6 @@ class NoOpMetadata[T] extends GeoMesaMetadata[T] {
   override def invalidateCache(typeName: String, key: String): Unit = {}
 
   override def delete(typeName: String): Unit = {}
+
+  override def close(): Unit = {}
 }
