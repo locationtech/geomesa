@@ -129,9 +129,9 @@ object L {
        |    <script src="js/leaflet.js"></script>
        |    <script src="js/leaflet.wms.js"></script>
        |    <script src="js/countries.geo.json" type="text/javascript"></script>
-       |  </lead>
+       |  </head>
        |  <body>
-       |    <div> id='map' style="width:100%;height:500px"><div>
+       |    <div id='map' style="width:100%;height:500px"></div>
        |    <script>
        |      // Initialize the Base Layer... Loaded from GeoJson
        |      var basestyle = {"color": "#717171", "weight": 2, "opacity": 1.0};
@@ -155,7 +155,7 @@ object L {
   def render(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 8) = {
     val id = org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric(5)
     s"""
-       |<iframe> id="${id}" sandbox="allow-scripts allow-same-origin" style="border:none;width=100%;height:520px" srcdoc="${xml.Utility.escape(buildMap(layers, center, zoom))}"></iframe>
+       |<iframe id="${id}" sandbox="allow-scripts allow-same-origin" style="border:none;width=100%;height:520px" srcdoc="${xml.Utility.escape(buildMap(layers, center, zoom))}"></iframe>
        |<script>
        |  if(typeof resizeIFrame != 'function') {
        |    function resizeIFrame(el, k) {
