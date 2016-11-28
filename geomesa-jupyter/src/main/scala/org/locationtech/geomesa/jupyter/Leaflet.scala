@@ -73,7 +73,7 @@ object L {
 
     private def propToJson(ad: AttributeDescriptor, a: Object) =
       if(a!= null) s""""${ad.getLocalName}": '${StringEscapeUtils.escapeJson(a.toString)}'"""
-      else s"${ad.getLocalName}: ''"
+      else s""""${ad.getLocalName}": ''"""
 
     private def processGeometry(geom: Geometry) = geom.getGeometryType match {
       case "Point"      => processPoint(geom.asInstanceOf[Point])

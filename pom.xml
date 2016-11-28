@@ -42,7 +42,6 @@
         <module>geomesa-utils</module>
         <module>geomesa-web</module>
         <module>geomesa-z3</module>
-        <module>geomesa-jupyter</module>
         <module>docs</module>
     </modules>
 
@@ -127,6 +126,9 @@
             <properties>
                 <scala.version>2.11.7</scala.version>
             </properties>
+            <modules>
+                <module>geomesa-jupyter</module>
+            </modules>
             <build>
                 <plugins>
                     <plugin>
@@ -2116,6 +2118,11 @@
                 <artifactId>scalatra-specs2_${scala.binary.version}</artifactId>
                 <version>2.3.0</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.4</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
