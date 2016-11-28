@@ -13,6 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import scala.util.control.NonFatal
 
 /**
+<<<<<<< e9c2efc27bb6294577fae4025aefc6f9ee1a6e42
   * Closes anything with a 'close' method without throwing an exception
   */
 trait SafeClose {
