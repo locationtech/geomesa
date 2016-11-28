@@ -113,10 +113,6 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
   override def getTypeNames: Array[String] = super.getTypeNames ++ oldMetadata.getFeatureTypes
 
   override def createSchema(sft: SimpleFeatureType): Unit = {
-    // TODO GEOMESA-1322 support tilde in feature name
-    if (sft.getTypeName.contains("~")) {
-      throw new IllegalArgumentException("AccumuloDataStore does not currently support '~' in feature type names")
-    }
 
     // check for old enabled indices and re-map them
     SimpleFeatureTypes.Configs.ENABLED_INDEX_OPTS.find(sft.getUserData.containsKey).foreach { key =>
