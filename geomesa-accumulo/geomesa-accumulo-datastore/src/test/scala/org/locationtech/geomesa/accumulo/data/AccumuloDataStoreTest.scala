@@ -85,7 +85,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     "escape a ~ in the feature name" in {
       val sft = SimpleFeatureTypes.createType("name~name", "name:String,geom:Point:srid=4326")
       ds.createSchema(sft)
-      success
+      ds.getTypeNames.contains("name\u223Cname") must beTrue
     }
 
     "create a schema with keywords" in {

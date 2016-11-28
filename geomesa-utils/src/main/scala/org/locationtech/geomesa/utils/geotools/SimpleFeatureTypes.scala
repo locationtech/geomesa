@@ -169,6 +169,10 @@ object SimpleFeatureTypes {
     import Configs.DEFAULT_DATE_KEY
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
+    val ESCAPE = "\u223C" // For escaping tilde
+
+    val escapedName = name.replace("~", ESCAPE)
+
     val defaultGeom = {
       val geomAttributes = spec.attributes.collect { case g: GeomAttributeSpec => g }
       geomAttributes.find(_.options.get(OPT_DEFAULT).exists(_.toBoolean))
@@ -185,7 +189,7 @@ object SimpleFeatureTypes {
 
     val b = new SimpleFeatureTypeBuilder()
     b.setNamespaceURI(namespace)
-    b.setName(name)
+    b.setName(escapedName)
     b.addAll(spec.attributes.map(_.toDescriptor))
     defaultGeom.foreach(b.setDefaultGeometry)
 

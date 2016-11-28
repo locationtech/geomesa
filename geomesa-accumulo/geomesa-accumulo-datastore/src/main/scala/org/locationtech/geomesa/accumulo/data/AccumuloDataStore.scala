@@ -48,6 +48,7 @@ import scala.util.control.NonFatal
  */
 class AccumuloDataStore(val connector: Connector, override val config: AccumuloDataStoreConfig)
     extends AccumuloDataStoreType(config) with ZookeeperLocking {
+  private val ESCAPE = "\u223C" // For escaping tilde - null character not permitted in zkpath string
 
   override val metadata = new AccumuloBackedMetadata(connector, config.catalog, MetadataStringSerializer)
 
@@ -218,7 +219,6 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   override def updateSchema(typeName: Name, sft: SimpleFeatureType): Unit = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-
     val previousSft = getSchema(typeName)
     super.updateSchema(typeName, sft)
 
