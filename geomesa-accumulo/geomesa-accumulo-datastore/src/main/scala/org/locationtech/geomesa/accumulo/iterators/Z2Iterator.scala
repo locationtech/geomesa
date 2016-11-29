@@ -16,6 +16,7 @@ import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.index.z2.Z2Index
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.sfcurve.zorder.Z2
+import org.opengis.feature.simple.SimpleFeatureType
 
 class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
 
@@ -23,12 +24,11 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
 
   var source: SortedKeyValueIterator[Key, Value] = null
 
-  var keyXY: Array[String] = null
+  var keyXY: String = null
+  var zOffset: Int = -1
+  var zLength: Int = -1
 
-  var xyvals: Array[(Int, Int, Int, Int)] = null
-
-  var isPoints: Boolean = false
-  var isTableSharing: Boolean = false
+  var xyvals: Array[Array[Int]] = null
   var rowToZ: Array[Byte] => Long = null
 
   var topKey: Key = null
@@ -42,15 +42,13 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
 
     this.source = source.deepCopy(env)
 
-    isPoints = options.get(PointsKey).toBoolean
-    isTableSharing = options.get(TableSharingKey).toBoolean
+    zOffset = options.get(ZOffsetKey).toInt
+    zLength = options.get(ZLengthKey).toInt
 
-    keyXY = options.get(ZKeyXY).split(RangeSeparator)
-    xyvals = keyXY.map(_.toInt).grouped(4).map { case Array(x1, y1, x2, y2) => (x1, y1, x2, y2) }.toArray
+    rowToZ = getRowToZ(zOffset, zLength)
 
-    // account for shard and table sharing bytes
-    val numBytes = if (isPoints) 8 else Z2Index.GEOM_Z_NUM_BYTES
-    rowToZ = rowToZ(numBytes, isTableSharing)
+    keyXY = options.get(ZKeyXY)
+    xyvals = keyXY.split(TermSeparator).map(_.split(RangeSeparator).map(_.toInt))
   }
 
   override def next(): Unit = {
@@ -58,7 +56,7 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
     findTop()
   }
 
-  def findTop(): Unit = {
+  private def findTop(): Unit = {
     topKey = null
     topValue = null
     while (source.hasTop) {
@@ -74,14 +72,14 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
 
   private def inBounds(k: Key): Boolean = {
     k.getRow(row)
-    val keyZ = rowToZ(row.getBytes)
-    val x = Z2(keyZ).d0
-    val y = Z2(keyZ).d1
+    val z = rowToZ(row.getBytes)
+    val x = Z2(z).d0
+    val y = Z2(z).d1
 
     var i = 0
     while (i < xyvals.length) {
-      val (xmin, ymin, xmax, ymax) = xyvals(i)
-      if (x >= xmin && x <= xmax && y >= ymin && y <= ymax) {
+      val xy = xyvals(i)
+      if (x >= xy(0) && x <= xy(2) && y >= xy(1) && y <= xy(3)) {
         return true
       }
       i += 1
@@ -89,31 +87,21 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
     false
   }
 
-  private def rowToZ(count: Int, tableSharing: Boolean): (Array[Byte]) => Long = (count, tableSharing) match {
-    case (3, true)  => (b) => Longs.fromBytes(b(2), b(3), b(4), 0, 0, 0, 0, 0)
-    case (3, false) => (b) => Longs.fromBytes(b(1), b(2), b(3), 0, 0, 0, 0, 0)
-    case (4, true)  => (b) => Longs.fromBytes(b(2), b(3), b(4), b(5), 0, 0, 0, 0)
-    case (4, false) => (b) => Longs.fromBytes(b(1), b(2), b(3), b(4), 0, 0, 0, 0)
-    case (8, true)  => (b) => Longs.fromBytes(b(2), b(3), b(4), b(5), b(6), b(7), b(8), b(9))
-    case (8, false) => (b) => Longs.fromBytes(b(1), b(2), b(3), b(4), b(5), b(6), b(7), b(8))
-    case _ => throw new IllegalArgumentException(s"Unhandled number of bytes for z value: $count")
+  override def seek(range: AccRange, columnFamilies: java.util.Collection[ByteSequence], inclusive: Boolean): Unit = {
+    source.seek(range, columnFamilies, inclusive)
+    findTop()
   }
 
   override def getTopValue: Value = topValue
   override def getTopKey: Key = topKey
   override def hasTop: Boolean = topKey != null
 
-  override def seek(range: AccRange, columnFamilies: java.util.Collection[ByteSequence], inclusive: Boolean): Unit = {
-    source.seek(range, columnFamilies, inclusive)
-    findTop()
-  }
-
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = {
     import scala.collection.JavaConversions._
     val opts = Map(
-      ZKeyXY          -> keyXY.mkString(RangeSeparator),
-      PointsKey       -> isPoints.toString,
-      TableSharingKey -> isTableSharing.toString
+      ZKeyXY     -> keyXY,
+      ZOffsetKey -> zOffset.toString,
+      ZLengthKey -> zLength.toString
     )
     val iter = new Z2Iterator
     iter.init(source, opts, env)
@@ -124,20 +112,22 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
 object Z2Iterator {
 
   val ZKeyXY = "zxy"
-  val PointsKey = "points"
-  val TableSharingKey = "table-sharing"
+  val ZOffsetKey = "zo"
+  val ZLengthKey = "zl"
 
-  val RangeSeparator = ":"
+  private val RangeSeparator = ":"
+  private val TermSeparator  = ";"
 
-  def configure(bounds: Seq[(Double, Double, Double, Double)],
-                isPoints: Boolean,
-                tableSharing: Boolean,
-                priority: Int) = {
+  def configure(sft: SimpleFeatureType,
+                bounds: Seq[(Double, Double, Double, Double)],
+                priority: Int): IteratorSetting = {
+
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     val is = new IteratorSetting(priority, "z2", classOf[Z2Iterator])
 
     // index space values for comparing in the iterator
-    val xyOpts = if (isPoints) {
+    val xyOpts = if (sft.isPoints) {
       bounds.map { case (xmin, ymin, xmax, ymax) =>
         s"${Z2SFC.lon.normalize(xmin)}$RangeSeparator${Z2SFC.lat.normalize(ymin)}$RangeSeparator" +
             s"${Z2SFC.lon.normalize(xmax)}$RangeSeparator${Z2SFC.lat.normalize(ymax)}"
@@ -150,12 +140,34 @@ object Z2Iterator {
       }
     }
 
-    is.addOption(ZKeyXY, xyOpts.mkString(RangeSeparator))
-    is.addOption(PointsKey, isPoints.toString)
-    is.addOption(TableSharingKey, tableSharing.toString)
+    is.addOption(ZKeyXY, xyOpts.mkString(TermSeparator))
+    // account for shard and table sharing bytes
+    is.addOption(ZOffsetKey, if (sft.isTableSharing) { "2" } else { "1" })
+    is.addOption(ZLengthKey, if (sft.isPoints) { "8" } else { Z2Index.GEOM_Z_NUM_BYTES.toString })
     is
   }
 
   private def decodeNonPoints(x: Double, y: Double): (Int, Int) =
     Z2(Z2SFC.index(x, y).z & Z2Index.GEOM_Z_MASK).decode
+
+  private def getRowToZ(offset: Int, length: Int): (Array[Byte]) => Long = {
+    val z0 = offset
+    val z1 = offset + 1
+    val z2 = offset + 2
+    val z3 = offset + 3
+    val z4 = offset + 4
+    val z5 = offset + 5
+    val z6 = offset + 6
+    val z7 = offset + 7
+
+    if (length == 8) {
+      (b) => Longs.fromBytes(b(z0), b(z1), b(z2), b(z3), b(z4), b(z5), b(z6), b(z7))
+    } else if (length == 3) {
+      (b) => Longs.fromBytes(b(z0), b(z1), b(z2), 0, 0, 0, 0, 0)
+    } else if (length == 4) {
+      (b) => Longs.fromBytes(b(z0), b(z1), b(z2), b(z3), 0, 0, 0, 0)
+    } else {
+      throw new IllegalArgumentException(s"Unhandled number of bytes for z value: $length")
+    }
+  }
 }

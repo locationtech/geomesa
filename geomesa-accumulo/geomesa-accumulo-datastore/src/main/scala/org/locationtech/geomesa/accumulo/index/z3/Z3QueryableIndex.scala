@@ -175,7 +175,7 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
 
       // we know we're only going to scan appropriate periods, so leave out whole periods
       val filteredTimes = timesByBin.filter(_._2 != wholePeriod).toMap
-      val zIter = Z3Iterator.configure(sfc, xy, filteredTimes, sft.isPoints, hasSplits, Z3Index.Z3IterPriority)
+      val zIter = Z3Iterator.configure(sft, sfc, xy, filteredTimes, hasSplits, Z3Index.Z3IterPriority)
       (ranges.toSeq, Some(zIter))
     }
 

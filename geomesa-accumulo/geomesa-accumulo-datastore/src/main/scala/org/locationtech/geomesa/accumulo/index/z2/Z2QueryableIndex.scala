@@ -140,7 +140,7 @@ trait Z2QueryableIndex extends AccumuloFeatureIndexType
         }
       }
 
-      val zIter = Z2Iterator.configure(xy, sft.isPoints, sft.isTableSharing, Z2Index.Z2IterPriority)
+      val zIter = Z2Iterator.configure(sft, xy, Z2Index.Z2IterPriority)
 
       (ranges, Some(zIter))
     }
