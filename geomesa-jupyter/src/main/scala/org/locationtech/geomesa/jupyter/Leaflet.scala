@@ -83,10 +83,10 @@ object L {
       if(a!= null) s""""${ad.getLocalName}": '${StringEscapeUtils.escapeJson(a.toString)}'"""
       else s""""${ad.getLocalName}": ''"""
 
-    private def processGeometry(geom: Geometry) = geom.getGeometryType match {
-      case "Point"      => processPoint(geom.asInstanceOf[Point])
-      case "LineString" => processLinestring(geom.asInstanceOf[LineString])
-      case "Polygon"    => processPoly(geom.asInstanceOf[Polygon])
+    private def processGeometry(geom: Geometry) = geom match {
+      case p: Point       => processPoint(p)
+      case ls: LineString => processLinestring(ls)
+      case p: Polygon     => processPoly(p)
     }
 
     def processCoord(c: Coordinate) = s"[${c.x}, ${c.y}]"
