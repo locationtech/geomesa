@@ -266,6 +266,7 @@ Test the command that invokes the GeoMesa Tools:
         add-attribute-index    Run a Hadoop map reduce job to add an index for attributes
         add-index              Add or update indices for an existing GeoMesa feature type
         config-table           Perform table configuration operations
+        convert                Convert files using GeoMesa's internal SFT converter framework
         create-schema          Create a GeoMesa feature type
         delete-catalog         Delete a GeoMesa catalog completely (and all features in it)
         delete-features        Delete features from a table in GeoMesa. Does not delete any tables or schema information.
@@ -367,6 +368,7 @@ Test the command that invokes the GeoMesa Tools:
     Using GEOMESA_KAFKA_HOME = /path/to/geomesa-kafka-$KAFKAVERSION_2.11-$VERSION
     Usage: geomesa-kafka [command] [command options]
       Commands:
+        convert         Convert files using GeoMesa's internal SFT converter framework
         create-schema   Create a feature definition in GeoMesa
         get-schema      Describe the attributes of a given feature in GeoMesa
         get-names       List GeoMesa features for a given zkPath

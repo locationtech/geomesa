@@ -10,38 +10,42 @@ package org.locationtech.geomesa.tools.export
 
 import java.io.File
 
-import com.beust.jcommander.{Parameter, Parameters}
-import org.locationtech.geomesa.tools.{CatalogParam, OptionalCqlFilterParam, OptionalIndexParam, RequiredTypeNameParam}
+import com.beust.jcommander.Parameter
+import org.locationtech.geomesa.tools.{CatalogParam, OptionalCqlFilterParam, OptionalIndexParam, RequiredTypeNameParam, _}
 
-trait BaseExportParams extends CatalogParam with RequiredTypeNameParam with OptionalCqlFilterParam with OptionalIndexParam {
-  @Parameter(names = Array("-m", "--max-features"), description = "Maximum number of features to return. default: Unlimited")
-  var maxFeatures: Integer = null
-
-  @Parameter(names = Array("-a", "--attributes"), description = "Attributes from feature to export " +
-      "(comma-separated)...Comma-separated expressions with each in the format " +
-      "attribute[=filter_function_expression]|derived-attribute=filter_function_expression. " +
-      "filter_function_expression is an expression of filter function applied to attributes, literals " +
-      "and filter functions, i.e. can be nested")
-  var attributes: java.util.List[String] = null
-
+trait FileExportParams {
   @Parameter(names = Array("-o", "--output"), description = "Output to a file instead of std out")
   var file: File = null
 
   @Parameter(names = Array("--gzip"), description = "Level of gzip compression to apply to output, from 1-9")
   var gzip: Integer = null
-}
 
-// @Parameters(commandDescription = "Export features from a GeoMesa data store")
-trait ExportParams extends BaseExportParams {
-  @Parameter(names = Array("-F", "--format"), description = "Format to export (avro|bin|csv|geojson|gml|null|shp|tsv)")
-  var format: String = "csv"
+  @Parameter(names = Array("-F", "--output-Format"), description = "File format of output files (csv|tsv|gml|json|shp|avro)")
+  var outputFormat: String = "csv"
 
   @Parameter(names = Array("--no-header"), description = "Export as a delimited text format (csv|tsv) without a type header", required = false)
   var noHeader: Boolean = false
 }
 
-@Parameters(commandDescription = "Export features from a GeoMesa data store in a binary format")
-trait BinExportParams extends BaseExportParams {
+trait MaxFeaturesParam {
+  @Parameter(names = Array("-m", "--max-features"), description = "Maximum number of features to return. default: Unlimited")
+  var maxFeatures: Integer = null
+}
+
+trait DataExportParams extends OptionalCqlFilterParam with MaxFeaturesParam {
+  @Parameter(names = Array("-a", "--attributes"), description = "Attributes from feature to export " +
+    "(comma-separated)...Comma-separated expressions with each in the format " +
+    "attribute[=filter_function_expression]|derived-attribute=filter_function_expression. " +
+    "filter_function_expression is an expression of filter function applied to attributes, literals " +
+    "and filter functions, i.e. can be nested")
+  var attributes: java.util.List[String] = null
+}
+
+trait BaseExportParams extends FileExportParams with DataExportParams with TypeNameParam with OptionalIndexParam
+
+trait ExportParams extends BaseExportParams with CatalogParam with RequiredTypeNameParam
+
+trait BaseBinExportParams {
   @Parameter(names = Array("--id-attribute"), description = "Name of the id attribute to export")
   var idAttribute: String = null
 
@@ -51,9 +55,13 @@ trait BinExportParams extends BaseExportParams {
   @Parameter(names = Array("--lon-attribute"), description = "Name of the longitude attribute to export")
   var lonAttribute: String = null
 
-  @Parameter(names = Array("--dt-attribute"), description = "Name of the date attribute to export", required = true)
-  var dateAttribute: String = null
-
   @Parameter(names = Array("--label-attribute"), description = "Name of the attribute to use as a bin file label")
   var labelAttribute: String = null
 }
+
+trait OptionalBinExportParams extends BaseBinExportParams {
+  @Parameter(names = Array("--dt-attribute"), description = "Name of the date attribute to export")
+  var dateAttribute: String = null
+}
+
+trait BinExportParams extends OptionalBinExportParams with BaseExportParams with RequiredTypeNameParam

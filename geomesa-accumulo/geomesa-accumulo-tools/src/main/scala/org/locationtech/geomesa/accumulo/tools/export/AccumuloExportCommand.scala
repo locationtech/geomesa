@@ -11,6 +11,7 @@ package org.locationtech.geomesa.accumulo.tools.export
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
+import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.export.{ExportCommand, ExportParams}
 
 class AccumuloExportCommand extends ExportCommand[AccumuloDataStore] with AccumuloDataStoreCommand {
@@ -18,4 +19,6 @@ class AccumuloExportCommand extends ExportCommand[AccumuloDataStore] with Accumu
 }
 
 @Parameters(commandDescription = "Export features from a GeoMesa data store")
-class AccumuloExportParams extends ExportParams with AccumuloDataStoreParams
+class AccumuloExportParams extends ExportParams
+  with AccumuloDataStoreParams
+  with RequiredTypeNameParam

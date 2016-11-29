@@ -45,7 +45,7 @@ trait ExportCommand[DS <: GeoMesaDataStore[_, _, _, _]] extends DataStoreCommand
     import ExportCommand._
     import org.locationtech.geomesa.tools.utils.DataFormats._
 
-    val fmt = DataFormats.values.find(_.toString.equalsIgnoreCase(params.format)).getOrElse {
+    val fmt = DataFormats.values.find(_.toString.equalsIgnoreCase(params.outputFormat)).getOrElse {
       throw new ParameterException("")
     }
     val features = getFeatureCollection(ds, fmt, params)
@@ -127,9 +127,9 @@ object ExportCommand extends LazyLogging {
     new BufferedOutputStream(compressed)
   }
 
-  def getWriter(params: ExportParams): Writer = new OutputStreamWriter(createOutputStream(params.file, params.gzip))
+  def getWriter(params: FileExportParams): Writer = new OutputStreamWriter(createOutputStream(params.file, params.gzip))
 
-  def checkShpFile(params: ExportParams): File = {
+  def checkShpFile(params: FileExportParams): File = {
     if (params.file != null) { params.file } else {
       throw new ParameterException("Error: -o or --output for file-based output is required for " +
           "shapefile export (stdout not supported for shape files)")
