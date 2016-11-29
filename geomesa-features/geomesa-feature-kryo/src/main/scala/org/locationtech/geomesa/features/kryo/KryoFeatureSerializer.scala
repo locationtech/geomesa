@@ -266,7 +266,7 @@ object KryoFeatureSerializer {
         }
         writeNullable(w)
       case ObjectType.GEOMETRY =>
-        writeNullable((o: Output, v: AnyRef) => kryoWriter.selectGeometryWriter(o, v.asInstanceOf[Geometry]))
+        writeNullable((o: Output, v: AnyRef) => kryoWriter.writeGeometryNotNull(o, v.asInstanceOf[Geometry]))
       case ObjectType.LIST =>
         val valueWriter = matchWriter(bindings.head)
         (o: Output, v: AnyRef) => {
@@ -345,7 +345,7 @@ object KryoFeatureSerializer {
           new UUID(mostSignificantBits, leastSignificantBits)
         }
         readNullable(w)
-      case ObjectType.GEOMETRY => readNullable((i: Input) => kryoReader.selectGeometryReader(i))
+      case ObjectType.GEOMETRY => readNullable((i: Input) => kryoReader.readGeometry(i))
       case ObjectType.LIST =>
         val valueReader = matchReader(bindings.head)
         (i: Input) => {
