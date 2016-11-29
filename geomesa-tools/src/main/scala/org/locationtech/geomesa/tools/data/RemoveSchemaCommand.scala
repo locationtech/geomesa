@@ -21,7 +21,7 @@ trait RemoveSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
   override val name = "remove-schema"
   override def params: RemoveSchemaParams
 
-  override def execute() = {
+  override def execute(): Unit = {
     (Option(params.pattern), Option(params.featureName)) match {
       case (None, None) => throw new ParameterException("Please provide either featureName or pattern")
       case (Some(_), Some(_)) => throw new ParameterException("Cannot specify both featureName and pattern")
@@ -33,7 +33,7 @@ trait RemoveSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
   protected def remove(ds: DS, pattern: Pattern): Unit = {
     val typeNames = ds.getTypeNames.filter(pattern.matcher(_).matches)
     if (typeNames.isEmpty) {
-      logger.warn("No schemas matched the provided pattern")
+      Command.user.warn("No schemas matched the provided pattern")
     } else {
       remove(ds, typeNames)
     }
@@ -43,17 +43,17 @@ trait RemoveSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
     if (params.force || promptConfirm(typeNames)) {
       typeNames.foreach { typeName =>
         if (try { ds.getSchema(typeName) == null } catch { case _: IOException => true }) {
-          println(s"Schema '$typeName' doesn't exist")
+          Command.user.warn(s"Schema '$typeName' doesn't exist")
         } else {
-          println(s"Removing '$typeName'")
+          Command.user.info(s"Removing '$typeName'")
           ds.removeSchema(typeName)
           if (try { ds.getSchema(typeName) != null } catch { case _: IOException => false }) {
-            logger.error(s"Error removing feature type '$typeName'")
+            Command.user.error(s"Error removing feature type '$typeName'")
           }
         }
       }
     } else {
-      println(s"Cancelled schema removal")
+      Command.user.info(s"Cancelled schema removal")
     }
   }
 

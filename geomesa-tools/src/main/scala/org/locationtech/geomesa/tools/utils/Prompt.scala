@@ -19,7 +19,7 @@ object Prompt {
   }
 
   // note: user must press enter as java does not support reading single chars from the console
-  def acknowledge(msg: String) = {
+  def acknowledge(msg: String): Unit = {
     ensureConsole()
     print(msg)
     System.console.readLine

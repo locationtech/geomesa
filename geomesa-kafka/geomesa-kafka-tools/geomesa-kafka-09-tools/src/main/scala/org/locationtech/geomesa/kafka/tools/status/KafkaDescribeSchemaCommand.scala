@@ -9,21 +9,20 @@
 package org.locationtech.geomesa.kafka.tools.status
 
 import com.beust.jcommander.Parameters
-import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.kafka.tools.{ConsumerKDSConnectionParams, KafkaDataStoreCommand}
 import org.locationtech.geomesa.kafka09.KafkaUtils09
-import org.locationtech.geomesa.tools.RequiredTypeNameParam
+import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
 
 import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
 
-class KafkaDescribeSchemaCommand extends KafkaDataStoreCommand with LazyLogging {
+class KafkaDescribeSchemaCommand extends KafkaDataStoreCommand {
 
   override val name = "get-schema"
   override val params = new KafkaDescribeSchemaParams
 
-  def execute() = withDataStore { (ds) =>
-    logger.info(s"Describing attributes of feature type '${params.featureName}' at zkPath '${params.zkPath}'...")
+  def execute(): Unit = withDataStore { (ds) =>
+    Command.user.info(s"Describing attributes of feature type '${params.featureName}' at zkPath '${params.zkPath}'...")
     try {
       val sft = ds.getSchema(params.featureName)
 
@@ -40,32 +39,32 @@ class KafkaDescribeSchemaCommand extends KafkaDataStoreCommand with LazyLogging 
         if (sft.getGeometryDescriptor == attr) sb.append(" (Default geometry)")
         if (attr.getDefaultValue != null)      sb.append("- Default Value: ", attr.getDefaultValue)
 
-        println(sb.toString())
+        Command.output.info(sb.toString())
       }
 
       val userData = sft.getUserData
       if (!userData.isEmpty) {
-        println("\nUser data:")
-        userData.foreach { case (key, value) => println(s"  $key: $value") }
+        Command.user.info("\nUser data:")
+        userData.foreach { case (key, value) => Command.user.info(s"  $key: $value") }
       }
 
-      println("\nFetching Kafka topic metadata...")
+      Command.user.info("\nFetching Kafka topic metadata...")
 
       val zkUtils = KafkaUtils09.createZkUtils(params.zookeepers, Int.MaxValue, Int.MaxValue)
       try {
         val topicName = zkUtils.zkClient.readData[String](ds.getTopicPath(params.featureName))
         val topicMetadata = zkUtils.fetchTopicMetadataFromZk(topicName)
-        println(s"Topic: ${topicMetadata.topicName} Number of partitions: ${topicMetadata.numberOfPartitions}")
+        Command.user.info(s"Topic: ${topicMetadata.topicName} Number of partitions: ${topicMetadata.numberOfPartitions}")
       } finally {
         zkUtils.close()
       }
     } catch {
       case npe: NullPointerException =>
-        logger.error(s"Error: feature '${params.featureName}' not found. Check arguments...", npe)
+        Command.user.error(s"Error: feature '${params.featureName}' not found. Check arguments...", npe)
       case e: Exception =>
-        logger.error(s"Error describing feature '${params.featureName}': " + e.getMessage, e)
+        Command.user.error(s"Error describing feature '${params.featureName}': " + e.getMessage, e)
       case NonFatal(e) =>
-        logger.warn(s"Non fatal error encountered describing feature '${params.featureName}': ", e)
+        Command.user.warn(s"Non fatal error encountered describing feature '${params.featureName}': ", e)
     }
   }
 }

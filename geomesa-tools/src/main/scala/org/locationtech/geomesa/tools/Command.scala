@@ -9,19 +9,25 @@
 package org.locationtech.geomesa.tools
 
 import com.beust.jcommander.JCommander
-import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, DataStoreFinder}
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.JavaConversions._
 
 /**
  * Abstract superclass for all top-level GeoMesa JCommander commands
  */
-trait Command extends LazyLogging {
+trait Command {
   val name: String
   def params: Any
   def execute(): Unit
+}
+
+object Command {
+  // send messages to the user - status, errors, etc
+  val user: Logger = LoggerFactory.getLogger("org.locationtech.geomesa.tools.user")
+  // send output from a command
+  val output: Logger = LoggerFactory.getLogger("org.locationtech.geomesa.tools.output")
 }
 
 trait CommandWithSubCommands extends Command {
@@ -36,8 +42,8 @@ trait CommandWithSubCommands extends Command {
     subCommands.find(_.name == sub) match {
       case Some(command) => command.execute()
       case None =>
-        println(s"Error: no sub-command listed...run as: ${runner.name} $name <sub-command>")
-        println(runner.usage(jc, name))
+        Command.user.error(s"no sub-command listed...run as: ${runner.name} $name <sub-command>")
+        Command.user.info(runner.usage(jc, name))
     }
   }
 }

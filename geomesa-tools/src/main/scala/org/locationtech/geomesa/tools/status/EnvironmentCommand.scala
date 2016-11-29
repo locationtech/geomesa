@@ -10,13 +10,13 @@ package org.locationtech.geomesa.tools.status
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.config.{Config, ConfigRenderOptions}
-import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.convert.ConverterConfigLoader
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypeLoader, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeatureType
 
-class EnvironmentCommand extends Command with LazyLogging {
+class EnvironmentCommand extends Command {
+
   override val name = "env"
   override val params = new EnvironmentParameters()
 
@@ -52,9 +52,9 @@ class EnvironmentCommand extends Command with LazyLogging {
   def listSfts(names: List[String] = List.empty): Unit = {
     val all = SimpleFeatureTypeLoader.sfts
     val filtered = if (names.isEmpty) all else names.flatMap(n => all.find(_.getTypeName == n))
-    println("\nSimple Feature Types:")
+    Command.output.info("Simple Feature Types:")
     if (filtered.isEmpty) {
-      println("None available")
+      Command.output.info("None available")
     } else {
       val paramsLower = params.format.toLowerCase
       if (paramsLower == "typesafe" || paramsLower == "spec") {
@@ -64,9 +64,9 @@ class EnvironmentCommand extends Command with LazyLogging {
           case "spec" =>
             (sft: SimpleFeatureType) => s"${SimpleFeatureTypes.encodeType(sft, !params.excludeUserData)}"
         }
-        filtered.sortBy(_.getTypeName).map(s => s"${s.getTypeName} = ${formatFn(s)}").foreach(println)
+        filtered.sortBy(_.getTypeName).map(s => s"${s.getTypeName} = ${formatFn(s)}").foreach(Command.output.info)
       } else {
-        logger.error(s"Unknown config format: ${params.format}")
+        throw new ParameterException(s"Unknown format '${params.format}'. Valid values are 'typesafe' or 'spec'")
       }
     }
   }
@@ -74,25 +74,26 @@ class EnvironmentCommand extends Command with LazyLogging {
   def listConverters(names: List[String] = List.empty): Unit = {
     val all = ConverterConfigLoader.confs
     val filtered = if (names.isEmpty) all else names.flatMap(n => all.find(_._1 == n))
-    println("\nSimple Feature Type Converters:")
+    Command.output.info("Simple Feature Type Converters:")
     if (filtered.isEmpty) {
-      println("None available")
+      Command.output.info("None available")
     } else {
       val options = ConfigRenderOptions.defaults().setJson(false).setOriginComments(false)
       def render(c: Config) = c.root().render(options)
-      filtered.map { case (cname, conf)=> s"converter-name=$cname\n${render(conf)}\n"}.toArray.sorted.foreach(println)
+      val strings = filtered.map { case (cname, conf)=> s"converter-name=$cname\n${render(conf)}\n" }
+      strings.toArray.sorted.foreach(Command.output.info)
     }
   }
 
   def listSftsNames(): Unit = {
-    println("\nSimple Feature Types:")
+    Command.output.info("Simple Feature Types:")
     val all = SimpleFeatureTypeLoader.sfts
-    all.sortBy(_.getTypeName).map(s => s"${s.getTypeName}").foreach(println)
+    all.sortBy(_.getTypeName).map(s => s"${s.getTypeName}").foreach(Command.output.info)
   }
   def listConverterNames(): Unit = {
-    println("\nSimple Feature Type Converters:")
+    Command.output.info("Simple Feature Type Converters:")
     val all = ConverterConfigLoader.confs
-    all.map { case (cname, conf) => s"$cname"}.toArray.sorted.foreach(println)
+    all.map { case (cname, conf) => s"$cname"}.toArray.sorted.foreach(Command.output.info)
   }
 }
 

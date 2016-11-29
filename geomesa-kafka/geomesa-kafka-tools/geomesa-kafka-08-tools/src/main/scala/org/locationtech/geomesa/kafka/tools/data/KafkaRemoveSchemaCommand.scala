@@ -13,16 +13,16 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.kafka.tools.{KafkaDataStoreCommand, SimpleProducerKDSConnectionParams}
 import org.locationtech.geomesa.kafka08.KafkaDataStore
 import org.locationtech.geomesa.tools.utils.Prompt
-import org.locationtech.geomesa.tools.{OptionalForceParam, OptionalPatternParam, OptionalTypeNameParam}
+import org.locationtech.geomesa.tools.{Command, OptionalForceParam, OptionalPatternParam, OptionalTypeNameParam}
 
 import scala.util.{Failure, Success, Try}
 
-class KafkaRemoveSchemaCommand extends KafkaDataStoreCommand with LazyLogging {
+class KafkaRemoveSchemaCommand extends KafkaDataStoreCommand {
 
   override val name = "remove-schema"
   override val params = new KafkaRemoveSchemaParams
 
-  override def execute() = {
+  override def execute(): Unit = {
     if (Option(params.pattern).isEmpty && Option(params.featureName).isEmpty) {
       throw new IllegalArgumentException("Please provide either the featureName or pattern parameter to remove schemas.")
     } else if (Option(params.pattern).isDefined && Option(params.featureName).isDefined) {
@@ -36,10 +36,10 @@ class KafkaRemoveSchemaCommand extends KafkaDataStoreCommand with LazyLogging {
           if (params.force || promptConfirm(typeNamesToRemove)) {
             removeAll(ds, typeNamesToRemove)
           } else {
-            logger.info(s"Cancelled schema removal.")
+            Command.user.info(s"Cancelled schema removal.")
           }
         case Failure(ex) =>
-          println(s"Feature validation failed on error: ${ex.getMessage}.")
+          Command.user.error(s"Feature validation failed on error: ${ex.getMessage}.")
       }
     }
   }
@@ -53,9 +53,9 @@ class KafkaRemoveSchemaCommand extends KafkaDataStoreCommand with LazyLogging {
         }
       } match {
         case Success(_) =>
-          println(s"Removed $tname")
+          Command.user.info(s"Removed $tname")
         case Failure(ex) =>
-          println(s"Failure removing type $tname")
+          Command.user.error(s"Failure removing type $tname")
       }
     }
   }
