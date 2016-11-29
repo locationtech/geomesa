@@ -126,22 +126,30 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
         case _ => -1
       }
     }
+
+    val shouldReserialize = indices.contains(-1)
+    val mutableOffsetsAndLength = Array.ofDim[(Int,Int)](indices.length)
+
     // if we are just returning a subset of attributes, we can copy the bytes directly and avoid creating
     // new objects, reserializing, etc
-    binaryTransform = if (!indices.contains(-1)) {
+    binaryTransform = if (!shouldReserialize) {
       () => {
         val buf = input.getBuffer
         var length = offsets(0) // space for version, offset block and ID
-        val offsetsAndLengths = indices.map { i =>
+        var idx = 0
+        while(idx < mutableOffsetsAndLength.length) {
+          val i = indices(idx)
           val l = (if (i < offsets.length - 1) offsets(i + 1) else startOfOffsets) - offsets(i)
           length += l
-          (offsets(i), l)
+          mutableOffsetsAndLength(idx) = (offsets(i), l)
+          idx += 1
         }
+
         val dst = Array.ofDim[Byte](length)
         // copy the version, offset block and id
         var dstPos = offsets(0)
         System.arraycopy(buf, 0, dst, 0, dstPos)
-        offsetsAndLengths.foreach { case (o, l) =>
+        mutableOffsetsAndLength.foreach { case (o, l) =>
           System.arraycopy(buf, o, dst, dstPos, l)
           dstPos += l
         }
