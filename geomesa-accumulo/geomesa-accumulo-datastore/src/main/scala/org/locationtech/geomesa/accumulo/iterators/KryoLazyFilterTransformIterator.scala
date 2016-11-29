@@ -69,11 +69,12 @@ class KryoLazyFilterTransformIterator extends
     val transform = Option(options.get(TRANSFORM_DEFINITIONS_OPT))
     val transformSchema = Option(options.get(TRANSFORM_SCHEMA_OPT))
     for { t <- transform; ts <- transformSchema } {
-      reusablesf.setTransforms(t, SimpleFeatureTypes.createType("", ts))
+      reusableSf.setTransforms(t, IteratorCache.sft(ts))
     }
     hasTransform = transform.isDefined
 
     val cql = Option(options.get(CQL_OPT)).map(IteratorCache.filter(spec, _))
+    // TODO: can we optimize the configuration of sampling
     val sampling = sample(options)
 
     filter = (cql, sampling) match {
