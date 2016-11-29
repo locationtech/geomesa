@@ -8,11 +8,9 @@
 
 package org.locationtech.geomesa.accumulo.index.z2
 
-import java.util.Map.Entry
-
 import com.google.common.primitives.{Bytes, Longs}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.data.{Key, Mutation, Value, Range => aRange}
+import org.apache.accumulo.core.data.{Mutation, Range => aRange}
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
@@ -28,7 +26,7 @@ import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
 
 trait XZ2QueryableIndex extends AccumuloFeatureIndexType
-    with SpatialFilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation, Entry[Key, Value]]
+    with SpatialFilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation]
     with LazyLogging {
 
   writable: AccumuloWritableIndex =>

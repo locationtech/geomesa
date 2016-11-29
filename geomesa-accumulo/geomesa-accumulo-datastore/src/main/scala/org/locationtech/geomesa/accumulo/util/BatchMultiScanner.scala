@@ -62,7 +62,7 @@ class BatchMultiScanner(ds: AccumuloDataStore,
             inQ.drainTo(entries)
             val task = executor.submit(new Runnable {
               override def run(): Unit = {
-                val iterator = join.copy(ranges = entries.map(joinFunction)).scan(ds)
+                val iterator = join.copy(ranges = entries.map(joinFunction)).scanEntries(ds)
                 try {
                   iterator.foreach(outQ.put)
                 } finally {

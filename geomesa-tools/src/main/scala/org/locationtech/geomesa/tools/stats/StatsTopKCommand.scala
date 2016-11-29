@@ -18,7 +18,7 @@ import org.opengis.filter.Filter
 import scala.math.Ordering
 import scala.util.control.NonFatal
 
-trait StatsTopKCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait StatsTopKCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
 
   override val name = "stats-top-k"
   override val params: StatsTopKParams

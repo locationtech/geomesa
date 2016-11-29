@@ -17,10 +17,10 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
 
-trait AttributeFilterStrategy[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q]
-    extends GeoMesaFeatureIndex[DS, F, W, Q] {
+trait AttributeFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
+    extends GeoMesaFeatureIndex[DS, F, W] {
 
-  override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[FilterStrategy[DS, F, W, Q]] = {
+  override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[FilterStrategy[DS, F, W]] = {
     import org.locationtech.geomesa.index.strategies.AttributeFilterStrategy.attributeCheck
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
@@ -46,7 +46,7 @@ trait AttributeFilterStrategy[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedF
     */
   override def getCost(sft: SimpleFeatureType,
                        ds: Option[DS],
-                       filter: FilterStrategy[DS, F, W, Q],
+                       filter: FilterStrategy[DS, F, W],
                        transform: Option[SimpleFeatureType]): Long = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 

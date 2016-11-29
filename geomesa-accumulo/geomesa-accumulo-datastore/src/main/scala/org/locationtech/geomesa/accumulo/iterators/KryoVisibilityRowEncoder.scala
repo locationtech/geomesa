@@ -98,7 +98,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     * @return
     */
   private def readOffsets(bytes: Array[Byte]): Unit = {
-    val input = KryoFeatureSerializer.getInput(bytes)
+    val input = KryoFeatureSerializer.getInput(bytes, 0, bytes.length)
     // reset our offsets
     input.setPosition(1) // skip version
     offsetStart = input.readInt()

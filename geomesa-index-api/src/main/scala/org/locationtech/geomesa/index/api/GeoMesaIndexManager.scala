@@ -17,25 +17,25 @@ import org.opengis.feature.simple.SimpleFeatureType
 /**
   * Manages available indices and versions. @see GeoMesaFeatureIndex
   */
-trait GeoMesaIndexManager[O <: GeoMesaDataStore[O, F, W, Q], F <: WrappedFeature, W, Q] {
+trait GeoMesaIndexManager[O <: GeoMesaDataStore[O, F, W], F <: WrappedFeature, W] {
 
   private lazy val indexMap = AllIndices.map(i => (i.name, i.version) -> i).toMap
 
   // note: keep in priority order for running full table scans
-  def AllIndices: Seq[GeoMesaFeatureIndex[O, F, W, Q]]
+  def AllIndices: Seq[GeoMesaFeatureIndex[O, F, W]]
 
-  def CurrentIndices: Seq[GeoMesaFeatureIndex[O, F, W, Q]]
+  def CurrentIndices: Seq[GeoMesaFeatureIndex[O, F, W]]
 
-  def lookup: Map[(String, Int), GeoMesaFeatureIndex[O, F, W, Q]] = indexMap
+  def lookup: Map[(String, Int), GeoMesaFeatureIndex[O, F, W]] = indexMap
 
-  def indices(sft: SimpleFeatureType, mode: IndexMode): Seq[GeoMesaFeatureIndex[O, F, W, Q]] = {
+  def indices(sft: SimpleFeatureType, mode: IndexMode): Seq[GeoMesaFeatureIndex[O, F, W]] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val withMode = sft.getIndices.filter { case (_, _, m) => m.supports(mode) }
     // filter the list of all indices so that we maintain priority order
     AllIndices.filter(i => withMode.exists { case (n, v, _) => i.name == n && i.version == v})
   }
 
-  def index(identifier: String): GeoMesaFeatureIndex[O, F, W, Q] = {
+  def index(identifier: String): GeoMesaFeatureIndex[O, F, W] = {
     val Array(n, v) = identifier.split(":")
     indexMap(n, v.toInt)
   }
@@ -49,7 +49,7 @@ trait GeoMesaIndexManager[O <: GeoMesaDataStore[O, F, W, Q], F <: WrappedFeature
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     // remove the enabled indices after fetch so we don't persist them
     val enabled = Option(sft.getUserData.remove(SimpleFeatureTypes.Configs.ENABLED_INDICES))
-    val indices: Seq[GeoMesaFeatureIndex[O, F, W, Q]] = enabled match {
+    val indices: Seq[GeoMesaFeatureIndex[O, F, W]] = enabled match {
       case None => CurrentIndices
       case Some(e) => e.toString.split(",").map(_.trim).flatMap(n => CurrentIndices.find(_.name.equalsIgnoreCase(n)))
     }

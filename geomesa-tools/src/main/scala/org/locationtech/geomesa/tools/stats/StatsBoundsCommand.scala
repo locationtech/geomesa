@@ -17,7 +17,7 @@ import org.opengis.filter.Filter
 
 import scala.util.control.NonFatal
 
-trait StatsBoundsCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait StatsBoundsCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
 
   override val name = "stats-bounds"
   override def params: StatsBoundsParams

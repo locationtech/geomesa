@@ -32,7 +32,7 @@ object GeoMesaOutputFormat {
    * Configure the data store you will be writing to.
    */
   def configureDataStore(job: JobConf, dsParams: Map[String, String]): Unit = {
-    val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[GeoMesaDataStore[_, _, _, _]]
+    val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[GeoMesaDataStore[_, _, _]]
     assert(ds != null, "Invalid data store parameters")
     ds.dispose()
 
@@ -67,14 +67,14 @@ class GeoMesaOutputFormat extends OutputFormat[Text, SimpleFeature] {
  *
  * Key is ignored. If the feature type for the given feature does not exist yet, it will be created.
  */
-class GeoMesaRecordWriter[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q]
+class GeoMesaRecordWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
     (params: Map[String, String], indices: Option[Seq[String]], progress: Progressable)
     extends RecordWriter[Text, SimpleFeature] with LazyLogging {
 
-  val ds = DataStoreFinder.getDataStore(params).asInstanceOf[GeoMesaDataStore[DS, F, W, Q]]
+  val ds = DataStoreFinder.getDataStore(params).asInstanceOf[GeoMesaDataStore[DS, F, W]]
 
   val sftCache    = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
-  val writerCache = scala.collection.mutable.Map.empty[String, GeoMesaFeatureWriter[_, _, _, _, _]]
+  val writerCache = scala.collection.mutable.Map.empty[String, GeoMesaFeatureWriter[_, _, _, _]]
 
   override def write(key: Text, value: SimpleFeature) = {
     val sftName = value.getFeatureType.getTypeName

@@ -17,7 +17,7 @@ import org.locationtech.geomesa.tools.utils.KeywordParamSplitter
 
 import scala.util.control.NonFatal
 
-trait KeywordsCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait KeywordsCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
 
   override val name: String = "keywords"
 

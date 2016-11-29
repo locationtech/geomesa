@@ -180,6 +180,35 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       deserialized.getAttributes mustEqual sf.getAttributes
     }
 
+    "correctly serialize and deserialize sub-arrays" in {
+      val spec = "a:Integer,b:Float,c:Double,d:Long,e:UUID,f:String,g:Boolean,dtg:Date,*geom:Point:srid=4326"
+      val sft = SimpleFeatureTypes.createType("testType", spec)
+      val sf = new ScalaSimpleFeature("fakeid", sft)
+
+      sf.setAttribute("a", "1")
+      sf.setAttribute("b", "1.0")
+      sf.setAttribute("c", "5.37")
+      sf.setAttribute("d", "-100")
+      sf.setAttribute("e", UUID.randomUUID())
+      sf.setAttribute("f", "mystring")
+      sf.setAttribute("g", java.lang.Boolean.FALSE)
+      sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+      sf.setAttribute("geom", "POINT(45.0 49.0)")
+
+      val serializer = new KryoFeatureSerializer(sft)
+
+      val serialized = serializer.serialize(sf)
+      val extra = Array.fill[Byte](128)(-1)
+      val bytes = Seq((serialized ++ extra, 0), (extra ++ serialized, extra.length), (extra ++ serialized ++ extra, extra.length))
+
+      forall(bytes) { case (array, offset) =>
+        val deserialized = serializer.deserialize(array, offset, serialized.length)
+        deserialized must not(beNull)
+        deserialized.getType mustEqual sf.getType
+        deserialized.getAttributes mustEqual sf.getAttributes
+      }
+    }
+
     "correctly project features" in {
       val sft = SimpleFeatureTypes.createType("fullType", "name:String,*geom:Point,dtg:Date")
       val projectedSft = SimpleFeatureTypes.createType("projectedType", "*geom:Point")

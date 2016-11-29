@@ -43,9 +43,8 @@ import scala.collection.JavaConversions._
   * @tparam DS type of this data store
   * @tparam F wrapper around a simple feature - used for caching write calculations
   * @tparam W write result - feature writers will transform simple features into these
-  * @tparam Q query result - raw type returned from database scans that will be transformed into simple features
   */
-abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q](val config: GeoMesaDataStoreConfig)
+abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](val config: GeoMesaDataStoreConfig)
     extends DataStore with HasGeoMesaMetadata[String] with HasGeoMesaStats with DistributedLocking with LazyLogging {
 
   this: DS =>
@@ -58,14 +57,14 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W, Q], F <: Wrappe
 
   // abstract methods to be implemented by subclasses
 
-  def manager: GeoMesaIndexManager[DS, F, W, Q]
+  def manager: GeoMesaIndexManager[DS, F, W]
 
   protected def createFeatureWriterAppend(sft: SimpleFeatureType,
-                                          indices: Option[Seq[GeoMesaFeatureIndex[DS, F, W, Q]]]): GeoMesaFeatureWriter[DS, F, W, Q, _]
+                                          indices: Option[Seq[GeoMesaFeatureIndex[DS, F, W]]]): GeoMesaFeatureWriter[DS, F, W, _]
 
   protected def createFeatureWriterModify(sft: SimpleFeatureType,
-                                          indices: Option[Seq[GeoMesaFeatureIndex[DS, F, W, Q]]],
-                                          filter: Filter): GeoMesaFeatureWriter[DS, F, W, Q, _]
+                                          indices: Option[Seq[GeoMesaFeatureIndex[DS, F, W]]],
+                                          filter: Filter): GeoMesaFeatureWriter[DS, F, W, _]
 
   /**
     * Optimized method to delete everything (all tables) associated with this datastore
@@ -76,7 +75,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W, Q], F <: Wrappe
 
   // hooks to allow extended functionality
 
-  protected def createQueryPlanner(): QueryPlanner[DS, F, W, Q] = new QueryPlanner(this)
+  protected def createQueryPlanner(): QueryPlanner[DS, F, W] = new QueryPlanner(this)
 
   protected def createFeatureCollection(query: Query, source: GeoMesaFeatureSource): GeoMesaFeatureCollection =
     new GeoMesaFeatureCollection(source, query)
@@ -347,7 +346,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W, Q], F <: Wrappe
    * @param transaction transaction (currently ignored)
    * @return feature writer
    */
-  override def getFeatureWriter(typeName: String, transaction: Transaction): GeoMesaFeatureWriter[DS, F, W, Q, _] =
+  override def getFeatureWriter(typeName: String, transaction: Transaction): GeoMesaFeatureWriter[DS, F, W, _] =
     getFeatureWriter(typeName, Filter.INCLUDE, transaction)
 
   /**
@@ -361,7 +360,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W, Q], F <: Wrappe
    * @param transaction transaction (currently ignored)
    * @return feature writer
    */
-  override def getFeatureWriter(typeName: String, filter: Filter, transaction: Transaction): GeoMesaFeatureWriter[DS, F, W, Q, _] = {
+  override def getFeatureWriter(typeName: String, filter: Filter, transaction: Transaction): GeoMesaFeatureWriter[DS, F, W, _] = {
     val sft = getSchema(typeName)
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
@@ -380,7 +379,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W, Q], F <: Wrappe
    * @param transaction transaction (currently ignored)
    * @return feature writer
    */
-  override def getFeatureWriterAppend(typeName: String, transaction: Transaction): GeoMesaFeatureWriter[DS, F, W, Q, _] = {
+  override def getFeatureWriterAppend(typeName: String, transaction: Transaction): GeoMesaFeatureWriter[DS, F, W, _] = {
     if (transaction != Transaction.AUTO_COMMIT) {
       logger.warn("Ignoring transaction - not supported")
     }
@@ -388,7 +387,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W, Q], F <: Wrappe
   }
 
   def getIndexWriterAppend(typeName: String,
-                           indices: Seq[GeoMesaFeatureIndex[DS, F, W, Q]]): GeoMesaFeatureWriter[DS, F, W, Q, _] = {
+                           indices: Seq[GeoMesaFeatureIndex[DS, F, W]]): GeoMesaFeatureWriter[DS, F, W, _] = {
     val sft = getSchema(typeName)
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
@@ -438,8 +437,8 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W, Q], F <: Wrappe
    * @return query plans
    */
   def getQueryPlan(query: Query,
-                   index: Option[GeoMesaFeatureIndex[DS, F, W, Q]] = None,
-                   explainer: Explainer = new ExplainLogging): Seq[QueryPlan[DS, F, W, Q]] = {
+                   index: Option[GeoMesaFeatureIndex[DS, F, W]] = None,
+                   explainer: Explainer = new ExplainLogging): Seq[QueryPlan[DS, F, W]] = {
     require(query.getTypeName != null, "Type name is required in the query")
     val sft = getSchema(query.getTypeName)
     if (sft == null) {

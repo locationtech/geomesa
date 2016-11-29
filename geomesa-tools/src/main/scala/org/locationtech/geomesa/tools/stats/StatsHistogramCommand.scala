@@ -23,7 +23,7 @@ import scala.reflect.ClassTag
 import scala.util.Try
 import scala.util.control.NonFatal
 
-trait StatsHistogramCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait StatsHistogramCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
 
   override val name = "stats-histogram"
   override def params: StatsHistogramParams

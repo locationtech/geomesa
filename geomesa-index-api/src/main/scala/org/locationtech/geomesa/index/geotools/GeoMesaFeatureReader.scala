@@ -48,7 +48,7 @@ abstract class GeoMesaFeatureReader(val query: Query, val timeout: Option[Long],
 object GeoMesaFeatureReader {
   def apply(sft: SimpleFeatureType,
             query: Query,
-            qp: QueryPlanner[_, _, _, _],
+            qp: QueryPlanner[_, _, _],
             timeout: Option[Long],
             audit: Option[(AuditWriter, AuditProvider, String)]) = {
     val maxFeatures = if (query.isMaxFeaturesUnlimited) None else Some(query.getMaxFeatures)
@@ -66,7 +66,7 @@ object GeoMesaFeatureReader {
  */
 class GeoMesaFeatureReaderImpl(sft: SimpleFeatureType,
                                query: Query,
-                               qp: QueryPlanner[_, _, _, _], timeout: Option[Long], maxFeatures: Long = 0L)
+                               qp: QueryPlanner[_, _, _], timeout: Option[Long], maxFeatures: Long = 0L)
     extends GeoMesaFeatureReader(query, timeout, maxFeatures) {
 
   private val iter = qp.runQuery(sft, query, None)
@@ -81,7 +81,7 @@ class GeoMesaFeatureReaderImpl(sft: SimpleFeatureType,
  */
 class GeoMesaFeatureReaderWithAudit(sft: SimpleFeatureType,
                                     query: Query,
-                                    qp: QueryPlanner[_, _, _, _],
+                                    qp: QueryPlanner[_, _, _],
                                     timeout: Option[Long],
                                     auditWriter: AuditWriter,
                                     auditProvider: AuditProvider,
