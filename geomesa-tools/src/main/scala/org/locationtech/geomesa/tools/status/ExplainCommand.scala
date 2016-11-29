@@ -20,7 +20,7 @@ import org.opengis.filter.Filter
 
 import scala.util.control.NonFatal
 
-trait ExplainCommand[DS <: GeoMesaDataStore[DS, _, _, _]] extends DataStoreCommand[DS] {
+trait ExplainCommand[DS <: GeoMesaDataStore[DS, _, _]] extends DataStoreCommand[DS] {
 
   override def params: ExplainParams
 

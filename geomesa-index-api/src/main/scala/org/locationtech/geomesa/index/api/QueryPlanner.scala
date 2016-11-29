@@ -40,10 +40,10 @@ import scala.collection.JavaConverters._
 /**
  * Plans and executes queries against geomesa
  */
-class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q](ds: DS)
+class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds: DS)
     extends MethodProfiling with LazyLogging {
 
-  val strategyDecider: StrategyDecider[DS, F, W, Q] = new StrategyDecider(ds.manager)
+  val strategyDecider: StrategyDecider[DS, F, W] = new StrategyDecider(ds.manager)
 
   /**
     * Plan the query, but don't execute it - used for m/r jobs and explain query
@@ -56,8 +56,8 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, 
     */
   def planQuery(sft: SimpleFeatureType,
                 query: Query,
-                index: Option[GeoMesaFeatureIndex[DS, F, W, Q]] = None,
-                output: Explainer = new ExplainLogging): Seq[QueryPlan[DS, F, W, Q]] = {
+                index: Option[GeoMesaFeatureIndex[DS, F, W]] = None,
+                output: Explainer = new ExplainLogging): Seq[QueryPlan[DS, F, W]] = {
     getQueryPlans(sft, query, index, output).toList // toList forces evaluation of entire iterator
   }
 
@@ -72,12 +72,12 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, 
     */
   def runQuery(sft: SimpleFeatureType,
                query: Query,
-               index: Option[GeoMesaFeatureIndex[DS, F, W, Q]] = None,
+               index: Option[GeoMesaFeatureIndex[DS, F, W]] = None,
                output: Explainer = new ExplainLogging): CloseableIterator[SimpleFeature] = {
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableLike
 
     val plans = getQueryPlans(sft, query, index, output)
-    var iterator = SelfClosingIterator(plans.iterator).ciFlatMap(p => p.scan(ds).map(p.entriesToFeatures))
+    var iterator = SelfClosingIterator(plans.iterator).ciFlatMap(p => p.scan(ds))
 
     if (plans.exists(_.hasDuplicates)) {
       iterator = new DeduplicatingSimpleFeatureIterator(iterator)
@@ -106,8 +106,8 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, 
     */
   protected def getQueryPlans(sft: SimpleFeatureType,
                               original: Query,
-                              requested: Option[GeoMesaFeatureIndex[DS, F, W, Q]],
-                              output: Explainer): Seq[QueryPlan[DS, F, W, Q]] = {
+                              requested: Option[GeoMesaFeatureIndex[DS, F, W]],
+                              output: Explainer): Seq[QueryPlan[DS, F, W]] = {
     import org.locationtech.geomesa.filter.filterToString
 
     implicit val timings = new TimingsImpl

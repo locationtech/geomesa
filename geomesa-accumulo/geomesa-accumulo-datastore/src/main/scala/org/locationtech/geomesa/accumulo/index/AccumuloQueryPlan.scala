@@ -76,13 +76,11 @@ object AccumuloQueryPlan extends LazyLogging {
 case class EmptyPlan(filter: AccumuloFilterStrategyType) extends AccumuloQueryPlan {
   override val table: String = ""
   override val iterators: Seq[IteratorSetting] = Seq.empty
-  override val entriesToFeatures: (Entry[Key, Value]) => SimpleFeature = (_) => null
   override val ranges: Seq[aRange] = Seq.empty
   override val columnFamilies: Seq[Text] = Seq.empty
   override val hasDuplicates: Boolean = false
   override val numThreads: Int = 0
-  override def scan(ds: AccumuloDataStore): CloseableIterator[Entry[Key, Value]] =
-    CloseableIterator.empty
+  override def scan(ds: AccumuloDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
 }
 
 // single scan plan
@@ -100,11 +98,11 @@ case class ScanPlan(filter: AccumuloFilterStrategyType,
   override val numThreads = 1
   override val ranges = Seq(range)
 
-  override def scan(ds: AccumuloDataStore): CloseableIterator[Entry[Key, Value]] = {
+  override def scan(ds: AccumuloDataStore): CloseableIterator[SimpleFeature] = {
     val scanner = ds.connector.createScanner(table, ds.auths)
     scanner.setRange(range)
     configure(scanner)
-    SelfClosingIterator(scanner.iterator, scanner.close)
+    SelfClosingIterator(scanner.iterator.map(entriesToFeatures), scanner.close)
   }
 }
 
@@ -121,7 +119,10 @@ case class BatchScanPlan(filter: AccumuloFilterStrategyType,
 
   import scala.collection.JavaConversions._
 
-  override def scan(ds: AccumuloDataStore): CloseableIterator[Entry[Key, Value]] = {
+  override def scan(ds: AccumuloDataStore): CloseableIterator[SimpleFeature] =
+    scanEntries(ds).map(entriesToFeatures)
+
+  def scanEntries(ds: AccumuloDataStore): CloseableIterator[Entry[Key, Value]] = {
     if (ranges.isEmpty) { CloseableIterator.empty } else {
       val batchRanges = AccumuloQueryProperties.SCAN_BATCH_RANGES.option.map(_.toInt).getOrElse(Int.MaxValue)
       val batched = ranges.grouped(batchRanges)
@@ -146,11 +147,10 @@ case class JoinPlan(filter: AccumuloFilterStrategyType,
                     joinFunction: JoinFunction,
                     joinQuery: BatchScanPlan) extends AccumuloQueryPlan {
 
-  override def entriesToFeatures: (Entry[Key, Value]) => SimpleFeature = joinQuery.entriesToFeatures
   override val join = Some((joinFunction, joinQuery))
   override def reduce: Option[(CloseableIterator[SimpleFeature]) => CloseableIterator[SimpleFeature]] = joinQuery.reduce
 
-  override def scan(ds: AccumuloDataStore): CloseableIterator[Entry[Key, Value]] = {
+  override def scan(ds: AccumuloDataStore): CloseableIterator[SimpleFeature] = {
     import scala.collection.JavaConversions._
 
     val primary = if (ranges.length == 1) {
@@ -165,6 +165,6 @@ case class JoinPlan(filter: AccumuloFilterStrategyType,
     configure(primary)
 
     val bms = new BatchMultiScanner(ds, primary, joinQuery, joinFunction)
-    SelfClosingIterator(bms.iterator, bms.close)
+    SelfClosingIterator(bms.iterator.map(joinQuery.entriesToFeatures), bms.close)
   }
 }

@@ -78,7 +78,7 @@ object GeoMesaConfigurator {
   def getTable(job: Job): String = getTable(job.getConfiguration)
   def getTable(conf: Configuration): String = conf.get(tableKey)
 
-  def setIndicesOut(conf: Configuration, indices: Seq[GeoMesaFeatureIndex[_, _, _, _]]): Unit =
+  def setIndicesOut(conf: Configuration, indices: Seq[GeoMesaFeatureIndex[_, _, _]]): Unit =
     conf.set(indicesOutKey, indices.map(_.identifier).mkString(","))
   def getIndicesOut(job: Job): Option[Seq[String]] = getIndicesOut(job.getConfiguration)
   def getIndicesOut(conf: Configuration): Option[Seq[String]] =

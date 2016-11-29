@@ -17,7 +17,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.control.NonFatal
 
-trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
 
   import StatsAnalyzeCommand.attributeName
 

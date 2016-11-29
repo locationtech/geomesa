@@ -15,7 +15,7 @@ import org.opengis.filter.Filter
 
 import scala.util.control.NonFatal
 
-trait StatsCountCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait StatsCountCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
 
   override val name = "stats-count"
   override def params: StatsCountParams

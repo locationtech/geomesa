@@ -15,7 +15,7 @@ import org.locationtech.geomesa.tools.utils.Prompt
 import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, OptionalForceParam}
 import org.locationtech.geomesa.tools.utils.Prompt
 
-trait DeleteCatalogCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait DeleteCatalogCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
 
   override val name = "delete-catalog"
   override def params: DeleteCatalogParams

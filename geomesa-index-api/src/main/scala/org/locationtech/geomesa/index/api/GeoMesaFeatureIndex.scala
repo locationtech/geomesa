@@ -24,14 +24,10 @@ import org.opengis.filter.Filter
   * @tparam DS type of related data store
   * @tparam F wrapper around a simple feature - used for caching write calculations
   * @tparam WriteResult feature writers will transform simple features into these
-  * @tparam QueryResult raw type returned from database scans that will be transformed into simple features
   */
-trait GeoMesaFeatureIndex[DS <: GeoMesaDataStore[DS, F, WriteResult, QueryResult],
-                          F <: WrappedFeature,
-                          WriteResult,
-                          QueryResult] {
+trait GeoMesaFeatureIndex[DS <: GeoMesaDataStore[DS, F, WriteResult], F <: WrappedFeature, WriteResult] {
 
-  type TypedFilterStrategy = FilterStrategy[DS, F, WriteResult, QueryResult]
+  type TypedFilterStrategy = FilterStrategy[DS, F, WriteResult]
 
   lazy val identifier: String = s"$name:$version"
 
@@ -141,7 +137,7 @@ trait GeoMesaFeatureIndex[DS <: GeoMesaDataStore[DS, F, WriteResult, QueryResult
                    ds: DS,
                    filter: TypedFilterStrategy,
                    hints: Hints,
-                   explain: Explainer = ExplainNull): QueryPlan[DS, F, WriteResult, QueryResult]
+                   explain: Explainer = ExplainNull): QueryPlan[DS, F, WriteResult]
 
   /**
     * Gets the table name for this index
@@ -192,7 +188,7 @@ object GeoMesaFeatureIndex {
   def formatSharedTableName(prefix: String, suffix: String): String =
     concatenate(prefix, suffix)
 
-  def tableSuffix(index: GeoMesaFeatureIndex[_, _, _, _]): String =
+  def tableSuffix(index: GeoMesaFeatureIndex[_, _, _]): String =
     if (index.version == 1) index.name else concatenate(index.name, s"v${index.version}")
 
   /**

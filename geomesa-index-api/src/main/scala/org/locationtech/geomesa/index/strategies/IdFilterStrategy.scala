@@ -15,9 +15,9 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.{And, Filter, Id, Or}
 
-trait IdFilterStrategy[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q] extends GeoMesaFeatureIndex[DS, F, W, Q] {
+trait IdFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W] extends GeoMesaFeatureIndex[DS, F, W] {
 
-  override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[FilterStrategy[DS, F, W, Q]] = {
+  override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[FilterStrategy[DS, F, W]] = {
     if (filter == Filter.INCLUDE) {
       Seq(FilterStrategy(this, None, None))
     } else if (filter == Filter.EXCLUDE) {
@@ -35,7 +35,7 @@ trait IdFilterStrategy[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature,
   // top-priority index - always 1 if there are actually ID filters
   override def getCost(sft: SimpleFeatureType,
                        ds: Option[DS],
-                       filter: FilterStrategy[DS, F, W, Q],
+                       filter: FilterStrategy[DS, F, W],
                        transform: Option[SimpleFeatureType]): Long = {
     if (filter.primary.isDefined) IdFilterStrategy.StaticCost else Long.MaxValue
   }

@@ -44,6 +44,8 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
   private var userData: jMap[AnyRef, AnyRef] = null
   private var userDataOffset: Int = -1
 
+  private var id: String = ""
+
   private var transforms: String = null
   private var transformSchema: SimpleFeatureType = null
   private var binaryTransform: () => Array[Byte] = input.getBuffer
@@ -76,15 +78,24 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
     *
     * @param bytes serialized byte array
     */
-  def setBuffer(bytes: Array[Byte]) = {
-    input.setBuffer(bytes)
+  def setBuffer(bytes: Array[Byte]): Unit = setBuffer(bytes, 0, bytes.length)
+
+  /**
+    * Set the serialized bytes to use for reading attributes
+    *
+    * @param bytes serialized byte array
+    * @param offset offset into the byte array of valid bytes
+    * @param length number of valid bytes to read from the byte array
+    */
+  def setBuffer(bytes: Array[Byte], offset: Int, length: Int): Unit = {
+    input.setBuffer(bytes, offset, offset + length)
     // reset our offsets
-    input.setPosition(1) // skip version
+    input.setPosition(offset + 1) // skip version
     startOfOffsets = input.readInt()
-    input.setPosition(startOfOffsets) // set to offsets start
+    input.setPosition(offset + startOfOffsets) // set to offsets start
     var i = 0
     while (i < offsets.length && input.position < input.limit) {
-      offsets(i) = input.readInt(true)
+      offsets(i) = offset + input.readInt(true)
       i += 1
     }
     if (i < offsets.length) {
@@ -97,6 +108,8 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
     userData = null
     userDataOffset = input.position()
   }
+
+  def setId(id: String): Unit = this.id = id
 
   def setTransforms(transforms: String, transformSchema: SimpleFeatureType) = {
     this.transforms = transforms
@@ -199,7 +212,7 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
 
   override def getIdentifier: FeatureId = new FeatureIdImpl(getID)
   override def getID: String = {
-    if (options.withoutId) { "" } else {
+    if (options.withoutId) { id } else {
       input.setPosition(5)
       input.readString()
     }

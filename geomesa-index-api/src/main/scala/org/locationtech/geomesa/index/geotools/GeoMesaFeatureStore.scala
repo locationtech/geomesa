@@ -21,7 +21,7 @@ import org.opengis.filter.identity.FeatureId
 
 import scala.collection.JavaConversions._
 
-class GeoMesaFeatureStore(ds: GeoMesaDataStore[_, _, _, _],
+class GeoMesaFeatureStore(ds: GeoMesaDataStore[_, _, _],
                           sft: SimpleFeatureType,
                           collection: (Query, GeoMesaFeatureSource) => GeoMesaFeatureCollection)
     extends GeoMesaFeatureSource(ds, sft, collection) with SimpleFeatureStore {
