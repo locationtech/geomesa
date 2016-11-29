@@ -25,17 +25,17 @@ to integrate with GeoMesa. First, create a key space within Cassandra. The easie
 do this with ``cqlsh``, which should have been installed as part of your Cassandra installation.
 Start ``cqlsh``, then type::
 
-  CREATE KEYSPACE mykeyspace WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor' : 3};
+    CREATE KEYSPACE mykeyspace WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor' : 3};
 
 This creates a key space called "mykeyspace". This is a top-level name space within Cassandra
-and it will provide a place for GeoMesa to put all of it's data, including data for spatial features
+and it will provide a place for GeoMesa to put all of its data, including data for spatial features
 and associated metadata.
 
 Next, you'll need to set the ``CASSANDRA_LIB`` environment variable. GeoMesa uses this variable
 to find the Cassandra jars. These jars should be in the ``lib`` directory of your Cassandra
 installation. To set the variable add the following line to your ``.profile`` or ``.bashrc`` file::
 
-  export CASSANDRA_LIB=/path/to/cassandra/lib
+    export CASSANDRA_LIB=/path/to/cassandra/lib
 
 Finally, make sure you know a contact point for your Cassandra instance.
 If you are just trying things locally, and using the default Cassandra settings,
@@ -49,8 +49,8 @@ move on to installing the GeoMesa Cassandra distribution.
 Start by choosing or creating a directory where you want
 to put it. Then ``cd`` into that directory and type::
 
-  wget https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-cassandra-dist_2.11/$VERSION/geomesa-cassandra-dist_2.11-$VERSION-bin.tar.gz
-  tar xvf geomesa-cassandra-dist_2.11-$VERSION-bin.tar.gz
+    wget https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-cassandra-dist_2.11/$VERSION/geomesa-cassandra-dist_2.11-$VERSION-bin.tar.gz
+    tar xvf geomesa-cassandra-dist_2.11-$VERSION-bin.tar.gz
 
 (Make sure to replace ``$VERSION`` with the version of the distribution that you want to use.
 It should be something like ``1.3.0-m2``. You can browse available versions at
@@ -79,7 +79,7 @@ Then, ``cd`` into the ``GEOMESA_CASSANDRA_HOME`` directory, and type ``bin/geome
 get a listing of the tools with descriptions.
 
 The first tool we'll try is the ``ingest`` command. This command takes data from an external source, and
-"ingests" it into the Cassandra database. For this example, we'll use some sample data located
+ingests it into the Cassandra database. For this example, we'll use some sample data located
 at ``examples/ingest/csv/example.csv`` in the ``GEOMESA_CASSANDRA_HOME`` directory. Also, to make
 editing and running the command easier, we'll use the example bash script at ``examples/ingest/csv/ingest_csv.sh``.
 This is the script::
@@ -100,16 +100,16 @@ This is the script::
   the default configuration, you shouldn't have to change this.
 - The ``key-space`` is the Cassandra key space that you created as part of configuring Cassandra (see above).
   Edit this argument if needed to match the name of your key space.
-- The ``catalog`` specifies the name of a Cassandra table that will be created in your name space
+- The ``catalog`` argument specifies the name of a Cassandra table that will be created in your name space
   by the ``ingest`` command.
   You can name the catalog table anything you want.
-  This table is a metadata table contains a list of each GeoMesa data table
+  This table is a metadata table that contains a list of each GeoMesa data table
   that you have created. Before you run the ``ingest`` command for the first time, this table does
   not exist. When you run ``ingest`` for the first time, GeoMesa creates two tables: this "catalog" metadata
   table, and the table that actually stores your data. If you run ``ingest`` again with a different dataset,
   GeoMesa will append a row to the "catalog" table, and also create an additional table for the new data.
 - The ``name-space`` parameter can be anything you want. (It is used by GeoTools, but we won't go into detail here).
-- The ``converter`` and --spec parameters refer to a specific file located at ``conf/application.conf`` within the
+- The ``converter`` and ``spec`` parameters refer to a specific file located at ``conf/application.conf`` within the
   ``GEOMESA_CASSANDRA_HOME`` directory. This file contains specifications for "converters" and "sfts" (SimpleFeatureTypes).
   In this specific example it only contains one of each: a converter and a SimpleFeatureType which are both called
   "example_csv". The converter specifies how a raw data file should be parsed. For example, the converter specifies
@@ -118,10 +118,10 @@ This is the script::
   files specifies that the SimpleFeatureType's first attribute should be one called "name". GeoMesa uses these specifications
   to ingest the data from the external data file into the Cassandra database.
 
-  GeoMesa automatically finds the ``conf/application.conf`` file based on it's name and location. You can add additional
+  GeoMesa automatically finds the ``conf/application.conf`` file based on its name and location. You can add additional
   converters and SFT specifications to it as needed for ingesting other datasets. In addition, you can also
   specify converters and SFT specifications by adding directories to the
-  ``conf/sfts`` directory. For more details see :ref:`installing_sft_and_converter_definitions`
+  ``conf/sfts`` directory. For more details see :ref:`installing_sft_and_converter_definitions`.
 - The last argument is the location of the data file that we want to ingest.
 
 If needed, edit the parameter arguments in the bash script. Then, ``cd`` into the ``GEOMESA_CASSANDRA_HOME``
@@ -160,7 +160,7 @@ we list the tables ("feature types") that we've ingested::
         --catalog mycatalog \
         --name-space mynamespace \
 
-We can also inspect the feature type that we just ingested:
+We can also inspect the feature type that we just ingested::
 
     bin/geomesa-cassandra describe-schema \
         --contact-point 127.0.0.1:9042 \
@@ -192,7 +192,7 @@ When ingesting other datasets, keep the following GeoMesa-Cassandra-specific lim
   However, any field in the original data may be chosen as the ID field. This field will become the
   ``fid`` table in the Cassandra table.
 - The name of the feature type must be a valid Cassandra table name.
-- Complex field types like lists and mappings are not allowed.
+- Complex field types like lists and maps are not allowed.
 
 Getting Started with Cassandra, GeoMesa, and GeoServer
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -201,15 +201,15 @@ To set up a Cassandra data store in GeoServer, see :ref:`install_cassandra_geose
 :ref:`create_cassandra_ds_geoserver`.
 
 Once you have a Cassandra layer set up in GeoServer you can try some queries. One way to test queries in against the
-GeoServer layer is to submit HTTP request for the WMS and WFS services. For example, assuming
+GeoServer layer is to submit HTTP requests for the WMS and WFS services. For example, assuming
 you have ingested the ``example.csv`` dataset as described above and set it up as a layer in GeoServer, this request should return
 a PNG image with a single dot::
 
-  http://localhost:8080/geoserver/wms?styles=&bbox=-180,-90,180,90&layers=myworkspace:example_csv&cql_filter=bbox(geom, -101, 22.0, -100.0, 24.0, 'EPSG:4326') and lastseen between 2015-05-05T00:00:00.000Z and 2015-05-10T00:00:00.000Z&version=1.3&service=WMS&width=100&request=GetMap&height=100&format=image/png&crs=EPSG:4326
+    http://localhost:8080/geoserver/wms?styles=&bbox=-180,-90,180,90&layers=myworkspace:example_csv&cql_filter=bbox(geom, -101, 22.0, -100.0, 24.0, 'EPSG:4326') and lastseen between 2015-05-05T00:00:00.000Z and 2015-05-10T00:00:00.000Z&version=1.3&service=WMS&width=100&request=GetMap&height=100&format=image/png&crs=EPSG:4326
 
 and this request should return a JSON dataset with a single feature::
 
-  http://localhost:8080/geoserver/wfs?service=wfs&request=GetFeature&cql_filter=bbox(geom, -101, 22.0, -100.0, 24.0, 'EPSG:4326') and lastseen between 2015-05-05T00:00:00.000Z and 2015-05-10T00:00:00.000Z&outputFormat=application/json&typeNames=myworkspace:example_csv
+    http://localhost:8080/geoserver/wfs?service=wfs&request=GetFeature&cql_filter=bbox(geom, -101, 22.0, -100.0, 24.0, 'EPSG:4326') and lastseen between 2015-05-05T00:00:00.000Z and 2015-05-10T00:00:00.000Z&outputFormat=application/json&typeNames=myworkspace:example_csv
 
 Note that you should replace ``myworkspace`` in these queries with the name of the workspace you're using in GeoServer.
 Also remember that all queries to a Cassandra layer must include both a ``bbox`` component and a date/time ``between`` component
