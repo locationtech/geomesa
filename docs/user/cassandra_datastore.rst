@@ -108,7 +108,7 @@ This is the script::
   not exist. When you run ``ingest`` for the first time, GeoMesa creates two tables: this "catalog" metadata
   table, and the table that actually stores your data. If you run ``ingest`` again with a different dataset,
   GeoMesa will append a row to the "catalog" table, and also create an additional table for the new data.
-- The ``name-space`` parameter can be anything you want. (It is used by GeoTools, but we won't go into detail here).
+- The ``name-space`` parameter can be anything you want. (It is used by GeoTools to provide a name space for your feature types.)
 - The ``converter`` and ``spec`` parameters refer to a specific file located at ``conf/application.conf`` within the
   ``GEOMESA_CASSANDRA_HOME`` directory. This file contains specifications for "converters" and "sfts" (SimpleFeatureTypes).
   In this specific example it only contains one of each: a converter and a SimpleFeatureType which are both called
@@ -198,9 +198,11 @@ Getting Started with Cassandra, GeoMesa, and GeoServer
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To set up a Cassandra data store in GeoServer, see :ref:`install_cassandra_geoserver` and then
-:ref:`create_cassandra_ds_geoserver`.
+:ref:`create_cassandra_ds_geoserver`. Note that when you create the data store, you'll be asked
+to specify a work space name. Remember this name because you'll need to use it when querying the
+data store in GeoServer.
 
-Once you have a Cassandra layer set up in GeoServer you can try some queries. One way to test queries in against the
+Once you have a Cassandra layer set up in GeoServer you can try some queries. One way to test queries against the
 GeoServer layer is to submit HTTP requests for the WMS and WFS services. For example, assuming
 you have ingested the ``example.csv`` dataset as described above and set it up as a layer in GeoServer, this request should return
 a PNG image with a single dot::
@@ -211,7 +213,7 @@ and this request should return a JSON dataset with a single feature::
 
     http://localhost:8080/geoserver/wfs?service=wfs&request=GetFeature&cql_filter=bbox(geom, -101, 22.0, -100.0, 24.0, 'EPSG:4326') and lastseen between 2015-05-05T00:00:00.000Z and 2015-05-10T00:00:00.000Z&outputFormat=application/json&typeNames=myworkspace:example_csv
 
-Note that you should replace ``myworkspace`` in these queries with the name of the workspace you're using in GeoServer.
+Note that you should replace ``myworkspace`` in these queries with the name of the work space you're using in GeoServer.
 Also remember that all queries to a Cassandra layer must include both a ``bbox`` component and a date/time ``between`` component
 as part of the CQL filter.
 
