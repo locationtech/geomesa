@@ -116,6 +116,7 @@ class AttributeIdxStrategy(val filter: QueryFilter) extends Strategy with LazyLo
         // check to see if we can execute against the index values
         val indexSft = IndexValueEncoder.getIndexSft(sft)
         if (indexSft.indexOf(hints.getBinTrackIdField) != -1 &&
+            hints.getBinGeomField.forall(indexSft.indexOf(_) != -1) &&
             hints.getBinLabelField.forall(indexSft.indexOf(_) != -1) &&
             filter.secondary.forall(IteratorTrigger.supportsFilter(indexSft, _))) {
           val iter = BinAggregatingIterator.configureDynamic(indexSft, AttributeTable, filter.secondary, hints, hasDupes)

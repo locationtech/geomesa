@@ -232,7 +232,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       aggregates.size must beLessThan(10) // ensure some aggregation was done
       val bin = aggregates.flatMap(a => a.grouped(16).map(Convert2ViewerFunction.decode))
       bin must haveSize(10)
-      bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode.toString))
+      bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode))
       bin.map(_.dtg) must
           containAllOf((0 until 10).map(i => features(i).getAttribute("dtg").asInstanceOf[Date].getTime))
       forall(bin.map(_.lat))(_ mustEqual 60.0)
@@ -261,7 +261,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       }
       val bin = aggregates.flatMap(a => a.grouped(16).map(Convert2ViewerFunction.decode))
       bin must haveSize(10)
-      bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode.toString))
+      bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode))
       bin.map(_.dtg) must
           containAllOf((0 until 10).map(i => features(i).getAttribute("dtg").asInstanceOf[Date].getTime))
       forall(bin.map(_.lat))(_ mustEqual 60.0)
@@ -286,7 +286,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       aggregates.size must beLessThan(10) // ensure some aggregation was done
       val bin = aggregates.flatMap(a => a.grouped(24).map(Convert2ViewerFunction.decode))
       bin must haveSize(10)
-      bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode.toString))
+      bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode))
       bin.map(_.dtg) must
           containAllOf((0 until 10).map(i => features(i).getAttribute("dtg").asInstanceOf[Date].getTime))
       forall(bin.map(_.lat))(_ mustEqual 60.0)

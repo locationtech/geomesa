@@ -77,7 +77,7 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
       bins must haveSize(2)
-      bins.map(_.trackId) must containTheSameElementsAs(Seq("name2", "name3").map(_.hashCode.toString))
+      bins.map(_.trackId) must containTheSameElementsAs(Seq("name2", "name3").map(_.hashCode))
     }
 
     "support sampling" in {
@@ -134,7 +134,7 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
       bins must haveSize(3)
-      bins.map(_.trackId) must containTheSameElementsAs(Seq("track1", "track2", "track2").map(_.hashCode.toString))
+      bins.map(_.trackId) must containTheSameElementsAs(Seq("track1", "track2", "track2").map(_.hashCode))
     }
   }
 

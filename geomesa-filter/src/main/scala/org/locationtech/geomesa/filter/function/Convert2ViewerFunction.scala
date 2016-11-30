@@ -30,10 +30,11 @@ class Convert2ViewerFunction
 
   override def evaluate(obj: scala.Any): String = {
     val id    = getExpression(0).evaluate(obj).asInstanceOf[String]
+    val track = if (id == null) { 0 } else { id.hashCode }
     val label = if (id == null) 0L else Convert2ViewerFunction.convertToLabel(id)
     val geom  = getExpression(1).evaluate(obj).asInstanceOf[Point]
     val dtg   = dtg2Long(getExpression(2).evaluate(obj))
-    val values = ExtendedValues(geom.getY.toFloat, geom.getX.toFloat, dtg, id, label)
+    val values = ExtendedValues(geom.getY.toFloat, geom.getX.toFloat, dtg, track, label)
     Base64.encodeBytes(Convert2ViewerFunction.encodeToByteArray(values))
   }
 
@@ -119,8 +120,8 @@ object Convert2ViewerFunction {
    * @param dtg
    * @param trackId
    */
-  private def put(buffer: ByteBuffer, lat: Float, lon: Float, dtg: Long, trackId: String): Unit = {
-    buffer.putInt(if (trackId == null) 0 else trackId.hashCode)
+  private def put(buffer: ByteBuffer, lat: Float, lon: Float, dtg: Long, trackId: Int): Unit = {
+    buffer.putInt(trackId)
     buffer.putInt((dtg / 1000).toInt)
     buffer.putFloat(lat)
     buffer.putFloat(lon)
@@ -134,7 +135,7 @@ object Convert2ViewerFunction {
    */
   def decode(encoded: Array[Byte]): EncodedValues = {
     val buf = ByteBuffer.wrap(encoded).order(ByteOrder.LITTLE_ENDIAN)
-    val trackId = buf.getInt.toString
+    val trackId = buf.getInt
     val time = buf.getInt * 1000L
     val lat = buf.getFloat
     val lon = buf.getFloat
@@ -151,10 +152,10 @@ sealed trait EncodedValues {
   def lat: Float
   def lon: Float
   def dtg: Long
-  def trackId: String
+  def trackId: Int
 }
 
-case class BasicValues(lat: Float, lon: Float, dtg: Long, trackId: String) extends EncodedValues
+case class BasicValues(lat: Float, lon: Float, dtg: Long, trackId: Int) extends EncodedValues
 
-case class ExtendedValues(lat: Float, lon: Float, dtg: Long, trackId: String, label: Long)
+case class ExtendedValues(lat: Float, lon: Float, dtg: Long, trackId: Int, label: Long)
     extends EncodedValues

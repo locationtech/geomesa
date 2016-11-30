@@ -36,7 +36,7 @@ class BinEncoder(sft: SimpleFeatureType, trackIdField: String) {
     val (lat, lon) = getLatLon(sf)
     val dtg = getDtg(sf)
     val trackIdVal = sf.getAttribute(trackIdIndex)
-    val trackId = if (trackIdVal == null) "" else trackIdVal.toString
+    val trackId = if (trackIdVal == null) { 0 } else { trackIdVal.hashCode }
     Convert2ViewerFunction.encodeToByteArray(BasicValues(lat, lon, dtg, trackId))
   }
 
