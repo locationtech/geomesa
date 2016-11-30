@@ -48,7 +48,6 @@ import scala.util.control.NonFatal
  */
 class AccumuloDataStore(val connector: Connector, override val config: AccumuloDataStoreConfig)
     extends AccumuloDataStoreType(config) with ZookeeperLocking {
-  private val ESCAPE = "\u223C" // For escaping tilde - null character not permitted in zkpath string
 
   override val metadata = new AccumuloBackedMetadata(connector, config.catalog, MetadataStringSerializer)
 
@@ -143,9 +142,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     import SimpleFeatureTypes.Configs.{ENABLED_INDEX_OPTS, ENABLED_INDICES}
     import SimpleFeatureTypes.InternalConfigs.{INDEX_VERSIONS, SCHEMA_VERSION_KEY}
 
-    val escapedTypeName = typeName.replace("~", ESCAPE)
-
-    var sft = super.getSchema(escapedTypeName)
+    var sft = super.getSchema(typeName)
 
     if (sft == null) {
       // check for old-style metadata and re-write it if necessary
@@ -159,7 +156,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
         } finally {
           lock.release()
         }
-        sft = super.getSchema(escapedTypeName)
+        sft = super.getSchema(typeName)
       }
     }
     if (sft != null) {
@@ -167,21 +164,21 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
       if (!sft.getUserData.contains(INDEX_VERSIONS)) {
         // back compatible check if user data wasn't encoded with the sft
         if (!sft.getUserData.containsKey(SCHEMA_VERSION_KEY)) {
-          metadata.read(escapedTypeName, "dtgfield").foreach(sft.setDtgField)
-          sft.getUserData.put(SCHEMA_VERSION_KEY, metadata.readRequired(escapedTypeName, VERSION_KEY))
+          metadata.read(typeName, "dtgfield").foreach(sft.setDtgField)
+          sft.getUserData.put(SCHEMA_VERSION_KEY, metadata.readRequired(typeName, VERSION_KEY))
 
           // If no data is written, we default to 'false' in order to support old tables.
-          if (metadata.read(escapedTypeName, "tables.sharing").exists(_.toBoolean)) {
+          if (metadata.read(typeName, "tables.sharing").exists(_.toBoolean)) {
             sft.setTableSharing(true)
             // use schema id if available or fall back to old type name for backwards compatibility
-            val prefix = metadata.read(escapedTypeName, SCHEMA_ID_KEY).getOrElse(s"${sft.getTypeName}~")
+            val prefix = metadata.read(typeName, SCHEMA_ID_KEY).getOrElse(s"${sft.getTypeName}~")
             sft.setTableSharingPrefix(prefix)
           } else {
             sft.setTableSharing(false)
             sft.setTableSharingPrefix("")
           }
           ENABLED_INDEX_OPTS.foreach { i =>
-            metadata.read(escapedTypeName, i).foreach(e => sft.getUserData.put(ENABLED_INDICES, e))
+            metadata.read(typeName, i).foreach(e => sft.getUserData.put(ENABLED_INDICES, e))
           }
         }
 
@@ -189,15 +186,15 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
         sft.setIndices(AccumuloDataStore.getEnabledIndices(sft))
 
         // store the metadata and reload the sft again to validate indices
-        metadata.insert(escapedTypeName, ATTRIBUTES_KEY, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
-        sft = super.getSchema(escapedTypeName)
+        metadata.insert(typeName, ATTRIBUTES_KEY, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
+        sft = super.getSchema(typeName)
       }
 
       // back compatibility check for stat configuration
-      if (config.generateStats && metadata.read(escapedTypeName, STATS_GENERATION_KEY).isEmpty) {
+      if (config.generateStats && metadata.read(typeName, STATS_GENERATION_KEY).isEmpty) {
         // configure the stats combining iterator - we only use this key for older data stores
         val configuredKey = "stats-configured"
-        if (!metadata.read(escapedTypeName, configuredKey).exists(_ == "true")) {
+        if (!metadata.read(typeName, configuredKey).exists(_ == "true")) {
           val lock = acquireCatalogLock()
           try {
             if (!metadata.read(typeName, configuredKey, cache = false).exists(_ == "true")) {

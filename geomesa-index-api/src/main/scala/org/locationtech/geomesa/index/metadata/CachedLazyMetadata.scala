@@ -123,13 +123,15 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
 
 object CachedLazyMetadata {
 
+  private val ESCAPE = "%U+007E%"
+
   def encodeRow(typeName: String, key: String, separator: Char): Array[Byte] =
-    s"$typeName$separator$key".getBytes(StandardCharsets.UTF_8)
+    s"${typeName.replace("~", ESCAPE)}$separator$key".getBytes(StandardCharsets.UTF_8)
 
   def decodeRow(row: Array[Byte], separator: Char): (String, String) = {
     val all = new String(row, StandardCharsets.UTF_8)
     val split = all.indexOf(separator)
-    (all.substring(0, split), all.substring(split + 1, all.length))
+    (all.substring(0, split).replace(ESCAPE, "~"), all.substring(split + 1, all.length))
   }
 }
 
