@@ -11,14 +11,15 @@ package org.locationtech.geomesa.hbase.data
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.HBaseTestingUtility
 import org.apache.hadoop.hbase.client.Connection
+import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.data.{DataStore, DataStoreFinder, Query, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.Params._
+import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
@@ -72,11 +73,58 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
       val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd))
       ids.asScala.map(_.getID) must containTheSameElementsAs((0 until 10).map(_.toString))
 
-      testQuery(ds, typeName, "INCLUDE", null, toAdd)
-      testQuery(ds, typeName, "IN('0', '2')", null, Seq(toAdd(0), toAdd(2)))
-      testQuery(ds, typeName, "bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", null, toAdd.dropRight(2))
-      testQuery(ds, typeName, "bbox(geom,42,48,52,62)", null, toAdd.drop(2))
-      testQuery(ds, typeName, "name < 'name5'", null, toAdd.take(5))
+      forall(Seq(true, false)) { loose =>
+        val ds = DataStoreFinder.getDataStore(params ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[HBaseDataStore]
+        forall(Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))) { transforms =>
+          testQuery(ds, typeName, "INCLUDE", transforms, toAdd)
+          testQuery(ds, typeName, "IN('0', '2')", transforms, Seq(toAdd(0), toAdd(2)))
+          testQuery(ds, typeName, "bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, toAdd.dropRight(2))
+          testQuery(ds, typeName, "bbox(geom,42,48,52,62)", transforms, toAdd.drop(2))
+          testQuery(ds, typeName, "name < 'name5'", transforms, toAdd.take(5))
+        }
+      }
+
+      def testTransforms(ds: HBaseDataStore) = {
+        val transforms = Array("derived=strConcat('hello',name)", "geom")
+        forall(Seq(("INCLUDE", toAdd), ("bbox(geom,42,48,52,62)", toAdd.drop(2)))) { case (filter, results) =>
+          val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms), Transaction.AUTO_COMMIT)
+          val features = SelfClosingIterator(fr).toList
+          features.headOption.map(f => SimpleFeatureTypes.encodeType(f.getFeatureType)) must
+              beSome("*geom:Point:srid=4326,derived:String")
+          features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
+          forall(features) { feature =>
+            feature.getAttribute("derived") mustEqual s"helloname${feature.getID}"
+            feature.getAttribute("geom") mustEqual results.find(_.getID == feature.getID).get.getAttribute("geom")
+          }
+        }
+      }
+
+      testTransforms(ds)
+
+      def testLooseBbox(ds: HBaseDataStore, loose: Boolean) = {
+        val filter = ECQL.toFilter("dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z")
+        val out = new ExplainString
+        ds.getQueryPlan(new Query(typeName, filter), explainer = out)
+        val filterLine = "Client-side filter: "
+        val clientSideFilter = out.toString.split("\n").map(_.trim).find(_.startsWith(filterLine)).map(_.substring(filterLine.length))
+        if (loose) {
+          clientSideFilter must beSome("None")
+        } else {
+          clientSideFilter must beSome(org.locationtech.geomesa.filter.filterToString(filter))
+        }
+      }
+
+      // test default loose bbox config
+      testLooseBbox(ds, loose = true)
+
+      forall(Seq(true, "true", java.lang.Boolean.TRUE)) { loose =>
+        val ds = DataStoreFinder.getDataStore(params ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[HBaseDataStore]
+        testLooseBbox(ds, loose = true)
+      }
+      forall(Seq(false, "false", java.lang.Boolean.FALSE)) { loose =>
+        val ds = DataStoreFinder.getDataStore(params ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[HBaseDataStore]
+        testLooseBbox(ds, loose = false)
+      }
     }
 
     "work with polys" in {
@@ -115,10 +163,18 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
     }
   }
 
-  def testQuery(ds: DataStore, typeName: String, filter: String, transforms: Array[String], results: Seq[SimpleFeature]) = {
+  def testQuery(ds: HBaseDataStore, typeName: String, filter: String, transforms: Array[String], results: Seq[SimpleFeature]) = {
     val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms), Transaction.AUTO_COMMIT)
     val features = SelfClosingIterator(fr).toList
-    features must containTheSameElementsAs(results)
+    val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.map(_.getLocalName).toArray)
+    features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
+    forall(features) { feature =>
+      feature.getAttributes must haveLength(attributes.length)
+      forall(attributes.zipWithIndex) { case (attribute, i) =>
+        feature.getAttribute(attribute) mustEqual feature.getAttribute(i)
+        feature.getAttribute(attribute) mustEqual results.find(_.getID == feature.getID).get.getAttribute(attribute)
+      }
+    }
   }
 
   step {

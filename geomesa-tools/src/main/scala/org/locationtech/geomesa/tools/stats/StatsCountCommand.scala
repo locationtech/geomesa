@@ -13,7 +13,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.opengis.filter.Filter
 
-trait StatsCountCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait StatsCountCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
 
   override val name = "stats-count"
   override def params: StatsCountParams

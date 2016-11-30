@@ -13,7 +13,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools.utils.KeywordParamSplitter
 import org.locationtech.geomesa.tools.{CatalogParam, Command, DataStoreCommand, RequiredTypeNameParam}
 
-trait KeywordsCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait KeywordsCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
 
   override val name: String = "keywords"
 

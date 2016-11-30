@@ -15,7 +15,7 @@ import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.locationtech.geomesa.utils.stats.{MinMax, Stat}
 import org.opengis.filter.Filter
 
-trait StatsBoundsCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait StatsBoundsCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
 
   override val name = "stats-bounds"
   override def params: StatsBoundsParams

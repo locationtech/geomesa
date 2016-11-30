@@ -35,7 +35,7 @@ import org.opengis.util.ProgressListener
 import scala.collection.JavaConversions._
 import scala.util.Try
 
-class GeoMesaFeatureSource(val ds: GeoMesaDataStore[_, _, _, _],
+class GeoMesaFeatureSource(val ds: GeoMesaDataStore[_, _, _],
                            val sft: SimpleFeatureType,
                            protected val collection: (Query, GeoMesaFeatureSource) => GeoMesaFeatureCollection)
     extends SimpleFeatureSource with LazyLogging {

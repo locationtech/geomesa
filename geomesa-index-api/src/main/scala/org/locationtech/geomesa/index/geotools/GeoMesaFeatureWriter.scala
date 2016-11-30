@@ -67,8 +67,8 @@ object GeoMesaFeatureWriter extends LazyLogging {
   /**
     * Gets writers and table names for each table (e.g. index) that supports the sft
     */
-  def getTablesAndConverters[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q](sft: SimpleFeatureType, ds: DS,
-      indices: Option[Seq[GeoMesaFeatureIndex[DS, F, W, Q]]] = None): (Seq[String], Seq[(F) => Seq[W]], Seq[(F) => Seq[W]]) = {
+  def getTablesAndConverters[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](sft: SimpleFeatureType, ds: DS,
+      indices: Option[Seq[GeoMesaFeatureIndex[DS, F, W]]] = None): (Seq[String], Seq[(F) => Seq[W]], Seq[(F) => Seq[W]]) = {
     val toWrite = indices.getOrElse(ds.manager.indices(sft, IndexMode.Write))
     val tables = toWrite.map(_.getTableName(sft.getTypeName, ds))
     val writers = toWrite.map(_.writer(sft, ds))
@@ -77,11 +77,11 @@ object GeoMesaFeatureWriter extends LazyLogging {
   }
 }
 
-abstract class GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, T]
-    (val sft: SimpleFeatureType, val ds: DS, val indices: Option[Seq[GeoMesaFeatureIndex[DS, F, W, Q]]])
+abstract class GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, T]
+    (val sft: SimpleFeatureType, val ds: DS, val indices: Option[Seq[GeoMesaFeatureIndex[DS, F, W]]])
     extends SimpleFeatureWriter with Flushable with LazyLogging {
 
-  private val (tables, wConverters, rConverters) = GeoMesaFeatureWriter.getTablesAndConverters[DS, F, W, Q](sft, ds, indices)
+  private val (tables, wConverters, rConverters) = GeoMesaFeatureWriter.getTablesAndConverters[DS, F, W](sft, ds, indices)
   protected val mutators = createMutators(tables)
   private val writers = wConverters.zip(createWrites(mutators))
   protected val writer = (f: F) => writers.foreach { case (convert, write) => write(convert(f)) }
@@ -126,8 +126,8 @@ abstract class GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS, F, W, Q], F <: Wr
 /**
  * Appends new features - can't modify or delete existing features.
  */
-trait GeoMesaAppendFeatureWriter[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, T]
-    extends GeoMesaFeatureWriter[DS, F, W, Q, T] {
+trait GeoMesaAppendFeatureWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, T]
+    extends GeoMesaFeatureWriter[DS, F, W, T] {
 
   var currentFeature: SimpleFeature = null
 
@@ -151,8 +151,8 @@ trait GeoMesaAppendFeatureWriter[DS <: GeoMesaDataStore[DS, F, W, Q], F <: Wrapp
 /**
  * Modifies or deletes existing features. Per the data store api, does not allow appending new features.
  */
-trait GeoMesaModifyFeatureWriter[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, T]
-    extends GeoMesaFeatureWriter[DS, F, W, Q, T] {
+trait GeoMesaModifyFeatureWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, T]
+    extends GeoMesaFeatureWriter[DS, F, W, T] {
 
   def filter: Filter
 

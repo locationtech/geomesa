@@ -15,7 +15,7 @@ import org.locationtech.geomesa.tools.{CatalogParam, Command, DataStoreCommand, 
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.SimpleFeatureType
 
-trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
 
   import StatsAnalyzeCommand.attributeName
 
