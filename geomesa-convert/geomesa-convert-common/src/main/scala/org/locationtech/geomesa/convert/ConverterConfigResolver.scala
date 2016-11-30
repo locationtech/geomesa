@@ -33,10 +33,13 @@ object ConverterConfigResolver extends LazyLogging {
   /**
    * @return the converter config parsed from the args
    */
-  def getConfig(configArg: String): Option[Config] =
-    getLoadedConf(configArg)
+  def getConfig(configArg: String): Either[String, Config] = {
+    val conf = getLoadedConf(configArg)
       .orElse(parseFile(configArg))
       .orElse(parseString(configArg))
+    if (conf.isDefined) Right(conf.get)
+    else Left(s"Unable to parse Converter config from argument $configArg")
+  }
 
   private[ConverterConfigResolver] def getLoadedConf(configArg: String): Option[Config] = {
     val ret = ConverterConfigLoader.confs.find(_._1 == configArg).map(_._2)

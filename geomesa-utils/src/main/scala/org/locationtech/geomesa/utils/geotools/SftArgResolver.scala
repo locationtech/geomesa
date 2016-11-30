@@ -36,12 +36,15 @@ object SftArgResolver extends LazyLogging {
   /**
    * @return the SFT parsed from the Args
    */
-  def getSft(specArg: String, featureName: String = null): Option[SimpleFeatureType] =
-    getLoadedSft(specArg, featureName)
+  def getSft(specArg: String, featureName: String = null): Either[String, SimpleFeatureType] = {
+    val sft = getLoadedSft(specArg, featureName)
       .orElse(parseSpecString(specArg, featureName))
       .orElse(parseConfStr(specArg, featureName))
       .orElse(parseSpecStringFile(specArg, featureName))
       .orElse(parseConfFile(specArg, featureName))
+    if (sft.isDefined) Right(sft.get)
+    else Left(s"Unable to parse Simple Feature type from sft config or string: $specArg")
+  }
 
   // gets an sft from simple feature type providers on the classpath
   private[SftArgResolver] def getLoadedSft(specArg: String, name: String): Option[SimpleFeatureType] = {

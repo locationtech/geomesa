@@ -24,9 +24,11 @@ object CLArgResolver {
    * @return the SFT parsed from the Args
    */
   @throws[ParameterException]
-  def getSft(specArg: String, featureName: String = null): SimpleFeatureType =
-    SftArgResolver.getSft(specArg, featureName).getOrElse {
-      throw new ParameterException("Unable to parse Simple Feature type from sft config or string")
+  def getSft(specArg: String, featureName: String = null): SimpleFeatureType = {
+      SftArgResolver.getSft(specArg, featureName) match {
+        case Right(sft)  => sft
+        case Left(error) => throw new ParameterException(error)
+      }
     }
 
   /**
@@ -35,6 +37,8 @@ object CLArgResolver {
    */
   @throws[ParameterException]
   def getConfig(configArg: String): Config =
-    ConverterConfigResolver.getConfig(configArg)
-      .getOrElse(throw new ParameterException(s"Unable to parse Converter config from argument $configArg"))
+    ConverterConfigResolver.getConfig(configArg) match {
+      case Right(config) => config
+      case Left(error)   => throw new ParameterException(error)
+    }
 }

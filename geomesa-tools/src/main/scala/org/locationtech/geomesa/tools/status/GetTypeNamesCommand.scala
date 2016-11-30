@@ -8,15 +8,29 @@
 
 package org.locationtech.geomesa.tools.status
 
+import com.beust.jcommander.ParameterException
 import org.geotools.data.DataStore
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
+
+import scala.util.control.NonFatal
 
 trait GetTypeNamesCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   override val name = "get-type-names"
 
   override def execute(): Unit = {
-    Command.output.info("Current features types:")
-    withDataStore(_.getTypeNames.foreach(Command.output.info))
+    getTypeNames
+  }
+
+  @throws[ParameterException]
+  def getTypeNames = {
+    try {
+      Command.output.info("Current features types: ")
+      withDataStore(_.getTypeNames.foreach(Command.output.info))
+    } catch {
+      case NonFatal(e) =>
+        Command.output.error("Unable to retrieve feature types: ")
+        throw new ParameterException(e)
+    }
   }
 }

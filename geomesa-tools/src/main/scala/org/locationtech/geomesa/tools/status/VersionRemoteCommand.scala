@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.tools.status
 
+import com.beust.jcommander.ParameterException
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.utils.conf.GeoMesaProperties._
@@ -19,15 +20,21 @@ trait VersionRemoteCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStore
   override val name: String = "version-remote"
 
   override def execute(): Unit = {
-    Command.output.info(s"GeoMesa tools version: $ProjectVersion")
-    Command.output.info(s"Commit ID: $GitCommit")
-    Command.output.info(s"Branch: $GitBranch")
-    Command.output.info(s"Build date: $BuildDate")
+    Command.output.info(s"Local GeoMesa tools version: $ProjectVersion")
+    Command.output.info(s"Local Commit ID: $GitCommit")
+    Command.output.info(s"Local Branch: $GitBranch")
+    Command.output.info(s"Local Build date: $BuildDate")
+    Command.output.info(s"Remote distributed runtime version: ${getIterVersion}")
+  }
+
+  @throws[ParameterException]
+  def getIterVersion: String = {
     try {
-      val iterVersion = withDataStore(_.getVersion._2)
-      Command.output.info(s"Distributed runtime version: $iterVersion")
+      withDataStore(_.getVersion._2)
     } catch {
-      case NonFatal(e) => Command.user.error("Could not get distributed version:", e)
+      case NonFatal(e) =>
+        Command.user.error("Could not get distributed version: ")
+        throw new ParameterException(e)
     }
   }
 }
