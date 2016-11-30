@@ -21,7 +21,7 @@ import org.locationtech.geomesa.curve.{BinnedTime, XZ3SFC}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
-import org.locationtech.geomesa.index.utils.Explainer
+import org.locationtech.geomesa.index.utils.{Explainer, SplitArrays}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.index.VisibilityLevel
@@ -152,7 +152,7 @@ trait XZ3QueryableIndex extends AccumuloFeatureIndexType
       val ranges = timesByBin.flatMap { case (b, times) =>
         val zs = if (times.eq(wholePeriod)) wholePeriodRanges else toZRanges(times)
         val binBytes = Shorts.toByteArray(b)
-        val prefixes = SplitArrays.getSplitArray(sft.getZShards).map(Bytes.concat(tableSharing, _, binBytes))
+        val prefixes = SplitArrays.apply(sft.getZShards).map(Bytes.concat(tableSharing, _, binBytes))
         prefixes.flatMap { prefix =>
           zs.map { case (lo, hi) =>
             val start = Bytes.concat(prefix, lo)

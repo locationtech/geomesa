@@ -19,9 +19,10 @@ import org.apache.accumulo.core.data.Mutation
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.{AccumuloWritableIndex, SplitArrays}
+import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
 import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
 import org.locationtech.geomesa.curve.{BinnedTime, XZ3SFC}
+import org.locationtech.geomesa.index.utils.SplitArrays
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -33,7 +34,7 @@ trait XZ3WritableIndex extends AccumuloWritableIndex {
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sharing = sft.getTableSharingBytes
     require(sharing.length < 2, s"Expecting only a single byte for table sharing, got ${sft.getTableSharingPrefix}")
-    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
+    val splitArray = SplitArrays.apply(sft.getZShards)
     val rowKey = getRowKey(sfc, timeToIndex, sharing, dtgIndex, splitArray)_
     (wf: AccumuloFeature) => {
       val mutation = new Mutation(rowKey(wf))
@@ -48,7 +49,7 @@ trait XZ3WritableIndex extends AccumuloWritableIndex {
     val sfc = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sharing = sft.getTableSharingBytes
-    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
+    val splitArray = SplitArrays.apply(sft.getZShards)
     val rowKey = getRowKey(sfc, timeToIndex, sharing, dtgIndex, splitArray)_
     (wf: AccumuloFeature) => {
       val mutation = new Mutation(rowKey(wf))
@@ -94,9 +95,9 @@ trait XZ3WritableIndex extends AccumuloWritableIndex {
     // drop first split, otherwise we get an empty tablet
     val splits = if (sft.isTableSharing) {
       val ts = sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)
-      SplitArrays.getSplitArray(sft.getZShards).drop(1).map(s => new Text(ts ++ s)).toSet
+      SplitArrays.apply(sft.getZShards).drop(1).map(s => new Text(ts ++ s)).toSet
     } else {
-      SplitArrays.getSplitArray(sft.getZShards).drop(1).map(new Text(_)).toSet
+      SplitArrays.apply(sft.getZShards).drop(1).map(new Text(_)).toSet
     }
     val splitsToAdd = splits -- ds.tableOps.listSplits(table).toSet
     if (splitsToAdd.nonEmpty) {
