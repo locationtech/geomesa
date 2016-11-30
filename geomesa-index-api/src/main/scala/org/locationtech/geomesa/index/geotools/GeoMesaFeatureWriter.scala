@@ -9,8 +9,10 @@
 package org.locationtech.geomesa.index.geotools
 
 import java.io.{Closeable, Flushable}
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
+import com.github.benmanes.caffeine.cache.Caffeine
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.data.{Query, Transaction}
@@ -18,6 +20,7 @@ import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory}
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, WrappedFeature}
+import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.uuid.{FeatureIdGenerator, Z3FeatureIdGenerator}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -26,6 +29,11 @@ import org.opengis.filter.Filter
 object GeoMesaFeatureWriter extends LazyLogging {
 
   private val tempFeatureIds = new AtomicLong(0)
+
+  private val converterCache =
+    Caffeine.newBuilder()
+      .expireAfterWrite(60, TimeUnit.MINUTES) // re-load periodically
+      .build[String, (IndexedSeq[String], IndexedSeq[(Any) => Seq[Any]], IndexedSeq[(Any) => Seq[Any]])]()
 
   private val idGenerator: FeatureIdGenerator = {
     import org.locationtech.geomesa.index.conf.FeatureProperties.FEATURE_ID_GENERATOR
@@ -65,30 +73,47 @@ object GeoMesaFeatureWriter extends LazyLogging {
     }
 
   /**
-    * Gets writers and table names for each table (e.g. index) that supports the sft
+    * Gets table names and converters for each table (e.g. index) that supports the sft
+    *
+    * @param sft simple feature type
+    * @param ds data store
+    * @param indices indices to write/delete
+    * @return (table names, write converters, remove converters)
     */
-  def getTablesAndConverters[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](sft: SimpleFeatureType, ds: DS,
-      indices: Option[Seq[GeoMesaFeatureIndex[DS, F, W]]] = None): (Seq[String], Seq[(F) => Seq[W]], Seq[(F) => Seq[W]]) = {
-    val toWrite = indices.getOrElse(ds.manager.indices(sft, IndexMode.Write))
-    val tables = toWrite.map(_.getTableName(sft.getTypeName, ds))
-    val writers = toWrite.map(_.writer(sft, ds))
-    val removers = toWrite.map(_.remover(sft, ds))
-    (tables, writers, removers)
+  def getTablesAndConverters[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](
+      sft: SimpleFeatureType,
+      ds: DS,
+      indices: Option[Seq[GeoMesaFeatureIndex[DS, F, W]]] = None): (IndexedSeq[String], IndexedSeq[(F) => Seq[W]], IndexedSeq[(F) => Seq[W]]) = {
+    val toWrite = indices.getOrElse(ds.manager.indices(sft, IndexMode.Write)).toIndexedSeq
+    val key = s"${ds.config.catalog};${CacheKeyGenerator.cacheKey(sft)};${toWrite.map(_.identifier).mkString(",")}"
+
+    val load = new java.util.function.Function[String, (IndexedSeq[String], IndexedSeq[(Any) => Seq[Any]], IndexedSeq[(Any) => Seq[Any]])] {
+      override def apply(ignored: String): (IndexedSeq[String], IndexedSeq[(Any) => Seq[Any]], IndexedSeq[(Any) => Seq[Any]]) = {
+        val tables = toWrite.map(_.getTableName(sft.getTypeName, ds))
+        val writers = toWrite.map(_.writer(sft, ds))
+        val removers = toWrite.map(_.remover(sft, ds))
+        (tables, writers.asInstanceOf[IndexedSeq[(Any) => Seq[Any]]], removers.asInstanceOf[IndexedSeq[(Any) => Seq[Any]]])
+      }
+    }
+
+    converterCache.get(key, load).asInstanceOf[(IndexedSeq[String], IndexedSeq[(F) => Seq[W]], IndexedSeq[(F) => Seq[W]])]
   }
+
+  private [geomesa] def expireConverterCache(): Unit = converterCache.invalidateAll()
 }
 
 abstract class GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, T]
     (val sft: SimpleFeatureType, val ds: DS, val indices: Option[Seq[GeoMesaFeatureIndex[DS, F, W]]])
     extends SimpleFeatureWriter with Flushable with LazyLogging {
 
-  private val (tables, wConverters, rConverters) = GeoMesaFeatureWriter.getTablesAndConverters[DS, F, W](sft, ds, indices)
-  protected val mutators = createMutators(tables)
-  private val writers = wConverters.zip(createWrites(mutators))
-  protected val writer = (f: F) => writers.foreach { case (convert, write) => write(convert(f)) }
-  private lazy val removers = rConverters.zip(createRemoves(mutators))
-  protected lazy val remover = (f: F) => removers.foreach { case (convert, remove) => remove(convert(f)) }
+  private val statUpdater = ds.stats.statUpdater(sft)
 
-  protected val statUpdater = ds.stats.statUpdater(sft)
+  private val (tables, writeConverters, removeConverters) =
+    GeoMesaFeatureWriter.getTablesAndConverters[DS, F, W](sft, ds, indices)
+
+  protected val mutators = createMutators(tables)
+  private val writers = mutators.zip(writeConverters)
+  private val removers = mutators.zip(removeConverters)
 
   // returns a temporary id - we will replace it just before write
   protected def nextFeatureId = GeoMesaFeatureWriter.tempFeatureIds.getAndIncrement().toString
@@ -96,15 +121,22 @@ abstract class GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS, F, W], F <: Wrapp
   protected def writeFeature(feature: SimpleFeature): Unit = {
     // see if there's a suggested ID to use for this feature, else create one based on the feature
     val featureWithFid = GeoMesaFeatureWriter.featureWithFid(sft, feature)
-    writer(wrapFeature(featureWithFid))
+    val wrapped = wrapFeature(featureWithFid)
+    writers.foreach { case (mutator, convert) => executeWrite(mutator, convert(wrapped)) }
     statUpdater.add(featureWithFid)
   }
 
-  protected def createMutators(tables: Seq[String]): Seq[T]
+  protected def removeFeature(feature: SimpleFeature): Unit = {
+    val wrapped = wrapFeature(feature)
+    removers.foreach { case (mutator, convert) => executeRemove(mutator, convert(wrapped)) }
+    statUpdater.remove(feature)
+  }
 
-  protected def createWrites(mutators: Seq[T]): Seq[(Seq[W]) => Unit]
+  protected def createMutators(tables: IndexedSeq[String]): IndexedSeq[T]
 
-  protected def createRemoves(mutators: Seq[T]): Seq[(Seq[W]) => Unit]
+  protected def executeWrite(mutator: T, writes: Seq[W]): Unit
+
+  protected def executeRemove(mutator: T, removes: Seq[W]): Unit
 
   protected def wrapFeature(feature: SimpleFeature): F
 
@@ -113,12 +145,12 @@ abstract class GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS, F, W], F <: Wrapp
   override def hasNext: Boolean = false
 
   override def flush(): Unit = {
-    mutators.collect { case c: Flushable => c }.foreach(_.flush())
+    mutators.collect { case c: Flushable => c.flush() }
     statUpdater.flush()
   }
 
   override def close(): Unit = {
-    mutators.collect { case c: Closeable => c }.foreach(_.close())
+    mutators.collect { case c: Closeable => c.close() }
     statUpdater.close()
   }
 }
@@ -145,7 +177,7 @@ trait GeoMesaAppendFeatureWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedF
     currentFeature
   }
 
-  override protected def createRemoves(mutators: Seq[T]): Seq[(Seq[W]) => Unit] = throw new NotImplementedError()
+  override protected def executeRemove(mutator: T, removes: Seq[W]): Unit = throw new NotImplementedError()
 }
 
 /**
@@ -163,16 +195,15 @@ trait GeoMesaModifyFeatureWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedF
   // feature returned from reader
   private var original: SimpleFeature = null
 
-  override def remove() = if (original != null) {
-    remover(wrapFeature(original))
-    statUpdater.remove(original)
+  override def remove(): Unit = if (original != null) {
+    removeFeature(original)
   }
 
-  override def hasNext = reader.hasNext
+  override def hasNext: Boolean = reader.hasNext
 
   /* only write if non null and it hasn't changed...*/
   /* original should be null only when reader runs out */
-  override def write() =
+  override def write(): Unit =
     // comparison of feature ID and attributes - doesn't consider concrete class used
     if (!ScalaSimpleFeature.equalIdAndAttributes(live, original)) {
       remove()

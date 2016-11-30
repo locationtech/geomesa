@@ -39,14 +39,12 @@ trait AccumuloFeatureWriter extends AccumuloFeatureWriterType {
   private lazy val multiWriter = ds.connector.createMultiTableBatchWriter(GeoMesaBatchWriterConfig())
   private val wrapper = AccumuloFeature.wrapper(sft, defaultVisibility)
 
-  override protected def createMutators(tables: Seq[String]): Seq[BatchWriter] =
+  override protected def createMutators(tables: IndexedSeq[String]): IndexedSeq[BatchWriter] =
     tables.map(multiWriter.getBatchWriter)
 
-  override protected def createWrites(mutators: Seq[BatchWriter]): Seq[(Seq[Mutation]) => Unit] =
-    mutators.map(bw => (m: Seq[Mutation]) => bw.addMutations(m))
+  override protected def executeWrite(mutator: BatchWriter, writes: Seq[Mutation]): Unit = mutator.addMutations(writes)
 
-  override protected def createRemoves(mutators: Seq[BatchWriter]): Seq[(Seq[Mutation]) => Unit] =
-    mutators.map(bw => (m: Seq[Mutation]) => bw.addMutations(m))
+  override protected def executeRemove(mutator: BatchWriter, removes: Seq[Mutation]): Unit = mutator.addMutations(removes)
 
   override def wrapFeature(feature: SimpleFeature): AccumuloFeature = wrapper(feature)
 

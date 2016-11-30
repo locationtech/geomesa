@@ -15,5 +15,5 @@ object CacheKeyGenerator {
   import collection.JavaConversions._
 
   def cacheKey(sft: SimpleFeatureType): String =
-    s"${sft.getName};${sft.getAttributeDescriptors.map(ad => s"${ad.getName.toString}${ad.getType}").mkString(",")}"
+    s"${sft.getName};${sft.getAttributeDescriptors.map(ad => s"${ad.getLocalName}:${ad.getType.getBinding.getSimpleName}").mkString(",")}"
 }

@@ -30,7 +30,7 @@ trait HBaseFeatureWriter extends HBaseFeatureWriterType {
 
   private val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
 
-  override protected def createMutators(tables: Seq[String]): Seq[BufferedMutator] = {
+  override protected def createMutators(tables: IndexedSeq[String]): IndexedSeq[BufferedMutator] = {
     val batchSize = WriteBatchSize.option.map(_.toLong)
     tables.map { name =>
       val params = new BufferedMutatorParams(TableName.valueOf(name))
@@ -39,17 +39,16 @@ trait HBaseFeatureWriter extends HBaseFeatureWriterType {
     }
   }
 
-  override protected def createWrites(mutators: Seq[BufferedMutator]): Seq[(Seq[Mutation]) => Unit] =
-    mutators.map(mutator => (m: Seq[Mutation]) => m.foreach(mutator.mutate))
+  override protected def executeWrite(mutator: BufferedMutator, writes: Seq[Mutation]): Unit =
+    writes.foreach(mutator.mutate)
 
-  override protected def createRemoves(mutators: Seq[BufferedMutator]): Seq[(Seq[Mutation]) => Unit] =
-    mutators.map(mutator => (m: Seq[Mutation]) => m.foreach(mutator.mutate))
+  override protected def executeRemove(mutator: BufferedMutator, removes: Seq[Mutation]): Unit =
+    removes.foreach(mutator.mutate)
 
-  override def wrapFeature(feature: SimpleFeature): HBaseFeature =
-    new HBaseFeature(feature, serializer)
+  override def wrapFeature(feature: SimpleFeature): HBaseFeature = new HBaseFeature(feature, serializer)
 
   override def flush(): Unit = {
-    mutators.foreach(_.flush())
+    mutators.foreach(_.flush()) // note: BufferedMutator doesn't implement Flushable, so we have to call it manually
     super.flush()
   }
 }
