@@ -40,8 +40,11 @@ trait Z2WritableIndex extends AccumuloWritableIndex {
     val numSplits = splitArray.length
     val split = splitArray(wf.idHash % numSplits)
     val id = wf.feature.getID.getBytes(StandardCharsets.UTF_8)
-    val pt = wf.feature.point
-    val z = Z2SFC.index(pt.getX, pt.getY).z
+    val geom = wf.feature.point
+    if (geom == null) {
+      throw new IllegalArgumentException(s"Null geometry in feature ${wf.feature.getID}")
+    }
+    val z = Z2SFC.index(geom.getX, geom.getY).z
     Seq(Bytes.concat(tableSharing, split, Longs.toByteArray(z), id))
   }
 
@@ -51,6 +54,9 @@ trait Z2WritableIndex extends AccumuloWritableIndex {
     val numSplits = splitArray.length
     val split = splitArray(wf.idHash % numSplits)
     val geom = wf.feature.getDefaultGeometry.asInstanceOf[Geometry]
+    if (geom == null) {
+      throw new IllegalArgumentException(s"Null geometry in feature ${wf.feature.getID}")
+    }
     val zs = zBox(geom)
     val id = wf.feature.getID.getBytes(StandardCharsets.UTF_8)
     zs.map(z => Bytes.concat(tableSharing, split, Longs.toByteArray(z).take(GEOM_Z_NUM_BYTES), id)).toSeq

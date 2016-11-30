@@ -49,7 +49,11 @@ trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exte
 
   private def getRowKey(sfc: XZ2SFC, sharing: Array[Byte], shards: IndexedSeq[Array[Byte]], wrapper: F): Array[Byte] = {
     val split = shards(wrapper.idHash % shards.length)
-    val envelope = wrapper.feature.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal
+    val geom = wrapper.feature.getDefaultGeometry.asInstanceOf[Geometry]
+    if (geom == null) {
+      throw new IllegalArgumentException(s"Null geometry in feature ${wrapper.feature.getID}")
+    }
+    val envelope = geom.getEnvelopeInternal
     val xz = sfc.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY)
     val id = wrapper.feature.getID.getBytes(StandardCharsets.UTF_8)
     Bytes.concat(sharing, split, Longs.toByteArray(xz), id)

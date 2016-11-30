@@ -350,13 +350,15 @@ class XZ3SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double), zBo
                         zmax: Double): (Double, Double, Double, Double, Double, Double) = {
     require(xmin <= xmax && ymin <= ymax && zmin <= zmax,
       s"Bounds must be ordered: [$xmin $xmax] [$ymin $ymax] [$zmin $zmax]")
+    require(xmin >= xLo && xmax <= xHi && ymin >= yLo && ymax <= yHi && zmin >= zLo && zmax <= zHi,
+      s"Values out of bounds ([$xLo $xHi] [$yLo $yHi] [$zLo $zHi]): [$xmin $xmax] [$ymin $ymax] [$zmin $zmax]")
 
-    val nxmin = (XZSFC.bounded(xmin, xLo, xHi) - xLo) / xSize
-    val nymin = (XZSFC.bounded(ymin, yLo, yHi) - yLo) / ySize
-    val nzmin = (XZSFC.bounded(zmin, zLo, zHi) - zLo) / zSize
-    val nxmax = (XZSFC.bounded(xmax, xLo, xHi) - xLo) / xSize
-    val nymax = (XZSFC.bounded(ymax, yLo, yHi) - yLo) / ySize
-    val nzmax = (XZSFC.bounded(zmax, zLo, zHi) - zLo) / zSize
+    val nxmin = (xmin - xLo) / xSize
+    val nymin = (ymin - yLo) / ySize
+    val nzmin = (zmin - zLo) / zSize
+    val nxmax = (xmax - xLo) / xSize
+    val nymax = (ymax - yLo) / ySize
+    val nzmax = (zmax - zLo) / zSize
 
     (nxmin, nymin, nzmin, nxmax, nymax, nzmax)
   }
