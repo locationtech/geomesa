@@ -2052,11 +2052,11 @@
                 <scope>provided</scope>
             </dependency>
 
-            <!-- geoserver 2.8 spring version -->
+            <!-- geoserver 2.9 spring version -->
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-webmvc</artifactId>
-                <version>3.1.4.RELEASE</version>
+                <version>4.2.5.RELEASE</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>

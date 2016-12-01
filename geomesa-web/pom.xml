@@ -193,19 +193,19 @@
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-web</artifactId>
-                <version>3.1.4.RELEASE</version>
+                <version>4.2.5.RELEASE</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.springframework.security</groupId>
                 <artifactId>spring-security-web</artifactId>
-                <version>3.1.0.RELEASE</version>
+                <version>4.0.4.RELEASE</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.springframework.security</groupId>
                 <artifactId>spring-security-core</artifactId>
-                <version>3.1.0.RELEASE</version>
+                <version>4.0.4.RELEASE</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
