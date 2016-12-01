@@ -353,7 +353,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
       bins must haveSize(2)
-      bins.map(_.trackId) must containAllOf(Seq("name1", "name2").map(_.hashCode.toString))
+      bins.map(_.trackId) must containAllOf(Seq("name1", "name2").map(_.hashCode))
     }
 
     "support bin queries with linestrings" in {
@@ -382,13 +382,13 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         val bins = bytes.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
         bins must haveSize(7)
         val sorted = bins.sortBy(_.dtg)
-        sorted(0) mustEqual BasicValues(41, 40, dtgs1(0).getTime, "name1".hashCode.toString)
-        sorted(1) mustEqual BasicValues(43, 42, dtgs1(1).getTime, "name1".hashCode.toString)
-        sorted(2) mustEqual BasicValues(45, 44, dtgs1(2).getTime, "name1".hashCode.toString)
-        sorted(3) mustEqual BasicValues(47, 46, dtgs1(3).getTime, "name1".hashCode.toString)
-        sorted(4) mustEqual BasicValues(50, 50, dtgs2(0).getTime, "name2".hashCode.toString)
-        sorted(5) mustEqual BasicValues(51, 51, dtgs2(1).getTime, "name2".hashCode.toString)
-        sorted(6) mustEqual BasicValues(52, 52, dtgs2(2).getTime, "name2".hashCode.toString)
+        sorted(0) mustEqual BasicValues(41, 40, dtgs1(0).getTime, "name1".hashCode)
+        sorted(1) mustEqual BasicValues(43, 42, dtgs1(1).getTime, "name1".hashCode)
+        sorted(2) mustEqual BasicValues(45, 44, dtgs1(2).getTime, "name1".hashCode)
+        sorted(3) mustEqual BasicValues(47, 46, dtgs1(3).getTime, "name1".hashCode)
+        sorted(4) mustEqual BasicValues(50, 50, dtgs2(0).getTime, "name2".hashCode)
+        sorted(5) mustEqual BasicValues(51, 51, dtgs2(1).getTime, "name2".hashCode)
+        sorted(6) mustEqual BasicValues(52, 52, dtgs2(2).getTime, "name2".hashCode)
       }
     }
 
