@@ -29,7 +29,7 @@ import org.opengis.filter.Filter
 
 import scala.util.control.NonFatal
 
-trait ExportCommand[DS <: GeoMesaDataStore[_, _, _, _]] extends DataStoreCommand[DS] with MethodProfiling {
+trait ExportCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] with MethodProfiling {
 
   override val name = "export"
   override def params: ExportParams
@@ -76,7 +76,7 @@ trait ExportCommand[DS <: GeoMesaDataStore[_, _, _, _]] extends DataStoreCommand
 
 object ExportCommand extends LazyLogging {
 
-  def getFeatureCollection(ds: GeoMesaDataStore[_, _, _ ,_],
+  def getFeatureCollection(ds: GeoMesaDataStore[_, _, _],
                            fmt: DataFormat,
                            params: BaseExportParams): SimpleFeatureCollection = {
     import scala.collection.JavaConversions._

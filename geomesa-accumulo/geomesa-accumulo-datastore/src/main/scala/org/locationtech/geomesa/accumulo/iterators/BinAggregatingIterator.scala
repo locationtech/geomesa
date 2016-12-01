@@ -594,9 +594,9 @@ object BinAggregatingIterator extends LazyLogging {
 
   }
 
-  private def getTrack(sf: SimpleFeature, i: Int): String = {
+  private def getTrack(sf: SimpleFeature, i: Int): Int = {
     val t = sf.getAttribute(i)
-    if (t == null) "" else t.toString
+    if (t == null) { 0 } else { t.hashCode }
   }
 
   // get a single geom

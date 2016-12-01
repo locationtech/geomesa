@@ -33,8 +33,8 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.util.Try
 
-trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R] extends GeoMesaFeatureIndex[DS, F, W, Q]
-    with IndexAdapter[DS, F, W, Q, R] with AttributeFilterStrategy[DS, F, W, Q] with LazyLogging {
+trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] extends GeoMesaFeatureIndex[DS, F, W]
+    with IndexAdapter[DS, F, W, R] with AttributeFilterStrategy[DS, F, W] with LazyLogging {
 
   import AttributeIndex._
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -108,9 +108,9 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W
 
   override def getQueryPlan(sft: SimpleFeatureType,
                             ds: DS,
-                            filter: FilterStrategy[DS, F, W, Q],
+                            filter: FilterStrategy[DS, F, W],
                             hints: Hints,
-                            explain: Explainer): QueryPlan[DS, F, W, Q] = {
+                            explain: Explainer): QueryPlan[DS, F, W] = {
     val primary = filter.primary.getOrElse {
       throw new IllegalStateException("Attribute index does not support Filter.INCLUDE")
     }

@@ -17,6 +17,7 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
+import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
@@ -24,8 +25,8 @@ import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, _}
 import org.opengis.feature.simple.SimpleFeatureType
 
-trait Z2Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R] extends GeoMesaFeatureIndex[DS, F, W, Q]
-    with IndexAdapter[DS, F, W, Q, R] with SpatialFilterStrategy[DS, F, W, Q] with LazyLogging {
+trait Z2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] extends GeoMesaFeatureIndex[DS, F, W]
+    with IndexAdapter[DS, F, W, R] with SpatialFilterStrategy[DS, F, W] with LazyLogging {
 
   import IndexAdapter.{DefaultNumSplits, DefaultSplitArrays}
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -71,9 +72,9 @@ trait Z2Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
 
   override def getQueryPlan(sft: SimpleFeatureType,
                             ds: DS,
-                            filter: FilterStrategy[DS, F, W, Q],
+                            filter: FilterStrategy[DS, F, W],
                             hints: Hints,
-                            explain: Explainer): QueryPlan[DS, F, W, Q] = {
+                            explain: Explainer): QueryPlan[DS, F, W] = {
     import org.locationtech.geomesa.filter.FilterHelper._
 
     if (filter.primary.isEmpty) {
@@ -96,22 +97,21 @@ trait Z2Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
 
     // compute our accumulo ranges based on the coarse bounds for our query
     val ranges = if (filter.primary.isEmpty) { Seq(rangePrefix(sharing)) } else {
-      import com.google.common.primitives.Bytes.concat
-
       val xy = geometries.values.map(GeometryUtils.bounds)
 
       val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
       val zs = Z2SFC.ranges(xy, 64, rangeTarget).map(r => (Longs.toByteArray(r.lower), Longs.toByteArray(r.upper)))
-      val prefixes = DefaultSplitArrays.map(concat(sharing, _))
+      val prefixes = DefaultSplitArrays.map(Bytes.concat(sharing, _))
 
       prefixes.flatMap { prefix =>
         zs.map { case (lo, hi) =>
-          range(concat(prefix, lo), IndexAdapter.rowFollowingRow(concat(prefix, hi)))
+          range(Bytes.concat(prefix, lo), IndexAdapter.rowFollowingRow(Bytes.concat(prefix, hi)))
         }
       }
     }
 
-    val ecql = if (ds.config.looseBBox) { filter.secondary } else { filter.filter }
+    val looseBBox = Option(hints.get(LOOSE_BBOX)).map(Boolean.unbox).getOrElse(ds.config.looseBBox)
+    val ecql = if (looseBBox) { filter.secondary } else { filter.filter }
 
     scanPlan(sft, ds, filter, hints, ranges, ecql)
   }

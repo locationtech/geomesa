@@ -13,6 +13,6 @@ import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.index.index.Z2Index
 
 case object HBaseZ2Index
-    extends HBaseFeatureIndex with Z2Index[HBaseDataStore, HBaseFeature, Mutation, Result, Query] {
+    extends HBaseFeatureIndex with Z2Index[HBaseDataStore, HBaseFeature, Mutation, Query] {
   override val version: Int = 1
 }

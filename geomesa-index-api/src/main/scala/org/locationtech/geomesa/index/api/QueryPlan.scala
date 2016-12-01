@@ -19,23 +19,15 @@ import org.opengis.feature.simple.SimpleFeature
   * @tparam DS type of this data store
   * @tparam F wrapper around a simple feature - used for caching write calculations
   * @tparam W write result - feature writers will transform simple features into these
-  * @tparam QueryResult raw type returned from database scans that will be transformed into simple features
   */
-trait QueryPlan[DS <: GeoMesaDataStore[DS, F, W, QueryResult], F <: WrappedFeature, W, QueryResult] {
+trait QueryPlan[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W] {
 
   /**
     * Filter this query plan is satisfying
     *
     * @return
     */
-  def filter: FilterStrategy[DS, F, W, QueryResult]
-
-  /**
-    * Converts results coming back from the database into simple features according to the query type
-    *
-    * @return
-    */
-  def entriesToFeatures: (QueryResult) => SimpleFeature
+  def filter: FilterStrategy[DS, F, W]
 
   /**
     * May return duplicate simple features or not
@@ -57,7 +49,7 @@ trait QueryPlan[DS <: GeoMesaDataStore[DS, F, W, QueryResult], F <: WrappedFeatu
     * @param ds data store - provides connection object and metadata
     * @return
     */
-  def scan(ds: DS): CloseableIterator[QueryResult]
+  def scan(ds: DS): CloseableIterator[SimpleFeature]
 
   /**
     * Explains details on how this query plan will be executed

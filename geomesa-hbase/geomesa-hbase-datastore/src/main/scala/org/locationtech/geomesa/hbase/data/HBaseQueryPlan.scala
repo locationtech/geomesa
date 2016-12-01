@@ -13,7 +13,7 @@ import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.hbase.utils.BatchScan
 import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseQueryPlanType}
 import org.locationtech.geomesa.index.utils.Explainer
-import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 
@@ -22,9 +22,6 @@ sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
   def table: TableName
   def ranges: Seq[Query]
   def clientSideFilter: Option[Filter] // TODO use scan filters?
-
-  override def reduce: Option[(CloseableIterator[SimpleFeature]) => CloseableIterator[SimpleFeature]] =
-    clientSideFilter.map(f => (i) => CloseableIterator(i.filter(f.evaluate), i.close()))
 
   override def explain(explainer: Explainer, prefix: String): Unit =
     HBaseQueryPlan.explain(this, explainer, prefix)
@@ -47,36 +44,35 @@ object HBaseQueryPlan {
       case r: Get => s"[${r.getRow.mkString("")},${r.getRow.mkString("")}]"
     }
   }
-
 }
 
 // plan that will not actually scan anything
 case class EmptyPlan(filter: HBaseFilterStrategyType) extends HBaseQueryPlan {
   override val table: TableName = null
   override val ranges: Seq[Query] = Seq.empty
-  override val entriesToFeatures: (Result) => SimpleFeature = (_) => null
   override val clientSideFilter: Option[Filter] = None
-  override def scan(ds: HBaseDataStore): CloseableIterator[Result] = CloseableIterator.empty
+  override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
 }
 
 case class ScanPlan(filter: HBaseFilterStrategyType,
                     table: TableName,
                     ranges: Seq[Scan],
-                    entriesToFeatures: (Result) => SimpleFeature,
-                    clientSideFilter: Option[Filter]) extends HBaseQueryPlan {
-  override def scan(ds: HBaseDataStore): CloseableIterator[Result] =
-    new BatchScan(ds.connection, table, ranges, ds.config.queryThreads, 100000)
+                    clientSideFilter: Option[Filter],
+                    entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
+  override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
+    val results = new BatchScan(ds.connection, table, ranges, ds.config.queryThreads, 100000)
+    SelfClosingIterator(entriesToFeatures(results), results.close)
+  }
 }
 
 case class GetPlan(filter: HBaseFilterStrategyType,
                    table: TableName,
                    ranges: Seq[Get],
-                   entriesToFeatures: (Result) => SimpleFeature,
-                   clientSideFilter: Option[Filter]) extends HBaseQueryPlan {
-
-  override def scan(ds: HBaseDataStore): CloseableIterator[Result] = {
+                   clientSideFilter: Option[Filter],
+                   entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
+  override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
     import scala.collection.JavaConversions._
     val get = ds.connection.getTable(table)
-    CloseableIterator(get.get(ranges).iterator, get.close())
+    SelfClosingIterator(entriesToFeatures(get.get(ranges).iterator), get.close)
   }
 }

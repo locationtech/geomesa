@@ -10,7 +10,6 @@ package org.locationtech.geomesa.features.serialization
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
-import com.vividsolutions.jts.io.WKBConstants
 
 import scala.reflect.ClassTag
 
@@ -19,62 +18,94 @@ import scala.reflect.ClassTag
   * WKBWriter in the following ways:
   *
   * 1. Doesn't save SRID (geomesa didn't use that functionality in WKBWriter)
-  * 2. Doesn't handle dimensions > 2
-  * 3. Doesn't worry about byte order (handled by kryo)  TODO does avro handle byte order?
-  * 4. Doesn't use a precision model
-  *
+  * 2. Doesn't worry about byte order (handled by kryo)  TODO does avro handle byte order?
+  * 3. Doesn't use a precision model
   */
 // noinspection LanguageFeature
 trait GeometrySerialization[T <: NumericWriter, V <: NumericReader] extends LazyLogging {
+
+  // note: dimensions have to be determined from the internal coordinate sequence, not the geometry itself.
+
+  import GeometrySerialization._
 
   private lazy val factory = new GeometryFactory()
   private lazy val csFactory = factory.getCoordinateSequenceFactory
 
   def serialize(out: T, geometry: Geometry): Unit = {
     geometry match {
-      case g: Point =>
-        out.writeInt(WKBConstants.wkbPoint, optimizePositive = true)
-        writeCoordinate(out, g.getCoordinateSequence.getCoordinate(0))
-
-      case g: LineString =>
-        out.writeInt(WKBConstants.wkbLineString, optimizePositive = true)
-        writeCoordinateSequence(out, g.getCoordinateSequence)
-
-      case g: Polygon => writePolygon(out, g)
-
-      case g: MultiPoint => writeGeometryCollection(out, WKBConstants.wkbMultiPoint, g)
-
-      case g: MultiLineString => writeGeometryCollection(out, WKBConstants.wkbMultiLineString, g)
-
-      case g: MultiPolygon => writeGeometryCollection(out, WKBConstants.wkbMultiPolygon, g)
-
-      case g: GeometryCollection => writeGeometryCollection(out, WKBConstants.wkbGeometryCollection, g)
+      case g: Point              => writePoint(out, g)
+      case g: LineString         => writeLineString(out, g)
+      case g: Polygon            => writePolygon(out, g)
+      case g: MultiPoint         => writeGeometryCollection(out, GeometrySerialization.MultiPoint, g)
+      case g: MultiLineString    => writeGeometryCollection(out, GeometrySerialization.MultiLineString, g)
+      case g: MultiPolygon       => writeGeometryCollection(out, GeometrySerialization.MultiPolygon, g)
+      case g: GeometryCollection => writeGeometryCollection(out, GeometrySerialization.GeometryCollection, g)
     }
   }
 
   def deserialize(in: V): Geometry = {
     in.readInt(true) match {
-      case WKBConstants.wkbPoint => factory.createPoint(readCoordinate(in))
+      case Point2d            => readPoint(in, Some(2))
+      case LineString2d       => readLineString(in, Some(2))
+      case Polygon2d          => readPolygon(in, Some(2))
+      case Point              => readPoint(in, None)
+      case LineString         => readLineString(in, None)
+      case Polygon            => readPolygon(in, None)
+      case MultiPoint         => factory.createMultiPoint(readGeometryCollection[Point](in))
+      case MultiLineString    => factory.createMultiLineString(readGeometryCollection[LineString](in))
+      case MultiPolygon       => factory.createMultiPolygon(readGeometryCollection[Polygon](in))
+      case GeometryCollection => factory.createGeometryCollection(readGeometryCollection[Geometry](in))
+    }
+  }
 
-      case WKBConstants.wkbLineString => factory.createLineString(readCoordinateSequence(in))
+  private def writePoint(out: T, g: Point): Unit = {
+    val coords = g.getCoordinateSequence
+    val (flag, writeDims) = if (coords.getDimension == 2) { (Point2d, false) } else { (Point, true) }
+    out.writeInt(flag, optimizePositive = true)
+    writeCoordinateSequence(out, coords, writeLength = false, writeDims)
+  }
 
-      case WKBConstants.wkbPolygon => readPolygon(in)
+  private def readPoint(in: V, dims: Option[Int]): Point =
+    factory.createPoint(readCoordinateSequence(in, Some(1), dims))
 
-      case WKBConstants.wkbMultiPoint =>
-        val geoms = readGeometryCollection[Point](in)
-        factory.createMultiPoint(geoms)
+  private def writeLineString(out: T, g: LineString): Unit = {
+    val coords = g.getCoordinateSequence
+    val (flag, writeDims) = if (coords.getDimension == 2) { (LineString2d, false) } else { (LineString, true) }
+    out.writeInt(flag, optimizePositive = true)
+    writeCoordinateSequence(out, coords, writeLength = true, writeDims)
+  }
 
-      case WKBConstants.wkbMultiLineString =>
-        val geoms = readGeometryCollection[LineString](in)
-        factory.createMultiLineString(geoms)
+  private def readLineString(in: V, dims: Option[Int]): LineString =
+    factory.createLineString(readCoordinateSequence(in, None, dims))
 
-      case WKBConstants.wkbMultiPolygon =>
-        val geoms = readGeometryCollection[Polygon](in)
-        factory.createMultiPolygon(geoms)
+  private def writePolygon(out: T, g: Polygon): Unit = {
+    val exterior = g.getExteriorRing.getCoordinateSequence
+    val twoD = exterior.getDimension == 2 &&
+        (0 until g.getNumInteriorRing).forall(i => g.getInteriorRingN(i).getCoordinateSequence.getDimension == 2)
+    val (flag, writeDims) = if (twoD) { (Polygon2d, false) } else { (Polygon, true) }
+    out.writeInt(flag, optimizePositive = true)
+    writeCoordinateSequence(out, exterior, writeLength = true, writeDims)
+    out.writeInt(g.getNumInteriorRing, optimizePositive = true)
+    var i = 0
+    while (i < g.getNumInteriorRing) {
+      writeCoordinateSequence(out, g.getInteriorRingN(i).getCoordinateSequence, writeLength = true, writeDims)
+      i += 1
+    }
+  }
 
-      case WKBConstants.wkbGeometryCollection =>
-        val geoms = readGeometryCollection[Geometry](in)
-        factory.createGeometryCollection(geoms)
+  private def readPolygon(in: V, dims: Option[Int]): Polygon = {
+    val exteriorRing = factory.createLinearRing(readCoordinateSequence(in, None, dims))
+    val numInteriorRings = in.readInt(true)
+    if (numInteriorRings == 0) {
+      factory.createPolygon(exteriorRing)
+    } else {
+      val interiorRings = Array.ofDim[LinearRing](numInteriorRings)
+      var i = 0
+      while (i < numInteriorRings) {
+        interiorRings.update(i, factory.createLinearRing(readCoordinateSequence(in, None, dims)))
+        i += 1
+      }
+      factory.createPolygon(exteriorRing, interiorRings)
     }
   }
 
@@ -99,63 +130,60 @@ trait GeometrySerialization[T <: NumericWriter, V <: NumericReader] extends Lazy
     geoms
   }
 
-  private def writePolygon(out: T, g: Polygon): Unit = {
-    out.writeInt(WKBConstants.wkbPolygon, optimizePositive = true)
-    writeCoordinateSequence(out, g.getExteriorRing.getCoordinateSequence)
-    out.writeInt(g.getNumInteriorRing, optimizePositive = true)
-    var i = 0
-    while (i < g.getNumInteriorRing) {
-      writeCoordinateSequence(out, g.getInteriorRingN(i).getCoordinateSequence)
-      i += 1
+  private def writeCoordinateSequence(out: T,
+                                      coords: CoordinateSequence,
+                                      writeLength: Boolean,
+                                      writeDimensions: Boolean): Unit = {
+    val dims = coords.getDimension
+    if (writeLength) {
+      out.writeInt(coords.size(), optimizePositive = true)
     }
-  }
-
-  private def readPolygon(in: V): Polygon = {
-    val exteriorRing = factory.createLinearRing(readCoordinateSequence(in))
-    val numInteriorRings = in.readInt(true)
-    if (numInteriorRings == 0) {
-      factory.createPolygon(exteriorRing)
-    } else {
-      val interiorRings = Array.ofDim[LinearRing](numInteriorRings)
-      var i = 0
-      while (i < numInteriorRings) {
-        interiorRings.update(i, factory.createLinearRing(readCoordinateSequence(in)))
-        i += 1
-      }
-      factory.createPolygon(exteriorRing, interiorRings)
+    if (writeDimensions) {
+      out.writeInt(dims, optimizePositive = true)
     }
-  }
-
-  private def writeCoordinateSequence(out: T, coords: CoordinateSequence): Unit = {
-    out.writeInt(coords.size(), optimizePositive = true)
     var i = 0
     while (i < coords.size()) {
-      writeCoordinate(out, coords.getCoordinate(i))
+      val coord = coords.getCoordinate(i)
+      var j = 0
+      while (j < dims) {
+        out.writeDouble(coord.getOrdinate(j))
+        j += 1
+      }
       i += 1
     }
   }
 
-  private def readCoordinateSequence(in: V): CoordinateSequence = {
-    val numCoords = in.readInt(true)
-    val coords = csFactory.create(numCoords, 2)
+  private def readCoordinateSequence(in: V, length: Option[Int], dimensions: Option[Int]): CoordinateSequence = {
+    val numCoords = length.getOrElse(in.readInt(true))
+    val numDims = dimensions.getOrElse(in.readInt(true))
+    val coords = csFactory.create(numCoords, numDims)
     var i = 0
     while (i < numCoords) {
-      coords.setOrdinate(i, 0, in.readDouble())
-      coords.setOrdinate(i, 1, in.readDouble())
+      var j = 0
+      while (j < numDims) {
+        coords.setOrdinate(i, j, in.readDouble())
+        j += 1
+      }
       i += 1
     }
     coords
   }
+}
 
-  private def writeCoordinate(out: T, coord: Coordinate): Unit = {
-    out.writeDouble(coord.getOrdinate(0))
-    out.writeDouble(coord.getOrdinate(1))
-  }
+object GeometrySerialization {
 
-  private def readCoordinate(in: V): CoordinateSequence = {
-    val coords = csFactory.create(1, 2)
-    coords.setOrdinate(0, 0, in.readDouble())
-    coords.setOrdinate(0, 1, in.readDouble())
-    coords
-  }
+  // 2-d values - corresponds to com.vividsolutions.jts.io.WKBConstants
+  val Point2d: Int            = 1
+  val LineString2d: Int       = 2
+  val Polygon2d: Int          = 3
+
+  val MultiPoint: Int         = 4
+  val MultiLineString: Int    = 5
+  val MultiPolygon: Int       = 6
+  val GeometryCollection: Int = 7
+
+  // n-dimensional values
+  val Point: Int              = 8
+  val LineString: Int         = 9
+  val Polygon: Int            = 10
 }

@@ -18,6 +18,7 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
+import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
@@ -25,8 +26,8 @@ import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, _}
 import org.opengis.feature.simple.SimpleFeatureType
 
-trait Z3Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R] extends GeoMesaFeatureIndex[DS, F, W, Q]
-    with IndexAdapter[DS, F, W, Q, R] with SpatioTemporalFilterStrategy[DS, F, W, Q] with LazyLogging {
+trait Z3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] extends GeoMesaFeatureIndex[DS, F, W]
+    with IndexAdapter[DS, F, W, R] with SpatioTemporalFilterStrategy[DS, F, W] with LazyLogging {
 
   import IndexAdapter.{DefaultNumSplits, DefaultSplitArrays}
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -58,18 +59,14 @@ trait Z3Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
                         dtgIndex: Int,
                         timeToIndex: (Long) => BinnedTime,
                         wrapper: F): Array[Byte] = {
-    import com.google.common.primitives.Bytes.concat
-
     val split = DefaultSplitArrays(wrapper.idHash % DefaultNumSplits)
-    val (timeBin, z) = {
-      val dtg = wrapper.feature.getAttribute(dtgIndex).asInstanceOf[Date]
-      val time = if (dtg == null) 0 else dtg.getTime
-      val BinnedTime(b, t) = timeToIndex(time)
-      val geom = wrapper.feature.getDefaultGeometry.asInstanceOf[Point]
-      (b, sfc.index(geom.getX, geom.getY, t).z)
-    }
+    val geom = wrapper.feature.getDefaultGeometry.asInstanceOf[Point]
+    val dtg = wrapper.feature.getAttribute(dtgIndex).asInstanceOf[Date]
+    val time = if (dtg == null) 0 else dtg.getTime
+    val BinnedTime(b, t) = timeToIndex(time)
+    val z = sfc.index(geom.getX, geom.getY, t).z
     val id = wrapper.feature.getID.getBytes(StandardCharsets.UTF_8)
-    concat(sharing, split, Shorts.toByteArray(timeBin), Longs.toByteArray(z), id)
+    Bytes.concat(sharing, split, Shorts.toByteArray(b), Longs.toByteArray(z), id)
   }
 
   override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
@@ -90,9 +87,9 @@ trait Z3Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
 
   override def getQueryPlan(sft: SimpleFeatureType,
                             ds: DS,
-                            filter: FilterStrategy[DS, F, W, Q],
+                            filter: FilterStrategy[DS, F, W],
                             hints: Hints,
-                            explain: Explainer): QueryPlan[DS, F, W, Q] = {
+                            explain: Explainer): QueryPlan[DS, F, W] = {
     import org.locationtech.geomesa.filter.FilterHelper._
 
     // note: z3 requires a date field
@@ -162,7 +159,7 @@ trait Z3Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
 
         val zs = if (times.eq(wholePeriod)) wholePeriodRanges else toZRanges(times)
         val binBytes = Shorts.toByteArray(b)
-        val prefixes = IndexAdapter.DefaultSplitArrays.map(concat(sharing, _, binBytes))
+        val prefixes = DefaultSplitArrays.map(concat(sharing, _, binBytes))
         prefixes.flatMap { prefix =>
           zs.map { case (lo, hi) =>
             range(concat(prefix, lo), IndexAdapter.rowFollowingRow(concat(prefix, hi)))
@@ -173,7 +170,8 @@ trait Z3Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R]
       ranges.toSeq
     }
 
-    val ecql = if (ds.config.looseBBox) { filter.secondary } else { filter.filter }
+    val looseBBox = Option(hints.get(LOOSE_BBOX)).map(Boolean.unbox).getOrElse(ds.config.looseBBox)
+    val ecql = if (looseBBox) { filter.secondary } else { filter.filter }
 
     scanPlan(sft, ds, filter, hints, ranges, ecql)
   }

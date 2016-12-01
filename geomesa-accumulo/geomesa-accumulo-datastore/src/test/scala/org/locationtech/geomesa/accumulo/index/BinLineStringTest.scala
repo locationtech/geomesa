@@ -84,7 +84,7 @@ class BinLineStringTest extends Specification with TestWithDataStore {
       val bins = runQuery(query)
 
       bins must haveLength(40)
-      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode.toString)
+      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode)
       forall(0 until 10) { i =>
         bins.map(_.dtg) must contain(features(i).getAttribute("dtg").asInstanceOf[Date].getTime).exactly(4.times)
         bins.map(_.lat) must contain(60.0f + i).exactly(4.times)
@@ -104,7 +104,7 @@ class BinLineStringTest extends Specification with TestWithDataStore {
       val bins = runQuery(query)
 
       bins must haveLength(40)
-      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode.toString)
+      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode)
       forall(0 until 10) { i =>
         bins.map(_.dtg) must contain(features(i).getAttribute("dtg").asInstanceOf[Date].getTime).exactly(4.times)
         bins.map(_.lat) must contain(60.0f + i).exactly(4.times)
@@ -124,7 +124,7 @@ class BinLineStringTest extends Specification with TestWithDataStore {
 
       bins must haveLength(40)
       forall(bins)(_ must beAnInstanceOf[ExtendedValues])
-      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode.toString)
+      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode)
       forall(0 until 10) { i =>
         bins.map(_.dtg) must contain(features(i).getAttribute("dtg").asInstanceOf[Date].getTime).exactly(4.times)
         bins.map(_.lat) must contain(60.0f + i).exactly(4.times)
@@ -146,7 +146,7 @@ class BinLineStringTest extends Specification with TestWithDataStore {
 
       bins must haveLength(40)
       forall(bins)(_ must beAnInstanceOf[ExtendedValues])
-      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode.toString)
+      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode)
       forall(0 until 10) { i =>
         bins.map(_.dtg) must contain(features(i).getAttribute("dtg").asInstanceOf[Date].getTime).exactly(4.times)
         bins.map(_.lat) must contain(60.0f + i).exactly(4.times)
@@ -166,7 +166,7 @@ class BinLineStringTest extends Specification with TestWithDataStore {
       val bins = runQuery(query)
 
       bins must haveLength(40)
-      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode.toString)
+      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode)
       forall(0 until 10) { i =>
         val baseDate = features(i).getAttribute("dtg").asInstanceOf[Date].getTime
         bins.map(_.dtg) must containAllOf(Seq(baseDate, baseDate + 60000, baseDate + 120000, baseDate + 180000))
@@ -187,7 +187,7 @@ class BinLineStringTest extends Specification with TestWithDataStore {
       val bins = runQuery(query)
 
       bins must haveLength(40)
-      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode.toString)
+      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode)
       forall(0 until 10) { i =>
         val baseDate = features(i).getAttribute("dtg").asInstanceOf[Date].getTime
         bins.map(_.dtg) must containAllOf(Seq(baseDate, baseDate + 60000, baseDate + 120000, baseDate + 180000))
@@ -208,7 +208,7 @@ class BinLineStringTest extends Specification with TestWithDataStore {
 
       bins must haveLength(40)
       forall(bins)(_ must beAnInstanceOf[ExtendedValues])
-      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode.toString)
+      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode)
       forall(0 until 10) { i =>
         val baseDate = features(i).getAttribute("dtg").asInstanceOf[Date].getTime
         bins.map(_.dtg) must containAllOf(Seq(baseDate, baseDate + 60000, baseDate + 120000, baseDate + 180000))
@@ -231,7 +231,7 @@ class BinLineStringTest extends Specification with TestWithDataStore {
 
       bins must haveLength(40)
       forall(bins)(_ must beAnInstanceOf[ExtendedValues])
-      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode.toString)
+      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode)
       forall(0 until 10) { i =>
         val baseDate = features(i).getAttribute("dtg").asInstanceOf[Date].getTime
         bins.map(_.dtg) must containAllOf(Seq(baseDate, baseDate + 60000, baseDate + 120000, baseDate + 180000))

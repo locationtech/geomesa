@@ -16,12 +16,12 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-trait SpatioTemporalFilterStrategy[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q] extends
-    GeoMesaFeatureIndex[DS, F, W, Q] {
+trait SpatioTemporalFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W] extends
+    GeoMesaFeatureIndex[DS, F, W] {
 
   import SpatioTemporalFilterStrategy.{StaticCost, isBounded}
 
-  override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[FilterStrategy[DS, F, W, Q]] = {
+  override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[FilterStrategy[DS, F, W]] = {
 
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
@@ -50,7 +50,7 @@ trait SpatioTemporalFilterStrategy[DS <: GeoMesaDataStore[DS, F, W, Q], F <: Wra
 
   override def getCost(sft: SimpleFeatureType,
                        ds: Option[DS],
-                       filter: FilterStrategy[DS, F, W, Q],
+                       filter: FilterStrategy[DS, F, W],
                        transform: Option[SimpleFeatureType]): Long = {
     // https://geomesa.atlassian.net/browse/GEOMESA-1166
     // TODO check date range and use z2 instead if too big

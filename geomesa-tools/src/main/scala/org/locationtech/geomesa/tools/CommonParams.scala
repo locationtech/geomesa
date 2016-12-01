@@ -152,11 +152,11 @@ trait OptionalIndexParam extends TypeNameParam {
   var index: String = null
 
   @throws[ParameterException]
-  def loadIndex(ds: GeoMesaDataStore[_, _, _, _], mode: IndexMode): Option[GeoMesaFeatureIndex[_, _, _, _]] = {
+  def loadIndex(ds: GeoMesaDataStore[_, _, _], mode: IndexMode): Option[GeoMesaFeatureIndex[_, _, _]] = {
     Option(index).filter(_.length > 0).map { name =>
       val untypedIndices = ds.manager.indices(ds.getSchema(featureName), mode)
       val indices =
-        untypedIndices.asInstanceOf[Seq[GeoMesaFeatureIndex[_ <: GeoMesaDataStore[_, _, _, _], _ <: WrappedFeature, _, _]]]
+        untypedIndices.asInstanceOf[Seq[GeoMesaFeatureIndex[_ <: GeoMesaDataStore[_, _, _], _ <: WrappedFeature, _]]]
       val matched = if (name.indexOf(':') != -1) {
         // full identifier with version
         indices.find(_.identifier.equalsIgnoreCase(name))

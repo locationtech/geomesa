@@ -17,7 +17,7 @@ import com.vividsolutions.jts.geom.Geometry
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.curve.{BinnedTime, XZ3SFC}
 import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
+import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
@@ -25,8 +25,8 @@ import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, _}
 import org.opengis.feature.simple.SimpleFeatureType
 
-trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R] extends GeoMesaFeatureIndex[DS, F, W, Q]
-    with IndexAdapter[DS, F, W, Q, R] with SpatioTemporalFilterStrategy[DS, F, W, Q] with LazyLogging {
+trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] extends GeoMesaFeatureIndex[DS, F, W]
+    with IndexAdapter[DS, F, W, R] with SpatioTemporalFilterStrategy[DS, F, W] with LazyLogging {
 
   import IndexAdapter.{DefaultNumSplits, DefaultSplitArrays}
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -36,18 +36,18 @@ trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R
   override def supports(sft: SimpleFeatureType): Boolean = sft.getDtgField.isDefined && sft.nonPoints
 
   override def writer(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
-    val sfc = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
     val sharing = sft.getTableSharingBytes
-    val dtgIndex = sft.getDtgIndex.getOrElse(throw new RuntimeException("XZ3 writer requires a valid date"))
+    val sfc = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
+    val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("XZ3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
 
     (wf) => Seq(createInsert(getRowKey(sfc, sharing, dtgIndex, timeToIndex, wf), wf))
   }
 
   override def remover(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
-    val sfc = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
     val sharing = sft.getTableSharingBytes
-    val dtgIndex = sft.getDtgIndex.getOrElse(throw new RuntimeException("XZ3 writer requires a valid date"))
+    val sfc = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
+    val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("XZ3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
 
     (wf) => Seq(createDelete(getRowKey(sfc, sharing, dtgIndex, timeToIndex, wf), wf))
@@ -87,9 +87,9 @@ trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R
 
   override def getQueryPlan(sft: SimpleFeatureType,
                             ds: DS,
-                            filter: TypedFilterStrategy,
+                            filter: FilterStrategy[DS, F, W],
                             hints: Hints,
-                            explain: Explainer): QueryPlan[DS, F, W, Q] = {
+                            explain: Explainer): QueryPlan[DS, F, W] = {
     import org.locationtech.geomesa.filter.FilterHelper._
 
     // note: z3 requires a date field
@@ -132,7 +132,6 @@ trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R
     val ranges = if (filter.primary.isEmpty) { Seq(rangePrefix(sharing)) } else {
       val xy = geometries.values.map(GeometryUtils.bounds)
 
-      // calculate map of weeks to time intervals in that week
       // calculate map of weeks to time intervals in that week
       val timesByBin = scala.collection.mutable.Map.empty[Short, (Double, Double)]
       val dateToIndex = BinnedTime.dateToBinnedTime(sft.getZ3Interval)

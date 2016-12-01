@@ -8,10 +8,8 @@
 
 package org.locationtech.geomesa
 
-import java.util.Map.Entry
-
 import org.apache.accumulo.core.client.BatchWriter
-import org.apache.accumulo.core.data.{Key, Mutation, Value}
+import org.apache.accumulo.core.data.Mutation
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.{GeoMesaAppendFeatureWriter, GeoMesaDataStore, GeoMesaFeatureWriter, GeoMesaModifyFeatureWriter}
@@ -21,16 +19,16 @@ import scala.collection.mutable
 
 package object accumulo {
 
-  type AccumuloDataStoreType = GeoMesaDataStore[AccumuloDataStore, AccumuloFeature, Mutation, Entry[Key, Value]]
-  type AccumuloFeatureIndexType = GeoMesaFeatureIndex[AccumuloDataStore, AccumuloFeature, Mutation, Entry[Key, Value]]
-  type AccumuloFilterPlanType = FilterPlan[AccumuloDataStore, AccumuloFeature, Mutation, Entry[Key, Value]]
-  type AccumuloFilterStrategyType = FilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation, Entry[Key, Value]]
-  type AccumuloQueryPlannerType = QueryPlanner[AccumuloDataStore, AccumuloFeature, Mutation, Entry[Key, Value]]
-  type AccumuloQueryPlanType = QueryPlan[AccumuloDataStore, AccumuloFeature, Mutation, Entry[Key, Value]]
-  type AccumuloIndexManagerType = GeoMesaIndexManager[AccumuloDataStore, AccumuloFeature, Mutation, Entry[Key, Value]]
-  type AccumuloFeatureWriterType = GeoMesaFeatureWriter[AccumuloDataStore, AccumuloFeature, Mutation, Entry[Key, Value], BatchWriter]
-  type AccumuloAppendFeatureWriterType = GeoMesaAppendFeatureWriter[AccumuloDataStore, AccumuloFeature, Mutation, Entry[Key, Value], BatchWriter]
-  type AccumuloModifyFeatureWriterType = GeoMesaModifyFeatureWriter[AccumuloDataStore, AccumuloFeature, Mutation, Entry[Key, Value], BatchWriter]
+  type AccumuloDataStoreType = GeoMesaDataStore[AccumuloDataStore, AccumuloFeature, Mutation]
+  type AccumuloFeatureIndexType = GeoMesaFeatureIndex[AccumuloDataStore, AccumuloFeature, Mutation]
+  type AccumuloFilterPlanType = FilterPlan[AccumuloDataStore, AccumuloFeature, Mutation]
+  type AccumuloFilterStrategyType = FilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation]
+  type AccumuloQueryPlannerType = QueryPlanner[AccumuloDataStore, AccumuloFeature, Mutation]
+  type AccumuloQueryPlanType = QueryPlan[AccumuloDataStore, AccumuloFeature, Mutation]
+  type AccumuloIndexManagerType = GeoMesaIndexManager[AccumuloDataStore, AccumuloFeature, Mutation]
+  type AccumuloFeatureWriterType = GeoMesaFeatureWriter[AccumuloDataStore, AccumuloFeature, Mutation, BatchWriter]
+  type AccumuloAppendFeatureWriterType = GeoMesaAppendFeatureWriter[AccumuloDataStore, AccumuloFeature, Mutation, BatchWriter]
+  type AccumuloModifyFeatureWriterType = GeoMesaModifyFeatureWriter[AccumuloDataStore, AccumuloFeature, Mutation, BatchWriter]
 
   // This first string is used as a SimpleFeature attribute name.
   //  Since we would like to be able to use ECQL filters, we are restricted to letters, numbers, and _'s.

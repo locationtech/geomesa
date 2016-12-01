@@ -13,7 +13,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools._
 import org.opengis.filter.Filter
 
-trait DeleteFeaturesCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait DeleteFeaturesCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
 
   override val name = "delete-features"
   override def params: DeleteFeaturesParams
