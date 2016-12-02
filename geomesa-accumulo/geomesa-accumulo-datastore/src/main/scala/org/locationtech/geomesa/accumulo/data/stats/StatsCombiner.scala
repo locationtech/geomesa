@@ -12,7 +12,6 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{Combiner, IteratorEnvironment, SortedKeyValueIterator}
 import org.locationtech.geomesa.accumulo.data.{MultiRowAccumuloMetadata, SingleRowAccumuloMetadata}
-import org.locationtech.geomesa.accumulo.iterators.IteratorClassLoader
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.StatSerializer
 
@@ -25,8 +24,6 @@ import scala.collection.JavaConversions._
 class StatsCombiner extends Combiner with LazyLogging {
 
   import StatsCombiner.SftOption
-
-  IteratorClassLoader.initClassLoader(classOf[StatsCombiner])
 
   private var serializers: Map[String, StatSerializer] = null
 

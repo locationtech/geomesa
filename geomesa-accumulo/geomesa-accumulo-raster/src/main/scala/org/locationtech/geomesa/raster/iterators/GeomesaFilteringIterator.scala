@@ -11,7 +11,6 @@ package org.locationtech.geomesa.raster.iterators
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
-import org.locationtech.geomesa.accumulo.iterators.IteratorClassLoader
 
 abstract class GeomesaFilteringIterator
     extends HasIteratorExtensions with SortedKeyValueIterator[Key, Value] with HasSourceIterator with LazyLogging {
@@ -21,7 +20,6 @@ abstract class GeomesaFilteringIterator
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
                     env: IteratorEnvironment) = {
-    IteratorClassLoader.initClassLoader(getClass)
     this.source = source.deepCopy(env)
   }
 
