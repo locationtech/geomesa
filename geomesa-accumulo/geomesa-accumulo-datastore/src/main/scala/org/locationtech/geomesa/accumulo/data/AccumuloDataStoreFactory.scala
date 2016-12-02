@@ -127,13 +127,17 @@ object AccumuloDataStoreFactory {
     }
     val collectQueryStats =
       !connector.isInstanceOf[MockConnector] && collectQueryStatsParam.lookupWithDefault[Boolean](params)
+    val generateStats =
+      generateStatsParam.lookupOpt[Boolean](params)
+        .orElse(GeomesaSystemProperties.StatsProperties.GENERATE_STATS.option.map(_.toBoolean))
+        .getOrElse(generateStatsParam.getDefaultValue.asInstanceOf[Boolean])
 
     AccumuloDataStoreConfig(
       queryTimeout,
       queryThreadsParam.lookupWithDefault(params),
       recordThreadsParam.lookupWithDefault(params),
       writeThreadsParam.lookupWithDefault(params),
-      generateStatsParam.lookupWithDefault[Boolean](params),
+      generateStats,
       collectQueryStats,
       cachingParam.lookupWithDefault(params),
       looseBBoxParam.lookupWithDefault(params)

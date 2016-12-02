@@ -75,6 +75,7 @@ package object accumulo {
     }
 
     object StatsProperties {
+      val GENERATE_STATS         = PropAndDefault("geomesa.stats.generate", null)
       val STAT_COMPACTION_MILLIS = PropAndDefault("geomesa.stats.compact.millis", (3600 * 1000L).toString) // one hour
     }
 
