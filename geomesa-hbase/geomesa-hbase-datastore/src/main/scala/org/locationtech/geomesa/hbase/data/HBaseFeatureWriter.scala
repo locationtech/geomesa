@@ -14,6 +14,7 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.hbase.HBaseSystemProperties.WriteBatchSize
 import org.locationtech.geomesa.hbase.{HBaseAppendFeatureWriterType, HBaseFeatureIndexType, HBaseFeatureWriterType, HBaseModifyFeatureWriterType}
+import org.locationtech.geomesa.utils.io.FlushQuietly
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -48,7 +49,8 @@ trait HBaseFeatureWriter extends HBaseFeatureWriterType {
   override def wrapFeature(feature: SimpleFeature): HBaseFeature = new HBaseFeature(feature, serializer)
 
   override def flush(): Unit = {
-    mutators.foreach(_.flush()) // note: BufferedMutator doesn't implement Flushable, so we have to call it manually
+    // note: BufferedMutator doesn't implement Flushable, so super class won't call it
+    mutators.foreach(m => FlushQuietly(m).foreach(exceptions.+=))
     super.flush()
   }
 }

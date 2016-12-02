@@ -22,9 +22,12 @@ import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, WrappedFeature}
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.locationtech.geomesa.utils.index.IndexMode
+import org.locationtech.geomesa.utils.io.{CloseQuietly, FlushQuietly}
 import org.locationtech.geomesa.utils.uuid.{FeatureIdGenerator, Z3FeatureIdGenerator}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import scala.collection.mutable.ArrayBuffer
 
 object GeoMesaFeatureWriter extends LazyLogging {
 
@@ -115,6 +118,8 @@ abstract class GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS, F, W], F <: Wrapp
   private val writers = mutators.zip(writeConverters)
   private val removers = mutators.zip(removeConverters)
 
+  protected val exceptions = ArrayBuffer.empty[Throwable]
+
   // returns a temporary id - we will replace it just before write
   protected def nextFeatureId = GeoMesaFeatureWriter.tempFeatureIds.getAndIncrement().toString
 
@@ -145,13 +150,30 @@ abstract class GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS, F, W], F <: Wrapp
   override def hasNext: Boolean = false
 
   override def flush(): Unit = {
-    mutators.collect { case c: Flushable => c.flush() }
-    statUpdater.flush()
+    mutators.foreach {
+      case m: Flushable => FlushQuietly(m).foreach(exceptions.+=)
+      case _ => // no-op
+    }
+    FlushQuietly(statUpdater).foreach(exceptions.+=)
+    propagateExceptions()
   }
 
   override def close(): Unit = {
-    mutators.collect { case c: Closeable => c.close() }
-    statUpdater.close()
+    mutators.foreach {
+      case m: Closeable => CloseQuietly(m).foreach(exceptions.+=)
+      case _ => // no-op
+    }
+    CloseQuietly(statUpdater).foreach(exceptions.+=)
+    propagateExceptions()
+  }
+
+  private def propagateExceptions(): Unit = {
+    if (exceptions.nonEmpty) {
+      val msg = s"Error writing features: ${exceptions.map(_.getMessage).distinct.mkString("; ")}"
+      val cause = exceptions.head
+      exceptions.clear()
+      throw new RuntimeException(msg, cause)
+    }
   }
 }
 
