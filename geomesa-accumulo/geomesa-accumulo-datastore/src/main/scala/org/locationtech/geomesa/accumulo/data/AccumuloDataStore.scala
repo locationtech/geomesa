@@ -13,6 +13,7 @@ import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.Query
 import org.locationtech.geomesa.accumulo._
+import org.locationtech.geomesa.accumulo.audit.AccumuloAuditService
 import org.locationtech.geomesa.accumulo.data.stats._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.index.attribute.{AttributeIndex, AttributeSplittable}
@@ -241,6 +242,20 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     } finally {
       lock.release()
     }
+  }
+
+  /**
+    * Returns all accumulo tables that may be created for the simple feature type. Note that some
+    * of these tables may be shared with other simple feature types.
+    *
+    * @param typeName simple feature type name
+    * @return
+    */
+  def getAllAccumuloTables(typeName: String): Seq[String] = {
+    val sft = getSchema(typeName)
+    val indices = manager.indices(sft, IndexMode.Any).map(_.getTableName(typeName, this))
+    val others = Seq(statsTable) ++ config.audit.map(_._1.asInstanceOf[AccumuloAuditService].table).toSeq
+    Seq(config.catalog) ++ indices ++ others
   }
 }
 

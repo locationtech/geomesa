@@ -18,7 +18,7 @@ import scala.reflect.ClassTag
 
 class AccumuloAuditService(connector: Connector,
                            authProvider: AuthorizationsProvider,
-                           table: String,
+                           val table: String,
                            write: Boolean) extends AuditWriter with AuditReader with AuditLogger {
 
   private val writer = if (write) new AccumuloEventWriter(connector, table) else null
