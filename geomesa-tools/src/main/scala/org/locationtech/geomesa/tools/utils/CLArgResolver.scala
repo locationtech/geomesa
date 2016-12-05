@@ -27,7 +27,7 @@ object CLArgResolver {
   def getSft(specArg: String, featureName: String = null): SimpleFeatureType = {
       SftArgResolver.getSft(specArg, featureName) match {
         case Right(sft)  => sft
-        case Left(error) => throw new ParameterException(error)
+        case Left(e) => throw new ParameterException(e)
       }
     }
 
@@ -39,6 +39,6 @@ object CLArgResolver {
   def getConfig(configArg: String): Config =
     ConverterConfigResolver.getConfig(configArg) match {
       case Right(config) => config
-      case Left(error)   => throw new ParameterException(error)
+      case Left(e)   => throw new ParameterException(e)
     }
 }

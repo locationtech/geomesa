@@ -15,6 +15,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
+import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -33,17 +34,82 @@ object SftArgResolver extends LazyLogging {
       .setOriginDescription(null)
       .setSyntax(null)
 
+  object SpecArgTypes extends Enumeration {
+    val  NAME, SPECSTR, CONFSTR, PATH = Value
+  }
+  import SpecArgTypes._
+  type sftEither = Either[(String, Throwable, Value), SimpleFeatureType]
+
   /**
    * @return the SFT parsed from the Args
    */
-  def getSft(specArg: String, featureName: String = null): Either[String, SimpleFeatureType] = {
-    val sft = getLoadedSft(specArg, featureName)
-      .orElse(parseSpecString(specArg, featureName))
-      .orElse(parseConfStr(specArg, featureName))
-      .orElse(parseSpecStringFile(specArg, featureName))
-      .orElse(parseConfFile(specArg, featureName))
-    if (sft.isDefined) Right(sft.get)
-    else Left(s"Unable to parse Simple Feature type from sft config or string: $specArg")
+  def getSft(specArg: String, featureName: String = null): Either[Throwable, SimpleFeatureType] = {
+    /**
+     * Here we use rudimentary checking to guess as what kind of specArg was passed in.
+     * We use this to decide which error message to display to the user, since the
+     * parsers fail frequently. The rest of the errors are logged.
+     */
+    val fileNameReg = """([^.]*)\.([^.]*)""" // e.g. "foo.bar"
+    val specStrReg = """^[a-zA-Z0-9]+[:][String|Integer|Double|Point|Date|Map|List].*""" // e.g. "foo:String..."
+    val specStrRegWError = """^[a-zA-Z0-9]+[:][a-zA-Z0-9]+.*""" // e.g. "foo:Sbartring..."
+    lazy val specArgType = specArg match {
+      // Order is important here
+      case s if s.contains("geomesa{")
+             || s.contains("geomesa {")
+             || s.contains("geomesa.sfts")  => CONFSTR
+      case s if s.matches(specStrReg)       => SPECSTR
+      case s if s.matches(fileNameReg)
+             || s.contains("/")             => PATH
+      case s if s.matches(specStrRegWError) => SPECSTR
+      case _                                => NAME
+    }
+
+    // Object for holding relevant error to return
+    object ErrorData {
+      var message: String = _
+      var error: Throwable = _
+      def apply(msg: String, e: Throwable) = { message = msg; error = e }
+    }
+
+    /**
+     * Recursively run through parseMethodList attempting to parse the sft.
+     * The most relevant error message is saved in ErrorData and all error are sent to log.
+     * ErrorData is sent back to the CLArgResolver for display to user.
+     */
+    @tailrec
+    def parseMethods(specArg: String,
+               featureName: String,
+               tryMethod: (String, String) => sftEither = null,
+               methodArray: List[(String, String) => sftEither] = null): SimpleFeatureType = {
+      if (tryMethod == null) parseMethods(specArg, featureName, methodArray.head, methodArray.drop(1))
+      else tryMethod(specArg, featureName) match {
+          case Right(sft) => sft
+          case Left((msg, error, value)) =>
+            //logger.debug(msg, error)
+            logger.info(msg, error)
+            if (specArgType == value) { ErrorData(msg, error) }
+            if (methodArray == null) null
+            else parseMethods(specArg, featureName, methodArray.head, methodArray.drop(1))
+        }
+    }
+
+    val parseMethodList = List[(String, String) => sftEither](
+      parseSpecString,
+      parseConfStr,
+      parseSpecStringFile,
+      parseConfFile
+    )
+
+    val sft = getLoadedSft(specArg, featureName).getOrElse(
+      parseMethods(specArg, featureName, null, parseMethodList)
+    )
+
+    if (sft != null) Right(sft)
+    else {
+      val e = new Throwable(ErrorData.message + "\n" + ErrorData.error.getMessage, ErrorData.error)
+      e.setStackTrace(ErrorData.error.getStackTrace)
+      Left(e)
+    }
   }
 
   // gets an sft from simple feature type providers on the classpath
@@ -54,55 +120,51 @@ object SftArgResolver extends LazyLogging {
   }
 
   // gets an sft based on a spec string
-  private[SftArgResolver] def parseSpecString(specArg: String, name: String): Option[SimpleFeatureType] =
-    Option(name).flatMap { featureName =>
-      Try(SimpleFeatureTypes.createType(featureName, specArg)) match {
-        case Success(sft) => Some(sft)
-        case Failure(e) =>
-          logger.debug(s"Unable to parse sft spec from string $specArg with error ${e.getMessage}")
-          None
-      }
+  private[SftArgResolver] def parseSpecString(specArg: String, name: String): sftEither = {
+    Try(SimpleFeatureTypes.createType(
+        Option(name).getOrElse(throw new Throwable("Null feature name provided. " +
+          "Unable to parse spec string from null value.")),
+        specArg)
+    ) match {
+      case Success(sft) => Right(sft)
+      case Failure(e) => Left((s"Unable to parse sft spec from string $specArg.", e, SPECSTR))
     }
+  }
 
   // gets an sft based on a spec string
-  private[SftArgResolver] def parseSpecStringFile(specArg: String, name: String): Option[SimpleFeatureType] =
-    Option(specArg).map(new File(_)).flatMap { file =>
-      Try(SimpleFeatureTypes.createType (name, FileUtils.readFileToString(file))) match {
-        case Success(sft) => Some(sft)
-        case Failure(e) =>
-          logger.debug(s"Unable to parse sft spec from string $specArg with error ${e.getMessage}")
-          None
-      }
+  private[SftArgResolver] def parseSpecStringFile(specArg: String, name: String): sftEither =
+    Try(SimpleFeatureTypes.createType(
+      Option(name).getOrElse(throw new Throwable("Null feature name provided. " +
+        "Unable to parse spec string from null value.")),
+      FileUtils.readFileToString(new File(Option(specArg).getOrElse(""))))
+    ) match {
+      case Success(sft) => Right(sft)
+      case Failure(e) => Left((s"Unable to parse sft spec from string $specArg with error ${e.getMessage}", e, PATH))
     }
 
-  private[SftArgResolver] def parseConf(configStr: String, name: String): Option[SimpleFeatureType] =
+  private[SftArgResolver] def parseConf(configStr: String, name: String): Either[Throwable, SimpleFeatureType] = {
     Try {
       val sfts = SimpleSftParser.parseConf(ConfigFactory.parseString(configStr, parseOpts))
       if (sfts.size > 1) logger.warn(s"Found more than one SFT conf in arg '$configStr'")
       sfts.get(0)
     } match {
-      case Success(sft) if name == null || name == sft.getTypeName => Some(sft)
-      case Success(sft) => Some(SimpleFeatureTypes.renameSft(sft, name))
-      case Failure(e) => throw e
-    }
-
-  // gets an sft based on a spec conf string
-  private[SftArgResolver] def parseConfStr(specArg: String, name: String): Option[SimpleFeatureType] =
-    Try(parseConf(specArg, name)) match {
-      case Success(sftOpt) => sftOpt
-      case Failure(e) =>
-        logger.debug(s"Unable to parse sft spec from string $specArg as conf with error ${e.getMessage}")
-        None
-    }
-
-  // parse spec conf file
-  private[SftArgResolver] def parseConfFile(specArg: String, name: String): Option[SimpleFeatureType] = {
-    Try(parseConf(FileUtils.readFileToString(new File(specArg)), name)) match {
-      case Success(sftOpt) => sftOpt
-      case Failure(e) =>
-        logger.debug(s"Unable to parse sft spec from file $specArg as conf with error ${e.getMessage}")
-        None
+      case Success(sft) if name == null || name == sft.getTypeName => Right(sft)
+      case Success(sft) => Right(SimpleFeatureTypes.renameSft(sft, name))
+      case Failure(e) => Left(e)
     }
   }
 
+  // gets an sft based on a spec conf string
+  private[SftArgResolver] def parseConfStr(specArg: String, name: String): sftEither =
+    parseConf(specArg, name) match {
+      case Right(sftOpt) => Right(sftOpt)
+      case Left(e) => Left((s"Unable to parse sft spec from string $specArg as conf.", e, CONFSTR))
+    }
+
+  // parse spec conf file
+  private[SftArgResolver] def parseConfFile(specArg: String, name: String): sftEither =
+    parseConf(FileUtils.readFileToString(new File(specArg)), name) match {
+      case Right(sftOpt) => Right(sftOpt)
+      case Left(e) => Left((s"Unable to parse sft spec from file $specArg as conf.", e, PATH))
+    }
 }

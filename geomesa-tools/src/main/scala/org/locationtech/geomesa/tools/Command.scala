@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.tools
 
-import com.beust.jcommander.JCommander
+import com.beust.jcommander.{JCommander, ParameterException}
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -52,8 +52,10 @@ trait DataStoreCommand[DS <: DataStore] extends Command {
 
   def connection: Map[String, String]
 
+  @throws[ParameterException]
   def withDataStore[T](method: (DS) => T): T = {
-    val ds = DataStoreFinder.getDataStore(connection).asInstanceOf[DS]
+    val ds = Option(DataStoreFinder.getDataStore(connection).asInstanceOf[DS])
+      .getOrElse(throw new ParameterException("Unable to retrieve datastore."))
     try { method(ds) } finally {
       ds.dispose()
     }

@@ -11,7 +11,7 @@ package org.locationtech.geomesa.tools.export
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureUtils
 import org.locationtech.geomesa.tools._
-import org.locationtech.geomesa.utils.geotools.SftArgResolver
+import org.locationtech.geomesa.tools.utils.CLArgResolver
 
 class GenerateAvroSchemaCommand extends Command {
 
@@ -19,14 +19,9 @@ class GenerateAvroSchemaCommand extends Command {
   val params = new GenerateAvroSchemaParams
 
   override def execute(): Unit = {
-    val sft = SftArgResolver.getSft(params.spec, params.featureName)
-    sft match {
-      case Right(sft) =>
-        val schema = AvroSimpleFeatureUtils.generateSchema(sft, withUserData = true)
-        Command.output.info(schema.toString(true))
-      case Left(error) =>
-        Command.user.warn(error)
-    }
+    val sft = CLArgResolver.getSft(params.spec, params.featureName)
+    val schema = AvroSimpleFeatureUtils.generateSchema(sft, withUserData = true)
+    Command.output.info(schema.toString(true))
   }
 
 }
