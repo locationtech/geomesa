@@ -362,7 +362,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     "return a list of all accumulo tables associated with a schema" in {
       val indices = ds.manager.indices(defaultSft, IndexMode.Any).map(_.getTableName(defaultSft.getTypeName, ds))
       val expected = Seq(sftBaseName, s"${sftBaseName}_stats", s"${sftBaseName}_queries") ++ indices
-      ds.getAllAccumuloTables(defaultTypeName) must containTheSameElementsAs(expected)
+      ds.getAllTableNames(defaultTypeName) must containTheSameElementsAs(expected)
     }
 
     "allow secondary attribute indexes" >> {
