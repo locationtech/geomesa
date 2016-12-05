@@ -18,6 +18,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.{DEFAU
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConverters._
+import scala.collection.immutable.Seq
 
 object GeoMesaSchemaValidator {
 
@@ -25,6 +26,7 @@ object GeoMesaSchemaValidator {
     MixedGeometryCheck.validateGeometryType(sft)
     TemporalIndexCheck.validateDtgField(sft)
     ReservedWordCheck.validateAttributeNames(sft)
+    IndexConfigurationCheck.validateIndices(sft)
   }
 
   private [index] def boolean(value: AnyRef): Boolean = value match {
@@ -88,7 +90,7 @@ object TemporalIndexCheck extends LazyLogging {
     }
   }
 
-  def scanForTemporalAttributes(sft: SimpleFeatureType) =
+  def scanForTemporalAttributes(sft: SimpleFeatureType): Seq[String] =
     sft.getAttributeDescriptors.asScala.toList
       .withFilter { classOf[java.util.Date] isAssignableFrom _.getType.getBinding } .map { _.getLocalName }
 }
@@ -107,5 +109,13 @@ object MixedGeometryCheck extends LazyLogging {
             "Otherwise, please specify a single geometry type (e.g. Point, LineString, Polygon, etc).")
       }
     }
+  }
+}
+
+object IndexConfigurationCheck {
+
+  def validateIndices(sft: SimpleFeatureType): Unit = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    require(sft.getZShards > 0 && sft.getZShards < 128, "Z shards must be between 1 and 127")
   }
 }

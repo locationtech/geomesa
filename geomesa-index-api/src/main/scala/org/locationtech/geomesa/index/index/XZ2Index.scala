@@ -20,14 +20,13 @@ import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, 
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
-import org.locationtech.geomesa.index.utils.Explainer
+import org.locationtech.geomesa.index.utils.{Explainer, SplitArrays}
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, _}
 import org.opengis.feature.simple.SimpleFeatureType
 
 trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] extends GeoMesaFeatureIndex[DS, F, W]
     with IndexAdapter[DS, F, W, R] with SpatialFilterStrategy[DS, F, W] with LazyLogging {
 
-  import IndexAdapter.{DefaultNumSplits, DefaultSplitArrays}
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   override val name: String = "xz2"
@@ -37,18 +36,24 @@ trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exte
   override def writer(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
     val sfc = XZ2SFC(sft.getXZPrecision)
     val sharing = sft.getTableSharingBytes
-    (wf) => Seq(createInsert(getRowKey(sfc, sharing, wf), wf))
+    val shards = SplitArrays(sft)
+    (wf) => Seq(createInsert(getRowKey(sfc, sharing, shards, wf), wf))
   }
 
   override def remover(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
     val sfc = XZ2SFC(sft.getXZPrecision)
     val sharing = sft.getTableSharingBytes
-    (wf) => Seq(createDelete(getRowKey(sfc, sharing, wf), wf))
+    val shards = SplitArrays(sft)
+    (wf) => Seq(createDelete(getRowKey(sfc, sharing, shards, wf), wf))
   }
 
-  private def getRowKey(sfc: XZ2SFC, sharing: Array[Byte], wrapper: F): Array[Byte] = {
-    val split = DefaultSplitArrays(wrapper.idHash % DefaultNumSplits)
-    val envelope = wrapper.feature.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal
+  private def getRowKey(sfc: XZ2SFC, sharing: Array[Byte], shards: IndexedSeq[Array[Byte]], wrapper: F): Array[Byte] = {
+    val split = shards(wrapper.idHash % shards.length)
+    val geom = wrapper.feature.getDefaultGeometry.asInstanceOf[Geometry]
+    if (geom == null) {
+      throw new IllegalArgumentException(s"Null geometry in feature ${wrapper.feature.getID}")
+    }
+    val envelope = geom.getEnvelopeInternal
     val xz = sfc.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY)
     val id = wrapper.feature.getID.getBytes(StandardCharsets.UTF_8)
     Bytes.concat(sharing, split, Longs.toByteArray(xz), id)
@@ -61,7 +66,7 @@ trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exte
 
   override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    val splits = DefaultSplitArrays.drop(1) // drop the first so we don't get an empty tablet
+    val splits = SplitArrays(sft).drop(1) // drop the first so we don't get an empty tablet
     if (sft.isTableSharing) {
       val sharing = sft.getTableSharingBytes
       splits.map(s => Bytes.concat(sharing, s))
@@ -98,7 +103,7 @@ trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exte
       val sfc = XZ2SFC(sft.getXZPrecision)
       val zs = sfc.ranges(xy, rangeTarget).map(r => (Longs.toByteArray(r.lower), Longs.toByteArray(r.upper)))
 
-      val prefixes = DefaultSplitArrays.map(Bytes.concat(sharing, _))
+      val prefixes = SplitArrays(sft).map(Bytes.concat(sharing, _))
 
       prefixes.flatMap { prefix =>
         zs.map { case (lo, hi) =>

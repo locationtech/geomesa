@@ -22,6 +22,8 @@ trait GeoMesaIndexManager[O <: GeoMesaDataStore[O, F, W], F <: WrappedFeature, W
   private lazy val indexMap = AllIndices.map(i => (i.name, i.version) -> i).toMap
 
   // note: keep in priority order for running full table scans
+  // also consider the order of feature validation in
+  // org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
   def AllIndices: Seq[GeoMesaFeatureIndex[O, F, W]]
 
   def CurrentIndices: Seq[GeoMesaFeatureIndex[O, F, W]]

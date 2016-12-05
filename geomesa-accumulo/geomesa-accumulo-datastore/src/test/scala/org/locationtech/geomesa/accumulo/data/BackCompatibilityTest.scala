@@ -26,6 +26,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -73,6 +74,11 @@ class BackCompatibilityTest extends Specification with LazyLogging {
 
   def runVersionTest(tables: Seq[TableMutations]) = {
     import scala.collection.JavaConversions._
+
+    // since we re-use the same sft and tables, the converter cache can get messed up
+    // note that the only problem is the attribute table name change between 1.2.2 and 1.2.3, which gets cached
+    // other changes are captured in the index versions, and the cache handles them appropriately
+    GeoMesaFeatureWriter.expireConverterCache()
 
     // reload the tables
     tables.foreach { case TableMutations(table, mutations) =>

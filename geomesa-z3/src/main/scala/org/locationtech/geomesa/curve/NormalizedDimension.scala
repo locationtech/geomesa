@@ -13,7 +13,10 @@ trait NormalizedDimension {
   def max: Double
   def precision: Long
 
-  def normalize(x: Double): Int = math.max(min, math.ceil((x - min) / (max - min) * precision)).toInt
+  def normalize(x: Double): Int = {
+    require(x >= min && x <= max, s"Value out of bounds ([$min $max]): $x")
+    math.ceil((x - min) / (max - min) * precision).toInt
+  }
   def denormalize(x: Double): Double = (x / precision) * (max - min) + min
 }
 

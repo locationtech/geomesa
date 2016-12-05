@@ -45,6 +45,8 @@ object AccumuloFeatureIndex extends AccumuloIndexManagerType with LazyLogging {
   private val RecordIndices         = Seq(RecordIndex, RecordIndexV1)
 
   // note: keep in priority order for running full table scans
+  // before changing the order, consider the effect of feature validation in
+  // org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
   override val AllIndices: Seq[AccumuloWritableIndex] =
     SpatioTemporalIndices ++ SpatialIndices ++ RecordIndices ++ AttributeIndices
 

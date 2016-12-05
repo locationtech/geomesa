@@ -58,6 +58,21 @@ class Z3Test extends Specification {
       }
     }
 
+    "fail for out-of-bounds values" >> {
+      val sfc = Z3SFC(TimePeriod.Week)
+      val toFail = Seq(
+        (-180.1, 0d, 0L),
+        (180.1, 0d, 0L),
+        (0d, -90.1, 0L),
+        (0d, 90.1, 0L),
+        (0d, 0d, sfc.time.min.toLong - 1),
+        (0d, 0d, sfc.time.max.toLong + 1),
+        (-181d, -91d, sfc.time.min.toLong - 1),
+        (181d, 91d, sfc.time.max.toLong + 1)
+      )
+      forall(toFail) { case (x, y, t) => sfc.index(x, y, t) must throwAn[IllegalArgumentException] }
+    }
+
     "split" >> {
       val splits = Seq(
         0x00000000ffffffL,

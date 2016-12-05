@@ -12,6 +12,7 @@ import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureUtils
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.CLArgResolver
+import org.locationtech.geomesa.utils.geotools.SftArgResolver
 
 class GenerateAvroSchemaCommand extends Command {
 
@@ -23,7 +24,6 @@ class GenerateAvroSchemaCommand extends Command {
     val schema = AvroSimpleFeatureUtils.generateSchema(sft, withUserData = true)
     Command.output.info(schema.toString(true))
   }
-
 }
 
 @Parameters(commandDescription = "Generate an Avro schema from a SimpleFeatureType")

@@ -12,6 +12,8 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.utils.conf.GeoMesaProperties._
 
+import scala.util.control.NonFatal
+
 trait VersionRemoteCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
 
   override val name: String = "version-remote"
@@ -21,6 +23,11 @@ trait VersionRemoteCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCom
     Command.output.info(s"Local Commit ID: $GitCommit")
     Command.output.info(s"Local Branch: $GitBranch")
     Command.output.info(s"Local Build date: $BuildDate")
-    Command.output.info(s"Remote distributed runtime version: ${withDataStore(_.getVersion._2)}")
+    try {
+      val iterVersion = withDataStore(_.getVersion._2)
+      Command.output.info(s"Distributed runtime version: $iterVersion")
+    } catch {
+      case NonFatal(e) => Command.user.error("Could not get distributed version:", e)
+    }
   }
 }

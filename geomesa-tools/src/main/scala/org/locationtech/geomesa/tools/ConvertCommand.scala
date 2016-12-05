@@ -26,7 +26,7 @@ import org.locationtech.geomesa.utils.text.TextTools.getPlural
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-class ConvertCommand extends Command {
+class ConvertCommand extends Command with LazyLogging {
 
   override val name = "convert"
   override val params = new ConvertParameters
@@ -38,6 +38,7 @@ class ConvertCommand extends Command {
     import scala.collection.JavaConversions._
 
     val sft = CLArgResolver.getSft(params.spec)
+
     Command.user.info(s"Using SFT definition: $sft")
 
     val converter = getConverter(params, sft)
