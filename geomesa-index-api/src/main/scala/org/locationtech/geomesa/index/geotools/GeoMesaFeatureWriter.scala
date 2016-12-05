@@ -127,6 +127,10 @@ abstract class GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS, F, W], F <: Wrapp
     // see if there's a suggested ID to use for this feature, else create one based on the feature
     val featureWithFid = GeoMesaFeatureWriter.featureWithFid(sft, feature)
     val wrapped = wrapFeature(featureWithFid)
+    // note: we should calculate all mutations up front in case the feature is not valid, to avoid
+    // writing to some indices and not others. However, we can avoid storing the intermediate results
+    // because of our index order. Currently if an index validates, all indices after it will
+    // also validate (X/Z3, X/Z2, Id, Attribute)
     writers.foreach { case (mutator, convert) => executeWrite(mutator, convert(wrapped)) }
     statUpdater.add(featureWithFid)
   }

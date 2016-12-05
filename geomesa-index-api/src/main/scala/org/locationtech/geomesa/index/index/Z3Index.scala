@@ -63,6 +63,9 @@ trait Z3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exten
                         wrapper: F): Array[Byte] = {
     val split = shards(wrapper.idHash % shards.length)
     val geom = wrapper.feature.getDefaultGeometry.asInstanceOf[Point]
+    if (geom == null) {
+      throw new IllegalArgumentException(s"Null geometry in feature ${wrapper.feature.getID}")
+    }
     val dtg = wrapper.feature.getAttribute(dtgIndex).asInstanceOf[Date]
     val time = if (dtg == null) 0 else dtg.getTime
     val BinnedTime(b, t) = timeToIndex(time)

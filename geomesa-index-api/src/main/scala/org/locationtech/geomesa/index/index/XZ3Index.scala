@@ -61,7 +61,11 @@ trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exte
                         timeToIndex: (Long) => BinnedTime,
                         wrapper: F): Array[Byte] = {
     val split = shards(wrapper.idHash % shards.length)
-    val envelope = wrapper.feature.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal
+    val geom = wrapper.feature.getDefaultGeometry.asInstanceOf[Geometry]
+    if (geom == null) {
+      throw new IllegalArgumentException(s"Null geometry in feature ${wrapper.feature.getID}")
+    }
+    val envelope = geom.getEnvelopeInternal
     // TODO support date intervals
     val dtg = wrapper.feature.getAttribute(dtgIndex).asInstanceOf[Date]
     val time = if (dtg == null) 0 else dtg.getTime

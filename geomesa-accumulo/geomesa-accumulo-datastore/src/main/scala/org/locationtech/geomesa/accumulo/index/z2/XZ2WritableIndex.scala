@@ -60,7 +60,11 @@ trait XZ2WritableIndex extends AccumuloWritableIndex {
   private def getRowKey(sfc: XZ2SFC, tableSharing: Array[Byte], splitArray: Seq[Array[Byte]])(wf: AccumuloFeature): Array[Byte] = {
     val numSplits = splitArray.length
     val split = splitArray(wf.idHash % numSplits)
-    val envelope = wf.feature.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal
+    val geom = wf.feature.getDefaultGeometry.asInstanceOf[Geometry]
+    if (geom == null) {
+      throw new IllegalArgumentException(s"Null geometry in feature ${wf.feature.getID}")
+    }
+    val envelope = geom.getEnvelopeInternal
     val xz = sfc.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY)
     val id = wf.feature.getID.getBytes(StandardCharsets.UTF_8)
     Bytes.concat(tableSharing, split, Longs.toByteArray(xz), id)
