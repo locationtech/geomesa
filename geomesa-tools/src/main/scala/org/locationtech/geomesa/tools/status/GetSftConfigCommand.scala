@@ -12,13 +12,10 @@ import java.util
 
 import com.beust.jcommander._
 import org.geotools.data.DataStore
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools.status.GetSftConfigCommand.{Spec, TypeSafe}
-import org.locationtech.geomesa.tools.{DataStoreCommand, RequiredTypeNameParam}
+import org.locationtech.geomesa.tools.{Command, DataStoreCommand, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
-
-import scala.util.control.NonFatal
 
 trait GetSftConfigCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
@@ -26,24 +23,20 @@ trait GetSftConfigCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   override def params: GetSftConfigParams
 
-  override def execute() = {
+  override def execute(): Unit = {
     import scala.collection.JavaConversions._
 
-    logger.info(s"Getting SFT for type name '${params.featureName}'")
-    try {
-      val sft = withDataStore(getSchema)
-      if (sft == null) {
-        throw new ParameterException(s"Schema '${params.featureName}' does not exist in the provided datastore")
-      }
-      params.format.map(_.toLowerCase).foreach {
-        case TypeSafe => println(SimpleFeatureTypes.toConfigString(sft, !params.excludeUserData, params.concise))
-        case Spec => println(SimpleFeatureTypes.encodeType(sft, !params.excludeUserData))
-        // shouldn't happen due to parameter validation
-        case _ => throw new RuntimeException("Unhandled format")
-      }
-    } catch {
-      case p: ParameterException => throw p
-      case NonFatal(e) => logger.error(s"Error describing feature '${params.featureName}':", e)
+    Command.user.info(s"Retrieving SFT for type name '${params.featureName}'")
+
+    val sft = withDataStore(getSchema)
+    if (sft == null) {
+      throw new ParameterException(s"Schema '${params.featureName}' does not exist in the provided datastore")
+    }
+    params.format.map(_.toLowerCase).foreach {
+      case TypeSafe => Command.output.info(SimpleFeatureTypes.toConfigString(sft, !params.excludeUserData, params.concise))
+      case Spec => Command.output.info(SimpleFeatureTypes.encodeType(sft, !params.excludeUserData))
+      // shouldn't happen due to parameter validation
+      case f => throw new ParameterException(s"Invalid format '$f'. Valid values are '$TypeSafe' and '$Spec'")
     }
   }
 
@@ -64,7 +57,7 @@ trait GetSftConfigParams extends RequiredTypeNameParam {
   @Parameter(names = Array("--format"), description = "Output formats (allowed values are typesafe, spec)", required = false, validateValueWith = classOf[FormatValidator])
   var format: java.util.List[String] = {
     val list = new java.util.ArrayList[String]()
-    list.add("typesafe")
+    list.add(TypeSafe)
     list
   }
 

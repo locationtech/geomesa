@@ -102,14 +102,14 @@ object AccumuloRunner extends Runner {
             Try { java.lang.Long.parseLong(p) }.toOption
           }.getOrElse(5000L)
 
-          logger.debug(s"Looking up Accumulo Instance Id in Zookeeper for $lookupTime milliseconds.")
-          logger.debug("You can specify the Instance Id via the command line or\n" +
+          Command.user.debug(s"Looking up Accumulo Instance Id in Zookeeper for $lookupTime milliseconds.")
+          Command.user.debug("You can specify the Instance Id via the command line or\n" +
             "change the Zookeeper timeout by setting the system property 'instance.zookeeper.timeout'.")
 
           import scala.concurrent.duration._
           Await.result(Future(HdfsZooInstance.getInstance().getInstanceName)(ExecutionContext.global),  lookupTime.millis)
         } catch {
-          case NonFatal(e) => logger.warn(s"Exception getting zoo instance: ${e.toString}"); null
+          case NonFatal(e) => Command.user.warn(s"Exception getting zoo instance: ${e.toString}"); null
         }
       }
     }

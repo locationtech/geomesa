@@ -10,7 +10,7 @@ package org.locationtech.geomesa.index.utils
 
 import java.io.PrintStream
 
-import org.slf4j.LoggerFactory
+import org.slf4j.{Logger, LoggerFactory}
 
 trait Explainer {
   private var indent = ""
@@ -43,12 +43,14 @@ object ExplainNull extends Explainer {
 class ExplainString extends Explainer {
   private val string: StringBuilder = new StringBuilder()
   override def output(s: => String): Unit = string.append(s).append("\n")
-  override def toString = string.toString()
+  override def toString: String = string.toString()
 }
 
-class ExplainLogging extends Explainer {
-  override def output(s: => String): Unit = ExplainLogging.logger.trace(s)
+class ExplainLogger(logger: Logger) extends Explainer {
+  override def output(s: => String): Unit = logger.trace(s)
 }
+
+class ExplainLogging extends ExplainLogger(ExplainLogging.logger)
 
 object ExplainLogging {
   private val logger = LoggerFactory.getLogger(classOf[Explainer])

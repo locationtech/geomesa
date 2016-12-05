@@ -30,14 +30,14 @@ class ListenCommand extends Command with LazyLogging {
   override val params = new ListenParameters()
 
   override def execute(): Unit = {
-    println(s"Listening to ${params.featureName}...")
+    Command.user.info(s"Listening to ${params.featureName}...")
 
     val featureConfig = new KafkaDataStore(params.zookeepers, params.zkPath, 1, 1, null).getFeatureConfig(params.featureName)
     val formatter = classOf[ListenMessageFormatter].getName
     val sftSpec = encodeSFT(featureConfig.sft)
 
-    println(s"SimpleFeature type for type ${params.featureName}:")
-    println(s"${DataUtilities.encodeType(featureConfig.sft)}")
+    Command.user.info(s"SimpleFeature type for type ${params.featureName}:")
+    Command.user.info(s"${DataUtilities.encodeType(featureConfig.sft)}")
 
     var ccArgs = Seq("--topic", featureConfig.topic,
       "--zookeeper", params.zookeepers,

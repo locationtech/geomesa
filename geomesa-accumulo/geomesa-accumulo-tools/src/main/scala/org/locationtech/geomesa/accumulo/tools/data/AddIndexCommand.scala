@@ -9,12 +9,11 @@
 package org.locationtech.geomesa.accumulo.tools.data
 
 import com.beust.jcommander.{Parameter, Parameters}
-import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.util.ToolRunner
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
-import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.tools.data.AddIndexCommand.AddIndexParameters
+import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
 import org.locationtech.geomesa.jobs.accumulo.AccumuloJobUtils
 import org.locationtech.geomesa.jobs.accumulo.index.{WriteIndexArgs, WriteIndexJob}
 import org.locationtech.geomesa.tools._
@@ -32,7 +31,7 @@ import scala.util.control.NonFatal
   * 4. Turn old index off, put new index in read/write mode
   * 5. Pause and indicate that the user should bounce live ingestion again
   */
-class AddIndexCommand extends AccumuloDataStoreCommand with LazyLogging {
+class AddIndexCommand extends AccumuloDataStoreCommand {
 
   import org.locationtech.geomesa.index.utils.GeoMesaMetadata.ATTRIBUTES_KEY
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -84,11 +83,11 @@ class AddIndexCommand extends AccumuloDataStoreCommand with LazyLogging {
     }
 
     if (params.noBackFill != null && params.noBackFill) {
-      logger.info("Adding new indices and disabling old ones")
+      Command.user.info("Adding new indices and disabling old ones")
       sft.setIndices(indices.map(i => (i.name, i.version, IndexMode.ReadWrite)) ++ toKeep)
       ds.updateSchema(sft.getTypeName, sft)
     } else {
-      logger.info("Adding new indices in write-only mode")
+      Command.user.info("Adding new indices in write-only mode")
 
       // add new index in write-only mode
       sft.setIndices(indices.map(i => (i.name, i.version, IndexMode.Write)) ++ sft.getIndices)
@@ -99,7 +98,7 @@ class AddIndexCommand extends AccumuloDataStoreCommand with LazyLogging {
           "please bounce any streaming ingestion. Once ingestion has resumed, press 'enter' to continue.")
 
       // run migration job
-      logger.info("Running index back-fill job")
+      Command.user.info("Running index back-fill job")
 
       val args = new WriteIndexArgs(Array.empty)
       args.inZookeepers = params.zookeepers
@@ -113,14 +112,14 @@ class AddIndexCommand extends AccumuloDataStoreCommand with LazyLogging {
 
       val libjars = Some(AccumuloJobUtils.defaultLibJars, AccumuloJobUtils.defaultSearchPath)
       val result = try { ToolRunner.run(new WriteIndexJob(libjars), args.unparse()) } catch {
-        case NonFatal(e) => logger.error("Error running back-fill job:", e); -1
+        case NonFatal(e) => Command.user.error("Error running back-fill job:", e); -1
       }
 
       def setReadWrite(): Unit = {
-        logger.info("Setting index to read-write mode and disabling old indices")
+        Command.user.info("Setting index to read-write mode and disabling old indices")
         // set new indices to read-write and turn off disabled indices
         sft.setIndices(indices.map(i => (i.name, i.version, IndexMode.ReadWrite)) ++ toKeep)
-        println(sft.getIndices)
+        Command.user.info(sft.getIndices.toString)
         ds.updateSchema(sft.getTypeName, sft)
       }
 
@@ -144,7 +143,7 @@ class AddIndexCommand extends AccumuloDataStoreCommand with LazyLogging {
     }
 
     // final bounce
-    println("Operation complete. Please bounce any streaming ingestion to pick up the changes.")
+    Command.user.info("Operation complete. Please bounce any streaming ingestion to pick up the changes.")
   }
 }
 
