@@ -227,18 +227,14 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       // create the data store
       val ns = "mytestns"
       val typeName = "namespacetest"
-      val sft = SimpleFeatureTypes.createType(ns, typeName, "name:String,geom:Point:srid=4326,dtg:Date")
-      ds.createSchema(sft)
 
-      val schemaWithoutNs = ds.getSchema(sft.getTypeName)
+      val sft = SimpleFeatureTypes.createType(typeName, "geom:Point:srid=4326")
+      val sftWithNs = SimpleFeatureTypes.createType(ns, typeName, "geom:Point:srid=4326")
 
-      schemaWithoutNs.getName.getNamespaceURI must beNull
-      schemaWithoutNs.getName.getLocalPart mustEqual sft.getTypeName
+      ds.createSchema(sftWithNs)
 
-      val schemaWithNs = ds.getSchema(new NameImpl(ns, sft.getTypeName))
-
-      schemaWithNs.getName.getNamespaceURI mustEqual ns
-      schemaWithNs.getName.getLocalPart mustEqual sft.getTypeName
+      ds.getSchema(typeName) mustEqual sft
+      ds.getSchema(new NameImpl(ns, typeName)) mustEqual sft
     }
 
     "handle cql functions" in {

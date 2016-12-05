@@ -35,7 +35,7 @@ import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.accumulo.index.geohash.GeoHashIndex
 import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.accumulo.iterators.ProjectVersionIterator
-import org.locationtech.geomesa.accumulo.util.{DistributedLocking, GeoMesaBatchWriterConfig, Releasable}
+import org.locationtech.geomesa.accumulo.util.{DistributedLocking, Releasable}
 import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
@@ -76,13 +76,8 @@ class AccumuloDataStore(val connector: Connector,
 
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
 
-  // having at least as many shards as tservers provides optimal parallelism in queries
-  private val defaultMaxShard = connector.instanceOperations().getTabletServers.size()
-
   private val queryTimeoutMillis: Option[Long] = config.queryTimeout
       .orElse(GeomesaSystemProperties.QueryProperties.QUERY_TIMEOUT_MILLIS.option.map(_.toLong))
-
-  private val defaultBWConfig = GeoMesaBatchWriterConfig().setMaxWriteThreads(config.writeThreads)
 
   private val statsTable = GeoMesaTable.concatenateNameParts(catalogTable, "stats")
   private val usageStatsTable = GeoMesaTable.concatenateNameParts(catalogTable, "queries")
@@ -156,21 +151,20 @@ class AccumuloDataStore(val connector: Connector,
   }
 
   /**
+    * @see org.geotools.data.DataAccess#getSchema(org.opengis.feature.type.Name)
+    * @param name feature type name
+    * @return feature type, or null if it does not exist
+    */
+  override def getSchema(name: Name): SimpleFeatureType = getSchema(name.getLocalPart)
+
+  /**
    * @see org.geotools.data.DataStore#getSchema(java.lang.String)
    * @param typeName feature type name
    * @return feature type, or null if it does not exist
    */
-  override def getSchema(typeName: String): SimpleFeatureType = getSchema(new NameImpl(typeName))
-
-  /**
-   * @see org.geotools.data.DataAccess#getSchema(org.opengis.feature.type.Name)
-   * @param name feature type name
-   * @return feature type, or null if it does not exist
-   */
-  override def getSchema(name: Name): SimpleFeatureType = {
+  override def getSchema(typeName: String): SimpleFeatureType = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.SCHEMA_VERSION_KEY
 
-    val typeName = name.getLocalPart
     val attributes = metadata.read(typeName, ATTRIBUTES_KEY).orElse {
       // check for old-style metadata and re-write it if necessary
       if (oldMetadata.read(typeName, ATTRIBUTES_KEY, cache = false).isDefined) {
@@ -190,7 +184,7 @@ class AccumuloDataStore(val connector: Connector,
     }
 
     attributes.map { attributes =>
-      val sft = SimpleFeatureTypes.createType(name.getURI, attributes)
+      val sft = SimpleFeatureTypes.createType(typeName, attributes)
 
       checkProjectVersion()
 
@@ -374,7 +368,7 @@ class AccumuloDataStore(val connector: Connector,
    * @see org.geotools.data.DataStore#removeSchema(java.lang.String)
    * @param typeName simple feature type name
    */
-  override def removeSchema(typeName: String) = {
+  override def removeSchema(typeName: String): Unit = {
     val typeLock = acquireFeatureLock(typeName)
     try {
       Option(getSchema(typeName)).foreach { sft =>
@@ -579,7 +573,7 @@ class AccumuloDataStore(val connector: Connector,
    * (index tables and catalog table)
    * NB: We are *not* currently deleting the query table and/or query information.
    */
-  def delete() = {
+  def delete(): Unit = {
     val indexTables = getTypeNames.map(getSchema)
         .flatMap(sft => AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(getTableName(sft.getTypeName, _)))
         .distinct
