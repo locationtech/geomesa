@@ -10,7 +10,6 @@ package org.locationtech.geomesa.tools.status
 
 import com.beust.jcommander.ParameterException
 import org.geotools.data.DataStore
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools.{DataStoreCommand, TypeNameParam}
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 
