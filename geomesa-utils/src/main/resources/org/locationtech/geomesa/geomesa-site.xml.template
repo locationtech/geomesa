@@ -193,6 +193,17 @@
     </property>
 
     <property>
+        <name>geomesa.stats.generate</name>
+        <value></value>
+        <description>This property controls whether GeoMesa will generate
+            statistics during ingestion. This property will be used if a
+            data store is not explicitly configured using the 'generateStats'
+            parameter.
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
         <name>geomesa.stats.compact.millis</name>
         <value>3600000</value>
         <description>This property controls how often the GeoMesa statistics

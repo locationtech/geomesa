@@ -123,9 +123,9 @@ object AccumuloDataStoreFactory {
       new AccumuloAuditService(connector, authProvider, auditTable, auditQueries)
     }
 
-    val generateStats = generateStatsParam.lookupWithDefault[Boolean](params)
-    val visibility = visibilityParam.lookupOpt[String](params).getOrElse("")
+    val generateStats = GeoMesaDataStoreFactory.generateStats(params)
     val queryTimeout = GeoMesaDataStoreFactory.queryTimeout(params)
+    val visibility = visibilityParam.lookupOpt[String](params).getOrElse("")
 
     AccumuloDataStoreConfig(
       catalog,
