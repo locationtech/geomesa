@@ -25,9 +25,9 @@ class GmlExporter(os: OutputStream) extends FeatureExporter {
     None
   }
 
-  override def flush() = os.flush()
+  override def flush(): Unit  = os.flush()
 
-  override def close() = {
+  override def close(): Unit  = {
     os.flush()
     os.close()
   }

@@ -14,6 +14,7 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.hbase.HBaseSystemProperties.WriteBatchSize
 import org.locationtech.geomesa.hbase.{HBaseAppendFeatureWriterType, HBaseFeatureIndexType, HBaseFeatureWriterType, HBaseModifyFeatureWriterType}
+import org.locationtech.geomesa.utils.io.FlushQuietly
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -30,7 +31,7 @@ trait HBaseFeatureWriter extends HBaseFeatureWriterType {
 
   private val serializer = new KryoFeatureSerializer(sft, SerializationOptions.withoutId)
 
-  override protected def createMutators(tables: Seq[String]): Seq[BufferedMutator] = {
+  override protected def createMutators(tables: IndexedSeq[String]): IndexedSeq[BufferedMutator] = {
     val batchSize = WriteBatchSize.option.map(_.toLong)
     tables.map { name =>
       val params = new BufferedMutatorParams(TableName.valueOf(name))
@@ -39,17 +40,17 @@ trait HBaseFeatureWriter extends HBaseFeatureWriterType {
     }
   }
 
-  override protected def createWrites(mutators: Seq[BufferedMutator]): Seq[(Seq[Mutation]) => Unit] =
-    mutators.map(mutator => (m: Seq[Mutation]) => m.foreach(mutator.mutate))
+  override protected def executeWrite(mutator: BufferedMutator, writes: Seq[Mutation]): Unit =
+    writes.foreach(mutator.mutate)
 
-  override protected def createRemoves(mutators: Seq[BufferedMutator]): Seq[(Seq[Mutation]) => Unit] =
-    mutators.map(mutator => (m: Seq[Mutation]) => m.foreach(mutator.mutate))
+  override protected def executeRemove(mutator: BufferedMutator, removes: Seq[Mutation]): Unit =
+    removes.foreach(mutator.mutate)
 
-  override def wrapFeature(feature: SimpleFeature): HBaseFeature =
-    new HBaseFeature(feature, serializer)
+  override def wrapFeature(feature: SimpleFeature): HBaseFeature = new HBaseFeature(feature, serializer)
 
   override def flush(): Unit = {
-    mutators.foreach(_.flush())
+    // note: BufferedMutator doesn't implement Flushable, so super class won't call it
+    mutators.foreach(m => FlushQuietly(m).foreach(exceptions.+=))
     super.flush()
   }
 }

@@ -13,35 +13,33 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.kafka.KafkaDataStoreHelper
 import org.locationtech.geomesa.kafka.tools.{KafkaDataStoreCommand, ProducerKDSConnectionParams}
 import org.locationtech.geomesa.tools.utils.CLArgResolver
-import org.locationtech.geomesa.tools.{RequiredFeatureSpecParam, RequiredTypeNameParam}
+import org.locationtech.geomesa.tools.{Command, RequiredFeatureSpecParam, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
-class KafkaCreateSchemaCommand extends KafkaDataStoreCommand with LazyLogging {
+class KafkaCreateSchemaCommand extends KafkaDataStoreCommand {
 
   override val name = "create-schema"
   override val params = new KafkaCreateSchemaParams()
 
-  override def execute() = {
+  override def execute(): Unit = {
     val sft = CLArgResolver.getSft(params.spec, params.featureName)
     val featureName = params.featureName
 
     val sftString = SimpleFeatureTypes.encodeType(sft)
-    logger.info(s"Creating '$featureName' using a KafkaDataStore with spec " +
+    Command.user.info(s"Creating '$featureName' using a KafkaDataStore with spec " +
       s"'$sftString'. Just a few moments...")
 
     val streamingSFT = KafkaDataStoreHelper.createStreamingSFT(sft, params.zkPath)
 
     try {
       withDataStore { (ds) =>
-        logger.info("Creating GeoMesa Kafka schema...")
         ds.createSchema(streamingSFT)
 
         if (ds.getSchema(featureName) != null) {
-          logger.info(s"Feature '$featureName' with spec " +
+          Command.user.info(s"Feature '$featureName' with spec " +
             s"'$sftString' successfully created in Kafka with zkPath '${params.zkPath}'.")
-          println(s"Created feature $featureName")
         } else {
-          logger.error(s"There was an error creating feature '$featureName' with spec " +
+          Command.user.error(s"There was an error creating feature '$featureName' with spec " +
             s"'$sftString'. Please check that all arguments are correct " +
             "in the previous command.")
         }
@@ -49,9 +47,7 @@ class KafkaCreateSchemaCommand extends KafkaDataStoreCommand with LazyLogging {
     } catch {
       // if the schema already exists at the specified zkPath
       // error message will be s"Type $typeName already exists at $zkPath."
-      case e: IllegalArgumentException => {
-        logger.error(e.getMessage)
-      }
+      case e: IllegalArgumentException => Command.user.error(e.getMessage)
     }
   }
 }

@@ -6,20 +6,27 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.index
+package org.locationtech.geomesa.index.utils
 
 import java.util.concurrent.ConcurrentHashMap
 
+import org.opengis.feature.simple.SimpleFeatureType
+
 
 object SplitArrays {
-  val splitArraysMap: ConcurrentHashMap[Int, Seq[Array[Byte]]] =
-    new ConcurrentHashMap[Int, Seq[Array[Byte]]]()
 
-  def getSplitArray(numSplits: Int): Seq[Array[Byte]] = {
-    require(numSplits > 0 && numSplits < 128, "only up to 128 splits are supported")
+  private val splitArraysMap: ConcurrentHashMap[Int, IndexedSeq[Array[Byte]]] =
+    new ConcurrentHashMap[Int, IndexedSeq[Array[Byte]]]()
+
+  def apply(sft: SimpleFeatureType): IndexedSeq[Array[Byte]] = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    apply(sft.getZShards)
+  }
+
+  def apply(numSplits: Int): IndexedSeq[Array[Byte]] = {
     val temp = splitArraysMap.get(numSplits)
     if (temp == null) {
-      val splitArrays = (0 until numSplits).map(_.toByte).toArray.map(Array(_)).toSeq
+      val splitArrays = (0 until numSplits).map(_.toByte).toArray.map(Array(_)).toIndexedSeq
       splitArraysMap.put(numSplits, splitArrays)
       splitArrays
     } else {

@@ -20,7 +20,7 @@ import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloFilt
 import org.locationtech.geomesa.curve.XZ2SFC
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
-import org.locationtech.geomesa.index.utils.Explainer
+import org.locationtech.geomesa.index.utils.{Explainer, SplitArrays}
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
@@ -108,9 +108,9 @@ trait XZ2QueryableIndex extends AccumuloFeatureIndexType
 
       val prefixes = if (sft.isTableSharing) {
         val ts = sft.getTableSharingBytes
-        SplitArrays.getSplitArray(sft.getZShards).map(ts ++ _)
+        SplitArrays.apply(sft.getZShards).map(ts ++ _)
       } else {
-        SplitArrays.getSplitArray(sft.getZShards)
+        SplitArrays.apply(sft.getZShards)
       }
 
       prefixes.flatMap { prefix =>

@@ -17,8 +17,9 @@ import org.apache.accumulo.core.conf.Property
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.{AccumuloWritableIndex, SplitArrays}
+import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
 import org.locationtech.geomesa.curve.Z2SFC
+import org.locationtech.geomesa.index.utils.SplitArrays
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -118,9 +119,9 @@ trait Z2WritableIndex extends AccumuloWritableIndex {
     // drop first split, otherwise we get an empty tablet
     val splits = if (sft.isTableSharing) {
       val ts = sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)
-      SplitArrays.getSplitArray(sft.getZShards).drop(1).map(s => new Text(ts ++ s)).toSet
+      SplitArrays.apply(sft.getZShards).drop(1).map(s => new Text(ts ++ s)).toSet
     } else {
-      SplitArrays.getSplitArray(sft.getZShards).drop(1).map(new Text(_)).toSet
+      SplitArrays.apply(sft.getZShards).drop(1).map(new Text(_)).toSet
     }
     val splitsToAdd = splits -- ds.tableOps.listSplits(table).toSet
     if (splitsToAdd.nonEmpty) {

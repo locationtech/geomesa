@@ -11,9 +11,10 @@ package org.locationtech.geomesa.accumulo.index
 import org.apache.accumulo.core.security.Authorizations
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.index.SplitArrays._
 import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -56,15 +57,13 @@ class ConfigureShardsTest extends Specification with TestWithDataStore {
         val shard = bytes.head.toInt
         shardSet = shardSet + shard
       }
-      shardSet.toList.length mustEqual 8
-      success
+      shardSet must haveSize(8)
     }
 
     "throw exception" >> {
-      val sftPrivate = sft
+      val sftPrivate = SimpleFeatureTypes.createType("private", spec)
       sftPrivate.setZShards(128)
-      val numSplits = sftPrivate.getZShards
-      getSplitArray(numSplits) must throwAn[IllegalArgumentException]
+      GeoMesaSchemaValidator.validate(sftPrivate) must throwAn[IllegalArgumentException]
     }
   }
 }

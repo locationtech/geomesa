@@ -18,9 +18,9 @@ class HelpCommand(runner: Runner, jc: JCommander) extends Command {
 
   override def execute(): Unit = {
     if (params.command == null || params.command.isEmpty) {
-      println(s"${runner.usage(jc)}\nTo see help for a specific command type: ${runner.name} help <command-name>\n")
+      Command.output.info(s"${runner.usage(jc)}\nTo see help for a specific command type: ${runner.name} help <command-name>\n")
     } else {
-      println(runner.usage(jc, params.command.get(0)))
+      Command.output.info(runner.usage(jc, params.command.get(0)))
     }
   }
 }

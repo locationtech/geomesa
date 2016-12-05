@@ -17,12 +17,12 @@ class VersionCommand extends Command {
   override val name = "version"
   override val params = new VersionParameters
 
-  override def execute() = {
+  override def execute(): Unit = {
     import GeoMesaProperties._
-    println(s"GeoMesa tools version: $ProjectVersion")
-    println(s"Commit ID: $GitCommit")
-    println(s"Branch: $GitBranch")
-    println(s"Build date: $BuildDate")
+    Command.output.info(s"GeoMesa tools version: $ProjectVersion")
+    Command.output.info(s"Commit ID: $GitCommit")
+    Command.output.info(s"Branch: $GitBranch")
+    Command.output.info(s"Build date: $BuildDate")
   }
 }
 

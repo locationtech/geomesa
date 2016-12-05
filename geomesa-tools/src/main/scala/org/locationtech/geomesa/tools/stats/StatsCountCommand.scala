@@ -10,34 +10,28 @@ package org.locationtech.geomesa.tools.stats
 
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.tools.DataStoreCommand
+import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.opengis.filter.Filter
-
-import scala.util.control.NonFatal
 
 trait StatsCountCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
 
   override val name = "stats-count"
   override def params: StatsCountParams
 
-  override def execute(): Unit = {
-    try { withDataStore(count) } catch {
-      case NonFatal(e) => logger.error("Error analyzing stats: ", e)
-    }
-  }
+  override def execute(): Unit = withDataStore(count)
 
   protected def count(ds: DS): Unit = {
     val sft = ds.getSchema(params.featureName)
     val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
 
     if (params.exact) {
-      logger.info("Running stat query...")
+      Command.user.info("Running stat query...")
     }
 
     val count = ds.stats.getCount(sft, filter, params.exact).map(_.toString).getOrElse("Unknown")
 
     val label = if (params.exact) "Count" else "Estimated count"
-    println(s"$label: $count")
+    Command.output.info(s"$label: $count")
   }
 }
 

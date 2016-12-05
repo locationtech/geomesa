@@ -21,6 +21,7 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat
 import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobUtils}
+import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.opengis.feature.simple.SimpleFeature
 
@@ -29,7 +30,7 @@ import scala.collection.JavaConversions._
 /**
  * Abstract class that handles configuration and tracking of the remote job
  */
-abstract class AbstractIngestJob extends LazyLogging {
+abstract class AbstractIngestJob {
 
   def inputFormatClass: Class[_ <: FileInputFormat[_, SimpleFeature]]
   def configureJob(job: Job): Unit
@@ -63,9 +64,9 @@ abstract class AbstractIngestJob extends LazyLogging {
     GeoMesaConfigurator.setFeatureTypeOut(job.getConfiguration, typeName)
     GeoMesaOutputFormat.configureDataStore(job, dsParams)
 
-    logger.info("Submitting job - please wait...")
+    Command.user.info("Submitting job - please wait...")
     job.submit()
-    logger.info(s"Tracking available at ${job.getStatus.getTrackingUrl}")
+    Command.user.info(s"Tracking available at ${job.getStatus.getTrackingUrl}")
 
     while (!job.isComplete) {
       if (job.getStatus.getState != JobStatus.State.PREP) {
@@ -76,7 +77,7 @@ abstract class AbstractIngestJob extends LazyLogging {
     statusCallback(job.mapProgress(), written(job), failed(job), true)
 
     if (!job.isSuccessful) {
-      logger.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
+      Command.user.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
     }
 
     (written(job), failed(job))

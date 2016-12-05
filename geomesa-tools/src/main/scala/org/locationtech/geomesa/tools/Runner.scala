@@ -9,13 +9,12 @@
 package org.locationtech.geomesa.tools
 
 import com.beust.jcommander.{JCommander, ParameterException}
-import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.tools.utils.GeoMesaIStringConverterFactory
 
 import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
 
-trait Runner extends LazyLogging {
+trait Runner {
 
   def name: String
 
@@ -23,8 +22,8 @@ trait Runner extends LazyLogging {
     try {
       parseCommand(args).execute()
     } catch {
-      case e: ParameterException => System.err.println(e.getMessage); sys.exit(-1)
-      case NonFatal(e) => logger.error(e.getMessage, e); sys.exit(-1)
+      case e: ParameterException => Command.user.error(e.getMessage); sys.exit(-1)
+      case NonFatal(e) => Command.user.error(e.getMessage, e); sys.exit(-1)
     }
     sys.exit(0)
   }
@@ -47,9 +46,8 @@ trait Runner extends LazyLogging {
       jc.parse(args: _*)
     } catch {
       case e: ParameterException =>
-        println(s"Error parsing arguments: ${e.getMessage}")
-        println
-        println(usage(jc, jc.getParsedCommand))
+        Command.user.error(s"Error parsing arguments: ${e.getMessage}")
+        Command.user.info(usage(jc, jc.getParsedCommand))
         throw e
     }
     val parsed = commands.find(_.name == jc.getParsedCommand).getOrElse(new DefaultCommand(jc))
@@ -85,7 +83,7 @@ trait Runner extends LazyLogging {
   protected def resolveEnvironment(command: Command): Unit = {}
 
   class DefaultCommand(jc: JCommander) extends Command {
-    override def execute(): Unit = println(usage(jc))
+    override def execute(): Unit = Command.user.info(usage(jc))
     override val name: String = ""
     override val params: Any = null
   }
