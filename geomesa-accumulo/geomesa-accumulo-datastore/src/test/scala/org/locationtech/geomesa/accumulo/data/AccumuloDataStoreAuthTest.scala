@@ -135,7 +135,7 @@ class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
 
         val user  = Seq("IN('0')", "name = '0'", "bbox(geom, 44, 49.1, 46, 50.1)", "bbox(geom, 44, 49.1, 46, 50.1) AND dtg DURING 2016-01-01T00:59:30.000Z/2016-01-01T01:00:30.000Z")
         val admin = Seq("IN('1')", "name = '1'", "bbox(geom, 44, 50.1, 46, 51.1)", "bbox(geom, 44, 50.1, 46, 51.1) AND dtg DURING 2016-01-01T01:00:30.000Z/2016-01-01T01:01:30.000Z")
-        val both  = Seq("IN('0', '1')", "name < '2'", "bbox(geom, 44, 49.1, 46, 51.1)", "bbox(geom, 44, 49.1, 46, 51.1) AND dtg DURING 2016-01-01T00:59:30.000Z/2016-01-01T01:01:30.000Z")
+        val both  = Seq("INCLUDE", "IN('0', '1')", "name < '2'", "bbox(geom, 44, 49.1, 46, 51.1)", "bbox(geom, 44, 49.1, 46, 51.1) AND dtg DURING 2016-01-01T00:59:30.000Z/2016-01-01T01:01:30.000Z")
 
         forall(user) { filter =>
           val q = new Query(sftName, ECQL.toFilter(filter))
