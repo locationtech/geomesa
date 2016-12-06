@@ -9,8 +9,10 @@
 package org.locationtech.geomesa.accumulo.data
 
 import org.apache.accumulo.core.client.{BatchScanner, Connector, Scanner}
+import org.apache.accumulo.core.security.Authorizations
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
+import org.locationtech.geomesa.security.AuthorizationsProvider
 
 trait AccumuloConnectorCreator {
 
@@ -34,10 +36,12 @@ trait AccumuloConnectorCreator {
   /**
    * Gets a single-range scanner for the given table
    */
-  def getScanner(table: String): Scanner
+  def getScanner(table: String, auths: Option[Authorizations] = None): Scanner
 
   /**
    * Gets a batch scanner for the given table
    */
-  def getBatchScanner(table: String, threads: Int): BatchScanner
+  def getBatchScanner(table: String, threads: Int, auths: Option[Authorizations] = None): BatchScanner
+
+  def authProvider: AuthorizationsProvider
 }

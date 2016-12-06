@@ -524,8 +524,8 @@ class AccumuloDataStore(val connector: Connector,
    * @param table table to scan
    * @return scanner
    */
-  override def getScanner(table: String): Scanner =
-    connector.createScanner(table, authProvider.getAuthorizations)
+  override def getScanner(table: String, auths: Option[Authorizations] = None): Scanner =
+    connector.createScanner(table, auths.getOrElse(authProvider.getAuthorizations))
 
   /**
    * @see org.locationtech.geomesa.accumulo.data.AccumuloConnectorCreator#getBatchScanner(java.lang.String, int)
@@ -533,8 +533,8 @@ class AccumuloDataStore(val connector: Connector,
    * @param threads number of threads to use in scanning
    * @return batch scanner
    */
-  override def getBatchScanner(table: String, threads: Int): BatchScanner =
-    connector.createBatchScanner(table, authProvider.getAuthorizations, threads)
+  override def getBatchScanner(table: String, threads: Int, auths: Option[Authorizations] = None): BatchScanner =
+    connector.createBatchScanner(table, auths.getOrElse(authProvider.getAuthorizations), threads)
 
   /**
    * @see org.locationtech.geomesa.accumulo.data.AccumuloConnectorCreator#getTableName(java.lang.String,

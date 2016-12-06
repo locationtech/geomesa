@@ -33,6 +33,8 @@ class BatchMultiScanner(acc: AccumuloConnectorCreator,
   require(numThreads > 0, f"Illegal numThreads ($numThreads%d). Value must be > 0")
   logger.trace(f"Creating BatchMultiScanner with batchSize $batchSize%d and numThreads $numThreads%d")
 
+  // get the auths up front so that any thread-dependent state is preserved
+  val auths = Option(acc.authProvider.getAuthorizations)
   val executor = Executors.newFixedThreadPool(numThreads)
 
   val inQ  = new LinkedBlockingQueue[Entry[Key, Value]](batchSize)
@@ -62,7 +64,7 @@ class BatchMultiScanner(acc: AccumuloConnectorCreator,
             inQ.drainTo(entries)
             val task = executor.submit(new Runnable {
               override def run(): Unit = {
-                val scanner = acc.getBatchScanner(join.table, join.numThreads)
+                val scanner = acc.getBatchScanner(join.table, join.numThreads, auths)
                 try {
                   QueryPlan.configureBatchScanner(scanner, join.copy(ranges = entries.map(joinFunction)))
                   scanner.iterator().foreach(outQ.put)
