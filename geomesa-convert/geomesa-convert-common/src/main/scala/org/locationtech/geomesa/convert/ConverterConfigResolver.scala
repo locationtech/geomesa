@@ -10,8 +10,9 @@ package org.locationtech.geomesa.convert
 
 import java.io.File
 
-import com.typesafe.config.{Config, ConfigFactory, ConfigParseOptions}
+import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
+import org.locationtech.geomesa.utils.conf.AbstractArgResolver
 
 import scala.util.{Failure, Success, Try}
 
@@ -19,55 +20,59 @@ import scala.util.{Failure, Success, Try}
  * Attempts to resolve Converter config from arguments as either a string or
  * as a filename containing the converter config
  */
-object ConverterConfigResolver extends LazyLogging {
+object ConverterConfigResolver extends AbstractArgResolver[Config, (String)] with LazyLogging {
 
-  // Important to setAllowMissing to false bc else you'll get a config but it will be empty
-  val parseOpts =
-    ConfigParseOptions.defaults()
-      .setAllowMissing(false)
-      .setClassLoader(null)
-      .setIncluder(null)
-      .setOriginDescription(null)
-      .setSyntax(null)
+  import ArgTypes._
 
-  /**
-   * @return the converter config parsed from the args
-   */
-  def getConfig(configArg: String): Either[String, Config] = {
-    val conf = getLoadedConf(configArg)
-      .orElse(parseFile(configArg))
-      .orElse(parseString(configArg))
-    if (conf.isDefined) Right(conf.get)
-    else Left(s"Unable to parse Converter config from argument $configArg")
+  override def argType(args: argTuple) = {
+    /**
+     * Here we use rudimentary checking to guess as what kind of configArg was passed in.
+     * We use this to decide which error message to display to the user, since the
+     * parsers fail frequently. The rest of the errors are logged.
+     */
+    val fileNameReg = """([^.]*)\.([^.]*)""" // e.g. "foo.bar"
+
+    args match {
+      // Order is important here
+      case s if s.contains("geomesa{")
+             || s.contains("geomesa {")
+             || s.contains("geomesa.sfts")  => CONFSTR
+      case s if s.matches(fileNameReg)
+             || s.contains("/")             => PATH
+      case _                                => NAME
+    }
   }
 
-  private[ConverterConfigResolver] def getLoadedConf(configArg: String): Option[Config] = {
-    val ret = ConverterConfigLoader.confs.find(_._1 == configArg).map(_._2)
+  override def parseOption(args: argTuple): Option[Config] = getLoadedConf(args)
+
+  override val parseMethodList = List[argTuple => resEither](
+    parseFile,
+    parseString
+  )
+
+  private[ConverterConfigResolver] def getLoadedConf(args: argTuple): Option[Config] = {
+    val ret = ConverterConfigLoader.confs.find(_._1 == args).map(_._2)
     ret
   }
 
-  private[ConverterConfigResolver] def parseString(configArg: String): Option[Config] =
+  private[ConverterConfigResolver] def parseString(args: argTuple): resEither =
     Try {
-      val confs = SimpleConverterConfigParser.parseConf(ConfigFactory.parseString(configArg, parseOpts))
-      if (confs.size > 1) logger.warn(s"Found more than one SFT conf in arg '$configArg'")
+      val confs = SimpleConverterConfigParser.parseConf(ConfigFactory.parseString(args, parseOpts))
+      if (confs.size > 1) logger.warn(s"Found more than one SFT conf in arg '$args'")
       confs.values.head
     } match {
-      case Success(config) => Some(config)
-      case Failure(ex) =>
-        logger.debug(s"Unable to parse config from string $configArg")
-        None
+      case Success(config) => Right(config)
+      case Failure(e) => Left((s"Unable to parse config from string $args", e, CONFSTR))
     }
 
-  private[ConverterConfigResolver] def parseFile(configArg: String): Option[Config] =
+  private[ConverterConfigResolver] def parseFile(args: argTuple): resEither =
     Try {
-      val confs = SimpleConverterConfigParser.parseConf(ConfigFactory.parseFile(new File(configArg), parseOpts))
-      if (confs.size > 1) logger.warn(s"Found more than one SFT conf in arg '$configArg'")
+      val confs = SimpleConverterConfigParser.parseConf(ConfigFactory.parseFile(new File(args), parseOpts))
+      if (confs.size > 1) logger.warn(s"Found more than one SFT conf in arg '$args'")
       confs.values.head
     } match {
-      case Success(config) => Some(config)
-      case Failure(ex) =>
-        logger.debug(s"Unable to parse config from file $configArg")
-        None
+      case Success(config) => Right(config)
+      case Failure(e) => Left((s"Unable to parse config from file $args", e, PATH))
     }
 
 }

@@ -75,32 +75,32 @@ class CLArgResolverTest extends Specification {
       """.stripMargin
 
   "CLArgResolver" should {
-//    "work with " >> {
-//      val sft = CLArgResolver.getSft(sftSpec, featureName)
-//      sft.getAttributeCount mustEqual 3
-//      sft.getDescriptor(0).getLocalName mustEqual "name"
-//      sft.getDescriptor(1).getLocalName mustEqual "age"
-//      sft.getDescriptor(2).getLocalName mustEqual "geom"
-//    }
+    "work with " >> {
+      val sft = CLArgResolver.getSft(sftSpec, featureName)
+      sft.getAttributeCount mustEqual 3
+      sft.getDescriptor(0).getLocalName mustEqual "name"
+      sft.getDescriptor(1).getLocalName mustEqual "age"
+      sft.getDescriptor(2).getLocalName mustEqual "geom"
+    }
 
     "fail when given spec and no feature name" >> {
       CLArgResolver.getSft(sftSpec, null) must throwA[ParameterException]
     }
 
-//    "create a spec from sft conf" >> {
-//      val sft = CLArgResolver.getSft(sftConfig, null)
-//      sft.getAttributeCount mustEqual 3
-//      sft.getDescriptor(0).getLocalName mustEqual "name"
-//      sft.getDescriptor(1).getLocalName mustEqual "age"
-//      sft.getDescriptor(2).getLocalName mustEqual "geom"
-//    }
-//
-//    "parse a combined config" >> {
-//      val sft = CLArgResolver.getSft(combined, null)
-//      sft.getAttributeCount mustEqual 3
-//      sft.getDescriptor(0).getLocalName mustEqual "name"
-//      sft.getDescriptor(1).getLocalName mustEqual "age"
-//      sft.getDescriptor(2).getLocalName mustEqual "geom"
-//    }
+    "create a spec from sft conf" >> {
+      val sft = CLArgResolver.getSft(sftConfig, null)
+      sft.getAttributeCount mustEqual 3
+      sft.getDescriptor(0).getLocalName mustEqual "name"
+      sft.getDescriptor(1).getLocalName mustEqual "age"
+      sft.getDescriptor(2).getLocalName mustEqual "geom"
+    }
+
+    "parse a combined config" >> {
+      val sft = CLArgResolver.getSft(combined, null)
+      sft.getAttributeCount mustEqual 3
+      sft.getDescriptor(0).getLocalName mustEqual "name"
+      sft.getDescriptor(1).getLocalName mustEqual "age"
+      sft.getDescriptor(2).getLocalName mustEqual "geom"
+    }
   }
 }
