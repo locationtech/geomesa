@@ -226,7 +226,7 @@ object KryoLazyDensityIterator extends LazyLogging {
    */
   private def decodeResult(gridSnap: GridSnap)(sf: SimpleFeature): Iterator[(Double, Double, Double)] = {
     val result = sf.getAttribute(0).asInstanceOf[Array[Byte]]
-    val input = KryoFeatureSerializer.getInput(result)
+    val input = KryoFeatureSerializer.getInput(result, 0, result.length)
     new Iterator[(Double, Double, Double)]() {
       private var x = 0.0
       private var colCount = 0

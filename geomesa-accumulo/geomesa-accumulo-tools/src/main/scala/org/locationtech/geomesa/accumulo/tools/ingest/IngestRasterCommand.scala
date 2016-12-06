@@ -12,7 +12,6 @@ import java.io.File
 import java.util.Locale
 
 import com.beust.jcommander._
-import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.accumulo.tools.raster.LocalRasterIngest
 import org.locationtech.geomesa.accumulo.tools.{AccumuloConnectionParams, AccumuloRasterTableParam}
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
@@ -21,7 +20,7 @@ import org.locationtech.geomesa.tools.utils.DataFormats
 
 import scala.util.{Failure, Success}
 
-class IngestRasterCommand extends Command with LazyLogging {
+class IngestRasterCommand extends Command {
 
   import IngestRasterCommand._
 
@@ -34,11 +33,11 @@ class IngestRasterCommand extends Command with LazyLogging {
       val localIngester =
         new LocalRasterIngest(getRasterIngestParams + (IngestRasterParams.FILE_PATH  -> Some(params.file)))
       localIngester.runIngestTask() match {
-        case Success(info) => logger.info("Local ingestion is done.")
+        case Success(info) => Command.user.info("Local ingestion is done.")
         case Failure(e) => throw new RuntimeException(e)
       }
     } else {
-      logger.error("Error: File format not supported for file " + params.file + ". Supported formats " +
+      Command.user.error("Error: File format not supported for file " + params.file + ". Supported formats " +
           "are geotiff and DTED")
     }
   }

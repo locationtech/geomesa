@@ -22,7 +22,7 @@ import org.opengis.filter.Filter
   *
   * @param ds datastore
   */
-class UnoptimizedRunnableStats[DS <: GeoMesaDataStore[_, _, _, _]](val ds: DS) extends MetadataBackedStats[DS] {
+class UnoptimizedRunnableStats[DS <: GeoMesaDataStore[_, _, _]](val ds: DS) extends MetadataBackedStats[DS] {
 
   override protected val generateStats: Boolean = false
 

@@ -132,31 +132,32 @@ trait KryoSimpleFeatureSerialization extends SimpleFeatureSerializer {
 
   private def writeFeature(sf: SimpleFeature, output: Output): Unit = {
     val offsets = getOffsets(cacheKey, numAttributes)
+    val offset = output.position()
     output.writeInt(VERSION, true)
-    output.setPosition(5) // leave 4 bytes to write the offsets
+    output.setPosition(offset + 5) // leave 4 bytes to write the offsets
     if (!options.withoutId) {
       output.writeString(sf.getID)  // TODO optimize for uuids?
     }
     // write attributes and keep track off offset into byte array
     var i = 0
     while (i < numAttributes) {
-      offsets(i) = output.position()
+      offsets(i) = output.position() - offset
       writers(i)(output, sf.getAttribute(i))
       i += 1
     }
     // write the offsets - variable width
     i = 0
-    val offsetStart = output.position()
+    val offsetStart = output.position() - offset
     while (i < numAttributes) {
       output.writeInt(offsets(i), true)
       i += 1
     }
     // got back and write the start position for the offsets
-    val total = output.position()
-    output.setPosition(1)
+    val end = output.position()
+    output.setPosition(offset + 1)
     output.writeInt(offsetStart)
     // reset the position back to the end of the buffer so we can keep writing more things (e.g. user data)
-    output.setPosition(total)
+    output.setPosition(end)
   }
 }
 
@@ -180,16 +181,18 @@ trait KryoSimpleFeatureDeserialization extends SimpleFeatureSerializer {
   def getReusableFeature: KryoBufferSimpleFeature =
     new KryoBufferSimpleFeature(deserializeSft, readers, lazyUserData, options)
 
-  override def deserialize(bytes: Array[Byte]): SimpleFeature = doReadFromBytes(bytes)
+  override def deserialize(bytes: Array[Byte]): SimpleFeature = doReadFromBytes(bytes, 0, bytes.length)
+  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+    doReadFromBytes(bytes, offset, length)
   override def deserialize(in: InputStream): SimpleFeature = doReadFromStream(in)
 
-  private val doReadFromBytes: (Array[Byte]) => SimpleFeature =
+  private val doReadFromBytes: (Array[Byte], Int, Int) => SimpleFeature =
     if (options.withUserData) readFromBytesWithUserData else readFromBytes
   private val doReadFromStream: (InputStream) => SimpleFeature =
     if (options.withUserData) readFromStreamWithUserData else readFromStream
 
-  protected[kryo] def readFromBytes(bytes: Array[Byte]): SimpleFeature = {
-    val input = getInput(bytes)
+  protected[kryo] def readFromBytes(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
+    val input = getInput(bytes, offset, length)
     readFeature(input)
   }
 
@@ -198,8 +201,8 @@ trait KryoSimpleFeatureDeserialization extends SimpleFeatureSerializer {
     readFeature(input)
   }
 
-  protected[kryo] def readFromBytesWithUserData(bytes: Array[Byte]): SimpleFeature = {
-    val input = getInput(bytes)
+  protected[kryo] def readFromBytesWithUserData(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
+    val input = getInput(bytes, offset, length)
     val sf = readFeature(input)
     // skip offset data
     var i = 0
@@ -227,11 +230,12 @@ trait KryoSimpleFeatureDeserialization extends SimpleFeatureSerializer {
   }
 
   protected[kryo] def readFeature(input: Input): SimpleFeature = {
+    val offset = input.position()
     if (input.readInt(true) == 1) {
       throw new IllegalArgumentException("Can't process features serialized with an older version")
     }
-    val limit = input.readInt() // read the start of the offsets - we'll stop reading when we hit this
-    val id = if (options.withoutId) "" else input.readString()
+    val limit = offset + input.readInt() // read the start of the offsets - we'll stop reading when we hit this
+    val id = if (options.withoutId) { "" } else { input.readString() }
     val attributes = Array.ofDim[AnyRef](numAttributes)
     var i = 0
     while (i < numAttributes && input.position < limit) {
@@ -256,9 +260,9 @@ object KryoFeatureSerializer {
   private[this] val writers = new SoftThreadLocalCache[String, Array[(Output, AnyRef) => Unit]]()
   private[this] val offsets = new SoftThreadLocalCache[String, Array[Int]]()
 
-  def getInput(bytes: Array[Byte], position: Int = 0, count: Int = -1): Input = {
+  def getInput(bytes: Array[Byte], offset: Int, count: Int): Input = {
     val in = inputs.getOrElseUpdate(new Input)
-    in.setBuffer(bytes, position, if (count == -1) bytes.length else count)
+    in.setBuffer(bytes, offset, offset + count)
     in
   }
 
@@ -493,22 +497,24 @@ class ProjectingKryoFeatureDeserializer(original: SimpleFeatureType,
     }
   }
 
-  override def deserialize(bytes: Array[Byte]): SimpleFeature = {
-    val input = getInput(bytes)
+  override def deserialize(bytes: Array[Byte]): SimpleFeature = deserialize(bytes, 0, bytes.length)
+
+  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
+    val input = getInput(bytes, offset, length)
     if (input.readInt(true) == 1) {
       throw new IllegalArgumentException("Can't process features serialized with an older version")
     }
     val attributes = Array.ofDim[AnyRef](numProjectedAttributes)
     // read in the offsets
-    val offsetStart = input.readInt()
+    val offsetStart = offset + input.readInt()
     val id = input.readString()
     input.setPosition(offsetStart)
     var i = 0
     while (i < indices.length) {
-      val offset = if (input.position < input.limit) input.readInt(true) else -1
+      val iOffset = if (input.position < input.limit) { offset + input.readInt(true) } else { -1 }
       val index = indices(i)
       if (index != -1) {
-        offsets(index) = offset
+        offsets(index) = iOffset
       }
       i += 1
     }

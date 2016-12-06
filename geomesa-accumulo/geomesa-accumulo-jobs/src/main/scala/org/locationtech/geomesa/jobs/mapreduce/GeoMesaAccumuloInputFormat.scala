@@ -199,7 +199,6 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
   }
 
   override def createRecordReader(split: InputSplit, context: TaskAttemptContext) = {
-
     init(context.getConfiguration)
     val splits = split.asInstanceOf[GroupedSplit].splits
     val readers = splits.map(delegate.createRecordReader(_, context)).toArray

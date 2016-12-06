@@ -14,25 +14,21 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.locationtech.geomesa.tools.DataStoreCommand
+import org.locationtech.geomesa.tools.utils.Prompt
+import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.locationtech.geomesa.utils.stats.{Histogram, MinMax, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 import scala.reflect.ClassTag
 import scala.util.Try
-import scala.util.control.NonFatal
 
-trait StatsHistogramCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait StatsHistogramCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
 
   override val name = "stats-histogram"
   override def params: StatsHistogramParams
 
-  override def execute(): Unit = {
-    try { withDataStore(histogram) } catch {
-      case NonFatal(e) => logger.error("Error analyzing stats: ", e)
-    }
-  }
+  override def execute(): Unit = withDataStore(histogram)
 
   protected def histogram(ds: DS): Unit = {
     val sft = ds.getSchema(params.featureName)
@@ -50,22 +46,22 @@ trait StatsHistogramCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStor
 
       if (bounds.size != attributes.size) {
         val noBounds = attributes.filterNot(bounds.contains)
-        logger.warn(s"Initial bounds are not available for attributes ${noBounds.mkString(", ")}.")
+        Command.user.warn(s"Initial bounds are not available for attributes ${noBounds.mkString(", ")}.")
         var response: Integer = null
-        println("\nWould you like to:\n" +
+        Command.user.info("Would you like to:\n" +
                 "  1. Calculate bounds (may be slow)\n" +
                 "  2. Use default bounds (may be less accurate)\n" +
                 "  3. Manually enter bounds\n" +
                 "  4. Cancel operation\n")
         while (response == null) {
-          val in = System.console().readLine("Please enter the number of your choice: ")
+          val in = Prompt.read("Please enter the number of your choice: ")
           response = Try(in.toInt.asInstanceOf[Integer]).filter(r => r > 0 && r < 5).getOrElse(null)
           if (response == null) {
-            logger.error("Invalid input. Please enter 1-4.")
+            Command.user.error("Invalid input. Please enter 1-4.")
           }
         }
         if (response == 1) {
-          logger.info("Running bounds query...")
+          Command.user.info("Running bounds query...")
           ds.stats.runStats[MinMax[Any]](sft, Stat.SeqStat(noBounds.map(Stat.MinMax)), filter).foreach { mm =>
             bounds.put(sft.getDescriptor(mm.attribute).getLocalName, mm.bounds)
           }
@@ -80,15 +76,15 @@ trait StatsHistogramCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStor
             var lower: Any = null
             var upper: Any = null
             while (lower == null) {
-              lower = Converters.convert(System.console().readLine(s"Enter initial lower bound for '$attribute': "), ct)
+              lower = Converters.convert(Prompt.read(s"Enter initial lower bound for '$attribute': "), ct)
               if (lower == null) {
-                logger.error(s"Couldn't convert input to appropriate type: ${ct.getSimpleName}")
+                Command.user.error(s"Couldn't convert input to appropriate type: ${ct.getSimpleName}")
               }
             }
             while (upper == null) {
-              upper = Converters.convert(System.console().readLine(s"Enter initial upper bound for '$attribute': "), ct)
+              upper = Converters.convert(Prompt.read(s"Enter initial upper bound for '$attribute': "), ct)
               if (upper == null) {
-                logger.error(s"Couldn't convert input to appropriate type: ${ct.getSimpleName}")
+                Command.user.error(s"Couldn't convert input to appropriate type: ${ct.getSimpleName}")
               }
             }
             if (lower == upper) {
@@ -98,12 +94,12 @@ trait StatsHistogramCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStor
             }
           }
         } else {
-          println("Operation cancelled.")
+          Command.user.info("Operation cancelled.")
           return // cancel operation
         }
       }
 
-      logger.info("Running stat query...")
+      Command.user.info("Running stat query...")
       val length = bins.getOrElse(GeoMesaStats.DefaultHistogramSize)
       val queries = attributes.map { attribute =>
         val ct = ClassTag[Any](sft.getDescriptor(attribute).getType.getBinding)
@@ -113,7 +109,7 @@ trait StatsHistogramCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStor
       ds.stats.runStats[Histogram[Any]](sft, Stat.SeqStat(queries), filter)
     } else {
       if (filter != Filter.INCLUDE) {
-        logger.warn("Ignoring CQL filter for non-exact stat query")
+        Command.user.warn("Ignoring CQL filter for non-exact stat query")
       }
       ds.stats.getStats[Histogram[Any]](sft, attributes).map {
         case histogram: Histogram[Any] if bins.forall(_ == histogram.length) => histogram
@@ -130,10 +126,10 @@ trait StatsHistogramCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStor
 
     attributes.foreach { attribute =>
       histograms.find(_.attribute == sft.indexOf(attribute)) match {
-        case None => logger.info(s"No histogram available for attribute '$attribute'")
+        case None => Command.user.info(s"No histogram available for attribute '$attribute'")
         case Some(hist) =>
           if (classOf[Geometry].isAssignableFrom(sft.getDescriptor(attribute).getType.getBinding)) {
-            println(StatsHistogramCommand.geomHistToString(attribute, hist.asInstanceOf[Histogram[Geometry]]))
+            Command.output.info(StatsHistogramCommand.geomHistToString(attribute, hist.asInstanceOf[Histogram[Geometry]]))
           } else {
             StatsHistogramCommand.printHist(hist, sft, attribute)
           }
@@ -157,13 +153,13 @@ object StatsHistogramCommand {
     * Creates a readable string for the histogram.
     */
   def printHist(stat: Histogram[Any], sft: SimpleFeatureType, attribute: String): Unit = {
-    println(s"Binned histogram for '$attribute':")
+    Command.output.info(s"Binned histogram for '$attribute':")
     if (stat.isEmpty) {
-      println("  No values")
+      Command.output.info("  No values")
     } else {
       (0 until stat.length).foreach { i =>
         val (min, max) = stat.bounds(i)
-        println(s"  [ ${stat.stringify(min)} to ${stat.stringify(max)} ] ${stat.count(i)}")
+        Command.output.info(s"  [ ${stat.stringify(min)} to ${stat.stringify(max)} ] ${stat.count(i)}")
       }
     }
   }
@@ -276,7 +272,7 @@ object StatsHistogramCommand {
     """                         ,,,________,.:__.,.,,:: ,                 .:,________________________________,,,__________,,                       """,
     """                          __________.,.: .,__,/:                    __.,,,____,:;__.:,.,;__.,:,__________________,, :                       """,
     """                          .,__________,__.,                      ,,.:  : , .::;.,:.,__:,.,__________________,:__   __                       """,
-    """                           ,println(,,__________.,,                       :,,__.      :,;__________________________,,  ,.:,,                        """,
+    """                           ,,,__________.,,                       :,,__.      :,;__________________________,,  ,.:,,                        """,
     """                             :,____.,.,,:                        ______.,.:____,,__,,,____________________.,,,                              """,
     """                              ,,,.,                            ,,________________.,__:.: ,,,______,________.,;                              """,
     """                                 ,,, :,    ;:.                 ________________,. ,__,,,     ,.,,.  ,,__ :                                  """,

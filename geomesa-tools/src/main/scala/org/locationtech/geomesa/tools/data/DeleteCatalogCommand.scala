@@ -10,22 +10,21 @@ package org.locationtech.geomesa.tools.data
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, OptionalForceParam}
-import org.locationtech.geomesa.tools.utils.Prompt
+import org.locationtech.geomesa.tools.{CatalogParam, Command, DataStoreCommand, OptionalForceParam}
 import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, OptionalForceParam}
 import org.locationtech.geomesa.tools.utils.Prompt
 
-trait DeleteCatalogCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait DeleteCatalogCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
 
   override val name = "delete-catalog"
   override def params: DeleteCatalogParams
 
-  override def execute() = {
+  override def execute(): Unit = {
     if (params.force || Prompt.confirm(s"Delete catalog '${params.catalog}'? (yes/no): ")) {
       withDataStore(_.delete())
-      println(s"Deleted catalog '${params.catalog}'")
+      Command.user.info(s"Deleted catalog '${params.catalog}'")
     } else {
-      logger.info("Cancelled")
+      Command.user.info("Cancelled")
     }
   }
 }

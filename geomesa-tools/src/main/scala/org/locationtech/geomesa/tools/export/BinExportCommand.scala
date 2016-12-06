@@ -10,20 +10,20 @@ package org.locationtech.geomesa.tools.export
 
 import org.apache.commons.io.IOUtils
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.tools.DataStoreCommand
 import org.locationtech.geomesa.tools.export.formats._
 import org.locationtech.geomesa.tools.utils.DataFormats
+import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing}
 
-trait BinExportCommand[DS <: GeoMesaDataStore[_, _, _, _]] extends DataStoreCommand[DS] with MethodProfiling {
+trait BinExportCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] with MethodProfiling {
 
   override val name = "export-bin"
   override def params: BinExportParams
 
-  override def execute() = {
+  override def execute(): Unit = {
     implicit val timing = new Timing
     profile(withDataStore(export))
-    logger.info(s"Feature export complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")} " +
+    Command.user.info(s"Feature export complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")} " +
         s"in ${timing.time}ms")
   }
 

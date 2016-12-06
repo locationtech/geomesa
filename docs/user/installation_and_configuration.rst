@@ -780,17 +780,13 @@ Restart GeoServer after the JARs are installed.
 For Cassandra
 ^^^^^^^^^^^^^
 
-The Cassandra GeoServer plugin is not bundled by default in the GeoMesa binary distribution
-and should be built from source. Download the source distribution (see
-:ref:`building_from_source`), go to the ``geomesa-cassandra/geomesa-cassandra-gs-plugin``
-directory, and build the module:
-
-.. code-block:: bash
-
-    $ mvn clean install
-
-After building, extract ``target/geomesa-cassandra-gs-plugin_2.11-$VERSION-install.tar.gz`` into GeoServer's
-``WEB-INF/lib`` directory.
+The GeoMesa Cassandra distribution includes a GeoServer plugin for including
+Cassandra data stores in GeoServer. The plugin files are in the
+``dist/gs-plugins/geomesa-cassandra-gs-plugin_2.11-$VERSION-install.tar.gz`` archive within the
+GeoMesa Cassandra distribution directory.
+To install the plugins, extract the archive and copy the contents to the ``WEB-INF/lib``
+directory of your GeoServer installation. You will also need to copy the JARs from the
+``lib`` directory of your Cassandra installation into the GeoServer ``WEB-INF/lib`` directory.
 
 Restart GeoServer after the JARs are installed.
 

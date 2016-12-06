@@ -50,9 +50,6 @@ class KryoLazyFilterTransformIterator extends
   override def init(src: SortedKeyValueIterator[Key, Value],
                     options: jMap[String, String],
                     env: IteratorEnvironment): Unit = {
-
-    IteratorClassLoader.initClassLoader(getClass)
-
     this.source = src.deepCopy(env)
 
     val spec = options.get(SFT_OPT)
@@ -67,11 +64,12 @@ class KryoLazyFilterTransformIterator extends
     val transform = Option(options.get(TRANSFORM_DEFINITIONS_OPT))
     val transformSchema = Option(options.get(TRANSFORM_SCHEMA_OPT))
     for { t <- transform; ts <- transformSchema } {
-      reusableSf.setTransforms(t, SimpleFeatureTypes.createType("", ts))
+      reusableSf.setTransforms(t, IteratorCache.sft(ts))
     }
     hasTransform = transform.isDefined
 
     val cql = Option(options.get(CQL_OPT)).map(IteratorCache.filter(spec, _))
+    // TODO: can we optimize the configuration of sampling
     val sampling = sample(options)
 
     filter = (cql, sampling) match {

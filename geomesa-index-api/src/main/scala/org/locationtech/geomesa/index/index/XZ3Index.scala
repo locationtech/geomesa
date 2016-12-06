@@ -17,18 +17,17 @@ import com.vividsolutions.jts.geom.Geometry
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.curve.{BinnedTime, XZ3SFC}
 import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
+import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
-import org.locationtech.geomesa.index.utils.Explainer
+import org.locationtech.geomesa.index.utils.{Explainer, SplitArrays}
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, _}
 import org.opengis.feature.simple.SimpleFeatureType
 
-trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R] extends GeoMesaFeatureIndex[DS, F, W, Q]
-    with IndexAdapter[DS, F, W, Q, R] with SpatioTemporalFilterStrategy[DS, F, W, Q] with LazyLogging {
+trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] extends GeoMesaFeatureIndex[DS, F, W]
+    with IndexAdapter[DS, F, W, R] with SpatioTemporalFilterStrategy[DS, F, W] with LazyLogging {
 
-  import IndexAdapter.{DefaultNumSplits, DefaultSplitArrays}
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   override val name: String = "xz3"
@@ -38,28 +37,35 @@ trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R
   override def writer(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
     val sfc = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
     val sharing = sft.getTableSharingBytes
-    val dtgIndex = sft.getDtgIndex.getOrElse(throw new RuntimeException("XZ3 writer requires a valid date"))
+    val shards = SplitArrays(sft)
+    val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("XZ3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
 
-    (wf) => Seq(createInsert(getRowKey(sfc, sharing, dtgIndex, timeToIndex, wf), wf))
+    (wf) => Seq(createInsert(getRowKey(sfc, sharing, shards, dtgIndex, timeToIndex, wf), wf))
   }
 
   override def remover(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
     val sfc = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
     val sharing = sft.getTableSharingBytes
-    val dtgIndex = sft.getDtgIndex.getOrElse(throw new RuntimeException("XZ3 writer requires a valid date"))
+    val shards = SplitArrays(sft)
+    val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("XZ3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
 
-    (wf) => Seq(createDelete(getRowKey(sfc, sharing, dtgIndex, timeToIndex, wf), wf))
+    (wf) => Seq(createDelete(getRowKey(sfc, sharing, shards, dtgIndex, timeToIndex, wf), wf))
   }
 
   private def getRowKey(sfc: XZ3SFC,
                         sharing: Array[Byte],
+                        shards: IndexedSeq[Array[Byte]],
                         dtgIndex: Int,
                         timeToIndex: (Long) => BinnedTime,
                         wrapper: F): Array[Byte] = {
-    val split = DefaultSplitArrays(wrapper.idHash % DefaultNumSplits)
-    val envelope = wrapper.feature.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal
+    val split = shards(wrapper.idHash % shards.length)
+    val geom = wrapper.feature.getDefaultGeometry.asInstanceOf[Geometry]
+    if (geom == null) {
+      throw new IllegalArgumentException(s"Null geometry in feature ${wrapper.feature.getID}")
+    }
+    val envelope = geom.getEnvelopeInternal
     // TODO support date intervals
     val dtg = wrapper.feature.getAttribute(dtgIndex).asInstanceOf[Date]
     val time = if (dtg == null) 0 else dtg.getTime
@@ -76,7 +82,7 @@ trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R
 
   override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    val splits = DefaultSplitArrays.drop(1) // drop the first so we don't get an empty tablet
+    val splits = SplitArrays(sft).drop(1) // drop the first so we don't get an empty tablet
     if (sft.isTableSharing) {
       val sharing = sft.getTableSharingBytes
       splits.map(s => Bytes.concat(sharing, s))
@@ -87,9 +93,9 @@ trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R
 
   override def getQueryPlan(sft: SimpleFeatureType,
                             ds: DS,
-                            filter: TypedFilterStrategy,
+                            filter: FilterStrategy[DS, F, W],
                             hints: Hints,
-                            explain: Explainer): QueryPlan[DS, F, W, Q] = {
+                            explain: Explainer): QueryPlan[DS, F, W] = {
     import org.locationtech.geomesa.filter.FilterHelper._
 
     // note: z3 requires a date field
@@ -133,7 +139,6 @@ trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R
       val xy = geometries.values.map(GeometryUtils.bounds)
 
       // calculate map of weeks to time intervals in that week
-      // calculate map of weeks to time intervals in that week
       val timesByBin = scala.collection.mutable.Map.empty[Short, (Double, Double)]
       val dateToIndex = BinnedTime.dateToBinnedTime(sft.getZ3Interval)
 
@@ -165,16 +170,15 @@ trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R
       }
 
       lazy val wholePeriodRanges = toZRanges(wholePeriod)
+      val shards = SplitArrays(sft)
 
       val ranges = timesByBin.flatMap { case (b, times) =>
-        import com.google.common.primitives.Bytes.concat
-
         val zs = if (times.eq(wholePeriod)) wholePeriodRanges else toZRanges(times)
         val binBytes = Shorts.toByteArray(b)
-        val prefixes = DefaultSplitArrays.map(concat(sharing, _, binBytes))
+        val prefixes = shards.map(Bytes.concat(sharing, _, binBytes))
         prefixes.flatMap { prefix =>
           zs.map { case (lo, hi) =>
-            range(concat(prefix, lo), IndexAdapter.rowFollowingRow(concat(prefix, hi)))
+            range(Bytes.concat(prefix, lo), IndexAdapter.rowFollowingRow(Bytes.concat(prefix, hi)))
           }
         }
       }

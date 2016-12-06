@@ -15,12 +15,12 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.{And, Filter, Or}
 
-trait SpatialFilterStrategy[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q]
-    extends GeoMesaFeatureIndex[DS, F, W, Q] {
+trait SpatialFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
+    extends GeoMesaFeatureIndex[DS, F, W] {
 
   import SpatialFilterStrategy.{StaticCost, spatialCheck}
 
-  override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[FilterStrategy[DS, F, W, Q]] = {
+  override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[FilterStrategy[DS, F, W]] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     if (filter == Filter.INCLUDE) {
@@ -39,7 +39,7 @@ trait SpatialFilterStrategy[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFea
 
   override def getCost(sft: SimpleFeatureType,
                        ds: Option[DS],
-                       filter: FilterStrategy[DS, F, W, Q],
+                       filter: FilterStrategy[DS, F, W],
                        transform: Option[SimpleFeatureType]): Long = {
     filter.primary match {
       case None    => Long.MaxValue

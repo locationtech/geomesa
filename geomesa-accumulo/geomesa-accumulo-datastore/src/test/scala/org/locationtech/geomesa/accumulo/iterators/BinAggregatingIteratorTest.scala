@@ -44,7 +44,7 @@ class BinAggregatingIteratorTest extends Specification {
       BasicValues(f.getDefaultGeometry.asInstanceOf[Point].getY.toFloat,
         f.getDefaultGeometry.asInstanceOf[Point].getX.toFloat,
         f.getAttribute("dtg").asInstanceOf[Date].getTime,
-        f.getAttribute("name").asInstanceOf[String])
+        f.getAttribute("name").asInstanceOf[String].hashCode)
     Convert2ViewerFunction.encode(values, out)
   }
   val bin = out.toByteArray
@@ -81,7 +81,7 @@ class BinAggregatingIteratorTest extends Specification {
           ExtendedValues(f.getDefaultGeometry.asInstanceOf[Point].getY.toFloat,
             f.getDefaultGeometry.asInstanceOf[Point].getX.toFloat,
             f.getAttribute("dtg").asInstanceOf[Date].getTime,
-            f.getAttribute("name").asInstanceOf[String],
+            f.getAttribute("name").asInstanceOf[String].hashCode,
             f.getAttribute("dtg").asInstanceOf[Date].getTime * 1000)
         Convert2ViewerFunction.encode(values, out)
       }
@@ -94,7 +94,7 @@ class BinAggregatingIteratorTest extends Specification {
       val maxLength = 8 // anything more than 8 takes too long to run
       val buffer = Array.ofDim[Byte](maxLength * 16)
       val bins = (1 to maxLength).map(i =>
-        Convert2ViewerFunction.encodeToByteArray(BasicValues(0f, 0f, i * 1000, s"name$i")))
+        Convert2ViewerFunction.encodeToByteArray(BasicValues(0f, 0f, i * 1000, s"name$i".hashCode)))
       (1 to maxLength).foreach { i =>
         bins.slice(0, i).permutations.foreach { seq =>
           val right = i * 16 - 16

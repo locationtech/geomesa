@@ -19,7 +19,7 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.tools.DataStoreCommand
+import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.locationtech.geomesa.tools.export.formats.{BinExporter, NullExporter, ShapefileExporter, _}
 import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.tools.utils.DataFormats._
@@ -29,15 +29,15 @@ import org.opengis.filter.Filter
 
 import scala.util.control.NonFatal
 
-trait ExportCommand[DS <: GeoMesaDataStore[_, _, _, _]] extends DataStoreCommand[DS] with MethodProfiling {
+trait ExportCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] with MethodProfiling {
 
   override val name = "export"
   override def params: ExportParams
 
-  override def execute() = {
+  override def execute(): Unit = {
     implicit val timing = new Timing
     val count = profile(withDataStore(export))
-    logger.info(s"Feature export complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")} " +
+    Command.user.info(s"Feature export complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")} " +
         s"in ${timing.time}ms${count.map(" for " + _ + " features").getOrElse("")}")
   }
 
@@ -76,7 +76,7 @@ trait ExportCommand[DS <: GeoMesaDataStore[_, _, _, _]] extends DataStoreCommand
 
 object ExportCommand extends LazyLogging {
 
-  def getFeatureCollection(ds: GeoMesaDataStore[_, _, _ ,_],
+  def getFeatureCollection(ds: GeoMesaDataStore[_, _, _],
                            fmt: DataFormat,
                            params: BaseExportParams): SimpleFeatureCollection = {
     import scala.collection.JavaConversions._

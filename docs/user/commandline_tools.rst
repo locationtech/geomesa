@@ -10,6 +10,9 @@ Installation
 
 See :ref:`setting_up_commandline`.
 
+
+.. _installing_sft_and_converter_definitions:
+
 Installing SFT and Converter Definitions
 ----------------------------------------
 

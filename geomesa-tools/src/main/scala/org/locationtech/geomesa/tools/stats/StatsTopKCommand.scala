@@ -11,23 +11,19 @@ package org.locationtech.geomesa.tools.stats
 import com.beust.jcommander.Parameter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.tools.DataStoreCommand
+import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.locationtech.geomesa.utils.stats.{Stat, TopK}
 import org.opengis.filter.Filter
 
 import scala.math.Ordering
 import scala.util.control.NonFatal
 
-trait StatsTopKCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait StatsTopKCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
 
   override val name = "stats-top-k"
   override val params: StatsTopKParams
 
-  override def execute(): Unit = {
-    try { withDataStore(topK) } catch {
-      case NonFatal(e) => logger.error("Error analyzing stats: ", e)
-    }
-  }
+  override def execute(): Unit = withDataStore(topK)
 
   protected def topK(ds: DS): Unit = {
     val sft = ds.getSchema(params.featureName)
@@ -36,7 +32,7 @@ trait StatsTopKCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreComm
     val k = Option(params.k).map(_.intValue)
 
     val results = if (params.exact) {
-      logger.info("Running stat query...")
+      Command.user.info("Running stat query...")
       val query = Stat.SeqStat(attributes.map(Stat.TopK))
       ds.stats.runStats[TopK[Any]](sft, query, filter)
     } else {
@@ -44,16 +40,16 @@ trait StatsTopKCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreComm
     }
 
     attributes.foreach { attribute =>
-      println(s"Top values for '$attribute':")
+      Command.output.info(s"Top values for '$attribute':")
       val stat = results.find(_.attribute == sft.indexOf(attribute))
       stat match {
-        case None => println("  unavailable")
+        case None => Command.output.info("  unavailable")
         case Some(s) =>
           val binding = sft.getDescriptor(attribute).getType.getBinding
           val ordering = StatsTopKCommand.ordering(binding)
           val stringify = Stat.stringifier(binding)
           s.topK(k.getOrElse(s.size)).sorted(ordering).foreach { case (value, count) =>
-            println(s"  ${stringify(value)} ($count)")
+            Command.output.info(s"  ${stringify(value)} ($count)")
           }
       }
     }

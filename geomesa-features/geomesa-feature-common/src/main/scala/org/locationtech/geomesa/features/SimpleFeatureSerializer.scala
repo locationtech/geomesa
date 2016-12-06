@@ -31,4 +31,5 @@ trait SimpleFeatureSerializer extends HasEncodingOptions {
   def serialize(feature: SimpleFeature, out: OutputStream): Unit = throw new NotImplementedError
   def deserialize(bytes: Array[Byte]): SimpleFeature
   def deserialize(in: InputStream): SimpleFeature = throw new NotImplementedError
+  def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = throw new NotImplementedError
 }

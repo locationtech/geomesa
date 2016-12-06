@@ -60,7 +60,7 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] {
           throw new ParameterException("Feature name is required when a schema is not specified")
         }
         // auto-detect the import schema
-        logger.info("No schema or converter defined - will attempt to detect schema from input files")
+        Command.user.info("No schema or converter defined - will attempt to detect schema from input files")
         new AutoIngest(params.featureName, connection, params.files, params.fmt, libjarsFile, libjarsPaths, params.threads)
       } else {
         val sft = CLArgResolver.getSft(params.spec, params.featureName)
@@ -95,5 +95,5 @@ object IngestCommand {
   // If you change this, update the regex in GeneralShapefileIngest for URLs
   private val RemotePrefixes = Seq("hdfs", "s3n", "s3a")
 
-  def isDistributedUrl(url: String) = RemotePrefixes.exists(url.startsWith)
+  def isDistributedUrl(url: String): Boolean = RemotePrefixes.exists(url.startsWith)
 }
