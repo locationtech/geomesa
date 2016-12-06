@@ -88,6 +88,8 @@ object GeoMesaSpark extends LazyLogging {
           useMock: Boolean = false,
           numberOfSplits: Option[Int] = None): RDD[SimpleFeature] = {
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
+    val username = AccumuloDataStoreParams.userParam.lookUp(dsParams).toString
+    val password = new PasswordToken(AccumuloDataStoreParams.passwordParam.lookUp(dsParams).toString.getBytes)
     try {
       // get the query plan to set up the iterators, ranges, etc
       lazy val sft = ds.getSchema(query.getTypeName)
@@ -96,10 +98,8 @@ object GeoMesaSpark extends LazyLogging {
       if (ds == null || sft == null || qp.isInstanceOf[EmptyPlan]) {
         sc.emptyRDD[SimpleFeature]
       } else {
-        val username = AccumuloDataStoreParams.userParam.lookUp(dsParams).toString
-        val password = new PasswordToken(AccumuloDataStoreParams.passwordParam.lookUp(dsParams).toString.getBytes)
         val instance = ds.connector.getInstance().getInstanceName
-        lazy val zookeepers = ds.connector.getInstance().getZooKeepers
+        val zookeepers = ds.connector.getInstance().getZooKeepers
 
         val transform = query.getHints.getTransformSchema
 
@@ -123,13 +123,19 @@ object GeoMesaSpark extends LazyLogging {
           InputConfigurator.setAutoAdjustRanges(classOf[AccumuloInputFormat], conf, false)
           InputConfigurator.setAutoAdjustRanges(classOf[GeoMesaAccumuloInputFormat], conf, false)
         }
+
+        org.apache.accumulo.core.client.mapreduce.lib.impl.InputConfigurator.setBatchScan(classOf[AccumuloInputFormat], conf, true)
+        org.apache.accumulo.core.client.mapreduce.lib.impl.InputConfigurator.setBatchScan(classOf[GeoMesaAccumuloInputFormat], conf, true)
         GeoMesaConfigurator.setSerialization(conf)
         GeoMesaConfigurator.setTable(conf, qp.table)
         GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)
         GeoMesaConfigurator.setFeatureType(conf, sft.getTypeName)
-        if (query.getFilter != Filter.INCLUDE) {
-          GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(query.getFilter))
-        }
+
+        // set the secondary filter if it exists and is  not Filter.INCLUDE
+        qp.filter.secondary
+          .collect { case f if f != Filter.INCLUDE => f }
+          .foreach { f => GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(f)) }
+
         transform.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
 
         // Configure Auths from DS
