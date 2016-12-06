@@ -25,6 +25,7 @@ package object security {
       """.stripMargin,
       false)
 
+  val authProviderParam = new Param("authProvider", classOf[AuthorizationsProvider], "Authorizations provider", false)
 
   implicit class SecureSimpleFeature(val sf: SimpleFeature) extends AnyVal {
     /**
@@ -50,30 +51,31 @@ package object security {
   def getAuthorizationsProvider(params: ju.Map[String, jio.Serializable], auths: Seq[String]): AuthorizationsProvider = {
     import scala.collection.JavaConversions._
 
-    // if the user specifies an auth provider to use, try to use that impl
-    val authProviderSystemProperty = Option(System.getProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY))
-
     // we wrap the authorizations provider in one that will filter based on the max auths configured for this store
     val providers = ServiceRegistry.lookupProviders(classOf[AuthorizationsProvider]).toBuffer
-    val toWrap = authProviderSystemProperty match {
-      case Some(prop) =>
-        if (classOf[DefaultAuthorizationsProvider].getName == prop)
-          new DefaultAuthorizationsProvider
-        else
-          providers.find(_.getClass.getName == prop).getOrElse {
-            throw new IllegalArgumentException(s"The service provider class '$prop' specified by " +
-              s"${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} could not be loaded")
+
+    // if the user specifies an auth provider to use, try to use that impl
+    val toWrap = Option(params.get(authProviderParam.key).asInstanceOf[AuthorizationsProvider]).getOrElse {
+      Option(System.getProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY)) match {
+        case Some(prop) =>
+          if (classOf[DefaultAuthorizationsProvider].getName == prop)
+            new DefaultAuthorizationsProvider
+          else
+            providers.find(_.getClass.getName == prop).getOrElse {
+              throw new IllegalArgumentException(s"The service provider class '$prop' specified by " +
+                  s"${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} could not be loaded")
+            }
+        case None =>
+          providers.length match {
+            case 0 => new DefaultAuthorizationsProvider
+            case 1 => providers.head
+            case _ =>
+              throw new IllegalStateException(
+                "Found multiple AuthorizationsProvider implementations. Please specify the one to use with " +
+                    s"the system property '${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY}' :: " +
+                    s"${providers.map(_.getClass.getName).mkString(", ")}")
           }
-      case None =>
-        providers.length match {
-          case 0 => new DefaultAuthorizationsProvider
-          case 1 => providers.head
-          case _ =>
-            throw new IllegalStateException(
-              "Found multiple AuthorizationsProvider implementations. Please specify the one to use with " +
-                  s"the system property '${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY}' :: " +
-                  s"${providers.map(_.getClass.getName).mkString(", ")}")
-        }
+      }
     }
 
     val authorizationsProvider = new FilteringAuthorizationsProvider(toWrap)
