@@ -17,10 +17,10 @@ import scala.annotation.tailrec
  * Abstract trait for resolving sft/config parameters and handling errors around
  * parsing.
  */
-trait AbstractArgResolver[returnType, parseMethodArgTuple] extends LazyLogging {
+trait AbstractArgResolver[ReturnType, ParseMethodArgs] extends LazyLogging {
 
   // Object for holding relevant error to return
-  object ErrorData {
+  class ErrorData {
     var message: String = _
     var error: Throwable = _
     def apply(msg: String, e: Throwable) = { message = msg; error = e }
@@ -32,8 +32,7 @@ trait AbstractArgResolver[returnType, parseMethodArgTuple] extends LazyLogging {
   }
   import ArgTypes._
 
-  type resEither = Either[(String, Throwable, Value), returnType]
-  type argTuple = parseMethodArgTuple
+  type ResEither = Either[(String, Throwable, Value), ReturnType]
 
   // Important to setAllowMissing to false bc else you'll get a config but it will be empty
   val parseOpts =
@@ -45,22 +44,21 @@ trait AbstractArgResolver[returnType, parseMethodArgTuple] extends LazyLogging {
       .setSyntax(null)
 
   // Should return a guess of the argType without using the parsers (e.g. regex, contains, etc)
-  def argType(args: parseMethodArgTuple): ArgTypes.Value
-  // Get the arg from a provider on the cp
-  def parseOption(args: parseMethodArgTuple): Option[returnType]
+  def argType(args: ParseMethodArgs): ArgTypes.Value
   // (Ordered) List of parse methods to attempt
-  def parseMethodList: List[parseMethodArgTuple => resEither]
+  def parseMethodList: List[ParseMethodArgs => ResEither]
 
   /**
-   * @return the SFT parsed from the Args
+   * @return the instance of ReturnType parsed from the Args
    */
-  def getArg(args: parseMethodArgTuple): Either[Throwable, returnType] = {
-    val res = parseOption(args).orElse(parseMethods(args, None, parseMethodList))
+  def getArg(args: ParseMethodArgs): Either[Throwable, ReturnType] = {
+    val errorData = new ErrorData
+    val res = parseMethods(args, None, parseMethodList, errorData)
 
     if (res.isDefined) Right(res.get)
     else {
-      val e = new Throwable(ErrorData.message + "\n" + ErrorData.error.getMessage, ErrorData.error)
-      e.setStackTrace(ErrorData.error.getStackTrace)
+      val e = new Throwable(errorData.message + "\n" + errorData.error.getMessage, errorData.error)
+      e.setStackTrace(errorData.error.getStackTrace)
       Left(e)
     }
   }
@@ -71,24 +69,25 @@ trait AbstractArgResolver[returnType, parseMethodArgTuple] extends LazyLogging {
    * ErrorData is sent back to the CLArgResolver for display to user.
    */
   @tailrec
-  final def parseMethods(args: parseMethodArgTuple,
-                   tryMethod: Option[parseMethodArgTuple => resEither],
-                   methodArray: List[parseMethodArgTuple => resEither]): Option[returnType] = {
+  private def parseMethods(args: ParseMethodArgs,
+                         tryMethod: Option[ParseMethodArgs => ResEither] = None,
+                         methodArray: List[ParseMethodArgs => ResEither],
+                         errorData: ErrorData): Option[ReturnType] = {
     tryMethod match {
       case Some(method) =>
         method(args) match {
           case Right(res) => Some(res) // parse method succeeded, return result
           case Left((msg, error, value)) =>
             logger.debug(msg, error)
-            if (argType(args) == value) { ErrorData(msg, error) }
+            if (argType(args) == value) { errorData(msg, error) }
             methodArray.length match {
               case 0 => None // no more parse methods to try, return None
-              case _ => parseMethods(args, Some(methodArray.head), methodArray.drop(1))
+              case _ => parseMethods(args, Some(methodArray.head), methodArray.drop(1), errorData)
             }
         }
       case None =>
         require(methodArray != null, "Empty method array given to parseMethods. No parseMethod to run.")
-        parseMethods(args, Some(methodArray.head), methodArray.drop(1))
+        parseMethods(args, Some(methodArray.head), methodArray.drop(1), errorData)
     }
   }
 }

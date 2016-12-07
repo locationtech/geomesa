@@ -10,8 +10,8 @@ package org.locationtech.geomesa.tools.utils
 
 import com.beust.jcommander.ParameterException
 import com.typesafe.config.Config
-import org.locationtech.geomesa.convert.ConverterConfigResolver
-import org.locationtech.geomesa.utils.geotools.SftArgResolver
+import org.locationtech.geomesa.convert.{ConfArgs, ConverterConfigResolver}
+import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs}
 import org.opengis.feature.simple.SimpleFeatureType
 
 /**
@@ -25,7 +25,7 @@ object CLArgResolver {
    */
   @throws[ParameterException]
   def getSft(specArg: String, featureName: String = null): SimpleFeatureType = {
-      SftArgResolver.getArg((specArg, featureName)) match {
+      SftArgResolver.getArg(SftArgs(specArg, featureName)) match {
         case Right(sft) => sft
         case Left(e)    => throw new ParameterException(e)
       }
@@ -37,7 +37,7 @@ object CLArgResolver {
    */
   @throws[ParameterException]
   def getConfig(configArg: String): Config =
-    ConverterConfigResolver.getArg(configArg) match {
+    ConverterConfigResolver.getArg(ConfArgs(configArg)) match {
       case Right(config) => config
       case Left(e)       => throw new ParameterException(e)
     }
