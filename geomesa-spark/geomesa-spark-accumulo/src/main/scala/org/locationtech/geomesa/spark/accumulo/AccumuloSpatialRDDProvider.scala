@@ -14,6 +14,7 @@ import org.apache.accumulo.core.client.mapreduce.lib.util.ConfiguratorBase
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.accumulo.core.util.{Pair => AccPair}
+import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
 import org.apache.spark.SparkContext
@@ -137,7 +138,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
           featureWriter.write()
         }
       } finally {
-        featureWriter.close()
+        IOUtils.closeQuietly(featureWriter)
         ds.dispose()
       }
     }
