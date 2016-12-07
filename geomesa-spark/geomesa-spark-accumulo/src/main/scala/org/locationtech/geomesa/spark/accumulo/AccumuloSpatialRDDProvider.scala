@@ -41,7 +41,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
           sc: SparkContext,
           dsParams: Map[String, String],
           query: Query,
-          numberOfSplits: Option[Int]): RDD[SimpleFeature] = {
+          numberOfSplits: Option[Int] = None): RDD[SimpleFeature] = {
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
     val username = AccumuloDataStoreParams.userParam.lookUp(dsParams).toString
     val password = new PasswordToken(AccumuloDataStoreParams.passwordParam.lookUp(dsParams).toString.getBytes)
