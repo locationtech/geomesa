@@ -6,9 +6,9 @@
    classpath.addRepository("https://repo.locationtech.org/content/repositories/geomesa-releases")
    classpath.addRepository("file:///home/username/.m2/repository")
    classpath.add("com.vividsolutions" % "jts" % "1.13")
-   classpath.add("org.locationtech.geomesa" % "geomesa-accumulo-datastore" % "1.2.6")
+   classpath.add("org.locationtech.geomesa" % "geomesa-accumulo-datastore" % "1.3.0")
    classpath.add("org.apache.accumulo" % "accumulo-core" % "1.6.4")
-   classpath.add("org.locationtech.geomesa" % "geomesa-jupyter" % "1.2.6")
+   classpath.add("org.locationtech.geomesa" % "geomesa-jupyter" % "1.3.0")
    
    import org.locationtech.geomesa.jupyter.Jupyter._
    
