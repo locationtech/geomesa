@@ -26,13 +26,6 @@ trait SpatialRDDProvider {
           query: Query,
           numberOfSplits: Option[Int]): RDD[SimpleFeature]
 
-  def rdd(conf: Configuration,
-          sc: SparkContext,
-          dsParams: Map[String, String],
-          query: Query,
-          useMock: Boolean = false,
-          numberOfSplits: Option[Int] = None): RDD[SimpleFeature]
-
   /**
     * Writes this RDD to a GeoMesa table.
     * The type must exist in the data store, and all of the features in the RDD must be of this type.

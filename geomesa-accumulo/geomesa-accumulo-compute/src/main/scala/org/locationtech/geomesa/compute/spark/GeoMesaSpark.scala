@@ -16,7 +16,8 @@ import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat
-import org.apache.accumulo.core.client.mapreduce.lib.util.{ConfiguratorBase, InputConfigurator}
+import org.apache.accumulo.core.client.mapreduce.lib.impl.InputConfigurator
+import org.apache.accumulo.core.client.mapreduce.lib.util.ConfiguratorBase
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.accumulo.core.util.{Pair => AccPair}
@@ -44,6 +45,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 
 import scala.collection.JavaConversions._
+import scala.util.Try
 import scala.util.hashing.MurmurHash3
 
 object GeoMesaSpark extends LazyLogging {
@@ -77,15 +79,6 @@ object GeoMesaSpark extends LazyLogging {
           sc: SparkContext,
           dsParams: Map[String, String],
           query: Query,
-          numberOfSplits: Option[Int]): RDD[SimpleFeature] = {
-    rdd(conf, sc, dsParams, query, useMock = false, numberOfSplits)
-  }
-
-  def rdd(conf: Configuration,
-          sc: SparkContext,
-          dsParams: Map[String, String],
-          query: Query,
-          useMock: Boolean = false,
           numberOfSplits: Option[Int] = None): RDD[SimpleFeature] = {
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
     val username = AccumuloDataStoreParams.userParam.lookUp(dsParams).toString
@@ -104,7 +97,7 @@ object GeoMesaSpark extends LazyLogging {
         val transform = query.getHints.getTransformSchema
 
         ConfiguratorBase.setConnectorInfo(classOf[AccumuloInputFormat], conf, username, password)
-        if (useMock){
+        if (Try(dsParams("useMock").toBoolean).getOrElse(false)){
           ConfiguratorBase.setMockInstance(classOf[AccumuloInputFormat], conf, instance)
         } else {
           ConfiguratorBase.setZooKeeperInstance(classOf[AccumuloInputFormat], conf, instance, zookeepers)
@@ -124,8 +117,8 @@ object GeoMesaSpark extends LazyLogging {
           InputConfigurator.setAutoAdjustRanges(classOf[GeoMesaAccumuloInputFormat], conf, false)
         }
 
-        org.apache.accumulo.core.client.mapreduce.lib.impl.InputConfigurator.setBatchScan(classOf[AccumuloInputFormat], conf, true)
-        org.apache.accumulo.core.client.mapreduce.lib.impl.InputConfigurator.setBatchScan(classOf[GeoMesaAccumuloInputFormat], conf, true)
+        InputConfigurator.setBatchScan(classOf[AccumuloInputFormat], conf, true)
+        InputConfigurator.setBatchScan(classOf[GeoMesaAccumuloInputFormat], conf, true)
         GeoMesaConfigurator.setSerialization(conf)
         GeoMesaConfigurator.setTable(conf, qp.table)
         GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)
@@ -166,7 +159,7 @@ object GeoMesaSpark extends LazyLogging {
     val ds = DataStoreFinder.getDataStore(writeDataStoreParams).asInstanceOf[AccumuloDataStore]
     try {
       require(ds.getSchema(writeTypeName) != null,
-        "feature type must exist before calling save.  Call .createSchema on the DataStore before calling .save")
+        "Feature type must exist before calling save.  Call .createSchema on the DataStore before calling .save")
     } finally {
       ds.dispose()
     }

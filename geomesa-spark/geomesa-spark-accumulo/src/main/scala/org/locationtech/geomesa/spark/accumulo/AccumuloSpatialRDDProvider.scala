@@ -13,6 +13,7 @@ import org.apache.accumulo.core.client.mapreduce.lib.impl.InputConfigurator
 import org.apache.accumulo.core.client.mapreduce.lib.util.ConfiguratorBase
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
+import org.apache.accumulo.core.util.{Pair => AccPair}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
 import org.apache.spark.SparkContext
@@ -30,6 +31,7 @@ import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
+import scala.util.Try
 
 class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
   override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
@@ -40,15 +42,6 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
           dsParams: Map[String, String],
           query: Query,
           numberOfSplits: Option[Int]): RDD[SimpleFeature] = {
-    rdd(conf, sc, dsParams, query, useMock = false, numberOfSplits)
-  }
-
-  def rdd(conf: Configuration,
-          sc: SparkContext,
-          dsParams: Map[String, String],
-          query: Query,
-          useMock: Boolean = false,
-          numberOfSplits: Option[Int] = None): RDD[SimpleFeature] = {
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
     val username = AccumuloDataStoreParams.userParam.lookUp(dsParams).toString
     val password = new PasswordToken(AccumuloDataStoreParams.passwordParam.lookUp(dsParams).toString.getBytes)
@@ -66,7 +59,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
         val transform = query.getHints.getTransformSchema
 
         ConfiguratorBase.setConnectorInfo(classOf[AccumuloInputFormat], conf, username, password)
-        if (useMock){
+        if (Try(dsParams("useMock").toBoolean).getOrElse(false)){
           ConfiguratorBase.setMockInstance(classOf[AccumuloInputFormat], conf, instance)
         } else {
           ConfiguratorBase.setZooKeeperInstance(classOf[AccumuloInputFormat], conf, instance, zookeepers)
@@ -76,7 +69,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
         qp.iterators.foreach(InputConfigurator.addIterator(classOf[AccumuloInputFormat], conf, _))
 
         if (qp.columnFamilies.nonEmpty) {
-          val cf = qp.columnFamilies.map(cf => new org.apache.accumulo.core.util.Pair[Text, Text](cf, null))
+          val cf = qp.columnFamilies.map(cf => new AccPair[Text, Text](cf, null))
           InputConfigurator.fetchColumns(classOf[AccumuloInputFormat], conf, cf)
         }
 
@@ -86,8 +79,8 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
           InputConfigurator.setAutoAdjustRanges(classOf[GeoMesaAccumuloInputFormat], conf, false)
         }
 
-        org.apache.accumulo.core.client.mapreduce.lib.impl.InputConfigurator.setBatchScan(classOf[AccumuloInputFormat], conf, true)
-        org.apache.accumulo.core.client.mapreduce.lib.impl.InputConfigurator.setBatchScan(classOf[GeoMesaAccumuloInputFormat], conf, true)
+        InputConfigurator.setBatchScan(classOf[AccumuloInputFormat], conf, true)
+        InputConfigurator.setBatchScan(classOf[GeoMesaAccumuloInputFormat], conf, true)
         GeoMesaConfigurator.setSerialization(conf)
         GeoMesaConfigurator.setTable(conf, qp.table)
         GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)
@@ -128,7 +121,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
     val ds = DataStoreFinder.getDataStore(writeDataStoreParams).asInstanceOf[AccumuloDataStore]
     try {
       require(ds.getSchema(writeTypeName) != null,
-        "feature type must exist before calling save.  Call .createSchema on the DataStore before calling .save")
+        "Feature type must exist before calling save.  Call .createSchema on the DataStore before calling .save")
     } finally {
       ds.dispose()
     }
