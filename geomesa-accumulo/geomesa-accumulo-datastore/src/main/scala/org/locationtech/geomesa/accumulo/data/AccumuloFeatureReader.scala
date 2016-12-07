@@ -10,6 +10,7 @@ package org.locationtech.geomesa.accumulo.data
 
 import java.util.concurrent.atomic.AtomicBoolean
 
+import com.vividsolutions.jts.geom.Geometry
 import org.geotools.data.{FeatureReader, Query}
 import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
 import org.locationtech.geomesa.accumulo.index.QueryPlanner.SFIter
@@ -107,9 +108,64 @@ class AccumuloFeatureReaderWithStats(val query: Query,
 private class AccumuloFeatureReaderDelegate(iter: SFIter, query: Query, qp: QueryPlanner)(implicit timings: Timings)
     extends FeatureReader[SimpleFeatureType, SimpleFeature] with MethodProfiling {
 
+  def isValid(feature: SimpleFeature): Boolean = if (feature == null) {
+    false
+  } else {
+    val geom = feature.getDefaultGeometry()
+    if (geom == null) {
+      false
+    } else {
+      geom.asInstanceOf[Geometry].isValid()
+    }
+  }
+
+  // mutable pre-fetch
+  var nextFeature: SimpleFeature = getNextFeature()
+
   override def getFeatureType: SimpleFeatureType = query.getHints.getReturnSft
-  override def next(): SimpleFeature = profile(iter.next(), "next")
-  override def hasNext: Boolean = profile(iter.hasNext, "hasNext")
+
+  // simple pass-through
+  override def next(): SimpleFeature = {
+    val returnValue = nextFeature
+    nextFeature = getNextFeature()
+    returnValue
+  }
+
+  // pre-fetch check
+  override def hasNext: Boolean = (nextFeature != null)
+
+  // does the real work of fetching the next (valid) feature; null otherwise
+  def getNextFeature(): SimpleFeature = {
+    // ensure this is reasonable
+    if (!delegateHasNext) return null
+
+    // intentionally mutable state
+    var candidate = profile(iter.next(), "next")
+
+    // skip all invalid records until you either exhaust the iterator or find something acceptable
+    while (!isValid(candidate)) {
+      // TODO:  change to logging?
+      println(s"[ERROR] AccumuloFeatureReaderDelegate.getNextFeature():  Invalid geometry\n  candidate:  $candidate")
+      if (candidate != null) {
+        println(s"  candidate geometry:  ${candidate.getDefaultGeometry}")
+        if (candidate.getDefaultGeometry != null) {
+          println(s"  is candidate geometry valid?  ${candidate.getDefaultGeometry.asInstanceOf[Geometry].isValid}")
+        }
+      }
+
+      // bail, if there are no more records
+      if (!delegateHasNext) return null
+
+      // fetch the next candidate
+      candidate = profile(iter.next(), "next")
+    }
+
+    // if you get this far, then you have necessarily found a valid candidate
+    candidate
+  }
+
+  def delegateHasNext: Boolean = profile(iter.hasNext, "hasNext")
+
   override def close(): Unit = iter.close()
 
   def getCount: Int = timings.occurrences("next").toInt
@@ -125,6 +181,7 @@ private class AccumuloFeatureReaderBinDelegate(iter: SFIter, query: Query, qp: Q
 
   override def next(): SimpleFeature = {
     val sf = super.next()
+    
     count += (sf.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]].length / bytesPerHit)
     sf
   }
