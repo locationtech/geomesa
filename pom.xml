@@ -30,6 +30,7 @@
         <module>geomesa-hbase</module>
         <module>geomesa-index-api</module>
         <module>geomesa-jobs</module>
+        <module>geomesa-jupyter</module>
         <module>geomesa-kafka</module>
         <module>geomesa-logger</module>
         <module>geomesa-memory</module>
@@ -126,9 +127,6 @@
             <properties>
                 <scala.version>2.11.7</scala.version>
             </properties>
-            <modules>
-                <module>geomesa-jupyter</module>
-            </modules>
             <build>
                 <plugins>
                     <plugin>
