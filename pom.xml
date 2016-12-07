@@ -37,12 +37,12 @@
         <module>geomesa-native-api</module>
         <module>geomesa-process</module>
         <module>geomesa-security</module>
+        <module>geomesa-spark</module>
         <module>geomesa-stream</module>
         <module>geomesa-tools</module>
         <module>geomesa-utils</module>
         <module>geomesa-web</module>
         <module>geomesa-z3</module>
-        <module>geomesa-spark-sql</module>
         <module>docs</module>
     </modules>
 
@@ -1728,7 +1728,12 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-spark-sql-core</artifactId>
+                <artifactId>geomesa-spark-sql_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-spark-accumulo_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!-- note: accumulo uses guava 17, but geotools uses 11. The methods we use happen to exist
