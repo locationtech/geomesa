@@ -5,10 +5,6 @@ com.drewnoakes:metadata-extractor	2.8.1	compile
 com.esotericsoftware.kryo:kryo	2.21	compile
 com.esotericsoftware.minlog:minlog	1.2	compile
 com.esotericsoftware.reflectasm:reflectasm	shaded:1.07	compile
-com.fasterxml.jackson.core:jackson-annotations	2.6.0	compile
-com.fasterxml.jackson.core:jackson-annotations	2.6.5	compile
-com.fasterxml.jackson.core:jackson-core	2.6.5	compile
-com.fasterxml.jackson.core:jackson-databind	2.6.5	compile
 com.github.ben-manes.caffeine:caffeine	2.3.3	compile
 com.googlecode.concurrent-trees:concurrent-trees	2.6.0	compile
 com.googlecode.cqengine:cqengine	2.7.1	compile
@@ -36,11 +32,8 @@ com.spatial4j:spatial4j	0.4.1	compile
 com.sun.xml.bind:jaxb-core	2.2.11	compile
 com.sun.xml.bind:jaxb-impl	2.2.11	compile
 com.thoughtworks.paranamer:paranamer	2.6	compile
-com.twitter:chill_2.11	0.5.2	compile
-com.twitter:chill-java	0.5.2	compile
 com.typesafe:config	1.2.1	compile
 com.typesafe.scala-logging:scala-logging_2.11	3.1.0	compile
-com.univocity:univocity-parsers	2.1.1	compile
 com.vividsolutions:jts	1.13	compile
 eu.medsea.mimeutil:mime-util	2.1.3	compile
 io.dropwizard.metrics:metrics-core	3.1.2	compile
@@ -83,7 +76,6 @@ net.java.dev.jsr-275:jsr-275	1.0-beta-2	compile
 net.minidev:accessors-smart	1.1	compile
 net.minidev:json-smart	2.2.1	compile
 net.sf.geographiclib:GeographicLib-Java	1.44	compile
-org.antlr:antlr4-runtime	4.5.3	compile
 org.antlr:antlr4-runtime	4.5	compile
 org.apache.accumulo:accumulo-core	1.7.2	compile
 org.apache.accumulo:accumulo-fate	1.7.2	compile
@@ -106,18 +98,6 @@ org.apache.curator:curator-recipes	2.7.1	compile
 org.apache.htrace:htrace-core	3.1.0-incubating	compile
 org.apache.metamodel:MetaModel-core	4.3.6	compile
 org.apache.metamodel:MetaModel-pojo	4.3.6	compile
-org.apache.parquet:parquet-column	1.7.0	compile
-org.apache.parquet:parquet-common	1.7.0	compile
-org.apache.parquet:parquet-encoding	1.7.0	compile
-org.apache.parquet:parquet-format	2.3.0-incubating	compile
-org.apache.parquet:parquet-generator	1.7.0	compile
-org.apache.parquet:parquet-hadoop	1.7.0	compile
-org.apache.parquet:parquet-jackson	1.7.0	compile
-org.apache.spark:spark-catalyst_2.11	2.0.1	compile
-org.apache.spark:spark-sketch_2.11	2.0.1	compile
-org.apache.spark:spark-sql_2.11	2.0.1	compile
-org.apache.spark:spark-tags_2.11	2.0.1	compile
-org.apache.spark:spark-unsafe_2.11	2.0.1	compile
 org.apache.thrift:libthrift	0.9.1	compile
 org.apache.xml:xml-commons-resolver	1.2	compile
 org.apache.zookeeper:zookeeper	3.4.5	compile
@@ -125,8 +105,6 @@ org.calrissian.mango:mango-core	1.2.0	compile
 org.clapper:grizzled-slf4j_2.11	1.0.2	compile
 org.codehaus.jackson:jackson-core-asl	1.9.3	compile
 org.codehaus.jackson:jackson-mapper-asl	1.9.3	compile
-org.codehaus.janino:commons-compiler	2.7.8	compile
-org.codehaus.janino:janino	2.7.8	compile
 org.eclipse.emf:common	2.6.0	compile
 org.eclipse.emf:ecore	2.6.1	compile
 org.eclipse.xsd:xsd	2.6.0	compile
@@ -180,7 +158,6 @@ org.scala-lang:scala-compiler	2.11.7	compile
 org.scala-lang:scala-library	2.11.7	compile
 org.scala-lang:scalap	2.11.7	compile
 org.scala-lang:scala-reflect	2.11.7	compile
-org.scalatest:scalatest_2.11	2.2.6	compile
 org.scalatra.rl:rl_2.11	0.4.10	compile
 org.scalatra:scalatra_2.11	2.3.0	compile
 org.scalatra:scalatra-auth_2.11	2.3.0	compile
@@ -189,9 +166,7 @@ org.scalatra:scalatra-json_2.11	2.3.0	compile
 org.scalatra:scalatra-swagger_2.11	2.3.0	compile
 org.slf4j:slf4j-api	1.7.5	compile
 org.slf4j:slf4j-log4j12	1.7.5	compile
-org.spark-project.spark:unused	1.0.0	compile
 org.tukaani:xz	1.0	compile
-org.xerial.snappy:snappy-java	1.1.2.6	compile
 picocontainer:picocontainer	1.2	compile
 
 com.datastax.cassandra:cassandra-driver-core	3.0.0	provided
@@ -207,7 +182,9 @@ org.apache.kafka:kafka_2.11	0.10.0.1	provided
 org.apache.kafka:kafka_2.11	0.8.2.1	provided
 org.apache.kafka:kafka_2.11	0.9.0.1	provided
 org.apache.kafka:kafka-clients	0.10.0.1	provided
+org.apache.spark:spark-catalyst_2.11	2.0.1	provided
 org.apache.spark:spark-core_2.11	2.0.1	provided
+org.apache.spark:spark-sql_2.11	2.0.1	provided
 org.apache.spark:spark-yarn_2.11	2.0.1	provided
 org.springframework.security:spring-security-core	3.1.0.RELEASE	provided
 org.springframework.security:spring-security-web	3.1.0.RELEASE	provided
