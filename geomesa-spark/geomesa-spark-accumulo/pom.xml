@@ -9,6 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <name>GeoMesa Spark Accumulo</name>
     <artifactId>geomesa-spark-accumulo_2.11</artifactId>
 
     <dependencies>

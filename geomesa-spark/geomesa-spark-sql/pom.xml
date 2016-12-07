@@ -9,6 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <name>GeoMesa Spark SQL</name>
     <artifactId>geomesa-spark-sql_2.11</artifactId>
 
     <dependencies>

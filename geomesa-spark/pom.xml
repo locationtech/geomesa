@@ -9,6 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <name>GeoMesa Spark</name>
     <artifactId>geomesa-spark_2.11</artifactId>
     <packaging>pom</packaging>
     <modules>
