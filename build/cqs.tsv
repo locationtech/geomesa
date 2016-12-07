@@ -182,17 +182,15 @@ org.apache.kafka:kafka_2.11	0.10.0.1	provided
 org.apache.kafka:kafka_2.11	0.8.2.1	provided
 org.apache.kafka:kafka_2.11	0.9.0.1	provided
 org.apache.kafka:kafka-clients	0.10.0.1	provided
-org.apache.spark:spark-catalyst_2.11	2.0.1	provided
-org.apache.spark:spark-core_2.11	2.0.1	provided
-org.apache.spark:spark-sql_2.11	2.0.1	provided
-org.apache.spark:spark-yarn_2.11	2.0.1	provided
+org.apache.spark:spark-catalyst_2.11	2.0.0	provided
+org.apache.spark:spark-core_2.11	2.0.0	provided
+org.apache.spark:spark-sql_2.11	2.0.0	provided
+org.apache.spark:spark-yarn_2.11	2.0.0	provided
 org.springframework.security:spring-security-core	3.1.0.RELEASE	provided
 org.springframework.security:spring-security-web	3.1.0.RELEASE	provided
 org.springframework:spring-web	3.1.4.RELEASE	provided
 
-jline:jline	2.12	test
 junit:junit	4.12	test
-org.apache.accumulo:accumulo-minicluster	1.7.2	test
 org.apache.accumulo:accumulo-test	1.7.2	test
 org.apache.camel:camel-netty4	2.15.1	test
 org.apache.cassandra:cassandra-all	3.0.0	test
