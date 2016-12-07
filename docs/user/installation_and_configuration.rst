@@ -111,8 +111,8 @@ contain GeoMesa code and the Accumulo iterators required for querying GeoMesa da
 
 .. warning::
 
-    GeoMesa requires commons-vfs2.jar 2.1 or later. This jar ships with Accumulo 1.7.2+, but for older
-    installations the jar needs to be updated in ``$ACCUMULO_HOME/lib`` on all Accumulo servers.
+    GeoMesa requires commons-vfs2.jar 2.1 or later. This JAR ships with Accumulo 1.7.2+, but for older
+    installations the JAR needs to be updated in ``$ACCUMULO_HOME/lib`` on all Accumulo servers.
 
 .. warning::
 
