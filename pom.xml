@@ -30,6 +30,7 @@
         <module>geomesa-hbase</module>
         <module>geomesa-index-api</module>
         <module>geomesa-jobs</module>
+        <module>geomesa-jupyter</module>
         <module>geomesa-kafka</module>
         <module>geomesa-logger</module>
         <module>geomesa-memory</module>
@@ -2115,6 +2116,11 @@
                 <artifactId>scalatra-specs2_${scala.binary.version}</artifactId>
                 <version>2.3.0</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.3.2</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
