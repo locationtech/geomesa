@@ -184,12 +184,12 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
 
   override def createRecordReader(split: InputSplit, context: TaskAttemptContext) = {
     init(context.getConfiguration)
-    val readers = Array(delegate.createRecordReader(split, context))
+    val reader = delegate.createRecordReader(split, context)
     val schema = GeoMesaConfigurator.getTransformSchema(context.getConfiguration).getOrElse(sft)
     val hasId = table.serializedWithId
     val serializationOptions = if (hasId) SerializationOptions.none else SerializationOptions.withoutId
     val decoder = new KryoFeatureSerializer(schema, serializationOptions)
-    new GeoMesaRecordReader(sft, table, readers, hasId, decoder)
+    new GeoMesaRecordReader(sft, table, reader, hasId, decoder)
   }
 }
 
@@ -197,68 +197,45 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
  * Record reader that delegates to accumulo record readers and transforms the key/values coming back into
  * simple features.
  *
- * @param readers
+ * @param reader
  */
 class GeoMesaRecordReader(sft: SimpleFeatureType,
                           table: AccumuloWritableIndex,
-                          readers: Array[RecordReader[Key, Value]],
+                          reader: RecordReader[Key, Value],
                           hasId: Boolean,
                           decoder: org.locationtech.geomesa.features.SimpleFeatureSerializer)
     extends RecordReader[Text, SimpleFeature] {
 
   var currentFeature: SimpleFeature = null
-  var readerIndex: Int = -1
-  var currentReader: Option[RecordReader[Key, Value]] = None
 
   val getId = table.getIdFromRow(sft)
 
   override def initialize(split: InputSplit, context: TaskAttemptContext) = {
-    readers(0).initialize(split, context)
-    // queue up our first reader
-    nextReader()
+    reader.initialize(split, context)
   }
-
-  /**
-   * Advances to the next delegate reader
-   */
-  private[this] def nextReader() = {
-    readerIndex = readerIndex + 1
-    if (readerIndex < readers.length) {
-      currentReader = Some(readers(readerIndex))
-    } else {
-      currentReader = None
-    }
-  }
-
-  override def getProgress = if (readers.length == 0) 1f else if (readerIndex < 0) 0f else {
-    val readersProgress = readerIndex * 1f / readers.length
-    val readerProgress = currentReader.map(_.getProgress / readers.length).filterNot(isNaN).getOrElse(0f)
-    readersProgress + readerProgress
-  }
+  override def getProgress = reader.getProgress
 
   override def nextKeyValue() = nextKeyValueInternal()
 
   /**
-   * Get the next key value from the underlying reader, incrementing the reader when required
-   */
-  private def nextKeyValueInternal(): Boolean =
-    currentReader.exists { reader =>
-      if (reader.nextKeyValue()) {
-        currentFeature = decoder.deserialize(reader.getCurrentValue.get())
-        if (!hasId) {
-            val row = reader.getCurrentKey.getRow
-            currentFeature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row.getBytes, 0, row.getLength))
-        }
-        true
-      } else {
-        nextReader()
-        nextKeyValueInternal()
+    * Get the next key value from the underlying reader, incrementing the reader when required
+    */
+  private def nextKeyValueInternal(): Boolean = {
+    if (reader.nextKeyValue()) {
+      currentFeature = decoder.deserialize(reader.getCurrentValue.get())
+      if (!hasId) {
+        val row = reader.getCurrentKey.getRow
+        currentFeature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row.getBytes, 0, row.getLength))
       }
+      true
+    } else {
+      nextKeyValueInternal()
     }
+  }
 
   override def getCurrentValue = currentFeature
 
   override def getCurrentKey = new Text(currentFeature.getID)
 
-  override def close() = { readers.foreach { _.close() } } // delegate Accumulo readers have a no-op close
+  override def close() = { reader.close() }
 }
