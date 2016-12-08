@@ -74,7 +74,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       ds.removeSchema(typeName)
 
       // tables should be deleted now (for stand-alone tables only)
-      forall(tableNames)(tableOps.exists(_) must eventually(beFalse))
+      forall(tableNames)(tableOps.exists(_) must eventually(10, 1.seconds)(beFalse))
 
       // metadata should be deleted from the catalog now
       ds.metadata.getFeatureTypes.toSeq must not contain typeName
@@ -123,7 +123,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       testExists(typeName2)
 
       // ensure first sft was deleted
-      forall(tableNames1)(tableOps.exists(_) must eventually(beFalse))
+      forall(tableNames1)(tableOps.exists(_) must eventually(10, 1.seconds)(beFalse))
       ds.metadata.getFeatureTypes.toSeq must not contain typeName1
       ds.getSchema(typeName1) must beNull
       ds.stats.getCount(sft1, exact = false) must beNone
@@ -146,7 +146,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
 
       // z3 table must be gone
       forall(tableNames.filterNot(_.contains("z3")))(tableOps.exists(_) must beTrue)
-      forall(tableNames.filter(_.contains("z3")))(tableOps.exists(_) must eventually(beFalse))
+      forall(tableNames.filter(_.contains("z3")))(tableOps.exists(_) must eventually(10, 1.seconds)(beFalse))
 
       // metadata should be deleted from the catalog now
       ds.metadata.getFeatureTypes.toSeq must not contain typeName
@@ -194,7 +194,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
 
       // shared tables should still exist
       forall(tableNames1.filterNot(_.contains("z3")))(tableOps.exists(_) must beTrue)
-      forall(tableNames1.filter(_.contains("z3")))(tableOps.exists(_) must eventually(beFalse))
+      forall(tableNames1.filter(_.contains("z3")))(tableOps.exists(_) must eventually(10, 1.seconds)(beFalse))
       // but these tables should still exist since sftName2 wasn't deleted
       forall(tableNames2)(tableOps.exists(_) must beTrue)
 
@@ -271,7 +271,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       tables must haveSize(6)
       forall(tables)(tableOps.exists(_) must beTrue)
       ds.delete()
-      forall(tables)(tableOps.exists(_) must eventually(beFalse))
+      forall(tables)(tableOps.exists(_) must eventually(10, 1.seconds)(beFalse))
     }
   }
 }
