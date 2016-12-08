@@ -11,14 +11,15 @@ package org.locationtech.geomesa.spark
 import java.sql.Timestamp
 import java.util.{Date, UUID}
 
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
 import org.apache.spark.sql.sources._
 import org.apache.spark.sql.types.{DataTypes, StructField, StructType}
-import org.apache.spark.sql._
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
@@ -118,12 +119,10 @@ class GeoMesaDataSource extends DataSourceRegister with RelationProvider with Sc
   }
 
   override def createRelation(sqlContext: SQLContext, mode: SaveMode, parameters: Map[String, String], data: DataFrame): BaseRelation = {
-    println("In createRelation with map " + parameters)
     val newFeatureName: String = parameters("geomesa.feature")
     val sft: SimpleFeatureType = structType2SFT(data.schema, newFeatureName)
 
     val ds = DataStoreFinder.getDataStore(parameters)
-    println(s"Creating SFT: $sft")
     sft.getUserData.put("override.reserved.words", java.lang.Boolean.TRUE)
     ds.createSchema(sft)
 
@@ -164,9 +163,8 @@ case class GeoMesaRelation(sqlContext: SQLContext,
   }
 }
 
-object SparkUtils {
+object SparkUtils extends LazyLogging {
   @transient val ff = CommonFactoryFinder.getFilterFactory2
-  private val log = org.slf4j.LoggerFactory.getLogger("org.locationtech.geomesa.accumulo.spark.sql")
 
   def buildScan(sft: SimpleFeatureType,
                 requiredColumns: Array[String],
@@ -175,9 +173,9 @@ object SparkUtils {
                 ctx: SparkContext,
                 schema: StructType,
                 params: Map[String, String]): RDD[Row] = {
-    log.warn(s"""Building scan, filt = $filt, filters = ${filters.mkString(",")}, requiredColumns = ${requiredColumns.mkString(",")}""")
+    logger.info(s"""Building scan, filt = $filt, filters = ${filters.mkString(",")}, requiredColumns = ${requiredColumns.mkString(",")}""")
     val compiledCQL = filters.flatMap(sparkFilterToCQLFilter).foldLeft[org.opengis.filter.Filter](filt) { (l, r) => ff.and(l,r) }
-    log.warn(s"compiledCQL = $compiledCQL")
+    logger.info(s"compiledCQL = $compiledCQL")
 
     val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
     val rdd = GeoMesaSpark(params).rdd(
@@ -249,21 +247,10 @@ object SparkUtils {
         } else if (binding == classOf[com.vividsolutions.jts.geom.Point]) {
           builder.set(name, row.getAs[Point](name))
         } else {
-          println(s"UNHANDLED BINDING: $binding")
+          logger.warn(s"UNHANDLED BINDING: $binding")
         }
     }
 
-//    val descriptorNames: scala.collection.mutable.Buffer[String] = sft.getAttributeDescriptors.map(_.getLocalName)
-//
-//    row.getValuesMap(descriptorNames).foreach {
-//      case (field, value) =>
-//        val f: String = field
-//        val v: Any = value
-//        builder.set(field, value)
-//    }
-
-//    val fid = row.getAs[String]("__fid__")
     builder.buildFeature(UUID.randomUUID().toString)
   }
-
 }

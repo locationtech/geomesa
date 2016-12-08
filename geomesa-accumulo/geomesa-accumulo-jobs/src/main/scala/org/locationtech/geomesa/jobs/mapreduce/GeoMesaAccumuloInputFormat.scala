@@ -8,19 +8,17 @@
 
 package org.locationtech.geomesa.jobs.mapreduce
 
-import java.io._
-import java.lang.Float._
 import java.net.{URL, URLClassLoader}
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.mapreduce.{AbstractInputFormat, AccumuloInputFormat, InputFormatBase, RangeInputSplit}
+import org.apache.accumulo.core.client.mapreduce.{AbstractInputFormat, AccumuloInputFormat, InputFormatBase}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.accumulo.core.util.{Pair => AccPair}
 import org.apache.commons.collections.map.CaseInsensitiveMap
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.io.{Text, Writable}
+import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.identity.FeatureIdImpl
@@ -36,9 +34,7 @@ import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-import scala.annotation.tailrec
 import scala.collection.JavaConversions._
-import scala.collection.mutable.ArrayBuffer
 
 object GeoMesaAccumuloInputFormat extends LazyLogging {
 
@@ -215,7 +211,6 @@ class GeoMesaRecordReader(sft: SimpleFeatureType,
   /**
     * Get the next key value from the underlying reader, incrementing the reader when required
     */
-  @tailrec
   private def nextKeyValueInternal(): Boolean = {
     if (reader.nextKeyValue()) {
       currentFeature = decoder.deserialize(reader.getCurrentValue.get())
@@ -225,7 +220,7 @@ class GeoMesaRecordReader(sft: SimpleFeatureType,
       }
       true
     } else {
-      nextKeyValueInternal()
+      false
     }
   }
 
