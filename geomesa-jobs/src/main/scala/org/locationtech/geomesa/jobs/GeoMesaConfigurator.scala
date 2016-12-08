@@ -84,20 +84,6 @@ object GeoMesaConfigurator {
   def getIndicesOut(conf: Configuration): Option[Seq[String]] =
     Option(conf.get(indicesOutKey)).map(_.split(","))
 
-  /**
-   * Configure the number of desired splits. This should be called with the final intended
-   * value. In general, you should use the number of shards * a guess about the number of
-   * partitions or splits you want per shard. The default is 2. Behavior is undefined for
-   * numbers less than 1.
-   *
-   * @param conf configuration
-   * @param countOfSplits splits
-   */
-  def setDesiredSplits(conf: Configuration, countOfSplits : Int) : Unit =
-    conf.setInt(desiredSplits, countOfSplits)
-  def getDesiredSplits(job : Job): Int = getDesiredSplits(job.getConfiguration)
-  def getDesiredSplits(conf : Configuration): Int = conf.getInt(desiredSplits, -1)
-
   // set/get the cql filter
   def setFilter(conf: Configuration, filter: String): Unit = conf.set(filterKey, filter)
   def getFilter(job: Job): Option[String] = getFilter(job.getConfiguration)

@@ -23,8 +23,7 @@ trait SpatialRDDProvider {
   def rdd(conf: Configuration,
           sc: SparkContext,
           dsParams: Map[String, String],
-          query: Query,
-          numberOfSplits: Option[Int] = None): RDD[SimpleFeature]
+          query: Query): RDD[SimpleFeature]
 
   /**
     * Writes this RDD to a GeoMesa table.

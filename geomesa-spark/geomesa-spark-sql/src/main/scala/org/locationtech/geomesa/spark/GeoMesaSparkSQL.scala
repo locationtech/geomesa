@@ -182,7 +182,7 @@ object SparkUtils {
     val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
     val rdd = GeoMesaSpark(params).rdd(
       new Configuration(), ctx, params,
-      new Query(params("geomesa.feature"), compiledCQL, requiredAttributes), Option.empty[Int])
+      new Query(params("geomesa.feature"), compiledCQL, requiredAttributes))
 
     type EXTRACTOR = SimpleFeature => AnyRef
     val IdExtractor: SimpleFeature => AnyRef = sf => sf.getID

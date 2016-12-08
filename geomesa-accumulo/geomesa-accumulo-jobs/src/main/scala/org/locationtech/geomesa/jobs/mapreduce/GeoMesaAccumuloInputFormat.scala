@@ -36,6 +36,7 @@ import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 
@@ -96,10 +97,6 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
     }
     queryPlan.iterators.foreach(InputFormatBase.addIterator(job, _))
 
-    // auto adjust ranges - this ensures that each split created will have a single location, which we want
-    // for the GeoMesaInputFormat below
-    InputFormatBase.setAutoAdjustRanges(job, true)
-
     InputFormatBase.setBatchScan(job, true)
 
     // also set the datastore parameters so we can access them later
@@ -153,14 +150,12 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
   val delegate = new AccumuloInputFormat
 
   var sft: SimpleFeatureType = null
-  var desiredSplitCount: Int = -1
   var table: AccumuloWritableIndex = null
 
   private def init(conf: Configuration) = if (sft == null) {
     val params = GeoMesaConfigurator.getDataStoreInParams(conf)
     val ds = DataStoreFinder.getDataStore(new CaseInsensitiveMap(params).asInstanceOf[java.util.Map[_, _]]).asInstanceOf[AccumuloDataStore]
     sft = ds.getSchema(GeoMesaConfigurator.getFeatureType(conf))
-    desiredSplitCount = GeoMesaConfigurator.getDesiredSplits(conf)
     val tableName = GeoMesaConfigurator.getTable(conf)
     table = AccumuloFeatureIndex.indices(sft, IndexMode.Read)
         .find(t => t.getTableName(sft.getTypeName, ds) == tableName)
@@ -220,6 +215,7 @@ class GeoMesaRecordReader(sft: SimpleFeatureType,
   /**
     * Get the next key value from the underlying reader, incrementing the reader when required
     */
+  @tailrec
   private def nextKeyValueInternal(): Boolean = {
     if (reader.nextKeyValue()) {
       currentFeature = decoder.deserialize(reader.getCurrentValue.get())

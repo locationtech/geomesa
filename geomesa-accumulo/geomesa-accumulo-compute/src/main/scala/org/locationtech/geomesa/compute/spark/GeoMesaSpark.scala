@@ -112,12 +112,6 @@ object GeoMesaSpark extends LazyLogging {
           InputConfigurator.fetchColumns(classOf[AccumuloInputFormat], conf, cf)
         }
 
-        if (numberOfSplits.isDefined) {
-          GeoMesaConfigurator.setDesiredSplits(conf, numberOfSplits.get * sc.getExecutorStorageStatus.length)
-          InputConfigurator.setAutoAdjustRanges(classOf[AccumuloInputFormat], conf, false)
-          InputConfigurator.setAutoAdjustRanges(classOf[GeoMesaAccumuloInputFormat], conf, false)
-        }
-
         InputConfigurator.setBatchScan(classOf[AccumuloInputFormat], conf, true)
         InputConfigurator.setBatchScan(classOf[GeoMesaAccumuloInputFormat], conf, true)
         GeoMesaConfigurator.setSerialization(conf)
