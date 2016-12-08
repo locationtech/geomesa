@@ -12,14 +12,12 @@
         <constructor-arg index="1" value="geomesa-blobstore"/>
     </bean>
 
-    <bean id="blobStoreServletContext" class="org.springframework.web.context.support.ServletContextFactoryBean"/>
-
     <bean id="blobStoreGeoserverDataDirStr" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
         <property name="targetClass" value="org.geoserver.platform.GeoServerResourceLoader"/>
         <property name="targetMethod" value="lookupGeoServerDataDirectory"/>
         <property name="arguments">
             <list>
-                <ref bean="blobStoreServletContext"/>
+                <ref bean="servletContext"/>
             </list>
         </property>
     </bean>
@@ -30,7 +28,7 @@
 
     <bean id="blobStoreConfigDir" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
         <property name="targetObject">
-            <ref local="blobStoreGeoserverDataDir"/>
+            <ref bean="blobStoreGeoserverDataDir"/>
         </property>
         <property name="targetMethod" value="findOrCreateDir"/>
         <property name="arguments">

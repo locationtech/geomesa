@@ -17,7 +17,7 @@ parameters) and creates ``SimpleFeature``\ s which are the written to a
 GeoMesa data store while the blobs are persisted using a class that
 implements the ``BlobStore`` interface.
 
-File retrieval is a two-step process. First a query is made to the
+File retrieval is a two-step process. First, a query is made to the
 GeoMesa ``FeatureStore``. The returned ``SimpleFeature``\ s will contain
 a URI field. That URI points to the desired file stored in Accumulo, and
 can be retrieved by the ``GeoMesaIndexedBlobStore`` API or by the REST
