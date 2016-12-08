@@ -318,11 +318,13 @@ class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
                         xmax: Double,
                         ymax: Double): (Double, Double, Double, Double) = {
     require(xmin <= xmax && ymin <= ymax, s"Bounds must be ordered: [$xmin $xmax] [$ymin $ymax]")
+    require(xmin >= xLo && xmax <= xHi && ymin >= yLo && ymax <= yHi,
+      s"Values out of bounds ([$xLo $xHi] [$yLo $yHi]): [$xmin $xmax] [$ymin $ymax]")
 
-    val nxmin = (XZSFC.bounded(xmin, xLo, xHi) - xLo) / xSize
-    val nymin = (XZSFC.bounded(ymin, yLo, yHi) - yLo) / ySize
-    val nxmax = (XZSFC.bounded(xmax, xLo, xHi) - xLo) / xSize
-    val nymax = (XZSFC.bounded(ymax, yLo, yHi) - yLo) / ySize
+    val nxmin = (xmin - xLo) / xSize
+    val nymin = (ymin - yLo) / ySize
+    val nxmax = (xmax - xLo) / xSize
+    val nymax = (ymax - yLo) / ySize
 
     (nxmin, nymin, nxmax, nymax)
   }

@@ -58,6 +58,9 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
       val time = if (dtg == null) 0 else dtg.getTime
       val BinnedTime(b, t) = timeToIndex(time)
       val geom = wf.feature.point
+      if (geom == null) {
+        throw new IllegalArgumentException(s"Null geometry in feature ${wf.feature.getID}")
+      }
       (b, sfc.index(geom.getX, geom.getY, t).z)
     }
     val id = wf.feature.getID.getBytes(StandardCharsets.UTF_8)
@@ -74,6 +77,9 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
       val time = if (dtg == null) 0 else dtg.getTime
       val BinnedTime(b, t) = timeToIndex(time)
       val geom = wf.feature.getDefaultGeometry.asInstanceOf[Geometry]
+      if (geom == null) {
+        throw new IllegalArgumentException(s"Null geometry in feature ${wf.feature.getID}")
+      }
       (Shorts.toByteArray(b), zBox(sfc, geom, t).toSeq)
     }
     val id = wf.feature.getID.getBytes(StandardCharsets.UTF_8)

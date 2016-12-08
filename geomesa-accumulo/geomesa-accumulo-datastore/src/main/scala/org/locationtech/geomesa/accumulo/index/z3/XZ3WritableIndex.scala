@@ -70,7 +70,11 @@ trait XZ3WritableIndex extends AccumuloWritableIndex {
                        (wf: AccumuloFeature): Array[Byte] = {
     val numSplits = splitArray.length
     val split = splitArray(wf.idHash % numSplits)
-    val envelope = wf.feature.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal
+    val geom = wf.feature.getDefaultGeometry.asInstanceOf[Geometry]
+    if (geom == null) {
+      throw new IllegalArgumentException(s"Null geometry in feature ${wf.feature.getID}")
+    }
+    val envelope = geom.getEnvelopeInternal
     // TODO support date intervals
     val dtg = wf.feature.getAttribute(dtgIndex).asInstanceOf[Date]
     val time = if (dtg == null) 0 else dtg.getTime
