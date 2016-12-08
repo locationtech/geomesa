@@ -2069,13 +2069,6 @@
                 <scope>provided</scope>
             </dependency>
 
-            <!-- geoserver 2.8 spring version -->
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-webmvc</artifactId>
-                <version>3.1.4.RELEASE</version>
-                <scope>provided</scope>
-            </dependency>
             <dependency>
                 <!-- marked provided due to license issues -->
                 <groupId>com.google.code.findbugs</groupId>
