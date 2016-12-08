@@ -55,7 +55,7 @@ object SQLRules {
           val (st_contains, xs) = splitConjunctivePredicates(f).partition {
             // TODO: Add guard which checks to see if the function can be pushed down
             case ScalaUDF(_, _, _, _) => true
-            case _                              => false
+            case _                    => false
           }
           if(st_contains.nonEmpty) {
             // we got an st_contains, extract the geometry and set up the new GeoMesa relation with the appropriate
