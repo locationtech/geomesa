@@ -16,10 +16,12 @@ import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat
-import org.apache.accumulo.core.client.mapreduce.lib.util.{ConfiguratorBase, InputConfigurator}
+import org.apache.accumulo.core.client.mapreduce.lib.impl.InputConfigurator
+import org.apache.accumulo.core.client.mapreduce.lib.util.ConfiguratorBase
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.accumulo.core.util.{Pair => AccPair}
+import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
 import org.apache.spark.broadcast.Broadcast
@@ -44,6 +46,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 
 import scala.collection.JavaConversions._
+import scala.util.Try
 import scala.util.hashing.MurmurHash3
 
 object GeoMesaSpark extends LazyLogging {
@@ -77,17 +80,10 @@ object GeoMesaSpark extends LazyLogging {
           sc: SparkContext,
           dsParams: Map[String, String],
           query: Query,
-          numberOfSplits: Option[Int]): RDD[SimpleFeature] = {
-    rdd(conf, sc, dsParams, query, useMock = false, numberOfSplits)
-  }
-
-  def rdd(conf: Configuration,
-          sc: SparkContext,
-          dsParams: Map[String, String],
-          query: Query,
-          useMock: Boolean = false,
           numberOfSplits: Option[Int] = None): RDD[SimpleFeature] = {
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
+    val username = AccumuloDataStoreParams.userParam.lookUp(dsParams).toString
+    val password = new PasswordToken(AccumuloDataStoreParams.passwordParam.lookUp(dsParams).toString.getBytes)
     try {
       // get the query plan to set up the iterators, ranges, etc
       lazy val sft = ds.getSchema(query.getTypeName)
@@ -96,15 +92,13 @@ object GeoMesaSpark extends LazyLogging {
       if (ds == null || sft == null || qp.isInstanceOf[EmptyPlan]) {
         sc.emptyRDD[SimpleFeature]
       } else {
-        val username = AccumuloDataStoreParams.userParam.lookUp(dsParams).toString
-        val password = new PasswordToken(AccumuloDataStoreParams.passwordParam.lookUp(dsParams).toString.getBytes)
         val instance = ds.connector.getInstance().getInstanceName
-        lazy val zookeepers = ds.connector.getInstance().getZooKeepers
+        val zookeepers = ds.connector.getInstance().getZooKeepers
 
         val transform = query.getHints.getTransformSchema
 
         ConfiguratorBase.setConnectorInfo(classOf[AccumuloInputFormat], conf, username, password)
-        if (useMock){
+        if (Try(dsParams("useMock").toBoolean).getOrElse(false)){
           ConfiguratorBase.setMockInstance(classOf[AccumuloInputFormat], conf, instance)
         } else {
           ConfiguratorBase.setZooKeeperInstance(classOf[AccumuloInputFormat], conf, instance, zookeepers)
@@ -118,18 +112,18 @@ object GeoMesaSpark extends LazyLogging {
           InputConfigurator.fetchColumns(classOf[AccumuloInputFormat], conf, cf)
         }
 
-        if (numberOfSplits.isDefined) {
-          GeoMesaConfigurator.setDesiredSplits(conf, numberOfSplits.get * sc.getExecutorStorageStatus.length)
-          InputConfigurator.setAutoAdjustRanges(classOf[AccumuloInputFormat], conf, false)
-          InputConfigurator.setAutoAdjustRanges(classOf[GeoMesaAccumuloInputFormat], conf, false)
-        }
+        InputConfigurator.setBatchScan(classOf[AccumuloInputFormat], conf, true)
+        InputConfigurator.setBatchScan(classOf[GeoMesaAccumuloInputFormat], conf, true)
         GeoMesaConfigurator.setSerialization(conf)
         GeoMesaConfigurator.setTable(conf, qp.table)
         GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)
         GeoMesaConfigurator.setFeatureType(conf, sft.getTypeName)
-        if (query.getFilter != Filter.INCLUDE) {
-          GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(query.getFilter))
-        }
+
+        // set the secondary filter if it exists and is  not Filter.INCLUDE
+        qp.filter.secondary
+          .collect { case f if f != Filter.INCLUDE => f }
+          .foreach { f => GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(f)) }
+
         transform.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
 
         // Configure Auths from DS
@@ -160,7 +154,7 @@ object GeoMesaSpark extends LazyLogging {
     val ds = DataStoreFinder.getDataStore(writeDataStoreParams).asInstanceOf[AccumuloDataStore]
     try {
       require(ds.getSchema(writeTypeName) != null,
-        "feature type must exist before calling save.  Call .createSchema on the DataStore before calling .save")
+        "Feature type must exist before calling save.  Call .createSchema on the DataStore before calling .save")
     } finally {
       ds.dispose()
     }
@@ -176,7 +170,7 @@ object GeoMesaSpark extends LazyLogging {
           featureWriter.write()
         }
       } finally {
-        featureWriter.close()
+        IOUtils.closeQuietly(featureWriter)
         ds.dispose()
       }
     }

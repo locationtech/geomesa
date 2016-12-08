@@ -38,6 +38,7 @@
         <module>geomesa-native-api</module>
         <module>geomesa-process</module>
         <module>geomesa-security</module>
+        <module>geomesa-spark</module>
         <module>geomesa-stream</module>
         <module>geomesa-tools</module>
         <module>geomesa-utils</module>
@@ -1577,6 +1578,11 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-accumulo-compute_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-accumulo-jobs_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -1714,6 +1720,16 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-geojson-rest_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-spark-sql_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-spark-accumulo_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!-- note: accumulo uses guava 17, but geotools uses 11. The methods we use happen to exist
