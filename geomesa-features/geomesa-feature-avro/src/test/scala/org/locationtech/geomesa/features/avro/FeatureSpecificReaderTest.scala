@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.features.avro
 
 import java.io._
+import java.nio.charset.StandardCharsets.UTF_8
 import java.text.SimpleDateFormat
 import java.util.UUID
 
@@ -27,6 +28,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+import scala.io.Codec.UTF8
 import scala.io.Source
 import scala.util.Random
 
@@ -63,7 +65,7 @@ class FeatureSpecificReaderTest extends LazyLogging {
   def writePipeFile(sfList: List[AvroSimpleFeature]) : File = {
     val f = File.createTempFile("pipe", ".tmp")
     f.deleteOnExit()
-    val writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f)))
+    val writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), UTF_8))
     sfList.foreach { f =>
       writer.write(DataUtilities.encodeFeature(f, true))
       writer.newLine()
@@ -90,7 +92,7 @@ class FeatureSpecificReaderTest extends LazyLogging {
 
   def readPipeFile(f:File, sft:SimpleFeatureType) : List[SimpleFeature] = {
     val sfList = ListBuffer[SimpleFeature]()
-    for (line <- Source.fromFile(f).getLines()){
+    for (line <- Source.fromFile(f)(UTF8).getLines()){
       sfList += DataUtilities.createFeature(sft, line)
     }
     sfList.toList
