@@ -118,7 +118,7 @@ object SQLRules {
         case AttributeReference(name, _, _, _) =>
           ff.property(name)
         case _ =>
-          println(s"Got expr: $expr.  Don't know how to turn this into a GeoTools Expression.")
+          log.debug(s"Got expr: $expr.  Don't know how to turn this into a GeoTools Expression.")
           ff.property("geom")
       }
     }
