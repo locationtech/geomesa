@@ -90,6 +90,11 @@ trait Runner {
          |  cur="$${COMP_WORDS[COMP_CWORD]}";
          |  prev="$${COMP_WORDS[COMP_CWORD-1]}";
          |
+         |  if [[ "$${COMP_WORDS[1]}" == "help" ]]; then
+         |    COMPREPLY=( $$(compgen -W "${commands.mkString(" ")}" $${cur}));
+         |    return 0;
+         |  fi;
+         |
          |  case $${COMP_CWORD} in
          |    1)
          |      COMPREPLY=( $$(compgen -W "${commands.mkString(" ")}" $${cur}));
@@ -99,17 +104,16 @@ trait Runner {
          |        case $${COMP_WORDS[1]} in
         """.stripMargin)
     commands.foreach { command =>
-      val params = jc.getCommands.get(command).getParameters.filter(! _.getParameter.hidden()).flatMap(_.getParameter.names().filter(_.length != 2))
-      out.append(
-      s"""
-         |            $command)
+      val params = jc.getCommands.get(command).getParameters.filter(!_.getParameter.hidden()).flatMap(_.getParameter.names().filter(_.length != 2))
+        out.append(
+      s"""            $command)
          |              COMPREPLY=( $$(compgen -W "${params.mkString(" ").replace(",", " ").replace("  "," ")}" -- $${cur}));
          |              return 0;
          |              ;;
-       """.stripMargin)}
+      """.stripMargin)
+    }
     out.append(
-      s"""
-         |        esac;
+      s"""        esac;
          |      else
          |        compopt -o filenames -o nospace;
          |        COMPREPLY=( $$(compgen -f "$$2") );

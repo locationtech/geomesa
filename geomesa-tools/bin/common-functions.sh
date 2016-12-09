@@ -115,8 +115,8 @@ function generateAutocomplete() {
     echo "To persist this feature, run: "
     echo "sudo cp ${COMPLETION_FILE} /etc/bash_completion.d/ ${NL}"
   fi
-
 }
+
 # Define %%gmtools.dist.name%%_HOME and update the PATH if necessary.
 if [[ -z "$%%gmtools.dist.name%%_HOME" ]]; then
   setGeoHome
