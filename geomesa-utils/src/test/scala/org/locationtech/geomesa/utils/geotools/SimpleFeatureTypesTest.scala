@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.utils.geotools
 
+import java.util.regex.Pattern
+
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors._
@@ -19,6 +21,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
+import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
 class SimpleFeatureTypesTest extends Specification {
@@ -292,6 +295,24 @@ class SimpleFeatureTypesTest extends Specification {
       val sft = SimpleFeatureTypes.createType("test", spec)
       sft.getDescriptor("name").getUserData.get(OPT_INDEX) mustEqual("true")
       sft.getDescriptor("name").getIndexCoverage() mustEqual(IndexCoverage.JOIN)
+    }
+
+    "return meaningful error messages" >> {
+      Try(SimpleFeatureTypes.createType("test", null)) must
+          beAFailedTry.withThrowable[IllegalArgumentException](Pattern.quote("Invalid spec string: null"))
+      val failures = Seq(
+        ("", "0. Expected one of: attribute name, '*'"),
+        ("foo:Strong", "7. Expected attribute type binding"),
+        ("foo:String,*bar:String", "16. Expected geometry type binding"),
+        ("foo:String,bar:String;;", "22. Expected one of: feature type option, end of spec"),
+        ("foo:String,bar,baz:String", "14. Expected one of: attribute name, attribute type binding, geometry type binding"),
+        ("foo:String:bar,baz:String", "14. Expected attribute option")
+      )
+      forall(failures) { case (spec, message) =>
+        val pattern = Pattern.quote(s"Invalid spec string at index $message.")
+        val result = Try(SimpleFeatureTypes.createType("test", spec))
+        result must beAFailedTry.withThrowable[IllegalArgumentException](pattern)
+      }
     }
 
     "build from conf" >> {
