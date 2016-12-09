@@ -10,25 +10,21 @@ package org.locationtech.geomesa.spark.accumulo
 
 import java.util.{Map => JMap}
 
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Point
 import org.apache.accumulo.minicluster.MiniAccumuloCluster
 import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.AccumuloProperties.AccumuloQueryProperties
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLSpatialRelationshipsTest extends Specification {
+class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
   "SQL spatial relationships" should {
     sequential
-
-    System.setProperty(QueryProperties.SCAN_RANGES_TARGET.property, "1")
-    System.setProperty(AccumuloQueryProperties.SCAN_BATCH_RANGES.property, s"${Int.MaxValue}")
 
     var mac: MiniAccumuloCluster = null
     var dsParams: JMap[String, String] = null
@@ -40,6 +36,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification {
 
     // before
     step {
+      SparkSQLTestUtils.setProperties()
       mac = SparkSQLTestUtils.setupMiniAccumulo()
       dsParams = SparkSQLTestUtils.createDataStoreParams(mac)
       ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
@@ -55,7 +52,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification {
         .options(dsParams)
         .option("geomesa.feature", "chicago")
         .load()
-      df.printSchema()
+      logger.info(df.schema.treeString)
       df.createOrReplaceTempView("chicago")
     }
 
@@ -198,6 +195,11 @@ class SparkSQLSpatialRelationshipsTest extends Specification {
       val r = sc.sql(s"select st_centroid(st_geomFromWKT('$box'))")
       val d = r.collect()
       d.head.getAs[Point](0) mustEqual WKTUtils.read("POINT(5 5)").asInstanceOf[Point]
+    }
+
+    // after
+    step {
+      SparkSQLTestUtils.clearProperties()
     }
   }
 }

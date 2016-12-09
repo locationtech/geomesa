@@ -10,26 +10,22 @@ package org.locationtech.geomesa.spark.accumulo
 
 import java.util.{Map => JMap}
 
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Polygon
 import org.apache.accumulo.minicluster.MiniAccumuloCluster
 import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.AccumuloProperties.AccumuloQueryProperties
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.utils.interop.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLGeometryConstructorsTest extends Specification {
+class SparkSQLGeometryConstructorsTest extends Specification with LazyLogging {
 
   "sql geometry constructors" should {
     sequential
-
-    System.setProperty(QueryProperties.SCAN_RANGES_TARGET.property, "1")
-    System.setProperty(AccumuloQueryProperties.SCAN_BATCH_RANGES.property, s"${Int.MaxValue}")
 
     var mac: MiniAccumuloCluster = null
     var dsParams: JMap[String, String] = null
@@ -41,6 +37,7 @@ class SparkSQLGeometryConstructorsTest extends Specification {
 
     // before
     step {
+      SparkSQLTestUtils.setProperties()
       mac = SparkSQLTestUtils.setupMiniAccumulo()
       dsParams = SparkSQLTestUtils.createDataStoreParams(mac)
       ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
@@ -56,7 +53,7 @@ class SparkSQLGeometryConstructorsTest extends Specification {
         .options(dsParams)
         .option("geomesa.feature", "chicago")
         .load()
-      df.printSchema()
+      logger.info(df.schema.treeString)
       df.createOrReplaceTempView("chicago")
 
       df.collect().length mustEqual 3
@@ -81,6 +78,11 @@ class SparkSQLGeometryConstructorsTest extends Specification {
       )
       r.collect().head.getAs[Polygon](0) mustEqual WKTUtils.read("POLYGON((0.0 0.0, 2.0 0.0, " +
                                                                  "2.0 2.0, 0.0 2.0, 0.0 0.0))")
+    }
+
+    // after
+    step {
+      SparkSQLTestUtils.clearProperties()
     }
   }
 }

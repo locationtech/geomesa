@@ -10,28 +10,24 @@ package org.locationtech.geomesa.spark.accumulo
 
 import java.util.{Map => JMap}
 
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Coordinate, Point}
 import org.apache.accumulo.minicluster.MiniAccumuloCluster
 import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
 import org.geotools.data.DataStoreFinder
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.AccumuloProperties.AccumuloQueryProperties
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLDataTest extends Specification {
+class SparkSQLDataTest extends Specification with LazyLogging {
   val createPoint = JTSFactoryFinder.getGeometryFactory.createPoint(_: Coordinate)
 
   "sql data tests" should {
     sequential
-
-    System.setProperty(QueryProperties.SCAN_RANGES_TARGET.property, "1")
-    System.setProperty(AccumuloQueryProperties.SCAN_BATCH_RANGES.property, s"${Int.MaxValue}")
 
     var mac: MiniAccumuloCluster = null
     var dsParams: JMap[String, String] = null
@@ -45,6 +41,7 @@ class SparkSQLDataTest extends Specification {
 
     // before
     step {
+      SparkSQLTestUtils.setProperties()
       mac = SparkSQLTestUtils.setupMiniAccumulo()
       dsParams = SparkSQLTestUtils.createDataStoreParams(mac)
       ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
@@ -62,7 +59,7 @@ class SparkSQLDataTest extends Specification {
         .options(dsParams)
         .option("geomesa.feature", "chicago")
         .load()
-      df.printSchema()
+      logger.info(df.schema.treeString)
       df.createOrReplaceTempView("chicago")
 
       df.collect.length mustEqual 3
@@ -76,7 +73,7 @@ class SparkSQLDataTest extends Specification {
         .options(dsParams)
         .option("geomesa.feature", "geonames")
         .load()
-      gndf.printSchema()
+      logger.info(gndf.schema.treeString)
       gndf.createOrReplaceTempView("geonames")
 
       gndf.collect.length mustEqual 2550
@@ -92,17 +89,16 @@ class SparkSQLDataTest extends Specification {
         .options(dsParams)
         .option("geomesa.feature", "states")
         .load()
-      sdf.printSchema()
+      logger.info(gndf.schema.treeString)
       sdf.createOrReplaceTempView("states")
 
       broadcast(sdf).createOrReplaceTempView("broadcastStates")
 
-      sdf.collect.length mustEqual 56
+      sdf.collect().length mustEqual 56
     }
 
     "basic sql 1" >> {
       val r = sc.sql("select * from chicago where case_number = 1")
-      r.show()
       val d = r.collect
 
       d.length mustEqual 1
@@ -135,6 +131,11 @@ class SparkSQLDataTest extends Specification {
         """.stripMargin)
 
       r.collect().head.getAs[Point](0) mustEqual WKTUtils.read("POINT(5 12)")
+    }
+
+    // after
+    step {
+      SparkSQLTestUtils.clearProperties()
     }
   }
 }

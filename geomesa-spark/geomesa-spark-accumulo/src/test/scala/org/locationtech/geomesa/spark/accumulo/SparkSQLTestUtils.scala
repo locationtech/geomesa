@@ -18,14 +18,26 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataUtilities, DataStoreFinder}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.format.ISODateTimeFormat
+import org.locationtech.geomesa.accumulo.AccumuloProperties.AccumuloQueryProperties
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.tools.ingest.ConverterIngest
 import org.locationtech.geomesa.utils.geotools.{GeneralShapefileIngest, SimpleFeatureTypes}
 
 import scala.collection.JavaConversions._
 
 object SparkSQLTestUtils {
+  def setProperties(): Unit = {
+    System.setProperty(QueryProperties.SCAN_RANGES_TARGET.property, "1")
+    System.setProperty(AccumuloQueryProperties.SCAN_BATCH_RANGES.property, s"${Int.MaxValue}")
+  }
+
+  def clearProperties(): Unit = {
+    System.clearProperty(QueryProperties.SCAN_RANGES_TARGET.property)
+    System.clearProperty(AccumuloQueryProperties.SCAN_BATCH_RANGES.property)
+  }
+
   def setupMiniAccumulo(): MiniAccumuloCluster = {
     val randomDir = Files.createTempDirectory("mac").toFile
     val config = new MiniAccumuloConfig(randomDir, "password").setJDWPEnabled(true)
