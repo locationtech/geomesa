@@ -125,7 +125,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
       Option(sc).foreach(_.stop())
       sc = new SparkContext(conf) // will get shut down by shutdown method
 
-      val rdd = GeoMesaSpark.rdd(new Configuration(), sc, dsParams, new Query(typeName), useMock = true)
+      val rdd = GeoMesaSpark.rdd(new Configuration(), sc, dsParams, new Query(typeName))
 
       rdd.count() should equalTo(feats.length)
       feats.map(_.getAttribute("an_id")) should contain(rdd.take(1).head.getAttribute("an_id"))
@@ -195,8 +195,8 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
       Option(sc).foreach(_.stop())
       sc = new SparkContext(conf) // will get shut down by shutdown method
 
-      val rdd = GeoMesaSpark.rdd(new Configuration(), sc, dsParams, new Query(typeName), useMock = true)
-      val secondRdd = GeoMesaSpark.rdd(new Configuration(), sc, secondDsParams, new Query(secondTypeName), useMock = true)
+      val rdd = GeoMesaSpark.rdd(new Configuration(), sc, dsParams, new Query(typeName))
+      val secondRdd = GeoMesaSpark.rdd(new Configuration(), sc, secondDsParams, new Query(secondTypeName))
 
       rdd.count() should equalTo(feats.length)
       secondRdd.count() should equalTo(secondFeats.length)
@@ -222,14 +222,14 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
       sc = new SparkContext(conf) // will get shut down by shutdown method
 
       val join = new Query(typeName, ECQL.toFilter("an_id < 50"))
-      val joined = GeoMesaSpark.rdd(new Configuration(), sc, dsParams, join, useMock = true).collect()
+      val joined = GeoMesaSpark.rdd(new Configuration(), sc, dsParams, join).collect()
       joined must haveLength(50)
       forall(joined)(_.getAttributes must haveLength(4))
       forall(joined.flatMap(_.getAttributes))(_ must not(beNull))
       forall(joined.map(_.getAttribute("an_id").asInstanceOf[Int]))(_ must beLessThan(50))
 
       val nonJoin = new Query(typeName, ECQL.toFilter("an_id < 50"), Array("an_id", "geom"))
-      val nonJoined = GeoMesaSpark.rdd(new Configuration(), sc, dsParams, nonJoin, useMock = true).collect()
+      val nonJoined = GeoMesaSpark.rdd(new Configuration(), sc, dsParams, nonJoin).collect()
       nonJoined must haveLength(50)
       forall(nonJoined)(_.getAttributes must haveLength(2))
       forall(nonJoined.flatMap(_.getAttributes))(_ must not(beNull))
@@ -292,7 +292,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
         Option(sc).foreach(_.stop())
         sc =  new SparkContext(conf) // will get shut down by shutdown method
 
-        val rdd = GeoMesaSpark.rdd(new Configuration(), sc, privParams, new Query(sftName), useMock = true)
+        val rdd = GeoMesaSpark.rdd(new Configuration(), sc, privParams, new Query(sftName))
         rdd.count() mustEqual 6
         features.map(_.getAttribute("an_id")) should contain(rdd.take(1).head.getAttribute("an_id"))
       }
@@ -303,7 +303,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
         Option(sc).foreach(_.stop())
         sc =  new SparkContext(conf) // will get shut down by shutdown method
 
-        val rdd = GeoMesaSpark.rdd(new Configuration(), sc, privParams.updated("auths", "user"), new Query(sftName), useMock = true)
+        val rdd = GeoMesaSpark.rdd(new Configuration(), sc, privParams.updated("auths", "user"), new Query(sftName))
         rdd.count() mustEqual 3
       }
 
@@ -313,7 +313,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
         Option(sc).foreach(_.stop())
         sc =  new SparkContext(conf) // will get shut down by shutdown method
 
-        val rdd = GeoMesaSpark.rdd(new Configuration(), sc, privParams - "auths", new Query(sftName), useMock = true)
+        val rdd = GeoMesaSpark.rdd(new Configuration(), sc, privParams - "auths", new Query(sftName))
         rdd.count() mustEqual 0
       }
     }

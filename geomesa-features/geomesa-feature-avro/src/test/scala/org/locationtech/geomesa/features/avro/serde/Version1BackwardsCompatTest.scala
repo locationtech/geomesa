@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.features.avro.serde
 
 import java.io._
+import java.nio.charset.StandardCharsets.UTF_8
 import java.text.SimpleDateFormat
 import java.util.UUID
 
@@ -27,6 +28,7 @@ import org.specs2.runner.JUnitRunner
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+import scala.io.Codec.UTF8
 import scala.io.Source
 import scala.util.Random
 
@@ -117,7 +119,7 @@ class Version1BackwardsCompatTest extends Specification {
   def writePipeFile(sfList: Seq[SimpleFeature]) = {
     val f = File.createTempFile("pipe", ".tmp")
     f.deleteOnExit()
-    val writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f)))
+    val writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), UTF_8))
     sfList.foreach { f =>
       writer.write(DataUtilities.encodeFeature(f, true))
       writer.newLine()
@@ -127,7 +129,7 @@ class Version1BackwardsCompatTest extends Specification {
   }
 
   def readPipeFile(f: File, sft: SimpleFeatureType) =
-    Source.fromFile(f).getLines.map { line => DataUtilities.createFeature(sft, line) }.toList
+    Source.fromFile(f)(UTF8).getLines.map { line => DataUtilities.createFeature(sft, line) }.toList
 
   def createComplicatedFeatures(numFeatures : Int): Seq[Version1ASF] = {
     val geoSchema = "f0:String,f1:Integer,f2:Double,f3:Float,f4:Boolean,f5:UUID,f6:Date,f7:Point:srid=4326,f8:Polygon:srid=4326"
