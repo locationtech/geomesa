@@ -44,6 +44,12 @@ fi
 
 CASSANDRA_CP="$(findJars $CASSANDRA_LIB true true)"
 
+# Complete Classpath
+CLASSPATH="$GEOMESA_CP:$ACCUMULO_CP:$HADOOP_CP:${ZOOKEEPER_JAR}"
+
+# First run configure autocomplete for current machine
+generateAutocomplete "geomesa-cassandra" "org.locationtech.geomesa.cassandra.tools.CassandraRunner"
+
 # Geomesa tools setup completed, below we parse user arguments
 #
 # configure runs the geomesa configuration, sets both the %%gmtools.dist.name%%_HOME and PATH vars

@@ -17,7 +17,9 @@ class HelpCommand(runner: Runner, jc: JCommander) extends Command {
   override val params = new HelpParameters
 
   override def execute(): Unit = {
-    if (params.command == null || params.command.isEmpty) {
+    if(params.autocompleteInfo) {
+      Command.output.info(runner.autocompleteUsage(jc))
+    } else if (params.command == null || params.command.isEmpty) {
       Command.output.info(s"${runner.usage(jc)}\nTo see help for a specific command type: ${runner.name} help <command-name>\n")
     } else {
       Command.output.info(runner.usage(jc, params.command.get(0)))
@@ -29,4 +31,8 @@ class HelpCommand(runner: Runner, jc: JCommander) extends Command {
 class HelpParameters {
   @Parameter(description = "Help for a specific command", required = false)
   val command: java.util.List[String] = null
+
+  @Parameter(names = Array("--autocomplete-function"), description = "Generates and outputs a bash function for " +
+    "autocompleting GoeMesa commandline commands and their parameters.", required = false, hidden = true)
+  val autocompleteInfo: Boolean = false
 }

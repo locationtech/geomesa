@@ -28,6 +28,11 @@ if [[ -z "$GEOMESA_EXTRA_CLASSPATHS" ]]; then
   fi
 fi
 
+CLASSPATH="$GEOMESA_CP"
+
+# First run configure autocomplete for current machine
+generateAutocomplete "geomesa-kafka" "org.locationtech.geomesa.kafka.tools.KafkaRunner"
+
 # Geomesa tools setup completed, below we parse user arguments
 #
 # configure runs the geomesa configuration, sets both the %%gmtools.dist.name%%_HOME and PATH vars
@@ -37,7 +42,6 @@ fi
 if  [[ $1 = configure ]]; then
   geomesaConfigure
 elif [[ $1 = classpath ]]; then
-  CLASSPATH="$GEOMESA_CP"
   for element in ${CLASSPATH//:/ } ; do
     echo ${element}
   done
@@ -46,6 +50,5 @@ else
     GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
     shift 1
   fi
-  CLASSPATH="$GEOMESA_CP"
   java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.kafka.tools.KafkaRunner "$@"
 fi

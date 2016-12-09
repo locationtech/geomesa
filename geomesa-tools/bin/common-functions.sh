@@ -96,6 +96,27 @@ function containsElement() {
   return 1
 }
 
+function generateAutocomplete() {
+  # Usage: generateAutocomplete scriptName runner
+
+  # First run configure autocomplete for current machine
+  scriptName="$1"
+  COMPLETION_FILE=${GEOMESA_CONF_DIR}/${scriptName}_completion.sh
+  if [[ ! -f "${COMPLETION_FILE}" ]]; then
+    # To handle the different tool sets we name the variables and commands here and inject them into the
+    # generated script.
+    echo "_${scriptName}()" > ${COMPLETION_FILE}
+    java ${JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} $2 "help" "--autocomplete-function" >> ${COMPLETION_FILE}
+    echo "complete -F _${scriptName} ${scriptName}; complete -F _${scriptName} bin/${scriptName};" >> ${COMPLETION_FILE}
+
+    # We can't modify the caller's env so we just tell them how to.
+    echo "${NL}Autocompletion script for ${scriptName} has been generated. To use, run:"
+    echo ". ${COMPLETION_FILE}"
+    echo "To persist this feature, run: "
+    echo "sudo cp ${COMPLETION_FILE} /etc/bash_completion.d/ ${NL}"
+  fi
+
+}
 # Define %%gmtools.dist.name%%_HOME and update the PATH if necessary.
 if [[ -z "$%%gmtools.dist.name%%_HOME" ]]; then
   setGeoHome
@@ -178,6 +199,8 @@ elif [[ $1 = configure ]] && containsElement "GEOMESA_LIB" "${existingEnvVars[@]
   fi
   echo >&2 ""
 fi
+
+NL=$'\n'
 
 # Set GeoMesa parameters
 GEOMESA_OPTS="-Duser.timezone=UTC -DEPSG-HSQL.directory=/tmp/$(whoami)"

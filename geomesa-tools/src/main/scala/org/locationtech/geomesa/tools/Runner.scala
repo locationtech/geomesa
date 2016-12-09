@@ -79,6 +79,53 @@ trait Runner {
     }
   }
 
+
+  def autocompleteUsage(jc: JCommander): String = {
+    val commands = jc.getCommands.map(_._1).toSeq
+    val out = new StringBuilder
+    out.append(
+      s"""{ # This function is named by the script generating this so it matches the caller script's name.
+         |  local cur prev;
+         |  COMPREPLY=();
+         |  cur="$${COMP_WORDS[COMP_CWORD]}";
+         |  prev="$${COMP_WORDS[COMP_CWORD-1]}";
+         |
+         |  case $${COMP_CWORD} in
+         |    1)
+         |      COMPREPLY=( $$(compgen -W "${commands.mkString(" ")}" $${cur}));
+         |      ;;
+         |    [2-9] | [1-9][0-9])
+         |      if [[ "$${cur}" =~ ^-[a-zA-Z-]?+$$ ]]; then
+         |        case $${COMP_WORDS[1]} in
+        """.stripMargin)
+    commands.foreach { command =>
+      val params = jc.getCommands.get(command).getParameters.filter(! _.getParameter.hidden()).flatMap(_.getParameter.names().filter(_.length != 2))
+      out.append(
+      s"""
+         |            $command)
+         |              COMPREPLY=( $$(compgen -W "${params.mkString(" ").replace(",", " ").replace("  "," ")}" -- $${cur}));
+         |              return 0;
+         |              ;;
+       """.stripMargin)}
+    out.append(
+      s"""
+         |        esac;
+         |      else
+         |        compopt -o filenames -o nospace;
+         |        COMPREPLY=( $$(compgen -f "$$2") );
+         |      fi;
+         |      return 0;
+         |      ;;
+         |    *)
+         |      COMPREPLY=();
+         |      ;;
+         |  esac;
+         |};
+         |
+       """.stripMargin)
+    out.toString()
+  }
+
   protected def createCommands(jc: JCommander): Seq[Command]
   protected def resolveEnvironment(command: Command): Unit = {}
 

@@ -116,6 +116,11 @@ for home in ${hadoopDirs[*]}; do
   fi
 done
 
+CLASSPATH="$GEOMESA_CP:$HBASE_CP:$HADOOP_CP"
+
+# First run configure autocomplete for current machine
+generateAutocomplete "geomesa-hbase" "org.locationtech.geomesa.hbase.tools.HBaseRunner"
+
 # Geomesa tools setup completed, below we parse user arguments
 #
 # configure runs the geomesa configuration, sets both the ${geomesa.dist.foobar} and PATH vars
@@ -125,7 +130,6 @@ done
 if  [[ $1 = configure ]]; then
   geomesaConfigure
 elif [[ $1 = classpath ]]; then
-  CLASSPATH="$GEOMESA_CP:$HBASE_CP:$HADOOP_CP"
   for element in ${CLASSPATH//:/ } ; do
     echo ${element}
   done
@@ -134,6 +138,5 @@ else
     GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
     shift 1
   fi
-  CLASSPATH="$GEOMESA_CP:$HBASE_CP:$HADOOP_CP"
   java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.hbase.tools.HBaseRunner "$@"
 fi
