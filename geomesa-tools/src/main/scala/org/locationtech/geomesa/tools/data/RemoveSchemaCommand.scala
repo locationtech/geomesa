@@ -8,19 +8,20 @@
 
 package org.locationtech.geomesa.tools.data
 
+import java.io.IOException
 import java.util.regex.Pattern
 
 import com.beust.jcommander.ParameterException
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.geotools.data.DataStore
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.Prompt
 
-trait RemoveSchemaCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait RemoveSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   override val name = "remove-schema"
   override def params: RemoveSchemaParams
 
-  override def execute() = {
+  override def execute(): Unit = {
     (Option(params.pattern), Option(params.featureName)) match {
       case (None, None) => throw new ParameterException("Please provide either featureName or pattern")
       case (Some(_), Some(_)) => throw new ParameterException("Cannot specify both featureName and pattern")
@@ -32,7 +33,7 @@ trait RemoveSchemaCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreC
   protected def remove(ds: DS, pattern: Pattern): Unit = {
     val typeNames = ds.getTypeNames.filter(pattern.matcher(_).matches)
     if (typeNames.isEmpty) {
-      logger.warn("No schemas matched the provided pattern")
+      Command.user.warn("No schemas matched the provided pattern")
     } else {
       remove(ds, typeNames)
     }
@@ -41,18 +42,18 @@ trait RemoveSchemaCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreC
   protected def remove(ds: DS, typeNames: Seq[String]): Unit = {
     if (params.force || promptConfirm(typeNames)) {
       typeNames.foreach { typeName =>
-        if (ds.getSchema(typeName) == null) {
-          println(s"Schema '$typeName' doesn't exist")
+        if (try { ds.getSchema(typeName) == null } catch { case _: IOException => true }) {
+          Command.user.warn(s"Schema '$typeName' doesn't exist")
         } else {
-          println(s"Removing '$typeName'")
+          Command.user.info(s"Removing '$typeName'")
           ds.removeSchema(typeName)
-          if (ds.getSchema(typeName) != null) {
-            logger.error(s"Error removing feature type '$typeName'")
+          if (try { ds.getSchema(typeName) != null } catch { case _: IOException => false }) {
+            Command.user.error(s"Error removing feature type '$typeName'")
           }
         }
       }
     } else {
-      println(s"Cancelled schema removal")
+      Command.user.info(s"Cancelled schema removal")
     }
   }
 

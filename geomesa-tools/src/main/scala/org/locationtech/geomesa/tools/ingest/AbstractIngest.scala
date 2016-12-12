@@ -17,10 +17,11 @@ import org.apache.commons.io.IOUtils
 import org.geotools.data.{DataStoreFinder, DataUtilities, FeatureWriter, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
-import org.joda.time.Period
 import org.joda.time.format.PeriodFormatterBuilder
+import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.utils.classpath.PathUtils
 import org.locationtech.geomesa.utils.stats.CountingInputStream
+import org.locationtech.geomesa.utils.text.TextTools._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -89,10 +90,10 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
     beforeRunTasks()
     val distPrefixes = Seq("hdfs://", "s3n://", "s3a://")
     if (distPrefixes.exists(inputs.head.toLowerCase.startsWith)) {
-      logger.info("Running ingestion in distributed mode")
+      Command.user.info("Running ingestion in distributed mode")
       runDistributed()
     } else {
-      logger.info("Running ingestion in local mode")
+      Command.user.info("Running ingestion in local mode")
       runLocal()
     }
     ds.dispose()
@@ -157,7 +158,7 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
 
     def progress(): Float = bytesRead.get() / totalLength
 
-    logger.info(s"Ingesting ${getPlural(numFiles, "file")} with ${getPlural(numLocalThreads, "thread")}")
+    Command.user.info(s"Ingesting ${getPlural(numFiles, "file")} with ${getPlural(numLocalThreads, "thread")}")
 
     val start = System.currentTimeMillis()
     val es = Executors.newFixedThreadPool(numLocalThreads)
@@ -170,16 +171,16 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
     }
     statusCallback(progress(), start, written.get(), failed.get(), true)
 
-    logger.info(s"Local ingestion complete in ${getTime(start)}")
-    logger.info(getStatInfo(written.get, failed.get))
+    Command.user.info(s"Local ingestion complete in ${getTime(start)}")
+    Command.user.info(getStatInfo(written.get, failed.get))
   }
 
   private def runDistributed(): Unit = {
     val start = System.currentTimeMillis()
     val status = statusCallback(_: Float, start, _: Long, _: Long, _: Boolean)
     val (success, failed) = runDistributedJob(status)
-    logger.info(s"Distributed ingestion complete in ${getTime(start)}")
-    logger.info(getStatInfo(success, failed))
+    Command.user.info(s"Distributed ingestion complete in ${getTime(start)}")
+    Command.user.info(getStatInfo(success, failed))
   }
 }
 
@@ -243,18 +244,6 @@ object AbstractIngest {
     }
   }
 
-  private def buildString(c: Char, length: Int): String = {
-    if (length < 0) return ""
-    val sb = new StringBuilder(length)
-    (0 until length).foreach(_ => sb.append(c))
-    sb.toString()
-  }
-
-  /**
-   * Gets elapsed time as a string
-   */
-  def getTime(start: Long): String = PeriodFormatter.print(new Period(System.currentTimeMillis() - start))
-
   /**
    * Gets status as a string
    */
@@ -266,8 +255,6 @@ object AbstractIngest {
     }
     s"Ingested ${getPlural(successes, "feature")} $failureString."
   }
-
-  private def getPlural(i: Long, base: String): String = if (i == 1) s"$i $base" else s"$i ${base}s"
 }
 
 trait LocalIngestConverter extends Closeable {

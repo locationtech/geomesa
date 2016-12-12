@@ -28,7 +28,7 @@ import scala.util.control.NonFatal
 /**
  * Tracks stats via entries stored in metadata
  */
-trait MetadataBackedStats[DS <: GeoMesaDataStore[_, _, _, _]]
+trait MetadataBackedStats[DS <: GeoMesaDataStore[_, _, _]]
     extends GeoMesaStats with StatsBasedEstimator with LazyLogging {
 
   import MetadataBackedStats._
@@ -340,7 +340,7 @@ class MetadataStatUpdater(stats: MetadataBackedStats[_], sft: SimpleFeatureType,
   }
 }
 
-class StatsMetadataSerializer(ds: GeoMesaDataStore[_, _, _, _]) extends MetadataSerializer[Stat] {
+class StatsMetadataSerializer(ds: GeoMesaDataStore[_, _, _]) extends MetadataSerializer[Stat] {
 
   private val sfts = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
 

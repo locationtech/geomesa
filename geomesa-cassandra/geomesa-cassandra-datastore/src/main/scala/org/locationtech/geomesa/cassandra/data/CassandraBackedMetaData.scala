@@ -37,7 +37,10 @@ class CassandraBackedMetaData(session: Session, catalog: String)
     kvPairs.foreach {case (k, v) => insert(typeName, k, v)}
   }
 
-  override def remove(typeName: String, key: String): Unit = ???
+  override def remove(typeName: String, key: String): Unit = {
+    ensureTableExists()
+    session.execute(s"DELETE FROM $catalog WHERE typeName = ? AND key = ?", typeName, key)
+  }
 
   override def read(typeName: String, key: String, cache: Boolean): Option[String] = {
     ensureTableExists()
@@ -51,5 +54,8 @@ class CassandraBackedMetaData(session: Session, catalog: String)
 
   override def invalidateCache(typeName: String, key: String): Unit = ???
 
-  override def delete(typeName: String): Unit = ???
+  override def delete(typeName: String): Unit = {
+    ensureTableExists()
+    session.execute(s"DELETE FROM $catalog WHERE typeName = ?", typeName)
+  }
 }

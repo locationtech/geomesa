@@ -42,9 +42,6 @@ class KryoAttributeKeyValueIterator extends SortedKeyValueIterator[Key, Value] w
   override def init(src: SortedKeyValueIterator[Key, Value],
                     options: jMap[String, String],
                     env: IteratorEnvironment): Unit = {
-
-    IteratorClassLoader.initClassLoader(getClass)
-
     this.source = src.deepCopy(env)
 
     val spec = options.get(SFT_OPT)

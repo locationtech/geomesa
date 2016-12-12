@@ -8,19 +8,21 @@
 
 package org.locationtech.geomesa.tools.data
 
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import java.io.IOException
+
+import org.geotools.data.DataStore
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.CLArgResolver
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
-trait CreateSchemaCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait CreateSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   override val name = "create-schema"
   override def params: CreateSchemaParams
 
-  override def execute() = {
+  override def execute(): Unit = {
     val sft = CLArgResolver.getSft(params.spec, params.featureName)
     Option(params.dtgField).foreach(sft.setDtgField)
     Option(params.useSharedTables).foreach(sft.setTableSharing)
@@ -29,18 +31,17 @@ trait CreateSchemaCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreC
 
   protected def createSchema(ds: DS, sft: SimpleFeatureType): Unit = {
     lazy val sftString = SimpleFeatureTypes.encodeType(sft)
-    logger.info(s"Creating '${params.featureName}' with spec '$sftString'. Just a few moments...")
+    Command.user.info(s"Creating '${params.featureName}' with spec '$sftString'. Just a few moments...")
 
-    if (ds.getSchema(sft.getTypeName) == null) {
+    if (try { ds.getSchema(sft.getTypeName) == null } catch { case _: IOException => true }) {
       ds.createSchema(sft)
-      if (ds.getSchema(sft.getTypeName) != null) {
-        logger.info(s"Created schema '${sft.getTypeName}'")
-        println(s"Created schema ${sft.getTypeName}")
+      if (try { ds.getSchema(sft.getTypeName) != null } catch { case _: IOException => false }) {
+        Command.user.info(s"Created schema '${sft.getTypeName}'")
       } else {
-        logger.error(s"Could not create schema '${sft.getTypeName}'")
+        Command.user.error(s"Could not create schema '${sft.getTypeName}'")
       }
     } else {
-      logger.error(s"Schema '${sft.getTypeName}' already exists in the data store")
+      Command.user.error(s"Schema '${sft.getTypeName}' already exists in the data store")
     }
   }
 }

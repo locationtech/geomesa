@@ -33,9 +33,6 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
                     env: IteratorEnvironment): Unit = {
-
-    IteratorClassLoader.initClassLoader(getClass)
-
     super.init(source, options, env)
 
     sft = IteratorCache.sft(options.get(KryoVisibilityRowEncoder.SftOpt))
@@ -98,7 +95,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     * @return
     */
   private def readOffsets(bytes: Array[Byte]): Unit = {
-    val input = KryoFeatureSerializer.getInput(bytes)
+    val input = KryoFeatureSerializer.getInput(bytes, 0, bytes.length)
     // reset our offsets
     input.setPosition(1) // skip version
     offsetStart = input.readInt()

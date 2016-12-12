@@ -8,18 +8,17 @@
 
 package org.locationtech.geomesa.jobs.mapreduce
 
-import java.io._
-import java.lang.Float._
 import java.net.{URL, URLClassLoader}
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.mapreduce.{AbstractInputFormat, AccumuloInputFormat, InputFormatBase, RangeInputSplit}
+import org.apache.accumulo.core.client.mapreduce.{AbstractInputFormat, AccumuloInputFormat, InputFormatBase}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.accumulo.core.util.{Pair => AccPair}
+import org.apache.commons.collections.map.CaseInsensitiveMap
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.io.{Text, Writable}
+import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.identity.FeatureIdImpl
@@ -35,9 +34,7 @@ import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-import scala.annotation.tailrec
 import scala.collection.JavaConversions._
-import scala.collection.mutable.ArrayBuffer
 
 object GeoMesaAccumuloInputFormat extends LazyLogging {
 
@@ -96,9 +93,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
     }
     queryPlan.iterators.foreach(InputFormatBase.addIterator(job, _))
 
-    // auto adjust ranges - this ensures that each split created will have a single location, which we want
-    // for the GeoMesaInputFormat below
-    InputFormatBase.setAutoAdjustRanges(job, true)
+    InputFormatBase.setBatchScan(job, true)
 
     // also set the datastore parameters so we can access them later
     val conf = job.getConfiguration
@@ -151,14 +146,12 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
   val delegate = new AccumuloInputFormat
 
   var sft: SimpleFeatureType = null
-  var desiredSplitCount: Int = -1
   var table: AccumuloWritableIndex = null
 
   private def init(conf: Configuration) = if (sft == null) {
     val params = GeoMesaConfigurator.getDataStoreInParams(conf)
-    val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+    val ds = DataStoreFinder.getDataStore(new CaseInsensitiveMap(params).asInstanceOf[java.util.Map[_, _]]).asInstanceOf[AccumuloDataStore]
     sft = ds.getSchema(GeoMesaConfigurator.getFeatureType(conf))
-    desiredSplitCount = GeoMesaConfigurator.getDesiredSplits(conf)
     val tableName = GeoMesaConfigurator.getTable(conf)
     table = AccumuloFeatureIndex.indices(sft, IndexMode.Read)
         .find(t => t.getTableName(sft.getTypeName, ds) == tableName)
@@ -176,38 +169,18 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
   override def getSplits(context: JobContext): java.util.List[InputSplit] = {
     init(context.getConfiguration)
     val accumuloSplits = delegate.getSplits(context)
-    // fallback on creating 2 mappers per node if desiredSplits is unset.
-    // Account for case where there are less splits than shards
-    val groupSize = if (desiredSplitCount > 0) {
-      Some(Math.max(1, accumuloSplits.length / desiredSplitCount))
-    } else {
-      None
-    }
-    val splitsSet = accumuloSplits.groupBy(_.getLocations()(0)).flatMap { case (location, splits) =>
-      val size = groupSize.getOrElse(Math.max(1, splits.length / 2))
-      splits.grouped(size).map { group =>
-        val split = new GroupedSplit()
-        split.location = location
-        split.splits.append(group.map(_.asInstanceOf[RangeInputSplit]): _*)
-        split
-      }
-    }
-
-    logger.debug(s"Got ${splitsSet.toList.length} splits" +
-      s" using desired=$desiredSplitCount from ${accumuloSplits.length}")
-    splitsSet.toList
+    logger.debug(s"Got ${accumuloSplits.length} splits")
+    accumuloSplits
   }
 
   override def createRecordReader(split: InputSplit, context: TaskAttemptContext) = {
-
     init(context.getConfiguration)
-    val splits = split.asInstanceOf[GroupedSplit].splits
-    val readers = splits.map(delegate.createRecordReader(_, context)).toArray
+    val reader = delegate.createRecordReader(split, context)
     val schema = GeoMesaConfigurator.getTransformSchema(context.getConfiguration).getOrElse(sft)
     val hasId = table.serializedWithId
     val serializationOptions = if (hasId) SerializationOptions.none else SerializationOptions.withoutId
     val decoder = new KryoFeatureSerializer(schema, serializationOptions)
-    new GeoMesaRecordReader(sft, table, readers, hasId, decoder)
+    new GeoMesaRecordReader(sft, table, reader, hasId, decoder)
   }
 }
 
@@ -215,118 +188,45 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
  * Record reader that delegates to accumulo record readers and transforms the key/values coming back into
  * simple features.
  *
- * @param readers
+ * @param reader
  */
 class GeoMesaRecordReader(sft: SimpleFeatureType,
                           table: AccumuloWritableIndex,
-                          readers: Array[RecordReader[Key, Value]],
+                          reader: RecordReader[Key, Value],
                           hasId: Boolean,
                           decoder: org.locationtech.geomesa.features.SimpleFeatureSerializer)
     extends RecordReader[Text, SimpleFeature] {
 
   var currentFeature: SimpleFeature = null
-  var readerIndex: Int = -1
-  var currentReader: Option[RecordReader[Key, Value]] = None
 
   val getId = table.getIdFromRow(sft)
 
   override def initialize(split: InputSplit, context: TaskAttemptContext) = {
-    val splits = split.asInstanceOf[GroupedSplit].splits
-    var i = 0
-    while (i < splits.length) {
-      readers(i).initialize(splits(i), context)
-      i = i + 1
-    }
-
-    // queue up our first reader
-    nextReader()
+    reader.initialize(split, context)
   }
-
-  /**
-   * Advances to the next delegate reader
-   */
-  private[this] def nextReader() = {
-    readerIndex = readerIndex + 1
-    if (readerIndex < readers.length) {
-      currentReader = Some(readers(readerIndex))
-    } else {
-      currentReader = None
-    }
-  }
-
-  override def getProgress = if (readers.length == 0) 1f else if (readerIndex < 0) 0f else {
-    val readersProgress = readerIndex * 1f / readers.length
-    val readerProgress = currentReader.map(_.getProgress / readers.length).filterNot(isNaN).getOrElse(0f)
-    readersProgress + readerProgress
-  }
+  override def getProgress = reader.getProgress
 
   override def nextKeyValue() = nextKeyValueInternal()
 
   /**
-   * Get the next key value from the underlying reader, incrementing the reader when required
-   */
-  @tailrec
-  private def nextKeyValueInternal(): Boolean =
-    currentReader match {
-      case None => false
-      case Some(reader) =>
-        if (reader.nextKeyValue()) {
-          currentFeature = decoder.deserialize(reader.getCurrentValue.get())
-          if (!hasId) {
-            val row = reader.getCurrentKey.getRow
-            currentFeature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row.getBytes, 0, row.getLength))
-          }
-          true
-        } else {
-          nextReader()
-          nextKeyValueInternal()
-        }
+    * Get the next key value from the underlying reader, incrementing the reader when required
+    */
+  private def nextKeyValueInternal(): Boolean = {
+    if (reader.nextKeyValue()) {
+      currentFeature = decoder.deserialize(reader.getCurrentValue.get())
+      if (!hasId) {
+        val row = reader.getCurrentKey.getRow
+        currentFeature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row.getBytes, 0, row.getLength))
+      }
+      true
+    } else {
+      false
     }
+  }
 
   override def getCurrentValue = currentFeature
 
   override def getCurrentKey = new Text(currentFeature.getID)
 
-  override def close() = {} // delegate Accumulo readers have a no-op close
-}
-
-/**
- * Input split that groups a series of RangeInputSplits. Has to implement Hadoop Writable, thus the vars and
- * mutable state.
- */
-class GroupedSplit extends InputSplit with Writable {
-
-  // if we're running in spark, we need to load the context classpath before anything else,
-  // otherwise we get classloading and serialization issues
-  sys.env.get(GeoMesaAccumuloInputFormat.SYS_PROP_SPARK_LOAD_CP).filter(_.toBoolean).foreach { _ =>
-    GeoMesaAccumuloInputFormat.ensureSparkClasspath()
-  }
-
-  var location: String = null
-  var splits: ArrayBuffer[RangeInputSplit] = ArrayBuffer.empty
-
-  override def getLength =  splits.foldLeft(0L)((l: Long, r: RangeInputSplit) => l + r.getLength)
-
-  override def getLocations = if (location == null) Array.empty else Array(location)
-
-  override def write(out: DataOutput) = {
-    out.writeUTF(location)
-    out.writeInt(splits.length)
-    splits.foreach(_.write(out))
-  }
-
-  override def readFields(in: DataInput) = {
-    location = in.readUTF()
-    splits.clear()
-    var i = 0
-    val size = in.readInt()
-    while (i < size) {
-      val split = new RangeInputSplit()
-      split.readFields(in)
-      splits.append(split)
-      i = i + 1
-    }
-  }
-
-  override def toString = s"mapreduce.GroupedSplit[$location](${splits.length})"
+  override def close() = { reader.close() }
 }

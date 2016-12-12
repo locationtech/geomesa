@@ -9,11 +9,10 @@
 package org.locationtech.geomesa.accumulo.index.z2
 
 import java.nio.charset.StandardCharsets
-import java.util.Map.Entry
 
 import com.google.common.primitives.{Bytes, Longs}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.data.{Key, Mutation, Value, Range => aRange}
+import org.apache.accumulo.core.data.{Mutation, Range => aRange}
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
@@ -23,13 +22,13 @@ import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloFilt
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
-import org.locationtech.geomesa.index.utils.Explainer
+import org.locationtech.geomesa.index.utils.{Explainer, SplitArrays}
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
 
 trait Z2QueryableIndex extends AccumuloFeatureIndexType
-    with SpatialFilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation, Entry[Key, Value]]
+    with SpatialFilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation]
     with LazyLogging {
 
   writable: AccumuloWritableIndex =>
@@ -128,9 +127,9 @@ trait Z2QueryableIndex extends AccumuloFeatureIndexType
 
       val prefixes = if (sft.isTableSharing) {
         val ts = sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)
-        SplitArrays.getSplitArray(sft.getZShards).map(ts ++ _)
+        SplitArrays.apply(sft.getZShards).map(ts ++ _)
       } else {
-        SplitArrays.getSplitArray(sft.getZShards)
+        SplitArrays.apply(sft.getZShards)
       }
 
       val ranges = prefixes.flatMap { prefix =>

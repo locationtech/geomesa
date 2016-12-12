@@ -8,11 +8,9 @@
 
 package org.locationtech.geomesa.accumulo.index.z3
 
-import java.util.Map.Entry
-
 import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.data.{Key, Mutation, Value, Range => aRange}
+import org.apache.accumulo.core.data.{Mutation, Range => aRange}
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
@@ -23,14 +21,14 @@ import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
-import org.locationtech.geomesa.index.utils.Explainer
+import org.locationtech.geomesa.index.utils.{Explainer, SplitArrays}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
 
 trait Z3QueryableIndex extends AccumuloFeatureIndexType
-    with SpatioTemporalFilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation, Entry[Key, Value]]
+    with SpatioTemporalFilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation]
     with LazyLogging {
 
   writable: AccumuloWritableIndex =>
@@ -162,7 +160,7 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
         val zs = if (times.eq(wholePeriod)) wholePeriodRanges else toZRanges(times)
         val binBytes = Shorts.toByteArray(b)
         val prefixes = if (hasSplits) {
-          SplitArrays.getSplitArray(sft.getZShards).map(Bytes.concat(_, binBytes))
+          SplitArrays.apply(sft.getZShards).map(Bytes.concat(_, binBytes))
         } else {
           Seq(binBytes)
         }

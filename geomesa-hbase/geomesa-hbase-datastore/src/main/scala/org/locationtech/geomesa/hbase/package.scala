@@ -15,16 +15,16 @@ import org.locationtech.geomesa.index.geotools.{GeoMesaAppendFeatureWriter, GeoM
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 package object hbase {
-  type HBaseDataStoreType = GeoMesaDataStore[HBaseDataStore, HBaseFeature, Mutation, Result]
-  type HBaseFeatureIndexType = GeoMesaFeatureIndex[HBaseDataStore, HBaseFeature, Mutation, Result]
-  type HBaseFilterPlanType = FilterPlan[HBaseDataStore, HBaseFeature, Mutation, Result]
-  type HBaseFilterStrategyType = FilterStrategy[HBaseDataStore, HBaseFeature, Mutation, Result]
-  type HBaseQueryPlannerType = QueryPlanner[HBaseDataStore, HBaseFeature, Mutation, Result]
-  type HBaseQueryPlanType = QueryPlan[HBaseDataStore, HBaseFeature, Mutation, Result]
-  type HBaseIndexManagerType = GeoMesaIndexManager[HBaseDataStore, HBaseFeature, Mutation, Result]
-  type HBaseFeatureWriterType = GeoMesaFeatureWriter[HBaseDataStore, HBaseFeature, Mutation, Result, BufferedMutator]
-  type HBaseAppendFeatureWriterType = GeoMesaAppendFeatureWriter[HBaseDataStore, HBaseFeature, Mutation, Result, BufferedMutator]
-  type HBaseModifyFeatureWriterType = GeoMesaModifyFeatureWriter[HBaseDataStore, HBaseFeature, Mutation, Result, BufferedMutator]
+  type HBaseDataStoreType = GeoMesaDataStore[HBaseDataStore, HBaseFeature, Mutation]
+  type HBaseFeatureIndexType = GeoMesaFeatureIndex[HBaseDataStore, HBaseFeature, Mutation]
+  type HBaseFilterPlanType = FilterPlan[HBaseDataStore, HBaseFeature, Mutation]
+  type HBaseFilterStrategyType = FilterStrategy[HBaseDataStore, HBaseFeature, Mutation]
+  type HBaseQueryPlannerType = QueryPlanner[HBaseDataStore, HBaseFeature, Mutation]
+  type HBaseQueryPlanType = QueryPlan[HBaseDataStore, HBaseFeature, Mutation]
+  type HBaseIndexManagerType = GeoMesaIndexManager[HBaseDataStore, HBaseFeature, Mutation]
+  type HBaseFeatureWriterType = GeoMesaFeatureWriter[HBaseDataStore, HBaseFeature, Mutation, BufferedMutator]
+  type HBaseAppendFeatureWriterType = GeoMesaAppendFeatureWriter[HBaseDataStore, HBaseFeature, Mutation, BufferedMutator]
+  type HBaseModifyFeatureWriterType = GeoMesaModifyFeatureWriter[HBaseDataStore, HBaseFeature, Mutation, BufferedMutator]
 
   object HBaseSystemProperties {
     val WriteBatchSize = SystemProperty("geomesa.hbase.write.batch")

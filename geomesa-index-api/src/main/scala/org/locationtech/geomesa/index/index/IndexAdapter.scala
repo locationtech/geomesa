@@ -17,12 +17,11 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-trait IndexAdapter[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, Q, R] {
+trait IndexAdapter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] {
 
-  protected def entriesToFeatures(sft: SimpleFeatureType, returnSft: SimpleFeatureType): (Q) => SimpleFeature
   protected def createInsert(row: Array[Byte], feature: F): W
   protected def createDelete(row: Array[Byte], feature: F): W
 
@@ -34,16 +33,13 @@ trait IndexAdapter[DS <: GeoMesaDataStore[DS, F, W, Q], F <: WrappedFeature, W, 
 
   protected def scanPlan(sft: SimpleFeatureType,
                          ds: DS,
-                         filter: FilterStrategy[DS, F, W, Q],
+                         filter: FilterStrategy[DS, F, W],
                          hints: Hints,
                          ranges: Seq[R],
-                         ecql: Option[Filter]): QueryPlan[DS, F, W, Q]
+                         ecql: Option[Filter]): QueryPlan[DS, F, W]
 }
 
 object IndexAdapter {
-
-  val DefaultNumSplits = 4 // can't be more than Byte.MaxValue (127)
-  val DefaultSplitArrays = (0 until DefaultNumSplits).map(_.toByte).toArray.map(Array(_)).toSeq
 
   val ZeroByte: Byte = 0x00.toByte
   val MaxByte: Byte =  0xff.toByte
@@ -55,7 +51,7 @@ object IndexAdapter {
     def log = logger
   }
 
-    /**
+  /**
     * Returns a row that sorts just after all rows beginning with a prefix. Copied from Accumulo Range
     *
     * @param prefix to follow

@@ -11,7 +11,7 @@ package org.locationtech.geomesa.tools.status
 import com.beust.jcommander.ParameterException
 import org.geotools.data.DataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.tools.{DataStoreCommand, TypeNameParam}
+import org.locationtech.geomesa.tools.{Command, DataStoreCommand, TypeNameParam}
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 
 import scala.collection.mutable.ArrayBuffer
@@ -22,21 +22,15 @@ trait DescribeSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
   override val name: String = "describe-schema"
   override def params: TypeNameParam
 
-  override def execute(): Unit = {
-    logger.info(s"Describing attributes of feature '${params.featureName}'")
-    try {
-      withDataStore(describe)
-    } catch {
-      case p: ParameterException => throw p
-      case NonFatal(e) => logger.error(s"Couldn't describe feature '${params.featureName}':", e)
-    }
-  }
+  override def execute(): Unit = withDataStore(describe)
 
   protected def describe(ds: DS): Unit = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 
     import scala.collection.JavaConversions._
+
+    Command.user.info(s"Describing attributes of feature '${params.featureName}'")
 
     val sft = ds.getSchema(params.featureName)
     if (sft == null) {
@@ -63,13 +57,13 @@ trait DescribeSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
     val maxName = namesAndDescriptions.map(_._1.length).max
     val maxType = namesAndDescriptions.map(_._2.length).max
     namesAndDescriptions.foreach { case (n, t, d) =>
-      println(s"${n.padTo(maxName, ' ')} | ${t.padTo(maxType, ' ')} ${d.mkString(" ")}")
+      Command.output.info(s"${n.padTo(maxName, ' ')} | ${t.padTo(maxType, ' ')} ${d.mkString(" ")}")
     }
 
     val userData = sft.getUserData
     if (!userData.isEmpty) {
       import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.KEYWORDS_KEY
-      println("\nUser data:")
+      Command.output.info("\nUser data:")
       val namesAndValues = userData.map { case (k, v) =>
         if (k == KEYWORDS_KEY) {
           (KEYWORDS_KEY, sft.getKeywords.mkString("[\"", "\", \"", "\"]"))
@@ -78,8 +72,9 @@ trait DescribeSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
         }
       }
       val maxName = namesAndValues.map(_._1.length).max
-      namesAndValues.toSeq.sortBy(_._1).foreach { case (n, v) => println(s"  ${n.padTo(maxName, ' ')} | $v") }
+      namesAndValues.toSeq.sortBy(_._1).foreach { case (n, v) =>
+        Command.output.info(s"  ${n.padTo(maxName, ' ')} | $v")
+      }
     }
-    println
   }
 }

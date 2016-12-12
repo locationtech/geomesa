@@ -21,22 +21,22 @@ import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
   *   TimePeriod.Day
   *     bin      => day
   *     offset   => milliseconds
-  *     max date => 09/18/2059
+  *     max date => 2059/09/18
   *
   *   TimePeriod.Week
   *     bin      => week
   *     offset   => seconds
-  *     max date => 12/28/2597
+  *     max date => 2598/01/04
   *
   *   TimePeriod.Month
   *     bin      => month
   *     offset   => seconds
-  *     max date => 08/01/4700
+  *     max date => 4700/08/31
   *
   *   TimePeriod.Year
   *     bin      => year
   *     offset   => minutes
-  *     max date => 01/01/34737
+  *     max date => 34737/12/31
   *
   * @param bin number of time periods from the java epoch
   * @param offset precise offset into the specific time period
@@ -45,11 +45,16 @@ case class BinnedTime(bin: Short, offset: Long)
 
 object BinnedTime {
 
-  val Epoch = new DateTime(0, DateTimeZone.UTC)
-
   type TimeToBinnedTime = (Long) => BinnedTime
   type DateToBinnedTime = (DateTime) => BinnedTime
   type BinnedTimeToDate = (BinnedTime) => DateTime
+
+  val Epoch = new DateTime(0, DateTimeZone.UTC)
+
+  val DaysMaxDate   = Epoch.plus(Days.days(Short.MaxValue.toInt + 1))
+  val WeeksMaxDate  = Epoch.plus(Weeks.weeks(Short.MaxValue.toInt + 1))
+  val MonthsMaxDate = Epoch.plus(Months.months(Short.MaxValue.toInt + 1))
+  val YearsMaxDate  = Epoch.plus(Years.years(Short.MaxValue.toInt + 1))
 
   /**
     * Gets period index (e.g. weeks since the epoch) and offset into that interval (e.g. seconds in week)
@@ -115,8 +120,9 @@ object BinnedTime {
     toDayAndMillis(new DateTime(time, DateTimeZone.UTC))
 
   private def toDayAndMillis(date: DateTime): BinnedTime = {
+    require(DaysMaxDate.isAfter(date), s"Date exceeds maximum indexable value ($DaysMaxDate): $date")
     val days = Days.daysBetween(Epoch, date)
-    val millisInDay = date.getMillis - Epoch.plusDays(days.getDays).getMillis
+    val millisInDay = date.getMillis - Epoch.plus(days).getMillis
     BinnedTime(days.getDays.toShort, millisInDay)
   }
 
@@ -126,8 +132,9 @@ object BinnedTime {
     toWeekAndSeconds(new DateTime(time, DateTimeZone.UTC))
 
   private def toWeekAndSeconds(date: DateTime): BinnedTime = {
+    require(WeeksMaxDate.isAfter(date), s"Date exceeds maximum indexable value ($WeeksMaxDate): $date")
     val weeks = Weeks.weeksBetween(Epoch, date)
-    val secondsInWeek = (date.getMillis - Epoch.plusWeeks(weeks.getWeeks).getMillis) / 1000L
+    val secondsInWeek = (date.getMillis - Epoch.plus(weeks).getMillis) / 1000L
     BinnedTime(weeks.getWeeks.toShort, secondsInWeek)
   }
 
@@ -138,8 +145,9 @@ object BinnedTime {
     toMonthAndSeconds(new DateTime(time, DateTimeZone.UTC))
 
   private def toMonthAndSeconds(date: DateTime): BinnedTime = {
+    require(MonthsMaxDate.isAfter(date), s"Date exceeds maximum indexable value ($MonthsMaxDate): $date")
     val months = Months.monthsBetween(Epoch, date)
-    val secondsInMonth = (date.getMillis - Epoch.plusMonths(months.getMonths).getMillis) / 1000L
+    val secondsInMonth = (date.getMillis - Epoch.plus(months).getMillis) / 1000L
     BinnedTime(months.getMonths.toShort, secondsInMonth)
   }
 
@@ -150,8 +158,9 @@ object BinnedTime {
     toYearAndMinutes(new DateTime(time, DateTimeZone.UTC))
 
   private def toYearAndMinutes(date: DateTime): BinnedTime = {
+    require(YearsMaxDate.isAfter(date), s"Date exceeds maximum indexable value ($YearsMaxDate): $date")
     val years = Years.yearsBetween(Epoch, date)
-    val minutesInYear = (date.getMillis - Epoch.plusYears(years.getYears).getMillis) / 60000L
+    val minutesInYear = (date.getMillis - Epoch.plus(years).getMillis) / 60000L
     BinnedTime(years.getYears.toShort, minutesInYear)
   }
 

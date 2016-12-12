@@ -18,10 +18,11 @@ import org.apache.accumulo.core.conf.Property
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
-import org.locationtech.geomesa.accumulo.index.{AccumuloWritableIndex, SplitArrays}
+import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
 import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.index.utils.SplitArrays
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
@@ -57,6 +58,9 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
       val time = if (dtg == null) 0 else dtg.getTime
       val BinnedTime(b, t) = timeToIndex(time)
       val geom = wf.feature.point
+      if (geom == null) {
+        throw new IllegalArgumentException(s"Null geometry in feature ${wf.feature.getID}")
+      }
       (b, sfc.index(geom.getX, geom.getY, t).z)
     }
     val id = wf.feature.getID.getBytes(StandardCharsets.UTF_8)
@@ -73,6 +77,9 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
       val time = if (dtg == null) 0 else dtg.getTime
       val BinnedTime(b, t) = timeToIndex(time)
       val geom = wf.feature.getDefaultGeometry.asInstanceOf[Geometry]
+      if (geom == null) {
+        throw new IllegalArgumentException(s"Null geometry in feature ${wf.feature.getID}")
+      }
       (Shorts.toByteArray(b), zBox(sfc, geom, t).toSeq)
     }
     val id = wf.feature.getID.getBytes(StandardCharsets.UTF_8)
@@ -131,7 +138,7 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
     ds.tableOps.setLocalityGroups(table, localityGroups)
 
     // drop first split, otherwise we get an empty tablet
-    val splits = SplitArrays.getSplitArray(sft.getZShards).drop(1).map(new Text(_)).toSet
+    val splits = SplitArrays.apply(sft.getZShards).drop(1).map(new Text(_)).toSet
     val splitsToAdd = splits -- ds.tableOps.listSplits(table).toSet
     if (splitsToAdd.nonEmpty) {
       // noinspection RedundantCollectionConversion

@@ -11,22 +11,16 @@ package org.locationtech.geomesa.tools.stats
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.tools.DataStoreCommand
+import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.locationtech.geomesa.utils.stats.{MinMax, Stat}
 import org.opengis.filter.Filter
 
-import scala.util.control.NonFatal
-
-trait StatsBoundsCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCommand[DS] {
+trait StatsBoundsCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
 
   override val name = "stats-bounds"
   override def params: StatsBoundsParams
 
-  override def execute(): Unit = {
-    try { withDataStore(calculateBounds) } catch {
-      case NonFatal(e) => logger.error("Error analyzing stats: ", e)
-    }
-  }
+  override def execute(): Unit = withDataStore(calculateBounds)
 
   protected def calculateBounds(ds: DS): Unit = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -36,12 +30,12 @@ trait StatsBoundsCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCo
     val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
 
     val allBounds = if (params.exact) {
-      logger.info("Running stat query...")
+      Command.user.info("Running stat query...")
       val query = Stat.SeqStat(attributes.map(Stat.MinMax))
       ds.stats.runStats[MinMax[Any]](sft, query, filter)
     } else {
       if (filter != Filter.INCLUDE) {
-        logger.warn("Ignoring CQL filter for non-exact stat query")
+        Command.user.warn("Ignoring CQL filter for non-exact stat query")
       }
       ds.stats.getStats[MinMax[Any]](sft, attributes)
     }
@@ -60,7 +54,7 @@ trait StatsBoundsCommand[DS <: GeoMesaDataStore[_, _, _ ,_]] extends DataStoreCo
             s"[ ${mm.stringify(mm.min)} to ${mm.stringify(mm.max)} ] cardinality: ${mm.cardinality}"
           }
       }
-      println(s"  $attribute $out")
+      Command.output.info(s"  $attribute $out")
     }
   }
 }

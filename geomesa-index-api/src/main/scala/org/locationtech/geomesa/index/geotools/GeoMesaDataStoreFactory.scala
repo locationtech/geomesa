@@ -11,7 +11,7 @@ package org.locationtech.geomesa.index.geotools
 import java.io.Serializable
 
 import org.geotools.data.DataAccessFactory.Param
-import org.locationtech.geomesa.index.conf.QueryProperties
+import org.locationtech.geomesa.index.conf.{QueryProperties, StatsProperties}
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 
 object GeoMesaDataStoreFactory {
@@ -34,6 +34,12 @@ object GeoMesaDataStoreFactory {
     QueryTimeoutParam.lookupOpt[Int](params).map(i => i * 1000L).orElse {
       QueryProperties.QUERY_TIMEOUT_MILLIS.option.map(_.toLong)
     }
+  }
+
+  def generateStats(params: java.util.Map[String, Serializable]): Boolean = {
+    GenerateStatsParam.lookupOpt[Boolean](params)
+        .orElse(StatsProperties.GENERATE_STATS.option.map(_.toBoolean))
+        .getOrElse(GenerateStatsParam.getDefaultValue.asInstanceOf[Boolean])
   }
 
   trait GeoMesaDataStoreConfig {

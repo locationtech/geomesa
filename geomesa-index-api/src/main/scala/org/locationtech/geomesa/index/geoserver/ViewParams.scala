@@ -14,9 +14,9 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, WrappedFeature}
 import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation.CostEvaluation
+import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -41,7 +41,7 @@ object ViewParams extends LazyLogging {
     * @param sft simple feature type
     * @param query query to examine/update
     */
-  def setHints(ds: GeoMesaDataStore[_, _, _, _], sft: SimpleFeatureType, query: Query): Unit = {
+  def setHints(ds: GeoMesaDataStore[_, _, _], sft: SimpleFeatureType, query: Query): Unit = {
     val params = {
       val viewParams = query.getHints.get(Hints.VIRTUAL_TABLE_PARAMETERS).asInstanceOf[jMap[String, String]]
       Option(viewParams).map(_.toMap).getOrElse(Map.empty)
@@ -94,12 +94,12 @@ object ViewParams extends LazyLogging {
     }
   }
 
-  private def toIndex(ds: GeoMesaDataStore[_, _, _, _],
+  private def toIndex(ds: GeoMesaDataStore[_, _, _],
                       sft: SimpleFeatureType,
-                      name: String): Option[GeoMesaFeatureIndex[_, _, _, _]] = {
+                      name: String): Option[GeoMesaFeatureIndex[_, _, _]] = {
     val check = name.toLowerCase(Locale.US)
     val rawIndices = ds.manager.indices(sft, IndexMode.Read)
-    val indices = rawIndices.asInstanceOf[Seq[GeoMesaFeatureIndex[_ <: GeoMesaDataStore[_, _, _, _], _ <: WrappedFeature, _, _]]]
+    val indices = rawIndices.asInstanceOf[Seq[GeoMesaFeatureIndex[_ <: GeoMesaDataStore[_, _, _], _ <: WrappedFeature, _]]]
     val value = if (check.contains(":")) {
       indices.find(_.identifier.toLowerCase(Locale.US) == check)
     } else {

@@ -12,12 +12,14 @@ import java.io.{File, InputStream}
 import java.util.concurrent.atomic.AtomicLong
 
 import com.typesafe.config.{Config, ConfigRenderOptions}
-import com.typesafe.scalalogging.LazyLogging
+import org.apache.commons.pool2.BasePooledObjectFactory
+import org.apache.commons.pool2.impl.{DefaultPooledObject, GenericObjectPool}
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
-import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.convert.Transformers.DefaultCounter
+import org.locationtech.geomesa.convert.{SimpleFeatureConverter, SimpleFeatureConverters}
 import org.locationtech.geomesa.jobs.mapreduce.{ConverterInputFormat, GeoMesaOutputFormat}
+import org.locationtech.geomesa.tools.Command
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
@@ -38,13 +40,21 @@ class ConverterIngest(sft: SimpleFeatureType,
                       libjarsFile: String,
                       libjarsPaths: Iterator[() => Seq[File]],
                       numLocalThreads: Int)
-    extends AbstractIngest(dsParams, sft.getTypeName, inputs, libjarsFile, libjarsPaths, numLocalThreads) with LazyLogging {
+    extends AbstractIngest(dsParams, sft.getTypeName, inputs, libjarsFile, libjarsPaths, numLocalThreads) {
 
   override def beforeRunTasks(): Unit = {
     // create schema for the feature prior to Ingest job
-    logger.info(s"Creating schema ${sft.getTypeName}")
+    Command.user.info(s"Creating schema ${sft.getTypeName}")
     ds.createSchema(sft)
   }
+
+  val factory = new BasePooledObjectFactory[SimpleFeatureConverter[_]] {
+    override def wrap(obj: SimpleFeatureConverter[_]) = new DefaultPooledObject[SimpleFeatureConverter[_]](obj)
+    override def create(): SimpleFeatureConverter[_] = SimpleFeatureConverters.build(sft, converterConfig)
+  }
+
+  private val converterPool =
+    new GenericObjectPool[SimpleFeatureConverter[_]](factory)
 
   override def createLocalConverter(file: File, failures: AtomicLong): LocalIngestConverter =
     new LocalIngestConverter {
@@ -55,11 +65,13 @@ class ConverterIngest(sft: SimpleFeatureType,
         override def getFailure: Long          = failures.get()
       }
 
-      val converter = SimpleFeatureConverters.build(sft, converterConfig)
+      val converter = converterPool.borrowObject()
       val ec = converter.createEvaluationContext(Map("inputFilePath" -> file.getAbsolutePath), new LocalIngestCounter)
 
       override def convert(is: InputStream): (SimpleFeatureType, Iterator[SimpleFeature]) = (sft, converter.process(is, ec))
-      override def close(): Unit = {}
+      override def close(): Unit = {
+        converterPool.returnObject(converter)
+      }
     }
 
   override def runDistributedJob(statusCallback: (Float, Long, Long, Boolean) => Unit = (_, _, _, _) => Unit): (Long, Long) = {

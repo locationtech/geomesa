@@ -20,7 +20,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 object QueryHints {
 
-  val QUERY_INDEX      = new ClassKey(classOf[GeoMesaFeatureIndex[_, _, _, _]])
+  val QUERY_INDEX      = new ClassKey(classOf[GeoMesaFeatureIndex[_, _, _]])
   val COST_EVALUATION  = new ClassKey(classOf[CostEvaluation])
 
   val DENSITY_BBOX     = new ClassKey(classOf[ReferencedEnvelope])
@@ -55,8 +55,8 @@ object QueryHints {
   implicit class RichHints(val hints: Hints) extends AnyRef {
 
     def getReturnSft: SimpleFeatureType = hints.get(Internal.RETURN_SFT).asInstanceOf[SimpleFeatureType]
-    def getRequestedIndex[O <: GeoMesaDataStore[O, F, W, Q], F <: WrappedFeature, W, Q]: Option[GeoMesaFeatureIndex[O, F, W, Q]] =
-      Option(hints.get(QUERY_INDEX).asInstanceOf[GeoMesaFeatureIndex[O, F, W, Q]])
+    def getRequestedIndex[O <: GeoMesaDataStore[O, F, W], F <: WrappedFeature, W]: Option[GeoMesaFeatureIndex[O, F, W]] =
+      Option(hints.get(QUERY_INDEX).asInstanceOf[GeoMesaFeatureIndex[O, F, W]])
     def getCostEvaluation: CostEvaluation = {
       Option(hints.get(COST_EVALUATION).asInstanceOf[CostEvaluation])
           .orElse(QueryProperties.QUERY_COST_TYPE.option.flatMap(t => CostEvaluation.values.find(_.toString.equalsIgnoreCase(t))))

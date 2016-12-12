@@ -32,7 +32,6 @@ class ProjectVersionIterator extends SortedKeyValueIterator[Key, Value] {
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: util.Map[String, String],
                     env: IteratorEnvironment): Unit = {
-    IteratorClassLoader.initClassLoader(getClass)
     this.result = false
   }
 

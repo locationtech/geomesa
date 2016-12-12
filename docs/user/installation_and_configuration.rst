@@ -81,7 +81,7 @@ and untar it somewhere convenient. For example, to download and prepare the geom
 .. code-block:: bash
 
     # download and unpackage the most recent distribution
-    $ wget http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-accumulo-dist/$VERSION/geomesa-accumulo-dist_2.11-$VERSION-bin.tar.gz
+    $ wget http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-accumulo-dist_2.11/$VERSION/geomesa-accumulo-dist_2.11-$VERSION-bin.tar.gz
     $ tar xvf geomesa-accumulo-dist_2.11-$VERSION-bin.tar.gz
     $ cd geomesa-accumulo-dist_2.11-$VERSION
     $ ls
@@ -266,6 +266,7 @@ Test the command that invokes the GeoMesa Tools:
         add-attribute-index    Run a Hadoop map reduce job to add an index for attributes
         add-index              Add or update indices for an existing GeoMesa feature type
         config-table           Perform table configuration operations
+        convert                Convert files using GeoMesa's internal SFT converter framework
         create-schema          Create a GeoMesa feature type
         delete-catalog         Delete a GeoMesa catalog completely (and all features in it)
         delete-features        Delete features from a table in GeoMesa. Does not delete any tables or schema information.
@@ -367,6 +368,7 @@ Test the command that invokes the GeoMesa Tools:
     Using GEOMESA_KAFKA_HOME = /path/to/geomesa-kafka-$KAFKAVERSION_2.11-$VERSION
     Usage: geomesa-kafka [command] [command options]
       Commands:
+        convert         Convert files using GeoMesa's internal SFT converter framework
         create-schema   Create a feature definition in GeoMesa
         get-schema      Describe the attributes of a given feature in GeoMesa
         get-names       List GeoMesa features for a given zkPath
@@ -778,17 +780,13 @@ Restart GeoServer after the JARs are installed.
 For Cassandra
 ^^^^^^^^^^^^^
 
-The Cassandra GeoServer plugin is not bundled by default in the GeoMesa binary distribution
-and should be built from source. Download the source distribution (see
-:ref:`building_from_source`), go to the ``geomesa-cassandra/geomesa-cassandra-gs-plugin``
-directory, and build the module:
-
-.. code-block:: bash
-
-    $ mvn clean install
-
-After building, extract ``target/geomesa-cassandra-gs-plugin_2.11-$VERSION-install.tar.gz`` into GeoServer's
-``WEB-INF/lib`` directory.
+The GeoMesa Cassandra distribution includes a GeoServer plugin for including
+Cassandra data stores in GeoServer. The plugin files are in the
+``dist/gs-plugins/geomesa-cassandra-gs-plugin_2.11-$VERSION-install.tar.gz`` archive within the
+GeoMesa Cassandra distribution directory.
+To install the plugins, extract the archive and copy the contents to the ``WEB-INF/lib``
+directory of your GeoServer installation. You will also need to copy the JARs from the
+``lib`` directory of your Cassandra installation into the GeoServer ``WEB-INF/lib`` directory.
 
 Restart GeoServer after the JARs are installed.
 

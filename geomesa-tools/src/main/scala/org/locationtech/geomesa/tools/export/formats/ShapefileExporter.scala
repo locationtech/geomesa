@@ -28,8 +28,8 @@ class ShapefileExporter(file: File) extends FeatureExporter {
     None
   }
 
-  override def flush() = {}
-  override def close() = {}
+  override def flush(): Unit = {}
+  override def close(): Unit = {}
 
 }
 

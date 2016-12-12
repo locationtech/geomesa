@@ -13,8 +13,8 @@ import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex._
-import org.locationtech.geomesa.accumulo.index.SplitArrays
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
+import org.locationtech.geomesa.index.utils.SplitArrays
 import org.opengis.feature.simple.SimpleFeatureType
 
 // current version - deprecated polygon support in favor of xz, ids in row key, per-attribute vis
@@ -51,7 +51,7 @@ case object Z3Index extends AccumuloFeatureIndexType with Z3WritableIndex with Z
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
-    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
+    val splitArray = SplitArrays.apply(sft.getZShards)
 
     (wf: AccumuloFeature) => {
       val rows = getPointRowKey(timeToIndex, sfc, splitArray)(wf, dtgIndex)
@@ -69,7 +69,7 @@ case object Z3Index extends AccumuloFeatureIndexType with Z3WritableIndex with Z
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
-    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
+    val splitArray = SplitArrays.apply(sft.getZShards)
 
     (wf: AccumuloFeature) => {
       val rows = getPointRowKey(timeToIndex, sfc, splitArray)(wf, dtgIndex)
@@ -104,7 +104,7 @@ case object Z3IndexV2 extends AccumuloFeatureIndexType with Z3WritableIndex with
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
-    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
+    val splitArray = SplitArrays.apply(sft.getZShards)
     val getRowKeys: (AccumuloFeature, Int) => Seq[Array[Byte]] =
       if (sft.isPoints) { getPointRowKey(timeToIndex, sfc, splitArray) }
       else { getGeomRowKeys(timeToIndex, sfc, splitArray) }
@@ -127,7 +127,7 @@ case object Z3IndexV2 extends AccumuloFeatureIndexType with Z3WritableIndex with
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
-    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
+    val splitArray = SplitArrays.apply(sft.getZShards)
     val getRowKeys: (AccumuloFeature, Int) => Seq[Array[Byte]] =
       if (sft.isPoints) { getPointRowKey(timeToIndex, sfc, splitArray) }
       else { getGeomRowKeys(timeToIndex, sfc, splitArray) }
@@ -166,7 +166,7 @@ case object Z3IndexV1 extends AccumuloFeatureIndexType with Z3WritableIndex with
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
-    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
+    val splitArray = SplitArrays.apply(sft.getZShards)
     val getRowKeys: (AccumuloFeature, Int) => Seq[Array[Byte]] =
       (wf, i) => getPointRowKey(timeToIndex, sfc, splitArray)(wf, i).map(_.drop(1))
 
@@ -186,7 +186,7 @@ case object Z3IndexV1 extends AccumuloFeatureIndexType with Z3WritableIndex with
     val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 writer requires a valid date"))
     val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     val sfc = Z3SFC(sft.getZ3Interval)
-    val splitArray = SplitArrays.getSplitArray(sft.getZShards)
+    val splitArray = SplitArrays.apply(sft.getZShards)
     val getRowKeys: (AccumuloFeature, Int) => Seq[Array[Byte]] =
       (ftw, i) => getPointRowKey(timeToIndex, sfc, splitArray)(ftw, i).map(_.drop(1))
 

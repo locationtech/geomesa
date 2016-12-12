@@ -125,10 +125,16 @@ On the "Add Store" page, select "Cassandra (GeoMesa)" as shown below.
 .. image:: _static/img/CassandraNewDataSource.png
 
 In the following page, enter the name and description of the data store, the contact point
-(HOST:PORT), and the keyspace. Click "Save", and GeoServer will search Cassandra for any
+(HOST:PORT), the keyspace and the catalog. Click "Save", and GeoServer will search Cassandra for any
 GeoMesa-managed feature types in that keyspace.
 
 .. image:: _static/img/CassandraDSParams.png
+
+
+Note that the "Layer Preview" within GeoServer generally will not work with a Cassandra
+data store, because the Cassandra data store expects queries to have both a ``bbox`` and
+date ``between`` components, but the layer previews do not provide these. 
+
 
 Publish a GeoMesa Layer
 -----------------------

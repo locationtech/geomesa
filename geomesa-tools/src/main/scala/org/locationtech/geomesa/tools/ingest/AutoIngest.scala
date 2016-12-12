@@ -11,8 +11,6 @@ package org.locationtech.geomesa.tools.ingest
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
 
-import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.tools.utils.DataFormats._
 
 /**
@@ -32,7 +30,7 @@ class AutoIngest(typeName: String,
                  libjarsFile: String,
                  libjarsPaths: Iterator[() => Seq[File]],
                  numLocalThreads: Int)
-    extends AbstractIngest(dsParams, typeName, inputs, libjarsFile, libjarsPaths, numLocalThreads) with LazyLogging {
+    extends AbstractIngest(dsParams, typeName, inputs, libjarsFile, libjarsPaths, numLocalThreads) {
 
   import org.locationtech.geomesa.tools.utils.DataFormats._
 

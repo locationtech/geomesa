@@ -44,6 +44,8 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
   private var userData: jMap[AnyRef, AnyRef] = null
   private var userDataOffset: Int = -1
 
+  private var id: String = ""
+
   private var transforms: String = null
   private var transformSchema: SimpleFeatureType = null
   private var binaryTransform: () => Array[Byte] = input.getBuffer
@@ -76,15 +78,24 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
     *
     * @param bytes serialized byte array
     */
-  def setBuffer(bytes: Array[Byte]) = {
-    input.setBuffer(bytes)
+  def setBuffer(bytes: Array[Byte]): Unit = setBuffer(bytes, 0, bytes.length)
+
+  /**
+    * Set the serialized bytes to use for reading attributes
+    *
+    * @param bytes serialized byte array
+    * @param offset offset into the byte array of valid bytes
+    * @param length number of valid bytes to read from the byte array
+    */
+  def setBuffer(bytes: Array[Byte], offset: Int, length: Int): Unit = {
+    input.setBuffer(bytes, offset, offset + length)
     // reset our offsets
-    input.setPosition(1) // skip version
+    input.setPosition(offset + 1) // skip version
     startOfOffsets = input.readInt()
-    input.setPosition(startOfOffsets) // set to offsets start
+    input.setPosition(offset + startOfOffsets) // set to offsets start
     var i = 0
     while (i < offsets.length && input.position < input.limit) {
-      offsets(i) = input.readInt(true)
+      offsets(i) = offset + input.readInt(true)
       i += 1
     }
     if (i < offsets.length) {
@@ -97,6 +108,8 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
     userData = null
     userDataOffset = input.position()
   }
+
+  def setId(id: String): Unit = this.id = id
 
   def setTransforms(transforms: String, transformSchema: SimpleFeatureType) = {
     this.transforms = transforms
@@ -126,22 +139,31 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
         case _ => -1
       }
     }
+
+    val shouldReserialize = indices.contains(-1)
+
     // if we are just returning a subset of attributes, we can copy the bytes directly and avoid creating
     // new objects, reserializing, etc
-    binaryTransform = if (!indices.contains(-1)) {
+    binaryTransform = if (!shouldReserialize) {
+      val mutableOffsetsAndLength = Array.ofDim[(Int,Int)](indices.length)
+
       () => {
         val buf = input.getBuffer
         var length = offsets(0) // space for version, offset block and ID
-        val offsetsAndLengths = indices.map { i =>
+        var idx = 0
+        while(idx < mutableOffsetsAndLength.length) {
+          val i = indices(idx)
           val l = (if (i < offsets.length - 1) offsets(i + 1) else startOfOffsets) - offsets(i)
           length += l
-          (offsets(i), l)
+          mutableOffsetsAndLength(idx) = (offsets(i), l)
+          idx += 1
         }
+
         val dst = Array.ofDim[Byte](length)
         // copy the version, offset block and id
         var dstPos = offsets(0)
         System.arraycopy(buf, 0, dst, 0, dstPos)
-        offsetsAndLengths.foreach { case (o, l) =>
+        mutableOffsetsAndLength.foreach { case (o, l) =>
           System.arraycopy(buf, o, dst, dstPos, l)
           dstPos += l
         }
@@ -190,7 +212,7 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
 
   override def getIdentifier: FeatureId = new FeatureIdImpl(getID)
   override def getID: String = {
-    if (options.withoutId) { "" } else {
+    if (options.withoutId) { id } else {
       input.setPosition(5)
       input.readString()
     }

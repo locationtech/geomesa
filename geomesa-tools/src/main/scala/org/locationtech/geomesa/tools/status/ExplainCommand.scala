@@ -13,35 +13,27 @@ import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.utils.ExplainPrintln
+import org.locationtech.geomesa.index.utils.ExplainLogger
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.filter.Filter
 
-import scala.util.control.NonFatal
-
-trait ExplainCommand[DS <: GeoMesaDataStore[DS, _, _, _]] extends DataStoreCommand[DS] {
+trait ExplainCommand[DS <: GeoMesaDataStore[DS, _, _]] extends DataStoreCommand[DS] {
 
   override def params: ExplainParams
 
   override val name: String = "explain"
 
-  override def execute(): Unit = {
-    try {
-      withDataStore(explain)
-    } catch {
-      case NonFatal(e) => logger.error("Could not get explain plan:", e)
-    }
-  }
+  override def execute(): Unit = withDataStore(explain)
 
   protected def explain(ds: DS): Unit = {
     val query = new Query(params.featureName, Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE))
     Option(params.attributes).filterNot(_.isEmpty).foreach(query.setPropertyNames)
     params.loadIndex(ds, IndexMode.Read).foreach { index =>
       query.getHints.put(QueryHints.QUERY_INDEX, index)
-      logger.debug(s"Using index ${index.identifier}")
+      Command.user.debug(s"Using index ${index.identifier}")
     }
-    ds.getQueryPlan(query, None, new ExplainPrintln(System.err))
+    ds.getQueryPlan(query, None, new ExplainLogger(Command.output))
   }
 }
 

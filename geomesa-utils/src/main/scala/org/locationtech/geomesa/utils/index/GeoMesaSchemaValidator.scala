@@ -29,6 +29,7 @@ object GeoMesaSchemaValidator {
     TemporalIndexCheck.validateDtgField(sft)
     TemporalIndexCheck.validateDtgIndex(sft)
     ReservedWordCheck.validateAttributeNames(sft)
+    IndexConfigurationCheck.validateIndices(sft)
   }
 
   private [index] def boolean(value: AnyRef): Boolean = value match {
@@ -127,5 +128,13 @@ object MixedGeometryCheck extends LazyLogging {
             "Otherwise, please specify a single geometry type (e.g. Point, LineString, Polygon, etc).")
       }
     }
+  }
+}
+
+object IndexConfigurationCheck {
+
+  def validateIndices(sft: SimpleFeatureType): Unit = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    require(sft.getZShards > 0 && sft.getZShards < 128, "Z shards must be between 1 and 127")
   }
 }

@@ -21,15 +21,16 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kafka.min.version>${kafka.09.version}</kafka.min.version>
         <kafka.maj.version>09</kafka.maj.version>
+        <kafka.version>${kafka.09.version}</kafka.version>
+        <zkclient.version>0.7</zkclient.version>
     </properties>
 
     <dependencies>
         <!-- Kafka Tools -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-kafka-tools_${scala.binary.version}</artifactId>
+            <artifactId>geomesa-kafka-09-tools_${scala.binary.version}</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>org.locationtech.geomesa</groupId>
