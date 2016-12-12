@@ -11,7 +11,7 @@ package org.locationtech.geomesa.kafka.tools.status
 import com.beust.jcommander._
 import org.locationtech.geomesa.kafka.tools.{KafkaDataStoreCommand, ProducerKDSConnectionParams}
 import org.locationtech.geomesa.kafka10.KafkaDataStoreSchemaManager
-import org.locationtech.geomesa.tools.RequiredTypeNameParam
+import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
 import org.locationtech.geomesa.tools.utils.KeywordParamSplitter
 
 import scala.collection.JavaConversions._
@@ -34,7 +34,7 @@ class KafkaKeywordsCommand extends KafkaDataStoreCommand {
         sft.removeAllKeywords()
         keywordsModified = true
       } else {
-        println("Aborting operation")
+        Command.user.info("Aborting operation")
         ds.dispose()
         return
       }
@@ -53,7 +53,7 @@ class KafkaKeywordsCommand extends KafkaDataStoreCommand {
 
     if (params.list) {
       val reloadedSft = ds.getSchema(params.featureName)
-      println("Keywords: " + reloadedSft.getKeywords.mkString(", "))
+      Command.output.info("Keywords: " + reloadedSft.getKeywords.mkString(", "))
     }
 
     ds.dispose()

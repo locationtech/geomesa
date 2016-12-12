@@ -10,7 +10,7 @@ package org.locationtech.geomesa.tools.data
 
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, OptionalCqlFilterParam, RequiredTypeNameParam}
+import org.locationtech.geomesa.tools._
 import org.opengis.filter.Filter
 
 trait DeleteFeaturesCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
@@ -18,12 +18,12 @@ trait DeleteFeaturesCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCo
   override val name = "delete-features"
   override def params: DeleteFeaturesParams
 
-  override def execute() = {
+  override def execute(): Unit = {
     val sftName = params.featureName
     val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
-    logger.info(s"Deleting features from $sftName with filter $filter. This may take a few moments...")
+    Command.user.info(s"Deleting features from $sftName with filter $filter. This may take a few moments...")
     withDataStore(_.getFeatureSource(sftName).removeFeatures(filter))
-    logger.info("Features deleted")
+    Command.user.info("Features deleted")
   }
 }
 

@@ -41,9 +41,6 @@ trait IndexAdapter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] 
 
 object IndexAdapter {
 
-  val DefaultNumSplits = 4 // can't be more than Byte.MaxValue (127)
-  val DefaultSplitArrays = (0 until DefaultNumSplits).map(_.toByte).toArray.map(Array(_)).toSeq
-
   val ZeroByte: Byte = 0x00.toByte
   val MaxByte: Byte =  0xff.toByte
 

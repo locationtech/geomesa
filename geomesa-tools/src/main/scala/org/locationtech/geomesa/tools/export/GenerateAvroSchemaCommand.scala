@@ -18,13 +18,13 @@ class GenerateAvroSchemaCommand extends Command {
   override val name = "gen-avro-schema"
   val params = new GenerateAvroSchemaParams
 
-  override def execute() = {
+  override def execute(): Unit = {
     val sft = SftArgResolver.getSft(params.spec, params.featureName)
     if (sft.isDefined) {
       val schema = AvroSimpleFeatureUtils.generateSchema(sft.get, withUserData = true)
-      println(schema.toString(true))
+      Command.output.info(schema.toString(true))
     } else {
-      println(s"Could not find feature type ${params.spec}")
+      Command.user.warn(s"Could not find feature type ${params.spec}")
     }
   }
 

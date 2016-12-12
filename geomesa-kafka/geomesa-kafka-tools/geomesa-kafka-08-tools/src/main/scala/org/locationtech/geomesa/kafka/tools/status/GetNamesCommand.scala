@@ -9,21 +9,20 @@
 package org.locationtech.geomesa.kafka.tools.status
 
 import com.beust.jcommander.Parameters
-import com.typesafe.scalalogging.LazyLogging
 import org.I0Itec.zkclient.ZkClient
 import org.I0Itec.zkclient.exception.ZkNoNodeException
 import org.locationtech.geomesa.kafka.tools.{KafkaDataStoreCommand, OptionalZkPathParams}
 import org.locationtech.geomesa.kafka08.KafkaUtils08
+import org.locationtech.geomesa.tools.Command
 
-class KafkaGetTypeNamesCommand extends KafkaDataStoreCommand with LazyLogging {
+class KafkaGetTypeNamesCommand extends KafkaDataStoreCommand {
 
   override val name = "get-names"
   override val params = new KafkaGetTypeNamesParams()
 
-  override def execute() = {
+  override def execute(): Unit = {
     if (params.zkPath == null) {
-      logger.info(s"Running List Features without zkPath...")
-      logger.info(s"zkPath - schema")
+      Command.user.info(s"Running List Features without zkPath...")
 
       val zkUtils = KafkaUtils08.createZkUtils(params.zookeepers, Int.MaxValue, Int.MaxValue)
       try {
@@ -32,8 +31,8 @@ class KafkaGetTypeNamesCommand extends KafkaDataStoreCommand with LazyLogging {
         zkUtils.close()
       }
     } else {
-      logger.info(s"Running List Features using zkPath ${params.zkPath}...")
-      withDataStore(_.getTypeNames.foreach(println))
+      Command.user.info(s"Running List Features using zkPath ${params.zkPath}...")
+      withDataStore(_.getTypeNames.foreach(Command.output.info))
     }
   }
 
@@ -53,7 +52,7 @@ class KafkaGetTypeNamesCommand extends KafkaDataStoreCommand with LazyLogging {
       try {
         val topicName = zkClient.readData[String](getTopicNamePath(tokenizedTopic)) // throws ZkNoNodeException if not valid
         if (topicName.equals(topic)) {
-          println(s"/${tokenizedTopic.take(tokenizedTopicCount-1).mkString("/")} - ${tokenizedTopic.last}")
+          Command.user.info(s"/${tokenizedTopic.take(tokenizedTopicCount-1).mkString("/")} - ${tokenizedTopic.last}")
           return
         }
       } catch {

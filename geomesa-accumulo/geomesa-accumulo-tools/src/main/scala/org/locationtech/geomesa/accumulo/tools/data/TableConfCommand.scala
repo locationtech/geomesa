@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.accumulo.tools.data
 
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
-import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.TableNotFoundException
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
@@ -30,55 +29,54 @@ class TableConfCommand(val runner: Runner, val jc: JCommander) extends CommandWi
     Seq(new TableConfListCommand, new TableConfDescribeCommand, new TableConfUpdateCommand)
 }
 
-class TableConfListCommand extends AccumuloDataStoreCommand with LazyLogging {
+class TableConfListCommand extends AccumuloDataStoreCommand {
 
   import TableConfCommand._
 
   override val name = "list"
   override val params = new ListParams
 
-  def execute() = {
-    logger.info(s"Getting configuration parameters for table: ${params.tableSuffix}")
-    withDataStore((ds) => getProperties(ds, params).toSeq.sortBy(_.getKey).foreach(println))
+  def execute(): Unit = {
+    Command.user.info(s"Getting configuration parameters for table: ${params.tableSuffix}")
+    withDataStore((ds) => getProperties(ds, params).toSeq.sortBy(_.getKey).foreach(p => Command.output.info(p.toString)))
   }
 }
 
-class TableConfDescribeCommand extends AccumuloDataStoreCommand with LazyLogging {
+class TableConfDescribeCommand extends AccumuloDataStoreCommand {
 
   import TableConfCommand._
 
   override val name = "describe"
   override val params = new DescribeParams
 
-  def execute() = {
-    logger.info(s"Finding the value for '${params.param}' on table: ${params.tableSuffix}")
-    withDataStore((ds) => println(getProp(ds, params)))
+  def execute(): Unit = {
+    Command.user.info(s"Finding the value for '${params.param}' on table: ${params.tableSuffix}")
+    withDataStore((ds) => Command.output.info(getProp(ds, params).toString))
   }
 }
 
-class TableConfUpdateCommand extends AccumuloDataStoreCommand with LazyLogging {
+class TableConfUpdateCommand extends AccumuloDataStoreCommand {
 
   import TableConfCommand._
 
   override val name = "update"
   override val params = new UpdateParams
 
-  def execute() = {
+  def execute(): Unit = {
     val param = params.param
     val newValue = params.newValue
     val tableName = params.tableSuffix
 
     withDataStore { (ds) =>
       val property = getProp(ds, params)
-      logger.info(s"'$param' on table '$tableName' currently set to: \n$property")
+      Command.user.info(s"'$param' on table '$tableName' currently set to: \n$property")
 
       if (newValue != property.getValue) {
-        logger.info(s"Attempting to update '$param' to '$newValue'...")
+        Command.user.info(s"Attempting to update '$param' to '$newValue'...")
         val updatedValue = setValue(ds, params)
-        logger.info(s"'$param' on table '$tableName' is now set to: \n$updatedValue")
-        println(s"Set $param=$updatedValue")
+        Command.user.info(s"'$param' on table '$tableName' is now set to: \n$updatedValue")
       } else {
-        logger.info(s"'$param' already set to '$newValue'. No need to update.")
+        Command.user.info(s"'$param' already set to '$newValue'. No need to update.")
       }
     }
   }

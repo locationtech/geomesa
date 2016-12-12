@@ -25,7 +25,7 @@ class DelimitedExporter(writer: Writer, format: DataFormat, withHeader: Boolean 
 
   import scala.collection.JavaConversions._
 
-  val printer = format match {
+  private val printer = format match {
     case DataFormats.Csv => CSVFormat.DEFAULT.withQuoteMode(QuoteMode.MINIMAL).print(writer)
     case DataFormats.Tsv => CSVFormat.TDF.withQuoteMode(QuoteMode.MINIMAL).print(writer)
   }
@@ -71,9 +71,9 @@ class DelimitedExporter(writer: Writer, format: DataFormat, withHeader: Boolean 
     }
   }
 
-  override def flush() = printer.flush()
+  override def flush(): Unit = printer.flush()
 
-  override def close() = {
+  override def close(): Unit = {
     printer.flush()
     printer.close()
   }

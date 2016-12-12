@@ -10,12 +10,8 @@ package org.locationtech.geomesa.tools.status
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, RequiredTypeNameParam}
 import org.locationtech.geomesa.tools.utils.KeywordParamSplitter
-import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, RequiredTypeNameParam}
-import org.locationtech.geomesa.tools.utils.KeywordParamSplitter
-
-import scala.util.control.NonFatal
+import org.locationtech.geomesa.tools.{CatalogParam, Command, DataStoreCommand, RequiredTypeNameParam}
 
 trait KeywordsCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
 
@@ -23,14 +19,7 @@ trait KeywordsCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[
 
   override def params: CatalogParam with KeywordsParams
 
-  override def execute(): Unit = {
-    try {
-      withDataStore(modifyKeywords)
-    } catch {
-      case p: ParameterException => throw p
-      case NonFatal(e) => logger.error("Couldn't run keywords command", e)
-    }
-  }
+  override def execute(): Unit = withDataStore(modifyKeywords)
 
   protected def modifyKeywords(ds: DS): Unit = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
@@ -46,7 +35,7 @@ trait KeywordsCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[
       if (confirm.equals("y") || confirm.equals("yes")) {
         sft.removeAllKeywords()
       } else {
-        println("Aborting operation")
+        Command.user.info("Aborting operation")
         return
       }
     } else if (params.keywordsToRemove != null) {
@@ -60,7 +49,7 @@ trait KeywordsCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[
     ds.updateSchema(params.featureName, sft)
 
     if (params.list) {
-      println("Keywords: " + ds.getSchema(sft.getTypeName).getKeywords.mkString(", "))
+      Command.output.info("Keywords: " + ds.getSchema(sft.getTypeName).getKeywords.mkString(", "))
     }
   }
 }

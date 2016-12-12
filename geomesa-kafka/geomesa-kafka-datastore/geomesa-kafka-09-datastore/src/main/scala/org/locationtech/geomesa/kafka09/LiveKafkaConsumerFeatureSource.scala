@@ -23,6 +23,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 import scala.collection.mutable
+import scala.util.control.NonFatal
 
 class LiveKafkaConsumerFeatureSource(e: ContentEntry,
                                      sft: SimpleFeatureType,
@@ -144,7 +145,11 @@ class LiveKafkaConsumerFeatureSource(e: ContentEntry,
   // Lazily fires events.
   def fireEvent(event: => FeatureEvent) = {
     if (contentState.hasListener) {
-      contentState.fireFeatureEvent(event)
+      try {
+        contentState.fireFeatureEvent(event)
+      } catch {
+        case NonFatal(e) => logger.error("Error in feature listeners:", e)
+      }
     }
   }
 

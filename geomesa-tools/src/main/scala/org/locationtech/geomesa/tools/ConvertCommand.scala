@@ -26,7 +26,7 @@ import org.locationtech.geomesa.utils.text.TextTools.getPlural
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-class ConvertCommand extends Command {
+class ConvertCommand extends Command with LazyLogging {
 
   override val name = "convert"
   override val params = new ConvertParameters
@@ -38,7 +38,7 @@ class ConvertCommand extends Command {
     import scala.collection.JavaConversions._
 
     val sft = CLArgResolver.getSft(params.spec)
-    logger.info(s"Using SFT definition: ${sft}")
+    logger.info(s"Using SFT definition: $sft")
 
     val converter = getConverter(params, sft)
     val exporter = getExporter(params, sft)
@@ -99,7 +99,7 @@ object ConvertCommand extends LazyLogging {
     val ec = converter.createEvaluationContext(Map("inputFilePath" -> file))
     val dataIter = converter.process(new FileInputStream(file.toString), ec)
     if (params.maxFeatures != null && params.maxFeatures >= 0) {
-      logger.info(s"Converting ${getPlural(params.maxFeatures.toLong, "feature")} from $file")
+      Command.user.info(s"Converting ${getPlural(params.maxFeatures.toLong, "feature")} from $file")
       for (i <- 1 to params.maxFeatures) {
         if (dataIter.hasNext) fc.add(dataIter.next())
       }
@@ -107,7 +107,7 @@ object ConvertCommand extends LazyLogging {
       dataIter.foreach(fc.add)
     }
     val records = ec.counter.getLineCount - (if (params.noHeader) 0 else 1)
-    logger.info(s"Converted ${getPlural(records, "simple feature")} "
+    Command.user.info(s"Converted ${getPlural(records, "simple feature")} "
       + s"with ${getPlural(ec.counter.getSuccess, "success", "successes")} "
       + s"and ${getPlural(ec.counter.getFailure, "failure")}")
   }

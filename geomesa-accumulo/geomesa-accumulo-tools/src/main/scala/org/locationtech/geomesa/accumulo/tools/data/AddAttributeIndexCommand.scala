@@ -9,20 +9,18 @@
 package org.locationtech.geomesa.accumulo.tools.data
 
 import com.beust.jcommander.{Parameter, Parameters}
-import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.util.ToolRunner
-import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.tools.data.AddAttributeIndexCommand.AddAttributeIndexParams
+import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
 import org.locationtech.geomesa.jobs.accumulo.index.{AttributeIndexArgs, AttributeIndexJob}
-import org.locationtech.geomesa.tools.{RequiredAttributesParam, RequiredTypeNameParam}
+import org.locationtech.geomesa.tools.{Command, RequiredAttributesParam, RequiredTypeNameParam}
 
-class AddAttributeIndexCommand extends AccumuloDataStoreCommand with LazyLogging {
+class AddAttributeIndexCommand extends AccumuloDataStoreCommand {
 
   override val name = "add-attribute-index"
   override val params = new AddAttributeIndexParams
 
-  override def execute() = {
-
+  override def execute(): Unit = {
     try {
       val args = new AttributeIndexArgs(Array.empty)
       args.inZookeepers = params.zookeepers
@@ -34,19 +32,19 @@ class AddAttributeIndexCommand extends AccumuloDataStoreCommand with LazyLogging
       args.coverage     = params.coverage
       args.attributes.addAll(params.attributes)
 
-      logger.info(s"Running map reduce index job for attributes: ${params.attributes} with coverage: ${params.coverage}...")
+      Command.user.info(s"Running map reduce index job for attributes: ${params.attributes} with coverage: ${params.coverage}...")
 
       val result = ToolRunner.run(new AttributeIndexJob(), args.unparse())
 
       if (result == 0) {
-        logger.info("Add attribute index command finished successfully.")
+        Command.user.info("Add attribute index command finished successfully.")
       } else {
-        logger.error("Error encountered running attribute index command. Check hadoop's job history logs for more information.")
+        Command.user.error("Error encountered running attribute index command. Check hadoop's job history logs for more information.")
       }
 
     } catch {
       case e: Exception =>
-        logger.error(s"Exception encountered running attribute index command. " +
+        Command.user.error(s"Exception encountered running attribute index command. " +
           s"Check hadoop's job history logs for more information if necessary: " + e.getMessage, e)
     }
   }

@@ -33,9 +33,6 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
                     env: IteratorEnvironment): Unit = {
-
-    IteratorClassLoader.initClassLoader(getClass)
-
     super.init(source, options, env)
 
     sft = IteratorCache.sft(options.get(KryoVisibilityRowEncoder.SftOpt))
