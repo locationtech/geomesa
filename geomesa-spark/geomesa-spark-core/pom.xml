@@ -9,34 +9,18 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>GeoMesa Spark SQL</name>
-    <artifactId>geomesa-spark-sql_2.11</artifactId>
+    <name>GeoMesa Spark Core</name>
+    <artifactId>geomesa-spark-core_2.11</artifactId>
 
     <dependencies>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-spark-core_${scala.binary.version}</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${scala.binary.version}</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql_${scala.binary.version}</artifactId>
-            <version>${spark.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-catalyst_${scala.binary.version}</artifactId>
-            <version>${spark.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.vividsolutions</groupId>
-            <artifactId>jts</artifactId>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-feature-all_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
@@ -47,4 +31,5 @@
             <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
         </dependency>
     </dependencies>
+
 </project>
