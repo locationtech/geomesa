@@ -1,3 +1,11 @@
+/***********************************************************************
+* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0
+* which accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
+
 package org.locationtech.geomesa.memory.cqengine.datastore
 
 import java.util
@@ -12,7 +20,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 import scala.collection.JavaConversions._
 
 class GeoCQEngineDataStore extends ContentDataStore {
-  val namesToEngine =  new java.util.concurrent.ConcurrentHashMap[String, GeoCQEngine]()
+  val namesToEngine = new java.util.concurrent.ConcurrentHashMap[String, GeoCQEngine]()
 
   override def createFeatureSource(entry: ContentEntry): ContentFeatureSource = {
     val engine = namesToEngine.get(entry.getTypeName)

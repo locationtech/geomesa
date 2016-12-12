@@ -1,3 +1,11 @@
+/***********************************************************************
+* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0
+* which accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
+
 package org.locationtech.geomesa.memory.cqengine.datastore
 
 import java.util.concurrent.atomic.AtomicLong
@@ -13,13 +21,11 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 class GeoCQEngineFeatureStore(engine: GeoCQEngine, entry: ContentEntry, query: Query) extends
   ContentFeatureStore(entry, query) {
 
-
   override def getWriterInternal(query: Query, flags: Int): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
          new FeatureWriter[SimpleFeatureType, SimpleFeature] {
            private val tempFeatureIds = new AtomicLong(0)
 
            var currentFeature: SimpleFeature = null
-
 
            override def remove(): Unit = ???
 
