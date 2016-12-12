@@ -13,6 +13,7 @@ import java.util.Map.Entry
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.{IteratorSetting, ScannerBase}
 import org.apache.accumulo.core.data.{Key, Value, Range => aRange}
+import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloProperties.AccumuloQueryProperties
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
@@ -122,12 +123,12 @@ case class BatchScanPlan(filter: AccumuloFilterStrategyType,
   override def scan(ds: AccumuloDataStore): CloseableIterator[SimpleFeature] =
     scanEntries(ds).map(entriesToFeatures)
 
-  def scanEntries(ds: AccumuloDataStore): CloseableIterator[Entry[Key, Value]] = {
+  def scanEntries(ds: AccumuloDataStore, auths: Option[Authorizations] = None): CloseableIterator[Entry[Key, Value]] = {
     if (ranges.isEmpty) { CloseableIterator.empty } else {
       val batchRanges = AccumuloQueryProperties.SCAN_BATCH_RANGES.option.map(_.toInt).getOrElse(Int.MaxValue)
       val batched = ranges.grouped(batchRanges)
       SelfClosingIterator(batched).ciFlatMap { ranges =>
-        val scanner = ds.connector.createBatchScanner(table, ds.auths, numThreads)
+        val scanner = ds.connector.createBatchScanner(table, auths.getOrElse(ds.auths), numThreads)
         scanner.setRanges(ranges)
         configure(scanner)
         SelfClosingIterator(scanner.iterator, scanner.close)

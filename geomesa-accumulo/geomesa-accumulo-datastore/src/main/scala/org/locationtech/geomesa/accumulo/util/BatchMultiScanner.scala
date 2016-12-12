@@ -33,13 +33,15 @@ class BatchMultiScanner(ds: AccumuloDataStore,
   require(numThreads > 0, f"Illegal numThreads ($numThreads%d). Value must be > 0")
   logger.trace(f"Creating BatchMultiScanner with batchSize $batchSize%d and numThreads $numThreads%d")
 
-  val executor = Executors.newFixedThreadPool(numThreads)
+  // calculate authorizations up front so that our multi-threading doesn't mess up auth providers
+  private val auths = Option(ds.auths)
+  private val executor = Executors.newFixedThreadPool(numThreads)
 
-  val inQ  = new LinkedBlockingQueue[Entry[Key, Value]](batchSize)
-  val outQ = new LinkedBlockingQueue[Entry[Key, Value]](batchSize)
+  private val inQ  = new LinkedBlockingQueue[Entry[Key, Value]](batchSize)
+  private val outQ = new LinkedBlockingQueue[Entry[Key, Value]](batchSize)
 
-  val inDone  = new AtomicBoolean(false)
-  val outDone = new AtomicBoolean(false)
+  private val inDone  = new AtomicBoolean(false)
+  private val outDone = new AtomicBoolean(false)
 
   executor.submit(new Runnable {
     override def run(): Unit = {
@@ -62,7 +64,7 @@ class BatchMultiScanner(ds: AccumuloDataStore,
             inQ.drainTo(entries)
             val task = executor.submit(new Runnable {
               override def run(): Unit = {
-                val iterator = join.copy(ranges = entries.map(joinFunction)).scanEntries(ds)
+                val iterator = join.copy(ranges = entries.map(joinFunction)).scanEntries(ds, auths)
                 try {
                   iterator.foreach(outQ.put)
                 } finally {
@@ -92,9 +94,9 @@ class BatchMultiScanner(ds: AccumuloDataStore,
 
   override def iterator: Iterator[Entry[Key, Value]] = new Iterator[Entry[Key, Value]] {
 
-    var prefetch: Entry[Key, Value] = null
+    private var prefetch: Entry[Key, Value] = null
 
-    def prefetchIfNull() = {
+    private def prefetchIfNull() = {
       // loop while we might have another and we haven't set prefetch
       while (prefetch == null && (!outDone.get || outQ.size > 0)) {
         prefetch = outQ.poll(5, TimeUnit.MILLISECONDS)
