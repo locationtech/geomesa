@@ -39,12 +39,8 @@ class GeoToolsSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 
     val ds = DataStoreFinder.getDataStore(dsParams)
     val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
-    val sparkConf: SparkConf = sc.getConf
-
     sc.parallelize(fr.toIterator.toSeq)
   }
-
-
 
   /**
     * Writes this RDD to a GeoMesa table.
