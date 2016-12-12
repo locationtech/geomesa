@@ -73,6 +73,25 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     */
   def delete(): Unit
 
+  /**
+    * Returns all tables that may be created for the simple feature type. Note that some of these
+    * tables may be shared with other simple feature types, and the tables may not all currently exist.
+    *
+    * @param typeName simple feature type name
+    * @return
+    */
+  def getAllTableNames(typeName: String): Seq[String] = Seq(config.catalog) ++ getAllIndexTableNames(typeName)
+
+  /**
+    * Returns all index tables that may be created for the simple feature type. Note that some of these
+    * tables may be shared with other simple feature types, and the tables may not all currently exist.
+    *
+    * @param typeName simple feature type name
+    * @return
+    */
+  def getAllIndexTableNames(typeName: String): Seq[String] =
+    Option(getSchema(typeName)).toSeq.flatMap(manager.indices(_, IndexMode.Any).map(_.getTableName(typeName, this)))
+
   // hooks to allow extended functionality
 
   protected def createQueryPlanner(): QueryPlanner[DS, F, W] = new QueryPlanner(this)

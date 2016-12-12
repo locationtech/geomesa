@@ -13,6 +13,7 @@ import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.Query
 import org.locationtech.geomesa.accumulo._
+import org.locationtech.geomesa.accumulo.audit.AccumuloAuditService
 import org.locationtech.geomesa.accumulo.data.stats._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.index.attribute.{AttributeIndex, AttributeSplittable}
@@ -63,17 +64,16 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   val tableOps = connector.tableOperations()
 
-  /**
-    * Optimized method to delete everything (all tables) associated with this datastore
-    * (index tables and catalog table)
-    * NB: We are *not* currently deleting the query table and/or query information.
-    */
   override def delete(): Unit = {
-    val sfts = getTypeNames.map(getSchema)
-    val tables = sfts.flatMap(sft => manager.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, this)))
-    // Delete index tables first then catalog table in case of error
-    val allTables = tables.distinct ++ Seq(statsTable, config.catalog)
-    allTables.par.filter(tableOps.exists).foreach(tableOps.delete)
+    // note: don't delete the query audit table
+    val auditTable = config.audit.map(_._1.asInstanceOf[AccumuloAuditService].table).toSeq
+    val tables = getTypeNames.flatMap(getAllTableNames).distinct.filterNot(_ == auditTable)
+    tables.par.filter(tableOps.exists).foreach(tableOps.delete)
+  }
+
+  override def getAllTableNames(typeName: String): Seq[String] = {
+    val others = Seq(statsTable) ++ config.audit.map(_._1.asInstanceOf[AccumuloAuditService].table).toSeq
+    super.getAllTableNames(typeName) ++ others
   }
 
   // data store hooks

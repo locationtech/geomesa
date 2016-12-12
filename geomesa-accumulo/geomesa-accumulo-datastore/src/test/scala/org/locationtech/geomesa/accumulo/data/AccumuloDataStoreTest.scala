@@ -39,7 +39,7 @@ import org.locationtech.geomesa.index.conf.DigitSplitter
 import org.locationtech.geomesa.index.geotools.CachingFeatureCollection
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.{RichSimpleFeatureType, _}
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats.IndexCoverage
@@ -357,6 +357,12 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       ds.getQueryPlan(new Query(defaultTypeName, Filter.INCLUDE), explainer = out)
       val explain = out.toString()
       explain must startWith(s"Planning '$defaultTypeName'")
+    }
+
+    "return a list of all accumulo tables associated with a schema" in {
+      val indices = ds.manager.indices(defaultSft, IndexMode.Any).map(_.getTableName(defaultSft.getTypeName, ds))
+      val expected = Seq(sftBaseName, s"${sftBaseName}_stats", s"${sftBaseName}_queries") ++ indices
+      ds.getAllTableNames(defaultTypeName) must containTheSameElementsAs(expected)
     }
 
     "allow secondary attribute indexes" >> {

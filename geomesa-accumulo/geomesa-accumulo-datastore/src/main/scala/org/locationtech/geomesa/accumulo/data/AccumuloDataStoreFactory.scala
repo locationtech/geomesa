@@ -23,8 +23,8 @@ import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.AuthorizationsProvider
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.audit.AuditProvider
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 
 import scala.collection.JavaConversions._
 
@@ -34,9 +34,9 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
   import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
 
   // this is a pass-through required of the ancestor interface
-  def createNewDataStore(params: JMap[String, Serializable]) = createDataStore(params)
+  override def createNewDataStore(params: JMap[String, Serializable]): AccumuloDataStore = createDataStore(params)
 
-  def createDataStore(params: JMap[String, Serializable]) = {
+  override def createDataStore(params: JMap[String, Serializable]): AccumuloDataStore = {
     import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.RichParam
 
     val connector = connParam.lookupOpt[Connector](params).getOrElse {
