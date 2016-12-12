@@ -31,7 +31,7 @@ import org.opengis.filter._
 
 import scala.collection.JavaConversions._
 
-class GeoCQEngine(sft: SimpleFeatureType,
+class GeoCQEngine(val sft: SimpleFeatureType,
                   enableFidIndex: Boolean = false) extends LazyLogging {
   //val cqcache = CQIndexingOptions.buildIndexedCollection(sft)
   val cqcache: IndexedCollection[SimpleFeature] = new ConcurrentIndexedCollection[SimpleFeature]()
