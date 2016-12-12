@@ -159,8 +159,8 @@ field to use for the date index. We specify this field using the
 
 .. code-block:: java
 
-    //This tells GeoMesa to use this Attribute as the Start Time index
-    featureType.getUserData().put(Constants.SF_PROPERTY_START_TIME, "SQLDATE");
+    // This tells GeoMesa to use this attribute as the indexed date field
+    featureType.getUserData().put(SimpleFeatureTypes.DEFAULT_DATE_KEY, "SQLDATE");
 
 Finally, we create the new feature type in GeoMesa as follows.
 

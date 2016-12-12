@@ -670,7 +670,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "delete all associated tables" >> {
-      val catalog = "AccumuloDataStoreDeleteTest"
+      val catalog = "AccumuloDataStoreDeleteAllTablesTest"
       // note the table needs to be different to prevent testing errors
       val ds = DataStoreFinder.getDataStore(dsParams ++ Map("tableName" -> catalog)).asInstanceOf[AccumuloDataStore]
       val sft = SimpleFeatureTypes.createType(catalog, "name:String:index=true,dtg:Date,*geom:Point:srid=4326")

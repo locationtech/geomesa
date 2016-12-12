@@ -15,7 +15,6 @@ import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.utils.geohash.GeoHash
@@ -44,7 +43,7 @@ class GenerateKNNQueryTest extends Specification {
 
   val sftName = "test"
   val sft = SimpleFeatureTypes.createType(sftName, "geom:Point:srid=4326,dtg:Date,dtg_end_time:Date")
-  sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
+  sft.getUserData.put(SimpleFeatureTypes.Configs.DEFAULT_DATE_KEY, "dtg")
 
   val ds = createStore
 

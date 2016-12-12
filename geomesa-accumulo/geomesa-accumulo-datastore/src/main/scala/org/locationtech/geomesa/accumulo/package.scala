@@ -30,11 +30,6 @@ package object accumulo {
   type AccumuloAppendFeatureWriterType = GeoMesaAppendFeatureWriter[AccumuloDataStore, AccumuloFeature, Mutation, BatchWriter]
   type AccumuloModifyFeatureWriterType = GeoMesaModifyFeatureWriter[AccumuloDataStore, AccumuloFeature, Mutation, BatchWriter]
 
-  // This first string is used as a SimpleFeature attribute name.
-  //  Since we would like to be able to use ECQL filters, we are restricted to letters, numbers, and _'s.
-  val DEFAULT_GEOMETRY_PROPERTY_NAME = "SF_PROPERTY_GEOMETRY"
-  val DEFAULT_DTG_PROPERTY_NAME = "dtg"
-
   object AccumuloProperties {
 
     object AccumuloQueryProperties {

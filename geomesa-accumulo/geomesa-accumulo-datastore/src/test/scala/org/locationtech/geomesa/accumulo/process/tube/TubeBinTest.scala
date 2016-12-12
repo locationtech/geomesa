@@ -15,7 +15,6 @@ import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -44,7 +43,7 @@ class TubeBinTest extends Specification {
         val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), day.toString)
         val lat = 40+day
         sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
-        sf.setAttribute(DEFAULT_DTG_PROPERTY_NAME, new DateTime(f"2011-01-$day%02dT00:00:00Z", DateTimeZone.UTC).toDate)
+        sf.setAttribute("dtg", new DateTime(f"2011-01-$day%02dT00:00:00Z", DateTimeZone.UTC).toDate)
         sf.setAttribute("type","test")
         sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
         sf
@@ -52,7 +51,7 @@ class TubeBinTest extends Specification {
 
       log.debug("features: "+features.size)
       val ngf = new NoGapFill(new DefaultFeatureCollection(sftName, sft), 1.0, 6)
-      val binnedFeatures = ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features),DEFAULT_DTG_PROPERTY_NAME).toSeq, 6)
+      val binnedFeatures = ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), "dtg").toSeq, 6)
 
       binnedFeatures.foreach { sf =>
         if (sf.getDefaultGeometry.isInstanceOf[GeometryCollection])
@@ -60,9 +59,9 @@ class TubeBinTest extends Specification {
         else log.debug("size: 1")
       }
 
-      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), DEFAULT_DTG_PROPERTY_NAME).toSeq, 1).size mustEqual 1
+      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), "dtg").toSeq, 1).size mustEqual 1
 
-      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), DEFAULT_DTG_PROPERTY_NAME).toSeq, 0).size mustEqual 1
+      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), "dtg").toSeq, 0).size mustEqual 1
     }
 
   }
