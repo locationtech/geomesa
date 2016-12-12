@@ -20,6 +20,7 @@ import org.locationtech.geomesa.compute.spark.GeoMesaSparkKryoRegistrator
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.spark.SpatialRDDProvider
 import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
@@ -27,7 +28,8 @@ import scala.util.control.NonFatal
 
 class GeoToolsSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
   override def canProcess(params: util.Map[String, Serializable]): Boolean = {
-    params.containsKey("geotools") && DataStoreFinder.getDataStore(params) != null
+    params.containsKey("geotools") &&
+      DataStoreFinder.getAllDataStores.exists(_.canProcess(params))
   }
 
   override def rdd(conf: Configuration, sc: SparkContext, dsParams: Map[String, String], query: Query): RDD[SimpleFeature] = {
@@ -39,7 +41,9 @@ class GeoToolsSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 
     val ds = DataStoreFinder.getDataStore(dsParams)
     val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
-    sc.parallelize(fr.toIterator.toSeq)
+    val rdd = sc.parallelize(fr.toIterator.toSeq)
+    ds.dispose()
+    rdd
   }
 
   /**
@@ -65,13 +69,13 @@ class GeoToolsSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
       val featureWriter = ds.getFeatureWriterAppend(writeTypeName, Transaction.AUTO_COMMIT)
       val attrNames = featureWriter.getFeatureType.getAttributeDescriptors.map(_.getLocalName)
       try {
-        iter.foreach { case rawFeature =>
+        iter.foreach { rawFeature =>
           val newFeature = featureWriter.next()
-          attrNames.foreach(an => newFeature.setAttribute(an, rawFeature.getAttribute(an)))
+          newFeature.setAttributes(rawFeature.getAttributes)
           featureWriter.write()
         }
       } finally {
-        featureWriter.close()
+        CloseQuietly(featureWriter)
         ds.dispose()
       }
     }
