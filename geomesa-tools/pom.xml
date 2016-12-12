@@ -121,6 +121,7 @@
     <build>
         <plugins>
             <plugin>
+                <!-- create the data formats jar -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
