@@ -13,4 +13,14 @@
         <constructor-arg index="0" ref="geomesaSwagger"/>
     </bean>
 
+    <bean name="geomesaConfigDir" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetObject" ref="dataDirectory"/> <!-- from gs-main -->
+        <property name="targetMethod" value="findOrCreateDir"/>
+        <property name="arguments">
+            <list>
+                <value type="java.lang.String">geomesa-config</value>
+            </list>
+        </property>
+    </bean>
+
 </beans>
