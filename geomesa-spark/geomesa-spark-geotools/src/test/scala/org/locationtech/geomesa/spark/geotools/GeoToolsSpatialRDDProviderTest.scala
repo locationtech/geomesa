@@ -8,31 +8,59 @@
 
 package org.locationtech.geomesa.spark.geotools
 
-import com.vividsolutions.jts.geom.{Coordinate, Point}
-import org.apache.accumulo.minicluster.MiniAccumuloCluster
-import org.apache.spark.SparkConf
-import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
-import org.geotools.data.{DataStore, DataStoreFinder}
+import com.vividsolutions.jts.geom.Coordinate
+import org.apache.hadoop.conf.Configuration
+import org.apache.spark.{SparkConf, SparkContext}
+import org.geotools.data.simple.SimpleFeatureStore
+import org.geotools.data.{DataStore, DataStoreFinder, DataUtilities, Query}
 import org.geotools.geometry.jts.JTSFactoryFinder
+import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.AccumuloProperties.AccumuloQueryProperties
-import org.locationtech.geomesa.compute.spark.GeoMesaSparkKryoRegistrator
-import org.locationtech.geomesa.index.conf.QueryProperties
-import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.spark.{GeoMesaSpark, GeoMesaSparkKryoRegistrator}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import scala.collection.JavaConversions._
+
 @RunWith(classOf[JUnitRunner])
-class SparkSQLDataTest extends Specification {
+class GeoToolsSpatialRDDProviderTest extends Specification {
 
-  //      import scala.collection.JavaConversions._
-  //      dsParams = Map("cqengine" -> "true", "geotools" -> "true")
-  //      DataStoreFinder.getAvailableDataStores.foreach{println}
+  "The GeoToolsSpatialRDDProvider" should {
+    "read from the in-memory database" in {
+      val dsParams = Map("cqengine" -> "true", "geotools" -> "true")
+      val ds = DataStoreFinder.getDataStore(dsParams)
+      ingestChicago(ds)
 
+      val conf = new SparkConf().setMaster("local[2]").setAppName("testSpark")
 
-  ds = DataStoreFinder.getDataStore(dsParams)
+      conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+      conf.set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
 
+      val sc = new SparkContext(conf)
 
+      val rdd = GeoMesaSpark(dsParams).rdd(new Configuration(), sc, dsParams, new Query("chicago"))
+      rdd.count() mustEqual(3l)
+    }
+  }
 
+  def ingestChicago(ds: DataStore): Unit = {
+    // Chicago data ingest
+    val sft = SimpleFeatureTypes.createType("chicago", "arrest:String,case_number:Int,dtg:Date,*geom:Point:srid=4326")
+    ds.createSchema(sft)
 
+    val fs = ds.getFeatureSource("chicago").asInstanceOf[SimpleFeatureStore]
+
+    val parseDate = ISODateTimeFormat.basicDateTime().parseDateTime _
+    val createPoint = JTSFactoryFinder.getGeometryFactory.createPoint(_: Coordinate)
+
+    val features = DataUtilities.collection(List(
+      new ScalaSimpleFeature("1", sft, initialValues = Array("true","1",parseDate("20160101T000000.000Z").toDate, createPoint(new Coordinate(-76.5, 38.5)))),
+      new ScalaSimpleFeature("2", sft, initialValues = Array("true","2",parseDate("20160102T000000.000Z").toDate, createPoint(new Coordinate(-77.0, 38.0)))),
+      new ScalaSimpleFeature("3", sft, initialValues = Array("true","3",parseDate("20160103T000000.000Z").toDate, createPoint(new Coordinate(-78.0, 39.0))))
+    ))
+
+    fs.addFeatures(features)
+  }
 }

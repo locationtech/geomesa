@@ -30,5 +30,10 @@
             <artifactId>specs2_${scala.binary.version}</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-cqengine-datastore_2.11</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>
