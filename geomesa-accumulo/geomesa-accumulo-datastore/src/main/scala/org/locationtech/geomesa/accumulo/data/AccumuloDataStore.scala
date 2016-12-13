@@ -22,14 +22,15 @@ import org.locationtech.geomesa.accumulo.util.ZookeeperLocking
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
-import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.locationtech.geomesa.index.utils.{Explainer, GeoMesaMetadata, MetadataStringSerializer}
+import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
+import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditReader, AuditWriter}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
+import org.locationtech.geomesa.utils.stats.Stat
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -48,15 +49,14 @@ import scala.util.control.NonFatal
 class AccumuloDataStore(val connector: Connector, override val config: AccumuloDataStoreConfig)
     extends AccumuloDataStoreType(config) with ZookeeperLocking {
 
-  override val metadata: GeoMesaMetadata[String] =
-    new MultiRowAccumuloMetadata(connector, config.catalog, MetadataStringSerializer)
+  override val metadata = new AccumuloBackedMetadata(connector, config.catalog, MetadataStringSerializer)
 
-  private val oldMetadata = new SingleRowAccumuloMetadata(connector, config.catalog, MetadataStringSerializer)
+  private val oldMetadata = new SingleRowAccumuloMetadata(metadata)
 
   override def manager: AccumuloIndexManagerType = AccumuloFeatureIndex
 
   private val statsTable = GeoMesaFeatureIndex.formatSharedTableName(config.catalog, "stats")
-  override val stats: GeoMesaStats = new AccumuloGeoMesaStats(this, statsTable, config.generateStats)
+  override val stats = new AccumuloGeoMesaStats(this, statsTable, config.generateStats)
 
   // some convenience operations
 
@@ -135,7 +135,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     val lock = acquireCatalogLock()
     try {
       // configure the stats combining iterator on the table for this sft
-      AccumuloGeoMesaStats.configureStatCombiner(connector, statsTable, sft)
+      stats.configureStatCombiner(connector, sft)
     } finally {
       lock.release()
     }
@@ -150,12 +150,12 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
     if (sft == null) {
       // check for old-style metadata and re-write it if necessary
-      if (oldMetadata.read(typeName, ATTRIBUTES_KEY, cache = false).isDefined) {
+      if (oldMetadata.getFeatureTypes.contains(typeName)) {
         val lock = acquireFeatureLock(typeName)
         try {
-          if (oldMetadata.read(typeName, ATTRIBUTES_KEY, cache = false).isDefined) {
-            metadata.asInstanceOf[MultiRowAccumuloMetadata[String]].migrate(typeName)
-            new MultiRowAccumuloMetadata[Any](connector, statsTable, null).migrate(typeName)
+          if (oldMetadata.getFeatureTypes.contains(typeName)) {
+            oldMetadata.migrate(typeName)
+            new SingleRowAccumuloMetadata[Stat](stats.metadata).migrate(typeName)
           }
         } finally {
           lock.release()
@@ -202,7 +202,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
           val lock = acquireCatalogLock()
           try {
             if (!metadata.read(typeName, configuredKey, cache = false).exists(_ == "true")) {
-              AccumuloGeoMesaStats.configureStatCombiner(connector, statsTable, sft)
+              stats.configureStatCombiner(connector, sft)
               metadata.insert(typeName, configuredKey, "true")
             }
           } finally {
@@ -237,7 +237,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
         }
       }
       // configure the stats combining iterator on the table for this sft
-      AccumuloGeoMesaStats.configureStatCombiner(connector, statsTable, sft)
+      stats.configureStatCombiner(connector, sft)
     } finally {
       lock.release()
     }

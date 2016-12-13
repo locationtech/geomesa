@@ -15,10 +15,11 @@ import com.google.common.collect.ImmutableSortedSet
 import com.google.common.util.concurrent.MoreExecutors
 import org.apache.accumulo.core.client.{Connector, IteratorSetting}
 import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope
+import org.apache.hadoop.io.Text
 import org.geotools.data.{Query, Transaction}
 import org.joda.time._
 import org.locationtech.geomesa.accumulo.AccumuloVersion
-import org.locationtech.geomesa.accumulo.data.{MultiRowAccumuloMetadata, _}
+import org.locationtech.geomesa.accumulo.data.{AccumuloBackedMetadata, _}
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.z2.Z2IndexV1
 import org.locationtech.geomesa.accumulo.index.z3.Z3IndexV2
@@ -45,7 +46,8 @@ class AccumuloGeoMesaStats(val ds: AccumuloDataStore, statsTable: String, val ge
 
   import AccumuloGeoMesaStats._
 
-  override protected val metadata = new MultiRowAccumuloMetadata(ds.connector, statsTable, new StatsMetadataSerializer(ds))
+  override private [geomesa] val metadata =
+    new AccumuloBackedMetadata(ds.connector, statsTable, new StatsMetadataSerializer(ds))
 
   private val compactionScheduled = new AtomicBoolean(false)
   private val lastCompaction = new AtomicLong(0L)
@@ -134,6 +136,48 @@ class AccumuloGeoMesaStats(val ds: AccumuloDataStore, statsTable: String, val ge
   }
 
   /**
+    * Configures the stat combiner to sum stats dynamically.
+    *
+    * Note: should be called with a distributed lock on the stats table
+    *
+    * @param connector accumulo connector
+    * @param sft simple feature type
+    */
+  def configureStatCombiner(connector: Connector, sft: SimpleFeatureType): Unit = {
+    import MetadataBackedStats._
+
+    AccumuloVersion.ensureTableExists(connector, statsTable)
+    val tableOps = connector.tableOperations()
+
+    def attach(options: Map[String, String]): Unit = {
+      // priority needs to be less than the versioning iterator at 20
+      val is = new IteratorSetting(10, CombinerName, classOf[StatsCombiner])
+      options.foreach { case (k, v) => is.addOption(k, v) }
+      tableOps.attachIterator(statsTable, is)
+
+      val keys = Seq(CountKey, BoundsKeyPrefix, TopKKeyPrefix, FrequencyKeyPrefix, HistogramKeyPrefix)
+      val splits = keys.map(k => new Text(metadata.encodeRow(sft.getTypeName, k)))
+      // noinspection RedundantCollectionConversion
+      tableOps.addSplits(statsTable, ImmutableSortedSet.copyOf(splits.toIterable))
+    }
+
+    val sftKey = s"${StatsCombiner.SftOption}${sft.getTypeName}"
+    val sftOpt = SimpleFeatureTypes.encodeType(sft)
+    val otherOpts = Map(StatsCombiner.SeparatorOption -> metadata.typeNameSeparator.toString, "all" -> "true")
+
+    val existing = tableOps.getIteratorSetting(statsTable, CombinerName, IteratorScope.scan)
+    if (existing == null) {
+      attach(Map(sftKey -> sftOpt) ++ otherOpts)
+    } else {
+      val existingSfts = existing.getOptions.filter(_._1.startsWith(StatsCombiner.SftOption))
+      if (!existingSfts.get(sftKey).exists(_ == sftOpt)) {
+        tableOps.removeIterator(statsTable, CombinerName, java.util.EnumSet.allOf(classOf[IteratorScope]))
+        attach(existingSfts.toMap ++ Map(sftKey -> sftOpt) ++ otherOpts)
+      }
+    }
+  }
+
+  /**
     * Schedules a compaction for the stat table
     */
   private [stats] def scheduleCompaction(): Unit = compactionScheduled.set(true)
@@ -172,46 +216,4 @@ object AccumuloGeoMesaStats {
 
   private [stats] val executor = MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(3))
   sys.addShutdownHook(executor.shutdownNow())
-
-  /**
-    * Configures the stat combiner to sum stats dynamically.
-    *
-    * Note: should be called with a distributed lock on the stats table
-    *
-    * @param connector accumulo connector
-    * @param table stats table
-    * @param sft simple feature type
-    */
-  def configureStatCombiner(connector: Connector, table: String, sft: SimpleFeatureType): Unit = {
-    import MetadataBackedStats._
-
-    AccumuloVersion.ensureTableExists(connector, table)
-    val tableOps = connector.tableOperations()
-
-    def attach(options: Map[String, String]): Unit = {
-      // priority needs to be less than the versioning iterator at 20
-      val is = new IteratorSetting(10, CombinerName, classOf[StatsCombiner])
-      options.foreach { case (k, v) => is.addOption(k, v) }
-      tableOps.attachIterator(table, is)
-
-      val keys = Seq(CountKey, BoundsKeyPrefix, TopKKeyPrefix, FrequencyKeyPrefix, HistogramKeyPrefix)
-      val splits = keys.map(k => MultiRowAccumuloMetadata.getRowKey(sft.getTypeName, k))
-      // noinspection RedundantCollectionConversion
-      tableOps.addSplits(table, ImmutableSortedSet.copyOf(splits.toIterable))
-    }
-
-    val sftKey = s"${StatsCombiner.SftOption}${sft.getTypeName}"
-    val sftOpt = SimpleFeatureTypes.encodeType(sft)
-
-    val existing = tableOps.getIteratorSetting(table, CombinerName, IteratorScope.scan)
-    if (existing == null) {
-      attach(Map(sftKey -> sftOpt, "all" -> "true"))
-    } else {
-      val existingSfts = existing.getOptions.filter(_._1.startsWith(StatsCombiner.SftOption))
-      if (!existingSfts.get(sftKey).exists(_ == sftOpt)) {
-        tableOps.removeIterator(table, CombinerName, java.util.EnumSet.allOf(classOf[IteratorScope]))
-        attach(existingSfts.toMap ++ Map(sftKey -> sftOpt, "all" -> "true"))
-      }
-    }
-  }
 }

@@ -20,12 +20,14 @@ import org.geotools.feature.{FeatureTypes, NameImpl}
 import org.joda.time.DateTimeUtils
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
-import org.locationtech.geomesa.index.utils.{DistributedLocking, ExplainLogging, HasGeoMesaMetadata, Releasable}
+import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
+import org.locationtech.geomesa.index.utils.{DistributedLocking, ExplainLogging, Releasable}
 import org.locationtech.geomesa.utils.index.IndexMode
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 // noinspection ScalaDeprecation
+import org.locationtech.geomesa.index.metadata.GeoMesaMetadata._
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.index.utils.Explainer
-import org.locationtech.geomesa.index.utils.GeoMesaMetadata._
 import org.locationtech.geomesa.utils.conf.GeoMesaProperties
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.{GeoToolsDateFormat, SimpleFeatureTypes}
@@ -439,8 +441,9 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
    * @see org.geotools.data.DataAccess#dispose()
    */
   override def dispose(): Unit = {
-    stats.close()
-    config.audit.foreach(_._1.close())
+    CloseWithLogging(metadata)
+    CloseWithLogging(stats)
+    config.audit.foreach { case (writer, _, _) => CloseWithLogging(writer) }
   }
 
   // end methods from org.geotools.data.DataStore

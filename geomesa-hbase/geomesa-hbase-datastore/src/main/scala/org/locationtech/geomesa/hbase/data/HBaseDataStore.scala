@@ -13,8 +13,9 @@ import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
+import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, UnoptimizedRunnableStats}
-import org.locationtech.geomesa.index.utils.{GeoMesaMetadata, LocalLocking}
+import org.locationtech.geomesa.index.utils.LocalLocking
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -23,7 +24,7 @@ class HBaseDataStore(val connection: Connection, config: HBaseDataStoreConfig)
     extends HBaseDataStoreType(config) with LocalLocking {
 
   override val metadata: GeoMesaMetadata[String] =
-    new HBaseBackedMetadata(connection, TableName.valueOf(config.catalog), new HBaseStringSerializer)
+    new HBaseBackedMetadata(connection, TableName.valueOf(config.catalog), MetadataStringSerializer)
 
   override def manager: HBaseIndexManagerType = HBaseFeatureIndex
 
