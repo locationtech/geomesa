@@ -115,7 +115,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
     val ds = DataStoreFinder.getDataStore(writeDataStoreParams).asInstanceOf[AccumuloDataStore]
     try {
       require(ds.getSchema(writeTypeName) != null,
-        "Feature type must exist before calling save.  Call .createSchema on the DataStore before calling .save")
+        "Feature type must exist before calling save.  Call createSchema on the DataStore first.")
     } finally {
       ds.dispose()
     }

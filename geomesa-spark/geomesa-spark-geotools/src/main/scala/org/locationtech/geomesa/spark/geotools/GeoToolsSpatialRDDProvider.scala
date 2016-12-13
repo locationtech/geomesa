@@ -18,6 +18,7 @@ import org.apache.spark.rdd.RDD
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.locationtech.geomesa.spark.SpatialRDDProvider
 import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.SimpleFeature
 
@@ -29,7 +30,11 @@ class GeoToolsSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
       DataStoreFinder.getAllDataStores.exists(_.canProcess(params))
   }
 
-  override def rdd(conf: Configuration, sc: SparkContext, dsParams: Map[String, String], query: Query): RDD[SimpleFeature] = {     val ds = DataStoreFinder.getDataStore(dsParams)
+  override def rdd(conf: Configuration,
+                   sc: SparkContext,
+                   dsParams: Map[String, String],
+                   query: Query): RDD[SimpleFeature] = {
+    val ds = DataStoreFinder.getDataStore(dsParams)
     val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
     val rdd = sc.parallelize(fr.toIterator.toSeq)
     ds.dispose()
@@ -49,7 +54,7 @@ class GeoToolsSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 
     try {
       require(ds.getSchema(writeTypeName) != null,
-        "Feature type must exist before calling save.  Call .createSchema on the DataStore before calling .save")
+        "Feature type must exist before calling save.  Call createSchema on the DataStore first.")
     } finally {
       ds.dispose()
     }
