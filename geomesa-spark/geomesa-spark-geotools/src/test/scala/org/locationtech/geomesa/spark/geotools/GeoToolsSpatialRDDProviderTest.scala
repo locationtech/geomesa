@@ -27,18 +27,19 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class GeoToolsSpatialRDDProviderTest extends Specification {
 
+  val conf = new SparkConf().setMaster("local[2]").setAppName("testSpark")
+
+  conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+  conf.set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
+
+  val sc = new SparkContext(conf)
+
+  val dsParams = Map("cqengine" -> "true", "geotools" -> "true")
+
   "The GeoToolsSpatialRDDProvider" should {
     "read from the in-memory database" in {
-      val dsParams = Map("cqengine" -> "true", "geotools" -> "true")
       val ds = DataStoreFinder.getDataStore(dsParams)
       ingestChicago(ds)
-
-      val conf = new SparkConf().setMaster("local[2]").setAppName("testSpark")
-
-      conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-      conf.set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
-
-      val sc = new SparkContext(conf)
 
       val rdd = GeoMesaSpark(dsParams).rdd(new Configuration(), sc, dsParams, new Query("chicago"))
       rdd.count() mustEqual(3l)
@@ -46,7 +47,6 @@ class GeoToolsSpatialRDDProviderTest extends Specification {
   }
 
   def ingestChicago(ds: DataStore): Unit = {
-    // Chicago data ingest
     val sft = SimpleFeatureTypes.createType("chicago", "arrest:String,case_number:Int,dtg:Date,*geom:Point:srid=4326")
     ds.createSchema(sft)
 

@@ -19,10 +19,10 @@ trait VersionRemoteCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCom
   override val name: String = "version-remote"
 
   override def execute(): Unit = {
-    Command.output.info(s"GeoMesa tools version: $ProjectVersion")
-    Command.output.info(s"Commit ID: $GitCommit")
-    Command.output.info(s"Branch: $GitBranch")
-    Command.output.info(s"Build date: $BuildDate")
+    Command.output.info(s"Local GeoMesa tools version: $ProjectVersion")
+    Command.output.info(s"Local Commit ID: $GitCommit")
+    Command.output.info(s"Local Branch: $GitBranch")
+    Command.output.info(s"Local Build date: $BuildDate")
     try {
       val iterVersion = withDataStore(_.getVersion._2)
       Command.output.info(s"Distributed runtime version: $iterVersion")

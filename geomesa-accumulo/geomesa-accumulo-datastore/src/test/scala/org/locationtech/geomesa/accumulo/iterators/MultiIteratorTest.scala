@@ -17,8 +17,8 @@ import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.iterators.TestData._
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -166,8 +166,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
     val fs = ds.getFeatureSource(sft.getTypeName)
 
     "return a partial results-set with a meaningful attribute-filter" in {
-      val filterString = "(not " + DEFAULT_DTG_PROPERTY_NAME +
-        " after 2010-08-08T23:59:59Z) and (not dtg_end_time before 2010-08-08T00:00:00Z)"
+      val filterString = "(not dtg after 2010-08-08T23:59:59Z) and (not dtg_end_time before 2010-08-08T00:00:00Z)"
 
       val q = getQuery(sft, Some(filterString))
 

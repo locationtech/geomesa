@@ -11,11 +11,13 @@ package org.locationtech.geomesa.accumulo.data.stats
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{Combiner, IteratorEnvironment, SortedKeyValueIterator}
-import org.locationtech.geomesa.accumulo.data.{MultiRowAccumuloMetadata, SingleRowAccumuloMetadata}
+import org.locationtech.geomesa.accumulo.data.SingleRowAccumuloMetadata
+import org.locationtech.geomesa.index.metadata.CachedLazyMetadata
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.StatSerializer
 
 import scala.collection.JavaConversions._
+import scala.util.control.NonFatal
 
 /**
   * Combiner for serialized stats. Should be one instance configured per catalog table. Simple feature
@@ -23,9 +25,10 @@ import scala.collection.JavaConversions._
   */
 class StatsCombiner extends Combiner with LazyLogging {
 
-  import StatsCombiner.SftOption
+  import StatsCombiner.{SeparatorOption, SftOption}
 
   private var serializers: Map[String, StatSerializer] = null
+  private var separator: Char = '~'
 
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
@@ -36,6 +39,7 @@ class StatsCombiner extends Combiner with LazyLogging {
         val typeName = k.substring(SftOption.length)
         (typeName, StatSerializer(SimpleFeatureTypes.createType(typeName, v)))
     }
+    separator = Option(options.get(SeparatorOption)).map(_.charAt(0)).getOrElse('~')
   }
 
   override def reduce(key: Key, iter: java.util.Iterator[Value]): Value = {
@@ -43,10 +47,11 @@ class StatsCombiner extends Combiner with LazyLogging {
     if (!iter.hasNext) {
       head
     } else {
-      var sftName = MultiRowAccumuloMetadata.getTypeName(key.getRow)
-      if (sftName.isEmpty) {
+      val sftName = try {
+        CachedLazyMetadata.decodeRow(key.getRow.getBytes, separator)._1
+      } catch {
         // back compatible check
-        sftName = SingleRowAccumuloMetadata.getTypeName(key.getRow)
+        case NonFatal(e) => SingleRowAccumuloMetadata.getTypeName(key.getRow)
       }
       val serializer = serializers(sftName)
       val stat = serializer.deserialize(head.get)
@@ -64,4 +69,5 @@ class StatsCombiner extends Combiner with LazyLogging {
 
 object StatsCombiner {
   val SftOption = "sft-"
+  val SeparatorOption = "sep"
 }

@@ -20,10 +20,9 @@ import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
 import org.locationtech.geomesa.accumulo.data.AccumuloFeatureCollection
-import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.accumulo.process.tube.GapFill.GapFill
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.locationtech.geomesa.utils.geotools.UniqueMultiCollection
+import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, UniqueMultiCollection}
 import org.opengis.feature.Feature
 import org.opengis.filter.Filter
 
@@ -146,7 +145,7 @@ class TubeVisitor(val tubeFeatures: SimpleFeatureCollection,
     logger.debug("Visiting source type: "+source.getClass.getName)
 
     val geomProperty = ff.property(source.getSchema.getGeometryDescriptor.getName)
-    val dateProperty = ff.property(source.getSchema.getUserData.get(Constants.SF_PROPERTY_START_TIME).asInstanceOf[String])
+    val dateProperty = ff.property(source.getSchema.getUserData.get(SimpleFeatureTypes.Configs.DEFAULT_DATE_KEY).asInstanceOf[String])
 
     logger.debug("Querying with date property: "+dateProperty)
     logger.debug("Querying with geometry property: "+geomProperty)

@@ -13,8 +13,9 @@ import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
+import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, UnoptimizedRunnableStats}
-import org.locationtech.geomesa.index.utils.{GeoMesaMetadata, LocalLocking}
+import org.locationtech.geomesa.index.utils.LocalLocking
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -23,7 +24,7 @@ class HBaseDataStore(val connection: Connection, config: HBaseDataStoreConfig)
     extends HBaseDataStoreType(config) with LocalLocking {
 
   override val metadata: GeoMesaMetadata[String] =
-    new HBaseBackedMetadata(connection, TableName.valueOf(config.catalog), new HBaseStringSerializer)
+    new HBaseBackedMetadata(connection, TableName.valueOf(config.catalog), MetadataStringSerializer)
 
   override def manager: HBaseIndexManagerType = HBaseFeatureIndex
 
@@ -40,10 +41,6 @@ class HBaseDataStore(val connection: Connection, config: HBaseDataStoreConfig)
 
   override def createSchema(sft: SimpleFeatureType): Unit = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    // TODO GEOMESA-1322 support tilde in feature name
-    if (sft.getTypeName.contains("~")) {
-      throw new IllegalArgumentException("AccumuloDataStore does not currently support '~' in feature type names")
-    }
     // we are only allowed to set splits at table creation
     // disable table sharing to allow for decent pre-splitting
     sft.setTableSharing(false)

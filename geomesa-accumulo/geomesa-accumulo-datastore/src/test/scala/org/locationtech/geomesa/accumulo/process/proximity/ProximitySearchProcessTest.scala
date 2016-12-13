@@ -15,7 +15,6 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
-import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
@@ -42,7 +41,6 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
   "GeomesaProximityQuery" should {
     "find things close by" in {
       val sft = createNewSchema("*geom:Point:srid=4326,type:String,dtg:Date")
-      sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = "dtg"
       val sftName = sft.getTypeName
       val featureCollection = new DefaultFeatureCollection(sftName, sft)
 
@@ -133,7 +131,6 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
       import org.locationtech.geomesa.utils.geotools.Conversions._
       val sftName = "geomesaProximityTestType"
       val sft = SimpleFeatureTypes.createType(sftName, "*geom:Point:srid=4326,type:String,dtg:Date")
-      sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = "dtg"
 
       val p1 = getPoint(45, 45, 99)
       WKTUtils.read("POINT(45 45)").bufferMeters(99.1).intersects(p1) must beTrue
