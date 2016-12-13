@@ -99,15 +99,17 @@ function containsElement() {
 }
 
 function registerAutocomplete() {
-  [[ -f "~/.bash_completion" ]] || touch "~/.bash_completion"
+  eval compFile="~/.bash_completion" # resolve tilde
+  [[ -f ${compFile} ]] || touch ${compFile}
   # Search .bash_completion for this entry so we don't add it twice
   head=$(head -n 1 ${GEOMESA_CONF_DIR}/autocomplete.sh)
-  res=$(grep -F $head ~/.bash_completion)
+  res=$(grep -F $head ${compFile})
   if [[ -z "${res}" ]]; then
     echo "Installing Autocomplete Function"
-    cat ${GEOMESA_CONF_DIR}/autocomplete.sh >> ~/.bash_completion
+    cat ${GEOMESA_CONF_DIR}/autocomplete.sh >> ${compFile}
+    echo "Autocomplete function available, to use now run:"
+    echo ". ${compFile}"
   fi
-  . ~/.bash_completion
 }
 
 # Define %%gmtools.dist.name%%_HOME and update the PATH if necessary.

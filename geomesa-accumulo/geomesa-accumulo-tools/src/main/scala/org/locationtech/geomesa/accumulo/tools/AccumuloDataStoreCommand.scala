@@ -17,7 +17,6 @@ import org.locationtech.geomesa.tools.DataStoreCommand
 trait AccumuloDataStoreCommand extends DataStoreCommand[AccumuloDataStore] {
 
   override def params: AccumuloDataStoreParams
-
   override def connection: Map[String, String] = Map[String, String](
     AccumuloDataStoreParams.instanceIdParam.getName -> params.instance,
     AccumuloDataStoreParams.zookeepersParam.getName -> params.zookeepers,

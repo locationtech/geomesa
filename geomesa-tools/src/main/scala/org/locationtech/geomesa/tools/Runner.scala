@@ -110,7 +110,7 @@ trait Runner {
       val params = jc.getCommands.get(command).getParameters.filter(!_.getParameter.hidden()).flatMap(_.getParameter.names().filter(_.length != 2))
         out.append(
       s"""            $command)
-         |              COMPREPLY=( $$(compgen -W "${params.mkString(" ").replace(",", " ").replace("  "," ")}" -- $${cur}));
+         |              COMPREPLY=( $$(compgen -W "${params.mkString(" ").replaceAll("[,\\s]+", " ")}" -- $${cur}));
          |              return 0;
          |              ;;
       """.stripMargin)
@@ -130,6 +130,7 @@ trait Runner {
          |};
          |complete -F _${autocompleteInfo.commandName} ${autocompleteInfo.commandName};
          |complete -F _${autocompleteInfo.commandName} bin/${autocompleteInfo.commandName};
+         |
          |
        """.stripMargin)
     FileUtils.writeStringToFile(file, out.toString())

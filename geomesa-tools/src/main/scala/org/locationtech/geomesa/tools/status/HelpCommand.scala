@@ -35,7 +35,7 @@ class HelpParameters {
   val command: java.util.List[String] = null
 
   @Parameter(names = Array("--autocomplete-function"), description = "Generates and outputs a bash function for " +
-    "autocompleting GoeMesa commandline commands and their parameters. First value is output path, second is command name",
+    "autocompleting GeoMesa commandline commands and their parameters. First value is output path, second is command name",
     required = false, hidden = true)
   val autocompleteInfo: java.util.List[String] = null
 }
