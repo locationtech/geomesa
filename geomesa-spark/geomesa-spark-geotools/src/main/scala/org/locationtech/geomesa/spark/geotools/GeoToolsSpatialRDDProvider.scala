@@ -63,10 +63,8 @@ class GeoToolsSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
       val ds = DataStoreFinder.getDataStore(writeDataStoreParams)
       val featureWriter = ds.getFeatureWriterAppend(writeTypeName, Transaction.AUTO_COMMIT)
       try {
-        iter.foreach { rawFeature =>
-          val newFeature = featureWriter.next()
-          newFeature.setAttributes(rawFeature.getAttributes)
-          featureWriter.write()
+        iter.foreach {
+          FeatureUtils.copyToWriter(featureWriter, _)
         }
       } finally {
         CloseQuietly(featureWriter)
