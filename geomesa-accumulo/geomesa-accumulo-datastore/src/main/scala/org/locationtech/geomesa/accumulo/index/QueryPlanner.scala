@@ -324,15 +324,19 @@ object QueryPlanner extends LazyLogging {
   }
 
   /**
-   * Checks for attribute transforms in the query and sets them as hints if found
-   *
-   * @param query query
-   * @param sft simple feature type
-   * @return
-   */
-  def setQueryTransforms(query: Query, sft: SimpleFeatureType) =
-    if (query.getProperties != null && !query.getProperties.isEmpty) {
-      val (transformProps, regularProps) = query.getPropertyNames.partition(_.contains('='))
+    * Checks for attribute transforms in the query and sets them as hints if found
+    *
+    * @param query query
+    * @param sft simple feature type
+    * @return
+    */
+  def setQueryTransforms(query: Query, sft: SimpleFeatureType) = {
+    import scala.collection.JavaConversions._
+    val properties = query.getPropertyNames
+    query.setProperties(Query.ALL_PROPERTIES)
+    if (properties != null && properties.nonEmpty &&
+        properties.toSeq != sft.getAttributeDescriptors.map(_.getLocalName)) {
+      val (transformProps, regularProps) = properties.partition(_.contains('='))
       val convertedRegularProps = regularProps.map { p => s"$p=$p" }
       val allTransforms = convertedRegularProps ++ transformProps
       // ensure that the returned props includes geometry, otherwise we get exceptions everywhere
@@ -343,30 +347,33 @@ object QueryPlanner extends LazyLogging {
       val transforms = (allTransforms ++ geomTransform).mkString(";")
       val transformDefs = TransformProcess.toDefinition(transforms)
       val derivedSchema = computeSchema(sft, transformDefs.asScala)
-      query.setProperties(Query.ALL_PROPERTIES)
       query.getHints.put(TRANSFORMS, transforms)
       query.getHints.put(TRANSFORM_SCHEMA, derivedSchema)
     }
+  }
 
   private def computeSchema(origSFT: SimpleFeatureType, transforms: Seq[Definition]): SimpleFeatureType = {
+    import scala.collection.JavaConversions._
     val descriptors: Seq[AttributeDescriptor] = transforms.map { definition =>
       val name = definition.name
       val cql  = definition.expression
       cql match {
         case p: PropertyName =>
-          if (!origSFT.getAttributeDescriptors.asScala.exists(_.getLocalName == p.getPropertyName)) {
-            throw new IllegalArgumentException(s"Attribute '${p.getPropertyName}' does not exist in SFT '${origSFT.getTypeName}'.")
-          }
-          val origAttr = origSFT.getDescriptor(p.getPropertyName)
-          val ab = new AttributeTypeBuilder()
-          ab.init(origAttr)
-          val descriptor = if (origAttr.isInstanceOf[GeometryDescriptor]) {
-            ab.buildDescriptor(name, ab.buildGeometryType())
+          val prop = p.getPropertyName
+          if (origSFT.getAttributeDescriptors.exists(_.getLocalName == prop)) {
+            val origAttr = origSFT.getDescriptor(prop)
+            val ab = new AttributeTypeBuilder()
+            ab.init(origAttr)
+            val descriptor = if (origAttr.isInstanceOf[GeometryDescriptor]) {
+              ab.buildDescriptor(name, ab.buildGeometryType())
+            } else {
+              ab.buildDescriptor(name, ab.buildType())
+            }
+            descriptor.getUserData.putAll(origAttr.getUserData)
+            descriptor
           } else {
-            ab.buildDescriptor(name, ab.buildType())
+            throw new IllegalArgumentException(s"Attribute '$prop' does not exist in SFT '${origSFT.getTypeName}'.")
           }
-          descriptor.getUserData.putAll(origAttr.getUserData)
-          descriptor
 
         case f: FunctionExpressionImpl  =>
           val clazz = f.getFunctionName.getReturn.getType

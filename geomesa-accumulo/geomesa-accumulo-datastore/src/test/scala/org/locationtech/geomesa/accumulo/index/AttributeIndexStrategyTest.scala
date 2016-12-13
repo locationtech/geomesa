@@ -19,7 +19,7 @@ import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.index.QueryHints._
-import org.locationtech.geomesa.accumulo.index.attribute.{AttributeIndex, AttributeQueryableIndex, AttributeWritableIndex}
+import org.locationtech.geomesa.accumulo.index.attribute.{AttributeIndex, AttributeWritableIndex}
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
 import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -101,6 +101,17 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       val results = execute(ECQL.toCQL(filter))
       results must haveLength(1)
       results must contain ("bill")
+    }
+
+    "not apply a transform iterator when not needed" in {
+      import scala.collection.JavaConversions._
+      val filter = "age > 22"
+      val query = new Query(sftName, ECQL.toFilter(filter), sft.getAttributeDescriptors.map(_.getLocalName).toArray)
+      forall(ds.getQueryPlan(query)) { plan =>
+        plan must beAnInstanceOf[JoinPlan]
+        plan.asInstanceOf[JoinPlan].joinQuery.iterators must beEmpty
+      }
+      execute(filter) mustEqual Seq("bob")
     }
 
     "support bin queries with join queries" in {
