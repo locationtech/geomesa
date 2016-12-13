@@ -55,7 +55,7 @@ trait DataStoreCommand[DS <: DataStore] extends Command {
   @throws[ParameterException]
   def withDataStore[T](method: (DS) => T): T = {
     val ds = Option(DataStoreFinder.getDataStore(connection).asInstanceOf[DS])
-      .getOrElse(throw new ParameterException("Unable to retrieve datastore."))
+      .getOrElse(throw new ParameterException("Unable to create data store, please check your connection parameters."))
     try { method(ds) } finally {
       ds.dispose()
     }

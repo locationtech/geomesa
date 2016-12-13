@@ -12,7 +12,7 @@ import java.io.File
 
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.utils.conf.AbstractArgResolver
+import org.locationtech.geomesa.utils.conf.ArgResolver
 
 import scala.util.{Failure, Success, Try}
 
@@ -20,13 +20,12 @@ import scala.util.{Failure, Success, Try}
  * Attempts to resolve Converter config from arguments as either a string or
  * as a filename containing the converter config
  */
-case class ConfArgs(config: String)
-object ConverterConfigResolver extends AbstractArgResolver[Config, ConfArgs] with LazyLogging {
+object ConverterConfigResolver extends ArgResolver[Config, ConfArgs] with LazyLogging {
 
   import ArgTypes._
 
   override def argType(args: ConfArgs) = {
-    /**
+    /*
      * Here we use rudimentary checking to guess as what kind of configArg was passed in.
      * We use this to decide which error message to display to the user, since the
      * parsers fail frequently. The rest of the errors are logged.
@@ -77,5 +76,6 @@ object ConverterConfigResolver extends AbstractArgResolver[Config, ConfArgs] wit
       case Success(config) => Right(config)
       case Failure(e) => Left((s"Unable to parse config from file ${args.config}", e, PATH))
     }
-
 }
+
+case class ConfArgs(config: String)

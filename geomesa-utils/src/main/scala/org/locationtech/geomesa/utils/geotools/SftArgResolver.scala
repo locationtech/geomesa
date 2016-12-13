@@ -13,7 +13,7 @@ import java.io.File
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
-import org.locationtech.geomesa.utils.conf.AbstractArgResolver
+import org.locationtech.geomesa.utils.conf.ArgResolver
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.{Failure, Success, Try}
@@ -23,8 +23,7 @@ import scala.util.{Failure, Success, Try}
  * including sft strings (e.g. name:String,age:Integer,*geom:Point)
  * and typesafe config.
  */
-case class SftArgs(specArg: String, featureName: String)
-object SftArgResolver extends AbstractArgResolver[SimpleFeatureType, SftArgs] with LazyLogging {
+object SftArgResolver extends ArgResolver[SimpleFeatureType, SftArgs] with LazyLogging {
 
   import ArgTypes._
 
@@ -36,7 +35,7 @@ object SftArgResolver extends AbstractArgResolver[SimpleFeatureType, SftArgs] wi
      */
     val fileNameReg = """([^.]*)\.([^.]*)""" // e.g. "foo.bar"
     val specStrReg = """^[a-zA-Z0-9]+[:][String|Integer|Double|Point|Date|Map|List].*""" // e.g. "foo:String..."
-    val specStrRegWError = """^[a-zA-Z0-9]+[:][a-zA-Z0-9]+.*""" // e.g. "foo:Sbartring..."
+    val specStrRegError = """^[a-zA-Z0-9]+[:][a-zA-Z0-9]+.*""" // e.g. "foo:Sbartring..."
     args.specArg match {
       // Order is important here
       case s if s.contains("geomesa{")
@@ -45,7 +44,7 @@ object SftArgResolver extends AbstractArgResolver[SimpleFeatureType, SftArgs] wi
       case s if s.matches(specStrReg)       => SPECSTR
       case s if s.matches(fileNameReg)
              || s.contains("/")             => PATH
-      case s if s.matches(specStrRegWError) => SPECSTR
+      case s if s.matches(specStrRegError) => SPECSTR
       case _                                => NAME
     }
   }
@@ -119,5 +118,6 @@ object SftArgResolver extends AbstractArgResolver[SimpleFeatureType, SftArgs] wi
         }
       case Failure(e) => Left((s"Unable to parse sft spec as filename ${args.specArg}.", e, PATH))
     }
-
 }
+
+case class SftArgs(specArg: String, featureName: String)

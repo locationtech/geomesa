@@ -14,10 +14,10 @@ import com.typesafe.scalalogging.LazyLogging
 import scala.annotation.tailrec
 
 /**
- * Abstract trait for resolving sft/config parameters and handling errors around
+ * Trait for resolving sft/config parameters and handling errors around
  * parsing.
  */
-trait AbstractArgResolver[ReturnType, ParseMethodArgs] extends LazyLogging {
+trait ArgResolver[ReturnType, ParseMethodArgs] extends LazyLogging {
 
   // Object for holding relevant error to return
   class ErrorData {
@@ -70,9 +70,9 @@ trait AbstractArgResolver[ReturnType, ParseMethodArgs] extends LazyLogging {
    */
   @tailrec
   private def parseMethods(args: ParseMethodArgs,
-                         tryMethod: Option[ParseMethodArgs => ResEither] = None,
-                         methodArray: List[ParseMethodArgs => ResEither],
-                         errorData: ErrorData): Option[ReturnType] = {
+                           tryMethod: Option[ParseMethodArgs => ResEither] = None,
+                           methodArray: List[ParseMethodArgs => ResEither],
+                           errorData: ErrorData): Option[ReturnType] = {
     tryMethod match {
       case Some(method) =>
         method(args) match {
