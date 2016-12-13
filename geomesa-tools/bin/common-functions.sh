@@ -88,6 +88,8 @@ function geomesaConfigure() {
   echo "To persist the configuration please edit conf/geomesa-env.sh or update your bashrc file to include: "
   echo "export %%gmtools.dist.name%%_HOME="$%%gmtools.dist.name%%_HOME""
   echo "export PATH=\${%%gmtools.dist.name%%_HOME}/bin:\$PATH"
+
+  registerAutocomplete
 }
 
 function containsElement() {
@@ -96,25 +98,16 @@ function containsElement() {
   return 1
 }
 
-function generateAutocomplete() {
-  # Usage: generateAutocomplete scriptName runner
-
-  # First run configure autocomplete for current machine
-  scriptName="$1"
-  COMPLETION_FILE=${GEOMESA_CONF_DIR}/${scriptName}_completion.sh
-  if [[ ! -f "${COMPLETION_FILE}" ]]; then
-    # To handle the different tool sets we name the variables and commands here and inject them into the
-    # generated script.
-    echo "_${scriptName}()" > ${COMPLETION_FILE}
-    java ${JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} $2 "help" "--autocomplete-function" >> ${COMPLETION_FILE}
-    echo "complete -F _${scriptName} ${scriptName}; complete -F _${scriptName} bin/${scriptName};" >> ${COMPLETION_FILE}
-
-    # We can't modify the caller's env so we just tell them how to.
-    echo "${NL}Autocompletion script for ${scriptName} has been generated. To use, run:"
-    echo ". ${COMPLETION_FILE}"
-    echo "To persist this feature, run: "
-    echo "sudo cp ${COMPLETION_FILE} /etc/bash_completion.d/ ${NL}"
+function registerAutocomplete() {
+  [[ -f "~/.bash_completion" ]] || touch "~/.bash_completion"
+  # Search .bash_completion for this entry so we don't add it twice
+  head=$(head -n 1 ${GEOMESA_CONF_DIR}/autocomplete.sh)
+  res=$(grep -F $head ~/.bash_completion)
+  if [[ -z "${res}" ]]; then
+    echo "Installing Autocomplete Function"
+    cat ${GEOMESA_CONF_DIR}/autocomplete.sh >> ~/.bash_completion
   fi
+  . ~/.bash_completion
 }
 
 # Define %%gmtools.dist.name%%_HOME and update the PATH if necessary.

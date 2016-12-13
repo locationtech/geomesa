@@ -232,5 +232,11 @@
             <destName>geomesa-site.xml.template</destName>
             <outputDirectory>conf</outputDirectory>
         </file>
+        <!-- autocomplete -->
+        <file>
+            <source>../geomesa-accumulo-tools/target/autocomplete.sh</source>
+            <destName>autocomplete.sh</destName>
+            <outputDirectory>conf</outputDirectory>
+        </file>
     </files>
 </component>

@@ -122,12 +122,6 @@ if [[ -d "${ZOOKEEPER_HOME}" ]]; then
   ZOOKEEPER_JAR="$(find $ZOOKEEPER_HOME -maxdepth 1 -type f -name *zookeeper*jar)"
 fi
 
-# Complete Classpath
-CLASSPATH="$GEOMESA_CP:$ACCUMULO_CP:$HADOOP_CP:${ZOOKEEPER_JAR}"
-
-# First run configure autocomplete for current machine
-generateAutocomplete "geomesa" "org.locationtech.geomesa.accumulo.tools.AccumuloRunner"
-
 # Geomesa tools setup completed, below we parse user arguments
 #
 # configure | runs the geomesa configuration, sets both the ${geomesa.dist.foobar} and PATH vars
@@ -137,10 +131,12 @@ generateAutocomplete "geomesa" "org.locationtech.geomesa.accumulo.tools.Accumulo
 if  [[ $1 = configure ]]; then
   geomesaConfigure
 elif [[ $1 = classpath ]]; then
+  CLASSPATH="$GEOMESA_CP:$ACCUMULO_CP:$HADOOP_CP:${ZOOKEEPER_JAR}"
   for element in ${CLASSPATH//:/ } ; do
     echo ${element}
   done
 else
+  CLASSPATH="$GEOMESA_CP:$ACCUMULO_CP:$HADOOP_CP:${ZOOKEEPER_JAR}"
   if [[ $1 = debug ]]; then
     GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
     shift 1

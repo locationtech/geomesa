@@ -8,7 +8,10 @@
 
 package org.locationtech.geomesa.tools
 
+import java.io.File
+
 import com.beust.jcommander.{JCommander, ParameterException}
+import org.apache.commons.io.FileUtils
 import org.locationtech.geomesa.tools.utils.GeoMesaIStringConverterFactory
 
 import scala.collection.JavaConversions._
@@ -79,12 +82,12 @@ trait Runner {
     }
   }
 
-
-  def autocompleteUsage(jc: JCommander): String = {
+  def autocompleteUsage(jc: JCommander, autocompleteInfo: AutocompleteInfo): Unit = {
+    val file = new File(autocompleteInfo.path)
     val commands = jc.getCommands.map(_._1).toSeq
     val out = new StringBuilder
     out.append(
-      s"""{ # This function is named by the script generating this so it matches the caller script's name.
+      s"""_${autocompleteInfo.commandName}(){
          |  local cur prev;
          |  COMPREPLY=();
          |  cur="$${COMP_WORDS[COMP_CWORD]}";
@@ -125,9 +128,11 @@ trait Runner {
          |      ;;
          |  esac;
          |};
+         |complete -F _${autocompleteInfo.commandName} ${autocompleteInfo.commandName};
+         |complete -F _${autocompleteInfo.commandName} bin/${autocompleteInfo.commandName};
          |
        """.stripMargin)
-    out.toString()
+    FileUtils.writeStringToFile(file, out.toString())
   }
 
   protected def createCommands(jc: JCommander): Seq[Command]
@@ -139,3 +144,5 @@ trait Runner {
     override val params: Any = null
   }
 }
+
+case class AutocompleteInfo(path: String, commandName: String)
