@@ -94,7 +94,7 @@ object SimpleFeatureTypes {
     */
   def createType(namespace: String, name: String, spec: String): SimpleFeatureType = {
     val parsed = try { SimpleFeatureSpecParser.parse(spec) } catch {
-      case e: ParsingException => throw new IllegalArgumentException(e)
+      case e: ParsingException => throw new IllegalArgumentException(e.getMessage, e)
     }
     createType(namespace, name, parsed)
   }
