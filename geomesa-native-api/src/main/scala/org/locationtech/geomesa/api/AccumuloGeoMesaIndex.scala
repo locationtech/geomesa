@@ -196,9 +196,9 @@ object AccumuloGeoMesaIndex {
   private def buildSimpleFeatureType[T](name: String)
                                        (view: SimpleFeatureView[T] = new DefaultSimpleFeatureView[T]()) = {
     val builder = new SftBuilder()
-      .date("dtg", true, true)
-      .bytes("payload", new SftBuilder.Opts(false, false, false, Cardinality.UNKNOWN))
-      .geometry("geom", true)
+      .date("dtg", index = false, default = true)
+      .bytes("payload", SftBuilder.Opts(index = false, stIndex = false, default = false, Cardinality.UNKNOWN))
+      .geometry("geom", default = true)
       .userData("geomesa.mixed.geometries", "true")
 
     view.getExtraAttributes.asScala.foreach {

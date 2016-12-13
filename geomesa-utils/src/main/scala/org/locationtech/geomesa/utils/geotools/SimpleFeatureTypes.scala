@@ -34,6 +34,7 @@ object SimpleFeatureTypes {
     val TABLE_SPLITTER_OPTS = "table.splitter.options"
     val MIXED_GEOMETRIES    = "geomesa.mixed.geometries"
     val RESERVED_WORDS      = "override.reserved.words" // note: doesn't start with geomesa so we don't persist it
+    val DEFAULT_DTG_JOIN    = "override.index.dtg.join"
     val KEYWORDS_KEY        = "geomesa.keywords"
     val ENABLED_INDICES     = "geomesa.indices.enabled"
     // keep around old values for back compatibility
