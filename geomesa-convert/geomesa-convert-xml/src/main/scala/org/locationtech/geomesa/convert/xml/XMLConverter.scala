@@ -22,12 +22,14 @@ import org.apache.commons.io.IOUtils
 import org.locationtech.geomesa.convert.LineMode.LineMode
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
 import org.locationtech.geomesa.convert._
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.w3c.dom.{Node, NodeList}
+import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
 
 import scala.collection.immutable.IndexedSeq
 import scala.io.Source
+import scala.util.control.NonFatal
 
 class XMLConverter(val targetSFT: SimpleFeatureType,
                    val idBuilder: Expr,
@@ -58,8 +60,8 @@ class XMLConverter(val targetSFT: SimpleFeatureType,
     val root = docBuilder.parse(new InputSource(new StringReader(i))).getDocumentElement
 
     featurePath.map { path =>
-      val nl = path.evaluate(root, XPathConstants.NODESET).asInstanceOf[NodeList]
-      (0 until nl.getLength).map { i => Array[Any](nl.item(i)) }
+      val nodeList = path.evaluate(root, XPathConstants.NODESET).asInstanceOf[NodeList]
+      (0 until nodeList.getLength).map(i => Array[Any](nodeList.item(i)))
     }.getOrElse(Seq(Array[Any](root)))
   }
 
@@ -73,13 +75,25 @@ class XMLConverter(val targetSFT: SimpleFeatureType,
     }
 }
 
-class XMLConverterFactory extends AbstractSimpleFeatureConverterFactory[String] {
+class XMLConverterFactory extends AbstractSimpleFeatureConverterFactory[String] with LazyLogging {
 
-  private val xpath =
-    XPathFactory.newInstance(
-      XPathFactory.DEFAULT_OBJECT_MODEL_URI,
-      "net.sf.saxon.xpath.XPathFactoryImpl",
-      classOf[XMLConverterFactory].getClassLoader).newXPath()
+  private val xpath = {
+    import XPathFactory.DEFAULT_OBJECT_MODEL_URI
+    import GeoMesaSystemProperties.getProperty
+
+    val providerImpl = Option(getProperty("geomesa.convert.xpath.provider")).flatMap { provider =>
+      try {
+        Option(XPathFactory.newInstance(DEFAULT_OBJECT_MODEL_URI, provider, getClass.getClassLoader))
+      } catch {
+        case NonFatal(e) =>
+          logger.warn(s"Unable to load xpath provider '$provider'. " +
+              "Xpath queries may be slower - please check your classpath")
+          None
+      }
+    }
+    val factory = providerImpl.getOrElse(XPathFactory.newInstance(DEFAULT_OBJECT_MODEL_URI))
+    factory.newXPath()
+  }
 
   override protected val typeToProcess = "xml"
 
@@ -119,7 +133,7 @@ case class XMLField(name: String, expression: XPathExpression, transform: Expr) 
   private val mutableArray = Array.ofDim[Any](1)
 
   override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
-    mutableArray(0) = expression.evaluate(args(0).asInstanceOf[Node])
+    mutableArray(0) = expression.evaluate(args(0))
     if (transform == null) {
       mutableArray(0)
     } else {

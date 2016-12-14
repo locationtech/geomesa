@@ -31,6 +31,13 @@
     </property>
 
     <property>
+        <name>geomesa.convert.xpath.provider</name>
+        <value>net.sf.saxon.xpath.XPathFactoryImpl</value>
+        <description>An provider implementation for xpath functionality</description>
+        <final>false</final>
+    </property>
+
+    <property>
         <name>geomesa.tools.accumulo.site.xml</name>
         <value></value>
         <description>Path to the accumulo site xml config file. This is used
