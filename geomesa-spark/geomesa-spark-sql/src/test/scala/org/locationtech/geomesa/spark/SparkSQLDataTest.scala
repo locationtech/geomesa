@@ -76,6 +76,8 @@ class SparkSQLDataTest extends Specification with LazyLogging {
 
     // after
     step {
+      ds.dispose()
+      spark.stop()
     }
   }
 }

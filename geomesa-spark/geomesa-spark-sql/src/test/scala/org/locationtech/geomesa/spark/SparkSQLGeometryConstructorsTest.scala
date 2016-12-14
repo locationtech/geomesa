@@ -76,6 +76,8 @@ class SparkSQLGeometryConstructorsTest extends Specification with LazyLogging {
 
     // after
     step {
+      ds.dispose()
+      spark.stop()
     }
   }
 }
