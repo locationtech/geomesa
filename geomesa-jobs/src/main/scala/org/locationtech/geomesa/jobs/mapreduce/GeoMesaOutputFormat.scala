@@ -11,19 +11,16 @@ package org.locationtech.geomesa.jobs.mapreduce
 import java.io.IOException
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.BatchWriterConfig
-import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.data.Mutation
+import org.apache.commons.io.IOUtils
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
+import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat
 import org.geotools.data.{DataStoreFinder, DataUtilities}
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.FeatureToMutations
-import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.data.stats.StatUpdater
-import org.locationtech.geomesa.accumulo.index.{BinEncoder, IndexValueEncoder}
-import org.locationtech.geomesa.features.SimpleFeatureSerializer
+import org.geotools.filter.identity.FeatureIdImpl
+import org.locationtech.geomesa.index.api.WrappedFeature
+import org.locationtech.geomesa.index.geotools.{GeoMesaDataStore, GeoMesaFeatureWriter}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -40,57 +37,38 @@ object GeoMesaOutputFormat {
    * Configure the data store you will be writing to.
    */
   def configureDataStore(job: Job, dsParams: Map[String, String]): Unit = {
-
-    val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
+    val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[GeoMesaDataStore[_, _, _]]
     assert(ds != null, "Invalid data store parameters")
+    ds.dispose()
 
-    // set up the underlying accumulo input format
-    val user = AccumuloDataStoreParams.userParam.lookUp(dsParams).asInstanceOf[String]
-    val password = AccumuloDataStoreParams.passwordParam.lookUp(dsParams).asInstanceOf[String]
-    AccumuloOutputFormat.setConnectorInfo(job, user, new PasswordToken(password.getBytes))
-
-    val instance = AccumuloDataStoreParams.instanceIdParam.lookUp(dsParams).asInstanceOf[String]
-    val zookeepers = AccumuloDataStoreParams.zookeepersParam.lookUp(dsParams).asInstanceOf[String]
-    AccumuloOutputFormat.setZooKeeperInstance(job, instance, zookeepers)
-
-    AccumuloOutputFormat.setCreateTables(job, false)
-
-    // also set the datastore parameters so we can access them later
+    // set the datastore parameters so we can access them later
     val conf = job.getConfiguration
     GeoMesaConfigurator.setDataStoreOutParams(conf, dsParams)
     GeoMesaConfigurator.setSerialization(conf)
-
-    ds.dispose()
   }
-
-  /**
-   * Configure the batch writer options used by accumulo.
-   */
-  def configureBatchWriter(job: Job, writerConfig: BatchWriterConfig): Unit =
-    AccumuloOutputFormat.setBatchWriterOptions(job, writerConfig)
 }
 
 /**
- * Output format that turns simple features into mutations and delegates to AccumuloOutputFormat
- */
+  * Output format that writes simple features using GeoMesaDataStore's FeatureWriterAppend. Can write only
+  * specific indices if desired
+  */
 class GeoMesaOutputFormat extends OutputFormat[Text, SimpleFeature] {
 
-  val delegate = new AccumuloOutputFormat
-
-  override def getRecordWriter(context: TaskAttemptContext) = {
-    val params = GeoMesaConfigurator.getDataStoreOutParams(context.getConfiguration)
-    new GeoMesaRecordWriter(params, context, delegate.getRecordWriter(context))
+  override def getRecordWriter(context: TaskAttemptContext): RecordWriter[Text, SimpleFeature] = {
+    val params  = GeoMesaConfigurator.getDataStoreOutParams(context.getConfiguration)
+    val indices = GeoMesaConfigurator.getIndicesOut(context.getConfiguration)
+    new GeoMesaRecordWriter(params, indices, context)
   }
 
-  override def checkOutputSpecs(context: JobContext) = {
+  override def checkOutputSpecs(context: JobContext): Unit = {
     val params = GeoMesaConfigurator.getDataStoreOutParams(context.getConfiguration)
-    if (!AccumuloDataStoreFactory.canProcess(params)) {
+    if (!DataStoreFinder.getAvailableDataStores.exists(_.canProcess(params))) {
       throw new IOException("Data store connection parameters are not set")
     }
-    delegate.checkOutputSpecs(context)
   }
 
-  override def getOutputCommitter(context: TaskAttemptContext) = delegate.getOutputCommitter(context)
+  override def getOutputCommitter(context: TaskAttemptContext): OutputCommitter =
+    new NullOutputFormat[Text, SimpleFeature]().getOutputCommitter(context)
 }
 
 /**
@@ -98,21 +76,14 @@ class GeoMesaOutputFormat extends OutputFormat[Text, SimpleFeature] {
  *
  * Key is ignored. If the feature type for the given feature does not exist yet, it will be created.
  */
-class GeoMesaRecordWriter(params: Map[String, String],
-                          context: TaskAttemptContext,
-                          delegate: RecordWriter[Text, Mutation])
+class GeoMesaRecordWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
+    (params: Map[String, String], indices: Option[Seq[String]], context: TaskAttemptContext)
     extends RecordWriter[Text, SimpleFeature] with LazyLogging {
 
-  type TableAndMutations = (Text, FeatureToMutations)
+  val ds = DataStoreFinder.getDataStore(params).asInstanceOf[GeoMesaDataStore[DS, F, W]]
 
-  val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
-
-  val sftCache          = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
-  val writerCache       = scala.collection.mutable.Map.empty[String, Seq[TableAndMutations]]
-  val serializerCache   = scala.collection.mutable.Map.empty[String, SimpleFeatureSerializer]
-  val indexEncoderCache = scala.collection.mutable.Map.empty[String, SimpleFeatureSerializer]
-  val binEncoderCache   = scala.collection.mutable.Map.empty[String, Option[BinEncoder]]
-  val statsCache        = scala.collection.mutable.Map.empty[String, StatUpdater]
+  val sftCache    = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
+  val writerCache = scala.collection.mutable.Map.empty[String, GeoMesaFeatureWriter[_, _, _, _]]
 
   val written = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written)
   val failed  = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Failed)
@@ -132,35 +103,30 @@ class GeoMesaRecordWriter(params: Map[String, String],
       }
     })
 
-    val writers = writerCache.getOrElseUpdate(sftName, {
-      AccumuloFeatureWriter.getTablesAndWriters(sft, ds).map {
-        case (table, writer) => (new Text(table), writer)
+    val writer = writerCache.getOrElseUpdate(sftName, {
+      val i = indices match {
+        case Some(names) => names.map(ds.manager.index)
+        case None => ds.manager.indices(sft, IndexMode.Write)
       }
+      ds.getIndexWriterAppend(sftName, i)
     })
-    val stats = statsCache.getOrElseUpdate(sftName, ds.stats.statUpdater(sft))
 
-    val withFid = AccumuloFeatureWriter.featureWithFid(sft, value)
-    val serializer = serializerCache.getOrElseUpdate(sftName, ds.getSerializer(sft))
-    val ive = indexEncoderCache.getOrElseUpdate(sftName, IndexValueEncoder(sft))
-    val binEncoder = binEncoderCache.getOrElseUpdate(sftName, BinEncoder(sft))
-    val featureToWrite = WritableFeature(withFid, sft, ds.defaultVisibilities, serializer, ive, binEncoder)
-
-    // calculate all the mutations first, so that if something fails we won't have a partially written feature
     try {
-      val mutations = writers.map { case (table, featToMuts) => (table, featToMuts(featureToWrite)) }
-      mutations.foreach { case (table, muts) => muts.foreach(delegate.write(table, _)) }
-      stats.add(withFid)
+      val next = writer.next()
+      next.getIdentifier.asInstanceOf[FeatureIdImpl].setID(value.getID)
+      next.setAttributes(value.getAttributes)
+      next.getUserData.putAll(value.getUserData)
+      writer.write()
       written.increment(1)
     } catch {
       case e: Exception =>
-        logger.error(s"Error creating mutations from feature '${DataUtilities.encodeFeature(withFid)}'", e)
+        logger.error(s"Error writing feature '${DataUtilities.encodeFeature(value)}'", e)
         failed.increment(1)
     }
   }
 
   override def close(context: TaskAttemptContext) = {
-    delegate.close(context)
-    statsCache.values.foreach(_.close())
+    writerCache.values.foreach(IOUtils.closeQuietly)
     ds.dispose()
   }
 }

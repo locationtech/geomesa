@@ -17,4 +17,13 @@ User Manual
    spark
    commandline_tools
    data_management
+   analytic_queries
    examples
+
+Appendix
+--------
+
+.. toctree::
+   :maxdepth: 2
+
+   commandline_old_commands

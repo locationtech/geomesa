@@ -18,11 +18,11 @@ import com.datastax.driver.core._
 import com.google.common.collect.HashBiMap
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.geotools.data.store._
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.geotools.feature.{AttributeTypeBuilder, NameImpl}
+import org.geotools.feature.NameImpl
 import org.joda.time.{DateTime, Seconds, Weeks}
 import org.locationtech.geomesa.curve.{TimePeriod, Z3SFC}
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType
+import org.locationtech.geomesa.index.metadata.{HasGeoMesaMetadata, MetadataStringSerializer}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.sfcurve.zorder.ZCurve2D
 import org.opengis.feature.`type`.{AttributeDescriptor, Name}
@@ -46,22 +46,7 @@ object CassandraDataStore {
     classOf[Point]             -> DataType.blob()
   ))
 
-  def getSchema(name: Name, table: TableMetadata): SimpleFeatureType = {
-    val cols = table.getColumns.filterNot { c => c.getName == "pkz" || c.getName == "z31" || c.getName == "fid" }
-    val attrTypeBuilder = new AttributeTypeBuilder()
-    val attributes = cols.map { c =>
-      val it = typeMap.inverse().get(c.getType)
-      attrTypeBuilder.binding(it).buildDescriptor(c.getName)
-    }
-    // TODO: allow user data to set dtg field
-    val dtgAttribute = attributes.find(_.getType.getBinding.isAssignableFrom(classOf[java.util.Date])).head
-    val sftBuilder = new SimpleFeatureTypeBuilder()
-    sftBuilder.addAll(attributes)
-    sftBuilder.setName(name.getLocalPart)
-    val sft = sftBuilder.buildFeatureType()
-    sft.getUserData.put(RichSimpleFeatureType.DEFAULT_DATE_KEY, dtgAttribute.getLocalName)
-    sft
-  }
+
 
   sealed trait FieldSerializer {
     def serialize(o: java.lang.Object): java.lang.Object
@@ -89,11 +74,24 @@ object CassandraDataStore {
   }
 }
 
-class CassandraDataStore(session: Session, keyspaceMetadata: KeyspaceMetadata, ns: URI) extends ContentDataStore {
+class CassandraDataStore(val session: Session, keyspaceMetadata: KeyspaceMetadata, ns: URI, catalog: String)
+    extends ContentDataStore
+    with HasGeoMesaMetadata[String] {
+
+
   import scala.collection.JavaConversions._
+
+  override val metadata = new CassandraBackedMetaData(session, catalog, MetadataStringSerializer)
 
   override def createFeatureSource(contentEntry: ContentEntry): ContentFeatureSource =
     new CassandraFeatureStore(contentEntry)
+
+
+  override def getSchema(name: Name): SimpleFeatureType = {
+    val sftOpt = metadata.read(name.getLocalPart, "attributes").map(SimpleFeatureTypes.createType(name.getLocalPart, _))
+    sftOpt.orNull
+  }
+
 
   override def createSchema(featureType: SimpleFeatureType): Unit = {
     // validate dtg
@@ -111,16 +109,25 @@ class CassandraDataStore(session: Session, keyspaceMetadata: KeyspaceMetadata, n
         s"${ad.getLocalName}  ${CassandraDataStore.typeMap(ad.getType.getBinding).getName.toString}"
       }.mkString(",")
     val colCreate = s"(pkz int, z31 bigint, fid text, $cols, PRIMARY KEY (pkz, z31, fid))"
-    val stmt = s"create table ${featureType.getTypeName} $colCreate"
+    val stmt = s"CREATE TABLE IF NOT EXISTS ${featureType.getTypeName} $colCreate"
     session.execute(stmt)
+
+    metadata.insert(
+      featureType.getTypeName,
+      "attributes",
+      SimpleFeatureTypes.encodeType(featureType, includeUserData = true))
   }
 
+  override def removeSchema(typeName: String): Unit = {
+    session.execute(s"drop table $typeName")
+    metadata.delete(typeName)
+  }
 
   override def createContentState(entry: ContentEntry): ContentState =
-    new CassandraContentState(entry, session, keyspaceMetadata.getTable(entry.getTypeName))
+    new CassandraContentState(entry, this)
 
   override def createTypeNames(): util.List[Name] =
-    keyspaceMetadata.getTables.map { t => new NameImpl(ns.toString, t.getName) }.toList
+    metadata.getFeatureTypes.map { t => new NameImpl(ns.toString, t) }.toList
 
   override def dispose(): Unit = if (session != null) session.close()
 }

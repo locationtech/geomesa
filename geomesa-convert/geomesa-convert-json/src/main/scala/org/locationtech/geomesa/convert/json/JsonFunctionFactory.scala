@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.convert.json
 
-import com.google.gson.{JsonArray, JsonElement, JsonPrimitive}
+import com.google.gson.{JsonArray, JsonElement, JsonObject, JsonPrimitive}
 import org.geotools.util.Converters
 import org.locationtech.geomesa.convert.Transformers.EvaluationContext
 import org.locationtech.geomesa.convert.{MapListParsing, TransformerFn, TransformerFunctionFactory}
@@ -25,7 +25,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory {
 }
 
 class JsonMapListFunctionFactory extends TransformerFunctionFactory with MapListParsing {
-  override def functions = Seq(jsonListParser)
+  override def functions = Seq(jsonListParser, jsonMapParser)
 
   import scala.collection.JavaConverters._
 
@@ -52,6 +52,23 @@ class JsonMapListFunctionFactory extends TransformerFunctionFactory with MapList
     } else {
       import scala.collection.JavaConversions._
       jArr.iterator.toSeq.map(p => convert(getPrimitive(p.getAsJsonPrimitive), clazz)).toList.asJava
+    }
+  }
+
+  val jsonMapParser = TransformerFn("jsonMap") { args =>
+    val kClass = determineClazz(args(0).asInstanceOf[String])
+    val vClass = determineClazz(args(1).asInstanceOf[String])
+    val jMap = args(2).asInstanceOf[JsonObject]
+
+    if (jMap.isJsonNull) {
+      null
+    } else {
+      import scala.collection.JavaConversions._
+      jMap.entrySet.map { e =>
+        val k = convert(e.getKey, kClass)
+        val v = convert(getPrimitive(e.getValue.getAsJsonPrimitive), vClass)
+        k -> v
+      }.toMap.asJava
     }
   }
 

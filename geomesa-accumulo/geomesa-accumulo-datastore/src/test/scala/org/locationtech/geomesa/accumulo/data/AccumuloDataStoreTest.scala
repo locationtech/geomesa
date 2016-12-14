@@ -25,16 +25,24 @@ import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.tables._
-import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
 import org.locationtech.geomesa.accumulo.index._
+import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
+import org.locationtech.geomesa.accumulo.index.id.RecordIndex
+import org.locationtech.geomesa.accumulo.index.z2.Z2Index
+import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.accumulo.iterators.Z2Iterator
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.accumulo.{AccumuloVersion, TestWithMultipleSfts}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.{RichSimpleFeatureType, _}
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.index.conf.DigitSplitter
+import org.locationtech.geomesa.index.geotools.CachingFeatureCollection
+import org.locationtech.geomesa.index.utils.ExplainString
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.index.IndexMode
+import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -74,19 +82,23 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       ds.getSchema(defaultSft.getTypeName) mustEqual defaultSft
     }
 
-    "reject a schema with a ~" in {
+    "escape a ~ in the feature name" in {
       val sft = SimpleFeatureTypes.createType("name~name", "name:String,geom:Point:srid=4326")
-      ds.createSchema(sft) must throwAn[IllegalArgumentException]
+      ds.createSchema(sft)
+      ds.getSchema("name~name") must not(beNull)
+      ds.getSchema("name~name").getTypeName mustEqual "name~name"
+      ds.getTypeNames.contains("name~name") must beTrue
     }
 
     "create a schema with keywords" in {
-      val keywords: Seq[String] = Seq("keywordA", "keywordB", "keywordC")
-      val spec = s"name:String;${KEYWORDS_KEY}=${keywords.mkString(KEYWORDS_DELIMITER)}"
-      val sftWithKeywords: SimpleFeatureType = createNewSchema(spec, dtgField = None)
-      ds.createSchema(sftWithKeywords)
+      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.KEYWORDS_KEY
+      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.KEYWORDS_DELIMITER
 
-      val fs = ds.getFeatureSource(sftWithKeywords.getTypeName)
-      fs.getInfo.getKeywords.toSeq must containAllOf(keywords)
+      val keywords = Seq("keywordA", "keywordB", "keywordC")
+      val spec = s"name:String;$KEYWORDS_KEY=${keywords.mkString(KEYWORDS_DELIMITER)}"
+      val sftWithKeywords = createNewSchema(spec, dtgField = None)
+
+      ds.getFeatureSource(sftWithKeywords.getTypeName).getInfo.getKeywords.toSeq must containAllOf(keywords)
     }
 
     "create a schema w/ keyword array" in {
@@ -136,39 +148,42 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "remove keywords from schema" in {
-      val initialKeywords: Seq[String] = Seq("keywordA=Hello", "keywordB", "keywordC")
-      val spec = s"name:String;${KEYWORDS_KEY}=${initialKeywords.mkString(KEYWORDS_DELIMITER)}"
-      val sft: SimpleFeatureType = createNewSchema(spec, dtgField = None)
-      ds.createSchema(sft)
+      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.KEYWORDS_KEY
+      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.KEYWORDS_DELIMITER
 
-      val keywordsToRemove = "keywordA=Hello" + KEYWORDS_DELIMITER + "keywordC"
+      val initialKeywords = Set("keywordA=Hello", "keywordB", "keywordC")
+      val spec = s"name:String;$KEYWORDS_KEY=${initialKeywords.mkString(KEYWORDS_DELIMITER)}"
+      val sft = createNewSchema(spec, dtgField = None)
+
+      val keywordsToRemove = Set("keywordA=Hello", "keywordC")
       val remainingKeywords = Seq("keywordB", "features", sft.getTypeName)
       sft.removeKeywords(keywordsToRemove)
       ds.updateSchema(sft.getTypeName, sft)
 
-      val fs = ds.getFeatureSource(sft.getTypeName)
-      fs.getInfo.getKeywords.toSeq must containAllOf(remainingKeywords)
-      fs.getInfo.getKeywords.toSeq.length mustEqual remainingKeywords.length
+      val keywords = ds.getFeatureSource(sft.getTypeName).getInfo.getKeywords.toSeq
+      keywords must contain(initialKeywords -- keywordsToRemove)
+      keywords must not(contain(keywordsToRemove))
     }
 
     "add keywords to schema" in {
-      val initialKeywords: Seq[String] = Seq("keywordB")
-      val spec = s"name:String;${KEYWORDS_KEY}=${initialKeywords.mkString(KEYWORDS_DELIMITER)}"
-      val sft: SimpleFeatureType = createNewSchema(spec, dtgField = None)
+      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.KEYWORDS_KEY
 
-      val resultingKeywords = Seq("keywordA", "keywordB", "~!@#$%^&*()_+`=/.,<>?;:|[]{}\\")
+      val originalKeyword = "keywordB"
+      val keywordsToAdd = Set("keywordA", "~!@#$%^&*()_+`=/.,<>?;:|[]{}\\")
 
-      ds.createSchema(sft)
+      val spec = s"name:String;$KEYWORDS_KEY=$originalKeyword"
+      val sft = createNewSchema(spec, dtgField = None)
 
-      val keywordsToAdd = "keywordA" + KEYWORDS_DELIMITER + "~!@#$%^&*()_+`=/.,<>?;:|[]{}\\"
       sft.addKeywords(keywordsToAdd)
       ds.updateSchema(sft.getTypeName, sft)
 
       val fs = ds.getFeatureSource(sft.getTypeName)
-      fs.getInfo.getKeywords.toSeq must containAllOf(resultingKeywords)
+      fs.getInfo.getKeywords.toSeq must containAllOf((keywordsToAdd + originalKeyword).toSeq)
     }
 
     "not allow updating non-keyword user data" in {
+      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.TABLE_SHARING_KEY
+
       val sft: SimpleFeatureType = createNewSchema("name:String", dtgField = None)
       ds.createSchema(sft)
 
@@ -196,7 +211,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val sftWithKeywords = SimpleFeatureTypes.createType(regular)
 
       // Currently breaks as it can't derive the type name from the config string
-      val newSft = SimpleFeatureTypes.createType(sftWithKeywords.toConfig)
+      val newSft = SimpleFeatureTypes.createType(SimpleFeatureTypes.toConfig(sftWithKeywords))
 
       sftWithKeywords.getKeywords mustEqual newSft.getKeywords
     }.pendingUntilFixed
@@ -263,23 +278,25 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val sft = SimpleFeatureTypes.createType("customsplit", spec)
       sft.setTableSharing(false)
       ds.createSchema(sft)
-      val recTable = ds.getTableName(sft.getTypeName, RecordTable)
+      val recTable = RecordIndex.getTableName(sft.getTypeName, ds)
       val splits = ds.connector.tableOperations().listSplits(recTable)
       splits.size() mustEqual 100
       splits.head mustEqual new Text("00")
       splits.last mustEqual new Text("99")
     }
 
-    "create a schema with custom record splitting options with talbe sharing on" in {
+    "create a schema with custom record splitting options with table sharing on" in {
       val spec = "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=" +
         s"${classOf[DigitSplitter].getName},table.splitter.options='fmt:%02d,min:0,max:99'"
       val sft = SimpleFeatureTypes.createType("customsplit2", spec)
       sft.setTableSharing(true)
 
       import scala.collection.JavaConversions._
-      val prevsplits = ImmutableSet.copyOf(ds.connector.tableOperations().listSplits("AccumuloDataStoreTest_records").toIterable)
+      val prevTable = s"${ds.config.catalog}_${RecordIndex.name}_v${RecordIndex.version}"
+      val prevsplits = ImmutableSet.copyOf(ds.tableOps.listSplits(prevTable).toIterable)
       ds.createSchema(sft)
-      val recTable = ds.getTableName(sft.getTypeName, RecordTable)
+      val recTable = RecordIndex.getTableName(sft.getTypeName, ds)
+      recTable mustEqual prevTable
       val afterSplits = ds.connector.tableOperations().listSplits(recTable)
 
       object TextOrdering extends Ordering[Text] {
@@ -312,6 +329,23 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       }
     }
 
+    "Prevent join indices on default date" in {
+      import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
+      "throw an exception if join index is found" >> {
+        createNewSchema("name:String,dtg:Date:index=true,*geom:Point:srid=4326") must throwAn[IllegalArgumentException]
+        createNewSchema("name:String,dtg:Date:index=join,*geom:Point:srid=4326") must throwAn[IllegalArgumentException]
+      }
+      "allow for full indices" >> {
+        val sft = createNewSchema("name:String,dtg:Date:index=full,*geom:Point:srid=4326")
+        sft.getDescriptor("dtg").getIndexCoverage mustEqual IndexCoverage.FULL
+      }
+      "allow for override" >> {
+        val sft = createNewSchema("name:String,dtg:Date:index=join,*geom:Point:srid=4326;override.index.dtg.join=true")
+        sft.getDescriptor("dtg").getIndexCoverage mustEqual IndexCoverage.JOIN
+      }
+    }
+
     "allow for a configurable number of threads in z3 queries" in {
       val param = AccumuloDataStoreParams.queryThreadsParam.getName
       val query = new Query(defaultTypeName, ECQL.toFilter("bbox(geom,-75,-75,-60,-60) AND " +
@@ -322,7 +356,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
         val dst = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
         val qpts = dst.getQueryPlan(query)
         forall(qpts) { qpt =>
-          qpt.table mustEqual dst.getTableName(defaultTypeName, Z3Table)
+          qpt.table mustEqual Z3Index.getTableName(defaultTypeName, dst)
           qpt.numThreads mustEqual numThreads
         }
       }
@@ -332,7 +366,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       // check default
       val qpts = ds.getQueryPlan(query)
       forall(qpts) { qpt =>
-        qpt.table mustEqual ds.getTableName(defaultTypeName, Z3Table)
+        qpt.table mustEqual Z3Index.getTableName(defaultTypeName, ds)
         qpt.numThreads mustEqual 8
       }
     }
@@ -345,14 +379,20 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       explain must startWith(s"Planning '$defaultTypeName'")
     }
 
+    "return a list of all accumulo tables associated with a schema" in {
+      val indices = ds.manager.indices(defaultSft, IndexMode.Any).map(_.getTableName(defaultSft.getTypeName, ds))
+      val expected = Seq(sftBaseName, s"${sftBaseName}_stats", s"${sftBaseName}_queries") ++ indices
+      ds.getAllTableNames(defaultTypeName) must containTheSameElementsAs(expected)
+    }
+
     "allow secondary attribute indexes" >> {
       val sft = createNewSchema("name:String:index=true,numattr:Integer,dtg:Date,*geom:Point:srid=4326")
       val sftName = sft.getTypeName
 
       "create all appropriate tables" >> {
-        val tables = GeoMesaTable.getTableNames(sft, ds)
+        val tables = AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, ds))
         tables must haveLength(4)
-        forall(Seq(Z2Table, Z3Table, AttributeTable, AttributeTable))(t => tables must contain(endWith(t.suffix)))
+        forall(Seq(Z2Index, Z3Index, AttributeIndex))(t => tables must contain(endWith(t.name)))
         forall(tables)(t => ds.connector.tableOperations.exists(t) must beTrue)
       }
 
@@ -379,6 +419,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "hex encode multibyte chars as multiple underscore + hex" in {
+      import GeoMesaFeatureIndex._
       // accumulo supports only alphanum + underscore aka ^\\w+$
       // this should end up hex encoded
       val sftName = "nihao你好"
@@ -395,58 +436,68 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       enc("好") must haveLength(9)
 
       val encodedSFT = "nihao" + enc("你") + enc("好")
-      encodedSFT mustEqual GeoMesaTable.hexEncodeNonAlphaNumeric(sftName)
+      encodedSFT mustEqual hexEncodeNonAlphaNumeric(sftName)
 
-      forall(GeoMesaTable.getTables(sft)) { table =>
-        table.formatTableName(ds.catalogTable, sft) mustEqual s"${ds.catalogTable}_${encodedSFT}_${table.suffix}"
+      forall(AccumuloFeatureIndex.indices(sft, IndexMode.Any)) { table =>
+        formatTableName(ds.config.catalog, tableSuffix(table), sft) mustEqual
+            s"${ds.config.catalog}_${encodedSFT}_${tableSuffix(table)}"
       }
 
       val c = ds.connector
 
-      c.tableOperations().exists(ds.catalogTable) must beTrue
-      forall(GeoMesaTable.getTables(sft)) { table =>
-        c.tableOperations().exists(s"${ds.catalogTable}_${encodedSFT}_${table.suffix}") must beTrue
+      c.tableOperations().exists(ds.config.catalog) must beTrue
+      forall(AccumuloFeatureIndex.indices(sft, IndexMode.Any)) { table =>
+        c.tableOperations().exists(s"${ds.config.catalog}_${encodedSFT}_${tableSuffix(table)}") must beTrue
       }
     }
 
     "update metadata for indexed attributes" in {
+      import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
       val originalSchema = "name:String,dtg:Date,*geom:Point:srid=4326"
       val updatedSchema = "name:String:index=join,dtg:Date,*geom:Point:srid=4326"
 
       val sft = createNewSchema(originalSchema)
-      ds.updateIndexedAttributes(sft.getTypeName, updatedSchema)
+      sft.getAttributeDescriptors.head.setIndexCoverage(IndexCoverage.JOIN)
+      ds.updateSchema(sft.getTypeName, sft)
       val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema(sft.getTypeName))
       retrievedSchema mustEqual updatedSchema
     }
 
     "prevent changing schema types" in {
       val originalSchema = "name:String,dtg:Date,*geom:Point:srid=4326"
-      val sft = createNewSchema(originalSchema)
-      val sftName = sft.getTypeName
+      val sftName = createNewSchema(originalSchema).getTypeName
 
       "prevent changing default geometry" in {
-        val updatedSchema = "name:String,dtg:Date,geom:Point:srid=4326"
-        ds.updateIndexedAttributes(sftName, updatedSchema) should throwA[IllegalArgumentException]
+        val modified =
+          SimpleFeatureTypes.createType(sftName, "name:String,dtg:Date,geom:Point:srid=4326,*geom2:Point:srid=4326")
+        modified.getUserData.putAll(ds.getSchema(sftName).getUserData)
+        ds.updateSchema(sftName, modified) should throwAn[UnsupportedOperationException]
         val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema(sftName))
         retrievedSchema mustEqual originalSchema
       }
       "prevent changing attribute order" in {
-        val updatedSchema = "dtg:Date,name:String,*geom:Point:srid=4326"
-        ds.updateIndexedAttributes(sftName, updatedSchema) should throwA[IllegalArgumentException]
-        val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema(sftName))
-        retrievedSchema mustEqual originalSchema
-      }
-      "prevent adding attributes" in {
-        val updatedSchema = "name:String,dtg:Date,*geom:Point:srid=4326,newField:String"
-        ds.updateIndexedAttributes(sftName, updatedSchema) should throwA[IllegalArgumentException]
+        val modified = SimpleFeatureTypes.createType(sftName, "dtg:Date,name:String,*geom:Point:srid=4326")
+        modified.getUserData.putAll(ds.getSchema(sftName).getUserData)
+        ds.updateSchema(sftName, modified) should throwA[UnsupportedOperationException]
         val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema(sftName))
         retrievedSchema mustEqual originalSchema
       }
       "prevent removing attributes" in {
-        val updatedSchema = "dtg:Date,*geom:Point:srid=4326"
-        ds.updateIndexedAttributes(sftName, updatedSchema) should throwA[IllegalArgumentException]
+        val modified = SimpleFeatureTypes.createType(sftName, "dtg:Date,*geom:Point:srid=4326")
+        modified.getUserData.putAll(ds.getSchema(sftName).getUserData)
+        ds.updateSchema(sftName, modified) should throwA[UnsupportedOperationException]
         val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema(sftName))
         retrievedSchema mustEqual originalSchema
+      }
+      "allow adding attributes" in {
+        // note: we actually modify the schema here so this check is last
+        val newSchema = "name:String,dtg:Date,*geom:Point:srid=4326,newField:String"
+        val modified = SimpleFeatureTypes.createType(sftName, newSchema)
+        modified.getUserData.putAll(ds.getSchema(sftName).getUserData)
+        ds.updateSchema(sftName, modified)
+        val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema(sftName))
+        retrievedSchema mustEqual newSchema
       }
     }
 
@@ -496,7 +547,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
       "typeOf feature source must be CachingAccumuloFeatureCollection" >> {
         val fc = ds.getFeatureSource(defaultTypeName).getFeatures(Filter.INCLUDE)
-        fc must haveClass[CachingAccumuloFeatureCollection]
+        fc must beAnInstanceOf[CachingFeatureCollection]
       }
 
       "suport getCount" >> {
@@ -558,7 +609,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val query = new Query(defaultTypeName, ECQL.toFilter("bbox(geom, -190, -100, 190, 100)"), Array("geom"))
       val plan = ds.getQueryPlan(query)
       plan must haveLength(1)
-      plan.head.filter.strategy mustEqual StrategyType.Z3
+      plan.head.filter.index mustEqual Z3Index
       plan.head.filter.filter must beNone
     }
 
@@ -639,12 +690,12 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "delete all associated tables" >> {
-      val catalog = "AccumuloDataStoreDeleteTest"
+      val catalog = "AccumuloDataStoreDeleteAllTablesTest"
       // note the table needs to be different to prevent testing errors
       val ds = DataStoreFinder.getDataStore(dsParams ++ Map("tableName" -> catalog)).asInstanceOf[AccumuloDataStore]
       val sft = SimpleFeatureTypes.createType(catalog, "name:String:index=true,dtg:Date,*geom:Point:srid=4326")
       ds.createSchema(sft)
-      val tables = GeoMesaTable.getTableNames(sft, ds) ++ Seq(catalog)
+      val tables = AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, ds)) ++ Seq(catalog)
       tables must haveSize(5)
       connector.tableOperations().list().toSeq must containAllOf(tables)
       ds.delete()

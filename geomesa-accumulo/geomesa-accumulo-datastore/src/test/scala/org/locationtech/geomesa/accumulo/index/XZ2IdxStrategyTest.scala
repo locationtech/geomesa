@@ -14,11 +14,12 @@ import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.index.QueryHints._
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.{Convert2ViewerFunction, ExtendedValues}
+import org.locationtech.geomesa.index.conf.QueryHints._
+import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -42,9 +43,9 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
     }
   addFeatures(features)
 
-  val binHints = Map(BIN_TRACK_KEY -> "name", BIN_BATCH_SIZE_KEY -> 100)
-  val sampleHalfHints = Map(SAMPLING_KEY -> new java.lang.Float(.5f))
-  val sample20Hints = Map(SAMPLING_KEY -> new java.lang.Float(.2f))
+  val binHints = Map(BIN_TRACK -> "name", BIN_BATCH_SIZE -> 100)
+  val sampleHalfHints = Map(SAMPLING -> new java.lang.Float(.5f))
+  val sample20Hints = Map(SAMPLING -> new java.lang.Float(.2f))
 
   "XZ2IdxStrategy" should {
     "return all features for Filter.INCLUDE" >> {
@@ -158,7 +159,7 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
       aggregates.size must beLessThan(10) // ensure some aggregation was done
       val bin = aggregates.flatMap(a => a.grouped(16).map(Convert2ViewerFunction.decode))
       bin must haveSize(10)
-      bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode.toString))
+      bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode))
       bin.map(_.dtg) must
           containAllOf((0 until 10).map(i => features(i).getAttribute("dtg").asInstanceOf[Date].getTime))
       bin.map(_.lat) must containAllOf((0 until 10).map(_ + 60.0))
@@ -167,7 +168,7 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
 
     "optimize for bin format with label" >> {
       val filter = "bbox(geom, 35, 55, 45, 75)"
-      val hints = binHints.updated(BIN_LABEL_KEY, "name")
+      val hints = binHints.updated(BIN_LABEL, "name")
 
       val qps = plan(filter, hints = hints)
       forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
@@ -178,7 +179,7 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
       aggregates.size must beLessThan(10) // ensure some aggregation was done
       val bin = aggregates.flatMap(a => a.grouped(24).map(Convert2ViewerFunction.decode))
       bin must haveSize(10)
-      bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode.toString))
+      bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode))
       bin.map(_.dtg) must
           containAllOf((0 until 10).map(i => features(i).getAttribute("dtg").asInstanceOf[Date].getTime))
       bin.map(_.lat) must containAllOf((0 until 10).map(_ + 60.0))
@@ -213,14 +214,14 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
     }
 
     "support sampling by threading key" in {
-      val results = execute("INCLUDE", hints = sampleHalfHints.updated(SAMPLE_BY_KEY, "track")).toList
+      val results = execute("INCLUDE", hints = sampleHalfHints.updated(SAMPLE_BY, "track")).toList
       results must haveLength(10)
       results.count(_.getAttribute("track") == "track1") mustEqual 5
       results.count(_.getAttribute("track") == "track2") mustEqual 5
     }
 
     "support sampling with bin queries" in {
-      val hints = binHints.updated(BIN_TRACK_KEY, "track") ++ sample20Hints.updated(SAMPLE_BY_KEY, "track")
+      val hints = binHints.updated(BIN_TRACK, "track") ++ sample20Hints.updated(SAMPLE_BY, "track")
       val resultFeatures = execute("INCLUDE", hints = hints)
       import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
 
@@ -230,7 +231,7 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
       bins must haveLength(4)
       bins.map(_.trackId) must containTheSameElementsAs {
-        Seq("track1", "track1", "track2", "track2").map(_.hashCode.toString)
+        Seq("track1", "track1", "track2", "track2").map(_.hashCode)
       }
     }
   }
@@ -243,7 +244,7 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
   def plan(ecql: String,
            transforms: Option[Array[String]] = None,
            hints: Map[_, _] = Map.empty,
-           explain: ExplainerOutputType = ExplainNull): Seq[QueryPlan] =
+           explain: Explainer = ExplainNull): Seq[AccumuloQueryPlan] =
     ds.getQueryPlan(getQuery(ecql, transforms, hints), explainer = explain)
 
   def getQuery(ecql: String, transforms: Option[Array[String]], hints: Map[_, _]): Query = {

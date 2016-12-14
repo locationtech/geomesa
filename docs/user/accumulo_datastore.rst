@@ -13,7 +13,7 @@ Use of the Accumulo data store requires that the distributed runtime JAR be inst
 Bootstrapping GeoMesa Accumulo on Elastic Map Reduce
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A script to bootstrap GeoMesa Accumulo on an Elastic Map Reduce cluster is provided in ``geomesa-tools/emr4`` and on this public S3 bucket: `s3://elasticmapreduce-geomesa/ <http://s3.amazonaws.com/elasticmapreduce-geomesa/>`_. These rely on the EMR managed Hadoop and ZooKeeper applications. See ``geomesa-tools/emr4/README.md`` for more details on using these clusters. The command below launches a GeoMesa EMR cluster:
+A script to bootstrap GeoMesa Accumulo on an Elastic Map Reduce cluster is provided in ``geomesa-accumulo/geomesa-accumulo-tools/emr4`` and on this public S3 bucket: `s3://elasticmapreduce-geomesa/ <http://s3.amazonaws.com/elasticmapreduce-geomesa/>`_. These rely on the EMR managed Hadoop and ZooKeeper applications. See ``geomesa-accumulo/geomesa-accumulo-tools/emr4/README.md`` for more details on using these clusters. The command below launches a GeoMesa EMR cluster:
 
 .. code-block:: bash
 
@@ -34,6 +34,18 @@ A script to bootstrap GeoMesa Accumulo on an Elastic Map Reduce cluster is provi
 Configuration
 -------------
 
+GeoMesa uses a site xml file to maintain system property configurations. This file can be found
+at ``conf/geomesa-site.xml`` of the Accumulo distribution. The default settings for GeoMesa are
+stored in ``conf/geomesa-site.xml.template``. Do not modify this file directly as it is never read,
+instead copy the desired configurations into geomesa-site.xml.
+
+By default, system properties set through command line parameters will take precedence over this
+configuration file. If you wish a configuration item to always take precedence, even over command
+line parameters, change the ``<final>`` tag to true.
+
+By default configuration properties with empty values will not be applied, you can change this
+by marking a property as final.
+
 Zookeeper session timeout
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -43,6 +55,8 @@ for the GeoMesa Accumulo data store is exposed as the Java system property ``ins
 .. code-block:: bash
 
     export JAVA_OPTS="-Dinstance.zookeeper.timeout=10s"
+
+To preserve configuration set this property in ``geomesa-site.xml``.
 
 Creating a Data Store
 ---------------------
@@ -74,12 +88,30 @@ at data store, feature, or individual attribute levels.
 
 See :ref:`accumulo_visibilities` for more information.
 
+Scan Authorizations
+-------------------
+
+The GeoMesa Accumulo data store provides a Java SPI for custom handling of user authorizations per query.
+
+See :ref:`accumulo_authorizations` for more information.
+
 Indexing Strategies
 -------------------
 
-GeoMesa uses several different strategies to index simple features. In the code, these strategies are abstracted as 'tables'. For details on how GeoMesa encodes and indexes data, see :ref:`index_structure`. The :doc:`./data_management` chapter also describes how to optimize these indexes by manipulating :ref:`attribute_indices`, :ref:`customizing_z_index`, and :ref:`customizing_index_creation`.
+GeoMesa uses several different strategies to index simple features. In the code, these strategies are
+abstracted as 'tables'. For details on how GeoMesa encodes and indexes data, see :ref:`index_structure`.
+The :doc:`./data_management` chapter also describes how to optimize these indexes by manipulating
+:ref:`attribute_indices`, :ref:`customizing_z_index`, :ref:`customizing_xz_index`, and :ref:`customizing_index_creation`.
 
-For details on how GeoMesa chooses and executes queries, see the `org.locationtech.geomesa.accumulo.index.QueryPlanner <https://github.com/locationtech/geomesa/blob/master/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/QueryPlanner.scala>`__ and `org.locationtech.geomesa.accumulo.index.QueryStrategyDecider <https://github.com/locationtech/geomesa/blob/master/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/QueryStrategyDecider.scala>`__ classes.
+For details on how GeoMesa chooses and executes queries, see the `QueryPlanner`_ and
+`StrategyDecider`_ classes in the **geomesa-index-api** project. The generic query
+planning API is configured for the Accumulo data store in the `AccumuloQueryPlanner`_ class.
+
+.. _QueryPlanner: https://github.com/locationtech/geomesa/blob/master/geomesa-index-api/src/main/scala/org/locationtech/geomesa/index/api/QueryPlanner.scala
+
+.. _StrategyDecider: https://github.com/locationtech/geomesa/blob/master/geomesa-index-api/src/main/scala/org/locationtech/geomesa/index/api/StrategyDecider.scala
+
+.. _AccumuloQueryPlanner: https://github.com/locationtech/geomesa/blob/master/geomesa-accumulo/geomesa-accumulo-datastore/src/main/scala/org/locationtech/geomesa/accumulo/index/AccumuloQueryPlanner.scala
 
 .. _explain_query:
 
@@ -94,7 +126,7 @@ Given a data store and a query, you can ask GeoMesa to explain its plan for how 
 
 Instead of ``ExplainPrintln``, you can also use ``ExplainString`` or ``ExplainLogging`` to redirect the explainer output elsewhere.
 
-For enabling ``ExplainLogging`` in GeoServer, see :ref:`geoserver_explain_query`. It may also be helpful to refer to GeoServer's `Advanced log configuration <http://docs.geoserver.org/2.8.x/en/user/advanced/logging.html>`_ documentation for the specifics of how and where to manage the GeoServer logs.
+For enabling ``ExplainLogging`` in GeoServer, see :ref:`geoserver_explain_query`. It may also be helpful to refer to GeoServer's `Advanced log configuration <http://docs.geoserver.org/stable/en/user/configuration/logging.html>`_ documentation for the specifics of how and where to manage the GeoServer logs.
 
 Knowing the plan -- including information such as the indexing strategy -- can be useful when you need to debug slow queries.  It can suggest when indexes should be added as well as when query-hints may expedite execution times.
 

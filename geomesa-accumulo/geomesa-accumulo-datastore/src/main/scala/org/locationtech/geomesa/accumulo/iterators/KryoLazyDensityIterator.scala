@@ -18,8 +18,7 @@ import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIt
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
-import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
-import org.locationtech.geomesa.accumulo.index.QueryPlanners._
+import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyDensityIterator.DensityResult
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
@@ -156,28 +155,28 @@ object KryoLazyDensityIterator extends LazyLogging {
    * Creates an iterator config for the kryo density iterator
    */
   def configure(sft: SimpleFeatureType,
-                table: GeoMesaTable,
+                index: AccumuloFeatureIndexType,
                 filter: Option[Filter],
                 hints: Hints,
                 priority: Int = DEFAULT_PRIORITY): IteratorSetting = {
-    import org.locationtech.geomesa.accumulo.index.QueryHints.RichHints
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     val envelope = hints.getDensityEnvelope.get
     val (width, height) = hints.getDensityBounds.get
     val weight = hints.getDensityWeight
     val is = new IteratorSetting(priority, "density-iter", classOf[KryoLazyDensityIterator])
-    configure(is, sft, table, filter, envelope, width, height, weight)
+    configure(is, sft, index, filter, envelope, width, height, weight)
   }
 
   protected[iterators] def configure(is: IteratorSetting,
                                      sft: SimpleFeatureType,
-                                     table: GeoMesaTable,
+                                     index: AccumuloFeatureIndexType,
                                      filter: Option[Filter],
                                      envelope: Envelope,
                                      gridWidth: Int,
                                      gridHeight: Int,
                                      weightAttribute: Option[String]): IteratorSetting = {
     // we never need to dedupe densities - either we don't have dupes or we weight based on the duplicates
-    KryoLazyAggregatingIterator.configure(is, sft, table, filter, deduplicate = false, None)
+    KryoLazyAggregatingIterator.configure(is, sft, index, filter, deduplicate = false, None)
     is.addOption(ENVELOPE_OPT, s"${envelope.getMinX},${envelope.getMaxX},${envelope.getMinY},${envelope.getMaxY}")
     is.addOption(GRID_OPT, s"$gridWidth,$gridHeight")
     weightAttribute.foreach(is.addOption(WEIGHT_OPT, _))
@@ -188,7 +187,7 @@ object KryoLazyDensityIterator extends LazyLogging {
    * Adapts the iterator to create simple features.
    * WARNING - the same feature is re-used and mutated - the iterator stream should be operated on serially.
    */
-  def kvsToFeatures(): FeatureFunction = {
+  def kvsToFeatures(): (Entry[Key, Value]) => SimpleFeature = {
     val sf = new ScalaSimpleFeature("", DENSITY_SFT)
     sf.setAttribute(1, GeometryUtils.zeroPoint)
     (e: Entry[Key, Value]) => {
@@ -203,7 +202,7 @@ object KryoLazyDensityIterator extends LazyLogging {
    * Encodes a sparse matrix into a byte array
    */
   def encodeResult(result: mutable.Map[(Int, Int), Double]): Array[Byte] = {
-    val output = KryoFeatureSerializer.getOutput()
+    val output = KryoFeatureSerializer.getOutput(null)
     result.toList.groupBy(_._1._1).foreach { case (row, cols) =>
       output.writeInt(row, true)
       output.writeInt(cols.size, true)
@@ -227,7 +226,7 @@ object KryoLazyDensityIterator extends LazyLogging {
    */
   private def decodeResult(gridSnap: GridSnap)(sf: SimpleFeature): Iterator[(Double, Double, Double)] = {
     val result = sf.getAttribute(0).asInstanceOf[Array[Byte]]
-    val input = KryoFeatureSerializer.getInput(result)
+    val input = KryoFeatureSerializer.getInput(result, 0, result.length)
     new Iterator[(Double, Double, Double)]() {
       private var x = 0.0
       private var colCount = 0

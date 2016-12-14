@@ -13,12 +13,15 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.geotools.data._
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
+import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -27,6 +30,8 @@ import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreAlterSchemaTest extends Specification {
+
+  sequential
 
   // we use class name to prevent spillage between unit tests in the mock connector
   val sftName = getClass.getSimpleName
@@ -58,12 +63,22 @@ class AccumuloDataStoreAlterSchemaTest extends Specification {
     collection
   }
 
-  val updatedSpec = {
-    val old = ds.metadata.readRequired(sftName, GeoMesaMetadata.ATTRIBUTES_KEY)
-    spec + ",attr1:String" + old.substring(old.indexOf(";"))
+  // TODO this gets run twice by maven
+  if (sft.getAttributeDescriptors.length == 2) {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+    val builder = new SimpleFeatureTypeBuilder()
+    builder.init(sft)
+    builder.userData("index", "join")
+    builder.add("attr1", classOf[String])
+    val updatedSft = builder.buildFeatureType()
+    updatedSft.getUserData.putAll(sft.getUserData)
+    updatedSft.setIndices(updatedSft.getIndices :+ (AttributeIndex.name, AttributeIndex.version, IndexMode.ReadWrite))
+
+    ds.updateSchema(sftName, updatedSft)
+
+    sft = ds.getSchema(sftName)
   }
-  ds.metadata.insert(sftName, GeoMesaMetadata.ATTRIBUTES_KEY, updatedSpec)
-  sft = ds.getSchema(sftName)
 
   ds.getFeatureSource(sftName).addFeatures {
     val collection = new DefaultFeatureCollection()

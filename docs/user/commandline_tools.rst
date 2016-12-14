@@ -10,10 +10,13 @@ Installation
 
 See :ref:`setting_up_commandline`.
 
+
+.. _installing_sft_and_converter_definitions:
+
 Installing SFT and Converter Definitions
 ----------------------------------------
 
-Starting with version 1.2.3, GeoMesa Tools ships with embedded SimpleFeatureType and GeoMesa Conveter definitions for common data types including Twitter, GeoNames, T-drive, and many more. Users can add additional types by providing a ``reference.conf`` file embedded with a jar within the ``lib/common`` directory or by registering the ``reference.conf`` file in the ``$GEOMESA_HOME/conf/sfts`` directory. 
+Starting with version 1.2.3, GeoMesa Tools ships with embedded SimpleFeatureType and GeoMesa Conveter definitions for common data types including Twitter, GeoNames, T-drive, and many more. Users can add additional types by providing a ``reference.conf`` file embedded with a jar within the ``lib/common`` directory or by registering the ``reference.conf`` file in the ``$GEOMESA_HOME/conf/sfts`` or ``$GEOMESA_KAKFA_HOME/conf/sfts`` directory.
 
 For example, to add a type named ``customtype``, create a directory named ``$GEOMESA_HOME/conf/sfts/customtype`` and then add the SFT and Conveter typesafe config to the a file named ``$GEOMESA_HOME/conf/sfts/customtype/reference.conf``. This file will be automatically picked up and placed on the classpath when the tools are run.
 
@@ -22,42 +25,51 @@ To see which SFT and Converter confs are installed try the ``geomesa env`` comma
 Running the command line tools
 ------------------------------
 
+.. note::
+
+    Some command names have changed in GeoMesa 1.3.0 see :doc:`commandline_old_commands`
+
 Run ``geomesa`` without any arguments to produce the following usage text::
 
     $ geomesa
     Usage: geomesa [command] [command options]
       Commands:
-        create              Create a feature definition in a GeoMesa catalog
-        deletecatalog       Delete a GeoMesa catalog completely (and all features in it)
-        deletefeatures      Delete features from a table in GeoMesa. Does not delete any tables or schema information.
-        deleteraster        Delete a GeoMesa Raster Table
-        describe            Describe the attributes of a given feature in GeoMesa
-        env                 Examine the current GeoMesa environment
-        explain             Explain how a GeoMesa query will be executed
-        export              Export a GeoMesa feature
-        genavroschema       Generate an Avro schema from a SimpleFeatureType
-        getsft              Get the SimpleFeatureType of a feature
-        help                Show help
-        ingest              Ingest/convert various file formats into GeoMesa
-        ingestraster        Ingest a raster file or raster files in a directory into GeoMesa
-        keywords            Add/Remove/List keywords on an existing schema
-        list                List GeoMesa features for a given catalog
-        queryrasterstats    Export queries and statistics about the last X number of queries to a CSV file.
-        removeschema        Remove a schema and associated features from a GeoMesa catalog
-        stats-analyze       Analyze statistics on a GeoMesa feature type
-        stats-bounds        View or calculate bounds on attributes in a GeoMesa feature type
-        stats-count         Estimate or calculate feature counts in a GeoMesa feature type
-        stats-histogram     View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values
-        stats-top-k         Enumerate the most frequent values in a GeoMesa feature type
-        tableconf           Perform table configuration operations
-        version             GeoMesa Version
+        add-attribute-index    Run a Hadoop map reduce job to add an index for attributes
+        add-index              Add or update indices for an existing GeoMesa feature type
+        config-table           Perform table configuration operations
+        convert                Convert files using GeoMesa's internal SFT converter framework
+        create-schema          Create a GeoMesa feature type
+        delete-catalog         Delete a GeoMesa catalog completely (and all features in it)
+        delete-features        Delete features from a table in GeoMesa. Does not delete any tables or schema information.
+        delete-raster          Delete a GeoMesa Raster table
+        env                    Examine the current GeoMesa environment
+        explain                Explain how a GeoMesa query will be executed
+        export                 Export features from a GeoMesa data store
+        export-bin             Export features from a GeoMesa data store in a binary format.
+        gen-avro-schema        Generate an Avro schema from a SimpleFeatureType
+        get-names              List GeoMesa feature types for a given catalog
+        get-schema             Describe the attributes of a given GeoMesa feature type
+        get-sft-config                Get the SimpleFeatureType of a feature
+        help                   Show help
+        ingest                 Ingest/convert various file formats into GeoMesa
+        ingest-raster          Ingest raster files into GeoMesa
+        keywords               Add/Remove/List keywords on an existing schema
+        query-raster-stats     Export queries and statistics about the last X number of queries to a CSV file.
+        remove-schema          Remove a schema and associated features from a GeoMesa catalog
+        stats-analyze          Analyze statistics on a GeoMesa feature type
+        stats-bounds           View or calculate bounds on attributes in a GeoMesa feature type
+        stats-count            Estimate or calculate feature counts in a GeoMesa feature type
+        stats-histogram        View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values
+        stats-top-k            Enumerate the most frequent values in a GeoMesa feature type
+        version                Display the installed GeoMesa version
+
 
 This usage text lists the available commands. To see help for an individual command,
 run ``geomesa help <command-name>``, which for example will give you something like this::
 
-    $ geomesa help list
-    List GeoMesa features for a given catalog
-    Usage: list [options]
+    $ geomesa help get-names
+    List GeoMesa feature types for a given catalog
+    Usage: get-names [options]
       Options:
         --auths
            Accumulo authorizations
@@ -95,8 +107,8 @@ Command overview
 Creating and deleting feature types
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-create
-~~~~~~
+create-schema
+~~~~~~~~~~~~~
 
 Used to create a feature type (``SimpleFeatureType``)  in a GeoMesa catalog::
 
@@ -108,23 +120,23 @@ Used to create a feature type (``SimpleFeatureType``)  in a GeoMesa catalog::
       --dtg dtg
 
 
-describe
-~~~~~~~~
+get-schema
+~~~~~~~~~~
 
 Display details about the attributes of a specified feature type::
 
-    $ geomesa describe -u username -p password -c test_delete -f testing
+    $ geomesa get-schema -u username -p password -c test_delete -f testing
 
-getsft
-~~~~~~
+get-sft-config
+~~~~~~~~~~~~~~
 
 Get the specified feature type as a typesafe config::
 
-    $ geomesa getsft -u username -p password -c test_catalog -f test_feature --format typesafe
+    $ geomesa get-sft-config -u username -p password -c test_catalog -f test_feature --format typesafe
 
 Get the specified feature type as an encoded feature schema string::
 
-    $ geomesa getsft -u username -p password -c test_catalog -f test_feature --format spec
+    $ geomesa get-sft-config -u username -p password -c test_catalog -f test_feature --format spec
 
 keywords
 ~~~~~~~~
@@ -136,28 +148,45 @@ The ``-l`` option lists the schema's keywords following all operations
 If there is whitespace within a keyword, enclose it in quotes for proper functionality::
 
     $ geomesa keywords -u username -p password \
-        -a keywordB -a keywordC -r keywordA -l \
-        -i instance -z zoo1,zoo2,zoo3 \
-        -c catalog -f featureTypeName
+      -a keywordB -a keywordC -r keywordA -l \
+      -i instance -z zoo1,zoo2,zoo3 \
+      -c catalog -f featureTypeName
 
-list
-~~~~
+get-names
+~~~~~~~~~
 
 List all known feature types in a GeoMesa catalog::
 
-    $ geomesa list -u username -p password -c test_catalog
+    $ geomesa get-names -u username -p password -c test_catalog
 
-removeschema
-~~~~~~~~~~~~
+remove-schema
+~~~~~~~~~~~~~
 
 Used to remove a feature type (``SimpleFeatureType``) in a GeoMesa catalog. This will also delete any feature of that type in the data store::
 
-    $ geomesa removeschema -u username -p password \
+    $ geomesa remove-schema -u username -p password \
       -i instance -z zoo1,zoo2,zoo3 \
       -c test_catalog -f testfeature1
-    $ geomesa removeschema -u username -p password \
+    $ geomesa remove-schema -u username -p password \
       -i instance -z zoo1,zoo2,zoo3 \
       -c test_catalog --pattern 'testfeatures\d+'
+
+Manipulating data
+^^^^^^^^^^^^^^^^^
+convert
+~~~~~~~
+
+Convert files using the internal SFT (``SimpleFeatureType``) converter framework::
+
+    $ geomesa convert -spec example --converter example-csv \
+      -F json ./exampledata.csv
+
+    $ geomesa convert -s example -C example-csv -F avro --gzip 4 \
+      --max-features 10 -o exampleout.avro ./exampledata.csv
+
+.. note::
+
+    Output data has been converted by the internal SFT converters as defined by the provided converter config. This most likely means a new converter config will be required to ingest (or re-convert) the converted data.
 
 Ingesting and exporting data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -167,11 +196,11 @@ Ingesting and exporting data
 export
 ~~~~~~
 
-Export GeoMesa features. The "attribute expressions" specified by the ``-a`` option are comma-separated expressions 
+Export GeoMesa features. The "attribute expressions" specified by the ``-a`` option are comma-separated expressions
 in the format::
-    
+
     attribute[=filter_function_expression]|derived-attribute=filter_function_expression
-    
+
 `filter_function_expression` is an expression of filter function applied to attributes, literals and filter functions, i.e. can be nested.
 
 Example export commands::
@@ -181,13 +210,28 @@ Example export commands::
       -a "geom,text,user_name" --format csv \
       -q "include" -m 100
     $ geomesa export -u username -p password \
-       -c test_catalog -f test_feature \
-       -a "geom,text,user_name" --format gml \
-       -q "user_name='JohnSmith'"
+      -c test_catalog -f test_feature \
+      -a "geom,text,user_name" --format gml \
+      -q "user_name='JohnSmith'"
     $ geomesa export -u username -p password \
       -c test_catalog -f test_feature \
       -a "user_name,buf=buffer(geom\, 2)" \
-       --format csv -q "[[ user_name like `John%' ] AND [ bbox(geom, 22.1371589, 44.386463, 40.228581, 52.379581, 'EPSG:4326') ]]"
+      --format csv -q "[[ user_name like `John%' ] AND [ bbox(geom, 22.1371589, 44.386463, 40.228581, 52.379581, 'EPSG:4326') ]]"
+
+.. note::
+
+    Use the `export-bin` command to export data in binary format.
+
+Example binary export command::
+
+    $ geomesa export-bin -u username -p password \
+      -c test_catalog -f test_feature \
+      -a "geom,text,user_name" -q "screen_name='JohnSmith'" \
+      --id-attribute "id_str" \
+      --lat-attribute "coord_lat" \
+      --lon-attribute "coord_lon" \
+      --date-attribute "dtg" \
+      --label-attribute "screen_name"
 
 .. _ingest:
 
@@ -216,10 +260,14 @@ includes some examples. SFT and Converter specifications should use the path pre
 
 For example, here's a simple CSV file to ingest named ``example.csv``::
 
-    ID,Name,Age,LastSeen,Friends,Lat,Lon
+    FID,Name,Age,LastSeen,Friends,Lat,Lon
     23623,Harry,20,2015-05-06,"Will, Mark, Suzan",-100.236523,23
     26236,Hermione,25,2015-06-07,"Edward, Bill, Harry",40.232,-53.2356
     3233,Severus,30,2015-10-23,"Tom, Riddle, Voldemort",3,-62.23
+
+.. note::
+
+    ID is a reserved word, for a full list of reserved words see :ref:`reserved-words`.
 
 To ingest this file, a SimpleFeatureType named ``renegades`` and a converter named ``renegades-csv`` can be placed in
 the ``application.conf`` file::
@@ -229,7 +277,7 @@ the ``application.conf`` file::
       sfts {
         renegades = {
           attributes = [
-            { name = "id",       type = "Integer",      index = false                             }
+            { name = "fid",      type = "Integer",      index = false                             }
             { name = "name",     type = "String",       index = true                              }
             { name = "age",      type = "Integer",      index = false                             }
             { name = "lastseen", type = "Date",         index = true                              }
@@ -245,9 +293,9 @@ the ``application.conf`` file::
           options {
             skip-lines = 1 //skip the header
           }
-          id-field = "toString($id)"
+          id-field = "toString($fid)"
           fields = [
-            { name = "id",       transform = "$1::int"                 }
+            { name = "fid",      transform = "$1::int"                 }
             { name = "name",     transform = "$2::string"              }
             { name = "age",      transform = "$3::int"                 }
             { name = "lastseen", transform = "date('YYYY-MM-dd', $4)"  }
@@ -265,11 +313,11 @@ The SFT and Converter can be referenced by name and the following commands can i
 
     $ geomesa ingest -u username -p password \
       -c geomesa_catalog -i instance \
-      -s renegates -C renegades-csv example1.csv
+      -s renegades -C renegades-csv example.csv
     # use the Hadoop file system instead
     $ geomesa ingest -u username -p password \
       -c geomesa_catalog -i instance \
-      -s renegades -C renegades-csv hdfs:///some/hdfs/path/to/example1.csv
+      -s renegades -C renegades-csv hdfs:///some/hdfs/path/to/example.csv
 
 SFT and Converter configs can also be provided as strings or filenames to the ``-s`` and ``-C`` arguments. The syntax is
 very similar to the ``application.conf`` and ``reference.conf`` format. Config specifications must be nested using the
@@ -281,7 +329,7 @@ paths ``geomesa.converters.<convertername>`` and ``geomesa.sfts.<typename>`` as 
     # cat /tmp/renegades.sft
     geomesa.sfts.renegades = {
       attributes = [
-        { name = "id",       type = "Integer",      index = false                             }
+        { name = "fid",      type = "Integer",      index = false                             }
         { name = "name",     type = "String",       index = true                              }
         { name = "age",      type = "Integer",      index = false                             }
         { name = "lastseen", type = "Date",         index = true                              }
@@ -300,9 +348,9 @@ Similarly, converter configurations must be nested when passing them directly to
       options {
         skip-lines = 0 // don't skip lines in distributed ingest
       }
-      id-field = "toString($id)"
+      id-field = "toString($fid)"
       fields = [
-        { name = "id",       transform = "$1::int"                 }
+        { name = "fid",      transform = "$1::int"                 }
         { name = "name",     transform = "$2::string"              }
         { name = "age",      transform = "$3::int"                 }
         { name = "lastseen", transform = "date('YYYY-MM-dd', $4)"  }
@@ -316,7 +364,10 @@ Similarly, converter configurations must be nested when passing them directly to
 Using the SFT and Converter config files we can then ingest our csv file with this command::
 
     # ingest command
-    $ geomesa ingest -u username -p password -c geomesa_catalog -i instance -s /tmp/renegades.sft -C /tmp/renegades.convert hdfs:///some/hdfs/path/to/example.csv
+    $ geomesa ingest -u username -p password \
+      -c geomesa_catalog -i instance \
+      -s /tmp/renegades.sft \
+      -C /tmp/renegades.convert hdfs:///some/hdfs/path/to/example.csv
 
 
 For more documentation on converter configuration, refer to the the ``geomesa-$VERSION/docs/README-convert.md`` file
@@ -324,7 +375,8 @@ in the binary distribution.
 
 Shape files may also be ingested::
 
-    $ geomesa ingest -u username -p password -c test_catalog -f shapeFileFeatureName /some/path/to/file.shp
+    $ geomesa ingest -u username -p password \
+      -c test_catalog -f shapeFileFeatureName /some/path/to/file.shp
 
 
 Enabling S3 Ingest
@@ -397,26 +449,28 @@ For ``s3n``:
 
 S3n paths are prefixed in hadoop with ``s3n://`` as shown below::
 
-    $ geomesa ingest -u username -p password -c geomesa_catalog -i instance -s yourspec -C convert s3n://bucket/path/file s3n://bucket/path/*
+    $ geomesa ingest -u username -p password \
+      -c geomesa_catalog -i instance -s yourspec \
+      -C convert s3n://bucket/path/file s3n://bucket/path/*
 
 
 Working with raster data
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-deleteraster
-~~~~~~~~~~~~
+delete-raster
+~~~~~~~~~~~~~
 
 Delete a given GeoMesa raster table::
 
-    $ geomesa deleteraster -u username -p password -t somerastertable -f
+    $ geomesa delete-raster -u username -p password -t somerastertable -f
 
-ingestraster
-~~~~~~~~~~~~
+ingest-raster
+~~~~~~~~~~~~~
 
 Ingest one or multiple raster image files into Geomesa. Input files, GeoTIFF or
-DTED, should be located on the local file system. 
+DTED, should be located on the local file system.
 
-.. note:: 
+.. note::
 
     Make sure GDAL is installed when doing chunking, which depends on the GDAL utility ``gdal_translate``.
 
@@ -426,40 +480,66 @@ DTED, should be located on the local file system.
 
 Example usage::
 
-    $ geomesa ingestraster -u username -p password -t geomesa_raster -f /some/local/path/to/raster.tif
+    $ geomesa ingest-raster -u username -p password \
+      -t geomesa_raster -f /some/local/path/to/raster.tif
 
-queryrasterstats
-~~~~~~~~~~~~~~~~
+query-rasterstats
+~~~~~~~~~~~~~~~~~
 
 Export queries and statistics about the `n` most recent raster queries to a CSV file::
 
-    $ geomesa queryrasterstats -u username -p password -t somerastertable -n 10
+    $ geomesa query-rasterstats -u username -p password -t somerastertable -n 10
 
 
 Performing system administration tasks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-deletecatalog
-~~~~~~~~~~~~~
+.. _add_index_command:
 
-Delete a GeoMesa catalog table completely, along with all features in it.::
+add-index
+~~~~~~~~~
 
-    $ geomesa deletecatalog -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog
+Add or update indices for an existing feature type. This can be used to upgrade-in-place, converting an older
+index format into the latest. See :ref:`index_upgrades` for more information.
 
-deletefeatures
+Example usage::
+
+    $ geomesa add-index -u username -p password -i instance \
+      -z zoo1,zoo2,zoo3 -c test_catalog -f test_feature --index xz3
+
+delete-catalog
 ~~~~~~~~~~~~~~
+
+Delete a GeoMesa catalog table completely, along with all features in it.
+
+Example usage::
+
+    $ geomesa delete-catalog -u username -p password \
+      -i instance -z zoo1,zoo2,zoo3 -c test_catalog
+
+delete-features
+~~~~~~~~~~~~~~~
 
 Delete features from a table in GeoMesa. Does not delete any tables or schema information.
 
 Example usage::
 
-    $ geomesa deletefeatures -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog \
-        -q 'dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
+    $ geomesa delete-features -u username -p password \
+      -i instance -z zoo1,zoo2,zoo3 -c test_catalog \
+      -q 'dtg DURING 2016-02-02T00:00:00.000Z/2016-02-03T00:00:00.000Z'
+
+add-attribute-index
+~~~~~~~~~~~~~~~~~~~
+
+Add an attribute index for a specified list of attributes.::
+
+    $ geomesa add-attribute-index -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog \
+        -f test_feature -a attribute1,attribute2 --coverage full
 
 env
 ~~~
 
-Examines the current GeoMesa tools environment, and prints out simple feature types converters that 
+Examines the current GeoMesa tools environment, and prints out simple feature types converters that
 are available on the current classpath. The available types can be used for ingestion; see the :ref:`ingest` command.
 Use of this command without parameters will result in behavior similar to when the help command is used.
 
@@ -613,8 +693,8 @@ Example usage::
         [ 2016-02-24T05:06:40.000Z to 2016-02-27T02:43:51.000Z ] 871742
         [ 2016-02-27T02:43:51.000Z to 2016-03-01T00:21:02.000Z ] 951199
 
-tableconf
-~~~~~~~~~
+config-table
+~~~~~~~~~~~~
 
 Perform various table configuration tasks. There are three sub-arguments:
 
@@ -624,12 +704,12 @@ Perform various table configuration tasks. There are three sub-arguments:
 
 Example commands::
 
-    $ geomesa tableconf list -u username -p password \
+    $ geomesa config-table list -u username -p password \
       -c test_catalog -f test_feature -t st_idx
-    $ geomesa tableconf describe -u username -p password \
+    $ geomesa config-table describe -u username -p password \
       -c test_catalog -f test_feature -t attr_idx \
       --param table.bloom.enabled
-    $ geomesa tableconf update -u username -p password \
+    $ geomesa config-table update -u username -p password \
       -c test_catalog -f test_feature -t records \
       --param table.bloom.enabled -n true
 
@@ -649,20 +729,21 @@ Run ``geomesa-kafka`` without any arguments to produce the following usage text:
     $ geomesa-kafka
       Usage: geomesa-kafka [command] [command options]
         Commands:
-          create          Create a feature definition in GeoMesa
-          describe        Describe the attributes of a given feature in GeoMesa
+          convert         Convert files using GeoMesa's internal SFT converter framework
+          create-schema   Create a feature definition in GeoMesa
+          get-schema      Describe the attributes of a given feature in GeoMesa
+          get-names       List GeoMesa features for a given zkPath
           help            Show help
-          list            List GeoMesa features for a given zkPath
           listen          Listen to a GeoMesa Kafka topic
-          removeschema    Remove a schema and associated features from GeoMesa
+          remove-schema   Remove a schema and associated features from GeoMesa
           version         GeoMesa Version
 
 This usage text lists the available commands. To see help for an individual command,
 run ``geomesa-kafka help <command-name>``, which for example will give you something like this::
 
-    $ geomesa-kafka help list
+    $ geomesa-kafka help get-names
       List GeoMesa features for a given zkPath
-      Usage: list [options]
+      Usage: get-names [options]
         Options:
         * -b, --brokers
              Brokers (host:port, comma separated)
@@ -674,32 +755,33 @@ run ``geomesa-kafka help <command-name>``, which for example will give you somet
 Command overview
 ^^^^^^^^^^^^^^^^
 
-create
-~~~~~~
+create-schema
+~~~~~~~~~~~~~
 
 Used to create a feature type (``SimpleFeatureType``) at the specified zkpath::
 
-    $ geomesa-kafka create -f testfeature \
+    $ geomesa-kafka create-schema -f testfeature \
       -z zoo1,zoo2,zoo3 \
       -b broker1:9092,broker2:9092 \
       -s fid:String:index=true,dtg:Date,geom:Point:srid=4326 \
       -p /geomesa/ds/kafka
 
-describe
-~~~~~~~~
+get-schema
+~~~~~~~~~~
 
 Display details about the attributes of a specified feature type::
 
-    $ geomesa-kafka describe -f testfeature -z zoo1,zoo2,zoo3 -b broker1:9092,broker2:9092 -p /geomesa/ds/kafka
+    $ geomesa-kafka get-schema -f testfeature -z zoo1,zoo2,zoo3 \
+      -b broker1:9092,broker2:9092 -p /geomesa/ds/kafka
 
-list
-~~~~
+get-names
+~~~~~~~~~
 
 List all known feature types in Kafka::
 
-    $ geomesa-kafka list -z zoo1,zoo2,zoo3 -b broker1:9092,broker2:9092
+    $ geomesa-kafka get-names -z zoo1,zoo2,zoo3 -b broker1:9092,broker2:9092
 
-If no ``--zkpath`` parameter is specified, the ``list`` command will search all of zookeeper for potential feature types.
+If no ``--zkpath`` parameter is specified, the ``get-names`` command will search all of zookeeper for potential feature types.
 
 listen
 ~~~~~~
@@ -712,16 +794,16 @@ Logs out the messages written to a topic corresponding to the feature type passe
       -p /geomesa/ds/kafka \
       --from-beginning
 
-removeschema
-~~~~~~~~~~~~
+remove-schema
+~~~~~~~~~~~~~
 
 Used to remove a feature type (``SimpleFeatureType``) in a GeoMesa catalog. This will also delete any feature of that type in the data store::
 
-    $ geomesa-kafka removeschema -f testfeature \
+    $ geomesa-kafka remove-schema -f testfeature \
       -z zoo1,zoo2,zoo3 \
       -b broker1:9092,broker2:9092 \
       -p /geomesa/ds/kafka
-    $ geomesa-kafka removeschema --pattern 'testfeature\d+' \
+    $ geomesa-kafka remove-schema --pattern 'testfeature\d+' \
       -z zoo1,zoo2,zoo3 \
       -b broker1:9092,broker2:9092 \
       -p /geomesa/ds/kafka

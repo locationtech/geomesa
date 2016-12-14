@@ -25,14 +25,13 @@ class ProjectVersionIterator extends SortedKeyValueIterator[Key, Value] {
   override def next(): Unit = result = true
 
   override def getTopValue: Value =
-    new Value(GeoMesaProperties.GeoMesaProjectVersion.getBytes(StandardCharsets.UTF_8))
+    new Value(GeoMesaProperties.ProjectVersion.getBytes(StandardCharsets.UTF_8))
 
   override def getTopKey: Key = new Key()
 
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: util.Map[String, String],
                     env: IteratorEnvironment): Unit = {
-    IteratorClassLoader.initClassLoader(getClass)
     this.result = false
   }
 

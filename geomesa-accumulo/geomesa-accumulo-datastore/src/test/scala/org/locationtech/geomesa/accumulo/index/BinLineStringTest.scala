@@ -14,12 +14,13 @@ import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.data.tables.{Z2Table, Z3Table}
-import org.locationtech.geomesa.accumulo.index.QueryHints._
+import org.locationtech.geomesa.accumulo.index.z2.Z2Index
+import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.{Convert2ViewerFunction, EncodedValues, ExtendedValues}
+import org.locationtech.geomesa.index.conf.QueryHints._
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -53,16 +54,16 @@ class BinLineStringTest extends Specification with TestWithDataStore {
 
   def getQuery(filter: String, dtg: Option[String] = None, label: Option[String] = None): Query = {
     val query = new Query(sftName, ECQL.toFilter(filter))
-    query.getHints.put(BIN_TRACK_KEY, "track")
-    query.getHints.put(BIN_BATCH_SIZE_KEY, 100)
-    dtg.foreach(query.getHints.put(BIN_DTG_KEY, _))
-    label.foreach(query.getHints.put(BIN_LABEL_KEY, _))
+    query.getHints.put(BIN_TRACK, "track")
+    query.getHints.put(BIN_BATCH_SIZE, 100)
+    dtg.foreach(query.getHints.put(BIN_DTG, _))
+    label.foreach(query.getHints.put(BIN_LABEL, _))
     query
   }
 
   def runQuery(query: Query): Seq[EncodedValues] = {
     import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
-    val binSize = if (query.getHints.containsKey(BIN_LABEL_KEY)) 24 else 16
+    val binSize = if (query.getHints.containsKey(BIN_LABEL)) 24 else 16
     val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
     val bytes = features.map { f =>
       val array = f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]
@@ -78,12 +79,12 @@ class BinLineStringTest extends Specification with TestWithDataStore {
     "return all points of a linestring with z2 index" >> {
       val filter = "bbox(geom, 38, 58, 42, 72)"
       val query = getQuery(filter)
-      forall(ds.getQueryPlan(query))(_.table must endWith(Z2Table.suffix))
+      forall(ds.getQueryPlan(query))(_.table must endWith(Z2Index.name))
 
       val bins = runQuery(query)
 
       bins must haveLength(40)
-      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode.toString)
+      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode)
       forall(0 until 10) { i =>
         bins.map(_.dtg) must contain(features(i).getAttribute("dtg").asInstanceOf[Date].getTime).exactly(4.times)
         bins.map(_.lat) must contain(60.0f + i).exactly(4.times)
@@ -98,12 +99,12 @@ class BinLineStringTest extends Specification with TestWithDataStore {
       val filter = "bbox(geom, 38, 58, 42, 72) " +
           "AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val query = getQuery(filter)
-      forall(ds.getQueryPlan(query))(_.table must endWith(Z3Table.suffix))
+      forall(ds.getQueryPlan(query))(_.table must endWith(Z3Index.name))
 
       val bins = runQuery(query)
 
       bins must haveLength(40)
-      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode.toString)
+      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode)
       forall(0 until 10) { i =>
         bins.map(_.dtg) must contain(features(i).getAttribute("dtg").asInstanceOf[Date].getTime).exactly(4.times)
         bins.map(_.lat) must contain(60.0f + i).exactly(4.times)
@@ -117,13 +118,13 @@ class BinLineStringTest extends Specification with TestWithDataStore {
     "return all points of a linestring plus label with z2 index" >> {
       val filter = "bbox(geom, 38, 58, 42, 72)"
       val query = getQuery(filter, label = Some("name"))
-      forall(ds.getQueryPlan(query))(_.table must endWith(Z2Table.suffix))
+      forall(ds.getQueryPlan(query))(_.table must endWith(Z2Index.name))
 
       val bins = runQuery(query)
 
       bins must haveLength(40)
       forall(bins)(_ must beAnInstanceOf[ExtendedValues])
-      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode.toString)
+      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode)
       forall(0 until 10) { i =>
         bins.map(_.dtg) must contain(features(i).getAttribute("dtg").asInstanceOf[Date].getTime).exactly(4.times)
         bins.map(_.lat) must contain(60.0f + i).exactly(4.times)
@@ -139,13 +140,13 @@ class BinLineStringTest extends Specification with TestWithDataStore {
       val filter = "bbox(geom, 38, 58, 42, 72) " +
           "AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val query = getQuery(filter, label = Some("name"))
-      forall(ds.getQueryPlan(query))(_.table must endWith(Z3Table.suffix))
+      forall(ds.getQueryPlan(query))(_.table must endWith(Z3Index.name))
 
       val bins = runQuery(query)
 
       bins must haveLength(40)
       forall(bins)(_ must beAnInstanceOf[ExtendedValues])
-      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode.toString)
+      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode)
       forall(0 until 10) { i =>
         bins.map(_.dtg) must contain(features(i).getAttribute("dtg").asInstanceOf[Date].getTime).exactly(4.times)
         bins.map(_.lat) must contain(60.0f + i).exactly(4.times)
@@ -160,12 +161,12 @@ class BinLineStringTest extends Specification with TestWithDataStore {
     "return all points of a linestring and date list with z2 index" >> {
       val filter = "bbox(geom, 38, 58, 42, 72)"
       val query = getQuery(filter, dtg = Some("dtgList"))
-      forall(ds.getQueryPlan(query))(_.table must endWith(Z2Table.suffix))
+      forall(ds.getQueryPlan(query))(_.table must endWith(Z2Index.name))
 
       val bins = runQuery(query)
 
       bins must haveLength(40)
-      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode.toString)
+      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode)
       forall(0 until 10) { i =>
         val baseDate = features(i).getAttribute("dtg").asInstanceOf[Date].getTime
         bins.map(_.dtg) must containAllOf(Seq(baseDate, baseDate + 60000, baseDate + 120000, baseDate + 180000))
@@ -181,12 +182,12 @@ class BinLineStringTest extends Specification with TestWithDataStore {
       val filter = "bbox(geom, 38, 58, 42, 72) " +
           "AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val query = getQuery(filter, dtg = Some("dtgList"))
-      forall(ds.getQueryPlan(query))(_.table must endWith(Z3Table.suffix))
+      forall(ds.getQueryPlan(query))(_.table must endWith(Z3Index.name))
 
       val bins = runQuery(query)
 
       bins must haveLength(40)
-      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode.toString)
+      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode)
       forall(0 until 10) { i =>
         val baseDate = features(i).getAttribute("dtg").asInstanceOf[Date].getTime
         bins.map(_.dtg) must containAllOf(Seq(baseDate, baseDate + 60000, baseDate + 120000, baseDate + 180000))
@@ -201,13 +202,13 @@ class BinLineStringTest extends Specification with TestWithDataStore {
     "return all points of a linestring and date list plus label with z2 index" >> {
       val filter = "bbox(geom, 38, 58, 42, 72)"
       val query = getQuery(filter, dtg = Some("dtgList"), label = Some("name"))
-      forall(ds.getQueryPlan(query))(_.table must endWith(Z2Table.suffix))
+      forall(ds.getQueryPlan(query))(_.table must endWith(Z2Index.name))
 
       val bins = runQuery(query)
 
       bins must haveLength(40)
       forall(bins)(_ must beAnInstanceOf[ExtendedValues])
-      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode.toString)
+      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode)
       forall(0 until 10) { i =>
         val baseDate = features(i).getAttribute("dtg").asInstanceOf[Date].getTime
         bins.map(_.dtg) must containAllOf(Seq(baseDate, baseDate + 60000, baseDate + 120000, baseDate + 180000))
@@ -224,13 +225,13 @@ class BinLineStringTest extends Specification with TestWithDataStore {
       val filter = "bbox(geom, 38, 58, 42, 72) " +
           "AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val query = getQuery(filter, dtg = Some("dtgList"), label = Some("name"))
-      forall(ds.getQueryPlan(query))(_.table must endWith(Z3Table.suffix))
+      forall(ds.getQueryPlan(query))(_.table must endWith(Z3Index.name))
 
       val bins = runQuery(query)
 
       bins must haveLength(40)
       forall(bins)(_ must beAnInstanceOf[ExtendedValues])
-      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode.toString)
+      forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode)
       forall(0 until 10) { i =>
         val baseDate = features(i).getAttribute("dtg").asInstanceOf[Date].getTime
         bins.map(_.dtg) must containAllOf(Seq(baseDate, baseDate + 60000, baseDate + 120000, baseDate + 180000))

@@ -46,7 +46,7 @@ Prerequisites
 
 You will need:
 
--  an instance of Accumulo |accumulo_version| running on Hadoop 2.2.x
+-  an instance of Accumulo |accumulo_version| running on Hadoop |hadoop_version|
 -  an Accumulo user that has appropriate permissions to query your data
 -  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
 -  `Apache Maven <http://maven.apache.org/>`__ |maven_version|
@@ -69,6 +69,11 @@ Pick a reasonable directory on your machine, and run:
 
     $ git clone https://github.com/geomesa/geomesa-tutorials.git
     $ cd geomesa-tutorials
+
+.. note::
+
+    You may need to download a particular release of the tutorials project
+    to target a particular GeoMesa release. See :ref:`tutorial_versions`.
 
 To build, run
 

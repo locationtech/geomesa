@@ -15,11 +15,11 @@ package object geomesa {
   // 2  -> sorted keys in the STIDX table
   // 3  -> skipped for integration
   // 4  -> kryo encoded index values
-  // 5  -> z3 index
-  // 6  -> attribute indices with dates
-  // 7  -> z3 polygons
-  // 8  -> z2 index, deprecating stidx
-  // 9  -> per-attribute-visibilities, not serializing ID in value
-  // 10 -> XZ2 index
+  // 5  -> z3 index (1.1.0-rc.1 through 1.1.0-rc.2)
+  // 6  -> attribute indices with dates (1.1.0-rc.3 through 1.2.0)
+  // 7  -> z3 polygons (1.2.1)
+  // 8  -> z2 index, deprecating stidx (1.2.2 through 1.2.4)
+  // 9  -> per-attribute-visibilities, not serializing ID in value (not released separately)
+  // 10 -> XZ2, XZ3 (1.2.5+)
   val CURRENT_SCHEMA_VERSION = 10
 }

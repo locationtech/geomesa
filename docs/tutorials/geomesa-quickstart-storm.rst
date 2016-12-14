@@ -16,22 +16,20 @@ Prerequisites
 
 You will need access to:
 
--  an instance of Accumulo |accumulo_version|
+-  an instance of Accumulo |accumulo_version| running on Hadoop |hadoop_version|
 -  an Accumulo user with create-table and write permissions
 -  an installation of Kafka |kafka_version|
 -  an installation of Storm 0.8
 -  an instance of GeoServer |geoserver_version| with the GeoMesa Accumulo plugin
    installed
 
-In order to install the GeoMesa Accumulo GeoServer plugin, follow the
-instructions
-`here <https://github.com/locationtech/geomesa/tree/master/geomesa-gs-plugin/geomesa-accumulo-gs-plugin>`__.
+In order to install the GeoMesa Accumulo GeoServer plugin, see :ref:`install_accumulo_geoserver`.
 
 You will also need:
 
--  The `xz <http://tukanni.org/xz/>`__ data compression tool
+-  The `xz <http://tukaani.org/xz/>`__ data compression tool
 -  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
--  `Apache Maven <http://maven.apache.org>`__ |maven_version| or better
+-  `Apache Maven <http://maven.apache.org>`__ |maven_version|
 -  a `git <http://git-scm.com/>`__ client
 
 Download and Build the Tutorial
@@ -43,6 +41,11 @@ Pick a reasonable directory on your machine, and run:
 
     $ git clone https://github.com/geomesa/geomesa-tutorials.git
     $ cd geomesa-tutorials
+
+.. note::
+
+    You may need to download a particular release of the tutorials project
+    to target a particular GeoMesa release. See :ref:`tutorial_versions`.
 
 To build, run
 
@@ -249,7 +252,14 @@ Heatmaps
 --------
 
 Use a heatmap to more clearly visualize a high volume of data in the
-same location. Add the
+same location.
+
+.. note::
+
+    The heatmap style requires that ``geomesa-process`` be installed in your
+    GeoServer, as described in :ref:`install_geomesa_process`.
+
+Add the
 :download:`heatmap.sld <_static/geomesa-quickstart-storm/heatmap.sld>` file to
 GeoServer, then browse to the following URL:
 

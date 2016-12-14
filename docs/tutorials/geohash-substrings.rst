@@ -27,7 +27,7 @@ with the time dimension represented on the Z-axis. This encoding is a
 simplified version of what GeoMesa uses as the default index-schema
 format.
 
-|"Animation of Covering Geohashes"|
+.. image:: _static/geohash-substrings/progression-800x450.gif
 
 The two ribbons in front of the space-time cube represent the single,
 logical list of cell identifiers (in the foreground); and the same list
@@ -43,53 +43,16 @@ might intuit that a query plan is really a list of contiguous cell
 ranges that fall inside the desired geographic area and time interval.
 As an example, assume we had this query:
 
-.. raw:: html
-
-   <ul>
-
-.. raw:: html
-
-   <li>
-
--180 ≤ longitude < 225
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   <li>
-
--90 ≤ latitude < 112.5
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   <li>
-
-0 < time < 9 (on an arbitrary scale of 0 to 16 for this illustration)
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   </ul>
+ * -180 ≤ longitude < 45
+ * -90 ≤ latitude < 22.5
+ * 0 < time < 9 (on an arbitrary scale of 0 to 16 for this illustration)
 
 This corresponds to just over half of the lowest values in each of the
 three dimensions. The visual selection of cells and their locations in
 both the global list of keys as well as the sharded lists of keys are
 depicted in this image:
 
-.. figure:: _static/img/tutorials/2014-08-05-geohash-substrings/sel-x4y4t8-11.png
-   :alt: "Animation of Covering Geohashes"
-
-   "Animation of Covering Geohashes"
+.. image:: _static/geohash-substrings/sel-x4y4t8-11.png
 
 This example uses a 10-bit encoding, so there are only 1024 cells in the
 cube. The default GeoMesa index-schema format uses more than 55 bits in
@@ -151,10 +114,7 @@ roughly approximates the continental USA, this algorithm steps through
 identifying Geohash prefixes whose precision is less than or equal to 10
 bits:
 
-.. figure:: _static/img/tutorials/2014-08-05-geohash-substrings/usa.gif
-   :alt: "Animation of Covering Geohashes"
-
-   "Animation of Covering Geohashes"
+.. image:: _static/geohash-substrings/usa.gif
 
 The query polygon is colored yellow. Each of the non-terminal Geohashes
 that intersects the query polygon is shaded white with a red square
@@ -169,10 +129,12 @@ This discussion of the algorithm is coarse, in part because its role in
 the overall query process has been simplified to streamline the
 explanation in this short note. The full version as used within the
 query planner can be found nested inside the
-`getUniqueGeohashSubstringsInPolygon <https://github.com/locationtech/geomesa/blob/master/geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/geohash/GeohashUtils.scala#L914>`__
+`getUniqueGeohashSubstringsInPolygon`_
 method, where it enables GeoMesa to enumerate the unique substrings of
 larger Geohashes quickly and efficiently, expediting the entire
 query-planning process.
+
+.. _getUniqueGeohashSubstringsInPolygon: https://github.com/locationtech/geomesa/blob/geomesa_2.11-1.3.0-m0/geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/geohash/GeohashUtils.scala#L937
 
 Addendum
 --------
@@ -184,7 +146,3 @@ background:
 -  `Z-order curve <http://en.wikipedia.org/wiki/Z-order_curve>`__
 -  `Hilbert curve <http://en.wikipedia.org/wiki/Hilbert_curve>`__
 -  `GeoWave <https://github.com/ngageoint/geowave>`__
-
-.. |"Animation of Covering Geohashes"| image:: _static/img/tutorials/2014-08-05-geohash-substrings/sel-XXYYTT-11.png
-   :target: _static/img/tutorials/2014-08-05-geohash-substrings/progression.ogv
-

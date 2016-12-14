@@ -125,5 +125,32 @@ class XZ3SFCTest extends Specification with LazyLogging {
         matches must beTrue
       }
     }
+
+    "fail for out-of-bounds values" >> {
+      val tmin = 0d
+      val tmax = BinnedTime.maxOffset(TimePeriod.Week).toDouble
+      val toFail = Seq(
+        (-180.1, 0d, 0d, -179.9, 1d, 1d),
+        (179.9, 0d, 0d, 180.1, 1d, 1d),
+        (-180.3, 0d, 0d, -180.1, 1d, 1d),
+        (180.1, 0d, 0d, 180.3, 1d, 1d),
+        (-180.1, 0d, 0d, 180.1, 1d, 1d),
+        (0d, -90.1, 0d, 1d, -89.9, 1d),
+        (0d, 89.9, 0d, 1d, 90.1, 1d),
+        (0d, -90.3, 0d, 1d, -90.1, 1d),
+        (0d, 90.1, 0d, 1d, 90.3, 1d),
+        (0d, -90.1, 0d, 1d, 90.1, 1d),
+        (0d, 0d, tmin - 0.1, 1d, 1d, tmin + 0.1),
+        (0d, 0d, tmax - 0.1, 1d, 1d, tmax + 0.1),
+        (0d, 0d, tmin - 0.3, 1d, 1d, tmin - 0.1),
+        (0d, 0d, tmax + 0.1, 1d, 1d, tmax + 0.3),
+        (0d, 0d, tmin - 0.1, 1d, 1d, tmax + 0.1),
+        (-181d, -91d, tmin - 1, 0d, 0d, 0d),
+        (0d, 0d, 0d, 181d, 91d, tmax + 1)
+      )
+      forall(toFail) { case (xmin, ymin, zmin, xmax, ymax, zmax) =>
+        sfc.index(xmin, ymin, zmin, xmax, ymax, zmax) must throwAn[IllegalArgumentException]
+      }
+    }
   }
 }

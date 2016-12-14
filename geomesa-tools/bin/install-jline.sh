@@ -7,20 +7,20 @@
 # http://www.opensource.org/licenses/apache2.0.php.
 #
 
-# Check environment variables before running anything, warn user on issues:
-if [[ (-z "$GEOMESA_HOME") ]]; then
-    echo "Error: GEOMESA_HOME environmental variable not found...install geomesa or define GEOMESA_HOME and try again"
-    exit
+if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
+  export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
+fi
+lib_dir="${%%gmtools.dist.name%%_HOME}/lib"
+
+url='http://search.maven.org/remotecontent?filepath=jline/jline/2.12.1/jline-2.12.1.jar'
+read -r -p "JLine is BSD licensed and free to use and distribute, however, the provenance of the code could not be established by the Eclipse Foundation, and thus it is not distributed with GeoMesa... are you sure you want to install it from $url ? [Y/n] " confirm
+confirm=${confirm,,} #lowercasing
+if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
+  echo "Trying to install JLine from $url to ${lib_dir}"
+  wget -O /tmp/jline-2.12.1.jar $url \
+    && mv /tmp/jline-2.12.1.jar "${lib_dir}/" \
+    && echo "Successfully installed JLine to ${lib_dir}" \
+    || { rm -f /tmp/jline-2.12.1.jar; echo "Failed to download: ${url}"; };
 else
-    url='http://search.maven.org/remotecontent?filepath=jline/jline/2.12.1/jline-2.12.1.jar'
-    read -r -p "JLine is BSD licensed and free to use and distribute, however, the provenance of the code could not be established by the Eclipse Foundation, and thus it is not distributed with GeoMesa... are you sure you want to install it from $url ? [Y/n] " confirm
-    confirm=${confirm,,} #lowercasing
-    if [[ $confirm =~ ^(yes|y) ]]; then
-        echo "Trying to install JLine from $url to $GEOMESA_HOME"
-        wget -O /tmp/jline-2.12.1.jar $url \
-            && mv /tmp/jline-2.12.1.jar $GEOMESA_HOME/lib/common/ \
-            && echo "Successfully installed JLine to $GEOMESA_HOME"
-    else
-        echo "Cancelled installation of JLine"
-    fi
+  echo "Cancelled installation of JLine"
 fi

@@ -14,6 +14,7 @@ import javax.imageio.spi.ServiceRegistry
 
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
@@ -63,10 +64,10 @@ trait ConfigSftParsing extends LazyLogging {
 }
 
 object ConfigSftParsing {
-  val ConfigPathProperty = "org.locationtech.geomesa.sft.config.path"
+  val ConfigPathProperty = SystemProperty("org.locationtech.geomesa.sft.config.path", "geomesa.sfts")
 
   // keep as function so its mutable
-  def path = sys.props.getOrElse(ConfigPathProperty, "geomesa.sfts")
+  def path = ConfigPathProperty.get
 }
 
 class ClassPathSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {

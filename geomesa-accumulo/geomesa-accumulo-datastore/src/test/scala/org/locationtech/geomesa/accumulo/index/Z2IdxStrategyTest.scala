@@ -17,13 +17,13 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.data.tables.{Z2Table, Z3Table}
-import org.locationtech.geomesa.accumulo.index.QueryHints._
-import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
+import org.locationtech.geomesa.accumulo.index.z2.Z2Index
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.{Convert2ViewerFunction, ExtendedValues}
+import org.locationtech.geomesa.index.conf.QueryHints._
+import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.sfcurve.zorder.Z2
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
@@ -54,15 +54,15 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
   addFeatures(features)
 
   implicit val ff = CommonFactoryFinder.getFilterFactory2
-  val strategy = StrategyType.Z2
-  val queryPlanner = new QueryPlanner(sft, ds)
+  val strategy = Z2Index
+  val queryPlanner = ds.queryPlanner
   val output = ExplainNull
 
   "Z3IdxStrategy" should {
     "print values" in {
       skipped("used for debugging")
       println()
-      ds.connector.createScanner(ds.getTableName(sftName, Z2Table), new Authorizations()).foreach { r =>
+      ds.connector.createScanner(Z2Index.getTableName(sftName, ds), new Authorizations()).foreach { r =>
         val bytes = r.getKey.getRow.getBytes
         val keyZ = Longs.fromByteArray(bytes.drop(2))
         val (x, y) = Z2SFC.invert(Z2(keyZ))
@@ -104,44 +104,11 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
       features.map(_.getID.toInt) must containTheSameElementsAs(5 to 8)
     }
 
-    "work across week bounds" >> {
-      val filter = "bbox(geom, 35, 65, 45, 75)" +
-          " AND dtg between '2010-05-07T06:00:00.000Z' and '2010-05-21T00:00:00.000Z'"
+    "work with small bboxes" >> {
+      val filter = "bbox(geom, 39.999, 60.999, 40.001, 61.001)"
       val features = execute(filter)
-      features must haveSize(9)
-      features.map(_.getID.toInt) must containTheSameElementsAs((6 to 9) ++ (15 to 19))
-    }
-
-    "work across 2 weeks" >> {
-      val filter = "bbox(geom, 35, 64.5, 45, 70)" +
-          " AND dtg between '2010-05-10T00:00:00.000Z' and '2010-05-17T23:59:59.999Z'"
-      val features = execute(filter)
-      features must haveSize(3)
-      features.map(_.getID.toInt) must containTheSameElementsAs(15 to 17)
-    }
-
-    "work with whole world filter across week bounds" >> {
-      val filter = "bbox(geom, -180, -90, 180, 90)" +
-          " AND dtg between '2010-05-07T06:00:00.000Z' and '2010-05-21T00:00:00.000Z'"
-      val features = execute(filter)
-      features must haveSize(15)
-      features.map(_.getID.toInt) must containTheSameElementsAs(6 to 20)
-    }
-
-    "work with whole world filter across 3 week periods" >> {
-      val filter = "bbox(geom, -180, -90, 180, 90)" +
-        " AND dtg between '2010-05-08T06:00:00.000Z' and '2010-05-30T00:00:00.000Z'"
-      val features = execute(filter)
-      features must haveSize(20)
-      features.map(_.getID.toInt) must containTheSameElementsAs(10 to 29)
-    }
-
-    "work with small bboxes and date ranges" >> {
-      val filter = "bbox(geom, 39.999, 60.999, 40.001, 61.001)" +
-        " AND dtg between '2010-05-07T00:59:00.000Z' and '2010-05-07T01:01:00.000Z'"
-      val features = execute(filter)
-      features must haveSize(1)
-      features.head.getID.toInt mustEqual 1
+      features must haveSize(2)
+      features.map(_.getID.toInt) must containTheSameElementsAs(Seq(1, 11))
     }
 
     "apply secondary filters" >> {
@@ -180,7 +147,7 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
           " AND dtg between '2010-05-07T06:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val query = new Query(sftName, ECQL.toFilter(filter), Array("geom", "dtg"))
       val qps = getQueryPlans(query)
-      forall(qps)(p => p.columnFamilies must containTheSameElementsAs(Seq(Z3Table.BIN_CF)))
+      forall(qps)(p => p.columnFamilies must containTheSameElementsAs(Seq(AccumuloWritableIndex.BinColumnFamily)))
 
       val features = execute(filter, Some(Array("geom", "dtg")))
       features must haveSize(4)
@@ -194,20 +161,20 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
       val filter = "bbox(geom, -180, -90, 180, 90)" +
           " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
       val query = new Query(sftName, ECQL.toFilter(filter))
-      query.getHints.put(BIN_TRACK_KEY, "name")
-      query.getHints.put(BIN_BATCH_SIZE_KEY, 100)
+      query.getHints.put(BIN_TRACK, "name")
+      query.getHints.put(BIN_BATCH_SIZE, 100)
 
       val qps = getQueryPlans(query)
       forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
 
-      val returnedFeatures = queryPlanner.runQuery(query, Some(strategy))
+      val returnedFeatures = queryPlanner.runQuery(sft, query, Some(strategy))
       // the same simple feature gets reused - so make sure you access in serial order
       val aggregates = returnedFeatures.map(f =>
         f.getAttribute(BinAggregatingIterator.BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
       aggregates.size must beLessThan(10) // ensure some aggregation was done
       val bin = aggregates.flatMap(a => a.grouped(16).map(Convert2ViewerFunction.decode))
       bin must haveSize(10)
-      bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode.toString))
+      bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode))
       bin.map(_.dtg) must
           containAllOf((0 until 10).map(i => features(i).getAttribute("dtg").asInstanceOf[Date].getTime))
       bin.map(_.lat) must containAllOf((0 until 10).map(_ + 60.0))
@@ -218,14 +185,14 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
       val filter = "bbox(geom, -180, -90, 180, 90)" +
           " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
       val query = new Query(sftName, ECQL.toFilter(filter))
-      query.getHints.put(BIN_TRACK_KEY, "name")
-      query.getHints.put(BIN_BATCH_SIZE_KEY, 100)
-      query.getHints.put(BIN_SORT_KEY, true)
+      query.getHints.put(BIN_TRACK, "name")
+      query.getHints.put(BIN_BATCH_SIZE, 100)
+      query.getHints.put(BIN_SORT, true)
 
       val qps = getQueryPlans(query)
       forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
 
-      val returnedFeatures = queryPlanner.runQuery(query, Some(strategy))
+      val returnedFeatures = queryPlanner.runQuery(sft, query, Some(strategy))
       // the same simple feature gets reused - so make sure you access in serial order
       val aggregates = returnedFeatures.map(f =>
         f.getAttribute(BinAggregatingIterator.BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
@@ -236,7 +203,7 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
       }
       val bin = aggregates.flatMap(a => a.grouped(16).map(Convert2ViewerFunction.decode))
       bin must haveSize(10)
-      bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode.toString))
+      bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode))
       bin.map(_.dtg) must
           containAllOf((0 until 10).map(i => features(i).getAttribute("dtg").asInstanceOf[Date].getTime))
       bin.map(_.lat) must containAllOf((0 until 10).map(_ + 60.0))
@@ -247,21 +214,21 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
       val filter = "bbox(geom, -180, -90, 180, 90)" +
           " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
       val query = new Query(sftName, ECQL.toFilter(filter))
-      query.getHints.put(BIN_TRACK_KEY, "name")
-      query.getHints.put(BIN_LABEL_KEY, "name")
-      query.getHints.put(BIN_BATCH_SIZE_KEY, 100)
+      query.getHints.put(BIN_TRACK, "name")
+      query.getHints.put(BIN_LABEL, "name")
+      query.getHints.put(BIN_BATCH_SIZE, 100)
 
       val qps = getQueryPlans(query)
       forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
 
-      val returnedFeatures = queryPlanner.runQuery(query, Some(strategy))
+      val returnedFeatures = queryPlanner.runQuery(sft, query, Some(strategy))
       // the same simple feature gets reused - so make sure you access in serial order
       val aggregates = returnedFeatures.map(f =>
         f.getAttribute(BinAggregatingIterator.BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
       aggregates.size must beLessThan(10) // ensure some aggregation was done
       val bin = aggregates.flatMap(a => a.grouped(24).map(Convert2ViewerFunction.decode))
       bin must haveSize(10)
-      bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode.toString))
+      bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode))
       bin.map(_.dtg) must
           containAllOf((0 until 10).map(i => features(i).getAttribute("dtg").asInstanceOf[Date].getTime))
       bin.map(_.lat) must containAllOf((0 until 10).map(_ + 60.0))
@@ -272,40 +239,40 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
 
     "support sampling" in {
       val query = new Query(sftName, Filter.INCLUDE)
-      query.getHints.put(SAMPLING_KEY, new java.lang.Float(.5f))
-      val results = queryPlanner.runQuery(query, Some(strategy)).toList
+      query.getHints.put(SAMPLING, new java.lang.Float(.5f))
+      val results = queryPlanner.runQuery(sft, query, Some(strategy)).toList
       results must haveLength(15)
     }
 
     "support sampling with cql" in {
       val query = new Query(sftName, ECQL.toFilter("track = 'track1'"))
-      query.getHints.put(SAMPLING_KEY, new java.lang.Float(.5f))
-      val results = queryPlanner.runQuery(query, Some(strategy)).toList
+      query.getHints.put(SAMPLING, new java.lang.Float(.5f))
+      val results = queryPlanner.runQuery(sft, query, Some(strategy)).toList
       results must haveLength(5)
       forall(results)(_.getAttribute("track") mustEqual "track1")
     }
 
     "support sampling with transformations" in {
       val query = new Query(sftName, Filter.INCLUDE, Array("name", "geom"))
-      query.getHints.put(SAMPLING_KEY, new java.lang.Float(.5f))
-      val results = queryPlanner.runQuery(query, Some(strategy)).toList
+      query.getHints.put(SAMPLING, new java.lang.Float(.5f))
+      val results = queryPlanner.runQuery(sft, query, Some(strategy)).toList
       results must haveLength(15)
       forall(results)(_.getAttributeCount mustEqual 2)
     }
 
     "support sampling with cql and transformations" in {
       val query = new Query(sftName, ECQL.toFilter("track = 'track2'"), Array("name", "geom"))
-      query.getHints.put(SAMPLING_KEY, new java.lang.Float(.2f))
-      val results = queryPlanner.runQuery(query, Some(strategy)).toList
+      query.getHints.put(SAMPLING, new java.lang.Float(.2f))
+      val results = queryPlanner.runQuery(sft, query, Some(strategy)).toList
       results must haveLength(2)
       forall(results)(_.getAttributeCount mustEqual 2)
     }
 
     "support sampling by thread" in {
       val query = new Query(sftName, Filter.INCLUDE)
-      query.getHints.put(SAMPLING_KEY, new java.lang.Float(.5f))
-      query.getHints.put(SAMPLE_BY_KEY, "track")
-      val results = queryPlanner.runQuery(query, Some(strategy)).toList
+      query.getHints.put(SAMPLING, new java.lang.Float(.5f))
+      query.getHints.put(SAMPLE_BY, "track")
+      val results = queryPlanner.runQuery(sft, query, Some(strategy)).toList
       results must haveLength(15)
       results.count(_.getAttribute("track") == "track1") mustEqual 5
       results.count(_.getAttribute("track") == "track2") mustEqual 5
@@ -315,31 +282,31 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
     "support sampling with bin queries" in {
       import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, Filter.INCLUDE)
-      query.getHints.put(BIN_TRACK_KEY, "track")
-      query.getHints.put(BIN_BATCH_SIZE_KEY, 1000)
-      query.getHints.put(SAMPLING_KEY, new java.lang.Float(.2f))
-      query.getHints.put(SAMPLE_BY_KEY, "track")
+      query.getHints.put(BIN_TRACK, "track")
+      query.getHints.put(BIN_BATCH_SIZE, 1000)
+      query.getHints.put(SAMPLING, new java.lang.Float(.2f))
+      query.getHints.put(SAMPLE_BY, "track")
 
       // have to evaluate attributes before pulling into collection, as the same sf is reused
-      val results = queryPlanner.runQuery(query, Some(strategy)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
+      val results = queryPlanner.runQuery(sft, query, Some(strategy)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
       bins must haveLength(6)
       bins.map(_.trackId) must containTheSameElementsAs {
-        Seq("track1", "track1", "track2", "track2", "track3", "track3").map(_.hashCode.toString)
+        Seq("track1", "track1", "track2", "track2", "track3", "track3").map(_.hashCode)
       }
     }
   }
 
-  def execute(ecql: String, transforms: Option[Array[String]] = None, explain: ExplainerOutputType = ExplainNull) = {
+  def execute(ecql: String, transforms: Option[Array[String]] = None, explain: Explainer = ExplainNull) = {
     val query = transforms match {
       case None    => new Query(sftName, ECQL.toFilter(ecql))
       case Some(t) => new Query(sftName, ECQL.toFilter(ecql), t)
     }
-    queryPlanner.runQuery(query, Some(strategy), output = explain).toSeq
+    queryPlanner.runQuery(sft, query, Some(strategy), output = explain).toSeq
   }
 
-  def getQueryPlans(query: Query): Seq[QueryPlan] = {
-    queryPlanner.planQuery(query, Some(strategy), output)
+  def getQueryPlans(query: Query): Seq[AccumuloQueryPlan] = {
+    queryPlanner.planQuery(sft, query, Some(strategy), output).asInstanceOf[Seq[AccumuloQueryPlan]]
   }
 }

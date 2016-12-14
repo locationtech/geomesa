@@ -14,9 +14,10 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
-import org.locationtech.geomesa.accumulo.index.QueryHints.SAMPLING_KEY
+import org.locationtech.geomesa.accumulo.iterators.{KryoAttributeKeyValueIterator, KryoLazyFilterTransformIterator}
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyFilterTransformIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
@@ -66,14 +67,16 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
 
         val query = new Query(sftName, filter, Array[String]("dtg", "geom", "name"))
         val plans = ds.getQueryPlan(query)
-        plans.size mustEqual 1
+        plans must haveLength(1)
         plans.head must beAnInstanceOf[BatchScanPlan]
         val bsp = plans.head.asInstanceOf[BatchScanPlan]
-        bsp.iterators.size mustEqual 1
-        bsp.iterators.head.getIteratorClass mustEqual classOf[KryoLazyFilterTransformIterator].getName
+        bsp.iterators must haveLength(2)
+        bsp.iterators.map(_.getIteratorClass) must containTheSameElementsAs {
+          Seq(classOf[KryoLazyFilterTransformIterator].getName, classOf[KryoAttributeKeyValueIterator].getName)
+        }
 
         val rws = fs.getFeatures(query).features().toList
-        rws.size mustEqual 3
+        rws must haveLength(3)
         val alice = rws.filter(_.get[String]("name") == "alice").head
         alice.getID mustEqual "alice"
         alice.getAttributeCount mustEqual 3
@@ -91,8 +94,10 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
         plans.size mustEqual 1
         plans.head must beAnInstanceOf[BatchScanPlan]
         val bsp = plans.head.asInstanceOf[BatchScanPlan]
-        bsp.iterators.size mustEqual 1
-        bsp.iterators.head.getIteratorClass mustEqual classOf[KryoLazyFilterTransformIterator].getName
+        bsp.iterators must haveLength(2)
+        bsp.iterators.map(_.getIteratorClass) must containTheSameElementsAs {
+          Seq(classOf[KryoLazyFilterTransformIterator].getName, classOf[KryoAttributeKeyValueIterator].getName)
+        }
       }
 
       "support sampling" >> {
@@ -102,17 +107,19 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
             s"dtg during 2014-01-01T00:00:00.000Z/2014-01-05T00:00:00.000Z ")
 
         val query = new Query(sftName, filter, Array[String]("dtg", "geom", "name"))
-        query.getHints.put(SAMPLING_KEY, new java.lang.Float(.5f))
+        query.getHints.put(QueryHints.SAMPLING, new java.lang.Float(.5f))
 
         val plans = ds.getQueryPlan(query)
         plans.size mustEqual 1
         plans.head must beAnInstanceOf[BatchScanPlan]
         val bsp = plans.head.asInstanceOf[BatchScanPlan]
-        bsp.iterators.size mustEqual 1
-        bsp.iterators.head.getIteratorClass mustEqual classOf[KryoLazyFilterTransformIterator].getName
+        bsp.iterators must haveLength(2)
+        bsp.iterators.map(_.getIteratorClass) must containTheSameElementsAs {
+          Seq(classOf[KryoLazyFilterTransformIterator].getName, classOf[KryoAttributeKeyValueIterator].getName)
+        }
 
         val rws = fs.getFeatures(query).features().toList
-        rws must haveSize(2)
+        rws must haveLength(2)
         rws.head.getAttributeCount mustEqual 3
       }
     }
@@ -136,11 +143,13 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
         plans.size mustEqual 1
         plans.head must beAnInstanceOf[BatchScanPlan]
         val bsp = plans.head.asInstanceOf[BatchScanPlan]
-        bsp.iterators.size mustEqual 1
-        bsp.iterators.head.getIteratorClass mustEqual classOf[KryoLazyFilterTransformIterator].getName
+        bsp.iterators must haveLength(2)
+        bsp.iterators.map(_.getIteratorClass) must containTheSameElementsAs {
+          Seq(classOf[KryoLazyFilterTransformIterator].getName, classOf[KryoAttributeKeyValueIterator].getName)
+        }
 
         val rws = fs.getFeatures(query).features().toList
-        rws.size mustEqual 3
+        rws must haveLength(3)
         val alice = rws.filter(_.get[String]("name") == "alice").head
         alice.getID mustEqual "alice"
         alice.getAttributeCount mustEqual 3
@@ -158,8 +167,10 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
         plans.size mustEqual 1
         plans.head must beAnInstanceOf[BatchScanPlan]
         val bsp = plans.head.asInstanceOf[BatchScanPlan]
-        bsp.iterators.size mustEqual 1
-        bsp.iterators.head.getIteratorClass mustEqual classOf[KryoLazyFilterTransformIterator].getName
+        bsp.iterators must haveLength(2)
+        bsp.iterators.map(_.getIteratorClass) must containTheSameElementsAs {
+          Seq(classOf[KryoLazyFilterTransformIterator].getName, classOf[KryoAttributeKeyValueIterator].getName)
+        }
       }
 
       "support sampling" >> {
@@ -169,17 +180,19 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
             s"dtg during 2014-01-01T00:00:00.000Z/2014-01-05T00:00:00.000Z ")
 
         val query = new Query(sftName, filter, Array[String]("dtg", "geom", "name"))
-        query.getHints.put(SAMPLING_KEY, new java.lang.Float(.5f))
+        query.getHints.put(QueryHints.SAMPLING, new java.lang.Float(.5f))
 
         val plans = ds.getQueryPlan(query)
         plans.size mustEqual 1
         plans.head must beAnInstanceOf[BatchScanPlan]
         val bsp = plans.head.asInstanceOf[BatchScanPlan]
-        bsp.iterators.size mustEqual 1
-        bsp.iterators.head.getIteratorClass mustEqual classOf[KryoLazyFilterTransformIterator].getName
+        bsp.iterators must haveLength(2)
+        bsp.iterators.map(_.getIteratorClass) must containTheSameElementsAs {
+          Seq(classOf[KryoLazyFilterTransformIterator].getName, classOf[KryoAttributeKeyValueIterator].getName)
+        }
 
         val rws = fs.getFeatures(query).features().toList
-        rws must haveSize(2)
+        rws must haveLength(2)
         rws.head.getAttributeCount mustEqual 3
       }
     }

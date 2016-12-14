@@ -20,6 +20,7 @@ import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataSt
 import org.locationtech.geomesa.blob.accumulo.GeoMesaAccumuloBlobStore
 import org.locationtech.geomesa.blob.api.{Blob, GeoMesaBlobStoreSFT}
 import org.locationtech.geomesa.utils.cache.FilePersistence
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.web.core.PersistentDataStoreServlet
 import org.scalatra._
 import org.scalatra.servlet.{FileItem, FileUploadSupport, MultipartConfig, SizeConstraintExceededException}
@@ -33,8 +34,8 @@ class BlobstoreServlet(val persistence: FilePersistence)
     with GZipSupport {
   override def root: String = "blobstore"
 
-  val maxFileSize: Int = System.getProperty(BlobstoreServlet.maxFileSizeSysProp, "50").toInt
-  val maxRequestSize: Int = System.getProperty(BlobstoreServlet.maxRequestSizeSysProp, "100").toInt
+  val maxFileSize: Int = SystemProperty(BlobstoreServlet.maxFileSizeSysProp, "50").get.toInt
+  val maxRequestSize: Int = SystemProperty(BlobstoreServlet.maxRequestSizeSysProp, "100").get.toInt
 
   // caps blob size
   configureMultipartHandling(

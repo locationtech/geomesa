@@ -16,6 +16,7 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import scala.collection.JavaConversions._
 import scala.util.Try
 
 object GeneralShapefileIngest {
@@ -24,15 +25,26 @@ object GeneralShapefileIngest {
 
   def shpToDataStoreViaParams(shapefilePath: String,
                               params: JMap[String, Serializable], featureName: String): DataStore = {
-    val shapefile =  FileDataStoreFinder.getDataStore(new File(shapefilePath))
+    val shapefile = getShapefileDatastore(shapefilePath)
     val features = shapefile.getFeatureSource.getFeatures
     val newDS = featuresToDataStoreViaParams(features, params, featureName)
     shapefile.dispose()
     newDS
   }
 
+  // The goal of this method is to allow for URL-based look-ups.
+  //  This allows for us to ingest files from HDFS and S3.
+  def getShapefileDatastore(shapefilePath: String): FileDataStore = {
+    // NOTE this regex is designed to work for s3a, s3n, etc.
+    if (shapefilePath.matches("""\w{3,4}:\/\/.*$""")) {
+      DataStoreFinder.getDataStore(Map("url" -> shapefilePath)).asInstanceOf[FileDataStore]
+    } else {
+      FileDataStoreFinder.getDataStore(new File(shapefilePath))
+    }
+  }
+
   def shpToDataStore(shapefilePath: String, ds: DataStore, featureName: String): DataStore = {
-    val shapefile =  FileDataStoreFinder.getDataStore(new File(shapefilePath))
+    val shapefile = getShapefileDatastore(shapefilePath)
     val features = shapefile.getFeatureSource.getFeatures
     val newDS = featuresToDataStore(features, ds, featureName)
     shapefile.dispose()
@@ -62,7 +74,7 @@ object GeneralShapefileIngest {
 
     val featureTypeName = featureType.getName.getLocalPart
 
-    val existingSchema = ds.getSchema(featureTypeName)
+    val existingSchema = Try { ds.getSchema(featureTypeName) }.getOrElse(null)
     if (existingSchema == null) {
       ds.createSchema(featureType)
     }

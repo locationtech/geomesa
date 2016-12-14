@@ -16,9 +16,9 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
-import org.locationtech.geomesa.accumulo.index.IndexSchema
 import org.locationtech.geomesa.accumulo.iterators.TestData._
-import org.locationtech.geomesa.accumulo.util.SelfClosingIterator
+import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -44,7 +44,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
                dtFilter: Interval = null,
                overrideGeometry: Boolean = false): Query = {
     val polygon: Polygon = overrideGeometry match {
-      case true => IndexSchema.everywhere
+      case true => org.locationtech.geomesa.utils.geotools.WholeWorldPolygon
       case false => WKTUtils.read(TestData.wktQuery).asInstanceOf[Polygon]
     }
 
@@ -166,8 +166,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
     val fs = ds.getFeatureSource(sft.getTypeName)
 
     "return a partial results-set with a meaningful attribute-filter" in {
-      val filterString = "(not " + DEFAULT_DTG_PROPERTY_NAME +
-        " after 2010-08-08T23:59:59Z) and (not dtg_end_time before 2010-08-08T00:00:00Z)"
+      val filterString = "(not dtg after 2010-08-08T23:59:59Z) and (not dtg_end_time before 2010-08-08T00:00:00Z)"
 
       val q = getQuery(sft, Some(filterString))
 
@@ -202,7 +201,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
     "return a filtered results-set with a degenerate time-range" in {
       val filterString = "true = true"
 
-      val dtFilter = IndexSchema.everywhen
+      val dtFilter = new Interval(FilterHelper.MinDateTime, FilterHelper.MaxDateTime)
       val q = getQuery(sft, Some(filterString), dtFilter)
 
       val filteredCount = features.count(q.getFilter.evaluate)
@@ -215,7 +214,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
     }
 
     "return an unfiltered results-set with a global request" in {
-      val dtFilter = IndexSchema.everywhen
+      val dtFilter = new Interval(FilterHelper.MinDateTime, FilterHelper.MaxDateTime)
       val q = getQuery(sft, None, dtFilter, overrideGeometry = true)
 
       val filteredCount = features.count(q.getFilter.evaluate)

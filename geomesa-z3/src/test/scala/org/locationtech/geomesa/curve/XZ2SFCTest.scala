@@ -126,5 +126,25 @@ class XZ2SFCTest extends Specification with LazyLogging {
         matches must beTrue
       }
     }
+
+    "fail for out-of-bounds values" >> {
+      val toFail = Seq(
+        (-180.1, 0d, -179.9, 1d),
+        (179.9, 0d, 180.1, 1d),
+        (-180.3, 0d, -180.1, 1d),
+        (180.1, 0d, 180.3, 1d),
+        (-180.1, 0d, 180.1, 1d),
+        (0d, -90.1, 1d, -89.9),
+        (0d, 89.9, 1d, 90.1),
+        (0d, -90.3, 1d, -90.1),
+        (0d, 90.1, 1d, 90.3),
+        (0d, -90.1, 1d, 90.1),
+        (-181d, -91d, 0d, 0d),
+        (0d, 0d, 181d, 91d)
+      )
+      forall(toFail) { case (xmin, ymin, xmax, ymax) =>
+        sfc.index(xmin, ymin, xmax, ymax) must throwAn[IllegalArgumentException]
+      }
+    }
   }
 }

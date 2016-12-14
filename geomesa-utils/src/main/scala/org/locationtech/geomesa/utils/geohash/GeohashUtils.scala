@@ -11,12 +11,14 @@ package org.locationtech.geomesa.utils.geohash
 import com.spatial4j.core.context.jts.JtsSpatialContext
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
-import org.locationtech.geomesa.utils.CartesianProductIterable
+import org.locationtech.geomesa.utils.geotools.GeometryUtils
+import org.locationtech.geomesa.utils.iterators.CartesianProductIterable
 import org.locationtech.geomesa.utils.text.WKTUtils
 
 import scala.collection.BitSet
 import scala.collection.immutable.HashSet
 import scala.collection.immutable.Range.Inclusive
+import scala.util.Try
 import scala.util.control.Exception.catching
 
 /**
@@ -719,7 +721,7 @@ object GeohashUtils
    * To represent a geometry with successive coordinates having lon diff > 180 and not wrapping
    * the IDL, you must insert a waypoint such that the difference is less than 180
    */
-  def getInternationalDateLineSafeGeometry(targetGeom: Geometry): Geometry = {
+  def getInternationalDateLineSafeGeometry(targetGeom: Geometry): Try[Geometry] = {
 
     def degreesLonTranslation(lon: Double): Double = (((lon + 180) / 360.0).floor * -360).toInt
 
@@ -763,18 +765,17 @@ object GeohashUtils
       }
     }
 
-    val withinBoundsGeom =
-      if (targetGeom.getEnvelopeInternal.getMinX < -180 || targetGeom.getEnvelopeInternal.getMaxX > 180)
-        translateGeometry(targetGeom)
-      else
-        targetGeom
+    Try {
+      // copy the geometry so that we don't modify the input - JTS mutates the geometry
+      // don't use the defaultGeometryFactory as it has limited precision
+      val copy = GeometryUtils.geoFactory.createGeometry(targetGeom)
+      val withinBoundsGeom =
+        if (targetGeom.getEnvelopeInternal.getMinX < -180 || targetGeom.getEnvelopeInternal.getMaxX > 180)
+          translateGeometry(copy)
+        else
+          copy
 
-    try {
       JtsSpatialContext.GEO.makeShape(withinBoundsGeom, true, true).getGeom
-    } catch {
-      case e: Exception =>
-        logger.warn(s"Error splitting geometry on IDL for $withinBoundsGeom", e)
-        withinBoundsGeom
     }
   }
 
@@ -793,7 +794,7 @@ object GeohashUtils
         decomposeGeometry(gc.getGeometryN(i), maxSize, resolutions, relaxFit)
       }.distinct
       case _ =>
-        val safeGeom = getInternationalDateLineSafeGeometry(targetGeom)
+        val safeGeom = getInternationalDateLineSafeGeometry(targetGeom).getOrElse(targetGeom)
         decomposeGeometry_(
           if (relaxFit) getDecomposableGeometry(safeGeom)
           else safeGeom, maxSize, resolutions)

@@ -13,12 +13,12 @@ import java.util.concurrent.atomic.AtomicBoolean
 import org.geotools.data.store.ContentFeatureSource
 import org.geotools.data.{DelegatingFeatureReader, FeatureReader, Query}
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.utils.monitoring.{UsageStat, Monitoring}
+import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditedEvent}
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, TimingsImpl}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class MonitoringFeatureReader(storeType: String, query: Query, delegate: FeatureReader[SimpleFeatureType, SimpleFeature])
-  extends DelegatingFeatureReader[SimpleFeatureType, SimpleFeature] with MethodProfiling {
+  extends DelegatingFeatureReader[SimpleFeatureType, SimpleFeature] with MethodProfiling with AuditLogger {
 
   protected var counter = 0L
 
@@ -31,16 +31,15 @@ class MonitoringFeatureReader(storeType: String, query: Query, delegate: Feature
 
   override def next(): SimpleFeature = {
     counter += 1
-    profile(delegate.next(), "next")
+    profile("next")(delegate.next())
   }
-  override def hasNext: Boolean = profile(delegate.hasNext, "hasNext")
+  override def hasNext: Boolean = profile("hasNext")(delegate.hasNext)
 
   override def close() = if (!closed.getAndSet(true)) {
     closeOnce()
   }
 
   protected def closeOnce(): Unit = {
-
     val stat = GeneralUsageStat(storeType,
       getFeatureType.getTypeName,
       System.currentTimeMillis(),
@@ -49,7 +48,7 @@ class MonitoringFeatureReader(storeType: String, query: Query, delegate: Feature
       counter
     )
     delegate.close()
-    Monitoring.log(stat)
+    writeEvent(stat)
   }
 }
 
@@ -62,4 +61,4 @@ trait MonitoringFeatureSourceSupport extends ContentFeatureSourceSupport {
   }
 }
 
-case class GeneralUsageStat(storeType: String, typeName: String, date: Long, filter: String, totalTime: Long, count: Long) extends UsageStat
+case class GeneralUsageStat(storeType: String, typeName: String, date: Long, filter: String, totalTime: Long, count: Long) extends AuditedEvent

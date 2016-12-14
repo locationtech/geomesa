@@ -12,11 +12,16 @@ import org.geotools.data.Query
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
-import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType.StrategyType
-import org.locationtech.geomesa.accumulo.index.Strategy.{CostEvaluation, StrategyType}
+import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
+import org.locationtech.geomesa.accumulo.index.id.RecordIndex
+import org.locationtech.geomesa.accumulo.index.z2.Z2Index
+import org.locationtech.geomesa.accumulo.index.z3.Z3Index
+import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloFilterStrategyType, TestWithDataStore}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation
+import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.opengis.filter.{And, Filter}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -61,24 +66,24 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
 
   "Cost-based strategy decisions" should {
 
-    def getStrategies(filter: Filter, transforms: Option[Array[String]], explain: ExplainerOutputType): Seq[QueryFilter] = {
+    def getStrategies(filter: Filter, transforms: Option[Array[String]], explain: Explainer): Seq[AccumuloFilterStrategyType] = {
       val query = transforms.map(new Query(sftName, filter, _)).getOrElse(new Query(sftName, filter))
       ds.getQueryPlan(query, explainer = explain).map(_.filter)
     }
 
-    def getStrategy(filter: String, expected: StrategyType, transforms: Option[Array[String]], explain: ExplainerOutputType) = {
+    def getStrategy(filter: String, expected: AccumuloFeatureIndexType, transforms: Option[Array[String]], explain: Explainer) = {
       val strategies = getStrategies(ECQL.toFilter(filter), transforms, explain)
-      forall(strategies)(_.strategy mustEqual expected)
+      forall(strategies)(_.index mustEqual expected)
     }
 
-    def getRecordStrategy(filter: String, transforms: Option[Array[String]] = None, explain: ExplainerOutputType = ExplainNull) =
-      getStrategy(filter, StrategyType.RECORD, transforms, explain)
-    def getAttributeStrategy(filter: String, transforms: Option[Array[String]] = None, explain: ExplainerOutputType = ExplainNull) =
-      getStrategy(filter, StrategyType.ATTRIBUTE, transforms, explain)
-    def getZ2Strategy(filter: String, transforms: Option[Array[String]] = None, explain: ExplainerOutputType = ExplainNull) =
-      getStrategy(filter, StrategyType.Z2, transforms, explain)
-    def getZ3Strategy(filter: String, transforms: Option[Array[String]] = None, explain: ExplainerOutputType = ExplainNull) =
-      getStrategy(filter, StrategyType.Z3, transforms, explain)
+    def getRecordStrategy(filter: String, transforms: Option[Array[String]] = None, explain: Explainer = ExplainNull) =
+      getStrategy(filter, RecordIndex, transforms, explain)
+    def getAttributeStrategy(filter: String, transforms: Option[Array[String]] = None, explain: Explainer = ExplainNull) =
+      getStrategy(filter, AttributeIndex, transforms, explain)
+    def getZ2Strategy(filter: String, transforms: Option[Array[String]] = None, explain: Explainer = ExplainNull) =
+      getStrategy(filter, Z2Index, transforms, explain)
+    def getZ3Strategy(filter: String, transforms: Option[Array[String]] = None, explain: Explainer = ExplainNull) =
+      getStrategy(filter, Z3Index, transforms, explain)
 
     "select z3 over z2 when spatial is limiting factor" >> {
       getZ3Strategy("bbox(geom,-75,45,-70,55) AND dtg DURING 2016-03-01T00:00:00.000Z/2016-03-07T00:00:00.000Z")
@@ -112,23 +117,22 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
 
   "Index-based strategy decisions" should {
 
-    def getStrategies(filter: Filter, explain: ExplainerOutputType = ExplainNull): Seq[QueryFilter] = {
-      import org.locationtech.geomesa.accumulo.index.QueryHints.COST_EVALUATION_KEY
+    def getStrategies(filter: Filter, explain: Explainer = ExplainNull): Seq[AccumuloFilterStrategyType] = {
       // default behavior for this test is to use the index-based query costs
       val query = new Query(sftName, filter)
-      query.getHints.put(COST_EVALUATION_KEY, CostEvaluation.Index)
+      query.getHints.put(QueryHints.COST_EVALUATION, CostEvaluation.Index)
       ds.getQueryPlan(query, explainer = explain).map(_.filter)
     }
 
-    def getStrategy(filter: String, expected: StrategyType, explain: ExplainerOutputType = ExplainNull) = {
+    def getStrategy(filter: String, expected: AccumuloFeatureIndexType, explain: Explainer = ExplainNull) = {
       val strategies = getStrategies(ECQL.toFilter(filter), explain)
-      forall(strategies)(_.strategy mustEqual expected)
+      forall(strategies)(_.index mustEqual expected)
     }
 
-    def getRecordStrategy(filter: String) = getStrategy(filter, StrategyType.RECORD)
-    def getAttributeStrategy(filter: String) = getStrategy(filter, StrategyType.ATTRIBUTE)
-    def getZ2Strategy(filter: String) = getStrategy(filter, StrategyType.Z2)
-    def getZ3Strategy(filter: String) = getStrategy(filter, StrategyType.Z3)
+    def getRecordStrategy(filter: String) = getStrategy(filter, RecordIndex)
+    def getAttributeStrategy(filter: String) = getStrategy(filter, AttributeIndex)
+    def getZ2Strategy(filter: String) = getStrategy(filter, Z2Index)
+    def getZ3Strategy(filter: String) = getStrategy(filter, Z3Index)
     def getFullTableStrategy(filter: String) = getZ3Strategy(filter)
 
     "Good spatial predicates should" >> {
@@ -184,7 +188,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
         "when best is first" >> {
           val strats = getStrategies(ff.and(Seq(nameFilter, heightFilter, weightFilter, ageFilter)))
           strats must haveLength(1)
-          strats.head.strategy mustEqual StrategyType.ATTRIBUTE
+          strats.head.index mustEqual AttributeIndex
           strats.head.primary mustEqual primary
           strats.head.secondary must beSome(secondary)
         }
@@ -192,7 +196,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
         "when best is in the middle" >> {
           val strats = getStrategies(ff.and(Seq(ageFilter, nameFilter, heightFilter, weightFilter)))
           strats must haveLength(1)
-          strats.head.strategy mustEqual StrategyType.ATTRIBUTE
+          strats.head.index mustEqual AttributeIndex
           strats.head.primary mustEqual primary
           strats.head.secondary must beSome(secondary)
         }
@@ -200,7 +204,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
         "when best is last" >> {
           val strats = getStrategies(ff.and(Seq(ageFilter, heightFilter, weightFilter, nameFilter)))
           strats must haveLength(1)
-          strats.head.strategy mustEqual StrategyType.ATTRIBUTE
+          strats.head.index mustEqual AttributeIndex
           strats.head.primary mustEqual primary
           strats.head.secondary must beSome(secondary)
         }
@@ -209,7 +213,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
           val like = ff.like(ff.property("nameHighCardinality"), "baddy")
           val strats = getStrategies(ff.and(Seq(like, heightFilter, weightFilter, ageFilter)))
           strats must haveLength(1)
-          strats.head.strategy mustEqual StrategyType.ATTRIBUTE
+          strats.head.index mustEqual AttributeIndex
           strats.head.primary mustEqual Some(like)
           strats.head.secondary must beSome(secondary)
         }
@@ -246,7 +250,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
           "dtg DURING 2010-06-01T00:00:00.000Z/2010-08-31T23:59:59.000Z AND IN('01','02')" +
               "AND WITHIN(geom, POLYGON ((40 20, 50 20, 50 30, 40 30, 40 20))) AND ageJoinIndex = '100001'",
           "INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))" +
-              "AND IN('val56','val55') AND ageJoinIndex = 3000 AND IN('val59','val54') AND ageJoinIndex = '20'"
+              "AND IN('val56','val55') AND ageJoinIndex = 3000 AND IN('val59','val54') AND ageJoinIndex > '20'"
         )
         forall(predicates)(getRecordStrategy)
       }
@@ -398,7 +402,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
         forall(Seq(orQuery, inQuery)) { filter =>
           val strats = getStrategies(ECQL.toFilter(s"$filter $st"))
           strats must haveLength(1)
-          strats.head.strategy mustEqual StrategyType.ATTRIBUTE
+          strats.head.index mustEqual AttributeIndex
           strats.head.primary must beSome
           decomposeOr(strats.head.primary.get) must containTheSameElementsAs(decomposeOr(ECQL.toFilter(filter)))
           strats.head.secondary must beSome

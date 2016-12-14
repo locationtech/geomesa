@@ -75,7 +75,9 @@ class FilePersistence(dir: File, file: String) extends LazyLogging {
 
   def remove(key: String): Boolean = {
     val result = properties.remove(key) != null
-    persist(properties)
+    if (result) {
+      persist(properties)
+    }
     result
   }
 
@@ -90,7 +92,7 @@ class FilePersistence(dir: File, file: String) extends LazyLogging {
    * @param value
    */
   private def putOrRemove(key: String, value: String): Unit =
-    if (value == null || value.isEmpty) properties.remove(key) else properties.setProperty(key, value)
+    if (value == null) { properties.remove(key) } else { properties.setProperty(key, value) }
 
   /**
    * Persists the props to a file

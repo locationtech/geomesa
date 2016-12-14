@@ -17,8 +17,8 @@ import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc
 import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.process.vector.VectorProcess
-import org.locationtech.geomesa.accumulo.index.QueryHints
 import org.locationtech.geomesa.accumulo.iterators.SamplingIterator
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.opengis.coverage.grid.GridGeometry
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
@@ -83,9 +83,9 @@ class SamplingProcess extends VectorProcess with LazyLogging {
                   targetQuery: Query,
                   targetGridGeometry: GridGeometry): Query = {
     val invertedQuery = new Query(targetQuery)
-    invertedQuery.getHints.put(QueryHints.SAMPLING_KEY, samplePercent)
+    invertedQuery.getHints.put(QueryHints.SAMPLING, samplePercent)
     if (threadBy != null) {
-      invertedQuery.getHints.put(QueryHints.SAMPLE_BY_KEY, threadBy)
+      invertedQuery.getHints.put(QueryHints.SAMPLE_BY, threadBy)
     }
     invertedQuery
   }

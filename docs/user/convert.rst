@@ -945,10 +945,51 @@ and ``SimpleFeatureConverter`` interfaces and register them in
 ``org.locationtech.geomesa.convert.avro.Avro2SimpleFeatureConverter``
 for an example.
 
+Loading Converters and SFTs at Runtime
+--------------------------------------
+
+If you have defined converters or SFTs in typesafe config you can place
+them on the classpath or load them with a ``ConverterConfigProvider`` or
+``SimpleFeatureTypeProvider`` via Java SPI loading. By default, classpath
+and URL providers are provided. Placing a typesafe config file named
+``reference.conf`` or ``application.conf`` containing properly formatted converters and SFTs
+(see example application.conf above) in a jar file on the classpath will
+enable the reference of the converters and SFTs using the public loader
+API:
+
+.. code-block:: scala
+
+    // ConverterConfigLoader.scala
+    // Public API
+    def listConverterNames: List[String] = confs.keys.toList
+    def getAllConfigs: Map[String, Config] = confs
+    def configForName(name: String) = confs.get(name)
+
+    // SimpleFeatureTypeLoader.scala
+    // Public API
+    def listTypeNames: List[String] = sfts.map(_.getTypeName)
+    def sftForName(n: String): Option[SimpleFeatureType] = sfts.find(_.getTypeName == n)
+
+GeoMesa contains common data formats packaged in a JAR file that can be placed on
+the classpath of your project. They are included with GeoMesa tools in the ``conf``
+folder and are also available from maven:
+
+::
+
+    <dependency>
+        <groupId>org.locationtech.geomesa</groupId>
+        <artifactId>geomesa-tools_2.11</artifactId>
+        <classifier>data</classifier>
+    </dependency>
+
+
 Example Using GeoMesa Tools
 ---------------------------
 
-The following example can be used with GeoMesa Tools:
+When using GeoMesa tools, additional data formats can be included by adding them to the default
+``conf/application.conf`` or ``conf/reference.conf`` files, or by adding them in jars to ``lib``.
+
+GeoMesa tools ships with several data formats that can be used as examples:
 
 ::
 
@@ -966,8 +1007,8 @@ Sample csv file: ``example.csv``:
 The "renegades" SFT and "renegades-csv" converter should be specified in
 the GeoMesa Tools configuration file
 (``$GEOMESA_HOME/conf/application.conf``). By default,
-SimpleFeatureTypes (SFTs) should be loaded at the path ``geomesa.sfts``
-and converters should be loaded at the path ``geomesa.converters``. Each
+SimpleFeatureTypes (SFTs) will be loaded from the file at the path ``geomesa.sfts``
+and converters will be loaded at the path ``geomesa.converters``. Each
 converter and SFT definition is keyed by the name that can be referenced
 in the converter and SFT loaders.
 
@@ -1016,32 +1057,3 @@ the updated file.
         }
       }
     }
-
-Loading Converters and SFTs at Runtime
---------------------------------------
-
-If you have defined converters or SFTs in typesafe config you can place
-them on the classpath or load them with a ConverterConfigProvider or
-SimpleFeatureTypeProvider via Java SPI loading. By default, classpath
-and URL providers are provided. Placing a typesafe config file named
-``reference.conf`` containing properly formatted converters and SFTs
-(see example application.conf above) in a jar file on the classpath will
-enable the reference of the converters and SFTs using the public loader
-API:
-
-.. code-block:: scala
-
-    // ConverterConfigLoader.scala
-    // Public API
-    def listConverterNames: List[String] = confs.keys.toList
-    def getAllConfigs: Map[String, Config] = confs
-    def configForName(name: String) = confs.get(name)
-
-    // SimpleFeatureTypeLoader.scala
-    // Public API
-    def listTypeNames: List[String] = sfts.map(_.getTypeName)
-    def sftForName(n: String): Option[SimpleFeatureType] = sfts.find(_.getTypeName == n)
-
-The `GeoMesa gm-data project <https://github.com/geomesa/gm-data>`__
-contains common data formats packaged in jar files that can be placed on
-the classpath of your project.

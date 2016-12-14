@@ -2,8 +2,8 @@
 <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
     <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
-        <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="[%d] %5p %c: %m%n"/>
+        <layout class="org.apache.log4j.EnhancedPatternLayout">
+            <param name="ConversionPattern" value="[%d] %5p %c{1}: %m%n"/>
         </layout>
     </appender>
 
@@ -24,7 +24,7 @@
          from the index query-planner; this can be helpful in debugging
          query plans -->
     <!--
-    <category name="org.locationtech.geomesa.accumulo.index.QueryPlanner">
+    <category name="org.locationtech.geomesa.index.utils.Explainer">
         <priority value="trace"/>
     </category>
     -->

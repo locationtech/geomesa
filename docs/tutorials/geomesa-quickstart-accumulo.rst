@@ -41,6 +41,11 @@ Pick a reasonable directory on your machine, and run:
     $ git clone https://github.com/geomesa/geomesa-tutorials.git
     $ cd geomesa-tutorials
 
+.. note::
+
+    You may need to download a particular release of the tutorials project
+    to target a particular GeoMesa release. See :ref:`tutorial_versions`.
+
 To build, run
 
 .. code-block:: bash
@@ -232,7 +237,7 @@ add the following to the end:
 That tells GeoServer to display the records for the entire month of
 January 2014. You can find more information about the TIME parameter
 from `GeoServer's
-documentation <http://docs.geoserver.org/latest/en/user/services/wms/time.html>`__.
+documentation <http://docs.geoserver.org/stable/en/user/services/wms/time.html>`__.
 
 Once you press <Enter>, the display will update, and you should see a
 collection of red dots similar to the following image.
@@ -259,7 +264,7 @@ Here are just a few simple ways you can play with the visualization:
    your filter criterion. This is a CQL filter, which can be constructed
    in various ways to query our data. You can find more information
    about CQL from `GeoServer's CQL
-   tutorial <http://docs.geoserver.org/latest/en/user/tutorials/cql/cql_tutorial.html>`__.
+   tutorial <http://docs.geoserver.org/stable/en/user/tutorials/cql/cql_tutorial.html>`__.
 
 Generating Heatmaps
 ~~~~~~~~~~~~~~~~~~~

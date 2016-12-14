@@ -30,7 +30,7 @@ import scala.collection.JavaConversions._
 class CassandraFeatureStore(entry: ContentEntry) extends ContentFeatureStore(entry, Query.ALL)
   with ContentFeatureSourceInfo {
 
-  private lazy val contentState = entry.getState(getTransaction).asInstanceOf[CassandraContentState]
+  private lazy val contentState = this.getEntry().getState(getTransaction).asInstanceOf[CassandraContentState]
 
   override def getWriterInternal(query: Query, flags: Int): FW[SimpleFeatureType, SimpleFeature] = {
     if((flags | WRITER_ADD) == WRITER_ADD) new AppendFW(contentState.sft, contentState.session)
@@ -101,7 +101,7 @@ class CassandraFeatureStore(entry: ContentEntry) extends ContentFeatureStore(ent
     val re = WHOLE_WORLD.intersection(new ReferencedEnvelope(origBounds, DefaultGeographicCRS.WGS84))
     val (lx, ly, ux, uy) = (re.getMinX, re.getMinY, re.getMaxX, re.getMaxY)
     val (dtgFilters, _) = partitionPrimaryTemporals(decomposeAnd(query.getFilter), contentState.sft)
-    val (lt, ut) = FilterHelper.extractIntervals(andFilters(dtgFilters), contentState.sft.getDtgField.get).head
+    val (lt, ut) = FilterHelper.extractIntervals(andFilters(dtgFilters), contentState.sft.getDtgField.get).values.head
     val startWeek = CassandraPrimaryKey.epochWeeks(lt)
     val sew = startWeek.getWeeks
     val endWeek = CassandraPrimaryKey.epochWeeks(ut)

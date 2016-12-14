@@ -23,12 +23,14 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import collection.JavaConverters._
+import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class CassandraDataStoreTest extends Specification {
@@ -189,7 +191,16 @@ class CassandraDataStoreTest extends Specification {
       ds.dispose()
       ok
     }
+
+    "preserve column ordering" >> {
+      val (ds, fs) = initializeDataStore("testcolumnordering")
+      val sft = ds.getSchema("testcolumnordering")
+      sft.getAttributeDescriptors.head.getLocalName mustEqual "name"
+      ds.dispose()
+      ok
+    }
   }
+
 
   def initializeDataStore(tableName: String): (DataStore, SimpleFeatureStore) = {
 
@@ -210,12 +221,12 @@ class CassandraDataStoreTest extends Specification {
   }
 
   def getDataStore: DataStore = {
-    import scala.collection.JavaConversions._
     DataStoreFinder.getDataStore(
       Map(
         CassandraDataStoreParams.CONTACT_POINT.getName -> CassandraDataStoreTest.CP,
         CassandraDataStoreParams.KEYSPACE.getName -> "geomesa_cassandra",
-        CassandraDataStoreParams.NAMESPACE.getName -> "http://geomesa.org"
+        CassandraDataStoreParams.NAMESPACE.getName -> "http://geomesa.org",
+        CassandraDataStoreParams.CATALOG.getName -> "geomesa_cassandra"
       )
     )
   }
@@ -239,7 +250,8 @@ object CassandraDataStoreTest {
 
       EmbeddedCassandraServerHelper.startEmbeddedCassandra("cassandra-config.yaml", 1200000L)
 
-      var readTimeout: Int = util.Try(System.getProperty("cassandraReadTimeout").toInt).getOrElse(12000)
+      var readTimeout: Int = SystemProperty("cassandraReadTimeout", "12000").get.toInt
+
       if(readTimeout < 0) readTimeout = 12000
       val cluster = new Cluster.Builder().addContactPoints(host).withPort(port)
         .withSocketOptions(new SocketOptions().setReadTimeoutMillis(readTimeout)).build().init()

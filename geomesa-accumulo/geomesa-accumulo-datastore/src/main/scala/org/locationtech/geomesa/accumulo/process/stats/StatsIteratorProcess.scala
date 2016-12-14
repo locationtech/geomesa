@@ -16,9 +16,9 @@ import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult, FeatureCalc}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.util.NullProgressListener
-import org.locationtech.geomesa.accumulo.index.QueryHints
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.stats.Stat
 import org.opengis.feature.Feature
@@ -91,8 +91,8 @@ class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode
 
   def query(source: SimpleFeatureSource, query: Query) = {
     logger.debug("Running Geomesa stats iterator process on source type " + source.getClass.getName)
-    query.getHints.put(QueryHints.STATS_KEY, statString)
-    query.getHints.put(QueryHints.RETURN_ENCODED_KEY, new java.lang.Boolean(encode))
+    query.getHints.put(QueryHints.STATS_STRING, statString)
+    query.getHints.put(QueryHints.ENCODE_STATS, new java.lang.Boolean(encode))
     source.getFeatures(query)
   }
 }

@@ -8,9 +8,13 @@
 
 package org.locationtech.geomesa.jobs.interop.mapreduce;
 
-import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.JobContext;
+import org.apache.hadoop.mapreduce.OutputCommitter;
+import org.apache.hadoop.mapreduce.OutputFormat;
+import org.apache.hadoop.mapreduce.RecordWriter;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat$;
 import org.opengis.feature.simple.SimpleFeature;
 import scala.Predef;
@@ -54,9 +58,5 @@ public class GeoMesaOutputFormat extends OutputFormat<Text, SimpleFeature> {
         scala.collection.immutable.Map<String, String> scalaParams =
                 ((scala.collection.mutable.Map<String, String>) m).toMap(Predef.<Tuple2<String, String>>conforms());
         GeoMesaOutputFormat$.MODULE$.configureDataStore(job, scalaParams);
-    }
-
-    public static void configureBatchWriter(Job job, BatchWriterConfig writerConfig) {
-        GeoMesaOutputFormat$.MODULE$.configureBatchWriter(job, writerConfig);
     }
 }

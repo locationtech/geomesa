@@ -13,26 +13,30 @@ import java.lang.{Boolean => jBoolean}
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.{DEFAULT_DATE_KEY, RichSimpleFeatureType}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{MIXED_GEOMETRIES, RESERVED_WORDS}
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs._
+import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConverters._
+import scala.collection.immutable.Seq
 
 object GeoMesaSchemaValidator {
 
   def validate(sft: SimpleFeatureType): Unit = {
     MixedGeometryCheck.validateGeometryType(sft)
     TemporalIndexCheck.validateDtgField(sft)
+    TemporalIndexCheck.validateDtgIndex(sft)
     ReservedWordCheck.validateAttributeNames(sft)
+    IndexConfigurationCheck.validateIndices(sft)
   }
 
   private [index] def boolean(value: AnyRef): Boolean = value match {
     case null => false
-    case bool: jBoolean if bool => true
-    case bool: String if jBoolean.valueOf(bool) => true
-    case bool if jBoolean.valueOf(bool.toString) => true
-    case _ => false
+    case bool: jBoolean => bool
+    case bool: String => jBoolean.valueOf(bool)
+    case bool => jBoolean.valueOf(bool.toString)
   }
 }
 
@@ -48,7 +52,8 @@ object ReservedWordCheck extends LazyLogging {
     val reservedWords = FeatureUtils.sftReservedWords(sft)
     if (reservedWords.nonEmpty) {
       val msg = "The simple feature type contains attribute name(s) that are reserved words: " +
-          s"${reservedWords.mkString(", ")}"
+          s"${reservedWords.mkString(", ")}. You may override this check by setting '$RESERVED_WORDS=true' " +
+          "in the simple feature type user data, but it may cause errors with some functionality."
       if (GeoMesaSchemaValidator.boolean(sft.getUserData.get(RESERVED_WORDS))) {
         logger.warn(msg)
       } else {
@@ -88,7 +93,23 @@ object TemporalIndexCheck extends LazyLogging {
     }
   }
 
-  def scanForTemporalAttributes(sft: SimpleFeatureType) =
+  // note: dtg should be set appropriately before calling this method
+  def validateDtgIndex(sft: SimpleFeatureType): Unit = {
+    sft.getDtgField.foreach { dtg =>
+      if (sft.getDescriptor(dtg).getIndexCoverage == IndexCoverage.JOIN) {
+        val declared = GeoMesaSchemaValidator.boolean(sft.getUserData.get(DEFAULT_DTG_JOIN))
+        if (!declared) {
+          throw new IllegalArgumentException("Trying to create a schema with a partial (join) attribute index " +
+              s"on the default date field '$dtg'. This may cause whole-world queries with time bounds to be much " +
+              "slower. If this is intentional, you may override this message by putting Boolean.TRUE into the " +
+              s"SimpleFeatureType user data under the key '$DEFAULT_DTG_JOIN' before calling createSchema. " +
+              "Otherwise, please either specify a full attribute index or remove it entirely.")
+        }
+      }
+    }
+  }
+
+  private def scanForTemporalAttributes(sft: SimpleFeatureType): Seq[String] =
     sft.getAttributeDescriptors.asScala.toList
       .withFilter { classOf[java.util.Date] isAssignableFrom _.getType.getBinding } .map { _.getLocalName }
 }
@@ -107,5 +128,13 @@ object MixedGeometryCheck extends LazyLogging {
             "Otherwise, please specify a single geometry type (e.g. Point, LineString, Polygon, etc).")
       }
     }
+  }
+}
+
+object IndexConfigurationCheck {
+
+  def validateIndices(sft: SimpleFeatureType): Unit = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    require(sft.getZShards > 0 && sft.getZShards < 128, "Z shards must be between 1 and 127")
   }
 }

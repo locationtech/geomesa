@@ -28,15 +28,13 @@ Prerequisites
    `GeoServer <http://geoserver.org>`__, and Kafka,
 -  an instance of Kafka 0.8.2.x with (an) appropriate Zookeeper
    instance(s),
--  an instance of GeoServer version 2.8.1 with the GeoMesa Kafka plugin
+-  an instance of GeoServer version |geoserver_version| with the GeoMesa Kafka plugin
    installed,
 -  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
--  `Apache Maven <http://maven.apache.org/>`__ 3.2.2 or better, and
+-  `Apache Maven <http://maven.apache.org/>`__ |maven_version|, and
 -  a `git <http://git-scm.com/>`__ client.
 
-In order to install the GeoMesa Kafka GeoServer plugin, follow the
-instructions
-`here <https://github.com/locationtech/geomesa/tree/master/geomesa-gs-plugin/geomesa-kafka-gs-plugin>`__.
+In order to install the GeoMesa Kafka GeoServer plugin, follow the instructions here: :ref:`install_kafka_geoserver`.
 
 Ensure your Kafka and Zookeeper instances are running. You can use
 Kafka's
@@ -52,6 +50,11 @@ Pick a reasonable directory on your machine, and run:
 
     $ git clone https://github.com/geomesa/geomesa-tutorials.git
     $ cd geomesa-tutorials
+
+.. note::
+
+    You may need to download a particular release of the tutorials project
+    to target a particular GeoMesa release. See :ref:`tutorial_versions`.
 
 To build, run
 
@@ -93,7 +96,7 @@ configured, we'll pick back up with the paused program.
 
 Optional command-line arguments for ``KafkaQuickStart`` are:
 
--  ``-zkPath <zkpath>``: used for specifiying the Zookeeper path for
+-  ``-zkPath <zkpath>``: used for specifying the Zookeeper path for
    storing GeoMesa metadata. Defaults to "/geomesa/ds/kafka" and
    ordinarily does not need to be changed
 -  ``-automated``: omits the pause in execution for configuring
@@ -260,7 +263,7 @@ Open up a second terminal window and run:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-quickstart-kafka/target/geomesa-quickstart-kafka-${geomesa.version}.jar com.example.geomesa.kafka.KafkaListener -brokers <brokers> -zookeepers <zookeepers>
+    $ java -cp geomesa-quickstart-kafka/target/geomesa-quickstart-kafka-$VERSION.jar com.example.geomesa.kafka.KafkaListener -brokers <brokers> -zookeepers <zookeepers>
 
 and use the same settings for ``<brokers>`` and ``<zookeepers>``. Then
 in the first terminal window, re-run the ``KafkaQuickStart`` code as
@@ -309,7 +312,7 @@ Additionally, the ``KafkaQuickStart`` class run above can generate a
 
 .. code-block:: bash
 
-    $ java -Dclear=true -cp geomesa-quickstart-kafka/target/geomesa-quickstart-kafka-${geomesa.version}.jar com.example.geomesa.kafka.KafkaQuickStart -brokers <brokers> -zookeepers <zookeepers> 
+    $ java -Dclear=true -cp geomesa-quickstart-kafka/target/geomesa-quickstart-kafka-$VERSION.jar com.example.geomesa.kafka.KafkaQuickStart -brokers <brokers> -zookeepers <zookeepers>
 
 KafkaDataStore Load Test
 ------------------------
@@ -320,7 +323,7 @@ random latitude, and then have them step left or right.
 
 .. code-block:: bash
 
-    $ java -cp target/geomesa-quickstart-kafka-${geomesa.version}.jar com.example.geomesa.kafka.KafkaLoadTester -brokers <brokers> -zookeepers <zookeepers> -count <count>
+    $ java -cp target/geomesa-quickstart-kafka-$VERSION.jar com.example.geomesa.kafka.KafkaLoadTester -brokers <brokers> -zookeepers <zookeepers> -count <count>
 
 The 'count' parameter is optional. Without it, the tool defaults to 1000
 SimpleFeatures.

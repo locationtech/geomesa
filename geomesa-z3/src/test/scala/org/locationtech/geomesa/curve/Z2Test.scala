@@ -55,6 +55,13 @@ class Z2Test extends Specification {
       }
     }
 
+    "fail for out-of-bounds values" >> {
+      val sfc = Z2SFC
+      forall(Seq((-180.1, 0d), (0d, -90.1), (180.1, 0d), (0d, 90.1), (-181d, -91d), (181d, 91d))) {
+        case (x, y) => sfc.index(x, y) must throwAn[IllegalArgumentException]
+      }
+    }
+
     "split" >> {
       val splits = Seq(
         0x00000000ffffffL,

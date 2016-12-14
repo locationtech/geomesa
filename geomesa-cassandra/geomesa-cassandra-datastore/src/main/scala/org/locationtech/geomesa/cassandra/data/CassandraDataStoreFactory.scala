@@ -34,7 +34,8 @@ class CassandraDataStoreFactory extends AbstractDataStoreFactory {
         .withLoadBalancingPolicy(new TokenAwarePolicy(DCAwareRoundRobinPolicy.builder().build()))
         .build()
     val session = cluster.connect(ks)
-    new CassandraDataStore(session, cluster.getMetadata.getKeyspace(ks), ns)
+    val catalog = CATALOG.lookUp(map).asInstanceOf[String]
+    new CassandraDataStore(session, cluster.getMetadata.getKeyspace(ks), ns, catalog)
   }
 
   override def createNewDataStore(map: util.Map[String, Serializable]): DataStore = ???
@@ -43,7 +44,7 @@ class CassandraDataStoreFactory extends AbstractDataStoreFactory {
 
   override def getDescription: String = "GeoMesa Cassandra Data Store"
 
-  override def getParametersInfo: Array[Param] = Array(CONTACT_POINT, KEYSPACE, NAMESPACE)
+  override def getParametersInfo: Array[Param] = Array(CONTACT_POINT, KEYSPACE, NAMESPACE, CATALOG)
 }
 
 object CassandraDataStoreParams {
@@ -51,5 +52,6 @@ object CassandraDataStoreParams {
   val CONTACT_POINT = new Param("geomesa.cassandra.contact.point"  , classOf[String], "HOST:PORT to Cassandra",   true)
   val KEYSPACE      = new Param("geomesa.cassandra.keyspace"       , classOf[String], "Cassandra Keyspace", true)
   val NAMESPACE     = new Param("namespace", classOf[URI], "uri to a the namespace", false, null, new KVP(Parameter.LEVEL, "advanced"))
+  val CATALOG       = new Param("geomesa.cassandra.catalog.table", classOf[String], "Name of GeoMesa catalog table", true)
 
 }

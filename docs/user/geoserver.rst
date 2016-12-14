@@ -94,15 +94,26 @@ will search Kafka for any GeoMesa-managed feature types.
 HBase Data Store
 ^^^^^^^^^^^^^^^^
 
-On the "Add Store" page, select "HBase (GeoMesa)". The HBase data store takes two parameters:
+On the "Add Store" page, select "HBase (GeoMesa)". The HBase data store takes a single parameter:
 
 * **bigtable.table.name** - the name of the HBase table that stores feature type data
-* **namespace** - the namespace URI for the data store (optional)
 
-Other configuration information is taken from the HBase ``site.xml`` file (see
-:ref:`install_hbase_geoserver`).
+Other configuration information is taken from ``hbase-site.xml`` (see :ref:`install_hbase_geoserver`).
 
 Click "Save", and GeoServer will search HBase for any GeoMesa-managed feature types.
+
+.. _create_bigtable_ds_geoserver:
+
+Bigtable Data Store
+^^^^^^^^^^^^^^^^^^^
+
+On the "Add Store" page, select "Google Bigtable (GeoMesa)". The Bigtable data store takes a single parameter:
+
+* **bigtable.table.name** - the name of the Bigtable table that stores feature type data
+
+Other configuration information is taken from ``hbase-site.xml`` (see :ref:`install_bigtable_geoserver`).
+
+Click "Save", and GeoServer will search Bigtable for any GeoMesa-managed feature types.
 
 .. _create_cassandra_ds_geoserver:
 
@@ -114,10 +125,16 @@ On the "Add Store" page, select "Cassandra (GeoMesa)" as shown below.
 .. image:: _static/img/CassandraNewDataSource.png
 
 In the following page, enter the name and description of the data store, the contact point
-(HOST:PORT), and the keyspace. Click "Save", and GeoServer will search Cassandra for any
+(HOST:PORT), the keyspace and the catalog. Click "Save", and GeoServer will search Cassandra for any
 GeoMesa-managed feature types in that keyspace.
 
 .. image:: _static/img/CassandraDSParams.png
+
+
+Note that the "Layer Preview" within GeoServer generally will not work with a Cassandra
+data store, because the Cassandra data store expects queries to have both a ``bbox`` and
+date ``between`` components, but the layer previews do not provide these. 
+
 
 Publish a GeoMesa Layer
 -----------------------
@@ -156,7 +173,17 @@ show only those points matching your filter criterion.
 
 This is a CQL filter, which can be constructed in various ways to query data. You can
 find more information about CQL from `GeoServer's CQL
-tutorial <http://docs.geoserver.org/latest/en/user/tutorials/cql/cql_tutorial.html>`__.
+tutorial <http://docs.geoserver.org/stable/en/user/tutorials/cql/cql_tutorial.html>`__.
+
+.. note::
+
+   If you enabled the time dimension for a layer, such as instructed in the :doc:`../tutorials/geomesa-quickstart-accumulo`,
+   then you will need to specify a TIME parameter in the URL of the form:
+   ``&TIME=2014-01-01T00:00:00.000Z/2014-01-31T23:59:59.999Z``
+   That tells GeoServer to display the records for the entire month of January 2014. GeoServer will add an implicit
+   time filter if you do not specify one, which may cause unexpected results. This TIME parameter is distinct from the
+   CQL_FILTER parameter and specifying a CQL time filter without the TIME parameter may create an empty intersection
+   with the implicit time filter. You can find more information about the TIME parameter from `GeoServer's documentation <http://docs.geoserver.org/stable/en/user/services/wms/time.html>`__.
 
 Analysis with WPS
 -----------------
@@ -202,13 +229,13 @@ as described in :ref:`explain_query`. To enable the logging of explain query
 planning in GeoServer, add the following to the
 ``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties`` file::
 
-    log4j.category.org.locationtech.geomesa.accumulo.index.QueryPlanner=TRACE
+    log4j.category.org.locationtech.geomesa.index.utils.Explainer=TRACE
 
 If you are not sure of the location of your GeoServer data directory, it
 is printed out when you start GeoServer::
 
     ----------------------------------
-    - GEOSERVER_DATA_DIR: /opt/devel/install/geoserver-data-dir
+    - GEOSERVER_DATA_DIR: /path/to/geoserver-data-dir
     ----------------------------------
 
 Monitoring GeoMesa DataStores

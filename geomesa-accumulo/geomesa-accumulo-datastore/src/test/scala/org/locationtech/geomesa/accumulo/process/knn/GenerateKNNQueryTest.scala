@@ -15,11 +15,10 @@ import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.utils.geohash.GeoHash
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, WholeWorldPolygon}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -44,13 +43,13 @@ class GenerateKNNQueryTest extends Specification {
 
   val sftName = "test"
   val sft = SimpleFeatureTypes.createType(sftName, "geom:Point:srid=4326,dtg:Date,dtg_end_time:Date")
-  sft.getUserData.put(Constants.SF_PROPERTY_START_TIME, "dtg")
+  sft.getUserData.put(SimpleFeatureTypes.Configs.DEFAULT_DATE_KEY, "dtg")
 
   val ds = createStore
 
   ds.createSchema(sft)
 
-  val fs = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+  val fs = ds.getFeatureSource(sftName)
 
   val smallGH = GeoHash("dqb0tg")
 
@@ -109,14 +108,14 @@ class GenerateKNNQueryTest extends Specification {
       val geomsToCover = {
         import scala.collection.JavaConversions._
         val geoms = FilterHelper.extractGeometries(ff.and(tweakedGeomFilters), sft.getGeometryDescriptor.getLocalName, intersect = true)
-        if (geoms.length < 2) {
-          geoms.headOption.orNull
+        if (geoms.values.length < 2) {
+          geoms.values.headOption.orNull
         } else {
-          new GeometryCollection(geoms.toArray, geoms.head.getFactory)
+          new GeometryCollection(geoms.values.toArray, geoms.values.head.getFactory)
         }
       }
 
-      val geometryToCover = new org.locationtech.geomesa.accumulo.index.IndexFilterHelpers{}.netGeom(geomsToCover)
+      val geometryToCover = Option(geomsToCover).map(_.intersection(WholeWorldPolygon)).orNull
 
       // confirm that the extracted spatial predicate matches the GeoHash BBOX.
       geometryToCover.equals(smallGH.geom) must beTrue

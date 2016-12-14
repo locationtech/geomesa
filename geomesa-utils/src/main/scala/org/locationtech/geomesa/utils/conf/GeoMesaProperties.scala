@@ -18,19 +18,22 @@ object GeoMesaProperties extends LazyLogging {
 
   private val props: Properties = {
     val resource = getClass.getResourceAsStream(EmbeddedFile)
+    val props = new Properties
     if (resource == null) {
       logger.warn(s"Couldn't load $EmbeddedFile")
-      new Properties
+      props
     } else {
-      val p = new Properties
       try {
-        p.load(resource)
+        props.load(resource)
       } finally {
         resource.close()
       }
-      p
+      props
     }
   }
 
-  val GeoMesaProjectVersion = props.getProperty("geomesa.project.version")
+  val ProjectVersion = props.getProperty("geomesa.project.version")
+  val BuildDate      = props.getProperty("geomesa.build.date")
+  val GitCommit      = props.getProperty("geomesa.build.commit.id")
+  val GitBranch      = props.getProperty("geomesa.build.branch")
 }

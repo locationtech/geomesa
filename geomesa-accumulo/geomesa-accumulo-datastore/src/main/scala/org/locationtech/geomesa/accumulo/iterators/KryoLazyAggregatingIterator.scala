@@ -16,15 +16,16 @@ import org.apache.accumulo.core.data.{Range => aRange, _}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo.data.tables.GeoMesaTable
+import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
+import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AccumuloWritableIndex}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
-import org.locationtech.geomesa.filter.factory.FastFilterFactory
+import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConverters._
+import scala.util.control.NonFatal
 
 /**
  * Aggregating iterator - only works on kryo-encoded features
@@ -35,6 +36,7 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
   import KryoLazyAggregatingIterator._
 
   var sft: SimpleFeatureType = null
+  var index: AccumuloWritableIndex = null
   var source: SortedKeyValueIterator[Key, Value] = null
 
   private var validate: (SimpleFeature) => Boolean = null
@@ -56,29 +58,27 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
   override def init(src: SortedKeyValueIterator[Key, Value],
                     jOptions: jMap[String, String],
                     env: IteratorEnvironment): Unit = {
-
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
-    IteratorClassLoader.initClassLoader(getClass)
-
     this.source = src.deepCopy(env)
     val options = jOptions.asScala
 
-    sft = SimpleFeatureTypes.createType("", options(SFT_OPT))
-    if (sft.getSchemaVersion < 9) {
-      getId = (_) => reusableSf.getID
-      reusableSf = new KryoFeatureSerializer(sft).getReusableFeature
-    } else {
-      val tableName = options(TABLE_OPT)
-      val table = GeoMesaTable.AllTables.find(_.getClass.getSimpleName == tableName).getOrElse {
-        throw new RuntimeException(s"Table option not configured correctly: $tableName")
-      }
-      getId = table.getIdFromRow(sft)
-      reusableSf = new KryoFeatureSerializer(sft, SerializationOptions.withoutId).getReusableFeature
+    val spec = options(SFT_OPT)
+    sft = IteratorCache.sft(spec)
+    index = try { AccumuloFeatureIndex.index(options(INDEX_OPT)) } catch {
+      case NonFatal(e) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(INDEX_OPT)}")
     }
-    val filt = options.get(CQL_OPT).map(FastFilterFactory.toFilter).orNull
+
+    if (index.serializedWithId) {
+      getId = (_) => reusableSf.getID
+      reusableSf = IteratorCache.serializer(spec, SerializationOptions.none).getReusableFeature
+    } else {
+      val getIdFromRow = index.getIdFromRow(sft)
+      getId = (row) => getIdFromRow(row.getBytes, 0, row.getLength)
+      reusableSf = IteratorCache.serializer(spec, SerializationOptions.withoutId).getReusableFeature
+    }
+    val filt = options.get(CQL_OPT).map(IteratorCache.filter(spec, _)).orNull
     val dedupe = options.get(DUPE_OPT).exists(_.toBoolean)
     maxIdsToTrack = options.get(MAX_DUPE_OPT).map(_.toInt).getOrElse(99999)
+    idsSeen.clear()
     validate = (filt, dedupe) match {
       case (null, false) => (_) => true
       case (null, true)  => deduplicate
@@ -165,11 +165,11 @@ object KryoLazyAggregatingIterator extends LazyLogging {
   protected[iterators] val CQL_OPT      = "cql"
   protected[iterators] val DUPE_OPT     = "dupes"
   protected[iterators] val MAX_DUPE_OPT = "max-dupes"
-  protected[iterators] val TABLE_OPT    = "table"
+  protected[iterators] val INDEX_OPT    = "index"
 
   def configure(is: IteratorSetting,
                 sft: SimpleFeatureType,
-                table: GeoMesaTable,
+                index: AccumuloFeatureIndexType,
                 filter: Option[Filter],
                 deduplicate: Boolean,
                 maxDuplicates: Option[Int]): Unit = {
@@ -177,6 +177,6 @@ object KryoLazyAggregatingIterator extends LazyLogging {
     filter.foreach(f => is.addOption(CQL_OPT, ECQL.toCQL(f)))
     is.addOption(DUPE_OPT, deduplicate.toString)
     maxDuplicates.foreach(m => is.addOption(MAX_DUPE_OPT, m.toString))
-    is.addOption(TABLE_OPT, table.getClass.getSimpleName)
+    is.addOption(INDEX_OPT, index.identifier)
   }
 }

@@ -8,18 +8,18 @@
 
 package org.locationtech.geomesa.cassandra.data
 
-import com.datastax.driver.core._
 import org.geotools.data.store._
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.locationtech.geomesa.cassandra.data.CassandraDataStore.FieldSerializer
 import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 import org.opengis.feature.simple.SimpleFeatureType
 
-class CassandraContentState(entry: ContentEntry, val session: Session, val tableMetadata: TableMetadata) extends ContentState(entry) {
+class CassandraContentState(entry: ContentEntry, val ds: CassandraDataStore) extends ContentState(entry) {
 
   import scala.collection.JavaConversions._
 
-  val sft: SimpleFeatureType = CassandraDataStore.getSchema(entry.getName, tableMetadata)
+  val session = ds.session
+  val sft: SimpleFeatureType = ds.getSchema(this.getEntry().getName)
   val attrNames = sft.getAttributeDescriptors.map(_.getLocalName)
   val selectClause = (Array("fid") ++ attrNames).mkString(",")
   val table = sft.getTypeName

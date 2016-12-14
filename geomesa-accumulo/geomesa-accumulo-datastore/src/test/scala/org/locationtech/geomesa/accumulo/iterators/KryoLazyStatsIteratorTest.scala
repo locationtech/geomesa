@@ -13,9 +13,9 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.index.QueryHints
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator.decodeStat
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.stats._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -40,8 +40,8 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
   def getQuery(statString: String, ecql: Option[String] = None): Query = {
     val query = new Query(sftName, ECQL.toFilter("dtg DURING 2012-01-01T18:30:00.000Z/2012-01-01T19:30:00.000Z " +
         "AND bbox(geom,-80,35,-75,40)" + ecql.map(" AND " + _).getOrElse("")))
-    query.getHints.put(QueryHints.STATS_KEY, statString)
-    query.getHints.put(QueryHints.RETURN_ENCODED_KEY, java.lang.Boolean.TRUE)
+    query.getHints.put(QueryHints.STATS_STRING, statString)
+    query.getHints.put(QueryHints.ENCODE_STATS, java.lang.Boolean.TRUE)
     query
   }
 

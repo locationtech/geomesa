@@ -85,7 +85,7 @@ class FilterHelperTest extends Specification {
       forall(predicates) { predicate =>
         val filter = ECQL.toFilter(predicate)
         val intervals = FilterHelper.extractIntervals(filter, "dtg")
-        intervals mustEqual Seq(toInterval("2016-01-01T00:00:00.000Z", "2016-01-02T00:00:00.000Z"))
+        intervals mustEqual FilterValues(Seq(toInterval("2016-01-01T00:00:00.000Z", "2016-01-02T00:00:00.000Z")))
       }
     }
 
@@ -96,8 +96,8 @@ class FilterHelperTest extends Specification {
       val dIntervals = FilterHelper.extractIntervals(ECQL.toFilter(during), "dtg", handleExclusiveBounds = true)
       val bIntervals = FilterHelper.extractIntervals(ECQL.toFilter(between), "dtg", handleExclusiveBounds = true)
 
-      dIntervals mustEqual Seq(toInterval("2016-01-01T00:00:01.000Z", "2016-01-01T23:59:59.000Z"))
-      bIntervals mustEqual Seq(toInterval("2016-01-01T00:00:00.000Z", "2016-01-02T00:00:00.000Z"))
+      dIntervals mustEqual FilterValues(Seq(toInterval("2016-01-01T00:00:01.000Z", "2016-01-01T23:59:59.000Z")))
+      bIntervals mustEqual FilterValues(Seq(toInterval("2016-01-01T00:00:00.000Z", "2016-01-02T00:00:00.000Z")))
     }
 
     "extract interval from simple equals" >> {
@@ -105,7 +105,7 @@ class FilterHelperTest extends Specification {
       forall(filters) { cql =>
         val filter = ECQL.toFilter(cql)
         val intervals = FilterHelper.extractIntervals(filter, "dtg")
-        intervals mustEqual Seq(toInterval("2016-01-01T00:00:00.000Z", "2016-01-01T00:00:00.000Z"))
+        intervals mustEqual FilterValues(Seq(toInterval("2016-01-01T00:00:00.000Z", "2016-01-01T00:00:00.000Z")))
       }
     }
 
@@ -118,7 +118,7 @@ class FilterHelperTest extends Specification {
       forall(filters) { cql =>
         val filter = ECQL.toFilter(cql)
         val intervals = FilterHelper.extractIntervals(filter, "dtg")
-        intervals mustEqual Seq(toInterval("2016-01-01T00:00:00.000Z", MaxDateTime))
+        intervals mustEqual FilterValues(Seq(toInterval("2016-01-01T00:00:00.000Z", MaxDateTime)))
       }
     }
 
@@ -131,7 +131,7 @@ class FilterHelperTest extends Specification {
       forall(filters) { cql =>
         val filter = ECQL.toFilter(cql)
         val intervals = FilterHelper.extractIntervals(filter, "dtg", handleExclusiveBounds = true)
-        intervals mustEqual Seq(toInterval("2016-01-01T00:00:01.000Z", MaxDateTime))
+        intervals mustEqual FilterValues(Seq(toInterval("2016-01-01T00:00:01.000Z", MaxDateTime)))
       }
     }
 
@@ -144,7 +144,7 @@ class FilterHelperTest extends Specification {
       forall(filters) { cql =>
         val filter = ECQL.toFilter(cql)
         val intervals = FilterHelper.extractIntervals(filter, "dtg")
-        intervals mustEqual Seq(toInterval(MinDateTime, "2016-01-01T00:00:00.000Z"))
+        intervals mustEqual FilterValues(Seq(toInterval(MinDateTime, "2016-01-01T00:00:00.000Z")))
       }
     }
 
@@ -157,7 +157,22 @@ class FilterHelperTest extends Specification {
       forall(filters) { cql =>
         val filter = ECQL.toFilter(cql)
         val intervals = FilterHelper.extractIntervals(filter, "dtg", handleExclusiveBounds = true)
-        intervals mustEqual Seq(toInterval(MinDateTime, "2016-01-01T00:00:00.000Z"))
+        intervals mustEqual FilterValues(Seq(toInterval(MinDateTime, "2016-01-01T00:00:00.000Z")))
+      }
+    }
+
+    "deduplicate OR filters" >> {
+      val filters = Seq(
+        ("(a > 1 AND b < 2 AND c = 3) OR (c = 3 AND a > 2 AND b < 2) OR (b < 2 AND a > 3 AND c = 3)",
+            "(a > 1 OR a > 2 OR a > 3) AND b < 2 AND c = 3"),
+        ("c = 3 AND ((a > 2 AND b < 2) OR (b < 2 AND a > 3))", "(a > 2 OR a > 3) AND b < 2 AND c = 3"),
+        ("(a > 1) OR (c = 3)", "a > 1 OR c = 3"),
+        ("(a > 1) AND (c = 3)", "a > 1 AND c = 3"),
+        ("a > 1", "a > 1")
+      )
+
+      forall(filters) { case (original, expected) =>
+        ECQL.toCQL(FilterHelper.simplify(ECQL.toFilter(original))) mustEqual expected
       }
     }
   }

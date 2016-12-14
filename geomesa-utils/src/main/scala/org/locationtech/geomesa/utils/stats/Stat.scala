@@ -13,15 +13,12 @@ import java.util.Date
 
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.commons.lang.StringEscapeUtils
-import org.geotools.data.DataUtilities
-import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.utils.geotools._
-import org.locationtech.geomesa.utils.text.{EnhancedTokenParsers, WKTUtils}
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.reflect.ClassTag
-import scala.util.parsing.combinator.RegexParsers
 
 /**
  * Stats used by the StatsIterator to compute various statistics server-side for a given query.
@@ -115,7 +112,7 @@ trait Stat {
  */
 object Stat {
 
-  def apply(sft: SimpleFeatureType, s: String) = new StatParser(sft).parse(s)
+  def apply(sft: SimpleFeatureType, s: String) = StatParser.parse(sft, s)
 
   /**
     * String that will be parsed to a count stat
@@ -224,7 +221,6 @@ object Stat {
     */
   def SeqStat(stats: Seq[String]): String = stats.mkString(";")
 
-
   /**
     * Combines a sequence of stats. This will not modify any of the inputs.
     *
@@ -295,197 +291,6 @@ object Stat {
     } else {
       throw new RuntimeException(s"Unexpected class binding for stat attribute: $clas")
     }
-
-  /**
-    * Parser for stat strings
-    *
-    * @param sft simple feature type being evaluated
-    */
-  class StatParser(sft: SimpleFeatureType) extends RegexParsers with EnhancedTokenParsers {
-
-    /**
-     * Obtains the index of the attribute within the SFT
-     *
-     * @param attribute attribute name as a string
-     * @return attribute index
-     */
-    private def getAttrIndex(attribute: String): Int = {
-      val i = sft.indexOf(attribute)
-      require(i != -1, s"Attribute '$attribute' does not exist in sft ${DataUtilities.encodeType(sft)}")
-      i
-    }
-
-    val argument = dequotedString | "[a-zA-Z0-9_]+".r
-
-    def positiveInt = """[1-9][0-9]*""".r ^^ { case i => i.toInt } // any non-zero positive int
-
-    def timePeriod: Parser[TimePeriod] = {
-      argument ^^ { case period => TimePeriod.withName(period.toLowerCase) }
-    }
-
-    def countParser: Parser[CountStat] = {
-      "Count()" ^^ { _ => new CountStat() }
-    }
-
-    def minMaxParser: Parser[MinMax[_]] = {
-      "MinMax(" ~> argument <~ ")" ^^ {
-        case attribute =>
-          val attrIndex = getAttrIndex(attribute)
-          val attrType = sft.getDescriptor(attribute).getType.getBinding
-
-          if (attrType == classOf[String]) {
-            new MinMax[String](attrIndex)
-          } else if (attrType == classOf[Date]) {
-            new MinMax[Date](attrIndex)
-          } else if (attrType == classOf[jLong]) {
-            new MinMax[jLong](attrIndex)
-          } else if (attrType == classOf[Integer]) {
-            new MinMax[Integer](attrIndex)
-          } else if (attrType == classOf[jDouble]) {
-            new MinMax[jDouble](attrIndex)
-          } else if (attrType == classOf[jFloat]) {
-            new MinMax[jFloat](attrIndex)
-          } else if (classOf[Geometry].isAssignableFrom(attrType)) {
-            new MinMax[Geometry](attrIndex)
-          } else {
-            println(s"\n\nCannot create stat for invalid type: $attrType for attribute: $attribute\n\n")
-            throw new Exception(s"Cannot create stat for invalid type: $attrType for attribute: $attribute")
-          }
-      }
-    }
-
-    def iteratorStackParser: Parser[IteratorStackCount] = {
-      "IteratorStackCount()" ^^ { case _ => new IteratorStackCount() }
-    }
-
-    def enumerationParser: Parser[EnumerationStat[_]] = {
-      "Enumeration(" ~> argument <~ ")" ^^ {
-        case attribute =>
-          val attrIndex = getAttrIndex(attribute)
-          val attrType = sft.getDescriptor(attribute).getType.getBinding
-
-          if (attrType == classOf[String]) {
-            new EnumerationStat[String](attrIndex)
-          } else if (attrType == classOf[Date]) {
-            new EnumerationStat[Date](attrIndex)
-          } else if (attrType == classOf[Integer]) {
-            new EnumerationStat[Integer](attrIndex)
-          } else if (attrType == classOf[jLong]) {
-            new EnumerationStat[jLong](attrIndex)
-          } else if (attrType == classOf[jFloat]) {
-            new EnumerationStat[jFloat](attrIndex)
-          } else if (attrType == classOf[jDouble]) {
-            new EnumerationStat[jDouble](attrIndex)
-          } else if (classOf[Geometry].isAssignableFrom(attrType )) {
-            new EnumerationStat[Geometry](attrIndex)
-          } else {
-            throw new Exception(s"Cannot create stat for invalid type: $attrType for attribute: $attribute")
-          }
-      }
-    }
-
-    def topKParser: Parser[TopK[_]] = {
-      "TopK(" ~> argument <~ ")" ^^ {
-        case attribute =>
-          val attrIndex = getAttrIndex(attribute)
-          val binding = sft.getDescriptor(attribute).getType.getBinding
-          new TopK[Any](attrIndex)(ClassTag(binding))
-      }
-    }
-
-    def histogramParser: Parser[Histogram[_]] = {
-      "Histogram(" ~> argument ~ "," ~ positiveInt ~ "," ~ argument ~ "," ~ argument <~ ")" ^^ {
-        case attribute ~ "," ~ numBins ~ "," ~ lower ~ "," ~ upper =>
-          val attrIndex = getAttrIndex(attribute)
-          val attrType = sft.getDescriptor(attribute).getType.getBinding
-
-          if (attrType == classOf[String]) {
-            new Histogram(attrIndex, numBins.toInt, (lower, upper))
-          } else if (attrType == classOf[Date]) {
-            val lowerDate = GeoToolsDateFormat.parseDateTime(lower).toDate
-            val upperDate = GeoToolsDateFormat.parseDateTime(upper).toDate
-            new Histogram(attrIndex, numBins.toInt, (lowerDate, upperDate))
-          } else if (attrType == classOf[Integer]) {
-            new Histogram(attrIndex, numBins.toInt, (Integer.valueOf(lower), Integer.valueOf(upper)))
-          } else if (attrType == classOf[jLong]) {
-            new Histogram(attrIndex, numBins.toInt, (jLong.valueOf(lower), jLong.valueOf(upper)))
-          } else if (attrType == classOf[jDouble]) {
-            new Histogram(attrIndex, numBins.toInt, (jDouble.valueOf(lower), jDouble.valueOf(upper)))
-          } else if (attrType == classOf[jFloat]) {
-            new Histogram(attrIndex, numBins.toInt, (jFloat.valueOf(lower), jFloat.valueOf(upper)))
-          } else if (classOf[Geometry].isAssignableFrom(attrType )) {
-            new Histogram(attrIndex, numBins.toInt, (WKTUtils.read(lower), WKTUtils.read(upper)))
-          } else {
-            throw new Exception(s"Cannot create stat for invalid type: $attrType for attribute: $attribute")
-          }
-      }
-    }
-
-    def z3HistogramParser: Parser[Z3Histogram] = {
-      "Z3Histogram(" ~> argument ~ "," ~ argument ~ "," ~ timePeriod ~ "," ~ positiveInt <~ ")" ^^ {
-        case geom ~ "," ~ dtg ~ "," ~ period ~ "," ~ length  =>
-          new Z3Histogram(getAttrIndex(geom), getAttrIndex(dtg), period, length)
-      }
-    }
-
-    def dtgAndPeriod: Parser[(Int, TimePeriod)] = {
-      argument ~ "," ~ timePeriod ^^ {
-        case dtg ~ "," ~ period => (getAttrIndex(dtg), period)
-      }
-    }
-
-    def frequencyParser: Parser[Frequency[_]] = {
-      "Frequency(" ~> argument ~ "," ~ (dtgAndPeriod <~ ",").? ~ positiveInt <~ ")" ^^ {
-        case attribute ~ "," ~ dtgAndPeriod ~ precision =>
-          val attrIndex = getAttrIndex(attribute)
-          val dtgIndex = dtgAndPeriod.map(_._1).getOrElse(-1)
-          val period = dtgAndPeriod.map(_._2).getOrElse(TimePeriod.Week)
-          val attrType = sft.getDescriptor(attribute).getType.getBinding
-
-          if (attrType == classOf[String]) {
-            new Frequency[String](attrIndex, dtgIndex, period, precision)
-          } else if (attrType == classOf[Date]) {
-            new Frequency[Date](attrIndex, dtgIndex, period, precision)
-          } else if (attrType == classOf[Integer]) {
-            new Frequency[Integer](attrIndex, dtgIndex, period, precision)
-          } else if (attrType == classOf[jLong]) {
-            new Frequency[jLong](attrIndex, dtgIndex, period, precision)
-          } else if (attrType == classOf[jDouble]) {
-            new Frequency[jDouble](attrIndex, dtgIndex, period, precision)
-          } else if (attrType == classOf[jFloat]) {
-            new Frequency[jFloat](attrIndex, dtgIndex, period, precision)
-          } else if (classOf[Geometry].isAssignableFrom(attrType )) {
-            new Frequency[Geometry](attrIndex, dtgIndex, period, precision)
-          } else {
-            throw new Exception(s"Cannot create stat for invalid type: $attrType for attribute: $attribute")
-          }
-      }
-    }
-
-    def z3FrequencyParser: Parser[Z3Frequency] = {
-      "Z3Frequency(" ~> argument ~ "," ~ argument  ~ "," ~ timePeriod ~ "," ~ positiveInt <~ ")" ^^ {
-        case geom ~ "," ~ dtg ~ "," ~ period ~ "," ~ precision =>
-          new Z3Frequency(getAttrIndex(geom), getAttrIndex(dtg), period, precision)
-      }
-    }
-
-    def statParser: Parser[Stat] = countParser | minMaxParser | iteratorStackParser | enumerationParser |
-        topKParser | histogramParser | frequencyParser | z3HistogramParser | z3FrequencyParser
-
-    def statsParser: Parser[Stat] = {
-      rep1sep(statParser, ";") ^^ {
-        case statParsers: Seq[Stat] => if (statParsers.length == 1) statParsers.head else new SeqStat(statParsers)
-      }
-    }
-
-    def parse(s: String): Stat = {
-      parseAll(statsParser, s) match {
-        case Success(result, _) => result
-        case failure: NoSuccess =>
-          throw new Exception(s"Could not parse the stats string: $s\n${failure.msg}")
-      }
-    }
-  }
 }
 
 trait ImmutableStat extends Stat {

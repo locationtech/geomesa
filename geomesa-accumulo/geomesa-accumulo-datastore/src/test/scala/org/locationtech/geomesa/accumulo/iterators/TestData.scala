@@ -13,12 +13,11 @@ import com.vividsolutions.jts.geom.{Geometry, GeometryFactory}
 import org.apache.accumulo.core.data.Value
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.DataStore
-import org.geotools.data.simple.SimpleFeatureSource
+import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureStore}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.joda.time.{DateTime, DateTimeZone}
-import org.locationtech.geomesa.accumulo.data.AccumuloFeatureStore
-import org.locationtech.geomesa.accumulo.index._
+import org.locationtech.geomesa.accumulo.index.encoders.{BinEncoder, IndexValueEncoder}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializers}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -41,18 +40,6 @@ object TestData extends LazyLogging {
   val wktQuery = "POLYGON((45 23, 48 23, 48 27, 45 27, 45 23))"
 
   val featureName = "feature"
-  val schemaEncoding =
-    new IndexSchemaBuilder("~")
-      .randomNumber(10)
-      .indexOrDataFlag()
-      .constant(featureName)
-      .geoHash(0, 3)
-      .date("yyyyMMdd")
-      .nextPart()
-      .geoHash(3, 2)
-      .nextPart()
-      .id()
-      .build()
 
   def getTypeSpec(suffix: String = "2") = {
     s"A_POINT:String,A_LINESTRING:String,A_POLYGON:String,attr$suffix:String:index=true," +
@@ -69,7 +56,7 @@ object TestData extends LazyLogging {
 
   def buildFeatureSource(ds: DataStore, featureType: SimpleFeatureType, features: Seq[SimpleFeature]): SimpleFeatureSource = {
     ds.createSchema(featureType)
-    val fs: AccumuloFeatureStore = ds.getFeatureSource(featureType.getTypeName).asInstanceOf[AccumuloFeatureStore]
+    val fs = ds.getFeatureSource(featureType.getTypeName).asInstanceOf[SimpleFeatureStore]
     val coll = new DefaultFeatureCollection(featureType.getTypeName)
     coll.addAll(features.asJavaCollection)
 
@@ -96,7 +83,6 @@ object TestData extends LazyLogging {
   lazy val featureEncoder = SimpleFeatureSerializers(getFeatureType(), SerializationType.AVRO)
   lazy val indexValueEncoder = IndexValueEncoder(featureType)
 
-  lazy val indexEncoder = IndexSchema.buildKeyEncoder(featureType, schemaEncoding)
   lazy val binEncoder = BinEncoder(featureType)
 
   val defaultDateTime = new DateTime(2011, 6, 1, 0, 0, 0, DateTimeZone.forID("UTC")).toDate

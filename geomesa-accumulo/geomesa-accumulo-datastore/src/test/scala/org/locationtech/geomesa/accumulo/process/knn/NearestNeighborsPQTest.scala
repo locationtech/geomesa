@@ -14,8 +14,6 @@ import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo._
-import org.locationtech.geomesa.accumulo.index.{Constants, IndexEntryDecoder}
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -53,7 +51,7 @@ class NearestNeighborsPQTest extends Specification {
   def diagonalFeatureCollection: DefaultFeatureCollection = {
     val sftName = "geomesaKNNTestDiagonalFeature"
     val sft = SimpleFeatureTypes.createType(sftName, "geom:Point:srid=4326,dtg:Date,dtg_end_time:Date")
-    sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = DEFAULT_DTG_PROPERTY_NAME
+    sft.getUserData()(SimpleFeatureTypes.Configs.DEFAULT_DATE_KEY) = "dtg"
 
     val featureCollection = new DefaultFeatureCollection(sftName, sft)
     val constantDate = new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate
@@ -61,7 +59,7 @@ class NearestNeighborsPQTest extends Specification {
     Range(0, 91).foreach { lat =>
       val sf = SimpleFeatureBuilder.build(sft, List(), lat.toString)
       sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
-      sf.setAttribute(DEFAULT_DTG_PROPERTY_NAME, constantDate)
+      sf.setAttribute("dtg", constantDate)
       sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
       featureCollection.add(sf)
     }
@@ -71,7 +69,7 @@ class NearestNeighborsPQTest extends Specification {
   def polarFeatureCollection: DefaultFeatureCollection = {
     val sftName = "geomesaKNNTestPolarFeature"
     val sft = SimpleFeatureTypes.createType(sftName, "geom:Point:srid=4326,dtg:Date,dtg_end_time:Date")
-    sft.getUserData()(Constants.SF_PROPERTY_START_TIME) = DEFAULT_DTG_PROPERTY_NAME
+    sft.getUserData()(SimpleFeatureTypes.Configs.DEFAULT_DATE_KEY) = "dtg"
 
     val featureCollection = new DefaultFeatureCollection(sftName, sft)
     val constantDate = new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate
@@ -80,7 +78,7 @@ class NearestNeighborsPQTest extends Specification {
     Range(-180, 180).foreach { lon =>
       val sf = SimpleFeatureBuilder.build(sft, List(), lon.toString)
       sf.setDefaultGeometry(WKTUtils.read(f"POINT($lon%d $polarLat)"))
-      sf.setAttribute(DEFAULT_DTG_PROPERTY_NAME, constantDate)
+      sf.setAttribute("dtg", constantDate)
       sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
       featureCollection.add(sf)
     }

@@ -15,6 +15,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.FilterHelper._
 import org.locationtech.geomesa.utils.filters.Filters._
 import org.opengis.filter.{And, Filter}
@@ -29,12 +30,12 @@ class FilterHelperTest extends Specification with Mockito with LazyLogging {
   val ff = CommonFactoryFinder.getFilterFactory2
   val gf = JTSFactoryFinder.getGeometryFactory
 
-  val min = IndexSchema.minDateTime
-  val max = IndexSchema.maxDateTime
-  val a   = new DateTime(2010,  1, 31, 23, 59, 59, DateTimeZone.forID("UTC"))
-  val b   = new DateTime(2010,  3,  4, 10, 11, 12, DateTimeZone.forID("UTC"))
-  val c   = new DateTime(2011,  2, 12, 15, 34, 23, DateTimeZone.forID("UTC"))
-  val d   = new DateTime(2012, 11,  5,  5, 55, 11, DateTimeZone.forID("UTC"))
+  val min = FilterHelper.MinDateTime
+  val max = FilterHelper.MaxDateTime
+  val a   = new DateTime(2010,  1, 31, 23, 59, 59, DateTimeZone.UTC)
+  val b   = new DateTime(2010,  3,  4, 10, 11, 12, DateTimeZone.UTC)
+  val c   = new DateTime(2011,  2, 12, 15, 34, 23, DateTimeZone.UTC)
+  val d   = new DateTime(2012, 11,  5,  5, 55, 11, DateTimeZone.UTC)
 
   val dts = Seq(a, b, c, d)
   val dtPairs: Seq[(DateTime, DateTime)] = dts.combinations(2).map(sortDates).toSeq
@@ -69,7 +70,7 @@ class FilterHelperTest extends Specification with Mockito with LazyLogging {
 
   val extractDT: (Seq[Filter]) => (DateTime, DateTime) = {
     import scala.collection.JavaConversions._
-    (f) => extractIntervals(ff.and(f), dtFieldName).headOption.getOrElse(null, null)
+    (f) => extractIntervals(ff.and(f), dtFieldName).values.headOption.getOrElse(null, null)
   }
 
   def decomposeAnd(f: Filter): Seq[Filter] = {
@@ -141,7 +142,7 @@ class FilterHelperTest extends Specification with Mockito with LazyLogging {
     "offset dates for during filters" in {
       forall(dts.combinations(2).map(sortDates)) { case (start, end) =>
         val filter = during(start, end)
-        val extractedInterval = extractIntervals(filter, dtFieldName, handleExclusiveBounds = true).head
+        val extractedInterval = extractIntervals(filter, dtFieldName, handleExclusiveBounds = true).values.head
         val expectedInterval = (start.plusSeconds(1), end.minusSeconds(1))
         logger.debug(s"Extracted interval $extractedInterval from filter ${ECQL.toCQL(filter)}")
         extractedInterval must equalTo(expectedInterval)
@@ -151,7 +152,7 @@ class FilterHelperTest extends Specification with Mockito with LazyLogging {
         val start = s.plusMillis(r.nextInt(998) + 1)
         val end = e.plusMillis(r.nextInt(998) + 1)
         val filter = during(start, end)
-        val extractedInterval = extractIntervals(filter, dtFieldName, handleExclusiveBounds = true).head
+        val extractedInterval = extractIntervals(filter, dtFieldName, handleExclusiveBounds = true).values.head
         val expectedInterval = (s.plusSeconds(1), e)
         logger.debug(s"Extracted interval $extractedInterval from filter ${ECQL.toCQL(filter)}")
         extractedInterval must equalTo(expectedInterval)

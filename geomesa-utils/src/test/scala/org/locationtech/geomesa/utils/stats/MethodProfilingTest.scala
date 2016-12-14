@@ -25,7 +25,7 @@ class MethodProfilingTest extends Specification {
           "test"
         }
         def exec: String = {
-          profile(slowMethod(), "1")
+          profile("1")(slowMethod())
         }
       }
 

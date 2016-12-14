@@ -20,15 +20,8 @@ import org.specs2.runner.JUnitRunner
 class JobUtilsTest extends Specification {
 
   "JobUtils" should {
-    val testFolder = new File(getClass().getClassLoader.getResource("fakejars").getFile)
-
-    "load list of jars from class resource" in {
-      JobUtils.defaultLibJars must not beNull;
-      JobUtils.defaultLibJars.isEmpty mustEqual(false)
-      JobUtils.defaultLibJars must contain("accumulo-core")
-    }
-
     "configure libjars based on search paths" in {
+      val testFolder = new File(getClass.getClassLoader.getResource("fakejars").getFile)
       val conf = new Configuration()
       val search = Seq("jar1", "jar3")
       val paths = Iterator(() => ClassPathUtils.loadJarsFromFolder(testFolder))

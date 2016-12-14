@@ -20,8 +20,8 @@ import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatureStore}
-import org.locationtech.geomesa.accumulo.index.QueryHints
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 import org.locationtech.geomesa.utils.geotools.GridSnap
 import org.opengis.feature.simple.SimpleFeature
@@ -122,9 +122,9 @@ class LiveDensityIteratorTest extends Specification with LazyLogging {
     val q = new Query(sftName, ECQL.toFilter(query))
     val geom = q.getFilter.accept(ExtractBoundsFilterVisitor.BOUNDS_VISITOR, null).asInstanceOf[Envelope]
     val env = new ReferencedEnvelope(geom, DefaultGeographicCRS.WGS84)
-    q.getHints.put(QueryHints.DENSITY_BBOX_KEY, env)
-    q.getHints.put(QueryHints.WIDTH_KEY, width)
-    q.getHints.put(QueryHints.HEIGHT_KEY, height)
+    q.getHints.put(QueryHints.DENSITY_BBOX, env)
+    q.getHints.put(QueryHints.DENSITY_WIDTH, width)
+    q.getHints.put(QueryHints.DENSITY_HEIGHT, height)
 
     // re-create the snap and populate each point
     snap = new GridSnap(env, width, height)
@@ -153,7 +153,7 @@ class LiveDensityIteratorTest extends Specification with LazyLogging {
       val query = getQuery(s"(dtg between $dates) and BBOX(geom, ${bbox.lowx}, ${bbox.lowy}, ${bbox.highx}, ${bbox.highy})", size.width, size.height)
 
       // get the feature store used to query the GeoMesa data
-      val featureStore = ds.getFeatureSource(sftName).asInstanceOf[AccumuloFeatureStore]
+      val featureStore = ds.getFeatureSource(sftName)
 
       // execute the query
       val results = featureStore.getFeatures(query)

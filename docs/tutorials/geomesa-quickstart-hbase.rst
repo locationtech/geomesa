@@ -21,7 +21,7 @@ Before you begin, you must have the following installed and configured:
 -  Apache `Maven <http://maven.apache.org/>`__
 -  a GitHub client
 -  HBase 1.1.x (optional)
--  GeoServer 2.8.1 (optional)
+-  GeoServer |geoserver_version| (optional)
 
 An existing HBase 1.1.x installation is helpful but not necessary. The
 tutorial described will work either with an existing HBase server or by
@@ -53,6 +53,11 @@ Clone the geomesa-tutorials distribution from GitHub:
 
     $ git clone https://github.com/geomesa/geomesa-tutorials.git
     $ cd geomesa-tutorials
+
+.. note::
+
+    You may need to download a particular release of the tutorials project
+    to target a particular GeoMesa release. See :ref:`tutorial_versions`.
 
 The ``pom.xml`` file contains an explicit list of dependent libraries
 that will be bundled together into the final tutorial. You should
@@ -99,7 +104,8 @@ On the command line, run:
 
 .. code-block:: bash
 
-    $ java -cp target/geomesa-quickstart-hbase-$VERSION.jar com.example.geomesa.hbase.HBaseQuickStart --bigtable_table_name geomesa
+    $ java -cp geomesa-quickstart-hbase/target/geomesa-quickstart-hbase-$VERSION.jar \
+      com.example.geomesa.hbase.HBaseQuickStart --bigtable_table_name geomesa
 
 The only argument passed is the name of the HBase table where GeoMesa
 will store the feature type information. It will also create a table
@@ -173,14 +179,14 @@ and build it with the ``hbase`` profile:
 
     $ mvn clean install -DskipTests -Phbase
 
-Go into the buld HBase GeoServer plugin module:
+Go into the build HBase GeoServer plugin module:
 
 ::
 
-    $ cd geomesa-gs-plugin/geomesa-hbase-gs-plugin/target
+    $ cd geomesa-hbase/geomesa-hbase-gs-plugin/target
 
 and extract the contents of the
-``geomesa-hbase-gs-plugin-<version>-install.tar.gz`` file into
+``geomesa-hbase-gs-plugin_2.11-<version>-install.tar.gz`` file into
 GeoServer's ``WEB-INF/lib`` directory. This distribution does not
 include the Hadoop or Zookeeper JARs; the following JARs should be
 copied from the ``lib`` directory of your HBase or Hadoop installations
@@ -257,4 +263,4 @@ display will now show only those points matching your filter criterion.
 
 This is a CQL filter, which can be constructed in various ways to query
 our data. You can find more information about CQL from `GeoServer's CQL
-tutorial <http://docs.geoserver.org/latest/en/user/tutorials/cql/cql_tutorial.html>`__.
+tutorial <http://docs.geoserver.org/stable/en/user/tutorials/cql/cql_tutorial.html>`__.

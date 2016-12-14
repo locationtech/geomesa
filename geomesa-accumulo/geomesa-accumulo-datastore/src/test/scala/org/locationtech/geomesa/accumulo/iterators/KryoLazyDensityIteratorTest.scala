@@ -20,8 +20,8 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.index.QueryHints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -39,9 +39,9 @@ class KryoLazyDensityIteratorTest extends Specification with TestWithDataStore {
   def getDensity(query: String): List[(Double, Double, Double)] = {
     val q = new Query(sftName, ECQL.toFilter(query))
     val geom = q.getFilter.accept(ExtractBoundsFilterVisitor.BOUNDS_VISITOR, null).asInstanceOf[Envelope]
-    q.getHints.put(QueryHints.DENSITY_BBOX_KEY, new ReferencedEnvelope(geom, DefaultGeographicCRS.WGS84))
-    q.getHints.put(QueryHints.WIDTH_KEY, 500)
-    q.getHints.put(QueryHints.HEIGHT_KEY, 500)
+    q.getHints.put(QueryHints.DENSITY_BBOX, new ReferencedEnvelope(geom, DefaultGeographicCRS.WGS84))
+    q.getHints.put(QueryHints.DENSITY_WIDTH, 500)
+    q.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
     val decode = KryoLazyDensityIterator.decodeResult(geom, 500, 500)
     fs.getFeatures(q).features().flatMap(decode).toList
   }

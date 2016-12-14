@@ -8,18 +8,17 @@
 
 package org.locationtech.geomesa.web.analytics
 
-import org.geotools.data.DataStoreFinder
 import org.joda.time.Interval
 import org.joda.time.format.ISODateTimeFormat
 import org.json4s.{DefaultFormats, Formats, JValue}
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.data.stats.usage.{QueryStat, QueryStatTransform, SerializedQueryStat, SerializedQueryStatTransform}
+import org.locationtech.geomesa.accumulo.audit.SerializedQueryEvent
+import org.locationtech.geomesa.index.audit.QueryEvent
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.cache.FilePersistence
 import org.locationtech.geomesa.web.core.GeoMesaDataStoreServlet
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.{BadRequest, Ok}
 
-import scala.collection.JavaConversions._
 import scala.util.Try
 
 class StatsEndpoint(val persistence: FilePersistence) extends GeoMesaDataStoreServlet with NativeJsonSupport {
@@ -29,6 +28,7 @@ class StatsEndpoint(val persistence: FilePersistence) extends GeoMesaDataStoreSe
   override protected implicit def jsonFormats: Formats = DefaultFormats
 
   private val dtFormat = ISODateTimeFormat.dateTime().withZoneUTC()
+  private val binHintString = QueryEvent.keyToString(QueryHints.BIN_TRACK)
 
   before() {
     contentType = formats("json")
@@ -50,38 +50,39 @@ class StatsEndpoint(val persistence: FilePersistence) extends GeoMesaDataStoreSe
    */
   get("/:alias/queries/?") {
     try {
-      val ds = DataStoreFinder.getDataStore(datastoreParams).asInstanceOf[AccumuloDataStore]
-      val sft = params.get("typeName").orNull
-      // corresponds to 2015-11-01T00:00:00.000Z/2015-12-05T00:00:00.000Z - same as used by geotools
-      val dates = params.get("dates").flatMap(d => Try(d.split("/").map(dtFormat.parseDateTime)).toOption).orNull
-      if (ds == null || sft == null || dates == null || dates.length != 2) {
-        val reason = new StringBuilder
-        if (ds == null) {
-          reason.append("Could not load data store using the provided parameters. ")
+      withDataStore((ds) => {
+        val sft = params.get("typeName").orNull
+        // corresponds to 2015-11-01T00:00:00.000Z/2015-12-05T00:00:00.000Z - same as used by geotools
+        val dates = params.get("dates").flatMap(d => Try(d.split("/").map(dtFormat.parseDateTime)).toOption).orNull
+        val binTry = Try(params.get("bin").map(_.toBoolean))
+        if (sft == null || dates == null || dates.length != 2 || binTry.isFailure) {
+          val reason = new StringBuilder
+          if (sft == null) {
+            reason.append("typeName not specified. ")
+          }
+          if (dates == null || dates.length != 2) {
+            reason.append("date not specified or invalid. ")
+          }
+          if (binTry.isFailure) {
+            reason.append("bin is not a valid Boolean. ")
+          }
+          BadRequest(reason = reason.toString())
+        } else {
+          val reader = ds.config.audit.get._1
+          val interval = new Interval(dates(0), dates(1))
+          // note: json response doesn't seem to handle iterators directly, have to convert to iterable
+          val iter = reader.getEvents[QueryEvent](sft, interval)
+          // we do the user filtering here, instead of in the tservers - revisit if performance becomes an issue
+          // 'user' appears to be reserved by scalatra
+          val filter: (QueryEvent) => Boolean = (params.get("who"), binTry.get) match {
+            case (None, None)            => (s) => !s.deleted
+            case (Some(user), None)      => (s) => !s.deleted && filterByUser(s, user)
+            case (None, Some(bin))       => (s) => !s.deleted && filterByBin(s, bin)
+            case (Some(user), Some(bin)) => (s) => !s.deleted && filterByUser(s, user) && filterByBin(s, bin)
+          }
+          iter.filter(filter).toIterable
         }
-        if (sft == null) {
-          reason.append("typeName not specified. ")
-        }
-        if (dates == null || dates.length != 2) {
-          reason.append("date not specified or invalid. ")
-        }
-        BadRequest(reason = reason.toString())
-      } else {
-        val reader = ds.usageStats
-        val interval = new Interval(dates(0), dates(1))
-        val auths = ds.authProvider.getAuthorizations
-        // note: json response doesn't seem to handle iterators directly, have to convert to iterable
-        val iter = reader.getUsageStats[QueryStat](sft, interval, auths)(QueryStatTransform)
-        // we do the user filtering here, instead of in the tservers - revisit if performance becomes an issue
-        // 'user' appears to be reserved by scalatra
-        val filter: (QueryStat) => Boolean = params.get("who") match {
-          case None => (s) => !s.deleted
-          case Some(user) => (s) => s.user == user && !s.deleted
-        }
-        val result = iter.filter(filter).toIterable
-        ds.dispose()
-        result
-      }
+      })
     } catch {
       case e: Exception => handleError(s"Error reading queries:", e)
     }
@@ -89,42 +90,41 @@ class StatsEndpoint(val persistence: FilePersistence) extends GeoMesaDataStoreSe
 
   delete("/:alias/queries/?") {
     try {
-      val ds = DataStoreFinder.getDataStore(datastoreParams).asInstanceOf[AccumuloDataStore]
-      val sft = params.get("typeName").orNull
-      // corresponds to 2015-11-01T00:00:00.000Z/2015-12-5T00:00:00.000Z - same as used by geotools
-      val dates = params.get("dates").flatMap(d => Try(d.split("/").map(dtFormat.parseDateTime)).toOption).orNull
-      if (ds == null || sft == null || dates == null || dates.length != 2) {
-        val reason = new StringBuilder
-        if (ds == null) {
-          reason.append("Could not load data store using the provided parameters. ")
+      withDataStore((ds) => {
+        val sft = params.get("typeName").orNull
+        // corresponds to 2015-11-01T00:00:00.000Z/2015-12-5T00:00:00.000Z - same as used by geotools
+        val dates = params.get("dates").flatMap(d => Try(d.split("/").map(dtFormat.parseDateTime)).toOption).orNull
+        if (sft == null || dates == null || dates.length != 2) {
+          val reason = new StringBuilder
+          if (sft == null) {
+            reason.append("typeName not specified. ")
+          }
+          if (dates == null || dates.length != 2) {
+            reason.append("date not specified or invalid. ")
+          }
+          BadRequest(reason = reason.toString())
+        } else {
+          val reader = ds.config.audit.get._1
+          val interval = new Interval(dates(0), dates(1))
+          // note: json response doesn't seem to handle iterators directly, have to convert to iterable
+          val iter = reader.getEvents[SerializedQueryEvent](sft, interval)
+          // we do the user filtering here, instead of in the tservers - revisit if performance becomes an issue
+          // 'user' appears to be reserved by scalatra
+          val filter: (SerializedQueryEvent) => Boolean = params.get("who") match {
+            case None => (s) => !s.deleted
+            case Some(user) => (s) => s.user == user && !s.deleted
+          }
+          iter.filter(filter).foreach { s =>
+            reader.writeEvent(s.copy(deleted = true))
+          }
+          Ok()
         }
-        if (sft == null) {
-          reason.append("typeName not specified. ")
-        }
-        if (dates == null || dates.length != 2) {
-          reason.append("date not specified or invalid. ")
-        }
-        BadRequest(reason = reason.toString())
-      } else {
-        val reader = ds.usageStats
-        val interval = new Interval(dates(0), dates(1))
-        val auths = ds.authProvider.getAuthorizations
-        // note: json response doesn't seem to handle iterators directly, have to convert to iterable
-        val iter = reader.getUsageStats[SerializedQueryStat](sft, interval, auths)(SerializedQueryStatTransform)
-        // we do the user filtering here, instead of in the tservers - revisit if performance becomes an issue
-        // 'user' appears to be reserved by scalatra
-        val filter: (SerializedQueryStat) => Boolean = params.get("who") match {
-          case None => (s) => !s.deleted
-          case Some(user) => (s) => s.user == user && !s.deleted
-        }
-        iter.filter(filter).foreach { s =>
-          reader.writeUsageStat(s.copy(deleted = true))(SerializedQueryStatTransform)
-        }
-        ds.dispose()
-        Ok()
-      }
+      })
     } catch {
       case e: Exception => handleError(s"Error reading queries:", e)
     }
   }
+
+  private def filterByUser(stat: QueryEvent, user: String): Boolean = stat.user == user
+  private def filterByBin(stat: QueryEvent, bin: Boolean): Boolean = stat.hints.contains(binHintString) == bin
 }

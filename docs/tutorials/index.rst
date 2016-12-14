@@ -35,6 +35,8 @@ Data Analysis
     shallow-join
     geomesa-tubeselect
 
+.. _accumulo_tutorials_security:
+
 Security
 --------
 
@@ -52,3 +54,46 @@ Indexing and Queries
 
     geohash-substrings
 
+
+.. _tutorial_versions:
+
+About Tutorial Versions
+-----------------------
+
+The tutorials listed in this manual can be obtained from GitHub, by
+cloning the **geomesa-tutorials** project:
+
+.. code-block:: bash
+
+    $ git clone https://github.com/geomesa/geomesa-tutorials.git
+    $ cd geomesa-tutorials
+
+Keep in mind that you may have to download a particular release of
+the tutorials project to match the GeoMesa version that
+you are using. For example, to target GeoMesa 1.2.6, you should download
+version 1.2.6.0 of the **geomesa-tutorials** project:
+
+.. code-block:: bash
+
+    $ git checkout geomesa-tutorials-1.2.6.0
+
+In general, the major, minor, and patch version numbers of the
+tutorials release will match the corresponding numbers of the
+GeoMesa version. The tutorials version contains a fourth digit
+number permitting multiple releases per GeoMesa release.
+
+You may also see the **geomesa-tutorials** releases available, and
+download a tarball of a release on the `geomesa-tutorials releases page`_.
+
+.. _geomesa-tutorials releases page: https://github.com/geomesa/geomesa-tutorials/releases
+
+Hadoop Version
+^^^^^^^^^^^^^^
+
+Most of the tutorials encourage you to update the ``pom.xml``
+to match the versions of the services you are using (Hadoop,
+ZooKeeper, Accumulo, etc.) However, there may be issues when
+incrementing the Hadoop version to 2.6 or above, which can result
+in Apache Curator version conflicts. Leaving the
+Hadoop version set to 2.2 in the tutorials ``pom.xml`` will work
+with all subsequent Hadoop 2.X releases.

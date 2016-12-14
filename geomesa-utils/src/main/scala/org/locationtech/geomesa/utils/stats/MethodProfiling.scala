@@ -22,7 +22,7 @@ trait MethodProfiling {
     r
   }
 
-  def profile[R](code: => R, identifier: String)(implicit timings: Timings) = {
+  def profile[R](identifier: String)(code: => R)(implicit timings: Timings) = {
     val (startTime, r) = (ctm, code)
     timings.occurrence(identifier, ctm - startTime)
     r

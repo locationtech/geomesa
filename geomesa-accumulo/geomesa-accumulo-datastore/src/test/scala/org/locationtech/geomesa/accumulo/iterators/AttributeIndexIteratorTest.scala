@@ -17,8 +17,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
-import org.locationtech.geomesa.accumulo.index.QueryPlanner
-import org.locationtech.geomesa.accumulo.index.Strategy.StrategyType
+import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -30,7 +29,8 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
 
   sequential
 
-  val spec = "name:String:index=true,age:Integer:index=true,scars:List[String]:index=true,dtg:Date:index=true,*geom:Point:srid=4326"
+  val spec = "name:String:index=true,age:Integer:index=true,scars:List[String]:index=true,dtg:Date:index=true," +
+      "*geom:Point:srid=4326;override.index.dtg.join=true"
 
   val dateToIndex = {
     val sdf = new SimpleDateFormat("yyyyMMdd")
@@ -55,11 +55,11 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
 
   val ff = CommonFactoryFinder.getFilterFactory2
 
-  val queryPlanner = new QueryPlanner(sft, ds)
+  val queryPlanner = ds.queryPlanner
 
   def query(filter: String, attributes: Array[String] = Array.empty) = {
     val query = new Query(sftName, ECQL.toFilter(filter), if (attributes.length == 0) null else attributes)
-    queryPlanner.runQuery(query, Some(StrategyType.ATTRIBUTE)).toList
+    queryPlanner.runQuery(sft, query, Some(AttributeIndex)).toList
   }
 
   "AttributeIndexIterator" should {

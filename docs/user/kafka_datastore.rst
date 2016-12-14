@@ -1,7 +1,7 @@
 Kafka Data Store
 ================
 
-The GeoMesa Kafka Data Store is found in ``geomesa-kafka`` in the source
+The GeoMesa Kafka Data Store is found in ``geomesa-kafka/geomesa-kafka-datastore/geomesa-kafka-$KAFKAVERSION-datastore/`` in the source
 distribution.
 
 The ``KafkaDataStore`` is an implementation of the GeoTools
@@ -26,7 +26,23 @@ within that interval.
 Installation
 ------------
 
-Use of the Kafka data store does not require server-side configuration.
+Use of the Kafka data store does not require server-side configuration,
+however, a ``geomesa-site.xml`` configuration file is available for
+setting system properties.
+
+This file can be found at ``conf/geomesa-site.xml`` of the Kafka
+distribution. The default settings for GeoMesa are stored in
+``conf/geomesa-site.xml.template``. Do not modify this file directly as it
+is never read, instead copy the desired configurations into
+geomesa-site.xml.
+
+By default command line parameters will take precedence over this
+configuration file. If you wish a configuration item to always take
+precedence, even over command line parameters change the ``<final>``
+tag to true.
+
+By default configuration properties with empty values will not be
+applied, you can change this by marking a property as final.
 
 Usage/Configuration
 -------------------
@@ -284,6 +300,83 @@ Finally the Kafka Replay Consumer Feature Source can be queried:
 
     replayFeatureSource.getFeatures(timeFilter);
 
+Listening for Feature Events
+----------------------------
+
+The GeoTools API includes a mechanism to fire off a `FeatureEvent`_ object each time
+that there is an "event," which occurs when data are added, changed, or deleted in a
+`SimpleFeatureSource`_. A client may implement a `FeatureListener`_, which has a single
+method called ``changed()`` that is invoked each time that each `FeatureEvent`_ is
+fired.
+
+Three types of messages are produced by a GeoMesa Kafka producer, which can be read
+by a GeoMesa Kafka consumer. For a live consumer feature source, reading each of these
+messages causes a `FeatureEvent`_ to be fired, as summarized in the table below:
+
++----------------+------------------------------------+-----------------------+----------------------+--------------------+
+| Message read   | Meaning                            | Class of event fired  | `FeatureEvent.Type`_ | Filter             |
++================+====================================+=======================+======================+====================+
+| CreateOrUpdate | A single feature with a given id   | ``KafkaFeatureEvent`` | ``CHANGED``          | ``IN (<id>)``      |
+|                | has been added; this               |                       |                      |                    |
+|                | may be a new feature, or an update |                       |                      |                    |
+|                | of an existing feature.            |                       |                      |                    |
++----------------+------------------------------------+-----------------------+----------------------+--------------------+
+| Delete         | The feature with the given id      | ``FeatureEvent``      | ``REMOVED``          | ``IN (<id>)``      |
+|                | has been removed.                  |                       |                      |                    |
++----------------+------------------------------------+-----------------------+----------------------+--------------------+
+| Clear          | All features have been removed.    | ``FeatureEvent``      | ``REMOVED``          | ``Filter.INCLUDE`` |
++----------------+------------------------------------+-----------------------+----------------------+--------------------+
+
+For a CreateOrUpdate message, the `FeatureEvent`_ returned is actually a ``KafkaFeatureEvent``,
+which subclasses `FeatureEvent`_. ``KafkaFeatureEvent`` adds a ``feature()`` method, which returns
+the ``SimpleFeature`` added or updated.
+
+To register a `FeatureListener`_, create the `SimpleFeatureSource`_ from a live GeoMesa
+Kafka consumer data store, and use the ``addFeatureListener()`` method. For example, the
+following listener simply prints out the events it receives:
+
+.. code-block:: java
+
+    // the live consumer must be created before the producer writes features
+    // in order to read streaming data.
+    // i.e. the live consumer will only read data written after its instantiation
+    SimpleFeatureSource consumerFS = consumerDS.getFeatureSource(sftName);
+    FeatureListener listener = new FeatureListener() {
+        @Override
+        public void changed(FeatureEvent featureEvent) {
+            System.out.println("Received FeatureEvent of Type: " + featureEvent.getType());
+
+            if (featureEvent.getType() == FeatureEvent.Type.CHANGED &&
+                    featureEvent instanceof KafkaFeatureEvent) {
+                SimpleFeature feature = ((KafkaFeatureEvent) featureEvent).feature();
+                System.out.println(feature);
+            }
+
+            if (featureEvent.getType() == FeatureEvent.Type.REMOVED) {
+                System.out.println("Received Delete for filter: " + featureEvent.getFilter());
+            }
+        }
+    }
+    consumerFS.addFeatureListener(listener);
+
+At cleanup time, it is important to unregister the feature listener with ``removeFeatureListener()``.
+For example, for code run in a bean in GeoServer, the ``javax.annotation.PreDestroy`` annotation may
+be used to mark the method that does the deregistration:
+
+.. code-block:: java
+
+    @PreDestroy
+    public void dispose() throws Exception {
+        consumerFS.removeFeatureListener(listener);
+        // other cleanup
+    }
+
+.. _FeatureEvent: http://docs.geotools.org/stable/javadocs/org/geotools/data/FeatureEvent.html
+.. _FeatureEvent.Type: http://docs.geotools.org/stable/javadocs/org/geotools/data/FeatureEvent.Type.html
+.. _FeatureListener: http://docs.geotools.org/stable/javadocs/org/geotools/data/FeatureListener.html
+.. _SimpleFeatureSource: http://docs.geotools.org/stable/javadocs/org/geotools/data/simple/SimpleFeatureSource.html
+
+
 Using the Kafka Data Store in GeoServer
 ---------------------------------------
 
@@ -297,9 +390,14 @@ used with the ``kafka-console-consumer``, part of Apache Kafka. In order
 to use this formatter call the kafka-console consumer with these
 additional arguments:
 
+.. note::
+
+    Replace ``$KAFKAVERSION`` below with the appropriate version number for your environment: 08, 09, or 10.
+    e.g. ``org.locationtech.geomesa.kafka08.KafkaGeoMessageFormatter``
+
 .. code-block:: bash
 
-    --formatter org.locationtech.geomesa.kafka.KafkaGeoMessageFormatter
+    --formatter org.locationtech.geomesa.kafka$KAFKAVERSION.KafkaGeoMessageFormatter
     --property sft.name={sftName}
     --property sft.spec={sftSpec}
 
@@ -314,7 +412,7 @@ copy the geomesa-kafka-geoserver-plugin.jar to $KAFKA\_HOME/libs. Then
 create a copy of $KAFKA\_HOME/bin/kafka-console-consumer.sh called
 "kafka-ds-log-viewer" and in the copy replace the classname in the exec
 command at the end of the script with
-``org.locationtech.geomesa.kafka.KafkaDataStoreLogViewer``.
+``org.locationtech.geomesa.kafka$KAFKAVERSION.KafkaDataStoreLogViewer``.
 
 The ``KafkaDataStoreLogViewer`` requires three arguments:
 ``--zookeeper``, ``--zkPath``, and ``--sftName``. It also supports an

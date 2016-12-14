@@ -13,6 +13,7 @@ import java.util
 import java.util.{Date, UUID}
 
 import com.typesafe.scalalogging.LazyLogging
+import com.vividsolutions.jts.geom.Geometry
 import org.apache.commons.codec.binary.Base64
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -86,6 +87,37 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
 
       deserialized must not(beNull)
       deserialized.getType mustEqual sf.getType
+      deserialized.getAttributes mustEqual sf.getAttributes
+    }
+
+    "correctly serialize and deserialize geometries with n dimensions" in {
+      val spec = "a:LineString,b:Polygon,c:MultiPoint,d:MultiLineString,e:MultiPolygon," +
+          "f:GeometryCollection,*geom:Point:srid=4326"
+      val sft = SimpleFeatureTypes.createType("testType", spec)
+      val sf = new ScalaSimpleFeature("fakeid", sft)
+
+      sf.setAttribute("a", "LINESTRING(0 2 0, 2 0 1, 8 6 2)")
+      sf.setAttribute("b", "POLYGON((20 10 0, 30 0 10, 40 10 10, 30 20 0, 20 10 0))")
+      sf.setAttribute("c", "MULTIPOINT(0 0 0, 2 2 2)")
+      sf.setAttribute("d", "MULTILINESTRING((0 2 0, 2 0 1, 8 6 2),(0 2 0, 2 0 0, 8 6 0))")
+      sf.setAttribute("e", "MULTIPOLYGON(((-1 0 0, 0 1 0, 1 0 0, 0 -1 0, -1 0 0)), ((-2 6 2, 1 6 3, 1 3 3, -2 3 3, -2 6 2)), " +
+          "((-1 5, 2 5, 2 2, -1 2, -1 5)))")
+      sf.setAttribute("f", "MULTIPOINT(0 0 2, 2 2 0)")
+      sf.setAttribute("geom", "POINT(55.0 49.0 37.0)")
+
+      val serializer = new KryoFeatureSerializer(sft)
+
+      val serialized = serializer.serialize(sf)
+      val deserialized = serializer.deserialize(serialized)
+
+      deserialized must not(beNull)
+      deserialized.getType mustEqual sf.getType
+      deserialized.getAttributes mustEqual sf.getAttributes
+      forall(deserialized.getAttributes.zip(sf.getAttributes)) { case (left, right) =>
+        forall(left.asInstanceOf[Geometry].getCoordinates.zip(right.asInstanceOf[Geometry].getCoordinates)) {
+          case (c1, c2) => c1.equals3D(c2) must beTrue
+        }
+      }
     }
 
     "correctly serialize and deserialize collection types" in {
@@ -146,6 +178,35 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       deserialized.getType mustEqual sf.getType
       deserialized.getAttributes.foreach(_ must beNull)
       deserialized.getAttributes mustEqual sf.getAttributes
+    }
+
+    "correctly serialize and deserialize sub-arrays" in {
+      val spec = "a:Integer,b:Float,c:Double,d:Long,e:UUID,f:String,g:Boolean,dtg:Date,*geom:Point:srid=4326"
+      val sft = SimpleFeatureTypes.createType("testType", spec)
+      val sf = new ScalaSimpleFeature("fakeid", sft)
+
+      sf.setAttribute("a", "1")
+      sf.setAttribute("b", "1.0")
+      sf.setAttribute("c", "5.37")
+      sf.setAttribute("d", "-100")
+      sf.setAttribute("e", UUID.randomUUID())
+      sf.setAttribute("f", "mystring")
+      sf.setAttribute("g", java.lang.Boolean.FALSE)
+      sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+      sf.setAttribute("geom", "POINT(45.0 49.0)")
+
+      val serializer = new KryoFeatureSerializer(sft)
+
+      val serialized = serializer.serialize(sf)
+      val extra = Array.fill[Byte](128)(-1)
+      val bytes = Seq((serialized ++ extra, 0), (extra ++ serialized, extra.length), (extra ++ serialized ++ extra, extra.length))
+
+      forall(bytes) { case (array, offset) =>
+        val deserialized = serializer.deserialize(array, offset, serialized.length)
+        deserialized must not(beNull)
+        deserialized.getType mustEqual sf.getType
+        deserialized.getAttributes mustEqual sf.getAttributes
+      }
     }
 
     "correctly project features" in {
@@ -250,7 +311,7 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       deserialized must not(beNull)
       deserialized.getType mustEqual sf.getType
       deserialized.getAttributes mustEqual sf.getAttributes
-    }
+    }.pendingUntilFixed("dropping back compatibility")
 
     "be faster than full deserialization" in {
       skipped("integration")

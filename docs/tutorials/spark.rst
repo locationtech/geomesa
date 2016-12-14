@@ -39,10 +39,10 @@ Prerequisites
 
 You will also need:
 
--  a `Spark <http://spark.apache.org/>`__ 1.5.0 or later distribution (see below)
+-  a `Spark <http://spark.apache.org/>`__ 2.0.0 or later distribution (see below)
 -  an Accumulo user that has appropriate permissions to query your data
 -  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
--  `Apache Maven <http://maven.apache.org/>`__ 3.2.2 or better
+-  `Apache Maven <http://maven.apache.org/>`__ |maven_version|, and
 -  a `git <http://git-scm.com/>`__ client
 
 Spark Distribution
@@ -54,7 +54,7 @@ with Scala 2.11 details `here <http://spark.apache.org/docs/latest/building-spar
 
 .. warning::
 
-    Ensure that you are using Spark 1.5.0 or later
+    Ensure that you are using Spark 2.0.0 or later
 
 GeoMesa works best with Spark running on Yarn - as such, you need to have an available Hadoop with Yarn
 installation alongside your Spark distribution. We will use ``spark-submit`` to run our jobs on the cluster.
@@ -82,7 +82,7 @@ Count Events by Day of Year
 You will need to have ingested some
 `GDELT <http://www.gdeltproject.org/>`__ data as described in :doc:`geomesa-examples-gdelt` and `GeoMesa tools gdelt confs <https://github.com/locationtech/geomesa/geomesa-tools/conf/sfts/gdelt>`__.
 We have an example analysis in the class
-``geomesa-compute/src/main/scala/org/locationtech/geomesa/compute/spark/analytics/CountByDay.scala``.
+``geomesa-accumulo/geomesa-accumulo-compute/src/main/scala/org/locationtech/geomesa/compute/spark/analytics/CountByDay.scala``.
 
 The code goes as follows.
 
@@ -135,7 +135,7 @@ group.
 Run the Tutorial Code
 ^^^^^^^^^^^^^^^^^^^^^
 
-Edit the file ``geomesa-compute/src/main/scala/org/locationtech/geomesa/compute/spark/analytics/CountByDay.scala``
+Edit the file ``geomesa-accumulo/geomesa-accumulo-computer/src/main/scala/org/locationtech/geomesa/compute/spark/analytics/CountByDay.scala``
 so that the parameter map points to your cloud instance. Ensure that the ``filter`` covers
 a valid range of your GDELT data.
 

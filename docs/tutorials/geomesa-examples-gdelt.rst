@@ -12,7 +12,7 @@ Prerequisites
 
 .. warning::
 
-    You will need access to a Hadoop 2.2.2 or better
+    You will need access to a Hadoop |hadoop_version|
     installation as well as an Accumulo |accumulo_version| database.
 
 You will also need:
@@ -77,6 +77,11 @@ Pick a reasonable directory on your machine, and run:
 
     $ git clone https://github.com/geomesa/geomesa-tutorials.git
     $ cd geomesa-tutorials
+
+.. note::
+
+    You may need to download a particular release of the tutorials project
+    to target a particular GeoMesa release. See :ref:`tutorial_versions`.
 
 To build, run
 
@@ -154,8 +159,8 @@ field to use for the date index. We specify this field using the
 
 .. code-block:: java
 
-    //This tells GeoMesa to use this Attribute as the Start Time index
-    featureType.getUserData().put(Constants.SF_PROPERTY_START_TIME, "SQLDATE");
+    // This tells GeoMesa to use this attribute as the indexed date field
+    featureType.getUserData().put(SimpleFeatureTypes.DEFAULT_DATE_KEY, "SQLDATE");
 
 Finally, we create the new feature type in GeoMesa as follows.
 
@@ -263,7 +268,7 @@ The above map is using the `Stamen
 Toner <http://maps.stamen.com/toner>`__ layer as a base layer. For more
 information about adding multiple layers into one group see the
 `GeoServer
-documentation <http://docs.geoserver.org/stable/en/user/webadmin/data/layergroups.html>`__.
+documentation <http://docs.geoserver.org/stable/en/user/data/webadmin/layergroups.html>`__.
 
 Filter
 ~~~~~~
@@ -282,12 +287,12 @@ OpenLayers preview.
    :alt: Enter CQL Filter into Toolbar
 
 Let's use a custom icon to display THREATEN events, by adding an `SLD
-style <http://docs.geoserver.org/latest/en/user/styling/index.html>`__
+style <http://docs.geoserver.org/stable/en/user/styling/index.html>`__
 to the layer. Add the SLD file
 :download:`threat.sld <_static/geomesa-examples-gdelt/threat.sld>`
 to GeoServer (See the GeoServer documentation for `more information
 about adding SLD
-files <http://docs.geoserver.org/latest/en/user/styling/sld-working.html>`__.
+files <http://docs.geoserver.org/stable/en/user/styling/sld-working.html>`__.
 For the ExternalGraphic in the SLD to work, move the image file to the
 specified location in your GeoServer installation.
 
@@ -298,11 +303,21 @@ specified location in your GeoServer installation.
 .. image:: _static/geomesa-examples-gdelt/Ukraine_Event_RootCode_Threaten.png
    :alt: Showing GDELT events with CAMEO root code THREATEN from Jan 1, 2013 to April 30, 2014
 
+.. _gdelt_heatmaps:
+
 Heatmaps
 ~~~~~~~~
 
 Use a heatmap to more clearly visualize multiple events in the same
-location or high volume of data in general. Add the SLD file
+location or high volume of data in general.
+
+.. note::
+
+    The heatmap style requires that ``geomesa-process`` be installed in your
+    GeoServer, as described in :ref:`install_geomesa_process`.
+
+
+Add the SLD file
 :download:`heatmap.sld <_static/geomesa-examples-gdelt/heatmap.sld>` to
 GeoServer.
 

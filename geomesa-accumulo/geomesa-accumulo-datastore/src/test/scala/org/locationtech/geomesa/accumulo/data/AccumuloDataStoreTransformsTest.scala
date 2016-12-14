@@ -18,8 +18,8 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
-import org.locationtech.geomesa.accumulo.util.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -114,20 +114,6 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
         features.head.getAttribute("trans") mustEqual name
         features.head.getAttribute("geom") mustEqual geom
       }
-    }
-
-    "handle back compatible transformations" >> {
-      val sft = createNewSchema(spec, schemaVersion = Some(2))
-      val sftName = sft.getTypeName
-
-      addFeatures(sft, createFeature(sft))
-
-      val query = new Query(sftName, Filter.INCLUDE, List("dtg", "geom").toArray)
-      val results = SelfClosingIterator(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())).toList
-      results must haveSize(1)
-      results.head.getAttribute("dtg") mustEqual date
-      results.head.getAttribute("geom") mustEqual geom
-      results.head.getAttribute("name") must beNull
     }
 
     "handle transformations" >> {

@@ -38,7 +38,7 @@ necessary to change the versions of Accumulo and Hadoop that the tutorial
 uses. After completing the deployment tutorial, you should have:
 
 -  an instance of Accumulo |accumulo_version| running on Hadoop
-   2.2,
+   |hadoop_version|,
 -  access to an Accumulo user that has both create-table and write
    permissions, and
 -  an instance of GeoServer 2.5.2 with the GeoMesa plugin installed.
@@ -47,7 +47,7 @@ Because this tutorial requires building custom Java code, development
 tools should also be installed and configured:
 
 -  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
--  `Apache Maven <http://maven.apache.org/>`__ 3.2.2 or better, and
+-  `Apache Maven <http://maven.apache.org/>`__ |maven_version|, and
 -  a `git <http://git-scm.com/>`__ client.
 
 Using the GeoServer Plugin
@@ -55,7 +55,7 @@ Using the GeoServer Plugin
 
 Once everything is installed you should see "geomesa:TubeSelect" appear
 in the `WPS Request
-Builder <http://docs.geoserver.org/stable/en/user/extensions/wps/requestbuilder.html>`__,
+Builder <http://docs.geoserver.org/stable/en/user/services/wps/requestbuilder.html>`__,
 which is found under the *Demos* link in the menu bar on the left side
 of the GeoServer web administration interface.
 
@@ -294,7 +294,7 @@ Chaining Processes
 WPS supports chaining other WPS processes. This is useful when selecting
 data from an existing layer or storing data back into GeoServer to
 create a new layer. The GeoServer User Guide has a section on `Process
-Chaining <http://docs.geoserver.org/stable/en/user/extensions/wps/processes.html#process-chaining>`__.
+Chaining <http://docs.geoserver.org/stable/en/user/services/wps/processes/chaining.html>`__.
 
 Tube Selections
 ---------------

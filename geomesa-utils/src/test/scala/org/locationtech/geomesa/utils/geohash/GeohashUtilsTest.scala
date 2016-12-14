@@ -226,7 +226,7 @@ class GeohashUtilsTest extends Specification with LazyLogging {
         val geom = wkt2geom(geomString)
         val includedPoint = wkt2geom(incl).asInstanceOf[Point]
         val excludedPoint = wkt2geom(excl).asInstanceOf[Point]
-        val decomposed = getInternationalDateLineSafeGeometry(geom)
+        val decomposed = getInternationalDateLineSafeGeometry(geom).getOrElse(null)
         logger.debug("International Date Line test geom: " + geom.toText)
         decomposed match {
           case g: GeometryCollection =>
