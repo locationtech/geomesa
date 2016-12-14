@@ -1584,6 +1584,11 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-accumulo-compute_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-accumulo-compute_${scala.binary.version}</artifactId>
                 <classifier>shaded</classifier>
                 <version>${project.version}</version>
             </dependency>
