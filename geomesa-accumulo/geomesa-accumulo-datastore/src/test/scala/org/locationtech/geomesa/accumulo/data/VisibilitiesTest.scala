@@ -17,6 +17,7 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.identity.FeatureIdImpl
+import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -25,9 +26,11 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
+@RunWith(classOf[JUnitRunner])
 class VisibilitiesTest extends Specification {
 
   sequential
@@ -183,7 +186,7 @@ class VisibilitiesTest extends Specification {
       fs.flush()
 
       "using ALL queries" in {
-        fs.getFeatures(Query.ALL).features().toList.size must be equalTo 5
+        fs.getFeatures(new Query(sftName)).features().toList.size must be equalTo 5
       }
 
       "using record id queries" in {
