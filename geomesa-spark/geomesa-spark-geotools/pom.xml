@@ -9,12 +9,13 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <name>GeoMesa Spark GeoTools RDD Provider</name>
     <artifactId>geomesa-spark-geotools_2.11</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_2.11</artifactId>
+            <artifactId>spark-core_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -22,7 +23,7 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-spark-core_2.11</artifactId>
+            <artifactId>geomesa-spark-core_${scala.binary.version}</artifactId>
         </dependency>
         <!-- test dependencies -->
         <dependency>
