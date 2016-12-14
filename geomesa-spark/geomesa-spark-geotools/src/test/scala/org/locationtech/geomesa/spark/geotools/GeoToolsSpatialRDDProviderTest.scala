@@ -33,7 +33,7 @@ class GeoToolsSpatialRDDProviderTest extends Specification {
     val conf = new SparkConf().setMaster("local[2]").setAppName("testSpark")
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     conf.set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
-    sc = new SparkContext(conf)
+    sc = SparkContext.getOrCreate(conf)
   }
 
   val dsParams = Map("cqengine" -> "true", "geotools" -> "true")
