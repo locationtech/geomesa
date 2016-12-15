@@ -8,7 +8,9 @@
 
 package org.locationtech.geomesa.accumulo.tools
 
-import com.beust.jcommander.JCommander
+import java.io.FileNotFoundException
+
+import com.beust.jcommander.{JCommander, ParameterException}
 import org.apache.accumulo.server.client.HdfsZooInstance
 import org.locationtech.geomesa.accumulo.tools.data._
 import org.locationtech.geomesa.accumulo.tools.export.{AccumuloBinExportCommand, AccumuloExportCommand}
@@ -21,7 +23,7 @@ import org.locationtech.geomesa.tools.utils.Prompt
 import org.locationtech.geomesa.tools.{Command, ConvertCommand, Runner}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent._
 import scala.util.Try
 import scala.util.control.NonFatal
 import scala.xml.XML
@@ -78,6 +80,9 @@ object AccumuloRunner extends Runner {
             .map(y => (y \ "value").text)
             .head
       } catch {
+        case e: FileNotFoundException => throw new ParameterException("Accumulo Site XML was not found, unable to locate zookeepers. " +
+          "Please provide the --zookeepers parameter or ensure the file $ACCUMULO_HOME/conf/accumulo-site.xml exists or optionally, " +
+          "specify a different configuration file with the System Property 'geomesa.tools.accumulo.site.xml'.", e)
         case NonFatal(e) => null
       }
     }
@@ -93,24 +98,42 @@ object AccumuloRunner extends Runner {
       if (p.zookeepers == null) {
         p.zookeepers = zookeepers
       }
-      if (p.instance == null) {
-        p.instance = try {
-          // This block checks for the same system property which Accumulo uses for Zookeeper timeouts.
-          //  If it is set, we use it.  Otherwise, a timeout of 5 seconds is used.
-          //  Don't give default to GeoMesaSystemProperty so .option will throw a None
-          val lookupTime: Long = SystemProperty("instance.zookeeper.timeout").option.flatMap{ p =>
-            Try { java.lang.Long.parseLong(p) }.toOption
-          }.getOrElse(5000L)
+      try {
+        // This block checks for the same system property which Accumulo uses for Zookeeper timeouts.
+        //  If it is set, we use it.  Otherwise, a timeout of 5 seconds is used.
+        //  Don't give default to GeoMesaSystemProperty so .option will throw a None
+        val lookupTime: Long = SystemProperty("instance.zookeeper.timeout").option.flatMap{ p =>
+          Try { java.lang.Long.parseLong(p) }.toOption
+        }.getOrElse(5000L)
 
-          Command.user.debug(s"Looking up Accumulo Instance Id in Zookeeper for $lookupTime milliseconds.")
-          Command.user.debug("You can specify the Instance Id via the command line or\n" +
-            "change the Zookeeper timeout by setting the system property 'instance.zookeeper.timeout'.")
+        Command.user.debug(s"Looking up Accumulo Instance Id in Zookeeper for $lookupTime milliseconds.")
+        Command.user.debug("You can specify the Instance Id via the command line or\n" +
+          "change the Zookeeper timeout by setting the system property 'instance.zookeeper.timeout'.")
 
-          import scala.concurrent.duration._
-          Await.result(Future(HdfsZooInstance.getInstance().getInstanceName)(ExecutionContext.global),  lookupTime.millis)
+        import scala.concurrent.duration._
+        lazy val ff: Either[Throwable, String] = try {
+          // This call not only provides the instance name but in situations where the instance
+          // name is provided, this allows us to check that we have access to Accumulo dependencies.
+          val i = HdfsZooInstance.getInstance().getInstanceName
+          Right(i)
         } catch {
-          case NonFatal(e) => Command.user.warn(s"Exception getting zoo instance: ${e.toString}"); null
+          case e: Throwable => Left(e)
         }
+        val future = Await.result(Future(ff)(ExecutionContext.global),  lookupTime.millis)
+
+        future match {
+          case Right(instanceId) => if (p.instance == null) p.instance = instanceId
+          case Left(e) => throw e
+        }
+      } catch {
+        case e @ ( _: ClassNotFoundException | _: NoClassDefFoundError ) =>
+          throw new ParameterException("Unable to locate Accumulo instance. Please ensure that $ACCUMULO_HOME is set " +
+            "correctly and/or provide the instance name with the parameter --instance.", e)
+        case e: TimeoutException =>
+          throw new ParameterException("Unable to connect to Zookeeper instance " +
+          "within timeout period. Consider increasing the Zookeeper timeout by setting the system property " +
+          "'instance.zookeeper.timeout' (default: 5000ms).", e)
+        case NonFatal(e) => Command.user.warn(s"Exception getting zoo instance: ${e.toString}"); null
       }
     }
   }
