@@ -12,10 +12,14 @@ import java.io.{Closeable, InputStream}
 
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{Path, Seekable}
 import org.apache.hadoop.mapreduce._
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
+import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
 
 /**
  * Input format for Converters gives us access to the entire file as a byte stream
@@ -35,9 +39,14 @@ object ConverterInputFormat {
 
   val ConverterKey  = "org.locationtech.geomesa.jobs.ingest.converter"
 
-  def setConverterConfig(job: Job, config: String): Unit = job.getConfiguration.set(ConverterKey, config)
+  def setConverterConfig(job: Job, config: String): Unit = setConverterConfig(job.getConfiguration, config)
+  def setConverterConfig(conf: Configuration, config: String): Unit = conf.set(ConverterKey, config)
 
   def setSft(job: Job, sft: SimpleFeatureType): Unit = FileStreamInputFormat.setSft(job, sft)
+  def setSft(conf: Configuration, sft: SimpleFeatureType): Unit = FileStreamInputFormat.setSft(conf, sft)
+
+  def setFilter(job: Job, ecql: String): Unit = setFilter(job.getConfiguration, ecql)
+  def setFilter(conf: Configuration, ecql: String): Unit = GeoMesaConfigurator.setFilter(conf, ecql)
 }
 
 class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
@@ -51,6 +60,7 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
     val conf      = ConfigFactory.parseString(confStr)
     val sft       = FileStreamInputFormat.getSft(context.getConfiguration)
     val converter = SimpleFeatureConverters.build(sft, conf)
+    val filter    = GeoMesaConfigurator.getFilter(context.getConfiguration).map(ECQL.toFilter)
 
     class MapReduceCounter extends org.locationtech.geomesa.convert.Transformers.Counter {
       import ConverterInputFormat.{Counters => C}
@@ -70,7 +80,11 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
     }
 
     val ec = converter.createEvaluationContext(Map("inputFilePath" -> filePath.toString), new MapReduceCounter)
-    val iter = converter.process(stream, ec)
+    val raw = converter.process(stream, ec)
+    val iter = filter match {
+      case Some(f) => raw.filter(f.evaluate)
+      case None    => raw
+    }
 
     logger.info(s"Initialized record reader on split ${filePath.toString} with " +
         s"type name ${sft.getTypeName} and convert conf $confStr")
