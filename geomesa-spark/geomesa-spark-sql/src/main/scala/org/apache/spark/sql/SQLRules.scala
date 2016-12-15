@@ -124,7 +124,7 @@ object SQLRules {
     }
   }
 
-  import SQLSpatialFunctions._
+  import SQLConstructorFunctions._
 
   object FoldConstantGeometryRule extends Rule[LogicalPlan] {
     override def apply(plan: LogicalPlan): LogicalPlan = {
