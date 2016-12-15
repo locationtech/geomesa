@@ -52,9 +52,17 @@ object FileStreamInputFormat {
    * @param job job
    * @param sft simple feature type
    */
-  def setSft(job: Job, sft: SimpleFeatureType): Unit = {
-    job.getConfiguration.set(SftKey, SimpleFeatureTypes.encodeType(sft))
-    job.getConfiguration.set(TypeNameKey, sft.getTypeName)
+  def setSft(job: Job, sft: SimpleFeatureType): Unit = setSft(job.getConfiguration, sft)
+
+  /**
+    * Set the simple feature type in the job configuration for distributed access.
+    *
+    * @param conf job conf
+    * @param sft simple feature type
+    */
+  def setSft(conf: Configuration, sft: SimpleFeatureType): Unit = {
+    conf.set(SftKey, SimpleFeatureTypes.encodeType(sft))
+    conf.set(TypeNameKey, sft.getTypeName)
   }
 
   /**
