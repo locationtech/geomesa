@@ -14,7 +14,7 @@ import javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
-import javax.xml.xpath.{XPathConstants, XPathExpression, XPathFactory}
+import javax.xml.xpath.{XPath, XPathConstants, XPathExpression, XPathFactory}
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
@@ -22,7 +22,6 @@ import org.apache.commons.io.IOUtils
 import org.locationtech.geomesa.convert.LineMode.LineMode
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
 import org.locationtech.geomesa.convert._
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
@@ -77,25 +76,18 @@ class XMLConverter(val targetSFT: SimpleFeatureType,
 
 class XMLConverterFactory extends AbstractSimpleFeatureConverterFactory[String] with LazyLogging {
 
-  private val xpath = {
-    import XPathFactory.DEFAULT_OBJECT_MODEL_URI
-    import GeoMesaSystemProperties.getProperty
-
-    val providerImpl = Option(getProperty("geomesa.convert.xpath.provider")).flatMap { provider =>
-      try {
-        Option(XPathFactory.newInstance(DEFAULT_OBJECT_MODEL_URI, provider, getClass.getClassLoader))
-      } catch {
-        case NonFatal(e) =>
-          logger.warn(s"Unable to load xpath provider '$provider'. " +
-              "Xpath queries may be slower - please check your classpath")
-          None
-      }
-    }
-    val factory = providerImpl.getOrElse(XPathFactory.newInstance(DEFAULT_OBJECT_MODEL_URI))
-    factory.newXPath()
-  }
+  private val xpaths = new ThreadLocal[XPath]
 
   override protected val typeToProcess = "xml"
+
+  override def buildConverter(sft: SimpleFeatureType, conf: Config): XMLConverter = {
+    xpaths.set(getXPath(conf))
+    try {
+      super.buildConverter(sft, conf).asInstanceOf[XMLConverter]
+    } finally{
+      xpaths.remove()
+    }
+  }
 
   override protected def buildConverter(sft: SimpleFeatureType,
                                         conf: Config,
@@ -105,10 +97,13 @@ class XMLConverterFactory extends AbstractSimpleFeatureConverterFactory[String] 
                                         validating: Boolean): XMLConverter = {
     // feature path can be any xpath that resolves to a node set (or a single node)
     // it can be absolute, or relative to the root node
-    val featurePath = if (conf.hasPath("feature-path")) Some(conf.getString("feature-path")) else None
+    val featurePath = if (!conf.hasPath("feature-path")) { None } else {
+      Some(xpaths.get.compile(conf.getString("feature-path")))
+    }
     val xsd         = if (conf.hasPath("xsd")) Some(conf.getString("xsd")) else None
     val lineMode    = LineMode.getLineMode(conf)
-    new XMLConverter(sft, idBuilder, featurePath.map(xpath.compile), xsd, fields, userDataBuilder, validating, lineMode)
+
+    new XMLConverter(sft, idBuilder, featurePath, xsd, fields, userDataBuilder, validating, lineMode)
   }
 
   override protected def buildField(field: Config): Field = {
@@ -121,10 +116,31 @@ class XMLConverterFactory extends AbstractSimpleFeatureConverterFactory[String] 
     if (field.hasPath("path")) {
       // path can be absolute, or relative to the feature node
       // it can also include xpath functions to manipulate the result
-      XMLField(name, xpath.compile(field.getString("path")), transform)
+      XMLField(name, xpaths.get.compile(field.getString("path")), transform)
     } else {
       SimpleField(name, transform)
     }
+  }
+
+  private def getXPath(conf: Config): XPath = {
+    val provider = if (conf.hasPath("xpath-factory")) {
+      conf.getString("xpath-factory")
+    } else {
+      // use saxon if available - though we can't distribute it due to CQs
+      "net.sf.saxon.xpath.XPathFactoryImpl"
+    }
+
+    val factory = try {
+      val res = XPathFactory.newInstance(XPathFactory.DEFAULT_OBJECT_MODEL_URI, provider, getClass.getClassLoader)
+      logger.info(s"Loaded xpath factory ${res.getClass}")
+      res
+    } catch {
+      case NonFatal(e) =>
+        logger.warn(s"Unable to load xpath provider '$provider'. " +
+            "Xpath queries may be slower - please check your classpath")
+        XPathFactory.newInstance(XPathFactory.DEFAULT_OBJECT_MODEL_URI)
+    }
+    factory.newXPath()
   }
 }
 
