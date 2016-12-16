@@ -115,7 +115,7 @@ Run the following command:
 
 .. code:: bash
 
-    geomesa remove-schema -u <username> -p <password> -c cmd_tutorial -fn feature
+    geomesa remove-schema -u <username> -p <password> -c cmd_tutorial -f feature
 
 NOTE: Running this command will take a bit longer than the previous two,
 as it will delete three tables in Accumulo, as well as remove the
@@ -247,43 +247,46 @@ To confirm that GeoMesa can properly parse your edited
 
 .. code::
 
-    $ geomesa env
-    Using GEOMESA_HOME = /path/to/geomesa
+    $ geomesa env -s gdelt --format spec
+    Using GEOMESA_HOME = /opt/geomesa/tools
     Simple Feature Types:
-        gdelt = globalEventId:String,eventCode:String,actor1:String,actor2:String,dtg:Date:index=join,*geom:Point:srid=4326:index=full:index-value=true
-     
+    gdelt = globalEventId:String,eventCode:String,actor1:String,actor2:String,dtg:Date:index=join,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='false'
+
+    $ geomesa env -c gdelt_tsv
+    Using GEOMESA_HOME = /opt/geomesa/tools
+
     Simple Feature Type Converters:
-        fields=[
-            {
-                name=globalEventId
-                transform="$1"
-            },
-            {
-                name=eventCode
-                transform="$27"
-            },
-            {
-                name=actor1
-                transform="$7"
-            },
-            {
-                name=actor2
-                transform="$17"
-            },
-            {
-                name=dtg
-                transform="date('yyyyMMdd', $2)"
-            },
-            {
-                name=geom
-                transform="point(stringToDouble($41, 0.0), $40::double)"
-            }
-        ]
-        format=TDF
-        # global event id
-        id-field="$1"
-        name="gdelt_tsv"
-        type=delimited-text
+    converter-name=gdelt_tsv
+    fields=[
+        {
+            name=globalEventId
+            transform="$1"
+        },
+        {
+            name=eventCode
+            transform="$27"
+        },
+        {
+            name=actor1
+            transform="$7"
+        },
+        {
+            name=actor2
+            transform="$17"
+        },
+        {
+            name=dtg
+            transform="date('yyyyMMdd', $2)"
+        },
+        {
+            name=geom
+            transform="point(stringToDouble($41, 0.0), $40::double)"
+        }
+    ]
+    format=TDF
+    # global event id
+    id-field="$1"
+    type=delimited-text
 
 
 Downloading sample data 

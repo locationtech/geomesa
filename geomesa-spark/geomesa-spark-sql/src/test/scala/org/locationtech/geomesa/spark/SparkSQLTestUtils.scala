@@ -6,49 +6,35 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.spark.geotools
+package org.locationtech.geomesa.spark
+
+import java.io.File
+import java.util.{Map => JMap}
 
 import com.vividsolutions.jts.geom.Coordinate
-import org.apache.hadoop.conf.Configuration
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.sql.SparkSession
 import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.data.{DataStore, DataStoreFinder, DataUtilities, Query}
+import org.geotools.data.{DataStore, DataUtilities}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.format.ISODateTimeFormat
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.spark.{GeoMesaSpark, GeoMesaSparkKryoRegistrator}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
+import org.locationtech.geomesa.utils.geotools.{GeneralShapefileIngest, SimpleFeatureTypes}
 
 import scala.collection.JavaConversions._
 
-@RunWith(classOf[JUnitRunner])
-class GeoToolsSpatialRDDProviderTest extends Specification {
-
-  var sc: SparkContext = null
-
-  step {
-    val conf = new SparkConf().setMaster("local[2]").setAppName("testSpark")
-    conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-    conf.set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
-    sc = SparkContext.getOrCreate(conf)
-  }
-
-  val dsParams = Map("cqengine" -> "true", "geotools" -> "true")
-
-  "The GeoToolsSpatialRDDProvider" should {
-    "read from the in-memory database" in {
-      val ds = DataStoreFinder.getDataStore(dsParams)
-      ingestChicago(ds)
-
-      val rdd = GeoMesaSpark(dsParams).rdd(new Configuration(), sc, dsParams, new Query("chicago"))
-      rdd.count() mustEqual(3l)
-    }
+object SparkSQLTestUtils {
+  def createSparkSession(): SparkSession = {
+    SparkSession.builder()
+      .appName("testSpark")
+      .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+      .config("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
+      .config("spark.sql.crossJoin.enabled", "true")
+      .master("local[*]")
+      .getOrCreate()
   }
 
   def ingestChicago(ds: DataStore): Unit = {
+    // Chicago data ingest
     val sft = SimpleFeatureTypes.createType("chicago", "arrest:String,case_number:Int,dtg:Date,*geom:Point:srid=4326")
     ds.createSchema(sft)
 
@@ -66,3 +52,4 @@ class GeoToolsSpatialRDDProviderTest extends Specification {
     fs.addFeatures(features)
   }
 }
+
