@@ -24,9 +24,9 @@ object SQLConstructorFunctions {
   val ST_MakeBBOX: (Double, Double, Double, Double) => Geometry = (lx, ly, ux, uy) =>
     JTS.toGeometry(BoundingBox(lx, ux, ly, uy))
   val ST_MakePolygon: LineString => Polygon = shell => {
-    require(shell.isClosed)
-    val envelope = JTS.toEnvelope(new LinearRing(shell.getCoordinateSequence, SQLTypes.geomFactory).getEnvelope)
-    JTS.toGeometry(envelope)
+    val factory = new GeometryFactory()
+    val ring = factory.createLinearRing(shell.getCoordinateSequence)
+    new GeometryFactory().createPolygon(ring)
   }
   val ST_MakePoint: (Double, Double) => Point = (x, y) => WKTUtils.read(s"POINT($x $y)").asInstanceOf[Point]
   val ST_MakePointM: (Double, Double, Double) => Point = (x, y, m) =>

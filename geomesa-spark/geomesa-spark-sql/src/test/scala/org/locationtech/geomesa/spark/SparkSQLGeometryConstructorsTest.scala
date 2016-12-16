@@ -138,11 +138,10 @@ class SparkSQLGeometryConstructorsTest extends Specification with LazyLogging {
       val r = sc.sql(
         s"""
            |select st_makePolygon(st_castToLineString(
-           |    st_geomFromWKT('LINESTRING(0.0 0.0, 2.0 0.0, 2.0 2.0, 0.0 2.0, 0.0 0.0)')))
+           |    st_geomFromWKT('LINESTRING(0 0, 2 2, 5 4, 7 2, 5 2, 3 0, 0 0)')))
         """.stripMargin
       )
-      r.collect().head.getAs[Polygon](0) mustEqual WKTUtils.read("POLYGON((0.0 0.0, 2.0 0.0, " +
-        "2.0 2.0, 0.0 2.0, 0.0 0.0))")
+      r.collect().head.getAs[Polygon](0) mustEqual WKTUtils.read("POLYGON((0 0, 2 2, 5 4, 7 2, 5 2, 3 0, 0 0))")
     }
 
     "st_makePoint" >> {
@@ -242,11 +241,10 @@ class SparkSQLGeometryConstructorsTest extends Specification with LazyLogging {
       val r = sc.sql(
         s"""
            |select st_polygon(st_castToLineString(
-           |    st_geomFromWKT('LINESTRING(0.0 0.0, 2.0 0.0, 2.0 2.0, 0.0 2.0, 0.0 0.0)')))
+           |    st_geomFromWKT('LINESTRING(0 0, 2 2, 5 2, 3 0, 0 0)')))
         """.stripMargin
       )
-      r.collect().head.getAs[Polygon](0) mustEqual WKTUtils.read("POLYGON((0.0 0.0, 2.0 0.0, " +
-        "2.0 2.0, 0.0 2.0, 0.0 0.0))")
+      r.collect().head.getAs[Polygon](0) mustEqual WKTUtils.read("POLYGON((0 0, 2 2, 5 2, 3 0, 0 0))")
     }
 
     "st_polygonFromText" >> {
