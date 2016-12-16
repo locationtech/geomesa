@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets
 import com.vividsolutions.jts.geom._
 import org.apache.spark.sql.SQLContext
 
-object SQLCastFunctions {
+object SQLGeometricCastFunctions {
   val ST_CastToPoint:      Geometry => Point       = g => g.asInstanceOf[Point]
   val ST_CastToPolygon:    Geometry => Polygon     = g => g.asInstanceOf[Polygon]
   val ST_CastToLineString: Geometry => LineString  = g => g.asInstanceOf[LineString]

@@ -58,23 +58,35 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     "st_box2DFromGeoHash" >> {
       val r = sc.sql(
         s"""
-           |select st_box2DFromGeoHash('u2sux', 25)
+           |select st_box2DFromGeoHash('ezs42', 25)
         """.stripMargin
       )
 
-      r.collect().head.getAs[Geometry](0) mustEqual WKTUtils.read("POLYGON ((18.2373046875 48.603515625, " +
-        "18.2373046875 48.6474609375, 18.28125 48.6474609375, 18.28125 48.603515625, 18.2373046875 48.603515625))")
+      val boxCoords = r.collect().head.getAs[Geometry](0).getCoordinates
+      val ll = boxCoords(0)
+      val ur = boxCoords(2)
+      boxCoords.length mustEqual 5
+      ll.x must beCloseTo(-5.625, .022) // lon
+      ll.y must beCloseTo(42.583, .022) // lat
+      ur.x must beCloseTo(-5.581, .022) // lon
+      ur.y must beCloseTo(42.627, .022) // lat
     }
 
     "st_geomFromGeoHash" >> {
       val r = sc.sql(
         s"""
-           |select st_geomFromGeoHash('u2sux', 25)
+           |select st_geomFromGeoHash('ezs42', 25)
         """.stripMargin
       )
 
-      r.collect().head.getAs[Geometry](0) mustEqual WKTUtils.read("POLYGON ((18.2373046875 48.603515625, " +
-        "18.2373046875 48.6474609375, 18.28125 48.6474609375, 18.28125 48.603515625, 18.2373046875 48.603515625))")
+      val geomboxCoords = r.collect().head.getAs[Geometry](0).getCoordinates
+      val ll = geomboxCoords(0)
+      val ur = geomboxCoords(2)
+      geomboxCoords.length mustEqual 5
+      ll.x must beCloseTo(-5.625, .022) // lon
+      ll.y must beCloseTo(42.583, .022) // lat
+      ur.x must beCloseTo(-5.581, .022) // lon
+      ur.y must beCloseTo(42.627, .022) // lat
     }
 
     "st_geomFromWKT" >> {
@@ -213,8 +225,8 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
       )
 
       val point = r.collect().head.getAs[Point](0)
-      point.getX must beCloseTo(-5.6, .023)
-      point.getY must beCloseTo(42.6, .023)
+      point.getX must beCloseTo(-5.603, .022)
+      point.getY must beCloseTo(42.605, .022)
     }
 
     "st_pointFromText" >> {
