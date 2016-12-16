@@ -33,7 +33,11 @@
     <property>
         <name>geomesa.convert.xpath.provider</name>
         <value>net.sf.saxon.xpath.XPathFactoryImpl</value>
-        <description>An provider implementation for xpath functionality</description>
+        <description>A provider implementation for xpath functionality. This can
+            either be the class name of an implementation of 'javax.xml.xpath.XPathFactory'
+            or a factory class that implements the method
+            'public static XPathFactory newXPathFactoryNoServiceLoader()'
+        </description>
         <final>false</final>
     </property>
 
