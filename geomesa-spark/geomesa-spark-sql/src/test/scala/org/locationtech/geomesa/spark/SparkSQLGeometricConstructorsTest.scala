@@ -24,7 +24,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLGeometryConstructorsTest extends Specification with LazyLogging {
+class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
 
   "sql geometry constructors" should {
     sequential
@@ -206,14 +206,15 @@ class SparkSQLGeometryConstructorsTest extends Specification with LazyLogging {
     }
 
     "st_pointFromGeoHash" >> {
-      val hash = GeoHash(18.3, 48.6, 25)
       val r = sc.sql(
         s"""
-           |select st_pointFromGeoHash('${hash.hash}', 25)
+           |select st_pointFromGeoHash('ezs42', 25)
         """.stripMargin
       )
 
-      r.collect().head.getAs[Point](0) mustEqual hash.getPoint
+      val point = r.collect().head.getAs[Point](0)
+      point.getX must beCloseTo(-5.6, .023)
+      point.getY must beCloseTo(42.6, .023)
     }
 
     "st_pointFromText" >> {

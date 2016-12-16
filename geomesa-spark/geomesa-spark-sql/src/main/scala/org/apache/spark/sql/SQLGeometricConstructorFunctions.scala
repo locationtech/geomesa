@@ -14,7 +14,7 @@ import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
 import org.apache.spark.sql.SQLContext
 
-object SQLConstructorFunctions {
+object SQLGeometricConstructorFunctions {
   val ST_GeomFromGeoHash: (String, Int) => Geometry = (hash, prec) => GeoHash(hash, prec).geom
   val ST_Box2DFromGeoHash: (String, Int) => Geometry = (hash, prec) => ST_GeomFromGeoHash(hash, prec)
   val ST_GeomFromWKT: String => Geometry = text => WKTUtils.read(text)

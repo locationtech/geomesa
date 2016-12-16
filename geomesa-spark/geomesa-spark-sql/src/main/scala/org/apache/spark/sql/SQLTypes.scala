@@ -43,7 +43,7 @@ object SQLTypes {
   def init(sqlContext: SQLContext): Unit = {
     SQLCastFunctions.registerFunctions(sqlContext)
     SQLSpatialFunctions.registerFunctions(sqlContext)
-    SQLConstructorFunctions.registerFunctions(sqlContext)
+    SQLGeometricConstructorFunctions.registerFunctions(sqlContext)
     SQLRules.registerOptimizations(sqlContext)
   }
 }
