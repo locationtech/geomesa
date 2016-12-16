@@ -29,9 +29,6 @@ object SQLSpatialFunctions {
   val ST_MakeBox2D: (Point, Point) => Polygon = (ll, ur) => JTS.toGeometry(new Envelope(ll.getX, ur.getX, ll.getY, ur.getY))
   val ST_MakeBBOX: (Double, Double, Double, Double) => Polygon = (lx, ly, ux, uy) => JTS.toGeometry(new Envelope(lx, ux, ly, uy))
 
-  // Geometry accessors
-  val ST_Envelope:  Geometry => Geometry = p => p.getEnvelope
-
   // Geometry editors
   val ST_Translate: (Geometry, Double, Double) => Geometry =
     (g, deltaX, deltaY) => translate(g, deltaX, deltaY)
@@ -66,7 +63,7 @@ object SQLSpatialFunctions {
     sqlContext.udf.register("st_makeBBOX"      , ST_MakeBBOX)
 
     // Register geometry accessors
-    sqlContext.udf.register("st_envelope"      , ST_Envelope)
+    SQLSpatialAccessorFunctions.registerAccessorFunctions(sqlContext)
 
     // Register geometry editors
     sqlContext.udf.register("st_translate", ST_Translate)

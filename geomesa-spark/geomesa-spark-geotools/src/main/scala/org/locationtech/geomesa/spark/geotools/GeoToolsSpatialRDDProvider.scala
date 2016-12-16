@@ -42,7 +42,7 @@ class GeoToolsSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
   }
 
   /**
-    * Writes this RDD to a GeoMesa table.
+    * Writes this RDD to a GeoMesa data store.
     * The type must exist in the data store, and all of the features in the RDD must be of this type.
     *
     * @param rdd
