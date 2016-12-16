@@ -763,7 +763,7 @@ like point will only allow for parsing of points.
 Parsing XML
 -----------
 
-The XML converter defines the each field using XPath expressions. For XML documents with multiple features,
+The XML converter defines each field using XPath expressions. For XML documents with multiple features,
 the ``feature-path`` element can be used to select feature elements. In this case, the attribute paths will
 be relevant to the feature element. The optional ``xsd`` element can be used to validate input files against
 an XML schema.
@@ -773,7 +773,7 @@ can be used to parse the entire input as a single document instead of line-by-li
 will read the entire input into memory, so should not be used with large files.
 
 The XML converter will attempt to use the Saxon XPath factory if it is available. In GeoMesa tools, a script is
-provided to download saxon: ``install-saxon.sh``. To specify an alternate XPath factory, use the ``xpath-factory``
+provided to download saxon - ``bin/install-saxon.sh``. To specify an alternate XPath factory, use the ``xpath-factory``
 option. If the factory can not be loaded, the default Java factory will be used - note that this can be
 significantly slower.
 
