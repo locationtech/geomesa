@@ -56,11 +56,7 @@ object QueryPlan extends LazyLogging {
             configureBatchScanner(batchScanner, qp)
             batchScanner
           }
-          val jqp = qp.joinQuery
-          val secondary = acc.getBatchScanner(jqp.table, jqp.numThreads)
-          configureBatchScanner(secondary, jqp)
-
-          val bms = new BatchMultiScanner(acc, primary, jqp, qp.joinFunction)
+          val bms = new BatchMultiScanner(acc, primary, qp.joinQuery, qp.joinFunction)
           SelfClosingIterator(bms.iterator, () => bms.close())
       }
     } catch {
