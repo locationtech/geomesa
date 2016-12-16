@@ -133,7 +133,7 @@ object AccumuloRunner extends Runner {
           throw new ParameterException("Unable to connect to Zookeeper instance " +
           "within timeout period. Consider increasing the Zookeeper timeout by setting the system property " +
           "'instance.zookeeper.timeout' (default: 5000ms).", e)
-        case NonFatal(e) => Command.user.warn(s"Exception getting zoo instance: ${e.toString}"); null
+        case e: Throwable => throw new ParameterException("Exception getting zoo instance.", e)
       }
     }
   }
