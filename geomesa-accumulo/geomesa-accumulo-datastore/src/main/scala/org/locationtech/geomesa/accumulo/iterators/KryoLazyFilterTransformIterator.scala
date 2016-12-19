@@ -50,7 +50,7 @@ class KryoLazyFilterTransformIterator extends
   override def init(src: SortedKeyValueIterator[Key, Value],
                     options: jMap[String, String],
                     env: IteratorEnvironment): Unit = {
-    this.source = src.deepCopy(env)
+    this.source = src
 
     val spec = options.get(SFT_OPT)
     sft = IteratorCache.sft(spec)
