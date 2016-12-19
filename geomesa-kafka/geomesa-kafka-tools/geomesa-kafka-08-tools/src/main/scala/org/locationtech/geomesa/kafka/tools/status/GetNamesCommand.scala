@@ -9,8 +9,6 @@
 package org.locationtech.geomesa.kafka.tools.status
 
 import com.beust.jcommander.Parameters
-import org.I0Itec.zkclient.ZkClient
-import org.I0Itec.zkclient.exception.ZkNoNodeException
 import org.locationtech.geomesa.kafka.tools.{KafkaDataStoreCommand, OptionalZkPathParams}
 import org.locationtech.geomesa.kafka08.KafkaUtils08
 import org.locationtech.geomesa.tools.Command
@@ -21,6 +19,26 @@ class KafkaGetTypeNamesCommand extends KafkaDataStoreCommand {
   override val params = new KafkaGetTypeNamesParams()
 
   override def execute(): Unit = {
+    new KafkaGetTypeNamesCommandExecutor(params).run()
+  }
+}
+
+@Parameters(commandDescription = "List GeoMesa features for a given zkPath")
+class KafkaGetTypeNamesParams extends OptionalZkPathParams {
+  override val isProducer: Boolean = false
+  override var partitions: String = null
+  override var replication: String = null
+}
+
+class KafkaGetTypeNamesCommandExecutor(override val params: KafkaGetTypeNamesParams) extends Runnable with KafkaDataStoreCommand {
+
+  import org.I0Itec.zkclient.ZkClient
+  import org.I0Itec.zkclient.exception.ZkNoNodeException
+
+  override val name = ""
+  override def execute(): Unit = {}
+
+  override def run (): Unit = {
     if (params.zkPath == null) {
       Command.user.info(s"Running List Features without zkPath...")
 
@@ -37,11 +55,11 @@ class KafkaGetTypeNamesCommand extends KafkaDataStoreCommand {
   }
 
   /**
-    * Fetches schema info from zookeeper to check if the topic is one created by GeoMesa.
-    * Prints zkPath and SFT name if valid.
-    *
-    * @param topic The kafka topic
-    */
+   * Fetches schema info from zookeeper to check if the topic is one created by GeoMesa.
+   * Prints zkPath and SFT name if valid.
+   *
+   * @param topic The kafka topic
+   */
   def printZkPathAndTopicString(zkClient: ZkClient, topic: String): Unit = {
     val sb = new StringBuilder()
 
@@ -57,7 +75,7 @@ class KafkaGetTypeNamesCommand extends KafkaDataStoreCommand {
         }
       } catch {
         case e: ZkNoNodeException =>
-          // wrong zkPath and schema name combo
+        // wrong zkPath and schema name combo
       } finally {
         tokenizedTopicCount -= 1
         tokenizedTopic = topic.split("-", tokenizedTopicCount)
@@ -68,11 +86,4 @@ class KafkaGetTypeNamesCommand extends KafkaDataStoreCommand {
   private def getTopicNamePath(tokenizedTopic: Array[String]): String = {
     s"/${tokenizedTopic.mkString("/")}/Topic"
   }
-}
-
-@Parameters(commandDescription = "List GeoMesa features for a given zkPath")
-class KafkaGetTypeNamesParams extends OptionalZkPathParams {
-  override val isProducer: Boolean = false
-  override var partitions: String = null
-  override var replication: String = null
 }
