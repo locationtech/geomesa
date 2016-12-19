@@ -84,7 +84,7 @@ class XMLConverterFactory extends AbstractSimpleFeatureConverterFactory[String] 
     xpaths.set(getXPath(conf))
     try {
       super.buildConverter(sft, conf).asInstanceOf[XMLConverter]
-    } finally{
+    } finally {
       xpaths.remove()
     }
   }
@@ -136,8 +136,8 @@ class XMLConverterFactory extends AbstractSimpleFeatureConverterFactory[String] 
       res
     } catch {
       case NonFatal(e) =>
-        logger.warn(s"Unable to load xpath provider '$provider'. " +
-            "Xpath queries may be slower - please check your classpath")
+        logger.warn(s"Unable to load xpath provider '$provider': ${e.toString}. " +
+            "Xpath queries may be slower - check your classpath")
         XPathFactory.newInstance(XPathFactory.DEFAULT_OBJECT_MODEL_URI)
     }
     factory.newXPath()
