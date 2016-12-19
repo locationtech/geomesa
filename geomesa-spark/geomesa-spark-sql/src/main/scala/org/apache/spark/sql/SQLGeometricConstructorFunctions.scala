@@ -19,10 +19,10 @@ object SQLGeometricConstructorFunctions {
   val ST_Box2DFromGeoHash: (String, Int) => Geometry = (hash, prec) => ST_GeomFromGeoHash(hash, prec)
   val ST_GeomFromWKT: String => Geometry = text => WKTUtils.read(text)
   val ST_GeomFromWKB: Array[Byte] => Geometry = array => WKBUtils.read(array)
-  val ST_MakeBox2D: (Point, Point) => Polygon = (ll, ur) =>
-    JTS.toGeometry(new Envelope(ll.getX, ur.getX, ll.getY, ur.getY))
-  val ST_MakeBBOX: (Double, Double, Double, Double) => Geometry = (lx, ly, ux, uy) =>
-    JTS.toGeometry(BoundingBox(lx, ux, ly, uy))
+  val ST_MakeBox2D: (Point, Point) => Polygon = (lowerLeft, upperRight) =>
+    JTS.toGeometry(new Envelope(lowerLeft.getX, upperRight.getX, lowerLeft.getY, upperRight.getY))
+  val ST_MakeBBOX: (Double, Double, Double, Double) => Geometry = (lowerX, lowerY, upperX, upperY) =>
+    JTS.toGeometry(BoundingBox(lowerX, upperX, lowerY, upperY))
   val ST_MakePolygon: LineString => Polygon = shell => {
     val factory = new GeometryFactory()
     val ring = factory.createLinearRing(shell.getCoordinateSequence)
@@ -55,7 +55,7 @@ object SQLGeometricConstructorFunctions {
     sqlContext.udf.register("st_mLineFromText"     , ST_MLineFromText)
     sqlContext.udf.register("st_mPointFromText"    , ST_MPointFromText)
     sqlContext.udf.register("st_mPolyFromText"     , ST_MPolyFromText)
-    sqlContext.udf.register("ST_point"             , ST_Point)
+    sqlContext.udf.register("st_point"             , ST_Point)
     sqlContext.udf.register("ST_pointFromGeoHash"  , ST_PointFromGeoHash)
     sqlContext.udf.register("st_pointFromText"     , ST_PointFromText)
     sqlContext.udf.register("st_pointFromWKB"      , ST_PointFromWKB)
