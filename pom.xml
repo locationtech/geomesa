@@ -219,6 +219,7 @@
             <id>accumulo-1.8</id>
             <properties>
                <accumulo.version>1.8.0</accumulo.version>
+               <thrift.version>0.9.3</thrift.version>
             </properties>
         </profile>
 
