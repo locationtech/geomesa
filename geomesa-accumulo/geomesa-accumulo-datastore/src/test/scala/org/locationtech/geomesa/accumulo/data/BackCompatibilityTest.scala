@@ -27,6 +27,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -71,7 +72,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
   def doQuery(fs: SimpleFeatureSource, query: Query): Seq[Int] =
     fs.getFeatures(query).features.map(_.getID.toInt).toList
 
-  def runVersionTest(tables: Seq[TableMutations]) = {
+  def runVersionTest(tables: Seq[TableMutations]): MatchResult[Any] = {
     import scala.collection.JavaConversions._
 
     // reload the tables
@@ -103,6 +104,9 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     feature.setAttribute(0, "name10")
     feature.setAttribute(1, "2016-01-01T00:30:00.000Z")
     feature.setAttribute(2, "POINT(-110 45)")
+    if (feature.getFeatureType.getAttributeCount > 3) {
+      feature.setAttribute(3, "MULTIPOLYGON(((40 40, 20 45, 45 30, 40 40)),((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),(30 20, 20 15, 20 25, 30 20)))")
+    }
     writer.write()
     writer.close()
 
@@ -172,7 +176,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     }
   }
 
-  def testVersion(version: String) = {
+  def testVersion(version: String): MatchResult[Any] = {
     val file = new File(s"src/test/resources/data/versioned-data-$version.kryo")
     val data = readVersion(file)
     logger.info(s"Running back compatible test on version $version")
@@ -197,7 +201,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
 @RunWith(classOf[JUnitRunner])
 class BackCompatibilityWriter extends TestWithDataStore {
 
-  override val spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4326"
+  override val spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4326,multi:MultiPolygon:srid=4326"
 
   val version = "REPLACEME"
 
@@ -211,6 +215,7 @@ class BackCompatibilityWriter extends TestWithDataStore {
         sf.setAttribute(0, s"name$i")
         sf.setAttribute(1, s"2015-01-01T0$i:01:00.000Z")
         sf.setAttribute(2, s"POINT(-12$i 4$i)")
+        sf.setAttribute(3, s"MULTIPOLYGON(((4$i 40, 20 45, 45 30, 4$i 40)),((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),(30 20, 20 15, 20 25, 30 20)))")
         sf
       })
 

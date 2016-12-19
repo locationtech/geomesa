@@ -73,7 +73,7 @@ trait GeometryReader[Reader] extends PrimitiveReader[Reader] with NullableReader
     val geoms = Array.ofDim[U](numGeoms)
     var i = 0
     while (i < numGeoms) {
-      geoms.update(i, readGeometry(in).asInstanceOf[U])
+      geoms.update(i, readGeometryDirectly(in).asInstanceOf[U])
       i += 1
     }
     geoms

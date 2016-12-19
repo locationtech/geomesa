@@ -64,7 +64,7 @@ trait GeometryWriter[Writer] extends PrimitiveWriter[Writer] with NullableWriter
     writePositiveInt(out, g.getNumGeometries)
     var i = 0
     while (i < g.getNumGeometries) {
-      writeGeometryNotNull(out, g.getGeometryN(i))
+      writeGeometry(out, g.getGeometryN(i))
       i += 1
     }
   }
