@@ -571,6 +571,18 @@ Hadoop 2.4-2.7 (adjust versions as needed)
 
 Restart GeoServer after the JARs are installed.
 
+A note about Accumulo 1.8
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+   
+   GeoMesa supports Accumulo 1.8 when built with the accumulo-1.8 profile.  Accumulo 1.8
+   introduced a dependency on libthrift version 0.9.3 which is not compatible with Accumulo
+   1.7/libthrift 0.9.1.  The default supported version for GeoMesa is Accumulo 1.7.x and
+   the published jars and distribution artifacts reflect this version.  To upgrade, build
+   locally using the accumulo-1.8 profile.
+
+
 .. _install_geomesa_process:
 
 A note about GeoMesa Process
