@@ -17,8 +17,6 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.util.Try
-
 @RunWith(classOf[JUnitRunner])
 class GeohashUtilsTest extends Specification with LazyLogging {
   val NO_VALUE: Int = -1
@@ -168,12 +166,14 @@ class GeohashUtilsTest extends Specification with LazyLogging {
       val ghSubstrings = getUniqueGeohashSubstringsInPolygon(
         polygonCharlottesville, offset, bits)
 
+      ghSubstrings.isSuccess must beTrue
+
       if (DEBUG_OUTPUT)
-        ghSubstrings.foreach { gh => logger.debug(s"[unique Charlottesville gh($offset,$bits)] " + gh)}
+        ghSubstrings.get.foreach { gh => logger.debug(s"[unique Charlottesville gh($offset,$bits)] " + gh)}
 
-      validateGeohashSubstrings(polygonCharlottesville, offset, bits, ghSubstrings)
+      validateGeohashSubstrings(polygonCharlottesville, offset, bits, ghSubstrings.get)
 
-      ghSubstrings.size
+      ghSubstrings.get.size
     }
 
     "compute (0,2) correctly for Charlottesville" in {
@@ -198,25 +198,25 @@ class GeohashUtilsTest extends Specification with LazyLogging {
     }
 
     "not die when a point is provided" in {
-      val result = Try {
-        val point = "POINT(0.0 0.0)"
-        getUniqueGeohashSubstringsInPolygon(point, 0, 3)
-        getUniqueGeohashSubstringsInPolygon(point, 3, 2)
-        getUniqueGeohashSubstringsInPolygon(point, 5, 2)
-        getUniqueGeohashSubstringsInPolygon(point, 0, 7)
-      }
-      result.isSuccess must beTrue
+      val point = "POINT(0.0 0.0)"
+      val result = (
+           getUniqueGeohashSubstringsInPolygon(point, 0, 3).isFailure
+        || getUniqueGeohashSubstringsInPolygon(point, 3, 2).isFailure
+        || getUniqueGeohashSubstringsInPolygon(point, 5, 2).isFailure
+        || getUniqueGeohashSubstringsInPolygon(point, 0, 7).isFailure )
+
+      result must beFalse
     }
 
     "not die when a single-point collection is provided" in {
-      val result = Try {
-        val pointCollection = "GEOMETRYCOLLECTION( POINT(0.0 0.0) )"
-        getUniqueGeohashSubstringsInPolygon(pointCollection, 0, 3)
-        getUniqueGeohashSubstringsInPolygon(pointCollection, 3, 2)
-        getUniqueGeohashSubstringsInPolygon(pointCollection, 5, 2)
-        getUniqueGeohashSubstringsInPolygon(pointCollection, 0, 7)
-      }
-      result.isSuccess must beTrue
+      val pointCollection = "GEOMETRYCOLLECTION( POINT(0.0 0.0) )"
+      val result = (
+           getUniqueGeohashSubstringsInPolygon(pointCollection, 0, 3).isFailure
+        || getUniqueGeohashSubstringsInPolygon(pointCollection, 3, 2).isFailure
+        || getUniqueGeohashSubstringsInPolygon(pointCollection, 5, 2).isFailure
+        || getUniqueGeohashSubstringsInPolygon(pointCollection, 0, 7).isFailure )
+
+      result must beFalse
     }
   }
 
@@ -342,7 +342,7 @@ class GeohashUtilsTimeTest extends Specification with LazyLogging {
       }
 
       val fnxCandidate: () => Seq[String] = () =>
-        getUniqueGeohashSubstringsInPolygon(poly, offset, bits, 2 << (bits * 5), useDotted)
+        getUniqueGeohashSubstringsInPolygon(poly, offset, bits, 2 << (bits * 5), useDotted).getOrElse(Seq())
 
       val length = if (useFoil) {
         getTime(burnInTrials,
