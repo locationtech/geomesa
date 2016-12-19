@@ -123,6 +123,13 @@
         <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-test</artifactId>
+            <exclusions>
+                <!-- odd issue resolving some apacheds dependencies -->
+                <exclusion>
+                    <groupId>org.apache.directory.server</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

@@ -58,7 +58,7 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
   override def init(src: SortedKeyValueIterator[Key, Value],
                     jOptions: jMap[String, String],
                     env: IteratorEnvironment): Unit = {
-    this.source = src.deepCopy(env)
+    this.source = src
     val options = jOptions.asScala
 
     val spec = options(SFT_OPT)
