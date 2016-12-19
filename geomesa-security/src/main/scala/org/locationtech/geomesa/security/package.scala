@@ -30,6 +30,8 @@ package object security {
       """.stripMargin,
       false)
 
+  val authProviderParam = new Param("authProvider", classOf[AuthorizationsProvider], "Authorizations provider", false)
+
   implicit class SecureSimpleFeature(val sf: SimpleFeature) extends AnyVal {
     /**
      * Sets the visibility to the given ``visibility`` expression.
@@ -56,25 +58,27 @@ package object security {
 
     // we wrap the authorizations provider in one that will filter based on the max auths configured for this store
     val providers = ServiceRegistry.lookupProviders(classOf[AuthorizationsProvider]).toBuffer
-    val toWrap = GEOMESA_AUTH_PROVIDER_IMPL.option match {
-      case Some(prop) =>
-        if (classOf[DefaultAuthorizationsProvider].getName == prop)
-          new DefaultAuthorizationsProvider
-        else
-          providers.find(_.getClass.getName == prop).getOrElse {
-            throw new IllegalArgumentException(s"The service provider class '$prop' specified by " +
-              s"${GEOMESA_AUTH_PROVIDER_IMPL.property} could not be loaded")
+    val toWrap = Option(params.get(authProviderParam.key).asInstanceOf[AuthorizationsProvider]).getOrElse {
+      GEOMESA_AUTH_PROVIDER_IMPL.option match {
+        case Some(prop) =>
+          if (classOf[DefaultAuthorizationsProvider].getName == prop)
+            new DefaultAuthorizationsProvider
+          else
+            providers.find(_.getClass.getName == prop).getOrElse {
+              throw new IllegalArgumentException(s"The service provider class '$prop' specified by " +
+                  s"${GEOMESA_AUTH_PROVIDER_IMPL.property} could not be loaded")
+            }
+        case None =>
+          providers.length match {
+            case 0 => new DefaultAuthorizationsProvider
+            case 1 => providers.head
+            case _ =>
+              throw new IllegalStateException(
+                "Found multiple AuthorizationsProvider implementations. Please specify the one to use with " +
+                    s"the system property '${GEOMESA_AUTH_PROVIDER_IMPL.property}' :: " +
+                    s"${providers.map(_.getClass.getName).mkString(", ")}")
           }
-      case None =>
-        providers.length match {
-          case 0 => new DefaultAuthorizationsProvider
-          case 1 => providers.head
-          case _ =>
-            throw new IllegalStateException(
-              "Found multiple AuthorizationsProvider implementations. Please specify the one to use with " +
-                s"the system property '${GEOMESA_AUTH_PROVIDER_IMPL.property}' :: " +
-                s"${providers.map(_.getClass.getName).mkString(", ")}")
-        }
+      }
     }
 
     val authorizationsProvider = new FilteringAuthorizationsProvider(toWrap)

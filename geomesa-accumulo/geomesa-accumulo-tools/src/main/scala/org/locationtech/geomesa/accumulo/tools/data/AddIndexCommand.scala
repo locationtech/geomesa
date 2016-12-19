@@ -39,8 +39,6 @@ class AddIndexCommand extends AccumuloDataStoreCommand {
   override def execute(): Unit = {
     new AddIndexCommandExecutor(params).run()
   }
-
-
 }
 
 object AddIndexCommand {
@@ -57,7 +55,7 @@ object AddIndexCommand {
 
 class AddIndexCommandExecutor(override val params: AddIndexParameters) extends Runnable with AccumuloDataStoreCommand {
 
-  import org.locationtech.geomesa.index.utils.GeoMesaMetadata.ATTRIBUTES_KEY
+  import org.locationtech.geomesa.index.metadata.GeoMesaMetadata.ATTRIBUTES_KEY
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   override val name = ""

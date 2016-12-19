@@ -20,12 +20,14 @@ import org.geotools.feature.{FeatureTypes, NameImpl}
 import org.joda.time.DateTimeUtils
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
-import org.locationtech.geomesa.index.utils.{DistributedLocking, ExplainLogging, HasGeoMesaMetadata, Releasable}
+import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
+import org.locationtech.geomesa.index.utils.{DistributedLocking, ExplainLogging, Releasable}
 import org.locationtech.geomesa.utils.index.IndexMode
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 // noinspection ScalaDeprecation
+import org.locationtech.geomesa.index.metadata.GeoMesaMetadata._
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.index.utils.Explainer
-import org.locationtech.geomesa.index.utils.GeoMesaMetadata._
 import org.locationtech.geomesa.utils.conf.GeoMesaProperties
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.{GeoToolsDateFormat, SimpleFeatureTypes}
@@ -72,6 +74,25 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     * NB: We are *not* currently deleting the query table and/or query information.
     */
   def delete(): Unit
+
+  /**
+    * Returns all tables that may be created for the simple feature type. Note that some of these
+    * tables may be shared with other simple feature types, and the tables may not all currently exist.
+    *
+    * @param typeName simple feature type name
+    * @return
+    */
+  def getAllTableNames(typeName: String): Seq[String] = Seq(config.catalog) ++ getAllIndexTableNames(typeName)
+
+  /**
+    * Returns all index tables that may be created for the simple feature type. Note that some of these
+    * tables may be shared with other simple feature types, and the tables may not all currently exist.
+    *
+    * @param typeName simple feature type name
+    * @return
+    */
+  def getAllIndexTableNames(typeName: String): Seq[String] =
+    Option(getSchema(typeName)).toSeq.flatMap(manager.indices(_, IndexMode.Any).map(_.getTableName(typeName, this)))
 
   // hooks to allow extended functionality
 
@@ -420,8 +441,9 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
    * @see org.geotools.data.DataAccess#dispose()
    */
   override def dispose(): Unit = {
-    stats.close()
-    config.audit.foreach(_._1.close())
+    CloseWithLogging(metadata)
+    CloseWithLogging(stats)
+    config.audit.foreach { case (writer, _, _) => CloseWithLogging(writer) }
   }
 
   // end methods from org.geotools.data.DataStore

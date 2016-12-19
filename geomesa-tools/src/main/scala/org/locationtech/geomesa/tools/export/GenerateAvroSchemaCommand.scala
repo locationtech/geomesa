@@ -11,6 +11,7 @@ package org.locationtech.geomesa.tools.export
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureUtils
 import org.locationtech.geomesa.tools._
+import org.locationtech.geomesa.tools.utils.CLArgResolver
 import org.locationtech.geomesa.utils.geotools.SftArgResolver
 
 class GenerateAvroSchemaCommand extends Command {
@@ -19,15 +20,10 @@ class GenerateAvroSchemaCommand extends Command {
   val params = new GenerateAvroSchemaParams
 
   override def execute(): Unit = {
-    val sft = SftArgResolver.getSft(params.spec, params.featureName)
-    if (sft.isDefined) {
-      val schema = AvroSimpleFeatureUtils.generateSchema(sft.get, withUserData = true)
-      Command.output.info(schema.toString(true))
-    } else {
-      Command.user.warn(s"Could not find feature type ${params.spec}")
-    }
+    val sft = CLArgResolver.getSft(params.spec, params.featureName)
+    val schema = AvroSimpleFeatureUtils.generateSchema(sft, withUserData = true)
+    Command.output.info(schema.toString(true))
   }
-
 }
 
 @Parameters(commandDescription = "Generate an Avro schema from a SimpleFeatureType")

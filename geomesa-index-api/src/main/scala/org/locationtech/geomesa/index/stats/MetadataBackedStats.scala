@@ -15,7 +15,7 @@ import org.joda.time._
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.utils.{GeoMesaMetadata, MetadataSerializer}
+import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataSerializer}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -33,8 +33,9 @@ trait MetadataBackedStats[DS <: GeoMesaDataStore[_, _, _]]
 
   import MetadataBackedStats._
 
+  private [geomesa] def metadata: GeoMesaMetadata[Stat]
+
   protected def ds: DS
-  protected def metadata: GeoMesaMetadata[Stat]
   protected def generateStats: Boolean
 
   override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {

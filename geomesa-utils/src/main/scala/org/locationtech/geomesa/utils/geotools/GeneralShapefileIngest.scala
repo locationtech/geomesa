@@ -17,6 +17,7 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
+import scala.util.Try
 
 object GeneralShapefileIngest {
   def shpToDataStoreViaParams(shapefilePath: String, params: JMap[String, Serializable]): DataStore =
@@ -73,7 +74,7 @@ object GeneralShapefileIngest {
 
     val featureTypeName = featureType.getName.getLocalPart
 
-    val existingSchema = ds.getSchema(featureTypeName)
+    val existingSchema = Try { ds.getSchema(featureTypeName) }.getOrElse(null)
     if (existingSchema == null) {
       ds.createSchema(featureType)
     }

@@ -10,9 +10,7 @@ package org.locationtech.geomesa.accumulo
 
 import org.apache.accumulo.core.data.Value
 import org.apache.hadoop.io.Text
-import org.geotools.data.FeatureWriter
 import org.locationtech.geomesa.features.SerializationType
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 package object data {
 
@@ -24,6 +22,4 @@ package object data {
   val EMPTY_VIZ            = new Text(EMPTY_STRING)
   val EMPTY_TEXT           = new Text()
   val DEFAULT_ENCODING     = SerializationType.KRYO
-
-  type SFFeatureWriter = FeatureWriter[SimpleFeatureType, SimpleFeature]
 }

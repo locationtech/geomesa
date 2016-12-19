@@ -16,7 +16,6 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.index.Constants
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geohash.VincentyModel
 import org.locationtech.geomesa.utils.geotools.Conversions._
@@ -37,7 +36,7 @@ class KNearestNeighborSearchProcessTest extends Specification {
 
   val sftName = "geomesaKNNTestType"
   val sft = SimpleFeatureTypes.createType(sftName, "geom:Point:srid=4326,dtg:Date,dtg_end_time:Date")
-  sft.getUserData.put(Constants.SF_PROPERTY_START_TIME,"dtg")
+  sft.getUserData.put(SimpleFeatureTypes.Configs.DEFAULT_DATE_KEY, "dtg")
 
   val ds = createStore
   ds.createSchema(sft)

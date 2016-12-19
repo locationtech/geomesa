@@ -39,7 +39,7 @@ import org.locationtech.geomesa.index.conf.DigitSplitter
 import org.locationtech.geomesa.index.geotools.CachingFeatureCollection
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.{RichSimpleFeatureType, _}
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats.IndexCoverage
@@ -82,9 +82,12 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       ds.getSchema(defaultSft.getTypeName) mustEqual defaultSft
     }
 
-    "reject a schema with a ~" in {
+    "escape a ~ in the feature name" in {
       val sft = SimpleFeatureTypes.createType("name~name", "name:String,geom:Point:srid=4326")
-      ds.createSchema(sft) must throwAn[IllegalArgumentException]
+      ds.createSchema(sft)
+      ds.getSchema("name~name") must not(beNull)
+      ds.getSchema("name~name").getTypeName mustEqual "name~name"
+      ds.getTypeNames.contains("name~name") must beTrue
     }
 
     "create a schema with keywords" in {
@@ -326,6 +329,23 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       }
     }
 
+    "Prevent join indices on default date" in {
+      import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
+      "throw an exception if join index is found" >> {
+        createNewSchema("name:String,dtg:Date:index=true,*geom:Point:srid=4326") must throwAn[IllegalArgumentException]
+        createNewSchema("name:String,dtg:Date:index=join,*geom:Point:srid=4326") must throwAn[IllegalArgumentException]
+      }
+      "allow for full indices" >> {
+        val sft = createNewSchema("name:String,dtg:Date:index=full,*geom:Point:srid=4326")
+        sft.getDescriptor("dtg").getIndexCoverage mustEqual IndexCoverage.FULL
+      }
+      "allow for override" >> {
+        val sft = createNewSchema("name:String,dtg:Date:index=join,*geom:Point:srid=4326;override.index.dtg.join=true")
+        sft.getDescriptor("dtg").getIndexCoverage mustEqual IndexCoverage.JOIN
+      }
+    }
+
     "allow for a configurable number of threads in z3 queries" in {
       val param = AccumuloDataStoreParams.queryThreadsParam.getName
       val query = new Query(defaultTypeName, ECQL.toFilter("bbox(geom,-75,-75,-60,-60) AND " +
@@ -357,6 +377,12 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       ds.getQueryPlan(new Query(defaultTypeName, Filter.INCLUDE), explainer = out)
       val explain = out.toString()
       explain must startWith(s"Planning '$defaultTypeName'")
+    }
+
+    "return a list of all accumulo tables associated with a schema" in {
+      val indices = ds.manager.indices(defaultSft, IndexMode.Any).map(_.getTableName(defaultSft.getTypeName, ds))
+      val expected = Seq(sftBaseName, s"${sftBaseName}_stats", s"${sftBaseName}_queries") ++ indices
+      ds.getAllTableNames(defaultTypeName) must containTheSameElementsAs(expected)
     }
 
     "allow secondary attribute indexes" >> {
@@ -664,7 +690,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "delete all associated tables" >> {
-      val catalog = "AccumuloDataStoreDeleteTest"
+      val catalog = "AccumuloDataStoreDeleteAllTablesTest"
       // note the table needs to be different to prevent testing errors
       val ds = DataStoreFinder.getDataStore(dsParams ++ Map("tableName" -> catalog)).asInstanceOf[AccumuloDataStore]
       val sft = SimpleFeatureTypes.createType(catalog, "name:String:index=true,dtg:Date,*geom:Point:srid=4326")
