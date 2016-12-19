@@ -7,6 +7,7 @@ User Manual
    introduction
    architecture
    installation_and_configuration
+   aws
    datastores
    accumulo_datastore
    kafka_datastore
