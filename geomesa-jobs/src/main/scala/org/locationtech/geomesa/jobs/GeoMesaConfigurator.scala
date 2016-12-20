@@ -118,4 +118,9 @@ object GeoMesaConfigurator {
 
   val serializationString: String = s"$writableSerialization,$simpleFeatureSerialization"
 
+  // set/get the number of mapper splits
+  def setDesiredSplits(conf: Configuration, splits: Int): Unit = conf.set(desiredSplits, splits.toString)
+  def getDesiredSplits(conf: Configuration): Int = conf.get(desiredSplits).toInt
+  def getDesiredSplits(job: Job): Int = getDesiredSplits(job.getConfiguration)
+
 }
