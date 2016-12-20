@@ -95,18 +95,16 @@ object AccumuloRunner extends Runner {
     }.foreach(_.password = Prompt.readPassword())
 
     params.collect { case p: InstanceNameParams => p }.foreach { p =>
-      if (p.zookeepers == null) {
-        p.zookeepers = zookeepers
-      }
-      // Check if the params we're dealing with should have the 'instance' variable. This ensures the instance param is not
-      // required for commands that don't need it while also allowing us to attempt to detect the Accumulo instance on
-      // commands where it is optional.
-      if (command.params.isInstanceOf[InstanceNameParams]) {
+      if (! p.mock) {
+        if (p.zookeepers == null) {
+          p.zookeepers = zookeepers
+        }
+
         // Attempt to find/resolve the Accumulo instance so we can throw relevant errors now if it's unaccessable.
         try {
           // This block checks for the same system property which Accumulo uses for Zookeeper timeouts.
-          //  If it is set, we use it.  Otherwise, a timeout of 5 seconds is used.
-          //  Don't give default to GeoMesaSystemProperty so .option will throw a None
+          // If it is set, we use it.  Otherwise, a timeout of 5 seconds is used.
+          // Don't give default to SystemProperty so .option will throw a None
           val lookupTime: Long = SystemProperty("instance.zookeeper.timeout").option.flatMap{ p =>
             Try { java.lang.Long.parseLong(p) }.toOption
           }.getOrElse(5000L)
