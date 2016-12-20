@@ -14,7 +14,7 @@ object SQLSpatialAccessorFunctions {
     case geom: Polygon => geom.getExteriorRing
     case _ => null
   }
-  val ST_GeometryN: (Geometry, Int) => Geometry = (geom, n) => geom.getGeometryN(n)
+  val ST_GeometryN: (Geometry, Int) => Geometry = (geom, n) => geom.getGeometryN(n-1)
   val ST_GeometryType: Geometry => String = geom => geom.getGeometryType
   val ST_InteriorRingN: (Geometry, Int) => Geometry = (geom, n) => {
     geom match {

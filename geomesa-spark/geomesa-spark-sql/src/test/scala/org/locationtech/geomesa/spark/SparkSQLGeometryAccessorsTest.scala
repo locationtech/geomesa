@@ -31,7 +31,6 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
     var ds: DataStore = null
     var spark: SparkSession = null
     var sc: SQLContext = null
-
     var df: DataFrame = null
 
     // before
@@ -184,7 +183,7 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
             |select st_geometryN(st_geomFromWKT('MULTILINESTRING ((10 10, 20 20, 10 40),(40 40, 30 30, 40 20, 30 10))'), 1)
           """.stripMargin
         )
-        result.collect().head.getAs[Geometry](0) mustEqual WKTUtils.read("LINESTRING(40 40, 30 30, 40 20, 30 10)")
+        result.collect().head.getAs[Geometry](0) mustEqual WKTUtils.read("LINESTRING(10 10, 20 20, 10 40)")
       }
 
       "geometrycollection" >> {
@@ -193,7 +192,7 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
             |select st_geometryN(st_geomFromWKT('GEOMETRYCOLLECTION(LINESTRING(1 1,0 0),POINT(0 0))'), 1)
           """.stripMargin
         )
-        result.collect().head.getAs[Geometry](0) mustEqual WKTUtils.read("POINT(0 0)")
+        result.collect().head.getAs[Geometry](0) mustEqual WKTUtils.read("LINESTRING(1 1,0 0)")
       }
     }
 
