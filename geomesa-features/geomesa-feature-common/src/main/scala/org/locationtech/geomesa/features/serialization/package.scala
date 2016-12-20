@@ -10,6 +10,9 @@ package org.locationtech.geomesa.features
 
 package object serialization {
 
+  val NULL_BYTE     = 0.asInstanceOf[Byte]
+  val NOT_NULL_BYTE = 1.asInstanceOf[Byte]
+
   type PrimitiveWriter = AnyRef {
     def writeInt(value: Int): Unit
     def writeLong(value: Long): Unit
@@ -31,10 +34,12 @@ package object serialization {
   type NumericWriter = AnyRef {
     def writeInt(value: Int, optimizePositive: Boolean): Int
     def writeDouble(value: Double): Unit
+    def writeByte(value: Byte): Unit
   }
 
   type NumericReader = AnyRef {
     def readInt(optimizePositive: Boolean): Int
     def readDouble(): Double
+    def readByte(): Byte
   }
 }
