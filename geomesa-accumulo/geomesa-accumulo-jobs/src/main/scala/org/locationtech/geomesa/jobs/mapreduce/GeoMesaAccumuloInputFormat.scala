@@ -8,21 +8,23 @@
 
 package org.locationtech.geomesa.jobs.mapreduce
 
+import java.io.{DataInput, DataOutput}
 import java.net.{URL, URLClassLoader}
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.mapreduce.{AbstractInputFormat, AccumuloInputFormat, InputFormatBase}
+import org.apache.accumulo.core.client.mapreduce.{AbstractInputFormat, AccumuloInputFormat, InputFormatBase, RangeInputSplit}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.accumulo.core.util.{Pair => AccPair}
 import org.apache.commons.collections.map.CaseInsensitiveMap
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.io.Text
+import org.apache.hadoop.io.{Text, Writable}
 import org.apache.hadoop.mapreduce._
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.accumulo.AccumuloProperties.AccumuloMapperProperties
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AccumuloWritableIndex}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
@@ -35,6 +37,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ArrayBuffer
 
 object GeoMesaAccumuloInputFormat extends LazyLogging {
 
@@ -164,13 +167,55 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
    *
    * Our delegated AccumuloInputFormat creates a split for each range - because we set a lot of ranges in
    * geomesa, that creates too many mappers. Instead, we try to group the ranges by tservers. We use the
-   * number of shards in the schema as a proxy for number of tservers.
+   * location of the tserver to determine the number of tservers.
    */
   override def getSplits(context: JobContext): java.util.List[InputSplit] = {
     init(context.getConfiguration)
     val accumuloSplits = delegate.getSplits(context)
-    logger.debug(s"Got ${accumuloSplits.length} splits")
-    accumuloSplits
+    // Get the appropriate number of mapper splits using the following priority
+    // 1. Get splits from AccumuloMapperProperties.DESIRED_ABSOLUTE_SPLITS (geomesa.mapreduce.split.count.absolute)
+    // 2. Get splits from #tserver locations * AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER (geomesa.mapreduce.split.count.tablet)
+    // 3. Get splits from AccumuloInputFormat.getSplits(context)
+    val grpSplitsAbs: Option[Int] =
+      try {
+        val absSplits = AccumuloMapperProperties.DESIRED_ABSOLUTE_SPLITS.get.toInt
+        if (absSplits > 0) Some(absSplits) else None
+      } catch {
+        case e: java.lang.NumberFormatException =>
+          logger.warn(s"Unable to parse geomesa.mapreduce.split.count.absolute = " +
+            s"${AccumuloMapperProperties.DESIRED_ABSOLUTE_SPLITS.get} is not a valid Int.")
+          None
+      }
+
+    lazy val grpSplitsPerTServer: Option[Int] =
+      if (AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER.get == null) None
+      else {
+        val numLocations = accumuloSplits.flatMap(_.getLocations).distinct.head.length
+        val splitsPerTServer =
+          try {
+            AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER.get.toInt
+          } catch {
+            case e: java.lang.NumberFormatException =>
+              logger.warn(s"Unable to parse geomesa.mapreduce.split.count.tablet = " +
+                s"${AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER.get} is not a valid Int.")
+              1 // Identity, don't split locations
+          }
+        if (numLocations > 0 && splitsPerTServer > 0) Some(numLocations * splitsPerTServer) else None
+      }
+
+    grpSplitsAbs.orElse(grpSplitsPerTServer) match {
+      case Some(size) => logger.debug(s"Using desired splits with result of ${accumuloSplits.length} splits")
+        accumuloSplits.groupBy(_.getLocations()(0)).flatMap{ case (location, splits) =>
+          splits.grouped(size).map{ group =>
+            val split = new GroupedSplit
+            split.location = location
+            split.splits.append(group.map(_.asInstanceOf[RangeInputSplit]): _*)
+            split
+          }
+      }.toList
+      case None => logger.debug(s"Using default Accumulo Splits with ${accumuloSplits.length} splits")
+        accumuloSplits
+    }
   }
 
   override def createRecordReader(split: InputSplit, context: TaskAttemptContext) = {
@@ -229,4 +274,45 @@ class GeoMesaRecordReader(sft: SimpleFeatureType,
   override def getCurrentKey = new Text(currentFeature.getID)
 
   override def close() = { reader.close() }
+}
+
+/**
+ * Input split that groups a series of RangeInputSplits. Has to implement Hadoop Writable, thus the vars and
+ * mutable state.
+ */
+class GroupedSplit extends InputSplit with Writable {
+
+  // if we're running in spark, we need to load the context classpath before anything else,
+  // otherwise we get classloading and serialization issues
+  sys.env.get(GeoMesaAccumuloInputFormat.SYS_PROP_SPARK_LOAD_CP).filter(_.toBoolean).foreach { _ =>
+    GeoMesaAccumuloInputFormat.ensureSparkClasspath()
+  }
+
+  var location: String = null
+  var splits: ArrayBuffer[RangeInputSplit] = ArrayBuffer.empty
+
+  override def getLength =  splits.foldLeft(0L)((l: Long, r: RangeInputSplit) => l + r.getLength)
+
+  override def getLocations = if (location == null) Array.empty else Array(location)
+
+  override def write(out: DataOutput) = {
+    out.writeUTF(location)
+    out.writeInt(splits.length)
+    splits.foreach(_.write(out))
+  }
+
+  override def readFields(in: DataInput) = {
+    location = in.readUTF()
+    splits.clear()
+    var i = 0
+    val size = in.readInt()
+    while (i < size) {
+      val split = new RangeInputSplit()
+      split.readFields(in)
+      splits.append(split)
+      i = i + 1
+    }
+  }
+
+  override def toString = s"mapreduce.GroupedSplit[$location](${splits.length})"
 }
