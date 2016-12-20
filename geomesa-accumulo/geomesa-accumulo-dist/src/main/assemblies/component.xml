@@ -39,6 +39,7 @@
                 <include>org.locationtech.geomesa:geomesa-accumulo-gs-plugin*</include>
                 <include>org.locationtech.geomesa:geomesa-blobstore-gs-plugin*</include>
                 <include>org.locationtech.geomesa:geomesa-stream-gs-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-geojson-gs-plugin*</include>
                 <include>org.locationtech.geomesa:geomesa-process*</include>
             </includes>
         </dependencySet>
