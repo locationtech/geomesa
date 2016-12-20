@@ -32,29 +32,34 @@ trait GeometrySerialization[T <: NumericWriter, V <: NumericReader] extends Lazy
   private lazy val csFactory = factory.getCoordinateSequenceFactory
 
   def serialize(out: T, geometry: Geometry): Unit = {
-    geometry match {
-      case g: Point              => writePoint(out, g)
-      case g: LineString         => writeLineString(out, g)
-      case g: Polygon            => writePolygon(out, g)
-      case g: MultiPoint         => writeGeometryCollection(out, GeometrySerialization.MultiPoint, g)
-      case g: MultiLineString    => writeGeometryCollection(out, GeometrySerialization.MultiLineString, g)
-      case g: MultiPolygon       => writeGeometryCollection(out, GeometrySerialization.MultiPolygon, g)
-      case g: GeometryCollection => writeGeometryCollection(out, GeometrySerialization.GeometryCollection, g)
+    if (geometry == null) { out.writeByte(NULL_BYTE) } else {
+      out.writeByte(NOT_NULL_BYTE)
+      geometry match {
+        case g: Point              => writePoint(out, g)
+        case g: LineString         => writeLineString(out, g)
+        case g: Polygon            => writePolygon(out, g)
+        case g: MultiPoint         => writeGeometryCollection(out, GeometrySerialization.MultiPoint, g)
+        case g: MultiLineString    => writeGeometryCollection(out, GeometrySerialization.MultiLineString, g)
+        case g: MultiPolygon       => writeGeometryCollection(out, GeometrySerialization.MultiPolygon, g)
+        case g: GeometryCollection => writeGeometryCollection(out, GeometrySerialization.GeometryCollection, g)
+      }
     }
   }
 
   def deserialize(in: V): Geometry = {
-    in.readInt(true) match {
-      case Point2d            => readPoint(in, Some(2))
-      case LineString2d       => readLineString(in, Some(2))
-      case Polygon2d          => readPolygon(in, Some(2))
-      case Point              => readPoint(in, None)
-      case LineString         => readLineString(in, None)
-      case Polygon            => readPolygon(in, None)
-      case MultiPoint         => factory.createMultiPoint(readGeometryCollection[Point](in))
-      case MultiLineString    => factory.createMultiLineString(readGeometryCollection[LineString](in))
-      case MultiPolygon       => factory.createMultiPolygon(readGeometryCollection[Polygon](in))
-      case GeometryCollection => factory.createGeometryCollection(readGeometryCollection[Geometry](in))
+    if (in.readByte() == NULL_BYTE) { null } else {
+      in.readInt(true) match {
+        case Point2d            => readPoint(in, Some(2))
+        case LineString2d       => readLineString(in, Some(2))
+        case Polygon2d          => readPolygon(in, Some(2))
+        case Point              => readPoint(in, None)
+        case LineString         => readLineString(in, None)
+        case Polygon            => readPolygon(in, None)
+        case MultiPoint         => factory.createMultiPoint(readGeometryCollection[Point](in))
+        case MultiLineString    => factory.createMultiLineString(readGeometryCollection[LineString](in))
+        case MultiPolygon       => factory.createMultiPolygon(readGeometryCollection[Polygon](in))
+        case GeometryCollection => factory.createGeometryCollection(readGeometryCollection[Geometry](in))
+      }
     }
   }
 
