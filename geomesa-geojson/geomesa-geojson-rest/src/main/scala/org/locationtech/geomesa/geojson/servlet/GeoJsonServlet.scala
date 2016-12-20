@@ -67,11 +67,11 @@ class GeoJsonServlet(val persistence: FilePersistence) extends GeoMesaDataStoreS
     try {
       withDataStore((ds) => {
         val index = params.get("index").orNull
-        val json = params.get("json").orNull
-        if (index == null || json == null) {
+        val json = request.body
+        if (index == null || json == null || json.isEmpty) {
           val msg = ArrayBuffer.empty[String]
           if (index == null) { msg.append(GeoJsonServlet.NoIndex) }
-          if (json == null) { msg.append(GeoJsonServlet.NoJson) }
+          if (json == null || json.isEmpty) { msg.append(GeoJsonServlet.NoJson) }
           BadRequest(msg.mkString(" "))
         } else {
           val ids = new GeoJsonGtIndex(ds).add(index, json)
