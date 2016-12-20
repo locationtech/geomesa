@@ -166,7 +166,7 @@ class GeohashUtilsTest extends Specification with LazyLogging {
       val ghSubstrings = getUniqueGeohashSubstringsInPolygon(
         polygonCharlottesville, offset, bits)
 
-      ghSubstrings.isSuccess must beTrue
+      ghSubstrings must beASuccessfulTry
 
       if (DEBUG_OUTPUT)
         ghSubstrings.get.foreach { gh => logger.debug(s"[unique Charlottesville gh($offset,$bits)] " + gh)}
@@ -199,24 +199,16 @@ class GeohashUtilsTest extends Specification with LazyLogging {
 
     "not die when a point is provided" in {
       val point = "POINT(0.0 0.0)"
-      val result = (
-           getUniqueGeohashSubstringsInPolygon(point, 0, 3).isFailure
-        || getUniqueGeohashSubstringsInPolygon(point, 3, 2).isFailure
-        || getUniqueGeohashSubstringsInPolygon(point, 5, 2).isFailure
-        || getUniqueGeohashSubstringsInPolygon(point, 0, 7).isFailure )
-
-      result must beFalse
+      forall(Seq((0, 3), (3, 2), (5, 2), (0, 7))) { case (offset, length) =>
+        getUniqueGeohashSubstringsInPolygon(point, offset, length) must beASuccessfulTry
+      }
     }
 
     "not die when a single-point collection is provided" in {
       val pointCollection = "GEOMETRYCOLLECTION( POINT(0.0 0.0) )"
-      val result = (
-           getUniqueGeohashSubstringsInPolygon(pointCollection, 0, 3).isFailure
-        || getUniqueGeohashSubstringsInPolygon(pointCollection, 3, 2).isFailure
-        || getUniqueGeohashSubstringsInPolygon(pointCollection, 5, 2).isFailure
-        || getUniqueGeohashSubstringsInPolygon(pointCollection, 0, 7).isFailure )
-
-      result must beFalse
+      forall(Seq((0, 3), (3, 2), (5, 2), (0, 7))) { case (offset, length) =>
+        getUniqueGeohashSubstringsInPolygon(pointCollection, offset, length) must beASuccessfulTry
+      }
     }
   }
 
