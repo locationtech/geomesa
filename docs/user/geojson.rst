@@ -222,7 +222,7 @@ Returns a list of data stores available for querying.
 +-----------------+--------------------------------------------------------------------------------------+
 | **Sample Call** | .. code-block:: bash                                                                 |
 |                 |                                                                                      |
-|                 |     curl -XGET 'localhost:8080/geoserver/geomesa/geojson/ds'                         |
+|                 |     curl 'localhost:8080/geoserver/geomesa/geojson/ds'                               |
 +-----------------+--------------------------------------------------------------------------------------+
 | **Notes**       | An entry will be returned for each registered data store                             |
 +-----------------+--------------------------------------------------------------------------------------+
@@ -273,7 +273,7 @@ Registers a data store to make it available for querying.
 +-----------------+--------------------------------------------------------------------------------------+
 | **Sample Call** | .. code-block:: bash                                                                 |
 |                 |                                                                                      |
-|                 |     curl -XPOST \                                                                    |
+|                 |     curl \                                                                           |
 |                 |       'localhost:8080/geoserver/geomesa/geojson/ds/mycloud' \                        |
 |                 |       -d user=foo -d password=foo -d tableName=foo.bar \                             |
 |                 |       -d zookeepers=foo1,foo2,foo3 -d instanceId=foo                                 |
@@ -315,7 +315,7 @@ Creates a new index under an existing data store.
 +-----------------+--------------------------------------------------------------------------------------+
 | **Sample Call** | .. code-block:: bash                                                                 |
 |                 |                                                                                      |
-|                 |     curl -XPOST \                                                                    |
+|                 |     curl \                                                                           |
 |                 |       'localhost:8080/geoserver/geomesa/geojson/index/mycloud/test' \                |
 |                 |       -d id=properties.id                                                            |
 |                 |                                                                                      |
@@ -355,9 +355,10 @@ Add features to the index with GeoJSON.
 |                 |     echo '{"type":"Feature","geometry":{"type":"Point",' \                           |
 |                 |       '"coordinates":[30,10]},"properties":{"id":"0","name":"n0"}}' \                |
 |                 |       > feature.json                                                                 |
-|                 |     curl -XPOST \                                                                    |
+|                 |     curl \                                                                           |
 |                 |       'localhost:8080/geoserver/geomesa/geojson/index/mycloud/test/features' \       |
-|                 |       --data-urlencode json@feature.json                                             |
+|                 |       -H 'Content-type: application/json'                                            |
+|                 |       -d @feature.json                                                               |
 |                 |                                                                                      |
 |                 |     echo '{"type":"FeatureCollection","features":[' \                                |
 |                 |       '{"type":"Feature","geometry":{"type":"Point",' \                              |
@@ -365,9 +366,10 @@ Add features to the index with GeoJSON.
 |                 |       '{"type":"Feature","geometry":{"type":"Point",' \                              |
 |                 |       '"coordinates":[34,10]},"properties":{"id":"2","name":"n2"}}]}' \              |
 |                 |       > features.json                                                                |
-|                 |     curl -XPOST \                                                                    |
+|                 |     curl \                                                                           |
 |                 |       'localhost:8080/geoserver/geomesa/geojson/index/mycloud/test/features' \       |
-|                 |       --data-urlencode json@features.json                                            |
+|                 |       -H 'Content-type: application/json'                                            |
+|                 |       -d @features.json                                                              |
 +-----------------+--------------------------------------------------------------------------------------+
 | **Notes**       |                                                                                      |
 +-----------------+--------------------------------------------------------------------------------------+
@@ -419,18 +421,23 @@ Add features to the index with GeoJSON.
 | **Sample Call** | .. code-block:: bash                                                                 |
 |                 |                                                                                      |
 |                 |     # return all features in the index 'test'                                        |
-|                 |     curl -XGET \                                                                     |
+|                 |     curl \                                                                           |
 |                 |       'localhost:8080/geoserver/geomesa/geojson/index/mycloud/test/features'         |
 |                 |                                                                                      |
 |                 |     # query by feature id                                                            |
-|                 |     curl -XGET \                                                                     |
+|                 |     curl \                                                                           |
 |                 |       'localhost:8080/geoserver/geomesa/geojson/index/mycloud/test/features' \       |
 |                 |       --get --data-urlencode 'q={"properties.id":"0"}'                               |
 |                 |                                                                                      |
 |                 |     # query by bounding box                                                          |
-|                 |     curl -XGET \                                                                     |
+|                 |     curl \                                                                           |
 |                 |       'localhost:8080/geoserver/geomesa/geojson/index/mycloud/test/features'         |
 |                 |       --get --data-urlencode 'q={"geometry":{"$bbox":[33,9,35,11]}}'                 |
+|                 |                                                                                      |
+|                 |     # query by property                                                              |
+|                 |     curl \                                                                           |
+|                 |       'localhost:8080/geoserver/geomesa/geojson/index/mycloud/test/features'         |
+|                 |       --get --data-urlencode 'q={"properties.name":"n1"}'                            |
 +-----------------+--------------------------------------------------------------------------------------+
 | **Notes**       | See `Querying Features`_ for full query syntax                                       |
 +-----------------+--------------------------------------------------------------------------------------+
