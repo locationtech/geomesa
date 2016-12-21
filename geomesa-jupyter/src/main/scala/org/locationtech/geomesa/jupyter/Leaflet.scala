@@ -59,7 +59,7 @@ object L {
     override def render: String =
       s"""
          |L.geoJson(${features.map(simpleFeatureToGeoJSON).mkString("[",",","]")},
-         |    { "onEachFeature": featurePopup, style: '$style.render' }
+         |    { style: '$style.render' }
          |).addTo(map);
        """.stripMargin
 
@@ -163,7 +163,7 @@ object L {
        |      if(k<=3) { setTimeout(function() { resizeIFrame(el, k+1)}, 1000) };
        |    }
        |  }
-       |  $$().ready(function() {resizeIFrame($$('#$id').get(0).1);});
+       |  $$().ready(function() {resizeIFrame($$('#$id').get(0),1);});
        |</script>
      """.stripMargin
   }
