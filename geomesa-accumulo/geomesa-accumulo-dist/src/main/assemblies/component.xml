@@ -60,7 +60,7 @@
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
-                <include>org.locationtech.geomesa:geomesa-accumulo-compute*</include>
+                <include>org.locationtech.geomesa:geomesa-spark*</include>
             </includes>
         </dependencySet>
         <dependencySet>
