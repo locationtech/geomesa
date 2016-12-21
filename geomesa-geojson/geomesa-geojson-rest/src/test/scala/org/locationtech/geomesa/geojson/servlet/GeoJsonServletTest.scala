@@ -59,7 +59,7 @@ class GeoJsonServletTest extends MutableScalatraSpec {
       }
     }
     "add geojson features" in {
-      post("/index/geojsontest/geojsontest/features", Map("json" -> f0)) {
+      post("/index/geojsontest/geojsontest/features", f0.getBytes("UTF-8")) {
         status mustEqual 200
         body mustEqual """["0"]"""
       }
@@ -70,7 +70,7 @@ class GeoJsonServletTest extends MutableScalatraSpec {
     }
     "add geojson feature collections" in {
       post("/index/geojsontest/geojsontest/features",
-          Map("json" -> s"""{"type":"FeatureCollection","features":[$f1,$f2]}""")) {
+          s"""{"type":"FeatureCollection","features":[$f1,$f2]}""".getBytes("UTF-8")) {
         status mustEqual 200
         body mustEqual """["1","2"]"""
       }
@@ -98,6 +98,12 @@ class GeoJsonServletTest extends MutableScalatraSpec {
       get(s"/index/geojsontest/geojsontest/features?q=${urlEncode("""{"geometry":{"$bbox":[33,9,35,11]}}""")}") {
         status mustEqual 200
         body mustEqual s"""{"type":"FeatureCollection","features":[$f2]}"""
+      }
+    }
+    "query geojson features by properties" in {
+      get(s"/index/geojsontest/geojsontest/features?q=${urlEncode("""{"properties.name":"n1"}""")}") {
+        status mustEqual 200
+        body mustEqual s"""{"type":"FeatureCollection","features":[$f1]}"""
       }
     }
   }
