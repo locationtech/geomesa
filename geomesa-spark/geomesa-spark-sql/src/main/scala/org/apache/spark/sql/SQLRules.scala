@@ -8,18 +8,22 @@
 
 package org.apache.spark.sql
 
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.apache.spark.sql.SQLTypes._
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.codegen.CodegenFallback
-import org.apache.spark.sql.catalyst.expressions.{And, AttributeReference, LeafExpression, Literal, PredicateHelper, ScalaUDF}
+import org.apache.spark.sql.catalyst.expressions.{And, AttributeReference, Expression, GenericInternalRow, LeafExpression, Literal, PredicateHelper, ScalaUDF}
 import org.apache.spark.sql.catalyst.plans.logical.{Filter, LogicalPlan, Sort}
 import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.execution.datasources.LogicalRelation
-import org.apache.spark.sql.types.{DataType, DataTypes}
-import org.apache.spark.unsafe.types.UTF8String
+import org.apache.spark.sql.types.DataType
 import org.locationtech.geomesa.spark.GeoMesaRelation
 import org.opengis.filter.expression.{Expression => GTExpression}
+import org.opengis.filter.{Filter => GTFilter}
+
+import scala.collection.JavaConversions._
+import scala.util.Try
 
 object SQLRules {
   // new AST expressions
@@ -41,7 +45,7 @@ object SQLRules {
     // JNH: NB: Unused.
     def extractGeometry(e: org.apache.spark.sql.catalyst.expressions.Expression): Option[Geometry] = e match {
       case And(l, r) => extractGeometry(l).orElse(extractGeometry(r))
-      case ScalaUDF(ST_Contains, _, Seq(_, GeometryLiteral(_, geom)), _) => Some(geom)
+      case ScalaUDF(_, _, Seq(_, GeometryLiteral(_, geom)), _) => Some(geom)
       case _ => None
     }
 
@@ -52,34 +56,24 @@ object SQLRules {
           // TODO: deal with `or`
 
           // split up conjunctive predicates and extract the st_contains variable
-          val (st_contains, xs) = splitConjunctivePredicates(f).partition {
-            // TODO: Add guard which checks to see if the function can be pushed down
-            case ScalaUDF(_, _, _, _) => true
-            case _                    => false
+          val (scalaUDFs: Seq[Expression], otherFilters: Seq[Expression]) = extractScalaUDFs(f)
+
+          val (gtFilters: Seq[GTFilter], sFilters: Seq[Expression]) = scalaUDFs.foldLeft((Seq[GTFilter](), otherFilters)) {
+            case ((gts: Seq[GTFilter], sfilters), expression: Expression) =>
+              val cqlFilter = scalaUDFtoGTFilter(expression)
+
+              cqlFilter match {
+                case Some(gtf) => (gts.+:(gtf), sfilters)
+                case None      => (gts,         sfilters.+:(expression))
+              }
           }
-          if(st_contains.nonEmpty) {
-            // we got an st_contains, extract the geometry and set up the new GeoMesa relation with the appropriate
-            // CQL filter
 
-            // TODO: only dealing with one st_contains at the moment
-            //            val ScalaUDF(func, _, Seq(GeometryLiteral(_, geom), a), _) = st_contains.head
-            val ScalaUDF(func, _, Seq(exprA, exprB), _) = st_contains.head
-
-            // TODO: map func => ff.function
-            // TODO: Map Expressions to OpenGIS expressions.
-
-            val builder: (GTExpression, GTExpression) => org.opengis.filter.Filter = funcToFF(func)
-            val gtExprA = sparkExprToGTExpr(exprA)
-            val gtExprB = sparkExprToGTExpr(exprB)
-
-            val cqlFilter = builder(gtExprA, gtExprB)
-
-            val relation = gmRel.copy(filt = ff.and(gmRel.filt, cqlFilter))
-            // need to maintain expectedOutputAttributes so identifiers don't change in projections
+          if (gtFilters.nonEmpty) {
+            val relation = gmRel.copy(filt = ff.and(gtFilters :+ gmRel.filt))
             val newrel = lr.copy(expectedOutputAttributes = Some(lr.output), relation = relation)
-            if(xs.nonEmpty) {
-              // if there are other filters, keep them
-              Filter(xs.reduce(And), newrel)
+
+            if (sFilters.nonEmpty) {
+              Filter(sFilters.reduce(And), newrel)
             } else {
               // if st_contains was the only filter, just return the new relation
               newrel
@@ -90,56 +84,91 @@ object SQLRules {
       }
     }
 
-    def funcToFF(func: AnyRef) = {
-      func match {
-        case ST_Contains => (expr1: GTExpression, expr2: GTExpression) =>
-          ff.contains(expr1, expr2)
-        case ST_Crosses => (expr1: GTExpression, expr2: GTExpression) =>
-          ff.crosses(expr1, expr2)
-        case ST_Disjoint => (expr1: GTExpression, expr2: GTExpression) =>
-          ff.disjoint(expr1, expr2)
-        case ST_Equals => (expr1: GTExpression, expr2: GTExpression) =>
-          ff.equal(expr1, expr2)
-        case ST_Intersects => (expr1: GTExpression, expr2: GTExpression) =>
-          ff.intersects(expr1, expr2)
-        case ST_Overlaps => (expr1: GTExpression, expr2: GTExpression) =>
-          ff.overlaps(expr1, expr2)
-        case ST_Touches => (expr1: GTExpression, expr2: GTExpression) =>
-          ff.touches(expr1, expr2)
-        case ST_Within => (expr1: GTExpression, expr2: GTExpression) =>
-          ff.within(expr1, expr2)
+    def scalaUDFtoGTFilter(udf: Expression): Option[GTFilter] = {
+      val ScalaUDF(func, _, expressions, _) = udf
+
+      if (expressions.size == 2) {
+        val Seq(exprA, exprB) = expressions
+        buildGTFilter(func, exprA, exprB)
+      } else {
+        None
       }
     }
 
-    def sparkExprToGTExpr(expr: org.apache.spark.sql.catalyst.expressions.Expression): org.opengis.filter.expression.Expression = {
+    private def buildGTFilter(func: AnyRef, exprA: Expression, exprB: Expression): Option[GTFilter] =
+      for {
+        builder <- funcToFF(func)
+        gtExprA <- sparkExprToGTExpr(exprA)
+        gtExprB <- sparkExprToGTExpr(exprB)
+      } yield {
+        builder(gtExprA, gtExprB)
+      }
+
+    private def extractScalaUDFs(f: Expression) = {
+      splitConjunctivePredicates(f).partition {
+        // TODO: Add guard which checks to see if the function can be pushed down
+        case ScalaUDF(_, _, _, _) => true
+        case _ => false
+      }
+    }
+
+    def funcToFF(func: AnyRef): Option[(GTExpression, GTExpression) => GTFilter] = {
+      func match {
+        case ST_Contains => Some((expr1: GTExpression, expr2: GTExpression) =>
+          ff.contains(expr1, expr2))
+        case ST_Crosses => Some((expr1: GTExpression, expr2: GTExpression) =>
+          ff.crosses(expr1, expr2))
+        case ST_Disjoint => Some((expr1: GTExpression, expr2: GTExpression) =>
+          ff.disjoint(expr1, expr2))
+        case ST_Equals => Some((expr1: GTExpression, expr2: GTExpression) =>
+          ff.equal(expr1, expr2))
+        case ST_Intersects => Some((expr1: GTExpression, expr2: GTExpression) =>
+          ff.intersects(expr1, expr2))
+        case ST_Overlaps => Some((expr1: GTExpression, expr2: GTExpression) =>
+          ff.overlaps(expr1, expr2))
+        case ST_Touches => Some((expr1: GTExpression, expr2: GTExpression) =>
+          ff.touches(expr1, expr2))
+        case ST_Within => Some((expr1: GTExpression, expr2: GTExpression) =>
+          ff.within(expr1, expr2))
+        case _ => None
+      }
+    }
+
+    def sparkExprToGTExpr(expr: org.apache.spark.sql.catalyst.expressions.Expression): Option[org.opengis.filter.expression.Expression] = {
       expr match {
         case GeometryLiteral(_, geom) =>
-          ff.literal(geom)
+          Some(ff.literal(geom))
         case AttributeReference(name, _, _, _) =>
-          ff.property(name)
+          Some(ff.property(name))
         case _ =>
           log.debug(s"Got expr: $expr.  Don't know how to turn this into a GeoTools Expression.")
-          ff.property("geom")
+          None
       }
     }
   }
 
-  import SQLSpatialFunctions._
-
-  object FoldConstantGeometryRule extends Rule[LogicalPlan] {
+  object ScalaUDFRule extends Rule[LogicalPlan] with LazyLogging {
     override def apply(plan: LogicalPlan): LogicalPlan = {
       plan.transform {
         case q: LogicalPlan => q.transformExpressionsDown {
-          case ScalaUDF(ST_GeomFromWKT, GeometryType, Seq(Literal(wkt, DataTypes.StringType)), Seq(DataTypes.StringType)) =>
-            val geom = ST_GeomFromWKT(wkt.asInstanceOf[UTF8String].toString)
-            GeometryLiteral(GeometryUDT.serialize(geom), geom)
+          case s@ScalaUDF(_, _, _, _) =>
+            // TODO: Break down by GeometryType
+            Try {
+                s.eval(null) match {
+                  case row: GenericInternalRow =>
+                    val ret = GeometryUDT.deserialize(row)
+                    GeometryLiteral(row, ret)
+                  case other: Any =>
+                    Literal(other)
+                }
+            }.getOrElse(s)
         }
       }
     }
   }
 
   def registerOptimizations(sqlContext: SQLContext): Unit = {
-    Seq(FoldConstantGeometryRule, STContainsRule).foreach { r =>
+    Seq(ScalaUDFRule, STContainsRule).foreach { r =>
       if(!sqlContext.experimental.extraOptimizations.contains(r))
         sqlContext.experimental.extraOptimizations ++= Seq(r)
     }
