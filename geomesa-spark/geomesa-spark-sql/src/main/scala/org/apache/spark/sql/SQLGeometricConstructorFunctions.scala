@@ -19,7 +19,8 @@ object SQLGeometricConstructorFunctions {
   val ST_Box2DFromGeoHash: (String, Int) => Geometry = (hash, prec) => ST_GeomFromGeoHash(hash, prec)
   val ST_GeomFromWKT: String => Geometry = text => WKTUtils.read(text)
   val ST_GeomFromWKB: Array[Byte] => Geometry = array => WKBUtils.read(array)
-  val ST_MakeBox2D: (Point, Point) => Polygon = (lowerLeft, upperRight) =>
+  val ST_LineFromText: String => LineString = text => WKTUtils.read(text).asInstanceOf[LineString]
+  val ST_MakeBox2D: (Point, Point) => Geometry = (lowerLeft, upperRight) =>
     JTS.toGeometry(new Envelope(lowerLeft.getX, upperRight.getX, lowerLeft.getY, upperRight.getY))
   val ST_MakeBBOX: (Double, Double, Double, Double) => Geometry = (lowerX, lowerY, upperX, upperY) =>
     JTS.toGeometry(BoundingBox(lowerX, upperX, lowerY, upperY))
@@ -47,6 +48,7 @@ object SQLGeometricConstructorFunctions {
     sqlContext.udf.register("st_geomFromWKT"       , ST_GeomFromWKT)
     sqlContext.udf.register("st_geometryFromText"  , ST_GeomFromWKT)
     sqlContext.udf.register("st_geomFromWKB"       , ST_GeomFromWKB)
+    sqlContext.udf.register("st_lineFromText"      , ST_LineFromText)
     sqlContext.udf.register("st_makeBox2D"         , ST_MakeBox2D)
     sqlContext.udf.register("st_makeBBOX"          , ST_MakeBBOX)
     sqlContext.udf.register("st_makePolygon"       , ST_MakePolygon)

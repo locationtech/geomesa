@@ -126,6 +126,15 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
       r.collect().head.getAs[Geometry](0) mustEqual WKTUtils.read("POLYGON((0 0, 2 0, 2 2, 0 2, 0 0))")
     }
 
+    "st_lineFromText" >> {
+      val r = sc.sql(
+        """
+          |select st_lineFromText('LINESTRING(0 0, 1 1, 2 2)')
+        """.stripMargin
+      )
+      r.collect().head.getAs[LineString](0) mustEqual WKTUtils.read("LINESTRING(0 0, 1 1, 2 2)")
+    }
+
     "st_makeBBOX" >> {
       val r = sc.sql(
         """
@@ -142,7 +151,7 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
           |                    st_castToPoint(st_geomFromWKT('POINT(2 2)')))
         """.stripMargin
       )
-      r.collect().head.getAs[Polygon](0) mustEqual WKTUtils.read("POLYGON((0.0 0.0, 2.0 0.0, " +
+      r.collect().head.getAs[Geometry](0) mustEqual WKTUtils.read("POLYGON((0.0 0.0, 2.0 0.0, " +
         "2.0 2.0, 0.0 2.0, 0.0 0.0))")
     }
 
