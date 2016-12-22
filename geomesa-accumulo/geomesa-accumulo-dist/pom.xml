@@ -26,8 +26,17 @@
         <!-- Spark (dist)-->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-compute_${scala.binary.version}</artifactId>
+            <artifactId>geomesa-spark-accumulo_${scala.binary.version}</artifactId>
+            <version>${project.version}</version>
             <classifier>shaded</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-spark-converter_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-spark-geotools_${scala.binary.version}</artifactId>
         </dependency>
 
         <!-- Yarn (dist)-->
