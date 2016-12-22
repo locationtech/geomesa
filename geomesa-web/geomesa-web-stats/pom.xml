@@ -28,6 +28,13 @@
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-core</artifactId>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <!-- exclude older servlet api that breaks tests -->
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>servlet-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.scalatra</groupId>
@@ -64,10 +71,22 @@
             <artifactId>scala-library</artifactId>
             <scope>provided</scope>
         </dependency>
+
+        <!-- test deps -->
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <scope>provided</scope>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.specs2</groupId>
+            <artifactId>specs2_${scala.binary.version}</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.scalatra</groupId>
+            <artifactId>scalatra-specs2_${scala.binary.version}</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
