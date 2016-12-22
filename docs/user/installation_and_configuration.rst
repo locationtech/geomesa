@@ -107,8 +107,12 @@ Installing the Accumulo Distributed Runtime Library
 The ``geomesa-accumulo-dist_2.11-$VERSION/dist/accumulo/`` directory contains the distributed
 runtime JARs that contains server-side code for Accumulo that must be made
 available on each of the Accumulo tablet servers in the cluster. These JARs
-contain GeoMesa code and the Accumulo iterator required for querying
-GeoMesa data.
+contain GeoMesa code and the Accumulo iterators required for querying GeoMesa data.
+
+.. warning::
+
+    GeoMesa requires commons-vfs2.jar 2.1 or later. This JAR ships with Accumulo 1.7.2+, but for older
+    installations the JAR needs to be updated in ``$ACCUMULO_HOME/lib`` on all Accumulo servers.
 
 .. warning::
 
@@ -570,6 +574,18 @@ Hadoop 2.4-2.7 (adjust versions as needed)
 * hadoop-hdfs-2.6.4.jar
 
 Restart GeoServer after the JARs are installed.
+
+A note about Accumulo 1.8
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+   
+   GeoMesa supports Accumulo 1.8 when built with the accumulo-1.8 profile.  Accumulo 1.8
+   introduced a dependency on libthrift version 0.9.3 which is not compatible with Accumulo
+   1.7/libthrift 0.9.1.  The default supported version for GeoMesa is Accumulo 1.7.x and
+   the published jars and distribution artifacts reflect this version.  To upgrade, build
+   locally using the accumulo-1.8 profile.
+
 
 .. _install_geomesa_process:
 

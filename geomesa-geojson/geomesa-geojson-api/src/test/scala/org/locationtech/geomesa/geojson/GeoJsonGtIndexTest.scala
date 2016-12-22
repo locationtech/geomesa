@@ -45,6 +45,14 @@ class GeoJsonGtIndexTest extends Specification {
       val result = index.query(name, "").toList
       result must haveLength(3)
       result must contain(f0, f1, f2)
+
+      val nameResult = index.query(name, """{ "properties.name" : "n1" }""").toList
+      nameResult must haveLength(1)
+      nameResult must contain(f1)
+
+      val bboxResult = index.query(name, """{"geometry":{"$bbox":[30.5,9,32.5,11]}}""").toList
+      bboxResult must haveLength(2)
+      bboxResult must contain(f1, f2)
     }
 
     "transform geojson at query time" in {

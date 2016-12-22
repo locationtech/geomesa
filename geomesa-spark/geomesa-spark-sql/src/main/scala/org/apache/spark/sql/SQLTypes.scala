@@ -52,7 +52,9 @@ object SQLTypes {
   UDTRegistration.register(classOf[GeometryCollection].getCanonicalName, classOf[GeometryCollectionUDT].getCanonicalName)
 
   def init(sqlContext: SQLContext): Unit = {
+    SQLGeometricCastFunctions.registerFunctions(sqlContext)
     SQLSpatialFunctions.registerFunctions(sqlContext)
+    SQLGeometricConstructorFunctions.registerFunctions(sqlContext)
     SQLRules.registerOptimizations(sqlContext)
   }
 }

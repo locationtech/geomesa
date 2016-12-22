@@ -18,6 +18,7 @@ User Manual
    commandline_tools
    data_management
    analytic_queries
+   geojson
    examples
 
 Appendix
