@@ -160,10 +160,13 @@ object L {
        |  if(typeof resizeIFrame != 'function') {
        |    function resizeIFrame(el, k) {
        |      el.style.height = el.contentWindow.document.body.scrollHeight + 'px';
+       |      el.style.width = '100%';
        |      if(k<=3) { setTimeout(function() { resizeIFrame(el, k+1)}, 1000) };
        |    }
        |  }
-       |  $$().ready(function() {resizeIFrame($$('#$id').get(0),1);});
+       |  $$().ready(function() {
+       |    resizeIFrame($$('#$id').get(0), 1);
+       |  });
        |</script>
      """.stripMargin
   }
