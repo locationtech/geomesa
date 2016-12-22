@@ -35,7 +35,7 @@ object SQLRules {
 
     override def eval(input: InternalRow): Any = repr
 
-    override def dataType: DataType = GeometryType
+    override def dataType: DataType = GeometryTypeInstance
   }
 
   // new optimizations rules

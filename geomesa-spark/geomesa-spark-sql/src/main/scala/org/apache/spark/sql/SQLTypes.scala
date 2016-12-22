@@ -23,25 +23,38 @@ object SQLTypes {
   @transient val geomFactory = JTSFactoryFinder.getGeometryFactory
   @transient val ff = CommonFactoryFinder.getFilterFactory2
 
-  val PointType             = new PointUDT
-  val MultiPointType        = new MultiPointUDT
-  val LineStringType        = new LineStringUDT
-  val MultiLineStringType   = new MultiLineStringUDT
-  val PolygonType           = new PolygonUDT
-  val MultipolygonType      = new MultiPolygonUDT
-  val GeometryType          = new GeometryUDT
-  // TODO: Implement GeometryCollectionType
+  val GeometryTypeInstance           = new GeometryUDT
+  val PointTypeInstance              = new PointUDT
+  val LineStringTypeInstance         = new LineStringUDT
+  val PolygonTypeInstance            = new PolygonUDT
+  val MultiPointTypeInstance         = new MultiPointUDT
+  val MultiLineStringTypeInstance    = new MultiLineStringUDT
+  val MultipolygonTypeInstance       = new MultiPolygonUDT
+  val GeometryCollectionTypeInstance = new GeometryCollectionUDT
 
-  UDTRegistration.register(classOf[Point].getCanonicalName, classOf[PointUDT].getCanonicalName)
-  UDTRegistration.register(classOf[MultiPoint].getCanonicalName, classOf[MultiPointUDT].getCanonicalName)
-  UDTRegistration.register(classOf[LineString].getCanonicalName, classOf[LineStringUDT].getCanonicalName)
-  UDTRegistration.register(classOf[MultiLineString].getCanonicalName, classOf[MultiLineStringUDT].getCanonicalName)
-  UDTRegistration.register(classOf[Polygon].getCanonicalName, classOf[PolygonUDT].getCanonicalName)
-  UDTRegistration.register(classOf[MultiPolygon].getCanonicalName, classOf[MultiPolygonUDT].getCanonicalName)
+  // these constant values conform to WKB values
+  val GeometryType = 0
+  val PointType = 1
+  val LineStringType = 2
+  val PolygonType = 3
+  val MultiPointType = 4
+  val MultiLineStringType= 5
+  val MultiPolygonType = 6
+  val GeometryCollectionType = 7
+
   UDTRegistration.register(classOf[Geometry].getCanonicalName, classOf[GeometryUDT].getCanonicalName)
+  UDTRegistration.register(classOf[Point].getCanonicalName, classOf[PointUDT].getCanonicalName)
+  UDTRegistration.register(classOf[LineString].getCanonicalName, classOf[LineStringUDT].getCanonicalName)
+  UDTRegistration.register(classOf[Polygon].getCanonicalName, classOf[PolygonUDT].getCanonicalName)
+  UDTRegistration.register(classOf[MultiPoint].getCanonicalName, classOf[MultiPointUDT].getCanonicalName)
+  UDTRegistration.register(classOf[MultiLineString].getCanonicalName, classOf[MultiLineStringUDT].getCanonicalName)
+  UDTRegistration.register(classOf[MultiPolygon].getCanonicalName, classOf[MultiPolygonUDT].getCanonicalName)
+  UDTRegistration.register(classOf[GeometryCollection].getCanonicalName, classOf[GeometryCollectionUDT].getCanonicalName)
 
   def init(sqlContext: SQLContext): Unit = {
+    SQLGeometricCastFunctions.registerFunctions(sqlContext)
     SQLSpatialFunctions.registerFunctions(sqlContext)
+    SQLGeometricConstructorFunctions.registerFunctions(sqlContext)
     SQLRules.registerOptimizations(sqlContext)
   }
 }
@@ -66,33 +79,17 @@ abstract class AbstractGeometryUDT[T >: Null <: Geometry](id: Short, override va
   }
 }
 
-private [spark] class PointUDT extends AbstractGeometryUDT[Point](1, "point")
-object PointUDT extends PointUDT
-
-private [spark] class MultiPointUDT extends AbstractGeometryUDT[MultiPoint](4, "multipoint")
-object MultiPointUDT extends MultiPointUDT
-
-private [spark] class LineStringUDT extends AbstractGeometryUDT[LineString](2, "linestring")
-object LineStringUDT extends LineStringUDT
-
-private [spark] class MultiLineStringUDT extends AbstractGeometryUDT[MultiLineString](5, "multilinestring")
-object MultiLineStringUDT extends MultiLineStringUDT
-
-private [spark] class PolygonUDT extends AbstractGeometryUDT[Polygon](3, "polygon")
-object PolygonUDT extends PolygonUDT
-
-private [spark] class MultiPolygonUDT extends AbstractGeometryUDT[MultiPolygon](6, "multipolygon")
-object MultiPolygonUDT extends MultiPolygonUDT
-
 private [spark] class GeometryUDT extends AbstractGeometryUDT[Geometry](0, "geometry") {
   override def serialize(obj: Geometry): InternalRow = {
     obj.getGeometryType match {
       case "Point"               => PointUDT.serialize(obj.asInstanceOf[Point])
       case "MultiPoint"          => MultiPointUDT.serialize(obj.asInstanceOf[MultiPoint])
       case "LineString"          => LineStringUDT.serialize(obj.asInstanceOf[LineString])
+      case "LinearRing"          => LineStringUDT.serialize(obj.asInstanceOf[LineString])
       case "MultiLineString"     => MultiLineStringUDT.serialize(obj.asInstanceOf[MultiLineString])
       case "Polygon"             => PolygonUDT.serialize(obj.asInstanceOf[Polygon])
       case "MultiPolygon"        => MultiPolygonUDT.serialize(obj.asInstanceOf[MultiPolygon])
+      case "GeometryCollection"  => GeometryCollectionUDT.serialize(obj.asInstanceOf[GeometryCollection])
     }
   }
 
@@ -102,25 +99,63 @@ private [spark] class GeometryUDT extends AbstractGeometryUDT[Geometry](0, "geom
   override def deserialize(datum: Any): Geometry = {
     val ir = datum.asInstanceOf[InternalRow]
     ir.getByte(0) match {
-      case 1 => PointUDT.deserialize(ir)
-      case 2 => LineStringUDT.deserialize(ir)
-      case 3 => PolygonUDT.deserialize(ir)
-      case 4 => MultiPointUDT.deserialize(ir)
-      case 5 => MultiLineStringUDT.deserialize(ir)
-      case 6 => MultiPolygonUDT.deserialize(ir)
+      case SQLTypes.PointType              => PointUDT.deserialize(ir)
+      case SQLTypes.LineStringType         => LineStringUDT.deserialize(ir)
+      case SQLTypes.PolygonType            => PolygonUDT.deserialize(ir)
+      case SQLTypes.MultiPointType         => MultiPointUDT.deserialize(ir)
+      case SQLTypes.MultiLineStringType    => MultiLineStringUDT.deserialize(ir)
+      case SQLTypes.MultiPolygonType       => MultiPolygonUDT.deserialize(ir)
+      case SQLTypes.GeometryCollectionType => GeometryCollectionUDT.deserialize(ir)
     }
   }
 
   private[sql] override def acceptsType(dataType: DataType): Boolean = {
     super.acceptsType(dataType) ||
-      dataType.getClass == SQLTypes.PointType.getClass ||
-      dataType.getClass == SQLTypes.MultiPointType.getClass ||
-      dataType.getClass == SQLTypes.LineStringType.getClass ||
-      dataType.getClass == SQLTypes.MultiLineStringType.getClass ||
-      dataType.getClass == SQLTypes.PolygonType.getClass ||
-      dataType.getClass == SQLTypes.MultipolygonType.getClass ||
-      dataType.getClass == SQLTypes.GeometryType.getClass
+      dataType.getClass == SQLTypes.GeometryTypeInstance.getClass ||
+      dataType.getClass == SQLTypes.PointTypeInstance.getClass ||
+      dataType.getClass == SQLTypes.LineStringTypeInstance.getClass ||
+      dataType.getClass == SQLTypes.PolygonTypeInstance.getClass ||
+      dataType.getClass == SQLTypes.MultiLineStringTypeInstance.getClass ||
+      dataType.getClass == SQLTypes.MultiPointTypeInstance.getClass ||
+      dataType.getClass == SQLTypes.MultipolygonTypeInstance.getClass ||
+      dataType.getClass == SQLTypes.GeometryCollectionTypeInstance.getClass
   }
 }
 
 case object GeometryUDT extends GeometryUDT
+
+private [spark] class PointUDT
+  extends AbstractGeometryUDT[Point](SQLTypes.PointType.toShort, "point")
+
+object PointUDT extends PointUDT
+
+private [spark] class LineStringUDT
+  extends AbstractGeometryUDT[LineString](SQLTypes.LineStringType.toShort, "linestring")
+
+object LineStringUDT extends LineStringUDT
+
+private [spark] class PolygonUDT
+  extends AbstractGeometryUDT[Polygon](SQLTypes.PolygonType.toShort, "polygon")
+
+object PolygonUDT extends PolygonUDT
+
+private [spark] class MultiPointUDT
+  extends AbstractGeometryUDT[MultiPoint](SQLTypes.MultiLineStringType.toShort, "multipoint")
+
+object MultiPointUDT extends MultiPointUDT
+
+private [spark] class MultiLineStringUDT
+  extends AbstractGeometryUDT[MultiLineString](SQLTypes.MultiLineStringType.toShort, "multilinestring")
+
+object MultiLineStringUDT extends MultiLineStringUDT
+
+private [spark] class MultiPolygonUDT
+  extends AbstractGeometryUDT[MultiPolygon](SQLTypes.MultiPolygonType.toShort, "multipolygon")
+
+object MultiPolygonUDT extends MultiPolygonUDT
+
+private [spark] class GeometryCollectionUDT
+  extends AbstractGeometryUDT[GeometryCollection](SQLTypes.GeometryCollectionType.toShort, "geometrycollection")
+
+object GeometryCollectionUDT extends GeometryCollectionUDT
+
