@@ -16,21 +16,9 @@ import org.geotools.geometry.jts.JTS
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.geotools.referencing.operation.transform.AffineTransform2D
-import org.locationtech.geomesa.utils.text.WKTUtils
 
 object SQLSpatialFunctions {
   // Geometry constructors
-
-  // TODO: optimize when used as a literal
-  // e.g. select * from feature where st_contains(geom, geomFromText('POLYGON((....))'))
-  // should not deserialize the POLYGON for every call
-  val ST_GeomFromWKT: String => Geometry = s => WKTUtils.read(s)
-
-  val ST_MakeBox2D: (Point, Point) => Polygon = (ll, ur) => JTS.toGeometry(new Envelope(ll.getX, ur.getX, ll.getY, ur.getY))
-  val ST_MakeBBOX: (Double, Double, Double, Double) => Polygon = (lx, ly, ux, uy) => JTS.toGeometry(new Envelope(lx, ux, ly, uy))
-
-  // Geometry accessors
-  val ST_Envelope:  Geometry => Geometry = p => p.getEnvelope
 
   // Geometry editors
   val ST_Translate: (Geometry, Double, Double) => Geometry =
@@ -53,20 +41,9 @@ object SQLSpatialFunctions {
   // Geometry Processing
   val ch = new ConvexHull
 
-  // Type casting functions
-  // TODO: Implement addition casts
-  val ST_CastToPoint:      Geometry => Point       = g => g.asInstanceOf[Point]
-  val ST_CastToPolygon:    Geometry => Polygon     = g => g.asInstanceOf[Polygon]
-  val ST_CastToLineString: Geometry => LineString  = g => g.asInstanceOf[LineString]
-
   def registerFunctions(sqlContext: SQLContext): Unit = {
-    // Register geometry constructors
-    sqlContext.udf.register("st_geomFromWKT"   , ST_GeomFromWKT)
-    sqlContext.udf.register("st_makeBox2D"     , ST_MakeBox2D)
-    sqlContext.udf.register("st_makeBBOX"      , ST_MakeBBOX)
-
     // Register geometry accessors
-    sqlContext.udf.register("st_envelope"      , ST_Envelope)
+    SQLSpatialAccessorFunctions.registerAccessorFunctions(sqlContext)
 
     // Register geometry editors
     sqlContext.udf.register("st_translate", ST_Translate)
@@ -87,9 +64,6 @@ object SQLSpatialFunctions {
 
     // Register geometry Processing
     sqlContext.udf.register("st_convexhull", ch)
-
-    // Register type casting functions
-    sqlContext.udf.register("st_castToPoint", ST_CastToPoint)
   }
 
   @transient private val geoCalcs = new ThreadLocal[GeodeticCalculator] {
