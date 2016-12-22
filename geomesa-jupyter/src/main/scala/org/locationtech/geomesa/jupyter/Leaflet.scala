@@ -171,7 +171,7 @@ object L {
      """.stripMargin
   }
 
-  def show(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 8)(implicit disp: String => Unit) = disp(render(layers,center,zoom))
+  def show(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 1)(implicit disp: String => Unit) = disp(render(layers,center,zoom))
 
-  def print(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 8) = println(buildMap(layers,center,zoom))
+  def print(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 1) = println(buildMap(layers,center,zoom))
 }
