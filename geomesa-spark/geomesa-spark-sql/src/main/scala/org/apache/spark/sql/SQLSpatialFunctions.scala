@@ -20,11 +20,6 @@ import org.geotools.referencing.operation.transform.AffineTransform2D
 object SQLSpatialFunctions {
   // Geometry constructors
 
-  // TODO: optimize when used as a literal
-  // e.g. select * from feature where st_contains(geom, geomFromText('POLYGON((....))'))
-  // should not deserialize the POLYGON for every call
-  val ST_Envelope:  Geometry => Geometry = p => p.getEnvelope
-
   // Geometry editors
   val ST_Translate: (Geometry, Double, Double) => Geometry =
     (g, deltaX, deltaY) => translate(g, deltaX, deltaY)
@@ -48,7 +43,7 @@ object SQLSpatialFunctions {
 
   def registerFunctions(sqlContext: SQLContext): Unit = {
     // Register geometry accessors
-    sqlContext.udf.register("st_envelope"      , ST_Envelope)
+    SQLSpatialAccessorFunctions.registerAccessorFunctions(sqlContext)
 
     // Register geometry editors
     sqlContext.udf.register("st_translate", ST_Translate)
