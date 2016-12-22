@@ -44,13 +44,17 @@ You should see output similar to the following.
 .. code-block:: shell
 
    CONTAINER ID        IMAGE                                     COMMAND                  CREATED             STATUS              PORTS               NAMES
+   6a1ca1114c9b        quay.io/geomesa/geomesa-jupyter:latest    "tini -- start-notebo"   4 minutes ago       Up 4 minutes                            jupyter
    e28e07dd20de        quay.io/geodocker/geoserver:latest        "/opt/tomcat/bin/cata"   3 minutes ago       Up 3 minutes                            geoserver
    5f4ae17263db        quay.io/geomesa/accumulo-geomesa:latest   "/sbin/geomesa-entryp"   5 minutes ago       Up 5 minutes                            accumulo-gc
    b389e8e45542        quay.io/geomesa/accumulo-geomesa:latest   "/sbin/geomesa-entryp"   5 minutes ago       Up 5 minutes                            accumulo-tracer
    996327bf6a9f        quay.io/geomesa/accumulo-geomesa:latest   "/sbin/geomesa-entryp"   5 minutes ago       Up 5 minutes                            accumulo-monitor
    89738108b7a3        quay.io/geomesa/accumulo-geomesa:latest   "/sbin/geomesa-entryp"   5 minutes ago       Up 5 minutes                            accumulo-master
 
-Make sure you leave enough time for the machine to be completely bootstrapped before running the command to find the docker instances.  
+Ingest Public GDELT data
+************************
+
+Make sure you leave enough time for the machine to be completely bootstrapped before running the command to find the docker instances.
 Copy the CONTAINER_ID for the 'accumulo-master' container (1374169e0f6c in the example above).  To ingest the most recent 7 days of `GDELT
 <http://www.gdeltproject.org>`_ from Amazon's public S3 bucket.
 
@@ -67,7 +71,7 @@ You can then query the data using GeoMesa command line export tool.
    sudo docker exec $CONTAINER_ID geomesa export -c gdelt -f gdelt -u root -p secret -m 100
 
 You can register GDELT as a layer in the provided geoserver as well.  Geoserver is running on port 9090
-of the master node.  You can access it at `http://<ip_address>:9090/geoserver` where <ip_address> is the 
+of the master node.  You can access it at `http://<ip_address>:9090/geoserver` where <ip_address> is the
 address you looked up before ssh'ing into the master node.  To register a GeoMesa layer, you'll first need
 to know the internal URL of the zookeeper instance.  Run the following command:
 
@@ -88,4 +92,15 @@ Then, in the Stores->Add New Store->Accumulo (GeoMesa) dialog in Geoserver, set 
 Save the store and publish the `gdelt` layer.  Set the 'Native Bounding Box' and the 'Lat Lon Bounding Box' to
 `-180,-90,180,90`.  Save the layer.  Then, navigate to the preview page at `http://<ip_address>:9090/geoserver/cite/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:gdelt&styles=&bbox=-180,-90,180.0,90&width=768&height=356&srs=EPSG:4326&format=application/openlayers`.
 
+Analyze GDELT with GeoMesa, Jupyter, SparkSQL, Vegas, and Leaflet
+*****************************************************************
 
+Your bootstrapped spatial analytic environment has an instance of Jupyter notebook configured to analyze data in GeoMesa using SparkSQL and to visualize the results using Leaflet maps and Vegas (Vega-Lite) charts.  To start, navigate to `http://<ip_address>:8888/` where `<ip_address>` is the publicly accessible IP address of the master node.  You will see a sample GDELT analysis notebook.
+
+.. image:: _static/img/jupyter_notebook_list.png
+
+Click the `GDELT Analysis` notebook.  Edit the zookeeper value in the first cell by setting it to the zookeeper ip address as described above.  Then, select 'Cell'->'Run All' from the menu bar.  This will execute all the cells in the notebook.  Scroll through the sample and you will see some map and chart visualizations at the bottom.
+
+.. image:: _static/img/jupyter_map_viz.png
+
+.. image:: _static/img/jupyter_chart_viz.png
