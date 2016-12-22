@@ -31,7 +31,7 @@ object SQLRules {
 
     override def eval(input: InternalRow): Any = repr
 
-    override def dataType: DataType = GeometryType
+    override def dataType: DataType = GeometryTypeInstance
   }
 
   // new optimizations rules
@@ -130,7 +130,7 @@ object SQLRules {
     override def apply(plan: LogicalPlan): LogicalPlan = {
       plan.transform {
         case q: LogicalPlan => q.transformExpressionsDown {
-          case ScalaUDF(ST_GeomFromWKT, GeometryType, Seq(Literal(wkt, DataTypes.StringType)), Seq(DataTypes.StringType)) =>
+          case ScalaUDF(ST_GeomFromWKT, GeometryTypeInstance, Seq(Literal(wkt, DataTypes.StringType)), Seq(DataTypes.StringType)) =>
             val geom = ST_GeomFromWKT(wkt.asInstanceOf[UTF8String].toString)
             GeometryLiteral(GeometryUDT.serialize(geom), geom)
         }
