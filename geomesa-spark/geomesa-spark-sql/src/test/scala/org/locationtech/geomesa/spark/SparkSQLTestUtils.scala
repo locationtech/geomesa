@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.spark
 
-import java.io.File
 import java.util.{Map => JMap}
 
 import com.vividsolutions.jts.geom.Coordinate
@@ -18,7 +17,7 @@ import org.geotools.data.{DataStore, DataUtilities}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.format.ISODateTimeFormat
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.geotools.{GeneralShapefileIngest, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 import scala.collection.JavaConversions._
 
