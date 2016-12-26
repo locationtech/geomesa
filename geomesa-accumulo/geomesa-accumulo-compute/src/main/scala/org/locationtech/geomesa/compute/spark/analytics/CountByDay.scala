@@ -22,6 +22,7 @@ import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
 
+@deprecated
 object CountByDay {
 
   val params = Map(
