@@ -32,9 +32,13 @@ object SparkSQLTestUtils {
       .getOrCreate()
   }
 
+  val ChiSpec = "arrest:String,case_number:Int:index=full:cardinality=high,dtg:Date,*geom:Point:srid=4326"
+  val ChicagoSpec = SimpleFeatureTypes.createType("chicago", ChiSpec)
+
   def ingestChicago(ds: DataStore): Unit = {
+    val sft = ChicagoSpec
+
     // Chicago data ingest
-    val sft = SimpleFeatureTypes.createType("chicago", "arrest:String,case_number:Int,dtg:Date,*geom:Point:srid=4326")
     ds.createSchema(sft)
 
     val fs = ds.getFeatureSource("chicago").asInstanceOf[SimpleFeatureStore]

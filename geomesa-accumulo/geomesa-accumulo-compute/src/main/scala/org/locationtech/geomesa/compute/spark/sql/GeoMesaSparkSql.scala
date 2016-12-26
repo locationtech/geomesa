@@ -40,6 +40,7 @@ import scala.collection.JavaConversions._
  * There can only be a single spark context running in a given jvm, so it has to be managed using the
  * start/stop/register methods.
  */
+@deprecated
 object GeoMesaSparkSql extends LazyLogging {
 
   private val ff = CommonFactoryFinder.getFilterFactory2
@@ -224,6 +225,7 @@ object GeoMesaSparkSql extends LazyLogging {
   }
 }
 
+@deprecated
 class GeoMesaSparkSql(sc: SparkContext, dsParams: Seq[Map[String, String]]) {
 
   // load up our sfts
@@ -314,6 +316,7 @@ class GeoMesaSparkSql(sc: SparkContext, dsParams: Seq[Map[String, String]]) {
  * Extracts property names from a filter. Names are expected to either be qualified with the
  * feature type name (e.g. mysft.myattr), or be unambiguous among the feature types being queried.
  */
+@deprecated
 class SqlVisitor(context: DataContext, sftNames: Seq[String]) extends DuplicatingFilterVisitor {
 
   val referencedSfts = scala.collection.mutable.Set.empty[String]
