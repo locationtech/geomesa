@@ -38,8 +38,8 @@ package object accumulo {
     }
 
     object AccumuloMapperProperties {
-      val DESIRED_SPLITS_PER_TSERVER = SystemProperty("geomesa.mapreduce.split.count.tablet")
-      val DESIRED_ABSOLUTE_SPLITS = SystemProperty("geomesa.mapreduce.split.count.absolute")
+      val DESIRED_SPLITS_PER_TSERVER = SystemProperty("geomesa.mapreduce.splits.tserver.max")
+      val DESIRED_ABSOLUTE_SPLITS = SystemProperty("geomesa.mapreduce.splits.max")
     }
 
     object BatchWriterProperties {
