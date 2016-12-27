@@ -96,10 +96,10 @@
     <!-- /geomesa.batchwriter -->
 
     <property>
-        <name>geomesa.mapreduce.split.count.absolute</name>
+        <name>geomesa.mapreduce.splits.max</name>
         <value></value>
         <description>Set the absolute number of shards instead of basing it on the number of tablet servers.
-            Setting this value overrides geomesa.mapreduce.split.count.tablet.
+            Setting this value overrides geomesa.mapreduce.splits.tserver.max.
 
             Making this value final without setting a value greater than zero may cause unexpected issues.
         </description>
@@ -107,13 +107,13 @@
     </property>
 
     <property>
-        <name>geomesa.mapreduce.split.count.tablet</name>
+        <name>geomesa.mapreduce.splits.tserver.max</name>
         <value></value>
-        <description>Set the number of shards per tablet server when configuring a mapper. By default this value is
+        <description>Set the max number of splits per tablet server when configuring a mapper. By default this value is
             calculated using Accumulo's AbstractInputFormat.getSplits method which creates a split for each range. In
             some scenarios this may create an undesirably large number of splits.
 
-            This value is overwritten by geomesa.mapreduce.split.count.absolute if it is set.
+            This value is overwritten by geomesa.mapreduce.splits.max if it is set.
 
             Making this value final without setting a value greater than zero may cause unexpected issues.
         </description>
