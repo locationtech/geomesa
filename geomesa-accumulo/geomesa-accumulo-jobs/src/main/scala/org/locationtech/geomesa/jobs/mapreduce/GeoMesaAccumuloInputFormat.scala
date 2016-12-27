@@ -167,23 +167,23 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
    *
    * Our delegated AccumuloInputFormat creates a split for each range - because we set a lot of ranges in
    * geomesa, that creates too many mappers. Instead, we try to group the ranges by tservers. We use the
-   * location of the tserver to determine the number of tservers.
+   * location assignment of the tablets to tservers to determine the number of splits returned.
    */
   override def getSplits(context: JobContext): java.util.List[InputSplit] = {
     init(context.getConfiguration)
     val accumuloSplits = delegate.getSplits(context)
     // Get the appropriate number of mapper splits using the following priority
-    // 1. Get splits from AccumuloMapperProperties.DESIRED_ABSOLUTE_SPLITS (geomesa.mapreduce.split.count.absolute)
-    // 2. Get splits from #tserver locations * AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER (geomesa.mapreduce.split.count.tablet)
+    // 1. Get splits from AccumuloMapperProperties.DESIRED_ABSOLUTE_SPLITS (geomesa.mapreduce.splits.max)
+    // 2. Get splits from #tserver locations * AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER (geomesa.mapreduce.splits.tserver.max)
     // 3. Get splits from AccumuloInputFormat.getSplits(context)
-    val grpSplitsAbs: Option[Int] =
+    val grpSplitsMax: Option[Int] =
       try {
-        val absSplits = AccumuloMapperProperties.DESIRED_ABSOLUTE_SPLITS.get.toInt
-        if (absSplits > 0) Some(absSplits) else None
+        val maxSplits = AccumuloMapperProperties.DESIRED_ABSOLUTE_SPLITS.get.toInt
+        if (maxSplits > 0) Some(maxSplits) else None
       } catch {
         case e: java.lang.NumberFormatException =>
-          logger.warn(s"Unable to parse geomesa.mapreduce.split.count.absolute = " +
-            s"${AccumuloMapperProperties.DESIRED_ABSOLUTE_SPLITS.get} is not a valid Int.")
+          AccumuloMapperProperties.DESIRED_ABSOLUTE_SPLITS.option.foreach(value =>
+            logger.warn(s"Unable to parse geomesa.mapreduce.splits.max = $value is not a valid Int."))
           None
       }
 
@@ -196,14 +196,14 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
             AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER.get.toInt
           } catch {
             case e: java.lang.NumberFormatException =>
-              logger.warn(s"Unable to parse geomesa.mapreduce.split.count.tablet = " +
+              logger.warn(s"Unable to parse geomesa.mapreduce.splits.tserver.max = " +
                 s"${AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER.get} is not a valid Int.")
               1 // Identity, don't split locations
           }
         if (numLocations > 0 && splitsPerTServer > 0) Some(numLocations * splitsPerTServer) else None
       }
 
-    grpSplitsAbs.orElse(grpSplitsPerTServer) match {
+    grpSplitsMax.orElse(grpSplitsPerTServer) match {
       case Some(size) => logger.debug(s"Using desired splits with result of ${accumuloSplits.length} splits")
         accumuloSplits.groupBy(_.getLocations()(0)).flatMap{ case (location, splits) =>
           splits.grouped(size).map{ group =>
@@ -291,7 +291,7 @@ class GroupedSplit extends InputSplit with Writable {
   var location: String = null
   var splits: ArrayBuffer[RangeInputSplit] = ArrayBuffer.empty
 
-  override def getLength =  splits.foldLeft(0L)((l: Long, r: RangeInputSplit) => l + r.getLength)
+  override def getLength = splits.foldLeft(0L)((l: Long, r: RangeInputSplit) => l + r.getLength)
 
   override def getLocations = if (location == null) Array.empty else Array(location)
 
