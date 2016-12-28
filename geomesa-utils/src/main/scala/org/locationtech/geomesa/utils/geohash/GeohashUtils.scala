@@ -1065,7 +1065,8 @@ object GeohashUtils
       else Seq(ghMBR.toBinaryString.drop(minBits).take(usedBits)))
 
     // detect overflow
-    if (bitPrefixes.overflowed) throw new IllegalStateException("Bit prefixes overflowed while calculating unique geohash substrings in polygon.")
+    if (bitPrefixes.overflowed) throw new IllegalStateException("Bit prefixes overflowed while calculating unique Geohash substrings in polygon using the following parameters: " +
+      s"\nGeometry: $geom \nOffset: $offset \nLength: $length \nMax Keys in List: $MAX_KEYS_IN_LIST")
 
     // not having overflowed, turn the collection of disjoint prefixes
     // into a list of full geohash substrings
