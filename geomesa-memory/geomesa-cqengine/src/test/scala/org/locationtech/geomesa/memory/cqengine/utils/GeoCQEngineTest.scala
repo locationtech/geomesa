@@ -27,12 +27,12 @@ class GeoCQEngineTest extends Specification with LazyLogging {
       import SampleFilters._
       val feats = (0 until 1000).map(SampleFeatures.buildFeature)
 
-      // Set up CQEngine with geo-index only
-      val cqNoIndexes = new GeoCQEngine(sft)
+      // Set up CQEngine with no indexes
+      val cqNoIndexes = new GeoCQEngine(sft, enableGeomIndex=false)
       cqNoIndexes.addAll(feats)
 
       // Set up CQEngine with all indexes
-      val cqWithIndexes = new GeoCQEngine(sftWithIndexes)
+      val cqWithIndexes = new GeoCQEngine(sftWithIndexes, enableFidIndex=true, enableGeomIndex=true)
       cqWithIndexes.addAll(feats)
 
       def getGeoToolsCount(filter: Filter) = feats.count(filter.evaluate)
