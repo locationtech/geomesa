@@ -11,20 +11,20 @@ package org.apache.spark.sql
 import java.awt.geom.AffineTransform
 
 import com.vividsolutions.jts.geom._
+import com.vividsolutions.jts.operation.distance.DistanceOp
 import org.apache.spark.sql.udaf.ConvexHull
-import org.geotools.geometry.jts.JTS
+import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.geotools.referencing.operation.transform.AffineTransform2D
 
 object SQLSpatialFunctions {
-  // Geometry constructors
-
   // Geometry editors
   val ST_Translate: (Geometry, Double, Double) => Geometry =
     (g, deltaX, deltaY) => translate(g, deltaX, deltaY)
 
   // Spatial relationships
+  // DE-9IM relations
   val ST_Contains:   (Geometry, Geometry) => Boolean = (geom1, geom2) => geom1.contains(geom2)
   val ST_Covers:     (Geometry, Geometry) => Boolean = (geom1, geom2) => geom1.covers(geom2)
   val ST_Crosses:    (Geometry, Geometry) => Boolean = (geom1, geom2) => geom1.crosses(geom2)
@@ -34,9 +34,20 @@ object SQLSpatialFunctions {
   val ST_Overlaps:   (Geometry, Geometry) => Boolean = (geom1, geom2) => geom1.overlaps(geom2)
   val ST_Touches:    (Geometry, Geometry) => Boolean = (geom1, geom2) => geom1.touches(geom2)
   val ST_Within:     (Geometry, Geometry) => Boolean = (geom1, geom2) => geom1.within(geom2)
+  val ST_Relate:     (Geometry, Geometry) => String =
+    (geom1, geom2) => geom1.relate(geom2).toString
+  val ST_RelateBool: (Geometry, Geometry, String) => Boolean =
+    (geom1, geom2, pattern) => geom1.relate(geom2, pattern)
 
+  val ST_Area: Geometry => java.lang.Double = g => g.getArea
   val ST_Centroid: Geometry => Point = g => g.getCentroid
-  val ST_DistanceSpheroid: (Geometry, Geometry) => java.lang.Double = (s, e) => fastDistance(s, e)
+  val ST_ClosestPoint: (Geometry, Geometry) => Point =
+    (g1, g2) => closestPoint(g1, g2)
+  val ST_Distance: (Geometry, Geometry) => java.lang.Double =
+    (g1, g2) => g1.distance(g2)
+  val ST_DistanceSpheroid: (Geometry, Geometry) => java.lang.Double =
+    (s, e) => fastDistance(s, e)
+  val ST_Length: Geometry => java.lang.Double = g => g.getLength
 
   // Geometry Processing
   val ch = new ConvexHull
@@ -58,9 +69,17 @@ object SQLSpatialFunctions {
     sqlContext.udf.register("st_overlaps"    , ST_Overlaps)
     sqlContext.udf.register("st_touches"     , ST_Touches)
     sqlContext.udf.register("st_within"      , ST_Within)
+    // renamed st_relate variant that returns a boolean since
+    // Spark SQL doesn't seem to support polymorphic UDFs
+    sqlContext.udf.register("st_relate"      , ST_Relate)
+    sqlContext.udf.register("st_relateBool"  , ST_RelateBool)
 
-    sqlContext.udf.register("st_centroid"      , ST_Centroid)
-    sqlContext.udf.register("st_distanceSpheroid"  , ST_DistanceSpheroid)
+    sqlContext.udf.register("st_area"            , ST_Area)
+    sqlContext.udf.register("st_closestpoint"    , ST_ClosestPoint)
+    sqlContext.udf.register("st_centroid"        , ST_Centroid)
+    sqlContext.udf.register("st_distance"        , ST_Distance)
+    sqlContext.udf.register("st_distanceSpheroid", ST_DistanceSpheroid)
+    sqlContext.udf.register("st_length"          , ST_Length)
 
     // Register geometry Processing
     sqlContext.udf.register("st_convexhull", ch)
@@ -68,6 +87,13 @@ object SQLSpatialFunctions {
 
   @transient private val geoCalcs = new ThreadLocal[GeodeticCalculator] {
     override def initialValue(): GeodeticCalculator = new GeodeticCalculator(DefaultGeographicCRS.WGS84)
+  }
+  @transient val geomFactory = JTSFactoryFinder.getGeometryFactory
+
+  def closestPoint(g1: Geometry, g2: Geometry): Point = {
+    val op = new DistanceOp(g1, g2)
+    val coord = op.nearestPoints()
+    geomFactory.createPoint(coord(0))
   }
 
   def fastDistance(s: Geometry, e: Geometry): Double = {
