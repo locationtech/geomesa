@@ -14,6 +14,7 @@ import com.vividsolutions.jts.geom.Coordinate
 import org.apache.spark.sql.SparkSession
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStore, DataUtilities}
+import org.geotools.factory.Hints
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.format.ISODateTimeFormat
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -46,13 +47,15 @@ object SparkSQLTestUtils {
     val parseDate = ISODateTimeFormat.basicDateTime().parseDateTime _
     val createPoint = JTSFactoryFinder.getGeometryFactory.createPoint(_: Coordinate)
 
-    val features = DataUtilities.collection(List(
+    val f = List(
       new ScalaSimpleFeature("1", sft, initialValues = Array("true","1",parseDate("20160101T000000.000Z").toDate, createPoint(new Coordinate(-76.5, 38.5)))),
       new ScalaSimpleFeature("2", sft, initialValues = Array("true","2",parseDate("20160102T000000.000Z").toDate, createPoint(new Coordinate(-77.0, 38.0)))),
       new ScalaSimpleFeature("3", sft, initialValues = Array("true","3",parseDate("20160103T000000.000Z").toDate, createPoint(new Coordinate(-78.0, 39.0))))
-    ))
+    )
 
-    fs.addFeatures(features)
+    f.foreach(_.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE))
+
+    fs.addFeatures(DataUtilities.collection(f))
   }
 }
 
