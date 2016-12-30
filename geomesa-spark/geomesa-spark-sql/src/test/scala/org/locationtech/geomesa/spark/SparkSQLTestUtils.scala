@@ -8,9 +8,7 @@
 
 package org.locationtech.geomesa.spark
 
-import java.util.{Map => JMap}
-
-import com.vividsolutions.jts.geom.Coordinate
+import com.vividsolutions.jts.geom.{Coordinate, Point}
 import org.apache.spark.sql.SparkSession
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStore, DataUtilities}
@@ -19,6 +17,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.format.ISODateTimeFormat
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.interop.WKTUtils
 
 import scala.collection.JavaConversions._
 
@@ -56,6 +55,38 @@ object SparkSQLTestUtils {
     f.foreach(_.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE))
 
     fs.addFeatures(DataUtilities.collection(f))
+  }
+
+  def ingestPoints(ds: DataStore,
+                   name: String,
+                   points: Map[String, String]): Unit = {
+    val sft = SimpleFeatureTypes.createType(
+      name, "name:String,*geom:Point:srid=4326")
+    ds.createSchema(sft)
+
+    val features = DataUtilities.collection(points.map(x => {
+      new ScalaSimpleFeature(x._1, sft,
+        initialValues=Array(x._1, WKTUtils.read(x._2).asInstanceOf[Point]))
+    }).toList)
+
+    val fs = ds.getFeatureSource(name).asInstanceOf[SimpleFeatureStore]
+    fs.addFeatures(features)
+  }
+
+  def ingestGeometries(ds: DataStore,
+                       name: String,
+                       geoms: Map[String, String]): Unit = {
+    val sft = SimpleFeatureTypes.createType(
+      name, "name:String,*geom:Geometry:srid=4326")
+    ds.createSchema(sft)
+
+    val features = DataUtilities.collection(geoms.map(x => {
+      new ScalaSimpleFeature(x._1, sft,
+        initialValues=Array(x._1, WKTUtils.read(x._2)))
+    }).toList)
+
+    val fs = ds.getFeatureSource(name).asInstanceOf[SimpleFeatureStore]
+    fs.addFeatures(features)
   }
 }
 

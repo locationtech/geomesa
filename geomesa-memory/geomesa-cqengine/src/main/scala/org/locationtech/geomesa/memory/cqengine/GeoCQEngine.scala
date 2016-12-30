@@ -32,14 +32,15 @@ import org.opengis.filter._
 import scala.collection.JavaConversions._
 
 class GeoCQEngine(val sft: SimpleFeatureType,
-                  enableFidIndex: Boolean = false) extends LazyLogging {
+                  enableFidIndex: Boolean = false,
+                  enableGeomIndex: Boolean = true) extends LazyLogging {
   //val cqcache = CQIndexingOptions.buildIndexedCollection(sft)
   val cqcache: IndexedCollection[SimpleFeature] = new ConcurrentIndexedCollection[SimpleFeature]()
   val attributes = SFTAttributes(sft)
 
   // Add Geometry index on default geometry first.
   // TODO: Add logic to allow for the geo-index to be disabled?  (Low priority)
-  addGeoIndex(sft.getGeometryDescriptor)
+  if (enableGeomIndex) addGeoIndex(sft.getGeometryDescriptor)
 
   if (enableFidIndex) addFidIndex()
 
@@ -135,7 +136,6 @@ class GeoCQEngine(val sft: SimpleFeatureType,
   }
 
   private def addGeoIndex(ad: AttributeDescriptor): Unit = {
-    // TODO: Add logic to allow for the geo-index to be disabled?  (Low priority)
     val geom: Attribute[SimpleFeature, Geometry] = attributes.lookup[Geometry](ad.getLocalName)
     cqcache.addIndex(GeoIndex.onAttribute(sft, geom))
   }
