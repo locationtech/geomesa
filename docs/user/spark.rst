@@ -28,8 +28,7 @@ Spark Core
 ``geomesa-spark-core`` is used to work directly with ``RDD``\ s of features
 from GeoMesa. To use this module, Spark must be configured to register the
 ``GeoMesaSparkKryoRegistor`` class, which provides objects to serialize and
-deserialize features for each feature type. The configuration is shown in the
-Scala code below:
+deserialize features for each feature type, as shown in the Scala code below:
 
 .. code-block:: scala
 
@@ -72,11 +71,30 @@ Accumulo RDD Provider
       // version, etc.
     </dependency>
 
-The configuration parameters passed to connect to a GeoMesa ``AccumuloDataStore``,
-...
+This provider generates and saves ``RDD``\ s of features stored in a GeoMesa
+``AccumuloDataStore``. The configuration parameters passed to
+``AccumuloSpatialRDDProvider`` are the same as those passed to
+``AccumuloDataStoreFactory.createDataStore()`` or ``DataStoreFinder.getDataStore()``.
+The feature to access in GeoMesa is passed as the type name of the query passed
+to the ``rdd()`` method. For example, to load an ``RDD`` of features of type "gdelt"
+from the "geomesa" Accumulo table:
 
-.. introduction
-.. parameters/configuration for accumulo
+.. code-block:: scala
+
+    val params = Map(
+      "instanceId" -> "mycloud",
+      "user" -> "user",
+      "password" -> "password",
+      "zookeepers" -> "zoo1,zoo2,zoo3",
+      "tableName" -> "geomesa")
+    val query = new Query("gdelt")
+    val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, query)
+
+To save features, use the ``save()`` method:
+
+.. code-block:: scala
+
+    GeoMesaSpark(params).save(rdd, params, "gdelt")
 
 Converter RDD Provider
 ^^^^^^^^^^^^^^^^^^^^^^
