@@ -1,10 +1,12 @@
 GeoMesa Spark
 =============
 
-GeoMesa Spark allows for execution of jobs on Apache Spark using data stored in GeoMesa,
-other GeoTools ``DataStore``s, or files readable by the GeoMesa converter library.
-The library allows creation of Spark ``RDD``s and ``DataFrame``s, writing of
-Spark ``RDD``s and ``DataFrame``s to GeoMesa Accumulo and other GeoTools ``DataStore``s, and serialization of ``SimpleFeature``s using Kryo.
+GeoMesa Spark allows for execution of jobs on Apache Sparkusing data stored in GeoMesa,
+other GeoTools ``DataStore``\ s, or files readable by the GeoMesa converter library.
+The library allows creation of Spark ``RDD``\ s and ``DataFrame``\ s, writing of
+Spark ``RDD``\ s and ``DataFrame``\ s to GeoMesa Accumulo and other GeoTools ``DataStore``\ s, and serialization of ``SimpleFeature``\ s using Kryo.
+
+The current version of GeoMesa Spark supports Apache Spark 2.0.
 
 Example
 -------
@@ -23,16 +25,42 @@ through the ``GeoMesaSpark`` object...
 Spark Core
 ----------
 
-The module ``geomesa-spark-core`` provides an API for accessing geospatial data
+``geomesa-spark-core`` is used to work directly with ``RDD``\ s of features
+from GeoMesa. To use this module, Spark must be configured to register the
+``GeoMesaSparkKryoRegistor`` class, which provides objects to serialize and
+deserialize features for each feature type. The configuration is shown in the
+Scala code below:
+
+.. code-block:: scala
+
+    val conf = new SparkConf().setMaster("local[*]").setAppName("testSpark")
+    conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+    conf.set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
+    val sc = SparkContext.getOrCreate(conf)
+
+``geomesa-spark-core`` also provides an API for accessing geospatial data
 in Spark, by defining an interface called ``SpatialRDDProvider``. Different
 implementations of this interface connect to GeoMesa Accumulo, generic
-GeoTools-based ``DataStore``s, or data files in formats readable by the GeoMesa
-converter library. ``GeoMesaSpark`` loads an approprate ``SpatialRDDProvider``
-implementation via the Java Service Provider Interface when those implementations
-are added to the classpath.
+GeoTools-based ``DataStore``\ s, or data files in formats readable by the GeoMesa
+converter library. ``GeoMesaSpark`` loads an ``SpatialRDDProvider``
+implementation via SPI when the appropriate JAR is included on the classpath.
+The implementation returned by ``GeoMesaSpark`` is chosen based on the
+parameters passed as an argument, as shown in the Scala code below:
 
-Accumulo RDD
-^^^^^^^^^^^^
+.. code-block:: scala
+
+    // parameters to pass to the SpatialRDDProvider implementation
+    val params = Map(
+      "param1" -> "foo",
+      "param2" -> "bar")
+    // GeoTools Query; may be used to filter results retrieved from the data store
+    val query = new Query("foo")
+    // val query = new Query("foo", ECQL.toFilter("name like 'A%'"))
+    // get the RDD, using the SparkContext configured as above
+    val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, query)
+
+Accumulo RDD Provider
+^^^^^^^^^^^^^^^^^^^^^
 
 ``AccumuloSpatialRDDProvider`` is provided by the ``geomesa-accumulo-spark`` module:
 
@@ -44,13 +72,14 @@ Accumulo RDD
       // version, etc.
     </dependency>
 
-When given configuration parameters to connect to a GeoMesa ``AccumuloDataStore``...
+The configuration parameters passed to connect to a GeoMesa ``AccumuloDataStore``,
+...
 
 .. introduction
 .. parameters/configuration for accumulo
 
-Converter RDD
-^^^^^^^^^^^^^
+Converter RDD Provider
+^^^^^^^^^^^^^^^^^^^^^^
 
 ``ConverterSpatialRDDProvider`` is provided by the ``geomesa-spark-converter`` module:
 
@@ -62,12 +91,38 @@ Converter RDD
       // version, etc.
     </dependency>
 
-.. introduction
-.. parameters/configuration for converters
-.. doesn't support saving
+``ConverterSpatialRDDProvider`` reads features from one or more data files in formats
+readable by the :doc:`/user/convert` library, including delimited and fixed-width text,
+Avro, JSON, and XML files. It takes the following configuration parameters:
 
-GeoTools RDD
-^^^^^^^^^^^^
+ * ``geomesa.converter`` - the converter defintion as a Typesafe Config string
+ * ``geomesa.converter.inputs`` - input file paths, comma-delimited
+ * ``geomesa.sft`` - the ``SimpleFeaturetype``, as a spec string, configuration string, or environment lookup name
+ * ``geomesa.sft.name`` - (optional) the name of the ``SimpleFeatureType``
+
+Consider the example data described in the :ref:`convert_example_usage` section of the
+:doc:`/user/convert` documentation. If the file ``example.csv`` contains the
+example data, and ``example.conf`` contains the Typesafe configuration file for the
+converter, the following Scala code can be used to load this data into an ``RDD``:
+
+.. code-block:: scala
+
+    val exampleConf = ConfigFactory.load("example.conf").root().render()
+    val params = Map(
+      "geomesa.converter" -> exampleConf,
+      "geomesa.converter.inputs" -> "example.csv",
+      "geomesa.sft" -> "phrase:String,dtg:Date,geom:Point:srid=4326",
+      "geomesa.sft.name" -> "example")
+    val query = new Query("example")
+    val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, query)
+
+.. warning::
+
+    ``ConvertSpatialRDDProvider`` is read-only, and does not support writing features
+    to data files.
+
+GeoTools RDD Provider
+^^^^^^^^^^^^^^^^^^^^^
 
 ``GeoToolsSpatialRDDProvider`` is provided by the ``geomesa-spark-geotools`` module:
 

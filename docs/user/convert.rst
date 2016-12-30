@@ -26,6 +26,8 @@ result SimpleFeature. Fields that do not align with attributes in the
 deriving attributes. Fields can reference other fields by name for
 building up complex attributes.
 
+.. _convert_example_usage:
+
 Example Usage
 -------------
 
