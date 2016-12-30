@@ -58,8 +58,10 @@ object SQLTypes {
 
   def init(sqlContext: SQLContext): Unit = {
     SQLGeometricCastFunctions.registerFunctions(sqlContext)
+    SQLSpatialAccessorFunctions.registerFunctions(sqlContext)
     SQLSpatialFunctions.registerFunctions(sqlContext)
     SQLGeometricConstructorFunctions.registerFunctions(sqlContext)
+    SQLGeometryProcessingFunctions.registerFunctions(sqlContext)
     SQLRules.registerOptimizations(sqlContext)
   }
 }

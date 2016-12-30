@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.geohash
 
-import com.spatial4j.core.context.jts.JtsSpatialContext
+import org.locationtech.spatial4j.context.jts.JtsSpatialContext
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.locationtech.geomesa.utils.geotools.GeometryUtils

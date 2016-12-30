@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+  * Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+  * All rights reserved. This program and the accompanying materials
+  * are made available under the terms of the Apache License, Version 2.0
+  * which accompanies this distribution and is available at
+  * http://www.opensource.org/licenses/apache2.0.php.
+  *************************************************************************/
 
 package org.locationtech.geomesa.spark
 
@@ -12,11 +12,10 @@ import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
-import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
-import org.geotools.data.{DataStore, DataStoreFinder}
+import org.geotools.data.DataStoreFinder
 import org.geotools.geometry.jts.JTS
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
+import org.locationtech.geomesa.utils.geohash.BoundingBox
 import org.locationtech.geomesa.utils.interop.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -30,36 +29,27 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
     sequential
 
     val dsParams: JMap[String, String] = Map("cqengine" -> "true", "geotools" -> "true")
-    var ds: DataStore = null
-    var spark: SparkSession = null
-    var sc: SQLContext = null
 
-    var df: DataFrame = null
+    val ds = DataStoreFinder.getDataStore(dsParams)
+    val spark = SparkSQLTestUtils.createSparkSession()
+    val sc = spark.sqlContext
 
-    // before
-    step {
-      ds = DataStoreFinder.getDataStore(dsParams)
-      spark = SparkSQLTestUtils.createSparkSession()
-      sc = spark.sqlContext
+    SparkSQLTestUtils.ingestChicago(ds)
 
-      SparkSQLTestUtils.ingestChicago(ds)
+    val df = spark.read
+      .format("geomesa")
+      .options(dsParams)
+      .option("geomesa.feature", "chicago")
+      .load()
+    logger.info(df.schema.treeString)
+    df.createOrReplaceTempView("chicago")
 
-      df = spark.read
-        .format("geomesa")
-        .options(dsParams)
-        .option("geomesa.feature", "chicago")
-        .load()
-      logger.info(df.schema.treeString)
-      df.createOrReplaceTempView("chicago")
-
-      df.collect().length mustEqual 3
-    }
 
     "st_box2DFromGeoHash" >> {
       val r = sc.sql(
         s"""
            |select st_box2DFromGeoHash('ezs42', 25)
-        """.stripMargin
+          """.stripMargin
       )
 
       val boxCoords = r.collect().head.getAs[Geometry](0).getCoordinates
@@ -76,7 +66,7 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
       val r = sc.sql(
         s"""
            |select st_geomFromGeoHash('ezs42', 25)
-        """.stripMargin
+          """.stripMargin
       )
 
       val geomboxCoords = r.collect().head.getAs[Geometry](0).getCoordinates

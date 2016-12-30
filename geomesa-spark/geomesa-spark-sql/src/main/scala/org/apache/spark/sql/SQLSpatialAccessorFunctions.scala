@@ -63,7 +63,7 @@ object SQLSpatialAccessorFunctions {
     case _ => null
   }
 
-  def registerAccessorFunctions(sqlContext: SQLContext): Unit = {
+  def registerFunctions(sqlContext: SQLContext): Unit = {
     sqlContext.udf.register("st_boundary"      , ST_Boundary)
     sqlContext.udf.register("st_coordDim"      , ST_CoordDim)
     sqlContext.udf.register("st_dimension"     , ST_Dimension)
