@@ -15,6 +15,7 @@ import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
 import org.apache.spark.sql.SQLContext
 
 object SQLGeometricConstructorFunctions {
+
   val ST_GeomFromGeoHash: (String, Int) => Geometry = (hash, prec) => GeoHash(hash, prec).geom
   val ST_Box2DFromGeoHash: (String, Int) => Geometry = (hash, prec) => ST_GeomFromGeoHash(hash, prec)
   val ST_GeomFromWKT: String => Geometry = text => WKTUtils.read(text)
@@ -25,11 +26,11 @@ object SQLGeometricConstructorFunctions {
   val ST_MakeBBOX: (Double, Double, Double, Double) => Geometry = (lowerX, lowerY, upperX, upperY) =>
     JTS.toGeometry(BoundingBox(lowerX, upperX, lowerY, upperY))
   val ST_MakePolygon: LineString => Polygon = shell => {
-    val factory = new GeometryFactory()
-    val ring = factory.createLinearRing(shell.getCoordinateSequence)
-    new GeometryFactory().createPolygon(ring)
+    val ring = SQLTypes.geomFactory.createLinearRing(shell.getCoordinateSequence)
+    SQLTypes.geomFactory.createPolygon(ring)
   }
   val ST_MakePoint: (Double, Double) => Point = (x, y) => WKTUtils.read(s"POINT($x $y)").asInstanceOf[Point]
+  val ST_MakeLine: Seq[Point] => LineString = s => SQLTypes.geomFactory.createLineString(s.map(_.getCoordinate).toArray)
   val ST_MakePointM: (Double, Double, Double) => Point = (x, y, m) =>
     WKTUtils.read(s"POINT($x $y $m)").asInstanceOf[Point]
   val ST_MLineFromText: String => MultiLineString = (text) => WKTUtils.read(text).asInstanceOf[MultiLineString]
@@ -41,6 +42,7 @@ object SQLGeometricConstructorFunctions {
   val ST_PointFromWKB: Array[Byte] => Point = array => ST_GeomFromWKB(array).asInstanceOf[Point]
   val ST_Polygon: LineString => Polygon = shell => ST_MakePolygon(shell)
   val ST_PolygonFromText: String => Polygon = text => WKTUtils.read(text).asInstanceOf[Polygon]
+  val ST_AsText: Geometry => String = g => WKTUtils.write(g)
 
   def registerFunctions(sqlContext: SQLContext): Unit = {
     sqlContext.udf.register("st_box2DFromGeoHash"  , ST_GeomFromGeoHash)
@@ -54,6 +56,7 @@ object SQLGeometricConstructorFunctions {
     sqlContext.udf.register("st_makePolygon"       , ST_MakePolygon)
     sqlContext.udf.register("st_makePoint"         , ST_MakePoint)
     sqlContext.udf.register("st_makePointM"        , ST_MakePointM)
+    sqlContext.udf.register("st_makeLine"          , ST_MakeLine)
     sqlContext.udf.register("st_mLineFromText"     , ST_MLineFromText)
     sqlContext.udf.register("st_mPointFromText"    , ST_MPointFromText)
     sqlContext.udf.register("st_mPolyFromText"     , ST_MPolyFromText)
@@ -63,5 +66,6 @@ object SQLGeometricConstructorFunctions {
     sqlContext.udf.register("st_pointFromWKB"      , ST_PointFromWKB)
     sqlContext.udf.register("st_polygon"           , ST_Polygon)
     sqlContext.udf.register("st_polygonFromText"   , ST_PolygonFromText)
+    sqlContext.udf.register("st_asText"            , ST_AsText)
   }
 }

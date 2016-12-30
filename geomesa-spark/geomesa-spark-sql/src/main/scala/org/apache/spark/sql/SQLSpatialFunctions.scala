@@ -36,15 +36,19 @@ object SQLSpatialFunctions {
   val ST_Within:     (Geometry, Geometry) => Boolean = (geom1, geom2) => geom1.within(geom2)
 
   val ST_Centroid: Geometry => Point = g => g.getCentroid
-  val ST_DistanceSpheroid: (Geometry, Geometry) => java.lang.Double = (s, e) => fastDistance(s, e)
+  val ST_DistanceSpheroid: (Geometry, Geometry) => java.lang.Double = (s, e) =>
+    fastDistance(s.getCoordinate, e.getCoordinate)
+
+  // Assumes input is two points, for use with collect_list and window functions
+  val ST_AggregateDistanceSpheroid: Seq[Geometry] => java.lang.Double = a => ST_DistanceSpheroid(a(0), a(1))
+
+  val ST_LengthSpheroid: LineString => java.lang.Double = line =>
+    line.getCoordinates.sliding(2).map { case Array(l, r) => fastDistance(l, r) }.sum
 
   // Geometry Processing
   val ch = new ConvexHull
 
   def registerFunctions(sqlContext: SQLContext): Unit = {
-    // Register geometry accessors
-    SQLSpatialAccessorFunctions.registerAccessorFunctions(sqlContext)
-
     // Register geometry editors
     sqlContext.udf.register("st_translate", ST_Translate)
 
@@ -59,8 +63,10 @@ object SQLSpatialFunctions {
     sqlContext.udf.register("st_touches"     , ST_Touches)
     sqlContext.udf.register("st_within"      , ST_Within)
 
-    sqlContext.udf.register("st_centroid"      , ST_Centroid)
-    sqlContext.udf.register("st_distanceSpheroid"  , ST_DistanceSpheroid)
+    sqlContext.udf.register("st_centroid"             , ST_Centroid)
+    sqlContext.udf.register("st_distanceSpheroid"     , ST_DistanceSpheroid)
+    sqlContext.udf.register("st_aggregateDistanceSpheroid"  , ST_AggregateDistanceSpheroid)
+    sqlContext.udf.register("st_lengthSpheroid"  , ST_LengthSpheroid)
 
     // Register geometry Processing
     sqlContext.udf.register("st_convexhull", ch)
@@ -70,11 +76,9 @@ object SQLSpatialFunctions {
     override def initialValue(): GeodeticCalculator = new GeodeticCalculator(DefaultGeographicCRS.WGS84)
   }
 
-  def fastDistance(s: Geometry, e: Geometry): Double = {
+  def fastDistance(c1: Coordinate, c2: Coordinate): Double = {
     val calc = geoCalcs.get()
-    val c1 = s.getCentroid.getCoordinate
     calc.setStartingGeographicPoint(c1.x, c1.y)
-    val c2 = e.getCentroid.getCoordinate
     calc.setDestinationGeographicPoint(c2.x, c2.y)
     calc.getOrthodromicDistance
   }
