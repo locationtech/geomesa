@@ -1,14 +1,120 @@
 GeoMesa Spark
 =============
 
-GeoMesa Spark allows for execution of jobs on Apache Spark using data stored in GeoMesa. Through an API provided in the
-geomesa-compute module, we allow creation of Spark RDDs, writing of Spark RDDs to GeoMesa data stores, and serialization
-of simple features using Kryo.
+GeoMesa Spark allows for execution of jobs on Apache Spark using data stored in GeoMesa,
+other GeoTools ``DataStore``s, or files readable by the GeoMesa converter library.
+The library allows creation of Spark ``RDD``s and ``DataFrame``s, writing of
+Spark ``RDD``s and ``DataFrame``s to GeoMesa Accumulo and other GeoTools ``DataStore``s, and serialization of ``SimpleFeature``s using Kryo.
+
+Example
+-------
+
+.. short example?
+
+Architecture
+------------
+
+The ``geomesa-spark-core`` module provides the core of GeoMesa's Spark support,
+through the ``GeoMesaSpark`` object...
+
+.. spark-sql
+.. include architecture diagram(s) from the Jupyter powerpoint?
+
+Spark Core
+----------
+
+The module ``geomesa-spark-core`` provides an API for accessing geospatial data
+in Spark, by defining an interface called ``SpatialRDDProvider``. Different
+implementations of this interface connect to GeoMesa Accumulo, generic
+GeoTools-based ``DataStore``s, or data files in formats readable by the GeoMesa
+converter library. ``GeoMesaSpark`` loads an approprate ``SpatialRDDProvider``
+implementation via the Java Service Provider Interface when those implementations
+are added to the classpath.
+
+Accumulo RDD
+^^^^^^^^^^^^
+
+``AccumuloSpatialRDDProvider`` is provided by the ``geomesa-accumulo-spark`` module:
+
+.. code-block:: xml
+
+    <dependency>
+      <groupId>org.locationtech.geomesa</groupId>
+      <artifactId>geomesa-accumulo-spark_2.11</artifactId>
+      // version, etc.
+    </dependency>
+
+When given configuration parameters to connect to a GeoMesa ``AccumuloDataStore``...
+
+.. introduction
+.. parameters/configuration for accumulo
+
+Converter RDD
+^^^^^^^^^^^^^
+
+``ConverterSpatialRDDProvider`` is provided by the ``geomesa-spark-converter`` module:
+
+.. code-block:: xml
+
+    <dependency>
+      <groupId>org.locationtech.geomesa</groupId>
+      <artifactId>geomesa-spark-converter_2.11</artifactId>
+      // version, etc.
+    </dependency>
+
+.. introduction
+.. parameters/configuration for converters
+.. doesn't support saving
+
+GeoTools RDD
+^^^^^^^^^^^^
+
+``GeoToolsSpatialRDDProvider`` is provided by the ``geomesa-spark-geotools`` module:
+
+.. code-block:: xml
+
+    <dependency>
+      <groupId>org.locationtech.geomesa</groupId>
+      <artifactId>geomesa-spark-geotools_2.11</artifactId>
+      // version, etc.
+    </dependency>
+
+.. introduction
+.. parameters/configuration
+.. don't use for Accumulo; use Accumulo provider above instead
+
+Spark SQL
+---------
+
+.. introduction
+.. custom Spark types (Geometry, Point, Linestring, etc.)
+.. how certain queries are pushed down to the Accumulo/GeoTools layer
+.. broadcast and joins (and caveats thereof)
+
+Spatial Functions
+^^^^^^^^^^^^^^^^^
+
+.. describe functions implemented so far
 
 Usage
 -----
 
-To use GeoMesa with Spark, the executors must know how to serialize and deserialize Simple Features. There are two ways
+.. how to create a new ``SparkSession``/``SparkContext``
+.. set up DS and work with them
+
+Jupyter
+-------
+
+.. setup: (Toree kernel, etc.)
+.. visualization?
+
+Spark 1.6 Support (depreciated)
+-------------------------------
+
+.. old docs from previous version of this page (not sure how relevant this
+.. is and how much it needs/should be cut down)
+
+To use GeoMesa with Spark 1.6, the executors must know how to serialize and deserialize Simple Features. There are two ways
 to accomplish this.
 
 Restart the Spark Context
@@ -55,7 +161,6 @@ types in each executor's registrator.
         }
     }
 
-
 Connect to Data Stores
 ^^^^^^^^^^^^^^^^^^^^^^
 
@@ -79,8 +184,8 @@ And create the RDD
     val rdd = GeoMesaSpark.rdd(new Configuration, sc, params, query)
 
 
-Examples
---------
+Further Examples
+----------------
 
 For a complete example of analysis with Spark, see :doc:`../tutorials/spark`
 
