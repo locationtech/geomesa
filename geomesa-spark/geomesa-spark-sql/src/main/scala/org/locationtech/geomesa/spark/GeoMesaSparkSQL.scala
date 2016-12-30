@@ -12,7 +12,7 @@ import java.sql.Timestamp
 import java.util.{Date, UUID}
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Geometry, Point}
+import com.vividsolutions.jts.geom._
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -105,10 +105,12 @@ class GeoMesaDataSource extends DataSourceRegister with RelationProvider with Sc
       case t if t == classOf[jl.Long]                         => DataTypes.LongType
       case t if t == classOf[java.util.Date]                  => DataTypes.TimestampType
 
-      case t if t == classOf[com.vividsolutions.jts.geom.Point]        => SQLTypes.PointTypeInstance
-      case t if t == classOf[com.vividsolutions.jts.geom.LineString]   => SQLTypes.LineStringTypeInstance
-      case t if t == classOf[com.vividsolutions.jts.geom.Polygon]      => SQLTypes.PolygonTypeInstance
-      case t if t == classOf[com.vividsolutions.jts.geom.MultiPolygon] => SQLTypes.MultipolygonTypeInstance
+      case t if t == classOf[com.vividsolutions.jts.geom.Point]            => SQLTypes.PointTypeInstance
+      case t if t == classOf[com.vividsolutions.jts.geom.MultiPoint]       => SQLTypes.MultiPointTypeInstance
+      case t if t == classOf[com.vividsolutions.jts.geom.LineString]       => SQLTypes.LineStringTypeInstance
+      case t if t == classOf[com.vividsolutions.jts.geom.MultiLineString]  => SQLTypes.MultiLineStringTypeInstance
+      case t if t == classOf[com.vividsolutions.jts.geom.Polygon]          => SQLTypes.PolygonTypeInstance
+      case t if t == classOf[com.vividsolutions.jts.geom.MultiPolygon]     => SQLTypes.MultipolygonTypeInstance
       // JNH: Add Geometry types here.
 
       case t if      classOf[Geometry].isAssignableFrom(t)    => SQLTypes.GeometryTypeInstance
@@ -235,20 +237,31 @@ object SparkUtils extends LazyLogging {
   def row2Sf(sft: SimpleFeatureType, row: Row): SimpleFeature = {
     val builder = new SimpleFeatureBuilder(sft)
 
+    import java.{lang => jl}
     sft.getAttributeDescriptors.foreach {
       ad =>
         val name = ad.getLocalName
-        val binding = ad.getType.getBinding
+        // do we need to do type mapping here?
+        val value = ad.getType.getBinding match {
+          case t if t == classOf[jl.Double]                       => row.getAs[jl.Double](name)
+          case t if t == classOf[jl.Float]                        => row.getAs[jl.Float](name)
+          case t if t == classOf[jl.Integer]                      => row.getAs[jl.Integer](name)
+          case t if t == classOf[jl.String]                       => row.getAs[jl.String](name)
+          case t if t == classOf[jl.Boolean]                      => row.getAs[jl.Boolean](name)
+          case t if t == classOf[jl.Long]                         => row.getAs[jl.Long](name)
+          case t if t == classOf[java.util.Date]                  => row.getAs[java.sql.Timestamp](name) //timestamp extends date
+          case t if t == classOf[com.vividsolutions.jts.geom.Point]            => row.getAs[Point](name)
+          case t if t == classOf[com.vividsolutions.jts.geom.MultiPoint]       => row.getAs[MultiPoint](name)
+          case t if t == classOf[com.vividsolutions.jts.geom.LineString]       => row.getAs[LineString](name)
+          case t if t == classOf[com.vividsolutions.jts.geom.MultiLineString]  => row.getAs[MultiLineString](name)
+          case t if t == classOf[com.vividsolutions.jts.geom.Polygon]          => row.getAs[Polygon](name)
+          case t if t == classOf[com.vividsolutions.jts.geom.MultiPolygon]     => row.getAs[MultiPolygon](name)
+          // JNH: Add Geometry types here.
 
-        if (binding == classOf[java.lang.String]) {
-          builder.set(name, row.getAs[String](name))
-        } else if (binding == classOf[java.lang.Double]) {
-          builder.set(name, row.getAs[Double](name))
-        } else if (binding == classOf[com.vividsolutions.jts.geom.Point]) {
-          builder.set(name, row.getAs[Point](name))
-        } else {
-          logger.warn(s"UNHANDLED BINDING: $binding")
+          case t if      classOf[Geometry].isAssignableFrom(t)    => SQLTypes.GeometryTypeInstance
+          case _                                                  => null
         }
+        builder.set(name, value)
     }
 
     builder.buildFeature(UUID.randomUUID().toString)
