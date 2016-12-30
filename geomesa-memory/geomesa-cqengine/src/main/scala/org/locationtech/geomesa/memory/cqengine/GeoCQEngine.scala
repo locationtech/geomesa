@@ -136,7 +136,6 @@ class GeoCQEngine(val sft: SimpleFeatureType,
   }
 
   private def addGeoIndex(ad: AttributeDescriptor): Unit = {
-    // TODO: Add logic to allow for the geo-index to be disabled?  (Low priority)
     val geom: Attribute[SimpleFeature, Geometry] = attributes.lookup[Geometry](ad.getLocalName)
     cqcache.addIndex(GeoIndex.onAttribute(sft, geom))
   }
