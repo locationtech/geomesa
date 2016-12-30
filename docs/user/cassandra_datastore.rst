@@ -46,16 +46,11 @@ installation directory).
 
 After you've successfully installed and configured Cassandra, you can
 move on to installing the GeoMesa Cassandra distribution.
-Start by choosing or creating a directory where you want
-to put it. Then ``cd`` into that directory and type::
-
-    wget https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-cassandra-dist_2.11/$VERSION/geomesa-cassandra-dist_2.11-$VERSION-bin.tar.gz
-    tar xvf geomesa-cassandra-dist_2.11-$VERSION-bin.tar.gz
-
-(Make sure to replace ``$VERSION`` with the version of the distribution that you want to use.
-It should be something like ``1.3.0-m2``. You can browse available versions at
-https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-cassandra-dist_2.11/ .)
-
+Currently the only way to get the GeoMesa Cassandra distribution is to
+build GeoMesa from source.
+After you build GeoMesa from source, the GeoMesa Cassandra distribution
+will be at ``geomesa-cassandra/geomesa-cassandra-dist/target/geomesa-cassandra_2.11-$VERSION-bin.tar.gz``.
+Extract the archive to somewhere convenient.
 The directory that you just extracted is the ``GEOMESA_CASSANDRA_HOME``. It includes all the files
 that we'll need to use GeoMesa with Cassandra.
 
