@@ -3,7 +3,7 @@ package org.locationtech.geomesa.accumulo.spark
 import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
+import org.apache.spark.sql.{DataFrame, SQLContext, SQLTypes, SparkSession}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.spark.SparkSQLTestUtils
@@ -28,6 +28,7 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
     step {
       spark = SparkSQLTestUtils.createSparkSession()
       sc = spark.sqlContext
+      SQLTypes.init(sc)
       SparkSQLTestUtils.ingestChicago(ds)
 
       val params = dsParams.filterNot { case (k, _) => k == "connector" } ++ Map("useMock" -> true)
@@ -47,6 +48,18 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
     "select by secondary indexed attribute" >> {
       val cases = df.select("case_number").where("case_number = 1").collect().map(_.getInt(0))
       cases.length mustEqual 1
+    }
+
+    "complex st_buffer" >> {
+      val buf = sc.sql("select st_asText(st_bufferPoint(geom,10)) from chicago where case_number = 1").collect().head.getString(0)
+      sc.sql(
+        s"""
+          |select *
+          |from chicago
+          |where
+          |  st_contains(st_geomFromWKT('$buf'), geom)
+         """.stripMargin
+      ).collect().length must beEqualTo(1)
     }
 
   }
