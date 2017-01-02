@@ -45,7 +45,7 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
         .option("geomesa.feature", "chicago")
         .load()
 
-      logger.info(df.schema.treeString)
+      logger.debug(df.schema.treeString)
       df.createOrReplaceTempView("chicago")
     }
 

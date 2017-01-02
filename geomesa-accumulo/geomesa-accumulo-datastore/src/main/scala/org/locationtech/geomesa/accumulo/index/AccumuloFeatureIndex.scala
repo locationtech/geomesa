@@ -11,6 +11,7 @@ package org.locationtech.geomesa.accumulo.index
 import java.util.Map.Entry
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.accumulo.core.client.mock.MockConnector
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.io.Text
 import org.geotools.filter.identity.FeatureIdImpl
@@ -140,7 +141,12 @@ trait AccumuloWritableIndex extends AccumuloFeatureIndexType {
           deleter.close()
         }
       } else {
-        ds.tableOps.delete(table)
+        // we need to synchronize deleting of tables in mock accumulo as it's not thread safe
+        if (ds.connector.isInstanceOf[MockConnector]) {
+          ds.connector.synchronized(ds.tableOps.delete(table))
+        } else {
+          ds.tableOps.delete(table)
+        }
       }
     }
   }
