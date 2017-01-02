@@ -147,7 +147,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     if (sft == null) {
       // check for old-style metadata and re-write it if necessary
       if (oldMetadata.getFeatureTypes.contains(typeName)) {
-        val lock = acquireFeatureLock(typeName)
+        val lock = acquireCatalogLock()
         try {
           if (oldMetadata.getFeatureTypes.contains(typeName)) {
             oldMetadata.migrate(typeName)
