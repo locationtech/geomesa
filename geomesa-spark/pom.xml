@@ -17,7 +17,19 @@
         <module>geomesa-spark-converter</module>
         <module>geomesa-spark-core</module>
         <module>geomesa-spark-geotools</module>
-        <module>geomesa-spark-sql</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>scala-2.11</id>
+            <activation>
+                <property><name>!scala-2.10</name></property>
+            </activation>
+            <modules>
+                <!-- spark sql requires spark 2.0 and scala 2.11 -->
+                <module>geomesa-spark-sql</module>
+            </modules>
+        </profile>
+    </profiles>
 
 </project>
