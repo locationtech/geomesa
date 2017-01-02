@@ -46,7 +46,7 @@ object SQLSpatialFunctions {
   val ST_Distance: (Geometry, Geometry) => java.lang.Double =
     (g1, g2) => g1.distance(g2)
   val ST_DistanceSpheroid: (Geometry, Geometry) => java.lang.Double =
-    (s, e) => fastDistance(s, e)
+    (s, e) => fastDistance(s.getCoordinate, e.getCoordinate)
   val ST_Length: Geometry => java.lang.Double = g => g.getLength
 
   // Assumes input is two points, for use with collect_list and window functions
