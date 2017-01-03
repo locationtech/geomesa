@@ -52,7 +52,6 @@ class KafkaConsumerTest extends Specification with HasEmbeddedKafka {
     producerProps.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer")
 
     def produceMessages(topic: String) = {
-      println(s"\t\tTopic: $topic")
       val producer = new KafkaProducer[Array[Byte], Array[Byte]](producerProps)
       for (i <- 0 until 10) {
         producer.send(new ProducerRecord[Array[Byte], Array[Byte]](topic, i.toString.getBytes("UTF-8"), s"test $i".getBytes("UTF-8")))
@@ -61,42 +60,26 @@ class KafkaConsumerTest extends Specification with HasEmbeddedKafka {
     }
 
     "read messages and shutdown appropriately" >> {
-      val topic = "read-1"
       val config = getConsumerConfig(topic)
       produceMessages(topic)
-      println("Here?-4....")
       val consumer = new KafkaConsumer[String, String](topic, config, new StringDecoder, new StringDecoder)
-      println("Here?-3....")
-      println(s"Consumer: ${consumer.topic} \t${consumer.keyDecoder} \t${consumer.valueDecoder}")
       var stream: KafkaStreamLike[String, String] = null
       try {
         stream = consumer.createMessageStreams(1, EarliestOffset).head
-        println(s"$stream")
-        println(s"hasDefiniteSize: ${stream.hasDefiniteSize}")
-        println(s"Bold move: ${stream.iterator.hasNext}")
       } catch {
         case a: IOException => println("IOE")
         case b: ConsumerTimeoutException => b.printStackTrace
         case c: Throwable => c.printStackTrace
       } finally {
-
-
-        println("Here?-2....")
         val messages = stream.iterator.take(10).toList
-        println("Here?-1....")
         messages must haveLength(10)
-        println("Here?....")
         stream.iterator.hasNext must throwA[ConsumerTimeoutException]
-        println("Woohoo no fail here")
-        println("Failed prior to shutdown?....")
         consumer.shutdown()
-        println("Failed after shutdown")
         stream.iterator.hasNext must beFalse
         for (i <- 0 until 10) {
           messages(i).key() mustEqual i.toString
           messages(i).message() mustEqual s"test $i"
         }
-
       }
         success
     }
