@@ -30,6 +30,9 @@ class GeoJsonServletTest extends MutableScalatraSpec {
   val f1 = """{"type":"Feature","geometry":{"type":"Point","coordinates":[32,10]},"properties":{"id":"1","name":"n1"}}"""
   val f2 = """{"type":"Feature","geometry":{"type":"Point","coordinates":[34,10]},"properties":{"id":"2","name":"n2"}}"""
 
+  val f0Updated = f0.replace("n0", "n0-updated").replace("30,10", "20,10")
+  val f1Updated = f1.replace("n1", "n1-updated").replace("32,10", "22,10")
+
   def urlEncode(s: String): String = URLEncoder.encode(s, "UTF-8")
 
   // cleanup tmp dir after tests run
@@ -93,6 +96,18 @@ class GeoJsonServletTest extends MutableScalatraSpec {
         status mustEqual 200
         body mustEqual s"""{"type":"FeatureCollection","features":[$f1]}"""
       }
+      get(s"/index/geojsontest/geojsontest/features/1") {
+        status mustEqual 200
+        body mustEqual s"""{"type":"FeatureCollection","features":[$f1]}"""
+      }
+      get(s"/index/geojsontest/geojsontest/features/1,2") {
+        status mustEqual 200
+        body must startWith("""{"type":"FeatureCollection","features":[""")
+        body must endWith("]}")
+        body must haveLength(s"""{"type":"FeatureCollection","features":[$f1,$f2]}""".length)
+        body must contain(f1)
+        body must contain(f2)
+      }
     }
     "query geojson features by geometry" in {
       get(s"/index/geojsontest/geojsontest/features?q=${urlEncode("""{"geometry":{"$bbox":[33,9,35,11]}}""")}") {
@@ -104,6 +119,48 @@ class GeoJsonServletTest extends MutableScalatraSpec {
       get(s"/index/geojsontest/geojsontest/features?q=${urlEncode("""{"properties.name":"n1"}""")}") {
         status mustEqual 200
         body mustEqual s"""{"type":"FeatureCollection","features":[$f1]}"""
+      }
+    }
+    "update geojson features" in {
+      put(s"/index/geojsontest/geojsontest/features", f0Updated.getBytes("UTF-8")) {
+        status mustEqual 200
+      }
+      get(s"/index/geojsontest/geojsontest/features/0") {
+        status mustEqual 200
+        body mustEqual s"""{"type":"FeatureCollection","features":[$f0Updated]}"""
+      }
+      put(s"/index/geojsontest/geojsontest/features/1", f1Updated.getBytes("UTF-8")) {
+        status mustEqual 200
+      }
+      get(s"/index/geojsontest/geojsontest/features/1") {
+        status mustEqual 200
+        body mustEqual s"""{"type":"FeatureCollection","features":[$f1Updated]}"""
+      }
+      get("/index/geojsontest/geojsontest/features") {
+        status mustEqual 200
+        body must startWith("""{"type":"FeatureCollection","features":[""")
+        body must endWith("]}")
+        body must haveLength(s"""{"type":"FeatureCollection","features":[$f0Updated,$f1Updated,$f2]}""".length)
+        body must contain(f0Updated)
+        body must contain(f1Updated)
+        body must contain(f2)
+      }
+    }
+    "delete geojson features" in {
+      delete(s"/index/geojsontest/geojsontest/features/0") {
+        status mustEqual 200
+      }
+      get(s"/index/geojsontest/geojsontest/features/0") {
+        println(body)
+        status mustEqual 404
+      }
+      get("/index/geojsontest/geojsontest/features") {
+        status mustEqual 200
+        body must startWith("""{"type":"FeatureCollection","features":[""")
+        body must endWith("]}")
+        body must haveLength(s"""{"type":"FeatureCollection","features":[$f1Updated,$f2]}""".length)
+        body must contain(f1Updated)
+        body must contain(f2)
       }
     }
   }

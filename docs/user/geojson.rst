@@ -211,7 +211,7 @@ Returns a list of data stores available for querying.
 |                 |         "zookeepers":"foo1,foo2,foo3",                                               |
 |                 |         "tableName":"foo.bar",                                                       |
 |                 |         "user":"foo",                                                                |
-|                 |         "password":"foo"                                                             |
+|                 |         "password":"***"                                                             |
 |                 |       }                                                                              |
 |                 |     }                                                                                |
 |                 |                                                                                      |
@@ -274,7 +274,7 @@ Registers a data store to make it available for querying.
 | **Sample Call** | .. code-block:: bash                                                                 |
 |                 |                                                                                      |
 |                 |     curl \                                                                           |
-|                 |       'localhost:8080/geoserver/geomesa/geojson/ds/mycloud' \                        |
+|                 |       'localhost:8080/geoserver/geomesa/geojson/ds/myds' \                           |
 |                 |       -d user=foo -d password=foo -d tableName=foo.bar \                             |
 |                 |       -d zookeepers=foo1,foo2,foo3 -d instanceId=foo                                 |
 |                 |                                                                                      |
@@ -316,11 +316,40 @@ Creates a new index under an existing data store.
 | **Sample Call** | .. code-block:: bash                                                                 |
 |                 |                                                                                      |
 |                 |     curl \                                                                           |
-|                 |       'localhost:8080/geoserver/geomesa/geojson/index/mycloud/test' \                |
+|                 |       'localhost:8080/geoserver/geomesa/geojson/index/myds/test' \                   |
 |                 |       -d id=properties.id                                                            |
 |                 |                                                                                      |
 +-----------------+--------------------------------------------------------------------------------------+
-| **Notes**       |                                                                                      |
+
+Delete GeoJSON Index
+::::::::::::::::::::
+
+Deletes an existing index and all features it contains.
+
++-----------------+--------------------------------------------------------------------------------------+
+| **URL**         | ``/index/:alias/:index``                                                             |
++-----------------+--------------------------------------------------------------------------------------+
+| **Method**      | ``DELETE``                                                                           |
++-----------------+--------------------------------------------------------------------------------------+
+| **URL Params**  | **Required**                                                                         |
+|                 |                                                                                      |
+|                 | * ``alias=[alphanumeric]`` Reference to a previously registered data store           |
+|                 | * ``index=[alphanumeric]`` Unique name of the GeoJSON index to create                |
++-----------------+--------------------------------------------------------------------------------------+
+| **Success**     | **Code:** 204                                                                        |
+| **Response**    |                                                                                      |
+|                 | **Content:** empty                                                                   |
++-----------------+--------------------------------------------------------------------------------------+
+| **Error**       | **Code:** 400 - if a required parameter is not specified                             |
+| **Response**    |                                                                                      |
+|                 | **Content:** empty                                                                   |
++-----------------+--------------------------------------------------------------------------------------+
+| **Sample Call** | .. code-block:: bash                                                                 |
+|                 |                                                                                      |
+|                 |     curl \                                                                           |
+|                 |       'localhost:8080/geoserver/geomesa/geojson/index/myds/test' \                   |
+|                 |       -X DELETE                                                                      |
+|                 |                                                                                      |
 +-----------------+--------------------------------------------------------------------------------------+
 
 Add Features
@@ -338,9 +367,7 @@ Add features to the index with GeoJSON.
 |                 | * ``alias=[alphanumeric]`` Reference to a previously registered data store           |
 |                 | * ``index=[alphanumeric]`` Unique name of a GeoJSON index                            |
 +-----------------+--------------------------------------------------------------------------------------+
-| **Data Params** | **Required**                                                                         |
-|                 |                                                                                      |
-|                 | * ``json=[alphanumeric]`` GeoJSON ``Feature`` or ``FeatureCollection``               |
+| **Body**        | * ``[alphanumeric]`` GeoJSON ``Feature`` or ``FeatureCollection``                    |
 +-----------------+--------------------------------------------------------------------------------------+
 | **Success**     | **Code:** 200                                                                        |
 | **Response**    |                                                                                      |
@@ -356,8 +383,8 @@ Add features to the index with GeoJSON.
 |                 |       '"coordinates":[30,10]},"properties":{"id":"0","name":"n0"}}' \                |
 |                 |       > feature.json                                                                 |
 |                 |     curl \                                                                           |
-|                 |       'localhost:8080/geoserver/geomesa/geojson/index/mycloud/test/features' \       |
-|                 |       -H 'Content-type: application/json'                                            |
+|                 |       'localhost:8080/geoserver/geomesa/geojson/index/myds/test/features' \          |
+|                 |       -H 'Content-type: application/json' \                                          |
 |                 |       -d @feature.json                                                               |
 |                 |                                                                                      |
 |                 |     echo '{"type":"FeatureCollection","features":[' \                                |
@@ -367,17 +394,190 @@ Add features to the index with GeoJSON.
 |                 |       '"coordinates":[34,10]},"properties":{"id":"2","name":"n2"}}]}' \              |
 |                 |       > features.json                                                                |
 |                 |     curl \                                                                           |
-|                 |       'localhost:8080/geoserver/geomesa/geojson/index/mycloud/test/features' \       |
-|                 |       -H 'Content-type: application/json'                                            |
+|                 |       'localhost:8080/geoserver/geomesa/geojson/index/myds/test/features' \          |
+|                 |       -H 'Content-type: application/json' \                                          |
 |                 |       -d @features.json                                                              |
 +-----------------+--------------------------------------------------------------------------------------+
-| **Notes**       |                                                                                      |
+
+Update Features
+:::::::::::::::
+
+Update existing features in the index. Feature IDs will be extracted from the GeoJSON submitted.
+
++-----------------+--------------------------------------------------------------------------------------+
+| **URL**         | ``/index/:alias/:index/features``                                                    |
++-----------------+--------------------------------------------------------------------------------------+
+| **Method**      | ``PUT``                                                                              |
++-----------------+--------------------------------------------------------------------------------------+
+| **URL Params**  | **Required**                                                                         |
+|                 |                                                                                      |
+|                 | * ``alias=[alphanumeric]`` Reference to a previously registered data store           |
+|                 | * ``index=[alphanumeric]`` Unique name of a GeoJSON index                            |
++-----------------+--------------------------------------------------------------------------------------+
+| **Body**        | * ``[alphanumeric]`` GeoJSON ``Feature`` or ``FeatureCollection``                    |
++-----------------+--------------------------------------------------------------------------------------+
+| **Success**     | **Code:** 200                                                                        |
+| **Response**    |                                                                                      |
+|                 | **Content:** empty                                                                   |
++-----------------+--------------------------------------------------------------------------------------+
+| **Error**       | **Code:** 400 - if a required parameter is not specified                             |
+| **Response**    |                                                                                      |
+|                 | **Content:** empty                                                                   |
+|                 |                                                                                      |
+|                 | **Code:** 400 - if ID field was not specified when creating the index                |
+|                 |                                                                                      |
+|                 | **Content:** empty                                                                   |
++-----------------+--------------------------------------------------------------------------------------+
+| **Sample Call** | .. code-block:: bash                                                                 |
+|                 |                                                                                      |
+|                 |     echo '{"type":"Feature","geometry":{"type":"Point",' \                           |
+|                 |       '"coordinates":[30,10]},"properties":{"id":"0","name":"n0-updated"}}' \        |
+|                 |       > feature.json                                                                 |
+|                 |     curl \                                                                           |
+|                 |       'localhost:8080/geoserver/geomesa/geojson/index/myds/test/features' \          |
+|                 |       -H 'Content-type: application/json' \                                          |
+|                 |       --upload-file feature.json                                                     |
+|                 |                                                                                      |
+|                 |     echo '{"type":"FeatureCollection","features":[' \                                |
+|                 |       '{"type":"Feature","geometry":{"type":"Point",' \                              |
+|                 |       '"coordinates":[32,10]},"properties":{"id":"1","name":"n1-updated"}},' \       |
+|                 |       '{"type":"Feature","geometry":{"type":"Point",' \                              |
+|                 |       '"coordinates":[34,10]},"properties":{"id":"2","name":"n2-updated"}}]}' \      |
+|                 |       > features.json                                                                |
+|                 |     curl \                                                                           |
+|                 |       'localhost:8080/geoserver/geomesa/geojson/index/myds/test/features' \          |
+|                 |       -H 'Content-type: application/json' \                                          |
+|                 |       --upload-file features.json                                                    |
++-----------------+--------------------------------------------------------------------------------------+
+
+Update Features by ID
+:::::::::::::::::::::
+
+Update existing features in the index, explicitly specifying the feature IDs.
+
++-----------------+--------------------------------------------------------------------------------------+
+| **URL**         | ``/index/:alias/:index/features/:ids``                                               |
++-----------------+--------------------------------------------------------------------------------------+
+| **Method**      | ``PUT``                                                                              |
++-----------------+--------------------------------------------------------------------------------------+
+| **URL Params**  | **Required**                                                                         |
+|                 |                                                                                      |
+|                 | * ``alias=[alphanumeric]`` Reference to a previously registered data store           |
+|                 | * ``index=[alphanumeric]`` Unique name of a GeoJSON index                            |
+|                 | * ``id=[alphanumeric]`` Feature IDs to update, comma-separated                       |
++-----------------+--------------------------------------------------------------------------------------+
+| **Body**        | * ``[alphanumeric]`` GeoJSON ``Feature`` or ``FeatureCollection``                    |
++-----------------+--------------------------------------------------------------------------------------+
+| **Success**     | **Code:** 200                                                                        |
+| **Response**    |                                                                                      |
+|                 | **Content:** empty                                                                   |
++-----------------+--------------------------------------------------------------------------------------+
+| **Error**       | **Code:** 400 - if a required parameter is not specified                             |
+| **Response**    |                                                                                      |
+|                 | **Content:** empty                                                                   |
++-----------------+--------------------------------------------------------------------------------------+
+| **Sample Call** | .. code-block:: bash                                                                 |
+|                 |                                                                                      |
+|                 |     echo '{"type":"Feature","geometry":{"type":"Point",' \                           |
+|                 |       '"coordinates":[30,10]},"properties":{"id":"0","name":"n0-updated"}}' \        |
+|                 |       > feature.json                                                                 |
+|                 |     curl \                                                                           |
+|                 |       'localhost:8080/geoserver/geomesa/geojson/index/myds/test/features/0' \        |
+|                 |       -H 'Content-type: application/json' \                                          |
+|                 |       --upload-file feature.json                                                     |
+|                 |                                                                                      |
+|                 |     echo '{"type":"FeatureCollection","features":[' \                                |
+|                 |       '{"type":"Feature","geometry":{"type":"Point",' \                              |
+|                 |       '"coordinates":[32,10]},"properties":{"id":"1","name":"n1-updated"}},' \       |
+|                 |       '{"type":"Feature","geometry":{"type":"Point",' \                              |
+|                 |       '"coordinates":[34,10]},"properties":{"id":"2","name":"n2-updated"}}]}' \      |
+|                 |       > features.json                                                                |
+|                 |     curl \                                                                           |
+|                 |       'localhost:8080/geoserver/geomesa/geojson/index/myds/test/features/1,2' \      |
+|                 |       -H 'Content-type: application/json' \                                          |
+|                 |       --upload-file features.json                                                    |
++-----------------+--------------------------------------------------------------------------------------+
+
+Delete Features by ID
+:::::::::::::::::::::
+
+Delete existing features in the index by feature IDs.
+
++-----------------+--------------------------------------------------------------------------------------+
+| **URL**         | ``/index/:alias/:index/features/:ids``                                               |
++-----------------+--------------------------------------------------------------------------------------+
+| **Method**      | ``DELETE``                                                                           |
++-----------------+--------------------------------------------------------------------------------------+
+| **URL Params**  | **Required**                                                                         |
+|                 |                                                                                      |
+|                 | * ``alias=[alphanumeric]`` Reference to a previously registered data store           |
+|                 | * ``index=[alphanumeric]`` Unique name of a GeoJSON index                            |
+|                 | * ``id=[alphanumeric]`` Feature IDs to delete, comma-separated                       |
++-----------------+--------------------------------------------------------------------------------------+
+| **Success**     | **Code:** 200                                                                        |
+| **Response**    |                                                                                      |
+|                 | **Content:** empty                                                                   |
++-----------------+--------------------------------------------------------------------------------------+
+| **Error**       | **Code:** 400 - if a required parameter is not specified                             |
+| **Response**    |                                                                                      |
+|                 | **Content:** empty                                                                   |
++-----------------+--------------------------------------------------------------------------------------+
+| **Sample Call** | .. code-block:: bash                                                                 |
+|                 |                                                                                      |
+|                 |     curl \                                                                           |
+|                 |       'localhost:8080/geoserver/geomesa/geojson/index/myds/test/features/1,2' \      |
+|                 |       -X DELETE                                                                      |
++-----------------+--------------------------------------------------------------------------------------+
+
+Query Features by ID
+::::::::::::::::::::
+
+Query features in the index by feature IDs.
+
++-----------------+--------------------------------------------------------------------------------------+
+| **URL**         | ``/index/:alias/:index/features/:ids``                                               |
++-----------------+--------------------------------------------------------------------------------------+
+| **Method**      | ``GET``                                                                              |
++-----------------+--------------------------------------------------------------------------------------+
+| **URL Params**  | **Required**                                                                         |
+|                 |                                                                                      |
+|                 | * ``alias=[alphanumeric]`` Reference to a previously registered data store           |
+|                 | * ``index=[alphanumeric]`` Unique name of a GeoJSON index                            |
+|                 | * ``id=[alphanumeric]`` Feature IDs to query, comma-separated                        |
++-----------------+--------------------------------------------------------------------------------------+
+| **Success**     | **Code:** 200                                                                        |
+| **Response**    |                                                                                      |
+|                 | **Content:** GeoJSON feature collection                                              |
+|                 |                                                                                      |
+|                 | **Example:**                                                                         |
+|                 |                                                                                      |
+|                 | .. code-block:: json                                                                 |
+|                 |                                                                                      |
+|                 |     {                                                                                |
+|                 |       "type":"FeatureCollection",                                                    |
+|                 |       "features":[                                                                   |
+|                 |         {                                                                            |
+|                 |           "type":"Feature",                                                          |
+|                 |           "geometry":{"type":"Point","coordinates":[32,10]},                         |
+|                 |           "properties":{"id":"1","name":"n1"}                                        |
+|                 |         }                                                                            |
+|                 |       ]                                                                              |
+|                 |     }                                                                                |
++-----------------+--------------------------------------------------------------------------------------+
+| **Error**       | **Code:** 400 - if a required parameter is not specified                             |
+| **Response**    |                                                                                      |
+|                 | **Content:** empty                                                                   |
++-----------------+--------------------------------------------------------------------------------------+
+| **Sample Call** | .. code-block:: bash                                                                 |
+|                 |                                                                                      |
+|                 |     curl \                                                                           |
+|                 |       'localhost:8080/geoserver/geomesa/geojson/index/myds/test/features/1,2'        |
 +-----------------+--------------------------------------------------------------------------------------+
 
 Query Features
 ::::::::::::::
 
-Add features to the index with GeoJSON.
+Query features with a predicate.
 
 +-----------------+--------------------------------------------------------------------------------------+
 | **URL**         | ``/index/:alias/:index/features``                                                    |
@@ -392,8 +592,6 @@ Add features to the index with GeoJSON.
 |                 | **Optional**                                                                         |
 |                 |                                                                                      |
 |                 | * ``q=[alphanumeric]`` JSON query predicate                                          |
-+-----------------+--------------------------------------------------------------------------------------+
-| **Data Params** | N/A                                                                                  |
 +-----------------+--------------------------------------------------------------------------------------+
 | **Success**     | **Code:** 200                                                                        |
 | **Response**    |                                                                                      |
@@ -422,21 +620,21 @@ Add features to the index with GeoJSON.
 |                 |                                                                                      |
 |                 |     # return all features in the index 'test'                                        |
 |                 |     curl \                                                                           |
-|                 |       'localhost:8080/geoserver/geomesa/geojson/index/mycloud/test/features'         |
+|                 |       'localhost:8080/geoserver/geomesa/geojson/index/myds/test/features'            |
 |                 |                                                                                      |
 |                 |     # query by feature id                                                            |
 |                 |     curl \                                                                           |
-|                 |       'localhost:8080/geoserver/geomesa/geojson/index/mycloud/test/features' \       |
+|                 |       'localhost:8080/geoserver/geomesa/geojson/index/myds/test/features' \          |
 |                 |       --get --data-urlencode 'q={"properties.id":"0"}'                               |
 |                 |                                                                                      |
 |                 |     # query by bounding box                                                          |
 |                 |     curl \                                                                           |
-|                 |       'localhost:8080/geoserver/geomesa/geojson/index/mycloud/test/features'         |
+|                 |       'localhost:8080/geoserver/geomesa/geojson/index/myds/test/features' \          |
 |                 |       --get --data-urlencode 'q={"geometry":{"$bbox":[33,9,35,11]}}'                 |
 |                 |                                                                                      |
 |                 |     # query by property                                                              |
 |                 |     curl \                                                                           |
-|                 |       'localhost:8080/geoserver/geomesa/geojson/index/mycloud/test/features'         |
+|                 |       'localhost:8080/geoserver/geomesa/geojson/index/myds/test/features' \          |
 |                 |       --get --data-urlencode 'q={"properties.name":"n1"}'                            |
 +-----------------+--------------------------------------------------------------------------------------+
 | **Notes**       | See `Querying Features`_ for full query syntax                                       |
