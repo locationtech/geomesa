@@ -208,7 +208,7 @@ class ConvertCommandTest extends Specification with LazyLogging {
   val formats: Array[String] = DataFormats.values.filter(_ != DataFormats.Null).map(_.toString).toArray
   try {
     for (x <- formats; y <- formats) {
-      logger.info(s"Testing $x to $y converter")
+      logger.debug(s"Testing $x to $y converter")
       testPair(x, y)
     }
   } finally {

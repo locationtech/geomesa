@@ -1,3 +1,11 @@
+/***********************************************************************
+* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Apache License, Version 2.0
+* which accompanies this distribution and is available at
+* http://www.opensource.org/licenses/apache2.0.php.
+*************************************************************************/
+
 package org.apache.spark.sql
 
 import com.vividsolutions.jts.geom._
@@ -63,7 +71,7 @@ object SQLSpatialAccessorFunctions {
     case _ => null
   }
 
-  def registerAccessorFunctions(sqlContext: SQLContext): Unit = {
+  def registerFunctions(sqlContext: SQLContext): Unit = {
     sqlContext.udf.register("st_boundary"      , ST_Boundary)
     sqlContext.udf.register("st_coordDim"      , ST_CoordDim)
     sqlContext.udf.register("st_dimension"     , ST_Dimension)

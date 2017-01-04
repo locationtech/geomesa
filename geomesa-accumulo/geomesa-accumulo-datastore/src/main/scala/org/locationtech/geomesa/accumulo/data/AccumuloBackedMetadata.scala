@@ -29,7 +29,12 @@ trait AccumuloMetadataAdapter extends MetadataAdapter {
 
   protected val config = GeoMesaBatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(2)
 
-  lazy private val writer = connector.createBatchWriter(catalog, config)
+  private var writerCreated = false
+
+  lazy private val writer = {
+    writerCreated = true
+    connector.createBatchWriter(catalog, config)
+  }
 
   override protected def checkIfTableExists: Boolean = connector.tableOperations().exists(catalog)
 
@@ -77,7 +82,7 @@ trait AccumuloMetadataAdapter extends MetadataAdapter {
     CloseableIterator(scanner.iterator.map(_.getKey.getRow.copyBytes), scanner.close())
   }
 
-  override def close(): Unit = CloseWithLogging(writer)
+  override def close(): Unit = if (writerCreated) { CloseWithLogging(writer) }
 }
 
 /**
