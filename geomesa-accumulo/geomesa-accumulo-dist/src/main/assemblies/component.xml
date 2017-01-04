@@ -119,6 +119,9 @@
             <fileMode>0644</fileMode>
             <filtered>false</filtered>
             <directoryMode>755</directoryMode>
+            <excludes>
+                <exclude>geomesa-env.sh</exclude>
+            </excludes>
         </fileSet>
         <fileSet>
             <directory>../../geomesa-tools/examples</directory>
@@ -225,6 +228,12 @@
             <source>../../geomesa-process/README.md</source>
             <destName>README-process.md</destName>
             <outputDirectory>docs</outputDirectory>
+        </file>
+        <file>
+            <source>../../geomesa-tools/conf/geomesa-env.sh</source>
+            <outputDirectory>conf</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>true</filtered>
         </file>
         <!-- geomesa-site.xml.template -->
         <file>

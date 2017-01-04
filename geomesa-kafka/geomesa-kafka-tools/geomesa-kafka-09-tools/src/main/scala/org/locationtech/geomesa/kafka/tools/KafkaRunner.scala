@@ -29,4 +29,5 @@ object KafkaRunner extends Runner {
     new ListenCommand,
     new KafkaKeywordsCommand
   )
+
 }

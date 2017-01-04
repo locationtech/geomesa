@@ -44,4 +44,13 @@ object BigtableRunner extends Runner {
     new HBaseStatsTopKCommand,
     new HBaseStatsHistogramCommand
   )
+
+  override def environmentErrorInfo(): Unit = {
+    if (sys.env.get("HADOOP_HOME").isEmpty) {
+      println("Warning: you have not set HADOOP_HOME as an environment variable." +
+        "\nGeoMesa tools will not run without the appropriate Hadoop jars in the tools classpath." +
+        "\nPlease ensure that those jars are present in the classpath by running 'geomesa-bigtable classpath'." +
+        "\nTo take corrective action, please place the necessary jar files in the lib directory of geomesa-tools.")
+    }
+  }
 }

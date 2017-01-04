@@ -101,19 +101,59 @@ function containsElement() {
 function registerAutocomplete() {
   eval compFile="~/.bash_completion" # resolve tilde
   [[ -f ${compFile} ]] || touch ${compFile}
-  # Search .bash_completion for this entry so we don't add it twice
-  head=$(head -n 1 ${GEOMESA_CONF_DIR}/autocomplete.sh)
-  res=$(grep -F $head ${compFile})
-  if [[ -z "${res}" ]]; then
-    echo "Installing Autocomplete Function"
-    cat ${GEOMESA_CONF_DIR}/autocomplete.sh >> ${compFile}
-    echo "Autocomplete function available, to use now run:"
-    echo ". ${compFile}"
+  if [[ -f "${GEOMESA_HOME}/conf/autocomplete.sh" ]]; then
+    head=$(head -n 1 ${GEOMESA_HOME}/conf/autocomplete.sh) # Don't use GEOMESA_CONF_DIR as it may not be properly set at this point
+    # Search .bash_completion for this entry so we don't add it twice
+    res=$(grep -F $head ${compFile})
+    if [[ -z "${res}" ]]; then
+      echo "Installing Autocomplete Function"
+      cat ${GEOMESA_HOME}/conf/autocomplete.sh >> ${compFile}
+      echo "Autocomplete function available, to use now run:"
+      echo ". ${compFile}"
+    fi
   fi
 }
 
-echo >&2 "Using %%gmtools.dist.name%%_HOME = $%%gmtools.dist.name%%_HOME"
+# Version check
+GEOMESA_TOOLS_VERSION=%%gmtools.version%%
+if [[ -d $GEOMESA_CONF_DIR ]]; then
+  if [[ -f "${GEOMESA_CONF_DIR}/geomesa-env.sh" ]]; then
+    GEOMESA_CONF_DIR_TOOLS_VERSION="`cat ${GEOMESA_CONF_DIR}/geomesa-env.sh | grep GEOMESA_TOOLS_VERSION | sed 's/GEOMESA_TOOLS_VERSION//'`"
+  else GEOMESA_CONF_DIR_TOOLS_VERSION=""; fi # legacy support
+  if [[ $GEOMESA_TOOLS_VERSION != $GEOMESA_CONF_DIR_TOOLS_VERSION ]]; then
+    echo "Warning: Using GEOMESA_CONF_DIR = ${GEOMESA_CONF_DIR} does not match Geomesa tools version."
+  fi
+fi
+if [[ -d ${%%gmtools.dist.name%%_HOME} ]]; then
+  if [[ -f "${%%gmtools.dist.name%%_HOME}/conf/geomesa-env.sh" ]]; then
+    GEOMESA_HOME_TOOLS_VERSION="`cat ${%%gmtools.dist.name%%_HOME}/conf/geomesa-env.sh | grep GEOMESA_TOOLS_VERSION | sed 's/GEOMESA_TOOLS_VERSION=//'`"
+  else GEOMESA_HOME_TOOLS_VERSION=""; fi # legacy support
+  if [[ $GEOMESA_TOOLS_VERSION != $GEOMESA_HOME_TOOLS_VERSION ]]; then
+    echo "Warning: Using %%gmtools.dist.name%%_HOME = ${%%gmtools.dist.name%%_HOME} does not match Geomesa tools version"
+  fi
+fi
+if [[ -n "$GEOMESA_CLASSPATH" ]]; then
+  # Search the classpath for conflicting versions
+  cpArr=(`echo $GEOMESA_CLASSPATH | sed 's/:/ /g'`)
+  for i in "${cpArr[@]}"; do
+    if [[ -d $i && -f "${i}/geomesa-env.sh" ]]; then # conf dir on cp
+      GEOMESA_CLASSPATH_TOOLS_VERSION="`cat ${i}/geomesa-env.sh | grep GEOMESA_TOOLS_VERSION | sed 's/GEOMESA_TOOLS_VERSION=//'`"
+    elif [[ -d $i && -d "${i}/conf/" ]]; then # home dir on cp
+      if [[ -f "${i}/conf/geomesa-env.sh" ]]; then
+        GEOMESA_CLASSPATH_TOOLS_VERSION="`cat ${i}/conf/geomesa-env.sh | grep GEOMESA_TOOLS_VERSION | sed 's/GEOMESA_TOOLS_VERSION=//'`"
+      else GEOMESA_CLASSPATH_TOOLS_VERSION=""; fi # legacy support
+    elif [[ "`basename $i`" == "geomesa-env.sh" && -f $i ]]; then # geomesa-env.sh on cp
+      GEOMESA_CLASSPATH_TOOLS_VERSION="`cat ${i} | grep GEOMESA_TOOLS_VERSION | sed 's/GEOMESA_TOOLS_VERSION=//'`"
+    fi
+    if [[ $GEOMESA_TOOLS_VERSION != $GEOMESA_CLASSPATH_TOOLS_VERSION ]]; then
+      echo "Warning: Resource ${i} found on GEOMESA_CLASSPATH does not match Geomesa tools version."
+    fi
+  done
+fi
+
+# Reconfigure %%gmtools.dist.name%%_HOME
 if [[ $1 = configure ]]; then
+  echo >&2 "Using %%gmtools.dist.name%%_HOME = $%%gmtools.dist.name%%_HOME"
   read -p "Do you want to reset this? Y\n " -n 1 -r
   if [[  $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
     echo >&2 ""
