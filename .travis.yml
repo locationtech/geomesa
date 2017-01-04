@@ -5,6 +5,7 @@ before_script:
   - export MAVEN_SKIP_RC=true
 
 cache:
+  timeout: 600
   directories:
   - $HOME/.m2
 
