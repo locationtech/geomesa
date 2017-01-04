@@ -3,10 +3,18 @@ GeoMesa Data Stores
 
 GeoMesa provides several GeoTools-compatible data stores for several distributed
 column-oriented databases, as well as the Kafka messaging system. These data
-stores are described in the following chapters. More information on using GeoTools
+stores are described in the following chapters:
+
+ * :doc:`/user/accumulo/index`
+ * :doc:`/user/kafka/index`
+ * :doc:`/user/hbase/index`
+ * :doc:`/user/bigtable/index`
+ * :doc:`/user/cassandra/index`
+
+More information on using GeoTools
 can be found in the `GeoTools user guide <http://docs.geotools.org/stable/userguide/>`__.
 
-The sections below describe features and caveats common to all GeoMesa GeoTools data
+The sections below describe features and caveats common to all GeoMesa data
 stores.
 
 .. _reserved-words:

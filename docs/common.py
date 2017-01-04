@@ -72,6 +72,10 @@ url_github_archive = "https://github.com/locationtech/geomesa/archive"
 # prior to appending the RST epilog to each file)
 rst_epilog = """
 
+.. _GeoTools: http://geotools.org/
+
+.. _GeoServer: http://geoserver.org/
+
 .. |release_tarball_accumulo| replace:: %(url_locationtech_release)s/geomesa-accumulo-dist_2.11/%(release)s/geomesa-accumulo-dist_2.11-%(release)s-bin.tar.gz
 
 .. |release_tarball_kafka08| replace:: %(url_locationtech_release)s/geomesa-kafka-08-dist_2.11/%(release)s/geomesa-kafka-08-dist_2.11-%(release)s-bin.tar.gz
@@ -79,6 +83,12 @@ rst_epilog = """
 .. |release_tarball_kafka09| replace:: %(url_locationtech_release)s/geomesa-kafka-09-dist_2.11/%(release)s/geomesa-kafka-09-dist_2.11-%(release)s-bin.tar.gz
 
 .. |release_tarball_kafka10| replace:: %(url_locationtech_release)s/geomesa-kafka-10-dist_2.11/%(release)s/geomesa-kafka-10-dist_2.11-%(release)s-bin.tar.gz
+
+.. |release_tarball_hbase| replace:: %(url_locationtech_release)s/geomesa-hbase-dist_2.11/%(release)s/geomesa-hbase-dist_2.11-%(release)s-bin.tar.gz
+
+.. |release_tarball_bigtable| replace:: %(url_locationtech_release)s/geomesa-bigtable-dist_2.11/%(release)s/geomesa-bigtable-dist_2.11-%(release)s-bin.tar.gz
+
+.. |release_tarball_cassandra| replace:: %(url_locationtech_release)s/geomesa-cassandra-dist_2.11/%(release)s/geomesa-cassandra-dist_2.11-%(release)s-bin.tar.gz
 
 .. |release_source_tarball| replace:: %(url_github_archive)s/geomesa_2.11-%(release)s.tar.gz
 

@@ -1,5 +1,5 @@
-Examples
-========
+Command Line Examples
+=====================
 
 This chapter provides hands-on examples of some
 common tasks in GeoMesa, including the management of registered feature types

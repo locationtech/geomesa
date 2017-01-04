@@ -5,12 +5,6 @@ This chapter describes GeoMesa Tools, a set of command line tools for feature
 management, query planning and explanation, ingest, and export from
 the command line.
 
-Installation
-------------
-
-See :ref:`setting_up_commandline`.
-
-
 .. _installing_sft_and_converter_definitions:
 
 Installing SFT and Converter Definitions
@@ -27,7 +21,7 @@ Running the command line tools
 
 .. note::
 
-    Some command names have changed in GeoMesa 1.3.0 see :doc:`commandline_old_commands`
+    Some command names have changed in GeoMesa 1.3.0; see :doc:`/user/appendix/commandline_old_commands`
 
 Run ``geomesa`` without any arguments to produce the following usage text::
 
@@ -721,96 +715,4 @@ Prints out the version, git branch, and commit ID that the tools were built with
     $ geomesa version
 
 
-Kafka command line tools
-------------------------
 
-Run ``geomesa-kafka`` without any arguments to produce the following usage text::
-
-    $ geomesa-kafka
-      Usage: geomesa-kafka [command] [command options]
-        Commands:
-          convert         Convert files using GeoMesa's internal SFT converter framework
-          create-schema   Create a feature definition in GeoMesa
-          get-schema      Describe the attributes of a given feature in GeoMesa
-          get-names       List GeoMesa features for a given zkPath
-          help            Show help
-          listen          Listen to a GeoMesa Kafka topic
-          remove-schema   Remove a schema and associated features from GeoMesa
-          version         GeoMesa Version
-
-This usage text lists the available commands. To see help for an individual command,
-run ``geomesa-kafka help <command-name>``, which for example will give you something like this::
-
-    $ geomesa-kafka help get-names
-      List GeoMesa features for a given zkPath
-      Usage: get-names [options]
-        Options:
-        * -b, --brokers
-             Brokers (host:port, comma separated)
-          -p, --zkpath
-             Zookeeper path where feature schemas are saved
-        * -z, --zookeepers
-             Zookeepers (host[:port], comma separated)
-
-Command overview
-^^^^^^^^^^^^^^^^
-
-create-schema
-~~~~~~~~~~~~~
-
-Used to create a feature type (``SimpleFeatureType``) at the specified zkpath::
-
-    $ geomesa-kafka create-schema -f testfeature \
-      -z zoo1,zoo2,zoo3 \
-      -b broker1:9092,broker2:9092 \
-      -s fid:String:index=true,dtg:Date,geom:Point:srid=4326 \
-      -p /geomesa/ds/kafka
-
-get-schema
-~~~~~~~~~~
-
-Display details about the attributes of a specified feature type::
-
-    $ geomesa-kafka get-schema -f testfeature -z zoo1,zoo2,zoo3 \
-      -b broker1:9092,broker2:9092 -p /geomesa/ds/kafka
-
-get-names
-~~~~~~~~~
-
-List all known feature types in Kafka::
-
-    $ geomesa-kafka get-names -z zoo1,zoo2,zoo3 -b broker1:9092,broker2:9092
-
-If no ``--zkpath`` parameter is specified, the ``get-names`` command will search all of zookeeper for potential feature types.
-
-listen
-~~~~~~
-
-Logs out the messages written to a topic corresponding to the feature type passed in.
-
-    $ geomesa-kafka listen -f testfeature \
-      -z zoo1,zoo2,zoo3 \
-      -b broker1:9092,broker2:9092 \
-      -p /geomesa/ds/kafka \
-      --from-beginning
-
-remove-schema
-~~~~~~~~~~~~~
-
-Used to remove a feature type (``SimpleFeatureType``) in a GeoMesa catalog. This will also delete any feature of that type in the data store::
-
-    $ geomesa-kafka remove-schema -f testfeature \
-      -z zoo1,zoo2,zoo3 \
-      -b broker1:9092,broker2:9092 \
-      -p /geomesa/ds/kafka
-    $ geomesa-kafka remove-schema --pattern 'testfeature\d+' \
-      -z zoo1,zoo2,zoo3 \
-      -b broker1:9092,broker2:9092 \
-      -p /geomesa/ds/kafka
-
-version
-~~~~~~~
-
-Prints out the version, git branch, and commit ID that the tools were built with::
-
-    $ geomesa version

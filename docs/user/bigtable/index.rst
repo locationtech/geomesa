@@ -1,0 +1,16 @@
+Bigtable Data Store
+===================
+
+Experimental support for GeoMesa implemented on `Google Cloud Bigtable <https://cloud.google.com/bigtable>`__.
+
+The code for Bigtable support is found in two modules in the source distribution:
+
+* ``geomesa-hbase/geomesa-bigtable-datastore`` - contains a stub POM for building a Google Cloud Bigtable-backed GeoTools data store
+* ``geomesa-hbase/geomesa-bigtable-gs-plugin`` - contains a stub POM for building a bundle containing all of the JARs to use the Google Cloud Bigtable data store in GeoServer
+
+For instructions on how to install the Bigtable data store, see :doc:`/user/installation/bigtable`.
+
+.. toctree::
+
+   usage
+   geoserver
