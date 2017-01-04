@@ -31,10 +31,8 @@ by going to the `Management Console <https://console.aws.amazon.com/elasticmapre
    ssh -i /path/to/key ec2-user@<ip_address>
 
 This should log you into the master node of the EMR cluster you just
-started.  Next, you will need to attach to the docker instance running
-one of the Accumulo services.  To determine the docker instances, run
-the following command.
-
+started. You can see a list of docker instances by running the following command.
+ 
 .. code-block:: shell
 
    sudo docker ps
@@ -55,20 +53,19 @@ Ingest Public GDELT data
 ************************
 
 Make sure you leave enough time for the machine to be completely bootstrapped before running the command to find the docker instances.
-Copy the CONTAINER_ID for the 'accumulo-master' container (1374169e0f6c in the example above).  To ingest the most recent 7 days of `GDELT
+GeoMesa ships with pre-defined data models for many open spatio-temporal data sets such as GDELT.  To ingest the most recent 7 days of `GDELT
 <http://www.gdeltproject.org>`_ from Amazon's public S3 bucket.
 
 .. code-block:: shell
 
-   CONTAINER_ID=$(sudo docker ps | grep accumulo-master | awk '{print $1}')
    FILES=$(seq 7 -1 1 | xargs -n 1 -I{} sh -c "date -d'{} days ago' +%Y%m%d" | xargs -n 1 -I{} echo s3a://gdelt-open-data/events/{}.export.csv | tr '\n' ' ')
-   sudo docker exec $CONTAINER_ID geomesa ingest -c geomesa.gdelt -C gdelt -f gdelt -s gdelt -u root -p secret $FILES
+   sudo docker exec accumulo-master geomesa ingest -c geomesa.gdelt -C gdelt -f gdelt -s gdelt -u root -p secret $FILES
 
 You can then query the data using GeoMesa command line export tool.
 
 .. code-block:: shell
 
-   sudo docker exec $CONTAINER_ID geomesa export -c gdelt -f gdelt -u root -p secret -m 100
+   sudo docker exec accumulo-master geomesa export -c gdelt -f gdelt -u root -p secret -m 100
 
 You can register GDELT as a layer in the provided geoserver as well.  Geoserver is running on port 9090
 of the master node.  You can access it at `http://<ip_address>:9090/geoserver` where <ip_address> is the
@@ -76,7 +73,7 @@ address you looked up before ssh'ing into the master node.  To register a GeoMes
 to know the internal URL of the zookeeper instance.  Run the following command:
 
 .. code-block:: shell
-   sudo docker exec $CONTAINER_ID cat /opt/accumulo/conf/accumulo-site.xml | grep -A2 instance.zoo | grep value | sed 's/.*<value>\(.*\)<\/value>/\1/'
+   sudo docker exec accumulo-master cat /opt/accumulo/conf/accumulo-site.xml | grep -A2 instance.zoo | grep value | sed 's/.*<value>\(.*\)<\/value>/\1/'
 
 Then, in the Stores->Add New Store->Accumulo (GeoMesa) dialog in Geoserver, set the values to the following.
 
