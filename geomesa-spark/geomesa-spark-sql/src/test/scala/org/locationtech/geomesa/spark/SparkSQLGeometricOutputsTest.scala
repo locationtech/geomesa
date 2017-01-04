@@ -74,7 +74,7 @@ class SparkSQLGeometricOutputsTest extends Specification with LazyLogging {
           """.stripMargin
         )
         r.collect().head.getAs[String](0) mustEqual
-          "{\"type\":\"Point\",\"coordinates\":[0,0]}"
+          "{\"type\":\"Point\",\"coordinates\":[0.0,0.0]}"
       }
 
       "lineString" >> {
@@ -84,7 +84,7 @@ class SparkSQLGeometricOutputsTest extends Specification with LazyLogging {
           """.stripMargin
         )
         r.collect().head.getAs[String](0) mustEqual
-          "{\"type\":\"LineString\",\"coordinates\":[[0,0],[1,1],[2,2]]}"
+          "{\"type\":\"LineString\",\"coordinates\":[[0.0,0.0],[1,1],[2,2]]}"
       }
 
       "polygon" >> {
@@ -105,7 +105,7 @@ class SparkSQLGeometricOutputsTest extends Specification with LazyLogging {
           """.stripMargin
         )
         r.collect().head.getAs[String](0) mustEqual
-          "{\"type\":\"MultiPoint\",\"coordinates\":[[[0,0]],[[1,1]]]}"
+          "{\"type\":\"MultiPoint\",\"coordinates\":[[0.0,0.0],[1,1]]}"
       }
 
       "multiLineString" >> {
@@ -115,7 +115,7 @@ class SparkSQLGeometricOutputsTest extends Specification with LazyLogging {
           """.stripMargin
         )
         r.collect().head.getAs[String](0) mustEqual
-          "{\"type\":\"MultiLineString\",\"coordinates\":[[[0,0],[1,1],[2,2]],[[-3,-3],[-2,-2],[-1,-1]]]}"
+          "{\"type\":\"MultiLineString\",\"coordinates\":[[[0.0,0.0],[1,1],[2,2]],[[-3,-3],[-2,-2],[-1,-1]]]}"
       }
 
       "multiPolygon" >> {
@@ -126,12 +126,20 @@ class SparkSQLGeometricOutputsTest extends Specification with LazyLogging {
           """.stripMargin
         )
         r.collect().head.getAs[String](0) mustEqual
-          "{\"type\":\"MultiPolygon\",\"coordinates\":" +
-            "[[[[0.45,0.75],[1.15,0.75],[1.15,1.45],[0.45,1.45],[0.45,0.75]]],[[[0,0],[1,0],[1,1],[0,1],[0,0]]]]}"
-
+          "{\"type\":\"MultiPolygon\",\"coordinates\":[[[[0.45,0.75],[1.15,0.75],[1.15,1.45],[0.45,1.45]," +
+            "[0.45,0.75]]],[[[0.0,0.0],[1,0.0],[1,1],[0.0,1],[0.0,0.0]]]]}"
       }
 
-
+      "geometryCollection" >> {
+        val r =sc.sql(
+          """
+            |select st_asGeoJSON(st_geomFromWKT('GEOMETRYCOLLECTION(POINT(0 0), LINESTRING(0 0, 1 1, 2 2))'))
+          """.stripMargin
+        )
+        r.collect().head.getAs[String](0) mustEqual
+          "{\"type\":\"GeometryCollection\",\"geometries\":[{\"type\":\"Point\"," +
+            "\"coordinates\":[0.0,0.0]},{\"type\":\"LineString\",\"coordinates\":[[0.0,0.0],[1,1],[2,2]]}]}"
+      }
     }
 
     "st_asLatLonText" >> {
@@ -160,7 +168,6 @@ class SparkSQLGeometricOutputsTest extends Specification with LazyLogging {
       )
       r.collect().head.getAs[String](0) mustEqual "dqce5"
     }
-
 
     //after
     step {
