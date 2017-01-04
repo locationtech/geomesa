@@ -1,11 +1,12 @@
-=======================================
 AWS Bootstrapping using Geodocker Guide
 =======================================
+
 Getting started on AWS is incredibly simple thanks to the `Geodocker <https://github.com/geodocker/geodocker-accumulo-geomesa>`_ project.  The following guide describes how to bootstrap a GeoMesa Accumulo cluster using Amazon ElasticMapReduce and Docker and ingesting and querying some sample data.  This guide assumes you have an Amazon Web Services account already provisioned as well as an IAM key pair.  To set up the AWS command line tools, follow the instructions found in the AWS `online documentation <http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html>`_.
 
 Bootstrap an EMR cluster
-************************
-Use the following command to bootstrap an EMR cluster.  You will need to change the KeyName to the IAM key pair you intend to use for this cluster.  You can also edit the instance types to a size appropriate for your use case.  Make sure you adjust the Accumulo cache configuration settings accordingly.  For instance, if you use a high memory instance type, you will want to increase the `TSERVER_XMX` parameter which controls the amount of heap space allocated to the JVM running the Accumulo Tablet Server.  Additionally, you should adjust the `TSERVER_CACHE_DATA_SIZE` and the `TSERVER_CACHE_INDEX_SIZE` to appropriate fractions of the `TSERVER_XMX` memory to take advantage of the increase in memory.
+------------------------
+
+Use the following command to bootstrap an EMR cluster.  You will need to change the ``KeyName`` to the IAM key pair you intend to use for this cluster.  You can also edit the instance types to a size appropriate for your use case.  Make sure you adjust the Accumulo cache configuration settings accordingly.  For instance, if you use a high memory instance type, you will want to increase the ``TSERVER_XMX`` parameter which controls the amount of heap space allocated to the JVM running the Accumulo Tablet Server.  Additionally, you should adjust the ``TSERVER_CACHE_DATA_SIZE`` and the ``TSERVER_CACHE_INDEX_SIZE`` to appropriate fractions of the ``TSERVER_XMX`` memory to take advantage of the increase in memory.
 
 .. code-block:: shell
 
@@ -24,7 +25,7 @@ Use the following command to bootstrap an EMR cluster.  You will need to change 
 
 
 After executing that command, you can monitor the state of the EMR bootstrap process
-by going to the `Management Console <https://console.aws.amazon.com/elasticmapreduce/home?region=us-east-1#cluster-list>`_.  Find the name (as specified in the aws emr command) of the cluster and click through to its details page.  Under the 'Hardware' section, you can find the master node and it's IP address.  Copy the IP address and then run the following command.
+by going to the `Management Console <https://console.aws.amazon.com/elasticmapreduce/home?region=us-east-1#cluster-list>`_.  Find the name (as specified in the ``aws emr`` command) of the cluster and click through to its details page.  Under the **Hardware** section, you can find the master node and its IP address.  Copy the IP address and then run the following command.
 
 .. code-block:: shell
 
@@ -53,7 +54,7 @@ Ingest Public GDELT data
 ************************
 
 Make sure you leave enough time for the machine to be completely bootstrapped before running the command to find the docker instances.
-GeoMesa ships with pre-defined data models for many open spatio-temporal data sets such as GDELT.  To ingest the most recent 7 days of `GDELT
+GeoMesa ships with predefined data models for many open spatio-temporal data sets such as GDELT.  To ingest the most recent 7 days of `GDELT
 <http://www.gdeltproject.org>`_ from Amazon's public S3 bucket.
 
 .. code-block:: shell
@@ -61,21 +62,22 @@ GeoMesa ships with pre-defined data models for many open spatio-temporal data se
    FILES=$(seq 7 -1 1 | xargs -n 1 -I{} sh -c "date -d'{} days ago' +%Y%m%d" | xargs -n 1 -I{} echo s3a://gdelt-open-data/events/{}.export.csv | tr '\n' ' ')
    sudo docker exec accumulo-master geomesa ingest -c geomesa.gdelt -C gdelt -f gdelt -s gdelt -u root -p secret $FILES
 
-You can then query the data using GeoMesa command line export tool.
+You can then query the data using the GeoMesa command line export tool.
 
 .. code-block:: shell
 
    sudo docker exec accumulo-master geomesa export -c gdelt -f gdelt -u root -p secret -m 100
 
-You can register GDELT as a layer in the provided geoserver as well.  Geoserver is running on port 9090
-of the master node.  You can access it at `http://<ip_address>:9090/geoserver` where <ip_address> is the
-address you looked up before ssh'ing into the master node.  To register a GeoMesa layer, you'll first need
-to know the internal URL of the zookeeper instance.  Run the following command:
+You can register GDELT as a layer in the provided GeoServer as well.  GeoServer is running on port 9090
+of the master node.  You can access it at *http://<ip_address>:9090/geoserver*, where *<ip_address>* is the
+address you looked up before ``ssh``\ ing into the master node.  To register a GeoMesa layer, you'll first need
+to know the internal URL of the Zookeeper instance.  Run the following command:
 
 .. code-block:: shell
+
    sudo docker exec accumulo-master cat /opt/accumulo/conf/accumulo-site.xml | grep -A2 instance.zoo | grep value | sed 's/.*<value>\(.*\)<\/value>/\1/'
 
-Then, in the Stores->Add New Store->Accumulo (GeoMesa) dialog in Geoserver, set the values to the following.
+Then, in the *Stores -> Add New Store -> Accumulo (GeoMesa)* dialog in Geoserver, set the values to the following.
 
 .. code-block:: shell
 
@@ -86,17 +88,18 @@ Then, in the Stores->Add New Store->Accumulo (GeoMesa) dialog in Geoserver, set 
    password: secret
    tableName: geomesa.gdelt
 
-Save the store and publish the `gdelt` layer.  Set the 'Native Bounding Box' and the 'Lat Lon Bounding Box' to
-`-180,-90,180,90`.  Save the layer.  Then, navigate to the preview page at `http://<ip_address>:9090/geoserver/cite/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:gdelt&styles=&bbox=-180,-90,180.0,90&width=768&height=356&srs=EPSG:4326&format=application/openlayers`.
+Save the store and publish the ``gdelt`` layer.  Set the "Native Bounding Box" and the "Lat Lon Bounding Box" to
+``-180,-90,180,90``.  Save the layer.  Then, navigate to the preview page at
+*http://<ip_address>:9090/geoserver/cite/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:gdelt&styles=&bbox=-180,-90,180.0,90&width=768&height=356&srs=EPSG:4326&format=application/openlayers*.
 
 Analyze GDELT with GeoMesa, Jupyter, SparkSQL, Vegas, and Leaflet
 *****************************************************************
 
-Your bootstrapped spatial analytic environment has an instance of Jupyter notebook configured to analyze data in GeoMesa using SparkSQL and to visualize the results using Leaflet maps and Vegas (Vega-Lite) charts.  To start, navigate to `http://<ip_address>:8888/` where `<ip_address>` is the publicly accessible IP address of the master node.  You will see a sample GDELT analysis notebook.
+Your bootstrapped spatial analytic environment has an instance of Jupyter notebook configured to analyze data in GeoMesa using SparkSQL and to visualize the results using Leaflet maps and Vegas (Vega-Lite) charts.  To start, navigate to *http://<ip_address>:8888/* where *<ip_address>* is the publicly accessible IP address of the master node.  You will see a sample GDELT analysis notebook.
 
 .. image:: _static/img/jupyter_notebook_list.png
 
-Click the `GDELT Analysis` notebook.  Edit the zookeeper value in the first cell by setting it to the zookeeper ip address as described above.  Then, select 'Cell'->'Run All' from the menu bar.  This will execute all the cells in the notebook.  Scroll through the sample and you will see some map and chart visualizations at the bottom.
+Click the **GDELT Analysis** notebook.  Edit the zookeeper value in the first cell by setting it to the zookeeper ip address as described above.  Then, select *Cell -> Run All* from the menu bar.  This will execute all the cells in the notebook.  Scroll through the sample and you will see some map and chart visualizations at the bottom.
 
 .. image:: _static/img/jupyter_map_viz.png
 
