@@ -58,11 +58,11 @@ to omit the test phase of the build process:
 
     $ mvn clean install -DskipTests=true
 
-To compile for Kafka 09, Kafka 10, hbase, or bigtable use the respective profile `kafka09`, `kafka10`, `hbase`, or `bigtable`.
+To compile for HBase or Google Bigtable use the respective profile `hbase` or `bigtable`:
 
 .. code-block:: bash
 
-    $ mvn clean install -Pkafka09
+    $ mvn clean install -Pbigtable
 
 The ``build/mvn`` script is a wrapper around Maven that builds the project using the Zinc
 (https://github.com/typesafehub/zinc) incremental compiler:
