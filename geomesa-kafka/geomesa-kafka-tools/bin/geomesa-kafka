@@ -9,14 +9,14 @@
 
 # Set environment variables in bin/geomesa-env.sh
 
-if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
+if [[ -z "${%%gmtools.dist.name%%_HOME}" ]]; then
   export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
 fi
 
 # Load common functions and setup
 . "${%%gmtools.dist.name%%_HOME}"/bin/common-functions.sh
 
-if [ -n "$KAFKA_HOME" ]; then
+if [[ -n "$KAFKA_HOME" ]]; then
   GM_KAFKA_CP="$(findJars $KAFKA_HOME/libs)"
 else
   GM_KAFKA_CP=""
