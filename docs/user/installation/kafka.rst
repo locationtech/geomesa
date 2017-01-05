@@ -40,8 +40,8 @@ Building from Source
 --------------------
 
 GeoMesa Kafka may also be built from source. For more information refer to :ref:`building_from_source`
-in the :doc:`/developer/index`. The remainder of the instructions in this chapter assume
-the use of the binary GeoMesa distribution.
+in the :doc:`/developer/index`, or to the ``README.md`` file in the the source distribution.
+The remainder of the instructions in this chapter assume the use of the binary GeoMesa distribution.
 
 If you have built from source, the Kafka distributions are created in the
 respective ``target`` directory of each module below:

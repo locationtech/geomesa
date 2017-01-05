@@ -23,9 +23,9 @@ Building from Source
 --------------------
 
 GeoMesa HBase may also be built from source. For more information refer to :ref:`building_from_source`
-in the :doc:`/developer/index`. The remainder of the instructions in this chapter assume
-the use of the binary GeoMesa HBase distribution. If you have built from source, the
-distribution is created in the ``target`` directory of
+in the :doc:`/developer/index`, or to the ``README.md`` file in the the source distribution.
+The remainder of the instructions in this chapter assume the use of the binary GeoMesa HBase
+distribution. If you have built from source, the distribution is created in the ``target`` directory of
 ``geomesa-hbase/geomesa-hbase-dist``.
 
 More information about developing with GeoMesa may be found in the :doc:`/developer/index`.
