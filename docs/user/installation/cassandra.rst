@@ -44,9 +44,11 @@ to put it. Then ``cd`` into that directory and type::
     wget https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-cassandra-dist_2.11/$VERSION/geomesa-cassandra-dist_2.11-$VERSION-bin.tar.gz
     tar xvf geomesa-cassandra-dist_2.11-$VERSION-bin.tar.gz
 
-(Make sure to replace ``$VERSION`` with the version of the distribution that you want to use.
-It should be something like ``1.3.0-m2``. You can browse available versions at
-https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-cassandra-dist_2.11/ .)
+.. note::
+
+    Make sure to replace ``$VERSION`` with the version of the distribution that you want to use.
+    It should be something like ``1.3.0-m2``. You can browse available versions at
+    https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-cassandra-dist_2.11/.
 
 The directory that you just extracted is the ``GEOMESA_CASSANDRA_HOME``. It includes all the files
 that we'll need to use GeoMesa with Cassandra.

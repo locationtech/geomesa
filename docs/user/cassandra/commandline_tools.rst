@@ -17,7 +17,7 @@ Before starting, check the following:
 Then, ``cd`` into the ``GEOMESA_CASSANDRA_HOME`` directory, and type ``bin/geomesa-cassandra help``. You should
 get a listing of the tools with descriptions.
 
-The first tool we'll try is the ``ingest`` command. This command takes data from an external source, and
+The first tool we'll try is the ``ingest`` command. This command takes data from an external source and
 ingests it into the Cassandra database. For this example, we'll use some sample data located
 at ``examples/ingest/csv/example.csv`` in the ``GEOMESA_CASSANDRA_HOME`` directory. Also, to make
 editing and running the command easier, we'll use the example bash script at ``examples/ingest/csv/ingest_csv.sh``.
@@ -54,7 +54,7 @@ This is the script::
   "example_csv". The converter specifies how a raw data file should be parsed. For example, the converter specifies
   that the fourth column of the input file should be converted to a date using a specific date format. The
   SimpleFeatureType part specifies how the parsed data should be used to create a SimpleFeatureType. For example, this
-  files specifies that the SimpleFeatureType's first attribute should be one called "name". GeoMesa uses these specifications
+  file specifies that the SimpleFeatureType's first attribute should be one called "name". GeoMesa uses these specifications
   to ingest the data from the external data file into the Cassandra database.
 
   GeoMesa automatically finds the ``conf/application.conf`` file based on its name and location. You can add additional
@@ -114,7 +114,6 @@ Configuring the Command Line Tools
 You can configure the command line tools using the
 ``conf/geomesa-env.sh`` file in the ``GEOMESA_CASSANDRA_HOME`` directory.
 See the comments in that file for instructions.
-
 
 Ingesting Other Datasets
 ------------------------

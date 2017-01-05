@@ -1,7 +1,7 @@
 Cassandra Data Store
 ====================
 
-The GeoMesa Cassandra Data Store is found in the ``geomesa-cassandra``
+The GeoMesa Cassandra Data Store is found in the ``geomesa-cassandra`` directory
 in the source distribution.
 
 The GeoMesa Cassandra DataStore provides a GeoTools API backed by Cassandra for geospatial data.  Currently, the

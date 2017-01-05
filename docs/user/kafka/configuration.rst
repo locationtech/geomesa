@@ -11,10 +11,10 @@ distribution. The default settings for GeoMesa are stored in
 is never read; instead, copy the desired configurations into
 ``geomesa-site.xml``.
 
-By default command line parameters will take precedence over this
+By default, command line parameters will take precedence over this
 configuration file. If you wish a configuration item to always take
 precedence, even over command line parameters, change the ``<final>``
 tag to true.
 
-By default configuration properties with empty values will not be
+By default, configuration properties with empty values will not be
 applied, you can change this by marking a property as final.

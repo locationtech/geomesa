@@ -35,51 +35,34 @@ More information about developing with GeoMesa may be found in the :doc:`/develo
 Setting up the HBase Command Line Tools
 ---------------------------------------
 
-GeoMesa HBase comes with a set of command line tools for managing HBase features located in ``geomesa-accumulo_2.11-$VERSION/bin/`` of the binary distribution.
+GeoMesa HBase comes with a set of command line tools for managing HBase features located in
+``geomesa-hbase_2.11-$VERSION/bin/`` of the binary distribution.
 
 .. note::
 
-    You can configure environment variables and classpath settings in geomesa-accumulo_2.11-$VERSION/bin/geomesa-env.sh.
+    You can configure environment variables and classpath settings in ``geomesa-hbase_2.11-$VERSION/conf/geomesa-env.sh``.
 
-In the ``geomesa-accumulo_2.11-$VERSION`` directory, run ``bin/geomesa configure`` to set up the tools.
+In the ``geomesa-hbase_2.11-$VERSION`` directory, run ``bin/geomesa-hbase configure`` to set up the tools.
 
 .. code-block:: bash
 
-    ### in geomesa-accumulo_2.11-$VERSION/:
-    $ bin/geomesa configure
-    Warning: GEOMESA_HOME is not set, using /path/to/geomesa-accumulo_2.11-$VERSION
-    Using GEOMESA_HOME as set: /path/to/geomesa-accumulo_2.11-$VERSION
+    $ bin/geomesa-hbase configure
+    Using GEOMESA_HBASE_HOME = /path/to/geomesa-hbase_2.11-1.3.0-m3-SNAPSHOT
+    Do you want to reset this? Y\n y
+    Using GEOMESA_HBASE_HOME as set: /path/to/geomesa-hbase_2.11-1.3.0-m3-SNAPSHOT
     Is this intentional? Y\n y
-    Warning: GEOMESA_LIB already set, probably by a prior configuration.
-    Current value is /path/to/geomesa-accumulo_2.11-$VERSION/lib.
+    To persist the configuration please edit conf/geomesa-env.sh or update your bashrc file to include:
+    export GEOMESA_HBASE_HOME=/path/to/geomesa-hbase_2.11-1.3.0-m3-SNAPSHOT
+    export PATH=${GEOMESA_HBASE_HOME}/bin:$PATH
 
-    Is this intentional? Y\n y
-
-    To persist the configuration please update your bashrc file to include:
-    export GEOMESA_HOME=/path/to/geomesa-accumulo_2.11-$VERSION
-    export PATH=${GEOMESA_HOME}/bin:$PATH
-
-Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_HOME`` and ``$PATH`` updates.
-
-.. warning::
-
-    Please note that the ``$GEOMESA_HOME`` variable points to the location of the ``geomesa-accumulo_2.11-$VERSION``
-    directory, not the main geomesa binary distribution directory!
+Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_HBASE_HOME`` and ``$PATH`` updates.
 
 .. note::
 
-    ``geomesa`` will read the ``$ACCUMULO_HOME`` and ``$HADOOP_HOME`` environment variables to load the
-    appropriate JAR files for Hadoop, Accumulo, Zookeeper, and Thrift. If possible, we recommend
-    installing the tools on the Accumulo master server, as you may also need various configuration
-    files from Hadoop/Accumulo in order to run certain commands. In addition ``geomesa`` will pull any
+    ``geomesa-hbase`` will read the ``$HBASE_HOME`` and ``$HADOOP_HOME`` environment variables to load the
+    appropriate JAR files for Hadoop and HBase. In addition, ``geomesa-hbase`` will pull any
     additional jars from the ``$GEOMESA_EXTRA_CLASSPATHS`` environment variable into the class path.
     Use the ``geomesa classpath`` command in order to see what JARs are being used.
-
-    If you are running the tools on a system without
-    Accumulo installed and configured, the ``install-hadoop-accumulo.sh`` script
-    in the ``bin`` directory may be used to download the needed Hadoop/Accumulo JARs into
-    the ``lib/common`` directory. You should edit this script to match the versions used by your
-    installation.
 
 Due to licensing restrictions, dependencies for shape file support and raster
 ingest must be separately installed. Do this with the following commands:
@@ -89,8 +72,37 @@ ingest must be separately installed. Do this with the following commands:
     $ bin/install-jai.sh
     $ bin/install-jline.sh
 
-Test the command that invokes the GeoMesa Tools:
+Run ``geomesa-hbase`` without arguments to confirm that the tools work.
 
+.. code::
+
+    $ bin/geomesa-hbase
+    Using GEOMESA_HBASE_HOME = /path/to/geomesa-hbase_2.11-1.3.0-m3-SNAPSHOT
+    INFO  Usage: geomesa-hbase [command] [command options]
+      Commands:
+        convert            Convert files using GeoMesa's internal converter framework
+        create-schema      Create a GeoMesa feature type
+        delete-catalog     Delete a GeoMesa catalog completely (and all features in it)
+        delete-features    Delete features from a table in GeoMesa. Does not delete any tables or schema information.
+        describe-schema    Describe the attributes of a given GeoMesa feature type
+        env                Examine the current GeoMesa environment
+        explain            Explain how a GeoMesa query will be executed
+        export             Export features from a GeoMesa data store
+        export-bin         Export features from a GeoMesa data store in a binary format
+        gen-avro-schema    Generate an Avro schema from a SimpleFeatureType
+        get-sft-config     Get the SimpleFeatureType of a feature
+        get-type-names     List GeoMesa feature types for a given catalog
+        help               Show help
+        ingest             Ingest/convert various file formats into GeoMesa
+        keywords           Add/Remove/List keywords on an existing schema
+        remove-schema      Remove a schema and associated features from a GeoMesa catalog
+        stats-analyze      Analyze statistics on a GeoMesa feature type
+        stats-bounds       View or calculate bounds on attributes in a GeoMesa feature type
+        stats-count        Estimate or calculate feature counts in a GeoMesa feature type
+        stats-histogram    View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values
+        stats-top-k        Enumerate the most frequent values in a GeoMesa feature type
+        version            Display the GeoMesa version installed locally
+        version-remote     Display the GeoMesa version installed on a cluster
 
 .. _install_hbase_geoserver:
 

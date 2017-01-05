@@ -105,7 +105,7 @@ example, if ``readBehind = 5s`` then for a query requesting state at
 ``time = t`` all state changes that occurred between ``t - 5s`` and
 ``t`` will be used to build the state at time ``t`` which will then be
 used to answer the query. Selecting an appropriate read behind requires
-an understanding of the producer. The expected uses case is a producer
+an understanding of the producer. The expected use case is a producer
 that updates every simple feature, even if it hasn't changed, at a
 regular interval. For example, if the producer is updating every ``x``
 seconds then a read behind of ``x + 1s`` might be appropriate.
@@ -117,8 +117,8 @@ so does the amount of data that must be read and cashed. So, both the
 size of the window and the read behind should be kept as small as
 possible.
 
-After creating the ``ReplayConfig`` pass it, along with the
-``streamingSFT`` to the ``KafkaDataStoreHelper``:
+After creating the ``ReplayConfig``, pass it, along with the
+``streamingSFT``, to the ``KafkaDataStoreHelper``:
 
 .. code-block:: java
 
@@ -131,7 +131,7 @@ way to ensure this is to call ``consumerDs.getSchema(typeName)``. The
 ``SimpleFeatureType`` returned by ``createReplaySFT`` will contain the
 hint added by ``createStreamingSFT`` as well as a a hint containing the
 ``ReplayConfig``. Additionally the ``replaySFT`` will have a different
-name then then ``streamingSFT``. This is to differentiate *live* and
+name than ``streamingSFT``. This is to differentiate *live* and
 *replay* ``SimpleFeatureType``\ s. The ``replaySFT`` will also contain
 an additional attribute, ``KafkaLogTime``, of type ``java.util.Date``
 which represents the historical query time.
