@@ -1,5 +1,5 @@
-Installing and Configuring GeoMesa Cassandra
-============================================
+Installing GeoMesa Cassandra
+============================
 
 Installing Cassandra
 --------------------

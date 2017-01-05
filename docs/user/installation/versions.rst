@@ -7,13 +7,13 @@ Versions and Downloads
 
     The current recommended version of GeoMesa to install is |release|.
 
-`Java JRE or JDK 8`_ is required to install each binary distribution.
+`Java JRE or JDK 8`_ is required to run each binary distribution.
 
 .. _Java JRE or JDK 8: http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
-To build and install the source distribution:
+To build and install the source distribution requires:
 
-* `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
+* `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__
 * Apache Maven (http://maven.apache.org/) |maven_version|
 * A ``git`` client (http://git-scm.com/)
 
@@ -21,7 +21,7 @@ To build and install the source distribution:
 
 .. TODO: substitutions don't work in some kinds of markup, including URLs
 
-Release tarballs:
+Release distributions:
 
 * Accumulo: |release_tarball_accumulo|
 * Kafka 0.8.x: |release_tarball_kafka08|
