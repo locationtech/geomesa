@@ -143,7 +143,7 @@ class SparkSQLGeometricOutputsTest extends Specification with LazyLogging {
     "st_asLatLonText" >> {
       val r = sc.sql(
         """
-          |select st_asLatLonText(geom, 'D °') from chicago
+          |select st_asLatLonText(geom) from chicago
         """.stripMargin
       )
       r.collect().head.getAs[String](0) mustEqual """38°30'0.000"N 77°30'0.000"W"""
