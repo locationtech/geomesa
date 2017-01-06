@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.spark
 
 import java.sql.Timestamp
+import java.time.Instant
 import java.util.{Date, UUID}
 
 import com.typesafe.scalalogging.LazyLogging
@@ -21,7 +22,7 @@ import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
 import org.apache.spark.sql.sources._
 import org.apache.spark.sql.types.{DataTypes, StructField, StructType}
 import org.geotools.data.{DataStoreFinder, Query}
-import org.geotools.factory.CommonFactoryFinder
+import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.opengis.feature.`type`._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -82,6 +83,7 @@ class GeoMesaDataSource extends DataSourceRegister with RelationProvider with Sc
           case DataTypes.DoubleType => builder.add(field.name, classOf[jl.Double])
           case DataTypes.StringType => builder.add(field.name, classOf[jl.String])
           case DataTypes.LongType   => builder.add(field.name, classOf[jl.Long])
+          case DataTypes.TimestampType => builder.add(field.name, classOf[java.util.Date])
 
           case SQLTypes.PointTypeInstance => builder.add(field.name, classOf[com.vividsolutions.jts.geom.Point])
           case SQLTypes.LineStringTypeInstance => builder.add(field.name, classOf[com.vividsolutions.jts.geom.LineString])
@@ -124,6 +126,14 @@ class GeoMesaDataSource extends DataSourceRegister with RelationProvider with Sc
     val newFeatureName: String = parameters("geomesa.feature")
     val sft: SimpleFeatureType = structType2SFT(data.schema, newFeatureName)
 
+    // reuse the __fid__ if available for joins,
+    // otherwise use a random id prefixed with the current time
+    val fidIndex = data.schema.fields.indexWhere(_.name == "__fid__")
+    val fidFn: Row => String =
+      if(fidIndex > -1) (row: Row) => row.getString(fidIndex)
+      else _ => "%d%s".format(Instant.now().getEpochSecond, UUID.randomUUID().toString)
+
+
     val ds = DataStoreFinder.getDataStore(parameters)
     sft.getUserData.put("override.reserved.words", java.lang.Boolean.TRUE)
     ds.createSchema(sft)
@@ -131,8 +141,12 @@ class GeoMesaDataSource extends DataSourceRegister with RelationProvider with Sc
     val rddToSave: RDD[SimpleFeature] = data.rdd.mapPartitions( iterRow => {
       val innerDS = DataStoreFinder.getDataStore(parameters)
       val sft = innerDS.getSchema(newFeatureName)
-      val func: (Row) => SimpleFeature = SparkUtils.row2Sf(sft, _)
-      iterRow.map(func)
+      val builder = new SimpleFeatureBuilder(sft)
+
+      iterRow.map { r =>
+        builder.reset()
+        SparkUtils.row2Sf(sft, r, builder, fidFn(r))
+      }
     })
 
     GeoMesaSpark(parameters).save(rddToSave, parameters, newFeatureName)
@@ -175,9 +189,9 @@ object SparkUtils extends LazyLogging {
                 ctx: SparkContext,
                 schema: StructType,
                 params: Map[String, String]): RDD[Row] = {
-    logger.info(s"""Building scan, filt = $filt, filters = ${filters.mkString(",")}, requiredColumns = ${requiredColumns.mkString(",")}""")
+    logger.debug(s"""Building scan, filt = $filt, filters = ${filters.mkString(",")}, requiredColumns = ${requiredColumns.mkString(",")}""")
     val compiledCQL = filters.flatMap(sparkFilterToCQLFilter).foldLeft[org.opengis.filter.Filter](filt) { (l, r) => ff.and(l,r) }
-    logger.info(s"compiledCQL = $compiledCQL")
+    logger.debug(s"compiledCQL = $compiledCQL")
 
     val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
     val rdd = GeoMesaSpark(params).rdd(
@@ -234,9 +248,7 @@ object SparkUtils extends LazyLogging {
   }
 
   // JNH: Fix this.  Seriously.
-  def row2Sf(sft: SimpleFeatureType, row: Row): SimpleFeature = {
-    val builder = new SimpleFeatureBuilder(sft)
-
+  def row2Sf(sft: SimpleFeatureType, row: Row, builder: SimpleFeatureBuilder, id: String): SimpleFeature = {
     import java.{lang => jl}
     sft.getAttributeDescriptors.foreach {
       ad =>
@@ -264,6 +276,7 @@ object SparkUtils extends LazyLogging {
         builder.set(name, value)
     }
 
-    builder.buildFeature(UUID.randomUUID().toString)
+    builder.userData(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+    builder.buildFeature(id)
   }
 }

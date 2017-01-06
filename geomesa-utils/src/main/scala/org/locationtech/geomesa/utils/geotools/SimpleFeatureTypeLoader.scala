@@ -78,7 +78,7 @@ class URLSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {
   import URLSftProvider._
   override def loadTypes(): JList[SimpleFeatureType] = {
     val urls = configURLs.toList
-    logger.info(s"Loading config from urls: $urls")
+    logger.info(s"Loading config from urls: ${urls.mkString(", ")}")
     urls
       .map(ConfigFactory.parseURL)
       .reduceLeftOption(_.withFallback(_))
