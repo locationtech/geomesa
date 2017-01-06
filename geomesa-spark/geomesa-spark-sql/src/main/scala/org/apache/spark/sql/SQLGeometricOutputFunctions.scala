@@ -8,18 +8,18 @@
 
 package org.apache.spark.sql
 
-import java.io.StringReader
-
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.geotools.geojson.geom.GeometryJSON
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.locationtech.geomesa.utils.text.WKBUtils
 
-
 object SQLGeometricOutputFunctions {
-  val geomJSON = new GeometryJSON()
+  // use ThreadLocal to ensure thread safety
+  private val geomJSON = new ThreadLocal[GeometryJSON]() {
+    override def initialValue() = new GeometryJSON()
+  }
   val ST_AsBinary: Geometry => Array[Byte] = geom => WKBUtils.write(geom)
-  val ST_AsGeoJSON: Geometry => String = geom => geomJSON.toString(geom)
+  val ST_AsGeoJSON: Geometry => String = geom => geomJSON.get().toString(geom)
   val ST_AsLatLonText: Point => String = point => toLatLonString(point)
   val ST_AsText: Geometry => String = geom => geom.toText
   val ST_GeoHash: (Geometry, Int) => String = (geom, prec) => GeoHash(geom.getInteriorPoint, prec).hash
