@@ -36,6 +36,8 @@ import scala.collection.JavaConversions._
 import scala.util.Try
 
 class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
+  import org.locationtech.geomesa.spark.CaseInsensitiveMapFix._
+
   override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
     AccumuloDataStoreFactory.canProcess(params)
 
