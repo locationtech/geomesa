@@ -1,7 +1,8 @@
 Getting Started
 ===============
 
-The :doc:`/tutorials/index` section demonstrate many of the capabilities of GeoMesa. In particular, see:
+This chapter highlights several features of GeoMesa, along with tutorials that describe for getting started with
+these capabilities.
 
 GeoMesa Accumulo
 ----------------
@@ -21,3 +22,25 @@ Apache Kafka using GeoMesa, query the data and replay the messages in a Kafka to
 and visualize the changes being made in Kafka with GeoServer.
 
 See :doc:`/tutorials/geomesa-quickstart-kafka`.
+
+Storm Analysis
+--------------
+
+GeoMesa can leverage the `Apache Storm`_ distributed computation system to ingest and analyze
+geospatial data in near real time. The :doc:`/tutorials/geomesa-quickstart-storm` tutorial
+shows how to use Kafka, GeoMesa, and Storm to parse Open Street Map data files and ingest
+them into Accumulo.
+
+See :doc:`/tutorials/geomesa-quickstart-storm`.
+
+.. _Apache Storm: http://storm.apache.org/
+
+GeoJSON
+-------
+
+GeoMesa provides built-in integration with GeoJSON. GeoMesa provides a GeoJSON API
+that allows for the indexing and querying of GeoJSON data without using the GeoTools
+API--all data and operations are pure JSON. The API also includes a REST endpoint for
+web integration.
+
+See :doc:`/user/apis/geojson`.

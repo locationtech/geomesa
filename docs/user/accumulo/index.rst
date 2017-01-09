@@ -15,7 +15,7 @@ For installation instructions, see :doc:`/user/installation/accumulo`.
 To get started with the Accumulo Data Store, try the :doc:`/tutorials/geomesa-quickstart-accumulo` tutorial.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    configuration
    commandline_tools

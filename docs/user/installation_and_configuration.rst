@@ -6,6 +6,7 @@ This includes installation of the supported data stores and
 installation and configuration of the GeoServer plugins.
 
 .. toctree::
+    :maxdepth: 1
 
     installation/general
     installation/versions

@@ -1,9 +1,12 @@
 User Manual
 ===========
 
+**Table of Contents**
+
 .. toctree::
-   :maxdepth: 2
-   
+   :maxdepth: 3
+   :numbered:
+
    introduction
    architecture
    getting_started
@@ -14,11 +17,16 @@ User Manual
    hbase/index
    bigtable/index
    cassandra/index
-   blobstore
    geoserver
+   blobstore
    convert
-   analytics/index
-   apis/index
+   geojson
+   metrics
+   native_api
+   process
+   spark
+   stream
+   web_data
 
 Appendix
 --------
