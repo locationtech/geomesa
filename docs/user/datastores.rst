@@ -12,7 +12,7 @@ stores are described in the following chapters:
 
 There is also a GeoTools-compatible data store for the Kafka messaging system:
 
- * :doc:`/usr/kafka/index`
+ * :doc:`/user/kafka/index`
 
 
 More information on using GeoTools

@@ -43,4 +43,4 @@ that allows for the indexing and querying of GeoJSON data without using the GeoT
 API--all data and operations are pure JSON. The API also includes a REST endpoint for
 web integration.
 
-See :doc:`/user/apis/geojson`.
+See :doc:`/user/geojson`.
