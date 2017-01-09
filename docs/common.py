@@ -86,8 +86,6 @@ rst_epilog = """
 
 .. |release_tarball_hbase| replace:: %(url_locationtech_release)s/geomesa-hbase-dist_2.11/%(release)s/geomesa-hbase-dist_2.11-%(release)s-bin.tar.gz
 
-.. |release_tarball_bigtable| replace:: %(url_locationtech_release)s/geomesa-bigtable-dist_2.11/%(release)s/geomesa-bigtable-dist_2.11-%(release)s-bin.tar.gz
-
 .. |release_tarball_cassandra| replace:: %(url_locationtech_release)s/geomesa-cassandra-dist_2.11/%(release)s/geomesa-cassandra-dist_2.11-%(release)s-bin.tar.gz
 
 .. |release_source_tarball| replace:: %(url_github_archive)s/geomesa_2.11-%(release)s.tar.gz

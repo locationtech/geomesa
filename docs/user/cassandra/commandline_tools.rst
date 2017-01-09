@@ -49,13 +49,13 @@ This is the script::
   GeoMesa will append a row to the "catalog" table, and also create an additional table for the new data.
 - The ``name-space`` parameter can be anything you want. (It is used by GeoTools to provide a name space for your feature types.)
 - The ``converter`` and ``spec`` parameters refer to a specific file located at ``conf/application.conf`` within the
-  ``GEOMESA_CASSANDRA_HOME`` directory. This file contains specifications for "converters" and "sfts" (SimpleFeatureTypes).
+  ``GEOMESA_CASSANDRA_HOME`` directory. This file contains specifications for "converters" and "sfts" (SimpleFeatureTypes) parsed by the :doc:`/user/convert` library.
   In this specific example it only contains one of each: a converter and a SimpleFeatureType which are both called
   "example_csv". The converter specifies how a raw data file should be parsed. For example, the converter specifies
   that the fourth column of the input file should be converted to a date using a specific date format. The
   SimpleFeatureType part specifies how the parsed data should be used to create a SimpleFeatureType. For example, this
-  file specifies that the SimpleFeatureType's first attribute should be one called "name". GeoMesa uses these specifications
-  to ingest the data from the external data file into the Cassandra database.
+  files specifies that the SimpleFeatureType's first attribute should be one called "name". GeoMesa uses these specifications
+  to ingest the data from the external data file into the Cassandra database. (For more information on converters see :doc:`/user/convert`.)
 
   GeoMesa automatically finds the ``conf/application.conf`` file based on its name and location. You can add additional
   converters and SFT specifications to it as needed for ingesting other datasets. In addition, you can also
