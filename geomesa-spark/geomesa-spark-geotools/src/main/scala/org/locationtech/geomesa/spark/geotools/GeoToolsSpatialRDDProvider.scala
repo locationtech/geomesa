@@ -25,6 +25,8 @@ import org.opengis.feature.simple.SimpleFeature
 import scala.collection.JavaConversions._
 
 class GeoToolsSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
+  import org.locationtech.geomesa.spark.CaseInsensitiveMapFix._
+
   override def canProcess(params: util.Map[String, Serializable]): Boolean = {
     params.containsKey("geotools") &&
       DataStoreFinder.getAllDataStores.exists(_.canProcess(params))

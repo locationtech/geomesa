@@ -44,6 +44,7 @@ import scala.util.Try
 //   .load()
 // }}
 class GeoMesaDataSource extends DataSourceRegister with RelationProvider with SchemaRelationProvider with CreatableRelationProvider {
+  import CaseInsensitiveMapFix._
 
   override def shortName(): String = "geomesa"
 
@@ -180,6 +181,8 @@ case class GeoMesaRelation(sqlContext: SQLContext,
 }
 
 object SparkUtils extends LazyLogging {
+  import CaseInsensitiveMapFix._
+
   @transient val ff = CommonFactoryFinder.getFilterFactory2
 
   def buildScan(sft: SimpleFeatureType,
