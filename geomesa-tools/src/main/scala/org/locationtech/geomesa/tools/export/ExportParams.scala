@@ -20,7 +20,7 @@ trait FileExportParams {
   @Parameter(names = Array("--gzip"), description = "Level of gzip compression to apply to output, from 1-9")
   var gzip: Integer = null
 
-  @Parameter(names = Array("-F", "--output-Format"), description = "File format of output files (csv|tsv|gml|json|shp|avro)")
+  @Parameter(names = Array("-F", "--output-format"), description = "File format of output files (csv|tsv|gml|json|shp|avro)")
   var outputFormat: String = "csv"
 
   @Parameter(names = Array("--no-header"), description = "Export as a delimited text format (csv|tsv) without a type header", required = false)
