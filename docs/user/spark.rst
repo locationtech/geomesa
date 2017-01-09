@@ -82,5 +82,5 @@ And create the RDD
 Examples
 --------
 
-For a complete example of analysis with Spark, see :doc:`../tutorials/spark`
+For a complete example of analysis with Spark, see :doc:`/tutorials/spark`.
 

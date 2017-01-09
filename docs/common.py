@@ -64,6 +64,7 @@ from target.versions import release,version,version_devel
 # Other versions and variables unlikely to change on every point release
 release_1_1 = '1.1.0-rc.7'
 release_eclipse = '1.2.0'
+release_tutorial = '1.3.0.0-m2'
 url_locationtech_release = "https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa"
 url_github_archive = "https://github.com/locationtech/geomesa/archive"
 
@@ -72,6 +73,10 @@ url_github_archive = "https://github.com/locationtech/geomesa/archive"
 # prior to appending the RST epilog to each file)
 rst_epilog = """
 
+.. _GeoTools: http://geotools.org/
+
+.. _GeoServer: http://geoserver.org/
+
 .. |release_tarball_accumulo| replace:: %(url_locationtech_release)s/geomesa-accumulo-dist_2.11/%(release)s/geomesa-accumulo-dist_2.11-%(release)s-bin.tar.gz
 
 .. |release_tarball_kafka08| replace:: %(url_locationtech_release)s/geomesa-kafka-08-dist_2.11/%(release)s/geomesa-kafka-08-dist_2.11-%(release)s-bin.tar.gz
@@ -79,6 +84,10 @@ rst_epilog = """
 .. |release_tarball_kafka09| replace:: %(url_locationtech_release)s/geomesa-kafka-09-dist_2.11/%(release)s/geomesa-kafka-09-dist_2.11-%(release)s-bin.tar.gz
 
 .. |release_tarball_kafka10| replace:: %(url_locationtech_release)s/geomesa-kafka-10-dist_2.11/%(release)s/geomesa-kafka-10-dist_2.11-%(release)s-bin.tar.gz
+
+.. |release_tarball_hbase| replace:: %(url_locationtech_release)s/geomesa-hbase-dist_2.11/%(release)s/geomesa-hbase-dist_2.11-%(release)s-bin.tar.gz
+
+.. |release_tarball_cassandra| replace:: %(url_locationtech_release)s/geomesa-cassandra-dist_2.11/%(release)s/geomesa-cassandra-dist_2.11-%(release)s-bin.tar.gz
 
 .. |release_source_tarball| replace:: %(url_github_archive)s/geomesa_2.11-%(release)s.tar.gz
 
@@ -102,6 +111,8 @@ rst_epilog = """
 
 .. |release_1_1_source_tarball| replace:: %(url_github_archive)s/geomesa-%(release_1_1)s.tar.gz
 
+.. |release_tutorial| replace:: %(release_tutorial)s
+
 .. |maven_version| replace:: 3.2.2 or better
 
 .. |geoserver_version| replace:: 2.9.1
@@ -119,6 +130,7 @@ rst_epilog = """
 """ % {"release": release,
        "release_1_1": release_1_1,
        "release_eclipse": release_eclipse,
+       "release_tutorial": release_tutorial,
        "version_devel": version_devel,
        "url_locationtech_release": url_locationtech_release,
        "url_github_archive": url_github_archive}
