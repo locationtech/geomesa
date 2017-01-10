@@ -10,8 +10,8 @@ User Manual
    introduction
    architecture
    getting_started
-   installation_and_configuration
-   datastores
+   download
+   datastores/index
    accumulo/index
    kafka/index
    hbase/index

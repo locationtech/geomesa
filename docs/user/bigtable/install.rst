@@ -7,7 +7,7 @@ Building from Source
 --------------------
 
 GeoMesa BigTable must be built from source. For more information refer
-to :ref:`building_from_source` in the :doc:`/developer/index`, or to the
+to :ref:`building_from_source` in the developer manual, or to the
 ``README.md`` file in the the source distribution. Build using using the
 ``bigtable`` Maven profile:
 

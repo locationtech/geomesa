@@ -1,3 +1,5 @@
+.. _accumulo_tools:
+
 Command Line Tools
 ==================
 

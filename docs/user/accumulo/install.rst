@@ -23,7 +23,7 @@ Building from Source
 --------------------
 
 GeoMesa Accumulo may also be built from source. For more information refer to :ref:`building_from_source`
-in the :doc:`/developer/index`, or to the ``README.md`` file in the the source distribution.
+in the developer manual, or to the ``README.md`` file in the the source distribution.
 The remainder of the instructions in this chapter assume the use of the binary GeoMesa Accumulo
 distribution. If you have built from source, the distribution is created in the ``target`` directory of
 ``geomesa-accumulo/geomesa-accumulo-dist``.
@@ -65,9 +65,11 @@ each tablet server.
 .. code-block:: bash
 
     # something like this for each tablet server
-    $ scp geomesa-accumulo-dist_2.11-$VERSION/dist/accumulo/geomesa-accumulo-distributed-runtime_2.11-$VERSION.jar tserver1:$ACCUMULO_HOME/lib/ext
+    $ scp dist/accumulo/geomesa-accumulo-distributed-runtime_2.11-$VERSION.jar \
+        tserver1:$ACCUMULO_HOME/lib/ext
     # or for raster support
-    $ scp geomesa-accumulo-dist_2.11-$VERSION/dist/accumulo/geomesa-accumulo-distributed-runtime-raster_2.11-$VERSION.jar tserver1:$ACCUMULO_HOME/lib/ext
+    $ scp dist/accumulo/geomesa-accumulo-distributed-runtime-raster_2.11-$VERSION.jar \
+        tserver1:$ACCUMULO_HOME/lib/ext
 
 .. note::
 
@@ -84,7 +86,7 @@ Accumulo 1.6+, we can leverage namespaces to isolate the GeoMesa classpath
 from the rest of Accumulo.
 
 To install the distributed runtime JAR, use the ``setup-namespace.sh``
-script in the ``geomesa-accumulo-dist_2.11-$VERSION/dist/accumulo`` directory.
+script in the ``geomesa-accumulo-dist_2.11-$VERSION/bin`` directory.
 
 .. code::
 
@@ -159,7 +161,7 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_HOME`` an
 .. warning::
 
     Please note that the ``$GEOMESA_HOME`` variable points to the location of the ``geomesa-accumulo_2.11-$VERSION``
-    directory, not the main geomesa binary distribution directory!
+    directory, not the main geomesa binary distribution directory.
 
 .. note::
 
@@ -173,8 +175,12 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_HOME`` an
     If you are running the tools on a system without
     Accumulo installed and configured, the ``install-hadoop-accumulo.sh`` script
     in the ``bin`` directory may be used to download the needed Hadoop/Accumulo JARs into
-    the ``lib/common`` directory. You should edit this script to match the versions used by your
+    the ``lib`` directory. You should edit this script to match the versions used by your
     installation.
+
+.. note::
+
+    See :ref:`slf4j_configuration` for information about configuring the SLF4J implementation.
 
 Due to licensing restrictions, dependencies for shape file support and raster
 ingest must be separately installed. Do this with the following commands:
@@ -192,38 +198,9 @@ Test the command that invokes the GeoMesa Tools:
     Using GEOMESA_HOME = /path/to/geomesa-accumulo-dist_2.11-$VERSION
     Usage: geomesa [command] [command options]
       Commands:
-        add-attribute-index    Run a Hadoop map reduce job to add an index for attributes
-        add-index              Add or update indices for an existing GeoMesa feature type
-        config-table           Perform table configuration operations
-        convert                Convert files using GeoMesa's internal SFT converter framework
-        create-schema          Create a GeoMesa feature type
-        delete-catalog         Delete a GeoMesa catalog completely (and all features in it)
-        delete-features        Delete features from a table in GeoMesa. Does not delete any tables or schema information.
-        delete-raster          Delete a GeoMesa Raster table
-        env                    Examine the current GeoMesa environment
-        explain                Explain how a GeoMesa query will be executed
-        export                 Export features from a GeoMesa data store
-        export-bin             Export features from a GeoMesa data store in a binary format.
-        gen-avro-schema        Generate an Avro schema from a SimpleFeatureType
-        get-names              List GeoMesa feature types for a given catalog
-        get-schema             Describe the attributes of a given GeoMesa feature type
-        get-sft-config         Get the SimpleFeatureType of a feature
-        help                   Show help
-        ingest                 Ingest/convert various file formats into GeoMesa
-        ingest-raster          Ingest raster files into GeoMesa
-        keywords               Add/Remove/List keywords on an existing schema
-        query-raster-stats     Export queries and statistics about the last X number of queries to a CSV file.
-        remove-schema          Remove a schema and associated features from a GeoMesa catalog
-        stats-analyze          Analyze statistics on a GeoMesa feature type
-        stats-bounds           View or calculate bounds on attributes in a GeoMesa feature type
-        stats-count            Estimate or calculate feature counts in a GeoMesa feature type
-        stats-histogram        View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values
-        stats-top-k            Enumerate the most frequent values in a GeoMesa feature type
-        version                Display the installed GeoMesa version
+      ...
 
-.. note::
-
-    See :ref:`slf4j_configuration` for information about configuring the SLF4J implementation.
+For more details, see :ref:`accumulo_tools`.
 
 .. _install_accumulo_geoserver:
 
@@ -416,7 +393,7 @@ A note about GeoMesa Process
 
     Some GeoMesa-specific WPS processes such as ``geomesa:Density``, which is used
     in the generation of heat maps, also require ``geomesa-process-$VERSION.jar``.
-    This JAR is included in the ``geomesa-accumulo/geomesa-accumulo-dist/target/geomesa-accumulo_2.11-$VERSION/dist/geoserver`` directory of the binary
+    This JAR is included in the ``geomesa-accumulo_2.11-$VERSION/dist/geoserver`` directory of the binary
     distribution, or is built in the ``geomesa-process`` module of the source
     distribution.
 
