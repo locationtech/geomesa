@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.kafka.tools
 
 import com.beust.jcommander.Parameter
+import org.locationtech.geomesa.kafka.KafkaDataStoreHelper
 
 /**
   * Shared Kafka-specific command line parameters
@@ -34,7 +35,7 @@ trait OptionalZkPathParams extends KafkaConnectionParams {
 
 trait RequiredZkPathParams extends KafkaConnectionParams {
   @Parameter(names = Array("-p", "--zkpath"), description = "Zookeeper path where feature schemas are saved", required = true)
-  override var zkPath: String = null
+  override var zkPath: String = KafkaDataStoreHelper.DefaultZkPath
 }
 
 trait ProducerKDSConnectionParams extends RequiredZkPathParams {

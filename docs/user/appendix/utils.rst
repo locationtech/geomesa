@@ -1,7 +1,7 @@
 GeoMesa Utils
 =============
 
-Several useful utilities are found in the ``geomesa-utils`` module.
+Useful utilities are found in the ``geomesa-utils`` module.
 
 Simple Feature Wrapper Generation
 ---------------------------------

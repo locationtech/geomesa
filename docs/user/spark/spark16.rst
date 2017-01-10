@@ -73,4 +73,4 @@ And create the RDD
 
     val rdd = GeoMesaSpark.rdd(new Configuration, sc, params, query)
 
-For a complete example of analysis with Spark, see :doc:`../tutorials/spark`
+For a complete example of analysis with Spark, see :doc:`/tutorials/spark`
