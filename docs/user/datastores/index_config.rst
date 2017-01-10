@@ -64,7 +64,7 @@ indices you have defined.
 
 .. warning::
 
-    Certain queries may be much slower if you disable any indices.
+    Certain queries may be much slower if you disable an index.
 
 To enable only certain indices, you may set a hint in your simple feature type. The hint key is
 ``geomesa.indexes.enabled``, and it should contain a comma-delimited list containing a subset of:
@@ -117,13 +117,13 @@ Configuring Z-Index Time Interval
 ---------------------------------
 
 GeoMesa uses a z-curve index for time-based queries. By default, time is split into week-long chunks and indexed
-per-week. If your queries are typically much larger or smaller than one week, you may wish to partition at a
+per week. If your queries are typically much larger or smaller than one week, you may wish to partition at a
 different interval. GeoMesa provides four intervals - ``day``, ``week``, ``month`` or ``year``. As the interval
 gets larger, fewer partitions must be examined for a query, but the precision of each interval will go down.
 
-If you typically query months of data at a time, then indexing per-month may provide better performance.
-Alternatively, if you typically query minutes of data at a time, indexing per-day may be faster. The default
-per-week partitioning tends to provides a good balance for most scenarios. Note that the optimal partitioning
+If you typically query months of data at a time, then indexing per month may provide better performance.
+Alternatively, if you typically query minutes of data at a time, indexing per day may be faster. The default
+per week partitioning tends to provides a good balance for most scenarios. Note that the optimal partitioning
 depends on query patterns, not the distribution of data.
 
 The time partitioning is set when calling ``createSchema``. It may be specified through the simple feature type

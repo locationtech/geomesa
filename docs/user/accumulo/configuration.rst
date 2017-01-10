@@ -7,7 +7,7 @@ see :ref:`geomesa_site_xml`.
 Batch Writer Properties
 -----------------------
 
-The following properties control the configuration of Accumulo ``BatchWriters``. They map directly to the
+The following properties control the configuration of Accumulo ``BatchWriter``\ s. They map directly to the
 underlying ``BatchWriter`` methods.
 
 geomesa.batchwriter.latency.millis

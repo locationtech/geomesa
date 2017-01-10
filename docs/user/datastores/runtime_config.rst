@@ -7,7 +7,7 @@ GeoMesa uses system properties for various runtime configuration options. As a c
 can be specified in an XML file instead of the command line. When run, GeoMesa will load
 the file ``geomesa-site.xml`` from the classpath (if available), and use any properties configured there.
 
-To configure a GeoMesa tools distribution, place ``geomesa-site.xml`` in the ``conf`` folder.
+To configure a GeoMesa binary distribution, place ``geomesa-site.xml`` in the ``conf`` folder.
 For GeoServer, place the file under ``geoserver/WEB-INF/classes``. For other environments,
 ensure the file is available at the root level of the classpath.
 
@@ -49,7 +49,7 @@ geomesa.scan.ranges.target
 ++++++++++++++++++++++++++
 
 This property provides a rough upper-limit for the number of row ranges that will be scanned for a single
-query. In general, more ranges will result in less false-positive rows being scanned, which will speed up
+query. In general, more ranges will result in fewer false-positive rows being scanned, which will speed up
 most queries. However, too many ranges can take a long time to generate, and overwhelm clients, causing
 slowdowns. The optimal value depends on the environment. Note that for temporal queries against the
 Z3 or XZ3 index, the number of ranges will be multiplied by the number of time periods (e.g. weeks by
