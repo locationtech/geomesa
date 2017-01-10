@@ -34,6 +34,8 @@ parameters passed as an argument, as shown in the Scala code below:
     // get the RDD, using the SparkContext configured as above
     val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, query)
 
+.. _accumulo_rdd_provider:
+
 Accumulo RDD Provider
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -71,6 +73,8 @@ To save features, use the ``save()`` method:
 .. code-block:: scala
 
     GeoMesaSpark(params).save(rdd, params, "gdelt")
+
+.. _converter_rdd_provider:
 
 Converter RDD Provider
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -115,6 +119,8 @@ converter, the following Scala code can be used to load this data into an ``RDD`
     ``ConvertSpatialRDDProvider`` is read-only, and does not support writing features
     to data files.
 
+.. _geotools_rdd_provider:
+
 GeoTools RDD Provider
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -129,12 +135,37 @@ GeoTools RDD Provider
     </dependency>
 
 ``GeoToolsSpatialRDDProvider`` generates and saves ``RDD``\ s of features stored in
-a GeoMesa ``AccumuloDataStore``. The configuration parameters passed to
-``AccumuloSpatialRDDProvider`` are the same as those passed to
-``AccumuloDataStoreFactory.createDataStore()`` or ``DataStoreFinder.getDataStore()``.
-The feature to access in GeoMesa is passed as the type name of the query passed
-to the ``rdd()`` method. For example, to load an ``RDD`` of features of type "gdelt"
-from the "geomesa" Accumulo table:
-.. introduction
-.. parameters/configuration
-.. don't use for Accumulo; use Accumulo provider above instead
+a generic GeoTools ``DataStore``. The configuration parameters passed are the same as
+those passed to ``DataStoreFinder.getDataStore()`` to create the data store of interest,
+plus a required boolean parameter called "geotools" to indicate to the SPI to load
+``GeoToolsSpatialRDDProvider``. For example, the `CSVDataStore`_ described in the
+`GeoTools ContentDataStore tutorial`_ takes a single parameter called "file". To use
+this data store with GeoMesa Spark, do the following:
+
+.. code-block:: scala
+
+    val params = Map(
+      "geotools" -> "true",
+      "file" -> "locations.csv")
+    val query = new Query("locations")
+    val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, query)
+
+.. _GeoTools ContentDataStore tutorial: http://docs.geotools.org/latest/userguide/tutorial/datastore/index.html
+
+.. _CSVDataStore: http://docs.geotools.org/latest/userguide/tutorial/datastore/read.html
+
+The name of the feature type to access in the data store is passed as the type name of the
+query passed to the ``rdd()`` method. In the example of the `CSVDataStore`_, this is the
+basename of the filename passed as an argument.
+
+.. warning::
+
+    Do not use the GeoTools RDD provider with a GeoMesa Accumulo data store. The
+    :ref:`accumulo_rdd_provider` provides additional optimizations to improve performance
+    between Spark/SparkSQL and GeoMesa Accumulo data stores.
+
+If your data store supports it, use the ``save()`` method to save features:
+
+.. code-block:: scala
+
+    GeoMesaSpark(params).save(rdd, params, "locations")
