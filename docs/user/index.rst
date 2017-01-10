@@ -11,6 +11,7 @@ User Manual
    architecture
    getting_started
    download
+   install
    datastores/index
    accumulo/index
    kafka/index
