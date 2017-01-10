@@ -42,10 +42,8 @@ object SQLGeometricConstructorFunctions {
   val ST_PointFromWKB: Array[Byte] => Point = array => ST_GeomFromWKB(array).asInstanceOf[Point]
   val ST_Polygon: LineString => Polygon = shell => ST_MakePolygon(shell)
   val ST_PolygonFromText: String => Polygon = text => WKTUtils.read(text).asInstanceOf[Polygon]
-  val ST_AsText: Geometry => String = g => WKTUtils.write(g)
 
   def registerFunctions(sqlContext: SQLContext): Unit = {
-    sqlContext.udf.register("st_asText"            , ST_AsText)
     sqlContext.udf.register("st_box2DFromGeoHash"  , ST_GeomFromGeoHash)
     sqlContext.udf.register("st_geomFromGeoHash"   , ST_GeomFromGeoHash)
     sqlContext.udf.register("st_geomFromText"      , ST_GeomFromWKT)
