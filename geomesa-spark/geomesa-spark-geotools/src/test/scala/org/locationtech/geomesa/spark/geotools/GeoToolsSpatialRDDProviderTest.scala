@@ -43,8 +43,7 @@ class GeoToolsSpatialRDDProviderTest extends Specification {
       val ds = DataStoreFinder.getDataStore(dsParams)
       ingestChicago(ds)
 
-      val spatialRDDProvider = GeoMesaSpark(dsParams)
-      val rdd = spatialRDDProvider.rdd(new Configuration(), sc, dsParams, new Query("chicago"))
+      val rdd = GeoMesaSpark(dsParams).rdd(new Configuration(), sc, dsParams, new Query("chicago"))
       rdd.count() mustEqual(3l)
     }
   }
