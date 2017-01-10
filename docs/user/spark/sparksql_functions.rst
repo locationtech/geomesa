@@ -1,7 +1,7 @@
 SparkSQL Functions
 ==================
 
-The following is a full list of the spatial SparkSQL user-defined functions defined by the ``geomesa-spark-sql`` module.
+The following is a list of the spatial SparkSQL user-defined functions defined by the ``geomesa-spark-sql`` module.
 
 Geometry Constructors
 ---------------------
@@ -26,7 +26,7 @@ st_geomFromGeoHash
 
     Geometry st_geomFromGeoHash(String geohash, Int prec)
 
-Returns the ``Geometry`` of the bounding box corresponding to the GeoHash string *geohash* with a precision of *prec* bits.
+Returns the ``Geometry`` of the bounding box corresponding to the Geohash string *geohash* (base-32 encoded) with a precision of *prec* bits. See :ref:`geohash` for more information on GeoHashes.
 
 .. _st_geomFromText:
 
@@ -203,7 +203,7 @@ st_pointFromGeoHash
 
     Point st_pointFromGeoHash(String geohash, Int prec)
 
-Return the ``Point`` at the geometric center of the bounding box defined by the Geohash string *geohash* with a precision of *prec* bits.
+Return the ``Point`` at the geometric center of the bounding box defined by the Geohash string *geohash* (base-32 encoded) with a precision of *prec* bits. See :ref:`geohash` for more information on Geohashes.
 
 .. _st_pointFromText:
 
@@ -522,9 +522,9 @@ st_asBinary
 
 ::
 
-     st_asBinary()
+     Array[Byte] st_asBinary(Geometry geom)
 
-
+Returns ``Geometry`` *geom* in `WKB`_ representation.
 
 .. _st_asGeoJSON:
 
@@ -533,9 +533,9 @@ st_asGeoJSON
 
 ::
 
-     st_asGeoJSON()
+     String st_asGeoJSON(Geometry geom)
 
-
+Returns ``Geometry`` *geom* in
 
 .. _st_asLatLonText:
 
@@ -544,9 +544,9 @@ st_asLatLonText
 
 ::
 
-     st_asLatLonText()
+     String st_asLatLonText(Point p)
 
-
+Returns a ``String`` describing the latitude and longitude of ``Point`` *p* in degrees, minutes, and seconds. (This presumes that the units of the coordinates of *p* are latitude and longitude.)
 
 .. _st_asText:
 
@@ -557,7 +557,7 @@ st_asText
 
     String st_asText(Geometry geom)
 
-Return the `WKT`_ representation of *geom*.
+Returns ``Geometry`` *geom* in `WKT`_ representation.
 
 .. _st_geoHash:
 
@@ -566,8 +566,9 @@ st_geoHash
 
 ::
 
-     st_geoHash()
+    String st_geoHash(Geometry geom, Int prec)
 
+Returns the Geohash (in base-32 representation) of an interior point of Geometry *geom*. See :ref:`geohash` for more information on Geohashes.
 
 
 Spatial Relationships

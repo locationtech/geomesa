@@ -2,7 +2,46 @@ Spark Core
 ----------
 
 ``geomesa-spark-core`` is used to work directly with ``RDD``\ s of features
-from GeoMesa. To use this module, Spark must be configured to register the
+from GeoMesa.
+
+Example
+^^^^^^^
+
+The following is a complete Scala example of creating an RDD via a geospatial query
+against a GeoMesa data store:
+
+.. code-block:: scala
+
+    // DataStore params to a hypothetical GeoMesa Accumulo table
+    val dsParams = Map(
+      "instanceId" -> "instance",
+      "zookeepers" -> "zoo1,zoo2,zoo3",
+      "user"       -> "user",
+      "password"   -> "*****",
+      "auths"      -> "USER,ADMIN",
+      "tableName"  -> "geomesa_catalog")
+
+    // set SparkContext
+    val conf = new SparkConf().setMaster("local[*]").setAppName("testSpark")
+    conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+    conf.set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
+    val sc = SparkContext.getOrCreate(conf)
+
+    // create RDD with a geospatial query using GeoMesa functions
+    val spatialRDDProvider = GeoMesaSpark(dsParams)
+    val filter = ECQL.toFilter("CONTAINS(POLYGON((0 0, 0 90, 90 90, 90 0, 0 0)), geom)")
+    val query = new Query("chicago", filter)
+    val resultRDD = spatialRDDProvider.rdd(new Configuration, sc, dsParams, query)
+
+    resultRDD.collect
+    // Array[org.opengis.feature.simple.SimpleFeature] = Array(
+    //    ScalaSimpleFeature:4, ScalaSimpleFeature:5, ScalaSimpleFeature:6,
+    //    ScalaSimpleFeature:7, ScalaSimpleFeature:9)
+
+Usage
+^^^^^
+
+To use this module, Spark must be configured to register the
 ``GeoMesaSparkKryoRegistor`` class, which provides objects to serialize and
 deserialize features for each feature type, as shown in the Scala code below:
 

@@ -1,7 +1,7 @@
 GeoMesa Spark
 =============
 
-GeoMesa Spark allows for execution of jobs on Apache Sparkusing data stored in GeoMesa,
+GeoMesa Spark allows for execution of jobs on Apache Spark using data stored in GeoMesa,
 other GeoTools ``DataStore``\ s, or files readable by the GeoMesa converter library.
 The library allows creation of Spark ``RDD``\ s and ``DataFrame``\ s, writing of
 Spark ``RDD``\ s and ``DataFrame``\ s to GeoMesa Accumulo and other GeoTools ``DataStore``\ s, and serialization of ``SimpleFeature``\ s using Kryo.
@@ -9,12 +9,9 @@ Spark ``RDD``\ s and ``DataFrame``\ s to GeoMesa Accumulo and other GeoTools ``D
 The current version of GeoMesa Spark supports Apache Spark 2.0.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   example
    architecture
    core
    sparksql
    sparksql_functions
-   jupyter
-   spark16
