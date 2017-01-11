@@ -120,7 +120,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     }
 
     // delete it
-    val remover = ds.getFeatureWriter(sftName, ECQL.toFilter("IN ('10')"), Transaction.AUTO_COMMIT)
+    var remover = ds.getFeatureWriter(sftName, ECQL.toFilter("IN ('10')"), Transaction.AUTO_COMMIT)
     remover.hasNext must beTrue
     remover.next
     remover.remove()
@@ -144,6 +144,21 @@ class BackCompatibilityTest extends Specification with LazyLogging {
       forall(transforms) { transform =>
         doQuery(fs, new Query(sftName, filter, transform)) must containTheSameElementsAs(results)
       }
+    }
+
+    // delete one of the old features
+    remover = ds.getFeatureWriter(sftName, ECQL.toFilter("IN ('5')"), Transaction.AUTO_COMMIT)
+    remover.hasNext must beTrue
+    remover.next
+    remover.remove()
+    remover.hasNext must beFalse
+    remover.close()
+
+    // make sure that it no longer comes back
+    forall(queries) { case (q, results) =>
+      val filter = ECQL.toFilter(q)
+      logger.debug(s"Running query $q")
+      doQuery(fs, new Query(sftName, filter)) must containTheSameElementsAs(results.filter(_ != 5))
     }
 
     ds.dispose()
