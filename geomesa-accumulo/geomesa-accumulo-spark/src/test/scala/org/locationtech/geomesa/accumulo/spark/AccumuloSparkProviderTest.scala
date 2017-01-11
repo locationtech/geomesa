@@ -27,6 +27,9 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
   override def spec: String = SparkSQLTestUtils.ChiSpec
   private val ff = CommonFactoryFinder.getFilterFactory2
 
+  // spark sql requires scala 2.11, so skip tests during 2.10 build
+  skipAllIf(scala.util.Properties.versionNumberString.startsWith("2.10"))
+
   "sql data tests" should {
     sequential
 
