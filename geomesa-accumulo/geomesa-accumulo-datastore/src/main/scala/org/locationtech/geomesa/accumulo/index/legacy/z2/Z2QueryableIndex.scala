@@ -6,41 +6,44 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.index.z2
+package org.locationtech.geomesa.accumulo.index.legacy.z2
+
+import java.nio.charset.StandardCharsets
 
 import com.google.common.primitives.{Bytes, Longs}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Mutation, Range => aRange}
 import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
+import org.locationtech.geomesa.accumulo.AccumuloFilterStrategyType
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators._
-import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloFilterStrategyType}
-import org.locationtech.geomesa.curve.XZ2SFC
+import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
 import org.locationtech.geomesa.index.utils.{Explainer, SplitArrays}
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
+import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
 
-trait XZ2QueryableIndex extends AccumuloFeatureIndexType
+trait Z2QueryableIndex extends AccumuloFeatureIndex
     with SpatialFilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation]
     with LazyLogging {
 
-  writable: AccumuloWritableIndex =>
+  writable: Z2WritableIndex =>
 
   override def getQueryPlan(sft: SimpleFeatureType,
                             ds: AccumuloDataStore,
-                            filter:AccumuloFilterStrategyType,
+                            filter: AccumuloFilterStrategyType,
                             hints: Hints,
                             explain: Explainer): AccumuloQueryPlan = {
 
+    import AccumuloFeatureIndex.{BinColumnFamily, FullColumnFamily}
     import org.locationtech.geomesa.filter.FilterHelper._
     import org.locationtech.geomesa.filter._
-    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+    import org.locationtech.geomesa.index.conf.QueryHints._
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     if (filter.primary.isEmpty) {
       filter.secondary.foreach { f =>
@@ -58,77 +61,97 @@ trait XZ2QueryableIndex extends AccumuloFeatureIndexType
       return EmptyPlan(filter)
     }
 
-    val ecql = filter.filter
+    val looseBBox = if (hints.containsKey(LOOSE_BBOX)) Boolean.unbox(hints.get(LOOSE_BBOX)) else ds.config.looseBBox
+
+    // if the user has requested strict bounding boxes, we apply the full filter
+    // if this is a non-point geometry type, the index is coarse-grained, so we apply the full filter
+    // if the spatial predicate is rectangular (e.g. a bbox), the index is fine enough that we
+    // don't need to apply the filter on top of it. this may cause some minor errors at extremely
+    // fine resolutions, but the performance is worth it
+    // if we have a complicated geometry predicate, we need to pass it through to be evaluated
+    val ecql = if (looseBBox && sft.isPoints && geometries.values.forall(GeometryUtils.isRectangular)) {
+      filter.secondary
+    } else {
+      filter.filter
+    }
 
     val (iterators, kvsToFeatures, reduce, colFamily, hasDupes) = if (hints.isBinQuery) {
       // if possible, use the pre-computed values
       // can't use if there are non-st filters or if custom fields are requested
       val (iters, cf) =
         if (filter.secondary.isEmpty && BinAggregatingIterator.canUsePrecomputedBins(sft, hints)) {
-          val iter = BinAggregatingIterator.configurePrecomputed(sft, this, ecql, hints, deduplicate = false)
-          (Seq(iter), AccumuloWritableIndex.BinColumnFamily)
+          (Seq(BinAggregatingIterator.configurePrecomputed(sft, this, ecql, hints, sft.nonPoints)), BinColumnFamily)
         } else {
-          val iter = BinAggregatingIterator.configureDynamic(sft, this, ecql, hints, deduplicate = false)
-          (Seq(iter), AccumuloWritableIndex.FullColumnFamily)
+          val iter = BinAggregatingIterator.configureDynamic(sft, this, ecql, hints, sft.nonPoints)
+          (Seq(iter), FullColumnFamily)
         }
       (iters, BinAggregatingIterator.kvsToFeatures(), None, cf, false)
     } else if (hints.isDensityQuery) {
-      val iter = KryoLazyDensityIterator.configure(sft, this, ecql, hints)
-      (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), None, AccumuloWritableIndex.FullColumnFamily, false)
+      val iter = Z2DensityIterator.configure(sft, ecql, hints)
+      (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), None, FullColumnFamily, false)
     } else if (hints.isStatsIteratorQuery) {
-      val iter = KryoLazyStatsIterator.configure(sft, this, ecql, hints, deduplicate = false)
+      val iter = KryoLazyStatsIterator.configure(sft, this, ecql, hints, sft.nonPoints)
       val reduce = Some(KryoLazyStatsIterator.reduceFeatures(sft, hints)(_))
-      (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(sft), reduce, AccumuloWritableIndex.FullColumnFamily, false)
+      (Seq(iter), KryoLazyStatsIterator.kvsToFeatures(sft), reduce, FullColumnFamily, false)
     } else if (hints.isMapAggregatingQuery) {
-      val iter = KryoLazyMapAggregatingIterator.configure(sft, this, ecql, hints, deduplicate = false)
+      val iter = KryoLazyMapAggregatingIterator.configure(sft, this, ecql, hints, sft.nonPoints)
       val reduce = Some(KryoLazyMapAggregatingIterator.reduceMapAggregationFeatures(hints)(_))
-      (Seq(iter), entriesToFeatures(sft, hints.getReturnSft), reduce, AccumuloWritableIndex.FullColumnFamily, false)
+      (Seq(iter), entriesToFeatures(sft, hints.getReturnSft), reduce, FullColumnFamily, false)
     } else {
       val iters = KryoLazyFilterTransformIterator.configure(sft, this, ecql, hints).toSeq
-      (iters, entriesToFeatures(sft, hints.getReturnSft), None, AccumuloWritableIndex.FullColumnFamily, false)
+      (iters, entriesToFeatures(sft, hints.getReturnSft), None, FullColumnFamily, sft.nonPoints)
     }
 
-    val table = getTableName(sft.getTypeName, ds)
+    val z2table = getTableName(sft.getTypeName, ds)
     val numThreads = ds.config.queryThreads
 
-    val ranges = if (filter.primary.isEmpty) {
-      if (sft.isTableSharing) {
-        Seq(aRange.prefix(new Text(sft.getTableSharingBytes)))
+    val (ranges, z2Iter) = if (filter.primary.isEmpty) {
+      val range = if (sft.isTableSharing) {
+        aRange.prefix(new Text(sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)))
       } else {
-        Seq(new aRange())
+        new aRange()
       }
+      (Seq(range), None)
     } else {
-      // determine the ranges using the XZ curve
+      // setup Z2 iterator
+      import org.locationtech.geomesa.accumulo.index.legacy.z2.Z2IndexV1.GEOM_Z_NUM_BYTES
       val xy = geometries.values.map(GeometryUtils.bounds)
       val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
-      val sfc = XZ2SFC(sft.getXZPrecision)
-      val zRanges = sfc.ranges(xy, rangeTarget).map { range =>
-        (Longs.toByteArray(range.lower), Longs.toByteArray(range.upper))
+      val zRanges = if (sft.isPoints) {
+        Z2SFC.ranges(xy, 64, rangeTarget).map(r => (Longs.toByteArray(r.lower), Longs.toByteArray(r.upper)))
+      } else {
+        Z2SFC.ranges(xy, 8 * GEOM_Z_NUM_BYTES, rangeTarget).map { r =>
+          (Longs.toByteArray(r.lower).take(GEOM_Z_NUM_BYTES), Longs.toByteArray(r.upper).take(GEOM_Z_NUM_BYTES))
+        }
       }
 
       val prefixes = if (sft.isTableSharing) {
-        val ts = sft.getTableSharingBytes
+        val ts = sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)
         SplitArrays.apply(sft.getZShards).map(ts ++ _)
       } else {
         SplitArrays.apply(sft.getZShards)
       }
 
-      prefixes.flatMap { prefix =>
+      val ranges = prefixes.flatMap { prefix =>
         zRanges.map { case (lo, hi) =>
           val start = new Text(Bytes.concat(prefix, lo))
           val end = aRange.followingPrefix(new Text(Bytes.concat(prefix, hi)))
           new aRange(start, true, end, false)
         }
       }
+
+      val zIter = Z2Iterator.configure(sft, xy, Z2Index.Z2IterPriority)
+
+      (ranges, Some(zIter))
     }
 
     val perAttributeIter = sft.getVisibilityLevel match {
       case VisibilityLevel.Feature   => Seq.empty
       case VisibilityLevel.Attribute => Seq(KryoVisibilityRowEncoder.configure(sft))
     }
-    val cf = if (perAttributeIter.isEmpty) colFamily else AccumuloWritableIndex.AttributeColumnFamily
+    val cf = if (perAttributeIter.isEmpty) colFamily else AccumuloFeatureIndex.AttributeColumnFamily
 
-    val iters = perAttributeIter ++ iterators
-    BatchScanPlan(filter, table, ranges, iters, Seq(cf), kvsToFeatures, reduce, numThreads, hasDupes)
+    val iters = perAttributeIter ++ iterators ++ z2Iter
+    BatchScanPlan(filter, z2table, ranges, iters, Seq(cf), kvsToFeatures, reduce, numThreads, hasDupes)
   }
 }

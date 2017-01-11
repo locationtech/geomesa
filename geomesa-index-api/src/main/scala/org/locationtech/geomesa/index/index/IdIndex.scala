@@ -33,8 +33,7 @@ trait IdIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exten
   override def writer(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
     val sharing = sft.getTableSharingBytes
     (wf) => {
-      val id = wf.feature.getID.getBytes(StandardCharsets.UTF_8)
-      val row = Bytes.concat(sharing, id)
+      val row = Bytes.concat(sharing, wf.idBytes)
       Seq(createInsert(row, wf))
     }
   }
@@ -42,8 +41,7 @@ trait IdIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exten
   override def remover(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
     val sharing = sft.getTableSharingBytes
     (wf) => {
-      val id = wf.feature.getID.getBytes(StandardCharsets.UTF_8)
-      val row = Bytes.concat(sharing, id)
+      val row = Bytes.concat(sharing, wf.idBytes)
       Seq(createDelete(row, wf))
     }
   }

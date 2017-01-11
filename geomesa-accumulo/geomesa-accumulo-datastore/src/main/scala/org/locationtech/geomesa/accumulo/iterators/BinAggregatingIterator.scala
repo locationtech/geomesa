@@ -21,7 +21,7 @@ import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIt
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
-import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AccumuloWritableIndex}
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
@@ -481,7 +481,7 @@ object BinAggregatingIterator extends LazyLogging {
    * Only encodes one bin (or one bin line) per feature
    */
   def nonAggregatedKvsToFeatures(sft: SimpleFeatureType,
-                                 index: AccumuloWritableIndex,
+                                 index: AccumuloFeatureIndex,
                                  hints: Hints,
                                  serializationType: SerializationType): (Entry[Key, Value]) => SimpleFeature = {
 
