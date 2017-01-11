@@ -1,9 +1,8 @@
 User Manual
 ===========
 
-**Table of Contents**
-
 .. toctree::
+   :caption: Table of Contents
    :maxdepth: 3
    :numbered:
 
@@ -24,7 +23,7 @@ User Manual
    metrics
    native_api
    process
-   spark
+   spark/index
    stream
    web_data
 
