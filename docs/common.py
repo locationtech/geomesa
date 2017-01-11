@@ -119,7 +119,7 @@ rst_epilog = """
 
 .. |geotools_version| replace:: 15.1
 
-.. |accumulo_version| replace:: 1.6 or 1.7
+.. |accumulo_version| replace:: 1.7 or 1.8
 
 .. |hadoop_version| replace:: 2.2 or better
 
