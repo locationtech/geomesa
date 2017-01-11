@@ -33,6 +33,10 @@ object Z2Index extends AccumuloFeatureIndex with Z2WritableIndex with Z2Queryabl
   // step needed (due to the mask) to bump up the z value for a complex geom
   val GEOM_Z_STEP: Long = 1L << (64 - 8 * GEOM_Z_NUM_BYTES)
 
+  // in 1.2.5/6, we stored the CQ as the number of rows, which was always one
+  // this wasn't captured correctly in a versioned index class, so we need to delete both possible CQs
+  private val DeleteText = new Text("1,")
+
   override val name: String = "z2"
 
   override val version: Int = 2
@@ -63,7 +67,10 @@ object Z2Index extends AccumuloFeatureIndex with Z2WritableIndex with Z2Queryabl
       val rows = getPointRowKey(sharing)(wf)
       rows.map { row =>
         val mutation = new Mutation(row)
-        wf.fullValues.foreach { value => mutation.putDelete(value.cf, value.cq, value.vis) }
+        wf.fullValues.foreach { value =>
+          mutation.putDelete(value.cf, value.cq, value.vis)
+          mutation.putDelete(value.cf, DeleteText, value.vis)
+        }
         wf.binValues.foreach { value => mutation.putDelete(value.cf, value.cq, value.vis) }
         mutation
       }
