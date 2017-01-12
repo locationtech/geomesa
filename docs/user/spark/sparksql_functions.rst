@@ -3,6 +3,9 @@ SparkSQL Functions
 
 The following is a list of the spatial SparkSQL user-defined functions defined by the ``geomesa-spark-sql`` module.
 
+.. contents::
+    :local:
+
 Geometry Constructors
 ---------------------
 
