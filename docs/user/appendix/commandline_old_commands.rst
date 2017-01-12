@@ -1,5 +1,5 @@
-Old Command Line Commands
-=========================
+Updated Command Line Tools
+==========================
 
 In GeoMesa 1.3.0 some command names have changed. Please reference the chart below for more information.
 
@@ -7,7 +7,7 @@ Accumulo Command Line Tools
 ---------------------------
 
 +---------------------+---------------------+
-| Old                 | New                 |
+| 1.2.x               | 1.3.x               |
 +=====================+=====================+
 | add-attribute-index | add-attribute-index |
 +---------------------+---------------------+
@@ -66,7 +66,7 @@ Kafka Command Line Tools
 ------------------------
 
 +---------------------+--------------------+
-| Old                 | New                |
+| 1.2.x               | 1.3.x              |
 +=====================+====================+
 | create              | create-schema      |
 +---------------------+--------------------+

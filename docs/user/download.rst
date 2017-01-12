@@ -7,6 +7,12 @@ Versions and Downloads
 
     The current recommended version of GeoMesa to install is |release|.
 
+GeoMesa artifacts can be downloaded from the LocationTech Maven repository:
+https://repo.locationtech.org/content/repositories/geomesa-releases/
+
+Snapshot artifacts are available in the LocationTech snapshots repository:
+https://repo.locationtech.org/content/repositories/geomesa-snapshots/
+
 `Java JRE or JDK 8`_ is required to run each binary distribution.
 
 .. _Java JRE or JDK 8: http://www.oracle.com/technetwork/java/javase/downloads/index.html
@@ -14,8 +20,8 @@ Versions and Downloads
 To build and install the source distribution requires:
 
 * `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__
-* Apache Maven (http://maven.apache.org/) |maven_version|
-* A ``git`` client (http://git-scm.com/)
+* `Apache Maven <http://maven.apache.org/>`__ |maven_version|
+* A ``git`` `client <http://git-scm.com/>`__
 
 **Latest release**: |release|
 
@@ -39,7 +45,8 @@ Source: |release_source_tarball|
 
 **Latest release which has been fully reviewed by Eclipse Legal**: |eclipse_release|
 
-GeoMesa is part of the Locationtech working group at Eclipse. The Eclipse legal team fully reviews each major release for IP concerns.
+GeoMesa is part of the Locationtech working group at Eclipse. The Eclipse legal team fully reviews
+each major release for IP concerns.
 
 .. warning::
 
@@ -48,12 +55,9 @@ GeoMesa is part of the Locationtech working group at Eclipse. The Eclipse legal 
 * Release distribution: |eclipse_release_tarball|
 * Source: |eclipse_release_source_tarball|
 
-**1.1.x release**: |release_1_1|
+**Latest 1.2.x release**: |release_1_2|
 
-* Release tarball: |release_1_1_tarball|
-* Source: |release_1_1_source_tarball|
+* Release distribution: |release_1_2_tarball|
+* Source: |release_1_2_source_tarball|
 
-GeoMesa artifacts can be downloaded from the LocationTech Maven repository: https://repo.locationtech.org/content/repositories/geomesa-releases/.
-
-Snapshot artifacts are available in the LocationTech snapshots repository: https://repo.locationtech.org/content/repositories/geomesa-snapshots/.
 

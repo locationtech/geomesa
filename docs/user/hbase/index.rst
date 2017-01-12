@@ -10,10 +10,10 @@ source distribution.
 
 To get started with the HBase Data Store, try the :doc:`/tutorials/geomesa-quickstart-hbase` tutorial.
 
-For instructions on how to install and configure the HBase Data Store, including the command line tools, see :doc:`/user/installation/hbase`.
-
 .. toctree::
+    :maxdepth: 1
 
-   usage
-   geoserver
+    install
+    usage
+    geoserver
 

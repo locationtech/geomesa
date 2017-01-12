@@ -19,11 +19,11 @@ GeoMesa Kafka artifacts are available for download or can be built from source.
 The easiest way to get started is to download the most recent binary version
 (``$VERSION`` = |release|) matching the version of Kafka you are using:
 
-* Kafka 0.8.x release tarball: |release_tarball_kafka08|
-* Kafka 0.9.x release tarball: |release_tarball_kafka09|
-* Kafka 0.10.x release tarball: |release_tarball_kafka10|
+* Kafka 0.8.x release: |release_tarball_kafka08|
+* Kafka 0.9.x release: |release_tarball_kafka09|
+* Kafka 0.10.x release: |release_tarball_kafka10|
 
-Untar it somewhere convenient:
+Extract it somewhere convenient:
 
 .. code-block:: bash
 
@@ -40,7 +40,7 @@ Building from Source
 --------------------
 
 GeoMesa Kafka may also be built from source. For more information refer to :ref:`building_from_source`
-in the :doc:`/developer/index`, or to the ``README.md`` file in the the source distribution.
+in the developer manual, or to the ``README.md`` file in the the source distribution.
 The remainder of the instructions in this chapter assume the use of the binary GeoMesa distribution.
 
 If you have built from source, the Kafka distributions are created in the
@@ -57,25 +57,16 @@ More information about developing with GeoMesa may be found in the :doc:`/develo
 Setting up the Kafka Command Line Tools
 ---------------------------------------
 
-GeoMesa comes with a set of command line tools for managing Kafka features. For each version of Kafka, a binary GeoMesa Kafka distribution is available (:ref:`versions_and_downloads`). In each distribution the Kafka tools are located in ``geomesa-kafka-$KAFKAVERSION-dist_2.11-$VERSION-bin.tar.gz/bin/``.
-
-.. code-block:: bash
-
-    $ cd geomesa-$VERSION/geomesa-kafka/geomesa-kafka-dist/geomesa-kafka-$KAFKAVERSION-dist/target/
-    $ tar -xzvf geomesa-kafka-$KAFKAVERSION_2.11-$VERSION-bin.tar.gz
-    $ cd geomesa-kafka-$KAFKAVERSION_2.11-$VERSION
-    $ ls
-    bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt
-
-The instructions below assume that the ``geomesa-kafka-$KAFKAVERSION_2.11-$VERSION`` directory is kept in the
-``geomesa-kafka/geomesa-kafka-dist/geomesa-kafka-$KAFKAVERSION-dist/target/`` directory, but the tools distribution may be moved elsewhere
-as desired.
+GeoMesa comes with a set of command line tools for managing Kafka features. In each Kafka distribution the
+tools are located in ``geomesa-kafka-$KAFKAVERSION-dist_2.11-$VERSION-bin.tar.gz/bin/``.
 
 .. note::
 
-    You can configure environment variables and classpath settings in geomesa-kafka-$KAFKAVERSION_2.11-$VERSION/bin/geomesa-env.sh.
+    You can configure environment variables and classpath settings in
+    ``geomesa-kafka-$KAFKAVERSION_2.11-$VERSION/bin/geomesa-env.sh``
 
-In the ``geomesa-kafka-$KAFKAVERSION_2.11-$VERSION`` directory, run ``bin/geomesa configure`` to set up the tools.
+In the ``geomesa-kafka-$KAFKAVERSION_2.11-$VERSION`` directory, run ``bin/geomesa-kafka configure``
+to set up the tools.
 
 .. code-block:: bash
 
@@ -97,21 +88,13 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_KAFKA_HOM
 .. warning::
 
     Please note that the ``$GEOMESA_KAFKA_HOME`` variable points to the location of the ``geomesa-kafka-$KAFKAVERSION_2.11-$VERSION``
-    directory, not the main geomesa binary distribution directory!
+    directory, not the main geomesa binary distribution directory.
 
 .. note::
 
     ``geomesa-kafka`` will read the ``$GEOMESA_EXTRA_CLASSPATHS`` environment variable to load any
-    additional jars into the classpath. Use the ``geomesa classpath`` command in order to see what
+    additional jars into the classpath. Use the ``geomesa-kafka classpath`` command in order to see what
     JARs are being used.
-
-Due to licensing restrictions, dependencies for shape file support and raster
-ingest must be separately installed. Do this with the following commands:
-
-.. code-block:: bash
-
-    $ bin/install-jai.sh
-    $ bin/install-jline.sh
 
 Test the command that invokes the GeoMesa Tools:
 
@@ -191,20 +174,7 @@ of the appropriate GeoMesa Kafka binary distribution (see :ref:`versions_and_dow
     0 | Installing geomesa-kafka-$KAFKAVERSION-gs-plugin_2.11-$VERSION-install.tar.gz
     Done
 
-Alternatively, direct bundle download links and the source directory for each Kafka version are listed in
-the table below (the source directories are subdirectories of ``geomesa-kafka/geomesa-kafka-gs-plugin``):
-
-+------------------+--------------------------+--------------------------------+
-| Kafka version    | Binary download link     | Source directory               |
-+==================+==========================+================================+
-| 0.8.2.x          | |release_kafka08_plugin| | ``geomesa-kafka-08-gs-plugin`` |
-+------------------+--------------------------+--------------------------------+
-| 0.9.x            | |release_kafka09_plugin| | ``geomesa-kafka-09-gs-plugin`` |
-+------------------+--------------------------+--------------------------------+
-| 0.10.x           | |release_kafka10_plugin| | ``geomesa-kafka-10-gs-plugin`` |
-+------------------+--------------------------+--------------------------------+
-
-The contents of the appropriate plugin archive should be unpacked in the GeoServer
+Alternatively, extract the contents of the appropriate plugin archive into the GeoServer
 ``WEB-INF/lib`` directory. If you are using Tomcat:
 
 .. code-block:: bash
