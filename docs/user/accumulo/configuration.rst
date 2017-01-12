@@ -1,26 +1,39 @@
-Configuration
--------------
+Accumulo Configuration
+======================
 
-GeoMesa Accumulo uses a site XML file to maintain system property configurations. This file can be found
-at ``conf/geomesa-site.xml`` of the Accumulo distribution. The default settings for GeoMesa are
-stored in ``conf/geomesa-site.xml.template``. Do not modify this file directly as it is never read;
-instead copy the desired configurations into ``geomesa-site.xml``.
+This section details Accumulo specific configuration properties. For general properties,
+see :ref:`geomesa_site_xml`.
 
-By default, system properties set through command line parameters will take precedence over this
-configuration file. If you wish a configuration item to always take precedence, even over command
-line parameters, change the ``<final>`` tag to true.
+Batch Writer Properties
+-----------------------
 
-By default configuration properties with empty values will not be applied, you can change this
-by marking a property as final.
+The following properties control the configuration of Accumulo ``BatchWriter``\ s. They map directly to the
+underlying ``BatchWriter`` methods.
 
-Zookeeper session timeout
-~~~~~~~~~~~~~~~~~~~~~~~~~
+geomesa.batchwriter.latency.millis
+++++++++++++++++++++++++++++++++++
 
-The `Zookeeper session timeout <http://accumulo.apache.org/1.6/accumulo_user_manual#_instance_zookeeper_timeout>`__
-for the GeoMesa Accumulo data store is exposed as the Java system property ``instance.zookeeper.timeout``:
+See the `Accumulo API <https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxLatency(long,%20java.util.concurrent.TimeUnit)>`__
 
-.. code-block:: bash
+geomesa.batchwriter.maxthreads
+++++++++++++++++++++++++++++++
 
-    export JAVA_OPTS="-Dinstance.zookeeper.timeout=10s"
+See the `Accumulo API <https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxWriteThreads(int)>`__
 
-To preserve configuration set this property in ``geomesa-site.xml``.
+geomesa.batchwriter.memory
+++++++++++++++++++++++++++
+
+See the `Accumulo API <https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxMemory(long)>`__
+
+geomesa.batchwriter.timeout.millis
+++++++++++++++++++++++++++++++++++
+
+See the `Accumulo API <https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setTimeout(long,%20java.util.concurrent.TimeUnit)>`__
+
+Zookeeper Session Timeout
+-------------------------
+
+instance.zookeeper.timeout
+++++++++++++++++++++++++++
+
+See the `Accumulo API <https://accumulo.apache.org/1.7/accumulo_user_manual.html#_instance_zookeeper_timeout>`__

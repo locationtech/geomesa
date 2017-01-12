@@ -18,12 +18,10 @@ directory of the source distribution.
 
 To get started with the Kafka Data Store, try the :doc:`/tutorials/geomesa-quickstart-kafka` tutorial.
 
-For instructions on how to install and configure the Kafka Data Store, including the command line tools, see :doc:`/user/installation/kafka`.
-
 .. toctree::
    :maxdepth: 1
 
-   configuration
+   install
    usage
    geoserver
    commandline

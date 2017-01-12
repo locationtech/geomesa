@@ -1,5 +1,5 @@
-GeoMesa GeoServer Plugins
-=========================
+GeoServer Plugins
+=================
 
 A straightforward way to render, manipulate, and manage data stored
 in GeoMesa data stores is to use `GeoServer`_,

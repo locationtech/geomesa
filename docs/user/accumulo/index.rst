@@ -10,13 +10,12 @@ Accumulo tablet servers.
 
 .. _Apache Accumulo: https://accumulo.apache.org/
 
-For installation instructions, see :doc:`/user/installation/accumulo`.
-
 To get started with the Accumulo Data Store, try the :doc:`/tutorials/geomesa-quickstart-accumulo` tutorial.
 
 .. toctree::
    :maxdepth: 1
 
+   install
    configuration
    commandline_tools
    examples
@@ -25,7 +24,6 @@ To get started with the Accumulo Data Store, try the :doc:`/tutorials/geomesa-qu
    visibilities
    authorizations
    data_management
-   explaining
    analytic_queries
    jobs
    raster
