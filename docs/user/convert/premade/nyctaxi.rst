@@ -23,7 +23,7 @@ original data. This presents an opportunity for different simple feature
 type designs.
 
 There is one design where each SFT is either a pickup or dropoff point
-with timestamp. The two points share a common trip ID. Internally they
+with a timestamp. The two points share a common trip ID. Internally they
 are differentiated by hashing the record with either "pickup" or
 "dropoff" appended. The advantage of this for geomesa demonstrations is
 dealing with a larger quantity of point data.
