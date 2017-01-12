@@ -109,13 +109,26 @@ Run Data through the System
 We use Kafka as the input to our Storm topology. First, create a topic
 to send data:
 
+For Kafka 0.8 use the following command.
+
 .. code-block:: bash
 
     $ kafka-create-topic.sh      \
         --zookeeper <zookeepers> \
         --replica 3              \
         --partition 10           \
-        --topic OSM              \
+        --topic OSM
+
+For Kafka 0.9+ use the following command.
+
+.. code-block:: bash
+
+    $ kafka-topics.sh          \
+        --create               \
+        --zookeeper localhost  \
+        --replication-factor 3 \
+        --partitions 10        \
+        --topic OSM
 
 Note that we create a topic with several partitions in order to
 parallelize the ingest from the producer side as well as from the
@@ -130,7 +143,7 @@ messages:
         com.example.geomesa.storm.OSMIngestProducer \
         -ingestFile simple-gps-points-120312.txt    \
         -topic OSM                                  \
-        -brokers <kafka broker list>                \
+        -brokers <kafka broker list>
 
 Note that Kafka's default partitioner class assigns a message partition
 based on a hash of the provided key. If no key is provided, all messages
