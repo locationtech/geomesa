@@ -11,7 +11,7 @@ To configure a GeoMesa binary distribution, place ``geomesa-site.xml`` in the ``
 For GeoServer, place the file under ``geoserver/WEB-INF/classes``. For other environments,
 ensure the file is available at the root level of the classpath.
 
-Each tools tools distribution contains a template file with the default settings at
+Each tools distribution contains a template file with the default settings at
 ``conf/geomesa-site.xml.template``. Do not modify this file directly as it is never read;
 instead copy the desired configurations into ``geomesa-site.xml``.
 
