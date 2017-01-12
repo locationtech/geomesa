@@ -8,9 +8,6 @@ prepare data from the spreadsheet in which it is distributed.
 This work is based on a GTD pull done 2015 December 17. The GTD data
 distribution is dated June 26, 2015. GTD data is updated annually.
 
-This readme describes the full process from original source data to
-GeoMesa ingest.
-
 Getting GTD data
 ----------------
 
@@ -35,7 +32,7 @@ are printed to ``gtd-column-names.csv``. Note there are ~160 available
 attributes.
 
 The script then handles some data cleaning that *could* be dealt with by
-the geomesa inges: removing entries with invalid or missing dates and
+the GeoMesa ingest: removing entries with invalid or missing dates and
 coordinates. The R script writes this ``data.frame`` to a CSV file
 ``gtd-clean.csv``. This step results in about 18% of the data being
 dropped from the dataset.
@@ -52,9 +49,9 @@ classpath. This is the default case.
 
 If it is not, merge the contents of ``reference.conf`` with
 ``$GEOMESA_HOME/conf/application.conf``, or ensure that
-``reference.conf`` is in ``$GEOMESA_HOME/conf/sfts/gtd``
+``reference.conf`` is in ``$GEOMESA_HOME/conf/sfts/gtd``.
 
-Run the ingest. You may optionally point to a different accumulo
+Run the ingest. You may optionally point to a different Accumulo
 instance using ``-i`` and ``-z`` options. See ``geomesa help ingest``
 for more detail.
 

@@ -15,9 +15,6 @@ to model activity such as commuting, shopping, sightseeing, etc.
 Some user entries contain additional information about the mode of
 transportation.
 
-This readme describes the full process from original source data to
-GeoMesa ingest.
-
 Getting GeoLife data
 --------------------
 
@@ -52,9 +49,9 @@ the zip file):
       39.906554,116.385625,0,492,40097.5865162037,2009-10-11,14:04:35
 
 More information on features of the GeoLife data, see their
-documentation [here]
-(http://research.microsoft.com/en-us/downloads/b16d359d-d164-469e-9fd4-daa38f2b2e13/)
-as well as the user guide contained in the zip of the dataset.
+documentation `here`_ as well as the user guide contained in the zip of the dataset.
+
+.. _here: http://research.microsoft.com/en-us/downloads/b16d359d-d164-469e-9fd4-daa38f2b2e13/
 
 Ingest Commands
 ---------------
@@ -78,21 +75,18 @@ for more detail.
 
     geomesa ingest -u USERNAME -c CATALOGNAME -s geolife -C geolife useridFolder/Trajectory/trackid.plt
 
-**Note:** Pay special attention to the directory structure of the data
-file. The converter expects this hierarchy in order to correctly parse
-the user ID and the track ID of the trace.
+
+.. note::
+
+    Pay special attention to the directory structure of the data
+    file. The converter expects this hierarchy in order to correctly parse
+    the user ID and the track ID of the trace.
 
 Microsoft Research asks that you cite the following papers when using
-this dataset > [1] Yu Zheng, Lizhu Zhang, Xing Xie, Wei-Ying Ma. Mining
-interesting locations and travel sequences from GPS trajectories. In
-Proceedings of International conference on World Wild Web (WWW 2009),
-Madrid Spain. ACM Press: 791-800. [2] Yu Zheng, Quannan Li, Yukun Chen,
-Xing Xie, Wei-Ying Ma. Understanding Mobility Based on GPS Data. In
-Proceedings of ACM conference on Ubiquitous Computing (UbiComp 2008),
-Seoul, Korea. ACM Press: 312-321. [3] Yu Zheng, Xing Xie, Wei-Ying Ma,
-GeoLife: A Collaborative Social Networking Service among User, location
-and trajectory. Invited paper, in IEEE Data Engineering Bulletin. 33, 2,
-2010, pp. 32-40. >
+this dataset:
 
-Further be aware that any errors in ingestion will be logged to
-``$GEOMESA_HOME/logs``
+#. Yu Zheng, Lizhu Zhang, Xing Xie, Wei-Ying Ma. Mining interesting locations and travel sequences from GPS trajectories. In Proceedings of International conference on World Wild Web (WWW 2009), Madrid Spain. ACM Press: 791-800.
+#. Yu Zheng, Quannan Li, Yukun Chen, Xing Xie, Wei-Ying Ma. Understanding Mobility Based on GPS Data. In Proceedings of ACM conference on Ubiquitous Computing (UbiComp 2008), Seoul, Korea. ACM Press: 312-321.
+#. Yu Zheng, Xing Xie, Wei-Ying Ma, GeoLife: A Collaborative Social Networking Service among User, location and trajectory. Invited paper, in IEEE Data Engineering Bulletin. 33, 2,2010, pp. 32-40.
+
+Any errors in ingestion will be logged to ``$GEOMESA_HOME/logs``.

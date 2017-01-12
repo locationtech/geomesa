@@ -272,6 +272,8 @@ geometry
 
 Description: Parse a geometry from a WKT string or GeoJson.
 
+Usage: ``geometry($0)``
+
 Example: Parsing WKT as a geometry
 
 ::
@@ -304,7 +306,11 @@ ID Functions
 stringToBytes
 ^^^^^^^^^^^^^
 
-Description: Converts a string to a UTF-8 byte array.
+Description: Converts a string to a UTF-8 byte array (to pass to ``md5()`` or ``base64()``).
+
+Usage: ``stringToBytes($0)``
+
+Example: ``stringToBytes('row,of,data')``
 
 md5
 ^^^

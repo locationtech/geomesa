@@ -40,7 +40,7 @@ tools classpath. This is the default case.
 
 If it is not, merge the contents of ``reference.conf`` with
 ``$GEOMESA_HOME/conf/application.conf``, or ensure that
-``reference.conf`` is in ``$GEOMESA_HOME/conf/sfts/twitter``
+``reference.conf`` is in ``$GEOMESA_HOME/conf/sfts/twitter``.
 
 A recommended ingest procedure is to ingest first picking up the
 bounding boxes. Tweets with point geometry may fail this ingest. Then
@@ -51,3 +51,4 @@ ingest, and their geometries will remain as set in the first pass.
 
     geomesa ingest -u USERNAME -c CATALOG -s twitter -C twitter-place-centroid hdfs://namenode:port/path/to/twitter/*
     geomesa ingest -u USERNAME -c CATALOG -s twitter -C twitter hdfs://namenode:port/path/to/twitter/*
+

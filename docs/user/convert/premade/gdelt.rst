@@ -6,14 +6,10 @@ ingest commands and converter configuration files.
 
 GDELT Event Database periodically scans news articles and uses natural
 language processing to identify "the people, locations, organizations,
-counts, themes, sources, emotions, counts, quotes and events driving our
+counts, themes, sources, emotions, quotes and events driving our
 global society every second of every day."
 
-GDELT data is updated each morning at 6am. The ingester has last been
-tested on May 23rd 2016's dataset.
-
-This readme describes the full process from original source data to
-GeoMesa ingest.
+GDELT data is updated each morning at 6am.
 
 Getting GDELT data
 ------------------
@@ -62,5 +58,4 @@ for more detail.
 
     geomesa ingest -u USERNAME -c CATALOGNAME -s gdelt -C gdelt gdelt_data.csv
 
-Further be aware that any errors in ingestion will be logged to
-``$GEOMESA_HOME/logs``
+Any errors in ingestion will be logged to ``$GEOMESA_HOME/logs``.

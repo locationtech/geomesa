@@ -14,12 +14,8 @@ Microsoft makes a small subsample of its data `available for
 download <http://research.microsoft.com/apps/pubs/?id=152883>`__. This
 is about one third of the taxis for a period of a week.
 
-This document describes the full process from original source data to
-GeoMesa ingest.
-
 Before proceeding please check out the data description and included
-terms of
-`use <http://research.microsoft.com/pubs/152883/User_guide_T-drive.pdf>`__.
+`terms of use <http://research.microsoft.com/pubs/152883/User_guide_T-drive.pdf>`__.
 
 Getting T-Drive data
 --------------------
@@ -54,7 +50,7 @@ tools classpath. This is the default case.
 
 If it is not, merge the contents of ``reference.conf`` with
 ``$GEOMESA_HOME/conf/application.conf``, or ensure that
-``reference.conf`` is in ``$GEOMESA_HOME/conf/sfts/tdrive``
+``reference.conf`` is in ``$GEOMESA_HOME/conf/sfts/tdrive``.
 
 Run the ingest. You may optionally point to a different accumulo
 instance using ``-i`` and ``-z`` options. See ``geomesa help ingest``

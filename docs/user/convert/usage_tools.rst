@@ -3,8 +3,8 @@
 Using SFT and Converter Definitions with Command-Line Tools
 -----------------------------------------------------------
 
-Several GeoMesa binary distributions ship with embedded ``SimpleFeatureType`` and GeoMesa
-Converter definitions for common data types including Twitter, GeoNames, T-drive, and
+Several GeoMesa binary distributions ship with embedded feature type and
+converter definitions for common data types including Twitter, GeoNames, T-drive, and
 many more. These converters can be used with the GeoMesa command-line tools in these
 distributions out of the box. See :doc:`./premade/index`.
 
@@ -45,7 +45,7 @@ can be referenced in the converter and SFT loaders.
          # ...
         "renegades" = {
           attributes = [
-            { name = "id",       type = "Integer",      index = false                             }
+            { name = "fid",      type = "Integer",      index = false                             }
             { name = "name",     type = "String",       index = true                              }
             { name = "age",      type = "Integer",      index = false                             }
             { name = "lastseen", type = "Date",         index = true                              }
@@ -63,9 +63,9 @@ can be referenced in the converter and SFT loaders.
           options {
             skip-lines = 1
           },
-          id-field = "toString($id)",
+          id-field = "toString($fid)",
           fields = [
-            { name = "id",       transform = "$1::int"                 }
+            { name = "fid",       transform = "$1::int"                 }
             { name = "name",     transform = "$2::string"              }
             { name = "age",      transform = "$3::int"                 }
             { name = "lastseen", transform = "date('YYYY-MM-dd', $4)"  }
