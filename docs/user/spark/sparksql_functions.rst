@@ -535,7 +535,9 @@ st_asGeoJSON
 
      String st_asGeoJSON(Geometry geom)
 
-Returns ``Geometry`` *geom* in
+Returns ``Geometry`` *geom* in `GeoJSON`_ representation.
+
+.. _GeoJSON: http://geojson.org/
 
 .. _st_asLatLonText:
 

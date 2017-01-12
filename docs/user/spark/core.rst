@@ -56,7 +56,7 @@ deserialize features for each feature type, as shown in the Scala code below:
 in Spark, by defining an interface called ``SpatialRDDProvider``. Different
 implementations of this interface connect to GeoMesa Accumulo, generic
 GeoTools-based ``DataStore``\ s, or data files in formats readable by the GeoMesa
-converter library. ``GeoMesaSpark`` loads an ``SpatialRDDProvider``
+converter library. ``GeoMesaSpark`` loads a ``SpatialRDDProvider``
 implementation via SPI when the appropriate JAR is included on the classpath.
 The implementation returned by ``GeoMesaSpark`` is chosen based on the
 parameters passed as an argument, as shown in the Scala code below:
@@ -134,7 +134,7 @@ Avro, JSON, and XML files. It takes the following configuration parameters:
 
  * ``geomesa.converter`` - the converter defintion as a Typesafe Config string
  * ``geomesa.converter.inputs`` - input file paths, comma-delimited
- * ``geomesa.sft`` - the ``SimpleFeaturetype``, as a spec string, configuration string, or environment lookup name
+ * ``geomesa.sft`` - the ``SimpleFeatureType``, as a spec string, configuration string, or environment lookup name
  * ``geomesa.sft.name`` - (optional) the name of the ``SimpleFeatureType``
 
 Consider the example data described in the :ref:`convert_example_usage` section of the
