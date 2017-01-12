@@ -756,25 +756,25 @@ st_relateBool
 Returns true if the `DE-9IM`_ interaction matrix mask *mask* matches the interaction matrix pattern obtained from ``st_relate(a, b)``.
 
 
-.. _st_Touches:
+.. _st_touches:
 
-st_Touches
+st_touches
 ^^^^^^^^^^
 
 ::
 
-    Boolean st_Touches(Geometry a, Geometry b)
+    Boolean st_touches(Geometry a, Geometry b)
 
 Returns true if the geometries have at least one point in common, but their interiors do not intersect.
 
-.. _st_Within:
+.. _st_within:
 
-st_Within
+st_within
 ^^^^^^^^^
 
 ::
 
-    Boolean st_Within(Geometry a, Geometry b)
+    Boolean st_within(Geometry a, Geometry b)
 
 Returns true if geometry *a* is completely inside geometry *b*.
 

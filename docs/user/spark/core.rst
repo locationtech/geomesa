@@ -203,6 +203,10 @@ basename of the filename passed as an argument.
     :ref:`accumulo_rdd_provider` provides additional optimizations to improve performance
     between Spark/SparkSQL and GeoMesa Accumulo data stores.
 
+    If both the GeoTools and Accumulo RDD providers are available on the classpath,
+    the GeoTools provider will only be used if ``"geotools" -> "true"`` is included
+    as a parameter, and thus should be omitted with a GeoMesa Accumulo data store.
+
 If your data store supports it, use the ``save()`` method to save features:
 
 .. code-block:: scala

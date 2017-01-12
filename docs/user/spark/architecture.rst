@@ -2,9 +2,9 @@ Architecture
 ------------
 
 GeoMesa Spark provides capabilities to run geospatial analysis jobs on
-the distributed, large-scale data processing engine `Apache Spark`_. It provides
-interfaces to ingest and analyze geospatial data stored in GeoMesa Accumulo
-and other data stores.
+the distributed, large-scale data processing engine `Apache Spark`_.
+This provides interfaces for Spark to ingest and analyze geospatial data
+stored in GeoMesa Accumulo and other data stores.
 
 GeoMesa Spark is divided into two modules.
 

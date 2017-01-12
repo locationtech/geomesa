@@ -74,8 +74,7 @@ Because GeoMesa SparkSQL stacks on top of the ``geomesa-spark-core`` module,
 one or more of the ``SpatialRDDProvider`` implementations, as described in
 :doc:`/user/spark/core`, must be included on the classpath.
 
-As well, Spark must be configured to register ``GeoMesaSparkKryoRegistor``
-so that SparkSQL will be able to serialize and deserialize features. This
+As well, Spark should be configured to register ``GeoMesaSparkKryoRegistor``. This
 can be done when creating the ``SparkSession``:
 
 .. code-block:: scala
