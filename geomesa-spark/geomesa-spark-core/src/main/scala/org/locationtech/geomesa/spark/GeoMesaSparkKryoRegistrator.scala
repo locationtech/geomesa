@@ -87,6 +87,8 @@ object GeoMesaSparkKryoRegistrator {
 
   def register(sfts: Seq[SimpleFeatureType]): Unit = sfts.foreach(GeoMesaSparkKryoRegistrator.putTypeIfAbsent)
 
+  def register(sft: SimpleFeatureType): Unit = register(Seq(sft))
+
   def broadcast(partitions: RDD[_]): Unit = {
     val encodedTypes = typeCache
       .map { case (_, sft) => (sft.getTypeName, SimpleFeatureTypes.encodeType(sft)) }
