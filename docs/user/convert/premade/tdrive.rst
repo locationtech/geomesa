@@ -41,7 +41,7 @@ Longitude, Latitude Example: > 102, 2008-02-02
 Ingest Commands
 ---------------
 
-Check that ``tdrive`` simple feature type is available on the GeoMesa
+Check that the ``tdrive`` simple feature type is available on the GeoMesa
 tools classpath. This is the default case.
 
 ::

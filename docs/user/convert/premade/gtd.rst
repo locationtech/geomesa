@@ -40,7 +40,7 @@ dropped from the dataset.
 Ingest Commands
 ---------------
 
-Check that ``gtd`` simple feature type is available on the GeoMesa tools
+Check that the ``gtd`` simple feature type is available on the GeoMesa tools
 classpath. This is the default case.
 
 ::
@@ -58,3 +58,4 @@ for more detail.
 ::
 
     geomesa ingest -u USERNAME -c CATALOGNAME -s gtd -C gtd gtd-clean.csv
+

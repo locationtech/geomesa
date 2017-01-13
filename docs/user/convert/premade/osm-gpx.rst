@@ -33,7 +33,7 @@ of `this converter <https://github.com/jahhulbert-ccri/osm-parsers>`__.
 Ingest Commands
 ---------------
 
-Check that ``osm-gpx`` simple feature type is available on the GeoMesa
+Check that the ``osm-gpx`` simple feature type is available on the GeoMesa
 tools classpath. This is the default case.
 
 ::

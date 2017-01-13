@@ -75,8 +75,8 @@ Functions defined using scripting languages
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can define functions using scripting languages that support JSR-223.
-This is currently tested with Javascript only as it is natively
-supported in all JREs via the Nashorn extension. To define a javascript
+This is currently tested with JavaScript only as it is natively
+supported in all JREs via the Nashorn extension. To define a JavaScript
 function for use in the converter framework, either put the file in
 ``geomesa-convert-scripts`` on the classpath or set the system property
 ``geomesa.convert.scripts.path`` to be a comma-separated list of paths

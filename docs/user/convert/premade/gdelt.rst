@@ -39,7 +39,7 @@ documentation
 Ingest Commands
 ---------------
 
-Check that ``gdelt`` simple feature type is available on the GeoMesa
+Check that the ``gdelt`` simple feature type is available on the GeoMesa
 tools classpath. This is the default case.
 
 ::

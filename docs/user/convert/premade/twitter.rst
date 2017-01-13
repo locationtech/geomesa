@@ -31,7 +31,7 @@ the tweet.
 Ingest procedure
 ----------------
 
-Check that ``twitter`` simple feature type is available on the GeoMesa
+Check that the ``twitter`` simple feature type is available on the GeoMesa
 tools classpath. This is the default case.
 
 ::

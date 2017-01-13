@@ -56,7 +56,7 @@ documentation `here`_ as well as the user guide contained in the zip of the data
 Ingest Commands
 ---------------
 
-Check that ``geolife`` simple feature type is available on the GeoMesa
+Check that the ``geolife`` simple feature type is available on the GeoMesa
 tools classpath. This is the default case.
 
 ::

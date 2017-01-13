@@ -7,7 +7,7 @@ ingest commands and converter configuration files.
 GeoNames is a geographical database containing over 10 million
 geographical names and over 9 million unique features. All features are
 classified as one of nine feature codes and then again sub-categorized
-into one of 645 feature codes. This data is available freely directly
+into one of 645 feature codes. This data is freely available directly
 from GeoNames's website.
 
 Getting GeoNames data
@@ -32,7 +32,7 @@ downloaded instead.
 Ingest Commands
 ---------------
 
-Check that ``geonames`` simple feature type is available on the GeoMesa
+Check that the ``geonames`` simple feature type is available on the GeoMesa
 tools classpath. This is the default case.
 
 ::
