@@ -56,16 +56,12 @@ Pick a reasonable directory on your machine, and run:
     You may need to download a particular release of the tutorials project
     to target a particular GeoMesa release. See :ref:`tutorial_versions`.
 
-To build, run
+To build, run maven on the appropriate module for your kafka version. For example, for
+kafka 0.8.x:
 
 .. code-block:: bash
 
-    $ mvn clean install -pl geomesa-quickstart-kafka
-
-.. note::
-
-    Ensure that the version of Kafka and Zookeeper in
-    the root ``pom.xml`` match your environment.
+    $ mvn clean install -pl geomesa-quickstart-kafka/geomesa-quickstart-kafka-08/
 
 .. note::
 
@@ -76,11 +72,13 @@ To build, run
 Run the Code
 ------------
 
-On the command-line, run:
+On the command-line, run the appropriate jar for your kafka version. Make sure that the package name
+also matches your kafka version:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-quickstart-kafka/target/geomesa-quickstart-kafka-$VERSION.jar com.example.geomesa.kafka.KafkaQuickStart -brokers <brokers> -zookeepers <zookeepers>
+    $ java -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-08/target/geomesa-quickstart-kafka-08-$VERSION.jar \
+        com.example.geomesa.kafka08.KafkaQuickStart -brokers <brokers> -zookeepers <zookeepers>
 
 where you provide the values for the following arguments:
 
@@ -116,7 +114,7 @@ left-hand gutter and “Add new Store”. If you do not see the Kafka Data
 Store listed under Vector Data Sources, ensure the plugin and
 dependencies are in the right directory and restart GeoServer.
 
-Select the ``Kafka Data Store`` vector data source and enter the
+Select the ``Kafka (GeoMesa)`` vector data source and enter the
 following parameters:
 
 -  Basic Store Info
@@ -250,22 +248,22 @@ the source code.
 --------------------------------------
 
 The GeoTools API also includes a mechanism to fire off a
-```FeatureEvent`` <http://docs.geotools.org/stable/javadocs/index.html?org/geotools/data/FeatureEvent.Type.html>`__
+`FeatureEvent <http://docs.geotools.org/stable/javadocs/index.html?org/geotools/data/FeatureEvent.Type.html>`__
 each time there is an event (typically when the data are changed) in a
 ``DataStore``. A client may implement a
-```FeatureListener`` <http://docs.geotools.org/stable/javadocs/index.html?org/geotools/data/FeatureEvent.Type.html>`__,
+`FeatureListener <http://docs.geotools.org/stable/javadocs/index.html?org/geotools/data/FeatureEvent.Type.html>`__,
 which has a single method called ``changed()`` that is invoked as each
 ``FeatureEvent`` is fired.
 
-The code in ``com.example.geomesa.kafa.KafkaListener`` implements a
-simple ``FeatureListener`` that simply prints the messages received.
+The code in ``KafkaListener`` implements a simple ``FeatureListener`` that prints the messages received.
 Open up a second terminal window and run:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-quickstart-kafka/target/geomesa-quickstart-kafka-$VERSION.jar com.example.geomesa.kafka.KafkaListener -brokers <brokers> -zookeepers <zookeepers>
+    $ java -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-08/target/geomesa-quickstart-kafka-08-$VERSION.jar \
+        com.example.geomesa.kafka08.KafkaListener -brokers <brokers> -zookeepers <zookeepers>
 
-and use the same settings for ``<brokers>`` and ``<zookeepers>``. Then
+and use the correct kafka version and the same settings for ``<brokers>`` and ``<zookeepers>``. Then
 in the first terminal window, re-run the ``KafkaQuickStart`` code as
 before. The ``KafkaListener`` terminal should produce messages like the
 following:
@@ -312,7 +310,8 @@ Additionally, the ``KafkaQuickStart`` class run above can generate a
 
 .. code-block:: bash
 
-    $ java -Dclear=true -cp geomesa-quickstart-kafka/target/geomesa-quickstart-kafka-$VERSION.jar com.example.geomesa.kafka.KafkaQuickStart -brokers <brokers> -zookeepers <zookeepers>
+    $ java -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-08/target/geomesa-quickstart-kafka-08-$VERSION.jar \
+        -Dclear=true com.example.geomesa.kafka08.KafkaQuickStart -brokers <brokers> -zookeepers <zookeepers>
 
 KafkaDataStore Load Test
 ------------------------
@@ -323,7 +322,8 @@ random latitude, and then have them step left or right.
 
 .. code-block:: bash
 
-    $ java -cp target/geomesa-quickstart-kafka-$VERSION.jar com.example.geomesa.kafka.KafkaLoadTester -brokers <brokers> -zookeepers <zookeepers> -count <count>
+    $ java -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-08/target/geomesa-quickstart-kafka-08-$VERSION.jar \
+        com.example.geomesa.kafka08.KafkaLoadTester -brokers <brokers> -zookeepers <zookeepers> -count <count>
 
 The 'count' parameter is optional. Without it, the tool defaults to 1000
 SimpleFeatures.
@@ -338,7 +338,3 @@ process and analyze streams of data by integrating a data processing
 system like `Storm <https://storm.apache.org/>`__ or
 `Samza <http://samza.apache.org>`__. See the :doc:`./geomesa-quickstart-storm`
 tutorial for more information on using Storm with GeoMesa.
-
-For additional information about the ``KafkaDataStore``, see the
-`readme <https://github.com/locationtech/geomesa/blob/master/geomesa-kafka/geomesa-kafka-datastore/README.md>`__
-on github.
