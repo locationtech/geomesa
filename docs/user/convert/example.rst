@@ -1,3 +1,5 @@
+.. _convert_example_usage:
+
 Example Usage
 -------------
 

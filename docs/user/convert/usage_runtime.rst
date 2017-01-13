@@ -23,14 +23,8 @@ API:
     def listTypeNames: List[String] = sfts.map(_.getTypeName)
     def sftForName(n: String): Option[SimpleFeatureType] = sfts.find(_.getTypeName == n)
 
-GeoMesa contains common data formats packaged in a JAR file that can be placed on
-the classpath of your project. They are included with GeoMesa tools in the ``conf``
-folder and are also available from maven:
+.. note::
 
-.. code-block:: xml
-
-    <dependency>
-        <groupId>org.locationtech.geomesa</groupId>
-        <artifactId>geomesa-tools_2.11</artifactId>
-        <classifier>data</classifier>
-    </dependency>
+    The prepackaged SFTs and converters for public data sources provided with GeoMesa binary
+    distributions are also available as an artifact that may be obtained via Maven or SBT. See
+    :ref:`prepackaged_converters` for more information.
