@@ -20,7 +20,7 @@ User Manual
    cassandra/index
    geoserver
    blobstore
-   convert
+   convert/index
    geojson
    metrics
    native_api

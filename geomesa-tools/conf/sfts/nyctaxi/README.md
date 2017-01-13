@@ -1,6 +1,6 @@
 # NYC Taxi 
 
-New York City taxi activity data published by University of Illiois from Freedom of Information Law requests to NYC Taxi and Limo Commission. More information about the dataset is [here](https://publish.illinois.edu/dbwork/open-data/). Access to data within CCRi is described on [the interal wiki](https://ccristudio.jira.com/wiki/display/DATASOURCES/NYC+Taxi).
+New York City taxi activity data published by University of Illiois from Freedom of Information Law requests to NYC Taxi and Limo Commission. More information about the dataset is [here](https://publish.illinois.edu/dbwork/open-data/). 
 
 U of Illinois hosts the data in a Box web interface and arrives in several zip archives. Only the "trip data" is examined here. There is also "fare data" from the taxi meters such as fare amount and tip. Once unpacked there are monthly CSV files covering four years.
 

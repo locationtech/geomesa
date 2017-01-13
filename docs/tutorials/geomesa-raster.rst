@@ -24,7 +24,7 @@ Before you begin, you should have these:
    (GDAL) <http://www.gdal.org/>`__ installed
 
 Before you begin, you should have also set up GeoMesa, using the
-instructions in :doc:`/user/installation_and_configuration`.
+instructions in :ref:`installation`.
 
 .. note::
 
@@ -57,7 +57,7 @@ documentation <http://www.gdal.org/gdal_retile.html>`__.
 
 Once the image pyramid has been prepared, ingest the tiles using the
 GeoMesa command line tools. To do this you will first need to follow the
-tools deployment instructions in :doc:`/user/installation_and_configuration`.
+tools deployment instructions in :ref:`installation`.
 Once the GeoMesa tools have been deployed you will be able to ingest the prepared pyramid:
 
 .. code-block:: bash
@@ -79,7 +79,7 @@ GeoServer Deployment
 
 The GeoMesa GeoServer community module is required to enable registering GeoMesa Raster layers
 in GeoServer. If you have not already, please follow the instructions
-in :doc:`/user/installation_and_configuration`.
+in :ref:`installation`.
 
 If you have not deployed the community module yet, it can be downloaded from 
 `OpenGeo <http://ares.opengeo.org/geoserver/>`, or can be built from 
