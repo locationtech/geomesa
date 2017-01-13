@@ -30,7 +30,7 @@ You will need:
 -  `Apache Maven <http://maven.apache.org/>`__ |maven_version|, and
 -  a `git <http://git-scm.com/>`__ client
 
-If you haven't already read both the :doc:`../user/installation_and_configuration` section of
+If you haven't already read both the :ref:`installation` section of
 the GeoMesa User Manual and the  :doc:`geomesa-quickstart-accumulo`, you should do so now,
 and make sure you have gone through the initial setup of GeoMesa.
 
@@ -66,7 +66,7 @@ To build, run
 .. note::
 
     Depending on the version, you may also need to build GeoMesa locally.
-    Instructions can be found under :doc:`../user/installation_and_configuration`.
+    Instructions can be found under :ref:`installation`.
 
 Run the Tutorial
 ----------------
@@ -196,7 +196,7 @@ Let's move on to GeoServer to visualize feature level visibility.
 GeoServer Visualization
 -----------------------
 
-Assuming you have already set up GeoServer as described in the :doc:`../user/installation_and_configuration`
+Assuming you have already set up GeoServer as described in the :ref:`installation`
 section of the GeoMesa
 User Manual, we're going to add a new ``DataStore`` to GeoServer. First,
 login to GeoServer, and then click "Add stores" from the homepage.
