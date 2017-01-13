@@ -13,7 +13,7 @@ GeoMesa :doc:`./core` (``geomesa-spark-core``) is an extension for Spark that ta
 (``RDD``\ s) containing serialized versions of geometry objects. Multiple
 backends that target different types of feature stores are available,
 including ones for GeoMesa Accumulo, other GeoTools ``DataStore``\ s, or files
-readable by the :doc:`/user/convert` library.
+readable by the :ref:`converters` library.
 
 GeoMesa :doc:`./sparksql` (``geomesa-spark-sql``), in turn, stacks on GeoMesa Spark
 Core to convert between ``RDD``\ s and ``DataFrame``\ s. GeoMesa SparkSQL pushes down

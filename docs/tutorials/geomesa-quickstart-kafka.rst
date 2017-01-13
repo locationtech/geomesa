@@ -67,7 +67,7 @@ kafka 0.8.x:
 
     Depending on the version, you may also need to build
     GeoMesa locally. Instructions can be found in
-    :doc:`/user/installation_and_configuration`.
+    :ref:`installation`.
 
 Run the Code
 ------------

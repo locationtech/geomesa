@@ -62,7 +62,7 @@ author = u''
 from target.versions import release,version,version_devel
 
 # Other versions and variables unlikely to change on every point release
-release_1_1 = '1.1.0-rc.7'
+release_1_2 = '1.2.7.3'
 release_eclipse = '1.2.0'
 release_tutorial = '1.3.0.0-m2'
 url_locationtech_release = "https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa"
@@ -105,11 +105,11 @@ rst_epilog = """
 
 .. |development| replace:: %(version_devel)s
 
-.. |release_1_1| replace:: %(release_1_1)s
+.. |release_1_2| replace:: %(release_1_2)s
 
-.. |release_1_1_tarball| replace::  %(url_locationtech_release)s/geomesa-assemble/%(release_1_1)s/geomesa-assemble-%(release_1_1)s-bin.tar.gz
+.. |release_1_2_tarball| replace::  %(url_locationtech_release)s/geomesa-dist/%(release_1_2)s/geomesa-dist-%(release_1_2)s-bin.tar.gz
 
-.. |release_1_1_source_tarball| replace:: %(url_github_archive)s/geomesa-%(release_1_1)s.tar.gz
+.. |release_1_2_source_tarball| replace:: %(url_github_archive)s/geomesa-%(release_1_2)s.tar.gz
 
 .. |release_tutorial| replace:: %(release_tutorial)s
 
@@ -119,7 +119,7 @@ rst_epilog = """
 
 .. |geotools_version| replace:: 15.1
 
-.. |accumulo_version| replace:: 1.6 or 1.7
+.. |accumulo_version| replace:: 1.7 or 1.8
 
 .. |hadoop_version| replace:: 2.2 or better
 
@@ -128,7 +128,7 @@ rst_epilog = """
 .. |kafka_version| replace:: 0.8, 0.9, or 0.10
 
 """ % {"release": release,
-       "release_1_1": release_1_1,
+       "release_1_2": release_1_2,
        "release_eclipse": release_eclipse,
        "release_tutorial": release_tutorial,
        "version_devel": version_devel,

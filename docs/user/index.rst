@@ -9,8 +9,9 @@ User Manual
    introduction
    architecture
    getting_started
-   installation_and_configuration
-   datastores
+   download
+   install
+   datastores/index
    accumulo/index
    kafka/index
    hbase/index
@@ -18,7 +19,7 @@ User Manual
    cassandra/index
    geoserver
    blobstore
-   convert
+   convert/index
    geojson
    metrics
    native_api

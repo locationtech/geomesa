@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.utils.audit;
 
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties;
+
 import javax.imageio.spi.ServiceRegistry;
 import java.io.Serializable;
 import java.util.Iterator;
@@ -53,7 +55,7 @@ public interface AuditProvider {
             Iterator<AuditProvider> providers = ServiceRegistry.lookupProviders(AuditProvider.class);
 
             // if the user specifies an auth provider to use, try to use that impl
-            String specified = System.getProperty(AuditProvider.AUDIT_PROVIDER_SYS_PROPERTY);
+            String specified = GeoMesaSystemProperties.getProperty(AuditProvider.AUDIT_PROVIDER_SYS_PROPERTY);
             if (specified != null) {
                 while (providers.hasNext()) {
                     AuditProvider provider = providers.next();

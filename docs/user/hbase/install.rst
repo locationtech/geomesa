@@ -23,7 +23,7 @@ Building from Source
 --------------------
 
 GeoMesa HBase may also be built from source. For more information refer to :ref:`building_from_source`
-in the :doc:`/developer/index`, or to the ``README.md`` file in the the source distribution.
+in the developer manual, or to the ``README.md`` file in the the source distribution.
 The remainder of the instructions in this chapter assume the use of the binary GeoMesa HBase
 distribution. If you have built from source, the distribution is created in the ``target`` directory of
 ``geomesa-hbase/geomesa-hbase-dist``.
@@ -64,8 +64,8 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_HBASE_HOM
     additional jars from the ``$GEOMESA_EXTRA_CLASSPATHS`` environment variable into the class path.
     Use the ``geomesa classpath`` command in order to see what JARs are being used.
 
-Due to licensing restrictions, dependencies for shape file support and raster
-ingest must be separately installed. Do this with the following commands:
+Due to licensing restrictions, dependencies for shape file support must be separately installed.
+Do this with the following commands:
 
 .. code-block:: bash
 
@@ -80,29 +80,7 @@ Run ``geomesa-hbase`` without arguments to confirm that the tools work.
     Using GEOMESA_HBASE_HOME = /path/to/geomesa-hbase_2.11-1.3.0-m3-SNAPSHOT
     INFO  Usage: geomesa-hbase [command] [command options]
       Commands:
-        convert            Convert files using GeoMesa's internal converter framework
-        create-schema      Create a GeoMesa feature type
-        delete-catalog     Delete a GeoMesa catalog completely (and all features in it)
-        delete-features    Delete features from a table in GeoMesa. Does not delete any tables or schema information.
-        describe-schema    Describe the attributes of a given GeoMesa feature type
-        env                Examine the current GeoMesa environment
-        explain            Explain how a GeoMesa query will be executed
-        export             Export features from a GeoMesa data store
-        export-bin         Export features from a GeoMesa data store in a binary format
-        gen-avro-schema    Generate an Avro schema from a SimpleFeatureType
-        get-sft-config     Get the SimpleFeatureType of a feature
-        get-type-names     List GeoMesa feature types for a given catalog
-        help               Show help
-        ingest             Ingest/convert various file formats into GeoMesa
-        keywords           Add/Remove/List keywords on an existing schema
-        remove-schema      Remove a schema and associated features from a GeoMesa catalog
-        stats-analyze      Analyze statistics on a GeoMesa feature type
-        stats-bounds       View or calculate bounds on attributes in a GeoMesa feature type
-        stats-count        Estimate or calculate feature counts in a GeoMesa feature type
-        stats-histogram    View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values
-        stats-top-k        Enumerate the most frequent values in a GeoMesa feature type
-        version            Display the GeoMesa version installed locally
-        version-remote     Display the GeoMesa version installed on a cluster
+      ...
 
 .. _install_hbase_geoserver:
 

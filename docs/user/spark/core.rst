@@ -129,16 +129,16 @@ Converter RDD Provider
     </dependency>
 
 ``ConverterSpatialRDDProvider`` reads features from one or more data files in formats
-readable by the :doc:`/user/convert` library, including delimited and fixed-width text,
+readable by the :ref:`converters` library, including delimited and fixed-width text,
 Avro, JSON, and XML files. It takes the following configuration parameters:
 
- * ``geomesa.converter`` - the converter defintion as a Typesafe Config string
+ * ``geomesa.converter`` - the converter definition as a Typesafe Config string
  * ``geomesa.converter.inputs`` - input file paths, comma-delimited
  * ``geomesa.sft`` - the ``SimpleFeatureType``, as a spec string, configuration string, or environment lookup name
  * ``geomesa.sft.name`` - (optional) the name of the ``SimpleFeatureType``
 
 Consider the example data described in the :ref:`convert_example_usage` section of the
-:doc:`/user/convert` documentation. If the file ``example.csv`` contains the
+:ref:`converters` documentation. If the file ``example.csv`` contains the
 example data, and ``example.conf`` contains the Typesafe configuration file for the
 converter, the following Scala code can be used to load this data into an ``RDD``:
 
@@ -152,6 +152,10 @@ converter, the following Scala code can be used to load this data into an ``RDD`
       "geomesa.sft.name" -> "example")
     val query = new Query("example")
     val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, query)
+
+It is also possible to load the prepackaged converters for public data sources
+(GDELT, GeoNames, etc.) via Maven or SBT. See :ref:`prepackaged_converters` for more
+details.
 
 .. warning::
 

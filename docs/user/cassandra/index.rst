@@ -9,9 +9,11 @@ implementation is very much alpha - we are actively soliciting help in making th
 geospatial data within Cassandra.  See the note below on things to do and ways you can help out.
 
 .. toctree::
+    :maxdepth: 1
 
-   usage
-   commandline_tools
-   geoserver
-   implementation_details
-   contribute
+    install
+    usage
+    commandline_tools
+    geoserver
+    implementation_details
+    contribute
