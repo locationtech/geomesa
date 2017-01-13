@@ -2,25 +2,31 @@ User Manual
 ===========
 
 .. toctree::
-   :maxdepth: 2
-   
+   :caption: Table of Contents
+   :maxdepth: 3
+   :numbered:
+
    introduction
    architecture
-   installation_and_configuration
-   aws
-   datastores
-   accumulo_datastore
-   kafka_datastore
-   hbase_datastore
-   cassandra_datastore
-   modules
+   getting_started
+   download
+   install
+   datastores/index
+   accumulo/index
+   kafka/index
+   hbase/index
+   bigtable/index
+   cassandra/index
    geoserver
-   spark
-   commandline_tools
-   data_management
-   analytic_queries
+   blobstore
+   convert/index
    geojson
-   examples
+   metrics
+   native_api
+   process
+   spark/index
+   stream
+   web_data
 
 Appendix
 --------
@@ -28,4 +34,5 @@ Appendix
 .. toctree::
    :maxdepth: 2
 
-   commandline_old_commands
+   appendix/commandline_old_commands
+   appendix/utils

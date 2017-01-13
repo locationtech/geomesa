@@ -61,7 +61,7 @@ About Tutorial Versions
 -----------------------
 
 The tutorials listed in this manual can be obtained from GitHub, by
-cloning the **geomesa-tutorials** project:
+cloning the `geomesa-tutorials`_ project:
 
 .. code-block:: bash
 
@@ -70,20 +70,23 @@ cloning the **geomesa-tutorials** project:
 
 Keep in mind that you may have to download a particular release of
 the tutorials project to match the GeoMesa version that
-you are using. For example, to target GeoMesa 1.2.6, you should download
-version 1.2.6.0 of the **geomesa-tutorials** project:
+you are using. For example, to target GeoMesa |release|, you should download
+version |release_tutorial| of the `geomesa-tutorials`_ project
+(``$TUTORIAL_VERSION`` = |release_tutorial|):
 
 .. code-block:: bash
 
-    $ git checkout geomesa-tutorials-1.2.6.0
+    $ git checkout geomesa-tutorials-$TUTORIAL_VERSION
 
 In general, the major, minor, and patch version numbers of the
 tutorials release will match the corresponding numbers of the
 GeoMesa version. The tutorials version contains a fourth digit
 number permitting multiple releases per GeoMesa release.
 
-You may also see the **geomesa-tutorials** releases available, and
+You may also see the `geomesa-tutorials`_ releases available, and
 download a tarball of a release on the `geomesa-tutorials releases page`_.
+
+.. _geomesa-tutorials: https://github.com/geomesa/geomesa-tutorials/
 
 .. _geomesa-tutorials releases page: https://github.com/geomesa/geomesa-tutorials/releases
 

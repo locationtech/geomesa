@@ -19,10 +19,10 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.locationtech.geomesa.tools.export.formats.{BinExporter, NullExporter, ShapefileExporter, _}
 import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.tools.utils.DataFormats._
+import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timing}
 import org.opengis.filter.Filter
@@ -46,8 +46,13 @@ trait ExportCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS
     import org.locationtech.geomesa.tools.utils.DataFormats._
 
     val fmt = DataFormats.values.find(_.toString.equalsIgnoreCase(params.outputFormat)).getOrElse {
-      throw new ParameterException("")
+      throw new ParameterException(s"Invalid format '${params.outputFormat}'. Valid values are " +
+          DataFormats.values.filter(_ != Bin).map(_.toString.toLowerCase).mkString("'", "', '", "'"))
     }
+    if (fmt == Bin) {
+      throw new ParameterException(s"This operation has been deprecated. Use the command 'export-bin' instead.")
+    }
+
     val features = getFeatureCollection(ds, fmt, params)
 
     lazy val avroCompression = Option(params.gzip).map(_.toInt).getOrElse(Deflater.DEFAULT_COMPRESSION)
@@ -58,8 +63,6 @@ trait ExportCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS
       case Gml            => new GmlExporter(createOutputStream(params.file, params.gzip))
       case Avro           => new AvroExporter(features.getSchema, createOutputStream(params.file, null), avroCompression)
       case Null           => NullExporter
-      case Bin            => throw new UnsupportedOperationException(s"This operation has been deprecated. " +
-          "Use the command 'export-bin' instead.")
       // shouldn't happen unless someone adds a new format and doesn't implement it here
       case _              => throw new UnsupportedOperationException(s"Format $fmt can't be exported")
     }
