@@ -26,7 +26,6 @@
             <artifactId>geomesa-accumulo-spark_${scala.binary.version}</artifactId>
         </dependency>
 
-
         <!-- only needed for packaging into the shaded jar -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -135,7 +134,7 @@
                                 <!-- shade thrift because spark depends on 0.9.2 and accumulo 1.8 depends on 0.9.3 -->
                                 <relocation>
                                     <pattern>org.apache.thrift</pattern>
-                                    <shadedPattern>org.lt.geomesa.shaded.o.a.thrift</shadedPattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.org.apache.thrift</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>
