@@ -57,7 +57,7 @@ fi
 GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB):${ACCUMULO_CONF_DIR}:${HADOOP_CONF_DIR}"
 
 # Add user defined directories to the classpath
-if [[ -z "$GEOMESA_EXTRA_CLASSPATHS"  ]]; then
+if [[ ! -z ${GEOMESA_EXTRA_CLASSPATHS+x}  ]]; then
   GEOMESA_CP="${GEOMESA_CP}:$(findJars $GEOMESA_EXTRA_CLASSPATHS true)"
 fi
 ACCUMULO_CP="$(findJars $ACCUMULO_LIB true true)"
