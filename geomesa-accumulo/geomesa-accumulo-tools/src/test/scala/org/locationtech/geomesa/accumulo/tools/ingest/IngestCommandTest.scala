@@ -24,7 +24,8 @@ class IngestCommandTest extends Specification {
 
   "GeoMesa Accumulo Ingest Command" should {
 
-    val baseArgs = Array("ingest", "--mock", "--instance", "mycloud", "--user", "myuser", "--password", "mypassword")
+    // Mock shouldn't require instance or zookeepers
+    val baseArgs = Array("ingest", "--mock", "--user", "myuser", "--password", "mypassword")
 
     var n = 0
     def nextId = {
@@ -41,7 +42,7 @@ class IngestCommandTest extends Specification {
       val dataFile = new File(this.getClass.getClassLoader.getResource("examples/example1.csv").getFile)
 
       val args = baseArgs ++ Array("--catalog", id, "--converter", converter, "-s", sft, dataFile.getPath)
-      args.length mustEqual 15
+      args.length mustEqual 13
 
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
       command.execute()
@@ -58,7 +59,7 @@ class IngestCommandTest extends Specification {
       val dataFile = new File(this.getClass.getClassLoader.getResource("examples/example1.csv").getFile)
 
       val args = baseArgs ++ Array("--catalog", id, "--converter", confFile.getPath, "-s", confFile.getPath, dataFile.getPath)
-      args.length mustEqual 15
+      args.length mustEqual 13
 
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
       command.execute()
@@ -75,7 +76,7 @@ class IngestCommandTest extends Specification {
       val dataFile = new File(this.getClass.getClassLoader.getResource("examples/example1.csv").getFile)
 
       val args = baseArgs ++ Array("--catalog", id, "--converter", confFile.getPath, "-s", confFile.getPath, dataFile.getPath)
-      args.length mustEqual 15
+      args.length mustEqual 13
 
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
       command.execute()
@@ -91,7 +92,7 @@ class IngestCommandTest extends Specification {
       val dataFile = new File(this.getClass.getClassLoader.getResource("examples/city.mysql").getFile)
 
       val args = baseArgs ++ Array("--catalog", id, "--converter", confFile.getPath, "-s", confFile.getPath, dataFile.getPath)
-      args.length mustEqual 15
+      args.length mustEqual 13
 
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
       command.execute()
@@ -107,7 +108,7 @@ class IngestCommandTest extends Specification {
       val dataFile = new File(this.getClass.getClassLoader.getResource("examples/city.tsv").getFile)
 
       val args = baseArgs ++ Array("--catalog", id, "--converter", confFile.getPath, "-s", confFile.getPath, dataFile.getPath)
-      args.length mustEqual 15
+      args.length mustEqual 13
 
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
       command.execute()
