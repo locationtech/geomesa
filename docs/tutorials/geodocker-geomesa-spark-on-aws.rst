@@ -27,7 +27,7 @@ Use the following command to bootstrap an EMR cluster.  You will need to change 
         Name=Master,InstanceCount=1,InstanceGroupType=MASTER,InstanceType=m3.xlarge \
         Name=Workers,InstanceCount=3,InstanceGroupType=CORE,InstanceType=m3.xlarge  \
       --bootstrap-actions                                                                        \
-        Name=BootstrapGeoMesa,Path=s3://geomesa-docker/bootstrap-geodocker-accumulo.sh,Args=\[-i=quay.io/geomesa/accumulo-geomesa:latest,-n=gis,-p=secret,-e=TSERVER_XMX=10G,-e=TSERVER_CACHE_DATA_SIZE=6G,-e=TSERVER_CACHE_INDEX_SIZE=2G\]
+        Name=BootstrapGeoMesa,Path=s3://geomesa-docker/bootstrap-geodocker-accumulo.sh,Args=\[-t=geomesa-1.3.0-m3-SNAPSHOT-accumulo-1.8.0,-n=gis,-p=secret,-e=TSERVER_XMX=10G,-e=TSERVER_CACHE_DATA_SIZE=6G,-e=TSERVER_CACHE_INDEX_SIZE=2G]
 
 
 After executing that command, you can monitor the state of the EMR bootstrap process
