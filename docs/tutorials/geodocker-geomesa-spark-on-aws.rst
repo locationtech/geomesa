@@ -1,7 +1,13 @@
-AWS Bootstrapping using Geodocker Guide
-=======================================
+Geodocker: Bootstrapping GeoMesa Accumulo and Spark on AWS
+==========================================================
 
-Getting started on AWS is incredibly simple thanks to the `Geodocker <https://github.com/geodocker/geodocker-accumulo-geomesa>`_ project.  The following guide describes how to bootstrap a GeoMesa Accumulo cluster using Amazon ElasticMapReduce and Docker and ingesting and querying some sample data.  This guide assumes you have an Amazon Web Services account already provisioned as well as an IAM key pair.  To set up the AWS command line tools, follow the instructions found in the AWS `online documentation <http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html>`_.
+Getting started with spatio-temporal analysis with GeoMesa, Accumulo, and Spark on `Amazon Web Services`_ (AWS) is incredibly simple, thanks to the `Geodocker <https://github.com/geodocker/geodocker-accumulo-geomesa>`_ project.  The following guide describes how to bootstrap a GeoMesa Accumulo cluster using `Amazon ElasticMapReduce`_ (EMR) and `Docker`_ and ingesting and querying some sample data.  This guide assumes you have an Amazon Web Services account already provisioned as well as an IAM key pair.  To set up the AWS command line tools, follow the instructions found in the AWS `online documentation <http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html>`_.
+
+.. _Amazon Web Services: https://aws.amazon.com/
+
+.. _Amazon ElasticMapReduce: https://aws.amazon.com/emr/
+
+.. _Docker: https://www.docker.com/
 
 Bootstrap an EMR cluster
 ------------------------
@@ -51,7 +57,7 @@ You should see output similar to the following.
    89738108b7a3        quay.io/geomesa/accumulo-geomesa:latest   "/sbin/geomesa-entryp"   5 minutes ago       Up 5 minutes                            accumulo-master
 
 Ingest Public GDELT data
-************************
+------------------------
 
 Make sure you leave enough time for the machine to be completely bootstrapped before running the command to find the docker instances.
 GeoMesa ships with predefined data models for many open spatio-temporal data sets such as GDELT.  To ingest the most recent 7 days of `GDELT
@@ -93,7 +99,7 @@ Save the store and publish the ``gdelt`` layer.  Set the "Native Bounding Box" a
 *http://<ip_address>:9090/geoserver/cite/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:gdelt&styles=&bbox=-180,-90,180.0,90&width=768&height=356&srs=EPSG:4326&format=application/openlayers*.
 
 Analyze GDELT with GeoMesa, Jupyter, SparkSQL, Vegas, and Leaflet
-*****************************************************************
+-----------------------------------------------------------------
 
 Your bootstrapped spatial analytic environment has an instance of Jupyter notebook configured to analyze data in GeoMesa using SparkSQL and to visualize the results using Leaflet maps and Vegas (Vega-Lite) charts.  To start, navigate to *http://<ip_address>:8888/* where *<ip_address>* is the publicly accessible IP address of the master node.  You will see a sample GDELT analysis notebook.
 
