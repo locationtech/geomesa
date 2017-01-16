@@ -41,7 +41,7 @@ move on to installing the GeoMesa Cassandra distribution.
 Start by choosing or creating a directory where you want
 to put it. Then ``cd`` into that directory and type::
 
-    wget https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-cassandra-dist_2.11/$VERSION/geomesa-cassandra-dist_2.11-$VERSION-bin.tar.gz
+    wget |release_tarball_cassandra|
     tar xvf geomesa-cassandra-dist_2.11-$VERSION-bin.tar.gz
 
 .. note::
