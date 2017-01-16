@@ -28,6 +28,7 @@ import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.accumulo.AccumuloJobUtils
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaAccumuloInputFormat
 import org.locationtech.geomesa.spark.SpatialRDDProvider
+import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 
@@ -35,6 +36,8 @@ import scala.collection.JavaConversions._
 import scala.util.Try
 
 class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
+  import org.locationtech.geomesa.spark.CaseInsensitiveMapFix._
+
   override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
     AccumuloDataStoreFactory.canProcess(params)
 
@@ -123,11 +126,9 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
     rdd.foreachPartition { iter =>
       val ds = DataStoreFinder.getDataStore(writeDataStoreParams).asInstanceOf[AccumuloDataStore]
       val featureWriter = ds.getFeatureWriterAppend(writeTypeName, Transaction.AUTO_COMMIT)
-      val attrNames = featureWriter.getFeatureType.getAttributeDescriptors.map(_.getLocalName)
       try {
-        iter.foreach { case rawFeature =>
-          val newFeature = featureWriter.next()
-          attrNames.foreach(an => newFeature.setAttribute(an, rawFeature.getAttribute(an)))
+        iter.foreach { rawFeature =>
+          FeatureUtils.copyToWriter(featureWriter, rawFeature, overrideFid = true)
           featureWriter.write()
         }
       } finally {

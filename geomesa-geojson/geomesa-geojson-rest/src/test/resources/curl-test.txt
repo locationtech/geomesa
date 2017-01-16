@@ -1,10 +1,15 @@
 curl 'localhost:8080/geoserver/geomesa/geojson/ds'
 curl 'localhost:8080/geoserver/geomesa/geojson/ds/local' -d user=foo -d password=foo -d tableName=foo.bar -d zookeepers=foo1,foo2,foo3 -d instanceId=foo
 curl 'localhost:8080/geoserver/geomesa/geojson/index/local/test' -d id=properties.id
-curl 'localhost:8080/geoserver/geomesa/geojson/index/local/test/features' --get
+curl 'localhost:8080/geoserver/geomesa/geojson/index/local/test/features'
 curl 'localhost:8080/geoserver/geomesa/geojson/index/local/test/features' -H 'Content-type: application/json' -d '{"type":"Feature","geometry":{"type":"Point","coordinates":[30,10]},"properties":{"id":"0","name":"n0"}}'
 curl 'localhost:8080/geoserver/geomesa/geojson/index/local/test/features' -H 'Content-type: application/json' -d '{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[32,10]},"properties":{"id":"1","name":"n1"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[34,10]},"properties":{"id":"2","name":"n2"}}]}'
 curl 'localhost:8080/geoserver/geomesa/geojson/index/local/test/features'
+curl 'localhost:8080/geoserver/geomesa/geojson/index/local/test/features/0'
 curl 'localhost:8080/geoserver/geomesa/geojson/index/local/test/features' --get --data-urlencode 'q={"properties.id":"0"}'
 curl 'localhost:8080/geoserver/geomesa/geojson/index/local/test/features' --get --data-urlencode 'q={"geometry":{"$bbox":[33,9,35,11]}}'
 curl 'localhost:8080/geoserver/geomesa/geojson/index/local/test/features' --get --data-urlencode 'q={"properties.name":"n1"}'
+curl 'localhost:8080/geoserver/geomesa/geojson/index/local/test/features' -X PUT -H 'Content-type: application/json' -d '{"type":"Feature","geometry":{"type":"Point","coordinates":[30,10]},"properties":{"id":"0","name":"n0-updated"}}'
+curl 'localhost:8080/geoserver/geomesa/geojson/index/local/test/features/0'
+curl 'localhost:8080/geoserver/geomesa/geojson/index/local/test/features/0' -X DELETE
+curl 'localhost:8080/geoserver/geomesa/geojson/index/local/test/features/0'

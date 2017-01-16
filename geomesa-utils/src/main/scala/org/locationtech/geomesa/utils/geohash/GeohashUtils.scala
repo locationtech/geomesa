@@ -934,7 +934,7 @@ object GeohashUtils
                                           offset: Int,
                                           length: Int,
                                           MAX_KEYS_IN_LIST: Int = Int.MaxValue - 1,
-                                          includeDots: Boolean = true): Seq[String] = {
+                                          includeDots: Boolean = true): Try[Seq[String]] = Try {
 
     val cover = promoteToRegion(geom)
 
@@ -1065,7 +1065,8 @@ object GeohashUtils
       else Seq(ghMBR.toBinaryString.drop(minBits).take(usedBits)))
 
     // detect overflow
-    if (bitPrefixes.overflowed) return Seq()
+    if (bitPrefixes.overflowed) throw new IllegalStateException("Bit prefixes overflowed while calculating unique Geohash substrings in polygon using the following parameters: " +
+      s"\nGeometry: $geom \nOffset: $offset \nLength: $length \nMax Keys in List: $MAX_KEYS_IN_LIST")
 
     // not having overflowed, turn the collection of disjoint prefixes
     // into a list of full geohash substrings

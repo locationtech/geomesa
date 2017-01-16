@@ -14,6 +14,7 @@ import java.util.Date
 import com.google.common.collect.{ImmutableSet, ImmutableSortedSet}
 import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.vividsolutions.jts.geom._
+import org.apache.accumulo.core.client.mock.MockConnector
 import org.apache.accumulo.core.conf.Property
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
@@ -39,7 +40,12 @@ trait Z3WritableIndex extends AccumuloWritableIndex {
   override def delete(sft: SimpleFeatureType, ds: AccumuloDataStore, shared: Boolean): Unit = {
     val table = getTableName(sft.getTypeName, ds)
     if (ds.tableOps.exists(table)) {
-      ds.tableOps.delete(table)
+      // we need to synchronize deleting of tables in mock accumulo as it's not thread safe
+      if (ds.connector.isInstanceOf[MockConnector]) {
+        ds.connector.synchronized(ds.tableOps.delete(table))
+      } else {
+        ds.tableOps.delete(table)
+      }
     }
   }
 

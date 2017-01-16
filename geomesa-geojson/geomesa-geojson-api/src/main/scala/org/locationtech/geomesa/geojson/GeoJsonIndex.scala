@@ -73,6 +73,15 @@ trait GeoJsonIndex {
   def delete(name: String, ids: Iterable[String]): Unit
 
   /**
+    * Returns features by id
+    *
+    * @param name index to query
+    * @param ids feature ids
+    * @return
+    */
+  def get(name: String, ids: Iterable[String], transform: Map[String, String] = Map.empty): Iterator[String] with Closeable
+
+  /**
     * Query features in the index
     *
     * @param name index to query

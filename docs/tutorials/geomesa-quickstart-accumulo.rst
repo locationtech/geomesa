@@ -61,7 +61,7 @@ To build, run
 
     Depending on the version, you may also need to build
     GeoMesa locally. Instructions can be found in
-    :doc:`/user/installation_and_configuration`.
+    :ref:`installation`.
 
 About this Tutorial
 -------------------
@@ -182,7 +182,7 @@ Log into GeoServer using your user and password credentials. Click
 Data Store listed under Vector Data Sources, ensure the plugin is in the
 right directory and restart GeoServer.
 
-Select the ``Accumulo Feature Data Store`` vector data source, and enter
+Select the ``Accumulo (GeoMesa)`` vector data source, and enter
 the following parameters:
 
 * basic store info
@@ -203,7 +203,7 @@ GeoMesa-managed feature types.
 Publish the layer
 ~~~~~~~~~~~~~~~~~
 
-GeoServer should recognize the ``QuickStart`` feature type, and should
+GeoServer should recognize the ``AccumuloQuickStart`` feature type, and should
 present that as a layer that could be published. Click on the "Publish"
 link.
 

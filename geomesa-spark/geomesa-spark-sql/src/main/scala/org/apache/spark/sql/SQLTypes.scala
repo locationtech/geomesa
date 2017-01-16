@@ -62,6 +62,7 @@ object SQLTypes {
     SQLSpatialFunctions.registerFunctions(sqlContext)
     SQLGeometricConstructorFunctions.registerFunctions(sqlContext)
     SQLGeometryProcessingFunctions.registerFunctions(sqlContext)
+    SQLGeometricOutputFunctions.registerFunctions(sqlContext)
     SQLRules.registerOptimizations(sqlContext)
   }
 }

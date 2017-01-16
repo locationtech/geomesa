@@ -16,9 +16,13 @@ import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 
 class GeoCQEngineDataStoreFactory extends DataStoreFactorySpi {
-  override def createDataStore(params: util.Map[String, Serializable]): DataStore = GeoCQEngineDataStore.engine
+  override def createDataStore(params: util.Map[String, Serializable]): DataStore =
+    if (GeoCQEngineDataStoreFactory.getUseGeoIndex(params))
+      GeoCQEngineDataStore.engine
+    else
+      GeoCQEngineDataStore.engineNoGeoIndex
 
-  override def createNewDataStore(params: util.Map[String, Serializable]): DataStore = GeoCQEngineDataStore.engine
+  override def createNewDataStore(params: util.Map[String, Serializable]): DataStore = createDataStore(params)
 
   override def getDisplayName: String = "GeoCQEngine DataStore"
 
@@ -30,7 +34,30 @@ class GeoCQEngineDataStoreFactory extends DataStoreFactorySpi {
 
   override def isAvailable: Boolean = true
 
-  override def getParametersInfo: Array[Param] = Array()
+  override def getParametersInfo: Array[Param] =
+    GeoCQEngineDataStoreFactory.params
 
   override def getImplementationHints: util.Map[Key, _] = null
+}
+
+object GeoCQEngineDataStoreFactory {
+  val UseGeoIndexKey = "useGeoIndex"
+  val UseGeoIndexDefault = true
+  val UseGeoIndexParam = new Param(
+    UseGeoIndexKey,
+    classOf[java.lang.Boolean],
+    "Enable an index on the default geometry",
+    false,
+    UseGeoIndexDefault
+  )
+  val params = Array(
+    UseGeoIndexParam
+  )
+
+  def getUseGeoIndex(params: util.Map[String, Serializable]): Boolean = {
+    if (params.containsKey(UseGeoIndexKey))
+      UseGeoIndexParam.lookUp(params).asInstanceOf[Boolean]
+    else
+      UseGeoIndexDefault
+  }
 }

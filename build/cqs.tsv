@@ -28,7 +28,6 @@ commons-lang:commons-lang	2.6	compile
 commons-logging:commons-logging	1.1.1	compile
 commons-net:commons-net	3.3	compile
 commons-pool:commons-pool	1.6	compile
-com.spatial4j:spatial4j	0.4.1	compile
 com.sun.xml.bind:jaxb-core	2.2.11	compile
 com.sun.xml.bind:jaxb-impl	2.2.11	compile
 com.thoughtworks.paranamer:paranamer	2.6	compile
@@ -149,6 +148,7 @@ org.json4s:json4s-ext_2.11	3.2.10	compile
 org.json4s:json4s-native_2.11	3.2.10	compile
 org.locationtech.sfcurve:sfcurve-api_2.11	0.2.0	compile
 org.locationtech.sfcurve:sfcurve-zorder_2.11	0.2.0	compile
+org.locationtech.spatial4j:spatial4j	0.6	compile
 org.objenesis:objenesis	1.0	compile
 org.parboiled:parboiled-core	1.1.7	compile
 org.parboiled:parboiled-scala_2.11	1.1.7	compile
