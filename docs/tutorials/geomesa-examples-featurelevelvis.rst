@@ -191,6 +191,36 @@ authorizations, meaning they can only view features of visibility
 ``user``. They will never see features written with the visibility
 ``admin``.
 
+Next we'll grant permissions to the read the appropriate tables to
+``user`` and ``admin``.
+
+.. code-block:: bash
+
+    > grant -u user -p <table>.* Table.READ
+    > grant -u admin -p <table>.* Table.READ
+
+To verify user permissions you can switch users in the accumulo console
+by using:
+
+.. code-block:: bash
+
+    > user admin
+    Enter password for user admin: ******
+
+We can now move to the table we'd like to verify. Here we use
+``<table>_z2_v2`` but any valid table will work.
+
+.. code-block:: bash
+
+    > table <table>_z2_v2
+    > scan
+    \x01\x00\x0C0\xB0Pf\x0A&\x19Observation.99 F: [user|admin]    \x02\x00\x00\x00CAddam\xF3\x01\x00\x00\x00\x00\x00\x00\x00c\x01\x00\x00\x01H\xAC\xB4;\xB0\x01\x08\x03\xC0Sz\x1Ff\x15}H\xC0C(\xC5jq\x08\x8F\x7F\xF8\x00\x00\x00\x00\x00\x00\x80user|admi\xEE\x05\x0B\x14\x1D89
+    \x01\x00\x0C0\xB22\xB7-\xA4;Observation.585 F: [user|admin]    \x02\x00\x00\x00CAddam\xF3\x01\x00\x00\x00\x00\x00\x00\x02I\x01\x00\x00\x01DUby\xE8\x01\x08\x03\xC0S\x7F\xDF\x0Aw\xD9\x14\xC0C\x19\xA4\xFC{\xE7\xA6\x7F\xF8\x00\x00\x00\x00\x00\x00\x80user|admi\xEE\x05\x0B\x14\x1D89
+    ---------------hit any key to continue or 'q' to quit ------------------
+
+``scan`` should return a sample of the data if everything is configured
+correctly.
+
 Let's move on to GeoServer to visualize feature level visibility.
 
 GeoServer Visualization

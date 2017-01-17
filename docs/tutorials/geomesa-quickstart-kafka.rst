@@ -26,13 +26,14 @@ Prerequisites
 
 -  basic knowledge of `GeoTools <http://www.geotools.org>`__,
    `GeoServer <http://geoserver.org>`__, and Kafka,
--  an instance of Kafka 0.8.2.x with (an) appropriate Zookeeper
-   instance(s),
+-  an instance of Kafka 0.8.2.x, 0.9.0.1, or 0.10.0.1 with (an)
+   appropriate Zookeeper instance(s),
 -  an instance of GeoServer version |geoserver_version| with the GeoMesa Kafka plugin
    installed,
--  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
--  `Apache Maven <http://maven.apache.org/>`__ |maven_version|, and
--  a `git <http://git-scm.com/>`__ client.
+-  `Java JDK
+   8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__
+-  `Apache Maven <http://maven.apache.org/>`__ |maven_version|,
+-  a `git <http://git-scm.com/>`__ client
 
 In order to install the GeoMesa Kafka GeoServer plugin, follow the instructions here: :ref:`install_kafka_geoserver`.
 
@@ -40,6 +41,9 @@ Ensure your Kafka and Zookeeper instances are running. You can use
 Kafka's
 `quickstart <http://kafka.apache.org/documentation.html#quickstart>`__
 to get Kafka/Zookeeper instances up and running quickly.
+
+There are now three versions of Kafka that are supported with GeoMesa,
+and there are separate tutorials for each build.
 
 Download and Build the Tutorial
 -------------------------------
@@ -51,34 +55,54 @@ Pick a reasonable directory on your machine, and run:
     $ git clone https://github.com/geomesa/geomesa-tutorials.git
     $ cd geomesa-tutorials
 
-.. note::
+To build, run
 
-    You may need to download a particular release of the tutorials project
-    to target a particular GeoMesa release. See :ref:`tutorial_versions`.
-
-To build, run maven on the appropriate module for your kafka version. For example, for
-kafka 0.8.x:
+For Kafka 0.8.2.1
 
 .. code-block:: bash
 
-    $ mvn clean install -pl geomesa-quickstart-kafka/geomesa-quickstart-kafka-08/
+    $ mvn clean install -pl geomesa-quickstart-kafka/geomesa-quickstart-kafka-08
 
-.. note::
+For Kafka 0.9.0.1
 
-    Depending on the version, you may also need to build
-    GeoMesa locally. Instructions can be found in
-    :ref:`installation`.
+.. code-block:: bash
+
+    $ mvn clean install -pl geomesa-quickstart-kafka/geomesa-quickstart-kafka-09
+
+For Kafka 0.10.0.1
+
+.. code-block:: bash
+
+    $ mvn clean install -pl geomesa-quickstart-kafka/geomesa-quickstart-kafka-10
+
+    :warning: Note: ensure that the version of Kafka and Zookeeper in
+    the root ``pom.xml`` match your environment.
 
 Run the Code
 ------------
 
-On the command-line, run the appropriate jar for your kafka version. Make sure that the package name
-also matches your kafka version:
+On the command-line, run:
+
+For Kafka 0.8.2.1
 
 .. code-block:: bash
 
-    $ java -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-08/target/geomesa-quickstart-kafka-08-$VERSION.jar \
-        com.example.geomesa.kafka08.KafkaQuickStart -brokers <brokers> -zookeepers <zookeepers>
+    $ java -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-08/target/geomesa-quickstart-kafka-08-$VERSION.jar com.example.geomesa.kafka08.KafkaQuickStart \
+    > -brokers <brokers> -zookeepers <zookeepers>
+
+For Kafka 0.9.0.1
+
+.. code-block:: bash
+
+    $ java -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-09/target/geomesa-quickstart-kafka-09-$VERSION.jar com.example.geomesa.kafka09.KafkaQuickStart \
+    > -brokers <brokers> -zookeepers <zookeepers>
+
+For Kafka 0.10.0.1
+
+.. code-block:: bash
+
+    $ java -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-10/target/geomesa-quickstart-kafka-10-$VERSION.jar com.example.geomesa.kafka10.KafkaQuickStart \
+    > -brokers <brokers> -zookeepers <zookeepers>
 
 where you provide the values for the following arguments:
 
@@ -256,14 +280,15 @@ which has a single method called ``changed()`` that is invoked as each
 ``FeatureEvent`` is fired.
 
 The code in ``KafkaListener`` implements a simple ``FeatureListener`` that prints the messages received.
-Open up a second terminal window and run:
+Open up a second terminal window and run (with ``$KAFKA_VERSION`` set to "08", "09", or "10" as appropriate):
 
 .. code-block:: bash
 
-    $ java -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-08/target/geomesa-quickstart-kafka-08-$VERSION.jar \
-        com.example.geomesa.kafka08.KafkaListener -brokers <brokers> -zookeepers <zookeepers>
+    $ java -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-$KAFKA_VERSION/target/geomesa-quickstart-kafka-$KAFKA_VERSION-${geomesa.version}.jar \
+    > com.example.geomesa.kafka$KAFKA_VERSION.KafkaListener \
+    > -brokers <brokers> -zookeepers <zookeepers>
 
-and use the correct kafka version and the same settings for ``<brokers>`` and ``<zookeepers>``. Then
+and use the same settings for ``<brokers>`` and ``<zookeepers>``. Then
 in the first terminal window, re-run the ``KafkaQuickStart`` code as
 before. The ``KafkaListener`` terminal should produce messages like the
 following:
@@ -310,8 +335,9 @@ Additionally, the ``KafkaQuickStart`` class run above can generate a
 
 .. code-block:: bash
 
-    $ java -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-08/target/geomesa-quickstart-kafka-08-$VERSION.jar \
-        -Dclear=true com.example.geomesa.kafka08.KafkaQuickStart -brokers <brokers> -zookeepers <zookeepers>
+    $ java -Dclear=true -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-$KAFKA_VERSION/target/geomesa-quickstart-kafka-$KAFKA_VERSION-${geomesa.version}.jar \
+    > com.example.geomesa.kafka$KAFKA_VERSION.KafkaQuickStart \
+    > -brokers <brokers> -zookeepers <zookeepers> 
 
 KafkaDataStore Load Test
 ------------------------
@@ -322,8 +348,9 @@ random latitude, and then have them step left or right.
 
 .. code-block:: bash
 
-    $ java -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-08/target/geomesa-quickstart-kafka-08-$VERSION.jar \
-        com.example.geomesa.kafka08.KafkaLoadTester -brokers <brokers> -zookeepers <zookeepers> -count <count>
+    $ java -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-$KAFKA_VERSION/target/geomesa-quickstart-kafka-$KAFKA_VERSION-${geomesa.version}.jar \
+    > com.example.geomesa.kafka$KAFKA_VERSION.KafkaLoadTester \
+    > -brokers <brokers> -zookeepers <zookeepers> -count <count>
 
 The 'count' parameter is optional. Without it, the tool defaults to 1000
 SimpleFeatures.
