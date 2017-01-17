@@ -179,7 +179,7 @@ and build it with the ``hbase`` profile:
 
     $ mvn clean install -DskipTests -Phbase
 
-Go into the build HBase GeoServer plugin module:
+Go into the built HBase GeoServer plugin module:
 
 ::
 
