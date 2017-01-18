@@ -24,11 +24,18 @@ import org.apache.spark.sql.types.{DataTypes, StructField, StructType}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
+import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs, SimpleFeatureTypes}
 import org.opengis.feature.`type`._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 import scala.util.Try
+
+object GeoMesaSparkSQL {
+  val GEOMESA_SQL_FEATURE = "geomesa.feature"
+}
+
+import GeoMesaSparkSQL._
 
 // Spark DataSource for GeoMesa
 // enables loading a GeoMesa DataFrame as
@@ -43,15 +50,35 @@ import scala.util.Try
 //   .option("geomesa.feature", "chicago")
 //   .load()
 // }}
-class GeoMesaDataSource extends DataSourceRegister with RelationProvider with SchemaRelationProvider with CreatableRelationProvider {
+class GeoMesaDataSource extends DataSourceRegister
+  with RelationProvider with SchemaRelationProvider with CreatableRelationProvider
+  with LazyLogging {
   import CaseInsensitiveMapFix._
 
   override def shortName(): String = "geomesa"
 
   override def createRelation(sqlContext: SQLContext, parameters: Map[String, String]): BaseRelation = {
     SQLTypes.init(sqlContext)
+
+    // TODO: Need different ways to retrieve sft
+    //  GEOMESA-1643 Add method to lookup SFT to RDD Provider
+    //  Below the details of the Converter RDD Provider and Providers which are backed by GT DSes are leaking through
     val ds = DataStoreFinder.getDataStore(parameters)
-    val sft = ds.getSchema(parameters("geomesa.feature"))
+    val sft = if (ds != null) {
+      ds.getSchema(parameters(GEOMESA_SQL_FEATURE))
+    } else {
+      if (parameters.contains(GEOMESA_SQL_FEATURE) && parameters.contains("geomesa.sft")) {
+        SimpleFeatureTypes.createType(parameters(GEOMESA_SQL_FEATURE), parameters("geomesa.sft"))
+      } else {
+        SftArgResolver.getArg(SftArgs(parameters(GEOMESA_SQL_FEATURE), parameters(GEOMESA_SQL_FEATURE))) match {
+          case Right(s) => s
+          case Left(e) => throw new IllegalArgumentException("Could not resolve simple feature type", e)
+        }
+
+      }
+    }
+    logger.trace(s"Creating GeoMesa Relation with sft : $sft")
+
     val schema = sft2StructType(sft)
     GeoMesaRelation(sqlContext, sft, schema, parameters)
   }
@@ -59,12 +86,12 @@ class GeoMesaDataSource extends DataSourceRegister with RelationProvider with Sc
   // JNH: Q: Why doesn't this method have the call to SQLTypes.init(sqlContext)?
   override def createRelation(sqlContext: SQLContext, parameters: Map[String, String], schema: StructType): BaseRelation = {
     val ds = DataStoreFinder.getDataStore(parameters)
-    val sft = ds.getSchema(parameters("geomesa.feature"))
+    val sft = ds.getSchema(parameters(GEOMESA_SQL_FEATURE))
     GeoMesaRelation(sqlContext, sft, schema, parameters)
   }
 
   private def sft2StructType(sft: SimpleFeatureType) = {
-    val fields = sft.getAttributeDescriptors.map { ad => ad2field(ad) }.toList
+    val fields = sft.getAttributeDescriptors.flatMap { ad => ad2field(ad) }.toList
     StructType(StructField("__fid__", DataTypes.StringType, nullable =false) :: fields)
   }
 
@@ -97,7 +124,7 @@ class GeoMesaDataSource extends DataSourceRegister with RelationProvider with Sc
     builder.buildFeatureType()
   }
 
-  private def ad2field(ad: AttributeDescriptor): StructField = {
+  private def ad2field(ad: AttributeDescriptor): Option[StructField] = {
     import java.{lang => jl}
     val dt = ad.getType.getBinding match {
       case t if t == classOf[jl.Double]                       => DataTypes.DoubleType
@@ -114,17 +141,17 @@ class GeoMesaDataSource extends DataSourceRegister with RelationProvider with Sc
       case t if t == classOf[com.vividsolutions.jts.geom.MultiLineString]  => SQLTypes.MultiLineStringTypeInstance
       case t if t == classOf[com.vividsolutions.jts.geom.Polygon]          => SQLTypes.PolygonTypeInstance
       case t if t == classOf[com.vividsolutions.jts.geom.MultiPolygon]     => SQLTypes.MultipolygonTypeInstance
-      // JNH: Add Geometry types here.
 
       case t if      classOf[Geometry].isAssignableFrom(t)    => SQLTypes.GeometryTypeInstance
 
+      // NB:  List and Map types are not supported.
       case _                                                  => null
     }
-    StructField(ad.getLocalName, dt)
+    Option(dt).map(StructField(ad.getLocalName, _))
   }
 
   override def createRelation(sqlContext: SQLContext, mode: SaveMode, parameters: Map[String, String], data: DataFrame): BaseRelation = {
-    val newFeatureName: String = parameters("geomesa.feature")
+    val newFeatureName = parameters(GEOMESA_SQL_FEATURE)
     val sft: SimpleFeatureType = structType2SFT(data.schema, newFeatureName)
 
     // reuse the __fid__ if available for joins,
@@ -169,7 +196,7 @@ case class GeoMesaRelation(sqlContext: SQLContext,
   lazy val isMock = Try(params("useMock").toBoolean).getOrElse(false)
 
   override def buildScan(requiredColumns: Array[String], filters: Array[org.apache.spark.sql.sources.Filter]): RDD[Row] = {
-    SparkUtils.buildScan(sft, requiredColumns, filters, filt, sqlContext.sparkContext, schema, params)
+    SparkUtils.buildScan(requiredColumns, filters, filt, sqlContext.sparkContext, schema, params)
   }
 
   override def unhandledFilters(filters: Array[Filter]): Array[Filter] = {
@@ -185,8 +212,7 @@ object SparkUtils extends LazyLogging {
 
   @transient val ff = CommonFactoryFinder.getFilterFactory2
 
-  def buildScan(sft: SimpleFeatureType,
-                requiredColumns: Array[String],
+  def buildScan(requiredColumns: Array[String],
                 filters: Array[org.apache.spark.sql.sources.Filter],
                 filt: org.opengis.filter.Filter,
                 ctx: SparkContext,
@@ -199,7 +225,7 @@ object SparkUtils extends LazyLogging {
     val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
     val rdd = GeoMesaSpark(params).rdd(
       new Configuration(), ctx, params,
-      new Query(params("geomesa.feature"), compiledCQL, requiredAttributes))
+      new Query(params(GEOMESA_SQL_FEATURE), compiledCQL, requiredAttributes))
 
     type EXTRACTOR = SimpleFeature => AnyRef
     val IdExtractor: SimpleFeature => AnyRef = sf => sf.getID
