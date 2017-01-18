@@ -39,7 +39,7 @@ import scala.util.control.NonFatal
   *   ``geomesa.converter.inputs`` - input file paths, comma-delimited
   *   ``geomesa.sft`` - simple feature type, as spec string, config string, or environment lookup
   *   ``geomesa.sft.name`` - (optional) simple feature type name
-  *   ``geomesa.converter.name`` Alternative to giving the geomesa.converter and geomesa.sft values:
+  *   ``geomesa.ingest.type`` Alternative to giving the geomesa.converter and geomesa.sft values:
   *      This option requires that the Converter and SFT can be looked up on this provider's classpath.
   */
 class ConverterSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
@@ -133,5 +133,5 @@ object ConverterSpatialRDDProvider {
   // simple feature type, as spec string, config string, or environment lookup
   val SftKey           = "geomesa.sft"
   // Converter name (to be looked up from the classpath).
-  val ConverterNameKey = "geomesa.converter.name"
+  val ConverterNameKey = "geomesa.ingest.type"
 }

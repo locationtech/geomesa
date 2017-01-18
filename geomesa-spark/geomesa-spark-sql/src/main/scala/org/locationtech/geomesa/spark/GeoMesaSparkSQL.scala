@@ -47,7 +47,7 @@ import GeoMesaSparkSQL._
 //   .option(GM.passwordParam.getName, "password")
 //   .option(GM.tableNameParam.getName, "sparksql")
 //   .option(GM.mockParam.getName, "true")
-//   .option(GEOMESA_SQL_FEATURE, "chicago")
+//   .option("geomesa.feature", "chicago")
 //   .load()
 // }}
 class GeoMesaDataSource extends DataSourceRegister
