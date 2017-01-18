@@ -44,11 +44,11 @@ import scala.util.control.NonFatal
   */
 class ConverterSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 
-  import ConverterSpatialRDDProvider.{ConverterKey, ConverterNameKey, FeatureNameKey, InputFilesKey, SftKey}
+  import ConverterSpatialRDDProvider.{ConverterKey, IngestTypeKey, FeatureNameKey, InputFilesKey, SftKey}
 
   override def canProcess(params: util.Map[String, Serializable]): Boolean =
     ((params.containsKey(ConverterKey) && params.containsKey(SftKey))
-      || params.containsKey(ConverterNameKey)) && params.containsKey(InputFilesKey)
+      || params.containsKey(IngestTypeKey)) && params.containsKey(InputFilesKey)
 
   override def rdd(conf: Configuration,
                    sc: SparkContext,
@@ -91,7 +91,7 @@ class ConverterSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
   }
 
   private def lookupSftConfig(params: Map[String, String], query: Query) = {
-    params.get(ConverterNameKey) match {
+    params.get(IngestTypeKey) match {
       case Some(sftName) =>
         // NB: Here we assume that the SFT name and Converter name match.  (And there is no option to rename the SFT.)
         //  Further, it is assumed that they can loaded from the classpath.
@@ -133,5 +133,5 @@ object ConverterSpatialRDDProvider {
   // simple feature type, as spec string, config string, or environment lookup
   val SftKey           = "geomesa.sft"
   // Converter name (to be looked up from the classpath).
-  val ConverterNameKey = "geomesa.ingest.type"
+  val IngestTypeKey = "geomesa.ingest.type"
 }

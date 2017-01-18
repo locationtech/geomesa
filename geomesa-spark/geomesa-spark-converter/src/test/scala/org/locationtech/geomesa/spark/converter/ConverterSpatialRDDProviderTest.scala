@@ -25,7 +25,7 @@ class ConverterSpatialRDDProviderTest extends Specification {
 
   sequential
 
-  import ConverterSpatialRDDProvider.{ConverterKey, ConverterNameKey, InputFilesKey, SftKey}
+  import ConverterSpatialRDDProvider.{ConverterKey, IngestTypeKey, InputFilesKey, SftKey}
 
   var sc: SparkContext = null
 
@@ -64,7 +64,7 @@ class ConverterSpatialRDDProviderTest extends Specification {
     "read from a local file using Converter Name lookup" in {
       val params = Map (
         InputFilesKey    -> getClass.getResource("/example.csv").getPath,
-        ConverterNameKey -> "example-csv"
+        IngestTypeKey -> "example-csv"
       )
 
       val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, new Query("example-csv"))
