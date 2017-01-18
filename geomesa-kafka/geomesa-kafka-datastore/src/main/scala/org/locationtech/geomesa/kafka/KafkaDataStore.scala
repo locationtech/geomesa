@@ -11,8 +11,10 @@ package org.locationtech.geomesa.kafka
 import java.awt.RenderingHints.Key
 import java.io.{Closeable, Serializable}
 import java.{util => ju}
+import javax.management.Query
 
 import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}
+import com.sun.xml.internal.messaging.saaj.soap.name.NameImpl
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
@@ -86,7 +88,7 @@ object KafkaDataStoreFactoryParams {
   val IS_PRODUCER_PARAM  = new Param("isProducer", classOf[java.lang.Boolean], "Is Producer", false, false)
   val EXPIRATION_PERIOD  = new Param("expirationPeriod", classOf[java.lang.Long], "Features will be auto-dropped (expired) after this delay in milliseconds. Leave blank or use -1 to not drop features.", false)
   val CLEANUP_LIVE_CACHE   = new Param("cleanUpCache", classOf[java.lang.Boolean], "Run a thread to clean up the live feature cache if set to true. False by default. use 'cleanUpCachePeriod' to configure the length of time between cache cleanups. Every second by default", false)
-  val CACHE_CLEANUP_PERIOD = new Param("cleanUpCachePeriod", classOf[String], "Configure the time period between cache cleanups. Default is every second. This parameter is not used it 'cleanUpCache' is false.", false, "1s")
+  val CACHE_CLEANUP_PERIOD = new Param("cleanUpCachePeriod", classOf[String], "Configure the time period between cache cleanups. Default is every ten seconds. This parameter is not used if 'cleanUpCache' is false.", false, "10s")
   val COLLECT_QUERY_STAT = new Param("collectQueryStats", classOf[java.lang.Boolean], "Enable monitoring stats for feature store.", false)
 
 }
