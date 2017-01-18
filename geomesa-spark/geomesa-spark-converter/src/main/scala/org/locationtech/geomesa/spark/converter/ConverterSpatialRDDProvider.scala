@@ -76,6 +76,8 @@ class ConverterSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
     rdd.map(_._2)
   }
 
+  // TODO:  Move the logic here and in the next function to utils (aka somewhere more general)
+  //  GEOMESA-1644 Move logic to retrieve SFT/Converter config from classpath to utils
   private def computeSftConfig(params: Map[String, String], query: Query) = {
     val (sft, converterConf) = lookupSftConfig(params, query)
 

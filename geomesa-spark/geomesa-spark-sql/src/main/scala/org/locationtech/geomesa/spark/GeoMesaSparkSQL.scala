@@ -31,6 +31,12 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.JavaConversions._
 import scala.util.Try
 
+object GeoMesaSparkSQL {
+  val GEOMESA_SQL_FEATURE = "geomesa.feature"
+}
+
+import GeoMesaSparkSQL._
+
 // Spark DataSource for GeoMesa
 // enables loading a GeoMesa DataFrame as
 // {{
@@ -41,7 +47,7 @@ import scala.util.Try
 //   .option(GM.passwordParam.getName, "password")
 //   .option(GM.tableNameParam.getName, "sparksql")
 //   .option(GM.mockParam.getName, "true")
-//   .option("geomesa.feature", "chicago")
+//   .option(GEOMESA_SQL_FEATURE, "chicago")
 //   .load()
 // }}
 class GeoMesaDataSource extends DataSourceRegister
@@ -55,14 +61,16 @@ class GeoMesaDataSource extends DataSourceRegister
     SQLTypes.init(sqlContext)
 
     // TODO: Need different ways to retrieve sft
+    //  GEOMESA-1643 Add method to lookup SFT to RDD Provider
+    //  Below the details of the Converter RDD Provider and Providers which are backed by GT DSes are leaking through
     val ds = DataStoreFinder.getDataStore(parameters)
     val sft = if (ds != null) {
-      ds.getSchema(parameters("geomesa.feature"))
+      ds.getSchema(parameters(GEOMESA_SQL_FEATURE))
     } else {
-      if (parameters.contains("geomesa.feature") && parameters.contains("geomesa.sft")) {
-        SimpleFeatureTypes.createType(parameters("geomesa.feature"), parameters("geomesa.sft"))
+      if (parameters.contains(GEOMESA_SQL_FEATURE) && parameters.contains("geomesa.sft")) {
+        SimpleFeatureTypes.createType(parameters(GEOMESA_SQL_FEATURE), parameters("geomesa.sft"))
       } else {
-        SftArgResolver.getArg(SftArgs(parameters("geomesa.feature"), parameters("geomesa.feature"))) match {
+        SftArgResolver.getArg(SftArgs(parameters(GEOMESA_SQL_FEATURE), parameters(GEOMESA_SQL_FEATURE))) match {
           case Right(s) => s
           case Left(e) => throw new IllegalArgumentException("Could not resolve simple feature type", e)
         }
@@ -78,7 +86,7 @@ class GeoMesaDataSource extends DataSourceRegister
   // JNH: Q: Why doesn't this method have the call to SQLTypes.init(sqlContext)?
   override def createRelation(sqlContext: SQLContext, parameters: Map[String, String], schema: StructType): BaseRelation = {
     val ds = DataStoreFinder.getDataStore(parameters)
-    val sft = ds.getSchema(parameters("geomesa.feature"))
+    val sft = ds.getSchema(parameters(GEOMESA_SQL_FEATURE))
     GeoMesaRelation(sqlContext, sft, schema, parameters)
   }
 
@@ -143,7 +151,7 @@ class GeoMesaDataSource extends DataSourceRegister
   }
 
   override def createRelation(sqlContext: SQLContext, mode: SaveMode, parameters: Map[String, String], data: DataFrame): BaseRelation = {
-    val newFeatureName: String = parameters("geomesa.feature")
+    val newFeatureName = parameters(GEOMESA_SQL_FEATURE)
     val sft: SimpleFeatureType = structType2SFT(data.schema, newFeatureName)
 
     // reuse the __fid__ if available for joins,
@@ -217,7 +225,7 @@ object SparkUtils extends LazyLogging {
     val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
     val rdd = GeoMesaSpark(params).rdd(
       new Configuration(), ctx, params,
-      new Query(params("geomesa.feature"), compiledCQL, requiredAttributes))
+      new Query(params(GEOMESA_SQL_FEATURE), compiledCQL, requiredAttributes))
 
     type EXTRACTOR = SimpleFeature => AnyRef
     val IdExtractor: SimpleFeature => AnyRef = sf => sf.getID
