@@ -34,7 +34,7 @@ class LiveKafkaConsumerFeatureSource(e: ContentEntry,
                                      useCQCache: Boolean,
                                      q: Query,
                                      monitor: Boolean,
-                                     cleanUpCachePeriod: Long = 1000L)
+                                     cleanUpCachePeriod: Long = 10000L)
                                     (implicit ticker: Ticker = Ticker.systemTicker())
   extends KafkaConsumerFeatureSource(e, sft, q, monitor) with Runnable with Closeable with LazyLogging {
 
