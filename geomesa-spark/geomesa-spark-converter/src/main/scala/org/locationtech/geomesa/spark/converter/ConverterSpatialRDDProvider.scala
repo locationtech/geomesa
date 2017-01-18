@@ -77,32 +77,43 @@ class ConverterSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
   }
 
   private def computeSftConfig(params: Map[String, String], query: Query) = {
-    if (params.contains(ConverterNameKey)) {
-      // NB: Here we assume that the SFT name and Converter name match.  (And there is no option to rename the SFT.)
-      //  Further, it is assumed that they can loaded from the classpath.
-      val sftName = params.get(ConverterNameKey).orElse(Option(query.getTypeName)).orNull
-      val sft = SimpleFeatureTypeLoader.sftForName(sftName)
-        .getOrElse(throw new IllegalArgumentException(s"Couldn't get look up converter by name for $sftName."))
-      val convertConf = ConverterConfigLoader.confs(sftName).root().render(ConfigRenderOptions.concise())
+    val (sft, converterConf) = lookupSftConfig(params, query)
 
-      (sft, convertConf)
-    } else {
-      // This is the general case where the
-      val sftName = params.get(FeatureNameKey).orElse(Option(query.getTypeName)).orNull
+    // Verify the config before returning.
+    try {
+      CloseQuietly(SimpleFeatureConverters.build(sft, ConfigFactory.parseString(converterConf)))
+    } catch {
+      case NonFatal(e) => throw new IllegalArgumentException("Could not resolve converter", e)
+    }
+    (sft, converterConf)
+  }
 
-      val sft: SimpleFeatureType = SftArgResolver.getArg(SftArgs(params(SftKey), sftName)) match {
-        case Right(s) => s
-        case Left(e) => throw new IllegalArgumentException("Could not resolve simple feature type", e)
-      }
+  private def lookupSftConfig(params: Map[String, String], query: Query) = {
+    params.get(ConverterNameKey) match {
+      case Some(sftName) =>
+        // NB: Here we assume that the SFT name and Converter name match.  (And there is no option to rename the SFT.)
+        //  Further, it is assumed that they can loaded from the classpath.
+        val sft = SimpleFeatureTypeLoader.sftForName(sftName)
+          .getOrElse(throw new IllegalArgumentException(s"Could not resolve Simple Feature Type by name for $sftName."))
+        val convertConf =
+          ConverterConfigLoader.confs
+            .getOrElse(sftName, throw new Exception(s"Could not resolve Converter by name for $sftName."))
+            .root().render(ConfigRenderOptions.concise())
 
-      val converterConf: String = params(ConverterKey)
-      try {
-        CloseQuietly(SimpleFeatureConverters.build(sft, ConfigFactory.parseString(converterConf)))
-      } catch {
-        case NonFatal(e) => throw new IllegalArgumentException("Could not resolve converter", e)
-      }
+        (sft, convertConf)
 
-      (sft, converterConf)
+      case _ =>
+        // This is the general case where the SFT and Converter config strings are given.
+        val sftName = params.get(FeatureNameKey).orElse(Option(query.getTypeName)).orNull
+
+        val sft: SimpleFeatureType = SftArgResolver.getArg(SftArgs(params(SftKey), sftName)) match {
+          case Right(s) => s
+          case Left(e) => throw new IllegalArgumentException("Could not resolve simple feature type", e)
+        }
+
+        val converterConf: String = params(ConverterKey)
+
+        (sft, converterConf)
     }
   }
 

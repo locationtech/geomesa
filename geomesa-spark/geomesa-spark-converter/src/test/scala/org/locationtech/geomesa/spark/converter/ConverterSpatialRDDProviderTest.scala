@@ -36,7 +36,7 @@ class ConverterSpatialRDDProviderTest extends Specification {
     sc = SparkContext.getOrCreate(conf)
   }
 
-  val exampleConf = ConfigFactory.load("reference.conf")
+  val exampleConf = ConfigFactory.load()
   val converterConf = exampleConf.getConfig("geomesa.converters.example-csv")
 
   val params = Map(

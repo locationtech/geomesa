@@ -44,7 +44,9 @@ import scala.util.Try
 //   .option("geomesa.feature", "chicago")
 //   .load()
 // }}
-class GeoMesaDataSource extends DataSourceRegister with RelationProvider with SchemaRelationProvider with CreatableRelationProvider {
+class GeoMesaDataSource extends DataSourceRegister
+  with RelationProvider with SchemaRelationProvider with CreatableRelationProvider
+  with LazyLogging {
   import CaseInsensitiveMapFix._
 
   override def shortName(): String = "geomesa"
@@ -67,7 +69,7 @@ class GeoMesaDataSource extends DataSourceRegister with RelationProvider with Sc
 
       }
     }
-    println(s"Creating GeoMesa Relation with sft : $sft")
+    logger.trace(s"Creating GeoMesa Relation with sft : $sft")
 
     val schema = sft2StructType(sft)
     GeoMesaRelation(sqlContext, sft, schema, parameters)
