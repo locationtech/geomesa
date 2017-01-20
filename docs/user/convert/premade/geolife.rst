@@ -19,7 +19,7 @@ Getting GeoLife data
 --------------------
 
 The GeoLife data set can be downloaded using the provided
-``download-data.sh`` script in ``$GEOMESA_HOME/bin/`` as such
+``download-data.sh`` script in ``$GEOMESA_ACCUMULO_HOME/bin/`` as such
 
 ::
 
@@ -64,8 +64,8 @@ tools classpath. This is the default case.
     geomesa env | grep geolife
 
 If it is not, merge the contents of ``reference.conf`` with
-``$GEOMESA_HOME/conf/application.conf``, or ensure that
-``reference.conf`` is in ``$GEOMESA_HOME/conf/sfts/geolife``
+``$GEOMESA_ACCUMULO_HOME/conf/application.conf``, or ensure that
+``reference.conf`` is in ``$GEOMESA_ACCUMULO_HOME/conf/sfts/geolife``
 
 Run the ingest. You may optionally point to a different accumulo
 instance using ``-i`` and ``-z`` options. See ``geomesa help ingest``
@@ -89,4 +89,4 @@ this dataset:
 #. Yu Zheng, Quannan Li, Yukun Chen, Xing Xie, Wei-Ying Ma. Understanding Mobility Based on GPS Data. In Proceedings of ACM conference on Ubiquitous Computing (UbiComp 2008), Seoul, Korea. ACM Press: 312-321.
 #. Yu Zheng, Xing Xie, Wei-Ying Ma, GeoLife: A Collaborative Social Networking Service among User, location and trajectory. Invited paper, in IEEE Data Engineering Bulletin. 33, 2,2010, pp. 32-40.
 
-Any errors in ingestion will be logged to ``$GEOMESA_HOME/logs``.
+Any errors in ingestion will be logged to ``$GEOMESA_ACCUMULO_HOME/logs``.

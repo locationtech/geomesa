@@ -10,7 +10,7 @@ distributions out of the box. See :ref:`prepackaged_converters`.
 
 Users can add additional SFT and converter types by providing a ``reference.conf`` file
 embedded with a JAR within the ``lib`` directory, or by adding the types to the
-``application.conf`` file in the ``$GEOMESA_HOME/conf`` or ``$GEOMESA_KAKFA_HOME/conf``
+``application.conf`` file in the ``$GEOMESA_ACCUMULO_HOME/conf`` or ``$GEOMESA_KAKFA_HOME/conf``
 directory.
 
 .. note::
@@ -29,13 +29,13 @@ Given the following sample CSV file ``example.csv``:
     3233,Severus,30,2015-10-23,"Tom, Riddle, Voldemort",3,-62.23
 
 A "renegades" SFT and "renegades-csv" converter may be specified in
-the GeoMesa Tools configuration file (``$GEOMESA_HOME/conf/application.conf``)
+the GeoMesa Tools configuration file (``$GEOMESA_ACCUMULO_HOME/conf/application.conf``)
 as shown below. By default, SFTs will be loaded from the file
 at the path ``geomesa.sfts`` and converters will be loaded at the path
 ``geomesa.converters``. Each converter and SFT definition is keyed by the name that
 can be referenced in the converter and SFT loaders.
 
-``$GEOMESA_HOME/conf/application.conf``:
+``$GEOMESA_ACCUMULO_HOME/conf/application.conf``:
 
 ::
 

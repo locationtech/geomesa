@@ -39,8 +39,8 @@ tools classpath. This is the default case.
     geomesa env | grep twitter
 
 If it is not, merge the contents of ``reference.conf`` with
-``$GEOMESA_HOME/conf/application.conf``, or ensure that
-``reference.conf`` is in ``$GEOMESA_HOME/conf/sfts/twitter``.
+``$GEOMESA_ACCUMULO_HOME/conf/application.conf``, or ensure that
+``reference.conf`` is in ``$GEOMESA_ACCUMULO_HOME/conf/sfts/twitter``.
 
 A recommended ingest procedure is to ingest first picking up the
 bounding boxes. Tweets with point geometry may fail this ingest. Then
