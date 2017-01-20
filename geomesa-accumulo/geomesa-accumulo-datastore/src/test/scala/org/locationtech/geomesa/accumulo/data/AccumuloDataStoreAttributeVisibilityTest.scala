@@ -17,8 +17,7 @@ import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
-import org.locationtech.geomesa.accumulo.index.z3.Z3Index
-import org.locationtech.geomesa.accumulo.index.{AttributeIndex, RecordIndex, Z2Index}
+import org.locationtech.geomesa.accumulo.index.{AttributeIndex, RecordIndex, Z2Index, Z3Index}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator

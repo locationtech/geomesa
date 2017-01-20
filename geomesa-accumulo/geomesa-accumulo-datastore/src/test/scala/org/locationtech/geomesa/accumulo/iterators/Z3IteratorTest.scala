@@ -15,7 +15,7 @@ import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.index.z3.Z3IndexV2
+import org.locationtech.geomesa.accumulo.index.legacy.z3.Z3IndexV2
 import org.locationtech.geomesa.curve.{TimePeriod, Z3SFC}
 import org.locationtech.sfcurve.zorder.Z3
 import org.specs2.mutable.Specification

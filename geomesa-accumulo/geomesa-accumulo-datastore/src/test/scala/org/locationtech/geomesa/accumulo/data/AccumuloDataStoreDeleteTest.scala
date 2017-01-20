@@ -16,8 +16,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
-import org.locationtech.geomesa.accumulo.index.z3.Z3Index
-import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AttributeIndex, RecordIndex, Z2Index}
+import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -141,9 +140,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
 
       ds.removeSchema(typeName)
 
-      // z3 table must be gone
-      forall(tableNames.filterNot(_.contains("z3")))(tableOps.exists(_) must beTrue)
-      forall(tableNames.filter(_.contains("z3")))(tableOps.exists(_) must beFalse)
+      forall(tableNames)(tableOps.exists(_) must beTrue)
 
       // metadata should be deleted from the catalog now
       ds.metadata.getFeatureTypes.toSeq must not contain typeName
@@ -190,8 +187,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       ds.removeSchema(typeName1)
 
       // shared tables should still exist
-      forall(tableNames1.filterNot(_.contains("z3")))(tableOps.exists(_) must beTrue)
-      forall(tableNames1.filter(_.contains("z3")))(tableOps.exists(_) must beFalse)
+      forall(tableNames1)(tableOps.exists(_) must beTrue)
       // but these tables should still exist since sftName2 wasn't deleted
       forall(tableNames2)(tableOps.exists(_) must beTrue)
 

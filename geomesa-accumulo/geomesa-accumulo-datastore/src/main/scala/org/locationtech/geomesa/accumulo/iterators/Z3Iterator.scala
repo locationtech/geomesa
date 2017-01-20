@@ -13,7 +13,7 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ByteSequence, Key, Value, Range => AccRange}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo.index.z3.Z3IndexV2
+import org.locationtech.geomesa.accumulo.index.legacy.z3.Z3IndexV2
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.sfcurve.zorder.Z3
 import org.opengis.feature.simple.SimpleFeatureType
@@ -173,19 +173,20 @@ object Z3Iterator {
   val TermSeparator  = ";"
   val WeekSeparator  = ","
 
-  def configure(sft: SimpleFeatureType,
-                sfc: Z3SFC,
+  def configure(sfc: Z3SFC,
                 bounds: Seq[(Double, Double, Double, Double)],
                 timesByBin: Map[Short, Seq[(Long, Long)]],
+                isPoints: Boolean,
                 hasSplits: Boolean,
-                priority: Int) = {
+                isSharing: Boolean,
+                priority: Int): IteratorSetting = {
 
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     val is = new IteratorSetting(priority, "z3", classOf[Z3Iterator])
 
     // index space values for comparing in the iterator
-    val (xyOpts, tOpts) = if (sft.isPoints) {
+    val (xyOpts, tOpts) = if (isPoints) {
       val xyOpts = bounds.map { case (xmin, ymin, xmax, ymax) =>
         s"${sfc.lon.normalize(xmin)}$RangeSeparator${sfc.lat.normalize(ymin)}$RangeSeparator" +
             s"${sfc.lon.normalize(xmax)}$RangeSeparator${sfc.lat.normalize(ymax)}"
@@ -214,8 +215,8 @@ object Z3Iterator {
 
     is.addOption(ZKeyXY, xyOpts.mkString(TermSeparator))
     is.addOption(ZKeyT, tOpts.mkString(WeekSeparator))
-    is.addOption(ZOffsetKey, if (hasSplits) { "1" } else { "0" })
-    is.addOption(ZLengthKey, if (sft.isPoints) { "8" } else { Z3IndexV2.GEOM_Z_NUM_BYTES.toString })
+    is.addOption(ZOffsetKey, if (isSharing && hasSplits) { "2" } else if (isSharing || hasSplits) { "1" } else { "0" })
+    is.addOption(ZLengthKey, if (isPoints) { "8" } else { Z3IndexV2.GEOM_Z_NUM_BYTES.toString })
 
     is
   }

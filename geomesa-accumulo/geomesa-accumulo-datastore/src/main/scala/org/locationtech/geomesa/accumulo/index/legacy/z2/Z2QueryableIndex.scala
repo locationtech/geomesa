@@ -18,7 +18,7 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.AccumuloFilterStrategyType
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.iterators._
+import org.locationtech.geomesa.accumulo.iterators.{Z2DensityIterator, _}
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
@@ -87,7 +87,7 @@ trait Z2QueryableIndex extends AccumuloFeatureIndex
         }
       (iters, BinAggregatingIterator.kvsToFeatures(), None, cf, false)
     } else if (hints.isDensityQuery) {
-      val iter = Z2DensityIterator.configure(sft, ecql, hints)
+      val iter = Z2DensityIterator.configure(sft, this, ecql, hints)
       (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), None, FullColumnFamily, false)
     } else if (hints.isStatsIteratorQuery) {
       val iter = KryoLazyStatsIterator.configure(sft, this, ecql, hints, sft.nonPoints)

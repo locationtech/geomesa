@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.index.z3
+package org.locationtech.geomesa.accumulo.index.legacy.z3
 
 import java.nio.charset.StandardCharsets
 import java.util.Date

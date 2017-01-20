@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.index.z3
+package org.locationtech.geomesa.accumulo.index.legacy.z3
 
 import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.typesafe.scalalogging.LazyLogging
@@ -15,7 +15,7 @@ import org.apache.hadoop.io.Text
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.iterators._
+import org.locationtech.geomesa.accumulo.iterators.{Z3DensityIterator, _}
 import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloFilterStrategyType}
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.locationtech.geomesa.filter._
@@ -102,7 +102,7 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
         }
       (iters, BinAggregatingIterator.kvsToFeatures(), None, cf, false)
     } else if (hints.isDensityQuery) {
-      val iter = Z3DensityIterator.configure(sft, ecql, hints)
+      val iter = Z3DensityIterator.configure(sft, this, ecql, hints)
       (Seq(iter), KryoLazyDensityIterator.kvsToFeatures(), None, FullColumnFamily, false)
     } else if (hints.isStatsIteratorQuery) {
       val iter = KryoLazyStatsIterator.configure(sft, this, ecql, hints, sft.nonPoints)
@@ -175,7 +175,7 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
 
       // we know we're only going to scan appropriate periods, so leave out whole periods
       val filteredTimes = timesByBin.filter(_._2 != wholePeriod).toMap
-      val zIter = Z3Iterator.configure(sft, sfc, xy, filteredTimes, hasSplits, Z3Index.Z3IterPriority)
+      val zIter = Z3Iterator.configure(sfc, xy, filteredTimes, sft.isPoints, hasSplits, isSharing = false, Z3Index.Z3IterPriority)
       (ranges.toSeq, Some(zIter))
     }
 
