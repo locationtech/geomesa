@@ -31,13 +31,7 @@ geospatial analytics.
 
 ## Downloads
 
-**Current release: ${geomesa.12.release.version}**
-
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  [**Accumulo/Kafka**](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-dist/${geomesa.12.release.version}/geomesa-dist-${geomesa.12.release.version}-bin.tar.gz) |
-  [**Source**](https://github.com/locationtech/geomesa/archive/geomesa-${geomesa.12.release.version}.tar.gz)
-
-**Latest 1.3 milestone: ${geomesa.13.release.version}**
+**Current release: ${geomesa.13.release.version}**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [**Accumulo**](https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-accumulo-dist_2.11/${geomesa.13.release.version}/geomesa-accumulo-dist_2.11-${geomesa.13.release.version}-bin.tar.gz) |

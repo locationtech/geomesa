@@ -10,6 +10,7 @@ Getting Started
     geomesa-quickstart-accumulo
     geomesa-quickstart-kafka
     geomesa-quickstart-hbase
+    geodocker-geomesa-spark-on-aws
 
 Data In/Out
 -----------

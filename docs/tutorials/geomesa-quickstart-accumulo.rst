@@ -224,7 +224,7 @@ Take a look
 
 Click on the "Layer Preview" link in the left-hand gutter. If you don't
 see the quick-start layer on the first page of results, enter the name
-of the layer you just created into the search box, and press <Enter>.
+of the layer you just created into the search box, and press ``<Enter>``.
 
 Once you see your layer, click on the "OpenLayers" link, which will open
 a new tab. By default, the display that opens will not show all the
@@ -239,7 +239,7 @@ January 2014. You can find more information about the TIME parameter
 from `GeoServer's
 documentation <http://docs.geoserver.org/stable/en/user/services/wms/time.html>`__.
 
-Once you press <Enter>, the display will update, and you should see a
+Once you press ``<Enter>``, the display will update, and you should see a
 collection of red dots similar to the following image.
 
 .. figure:: _static/geomesa-quickstart-accumulo/geoserver-layer-preview.png

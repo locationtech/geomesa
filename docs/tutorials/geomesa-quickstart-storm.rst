@@ -16,10 +16,10 @@ Prerequisites
 
 You will need access to:
 
--  an instance of Accumulo |accumulo_version| running on Hadoop |hadoop_version|
+-  an instance of Accumulo |accumulo_version|
 -  an Accumulo user with create-table and write permissions
 -  an installation of Kafka |kafka_version|
--  an installation of Storm 0.8
+-  an installation of Storm 0.9+
 -  an instance of GeoServer |geoserver_version| with the GeoMesa Accumulo plugin
    installed
 

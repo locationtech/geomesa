@@ -47,12 +47,12 @@ In the ``geomesa-hbase_2.11-$VERSION`` directory, run ``bin/geomesa-hbase config
 .. code-block:: bash
 
     $ bin/geomesa-hbase configure
-    Using GEOMESA_HBASE_HOME = /path/to/geomesa-hbase_2.11-1.3.0-m3-SNAPSHOT
+    Using GEOMESA_HBASE_HOME = /path/to/geomesa-hbase_2.11-1.3.0
     Do you want to reset this? Y\n y
-    Using GEOMESA_HBASE_HOME as set: /path/to/geomesa-hbase_2.11-1.3.0-m3-SNAPSHOT
+    Using GEOMESA_HBASE_HOME as set: /path/to/geomesa-hbase_2.11-1.3.0
     Is this intentional? Y\n y
     To persist the configuration please edit conf/geomesa-env.sh or update your bashrc file to include:
-    export GEOMESA_HBASE_HOME=/path/to/geomesa-hbase_2.11-1.3.0-m3-SNAPSHOT
+    export GEOMESA_HBASE_HOME=/path/to/geomesa-hbase_2.11-1.3.0
     export PATH=${GEOMESA_HBASE_HOME}/bin:$PATH
 
 Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_HBASE_HOME`` and ``$PATH`` updates.
@@ -77,7 +77,7 @@ Run ``geomesa-hbase`` without arguments to confirm that the tools work.
 .. code::
 
     $ bin/geomesa-hbase
-    Using GEOMESA_HBASE_HOME = /path/to/geomesa-hbase_2.11-1.3.0-m3-SNAPSHOT
+    Using GEOMESA_HBASE_HOME = /path/to/geomesa-hbase_2.11-1.3.0
     INFO  Usage: geomesa-hbase [command] [command options]
       Commands:
       ...

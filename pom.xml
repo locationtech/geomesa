@@ -16,7 +16,7 @@
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa_2.11</artifactId>
     <packaging>pom</packaging>
-    <version>1.3.0-m3-SNAPSHOT</version>
+    <version>1.3.1-SNAPSHOT</version>
 
     <modules>
         <module>geomesa-accumulo</module>
@@ -51,9 +51,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- bump version right before performing releases for the README and the documentation -->
-        <geomesa.13.release.version>1.3.0-m2</geomesa.13.release.version>
+        <geomesa.13.release.version>1.3.0</geomesa.13.release.version>
         <geomesa.12.release.version>1.2.7.2</geomesa.12.release.version>
-        <geomesa.devel.version>1.3.0-m3-SNAPSHOT</geomesa.devel.version>
+        <geomesa.devel.version>1.3.1-SNAPSHOT</geomesa.devel.version>
 
         <!-- this must remain outside of version specific scala profiles for sbt/ivy -->
         <scala.binary.version>2.11</scala.binary.version>
