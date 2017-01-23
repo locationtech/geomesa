@@ -232,7 +232,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
       throw new UnsupportedOperationException(msg)
     }
 
-    val lock = acquireFeatureLock(sft.getTypeName)
+    val lock = acquireCatalogLock()
     try {
       // Get previous schema and user data
       val previousSft = getSchema(typeName)
@@ -295,22 +295,17 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
    * @see org.geotools.data.DataStore#removeSchema(java.lang.String)
    * @param typeName simple feature type name
    */
-  override def removeSchema(typeName: String) = {
-    val typeLock = acquireFeatureLock(typeName)
+  override def removeSchema(typeName: String): Unit = {
+    val lock = acquireCatalogLock()
     try {
       Option(getSchema(typeName)).foreach { sft =>
         val shared = sft.isTableSharing && getTypeNames.filter(_ != typeName).map(getSchema).exists(_.isTableSharing)
         manager.indices(sft, IndexMode.Any).par.foreach(_.delete(sft, this, shared))
         stats.clearStats(sft)
+        metadata.delete(typeName)
       }
     } finally {
-      typeLock.release()
-    }
-    val catalogLock = acquireCatalogLock()
-    try {
-      metadata.delete(typeName)
-    } finally {
-      catalogLock.release()
+      lock.release()
     }
   }
 
@@ -484,20 +479,6 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     */
   protected def acquireCatalogLock(): Releasable = {
     val path = s"/org.locationtech.geomesa/ds/${config.catalog}"
-    acquireDistributedLock(path, 120000).getOrElse {
-      throw new RuntimeException(s"Could not acquire distributed lock at '$path'")
-    }
-  }
-
-  /**
-    * Acquires a distributed lock for a single feature type across all accumulo data stores sharing
-    * this catalog table. Make sure that you 'release' the lock in a finally block.
-    *
-    * @param typeName feature type name to lock
-    * @return
-    */
-  protected def acquireFeatureLock(typeName: String): Releasable = {
-    val path = s"/org.locationtech.geomesa/ds/${config.catalog}-$typeName"
     acquireDistributedLock(path, 120000).getOrElse {
       throw new RuntimeException(s"Could not acquire distributed lock at '$path'")
     }

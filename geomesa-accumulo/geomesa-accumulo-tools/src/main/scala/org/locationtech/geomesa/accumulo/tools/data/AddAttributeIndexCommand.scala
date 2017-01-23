@@ -20,6 +20,7 @@ class AddAttributeIndexCommand extends AccumuloDataStoreCommand {
   override val params = new AddAttributeIndexParams
 
   override def execute(): Unit = {
+    // We instantiate the class at runtime to avoid classpath dependencies from commands that are not being used.
     new AddAttributeIndexCommandExecutor(params).run()
   }
 }

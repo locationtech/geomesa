@@ -230,10 +230,10 @@ else
       fname=$(basename "$x");
       echo "fetching ${x}";
       wget -O "${install_dir}/${fname}" "$x" || { rm -f "${install_dir}/${fname}"; echo "Error downloading dependency: ${fname}"; \
-        errorList="${errorList} ${x} ${NL}"; };
+        errorList="${errorList[@]} ${x} ${NL}"; };
     done
     if [[ -n "${errorList}" ]]; then
-      echo "Failed to download: ${NL} ${errorList}";
+      echo "Failed to download: ${NL} ${errorList[@]}";
     fi
   else
     echo "Installation cancelled"

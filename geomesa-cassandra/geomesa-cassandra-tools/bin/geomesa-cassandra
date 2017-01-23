@@ -21,7 +21,7 @@ fi
 GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB)"
 
 # Add user defined directories to the classpath
-if [[ -n "$GEOMESA_EXTRA_CLASSPATHS" ]]; then
+if [[ -n "${GEOMESA_EXTRA_CLASSPATHS}" ]]; then
   EXTRA_JARS="$(findJars $GEOMESA_EXTRA_CLASSPATHS true)"
   GEOMESA_CP="${GEOMESA_CP}:${EXTRA_JARS}"
 fi

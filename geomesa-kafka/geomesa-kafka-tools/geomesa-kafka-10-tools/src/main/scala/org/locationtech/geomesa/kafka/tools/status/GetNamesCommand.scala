@@ -19,6 +19,7 @@ class KafkaGetTypeNamesCommand extends KafkaDataStoreCommand {
   override val params = new KafkaGetTypeNamesParams()
 
   override def execute(): Unit = {
+    // We instantiate the class at runtime to avoid classpath dependencies from commands that are not being used.
     new KafkaGetTypeNamesCommandExecutor(params).run()
   }
 }

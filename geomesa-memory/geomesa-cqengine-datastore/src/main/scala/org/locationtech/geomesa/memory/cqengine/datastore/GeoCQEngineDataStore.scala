@@ -10,6 +10,7 @@ package org.locationtech.geomesa.memory.cqengine.datastore
 
 import java.util
 
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.feature.NameImpl
@@ -19,7 +20,10 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
 
-class GeoCQEngineDataStore extends ContentDataStore {
+class GeoCQEngineDataStore(useGeoIndex: java.lang.Boolean
+                          ) extends ContentDataStore with LazyLogging {
+  logger.info(s"useGeoIndex=$useGeoIndex")
+
   val namesToEngine = new java.util.concurrent.ConcurrentHashMap[String, GeoCQEngine]()
 
   override def createFeatureSource(entry: ContentEntry): ContentFeatureSource = {
@@ -34,10 +38,13 @@ class GeoCQEngineDataStore extends ContentDataStore {
   override def createTypeNames(): util.List[Name] = { namesToEngine.keys().toList.map { new NameImpl(_) } }
 
   override def createSchema(featureType: SimpleFeatureType): Unit = {
-    namesToEngine.putIfAbsent(featureType.getTypeName, new GeoCQEngine(featureType))
+    namesToEngine.putIfAbsent(
+      featureType.getTypeName,
+      new GeoCQEngine(featureType, enableGeomIndex=useGeoIndex))
   }
 }
 
 object GeoCQEngineDataStore {
-  lazy val engine = new GeoCQEngineDataStore
+  lazy val engine = new GeoCQEngineDataStore(useGeoIndex=true)
+  lazy val engineNoGeoIndex = new GeoCQEngineDataStore(useGeoIndex=false)
 }

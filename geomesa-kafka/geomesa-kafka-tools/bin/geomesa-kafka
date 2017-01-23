@@ -9,19 +9,24 @@
 
 # Set environment variables in bin/geomesa-env.sh
 
-if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
+if [[ -z "${%%gmtools.dist.name%%_HOME}" ]]; then
   export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
 fi
 
 # Load common functions and setup
 . "${%%gmtools.dist.name%%_HOME}"/bin/common-functions.sh
 
+if [[ -n "$KAFKA_HOME" ]]; then
+  GM_KAFKA_CP="$(findJars $KAFKA_HOME/libs)"
+else
+  GM_KAFKA_CP=""
+fi
 # Start constructing GEOMESA_CP (classpath)
 # include geomesa first so that the correct log4j.properties is picked up
-GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB)"
+GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB):$GM_KAFKA_CP"
 
 # Add user defined directories to the classpath
-if [[ -z "$GEOMESA_EXTRA_CLASSPATHS" ]]; then
+if [[ -n "${GEOMESA_EXTRA_CLASSPATHS}" ]]; then
   EXTRA_JARS="$(findJars $GEOMESA_EXTRA_CLASSPATHS true)"
   if [[ "x$EXTRA_JARS" == "x" ]]; then
     GEOMESA_CP="${GEOMESA_CP}:"
