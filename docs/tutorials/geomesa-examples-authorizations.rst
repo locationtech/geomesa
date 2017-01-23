@@ -228,10 +228,18 @@ through the Accumulo shell with the ``addauths`` command:
     myuser@mycloud> getauths
     user,admin
 
+Next we'll grant permissions to read the appropriate tables to ``user``
+and ``admin``.
+
+.. code-block:: bash
+
+    > grant -u user -p <table>.* Table.READ
+    > grant -u admin -p <table>.* Table.READ
+
 .. warning::
 
-    A user cannot set authorizations unless the user has
-    the ``System.ALTER_USER`` permission.
+    A user cannot set authorizations unless that user has the
+    ``System.ALTER\_USER`` permission.
 
 Once the GDELT data is ingested, you should see a visibility label in
 square brackets when you scan the spatio-temporal index table through

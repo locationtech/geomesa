@@ -56,15 +56,15 @@ if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
       && chmod 0644 "${thisDownloadPath}" \
       && echo "Successfully installed ${thisJar} to ${lib_dir}" \
       || { rm -f ${thisDownloadPath}; echo "Failed to download: ${thisURL}"; \
-      errorList="{$errorList} ${thisURL} ${NL}";};
+      errorList="{$errorList[@]} ${thisURL} ${NL}";};
   done
   imageio_gdal_bindings_downloadpath="${lib_dir}/$imageio_gdal_bindings_jarname"
   wget -O ${imageio_gdal_bindings_downloadpath} ${imageio_gdal_bindings_url} \
     && chmod 0644 "${imageio_gdal_bindings_downloadpath}" \
     && echo "Successfully installed ${imageio_gdal_bindings_jarname} to ${lib_dir}" \
     || { rm -f ${imageio_gdal_bindings_downloadpath}; echo "Failed to download: ${imageio_gdal_bindings_url}"; \
-    errorList="${errorList} ${thisURL} ${NL}"; };
-  echo "Failed to download files: ${NL} ${errorList}";
+    errorList="${errorList[@]} ${thisURL} ${NL}"; };
+  echo "Failed to download files: ${NL} ${errorList[@]}";
 else
   echo "Cancelled installation of Imageio-ext ${imageio_version}"
 fi

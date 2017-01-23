@@ -71,7 +71,7 @@ object Suffixes {
               None
             }
           case Failure(e) =>
-            logger.error(s"Error parsing memory property from '$s'", e)
+            logger.error(s"Error parsing memory property from input '$s': ${e.getMessage}")
             None
         }
       } else {

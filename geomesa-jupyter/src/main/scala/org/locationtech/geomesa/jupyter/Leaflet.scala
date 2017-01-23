@@ -59,7 +59,7 @@ object L {
     override def render: String =
       s"""
          |L.geoJson(${features.map(simpleFeatureToGeoJSON).mkString("[",",","]")},
-         |    { "onEachFeature": featurePopup, style: '$style.render' }
+         |    { style: '$style.render' }
          |).addTo(map);
        """.stripMargin
 
@@ -160,15 +160,18 @@ object L {
        |  if(typeof resizeIFrame != 'function') {
        |    function resizeIFrame(el, k) {
        |      el.style.height = el.contentWindow.document.body.scrollHeight + 'px';
+       |      el.style.width = '100%';
        |      if(k<=3) { setTimeout(function() { resizeIFrame(el, k+1)}, 1000) };
        |    }
        |  }
-       |  $$().ready(function() {resizeIFrame($$('#$id').get(0).1);});
+       |  $$().ready(function() {
+       |    resizeIFrame($$('#$id').get(0), 1);
+       |  });
        |</script>
      """.stripMargin
   }
 
-  def show(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 8)(implicit disp: String => Unit) = disp(render(layers,center,zoom))
+  def show(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 1)(implicit disp: String => Unit) = disp(render(layers,center,zoom))
 
-  def print(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 8) = println(buildMap(layers,center,zoom))
+  def print(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 1) = println(buildMap(layers,center,zoom))
 }

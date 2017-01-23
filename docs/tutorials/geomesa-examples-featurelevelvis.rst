@@ -30,7 +30,7 @@ You will need:
 -  `Apache Maven <http://maven.apache.org/>`__ |maven_version|, and
 -  a `git <http://git-scm.com/>`__ client
 
-If you haven't already read both the :doc:`../user/installation_and_configuration` section of
+If you haven't already read both the :ref:`installation` section of
 the GeoMesa User Manual and the  :doc:`geomesa-quickstart-accumulo`, you should do so now,
 and make sure you have gone through the initial setup of GeoMesa.
 
@@ -66,7 +66,7 @@ To build, run
 .. note::
 
     Depending on the version, you may also need to build GeoMesa locally.
-    Instructions can be found under :doc:`../user/installation_and_configuration`.
+    Instructions can be found under :ref:`installation`.
 
 Run the Tutorial
 ----------------
@@ -191,12 +191,42 @@ authorizations, meaning they can only view features of visibility
 ``user``. They will never see features written with the visibility
 ``admin``.
 
+Next we'll grant permissions to the read the appropriate tables to
+``user`` and ``admin``.
+
+.. code-block:: bash
+
+    > grant -u user -p <table>.* Table.READ
+    > grant -u admin -p <table>.* Table.READ
+
+To verify user permissions you can switch users in the accumulo console
+by using:
+
+.. code-block:: bash
+
+    > user admin
+    Enter password for user admin: ******
+
+We can now move to the table we'd like to verify. Here we use
+``<table>_z2_v2`` but any valid table will work.
+
+.. code-block:: bash
+
+    > table <table>_z2_v2
+    > scan
+    \x01\x00\x0C0\xB0Pf\x0A&\x19Observation.99 F: [user|admin]    \x02\x00\x00\x00CAddam\xF3\x01\x00\x00\x00\x00\x00\x00\x00c\x01\x00\x00\x01H\xAC\xB4;\xB0\x01\x08\x03\xC0Sz\x1Ff\x15}H\xC0C(\xC5jq\x08\x8F\x7F\xF8\x00\x00\x00\x00\x00\x00\x80user|admi\xEE\x05\x0B\x14\x1D89
+    \x01\x00\x0C0\xB22\xB7-\xA4;Observation.585 F: [user|admin]    \x02\x00\x00\x00CAddam\xF3\x01\x00\x00\x00\x00\x00\x00\x02I\x01\x00\x00\x01DUby\xE8\x01\x08\x03\xC0S\x7F\xDF\x0Aw\xD9\x14\xC0C\x19\xA4\xFC{\xE7\xA6\x7F\xF8\x00\x00\x00\x00\x00\x00\x80user|admi\xEE\x05\x0B\x14\x1D89
+    ---------------hit any key to continue or 'q' to quit ------------------
+
+``scan`` should return a sample of the data if everything is configured
+correctly.
+
 Let's move on to GeoServer to visualize feature level visibility.
 
 GeoServer Visualization
 -----------------------
 
-Assuming you have already set up GeoServer as described in the :doc:`../user/installation_and_configuration`
+Assuming you have already set up GeoServer as described in the :ref:`installation`
 section of the GeoMesa
 User Manual, we're going to add a new ``DataStore`` to GeoServer. First,
 login to GeoServer, and then click "Add stores" from the homepage.

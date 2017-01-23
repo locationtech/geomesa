@@ -25,6 +25,8 @@ import org.opengis.feature.simple.SimpleFeature
 import scala.collection.JavaConversions._
 
 class GeoToolsSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
+  import org.locationtech.geomesa.spark.CaseInsensitiveMapFix._
+
   override def canProcess(params: util.Map[String, Serializable]): Boolean = {
     params.containsKey("geotools") &&
       DataStoreFinder.getAllDataStores.exists(_.canProcess(params))
@@ -42,7 +44,7 @@ class GeoToolsSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
   }
 
   /**
-    * Writes this RDD to a GeoMesa table.
+    * Writes this RDD to a GeoMesa data store.
     * The type must exist in the data store, and all of the features in the RDD must be of this type.
     *
     * @param rdd

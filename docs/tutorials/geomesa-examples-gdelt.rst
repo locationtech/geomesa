@@ -98,7 +98,7 @@ To build, run
 
     Depending on the version, you may also need to build
     GeoMesa locally. Instructions can be found under
-    :doc:`/user/installation_and_configuration`.
+    :ref:`installation`.
 
 Running the Ingest
 ------------------
@@ -217,7 +217,7 @@ Analyze
 GeoServer Setup
 ~~~~~~~~~~~~~~~
 
-First, follow :doc:`/user/installation_and_configuration` to set up the
+First, follow :ref:`installation` to set up the
 GeoMesa GeoServer plugin if you haven't done so.
 
 Register the GeoMesa DataStore with GeoServer

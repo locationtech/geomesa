@@ -11,6 +11,7 @@ package org.locationtech.geomesa.metrics.reporters
 import java.io.File
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 
 import com.codahale.metrics._
 import org.apache.commons.io.FileUtils
@@ -22,6 +23,7 @@ import scala.io.Source
 
 @RunWith(classOf[JUnitRunner])
 class DelimitedFileReporterTest extends Specification {
+
   sequential
 
   val registry = new MetricRegistry()
@@ -42,7 +44,7 @@ class DelimitedFileReporterTest extends Specification {
     }
   }
 
-  "AccumuloReporter" should {
+  "DelimitedFileReporter" should {
     "report gauges" >> {
       val name = "mygauge"
 
@@ -109,11 +111,11 @@ class DelimitedFileReporterTest extends Specification {
     "report meters" >> {
       val name = "mymeter"
 
-      var tick: Long = 0
-      val clock = new Clock { override def getTick: Long = tick * 1000 } // tick is in nanos - we use millis
+      val tick = new AtomicLong(0)
+      val clock = new Clock { override def getTick: Long = tick.get * 1000 } // tick is in nanos - we use millis
 
       val metric = registry.register(name, new Meter(clock))
-      (0 until 10).foreach { i => tick += i; metric.mark() }
+      (0 until 10).foreach { i => tick.addAndGet(i); metric.mark() }
 
       reporter.report()
       reporter.flush()
@@ -135,14 +137,14 @@ class DelimitedFileReporterTest extends Specification {
     "report timers" >> {
       val name = "mytimer"
 
-      var tick: Long = 0
-      val clock = new Clock { override def getTick: Long = tick * 1000000 } // tick is in nanos - we use seconds
+      val tick = new AtomicLong(0)
+      val clock = new Clock { override def getTick: Long = tick.get * 1000000 } // tick is in nanos - we use seconds
 
-      val metric = registry.register(name, new Timer(new ExponentiallyDecayingReservoir(), clock))
+      val metric = registry.register(name, new Timer(new SlidingWindowReservoir(100), clock))
       (0 until 10).foreach { i =>
-        tick += i
+        tick.addAndGet(i)
         val c = metric.time()
-        tick += i
+        tick.addAndGet(i)
         c.stop()
       }
 
@@ -159,9 +161,9 @@ class DelimitedFileReporterTest extends Specification {
       entries.head(1).toDouble mustEqual 0.0
       entries.head(2).toDouble mustEqual 9.0
       entries.head(3).toDouble mustEqual 4.5
-      entries.head(4).toDouble mustEqual 2.87
-      entries.head(5).toDouble mustEqual 5.0
-      entries.head(6).toDouble mustEqual 7.0
+      entries.head(4).toDouble mustEqual 3.03
+      entries.head(5).toDouble mustEqual 4.5
+      entries.head(6).toDouble mustEqual 7.25
       entries.head(7).toDouble mustEqual 9.0
       entries.head(8).toDouble mustEqual 9.0
       entries.head(9).toDouble mustEqual 9.0

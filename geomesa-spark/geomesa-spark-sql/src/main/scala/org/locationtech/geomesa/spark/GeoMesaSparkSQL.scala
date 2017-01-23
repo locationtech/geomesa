@@ -9,10 +9,11 @@
 package org.locationtech.geomesa.spark
 
 import java.sql.Timestamp
+import java.time.Instant
 import java.util.{Date, UUID}
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Geometry, Point}
+import com.vividsolutions.jts.geom._
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -21,13 +22,20 @@ import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
 import org.apache.spark.sql.sources._
 import org.apache.spark.sql.types.{DataTypes, StructField, StructType}
 import org.geotools.data.{DataStoreFinder, Query}
-import org.geotools.factory.CommonFactoryFinder
+import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
+import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs, SimpleFeatureTypes}
 import org.opengis.feature.`type`._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 import scala.util.Try
+
+object GeoMesaSparkSQL {
+  val GEOMESA_SQL_FEATURE = "geomesa.feature"
+}
+
+import GeoMesaSparkSQL._
 
 // Spark DataSource for GeoMesa
 // enables loading a GeoMesa DataFrame as
@@ -42,14 +50,35 @@ import scala.util.Try
 //   .option("geomesa.feature", "chicago")
 //   .load()
 // }}
-class GeoMesaDataSource extends DataSourceRegister with RelationProvider with SchemaRelationProvider with CreatableRelationProvider {
+class GeoMesaDataSource extends DataSourceRegister
+  with RelationProvider with SchemaRelationProvider with CreatableRelationProvider
+  with LazyLogging {
+  import CaseInsensitiveMapFix._
 
   override def shortName(): String = "geomesa"
 
   override def createRelation(sqlContext: SQLContext, parameters: Map[String, String]): BaseRelation = {
     SQLTypes.init(sqlContext)
+
+    // TODO: Need different ways to retrieve sft
+    //  GEOMESA-1643 Add method to lookup SFT to RDD Provider
+    //  Below the details of the Converter RDD Provider and Providers which are backed by GT DSes are leaking through
     val ds = DataStoreFinder.getDataStore(parameters)
-    val sft = ds.getSchema(parameters("geomesa.feature"))
+    val sft = if (ds != null) {
+      ds.getSchema(parameters(GEOMESA_SQL_FEATURE))
+    } else {
+      if (parameters.contains(GEOMESA_SQL_FEATURE) && parameters.contains("geomesa.sft")) {
+        SimpleFeatureTypes.createType(parameters(GEOMESA_SQL_FEATURE), parameters("geomesa.sft"))
+      } else {
+        SftArgResolver.getArg(SftArgs(parameters(GEOMESA_SQL_FEATURE), parameters(GEOMESA_SQL_FEATURE))) match {
+          case Right(s) => s
+          case Left(e) => throw new IllegalArgumentException("Could not resolve simple feature type", e)
+        }
+
+      }
+    }
+    logger.trace(s"Creating GeoMesa Relation with sft : $sft")
+
     val schema = sft2StructType(sft)
     GeoMesaRelation(sqlContext, sft, schema, parameters)
   }
@@ -57,12 +86,12 @@ class GeoMesaDataSource extends DataSourceRegister with RelationProvider with Sc
   // JNH: Q: Why doesn't this method have the call to SQLTypes.init(sqlContext)?
   override def createRelation(sqlContext: SQLContext, parameters: Map[String, String], schema: StructType): BaseRelation = {
     val ds = DataStoreFinder.getDataStore(parameters)
-    val sft = ds.getSchema(parameters("geomesa.feature"))
+    val sft = ds.getSchema(parameters(GEOMESA_SQL_FEATURE))
     GeoMesaRelation(sqlContext, sft, schema, parameters)
   }
 
   private def sft2StructType(sft: SimpleFeatureType) = {
-    val fields = sft.getAttributeDescriptors.map { ad => ad2field(ad) }.toList
+    val fields = sft.getAttributeDescriptors.flatMap { ad => ad2field(ad) }.toList
     StructType(StructField("__fid__", DataTypes.StringType, nullable =false) :: fields)
   }
 
@@ -82,19 +111,20 @@ class GeoMesaDataSource extends DataSourceRegister with RelationProvider with Sc
           case DataTypes.DoubleType => builder.add(field.name, classOf[jl.Double])
           case DataTypes.StringType => builder.add(field.name, classOf[jl.String])
           case DataTypes.LongType   => builder.add(field.name, classOf[jl.Long])
+          case DataTypes.TimestampType => builder.add(field.name, classOf[java.util.Date])
 
-          case SQLTypes.PointType => builder.add(field.name, classOf[com.vividsolutions.jts.geom.Point])
-          case SQLTypes.LineStringType => builder.add(field.name, classOf[com.vividsolutions.jts.geom.LineString])
-          case SQLTypes.PolygonType  => builder.add(field.name, classOf[com.vividsolutions.jts.geom.Polygon])
-          case SQLTypes.MultipolygonType  => builder.add(field.name, classOf[com.vividsolutions.jts.geom.MultiPolygon])
-          case SQLTypes.GeometryType => builder.add(field.name, classOf[com.vividsolutions.jts.geom.Geometry])
+          case SQLTypes.PointTypeInstance => builder.add(field.name, classOf[com.vividsolutions.jts.geom.Point])
+          case SQLTypes.LineStringTypeInstance => builder.add(field.name, classOf[com.vividsolutions.jts.geom.LineString])
+          case SQLTypes.PolygonTypeInstance  => builder.add(field.name, classOf[com.vividsolutions.jts.geom.Polygon])
+          case SQLTypes.MultipolygonTypeInstance  => builder.add(field.name, classOf[com.vividsolutions.jts.geom.MultiPolygon])
+          case SQLTypes.GeometryTypeInstance => builder.add(field.name, classOf[com.vividsolutions.jts.geom.Geometry])
         }
     }
     builder.setName(name)
     builder.buildFeatureType()
   }
 
-  private def ad2field(ad: AttributeDescriptor): StructField = {
+  private def ad2field(ad: AttributeDescriptor): Option[StructField] = {
     import java.{lang => jl}
     val dt = ad.getType.getBinding match {
       case t if t == classOf[jl.Double]                       => DataTypes.DoubleType
@@ -105,22 +135,32 @@ class GeoMesaDataSource extends DataSourceRegister with RelationProvider with Sc
       case t if t == classOf[jl.Long]                         => DataTypes.LongType
       case t if t == classOf[java.util.Date]                  => DataTypes.TimestampType
 
-      case t if t == classOf[com.vividsolutions.jts.geom.Point]        => SQLTypes.PointType
-      case t if t == classOf[com.vividsolutions.jts.geom.LineString]   => SQLTypes.LineStringType
-      case t if t == classOf[com.vividsolutions.jts.geom.Polygon]      => SQLTypes.PolygonType
-      case t if t == classOf[com.vividsolutions.jts.geom.MultiPolygon] => SQLTypes.MultipolygonType
-      // JNH: Add Geometry types here.
+      case t if t == classOf[com.vividsolutions.jts.geom.Point]            => SQLTypes.PointTypeInstance
+      case t if t == classOf[com.vividsolutions.jts.geom.MultiPoint]       => SQLTypes.MultiPointTypeInstance
+      case t if t == classOf[com.vividsolutions.jts.geom.LineString]       => SQLTypes.LineStringTypeInstance
+      case t if t == classOf[com.vividsolutions.jts.geom.MultiLineString]  => SQLTypes.MultiLineStringTypeInstance
+      case t if t == classOf[com.vividsolutions.jts.geom.Polygon]          => SQLTypes.PolygonTypeInstance
+      case t if t == classOf[com.vividsolutions.jts.geom.MultiPolygon]     => SQLTypes.MultipolygonTypeInstance
 
-      case t if      classOf[Geometry].isAssignableFrom(t)    => SQLTypes.GeometryType
+      case t if      classOf[Geometry].isAssignableFrom(t)    => SQLTypes.GeometryTypeInstance
 
+      // NB:  List and Map types are not supported.
       case _                                                  => null
     }
-    StructField(ad.getLocalName, dt)
+    Option(dt).map(StructField(ad.getLocalName, _))
   }
 
   override def createRelation(sqlContext: SQLContext, mode: SaveMode, parameters: Map[String, String], data: DataFrame): BaseRelation = {
-    val newFeatureName: String = parameters("geomesa.feature")
+    val newFeatureName = parameters(GEOMESA_SQL_FEATURE)
     val sft: SimpleFeatureType = structType2SFT(data.schema, newFeatureName)
+
+    // reuse the __fid__ if available for joins,
+    // otherwise use a random id prefixed with the current time
+    val fidIndex = data.schema.fields.indexWhere(_.name == "__fid__")
+    val fidFn: Row => String =
+      if(fidIndex > -1) (row: Row) => row.getString(fidIndex)
+      else _ => "%d%s".format(Instant.now().getEpochSecond, UUID.randomUUID().toString)
+
 
     val ds = DataStoreFinder.getDataStore(parameters)
     sft.getUserData.put("override.reserved.words", java.lang.Boolean.TRUE)
@@ -129,8 +169,12 @@ class GeoMesaDataSource extends DataSourceRegister with RelationProvider with Sc
     val rddToSave: RDD[SimpleFeature] = data.rdd.mapPartitions( iterRow => {
       val innerDS = DataStoreFinder.getDataStore(parameters)
       val sft = innerDS.getSchema(newFeatureName)
-      val func: (Row) => SimpleFeature = SparkUtils.row2Sf(sft, _)
-      iterRow.map(func)
+      val builder = new SimpleFeatureBuilder(sft)
+
+      iterRow.map { r =>
+        builder.reset()
+        SparkUtils.row2Sf(sft, r, builder, fidFn(r))
+      }
     })
 
     GeoMesaSpark(parameters).save(rddToSave, parameters, newFeatureName)
@@ -152,7 +196,7 @@ case class GeoMesaRelation(sqlContext: SQLContext,
   lazy val isMock = Try(params("useMock").toBoolean).getOrElse(false)
 
   override def buildScan(requiredColumns: Array[String], filters: Array[org.apache.spark.sql.sources.Filter]): RDD[Row] = {
-    SparkUtils.buildScan(sft, requiredColumns, filters, filt, sqlContext.sparkContext, schema, params)
+    SparkUtils.buildScan(requiredColumns, filters, filt, sqlContext.sparkContext, schema, params)
   }
 
   override def unhandledFilters(filters: Array[Filter]): Array[Filter] = {
@@ -164,23 +208,24 @@ case class GeoMesaRelation(sqlContext: SQLContext,
 }
 
 object SparkUtils extends LazyLogging {
+  import CaseInsensitiveMapFix._
+
   @transient val ff = CommonFactoryFinder.getFilterFactory2
 
-  def buildScan(sft: SimpleFeatureType,
-                requiredColumns: Array[String],
+  def buildScan(requiredColumns: Array[String],
                 filters: Array[org.apache.spark.sql.sources.Filter],
                 filt: org.opengis.filter.Filter,
                 ctx: SparkContext,
                 schema: StructType,
                 params: Map[String, String]): RDD[Row] = {
-    logger.info(s"""Building scan, filt = $filt, filters = ${filters.mkString(",")}, requiredColumns = ${requiredColumns.mkString(",")}""")
+    logger.debug(s"""Building scan, filt = $filt, filters = ${filters.mkString(",")}, requiredColumns = ${requiredColumns.mkString(",")}""")
     val compiledCQL = filters.flatMap(sparkFilterToCQLFilter).foldLeft[org.opengis.filter.Filter](filt) { (l, r) => ff.and(l,r) }
-    logger.info(s"compiledCQL = $compiledCQL")
+    logger.debug(s"compiledCQL = $compiledCQL")
 
     val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
     val rdd = GeoMesaSpark(params).rdd(
       new Configuration(), ctx, params,
-      new Query(params("geomesa.feature"), compiledCQL, requiredAttributes))
+      new Query(params(GEOMESA_SQL_FEATURE), compiledCQL, requiredAttributes))
 
     type EXTRACTOR = SimpleFeature => AnyRef
     val IdExtractor: SimpleFeature => AnyRef = sf => sf.getID
@@ -232,25 +277,35 @@ object SparkUtils extends LazyLogging {
   }
 
   // JNH: Fix this.  Seriously.
-  def row2Sf(sft: SimpleFeatureType, row: Row): SimpleFeature = {
-    val builder = new SimpleFeatureBuilder(sft)
-
+  def row2Sf(sft: SimpleFeatureType, row: Row, builder: SimpleFeatureBuilder, id: String): SimpleFeature = {
+    import java.{lang => jl}
     sft.getAttributeDescriptors.foreach {
       ad =>
         val name = ad.getLocalName
-        val binding = ad.getType.getBinding
+        // do we need to do type mapping here?
+        val value = ad.getType.getBinding match {
+          case t if t == classOf[jl.Double]                       => row.getAs[jl.Double](name)
+          case t if t == classOf[jl.Float]                        => row.getAs[jl.Float](name)
+          case t if t == classOf[jl.Integer]                      => row.getAs[jl.Integer](name)
+          case t if t == classOf[jl.String]                       => row.getAs[jl.String](name)
+          case t if t == classOf[jl.Boolean]                      => row.getAs[jl.Boolean](name)
+          case t if t == classOf[jl.Long]                         => row.getAs[jl.Long](name)
+          case t if t == classOf[java.util.Date]                  => row.getAs[java.sql.Timestamp](name) //timestamp extends date
+          case t if t == classOf[com.vividsolutions.jts.geom.Point]            => row.getAs[Point](name)
+          case t if t == classOf[com.vividsolutions.jts.geom.MultiPoint]       => row.getAs[MultiPoint](name)
+          case t if t == classOf[com.vividsolutions.jts.geom.LineString]       => row.getAs[LineString](name)
+          case t if t == classOf[com.vividsolutions.jts.geom.MultiLineString]  => row.getAs[MultiLineString](name)
+          case t if t == classOf[com.vividsolutions.jts.geom.Polygon]          => row.getAs[Polygon](name)
+          case t if t == classOf[com.vividsolutions.jts.geom.MultiPolygon]     => row.getAs[MultiPolygon](name)
+          // JNH: Add Geometry types here.
 
-        if (binding == classOf[java.lang.String]) {
-          builder.set(name, row.getAs[String](name))
-        } else if (binding == classOf[java.lang.Double]) {
-          builder.set(name, row.getAs[Double](name))
-        } else if (binding == classOf[com.vividsolutions.jts.geom.Point]) {
-          builder.set(name, row.getAs[Point](name))
-        } else {
-          logger.warn(s"UNHANDLED BINDING: $binding")
+          case t if      classOf[Geometry].isAssignableFrom(t)    => SQLTypes.GeometryTypeInstance
+          case _                                                  => null
         }
+        builder.set(name, value)
     }
 
-    builder.buildFeature(UUID.randomUUID().toString)
+    builder.userData(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+    builder.buildFeature(id)
   }
 }

@@ -20,7 +20,7 @@ abstract class GeomesaFilteringIterator
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
                     env: IteratorEnvironment) = {
-    this.source = source.deepCopy(env)
+    this.source = source
   }
 
   override def hasTop = topKey != null
