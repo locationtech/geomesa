@@ -99,16 +99,26 @@ function containsElement() {
 }
 
 function registerAutocomplete() {
-  eval compFile="~/.bash_completion" # resolve tilde
-  [[ -f ${compFile} ]] || touch ${compFile}
-  # Search .bash_completion for this entry so we don't add it twice
-  head=$(head -n 1 ${GEOMESA_CONF_DIR}/autocomplete.sh)
-  res=$(grep -F $head ${compFile})
-  if [[ -z "${res}" ]]; then
-    echo "Installing Autocomplete Function"
-    cat ${GEOMESA_CONF_DIR}/autocomplete.sh >> ${compFile}
-    echo "Autocomplete function available, to use now run:"
-    echo ". ${compFile}"
+  echo "Do you want to register Autocomplete?"
+  read -p "Use default [Y/n] or enter path: " -r
+  if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+    if [[ $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
+      eval compFile="${HOME}/.bash_completion"
+    else
+      compFile=$REPLY
+    fi
+    [[ -f ${compFile} ]] || touch ${compFile}
+    # Search .bash_completion for this entry so we don't add it twice
+    head=$(head -n 1 ${GEOMESA_CONF_DIR}/autocomplete.sh)
+    res=$(grep -F $head ${compFile})
+    if [[ -z "${res}" ]]; then
+      echo "Installing Autocomplete Function"
+      cat ${GEOMESA_CONF_DIR}/autocomplete.sh >> ${compFile} 2> /dev/null
+      echo "Autocomplete function available, to use now run:"
+      echo ". ${compFile}"
+    else
+      echo "Autocomplete Function appears to already be installed."
+    fi
   fi
 }
 
