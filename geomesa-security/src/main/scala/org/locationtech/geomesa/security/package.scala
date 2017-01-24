@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa
 
+import java.util.ServiceLoader
 import java.{io => jio, util => ju}
-import javax.imageio.spi.ServiceRegistry
 
 import org.geotools.data.DataAccessFactory.Param
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -57,7 +57,7 @@ package object security {
     import scala.collection.JavaConversions._
 
     // we wrap the authorizations provider in one that will filter based on the max auths configured for this store
-    val providers = ServiceRegistry.lookupProviders(classOf[AuthorizationsProvider]).toBuffer
+    val providers = ServiceLoader.load(classOf[AuthorizationsProvider]).toBuffer
     val toWrap = Option(params.get(authProviderParam.key).asInstanceOf[AuthorizationsProvider]).getOrElse {
       GEOMESA_AUTH_PROVIDER_IMPL.option match {
         case Some(prop) =>
