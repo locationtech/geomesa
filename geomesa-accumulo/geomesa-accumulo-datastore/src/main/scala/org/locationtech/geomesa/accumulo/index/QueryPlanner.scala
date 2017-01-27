@@ -335,12 +335,14 @@ object QueryPlanner extends LazyLogging {
       val convertedRegularProps = regularProps.map { p => s"$p=$p" }
       val allTransforms = convertedRegularProps ++ transformProps
       // ensure that the returned props includes geometry, otherwise we get exceptions everywhere
-      val allGeoms = sft.getAttributeDescriptors.collect {
-        case d if classOf[Geometry].isAssignableFrom(d.getType.getBinding) => d.getLocalName
-      }
-      val geomTransform = if (allGeoms.exists(g => allTransforms.exists(_.matches(s"$g\\s*=.*")))) { Nil } else {
-        val geom = sft.getGeometryDescriptor.getLocalName
-        Seq(s"$geom=$geom")
+      val geomTransform = {
+        val allGeoms = sft.getAttributeDescriptors.collect {
+          case d if classOf[Geometry].isAssignableFrom(d.getType.getBinding) => d.getLocalName
+        }
+        val geomMatches = for (t <- allTransforms.iterator; g <- allGeoms) yield { t.matches(s"$g\\s*=.*") }
+        if (geomMatches.contains(true)) { Nil } else {
+          Option(sft.getGeometryDescriptor).map(_.getLocalName).map(geom => s"$geom=$geom").toSeq
+        }
       }
       val transforms = (allTransforms ++ geomTransform).mkString(";")
       val transformDefs = TransformProcess.toDefinition(transforms)
