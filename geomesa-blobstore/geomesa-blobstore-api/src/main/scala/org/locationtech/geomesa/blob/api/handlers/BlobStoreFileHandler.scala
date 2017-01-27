@@ -10,8 +10,7 @@ package org.locationtech.geomesa.blob.api.handlers
 
 import java.io.File
 import java.util
-import java.util.Date
-import javax.imageio.spi.ServiceRegistry
+import java.util.{Date, ServiceLoader}
 
 import com.vividsolutions.jts.geom.Geometry
 import org.geotools.factory.Hints
@@ -26,7 +25,7 @@ import scala.collection.JavaConversions._
 
 object BlobStoreFileHandler {
   def buildSimpleFeature(file: File, params: Map[String, String]): Option[SimpleFeature] = {
-    val handlers = ServiceRegistry.lookupProviders(classOf[FileHandler])
+    val handlers = ServiceLoader.load(classOf[FileHandler])
 
     handlers.find(_.canProcess(file, params)).map(_.buildSimpleFeature(file, params))
   }
