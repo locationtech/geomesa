@@ -18,11 +18,7 @@ trait AccumuloDataStoreCommand extends DataStoreCommand[AccumuloDataStore] {
 
   // AccumuloDataStoreFactory requires instance ID to be set but it should not be required if mock is set...so set a
   // fake one but be careful NOT to add a mock zoo since other code will then think it has a zookeeper but doesn't
-  lazy private val mockDefaults = Map[String, String](
-    AccumuloDataStoreParams.instanceIdParam.getName -> "mockInstance",
-    AccumuloDataStoreParams.userParam.getName       -> "mockUser",
-    AccumuloDataStoreParams.passwordParam.getName   -> "mockPassword"
-  )
+  lazy private val mockDefaults = Map[String, String](AccumuloDataStoreParams.instanceIdParam.getName -> "mockInstance")
 
   override def params: AccumuloDataStoreParams
 
