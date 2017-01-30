@@ -10,10 +10,10 @@ package org.locationtech.geomesa.utils.audit;
 
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties;
 
-import javax.imageio.spi.ServiceRegistry;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.ServiceLoader;
 
 /**
  * An interface to define passing audit information.
@@ -52,7 +52,7 @@ public interface AuditProvider {
 
         public static AuditProvider load(Map<String, Serializable> params) {
 
-            Iterator<AuditProvider> providers = ServiceRegistry.lookupProviders(AuditProvider.class);
+            Iterator<AuditProvider> providers = ServiceLoader.load(AuditProvider.class).iterator();
 
             // if the user specifies an auth provider to use, try to use that impl
             String specified = GeoMesaSystemProperties.getProperty(AuditProvider.AUDIT_PROVIDER_SYS_PROPERTY);
