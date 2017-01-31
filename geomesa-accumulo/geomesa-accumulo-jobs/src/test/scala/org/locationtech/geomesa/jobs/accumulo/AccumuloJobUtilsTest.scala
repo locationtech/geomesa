@@ -19,7 +19,7 @@ class AccumuloJobUtilsTest extends Specification {
     "load list of jars from class resource" in {
       AccumuloJobUtils.defaultLibJars must not(beNull)
       AccumuloJobUtils.defaultLibJars must not(beEmpty)
-      AccumuloJobUtils.defaultLibJars must contain("accumulo")
+      AccumuloJobUtils.defaultLibJars must contain("accumulo-fate")
       AccumuloJobUtils.defaultLibJars must contain("libthrift")
     }
   }

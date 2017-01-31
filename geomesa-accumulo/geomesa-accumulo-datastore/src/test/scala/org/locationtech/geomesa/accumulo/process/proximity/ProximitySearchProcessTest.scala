@@ -33,7 +33,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
   sequential
 
   val geoFactory = JTSFactoryFinder.getGeometryFactory
-  val ff = CommonFactoryFinder.getFilterFactory2
+  val filterFactory = CommonFactoryFinder.getFilterFactory2
 
   def getPoint(lat: Double, lon: Double, meters: Double) =
     GeometryUtils.farthestPoint(geoFactory.createPoint(new Coordinate(lat, lon)), meters)
@@ -118,7 +118,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
       val end     = new DateTime(2014, 6, 7, 13, 0, 0, DateTimeZone.forID("UTC"))
 
       val fs = ds.getFeatureSource(sftPointsName)
-      val dataFeatures = fs.getFeatures(ff.during(ff.property("dtg"), Filters.dts2lit(start, end)))
+      val dataFeatures = fs.getFeatures(filterFactory.during(filterFactory.property("dtg"), Filters.dts2lit(start, end)))
 
       val prox = new ProximitySearchProcess
       // note: size returns an estimated amount, instead we need to actually count the features

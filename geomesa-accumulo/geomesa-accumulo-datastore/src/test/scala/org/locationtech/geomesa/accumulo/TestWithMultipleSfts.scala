@@ -25,7 +25,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.identity.FeatureId
 import org.specs2.mutable.Specification
-import org.specs2.specification.{Fragments, Step}
+import org.specs2.specification.Step
+import org.specs2.specification.core.Fragments
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer

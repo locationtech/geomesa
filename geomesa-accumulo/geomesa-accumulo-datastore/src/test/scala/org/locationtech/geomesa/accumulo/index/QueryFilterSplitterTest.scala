@@ -49,7 +49,7 @@ class QueryFilterSplitterTest extends Specification {
   sft.setSchemaVersion(org.locationtech.geomesa.CURRENT_SCHEMA_VERSION)
   sft.setIndices(AccumuloFeatureIndex.getDefaultIndices(sft).map(i => (i.name, i.version, IndexMode.ReadWrite)))
 
-  val ff = CommonFactoryFinder.getFilterFactory2
+  val filterFactory = CommonFactoryFinder.getFilterFactory2
   val splitter = new FilterSplitter(sft, AccumuloFeatureIndex.indices(sft, IndexMode.Any))
 
   val geom                = "BBOX(geom,40,40,50,50)"
@@ -69,11 +69,11 @@ class QueryFilterSplitterTest extends Specification {
 
   val includeStrategy     = Z3Index
 
-  def and(clauses: Filter*) = ff.and(clauses)
-  def or(clauses: Filter*)  = ff.or(clauses)
-  def and(clauses: String*)(implicit d: DummyImplicit) = ff.and(clauses.map(ECQL.toFilter))
-  def or(clauses: String*)(implicit d: DummyImplicit)  = ff.or(clauses.map(ECQL.toFilter))
-  def not(clauses: String*) = filter.andFilters(clauses.map(ECQL.toFilter).map(ff.not))(ff)
+  def and(clauses: Filter*) = filterFactory.and(clauses)
+  def or(clauses: Filter*)  = filterFactory.or(clauses)
+  def and(clauses: String*)(implicit d: DummyImplicit) = filterFactory.and(clauses.map(ECQL.toFilter))
+  def or(clauses: String*)(implicit d: DummyImplicit)  = filterFactory.or(clauses.map(ECQL.toFilter))
+  def not(clauses: String*) = filter.andFilters(clauses.map(ECQL.toFilter).map(filterFactory.not))(filterFactory)
   def f(filter: String)     = ECQL.toFilter(filter)
 
   def compareAnd(primary: Option[Filter], clauses: Filter*): MatchResult[Option[Seq[Filter]]] =
@@ -170,10 +170,7 @@ class QueryFilterSplitterTest extends Specification {
         options.map(_.strategies.head.index) must containTheSameElementsAs(Seq(Z2Index, Z3Index))
         val z2 = options.find(_.strategies.head.index == Z2Index).get
         compareOr(z2.strategies.head.primary, geom, geom2)
-        forall(z2.strategies.map(_.secondary))(_ must beSome)
-        z2.strategies.map(_.secondary.get) must contain(beAnInstanceOf[During], beAnInstanceOf[And])
-        z2.strategies.map(_.secondary.get).collect { case a: And => a.getChildren }.flatten must
-            contain(beAnInstanceOf[During], beAnInstanceOf[Not])
+        z2.strategies.head.secondary must beSome(beAnInstanceOf[During])
         val z3 = options.find(_.strategies.head.index == Z3Index).get
         compareAnd(z3.strategies.head.primary, or(geom, geom2), f(dtg))
         z3.strategies.head.secondary must beNone
@@ -469,10 +466,9 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
         options.head.strategies must haveLength(3)
-        options.head.strategies.map(_.index) must
-            containTheSameElementsAs(Seq(Z3Index, Z2Index, AttributeIndex))
+        options.head.strategies.map(_.index) must containTheSameElementsAs(Seq(Z3Index, Z2Index, AttributeIndex))
         options.head.strategies.map(_.primary) must contain(beSome(f(geom)), beSome(f(dtg)), beSome(f(indexedAttr)))
-        options.head.strategies.map(_.secondary) must contain(beSome(not(geom)), beSome(not(geom, dtg)))
+        options.head.strategies.map(_.secondary) must contain(beSome(not(geom)), beSome(not(geom, indexedAttr)))
         options.head.strategies.map(_.secondary) must contain(beNone)
       }
     }

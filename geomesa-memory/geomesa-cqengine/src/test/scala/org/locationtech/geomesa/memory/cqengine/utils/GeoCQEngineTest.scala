@@ -57,14 +57,12 @@ class GeoCQEngineTest extends Specification with LazyLogging {
       }
 
       def runFilterTests(name: String, filters: Seq[Filter]) = {
-        examplesBlock {
-          for (f <- filters) {
-            s"$name filter $f (geo-only index)" in {
-              checkFilter(f, cqNoIndexes)
-            }
-            s"$name filter $f (various indices)" in {
-              checkFilter(f, cqWithIndexes)
-            }
+        for (f <- filters) {
+          blockExample(s"$name filter $f (geo-only index)") in {
+            checkFilter(f, cqNoIndexes)
+          }
+          blockExample(s"$name filter $f (various indices)") in {
+            checkFilter(f, cqWithIndexes)
           }
         }
       }
@@ -93,7 +91,7 @@ class GeoCQEngineTest extends Specification with LazyLogging {
 
       runFilterTests("attribute predicates", attributePredicates)
 
-
+      ok
     }
   }
 }

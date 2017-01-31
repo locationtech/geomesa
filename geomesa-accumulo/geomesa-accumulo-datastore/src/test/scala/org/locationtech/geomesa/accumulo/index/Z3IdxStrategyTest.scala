@@ -66,7 +66,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
     }
   addFeatures(features)
 
-  implicit val ff = CommonFactoryFinder.getFilterFactory2
+  implicit val filterFactory = CommonFactoryFinder.getFilterFactory2
 
   def runQuery(filter: String, transforms: Array[String] = null): Iterator[SimpleFeature] =
     runQuery(new Query(sftName, ECQL.toFilter(filter), transforms))

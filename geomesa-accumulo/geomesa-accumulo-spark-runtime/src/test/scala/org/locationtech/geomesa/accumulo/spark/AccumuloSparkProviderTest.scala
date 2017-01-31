@@ -25,7 +25,7 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
 
   override lazy val sftName: String = "chicago"
   override def spec: String = SparkSQLTestUtils.ChiSpec
-  private val ff = CommonFactoryFinder.getFilterFactory2
+  private val filterFactory = CommonFactoryFinder.getFilterFactory2
 
   "sql data tests" should {
     sequential
@@ -100,7 +100,7 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
         .save()
 
       import org.locationtech.geomesa.utils.geotools.Conversions._
-      val filter = ff.equals(ff.property("case_number"), ff.literal(1))
+      val filter = filterFactory.equals(filterFactory.property("case_number"), filterFactory.literal(1))
       val queryOrig = new Query("chicago", filter)
       val origResults = ds.getFeatureReader(queryOrig, Transaction.AUTO_COMMIT).toIterator.toList
 

@@ -25,7 +25,7 @@ class CQEngineQueryVisitorTest extends Specification {
   implicit def stringToFilter(s: String): Filter = ECQL.toFilter(s)
 
   "CQEngineQueryVisitor" should {
-    "parse filters" should {
+    "parse filters" >> {
       sequential
 
       val visitor = new CQEngineQueryVisitor(sft)
@@ -57,16 +57,16 @@ class CQEngineQueryVisitorTest extends Specification {
               QF.equal[SimpleFeature, String](whoAttr, "Bierce")))
         )
       )
-      examplesBlock {
-        for (i <- testFilters.indices) {
-          "query_" + i.toString in {
-            val t = testFilters(i)
-            val query = t.filter.accept(visitor, null)
+      for (i <- testFilters.indices) {
+        blockExample("query_" + i.toString) in {
+          val t = testFilters(i)
+          val query = t.filter.accept(visitor, null)
 
-            query must equalTo(t.expectedQuery)
-          }
+          query must equalTo(t.expectedQuery)
         }
       }
+
+      ok
     }
   }
 }

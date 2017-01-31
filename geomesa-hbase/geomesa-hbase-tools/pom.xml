@@ -34,12 +34,6 @@
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-client</artifactId>
         </dependency>
-
-        <!-- test deps -->
-        <dependency>
-            <groupId>org.specs2</groupId>
-            <artifactId>specs2_${scala.binary.version}</artifactId>
-        </dependency>
     </dependencies>
 
 </project>

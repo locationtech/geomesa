@@ -79,7 +79,7 @@ class FrequencyTest extends Specification with StatTestHelper {
       val serializer = StatSerializer(sft)
 
       stat.sketchMap must haveSize(4)
-      stat.sketchMap.keySet mustEqual weeks
+      stat.sketchMap.keySet must containTheSameElementsAs(weeks.map(_.toShort).toSeq)
 
       val offsets = (0 until 4).map(_ * 28)
       forall(offsets.flatMap(o => o +  0 until o +  7))(stat.count(weekStart.toShort, _) mustEqual 1)

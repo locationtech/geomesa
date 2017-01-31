@@ -16,8 +16,9 @@ import org.apache.commons.codec.binary.Base64
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.Transformers
-import org.locationtech.geomesa.convert.Transformers.{EvaluationContextImpl, EvaluationContext}
+import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, EvaluationContextImpl}
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.specs2.matcher.Matcher
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -47,31 +48,31 @@ class TransformersTest extends Specification {
         }
         "allow native ints" >> {
           val res = Transformers.parseTransform("1").eval(Array(null))
-          res must beAnInstanceOf[java.lang.Integer]
+          res must beAnInstanceOf[java.lang.Integer].asInstanceOf[Matcher[Any]]
           res mustEqual 1
         }
         "allow native longs" >> {
           val res = Transformers.parseTransform("1L").eval(Array(null))
-          res must beAnInstanceOf[java.lang.Long]
+          res must beAnInstanceOf[java.lang.Long].asInstanceOf[Matcher[Any]]
           res mustEqual 1L
         }
         "allow native floats" >> {
           val f = Transformers.parseTransform("1.0f").eval(Array(null))
-          f must beAnInstanceOf[java.lang.Float]
+          f must beAnInstanceOf[java.lang.Float].asInstanceOf[Matcher[Any]]
           f mustEqual 1.0f
           val F = Transformers.parseTransform("1.0F").eval(Array(null))
-          F must beAnInstanceOf[java.lang.Float]
+          F must beAnInstanceOf[java.lang.Float].asInstanceOf[Matcher[Any]]
           F mustEqual 1.0f
         }
         "allow native doubles" >> {
           val res = Transformers.parseTransform("1.0").eval(Array(null))
-          res must beAnInstanceOf[java.lang.Double]
+          res must beAnInstanceOf[java.lang.Double].asInstanceOf[Matcher[Any]]
           res mustEqual 1.0d
           val d = Transformers.parseTransform("1.0d").eval(Array(null))
-          d must beAnInstanceOf[java.lang.Double]
+          d must beAnInstanceOf[java.lang.Double].asInstanceOf[Matcher[Any]]
           d mustEqual 1.0d
           val D = Transformers.parseTransform("1.0D").eval(Array(null))
-          D must beAnInstanceOf[java.lang.Double]
+          D must beAnInstanceOf[java.lang.Double].asInstanceOf[Matcher[Any]]
           D mustEqual 1.0d
         }
         "allow native booleans" >> {
@@ -235,7 +236,7 @@ class TransformersTest extends Specification {
         val geoFac = new GeometryFactory()
         val geom = geoFac.createPoint(new Coordinate(55, 56)).asInstanceOf[Geometry]
         val res = trans.eval(Array(geom))
-        res must beAnInstanceOf[Point]
+        res must beAnInstanceOf[Point].asInstanceOf[Matcher[Any]]
         res.asInstanceOf[Point] mustEqual geoFac.createPoint(new Coordinate(55, 56))
       }
 
@@ -248,7 +249,7 @@ class TransformersTest extends Specification {
         // type conversion
         val geom = lineStr.asInstanceOf[Geometry]
         val res = trans.eval(Array(geom))
-        res must beAnInstanceOf[LineString]
+        res must beAnInstanceOf[LineString].asInstanceOf[Matcher[Any]]
         res.asInstanceOf[LineString] mustEqual WKTUtils.read("Linestring(102 0, 103 1, 104 0, 105 1)")
       }
 
@@ -261,7 +262,7 @@ class TransformersTest extends Specification {
         // type conversion
         val geom = poly.asInstanceOf[Polygon]
         val res = trans.eval(Array(geom))
-        res must beAnInstanceOf[Polygon]
+        res must beAnInstanceOf[Polygon].asInstanceOf[Matcher[Any]]
         res.asInstanceOf[Polygon] mustEqual WKTUtils.read("polygon((100 0, 101 0, 101 1, 100 1, 100 0))")
       }
 
@@ -283,7 +284,7 @@ class TransformersTest extends Specification {
         }
         "uuid" >> {
           val exp = Transformers.parseTransform("uuid()")
-          exp.eval(Array(null)) must anInstanceOf[String]
+          exp.eval(Array(null)) must anInstanceOf[String].asInstanceOf[Matcher[Any]]
         }
         "base64" >> {
           val exp = Transformers.parseTransform("base64($0)")
@@ -531,7 +532,7 @@ class TransformersTest extends Specification {
         "buffer" >> {
           val exp = Transformers.parseTransform("cql:buffer($1, $2)")
           val buf = exp.eval(Array(null, "POINT(1 1)", 2.0))
-          buf must beAnInstanceOf[Polygon]
+          buf must beAnInstanceOf[Polygon].asInstanceOf[Matcher[Any]]
           buf.asInstanceOf[Polygon].getCentroid.getX must beCloseTo(1, 0.0001)
           buf.asInstanceOf[Polygon].getCentroid.getY must beCloseTo(1, 0.0001)
           // note: area is not particularly close as there aren't very many points in the polygon

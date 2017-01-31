@@ -53,7 +53,7 @@ class GenerateKNNQueryTest extends Specification {
 
   val smallGH = GeoHash("dqb0tg")
 
-  val ff = CommonFactoryFinder.getFilterFactory2
+  val filterFactory = CommonFactoryFinder.getFilterFactory2
 
   val WGS84 = DefaultGeographicCRS.WGS84
 
@@ -61,9 +61,9 @@ class GenerateKNNQueryTest extends Specification {
   "GenerateKNNQuery" should {
     " inject a small BBOX into a larger query and confirm that the original is untouched" in {
       val q =
-        ff.and(
-          ff.like(ff.property("prop"), "foo"),
-          ff.bbox("geom", -80.0, 30, -70, 40, CRS.toSRS(WGS84))
+        filterFactory.and(
+          filterFactory.like(filterFactory.property("prop"), "foo"),
+          filterFactory.bbox("geom", -80.0, 30, -70, 40, CRS.toSRS(WGS84))
         )
 
       // use the above to generate a Query
@@ -83,9 +83,9 @@ class GenerateKNNQueryTest extends Specification {
     "inject a small BBOX into a larger query and have the spatial predicate be equal to the GeoHash boundary" in {
       //define a loose BBOX
       val q =
-        ff.and(
-          ff.like(ff.property("prop"), "foo"),
-          ff.bbox("geom", -80.0, 30, -70, 40, CRS.toSRS(WGS84))
+        filterFactory.and(
+          filterFactory.like(filterFactory.property("prop"), "foo"),
+          filterFactory.bbox("geom", -80.0, 30, -70, 40, CRS.toSRS(WGS84))
         )
 
       // use the above to generate a Query
@@ -107,7 +107,7 @@ class GenerateKNNQueryTest extends Specification {
 
       val geomsToCover = {
         import scala.collection.JavaConversions._
-        val geoms = FilterHelper.extractGeometries(ff.and(tweakedGeomFilters), sft.getGeometryDescriptor.getLocalName, intersect = true)
+        val geoms = FilterHelper.extractGeometries(filterFactory.and(tweakedGeomFilters), sft.getGeometryDescriptor.getLocalName, intersect = true)
         if (geoms.values.length < 2) {
           geoms.values.headOption.orNull
         } else {

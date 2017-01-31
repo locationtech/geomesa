@@ -23,10 +23,12 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @RunWith(classOf[JUnitRunner])
 class StreamDataStoreTest extends Specification {
+
+  implicit val ec = ExecutionContext.global
 
   sequential
 
@@ -34,7 +36,7 @@ class StreamDataStoreTest extends Specification {
   val count2 = new AtomicLong(0)
   val count3 = new AtomicLong(0)
 
-  val ff = CommonFactoryFinder.getFilterFactory2()
+  val filterFactory = CommonFactoryFinder.getFilterFactory2()
   val sourceConf =
     """
       |{
@@ -82,7 +84,7 @@ class StreamDataStoreTest extends Specification {
       val listener2 = StreamListener { sf => count2.incrementAndGet() }
       sds.registerListener(listener2)
 
-      val bboxFilter = ff.bbox("geom", 49.0, 79.0, 51.0, 80.0, "EPSG:4326")
+      val bboxFilter = filterFactory.bbox("geom", 49.0, 79.0, 51.0, 80.0, "EPSG:4326")
       val listener3 = StreamListener(bboxFilter, _ =>  count3.incrementAndGet())
       sds.registerListener(listener3)
 

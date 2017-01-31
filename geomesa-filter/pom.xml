@@ -51,12 +51,8 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
         </dependency>
+
         <!-- test deps -->
-        <dependency>
-            <groupId>org.specs2</groupId>
-            <artifactId>specs2_${scala.binary.version}</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-feature-all_${scala.binary.version}</artifactId>

@@ -53,7 +53,7 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
     }
   addFeatures(features)
 
-  implicit val ff = CommonFactoryFinder.getFilterFactory2
+  implicit val filterFactory = CommonFactoryFinder.getFilterFactory2
   val strategy = Z2Index
   val queryPlanner = ds.queryPlanner
   val output = ExplainNull

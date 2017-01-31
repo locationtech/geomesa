@@ -57,7 +57,7 @@ class QueryAndMosaicTest extends Specification {
     s"testQAMT_Table_$testIteration"
   }
 
-  def allBeTrue: Matcher[Iterator[Boolean]] = be_==(true).forall
+  def allBeTrue: Matcher[Iterator[Boolean]] = forall(be_==(true))
 
   "Our Mosaicing" should {
     "Return the same tile we store" in {

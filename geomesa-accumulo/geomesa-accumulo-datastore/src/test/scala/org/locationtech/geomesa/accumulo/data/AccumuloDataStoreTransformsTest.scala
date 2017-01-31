@@ -40,7 +40,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
   val date = Converters.convert("2012-01-01T00:00:00.000Z", classOf[Date])
   val geom = Converters.convert("POINT(45 49)", classOf[Point])
 
-  val ff = CommonFactoryFinder.getFilterFactory2
+  val filterFactory = CommonFactoryFinder.getFilterFactory2
 
   def createFeature(sft: SimpleFeatureType) =
     Seq(new ScalaSimpleFeature("fid-1", sft, Array(name, date, geom)))
@@ -84,7 +84,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
       }
 
       "with setPropertyNames" in {
-        val filter = ff.bbox("geom", 44.0, 48.0, 46.0, 50.0, "EPSG:4326")
+        val filter = filterFactory.bbox("geom", 44.0, 48.0, 46.0, 50.0, "EPSG:4326")
         val query = new Query(sftName, filter)
         query.setPropertyNames(Array("geom"))
 

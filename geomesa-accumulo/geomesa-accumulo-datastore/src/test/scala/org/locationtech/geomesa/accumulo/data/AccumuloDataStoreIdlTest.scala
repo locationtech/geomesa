@@ -32,39 +32,39 @@ class AccumuloDataStoreIdlTest extends Specification with TestWithDataStore {
     sf
   })
 
-  val ff = CommonFactoryFinder.getFilterFactory2
+  val filterFactory = CommonFactoryFinder.getFilterFactory2
   val srs = CRS.toSRS(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
 
   "AccumuloDataStore" should {
 
     "handle IDL correctly" in {
       "default layer preview, bigger than earth, multiple IDL-wrapping geoserver BBOX" in {
-        val filter = ff.bbox("geom", -230, -110, 230, 110, srs)
+        val filter = filterFactory.bbox("geom", -230, -110, 230, 110, srs)
         val query = new Query(sft.getTypeName, filter)
         val results = fs.getFeatures(query).features.map(_.getID)
         results must haveLength(361)
       }
 
       "greater than 180 lon diff non-IDL-wrapping geoserver BBOX" in {
-        val filter = ff.bbox("geom", -100, 1.1, 100, 4.1, srs)
+        val filter = filterFactory.bbox("geom", -100, 1.1, 100, 4.1, srs)
         val query = new Query(sft.getTypeName, filter)
         val results = fs.getFeatures(query).features.map(_.getID)
         results must haveLength(30)
       }
 
       "small IDL-wrapping geoserver BBOXes" in {
-        val spatial1 = ff.bbox("geom", -181.1, -30, -175.1, 30, srs)
-        val spatial2 = ff.bbox("geom", 175.1, -30, 181.1, 30, srs)
-        val filter = ff.or(spatial1, spatial2)
+        val spatial1 = filterFactory.bbox("geom", -181.1, -30, -175.1, 30, srs)
+        val spatial2 = filterFactory.bbox("geom", 175.1, -30, 181.1, 30, srs)
+        val filter = filterFactory.or(spatial1, spatial2)
         val query = new Query(sft.getTypeName, filter)
         val results = fs.getFeatures(query).features.map(_.getID)
         results must haveLength(10)
       }
 
       "large IDL-wrapping geoserver BBOXes" in {
-        val spatial1 = ff.bbox("geom", -181.1, -30, 40.1, 30, srs)
-        val spatial2 = ff.bbox("geom", 175.1, -30, 181.1, 30, srs)
-        val filter = ff.or(spatial1, spatial2)
+        val spatial1 = filterFactory.bbox("geom", -181.1, -30, 40.1, 30, srs)
+        val spatial2 = filterFactory.bbox("geom", 175.1, -30, 181.1, 30, srs)
+        val filter = filterFactory.or(spatial1, spatial2)
         val query = new Query(sft.getTypeName, filter)
         val results = fs.getFeatures(query).features.map(_.getID)
         results must haveLength(226)

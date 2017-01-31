@@ -62,16 +62,6 @@
 
         <!-- test deps -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.specs2</groupId>
-            <artifactId>specs2_${scala.binary.version}</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.scalatra</groupId>
             <artifactId>scalatra-specs2_${scala.binary.version}</artifactId>
             <scope>test</scope>

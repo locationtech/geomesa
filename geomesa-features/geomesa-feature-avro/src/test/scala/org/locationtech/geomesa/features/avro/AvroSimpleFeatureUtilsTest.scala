@@ -162,7 +162,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
           val orig = Map(true -> true, false -> true, false -> false, true -> false)
           val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava, classOf[Boolean], classOf[Boolean])
           val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-          decoded.asScala mustEqual orig
+          decoded.asScala.toMap mustEqual orig
         }
         "in java" >> {
           val orig = Map(
@@ -174,7 +174,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
           val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava,
             classOf[java.lang.Boolean], classOf[java.lang.Boolean])
           val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-          decoded.asScala mustEqual orig
+          decoded.asScala.toMap mustEqual orig
         }
       }
       "of ints" >> {
@@ -290,7 +290,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
         )
         val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava, classOf[Date], classOf[Date])
         val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-        decoded.asScala mustEqual orig
+        decoded.asScala.toMap mustEqual orig
       }
 
       "of UUIDs" >> {
@@ -301,7 +301,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
         )
         val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava, classOf[UUID], classOf[UUID])
         val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-        decoded.asScala mustEqual orig
+        decoded.asScala.toMap mustEqual orig
       }
 
       "of strings to bytes" >> {
@@ -318,7 +318,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
         val orig = Map("key1" -> new Date(0), "key2" -> new Date(), "key3" -> new Date(99999))
         val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava, classOf[String], classOf[Date])
         val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-        decoded.asScala mustEqual orig
+        decoded.asScala.toMap mustEqual orig
       }
     }
 

@@ -19,6 +19,7 @@
             <groupId>org.geotools</groupId>
             <artifactId>gt-main</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-feature-common_${scala.binary.version}</artifactId>
@@ -27,11 +28,6 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.specs2</groupId>
-            <artifactId>specs2_${scala.binary.version}</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

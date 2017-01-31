@@ -47,7 +47,7 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
 
   addFeatures(features)
 
-  val ff = CommonFactoryFinder.getFilterFactory2
+  val filterFactory = CommonFactoryFinder.getFilterFactory2
 
   def checkStrategies[T](query: Query, strategy: AccumuloFeatureIndexType) = {
     val out = new ExplainString
@@ -63,23 +63,23 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
       // Test single wildcard, trailing, leading, and both trailing & leading wildcards
 
       // % should return all features
-      val wildCardQuery = new Query(sftName, ff.like(ff.property("name"),"%"))
+      val wildCardQuery = new Query(sftName, filterFactory.like(filterFactory.property("name"),"%"))
       checkStrategies(wildCardQuery, AttributeIndex)
       SelfClosingIterator(fs.getFeatures()) must haveLength(16)
 
       forall(List("a", "b", "c", "d")) { letter =>
         // 4 features for this letter
-        val leftWildCard = new Query(sftName, ff.like(ff.property("name"),s"%$letter"))
+        val leftWildCard = new Query(sftName, filterFactory.like(filterFactory.property("name"),s"%$letter"))
         checkStrategies(leftWildCard, Z3Index)
         SelfClosingIterator(fs.getFeatures(leftWildCard)) must haveLength(4)
 
         // Double wildcards should be full table scan
-        val doubleWildCard = new Query(sftName, ff.like(ff.property("name"),s"%$letter%"))
+        val doubleWildCard = new Query(sftName, filterFactory.like(filterFactory.property("name"),s"%$letter%"))
         checkStrategies(doubleWildCard, Z3Index)
         SelfClosingIterator(fs.getFeatures(doubleWildCard)) must haveLength(4)
 
         // should return the 4 features for this letter
-        val rightWildcard = new Query(sftName, ff.like(ff.property("name"),s"$letter%"))
+        val rightWildcard = new Query(sftName, filterFactory.like(filterFactory.property("name"),s"$letter%"))
         checkStrategies(rightWildcard, AttributeIndex)
         SelfClosingIterator(fs.getFeatures(rightWildcard)) must haveLength(4)
       }
@@ -91,14 +91,14 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
       checkStrategies(query, AttributeIndex)
 
       // full table scan
-      val leftWildCard = new Query(sftName, ff.like(ff.property("name"), "%b"), Array("geom"))
+      val leftWildCard = new Query(sftName, filterFactory.like(filterFactory.property("name"), "%b"), Array("geom"))
       checkStrategies(leftWildCard, Z3Index)
 
       // full table scan
-      val doubleWildCard = new Query(sftName, ff.like(ff.property("name"), "%b%"), Array("geom"))
+      val doubleWildCard = new Query(sftName, filterFactory.like(filterFactory.property("name"), "%b%"), Array("geom"))
       checkStrategies(doubleWildCard, Z3Index)
 
-      val rightWildcard = new Query(sftName, ff.like(ff.property("name"), "b%"), Array("geom"))
+      val rightWildcard = new Query(sftName, filterFactory.like(filterFactory.property("name"), "b%"), Array("geom"))
       checkStrategies(rightWildcard, AttributeIndex)
 
       forall(List(query, leftWildCard, doubleWildCard, rightWildcard)) { query =>
@@ -110,7 +110,7 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
     }
 
     "handle corner case with attr idx, bbox, and no temporal filter" in {
-      val filter = ff.and(ECQL.toFilter("name = 'b'"), ECQL.toFilter("BBOX(geom, 30, 30, 50, 50)"))
+      val filter = filterFactory.and(ECQL.toFilter("name = 'b'"), ECQL.toFilter("BBOX(geom, 30, 30, 50, 50)"))
       val query = new Query(sftName, filter, Array("geom"))
       ds.queryPlanner.strategyDecider.getFilterPlan(sft, Some(ds), filter, None, None).head.index mustEqual Z2Index
 

@@ -25,7 +25,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
-import org.specs2.specification.{Fragments, Step}
+import org.specs2.specification.Step
+import org.specs2.specification.core.Fragments
 
 import scala.collection.JavaConverters._
 

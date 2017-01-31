@@ -61,7 +61,8 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[EnumerationStat[String]]
         unpacked.asInstanceOf[EnumerationStat[String]].attribute mustEqual stat.attribute
-        unpacked.asInstanceOf[EnumerationStat[String]].enumeration mustEqual stat.enumeration
+        // note: specs doesn't correctly compare mutable maps
+        unpacked.asInstanceOf[EnumerationStat[String]].enumeration.toMap mustEqual stat.enumeration.toMap
         unpacked.asInstanceOf[EnumerationStat[String]].size mustEqual stat.size
         unpacked.asInstanceOf[EnumerationStat[String]].toJson mustEqual stat.toJson
       }
@@ -145,7 +146,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[EnumerationStat[java.lang.Integer]]
         unpacked.asInstanceOf[EnumerationStat[java.lang.Integer]].attribute mustEqual stat.attribute
-        unpacked.asInstanceOf[EnumerationStat[java.lang.Integer]].enumeration mustEqual stat.enumeration
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Integer]].enumeration.toMap mustEqual stat.enumeration.toMap
         unpacked.asInstanceOf[EnumerationStat[java.lang.Integer]].size mustEqual stat.size
         unpacked.asInstanceOf[EnumerationStat[java.lang.Integer]].toJson mustEqual stat.toJson
       }
@@ -217,7 +218,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[EnumerationStat[java.lang.Long]]
         unpacked.asInstanceOf[EnumerationStat[java.lang.Long]].attribute mustEqual stat.attribute
-        unpacked.asInstanceOf[EnumerationStat[java.lang.Long]].enumeration mustEqual stat.enumeration
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Long]].enumeration.toMap mustEqual stat.enumeration.toMap
         unpacked.asInstanceOf[EnumerationStat[java.lang.Long]].size mustEqual stat.size
         unpacked.asInstanceOf[EnumerationStat[java.lang.Long]].toJson mustEqual stat.toJson
       }
@@ -289,7 +290,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[EnumerationStat[java.lang.Float]]
         unpacked.asInstanceOf[EnumerationStat[java.lang.Float]].attribute mustEqual stat.attribute
-        unpacked.asInstanceOf[EnumerationStat[java.lang.Float]].enumeration mustEqual stat.enumeration
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Float]].enumeration.toMap mustEqual stat.enumeration.toMap
         unpacked.asInstanceOf[EnumerationStat[java.lang.Float]].size mustEqual stat.size
         unpacked.asInstanceOf[EnumerationStat[java.lang.Float]].toJson mustEqual stat.toJson
       }
@@ -361,7 +362,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[EnumerationStat[java.lang.Double]]
         unpacked.asInstanceOf[EnumerationStat[java.lang.Double]].attribute mustEqual stat.attribute
-        unpacked.asInstanceOf[EnumerationStat[java.lang.Double]].enumeration mustEqual stat.enumeration
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Double]].enumeration.toMap mustEqual stat.enumeration.toMap
         unpacked.asInstanceOf[EnumerationStat[java.lang.Double]].size mustEqual stat.size
         unpacked.asInstanceOf[EnumerationStat[java.lang.Double]].toJson mustEqual stat.toJson
       }
@@ -435,7 +436,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[EnumerationStat[Date]]
         unpacked.asInstanceOf[EnumerationStat[Date]].attribute mustEqual stat.attribute
-        unpacked.asInstanceOf[EnumerationStat[Date]].enumeration mustEqual stat.enumeration
+        unpacked.asInstanceOf[EnumerationStat[Date]].enumeration.toMap mustEqual stat.enumeration.toMap
         unpacked.asInstanceOf[EnumerationStat[Date]].size mustEqual stat.size
         unpacked.asInstanceOf[EnumerationStat[Date]].toJson mustEqual stat.toJson
       }
@@ -513,7 +514,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[EnumerationStat[Geometry]]
         unpacked.asInstanceOf[EnumerationStat[Geometry]].attribute mustEqual stat.attribute
-        unpacked.asInstanceOf[EnumerationStat[Geometry]].enumeration mustEqual stat.enumeration
+        unpacked.asInstanceOf[EnumerationStat[Geometry]].enumeration.toMap mustEqual stat.enumeration.toMap
         unpacked.asInstanceOf[EnumerationStat[Geometry]].size mustEqual stat.size
         unpacked.asInstanceOf[EnumerationStat[Geometry]].toJson mustEqual stat.toJson
       }

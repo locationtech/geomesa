@@ -30,7 +30,7 @@ import scala.util.Random
 @RunWith(classOf[JUnitRunner])
 class LiveFeatureCacheBenchmarkTest extends Specification {
   implicit def sfToCreate(feature: SimpleFeature): CreateOrUpdate = CreateOrUpdate(Instant.now, feature)
-  implicit val ff = CommonFactoryFinder.getFilterFactory2
+  implicit val filterFactory = CommonFactoryFinder.getFilterFactory2
 
   val spec = Seq(
     "Who:String:cq-index=default",
@@ -181,18 +181,18 @@ class LiveFeatureCacheBenchmarkTest extends Specification {
   val w14 = ECQL.toFilter("What = 1 OR What = 2 OR What = 3 or What = 4")
   val where = ECQL.toFilter("BBOX(Where, 0, 0, 180, 90)")
   val where2 = ECQL.toFilter("BBOX(Where, -180, -90, 0, 0)")
-  val bbox2 = ff.or(where, where2)
+  val bbox2 = filterFactory.or(where, where2)
   val justified = ECQL.toFilter("Why is not null")
-  val justifiedAB = ff.and(ff.and(ab, w14), justified)
-  val justifiedCD = ff.and(ff.and(cd, w14), justified)
-  val just = ff.or(justifiedAB, justifiedCD)
-  val justBBOX = ff.and(just, where)
-  val justBBOX2 = ff.and(just, where2)
+  val justifiedAB = filterFactory.and(filterFactory.and(ab, w14), justified)
+  val justifiedCD = filterFactory.and(filterFactory.and(cd, w14), justified)
+  val just = filterFactory.or(justifiedAB, justifiedCD)
+  val justBBOX = filterFactory.and(just, where)
+  val justBBOX2 = filterFactory.and(just, where2)
   val overlapWhere1 = ECQL.toFilter("BBOX(Where, -180, 0, 0, 90)")
   val overlapWhere2 = ECQL.toFilter("BBOX(Where, -90, -90, 0, 90)")
-  val overlapOR1 = ff.or(overlapWhere1, overlapWhere2)
+  val overlapOR1 = filterFactory.or(overlapWhere1, overlapWhere2)
   val overlapOR2 = ECQL.toFilter("Who = 'Addams' OR What = 1")
-  val overlapORpathological = ff.or(List[Filter](
+  val overlapORpathological = filterFactory.or(List[Filter](
     "Who = 'Addams'",
     "What = 1",
     "Who = 'Bierce'",

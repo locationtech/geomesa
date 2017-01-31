@@ -24,10 +24,12 @@ import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class SparkSQLDataTest extends Specification with LazyLogging {
+
+  sequential
+
   val createPoint = JTSFactoryFinder.getGeometryFactory.createPoint(_: Coordinate)
 
   "sql data tests" should {
-    sequential
 
     val dsParams: JMap[String, String] = Map("cqengine" -> "true", "geotools" -> "true")
     var ds: DataStore = null

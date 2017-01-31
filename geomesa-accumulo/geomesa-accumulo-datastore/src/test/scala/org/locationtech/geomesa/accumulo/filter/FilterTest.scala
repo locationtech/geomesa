@@ -111,7 +111,7 @@ class IdQueryTest extends Specification with TestWithDataStore {
 
   override val spec = "age:Int:index=true,name:String:index=true,dtg:Date,*geom:Point:srid=4326"
 
-  val ff = CommonFactoryFinder.getFilterFactory2
+  val filterFactory = CommonFactoryFinder.getFilterFactory2
   val geomBuilder = JTSFactoryFinder.getGeometryFactory
   val builder = new SimpleFeatureBuilder(sft, new AvroSimpleFeatureFactory)
   val data = List(
@@ -132,23 +132,23 @@ class IdQueryTest extends Specification with TestWithDataStore {
 
   "Id queries" should {
     "use record table to return a result" >> {
-      val idQ = ff.id(ff.featureId("2"))
+      val idQ = filterFactory.id(filterFactory.featureId("2"))
       val res = fs.getFeatures(idQ).features().toList
       res.length mustEqual 1
       res.head.getID mustEqual "2"
     }
 
     "handle multiple ids correctly" >> {
-      val idQ = ff.id(ff.featureId("1"), ff.featureId("3"))
+      val idQ = filterFactory.id(filterFactory.featureId("1"), filterFactory.featureId("3"))
       val res = fs.getFeatures(idQ).features().toList
       res.length mustEqual 2
       res.map(_.getID) must contain ("1", "3")
     }
 
     "return no events when multiple IDs ANDed result in no intersection"  >> {
-      val idQ1 = ff.id(ff.featureId("1"), ff.featureId("3"))
-      val idQ2 = ff.id(ff.featureId("2"))
-      val idQ =  ff.and(idQ1, idQ2)
+      val idQ1 = filterFactory.id(filterFactory.featureId("1"), filterFactory.featureId("3"))
+      val idQ2 = filterFactory.id(filterFactory.featureId("2"))
+      val idQ =  filterFactory.and(idQ1, idQ2)
       val qRes = fs.getFeatures(idQ)
       val res= qRes.features().toList
       res.length mustEqual 0
