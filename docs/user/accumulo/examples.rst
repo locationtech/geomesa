@@ -192,7 +192,7 @@ Setting up an Ingest Converter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To use the ``-C`` switch, create (or edit) the file
-``$GEOMESA_HOME/conf/application.conf``, which serves as the converter
+``$GEOMESA_ACCUMULO_HOME/conf/application.conf``, which serves as the converter
 configuration file, to add the ``gdelt`` SimpleFeatureType and a converter
 ``gdelt_csv`` for reading the data from tab-separated value files:
 
@@ -243,17 +243,17 @@ there is an exception, whereas the ``::double`` function will fail (and drop
 the record) if the casting fails.
 
 To confirm that GeoMesa can properly parse your edited
-``$GEOMESA_HOME/conf/application.conf`` file, use ``geomesa env``:
+``$GEOMESA_ACCUMULO_HOME/conf/application.conf`` file, use ``geomesa env``:
 
 .. code::
 
     $ geomesa env -s gdelt --format spec
-    Using GEOMESA_HOME = /opt/geomesa/tools
+    Using GEOMESA_ACCUMULO_HOME = /opt/geomesa/tools
     Simple Feature Types:
     gdelt = globalEventId:String,eventCode:String,actor1:String,actor2:String,dtg:Date:index=join,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='false'
 
     $ geomesa env -c gdelt_tsv
-    Using GEOMESA_HOME = /opt/geomesa/tools
+    Using GEOMESA_ACCUMULO_HOME = /opt/geomesa/tools
 
     Simple Feature Type Converters:
     converter-name=gdelt_tsv
@@ -319,9 +319,9 @@ Example Usage:
 
 Depending on the desired data, you may be prompted further information to specify desired dates or locations.
 
-The resulting data will then be downloaded to ```$GEOMESA_HOME/data```.
+The resulting data will then be downloaded to ```$GEOMESA_ACCUMULO_HOME/data```.
 
-Configuration files for these data sets are found under ```$GEOMESA_HOME/conf/sfts```. 
+Configuration files for these data sets are found under ```$GEOMESA_ACCUMULO_HOME/conf/sfts```.
 Modifications to them can seen by running ```geomesa env``` and will be reflected in the next run ingest. 
 
 Running an Ingest
