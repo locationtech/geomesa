@@ -24,6 +24,7 @@ import org.locationtech.geomesa.kafka.consumer.KafkaConsumerFactory
 import org.locationtech.geomesa.security.ContentFeatureSourceSecuritySupport
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools._
+import org.locationtech.geomesa.utils.text.Suffixes
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
@@ -122,6 +123,10 @@ object KafkaConsumerFeatureSourceFactory {
       Option(KafkaDataStoreFactoryParams.CLEANUP_LIVE_CACHE.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
     }
 
+    val cacheCleanUpPeriod: Long = {
+      Suffixes.Time.millis(KafkaDataStoreFactoryParams.CACHE_CLEANUP_PERIOD.lookUp(params).asInstanceOf[String]).getOrElse(10000L)
+    }
+
     val monitor: Boolean = {
       Option(KafkaDataStoreFactoryParams.COLLECT_QUERY_STAT.lookUp(params).asInstanceOf[Boolean]).getOrElse(false)
     }
@@ -132,7 +137,7 @@ object KafkaConsumerFeatureSourceFactory {
 
       fc.replayConfig match {
         case None =>
-          new LiveKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, expirationPeriod, cleanUpCache, query, monitor)
+          new LiveKafkaConsumerFeatureSource(entry, fc.sft, fc.topic, kf, expirationPeriod, cleanUpCache, query, monitor, cacheCleanUpPeriod)
 
         case Some(rc) =>
           val replaySFT = fc.sft
