@@ -10,9 +10,7 @@ package org.locationtech.geomesa.kafka
 
 import java.io.Serializable
 import java.{util => ju}
-import javax.management.Query
 
-import com.sun.xml.internal.messaging.saaj.soap.Envelope
 import com.vividsolutions.jts.geom.Envelope
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureReader

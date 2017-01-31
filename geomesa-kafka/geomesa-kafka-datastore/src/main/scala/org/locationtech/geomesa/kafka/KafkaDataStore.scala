@@ -11,10 +11,8 @@ package org.locationtech.geomesa.kafka
 import java.awt.RenderingHints.Key
 import java.io.{Closeable, Serializable}
 import java.{util => ju}
-import javax.management.Query
 
 import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}
-import com.sun.xml.internal.messaging.saaj.soap.name.NameImpl
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
