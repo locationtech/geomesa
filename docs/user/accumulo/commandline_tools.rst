@@ -247,7 +247,7 @@ loaded using the `TypeSafe configuration library <https://github.com/typesafehub
 They can be referenced by name using the ``-s`` and ``-C`` args.
 
 To define new converters for the users can package a ``reference.conf`` file inside a jar and drop it in the
-``$GEOMESA_HOME/lib`` directory or add config definitions to the ``$GEOMESA_TOOLS/conf/application.conf`` file which
+``$GEOMESA_ACCUMULO_HOME/lib`` directory or add config definitions to the ``$GEOMESA_TOOLS/conf/application.conf`` file which
 includes some examples. SFT and Converter specifications should use the path prefixes
 ``geomesa.converters.<convertername>`` and ``geomesa.sfts.<typename>``
 
@@ -265,7 +265,7 @@ For example, here's a simple CSV file to ingest named ``example.csv``::
 To ingest this file, a SimpleFeatureType named ``renegades`` and a converter named ``renegades-csv`` can be placed in
 the ``application.conf`` file::
 
-    # cat $GEOMESA_HOME/conf/application.conf
+    # cat $GEOMESA_ACCUMULO_HOME/conf/application.conf
     geomesa {
       sfts {
         renegades = {
