@@ -85,7 +85,7 @@ object KafkaConsumerFeatureSourceFactory {
     }
 
     val cacheCleanUpPeriod: Long = {
-      Suffixes.Time.millis(KafkaDataStoreFactoryParams.CACHE_CLEANUP_PERIOD.lookUp(params).asInstanceOf[String]).getOrElse(1000L)
+      Suffixes.Time.millis(KafkaDataStoreFactoryParams.CACHE_CLEANUP_PERIOD.lookUp(params).asInstanceOf[String]).getOrElse(10000L)
     }
 
     val useCQCache: Boolean = {
