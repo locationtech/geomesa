@@ -25,7 +25,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class GeoToolsSpatialRDDProviderTest extends Specification {
+class GeoToolsSpatialRDDProviderTest extends org.specs2.mutable.Spec {
 
   var sc: SparkContext = null
 

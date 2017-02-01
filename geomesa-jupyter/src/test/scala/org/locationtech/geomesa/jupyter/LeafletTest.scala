@@ -15,7 +15,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class LeafletTest extends Specification {
+class LeafletTest extends org.specs2.mutable.Spec {
 
   private val gf = JTSFactoryFinder.getGeometryFactory
   def clean(s: String) = s.replaceAll("\n","").replaceAll(" ", "")

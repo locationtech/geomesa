@@ -17,7 +17,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.mutable
 
 @RunWith(classOf[JUnitRunner])
-class AvroTransformersTest extends Specification with AvroUtils {
+class AvroTransformersTest extends org.specs2.mutable.Spec with AvroUtils {
 
   sequential
 

@@ -21,7 +21,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class CQEngineQueryVisitorTest extends Specification {
+class CQEngineQueryVisitorTest extends org.specs2.mutable.Spec {
   implicit def stringToFilter(s: String): Filter = ECQL.toFilter(s)
 
   "CQEngineQueryVisitor" should {

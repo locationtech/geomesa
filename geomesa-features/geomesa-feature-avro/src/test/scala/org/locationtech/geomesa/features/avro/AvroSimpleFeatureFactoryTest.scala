@@ -18,7 +18,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AvroSimpleFeatureFactoryTest extends Specification {
+class AvroSimpleFeatureFactoryTest extends org.specs2.mutable.Spec {
 
   "GeoTools must use AvroSimpleFeatureFactory when hint is set" in {
     AvroSimpleFeatureFactory.init

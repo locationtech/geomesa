@@ -28,7 +28,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class QueryPlannerTest extends Specification with Mockito with TestWithDataStore {
+class QueryPlannerTest extends TestWithDataStore with org.specs2.matcher.SequenceMatchersCreation with Mockito {
 
   override val spec = "*geom:Point,dtg:Date,s:String"
   val sf = new ScalaSimpleFeature("id", sft)

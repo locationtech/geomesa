@@ -20,7 +20,7 @@ import org.locationtech.geomesa.kafka.ReplayTimeHelper.ff
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class TimestampFilterSplitTest extends Specification with Mockito {
+class TimestampFilterSplitTest extends org.specs2.mutable.Spec with Mockito {
 
   "TimestampFilterSplitTest" should {
 

@@ -28,7 +28,7 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class DelimitedExportImportTest extends Specification {
+class DelimitedExportImportTest extends org.specs2.mutable.Spec {
 
   val dt1 = GeoToolsDateFormat.parseDateTime("2016-01-01T00:00:00.000Z").toDate
   val dt2 = GeoToolsDateFormat.parseDateTime("2016-01-02T00:00:00.000Z").toDate

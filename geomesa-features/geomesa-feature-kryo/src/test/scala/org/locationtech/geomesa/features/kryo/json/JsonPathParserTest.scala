@@ -15,7 +15,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class JsonPathParserTest extends Specification {
+class JsonPathParserTest extends org.specs2.mutable.Spec {
 
   "JsonPathParser" should {
     "not parse invalid paths" in {

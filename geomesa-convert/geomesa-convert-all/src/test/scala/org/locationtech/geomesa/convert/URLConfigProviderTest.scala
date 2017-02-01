@@ -19,7 +19,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class URLConfigProviderTest extends Specification {
+class URLConfigProviderTest extends org.specs2.mutable.Spec {
 
   "URLConfigProvider" should {
 

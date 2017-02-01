@@ -21,11 +21,10 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.{Convert2ViewerFunction, EncodedValues, ExtendedValues}
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class BinLineStringTest extends Specification with TestWithDataStore {
+class BinLineStringTest extends TestWithDataStore with org.specs2.matcher.SequenceMatchersCreation with org.specs2.matcher.ValueChecks {
 
   import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 
@@ -86,13 +85,13 @@ class BinLineStringTest extends Specification with TestWithDataStore {
       bins must haveLength(40)
       forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode)
       forall(0 until 10) { i =>
-        bins.map(_.dtg) must contain(features(i).getAttribute("dtg").asInstanceOf[Date].getTime).exactly(4.times)
-        bins.map(_.lat) must contain(60.0f + i).exactly(4.times)
+        bins.map(_.dtg) must contain(features(i).getAttribute("dtg").asInstanceOf[Date].getTime).exactly(4)
+        bins.map(_.lat) must contain(60.0f + i).exactly(4)
       }
-      bins.map(_.lon) must contain(40.0f).exactly(10.times)
-      bins.map(_.lon) must contain(40.1f).exactly(10.times)
-      bins.map(_.lon) must contain(40.2f).exactly(10.times)
-      bins.map(_.lon) must contain(40.3f).exactly(10.times)
+      bins.map(_.lon) must contain(40.0f).exactly(10)
+      bins.map(_.lon) must contain(40.1f).exactly(10)
+      bins.map(_.lon) must contain(40.2f).exactly(10)
+      bins.map(_.lon) must contain(40.3f).exactly(10)
     }
 
     "return all points of a linestring with z3 index" >> {
@@ -106,13 +105,13 @@ class BinLineStringTest extends Specification with TestWithDataStore {
       bins must haveLength(40)
       forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode)
       forall(0 until 10) { i =>
-        bins.map(_.dtg) must contain(features(i).getAttribute("dtg").asInstanceOf[Date].getTime).exactly(4.times)
-        bins.map(_.lat) must contain(60.0f + i).exactly(4.times)
+        bins.map(_.dtg) must contain(features(i).getAttribute("dtg").asInstanceOf[Date].getTime).exactly(4)
+        bins.map(_.lat) must contain(60.0f + i).exactly(4)
       }
-      bins.map(_.lon) must contain(40.0f).exactly(10.times)
-      bins.map(_.lon) must contain(40.1f).exactly(10.times)
-      bins.map(_.lon) must contain(40.2f).exactly(10.times)
-      bins.map(_.lon) must contain(40.3f).exactly(10.times)
+      bins.map(_.lon) must contain(40.0f).exactly(10)
+      bins.map(_.lon) must contain(40.1f).exactly(10)
+      bins.map(_.lon) must contain(40.2f).exactly(10)
+      bins.map(_.lon) must contain(40.3f).exactly(10)
     }
 
     "return all points of a linestring plus label with z2 index" >> {
@@ -126,14 +125,14 @@ class BinLineStringTest extends Specification with TestWithDataStore {
       forall(bins)(_ must beAnInstanceOf[ExtendedValues])
       forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode)
       forall(0 until 10) { i =>
-        bins.map(_.dtg) must contain(features(i).getAttribute("dtg").asInstanceOf[Date].getTime).exactly(4.times)
-        bins.map(_.lat) must contain(60.0f + i).exactly(4.times)
-        bins.map(_.asInstanceOf[ExtendedValues].label) must contain(Convert2ViewerFunction.convertToLabel(s"name$i")).exactly(4.times)
+        bins.map(_.dtg) must contain(features(i).getAttribute("dtg").asInstanceOf[Date].getTime).exactly(4)
+        bins.map(_.lat) must contain(60.0f + i).exactly(4)
+        bins.map(_.asInstanceOf[ExtendedValues].label) must contain(Convert2ViewerFunction.convertToLabel(s"name$i")).exactly(4)
       }
-      bins.map(_.lon) must contain(40.0f).exactly(10.times)
-      bins.map(_.lon) must contain(40.1f).exactly(10.times)
-      bins.map(_.lon) must contain(40.2f).exactly(10.times)
-      bins.map(_.lon) must contain(40.3f).exactly(10.times)
+      bins.map(_.lon) must contain(40.0f).exactly(10)
+      bins.map(_.lon) must contain(40.1f).exactly(10)
+      bins.map(_.lon) must contain(40.2f).exactly(10)
+      bins.map(_.lon) must contain(40.3f).exactly(10)
     }
 
     "return all points of a linestring plus label with z3 index" >> {
@@ -148,14 +147,14 @@ class BinLineStringTest extends Specification with TestWithDataStore {
       forall(bins)(_ must beAnInstanceOf[ExtendedValues])
       forall(bins.map(_.trackId))(_ mustEqual "track1".hashCode)
       forall(0 until 10) { i =>
-        bins.map(_.dtg) must contain(features(i).getAttribute("dtg").asInstanceOf[Date].getTime).exactly(4.times)
-        bins.map(_.lat) must contain(60.0f + i).exactly(4.times)
-        bins.map(_.asInstanceOf[ExtendedValues].label) must contain(Convert2ViewerFunction.convertToLabel(s"name$i")).exactly(4.times)
+        bins.map(_.dtg) must contain(features(i).getAttribute("dtg").asInstanceOf[Date].getTime).exactly(4)
+        bins.map(_.lat) must contain(60.0f + i).exactly(4)
+        bins.map(_.asInstanceOf[ExtendedValues].label) must contain(Convert2ViewerFunction.convertToLabel(s"name$i")).exactly(4)
       }
-      bins.map(_.lon) must contain(40.0f).exactly(10.times)
-      bins.map(_.lon) must contain(40.1f).exactly(10.times)
-      bins.map(_.lon) must contain(40.2f).exactly(10.times)
-      bins.map(_.lon) must contain(40.3f).exactly(10.times)
+      bins.map(_.lon) must contain(40.0f).exactly(10)
+      bins.map(_.lon) must contain(40.1f).exactly(10)
+      bins.map(_.lon) must contain(40.2f).exactly(10)
+      bins.map(_.lon) must contain(40.3f).exactly(10)
     }
 
     "return all points of a linestring and date list with z2 index" >> {
@@ -170,12 +169,12 @@ class BinLineStringTest extends Specification with TestWithDataStore {
       forall(0 until 10) { i =>
         val baseDate = features(i).getAttribute("dtg").asInstanceOf[Date].getTime
         bins.map(_.dtg) must containAllOf(Seq(baseDate, baseDate + 60000, baseDate + 120000, baseDate + 180000))
-        bins.map(_.lat) must contain(60.0f + i).exactly(4.times)
+        bins.map(_.lat) must contain(60.0f + i).exactly(4)
       }
-      bins.map(_.lon) must contain(40.0f).exactly(10.times)
-      bins.map(_.lon) must contain(40.1f).exactly(10.times)
-      bins.map(_.lon) must contain(40.2f).exactly(10.times)
-      bins.map(_.lon) must contain(40.3f).exactly(10.times)
+      bins.map(_.lon) must contain(40.0f).exactly(10)
+      bins.map(_.lon) must contain(40.1f).exactly(10)
+      bins.map(_.lon) must contain(40.2f).exactly(10)
+      bins.map(_.lon) must contain(40.3f).exactly(10)
     }
 
     "return all points of a linestring and date list with z3 index" >> {
@@ -191,12 +190,12 @@ class BinLineStringTest extends Specification with TestWithDataStore {
       forall(0 until 10) { i =>
         val baseDate = features(i).getAttribute("dtg").asInstanceOf[Date].getTime
         bins.map(_.dtg) must containAllOf(Seq(baseDate, baseDate + 60000, baseDate + 120000, baseDate + 180000))
-        bins.map(_.lat) must contain(60.0f + i).exactly(4.times)
+        bins.map(_.lat) must contain(60.0f + i).exactly(4)
       }
-      bins.map(_.lon) must contain(40.0f).exactly(10.times)
-      bins.map(_.lon) must contain(40.1f).exactly(10.times)
-      bins.map(_.lon) must contain(40.2f).exactly(10.times)
-      bins.map(_.lon) must contain(40.3f).exactly(10.times)
+      bins.map(_.lon) must contain(40.0f).exactly(10)
+      bins.map(_.lon) must contain(40.1f).exactly(10)
+      bins.map(_.lon) must contain(40.2f).exactly(10)
+      bins.map(_.lon) must contain(40.3f).exactly(10)
     }
 
     "return all points of a linestring and date list plus label with z2 index" >> {
@@ -212,13 +211,13 @@ class BinLineStringTest extends Specification with TestWithDataStore {
       forall(0 until 10) { i =>
         val baseDate = features(i).getAttribute("dtg").asInstanceOf[Date].getTime
         bins.map(_.dtg) must containAllOf(Seq(baseDate, baseDate + 60000, baseDate + 120000, baseDate + 180000))
-        bins.map(_.lat) must contain(60.0f + i).exactly(4.times)
-        bins.map(_.asInstanceOf[ExtendedValues].label) must contain(Convert2ViewerFunction.convertToLabel(s"name$i")).exactly(4.times)
+        bins.map(_.lat) must contain(60.0f + i).exactly(4)
+        bins.map(_.asInstanceOf[ExtendedValues].label) must contain(Convert2ViewerFunction.convertToLabel(s"name$i")).exactly(4)
       }
-      bins.map(_.lon) must contain(40.0f).exactly(10.times)
-      bins.map(_.lon) must contain(40.1f).exactly(10.times)
-      bins.map(_.lon) must contain(40.2f).exactly(10.times)
-      bins.map(_.lon) must contain(40.3f).exactly(10.times)
+      bins.map(_.lon) must contain(40.0f).exactly(10)
+      bins.map(_.lon) must contain(40.1f).exactly(10)
+      bins.map(_.lon) must contain(40.2f).exactly(10)
+      bins.map(_.lon) must contain(40.3f).exactly(10)
     }
 
     "return all points of a linestring and date list plus label with z3 index" >> {
@@ -235,13 +234,13 @@ class BinLineStringTest extends Specification with TestWithDataStore {
       forall(0 until 10) { i =>
         val baseDate = features(i).getAttribute("dtg").asInstanceOf[Date].getTime
         bins.map(_.dtg) must containAllOf(Seq(baseDate, baseDate + 60000, baseDate + 120000, baseDate + 180000))
-        bins.map(_.lat) must contain(60.0f + i).exactly(4.times)
-        bins.map(_.asInstanceOf[ExtendedValues].label) must contain(Convert2ViewerFunction.convertToLabel(s"name$i")).exactly(4.times)
+        bins.map(_.lat) must contain(60.0f + i).exactly(4)
+        bins.map(_.asInstanceOf[ExtendedValues].label) must contain(Convert2ViewerFunction.convertToLabel(s"name$i")).exactly(4)
       }
-      bins.map(_.lon) must contain(40.0f).exactly(10.times)
-      bins.map(_.lon) must contain(40.1f).exactly(10.times)
-      bins.map(_.lon) must contain(40.2f).exactly(10.times)
-      bins.map(_.lon) must contain(40.3f).exactly(10.times)
+      bins.map(_.lon) must contain(40.0f).exactly(10)
+      bins.map(_.lon) must contain(40.1f).exactly(10)
+      bins.map(_.lon) must contain(40.2f).exactly(10)
+      bins.map(_.lon) must contain(40.3f).exactly(10)
     }
   }
 }

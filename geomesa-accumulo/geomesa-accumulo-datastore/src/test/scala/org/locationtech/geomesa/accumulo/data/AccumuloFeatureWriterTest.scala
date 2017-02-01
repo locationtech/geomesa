@@ -31,14 +31,14 @@ import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeExample
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloFeatureWriterTest extends Specification with TestWithDataStore with BeforeExample {
+class AccumuloFeatureWriterTest extends TestWithDataStore with BeforeExample
+    with org.specs2.matcher.SequenceMatchersCreation with org.specs2.matcher.TraversableMatchers {
 
   override def before = clearTablesHard()
 

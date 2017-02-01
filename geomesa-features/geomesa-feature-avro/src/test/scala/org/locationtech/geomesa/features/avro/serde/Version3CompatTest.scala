@@ -25,7 +25,7 @@ import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class Version3CompatTest extends Specification {
+class Version3CompatTest extends org.specs2.mutable.Spec {
 
   "Version3 ASF" should {
 

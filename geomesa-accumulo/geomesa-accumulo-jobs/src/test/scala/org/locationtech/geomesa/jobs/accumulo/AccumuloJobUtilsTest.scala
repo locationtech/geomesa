@@ -13,7 +13,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloJobUtilsTest extends Specification {
+class AccumuloJobUtilsTest extends org.specs2.mutable.Spec {
 
   "AccumuloJobUtils" should {
     "load list of jars from class resource" in {

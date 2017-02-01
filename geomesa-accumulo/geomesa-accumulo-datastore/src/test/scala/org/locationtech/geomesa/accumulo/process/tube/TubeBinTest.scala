@@ -25,7 +25,7 @@ import scala.collection.JavaConversions._
 
 
 @RunWith(classOf[JUnitRunner])
-class TubeBinTest extends Specification {
+class TubeBinTest extends org.specs2.mutable.Spec {
 
   sequential
 

@@ -20,7 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class VisibilityFilterFunctionTest extends Specification {
+class VisibilityFilterFunctionTest extends org.specs2.mutable.Spec {
 
   sequential
 

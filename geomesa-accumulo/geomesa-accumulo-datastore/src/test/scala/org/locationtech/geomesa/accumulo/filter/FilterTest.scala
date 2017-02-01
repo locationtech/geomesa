@@ -33,7 +33,8 @@ import org.specs2.runner.JUnitRunner
 
 
 @RunWith(classOf[JUnitRunner])
-class FilterTest extends Specification with TestWithDataStore with LazyLogging {
+class FilterTest extends TestWithDataStore
+    with org.specs2.matcher.SequenceMatchersCreation with org.specs2.execute.PendingUntilFixed with LazyLogging {
 
   override val spec = SimpleFeatureTypes.encodeType(TestData.featureType, includeUserData = true)
 
@@ -107,7 +108,7 @@ class FilterTest extends Specification with TestWithDataStore with LazyLogging {
 }
 
 @RunWith(classOf[JUnitRunner])
-class IdQueryTest extends Specification with TestWithDataStore {
+class IdQueryTest extends org.specs2.mutable.Spec with TestWithDataStore {
 
   override val spec = "age:Int:index=true,name:String:index=true,dtg:Date,*geom:Point:srid=4326"
 

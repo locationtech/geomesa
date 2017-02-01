@@ -16,7 +16,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class GeoCQEngineDataStoreTest extends Specification {
+class GeoCQEngineDataStoreTest extends org.specs2.mutable.Spec {
 
   sequential
 

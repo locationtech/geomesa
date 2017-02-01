@@ -16,7 +16,7 @@ import org.specs2.runner.JUnitRunner
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class BinnedTimeTest extends Specification {
+class BinnedTimeTest extends org.specs2.mutable.Spec {
 
   val rand = new Random(-574)
 

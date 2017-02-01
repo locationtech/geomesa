@@ -25,7 +25,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSfts {
+class AttrKeyPlusValueIteratorTest extends org.specs2.mutable.Spec with TestWithMultipleSfts {
 
   val spec =
     "name:String:index=true:cardinality=high," +

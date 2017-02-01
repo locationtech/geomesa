@@ -20,7 +20,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class UsageStatReaderTest extends Specification {
+class UsageStatReaderTest extends org.specs2.mutable.Spec {
 
   val df = DateTimeFormat.forPattern("yyyy.MM.dd HH:mm:ss")
 

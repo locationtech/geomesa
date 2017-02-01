@@ -23,7 +23,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class DelimitedTextConverterTest extends Specification {
+class DelimitedTextConverterTest extends org.specs2.mutable.Spec {
 
   sequential
 

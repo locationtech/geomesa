@@ -16,7 +16,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class DeduplicatingSimpleFeatureIteratorTest extends Specification {
+class DeduplicatingSimpleFeatureIteratorTest extends org.specs2.mutable.Spec {
 
   val filterFactory = CommonFactoryFinder.getFilterFactory2
 

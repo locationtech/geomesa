@@ -21,7 +21,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class JsonConverterTest extends Specification {
+class JsonConverterTest extends org.specs2.mutable.Spec {
 
   val sftConfPoint = ConfigFactory.parseString(
     """{ type-name = "jsonFeatureType"

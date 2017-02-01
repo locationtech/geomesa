@@ -26,7 +26,7 @@ import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
 
 @RunWith(classOf[JUnitRunner])
-class StreamDataStoreTest extends Specification {
+class StreamDataStoreTest extends org.specs2.mutable.Spec {
 
   implicit val ec = ExecutionContext.global
 

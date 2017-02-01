@@ -31,7 +31,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class LiveDensityIteratorTest extends Specification with LazyLogging {
+class LiveDensityIteratorTest extends org.specs2.mutable.Spec with LazyLogging {
 
   sequential
 

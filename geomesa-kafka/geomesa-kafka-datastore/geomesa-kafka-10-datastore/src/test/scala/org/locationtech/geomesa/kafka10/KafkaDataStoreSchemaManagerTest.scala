@@ -28,7 +28,7 @@ import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class KafkaDataStoreSchemaManagerTest
-  extends Specification
+  extends org.specs2.mutable.Spec
   with HasEmbeddedKafka {
 
   // skip embedded kafka tests unless explicitly enabled, they often fail randomly

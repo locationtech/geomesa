@@ -15,7 +15,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ReplayConfigTest extends Specification with Mockito {
+class ReplayConfigTest extends org.specs2.mutable.Spec with Mockito {
 
 
   "ReplayConfig" should {

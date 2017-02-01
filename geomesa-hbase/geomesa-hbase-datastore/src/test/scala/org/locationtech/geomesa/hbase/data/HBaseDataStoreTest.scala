@@ -30,7 +30,7 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class HBaseDataStoreTest extends Specification with LazyLogging {
+class HBaseDataStoreTest extends org.specs2.mutable.Spec with LazyLogging {
 
   sequential
 

@@ -21,7 +21,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ZIntervalTest extends Specification with TestWithMultipleSfts {
+class ZIntervalTest extends TestWithMultipleSfts with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 

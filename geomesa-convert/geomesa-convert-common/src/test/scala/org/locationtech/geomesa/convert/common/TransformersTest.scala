@@ -25,7 +25,7 @@ import org.specs2.runner.JUnitRunner
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class TransformersTest extends Specification {
+class TransformersTest extends org.specs2.mutable.Spec {
 
   "Transformers" should {
 

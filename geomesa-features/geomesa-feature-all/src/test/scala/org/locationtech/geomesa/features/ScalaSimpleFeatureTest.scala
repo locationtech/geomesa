@@ -24,7 +24,7 @@ import scala.collection.JavaConversions._
 import scala.languageFeature.postfixOps
 
 @RunWith(classOf[JUnitRunner])
-class ScalaSimpleFeatureTest extends Specification {
+class ScalaSimpleFeatureTest extends org.specs2.mutable.Spec {
 
   "ScalaSimpleFeature" should {
     "properly convert attributes that are set as strings" in {

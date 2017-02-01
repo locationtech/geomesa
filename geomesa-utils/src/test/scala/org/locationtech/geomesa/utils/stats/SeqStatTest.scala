@@ -13,7 +13,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class SeqStatTest extends Specification with StatTestHelper {
+class SeqStatTest extends org.specs2.mutable.Spec with StatTestHelper {
 
   def newStat[T](observe: Boolean = true): SeqStat = {
     val stat = Stat(sft, "MinMax(intAttr);IteratorStackCount();Enumeration(longAttr);Histogram(doubleAttr,20,0,200)")

@@ -24,7 +24,7 @@ import scala.collection.JavaConversions._
 import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
-class SimpleFeatureTypesTest extends Specification {
+class SimpleFeatureTypesTest extends org.specs2.mutable.Spec {
 
   sequential
   args(color = true)

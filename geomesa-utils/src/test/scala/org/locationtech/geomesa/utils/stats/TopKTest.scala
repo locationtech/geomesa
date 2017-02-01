@@ -20,7 +20,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class TopKTest extends Specification {
+class TopKTest extends org.specs2.mutable.Spec {
 
   val sft = SimpleFeatureTypes.createType("topk", "name:String,score:Long,height:Double,dtg:Date,*geom:Point:srid=4326")
 

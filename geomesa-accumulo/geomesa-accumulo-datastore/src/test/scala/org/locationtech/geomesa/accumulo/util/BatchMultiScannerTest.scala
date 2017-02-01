@@ -13,7 +13,6 @@ import java.util.TimeZone
 
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.data.{Range => ARange}
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.Hints
@@ -27,13 +26,12 @@ import org.locationtech.geomesa.accumulo.index.{BatchScanPlan, JoinPlan}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.execute.Success
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class BatchMultiScannerTest extends Specification {
+class BatchMultiScannerTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   val sftName = "bmstest"
   val schema = SimpleFeatureTypes.createType(sftName,

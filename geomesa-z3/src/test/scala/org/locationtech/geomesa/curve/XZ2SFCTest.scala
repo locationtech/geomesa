@@ -16,7 +16,7 @@ import org.specs2.runner.JUnitRunner
 import scala.io.Source
 
 @RunWith(classOf[JUnitRunner])
-class XZ2SFCTest extends Specification with LazyLogging {
+class XZ2SFCTest extends org.specs2.mutable.Spec with LazyLogging {
 
   val sfc = XZ2SFC(12)
 

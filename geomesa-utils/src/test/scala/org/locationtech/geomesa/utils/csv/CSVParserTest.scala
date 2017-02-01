@@ -21,7 +21,7 @@ import org.specs2.runner.JUnitRunner
 import scala.util.Success
 
 @RunWith(classOf[JUnitRunner])
-class CSVParserTest extends Specification {
+class CSVParserTest extends org.specs2.mutable.Spec {
 
   "CSVParser" should {
     "parse ints" in {

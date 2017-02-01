@@ -20,7 +20,7 @@ import org.specs2.runner.JUnitRunner
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class BucketIndexTest extends Specification with LazyLogging {
+class BucketIndexTest extends org.specs2.mutable.Spec with LazyLogging {
 
   "BucketIndex" should {
     "be thread safe" in {

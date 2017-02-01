@@ -20,7 +20,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class StatsHistogramCommandTest extends Specification {
+class StatsHistogramCommandTest extends org.specs2.mutable.Spec {
 
   "StatsHistogramCommand" should {
     "put points on the map" >> {

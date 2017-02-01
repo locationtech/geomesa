@@ -30,7 +30,8 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreAttributeVisibilityTest extends Specification {
+class AccumuloDataStoreAttributeVisibilityTest extends org.specs2.mutable.Spec
+    with org.specs2.matcher.SequenceMatchersCreation {
 
   import scala.collection.JavaConversions._
 

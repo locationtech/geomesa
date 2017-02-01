@@ -30,7 +30,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreStatsTest extends Specification with TestWithDataStore {
+class AccumuloDataStoreStatsTest extends TestWithDataStore with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 

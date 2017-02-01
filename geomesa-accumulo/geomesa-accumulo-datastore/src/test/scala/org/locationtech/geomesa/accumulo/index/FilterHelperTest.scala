@@ -26,7 +26,9 @@ import org.specs2.runner.JUnitRunner
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class FilterHelperTest extends Specification with Mockito with LazyLogging {
+class FilterHelperTest extends org.specs2.mutable.Spec
+    with org.specs2.matcher.SequenceMatchersCreation with Mockito with LazyLogging {
+
   val filterFactory = CommonFactoryFinder.getFilterFactory2
   val gf = JTSFactoryFinder.getGeometryFactory
 

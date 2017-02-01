@@ -23,7 +23,7 @@ import org.specs2.runner.JUnitRunner
 import scala.annotation.tailrec
 
 @RunWith(classOf[JUnitRunner])
-class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito with SimpleFeatureMatchers {
+class ReplayKafkaConsumerFeatureSourceTest extends org.specs2.mutable.Spec with Mockito with SimpleFeatureMatchers {
 
   import KafkaConsumerTestData._
 

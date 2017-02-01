@@ -25,7 +25,7 @@ import scala.collection.JavaConverters._
 import scala.xml.XML
 
 @RunWith(classOf[JUnitRunner])
-class GmlExportTest extends Specification {
+class GmlExportTest extends org.specs2.mutable.Spec {
 
   "GmlExport" >> {
     val sft = SimpleFeatureTypes.createType("GmlExportTest", "name:String,geom:Geometry:srid=4326,dtg:Date")

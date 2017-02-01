@@ -26,7 +26,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class GenerateKNNQueryTest extends Specification {
+class GenerateKNNQueryTest extends org.specs2.mutable.Spec {
 
   def createStore: AccumuloDataStore =
   // the specific parameter values should not matter, as we

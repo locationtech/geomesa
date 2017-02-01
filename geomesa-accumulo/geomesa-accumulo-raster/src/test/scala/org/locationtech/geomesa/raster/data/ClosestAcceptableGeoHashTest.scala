@@ -14,7 +14,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ClosestAcceptableGeoHashTest extends Specification {
+class ClosestAcceptableGeoHashTest extends org.specs2.mutable.Spec {
 
   sequential
 

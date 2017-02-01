@@ -15,7 +15,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class BinnedArrayTest extends Specification with StatTestHelper {
+class BinnedArrayTest extends org.specs2.mutable.Spec with StatTestHelper {
 
   "BinnedArray" should {
     "bin integers" >> {

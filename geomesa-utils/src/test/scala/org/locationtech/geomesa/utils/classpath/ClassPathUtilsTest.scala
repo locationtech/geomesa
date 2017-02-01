@@ -16,7 +16,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ClassPathUtilsTest extends Specification {
+class ClassPathUtilsTest extends org.specs2.mutable.Spec {
   "JobUtils" should {
     val testFolder = new File(getClass.getClassLoader.getResource("fakejars").getFile)
 

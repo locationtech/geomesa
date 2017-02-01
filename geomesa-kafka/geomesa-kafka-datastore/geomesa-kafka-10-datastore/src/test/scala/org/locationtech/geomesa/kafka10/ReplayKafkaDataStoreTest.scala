@@ -31,7 +31,7 @@ import scala.collection.JavaConversions._
   */
 @RunWith(classOf[JUnitRunner])
 class ReplayKafkaDataStoreTest
-  extends Specification
+  extends org.specs2.mutable.Spec
   with HasEmbeddedKafka
   with SimpleFeatureMatchers {
 

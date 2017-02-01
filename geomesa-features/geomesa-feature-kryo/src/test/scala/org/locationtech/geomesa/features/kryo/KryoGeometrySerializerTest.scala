@@ -20,7 +20,7 @@ import org.specs2.runner.JUnitRunner
 import scala.languageFeature.postfixOps
 
 @RunWith(classOf[JUnitRunner])
-class KryoGeometrySerializerTest extends Specification {
+class KryoGeometrySerializerTest extends org.specs2.mutable.Spec {
 
   "KryoGeometrySerializer" should {
 

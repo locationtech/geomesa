@@ -42,7 +42,7 @@ import scala.collection.JavaConverters._
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class GeoMesaSparkTest extends Specification with LazyLogging {
+class GeoMesaSparkTest extends org.specs2.mutable.Spec with LazyLogging {
 
   sequential
 

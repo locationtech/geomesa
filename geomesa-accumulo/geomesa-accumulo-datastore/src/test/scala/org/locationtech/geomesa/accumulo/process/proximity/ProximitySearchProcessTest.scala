@@ -28,7 +28,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts {
+class ProximitySearchProcessTest extends org.specs2.mutable.Spec with TestWithMultipleSfts {
 
   sequential
 

@@ -34,7 +34,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSfts {
+class AccumuloDataStoreDeleteTest extends TestWithMultipleSfts with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 

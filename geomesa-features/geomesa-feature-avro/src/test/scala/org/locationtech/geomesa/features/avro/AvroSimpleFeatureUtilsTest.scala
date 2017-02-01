@@ -21,7 +21,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class AvroSimpleFeatureUtilsTest extends Specification {
+class AvroSimpleFeatureUtilsTest extends org.specs2.mutable.Spec {
 
   "AvroSimpleFeatureUtils" should {
 

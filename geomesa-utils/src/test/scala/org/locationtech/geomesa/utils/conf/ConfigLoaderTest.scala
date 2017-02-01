@@ -13,7 +13,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ConfigLoaderTest extends Specification {
+class ConfigLoaderTest extends org.specs2.mutable.Spec {
 
   "ConfigLoader" should {
     "load config files" in {

@@ -30,7 +30,7 @@ import scala.util.Random
 case class TestEntry(wkt: String, id: String, dt: DateTime = new DateTime())
 
 @RunWith(classOf[JUnitRunner])
-class KNearestNeighborSearchProcessTest extends Specification {
+class KNearestNeighborSearchProcessTest extends org.specs2.mutable.Spec {
 
   sequential
 

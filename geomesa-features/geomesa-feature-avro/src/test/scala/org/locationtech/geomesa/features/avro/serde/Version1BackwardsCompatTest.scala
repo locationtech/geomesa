@@ -33,7 +33,7 @@ import scala.io.Source
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class Version1BackwardsCompatTest extends Specification {
+class Version1BackwardsCompatTest extends org.specs2.mutable.Spec {
 
   val geoFac = new GeometryFactory()
   def createTypeWithGeo: Version1ASF = {

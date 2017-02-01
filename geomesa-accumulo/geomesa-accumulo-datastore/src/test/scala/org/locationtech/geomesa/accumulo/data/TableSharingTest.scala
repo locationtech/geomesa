@@ -29,7 +29,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class TableSharingTest extends Specification with LazyLogging {
+class TableSharingTest extends org.specs2.mutable.Spec with LazyLogging {
 
   sequential
 

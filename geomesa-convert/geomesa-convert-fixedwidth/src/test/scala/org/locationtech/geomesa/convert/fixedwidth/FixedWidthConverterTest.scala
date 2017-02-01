@@ -17,7 +17,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class FixedWidthConverterTest extends Specification {
+class FixedWidthConverterTest extends org.specs2.mutable.Spec {
 
   "FixedWidthConverter" >> {
 

@@ -22,7 +22,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class BinaryOutputEncoderTest extends Specification {
+class BinaryOutputEncoderTest extends org.specs2.mutable.Spec {
 
   "BinaryViewerOutputFormat" should {
 

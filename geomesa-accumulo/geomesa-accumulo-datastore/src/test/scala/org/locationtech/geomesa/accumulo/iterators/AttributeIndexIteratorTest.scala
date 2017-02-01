@@ -19,13 +19,12 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
+class AttributeIndexIteratorTest extends TestWithDataStore with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 

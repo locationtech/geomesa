@@ -23,7 +23,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class SortingSimpleFeatureIteratorTest extends Specification with Mockito {
+class SortingSimpleFeatureIteratorTest extends org.specs2.mutable.Spec with Mockito {
 
   val filterFactory = CommonFactoryFinder.getFilterFactory
 

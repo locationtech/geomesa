@@ -13,11 +13,10 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class JoinProcessTest extends Specification with TestWithMultipleSfts {
+class JoinProcessTest extends TestWithMultipleSfts with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 

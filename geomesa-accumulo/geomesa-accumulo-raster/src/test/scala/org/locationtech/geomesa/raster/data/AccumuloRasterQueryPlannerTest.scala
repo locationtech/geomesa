@@ -19,7 +19,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloRasterQueryPlannerTest extends Specification with LazyLogging {
+class AccumuloRasterQueryPlannerTest extends org.specs2.mutable.Spec with LazyLogging {
 
   sequential
 

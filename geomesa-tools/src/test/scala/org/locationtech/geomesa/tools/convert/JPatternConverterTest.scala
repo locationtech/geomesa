@@ -18,7 +18,7 @@ import org.specs2.runner.JUnitRunner
 class PatternParam extends OptionalPatternParam {}
 
 @RunWith(classOf[JUnitRunner])
-class JPatternConverterTest extends Specification {
+class JPatternConverterTest extends org.specs2.mutable.Spec {
 
   "JPatternConverter" should {
     "convert strings into patterns" in {

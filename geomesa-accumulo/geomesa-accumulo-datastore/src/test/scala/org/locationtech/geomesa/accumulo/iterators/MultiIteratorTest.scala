@@ -29,7 +29,7 @@ import org.specs2.runner.JUnitRunner
 import scala.util.{Failure, Success, Try}
 
 @RunWith(classOf[JUnitRunner])
-class MultiIteratorTest extends Specification with TestWithMultipleSfts with LazyLogging {
+class MultiIteratorTest extends org.specs2.mutable.Spec with TestWithMultipleSfts with LazyLogging {
 
   sequential
 

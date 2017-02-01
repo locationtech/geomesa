@@ -15,7 +15,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class TimeSnapTest extends Specification with LazyLogging {
+class TimeSnapTest extends org.specs2.mutable.Spec with LazyLogging {
 
   val buckets = 4
   val startDate = new DateTime(1970, 1, 1, 0, 0)

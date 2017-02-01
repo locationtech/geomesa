@@ -18,7 +18,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class MinMaxTest extends Specification with StatTestHelper {
+class MinMaxTest extends org.specs2.mutable.Spec with StatTestHelper {
 
   def newStat[T](attribute: String, observe: Boolean = true): MinMax[T] = {
     val stat = Stat(sft, s"MinMax($attribute)")

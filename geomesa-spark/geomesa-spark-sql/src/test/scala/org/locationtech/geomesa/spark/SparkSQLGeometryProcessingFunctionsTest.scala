@@ -19,7 +19,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLGeometryProcessingFunctionsTest extends Specification with LazyLogging {
+class SparkSQLGeometryProcessingFunctionsTest extends org.specs2.mutable.Spec with LazyLogging {
 
   "sql geometry processing functions" should {
     import scala.collection.JavaConversions._

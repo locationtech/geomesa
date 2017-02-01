@@ -52,7 +52,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
+class AccumuloDataStoreTest extends TestWithMultipleSfts with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 

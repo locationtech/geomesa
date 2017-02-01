@@ -14,7 +14,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class GeoMesaConfiguratorTest extends Specification {
+class GeoMesaConfiguratorTest extends org.specs2.mutable.Spec {
 
   "GeoMesaConfigurator" should {
     "set and retrieve data store params" in {

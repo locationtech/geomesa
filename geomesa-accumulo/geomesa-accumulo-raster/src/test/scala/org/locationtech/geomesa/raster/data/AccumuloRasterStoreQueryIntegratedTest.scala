@@ -17,7 +17,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloRasterStoreQueryIntegratedTest extends Specification {
+class AccumuloRasterStoreQueryIntegratedTest extends org.specs2.mutable.Spec {
 
   sequential
 

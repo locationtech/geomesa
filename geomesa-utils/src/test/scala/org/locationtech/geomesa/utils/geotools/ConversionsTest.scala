@@ -19,7 +19,7 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable.HashMap
 
 @RunWith(classOf[JUnitRunner])
-class ConversionsTest extends Specification with Mockito {
+class ConversionsTest extends org.specs2.mutable.Spec with Mockito {
 
   sequential
 

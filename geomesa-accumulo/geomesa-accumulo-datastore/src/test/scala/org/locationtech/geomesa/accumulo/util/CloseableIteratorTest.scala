@@ -14,7 +14,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class CloseableIteratorTest extends Specification {
+class CloseableIteratorTest extends org.specs2.mutable.Spec {
 
   "CloseableIterator" should {
     "provide an empty iterator" in {

@@ -18,7 +18,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class RasterEntryTest extends Specification {
+class RasterEntryTest extends org.specs2.mutable.Spec {
 
   sequential
 

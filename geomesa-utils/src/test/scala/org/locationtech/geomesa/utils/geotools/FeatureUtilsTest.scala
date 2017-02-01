@@ -15,7 +15,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class FeatureUtilsTest extends Specification {
+class FeatureUtilsTest extends org.specs2.mutable.Spec {
 
   "Feature Utils" should {
 

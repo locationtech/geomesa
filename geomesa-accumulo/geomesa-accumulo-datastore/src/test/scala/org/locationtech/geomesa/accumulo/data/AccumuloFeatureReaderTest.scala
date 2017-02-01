@@ -26,7 +26,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
+class AccumuloFeatureReaderTest extends org.specs2.mutable.Spec with TestWithDataStore {
 
   sequential
 

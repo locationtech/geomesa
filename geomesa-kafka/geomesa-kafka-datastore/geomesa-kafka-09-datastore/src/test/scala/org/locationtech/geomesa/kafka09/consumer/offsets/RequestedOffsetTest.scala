@@ -15,7 +15,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner
 
 @RunWith(classOf[runner.JUnitRunner])
-class RequestedOffsetTest extends Specification {
+class RequestedOffsetTest extends org.specs2.mutable.Spec {
 
   "RequestedOffset" should {
     "be configurable via typesafe config" >> {

@@ -28,7 +28,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class IndexValueEncoderTest extends Specification {
+class IndexValueEncoderTest extends org.specs2.mutable.Spec {
 
   val defaultSchema = "*geom:Point,dtg:Date,s:String,i:Int,d:Double,f:Float,u:UUID,l:List[String]"
   val allSchema = s"*geom:Point:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,s:String:$OPT_INDEX_VALUE=true,i:Int:$OPT_INDEX_VALUE=true,d:Double:$OPT_INDEX_VALUE=true,f:Float:$OPT_INDEX_VALUE=true,u:UUID:$OPT_INDEX_VALUE=true,l:List[String]"

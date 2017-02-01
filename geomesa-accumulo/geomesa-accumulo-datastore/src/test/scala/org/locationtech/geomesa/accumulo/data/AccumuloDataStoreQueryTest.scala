@@ -45,7 +45,7 @@ import scala.concurrent.duration.Duration
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts {
+class AccumuloDataStoreQueryTest extends TestWithMultipleSfts with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 

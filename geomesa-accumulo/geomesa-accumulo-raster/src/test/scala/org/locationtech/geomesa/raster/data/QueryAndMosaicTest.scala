@@ -20,7 +20,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class QueryAndMosaicTest extends Specification {
+class QueryAndMosaicTest extends org.specs2.mutable.Spec {
   sequential
 
   implicit val noTime: Timings = NoOpTimings

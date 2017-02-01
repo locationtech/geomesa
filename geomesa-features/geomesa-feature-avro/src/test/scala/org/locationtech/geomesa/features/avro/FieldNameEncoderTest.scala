@@ -13,7 +13,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class FieldNameEncoderTest extends Specification {
+class FieldNameEncoderTest extends org.specs2.mutable.Spec {
 
   "Avro FieldNameEncoder" should {
     val nameEncoder = new FieldNameEncoder(4)

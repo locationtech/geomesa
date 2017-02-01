@@ -18,7 +18,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class TemporalIndexCheckTest extends Specification {
+class TemporalIndexCheckTest extends org.specs2.mutable.Spec {
   // setup the basic types
   def noDTGType = SimpleFeatureTypes.createType("noDTGType", s"foo:String,bar:Geometry,baz:String,geom:Point")
   def oneDTGType = SimpleFeatureTypes.createType("oneDTGType", s"foo:String,bar:Geometry,baz:String,geom:Point,dtg:Date")

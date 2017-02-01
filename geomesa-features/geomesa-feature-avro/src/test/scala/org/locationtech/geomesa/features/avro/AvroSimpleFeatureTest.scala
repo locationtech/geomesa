@@ -23,7 +23,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AvroSimpleFeatureTest extends Specification {
+class AvroSimpleFeatureTest extends org.specs2.mutable.Spec {
 
   "AvroSimpleFeature" should {
     "properly convert attributes that are set as strings" in {

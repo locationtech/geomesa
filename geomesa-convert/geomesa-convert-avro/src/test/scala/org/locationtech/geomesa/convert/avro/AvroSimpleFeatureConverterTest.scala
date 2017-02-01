@@ -18,7 +18,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AvroSimpleFeatureConverterTest extends Specification with AvroUtils {
+class AvroSimpleFeatureConverterTest extends org.specs2.mutable.Spec with AvroUtils {
 
   sequential
 

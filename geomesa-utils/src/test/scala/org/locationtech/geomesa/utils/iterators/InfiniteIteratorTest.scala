@@ -14,7 +14,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class InfiniteIteratorTest extends Specification with Mockito {
+class InfiniteIteratorTest extends org.specs2.mutable.Spec with Mockito {
 
   "stop after" should {
 

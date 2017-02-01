@@ -20,7 +20,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class LiveFeatureCacheCQEngineTest extends Specification with Mockito with SimpleFeatureMatchers {
+class LiveFeatureCacheCQEngineTest extends org.specs2.mutable.Spec with Mockito with SimpleFeatureMatchers {
 
   import KafkaConsumerTestData._
 

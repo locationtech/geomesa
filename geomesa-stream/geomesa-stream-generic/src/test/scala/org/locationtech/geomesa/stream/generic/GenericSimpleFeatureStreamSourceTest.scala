@@ -25,7 +25,7 @@ import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
 
 @RunWith(classOf[JUnitRunner])
-class GenericSimpleFeatureStreamSourceTest extends Specification  {
+class GenericSimpleFeatureStreamSourceTest extends org.specs2.mutable.Spec  {
 
   implicit val ec = ExecutionContext.global
 

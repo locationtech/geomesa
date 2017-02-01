@@ -22,7 +22,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class IteratorTriggerTest extends Specification {
+class IteratorTriggerTest extends org.specs2.mutable.Spec {
   sequential
 
   object TestTable {

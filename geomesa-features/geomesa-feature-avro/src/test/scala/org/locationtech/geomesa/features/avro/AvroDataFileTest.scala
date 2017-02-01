@@ -25,7 +25,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest {
+class AvroDataFileTest extends org.specs2.mutable.Spec with AbstractAvroSimpleFeatureTest {
 
    sequential //because of file delete step
 

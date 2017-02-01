@@ -17,7 +17,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class GeoJsonQueryTest extends Specification {
+class GeoJsonQueryTest extends org.specs2.mutable.Spec {
 
   "GeoJsonQuery" should {
     "parse json predicates" in {

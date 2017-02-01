@@ -18,7 +18,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class FastFilterFactoryTest extends Specification {
+class FastFilterFactoryTest extends org.specs2.mutable.Spec {
 
   "FastFilterFactory" should {
     "create fast property names" >> {

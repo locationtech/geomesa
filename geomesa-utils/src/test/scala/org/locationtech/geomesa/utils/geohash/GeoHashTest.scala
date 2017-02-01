@@ -19,7 +19,7 @@ import scala.collection.BitSet
 import scala.math._
 
 @RunWith(classOf[JUnitRunner])
-class GeoHashTest extends Specification
+class GeoHashTest extends org.specs2.mutable.Spec
                           with LazyLogging {
 
   // set to true to see test output

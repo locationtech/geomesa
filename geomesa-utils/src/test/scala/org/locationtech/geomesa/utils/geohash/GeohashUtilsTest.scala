@@ -18,7 +18,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class GeohashUtilsTest extends Specification with LazyLogging {
+class GeohashUtilsTest extends org.specs2.mutable.Spec with LazyLogging {
   val NO_VALUE: Int = -1
 
   // Turn this on for debugging purposes
@@ -268,7 +268,7 @@ class GeohashUtilsTest extends Specification with LazyLogging {
 
 @Ignore
 @RunWith(classOf[JUnitRunner])
-class GeohashUtilsTimeTest extends Specification with LazyLogging {
+class GeohashUtilsTimeTest extends org.specs2.mutable.Spec with LazyLogging {
 
   "performance test for getUniqueGeohashSubstringsInPolygon" should {
     val poly = wkt2geom("POLYGON((-170 -80, -170 0, -170 80, 0 80, 170 80, 170 0, 170 -80, 0 -80, -170 -80))").asInstanceOf[Polygon]

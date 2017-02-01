@@ -36,7 +36,8 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
+class AttributeIndexStrategyTest extends TestWithDataStore
+    with org.specs2.matcher.SequenceMatchersCreation with org.specs2.matcher.ValueChecks {
 
   sequential
 

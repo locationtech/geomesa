@@ -13,7 +13,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class IteratorStackCountTest extends Specification with StatTestHelper {
+class IteratorStackCountTest extends org.specs2.mutable.Spec with StatTestHelper {
   sequential
 
   "IteratorStackCount stat" should {

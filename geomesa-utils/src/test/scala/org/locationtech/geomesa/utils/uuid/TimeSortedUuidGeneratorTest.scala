@@ -15,7 +15,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class TimeSortedUuidGeneratorTest extends Specification {
+class TimeSortedUuidGeneratorTest extends org.specs2.mutable.Spec {
 
   val time = 1435598908099L // System.currentTimeMillis()
 

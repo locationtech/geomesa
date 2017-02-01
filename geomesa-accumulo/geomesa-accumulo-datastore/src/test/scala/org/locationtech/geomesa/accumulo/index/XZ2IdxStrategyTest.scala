@@ -25,7 +25,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
+class XZ2IdxStrategyTest extends TestWithDataStore with org.specs2.matcher.SequenceMatchersCreation {
 
   val spec = "name:String,track:String,dtg:Date,*geom:Geometry:srid=4326;" +
       "geomesa.mixed.geometries='true',geomesa.indexes.enabled='xz2'"

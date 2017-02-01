@@ -21,7 +21,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class FilterHelperTest extends Specification {
+class FilterHelperTest extends org.specs2.mutable.Spec {
 
   val filterFactory = CommonFactoryFinder.getFilterFactory2
 

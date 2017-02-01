@@ -24,7 +24,7 @@ import org.specs2.runner.JUnitRunner
 import scala.util.{Failure, Success, Try}
 
 @RunWith(classOf[JUnitRunner])
-class OffsetTest extends Specification with Mockito {
+class OffsetTest extends org.specs2.mutable.Spec with Mockito {
 
   import OffsetTest._
 

@@ -24,7 +24,7 @@ import org.specs2.runner.JUnitRunner
 import scala.io.Source
 
 @RunWith(classOf[JUnitRunner])
-class ConvertCommandTest extends Specification with LazyLogging {
+class ConvertCommandTest extends org.specs2.mutable.Spec with LazyLogging {
 
   sequential
 

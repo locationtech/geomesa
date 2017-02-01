@@ -24,7 +24,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class HBaseIntegrationTest extends Specification {
+class HBaseIntegrationTest extends org.specs2.mutable.Spec {
 
   // note: make sure you update src/test/resources/hbase-site.xml to point to your hbase instance
 

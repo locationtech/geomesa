@@ -22,7 +22,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class FrequencyTest extends Specification with StatTestHelper {
+class FrequencyTest extends org.specs2.mutable.Spec with StatTestHelper {
 
   def createStat[T](attribute: String, precision: Int, observe: Boolean): Frequency[T] = {
     val s = Stat(sft, Stat.Frequency(attribute, precision))

@@ -29,7 +29,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipleSfts {
+class AccumuloDataStoreTransformsTest extends org.specs2.mutable.Spec with TestWithMultipleSfts {
 
   sequential
 

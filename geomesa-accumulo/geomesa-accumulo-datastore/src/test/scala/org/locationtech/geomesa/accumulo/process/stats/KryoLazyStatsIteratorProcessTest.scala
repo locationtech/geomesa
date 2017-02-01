@@ -18,11 +18,10 @@ import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator._
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class KryoLazyStatsIteratorProcessTest extends Specification with TestWithDataStore {
+class KryoLazyStatsIteratorProcessTest extends TestWithDataStore with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 

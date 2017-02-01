@@ -33,7 +33,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class Z2IdxStrategyTest extends Specification with TestWithDataStore {
+class Z2IdxStrategyTest extends TestWithDataStore with org.specs2.matcher.SequenceMatchersCreation {
 
   val spec = "name:String,track:String,dtg:Date,*geom:Point:srid=4326"
 

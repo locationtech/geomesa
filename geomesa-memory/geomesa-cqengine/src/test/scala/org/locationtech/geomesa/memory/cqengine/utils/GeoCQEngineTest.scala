@@ -21,7 +21,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class GeoCQEngineTest extends Specification with LazyLogging {
+class GeoCQEngineTest extends org.specs2.mutable.Spec with LazyLogging {
   "GeoCQEngine" should {
     "return correct number of results" >> {
       import SampleFilters._

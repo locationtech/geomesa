@@ -19,7 +19,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class GeoHashSpiralTest extends Specification {
+class GeoHashSpiralTest extends org.specs2.mutable.Spec {
 
   def generateCvilleSF = {
     val sftName = "geomesaKNNTestQueryFeature"

@@ -19,7 +19,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreIdlTest extends Specification with TestWithDataStore {
+class AccumuloDataStoreIdlTest extends org.specs2.mutable.Spec with TestWithDataStore {
 
   sequential
 

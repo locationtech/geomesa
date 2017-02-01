@@ -17,7 +17,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class GridSnapTest extends Specification with LazyLogging {
+class GridSnapTest extends org.specs2.mutable.Spec with LazyLogging {
 
   "GridSnap" should {
     "create a gridsnap around a given bbox" in {

@@ -24,7 +24,7 @@ import org.specs2.runner
 import scala.collection.mutable.ArrayBuffer
 
 @RunWith(classOf[runner.JUnitRunner])
-class KafkaConsumerTest extends Specification with HasEmbeddedKafka {
+class KafkaConsumerTest extends org.specs2.mutable.Spec with HasEmbeddedKafka {
 
   sequential
 

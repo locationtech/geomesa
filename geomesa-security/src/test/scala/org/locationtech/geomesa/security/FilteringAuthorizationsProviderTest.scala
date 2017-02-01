@@ -19,7 +19,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class FilteringAuthorizationsProviderTest extends Specification {
+class FilteringAuthorizationsProviderTest extends org.specs2.mutable.Spec {
 
   sequential
 

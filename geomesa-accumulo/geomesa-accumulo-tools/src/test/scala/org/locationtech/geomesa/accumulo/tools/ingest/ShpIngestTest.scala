@@ -29,7 +29,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class ShpIngestTest extends Specification {
+class ShpIngestTest extends org.specs2.mutable.Spec {
 
   sequential
 

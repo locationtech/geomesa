@@ -15,7 +15,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class RichIntervalTest extends Specification {
+class RichIntervalTest extends org.specs2.mutable.Spec {
 
   "RichIntervals" should {
     val dt1 = new DateTime("2012-01-01T01:00:00", DateTimeZone.UTC)

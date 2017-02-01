@@ -14,7 +14,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class StatTest extends Specification with StatTestHelper {
+class StatTest extends org.specs2.mutable.Spec with StatTestHelper {
 
   "Stat parser" should {
     "fail for malformed strings" in {

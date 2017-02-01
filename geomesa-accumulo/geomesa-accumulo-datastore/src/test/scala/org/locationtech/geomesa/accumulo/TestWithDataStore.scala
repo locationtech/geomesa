@@ -24,16 +24,13 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
-import org.specs2.specification.Step
-import org.specs2.specification.core.Fragments
 
 import scala.collection.JavaConverters._
 
 /**
  * Trait to simplify tests that require reading and writing features from an AccumuloDataStore
  */
-trait TestWithDataStore extends Specification {
+trait TestWithDataStore extends org.specs2.mutable.Spec {
 
   def spec: String
   def dtgField: Option[String] = Some("dtg")
@@ -79,11 +76,6 @@ trait TestWithDataStore extends Specification {
   }
 
   lazy val fs = ds.getFeatureSource(sftName)
-
-  // after all tests, drop the tables we created to free up memory
-  override def map(fragments: => Fragments) = fragments ^ Step {
-    ds.removeSchema(sftName)
-  }
 
   /**
    * Call to load the test features into the data store

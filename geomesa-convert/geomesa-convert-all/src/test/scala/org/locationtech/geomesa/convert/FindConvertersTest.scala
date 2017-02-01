@@ -18,7 +18,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class FindConvertersTest extends Specification {
+class FindConvertersTest extends org.specs2.mutable.Spec {
 
   "geomesa convert all" should {
     "find all classes for converters" >> {

@@ -28,7 +28,7 @@ import scala.collection.JavaConversions._
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class LiveFeatureCacheBenchmarkTest extends Specification {
+class LiveFeatureCacheBenchmarkTest extends org.specs2.mutable.Spec {
   implicit def sfToCreate(feature: SimpleFeature): CreateOrUpdate = CreateOrUpdate(Instant.now, feature)
   implicit val filterFactory = CommonFactoryFinder.getFilterFactory2
 

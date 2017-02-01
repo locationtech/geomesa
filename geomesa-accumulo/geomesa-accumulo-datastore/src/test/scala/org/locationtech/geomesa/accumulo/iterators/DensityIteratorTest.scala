@@ -25,14 +25,13 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.feature.simple.SimpleFeatureType
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class DensityIteratorTest extends Specification with TestWithMultipleSfts {
+class DensityIteratorTest extends TestWithMultipleSfts with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 

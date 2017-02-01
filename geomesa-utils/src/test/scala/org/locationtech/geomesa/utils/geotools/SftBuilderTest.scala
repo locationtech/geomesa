@@ -19,7 +19,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class SftBuilderTest extends Specification {
+class SftBuilderTest extends org.specs2.mutable.Spec {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   sequential

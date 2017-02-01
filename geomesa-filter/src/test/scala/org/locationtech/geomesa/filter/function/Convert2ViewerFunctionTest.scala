@@ -16,7 +16,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class Convert2ViewerFunctionTest extends Specification {
+class Convert2ViewerFunctionTest extends org.specs2.mutable.Spec {
 
   "Convert2ViewerFunction" should {
 

@@ -27,7 +27,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class GeoMessageTest extends Specification with Mockito {
+class GeoMessageTest extends org.specs2.mutable.Spec with Mockito {
 
   sequential
 

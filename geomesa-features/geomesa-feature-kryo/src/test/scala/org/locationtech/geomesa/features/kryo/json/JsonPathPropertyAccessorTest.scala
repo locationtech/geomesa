@@ -19,7 +19,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class JsonPathPropertyAccessorTest extends Specification {
+class JsonPathPropertyAccessorTest extends org.specs2.mutable.Spec {
 
   val filterFactory = CommonFactoryFinder.getFilterFactory2
   val sft = SimpleFeatureTypes.createType("json", "json:String:json=true,s:String,dtg:Date,*geom:Point:srid=4326")

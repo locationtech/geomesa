@@ -15,7 +15,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class GeomDistanceTest extends Specification with GeomDistance {
+class GeomDistanceTest extends org.specs2.mutable.Spec with GeomDistance {
 
   import Distance._
 

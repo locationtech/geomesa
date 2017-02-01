@@ -22,7 +22,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class FastPropertyTest extends Specification {
+class FastPropertyTest extends org.specs2.mutable.Spec {
 
   "FastProperty" should {
     "evaluate" >> {

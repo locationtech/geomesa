@@ -28,7 +28,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class CQIndexingOptionsTest extends Specification {
+class CQIndexingOptionsTest extends org.specs2.mutable.Spec {
 
   val spec = "Who:String:cq-index=default," +
              "What:Integer:cq-index=unique," +

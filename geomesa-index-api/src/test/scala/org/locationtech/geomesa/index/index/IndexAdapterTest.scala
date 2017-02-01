@@ -13,7 +13,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class IndexAdapterTest extends Specification {
+class IndexAdapterTest extends org.specs2.mutable.Spec {
 
   "IndexAdapter" should {
     "split empty ranges" in {

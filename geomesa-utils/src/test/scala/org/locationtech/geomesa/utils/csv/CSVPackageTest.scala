@@ -21,7 +21,7 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class CSVPackageTest
-  extends Specification
+  extends org.specs2.mutable.Spec
           with LazyLogging {
 
   "guessTypes" should {

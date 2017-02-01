@@ -19,7 +19,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class SpatialIndexSupportTest extends Specification {
+class SpatialIndexSupportTest extends org.specs2.mutable.Spec {
 
   import org.locationtech.geomesa.utils.geotools.Conversions._
 

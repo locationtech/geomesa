@@ -33,7 +33,7 @@ import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class CassandraDataStoreTest extends Specification {
+class CassandraDataStoreTest extends org.specs2.mutable.Spec {
 
   sequential
 

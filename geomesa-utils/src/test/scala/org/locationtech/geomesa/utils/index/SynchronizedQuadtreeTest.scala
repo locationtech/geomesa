@@ -21,7 +21,7 @@ import org.specs2.runner.JUnitRunner
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class SynchronizedQuadtreeTest extends Specification with LazyLogging {
+class SynchronizedQuadtreeTest extends org.specs2.mutable.Spec with LazyLogging {
 
   "SynchronizedQuadtree" should {
 

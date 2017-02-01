@@ -15,7 +15,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class KryoJsonSerializationTest extends Specification {
+class KryoJsonSerializationTest extends org.specs2.mutable.Spec {
 
   val geoms = Seq(
     """{ "type": "Point", "coordinates": [30, 10] }""",

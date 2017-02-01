@@ -22,7 +22,7 @@ import org.specs2.runner.JUnitRunner
 import scala.languageFeature.postfixOps
 
 @RunWith(classOf[JUnitRunner])
-class LazySimpleFeatureTest extends Specification with LazyLogging {
+class LazySimpleFeatureTest extends org.specs2.mutable.Spec with LazyLogging {
 
   sequential
 

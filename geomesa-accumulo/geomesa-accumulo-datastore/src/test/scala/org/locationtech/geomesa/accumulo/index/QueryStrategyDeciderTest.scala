@@ -31,7 +31,7 @@ import scala.util.Random
 
 //Expand the test - https://geomesa.atlassian.net/browse/GEOMESA-308
 @RunWith(classOf[JUnitRunner])
-class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
+class QueryStrategyDeciderTest extends TestWithDataStore with org.specs2.matcher.SequenceMatchersCreation {
 
   override val spec = "nameHighCardinality:String:index=true:cardinality=high,ageJoinIndex:Long:index=true," +
       "heightFullIndex:Float:index=full,dtgJoinIndex:Date:index=true,weightNoIndex:String," +

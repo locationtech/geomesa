@@ -32,7 +32,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class Z3IdxStrategyTest extends Specification with TestWithDataStore {
+class Z3IdxStrategyTest extends TestWithDataStore with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential // note: test doesn't need to be sequential but it actually runs faster this way
 

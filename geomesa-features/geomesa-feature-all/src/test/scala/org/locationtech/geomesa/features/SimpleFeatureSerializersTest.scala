@@ -25,7 +25,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class SimpleFeatureSerializersTest extends Specification {
+class SimpleFeatureSerializersTest extends org.specs2.mutable.Spec {
 
   sequential
 

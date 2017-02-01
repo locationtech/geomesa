@@ -22,7 +22,7 @@ import scala.collection.JavaConversions._
 //import scala.languageFeature.postfixOps
 
 @RunWith(classOf[JUnitRunner])
-class KryoBufferSimpleFeatureTest extends Specification {
+class KryoBufferSimpleFeatureTest extends org.specs2.mutable.Spec {
 
   "KryoBufferSimpleFeature" should {
 

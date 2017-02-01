@@ -22,7 +22,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ReplayTimeHelperTest extends Specification with Mockito {
+class ReplayTimeHelperTest extends org.specs2.mutable.Spec with Mockito {
 
   "ReplayTimeHelper" should {
 

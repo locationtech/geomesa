@@ -29,7 +29,7 @@ import scala.languageFeature.postfixOps
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class MapAggregatingIteratorTest extends Specification with TestWithDataStore {
+class MapAggregatingIteratorTest extends org.specs2.mutable.Spec with TestWithDataStore {
 
   sequential
 
@@ -189,7 +189,7 @@ class MapAggregatingIteratorTest extends Specification with TestWithDataStore {
 }
 
 @RunWith(classOf[JUnitRunner])
-class MapAggregatingIteratorDoubleTest extends Specification with TestWithDataStore {
+class MapAggregatingIteratorDoubleTest extends org.specs2.mutable.Spec with TestWithDataStore {
 
   override val spec = "an_id:Integer,map:Map[Double,Integer],dtg:Date,geom:Geometry:srid=4326;geomesa.mixed.geometries=true"
 

@@ -28,7 +28,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AttributeIndexFilteringIteratorTest extends Specification with TestWithDataStore {
+class AttributeIndexFilteringIteratorTest extends TestWithDataStore with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 

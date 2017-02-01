@@ -26,7 +26,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class RecordIdxStrategyTest extends Specification with TestWithDataStore {
+class RecordIdxStrategyTest extends TestWithDataStore with org.specs2.matcher.SequenceMatchersCreation {
 
   case class IntersectionResult(idSeq: Option[Set[String]], correctIdSeq: Set[String] ) {
     // checks to see if idSeq and correctIdSeq are equivalent

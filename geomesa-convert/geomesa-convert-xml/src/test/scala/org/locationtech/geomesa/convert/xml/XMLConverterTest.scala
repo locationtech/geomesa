@@ -18,7 +18,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class XMLConverterTest extends Specification {
+class XMLConverterTest extends org.specs2.mutable.Spec {
 
   sequential
 

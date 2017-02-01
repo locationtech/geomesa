@@ -24,7 +24,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class HighCardinalityAttributeOrQueryTest extends Specification with TestWithDataStore {
+class HighCardinalityAttributeOrQueryTest extends org.specs2.mutable.Spec with TestWithDataStore {
 
   val spec = new SftBuilder()
     .stringType("high", Opts(index = true, cardinality = Cardinality.HIGH))

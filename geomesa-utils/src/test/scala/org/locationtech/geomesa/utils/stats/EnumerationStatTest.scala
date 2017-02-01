@@ -18,7 +18,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class EnumerationStatTest extends Specification with StatTestHelper {
+class EnumerationStatTest extends org.specs2.mutable.Spec with StatTestHelper {
 
   def newStat[T](attribute: String, observe: Boolean = true): EnumerationStat[T] = {
     val stat = Stat(sft, s"Enumeration($attribute)")

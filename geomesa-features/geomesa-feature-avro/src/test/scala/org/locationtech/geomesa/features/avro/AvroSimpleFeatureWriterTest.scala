@@ -24,7 +24,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AvroSimpleFeatureWriterTest extends Specification with Mockito with AbstractAvroSimpleFeatureTest {
+class AvroSimpleFeatureWriterTest extends org.specs2.mutable.Spec with Mockito with AbstractAvroSimpleFeatureTest {
 
   sequential
 

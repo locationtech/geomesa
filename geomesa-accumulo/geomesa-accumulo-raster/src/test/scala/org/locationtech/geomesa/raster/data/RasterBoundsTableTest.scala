@@ -15,7 +15,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class RasterBoundsTableTest extends Specification{
+class RasterBoundsTableTest extends org.specs2.mutable.Spec{
   sequential
 
   var testIteration = 0

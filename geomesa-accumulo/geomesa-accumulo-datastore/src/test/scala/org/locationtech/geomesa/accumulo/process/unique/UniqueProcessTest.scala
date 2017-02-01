@@ -27,7 +27,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class UniqueProcessTest extends Specification with TestWithDataStore {
+class UniqueProcessTest extends org.specs2.mutable.Spec with TestWithDataStore {
 
   sequential
 

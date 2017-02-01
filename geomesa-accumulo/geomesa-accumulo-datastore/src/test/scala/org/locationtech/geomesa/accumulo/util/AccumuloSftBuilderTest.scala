@@ -11,13 +11,12 @@ package org.locationtech.geomesa.accumulo.util
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.conf.DigitSplitter
 import org.opengis.feature.simple.SimpleFeatureType
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloSftBuilderTest extends Specification {
+class AccumuloSftBuilderTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 

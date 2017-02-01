@@ -24,7 +24,7 @@ import org.specs2.runner.JUnitRunner
 import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
-class ConfigurableIndexesTest extends Specification with TestWithDataStore {
+class ConfigurableIndexesTest extends TestWithDataStore with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 

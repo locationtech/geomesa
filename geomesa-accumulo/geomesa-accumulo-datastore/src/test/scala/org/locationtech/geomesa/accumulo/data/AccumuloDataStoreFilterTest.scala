@@ -18,7 +18,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreFilterTest extends Specification with TestWithDataStore {
+class AccumuloDataStoreFilterTest extends org.specs2.mutable.Spec with TestWithDataStore {
 
   sequential
 

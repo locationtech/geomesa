@@ -16,7 +16,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class InputFormatBaseAdapterTest extends Specification {
+class InputFormatBaseAdapterTest extends org.specs2.mutable.Spec {
   val job = new Job
 
   "InputFormatBaseAdapter" should {

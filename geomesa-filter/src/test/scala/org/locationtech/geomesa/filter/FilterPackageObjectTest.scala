@@ -20,7 +20,7 @@ import org.specs2.specification.core.Fragments
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class FilterPackageObjectTest extends Specification with LazyLogging {
+class FilterPackageObjectTest extends org.specs2.mutable.Spec with LazyLogging {
 
   import TestFilters._
 

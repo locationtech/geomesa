@@ -19,7 +19,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.immutable.HashMap
 
 @RunWith(classOf[JUnitRunner])
-class ConverterFactoriesTest extends Specification {
+class ConverterFactoriesTest extends org.specs2.mutable.Spec {
 
   "ScalaCollectionsConverterFactory" should {
 

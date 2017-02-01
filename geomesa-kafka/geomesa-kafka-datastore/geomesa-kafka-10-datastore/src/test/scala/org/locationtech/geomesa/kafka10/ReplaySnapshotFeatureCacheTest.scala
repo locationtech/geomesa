@@ -18,7 +18,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ReplaySnapshotFeatureCacheTest extends Specification with SimpleFeatureMatchers {
+class ReplaySnapshotFeatureCacheTest extends org.specs2.mutable.Spec with SimpleFeatureMatchers {
 
   import KafkaConsumerTestData._
 

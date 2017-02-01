@@ -17,7 +17,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class GeoMesaBatchWriterConfigTest extends Specification {
+class GeoMesaBatchWriterConfigTest extends org.specs2.mutable.Spec {
   val bwc = GeoMesaBatchWriterConfig.buildBWC    // Builds new BWC which has not been mutated by some other test.
 
   import AccumuloProperties.BatchWriterProperties

@@ -17,7 +17,7 @@ import org.specs2.runner.JUnitRunner
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class Z3Test extends Specification {
+class Z3Test extends org.specs2.mutable.Spec {
 
   val rand = new Random(-574)
   val maxInt = Z3SFC(TimePeriod.Week).lon.precision.toInt

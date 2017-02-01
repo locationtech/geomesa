@@ -21,7 +21,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloSparkProviderTest extends Specification with TestWithDataStore with LazyLogging {
+class AccumuloSparkProviderTest extends org.specs2.mutable.Spec with TestWithDataStore with LazyLogging {
 
   override lazy val sftName: String = "chicago"
   override def spec: String = SparkSQLTestUtils.ChiSpec

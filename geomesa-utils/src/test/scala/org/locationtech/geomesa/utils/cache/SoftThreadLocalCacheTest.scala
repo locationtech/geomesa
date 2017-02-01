@@ -13,7 +13,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class SoftThreadLocalCacheTest extends Specification {
+class SoftThreadLocalCacheTest extends org.specs2.mutable.Spec {
 
   "SoftThreadLocalCache" should {
     "implement map methods" in {

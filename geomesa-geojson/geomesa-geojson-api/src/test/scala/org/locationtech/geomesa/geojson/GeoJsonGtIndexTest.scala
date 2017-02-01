@@ -17,7 +17,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class GeoJsonGtIndexTest extends Specification {
+class GeoJsonGtIndexTest extends org.specs2.mutable.Spec {
 
   import scala.collection.JavaConversions._
 

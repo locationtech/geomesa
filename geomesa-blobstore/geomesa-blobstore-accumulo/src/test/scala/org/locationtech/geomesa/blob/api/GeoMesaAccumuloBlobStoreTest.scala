@@ -23,7 +23,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class GeoMesaAccumuloBlobStoreTest extends Specification {
+class GeoMesaAccumuloBlobStoreTest extends org.specs2.mutable.Spec {
   val dsParams = Map(
     "instanceId"        -> "mycloud",
     "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",

@@ -35,7 +35,8 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class BackCompatibilityTest extends Specification with LazyLogging {
+class BackCompatibilityTest extends org.specs2.mutable.Spec
+    with org.specs2.matcher.SequenceMatchersCreation with LazyLogging {
 
   /**
     * Runs version tests against old data. To add more versions, generate a new data file by running

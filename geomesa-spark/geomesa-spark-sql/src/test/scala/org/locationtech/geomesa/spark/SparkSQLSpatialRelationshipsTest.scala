@@ -24,7 +24,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
+class SparkSQLSpatialRelationshipsTest extends org.specs2.mutable.Spec with LazyLogging {
   "SQL spatial relationships" should {
     sequential
 

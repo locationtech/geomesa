@@ -19,7 +19,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class IndexPackageObjectTest extends Specification {
+class IndexPackageObjectTest extends org.specs2.mutable.Spec {
 
   "index" should {
     "compute target schemas from transformation expressions" in {
