@@ -96,6 +96,22 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       r.collect().head.getAs[Point](0) mustEqual WKTUtils.read("POINT(5 12)")
     }
 
+    "where __fid__ equals" >> {
+      val r = sc.sql("select * from chicago where __fid__ = '1'")
+      val d = r.collect()
+
+      d.length mustEqual 1
+      d.head.getAs[Int]("case_number") mustEqual 2
+    }
+
+    "where __fid__ in" >> {
+      val r = sc.sql("select * from chicago where __fid__ in ('1', '2')")
+      val d = r.collect()
+
+      d.length mustEqual 2
+      d.map(_.getAs[Int]("case_number")).toSeq must containTheSameElementsAs(Seq(2, 3))
+    }
+
     // after
     step {
       ds.dispose()
