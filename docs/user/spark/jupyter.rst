@@ -110,7 +110,7 @@ You may also consider adding ``geomesa-tools-2.11-$VERSION-data.jar`` to include
 Vegas for Data Plotting
 -----------------------
 
-The `Vegas`_ library may be used with GeoMesa, Spark, and Toree in Jupyter to plot quantitative data. The ``geomesa-jupyter-vegas`` module builds a shaded JAR called, containing all of the dependencies needed to run Vegas in Jupyter+Toree. This module must be built from source, using the ``vegas`` profile:
+The `Vegas`_ library may be used with GeoMesa, Spark, and Toree in Jupyter to plot quantitative data. The ``geomesa-jupyter-vegas`` module builds a shaded JAR containing all of the dependencies needed to run Vegas in Jupyter+Toree. This module must be built from source, using the ``vegas`` profile:
 
 .. code-block:: bash
 
