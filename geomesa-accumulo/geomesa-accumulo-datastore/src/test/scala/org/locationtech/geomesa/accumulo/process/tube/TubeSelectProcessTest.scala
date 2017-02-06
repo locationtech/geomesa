@@ -179,7 +179,7 @@ class TubeSelectProcessTest extends org.specs2.mutable.Spec with org.specs2.matc
         sf.getAttribute("type") mustEqual "b"
         val point = sf.getDefaultGeometry.asInstanceOf[Point]
         point.getX mustEqual 40.0
-        point.getY should be between(40.0, 50.0)
+        point.getY must beBetween(40.0, 50.0)
       }
 
       results.size mustEqual 10
@@ -210,8 +210,8 @@ class TubeSelectProcessTest extends org.specs2.mutable.Spec with org.specs2.matc
         val sf = f.next
         sf.getAttribute("type") mustEqual "b"
         val point = sf.getDefaultGeometry.asInstanceOf[Point]
-        point.getX should be between(40.0, 41.0)
-        point.getY should be between(40.0, 50.0)
+        point.getX must beBetween(40.0, 41.0)
+        point.getY must beBetween(40.0, 50.0)
       }
 
       results.size mustEqual 20
@@ -298,7 +298,7 @@ class TubeSelectProcessTest extends org.specs2.mutable.Spec with org.specs2.matc
       // calculated km at various latitude by USGS
       forall(List(0, 30, 60, 89).zip(List(110.57, 110.85, 111.41, 111.69))) { case(lat, dist) =>
         val deg = new NoGapFill(new DefaultFeatureCollection(sftName, sft), 0, 0).metersToDegrees(110.57*1000, geoFac.createPoint(new Coordinate(0, lat)))
-        (1.0-dist) should beLessThan(.0001)
+        (1.0-dist) must beLessThan(.0001)
       }
     }
   }
@@ -325,7 +325,7 @@ class TubeSelectProcessTest extends org.specs2.mutable.Spec with org.specs2.matc
       val tubeFeatures = new ListFeatureCollection(sft, List(aLine))
 
       // ensure null values work and don't throw exceptions
-      ts.execute( tubeFeatures, res, null, null, null, null, null, null) should not(throwAn[ClassCastException])
+      ts.execute( tubeFeatures, res, null, null, null, null, null, null) must not(throwAn[ClassCastException])
     }
   }
 

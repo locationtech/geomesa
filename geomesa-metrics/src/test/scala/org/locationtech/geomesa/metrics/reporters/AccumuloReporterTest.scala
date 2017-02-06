@@ -19,13 +19,12 @@ import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.metrics.reporters.AccumuloReporter.Keys
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloReporterTest extends org.specs2.mutable.Spec {
+class AccumuloReporterTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 

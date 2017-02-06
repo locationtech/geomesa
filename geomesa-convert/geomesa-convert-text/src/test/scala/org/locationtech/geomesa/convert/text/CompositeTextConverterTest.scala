@@ -12,7 +12,7 @@ import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
@@ -65,24 +65,24 @@ class CompositeTextConverterTest extends org.specs2.mutable.Spec {
   "be built from a conf" >> {
     val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
     val converter = SimpleFeatureConverters.build[String](sft, conf)
-    converter must not beNull
+    converter must not(beNull)
 
     val res = converter.processInput(data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0)).toList
 
     "and process some data" >> {
-      res.size must be equalTo 2
-      res(0).getID must be equalTo "first1"
-      res(1).getID must be equalTo "second2"
+      res.size mustEqual 2
+      res(0).getID mustEqual "first1"
+      res(1).getID mustEqual "second2"
     }
 
     "and get correct line numbers" >> {
-      res(0).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 1
-      res(1).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 4
+      res(0).getAttribute("lineNr").asInstanceOf[Long] mustEqual 1
+      res(1).getAttribute("lineNr").asInstanceOf[Long] mustEqual 4
     }
 
     "testing string2 function defaults" >> {
-      res(0).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
-      res(1).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
+      res(0).getAttribute("lat").asInstanceOf[Double] mustEqual 0.0
+      res(1).getAttribute("lat").asInstanceOf[Double] mustEqual 0.0
     }
   }
 

@@ -14,17 +14,16 @@ import com.esotericsoftware.kryo.io.{Input, Output}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.kryo.serialization.KryoGeometrySerialization
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.languageFeature.postfixOps
 
 @RunWith(classOf[JUnitRunner])
-class KryoGeometrySerializerTest extends org.specs2.mutable.Spec {
+class KryoGeometrySerializerTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   "KryoGeometrySerializer" should {
 
-    "correctly serialize and deserialize different geometries" in {
+    "correctly serialize and deserialize different geometries" >> {
       val geoms = Seq(
         "LINESTRING(0 2, 2 0, 8 6)",
         "POLYGON((20 10, 30 0, 40 10, 30 20, 20 10))",

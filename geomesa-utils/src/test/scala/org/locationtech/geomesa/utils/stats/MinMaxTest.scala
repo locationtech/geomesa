@@ -14,7 +14,7 @@ import com.vividsolutions.jts.geom.Geometry
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])

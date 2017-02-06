@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.process.knn
 
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geohash.GeoHash
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])

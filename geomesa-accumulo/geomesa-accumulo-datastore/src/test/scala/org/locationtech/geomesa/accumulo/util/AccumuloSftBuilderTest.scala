@@ -41,15 +41,16 @@ class AccumuloSftBuilderTest extends org.specs2.mutable.Spec with org.specs2.mat
         sft.getAttributeCount mustEqual 2
         sft.getAttributeDescriptors.map(_.getLocalName) must containAllOf(List("i", "l"))
 
-        sft.getTableSplitter must beSome(classOf[DigitSplitter])
+        sft.getTableSplitter must beSome
+        sft.getTableSplitter.get mustEqual classOf[DigitSplitter]
         val opts = sft.getTableSplitterOptions
-        opts.size must be equalTo 3
-        opts("fmt") must be equalTo "%02d"
-        opts("min") must be equalTo "0"
-        opts("max") must be equalTo "99"
+        opts.size mustEqual 3
+        opts("fmt") mustEqual "%02d"
+        opts("min") mustEqual "0"
+        opts("max") mustEqual "99"
       }
 
-      List(sft1, sft2) forall test
+      forall(List(sft1, sft2))(test)
     }
   }
 }

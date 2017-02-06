@@ -22,7 +22,7 @@ import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType,
 import org.locationtech.geomesa.utils.iterators.SortingSimpleFeatureIterator
 import org.opengis.filter.sort.SortBy
 import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._

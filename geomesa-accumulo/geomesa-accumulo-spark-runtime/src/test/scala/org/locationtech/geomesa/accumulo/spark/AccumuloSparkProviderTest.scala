@@ -17,7 +17,7 @@ import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.spark.SparkSQLTestUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
@@ -86,7 +86,7 @@ class AccumuloSparkProviderTest extends org.specs2.mutable.Spec with TestWithDat
 
       val sft = ds.getSchema("chicago2")
       val enabledIndexes = sft.getUserData.get("geomesa.indices").asInstanceOf[String]
-      enabledIndexes.indexOf("z3") must be greaterThan -1
+      enabledIndexes.indexOf("z3") must beGreaterThan(-1)
     }
 
     "handle reuse __fid__ on write if available" >> {
@@ -107,7 +107,7 @@ class AccumuloSparkProviderTest extends org.specs2.mutable.Spec with TestWithDat
       val query = new Query("fidOnWrite", filter)
       val results = ds.getFeatureReader(query, Transaction.AUTO_COMMIT).toIterator.toList
 
-      results.head.getID must be equalTo origResults.head.getID
+      results.head.getID mustEqual origResults.head.getID
     }
   }
 

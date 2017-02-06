@@ -16,7 +16,7 @@ import org.locationtech.geomesa.accumulo.index.z2.XZ2Index
 import org.locationtech.geomesa.accumulo.index.z3.XZ3Index
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])

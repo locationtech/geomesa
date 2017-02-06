@@ -25,7 +25,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
@@ -83,7 +83,7 @@ class AccumuloDataStoreTransformsTest extends org.specs2.mutable.Spec with TestW
         results.head.getAttribute("name") must beNull
       }
 
-      "with setPropertyNames" in {
+      "with setPropertyNames" >> {
         val filter = filterFactory.bbox("geom", 44.0, 48.0, 46.0, 50.0, "EPSG:4326")
         val query = new Query(sftName, filter)
         query.setPropertyNames(Array("geom"))
@@ -173,7 +173,7 @@ class AccumuloDataStoreTransformsTest extends org.specs2.mutable.Spec with TestW
       }
     }
 
-    "transform index value data correctly" in {
+    "transform index value data correctly" >> {
       val sft = createNewSchema("trackId:String:index-value=true,label:String:index-value=true," +
           "extraValue:String,score:Double:index-value=true,dtg:Date,geom:Point:srid=4326")
       val sftName = sft.getTypeName

@@ -13,14 +13,13 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter._
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.specs2.specification.core.Fragments
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class FilterPackageObjectTest extends org.specs2.mutable.Spec with LazyLogging {
+class FilterPackageObjectTest extends org.specs2.mutable.Spec
+    with org.specs2.matcher.SequenceMatchersCreation with LazyLogging {
 
   import TestFilters._
 
@@ -178,17 +177,18 @@ class FilterPackageObjectTest extends org.specs2.mutable.Spec with LazyLogging {
   }
 
   // Function defining rewriteFilter Properties.
-  def testRewriteProps(filter: Filter): Fragments = {
-    logger.debug(s"Filter: ${ECQL.toCQL(filter)}")
+  oneGeomFilters.map { filter =>
+    val ecql = ECQL.toCQL(filter)
+    logger.debug(s"Filter: $ecql")
 
     def breakUpOr(f: Filter): Seq[Filter] = {
-       f match {
-         case or: Or => or.getChildren
-         case _ => Seq(f)
-       }
+      f match {
+        case or: Or => or.getChildren
+        case _ => Seq(f)
+      }
     }
 
-    "The function rewriteFilter" should {
+    s"The function rewriteFilter for $ecql" >> {
       val rewrittenFilter: Filter = rewriteFilterInDNF(filter)
 
       "return a Filter with at most one OR at the top" in {
@@ -200,15 +200,13 @@ class FilterPackageObjectTest extends org.specs2.mutable.Spec with LazyLogging {
 
       val children = decomposeOr(rewrittenFilter)
 
-      "return a Filter where the children of the (optional) OR can (optionally) be an AND" in {
+      s"return a Filter where the children of the (optional) OR can (optionally) be an AND for $ecql" in {
         children.map { _.isInstanceOf[Or] must beFalse }
       }
 
-      "return a Filter where NOTs do not have ANDs or ORs as children" in {
+      s"return a Filter where NOTs do not have ANDs or ORs as children for $ecql" in {
         foreachWhen(children) { case f if f.isInstanceOf[Not] => f.isInstanceOf[BinaryLogicOperator] must beFalse }
       }
     }
   }
-
-  oneGeomFilters.map(testRewriteProps)
 }

@@ -14,7 +14,7 @@ import org.locationtech.geomesa.convert.fixedwidth.{FixedWidthConverterFactory, 
 import org.locationtech.geomesa.convert.json.{JsonSimpleFeatureConverterFactory, JsonSimpleFeatureConverter}
 import org.locationtech.geomesa.convert.text.{DelimitedTextConverterFactory, DelimitedTextConverter}
 import org.locationtech.geomesa.convert.xml.{XMLConverterFactory, XMLConverter}
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])

@@ -18,7 +18,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.EncodingOptions
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
@@ -28,7 +27,7 @@ class BinaryOutputEncoderTest extends org.specs2.mutable.Spec {
 
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 
-    "encode a point feature collection" in {
+    "encode a point feature collection" >> {
       val sft = SimpleFeatureTypes.createType("bintest",
         "track:String,label:Long,lat:Double,lon:Double,dtg:Date,geom:Point:srid=4326")
       val baseDtg = dateFormat.parse("2014-01-01 08:09:00").getTime
@@ -107,7 +106,7 @@ class BinaryOutputEncoderTest extends org.specs2.mutable.Spec {
       }
     }
 
-    "encode a line feature collection" in {
+    "encode a line feature collection" >> {
       val sft = SimpleFeatureTypes.createType("binlinetest",
         "track:String,label:Long,dtg:Date,dates:List[Date],geom:LineString:srid=4326")
       val line = WKTUtils.read("LINESTRING(45 50, 46 51, 47 52, 50 55)")

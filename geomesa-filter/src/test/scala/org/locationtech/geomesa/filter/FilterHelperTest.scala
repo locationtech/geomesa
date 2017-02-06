@@ -17,11 +17,10 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.opengis.filter._
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class FilterHelperTest extends org.specs2.mutable.Spec {
+class FilterHelperTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   val filterFactory = CommonFactoryFinder.getFilterFactory2
 

@@ -13,7 +13,7 @@ import java.util
 
 import org.apache.accumulo.core.security.Authorizations
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
@@ -34,7 +34,7 @@ class FilteringAuthorizationsProviderTest extends org.specs2.mutable.Spec {
       filter.configure(Map[String, Serializable]("auths" -> "admin"))
       val auths = filter.getAuthorizations
 
-      auths should not be null
+      auths must not(beNull)
       auths.getAuthorizations.length mustEqual 1
 
       val strings = auths.getAuthorizations.map(new String(_))
@@ -46,7 +46,7 @@ class FilteringAuthorizationsProviderTest extends org.specs2.mutable.Spec {
       filter.configure(Map[String, Serializable]("auths" -> "user,test"))
       val auths = filter.getAuthorizations
 
-      auths should not be null
+      auths must not(beNull)
       auths.getAuthorizations.length mustEqual 2
 
       val strings = auths.getAuthorizations.map(new String(_))
@@ -58,7 +58,7 @@ class FilteringAuthorizationsProviderTest extends org.specs2.mutable.Spec {
       val filter = new FilteringAuthorizationsProvider(wrapped)
       filter.configure(Map[String, Serializable]())
       val auths = filter.getAuthorizations
-      auths should not be null
+      auths must not(beNull)
       auths.getAuthorizations.length mustEqual 3
 
       val strings = auths.getAuthorizations.map(new String(_))

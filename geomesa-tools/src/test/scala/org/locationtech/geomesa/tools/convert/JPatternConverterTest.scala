@@ -12,7 +12,7 @@ import com.beust.jcommander.JCommander
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.tools.OptionalPatternParam
 import org.locationtech.geomesa.tools.utils.GeoMesaIStringConverterFactory
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 class PatternParam extends OptionalPatternParam {}

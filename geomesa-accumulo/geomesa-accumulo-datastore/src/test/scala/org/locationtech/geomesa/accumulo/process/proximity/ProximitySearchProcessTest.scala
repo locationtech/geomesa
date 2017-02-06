@@ -22,7 +22,7 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.filters.Filters
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
@@ -79,7 +79,7 @@ class ProximitySearchProcessTest extends org.specs2.mutable.Spec with TestWithMu
       }
 
       val dataFeatures = fs.getFeatures()
-      dataFeatures.size should be equalTo 8
+      dataFeatures.size mustEqual 8
 
       val prox = new ProximitySearchProcess
 
@@ -163,13 +163,13 @@ class ProximitySearchProcessTest extends org.specs2.mutable.Spec with TestWithMu
         }
       }
 
-      nonAccumulo.size should be equalTo 8
+      nonAccumulo.size mustEqual 8
       val prox = new ProximitySearchProcess
-      prox.execute(inputFeatures, nonAccumulo, 30.0).size should be equalTo 0
-      prox.execute(inputFeatures, nonAccumulo, 98.0).size should be equalTo 0
-      prox.execute(inputFeatures, nonAccumulo, 99.0001).size should be equalTo 6
-      prox.execute(inputFeatures, nonAccumulo, 100.0).size should be equalTo 6
-      prox.execute(inputFeatures, nonAccumulo, 101.0).size should be equalTo 6
+      prox.execute(inputFeatures, nonAccumulo, 30.0).size mustEqual 0
+      prox.execute(inputFeatures, nonAccumulo, 98.0).size mustEqual 0
+      prox.execute(inputFeatures, nonAccumulo, 99.0001).size mustEqual 6
+      prox.execute(inputFeatures, nonAccumulo, 100.0).size mustEqual 6
+      prox.execute(inputFeatures, nonAccumulo, 101.0).size mustEqual 6
     }
   }
 

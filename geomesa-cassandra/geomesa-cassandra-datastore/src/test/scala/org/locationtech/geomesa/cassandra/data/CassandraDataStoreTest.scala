@@ -26,11 +26,10 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class CassandraDataStoreTest extends org.specs2.mutable.Spec {
@@ -64,7 +63,7 @@ class CassandraDataStoreTest extends org.specs2.mutable.Spec {
         "string:String,int:Int,float:Float,double:Double,long:Long,boolean:Boolean,*geom:Point:srid=4326,dtg:Date")
       val types = simpleFeatureType.getTypes.asScala.map(_.getBinding)
       types foreach { t =>
-        CassandraDataStore.typeMap.get(t) shouldNotEqual null
+        CassandraDataStore.typeMap.get(t) mustNotEqual null
       }
       ok
     }
@@ -113,22 +112,24 @@ class CassandraDataStoreTest extends org.specs2.mutable.Spec {
     }
 
     "run extra-large bbox between queries" >> {
-      skipped("intermittent failure")
-      val (ds, fs) = initializeDataStore("testextralargebboxbetweenquery")
+      skipped{
+        // intermittent failure
+        val (ds, fs) = initializeDataStore("testextralargebboxbetweenquery")
 
-      val ff = CommonFactoryFinder.getFilterFactory2
-      val filt =
-        ff.and(ff.bbox("geom", -200.0, -100.0, 200.0, 100.0, "EPSG:4326"),
-          ff.between(
-            ff.property("dtg"),
-            ff.literal(new DateTime("2016-01-01T00:00:00.000Z").toDate),
-            ff.literal(new DateTime("2016-01-01T00:15:00.000Z").toDate)))
+        val ff = CommonFactoryFinder.getFilterFactory2
+        val filt =
+          ff.and(ff.bbox("geom", -200.0, -100.0, 200.0, 100.0, "EPSG:4326"),
+            ff.between(
+              ff.property("dtg"),
+              ff.literal(new DateTime("2016-01-01T00:00:00.000Z").toDate),
+              ff.literal(new DateTime("2016-01-01T00:15:00.000Z").toDate)))
 
-      val features = fs.getFeatures(filt).features()
-      features.toList must haveLength(1)
-      features.close()
-      ds.dispose()
-      ok
+        val features = fs.getFeatures(filt).features()
+        features.toList must haveLength(1)
+        features.close()
+        ds.dispose()
+        ok
+      }
     }
 
     "run bbox between and attribute queries" >> {

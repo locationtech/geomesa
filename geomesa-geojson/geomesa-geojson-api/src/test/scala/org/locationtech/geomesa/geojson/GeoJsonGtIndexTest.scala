@@ -13,7 +13,7 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])

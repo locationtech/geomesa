@@ -37,7 +37,6 @@ import org.locationtech.geomesa.utils.filters.Filters
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
@@ -45,7 +44,8 @@ import scala.concurrent.duration.Duration
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreQueryTest extends TestWithMultipleSfts with org.specs2.matcher.SequenceMatchersCreation {
+class AccumuloDataStoreQueryTest extends TestWithMultipleSfts
+    with org.specs2.matcher.SequenceMatchersCreation with org.specs2.execute.PendingUntilFixed {
 
   sequential
 
@@ -54,7 +54,7 @@ class AccumuloDataStoreQueryTest extends TestWithMultipleSfts with org.specs2.ma
   addFeature(defaultSft, ScalaSimpleFeature.create(defaultSft, "fid-1", "name1", "POINT(45 49)", "2010-05-07T12:30:00.000Z"))
 
   "AccumuloDataStore" should {
-    "return an empty iterator correctly" in {
+    "return an empty iterator correctly" >> {
       val fs = ds.getFeatureSource(defaultSft.getTypeName)
 
       // compose a CQL query that uses a polygon that is disjoint with the feature bounds
@@ -84,7 +84,7 @@ class AccumuloDataStoreQueryTest extends TestWithMultipleSfts with org.specs2.ma
       }
     }
 
-    "process a DWithin query correctly" in {
+    "process a DWithin query correctly" >> {
       // compose a CQL query that uses a polygon that is disjoint with the feature bounds
       val geomFactory = JTSFactoryFinder.getGeometryFactory
       val q = filterFactory.dwithin(filterFactory.property("geom"),
@@ -239,12 +239,13 @@ class AccumuloDataStoreQueryTest extends TestWithMultipleSfts with org.specs2.ma
     }
 
     "handle large ranges" in {
-      skipped("takes ~10 seconds")
-      val filter = ECQL.toFilter("contains(POLYGON ((40 40, 50 40, 50 50, 40 50, 40 40)), geom) AND " +
-          "dtg BETWEEN '2010-01-01T00:00:00.000Z' AND '2010-12-31T23:59:59.000Z'")
-      val query = new Query(defaultSft.getTypeName, filter)
-      val features = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features.toList
-      features.map(DataUtilities.encodeFeature) mustEqual List("fid-1=name1|POINT (45 49)|2010-05-07T12:30:00.000Z")
+      skipped { // takes ~10 seconds
+        val filter = ECQL.toFilter("contains(POLYGON ((40 40, 50 40, 50 50, 40 50, 40 40)), geom) AND " +
+            "dtg BETWEEN '2010-01-01T00:00:00.000Z' AND '2010-12-31T23:59:59.000Z'")
+        val query = new Query(defaultSft.getTypeName, filter)
+        val features = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features.toList
+        features.map(DataUtilities.encodeFeature) mustEqual List("fid-1=name1|POINT (45 49)|2010-05-07T12:30:00.000Z")
+      }
     }
 
     "handle out-of-bound longitude and in-bounds latitude bboxes" in {
@@ -624,7 +625,7 @@ class AccumuloDataStoreQueryTest extends TestWithMultipleSfts with org.specs2.ma
       ds.getQueryPlan(query, explainer = out)
 
       val explanation = out.toString()
-      explanation must not be null
+      explanation must not(beNull)
       explanation.trim must not(beEmpty)
     }
   }

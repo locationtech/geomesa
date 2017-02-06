@@ -25,13 +25,13 @@ import org.locationtech.geomesa.utils.stats.Cardinality
 import org.opengis.filter._
 import org.opengis.filter.temporal.During
 import org.specs2.matcher.MatchResult
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class QueryFilterSplitterTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
+class QueryFilterSplitterTest extends org.specs2.mutable.Spec
+    with org.specs2.matcher.SequenceMatchersCreation with org.specs2.matcher.ValueChecks with 	org.specs2.matcher.MatchResultCombinators {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -467,9 +467,17 @@ class QueryFilterSplitterTest extends org.specs2.mutable.Spec with org.specs2.ma
         options must haveLength(1)
         options.head.strategies must haveLength(3)
         options.head.strategies.map(_.index) must containTheSameElementsAs(Seq(Z3Index, Z2Index, AttributeIndex))
-        options.head.strategies.map(_.primary) must contain(beSome(f(geom)), beSome(f(dtg)), beSome(f(indexedAttr)))
-        options.head.strategies.map(_.secondary) must contain(beSome(not(geom)), beSome(not(geom, indexedAttr)))
-        options.head.strategies.map(_.secondary) must contain(beNone)
+        forall(options.head.strategies.map(_.primary))(_ must beSome)
+        options.head.strategies.flatMap(_.primary) must contain(f(geom), f(dtg), f(indexedAttr))
+        val secondary = options.head.strategies.flatMap(_.secondary)
+        secondary must haveLength(2)
+        // we don't know the order of the inversions so check them all
+        secondary must contain(not(geom), not(geom, indexedAttr)) or
+            (secondary must contain(not(geom), not(geom, dtg))) or
+            (secondary must contain(not(dtg), not(dtg, indexedAttr))) or
+            (secondary must contain(not(dtg), not(dtg, geom))) or
+            (secondary must contain(not(indexedAttr), not(indexedAttr, geom))) or
+            (secondary must contain(not(indexedAttr), not(indexedAttr, dtg)))
       }
     }
 
@@ -519,7 +527,7 @@ class QueryFilterSplitterTest extends org.specs2.mutable.Spec with org.specs2.ma
 
       val orQuery = (0 until 5).map( i => s"high = 'h$i'").mkString(" OR ")
       val inQuery = s"high in (${(0 until 5).map( i => s"'h$i'").mkString(",")})"
-      Seq(orQuery, inQuery).forall(testHighCard)
+      forall(Seq(orQuery, inQuery))(testHighCard)
     }
 
     "extract the simple parts from complex filters" >> {

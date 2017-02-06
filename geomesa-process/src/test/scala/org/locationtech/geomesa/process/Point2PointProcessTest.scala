@@ -20,13 +20,12 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SftBuilder
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class Point2PointProcessTest extends org.specs2.mutable.Spec {
+class Point2PointProcessTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 
@@ -74,9 +73,9 @@ class Point2PointProcessTest extends org.specs2.mutable.Spec {
         .getFeatures(ECQL.toFilter("myid = 'second'")), "myid", "dtg", 2, false, true).features().toSeq
       f2.length mustEqual 4
 
-      f1.forall( sf => sf.getAttributeCount mustEqual 4)
-      f1.forall( sf => sf.getDefaultGeometry must beAnInstanceOf[LineString])
-      f1.forall( sf => sf.get[String]("myid") mustEqual "first")
+      forall(f1)(sf => sf.getAttributeCount mustEqual 4)
+      forall(f1)(sf => sf.getDefaultGeometry must beAnInstanceOf[LineString])
+      forall(f1)(sf => sf.get[String]("myid") mustEqual "first")
 
       f1.head.lineString.getPointN(0) mustEqual WKTUtils.read("POINT(1 1)")
       f1.head.lineString.getPointN(1) mustEqual WKTUtils.read("POINT(2 2)")
@@ -98,9 +97,9 @@ class Point2PointProcessTest extends org.specs2.mutable.Spec {
       f1(3).get[java.util.Date]("dtg_start").getTime mustEqual sdf.parse("2015-08-04").getTime
       f1(3).get[java.util.Date]("dtg_end").getTime mustEqual sdf.parse("2015-08-05").getTime
 
-      f2.forall( sf => sf.getAttributeCount mustEqual 4)
-      f2.forall( sf => sf.getDefaultGeometry must beAnInstanceOf[LineString])
-      f2.forall( sf => sf.get[String]("myid") mustEqual "second")
+      forall(f2)(sf => sf.getAttributeCount mustEqual 4)
+      forall(f2)(sf => sf.getDefaultGeometry must beAnInstanceOf[LineString])
+      forall(f2)(sf => sf.get[String]("myid") mustEqual "second")
 
       f2.head.lineString.getPointN(0) mustEqual WKTUtils.read("POINT(10 10)")
       f2.head.lineString.getPointN(1) mustEqual WKTUtils.read("POINT(9 9)")

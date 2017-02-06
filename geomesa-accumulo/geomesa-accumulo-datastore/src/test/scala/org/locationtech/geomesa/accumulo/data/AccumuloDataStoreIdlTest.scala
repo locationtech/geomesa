@@ -15,7 +15,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
@@ -37,7 +37,7 @@ class AccumuloDataStoreIdlTest extends org.specs2.mutable.Spec with TestWithData
 
   "AccumuloDataStore" should {
 
-    "handle IDL correctly" in {
+    "handle IDL correctly" >> {
       "default layer preview, bigger than earth, multiple IDL-wrapping geoserver BBOX" in {
         val filter = filterFactory.bbox("geom", -230, -110, 230, 110, srs)
         val query = new Query(sft.getTypeName, filter)

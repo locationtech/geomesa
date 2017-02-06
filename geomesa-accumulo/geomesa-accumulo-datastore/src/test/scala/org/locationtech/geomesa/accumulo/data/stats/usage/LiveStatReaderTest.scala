@@ -15,11 +15,13 @@ import org.joda.time.Interval
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.audit.{AccumuloEventReader, AccumuloQueryEventTransform}
 import org.locationtech.geomesa.index.audit.QueryEvent
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class LiveStatReaderTest extends org.specs2.mutable.Spec {
+
+  skipAllIf(true) // meant for integration testing
 
   sequential
 
@@ -32,8 +34,6 @@ class LiveStatReaderTest extends org.specs2.mutable.Spec {
   "StatReader" should {
 
     "query accumulo" in {
-
-      skipped("Meant for integration")
 
       val reader = new AccumuloEventReader(connector, s"${table}_${feature}_queries")
 

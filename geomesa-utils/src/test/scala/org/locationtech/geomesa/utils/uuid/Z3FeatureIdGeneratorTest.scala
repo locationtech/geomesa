@@ -17,7 +17,7 @@ import org.locationtech.geomesa.curve.TimePeriod._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConverters._
@@ -72,17 +72,17 @@ class Z3FeatureIdGeneratorTest extends org.specs2.mutable.Spec {
 
     "NOT return a reasonable UUID without a time" >> {
       val id = Z3UuidGenerator.createUuid(point, null.asInstanceOf[Long], period).toString
-      id must not beNull
+      id must not(beNull)
     }
 
     "return a reasonable UUID from a full feature" >> {
       val feature = makeFeature(point, time, "Anonymous")
-      Z3UuidGenerator.createUuid(SFT, feature) must not beNull
+      Z3UuidGenerator.createUuid(SFT, feature) must not(beNull)
     }
 
     "return a reasonable UUID from a feature missing time" >> {
       val feature = makeFeature(point, null, "Anonymous")
-      Z3UuidGenerator.createUuid(SFT, feature) must not beNull
+      Z3UuidGenerator.createUuid(SFT, feature) must not(beNull)
     }
 
     "NOT return a reasonable UUID from a feature missing location" >> {

@@ -12,7 +12,7 @@ import org.joda.time.{Duration, Instant}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.kafka.{ReplayConfig, GeoMessage}
 import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])

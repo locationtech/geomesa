@@ -9,11 +9,10 @@
 package org.locationtech.geomesa.index.index
 
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class IndexAdapterTest extends org.specs2.mutable.Spec {
+class IndexAdapterTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   "IndexAdapter" should {
     "split empty ranges" in {

@@ -20,7 +20,7 @@ import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConverters._
@@ -73,9 +73,9 @@ class MapAggregatingIteratorTest extends org.specs2.mutable.Spec with TestWithDa
 
       val aggregated = results.map(_.getAttribute("map").asInstanceOf[JMap[String, Int]].asScala).head
 
-      aggregated("a") should be equalTo (0 until 150).sum
+      aggregated("a") mustEqual (0 until 150).sum
 
-      aggregated("b") should be equalTo (0 until 150).map(_ * 2).sum
+      aggregated("b") mustEqual (0 until 150).map(_ * 2).sum
 
       val c = aggregated("c")
       c must beLessThanOrEqualTo(150 * 10)
@@ -107,9 +107,9 @@ class MapAggregatingIteratorTest extends org.specs2.mutable.Spec with TestWithDa
 
       val aggregated = results.map(_.getAttribute("map").asInstanceOf[JMap[String, Int]].asScala).head
 
-      aggregated("a") should be equalTo (0 until 100).sum
+      aggregated("a") mustEqual (0 until 100).sum
 
-      aggregated("b") should be equalTo (0 until 100).map(_ * 2).sum
+      aggregated("b") mustEqual (0 until 100).map(_ * 2).sum
 
       val c = aggregated("c")
       c must beLessThanOrEqualTo(100 * 10)
@@ -138,11 +138,11 @@ class MapAggregatingIteratorTest extends org.specs2.mutable.Spec with TestWithDa
 
       val aggregated = results.map(_.getAttribute("map").asInstanceOf[JMap[String, Int]].asScala).head
 
-      aggregated("a") should be equalTo 0
+      aggregated("a") mustEqual 0
 
-      aggregated("b") should be equalTo 0
+      aggregated("b") mustEqual 0
 
-      aggregated("c") should be equalTo 9
+      aggregated("c") mustEqual 9
     }
 
     "handle no features" in {
@@ -226,9 +226,9 @@ class MapAggregatingIteratorDoubleTest extends org.specs2.mutable.Spec with Test
 
       val aggregated = results.map(_.getAttribute("map").asInstanceOf[JMap[Double, Int]].asScala).head
 
-      aggregated(key1) should be equalTo (0 until 150).sum
+      aggregated(key1) mustEqual (0 until 150).sum
 
-      aggregated(key2) should be equalTo (0 until 150).map(_ * 2).sum
+      aggregated(key2) mustEqual (0 until 150).map(_ * 2).sum
 
       val c = aggregated(key3)
       c must beLessThanOrEqualTo(150 * 10)

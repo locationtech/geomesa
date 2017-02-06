@@ -10,7 +10,7 @@ package org.locationtech.geomesa.memory.cqengine.datastore
 
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query}
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._

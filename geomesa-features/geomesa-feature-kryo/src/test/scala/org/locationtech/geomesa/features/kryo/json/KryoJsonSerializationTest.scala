@@ -11,11 +11,11 @@ package org.locationtech.geomesa.features.kryo.json
 import com.esotericsoftware.kryo.io.{Input, Output}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser.PathElement
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class KryoJsonSerializationTest extends org.specs2.mutable.Spec {
+class KryoJsonSerializationTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   val geoms = Seq(
     """{ "type": "Point", "coordinates": [30, 10] }""",

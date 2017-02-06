@@ -16,13 +16,11 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.csv.CSVParser._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class CSVPackageTest
-  extends org.specs2.mutable.Spec
-          with LazyLogging {
+  extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation with LazyLogging {
 
   "guessTypes" should {
     def getSchema(name: String, csv: String) = guessTypes(name, new StringReader(csv)).schema
@@ -41,7 +39,7 @@ class CSVPackageTest
 
     "recognize time-parsable columns" >> {
       val time = new DateTime
-      TimeParser.timeFormats.forall { format =>
+      forall(TimeParser.timeFormats) { format =>
         val csv = s"time\n${format.print(time)}"
         val schema = getSchema("timetest", csv)
         schema mustEqual "time:Date"

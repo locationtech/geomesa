@@ -11,7 +11,7 @@ package org.locationtech.geomesa.convert.avro
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.Transformers
 import org.locationtech.geomesa.convert.Transformers.{EvaluationContextImpl, EvaluationContext}
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.mutable
@@ -27,12 +27,12 @@ class AvroTransformersTest extends org.specs2.mutable.Spec with AvroUtils {
 
       "extract an inner value" >> {
         val exp = Transformers.parseTransform("avroPath($0, '/content$type=TObj/kvmap[$k=prop3]/v')")
-        exp.eval(Array(decoded)) must be equalTo " foo "
+        exp.eval(Array(decoded)) mustEqual " foo "
       }
 
       "handle compound expressions" >> {
         val exp = Transformers.parseTransform("trim(avroPath($0, '/content$type=TObj/kvmap[$k=prop3]/v'))")
-        exp.eval(Array(decoded)) must be equalTo "foo"
+        exp.eval(Array(decoded)) mustEqual "foo"
       }
     }
 

@@ -9,17 +9,16 @@
 package org.locationtech.geomesa.features.kryo.json
 
 import org.geotools.factory.CommonFactoryFinder
-import org.geotools.filter.expression.PropertyAccessors
+import org.geotools.filter.expression.{PropertyAccessor, PropertyAccessors}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class JsonPathPropertyAccessorTest extends org.specs2.mutable.Spec {
+class JsonPathPropertyAccessorTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   val filterFactory = CommonFactoryFinder.getFilterFactory2
   val sft = SimpleFeatureTypes.createType("json", "json:String:json=true,s:String,dtg:Date,*geom:Point:srid=4326")
@@ -30,7 +29,7 @@ class JsonPathPropertyAccessorTest extends org.specs2.mutable.Spec {
       val accessors =
         PropertyAccessors.findPropertyAccessors(new ScalaSimpleFeature("", sft), "$.json.foo", classOf[String], null)
       accessors must not(beNull)
-      accessors.asScala must contain(JsonPathPropertyAccessor)
+      accessors.asScala must contain(JsonPathPropertyAccessor.asInstanceOf[PropertyAccessor])
     }
     "access json values in simple features" in {
       val property = filterFactory.property("$.json.foo")

@@ -20,7 +20,7 @@ import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
 import org.opengis.filter.{Filter, Id}
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConverters._

@@ -14,7 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql._
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._

@@ -26,13 +26,14 @@ import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.sfcurve.zorder.Z3
 import org.opengis.feature.simple.SimpleFeature
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class Z3IdxStrategyTest extends TestWithDataStore with org.specs2.matcher.SequenceMatchersCreation {
+class Z3IdxStrategyTest extends TestWithDataStore
+    with org.specs2.matcher.SequenceMatchersCreation with org.specs2.execute.PendingUntilFixed {
 
   sequential // note: test doesn't need to be sequential but it actually runs faster this way
 
@@ -76,18 +77,20 @@ class Z3IdxStrategyTest extends TestWithDataStore with org.specs2.matcher.Sequen
 
   "Z3IdxStrategy" should {
     "print values" >> {
-      skipped("used for debugging")
-      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+      skipped {
+        // used for debugging
+        import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-      ds.connector.createScanner(Z3Index.getTableName(sftName, ds), new Authorizations()).foreach { r =>
-        val bytes = r.getKey.getRow.getBytes
-        val keyZ = Longs.fromByteArray(bytes.drop(2))
-        val (x, y, t) = Z3SFC(sft.getZ3Interval).invert(Z3(keyZ))
-        val weeks = Shorts.fromBytes(bytes.head, bytes(1))
-        println(s"row: $weeks $x $y $t")
+        ds.connector.createScanner(Z3Index.getTableName(sftName, ds), new Authorizations()).foreach { r =>
+          val bytes = r.getKey.getRow.getBytes
+          val keyZ = Longs.fromByteArray(bytes.drop(2))
+          val (x, y, t) = Z3SFC(sft.getZ3Interval).invert(Z3(keyZ))
+          val weeks = Shorts.fromBytes(bytes.head, bytes(1))
+          println(s"row: $weeks $x $y $t")
+        }
+        println()
+        success
       }
-      println()
-      success
     }
 
     "return all features for inclusive filter" >> {

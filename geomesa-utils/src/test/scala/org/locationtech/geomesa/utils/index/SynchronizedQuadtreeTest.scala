@@ -15,7 +15,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Point
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.util.Random
@@ -52,83 +52,83 @@ class SynchronizedQuadtreeTest extends org.specs2.mutable.Spec with LazyLogging 
     }
 
     "support high throughput" in {
+      skipped {
+        // integration
+        val qt = new SynchronizedQuadtreeWithMetrics
+        val rand = new Random(-75)
 
-      skipped("integration")
+        // pre-populate with some data
+        val points = (1 to 999999).map { _ =>
+          val (x, y) = (rand.nextInt(360) - 180 + rand.nextDouble(), rand.nextInt(180) - 90 + rand.nextDouble())
+          WKTUtils.read(s"POINT($x $y)").asInstanceOf[Point]
+        }
+        points.foreach(pt => qt.insert(pt.getEnvelopeInternal, pt))
+        qt.writeWait.set(0)
+        qt.totalWrites.set(0)
 
-      val qt = new SynchronizedQuadtreeWithMetrics
-      val rand = new Random(-75)
+        val wholeWorld = WKTUtils.read("POLYGON((-180 -90,180 -90,180 90,-180 90,-180 -90))").getEnvelopeInternal
 
-      // pre-populate with some data
-      val points = (1 to 999999).map { _ =>
-        val (x, y) = (rand.nextInt(360) - 180 + rand.nextDouble(), rand.nextInt(180) - 90 + rand.nextDouble())
-        WKTUtils.read(s"POINT($x $y)").asInstanceOf[Point]
+        val endTime = System.currentTimeMillis() + 10000 // 10s
+
+        // 12 writers write a random point every ~5ms
+        val writers = (1 to 12).map(_ => new Thread(new Runnable() {
+          override def run() = {
+            while (System.currentTimeMillis() < endTime) {
+              Thread.sleep(rand.nextInt(10))
+              val (x, y) = (rand.nextInt(360) - 180 + rand.nextDouble(), rand.nextInt(180) - 90 + rand.nextDouble())
+              val pt = WKTUtils.read(s"POINT($x $y)").asInstanceOf[Point]
+              qt.insert(pt.getEnvelopeInternal, pt)
+            }
+          }
+        }))
+        // 2 deleters delete a random point every ~100ms
+        val deleters = (1 to 2).map(_ => new Thread(new Runnable() {
+          override def run() = {
+            while (System.currentTimeMillis() < endTime) {
+              Thread.sleep(rand.nextInt(200))
+              val pt = points(rand.nextInt(points.size))
+              qt.remove(pt.getEnvelopeInternal, pt)
+            }
+          }
+        }))
+        // 12 readers read the whole world every ~100ms
+        val readers = (1 to 12).map(_ => new Thread(new Runnable() {
+          override def run() = {
+            while (System.currentTimeMillis() < endTime) {
+              Thread.sleep(rand.nextInt(200))
+              qt.query(wholeWorld)
+            }
+          }
+        }))
+
+        val allThreads = readers ++ writers ++ deleters
+        allThreads.foreach(_.start())
+        allThreads.foreach(_.join())
+
+        println("Total reads: " + qt.totalReads.get)
+        println("Read rate: " + (qt.totalReads.get / 10) + "/s")
+        println("Average time waiting for read: " + (qt.readWait.get / qt.totalReads.get) + "ms")
+        println("Max time waiting for read: " + qt.maxReadWait.get + "ms")
+
+        println("Total writes: " + qt.totalWrites.get)
+        println("Write rate: " + (qt.totalWrites.get / 10) + "/s")
+        println("Average time waiting for write: " + (qt.writeWait.get / qt.totalWrites.get) + "ms")
+        println("Max time waiting for write: " + qt.maxWriteWait.get + "ms")
+        println()
+
+        // Average results:
+
+        // Total reads: 1670
+        // Read rate: 167/s
+        // Average time waiting for read: 13ms
+        // Max time waiting for read: 150ms
+        // Total writes: 4141
+        // Write rate: 414/s
+        // Average time waiting for write: 25ms
+        // Max time waiting for write: 163ms
+
+        success
       }
-      points.foreach(pt => qt.insert(pt.getEnvelopeInternal, pt))
-      qt.writeWait.set(0)
-      qt.totalWrites.set(0)
-
-      val wholeWorld = WKTUtils.read("POLYGON((-180 -90,180 -90,180 90,-180 90,-180 -90))").getEnvelopeInternal
-
-      val endTime = System.currentTimeMillis() + 10000 // 10s
-
-      // 12 writers write a random point every ~5ms
-      val writers = (1 to 12).map(_ => new Thread(new Runnable() {
-        override def run() = {
-          while (System.currentTimeMillis() < endTime) {
-            Thread.sleep(rand.nextInt(10))
-            val (x, y) = (rand.nextInt(360) - 180 + rand.nextDouble(), rand.nextInt(180) - 90 + rand.nextDouble())
-            val pt = WKTUtils.read(s"POINT($x $y)").asInstanceOf[Point]
-            qt.insert(pt.getEnvelopeInternal, pt)
-          }
-        }
-      }))
-      // 2 deleters delete a random point every ~100ms
-      val deleters = (1 to 2).map(_ => new Thread(new Runnable() {
-        override def run() = {
-          while (System.currentTimeMillis() < endTime) {
-            Thread.sleep(rand.nextInt(200))
-            val pt = points(rand.nextInt(points.size))
-            qt.remove(pt.getEnvelopeInternal, pt)
-          }
-        }
-      }))
-      // 12 readers read the whole world every ~100ms
-      val readers = (1 to 12).map(_ => new Thread(new Runnable() {
-        override def run() = {
-          while (System.currentTimeMillis() < endTime) {
-            Thread.sleep(rand.nextInt(200))
-            qt.query(wholeWorld)
-          }
-        }
-      }))
-
-      val allThreads = readers ++ writers ++ deleters
-      allThreads.foreach(_.start())
-      allThreads.foreach(_.join())
-
-      println("Total reads: " + qt.totalReads.get)
-      println("Read rate: " + (qt.totalReads.get / 10) + "/s")
-      println("Average time waiting for read: " + (qt.readWait.get / qt.totalReads.get) + "ms")
-      println("Max time waiting for read: " + qt.maxReadWait.get + "ms")
-
-      println("Total writes: " + qt.totalWrites.get)
-      println("Write rate: " + (qt.totalWrites.get / 10) + "/s")
-      println("Average time waiting for write: " + (qt.writeWait.get / qt.totalWrites.get) + "ms")
-      println("Max time waiting for write: " + qt.maxWriteWait.get + "ms")
-      println()
-
-      // Average results:
-
-      // Total reads: 1670
-      // Read rate: 167/s
-      // Average time waiting for read: 13ms
-      // Max time waiting for read: 150ms
-      // Total writes: 4141
-      // Write rate: 414/s
-      // Average time waiting for write: 25ms
-      // Max time waiting for write: 163ms
-
-      success
     }
   }
 }

@@ -18,7 +18,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.curve.{TimePeriod, Z3SFC}
 import org.locationtech.sfcurve.zorder.Z3
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._

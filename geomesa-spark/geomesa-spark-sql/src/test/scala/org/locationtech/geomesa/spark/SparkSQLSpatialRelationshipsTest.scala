@@ -18,7 +18,7 @@ import org.geotools.data.{DataStore, DataStoreFinder}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._

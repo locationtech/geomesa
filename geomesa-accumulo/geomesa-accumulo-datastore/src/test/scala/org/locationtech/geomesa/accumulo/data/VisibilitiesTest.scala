@@ -25,7 +25,6 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
@@ -68,7 +67,6 @@ class VisibilitiesTest extends org.specs2.mutable.Spec {
     nonPrivFeatures.foreach { f => f.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "user") }
 
     fs.addFeatures(new ListFeatureCollection(sft, privFeatures ++ nonPrivFeatures))
-    fs.flush()
 
     val ff = CommonFactoryFinder.getFilterFactory2
     import ff.{literal => lit, property => prop, _}
@@ -82,7 +80,7 @@ class VisibilitiesTest extends org.specs2.mutable.Spec {
       "useMock"           -> "true",
       "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
 
-    "nonpriv should only be able to read a subset of features" in {
+    "nonpriv should only be able to read a subset of features" >> {
 
       "using ALL queries" in {
         val reader = unprivDS.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)
@@ -108,7 +106,7 @@ class VisibilitiesTest extends org.specs2.mutable.Spec {
 
     }
 
-    "priv should be able to read all 6 features" in {
+    "priv should be able to read all 6 features" >> {
 
       "using ALL queries" in {
         val reader = ds.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)
@@ -132,7 +130,7 @@ class VisibilitiesTest extends org.specs2.mutable.Spec {
     }
   }
 
-  "remove should continue to work as expected" in {
+  "remove should continue to work as expected" >> {
 
     val instanceId = "removeviz"
     val mockInstance = new MockInstance(instanceId)
@@ -167,7 +165,6 @@ class VisibilitiesTest extends org.specs2.mutable.Spec {
     nonPrivFeatures.foreach { f => f.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "user") }
 
     fs.addFeatures(new ListFeatureCollection(sft, privFeatures ++ nonPrivFeatures))
-    fs.flush()
 
     val ff = CommonFactoryFinder.getFilterFactory2
     import ff.{literal => lit, property => prop, _}
@@ -181,9 +178,8 @@ class VisibilitiesTest extends org.specs2.mutable.Spec {
       "useMock"           -> "true",
       "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
 
-    "priv should be able to delete a feature" in {
+    "priv should be able to delete a feature" >> {
       fs.removeFeatures(ff.id(new FeatureIdImpl("1")))
-      fs.flush()
 
       "using ALL queries" in {
         fs.getFeatures(new Query(sftName)).features().toList.size mustEqual 5
@@ -203,10 +199,9 @@ class VisibilitiesTest extends org.specs2.mutable.Spec {
       }
     }
 
-    "nonpriv should not be able to delete a priv feature" in {
+    "nonpriv should not be able to delete a priv feature" >> {
       val unprivFS = unprivDS.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
       unprivFS.removeFeatures(ff.id(new FeatureIdImpl("2")))
-      unprivFS.flush()
 
       "priv should still see the feature that was attempted to be deleted" in {
         fs.getFeatures(ff.id(ff.featureId("2"))).features().hasNext must beTrue

@@ -18,7 +18,7 @@ import org.locationtech.geomesa.convert.SimpleFeatureConverter
 import org.locationtech.geomesa.tools.ConvertParameters.ConvertParameters
 import org.locationtech.geomesa.tools.export.formats.FeatureExporter
 import org.locationtech.geomesa.tools.utils.{CLArgResolver, DataFormats}
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.io.Source
@@ -248,12 +248,12 @@ class ConvertCommandTest extends org.specs2.mutable.Spec with LazyLogging {
 
       "get a Converter" in {
         val converter = ConvertCommand.getConverter(params, sft)
-        converter must not beNull;
+        converter must not(beNull)
         converter must beAnInstanceOf[SimpleFeatureConverter[Any]]
       }
       "get an Exporter" in {
         val exporter = ConvertCommand.getExporter(params, sft)
-        exporter must not beNull;
+        exporter must not(beNull)
         exporter must beAnInstanceOf[FeatureExporter]
       }
       "convert File" in {
@@ -270,7 +270,7 @@ class ConvertCommandTest extends org.specs2.mutable.Spec with LazyLogging {
         ConvertCommand.convertFile(testCSVFile.toString, converter, params, fc)
         exporter.export(fc)
         val res = Source.fromFile(params.file)
-        res.toString() must not beNull;
+        res.toString() must not(beNull)
       }
 
       FileUtils.deleteQuietly(params.file)

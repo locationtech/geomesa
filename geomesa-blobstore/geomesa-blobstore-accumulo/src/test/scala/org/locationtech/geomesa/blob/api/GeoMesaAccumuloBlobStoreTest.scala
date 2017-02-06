@@ -17,7 +17,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.blob.accumulo.GeoMesaAccumuloBlobStore
 import org.opengis.filter._
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
@@ -78,7 +78,7 @@ class GeoMesaAccumuloBlobStoreTest extends org.specs2.mutable.Spec {
 
       val ret = bstore.get(id)
 
-      ret.getPayload must not be null
+      ret.getPayload must not(beNull)
       ret.getLocalName mustEqual testfile1
     }
 

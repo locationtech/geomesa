@@ -18,14 +18,14 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.avro.{AvroSimpleFeature, FeatureSpecificReader}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class Version3CompatTest extends org.specs2.mutable.Spec {
+class Version3CompatTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   "Version3 ASF" should {
 
@@ -71,7 +71,7 @@ class Version3CompatTest extends org.specs2.mutable.Spec {
       } while(!decoder.isEnd)
 
       fis.close()
-      sfList.zip(v2Features).forall { case (v3, v2) =>
+      forall(sfList.zip(v2Features)) { case (v3, v2) =>
         v3.getAttributes mustEqual v2.getAttributes
       }
 

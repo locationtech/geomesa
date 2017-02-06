@@ -17,7 +17,6 @@ import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
@@ -47,11 +46,13 @@ class ZLineTest extends org.specs2.mutable.Spec with TestWithDataStore {
 
   "ZLines" should {
     "add features" in {
-      skipped("testing")
-      val scanner = ds.connector.createScanner(Z3Index.getTableName(sft.getTypeName, ds), new Authorizations())
-      println(scanner.toSeq.length)
-      scanner.close()
-      success
+      skipped {
+        // testing
+        val scanner = ds.connector.createScanner(Z3Index.getTableName(sft.getTypeName, ds), new Authorizations())
+        println(scanner.toSeq.length)
+        scanner.close()
+        success
+      }
     }
     "return features that are contained" in {
       val filter = "bbox(geom,47,25,50,28) and dtg DURING 2015-01-01T11:00:00.000Z/2015-01-01T13:00:00.000Z"

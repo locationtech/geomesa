@@ -20,7 +20,7 @@ import org.locationtech.geomesa.features.avro.serialization.AvroUserDataSerializ
 import org.locationtech.geomesa.features.serialization.HintKeySerialization
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])

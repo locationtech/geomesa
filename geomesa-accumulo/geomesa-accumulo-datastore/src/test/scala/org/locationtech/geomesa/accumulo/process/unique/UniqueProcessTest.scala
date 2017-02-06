@@ -21,7 +21,7 @@ import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConverters._
@@ -130,19 +130,19 @@ class UniqueProcessTest extends org.specs2.mutable.Spec with TestWithDataStore {
 
       val uniques = SelfClosingIterator(results.features()).toList
       val names = uniques.map(_.getAttribute("value"))
-      names should contain(exactly[Any]("alice", "bill", "bob", "charles"))
+      names must contain(exactly[Any]("alice", "bill", "bob", "charles"))
 
       val counts = uniques.map(_.getAttribute("count"))
-      counts should contain(exactly[Any](1L, 2L, 2L, 3L))
+      counts must contain(exactly[Any](1L, 2L, 2L, 3L))
 
       val alice = uniques.find(_.getAttribute("value") == "alice").map(_.getAttribute("count"))
-      alice must beSome(2)
+      alice must beSome(beEqualTo(2))
 
       val bill = uniques.find(_.getAttribute("value") == "bill").map(_.getAttribute("count"))
-      bill must beSome(3)
+      bill must beSome(beEqualTo(3))
 
       val charles = uniques.find(_.getAttribute("value") == "charles").map(_.getAttribute("count"))
-      charles must beSome(2)
+      charles must beSome(beEqualTo(2))
     }
 
     "sort by value" in {
@@ -160,16 +160,16 @@ class UniqueProcessTest extends org.specs2.mutable.Spec with TestWithDataStore {
       names(3) mustEqual("alice")
 
       val counts = uniques.map(_.getAttribute("count"))
-      counts should contain(exactly[Any](1L, 2L, 2L, 3L))
+      counts must contain(exactly[Any](1L, 2L, 2L, 3L))
 
       val alice = uniques.find(_.getAttribute("value") == "alice").map(_.getAttribute("count"))
-      alice must beSome(2)
+      alice must beSome(beEqualTo(2))
 
       val bill = uniques.find(_.getAttribute("value") == "bill").map(_.getAttribute("count"))
-      bill must beSome(3)
+      bill must beSome(beEqualTo(3))
 
       val charles = uniques.find(_.getAttribute("value") == "charles").map(_.getAttribute("count"))
-      charles must beSome(2)
+      charles must beSome(beEqualTo(2))
     }
 
     "sort by histogram" in {
@@ -187,16 +187,16 @@ class UniqueProcessTest extends org.specs2.mutable.Spec with TestWithDataStore {
       names(3) mustEqual("bob")
 
       val counts = uniques.map(_.getAttribute("count"))
-      counts should contain(exactly[Any](1L, 2L, 2L, 3L))
+      counts must contain(exactly[Any](1L, 2L, 2L, 3L))
 
       val alice = uniques.find(_.getAttribute("value") == "alice").map(_.getAttribute("count"))
-      alice must beSome(2)
+      alice must beSome(beEqualTo(2))
 
       val bill = uniques.find(_.getAttribute("value") == "bill").map(_.getAttribute("count"))
-      bill must beSome(3)
+      bill must beSome(beEqualTo(3))
 
       val charles = uniques.find(_.getAttribute("value") == "charles").map(_.getAttribute("count"))
-      charles must beSome(2)
+      charles must beSome(beEqualTo(2))
     }
 
     "deal with multi-valued properties correctly" >> {
@@ -206,8 +206,8 @@ class UniqueProcessTest extends org.specs2.mutable.Spec with TestWithDataStore {
       val uniques = SelfClosingIterator(results.features()).toList
       val values = uniques.map(_.getAttribute("value"))
       "contain 'foo' and 'bar'" >> { values must containTheSameElementsAs(Seq("foo", "bar")) }
-      "'foo' must have count 6" >> { uniques.find(_.getAttribute("value") == "foo").map(_.getAttribute("count")) must beSome(6) }
-      "'bar' must have count 1" >> { uniques.find(_.getAttribute("value") == "bar").map(_.getAttribute("count")) must beSome(1) }
+      "'foo' must have count 6" >> { uniques.find(_.getAttribute("value") == "foo").map(_.getAttribute("count")) must beSome(beEqualTo(6)) }
+      "'bar' must have count 1" >> { uniques.find(_.getAttribute("value") == "bar").map(_.getAttribute("count")) must beSome(beEqualTo(1)) }
     }
   }
 

@@ -20,7 +20,7 @@ import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, WholeWorldPolygon}
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConverters._

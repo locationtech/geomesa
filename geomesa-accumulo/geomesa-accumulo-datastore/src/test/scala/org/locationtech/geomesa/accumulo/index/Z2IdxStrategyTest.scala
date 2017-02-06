@@ -27,13 +27,14 @@ import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.sfcurve.zorder.Z2
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class Z2IdxStrategyTest extends TestWithDataStore with org.specs2.matcher.SequenceMatchersCreation {
+class Z2IdxStrategyTest extends TestWithDataStore
+    with org.specs2.matcher.SequenceMatchersCreation with org.specs2.execute.PendingUntilFixed {
 
   val spec = "name:String,track:String,dtg:Date,*geom:Point:srid=4326"
 
@@ -60,16 +61,18 @@ class Z2IdxStrategyTest extends TestWithDataStore with org.specs2.matcher.Sequen
 
   "Z2IdxStrategy" should {
     "print values" in {
-      skipped("used for debugging")
-      println()
-      ds.connector.createScanner(Z2Index.getTableName(sftName, ds), new Authorizations()).foreach { r =>
-        val bytes = r.getKey.getRow.getBytes
-        val keyZ = Longs.fromByteArray(bytes.drop(2))
-        val (x, y) = Z2SFC.invert(Z2(keyZ))
-        println(s"row: $x $y")
+      skipped {
+        // used for debugging
+        println()
+        ds.connector.createScanner(Z2Index.getTableName(sftName, ds), new Authorizations()).foreach { r =>
+          val bytes = r.getKey.getRow.getBytes
+          val keyZ = Longs.fromByteArray(bytes.drop(2))
+          val (x, y) = Z2SFC.invert(Z2(keyZ))
+          println(s"row: $x $y")
+        }
+        println()
+        success
       }
-      println()
-      success
     }
 
     "return all features for inclusive filter" >> {
@@ -274,9 +277,9 @@ class Z2IdxStrategyTest extends TestWithDataStore with org.specs2.matcher.Sequen
       query.getHints.put(SAMPLE_BY, "track")
       val results = queryPlanner.runQuery(sft, query, Some(strategy)).toList
       results.length must beLessThan(17)
-      results.count(_.getAttribute("track") == "track1") must beLessThan(6)
-      results.count(_.getAttribute("track") == "track2") must beLessThan(6)
-      results.count(_.getAttribute("track") == "track3") must beLessThan(6)
+      results.count(_.getAttribute("track") == "track1") must beLessThan(7)
+      results.count(_.getAttribute("track") == "track2") must beLessThan(7)
+      results.count(_.getAttribute("track") == "track3") must beLessThan(7)
     }
 
     "support sampling with bin queries" in {

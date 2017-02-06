@@ -29,7 +29,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.specs2.matcher.MatchResult
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
@@ -229,14 +229,14 @@ class BackCompatibilityTest extends org.specs2.mutable.Spec
 @RunWith(classOf[JUnitRunner])
 class BackCompatibilityWriter extends TestWithDataStore {
 
+  skipAllIf(true) // integration
+
   override val spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4326,multi:MultiPolygon:srid=4326"
 
   val version = "REPLACEME"
 
   "AccumuloDataStore" should {
     "write data" in {
-
-      skipped("integration")
 
       addFeatures((0 until 10).map { i =>
         val sf = new ScalaSimpleFeature(i.toString, sft)

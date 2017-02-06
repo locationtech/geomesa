@@ -23,7 +23,7 @@ import org.locationtech.geomesa.features.avro.{AvroSimpleFeature, FeatureSpecifi
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.mutable
@@ -168,7 +168,7 @@ class Version1BackwardsCompatTest extends org.specs2.mutable.Spec {
 
         import scala.collection.JavaConversions._
         sf.getAttributes.foreach { a =>
-          a must not beNull
+          a must not(beNull)
         }
 
         sf.getAttribute("f0") mustEqual "0"*8

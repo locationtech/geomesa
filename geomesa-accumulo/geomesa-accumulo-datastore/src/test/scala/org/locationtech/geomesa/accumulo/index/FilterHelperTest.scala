@@ -20,7 +20,7 @@ import org.locationtech.geomesa.filter.FilterHelper._
 import org.locationtech.geomesa.utils.filters.Filters._
 import org.opengis.filter.{And, Filter}
 import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.util.Random

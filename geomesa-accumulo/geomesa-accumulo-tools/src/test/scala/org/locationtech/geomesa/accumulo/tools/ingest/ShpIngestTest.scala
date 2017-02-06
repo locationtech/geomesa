@@ -23,7 +23,6 @@ import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, Accumu
 import org.locationtech.geomesa.index.stats.AttributeBounds
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
@@ -63,7 +62,6 @@ class ShpIngestTest extends org.specs2.mutable.Spec {
       f.getUserData.put(Hints.PROVIDED_FID, id)
       writer.write()
     }
-    writer.flush()
     writer.close()
 
     val args = Array[String]("ingest", "--mock", "--instance", "mycloud", "--user", "myuser",

@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicLong
 import com.codahale.metrics._
 import org.apache.commons.io.FileUtils
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.io.Source

@@ -17,7 +17,7 @@ import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
 import kafka.serializer.StringDecoder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.kafka08.{HasEmbeddedKafka, HasEmbeddedZookeeper, KafkaUtils08}
-import org.specs2.mutable.Specification
+
 import org.specs2.runner
 
 @RunWith(classOf[runner.JUnitRunner])

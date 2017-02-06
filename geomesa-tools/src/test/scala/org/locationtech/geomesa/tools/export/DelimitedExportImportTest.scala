@@ -21,14 +21,14 @@ import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.tools.utils.DataFormats._
 import org.locationtech.geomesa.utils.geotools.{GeoToolsDateFormat, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class DelimitedExportImportTest extends org.specs2.mutable.Spec {
+class DelimitedExportImportTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   val dt1 = GeoToolsDateFormat.parseDateTime("2016-01-01T00:00:00.000Z").toDate
   val dt2 = GeoToolsDateFormat.parseDateTime("2016-01-02T00:00:00.000Z").toDate

@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.utils.iterators
 
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 

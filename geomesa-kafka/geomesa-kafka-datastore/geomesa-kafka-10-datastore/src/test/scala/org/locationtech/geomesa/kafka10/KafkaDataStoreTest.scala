@@ -21,7 +21,7 @@ import org.locationtech.geomesa.kafka.{KafkaDataStoreHelper, ReplayConfig}
 import org.locationtech.geomesa.kafka.ReplayTimeHelper.ff
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
@@ -56,8 +56,8 @@ class KafkaDataStoreTest extends org.specs2.mutable.Spec with HasEmbeddedKafka w
     val consumerDS = DataStoreFinder.getDataStore(consumerParams)
     val producerDS = DataStoreFinder.getDataStore(producerParams)
 
-    "consumerDS must not be null" >> { consumerDS must not(beNull) }
-    "producerDS must not be null" >> { producerDS must not(beNull) }
+    "consumerDS must not(beNull)" >> { consumerDS must not(beNull) }
+    "producerDS must not(beNull)" >> { producerDS must not(beNull) }
     println("Non-null datastores")
     val schema = {
       val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
@@ -112,12 +112,12 @@ class KafkaDataStoreTest extends org.specs2.mutable.Spec with HasEmbeddedKafka w
       val features = consumerFC.getFeatures.features()
       features.hasNext must beTrue
       val readSF = features.next()
-      sf.getID must be equalTo readSF.getID
-      sf.getAttribute("dtg") must be equalTo readSF.getAttribute("dtg")
+      sf.getID mustEqual readSF.getID
+      sf.getAttribute("dtg") mustEqual readSF.getAttribute("dtg")
       sf.visibility mustEqual Some("USER|ADMIN")
       store.removeFeatures(ff.id(ff.featureId(sf.getID)))
       Thread.sleep(500) // ensure FC has seen the delete
-      consumerFC.getCount(Query.ALL) must be equalTo 0
+      consumerFC.getCount(Query.ALL) mustEqual 0
     }
 
     "updated" >> {
@@ -130,16 +130,16 @@ class KafkaDataStoreTest extends org.specs2.mutable.Spec with HasEmbeddedKafka w
       Thread.sleep(500)
       val q = ff.id(updated.getIdentifier)
       val featureCollection = consumerFC.getFeatures(q)
-      featureCollection.size() must be equalTo 1
+      featureCollection.size() mustEqual 1
       val res = featureCollection.features().next()
-      res.getAttribute("name") must be equalTo "jones"
+      res.getAttribute("name") mustEqual "jones"
       res.visibility mustEqual Some("ADMIN")
     }
 
     "cleared" >> {
       store.removeFeatures(Filter.INCLUDE)
       Thread.sleep(500)
-      consumerFC.getCount(Query.ALL) must be equalTo 0
+      consumerFC.getCount(Query.ALL) mustEqual 0
 
       val sf = fw.next()
       sf.setAttributes(Array("smith", 30, DateTime.now().toDate).asInstanceOf[Array[AnyRef]])
@@ -147,7 +147,7 @@ class KafkaDataStoreTest extends org.specs2.mutable.Spec with HasEmbeddedKafka w
       fw.write()
 
       Thread.sleep(500)
-      consumerFC.getCount(Query.ALL) must be equalTo 1
+      consumerFC.getCount(Query.ALL) mustEqual 1
     }
 
     "queried with cql" >> {
@@ -159,47 +159,47 @@ class KafkaDataStoreTest extends org.specs2.mutable.Spec with HasEmbeddedKafka w
 
       Thread.sleep(500)
       var res = consumerFC.getFeatures(ff.equals(ff.property("name"), ff.literal("jones")))
-      res.size() must be equalTo 1
+      res.size() mustEqual 1
       val resSF = res.features().next()
-      resSF.getAttribute("name") must be equalTo "jones"
+      resSF.getAttribute("name") mustEqual "jones"
       resSF.visibility mustEqual Some("USER")
 
       res = consumerFC.getFeatures(ff.greater(ff.property("age"), ff.literal(50)))
-      res.size() must be equalTo 1
-      res.features().next().getAttribute("name") must be equalTo "jones"
+      res.size() mustEqual 1
+      res.features().next().getAttribute("name") mustEqual "jones"
 
       // bbox and cql
       val spatialQ = ff.bbox("geom", -10, -10, 10, 10, "EPSG:4326")
       val attrQ = ff.greater(ff.property("age"), ff.literal(50))
       res = consumerFC.getFeatures(ff.and(spatialQ, attrQ))
-      res.size() must be equalTo 1
-      res.features().next().getAttribute("name") must be equalTo "jones"
+      res.size() mustEqual 1
+      res.features().next().getAttribute("name") mustEqual "jones"
 
       val mixedQ = ECQL.toFilter("age = 60 AND INTERSECTS(geom, POLYGON((-10 -10, 10 -10, 10 10, -10 10, -10 -10))) " +
           "AND bbox(geom, -10, -10, 10, 10)")
       res = consumerFC.getFeatures(mixedQ)
-      res.size() must be equalTo 1
-      res.features().next().getAttribute("name") must be equalTo "jones"
+      res.size() mustEqual 1
+      res.features().next().getAttribute("name") mustEqual "jones"
 
       val mixedQ2 = ECQL.toFilter("bbox(geom, -10, -10, 10, 10) AND age = 60 AND " +
           "INTERSECTS(geom, POLYGON((-10 -10, 10 -10, 10 10, -10 10, -10 -10)))")
       res = consumerFC.getFeatures(mixedQ2)
-      res.size() must be equalTo 1
-      res.features().next().getAttribute("name") must be equalTo "jones"
+      res.size() mustEqual 1
+      res.features().next().getAttribute("name") mustEqual "jones"
 
       val mixedQ3 = ECQL.toFilter("bbox(geom, -150, -10, 31, 10) AND age = 60 AND " +
         "INTERSECTS(geom, POLYGON((-10 -10, 10 -10, 10 10, -10 10, -10 -10)))")
       res = consumerFC.getFeatures(mixedQ3)
-      res.size() must be equalTo 1
-      res.features().next().getAttribute("name") must be equalTo "jones"
+      res.size() mustEqual 1
+      res.features().next().getAttribute("name") mustEqual "jones"
 
       val mixedQ4 = ECQL.toFilter("name in ('jones') AND " +
           "INTERSECTS(geom, POLYGON((-180 -90, -180 90, 180 90, 180 -90, -180 -90))) AND " +
           "bbox(geom, -10, -10, 10, 10)"
       )
       res = consumerFC.getFeatures(mixedQ4)
-      res.size() must be equalTo 1
-      res.features().next().getAttribute("name") must be equalTo "jones"
+      res.size() mustEqual 1
+      res.features().next().getAttribute("name") mustEqual "jones"
     }
 
     "allow for calls to getFeatureWriterAppend" >> {

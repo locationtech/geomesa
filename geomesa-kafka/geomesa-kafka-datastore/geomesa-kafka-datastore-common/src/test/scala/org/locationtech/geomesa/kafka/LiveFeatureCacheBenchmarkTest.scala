@@ -21,7 +21,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter._
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
@@ -224,38 +223,38 @@ class LiveFeatureCacheBenchmarkTest extends org.specs2.mutable.Spec {
 
   "LiveFeatureCacheCQEngine " should {
     "benchmark" >> {
-      skipped
+      skipped {
+        val lfc_pop = timeUnit(feats.foreach {
+          lfc.createOrUpdateFeature(_)
+        })
+        println("lfc pop:   " + countPopulate(feats.size, lfc_pop))
 
-      val lfc_pop = timeUnit(feats.foreach {
-        lfc.createOrUpdateFeature(_)
-      })
-      println("lfc pop:   " + countPopulate(feats.size, lfc_pop))
+        val lfc_repop = timeUnit(featsUpdate.foreach {
+          lfc.createOrUpdateFeature(_)
+        })
+        println("lfc repop: " + countPopulate(featsUpdate.size, lfc_repop))
 
-      val lfc_repop = timeUnit(featsUpdate.foreach {
-        lfc.createOrUpdateFeature(_)
-      })
-      println("lfc repop: " + countPopulate(featsUpdate.size, lfc_repop))
+        val cq_pop = timeUnit({
+          for (sf <- feats) cq.createOrUpdateFeature(sf)
+        })
+        println("cq  pop:   " + countPopulate(feats.size, cq_pop))
 
-      val cq_pop = timeUnit({
-        for (sf <- feats) cq.createOrUpdateFeature(sf)
-      })
-      println("cq  pop:   " + countPopulate(feats.size, cq_pop))
+        val cq_repop = timeUnit({
+          for (sf <- featsUpdate) cq.createOrUpdateFeature(sf)
+        })
+        println("cq  repop: " + countPopulate(featsUpdate.size, cq_repop))
 
-      val cq_repop = timeUnit({
-        for (sf <- featsUpdate) cq.createOrUpdateFeature(sf)
-      })
-      println("cq  repop: " + countPopulate(featsUpdate.size, cq_repop))
+        runQueriesMultipleRaw[Filter](
+          11,
+          Seq("lfc", "cq", "cqdd"),
+          Seq(
+            f => lfc.getReaderForFilter(f).toIterator.size,
+            f => cq.geocq.queryCQ(f, false).toIterator.size,
+            f => cq.geocq.queryCQ(f, true).toIterator.size),
+          filters)
 
-      runQueriesMultipleRaw[Filter](
-        11,
-        Seq("lfc", "cq", "cqdd"),
-        Seq(
-          f => lfc.getReaderForFilter(f).toIterator.size,
-          f => cq.geocq.queryCQ(f, false).toIterator.size,
-          f => cq.geocq.queryCQ(f, true).toIterator.size),
-        filters)
-
-      true must equalTo(true)
+        ok
+      }
     }
   }
 }

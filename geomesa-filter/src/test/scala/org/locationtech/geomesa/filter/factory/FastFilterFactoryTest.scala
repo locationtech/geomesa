@@ -14,7 +14,6 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.expression.FastPropertyName
 import org.opengis.filter.spatial.BBOX
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
@@ -33,15 +32,17 @@ class FastFilterFactoryTest extends org.specs2.mutable.Spec {
       ff must beAnInstanceOf[FastFilterFactory]
     }
     "be loadable via system hints" >> {
-      skipped("This might work if property is set globally at jvm startup...")
-      System.setProperty("org.opengis.filter.FilterFactory", classOf[FastFilterFactory].getName)
-      try {
-        Hints.scanSystemProperties()
-        val ff = CommonFactoryFinder.getFilterFactory2
-        ff must beAnInstanceOf[FastFilterFactory]
-      } finally {
-        System.clearProperty("org.opengis.filter.FilterFactory")
-        Hints.scanSystemProperties()
+      // This might work if property is set globally at jvm startup..
+      skipped {
+        System.setProperty("org.opengis.filter.FilterFactory", classOf[FastFilterFactory].getName)
+        try {
+          Hints.scanSystemProperties()
+          val ff = CommonFactoryFinder.getFilterFactory2
+          ff must beAnInstanceOf[FastFilterFactory]
+        } finally {
+          System.clearProperty("org.opengis.filter.FilterFactory")
+          Hints.scanSystemProperties()
+        }
       }
     }
     "create fast property names via ECQL" >> {

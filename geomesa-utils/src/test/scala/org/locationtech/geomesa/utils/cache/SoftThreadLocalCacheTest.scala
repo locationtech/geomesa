@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.utils.cache
 
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
@@ -39,7 +38,7 @@ class SoftThreadLocalCacheTest extends org.specs2.mutable.Spec {
       t.join()
       first must beTheSameAs(obj1)
       second must beTheSameAs(obj2)
-      first must not beTheSameAs(second)
+      first must not(beTheSameAs(second))
     }
 
     "read expired references correctly" in {

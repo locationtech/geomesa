@@ -25,7 +25,7 @@ import org.locationtech.geomesa.kafka.{KafkaDataStoreHelper, KafkaFeatureEvent, 
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
@@ -86,9 +86,9 @@ class LiveKafkaConsumerFeatureSourceTest extends org.specs2.mutable.Spec with Ha
         features.hasNext must beTrue
         val readSF = features.next()
         println(s"1. sf.getID: ${sf.getID}")
-        sf.getID must be equalTo readSF.getID
+        sf.getID mustEqual readSF.getID
         println(s"2. sf.getAttribute: ${sf.getAttribute("dtg")}")
-        sf.getAttribute("dtg") must be equalTo readSF.getAttribute("dtg")
+        sf.getAttribute("dtg") mustEqual readSF.getAttribute("dtg")
         println(s"2. features.hasNext: ${features.hasNext}")
         features.hasNext must beFalse
       }
@@ -100,9 +100,9 @@ class LiveKafkaConsumerFeatureSourceTest extends org.specs2.mutable.Spec with Ha
         features.hasNext must beTrue
         val readSF = features.next()
         println(s"2. sf.getID: ${sf.getID}")
-        sf.getID must be equalTo readSF.getID
+        sf.getID mustEqual readSF.getID
         println(s"2. sf.getAttribute: ${sf.getAttribute("dtg")}")
-        sf.getAttribute("dtg") must be equalTo readSF.getAttribute("dtg")
+        sf.getAttribute("dtg") mustEqual readSF.getAttribute("dtg")
         println(s"4. features.hasNext: ${features.hasNext}")
         features.hasNext must beFalse
       }
@@ -207,8 +207,8 @@ class LiveKafkaConsumerFeatureSourceTest extends org.specs2.mutable.Spec with Ha
       logger.debug("getting id")
       println(s"\t\tnumUpdates: $numUpdates")
       println(s"\t\tm: ${m.get(id)}")
-      m.get(id) must be equalTo numUpdates
-      latestLon must be equalTo 0.0
+      m.get(id) mustEqual numUpdates
+      latestLon mustEqual 0.0
     }
 
     "handle filters" >> {
@@ -257,8 +257,8 @@ class LiveKafkaConsumerFeatureSourceTest extends org.specs2.mutable.Spec with Ha
 
       import org.locationtech.geomesa.utils.geotools.Conversions._
       val features = consumerFC.getFeatures.features().toList
-      features.size must be equalTo 1
-      features.head.getID must be equalTo "testfilt-1"
+      features.size mustEqual 1
+      features.head.getID mustEqual "testfilt-1"
     }
   }
 

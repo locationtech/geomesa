@@ -13,7 +13,7 @@ import java.io.File
 import org.apache.hadoop.conf.Configuration
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])

@@ -19,7 +19,7 @@ import org.locationtech.geomesa.index.api.QueryPlanner
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.audit.{AuditReader, AuditWriter, AuditedEvent}
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.mutable.ArrayBuffer

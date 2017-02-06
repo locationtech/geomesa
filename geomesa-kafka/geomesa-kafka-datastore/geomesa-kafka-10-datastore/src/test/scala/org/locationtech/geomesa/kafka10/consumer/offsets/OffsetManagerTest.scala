@@ -18,7 +18,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.kafka10.consumer.WrappedConsumer
 import org.locationtech.geomesa.kafka10.consumer.offsets.FindOffset.MessagePredicate
 import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.util.{Failure, Success, Try}

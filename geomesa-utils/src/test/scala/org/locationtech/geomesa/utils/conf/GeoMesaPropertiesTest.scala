@@ -11,7 +11,6 @@ package org.locationtech.geomesa.utils.conf
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
@@ -32,10 +31,10 @@ class GeoMesaPropertiesTest extends org.specs2.mutable.Spec with LazyLogging {
 
   "props" should {
     "contain system properties" in {
-      GeoMesaProperties.ProjectVersion must not beNull;
-      GeoMesaProperties.BuildDate must not beNull;
-      GeoMesaProperties.GitCommit must not beNull;
-      GeoMesaProperties.GitBranch must not beNull;
+      GeoMesaProperties.ProjectVersion must not(beNull)
+      GeoMesaProperties.BuildDate must not(beNull)
+      GeoMesaProperties.GitCommit must not(beNull)
+      GeoMesaProperties.GitBranch must not(beNull)
     }
   }
 

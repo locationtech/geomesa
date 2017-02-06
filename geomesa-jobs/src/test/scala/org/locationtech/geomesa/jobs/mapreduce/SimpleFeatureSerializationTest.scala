@@ -16,7 +16,7 @@ import org.locationtech.geomesa.features.avro.AvroSimpleFeature
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
@@ -31,8 +31,8 @@ class SimpleFeatureSerializationTest extends org.specs2.mutable.Spec {
       serialization.accept(classOf[AvroSimpleFeature]) must beTrue
       serialization.accept(classOf[SimpleFeatureImpl]) must beTrue
 
-      serialization.getSerializer(classOf[SimpleFeature]) must not beNull;
-      serialization.getDeserializer(classOf[SimpleFeature]) must not beNull;
+      serialization.getSerializer(classOf[SimpleFeature]) must not(beNull)
+      serialization.getDeserializer(classOf[SimpleFeature]) must not(beNull)
     }
 
     "serialize and deserialize a simple feature" in {

@@ -13,7 +13,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
@@ -103,7 +103,7 @@ class GeoHashSpiralTest extends org.specs2.mutable.Spec {
     "throw an exception if given a non-point geometry"  in {
        val route29SF = generateLineSF
 
-       GeoHashSpiral(route29SF, 500.0, 10000.0) should throwAn[RuntimeException]
+       GeoHashSpiral(route29SF, 500.0, 10000.0) must throwAn[RuntimeException]
     }
   }
 }

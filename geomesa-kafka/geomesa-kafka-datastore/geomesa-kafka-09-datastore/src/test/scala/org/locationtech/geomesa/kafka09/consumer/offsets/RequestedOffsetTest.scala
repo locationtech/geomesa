@@ -11,7 +11,7 @@ package org.locationtech.geomesa.kafka09.consumer.offsets
 import com.typesafe.config.ConfigFactory
 import kafka.message.Message
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner
 
 @RunWith(classOf[runner.JUnitRunner])

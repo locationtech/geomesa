@@ -22,7 +22,7 @@ import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._

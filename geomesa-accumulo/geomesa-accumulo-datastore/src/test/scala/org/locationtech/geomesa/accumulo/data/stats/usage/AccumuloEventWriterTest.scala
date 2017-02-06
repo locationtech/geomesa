@@ -16,7 +16,7 @@ import org.joda.time.format.DateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, AccumuloEventReader, AccumuloEventWriter, AccumuloQueryEventTransform}
 import org.locationtech.geomesa.index.audit.QueryEvent
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])

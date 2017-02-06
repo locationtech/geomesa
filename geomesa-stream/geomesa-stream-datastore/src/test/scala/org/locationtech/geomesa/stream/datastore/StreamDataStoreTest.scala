@@ -19,7 +19,7 @@ import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
@@ -70,7 +70,7 @@ class StreamDataStoreTest extends org.specs2.mutable.Spec {
 
   "StreamDataStore" should {
     "be built from a conf string" >> {
-      sds must not beNull
+      sds must not(beNull)
     }
 
     "read and write" >> {
@@ -115,7 +115,7 @@ class StreamDataStoreTest extends org.specs2.mutable.Spec {
       }
 
       "handle bbox filters" >> {
-        fs.getFeatures(bboxFilter).size() must be equalTo 3
+        fs.getFeatures(bboxFilter).size() mustEqual 3
       }
 
       "expire data after the appropriate amount of time" >> {

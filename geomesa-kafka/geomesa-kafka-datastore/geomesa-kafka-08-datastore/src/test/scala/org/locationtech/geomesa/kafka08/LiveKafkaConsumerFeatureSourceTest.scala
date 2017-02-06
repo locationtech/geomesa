@@ -23,7 +23,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.kafka.{KafkaDataStoreHelper, KafkaFeatureEvent, TestLambdaFeatureListener}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
@@ -78,8 +78,8 @@ class LiveKafkaConsumerFeatureSourceTest extends org.specs2.mutable.Spec with Ha
         val features = consumerFC.getFeatures(Filter.INCLUDE).features()
         features.hasNext must beTrue
         val readSF = features.next()
-        sf.getID must be equalTo readSF.getID
-        sf.getAttribute("dtg") must be equalTo readSF.getAttribute("dtg")
+        sf.getID mustEqual readSF.getID
+        sf.getAttribute("dtg") mustEqual readSF.getAttribute("dtg")
         features.hasNext must beFalse
       }
 
@@ -88,8 +88,8 @@ class LiveKafkaConsumerFeatureSourceTest extends org.specs2.mutable.Spec with Ha
         val features = consumerFC.getFeatures(bbox).features()
         features.hasNext must beTrue
         val readSF = features.next()
-        sf.getID must be equalTo readSF.getID
-        sf.getAttribute("dtg") must be equalTo readSF.getAttribute("dtg")
+        sf.getID mustEqual readSF.getID
+        sf.getAttribute("dtg") mustEqual readSF.getAttribute("dtg")
         features.hasNext must beFalse
       }
 
@@ -176,8 +176,8 @@ class LiveKafkaConsumerFeatureSourceTest extends org.specs2.mutable.Spec with Ha
       }
 
       logger.debug("getting id")
-      m.get(id) must be equalTo numUpdates
-      latestLon must be equalTo 0.0
+      m.get(id) mustEqual numUpdates
+      latestLon mustEqual 0.0
     }
 
     "handle filters" >> {
@@ -226,8 +226,8 @@ class LiveKafkaConsumerFeatureSourceTest extends org.specs2.mutable.Spec with Ha
 
       import org.locationtech.geomesa.utils.geotools.Conversions._
       val features = consumerFC.getFeatures.features().toList
-      features.size must be equalTo 1
-      features.head.getID must be equalTo "testfilt-1"
+      features.size mustEqual 1
+      features.head.getID mustEqual "testfilt-1"
     }
   }
 

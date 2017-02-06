@@ -15,7 +15,7 @@ import org.locationtech.geomesa.convert.text.DelimitedTextConverter
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypeLoader, URLSftProvider}
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.{Request, Server}
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])

@@ -13,7 +13,7 @@ import java.util.Date
 import org.junit.runner.RunWith
 import org.opengis.filter.Filter
 import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 import org.locationtech.geomesa.kafka.ReplayTimeHelper.ff
 

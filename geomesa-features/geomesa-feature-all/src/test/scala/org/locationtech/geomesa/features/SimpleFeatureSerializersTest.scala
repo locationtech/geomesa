@@ -18,14 +18,13 @@ import org.locationtech.geomesa.security
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
-import org.specs2.matcher.Matcher
-import org.specs2.mutable.Specification
+import org.specs2.matcher.{MatchResult, Matcher}
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class SimpleFeatureSerializersTest extends org.specs2.mutable.Spec {
+class SimpleFeatureSerializersTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 
@@ -149,7 +148,7 @@ class SimpleFeatureSerializersTest extends org.specs2.mutable.Spec {
 
       val encoded = features.map(encoder.serialize)
       encoded must not(beNull)
-      encoded must have size features.size
+      encoded must haveSize(features.size)
     }
 
     "not include user data when not requested" >> {
@@ -194,7 +193,8 @@ class SimpleFeatureSerializersTest extends org.specs2.mutable.Spec {
       val encoded = features.map(encoder.serialize)
 
       val decoded = encoded.map(decoder.deserialize)
-      decoded must equalFeatures(features, withoutUserData)
+
+      featuresMustBeEqual(features, withoutUserData)(decoded)
     }
 
     "be able to decode points with user data" >> {
@@ -206,7 +206,7 @@ class SimpleFeatureSerializersTest extends org.specs2.mutable.Spec {
 
       val decoded = encoded.map(decoder.deserialize)
 
-      decoded must equalFeatures(features)
+      featuresMustBeEqual(features, withUserData)(decoded)
     }
 
     "work when user data were encoded but are not expected by decoder" >> {
@@ -217,7 +217,7 @@ class SimpleFeatureSerializersTest extends org.specs2.mutable.Spec {
 
       val decoder = new AvroFeatureDeserializer(sft, SerializationOptions.none)
 
-      decoder.deserialize(encoded) must equalSF(sf, withoutUserData)
+      featureMustBeEqual(sf, withoutUserData)(decoder.deserialize(encoded))
     }
 
     "fail when user data were not encoded but are expected by the decoder" >> {
@@ -264,7 +264,7 @@ class SimpleFeatureSerializersTest extends org.specs2.mutable.Spec {
       val decoded = encoded.map(decoder.deserialize)
 
       forall(features.zip(decoded)) { case (in, out) =>
-        out.getUserData mustEqual in.getUserData
+        out.getUserData.toSeq must containTheSameElementsAs(in.getUserData.toSeq)
       }
     }
   }
@@ -277,7 +277,7 @@ class SimpleFeatureSerializersTest extends org.specs2.mutable.Spec {
 
       val encoded = features.map(encoder.serialize)
       encoded must not(beNull)
-      encoded must have size features.size
+      encoded must haveSize(features.size)
     }
 
     "not include visibilities when not requested" >> {
@@ -322,7 +322,7 @@ class SimpleFeatureSerializersTest extends org.specs2.mutable.Spec {
       val encoded = features.map(encoder.serialize)
 
       val decoded = encoded.map(decoder.deserialize)
-      decoded must equalFeatures(features, withoutUserData)
+      featuresMustBeEqual(features, withoutUserData)(decoded)
     }
 
     "be able to decode points with user data" >> {
@@ -337,7 +337,7 @@ class SimpleFeatureSerializersTest extends org.specs2.mutable.Spec {
       forall(decoded.zip(features)) { case (d, sf) =>
         d.getID mustEqual sf.getID
         d.getAttributes mustEqual sf.getAttributes
-        d.getUserData.toMap mustEqual sf.getUserData.filter(_._2 != null)
+        d.getUserData.toSeq must containTheSameElementsAs(sf.getUserData.filter(_._2 != null).toSeq)
       }
     }
 
@@ -349,7 +349,7 @@ class SimpleFeatureSerializersTest extends org.specs2.mutable.Spec {
 
       val decoder = new KryoFeatureSerializer(sft, SerializationOptions.none)
 
-      decoder.deserialize(encoded) must equalSF(sf, withoutUserData)
+      featureMustBeEqual(sf, withoutUserData)(decoder.deserialize(encoded))
     }
 
     "fail when user data were not encoded but are expected by the decoder" >> {
@@ -397,7 +397,7 @@ class SimpleFeatureSerializersTest extends org.specs2.mutable.Spec {
 
       // when decoding any empty visibilities will be transformed to null
       forall(features.zip(decoded)) { case (in, out) =>
-        out.getUserData.toMap mustEqual in.getUserData.filter(_._2 != null)
+        out.getUserData.toSeq must containTheSameElementsAs(in.getUserData.filter(_._2 != null).toSeq)
       }
     }
   }
@@ -405,31 +405,27 @@ class SimpleFeatureSerializersTest extends org.specs2.mutable.Spec {
   type MatcherFactory[T] = (T) => Matcher[T]
   type UserDataMap = java.util.Map[AnyRef, AnyRef]
 
-  val withoutUserData: MatcherFactory[UserDataMap] = {
-    expected: UserDataMap => actual: UserDataMap => actual.isEmpty must beTrue
+  val withoutUserData: (UserDataMap, UserDataMap) => MatchResult[Any] =
+    (actual, _) => { actual must beEmpty }
+
+  val withUserData: (UserDataMap, UserDataMap) => MatchResult[Any] =
+    (actual, expected) => { actual.toSeq must containTheSameElementsAs(expected.toSeq) }
+
+  def featuresMustBeEqual(expected: Seq[SimpleFeature],
+                          userDataCheck: (UserDataMap, UserDataMap) => MatchResult[Any])
+                         (actual: Seq[SimpleFeature]): MatchResult[Any] = {
+    actual must not(beNull)
+    actual must haveSize(expected.size)
+
+    forall(actual.zip(expected)) { case (act, exp) => featureMustBeEqual(exp, userDataCheck)(act) }
   }
 
-  val withUserData: MatcherFactory[UserDataMap] = {
-    expected: UserDataMap => actual: UserDataMap => actual mustEqual expected
-  }
-
-  def equalFeatures(expected: Seq[SimpleFeature], withUserDataMatcher: MatcherFactory[UserDataMap] = withUserData): Matcher[Seq[SimpleFeature]] = {
-    actual: Seq[SimpleFeature] => {
-      actual must not(beNull)
-      actual must haveSize(expected.size)
-
-      forall(actual zip expected) {
-        case (act, exp) => act must equalSF(exp, withUserDataMatcher)
-      }
-    }
-  }
-
-  def equalSF(expected: SimpleFeature, matchUserData: MatcherFactory[UserDataMap] = withUserData): Matcher[SimpleFeature] = {
-    sf: SimpleFeature => {
-      sf.getID mustEqual expected.getID
-      sf.getDefaultGeometry mustEqual expected.getDefaultGeometry
-      sf.getAttributes mustEqual expected.getAttributes
-      sf.getUserData must matchUserData(expected.getUserData)
-    }
+  def featureMustBeEqual(expected: SimpleFeature,
+                         userDataCheck: (UserDataMap, UserDataMap) => MatchResult[Any])
+                        (actual: SimpleFeature): MatchResult[Any] = {
+    actual.getID mustEqual expected.getID
+    actual.getDefaultGeometry mustEqual expected.getDefaultGeometry
+    actual.getAttributes mustEqual expected.getAttributes
+    userDataCheck(actual.getUserData, expected.getUserData)
   }
 }

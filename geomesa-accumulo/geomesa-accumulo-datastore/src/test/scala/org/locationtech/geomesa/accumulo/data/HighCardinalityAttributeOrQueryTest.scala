@@ -18,13 +18,12 @@ import org.locationtech.geomesa.utils.geotools.SftBuilder
 import org.locationtech.geomesa.utils.geotools.SftBuilder.Opts
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class HighCardinalityAttributeOrQueryTest extends org.specs2.mutable.Spec with TestWithDataStore {
+class HighCardinalityAttributeOrQueryTest extends TestWithDataStore with org.specs2.matcher.SequenceMatchersCreation {
 
   val spec = new SftBuilder()
     .stringType("high", Opts(index = true, cardinality = Cardinality.HIGH))
@@ -58,7 +57,7 @@ class HighCardinalityAttributeOrQueryTest extends org.specs2.mutable.Spec with T
 
       val inQuery = s"high in (${(0 until numFeatures).map(i => s"'h$i'").mkString(", ")})"
       val orQuery = (0 until numFeatures).map( i => s"high = 'h$i'").mkString(" OR ")
-      Seq(inQuery, orQuery).forall(query)
+      forall(Seq(inQuery, orQuery))(query)
     }
   }
 

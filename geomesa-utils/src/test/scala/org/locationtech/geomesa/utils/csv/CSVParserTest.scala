@@ -15,13 +15,12 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.csv.CSVParser._
 import org.locationtech.geomesa.utils.csv.DMS.North
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.util.Success
 
 @RunWith(classOf[JUnitRunner])
-class CSVParserTest extends org.specs2.mutable.Spec {
+class CSVParserTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   "CSVParser" should {
     "parse ints" in {
@@ -44,7 +43,7 @@ class CSVParserTest extends org.specs2.mutable.Spec {
     }
     "parse times" in {
       val time = new DateTime
-      TimeParser.timeFormats.forall(f =>
+      forall(TimeParser.timeFormats)(f =>
         TimeParser.parse(f.print(time)).map(_.getTime / 1000) must beASuccessfulTry(time.getMillis / 1000)
       )
     }

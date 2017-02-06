@@ -13,7 +13,7 @@ import java.util.{Date, UUID}
 import org.geotools.factory.GeoTools
 import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.immutable.HashMap

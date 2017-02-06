@@ -17,7 +17,7 @@ import org.geotools.geometry.jts.JTS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geohash.BoundingBox
 import org.locationtech.geomesa.utils.interop.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._

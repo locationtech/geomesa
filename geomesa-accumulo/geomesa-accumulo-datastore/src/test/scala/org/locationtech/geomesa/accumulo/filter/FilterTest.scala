@@ -28,7 +28,7 @@ import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter._
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 

@@ -16,7 +16,7 @@ import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.interop.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._

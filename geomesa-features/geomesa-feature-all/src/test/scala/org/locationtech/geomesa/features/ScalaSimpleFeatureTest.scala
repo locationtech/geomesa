@@ -17,7 +17,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.Property
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
@@ -72,7 +72,7 @@ class ScalaSimpleFeatureTest extends org.specs2.mutable.Spec {
       f.getProperties("a").head.getValue must not(throwA [org.opengis.feature.IllegalAttributeException])
 
       val prop = f.getProperty("a")
-      prop must not beNull;
+      prop must not(beNull)
       prop.getName.getLocalPart mustEqual "a"
       prop.getValue mustEqual 1
     }
@@ -168,10 +168,10 @@ class ScalaSimpleFeatureTest extends org.specs2.mutable.Spec {
       val sft = SimpleFeatureTypes.createType("kryotesttype", "a:Integer,b:String")
       val sf = new ScalaSimpleFeature("fakeid", sft)
       sf.getProperty("b") must not(throwA[NullPointerException])
-      sf.getProperty("b") must not beNull
+      sf.getProperty("b") must not(beNull)
 
       val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
-      oldSf.getProperty("b") must not beNull
+      oldSf.getProperty("b") must not(beNull)
     }
     "give back a null when the property value is null" in {
       // Verify that KryoSimpleFeature returns null for properties that do not exist like SimpleFeatureImpl

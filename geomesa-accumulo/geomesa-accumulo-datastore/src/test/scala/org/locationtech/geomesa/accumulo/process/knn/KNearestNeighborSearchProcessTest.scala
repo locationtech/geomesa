@@ -21,7 +21,7 @@ import org.locationtech.geomesa.utils.geohash.VincentyModel
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
@@ -146,7 +146,7 @@ class KNearestNeighborSearchProcessTest extends org.specs2.mutable.Spec {
       inputFeatures.add(queryFeature("madison", 38.036871, -78.502720))
       val dataFeatures = fs.getFeatures()
       val knn = new KNearestNeighborSearchProcess
-      knn.execute(inputFeatures, dataFeatures, 15, 50.0, 400.0).size should be equalTo 11
+      knn.execute(inputFeatures, dataFeatures, 15, 50.0, 400.0).size mustEqual 11
     }
 
     "handle three query points, one of which will return nothing" in {

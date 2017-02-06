@@ -18,7 +18,7 @@ import kafka.serializer.StringDecoder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.kafka08.{HasEmbeddedKafka, KafkaUtils08}
 import org.locationtech.geomesa.kafka08.consumer.offsets._
-import org.specs2.mutable.Specification
+
 import org.specs2.runner
 
 import scala.collection.mutable.ArrayBuffer

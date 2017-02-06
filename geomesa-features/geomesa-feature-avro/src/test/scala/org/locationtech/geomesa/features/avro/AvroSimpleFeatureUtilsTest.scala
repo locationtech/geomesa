@@ -15,7 +15,7 @@ import java.util.{UUID, Date}
 import org.apache.avro.Schema
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SftBuilder
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConverters._
@@ -365,7 +365,7 @@ class AvroSimpleFeatureUtilsTest extends org.specs2.mutable.Spec {
 
         val expectedSchema = new Schema.Parser().parse("""{"type":"record","name":"toavro","namespace":"test.avro","fields":[{"name":"__version__","type":"int"},{"name":"__fid__","type":"string"},{"name":"geom","type":["bytes","null"]},{"name":"age","type":["int","null"]},{"name":"__userdata__","type":{"type":"array","items":{"type":"record","name":"userDataItem","fields":[{"name":"class","type":"string"},{"name":"key","type":"string"},{"name":"value","type":"string"}]}}}]}""")
         val schema = AvroSimpleFeatureUtils.generateSchema(sft, withUserData = true, "test.avro")
-        expectedSchema must be equalTo schema
+        expectedSchema mustEqual schema
       }
     }
   }

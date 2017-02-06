@@ -23,7 +23,7 @@ import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.opengis.filter.{And, Filter}
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
@@ -31,7 +31,9 @@ import scala.util.Random
 
 //Expand the test - https://geomesa.atlassian.net/browse/GEOMESA-308
 @RunWith(classOf[JUnitRunner])
-class QueryStrategyDeciderTest extends TestWithDataStore with org.specs2.matcher.SequenceMatchersCreation {
+class QueryStrategyDeciderTest extends TestWithDataStore
+    with org.specs2.matcher.SequenceMatchersCreation with org.specs2.matcher.ValueChecks
+    with org.specs2.execute.PendingUntilFixed {
 
   override val spec = "nameHighCardinality:String:index=true:cardinality=high,ageJoinIndex:Long:index=true," +
       "heightFullIndex:Float:index=full,dtgJoinIndex:Date:index=true,weightNoIndex:String," +

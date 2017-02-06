@@ -18,7 +18,7 @@ import org.locationtech.geomesa.curve.{BinnedTime, TimePeriod, Z2SFC}
 import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.sfcurve.zorder.Z2
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])

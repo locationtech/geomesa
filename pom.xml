@@ -106,6 +106,7 @@
         <log4j.version>1.2.17</log4j.version>
 
         <specs2.version>3.8.7</specs2.version>
+        <!--<specs2.version>3.8.7-20170202003034-3739406</specs2.version>--><!-- contains fixes for comparing mutable maps -->
         <junit.version>4.12</junit.version>
 
         <!-- distribution properties -->

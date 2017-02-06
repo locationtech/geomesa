@@ -11,7 +11,7 @@ package org.locationtech.geomesa.utils.geotools
 import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.{DateTime, Duration, Interval}
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
@@ -26,7 +26,7 @@ class TimeSnapTest extends org.specs2.mutable.Spec with LazyLogging {
 
   "TimeSnap" should {
     "create a timesnap around a given time interval" in {
-      timeSnap must not beNull
+      timeSnap must not(beNull)
     }
 
     "compute correct durations given number of bins wanted" in {

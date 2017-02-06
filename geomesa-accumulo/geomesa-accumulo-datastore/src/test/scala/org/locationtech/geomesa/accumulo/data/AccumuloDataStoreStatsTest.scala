@@ -26,11 +26,12 @@ import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, wholeWorldEnvelop
 import org.locationtech.geomesa.utils.stats._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreStatsTest extends TestWithDataStore with org.specs2.matcher.SequenceMatchersCreation {
+class AccumuloDataStoreStatsTest extends TestWithDataStore
+    with org.specs2.matcher.SequenceMatchersCreation with org.specs2.matcher.ValueChecks {
 
   sequential
 
