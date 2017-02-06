@@ -83,7 +83,6 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       val r = sc.sql("select st_intersects(st_makeBox2d(st_point(-77, 38), st_point(-76, 39)), st_makeBox2d(st_point(-77, 38), st_point(-76, 39)))")
       val d = r.collect
 
-      r.show()
       d.length mustEqual 1
     }
 
@@ -104,8 +103,24 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       d.head.getAs[Int]("case_number") mustEqual 2
     }
 
+    "where attr equals" >> {
+      val r = sc.sql("select * from chicago where case_number = 2")
+      val d = r.collect()
+
+      d.length mustEqual 1
+      d.head.getAs[Int]("case_number") mustEqual 2
+    }
+
     "where __fid__ in" >> {
       val r = sc.sql("select * from chicago where __fid__ in ('1', '2')")
+      val d = r.collect()
+
+      d.length mustEqual 2
+      d.map(_.getAs[Int]("case_number")).toSeq must containTheSameElementsAs(Seq(2, 3))
+    }
+
+    "where attr in" >> {
+      val r = sc.sql("select * from chicago where case_number in (2, 3)")
       val d = r.collect()
 
       d.length mustEqual 2
