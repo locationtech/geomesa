@@ -15,7 +15,8 @@ Ingest
 ------
 
 Currently ingest is accomplished by using the ``ingest-raster`` command
-in the GeoMesa command line tools. See the tools README for usage.
+in the GeoMesa Accumulo command line tools. See :ref:`accumulo_tools_raster` for more
+information.
 
 GeoServer
 ---------
