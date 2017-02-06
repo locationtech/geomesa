@@ -21,4 +21,4 @@ On the "Add Store" page, select "Google Bigtable (GeoMesa)". The Bigtable data s
 
 Other configuration information is taken from ``hbase-site.xml`` (see :ref:`install_bigtable_geoserver`).
 
-Click "Save", and GeoServer will search Bigtable for any GeoMesa-managed feature types.:doc:`./geoserver`.
+Click "Save", and GeoServer will search Bigtable for any GeoMesa-managed feature types.

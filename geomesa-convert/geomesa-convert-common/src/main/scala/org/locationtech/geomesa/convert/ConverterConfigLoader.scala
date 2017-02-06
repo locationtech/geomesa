@@ -10,8 +10,7 @@ package org.locationtech.geomesa.convert
 
 import java.net.URL
 import java.util
-import java.util.{List => JList}
-import javax.imageio.spi.ServiceRegistry
+import java.util.{ServiceLoader, List => JList}
 
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
@@ -26,7 +25,7 @@ object ConverterConfigLoader extends LazyLogging {
   val ConfigPathProperty = SystemProperty("org.locationtech.geomesa.converter.config.path", "geomesa.converters")
 
   private val configProviders = {
-    val pList = ServiceRegistry.lookupProviders(classOf[ConverterConfigProvider]).toList
+    val pList = ServiceLoader.load(classOf[ConverterConfigProvider]).toList
     logger.debug(s"Found ${pList.size} SPI providers for ${classOf[ConverterConfigProvider].getName}" +
       s": ${pList.map(_.getClass.getName).mkString(", ")}")
     pList

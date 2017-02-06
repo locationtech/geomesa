@@ -27,7 +27,7 @@ Before you begin, you must have the following:
 -  an instance of Accumulo |accumulo_version| running on Hadoop |hadoop_version|
 -  an Accumulo user that has both create-table and write permissions
 -  the GeoMesa Accumulo distributed runtime installed for your Accumulo instance (see :ref:`install_accumulo_runtime` )
--  a local copy of the `Java <http://java.oracle.com/>`__ JDK 8
+-  a local copy of `Java JDK 8`_
 -  Apache `Maven <http://maven.apache.org/>`__ installed
 -  a GitHub client installed
 

@@ -133,7 +133,7 @@ When a GeoMesa ``DataStore`` is instantiated, it will scan for available
 service providers. Third-party implementations can be enabled by placing
 them on the classpath and including a special service descriptor file.
 See the Oracle
-`Javadoc <http://docs.oracle.com/javase/7/docs/api/javax/imageio/spi/ServiceRegistry.html>`__
+`Javadoc <http://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html>`__
 for details on implementing a service provider.
 
 The GeoMesa ``DataStore`` will call ``configure()`` on the

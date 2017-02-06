@@ -144,8 +144,8 @@ In the ``geomesa-accumulo_2.11-$VERSION`` directory, run ``bin/geomesa configure
 
     ### in geomesa-accumulo_2.11-$VERSION/:
     $ bin/geomesa configure
-    Warning: GEOMESA_HOME is not set, using /path/to/geomesa-accumulo_2.11-$VERSION
-    Using GEOMESA_HOME as set: /path/to/geomesa-accumulo_2.11-$VERSION
+    Warning: GEOMESA_ACCUMULO_HOME is not set, using /path/to/geomesa-accumulo_2.11-$VERSION
+    Using GEOMESA_ACCUMULO_HOME as set: /path/to/geomesa-accumulo_2.11-$VERSION
     Is this intentional? Y\n y
     Warning: GEOMESA_LIB already set, probably by a prior configuration.
     Current value is /path/to/geomesa-accumulo_2.11-$VERSION/lib.
@@ -153,14 +153,14 @@ In the ``geomesa-accumulo_2.11-$VERSION`` directory, run ``bin/geomesa configure
     Is this intentional? Y\n y
 
     To persist the configuration please update your bashrc file to include:
-    export GEOMESA_HOME=/path/to/geomesa-accumulo_2.11-$VERSION
-    export PATH=${GEOMESA_HOME}/bin:$PATH
+    export GEOMESA_ACCUMULO_HOME=/path/to/geomesa-accumulo_2.11-$VERSION
+    export PATH=${GEOMESA_ACCUMULO_HOME}/bin:$PATH
 
-Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_HOME`` and ``$PATH`` updates.
+Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_ACCUMULO_HOME`` and ``$PATH`` updates.
 
 .. warning::
 
-    Please note that the ``$GEOMESA_HOME`` variable points to the location of the ``geomesa-accumulo_2.11-$VERSION``
+    Please note that the ``$GEOMESA_ACCUMULO_HOME`` variable points to the location of the ``geomesa-accumulo_2.11-$VERSION``
     directory, not the main geomesa binary distribution directory.
 
 .. note::
@@ -195,7 +195,7 @@ Test the command that invokes the GeoMesa Tools:
 .. code::
 
     $ geomesa
-    Using GEOMESA_HOME = /path/to/geomesa-accumulo-dist_2.11-$VERSION
+    Using GEOMESA_ACCUMULO_HOME = /path/to/geomesa-accumulo-dist_2.11-$VERSION
     Usage: geomesa [command] [command options]
       Commands:
       ...
@@ -296,7 +296,7 @@ be specific to your installation that you will also need to copy to GeoServer's
 that match the version of Hadoop you are running.
 
 There is a script in the ``geomesa-accumulo_2.11-$VERSION/bin`` directory
-(``$GEOMESA_HOME/bin/install-hadoop-accumulo.sh``) which will install these
+(``$GEOMESA_ACCUMULO_HOME/bin/install-hadoop-accumulo.sh``) which will install these
 dependencies to a target directory using ``wget`` (requires an internet
 connection).
 
@@ -307,7 +307,7 @@ connection).
 
 .. code-block:: bash
 
-    $ $GEOMESA_HOME/bin/install-hadoop-accumulo.sh /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
+    $ $GEOMESA_ACCUMULO_HOME/bin/install-hadoop-accumulo.sh /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
     Install accumulo and hadoop dependencies to /path/to/tomcat/webapps/geoserver/WEB-INF/lib/?
     Confirm? [Y/n]y
     fetching https://search.maven.org/remotecontent?filepath=org/apache/accumulo/accumulo-core/1.6.5/accumulo-core-1.6.5.jar
