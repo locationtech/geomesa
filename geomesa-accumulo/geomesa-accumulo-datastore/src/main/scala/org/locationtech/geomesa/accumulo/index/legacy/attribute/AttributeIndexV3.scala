@@ -14,7 +14,7 @@ import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.simple.SimpleFeatureType
 
-// id in row keys
+// id not serialized in value
 case object AttributeIndexV3 extends AccumuloFeatureIndex with AttributeWritableIndex with AttributeQueryableIndex {
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor

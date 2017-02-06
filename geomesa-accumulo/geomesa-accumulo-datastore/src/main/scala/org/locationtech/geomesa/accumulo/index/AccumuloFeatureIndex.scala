@@ -156,7 +156,7 @@ trait AccumuloFeatureIndex extends AccumuloFeatureIndexType {
     // create table if needed
     AccumuloVersion.ensureTableExists(ds.connector, table)
 
-    // create splits - drop first split, otherwise we get an empty tablet
+    // create splits
     val splitsToAdd = getSplits(sft).map(new Text(_)).toSet -- ds.tableOps.listSplits(table).toSet
     if (splitsToAdd.nonEmpty) {
       // noinspection RedundantCollectionConversion
