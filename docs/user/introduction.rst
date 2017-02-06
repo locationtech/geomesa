@@ -37,7 +37,6 @@ The GeoMesa website may be found at http://www.geomesa.org/. For additional info
 * The GeoMesa FAQ: http://www.geomesa.org/faq/
 * The GeoMesa Users (https://locationtech.org/mhonarc/lists/geomesa-users/) and 
   Dev (https://locationtech.org/mhonarc/lists/geomesa-dev/) mailing list archives
-* ``README.md`` files provided under most modules
 * The chat at https://gitter.im/locationtech/geomesa/.
 
 |locationtech-icon|
