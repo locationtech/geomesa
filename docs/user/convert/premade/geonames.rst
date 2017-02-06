@@ -14,7 +14,7 @@ Getting GeoNames data
 ---------------------
 
 The GeoNames data set can be downloaded using the provided
-``download-data.sh`` script in ``$GEOMESA_HOME/bin/`` as such
+``download-data.sh`` script in ``$GEOMESA_ACCUMULO_HOME/bin/`` as such
 
 ::
 
@@ -40,8 +40,8 @@ tools classpath. This is the default case.
     geomesa env | grep geonames
 
 If it is not, merge the contents of ``reference.conf`` with
-``$GEOMESA_HOME/conf/application.conf``, or ensure that
-``reference.conf`` is in ``$GEOMESA_HOME/conf/sfts/geonames``
+``$GEOMESA_ACCUMULO_HOME/conf/application.conf``, or ensure that
+``reference.conf`` is in ``$GEOMESA_ACCUMULO_HOME/conf/sfts/geonames``
 
 Run the ingest. You may optionally point to a different accumulo
 instance using ``-i`` and ``-z`` options. See ``geomesa help ingest``

@@ -47,8 +47,8 @@ are available on the GeoMesa tools classpath. This is the default case.
     geomesa env | grep 'nyctaxi\|nyctaxi-single'
 
 If they are not, merge the contents of ``reference.conf`` with
-``$GEOMESA_HOME/conf/application.conf``, or ensure that
-``reference.conf`` is in ``$GEOMESA_HOME/conf/sfts/nyctaxi``.
+``$GEOMESA_ACCUMULO_HOME/conf/application.conf``, or ensure that
+``reference.conf`` is in ``$GEOMESA_ACCUMULO_HOME/conf/sfts/nyctaxi``.
 
 Two record method
 ~~~~~~~~~~~~~~~~~

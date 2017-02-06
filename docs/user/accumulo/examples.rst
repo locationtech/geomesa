@@ -192,7 +192,7 @@ Setting up an Ingest Converter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To use the ``-C`` switch, create (or edit) the file
-``$GEOMESA_HOME/conf/application.conf``, which serves as the converter
+``$GEOMESA_ACCUMULO_HOME/conf/application.conf``, which serves as the converter
 configuration file, to add the ``gdelt`` SimpleFeatureType and a converter
 ``gdelt_csv`` for reading the data from tab-separated value files:
 
@@ -230,10 +230,9 @@ configuration file, to add the ``gdelt`` SimpleFeatureType and a converter
 
 The config file needs to have a ``SimpleFeatureType`` defined along with a
 converter that specifies instructions on how to turn the raw data file into
-that simple feature type. The geomesa-convert README.md file (in
-``docs/convert/README.md`` in the binary distribution; in
-``geomesa-convert/README.md`` in the source distribution).  describes the full
-range of functions available.) 
+that simple feature type. See :doc:`/user/convert/index` for a more details
+on converters, including a full list of the transformation functions available
+(:doc:`/user/convert/function_overview`).
 
 This example uses the ``date()`` function to tell the parser what date column
 is in. The ``stringToDouble()`` and ``::double`` functions give two different
@@ -243,17 +242,17 @@ there is an exception, whereas the ``::double`` function will fail (and drop
 the record) if the casting fails.
 
 To confirm that GeoMesa can properly parse your edited
-``$GEOMESA_HOME/conf/application.conf`` file, use ``geomesa env``:
+``$GEOMESA_ACCUMULO_HOME/conf/application.conf`` file, use ``geomesa env``:
 
 .. code::
 
     $ geomesa env -s gdelt --format spec
-    Using GEOMESA_HOME = /opt/geomesa/tools
+    Using GEOMESA_ACCUMULO_HOME = /opt/geomesa/tools
     Simple Feature Types:
     gdelt = globalEventId:String,eventCode:String,actor1:String,actor2:String,dtg:Date:index=join,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='false'
 
     $ geomesa env -c gdelt_tsv
-    Using GEOMESA_HOME = /opt/geomesa/tools
+    Using GEOMESA_ACCUMULO_HOME = /opt/geomesa/tools
 
     Simple Feature Type Converters:
     converter-name=gdelt_tsv
@@ -309,7 +308,7 @@ NYCTaxi_, GTD_, and Twitter_. The first five of these sets are easily downloadab
 
 To download these sets, run the download script found in geomesa-tools/bin and 
 provide the name of the data set desired. 
-This can be one of ```gdelt```, ```geolife```, ```osm-gpx```, ```tdrive```, or ```geonames```:
+This can be one of ``gdelt``, ``geolife``, ``osm-gpx``, ``tdrive``, or ``geonames``:
 
 Example Usage:
 
@@ -319,10 +318,10 @@ Example Usage:
 
 Depending on the desired data, you may be prompted further information to specify desired dates or locations.
 
-The resulting data will then be downloaded to ```$GEOMESA_HOME/data```.
+The resulting data will then be downloaded to ``$GEOMESA_ACCUMULO_HOME/data``.
 
-Configuration files for these data sets are found under ```$GEOMESA_HOME/conf/sfts```. 
-Modifications to them can seen by running ```geomesa env``` and will be reflected in the next run ingest. 
+Configuration files for these data sets are found under ``$GEOMESA_ACCUMULO_HOME/conf/sfts``.
+Modifications to them can seen by running ``geomesa env`` and will be reflected in the next run ingest.
 
 Running an Ingest
 ^^^^^^^^^^^^^^^^^

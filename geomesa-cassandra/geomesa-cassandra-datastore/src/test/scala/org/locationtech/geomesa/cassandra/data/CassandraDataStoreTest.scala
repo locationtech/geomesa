@@ -59,6 +59,17 @@ class CassandraDataStoreTest extends Specification {
       ok
     }
 
+    "list schemas with with new datastore" >> {
+      val ds = getDataStore
+      ds must not(beNull)
+      ds.createSchema(SimpleFeatureTypes.createType("test:test", "name:String,age:Int,*geom:Point:srid=4326,dtg:Date"))
+      ds.dispose()
+      val ds2 = getDataStore
+      ds2.getTypeNames.toSeq must contain("test")
+      ds2.dispose()
+      ok
+    }
+
     "parse simpleType to Cassandra Types" >> {
       val simpleFeatureType = SimpleFeatureTypes.createType("test:test",
         "string:String,int:Int,float:Float,double:Double,long:Long,boolean:Boolean,*geom:Point:srid=4326,dtg:Date")

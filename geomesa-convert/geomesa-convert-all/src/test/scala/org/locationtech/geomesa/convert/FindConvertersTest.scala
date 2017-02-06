@@ -43,6 +43,7 @@ class FindConvertersTest extends Specification {
     }
 
     "register all the converters" >> {
+      import scala.collection.JavaConversions._
       SimpleFeatureConverters.providers.map(_.getClass) must containTheSameElementsAs(
         Seq(
           classOf[AvroSimpleFeatureConverterFactory],
