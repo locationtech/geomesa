@@ -524,10 +524,12 @@ Example usage::
 add-attribute-index
 ~~~~~~~~~~~~~~~~~~~
 
-Add an attribute index for a specified list of attributes.::
+Add attribute indices for a specified list of attributes.::
 
     $ geomesa add-attribute-index -u username -p password -i instance -z zoo1,zoo2,zoo3 -c test_catalog \
-        -f test_feature -a attribute1,attribute2 --coverage full
+      -f test_feature -a attribute1,attribute2 --coverage full
+
+This will launch a map-reduce job creating attribute indices for each attribute listed in ``-a``. This is essentially a convenience wrapper for invoking the job described in :ref:`attribute_indexing_job`.
 
 env
 ~~~
