@@ -123,7 +123,7 @@ class CassandraDataStoreTest extends org.specs2.mutable.Spec {
     }
 
     "run extra-large bbox between queries" >> {
-      skipped{
+      skipped {
         // intermittent failure
         val (ds, fs) = initializeDataStore("testextralargebboxbetweenquery")
 

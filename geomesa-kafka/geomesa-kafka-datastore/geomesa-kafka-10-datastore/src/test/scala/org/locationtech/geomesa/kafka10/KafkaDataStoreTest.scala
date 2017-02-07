@@ -27,7 +27,8 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class KafkaDataStoreTest extends org.specs2.mutable.Spec with HasEmbeddedKafka with LazyLogging {
+class KafkaDataStoreTest extends org.specs2.mutable.Spec with org.specs2.execute.PendingUntilFixed
+    with HasEmbeddedKafka with LazyLogging {
 
   sequential // this doesn't really need to be sequential, but we're trying to reduce zk load
 
@@ -52,19 +53,20 @@ class KafkaDataStoreTest extends org.specs2.mutable.Spec with HasEmbeddedKafka w
       "zookeepers" -> zkConnect,
       "zkPath"     -> zkPath,
       "isProducer" -> false)
-    println("Find datastore")
+
     val consumerDS = DataStoreFinder.getDataStore(consumerParams)
     val producerDS = DataStoreFinder.getDataStore(producerParams)
 
     "consumerDS must not(beNull)" >> { consumerDS must not(beNull) }
     "producerDS must not(beNull)" >> { producerDS must not(beNull) }
-    println("Non-null datastores")
+
     val schema = {
       val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
       KafkaDataStoreHelper.createStreamingSFT(sft, zkPath)
     }
 
-    "allow schemas to be created and be available in other data stores" >> {producerDS.createSchema(schema)
+    "allow schemas to be created and be available in other data stores" >> {
+      producerDS.createSchema(schema)
       consumerDS.getTypeNames.toList must contain("test")
     }
 

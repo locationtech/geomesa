@@ -16,7 +16,7 @@ import org.specs2.mock.Mockito
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ReplayConfigTest extends org.specs2.mutable.Spec with Mockito {
+class ReplayConfigTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation with Mockito {
 
 
   "ReplayConfig" should {
@@ -97,7 +97,7 @@ class ReplayConfigTest extends org.specs2.mutable.Spec with Mockito {
       result.isInWindow(9) must beFalse
 
       // window
-      (10 to 20).forall {i =>
+      forall(10 to 20) { i =>
         result.isInWindow(i) must beTrue
       }
 

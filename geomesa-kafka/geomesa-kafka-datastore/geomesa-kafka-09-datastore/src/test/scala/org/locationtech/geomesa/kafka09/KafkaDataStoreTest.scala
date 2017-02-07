@@ -17,7 +17,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.kafka.{ReplayConfig, KafkaDataStoreHelper}
+import org.locationtech.geomesa.kafka.{KafkaDataStoreHelper, ReplayConfig}
 import org.locationtech.geomesa.kafka.ReplayTimeHelper.ff
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.Filter
@@ -27,7 +27,8 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class KafkaDataStoreTest extends org.specs2.mutable.Spec with HasEmbeddedKafka with LazyLogging {
+class KafkaDataStoreTest extends org.specs2.mutable.Spec with org.specs2.execute.PendingUntilFixed
+    with HasEmbeddedKafka with LazyLogging {
 
   sequential // this doesn't really need to be sequential, but we're trying to reduce zk load
 
