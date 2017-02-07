@@ -7,7 +7,7 @@
 *************************************************************************/
 
 
-package org.locationtech.geomesa.accumulo.index.attribute
+package org.locationtech.geomesa.accumulo.index.legacy.attribute
 
 import java.nio.charset.StandardCharsets
 import java.util.{Date, Locale, Collection => JCollection}
@@ -15,14 +15,12 @@ import java.util.{Date, Locale, Collection => JCollection}
 import com.google.common.collect.ImmutableSortedSet
 import com.google.common.primitives.Bytes
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.conf.Property
 import org.apache.accumulo.core.data.{Range => AccRange}
 import org.apache.hadoop.io.Text
 import org.calrissian.mango.types.{LexiTypeEncoders, SimpleTypeEncoders, TypeEncoder}
 import org.joda.time.format.ISODateTimeFormat
-import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
+import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AttributeSplittable}
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -36,25 +34,18 @@ import scala.util.{Failure, Success, Try}
 /**
  * Contains logic for converting between accumulo and geotools for the attribute index
  */
-trait AttributeWritableIndex extends AccumuloWritableIndex with AttributeSplittable with LazyLogging {
+trait AttributeWritableIndex extends AccumuloFeatureIndex with AttributeSplittable with LazyLogging {
 
-  override def configure(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {
-    super.configure(sft, ds)
-    val table = getTableName(sft.getTypeName, ds)
-
-    AccumuloVersion.ensureTableExists(ds.connector, table)
-
-    configureSplits(sft, ds)
-
-    ds.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
+  override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
+    val indices = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).map(d => sft.indexOf(d.getLocalName))
+    indices.map(i => AttributeWritableIndex.getRowPrefix(sft, i))
   }
 
   override def configureSplits(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {
-    val indexedAttrs = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft)
-    if (indexedAttrs.nonEmpty) {
-      val indices = indexedAttrs.map(d => sft.indexOf(d.getLocalName))
-      val splits = indices.map(i => new Text(AttributeWritableIndex.getRowPrefix(sft, i)))
-      ds.tableOps.addSplits(getTableName(sft.getTypeName, ds), ImmutableSortedSet.copyOf(splits.toArray))
+    val splits = getSplits(sft)
+    if (splits.nonEmpty) {
+      val texts = splits.map(new Text(_))
+      ds.tableOps.addSplits(getTableName(sft.getTypeName, ds), ImmutableSortedSet.copyOf(texts.toArray))
     }
   }
 

@@ -17,7 +17,7 @@ import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIt
 import org.apache.hadoop.io.Text
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
-import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AccumuloWritableIndex}
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -36,7 +36,7 @@ abstract class KryoLazyAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; d
   import KryoLazyAggregatingIterator._
 
   var sft: SimpleFeatureType = null
-  var index: AccumuloWritableIndex = null
+  var index: AccumuloFeatureIndex = null
   var source: SortedKeyValueIterator[Key, Value] = null
 
   private var validate: (SimpleFeature) => Boolean = null

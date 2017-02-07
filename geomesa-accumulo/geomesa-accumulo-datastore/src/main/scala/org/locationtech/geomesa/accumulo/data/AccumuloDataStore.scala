@@ -16,7 +16,6 @@ import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.audit.AccumuloAuditService
 import org.locationtech.geomesa.accumulo.data.stats._
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.index.attribute.{AttributeIndex, AttributeSplittable}
 import org.locationtech.geomesa.accumulo.iterators.ProjectVersionIterator
 import org.locationtech.geomesa.accumulo.util.ZookeeperLocking
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex

@@ -16,7 +16,8 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.accumulo.index.z2.Z2Index
+import org.locationtech.geomesa.accumulo.index.Z2Index
+import org.locationtech.geomesa.accumulo.index.legacy.z2.Z2IndexV1
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyDensityIterator.DensityResult
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -70,7 +71,7 @@ class Z2DensityIterator extends KryoLazyDensityIterator {
       val row = topKey.getRowData
       val zOffset = row.offset() + zPrefix
       var i = 0
-      while (i < Z2Index.GEOM_Z_NUM_BYTES) {
+      while (i < Z2IndexV1.GEOM_Z_NUM_BYTES) {
         zBytes(i) = row.byteAt(zOffset + i)
         i += 1
       }

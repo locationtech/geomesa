@@ -13,24 +13,72 @@
 
 package org.locationtech.geomesa.index.index
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.{LazyLogging, Logger}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.utils.ByteArrays
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 trait IndexAdapter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] {
 
+  /**
+    * Create an insert 'statement' (but don't execute it)
+    *
+    * @param row row key
+    * @param feature feature to be inserted
+    * @return
+    */
   protected def createInsert(row: Array[Byte], feature: F): W
+
+  /**
+    * Create a delete 'statement' (but don't execute it)
+    *
+    * @param row row key
+    * @param feature feature to be deleted
+    * @return
+    */
   protected def createDelete(row: Array[Byte], feature: F): W
 
-  // range with start row included and end row excluded. no start/end is indicated by an empty byte array.
+  /**
+    * Create a range for scanning, with start row included and end row excluded.
+    * No start/end is indicated by an empty byte array.
+    *
+    * @param start start of the range, inclusive. Empty byte array indicates open-ended
+    * @param end end of the range, exclusive. Empty byte array indicates open-ended
+    * @return
+    */
   protected def range(start: Array[Byte], end: Array[Byte]): R
+
+  /**
+    * Creates a range for scanning a single exact row
+    *
+    * @param row row to scan
+    * @return
+    */
   protected def rangeExact(row: Array[Byte]): R
 
+  /**
+    * Creates a range for scanning all rows starting with a prefix
+    *
+    * @param prefix row prefix to scan
+    * @return
+    */
   protected def rangePrefix(prefix: Array[Byte]): R = range(prefix, IndexAdapter.rowFollowingPrefix(prefix))
 
+  /**
+    * Create a query plan
+    *
+    * @param sft simple feature type
+    * @param ds data store
+    * @param filter filter
+    * @param hints query hints
+    * @param ranges ranges being scanned
+    * @param ecql secondary ecql filter to apply - some filters may have already been extracted
+    *             and handled by range planning
+    * @return
+    */
   protected def scanPlan(sft: SimpleFeatureType,
                          ds: DS,
                          filter: FilterStrategy[DS, F, W],
@@ -48,7 +96,7 @@ object IndexAdapter {
 
   // helper shim to let other classes avoid importing IndexAdapter.logger
   object IndexAdapterLogger extends LazyLogging {
-    def log = logger
+    def log: Logger = logger
   }
 
   /**
@@ -113,17 +161,9 @@ object IndexAdapter {
       }
       Seq(first) ++ middle :+ last
     } else {
-      logger.warn(s"Not splitting range [${start.map(toHex).mkString},${stop.map(toHex).mkString}] - " +
+      logger.warn(s"Not splitting range [${ByteArrays.toHex(start)},${ByteArrays.toHex(stop)}] - " +
           "may want to consider implementing further split logic")
       Seq((start, stop))
     }
   }
-
-  /**
-    * Converts an unsigned byte into a hex string
-    *
-    * @param b unsigned byte
-    * @return
-    */
-  def toHex(b: Byte): String = f"${(b & 0xff) >>> 4}%01x${b & 0x0f}%01x"
 }

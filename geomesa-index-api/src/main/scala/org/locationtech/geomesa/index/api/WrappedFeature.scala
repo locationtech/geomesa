@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.index.api
 
+import java.nio.charset.StandardCharsets
+
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.util.hashing.MurmurHash3
@@ -29,4 +31,9 @@ trait WrappedFeature {
     * Hash of the simple feature ID - can be used for sharding
     */
   lazy val idHash: Int = Math.abs(MurmurHash3.stringHash(feature.getID))
+
+  /**
+    * Feature ID bytes
+    */
+  lazy val idBytes: Array[Byte] = feature.getID.getBytes(StandardCharsets.UTF_8)
 }

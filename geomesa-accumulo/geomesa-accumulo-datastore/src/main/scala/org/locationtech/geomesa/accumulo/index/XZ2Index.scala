@@ -6,22 +6,18 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.index.z2
+package org.locationtech.geomesa.accumulo.index
 
-import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
-import org.locationtech.geomesa.index.utils.SplitArrays
-import org.opengis.feature.simple.SimpleFeatureType
+import org.apache.accumulo.core.data.{Mutation, Range}
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
+import org.locationtech.geomesa.index.index.XZ2Index
 
-case object XZ2Index extends AccumuloFeatureIndexType with XZ2WritableIndex with XZ2QueryableIndex {
-
-  override val name: String = "xz2"
+case object XZ2Index extends AccumuloFeatureIndex with AccumuloIndexAdapter
+    with XZ2Index[AccumuloDataStore, AccumuloFeature, Mutation, Range] {
 
   override val version: Int = 1
 
   override val serializedWithId: Boolean = false
 
-  override def supports(sft: SimpleFeatureType): Boolean = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    sft.nonPoints
-  }
+  override val hasPrecomputedBins: Boolean = true
 }

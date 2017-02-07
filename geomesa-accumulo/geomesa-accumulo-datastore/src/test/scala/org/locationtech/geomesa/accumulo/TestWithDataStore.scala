@@ -18,7 +18,7 @@ import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -114,7 +114,7 @@ trait TestWithDataStore extends Specification {
 
   def explain(filter: String): String = explain(new Query(sftName, ECQL.toFilter(filter)))
 
-  def scanner(table: AccumuloWritableIndex): Scanner =
+  def scanner(table: AccumuloFeatureIndex): Scanner =
     connector.createScanner(table.getTableName(sftName, ds), new Authorizations())
 
   def rowToString(key: Key) = bytesToString(key.getRow.copyBytes())

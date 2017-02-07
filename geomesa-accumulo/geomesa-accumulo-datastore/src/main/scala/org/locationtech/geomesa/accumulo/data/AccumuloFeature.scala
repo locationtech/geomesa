@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.data
 import org.apache.accumulo.core.data.Value
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.index.encoders.{BinEncoder, IndexValueEncoder}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
@@ -86,7 +86,7 @@ class AccumuloFeatureLevelFeature(val feature: SimpleFeature,
                                   indexSerializerWithId: SimpleFeatureSerializer,
                                   binEncoder: Option[BinEncoder]) extends AccumuloFeature {
 
-  import AccumuloWritableIndex.{BinColumnFamily, EmptyColumnQualifier, FullColumnFamily, IndexColumnFamily}
+  import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.{BinColumnFamily, EmptyColumnQualifier, FullColumnFamily, IndexColumnFamily}
   import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 
   private lazy val visibility =
@@ -118,6 +118,8 @@ class AccumuloAttributeLevelFeature(val feature: SimpleFeature,
                                     indexSerializerWithId: SimpleFeatureSerializer,
                                     binEncoder: Option[BinEncoder]) extends AccumuloFeature {
 
+  import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex.AttributeColumnFamily
+
   private lazy val visibilities: Array[String] = {
     import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
     val count = feature.getFeatureType.getAttributeCount
@@ -136,33 +138,29 @@ class AccumuloAttributeLevelFeature(val feature: SimpleFeature,
   override lazy val fullValues: Seq[RowValue] = indexGroups.map { case (vis, indices) =>
     val sf = new ScalaSimpleFeature("", sft)
     indices.foreach(i => sf.setAttribute(i, feature.getAttribute(i)))
-    val cf = AccumuloWritableIndex.AttributeColumnFamily
-    new RowValue(cf, new Text(indices), vis, new Value(serializer.serialize(sf)))
+    new RowValue(AttributeColumnFamily, new Text(indices), vis, new Value(serializer.serialize(sf)))
   }
 
   override lazy val fullValuesWithId: Seq[RowValue] = indexGroups.map { case (vis, indices) =>
     val sf = new ScalaSimpleFeature("", sft)
     indices.foreach(i => sf.setAttribute(i, feature.getAttribute(i)))
-    val cf = AccumuloWritableIndex.AttributeColumnFamily
-    new RowValue(cf, new Text(indices), vis, new Value(serializerWithId.serialize(sf)))
+    new RowValue(AttributeColumnFamily, new Text(indices), vis, new Value(serializerWithId.serialize(sf)))
   }
 
   override lazy val indexValues: Seq[RowValue] = indexGroups.map { case (vis, indices) =>
     val sf = new ScalaSimpleFeature("", sft)
     indices.foreach(i => sf.setAttribute(i, feature.getAttribute(i)))
-    val cf = AccumuloWritableIndex.AttributeColumnFamily
-    new RowValue(cf, new Text(indices), vis, new Value(indexSerializer.serialize(sf)))
+    new RowValue(AttributeColumnFamily, new Text(indices), vis, new Value(indexSerializer.serialize(sf)))
   }
 
   override lazy val indexValuesWithId: Seq[RowValue] = indexGroups.map { case (vis, indices) =>
     val sf = new ScalaSimpleFeature("", sft)
     indices.foreach(i => sf.setAttribute(i, feature.getAttribute(i)))
-    val cf = AccumuloWritableIndex.AttributeColumnFamily
-    new RowValue(cf, new Text(indices), vis, new Value(indexSerializerWithId.serialize(sf)))
+    new RowValue(AttributeColumnFamily, new Text(indices), vis, new Value(indexSerializerWithId.serialize(sf)))
   }
 
   override lazy val binValues: Seq[RowValue] = {
-    import AccumuloWritableIndex.{BinColumnFamily, EmptyColumnQualifier}
+    import AccumuloFeatureIndex.{BinColumnFamily, EmptyColumnQualifier}
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     val rowOpt = for {
