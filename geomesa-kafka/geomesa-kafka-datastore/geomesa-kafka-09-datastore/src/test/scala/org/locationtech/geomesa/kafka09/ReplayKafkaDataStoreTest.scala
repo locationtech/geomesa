@@ -33,7 +33,7 @@ import scala.collection.JavaConversions._
   */
 @RunWith(classOf[JUnitRunner])
 class ReplayKafkaDataStoreTest
-  extends Specification
+  extends org.specs2.mutable.Spec
   with HasEmbeddedKafka
   with SimpleFeatureMatchers {
 
@@ -76,7 +76,7 @@ class ReplayKafkaDataStoreTest
 
   step {
     // wait for above test to complete before moving on
-    success("setup complete")
+    ok
   }
 
   "KafkaDataStore via a replay consumer" should {
@@ -159,7 +159,7 @@ class ReplayKafkaDataStoreTest
 
   step {
     // wait for above test to complete before moving on
-    success("main tests complete")
+    ok
   }
 
   "KafkaDataStore" should {
@@ -178,7 +178,7 @@ class ReplayKafkaDataStoreTest
 
   step {
     shutdown()
-    success("shutdown complete")
+    ok
   }
 
   def featuresToList(sfc: SimpleFeatureCollection): List[SimpleFeature] = {

@@ -12,13 +12,15 @@ import org.geotools.data._
 import org.geotools.filter.text.cql2.CQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class LiveAccumuloDataStoreTest extends Specification {
+class LiveAccumuloDataStoreTest extends org.specs2.mutable.Spec {
+
+  skipAllIf(true) // meant for integration testing
 
   sequential
 
@@ -34,8 +36,6 @@ class LiveAccumuloDataStoreTest extends Specification {
   "AccumuloDataStore" should {
 
     "run live tests" in {
-
-      skipped("Meant for integration testing")
 
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
 

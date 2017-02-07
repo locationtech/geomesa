@@ -43,13 +43,14 @@ import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
+class AccumuloDataStoreTest extends TestWithMultipleSfts
+    with org.specs2.matcher.SequenceMatchersCreation with org.specs2.execute.PendingUntilFixed {
 
   sequential
 
@@ -253,7 +254,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       ds.getTypeNames.toSeq must contain(defaultSft.getTypeName)
     }
 
-    "provide ability to write using the feature source and read what it wrote" in {
+    "provide ability to write using the feature source and read what it wrote" >> {
       import org.locationtech.geomesa.utils.geotools.Conversions._
 
       // compose a CQL query that uses a reasonably-sized polygon for searching
@@ -306,7 +307,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       newSplits.last mustEqual new Text(s"${prefix}99")
     }
 
-    "Prevent mixed geometries in spec" in {
+    "Prevent mixed geometries in spec" >> {
       "throw an exception if geometry is specified" >> {
         createNewSchema("name:String,dtg:Date,*geom:Geometry:srid=4326") must throwA[IllegalArgumentException]
       }
@@ -316,7 +317,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       }
     }
 
-    "Prevent reserved words in spec" in {
+    "Prevent reserved words in spec" >> {
       "throw an exception if reserved words are found" >> {
         createNewSchema("name:String,dtg:Date,*Location:Point:srid=4326") must throwAn[IllegalArgumentException]
       }
@@ -326,7 +327,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       }
     }
 
-    "Prevent join indices on default date" in {
+    "Prevent join indices on default date" >> {
       import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
       "throw an exception if join index is found" >> {
@@ -461,7 +462,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       retrievedSchema mustEqual updatedSchema
     }
 
-    "prevent changing schema types" in {
+    "prevent changing schema types" >> {
       val originalSchema = "name:String,dtg:Date,*geom:Point:srid=4326"
       val sftName = createNewSchema(originalSchema).getTypeName
 
@@ -469,21 +470,21 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
         val modified =
           SimpleFeatureTypes.createType(sftName, "name:String,dtg:Date,geom:Point:srid=4326,*geom2:Point:srid=4326")
         modified.getUserData.putAll(ds.getSchema(sftName).getUserData)
-        ds.updateSchema(sftName, modified) should throwAn[UnsupportedOperationException]
+        ds.updateSchema(sftName, modified) must throwAn[UnsupportedOperationException]
         val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema(sftName))
         retrievedSchema mustEqual originalSchema
       }
       "prevent changing attribute order" in {
         val modified = SimpleFeatureTypes.createType(sftName, "dtg:Date,name:String,*geom:Point:srid=4326")
         modified.getUserData.putAll(ds.getSchema(sftName).getUserData)
-        ds.updateSchema(sftName, modified) should throwA[UnsupportedOperationException]
+        ds.updateSchema(sftName, modified) must throwA[UnsupportedOperationException]
         val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema(sftName))
         retrievedSchema mustEqual originalSchema
       }
       "prevent removing attributes" in {
         val modified = SimpleFeatureTypes.createType(sftName, "dtg:Date,*geom:Point:srid=4326")
         modified.getUserData.putAll(ds.getSchema(sftName).getUserData)
-        ds.updateSchema(sftName, modified) should throwA[UnsupportedOperationException]
+        ds.updateSchema(sftName, modified) must throwA[UnsupportedOperationException]
         val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema(sftName))
         retrievedSchema mustEqual originalSchema
       }
@@ -539,7 +540,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       ds.config.caching must beFalse
     }
 
-    "support caching for improved WFS performance due to count/getFeatures" in {
+    "support caching for improved WFS performance due to count/getFeatures" >> {
       val ds = DataStoreFinder.getDataStore(dsParams ++ Map("caching" -> true)).asInstanceOf[AccumuloDataStore]
 
       "typeOf feature source must be CachingAccumuloFeatureCollection" >> {
@@ -625,7 +626,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       plans.head.iterators must beEmpty
     }.pendingUntilFixed("Fixed query planner to deal with OR'd whole world geometry")
 
-    "transform index value data correctly" in {
+    "transform index value data correctly" >> {
       import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 
       val sft = createNewSchema("trackId:String:index-value=true,label:String:index-value=true," +

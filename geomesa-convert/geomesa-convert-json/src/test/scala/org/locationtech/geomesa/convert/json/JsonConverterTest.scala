@@ -17,11 +17,10 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class JsonConverterTest extends Specification {
+class JsonConverterTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   val sftConfPoint = ConfigFactory.parseString(
     """{ type-name = "jsonFeatureType"
@@ -118,11 +117,11 @@ class JsonConverterTest extends Specification {
       features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
       features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
       features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-      features(0).getDefaultGeometry must be equalTo pt1
+      features(0).getDefaultGeometry mustEqual pt1
       features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
       features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
       features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
-      features(1).getDefaultGeometry must be equalTo pt2
+      features(1).getDefaultGeometry mustEqual pt2
     }
 
     "parse in single line-mode" >> {
@@ -197,11 +196,11 @@ class JsonConverterTest extends Specification {
       features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
       features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
       features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-      features(0).getDefaultGeometry must be equalTo pt1
+      features(0).getDefaultGeometry mustEqual pt1
       features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
       features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
       features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
-      features(1).getDefaultGeometry must be equalTo pt2
+      features(1).getDefaultGeometry mustEqual pt2
     }
 
     "parse in multi line-mode" >> {
@@ -266,11 +265,11 @@ class JsonConverterTest extends Specification {
       features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
       features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
       features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-      features(0).getDefaultGeometry must be equalTo pt1
+      features(0).getDefaultGeometry mustEqual pt1
       features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
       features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
       features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
-      features(1).getDefaultGeometry must be equalTo pt2
+      features(1).getDefaultGeometry mustEqual pt2
     }
 
     "parse nested feature nodes" >> {
@@ -335,11 +334,11 @@ class JsonConverterTest extends Specification {
       features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
       features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
       features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-      features(0).getDefaultGeometry must be equalTo pt1
+      features(0).getDefaultGeometry mustEqual pt1
       features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
       features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
       features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
-      features(1).getDefaultGeometry must be equalTo pt2
+      features(1).getDefaultGeometry mustEqual pt2
     }
 
     "use an ID hash for each node" >> {
@@ -397,8 +396,8 @@ class JsonConverterTest extends Specification {
 
       val converter = SimpleFeatureConverters.build[String](sft, parserConf)
       val features = converter.processInput(Iterator(jsonStr)).toList
-      features(0).getID must be equalTo "a159e39826218d193761dc4480e8eb95"
-      features(1).getID must be equalTo "5ad94a63c273eac62689c636ea1ba408"
+      features(0).getID mustEqual "a159e39826218d193761dc4480e8eb95"
+      features(1).getID mustEqual "5ad94a63c273eac62689c636ea1ba408"
 
     }
 
@@ -448,11 +447,11 @@ class JsonConverterTest extends Specification {
         features must haveLength(2)
         features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
         features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
-        features(0).getDefaultGeometry must be equalTo pt1
+        features(0).getDefaultGeometry mustEqual pt1
 
         features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
         features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
-        features(1).getDefaultGeometry must be equalTo pt2
+        features(1).getDefaultGeometry mustEqual pt2
       }
 
       "allow specific sft geom and cast into it" >> {
@@ -548,11 +547,11 @@ class JsonConverterTest extends Specification {
         features must haveLength(2)
         features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
         features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
-        features(0).getDefaultGeometry must be equalTo pt1
+        features(0).getDefaultGeometry mustEqual pt1
 
         features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
         features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
-        features(1).getDefaultGeometry must be equalTo pt2
+        features(1).getDefaultGeometry mustEqual pt2
       }
 
       "parse mixed geometry" >> {
@@ -633,18 +632,18 @@ class JsonConverterTest extends Specification {
         features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
         features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
         features(0).getDefaultGeometry must beAnInstanceOf[Point]
-        features(0).getDefaultGeometry must be equalTo pt1
+        features(0).getDefaultGeometry mustEqual pt1
 
         features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
         features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
         features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
         features(1).getDefaultGeometry must beAnInstanceOf[LineString]
-        features(1).getDefaultGeometry must be equalTo lineStr1
+        features(1).getDefaultGeometry mustEqual lineStr1
 
         features(2).getAttribute("number").asInstanceOf[Integer] mustEqual 789
         features(2).getAttribute("color").asInstanceOf[String] mustEqual "green"
         features(2).getAttribute("weight").asInstanceOf[Double] mustEqual 185
-        features(2).getDefaultGeometry must be equalTo poly1
+        features(2).getDefaultGeometry mustEqual poly1
         features(2).getDefaultGeometry must beAnInstanceOf[Polygon]
       }
 
@@ -906,8 +905,9 @@ class JsonConverterTest extends Specification {
       import scala.collection.JavaConversions._
       val f = features.head
 
-      import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
       import java.util.{Map => JMap}
+
+      import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 
       val m = f.get[JMap[String,String]]("map1")
       m must beAnInstanceOf[JMap[String,String]]
@@ -979,7 +979,7 @@ class JsonConverterTest extends Specification {
       features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
       features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
       features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-      features(0).getDefaultGeometry must be equalTo pt1
+      features(0).getDefaultGeometry mustEqual pt1
       features(0).getUserData.get("my.user.key") mustEqual "red"
     }
 
@@ -1035,8 +1035,6 @@ class JsonConverterTest extends Specification {
       features must haveLength(1)
       ec.counter.getSuccess mustEqual 1
       ec.counter.getFailure mustEqual 0
-
-      import scala.collection.JavaConversions._
       val f = features.head
 
       import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature

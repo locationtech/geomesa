@@ -14,12 +14,12 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.visitor.BoundsFilterVisitor
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 
 @RunWith(classOf[JUnitRunner])
-class BoundsFilterVisitorTest extends Specification with LazyLogging {
+class BoundsFilterVisitorTest extends org.specs2.mutable.Spec with LazyLogging {
 
   "BoundsFilterVisitor" should {
     "work for during" >> {

@@ -16,11 +16,10 @@ import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.BoundingBox
 import org.locationtech.geomesa.utils.stats.{NoOpTimings, Timings}
 import org.specs2.matcher.Matcher
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class QueryAndMosaicTest extends Specification {
+class QueryAndMosaicTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
   sequential
 
   implicit val noTime: Timings = NoOpTimings
@@ -57,7 +56,7 @@ class QueryAndMosaicTest extends Specification {
     s"testQAMT_Table_$testIteration"
   }
 
-  def allBeTrue: Matcher[Iterator[Boolean]] = be_==(true).forall
+  def allBeTrue: Matcher[Iterator[Boolean]] = forall(be_==(true))
 
   "Our Mosaicing" should {
     "Return the same tile we store" in {

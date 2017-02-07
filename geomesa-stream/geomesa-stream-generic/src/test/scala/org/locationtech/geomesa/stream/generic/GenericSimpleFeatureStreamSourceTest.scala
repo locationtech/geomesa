@@ -18,14 +18,16 @@ import org.apache.commons.net.{DefaultDatagramSocketFactory, DefaultSocketFactor
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.stream.SimpleFeatureStreamSource
 import org.opengis.feature.simple.SimpleFeature
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @RunWith(classOf[JUnitRunner])
-class GenericSimpleFeatureStreamSourceTest extends Specification  {
+class GenericSimpleFeatureStreamSourceTest extends org.specs2.mutable.Spec  {
+
+  implicit val ec = ExecutionContext.global
 
   "GenericSimpleFeatureStreamSource" should {
 
@@ -59,7 +61,7 @@ class GenericSimpleFeatureStreamSourceTest extends Specification  {
     "be built from a conf" >> {
       val source = SimpleFeatureStreamSource.buildSource(ConfigFactory.parseString(confString))
       source.init()
-      source must not beNull
+      source must not(beNull)
 
       val url = Resources.getResource("testdata.tsv")
       val lines = Resources.readLines(url, StandardCharsets.UTF_8)
@@ -87,7 +89,7 @@ class GenericSimpleFeatureStreamSourceTest extends Specification  {
         }
       }
       val result = iter.take(lines.length).toList
-      result.length must be equalTo lines.length
+      result.length mustEqual lines.length
     }
 
     "work with udp" >> {
@@ -96,7 +98,7 @@ class GenericSimpleFeatureStreamSourceTest extends Specification  {
           .replace("textline=true", "textline=true&decoderMaxLineLength=" + Int.MaxValue)
       val source = SimpleFeatureStreamSource.buildSource(ConfigFactory.parseString(udpConf))
       source.init()
-      source must not beNull
+      source must not(beNull)
 
       val url = Resources.getResource("testdata.tsv")
       val lines = Resources.readLines(url, StandardCharsets.UTF_8)
@@ -129,7 +131,7 @@ class GenericSimpleFeatureStreamSourceTest extends Specification  {
         }
       }
       val result = iter.take(lines.length).toList
-      result.length must be equalTo lines.length
+      result.length mustEqual lines.length
     }
   }
 }

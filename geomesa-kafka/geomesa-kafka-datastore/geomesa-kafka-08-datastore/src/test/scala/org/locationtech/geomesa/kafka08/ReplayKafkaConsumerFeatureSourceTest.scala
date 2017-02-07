@@ -15,15 +15,15 @@ import org.locationtech.geomesa.kafka._
 import org.locationtech.geomesa.utils.geotools.FR
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-import org.specs2.matcher.{MatchResult, ValueCheck}
+import org.specs2.matcher.{Expectable, MatchResult, Matcher}
 import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.annotation.tailrec
 
 @RunWith(classOf[JUnitRunner])
-class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito with SimpleFeatureMatchers {
+class ReplayKafkaConsumerFeatureSourceTest
+    extends org.specs2.mutable.Spec with Mockito with SimpleFeatureMatchers {
 
   import KafkaConsumerTestData._
 
@@ -54,7 +54,7 @@ class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito wi
 
         val expected = msgs.slice(3, 6).reverse
 
-        fs.messages.toSeq must containGeoMessages(expected)
+        fs.messages.toSeq must equalGeoMessages(expected)
       }
 
       "when bounds are on messages" >> {
@@ -78,7 +78,7 @@ class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito wi
 
         val expected = msgs.slice(2, 8).reverse
 
-        fs.messages.toSeq must containGeoMessages(expected)
+        fs.messages.toSeq must equalGeoMessages(expected)
       }
 
       "when end time is after last message" >> {
@@ -99,7 +99,7 @@ class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito wi
 
         val expected = msgs.slice(1, 8).reverse
 
-        fs.messages.toSeq must containGeoMessages(expected)
+        fs.messages.toSeq must equalGeoMessages(expected)
       }
     }
 
@@ -166,23 +166,29 @@ class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito wi
       lazy val replayType = KafkaDataStoreHelper.createReplaySFT(sft, replayConfig)
       lazy val fs = featureSource(msgs, replayType)
 
-      def equalsSnapshot(expectedMsgs: Seq[GeoMessage], replayTime: Long): ValueCheck[ReplaySnapshotFeatureCache] = {
-        s: ReplaySnapshotFeatureCache =>
-          s.sft mustEqual replayType
-          s.replayTime mustEqual replayTime
-          s.events must equalGeoMessages(expectedMsgs)
-      }
+      def equalsSnapshot(expectedMsgs: Seq[GeoMessage], replayTime: Long): Matcher[ReplaySnapshotFeatureCache] =
+        new Matcher[ReplaySnapshotFeatureCache] {
+          override def apply[S <: ReplaySnapshotFeatureCache](t: Expectable[S]): MatchResult[S] = {
+            val s = t.value
+            s.sft mustEqual replayType
+            s.replayTime mustEqual replayTime
+            s.events must equalGeoMessages(expectedMsgs)
+            ok.asInstanceOf[MatchResult[S]]
+          }
+        }
 
       "using a given valid time" >> {
         val expected = msgs.slice(3, 6).reverse
         val result = fs.snapshot(Some(12000L))
-        result must beSome(equalsSnapshot(expected, 12000L))
+        result must beSome
+        result.get must equalsSnapshot(expected, 12000L)
       }
 
       "using the most recent time if none is given" >> {
         val expected = msgs.slice(6, 10).reverse
         val result = fs.snapshot(None)
-        result must beSome(equalsSnapshot(expected, 13100L))
+        result must beSome
+        result.get must equalsSnapshot(expected, 13100L)
       }
 
       "or not if time is invalid" >> {
@@ -264,7 +270,7 @@ class ReplayKafkaConsumerFeatureSourceTest extends Specification with Mockito wi
       val next = actual.next()
 
       expected.head.equals(next)
-      val result = expected aka s"Unexpected value found: $next" must contain(next)
+      val result = expected /*aka s"Unexpected value found: $next"*/ must contain(next)
       if (!result.isSuccess) {
         result
       } else {

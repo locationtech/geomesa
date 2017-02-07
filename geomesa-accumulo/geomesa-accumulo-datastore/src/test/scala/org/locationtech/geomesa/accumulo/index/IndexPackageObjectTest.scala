@@ -15,11 +15,11 @@ import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class IndexPackageObjectTest extends Specification {
+class IndexPackageObjectTest extends org.specs2.mutable.Spec {
 
   "index" should {
     "compute target schemas from transformation expressions" in {

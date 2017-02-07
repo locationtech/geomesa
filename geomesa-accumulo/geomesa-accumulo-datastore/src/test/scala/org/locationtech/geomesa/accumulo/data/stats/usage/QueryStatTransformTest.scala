@@ -20,13 +20,13 @@ import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, AccumuloQu
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class QueryStatTransformTest extends Specification {
+class QueryStatTransformTest extends org.specs2.mutable.Spec {
 
   val df = DateTimeFormat.forPattern("yyyy.MM.dd HH:mm:ss")
 

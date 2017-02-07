@@ -13,13 +13,12 @@ import java.util.{Date, UUID}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SftBuilder.Opts
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class SftBuilderTest extends Specification {
+class SftBuilderTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   sequential
@@ -116,7 +115,7 @@ class SftBuilderTest extends Specification {
 
       val sft = builder.build("foobar")
       sft.getAttributeCount mustEqual 7
-      sft.getAttributeDescriptors.map(_.getType.getBinding).forall (_ must beAssignableFrom[java.util.List[_]])
+      forall(sft.getAttributeDescriptors)(_.getType.getBinding mustEqual classOf[java.util.List[_]])
     }
 
 
@@ -145,7 +144,7 @@ class SftBuilderTest extends Specification {
 
       val sft = builder.build("foobar")
       sft.getAttributeCount mustEqual 7
-      sft.getAttributeDescriptors.map(_.getType.getBinding).forall (_ must beAssignableFrom[java.util.List[_]])
+      forall(sft.getAttributeDescriptors)(_.getType.getBinding mustEqual classOf[java.util.List[_]])
     }
 
     "build maps" >> {
@@ -173,7 +172,7 @@ class SftBuilderTest extends Specification {
 
       val sft = builder.build("foobar")
       sft.getAttributeCount mustEqual 7
-      sft.getAttributeDescriptors.map(_.getType.getBinding).forall (_ must beAssignableFrom[java.util.Map[_,_]])
+      forall(sft.getAttributeDescriptors)(_.getType.getBinding mustEqual classOf[java.util.Map[_,_]])
     }
 
     "build maps of diff types" >> {
@@ -186,7 +185,7 @@ class SftBuilderTest extends Specification {
 
       val sft = builder.build("foobar")
       sft.getAttributeCount mustEqual 3
-      sft.getAttributeDescriptors.map(_.getType.getBinding).forall (_ must beAssignableFrom[java.util.Map[_,_]])
+      forall(sft.getAttributeDescriptors)(_.getType.getBinding mustEqual classOf[java.util.Map[_,_]])
     }
 
     "handle multiple geoms" >> {

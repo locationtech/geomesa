@@ -11,13 +11,12 @@ package org.locationtech.geomesa.accumulo.util
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.conf.DigitSplitter
 import org.opengis.feature.simple.SimpleFeatureType
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloSftBuilderTest extends Specification {
+class AccumuloSftBuilderTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 
@@ -42,15 +41,16 @@ class AccumuloSftBuilderTest extends Specification {
         sft.getAttributeCount mustEqual 2
         sft.getAttributeDescriptors.map(_.getLocalName) must containAllOf(List("i", "l"))
 
-        sft.getTableSplitter must beSome(classOf[DigitSplitter])
+        sft.getTableSplitter must beSome
+        sft.getTableSplitter.get mustEqual classOf[DigitSplitter]
         val opts = sft.getTableSplitterOptions
-        opts.size must be equalTo 3
-        opts("fmt") must be equalTo "%02d"
-        opts("min") must be equalTo "0"
-        opts("max") must be equalTo "99"
+        opts.size mustEqual 3
+        opts("fmt") mustEqual "%02d"
+        opts("min") mustEqual "0"
+        opts("max") mustEqual "99"
       }
 
-      List(sft1, sft2) forall test
+      forall(List(sft1, sft2))(test)
     }
   }
 }

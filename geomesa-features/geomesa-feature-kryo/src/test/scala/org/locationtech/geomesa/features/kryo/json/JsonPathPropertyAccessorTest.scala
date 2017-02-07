@@ -9,19 +9,18 @@
 package org.locationtech.geomesa.features.kryo.json
 
 import org.geotools.factory.CommonFactoryFinder
-import org.geotools.filter.expression.PropertyAccessors
+import org.geotools.filter.expression.{PropertyAccessor, PropertyAccessors}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class JsonPathPropertyAccessorTest extends Specification {
+class JsonPathPropertyAccessorTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
-  val ff = CommonFactoryFinder.getFilterFactory2
+  val filterFactory = CommonFactoryFinder.getFilterFactory2
   val sft = SimpleFeatureTypes.createType("json", "json:String:json=true,s:String,dtg:Date,*geom:Point:srid=4326")
 
   "JsonPathPropertyAccessor" should {
@@ -30,10 +29,10 @@ class JsonPathPropertyAccessorTest extends Specification {
       val accessors =
         PropertyAccessors.findPropertyAccessors(new ScalaSimpleFeature("", sft), "$.json.foo", classOf[String], null)
       accessors must not(beNull)
-      accessors.asScala must contain(JsonPathPropertyAccessor)
+      accessors.asScala must contain(JsonPathPropertyAccessor.asInstanceOf[PropertyAccessor])
     }
     "access json values in simple features" in {
-      val property = ff.property("$.json.foo")
+      val property = filterFactory.property("$.json.foo")
       val sf = new ScalaSimpleFeature("", sft)
       sf.setAttribute(0, """{ "foo" : "bar" }""")
       property.evaluate(sf) mustEqual "bar"
@@ -41,7 +40,7 @@ class JsonPathPropertyAccessorTest extends Specification {
       property.evaluate(sf) mustEqual "baz"
     }
     "access non-json strings in simple features" in {
-      val property = ff.property("$.s.foo")
+      val property = filterFactory.property("$.s.foo")
       val sf = new ScalaSimpleFeature("", sft)
       sf.setAttribute(1, """{ "foo" : "bar" }""")
       property.evaluate(sf) mustEqual "bar"
@@ -49,7 +48,7 @@ class JsonPathPropertyAccessorTest extends Specification {
       property.evaluate(sf) mustEqual "baz"
     }
     "access json values in kryo serialized simple features" in {
-      val property = ff.property("$.json.foo")
+      val property = filterFactory.property("$.json.foo")
       val serializer = new KryoFeatureSerializer(sft)
       val sf = serializer.getReusableFeature
       sf.setBuffer(serializer.serialize(new ScalaSimpleFeature("", sft, Array("""{ "foo" : "bar" }""", null, null, null))))
@@ -79,7 +78,7 @@ class JsonPathPropertyAccessorTest extends Specification {
       }
       forall(Seq(sf0, sf1)) { sf =>
         forall(Seq("$baz", "$.baz", "baz", "$.baz/a")) { path =>
-          ff.property(path).evaluate(sf) must beNull
+          filterFactory.property(path).evaluate(sf) must beNull
           ECQL.toFilter(s""""$path" = 'bar'""").evaluate(sf) must beFalse
         }
       }

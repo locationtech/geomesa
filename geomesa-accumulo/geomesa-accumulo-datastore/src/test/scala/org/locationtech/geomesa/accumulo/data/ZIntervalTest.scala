@@ -17,11 +17,11 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ZIntervalTest extends Specification with TestWithMultipleSfts {
+class ZIntervalTest extends TestWithMultipleSfts with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 

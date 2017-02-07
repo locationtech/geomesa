@@ -10,11 +10,11 @@ package org.locationtech.geomesa.jobs
 
 import org.apache.hadoop.conf.Configuration
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class GeoMesaConfiguratorTest extends Specification {
+class GeoMesaConfiguratorTest extends org.specs2.mutable.Spec {
 
   "GeoMesaConfigurator" should {
     "set and retrieve data store params" in {

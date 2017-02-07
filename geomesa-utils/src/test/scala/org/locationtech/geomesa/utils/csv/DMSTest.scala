@@ -10,11 +10,11 @@ package org.locationtech.geomesa.utils.csv
 
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.csv.DMS._
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class DMSTest extends Specification {
+class DMSTest extends org.specs2.mutable.Spec {
   "Hemisphere" should {
     "recognize all valid characters" >> {
       Hemisphere('N') mustEqual North

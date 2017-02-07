@@ -14,13 +14,13 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Envelope
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class BucketIndexTest extends Specification with LazyLogging {
+class BucketIndexTest extends org.specs2.mutable.Spec with LazyLogging {
 
   "BucketIndex" should {
     "be thread safe" in {

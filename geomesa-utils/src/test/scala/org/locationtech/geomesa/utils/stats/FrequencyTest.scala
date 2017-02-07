@@ -18,11 +18,11 @@ import org.locationtech.geomesa.curve.{BinnedTime, TimePeriod, Z2SFC}
 import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.sfcurve.zorder.Z2
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class FrequencyTest extends Specification with StatTestHelper {
+class FrequencyTest extends org.specs2.mutable.Spec with StatTestHelper {
 
   def createStat[T](attribute: String, precision: Int, observe: Boolean): Frequency[T] = {
     val s = Stat(sft, Stat.Frequency(attribute, precision))
@@ -79,7 +79,7 @@ class FrequencyTest extends Specification with StatTestHelper {
       val serializer = StatSerializer(sft)
 
       stat.sketchMap must haveSize(4)
-      stat.sketchMap.keySet mustEqual weeks
+      stat.sketchMap.keySet must containTheSameElementsAs(weeks.map(_.toShort).toSeq)
 
       val offsets = (0 until 4).map(_ * 28)
       forall(offsets.flatMap(o => o +  0 until o +  7))(stat.count(weekStart.toShort, _) mustEqual 1)

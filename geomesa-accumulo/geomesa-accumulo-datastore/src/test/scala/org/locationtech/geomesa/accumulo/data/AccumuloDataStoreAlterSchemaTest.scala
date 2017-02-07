@@ -23,13 +23,14 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreAlterSchemaTest extends Specification {
+class AccumuloDataStoreAlterSchemaTest extends org.specs2.mutable.Spec
+    with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 
@@ -38,12 +39,14 @@ class AccumuloDataStoreAlterSchemaTest extends Specification {
 
   val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
 
-  val ds = DataStoreFinder.getDataStore(
+  def loadDs(): AccumuloDataStore = DataStoreFinder.getDataStore(
     Map("connector" -> connector,
-        "caching"   -> false,
-        // note the table needs to be different to prevent testing errors
-        "tableName" -> sftName)
-    ).asInstanceOf[AccumuloDataStore]
+      "caching"   -> false,
+      // note the table needs to be different to prevent testing errors
+      "tableName" -> sftName)
+  ).asInstanceOf[AccumuloDataStore]
+
+  var ds = loadDs()
 
   val spec = "dtg:Date,*geom:Point:srid=4326"
   ds.createSchema(SimpleFeatureTypes.createType(sftName, spec))
@@ -63,39 +66,45 @@ class AccumuloDataStoreAlterSchemaTest extends Specification {
     collection
   }
 
-  // TODO this gets run twice by maven
-  if (sft.getAttributeDescriptors.length == 2) {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
-    val builder = new SimpleFeatureTypeBuilder()
-    builder.init(sft)
-    builder.userData("index", "join")
-    builder.add("attr1", classOf[String])
-    val updatedSft = builder.buildFeatureType()
-    updatedSft.getUserData.putAll(sft.getUserData)
-    updatedSft.setIndices(updatedSft.getIndices :+ (AttributeIndex.name, AttributeIndex.version, IndexMode.ReadWrite))
-
-    ds.updateSchema(sftName, updatedSft)
-
-    sft = ds.getSchema(sftName)
-  }
-
-  ds.getFeatureSource(sftName).addFeatures {
-    val collection = new DefaultFeatureCollection()
-    collection.addAll {
-      (0 until 10).filter(_ % 2 == 1).map { i =>
-        val sf = new ScalaSimpleFeature(s"f$i", sft)
-        sf.setAttribute(0, s"2014-01-01T0$i:00:00.000Z")
-        sf.setAttribute(1, s"POINT(5$i 50)")
-        sf.setAttribute(2, s"$i")
-        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-        sf
-      }
-    }
-    collection
-  }
-
   "AccumuloDataStore" should {
+    "alter a schema" >> {
+      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+      val builder = new SimpleFeatureTypeBuilder()
+      builder.init(sft)
+      builder.userData("index", "join")
+      builder.add("attr1", classOf[String])
+      val updatedSft = builder.buildFeatureType()
+      updatedSft.getUserData.putAll(sft.getUserData)
+      updatedSft.setIndices(updatedSft.getIndices :+ (AttributeIndex.name, AttributeIndex.version, IndexMode.ReadWrite))
+
+      ds.updateSchema(sftName, updatedSft)
+
+      sft = ds.getSchema(sftName)
+      sft.getAttributeCount mustEqual 3
+
+      // reload data store to refresh sft caches
+      ds.dispose()
+      ds = loadDs()
+      ds must not(beNull)
+    }
+    "add new features with altered schema" >> {
+      ds.getFeatureSource(sftName).addFeatures {
+        val collection = new DefaultFeatureCollection()
+        collection.addAll {
+          (0 until 10).filter(_ % 2 == 1).map { i =>
+            val sf = new ScalaSimpleFeature(s"f$i", sft)
+            sf.setAttribute(0, s"2014-01-01T0$i:00:00.000Z")
+            sf.setAttribute(1, s"POINT(5$i 50)")
+            sf.setAttribute(2, s"$i")
+            sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+            sf
+          }
+        }
+        collection
+      }
+      ok
+    }
     "work with an altered schema" >> {
       val query = new Query(sftName, Filter.INCLUDE)
       val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList

@@ -23,13 +23,13 @@ import org.locationtech.geomesa.utils.stats.Cardinality
 import org.opengis.filter._
 import org.opengis.filter.temporal.During
 import org.specs2.matcher.MatchResult
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class QueryFilterSplitterTest extends Specification {
+class QueryFilterSplitterTest extends org.specs2.mutable.Spec
+    with org.specs2.matcher.SequenceMatchersCreation with org.specs2.matcher.ValueChecks with 	org.specs2.matcher.MatchResultCombinators {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -46,7 +46,7 @@ class QueryFilterSplitterTest extends Specification {
 
   sft.setIndices(AccumuloFeatureIndex.CurrentIndices.filter(_.supports(sft)).map(i => (i.name, i.version, IndexMode.ReadWrite)))
 
-  val ff = CommonFactoryFinder.getFilterFactory2
+  val filterFactory = CommonFactoryFinder.getFilterFactory2
   val splitter = new FilterSplitter(sft, AccumuloFeatureIndex.indices(sft, IndexMode.Any))
 
   val geom                = "BBOX(geom,40,40,50,50)"
@@ -66,11 +66,11 @@ class QueryFilterSplitterTest extends Specification {
 
   val includeStrategy     = Z3Index
 
-  def and(clauses: Filter*) = ff.and(clauses)
-  def or(clauses: Filter*)  = ff.or(clauses)
-  def and(clauses: String*)(implicit d: DummyImplicit) = ff.and(clauses.map(ECQL.toFilter))
-  def or(clauses: String*)(implicit d: DummyImplicit)  = ff.or(clauses.map(ECQL.toFilter))
-  def not(clauses: String*) = filter.andFilters(clauses.map(ECQL.toFilter).map(ff.not))(ff)
+  def and(clauses: Filter*) = filterFactory.and(clauses)
+  def or(clauses: Filter*)  = filterFactory.or(clauses)
+  def and(clauses: String*)(implicit d: DummyImplicit) = filterFactory.and(clauses.map(ECQL.toFilter))
+  def or(clauses: String*)(implicit d: DummyImplicit)  = filterFactory.or(clauses.map(ECQL.toFilter))
+  def not(clauses: String*) = filter.andFilters(clauses.map(ECQL.toFilter).map(filterFactory.not))(filterFactory)
   def f(filter: String)     = ECQL.toFilter(filter)
 
   def compareAnd(primary: Option[Filter], clauses: Filter*): MatchResult[Option[Seq[Filter]]] =
@@ -167,10 +167,7 @@ class QueryFilterSplitterTest extends Specification {
         options.map(_.strategies.head.index) must containTheSameElementsAs(Seq(Z2Index, Z3Index))
         val z2 = options.find(_.strategies.head.index == Z2Index).get
         compareOr(z2.strategies.head.primary, geom, geom2)
-        forall(z2.strategies.map(_.secondary))(_ must beSome)
-        z2.strategies.map(_.secondary.get) must contain(beAnInstanceOf[During], beAnInstanceOf[And])
-        z2.strategies.map(_.secondary.get).collect { case a: And => a.getChildren }.flatten must
-            contain(beAnInstanceOf[During], beAnInstanceOf[Not])
+        z2.strategies.head.secondary must beSome(beAnInstanceOf[During])
         val z3 = options.find(_.strategies.head.index == Z3Index).get
         compareAnd(z3.strategies.head.primary, or(geom, geom2), f(dtg))
         z3.strategies.head.secondary must beNone
@@ -466,11 +463,18 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
         options.head.strategies must haveLength(3)
-        options.head.strategies.map(_.index) must
-            containTheSameElementsAs(Seq(Z3Index, Z2Index, AttributeIndex))
-        options.head.strategies.map(_.primary) must contain(beSome(f(geom)), beSome(f(dtg)), beSome(f(indexedAttr)))
-        options.head.strategies.map(_.secondary) must contain(beSome(not(geom)), beSome(not(geom, dtg)))
-        options.head.strategies.map(_.secondary) must contain(beNone)
+        options.head.strategies.map(_.index) must containTheSameElementsAs(Seq(Z3Index, Z2Index, AttributeIndex))
+        forall(options.head.strategies.map(_.primary))(_ must beSome)
+        options.head.strategies.flatMap(_.primary) must contain(f(geom), f(dtg), f(indexedAttr))
+        val secondary = options.head.strategies.flatMap(_.secondary)
+        secondary must haveLength(2)
+        // we don't know the order of the inversions so check them all
+        secondary must contain(not(geom), not(geom, indexedAttr)) or
+            (secondary must contain(not(geom), not(geom, dtg))) or
+            (secondary must contain(not(dtg), not(dtg, indexedAttr))) or
+            (secondary must contain(not(dtg), not(dtg, geom))) or
+            (secondary must contain(not(indexedAttr), not(indexedAttr, geom))) or
+            (secondary must contain(not(indexedAttr), not(indexedAttr, dtg)))
       }
     }
 
@@ -519,7 +523,7 @@ class QueryFilterSplitterTest extends Specification {
 
       val orQuery = (0 until 5).map( i => s"high = 'h$i'").mkString(" OR ")
       val inQuery = s"high in (${(0 until 5).map( i => s"'h$i'").mkString(",")})"
-      Seq(orQuery, inQuery).forall(testHighCard)
+      forall(Seq(orQuery, inQuery))(testHighCard)
     }
 
     "extract the simple parts from complex filters" >> {

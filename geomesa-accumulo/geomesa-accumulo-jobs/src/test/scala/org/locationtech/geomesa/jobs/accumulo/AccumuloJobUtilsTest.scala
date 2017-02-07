@@ -9,17 +9,17 @@
 package org.locationtech.geomesa.jobs.accumulo
 
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloJobUtilsTest extends Specification {
+class AccumuloJobUtilsTest extends org.specs2.mutable.Spec {
 
   "AccumuloJobUtils" should {
     "load list of jars from class resource" in {
       AccumuloJobUtils.defaultLibJars must not(beNull)
       AccumuloJobUtils.defaultLibJars must not(beEmpty)
-      AccumuloJobUtils.defaultLibJars must contain("accumulo")
+      AccumuloJobUtils.defaultLibJars must contain("accumulo-fate")
       AccumuloJobUtils.defaultLibJars must contain("libthrift")
     }
   }

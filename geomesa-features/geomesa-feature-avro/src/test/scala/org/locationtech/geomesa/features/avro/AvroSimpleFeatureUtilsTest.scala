@@ -15,13 +15,13 @@ import java.util.{UUID, Date}
 import org.apache.avro.Schema
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SftBuilder
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class AvroSimpleFeatureUtilsTest extends Specification {
+class AvroSimpleFeatureUtilsTest extends org.specs2.mutable.Spec {
 
   "AvroSimpleFeatureUtils" should {
 
@@ -162,7 +162,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
           val orig = Map(true -> true, false -> true, false -> false, true -> false)
           val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava, classOf[Boolean], classOf[Boolean])
           val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-          decoded.asScala mustEqual orig
+          decoded.asScala.toMap mustEqual orig
         }
         "in java" >> {
           val orig = Map(
@@ -174,7 +174,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
           val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava,
             classOf[java.lang.Boolean], classOf[java.lang.Boolean])
           val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-          decoded.asScala mustEqual orig
+          decoded.asScala.toMap mustEqual orig
         }
       }
       "of ints" >> {
@@ -290,7 +290,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
         )
         val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava, classOf[Date], classOf[Date])
         val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-        decoded.asScala mustEqual orig
+        decoded.asScala.toMap mustEqual orig
       }
 
       "of UUIDs" >> {
@@ -301,7 +301,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
         )
         val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava, classOf[UUID], classOf[UUID])
         val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-        decoded.asScala mustEqual orig
+        decoded.asScala.toMap mustEqual orig
       }
 
       "of strings to bytes" >> {
@@ -318,7 +318,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
         val orig = Map("key1" -> new Date(0), "key2" -> new Date(), "key3" -> new Date(99999))
         val encoded = AvroSimpleFeatureUtils.encodeMap(orig.asJava, classOf[String], classOf[Date])
         val decoded = AvroSimpleFeatureUtils.decodeMap(encoded)
-        decoded.asScala mustEqual orig
+        decoded.asScala.toMap mustEqual orig
       }
     }
 
@@ -365,7 +365,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
 
         val expectedSchema = new Schema.Parser().parse("""{"type":"record","name":"toavro","namespace":"test.avro","fields":[{"name":"__version__","type":"int"},{"name":"__fid__","type":"string"},{"name":"geom","type":["bytes","null"]},{"name":"age","type":["int","null"]},{"name":"__userdata__","type":{"type":"array","items":{"type":"record","name":"userDataItem","fields":[{"name":"class","type":"string"},{"name":"key","type":"string"},{"name":"value","type":"string"}]}}}]}""")
         val schema = AvroSimpleFeatureUtils.generateSchema(sft, withUserData = true, "test.avro")
-        expectedSchema must be equalTo schema
+        expectedSchema mustEqual schema
       }
     }
   }

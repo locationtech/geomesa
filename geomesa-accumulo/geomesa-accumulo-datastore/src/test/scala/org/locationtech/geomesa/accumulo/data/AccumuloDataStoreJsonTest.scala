@@ -15,11 +15,11 @@ import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreJsonTest extends Specification with TestWithDataStore {
+class AccumuloDataStoreJsonTest extends org.specs2.mutable.Spec with TestWithDataStore {
 
   sequential
 

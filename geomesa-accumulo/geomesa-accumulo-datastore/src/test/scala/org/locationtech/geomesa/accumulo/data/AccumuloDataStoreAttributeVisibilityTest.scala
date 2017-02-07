@@ -24,11 +24,12 @@ import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreAttributeVisibilityTest extends Specification {
+class AccumuloDataStoreAttributeVisibilityTest extends org.specs2.mutable.Spec
+    with org.specs2.matcher.SequenceMatchersCreation with org.specs2.matcher.ValueChecks {
 
   import scala.collection.JavaConversions._
 

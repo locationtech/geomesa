@@ -29,13 +29,14 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.specs2.matcher.MatchResult
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class BackCompatibilityTest extends Specification with LazyLogging {
+class BackCompatibilityTest extends org.specs2.mutable.Spec
+    with org.specs2.matcher.SequenceMatchersCreation with LazyLogging {
 
   /**
     * Runs version tests against old data. To add more versions, generate a new data file by running
@@ -227,14 +228,14 @@ class BackCompatibilityTest extends Specification with LazyLogging {
 @RunWith(classOf[JUnitRunner])
 class BackCompatibilityWriter extends TestWithDataStore {
 
+  skipAllIf(true) // integration
+
   override val spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4326,multi:MultiPolygon:srid=4326"
 
   val version = "REPLACEME"
 
   "AccumuloDataStore" should {
     "write data" in {
-
-      skipped("integration")
 
       addFeatures((0 until 10).map { i =>
         val sf = new ScalaSimpleFeature(i.toString, sft)

@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.utils.geotools
 
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class GenerateFeatureWrappersTest extends Specification {
+class GenerateFeatureWrappersTest extends org.specs2.mutable.Spec {
 
   "GenerateFeatureWrappers" should {
 

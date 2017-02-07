@@ -16,46 +16,47 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.MinMax.MinMaxGeometry
 import org.locationtech.geomesa.utils.stats.{Histogram, Stat}
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class StatsHistogramCommandTest extends Specification {
+class StatsHistogramCommandTest extends org.specs2.mutable.Spec {
 
   "StatsHistogramCommand" should {
     "put points on the map" >> {
-      skipped("integration")
+      skipped {
+        // integration
+        val sft = SimpleFeatureTypes.createType("StatsHistogramCommandTest", "geom:Geometry:srid=4326")
+        val length = GeoMesaStats.MaxHistogramSize
+        val stat = Stat(sft, Stat.Histogram[Geometry]("geom", length, MinMaxGeometry.min, MinMaxGeometry.max))
+        val histogram = stat.asInstanceOf[Histogram[Geometry]]
 
-      val sft = SimpleFeatureTypes.createType("StatsHistogramCommandTest", "geom:Geometry:srid=4326")
-      val length = GeoMesaStats.MaxHistogramSize
-      val stat = Stat(sft, Stat.Histogram[Geometry]("geom", length, MinMaxGeometry.min, MinMaxGeometry.max))
-      val histogram = stat.asInstanceOf[Histogram[Geometry]]
+        def addPoint(x: Int, y: Int): Unit = {
+          histogram.observe(new ScalaSimpleFeature("", sft, Array(WKTUtils.read(s"POINT ($x $y)"))))
+          histogram.observe(new ScalaSimpleFeature("", sft, Array(WKTUtils.read(s"POINT (${x + 0.1} ${y + 0.1})"))))
+          histogram.observe(new ScalaSimpleFeature("", sft, Array(WKTUtils.read(s"POINT (${x - 0.1} ${y + 0.1})"))))
+          histogram.observe(new ScalaSimpleFeature("", sft, Array(WKTUtils.read(s"POINT (${x + 0.1} ${y - 0.1})"))))
+          histogram.observe(new ScalaSimpleFeature("", sft, Array(WKTUtils.read(s"POINT (${x - 0.1} ${y - 0.1})"))))
+        }
 
-      def addPoint(x: Int, y: Int): Unit = {
-        histogram.observe(new ScalaSimpleFeature("", sft, Array(WKTUtils.read(s"POINT ($x $y)"))))
-        histogram.observe(new ScalaSimpleFeature("", sft, Array(WKTUtils.read(s"POINT (${x + 0.1} ${y + 0.1})"))))
-        histogram.observe(new ScalaSimpleFeature("", sft, Array(WKTUtils.read(s"POINT (${x - 0.1} ${y + 0.1})"))))
-        histogram.observe(new ScalaSimpleFeature("", sft, Array(WKTUtils.read(s"POINT (${x + 0.1} ${y - 0.1})"))))
-        histogram.observe(new ScalaSimpleFeature("", sft, Array(WKTUtils.read(s"POINT (${x - 0.1} ${y - 0.1})"))))
+        addPoint(0, 0)
+
+        addPoint(-179, -89)
+        addPoint(-179, 89)
+        addPoint(179, -89)
+        addPoint(179, 89)
+
+        addPoint(-90, -45)
+        addPoint(-90, 45)
+        addPoint(90, -45)
+        addPoint(90, 45)
+
+        addPoint(-76, 44)
+
+        println(StatsHistogramCommand.geomHistToString("geom", histogram))
+
+        ok
       }
-
-      addPoint(0, 0)
-
-      addPoint(-179, -89)
-      addPoint(-179, 89)
-      addPoint(179, -89)
-      addPoint(179, 89)
-
-      addPoint(-90, -45)
-      addPoint(-90, 45)
-      addPoint(90, -45)
-      addPoint(90, 45)
-
-      addPoint(-76, 44)
-
-      println(StatsHistogramCommand.geomHistToString("geom", histogram))
-
-      ok
     }
   }
 }

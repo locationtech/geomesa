@@ -19,14 +19,16 @@ import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @RunWith(classOf[JUnitRunner])
-class StreamDataStoreTest extends Specification {
+class StreamDataStoreTest extends org.specs2.mutable.Spec {
+
+  implicit val ec = ExecutionContext.global
 
   sequential
 
@@ -34,7 +36,7 @@ class StreamDataStoreTest extends Specification {
   val count2 = new AtomicLong(0)
   val count3 = new AtomicLong(0)
 
-  val ff = CommonFactoryFinder.getFilterFactory2()
+  val filterFactory = CommonFactoryFinder.getFilterFactory2()
   val sourceConf =
     """
       |{
@@ -68,7 +70,7 @@ class StreamDataStoreTest extends Specification {
 
   "StreamDataStore" should {
     "be built from a conf string" >> {
-      sds must not beNull
+      sds must not(beNull)
     }
 
     "read and write" >> {
@@ -82,7 +84,7 @@ class StreamDataStoreTest extends Specification {
       val listener2 = StreamListener { sf => count2.incrementAndGet() }
       sds.registerListener(listener2)
 
-      val bboxFilter = ff.bbox("geom", 49.0, 79.0, 51.0, 80.0, "EPSG:4326")
+      val bboxFilter = filterFactory.bbox("geom", 49.0, 79.0, 51.0, 80.0, "EPSG:4326")
       val listener3 = StreamListener(bboxFilter, _ =>  count3.incrementAndGet())
       sds.registerListener(listener3)
 
@@ -113,7 +115,7 @@ class StreamDataStoreTest extends Specification {
       }
 
       "handle bbox filters" >> {
-        fs.getFeatures(bboxFilter).size() must be equalTo 3
+        fs.getFeatures(bboxFilter).size() mustEqual 3
       }
 
       "expire data after the appropriate amount of time" >> {

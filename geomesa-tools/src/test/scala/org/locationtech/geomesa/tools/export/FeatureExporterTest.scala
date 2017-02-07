@@ -23,11 +23,10 @@ import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class FeatureExporterTest extends Specification {
+class FeatureExporterTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 

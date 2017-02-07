@@ -10,28 +10,30 @@ package org.locationtech.geomesa.accumulo.util
 
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class CloseableIteratorTest extends Specification {
+class CloseableIteratorTest extends org.specs2.mutable.Spec {
 
   "CloseableIterator" should {
     "provide an empty iterator" in {
       val ei = CloseableIterator.empty
 
       "that has no next element" >> {
-        ei.hasNext shouldEqual false
+        ei.hasNext mustEqual false
       }
 
       "asking for an element should throw an exception" >> {
-        {ei.next(); ()} should throwA[NoSuchElementException] // workaround for should not applying to Nothing
+        {ei.next(); ()} must throwA[NoSuchElementException] // workaround for should not applying to Nothing
       }
 
       "closing it should succeed" >> {
         val ei = CloseableIterator.empty
-        ei.close() should not(throwA[NullPointerException])
+        ei.close() must not(throwA[NullPointerException])
       }
+
+      ok
     }
 
     "not smash the stack in ciFlatMap" >> {
@@ -39,7 +41,7 @@ class CloseableIteratorTest extends Specification {
         if (n < 50000) CloseableIterator.empty
         else CloseableIterator(List(n).iterator)
       val ci = CloseableIterator((1 to 50000).iterator)
-      ci.ciFlatMap(f).length should be equalTo 1
+      ci.ciFlatMap(f).length mustEqual 1
     }
   }
 }

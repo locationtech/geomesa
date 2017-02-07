@@ -16,13 +16,13 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.nio.AttributeAccessor.ByteBufferSimpleFeatureSerializer
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.languageFeature.postfixOps
 
 @RunWith(classOf[JUnitRunner])
-class LazySimpleFeatureTest extends Specification with LazyLogging {
+class LazySimpleFeatureTest extends org.specs2.mutable.Spec with LazyLogging {
 
   sequential
 
@@ -62,36 +62,38 @@ class LazySimpleFeatureTest extends Specification with LazyLogging {
     }
 
     "be faster than full deserialization" in {
-      skipped("integration")
-      val spec = "a:Integer,c:Double,d:Long,f:String,g:Boolean,dtg:Date,*geom:Point:srid=4326"
-      val sft = SimpleFeatureTypes.createType("speed", spec)
+      skipped {
+        // integration
+        val spec = "a:Integer,c:Double,d:Long,f:String,g:Boolean,dtg:Date,*geom:Point:srid=4326"
+        val sft = SimpleFeatureTypes.createType("speed", spec)
 
-      val sf = new ScalaSimpleFeature("fakeid", sft)
+        val sf = new ScalaSimpleFeature("fakeid", sft)
 
-      sf.setAttribute("a", "1")
-      sf.setAttribute("c", "5.37")
-      sf.setAttribute("d", "-100")
-      sf.setAttribute("f", "mystring")
-      sf.setAttribute("g", java.lang.Boolean.FALSE)
-      sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
-      sf.setAttribute("geom", "POINT(45.0 49.0)")
+        sf.setAttribute("a", "1")
+        sf.setAttribute("c", "5.37")
+        sf.setAttribute("d", "-100")
+        sf.setAttribute("f", "mystring")
+        sf.setAttribute("g", java.lang.Boolean.FALSE)
+        sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+        sf.setAttribute("geom", "POINT(45.0 49.0)")
 
-      val writer = new ByteBufferSimpleFeatureSerializer(sft)
-      val buf = ByteBuffer.allocate(2048)
-      val bytesWritten = writer.write(buf, sf)
-      val serialized = util.Arrays.copyOfRange(buf.array(), 0, bytesWritten)
+        val writer = new ByteBufferSimpleFeatureSerializer(sft)
+        val buf = ByteBuffer.allocate(2048)
+        val bytesWritten = writer.write(buf, sf)
+        val serialized = util.Arrays.copyOfRange(buf.array(), 0, bytesWritten)
 
-      val accessors = AttributeAccessor.buildSimpleFeatureTypeAttributeAccessors(sft)
+        val accessors = AttributeAccessor.buildSimpleFeatureTypeAttributeAccessors(sft)
 
-      val start2 = System.currentTimeMillis()
-      val reusable = new LazySimpleFeature("fakeid", sft, accessors, ByteBuffer.wrap(serialized))
-      (0 until 1000000).foreach { _ =>
-        reusable.setBuf(ByteBuffer.wrap(serialized))
-        reusable.getAttribute(6)
+        val start2 = System.currentTimeMillis()
+        val reusable = new LazySimpleFeature("fakeid", sft, accessors, ByteBuffer.wrap(serialized))
+        (0 until 1000000).foreach { _ =>
+          reusable.setBuf(ByteBuffer.wrap(serialized))
+          reusable.getAttribute(6)
+        }
+        logger.debug(s"took ${System.currentTimeMillis() - start2}ms\n\n")
+
+        success
       }
-      logger.debug(s"took ${System.currentTimeMillis() - start2}ms\n\n")
-
-      success
     }
   }
 }

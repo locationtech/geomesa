@@ -16,13 +16,13 @@ import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.interop.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
+class SparkSQLGeometryAccessorsTest extends org.specs2.mutable.Spec with LazyLogging {
 
   "sql geometry accessors" should {
     sequential
@@ -46,7 +46,7 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
         .options(dsParams)
         .option("geomesa.feature", "chicago")
         .load()
-      logger.info(df.schema.treeString)
+      logger.debug(df.schema.treeString)
       df.createOrReplaceTempView("chicago")
 
       df.collect().length mustEqual 3

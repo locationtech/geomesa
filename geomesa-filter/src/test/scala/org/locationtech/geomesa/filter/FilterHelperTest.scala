@@ -17,13 +17,12 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.opengis.filter._
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class FilterHelperTest extends Specification {
+class FilterHelperTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
-  val ff = CommonFactoryFinder.getFilterFactory2
+  val filterFactory = CommonFactoryFinder.getFilterFactory2
 
   val MinDateTime = Converters.convert(FilterHelper.MinDateTime.toDate, classOf[String])
   val MaxDateTime = Converters.convert(FilterHelper.MaxDateTime.toDate, classOf[String])
@@ -39,33 +38,33 @@ class FilterHelperTest extends Specification {
   "FilterHelper" should {
 
     "fix out of bounds bbox" >> {
-      val filter = ff.bbox(ff.property("geom"), -181, -91, 181, 91, "4326")
+      val filter = filterFactory.bbox(filterFactory.property("geom"), -181, -91, 181, 91, "4326")
       val updated = updateFilter(filter)
       updated mustEqual Filter.INCLUDE
     }
 
     "be idempotent with bbox" >> {
-      val filter = ff.bbox(ff.property("geom"), -181, -91, 181, 91, "4326")
+      val filter = filterFactory.bbox(filterFactory.property("geom"), -181, -91, 181, 91, "4326")
       val updated = updateFilter(filter)
       val reupdated = updateFilter(updated)
       ECQL.toCQL(updated) mustEqual ECQL.toCQL(reupdated)
     }
 
     "be idempotent with dwithin" >> {
-      val filter = ff.dwithin(ff.property("geom"), ff.literal("LINESTRING (-45 0, -90 45)"), 1000, "meters")
+      val filter = filterFactory.dwithin(filterFactory.property("geom"), filterFactory.literal("LINESTRING (-45 0, -90 45)"), 1000, "meters")
       val updated = updateFilter(filter)
       val reupdated = updateFilter(updated)
       ECQL.toCQL(updated) mustEqual ECQL.toCQL(reupdated)
     }
 
     "not modify valid intersects" >> {
-      val filter = ff.intersects(ff.property("geom"), ff.literal("POLYGON((45 23, 45 27, 48 27, 48 23, 45 23))"))
+      val filter = filterFactory.intersects(filterFactory.property("geom"), filterFactory.literal("POLYGON((45 23, 45 27, 48 27, 48 23, 45 23))"))
       val updated = updateFilter(filter)
       ECQL.toCQL(updated) mustEqual "INTERSECTS(geom, POLYGON ((45 23, 45 27, 48 27, 48 23, 45 23)))"
     }
 
     "fix IDL polygons in intersects" >> {
-      val filter = ff.intersects(ff.property("geom"), ff.literal("POLYGON((-150 23,-164 11,45 23,49 30,-150 23))"))
+      val filter = filterFactory.intersects(filterFactory.property("geom"), filterFactory.literal("POLYGON((-150 23,-164 11,45 23,49 30,-150 23))"))
       val updated = updateFilter(filter)
       ECQL.toCQL(updated) mustEqual "INTERSECTS(geom, POLYGON ((-180 12.271523178807946, -180 24.304347826086957, " +
           "-150 23, -164 11, -180 12.271523178807946))) OR INTERSECTS(geom, POLYGON ((180 24.304347826086957, " +
@@ -73,7 +72,7 @@ class FilterHelperTest extends Specification {
     }
 
     "be idempotent with intersects" >> {
-      val filter = ff.intersects(ff.property("geom"), ff.literal("POLYGON((-150 23,-164 11,45 23,49 30,-150 23))"))
+      val filter = filterFactory.intersects(filterFactory.property("geom"), filterFactory.literal("POLYGON((-150 23,-164 11,45 23,49 30,-150 23))"))
       val updated = updateFilter(filter)
       val reupdated = updateFilter(updated)
       ECQL.toCQL(updated) mustEqual ECQL.toCQL(reupdated)

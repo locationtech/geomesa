@@ -11,63 +11,81 @@ package org.locationtech.geomesa.kafka
 import java.util.{List => JList}
 
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.specs2.matcher.{Matcher, ValueCheck}
-import org.specs2.mutable.Specification
+import org.specs2.matcher.{Expectable, MatchResult, Matcher}
 
-import scala.collection.JavaConverters._
+trait SimpleFeatureMatchers extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
-trait SimpleFeatureMatchers extends Specification {
-
-  def containFeatures(sf: Set[SimpleFeature]): Matcher[Seq[SimpleFeature]] =
-    contain(exactly(sf.map(equalSF).toSeq : _*))
-
-  def containSF(expected: SimpleFeature): Matcher[Seq[SimpleFeature]] = {
-    val matcher = equalSF(expected)
-
-    seq: Seq[SimpleFeature] => seq.exists(matcher.test)
+  def containFeatures(expected: Set[SimpleFeature]): Matcher[Seq[SimpleFeature]] = new Matcher[Seq[SimpleFeature]] {
+    override def apply[S <: Seq[SimpleFeature]](t: Expectable[S]): MatchResult[S] = {
+      val actual = t.value
+      actual must haveSize(expected.size)
+      forall(actual)(a => expected must contain(equalSF(a)))
+      ok.asInstanceOf[MatchResult[S]]
+    }
   }
 
-  def equalSF(expected: SimpleFeature): Matcher[SimpleFeature] = {
-    sf: SimpleFeature => {
+  def containSF(expected: SimpleFeature): Matcher[Seq[SimpleFeature]] = new Matcher[Seq[SimpleFeature]] {
+    val matcher = equalSF(expected)
+    override def apply[S <: Seq[SimpleFeature]](t: Expectable[S]): MatchResult[S] = {
+      t.value must contain(matcher)
+    }
+  }
+
+  def equalSF(expected: SimpleFeature): Matcher[SimpleFeature] = new Matcher[SimpleFeature] {
+    override def apply[S <: SimpleFeature](t: Expectable[S]): MatchResult[S] = {
+      val sf = t.value
       sf.getID mustEqual expected.getID
       sf.getDefaultGeometry mustEqual expected.getDefaultGeometry
       sf.getAttributes mustEqual expected.getAttributes
       sf.getUserData mustEqual expected.getUserData
+      ok.asInstanceOf[MatchResult[S]]
     }
   }
 
-  def equalFeatureHolder(expected: SimpleFeature): Matcher[FeatureHolder] = {
-    fh: FeatureHolder => fh.sf must equalSF(expected)
+  def equalFeatureHolder(expected: SimpleFeature): Matcher[FeatureHolder] = new Matcher[FeatureHolder] {
+    override def apply[S <: FeatureHolder](t: Expectable[S]): MatchResult[S] = {
+      t.value.sf must equalSF(expected)
+      ok.asInstanceOf[MatchResult[S]]
+    }
   }
 
-  def featureHolder(expected: SimpleFeature): ValueCheck[FeatureHolder] = {
-    fh: FeatureHolder => fh.sf must equalSF(expected)
-  }
+  def containTheSameFeatureHoldersAs(expected: SimpleFeature*): Matcher[JList[_]] = new Matcher[JList[_]] {
 
-  def containTheSameFeatureHoldersAs(expected: SimpleFeature*): Matcher[JList[_]] = {
+    import scala.collection.JavaConversions._
+
     // don't care about order so convert to a set
     val expectedSet = expected.toSet
 
-    actual: JList[_] => {
-      actual must not(beNull)
+    override def apply[S <: JList[_]](t: Expectable[S]): MatchResult[S] = {
+      val actual = t.value
+      // actual must not(beNull)
       actual.size() mustEqual expected.size
-      actual.asScala.toSet mustEqual expectedSet
+      actual.asInstanceOf[JList[_]].toSet mustEqual expectedSet
+      ok.asInstanceOf[MatchResult[S]]
     }
   }
 
-  def containGeoMessages(sfs: Seq[GeoMessage]): Matcher[Seq[GeoMessage]] =
-    contain(exactly(sfs.map(equalGeoMessage) : _*))
+  def equalGeoMessages(expected: Seq[GeoMessage]): Matcher[Seq[GeoMessage]] = new Matcher[Seq[GeoMessage]] {
+    override def apply[S <: Seq[GeoMessage]](t: Expectable[S]): MatchResult[S] = {
+      val actual = t.value
+      actual must haveLength(expected.length)
+      forall(actual)(a => expected must contain(equalGeoMessage(a)))
+      ok.asInstanceOf[MatchResult[S]]
+    }
+  }
 
-  def equalGeoMessages(expected: Seq[GeoMessage]): Matcher[Seq[GeoMessage]] =
-    contain(exactly(expected.map(equalGeoMessage) : _*))
-
-  def equalGeoMessage(expected: GeoMessage): Matcher[GeoMessage] = expected match {
-    case _: Delete => equalTo(expected)
-    case _: Clear => equalTo(expected)
-    case CreateOrUpdate(ts, sf) => actual: GeoMessage => {
-      actual must beAnInstanceOf[CreateOrUpdate]
-      actual.timestamp mustEqual ts
-      actual.asInstanceOf[CreateOrUpdate].feature must equalSF(sf)
+  def equalGeoMessage(expected: GeoMessage): Matcher[GeoMessage] = new Matcher[GeoMessage] {
+    override def apply[S <: GeoMessage](t: Expectable[S]): MatchResult[S] = {
+      expected match {
+        case _: Delete => t.value mustEqual expected
+        case _: Clear => t.value mustEqual expected
+        case CreateOrUpdate(ts, sf) =>
+          val actual = t.value
+          actual must beAnInstanceOf[CreateOrUpdate]
+          actual.timestamp mustEqual ts
+          actual.asInstanceOf[CreateOrUpdate].feature must equalSF(sf)
+      }
+      ok.asInstanceOf[MatchResult[S]]
     }
   }
 

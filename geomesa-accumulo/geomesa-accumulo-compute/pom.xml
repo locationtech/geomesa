@@ -129,14 +129,6 @@
             <artifactId>log4j</artifactId>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>org.specs2</groupId>
-            <artifactId>specs2_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-        </dependency>
     </dependencies>
 
 </project>

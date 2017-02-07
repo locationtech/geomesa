@@ -14,11 +14,11 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class XZConfigurationTest extends Specification with TestWithDataStore {
+class XZConfigurationTest extends TestWithDataStore with org.specs2.matcher.SequenceMatchersCreation {
 
   val spec = "name:String,dtg:Date,*geom:Polygon:srid=4326;geomesa.xz.precision='10',geomesa.indexes.enabled='xz2,xz3'"
 

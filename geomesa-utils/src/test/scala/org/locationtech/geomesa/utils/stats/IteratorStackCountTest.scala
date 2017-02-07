@@ -9,15 +9,15 @@
 package org.locationtech.geomesa.utils.stats
 
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class IteratorStackCountTest extends Specification with StatTestHelper {
+class IteratorStackCountTest extends org.specs2.mutable.Spec with StatTestHelper {
   sequential
 
   "IteratorStackCount stat" should {
-    "create an IteratorStackCount" in {
+    "create an IteratorStackCount" >> {
       val stat = Stat(sft, "IteratorStackCount()")
       val isc = stat.asInstanceOf[IteratorStackCount]
 
@@ -44,7 +44,7 @@ class IteratorStackCountTest extends Specification with StatTestHelper {
         unpacked.unobserve(features.head) must throwAn[Exception]
       }
 
-      "combine two IteratorStackCounts" in {
+      "combine two IteratorStackCounts" >> {
         val stat2 = Stat(sft, "IteratorStackCount()")
         val isc2 = stat2.asInstanceOf[IteratorStackCount]
         isc2.counter = 5L

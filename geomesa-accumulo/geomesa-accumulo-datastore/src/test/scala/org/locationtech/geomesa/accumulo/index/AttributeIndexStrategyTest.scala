@@ -30,13 +30,14 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.specs2.matcher.Matcher
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
+class AttributeIndexStrategyTest extends TestWithDataStore
+    with org.specs2.matcher.SequenceMatchersCreation with org.specs2.matcher.ValueChecks
+    with org.specs2.execute.PendingUntilFixed {
 
   sequential
 
@@ -94,13 +95,14 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
 
   "AttributeIndexStrategy" should {
     "print values" in {
-      skipped("used for debugging")
-      val scanner = connector.createScanner(AttributeIndex.getTableName(sftName, ds), MockUserAuthorizations)
-      val prefix = AttributeWritableIndex.getRowPrefix(sft, sft.indexOf("height"))
-      scanner.setRange(AccRange.prefix(new Text(prefix)))
-      scanner.asScala.foreach(println)
-      println()
-      success
+      skipped {
+        val scanner = connector.createScanner(AttributeIndex.getTableName(sftName, ds), MockUserAuthorizations)
+        val prefix = AttributeWritableIndex.getRowPrefix(sft, sft.indexOf("height"))
+        scanner.setRange(AccRange.prefix(new Text(prefix)))
+        scanner.asScala.foreach(println)
+        println()
+        success
+      }
     }
 
     "all attribute filters should be applied to SFFI" in {
@@ -685,14 +687,14 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
         features must contain("bill", "bob", "charles")
       }
       "before" >> {
-        execute("2014-01-01T12:30:00.000Z AFTER indexedDtg") should throwA[CQLException]
+        execute("2014-01-01T12:30:00.000Z AFTER indexedDtg") must throwA[CQLException]
       }
       "after" >> {
-        execute("2013-01-01T12:30:00.000Z BEFORE indexedDtg") should throwA[CQLException]
+        execute("2013-01-01T12:30:00.000Z BEFORE indexedDtg") must throwA[CQLException]
       }
     }
 
-    "correctly query on lists of strings" in {
+    "correctly query on lists of strings" >> {
       "lt" >> {
         val features = execute("fingers<'middle'")
         features must haveLength(3)
@@ -720,7 +722,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       }
     }
 
-    "correctly query on lists of doubles" in {
+    "correctly query on lists of doubles" >> {
       "lt" >> {
         val features = execute("toes<2.0")
         features must haveLength(2)

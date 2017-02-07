@@ -13,11 +13,11 @@ import java.util.concurrent.TimeUnit
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.AccumuloProperties
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class GeoMesaBatchWriterConfigTest extends Specification {
+class GeoMesaBatchWriterConfigTest extends org.specs2.mutable.Spec {
   val bwc = GeoMesaBatchWriterConfig.buildBWC    // Builds new BWC which has not been mutated by some other test.
 
   import AccumuloProperties.BatchWriterProperties
@@ -26,9 +26,9 @@ class GeoMesaBatchWriterConfigTest extends Specification {
 
   "GeoMesaBatchWriterConfig" should {
     "have defaults set" in {
-      bwc.getMaxMemory                         must be equalTo BatchWriterProperties.WRITER_MEMORY_BYTES.default.toLong
-      bwc.getMaxLatency(TimeUnit.MILLISECONDS) must be equalTo BatchWriterProperties.WRITER_LATENCY_MILLIS.default.toLong
-      bwc.getMaxWriteThreads                   must be equalTo BatchWriterProperties.WRITER_THREADS.default.toInt
+      bwc.getMaxMemory                         mustEqual BatchWriterProperties.WRITER_MEMORY_BYTES.default.toLong
+      bwc.getMaxLatency(TimeUnit.MILLISECONDS) mustEqual BatchWriterProperties.WRITER_LATENCY_MILLIS.default.toLong
+      bwc.getMaxWriteThreads                   mustEqual BatchWriterProperties.WRITER_THREADS.default.toInt
     }
   }
 
@@ -51,10 +51,10 @@ class GeoMesaBatchWriterConfigTest extends Specification {
       System.clearProperty(BatchWriterProperties.WRITER_THREADS.property)
       System.clearProperty(BatchWriterProperties.WRITE_TIMEOUT_MILLIS.property)
 
-      nbwc.getMaxLatency(TimeUnit.MILLISECONDS) must be equalTo java.lang.Long.parseLong(latencyProp)
-      nbwc.getMaxMemory                         must be equalTo java.lang.Long.parseLong(memoryProp)
-      nbwc.getMaxWriteThreads                   must be equalTo java.lang.Integer.parseInt(threadsProp)
-      nbwc.getTimeout(TimeUnit.MILLISECONDS)    must be equalTo java.lang.Long.parseLong(timeoutProp)
+      nbwc.getMaxLatency(TimeUnit.MILLISECONDS) mustEqual java.lang.Long.parseLong(latencyProp)
+      nbwc.getMaxMemory                         mustEqual java.lang.Long.parseLong(memoryProp)
+      nbwc.getMaxWriteThreads                   mustEqual java.lang.Integer.parseInt(threadsProp)
+      nbwc.getTimeout(TimeUnit.MILLISECONDS)    mustEqual java.lang.Long.parseLong(timeoutProp)
     }
   }
 
@@ -66,7 +66,7 @@ class GeoMesaBatchWriterConfigTest extends Specification {
       val nbwc = GeoMesaBatchWriterConfig.buildBWC
       System.clearProperty(BatchWriterProperties.WRITER_MEMORY_BYTES.property)
 
-      nbwc.getMaxMemory must be equalTo java.lang.Long.valueOf(1234l * 1024l)
+      nbwc.getMaxMemory mustEqual java.lang.Long.valueOf(1234l * 1024l)
     }
 
     "respect system properties for memory with a k suffix" in {
@@ -76,7 +76,7 @@ class GeoMesaBatchWriterConfigTest extends Specification {
       val nbwc = GeoMesaBatchWriterConfig.buildBWC
       System.clearProperty(BatchWriterProperties.WRITER_MEMORY_BYTES.property)
 
-      nbwc.getMaxMemory must be equalTo java.lang.Long.valueOf(1234l * 1024l)
+      nbwc.getMaxMemory mustEqual java.lang.Long.valueOf(1234l * 1024l)
     }
 
     "respect system properties for memory with a M suffix" in {
@@ -86,7 +86,7 @@ class GeoMesaBatchWriterConfigTest extends Specification {
       val nbwc = GeoMesaBatchWriterConfig.buildBWC
       System.clearProperty(BatchWriterProperties.WRITER_MEMORY_BYTES.property)
 
-      nbwc.getMaxMemory must be equalTo java.lang.Long.valueOf(1234l * 1024l * 1024l)
+      nbwc.getMaxMemory mustEqual java.lang.Long.valueOf(1234l * 1024l * 1024l)
     }
 
     "respect system properties for memory with a m suffix" in {
@@ -96,7 +96,7 @@ class GeoMesaBatchWriterConfigTest extends Specification {
       val nbwc = GeoMesaBatchWriterConfig.buildBWC
       System.clearProperty(BatchWriterProperties.WRITER_MEMORY_BYTES.property)
 
-      nbwc.getMaxMemory must be equalTo java.lang.Long.valueOf(1234l * 1024l * 1024l)
+      nbwc.getMaxMemory mustEqual java.lang.Long.valueOf(1234l * 1024l * 1024l)
     }
 
     "respect system properties for memory with a G suffix" in {
@@ -106,7 +106,7 @@ class GeoMesaBatchWriterConfigTest extends Specification {
       val nbwc = GeoMesaBatchWriterConfig.buildBWC
       System.clearProperty(BatchWriterProperties.WRITER_MEMORY_BYTES.property)
 
-      nbwc.getMaxMemory must be equalTo java.lang.Long.valueOf(1234l * 1024l * 1024l * 1024l)
+      nbwc.getMaxMemory mustEqual java.lang.Long.valueOf(1234l * 1024l * 1024l * 1024l)
     }
 
     "respect system properties for memory with a g suffix" in {
@@ -116,7 +116,7 @@ class GeoMesaBatchWriterConfigTest extends Specification {
       val nbwc = GeoMesaBatchWriterConfig.buildBWC
       System.clearProperty(BatchWriterProperties.WRITER_MEMORY_BYTES.property)
 
-      nbwc.getMaxMemory must be equalTo java.lang.Long.valueOf(1234l * 1024l * 1024l * 1024l)
+      nbwc.getMaxMemory mustEqual java.lang.Long.valueOf(1234l * 1024l * 1024l * 1024l)
     }
 
     "respect system properties for invalid non-suffixed memory specifications exceeding Long limits" in {
@@ -127,7 +127,7 @@ class GeoMesaBatchWriterConfigTest extends Specification {
       val nbwc = GeoMesaBatchWriterConfig.buildBWC
       System.clearProperty(BatchWriterProperties.WRITER_MEMORY_BYTES.property)
 
-      nbwc.getMaxMemory must be equalTo BatchWriterProperties.WRITER_MEMORY_BYTES.default.toLong
+      nbwc.getMaxMemory mustEqual BatchWriterProperties.WRITER_MEMORY_BYTES.default.toLong
     }
 
     "respect system properties for invalid suffixed memory specifications exceeding Long limits" in {
@@ -137,7 +137,7 @@ class GeoMesaBatchWriterConfigTest extends Specification {
       val nbwc = GeoMesaBatchWriterConfig.buildBWC
       System.clearProperty(BatchWriterProperties.WRITER_MEMORY_BYTES.property)
 
-      nbwc.getMaxMemory must be equalTo BatchWriterProperties.WRITER_MEMORY_BYTES.default.toLong
+      nbwc.getMaxMemory mustEqual BatchWriterProperties.WRITER_MEMORY_BYTES.default.toLong
     }
   }
 
@@ -146,18 +146,18 @@ class GeoMesaBatchWriterConfigTest extends Specification {
       System.setProperty("foo", "123456789")
       val ret = GeoMesaBatchWriterConfig.fetchProperty(SystemProperty("foo", null))
       System.clearProperty("foo")
-      ret should equalTo(Some(123456789l))
+      ret mustEqual(Some(123456789l))
     }
 
     "return None correctly" in {
-      GeoMesaBatchWriterConfig.fetchProperty(SystemProperty("bar", null)) should equalTo(None)
+      GeoMesaBatchWriterConfig.fetchProperty(SystemProperty("bar", null)) mustEqual(None)
     }
 
     "return None correctly when the System property is not parseable as a Long" in {
       System.setProperty("baz", "fizzbuzz")
       val ret = GeoMesaBatchWriterConfig.fetchProperty(SystemProperty("foo", null))
       System.clearProperty("baz")
-      ret should equalTo(None)
+      ret mustEqual(None)
     }
   }
 
@@ -168,88 +168,88 @@ class GeoMesaBatchWriterConfigTest extends Specification {
       System.setProperty("foo", "123456789")
       val ret = GeoMesaBatchWriterConfig.fetchMemoryProperty(fooMemory)
       System.clearProperty("foo")
-      ret should equalTo(Some(123456789l))
+      ret mustEqual(Some(123456789l))
     }
 
     "retrieve a long correctly with a K suffix" in {
       System.setProperty("foo", "123456789K")
       val ret = GeoMesaBatchWriterConfig.fetchMemoryProperty(fooMemory)
       System.clearProperty("foo")
-      ret should equalTo(Some(123456789l * 1024l))
+      ret mustEqual(Some(123456789l * 1024l))
     }
 
     "retrieve a long correctly with a k suffix" in {
       System.setProperty("foo", "123456789k")
       val ret = GeoMesaBatchWriterConfig.fetchMemoryProperty(fooMemory)
       System.clearProperty("foo")
-      ret should equalTo(Some(123456789l * 1024l))
+      ret mustEqual(Some(123456789l * 1024l))
     }
 
     "retrieve a long correctly with a M suffix" in {
       System.setProperty("foo", "123456789m")
       val ret = GeoMesaBatchWriterConfig.fetchMemoryProperty(fooMemory)
       System.clearProperty("foo")
-      ret should equalTo(Some(123456789l * 1024l * 1024l))
+      ret mustEqual(Some(123456789l * 1024l * 1024l))
     }
 
     "retrieve a long correctly with a m suffix" in {
       System.setProperty("foo", "123456789m")
       val ret = GeoMesaBatchWriterConfig.fetchMemoryProperty(fooMemory)
       System.clearProperty("foo")
-      ret should equalTo(Some(123456789l * 1024l * 1024l))
+      ret mustEqual(Some(123456789l * 1024l * 1024l))
     }
 
     "retrieve a long correctly with a G suffix" in {
       System.setProperty("foo", "123456789G")
       val ret = GeoMesaBatchWriterConfig.fetchMemoryProperty(fooMemory)
       System.clearProperty("foo")
-      ret should equalTo(Some(123456789l * 1024l * 1024l * 1024l))
+      ret mustEqual(Some(123456789l * 1024l * 1024l * 1024l))
     }
 
     "retrieve a long correctly with a g suffix" in {
       System.setProperty("foo", "123456789g")
       val ret = GeoMesaBatchWriterConfig.fetchMemoryProperty(fooMemory)
       System.clearProperty("foo")
-      ret should equalTo(Some(123456789l * 1024l * 1024l * 1024l))
+      ret mustEqual(Some(123456789l * 1024l * 1024l * 1024l))
     }
 
     "return None correctly" in {
-      GeoMesaBatchWriterConfig.fetchMemoryProperty(bazMemory) should equalTo(None)
+      GeoMesaBatchWriterConfig.fetchMemoryProperty(bazMemory) mustEqual(None)
     }
 
     "return None correctly when the System property is not parseable as a Long" in {
       System.setProperty("baz", "fizzbuzz")
       val ret = GeoMesaBatchWriterConfig.fetchMemoryProperty(bazMemory)
       System.clearProperty("baz")
-      ret should equalTo(None)
+      ret mustEqual(None)
     }
 
     "return None correctly when the System property is not parseable as a Long with a suffix" in {
       System.setProperty("baz", "64fizzbuzz")
       val ret = GeoMesaBatchWriterConfig.fetchMemoryProperty(fooMemory)
       System.clearProperty("baz")
-      ret should equalTo(None)
+      ret mustEqual(None)
     }
 
     "return None correctly when the System property is not parseable as a Long with a prefix" in {
       System.setProperty("baz", "fizzbuzz64")
       val ret = GeoMesaBatchWriterConfig.fetchMemoryProperty(bazMemory)
       System.clearProperty("baz")
-      ret should equalTo(None)
+      ret mustEqual(None)
     }
 
     "return None correctly when the System property is not parseable with trailing garbage" in {
       System.setProperty("baz", "64k bazbaz")
       val ret = GeoMesaBatchWriterConfig.fetchMemoryProperty(bazMemory)
       System.clearProperty("baz")
-      ret should equalTo(None)
+      ret mustEqual(None)
     }
 
     "return None correctly when the System property is not parseable with leading garbage" in {
       System.setProperty("baz", "foofoo 64G")
       val ret = GeoMesaBatchWriterConfig.fetchMemoryProperty(bazMemory)
       System.clearProperty("baz")
-      ret should equalTo(None)
+      ret mustEqual(None)
     }
   }
 }

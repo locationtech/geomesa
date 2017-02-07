@@ -17,15 +17,15 @@ import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.spark.SparkSQLTestUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloSparkProviderTest extends Specification with TestWithDataStore with LazyLogging {
+class AccumuloSparkProviderTest extends org.specs2.mutable.Spec with TestWithDataStore with LazyLogging {
 
   override lazy val sftName: String = "chicago"
   override def spec: String = SparkSQLTestUtils.ChiSpec
-  private val ff = CommonFactoryFinder.getFilterFactory2
+  private val filterFactory = CommonFactoryFinder.getFilterFactory2
 
   "sql data tests" should {
     sequential
@@ -86,7 +86,7 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
 
       val sft = ds.getSchema("chicago2")
       val enabledIndexes = sft.getUserData.get("geomesa.indices").asInstanceOf[String]
-      enabledIndexes.indexOf("z3") must be greaterThan -1
+      enabledIndexes.indexOf("z3") must beGreaterThan(-1)
     }
 
     "handle reuse __fid__ on write if available" >> {
@@ -100,14 +100,14 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
         .save()
 
       import org.locationtech.geomesa.utils.geotools.Conversions._
-      val filter = ff.equals(ff.property("case_number"), ff.literal(1))
+      val filter = filterFactory.equals(filterFactory.property("case_number"), filterFactory.literal(1))
       val queryOrig = new Query("chicago", filter)
       val origResults = ds.getFeatureReader(queryOrig, Transaction.AUTO_COMMIT).toIterator.toList
 
       val query = new Query("fidOnWrite", filter)
       val results = ds.getFeatureReader(query, Transaction.AUTO_COMMIT).toIterator.toList
 
-      results.head.getID must be equalTo origResults.head.getID
+      results.head.getID mustEqual origResults.head.getID
     }
   }
 

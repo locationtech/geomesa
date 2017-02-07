@@ -22,13 +22,13 @@ import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.accumulo.iterators.TestData._
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.filter._
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class TableSharingTest extends Specification with LazyLogging {
+class TableSharingTest extends org.specs2.mutable.Spec with LazyLogging {
 
   sequential
 

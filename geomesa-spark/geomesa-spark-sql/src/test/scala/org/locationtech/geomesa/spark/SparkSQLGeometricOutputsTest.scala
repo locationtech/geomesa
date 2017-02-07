@@ -14,13 +14,13 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql._
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLGeometricOutputsTest extends Specification with LazyLogging {
+class SparkSQLGeometricOutputsTest extends org.specs2.mutable.Spec with LazyLogging {
 
   "sql geometry constructors" should {
     sequential
@@ -45,7 +45,7 @@ class SparkSQLGeometricOutputsTest extends Specification with LazyLogging {
         .options(dsParams)
         .option("geomesa.feature", "chicago")
         .load()
-      logger.info(df.schema.treeString)
+      logger.debug(df.schema.treeString)
       df.createOrReplaceTempView("chicago")
 
       df.collect().length mustEqual 3

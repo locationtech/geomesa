@@ -11,11 +11,11 @@ package org.locationtech.geomesa.raster.data
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.raster.RasterTestsUtils._
 import org.locationtech.geomesa.utils.geohash.BoundingBox
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class RasterBoundsTableTest extends Specification{
+class RasterBoundsTableTest extends org.specs2.mutable.Spec{
   sequential
 
   var testIteration = 0

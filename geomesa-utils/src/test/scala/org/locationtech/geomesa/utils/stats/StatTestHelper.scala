@@ -11,7 +11,7 @@ package org.locationtech.geomesa.utils.stats
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
-trait StatTestHelper {
+trait StatTestHelper extends org.specs2.matcher.SequenceMatchersCreation {
   val sftSpec = "strAttr:String,intAttr:Integer,longAttr:Long,doubleAttr:Double,floatAttr:Float,geom:Geometry:srid=4326,dtg:Date"
   val sft = SimpleFeatureTypes.createType("test", sftSpec)
 

@@ -12,11 +12,11 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class Z3FrequencyTest extends Specification with StatTestHelper {
+class Z3FrequencyTest extends org.specs2.mutable.Spec with StatTestHelper {
 
   def createStat(precision: Int, observe: Boolean): Z3Frequency = {
     val s = Stat(sft, Stat.Z3Frequency("geom", "dtg", TimePeriod.Week, precision))

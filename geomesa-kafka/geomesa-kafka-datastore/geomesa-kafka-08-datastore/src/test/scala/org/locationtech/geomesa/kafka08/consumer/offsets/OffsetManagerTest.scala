@@ -17,14 +17,14 @@ import kafka.message.{ByteBufferMessageSet, Message, NoCompressionCodec}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.kafka08.consumer.WrappedConsumer
 import org.locationtech.geomesa.kafka08.consumer.offsets.FindOffset.MessagePredicate
+import org.specs2.matcher.SomeCheckedMatcher
 import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.util.{Failure, Success, Try}
 
 @RunWith(classOf[JUnitRunner])
-class OffsetTest extends Specification with Mockito {
+class OffsetTest extends org.specs2.mutable.Spec with Mockito {
 
   import OffsetTest._
 
@@ -234,7 +234,7 @@ class OffsetTest extends Specification with Mockito {
 
   def findKey(target: Int): MessagePredicate = msg => msg.key.get() - target
 
-  def beOffset(o: Long) = beSome(o)
+  def beOffset(o: Long): SomeCheckedMatcher[Long] = beSome(o)
 }
 
 object OffsetTest {

@@ -12,15 +12,13 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Point
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.BitSet
 import scala.math._
 
 @RunWith(classOf[JUnitRunner])
-class GeoHashTest extends Specification
-                          with LazyLogging {
+class GeoHashTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation with LazyLogging {
 
   // set to true to see test output
   val DEBUG_OUPUT = false
@@ -121,7 +119,7 @@ class GeoHashTest extends Specification
     "encode and decode correctly at multiple precisions" in {
       val x : Double = -78.0
       val y : Double = 38.0
-      for (precision <- 20 to 63) yield {
+      forall((20 to 63)) { precision =>
         if(DEBUG_OUPUT) logger.debug(s"precision: $precision")
 
         // encode this value
@@ -129,8 +127,8 @@ class GeoHashTest extends Specification
 
         // the encoded values should not match the inputs exactly
         // (if the GeoHash assumes the centroid of the cell-rectangle)
-        ghEncoded.x must not equalTo(x)
-        ghEncoded.y must not equalTo(y)
+        ghEncoded.x must not(beEqualTo(x))
+        ghEncoded.y must not(beEqualTo(y))
 
         // decode this value
         val ghDecoded : GeoHash = GeoHash(ghEncoded.hash, precision)
@@ -236,53 +234,53 @@ class GeoHashTest extends Specification
     "go round-trip from string to string" in {
       val binaryStringIn = "01100101100101000000"
       val gh = GeoHash.fromBinaryString(binaryStringIn)
-      gh.hash must be equalTo "dqb0"
-      gh.toBinaryString must be equalTo binaryStringIn
+      gh.hash mustEqual "dqb0"
+      gh.toBinaryString mustEqual binaryStringIn
     }
 
     "go round trip from GH to GH" in {
       val hashIn = "dqb0"
       val gh = GeoHash(hashIn)
       val ghOut = GeoHash.fromBinaryString(gh.toBinaryString)
-      ghOut.hash must be equalTo hashIn
+      ghOut.hash mustEqual hashIn
     }
   }
 
   "The point (180.0, 0.5) should be in GeoHash 'x'" in {
     val gh = GeoHash(180.0, 0.5, 5)
-    gh.hash must be equalTo "x"
+    gh.hash mustEqual "x"
   }
 
   "The point (180.0, 90.0) should be in GeoHash 'z'" in {
     val gh = GeoHash(180.0, 90.0, 5)
-    gh.hash must be equalTo "z"
+    gh.hash mustEqual "z"
   }
 
   "The point (180.0, -90.0) should be in GeoHash 'p'" in {
     val gh = GeoHash(180.0, -90.0, 5)
-    gh.hash must be equalTo "p"
+    gh.hash mustEqual "p"
   }
 
   "The point (-180.0, -90.0) should be in GeoHash '0'" in {
     val gh = GeoHash(-180.0, -90.0, 5)
-    gh.hash must be equalTo "0"
+    gh.hash mustEqual "0"
   }
 
   "The point (-180.0, 90.0) should be in GeoHash 'b'" in {
     val gh = GeoHash(-180.0, 90.0, 5)
-    gh.hash must be equalTo "b"
+    gh.hash mustEqual "b"
   }
 
   "Points outside the world" should {
     "throw exceptions" in {
-      GeoHash(180.1, 0.0, 5) should throwA[Exception]
-      GeoHash(180.1, 90.1, 5) should throwA[Exception]
-      GeoHash(180.1, -90.1, 5) should throwA[Exception]
-      GeoHash(0.0, 90.1, 5) should throwA[Exception]
-      GeoHash(0.0, -90.1, 5) should throwA[Exception]
-      GeoHash(-180.1, 0.0, 5) should throwA[Exception]
-      GeoHash(-180.1, 90.1, 5) should throwA[Exception]
-      GeoHash(-180.1, -90.1, 5) should throwA[Exception]
+      GeoHash(180.1, 0.0, 5) must throwA[Exception]
+      GeoHash(180.1, 90.1, 5) must throwA[Exception]
+      GeoHash(180.1, -90.1, 5) must throwA[Exception]
+      GeoHash(0.0, 90.1, 5) must throwA[Exception]
+      GeoHash(0.0, -90.1, 5) must throwA[Exception]
+      GeoHash(-180.1, 0.0, 5) must throwA[Exception]
+      GeoHash(-180.1, 90.1, 5) must throwA[Exception]
+      GeoHash(-180.1, -90.1, 5) must throwA[Exception]
     }
   }
 }

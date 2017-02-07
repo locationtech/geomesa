@@ -18,14 +18,14 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 
 @RunWith(classOf[JUnitRunner])
-class TubeBinTest extends Specification {
+class TubeBinTest extends org.specs2.mutable.Spec {
 
   sequential
 

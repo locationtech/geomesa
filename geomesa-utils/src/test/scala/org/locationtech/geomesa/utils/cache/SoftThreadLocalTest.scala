@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.utils.cache
 
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class SoftThreadLocalTest extends Specification {
+class SoftThreadLocalTest extends org.specs2.mutable.Spec {
 
   "SoftThreadLocalCache" should {
 

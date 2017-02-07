@@ -19,11 +19,11 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.convert.Transformers.DefaultCounter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class DelimitedTextConverterTest extends Specification {
+class DelimitedTextConverterTest extends org.specs2.mutable.Spec {
 
   sequential
 
@@ -57,19 +57,19 @@ class DelimitedTextConverterTest extends Specification {
     val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
     "be built from a conf" >> {
       val converter = SimpleFeatureConverters.build[String](sft, conf)
-      converter must not beNull
+      converter must not(beNull)
 
       val res = converter.processInput(data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0)).toList
       converter.close()
 
       "and process some data" >> {
-        res.size must be equalTo 2
-        res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello"
-        res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2world"
+        res.size mustEqual 2
+        res(0).getAttribute("phrase").asInstanceOf[String] mustEqual "1hello"
+        res(1).getAttribute("phrase").asInstanceOf[String] mustEqual "2world"
       }
 
       "handle more derived fields than input fields" >> {
-        res(0).getAttribute("oneup").asInstanceOf[String] must be equalTo "1"
+        res(0).getAttribute("oneup").asInstanceOf[String] mustEqual "1"
       }
     }
 
@@ -90,12 +90,12 @@ class DelimitedTextConverterTest extends Specification {
         """.stripMargin)
       val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
       val converter = SimpleFeatureConverters.build[String](sft, conf)
-      converter must not beNull
+      converter must not(beNull)
       val res = converter.processInput(data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0).map(_.replaceAll(",", "\t"))).toList
       converter.close()
-      res.size must be equalTo 2
-      res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello"
-      res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2world"
+      res.size mustEqual 2
+      res(0).getAttribute("phrase").asInstanceOf[String] mustEqual "1hello"
+      res(1).getAttribute("phrase").asInstanceOf[String] mustEqual "2world"
     }
 
     "handle line number transform and filename global parameter correctly " >> {
@@ -117,18 +117,18 @@ class DelimitedTextConverterTest extends Specification {
         """.stripMargin)
       val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
       val converter = SimpleFeatureConverters.build[String](sft, conf)
-      converter must not beNull
+      converter must not(beNull)
       val input = data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0).map(_.replaceAll(",", "\t"))
       val ec = converter.createEvaluationContext(Map("filename"-> "/some/file/path/testfile.txt"))
       val res = converter.processInput(input, ec).toList
       converter.close()
-      res.size must be equalTo 2
-      res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello"
-      res(0).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 1
-      res(0).getAttribute("fn").asInstanceOf[String] must be equalTo "/some/file/path/testfile.txt"
-      res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2world"
-      res(1).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 2
-      res(1).getAttribute("fn").asInstanceOf[String] must be equalTo "/some/file/path/testfile.txt"
+      res.size mustEqual 2
+      res(0).getAttribute("phrase").asInstanceOf[String] mustEqual "1hello"
+      res(0).getAttribute("lineNr").asInstanceOf[Long] mustEqual 1
+      res(0).getAttribute("fn").asInstanceOf[String] mustEqual "/some/file/path/testfile.txt"
+      res(1).getAttribute("phrase").asInstanceOf[String] mustEqual "2world"
+      res(1).getAttribute("lineNr").asInstanceOf[Long] mustEqual 2
+      res(1).getAttribute("fn").asInstanceOf[String] mustEqual "/some/file/path/testfile.txt"
     }
 
     "handle line number transform and filename global in id-field " >> {
@@ -151,18 +151,18 @@ class DelimitedTextConverterTest extends Specification {
 
       val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
       val converter = SimpleFeatureConverters.build[String](sft, conf)
-      converter must not beNull
+      converter must not(beNull)
       val input = data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0).map(_.replaceAll(",", "\t"))
       val ec = converter.createEvaluationContext(Map("filename"-> "/some/file/path/testfile.txt"))
       val res = converter.processInput(input, ec).toList
       converter.close()
-      res.size must be equalTo 2
-      res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello"
-      res(0).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 1
-      res(0).getAttribute("fn").asInstanceOf[String] must be equalTo "/some/file/path/testfile.txt"
-      res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2world"
-      res(1).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 2
-      res(1).getAttribute("fn").asInstanceOf[String] must be equalTo "/some/file/path/testfile.txt"
+      res.size mustEqual 2
+      res(0).getAttribute("phrase").asInstanceOf[String] mustEqual "1hello"
+      res(0).getAttribute("lineNr").asInstanceOf[Long] mustEqual 1
+      res(0).getAttribute("fn").asInstanceOf[String] mustEqual "/some/file/path/testfile.txt"
+      res(1).getAttribute("phrase").asInstanceOf[String] mustEqual "2world"
+      res(1).getAttribute("lineNr").asInstanceOf[Long] mustEqual 2
+      res(1).getAttribute("fn").asInstanceOf[String] mustEqual "/some/file/path/testfile.txt"
     }
 
     "handle projecting to just the attributes in the SFT (and associated input dependencies)" >> {
@@ -172,7 +172,7 @@ class DelimitedTextConverterTest extends Specification {
       val res = conv.processInput(data.split("\n").toIterator.filterNot( s => "^\\s*$".r.findFirstIn(s).size > 0)).toList
       conv.close()
 
-      res.length must be equalTo 2
+      res.length mustEqual 2
     }
 
     "handle horrible quoting and nested separators" >> {
@@ -196,12 +196,12 @@ class DelimitedTextConverterTest extends Specification {
 
       val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
       val converter = SimpleFeatureConverters.build[String](sft, conf)
-      converter must not beNull
+      converter must not(beNull)
       val res = converter.processInput(data.iterator()).toList
       converter.close()
-      res.size must be equalTo 2
-      res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello, \"foo\""
-      res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2world"
+      res.size mustEqual 2
+      res(0).getAttribute("phrase").asInstanceOf[String] mustEqual "1hello, \"foo\""
+      res(1).getAttribute("phrase").asInstanceOf[String] mustEqual "2world"
     }
 
     "handle records bigger than buffer size" >> {
@@ -240,7 +240,7 @@ class DelimitedTextConverterTest extends Specification {
       val res = converter.processInput(nonEmptyData).toList
       converter.close()
 
-      res.size must be greaterThan 0
+      res.size must beGreaterThan(0)
     }
 
     "handle wkt" >> {
@@ -411,7 +411,7 @@ class DelimitedTextConverterTest extends Specification {
       converter must not(beNull)
       val res = converter.processInput(data.split("\n").toIterator).toList
       converter.close()
-      res.size must be equalTo 2
+      res.size mustEqual 2
       res(0).getUserData.get("my.first.key") mustEqual 1
       res(0).getUserData.get("my.second.key") mustEqual "hello"
       res(0).getUserData.get("my.third.key") mustEqual "1hello"
@@ -452,8 +452,8 @@ class DelimitedTextConverterTest extends Specification {
       converter must not(beNull)
       val res = converter.processInput(data.split("\n").toIterator).toList
       converter.close()
-      "must have size 2 " >> { res.size must be equalTo 2 }
-      "first string must be 'hello'" >> { res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "hello" }
+      "must have size 2 " >> { res.size mustEqual 2 }
+      "first string must be 'hello'" >> { res(0).getAttribute("phrase").asInstanceOf[String] mustEqual "hello" }
     }
 
     "handle custom escape" >> {
@@ -488,8 +488,8 @@ class DelimitedTextConverterTest extends Specification {
       converter must not(beNull)
       val res = converter.processInput(data.split("\n").toIterator).toList
       converter.close()
-      "must have size 2 " >> { res.size must be equalTo 2 }
-      "first string must be 'hello'" >> { res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "he'llo" }
+      "must have size 2 " >> { res.size mustEqual 2 }
+      "first string must be 'hello'" >> { res(0).getAttribute("phrase").asInstanceOf[String] mustEqual "he'llo" }
     }
 
     "throw error on escape length > 1" >> {

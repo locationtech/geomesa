@@ -12,11 +12,11 @@ package org.locationtech.geomesa.filter.function
 import java.io.ByteArrayOutputStream
 
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class Convert2ViewerFunctionTest extends Specification {
+class Convert2ViewerFunctionTest extends org.specs2.mutable.Spec {
 
   "Convert2ViewerFunction" should {
 
@@ -87,25 +87,27 @@ class Convert2ViewerFunctionTest extends Specification {
     }
 
     "encode faster to an output stream" in {
-      skipped("integration")
-      val times = 10000
-      val one = ExtendedValues(45.0f, 49.0f, System.currentTimeMillis(), 1200, 10000)
-      val out = new ByteArrayOutputStream(24 * times)
+      skipped {
+        // integration
+        val times = 10000
+        val one = ExtendedValues(45.0f, 49.0f, System.currentTimeMillis(), 1200, 10000)
+        val out = new ByteArrayOutputStream(24 * times)
 
-      // the first test run always takes a long time, even with some initialization...
-      // flip the order to get a sense of how long each takes
-      val start2 = System.currentTimeMillis()
-      (0 to times).foreach(_ => Convert2ViewerFunction.encodeToByteArray(one))
-      val total2 = System.currentTimeMillis() - start2
-      println(s"array took $total2 ms")
+        // the first test run always takes a long time, even with some initialization...
+        // flip the order to get a sense of how long each takes
+        val start2 = System.currentTimeMillis()
+        (0 to times).foreach(_ => Convert2ViewerFunction.encodeToByteArray(one))
+        val total2 = System.currentTimeMillis() - start2
+        println(s"array took $total2 ms")
 
-      val start = System.currentTimeMillis()
-      (0 to times).foreach(_ => Convert2ViewerFunction.encode(one, out))
-      val total = System.currentTimeMillis() - start
-      println(s"stream took $total ms")
+        val start = System.currentTimeMillis()
+        (0 to times).foreach(_ => Convert2ViewerFunction.encode(one, out))
+        val total = System.currentTimeMillis() - start
+        println(s"stream took $total ms")
 
-      println
-      success
+        println
+        success
+      }
     }
   }
 }

@@ -16,13 +16,14 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class ComplexFeatureTest extends Specification with TestWithDataStore {
+class ComplexFeatureTest extends TestWithDataStore
+    with org.specs2.matcher.ValueChecks with org.specs2.execute.PendingUntilFixed {
 
   override def spec =
     """
@@ -87,7 +88,7 @@ class ComplexFeatureTest extends Specification with TestWithDataStore {
         metadata must beAnInstanceOf[java.util.Map[_, _]]
         val metadataMap = metadata.asInstanceOf[java.util.Map[Double, String]].asScala
         metadataMap must haveSize(2)
-        metadataMap must havePairs(1.0 -> "value1", 2.0 -> "value2")
+        metadataMap must contain(1.0 -> "value1", 2.0 -> "value2")
       }
       "in scala" >> {
         val query = new Query(sftName, Filter.INCLUDE)
@@ -98,7 +99,7 @@ class ComplexFeatureTest extends Specification with TestWithDataStore {
         skills must beAnInstanceOf[java.util.Map[_, _]]
         val skillsMap = skills.asInstanceOf[java.util.Map[String, Int]].asScala
         skillsMap must haveSize(2)
-        skillsMap must havePairs("java" -> 1, "scala" -> 100)
+        skillsMap must contain("java" -> 1, "scala" -> 100)
       }
     }
 

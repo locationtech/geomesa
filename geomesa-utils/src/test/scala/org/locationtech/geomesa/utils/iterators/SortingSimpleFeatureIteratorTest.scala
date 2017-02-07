@@ -19,13 +19,13 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.sort.{SortBy, SortOrder}
 import org.specs2.matcher.MatchResult
 import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class SortingSimpleFeatureIteratorTest extends Specification with Mockito {
+class SortingSimpleFeatureIteratorTest extends org.specs2.mutable.Spec with Mockito {
 
-  val ff = CommonFactoryFinder.getFilterFactory
+  val filterFactory = CommonFactoryFinder.getFilterFactory
 
   "SortingSimpleFeatureIterator" should {
 
@@ -99,7 +99,7 @@ class SortingSimpleFeatureIteratorTest extends Specification with Mockito {
 
     "be able to sort by an attribute asc" >> {
       val features = CloseableIterator(Iterator(b, c2, d, a, c1))
-      val sortBy = Array(ff.sort("name", SortOrder.ASCENDING))
+      val sortBy = Array(filterFactory.sort("name", SortOrder.ASCENDING))
 
       // sort is stable
       test(features, sortBy, Seq(a, b, c2, c1, d), sft)
@@ -107,7 +107,7 @@ class SortingSimpleFeatureIteratorTest extends Specification with Mockito {
 
     "be able to sort by an attribute desc" >> {
       val features = CloseableIterator(Iterator(b, c2, d, a, c1))
-      val sortBy = Array(ff.sort("name", SortOrder.DESCENDING))
+      val sortBy = Array(filterFactory.sort("name", SortOrder.DESCENDING))
 
       // sort is stable
       test(features, sortBy, Seq(d, c2, c1, b, a), sft)
@@ -115,14 +115,14 @@ class SortingSimpleFeatureIteratorTest extends Specification with Mockito {
 
     "be able to sort by an attribute and id" >> {
       val features = CloseableIterator(Iterator(b, c2, d, a, c1))
-      val sortBy = Array(ff.sort("name", SortOrder.ASCENDING), SortBy.NATURAL_ORDER)
+      val sortBy = Array(filterFactory.sort("name", SortOrder.ASCENDING), SortBy.NATURAL_ORDER)
 
       test(features, sortBy, Seq(a, b, c1, c2, d), sft)
     }
 
     "be able to sort by an multiple attributes" >> {
       val features = CloseableIterator(Iterator(a, b, c1, d, c2))
-      val sortBy = Array(ff.sort("age", SortOrder.DESCENDING), ff.sort("name", SortOrder.ASCENDING))
+      val sortBy = Array(filterFactory.sort("age", SortOrder.DESCENDING), filterFactory.sort("name", SortOrder.ASCENDING))
 
       test(features, sortBy, Seq(b, c2, a, c1, d), sft)
     }

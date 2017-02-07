@@ -17,13 +17,13 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class NearestNeighborsPQTest extends Specification {
+class NearestNeighborsPQTest extends org.specs2.mutable.Spec {
 
   val sftName = "geomesaKNNTestQueryFeature"
   val sft = SimpleFeatureTypes.createType(sftName, "geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date;geomesa.mixed.geometries=true")
@@ -191,7 +191,7 @@ class NearestNeighborsPQTest extends Specification {
     }
 
     "thrown an exception when given non-point geometries" in {
-        NearestNeighbors(lineSF ,10) should throwAn[RuntimeException]
+        NearestNeighbors(lineSF ,10) must throwA[RuntimeException]
     }
   }
 }

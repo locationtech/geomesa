@@ -17,13 +17,13 @@ import org.geotools.geometry.jts.JTS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geohash.BoundingBox
 import org.locationtech.geomesa.utils.interop.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
+class SparkSQLGeometricConstructorsTest extends org.specs2.mutable.Spec with LazyLogging {
 
   "sql geometry constructors" should {
     sequential
@@ -41,7 +41,7 @@ class SparkSQLGeometricConstructorsTest extends Specification with LazyLogging {
       .options(dsParams)
       .option("geomesa.feature", "chicago")
       .load()
-    logger.info(df.schema.treeString)
+    logger.debug(df.schema.treeString)
     df.createOrReplaceTempView("chicago")
 
 

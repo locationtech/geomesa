@@ -14,13 +14,13 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class TypeUpdatingFeatureReaderTest extends Specification with Mockito {
+class TypeUpdatingFeatureReaderTest extends org.specs2.mutable.Spec with Mockito {
 
   val sftName = "TypeUpdatingFeatureReaderTest"
   val sft = SimpleFeatureTypes.createType(sftName, "name:String,*geom:Point,dtg:Date")

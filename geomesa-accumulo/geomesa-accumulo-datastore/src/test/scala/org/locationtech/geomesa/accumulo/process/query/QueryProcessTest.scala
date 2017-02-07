@@ -17,11 +17,10 @@ import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class QueryProcessTest extends Specification with TestWithDataStore {
+class QueryProcessTest extends TestWithDataStore with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 

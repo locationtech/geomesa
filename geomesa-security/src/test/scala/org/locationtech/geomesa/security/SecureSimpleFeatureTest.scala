@@ -10,9 +10,9 @@ package org.locationtech.geomesa.security
 
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
 
-class SecureSimpleFeatureTest extends Specification with Mockito {
+
+class SecureSimpleFeatureTest extends org.specs2.mutable.Spec with Mockito {
 
   sequential
 

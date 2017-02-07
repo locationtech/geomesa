@@ -11,11 +11,11 @@ package org.locationtech.geomesa.filter
 import java.util.{Date, UUID}
 
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class BoundsTest extends Specification {
+class BoundsTest extends org.specs2.mutable.Spec {
 
   "Bounds" should {
 

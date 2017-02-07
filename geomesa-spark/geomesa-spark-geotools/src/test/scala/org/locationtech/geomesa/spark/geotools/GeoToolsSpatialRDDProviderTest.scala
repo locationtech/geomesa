@@ -19,13 +19,13 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.spark.{GeoMesaSpark, GeoMesaSparkKryoRegistrator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class GeoToolsSpatialRDDProviderTest extends Specification {
+class GeoToolsSpatialRDDProviderTest extends org.specs2.mutable.Spec {
 
   var sc: SparkContext = null
 

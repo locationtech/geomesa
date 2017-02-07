@@ -15,13 +15,13 @@ import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
 import org.locationtech.geomesa.memory.cqengine.utils.SampleFeatures._
 import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class GeoCQEngineTest extends Specification with LazyLogging {
+class GeoCQEngineTest extends org.specs2.mutable.Spec with LazyLogging {
   "GeoCQEngine" should {
     "return correct number of results" >> {
       import SampleFilters._
@@ -57,14 +57,12 @@ class GeoCQEngineTest extends Specification with LazyLogging {
       }
 
       def runFilterTests(name: String, filters: Seq[Filter]) = {
-        examplesBlock {
-          for (f <- filters) {
-            s"$name filter $f (geo-only index)" in {
-              checkFilter(f, cqNoIndexes)
-            }
-            s"$name filter $f (various indices)" in {
-              checkFilter(f, cqWithIndexes)
-            }
+        for (f <- filters) {
+          blockExample(s"$name filter $f (geo-only index)") in {
+            checkFilter(f, cqNoIndexes)
+          }
+          blockExample(s"$name filter $f (various indices)") in {
+            checkFilter(f, cqWithIndexes)
           }
         }
       }
@@ -93,7 +91,7 @@ class GeoCQEngineTest extends Specification with LazyLogging {
 
       runFilterTests("attribute predicates", attributePredicates)
 
-
+      ok
     }
   }
 }

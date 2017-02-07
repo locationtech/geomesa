@@ -11,11 +11,11 @@ package org.locationtech.geomesa.utils.geohash
 import com.vividsolutions.jts.geom.Point
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class GeomDistanceTest extends Specification with GeomDistance {
+class GeomDistanceTest extends org.specs2.mutable.Spec with GeomDistance {
 
   import Distance._
 

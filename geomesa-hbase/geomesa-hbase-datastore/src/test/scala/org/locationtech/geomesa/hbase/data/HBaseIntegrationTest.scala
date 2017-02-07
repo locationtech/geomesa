@@ -18,15 +18,16 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.Params._
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class HBaseIntegrationTest extends Specification {
+class HBaseIntegrationTest extends org.specs2.mutable.Spec {
 
   // note: make sure you update src/test/resources/hbase-site.xml to point to your hbase instance
+  skipAllIf(true) // integration
 
   sequential
 
@@ -46,8 +47,6 @@ class HBaseIntegrationTest extends Specification {
       }
 
       "create schema" >> {
-        skipped("integration")
-
         ds.getSchema(typeName) must beNull
         ds.createSchema(SimpleFeatureTypes.createType(typeName, "name:String,dtg:Date,*geom:Point:srid=4326"))
         val sft = ds.getSchema(typeName)
@@ -56,8 +55,6 @@ class HBaseIntegrationTest extends Specification {
       }
 
       "insert" >> {
-        skipped("integration")
-
         val sft = ds.getSchema(typeName)
         println(SimpleFeatureTypes.encodeType(sft, includeUserData = true))
         sft must not(beNull)
@@ -70,8 +67,6 @@ class HBaseIntegrationTest extends Specification {
       }
 
       "query" >> {
-        skipped("integration")
-
         val sft = ds.getSchema(typeName)
         println(SimpleFeatureTypes.encodeType(sft, includeUserData = true))
         sft must not(beNull)
@@ -100,8 +95,6 @@ class HBaseIntegrationTest extends Specification {
       }
 
       "create schema" >> {
-        skipped("integration")
-
         ds.getSchema(typeName) must beNull
         ds.createSchema(SimpleFeatureTypes.createType(typeName, "name:String,dtg:Date,*geom:Polygon:srid=4326"))
         val sft = ds.getSchema(typeName)
@@ -110,8 +103,6 @@ class HBaseIntegrationTest extends Specification {
       }
 
       "insert" >> {
-        skipped("integration")
-
         val sft = ds.getSchema(typeName)
         println(SimpleFeatureTypes.encodeType(sft, includeUserData = true))
         sft must not(beNull)
@@ -124,8 +115,6 @@ class HBaseIntegrationTest extends Specification {
       }
 
       "query" >> {
-        skipped("integration")
-
         val sft = ds.getSchema(typeName)
         println(SimpleFeatureTypes.encodeType(sft, includeUserData = true))
         sft must not(beNull)

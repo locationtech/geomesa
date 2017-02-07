@@ -18,13 +18,13 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.index.z3.Z3IndexV2
 import org.locationtech.geomesa.curve.{TimePeriod, Z3SFC}
 import org.locationtech.sfcurve.zorder.Z3
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class Z3IteratorTest extends Specification {
+class Z3IteratorTest extends org.specs2.mutable.Spec {
 
   import Z3Iterator._
 

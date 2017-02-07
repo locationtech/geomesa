@@ -17,11 +17,11 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AttributeTableTest extends Specification with TestWithDataStore {
+class AttributeTableTest extends org.specs2.mutable.Spec with TestWithDataStore {
 
   override val spec = "name:String:index=true,age:Integer:index=true,*geom:Point:srid=4326,dtg:Date:index=true;" +
       "override.index.dtg.join=true"

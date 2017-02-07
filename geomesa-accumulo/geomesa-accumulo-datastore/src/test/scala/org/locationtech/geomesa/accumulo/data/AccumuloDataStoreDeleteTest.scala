@@ -25,13 +25,14 @@ import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSfts {
+class AccumuloDataStoreDeleteTest extends TestWithMultipleSfts
+    with org.specs2.matcher.SequenceMatchersCreation with org.specs2.matcher.ValueChecks {
 
   sequential
 
@@ -74,7 +75,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       forall(tableNames)(tableOps.exists(_) must beFalse)
 
       // metadata should be deleted from the catalog now
-      ds.metadata.getFeatureTypes.toSeq must not contain typeName
+      ds.metadata.getFeatureTypes.toSeq must not(contain(typeName))
       ds.stats.getCount(sft, exact = false) must beNone
 
       ds.getFeatureSource(typeName).getFeatures(Filter.INCLUDE) must throwA[Exception]
@@ -121,7 +122,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
 
       // ensure first sft was deleted
       forall(tableNames1)(tableOps.exists(_) must beFalse)
-      ds.metadata.getFeatureTypes.toSeq must not contain typeName1
+      ds.metadata.getFeatureTypes.toSeq must not(contain(typeName1))
       ds.getSchema(typeName1) must beNull
       ds.stats.getCount(sft1, exact = false) must beNone
     }
@@ -146,7 +147,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       forall(tableNames.filter(_.contains("z3")))(tableOps.exists(_) must beFalse)
 
       // metadata should be deleted from the catalog now
-      ds.metadata.getFeatureTypes.toSeq must not contain typeName
+      ds.metadata.getFeatureTypes.toSeq must not(contain(typeName))
 
       ds.getFeatureSource(typeName).getFeatures(Filter.INCLUDE) must throwA[Exception]
     }
@@ -182,8 +183,8 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       forall(tableNames2)(tableOps.exists(_) must beTrue)
 
       // tests that metadata exists in the catalog before being deleted
-      ds.getFeatureReader(new Query(typeName1), Transaction.AUTO_COMMIT) should not(beNull)
-      ds.getFeatureReader(new Query(typeName2), Transaction.AUTO_COMMIT) should not(beNull)
+      ds.getFeatureReader(new Query(typeName1), Transaction.AUTO_COMMIT) must not(beNull)
+      ds.getFeatureReader(new Query(typeName2), Transaction.AUTO_COMMIT) must not(beNull)
       ds.metadata.getFeatureTypes.toSeq must contain(typeName1)
       ds.metadata.getFeatureTypes.toSeq must contain(typeName2)
 
@@ -196,7 +197,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       forall(tableNames2)(tableOps.exists(_) must beTrue)
 
       // metadata should be deleted from the catalog now for sftName
-      ds.metadata.getFeatureTypes.toSeq must not contain typeName1
+      ds.metadata.getFeatureTypes.toSeq must not(contain(typeName1))
       // metadata should still exist for sftName2
       ds.metadata.getFeatureTypes.toSeq must contain(typeName2)
 

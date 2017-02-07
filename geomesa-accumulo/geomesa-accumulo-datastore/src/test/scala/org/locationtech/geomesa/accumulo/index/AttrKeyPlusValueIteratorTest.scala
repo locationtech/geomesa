@@ -21,11 +21,11 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSfts {
+class AttrKeyPlusValueIteratorTest extends org.specs2.mutable.Spec with TestWithMultipleSfts {
 
   val spec =
     "name:String:index=true:cardinality=high," +

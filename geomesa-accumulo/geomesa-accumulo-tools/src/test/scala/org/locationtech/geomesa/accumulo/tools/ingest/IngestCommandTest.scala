@@ -14,11 +14,10 @@ import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloRunner}
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class IngestCommandTest extends Specification {
+class IngestCommandTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 
@@ -138,7 +137,7 @@ class IngestCommandTest extends Specification {
         ("root", "other")  // default user
       )
 
-      combinations.zip(userCombinations).forall { case ((additionalArgs, count), (user, pass)) =>
+      forall(combinations.zip(userCombinations)) { case ((additionalArgs, count), (user, pass)) =>
         val testArgs = Array("ingest", "--mock", "--user", user, "--password", pass)
 
         val args = testArgs ++ Array("--catalog", id, "--converter", converter, "-s", sft, dataFile.getPath) ++ additionalArgs

@@ -15,11 +15,12 @@ import org.locationtech.geomesa.raster.RasterTestsUtils._
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.utils.geohash.BoundingBox
 import org.specs2.matcher.MatchResult
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloRasterQueryPlannerTest extends Specification with LazyLogging {
+class AccumuloRasterQueryPlannerTest extends org.specs2.mutable.Spec
+    with org.specs2.matcher.SequenceMatchersCreation with LazyLogging {
 
   sequential
 
@@ -45,7 +46,7 @@ class AccumuloRasterQueryPlannerTest extends Specification with LazyLogging {
     (2000, 45.0/1024.0)
   )
 
-  def runTest(size: Int, expectedResolution: Double): MatchResult[Double] = {
+  def runTest(size: Int, expectedResolution: Double): MatchResult[Any] = {
     val q1 = generateQuery(0, 45, 0, 45, 45.0/size)
     val qp = arqp.getQueryPlan(q1, dataMap, boundsMap).get
 
@@ -59,15 +60,12 @@ class AccumuloRasterQueryPlannerTest extends Specification with LazyLogging {
 
     val roundedResolution = BigDecimal(expectedResolution).round(mc).toDouble
 
-    queryResolution should be equalTo roundedResolution
+    queryResolution mustEqual roundedResolution
   }
 
   "RasterQueryPlanner" should {
-    "return a valid resolution by rounding down" in {
-      testCases.map {
-        case (size, expected) =>
-          runTest(size, expected)
-      }
+    "return a valid resolution by rounding down" >> {
+      forall(testCases) { case (size, expected) => runTest(size, expected) }
     }
   }
 

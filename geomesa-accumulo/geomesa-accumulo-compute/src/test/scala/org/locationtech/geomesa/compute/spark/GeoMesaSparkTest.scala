@@ -34,7 +34,6 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
@@ -42,7 +41,7 @@ import scala.collection.JavaConverters._
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class GeoMesaSparkTest extends Specification with LazyLogging {
+class GeoMesaSparkTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation with LazyLogging {
 
   sequential
 
@@ -114,7 +113,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
       val sft = createSFT(typeName)
 
       ds.createSchema(sft)
-      ds.getSchema(typeName) should not(beNull)
+      ds.getSchema(typeName) must not(beNull)
       val fs = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
       val feats = createFeatures(ds, sft, encodedFeatures)
       fs.addFeatures(DataUtilities.collection(feats.asJava))
@@ -127,8 +126,8 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
 
       val rdd = GeoMesaSpark.rdd(new Configuration(), sc, dsParams, new Query(typeName))
 
-      rdd.count() should equalTo(feats.length)
-      feats.map(_.getAttribute("an_id")) should contain(rdd.take(1).head.getAttribute("an_id"))
+      rdd.count() must equalTo(feats.length)
+      feats.map(_.getAttribute("an_id")) must contain(rdd.take(1).head.getAttribute("an_id"))
     }
 
     "Write data" in {
@@ -147,8 +146,8 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
       GeoMesaSpark.save(rdd, dsParams, typeName)
 
       val coll = ds.getFeatureSource(typeName).getFeatures
-      coll.size() should equalTo(encodedFeatures.length)
-      feats.map(_.getAttribute("an_id")) should contain(coll.features().next().getAttribute("an_id"))
+      coll.size() must equalTo(encodedFeatures.length)
+      feats.map(_.getAttribute("an_id")) must contain(coll.features().next().getAttribute("an_id"))
     }
 
     "Read multiple data stores" in {
@@ -182,7 +181,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
       val secondSpec = "another_id:Integer,map:Map[String,Integer],dtg:Date,geom:Point:srid=4326"
       val secondSft = SimpleFeatureTypes.createType(secondTypeName, secondSpec)
       secondDs.createSchema(secondSft)
-      secondDs.getSchema(secondTypeName) should not(beNull)
+      secondDs.getSchema(secondTypeName) must not(beNull)
       val secondFs = secondDs.getFeatureSource(secondTypeName).asInstanceOf[SimpleFeatureStore]
       val secondFeats = createFeatures(secondDs, secondSft, encodedFeatures)
       secondFs.addFeatures(DataUtilities.collection(secondFeats.asJava))
@@ -198,11 +197,11 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
       val rdd = GeoMesaSpark.rdd(new Configuration(), sc, dsParams, new Query(typeName))
       val secondRdd = GeoMesaSpark.rdd(new Configuration(), sc, secondDsParams, new Query(secondTypeName))
 
-      rdd.count() should equalTo(feats.length)
-      secondRdd.count() should equalTo(secondFeats.length)
+      rdd.count() must equalTo(feats.length)
+      secondRdd.count() must equalTo(secondFeats.length)
 
-      feats.map(_.getAttribute("an_id")) should contain(rdd.take(1).head.getAttribute("an_id"))
-      secondFeats.map(_.getAttribute("another_id")) should contain(secondRdd.take(1).head.getAttribute("another_id"))
+      feats.map(_.getAttribute("an_id")) must contain(rdd.take(1).head.getAttribute("an_id"))
+      secondFeats.map(_.getAttribute("another_id")) must contain(secondRdd.take(1).head.getAttribute("another_id"))
     }
 
     "Read attribute queries" in {
@@ -210,7 +209,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
       val sft = createSFT(typeName)
 
       ds.createSchema(sft)
-      ds.getSchema(typeName) should not(beNull)
+      ds.getSchema(typeName) must not(beNull)
       val fs = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
       val feats = createFeatures(ds, sft, encodedFeatures)
       fs.addFeatures(DataUtilities.collection(feats.asJava))
@@ -249,7 +248,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
       sf
     }
 
-    "read data with authorizations" in {
+    "read data with authorizations" >> {
       val instanceName = "sparkAuthsInstance"
       val mockInstance = new MockInstance(instanceName)
       val conn = mockInstance.getConnector("myuser", new PasswordToken("mypassword".getBytes("UTF8")))
@@ -284,7 +283,6 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
       nonPrivFeatures.foreach { f => f.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "user") }
 
       fs.addFeatures(new ListFeatureCollection(sft, privFeatures ++ nonPrivFeatures))
-      fs.flush()
 
       "user&admin should get 6 features" >> {
         val conf = new SparkConf().setMaster("local[2]").setAppName("testSpark")
@@ -294,7 +292,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
 
         val rdd = GeoMesaSpark.rdd(new Configuration(), sc, privParams, new Query(sftName))
         rdd.count() mustEqual 6
-        features.map(_.getAttribute("an_id")) should contain(rdd.take(1).head.getAttribute("an_id"))
+        features.map(_.getAttribute("an_id")) must contain(rdd.take(1).head.getAttribute("an_id"))
       }
 
       "user should get 3" >> {

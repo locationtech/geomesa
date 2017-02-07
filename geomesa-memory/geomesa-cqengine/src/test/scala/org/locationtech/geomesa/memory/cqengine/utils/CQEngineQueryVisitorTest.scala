@@ -17,15 +17,15 @@ import org.locationtech.geomesa.memory.cqengine.utils.SampleFeatures._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class CQEngineQueryVisitorTest extends Specification {
+class CQEngineQueryVisitorTest extends org.specs2.mutable.Spec {
   implicit def stringToFilter(s: String): Filter = ECQL.toFilter(s)
 
   "CQEngineQueryVisitor" should {
-    "parse filters" should {
+    "parse filters" >> {
       sequential
 
       val visitor = new CQEngineQueryVisitor(sft)
@@ -57,16 +57,16 @@ class CQEngineQueryVisitorTest extends Specification {
               QF.equal[SimpleFeature, String](whoAttr, "Bierce")))
         )
       )
-      examplesBlock {
-        for (i <- testFilters.indices) {
-          "query_" + i.toString in {
-            val t = testFilters(i)
-            val query = t.filter.accept(visitor, null)
+      for (i <- testFilters.indices) {
+        blockExample("query_" + i.toString) in {
+          val t = testFilters(i)
+          val query = t.filter.accept(visitor, null)
 
-            query must equalTo(t.expectedQuery)
-          }
+          query must equalTo(t.expectedQuery)
         }
       }
+
+      ok
     }
   }
 }

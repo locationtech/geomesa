@@ -21,11 +21,11 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.matcher.MatchResult
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest {
+class AvroDataFileTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation with AbstractAvroSimpleFeatureTest {
 
    sequential //because of file delete step
 
@@ -96,8 +96,8 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
       val readFeatures = getFeatures(tmpFile)
       readFeatures.size mustEqual 50
       readFeatures.map(_.getID) must containTheSameElementsAs(features.map(_.getID))
-      readFeatures.forall { sf =>
-        sf.getUserData.get(Hints.USE_PROVIDED_FID) mustEqual java.lang.Boolean.TRUE
+      forall(readFeatures) { sf =>
+        sf.getUserData.get(Hints.USE_PROVIDED_FID) mustEqual java.lang.Boolean.TRUE.asInstanceOf[Any]
       }
     }
 

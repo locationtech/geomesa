@@ -11,11 +11,11 @@ package org.locationtech.geomesa.kafka
 import org.joda.time.{Duration, Instant}
 import org.junit.runner.RunWith
 import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ReplayConfigTest extends Specification with Mockito {
+class ReplayConfigTest extends org.specs2.mutable.Spec with Mockito with org.specs2.matcher.SequenceMatchersCreation {
 
 
   "ReplayConfig" should {
@@ -96,9 +96,7 @@ class ReplayConfigTest extends Specification with Mockito {
       result.isInWindow(9) must beFalse
 
       // window
-      (10 to 20).forall {i =>
-        result.isInWindow(i) must beTrue
-      }
+      forall(10 to 20)(i => result.isInWindow(i) must beTrue)
 
       // after
       result.isInWindow(21) must beFalse

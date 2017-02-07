@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.utils.text
 
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class SuffixesTest extends Specification {
+class SuffixesTest extends org.specs2.mutable.Spec {
 
   "Suffixes.Time" should {
     "parse various units" >> {

@@ -11,11 +11,11 @@ package org.locationtech.geomesa.tools
 import com.beust.jcommander.ParameterException
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.tools.utils.CLArgResolver
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class CLArgResolverTest extends Specification {
+class CLArgResolverTest extends org.specs2.mutable.Spec {
 
   sequential
 

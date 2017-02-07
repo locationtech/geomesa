@@ -10,13 +10,13 @@ package org.locationtech.geomesa.convert.avro
 
 import org.apache.avro.generic._
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AvroPathTest extends Specification with AvroUtils {
+class AvroPathTest extends org.specs2.mutable.Spec with AvroUtils {
 
   sequential
 
@@ -62,7 +62,7 @@ class AvroPathTest extends Specification with AvroUtils {
       r.get("v").asInstanceOf[Double] mustEqual 45.0
     }
 
-    "select a property out of a record in an array" in {
+    "select a property out of a record in an array" >> {
       "filter arrays of records by a field predicate" in {
         val path = "/content$type=TObj/kvmap[$k=lat]/v"
         val avroPath = AvroPath(path)

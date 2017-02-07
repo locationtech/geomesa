@@ -19,7 +19,8 @@ import org.scalatra.Ok
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.test.specs2.MutableScalatraSpec
 import org.specs2.runner.JUnitRunner
-import org.specs2.specification.{Fragments, Step}
+import org.specs2.specification.Step
+import org.specs2.specification.core.Fragments
 
 @RunWith(classOf[JUnitRunner])
 class GeoMesaDataStoreServletTest extends MutableScalatraSpec {

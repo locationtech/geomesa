@@ -54,14 +54,6 @@
             <artifactId>jul-to-slf4j</artifactId>
             <version>${slf4j.version}</version>
         </dependency>
-
-        <!-- test deps -->
-        <dependency>
-            <groupId>org.specs2</groupId>
-            <artifactId>specs2_${scala.binary.version}</artifactId>
-        </dependency>
-
-
     </dependencies>
 
 </project>

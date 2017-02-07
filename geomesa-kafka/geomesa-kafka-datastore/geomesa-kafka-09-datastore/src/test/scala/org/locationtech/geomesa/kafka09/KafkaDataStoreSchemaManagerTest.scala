@@ -17,7 +17,7 @@ import org.geotools.data.store.{ContentDataStore, ContentEntry}
 import org.geotools.feature.NameImpl
 import org.joda.time.{Duration, Instant}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.kafka.{ReplayConfig, KafkaDataStoreHelper}
+import org.locationtech.geomesa.kafka.{KafkaDataStoreHelper, ReplayConfig}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
@@ -28,7 +28,7 @@ import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class KafkaDataStoreSchemaManagerTest
-  extends Specification
+  extends org.specs2.mutable.Spec with org.specs2.matcher.MatchResultCombinators
   with HasEmbeddedKafka {
 
   // skip embedded kafka tests unless explicitly enabled, they often fail randomly
@@ -246,8 +246,8 @@ class KafkaDataStoreSchemaManagerTest
         zkClient.exists(datastore.getSchemaPath(liveSFT.getTypeName)) must beTrue
 
         val topic = KafkaDataStoreHelper.extractTopic(liveSFT).get
-        zkUtils.topicExists(topic) must beTrue and (
-          zkClient.exists(ZkUtils.getDeleteTopicPath(topic)) must beFalse)
+        zkUtils.topicExists(topic) must beTrue
+        zkClient.exists(ZkUtils.getDeleteTopicPath(topic)) must beFalse
       }
 
       "when given a Name" in new ZkContext(zkConnect) {
@@ -277,8 +277,8 @@ class KafkaDataStoreSchemaManagerTest
         zkClient.exists(datastore.getSchemaPath(liveSFT.getTypeName)) must beTrue
 
         val topic = KafkaDataStoreHelper.extractTopic(liveSFT).get
-        zkUtils.topicExists(topic) must beTrue and (
-          zkClient.exists(ZkUtils.getDeleteTopicPath(topic)) must beFalse)
+        zkUtils.topicExists(topic) must beTrue
+        zkClient.exists(ZkUtils.getDeleteTopicPath(topic)) must beFalse
       }
 
       "delete the topic when removing a Streaming SFT" in new ZkContext(zkConnect) {

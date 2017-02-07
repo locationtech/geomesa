@@ -10,13 +10,13 @@ package org.locationtech.geomesa.curve
 
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.io.Source
 
 @RunWith(classOf[JUnitRunner])
-class XZ3SFCTest extends Specification with LazyLogging {
+class XZ3SFCTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation with LazyLogging {
 
   val sfc = XZ3SFC(12, TimePeriod.Week)
 

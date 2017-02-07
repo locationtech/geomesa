@@ -16,13 +16,13 @@ import java.util.concurrent.atomic.AtomicLong
 import com.codahale.metrics._
 import org.apache.commons.io.FileUtils
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.io.Source
 
 @RunWith(classOf[JUnitRunner])
-class DelimitedFileReporterTest extends Specification {
+class DelimitedFileReporterTest extends org.specs2.mutable.Spec {
 
   sequential
 

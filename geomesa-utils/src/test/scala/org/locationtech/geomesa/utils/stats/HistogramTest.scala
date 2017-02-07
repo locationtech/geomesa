@@ -16,11 +16,11 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class HistogramTest extends Specification with StatTestHelper {
+class HistogramTest extends org.specs2.mutable.Spec with StatTestHelper {
 
   def createStat[T](attribute: String, bins: Int, min: String, max: String, observe: Boolean): Histogram[T] = {
     val s = Stat(sft, s"Histogram($attribute,$bins,'$min','$max')")

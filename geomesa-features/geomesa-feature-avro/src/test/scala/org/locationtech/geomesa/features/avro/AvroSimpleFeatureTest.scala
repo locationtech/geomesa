@@ -17,13 +17,13 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.Property
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AvroSimpleFeatureTest extends Specification {
+class AvroSimpleFeatureTest extends org.specs2.mutable.Spec {
 
   "AvroSimpleFeature" should {
     "properly convert attributes that are set as strings" in {
@@ -70,7 +70,7 @@ class AvroSimpleFeatureTest extends Specification {
       f.getProperties("a").head.getValue must not(throwA [org.opengis.feature.IllegalAttributeException])
 
       val prop = f.getProperty("a")
-      prop must not beNull;
+      prop must not(beNull)
       prop.getName.getLocalPart mustEqual("a")
       prop.getValue mustEqual(1)
     }
@@ -147,10 +147,10 @@ class AvroSimpleFeatureTest extends Specification {
       val sft = SimpleFeatureTypes.createType("avrotesttype", "a:Integer,b:String")
       val sf = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
       sf.getAttribute("c") must not(throwA[NullPointerException])
-      sf.getAttribute("c") should beNull
+      sf.getAttribute("c") must beNull
 
       val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
-      oldSf.getAttribute("c") should beNull
+      oldSf.getAttribute("c") must beNull
     }
 
     "give back a null when a property doesn't exist" in {
@@ -158,30 +158,30 @@ class AvroSimpleFeatureTest extends Specification {
       val sft = SimpleFeatureTypes.createType("avrotesttype", "a:Integer,b:String")
       val sf = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
       sf.getProperty("c") must not(throwA[NullPointerException])
-      sf.getProperty("c") should beNull
+      sf.getProperty("c") must beNull
 
       val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
-      oldSf.getProperty("c") should beNull
+      oldSf.getProperty("c") must beNull
     }
     "give back a property when a property exists but the value is null" in {
       // Verify that AvroSimpleFeature returns null for properties that do not exist like SimpleFeatureImpl
       val sft = SimpleFeatureTypes.createType("avrotesttype", "a:Integer,b:String")
       val sf = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
       sf.getProperty("b") must not(throwA[NullPointerException])
-      sf.getProperty("b") should not beNull
+      sf.getProperty("b") must not(beNull)
 
       val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
-      oldSf.getProperty("b") should not beNull
+      oldSf.getProperty("b") must not(beNull)
     }
     "give back a null when the property value is null" in {
       // Verify that AvroSimpleFeature returns null for properties that do not exist like SimpleFeatureImpl
       val sft = SimpleFeatureTypes.createType("avrotesttype", "a:Integer,b:String")
       val sf = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
       sf.getProperty("b").getValue must not(throwA[NullPointerException])
-      sf.getProperty("b").getValue should beNull
+      sf.getProperty("b").getValue must beNull
 
       val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
-      oldSf.getProperty("b").getValue should beNull
+      oldSf.getProperty("b").getValue must beNull
     }
     "implement equals" in {
       val sft = SimpleFeatureTypes.createType("avrotesttype", "a:Integer,b:String,*g:Geometry")

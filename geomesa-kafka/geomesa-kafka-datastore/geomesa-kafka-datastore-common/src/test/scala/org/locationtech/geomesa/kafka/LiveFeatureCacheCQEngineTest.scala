@@ -14,13 +14,13 @@ import org.joda.time.Instant
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeatureReader
 import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class LiveFeatureCacheCQEngineTest extends Specification with Mockito with SimpleFeatureMatchers {
+class LiveFeatureCacheCQEngineTest extends org.specs2.mutable.Spec with Mockito with SimpleFeatureMatchers {
 
   import KafkaConsumerTestData._
 

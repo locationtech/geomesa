@@ -14,11 +14,11 @@ import org.geotools.geometry.GeometryBuilder
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ScalaSimpleFeatureFactoryTest extends Specification {
+class ScalaSimpleFeatureFactoryTest extends org.specs2.mutable.Spec {
 
   "GeoTools must use KryoSimpleFeatureFactory when hint is set" in {
     ScalaSimpleFeatureFactory.init

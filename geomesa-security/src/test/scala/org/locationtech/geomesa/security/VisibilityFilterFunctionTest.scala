@@ -12,7 +12,7 @@ import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 import org.springframework.security.authentication.TestingAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
@@ -20,7 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class VisibilityFilterFunctionTest extends Specification {
+class VisibilityFilterFunctionTest extends org.specs2.mutable.Spec {
 
   sequential
 

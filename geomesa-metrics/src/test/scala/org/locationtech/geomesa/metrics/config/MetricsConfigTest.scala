@@ -17,11 +17,11 @@ import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import org.apache.commons.io.FileUtils
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.metrics.reporters.{AccumuloReporter, DelimitedFileReporter}
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class MetricsConfigTest extends Specification {
+class MetricsConfigTest extends org.specs2.mutable.Spec {
 
   val folder = Files.createTempDirectory("geomesa-metrics-config").toFile
   val config = ConfigFactory.load("config-test")

@@ -14,13 +14,13 @@ import org.geotools.feature.AttributeTypeBuilder
 import org.joda.time.{Duration, Instant}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class KafkaDataStoreHelperTest extends Specification {
+class KafkaDataStoreHelperTest extends org.specs2.mutable.Spec {
 
   "KafkaDataStoreHelper" should {
 
@@ -68,7 +68,7 @@ class KafkaDataStoreHelperTest extends Specification {
       val prepped = KafkaDataStoreHelper.createStreamingSFT(sft,"/my/root/path")
 
       // check that it is a different instance and a few key properties match
-      prepped must not beTheSameAs sft
+      prepped must not(beTheSameAs(sft))
       prepped.getTypeName mustEqual sft.getTypeName
       prepped.getAttributeCount mustEqual sft.getAttributeCount
       prepped.getAttributeDescriptors.asScala must containTheSameElementsAs(sft.getAttributeDescriptors.asScala)
@@ -83,7 +83,7 @@ class KafkaDataStoreHelperTest extends Specification {
 
       //check that the topic entry has been added
       prepped.getUserData.size() mustEqual (sft.getUserData.size() + 1)
-      prepped.getUserData.get(KafkaDataStoreHelper.TopicKey) must not be null
+      prepped.getUserData.get(KafkaDataStoreHelper.TopicKey) must not(beNull)
     }
 
     "createStreamingSFT topics are unique to (type name, path) combos" >> {
@@ -121,11 +121,11 @@ class KafkaDataStoreHelperTest extends Specification {
 
         // check that it is a different instance and a few key properties match
         // don't check typename or attributes!
-        prepped must not beTheSameAs streamingSft
+        prepped must not(beTheSameAs(streamingSft))
 
         //check that the rc entry has been added
         prepped.getUserData.size() mustEqual (streamingSft.getUserData.size() + 1)
-        prepped.getUserData.get(KafkaDataStoreHelper.ReplayConfigKey) must not be null
+        prepped.getUserData.get(KafkaDataStoreHelper.ReplayConfigKey) must not(beNull)
       }
 
       "add replay config data into the sft" >> {
@@ -134,7 +134,7 @@ class KafkaDataStoreHelperTest extends Specification {
 
         //check that the rc entry has been added
         prepped.getUserData.size() mustEqual (streamingSft.getUserData.size() + 1)
-        prepped.getUserData.get(KafkaDataStoreHelper.ReplayConfigKey) must not be null
+        prepped.getUserData.get(KafkaDataStoreHelper.ReplayConfigKey) must not(beNull)
       }
 
       "change the typename" >> {
@@ -142,7 +142,8 @@ class KafkaDataStoreHelperTest extends Specification {
         val prepped = KafkaDataStoreHelper.createReplaySFT(streamingSft, rc)
 
         prepped.getTypeName mustNotEqual streamingSft.getTypeName
-        prepped.getTypeName must contain(streamingSft.getTypeName) and contain("REPLAY")
+        prepped.getTypeName must contain(streamingSft.getTypeName)
+        prepped.getTypeName must contain("REPLAY")
 
         "to a unique value" >> {
           val prepped2 = KafkaDataStoreHelper.createReplaySFT(streamingSft, rc)

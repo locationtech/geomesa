@@ -21,16 +21,15 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter._
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class LiveFeatureCacheBenchmarkTest extends Specification {
+class LiveFeatureCacheBenchmarkTest extends org.specs2.mutable.Spec {
   implicit def sfToCreate(feature: SimpleFeature): CreateOrUpdate = CreateOrUpdate(Instant.now, feature)
-  implicit val ff = CommonFactoryFinder.getFilterFactory2
+  implicit val filterFactory = CommonFactoryFinder.getFilterFactory2
 
   val spec = Seq(
     "Who:String:cq-index=default",
@@ -181,18 +180,18 @@ class LiveFeatureCacheBenchmarkTest extends Specification {
   val w14 = ECQL.toFilter("What = 1 OR What = 2 OR What = 3 or What = 4")
   val where = ECQL.toFilter("BBOX(Where, 0, 0, 180, 90)")
   val where2 = ECQL.toFilter("BBOX(Where, -180, -90, 0, 0)")
-  val bbox2 = ff.or(where, where2)
+  val bbox2 = filterFactory.or(where, where2)
   val justified = ECQL.toFilter("Why is not null")
-  val justifiedAB = ff.and(ff.and(ab, w14), justified)
-  val justifiedCD = ff.and(ff.and(cd, w14), justified)
-  val just = ff.or(justifiedAB, justifiedCD)
-  val justBBOX = ff.and(just, where)
-  val justBBOX2 = ff.and(just, where2)
+  val justifiedAB = filterFactory.and(filterFactory.and(ab, w14), justified)
+  val justifiedCD = filterFactory.and(filterFactory.and(cd, w14), justified)
+  val just = filterFactory.or(justifiedAB, justifiedCD)
+  val justBBOX = filterFactory.and(just, where)
+  val justBBOX2 = filterFactory.and(just, where2)
   val overlapWhere1 = ECQL.toFilter("BBOX(Where, -180, 0, 0, 90)")
   val overlapWhere2 = ECQL.toFilter("BBOX(Where, -90, -90, 0, 90)")
-  val overlapOR1 = ff.or(overlapWhere1, overlapWhere2)
+  val overlapOR1 = filterFactory.or(overlapWhere1, overlapWhere2)
   val overlapOR2 = ECQL.toFilter("Who = 'Addams' OR What = 1")
-  val overlapORpathological = ff.or(List[Filter](
+  val overlapORpathological = filterFactory.or(List[Filter](
     "Who = 'Addams'",
     "What = 1",
     "Who = 'Bierce'",
@@ -224,38 +223,38 @@ class LiveFeatureCacheBenchmarkTest extends Specification {
 
   "LiveFeatureCacheCQEngine " should {
     "benchmark" >> {
-      skipped
+      skipped {
+        val lfc_pop = timeUnit(feats.foreach {
+          lfc.createOrUpdateFeature(_)
+        })
+        println("lfc pop:   " + countPopulate(feats.size, lfc_pop))
 
-      val lfc_pop = timeUnit(feats.foreach {
-        lfc.createOrUpdateFeature(_)
-      })
-      println("lfc pop:   " + countPopulate(feats.size, lfc_pop))
+        val lfc_repop = timeUnit(featsUpdate.foreach {
+          lfc.createOrUpdateFeature(_)
+        })
+        println("lfc repop: " + countPopulate(featsUpdate.size, lfc_repop))
 
-      val lfc_repop = timeUnit(featsUpdate.foreach {
-        lfc.createOrUpdateFeature(_)
-      })
-      println("lfc repop: " + countPopulate(featsUpdate.size, lfc_repop))
+        val cq_pop = timeUnit({
+          for (sf <- feats) cq.createOrUpdateFeature(sf)
+        })
+        println("cq  pop:   " + countPopulate(feats.size, cq_pop))
 
-      val cq_pop = timeUnit({
-        for (sf <- feats) cq.createOrUpdateFeature(sf)
-      })
-      println("cq  pop:   " + countPopulate(feats.size, cq_pop))
+        val cq_repop = timeUnit({
+          for (sf <- featsUpdate) cq.createOrUpdateFeature(sf)
+        })
+        println("cq  repop: " + countPopulate(featsUpdate.size, cq_repop))
 
-      val cq_repop = timeUnit({
-        for (sf <- featsUpdate) cq.createOrUpdateFeature(sf)
-      })
-      println("cq  repop: " + countPopulate(featsUpdate.size, cq_repop))
+        runQueriesMultipleRaw[Filter](
+          11,
+          Seq("lfc", "cq", "cqdd"),
+          Seq(
+            f => lfc.getReaderForFilter(f).toIterator.size,
+            f => cq.geocq.queryCQ(f, false).toIterator.size,
+            f => cq.geocq.queryCQ(f, true).toIterator.size),
+          filters)
 
-      runQueriesMultipleRaw[Filter](
-        11,
-        Seq("lfc", "cq", "cqdd"),
-        Seq(
-          f => lfc.getReaderForFilter(f).toIterator.size,
-          f => cq.geocq.queryCQ(f, false).toIterator.size,
-          f => cq.geocq.queryCQ(f, true).toIterator.size),
-        filters)
-
-      true must equalTo(true)
+        ok
+      }
     }
   }
 }

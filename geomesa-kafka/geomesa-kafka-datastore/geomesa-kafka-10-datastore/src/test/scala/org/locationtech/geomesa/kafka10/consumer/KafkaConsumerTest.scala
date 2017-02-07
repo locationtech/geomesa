@@ -19,13 +19,13 @@ import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.kafka10.consumer.offsets._
 import org.locationtech.geomesa.kafka10.{HasEmbeddedKafka, KafkaUtils10}
-import org.specs2.mutable.Specification
+
 import org.specs2.runner
 
 import scala.collection.mutable.ArrayBuffer
 
 @RunWith(classOf[runner.JUnitRunner])
-class KafkaConsumerTest extends Specification with HasEmbeddedKafka {
+class KafkaConsumerTest extends org.specs2.mutable.Spec with HasEmbeddedKafka {
 
   sequential
 

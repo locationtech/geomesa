@@ -15,11 +15,11 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.convert.Transformers.{DefaultCounter, EvaluationContextImpl}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ScriptingFunctionFactoryTest extends Specification {
+class ScriptingFunctionFactoryTest extends org.specs2.mutable.Spec {
 
   sequential
 
@@ -98,10 +98,10 @@ class ScriptingFunctionFactoryTest extends Specification {
       converter.close()
 
       "and process some data" >> {
-        res.size must be equalTo 2
-        res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "hello: hello"
-        res(0).getAttribute("gbye").asInstanceOf[String] must be equalTo "goodbye: hello"
-        res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "hello: world"
+        res.size mustEqual 2
+        res(0).getAttribute("phrase").asInstanceOf[String] mustEqual "hello: hello"
+        res(0).getAttribute("gbye").asInstanceOf[String] mustEqual "goodbye: hello"
+        res(1).getAttribute("phrase").asInstanceOf[String] mustEqual "hello: world"
       }
 
     }

@@ -14,11 +14,11 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.kafka._
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.matcher.Matcher
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ReplaySnapshotFeatureCacheTest extends Specification with SimpleFeatureMatchers {
+class ReplaySnapshotFeatureCacheTest extends org.specs2.mutable.Spec with SimpleFeatureMatchers {
 
   import KafkaConsumerTestData._
 

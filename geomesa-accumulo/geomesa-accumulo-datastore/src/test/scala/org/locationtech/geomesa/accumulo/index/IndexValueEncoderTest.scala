@@ -24,11 +24,11 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
 import org.opengis.feature.simple.SimpleFeature
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class IndexValueEncoderTest extends Specification {
+class IndexValueEncoderTest extends org.specs2.mutable.Spec {
 
   val defaultSchema = "*geom:Point,dtg:Date,s:String,i:Int,d:Double,f:Float,u:UUID,l:List[String]"
   val allSchema = s"*geom:Point:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,s:String:$OPT_INDEX_VALUE=true,i:Int:$OPT_INDEX_VALUE=true,d:Double:$OPT_INDEX_VALUE=true,f:Float:$OPT_INDEX_VALUE=true,u:UUID:$OPT_INDEX_VALUE=true,l:List[String]"
@@ -201,68 +201,69 @@ class IndexValueEncoderTest extends Specification {
     }
 
     "be at least as fast as before" in {
-      skipped("for integration")
+      skipped {
+        // for integration
+        val sft = getSft()
 
-      val sft = getSft()
+        val entry = AvroSimpleFeatureFactory.buildAvroFeature(sft,
+          List(geom, dt, null, null, null, null, null, null), id)
 
-      val entry = AvroSimpleFeatureFactory.buildAvroFeature(sft,
-        List(geom, dt, null, null, null, null, null, null), id)
+        val encoder = IndexValueEncoder(sft)
+        val oldEncoder = IndexValueEncoder(getSft(version = 0))
 
-      val encoder = IndexValueEncoder(sft)
-      val oldEncoder = IndexValueEncoder(getSft(version = 0))
+        var totalEncodeNew = 0L
+        var totalDecodeNew = 0L
 
-      var totalEncodeNew = 0L
-      var totalDecodeNew = 0L
+        var totalEncodeOld = 0L
+        var totalDecodeOld = 0L
 
-      var totalEncodeOld = 0L
-      var totalDecodeOld = 0L
+        var totalEncodeOriginal = 0L
+        var totalDecodeOriginal = 0L
 
-      var totalEncodeOriginal = 0L
-      var totalDecodeOriginal = 0L
+        // run once to remove any initialization time...
+        oldEncoder.deserialize(oldEncoder.serialize(entry))
+        encoder.deserialize(encoder.serialize(entry))
+        _decodeIndexValue(_encodeIndexValue(entry))
 
-      // run once to remove any initialization time...
-      oldEncoder.deserialize(oldEncoder.serialize(entry))
-      encoder.deserialize(encoder.serialize(entry))
-      _decodeIndexValue(_encodeIndexValue(entry))
+        (0 to 1000000).foreach { _ =>
+          val start = System.currentTimeMillis()
+          val value = oldEncoder.serialize(entry)
+          val encode = System.currentTimeMillis()
+          oldEncoder.deserialize(value)
+          val decode = System.currentTimeMillis()
 
-      (0 to 1000000).foreach { _ =>
-        val start = System.currentTimeMillis()
-        val value = oldEncoder.serialize(entry)
-        val encode = System.currentTimeMillis()
-        oldEncoder.deserialize(value)
-        val decode = System.currentTimeMillis()
+          totalEncodeOld += encode - start
+          totalDecodeOld += decode - encode
+        }
 
-        totalEncodeOld += encode - start
-        totalDecodeOld += decode - encode
+        (0 to 1000000).foreach { _ =>
+          val start = System.currentTimeMillis()
+          val value = encoder.serialize(entry)
+          val encode = System.currentTimeMillis()
+          encoder.deserialize(value)
+          val decode = System.currentTimeMillis()
+
+          totalEncodeNew += encode - start
+          totalDecodeNew += decode - encode
+        }
+
+        (0 to 1000000).foreach { _ =>
+          val start = System.currentTimeMillis()
+          val value = _encodeIndexValue(entry)
+          val encode = System.currentTimeMillis()
+          _decodeIndexValue(value)
+          val decode = System.currentTimeMillis()
+
+          totalEncodeOriginal += encode - start
+          totalDecodeOriginal += decode - encode
+        }
+
+        println(s"ori $totalEncodeOriginal $totalDecodeOriginal")
+        println(s"old $totalEncodeOld $totalDecodeOld")
+        println(s"new $totalEncodeNew $totalDecodeNew")
+        println
+        success
       }
-
-      (0 to 1000000).foreach { _ =>
-        val start = System.currentTimeMillis()
-        val value = encoder.serialize(entry)
-        val encode = System.currentTimeMillis()
-        encoder.deserialize(value)
-        val decode = System.currentTimeMillis()
-
-        totalEncodeNew += encode - start
-        totalDecodeNew += decode - encode
-      }
-
-      (0 to 1000000).foreach { _ =>
-        val start = System.currentTimeMillis()
-        val value = _encodeIndexValue(entry)
-        val encode = System.currentTimeMillis()
-        _decodeIndexValue(value)
-        val decode = System.currentTimeMillis()
-
-        totalEncodeOriginal += encode - start
-        totalDecodeOriginal += decode - encode
-      }
-
-      println(s"ori $totalEncodeOriginal $totalDecodeOriginal")
-      println(s"old $totalEncodeOld $totalDecodeOld")
-      println(s"new $totalEncodeNew $totalDecodeNew")
-      println
-      success
     }
   }
 

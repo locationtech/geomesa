@@ -55,11 +55,6 @@
             <artifactId>geomesa-security_${scala.binary.version}</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.specs2</groupId>
-            <artifactId>specs2_${scala.binary.version}</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
 </project>

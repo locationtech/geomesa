@@ -15,11 +15,10 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.raster.RasterTestsUtils._
 import org.locationtech.geomesa.raster.data.Raster
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class MosaicTest extends Specification {
+class MosaicTest extends org.specs2.mutable.Spec with org.specs2.execute.PendingUntilFixed {
 
   sequential
 

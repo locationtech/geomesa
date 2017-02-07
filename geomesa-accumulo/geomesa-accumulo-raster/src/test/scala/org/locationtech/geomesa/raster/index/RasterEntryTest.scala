@@ -14,11 +14,10 @@ import org.apache.accumulo.core.data.Key
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class RasterEntryTest extends Specification {
+class RasterEntryTest extends org.specs2.mutable.Spec {
 
   sequential
 
@@ -45,10 +44,10 @@ class RasterEntryTest extends Specification {
       val decoded = RasterEntry.decodeIndexCQMetadata(keyWithCq)
 
       // requirements
-      decoded must not equalTo null
-      decoded.id must be equalTo id
-      WKTUtils.write(decoded.geom) must be equalTo wkt
-      decoded.date.get must be equalTo now
+      decoded must not(beNull)
+      decoded.id mustEqual id
+      WKTUtils.write(decoded.geom) mustEqual wkt
+      decoded.date.get mustEqual now
     }
 
     "encode and decode Raster meta-data properly when there is no datetime" in {
@@ -67,9 +66,9 @@ class RasterEntryTest extends Specification {
       val decoded = RasterEntry.decodeIndexCQMetadata(keyWithCq)
 
       // requirements
-      decoded must not equalTo null
-      decoded.id must be equalTo id
-      WKTUtils.write(decoded.geom) must be equalTo wkt
+      decoded must not(beNull)
+      decoded.id mustEqual id
+      WKTUtils.write(decoded.geom) mustEqual wkt
       dt.isDefined must beFalse
     }
 

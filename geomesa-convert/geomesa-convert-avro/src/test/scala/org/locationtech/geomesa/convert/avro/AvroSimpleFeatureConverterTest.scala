@@ -14,11 +14,11 @@ import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AvroSimpleFeatureConverterTest extends Specification with AvroUtils {
+class AvroSimpleFeatureConverterTest extends org.specs2.mutable.Spec with AvroUtils {
 
   sequential
 
@@ -47,8 +47,8 @@ class AvroSimpleFeatureConverterTest extends Specification with AvroUtils {
       val converter = SimpleFeatureConverters.build[Array[Byte]](sft, conf)
       val ec = converter.createEvaluationContext()
       val sf = converter.processInput(Iterator.apply[Array[Byte]](bytes), ec).next()
-      sf.getAttributeCount must be equalTo 2
-      sf.getAttribute("dtg") must not beNull
+      sf.getAttributeCount mustEqual 2
+      sf.getAttribute("dtg") must not(beNull)
 
       ec.counter.getFailure mustEqual 0L
       ec.counter.getSuccess mustEqual 1L
@@ -59,8 +59,8 @@ class AvroSimpleFeatureConverterTest extends Specification with AvroUtils {
       val converter = SimpleFeatureConverters.build[Array[Byte]](sft, conf)
       val ec = converter.createEvaluationContext()
       val sf = converter.process(new ByteArrayInputStream(bytes), ec).next()
-      sf.getAttributeCount must be equalTo 2
-      sf.getAttribute("dtg") must not beNull
+      sf.getAttributeCount mustEqual 2
+      sf.getAttribute("dtg") must not(beNull)
 
       ec.counter.getFailure mustEqual 0L
       ec.counter.getSuccess mustEqual 1L
@@ -91,7 +91,7 @@ class AvroSimpleFeatureConverterTest extends Specification with AvroUtils {
       val converter = SimpleFeatureConverters.build[Array[Byte]](sft, conf)
       val ec = converter.createEvaluationContext()
       val sf = converter.processInput(Iterator.apply[Array[Byte]](bytes), ec).next()
-      sf.getAttributeCount must be equalTo 2
+      sf.getAttributeCount mustEqual 2
       sf.getAttribute("dtg") must not(beNull)
       sf.getUserData.get("my.user.key") mustEqual 45d
 

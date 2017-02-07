@@ -12,11 +12,11 @@ import org.geotools.filter.text.cql2.CQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter
 import org.opengis.filter._
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class OrSplittingFilterTest extends Specification {
+class OrSplittingFilterTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   val geom1: Filter = CQL.toFilter("INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))")
   val geom2: Filter = CQL.toFilter("INTERSECTS(geom, POLYGON ((44 23, 46 23, 46 25, 44 25, 44 23)))")

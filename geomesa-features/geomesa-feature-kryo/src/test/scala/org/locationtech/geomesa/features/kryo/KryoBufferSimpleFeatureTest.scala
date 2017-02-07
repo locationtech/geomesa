@@ -14,7 +14,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
@@ -22,7 +22,7 @@ import scala.collection.JavaConversions._
 //import scala.languageFeature.postfixOps
 
 @RunWith(classOf[JUnitRunner])
-class KryoBufferSimpleFeatureTest extends Specification {
+class KryoBufferSimpleFeatureTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   "KryoBufferSimpleFeature" should {
 
@@ -271,43 +271,45 @@ class KryoBufferSimpleFeatureTest extends Specification {
     }
 
     "be faster than full deserialization" in {
-      skipped("integration")
-      val spec = "a:Integer,b:Float,c:Double,d:Long,e:UUID,f:String,g:Boolean,dtg:Date,*geom:Point:srid=4326"
-      val sft = SimpleFeatureTypes.createType("speed", spec)
+      skipped {
+        // integration
+        val spec = "a:Integer,b:Float,c:Double,d:Long,e:UUID,f:String,g:Boolean,dtg:Date,*geom:Point:srid=4326"
+        val sft = SimpleFeatureTypes.createType("speed", spec)
 
-      val sf = new ScalaSimpleFeature("fakeid", sft)
+        val sf = new ScalaSimpleFeature("fakeid", sft)
 
-      sf.setAttribute("a", "1")
-      sf.setAttribute("b", "1.0")
-      sf.setAttribute("c", "5.37")
-      sf.setAttribute("d", "-100")
-      sf.setAttribute("e", UUID.randomUUID())
-      sf.setAttribute("f", "mystring")
-      sf.setAttribute("g", java.lang.Boolean.FALSE)
-      sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
-      sf.setAttribute("geom", "POINT(45.0 49.0)")
+        sf.setAttribute("a", "1")
+        sf.setAttribute("b", "1.0")
+        sf.setAttribute("c", "5.37")
+        sf.setAttribute("d", "-100")
+        sf.setAttribute("e", UUID.randomUUID())
+        sf.setAttribute("f", "mystring")
+        sf.setAttribute("g", java.lang.Boolean.FALSE)
+        sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+        sf.setAttribute("geom", "POINT(45.0 49.0)")
 
-      val serializer = new KryoFeatureSerializer(sft, SerializationOptions.none)
-      val serialized = serializer.serialize(sf)
+        val serializer = new KryoFeatureSerializer(sft, SerializationOptions.none)
+        val serialized = serializer.serialize(sf)
 
-      val start = System.currentTimeMillis()
-      (0 until 1000000).foreach { _ =>
-        val de = serializer.deserialize(serialized)
-        de.getAttribute(1)
+        val start = System.currentTimeMillis()
+        (0 until 1000000).foreach { _ =>
+          val de = serializer.deserialize(serialized)
+          de.getAttribute(1)
+        }
+        println(s"took ${System.currentTimeMillis() - start}ms")
+
+        val start2 = System.currentTimeMillis()
+        val reusable = serializer.getReusableFeature
+        (0 until 1000000).foreach { _ =>
+          reusable.setBuffer(serialized)
+          reusable.getAttribute(7)
+        }
+        println(s"took ${System.currentTimeMillis() - start2}ms")
+
+        println()
+        println()
+        success
       }
-      println(s"took ${System.currentTimeMillis() - start}ms")
-
-      val start2 = System.currentTimeMillis()
-      val reusable = serializer.getReusableFeature
-      (0 until 1000000).foreach { _ =>
-        reusable.setBuffer(serialized)
-        reusable.getAttribute(7)
-      }
-      println(s"took ${System.currentTimeMillis() - start2}ms")
-
-      println()
-      println()
-      success
     }
   }
 }

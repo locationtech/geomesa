@@ -25,13 +25,12 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class VisibilitiesTest extends Specification {
+class VisibilitiesTest extends org.specs2.mutable.Spec {
 
   sequential
 
@@ -68,7 +67,6 @@ class VisibilitiesTest extends Specification {
     nonPrivFeatures.foreach { f => f.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "user") }
 
     fs.addFeatures(new ListFeatureCollection(sft, privFeatures ++ nonPrivFeatures))
-    fs.flush()
 
     val ff = CommonFactoryFinder.getFilterFactory2
     import ff.{literal => lit, property => prop, _}
@@ -82,19 +80,19 @@ class VisibilitiesTest extends Specification {
       "useMock"           -> "true",
       "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
 
-    "nonpriv should only be able to read a subset of features" in {
+    "nonpriv should only be able to read a subset of features" >> {
 
       "using ALL queries" in {
         val reader = unprivDS.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)
         val readFeatures = reader.toIterator.toList
 
-        readFeatures.size must be equalTo 3
+        readFeatures.size mustEqual 3
       }
 
       "using ST queries" in {
         val filter = bbox(prop("geom"), 44.0, 44.0, 46.0, 46.0, "EPSG:4326")
         val reader = unprivDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        reader.toIterator.toList.size must be equalTo 3
+        reader.toIterator.toList.size mustEqual 3
       }
 
       "using attribute queries" in {
@@ -103,22 +101,22 @@ class VisibilitiesTest extends Specification {
           ff.equals(prop("name"), lit("4")))
 
         val reader = unprivDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        reader.toIterator.toList.size must be equalTo 1
+        reader.toIterator.toList.size mustEqual 1
       }
 
     }
 
-    "priv should be able to read all 6 features" in {
+    "priv should be able to read all 6 features" >> {
 
       "using ALL queries" in {
         val reader = ds.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)
         val readFeatures = reader.toIterator.toList
-        readFeatures.size must be equalTo 6
+        readFeatures.size mustEqual 6
       }
       "using ST queries" in {
         val filter = bbox(prop("geom"), 44.0, 44.0, 46.0, 46.0, "EPSG:4326")
         val reader = ds.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        reader.toIterator.toList.size must be equalTo 6
+        reader.toIterator.toList.size mustEqual 6
       }
 
       "using attribute queries" in {
@@ -127,12 +125,12 @@ class VisibilitiesTest extends Specification {
           ff.equals(prop("name"), lit("4")))
 
         val reader = ds.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        reader.toIterator.toList.size must be equalTo 2
+        reader.toIterator.toList.size mustEqual 2
       }
     }
   }
 
-  "remove should continue to work as expected" in {
+  "remove should continue to work as expected" >> {
 
     val instanceId = "removeviz"
     val mockInstance = new MockInstance(instanceId)
@@ -167,7 +165,6 @@ class VisibilitiesTest extends Specification {
     nonPrivFeatures.foreach { f => f.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "user") }
 
     fs.addFeatures(new ListFeatureCollection(sft, privFeatures ++ nonPrivFeatures))
-    fs.flush()
 
     val ff = CommonFactoryFinder.getFilterFactory2
     import ff.{literal => lit, property => prop, _}
@@ -181,12 +178,11 @@ class VisibilitiesTest extends Specification {
       "useMock"           -> "true",
       "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
 
-    "priv should be able to delete a feature" in {
+    "priv should be able to delete a feature" >> {
       fs.removeFeatures(ff.id(new FeatureIdImpl("1")))
-      fs.flush()
 
       "using ALL queries" in {
-        fs.getFeatures(new Query(sftName)).features().toList.size must be equalTo 5
+        fs.getFeatures(new Query(sftName)).features().toList.size mustEqual 5
       }
 
       "using record id queries" in {
@@ -199,14 +195,13 @@ class VisibilitiesTest extends Specification {
           ff.equals(prop("name"), lit("4")))
 
         val reader = ds.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-        reader.toIterator.toList.size must be equalTo 1
+        reader.toIterator.toList.size mustEqual 1
       }
     }
 
-    "nonpriv should not be able to delete a priv feature" in {
+    "nonpriv should not be able to delete a priv feature" >> {
       val unprivFS = unprivDS.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
       unprivFS.removeFeatures(ff.id(new FeatureIdImpl("2")))
-      unprivFS.flush()
 
       "priv should still see the feature that was attempted to be deleted" in {
         fs.getFeatures(ff.id(ff.featureId("2"))).features().hasNext must beTrue

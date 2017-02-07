@@ -11,11 +11,10 @@ package org.locationtech.geomesa.utils.time
 import org.joda.time.{DateTime, DateTimeZone, Interval}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.time.Time._
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class RichIntervalTest extends Specification {
+class RichIntervalTest extends org.specs2.mutable.Spec with org.specs2.execute.PendingUntilFixed {
 
   "RichIntervals" should {
     val dt1 = new DateTime("2012-01-01T01:00:00", DateTimeZone.UTC)
@@ -36,16 +35,16 @@ class RichIntervalTest extends Specification {
 
     "support unions and intersections" >> {
       val u1 = int12.getSafeUnion(int23)
-      u1 must be equalTo int13
+      u1 mustEqual int13
 
       val u2 = u1.getSafeUnion(int13)
-      u2 must be equalTo int13
+      u2 mustEqual int13
 
-      u2.getSafeUnion(int12)  must be equalTo u2
+      u2.getSafeUnion(int12)  mustEqual u2
 
       // Test intersections
-      int13.getSafeIntersection(int12) must be equalTo int12
-      int13.getSafeIntersection(int23) must be equalTo int23
+      int13.getSafeIntersection(int12) mustEqual int12
+      int13.getSafeIntersection(int23) mustEqual int23
     }
 
     "support empty intersections" >> {
@@ -53,11 +52,11 @@ class RichIntervalTest extends Specification {
     }.pendingUntilFixed
 
     "handle expansions" >> {
-      int12.expandByDate(dt3.toDate) must be equalTo int13
-      int45.expandByDate(dt3.toDate) must be equalTo int35
+      int12.expandByDate(dt3.toDate) mustEqual int13
+      int45.expandByDate(dt3.toDate) mustEqual int35
 
-      int23.expandByInterval(int35) must be equalTo int25
-      int45.expandByInterval(int35) must be equalTo int35
+      int23.expandByInterval(int35) mustEqual int25
+      int45.expandByInterval(int35) mustEqual int35
     }
   }
 }

@@ -25,13 +25,15 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 import org.locationtech.geomesa.utils.geotools.GridSnap
 import org.opengis.feature.simple.SimpleFeature
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class LiveDensityIteratorTest extends Specification with LazyLogging {
+class LiveDensityIteratorTest extends org.specs2.mutable.Spec with LazyLogging {
+
+  skipAllIf(true) // meant for integration testing
 
   sequential
 
@@ -145,8 +147,6 @@ class LiveDensityIteratorTest extends Specification with LazyLogging {
   "AccumuloDataStore" should {
 
     "connect to accumulo" in {
-
-      skipped("Meant for integration testing")
 
       val ds = getDataStore
 

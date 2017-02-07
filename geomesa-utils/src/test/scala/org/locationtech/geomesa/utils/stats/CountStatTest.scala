@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.utils.stats
 
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class CountStatTest extends Specification with StatTestHelper {
+class CountStatTest extends org.specs2.mutable.Spec with StatTestHelper {
 
   def newStat(observe: Boolean = true): CountStat = {
     val stat = Stat(sft, s"Count()")

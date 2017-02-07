@@ -17,13 +17,13 @@ import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.index.IndexMode
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
-class ConfigurableIndexesTest extends Specification with TestWithDataStore {
+class ConfigurableIndexesTest extends TestWithDataStore with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 

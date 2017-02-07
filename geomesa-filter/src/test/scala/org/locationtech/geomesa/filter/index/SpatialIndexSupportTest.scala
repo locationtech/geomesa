@@ -15,11 +15,11 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.SynchronizedQuadtree
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class SpatialIndexSupportTest extends Specification {
+class SpatialIndexSupportTest extends org.specs2.mutable.Spec {
 
   import org.locationtech.geomesa.utils.geotools.Conversions._
 

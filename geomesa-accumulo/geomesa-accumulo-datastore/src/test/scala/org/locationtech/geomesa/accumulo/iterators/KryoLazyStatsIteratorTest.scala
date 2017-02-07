@@ -17,11 +17,11 @@ import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator.decodeS
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.stats._
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
+class KryoLazyStatsIteratorTest extends org.specs2.mutable.Spec with TestWithDataStore {
 
   sequential
 

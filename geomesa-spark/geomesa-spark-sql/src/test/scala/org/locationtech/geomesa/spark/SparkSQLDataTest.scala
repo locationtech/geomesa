@@ -17,17 +17,19 @@ import org.geotools.data.{DataStore, DataStoreFinder}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.interop.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLDataTest extends Specification with LazyLogging {
+class SparkSQLDataTest extends org.specs2.mutable.Spec with LazyLogging {
+
+  sequential
+
   val createPoint = JTSFactoryFinder.getGeometryFactory.createPoint(_: Coordinate)
 
   "sql data tests" should {
-    sequential
 
     val dsParams: JMap[String, String] = Map("cqengine" -> "true", "geotools" -> "true")
     var ds: DataStore = null
@@ -51,7 +53,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
         .options(dsParams)
         .option("geomesa.feature", "chicago")
         .load()
-      logger.info(df.schema.treeString)
+      logger.debug(df.schema.treeString)
       df.createOrReplaceTempView("chicago")
 
       df.collect.length mustEqual 3

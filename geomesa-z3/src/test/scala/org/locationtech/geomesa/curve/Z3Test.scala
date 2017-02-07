@@ -11,13 +11,13 @@ package org.locationtech.geomesa.curve
 import org.junit.runner.RunWith
 import org.locationtech.sfcurve.CoveredRange
 import org.locationtech.sfcurve.zorder.{Z3, ZRange}
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class Z3Test extends Specification {
+class Z3Test extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   val rand = new Random(-574)
   val maxInt = Z3SFC(TimePeriod.Week).lon.precision.toInt

@@ -12,11 +12,11 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.mapreduce.Job
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class InputFormatBaseAdapterTest extends Specification {
+class InputFormatBaseAdapterTest extends org.specs2.mutable.Spec {
   val job = new Job
 
   "InputFormatBaseAdapter" should {

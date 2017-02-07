@@ -23,7 +23,7 @@ import org.locationtech.geomesa.features.avro.{AvroSimpleFeature, FeatureSpecifi
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.mutable
@@ -33,7 +33,7 @@ import scala.io.Source
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class Version1BackwardsCompatTest extends Specification {
+class Version1BackwardsCompatTest extends org.specs2.mutable.Spec {
 
   val geoFac = new GeometryFactory()
   def createTypeWithGeo: Version1ASF = {
@@ -168,7 +168,7 @@ class Version1BackwardsCompatTest extends Specification {
 
         import scala.collection.JavaConversions._
         sf.getAttributes.foreach { a =>
-          a must not beNull
+          a must not(beNull)
         }
 
         sf.getAttribute("f0") mustEqual "0"*8

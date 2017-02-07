@@ -34,24 +34,24 @@ import org.locationtech.geomesa.utils.filters.Filters
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.specs2.time.Duration
 
 import scala.collection.JavaConversions._
+import scala.concurrent.duration.Duration
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts {
+class AccumuloDataStoreQueryTest extends TestWithMultipleSfts
+    with org.specs2.matcher.SequenceMatchersCreation with org.specs2.execute.PendingUntilFixed {
 
   sequential
 
-  val ff = CommonFactoryFinder.getFilterFactory2
+  val filterFactory = CommonFactoryFinder.getFilterFactory2
   val defaultSft = createNewSchema("name:String:index=join,geom:Point:srid=4326,dtg:Date")
   addFeature(defaultSft, ScalaSimpleFeature.create(defaultSft, "fid-1", "name1", "POINT(45 49)", "2010-05-07T12:30:00.000Z"))
 
   "AccumuloDataStore" should {
-    "return an empty iterator correctly" in {
+    "return an empty iterator correctly" >> {
       val fs = ds.getFeatureSource(defaultSft.getTypeName)
 
       // compose a CQL query that uses a polygon that is disjoint with the feature bounds
@@ -81,11 +81,11 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       }
     }
 
-    "process a DWithin query correctly" in {
+    "process a DWithin query correctly" >> {
       // compose a CQL query that uses a polygon that is disjoint with the feature bounds
       val geomFactory = JTSFactoryFinder.getGeometryFactory
-      val q = ff.dwithin(ff.property("geom"),
-        ff.literal(geomFactory.createPoint(new Coordinate(45.000001, 48.99999))), 100.0, "meters")
+      val q = filterFactory.dwithin(filterFactory.property("geom"),
+        filterFactory.literal(geomFactory.createPoint(new Coordinate(45.000001, 48.99999))), 100.0, "meters")
       val query = new Query(defaultSft.getTypeName, q)
 
       // Let's read out what we wrote.
@@ -119,21 +119,21 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       // compose the query
       val start   = new DateTime(2014, 6, 7, 11, 0, 0, DateTimeZone.forID("UTC"))
       val end     = new DateTime(2014, 6, 7, 13, 0, 0, DateTimeZone.forID("UTC"))
-      val during  = ff.during(ff.property("dtg"), Filters.dts2lit(start, end))
+      val during  = filterFactory.during(filterFactory.property("dtg"), Filters.dts2lit(start, end))
 
       "with correct result when using a dwithin of degrees" >> {
-        val dwithinUsingDegrees = ff.dwithin(ff.property("geom"),
-          ff.literal(geomFactory.createLineString(lineOfBufferCoords)), 1.0, "degrees")
-        val filterUsingDegrees  = ff.and(during, dwithinUsingDegrees)
+        val dwithinUsingDegrees = filterFactory.dwithin(filterFactory.property("geom"),
+          filterFactory.literal(geomFactory.createLineString(lineOfBufferCoords)), 1.0, "degrees")
+        val filterUsingDegrees  = filterFactory.and(during, dwithinUsingDegrees)
         val queryUsingDegrees   = new Query(sftPoints.getTypeName, filterUsingDegrees)
         val resultsUsingDegrees = ds.getFeatureSource(sftPoints.getTypeName).getFeatures(queryUsingDegrees)
         resultsUsingDegrees.features.length mustEqual 50
       }.pendingUntilFixed("Fixed Z3 'During And Dwithin' queries for a buffer created with unit degrees")
 
       "with correct result when using a dwithin of meters" >> {
-        val dwithinUsingMeters = ff.dwithin(ff.property("geom"),
-          ff.literal(geomFactory.createLineString(lineOfBufferCoords)), 150000, "meters")
-        val filterUsingMeters  = ff.and(during, dwithinUsingMeters)
+        val dwithinUsingMeters = filterFactory.dwithin(filterFactory.property("geom"),
+          filterFactory.literal(geomFactory.createLineString(lineOfBufferCoords)), 150000, "meters")
+        val filterUsingMeters  = filterFactory.and(during, dwithinUsingMeters)
         val queryUsingMeters   = new Query(sftPoints.getTypeName, filterUsingMeters)
         val resultsUsingMeters = ds.getFeatureSource(sftPoints.getTypeName).getFeatures(queryUsingMeters)
         resultsUsingMeters.features.length mustEqual 50
@@ -141,8 +141,8 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     }
 
     "handle bboxes without property name" in {
-      val filterNull = ff.bbox(ff.property(null.asInstanceOf[String]), 40, 44, 50, 54, "EPSG:4326")
-      val filterEmpty = ff.bbox(ff.property(""), 40, 44, 50, 54, "EPSG:4326")
+      val filterNull = filterFactory.bbox(filterFactory.property(null.asInstanceOf[String]), 40, 44, 50, 54, "EPSG:4326")
+      val filterEmpty = filterFactory.bbox(filterFactory.property(""), 40, 44, 50, 54, "EPSG:4326")
       val queryNull = new Query(defaultSft.getTypeName, filterNull)
       val queryEmpty = new Query(defaultSft.getTypeName, filterEmpty)
 
@@ -192,12 +192,12 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val fs = ds.getFeatureSource(sft.getTypeName)
 
       val geomFactory = JTSFactoryFinder.getGeometryFactory
-      val urq = ff.dwithin(ff.property("geom"),
-        ff.literal(geomFactory.createPoint(new Coordinate( 0.0005,  0.0005))), 150.0, "meters")
-      val llq = ff.dwithin(ff.property("geom"),
-        ff.literal(geomFactory.createPoint(new Coordinate(-0.0005, -0.0005))), 150.0, "meters")
-      val orq = ff.or(urq, llq)
-      val andq = ff.and(urq, llq)
+      val urq = filterFactory.dwithin(filterFactory.property("geom"),
+        filterFactory.literal(geomFactory.createPoint(new Coordinate( 0.0005,  0.0005))), 150.0, "meters")
+      val llq = filterFactory.dwithin(filterFactory.property("geom"),
+        filterFactory.literal(geomFactory.createPoint(new Coordinate(-0.0005, -0.0005))), 150.0, "meters")
+      val orq = filterFactory.or(urq, llq)
+      val andq = filterFactory.and(urq, llq)
       val urQuery  = new Query(sft.getTypeName,  urq)
       val llQuery  = new Query(sft.getTypeName,  llq)
       val orQuery  = new Query(sft.getTypeName,  orq)
@@ -236,12 +236,13 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     }
 
     "handle large ranges" in {
-      skipped("takes ~10 seconds")
-      val filter = ECQL.toFilter("contains(POLYGON ((40 40, 50 40, 50 50, 40 50, 40 40)), geom) AND " +
-          "dtg BETWEEN '2010-01-01T00:00:00.000Z' AND '2010-12-31T23:59:59.000Z'")
-      val query = new Query(defaultSft.getTypeName, filter)
-      val features = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features.toList
-      features.map(DataUtilities.encodeFeature) mustEqual List("fid-1=name1|POINT (45 49)|2010-05-07T12:30:00.000Z")
+      skipped { // takes ~10 seconds
+        val filter = ECQL.toFilter("contains(POLYGON ((40 40, 50 40, 50 50, 40 50, 40 40)), geom) AND " +
+            "dtg BETWEEN '2010-01-01T00:00:00.000Z' AND '2010-12-31T23:59:59.000Z'")
+        val query = new Query(defaultSft.getTypeName, filter)
+        val features = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features.toList
+        features.map(DataUtilities.encodeFeature) mustEqual List("fid-1=name1|POINT (45 49)|2010-05-07T12:30:00.000Z")
+      }
     }
 
     "handle out-of-bound longitude and in-bounds latitude bboxes" in {
@@ -291,7 +292,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     }
 
     "handle ANDed Filter.INCLUDE" in {
-      val filter = ff.and(Filter.INCLUDE,
+      val filter = filterFactory.and(Filter.INCLUDE,
         ECQL.toFilter("dtg DURING 2010-05-07T12:00:00.000Z/2010-05-07T13:00:00.000Z and bbox(geom,40,44,50,54)"))
       val reader = ds.getFeatureReader(new Query(defaultSft.getTypeName, filter), Transaction.AUTO_COMMIT)
       val features = SelfClosingIterator(reader).toList
@@ -461,7 +462,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val dsWithTimeout = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
       val reader = dsWithTimeout.getFeatureReader(new Query(defaultSft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT)
       reader.isClosed must beFalse
-      reader.isClosed must eventually(10, new Duration(1000))(beTrue) // reaper thread runs every 5 seconds
+      reader.isClosed must beTrue.eventually(10, Duration(1000, "millis")) // reaper thread runs every 5 seconds
     }
 
     "allow query strategy to be specified via view params" in {
@@ -621,7 +622,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       ds.getQueryPlan(query, explainer = out)
 
       val explanation = out.toString()
-      explanation must not be null
+      explanation must not(beNull)
       explanation.trim must not(beEmpty)
     }
   }

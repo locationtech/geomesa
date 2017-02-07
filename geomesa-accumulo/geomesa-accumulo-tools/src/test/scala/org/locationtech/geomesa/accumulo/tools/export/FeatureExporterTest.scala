@@ -26,11 +26,10 @@ import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class FeatureExporterTest extends Specification {
+class FeatureExporterTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   sequential
 
@@ -42,7 +41,7 @@ class FeatureExporterTest extends Specification {
     val featureCollection = new DefaultFeatureCollection(sft.getTypeName, sft)
 
     val attributes = Array("myname", "POINT(45.0 49.0)", new Date(0))
-    (1 to numFeatures).foreach { i =>
+    (1 to numFeatures).foreach { i =>org.specs2.matcher.SequenceMatchersCreation
       val feature = ScalaSimpleFeatureFactory.buildFeature(sft, attributes, s"fid-$i")
       feature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
       featureCollection.add(feature)

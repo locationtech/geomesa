@@ -22,18 +22,18 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.filters.Filters
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts {
+class ProximitySearchProcessTest extends org.specs2.mutable.Spec with TestWithMultipleSfts {
 
   sequential
 
   val geoFactory = JTSFactoryFinder.getGeometryFactory
-  val ff = CommonFactoryFinder.getFilterFactory2
+  val filterFactory = CommonFactoryFinder.getFilterFactory2
 
   def getPoint(lat: Double, lon: Double, meters: Double) =
     GeometryUtils.farthestPoint(geoFactory.createPoint(new Coordinate(lat, lon)), meters)
@@ -79,7 +79,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
       }
 
       val dataFeatures = fs.getFeatures()
-      dataFeatures.size should be equalTo 8
+      dataFeatures.size mustEqual 8
 
       val prox = new ProximitySearchProcess
 
@@ -118,7 +118,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
       val end     = new DateTime(2014, 6, 7, 13, 0, 0, DateTimeZone.forID("UTC"))
 
       val fs = ds.getFeatureSource(sftPointsName)
-      val dataFeatures = fs.getFeatures(ff.during(ff.property("dtg"), Filters.dts2lit(start, end)))
+      val dataFeatures = fs.getFeatures(filterFactory.during(filterFactory.property("dtg"), Filters.dts2lit(start, end)))
 
       val prox = new ProximitySearchProcess
       // note: size returns an estimated amount, instead we need to actually count the features
@@ -163,13 +163,13 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
         }
       }
 
-      nonAccumulo.size should be equalTo 8
+      nonAccumulo.size mustEqual 8
       val prox = new ProximitySearchProcess
-      prox.execute(inputFeatures, nonAccumulo, 30.0).size should be equalTo 0
-      prox.execute(inputFeatures, nonAccumulo, 98.0).size should be equalTo 0
-      prox.execute(inputFeatures, nonAccumulo, 99.0001).size should be equalTo 6
-      prox.execute(inputFeatures, nonAccumulo, 100.0).size should be equalTo 6
-      prox.execute(inputFeatures, nonAccumulo, 101.0).size should be equalTo 6
+      prox.execute(inputFeatures, nonAccumulo, 30.0).size mustEqual 0
+      prox.execute(inputFeatures, nonAccumulo, 98.0).size mustEqual 0
+      prox.execute(inputFeatures, nonAccumulo, 99.0001).size mustEqual 6
+      prox.execute(inputFeatures, nonAccumulo, 100.0).size mustEqual 6
+      prox.execute(inputFeatures, nonAccumulo, 101.0).size mustEqual 6
     }
   }
 

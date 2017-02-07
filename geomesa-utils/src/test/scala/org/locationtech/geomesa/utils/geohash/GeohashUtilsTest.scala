@@ -14,11 +14,10 @@ import org.junit.Ignore
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class GeohashUtilsTest extends Specification with LazyLogging {
+class GeohashUtilsTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation with LazyLogging {
   val NO_VALUE: Int = -1
 
   // Turn this on for debugging purposes
@@ -268,7 +267,7 @@ class GeohashUtilsTest extends Specification with LazyLogging {
 
 @Ignore
 @RunWith(classOf[JUnitRunner])
-class GeohashUtilsTimeTest extends Specification with LazyLogging {
+class GeohashUtilsTimeTest extends org.specs2.mutable.Spec with LazyLogging {
 
   "performance test for getUniqueGeohashSubstringsInPolygon" should {
     val poly = wkt2geom("POLYGON((-170 -80, -170 0, -170 80, 0 80, 170 80, 170 0, 170 -80, 0 -80, -170 -80))").asInstanceOf[Polygon]
@@ -351,7 +350,7 @@ class GeohashUtilsTimeTest extends Specification with LazyLogging {
           fnxCandidate,
           useDotted)
       }
-      length must not beNull
+      length must not(beNull)
     }
 
     "collect timing data" in {
@@ -365,7 +364,7 @@ class GeohashUtilsTimeTest extends Specification with LazyLogging {
       timeTest(5, 2, 1024, false, false)   //   N/A*     2        N/A*
       val last = timeTest(5, 2, 1057, false, true)    //     -      3          -
 
-      last must not beNull
+      last must not(beNull)
       // *"N/A" simply means that the test took more than 5 minutes without
       // finishing.
     }

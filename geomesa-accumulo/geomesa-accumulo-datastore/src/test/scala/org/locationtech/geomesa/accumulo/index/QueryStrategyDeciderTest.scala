@@ -20,7 +20,7 @@ import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.opengis.filter.{And, Filter}
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
@@ -28,13 +28,15 @@ import scala.util.Random
 
 //Expand the test - https://geomesa.atlassian.net/browse/GEOMESA-308
 @RunWith(classOf[JUnitRunner])
-class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
+class QueryStrategyDeciderTest extends TestWithDataStore
+    with org.specs2.matcher.SequenceMatchersCreation with org.specs2.matcher.ValueChecks
+    with org.specs2.execute.PendingUntilFixed {
 
   override val spec = "nameHighCardinality:String:index=true:cardinality=high,ageJoinIndex:Long:index=true," +
       "heightFullIndex:Float:index=full,dtgJoinIndex:Date:index=true,weightNoIndex:String," +
       "dtgNoIndex:Date,dtg:Date,*geom:Point:srid=4326"
 
-  val ff = CommonFactoryFinder.getFilterFactory2
+  val filterFactory = CommonFactoryFinder.getFilterFactory2
 
   addFeatures {
     val r = new Random(-57L)
@@ -174,16 +176,16 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
       }.pendingUntilFixed("Lexicoders don't allow us to do prefix filters on non-strings")
 
       "find the best filter among several" >> {
-        val ageFilter = ff.equals(ff.property("ageJoinIndex"), ff.literal(21))
-        val nameFilter = ff.equals(ff.literal("foo"), ff.property("nameHighCardinality"))
-        val heightFilter = ff.equals(ff.property("heightFullIndex"), ff.literal(12.0D))
-        val weightFilter = ff.equals(ff.literal(21.12D), ff.property("weightNoIndex"))
+        val ageFilter = filterFactory.equals(filterFactory.property("ageJoinIndex"), filterFactory.literal(21))
+        val nameFilter = filterFactory.equals(filterFactory.literal("foo"), filterFactory.property("nameHighCardinality"))
+        val heightFilter = filterFactory.equals(filterFactory.property("heightFullIndex"), filterFactory.literal(12.0D))
+        val weightFilter = filterFactory.equals(filterFactory.literal(21.12D), filterFactory.property("weightNoIndex"))
 
         val primary = Some(nameFilter)
-        val secondary = ff.and(Seq(heightFilter, weightFilter, ageFilter))
+        val secondary = filterFactory.and(Seq(heightFilter, weightFilter, ageFilter))
 
         "when best is first" >> {
-          val strats = getStrategies(ff.and(Seq(nameFilter, heightFilter, weightFilter, ageFilter)))
+          val strats = getStrategies(filterFactory.and(Seq(nameFilter, heightFilter, weightFilter, ageFilter)))
           strats must haveLength(1)
           strats.head.index mustEqual AttributeIndex
           strats.head.primary mustEqual primary
@@ -191,7 +193,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
         }
 
         "when best is in the middle" >> {
-          val strats = getStrategies(ff.and(Seq(ageFilter, nameFilter, heightFilter, weightFilter)))
+          val strats = getStrategies(filterFactory.and(Seq(ageFilter, nameFilter, heightFilter, weightFilter)))
           strats must haveLength(1)
           strats.head.index mustEqual AttributeIndex
           strats.head.primary mustEqual primary
@@ -199,7 +201,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
         }
 
         "when best is last" >> {
-          val strats = getStrategies(ff.and(Seq(ageFilter, heightFilter, weightFilter, nameFilter)))
+          val strats = getStrategies(filterFactory.and(Seq(ageFilter, heightFilter, weightFilter, nameFilter)))
           strats must haveLength(1)
           strats.head.index mustEqual AttributeIndex
           strats.head.primary mustEqual primary
@@ -207,8 +209,8 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
         }
 
         "use best indexed attribute if like and retain all children for > 2 filters" >> {
-          val like = ff.like(ff.property("nameHighCardinality"), "baddy")
-          val strats = getStrategies(ff.and(Seq(like, heightFilter, weightFilter, ageFilter)))
+          val like = filterFactory.like(filterFactory.property("nameHighCardinality"), "baddy")
+          val strats = getStrategies(filterFactory.and(Seq(like, heightFilter, weightFilter, ageFilter)))
           strats must haveLength(1)
           strats.head.index mustEqual AttributeIndex
           strats.head.primary mustEqual Some(like)

@@ -16,25 +16,20 @@ import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.identity.FeatureId
-import org.specs2.mutable.Specification
-import org.specs2.specification.{Fragments, Step}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
-import scala.util.Try
 
 /**
  * Trait to simplify tests that require reading and writing features from an AccumuloDataStore
  */
-trait TestWithMultipleSfts extends Specification {
+trait TestWithMultipleSfts extends org.specs2.mutable.Spec {
 
   // we use class name to prevent spillage between unit tests in the mock connector
   protected val sftBaseName = getClass.getSimpleName
@@ -50,15 +45,6 @@ trait TestWithMultipleSfts extends Specification {
     "tableName" -> sftBaseName)
 
   val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
-
-  // after all tests, drop the tables we created to free up memory
-  override def map(fragments: => Fragments) = fragments ^ Step {
-    val to = connector.tableOperations()
-    val tables = Seq(sftBaseName) ++ sfts.flatMap { sft =>
-      Try(AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, ds))).getOrElse(Seq.empty)
-    }
-    tables.toSet.filter(to.exists).foreach(to.delete)
-  }
 
   def createNewSchema(spec: String,
                       dtgField: Option[String] = Some("dtg"),

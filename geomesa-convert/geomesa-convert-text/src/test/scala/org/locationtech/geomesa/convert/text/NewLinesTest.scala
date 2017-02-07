@@ -12,11 +12,11 @@ import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class NewLinesTest extends Specification {
+class NewLinesTest extends org.specs2.mutable.Spec {
 
   sequential
 

@@ -13,11 +13,11 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser.PathAttribute
 import org.locationtech.geomesa.geojson.query.GeoJsonQuery._
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class GeoJsonQueryTest extends Specification {
+class GeoJsonQueryTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   "GeoJsonQuery" should {
     "parse json predicates" in {

@@ -9,12 +9,12 @@
 package org.locationtech.geomesa.utils.iterators
 
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 
 @RunWith(classOf[JUnitRunner])
-class CartesianProductIterableTest extends Specification {
+class CartesianProductIterableTest extends org.specs2.mutable.Spec {
   val LETTERS_UPPER = "ABCDEF".toSeq
   val NUMBERS = "012345".toSeq
   val LETTERS_LOWER = "xyz".toSeq

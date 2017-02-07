@@ -18,14 +18,14 @@ import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.tools.export.formats.GmlExporter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConverters._
 import scala.xml.XML
 
 @RunWith(classOf[JUnitRunner])
-class GmlExportTest extends Specification {
+class GmlExportTest extends org.specs2.mutable.Spec with org.specs2.execute.PendingUntilFixed {
 
   "GmlExport" >> {
     val sft = SimpleFeatureTypes.createType("GmlExportTest", "name:String,geom:Geometry:srid=4326,dtg:Date")
@@ -54,7 +54,7 @@ class GmlExportTest extends Specification {
       val xml = XML.loadString(new String(out.toByteArray))
       xml.toString must not(contain("null:GmlExportTest"))
       val feat = xml \ "featureMember" \ "GmlExportTest"
-      feat must not beNull
+      feat must not(beNull)
       val xmlFid = feat \ "@fid"
       xmlFid.text mustEqual "fid-1"
     }.pendingUntilFixed("GML Export should handle namespaces properly.")

@@ -10,13 +10,13 @@ package org.locationtech.geomesa.curve
 
 import org.joda.time.{DateTime, Seconds, Weeks}
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
+
 import org.specs2.runner.JUnitRunner
 
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class BinnedTimeTest extends Specification {
+class BinnedTimeTest extends org.specs2.mutable.Spec with org.specs2.matcher.SequenceMatchersCreation {
 
   val rand = new Random(-574)
 
