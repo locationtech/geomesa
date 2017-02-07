@@ -26,6 +26,7 @@ import org.opengis.filter.spatial._
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
 import org.opengis.temporal.Period
 
+import scala.annotation.tailrec
 import scala.collection.GenTraversableOnce
 import scala.collection.JavaConversions._
 import scala.util.{Failure, Success}
@@ -516,15 +517,31 @@ object FilterHelper {
     */
   def flatten(filter: Filter): Filter = {
     filter match {
-      case and: And =>
-        val (ands, others) = and.getChildren.map(flatten).partition(_.isInstanceOf[And])
-        ff.and(ands.flatMap(_.asInstanceOf[And].getChildren) ++ others)
-
-      case or: Or =>
-        val (ors, others) = or.getChildren.map(flatten).partition(_.isInstanceOf[Or])
-        ff.or(ors.flatMap(_.asInstanceOf[Or].getChildren) ++ others)
-
+      case and: And  => ff.and(flattenAnd(and.getChildren, Seq.empty[Filter]))
+      case or: Or    => ff.or(flattenOr(or.getChildren, Seq.empty[Filter]))
       case f: Filter => f
+    }
+  }
+
+  @tailrec
+  private def flattenAnd(remaining: Seq[Filter], result: Seq[Filter]): Seq[Filter] = {
+    if (remaining.isEmpty) { result } else {
+      val (_remaining, _result) = remaining.head match {
+        case f: And => (remaining.tail ++ f.getChildren, result)
+        case f      => (remaining.tail, result :+ flatten(f))
+      }
+      flattenAnd(_remaining, _result)
+    }
+  }
+
+  @tailrec
+  private def flattenOr(remaining: Seq[Filter], result: Seq[Filter]): Seq[Filter] = {
+    if (remaining.isEmpty) { result } else {
+      val (_remaining, _result) = remaining.head match {
+        case f: Or => (remaining.tail ++ f.getChildren, result)
+        case f     => (remaining.tail, result :+ flatten(f))
+      }
+      flattenOr(_remaining, _result)
     }
   }
 }
