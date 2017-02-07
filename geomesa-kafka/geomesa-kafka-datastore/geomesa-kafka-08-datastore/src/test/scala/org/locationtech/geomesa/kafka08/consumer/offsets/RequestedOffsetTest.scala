@@ -21,15 +21,15 @@ class RequestedOffsetTest extends org.specs2.mutable.Spec {
     "be configurable via typesafe config" >> {
       "for earliest" >> {
         val conf = ConfigFactory.parseString("{ offset = \"earliest\" }")
-        RequestedOffset(conf) must beSome(EarliestOffset)
+        RequestedOffset(conf) must beSome(beEqualTo(EarliestOffset))
       }
       "for latest" >> {
         val conf = ConfigFactory.parseString("{ offset = \"latest\" }")
-        RequestedOffset(conf) must beSome(LatestOffset)
+        RequestedOffset(conf) must beSome(beEqualTo(LatestOffset))
       }
       "for dates" >> {
         val conf = ConfigFactory.parseString("{ offset = \"date:999\" }")
-        RequestedOffset(conf) must beSome(DateOffset(999))
+        RequestedOffset(conf) must beSome(beEqualTo(DateOffset(999)))
       }
       "for predicates" >> {
         val conf = ConfigFactory.parseString(s"{ offset = ${classOf[TestPredicate].getName} }")
@@ -37,7 +37,7 @@ class RequestedOffsetTest extends org.specs2.mutable.Spec {
       }
       "for specific numbers" >> {
         val conf = ConfigFactory.parseString("{ offset = \"5\"}")
-        RequestedOffset(conf) must beSome(SpecificOffset(5))
+        RequestedOffset(conf) must beSome(beEqualTo(SpecificOffset(5)))
       }
       "for empty" >> {
         val conf = ConfigFactory.parseString("{}")
