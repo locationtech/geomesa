@@ -248,8 +248,11 @@ object SparkUtils extends LazyLogging {
     case GreaterThan(attr, v)             => Some(ff.greater(ff.property(attr), ff.literal(v)))
     case LessThanOrEqual(attr, v)         => Some(ff.lessOrEqual(ff.property(attr), ff.literal(v)))
     case LessThan(attr, v)                => Some(ff.less(ff.property(attr), ff.literal(v)))
-    case EqualTo(attr, v)                 => Some(ff.equals(ff.property(attr), ff.literal(v)))
-    case In(attr, values)                 => Some(values.map(v => ff.equals(ff.property(attr), ff.literal(v))).reduce[org.opengis.filter.Filter]( (l,r) => ff.or(l,r)))
+    case EqualTo(attr, v) if attr == "__fid__" => Some(ff.id(ff.featureId(v.toString)))
+    case EqualTo(attr, v)                      => Some(ff.equals(ff.property(attr), ff.literal(v)))
+    case In(attr, values) if attr == "__fid__" => Some(ff.id(values.map(v => ff.featureId(v.toString)).toSet))
+    case In(attr, values)                      =>
+      Some(values.map(v => ff.equals(ff.property(attr), ff.literal(v))).reduce[org.opengis.filter.Filter]( (l,r) => ff.or(l,r)))
     case And(left, right)                 => Some(ff.and(sparkFilterToCQLFilter(left).get, sparkFilterToCQLFilter(right).get)) // TODO: can these be null
     case Or(left, right)                  => Some(ff.or(sparkFilterToCQLFilter(left).get, sparkFilterToCQLFilter(right).get))
     case Not(f)                           => Some(ff.not(sparkFilterToCQLFilter(f).get))
