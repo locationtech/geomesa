@@ -19,7 +19,7 @@ import org.apache.accumulo.core.conf.Property
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
-import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
@@ -30,10 +30,10 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
 
-trait Z3WritableIndex extends AccumuloWritableIndex {
+trait Z3WritableIndex extends AccumuloFeatureIndex {
 
-  import AccumuloWritableIndex.{BinColumnFamily, FullColumnFamily}
-  import Z3Index._
+  import AccumuloFeatureIndex.{BinColumnFamily, FullColumnFamily}
+  import Z3IndexV2._
 
   def hasSplits: Boolean
 

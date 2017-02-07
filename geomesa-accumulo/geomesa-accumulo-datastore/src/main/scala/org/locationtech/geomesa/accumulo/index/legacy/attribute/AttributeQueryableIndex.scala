@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.index.attribute
+package org.locationtech.geomesa.accumulo.index.legacy.attribute
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
@@ -18,7 +18,6 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index.AccumuloQueryPlan.JoinFunction
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.index.encoders.IndexValueEncoder
-import org.locationtech.geomesa.accumulo.index.id.RecordIndex
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.filter._
@@ -35,7 +34,7 @@ import org.opengis.filter.temporal.{After, Before, During, TEquals}
 
 import scala.util.Try
 
-trait AttributeQueryableIndex extends AccumuloWritableIndex with LazyLogging {
+trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
 
   import AttributeQueryableIndex.attributeCheck
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints

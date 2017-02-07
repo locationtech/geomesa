@@ -17,8 +17,7 @@ import org.geotools.data.DataStoreFinder
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.index.id.RecordIndex
-import org.locationtech.geomesa.accumulo.index.z2.XZ2Index
+import org.locationtech.geomesa.accumulo.index.{RecordIndex, XZ2Index}
 import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.accumulo.iterators.TestData._
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator

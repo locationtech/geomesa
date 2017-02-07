@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets
 
 import com.google.common.primitives.{Bytes, Longs}
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Point
+import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.filter._
@@ -21,9 +21,10 @@ import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
-import org.locationtech.geomesa.index.utils.{Explainer, SplitArrays}
+import org.locationtech.geomesa.index.utils.{ByteArrays, Explainer, SplitArrays}
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, _}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
 
 trait Z2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] extends GeoMesaFeatureIndex[DS, F, W]
     with IndexAdapter[DS, F, W, R] with SpatialFilterStrategy[DS, F, W] with LazyLogging {
@@ -33,29 +34,29 @@ trait Z2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exten
   override val name: String = "z2"
   override val version: Int = 1
 
-  override def supports(sft: SimpleFeatureType): Boolean = sft.isPoints
+  override def supports(sft: SimpleFeatureType): Boolean = Z2Index.supports(sft)
 
   override def writer(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
     val sharing = sft.getTableSharingBytes
     val shards = SplitArrays(sft)
-    (wf) => Seq(createInsert(getRowKey(sharing, shards, wf), wf))
+    val toIndexKey = Z2Index.toIndexKey(sft)
+    (wf) => Seq(createInsert(getRowKey(sharing, shards, toIndexKey, wf), wf))
   }
 
   override def remover(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
     val sharing = sft.getTableSharingBytes
     val shards = SplitArrays(sft)
-    (wf) => Seq(createDelete(getRowKey(sharing, shards, wf), wf))
+    val toIndexKey = Z2Index.toIndexKey(sft)
+    (wf) => Seq(createDelete(getRowKey(sharing, shards, toIndexKey, wf), wf))
   }
 
-  private def getRowKey(sharing: Array[Byte], shards: IndexedSeq[Array[Byte]], wrapper: F): Array[Byte] = {
+  private def getRowKey(sharing: Array[Byte],
+                        shards: IndexedSeq[Array[Byte]],
+                        toIndexKey: (SimpleFeature) => Array[Byte],
+                        wrapper: F): Array[Byte] = {
     val split = shards(wrapper.idHash % shards.length)
-    val geom = wrapper.feature.getDefaultGeometry.asInstanceOf[Point]
-    if (geom == null) {
-      throw new IllegalArgumentException(s"Null geometry in feature ${wrapper.feature.getID}")
-    }
-    val z = Z2SFC.index(geom.getX, geom.getY).z
-    val id = wrapper.feature.getID.getBytes(StandardCharsets.UTF_8)
-    Bytes.concat(sharing, split, Longs.toByteArray(z), id)
+    val z = toIndexKey(wrapper.feature)
+    Bytes.concat(sharing, split, z, wrapper.idBytes)
   }
 
   override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
@@ -79,44 +80,93 @@ trait Z2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exten
                             filter: FilterStrategy[DS, F, W],
                             hints: Hints,
                             explain: Explainer): QueryPlan[DS, F, W] = {
+
+    val sharing = sft.getTableSharingBytes
+
+    try {
+      val ranges = filter.primary match {
+        case None =>
+          filter.secondary.foreach { f =>
+            logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
+          }
+          Seq(rangePrefix(sharing))
+
+        case Some(f) =>
+          val splits = SplitArrays(sft)
+          val prefixes = if (sharing.length == 0) { splits } else { splits.map(Bytes.concat(sharing, _)) }
+          Z2Index.getRanges(sft, f, explain).flatMap { case (s, e) =>
+            prefixes.map(p => range(Bytes.concat(p, s), Bytes.concat(p, e)))
+          }.toSeq
+      }
+
+      val looseBBox = Option(hints.get(LOOSE_BBOX)).map(Boolean.unbox).getOrElse(ds.config.looseBBox)
+
+      // if the user has requested strict bounding boxes, we apply the full filter
+      // if this is a non-point geometry type, the index is coarse-grained, so we apply the full filter
+      // if the spatial predicate is rectangular (e.g. a bbox), the index is fine enough that we
+      // don't need to apply the filter on top of it. this may cause some minor errors at extremely
+      // fine resolutions, but the performance is worth it
+      // if we have a complicated geometry predicate, we need to pass it through to be evaluated
+      lazy val simpleGeoms =
+        Z2Index.currentProcessingValues.toSeq.flatMap(_.geometries.values).forall(GeometryUtils.isRectangular)
+
+      val ecql = if (looseBBox && simpleGeoms) { filter.secondary } else { filter.filter }
+
+      scanPlan(sft, ds, filter, hints, ranges, ecql)
+    } finally {
+      // ensure we clear our indexed values
+      Z2Index.clearProcessingValues()
+    }
+  }
+}
+
+object Z2Index extends IndexKeySpace[Z2ProcessingValues] {
+
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+  override val indexKeyLength: Int = 8
+
+  override def supports(sft: SimpleFeatureType): Boolean = sft.isPoints
+
+  override def toIndexKey(sft: SimpleFeatureType): (SimpleFeature) => Array[Byte] = {
+    val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
+    (feature) => {
+      val geom = feature.getAttribute(geomIndex).asInstanceOf[Point]
+      if (geom == null) {
+        throw new IllegalArgumentException(s"Null geometry in feature ${feature.getID}")
+      }
+      Longs.toByteArray(Z2SFC.index(geom.getX, geom.getY).z)
+    }
+  }
+
+  override def getRanges(sft: SimpleFeatureType,
+                         filter: Filter,
+                         explain: Explainer): Iterator[(Array[Byte], Array[Byte])] = {
+
     import org.locationtech.geomesa.filter.FilterHelper._
 
-    if (filter.primary.isEmpty) {
-      filter.secondary.foreach { f =>
-        logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
-      }
+    val geometries: FilterValues[Geometry] = {
+      val extracted = extractGeometries(filter, sft.getGeomField, sft.isPoints)
+      if (extracted.nonEmpty) { extracted } else { FilterValues(Seq(WholeWorldPolygon)) }
     }
-
-    val geometries = filter.primary.map(extractGeometries(_, sft.getGeomField, sft.isPoints))
-        .filter(_.nonEmpty).getOrElse(FilterValues(Seq(WholeWorldPolygon)))
 
     explain(s"Geometries: $geometries")
 
     if (geometries.disjoint) {
       explain("Non-intersecting geometries extracted, short-circuiting to empty query")
-      return scanPlan(sft, ds, filter, hints, Seq.empty, None)
+      return Iterator.empty
     }
 
-    val sharing = sft.getTableSharingBytes
+    val xy = geometries.values.map(GeometryUtils.bounds)
 
-    // compute our accumulo ranges based on the coarse bounds for our query
-    val ranges = if (filter.primary.isEmpty) { Seq(rangePrefix(sharing)) } else {
-      val xy = geometries.values.map(GeometryUtils.bounds)
+    // make our underlying index values available to other classes in the pipeline for processing
+    processingValues.set(Z2ProcessingValues(geometries, xy))
 
-      val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
-      val zs = Z2SFC.ranges(xy, 64, rangeTarget).map(r => (Longs.toByteArray(r.lower), Longs.toByteArray(r.upper)))
-      val prefixes = SplitArrays(sft).map(Bytes.concat(sharing, _))
+    val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
 
-      prefixes.flatMap { prefix =>
-        zs.map { case (lo, hi) =>
-          range(Bytes.concat(prefix, lo), IndexAdapter.rowFollowingRow(Bytes.concat(prefix, hi)))
-        }
-      }
-    }
-
-    val looseBBox = Option(hints.get(LOOSE_BBOX)).map(Boolean.unbox).getOrElse(ds.config.looseBBox)
-    val ecql = if (looseBBox) { filter.secondary } else { filter.filter }
-
-    scanPlan(sft, ds, filter, hints, ranges, ecql)
+    val zs = Z2SFC.ranges(xy, 64, rangeTarget)
+    zs.iterator.map(r => (Longs.toByteArray(r.lower), ByteArrays.toBytesFollowingPrefix(r.upper)))
   }
 }
+
+case class Z2ProcessingValues(geometries: FilterValues[Geometry], bounds: Seq[ (Double, Double, Double, Double)])

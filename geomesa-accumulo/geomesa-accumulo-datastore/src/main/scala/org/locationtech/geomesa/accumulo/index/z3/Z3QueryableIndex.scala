@@ -31,7 +31,7 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
     with SpatioTemporalFilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation]
     with LazyLogging {
 
-  writable: AccumuloWritableIndex =>
+  writable: Z3WritableIndex =>
 
   def hasSplits: Boolean
 
@@ -41,8 +41,8 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
                             hints: Hints,
                             explain: Explainer): AccumuloQueryPlan = {
 
-    import AccumuloWritableIndex.{BinColumnFamily, FullColumnFamily}
-    import Z3Index.GEOM_Z_NUM_BYTES
+    import AccumuloFeatureIndex.{BinColumnFamily, FullColumnFamily}
+    import Z3IndexV2.GEOM_Z_NUM_BYTES
     import org.locationtech.geomesa.filter.FilterHelper._
     import org.locationtech.geomesa.index.conf.QueryHints.{LOOSE_BBOX, RichHints}
 
@@ -183,7 +183,7 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
       case VisibilityLevel.Feature   => Seq.empty
       case VisibilityLevel.Attribute => Seq(KryoVisibilityRowEncoder.configure(sft))
     }
-    val cf = if (perAttributeIter.isEmpty) colFamily else AccumuloWritableIndex.AttributeColumnFamily
+    val cf = if (perAttributeIter.isEmpty) colFamily else AccumuloFeatureIndex.AttributeColumnFamily
 
     val iters = perAttributeIter ++ zIterator.toSeq ++ iterators
     BatchScanPlan(filter, z3table, ranges, iters, Seq(cf), kvsToFeatures, reduce, numThreads, hasDupes)

@@ -20,9 +20,10 @@ import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, 
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
-import org.locationtech.geomesa.index.utils.{Explainer, SplitArrays}
+import org.locationtech.geomesa.index.utils.{ByteArrays, Explainer, SplitArrays}
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, _}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
 
 trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] extends GeoMesaFeatureIndex[DS, F, W]
     with IndexAdapter[DS, F, W, R] with SpatialFilterStrategy[DS, F, W] with LazyLogging {
@@ -31,32 +32,29 @@ trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exte
 
   override val name: String = "xz2"
 
-  override def supports(sft: SimpleFeatureType): Boolean = sft.nonPoints
+  override def supports(sft: SimpleFeatureType): Boolean = XZ2Index.supports(sft)
 
   override def writer(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
-    val sfc = XZ2SFC(sft.getXZPrecision)
     val sharing = sft.getTableSharingBytes
     val shards = SplitArrays(sft)
-    (wf) => Seq(createInsert(getRowKey(sfc, sharing, shards, wf), wf))
+    val toIndexKey = XZ2Index.toIndexKey(sft)
+    (wf) => Seq(createInsert(getRowKey(sharing, shards, toIndexKey, wf), wf))
   }
 
   override def remover(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
-    val sfc = XZ2SFC(sft.getXZPrecision)
     val sharing = sft.getTableSharingBytes
     val shards = SplitArrays(sft)
-    (wf) => Seq(createDelete(getRowKey(sfc, sharing, shards, wf), wf))
+    val toIndexKey = XZ2Index.toIndexKey(sft)
+    (wf) => Seq(createDelete(getRowKey(sharing, shards, toIndexKey, wf), wf))
   }
 
-  private def getRowKey(sfc: XZ2SFC, sharing: Array[Byte], shards: IndexedSeq[Array[Byte]], wrapper: F): Array[Byte] = {
+  private def getRowKey(sharing: Array[Byte],
+                        shards: IndexedSeq[Array[Byte]],
+                        toIndexKey: (SimpleFeature) => Array[Byte],
+                        wrapper: F): Array[Byte] = {
     val split = shards(wrapper.idHash % shards.length)
-    val geom = wrapper.feature.getDefaultGeometry.asInstanceOf[Geometry]
-    if (geom == null) {
-      throw new IllegalArgumentException(s"Null geometry in feature ${wrapper.feature.getID}")
-    }
-    val envelope = geom.getEnvelopeInternal
-    val xz = sfc.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY)
-    val id = wrapper.feature.getID.getBytes(StandardCharsets.UTF_8)
-    Bytes.concat(sharing, split, Longs.toByteArray(xz), id)
+    val xz = toIndexKey(wrapper.feature)
+    Bytes.concat(sharing, split, xz, wrapper.idBytes)
   }
 
   override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
@@ -80,38 +78,76 @@ trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exte
                             filter: FilterStrategy[DS, F, W],
                             hints: Hints,
                             explain: Explainer): QueryPlan[DS, F, W] = {
+    val sharing = sft.getTableSharingBytes
+
+    try {
+      val ranges = filter.primary match {
+        case None =>
+          filter.secondary.foreach { f =>
+            logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
+          }
+          Seq(rangePrefix(sharing))
+
+        case Some(f) =>
+          val splits = SplitArrays(sft)
+          val prefixes = if (sharing.length == 0) { splits } else { splits.map(Bytes.concat(sharing, _)) }
+          XZ2Index.getRanges(sft, f, explain).flatMap { case (s, e) =>
+            prefixes.map(p => range(Bytes.concat(p, s), Bytes.concat(p, e)))
+          }.toSeq
+      }
+
+      scanPlan(sft, ds, filter, hints, ranges, filter.filter)
+    } finally {
+      XZ2Index.clearProcessingValues()
+    }
+  }
+}
+
+object XZ2Index extends IndexKeySpace[Z2ProcessingValues] {
+
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+  override val indexKeyLength: Int = 8
+
+  override def supports(sft: SimpleFeatureType): Boolean = sft.nonPoints
+
+  override def toIndexKey(sft: SimpleFeatureType): (SimpleFeature) => Array[Byte] = {
+    val sfc = XZ2SFC(sft.getXZPrecision)
+    val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
+
+    (feature) => {
+      val geom = feature.getAttribute(geomIndex).asInstanceOf[Geometry]
+      if (geom == null) {
+        throw new IllegalArgumentException(s"Null geometry in feature ${feature.getID}")
+      }
+      val envelope = geom.getEnvelopeInternal
+      Longs.toByteArray(sfc.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY))
+    }
+  }
+
+  override def getRanges(sft: SimpleFeatureType,
+                         filter: Filter,
+                         explain: Explainer): Iterator[(Array[Byte], Array[Byte])] = {
     import org.locationtech.geomesa.filter.FilterHelper._
 
-    if (filter.primary.isEmpty) {
-      filter.secondary.foreach { f =>
-        logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
-      }
+    val geometries: FilterValues[Geometry] = {
+      val extracted = extractGeometries(filter, sft.getGeomField, sft.isPoints)
+      if (extracted.nonEmpty) { extracted } else { FilterValues(Seq(WholeWorldPolygon)) }
     }
-
-    val geometries = filter.primary.map(extractGeometries(_, sft.getGeomField, sft.isPoints))
-        .filter(_.nonEmpty).getOrElse(FilterValues(Seq(WholeWorldPolygon)))
 
     explain(s"Geometries: $geometries")
 
-    val sharing = sft.getTableSharingBytes
+    // compute our ranges based on the coarse bounds for our query
 
-    // compute our accumulo ranges based on the coarse bounds for our query
-    val ranges = if (filter.primary.isEmpty) { Seq(rangePrefix(sharing)) } else {
-      val xy = geometries.values.map(GeometryUtils.bounds)
+    val sfc = XZ2SFC(sft.getXZPrecision)
+    val xy = geometries.values.map(GeometryUtils.bounds)
 
-      val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
-      val sfc = XZ2SFC(sft.getXZPrecision)
-      val zs = sfc.ranges(xy, rangeTarget).map(r => (Longs.toByteArray(r.lower), Longs.toByteArray(r.upper)))
+    // make our underlying index values available to other classes in the pipeline for processing
+    processingValues.set(Z2ProcessingValues(geometries, xy))
 
-      val prefixes = SplitArrays(sft).map(Bytes.concat(sharing, _))
+    val rangeTarget = QueryProperties.SCAN_RANGES_TARGET.option.map(_.toInt)
 
-      prefixes.flatMap { prefix =>
-        zs.map { case (lo, hi) =>
-          range(Bytes.concat(prefix, lo), IndexAdapter.rowFollowingRow(Bytes.concat(prefix, hi)))
-        }
-      }
-    }
-
-    scanPlan(sft, ds, filter, hints, ranges, filter.filter)
+    val zs = sfc.ranges(xy, rangeTarget)
+    zs.iterator.map(r => (Longs.toByteArray(r.lower), ByteArrays.toBytesFollowingPrefix(r.upper)))
   }
 }
