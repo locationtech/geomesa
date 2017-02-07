@@ -21,7 +21,7 @@ import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.legacy.attribute.{AttributeIndexV2, AttributeIndexV3}
 import org.locationtech.geomesa.accumulo.index.legacy.id.RecordIndexV1
 import org.locationtech.geomesa.accumulo.index.legacy.z2.{Z2IndexV1, Z2IndexV2}
-import org.locationtech.geomesa.accumulo.index.z3.{Z3Index, Z3IndexV1, Z3IndexV2}
+import org.locationtech.geomesa.accumulo.index.legacy.z3.{Z3IndexV1, Z3IndexV2, Z3IndexV3}
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloIndexManagerType, AccumuloVersion}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
@@ -43,7 +43,7 @@ object AccumuloFeatureIndex extends AccumuloIndexManagerType with LazyLogging {
   val EmptyColumnQualifier  = new Text()
 
   private val SpatialIndices        = Seq(Z2Index, XZ2Index, Z2IndexV2, Z2IndexV1)
-  private val SpatioTemporalIndices = Seq(Z3Index, XZ3Index, Z3IndexV2, Z3IndexV1)
+  private val SpatioTemporalIndices = Seq(Z3Index, XZ3Index, Z3IndexV3, Z3IndexV2, Z3IndexV1)
   private val AttributeIndices      = Seq(AttributeIndex, AttributeIndexV3, AttributeIndexV2)
   private val RecordIndices         = Seq(RecordIndex, RecordIndexV1)
 
@@ -107,7 +107,7 @@ object AccumuloFeatureIndex extends AccumuloIndexManagerType with LazyLogging {
     val version = sft.getSchemaVersion
     val indices = if (version > 8) {
       // note: version 9 was never in a release
-      Seq(Z3Index, XZ3Index, Z2IndexV2, XZ2Index, RecordIndex, AttributeIndexV3)
+      Seq(Z3IndexV3, XZ3Index, Z2IndexV2, XZ2Index, RecordIndex, AttributeIndexV3)
     } else if (version == 8) {
       Seq(Z3IndexV2, Z2IndexV1, RecordIndexV1, AttributeIndexV2)
     } else if (version > 5) {
