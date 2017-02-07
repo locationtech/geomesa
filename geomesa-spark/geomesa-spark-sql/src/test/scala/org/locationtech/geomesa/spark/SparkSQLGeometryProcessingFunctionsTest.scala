@@ -38,7 +38,7 @@ class SparkSQLGeometryProcessingFunctionsTest extends org.specs2.mutable.Spec wi
       .options(dsParams)
       .option("geomesa.feature", "chicago")
       .load()
-    logger.info(df.schema.treeString)
+    logger.debug(df.schema.treeString)
     df.createOrReplaceTempView("chicago")
 
 

@@ -18,104 +18,106 @@ import org.geotools.data.{DataStore, DataStoreFinder}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
-
+import org.specs2.matcher.MatchResult
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class SparkSQLSpatialRelationshipsTest extends org.specs2.mutable.Spec with LazyLogging {
-  "SQL spatial relationships" should {
-    sequential
 
-    val geomFactory = JTSFactoryFinder.getGeometryFactory
+  sequential
 
-    // we turn off the geo-index on the CQEngine DataStore because
-    // BucketIndex doesn't do polygon <-> polygon comparisons properly;
-    // acceptable performance-wise because the test data set is small
-    val dsParams: JMap[String, String] = Map(
-      "cqengine" -> "true",
-      "geotools" -> "true",
-      "useGeoIndex" -> "false")
-    var ds: DataStore = null
-    var spark: SparkSession = null
-    var sc: SQLContext = null
+  val geomFactory = JTSFactoryFinder.getGeometryFactory
 
-    var dfPoints: DataFrame = null
-    var dfLines: DataFrame = null
-    var dfBoxes: DataFrame = null
+  // we turn off the geo-index on the CQEngine DataStore because
+  // BucketIndex doesn't do polygon <-> polygon comparisons properly;
+  // acceptable performance-wise because the test data set is small
+  val dsParams: JMap[String, String] = Map(
+    "cqengine" -> "true",
+    "geotools" -> "true",
+    "useGeoIndex" -> "false")
+  var ds: DataStore = null
+  var spark: SparkSession = null
+  var sc: SQLContext = null
 
-    val pointRef = "POINT(0 0)"
-    val boxRef   = "POLYGON((0  0,  0 10, 10 10, 10  0,  0  0))"
-    val lineRef  = "LINESTRING(0 10, 0 -10)"
+  var dfPoints: DataFrame = null
+  var dfLines: DataFrame = null
+  var dfBoxes: DataFrame = null
 
-    val points = Map(
-      "int"    -> "POINT(5 5)",
-      "edge"   -> "POINT(0 5)",
-      "corner" -> "POINT(0 0)",
-      "ext"    -> "POINT(-5 0)")
+  val pointRef = "POINT(0 0)"
+  val boxRef   = "POLYGON((0  0,  0 10, 10 10, 10  0,  0  0))"
+  val lineRef  = "LINESTRING(0 10, 0 -10)"
 
-    val lines = Map(
-      "touches" -> "LINESTRING(0 0, 1 0)",
-      "crosses" -> "LINESTRING(-1 0, 1 0)",
-      "disjoint" -> "LINESTRING(1 0, 2 0)")
+  val points = Map(
+    "int"    -> "POINT(5 5)",
+    "edge"   -> "POINT(0 5)",
+    "corner" -> "POINT(0 0)",
+    "ext"    -> "POINT(-5 0)")
 
-    val boxes = Map(
-      "int"     -> "POLYGON(( 1  1,  1  2,  2  2,  2  1,  1  1))",
-      "intEdge" -> "POLYGON(( 0  1,  0  2,  1  2,  1  1,  0  1))",
-      "overlap" -> "POLYGON((-1  1, -1  2,  1  2,  1  1, -1  1))",
-      "extEdge" -> "POLYGON((-1  1, -1  2,  0  2,  0  1, -1  1))",
-      "ext"     -> "POLYGON((-2  1, -2  2, -1  2, -1  1, -2  1))",
-      "corner"  -> "POLYGON((-1 -1, -1  0,  0  0,  0 -1, -1 -1))")
+  val lines = Map(
+    "touches" -> "LINESTRING(0 0, 1 0)",
+    "crosses" -> "LINESTRING(-1 0, 1 0)",
+    "disjoint" -> "LINESTRING(1 0, 2 0)")
 
-    // before
-    step {
-      ds = DataStoreFinder.getDataStore(dsParams)
-      spark = SparkSQLTestUtils.createSparkSession()
-      sc = spark.sqlContext
-      SQLTypes.init(sc)
+  val boxes = Map(
+    "int"     -> "POLYGON(( 1  1,  1  2,  2  2,  2  1,  1  1))",
+    "intEdge" -> "POLYGON(( 0  1,  0  2,  1  2,  1  1,  0  1))",
+    "overlap" -> "POLYGON((-1  1, -1  2,  1  2,  1  1, -1  1))",
+    "extEdge" -> "POLYGON((-1  1, -1  2,  0  2,  0  1, -1  1))",
+    "ext"     -> "POLYGON((-2  1, -2  2, -1  2, -1  1, -2  1))",
+    "corner"  -> "POLYGON((-1 -1, -1  0,  0  0,  0 -1, -1 -1))")
 
-      SparkSQLTestUtils.ingestPoints(ds, "points", points)
-      dfPoints = spark.read
+  // before
+  step {
+    ds = DataStoreFinder.getDataStore(dsParams)
+    spark = SparkSQLTestUtils.createSparkSession()
+    sc = spark.sqlContext
+    SQLTypes.init(sc)
+
+    SparkSQLTestUtils.ingestPoints(ds, "points", points)
+    dfPoints = spark.read
         .format("geomesa")
         .options(dsParams)
         .option("geomesa.feature", "points")
         .load()
-      logger.info(dfPoints.schema.treeString)
-      dfPoints.createOrReplaceTempView("points")
+    logger.debug(dfPoints.schema.treeString)
+    dfPoints.createOrReplaceTempView("points")
 
-      SparkSQLTestUtils.ingestGeometries(ds, "lines", lines)
-      dfLines = spark.read
+    SparkSQLTestUtils.ingestGeometries(ds, "lines", lines)
+    dfLines = spark.read
         .format("geomesa")
         .options(dsParams)
         .option("geomesa.feature", "lines")
         .load()
-      logger.info(dfLines.schema.treeString)
-      dfLines.createOrReplaceTempView("lines")
+    logger.debug(dfLines.schema.treeString)
+    dfLines.createOrReplaceTempView("lines")
 
-      SparkSQLTestUtils.ingestGeometries(ds, "boxes", boxes)
-      dfBoxes = spark.read
+    SparkSQLTestUtils.ingestGeometries(ds, "boxes", boxes)
+    dfBoxes = spark.read
         .format("geomesa")
         .options(dsParams)
         .option("geomesa.feature", "boxes")
         .load()
-      logger.info(dfBoxes.schema.treeString)
-      dfBoxes.createOrReplaceTempView("boxes")
-    }
+    logger.debug(dfBoxes.schema.treeString)
+    dfBoxes.createOrReplaceTempView("boxes")
+  }
 
-    // DE-9IM comparisons
-    def testData(sql: String, expectedNames: Seq[String]) = {
-      val r = sc.sql(sql)
-      val d = r.collect()
-      val column = d.map(row => row.getAs[String]("name")).toSeq
-      column must containTheSameElementsAs(expectedNames)
-    }
+  // DE-9IM comparisons
+  def testData(sql: String, expectedNames: Seq[String]): MatchResult[Any] = {
+    val r = sc.sql(sql)
+    val d = r.collect()
+    val column = d.map(row => row.getAs[String]("name")).toSeq
+    column must containTheSameElementsAs(expectedNames)
+  }
 
-    def testDirect(f: String, name: String, g1: String, g2: String, expected: Boolean) = {
-     val sql = s"select $f(st_geomFromWKT('$g1'), st_geomFromWKT('$g2'))"
-     val r = sc.sql(sql).collect()
-     r.head.getBoolean(0) mustEqual expected
-    }
+  def testDirect(f: String, name: String, g1: String, g2: String, expected: Boolean): MatchResult[Any] = {
+    val sql = s"select $f(st_geomFromWKT('$g1'), st_geomFromWKT('$g2'))"
+    val r = sc.sql(sql).collect()
+    r.head.getBoolean(0) mustEqual expected
+  }
+
+  "SQL spatial relationships" should {
 
     "st_contains" >> {
       testData(

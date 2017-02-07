@@ -53,7 +53,7 @@ class SparkSQLDataTest extends org.specs2.mutable.Spec with LazyLogging {
         .options(dsParams)
         .option("geomesa.feature", "chicago")
         .load()
-      logger.info(df.schema.treeString)
+      logger.debug(df.schema.treeString)
       df.createOrReplaceTempView("chicago")
 
       df.collect.length mustEqual 3
