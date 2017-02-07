@@ -92,9 +92,10 @@ GeoMesa provides indexing on attributes to improve certain queries. You
 can indicate attributes that should be indexed when you create your
 schema (simple feature type). If you decide later on that you would like
 to index additional attributes, you can use the attribute indexing job.
-You only need to run this job once.
+You only need to run this job once; the job will create attribute indices
+for each attribute listed in ``--geomesa.index.attributes``.
 
-The job can be invoked through Yarn as follows (JAR version may vary
+The job can be invoked through Yarn as follows (the JAR version may vary
 slightly):
 
 .. code-block:: shell

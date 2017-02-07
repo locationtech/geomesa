@@ -77,6 +77,8 @@ rst_epilog = """
 
 .. _GeoServer: http://geoserver.org/
 
+.. _Java JDK 8: http://www.oracle.com/technetwork/java/javase/downloads/index.html
+
 .. |release_tarball_accumulo| replace:: %(url_locationtech_release)s/geomesa-accumulo-dist_2.11/%(release)s/geomesa-accumulo-dist_2.11-%(release)s-bin.tar.gz
 
 .. |release_tarball_kafka08| replace:: %(url_locationtech_release)s/geomesa-kafka-08-dist_2.11/%(release)s/geomesa-kafka-08-dist_2.11-%(release)s-bin.tar.gz
