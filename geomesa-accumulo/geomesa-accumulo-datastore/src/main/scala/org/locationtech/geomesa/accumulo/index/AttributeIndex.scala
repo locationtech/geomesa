@@ -86,9 +86,13 @@ case object AttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdapte
     mutation
   }
 
+  // we've overridden createInsert so this shouldn't be called, but it's still
+  // part of the API so we can't remove it
   override protected def createInsert(row: Array[Byte], feature: AccumuloFeature): Mutation =
     throw new NotImplementedError("Should be using enhanced version with IndexCoverage")
 
+  // we've overridden createDelete so this shouldn't be called, but it's still
+  // part of the API so we can't remove it
   override protected def createDelete(row: Array[Byte], feature: AccumuloFeature): Mutation =
     throw new NotImplementedError("Should be using enhanced version with IndexCoverage")
 
