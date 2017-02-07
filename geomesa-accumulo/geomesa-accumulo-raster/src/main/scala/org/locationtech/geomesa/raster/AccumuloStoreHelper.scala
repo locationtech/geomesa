@@ -9,8 +9,7 @@
 package org.locationtech.geomesa.raster
 
 import java.io.Serializable
-import java.util.{Map => JMap}
-import javax.imageio.spi.ServiceRegistry
+import java.util.{ServiceLoader, Map => JMap}
 
 import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
@@ -86,7 +85,7 @@ object AccumuloStoreHelper {
   def getAuthorizationsProvider(auths: Seq[String], connector: Connector): AuthorizationsProvider = {
     // we wrap the authorizations provider in one that will filter based on the max auths configured for this store
     val authorizationsProvider = new FilteringAuthorizationsProvider ({
-      val providers = ServiceRegistry.lookupProviders(classOf[AuthorizationsProvider]).toBuffer
+      val providers = ServiceLoader.load(classOf[AuthorizationsProvider]).toBuffer
       GEOMESA_AUTH_PROVIDER_IMPL.option match {
         case Some(prop) =>
           if (classOf[DefaultAuthorizationsProvider].getName == prop)

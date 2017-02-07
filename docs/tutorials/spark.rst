@@ -71,7 +71,7 @@ Clone the geomesa project and build it, if you haven't already:
     $ mvn clean install
 
 This is needed to install the GeoMesa JAR files in your local Maven
-repository. For more information see the :doc:`../developer/index`.
+repository. For more information see the :doc:`/developer/index`.
 
 The code in this tutorial is written in
 `Scala <http://scala-lang.org/>`__, as is much of GeoMesa itself.
@@ -80,7 +80,7 @@ Count Events by Day of Year
 ---------------------------
 
 You will need to have ingested some
-`GDELT <http://www.gdeltproject.org/>`__ data as described in :doc:`geomesa-examples-gdelt` and `GeoMesa tools gdelt confs <https://github.com/locationtech/geomesa/geomesa-tools/conf/sfts/gdelt>`__.
+`GDELT <http://www.gdeltproject.org/>`__ data, as described in :doc:`geomesa-examples-gdelt` or :ref:`gdelt_converter`.
 We have an example analysis in the class
 ``geomesa-accumulo/geomesa-accumulo-compute/src/main/scala/org/locationtech/geomesa/compute/spark/analytics/CountByDay.scala``.
 

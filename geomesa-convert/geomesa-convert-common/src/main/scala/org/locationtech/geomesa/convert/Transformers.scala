@@ -9,8 +9,7 @@
 package org.locationtech.geomesa.convert
 
 import java.nio.charset.StandardCharsets
-import java.util.{Date, UUID}
-import javax.imageio.spi.ServiceRegistry
+import java.util.{Date, ServiceLoader, UUID}
 
 import com.google.common.hash.Hashing
 import com.typesafe.scalalogging.LazyLogging
@@ -31,7 +30,7 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
 
   lazy val functionMap = {
     val fn = mutable.HashMap[String, TransformerFn]()
-    ServiceRegistry.lookupProviders(classOf[TransformerFunctionFactory]).foreach { factory =>
+    ServiceLoader.load(classOf[TransformerFunctionFactory]).foreach { factory =>
       factory.functions.foreach(f => f.names.foreach(fn.put(_, f)))
     }
     fn
