@@ -57,8 +57,6 @@ case class QueryPlanner(sft: SimpleFeatureType, ds: AccumuloDataStore) extends M
 
   import org.locationtech.geomesa.accumulo.index.QueryPlanner._
 
-  private lazy val serializationType = ds.getFeatureEncoding(sft)
-
   /**
    * Plan the query, but don't execute it - used for m/r jobs and explain query
    */
@@ -215,7 +213,7 @@ object QueryPlanner extends LazyLogging {
   }
 
   def setPerThreadQueryHints(hints: Map[AnyRef, AnyRef]): Unit = threadedHints.put(hints)
-  def clearPerThreadQueryHints() = threadedHints.clear()
+  def clearPerThreadQueryHints(): Unit = threadedHints.clear()
 
   /**
    * Configure the query - set hints, transforms, etc.
@@ -330,16 +328,22 @@ object QueryPlanner extends LazyLogging {
    * @param sft simple feature type
    * @return
    */
-  def setQueryTransforms(query: Query, sft: SimpleFeatureType) =
+  def setQueryTransforms(query: Query, sft: SimpleFeatureType): Unit =
     if (query.getProperties != null && !query.getProperties.isEmpty) {
+      import scala.collection.JavaConversions._
       val (transformProps, regularProps) = query.getPropertyNames.partition(_.contains('='))
       val convertedRegularProps = regularProps.map { p => s"$p=$p" }
       val allTransforms = convertedRegularProps ++ transformProps
       // ensure that the returned props includes geometry, otherwise we get exceptions everywhere
-      val geomTransform = Option(sft.getGeometryDescriptor).map(_.getLocalName)
-          .filterNot(name => allTransforms.exists(_.matches(s"$name\\s*=.*")))
-          .map(name => Seq(s"$name=$name"))
-          .getOrElse(Nil)
+      val geomTransform = {
+        val allGeoms = sft.getAttributeDescriptors.collect {
+          case d if classOf[Geometry].isAssignableFrom(d.getType.getBinding) => d.getLocalName
+        }
+        val geomMatches = for (t <- allTransforms.iterator; g <- allGeoms) yield { t.matches(s"$g\\s*=.*") }
+        if (geomMatches.contains(true)) { Nil } else {
+          Option(sft.getGeometryDescriptor).map(_.getLocalName).map(geom => s"$geom=$geom").toSeq
+        }
+      }
       val transforms = (allTransforms ++ geomTransform).mkString(";")
       val transformDefs = TransformProcess.toDefinition(transforms)
       val derivedSchema = computeSchema(sft, transformDefs.asScala)
