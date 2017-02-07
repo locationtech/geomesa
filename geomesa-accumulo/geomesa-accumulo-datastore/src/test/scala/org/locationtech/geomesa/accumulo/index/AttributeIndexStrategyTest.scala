@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.accumulo.index
 
 import org.apache.accumulo.core.data.{Range => AccRange}
-import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
 import org.geotools.data._
 import org.geotools.factory.CommonFactoryFinder
@@ -18,7 +17,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.index.attribute.{AttributeIndex, AttributeWritableIndex}
+import org.locationtech.geomesa.accumulo.index.legacy.attribute.AttributeWritableIndex
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter._
@@ -30,7 +29,7 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
-
+import org.specs2.matcher.Matcher
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConverters._
@@ -47,10 +46,12 @@ class AttributeIndexStrategyTest extends TestWithDataStore
       "*geom:Point:srid=4326,dtg:Date,indexedDtg:Date:index=true,fingers:List[String]:index=true," +
       "toes:List[Double]:index=true,track:String,geom2:Point:srid=4326;geomesa.indexes.enabled='attr_idx,records'"
 
-  val geom  = WKTUtils.read("POINT(45.0 49.0)")
-  val geom2 = WKTUtils.read("POINT(55.0 59.0)")
-
   val df = ISODateTimeFormat.dateTime()
+
+  val aliceGeom   = WKTUtils.read("POINT(45.0 49.0)")
+  val billGeom    = WKTUtils.read("POINT(46.0 49.0)")
+  val bobGeom     = WKTUtils.read("POINT(47.0 49.0)")
+  val charlesGeom = WKTUtils.read("POINT(48.0 49.0)")
 
   val aliceDate   = df.parseDateTime("2012-01-01T12:00:00.000Z").toDate
   val billDate    = df.parseDateTime("2013-01-01T12:00:00.000Z").toDate
@@ -62,11 +63,13 @@ class AttributeIndexStrategyTest extends TestWithDataStore
   val bobFingers     = List("index", "thumb", "pinkie")
   val charlesFingers = List("thumb", "ring", "index", "pinkie", "middle")
 
+  val geom2 = WKTUtils.read("POINT(55.0 59.0)")
+
   val features = Seq(
-    Array("alice",   20,   1, 5.0, 10.0F, true,  geom, aliceDate, aliceDate, aliceFingers, List(1.0), "track1", geom2),
-    Array("bill",    21,   2, 6.0, 11.0F, false, geom, billDate, billDate, billFingers, List(1.0, 2.0), "track2", geom2),
-    Array("bob",     30,   3, 6.0, 12.0F, false, geom, bobDate, bobDate, bobFingers, List(3.0, 2.0, 5.0), "track1", geom2),
-    Array("charles", null, 4, 7.0, 12.0F, false, geom, charlesDate, charlesDate, charlesFingers, List(), "track1", geom2)
+    Array("alice",   20,   1, 5.0, 10.0F, true,  aliceGeom, aliceDate, aliceDate, aliceFingers, List(1.0), "track1", geom2),
+    Array("bill",    21,   2, 6.0, 11.0F, false, billGeom, billDate, billDate, billFingers, List(1.0, 2.0), "track2", geom2),
+    Array("bob",     30,   3, 6.0, 12.0F, false, bobGeom, bobDate, bobDate, bobFingers, List(3.0, 2.0, 5.0), "track1", geom2),
+    Array("charles", null, 4, 7.0, 12.0F, false, charlesGeom, charlesDate, charlesDate, charlesFingers, List(), "track1", geom2)
   ).map { entry =>
     val feature = new ScalaSimpleFeature(entry.head.toString, sft)
     feature.setAttributes(entry.asInstanceOf[Array[AnyRef]])
@@ -75,9 +78,12 @@ class AttributeIndexStrategyTest extends TestWithDataStore
 
   addFeatures(features)
 
-  def execute(filter: String, explain: Explainer = ExplainNull): List[String] = {
+  def execute(filter: String, explain: Explainer = ExplainNull, ranges: Option[Matcher[Int]] = None): List[String] = {
     val query = new Query(sftName, ECQL.toFilter(filter))
-    forall(ds.getQueryPlan(query, explainer = explain))(_.filter.index mustEqual AttributeIndex)
+    forall(ds.getQueryPlan(query, explainer = explain)) { qp =>
+      qp.filter.index mustEqual AttributeIndex
+      forall(ranges)(_.test(qp.ranges.length))
+    }
     val results = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features())
     results.map(_.getAttribute("name").toString).toList
   }
@@ -90,9 +96,8 @@ class AttributeIndexStrategyTest extends TestWithDataStore
   "AttributeIndexStrategy" should {
     "print values" in {
       skipped {
-        // used for debugging
-        val scanner = connector.createScanner(AttributeIndex.getTableName(sftName, ds), new Authorizations())
-        val prefix = AttributeWritableIndex.getRowPrefix(sft, sft.indexOf("fingers"))
+        val scanner = connector.createScanner(AttributeIndex.getTableName(sftName, ds), MockUserAuthorizations)
+        val prefix = AttributeWritableIndex.getRowPrefix(sft, sft.indexOf("height"))
         scanner.setRange(AccRange.prefix(new Text(prefix)))
         scanner.asScala.foreach(println)
         println()
@@ -162,46 +167,100 @@ class AttributeIndexStrategyTest extends TestWithDataStore
       forall(bins.map(_.lon))(_ mustEqual 55f)
     }
 
-    "correctly query equals with date ranges" in {
-      val features = execute("height = 12.0 AND " +
-          "dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:15:00.000Z")
-      features must haveLength(1)
-      features must contain("bob")
+    "correctly query equals with spatio-temporal filter" in {
+      // height filter matches bob and charles, st filters only match bob
+      val stFilters = Seq(
+        "dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:15:00.000Z",
+        "bbox(geom, 46.5, 48, 47.5, 50) AND dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:15:00.000Z", // dtg + bbox
+        "bbox(geom, 46.5, 48, 47.5, 50) AND dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:45:00.000Z", // bbox only
+        "bbox(geom, 46.9, 48.9, 48.1, 49.1) AND dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:15:00.000Z" // dtg only
+      )
+      forall(stFilters) { stFilter =>
+        // expect z3 ranges with the attribute equals prefix
+        val features = execute(s"height = 12.0 AND $stFilter", ranges = Some(beGreaterThan(1)))
+        features must haveLength(1)
+        features must contain("bob")
+      }
     }
 
-    "correctly query lt with date ranges" in {
-      val features = execute("height < 12.0 AND " +
-          "dtg DURING 2011-01-01T00:00:00.000Z/2012-01-02T00:00:00.000Z")
-      features must haveLength(1)
-      features must contain("alice")
+    "correctly query lt with spatio-temporal filter" in {
+      // height filter matches alice and bill, st filters only match alice
+      val stFilters = Seq(
+        "dtg DURING 2012-01-01T00:00:00.000Z/2012-01-02T00:00:00.000Z",
+        "bbox(geom, 44.5, 48, 45.5, 50) AND dtg DURING 2012-01-01T00:00:00.000Z/2012-01-02T00:00:00.000Z", // dtg + bbox
+        "bbox(geom, 44.5, 48, 45.5, 50) AND dtg DURING 2012-01-01T00:00:00.000Z/2013-01-02T00:00:00.000Z", // bbox only
+        "bbox(geom, 44.5, 48.9, 46.5, 49.1) AND dtg DURING 2012-01-01T00:00:00.000Z/2012-01-02T00:00:00.000Z" // dtg only
+      )
+      forall(stFilters) { stFilter =>
+        // expect z3 ranges to only inform the upper bound
+        val features = execute(s"height < 12.0 AND $stFilter", ranges = Some(beEqualTo(1)))
+        features must haveLength(1)
+        features must contain("alice")
+      }
     }
 
-    "correctly query lte with date ranges" in {
-      val features = execute("height <= 12.0 AND " +
-          "dtg DURING 2013-01-01T00:00:00.000Z/2014-01-01T12:15:00.000Z")
-      features must haveLength(2)
-      features must contain("bill", "bob")
+    "correctly query lte with spatio-temporal filter" in {
+      // height filter matches all, st filters only match bill and bob
+      val stFilters = Seq(
+        "dtg DURING 2013-01-01T00:00:00.000Z/2014-01-01T12:15:00.000Z",
+        "bbox(geom, 45.5, 48, 47.5, 50) AND dtg DURING 2013-01-01T00:00:00.000Z/2014-01-01T12:15:00.000Z", // dtg + bbox
+        "bbox(geom, 45.5, 48, 47.5, 50) AND dtg DURING 2011-01-01T00:00:00.000Z/2014-01-01T12:45:00.000Z", // bbox only
+        "bbox(geom, 44.5, 48.9, 48.5, 49.1) AND dtg DURING 2013-01-01T00:00:00.000Z/2014-01-01T12:15:00.000Z" // dtg only
+      )
+      forall(stFilters) { stFilter =>
+        // expect z3 ranges to only inform the upper bound
+        val features = execute(s"height <= 12.0 AND $stFilter", ranges = Some(beEqualTo(1)))
+        features must haveLength(2)
+        features must contain("bill", "bob")
+      }
     }
 
-    "correctly query gt with date ranges" in {
-      val features = execute("height > 11.0 AND " +
-          "dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:15:00.000Z")
-      features must haveLength(1)
-      features must contain("bob")
+    "correctly query gt with spatio-temporal filter" in {
+      // height filter matches bob and charles, st filters only match bob
+      val stFilters = Seq(
+        "dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:15:00.000Z",
+        "bbox(geom, 46.5, 48, 47.5, 50) AND dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:15:00.000Z", // dtg + bbox
+        "bbox(geom, 46.5, 48, 47.5, 50) AND dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:45:00.000Z", // bbox only
+        "bbox(geom, 46.9, 48.9, 48.1, 49.1) AND dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:15:00.000Z" // dtg only
+      )
+      forall(stFilters) { stFilter =>
+        // expect z3 ranges to only inform the lower bound
+        val features = execute(s"height > 11.0 AND $stFilter", ranges = Some(beEqualTo(1)))
+        features must haveLength(1)
+        features must contain("bob")
+      }
     }
 
-    "correctly query gte with date ranges" in {
-      val features = execute("height >= 11.0 AND " +
-          "dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:15:00.000Z")
-      features must haveLength(1)
-      features must contain("bob")
+    "correctly query gte with spatio-temporal filter" in {
+      // height filter matches bill, bob and charles, st filters only match bob
+      val stFilters = Seq(
+        "dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:15:00.000Z",
+        "bbox(geom, 46.5, 48, 47.5, 50) AND dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:15:00.000Z", // dtg + bbox
+        "bbox(geom, 46.5, 48, 47.5, 50) AND dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:45:00.000Z", // bbox only
+        "bbox(geom, 46.9, 48.9, 48.1, 49.1) AND dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:15:00.000Z" // dtg only
+      )
+      forall(stFilters) { stFilter =>
+        // expect z3 ranges to only inform the lower bound
+        val features = execute(s"height >= 11.0 AND $stFilter", ranges = Some(beEqualTo(1)))
+        features must haveLength(1)
+        features must contain("bob")
+      }
     }
 
-    "correctly query between with date ranges" in {
-      val features = execute("height between 11.0 AND 12.0 AND " +
-          "dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:15:00.000Z")
-      features must haveLength(1)
-      features must contain("bob")
+    "correctly query between with spatio-temporal filter" in {
+      // height filter matches bill, bob and charles, st filters only match bob
+      val stFilters = Seq(
+        "dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:15:00.000Z",
+        "bbox(geom, 46.5, 48, 47.5, 50) AND dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:15:00.000Z", // dtg + bbox
+        "bbox(geom, 46.5, 48, 47.5, 50) AND dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:45:00.000Z", // bbox only
+        "bbox(geom, 46.9, 48.9, 48.1, 49.1) AND dtg DURING 2014-01-01T11:45:00.000Z/2014-01-01T12:15:00.000Z" // dtg only
+      )
+      forall(stFilters) { stFilter =>
+        // expect z3 ranges to only inform the end bounds
+        val features = execute(s"height between 11.0 AND 12.0 AND $stFilter", ranges = Some(beEqualTo(1)))
+        features must haveLength(1)
+        features must contain("bob")
+      }
     }
 
     "support sampling" in {

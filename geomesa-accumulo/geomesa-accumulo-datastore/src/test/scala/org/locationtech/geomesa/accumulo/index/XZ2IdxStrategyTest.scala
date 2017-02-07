@@ -238,8 +238,13 @@ class XZ2IdxStrategyTest extends TestWithDataStore with org.specs2.matcher.Seque
 
   def execute(ecql: String,
               transforms: Option[Array[String]] = None,
-              hints: Map[_, _] = Map.empty): Iterator[SimpleFeature] =
+              hints: Map[_, _] = Map.empty,
+              explain: Explainer = ExplainNull): Iterator[SimpleFeature] = {
+    if (explain != ExplainNull) {
+      ds.getQueryPlan(getQuery(ecql, transforms, hints), explainer = explain)
+    }
     SelfClosingIterator(ds.getFeatureReader(getQuery(ecql, transforms, hints), Transaction.AUTO_COMMIT))
+  }
 
   def plan(ecql: String,
            transforms: Option[Array[String]] = None,

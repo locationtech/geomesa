@@ -20,9 +20,6 @@ import org.geotools.data.{Query, Transaction}
 import org.joda.time._
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.{AccumuloBackedMetadata, _}
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
-import org.locationtech.geomesa.accumulo.index.z2.Z2IndexV1
-import org.locationtech.geomesa.accumulo.index.z3.Z3IndexV2
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -31,7 +28,6 @@ import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
@@ -72,18 +68,17 @@ class AccumuloGeoMesaStats(val ds: AccumuloDataStore, statsTable: String, val ge
   compactor.run() // schedule initial compaction
 
   override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
-    lazy val hasDupes = sft.nonPoints && {
-      val indices = AccumuloFeatureIndex.indices(sft, IndexMode.Read)
-      // TODO check for multivalued attribute indices
-      Seq(Z2IndexV1, Z3IndexV2).exists(indices.contains)
+    lazy val query = {
+      // restrict fields coming back so that we push as little data as possible
+      val props = Array(Option(sft.getGeomField).getOrElse(sft.getDescriptor(0).getLocalName))
+      new Query(sft.getTypeName, filter, props)
     }
+    lazy val hasDupes = ds.getQueryPlan(query).exists(_.hasDuplicates)
+
     if (exact && hasDupes) {
       // stat query doesn't entirely handle duplicates - only on a per-iterator basis
       // is a full scan worth it? the stat will be pretty close...
 
-      // restrict fields coming back so that we push as little data as possible
-      val props = Array(Option(sft.getGeomField).getOrElse(sft.getDescriptor(0).getLocalName))
-      val query = new Query(sft.getTypeName, filter, props)
       // length of an iterator is an int... this is Big Data
       var count = 0L
       SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).foreach(_ => count += 1)

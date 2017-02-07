@@ -17,7 +17,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
-import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
+import org.locationtech.geomesa.accumulo.index.AttributeIndex
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.runner.JUnitRunner
 

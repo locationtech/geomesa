@@ -13,7 +13,7 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ByteSequence, Key, Value, Range => AccRange}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo.index.z3.Z3Index
+import org.locationtech.geomesa.accumulo.index.z3.Z3IndexV2
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.sfcurve.zorder.Z3
 import org.opengis.feature.simple.SimpleFeatureType
@@ -215,13 +215,13 @@ object Z3Iterator {
     is.addOption(ZKeyXY, xyOpts.mkString(TermSeparator))
     is.addOption(ZKeyT, tOpts.mkString(WeekSeparator))
     is.addOption(ZOffsetKey, if (hasSplits) { "1" } else { "0" })
-    is.addOption(ZLengthKey, if (sft.isPoints) { "8" } else { Z3Index.GEOM_Z_NUM_BYTES.toString })
+    is.addOption(ZLengthKey, if (sft.isPoints) { "8" } else { Z3IndexV2.GEOM_Z_NUM_BYTES.toString })
 
     is
   }
 
   private def decodeNonPoints(sfc: Z3SFC, x: Double, y: Double, t: Long): (Int, Int, Int) =
-    Z3(sfc.index(x, y, t).z & Z3Index.GEOM_Z_MASK).decode
+    Z3(sfc.index(x, y, t).z & Z3IndexV2.GEOM_Z_MASK).decode
 
   private def getRowToZ(offset: Int, zLength: Int): (Array[Byte]) => Long = {
     // account for week - first 2 bytes

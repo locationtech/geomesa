@@ -6,7 +6,7 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.index.z2
+package org.locationtech.geomesa.accumulo.index.legacy.z2
 
 import java.nio.charset.StandardCharsets
 
@@ -17,16 +17,16 @@ import org.apache.accumulo.core.conf.Property
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.index.utils.SplitArrays
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 
-trait Z2WritableIndex extends AccumuloWritableIndex {
+trait Z2WritableIndex extends AccumuloFeatureIndex {
 
-  import AccumuloWritableIndex.{BinColumnFamily, FullColumnFamily}
-  import Z2Index._
+  import AccumuloFeatureIndex.{BinColumnFamily, FullColumnFamily}
+  import org.locationtech.geomesa.accumulo.index.legacy.z2.Z2IndexV1._
 
   override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String = {
     val start = getIdRowOffset(sft)

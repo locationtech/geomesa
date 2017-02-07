@@ -6,23 +6,22 @@
 * http://www.opensource.org/licenses/apache2.0.php.
 *************************************************************************/
 
-package org.locationtech.geomesa.accumulo.index.id
+package org.locationtech.geomesa.accumulo.index.legacy.id
 
 import java.nio.charset.StandardCharsets
 
-import com.google.common.base.Charsets
 import com.google.common.collect.ImmutableSortedSet
 import org.apache.accumulo.core.conf.Property
 import org.apache.accumulo.core.file.keyfunctor.RowFunctor
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
+import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, RecordIndex}
 import org.locationtech.geomesa.index.conf.{HexSplitter, TableSplitter}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 
-trait RecordWritableIndex extends AccumuloWritableIndex {
+trait RecordWritableIndex extends AccumuloFeatureIndex {
 
   import RecordIndex.getRowKey
 
