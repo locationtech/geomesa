@@ -29,7 +29,9 @@ import org.opengis.filter.Filter
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreTransformsTest extends org.specs2.mutable.Spec with TestWithMultipleSfts {
+class AccumuloDataStoreTransformsTest extends org.specs2.mutable.Spec
+    with org.specs2.matcher.SequenceMatchersCreation with org.specs2.execute.PendingUntilFixed
+    with TestWithMultipleSfts {
 
   sequential
 
