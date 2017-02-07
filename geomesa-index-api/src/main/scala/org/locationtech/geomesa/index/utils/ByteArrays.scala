@@ -14,8 +14,12 @@ object ByteArrays {
   val MaxByte: Byte =  0xff.toByte
 
   /**
-    * Creates a byte array with a short and a long. Code based on guava Longs/Shorts.toByteArray,
-    * but modified to write to the same buffer
+    * Creates a byte array with a short and a long.
+    *
+    * Code based on the following methods, but avoids allocating extra byte arrays:
+    *
+    *   com.google.common.primitives.Shorts#toByteArray(short)
+    *   com.google.common.primitives.Longs#toByteArray(long)
     *
     * @param bin time bin
     * @param z z value
@@ -40,8 +44,12 @@ object ByteArrays {
   }
 
   /**
-    * Creates a byte array with a short and a long. Code based on guava Longs/Shorts.toByteArray,
-    * but modified to write to the same buffer
+    * Creates a byte array with a short and a long.
+    *
+    * Code based on the following methods, but avoids allocating extra byte arrays:
+    *
+    *   com.google.common.primitives.Shorts#toByteArray(short)
+    *   com.google.common.primitives.Longs#toByteArray(long)
     *
     * @param bin time bin, already converted to 2 bytes
     * @param z z value
@@ -67,7 +75,13 @@ object ByteArrays {
 
   /**
     * Creates a byte array that sorts directly after the z-value (as converted into a byte array).
-    * Copied from Accumulo Range and Guava Longs, but avoids allocating an extra byte array.
+    *
+    * Code based on the following methods, but avoids allocating extra byte arrays:
+    *
+    *   org.apache.accumulo.core.data.Range#followingPrefix(org.apache.hadoop.io.Text)
+    *   com.google.common.primitives.Shorts#toByteArray(short)
+    *   com.google.common.primitives.Longs#toByteArray(long)
+    *
     *
     * @param z z value
     * @return
@@ -106,7 +120,12 @@ object ByteArrays {
 
   /**
     * Creates a byte array that sorts directly after the z-value (as converted into a byte array).
-    * Copied from Accumulo Range and Guava Shorts and Longs, but avoids allocating an extra byte array.
+    *
+    * Code based on the following methods, but avoids allocating extra byte arrays:
+    *
+    *   org.apache.accumulo.core.data.Range#followingPrefix(org.apache.hadoop.io.Text)
+    *   com.google.common.primitives.Shorts#toByteArray(short)
+    *   com.google.common.primitives.Longs#toByteArray(long)
     *
     * @param z z value
     * @return
