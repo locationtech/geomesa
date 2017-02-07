@@ -15,8 +15,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.index.z3.Z3Index
-import org.locationtech.geomesa.accumulo.index.{AttributeIndex, Z2Index}
+import org.locationtech.geomesa.accumulo.index.{AttributeIndex, Z2Index, Z3Index}
 import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, TestWithDataStore}
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator

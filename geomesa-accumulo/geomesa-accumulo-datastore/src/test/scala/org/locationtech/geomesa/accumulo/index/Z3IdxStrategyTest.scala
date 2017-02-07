@@ -17,7 +17,6 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, Z3Iterator}
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -80,10 +79,11 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
       ds.connector.createScanner(Z3Index.getTableName(sftName, ds), new Authorizations()).foreach { r =>
+        val prefix = 2 // table sharing + split
         val bytes = r.getKey.getRow.getBytes
-        val keyZ = Longs.fromByteArray(bytes.drop(2))
+        val keyZ = Longs.fromByteArray(bytes.drop(prefix))
         val (x, y, t) = Z3SFC(sft.getZ3Interval).invert(Z3(keyZ))
-        val weeks = Shorts.fromBytes(bytes.head, bytes(1))
+        val weeks = Shorts.fromBytes(bytes(prefix), bytes(prefix + 1))
         println(s"row: $weeks $x $y $t")
       }
       println()
