@@ -281,6 +281,15 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
         features.map(_.getAttribute("geom2")) must containTheSameElementsAs(reference.map(_.getAttribute("geom2")))
         features.map(_.getAttribute("name")) must containTheSameElementsAs(reference.map(_.getAttribute("name")))
       }
+
+      "if geometry is renamed" >> {
+        val query = new Query(sftName, Filter.INCLUDE, Array("name", "geom3=geom"))
+        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toSeq
+        features must haveSize(3)
+        forall(features)(_.getAttributeCount mustEqual 2)
+        features.map(_.getAttribute("geom3")) must containTheSameElementsAs(reference.map(_.getAttribute("geom")))
+        features.map(_.getAttribute("name")) must containTheSameElementsAs(reference.map(_.getAttribute("name")))
+      }.pendingUntilFixed("Can't detect transform types")
     }
   }
 }
