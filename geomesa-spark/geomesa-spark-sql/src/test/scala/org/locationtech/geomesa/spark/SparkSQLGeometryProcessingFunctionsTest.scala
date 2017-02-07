@@ -21,27 +21,27 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class SparkSQLGeometryProcessingFunctionsTest extends org.specs2.mutable.Spec with LazyLogging {
 
-  "sql geometry processing functions" should {
-    import scala.collection.JavaConversions._
+  import scala.collection.JavaConversions._
 
-    sequential
-    val dsParams: JMap[String, String] = Map("cqengine" -> "true", "geotools" -> "true")
+  sequential
 
-    val ds = DataStoreFinder.getDataStore(dsParams)
-    val spark = SparkSQLTestUtils.createSparkSession()
-    val sc = spark.sqlContext
+  val dsParams: JMap[String, String] = Map("cqengine" -> "true", "geotools" -> "true")
 
-    SparkSQLTestUtils.ingestChicago(ds)
+  val ds = DataStoreFinder.getDataStore(dsParams)
+  val spark = SparkSQLTestUtils.createSparkSession()
+  val sc = spark.sqlContext
 
-    val df = spark.read
+  SparkSQLTestUtils.ingestChicago(ds)
+
+  val df = spark.read
       .format("geomesa")
       .options(dsParams)
       .option("geomesa.feature", "chicago")
       .load()
-    logger.debug(df.schema.treeString)
-    df.createOrReplaceTempView("chicago")
+  logger.debug(df.schema.treeString)
+  df.createOrReplaceTempView("chicago")
 
-
+  "sql geometry processing functions" should {
     "st_antimeridianSafeGeom" >> {
       val geom = "st_geomFromWKT('POLYGON((-190 50, -190 60, -170 60, -170 50, -190 50))')";
       val decomposed = sc.sql(s"select st_antimeridianSafeGeom($geom)").collect.head.get(0).asInstanceOf[Geometry]
@@ -83,7 +83,6 @@ class SparkSQLGeometryProcessingFunctionsTest extends org.specs2.mutable.Spec wi
       Array(70681.00230533161,141178.0595870766) must beEqualTo(res)
     }
 
-
     "great circle length of a linestring" >> {
       val res = sc.sql(
         """
@@ -101,9 +100,6 @@ class SparkSQLGeometryProcessingFunctionsTest extends org.specs2.mutable.Spec wi
         """.stripMargin).collect().map(_.getDouble(1))
       Array(70681.00230533161,141178.0595870766) must beEqualTo(res)
     }
-
-
-
   }
 
 }
