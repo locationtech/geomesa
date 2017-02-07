@@ -240,5 +240,47 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
         success
       }
     }
+
+    "always return a geometry if available" >> {
+      val sft = createNewSchema("name:String,dtg:Date,*geom:Point:srid=4326,geom2:Point:srid=4326")
+      val sftName = sft.getTypeName
+
+      val reference = (0 until 3).map { i =>
+        val sf = new ScalaSimpleFeature(s"f$i", sft)
+        sf.setAttribute(0, s"name$i")
+        sf.setAttribute(1, s"2014-01-01T0$i:00:00.000Z")
+        sf.setAttribute(2, s"POINT(5$i 50)")
+        sf.setAttribute(3, s"POINT(6$i 50)")
+        sf
+      }
+      addFeatures(sft, reference)
+
+      "if no geometry is specified" >> {
+        val query = new Query(sftName, Filter.INCLUDE, Array("name"))
+        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toSeq
+        features must haveSize(3)
+        forall(features)(_.getAttributeCount mustEqual 2)
+        features.map(_.getAttribute("geom")) must containTheSameElementsAs(reference.map(_.getAttribute("geom")))
+        features.map(_.getAttribute("name")) must containTheSameElementsAs(reference.map(_.getAttribute("name")))
+      }
+
+      "if default geometry is specified" >> {
+        val query = new Query(sftName, Filter.INCLUDE, Array("name", "geom"))
+        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toSeq
+        features must haveSize(3)
+        forall(features)(_.getAttributeCount mustEqual 2)
+        features.map(_.getAttribute("geom")) must containTheSameElementsAs(reference.map(_.getAttribute("geom")))
+        features.map(_.getAttribute("name")) must containTheSameElementsAs(reference.map(_.getAttribute("name")))
+      }
+
+      "if alternate geometry is specified" >> {
+        val query = new Query(sftName, Filter.INCLUDE, Array("name", "geom2"))
+        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toSeq
+        features must haveSize(3)
+        forall(features)(_.getAttributeCount mustEqual 2)
+        features.map(_.getAttribute("geom2")) must containTheSameElementsAs(reference.map(_.getAttribute("geom2")))
+        features.map(_.getAttribute("name")) must containTheSameElementsAs(reference.map(_.getAttribute("name")))
+      }
+    }
   }
 }
