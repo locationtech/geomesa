@@ -13,7 +13,7 @@ import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.utils.ExplainLogger
+import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.filter.Filter
@@ -33,7 +33,9 @@ trait ExplainCommand[DS <: GeoMesaDataStore[DS, _, _]] extends DataStoreCommand[
       query.getHints.put(QueryHints.QUERY_INDEX, index)
       Command.user.debug(s"Using index ${index.identifier}")
     }
-    ds.getQueryPlan(query, None, new ExplainLogger(Command.output))
+    val explainString = new ExplainString()
+    ds.getQueryPlan(query, None, explainString)
+    Command.output.info(explainString.toString)
   }
 }
 
