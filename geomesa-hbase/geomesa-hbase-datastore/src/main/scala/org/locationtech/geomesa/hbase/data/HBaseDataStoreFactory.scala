@@ -58,7 +58,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi {
     Array(BigTableNameParam, QueryThreadsParam, QueryTimeoutParam, GenerateStatsParam,
       AuditQueriesParam, LooseBBoxParam, CachingParam)
 
-  override def canProcess(params: java.util.Map[String,Serializable]) = params.containsKey(BigTableNameParam.key)
+  override def canProcess(params: java.util.Map[String,Serializable]): Boolean = HBaseDataStoreFactory.canProcess(params)
 
   override def isAvailable = true
 
@@ -88,4 +88,7 @@ object HBaseDataStoreFactory {
                                   queryTimeout: Option[Long],
                                   looseBBox: Boolean,
                                   caching: Boolean) extends GeoMesaDataStoreConfig
+
+  def canProcess(params: java.util.Map[String,Serializable]): Boolean =
+    params.containsKey(Params.BigTableNameParam.key)
 }

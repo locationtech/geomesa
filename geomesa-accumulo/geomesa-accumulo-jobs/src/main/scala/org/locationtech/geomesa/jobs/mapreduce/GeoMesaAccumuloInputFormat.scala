@@ -13,7 +13,6 @@ import java.net.{URL, URLClassLoader}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.mapreduce.{AbstractInputFormat, AccumuloInputFormat, InputFormatBase}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.accumulo.core.util.{Pair => AccPair}
 import org.apache.commons.collections.map.CaseInsensitiveMap
@@ -21,7 +20,6 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
 import org.geotools.data.{DataStoreFinder, Query}
-import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
@@ -173,60 +171,29 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
     accumuloSplits
   }
 
-  override def createRecordReader(split: InputSplit, context: TaskAttemptContext) = {
+  override def createRecordReader(split: InputSplit, context: TaskAttemptContext): GeoMesaRecordReader[AccumuloFeatureIndex] = {
     init(context.getConfiguration)
-    val reader = delegate.createRecordReader(split, context)
+    val reader = new RecordReader[Array[Byte], Array[Byte]] {
+      private val rr = delegate.createRecordReader(split, context)
+
+      override def getProgress: Float = rr.getProgress
+
+      override def nextKeyValue(): Boolean = rr.nextKeyValue()
+
+      override def getCurrentValue: Array[Byte] = rr.getCurrentValue.get()
+
+      override def initialize(inputSplit: InputSplit, taskAttemptContext: TaskAttemptContext): Unit =
+        rr.initialize(inputSplit, taskAttemptContext)
+
+      override def getCurrentKey: Array[Byte] = rr.getCurrentKey.getRow.getBytes
+
+      override def close(): Unit = rr.close()
+    }
+
     val schema = GeoMesaConfigurator.getTransformSchema(context.getConfiguration).getOrElse(sft)
     val hasId = table.serializedWithId
     val serializationOptions = if (hasId) SerializationOptions.none else SerializationOptions.withoutId
     val decoder = new KryoFeatureSerializer(schema, serializationOptions)
     new GeoMesaRecordReader(sft, table, reader, hasId, decoder)
   }
-}
-
-/**
- * Record reader that delegates to accumulo record readers and transforms the key/values coming back into
- * simple features.
- *
- * @param reader
- */
-class GeoMesaRecordReader(sft: SimpleFeatureType,
-                          table: AccumuloFeatureIndex,
-                          reader: RecordReader[Key, Value],
-                          hasId: Boolean,
-                          decoder: org.locationtech.geomesa.features.SimpleFeatureSerializer)
-    extends RecordReader[Text, SimpleFeature] {
-
-  var currentFeature: SimpleFeature = null
-
-  val getId = table.getIdFromRow(sft)
-
-  override def initialize(split: InputSplit, context: TaskAttemptContext) = {
-    reader.initialize(split, context)
-  }
-  override def getProgress = reader.getProgress
-
-  override def nextKeyValue() = nextKeyValueInternal()
-
-  /**
-    * Get the next key value from the underlying reader, incrementing the reader when required
-    */
-  private def nextKeyValueInternal(): Boolean = {
-    if (reader.nextKeyValue()) {
-      currentFeature = decoder.deserialize(reader.getCurrentValue.get())
-      if (!hasId) {
-        val row = reader.getCurrentKey.getRow
-        currentFeature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row.getBytes, 0, row.getLength))
-      }
-      true
-    } else {
-      false
-    }
-  }
-
-  override def getCurrentValue = currentFeature
-
-  override def getCurrentKey = new Text(currentFeature.getID)
-
-  override def close() = { reader.close() }
 }
