@@ -186,7 +186,6 @@ class FilterHelperTest extends Specification {
       (1 until count).foreach { i =>
         filter = ff.or(filter, ff.equal(a, ff.literal(i)))
       }
-      val start = System.currentTimeMillis()
       val flattened = FilterHelper.simplify(filter)
       flattened must beAnInstanceOf[Or]
       flattened.asInstanceOf[Or].getChildren must haveLength(count)
