@@ -23,7 +23,9 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class ConverterSpatialRDDProviderTest extends Specification {
 
-  import ConverterSpatialRDDProvider.{ConverterKey, InputFilesKey, SftKey}
+  sequential
+
+  import ConverterSpatialRDDProvider.{ConverterKey, IngestTypeKey, InputFilesKey, SftKey}
 
   var sc: SparkContext = null
 
@@ -34,7 +36,7 @@ class ConverterSpatialRDDProviderTest extends Specification {
     sc = SparkContext.getOrCreate(conf)
   }
 
-  val exampleConf = ConfigFactory.load("example.conf")
+  val exampleConf = ConfigFactory.load()
   val converterConf = exampleConf.getConfig("geomesa.converters.example-csv")
 
   val params = Map(
@@ -50,12 +52,23 @@ class ConverterSpatialRDDProviderTest extends Specification {
       rdd.collect.map(_.getAttribute("name").asInstanceOf[String]).toList must
           containTheSameElementsAs(Seq("Harry", "Hermione", "Severus"))
     }
+
     "read from local files with filtering" in {
       val query = new Query("example-csv", ECQL.toFilter("name like 'H%'"))
       val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, query)
       rdd.count() mustEqual 2l
       rdd.collect.map(_.getAttribute("name").asInstanceOf[String]).toList must
           containTheSameElementsAs(Seq("Harry", "Hermione"))
+    }
+
+    "read from a local file using Converter Name lookup" in {
+      val params = Map (
+        InputFilesKey    -> getClass.getResource("/example.csv").getPath,
+        IngestTypeKey -> "example-csv"
+      )
+
+      val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, new Query("example-csv"))
+      rdd.count() mustEqual 3l
     }
   }
 }

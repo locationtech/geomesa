@@ -28,6 +28,7 @@ import scala.collection.JavaConversions._
  * Tables all are identified the the SFT name, which must be unique. They all have a null schema.
  * This is required as SparkSQL doesn't support schemas.
  */
+@deprecated
 class GeoMesaDataContext(sfts: Map[String, SimpleFeatureType]) extends DataContext {
 
   import GeoMesaDataContext._
@@ -91,6 +92,7 @@ class GeoMesaDataContext(sfts: Map[String, SimpleFeatureType]) extends DataConte
   override def query() = ???
 }
 
+@deprecated
 object GeoMesaDataContext {
   private val cache = scala.collection.mutable.Map.empty[String, Table]
 }

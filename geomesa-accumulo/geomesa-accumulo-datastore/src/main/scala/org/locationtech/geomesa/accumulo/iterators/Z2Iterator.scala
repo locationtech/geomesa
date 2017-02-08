@@ -13,7 +13,7 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ByteSequence, Key, Value, Range => AccRange}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo.index.z2.Z2Index
+import org.locationtech.geomesa.accumulo.index.legacy.z2.Z2IndexV1
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.sfcurve.zorder.Z2
 import org.opengis.feature.simple.SimpleFeatureType
@@ -38,7 +38,7 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
   override def init(source: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
                     env: IteratorEnvironment): Unit = {
-    this.source = source.deepCopy(env)
+    this.source = source
 
     zOffset = options.get(ZOffsetKey).toInt
     zLength = options.get(ZLengthKey).toInt
@@ -102,7 +102,7 @@ class Z2Iterator extends SortedKeyValueIterator[Key, Value] {
       ZLengthKey -> zLength.toString
     )
     val iter = new Z2Iterator
-    iter.init(source, opts, env)
+    iter.init(source.deepCopy(env), opts, env)
     iter
   }
 }
@@ -141,12 +141,12 @@ object Z2Iterator {
     is.addOption(ZKeyXY, xyOpts.mkString(TermSeparator))
     // account for shard and table sharing bytes
     is.addOption(ZOffsetKey, if (sft.isTableSharing) { "2" } else { "1" })
-    is.addOption(ZLengthKey, if (sft.isPoints) { "8" } else { Z2Index.GEOM_Z_NUM_BYTES.toString })
+    is.addOption(ZLengthKey, if (sft.isPoints) { "8" } else { Z2IndexV1.GEOM_Z_NUM_BYTES.toString })
     is
   }
 
   private def decodeNonPoints(x: Double, y: Double): (Int, Int) =
-    Z2(Z2SFC.index(x, y).z & Z2Index.GEOM_Z_MASK).decode
+    Z2(Z2SFC.index(x, y).z & Z2IndexV1.GEOM_Z_MASK).decode
 
   private def getRowToZ(offset: Int, length: Int): (Array[Byte]) => Long = {
     val z0 = offset

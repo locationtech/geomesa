@@ -98,7 +98,7 @@ To build, run
 
     Depending on the version, you may also need to build
     GeoMesa locally. Instructions can be found under
-    :doc:`/user/installation_and_configuration`.
+    :ref:`installation`.
 
 Running the Ingest
 ------------------
@@ -217,7 +217,7 @@ Analyze
 GeoServer Setup
 ~~~~~~~~~~~~~~~
 
-First, follow :doc:`/user/installation_and_configuration` to set up the
+First, follow :ref:`installation` to set up the
 GeoMesa GeoServer plugin if you haven't done so.
 
 Register the GeoMesa DataStore with GeoServer
@@ -265,7 +265,7 @@ data.
    :alt: Showing all GDELT events from Jan 1, 2013 to April 30, 2014
 
 The above map is using the `Stamen
-Toner <http://maps.stamen.com/toner>`__ layer as a base layer. For more
+Toner <http://maps.stamen.com/toner/>`__ layer as a base layer. For more
 information about adding multiple layers into one group see the
 `GeoServer
 documentation <http://docs.geoserver.org/stable/en/user/data/webadmin/layergroups.html>`__.
@@ -292,7 +292,7 @@ to the layer. Add the SLD file
 :download:`threat.sld <_static/geomesa-examples-gdelt/threat.sld>`
 to GeoServer (See the GeoServer documentation for `more information
 about adding SLD
-files <http://docs.geoserver.org/stable/en/user/styling/sld-working.html>`__.
+files <http://docs.geoserver.org/2.9.1/user/styling/sld-working.html>`__.
 For the ExternalGraphic in the SLD to work, move the image file to the
 specified location in your GeoServer installation.
 

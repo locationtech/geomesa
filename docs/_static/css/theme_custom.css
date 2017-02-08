@@ -299,3 +299,23 @@ div.admonition.warning, div.admonition.note {
 .wy-table-responsive table td, .wy-table-responsive table th {
    white-space: normal;
 }
+
+.wy-table-responsive table td div.highlight {
+   overflow: auto;
+}
+
+.wy-table-responsive table td div.highlight {
+  margin: 1px 0 1px 0;
+}
+
+.wy-table-responsive table td p {
+  margin-bottom: 12px;
+}
+
+.rst-content .section .wy-table-responsive table td ul {
+  margin-bottom: 12px;
+}
+
+.rst-content .toc-backref {
+  color: #bbb;
+}

@@ -24,7 +24,7 @@ Before you begin, you should have these:
    (GDAL) <http://www.gdal.org/>`__ installed
 
 Before you begin, you should have also set up GeoMesa, using the
-instructions in :doc:`/user/installation_and_configuration`.
+instructions in :ref:`installation`.
 
 .. note::
 
@@ -42,13 +42,11 @@ GeoServer plugin.
 Ingest
 ------
 
-First, download and extract the example data set `Natural Earth 2 with
-Shaded Relief, Water, and
-Drainages <http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/raster/NE2_HR_LC_SR_W_DR.zip>`__.
-To ingest the raster image into GeoMesa, you must first produce an image
-pyramid from this file by using ``gdal_retile.py``. For an explanation
-of the parameters used below, see the `gdal\_retile
-documentation <http://www.gdal.org/gdal_retile.html>`__.
+First, download and extract the example data set `NE2_HR_LC_SR_W_DR.zip`_ from `Natural Earth`_ (this is the "large size" raster data for "Natural Earth 2 with Shaded Relief, Water, and Drainages" on `this download page`_). To ingest the raster image into GeoMesa, you must first produce an image pyramid from this file by using ``gdal_retile.py``. For an explanation of the parameters used below, see the `gdal\_retile documentation <http://www.gdal.org/gdal_retile.html>`__.
+
+.. _Natural Earth: http://www.naturalearthdata.com/
+.. _NE2_HR_LC_SR_W_DR.zip: http://naciscdn.org/naturalearth/10m/raster/NE2_HR_LC_SR_W_DR.zip
+.. _this download page: http://www.naturalearthdata.com/downloads/10m-raster-data/10m-natural-earth-2/
 
 .. code-block:: bash
 
@@ -57,7 +55,7 @@ documentation <http://www.gdal.org/gdal_retile.html>`__.
 
 Once the image pyramid has been prepared, ingest the tiles using the
 GeoMesa command line tools. To do this you will first need to follow the
-tools deployment instructions in :doc:`/user/installation_and_configuration`.
+tools deployment instructions in :ref:`installation`.
 Once the GeoMesa tools have been deployed you will be able to ingest the prepared pyramid:
 
 .. code-block:: bash
@@ -79,7 +77,7 @@ GeoServer Deployment
 
 The GeoMesa GeoServer community module is required to enable registering GeoMesa Raster layers
 in GeoServer. If you have not already, please follow the instructions
-in :doc:`/user/installation_and_configuration`.
+in :ref:`installation`.
 
 If you have not deployed the community module yet, it can be downloaded from 
 `OpenGeo <http://ares.opengeo.org/geoserver/>`, or can be built from 

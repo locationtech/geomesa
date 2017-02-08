@@ -24,7 +24,7 @@ import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
-import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AccumuloWritableIndex}
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
@@ -146,7 +146,7 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
   val delegate = new AccumuloInputFormat
 
   var sft: SimpleFeatureType = null
-  var table: AccumuloWritableIndex = null
+  var table: AccumuloFeatureIndex = null
 
   private def init(conf: Configuration) = if (sft == null) {
     val params = GeoMesaConfigurator.getDataStoreInParams(conf)
@@ -191,7 +191,7 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
  * @param reader
  */
 class GeoMesaRecordReader(sft: SimpleFeatureType,
-                          table: AccumuloWritableIndex,
+                          table: AccumuloFeatureIndex,
                           reader: RecordReader[Key, Value],
                           hasId: Boolean,
                           decoder: org.locationtech.geomesa.features.SimpleFeatureSerializer)

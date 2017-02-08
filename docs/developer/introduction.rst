@@ -16,9 +16,9 @@ Building from Source
 
 These development tools are required:
 
-* `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
-* `Apache Maven <http://maven.apache.org/>`__ |maven_version|, and
-* `Git <https://git-scm.com/>`__.
+* `Java JDK 8`_
+* `Apache Maven <http://maven.apache.org/>`__ |maven_version|
+* A ``git`` `client <http://git-scm.com/>`__
 
 The GeoMesa source distribution may be cloned from GitHub:
 
@@ -33,7 +33,6 @@ This downloads the latest development version. To check out the code for the lat
 .. code-block:: bash
 
     $ git checkout tags/geomesa-$VERSION -b geomesa-$VERSION 
-
 
 Building and dependency management for GeoMesa is handled by Maven (http://maven.apache.org/). 
 The Maven ``pom.xml`` file in the root directory of the source distribution contains an explicit
@@ -58,11 +57,11 @@ to omit the test phase of the build process:
 
     $ mvn clean install -DskipTests=true
 
-To compile for Kafka 09, Kafka 10, hbase, or bigtable use the respective profile `kafka09`, `kafka10`, `hbase`, or `bigtable`.
+To compile for Bigtable, use the ``bigtable`` profile.
 
 .. code-block:: bash
 
-    $ mvn clean install -Pkafka09
+    $ mvn clean install -Pbigtable
 
 The ``build/mvn`` script is a wrapper around Maven that builds the project using the Zinc
 (https://github.com/typesafehub/zinc) incremental compiler:
@@ -90,6 +89,17 @@ running this command in the root source directory:
 
 The Scala console will start, and all of the project packages in ``geomesa-accumulo-datastore`` will be loaded along
 with ``JavaConversions`` and ``JavaConverters``.
+
+Scala 2.10 Support
+^^^^^^^^^^^^^^^^^^
+
+GeoMesa uses Scala 2.11 by default. To build for Scala 2.10, run:
+
+.. code-block:: bash
+
+    $ build/change-scala-version.sh 2.10
+
+This will update the project poms to publish artifacts with a `_2.10` suffix. Then build normally using Maven.
 
 GeoMesa Project Structure
 -------------------------

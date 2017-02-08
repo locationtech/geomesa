@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
 import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
-import org.scalatra.{BadRequest, Ok}
+import org.scalatra.{BadRequest, NotFound, Ok}
 
 import scala.collection.JavaConversions._
 import scala.util.Try
@@ -88,7 +88,10 @@ trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
    */
   get("/ds/:alias") {
     try {
-      getPersistedDataStore(params("alias"))
+      val ds = getPersistedDataStore(params("alias"))
+      if (ds.isEmpty) { NotFound() } else {
+        filterPasswords(ds)
+      }
     } catch {
       case e: Exception => handleError(s"Error reading data store:", e)
     }
@@ -113,10 +116,15 @@ trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
    */
   get("/ds/?") {
     try {
-      getPersistedDataStores
+      getPersistedDataStores.mapValues(filterPasswords)
     } catch {
       case e: Exception => handleError(s"Error reading data stores:", e)
     }
+  }
+
+  private def filterPasswords(map: Map[String, String]): Map[String, String] = map.map {
+    case (k, v) if "password".equalsIgnoreCase(k) => (k, "***")
+    case (k, v) => (k, v)
   }
 
   // spring bean accessors for password handler

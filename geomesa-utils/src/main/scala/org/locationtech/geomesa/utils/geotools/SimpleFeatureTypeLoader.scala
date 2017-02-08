@@ -9,8 +9,7 @@
 package org.locationtech.geomesa.utils.geotools
 
 import java.net.URL
-import java.util.{List => JList}
-import javax.imageio.spi.ServiceRegistry
+import java.util.{ServiceLoader, List => JList}
 
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
@@ -29,7 +28,7 @@ import scala.collection.JavaConverters._
  */
 object SimpleFeatureTypeLoader {
 
-  private val providers = ServiceRegistry.lookupProviders(classOf[SimpleFeatureTypeProvider]).toList
+  private val providers = ServiceLoader.load(classOf[SimpleFeatureTypeProvider]).toList
 
   // keep as a method so we can dynamically reload
   def sfts: List[SimpleFeatureType] = providers.flatMap(_.loadTypes())
@@ -78,11 +77,11 @@ class URLSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {
   import URLSftProvider._
   override def loadTypes(): JList[SimpleFeatureType] = {
     val urls = configURLs.toList
-    logger.info(s"Loading config from urls: $urls")
+    logger.debug(s"Loading config from urls: ${urls.mkString(", ")}")
     urls
       .map(ConfigFactory.parseURL)
       .reduceLeftOption(_.withFallback(_))
-      .map(parseConf(_))
+      .map(parseConf)
       .getOrElse(List.empty[SimpleFeatureType])
   }
   

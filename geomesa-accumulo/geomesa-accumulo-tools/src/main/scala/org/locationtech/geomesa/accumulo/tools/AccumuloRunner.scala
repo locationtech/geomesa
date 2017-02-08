@@ -95,13 +95,14 @@ object AccumuloRunner extends Runner {
     }.foreach(_.password = Prompt.readPassword())
 
     params.collect { case p: InstanceNameParams => p }.foreach { p =>
-      if (! p.mock) {
-        if (p.zookeepers == null) {
-          p.zookeepers = zookeepers
-        }
 
-        // Attempt to find/resolve the Accumulo instance so we can throw relevant errors now if it's unaccessable.
-        try {
+      if (p.zookeepers == null) {
+        p.zookeepers = zookeepers
+      }
+
+      // Attempt to look up the instance ONLY if zookeepers is set and we are not in mock mode
+      if (p.instance == null && p.zookeepers != null && !p.mock ) {
+        p.instance = try {
           // This block checks for the same system property which Accumulo uses for Zookeeper timeouts.
           // If it is set, we use it.  Otherwise, a timeout of 5 seconds is used.
           // Don't give default to SystemProperty so .option will throw a None
@@ -127,9 +128,9 @@ object AccumuloRunner extends Runner {
 
           future match {
             case Right(instanceId) =>
-              if (p.instance == null) p.instance = instanceId
-              else if (instanceId != p.instance) Command.user.warn("The provided instance ID (--instance) does not " +
+              if (instanceId != p.instance) Command.user.warn("The provided instance ID (--instance) does not " +
                 "match the instance ID of the resolved Accumulo instance.")
+              instanceId
             case Left(e) => throw e
           }
         } catch {

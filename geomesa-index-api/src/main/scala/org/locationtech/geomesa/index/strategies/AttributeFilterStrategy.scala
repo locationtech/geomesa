@@ -15,6 +15,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
+import org.opengis.filter.expression.{Expression, PropertyName}
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
 
 trait AttributeFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
@@ -27,7 +28,7 @@ trait AttributeFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeat
     val attributes = FilterHelper.propertyNames(filter, sft)
     val indexedAttributes = attributes.filter(a => Option(sft.getDescriptor(a)).exists(_.isIndexed))
     indexedAttributes.flatMap { attribute =>
-      val (primary, secondary) = FilterExtractingVisitor(filter, attribute, sft, attributeCheck)
+      val (primary, secondary) = FilterExtractingVisitor(filter, attribute, sft, attributeCheck(sft))
       if (primary.isDefined) {
         Seq(FilterStrategy(this, primary, secondary))
       } else {
@@ -75,7 +76,7 @@ object AttributeFilterStrategy {
     * @param filter filter to evaluate
     * @return true if we can process it as an attribute query
     */
-  def attributeCheck(filter: Filter): Boolean = {
+  def attributeCheck(sft: SimpleFeatureType)(filter: Filter): Boolean = {
     filter match {
       case _: And | _: Or => true // note: implies further processing of children
       case _: PropertyIsEqualTo => true
@@ -84,9 +85,14 @@ object AttributeFilterStrategy {
       case _: PropertyIsGreaterThanOrEqualTo | _: PropertyIsLessThanOrEqualTo => true
       case _: During |  _: Before | _: After | _: TEquals => true
       case _: PropertyIsNull => true // we need this to be able to handle 'not null'
-      case f: PropertyIsLike => likeEligible(f)
+      case f: PropertyIsLike => isStringProperty(sft, f.getExpression) && likeEligible(f)
       case f: Not =>  f.getFilter.isInstanceOf[PropertyIsNull]
       case _ => false
     }
+  }
+
+  def isStringProperty(sft: SimpleFeatureType, e: Expression): Boolean = e match {
+    case p: PropertyName => Option(sft.getDescriptor(p.getPropertyName)).exists(_.getType.getBinding == classOf[String])
+    case _ => false
   }
 }

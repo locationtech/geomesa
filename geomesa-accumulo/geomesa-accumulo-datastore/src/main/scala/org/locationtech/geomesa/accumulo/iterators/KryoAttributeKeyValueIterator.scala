@@ -16,7 +16,7 @@ import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
-import org.locationtech.geomesa.accumulo.index.attribute.AttributeWritableIndex
+import org.locationtech.geomesa.accumulo.index.legacy.attribute.AttributeWritableIndex
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -42,7 +42,7 @@ class KryoAttributeKeyValueIterator extends SortedKeyValueIterator[Key, Value] w
   override def init(src: SortedKeyValueIterator[Key, Value],
                     options: jMap[String, String],
                     env: IteratorEnvironment): Unit = {
-    this.source = src.deepCopy(env)
+    this.source = src
 
     val spec = options.get(SFT_OPT)
     sft = IteratorCache.sft(spec)

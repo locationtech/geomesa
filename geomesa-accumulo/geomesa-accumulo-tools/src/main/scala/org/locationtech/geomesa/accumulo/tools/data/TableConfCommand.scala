@@ -36,7 +36,7 @@ class TableConfListCommand extends AccumuloDataStoreCommand {
   override val name = "list"
   override val params = new ListParams
 
-  def execute(): Unit = {
+  override def execute(): Unit = {
     Command.user.info(s"Getting configuration parameters for table: ${params.tableSuffix}")
     withDataStore((ds) => getProperties(ds, params).toSeq.sortBy(_.getKey).foreach(p => Command.output.info(p.toString)))
   }
@@ -49,7 +49,7 @@ class TableConfDescribeCommand extends AccumuloDataStoreCommand {
   override val name = "describe"
   override val params = new DescribeParams
 
-  def execute(): Unit = {
+  override def execute(): Unit = {
     Command.user.info(s"Finding the value for '${params.param}' on table: ${params.tableSuffix}")
     withDataStore((ds) => Command.output.info(getProp(ds, params).toString))
   }
@@ -62,7 +62,7 @@ class TableConfUpdateCommand extends AccumuloDataStoreCommand {
   override val name = "update"
   override val params = new UpdateParams
 
-  def execute(): Unit = {
+  override def execute(): Unit = {
     val param = params.param
     val newValue = params.newValue
     val tableName = params.tableSuffix

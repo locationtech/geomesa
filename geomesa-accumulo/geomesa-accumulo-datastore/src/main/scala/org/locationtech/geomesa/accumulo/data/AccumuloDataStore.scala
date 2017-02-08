@@ -16,7 +16,6 @@ import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.audit.AccumuloAuditService
 import org.locationtech.geomesa.accumulo.data.stats._
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.index.attribute.{AttributeIndex, AttributeSplittable}
 import org.locationtech.geomesa.accumulo.iterators.ProjectVersionIterator
 import org.locationtech.geomesa.accumulo.util.ZookeeperLocking
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
@@ -147,7 +146,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     if (sft == null) {
       // check for old-style metadata and re-write it if necessary
       if (oldMetadata.getFeatureTypes.contains(typeName)) {
-        val lock = acquireFeatureLock(typeName)
+        val lock = acquireCatalogLock()
         try {
           if (oldMetadata.getFeatureTypes.contains(typeName)) {
             oldMetadata.migrate(typeName)

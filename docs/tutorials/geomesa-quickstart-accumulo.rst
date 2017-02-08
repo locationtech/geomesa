@@ -27,7 +27,7 @@ Before you begin, you must have the following:
 -  an instance of Accumulo |accumulo_version| running on Hadoop |hadoop_version|
 -  an Accumulo user that has both create-table and write permissions
 -  the GeoMesa Accumulo distributed runtime installed for your Accumulo instance (see :ref:`install_accumulo_runtime` )
--  a local copy of the `Java <http://java.oracle.com/>`__ JDK 8
+-  a local copy of `Java JDK 8`_
 -  Apache `Maven <http://maven.apache.org/>`__ installed
 -  a GitHub client installed
 
@@ -61,7 +61,7 @@ To build, run
 
     Depending on the version, you may also need to build
     GeoMesa locally. Instructions can be found in
-    :doc:`/user/installation_and_configuration`.
+    :ref:`installation`.
 
 About this Tutorial
 -------------------
@@ -182,7 +182,7 @@ Log into GeoServer using your user and password credentials. Click
 Data Store listed under Vector Data Sources, ensure the plugin is in the
 right directory and restart GeoServer.
 
-Select the ``Accumulo Feature Data Store`` vector data source, and enter
+Select the ``Accumulo (GeoMesa)`` vector data source, and enter
 the following parameters:
 
 * basic store info
@@ -203,7 +203,7 @@ GeoMesa-managed feature types.
 Publish the layer
 ~~~~~~~~~~~~~~~~~
 
-GeoServer should recognize the ``QuickStart`` feature type, and should
+GeoServer should recognize the ``AccumuloQuickStart`` feature type, and should
 present that as a layer that could be published. Click on the "Publish"
 link.
 
@@ -224,7 +224,7 @@ Take a look
 
 Click on the "Layer Preview" link in the left-hand gutter. If you don't
 see the quick-start layer on the first page of results, enter the name
-of the layer you just created into the search box, and press <Enter>.
+of the layer you just created into the search box, and press ``<Enter>``.
 
 Once you see your layer, click on the "OpenLayers" link, which will open
 a new tab. By default, the display that opens will not show all the
@@ -239,7 +239,7 @@ January 2014. You can find more information about the TIME parameter
 from `GeoServer's
 documentation <http://docs.geoserver.org/stable/en/user/services/wms/time.html>`__.
 
-Once you press <Enter>, the display will update, and you should see a
+Once you press ``<Enter>``, the display will update, and you should see a
 collection of red dots similar to the following image.
 
 .. figure:: _static/geomesa-quickstart-accumulo/geoserver-layer-preview.png

@@ -15,10 +15,8 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.index.{AttributeIndex, Z2Index, Z3Index}
 import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, TestWithDataStore}
-import org.locationtech.geomesa.accumulo.index.attribute.AttributeIndex
-import org.locationtech.geomesa.accumulo.index.z2.Z2Index
-import org.locationtech.geomesa.accumulo.index.z3.Z3Index
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -65,7 +63,7 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
       // % should return all features
       val wildCardQuery = new Query(sftName, ff.like(ff.property("name"),"%"))
       checkStrategies(wildCardQuery, AttributeIndex)
-      SelfClosingIterator(fs.getFeatures()) must haveLength(16)
+      SelfClosingIterator(fs.getFeatures(wildCardQuery)) must haveLength(16)
 
       forall(List("a", "b", "c", "d")) { letter =>
         // 4 features for this letter

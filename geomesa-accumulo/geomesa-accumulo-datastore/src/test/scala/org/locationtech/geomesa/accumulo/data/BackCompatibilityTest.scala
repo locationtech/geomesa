@@ -19,7 +19,7 @@ import org.apache.accumulo.core.data.Mutation
 import org.apache.accumulo.core.security.{Authorizations, ColumnVisibility}
 import org.apache.hadoop.io.Text
 import org.geotools.data.simple.SimpleFeatureSource
-import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
@@ -28,6 +28,7 @@ import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -69,10 +70,16 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     Array("geom", "name")
   )
 
-  def doQuery(fs: SimpleFeatureSource, query: Query): Seq[Int] =
-    fs.getFeatures(query).features.map(_.getID.toInt).toList
+  def doQuery(fs: SimpleFeatureSource, query: Query): Seq[Int] = {
+    logger.debug(s"Running query ${ECQL.toCQL(query.getFilter)} :: " +
+        Option(query.getPropertyNames).map(_.mkString(",")).getOrElse("All"))
+    fs.getFeatures(query).features.toList.map { f =>
+      logger.debug(DataUtilities.encodeFeature(f))
+      f.getID.toInt
+    }
+  }
 
-  def runVersionTest(tables: Seq[TableMutations]) = {
+  def runVersionTest(tables: Seq[TableMutations]): MatchResult[Any] = {
     import scala.collection.JavaConversions._
 
     // since we re-use the same sft and tables, the converter cache can get messed up
@@ -109,6 +116,9 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     feature.setAttribute(0, "name10")
     feature.setAttribute(1, "2016-01-01T00:30:00.000Z")
     feature.setAttribute(2, "POINT(-110 45)")
+    if (feature.getFeatureType.getAttributeCount > 3) {
+      feature.setAttribute(3, "MULTIPOLYGON(((40 40, 20 45, 45 30, 40 40)),((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),(30 20, 20 15, 20 25, 30 20)))")
+    }
     writer.write()
     writer.close()
 
@@ -122,7 +132,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     }
 
     // delete it
-    val remover = ds.getFeatureWriter(sftName, ECQL.toFilter("IN ('10')"), Transaction.AUTO_COMMIT)
+    var remover = ds.getFeatureWriter(sftName, ECQL.toFilter("IN ('10')"), Transaction.AUTO_COMMIT)
     remover.hasNext must beTrue
     remover.next
     remover.remove()
@@ -146,6 +156,21 @@ class BackCompatibilityTest extends Specification with LazyLogging {
       forall(transforms) { transform =>
         doQuery(fs, new Query(sftName, filter, transform)) must containTheSameElementsAs(results)
       }
+    }
+
+    // delete one of the old features
+    remover = ds.getFeatureWriter(sftName, ECQL.toFilter("IN ('5')"), Transaction.AUTO_COMMIT)
+    remover.hasNext must beTrue
+    remover.next
+    remover.remove()
+    remover.hasNext must beFalse
+    remover.close()
+
+    // make sure that it no longer comes back
+    forall(queries) { case (q, results) =>
+      val filter = ECQL.toFilter(q)
+      logger.debug(s"Running query $q")
+      doQuery(fs, new Query(sftName, filter)) must containTheSameElementsAs(results.filter(_ != 5))
     }
 
     ds.dispose()
@@ -178,7 +203,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     }
   }
 
-  def testVersion(version: String) = {
+  def testVersion(version: String): MatchResult[Any] = {
     val file = new File(s"src/test/resources/data/versioned-data-$version.kryo")
     val data = readVersion(file)
     logger.info(s"Running back compatible test on version $version")
@@ -186,15 +211,14 @@ class BackCompatibilityTest extends Specification with LazyLogging {
   }
 
   "GeoMesa" should {
-    "support backward compatibility to 1.1.0-rc.6" >> { testVersion("1.1.0-rc.6") }
-    "support backward compatibility to 1.1.0-rc.7" >> { testVersion("1.1.0-rc.7") }
-    "support backward compatibility to 1.2.0" >> { testVersion("1.2.0") }
-    "support backward compatibility to 1.2.1" >> { testVersion("1.2.1") }
-    "support backward compatibility to 1.2.2" >> { testVersion("1.2.2") }
-    "support backward compatibility to 1.2.3" >> { testVersion("1.2.3") }
-    "support backward compatibility to 1.2.4" >> { testVersion("1.2.4") }
+    "support backward compatibility to 1.2.0"   >> { testVersion("1.2.0") }
+    "support backward compatibility to 1.2.1"   >> { testVersion("1.2.1") }
+    "support backward compatibility to 1.2.2"   >> { testVersion("1.2.2") }
+    "support backward compatibility to 1.2.3"   >> { testVersion("1.2.3") }
+    "support backward compatibility to 1.2.4"   >> { testVersion("1.2.4") }
     // note: data on disk is the same in 1.2.5 and 1.2.6
-    "support backward compatibility to 1.2.6" >> { testVersion("1.2.6") }
+    "support backward compatibility to 1.2.6"   >> { testVersion("1.2.6") }
+    "support backward compatibility to 1.2.7.3" >> { testVersion("1.2.7.3") }
   }
 
   case class TableMutations(table: String, mutations: Seq[Mutation])
@@ -203,7 +227,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
 @RunWith(classOf[JUnitRunner])
 class BackCompatibilityWriter extends TestWithDataStore {
 
-  override val spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4326"
+  override val spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4326,multi:MultiPolygon:srid=4326"
 
   val version = "REPLACEME"
 
@@ -217,6 +241,7 @@ class BackCompatibilityWriter extends TestWithDataStore {
         sf.setAttribute(0, s"name$i")
         sf.setAttribute(1, s"2015-01-01T0$i:01:00.000Z")
         sf.setAttribute(2, s"POINT(-12$i 4$i)")
+        sf.setAttribute(3, s"MULTIPOLYGON(((4$i 40, 20 45, 45 30, 4$i 40)),((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),(30 20, 20 15, 20 25, 30 20)))")
         sf
       })
 

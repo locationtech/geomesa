@@ -32,11 +32,11 @@ if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
     fname=$(basename "$x");
     echo "fetching ${x}";
     wget -O "${1}/${fname}" "$x" || { rm -f "${1}/${fname}"; echo "Failed to download: ${x}"; \
-      errorList="${errorList} ${x} ${NL}"; };
+      errorList="${errorList[@]} ${x} ${NL}"; };
   done
 
   if [[ -n "${errorList}" ]]; then
-    echo "Failed to download: ${NL} ${errorList}";
+    echo "Failed to download: ${NL} ${errorList[@]}";
   fi
 else
   echo "Installation cancelled"
