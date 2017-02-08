@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.accumulo.tools.data
 
 import com.beust.jcommander.{Parameter, Parameters}
-import org.apache.hadoop.util.ToolRunner
 import org.locationtech.geomesa.accumulo.tools.data.AddAttributeIndexCommand.AddAttributeIndexParams
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
 import org.locationtech.geomesa.jobs.accumulo.index.{AttributeIndexArgs, AttributeIndexJob}
@@ -21,6 +20,25 @@ class AddAttributeIndexCommand extends AccumuloDataStoreCommand {
   override val params = new AddAttributeIndexParams
 
   override def execute(): Unit = {
+    // We instantiate the class at runtime to avoid classpath dependencies from commands that are not being used.
+    new AddAttributeIndexCommandExecutor(params).run()
+  }
+}
+
+object AddAttributeIndexCommand {
+  @Parameters(commandDescription = "Run a Hadoop map reduce job to add an index for attributes")
+  class AddAttributeIndexParams extends AccumuloDataStoreParams with RequiredTypeNameParam with RequiredAttributesParam {
+    @Parameter(names = Array("--coverage"),
+      description = "Type of index (join or full)", required = true)
+    var coverage: String = null
+  }
+}
+
+class AddAttributeIndexCommandExecutor(params: AddAttributeIndexParams) extends Runnable {
+  override def run(): Unit = {
+    // Imported here to avoid classpath issues when generating the autocomplete script
+    import org.apache.hadoop.util.ToolRunner
+
     try {
       val args = new AttributeIndexArgs(Array.empty)
       args.inZookeepers = params.zookeepers
@@ -47,14 +65,5 @@ class AddAttributeIndexCommand extends AccumuloDataStoreCommand {
         Command.user.error(s"Exception encountered running attribute index command. " +
           s"Check hadoop's job history logs for more information if necessary: " + e.getMessage, e)
     }
-  }
-}
-
-object AddAttributeIndexCommand {
-  @Parameters(commandDescription = "Run a Hadoop map reduce job to add an index for attributes")
-  class AddAttributeIndexParams extends AccumuloDataStoreParams with RequiredTypeNameParam with RequiredAttributesParam {
-    @Parameter(names = Array("--coverage"),
-      description = "Type of index (join or full)", required = true)
-    var coverage: String = null
   }
 }
