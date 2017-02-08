@@ -179,13 +179,14 @@ class FilterHelperTest extends Specification {
     "deduplicate massive OR filters without stack overflow" >> {
       import scala.collection.JavaConversions._
       // actual count to get the old code to stack overflow varies depending on environment
-      // with the fix, tested up to 100k without issue, but it takes a while to do that many
+      // with the fix, tested up to 100k without issue, but the specs checks take a long time with that many
       val count = 1000
       val a = ff.property("a")
       var filter: Filter = ff.equal(a, ff.literal(0))
       (1 until count).foreach { i =>
         filter = ff.or(filter, ff.equal(a, ff.literal(i)))
       }
+      val start = System.currentTimeMillis()
       val flattened = FilterHelper.simplify(filter)
       flattened must beAnInstanceOf[Or]
       flattened.asInstanceOf[Or].getChildren must haveLength(count)

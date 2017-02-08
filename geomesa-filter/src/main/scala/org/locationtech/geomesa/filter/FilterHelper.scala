@@ -26,9 +26,9 @@ import org.opengis.filter.spatial._
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
 import org.opengis.temporal.Period
 
-import scala.annotation.tailrec
 import scala.collection.GenTraversableOnce
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
 
 object FilterHelper {
@@ -517,32 +517,34 @@ object FilterHelper {
     */
   def flatten(filter: Filter): Filter = {
     filter match {
-      case and: And  => ff.and(flattenAnd(and.getChildren, Seq.empty[Filter]))
-      case or: Or    => ff.or(flattenOr(or.getChildren, Seq.empty[Filter]))
+      case and: And  => ff.and(flattenAnd(and.getChildren))
+      case or: Or    => ff.or(flattenOr(or.getChildren))
       case f: Filter => f
     }
   }
 
-  @tailrec
-  private def flattenAnd(remaining: Seq[Filter], result: Seq[Filter]): Seq[Filter] = {
-    if (remaining.isEmpty) { result } else {
-      val (_remaining, _result) = remaining.head match {
-        case f: And => (remaining.tail ++ f.getChildren, result)
-        case f      => (remaining.tail, result :+ flatten(f))
+  private def flattenAnd(filters: Seq[Filter]): ListBuffer[Filter] = {
+    val remaining = ListBuffer.empty[Filter] ++ filters
+    val result = ListBuffer.empty[Filter]
+    do {
+      remaining.remove(0) match {
+        case f: And => remaining.appendAll(f.getChildren)
+        case f      => result.append(flatten(f))
       }
-      flattenAnd(_remaining, _result)
-    }
+    } while (remaining.nonEmpty)
+    result
   }
 
-  @tailrec
-  private def flattenOr(remaining: Seq[Filter], result: Seq[Filter]): Seq[Filter] = {
-    if (remaining.isEmpty) { result } else {
-      val (_remaining, _result) = remaining.head match {
-        case f: Or => (remaining.tail ++ f.getChildren, result)
-        case f     => (remaining.tail, result :+ flatten(f))
+  private def flattenOr(filters: Seq[Filter]): ListBuffer[Filter] = {
+    val remaining = ListBuffer.empty[Filter] ++ filters
+    val result = ListBuffer.empty[Filter]
+    do {
+      remaining.remove(0) match {
+        case f: Or => remaining.appendAll(f.getChildren)
+        case f     => result.append(flatten(f))
       }
-      flattenOr(_remaining, _result)
-    }
+    } while (remaining.nonEmpty)
+    result
   }
 }
 
