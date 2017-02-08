@@ -137,8 +137,8 @@ object CassandraPrimaryKey {
   case class Key(idx: Int, x: Double, y: Double, dk: Int, z: Int)
 
   def unapply(idx: Int): Key = {
-    val dk = idx >> 16
-    val z = idx & 0x000000ff
+    val dk = (idx >> 16) << 16
+    val z = idx & 0x0000ffff
     val (x, y) = SFC2D.toPoint(z)
     Key(idx, x, y, dk, z)
   }

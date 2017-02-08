@@ -20,6 +20,7 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStore, DataStoreFinder, DataUtilities, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.joda.time.DateTime
 import org.junit.runner.RunWith
@@ -208,6 +209,43 @@ class CassandraDataStoreTest extends Specification {
       val sft = ds.getSchema("testcolumnordering")
       sft.getAttributeDescriptors.head.getLocalName mustEqual "name"
       ds.dispose()
+      ok
+    }
+
+    "find points around the world" >> {
+      val (ds, fs) = initializeDataStore("testfindingpoints")
+      val gf = JTSFactoryFinder.getGeometryFactory
+
+      val testCoords = List(
+        (40, 40),
+        (40, -40),
+        (-40, 40),
+        (-40, -40),
+        (-179, -89),
+        (-179, 89),
+        (179, -89),
+        (179, 89),
+        (0, 0),
+        (2, 2),
+        (179, 1),
+        (1, 89)
+      )
+
+      val testFeatures = testCoords
+        .zipWithIndex
+        .map({ case ((x, y), i) =>
+          SimpleFeatureBuilder.build(fs.getSchema, Array("zander", 30, gf.createPoint(new Coordinate(x, y)), new DateTime("2016-01-07T00:00:00.000Z").toDate).asInstanceOf[Array[AnyRef]], s"${10+i}")
+        })
+
+      fs.addFeatures(
+        DataUtilities.collection(testFeatures)
+      )
+
+      for ((x, y) <- testCoords) {
+        val filt = ECQL.toFilter(s"bbox(geom, ${x - 1}, ${y - 1}, ${x + 1}, ${y + 1}, 'EPSG:4326') and dtg between 2016-01-01T00:00:00.000Z and 2016-01-08T00:00:00.000Z")
+        val features = fs.getFeatures(filt).features()
+        features.toList must haveLength(1)
+      }
       ok
     }
   }
