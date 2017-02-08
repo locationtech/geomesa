@@ -164,8 +164,8 @@ class FilterHelperTest extends Specification {
     "deduplicate OR filters" >> {
       val filters = Seq(
         ("(a > 1 AND b < 2 AND c = 3) OR (c = 3 AND a > 2 AND b < 2) OR (b < 2 AND a > 3 AND c = 3)",
-            "(a > 1 OR a > 2 OR a > 3) AND b < 2 AND c = 3"),
-        ("c = 3 AND ((a > 2 AND b < 2) OR (b < 2 AND a > 3))", "(a > 2 OR a > 3) AND b < 2 AND c = 3"),
+            "(a > 3 OR a > 1 OR a > 2) AND c = 3 AND b < 2"),
+        ("c = 3 AND ((a > 2 AND b < 2) OR (b < 2 AND a > 3))", "c = 3 AND (a > 2 OR a > 3) AND b < 2"),
         ("(a > 1) OR (c = 3)", "a > 1 OR c = 3"),
         ("(a > 1) AND (c = 3)", "a > 1 AND c = 3"),
         ("a > 1", "a > 1")
@@ -174,6 +174,23 @@ class FilterHelperTest extends Specification {
       forall(filters) { case (original, expected) =>
         ECQL.toCQL(FilterHelper.simplify(ECQL.toFilter(original))) mustEqual expected
       }
+    }
+
+    "deduplicate massive OR filters without stack overflow" >> {
+      import scala.collection.JavaConversions._
+      // actual count to get the old code to stack overflow varies depending on environment
+      // with the fix, tested up to 100k without issue, but the specs checks take a long time with that many
+      val count = 1000
+      val a = ff.property("a")
+      var filter: Filter = ff.equal(a, ff.literal(0))
+      (1 until count).foreach { i =>
+        filter = ff.or(filter, ff.equal(a, ff.literal(i)))
+      }
+      val flattened = FilterHelper.simplify(filter)
+      flattened must beAnInstanceOf[Or]
+      flattened.asInstanceOf[Or].getChildren must haveLength(count)
+      flattened.asInstanceOf[Or].getChildren.map(_.toString) must
+          containTheSameElementsAs((0 until count).map(i => s"[ a equals $i ]"))
     }
   }
 }
