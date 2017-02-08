@@ -2,7 +2,7 @@ Bigtable Data Store
 ===================
 
 The GeoMesa Bigtable Data Store is an implementation of the GeoTools
-``DataStore`` interface that is backed by `Google Cloud Bigtable <https://cloud.google.com/bigtable>`__.
+``DataStore`` interface that is backed by `Google Cloud Bigtable <https://cloud.google.com/bigtable/>`__.
 
 The code for Bigtable support is found in two modules in the source distribution:
 

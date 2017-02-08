@@ -781,6 +781,17 @@ Returns true if geometry *a* is completely inside geometry *b*.
 Geometry Processing
 -------------------
 
+.. _st_antimeridianSafeGeom:
+
+st_antimeridianSafeGeom
+^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    Geometry st_antimeridianSafeGeom(Geometry geom)
+
+If *geom* spans the `antimeridian`_, attempt to convert the geometry into an equivalent form that is "antimeridian-safe" (i.e. the output geometry is covered by ``BOX(-180 -90, 180 90)``). In certain circumstances, this method may fail, in which case the input geometry will be returned and an error will be logged.
+
 .. _st_bufferPoint:
 
 st_bufferPoint
@@ -788,9 +799,9 @@ st_bufferPoint
 
 ::
 
-    Polygon st_bufferPoint(Point p, Double buffer)
+    Geometry st_bufferPoint(Point p, Double buffer)
 
-Returns a ``Polygon`` covering all points within a given *radius* of ``Point`` *p*, where *radius* is given in meters.
+Returns a ``Geometry`` covering all points within a given *radius* of ``Point`` *p*, where *radius* is given in meters.
 
 .. _st_convexHull:
 
@@ -802,6 +813,15 @@ st_convexHull
     Geometry st_convexHull(Geometry geom)
 
 **Aggregate function.** The convex hull of a geometry represents the minimum convex geometry that encloses all geometries *geom* in the aggregated rows.
+
+.. _st_idlSafeGeom:
+
+st_idlSafeGeom
+^^^^^^^^^^^^^^
+
+Alias of :ref:`st_antimeridianSafeGeom`.
+
+.. _antimeridian: https://en.wikipedia.org/wiki/180th_meridian
 
 .. _DE-9IM: https://en.wikipedia.org/wiki/DE-9IM
 

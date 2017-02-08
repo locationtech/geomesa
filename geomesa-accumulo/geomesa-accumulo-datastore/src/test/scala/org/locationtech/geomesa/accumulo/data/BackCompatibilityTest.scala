@@ -211,15 +211,14 @@ class BackCompatibilityTest extends Specification with LazyLogging {
   }
 
   "GeoMesa" should {
-    "support backward compatibility to 1.1.0-rc.6" >> { testVersion("1.1.0-rc.6") }
-    "support backward compatibility to 1.1.0-rc.7" >> { testVersion("1.1.0-rc.7") }
-    "support backward compatibility to 1.2.0" >> { testVersion("1.2.0") }
-    "support backward compatibility to 1.2.1" >> { testVersion("1.2.1") }
-    "support backward compatibility to 1.2.2" >> { testVersion("1.2.2") }
-    "support backward compatibility to 1.2.3" >> { testVersion("1.2.3") }
-    "support backward compatibility to 1.2.4" >> { testVersion("1.2.4") }
+    "support backward compatibility to 1.2.0"   >> { testVersion("1.2.0") }
+    "support backward compatibility to 1.2.1"   >> { testVersion("1.2.1") }
+    "support backward compatibility to 1.2.2"   >> { testVersion("1.2.2") }
+    "support backward compatibility to 1.2.3"   >> { testVersion("1.2.3") }
+    "support backward compatibility to 1.2.4"   >> { testVersion("1.2.4") }
     // note: data on disk is the same in 1.2.5 and 1.2.6
-    "support backward compatibility to 1.2.6" >> { testVersion("1.2.6") }
+    "support backward compatibility to 1.2.6"   >> { testVersion("1.2.6") }
+    "support backward compatibility to 1.2.7.3" >> { testVersion("1.2.7.3") }
   }
 
   case class TableMutations(table: String, mutations: Seq[Mutation])

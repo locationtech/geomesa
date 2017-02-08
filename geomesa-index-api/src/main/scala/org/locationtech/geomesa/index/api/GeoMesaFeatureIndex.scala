@@ -99,7 +99,7 @@ trait GeoMesaFeatureIndex[DS <: GeoMesaDataStore[DS, F, WriteResult], F <: Wrapp
   def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int) => String
 
   /**
-    * Gets the intitial splits for a table
+    * Gets the initial splits for a table
     *
     * @param sft simple feature type
     * @return

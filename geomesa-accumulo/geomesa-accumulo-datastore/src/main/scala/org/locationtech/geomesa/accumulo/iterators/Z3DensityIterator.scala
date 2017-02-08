@@ -16,7 +16,8 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.accumulo.index.z3.Z3Index
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
+import org.locationtech.geomesa.accumulo.index.legacy.z3.Z3IndexV2
 import org.locationtech.geomesa.accumulo.iterators.KryoLazyDensityIterator.DensityResult
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.sfcurve.zorder.Z3
@@ -65,7 +66,7 @@ class Z3DensityIterator extends KryoLazyDensityIterator {
       val row = topKey.getRowData
       val zOffset = row.offset() + 3 // two for week and 1 for split
       var i = 0
-      while (i < Z3Index.GEOM_Z_NUM_BYTES) {
+      while (i < Z3IndexV2.GEOM_Z_NUM_BYTES) {
         zBytes(i) = row.byteAt(zOffset + i)
         i += 1
       }
@@ -81,10 +82,11 @@ object Z3DensityIterator {
      * Creates an iterator config for the z3 density iterator
      */
     def configure(sft: SimpleFeatureType,
+                  index: AccumuloFeatureIndex,
                   filter: Option[Filter],
                   hints: Hints,
                   priority: Int = KryoLazyDensityIterator.DEFAULT_PRIORITY): IteratorSetting = {
-      val is = KryoLazyDensityIterator.configure(sft, Z3Index, filter, hints, priority)
+      val is = KryoLazyDensityIterator.configure(sft, index, filter, hints, priority)
       is.setIteratorClass(classOf[Z3DensityIterator].getName)
       is
     }

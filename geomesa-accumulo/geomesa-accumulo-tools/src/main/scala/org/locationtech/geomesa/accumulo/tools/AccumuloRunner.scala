@@ -93,7 +93,9 @@ object AccumuloRunner extends Runner {
       if (p.zookeepers == null) {
         p.zookeepers = zookeepers
       }
-      if (p.instance == null) {
+
+      // Attempt to look up the instance ONLY if zookeepers is set and we are not in mock mode
+      if (p.instance == null && p.zookeepers != null && !p.mock ) {
         p.instance = try {
           // This block checks for the same system property which Accumulo uses for Zookeeper timeouts.
           //  If it is set, we use it.  Otherwise, a timeout of 5 seconds is used.
