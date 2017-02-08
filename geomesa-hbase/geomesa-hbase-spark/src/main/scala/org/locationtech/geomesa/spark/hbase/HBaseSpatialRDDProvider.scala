@@ -6,7 +6,8 @@ import org.apache.hadoop.io.Text
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
-import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore, HBaseDataStoreFactory}
+import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore, HBaseDataStoreFactory, HBaseQueryPlan}
+import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.spark.SpatialRDDProvider
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.opengis.feature.simple.SimpleFeature
@@ -23,17 +24,26 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
   def rdd(conf: Configuration,
           sc: SparkContext,
           dsParams: Map[String, String],
-          query: Query): RDD[SimpleFeature] = {
+          origQuery: Query): RDD[SimpleFeature] = {
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[HBaseDataStore]
 
     try {
       // get the query plan to set up the iterators, ranges, etc
-      lazy val sft = ds.getSchema(query.getTypeName)
-      lazy val qp = ds.getQueryPlan(query)
+      lazy val sft = ds.getSchema(origQuery.getTypeName)
+      lazy val qp = ds.getQueryPlan(origQuery).head.asInstanceOf[HBaseQueryPlan]
 
       if (ds == null || sft == null || qp.isInstanceOf[EmptyPlan]) {
         sc.emptyRDD[SimpleFeature]
       } else {
+        import org.locationtech.geomesa.index.conf.QueryHints._
+
+        val query = ds.queryPlanner.configureQuery(origQuery, sft)
+        GeoMesaConfigurator.setSerialization(conf)
+        query.getHints.getTransformSchema.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
+        GeoMesaConfigurator.setTable(conf, qp.table.getNameAsString)
+        GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)
+        GeoMesaConfigurator.setFeatureType(conf, sft.getTypeName)
+
         sc.newAPIHadoopRDD(conf, classOf[GeoMesaHBaseInputFormat], classOf[Text], classOf[SimpleFeature]).map(U => U._2)
       }
     } finally {

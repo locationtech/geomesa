@@ -2,14 +2,16 @@ package org.locationtech.geomesa.spark.hbase
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.collections.map.CaseInsensitiveMap
+import org.apache.commons.lang3.ArrayUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.client.Mutation
 import org.apache.hadoop.hbase.mapreduce.TableInputFormat
+import org.apache.hadoop.hbase.{CellScanner, HBaseConfiguration}
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
 import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureDeserializer}
 import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseFeature}
 import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
@@ -39,6 +41,19 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
       .find(t => t.getTableName(sft.getTypeName, ds) == tableName)
       .getOrElse(throw new RuntimeException(s"Couldn't find input table $tableName"))
     ds.dispose()
+
+    delegate.setConf(conf)
+    // see TableMapReduceUtil.java
+    HBaseConfiguration.merge(conf, HBaseConfiguration.create(conf))
+    conf.set(TableInputFormat.INPUT_TABLE, tableName)
+
+    //    conf.set(TableInputFormat.SCAN, convertScanToString(scan));
+/*
+    conf.setStrings("io.serializations", conf.get("io.serializations"),
+      classOf[MutationSerialization].getName, classOf[ResultSerialization].getName,
+      classOf[KeyValueSerialization].getName)
+*/
+
   }
 
   /**
@@ -59,24 +74,57 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
     init(context.getConfiguration)
     val reader = new RecordReader[Array[Byte], Array[Byte]] {
       private val rr = delegate.createRecordReader(split, context)
+      private var cs: CellScanner = _
 
       override def getProgress: Float = rr.getProgress
 
-      override def nextKeyValue(): Boolean = rr.nextKeyValue()
+      private def initCS(): Boolean = {
+        if(rr.nextKeyValue()) {
+          cs = rr.getCurrentValue.cellScanner()
+          cs.advance()
+        } else {
+          false
+        }
+      }
 
-      override def getCurrentValue: Array[Byte] = rr.getCurrentValue.current().getValueArray
+      override def nextKeyValue(): Boolean = {
+        if(cs == null) {
+          initCS()
+        } else {
+          if (!cs.advance()) {
+            initCS()
+          } else {
+            false
+          }
+        }
+      }
 
-      override def initialize(inputSplit: InputSplit, taskAttemptContext: TaskAttemptContext): Unit =
+      override def getCurrentValue: Array[Byte] = {
+        val cell = cs.current()
+        val voffset = cell.getValueOffset
+        val vlength = cell.getValueLength
+        ArrayUtils.subarray(cell.getValueArray, voffset, voffset + vlength)
+      }
+
+      override def initialize(inputSplit: InputSplit, taskAttemptContext: TaskAttemptContext): Unit = {
         rr.initialize(inputSplit, taskAttemptContext)
+        if(cs == null) {
+          initCS()
+        }
+      }
 
       override def getCurrentKey: Array[Byte] = rr.getCurrentKey.get()
 
       override def close(): Unit = rr.close()
     }
 
-    val schema = GeoMesaConfigurator.getTransformSchema(context.getConfiguration).getOrElse(sft)
-    val serializationOptions = SerializationOptions.none
-    val decoder = new KryoFeatureSerializer(schema, serializationOptions)
+
+    val serializationOptions = SerializationOptions.withoutId
+    val decoder =
+      GeoMesaConfigurator.getTransformSchema(context.getConfiguration) match {
+        case None         => new KryoFeatureSerializer(sft, serializationOptions)
+        case Some(schema) => new ProjectingKryoFeatureDeserializer(sft, schema, serializationOptions)
+      }
     new GeoMesaRecordReader(sft, table, reader, true, decoder)
   }
 }
