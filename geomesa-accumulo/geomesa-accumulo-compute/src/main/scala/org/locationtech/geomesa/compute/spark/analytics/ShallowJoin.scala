@@ -24,6 +24,7 @@ import org.geotools.data._
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
 
+@deprecated
 object ShallowJoin {
   val countriesDsParams = Map(
     "instanceId" -> "mycloud",

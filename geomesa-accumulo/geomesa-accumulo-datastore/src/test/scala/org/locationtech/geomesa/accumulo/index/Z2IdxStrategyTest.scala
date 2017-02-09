@@ -17,7 +17,6 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.index.z2.Z2Index
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -58,7 +57,7 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
   val queryPlanner = ds.queryPlanner
   val output = ExplainNull
 
-  "Z3IdxStrategy" should {
+  "Z2IdxStrategy" should {
     "print values" in {
       skipped("used for debugging")
       println()
@@ -147,7 +146,7 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
           " AND dtg between '2010-05-07T06:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val query = new Query(sftName, ECQL.toFilter(filter), Array("geom", "dtg"))
       val qps = getQueryPlans(query)
-      forall(qps)(p => p.columnFamilies must containTheSameElementsAs(Seq(AccumuloWritableIndex.BinColumnFamily)))
+      forall(qps)(p => p.columnFamilies must containTheSameElementsAs(Seq(AccumuloFeatureIndex.BinColumnFamily)))
 
       val features = execute(filter, Some(Array("geom", "dtg")))
       features must haveSize(4)
@@ -273,10 +272,10 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(SAMPLING, new java.lang.Float(.5f))
       query.getHints.put(SAMPLE_BY, "track")
       val results = queryPlanner.runQuery(sft, query, Some(strategy)).toList
-      results must haveLength(15)
-      results.count(_.getAttribute("track") == "track1") mustEqual 5
-      results.count(_.getAttribute("track") == "track2") mustEqual 5
-      results.count(_.getAttribute("track") == "track3") mustEqual 5
+      results.length must beLessThan(17)
+      results.count(_.getAttribute("track") == "track1") must beLessThan(6)
+      results.count(_.getAttribute("track") == "track2") must beLessThan(6)
+      results.count(_.getAttribute("track") == "track3") must beLessThan(6)
     }
 
     "support sampling with bin queries" in {

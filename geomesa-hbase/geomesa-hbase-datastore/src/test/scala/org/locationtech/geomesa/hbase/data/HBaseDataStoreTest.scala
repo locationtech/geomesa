@@ -81,6 +81,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
           testQuery(ds, typeName, "bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, toAdd.dropRight(2))
           testQuery(ds, typeName, "bbox(geom,42,48,52,62)", transforms, toAdd.drop(2))
           testQuery(ds, typeName, "name < 'name5'", transforms, toAdd.take(5))
+          testQuery(ds, typeName, "name = 'name5'", transforms, Seq(toAdd(5)))
         }
       }
 
@@ -160,6 +161,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
       testQuery(ds, typeName, "bbox(geom,-126,38,-119,52) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-01T07:59:59.000Z", null, toAdd.dropRight(2))
       testQuery(ds, typeName, "bbox(geom,-126,42,-119,45)", null, toAdd.dropRight(4))
       testQuery(ds, typeName, "name < 'name5'", null, toAdd.take(5))
+      testQuery(ds, typeName, "name = 'name5'", null, Seq(toAdd(5)))
     }
   }
 

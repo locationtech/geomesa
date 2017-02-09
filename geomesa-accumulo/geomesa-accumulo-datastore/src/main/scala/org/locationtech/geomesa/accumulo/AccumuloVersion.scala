@@ -18,12 +18,13 @@ import scala.reflect.ClassTag
 
 object AccumuloVersion extends Enumeration {
   type AccumuloVersion = Value
-  val V15, V16, V17 = Value
+  val V15, V16, V17, V18 = Value
 
   lazy val accumuloVersion: AccumuloVersion = {
     if      (Constants.VERSION.startsWith("1.5")) V15
     else if (Constants.VERSION.startsWith("1.6")) V16
     else if (Constants.VERSION.startsWith("1.7")) V17
+    else if (Constants.VERSION.startsWith("1.8")) V18
     else {
       throw new Exception(s"GeoMesa does not currently support Accumulo ${Constants.VERSION}.")
     }

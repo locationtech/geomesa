@@ -33,13 +33,38 @@ import scala.util.control.NonFatal
   */
 class AddIndexCommand extends AccumuloDataStoreCommand {
 
-  import org.locationtech.geomesa.index.metadata.GeoMesaMetadata.ATTRIBUTES_KEY
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
   override val name = "add-index"
   override val params = new AddIndexParameters
 
-  override def execute(): Unit = try { withDataStore(addIndex) }
+  override def execute(): Unit = {
+    // We instantiate the class at runtime to avoid classpath dependencies from commands that are not being used.
+    new AddIndexCommandExecutor(params).run()
+  }
+}
+
+object AddIndexCommand {
+
+  @Parameters(commandDescription = "Add or update indices for an existing GeoMesa feature type")
+  class AddIndexParameters extends AccumuloDataStoreParams with RequiredTypeNameParam with OptionalCqlFilterParam {
+    @Parameter(names = Array("--index"), description = "Name of index(es) to add - comma-separate or use multiple flags", required = true)
+    var indexNames: java.util.List[String] = null
+
+    @Parameter(names = Array("--no-back-fill"), description = "Do not copy any existing data into the new index")
+    var noBackFill: java.lang.Boolean = null
+  }
+}
+
+class AddIndexCommandExecutor(override val params: AddIndexParameters) extends Runnable with AccumuloDataStoreCommand {
+
+  import org.locationtech.geomesa.index.metadata.GeoMesaMetadata.ATTRIBUTES_KEY
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+  override val name = ""
+  override def execute(): Unit = {}
+
+  override def run(): Unit = {
+    try { withDataStore(addIndex) }
+  }
 
   def addIndex(ds: AccumuloDataStore): Unit  = {
 
@@ -51,7 +76,7 @@ class AddIndexCommand extends AccumuloDataStoreCommand {
     val indices = params.indexNames.map { name =>
       AccumuloFeatureIndex.CurrentIndices.find(_.name == name).getOrElse {
         throw new IllegalArgumentException(s"Invalid index '$name'. Valid values are " +
-            s"${AccumuloFeatureIndex.CurrentIndices.map(_.name).mkString(", ")}")
+          s"${AccumuloFeatureIndex.CurrentIndices.map(_.name).mkString(", ")}")
       }
     }
 
@@ -64,13 +89,13 @@ class AddIndexCommand extends AccumuloDataStoreCommand {
 
     if (toDisable.nonEmpty) {
       if (!Prompt.confirm("The following index versions will be replaced: " +
-          s"${toDisable.map { case (n, o) => s"[${o.identifier}] by [${n.identifier}]" }.mkString(", ")} " +
-          "Continue? (y/n): ")) {
+        s"${toDisable.map { case (n, o) => s"[${o.identifier}] by [${n.identifier}]" }.mkString(", ")} " +
+        "Continue? (y/n): ")) {
         return
       }
     }
     if (!Prompt.confirm("If you are ingesting streaming data, you will be required to restart " +
-        "the streaming ingestion when prompted. Continue? (y/n): ")) {
+      "the streaming ingestion when prompted. Continue? (y/n): ")) {
       return
     }
 
@@ -95,7 +120,7 @@ class AddIndexCommand extends AccumuloDataStoreCommand {
 
       // wait for the user to bounce ingestion
       Prompt.acknowledge("Indices have been added in write-only mode. To pick up the changes, " +
-          "please bounce any streaming ingestion. Once ingestion has resumed, press 'enter' to continue.")
+        "please bounce any streaming ingestion. Once ingestion has resumed, press 'enter' to continue.")
 
       // run migration job
       Command.user.info("Running index back-fill job")
@@ -129,9 +154,9 @@ class AddIndexCommand extends AccumuloDataStoreCommand {
         var response: String = null
         do {
           response = Prompt.read("Index back-fill job failed. You may:\n" +
-              "  1. Switch the indices to read-write mode without existing data (you may manually back-fill later)\n" +
-              "  2. Roll-back index creation\n" +
-              "Select an option: ")
+            "  1. Switch the indices to read-write mode without existing data (you may manually back-fill later)\n" +
+            "  2. Roll-back index creation\n" +
+            "Select an option: ")
         } while (response != "1" && response != "2")
         response match {
           case "1" => setReadWrite()
@@ -144,17 +169,5 @@ class AddIndexCommand extends AccumuloDataStoreCommand {
 
     // final bounce
     Command.user.info("Operation complete. Please bounce any streaming ingestion to pick up the changes.")
-  }
-}
-
-object AddIndexCommand {
-
-  @Parameters(commandDescription = "Add or update indices for an existing GeoMesa feature type")
-  class AddIndexParameters extends AccumuloDataStoreParams with RequiredTypeNameParam with OptionalCqlFilterParam {
-    @Parameter(names = Array("--index"), description = "Name of index(es) to add - comma-separate or use multiple flags", required = true)
-    var indexNames: java.util.List[String] = null
-
-    @Parameter(names = Array("--no-back-fill"), description = "Do not copy any existing data into the new index")
-    var noBackFill: java.lang.Boolean = null
   }
 }

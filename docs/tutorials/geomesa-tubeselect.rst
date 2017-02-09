@@ -32,7 +32,7 @@ Prerequisites
 -------------
 
 Make sure that you've worked through the steps described in the
-:doc:`../user/installation_and_configuration` section of the GeoMesa User
+:ref:`installation` section of the GeoMesa User
 Manual, particularly the tasks relevant to Accumulo. Afterwards, it may be
 necessary to change the versions of Accumulo and Hadoop that the tutorial
 uses. After completing the deployment tutorial, you should have:
@@ -172,7 +172,7 @@ The JSON object returned from the tweets stream is documented on the
 site <https://dev.twitter.com/docs/platform-objects/tweets>`__. For this
 tutorial we'll be interested in the following fields:
 
--  ``coordinates``: a `geoJSON <http://www.geojson.org/>`__ object with
+-  ``coordinates``: a `geoJSON <http://geojson.org/>`__ object with
    lat/lon (do not use the deprecated ``geo`` field)
 -  ``user``: the user object
 -  ``id``: the user id
@@ -269,7 +269,7 @@ The Twitter JSON looks something like this:
     }
 
 We parse this object manually with `GSON
-(google-json) <https://code.google.com/p/google-gson/>`__. Optionally,
+(google-json) <https://github.com/google/gson>`__. Optionally,
 you can create Java Object bindings for GSON and parse the entire tweet
 into an object. For more information about connecting to the twitter
 public stream check out the `Twitter Public Stream

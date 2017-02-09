@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.convert
 
-import javax.imageio.spi.ServiceRegistry
+import java.util.ServiceLoader
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
@@ -23,7 +23,7 @@ import scala.collection.JavaConversions._
 object SimpleFeatureConverters extends LazyLogging {
 
   private[convert] val providers = {
-    val pList = ServiceRegistry.lookupProviders(classOf[SimpleFeatureConverterFactory[_]]).toList
+    val pList = ServiceLoader.load(classOf[SimpleFeatureConverterFactory[_]]).toList
     logger.debug(s"Found ${pList.size} SPI providers for ${classOf[SimpleFeatureConverterFactory[_]].getName}" +
       s": ${pList.map(_.getClass.getName).mkString(", ")}")
     pList

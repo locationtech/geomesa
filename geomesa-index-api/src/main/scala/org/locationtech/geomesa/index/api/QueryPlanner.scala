@@ -205,7 +205,7 @@ object QueryPlanner extends LazyLogging {
   }
 
   def setPerThreadQueryHints(hints: Map[AnyRef, AnyRef]): Unit = threadedHints.put(hints)
-  def clearPerThreadQueryHints() = threadedHints.clear()
+  def clearPerThreadQueryHints(): Unit = threadedHints.clear()
 
   /**
    * Checks for attribute transforms in the query and sets them as hints if found
@@ -214,7 +214,7 @@ object QueryPlanner extends LazyLogging {
    * @param sft simple feature type
    * @return
    */
-  def setQueryTransforms(query: Query, sft: SimpleFeatureType) = {
+  def setQueryTransforms(query: Query, sft: SimpleFeatureType): Unit = {
     import scala.collection.JavaConversions._
     val properties = query.getPropertyNames
     query.setProperties(Query.ALL_PROPERTIES)
@@ -224,10 +224,15 @@ object QueryPlanner extends LazyLogging {
       val convertedRegularProps = regularProps.map { p => s"$p=$p" }
       val allTransforms = convertedRegularProps ++ transformProps
       // ensure that the returned props includes geometry, otherwise we get exceptions everywhere
-      val geomTransform = Option(sft.getGeometryDescriptor).map(_.getLocalName)
-          .filterNot(name => allTransforms.exists(_.matches(s"$name\\s*=.*")))
-          .map(name => Seq(s"$name=$name"))
-          .getOrElse(Nil)
+      val geomTransform = {
+        val allGeoms = sft.getAttributeDescriptors.collect {
+          case d if classOf[Geometry].isAssignableFrom(d.getType.getBinding) => d.getLocalName
+        }
+        val geomMatches = for (t <- allTransforms.iterator; g <- allGeoms) yield { t.matches(s"$g\\s*=.*") }
+        if (geomMatches.contains(true)) { Nil } else {
+          Option(sft.getGeometryDescriptor).map(_.getLocalName).map(geom => s"$geom=$geom").toSeq
+        }
+      }
       val transforms = (allTransforms ++ geomTransform).mkString(";")
       val transformDefs = TransformProcess.toDefinition(transforms)
       val derivedSchema = computeSchema(sft, transformDefs.asScala)

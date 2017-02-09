@@ -11,7 +11,6 @@ package org.locationtech.geomesa.bigtable.tools
 import com.beust.jcommander.JCommander
 import org.locationtech.geomesa.hbase.tools.data._
 import org.locationtech.geomesa.hbase.tools.export.HBaseExportCommand
-import org.locationtech.geomesa.hbase.tools.ingest.HBaseIngestCommand
 import org.locationtech.geomesa.hbase.tools.stats._
 import org.locationtech.geomesa.hbase.tools.status._
 import org.locationtech.geomesa.tools.export.GenerateAvroSchemaCommand

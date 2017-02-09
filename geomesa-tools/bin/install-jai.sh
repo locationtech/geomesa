@@ -29,31 +29,31 @@ if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
     && chmod 0755 "${lib_dir}/jt-utils-1.3.1.jar" \
     && echo "Successfully installed JAI tools to ${lib_dir}" \
     || { rm -f "${lib_dir}/jt-utils-1.3.1.jar"; echo "Failed to download: ${url_jttools}"; \
-    errorList="${errorList} ${url_jttools} ${NL}"; };
+    errorList="${errorList[@]} ${url_jttools} ${NL}"; };
 
   echo "Trying to install JAI ImageIO from $url_imageio to ${lib_dir}"
   wget -O "${lib_dir}/jai_imageio-1.1.jar" $url_imageio \
     && chmod 0755 "${lib_dir}/jai_imageio-1.1.jar" \
     && echo "Successfully installed JAI imageio"\
     || { rm -f "${lib_dir}/jai_imageio-1.1.jar"; echo "Failed to download: ${url_imageio}"; \
-    errorList="${errorList} ${url_imageio} ${NL}"; };
+    errorList="${errorList[@]} ${url_imageio} ${NL}"; };
 
   echo "Trying to install JAI Codec from $url_codec to ${lib_dir}"
   wget -O "${lib_dir}/jai_codec-1.1.3.jar" $url_codec \
     && chmod 0755 "${lib_dir}/jai_codec-1.1.3.jar" \
     && echo "Successfully installed JAI codec to ${lib_dir}"\
     || { rm -f "${lib_dir}/jai_codec-1.1.3.jar"; echo "Failed to download: ${url_codec}"; \
-    errorList="${errorList} ${url_codec} ${NL}"; };
+    errorList="${errorList[@]} ${url_codec} ${NL}"; };
 
   echo "Trying to install JAI Core from $url_core to ${lib_dir}"
   wget -O "${lib_dir}/jai_core-1.1.3.jar" $url_core \
     && chmod 0755 "${lib_dir}/jai_core-1.1.3.jar" \
     && echo "Successfully installed JAI core to ${lib_dir}"\
     || { rm -f "${lib_dir}/jai_core-1.1.3.jar"; echo "Failed to download: ${url_core}"; \
-    errorList="${errorList} ${url_core} ${NL}"; };
+    errorList="${errorList[@]} ${url_core} ${NL}"; };
 
   if [[ -n "${errorList}" ]]; then
-    echo "Failed to download: ${NL} ${errorList}";
+    echo "Failed to download: ${NL} ${errorList[@]}";
   fi
 else
   echo "Cancelled installation of Java Advanced Imaging (jai)"

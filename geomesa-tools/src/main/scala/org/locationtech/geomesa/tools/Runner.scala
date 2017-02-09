@@ -8,7 +8,10 @@
 
 package org.locationtech.geomesa.tools
 
+import java.io.File
+
 import com.beust.jcommander.{JCommander, ParameterException}
+import org.apache.commons.io.FileUtils
 import org.locationtech.geomesa.tools.utils.GeoMesaIStringConverterFactory
 
 import scala.collection.JavaConversions._
@@ -79,6 +82,60 @@ trait Runner {
     }
   }
 
+  def autocompleteUsage(jc: JCommander, autocompleteInfo: AutocompleteInfo): Unit = {
+    val file = new File(autocompleteInfo.path)
+    val commands = jc.getCommands.map(_._1).toSeq
+    val out = new StringBuilder
+    out.append(
+      s"""_${autocompleteInfo.commandName}(){
+         |  local cur prev;
+         |  COMPREPLY=();
+         |  cur="$${COMP_WORDS[COMP_CWORD]}";
+         |  prev="$${COMP_WORDS[COMP_CWORD-1]}";
+         |
+         |  if [[ "$${COMP_WORDS[1]}" == "help" ]]; then
+         |    COMPREPLY=( $$(compgen -W "${commands.mkString(" ")}" $${cur}));
+         |    return 0;
+         |  fi;
+         |
+         |  case $${COMP_CWORD} in
+         |    1)
+         |      COMPREPLY=( $$(compgen -W "${commands.mkString(" ")}" $${cur}));
+         |      ;;
+         |    [2-9] | [1-9][0-9])
+         |      if [[ "$${cur}" =~ ^-[a-zA-Z-]?+$$ ]]; then
+         |        case $${COMP_WORDS[1]} in
+        """.stripMargin)
+    commands.foreach { command =>
+      val params = jc.getCommands.get(command).getParameters.filter(!_.getParameter.hidden()).flatMap(_.getParameter.names().filter(_.length != 2))
+        out.append(
+      s"""            $command)
+         |              COMPREPLY=( $$(compgen -W "${params.mkString(" ").replaceAll("[,\\s]+", " ")}" -- $${cur}));
+         |              return 0;
+         |              ;;
+      """.stripMargin)
+    }
+    out.append(
+      s"""        esac;
+         |      else
+         |        compopt -o filenames -o nospace;
+         |        COMPREPLY=( $$(compgen -f "$$2") );
+         |      fi;
+         |      return 0;
+         |      ;;
+         |    *)
+         |      COMPREPLY=();
+         |      ;;
+         |  esac;
+         |};
+         |complete -F _${autocompleteInfo.commandName} ${autocompleteInfo.commandName};
+         |complete -F _${autocompleteInfo.commandName} bin/${autocompleteInfo.commandName};
+         |
+         |
+       """.stripMargin)
+    FileUtils.writeStringToFile(file, out.toString())
+  }
+
   protected def createCommands(jc: JCommander): Seq[Command]
   protected def resolveEnvironment(command: Command): Unit = {}
 
@@ -88,3 +145,5 @@ trait Runner {
     override val params: Any = null
   }
 }
+
+case class AutocompleteInfo(path: String, commandName: String)

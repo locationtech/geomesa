@@ -10,19 +10,21 @@ package org.locationtech.geomesa.geojson
 
 import java.io.Closeable
 
+import com.github.benmanes.caffeine.cache.Caffeine
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Geometry, Point}
-import org.apache.commons.io.IOUtils
 import org.geotools.data.{DataStore, FeatureWriter, Query, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.geojson.geom.GeometryJSON
-import org.json4s._
 import org.json4s.native.JsonMethods._
+import org.json4s.{JObject, _}
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser.PathElement
 import org.locationtech.geomesa.geojson.query.GeoJsonQuery
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
+import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.parboiled.errors.ParsingException
 
@@ -30,6 +32,13 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 import scala.util.control.NonFatal
 
+/**
+  * GeoJSON index backed by a GeoMesa data store.
+  *
+  * Note: data store must be disposed of separately
+  *
+  * @param ds GeoMesa data store
+  */
 class GeoJsonGtIndex(ds: DataStore) extends GeoJsonIndex with LazyLogging {
 
   // TODO GEOMESA-1450 support json-schema validation
@@ -140,7 +149,7 @@ class GeoJsonGtIndex(ds: DataStore) extends GeoJsonIndex with LazyLogging {
         }
       }
     } finally {
-      IOUtils.closeQuietly(writer)
+      CloseWithLogging(writer)
     }
   }
 
@@ -151,12 +160,31 @@ class GeoJsonGtIndex(ds: DataStore) extends GeoJsonIndex with LazyLogging {
     try {
       writer = ds.getFeatureWriter(name, ff.id(ids.map(ff.featureId).toSeq: _*), Transaction.AUTO_COMMIT)
       while (writer.hasNext) {
-        writer.remove()
         writer.next()
+        writer.remove()
       }
     } finally {
-      IOUtils.closeQuietly(writer)
+      CloseWithLogging(writer)
     }
+  }
+
+  override def get(name: String, ids: Iterable[String], transform: Map[String, String]): Iterator[String] with Closeable = {
+    import org.locationtech.geomesa.filter.ff
+
+    val schema = ds.getSchema(name)
+    if (schema == null) {
+      throw new IllegalArgumentException(s"Index $name does not exist - please call 'createIndex'")
+    }
+
+    val paths = try { transform.mapValues(JsonPathParser.parse(_)) } catch {
+      case e: ParsingException => throw new IllegalArgumentException("Invalid attribute json-paths", e)
+    }
+
+    val filter = ff.id(ids.map(ff.featureId).toSeq: _*)
+    val features = SelfClosingIterator(ds.getFeatureReader(new Query(name, filter), Transaction.AUTO_COMMIT))
+    val results = features.map(_.getAttribute(0).asInstanceOf[String])
+
+    jsonTransform(results, paths)
   }
 
   override def query(name: String, query: String, transform: Map[String, String]): Iterator[String] with Closeable = {
@@ -178,17 +206,20 @@ class GeoJsonGtIndex(ds: DataStore) extends GeoJsonIndex with LazyLogging {
     val features = SelfClosingIterator(ds.getFeatureReader(new Query(name, filter), Transaction.AUTO_COMMIT))
     val results = features.map(_.getAttribute(0).asInstanceOf[String])
 
-    if (paths.isEmpty) {
-      results
-    } else {
+    jsonTransform(results, paths)
+  }
+
+  private def jsonTransform(features: CloseableIterator[String],
+                            transform: Map[String, Seq[PathElement]]): Iterator[String] with Closeable = {
+    if (transform.isEmpty) { features } else {
       // recursively construct a json object
       def toObj(path: Seq[String], value: JValue): JValue = {
         if (path.isEmpty) { value } else {
           JObject((path.head, toObj(path.tail, value)))
         }
       }
-      val splitPaths = paths.map { case (k, p) => (k.split('.'), p) }
-      results.map { j =>
+      val splitPaths = transform.map { case (k, p) => (k.split('.'), p) }
+      features.map { j =>
         val obj = parse(j).asInstanceOf[JObject]
         val elems = splitPaths.flatMap { case (key, path) =>
           GeoJsonGtIndex.evaluatePath(obj, path).map { jvalue => JObject((key.head, toObj(key.tail, jvalue))) }
@@ -205,7 +236,14 @@ object GeoJsonGtIndex {
   val IdPathKey  = s"${SimpleFeatureTypes.InternalConfigs.GEOMESA_PREFIX}json.id"
   val DtgPathKey = s"${SimpleFeatureTypes.InternalConfigs.GEOMESA_PREFIX}json.dtg"
 
+  private type ExtractGeometry = (JObject) => Geometry
+  private type ExtractId = (JObject) => Option[String]
+  private type ExtractDate = (JObject) => Option[AnyRef]
+  private type JsonExtractors = (ExtractGeometry, ExtractId, ExtractDate)
+
   private val jsonGeometry = new GeometryJSON()
+
+  private val extractorCache = Caffeine.newBuilder().build[String, JsonExtractors]()
 
   /**
     * Gets a simple feature type spec. NOTE: the following attribute indices are assumed:
@@ -245,33 +283,39 @@ object GeoJsonGtIndex {
     * @param schema simple feature type
     * @return (method to get geometry, method to get feature ID, method to get date)
     */
-  private def jsonExtractors(schema: SimpleFeatureType):
-      ((JObject) => Geometry, (JObject) => Option[String], (JObject) => Option[AnyRef]) = {
+  private def jsonExtractors(schema: SimpleFeatureType): JsonExtractors = {
+    def load(): JsonExtractors = {
+      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
-    val getGeom: (JObject) => Geometry =
-      if (schema.isPoints) {
-        (feature) => getGeometry(feature) match {
-          case p: Point    => p
-          case g: Geometry => g.getCentroid
-          case null        => null
+      val getGeom: (JObject) => Geometry =
+        if (schema.isPoints) {
+          (feature) => getGeometry(feature) match {
+            case p: Point    => p
+            case g: Geometry => g.getCentroid
+            case null        => null
+          }
+        } else {
+          getGeometry
         }
-      } else {
-        getGeometry
+
+      val getId: (JObject) => Option[String] = getIdPath(schema) match {
+        case None => (_) => None
+        case Some(path) => (feature) => evaluatePathValue(feature, path).map(_.toString)
       }
 
-    val getId: (JObject) => Option[String] = getIdPath(schema) match {
-      case None => (_) => None
-      case Some(path) => (feature) => evaluatePathValue(feature, path).map(_.toString)
+      val getDtg: (JObject) => Option[AnyRef] = getDtgPath(schema) match {
+        case None => (_) => None
+        case Some(path) => (feature) => evaluatePathValue(feature, path)
+      }
+
+      (getGeom, getId, getDtg)
     }
 
-    val getDtg: (JObject) => Option[AnyRef] = getDtgPath(schema) match {
-      case None => (_) => None
-      case Some(path) => (feature) => evaluatePathValue(feature, path)
+    val loader = new java.util.function.Function[String, JsonExtractors] {
+      override def apply(ignored: String): JsonExtractors = load()
     }
 
-    (getGeom, getId, getDtg)
+    extractorCache.get(CacheKeyGenerator.cacheKey(schema), loader)
   }
 
   private def getIdPath(schema: SimpleFeatureType): Option[Seq[PathElement]] =

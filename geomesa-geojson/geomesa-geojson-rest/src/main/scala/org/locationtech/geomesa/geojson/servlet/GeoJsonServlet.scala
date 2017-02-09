@@ -8,7 +8,11 @@
 
 package org.locationtech.geomesa.geojson.servlet
 
+import java.io.Closeable
+import java.util.concurrent.ConcurrentHashMap
+
 import org.json4s.{DefaultFormats, Formats}
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.geojson.GeoJsonGtIndex
 import org.locationtech.geomesa.utils.cache.FilePersistence
 import org.locationtech.geomesa.web.core.GeoMesaDataStoreServlet
@@ -26,92 +30,218 @@ class GeoJsonServlet(val persistence: FilePersistence) extends GeoMesaDataStoreS
 
   override protected implicit val jsonFormats: Formats = DefaultFormats
 
+  private val indexCache = new ConcurrentHashMap[AccumuloDataStore, GeoJsonGtIndex]
+
   before() {
     contentType = formats("json")
   }
 
+  /**
+    * Create a new index (i.e. schema)
+    */
   post("/index/:alias/:index/?") {
     try {
-      withDataStore((ds) => {
+      withGeoJsonIndex((geoJsonIndex) => {
         val index = params.get("index").orNull
         if (index == null) {
           BadRequest(GeoJsonServlet.NoIndex)
         } else {
           val points = params.get("points").map(java.lang.Boolean.valueOf).getOrElse(java.lang.Boolean.FALSE)
-          new GeoJsonGtIndex(ds).createIndex(index, params.get("id"), params.get("date"), points)
+          geoJsonIndex.createIndex(index, params.get("id"), params.get("date"), points)
           Created()
         }
       })
     } catch {
+      case e: IllegalArgumentException => BadRequest(e.getMessage)
       case e: Exception => handleError(s"Error creating index:", e)
     }
   }
 
+  /**
+    * Delete an index and everything in it
+    */
   delete("/index/:alias/:index/?") {
     try {
-      withDataStore((ds) => {
+      withGeoJsonIndex((geoJsonIndex) => {
         val index = params.get("index").orNull
         if (index == null) {
           BadRequest(GeoJsonServlet.NoIndex)
         } else {
-          new GeoJsonGtIndex(ds).deleteIndex(index)
+          geoJsonIndex.deleteIndex(index)
           NoContent() // 204
         }
       })
     } catch {
+      case e: IllegalArgumentException => BadRequest(e.getMessage)
       case e: Exception => handleError(s"Error creating index:", e)
     }
   }
 
-  post("/index/:alias/:index/features") {
+  /**
+    * Add new features to an index
+    */
+  post("/index/:alias/:index/features/?") {
     try {
-      withDataStore((ds) => {
+      withGeoJsonIndex((geoJsonIndex) => {
         val index = params.get("index").orNull
-        val json = params.get("json").orNull
-        if (index == null || json == null) {
+        val json = request.body
+        if (index == null || json == null || json.isEmpty) {
           val msg = ArrayBuffer.empty[String]
           if (index == null) { msg.append(GeoJsonServlet.NoIndex) }
-          if (json == null) { msg.append(GeoJsonServlet.NoJson) }
+          if (json == null || json.isEmpty) { msg.append(GeoJsonServlet.NoJson) }
           BadRequest(msg.mkString(" "))
         } else {
-          val ids = new GeoJsonGtIndex(ds).add(index, json)
+          val ids = geoJsonIndex.add(index, json)
           Ok(ids)
         }
       })
     } catch {
+      case e: IllegalArgumentException => BadRequest(e.getMessage)
       case e: Exception => handleError(s"Error adding features:", e)
     }
   }
 
-  get("/index/:alias/:index/features") {
+  /**
+    * Update existing features in an index
+    */
+  put("/index/:alias/:index/features/?") {
     try {
-      withDataStore((ds) => {
+      withGeoJsonIndex((geoJsonIndex) => {
+        val index = params.get("index").orNull
+        val json = request.body
+        if (index == null || json == null || json.isEmpty) {
+          val msg = ArrayBuffer.empty[String]
+          if (index == null) { msg.append(GeoJsonServlet.NoIndex) }
+          if (json == null || json.isEmpty) { msg.append(GeoJsonServlet.NoJson) }
+          BadRequest(msg.mkString(" "))
+        } else {
+          geoJsonIndex.update(index, json)
+          Ok()
+        }
+      })
+    } catch {
+      case e: IllegalArgumentException => BadRequest(e.getMessage)
+      case e: Exception => handleError(s"Error updating features:", e)
+    }
+  }
+
+  /**
+    * Update existing features in an index
+    */
+  put("/index/:alias/:index/features/:fid") {
+    try {
+      withGeoJsonIndex((geoJsonIndex) => {
+        val index = params.get("index").orNull
+        val json = request.body
+        if (index == null || json == null || json.isEmpty) {
+          val msg = ArrayBuffer.empty[String]
+          if (index == null) { msg.append(GeoJsonServlet.NoIndex) }
+          if (json == null || json.isEmpty) { msg.append(GeoJsonServlet.NoJson) }
+          BadRequest(msg.mkString(" "))
+        } else {
+          val fids = params("fid").split(",") // can't match this path without a fid
+          geoJsonIndex.update(index, fids, json)
+          Ok()
+        }
+      })
+    } catch {
+      case e: IllegalArgumentException => BadRequest(e.getMessage)
+      case e: Exception => handleError(s"Error updating features:", e)
+    }
+  }
+
+  /**
+    * Delete features from an index
+    */
+  delete("/index/:alias/:index/features/:fid") {
+    try {
+      withGeoJsonIndex((geoJsonIndex) => {
+        val index = params.get("index").orNull
+        if (index == null) {
+          BadRequest(GeoJsonServlet.NoIndex)
+        } else {
+          val fids = params("fid").split(",") // can't match this path without a fid
+          geoJsonIndex.delete(index, fids)
+          Ok()
+        }
+      })
+    } catch {
+      case e: IllegalArgumentException => BadRequest(e.getMessage)
+      case e: Exception => handleError(s"Error adding features:", e)
+    }
+  }
+
+  /**
+    * Query features in an index
+    */
+  get("/index/:alias/:index/features/?") {
+    try {
+      withGeoJsonIndex((geoJsonIndex) => {
         val index = params.get("index").orNull
         if (index == null) {
           BadRequest(GeoJsonServlet.NoIndex)
         } else {
           val query = params.get("q").getOrElse("")
-          val result = new GeoJsonGtIndex(ds).query(index, query)
-          try {
-            response.setStatus(200)
-            val output = response.getOutputStream
-            output.print("""{"type":"FeatureCollection","features":[""")
-            if (result.hasNext) {
-              output.print(result.next)
-            }
-            while (result.hasNext) {
-              output.print(',')
-              output.print(result.next)
-            }
-            output.print("]}")
-          } finally {
-            result.close()
-          }
+          outputFeatures(geoJsonIndex.query(index, query))
           Unit // return Unit to indicate we've processed the response
         }
       })
     } catch {
+      case e: IllegalArgumentException => BadRequest(e.getMessage)
       case e: Exception => handleError(s"Error querying features:", e)
+    }
+  }
+
+  /**
+    * Query a single feature in an index
+    */
+  get("/index/:alias/:index/features/:fid") {
+    try {
+      withGeoJsonIndex((geoJsonIndex) => {
+        val index = params.get("index").orNull
+        if (index == null) {
+          BadRequest(GeoJsonServlet.NoIndex)
+        } else {
+          val fids = params("fid").split(",") // can't match this path without a fid
+          val features = geoJsonIndex.get(index, fids)
+          if (features.isEmpty) { NotFound() } else {
+            outputFeatures(features)
+            Unit // return Unit to indicate we've processed the response
+          }
+        }
+      })
+    } catch {
+      case e: IllegalArgumentException => BadRequest(e.getMessage)
+      case e: Exception => handleError(s"Error querying features:", e)
+    }
+  }
+
+  private def withGeoJsonIndex[T](method: (GeoJsonGtIndex) => T): Any = {
+    withDataStore((ds) => {
+      val index = Option(indexCache.get(ds)).getOrElse {
+        val index = new GeoJsonGtIndex(ds)
+        indexCache.put(ds, index)
+        index
+      }
+      method(index)
+    })
+  }
+
+  private def outputFeatures(features: Iterator[String] with Closeable): Unit = {
+    try {
+      response.setStatus(200)
+      val output = response.getOutputStream
+      output.print("""{"type":"FeatureCollection","features":[""")
+      if (features.hasNext) {
+        output.print(features.next)
+        while (features.hasNext) {
+          output.print(',')
+          output.print(features.next)
+        }
+      }
+      output.print("]}")
+    } finally {
+      features.close()
     }
   }
 }

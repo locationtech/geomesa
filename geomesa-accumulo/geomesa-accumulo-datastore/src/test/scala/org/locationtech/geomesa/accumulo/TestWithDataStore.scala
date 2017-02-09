@@ -18,7 +18,7 @@ import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.index.AccumuloWritableIndex
+import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -41,7 +41,7 @@ trait TestWithDataStore extends Specification {
   def tableSharing: Boolean = true
 
   // we use class name to prevent spillage between unit tests in the mock connector
-  val sftName = getClass.getSimpleName
+  lazy val sftName = getClass.getSimpleName
 
   val EmptyUserAuthorizations = new Authorizations()
 
@@ -50,23 +50,29 @@ trait TestWithDataStore extends Specification {
     MockUserAuthorizationsString.split(",").map(_.getBytes()).toList.asJava
   )
 
+  lazy val mockInstanceId = "mycloud"
+  lazy val mockUser = "user"
+  lazy val mockPassword = "password"
   // assign some default authorizations to this mock user
   lazy val connector = {
-    val mockInstance = new MockInstance("mycloud")
-    val mockConnector = mockInstance.getConnector("user", new PasswordToken("password"))
-    mockConnector.securityOperations().changeUserAuthorizations("user", MockUserAuthorizations)
+    val mockInstance = new MockInstance(mockInstanceId)
+    val mockConnector = mockInstance.getConnector(mockUser, new PasswordToken(mockPassword))
+    mockConnector.securityOperations().changeUserAuthorizations(mockUser, MockUserAuthorizations)
     mockConnector
   }
+
+  lazy val dsParams = Map(
+    "connector" -> connector,
+    "caching"   -> false,
+    // note the table needs to be different to prevent testing errors
+    "tableName" -> sftName
+  )
 
   lazy val (ds, sft) = {
     val sft = SimpleFeatureTypes.createType(sftName, spec)
     sft.setTableSharing(tableSharing)
     dtgField.foreach(sft.setDtgField)
-    val ds = DataStoreFinder.getDataStore(Map(
-      "connector" -> connector,
-      "caching"   -> false,
-      // note the table needs to be different to prevent testing errors
-      "tableName" -> sftName).asJava).asInstanceOf[AccumuloDataStore]
+    val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
     ds.createSchema(sft)
     (ds, ds.getSchema(sftName)) // reload the sft from the ds to ensure all user data is set properly
   }
@@ -108,7 +114,7 @@ trait TestWithDataStore extends Specification {
 
   def explain(filter: String): String = explain(new Query(sftName, ECQL.toFilter(filter)))
 
-  def scanner(table: AccumuloWritableIndex): Scanner =
+  def scanner(table: AccumuloFeatureIndex): Scanner =
     connector.createScanner(table.getTableName(sftName, ds), new Authorizations())
 
   def rowToString(key: Key) = bytesToString(key.getRow.copyBytes())

@@ -16,7 +16,6 @@ class VersionCommand extends Command {
 
   override val name = "version"
   override val params = new VersionParameters
-
   override def execute(): Unit = {
     import GeoMesaProperties._
     Command.output.info(s"GeoMesa tools version: $ProjectVersion")

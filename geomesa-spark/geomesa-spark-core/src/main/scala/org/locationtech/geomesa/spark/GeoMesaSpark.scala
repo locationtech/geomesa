@@ -46,3 +46,22 @@ object GeoMesaSpark {
   def apply(params: java.util.Map[String, java.io.Serializable]): SpatialRDDProvider =
     providers.find(_.canProcess(params)).getOrElse(throw new RuntimeException("Could not find a SparkGISProvider"))
 }
+
+// Resolve issue with wrapped instance of org.apache.spark.sql.execution.datasources.CaseInsensitiveMap in Scala 2.10
+object CaseInsensitiveMapFix {
+  import scala.collection.convert.Wrappers._
+
+  trait MapWrapperFix[A,B] {
+    this: MapWrapper[A,B] =>
+      override def containsKey(key: AnyRef): Boolean = try {
+        get(key) != null
+      } catch {
+        case ex: ClassCastException => false
+      }
+  }
+
+  implicit def mapAsJavaMap[A <: String, B](m: scala.collection.Map[A, B]): java.util.Map[A, B] = m match {
+    case JMapWrapper(wrapped) => wrapped.asInstanceOf[java.util.Map[A, B]]
+    case _ => new MapWrapper[A,B](m) with MapWrapperFix[A, B]
+  }
+}
