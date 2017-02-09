@@ -31,38 +31,33 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
           origQuery: Query): RDD[SimpleFeature] = {
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[HBaseDataStore]
 
-    try {
-      // get the query plan to set up the iterators, ranges, etc
-      lazy val sft = ds.getSchema(origQuery.getTypeName)
-      lazy val qp = ds.getQueryPlan(origQuery).head.asInstanceOf[HBaseQueryPlan]
+    // get the query plan to set up the iterators, ranges, etc
+    lazy val sft = ds.getSchema(origQuery.getTypeName)
+    lazy val qp = ds.getQueryPlan(origQuery).head.asInstanceOf[HBaseQueryPlan]
 
-      if (ds == null || sft == null || qp.isInstanceOf[EmptyPlan]) {
-        sc.emptyRDD[SimpleFeature]
-      } else {
-        import org.locationtech.geomesa.index.conf.QueryHints._
+    if (ds == null || sft == null || qp.isInstanceOf[EmptyPlan]) {
+      sc.emptyRDD[SimpleFeature]
+    } else {
+      import org.locationtech.geomesa.index.conf.QueryHints._
 
-        val query = ds.queryPlanner.configureQuery(origQuery, sft)
-        GeoMesaConfigurator.setSerialization(conf)
-        query.getHints.getTransformSchema.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
-        GeoMesaConfigurator.setTable(conf, qp.table.getNameAsString)
-        GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)
-        GeoMesaConfigurator.setFeatureType(conf, sft.getTypeName)
-        val scans = qp.ranges.map { s =>
-          val scan = s.asInstanceOf[Scan]
-          // need to set the table name in each scan
-          scan.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.table.getName)
-          convertScanToString(scan)
-        }
-        conf.setStrings(MultiTableInputFormat.SCANS, scans: _*)
-
-        sc.newAPIHadoopRDD(conf, classOf[GeoMesaHBaseInputFormat], classOf[Text], classOf[SimpleFeature]).map(U => U._2)
+      val query = ds.queryPlanner.configureQuery(origQuery, sft)
+      GeoMesaConfigurator.setSerialization(conf)
+      query.getHints.getTransformSchema.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
+      GeoMesaConfigurator.setTable(conf, qp.table.getNameAsString)
+      GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)
+      GeoMesaConfigurator.setFeatureType(conf, sft.getTypeName)
+      val scans = qp.ranges.map { s =>
+        val scan = s.asInstanceOf[Scan]
+        // need to set the table name in each scan
+        scan.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.table.getName)
+        convertScanToString(scan)
       }
-    } finally {
-      if (ds != null) {
-        ds.dispose()
-      }
+      conf.setStrings(MultiTableInputFormat.SCANS, scans: _*)
+
+      sc.newAPIHadoopRDD(conf, classOf[GeoMesaHBaseInputFormat], classOf[Text], classOf[SimpleFeature]).map(U => U._2)
     }
   }
+
 
   private def convertScanToString(scan: Scan): String = {
     val proto = ProtobufUtil.toScan(scan)

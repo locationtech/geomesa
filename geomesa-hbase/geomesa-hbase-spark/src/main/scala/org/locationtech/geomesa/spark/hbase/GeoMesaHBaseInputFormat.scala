@@ -42,7 +42,6 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
     table = HBaseFeatureIndex.indices(sft, IndexMode.Read)
       .find(t => t.getTableName(sft.getTypeName, ds) == tableName)
       .getOrElse(throw new RuntimeException(s"Couldn't find input table $tableName"))
-    ds.dispose()
 
     delegate.setConf(conf)
     // see TableMapReduceUtil.java
