@@ -136,7 +136,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType
   override protected def rangeExact(row: Array[Byte]): Query =
     new Get(row).addColumn(DataColumnFamily, DataColumnQualifier)
 
-  override protected def rowAndValue(result: Result): RowAndValue = {
+  override def rowAndValue(result: Result): RowAndValue = {
     val cell = result.rawCells()(0)
     RowAndValue(cell.getRowArray, cell.getRowOffset, cell.getRowLength,
       cell.getValueArray, cell.getValueOffset, cell.getValueLength)

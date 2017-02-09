@@ -19,6 +19,7 @@ import org.geotools.data.{DataStoreFinder, DataUtilities}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.{GeoMesaDataStore, GeoMesaFeatureWriter}
+import org.locationtech.geomesa.index.index.ClientSideFiltering
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
