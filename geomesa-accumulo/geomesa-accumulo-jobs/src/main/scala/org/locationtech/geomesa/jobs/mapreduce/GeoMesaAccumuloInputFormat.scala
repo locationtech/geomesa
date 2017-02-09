@@ -176,31 +176,27 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
     // 1. Get splits from AccumuloMapperProperties.DESIRED_ABSOLUTE_SPLITS (geomesa.mapreduce.splits.max)
     // 2. Get splits from #tserver locations * AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER (geomesa.mapreduce.splits.tserver.max)
     // 3. Get splits from AccumuloInputFormat.getSplits(context)
-    val grpSplitsMax: Option[Int] =
-      try {
-        val maxSplits = AccumuloMapperProperties.DESIRED_ABSOLUTE_SPLITS.get.toInt
-        if (maxSplits > 0) Some(maxSplits) else None
-      } catch {
+    val grpSplitsMax: Option[Int] = AccumuloMapperProperties.DESIRED_ABSOLUTE_SPLITS.option.flatMap { prop =>
+      try { Some(prop.toInt).filter(_ > 0) } catch {
         case e: java.lang.NumberFormatException =>
           AccumuloMapperProperties.DESIRED_ABSOLUTE_SPLITS.option.foreach(value =>
             logger.warn(s"Unable to parse geomesa.mapreduce.splits.max = $value is not a valid Int."))
           None
       }
+    }
 
     lazy val grpSplitsPerTServer: Option[Int] =
-      if (AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER.get == null) None
-      else {
-        val numLocations = accumuloSplits.flatMap(_.getLocations).distinct.head.length
-        val splitsPerTServer =
-          try {
-            AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER.get.toInt
-          } catch {
+      AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER.option match {
+        case Some(desiredSplits) =>
+          val numLocations = accumuloSplits.flatMap(_.getLocations).toArray.distinct.length
+          val splitsPerTServer = try { desiredSplits.toInt } catch {
             case e: java.lang.NumberFormatException =>
               logger.warn(s"Unable to parse geomesa.mapreduce.splits.tserver.max = " +
                 s"${AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER.get} is not a valid Int.")
               1 // Identity, don't split locations
           }
-        if (numLocations > 0 && splitsPerTServer > 0) Some(numLocations * splitsPerTServer) else None
+          if (numLocations > 0 && splitsPerTServer > 0) Some(numLocations * splitsPerTServer) else None
+        case None => None
       }
 
     grpSplitsMax.orElse(grpSplitsPerTServer) match {
