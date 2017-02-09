@@ -115,6 +115,7 @@ fi
 
 if [[ -n "$ERROR" ]]; then
     help
+    exit 1
 fi
 
 echo "Copying GeoMesa JAR for Accumulo namespace $ACCUMULO_NAMESPACE..."
