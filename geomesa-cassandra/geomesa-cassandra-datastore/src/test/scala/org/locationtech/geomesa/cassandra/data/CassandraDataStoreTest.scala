@@ -217,34 +217,33 @@ class CassandraDataStoreTest extends Specification {
       val gf = JTSFactoryFinder.getGeometryFactory
 
       val testCoords = List(
-        (40, 40),
-        (40, -40),
-        (-40, 40),
-        (-40, -40),
-        (-179, -89),
-        (-179, 89),
-        (179, -89),
-        (179, 89),
-        (0, 0),
-        (2, 2),
-        (179, 1),
-        (1, 89)
+        ("11", 40, 40, 2014),
+        ("12", 40, -40, 2015),
+        ("13", -40, 40, 2016),
+        ("14", -40, -40, 2014),
+        ("15", -179, -89, 2015),
+        ("16", -179, 89, 2016),
+        ("17", 179, -89, 2014),
+        ("18", 179, 89, 2015),
+        ("19", 0, 0, 2016),
+        ("20", 2, 2, 2014),
+        ("21", 179, 1, 2015),
+        ("22", 1, 89, 2016)
       )
 
       val testFeatures = testCoords
-        .zipWithIndex
-        .map({ case ((x, y), i) =>
-          SimpleFeatureBuilder.build(fs.getSchema, Array("zander", 30, gf.createPoint(new Coordinate(x, y)), new DateTime("2016-01-07T00:00:00.000Z").toDate).asInstanceOf[Array[AnyRef]], s"${10+i}")
+        .map({ case (id, x, y, year) =>
+          SimpleFeatureBuilder.build(fs.getSchema, Array(id, 30, gf.createPoint(new Coordinate(x, y)), new DateTime(s"$year-01-07T00:00:00.000Z").toDate).asInstanceOf[Array[AnyRef]], id)
         })
 
-      fs.addFeatures(
-        DataUtilities.collection(testFeatures)
-      )
+      fs.addFeatures(DataUtilities.collection(testFeatures))
 
-      for ((x, y) <- testCoords) {
-        val filt = ECQL.toFilter(s"bbox(geom, ${x - 1}, ${y - 1}, ${x + 1}, ${y + 1}, 'EPSG:4326') and dtg between 2016-01-01T00:00:00.000Z and 2016-01-08T00:00:00.000Z")
-        val features = fs.getFeatures(filt).features()
-        features.toList must haveLength(1)
+      for ((id, x, y, year) <- testCoords) {
+        val filt = ECQL.toFilter(s"bbox(geom, ${x - 1}, ${y - 1}, ${x + 1}, ${1 + y}, 'EPSG:4326') and dtg between $year-01-01T00:00:00.000Z and $year-01-08T00:00:00.000Z")
+        val features = fs.getFeatures(filt).features().toList
+        features must haveLength(1)
+        val feature = features.head
+        feature.getAttribute("name").toString mustEqual id
       }
       ok
     }
