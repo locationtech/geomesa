@@ -179,8 +179,7 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
     val grpSplitsMax: Option[Int] = AccumuloMapperProperties.DESIRED_ABSOLUTE_SPLITS.option.flatMap { prop =>
       try { Some(prop.toInt).filter(_ > 0) } catch {
         case e: java.lang.NumberFormatException =>
-          AccumuloMapperProperties.DESIRED_ABSOLUTE_SPLITS.option.foreach(value =>
-            logger.warn(s"Unable to parse geomesa.mapreduce.splits.max = $value is not a valid Int."))
+          prop.foreach( value => logger.warn(s"Unable to parse geomesa.mapreduce.splits.max = $value is not a valid Int."))
           None
       }
     }
@@ -191,8 +190,7 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
           val numLocations = accumuloSplits.flatMap(_.getLocations).toArray.distinct.length
           val splitsPerTServer = try { desiredSplits.toInt } catch {
             case e: java.lang.NumberFormatException =>
-              logger.warn(s"Unable to parse geomesa.mapreduce.splits.tserver.max = " +
-                s"${AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER.get} is not a valid Int.")
+              logger.warn(s"Unable to parse geomesa.mapreduce.splits.tserver.max = " + s"$desiredSplits is not a valid Int.")
               1 // Identity, don't split locations
           }
           if (numLocations > 0 && splitsPerTServer > 0) Some(numLocations * splitsPerTServer) else None
@@ -284,8 +282,8 @@ class GroupedSplit extends InputSplit with Writable {
     GeoMesaAccumuloInputFormat.ensureSparkClasspath()
   }
 
-  var location: String = null
-  var splits: ArrayBuffer[RangeInputSplit] = ArrayBuffer.empty
+  private[mapreduce] var location: String = null
+  private[mapreduce] val splits: ArrayBuffer[RangeInputSplit] = ArrayBuffer.empty
 
   override def getLength = splits.foldLeft(0L)((l: Long, r: RangeInputSplit) => l + r.getLength)
 
