@@ -2,6 +2,10 @@ package org.locationtech.geomesa.spark.hbase
 
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.hbase.client.Scan
+import org.apache.hadoop.hbase.mapreduce.MultiTableInputFormat
+import org.apache.hadoop.hbase.protobuf.ProtobufUtil
+import org.apache.hadoop.hbase.util.Base64
 import org.apache.hadoop.io.Text
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -43,6 +47,13 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
         GeoMesaConfigurator.setTable(conf, qp.table.getNameAsString)
         GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)
         GeoMesaConfigurator.setFeatureType(conf, sft.getTypeName)
+        val scans = qp.ranges.map { s =>
+          val scan = s.asInstanceOf[Scan]
+          // need to set the table name in each scan
+          scan.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.table.getName)
+          convertScanToString(scan)
+        }
+        conf.setStrings(MultiTableInputFormat.SCANS, scans: _*)
 
         sc.newAPIHadoopRDD(conf, classOf[GeoMesaHBaseInputFormat], classOf[Text], classOf[SimpleFeature]).map(U => U._2)
       }
@@ -52,6 +63,12 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
       }
     }
   }
+
+  private def convertScanToString(scan: Scan): String = {
+    val proto = ProtobufUtil.toScan(scan)
+    Base64.encodeBytes(proto.toByteArray)
+  }
+
 
   /**
     * Writes this RDD to a GeoMesa table.

@@ -4,8 +4,10 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.collections.map.CaseInsensitiveMap
 import org.apache.commons.lang3.ArrayUtils
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.hbase.client.Mutation
-import org.apache.hadoop.hbase.mapreduce.TableInputFormat
+import org.apache.hadoop.hbase.client.{Mutation, Scan}
+import org.apache.hadoop.hbase.mapreduce.{MultiTableInputFormat, TableInputFormat, TableMapReduceUtil}
+import org.apache.hadoop.hbase.protobuf.ProtobufUtil
+import org.apache.hadoop.hbase.util.Base64
 import org.apache.hadoop.hbase.{CellScanner, HBaseConfiguration}
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
@@ -25,7 +27,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   */
 class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with LazyLogging {
 
-  val delegate = new TableInputFormat
+  val delegate = new MultiTableInputFormat
 
   var sft: SimpleFeatureType = _
   var table: GeoMesaFeatureIndex[HBaseDataStore, HBaseFeature, Mutation] = _
@@ -46,15 +48,8 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
     // see TableMapReduceUtil.java
     HBaseConfiguration.merge(conf, HBaseConfiguration.create(conf))
     conf.set(TableInputFormat.INPUT_TABLE, tableName)
-
-    //    conf.set(TableInputFormat.SCAN, convertScanToString(scan));
-/*
-    conf.setStrings("io.serializations", conf.get("io.serializations"),
-      classOf[MutationSerialization].getName, classOf[ResultSerialization].getName,
-      classOf[KeyValueSerialization].getName)
-*/
-
   }
+
 
   /**
     * Gets splits for a job.
