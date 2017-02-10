@@ -42,7 +42,7 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
                                 ) extends RecordReader[Text, SimpleFeature] {
 
 
-    private def nextFeatureFromOptional(fn: Result => Option[SimpleFeature]): () => () = () => {
+    private def nextFeatureFromOptional(fn: Result => Option[SimpleFeature]) = () => {
       staged = null
       while(reader.nextKeyValue() && staged == null) {
         fn(reader.getCurrentValue) match {
@@ -55,7 +55,7 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
       }
     }
 
-    private def nextFeatureFromDirect(fn: Result => SimpleFeature): () => () = () => {
+    private def nextFeatureFromDirect(fn: Result => SimpleFeature) = () => {
       staged = null
       while(reader.nextKeyValue() && staged == null) {
         staged = fn(reader.getCurrentValue)
