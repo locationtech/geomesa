@@ -4,14 +4,10 @@ VERSION=$1
 
 pip install --upgrade awscli
 
-mkdir /opt
+mkdir -p /opt
 chmod a+rwx /opt
 
-cd /tmp
-aws s3 cp s3://geomesa-hbase-public/geomesa-hbase_2.11-${VERSION}-bin.tar.gz . --region us-east-2 
-
 cd /opt
-tar zxvf /tmp/geomesa-hbase_2.11-${VERSION}-bin.tar.gz
 ln -s geomesa-hbase_2.11-${VERSION} geomesa
 
 cat <<EOF > /etc/profile.d/geomesa.sh

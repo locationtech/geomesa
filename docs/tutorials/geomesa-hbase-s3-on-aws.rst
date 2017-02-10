@@ -53,8 +53,7 @@ Then, Use the following command to bootstrap an EMR cluster with HBase.  You wil
     --instance-groups                                                 \
       Name=Master,InstanceCount=1,InstanceGroupType=MASTER,InstanceType=m4.2xlarge \
       Name=Workers,InstanceCount=3,InstanceGroupType=CORE,InstanceType=m4.xlarge   \
-    --configurations file:///path/to/geomesa-hbase-on-s3.json         \
-    --bootstrap-actions Name=BootstrapGeoMesa,Path=s3://geomesa-hbase-public/bootstrap-geomesa-hbase.sh,Args=\[1.3.1-SNAPSHOT\]
+    --configurations file:///path/to/geomesa-hbase-on-s3.json
 
 After executing that command, you can monitor the state of the EMR bootstrap process
 by going to the `Management Console <https://console.aws.amazon.com/elasticmapreduce/home?region=us-east-1#cluster-list>`_.  Find the name (as specified in the ``aws emr`` command) of the cluster and click through to its details page.  Under the **Hardware** section, you can find the master node and its IP address.  Copy the IP address and then run the following command.
@@ -64,7 +63,20 @@ by going to the `Management Console <https://console.aws.amazon.com/elasticmapre
    $ ssh -i /path/to/key ec2-user@<ip_address>
 
 This should log you into the master node of the EMR cluster you just
-started. 
+started. Now, download the GeoMesa HBase distribution.
+
+.. code-block:: shell
+
+   $ wget https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-hbase-dist_2.11/${VERSION}/geomesa-hbase-dist_2.11-${VERSION}-bin.tar.gz -o /tmp/geomesa-hbase-dist_2.11-${VERSION}-bin.tar.gz
+   $ cd /opt
+   $ sudo tar zxvf /tmp/geomesa-hbase-dist_2.11-${VERSION}-bin.tar.gz
+
+Then, bootstrap GeoMesa on HBase on S3 by executing the provided script
+
+.. code-block:: shell
+
+   $ sudo /opt/geomesa/bin/bootstrap-geomesa-hbase.sh
+ 
 
 Ingest Public GDELT data
 ------------------------
