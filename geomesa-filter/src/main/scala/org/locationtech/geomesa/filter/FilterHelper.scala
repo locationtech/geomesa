@@ -28,6 +28,7 @@ import org.opengis.temporal.Period
 
 import scala.collection.GenTraversableOnce
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
 
 object FilterHelper {
@@ -516,16 +517,34 @@ object FilterHelper {
     */
   def flatten(filter: Filter): Filter = {
     filter match {
-      case and: And =>
-        val (ands, others) = and.getChildren.map(flatten).partition(_.isInstanceOf[And])
-        ff.and(ands.flatMap(_.asInstanceOf[And].getChildren) ++ others)
-
-      case or: Or =>
-        val (ors, others) = or.getChildren.map(flatten).partition(_.isInstanceOf[Or])
-        ff.or(ors.flatMap(_.asInstanceOf[Or].getChildren) ++ others)
-
+      case and: And  => ff.and(flattenAnd(and.getChildren))
+      case or: Or    => ff.or(flattenOr(or.getChildren))
       case f: Filter => f
     }
+  }
+
+  private def flattenAnd(filters: Seq[Filter]): ListBuffer[Filter] = {
+    val remaining = ListBuffer.empty[Filter] ++ filters
+    val result = ListBuffer.empty[Filter]
+    do {
+      remaining.remove(0) match {
+        case f: And => remaining.appendAll(f.getChildren)
+        case f      => result.append(flatten(f))
+      }
+    } while (remaining.nonEmpty)
+    result
+  }
+
+  private def flattenOr(filters: Seq[Filter]): ListBuffer[Filter] = {
+    val remaining = ListBuffer.empty[Filter] ++ filters
+    val result = ListBuffer.empty[Filter]
+    do {
+      remaining.remove(0) match {
+        case f: Or => remaining.appendAll(f.getChildren)
+        case f     => result.append(flatten(f))
+      }
+    } while (remaining.nonEmpty)
+    result
   }
 }
 

@@ -123,5 +123,11 @@
             <destName>geomesa-site.xml.template</destName>
             <outputDirectory>conf</outputDirectory>
         </file>
+        <!-- autocomplete -->
+        <file>
+            <source>../../geomesa-kafka-tools/geomesa-kafka-${kafka.maj.version}-tools/target/autocomplete.sh</source>
+            <destName>autocomplete.sh</destName>
+            <outputDirectory>conf</outputDirectory>
+        </file>
     </files>
 </component>
