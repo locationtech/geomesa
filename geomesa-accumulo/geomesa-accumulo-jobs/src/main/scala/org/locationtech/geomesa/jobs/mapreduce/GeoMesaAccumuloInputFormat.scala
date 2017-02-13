@@ -206,7 +206,7 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
             split.splits.append(group.map(_.asInstanceOf[RangeInputSplit]): _*)
             split
           }
-      }.toList
+        }.toList
       case None => logger.debug(s"Using default Accumulo Splits with ${accumuloSplits.length} splits")
         accumuloSplits
     }
