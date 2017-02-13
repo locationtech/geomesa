@@ -10,9 +10,6 @@ package org.locationtech.geomesa.hbase.data
 
 import java.io.Serializable
 
-import com.google.common.cache.{CacheBuilder, CacheLoader}
-import org.apache.commons.pool.BasePoolableObjectFactory
-import org.apache.commons.pool.impl.GenericObjectPool
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
 import org.geotools.data.DataAccessFactory.Param
@@ -27,22 +24,8 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi {
 
   import HBaseDataStoreFactory.Params._
 
-  // TODO: can we have multiple connections in a single JVM?
-  private class Key(val connection: Connection, val config: HBaseDataStoreConfig) {
-    override def hashCode(): Int = config.hashCode()
-    override def equals(obj: scala.Any): Boolean = config.equals(obj)
-  }
-
-  private val dsCache =
-    CacheBuilder.newBuilder().build(
-      new CacheLoader[Key, HBaseDataStore] {
-        override def load(k: Key): HBaseDataStore = {
-          new HBaseDataStore(k.connection, k.config)
-        }
-      }
-    )
-
-  private lazy val hbaseConnection =  ConnectionFactory.createConnection(HBaseConfiguration.create())
+  // TODO: investigate multiple HBase connections per jvm
+  private lazy val globalConnection = ConnectionFactory.createConnection(HBaseConfiguration.create())
 
   // this is a pass-through required of the ancestor interface
   override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
@@ -50,7 +33,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi {
   override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
     import GeoMesaDataStoreFactory.RichParam
 
-    val connection = ConnectionParam.lookupOpt[Connection](params).getOrElse(hbaseConnection)
+    val connection = ConnectionParam.lookupOpt[Connection](params).getOrElse(globalConnection)
 
     val catalog = BigTableNameParam.lookup[String](params)
 
@@ -66,7 +49,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi {
     val caching = CachingParam.lookupWithDefault[Boolean](params)
     val config = HBaseDataStoreConfig(catalog, generateStats, audit, queryThreads, queryTimeout, looseBBox, caching)
 
-    dsCache.get(new Key(connection, config))
+    new HBaseDataStore(connection, config)
   }
 
   override def getDisplayName: String = HBaseDataStoreFactory.DisplayName
