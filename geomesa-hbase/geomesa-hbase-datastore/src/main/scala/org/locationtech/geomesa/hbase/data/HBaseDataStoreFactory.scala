@@ -10,6 +10,9 @@ package org.locationtech.geomesa.hbase.data
 
 import java.io.Serializable
 
+import com.google.common.cache.{CacheBuilder, CacheLoader}
+import org.apache.commons.pool.BasePoolableObjectFactory
+import org.apache.commons.pool.impl.GenericObjectPool
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
 import org.geotools.data.DataAccessFactory.Param
@@ -24,15 +27,31 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi {
 
   import HBaseDataStoreFactory.Params._
 
+  // TODO: can we have multiple connections in a single JVM?
+  private class Key(val connection: Connection, val config: HBaseDataStoreConfig) {
+    override def hashCode(): Int = config.hashCode()
+    override def equals(obj: scala.Any): Boolean = config.equals(obj)
+  }
+
+  private val dsCache =
+    CacheBuilder.newBuilder().build(
+      new CacheLoader[Key, HBaseDataStore] {
+        override def load(k: Key): HBaseDataStore = {
+          new HBaseDataStore(k.connection, k.config)
+        }
+      }
+    )
+
+  private lazy val hbaseConnection =  ConnectionFactory.createConnection(HBaseConfiguration.create())
+
   // this is a pass-through required of the ancestor interface
-  override def createNewDataStore(params: java.util.Map[String, Serializable]) = createDataStore(params)
+  override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
 
   override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
     import GeoMesaDataStoreFactory.RichParam
 
-    val connection = ConnectionParam.lookupOpt[Connection](params).getOrElse {
-      ConnectionFactory.createConnection(HBaseConfiguration.create())
-    }
+    val connection = ConnectionParam.lookupOpt[Connection](params).getOrElse(hbaseConnection)
+
     val catalog = BigTableNameParam.lookup[String](params)
 
     val generateStats = GenerateStatsParam.lookupWithDefault[Boolean](params)
@@ -47,7 +66,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi {
     val caching = CachingParam.lookupWithDefault[Boolean](params)
     val config = HBaseDataStoreConfig(catalog, generateStats, audit, queryThreads, queryTimeout, looseBBox, caching)
 
-    new HBaseDataStore(connection, config)
+    dsCache.get(new Key(connection, config))
   }
 
   override def getDisplayName: String = HBaseDataStoreFactory.DisplayName
@@ -58,7 +77,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi {
     Array(BigTableNameParam, QueryThreadsParam, QueryTimeoutParam, GenerateStatsParam,
       AuditQueriesParam, LooseBBoxParam, CachingParam)
 
-  override def canProcess(params: java.util.Map[String,Serializable]) = params.containsKey(BigTableNameParam.key)
+  override def canProcess(params: java.util.Map[String,Serializable]): Boolean = HBaseDataStoreFactory.canProcess(params)
 
   override def isAvailable = true
 
@@ -88,4 +107,7 @@ object HBaseDataStoreFactory {
                                   queryTimeout: Option[Long],
                                   looseBBox: Boolean,
                                   caching: Boolean) extends GeoMesaDataStoreConfig
+
+  def canProcess(params: java.util.Map[String,Serializable]): Boolean =
+    params.containsKey(Params.BigTableNameParam.key)
 }

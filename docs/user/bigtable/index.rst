@@ -15,3 +15,4 @@ The code for Bigtable support is found in two modules in the source distribution
     install
     usage
     geoserver
+    dataproc
