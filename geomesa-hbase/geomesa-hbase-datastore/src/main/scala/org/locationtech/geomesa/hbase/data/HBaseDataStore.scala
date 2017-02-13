@@ -63,7 +63,6 @@ class HBaseDataStore(val connection: Connection, config: HBaseDataStoreConfig)
   }
 
   override def dispose(): Unit = {
-    connection.close()
     super.dispose()
   }
 }

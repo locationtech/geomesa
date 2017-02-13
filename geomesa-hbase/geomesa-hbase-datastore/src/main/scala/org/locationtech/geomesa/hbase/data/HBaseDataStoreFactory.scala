@@ -25,7 +25,15 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi {
   import HBaseDataStoreFactory.Params._
 
   // TODO: investigate multiple HBase connections per jvm
-  private lazy val globalConnection = ConnectionFactory.createConnection(HBaseConfiguration.create())
+  private lazy val globalConnection = {
+    val ret = ConnectionFactory.createConnection(HBaseConfiguration.create())
+    Runtime.getRuntime.addShutdownHook(new Thread() {
+      override def run(): Unit = {
+        ret.close()
+      }
+    })
+    ret
+  }
 
   // this is a pass-through required of the ancestor interface
   override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
