@@ -12,36 +12,35 @@ import com.vividsolutions.jts.geom._
 import org.geotools.geometry.jts.JTS
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
-import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.SQLFunctionHelper.nullableUDF
 
 object SQLGeometricConstructorFunctions {
 
-  val ST_GeomFromGeoHash: (String, Int) => Geometry = (hash, prec) => GeoHash(hash, prec).geom
-  val ST_Box2DFromGeoHash: (String, Int) => Geometry = (hash, prec) => ST_GeomFromGeoHash(hash, prec)
-  val ST_GeomFromWKT: String => Geometry = text => WKTUtils.read(text)
-  val ST_GeomFromWKB: Array[Byte] => Geometry = array => WKBUtils.read(array)
-  val ST_LineFromText: String => LineString = text => WKTUtils.read(text).asInstanceOf[LineString]
-  val ST_MakeBox2D: (Point, Point) => Geometry = (lowerLeft, upperRight) =>
-    JTS.toGeometry(new Envelope(lowerLeft.getX, upperRight.getX, lowerLeft.getY, upperRight.getY))
-  val ST_MakeBBOX: (Double, Double, Double, Double) => Geometry = (lowerX, lowerY, upperX, upperY) =>
-    JTS.toGeometry(BoundingBox(lowerX, upperX, lowerY, upperY))
-  val ST_MakePolygon: LineString => Polygon = shell => {
+  val ST_GeomFromGeoHash: (String, Int) => Geometry = nullableUDF((hash, prec) => GeoHash(hash, prec).geom)
+  val ST_GeomFromWKT: String => Geometry = nullableUDF(text => WKTUtils.read(text))
+  val ST_GeomFromWKB: Array[Byte] => Geometry = nullableUDF(array => WKBUtils.read(array))
+  val ST_LineFromText: String => LineString = nullableUDF(text => WKTUtils.read(text).asInstanceOf[LineString])
+  val ST_MakeBox2D: (Point, Point) => Geometry = nullableUDF((lowerLeft, upperRight) =>
+    JTS.toGeometry(new Envelope(lowerLeft.getX, upperRight.getX, lowerLeft.getY, upperRight.getY)))
+  val ST_MakeBBOX: (Double, Double, Double, Double) => Geometry = nullableUDF((lowerX, lowerY, upperX, upperY) =>
+    JTS.toGeometry(BoundingBox(lowerX, upperX, lowerY, upperY)))
+  val ST_MakePolygon: LineString => Polygon = nullableUDF(shell => {
     val ring = SQLTypes.geomFactory.createLinearRing(shell.getCoordinateSequence)
     SQLTypes.geomFactory.createPolygon(ring)
-  }
-  val ST_MakePoint: (Double, Double) => Point = (x, y) => WKTUtils.read(s"POINT($x $y)").asInstanceOf[Point]
-  val ST_MakeLine: Seq[Point] => LineString = s => SQLTypes.geomFactory.createLineString(s.map(_.getCoordinate).toArray)
-  val ST_MakePointM: (Double, Double, Double) => Point = (x, y, m) =>
-    WKTUtils.read(s"POINT($x $y $m)").asInstanceOf[Point]
-  val ST_MLineFromText: String => MultiLineString = (text) => WKTUtils.read(text).asInstanceOf[MultiLineString]
-  val ST_MPointFromText: String => MultiPoint = (text) => WKTUtils.read(text).asInstanceOf[MultiPoint]
-  val ST_MPolyFromText: String => MultiPolygon = (text) => WKTUtils.read(text).asInstanceOf[MultiPolygon]
+  })
+  val ST_MakePoint: (Double, Double) => Point = nullableUDF((x, y) => WKTUtils.read(s"POINT($x $y)").asInstanceOf[Point])
+  val ST_MakeLine: Seq[Point] => LineString = nullableUDF(s => SQLTypes.geomFactory.createLineString(s.map(_.getCoordinate).toArray))
+  val ST_MakePointM: (Double, Double, Double) => Point = nullableUDF((x, y, m) =>
+    WKTUtils.read(s"POINT($x $y $m)").asInstanceOf[Point])
+  val ST_MLineFromText: String => MultiLineString = nullableUDF(text => WKTUtils.read(text).asInstanceOf[MultiLineString])
+  val ST_MPointFromText: String => MultiPoint = nullableUDF(text => WKTUtils.read(text).asInstanceOf[MultiPoint])
+  val ST_MPolyFromText: String => MultiPolygon = nullableUDF(text => WKTUtils.read(text).asInstanceOf[MultiPolygon])
   val ST_Point: (Double, Double) => Point = (x, y) => ST_MakePoint(x, y)
-  val ST_PointFromGeoHash: (String, Int) => Point = (hash, prec) => GeoHash(hash, prec).getPoint
-  val ST_PointFromText: String => Point = text => WKTUtils.read(text).asInstanceOf[Point]
+  val ST_PointFromGeoHash: (String, Int) => Point = nullableUDF((hash, prec) => GeoHash(hash, prec).getPoint)
+  val ST_PointFromText: String => Point = nullableUDF(text => WKTUtils.read(text).asInstanceOf[Point])
   val ST_PointFromWKB: Array[Byte] => Point = array => ST_GeomFromWKB(array).asInstanceOf[Point]
   val ST_Polygon: LineString => Polygon = shell => ST_MakePolygon(shell)
-  val ST_PolygonFromText: String => Polygon = text => WKTUtils.read(text).asInstanceOf[Polygon]
+  val ST_PolygonFromText: String => Polygon = nullableUDF(text => WKTUtils.read(text).asInstanceOf[Polygon])
 
   def registerFunctions(sqlContext: SQLContext): Unit = {
     sqlContext.udf.register("st_box2DFromGeoHash"  , ST_GeomFromGeoHash)

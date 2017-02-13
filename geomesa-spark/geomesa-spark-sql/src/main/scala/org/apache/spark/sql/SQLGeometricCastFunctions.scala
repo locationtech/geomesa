@@ -10,13 +10,14 @@ package org.apache.spark.sql
 
 import java.nio.charset.StandardCharsets
 import com.vividsolutions.jts.geom._
-import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.SQLFunctionHelper.nullableUDF
 
 object SQLGeometricCastFunctions {
   val ST_CastToPoint:      Geometry => Point       = g => g.asInstanceOf[Point]
   val ST_CastToPolygon:    Geometry => Polygon     = g => g.asInstanceOf[Polygon]
   val ST_CastToLineString: Geometry => LineString  = g => g.asInstanceOf[LineString]
-  val ST_ByteArray: (String) => Array[Byte] = (string) => string.getBytes(StandardCharsets.UTF_8)
+  val ST_ByteArray: (String) => Array[Byte] =
+    nullableUDF((string) => string.getBytes(StandardCharsets.UTF_8))
 
   def registerFunctions(sqlContext: SQLContext): Unit = {
     // Register type casting functions

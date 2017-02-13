@@ -12,7 +12,7 @@ import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.{Geometry, Polygon}
-import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
+import org.apache.spark.sql.{SQLTypes, DataFrame, SQLContext, SparkSession}
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.interop.WKTUtils
@@ -38,21 +38,12 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
       ds = DataStoreFinder.getDataStore(dsParams)
       spark = SparkSQLTestUtils.createSparkSession()
       sc = spark.sqlContext
-
-      SparkSQLTestUtils.ingestChicago(ds)
-
-      df = spark.read
-        .format("geomesa")
-        .options(dsParams)
-        .option("geomesa.feature", "chicago")
-        .load()
-      logger.info(df.schema.treeString)
-      df.createOrReplaceTempView("chicago")
-
-      df.collect().length mustEqual 3
+      SQLTypes.init(sc)
     }
 
     "st_boundary" >> {
+      sc.sql("select st_boundary(null)").collect.head(0) must beNull
+
       val result = sc.sql(
         """
           |select st_boundary(st_geomFromWKT('LINESTRING(1 1, 0 0, -1 1)'))
@@ -62,6 +53,8 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
     }
 
     "st_coordDim" >> {
+      sc.sql("select st_coordDim(null)").collect.head(0) must beNull
+
       val result = sc.sql(
         """
           |select st_coordDim(st_geomFromWKT('POINT(0 0)'))
@@ -71,6 +64,10 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
     }
 
     "st_dimension" >> {
+      "null" >> {
+        sc.sql("select st_dimension(null)").collect.head(0) must beNull
+      }
+
       "point" >> {
         val result = sc.sql(
           """
@@ -109,6 +106,10 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
     }
 
     "st_envelope" >> {
+      "null" >> {
+        sc.sql("select st_envelope(null)").collect.head(0) must beNull
+      }
+
       "point" >> {
         val result = sc.sql(
           """
@@ -138,6 +139,10 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
     }
 
     "st_exteriorRing" >> {
+      "null" >> {
+        sc.sql("select st_exteriorRing(null)").collect.head(0) must beNull
+      }
+
       "point" >> {
         val result = sc.sql(
           """
@@ -168,6 +173,10 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
     }
 
     "st_geometryN" >> {
+      "null" >> {
+        sc.sql("select st_geometryN(null, null)").collect.head(0) must beNull
+      }
+
       "point" >> {
         val result = sc.sql(
           """
@@ -197,6 +206,10 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
     }
 
     "st_geometryType" >> {
+      "null" >> {
+        sc.sql("select st_geometryType(null)").collect.head(0) must beNull
+      }
+
       "point" >> {
         val result = sc.sql(
           """
@@ -227,6 +240,10 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
     }
 
     "st_interiorRingN" >> {
+      "null" >> {
+        sc.sql("select st_interiorRingN(null, null)").collect.head(0) must beNull
+      }
+
       "point" >> {
         val result = sc.sql(
           """
@@ -258,6 +275,10 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
     }
 
     "st_isClosed" >> {
+      "null" >> {
+        sc.sql("select st_isClosed(null)").collect.head(0) must beNull
+      }
+
       "open linestring" >> {
         val result = sc.sql(
           """
@@ -296,6 +317,10 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
     }
 
     "st_isCollection" >> {
+      "null" >> {
+        sc.sql("select st_isCollection(null)").collect.head(0) must beNull
+      }
+
       "point" >> {
         val result = sc.sql(
           """
@@ -325,6 +350,10 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
     }
 
     "st_isEmpty" >> {
+      "null" >> {
+        sc.sql("select st_isEmpty(null)").collect.head(0) must beNull
+      }
+
       "empty geometrycollection" >> {
         val result = sc.sql(
           """
@@ -345,6 +374,10 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
     }
 
     "st_isRing" >> {
+      "null" >> {
+        sc.sql("select st_isRing(null)").collect.head(0) must beNull
+      }
+
       "closed and simple linestring" >> {
         val result = sc.sql(
           """
@@ -365,6 +398,10 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
     }
 
     "st_isSimple" >> {
+      "null" >> {
+        sc.sql("select st_isSimple(null)").collect.head(0) must beNull
+      }
+
       "simple point" >> {
         val result = sc.sql(
           """
@@ -403,6 +440,10 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
     }
 
     "st_isValid" >> {
+      "null" >> {
+        sc.sql("select st_isValid(null)").collect.head(0) must beNull
+      }
+
       "valid linestring" >> {
         val result = sc.sql(
           """
@@ -423,6 +464,10 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
     }
 
     "st_numGeometries" >> {
+      "null" >> {
+        sc.sql("select st_numGeometries(null)").collect.head(0) must beNull
+      }
+
       "point" >> {
         val result = sc.sql(
           """
@@ -454,6 +499,10 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
     }
 
     "st_numPoints" >> {
+      "null" >> {
+        sc.sql("select st_numPoints(null)").collect.head(0) must beNull
+      }
+
       "point" >> {
         val result = sc.sql(
           """
@@ -483,6 +532,10 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
     }
 
     "st_pointN" >> {
+      "null" >> {
+        sc.sql("select st_pointN(null, null)").collect.head(0) must beNull
+      }
+
       "first point" >> {
         val result = sc.sql(
           """
@@ -521,6 +574,10 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
     }
 
     "st_x" >> {
+      "null" >> {
+        sc.sql("select st_x(null)").collect.head(0) must beNull
+      }
+
       "point" >> {
         val result = sc.sql(
           """
@@ -541,6 +598,10 @@ class SparkSQLGeometryAccessorsTest extends Specification with LazyLogging {
     }
 
     "st_y" >> {
+      "null" >> {
+        sc.sql("select st_y(null)").collect.head(0) must beNull
+      }
+
       "point" >> {
         val result = sc.sql(
           """
