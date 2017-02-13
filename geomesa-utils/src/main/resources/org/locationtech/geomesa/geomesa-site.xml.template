@@ -98,7 +98,7 @@
     <property>
         <name>geomesa.mapreduce.splits.max</name>
         <value></value>
-        <description>Set the absolute number of shards instead of basing it on the number of tablet servers.
+        <description>Set the absolute number of splits instead of basing it on the number of tablet servers.
             Setting this value overrides geomesa.mapreduce.splits.tserver.max.
 
             Making this value final without setting a value greater than zero may cause unexpected issues.
