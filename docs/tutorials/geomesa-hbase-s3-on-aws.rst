@@ -1,4 +1,4 @@
-Geodocker: Bootstrapping GeoMesa HBase on AWS S3
+Bootstrapping GeoMesa HBase on AWS S3
 ==========================================================
 
 GeoMesa can be run on top of HBase using S3 as the underlying storage engine.  This mode of running GeoMesa is cost-effective as one sizes the database cluster for the compute and memory requirements, not the storage requirements.  The following guide describes how to bootstrap GeoMesa in this manner.  This guide assumes you have an Amazon Web Services account already provisioned as well as an IAM key pair.  To set up the AWS command line tools, follow the instructions found in the AWS `online documentation <http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html>`_.
@@ -31,7 +31,7 @@ First, you will need to configure an S3 bucket for use by HBase.  Create a json 
 Then, ensure that the bucket exists.
 
 .. code-block:: shell
-   
+
    $ aws s3 mb s3://<geomesa-root-path>/root
 
 
@@ -43,7 +43,7 @@ Then, Use the following command to bootstrap an EMR cluster with HBase.  You wil
 
 .. code-block:: shell
 
-  $ aws emr create-cluster                                \                                                                                                                                     
+  $ aws emr create-cluster                                \
     --name "GeoMesa HBase on S3"                          \
     --release-label emr-5.2.0                             \
     --output text                                         \
@@ -67,16 +67,18 @@ started. Now, download the GeoMesa HBase distribution.
 
 .. code-block:: shell
 
-   $ wget https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-hbase-dist_2.11/${VERSION}/geomesa-hbase-dist_2.11-${VERSION}-bin.tar.gz -o /tmp/geomesa-hbase-dist_2.11-${VERSION}-bin.tar.gz
+   $ wget https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-hbase_2.11/${VERSION}/geomesa-hbase_2.11-${VERSION}-bin.tar.gz -o /tmp/geomesa-hbase_2.11-${VERSION}-bin.tar.gz
    $ cd /opt
-   $ sudo tar zxvf /tmp/geomesa-hbase-dist_2.11-${VERSION}-bin.tar.gz
+   $ sudo tar zxvf /tmp/geomesa-hbase_2.11-${VERSION}-bin.tar.gz
 
 Then, bootstrap GeoMesa on HBase on S3 by executing the provided script
 
 .. code-block:: shell
 
-   $ sudo /opt/geomesa/bin/bootstrap-geomesa-hbase.sh
- 
+   $ sudo /opt/geomesa-hbase_2.11-${VERSION}/bin/bootstrap-geomesa-hbase.sh ${VERSION}
+
+Now, log out and back in and your environment will be set up appropriately.
+
 
 Ingest Public GDELT data
 ------------------------
@@ -103,7 +105,7 @@ Setup GeoMesa and SparkSQL
 To start executing SQL queries using Spark over your GeoMesa on HBase on S3 cluster, set up the following variable, replacing ``VERSION`` with the appropriate version of GeoMesa.
 
 .. code-block:: shell
-    
+
     $ JARS=file:///usr/lib/hbase/hbase-common.jar,file:///usr/lib/hbase/hbase-client.jar,file:///usr/lib/hbase/hbase-protocol.jar,file:///usr/lib/hbase/hbase-server.jar,file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime_2.11-${VERSION}.jar,file:///usr/lib/hbase/conf/hbase-site.xml
 
 Then, start up the Spark shell
@@ -120,6 +122,5 @@ Within the Spark shell, you can connect to GDELT and issues some queries.
 
    scala> df.createOrReplaceTempView("gdelt")
 
-   scala> spark.sql("select globalEventId,geom,dtg from gdelt limit 5").show() 
-
+   scala> spark.sql("select globalEventId,geom,dtg from gdelt limit 5").show()
 

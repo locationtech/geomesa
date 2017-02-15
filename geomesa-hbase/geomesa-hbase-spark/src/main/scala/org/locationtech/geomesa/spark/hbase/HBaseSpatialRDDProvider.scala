@@ -16,9 +16,6 @@ import org.locationtech.geomesa.spark.SpatialRDDProvider
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.opengis.feature.simple.SimpleFeature
 
-/**
-  * Created by afox on 2/8/17.
-  */
 class HBaseSpatialRDDProvider extends SpatialRDDProvider {
   import org.locationtech.geomesa.spark.CaseInsensitiveMapFix._
 

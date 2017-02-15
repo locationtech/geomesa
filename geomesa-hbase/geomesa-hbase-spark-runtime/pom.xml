@@ -28,6 +28,25 @@
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-client</artifactId>
+            <version>${hbase.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-common</artifactId>
+            <version>${hbase.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-protocol</artifactId>
+            <version>${hbase.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
         <!-- only needed for packaging into the shaded jar -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -51,7 +70,6 @@
             <version>${spark.version}</version>
             <scope>provided</scope>
         </dependency>
-
 
         <!-- test dependencies -->
         <dependency>
