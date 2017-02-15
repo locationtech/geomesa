@@ -13,6 +13,7 @@ object L {
   import org.apache.commons.lang3.StringEscapeUtils
   import org.opengis.feature.`type`.AttributeDescriptor
   import org.opengis.feature.simple.SimpleFeature
+  import org.geotools.geojson.geom.GeometryJSON
 
   trait GeoRenderable {
     def render: String
@@ -20,7 +21,12 @@ object L {
 
   trait Shape extends GeoRenderable
 
-  case class StyleOptions(color: String = "#000000", fillColor: String = "#327A66", fillOpacity: Double = 0.75) {
+  trait StyleOption {
+    def render: String
+  }
+
+  case class StyleOptions(color: String = "#000000", fillColor: String = "#327A66", fillOpacity: Double = 0.75)
+    extends StyleOption {
     def render: String =
       s"""
          |{
@@ -29,6 +35,52 @@ object L {
          |  fillOpacity: '$fillOpacity'
          |}
        """.stripMargin
+  }
+
+  /**
+    * Takes a string containing a valid javascript styling function as its argument
+    * @param javascriptFunction The javascript styling function
+    */
+  case class StyleOptionFunction(javascriptFunction: String) extends StyleOption {
+    def render: String = javascriptFunction
+  }
+
+
+  private object OnFeatureClick {
+    def render: String =
+      """
+       |function onClick(e) {
+       |  e.target.openPopup();
+       |}
+       |
+       |function onFeature(feature, layer) {
+       |  var keys = Object.keys(layer.feature.properties);
+       |  var str = "";
+       |  for (var i in keys) {
+       |    var key = keys[i];
+       |    if (key != "geom") {
+       |      var prop = layer.feature.properties[key];
+       |      str = str + "<b>" + key + "</b>: " + prop;
+       |      if (i < keys.length - 1 ) str = str + "<br>";
+       |    }
+       |  }
+       |  layer.bindPopup(str);
+       |  layer.on({click: onClick});
+       |}
+     """.stripMargin
+  }
+
+  private case class PointToLayer(style: StyleOption) {
+    val styleOptions = style.render
+    def render: String =
+      s"""
+        |pointToLayer: function(feature, latlng) {
+        |  return L.circleMarker(latlng, {
+        |                                   radius: 5,
+        |                                   ${styleOptions.replace("}", "").replace("{", "")}
+        |                                  });
+        |}
+      """.stripMargin
   }
 
   case class WMSLayer(layerName: String,
@@ -46,7 +98,7 @@ object L {
          |      layers: '$layerName',
          |      cql_filter: "$filter",
          |      styles: '$style',
-         |      env: '${env.map { case (k,v) => Array(k,v).mkString(sep = "=")}.mkString(sep = ":")}',
+         |      env: '${env.map { case (k, v) => Array(k, v).mkString(sep = "=") }.mkString(sep = ":")}',
          |      transparent: '$transparent',
          |      opacity: $opacity,
          |      format: 'image/png',
@@ -55,12 +107,22 @@ object L {
          |
        """.stripMargin
   }
-  case class SimpleFeatureLayer(features: Seq[SimpleFeature], style: StyleOptions) extends GeoRenderable {
+
+  case class SimpleFeatureLayer(features: Seq[SimpleFeature], style: StyleOption) extends GeoRenderable {
     override def render: String =
-      s"""
+      s"""{
          |L.geoJson(${features.map(simpleFeatureToGeoJSON).mkString("[",",","]")},
-         |    { style: '$style.render' }
+         |    {
+         |      onEachFeature: onFeature,
+         |      ${
+        if (features.head.getDefaultGeometry.asInstanceOf[Geometry].getGeometryType == "Point")
+          PointToLayer (style).render
+        else s"style: ${style.render}"
+      }
+         |    }
          |).addTo(map);
+         |
+         |${OnFeatureClick.render};}
        """.stripMargin
 
     private def simpleFeatureToGeoJSON(sf: SimpleFeature) = {
@@ -71,10 +133,7 @@ object L {
          |    "properties": {
          |        ${sf.getType.getAttributeDescriptors.zip(sf.getAttributes).filter{case(a,b) => b != null}.map { case (d, a) => propToJson(d, a) }.mkString(sep =",\n")}
          |    },
-         |    "geometry": {
-         |        "type": "${sf.getDefaultGeometry.asInstanceOf[Geometry].getGeometryType}",
-         |        "coordinates": ${processGeometry(sf.getDefaultGeometry.asInstanceOf[Geometry])}
-         |    }
+         |    "geometry": ${new GeometryJSON().toString(sf.getDefaultGeometry.asInstanceOf[Geometry])}
          |}
        """.stripMargin
     }
@@ -82,53 +141,42 @@ object L {
     private def propToJson(ad: AttributeDescriptor, a: Object) =
       if(a!= null) s""""${ad.getLocalName}": '${StringEscapeUtils.escapeJson(a.toString)}'"""
       else s""""${ad.getLocalName}": ''"""
-
-    private def processGeometry(geom: Geometry) = geom match {
-      case p: Point       => processPoint(p)
-      case ls: LineString => processLinestring(ls)
-      case p: Polygon     => processPoly(p)
-    }
-
-    def processCoord(c: Coordinate) = s"[${c.x}, ${c.y}]"
-    def processPoint(p: Point) = s"${processCoord(p.getCoordinate)}"
-    def processLinestring(l: LineString) = s"[${l.getCoordinates.map { c =>processCoord(c)}.mkString(",")}]"
-    def processPoly(p: Polygon) = s"[${p.getCoordinates.map { c =>processCoord(c)}.mkString(",")}]"
   }
 
-  case class Circle(cx: Double, cy: Double, radiusMeters: Double, style: StyleOptions) extends GeoRenderable {
+  case class Circle(cx: Double, cy: Double, radiusMeters: Double, style: StyleOption) extends GeoRenderable {
     override def render: String =
       s"""
          |L.circle([$cy, $cx], $radiusMeters, ${style.render}).addTo(map);
        """.stripMargin
   }
 
-  implicit class JTSPolyLayer(val poly: Polygon) extends GeoRenderable {
+  implicit class JTSPolyLayer(style: StyleOption)(implicit val poly: Polygon) extends GeoRenderable {
     override def render: String = {
       val coords = poly.getCoordinates.map { c => Array(c.y, c.x).mkString("[", ",", "]") }.mkString("[", ",", "]")
-      s"L.polygon($coords, { fillOpacity: 0 }).addTo(map);"
+      s"L.polygon($coords, ${style.render} ).addTo(map);"
     }
   }
 
-  implicit class JTSPointLayer(val point: Point) extends GeoRenderable {
-    override def render: String = s"L.circle([${point.getY},${point.getX}], 5, {}).addTo(map);"
+  implicit class JTSPointLayer(style: StyleOption)(implicit val point: Point) extends GeoRenderable {
+    override def render: String = s"L.circle([${point.getY},${point.getX}], 5, , { ${style.render} }).addTo(map);"
   }
 
-  implicit class JTSLineStringLayer(val ls: LineString) extends GeoRenderable {
+  implicit class JTSLineStringLayer(style: StyleOption)(implicit val ls: LineString) extends GeoRenderable {
     override def render: String = {
       val coords = ls.getCoordinates.map { c => Array(c.y, c.x).mkString("[", ",", "]") }.mkString("[", ",", "]")
-      s"L.polyline($coords).addTo(map);"
+      s"L.polyline($coords, ${style.render} ).addTo(map);"
     }
   }
 
   // TODO: parameterize base url for js and css
-  def buildMap(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 8) =
+  def buildMap(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 8, path: String = "js") =
     s"""
        |<html>
        |  <head>
-       |    <link rel="stylesheet" href="js/leaflet.css" />
-       |    <script src="js/leaflet.js"></script>
-       |    <script src="js/leaflet.wms.js"></script>
-       |    <script src="js/countries.geo.json" type="text/javascript"></script>
+       |    <link rel="stylesheet" href="$path/leaflet.css" />
+       |    <script src="$path/leaflet.js"></script>
+       |    <script src="$path/leaflet.wms.js"></script>
+       |    <script src="$path/countries.geo.json" type="text/javascript"></script>
        |  </head>
        |  <body>
        |    <div id='map' style="width:100%;height:500px"></div>
@@ -152,10 +200,10 @@ object L {
        |</html>
      """.stripMargin
 
-  def render(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 8) = {
+  def render(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 8, path: String = "js") = {
     val id = org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric(5)
     s"""
-       |<iframe id="${id}" sandbox="allow-scripts allow-same-origin" style="border:none;width=100%;height:520px" srcdoc="${xml.Utility.escape(buildMap(layers, center, zoom))}"></iframe>
+       |<iframe id="${id}" sandbox="allow-scripts allow-same-origin" style="border:none;width:100%;height:520px" srcdoc="${xml.Utility.escape(buildMap(layers, center, zoom, path))}"></iframe>
        |<script>
        |  if(typeof resizeIFrame != 'function') {
        |    function resizeIFrame(el, k) {
@@ -171,7 +219,7 @@ object L {
      """.stripMargin
   }
 
-  def show(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 1)(implicit disp: String => Unit) = disp(render(layers,center,zoom))
+  def show(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 1, path: String = "js")(implicit disp: String => Unit) = disp(render(layers,center,zoom,path))
 
-  def print(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 1) = println(buildMap(layers,center,zoom))
+  def print(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 1, path: String = "js") = println(buildMap(layers,center,zoom,path))
 }
