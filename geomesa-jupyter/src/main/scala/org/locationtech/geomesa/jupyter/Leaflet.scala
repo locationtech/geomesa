@@ -14,6 +14,9 @@ object L {
   import org.opengis.feature.`type`.AttributeDescriptor
   import org.opengis.feature.simple.SimpleFeature
   import org.geotools.geojson.geom.GeometryJSON
+  import org.apache.spark.sql._
+  import org.geotools.feature.simple.SimpleFeatureBuilder
+  import org.locationtech.geomesa.spark.{GeoMesaDataSource, SparkUtils}
 
   trait GeoRenderable {
     def render: String
@@ -106,6 +109,16 @@ object L {
          |   }).getLayer('$layerName').addTo(map);
          |
        """.stripMargin
+  }
+
+  case class DataFrameLayer(df: DataFrame, idField: String, style: StyleOption) extends GeoRenderable {
+    private val dfc = df.collect() // expensive operation
+    private val sft = new GeoMesaDataSource().structType2SFT(df.schema, "sft")
+    private val builder = new SimpleFeatureBuilder(sft)
+    // expensive map operation
+    private val sftSeq = dfc.map(r => SparkUtils.row2Sf(sft, r, builder, r.getAs[String](idField))).toSeq
+    private val sftLayer = SimpleFeatureLayer(sftSeq, style)
+    override def render: String = sftLayer.render
   }
 
   case class SimpleFeatureLayer(features: Seq[SimpleFeature], style: StyleOption) extends GeoRenderable {
