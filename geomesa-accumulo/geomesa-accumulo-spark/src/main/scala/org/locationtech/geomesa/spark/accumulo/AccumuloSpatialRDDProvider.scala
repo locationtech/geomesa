@@ -22,14 +22,14 @@ import org.apache.spark.rdd.RDD
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloDataStoreParams}
-import org.locationtech.geomesa.accumulo.index.EmptyPlan
+import org.locationtech.geomesa.accumulo.index.{AccumuloQueryPlan, EmptyPlan}
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.accumulo.AccumuloJobUtils
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaAccumuloInputFormat
 import org.locationtech.geomesa.spark.SpatialRDDProvider
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
@@ -48,11 +48,8 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
     val username = AccumuloDataStoreParams.userParam.lookUp(dsParams).toString
     val password = new PasswordToken(AccumuloDataStoreParams.passwordParam.lookUp(dsParams).toString.getBytes)
-    try {
-      // get the query plan to set up the iterators, ranges, etc
-      lazy val sft = ds.getSchema(query.getTypeName)
-      lazy val qp = AccumuloJobUtils.getSingleQueryPlan(ds, query)
 
+    def queryPlanToRDD(sft: => SimpleFeatureType, qp: => AccumuloQueryPlan, conf: Configuration) = {
       if (ds == null || sft == null || qp.isInstanceOf[EmptyPlan]) {
         sc.emptyRDD[SimpleFeature]
       } else {
@@ -99,6 +96,19 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider {
 
         sc.newAPIHadoopRDD(conf, classOf[GeoMesaAccumuloInputFormat], classOf[Text], classOf[SimpleFeature]).map(U => U._2)
       }
+    }
+
+    try {
+      // get the query plan to set up the iterators, ranges, etc
+      // getMultipleQueryPlan will return the fallback if any
+      // element of the plan is a JoinPlan
+      lazy val sft = ds.getSchema(query.getTypeName)
+      lazy val qps = AccumuloJobUtils.getMultipleQueryPlan(ds, query)
+
+      // can return a union of the RDDs because the query planner *should*
+      // be rewriting ORs to make them logically disjoint
+      // e.g. "A OR B OR C" -> "A OR (B NOT A) OR ((C NOT A) NOT B)"
+      sc.union(qps.map(queryPlanToRDD(sft, _, new Configuration(conf))))
     } finally {
       if (ds != null) {
         ds.dispose()
