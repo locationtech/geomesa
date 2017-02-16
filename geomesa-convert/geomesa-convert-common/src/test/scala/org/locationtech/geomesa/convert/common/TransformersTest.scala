@@ -221,7 +221,6 @@ class TransformersTest extends Specification {
           val exp = Transformers.parseTransform("secsToDate($1)")
           exp.eval(Array("", secs)).asInstanceOf[Date] must be equalTo testDate
         }
-
       }
 
       "handle point geometries" >> {
@@ -334,6 +333,48 @@ class TransformersTest extends Specification {
         exp.eval(Array("", secs)).asInstanceOf[Date] mustEqual new Date(secs*1000L)
         exp.eval(Array("", "")).asInstanceOf[Date] must beNull
         exp.eval(Array("", "abcd")).asInstanceOf[Date] must beNull
+      }
+    }
+
+    "handle math" >> {
+      "add" >> {
+        val exp1 = Transformers.parseTransform("add($1,$2)")
+        exp1.eval(Array("","1","2")) mustEqual 3.0
+        exp1.eval(Array("","-1","2")) mustEqual 1.0
+
+        val exp2 = Transformers.parseTransform("add($1,$2,$3)")
+        exp2.eval(Array("","1","2","3.0")) mustEqual 6.0
+        exp2.eval(Array("","-1","2","3.0")) mustEqual 4.0
+      }
+
+      "multiply" >> {
+        val exp1 = Transformers.parseTransform("multiply($1,$2)")
+        exp1.eval(Array("","1","2")) mustEqual 2.0
+        exp1.eval(Array("","-1","2")) mustEqual -2.0
+
+        val exp2 = Transformers.parseTransform("multiply($1,$2,$3)")
+        exp2.eval(Array("","1","2","3.0")) mustEqual 6.0
+        exp2.eval(Array("","-1","2","3.0")) mustEqual -6.0
+      }
+
+      "subtract" >> {
+        val exp1 = Transformers.parseTransform("subtract($1,$2)")
+        exp1.eval(Array("","2","1")) mustEqual 1.0
+        exp1.eval(Array("","-1","2")) mustEqual -3.0
+
+        val exp2 = Transformers.parseTransform("subtract($1,$2,$3)")
+        exp2.eval(Array("","1","2","3.0")) mustEqual -4.0
+        exp2.eval(Array("","-1","2","3.0")) mustEqual -6.0
+      }
+
+      "divide" >> {
+        val exp1 = Transformers.parseTransform("divide($1,$2)")
+        exp1.eval(Array("","2","1")) mustEqual 2.0
+        exp1.eval(Array("","-1","2")) mustEqual -0.5
+
+        val exp2 = Transformers.parseTransform("divide($1,$2,$3)")
+        exp2.eval(Array("","1","2","3.0")) mustEqual (1.0/2/3) // 0.166666666666
+        exp2.eval(Array("","-1","2","3.0")) mustEqual (-1.0/2/3) // -0.166666666666
       }
     }
 

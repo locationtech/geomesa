@@ -22,6 +22,7 @@ import org.joda.time.format.{DateTimeFormat, DateTimeFormatter, ISODateTimeForma
 import org.locationtech.geomesa.utils.text.{EnhancedTokenParsers, WKTUtils}
 
 import scala.collection.JavaConversions._
+import scala.collection.immutable.StringLike
 import scala.collection.mutable
 import scala.util.Try
 import scala.util.matching.Regex
@@ -599,5 +600,43 @@ class CastFunctionFactory extends TransformerFunctionFactory {
       return default
     }
     try { conversion(s) } catch { case e: Exception => default }
+  }
+}
+
+class MathFunctionFactory extends TransformerFunctionFactory {
+  override def functions = Seq(add, subtract, multiply, divide)
+
+  def parseDouble(v: Any): Double = {
+    v match {
+      case i: Int => i.toDouble
+      case d: Double => d
+      case f: Float => f.toDouble
+      case t: String => t.toDouble
+      case _ => throw new IllegalArgumentException(s"Invalid unable to parse ${v} to double.")
+    }
+  }
+
+  val add = TransformerFn("add") { args =>
+    var s: Double = 0.0
+    args.foreach(s += parseDouble(_))
+    s
+  }
+
+  val multiply = TransformerFn("multiply") { args =>
+    var s: Double = 1.0
+    args.foreach(s *= parseDouble(_))
+    s
+  }
+
+  val subtract = TransformerFn("subtract") { args =>
+    var s: Double = parseDouble(args(0))
+    args.drop(1).foreach(s -= parseDouble(_))
+    s
+  }
+
+  val divide = TransformerFn("divide") { args =>
+    var s: Double = parseDouble(args(0))
+    args.drop(1).foreach(s /= parseDouble(_))
+    s
   }
 }
