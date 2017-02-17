@@ -19,7 +19,7 @@ import org.opengis.feature.simple.SimpleFeature
 
 /**
  * Class for reading avro files written using
- * <code>org.locationtech.geomesa.features.avro.AvroDataFileWriter</code>.
+ * <code>org.locationtech.geomesa.features.avro.AvroDataFileReader</code>.
  */
 class AvroFileInputFormat extends FileStreamInputFormat {
   override def createRecordReader(): FileStreamRecordReader = new AvroFileRecordReader
